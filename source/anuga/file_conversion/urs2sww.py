@@ -238,26 +238,6 @@ def read_time_from_mux(mux_times, mint, maxt):
 
 
 
-##
-# @brief Convert URS file to SWW file.
-# @param basename_in Stem of the input filename.
-# @param basename_out Stem of the output filename.
-# @param verbose True if this function is to be verbose.
-# @param remove_nc_files 
-# @param minlat Sets extent of area to be used.  If not supplied, full extent.
-# @param maxlat Sets extent of area to be used.  If not supplied, full extent.
-# @param minlon Sets extent of area to be used.  If not supplied, full extent.
-# @param maxlon Sets extent of area to be used.  If not supplied, full extent.
-# @param mint 
-# @param maxt 
-# @param mean_stage 
-# @param origin A 3-tuple with geo referenced UTM coordinates
-# @param zscale 
-# @param fail_on_NaN 
-# @param NaN_filler 
-# @param elevation 
-# @note Also convert latitude and longitude to UTM. All coordinates are
-#       assumed to be given in the GDA94 datum.
 def urs2sww(basename_in='o', basename_out=None, verbose=False,
             remove_nc_files=True,
             minlat=None, maxlat=None,

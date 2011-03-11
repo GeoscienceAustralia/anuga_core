@@ -15,20 +15,6 @@ from anuga.file.mux import WAVEHEIGHT_MUX2_LABEL, EAST_VELOCITY_MUX2_LABEL, \
 from anuga.file.sts import Write_sts                
                 
 
-##
-# @brief Convert a URS (mux2, wave propagation) file to an STS file.
-# @param basename_in String (or list) of source file stems.
-# @param basename_out Stem of output STS file path.
-# @param weights
-# @param verbose True if this function is to be verbose.
-# @param origin Tuple with with geo-ref UTM coords (zone, easting, northing).
-# @param zone
-# @param mean_stage
-# @param zscale
-# @param ordering_filename Path of a file specifying which mux2 gauge points are
-#                          to be stored.
-# @note Also convert latitude and longitude to UTM. All coordinates are
-#       assumed to be given in the GDA94 datum.
 def urs2sts(basename_in, basename_out=None,
             weights=None,
             verbose=False,

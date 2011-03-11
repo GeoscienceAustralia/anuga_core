@@ -55,16 +55,6 @@ class Modeltime_too_late(Exception): pass
 class Modeltime_too_early(Exception): pass
 
 
-##
-# @brief Interpolate vertex_values to interpolation points.
-# @param vertex_coordinates List of coordinate pairs making a mesh.
-# @param triangles Iterable of 3-tuples representing indices of mesh vertices.
-# @param vertex_values Array of data at mesh vertices.
-# @param interpolation_points Points to interpolate to.
-# @param mesh_origin A geo_ref object or 3-tuples of UTMzone, easting, northing.
-# @param start_blocking_len Block if # of points greater than this.
-# @param use_cache If True, cache.
-# @param verbose True if this function is to be verbose.
 def interpolate(vertex_coordinates,
                 triangles,
                 vertex_values,
@@ -159,17 +149,8 @@ def interpolate(vertex_coordinates,
     return result
 
 
-##
-# @brief
 class Interpolate (FitInterpolate):
 
-    ##
-    # @brief Build interpolation matrix.
-    # @param vertex_coordinates List of pairs [xi, eta] of points making a mesh.
-    # @param triangles List of 3-tuples of indices of all vertices in the mesh.
-    # @param mesh_origin A geo_ref object (UTM zone, easting and northing).
-    # @param verbose If True, this function is to be verbose.
-    # @param max_vertices_per_cell Split quadtree cell if vertices >= this.
     def __init__(self,
                  vertex_coordinates,
                  triangles,
@@ -215,12 +196,6 @@ class Interpolate (FitInterpolate):
         self.interpolation_matrices = {} # Store precomputed matrices
 
 
-    ##
-    # @brief Interpolate mesh data f to determine values, z, at points.
-    # @param f Data on the mesh vertices.
-    # @param point_coordinates Interpolate mesh data to these positions.
-    # @param start_blocking_len Block if # points >= this.
-    # @param verbose True if this function is to be verbose.
     # FIXME: What is a good start_blocking_len value?
     def interpolate(self,
                     f,
@@ -315,13 +290,6 @@ class Interpolate (FitInterpolate):
         return z
 
 
-    ##
-    # @brief Interpolate a block of vertices
-    # @param f Array of arbitrary data to be interpolated
-    # @param point_coordinates List of vertices to intersect with the mesh
-    # @param use_cache True if caching should be used to accelerate the calculations
-    # @param verbose True if this function is verbose.
-    # @return interpolated f
     def interpolate_block(self, f, point_coordinates,
                           use_cache=False, verbose=False, output_centroids=False):
         """
@@ -402,14 +370,6 @@ class Interpolate (FitInterpolate):
         return self._get_point_data_z(f)
 
 
-    ##
-    # @brief Get interpolated data at given points.
-    #        Applies a transform to all points to calculate the
-    #        interpolated values. Points outside the mesh are returned as NaN.
-    # @note self._A matrix must be valid
-    # @param f Array of arbitrary data
-    # @param verbose True if this function is to be verbose.
-    # @return f transformed by interpolation matrix (f')
     def _get_point_data_z(self, f, verbose=False):
         """
         Return the point data, z.
@@ -425,15 +385,6 @@ class Interpolate (FitInterpolate):
         return z
 
 
-    ##
-    # @brief Build NxM interpolation matrix.
-    # @param point_coordinates Points to sample at
-    # @param output_centroids set to True to always sample from the centre
-    #                         of the intersected triangle, instead of the intersection
-    #                         point.
-    # @param verbose True if this function is to be verbose.
-    # @return Interpolation matrix A, plus lists of the points inside and outside the mesh
-    #         and the list of centroids, if requested.
     def _build_interpolation_matrix_A(self,
                                       point_coordinates,
                                       output_centroids=False,
@@ -538,15 +489,6 @@ class Interpolate (FitInterpolate):
 
 
 
-##
-# @brief ??
-# @param vertices ??
-# @param vertex_attributes ??
-# @param triangles ??
-# @param points ??
-# @param max_points_per_cell ??
-# @param start_blocking_len ??
-# @param mesh_origin ??
 def benchmark_interpolate(vertices,
                           vertex_attributes,
                           triangles, points,
@@ -576,18 +518,6 @@ def benchmark_interpolate(vertices,
                               start_blocking_len=start_blocking_len)
 
 
-##
-# @brief Interpolate quantities at given locations (from .SWW file).
-# @param sww_file Input .SWW file.
-# @param points A list of the 'gauges' x,y location.
-# @param depth_file The name of the output depth file.
-# @param velocity_x_file Name of the output x velocity  file.
-# @param velocity_y_file Name of the output y velocity  file.
-# @param stage_file Name of the output stage file.
-# @param froude_file
-# @param time_thinning Time thinning step to use.
-# @param verbose True if this function is to be verbose.
-# @param use_cache True if we are caching.
 def interpolate_sww2csv(sww_file,
                         points,
                         depth_file,
@@ -712,8 +642,6 @@ def interpolate_sww2csv(sww_file,
             froude_writer.writerow(froudes)
 
 
-##
-# @brief
 class Interpolation_function:
     """Interpolation_interface - creates callable object f(t, id) or f(t,x,y)
     which is interpolated from time series defined at vertices of
@@ -758,17 +686,6 @@ class Interpolation_function:
     taken care of outside this function
     """
 
-    ##
-    # @brief ??
-    # @param time ??
-    # @param quantities ??
-    # @param quantity_names   ??
-    # @param vertex_coordinates ??
-    # @param triangles ??
-    # @param interpolation_points ??
-    # @param time_thinning ??
-    # @param verbose ??
-    # @param gauge_neighbour_id ??
     def __init__(self,
                  time,
                  quantities,
@@ -1021,19 +938,10 @@ class Interpolation_function:
             for name in quantity_names:
                 self.precomputed_values[name] = quantities[name]
 
-    ##
-    # @brief Override object representation method.
     def __repr__(self):
         # return 'Interpolation function (spatio-temporal)'
         return self.statistics()
 
-    ##
-    # @brief Evaluate interpolation function
-    # @param t Model time - must lie within existing timesteps.
-    # @param point_id Index of one of the preprocessed points.
-    # @param x ??
-    # @param y ??
-    # @return ??
     def __call__(self, t, point_id=None, x=None, y=None):
         """Evaluate f(t) or f(t, point_id)
 
@@ -1141,16 +1049,11 @@ class Interpolation_function:
 
                 return res
 
-    ##
-    # @brief Return model time as a vector of timesteps.
     def get_time(self):
         """Return model time as a vector of timesteps
         """
         return self.time
 
-    ##
-    # @brief Output statistics about interpolation_function.
-    # @return The statistics string.
     def statistics(self):
         """Output statistics about interpolation_function
         """
@@ -1198,14 +1101,6 @@ class Interpolation_function:
         return str
 
 
-##
-# @brief ??
-# @param sww_file ??
-# @param time ??
-# @param interpolation_points ??
-# @param quantity_names ??
-# @param verbose ??
-# @note Obsolete.  Use file_function() in utils.
 def interpolate_sww(sww_file, time, interpolation_points,
                     quantity_names=None, verbose=False):
     """

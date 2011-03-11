@@ -161,18 +161,6 @@ def file_function(filename,
     return f
 
 
-##
-# @brief ??
-# @param filename  Name of .sww or .tms file.
-# @param domain Associated domain object.
-# @param quantities Name of quantity to be interpolated or a list of names.
-# @param interpolation_points List of absolute UTM coordinates for points
-#                             (N x 2) or geospatial object or
-#                             points file name at which values are sought.
-# @param time_thinning 
-# @param verbose True if this function is to be verbose.
-# @param use_cache True means that caching of intermediate result is attempted.
-# @param boundary_polygon 
 def _file_function(filename,
                    quantities=None,
                    interpolation_points=None,
@@ -217,18 +205,6 @@ def _file_function(filename,
         raise Exception('Must be a NetCDF File')
 
 
-##
-# @brief ??
-# @param filename  Name of .sww or .tms file.
-# @param quantity_names Name of quantity to be interpolated or a list of names.
-# @param interpolation_points List of absolute UTM coordinates for points
-#                             (N x 2) or geospatial object or
-#                             points file name at which values are sought.
-# @param domain_starttime Start time from domain object.
-# @param time_thinning ??
-# @param verbose True if this function is to be verbose.
-# @param boundary_polygon ??
-# @return A callable object.
 def get_netcdf_file_function(filename,
                              quantity_names=None,
                              interpolation_points=None,

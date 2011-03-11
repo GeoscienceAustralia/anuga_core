@@ -30,14 +30,8 @@ import anuga.utilities.numerical_tools as aunt
 import numpy as num
 
 
-##
-# @brief Implement values at each triangular element.
 class Quantity:
 
-    ##
-    # @brief Construct values art each triangular element.
-    # @param domain ??
-    # @param vertex_values ??
     def __init__(self, domain, vertex_values=None):
         from anuga.abstract_2d_finite_volumes.generic_domain \
                             import Generic_Domain
@@ -229,9 +223,6 @@ class Quantity:
     # Setters/Getters
     ############################################################################
 
-    ##
-    # @brief Set default beta value for limiting.
-    # @param beta ??
     def set_beta(self, beta):
         """Set default beta value for limiting """
 
@@ -242,17 +233,11 @@ class Quantity:
 
         self.beta = beta
 
-    ##
-    # @brief Get the current beta value.
-    # @return The current beta value.
     def get_beta(self):
         """Get default beta value for limiting"""
 
         return self.beta
 
-    ##
-    # @brief Compute interpolated values at edges and centroid.
-    # @note vertex_values must be set before calling this.
     def interpolate(self):
         """Compute interpolated values at edges and centroid
         Pre-condition: vertex_values have been set
@@ -273,14 +258,10 @@ class Quantity:
 
         self.interpolate_from_vertices_to_edges()
 
-    ##
-    # @brief ??
     def interpolate_from_vertices_to_edges(self):
         # Call correct module function (either from this module or C-extension)
         interpolate_from_vertices_to_edges(self)
 
-    ##
-    # @brief ??
     def interpolate_from_edges_to_vertices(self):
         # Call correct module function (either from this module or C-extension)
         interpolate_from_edges_to_vertices(self)
@@ -289,23 +270,6 @@ class Quantity:
     # Public interface for setting quantity values
     #---------------------------------------------
 
-    ##
-    # @brief Set values for quantity based on different sources.
-    # @param numeric A num array, list or constant value.
-    # @param quantity Another Quantity.
-    # @param function Any callable object that takes two 1d arrays.
-    # @param geospatial_data Arbitrary instance of class Geospatial_data
-    # @param filename Path to a points file.
-    # @param attribute_name If specified any array using that name will be used.
-    # @param alpha Smoothing parameter to be used with fit_interpolate.fit.
-    # @param location Where to store values (vertices, edges, centroids).
-    # @param polygon Restrict update to locations that fall inside polygon.
-    # @param indices Restrict update to locations specified by this.
-    # @param smooth If True, smooth vertex values.
-    # @param verbose True if this method is to be verbose.
-    # @param use_cache If True cache results for fit_interpolate.fit.
-    # @note Exactly one of 'numeric', 'quantity', 'function', 'filename'
-    #       must be present.
     def set_values(self, numeric=None,         # List, numeric array or constant
                          quantity=None,        # Another quantity
                          function=None,        # Callable object: f(x,y)
@@ -527,12 +491,6 @@ class Quantity:
     # Specific internal functions for setting values based on type
     ############################################################################
 
-    ##
-    # @brief Set quantity values from specified constant.
-    # @param X The constant to set quantity values to.
-    # @param location 
-    # @param indices 
-    # @param verbose 
     def set_values_from_constant(self, X, location, indices, verbose):
         """Set quantity values from specified constant X"""
 
@@ -575,13 +533,6 @@ class Quantity:
                 for i_vertex in indices:
                     self.vertex_values[i_vertex] = X
 
-    ##
-    # @brief Set values for a quantity.
-    # @param values Array of values.
-    # @param location Where values are to be stored.
-    # @param indices Limit update to these indices.
-    # @param use_cache ??
-    # @param verbose True if this method is to be verbose.
     def set_values_from_array(self, values,
                                     location='vertices',
                                     indices=None,
@@ -666,12 +617,6 @@ class Quantity:
                 msg = 'Values array must be 1d or 2d'
                 raise Exception(msg)
 
-    ##
-    # @brief Set quantity values from a specified quantity instance.
-    # @param q The quantity instance to take values from.
-    # @param location IGNORED, 'vertices' ALWAYS USED!
-    # @param indices ??
-    # @param verbose True if this method is to be verbose.
     def set_values_from_quantity(self, q, location, indices, verbose):
         """Set quantity values from specified quantity instance q
 
@@ -689,13 +634,6 @@ class Quantity:
         self.set_values(A, location='vertices',
                         indices=indices, verbose=verbose)
 
-    ##
-    # @brief Set quantity values from a specified quantity instance.
-    # @param f Callable that takes two 1d array -> 1d array.
-    # @param location Where values are to be stored.
-    # @param indices ??
-    # @param use_cache ??
-    # @param verbose True if this method is to be verbose.
     def set_values_from_function(self,
                                  f,
                                  location='vertices',
@@ -770,14 +708,6 @@ class Quantity:
         else:
             raise Exception('Not implemented: %s' % location)
 
-    ##
-    # @brief Set values based on geo referenced geospatial data object.
-    # @param geospatial_data ??
-    # @param alpha ??
-    # @param location ??
-    # @param indices ??
-    # @param verbose ??
-    # @param use_cache ??
     def set_values_from_geospatial_data(self,
                                         geospatial_data,
                                         alpha,
@@ -826,16 +756,6 @@ class Quantity:
         self.set_values_from_array(vertex_attributes, location, indices,
                                    use_cache=use_cache, verbose=verbose)
 
-    ##
-    # @brief Set quantity values from arbitray data points.
-    # @param points ??
-    # @param values ??
-    # @param alpha ??
-    # @param location ??
-    # @param indices ??
-    # @param data_georef ??
-    # @param verbose True if this method is to be verbose.
-    # @param use_cache ??
     def set_values_from_points(self,
                                points,
                                values,
@@ -849,16 +769,6 @@ class Quantity:
 
         raise Exception('set_values_from_points is obsolete, use geospatial data object instead')
 
-    ##
-    # @brief Set quantity based on arbitrary points in a points file.
-    # @param filename Path to the points file.
-    # @param attribute_name 
-    # @param alpha 
-    # @param location 
-    # @param indices 
-    # @param verbose True if this method is to be verbose.
-    # @param use_cache 
-    # @param max_read_lines 
     def set_values_from_file(self,
                              filename,
                              attribute_name,
@@ -918,10 +828,6 @@ class Quantity:
                                    indices, use_cache=use_cache,
                                    verbose=verbose)
 
-    ##
-    # @brief Get index for maximum or minimum value of quantity.
-    # @param mode Either 'max' or 'min'.
-    # @param indices Set of IDs of elements to work on.
     def get_extremum_index(self, mode=None, indices=None):
         """Return index for maximum or minimum value of quantity (on centroids)
 
@@ -955,17 +861,11 @@ class Quantity:
         else:
             return indices[i]
 
-    ##
-    # @brief Get index for maximum value of quantity.
-    # @param indices Set of IDs of elements to work on.
     def get_maximum_index(self, indices=None):
         """See get extreme index for details"""
 
         return self.get_extremum_index(mode='max', indices=indices)
 
-    ##
-    # @brief Return maximum value of quantity (on centroids).
-    # @param indices Set of IDs of elements to work on.
     def get_maximum_value(self, indices=None):
         """Return maximum value of quantity (on centroids)
 
@@ -984,9 +884,6 @@ class Quantity:
 
         return V[i]
 
-    ##
-    # @brief Get location of maximum value of quantity (on centroids).
-    # @param indices Set of IDs of elements to work on.
     def get_maximum_location(self, indices=None):
         """Return location of maximum value of quantity (on centroids)
 
@@ -1009,17 +906,11 @@ class Quantity:
 
         return x, y
 
-    ##
-    # @brief  Get index for minimum value of quantity.
-    # @param indices Set of IDs of elements to work on.
     def get_minimum_index(self, indices=None):
         """See get extreme index for details"""
 
         return self.get_extremum_index(mode='min', indices=indices)
 
-    ##
-    # @brief Return minimum value of quantity (on centroids).
-    # @param indices Set of IDs of elements to work on.
     def get_minimum_value(self, indices=None):
         """Return minimum value of quantity (on centroids)
 
@@ -1038,9 +929,6 @@ class Quantity:
         return V[i]
 
 
-    ##
-    # @brief Get location of minimum value of quantity (on centroids).
-    # @param indices Set of IDs of elements to work on.
     def get_minimum_location(self, indices=None):
         """Return location of minimum value of quantity (on centroids)
 
@@ -1063,11 +951,6 @@ class Quantity:
 
         return x, y
 
-    ##
-    # @brief Get values at interpolation points.
-    # @param interpolation_points List of UTM coords or geospatial data object.
-    # @param use_cache ??
-    # @param verbose True if this method is to be verbose.
     def get_interpolated_values(self,
                                 interpolation_points,
                                 use_cache=False,
@@ -1112,13 +995,6 @@ class Quantity:
 
         return result
 
-    ##
-    # @brief Get values as an array.
-    # @param interpolation_points List of coords to get values at.
-    # @param location Where to store results.
-    # @param indices Set of IDs of elements to work on.
-    # @param use_cache 
-    # @param verbose True if this method is to be verbose.
     def get_values(self,
                    interpolation_points=None,
                    location='vertices',
@@ -1231,12 +1107,6 @@ class Quantity:
             else:    
                 return num.take(self.vertex_values, indices, axis=0)
 
-    ##
-    # @brief Set vertex values for all unique vertices based on array.
-    # @param A Array to set values with.
-    # @param indices Set of IDs of elements to work on.
-    # @param use_cache ??
-    # @param verbose??
     def set_vertex_values(self,
                           A,
                           indices=None,
@@ -1272,10 +1142,6 @@ class Quantity:
         #
         self._set_vertex_values(vertex_list, A)
             
-    ##
-    # @brief Go through list of unique vertices.
-    # @param vertex_list ??
-    # @param A ??
     def _set_vertex_values(self, vertex_list, A):
         """Go through list of unique vertices
         This is the common case e.g. when values
@@ -1298,8 +1164,6 @@ class Quantity:
         # Intialise centroid and edge_values
         self.interpolate()
 
-    ##
-    # @brief Smooth vertex values.
     def smooth_vertex_values(self, use_cache=False, verbose=False):
         """Smooths vertex values."""
 
@@ -1312,11 +1176,6 @@ class Quantity:
     # Methods for outputting model results
     ############################################################################
 
-    ##
-    # @brief Get vertex values like an OBJ format i.e. one value per node.
-    # @param xy True if we return X and Y as well as A and V.
-    # @param smooth True if vertex values are to be smoothed.
-    # @param precision The type of the result values (default float).
     def get_vertex_values(self, xy=True, smooth=None, precision=None):
         """Return vertex values like an OBJ format i.e. one value per node.
 
@@ -1410,8 +1269,6 @@ class Quantity:
         else:
             return A, V
 
-    ##
-    # @brief Extrapolate conserved quantities from centroid.
     def extrapolate_first_order(self):
         """Extrapolate conserved quantities from centroid to vertices and edges
         for each volume using first order scheme.
@@ -1428,9 +1285,6 @@ class Quantity:
         self.x_gradient *= 0.0
         self.y_gradient *= 0.0
 
-    ##
-    # @brief Compute the integral of quantity across entire domain.
-    # @return The integral.
     def get_integral(self):
         """Compute the integral of quantity across entire domain."""
 
@@ -1447,31 +1301,22 @@ class Quantity:
 
         #return integral
 
-    ##
-    # @brief get the gradients.
     def get_gradients(self):
         """Provide gradients. Use compute_gradients first."""
 
         return self.x_gradient, self.y_gradient
 
-    ##
-    # @brief ??
-    # @param timestep ??
     def update(self, timestep):
         # Call correct module function
         # (either from this module or C-extension)
         return update(self, timestep)
 
-    ##
-    # @brief ??
     def compute_gradients(self):
         # Call correct module function
         # (either from this module or C-extension)
         return compute_gradients(self)
 
 
-    ##
-    # @brief ??
     def compute_local_gradients(self):
         # Call correct module function
         # (either from this module or C-extension)
@@ -1480,67 +1325,47 @@ class Quantity:
 
 
 
-    ##
-    # @brief ??
     def limit(self):
         # Call correct module depending on whether
         # basing limit calculations on edges or vertices
         limit_old(self)
 
-    ##
-    # @brief ??
     def limit_vertices_by_all_neighbours(self):
         # Call correct module function
         # (either from this module or C-extension)
         limit_vertices_by_all_neighbours(self)
 
-    ##
-    # @brief ??
     def limit_edges_by_all_neighbours(self):
         # Call correct module function
         # (either from this module or C-extension)
         limit_edges_by_all_neighbours(self)
 
-    ##
-    # @brief ??
     def limit_edges_by_neighbour(self):
         # Call correct module function
         # (either from this module or C-extension)
         limit_edges_by_neighbour(self)
 
-    ##
-    # @brief ??
     def extrapolate_second_order(self):
         # Call correct module function
         # (either from this module or C-extension)
         compute_gradients(self)
         extrapolate_from_gradient(self)
 
-    ##
-    # @brief ??
     def extrapolate_second_order_and_limit_by_edge(self):
         # Call correct module function
         # (either from this module or C-extension)
         extrapolate_second_order_and_limit_by_edge(self)
 
-    ##
-    # @brief ??
     def extrapolate_second_order_and_limit_by_vertex(self):
         # Call correct module function
         # (either from this module or C-extension)
         extrapolate_second_order_and_limit_by_vertex(self)
 
-    ##
-    # @brief ??
-    # @param bound ??
     def bound_vertices_below_by_constant(self, bound):
         # Call correct module function
         # (either from this module or C-extension)
         bound_vertices_below_by_constant(self, bound)
 
-    ##
-    # @brief ??
-    # @param quantity ??
     def bound_vertices_below_by_quantity(self, quantity):
         # Call correct module function
         # (either from this module or C-extension)
@@ -1549,25 +1374,17 @@ class Quantity:
         assert self.domain == quantity.domain
         bound_vertices_below_by_quantity(self, quantity)
 
-    ##
-    # @brief ??
     def backup_centroid_values(self):
         # Call correct module function
         # (either from this module or C-extension)
         backup_centroid_values(self)
 
-    ##
-    # @brief ??
-    # @param a ??
-    # @param b ??
     def saxpy_centroid_values(self, a, b):
         # Call correct module function
         # (either from this module or C-extension)
         saxpy_centroid_values(self, a, b)
 
 
-##
-# @brief OBSOLETE!
 class Conserved_quantity(Quantity):
     """Class conserved quantity being removed, use Quantity."""
 

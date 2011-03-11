@@ -77,17 +77,6 @@ def _quantities2csv(quantities, point_quantities, centroids, point_i):
     return points_list
     
     
-##
-# @brief Take gauge readings, given a gauge file and a sww mesh
-#
-#        Use this function to take a timeseries sample, given a list of gauge points
-# @param  sww_file sww file to use as input
-# @param gauge_file gauge file as input, containing list of gauge points to sample
-# @param out_name output file prefix
-# @param quantities which quantities in the sww file we want to export
-# @param verbose show extra logging information for debug purposes
-# @param use_cache cache requests if possible, for speed
-# @param output_centroids Set to true to output the values at the centroid of the mesh triangle
 def sww2csv_gauges(sww_file,
                    gauge_file,
                    out_name='gauge_',
@@ -257,23 +246,6 @@ def sww2csv_gauges(sww_file,
                     if verbose:
                         msg = 'gauge' + point_name[point_i] + 'falls off the mesh in file ' + sww_file + '.'
                         log.warning(msg)
-##
-# @brief Read a .sww file and plot the time series.
-# @param swwfiles Dictionary of .sww files.
-# @param gauge_filename Name of gauge file.
-# @param production_dirs ??
-# @param report If True, write figures to report directory.
-# @param reportname Name of generated report (if any).
-# @param plot_quantity List containing quantities to plot.
-# @param generate_fig If True, generate figures as well as CSV files.
-# @param surface If True, then generate solution surface with 3d plot.
-# @param time_min Beginning of user defined time range for plotting purposes.
-# @param time_max End of user defined time range for plotting purposes.
-# @param time_thinning ??
-# @param time_unit ??
-# @param title_on If True, export standard graphics with title.
-# @param use_cache If True, use caching.
-# @param verbose If True, this function is verbose.
 def sww2timeseries(swwfiles,
                    gauge_filename,
                    production_dirs,
@@ -411,23 +383,6 @@ def sww2timeseries(swwfiles,
     return k
 
 
-##
-# @brief Read a .sww file and plot the time series.
-# @param swwfiles Dictionary of .sww files.
-# @param gauge_filename Name of gauge file.
-# @param production_dirs ??
-# @param report If True, write figures to report directory.
-# @param reportname Name of generated report (if any).
-# @param plot_quantity List containing quantities to plot.
-# @param generate_fig If True, generate figures as well as CSV files.
-# @param surface If True, then generate solution surface with 3d plot.
-# @param time_min Beginning of user defined time range for plotting purposes.
-# @param time_max End of user defined time range for plotting purposes.
-# @param time_thinning ??
-# @param time_unit ??
-# @param title_on If True, export standard graphics with title.
-# @param use_cache If True, use caching.
-# @param verbose If True, this function is verbose.
 def _sww2timeseries(swwfiles,
                     gauge_filename,
                     production_dirs,
@@ -568,10 +523,6 @@ def _sww2timeseries(swwfiles,
     return texfile, elev_output
 
 
-##
-# @brief Read gauge info from a file.
-# @param filename The name of the file to read.
-# @return A (gauges, gaugelocation, elev) tuple.
 def gauge_get_from_file(filename):
     """ Read in gauge information from file
     """
@@ -648,29 +599,6 @@ def gauge_get_from_file(filename):
     return gauges, gaugelocation, elev
 
     
-##
-# @brief Generate figures from quantities and gauges for each sww file.
-#        This is a legacy function, used only by sww2timeseries
-# @param plot_quantity  ??
-# @param file_loc ??
-# @param report ??
-# @param reportname ??
-# @param surface ??
-# @param leg_label ??
-# @param f_list ??
-# @param gauges ??
-# @param locations ??
-# @param elev ??
-# @param gauge_index ??
-# @param production_dirs ??
-# @param time_min ??
-# @param time_max ??
-# @param time_unit ??
-# @param title_on ??
-# @param label_id ??
-# @param generate_fig ??
-# @param verbose??
-# @return (texfile2, elev_output)
 def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
                      leg_label, f_list, gauges, locations, elev, gauge_index,
                      production_dirs, time_min, time_max, time_unit,

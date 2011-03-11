@@ -4,17 +4,6 @@ import os
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 
-##
-# @brief Convert SWW file to PTS file (at selected points).
-# @param basename_in Stem name of input SWW file.
-# @param basename_out Stem name of output file.
-# @param data_points If given, points where quantity is to be computed.
-# @param quantity Name (or expression) of existing quantity(s) (def: elevation).
-# @param timestep If given, output quantity at that timestep.
-# @param reduction If given, reduce quantity by this factor.
-# @param NODATA_value The NODATA value (default -9999).
-# @param verbose True if this function is to be verbose.
-# @param origin ??
 def sww2pts(name_in, name_out=None,
             data_points=None,
             quantity=None,

@@ -1,9 +1,5 @@
 from anuga.file.urs import Read_urs
 
-##
-# @brief Convert a set of URS files to a text file.
-# @param basename_in Stem path to the 3 URS files.
-# @param location_index ??
 def urs2txt(basename_in, location_index=None):
     """
     Not finished or tested
