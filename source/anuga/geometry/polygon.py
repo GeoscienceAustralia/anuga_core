@@ -12,13 +12,6 @@ import anuga.utilities.log as log
 
 from aabb import AABB
 
-##
-# @brief Determine whether a point is on a line segment.
-# @param point (x, y) of point in question (tuple, list or array).
-# @param line ((x1,y1), (x2,y2)) for line (tuple, list or array).
-# @param rtol Relative error for 'close'.
-# @param atol Absolute error for 'close'.
-# @return True or False.
 def point_on_line(point, line, rtol=1.0e-5, atol=1.0e-8):
     """Determine whether a point is on a line segment
 
@@ -97,18 +90,6 @@ collinear_result = {
        (True,  True,  True,  True ): lines_0_fully_included_in_1
    }
 
-##
-# @brief Finds intersection point of two line segments.
-# @param line0 First line ((x1,y1), (x2,y2)).
-# @param line1 Second line ((x1,y1), (x2,y2)).
-# @param rtol Relative error for 'close'.
-# @param atol Absolute error for 'close'.
-# @return (status, value) where:
-#             status = 0 - no intersection, value set to None
-#                      1 - intersection found, value=(x,y)
-#                      2 - lines collienar, overlap, value=overlap segment
-#                      3 - lines collinear, no overlap, value is None
-#                      4 - lines parallel, value is None
 def intersection(line0, line1, rtol=1.0e-5, atol=1.0e-8):
     """Returns intersecting point between two line segments.
 
@@ -179,17 +160,6 @@ def intersection(line0, line1, rtol=1.0e-5, atol=1.0e-8):
             # No intersection
             return 0, None
 
-##
-# @brief Finds intersection point of two line segments.
-# @param line0 First line ((x1,y1), (x2,y2)).
-# @param line1 Second line ((x1,y1), (x2,y2)).
-# @return (status, value) where:
-#             status = 0 - no intersection, value set to None
-#                      1 - intersection found, value=(x,y)
-#                      2 - lines collienar, overlap, value=overlap segment
-#                      3 - lines collinear, no overlap, value is None
-#                      4 - lines parallel, value is None
-# @note Wrapper for C function.
 def NEW_C_intersection(line0, line1):
     """Returns intersecting point between two line segments.
 
@@ -435,13 +405,6 @@ def is_inside_polygon(point, polygon, closed=True, verbose=False):
         msg = 'is_inside_polygon must be invoked with one point only'
         raise Exception(msg)
 
-##
-# @brief Determine which of a set of points are inside a polygon.
-# @param points A set of points (tuple, list or array).
-# @param polygon A set of points defining a polygon (tuple, list or array).
-# @param closed True if points on boundary are considered 'inside' polygon.
-# @param verbose True if this function is to be verbose.
-# @return A list of indices of points inside the polygon.
 def inside_polygon(points, polygon, closed=True, verbose=False):
     """Determine points inside a polygon
 
@@ -488,14 +451,6 @@ def inside_polygon(points, polygon, closed=True, verbose=False):
     # Return indices of points inside polygon
     return indices[:count]
 
-##
-# @brief Determine if one point is outside a polygon.
-# @param point The point of interest.
-# @param polygon The polygon to test inclusion in.
-# @param closed True if points on boundary are considered 'inside' polygon.
-# @param verbose True if this function is to be verbose.
-# @return True if point is outside the polygon.
-# @note Uses inside_polygon() to do the work.
 def is_outside_polygon(point, polygon, closed=True, verbose=False,
                        points_geo_ref=None, polygon_geo_ref=None):
     """Determine if one point is outside a polygon
@@ -513,13 +468,6 @@ def is_outside_polygon(point, polygon, closed=True, verbose=False,
         msg = 'is_outside_polygon must be invoked with one point only'
         raise Exception, msg
 
-##
-# @brief Determine which of a set of points are outside a polygon.
-# @param points A set of points (tuple, list or array).
-# @param polygon A set of points defining a polygon (tuple, list or array).
-# @param closed True if points on boundary are considered 'inside' polygon.
-# @param verbose True if this function is to be verbose.
-# @return A list of indices of points outside the polygon.
 def outside_polygon(points, polygon, closed = True, verbose = False):
     """Determine points outside a polygon
 
@@ -561,13 +509,6 @@ def outside_polygon(points, polygon, closed = True, verbose = False):
     else:
         return indices[count:][::-1]  #return reversed
 
-##
-# @brief Separate a list of points into two sets inside+outside a polygon.
-# @param points A set of points (tuple, list or array).
-# @param polygon A set of points defining a polygon (tuple, list or array).
-# @param closed True if points on boundary are considered 'inside' polygon.
-# @param verbose True if this function is to be verbose.
-# @return A tuple (in, out) of point indices for poinst inside amd outside.
 def in_and_outside_polygon(points, polygon, closed=True, verbose=False):
     """Determine points inside and outside a polygon
 
@@ -1054,11 +995,11 @@ def decimate_polygon(polygon, factor=10):
     factor (default=10, hence the name of the function) such that
     the extrema in both axes are preserved.
 
-##
-# @brief Reduce number of points in polygon by the specified factor.
-# @param polygon The polygon to reduce.
-# @param factor The factor to reduce polygon points by (default 10).
-# @note The extrema of both axes are preserved.
+    Reduce number of points in polygon by the specified factor.
+    polygon The polygon to reduce.
+    factor The factor to reduce polygon points by (default 10).
+
+    The extrema of both axes are preserved.
 
     Return reduced polygon
     """

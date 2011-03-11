@@ -79,12 +79,6 @@ class TitleAmountError(exceptions.Exception): pass
 NOMAXAREA=-999
 
 
-##
-# @brief Read a mesh file (.tsh or .msh) and return a dictionary.
-# @param ofile Path to the file to read.
-# @return A dictionary of data from the input file.
-# @note Throws IOError if can't read file.
-# @note This is used by pmesh.
 def import_mesh_file(ofile):
     """Read a mesh file, either .tsh or .msh
 
@@ -106,11 +100,6 @@ def import_mesh_file(ofile):
     return dict
 
 
-##
-# @brief Write a mesh file from a dictionary.
-# @param ofile The path of the mesh file to write.
-# @param mesh_dict Dictionary containing data to write to output mesh file.
-# @note Raises IOError if file extension is unrecognized.
 def export_mesh_file(ofile, mesh_dict):
     """Write a mesh file given a dictionary.
 
@@ -147,10 +136,6 @@ def export_mesh_file(ofile, mesh_dict):
         raise IOError, msg
 
 
-##
-# @brief Read a mesh file into a dictionary.
-# @param ofile Path of the file to read.
-# @return Points dictionary from the mesh (.tsh) file.
 def _read_tsh_file(ofile):
     """Read the text file format for meshes"""
 
@@ -164,10 +149,6 @@ def _read_tsh_file(ofile):
     return dict
 
 
-##
-# @brief Read triangulation data from a file, leave file open.
-# @param fd An open descriptor of the file to read.
-# @return A dictionary ...
 def _read_triangulation(fd):
     """Read the generated triangulation, NOT the outline."""
 
@@ -264,11 +245,6 @@ def _read_triangulation(fd):
     return meshDict
 
 
-##
-# @brief Read a mesh outline file.
-# @param fd An open descriptor of the file to read.
-# @return A Points dictionary.
-# @note If file has no mesh info, an empty dict will be returned.
 def _read_outline(fd):
     """Read a mesh file outline.
 
@@ -396,10 +372,6 @@ def _read_outline(fd):
     return meshDict
 
 
-##
-# @brief Write an ASCII triangulation file.
-# @param fd An open descriptor to the file to write.
-# @param gen_dict Dictionary containing data to write.
 def _write_ASCII_triangulation(fd, gen_dict):
     vertices = gen_dict['vertices']
     vertices_attributes = gen_dict['vertex_attributes']
@@ -509,10 +481,6 @@ def _write_ASCII_triangulation(fd, gen_dict):
                  + str(segment_tags[i]) + "\n")
 
 
-##
-# @brief Write triangulation and outline to a .tsh file.
-# @param ofile Path of the file to write.
-# @mesh_dict Dictionary of data to write.
 def _write_tsh_file(ofile, mesh_dict):
     fd = open(ofile, 'w')
     _write_ASCII_triangulation(fd, mesh_dict)
@@ -520,10 +488,6 @@ def _write_tsh_file(ofile, mesh_dict):
     fd.close()
 
 
-##
-# @brief Write an ASCII outline to a file.
-# @param fd An open descriptor of the file to write.
-# @param dict Dictionary holding data to write.
 def _write_ASCII_outline(fd, dict):
     points = dict['points']
     point_attributes = dict['point_attributes']
@@ -596,10 +560,6 @@ def _write_ASCII_outline(fd, dict):
         dict['geo_reference'].write_ASCII(fd)
 
 
-##
-# @brief Write a .msh file.
-# @param file Path to the file to write.
-# @param mesh Dictionary holding data to write.
 def _write_msh_file(file_name, mesh):
     """Write .msh NetCDF file
 
@@ -790,11 +750,6 @@ def _write_msh_file(file_name, mesh):
     outfile.close()
 
 
-##
-# @brief Read a mesh file.
-# @param file_name Path to the file to read.
-# @return A dictionary containing the .msh file data.
-# @note Throws IOError if file not found.
 def _read_msh_file(file_name):
     """ Read in an msh file."""
 
@@ -915,13 +870,6 @@ def _read_msh_file(file_name):
     return mesh
 
 
-##
-# @brief Export a boundary file.
-# @param file_name Path to the file to write.
-# @param points List of point index pairs.
-# @paran title Title string to write into file (first line).
-# @param delimiter Delimiter string to write between points.
-# @note Used by alpha shapes
 def export_boundary_file(file_name, points, title, delimiter=','):
     """Export a boundary file.
 
@@ -948,9 +896,6 @@ def export_boundary_file(file_name, points, title, delimiter=','):
 #  IMPORT/EXPORT POINTS FILES
 ################################################################################
 
-##
-# @brief 
-# @param point_atts 
 def extent_point_atts(point_atts):
     """Returns 4 points representing the extent
     This loses attribute info.
@@ -962,11 +907,6 @@ def extent_point_atts(point_atts):
     return point_atts
 
 
-##
-# @brief Get an extent array for a set of points.
-# @param points A set of points.
-# @return An extent array of form [[min_x, min_y], [max_x, min_y],
-#                                  [max_x, max_y], [min_x, max_y]]
 def extent(points):
     points = num.array(points, num.float)
 
@@ -994,12 +934,6 @@ def extent(points):
     return extent
 
 
-##
-# @brief Reduce a points file until number of points is less than limit.
-# @param infile Path to input file to thin.
-# @param outfile Path to output thinned file.
-# @param max_points Max number of points in output file.
-# @param verbose True if this function is to be verbose.
 def reduce_pts(infile, outfile, max_points, verbose = False):
     """Reduce a points file until less than given size.
 
@@ -1018,13 +952,6 @@ def reduce_pts(infile, outfile, max_points, verbose = False):
     export_points_file(outfile, point_atts)
 
 
-##
-# @brief 
-# @param infile 
-# @param max_points 
-# @param delimiter 
-# @param verbose True if this function is to be verbose.
-# @return A list of 
 def produce_half_point_files(infile, max_points, delimiter, verbose=False):
     point_atts = _read_pts_file(infile)
     root, ext = splitext(infile)
@@ -1045,10 +972,6 @@ def produce_half_point_files(infile, max_points, delimiter, verbose=False):
     return outfiles
 
 
-##
-# @brief 
-# @param point_atts Object with attribute of 'pointlist'.
-# @return 
 def point_atts2array(point_atts):
     # convert attribute list to array of floats
     point_atts['pointlist'] = num.array(point_atts['pointlist'], num.float)
@@ -1060,10 +983,6 @@ def point_atts2array(point_atts):
     return point_atts
 
 
-##
-# @brief ??
-# @param point_atts ??
-# @return ??
 def half_pts(point_atts):
     point_atts2array(point_atts)
     point_atts['pointlist'] = point_atts['pointlist'][::2]
@@ -1073,10 +992,6 @@ def half_pts(point_atts):
 
     return point_atts
 
-##
-# @brief ??
-# @param dic ??
-# @return ??
 def concatinate_attributelist(dic):
     """
     giving a dic[attribute title] = attribute
@@ -1094,12 +1009,6 @@ def concatinate_attributelist(dic):
     return dic.keys(), point_attributes
 
 
-##
-# @brief 
-# @param dict 
-# @param indices_to_keep 
-# @return 
-# @note FIXME(dsg), turn this dict plus methods into a class?
 def take_points(dict, indices_to_keep):
     dict = point_atts2array(dict)
     # FIXME maybe the points data structure should become a class?
@@ -1111,11 +1020,6 @@ def take_points(dict, indices_to_keep):
 
     return dict
 
-##
-# @brief ??
-# @param dict1 ??
-# @param dict2 ??
-# @return ??
 def add_point_dictionaries(dict1, dict2):
     """
     """

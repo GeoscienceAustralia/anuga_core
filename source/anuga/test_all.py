@@ -27,12 +27,6 @@ exclude_dirs = ['shallow_water_balanced', 'operators' , # Special requirements
                 'props', 'wcprops', 'prop-base', 'text-base', 'tmp']
 
 
-##
-# @brief List a string sequence on the screen in columns.
-# @param names Sequence of strings to list.
-# @param func Function to apply to each string in sequence.
-# @param col_width Force columns to this width (default calculated).
-# @param page_width Set displayable page width to this (default 132).
 def list_names(names, func=None, col_width=None, page_width=None):
     # set defaults
     p_width = page_width - 1            # set page width
@@ -175,9 +169,6 @@ def regressionTest(test_verbose=False):
     return unittest.TestSuite(testCaseClasses)
 
 
-##
-# @brief Check that the environment is sane.
-# @note Stops here if there is an error.
 def check_anuga_import():
     try:
         # importing something that loads quickly

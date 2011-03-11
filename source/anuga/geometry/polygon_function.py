@@ -43,11 +43,11 @@ class Polygon_function:
     """
 
     def __init__(self, regions, default=0.0, geo_reference=None):
-        """
-        # @brief Create instance of a polygon function.
-        # @param regions A list of (x,y) tuples defining a polygon.
-        # @param default Value or function returning value for points outside poly.
-        # @param geo_reference ??
+        """Create instance of a polygon function.
+
+        regions A list of (x,y) tuples defining a polygon.
+        default Value or function returning value for points outside poly.
+        geo_reference ??
         """
 
         try:
@@ -89,10 +89,10 @@ class Polygon_function:
             self.regions.append((georeffed_poly, value))
 
     def __call__(self, pts_x, pts_y):
-        """
-        # @brief Implement the 'callable' property of Polygon_function.
-        # @param x List of x coordinates of points ot interest.
-        # @param y List of y coordinates of points ot interest.
+        """Implement the 'callable' property of Polygon_function.
+
+        x List of x coordinates of points ot interest.
+        y List of y coordinates of points ot interest.
         """
         pts_x = num.array(pts_x, num.float)
         pts_y = num.array(pts_y, num.float)

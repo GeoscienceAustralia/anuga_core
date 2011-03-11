@@ -54,11 +54,6 @@ def asc2dem(name_in, name_out=None,
     return result
 
 
-##
-# @brief Convert an ASC file to a DEM file.
-# @param basename_in Stem of input filename.
-# @param basename_out Stem of output filename.
-# @param verbose True if this function is to be verbose.
 def _convert_dem_from_ascii2netcdf(name_in, name_out = None,
                                    verbose = False):
     """Read Digital Elevation model from the following ASCII format (.asc)

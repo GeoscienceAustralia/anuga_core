@@ -52,15 +52,6 @@ def dem2pts(name_in, name_out=None,
     return result
 
 
-##
-# @brief 
-# @param basename_in 
-# @param basename_out 
-# @param verbose 
-# @param easting_min 
-# @param easting_max 
-# @param northing_min 
-# @param northing_max 
 def _dem2pts(name_in, name_out=None, verbose=False,
             easting_min=None, easting_max=None,
             northing_min=None, northing_max=None):

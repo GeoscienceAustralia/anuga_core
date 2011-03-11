@@ -2,10 +2,6 @@
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 
-##
-# @brief  Return block of surface lines for each cross section
-# @param lines Iterble  of text lines to process.
-# @note BROKEN?  UNUSED?
 def _read_hecras_cross_sections(lines):
     """Return block of surface lines for each cross section
     Starts with SURFACE LINE,
@@ -42,10 +38,9 @@ def sdf2pts(name_in,
                               verbose=False):
     """Read HEC-RAS Elevation datal from the following ASCII format (.sdf)
 
-# @brief Convert HECRAS (.sdf) file to PTS file.
-# @param basename_in Sterm of input filename.
-# @param basename_out Sterm of output filename.
-# @param verbose True if this function is to be verbose.
+    basename_in Sterm of input filename.
+    basename_out Sterm of output filename.
+    verbose True if this function is to be verbose.
 
     Example:
 

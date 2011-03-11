@@ -63,12 +63,6 @@ def urs2nc(basename_in='o', basename_out='urs'):
     return files_out
 
 
-##
-# @brief Convert a quantity URS file to a NetCDF file.
-# @param file_in Path to input URS file.
-# @param file_out Path to the output file.
-# @param quantity Name of the quantity to be written to the output file.
-# @return A tuple (lonlatdep, lon, lat, depth).
 def _binary_c2nc(file_in, file_out, quantity):
     """Reads in a quantity urs file and writes a quantity nc file.
     Additionally, returns the depth and lat, long info,
@@ -139,11 +133,6 @@ def _binary_c2nc(file_in, file_out, quantity):
 
 
 
-##
-# @brief 
-# @param long_lat_dep 
-# @return A tuple (long, lat, quantity).
-# @note The latitude is the fastest varying dimension - in mux files.
 def lon_lat2grid(long_lat_dep):
     """
     given a list of points that are assumed to be an a grid,

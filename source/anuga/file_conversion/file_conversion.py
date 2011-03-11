@@ -85,11 +85,6 @@ def sww2obj(filename, size):
         FN = create_filename('.', basefilename[:5], 'obj', size, time=t)
         write_obj(FN, xx, yy, zz)
 
-##
-# @brief Convert time-series text file to TMS file.
-# @param filename 
-# @param quantity_names 
-# @param time_as_seconds 
 def timefile2netcdf(file_text, file_out = None, quantity_names=None, \
                                 time_as_seconds=False):
     """Template for converting typical text files with time series to
@@ -223,10 +218,6 @@ def timefile2netcdf(file_text, file_out = None, quantity_names=None, \
     
     
 
-##
-# @brief 
-# @param filename
-# @param verbose
 def tsh2sww(filename, verbose=False):
     """
     to check if a tsh/msh file 'looks' good.
@@ -265,15 +256,6 @@ def tsh2sww(filename, verbose=False):
 
 
 
-##
-# @brief Return max&min indexes (for slicing) of area specified.
-# @param latitudes_ref ??
-# @param longitudes_ref ??
-# @param minlat Minimum latitude of specified area.
-# @param maxlat Maximum latitude of specified area.
-# @param minlon Minimum longitude of specified area.
-# @param maxlon Maximum longitude of specified area.
-# @return Tuple (lat_min_index, lat_max_index, lon_min_index, lon_max_index)
 def get_min_max_indices(latitudes_ref, longitudes_ref,
                          minlat=None, maxlat=None,
                          minlon=None, maxlon=None):
@@ -349,12 +331,6 @@ def get_min_max_indices(latitudes_ref, longitudes_ref,
     return lat_min_index, lat_max_index, lon_min_index, lon_max_index
 
 
-##
-# @brief 
-# @param filename 
-# @param x 
-# @param y 
-# @param z 
 def write_obj(filename, x, y, z):
     """Store x,y,z vectors into filename (obj format).
 
