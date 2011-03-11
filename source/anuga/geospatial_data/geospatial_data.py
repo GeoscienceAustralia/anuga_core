@@ -31,23 +31,8 @@ import anuga.utilities.log as log
 DEFAULT_ATTRIBUTE = 'elevation'
 
 
-##
-# @brief ??
 class Geospatial_data:
 
-    ##
-    # @brief 
-    # @param data_points Mx2 iterable of tuples or array of x,y coordinates.
-    # @param attributes Associated values for each data point.
-    # @param geo_reference ??
-    # @param default_attribute_name ??
-    # @param file_name 
-    # @param latitudes ??
-    # @param longitudes ??
-    # @param points_are_lats_longs True if points are lat/long, not UTM.
-    # @param max_read_lines Size of block to read, if blocking.
-    # @param load_file_now True if blocking but we eant to read file now.
-    # @param verbose True if this class instance is verbose.
     def __init__(self,
                  data_points=None, # this can also be a points file name
                  attributes=None,
@@ -195,20 +180,12 @@ class Geospatial_data:
                         # print 'blockwise reading. Consider storing this'
                         # print 'data as a pts NetCDF format'
 
-    ##
-    # @brief Return length of the points set.
     def __len__(self):
         return len(self.data_points)
 
-    ##
-    # @brief Return a string representation of the points set.
     def __repr__(self):
         return str(self.get_data_points(absolute=True))
 
-    ##
-    # @brief Check data points.
-    # @param data_points Points data to check and store in instance.
-    # @note Throws ValueError exception if no data.
     def check_data_points(self, data_points):
         """Checks data points"""
 
@@ -222,10 +199,6 @@ class Geospatial_data:
                 assert len(self.data_points.shape) == 2
                 assert self.data_points.shape[1] == 2
 
-    ##
-    # @brief Check and assign attributes data.
-    # @param attributes Dictionary or scalar to save as .attributes.
-    # @note Throws exception if unable to convert dict keys to numeric.
     def set_attributes(self, attributes):
         """Check and assign attributes dictionary"""
 
@@ -248,10 +221,6 @@ class Geospatial_data:
 
         self.attributes = attributes
 
-    ##
-    # @brief Set the georeference of geospatial data.
-    # @param geo_reference The georeference data to set.
-    # @note Will raise exception if param not instance of Geo_reference.
     def set_geo_reference(self, geo_reference):
         """Set the georeference of geospatial data.
 
@@ -280,16 +249,9 @@ class Geospatial_data:
 
         self.geo_reference = geo_reference
 
-    ##
-    # @brief Set default attribute name.
-    # @param default_attribute_name The default to save.
     def set_default_attribute_name(self, default_attribute_name):
         self.default_attribute_name = default_attribute_name
 
-    ##
-    # @brief Set the instance verbose flag.
-    # @param verbose The value to save.
-    # @note Will raise exception if param is not True or False.
     def set_verbose(self, verbose=False):
         if verbose in [False, True]:
             self.verbose = verbose
@@ -297,11 +259,6 @@ class Geospatial_data:
             msg = 'Illegal value: %s' % str(verbose)
             raise Exception(msg)
 
-    ##
-    # @brief Clip geospatial data by a given polygon.
-    # @param polygon The polygon to clip with.
-    # @param closed True if points on clip boundary are not included in result.
-    # @param verbose True if this function is verbose.
     def clip(self, polygon, closed=True, verbose=False):
         """Clip geospatial data by a polygon
 
@@ -334,11 +291,6 @@ class Geospatial_data:
 
         return clipped_G
 
-    ##
-    # @brief Clip points data by polygon, return points outside polygon.
-    # @param polygon The polygon to clip with.
-    # @param closed True if points on clip boundary are not included in result.
-    # @param verbose True if this function is verbose.
     def clip_outside(self, polygon, closed=True, verbose=False):
         """Clip geospatial date by a polygon, keeping data OUTSIDE of polygon
 
@@ -366,18 +318,9 @@ class Geospatial_data:
 
         return clipped_G
 
-    ##
-    # @brief Get instance geo_reference data.
     def get_geo_reference(self):
         return self.geo_reference
 
-    ##
-    # @brief Get coordinates for all data points as an Nx2 array.
-    # @param absolute If True, return UTM, else relative to xll/yll corners.
-    # @param geo_reference If supplied, points are relative to it.
-    # @param as_lat_long If True, return points as lat/lon.
-    # @param isSouthHemisphere If True, return lat/lon points in S.Hemi.
-    # @return A set of data points, in appropriate form.
     def get_data_points(self,
                         absolute=True,
                         geo_reference=None,
@@ -421,10 +364,6 @@ class Geospatial_data:
             # If absolute is False
             return self.data_points
 
-    ##
-    # @brief Get value for attribute name.
-    # @param attribute_name Name to get value for.
-    # @note If name passed is None, return default attribute value.
     def get_attributes(self, attribute_name=None):
         """Return values for one named attribute.
 
@@ -447,9 +386,6 @@ class Geospatial_data:
 
         return self.attributes[attribute_name]
 
-    ##
-    # @brief Get all instance attributes.
-    # @return The instance attribute dictionary, or None if no attributes.
     def get_all_attributes(self):
         """Return values for all attributes.
         The return value is either None or a dictionary (possibly empty).
@@ -457,11 +393,6 @@ class Geospatial_data:
 
         return self.attributes
 
-    ##
-    # @brief Override __add__() to allow addition of geospatial objects.
-    # @param self This object.
-    # @param other The second object.
-    # @return The new geospatial object.
     def __add__(self, other):
         """Returns the addition of 2 geospatial objects,
         objects are concatencated to the end of each other
@@ -517,11 +448,6 @@ class Geospatial_data:
         new_geo_ref = Geo_reference(geo_ref1.get_zone(), 0.0, 0.0)
         return Geospatial_data(new_points, new_attributes, new_geo_ref)
 
-    ##
-    # @brief Override the addition case where LHS isn't geospatial object.
-    # @param self This object.
-    # @param other The second object.
-    # @return The new geospatial object.
     def __radd__(self, other):
         """Handle cases like None + Geospatial_data(...)"""
 
@@ -531,12 +457,6 @@ class Geospatial_data:
 #  IMPORT/EXPORT POINTS FILES
 ################################################################################
 
-    ##
-    # @brief Import a .txt, .csv or .pts points data file.
-    # @param file_name 
-    # @param delimiter 
-    # @param verbose True if this function is to be verbose.
-    # @note Will throw IOError or SyntaxError if there is a problem.
     def import_points_file(self, file_name, delimiter=None, verbose=False):
         """ load an .txt, .csv or .pts file
 
@@ -580,12 +500,6 @@ class Geospatial_data:
         self.attributes = attributes
         self.geo_reference = geo_reference
 
-    ##
-    # @brief Write points data to a file (.csv or .pts).
-    # @param file_name Path to file to write.
-    # @param absolute ??
-    # @param as_lat_long ??
-    # @param isSouthHemisphere ??
     def export_points_file(self, file_name, absolute=True,
                            as_lat_long=False, isSouthHemisphere=True):
         """write a points file as a text (.csv) or binary (.pts) file
@@ -637,10 +551,6 @@ class Geospatial_data:
             msg = 'Unknown file type %s ' %file_name
             raise IOError(msg)
 
-    ##
-    # @brief Get a subset of data that is referred to by 'indices'.
-    # @param indices A list of indices to select data subset with.
-    # @return A geospatial object containing data subset.
     def get_sample(self, indices):
         """ Returns a object which is a subset of the original
         and the data points and attributes in this new object refer to
@@ -666,12 +576,6 @@ class Geospatial_data:
 
         return Geospatial_data(sampled_points, sampled_attributes)
 
-    ##
-    # @brief Split one geospatial object into two.
-    # @param factor Relative size to make first result object.
-    # @param seed_num Random 'seed' - used only for unit test.
-    # @param verbose True if this function is to be verbose.
-    # @note Points in each result object are selected randomly.
     def split(self, factor=0.5, seed_num=None, verbose=False):
         """Returns two geospatial_data object, first is the size of the 'factor'
         smaller the original and the second is the remainder. The two
@@ -765,8 +669,6 @@ class Geospatial_data:
 
         return G1, G2
 
-    ##
-    # @brief Allow iteration over this object.
     def __iter__(self):
         """Read in the header, number_of_points and save the
         file pointer position
@@ -816,8 +718,6 @@ class Geospatial_data:
 
         return self
 
-    ##
-    # @brief Read another block into the instance.
     def next(self):
         """read a block, instanciate a new geospatial and return it"""
 
@@ -915,14 +815,6 @@ Em['IOError'] = ('NOTE: The format for a comma separated .txt/.csv file is:\n'
                  'The first two columns are assumed to be x, y coordinates.\n'
                  'The attribute values must be numeric.\n')
 
-##
-# @brief ??
-# @param latitudes ??
-# @param longitudes ??
-# @param geo_reference ??
-# @param data_points ??
-# @param points_are_lats_longs ??
-# @note IS THIS USED???
 def _set_using_lat_long(latitudes,
                         longitudes,
                         geo_reference,
@@ -965,11 +857,6 @@ def _set_using_lat_long(latitudes,
     return data_points, Geo_reference(zone=zone)
 
 
-##
-# @brief Read a .pts data file.
-# @param file_name Path to file to read.
-# @param verbose True if this function is to be verbose.
-# @return (pointlist, attributes, geo_reference)
 def _read_pts_file(file_name, verbose=False):
     """Read .pts NetCDF file
 
@@ -1016,10 +903,6 @@ def _read_pts_file(file_name, verbose=False):
     return pointlist, attributes, geo_reference
 
 
-##
-# @brief Read a .csv data file.
-# @param file_name Path to the .csv file to read.
-# @param verbose True if this function is to be verbose.
 def _read_csv_file(file_name, verbose=False):
     """Read .csv file
 
@@ -1049,13 +932,6 @@ def _read_csv_file(file_name, verbose=False):
     return pointlist, att_dict, geo_ref
 
 
-##
-# @brief Read a .csv file header.
-# @param file_pointer Open descriptor of the file to read.
-# @param delimiter Header line delimiter string, split on this string.
-# @param verbose True if this function is to be verbose.
-# @return A tuple of (<cleaned header string>, <input file_pointer>)
-
 CSV_DELIMITER = ','
 
 def _read_csv_file_header(file_pointer,
@@ -1070,14 +946,6 @@ def _read_csv_file_header(file_pointer,
 
     return header, file_pointer
 
-##
-# @brief Read a .csv file, with blocking.
-# @param file_pointer Open descriptor of the file to read.
-# @param header List of already read .csv header fields.
-# @param delimiter Delimiter string header was split on.
-# @param max_read_lines The max number of lines to read before blocking.
-# @param verbose True if this function is to be verbose.
-# @note Will throw IndexError, SyntaxError exceptions.
 def _read_csv_file_blocking(file_pointer,
                             header,
                             delimiter=CSV_DELIMITER,
@@ -1159,12 +1027,6 @@ def _read_csv_file_blocking(file_pointer,
     return pointlist, att_dict, geo_ref, file_pointer
 
 
-##
-# @brief Read a .pts file header.
-# @param fid Handle to the open .pts file.
-# @param verbose True if the function is to be verbose.
-# @return (geo_reference, keys, fid.dimensions['number_of_points'])
-# @note Will throw IOError and AttributeError exceptions.
 def _read_pts_file_header(fid, verbose=False):
     '''Read the geo_reference and number_of_points from a .pts file'''
 
@@ -1186,13 +1048,6 @@ def _read_pts_file_header(fid, verbose=False):
     return geo_reference, keys, fid.dimensions['number_of_points']
 
 
-##
-# @brief Read the body of a .pts file, with blocking.
-# @param fid Handle to already open file.
-# @param start_row Start row index of points to return.
-# @param fin_row End row index of points to return.
-# @param keys Iterable of keys to return.
-# @return Tuple of (pointlist, attributes).
 def _read_pts_file_blocking(fid, start_row, fin_row, keys):
     '''Read the body of a .pts file.'''
 
@@ -1205,12 +1060,6 @@ def _read_pts_file_blocking(fid, start_row, fin_row, keys):
     return pointlist, attributes
 
 
-##
-# @brief Write a .pts data file.
-# @param file_name Path to the file to write.
-# @param write_data_points Data points to write.
-# @param write_attributes Attributes to write.
-# @param write_geo_reference Georef to write.
 def _write_pts_file(file_name,
                     write_data_points,
                     write_attributes=None,
@@ -1263,13 +1112,6 @@ def _write_pts_file(file_name,
     outfile.close()
 
 
-##
-# @brief Write a .csv data file.
-# @param file_name Path to the file to write.
-# @param write_data_points Data points to write.
-# @param write_attributes Attributes to write.
-# @param as_lat_long True if points are lat/lon, else x/y.
-# @param delimiter The CSV delimiter to use.
 def _write_csv_file(file_name,
                     write_data_points,
                     write_attributes=None,
@@ -1310,11 +1152,6 @@ def _write_csv_file(file_name,
     fd.close()
 
 
-##
-# @brief Write a URS file.
-# @param file_name The path of the file to write.
-# @param points 
-# @param delimiter 
 def _write_urs_file(file_name, points, delimiter=' '):
     """Write a URS format file.
     export a file, file_name, with the urs format
@@ -1334,10 +1171,6 @@ def _write_urs_file(file_name, points, delimiter=' '):
     fd.close()
 
 
-##
-# @brief ??
-# @param point_atts ??
-# @return ??
 def _point_atts2array(point_atts):
     point_atts['pointlist'] = num.array(point_atts['pointlist'], num.float)
 
@@ -1348,10 +1181,6 @@ def _point_atts2array(point_atts):
     return point_atts
 
 
-##
-# @brief Convert geospatial object to a points dictionary.
-# @param geospatial_data The geospatial object to convert.
-# @return A points dictionary.
 def geospatial_data2points_dictionary(geospatial_data):
     """Convert geospatial data to points_dictionary"""
 
@@ -1369,9 +1198,6 @@ def geospatial_data2points_dictionary(geospatial_data):
     return points_dictionary
 
 
-##
-# @brief Convert a points dictionary to a geospatial object.
-# @param points_dictionary A points dictionary to convert.
 def points_dictionary2geospatial_data(points_dictionary):
     """Convert points_dictionary to geospatial data object"""
 
@@ -1391,11 +1217,6 @@ def points_dictionary2geospatial_data(points_dictionary):
                            geo_reference=geo)
 
 
-##
-# @brief Ensure that points are in absolute coordinates.
-# @param points A list or array of points to check, or geospatial object.
-# @param geo_reference If supplied, 
-# @return ??
 def ensure_absolute(points, geo_reference=None):
     """Ensure that points are in absolute coordinates.
 
@@ -1439,11 +1260,6 @@ def ensure_absolute(points, geo_reference=None):
     return points
 
 
-##
-# @brief 
-# @param points 
-# @param geo_reference 
-# @return A geospatial object.
 def ensure_geospatial(points, geo_reference=None):
     """Convert various data formats to a geospatial_data instance.
 
@@ -1483,22 +1299,6 @@ def ensure_geospatial(points, geo_reference=None):
     return points
 
 
-##
-# @brief 
-# @param data_file 
-# @param alpha_list 
-# @param mesh_file 
-# @param boundary_poly 
-# @param mesh_resolution 
-# @param north_boundary 
-# @param south_boundary 
-# @param east_boundary 
-# @param west_boundary 
-# @param plot_name 
-# @param split_factor 
-# @param seed_num 
-# @param cache 
-# @param verbose 
 def find_optimal_smoothing_parameter(data_file,
                                      alpha_list=None,
                                      mesh_file=None,
@@ -1697,22 +1497,6 @@ def find_optimal_smoothing_parameter(data_file,
             normal_cov_new[(num.argmin(normal_cov_new,axis=0))[1],0])
 
 
-##
-# @brief 
-# @param data_file 
-# @param alpha_list 
-# @param mesh_file 
-# @param boundary_poly 
-# @param mesh_resolution 
-# @param north_boundary 
-# @param south_boundary 
-# @param east_boundary 
-# @param west_boundary 
-# @param plot_name 
-# @param split_factor 
-# @param seed_num 
-# @param cache 
-# @param verbose 
 def old_find_optimal_smoothing_parameter(data_file,
                                          alpha_list=None,
                                          mesh_file=None,

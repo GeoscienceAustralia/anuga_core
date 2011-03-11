@@ -43,11 +43,6 @@ def file_function(filename,
                       time_thinning, time_limit, verbose, use_cache,
                       boundary_polygon, output_centroids)
 
-##
-# @brief Replace multiple substrings in a string.
-# @param text The string to operate on.
-# @param dictionary A dict containing replacements, key->value.
-# @return The new string.
 def multiple_replace(text, dictionary):
     """Multiple replace of words in text
 
@@ -70,10 +65,6 @@ def multiple_replace(text, dictionary):
     return regex.sub(lambda match: dictionary[match.group(0)], text)
 
 
-##
-# @brief Apply arbitrary expressions to the values of a dict.
-# @param expression A string expression to apply.
-# @param dictionary The dictionary to apply the expression to.
 def apply_expression_to_dictionary(expression, dictionary):
     """Apply arbitrary expression to values of dictionary
 
@@ -118,11 +109,6 @@ def apply_expression_to_dictionary(expression, dictionary):
         raise ValueError(msg)
 
 
-##
-# @brief Format a float into a string.
-# @param value Float value to format.
-# @param format The format to use (%.2f is default).
-# @return The formatted float as a string.
 def get_textual_float(value, format = '%.2f'):
     """Get textual representation of floating point numbers
     and accept None as valid entry
@@ -149,18 +135,10 @@ def get_textual_float(value, format = '%.2f'):
         else:
             return format % float(value)
 
-##
-# @brief Read gauge info from a file.
-# @param filename The name of the file to read.
-# @return A (gauges, gaugelocation, elev) tuple.
 def get_gauges_from_file(filename):
     return gauge_get_from_file(filename)
 
 
-##
-# @brief Check that input quantities in quantity list are legal.
-# @param quantity Quantity list to check.
-# @note Raises an exception of list is not legal.
 def check_list(quantity):
     """ Check that input quantities in quantity list are possible
     """
@@ -180,11 +158,6 @@ def check_list(quantity):
         raise Exception(msg)
 
 
-##
-# @brief Calculate velocity bearing from North.
-# @param uh ??
-# @param vh ??
-# @return The calculated bearing.
 def calc_bearing(uh, vh):
     """ Calculate velocity bearing from North
     """
@@ -203,12 +176,6 @@ def calc_bearing(uh, vh):
     return degrees(angle([uh, vh], [0, -1]))   
 
 
-##
-# @brief Create a nested sub-directory path.
-# @param root_directory The base diretory path.
-# @param directories An iterable of sub-directory names.
-# @return The final joined directory path.
-# @note If each sub-directory doesn't exist, it will be created.
 def add_directories(root_directory, directories):
     """
     Add the first sub-directory in 'directories' to root_directory.
@@ -226,12 +193,6 @@ def add_directories(root_directory, directories):
     return dir
 
 
-##
-# @brief 
-# @param verbose 
-# @param kwargs 
-# @return 
-# @note TEMP
 def store_parameters(verbose=False,**kwargs):
     """Temporary Interface to new location"""
     
@@ -244,12 +205,6 @@ def store_parameters(verbose=False,**kwargs):
     return dm_store_parameters(verbose=False,**kwargs)
 
 
-##
-# @brief Remove vertices that are not associated with any triangle.
-# @param verts An iterable (or array) of points.
-# @param triangles An iterable of 3 element tuples.
-# @param number_of_full_nodes ??
-# @return (verts, triangles) where 'verts' has been updated.
 def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
     """Removes vertices that are not associated with any triangles.
 
@@ -300,11 +255,6 @@ def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
     return verts, triangles
 
 
-##
-# @brief Compute centroid values from vertex values
-# @param x Values at vertices of triangular mesh.
-# @param triangles Nx3 integer array pointing to vertex information.
-# @return [N] array of centroid values.
 def get_centroid_values(x, triangles):
     """Compute centroid values from vertex values
     
@@ -350,18 +300,6 @@ def make_plots_from_csv_file(directories_dic={dir:['gauge', 0, 0]},
                                  assess_all_csv_files)
 
 
-##
-# @brief Plot time series from CSV files.
-# @param directories_dic 
-# @param output_dir 
-# @param base_name 
-# @param plot_numbers 
-# @param quantities 
-# @param extra_plot_name 
-# @param assess_all_csv_files 
-# @param create_latex 
-# @param verbose 
-# @note Assumes that 'elevation' is in the CSV file(s).
 def csv2timeseries_graphs(directories_dic={},
                           output_dir='',
                           base_name=None,
@@ -778,10 +716,6 @@ def csv2timeseries_graphs(directories_dic={},
 
     if verbose: log.critical('Finished closing plots')
 
-##
-# @brief Return min and max of an iterable.
-# @param list The iterable to return min & max of.
-# @return (min, max) of 'list'.
 def get_min_max_values(list=None):
     """ 
     Returns the min and max of the list it was provided.
@@ -792,13 +726,6 @@ def get_min_max_values(list=None):
     return min(list), max(list)
 
 
-##
-# @brief Get runup around a point in a CSV file.
-# @param gauge_filename gauge file name.
-# @param sww_filename SWW file name.
-# @param runup_filename Name of file to report into.
-# @param size ??
-# @param verbose ??
 def get_runup_data_for_locations_from_file(gauge_filename,
                                            sww_filename,
                                            runup_filename,
@@ -850,14 +777,6 @@ def get_runup_data_for_locations_from_file(gauge_filename,
         file.write(temp)
         file.close()
 
-##
-# @brief ??
-# @param  ??
-# @param gauge_file ??
-# @param out_name ??
-# @param quantities ??
-# @param verbose ??
-# @param use_cache ??
 def sww2csv_gauges(sww_file,
                    gauge_file,
                    out_name='gauge_',
@@ -948,13 +867,6 @@ def sww2timeseries(swwfiles,
                    verbose,
                    output_centroids)                   
     
-##
-# @brief Get a wave height at a certain depth given wave height at another depth.
-# @param d1 The first depth.
-# @param d2 The second depth.
-# @param h1 Wave ampitude at d1
-# @param verbose True if this function is to be verbose.
-# @return The wave height at d2.
 def greens_law(d1, d2, h1, verbose=False):
     """Green's Law
 
@@ -997,10 +909,6 @@ def greens_law(d1, d2, h1, verbose=False):
     return h2
         
 
-##
-# @brief Get the square-root of a value.
-# @param s The value to get the square-root of.
-# @return The square-root of 's'.
 def square_root(s):
     return sqrt(s)
 

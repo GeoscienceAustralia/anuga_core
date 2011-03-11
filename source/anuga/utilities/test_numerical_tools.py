@@ -466,11 +466,13 @@ class Test_Numerical_Tools(unittest.TestCase):
         # can't create array as float from string
 #        t(num.array('abc', num.float), False)
 
-    ##
-    # @brief Test to see if ensure_numeric() behaves as we expect.
-    # @note Under Numeric ensure_numeric() *always* returned a copy (bug).
-    #       Under numpy it copies only when it has to.
     def test_ensure_numeric_copy(self):
+        """Test to see if ensure_numeric() behaves as we expect.
+
+        Under Numeric ensure_numeric() *always* returned a copy (bug).
+        Under numpy it copies only when it has to.
+        """
+
         #####
         # Make 'points' a _list_ of coordinates.
         # Should be changed by ensure_numeric().
