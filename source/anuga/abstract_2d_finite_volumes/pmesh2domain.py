@@ -11,13 +11,6 @@ import numpy as num
 
 
 
-##
-# @brief Convert a mesh file to a Domain instance.
-# @param source Name of the file to convert (TSH or MSH), or a mesh.
-# @param DomainClass Class of return instance.
-# @param use_cache True if caching is to be used.
-# @param verbose True if this function is to be verbose.
-# @return An instance of 'DomainClass' containing the file data.
 def pmesh_to_domain_instance(source, DomainClass, use_cache=False,
                              verbose=False):
     """Converts a mesh file(.tsh or .msh), to a Domain instance.
@@ -40,11 +33,6 @@ def pmesh_to_domain_instance(source, DomainClass, use_cache=False,
     return result
 
 
-##
-# @brief Convert a mesh file to a Domain instance.
-# @param file_name Name of the file to convert (TSH or MSH).
-# @param DomainClass Class of return instance.
-# @return The DomainClass instance containing the file data.
 def _pmesh_to_domain_instance(source, DomainClass):
     """Converts a mesh file(.tsh or .msh), to a Domain instance.
 
@@ -93,13 +81,6 @@ def _pmesh_to_domain_instance(source, DomainClass):
     return domain
 
 
-##
-# @brief Convert pmesh file/instance to list(s) that can instantiate a Domain.
-# @param file_name Path to file to convert.
-# @param mesh_instance Instance to convert.
-# @param use_cache True if we are to cache.
-# @param verbose True if this function is to be verbose.
-# @return ??
 def pmesh_to_domain(file_name=None, mesh_instance=None, use_cache=False,
                     verbose=False):
     """Convert a pmesh file or a pmesh mesh instance to a bunch of lists
@@ -119,13 +100,6 @@ def pmesh_to_domain(file_name=None, mesh_instance=None, use_cache=False,
     return result
 
 
-##
-# @brief Convert pmesh file/instance to list(s) that can instantiate a Domain.
-# @param file_name Path to file to convert.
-# @param mesh_instance Instance to convert.
-# @param use_cache True if we are to cache.
-# @param verbose True if this function is to be verbose.
-# @return ??
 def _pmesh_to_domain(file_name=None, mesh_instance=None, use_cache=False,
                      verbose=False):
     """Convert a pmesh file or a pmesh mesh instance to a bunch of lists

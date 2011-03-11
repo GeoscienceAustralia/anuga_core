@@ -27,23 +27,6 @@ import numpy as num
 class Generic_Domain:
     '''
     Generic computational Domain constructor.
-    # @param source Name of mesh file or coords of mesh vertices.
-    # @param triangles Mesh connectivity (see mesh.py for more information).
-    # @param boundary (see mesh.py for more information)
-    # @param conserved_quantities List of names of quantities to be conserved.
-    # @param other_quantities List of names of other quantities.
-    # @param tagged_elements ??
-    # @param geo_reference ??
-    # @param use_inscribed_circle ??
-    # @param mesh_filename ??
-    # @param use_cache ??
-    # @param verbose True if this method is to be verbose.
-    # @param full_send_dict ??
-    # @param ghost_recv_dict ??
-    # @param processor ??
-    # @param numproc ??
-    # @param number_of_full_nodes ??
-    # @param number_of_full_triangles ??    
     '''
 
     def __init__(self, source=None,
@@ -387,14 +370,6 @@ class Generic_Domain:
     def get_extent(self, *args, **kwargs):
         return self.mesh.get_extent(*args, **kwargs)    
 
-    ##
-    # @brief Get conserved quantities for a volume.
-    # @param vol_id ID of the volume we want the conserved quantities for.
-    # @param vertex If specified, use as index for edge values.
-    # @param edge If specified, use as index for edge values.
-    # @return Vector of conserved quantities.
-    # @note If neither 'vertex' or 'edge' specified, use centroid values.
-    # @note If both 'vertex' and 'edge' specified, raise exception.
     def get_conserved_quantities(self, vol_id,
                                        vertex=None,
                                        edge=None):
@@ -426,14 +401,6 @@ class Generic_Domain:
 
         return q
 
-    ##
-    # @brief Get evolved quantities for a volume.
-    # @param vol_id ID of the volume we want the conserved quantities for.
-    # @param vertex If specified, use as index for edge values.
-    # @param edge If specified, use as index for edge values.
-    # @return Vector of conserved quantities.
-    # @note If neither 'vertex' or 'edge' specified, use centroid values.
-    # @note If both 'vertex' and 'edge' specified, raise exception.
     def get_evolved_quantities(self, vol_id,
                                vertex=None,
                                edge=None):
@@ -465,9 +432,6 @@ class Generic_Domain:
 
         return q
 
-  ##
-    # @brief
-    # @param flag
     def set_CFL(self, cfl=1.0):
         """Set CFL parameter, warn if greater than 1.0
         """
@@ -480,9 +444,6 @@ class Generic_Domain:
 
 
 
-    ##
-    # @brief Set the relative model time.
-    # @param time The new model time (seconds).
     def set_time(self, time=0.0):
         """Set the model time (seconds)."""
 
@@ -491,25 +452,16 @@ class Generic_Domain:
 
         self.time = time
 
-    ##
-    # @brief Get the model time.
-    # @return The absolute model time (seconds).
     def get_time(self):
         """Get the absolute model time (seconds)."""
 
         return self.time
 
-    ##
-    # @brief Get current timestep.
-    # @return The curent timestep (seconds).
     def get_timestep(self):
         """et current timestep (seconds)."""
 
         return self.timestep
 
-    ##
-    # @brief Set the default beta for limiting.
-    # @param beta The new beta value.
     def set_beta(self, beta):
         """Set default beta for limiting."""
 
@@ -518,18 +470,12 @@ class Generic_Domain:
             Q = self.quantities[name]
             Q.set_beta(beta)
 
-    ##
-    # @brief Get the beta value used for limiting.
-    # @return The beta value used for limiting.
     def get_beta(self):
         """Get default beta for limiting."""
 
         return self.beta
 
 
-    ##
-    # @brief Set the behaviour of the transmissive boundary condition
-    # @param flag. True or False flag
     def set_centroid_transmissive_bc(self, flag):
         """Set behaviour of the transmissive boundary condition, namely
         calculate the BC using the centroid value of neighbouring cell
@@ -545,44 +491,29 @@ class Generic_Domain:
 
         self.centroid_transmissive_bc = flag
 
-    ##
-    # @brief Get the centroid_transmissive_bc  flag
-    # @return The beta value used for limiting.
     def get_centroid_transmissive_bc(self):
         """Get value of centroid_transmissive_bc flag."""
 
         return self.centroid_transmissive_bc
 
 
-    ##
-    # @brief Set the max timestep for time evolution
-    # @param max_timestep The new max timestep value.
     def set_evolve_max_timestep(self, max_timestep):
         """Set default max_timestep for evolving."""
 
         self.evolve_max_timestep = max_timestep
 
 
-    ##
-    # @brief Get the max timestep for time evolution
-    # @return The max timestep value.
     def get_evolve_max_timestep(self):
         """Set default max_timestep for evolving."""
 
         return self.evolve_max_timestep
 
-    ##
-    # @brief Set the min timestep for time evolution
-    # @param min_timestep The new min timestep value.
     def set_evolve_min_timestep(self, min_timestep):
         """Set default min_timestep for evolving."""
 
         self.evolve_min_timestep = min_timestep
 
 
-    ##
-    # @brief Get the min timestep for time evolution
-    # @return The min timestep value.
     def get_evolve_min_timestep(self):
         """Set default max_timestep for evolving."""
 
@@ -590,10 +521,6 @@ class Generic_Domain:
 
 
   
-    ##
-    # @brief Set default (spatial) order.
-    # @param n The new spatial order value.
-    # @note If 'n' is not 1 or 2, raise exception.
     def set_default_order(self, n):
         """Set default (spatial) order to either 1 or 2."""
 
@@ -603,9 +530,6 @@ class Generic_Domain:
         self.default_order = n
         self._order_ = self.default_order
 
-    ##
-    # @brief Set values of named quantities.
-    # @param quantity_dict Dictionary containing name/value pairs.
     def set_quantity_vertices_dict(self, quantity_dict):
         """Set values for named quantities.
         Supplied dictionary contains name/value pairs:
@@ -621,12 +545,6 @@ class Generic_Domain:
         for key in quantity_dict.keys():
             self.set_quantity(key, quantity_dict[key], location='vertices')
 
-    ##
-    # @brief Set value(s) for a named quantity.
-    # @param name Name of quantity to be updated.
-    # @param args Positional args.
-    # @param kwargs Keyword args.
-    # @note If 'kwargs' dict has 'expression' key, evaluate expression.
     def set_quantity(self, name,
                            *args, **kwargs):
         """Set values for named quantity
@@ -651,12 +569,6 @@ class Generic_Domain:
         # Assign values
         self.quantities[name].set_values(*args, **kwargs)
 
-    ##
-    # @brief Add to a named quantity value.
-    # @param name Name of quantity to be added to.
-    # @param args Positional args.
-    # @param kwargs Keyword args.
-    # @note If 'kwargs' dict has 'expression' key, evaluate expression.
     def add_quantity(self, name,
                            *args, **kwargs):
         """Add values to a named quantity
@@ -681,9 +593,6 @@ class Generic_Domain:
         Q1 = self.get_quantity(name)
         self.set_quantity(name, Q1 + Q2)
 
-    ##
-    # @brief Get list of quantity names for the Domain.
-    # @return List of quantity names.
     def get_quantity_names(self):
         """Get a list of all the quantity names that this domain is aware of.
         Any value in the result should be a valid input to get_quantity.
@@ -691,13 +600,6 @@ class Generic_Domain:
 
         return self.quantities.keys()
 
-    ##
-    # @brief Get a quantity object.
-    # @param name Name of the quantity value.
-    # @param location ??
-    # @param indices ??
-    # @return The quantity value object.
-    # @note 'location' and 'indices' are unused.
     def get_quantity(self, name,
                            location='vertices',
                            indices = None):
@@ -712,11 +614,6 @@ class Generic_Domain:
 
         return self.quantities[name] #.get_values( location, indices = indices)
 
-    ##
-    # @brief Create a quantity value from an expression.
-    # @param expression The expression (string) to be evaluated.
-    # @return The expression value, evaluated from this Domain's quantities.
-    # @note Valid expression operators are as defined in class Quantity.
     def create_quantity_from_expression(self, expression):
         """Create new quantity from other quantities using arbitrary expression.
 
@@ -738,11 +635,6 @@ class Generic_Domain:
 
         return apply_expression_to_dictionary(expression, self.quantities)
 
-    ##
-    # @brief Associate boundary objects with tagged boundary segments.
-    # @param boundary_map A dict of boundary objects keyed by symbolic tags to
-    #                     matched against tags in the internal dictionary
-    #                     self.boundary.
     def set_boundary(self, boundary_map):
         """Associate boundary objects with tagged boundary segments.
 
@@ -828,10 +720,6 @@ class Generic_Domain:
                 msg += 'The tags are: %s' %self.get_boundary_tags()
                 raise Exception(msg)
 
-    ##
-    # @brief Set quantities based on a regional tag.
-    # @param args
-    # @param kwargs
     def set_region(self, *args, **kwargs):
         """Set quantities based on a regional tag.
 
@@ -854,9 +742,6 @@ class Generic_Domain:
             func = region_set_region(*args, **kwargs)
             self._set_region(func)
 
-    ##
-    # @brief ??
-    # @param functions A list or tuple of ??
     def _set_region(self, functions):
         # coerce to an iterable (list or tuple)
         if not isinstance(functions, (list, tuple)):
@@ -868,12 +753,6 @@ class Generic_Domain:
             for tag in tagged_elements.keys():
                 function(tag, tagged_elements[tag], self)
 
-    ##
-    # @brief Specify the quantities which will be monitored for extrema.
-    # @param q Single or list of quantity names to monitor.
-    # @param polygon If specified, monitor only triangles inside polygon.
-    # @param time_interval If specified, monitor only timesteps inside interval.
-    # @note If 'q' is None, do no monitoring.
     def set_quantities_to_be_monitored(self, q,
                                              polygon=None,
                                              time_interval=None):
@@ -965,9 +844,6 @@ class Generic_Domain:
         self.monitor_polygon = polygon
         self.monitor_time_interval = time_interval
 
-    ##
-    # @brief Check Domain integrity.
-    # @note Raises an exception if integrity breached.
     def check_integrity(self):
         self.mesh.check_integrity()
 
@@ -982,17 +858,9 @@ class Generic_Domain:
             assert quantity == self.evolved_quantities[i], msg
  
 
-    ##
-    # @brief Print timestep stats to stdout.
-    # @param track_speeds If True, print smallest track speed.
     def write_time(self, track_speeds=False):
         log.critical(self.timestepping_statistics(track_speeds))
 
-    ##
-    # @brief Get timestepping stats string.
-    # @param track_speeds If True, report location of smallest timestep.
-    # @param triangle_id If specified, use specific triangle.
-    # @return A string containing timestep stats.
     def timestepping_statistics(self, track_speeds=False,
                                       triangle_id=None):
         """Return string with time stepping statistics
@@ -1120,17 +988,9 @@ class Generic_Domain:
 
         return msg
 
-    ##
-    # @brief Print boundary forcing stats at each timestep to stdout.
-    # @param quantities A name or list of names of quantities to report.
-    # @param tags A name or list of names of tags to report.
     def write_boundary_statistics(self, quantities=None, tags=None):
         log.critical(self.boundary_statistics(quantities, tags))
 
-    # @brief Get a string containing boundary forcing stats at each timestep.
-    # @param quantities A name or list of names of quantities to report.
-    # @param tags A name or list of names of tags to report.
-    # @note If 'quantities' is None, report all.  Same for 'tags'.
     def boundary_statistics(self, quantities=None,
                                   tags=None):
         """Output statistics about boundary forcing at each timestep
@@ -1206,8 +1066,6 @@ class Generic_Domain:
 
         return msg
 
-    ##
-    # @brief Update extrema if requested by set_quantities_to_be_monitored.
     def update_extrema(self):
         """Update extrema if requested by set_quantities_to_be_monitored.
         This data is used for reporting e.g. by running
@@ -1258,10 +1116,6 @@ class Generic_Domain:
                 info_block['min_location'] = minloc
                 info_block['min_time'] = self.get_time()
 
-    ##
-    # @brief Return string with statistics about quantities
-    # @param precision A format string to use for float values.
-    # @return The stats string.
     def quantity_statistics(self, precision='%.4f'):
         """Return string with statistics about quantities for
         printing or logging
@@ -1308,16 +1162,9 @@ class Generic_Domain:
 
         return msg
 
-    ##
-    # @brief Get the timestep method.
-    # @return The timestep method. One of 'euler', 'rk2' or 'rk3' or 1, 2, 3.
     def get_timestepping_method(self):
         return self.timestepping_method
 
-    ##
-    # @brief Set the tmestep method to be used.
-    # @param timestepping_method One of 'euler', 'rk2' or 'rk3'.
-    # @note Raises exception of method not known.
     def set_timestepping_method(self, timestepping_method):
         methods = ['euler', 'rk2', 'rk3']
         if timestepping_method in methods:
@@ -1330,16 +1177,9 @@ class Generic_Domain:
         msg = '%s is an incorrect timestepping type' % timestepping_method
         raise Exception(msg)
 
-    ##
-    # @brief Get the Domain simulation name.
-    # @return The simulation name string.
     def get_name(self):
         return self.simulation_name
 
-    ##
-    # @brief Set the simulation name.
-    # @param name The name of the simulation.
-    # @note The simulation name is also used for the output .sww file.
     def set_name(self, name):
         """Assign a name to this simulation.
         This will be used to identify the output sww file.
@@ -1351,27 +1191,15 @@ class Generic_Domain:
 
         self.simulation_name = name
 
-    ##
-    # @brief Get data directory path.
-    # @return The data directory path string.
     def get_datadir(self):
         return self.datadir
 
-    ##
-    # @brief Set data directory path.
-    # @param name The data directory path string.
     def set_datadir(self, name):
         self.datadir = name
 
-    ##
-    # @brief Get the start time value.
-    # @return The start time value (float).
     def get_starttime(self):
         return self.starttime
 
-    ##
-    # @brief Set the start time value.
-    # @param time The start time value.
     def set_starttime(self, time):
         self.starttime = float(time)
         self.set_time(self.starttime)
@@ -1381,12 +1209,6 @@ class Generic_Domain:
 # Main components of evolve
 ################################################################################
 
-    ##
-    # @brief Evolve the model through time.
-    # @param yieldstep Interval between yields where results are stored, etc.
-    # @param finaltime Time where simulation should end.
-    # @param duration Duration of simulation.
-    # @param skip_initial_step If True, skip the first yield step.
     def evolve(self, yieldstep=None,
                      finaltime=None,
                      duration=None,
@@ -1556,10 +1378,6 @@ class Generic_Domain:
                 self.number_of_first_order_steps = 0
                 self.max_speed = num.zeros(N, num.float)
 
-    ##
-    # @brief 'Euler' time step method.
-    # @param yieldstep The reporting time step.
-    # @param finaltime The simulation final time.
     def evolve_one_euler_step(self, yieldstep, finaltime):
         """One Euler Time Step
         Q^{n+1} = E(h) Q^n
@@ -1585,10 +1403,6 @@ class Generic_Domain:
 
 
 
-    ##
-    # @brief 'rk2' time step method.
-    # @param yieldstep The reporting time step.
-    # @param finaltime The simulation final time.
     def evolve_one_rk2_step(self, yieldstep, finaltime):
         """One 2nd order RK timestep
         Q^{n+1} = 0.5 Q^n + 0.5 E(h)^2 Q^n
@@ -1653,10 +1467,6 @@ class Generic_Domain:
         self.update_ghosts()
 
 
-    ##
-    # @brief 'rk3' time step method.
-    # @param yieldstep The reporting time step.
-    # @param finaltime The simulation final time.
     def evolve_one_rk3_step(self, yieldstep, finaltime):
         """One 3rd order RK timestep
         Q^(1) = 3/4 Q^n + 1/4 E(h)^2 Q^n  (at time t^n + h/2)
@@ -1760,17 +1570,12 @@ class Generic_Domain:
         self.set_time(initial_time + self.timestep)
 
 
-    ##
-    # @brief Evolve simulation to a final time.
-    # @param finaltime Sinulation final time.
     def evolve_to_end(self, finaltime=1.0):
         """Iterate evolve all the way to the end."""
 
         for _ in self.evolve(yieldstep=None, finaltime=finaltime):
             pass
 
-    ##
-    # @brief Backup conserved quantities 
     def backup_conserved_quantities(self):
 
         # Backup conserved_quantities centroid values
@@ -1778,10 +1583,6 @@ class Generic_Domain:
             Q = self.quantities[name]
             Q.backup_centroid_values()
 
-    ##
-    # @brief Combines current C and saved centroid values S as C = aC + bS
-    # @param a factor in combination
-    # @param b factor in combination
     def saxpy_conserved_quantities(self, a, b):
 
         # Backup conserved_quantities centroid values
@@ -1792,11 +1593,6 @@ class Generic_Domain:
             
 
 
-    ##
-    # @brief Mapping between conserved quantites and evolved quantities
-    # @param Input: q_cons array of conserved quantity values
-    # @param Input: q_evol array of current evolved quantity values
-    # @note  Output: Updated q_evol array
     def  conserved_values_to_evolved_values(self, q_cons, q_evol):
         """Needs to be overridden by Domain subclass
         """
@@ -1810,8 +1606,6 @@ class Generic_Domain:
 
         return q_evol
     
-    ##
-    # @brief Update boundary values for all conserved quantities.
     def update_boundary(self):
         """Go through list of boundary objects and update boundary values
         for all conserved quantities on boundary.
@@ -1850,57 +1644,34 @@ class Generic_Domain:
                     Q = self.quantities[name]
                     Q.boundary_values[i] = q_evol[j]
 
-    ##
-    # @brief Compute fluxes.
-    # @note MUST BE OVERRIDEN IN SUBCLASS!
     def compute_fluxes(self):
         msg = 'Method compute_fluxes must be overridden by Domain subclass'
         raise Exception(msg)
 
 
-    ##
-    # @brief apply_fractional_steps.
-    # Goes through all fractional step operators and updates centroid values of
-    # conserved quantities over a timestep 
     def apply_fractional_steps(self):
         for operator in self.fractional_step_operators:
             operator()
 
 
 
-    ##
-    # @brief log_operator_timestepping_statistics.
-    # Goes through all fractional step operators and logs timestepping statistics
     def log_operator_timestepping_statistics(self):
         for operator in self.fractional_step_operators:
             operator.log_timestepping_statistics()
 
-    ##
-    # @brief print_operator_timestepping_statistics.
-    # Goes through all fractional step operators and prints timestepping statistics
     def print_operator_timestepping_statistics(self):
         for operator in self.fractional_step_operators:
             operator.print_timestepping_statistics()
 
-    ##
-    # @brief print_operator_statistics.
-    # Goes through all fractional step operators and prints operator statistics
     def print_operator_statistics(self):
         for operator in self.fractional_step_operators:
             operator.print_statistics()
 
 
-    ##
-    # @brief set_fractional_step_operator.
-    # Add a fractional step operator to list of operators
     def set_fractional_step_operator(self,operator):
 
         self.fractional_step_operators.append(operator)
 
-    ##
-    # @brief
-    # @param yieldstep
-    # @param finaltime
     def update_timestep(self, yieldstep, finaltime):
 
         # Protect against degenerate timesteps arising from isolated
@@ -1953,8 +1724,6 @@ class Generic_Domain:
 
         self.timestep = timestep
 
-    ##
-    # @brief Compute forcing terms, if any.
     def compute_forcing_terms(self):
         """If there are any forcing functions driving the system
         they should be defined in Domain subclass and appended to
@@ -1968,8 +1737,6 @@ class Generic_Domain:
             f(self)
 
 
-    ##
-    # @brief Update vectors of conserved quantities.
     def update_conserved_quantities(self):
         """Update vectors of conserved quantities using previously
         computed fluxes and specified forcing functions.
@@ -1990,8 +1757,6 @@ class Generic_Domain:
             # Where is Q.semi_implicit_update reset?
             # It is reset in quantity_ext.c
 
-    ##
-    # @brief Sequential update of ghost cells 
     def update_ghosts(self):
         # We must send the information from the full cells and
         # receive the information for the ghost cells
@@ -2012,9 +1777,6 @@ class Generic_Domain:
                 num.put(Q_cv, Idg, num.take(Q_cv, Idf, axis=0))
 
  
-    ##
-    # @brief Extrapolate conserved quantities from centroid to vertices
-    #        and edge-midpoints for each volume.
     def distribute_to_vertices_and_edges(self):
         """Extrapolate conserved quantities from centroid to
         vertices and edge-midpoints for each volume
@@ -2033,11 +1795,6 @@ class Generic_Domain:
             else:
                 raise Exception('Unknown order: %s' % str(self._order_))
 
-    ##
-    # @brief Calculate the norm of the centroid values of a specific quantity,
-    #        using normfunc.
-    # @param quantity
-    # @param normfunc
     def centroid_norm(self, quantity, normfunc):
         """Calculate the norm of the centroid values of a specific quantity,
         using normfunc.
