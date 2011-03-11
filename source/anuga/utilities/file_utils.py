@@ -81,9 +81,6 @@ def check_dir(path, verbose=None):
     return path
 
 
-##
-# @brief Delete directory and all sub-directories.
-# @param path Path to the directory to delete.
 def del_dir(path):
     """Recursively delete directory path and all its contents
     """
@@ -103,12 +100,6 @@ def del_dir(path):
         os.rmdir(path)
 
 
-##
-# @brief ??
-# @param path 
-# @param __func__ 
-# @param verbose True if this function is to be verbose.
-# @note ANOTHER OPTION, IF NEED IN THE FUTURE, Nick B 7/2007
 def rmgeneric(path, func, verbose=False):
     ERROR_STR= """Error removing %(path)s, %(error)s """
 
@@ -119,10 +110,6 @@ def rmgeneric(path, func, verbose=False):
         log.critical(ERROR_STR % {'path' : path, 'error': strerror })
 
 
-##
-# @brief Remove directory and all sub-directories.
-# @param path Filesystem path to directory to remove.
-# @param verbose True if this function is to be verbose.
 def removeall(path, verbose=False):
     if not os.path.isdir(path):
         return
@@ -138,16 +125,20 @@ def removeall(path, verbose=False):
             rmgeneric(fullpath, f, verbose)
 
 
-##
-# @brief Create a standard filename.
-# @param datadir Directory where file is to be created.
-# @param filename Filename 'stem'.
-# @param format Format of the file, becomes filename extension.
-# @param size Size of file, becomes part of filename.
-# @param time Time (float), becomes part of filename.
-# @return The complete filename path, including directory.
-# @note The containing directory is created, if necessary.
 def create_filename(datadir, filename, format, size=None, time=None):
+    """Create a standard filename.
+
+    datadir   directory where file is to be created
+    filename  filename 'stem'
+    format    format of the file, becomes filename extension
+    size      size of file, becomes part of filename
+    time      time (float), becomes part of filename
+
+    Returns the complete filename path, including directory.
+
+    The containing directory is created, if necessary.
+    """
+
     FN = check_dir(datadir) + filename
 
     if size is not None:
@@ -161,13 +152,6 @@ def create_filename(datadir, filename, format, size=None, time=None):
     return FN
 
 
-##
-# @brief Get all files with a standard name and a given set of attributes.
-# @param datadir Directory files must be in.
-# @param filename Filename stem.
-# @param format Filename extension.
-# @param size Filename size.
-# @return A list of fielnames (including directory) that match the attributes.
 def get_files(datadir, filename, format, size):
     """Get all file (names) with given name, size and format
     """
@@ -180,11 +164,6 @@ def get_files(datadir, filename, format, size):
     return glob.glob(pattern)
 
 
-##
-# @brief Find all files in a directory that contain a given string.
-# @param look_in_dir Path to the directory to look in.
-# @param base_name String that files must contain.
-# @param verbose True if this function is to be verbose.
 def get_all_directories_with_name(look_in_dir='', base_name='', verbose=False):
     '''
     Finds all the directories in a "look_in_dir" which contains a "base_name".
@@ -214,14 +193,6 @@ def get_all_directories_with_name(look_in_dir='', base_name='', verbose=False):
 
 
 
-##
-# @brief Find all SWW files in a directory with given stem name.
-# @param look_in_dir The directory to look in.
-# @param base_name The file stem name.
-# @param verbose True if this function is to be verbose.
-# @return A list of found filename strings.
-# @note Will accept 'base_name' with or without '.sww' extension.
-# @note If no files found, raises IOError exception.
 def get_all_swwfiles(look_in_dir='', base_name='', verbose=False):
     '''
     Finds all the sww files in a "look_in_dir" which contains a "base_name".
@@ -258,14 +229,6 @@ def get_all_swwfiles(look_in_dir='', base_name='', verbose=False):
     return iterate_over
 
 
-##
-# @brief Find all files in a directory that contain a string and have extension.
-# @param look_in_dir Path to the directory to look in.
-# @param base_name Stem filename of the file(s) of interest.
-# @param extension Extension of the files to look for.
-# @param verbose True if this function is to be verbose.
-# @return A list of found filename strings.
-# @note If no files found, raises IOError exception.
 def get_all_files_with_extension(look_in_dir='',
                                  base_name='',
                                  extension='.sww',
@@ -316,10 +279,6 @@ def copy_code_files(dir_name, filename1, filename2=None, verbose=False):
     Filenames must be absolute pathnames
     """
 
-    ##
-    # @brief copies a file or sequence to destination directory.
-    # @param dest The destination directory to copy to.
-    # @param file A filename string or sequence of filename strings.
     def copy_file_or_sequence(dest, file):
         if hasattr(file, '__iter__'):
             for f in file:

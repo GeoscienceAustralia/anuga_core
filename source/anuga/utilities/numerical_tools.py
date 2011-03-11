@@ -229,11 +229,6 @@ def corr(x, y=None):
 
 
 
-##
-# @brief Ensure that a sequence is a numeric array of the required type.
-# @param A The sequence object to convert to a numeric array.
-# @param typecode The required numeric type of object A (a numeric dtype).
-# @return A numeric array of the required type.
 def ensure_numeric(A, typecode=None):
     """Ensure that sequence is a numeric array.
 
@@ -374,10 +369,6 @@ def gradient2_python(x0, y0, x1, y1, q0, q1):
 # These functions hide numpy-specific details of how we do this.
 ################################################################################
 
-##
-# @brief Decide if an object is a numeric package object with datatype of float.
-# @param obj The object to decide on.
-# @return True if 'obj' is a numeric package object, and some sort of float.
 def is_num_float(obj):
     '''Is an object a numeric package float object?'''
 
@@ -386,10 +377,6 @@ def is_num_float(obj):
     except AttributeError:
         return False
 
-##
-# @brief Decide if an object is a numeric package object with datatype of int.
-# @param obj The object to decide on.
-# @return True if 'obj' is a numeric package object, and some sort of int.
 def is_num_int(obj):
     '''Is an object a numeric package int object?'''
 

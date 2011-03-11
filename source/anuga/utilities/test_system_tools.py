@@ -226,10 +226,6 @@ class Test_system_tools(unittest.TestCase):
 # string_to_char() and char_to_string().
 ################################################################################
 
-    ##
-    # @brief Helper function to write a list of strings to a NetCDF file.
-    # @param filename Path to the file to write.
-    # @param l The list of strings to write.
     def helper_write_msh_file(self, filename, l):
         # open the NetCDF file
         fd = NetCDFFile(filename, netcdf_mode_w)
@@ -249,10 +245,6 @@ class Test_system_tools(unittest.TestCase):
         fd.close()
 
 
-    ##
-    # @brief Helper function to read a NetCDF file and return a list of strings.
-    # @param filename Path to the file to read.
-    # @return A list of strings from the file.
     def helper_read_msh_file(self, filename):
         fid = NetCDFFile(filename, netcdf_mode_r)
         mesh = {}

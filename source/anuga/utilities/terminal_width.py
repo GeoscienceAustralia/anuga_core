@@ -7,11 +7,14 @@
 # Any errors here are mine, as the code below changed the code found above.
 ######
 
-##
-# @brief Get the current terminal width.
-# @return The terminal width in characters.
-# @note If the width cannot be found, return 80 as a default.
 def terminal_width():
+    """Get the current terminal width.
+
+    Returns the terminal width in characters.
+
+    If the width cannot be found, return 80 as a default.
+    """
+
     # First, try Windows.
     try:
         # fails if not Windows
