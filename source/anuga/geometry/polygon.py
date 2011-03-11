@@ -782,10 +782,12 @@ def plot_polygons(polygons_points,
 def _poly_xy(polygon):
     """ this is used within plot_polygons so need to duplicate
         the first point so can have closed polygon in plot
-        # @param polygon A set of points defining a polygon.
-        # @param verbose True if this function is to be verbose.
-        # @return A tuple (x, y) of X and Y coordinates of the polygon.
-        # @note We duplicate the first point so can have closed polygon in plot.
+
+        polygon A set of points defining a polygon.
+        verbose True if this function is to be verbose.
+
+        Returns a tuple (x, y) of X and Y coordinates of the polygon.
+        We duplicate the first point so can have closed polygon in plot.
     """
 
     try:

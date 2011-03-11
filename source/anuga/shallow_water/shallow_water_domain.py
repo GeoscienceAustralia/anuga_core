@@ -114,19 +114,19 @@ class Domain(Generic_Domain):
             coordinates - vertex locations for the mesh
             vertices - vertex indices for the mesh
             boundary - boundaries of the mesh
-            # @param tagged_elements
-            # @param geo_reference
-            # @param use_inscribed_circle
-            # @param mesh_filename
-            # @param use_cache
-            # @param verbose
-            # @param evolved_quantities
-            # @param full_send_dict
-            # @param ghost_recv_dict
-            # @param processor
-            # @param numproc
-            # @param number_of_full_nodes
-            # @param number_of_full_triangles
+            tagged_elements
+            geo_reference
+            use_inscribed_circle
+            mesh_filename
+            use_cache
+            verbose
+            evolved_quantities
+            full_send_dict
+            ghost_recv_dict
+            processor
+            numproc
+            number_of_full_nodes
+            number_of_full_triangles
         """
 
         # Define quantities for the shallow_water domain

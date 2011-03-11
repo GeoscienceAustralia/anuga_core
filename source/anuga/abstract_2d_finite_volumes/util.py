@@ -277,7 +277,6 @@ def get_centroid_values(x, triangles):
     return xc
 
 
-# @note TEMP
 def make_plots_from_csv_file(directories_dic={dir:['gauge', 0, 0]},
                                 output_dir='',
                                 base_name='',
