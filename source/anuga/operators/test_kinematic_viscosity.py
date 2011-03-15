@@ -1,4 +1,5 @@
 from anuga import Domain
+from anuga import Quantity
 from anuga import Dirichlet_boundary
 from kinematic_viscosity import Kinematic_Viscosity
 
@@ -32,6 +33,7 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
         domain.set_quantity('elevation', lambda x,y : 3*x+5*y )
 
 
+
         #print domain.quantities['stage'].vertex_values
 
         #print domain.quantities['stage'].edge_values
@@ -62,24 +64,26 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
         domain.set_boundary({'edge0': D0, 'edge1': D1, 'edge2': D2, 'edge3': D3})
         domain.update_boundary()
 
+
+
         return Kinematic_Viscosity(domain)
 
     def test_enumerate_boundary(self):
         operator1 = self.operator1()
-        boundary_enum = operator1.boundary_enum
+        boundary_enumeration = operator1.domain.boundary_enumeration
 
-        assert boundary_enum[(0,0)] == 0
-        assert boundary_enum[(0,1)] == 1
-        assert boundary_enum[(0,2)] == 2
+        assert boundary_enumeration[(0,0)] == 0
+        assert boundary_enumeration[(0,1)] == 1
+        assert boundary_enumeration[(0,2)] == 2
 
         operator2 = self.operator2()
-        boundary_enum = operator2.boundary_enum
+        boundary_enumeration = operator2.domain.boundary_enumeration
 
 
-        assert boundary_enum[(0,1)] == 0
-        assert boundary_enum[(0,2)] == 1
-        assert boundary_enum[(1,0)] == 2
-        assert boundary_enum[(1,2)] == 3
+        assert boundary_enumeration[(0,1)] == 0
+        assert boundary_enumeration[(0,2)] == 1
+        assert boundary_enumeration[(1,0)] == 2
+        assert boundary_enumeration[(1,2)] == 3
 
     def test_geo_structure(self):
         operator1 = self.operator1()
@@ -95,73 +99,200 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
         assert num.allclose(indices, num.array([[1,2,3],[4,0,5]]))
         assert num.allclose(values, num.array([[-3.0,-6.0/sqrt(5),-6.0/sqrt(5)],[-6.0/sqrt(5),-3.0,-6.0/sqrt(5)]]))
 
-    def test_elliptic_matrix(self):
-        operator1 = self.operator1()
-        operator2 = self.operator2()
+    def test_elliptic_matrix_one_triangle(self):
 
-        domain1 = operator1.domain
-        domain2 = operator2.domain
-
-
-        A = operator1.elliptic_operator_matrix
-
-        print A
-        print num.array([-6.0-12.0/sqrt(5), 6.0,  6.0/sqrt(5), 6.0/sqrt(5)])
+        operator = self.operator1()
+        domain = operator.domain
         
+        operator.update_elliptic_matrix()
+
+        A = operator.elliptic_matrix
+
         assert num.allclose(A.todense(), num.array([-6.0-12.0/sqrt(5), 6.0,  6.0/sqrt(5), 6.0/sqrt(5)]))
 
+        diffusivity = operator.diffusivity
+        diffusivity.set_values(10.0)
+        diffusivity.set_boundary_values(10.0)
+        
+        operator.update_elliptic_matrix()
 
-        A = operator1.elliptic_operator_matrix
-        assert num.allclose(A.todense(), 1.5*num.array([-6.0-12.0/sqrt(5), 6.0, 6.0/sqrt(5), 6.0/sqrt(5)]))
+        assert num.allclose(A.todense(), 10*num.array([-6.0-12.0/sqrt(5), 6.0,  6.0/sqrt(5), 6.0/sqrt(5)]))
+    
 
-        h = num.array([1.0, 1.0])
-        A = operator2.apply_stage_heights(h)
-        #From test_kv_system_geometry
+    def test_elliptic_matrix_two_triangles(self):
+
+
+        operator = self.operator2()
+
+        domain = operator.domain
+        diffusivity = operator.diffusivity
+
+        A = operator.elliptic_matrix
+
+        diffusivity.set_values(1.0)
+        diffusivity.set_boundary_values(1.0)
+        operator.update_elliptic_matrix()
+
         A0 = num.array([[-3.0,3.0,0.0,0.0,0.0,0.0],
                         [0.0,-6.0/sqrt(5.0),0.0,0.0,6.0/sqrt(5.0),0.0]])
         A1 = num.array([[-6.0/sqrt(5.0),0.0,6.0/sqrt(5.0),0.0,0.0,0.0],\
                         [3.0,-3.0,0.0,0.0,0.0,0.0]])
         A2 = num.array([[-6.0/sqrt(5.0),0.0,0.0,6.0/sqrt(5.0),0.0,0.0],\
                         [0.0, -6.0/sqrt(5.0), 0.0, 0.0, 0.0, 6.0/sqrt(5.0)]])
+
+
         assert num.allclose(A.todense(), A0+A1+A2)
 
-        h = num.array([2.0, 1.0])
-        A = operator2.apply_stage_heights(h)
+        diffusivity.set_values([2.0, 1.0], location = 'centroids')
+        diffusivity.set_boundary_values(1.0)
+        operator.update_elliptic_matrix()
+
+        A = operator.elliptic_matrix
+        
+
         assert num.allclose(A.todense()[0,:], 1.5*A0[0,:]+1.5*A1[0,:]+1.5*A2[0,:])
         assert num.allclose(A.todense()[1,:], A0[1,:]+1.5*A1[1,:]+A2[1,:])
 
-        h = num.array([-2.0, -2.0])
-        A = operator2.apply_stage_heights(h)
+        diffusivity.set_values([-2.0, -2.0], location = 'centroids')
+        diffusivity.set_boundary_values(1.0)
+        operator.update_elliptic_matrix()
+
         assert num.allclose(A.todense()[0,:], -2*A0[0,:]-0.5*A1[0,:]-0.5*A2[0,:])
         assert num.allclose(A.todense()[1,:], -0.5*A0[1,:]-2*A1[1,:]-0.5*A2[1,:])
 
-    def test_elliptic_multiply(self):
-        operator1 = self.operator1()
-        operator1.apply_stage_heights(num.array([[1.0]])) #h=1
-        operator1.build_boundary_vector()
-        V1 = num.array([2.0]) #(uh)=2 <- Centriod value
-        V2 = num.array([2.0]) #(vh)=2 <- Centroid value
+    def test_elliptic_multiply_include_boundary_one_triangle(self):
+        operator = self.operator1()
+        operator.set_triangle_areas(False)
+
+        print operator.apply_triangle_areas
+        
+        n = operator.n
+
+        q_in = Quantity(operator.domain)
+        q_in.set_values(1.0)
+        q_in.set_boundary_values(1.0)
+        operator.update_elliptic_matrix()
+
+        
         A = num.array([-6.0-12.0/sqrt(5), 6.0,  6.0/sqrt(5), 6.0/sqrt(5)])
-        U1 = num.array([[2.0],[2.0],[1.0],[1.0]]) #(uh) for centroid, 3 edges
-        U2 = num.array([[2.0],[1.0],[2.0],[0.0]]) #(vh) for centroid, 3 edge
 
-        operator1.set_qty_considered('u')
-        D1 = operator1.elliptic_multiply(V1)
-        assert num.allclose(D1, 2*num.array(num.mat(A)*num.mat(U1)).reshape(1,)) #2* for triangle_areas
 
-        operator1.set_qty_considered(2)
-        D2 = operator1.elliptic_multiply(V2)
-        assert num.allclose(D2, 2*num.array(num.mat(A)*num.mat(U2)).reshape(1,)) #2* for triangle_areas
+        q_1 = operator.elliptic_multiply(q_in)
+
+        q_2 = operator.elliptic_multiply(q_in, quantity_out = q_in)
+
+        assert id(q_in) == id(q_2)
+
+        assert num.allclose(q_1.centroid_values,q_2.centroid_values)
+
+        assert num.allclose( num.zeros((n,), num.float), q_1.centroid_values )
+
+        #Now have different boundary values
+
+        q_in.set_values(1.0)
+        q_in.set_boundary_values(0.0)
+        operator.update_elliptic_matrix()
+
+
+        A = num.array([-6.0-12.0/sqrt(5), 6.0,  6.0/sqrt(5), 6.0/sqrt(5)])
+
+
+        q_1 = operator.elliptic_multiply(q_in)
+
+        assert num.allclose( [-6.0-12.0/sqrt(5)], q_1.centroid_values )
+        
+    def test_elliptic_multiply_exclude_boundary_one_triangle(self):
+        operator = self.operator1()
+        operator.set_triangle_areas(False)
+
+        print operator.apply_triangle_areas
+        #n = operator.n
+
+        q_in = Quantity(operator.domain)
+        q_in.set_values(1.0)
+        q_in.set_boundary_values(1.0)
+        operator.update_elliptic_matrix()
+
+
+        A = num.array([-6.0-12.0/sqrt(5), 6.0,  6.0/sqrt(5), 6.0/sqrt(5)])
+
+
+        q_1 = operator.elliptic_multiply(q_in, include_boundary=False)
+
+
+        assert num.allclose( [-6.0-12.0/sqrt(5)], q_1.centroid_values )
+
+    def test_elliptic_multiply_include_boundary_one_triangle(self):
+        operator = self.operator1()
+        operator.set_triangle_areas(True)
+
+        n = operator.n
+
+        q_in = Quantity(operator.domain)
+        q_in.set_values(1.0)
+        q_in.set_boundary_values(1.0)
+        operator.update_elliptic_matrix()
+
+
+        A = num.array([-6.0-12.0/sqrt(5), 6.0,  6.0/sqrt(5), 6.0/sqrt(5)])
+
+
+        q_1 = operator.elliptic_multiply(q_in)
+
+        q_2 = operator.elliptic_multiply(q_in, quantity_out = q_in)
+
+        assert id(q_in) == id(q_2)
+
+        assert num.allclose(q_1.centroid_values,q_2.centroid_values)
+
+        assert num.allclose( num.zeros((n,), num.float), q_1.centroid_values )
+
+        #Now have different boundary values
+
+        q_in.set_values(1.0)
+        q_in.set_boundary_values(0.0)
+        operator.update_elliptic_matrix()
+
+
+        A = num.array([-6.0-12.0/sqrt(5), 6.0,  6.0/sqrt(5), 6.0/sqrt(5)])
+
+
+        q_1 = operator.elliptic_multiply(q_in)
+
+        assert num.allclose( [-12.0-24.0/sqrt(5)], q_1.centroid_values )
+
+    def test_elliptic_multiply_exclude_boundary_one_triangle(self):
+        operator = self.operator1()
+        operator.set_triangle_areas(True)
+
+        q_in = Quantity(operator.domain)
+        q_in.set_values(1.0)
+        q_in.set_boundary_values(1.0)
+        operator.update_elliptic_matrix()
+
+
+        A = num.array([-6.0-12.0/sqrt(5), 6.0,  6.0/sqrt(5), 6.0/sqrt(5)])
+
+
+        q_1 = operator.elliptic_multiply(q_in, include_boundary=False)
+
+
+        assert num.allclose( [-12.0-24.0/sqrt(5)], q_1.centroid_values )
+
+
 
     def test_mul(self):
-        operator1 = self.operator1()
-        operator1.apply_stage_heights(num.array([[1.0]])) #h=1
-        operator1.set_qty_considered(1)
-        operator1.build_boundary_vector()
+        operator = self.operator1()
+
+        q = Quantity(operator.domain)
+        q.set_values(2.0)
+        #q boundary_values should equal 0.0
+
+        operator.build_elliptic_boundary_term()
         A = num.array([-6.0-12.0/sqrt(5), 6.0,  6.0/sqrt(5), 6.0/sqrt(5)])
         V1 = num.array([2.0]) #(uh)=2
         U1 = num.array([[2.0],[0.0],[0.0],[0.0]])
-        assert num.allclose(operator1 * V1, 2*num.array(num.mat(A)*num.mat(U1)).reshape(1,))
+        assert num.allclose(operator * q, 2*num.array(num.mat(A)*num.mat(U1)).reshape(1,))
 
     def test_cg_solve(self):
         #cf self.test_mul()

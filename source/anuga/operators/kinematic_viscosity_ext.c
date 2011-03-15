@@ -62,7 +62,7 @@ int build_geo_structure(int n,
 
                         // Edge
 			if (j < 0 ) {
-                                m = -j - 1;
+                m = -j - 1;
 				geo_indices[3*i+edge] = n + m;
 				edge_counted++;
 				
@@ -85,7 +85,7 @@ int build_geo_structure(int n,
 }
 
 
-int build_operator_matrix(int n,
+int build_elliptic_matrix(int n,
                           int tot_len,
                           long *geo_indices,
                           double *geo_values,
@@ -131,7 +131,7 @@ int build_operator_matrix(int n,
 	return 0;
 }
 
-int update_operator_matrix(int n,
+int update_elliptic_matrix(int n,
                           int tot_len,
                           long *geo_indices,
                           double *geo_values,
@@ -193,7 +193,7 @@ static PyObject *py_build_geo_structure(PyObject *self, PyObject *args) {
 			*geo_values;
     
     //Convert Python arguments to C
-    if (!PyArg_ParseTuple(args, "Oii", &kv_operator)) {
+    if (!PyArg_ParseTuple(args, "O", &kv_operator)) {
         PyErr_SetString(PyExc_RuntimeError, "build_geo_structure could not parse input");
         return NULL;
     }
@@ -240,7 +240,7 @@ static PyObject *py_build_geo_structure(PyObject *self, PyObject *args) {
     return Py_BuildValue("");
 }
 
-static PyObject *py_build_operator_matrix(PyObject *self, PyObject *args) {
+static PyObject *py_build_elliptic_matrix(PyObject *self, PyObject *args) {
 	PyObject *kv_operator;
 	int n, tot_len, err;
 	PyArrayObject
@@ -253,7 +253,7 @@ static PyObject *py_build_operator_matrix(PyObject *self, PyObject *args) {
 	
 	//Convert Python arguments to C
     if (!PyArg_ParseTuple(args, "OOO", &kv_operator, &cell_data, &bdry_data)) {
-        PyErr_SetString(PyExc_RuntimeError, "build_operator_matrix could not parse input");
+        PyErr_SetString(PyExc_RuntimeError, "build_elliptic_matrix could not parse input");
         return NULL;
     }
 
@@ -267,7 +267,7 @@ static PyObject *py_build_operator_matrix(PyObject *self, PyObject *args) {
 	_data = get_consecutive_array(kv_operator,"operator_data");
 	colind = get_consecutive_array(kv_operator,"operator_colind");
 	
-	err = build_operator_matrix(n,tot_len, 
+	err = build_elliptic_matrix(n,tot_len,
 								(long *)geo_indices -> data, 
 								(double *)geo_values -> data, 
 								(double *)cell_data -> data,
@@ -288,7 +288,7 @@ static PyObject *py_build_operator_matrix(PyObject *self, PyObject *args) {
 }
 
 
-static PyObject *py_update_operator_matrix(PyObject *self, PyObject *args) {
+static PyObject *py_update_elliptic_matrix(PyObject *self, PyObject *args) {
 	PyObject *kv_operator;
 	int n, tot_len, err;
 	PyArrayObject
@@ -301,7 +301,7 @@ static PyObject *py_update_operator_matrix(PyObject *self, PyObject *args) {
 
 	//Convert Python arguments to C
     if (!PyArg_ParseTuple(args, "OOO", &kv_operator, &cell_data, &bdry_data)) {
-        PyErr_SetString(PyExc_RuntimeError, "update_operator_matrix could not parse input");
+        PyErr_SetString(PyExc_RuntimeError, "update_elliptic_matrix could not parse input");
         return NULL;
     }
 
@@ -315,7 +315,7 @@ static PyObject *py_update_operator_matrix(PyObject *self, PyObject *args) {
 	_data = get_consecutive_array(kv_operator,"operator_data");
 	colind = get_consecutive_array(kv_operator,"operator_colind");
 
-	err = update_operator_matrix(n,tot_len,
+	err = update_elliptic_matrix(n,tot_len,
 								(long *)geo_indices -> data,
 								(double *)geo_values -> data,
 								(double *)cell_data -> data,
@@ -338,8 +338,8 @@ static PyObject *py_update_operator_matrix(PyObject *self, PyObject *args) {
 
 static struct PyMethodDef MethodTable[] = {
         {"build_geo_structure",py_build_geo_structure,METH_VARARGS,"Print out"},
-		{"build_operator_matrix",py_build_operator_matrix,METH_VARARGS,"Print out"},
-        {"update_operator_matrix",py_update_operator_matrix,METH_VARARGS,"Print out"},
+		{"build_elliptic_matrix",py_build_elliptic_matrix,METH_VARARGS,"Print out"},
+        {"update_elliptic_matrix",py_update_elliptic_matrix,METH_VARARGS,"Print out"},
         {NULL,NULL,0,NULL} // sentinel
 };
 void initkinematic_viscosity_ext(){

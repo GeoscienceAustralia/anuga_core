@@ -1,4 +1,3 @@
-
 from anuga import Domain
 from anuga import Quantity
 from anuga.utilities.sparse import Sparse, Sparse_CSR
@@ -35,24 +34,26 @@ class Kinematic_Viscosity:
 
     """
 
-    def __init__(self, domain, diffusivity = None, triangle_areas=True, verbose=False):
+    def __init__(self, domain, diffusivity = None, use_triangle_areas=True, verbose=False):
         if verbose: log.critical('Kinematic Viscosity: Beginning Initialisation')
         #Expose the domain attributes
 
         self.domain = domain
         self.mesh = domain.mesh
         self.boundary = domain.boundary
-
+        self.boundary_enumeration = domain.boundary_enumeration
+        
         # Setup diffusivity quantity
         if diffusivity is None:
             diffusivity = Quantity(domain)
             diffusivity.set_values(1.0)
+            diffusivity.set_boundary_values(1.0)
         #check that diffusivity is a quantity associated with domain
         assert diffusivity.domain == domain
 
         self.diffusivity = diffusivity
-        self.diffusivity_bdry_data = self.diffusivity.boundary_values
-        self.diffusivity_data = self.diffusivity.centroid_values
+        #self.diffusivity_bdry_data = self.diffusivity.boundary_values
+        #self.diffusivity_cell_data = self.diffusivity.centroid_values
 
 
         self.n = len(self.domain)
@@ -60,9 +61,6 @@ class Kinematic_Viscosity:
         self.boundary_len = len(domain.boundary)
         self.tot_len = self.n + self.boundary_len
 
-        # FIXME SR: maybe this should already exist in mesh!
-        self.boundary_enum = self.enumerate_boundary()
-        
         self.verbose = verbose
 
         #Geometric Information
@@ -72,10 +70,10 @@ class Kinematic_Viscosity:
         self.geo_structure_values = num.zeros((self.n, 3), num.float)
 
         # Only needs to built once, doesn't change
-        kinematic_viscosity_ext.build_geo_structure(self, self.n, self.tot_len)
+        kinematic_viscosity_ext.build_geo_structure(self)
 
         # Setup type of scaling
-        self.apply_triangle_areas = triangle_areas
+        self.set_triangle_areas(use_triangle_areas)        
 
         # FIXME SR: should this really be a matrix?
         temp  = Sparse(self.n, self.n)
@@ -83,12 +81,10 @@ class Kinematic_Viscosity:
             temp[i, i] = 1.0 / self.mesh.areas[i]
             
         self.triangle_areas = Sparse_CSR(temp)
+        #self.triangle_areas
 
         # FIXME SR: More to do with solving equation
         self.qty_considered = 1 #1 or 2 (uh or vh respectively)
-
-        #FIXME SR: Do we need Sparse or should we just go with Sparse_CSR
-        self.operator_matrix = Sparse(self.n, self.tot_len)
 
         #Sparse_CSR.data
         self.operator_data = num.zeros((4 * self.n, ), num.float)
@@ -97,27 +93,20 @@ class Kinematic_Viscosity:
         #Sparse_CSR.rowptr (4 entries in every row, we know this already) = [0,4,8,...,4*n]
         self.operator_rowptr = 4 * num.arange(self.n + 1)
 
-        # Build matrix self.elliptic_operator_matrix [A B]
-        self.build_elliptic_operator()
+        # Build matrix self.elliptic_matrix [A B]
+        self.build_elliptic_matrix()
 
         # Build self.boundary_term
-        self.build_operator_boundary_term()
+        #self.build_elliptic_boundary_term()
 
         self.parabolic_solve = False #Are we doing a parabolic solve at the moment?
 
         if verbose: log.critical('Kinematic Viscosity: Initialisation Done')
 
+    def set_triangle_areas(self,flag=True):
+
+        self.apply_triangle_areas = flag
         
-    def enumerate_boundary(self):
-        #Enumerate by boundary index
-        # FIXME SR: Probably should be part of mesh
-        enumeration = {}
-        for i in range(self.n):
-            for edge in range(3):
-                j = self.mesh.neighbours[i, edge]
-                if j < 0:
-                    enumeration[(i, edge)] = -j-1
-        return enumeration
 
     def set_qty_considered(self, qty):
         # FIXME SR: Probably should just be set by quantity to which operation is applied
@@ -129,7 +118,7 @@ class Kinematic_Viscosity:
             msg = "Incorrect input qty"
             assert 0 == 1, msg
 
-    def build_elliptic_operator(self):
+    def build_elliptic_matrix(self):
         """
         Builds matrix representing
 
@@ -140,11 +129,16 @@ class Kinematic_Viscosity:
 
         #Arrays self.operator_data, self.operator_colind, self.operator_rowptr
         # are setup via this call
-        kinematic_viscosity_ext.build_operator_matrix(self,self.diffusivity_data, self.diffusivity_bdry_data)
+        kinematic_viscosity_ext.build_elliptic_matrix(self, \
+                self.diffusivity.centroid_values, \
+                self.diffusivity.boundary_values)
 
-        self.elliptic_operator_matrix = Sparse_CSR(None, \
+        self.elliptic_matrix = Sparse_CSR(None, \
                 self.operator_data, self.operator_colind, self.operator_rowptr, \
                 self.n, self.tot_len)
+
+        #print 'elliptic_matrix'
+        #print self.elliptic_matrix
 
 #        #Set up the scaling matrix
 #        data = h
@@ -152,7 +146,7 @@ class Kinematic_Viscosity:
 #        self.stage_heights_scaling = \
 #            Sparse_CSR(None, self.diffusivity_data, num.arange(self.n), num.arange(self.n +1), self.n, self.n)
 
-    def update_elliptic_operator(self):
+    def update_elliptic_matrix(self):
         """
         Updates the data values of matrix representing
 
@@ -164,13 +158,12 @@ class Kinematic_Viscosity:
         #Array self.operator_data is changed by this call, which should flow
         # through to the Sparse_CSR matrix.
 
-        kinematic_viscosity_ext.update_operator_matrix(self, self.n, self.tot_len, \
-          self.diffusivity_data, self.diffusivity_bdry_data)
+        kinematic_viscosity_ext.update_elliptic_matrix(self, \
+                self.diffusivity.centroid_values, \
+                self.diffusivity.boundary_values)
+        
 
-
-
-
-    def build_operator_boundary_term(self):
+    def build_elliptic_boundary_term(self,quantity):
         """
         Operator has form [A B] and U = [ u ; b]
 
@@ -186,38 +179,48 @@ class Kinematic_Viscosity:
         
         X = num.zeros((tot_len,), num.float)
 
-        X[n:] = self.diffusivity_bdry_data
-        self.boundary_term[:] = self.operator_matrix * X
+        X[n:] = quantity.boundary_values
+        self.boundary_term[:] = self.elliptic_matrix * X
 
         #Tidy up
         if self.apply_triangle_areas:
             self.boundary_term[:] = self.triangle_areas * self.boundary_term
 
 
-    def elliptic_multiply(self, V, qty_considered=None, include_boundary=True):
-        msg = "(KV_Operator.apply_vector) V vector has incorrect dimensions"
-        assert V.shape == (self.n, ) or V.shape == (self.n, 1), msg
+    def elliptic_multiply(self, quantity_in, quantity_out=None, include_boundary=True):
 
-        if qty_considered != None:
-            print "Quantity Considered changed!"
-            self.set_qty_considered(qty_considered)
+        n = self.n
+        tot_len = self.tot_len
 
-        D = num.zeros((self.n, ), num.float)
-        #Change (uh) to (u), (vh) to (v)
-        X = self.stage_heights_scaling * V
+        V = num.zeros((tot_len,), num.float)
+        X = num.zeros((n,), num.float)
+
+        if quantity_out is None:
+            quantity_out = Quantity(self.domain)
+
+        V[0:n] = quantity_in.centroid_values
+        V[n:] = 0.0
+
+
+        # FIXME SR: These sparse matrix vector multiplications
+        # should be done in such a way to reuse memory, ie
+        # should have a procedure
+        # matrix.multiply(vector_in, vector_out)
+
 
         if self.apply_triangle_areas:
-            X = self.triangle_areas * X
+            V[0:n] = self.triangle_areas * V[0:n]
 
-        X = num.append(X, num.zeros((self.boundary_len, )), axis=0)
-        D = self.operator_matrix * X
+
+        X[:] = self.elliptic_matrix * V
 
         if include_boundary:
-            D += self.boundary_vector[:, self.qty_considered-1]
-        #make sure we return (uh) not (u), for the solver's benefit
-        D = self.stage_heights * D
+            self.build_elliptic_boundary_term(quantity_in)
+            X[:] += self.boundary_term
 
-        return num.array(D).reshape(self.n, )
+
+        quantity_out.set_values(X, location = 'centroids')
+        return quantity_out
 
     #parabolic_multiply(V) = identity - dt*elliptic_multiply(V)
     #We do not need include boundary, as we will only use this
@@ -236,7 +239,7 @@ class Kinematic_Viscosity:
 
         #Multiply out
         X = num.append(X, num.zeros((self.boundary_len, )), axis=0)
-        D = D - self.dt * (self.operator_matrix * X)
+        D = D - self.dt * (self.elliptic_matrix * X)
 
         return num.array(D).reshape(self.n, )
 
@@ -269,7 +272,7 @@ class Kinematic_Viscosity:
             msg = 'Sparse matrix can only "right-multiply" onto a scalar'
             raise TypeError, msg
         else:
-            new = self.operator_matrix * new
+            new = self.elliptic_matrix * new
         return new
 
     def cg_solve(self, B, qty_to_consider=None):
