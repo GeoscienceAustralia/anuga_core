@@ -178,6 +178,9 @@ class Mesh(General_mesh):
         if verbose: log.critical('Mesh: Building boundary dictionary')
         self.build_boundary_dictionary(boundary)
 
+        #Update boundary_enumeration
+        self.build_boundary_neighbours()
+
         #Build tagged element  dictionary mapping (tag) to array of elements
         if verbose: log.critical('Mesh: Building tagged elements dictionary')
         self.build_tagged_elements_dictionary(tagged_elements)
@@ -440,7 +443,43 @@ class Mesh(General_mesh):
             #    log.critical('Internal boundary')
 
             self.neighbours[id, edge] = index
+
+            self.boundary_enumeration[id,edge] = index
+
             index -= 1
+
+    def build_boundary_neighbours(self):
+        """Traverse boundary and
+        enumerate neighbour indices from -1 and
+        counting down.
+
+        Precondition:
+            self.boundary is defined.
+        Post condition:
+            neighbours array has unique negative indices for boundary
+            boundary_segments array imposes an ordering on segments
+            (not otherwise available from the dictionary)
+
+        """
+
+        if self.boundary is None:
+            msg = 'Boundary dictionary must be defined before '
+            msg += 'building boundary structure'
+            raise Exception(msg)
+
+        self.boundary_enumeration = {}
+
+        X = self.boundary.keys()
+        X.sort()
+
+        index = -1
+        for id, edge in X:
+            self.neighbours[id, edge] = index
+
+            self.boundary_enumeration[id,edge] = -index -1 
+
+            index -= 1
+
 
 
     def get_boundary_tags(self):

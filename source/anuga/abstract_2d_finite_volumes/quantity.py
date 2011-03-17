@@ -233,11 +233,71 @@ class Quantity:
 
         self.beta = beta
 
+    ##
+    # @brief Get the current beta value.
+    # @return The current beta value.
     def get_beta(self):
         """Get default beta value for limiting"""
 
         return self.beta
 
+
+
+    ##
+    # @brief Set boundary values using a function or array or scalar
+    # @param numeric: function or array or scalar
+    def set_boundary_values(self, numeric = 0.0):
+        """Set boundary values """
+
+        if isinstance(numeric, (list, num.ndarray)):
+            self._set_boundary_values_from_array(numeric)
+        elif callable(numeric):
+            self._set_boundary_values_from_function(numeric)
+        else:   # see if it's coercible to a float (float, int or long, etc)
+            try:
+                numeric = float(numeric)
+            except ValueError:
+                msg = ("Illegal type for variable 'numeric': %s"
+                           % type(numeric))
+                raise Exception(msg)
+            self._set_boundary_values_from_constant(numeric)
+
+
+    ##
+    # @brief Set boundary values using a function
+    # @param numeric: function
+    def _set_boundary_values_from_function(self, function):
+        """Set boundary values from function of x,y """
+
+        for (vol_id, edge_id) , j in self.domain.boundary_enumeration.items():
+            [x,y] = self.domain.get_edge_midpoint_coordinates(vol_id)[edge_id]
+            self.boundary_values[j] = function(x,y)
+
+    ##
+    # @brief Set boundary values using a scalar
+    # @param numeric: scalar
+    def _set_boundary_values_from_constant(self, scalar):
+        """Set boundary values from scalar """
+
+        for (vol_id, edge_id) , j in self.domain.boundary_enumeration.items():
+            [x,y] = self.domain.get_edge_midpoint_coordinates(vol_id)[edge_id]
+            self.boundary_values[j] = scalar
+
+    ##
+    # @brief Set boundary values using a scalar
+    # @param numeric: scalar
+    def _set_boundary_values_from_array(self, array):
+        """Set boundary values from array """
+
+        assert len(array)  == len(self.domain.boundary_enumeration)
+        
+        for (vol_id, edge_id) , j in self.domain.boundary_enumeration.items():
+            [x,y] = self.domain.get_edge_midpoint_coordinates(vol_id)[edge_id]
+            self.boundary_values[j] = array[j]
+
+    ##
+    # @brief Compute interpolated values at edges and centroid.
+    # @note vertex_values must be set before calling this.
     def interpolate(self):
         """Compute interpolated values at edges and centroid
         Pre-condition: vertex_values have been set
@@ -582,7 +642,7 @@ class Quantity:
                 msg = 'Number of values must match number of elements'
                 assert values.shape[0] == N, msg
 
-                self.centroid_values = values
+                self.centroid_values[:] = values
             else:
                 msg = 'Number of values must match number of indices'
                 assert values.shape[0] == indices.shape[0], msg
@@ -609,7 +669,7 @@ class Quantity:
                 assert values.shape[1] == 3, msg
 
                 if indices is None:
-                    self.vertex_values = values
+                    self.vertex_values[:] = values
                 else:
                     for element_index, value in map(None, indices, values):
                         self.vertex_values[element_index] = value

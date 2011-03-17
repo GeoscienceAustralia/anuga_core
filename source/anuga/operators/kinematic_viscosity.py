@@ -8,6 +8,8 @@ import numpy as num
 import kinematic_viscosity_ext
 import anuga.utilities.log as log
 
+
+
 class Kinematic_Viscosity:
     """
     Class for setting up structures and matrices for kinematic viscosity differential
@@ -34,7 +36,7 @@ class Kinematic_Viscosity:
 
     """
 
-    def __init__(self, domain, diffusivity = None, use_triangle_areas=True, verbose=False):
+    def __init__(self, domain, use_triangle_areas=True, verbose=False):
         if verbose: log.critical('Kinematic Viscosity: Beginning Initialisation')
         #Expose the domain attributes
 
@@ -43,21 +45,13 @@ class Kinematic_Viscosity:
         self.boundary = domain.boundary
         self.boundary_enumeration = domain.boundary_enumeration
         
-        # Setup diffusivity quantity
-        if diffusivity is None:
-            diffusivity = Quantity(domain)
-            diffusivity.set_values(1.0)
-            diffusivity.set_boundary_values(1.0)
-        #check that diffusivity is a quantity associated with domain
-        assert diffusivity.domain == domain
-
-        self.diffusivity = diffusivity
-        #self.diffusivity_bdry_data = self.diffusivity.boundary_values
-        #self.diffusivity_cell_data = self.diffusivity.centroid_values
-
+        # Dummy diffusivity quantity
+        diffusivity = Quantity(domain)
+        diffusivity.set_values(1.0)
+        diffusivity.set_boundary_values(1.0)
 
         self.n = len(self.domain)
-        self.dt = 1e-6 #Need to set to domain.timestep
+        self.dt = 1.0 #Need to set to domain.timestep
         self.boundary_len = len(domain.boundary)
         self.tot_len = self.n + self.boundary_len
 
@@ -94,12 +88,11 @@ class Kinematic_Viscosity:
         self.operator_rowptr = 4 * num.arange(self.n + 1)
 
         # Build matrix self.elliptic_matrix [A B]
-        self.build_elliptic_matrix()
+        self.build_elliptic_matrix(diffusivity)
 
-        # Build self.boundary_term
-        #self.build_elliptic_boundary_term()
+        self.boundary_term = num.zeros((self.n, ), num.float)
 
-        self.parabolic_solve = False #Are we doing a parabolic solve at the moment?
+        self.parabolic = False #Are we doing a parabolic solve at the moment?
 
         if verbose: log.critical('Kinematic Viscosity: Initialisation Done')
 
@@ -108,21 +101,16 @@ class Kinematic_Viscosity:
         self.apply_triangle_areas = flag
         
 
-    def set_qty_considered(self, qty):
-        # FIXME SR: Probably should just be set by quantity to which operation is applied
-        if qty == 1 or qty == 'u':
-            self.qty_considered = 1
-        elif qty == 2 or qty == 'v':
-            self.qty_considered = 2
-        else: #Raise an exception
-            msg = "Incorrect input qty"
-            assert 0 == 1, msg
+    def set_parabolic_solve(self,flag):
 
-    def build_elliptic_matrix(self):
+        self.parabolic = flag
+
+
+    def build_elliptic_matrix(self, a):
         """
         Builds matrix representing
 
-        div ( diffusivity grad )
+        div ( a grad )
 
         which has the form [ A B ]
         """
@@ -130,56 +118,75 @@ class Kinematic_Viscosity:
         #Arrays self.operator_data, self.operator_colind, self.operator_rowptr
         # are setup via this call
         kinematic_viscosity_ext.build_elliptic_matrix(self, \
-                self.diffusivity.centroid_values, \
-                self.diffusivity.boundary_values)
+                a.centroid_values, \
+                a.boundary_values)
 
         self.elliptic_matrix = Sparse_CSR(None, \
                 self.operator_data, self.operator_colind, self.operator_rowptr, \
                 self.n, self.tot_len)
 
-        #print 'elliptic_matrix'
-        #print self.elliptic_matrix
 
-#        #Set up the scaling matrix
-#        data = h
-#        num.putmask(data, data != 0, 1 / data) #take the reciprocal of each entry unless it is zero
-#        self.stage_heights_scaling = \
-#            Sparse_CSR(None, self.diffusivity_data, num.arange(self.n), num.arange(self.n +1), self.n, self.n)
-
-    def update_elliptic_matrix(self):
+    def update_elliptic_matrix(self, a=None):
         """
         Updates the data values of matrix representing
 
-        div ( diffusivity grad )
+        div ( a grad )
 
-        (as when diffusivitiy has changed)
+        If a == None then we set a = quantity which is set to 1
         """
 
         #Array self.operator_data is changed by this call, which should flow
         # through to the Sparse_CSR matrix.
 
+        if a == None:
+            a = Quantity(self.domain)
+            a.set_values(1.0)
+            a.set_boundary_values(1.0)
+            
         kinematic_viscosity_ext.update_elliptic_matrix(self, \
-                self.diffusivity.centroid_values, \
-                self.diffusivity.boundary_values)
+                a.centroid_values, \
+                a.boundary_values)
         
 
-    def build_elliptic_boundary_term(self,quantity):
-        """
-        Operator has form [A B] and U = [ u ; b]
 
-        This procedure calculates B b which can be calculated as
+
+
+    def update_elliptic_boundary_term(self, boundary):
+
+
+        if isinstance(boundary, Quantity):
+
+            self._update_elliptic_boundary_term(boundary.boundary_values)
+
+        elif isinstance(boundary, num.ndarray):
+
+            self._update_elliptic_boundary_term(boundary.boundary_values)
+
+        else:
+
+            raise  TypeError('expecting quantity or numpy array')
+
+
+    def _update_elliptic_boundary_term(self, b):
+        """
+        Operator has form [A B] and u = [ u_1 ; b]
+
+        u_1 associated with centroid values of u
+        u_2 associated with boundary_values of u
+
+        This procedure calculates B u_2 which can be calculated as
 
         [A B] [ 0 ; b]
+
+        Assumes that update_elliptic_matrix has just been run.
         """
 
         n = self.n
         tot_len = self.tot_len
 
-        self.boundary_term = num.zeros((n, ), num.float)
-        
         X = num.zeros((tot_len,), num.float)
 
-        X[n:] = quantity.boundary_values
+        X[n:] = b
         self.boundary_term[:] = self.elliptic_matrix * X
 
         #Tidy up
@@ -187,81 +194,156 @@ class Kinematic_Viscosity:
             self.boundary_term[:] = self.triangle_areas * self.boundary_term
 
 
-    def elliptic_multiply(self, quantity_in, quantity_out=None, include_boundary=True):
+
+    def elliptic_multiply(self, input, output=None):
+
+
+        if isinstance(input, Quantity):
+
+            assert isinstance(output, Quantity) or output is None
+
+            output = self._elliptic_multiply_quantity(input, output)
+
+        elif isinstance(input, num.ndarray):
+
+            assert isinstance(output, num.ndarray) or output is None
+
+            output = self._elliptic_multiply_array(input, output)
+
+        else:
+
+            raise TypeError('expecting quantity or numpy array')
+        
+        return output
+
+
+    def _elliptic_multiply_quantity(self, quantity_in, quantity_out):
+        """
+        Assumes that update_elliptic_matrix has been run
+        """
+
+        if quantity_out is None:
+            quantity_out = Quantity(self.domain)
+
+        array_in = quantity_in.centroid_values
+        array_out = quantity_out.centroid_values
+
+        X = self._elliptic_multiply_array(array_in, array_out)
+
+        quantity_out.set_values(X, location = 'centroids')
+        
+        return quantity_out
+
+    def _elliptic_multiply_array(self, array_in, array_out):
+        """
+        calculates [A B] [array_in ; 0]
+        """
 
         n = self.n
         tot_len = self.tot_len
 
         V = num.zeros((tot_len,), num.float)
-        X = num.zeros((n,), num.float)
 
-        if quantity_out is None:
-            quantity_out = Quantity(self.domain)
+        assert len(array_in) == n
 
-        V[0:n] = quantity_in.centroid_values
+        if array_out is None:
+            array_out = num.zeros_like(array_in)
+
+        V[0:n] = array_in
         V[n:] = 0.0
-
-
-        # FIXME SR: These sparse matrix vector multiplications
-        # should be done in such a way to reuse memory, ie
-        # should have a procedure
-        # matrix.multiply(vector_in, vector_out)
 
 
         if self.apply_triangle_areas:
             V[0:n] = self.triangle_areas * V[0:n]
 
 
-        X[:] = self.elliptic_matrix * V
+        array_out[:] = self.elliptic_matrix * V
 
-        if include_boundary:
-            self.build_elliptic_boundary_term(quantity_in)
-            X[:] += self.boundary_term
 
+        return array_out
+
+
+
+
+
+    def parabolic_multiply(self, input, output=None):
+
+
+        if isinstance(input, Quantity):
+
+            assert isinstance(output, Quantity) or output is None
+
+            output = self._parabolic_multiply_quantity(input, output)
+
+        elif isinstance(input, num.ndarray):
+
+            assert isinstance(output, num.ndarray) or output is None
+
+            output = self._parabolic_multiply_array(input, output)
+
+        else:
+
+            raise TypeError('expecting quantity or numpy array')
+
+        return output
+
+
+    def _parabolic_multiply_quantity(self, quantity_in, quantity_out):
+        """
+        Assumes that update_elliptic_matrix has been run
+        """
+
+        if quantity_out is None:
+            quantity_out = Quantity(self.domain)
+
+        array_in = quantity_in.centroid_values
+        array_out = quantity_out.centroid_values
+
+        X = self._parabolic_multiply_array(array_in, array_out)
 
         quantity_out.set_values(X, location = 'centroids')
+
         return quantity_out
 
-    #parabolic_multiply(V) = identity - dt*elliptic_multiply(V)
-    #We do not need include boundary, as we will only use this
-    #method for solving (include_boundary = False)
-    #Here V is already either (u) or (v), not (uh) or (vh)
-    def parabolic_multiply(self, V):
-        msg = "(KV_Operator.parabolic_multiply) V vector has incorrect dimensions"
-        assert V.shape == (self.n, ) or V.shape == (self.n, 1), msg
+    def _parabolic_multiply_array(self, array_in, array_out):
+        """
+        calculates ( [ I 0 ; 0  0] + dt [A B] ) [array_in ; 0]
+        """
 
-        D = V #The return value
-        X = V #a temporary array
+        n = self.n
+        tot_len = self.tot_len
 
-        #Apply triangle areas
+        V = num.zeros((tot_len,), num.float)
+
+        assert len(array_in) == n
+
+        if array_out is None:
+            array_out = num.zeros_like(array_in)
+
+        V[0:n] = array_in
+        V[n:] = 0.0
+
+
         if self.apply_triangle_areas:
-            X = self.triangle_areas * X
+            V[0:n] = self.triangle_areas * V[0:n]
 
-        #Multiply out
-        X = num.append(X, num.zeros((self.boundary_len, )), axis=0)
-        D = D - self.dt * (self.elliptic_matrix * X)
 
-        return num.array(D).reshape(self.n, )
+        array_out[:] = array_in - self.dt * (self.elliptic_matrix * V)
 
-    def __mul__(self, other):
-        try:
-            B = num.array(other)
-        except:
-            msg = "Trying to multiply the Kinematic Viscosity Operator against a non-numeric type"
-            raise msg
+        return array_out
 
-        if len(B.shape) == 0:
-            #Scalar
-            R = B * self
-        elif len(B.shape) == 1 or (len(B.shape) == 2 and B.shape[1] == 1):
-            #Vector
-            if self.parabolic_solve:
-                R = self.parabolic_multiply(other)
-            else:
-                #include_boundary=False is this is *only* used for cg_solve()
-                R = self.elliptic_multiply(other, include_boundary=False)
+
+
+
+    def __mul__(self, vector):
+        
+        #Vector
+        if self.parabolic:
+            R = self.parabolic_multiply(vector)
         else:
-            raise ValueError, 'Dimension too high: d=%d' % len(B.shape)
+            #include_boundary=False is this is *only* used for cg_solve()
+            R = self.elliptic_multiply(vector)
+
         return R
     
     def __rmul__(self, other):
@@ -270,50 +352,94 @@ class Kinematic_Viscosity:
             other = float(other)
         except:
             msg = 'Sparse matrix can only "right-multiply" onto a scalar'
-            raise TypeError, msg
+            raise TypeError(msg)
         else:
             new = self.elliptic_matrix * new
         return new
 
-    def cg_solve(self, B, qty_to_consider=None):
-        if len(B.shape) == 1:
-            return self.cg_solve_vector(B, qty_to_consider)
-        elif len(B.shape) == 2:
-            return self.cg_solve_matrix(B)
-        else:
-            raise ValueError, 'Dimension too high: d=%d' % len(B.shape)
-
-    def cg_solve_matrix(self, B):
-        assert B.shape[1] < 3, "Input matrix has too many columns (max 2)"
-
-        X = num.zeros(B.shape, num.float)
-        for i in range(B.shape[1]):
-            X[:, i] = self.cg_solve_vector(B[:, i], i + 1) #assuming B columns are (uh) and (vh)
-        return X
     
-    def cg_solve_vector(self, b, qty_to_consider=None):
-        if not qty_to_consider == None:
-            self.set_qty_considered(qty_to_consider)
-            #Call the ANUGA conjugate gradient utility
-        x = conjugate_gradient(self, b - self.boundary_vector[:, self.qty_considered-1])
-        return x
+    def elliptic_solve(self, u_in, b, a = None, u_out = None, \
+                       imax=10000, tol=1.0e-8, atol=1.0e-8, iprint=None):
+        """ Solving div ( a grad u ) = b
+        u | boundary = g
 
-    #Solve the parabolic equation to find u^(n+1), where u = u^n
-    #Here B = [uh vh] where uh,vh = n*1 column vectors
-    def parabolic_solver(self, B):
-        assert B.shape == (self.n, 2), "Input matrix has incorrect dimensions"
+        u_in, u_out, f anf g are Quantity objects
 
-        next_B = num.zeros((self.n, 2), num.float)
-        #The equation is self.parabolic_multiply*u^(n+1) = u^n + (dt)*self.boundary_vector
-        self.parabolic_solve = True
-        #Change (uh) and (vh) to (u) and (v)
-        b = self.stage_heights_scaling * B
+        Dirichlet BC g encoded into u_in boundary_values
 
-        next_B = conjugate_gradient(self, b + (self.dt * self.boundary_vector), iprint=1)
+        Initial guess for iterative scheme is given by
+        centroid values of u_in
 
-        #Return (u) and (v) back to (uh) and (vh)
-        next_B = self.stage_heights_scaling * next_B
+        Centroid values of a and b provide diffusivity and rhs
 
-        self.parabolic_solve = False
+        Solution u is retruned in u_out
+        """
 
-        return next_B
+        if u_out == None:
+            u_out = Quantity(self.domain)
+
+        
+        self.update_elliptic_matrix(a)        
+        self.update_elliptic_boundary_term(u_in)
+
+        # Pull out arrays and a matrix operator
+        A = self
+        rhs = b.centroid_values - self.boundary_term
+        x0 = u_in.centroid_values
+
+        x = conjugate_gradient(A,rhs,x0,imax=imax, tol=tol, atol=atol, iprint=iprint)
+
+        u_out.set_values(x, location='centroids')
+        u_out.set_boundary_values(u_in.boundary_values)
+
+        return u_out
+    
+
+    def parabolic_solve(self, u_in, b, a = None, u_out = None, \
+                       imax=10000, tol=1.0e-8, atol=1.0e-8, iprint=None):
+        """
+        Solve for u in the equation
+
+        ( I + dt div a grad ) u = b
+
+        u | boundary = g
+
+
+        u_in, u_out, f anf g are Quantity objects
+
+        Dirichlet BC g encoded into u_in boundary_values
+
+        Initial guess for iterative scheme is given by
+        centroid values of u_in
+
+        Centroid values of a and b provide diffusivity and rhs
+
+        Solution u is retruned in u_out
+
+        """
+
+        if u_out == None:
+            u_out = Quantity(self.domain)
+
+
+        self.update_elliptic_matrix(a)
+        self.update_elliptic_boundary_term(u_in)
+
+        self.set_parabolic_solve(True)
+
+
+        # Pull out arrays and a matrix operator
+        IdtA = self
+        rhs = b.centroid_values + (self.dt * self.boundary_term)
+        x0 = u_in.centroid_values
+
+        x = conjugate_gradient(IdtA,rhs,x0,imax=imax, tol=tol, atol=atol, iprint=iprint)
+
+        self.set_parabolic_solve(False)
+
+        u_out.set_values(x, location='centroids')
+        u_out.set_boundary_values(u_in.boundary_values)
+
+        return u_out
+
+ 

@@ -96,6 +96,59 @@ class Test_Quantity(unittest.TestCase):
         assert num.allclose(quantity.vertex_values, [[0.,0.,0.], [0.,0.,0.],
                                                      [0.,0.,0.], [0.,0.,0.]])
 
+    def test_set_boundary_values(self):
+
+        quantity = Quantity(self.mesh1)
+
+        quantity.set_boundary_values()
+
+        assert  num.allclose(quantity.boundary_values, [0.0, 0.0, 0.0])
+
+
+    def test_set_boundary_values_with_function(self):
+
+        quantity = Quantity(self.mesh1)
+        #assert num.allclose(quantity.vertex_values, [[0.,0.,0.]])
+
+        def simple(x,y):
+            return x+3*y
+
+        quantity.set_boundary_values(simple)
+
+        assert  num.allclose(quantity.boundary_values, [1.0, 4.0, 3.0])
+
+    def test_set_boundary_values_with_constant(self):
+
+        quantity = Quantity(self.mesh1)
+        #assert num.allclose(quantity.vertex_values, [[0.,0.,0.]])
+
+        quantity.set_boundary_values(10.0)
+
+        assert  num.allclose(quantity.boundary_values, [10.0, 10.0, 10.0])
+
+
+    def test_set_boundary_values_with_array(self):
+
+        quantity = Quantity(self.mesh1)
+        #assert num.allclose(quantity.vertex_values, [[0.,0.,0.]])
+
+
+        quantity.set_boundary_values([10.0, 4.0, 5.0])
+
+        assert  num.allclose(quantity.boundary_values, [10.0, 4.0, 5.0])
+
+    def test_set_boundary_values_with_wrong_sized_array(self):
+
+        quantity = Quantity(self.mesh1)
+        #assert num.allclose(quantity.vertex_values, [[0.,0.,0.]])
+
+        try:
+            quantity.set_boundary_values([10.0, 4.0, 5.0, 8.0])
+        except:
+            pass
+        else:
+            msg = 'Should have caught this'
+            raise Exception(msg)
 
     def test_interpolation(self):
         quantity = Quantity(self.mesh1, [[1,2,3]])
@@ -246,11 +299,16 @@ class Test_Quantity(unittest.TestCase):
     def test_set_values(self):
         quantity = Quantity(self.mesh4)
 
+        # get referece to data arrays
+        centroid_values = quantity.centroid_values
+        vertex_values = quantity.vertex_values
 
         quantity.set_values([[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]],
                             location = 'vertices')
         assert num.allclose(quantity.vertex_values,
                             [[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
+
+        assert id(vertex_values) == id(quantity.vertex_values)
         assert num.allclose(quantity.centroid_values, [2., 5., 3., 0.]) #Centroid
         assert num.allclose(quantity.edge_values, [[2.5, 2.0, 1.5],
                                                    [5., 5., 5.],
@@ -280,12 +338,13 @@ class Test_Quantity(unittest.TestCase):
             pass
 
 
+
         try:
             quantity.set_values([[1,2,3], [0,0,9]])
-        except AssertionError:
+        except ValueError:
             pass
         except:
-            raise Exception('should have raised Assertionerror')
+            raise Exception('should have raised ValueeError')
 
 
 
@@ -2367,6 +2426,6 @@ class Test_Quantity(unittest.TestCase):
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Quantity, 'test')    
+    suite = unittest.makeSuite(Test_Quantity, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)

@@ -99,6 +99,7 @@ class Generic_Domain:
         self.centroid_coordinates = self.mesh.centroid_coordinates
         self.vertex_coordinates = self.mesh.vertex_coordinates
         self.boundary = self.mesh.boundary
+        self.boundary_enumeration = self.mesh.boundary_enumeration
         self.neighbours = self.mesh.neighbours
         self.surrogate_neighbours = self.mesh.surrogate_neighbours
         self.neighbour_edges = self.mesh.neighbour_edges
@@ -707,8 +708,8 @@ class Generic_Domain:
 
                 if B is not None:
                     self.boundary_objects.append(((vol_id, edge_id), B))
-                    self.neighbours[vol_id, edge_id] = \
-                                        -len(self.boundary_objects)
+                    #self.neighbours[vol_id, edge_id] = \
+                                        #-len(self.boundary_objects)
                 else:
                     pass
                     #FIXME: Check and perhaps fix neighbour structure
@@ -720,6 +721,10 @@ class Generic_Domain:
                 msg += 'The tags are: %s' %self.get_boundary_tags()
                 raise Exception(msg)
 
+    ##
+    # @brief Set quantities based on a regional tag.
+    # @param args
+    # @param kwargs
     def set_region(self, *args, **kwargs):
         """Set quantities based on a regional tag.
 

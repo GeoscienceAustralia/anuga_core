@@ -29,6 +29,8 @@ sys.path += __path__
 
 from anuga.shallow_water.shallow_water_domain import Domain
 
+from anuga.abstract_2d_finite_volumes.quantity import Quantity
+
 from anuga.abstract_2d_finite_volumes.util import file_function, \
                                         sww2timeseries, sww2csv_gauges
 
@@ -131,7 +133,7 @@ from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
 from anuga.operators.base_operator import Operator
 
 #---------------------------
-# Structures
+# Structure Operators
 #---------------------------
 from anuga.structures.structure_operator import Structure_operator
 from anuga.structures.boyd_box_operator import Boyd_box_operator

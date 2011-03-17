@@ -511,7 +511,8 @@ class Test_Shallow_Water(unittest.TestCase):
                     (2, 1): 'Second',
                     (3, 1): 'Second',
                     (3, 2): 'Third',
-                    (0, 1): 'Internal'}
+                    (0, 1): 'Internal',
+                    (1, 2): 'Internal'}
 
         domain = Domain(points, vertices, boundary)
         domain.check_integrity()
@@ -531,6 +532,39 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.update_boundary()
         domain.check_integrity()
+
+    def test_boundary_conditions_inconsistent_internal(self):
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+        boundary = {(0, 0): 'Third',
+                    (0, 2): 'First',
+                    (2, 0): 'Second',
+                    (2, 1): 'Second',
+                    (3, 1): 'Second',
+                    (3, 2): 'Third',
+                    (0, 1): 'Internal'}
+
+        domain = Domain(points, vertices, boundary)
+
+        try:
+            domain.check_integrity()
+        except AssertionError:
+            pass
+        else:
+            msg = 'should have thrown assertion exception'
+            raise Exception(msg)
+
+
+
+
 
     def test_boundary_conditionsIII(self):
         """test_boundary_conditionsIII
@@ -677,7 +711,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.check_integrity()
 
         assert num.allclose(domain.neighbours,
-                            [[-1,1,-1], [2,3,0], [-1,-1,1],[1,-1,-1]])
+                            [[-1,1,-2], [2,3,0], [-3,-4,1],[1,-5,-6]])
         assert num.allclose(domain.neighbour_edges,
                             [[-1,2,-1], [2,0,1], [-1,-1,0],[1,-1,-1]])
 

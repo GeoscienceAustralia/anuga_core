@@ -1232,7 +1232,7 @@ class Test_Mesh(unittest.TestCase):
         mesh = Mesh(points, vertices)
 
         neighbours = mesh.get_triangle_neighbours(0)
-        assert num.allclose(neighbours, [-1,1,-1])
+        assert num.allclose(neighbours, [-1,1,-2])
         neighbours = mesh.get_triangle_neighbours(-10)
         assert neighbours == []
         neighbours = mesh.get_triangle_neighbours(2)

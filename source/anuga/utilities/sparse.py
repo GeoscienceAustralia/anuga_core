@@ -290,7 +290,8 @@ class Sparse_CSR:
             raise ValueError('Sparse_CSR(A) expects A == Sparse Matrix *or* data==array,colind==array,rowptr==array,m==int,n==int')
 
     def __repr__(self):
-        return '%d X %d sparse matrix:\n' %(self.M, self.N) + `self.data`
+        return '%d X %d sparse matrix:\n' %(self.M, self.N) + 'data '+ `self.data` + '\ncolind ' + \
+            `self.colind` + '\nrow_ptr ' + `self.row_ptr`
 
     def __len__(self):
         """Return number of nonzeros of A
