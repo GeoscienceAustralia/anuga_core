@@ -1287,7 +1287,7 @@ class Generic_Domain:
         self.number_of_steps = 0
         self.number_of_first_order_steps = 0
 
-        # Update ghosts
+        # Update ghosts to ensure all centroid values are available
         self.update_ghosts()
 
         # Initial update of vertex and edge values
