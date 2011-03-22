@@ -8,9 +8,11 @@ import numpy as num
 import kinematic_viscosity_ext
 import anuga.utilities.log as log
 
+from anuga.operators.base_operator import Operator
 
 
-class Kinematic_Viscosity:
+
+class Kinematic_Viscosity_Operator(Operator):
     """
     Class for setting up structures and matrices for kinematic viscosity differential
     operator using centroid values.
@@ -40,19 +42,20 @@ class Kinematic_Viscosity:
         if verbose: log.critical('Kinematic Viscosity: Beginning Initialisation')
         #Expose the domain attributes
 
-        self.domain = domain
-        self.mesh = domain.mesh
+        Operator.__init__(self,domain)
+
+        self.mesh = self.domain.mesh
         self.boundary = domain.boundary
         self.boundary_enumeration = domain.boundary_enumeration
         
-        # Dummy diffusivity quantity
-        diffusivity = Quantity(domain)
-        diffusivity.set_values(1.0)
-        diffusivity.set_boundary_values(1.0)
+        # Pick up height as diffusivity
+        diffusivity = self.domain.quantities['height']
+        #diffusivity.set_values(1.0)
+        #diffusivity.set_boundary_values(1.0)
 
         self.n = len(self.domain)
         self.dt = 1.0 #Need to set to domain.timestep
-        self.boundary_len = len(domain.boundary)
+        self.boundary_len = len(self.domain.boundary)
         self.tot_len = self.n + self.boundary_len
 
         self.verbose = verbose
@@ -358,7 +361,7 @@ class Kinematic_Viscosity:
         return new
 
     
-    def elliptic_solve(self, u_in, b, a = None, u_out = None, \
+    def elliptic_solve(self, u_in, b, a = None, u_out = None, update_matrix=True, \
                        imax=10000, tol=1.0e-8, atol=1.0e-8, iprint=None):
         """ Solving div ( a grad u ) = b
         u | boundary = g
@@ -378,8 +381,9 @@ class Kinematic_Viscosity:
         if u_out == None:
             u_out = Quantity(self.domain)
 
-        
-        self.update_elliptic_matrix(a)        
+        if update_matrix :
+            self.update_elliptic_matrix(a) 
+
         self.update_elliptic_boundary_term(u_in)
 
         # Pull out arrays and a matrix operator
@@ -395,7 +399,7 @@ class Kinematic_Viscosity:
         return u_out
     
 
-    def parabolic_solve(self, u_in, b, a = None, u_out = None, \
+    def parabolic_solve(self, u_in, b, a = None, u_out = None, update_matrix=True, \
                        imax=10000, tol=1.0e-8, atol=1.0e-8, iprint=None):
         """
         Solve for u in the equation
@@ -421,8 +425,9 @@ class Kinematic_Viscosity:
         if u_out == None:
             u_out = Quantity(self.domain)
 
+        if update_matrix :
+            self.update_elliptic_matrix(a)
 
-        self.update_elliptic_matrix(a)
         self.update_elliptic_boundary_term(u_in)
 
         self.set_parabolic_solve(True)

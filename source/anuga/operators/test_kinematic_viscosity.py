@@ -2,7 +2,7 @@ import operator
 from anuga import Domain
 from anuga import Quantity
 from anuga import Dirichlet_boundary
-from kinematic_viscosity import Kinematic_Viscosity
+from kinematic_viscosity import Kinematic_Viscosity_Operator
 
 import numpy as num
 from math import sqrt
@@ -44,7 +44,7 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
 
         #print domain.quantities['stage'].boundary_values
         
-        return Kinematic_Viscosity(domain)
+        return Kinematic_Viscosity_Operator(domain)
 
     #Second test operator class (2 triangles)
     def operator2(self):
@@ -67,7 +67,7 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
 
 
 
-        return Kinematic_Viscosity(domain)
+        return Kinematic_Viscosity_Operator(domain)
 
     def test_enumerate_boundary(self):
         operator1 = self.operator1()
@@ -427,7 +427,7 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
         b.set_values(0.0)
         b.set_boundary_values(0.0)
 
-        operator = Kinematic_Viscosity(domain)
+        operator = Kinematic_Viscosity_Operator(domain)
 
         n = operator.n
         tot_len = operator.tot_len
@@ -540,7 +540,7 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
         b.set_values(0.0)
         b.set_boundary_values(0.0)
 
-        operator = Kinematic_Viscosity(domain)
+        operator = Kinematic_Viscosity_Operator(domain)
 
         dt = 0.01
         operator.dt = dt
@@ -563,6 +563,119 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
         u_out = operator.parabolic_solve(u_in, b, a, iprint=1)
 
         assert num.allclose(u_out.centroid_values, U_mod[:n])
+
+
+    def test_elliptic_solve_rectangular_cross_velocities(self):
+
+        from anuga import rectangular_cross_domain
+        from anuga import Reflective_boundary
+
+        m1 = 10
+        n1 = 10
+        domain = rectangular_cross_domain(m1,n1)
+
+        #
+        domain.set_quantity('elevation', expression='x')
+        domain.set_quantity('friction', 0.03)
+        domain.set_quantity('stage',expression='elevation + 2*x')
+        domain.set_quantity('xmomentum', expression='2*x+3*y')
+        domain.set_quantity('ymomentum', expression='5*x+7*y')
+
+
+        B = Reflective_boundary(domain)
+        domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
+
+        domain.update_boundary()
+        domain.update_centroids_of_velocities_and_height()
+
+
+        a = domain.quantities['height']
+
+        # Quantity to solve
+        u = domain.quantities['xvelocity']
+        u.set_boundary_values(1.0)
+
+
+        v = domain.quantities['yvelocity']
+        v.set_boundary_values(2.0)
+
+        # Quantity for rhs
+        b = Quantity(domain)
+        b.set_values(0.0)
+        b.set_boundary_values(0.0)
+
+        kv = Kinematic_Viscosity_Operator(domain)
+
+        n = kv.n
+        tot_len = kv.tot_len
+
+        kv.update_elliptic_matrix(a)
+
+        u_out = kv.elliptic_solve(u, b, a, update_matrix=False, iprint=1)
+
+        v_out = kv.elliptic_solve(v, b, a, update_matrix=False, iprint=1)
+
+        assert num.allclose(u_out.centroid_values, num.ones_like(u_out.centroid_values))
+        assert num.allclose(u_out.boundary_values, num.ones_like(u_out.boundary_values))
+
+    def test_parabolic_solve_rectangular_cross_velocities(self):
+
+        from anuga import rectangular_cross_domain
+        from anuga import Reflective_boundary
+
+        m1 = 10
+        n1 = 10
+        domain = rectangular_cross_domain(m1,n1)
+
+        #
+        domain.set_quantity('elevation', expression='x')
+        domain.set_quantity('friction', 0.03)
+        domain.set_quantity('stage',expression='elevation + 2*x')
+        domain.set_quantity('xmomentum', expression='2*x+3*y')
+        domain.set_quantity('ymomentum', expression='5*x+7*y')
+
+
+        B = Reflective_boundary(domain)
+        domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
+
+        domain.update_boundary()
+        domain.update_centroids_of_velocities_and_height()
+
+
+        a = domain.quantities['height']
+
+        # Quantity to solve
+        u = domain.quantities['xvelocity']
+        u.set_boundary_values(1.0)
+
+
+        v = domain.quantities['yvelocity']
+        v.set_boundary_values(2.0)
+
+        kv = Kinematic_Viscosity_Operator(domain)
+
+        dt = 100.0
+        kv.dt = dt
+        n = kv.n
+        nt = kv.tot_len
+
+        kv.update_elliptic_matrix(a)
+
+        #print 'u in'
+        #print u.centroid_values
+
+        u_out = kv.parabolic_solve(u, u, a, u_out=u, update_matrix=False, iprint=1)
+
+        v_out = kv.parabolic_solve(v, v, a, u_out=v, update_matrix=False, iprint=1)
+
+        #print 'u out'
+        #print u.centroid_values
+
+
+        assert num.allclose(u_out.centroid_values, num.ones_like(u_out.centroid_values))
+        assert num.allclose(u_out.boundary_values, num.ones_like(u_out.boundary_values))
+
+
 
 
 ################################################################################
