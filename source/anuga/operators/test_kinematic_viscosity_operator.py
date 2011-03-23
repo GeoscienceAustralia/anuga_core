@@ -2,7 +2,7 @@ import operator
 from anuga import Domain
 from anuga import Quantity
 from anuga import Dirichlet_boundary
-from kinematic_viscosity import Kinematic_Viscosity_Operator
+from kinematic_viscosity_operator import Kinematic_Viscosity_Operator
 
 import numpy as num
 from math import sqrt
@@ -158,12 +158,15 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
         assert num.allclose(A.todense()[0,:], 1.5*A0[0,:]+1.5*A1[0,:]+1.5*A2[0,:])
         assert num.allclose(A.todense()[1,:], A0[1,:]+1.5*A1[1,:]+A2[1,:])
 
+        # Either negative values we set matrix row to zero
         a.set_values([-2.0, -2.0], location = 'centroids')
         a.set_boundary_values(1.0)
         operator.update_elliptic_matrix(a)
 
-        assert num.allclose(A.todense()[0,:], -2*A0[0,:]-0.5*A1[0,:]-0.5*A2[0,:])
-        assert num.allclose(A.todense()[1,:], -0.5*A0[1,:]-2*A1[1,:]-0.5*A2[1,:])
+
+
+        assert num.allclose(A.todense()[0,:], 0.0)
+        assert num.allclose(A.todense()[1,:], 0.0)
 
     def test_elliptic_multiply_include_boundary_one_triangle(self):
         operator = self.operator1()
@@ -642,7 +645,9 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
         domain.update_centroids_of_velocities_and_height()
 
 
-        a = domain.quantities['height']
+
+
+        h = domain.quantities['height']
 
         # Quantity to solve
         u = domain.quantities['xvelocity']
@@ -654,28 +659,139 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
 
         kv = Kinematic_Viscosity_Operator(domain)
 
+
+        # let's make timestep large so that the final solution will look like
+        #the solution of hte elliptic problem. In this case u -> 1, v -> 2.
+
         dt = 100.0
         kv.dt = dt
         n = kv.n
         nt = kv.tot_len
 
-        kv.update_elliptic_matrix(a)
+        kv.update_elliptic_matrix(h)
 
-        #print 'u in'
+        kv.parabolic_solve(u, u, h, u_out=u, update_matrix=False, iprint=1)
+
+        kv.parabolic_solve(v, v, h, u_out=v, update_matrix=False, iprint=1)
+
+        assert num.allclose(u.centroid_values, num.ones_like(u.centroid_values), rtol=1.0e-1)
+        assert num.allclose(u.boundary_values, num.ones_like(u.boundary_values))
+
+        assert num.allclose(v.centroid_values, 2.0*num.ones_like(v.centroid_values), rtol=1.0e-1)
+        assert num.allclose(v.boundary_values, 2.0*num.ones_like(v.boundary_values))
+
+
+        domain.update_centroids_of_momentum_from_velocity()
+
+        uh = domain.quantities['xmomentum']
+        vh = domain.quantities['ymomentum']
+
+        assert num.allclose(uh.centroid_values, u.centroid_values*h.centroid_values )
+        assert num.allclose(vh.centroid_values, v.centroid_values*h.centroid_values )
+
+
+    def test_parabolic_solve_rectangular_cross_velocities_zero_h(self):
+
+        from anuga import rectangular_cross_domain
+        from anuga import Reflective_boundary
+
+        m1 = 5
+        n1 = 5
+        domain = rectangular_cross_domain(m1,n1)
+
+        #
+        domain.set_quantity('elevation', expression='x')
+        domain.set_quantity('friction', 0.03)
+        domain.set_quantity('stage',expression='elevation + 2*(x-0.5)')
+        domain.set_quantity('xmomentum', expression='2*x+3*y')
+        domain.set_quantity('ymomentum', expression='5*x+7*y')
+
+ 
+        w = domain.quantities['stage']
+
+        #print w.centroid_values
+        #print w.boundary_values
+
+        domain.distribute_to_vertices_and_edges()
+
+        #print w.centroid_values
+        #print w.boundary_values
+        
+        B = Reflective_boundary(domain)
+        domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
+
+        domain.update_boundary()
+
+        #print w.centroid_values
+        #print w.boundary_values
+
+        domain.update_centroids_of_velocities_and_height()
+
+
+
+
+        h = domain.quantities['height']
+
+        #print 'h'
+        #print h.centroid_values
+        #print h.boundary_values
+        
+        # Quantity to solve
+        u = domain.quantities['xvelocity']
+        u.set_boundary_values(1.0)
+
+
+        #print 'u'
         #print u.centroid_values
+        #print u.boundary_values
 
-        u_out = kv.parabolic_solve(u, u, a, u_out=u, update_matrix=False, iprint=1)
+        v = domain.quantities['yvelocity']
+        v.set_boundary_values(2.0)
 
-        v_out = kv.parabolic_solve(v, v, a, u_out=v, update_matrix=False, iprint=1)
+        kv = Kinematic_Viscosity_Operator(domain)
 
-        #print 'u out'
+
+        # let's make timestep large so that the final solution will look like
+        #the solution of hte elliptic problem. In this case u -> 1, v -> 2.
+
+        dt = 1000.0
+        kv.dt = dt
+        n = kv.n
+        nt = kv.tot_len
+
+        kv.update_elliptic_matrix(h)
+
+        kv.parabolic_solve(u, u, h, u_out=u, update_matrix=False, iprint=1)
+
+        kv.parabolic_solve(v, v, h, u_out=v, update_matrix=False, iprint=1)
+
+
+        #print 'u'
         #print u.centroid_values
+        #print u.boundary_values
+
+        #print num.where(h.centroid_values > 0.0, 1.0, 0.0)
+
+        assert num.allclose(u.centroid_values, num.where(h.centroid_values > 0.0, 1.0, 0.0), rtol=1.0e-1)
+        assert num.allclose(u.boundary_values, num.ones_like(u.boundary_values))
+
+        assert num.allclose(v.centroid_values, num.where(h.centroid_values > 0.0, 2.0, 0.0), rtol=1.0e-1)
+        assert num.allclose(v.boundary_values, 2.0*num.ones_like(v.boundary_values))
 
 
-        assert num.allclose(u_out.centroid_values, num.ones_like(u_out.centroid_values))
-        assert num.allclose(u_out.boundary_values, num.ones_like(u_out.boundary_values))
+        domain.update_centroids_of_momentum_from_velocity()
 
+        domain.distribute_to_vertices_and_edges()
+        
+        uh = domain.quantities['xmomentum']
+        vh = domain.quantities['ymomentum']
 
+        #print 'uh'
+        #print uh.centroid_values
+        #print uh.boundary_values
+
+        assert num.allclose(uh.centroid_values, u.centroid_values*h.centroid_values )
+        assert num.allclose(vh.centroid_values, v.centroid_values*h.centroid_values )
 
 
 ################################################################################

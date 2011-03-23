@@ -14,7 +14,8 @@ class Operator:
             msg = 'Not implemented to run in parallel'
             assert self.__parallel_safe(), msg
 
-
+        self.logging = False
+        self.logging_file = ''
 
     def __call__(self):
 
@@ -46,4 +47,12 @@ class Operator:
 
     def print_timestepping_statistics(self):
 
-        print timestepping_statisitics()
+        print self.timestepping_statistics()
+
+
+    def log_timestepping_statistics(self):
+
+        from anuga.utilities.system_tools import log_to_file
+        if self.logging:
+            log_to_file(self.log_filename, self.timestepping_statistics())
+            

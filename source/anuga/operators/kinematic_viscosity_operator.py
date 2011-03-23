@@ -5,7 +5,7 @@ from anuga.utilities.cg_solve import conjugate_gradient
 import anuga.abstract_2d_finite_volumes.neighbour_mesh as neighbour_mesh
 from anuga import Dirichlet_boundary
 import numpy as num
-import kinematic_viscosity_ext
+import kinematic_viscosity_operator_ext
 import anuga.utilities.log as log
 
 from anuga.operators.base_operator import Operator
@@ -49,12 +49,16 @@ class Kinematic_Viscosity_Operator(Operator):
         self.boundary_enumeration = domain.boundary_enumeration
         
         # Pick up height as diffusivity
-        diffusivity = self.domain.quantities['height']
-        #diffusivity.set_values(1.0)
-        #diffusivity.set_boundary_values(1.0)
+        self.diffusivity = Quantity(self.domain)
+        self.diffusivity.set_values(1.0)
+        self.diffusivity.set_boundary_values(1.0)
+        
 
         self.n = len(self.domain)
-        self.dt = 1.0 #Need to set to domain.timestep
+
+        self.dt = 0.0 #Need to set to domain.timestep
+        self.dt_apply = 10.0
+
         self.boundary_len = len(self.domain.boundary)
         self.tot_len = self.n + self.boundary_len
 
@@ -67,7 +71,7 @@ class Kinematic_Viscosity_Operator(Operator):
         self.geo_structure_values = num.zeros((self.n, 3), num.float)
 
         # Only needs to built once, doesn't change
-        kinematic_viscosity_ext.build_geo_structure(self)
+        kinematic_viscosity_operator_ext.build_geo_structure(self)
 
         # Setup type of scaling
         self.set_triangle_areas(use_triangle_areas)        
@@ -91,13 +95,87 @@ class Kinematic_Viscosity_Operator(Operator):
         self.operator_rowptr = 4 * num.arange(self.n + 1)
 
         # Build matrix self.elliptic_matrix [A B]
-        self.build_elliptic_matrix(diffusivity)
+        self.build_elliptic_matrix(self.diffusivity)
 
         self.boundary_term = num.zeros((self.n, ), num.float)
 
         self.parabolic = False #Are we doing a parabolic solve at the moment?
 
+        self.u_stats = None
+        self.v_stats = None
+
         if verbose: log.critical('Kinematic Viscosity: Initialisation Done')
+
+
+    def __call__(self):
+        """ Parabolic update of x and y velocity
+
+        (I + dt (div h grad) ) U^{n+1} = U^{n}
+
+        """
+
+        domain = self.domain
+
+        self.dt = self.dt + domain.get_timestep()
+
+
+        if self.dt < self.dt_apply:
+            return
+
+
+        #print 'dt = ', self.dt
+        domain.distribute_to_vertices_and_edges()
+
+        # Setup initial values of velocity
+        domain.update_centroids_of_velocities_and_height()
+
+        # diffusivity
+        h = domain.quantities['height']
+
+        #d = self.diffusivity
+
+        #d.set_values(num.where(h.centroid_values<1.0, 0.0, 1.0), location= 'centroids')
+        #d.set_boundary_values(num.where(h.boundary_values<1.0, 0.0, 1.0))
+
+        # Quantities to solve
+        # Boundary values are implied from BC set in advection part of code
+        u = domain.quantities['xvelocity']
+        #u.set_boundary_values(0.0)
+
+        v = domain.quantities['yvelocity']
+        #v.set_boundary_values(0.0)
+
+        #Update operator using current height
+        self.update_elliptic_matrix(h)
+
+        (u, self.u_stats) = self.parabolic_solve(u, u, h, u_out=u, update_matrix=False, output_stats=True)
+
+        (v, self.v_stats) = self.parabolic_solve(v, v, h, u_out=v, update_matrix=False, output_stats=True)
+
+        # Update the conserved quantities
+        domain.update_centroids_of_momentum_from_velocity()
+        domain.distribute_to_vertices_and_edges()
+
+        self.dt = 0.0
+        #print self.timestepping_statistics()
+
+    def statistics(self):
+
+        message = 'You need to implement operator statistics for your operator'
+        return message
+
+
+    def timestepping_statistics(self):
+
+        message = '    Kinematic Viscosity Operator: '
+        if self.u_stats is not None:
+            message  += ' u iterations %.5g, ' % self.u_stats.iter
+
+        if self.v_stats is not None:
+            message += ' v iterations %.5g, ' % self.v_stats.iter
+
+        return message
+
 
     def set_triangle_areas(self,flag=True):
 
@@ -120,7 +198,7 @@ class Kinematic_Viscosity_Operator(Operator):
 
         #Arrays self.operator_data, self.operator_colind, self.operator_rowptr
         # are setup via this call
-        kinematic_viscosity_ext.build_elliptic_matrix(self, \
+        kinematic_viscosity_operator_ext.build_elliptic_matrix(self, \
                 a.centroid_values, \
                 a.boundary_values)
 
@@ -146,7 +224,7 @@ class Kinematic_Viscosity_Operator(Operator):
             a.set_values(1.0)
             a.set_boundary_values(1.0)
             
-        kinematic_viscosity_ext.update_elliptic_matrix(self, \
+        kinematic_viscosity_operator_ext.update_elliptic_matrix(self, \
                 a.centroid_values, \
                 a.boundary_values)
         
@@ -362,7 +440,8 @@ class Kinematic_Viscosity_Operator(Operator):
 
     
     def elliptic_solve(self, u_in, b, a = None, u_out = None, update_matrix=True, \
-                       imax=10000, tol=1.0e-8, atol=1.0e-8, iprint=None):
+                       imax=10000, tol=1.0e-8, atol=1.0e-8,
+                       iprint=None, output_stats=False):
         """ Solving div ( a grad u ) = b
         u | boundary = g
 
@@ -391,16 +470,22 @@ class Kinematic_Viscosity_Operator(Operator):
         rhs = b.centroid_values - self.boundary_term
         x0 = u_in.centroid_values
 
-        x = conjugate_gradient(A,rhs,x0,imax=imax, tol=tol, atol=atol, iprint=iprint)
+        x, stats = conjugate_gradient(A,rhs,x0,imax=imax, tol=tol, atol=atol,
+                               iprint=iprint, output_stats=True)
 
         u_out.set_values(x, location='centroids')
         u_out.set_boundary_values(u_in.boundary_values)
 
-        return u_out
+        if output_stats:
+            return u_out, stats
+        else:
+            return u_out
+
     
 
     def parabolic_solve(self, u_in, b, a = None, u_out = None, update_matrix=True, \
-                       imax=10000, tol=1.0e-8, atol=1.0e-8, iprint=None):
+                       imax=10000, tol=1.0e-8, atol=1.0e-8,
+                       iprint=None, output_stats=False):
         """
         Solve for u in the equation
 
@@ -438,13 +523,17 @@ class Kinematic_Viscosity_Operator(Operator):
         rhs = b.centroid_values + (self.dt * self.boundary_term)
         x0 = u_in.centroid_values
 
-        x = conjugate_gradient(IdtA,rhs,x0,imax=imax, tol=tol, atol=atol, iprint=iprint)
+        x, stats = conjugate_gradient(IdtA,rhs,x0,imax=imax, tol=tol, atol=atol,
+                                      iprint=iprint, output_stats=True)
 
         self.set_parabolic_solve(False)
 
         u_out.set_values(x, location='centroids')
         u_out.set_boundary_values(u_in.boundary_values)
 
-        return u_out
+        if output_stats:
+            return u_out, stats
+        else:
+            return u_out
 
  

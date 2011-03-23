@@ -6,37 +6,46 @@
 #include "util_ext.h"
 
 //Rough quicksort implementation (for build_operator_matrix)
-int *quicksort(int *array, int n) {
-	int *less, *more, pivot, i, num_less, num_more, *sorted;
-	less = malloc(sizeof(int)*n);
-	more = malloc(sizeof(int)*n);
-	sorted = malloc(sizeof(int)*n);
-	if (n<2) return array;
-	pivot = array[n-1]; //choose the last element as a pivot
-	num_less = 0; num_more = 0;
-	for (i=0; i<n-1; i++) {
-		if (array[i] <= pivot) {
-			less[num_less] = array[i];
-			num_less++;
-		} else {
-			more[num_more] = array[i];
-			num_more++;
-		}
-	}
-	
-	less = quicksort(less,num_less);
-	more = quicksort(more,num_more);
-	
-	for (i=0; i<n; i++) {
-		if (i<num_less) {
-			sorted[i] = less[i];
-		} else if (i==num_less) {
-			sorted[i] = pivot;
-		} else {
-			sorted[i] = more[i-num_less-1];
-		}
-	}
-	return sorted;
+// taken from http://cprogramminglanguage.net/quicksort-algorithm-c-source-code.aspx
+
+void swap(int *x,int *y)
+{
+   int temp;
+   temp = *x;
+   *x = *y;
+   *y = temp;
+}
+
+int choose_pivot(int i,int j )
+{
+   return((i+j) /2);
+}
+
+void quicksort(int list[],int m,int n)
+{
+   int key,i,j,k;
+   if( m < n)
+   {
+      k = choose_pivot(m,n);
+      swap(&list[m],&list[k]);
+      key = list[m];
+      i = m+1;
+      j = n;
+      while(i <= j)
+      {
+         while((i <= n) && (list[i] <= key))
+                i++;
+         while((j >= m) && (list[j] > key))
+                j--;
+         if( i < j)
+                swap(&list[i],&list[j]);
+      }
+	  // swap two elements
+      swap(&list[m],&list[j]);
+	  // recursively sort the lesser list
+      quicksort(list,m,j-1);
+      quicksort(list,j+1,n);
+   }
 }
 
 int build_geo_structure(int n, 
@@ -93,24 +102,31 @@ int build_elliptic_matrix(int n,
                           double *bdry_data,
                           double *data,
                           long *colind) {
-	int i, k, edge, j[4], *sorted_j, this_index;
+	int i, k, edge, j[4], sorted_j[4], this_index;
 	double h_j, v[3], v_i; //v[k] = value of the interaction of edge k in a given triangle, v_i = (i,i) entry
 	for (i=0; i<n; i++) {
 		v_i = 0.0;
 		j[3] = i;
 		//Get the values of each interaction, and the column index at which they occur
-		for (edge=0; edge<3; edge++) {
-			j[edge] = geo_indices[3*i+edge];
-			if (j[edge]<n) { //interior
-				h_j = cell_data[j[edge]];
-			} else { //boundary
-				h_j = bdry_data[j[edge]-n];
-			}
-			v[edge] = -0.5*(cell_data[i] + h_j)*geo_values[3*i+edge]; //the negative of the individual interaction
-			v_i += 0.5*(cell_data[i] + h_j)*geo_values[3*i+edge]; //sum the three interactions
-		}
+        for (edge=0; edge<3; edge++) {
+            j[edge] = geo_indices[3*i+edge];
+            if (j[edge]<n) { //interior
+                h_j = cell_data[j[edge]];
+            } else { //boundary
+                h_j = bdry_data[j[edge]-n];
+            }
+            v[edge] = -0.5*(cell_data[i] + h_j)*geo_values[3*i+edge]; //the negative of the individual interaction
+            v_i += 0.5*(cell_data[i] + h_j)*geo_values[3*i+edge]; //sum the three interactions
+        }
+        if (cell_data[i]<=0.0) {
+            v_i  = 0.0;
+            v[0] = 0.0;
+            v[1] = 0.0;
+            v[2] = 0.0;
+        }
 		//Organise the set of 4 values/indices into the data and colind arrays
-		sorted_j = quicksort((int *)j,4);
+		for (k=0; k<4; k++) sorted_j[k] = j[k];
+		quicksort(sorted_j,0,3);
 		for (k=0; k<4; k++) { //loop through the nonzero indices
 			this_index = sorted_j[k];
 			if (this_index == i) {
@@ -139,24 +155,32 @@ int update_elliptic_matrix(int n,
                           double *bdry_data,
                           double *data,
                           long *colind) {
-	int i, k, edge, j[4], *sorted_j, this_index;
+	int i, k, edge, j[4], sorted_j[4], this_index;
 	double h_j, v[3], v_i; //v[k] = value of the interaction of edge k in a given triangle, v_i = (i,i) entry
 	for (i=0; i<n; i++) {
 		v_i = 0.0;
 		j[3] = i;
-		//Get the values of each interaction, and the column index at which they occur
-		for (edge=0; edge<3; edge++) {
-			j[edge] = geo_indices[3*i+edge];
-			if (j[edge]<n) { //interior
-				h_j = cell_data[j[edge]];
-			} else { //boundary
-				h_j = bdry_data[j[edge]-n];
-			}
-			v[edge] = -0.5*(cell_data[i] + h_j)*geo_values[3*i+edge]; //the negative of the individual interaction
-			v_i += 0.5*(cell_data[i] + h_j)*geo_values[3*i+edge]; //sum the three interactions
-		}
+        
+        //Get the values of each interaction, and the column index at which they occur
+        for (edge=0; edge<3; edge++) {
+            j[edge] = geo_indices[3*i+edge];
+            if (j[edge]<n) { //interior
+                h_j = cell_data[j[edge]];
+            } else { //boundary
+                h_j = bdry_data[j[edge]-n];
+            }
+            v[edge] = -0.5*(cell_data[i] + h_j)*geo_values[3*i+edge]; //the negative of the individual interaction
+            v_i += 0.5*(cell_data[i] + h_j)*geo_values[3*i+edge]; //sum the three interactions
+        }
+        if (cell_data[i]<=0.0) {
+            v_i  = 0.0;
+            v[0] = 0.0;
+            v[1] = 0.0;
+            v[2] = 0.0;
+        }
 		//Organise the set of 4 values/indices into the data and colind arrays
-		sorted_j = quicksort((int *)j,4);
+        for (k=0; k<4; k++) sorted_j[k] = j[k];
+		quicksort(sorted_j,0,3);
 		for (k=0; k<4; k++) { //loop through the nonzero indices
 			this_index = sorted_j[k];
 			if (this_index == i) {
@@ -342,7 +366,7 @@ static struct PyMethodDef MethodTable[] = {
         {"update_elliptic_matrix",py_update_elliptic_matrix,METH_VARARGS,"Print out"},
         {NULL,NULL,0,NULL} // sentinel
 };
-void initkinematic_viscosity_ext(){
-    (void) Py_InitModule("kinematic_viscosity_ext", MethodTable);
+void initkinematic_viscosity_operator_ext(){
+    (void) Py_InitModule("kinematic_viscosity_operator_ext", MethodTable);
     import_array();
 }
