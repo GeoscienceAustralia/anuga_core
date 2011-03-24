@@ -57,7 +57,7 @@ class Kinematic_Viscosity_Operator(Operator):
         self.n = len(self.domain)
 
         self.dt = 0.0 #Need to set to domain.timestep
-        self.dt_apply = 10.0
+        self.dt_apply = 1.0
 
         self.boundary_len = len(self.domain.boundary)
         self.tot_len = self.n + self.boundary_len
@@ -123,9 +123,6 @@ class Kinematic_Viscosity_Operator(Operator):
             return
 
 
-        #print 'dt = ', self.dt
-        domain.distribute_to_vertices_and_edges()
-
         # Setup initial values of velocity
         domain.update_centroids_of_velocities_and_height()
 
@@ -154,7 +151,7 @@ class Kinematic_Viscosity_Operator(Operator):
 
         # Update the conserved quantities
         domain.update_centroids_of_momentum_from_velocity()
-        domain.distribute_to_vertices_and_edges()
+
 
         self.dt = 0.0
         #print self.timestepping_statistics()

@@ -53,31 +53,20 @@ domain.set_name(output_file)
 domain.set_timestepping_method('rk2')
 domain.set_default_order(2)
 
-print domain.get_timestepping_method()
-
-domain.use_edge_limiter = False
-#domain.tight_slope_limiters = True
-#domain.use_centroid_velocities = True
-
-domain.CFL = 1.0
-
-domain.beta_w      = 1.7
-domain.beta_uh     = 1.7
-domain.beta_vh     = 1.7
-
 #------------------------------------------------------------------------------
 # Setup Kinematic Viscosity Operator
 #------------------------------------------------------------------------------
 domain.set_use_kinematic_viscosity(True)
 
 
+#------------------------------------------------------------------------------
 # Setup initial conditions
 #------------------------------------------------------------------------------
 domain.set_quantity('elevation',0.0)
 domain.set_quantity('friction', 0.0)
 
-h0 = 100.0
-h1 = 80.0
+h0 = 10.0
+h1 = 0.0
 
 def height(x,y):
 
@@ -113,13 +102,13 @@ vis.start()
 
 for t in domain.evolve(yieldstep = 100.0, finaltime = 3*60*60.):
     #print domain.timestepping_statistics(track_speeds=True)
-    print domain.timestepping_statistics()
+    domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()
 
-    if domain.get_time() > 2000.0 and domain.get_time() < 4000.0 :
-        domain.set_use_kinematic_viscosity(False)
-    else:
-        domain.set_use_kinematic_viscosity(True)
+#    if domain.get_time() > 2000.0 and domain.get_time() < 4000.0 :
+#        domain.set_use_kinematic_viscosity(False)
+#    else:
+#        domain.set_use_kinematic_viscosity(True)
         
     vis.update()
 

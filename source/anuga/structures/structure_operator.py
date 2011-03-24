@@ -337,11 +337,6 @@ class Structure_operator(anuga.Operator):
 
         return message
 
-    def log_timestepping_statistics(self):
-
-         if self.logging:
-             log_to_file(self.log_filename, self.timestepping_statistics())
-
 
     def get_inlets(self):
         

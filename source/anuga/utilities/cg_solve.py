@@ -6,8 +6,16 @@ import numpy as num
 
 import anuga.utilities.log as log
 
+class Stats:
 
-def conjugate_gradient(A, b, x0=None, imax=10000, tol=1.0e-8, atol=1.0e-14, iprint=None):
+    def __init__(self):
+
+        self.iter = None
+        self.rTr = None
+        self.dt = None
+
+def conjugate_gradient(A, b, x0=None, imax=10000, tol=1.0e-8, atol=1.0e-14,
+                        iprint=None, output_stats=False):
     """
     Try to solve linear equation Ax = b using
     conjugate gradient method
@@ -22,15 +30,21 @@ def conjugate_gradient(A, b, x0=None, imax=10000, tol=1.0e-8, atol=1.0e-14, ipri
         x0 = num.array(x0, dtype=num.float)
 
     b  = num.array(b, dtype=num.float)
+
+
     if len(b.shape) != 1:
        
         for i in range(b.shape[1]):
-            x0[:, i] = _conjugate_gradient(A, b[:, i], x0[:, i],
+            x0[:, i], stats = _conjugate_gradient(A, b[:, i], x0[:, i],
                                            imax, tol, atol, iprint)
     else:
-        x0 = _conjugate_gradient(A, b, x0, imax, tol, atol, iprint)
+        x0 , stats = _conjugate_gradient(A, b, x0, imax, tol, atol, iprint)
 
-    return x0
+    if output_stats:
+        return x0, stats
+    else:
+        return x0
+
     
 def _conjugate_gradient(A, b, x0, 
                         imax=10000, tol=1.0e-8, atol=1.0e-10, iprint=None):
@@ -40,7 +54,8 @@ def _conjugate_gradient(A, b, x0,
 
    Input
    A: matrix or function which applies a matrix, assumed symmetric
-      A can be either dense or sparse
+      A can be either dense or sparse or a function
+      (__mul__ just needs to be defined)
    b: right hand side
    x0: inital guess (default the 0 vector)
    imax: max number of iterations
@@ -63,14 +78,14 @@ def _conjugate_gradient(A, b, x0,
     if iprint == None  or iprint == 0:
         iprint = imax
 
+    dx = 0.0
+    
     i = 1
     x = x0
     r = b - A * x
     d = r
     rTr = num.dot(r, r)
     rTr0 = rTr
-
-
     
     #FIXME Let the iterations stop if starting with a small residual
     while (i < imax and rTr > tol ** 2 * rTr0 and rTr > atol ** 2):
@@ -80,8 +95,8 @@ def _conjugate_gradient(A, b, x0,
         x = x + alpha * d
 
         dx = num.linalg.norm(x-xold)
-        if dx < atol :
-            break
+        #if dx < atol :
+        #    break
             
         if i % 50:
             r = b - A * x
@@ -102,5 +117,11 @@ def _conjugate_gradient(A, b, x0,
             raise ConvergenceError, msg
 
     #print x
-    return x
+
+    stats = Stats()
+    stats.iter = i
+    stats.rTr = rTr
+    stats.dx = dx
+
+    return x, stats
 

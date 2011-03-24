@@ -6882,6 +6882,101 @@ friction  \n \
 
 
 
+    #Test calculating velocities and back to momenta
+    # useful for kinematic viscosity calc
+    def test_update_centroids_of_velocities_and_height(self):
+
+        from mesh_factory import rectangular
+        from anuga.utilities.numerical_tools import mean
+
+        #Create basic mesh
+        points, vertices, boundary = rectangular(2, 2)
+
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.default_order=2
+        domain.reduction = mean
+
+
+        #Set some field values
+        domain.set_quantity('elevation', lambda x,y: y)
+        domain.set_quantity('friction', 0.03)
+
+
+        W  = domain.quantities['stage']
+        UH = domain.quantities['xmomentum']
+        VH = domain.quantities['ymomentum']
+        H  = domain.quantities['height']
+        Z  = domain.quantities['elevation']
+        U  = domain.quantities['xvelocity']
+        V  = domain.quantities['yvelocity']
+        X  = domain.quantities['x']
+        Y  = domain.quantities['y']
+
+        Wc  = W.centroid_values
+        UHc = UH.centroid_values
+        VHc = VH.centroid_values
+        Hc  = H.centroid_values
+        Zc  = Z.centroid_values
+        Uc  = U.centroid_values
+        Vc  = V.centroid_values
+        Xc  = X.centroid_values
+        Yc  = Y.centroid_values
+
+
+
+        ######################
+        # Boundary conditions
+        #B = Transmissive_boundary(domain)
+        B = Reflective_boundary(domain)
+        domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
+
+
+        domain.set_quantity('stage',expression='elevation - 2*x')
+        domain.set_quantity('xmomentum', expression='2*x+3*y')
+        domain.set_quantity('ymomentum', expression='5*x+7*y')
+
+
+        assert num.allclose(Wc, Zc-2*Xc)
+        assert num.allclose(UHc, 2*Xc+3*Yc)
+        assert num.allclose(VHc, 5*Xc+7*Yc)
+
+
+        try:
+            domain.update_centroids_of_velocities_and_height()
+        except AssertionError:
+            pass
+        else:
+            raise Exception('should have caught H<0 error')
+
+        domain.set_quantity('stage',expression='elevation + 2*x')
+        assert num.allclose(Wc, Zc+2*Xc)
+
+        domain.update_boundary()
+        domain.update_centroids_of_velocities_and_height()
+
+
+        assert num.allclose(Uc, UHc/Hc)
+        assert num.allclose(Vc, VHc/Hc)
+        assert num.allclose(Hc, Wc - Zc)
+
+        # Lets change the U and V and change back to UH and VH
+
+        domain.set_quantity('xvelocity', expression='2*x+3*y')
+        domain.set_quantity('yvelocity', expression='5*x+7*y')
+
+        domain.set_quantity('height', expression='x+y')
+
+        assert num.allclose(Uc, 2*Xc+3*Yc)
+        assert num.allclose(Vc, 5*Xc+7*Yc)
+        assert num.allclose(Hc, Xc + Yc)
+
+        domain.update_centroids_of_momentum_from_velocity()
+
+        assert num.allclose(UHc, (2*Xc+3*Yc)*(Xc+Yc))
+        assert num.allclose(VHc, (5*Xc+7*Yc)*(Xc+Yc))
+
+
     def test_that_mesh_methods_exist(self):
         """test_that_mesh_methods_exist
         

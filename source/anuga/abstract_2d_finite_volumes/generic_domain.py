@@ -100,6 +100,8 @@ class Generic_Domain:
         self.vertex_coordinates = self.mesh.vertex_coordinates
         self.boundary = self.mesh.boundary
         self.boundary_enumeration = self.mesh.boundary_enumeration
+        self.boundary_cells = self.mesh.boundary_cells
+        self.boundary_edges = self.mesh.boundary_edges 
         self.neighbours = self.mesh.neighbours
         self.surrogate_neighbours = self.mesh.surrogate_neighbours
         self.neighbour_edges = self.mesh.neighbour_edges

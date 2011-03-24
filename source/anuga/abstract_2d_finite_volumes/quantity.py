@@ -71,7 +71,7 @@ class Quantity:
         self.interpolate()
 
         # Allocate space for boundary values
-        L = len(domain.boundary)
+        self.boundary_length = L = len(domain.boundary)
         self.boundary_values = num.zeros(L, num.float)
 
         # Allocate space for updates of conserved quantities by
@@ -262,6 +262,15 @@ class Quantity:
                 raise Exception(msg)
             self._set_boundary_values_from_constant(numeric)
 
+    def set_boundary_values_from_edges(self):
+        """Set boundary values by simply extrapolating
+        from the cells
+        """
+
+        for j in range(self.boundary_length):
+            vol_id  = self.domain.boundary_cells[j]
+            edge_id = self.domain.boundary_edges[j]
+            self.boundary_values[j] = self.edge_values[vol_id,edge_id]
 
     ##
     # @brief Set boundary values using a function
@@ -269,7 +278,9 @@ class Quantity:
     def _set_boundary_values_from_function(self, function):
         """Set boundary values from function of x,y """
 
-        for (vol_id, edge_id) , j in self.domain.boundary_enumeration.items():
+        for j in range(self.boundary_length):
+            vol_id  = self.domain.boundary_cells[j]
+            edge_id = self.domain.boundary_edges[j]
             [x,y] = self.domain.get_edge_midpoint_coordinates(vol_id)[edge_id]
             self.boundary_values[j] = function(x,y)
 
@@ -279,9 +290,9 @@ class Quantity:
     def _set_boundary_values_from_constant(self, scalar):
         """Set boundary values from scalar """
 
-        for (vol_id, edge_id) , j in self.domain.boundary_enumeration.items():
-            [x,y] = self.domain.get_edge_midpoint_coordinates(vol_id)[edge_id]
-            self.boundary_values[j] = scalar
+        #for (vol_id, edge_id) , j in self.domain.boundary_enumeration.items():
+        #[x,y] = self.domain.get_edge_midpoint_coordinates(vol_id)[edge_id]
+        self.boundary_values[:] = scalar
 
     ##
     # @brief Set boundary values using a scalar
@@ -291,9 +302,9 @@ class Quantity:
 
         assert len(array)  == len(self.domain.boundary_enumeration)
         
-        for (vol_id, edge_id) , j in self.domain.boundary_enumeration.items():
-            [x,y] = self.domain.get_edge_midpoint_coordinates(vol_id)[edge_id]
-            self.boundary_values[j] = array[j]
+        #for (vol_id, edge_id) , j in self.domain.boundary_enumeration.items():
+        #[x,y] = self.domain.get_edge_midpoint_coordinates(vol_id)[edge_id]
+        self.boundary_values[:] = array
 
     ##
     # @brief Compute interpolated values at edges and centroid.

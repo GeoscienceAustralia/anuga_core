@@ -448,6 +448,8 @@ class Mesh(General_mesh):
 
             index -= 1
 
+
+
     def build_boundary_neighbours(self):
         """Traverse boundary and
         enumerate neighbour indices from -1 and
@@ -480,6 +482,16 @@ class Mesh(General_mesh):
 
             index -= 1
 
+        # Now we know number of boundaries
+        M = len(self.boundary_enumeration)
+        self.boundary_cells = num.zeros((M,),num.int)
+        self.boundary_edges = num.zeros((M,),num.int)
+
+        for id, edge in X:
+
+            j = self.boundary_enumeration[id,edge]
+            self.boundary_cells[j] = id
+            self.boundary_edges[j] = edge
 
 
     def get_boundary_tags(self):

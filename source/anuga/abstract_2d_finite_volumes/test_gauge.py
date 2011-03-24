@@ -492,6 +492,7 @@ point1, 5.0, 1.0\n\
 point2, 0.5, 2.0\n")
         file_id.close()
 
+
         sww2csv_gauges(basename+".sww", 
                        points_file,
                        quantities=['stage', 'elevation'],
@@ -535,6 +536,7 @@ point2, 0.5, 2.0\n")
 
         #remove second swwfile not removed by tearDown
         os.remove(basename+".sww")
+        #os.remove(basename+str(time.time())+".sww")
 
 #-------------------------------------------------------------
 

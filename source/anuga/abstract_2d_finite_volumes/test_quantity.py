@@ -150,6 +150,22 @@ class Test_Quantity(unittest.TestCase):
             msg = 'Should have caught this'
             raise Exception(msg)
 
+    def test_set_boundary_values_from_edges(self):
+
+        quantity = Quantity(self.mesh4)
+
+        def simple(x,y):
+            return x+3*y
+
+        quantity.set_values(simple)
+
+        assert  num.allclose(quantity.boundary_values, [  0.,   0.,   0.,   0.,  0.,   0.])
+
+        quantity.set_boundary_values_from_edges()
+
+        assert  num.allclose(quantity.boundary_values, [  1.,   3.,   3.,   6.,  10.,   9.])
+
+        
     def test_interpolation(self):
         quantity = Quantity(self.mesh1, [[1,2,3]])
         assert num.allclose(quantity.centroid_values, [2.0]) #Centroid

@@ -137,7 +137,7 @@ class Domain(Generic_Domain):
             evolved_quantities =  ['stage', 'xmomentum', 'ymomentum']
             
         if other_quantities == None:
-            other_quantities = ['elevation', 'friction']
+            other_quantities = ['elevation', 'friction', 'height', 'xvelocity', 'yvelocity', 'x', 'y']
         
         
         Generic_Domain.__init__(self,
@@ -163,20 +163,38 @@ class Domain(Generic_Domain):
 
         self.set_defaults()
 
- 
+        #-------------------------------
+        # Operators and Forcing Terms
+        #-------------------------------
         self.forcing_terms.append(manning_friction_implicit)
         self.forcing_terms.append(gravity)
 
 
         self.fractional_step_operators = []
+        self.kv_operator = None
 
+        #-------------------------------
         # Stored output
+        #-------------------------------
         self.set_store(True)
         self.set_store_vertices_uniquely(False)
         self.quantities_to_be_stored = {'elevation': 1, 
                                         'stage': 2, 
                                         'xmomentum': 2, 
                                         'ymomentum': 2}
+
+
+
+        #-------------------------------
+        # Useful auxiliary quantity
+        #-------------------------------
+        n = len(self)
+        self.quantities['x'].set_values(self.vertex_coordinates[:,0].reshape(n,3))
+        self.quantities['x'].set_boundary_values_from_edges()
+        
+        self.quantities['y'].set_values(self.vertex_coordinates[:,1].reshape(n,3))
+        self.quantities['y'].set_boundary_values_from_edges()
+
 
 
     def set_defaults(self):
@@ -248,6 +266,26 @@ class Domain(Generic_Domain):
             self.use_edge_limiter = True
         else:
             self.use_edge_limiter = False
+
+
+    def set_use_kinematic_viscosity(self, flag=False):
+
+        from anuga.operators.kinematic_viscosity_operator import Kinematic_Viscosity_Operator
+
+        if flag :
+            # Create Operator if necessary
+            if self.kv_operator is None:
+                self.kv_operator = Kinematic_Viscosity_Operator(self)
+        else:
+            if self.kv_operator is None:
+                return
+            else:
+                # Remove operator from fractional_step_operators
+                self.fractional_step_operators.remove(self.kv_operator)
+                self.kv_operator = None
+                
+
+
 
 
     def set_beta(self, beta):
@@ -537,6 +575,101 @@ class Domain(Generic_Domain):
         else:
             distribute_using_vertex_limiter(self)
 
+    def protect_against_infinitesimal_and_negative_heights(self):
+        """ Clean up the stage and momentum values to ensure non-negative heights
+        """
+
+        protect_against_infinitesimal_and_negative_heights(self)
+        
+
+    def update_centroids_of_velocities_and_height(self):
+        """Calculate the centroid values of velocities and height based
+        on the values of the quantities stage and x and y momentum
+
+        Assumes that stage and momentum are up to date
+
+        Useful for kinematic viscosity calculations
+        """
+
+        # For shallow water we need to update height xvelocity and yvelocity
+
+        #Shortcuts
+        W  = self.quantities['stage']
+        UH = self.quantities['xmomentum']
+        VH = self.quantities['ymomentum']
+        H  = self.quantities['height']
+        Z  = self.quantities['elevation']
+        U  = self.quantities['xvelocity']
+        V  = self.quantities['yvelocity']
+
+        #print num.min(W.centroid_values)
+
+        # Make sure boundary values of conserved quantites
+        # are consistent with value of functions at centroids
+        self.distribute_to_vertices_and_edges()
+        Z.set_boundary_values_from_edges()
+        W.set_boundary_values_from_edges()
+        UH.set_boundary_values_from_edges()
+        VH.set_boundary_values_from_edges()
+
+        # Update height values
+        H.set_values(W.centroid_values-Z.centroid_values, location='centroids')
+        H.set_boundary_values(W.boundary_values-Z.boundary_values)
+
+        assert num.min(H.centroid_values) >= 0
+        assert num.min(H.boundary_values) >= 0
+
+        #Aliases
+        uh_C  = UH.centroid_values
+        vh_C  = VH.centroid_values
+        h_C   = H.centroid_values
+
+        uh_B  = UH.boundary_values
+        vh_B  = VH.boundary_values
+        h_B   = H.boundary_values
+
+        H0 = 1.0e-8
+        
+        U.set_values(uh_C/(h_C + H0/h_C), location='centroids')
+        V.set_values(vh_C/(h_C + H0/h_C), location='centroids')
+
+        U.set_boundary_values(uh_B/(h_B + H0/h_B))
+        V.set_boundary_values(vh_B/(h_B + H0/h_B))
+ 
+
+
+    def update_centroids_of_momentum_from_velocity(self):
+        """Calculate the centroid value of x and y momentum from height and velocities
+
+        Assumes centroids of height and velocities are up to date
+
+        Useful for kinematic viscosity calculations
+        """
+
+        # For shallow water we need to update height xvelocity and yvelocity
+
+        #Shortcuts
+        UH = self.quantities['xmomentum']
+        VH = self.quantities['ymomentum']
+        H  = self.quantities['height']
+        Z  = self.quantities['elevation']
+        U  = self.quantities['xvelocity']
+        V  = self.quantities['yvelocity']
+
+
+        #Arrays
+        u_C  = U.centroid_values
+        v_C  = V.centroid_values
+        h_C  = H.centroid_values
+
+        u_B  = U.boundary_values
+        v_B  = V.boundary_values
+        h_B  = H.boundary_values
+
+        UH.set_values(u_C*h_C , location='centroids')
+        VH.set_values(v_C*h_C , location='centroids')
+
+        self.distribute_to_vertices_and_edges()
 
 
     def evolve(self,
@@ -727,7 +860,12 @@ class Domain(Generic_Domain):
 
         return msg
        
-        
+    def print_timestepping_statistics(self, *args, **kwargs):
+
+        msg = self.timestepping_statistics(*args, **kwargs)
+
+        print msg
+
 
     def compute_boundary_flows(self):
         """Compute boundary flows at current timestep.
