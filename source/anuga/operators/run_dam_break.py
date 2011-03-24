@@ -58,22 +58,24 @@ domain.set_default_order(2)
 #------------------------------------------------------------------------------
 domain.set_use_kinematic_viscosity(True)
 
-
+domain.set_beta(1.7)
 #------------------------------------------------------------------------------
 # Setup initial conditions
 #------------------------------------------------------------------------------
-domain.set_quantity('elevation',0.0)
-domain.set_quantity('friction', 0.0)
-
 h0 = 10.0
 h1 = 0.0
+
+def elevation(x,y):
+
+    return where(x<=95000.0, 0.0, h0)
 
 def height(x,y):
 
     return where(x<=50000.0, h0, h1)
 
-
-domain.set_quantity('stage', height)
+domain.set_quantity('elevation',elevation)
+domain.set_quantity('friction', 0.0)
+domain.add_quantity('stage', height)
 #-----------------------------------------------------------------------------
 # Setup boundary conditions
 #------------------------------------------------------------------------------
@@ -84,7 +86,7 @@ Bd = anuga.Dirichlet_boundary([1,0.,0.]) # Constant boundary values
 
 
 # Associate boundary tags with boundary objects
-domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+domain.set_boundary({'left': Br, 'right': Bt, 'top': Br, 'bottom': Br})
 
 
 #===============================================================================

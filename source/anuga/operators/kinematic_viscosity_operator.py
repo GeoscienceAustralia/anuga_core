@@ -57,7 +57,7 @@ class Kinematic_Viscosity_Operator(Operator):
         self.n = len(self.domain)
 
         self.dt = 0.0 #Need to set to domain.timestep
-        self.dt_apply = 1.0
+        self.dt_apply = 0.0
 
         self.boundary_len = len(self.domain.boundary)
         self.tot_len = self.n + self.boundary_len
