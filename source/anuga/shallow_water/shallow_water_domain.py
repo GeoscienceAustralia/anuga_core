@@ -268,7 +268,7 @@ class Domain(Generic_Domain):
             self.use_edge_limiter = False
 
 
-    def set_use_kinematic_viscosity(self, flag=False):
+    def set_use_kinematic_viscosity(self, flag=True):
 
         from anuga.operators.kinematic_viscosity_operator import Kinematic_Viscosity_Operator
 
