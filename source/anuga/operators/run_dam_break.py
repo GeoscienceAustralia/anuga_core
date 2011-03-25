@@ -14,6 +14,7 @@ import anuga
 
 from math import cos
 from numpy import zeros, float, where
+import numpy
 from time import localtime, strftime, gmtime
 
 
@@ -38,6 +39,7 @@ dx = 1000.
 dy = dx
 L = 100000.
 W = 10*dx
+#W = dx
 
 # structured mesh
 points, vertices, boundary = anuga.rectangular_cross(int(L/dx), int(W/dy), L, W, (0.0, -W/2))
@@ -45,20 +47,19 @@ points, vertices, boundary = anuga.rectangular_cross(int(L/dx), int(W/dy), L, W,
 domain = anuga.Domain(points, vertices, boundary) 
 
 domain.set_name(output_file)                
-#domain.set_datadir(output_dir)
 
 #------------------------------------------------------------------------------
 # Setup Algorithm
 #------------------------------------------------------------------------------
 domain.set_timestepping_method('rk2')
 domain.set_default_order(2)
+domain.set_beta(1.7)
 
 #------------------------------------------------------------------------------
 # Setup Kinematic Viscosity Operator
 #------------------------------------------------------------------------------
 domain.set_use_kinematic_viscosity(True)
 
-domain.set_beta(1.7)
 #------------------------------------------------------------------------------
 # Setup initial conditions
 #------------------------------------------------------------------------------
@@ -86,14 +87,16 @@ Bd = anuga.Dirichlet_boundary([1,0.,0.]) # Constant boundary values
 
 
 # Associate boundary tags with boundary objects
-domain.set_boundary({'left': Br, 'right': Bt, 'top': Br, 'bottom': Br})
+domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 
 #===============================================================================
 from anuga.visualiser import RealtimeVisualiser
 vis = RealtimeVisualiser(domain)
 vis.render_quantity_height("stage", zScale = 50000/(h0-h1), dynamic=True)
-vis.colour_height_quantity('stage', (0.0, 0.5, 1.0))
+vis.colour_height_quantity("stage", 
+#        (lambda q: numpy.sqrt( (q["xvelocity"]**2 ) + (q['yvelocity']**2 )), 0.0, 10.0) )
+        (lambda q: q["yvelocity"], -10.0, 10.0) )
 vis.start()
 #===============================================================================
 
@@ -111,7 +114,19 @@ for t in domain.evolve(yieldstep = 100.0, finaltime = 3*60*60.):
 #        domain.set_use_kinematic_viscosity(False)
 #    else:
 #        domain.set_use_kinematic_viscosity(True)
-        
+
+    #print domain.quantities['height'].vertex_values
+
+    #domain.quantities['height'].vertex_values
+
+    #print domain.quantities['height'].vertex_values
+
+    #print len(domain)
+
+    #vertex_values, _ = domain.get_quantity('height').get_vertex_values(xy=False, smooth=False)
+
+    #print vertex_values
+
     vis.update()
 
 

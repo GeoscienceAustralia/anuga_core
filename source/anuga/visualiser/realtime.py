@@ -60,6 +60,7 @@ class RealtimeVisualiser(Visualiser):
         triangles = self.source.get_triangles()
         vertex_values, _ = self.source.get_quantity(quantityName).get_vertex_values(xy=False, smooth=False)
 
+        
         for n in range(N_vert):
             qty_index[n] = vertex_values[n]
 
@@ -93,7 +94,8 @@ class RealtimeVisualiser(Visualiser):
         triangles = self.source.get_triangles()
         quantities = {}
         for q in self.source.get_quantity_names():
-            quantities[q], _ = self.source.get_quantity(q).get_vertex_values(xy=False)
+            #quantities[q], _ = self.source.get_quantity(q).get_vertex_values(xy=False)
+            quantities[q]  = self.source.get_quantity(q).vertex_values.flatten()
         return quantities
 
     def setup_gui(self):

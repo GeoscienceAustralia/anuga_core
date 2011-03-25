@@ -582,6 +582,27 @@ class Domain(Generic_Domain):
         protect_against_infinitesimal_and_negative_heights(self)
         
 
+    def update_other_quantities(self):
+        """ There may be a need to calculates some of the other quantities
+        based on the new values of conserved quantities
+        """
+
+        # The centroid values of height and x and y velocity
+        # might not have been setup
+
+        self.update_centroids_of_velocities_and_height()
+
+        for name in ['height', 'xvelocity', 'yvelocity']:
+            Q = self.quantities[name]
+            if self._order_ == 1:
+                Q.extrapolate_first_order()
+            elif self._order_ == 2:
+                Q.extrapolate_second_order_and_limit_by_edge()
+            else:
+                raise Exception('Unknown order')
+
+
+
     def update_centroids_of_velocities_and_height(self):
         """Calculate the centroid values of velocities and height based
         on the values of the quantities stage and x and y momentum

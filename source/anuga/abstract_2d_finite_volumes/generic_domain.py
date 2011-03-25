@@ -1343,6 +1343,9 @@ class Generic_Domain:
             # Update boundary values
             self.update_boundary()
 
+            # Update any other quantities that might be useful
+            self.update_other_quantities()
+
             # Update extrema if necessary (for reporting)
             self.update_extrema()            
 
@@ -1657,6 +1660,7 @@ class Generic_Domain:
 
 
     def apply_fractional_steps(self):
+
         for operator in self.fractional_step_operators:
             operator()
 
@@ -1783,7 +1787,13 @@ class Generic_Domain:
                 Q_cv =  self.quantities[q].centroid_values
                 num.put(Q_cv, Idg, num.take(Q_cv, Idf, axis=0))
 
- 
+    def update_other_quantities(self):
+        """ There may be a need to calculates some of the other quantities
+        based on the new values of conserved quantities
+        """
+
+        pass
+
     def distribute_to_vertices_and_edges(self):
         """Extrapolate conserved quantities from centroid to
         vertices and edge-midpoints for each volume
@@ -1801,6 +1811,7 @@ class Generic_Domain:
                 Q.extrapolate_second_order()
             else:
                 raise Exception('Unknown order: %s' % str(self._order_))
+
 
     def centroid_norm(self, quantity, normfunc):
         """Calculate the norm of the centroid values of a specific quantity,
