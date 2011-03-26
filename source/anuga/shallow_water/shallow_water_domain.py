@@ -590,6 +590,8 @@ class Domain(Generic_Domain):
         # The centroid values of height and x and y velocity
         # might not have been setup
 
+        pass
+
         self.update_centroids_of_velocities_and_height()
 
         for name in ['height', 'xvelocity', 'yvelocity']:
