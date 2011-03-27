@@ -590,8 +590,6 @@ class Domain(Generic_Domain):
         # The centroid values of height and x and y velocity
         # might not have been setup
 
-        pass
-
         self.update_centroids_of_velocities_and_height()
 
         for name in ['height', 'xvelocity', 'yvelocity']:
@@ -629,15 +627,17 @@ class Domain(Generic_Domain):
 
         # Make sure boundary values of conserved quantites
         # are consistent with value of functions at centroids
-        self.distribute_to_vertices_and_edges()
+        #self.distribute_to_vertices_and_edges()
         Z.set_boundary_values_from_edges()
-        W.set_boundary_values_from_edges()
-        UH.set_boundary_values_from_edges()
-        VH.set_boundary_values_from_edges()
+
+        #W.set_boundary_values_from_edges()
+        #UH.set_boundary_values_from_edges()
+        #VH.set_boundary_values_from_edges()
 
         # Update height values
         H.set_values(W.centroid_values-Z.centroid_values, location='centroids')
-        H.set_boundary_values(W.boundary_values-Z.boundary_values)
+        H.set_boundary_values( num.where(W.boundary_values-Z.boundary_values>=0,
+                                         W.boundary_values-Z.boundary_values, 0.0))
 
         assert num.min(H.centroid_values) >= 0
         assert num.min(H.boundary_values) >= 0
