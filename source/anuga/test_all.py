@@ -192,7 +192,7 @@ if __name__ == '__main__':
     else:
         test_verbose = False
     suite = regressionTest(test_verbose)
-    runner = unittest.TextTestRunner() #verbosity=2
+    runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
 
     # timestamp at the end
