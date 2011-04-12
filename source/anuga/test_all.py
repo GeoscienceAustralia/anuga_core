@@ -3,6 +3,15 @@ This module will search for scripts in the same directory named
 test_*.py.  Each such script should be a test suite that tests a
 module through PyUnit. This script will aggregate all
 found test suites into one big test suite and run them all at once.
+
+Usage: test_all.py [<options>]
+
+where <options> is zero or more of:
+      -q         be quiet, minimal output to screen, write to ./.temp
+      --quiet    same as above
+      -v         be verbose to screen, more '-v's makes more verbose
+      --verbose  same as above
+You may do things like "test_all.py -q -v -v".
 """
 
 # Author: Mark Pilgrim
@@ -25,6 +34,9 @@ exclude_files = []
 exclude_dirs = ['shallow_water_balanced' , # Special requirements
                 '.svn',          # subversion
                 'props', 'wcprops', 'prop-base', 'text-base', 'tmp']
+
+# name of file to capture stdout in
+CaptureFilename = '.temp'
 
 
 def list_names(names, func=None, col_width=None, page_width=None):
@@ -181,32 +193,47 @@ def check_anuga_import():
 
 
 if __name__ == '__main__':
+    from optparse import OptionParser
+
     check_anuga_import()
 
-    if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
-        test_verbose = True
+    # check the commandline params
+    usage = "usage: %prog [-h|-q|-v]"
+    parser = OptionParser(usage)
+    parser.add_option("-v", "--verbose",
+                      action="count", dest="verbosity", default=1,
+                      help='make the ouput even more verbose')
+    parser.add_option("-q", "--quiet",
+                      action="store_true", dest="quiet",
+                      help="capture statistics output in file '%s'"
+                           % CaptureFilename)
+    (options, args) = parser.parse_args()
+
+    if len(args) > 0:
+        parser.error("test_all.py doesn't take any parameters.  "
+                     "Do 'test_all.py -h' to see the help.")
+
+    if options.quiet:
         saveout = sys.stdout
-        filename = ".temp"
+        filename = CaptureFilename
         fid = open(filename, 'w')
         sys.stdout = fid
-    else:
-        test_verbose = False
-    suite = regressionTest(test_verbose)
-    runner = unittest.TextTestRunner(verbosity=2)
+
+    # run the tests
+    suite = regressionTest(options.quiet)
+    runner = unittest.TextTestRunner(verbosity=options.verbosity)
     runner.run(suite)
 
     # timestamp at the end
     timestamp = time.asctime()
     version = config.major_revision
-    print
-    print 'Finished at %s, version %s' % (timestamp, version)
+    print '\nFinished at %s, version %s' % (timestamp, version)
 
     # Cleaning up
-    if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
+    if options.verbosity < 1:
         sys.stdout = saveout
         #fid.close() # This was causing an error in windows
         #os.remove(filename)
-
     
     if sys.platform == 'win32':
         raw_input('Press the RETURN key')
