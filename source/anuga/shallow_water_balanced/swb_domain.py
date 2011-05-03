@@ -2,7 +2,6 @@
 from anuga.shallow_water.shallow_water_domain import *
 from anuga.shallow_water.shallow_water_domain import Domain as Sww_domain
 
-from swb_boundary_conditions import Transmissive_boundary
 
 ##############################################################################
 # Shallow Water Balanced Domain
@@ -24,6 +23,7 @@ class Domain(Sww_domain):
                  verbose=False,
                  full_send_dict=None,
                  ghost_recv_dict=None,
+                 starttime=0.0,
                  processor=0,
                  numproc=1,
                  number_of_full_nodes=None,
@@ -32,11 +32,12 @@ class Domain(Sww_domain):
         conserved_quantities = [ 'stage', 'xmomentum', 'ymomentum']
 
         evolved_quantities = [ 'stage', 'xmomentum', 'ymomentum', \
-                               'height', 'elevation', 'xvelocity', 'yvelocity']
+                               'height', 'elevation', \
+                               'xvelocity', 'yvelocity' ]
         
-        other_quantities = [ 'friction' ]
+        other_quantities = [ 'friction', 'x', 'y' ]
 
-
+        
         Sww_domain.__init__(self,
                             coordinates = coordinates,
                             vertices = vertices,
@@ -52,6 +53,7 @@ class Domain(Sww_domain):
                             other_quantities = other_quantities,
                             full_send_dict = full_send_dict,
                             ghost_recv_dict = ghost_recv_dict,
+                            starttime = starttime,
                             processor = processor,
                             numproc = numproc,
                             number_of_full_nodes = number_of_full_nodes,

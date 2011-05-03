@@ -42,9 +42,9 @@ class Test_swb_domain_ext(unittest.TestCase):
         domain.set_quantity('stage', [[2,2,2], [2,2,2], [2,2,2], [2,2,2]])
         domain.check_integrity()
         domain.distribute_to_vertices_and_edges()
-        
+
         assert num.allclose(domain.neighbours,
-                            [[-1,1,-1], [2,3,0], [-1,-1,1],[1,-1,-1]])
+                            [[-1,1,-2], [2,3,0], [-3,-4,1],[1,-5,-6]])
         assert num.allclose(domain.neighbour_edges,
                             [[-1,2,-1], [2,0,1], [-1,-1,0],[1,-1,-1]])
 
@@ -472,17 +472,17 @@ class Test_swb_domain_ext(unittest.TestCase):
         domain.distribute_to_vertices_and_edges()        
 
 
-        print w.edge_values
-        print u.edge_values
-        print v.edge_values
-        print h.edge_values
-        print z.edge_values
+        #print w.edge_values
+        #print u.edge_values
+        #print v.edge_values
+        #print h.edge_values
+        #print z.edge_values
 
 
         domain.compute_fluxes()
 
-        for i, name in enumerate(['stage', 'xmomentum', 'ymomentum']):
-            print domain.quantities[name].explicit_update[1]
+        #for i, name in enumerate(['stage', 'xmomentum', 'ymomentum']):
+            #print domain.quantities[name].explicit_update[1]
             #assert num.allclose(total_flux[i],
             #                    domain.quantities[name].explicit_update[1])
 

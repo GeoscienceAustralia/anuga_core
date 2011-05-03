@@ -139,7 +139,8 @@ class Test_swb_boundary_condition(unittest.TestCase):
                     (2, 1): 'Second',
                     (3, 1): 'Second',
                     (3, 2): 'Third',
-                    (0, 1): 'Internal'}
+                    (0, 1): 'Internal',
+                    (1, 2): 'Internal'}
 
         domain = anuga.Domain(points, vertices, boundary)
         domain.check_integrity()
@@ -872,6 +873,6 @@ class Test_swb_boundary_condition(unittest.TestCase):
 #################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_swb_boundary_condition, 'test_boundary_condition_time')
+    suite = unittest.makeSuite(Test_swb_boundary_condition, 'test')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

@@ -10,7 +10,7 @@ and higher beta = 2 limiter used. Also new edge limiter with rk2 resolves proble
 #------------------------------------------------------------------------------
 
 import sys
-from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+import anuga
 from swb_domain import *
 
 from math import cos
@@ -32,7 +32,7 @@ output_file = 'wave'
 #copy_code_files(output_dir,__file__)
 #start_screen_catcher(output_dir+sep)
 
-interactive_visualisation = True
+interactive_visualisation = False
 
 #------------------------------------------------------------------------------
 # Setup domain
@@ -43,7 +43,7 @@ L = 100000.
 W = 10*dx
 
 # structured mesh
-points, vertices, boundary = rectangular_cross(int(L/dx), int(W/dy), L, W, (0.0, -W/2))
+points, vertices, boundary = anuga.rectangular_cross(int(L/dx), int(W/dy), L, W, (0.0, -W/2))
 
 domain = Domain(points, vertices, boundary) 
 
@@ -81,11 +81,11 @@ domain.set_quantity('stage', stage  )
 # Setup boundary conditions
 #------------------------------------------------------------------------------
 from math import sin, pi, exp
-Br = Reflective_boundary(domain)      # Solid reflective wall
-Bt = Transmissive_boundary(domain)    # Continue all values on boundary 
-Bd = Dirichlet_boundary([1,0.,0.]) # Constant boundary values
+Br = anuga.Reflective_boundary(domain)      # Solid reflective wall
+Bt = anuga.Transmissive_boundary(domain)    # Continue all values on boundary
+Bd = anuga.Dirichlet_boundary([1,0.,0.]) # Constant boundary values
 amplitude = 1
-Bw = Time_boundary(domain=domain,     # Time dependent boundary  
+Bw = anuga.Time_boundary(domain=domain,     # Time dependent boundary
 ## Sine wave
                   f=lambda t: [(-amplitude*sin((1./300.)*t*2*pi)), 0.0, 0.0])
 ## Sawtooth?

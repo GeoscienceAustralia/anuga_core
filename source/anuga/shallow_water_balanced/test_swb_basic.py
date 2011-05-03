@@ -1638,7 +1638,7 @@ class Test_swb_basic(unittest.TestCase):
         domain.set_quantity('friction', 0.03)
 
         # Boundary conditions
-        B = Transmissive_boundary(domain)
+        B = anuga.Transmissive_boundary(domain)
         domain.set_boundary({'left': B, 'right': B, 'top': B, 'bottom': B})
 
         # Initial condition - with jumps

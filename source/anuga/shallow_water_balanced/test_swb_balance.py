@@ -76,8 +76,8 @@ class Test_swb_clean(unittest.TestCase):
                                           [4.6,0,0],
                                           [0,2,4]])
         stage = domain.quantities['stage']
-        elevation = domain.quantities['elevation']
-        height = domain.quantities['height']
+        #elevation = domain.quantities['elevation']
+        #height = domain.quantities['height']
 
         ref_centroid_values = copy.copy(stage.centroid_values[:])    # Copy
         ref_vertex_values = copy.copy(stage.vertex_values[:])        # Copy
@@ -95,12 +95,14 @@ class Test_swb_clean(unittest.TestCase):
                                 num.sum(stage.vertex_values[k,:])/3)
 
         # Check actual results
-        assert num.allclose(stage.vertex_values,
-                            [[ 2.66666667,  0.66666667,  2.66666667],
-                             [ 3.33333333,  3.33333333,  3.33333333],
-                             [ 3.73333333,  4.93333333,  7.33333333],
-                             [ 7.33333333,  4.93333333,  3.73333333]])
 
+        #print stage.vertex_values
+
+        assert num.allclose(stage.vertex_values,
+                            [[ 2.         , 2.         , 2.        ],
+                             [ 2.22222222 , 2.22222222 , 5.55555556],
+                             [ 5.33333333 , 5.33333333 , 5.33333333],
+                             [ 5.33333333 , 5.33333333 , 5.33333333]])
 
 
     def test_balance_deep_and_shallow_tight_SL(self):

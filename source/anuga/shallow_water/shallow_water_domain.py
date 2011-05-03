@@ -137,7 +137,8 @@ class Domain(Generic_Domain):
             evolved_quantities =  ['stage', 'xmomentum', 'ymomentum']
             
         if other_quantities == None:
-            other_quantities = ['elevation', 'friction', 'height', 'xvelocity', 'yvelocity', 'x', 'y']
+            other_quantities = ['elevation', 'friction', 'height',
+                                'xvelocity', 'yvelocity', 'x', 'y']
         
         
         Generic_Domain.__init__(self,
@@ -173,6 +174,7 @@ class Domain(Generic_Domain):
         self.fractional_step_operators = []
         self.kv_operator = None
 
+
         #-------------------------------
         # Stored output
         #-------------------------------
@@ -183,12 +185,13 @@ class Domain(Generic_Domain):
                                         'xmomentum': 2, 
                                         'ymomentum': 2}
 
+        
 
 
         #-------------------------------
         # Useful auxiliary quantity
         #-------------------------------
-        n = len(self)
+        n = self.number_of_elements
         self.quantities['x'].set_values(self.vertex_coordinates[:,0].reshape(n,3))
         self.quantities['x'].set_boundary_values_from_edges()
         

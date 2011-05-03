@@ -896,12 +896,6 @@ class Test_swb_forcing_terms(unittest.TestCase):
 
         assert num.allclose(domain.quantities['stage'].explicit_update[1],
                             (3*domain.get_time() + 7)/1000)
-        assert num.allclose(domain.quantities['stage'].explicit_update[1],
-                            (3*(domain.time + domain.starttime) + 7)/1000)
-
-        # Using internal time her should fail
-        assert not num.allclose(domain.quantities['stage'].explicit_update[1],
-                                (3*domain.time + 7)/1000)
 
         assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
         assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
@@ -962,12 +956,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
 
         assert num.allclose(domain.quantities['stage'].explicit_update[1],
                             (3*domain.get_time() + 7)/1000)
-        assert num.allclose(domain.quantities['stage'].explicit_update[1],
-                            (3*(domain.time + domain.starttime) + 7)/1000)
 
-        # Using internal time her should fail
-        assert not num.allclose(domain.quantities['stage'].explicit_update[1],
-                                (3*domain.time + 7)/1000)
 
         assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
         assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
@@ -1609,5 +1598,5 @@ class Test_swb_forcing_terms(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_swb_forcing_terms, 'test')
-    runner = unittest.TextTestRunner(verbosity=2)
+    runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
