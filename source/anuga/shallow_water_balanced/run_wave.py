@@ -26,7 +26,8 @@ from os import sep
 #-------------------------------------------------------------------------------
 time = strftime('%Y%m%d_%H%M%S',localtime())
 
-output_dir = 'wave_'+time
+#output_dir = 'wave_'+time
+output_dir = '.'
 output_file = 'wave'
 
 #copy_code_files(output_dir,__file__)

@@ -68,6 +68,9 @@ class Domain(Sww_domain):
         self.set_centroid_transmissive_bc(True)
         self.set_CFL(1.0)
         self.set_beta(1.0)
+        self.quantities['height'].set_beta(1.0)
+
+        print 'Swb_Domain'
 
     def check_integrity(self):
         Sww_domain.check_integrity(self)
@@ -90,13 +93,17 @@ class Domain(Sww_domain):
 
         msg = 'First other quantity must be "friction"'
         assert self.other_quantities[0] == 'friction', msg
+        msg = 'Second other quantity must be "x"'
+        assert self.other_quantities[1] == 'x', msg
+        msg = 'Third other quantity must be "y"'
+        assert self.other_quantities[1] == 'y', msg
+
 
     def compute_fluxes(self):
-        #Call correct module function (either from this module or C-extension)
+        """
+        Call correct module function (either from this module or C-extension)
+        """
 
-        #compute_fluxes(self)
-
-        #return
         from swb_domain_ext import compute_fluxes_c
 
         #Shortcuts
@@ -110,9 +117,9 @@ class Domain(Sww_domain):
 
         timestep = self.get_evolve_max_timestep()
         
-        self.flux_timestep = compute_fluxes_c(timestep, self, W, UH, VH, H, Z, U, V)
+        self.flux_timestep = \
+            compute_fluxes_c(timestep, self, W, UH, VH, H, Z, U, V)
 
-        #print self.flux_timestep
 
     def distribute_to_vertices_and_edges(self):
         """Distribution from centroids to edges specific to the SWW eqn.
@@ -133,8 +140,8 @@ class Domain(Sww_domain):
         Evolved quantities defined at vertices and edges
         """
 
-        #Sww_domain.distribute_to_vertices_and_edges(self)
-        #return
+        from anuga.shallow_water.shallow_water_domain import \
+                  protect_against_infinitesimal_and_negative_heights as protect
     
         #Shortcuts
         W  = self.quantities['stage']
@@ -154,24 +161,30 @@ class Domain(Sww_domain):
         u_C   = U.centroid_values
         v_C   = V.centroid_values
 
+        num_min = num.min(w_C-z_C)
+        if num_min < 0.0:
+            print '**** num.min(w_C-z_C)', num_min
+
+    
         w_C[:] = num.maximum(w_C, z_C)
-        
         h_C[:] = w_C - z_C
 
 
-        assert num.min(h_C) >= 0
+        assert num.min(h_C) >= 0.0
                 
         num.putmask(uh_C, h_C < 1.0e-15, 0.0)
         num.putmask(vh_C, h_C < 1.0e-15, 0.0)
-        num.putmask(h_C, h_C < 1.0e-15, 1.0e-16)        
+        #num.putmask(h_C, h_C < 1.0e-15, 1.0e-16)
 
-        H0 = 1.0e-8
+        # Noelle has an alternative method for calculating velcities
+        # Check it out in the GPU shallow water paper
+        H0 = 1.0e-16
         u_C[:]  = uh_C/(h_C + H0/h_C)
         v_C[:]  = vh_C/(h_C + H0/h_C)
 
-        num.putmask(h_C, h_C < 1.0e-15, 0.0)
+        #num.putmask(h_C, h_C < 1.0e-15, 0.0)
         
-        for name in [ 'stage', 'height', 'xvelocity', 'yvelocity' ]:
+        for name in [ 'stage', 'xvelocity', 'yvelocity' ]:
             Q = self.quantities[name]
             if self._order_ == 1:
                 Q.extrapolate_first_order()
@@ -181,63 +194,45 @@ class Domain(Sww_domain):
             else:
                 raise Exception('Unknown order: %s' % str(self._order_))
 
-
-        w_E     = W.edge_values
-        uh_E    = UH.edge_values
-        vh_E    = VH.edge_values	
-        h_E     = H.edge_values
-        z_E     = Z.edge_values	
-        u_E     = U.edge_values
-        v_E     = V.edge_values		
-
-
-        #minh_E = num.min(h_E)
-        #msg = 'min h_E = %g ' % minh_E
-        #assert minh_E >= -1.0e-15, msg
-
-        z_E[:]   = w_E - h_E
-
-        num.putmask(h_E, h_E <= 1.0e-15, 0.0)
-        num.putmask(u_E, h_E <= 1.0e-15, 0.0)
-        num.putmask(v_E, h_E <= 1.0e-15, 0.0)
-        num.putmask(w_E, h_E <= 1.0e-15, z_E)
-        #num.putmask(h_E, h_E <= 0.0, 0.0)
-        
-        uh_E[:] = u_E * h_E
-        vh_E[:] = v_E * h_E
-
-        """
-        print '=========================================================='
-        print 'Time ', self.get_time()
-        print h_E
-        print uh_E
-        print vh_E
-        """
-        
-        # Compute vertex values by interpolation
-        for name in self.evolved_quantities:
+        for name in [ 'height' ]:
             Q = self.quantities[name]
-            Q.interpolate_from_edges_to_vertices()
+            if self._order_ == 1:
+                Q.extrapolate_first_order()
+            elif self._order_ == 2:
+                #Q.extrapolate_second_order_and_limit_by_edge()
+                Q.extrapolate_second_order_and_limit_by_vertex()
+            else:
+                raise Exception('Unknown order: %s' % str(self._order_))
 
 
-        w_V     = W.vertex_values
-        uh_V    = UH.vertex_values
-        vh_V    = VH.vertex_values	
-        z_V     = Z.vertex_values	
-        h_V     = H.vertex_values
+        w_V     = W.vertex_values 
         u_V     = U.vertex_values
-        v_V     = V.vertex_values		
+        v_V     = V.vertex_values
+        z_V     = Z.vertex_values
 
-
-        #w_V[:]    = z_V + h_V
-
-        #num.putmask(u_V, h_V <= 0.0, 0.0)
-        #num.putmask(v_V, h_V <= 0.0, 0.0)
-        #num.putmask(w_V, h_V <= 0.0, z_V)        
-        #num.putmask(h_V, h_V <= 0.0, 0.0)
+        h_V     = H.vertex_values
+        uh_V    = UH.vertex_values
+        vh_V    = VH.vertex_values
         
+
+        # Update other quantities
+        #protect(self)
+
+        z_V[:]  = w_V - h_V
         uh_V[:] = u_V * h_V
         vh_V[:] = v_V * h_V
+
+        
+        num_min = num.min(h_V)
+        if num_min < 0.0:
+            print 'num.min(h_V)', num_min
+
+        
+        # Compute edge values by interpolation
+        for name in ['xmomentum', 'ymomentum', 'elevation']:
+            Q = self.quantities[name]
+            Q.interpolate_from_vertices_to_edges()
+
 
 
 

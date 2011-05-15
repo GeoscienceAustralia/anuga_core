@@ -1,7 +1,7 @@
 // Python - C extension module for shallow_water.py
 //
-// To compile (Python2.3):
-//  gcc -c swb_domain_ext.c -I/usr/include/python2.3 -o domain_ext.o -Wall -O
+// To compile (Python2.6):
+//  gcc -c swb_domain_ext.c -I/usr/include/python2.6 -o domain_ext.o -Wall -O
 //  gcc -shared swb_domain_ext.o  -o swb_domain_ext.so
 //
 // or use python compile.py
@@ -149,7 +149,9 @@ int _flux_function(double *q_inside, double *q_outside,
   // Flux computation
   denom = s_max - s_min;
 
-  memset(edgeflux, 0, 3*sizeof(double));
+  edgeflux[0] = 0.0;
+  edgeflux[1] = 0.0;
+  edgeflux[2] = 0.0;
   
   if (denom < epsilon) 
     {     
@@ -169,6 +171,7 @@ int _flux_function(double *q_inside, double *q_outside,
 	}
 
       // Balance the pressure term
+      // FIXME SR: I think we need to add a term which uses simpson's rule.
       edgeflux[1] += 0.5*g*h_inside*h_inside - 0.5*g*h_inside_star*h_inside_star;
       
     }

@@ -573,6 +573,19 @@ class Domain(Generic_Domain):
 
     def distribute_to_vertices_and_edges(self):
         """ Call correct module function """
+
+                #Shortcuts
+        #W  = self.quantities['stage']
+        #Z  = self.quantities['elevation']
+
+        #Arrays
+        #w_C   = W.centroid_values
+        #z_C   = Z.centroid_values
+
+        #num_min = num.min(w_C-z_C)
+        #if  num_min < 0.0:
+        #    print 'num.min(w_C-z_C)', num_min
+
         if self.use_edge_limiter:
             distribute_using_edge_limiter(self)
         else:
@@ -1051,6 +1064,8 @@ def compute_fluxes(domain):
     Ymom = domain.quantities['ymomentum']
     Bed = domain.quantities['elevation']
 
+
+
     timestep = float(sys.maxint)
 
     flux_timestep = compute_fluxes_ext(timestep,
@@ -1239,7 +1254,7 @@ def balance_deep_and_shallow(domain):
     Wrapper for C implementation
     """
 
-    from shallow_water_ext import balance_deep_and_shallow \
+    from anuga.shallow_water.shallow_water_ext import balance_deep_and_shallow \
                                   as balance_deep_and_shallow_c
 
     # Shortcuts

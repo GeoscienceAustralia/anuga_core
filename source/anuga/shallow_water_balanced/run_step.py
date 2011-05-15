@@ -26,13 +26,14 @@ from os import sep
 #-------------------------------------------------------------------------------
 time = strftime('%Y%m%d_%H%M%S',localtime())
 
-output_dir = 'wave_'+time
+#output_dir = 'wave_'+time
+output_dir = '.'
 output_file = 'wave'
 
 #copy_code_files(output_dir,__file__)
 #start_screen_catcher(output_dir+sep)
 
-interactive_visualisation = False
+interactive_visualisation = True
 
 #------------------------------------------------------------------------------
 # Setup domain
@@ -72,7 +73,7 @@ domain.set_quantity('stage', 0.0)
 
 def stage(x,y):
     z = num.zeros_like(x)
-    num.putmask(z, x < L/2 , 1.0)
+    num.putmask(z, (2*L/5 < x) * (x < 3*L/5) , 1.0)
     return z
 
 domain.set_quantity('stage', stage  )            
@@ -96,7 +97,7 @@ Bw = anuga.Time_boundary(domain=domain,     # Time dependent boundary
 #                   f=lambda t: [(-8.0*sin((1./720.)*t*2*pi))*((t<720.)-0.5*(t<360.)), 0.0, 0.0])
 
 # Associate boundary tags with boundary objects
-domain.set_boundary({'left': Bd, 'right': Bt, 'top': Br, 'bottom': Br})
+domain.set_boundary({'left': Bt, 'right': Bt, 'top': Br, 'bottom': Br})
 
 
 #===============================================================================
