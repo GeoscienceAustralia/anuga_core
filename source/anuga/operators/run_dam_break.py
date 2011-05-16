@@ -42,9 +42,7 @@ W = 10*dx
 #W = dx
 
 # structured mesh
-points, vertices, boundary = anuga.rectangular_cross(int(L/dx), int(W/dy), L, W, (0.0, -W/2))
-
-domain = anuga.Domain(points, vertices, boundary) 
+domain = anuga.rectangular_cross_domain(int(L/dx), int(W/dy), L, W, (0.0, -W/2))
 
 domain.set_name(output_file)                
 

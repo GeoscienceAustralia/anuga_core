@@ -333,9 +333,13 @@ if use_psyco:
         import psyco
     except:
         import os
+        import sys
         if os.name == 'posix' and os.uname()[4] in ['x86_64', 'ia64']:
             pass
             # Psyco isn't supported on 64 bit systems, but it doesn't matter
+        elif sys.version[:3] == '2.7' :
+            pass
+            # Psyco isn't available for python 2.7 (16/05/2011)
         else:
             log.critical('WARNING: psyco (speedup) could not be imported, '
                          'you may want to consider installing it')
