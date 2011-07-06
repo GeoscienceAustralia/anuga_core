@@ -1,0 +1,69 @@
+
+
+INSTALLING anuga_parallel
+
+MPI
+
+First thing is to install MPI on your system. OPENMPI and MPICH2 are supported.
+
+Make sure mpi works. You should be able to run a program in parallel. 
+
+Try something as simple as 
+
+mpirun -np 4 pwd
+
+should produce the output of pwd 4 times. 
+
+PYPAR
+
+We use pypar as the interface between mpi and python. THe most recent 
+version of PYPAR is available from 
+
+http://code.google.com/p/pypar/ 
+
+There is an old version on sourceforge
+http://sourceforge.net/projects/pypar/
+
+Should make sure the pypar examples work (and that it is in your python path)
+
+
+In the anuga_parallel directory there is a subdirectory pymetis. You can 
+use the make file to compile. This should create a metis.so file in that 
+directory. From the pymetis directory, test using test_all.py
+
+Now go back to the anuga_parallel directory and run test_all.py
+
+Hopefully that all works.
+
+Then run run_parallel_sw_merimbula.py
+
+There are some choices in the script to use a small mesh, and a somewhat 
+larger mesh (the small one has 100 triangles the other 10000)
+
+Run that script using a command like
+
+mpirun -np 4 python run_parallel_sw_merimbula.py
+
+That should run on 4 processors
+
+You should look at the code in  run_parallel_sw_merimbula.py
+
+Essentially a fairly standard example, with the extra command domain= 
+distribute(domain)
+
+which sets up all the parallel stuff.
+
+Also for efficiency reasons we only setup the original sequential mesh 
+on processor 0, hence the statement
+
+if myid == 0:
+     domain = create_domain_from_file(mesh_filename)
+     domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))
+else:
+     domain = None
+
+The output will be an sww file associated to each 
+processor. Somewhere someone has created a script to combine these sww 
+files into one file. Will have to search for that.
+
+Hope this helps
