@@ -83,8 +83,8 @@ domain = distribute(domain)
 
 domain.set_default_order(2)
 domain.set_timestepping_method('rk2')
-domain.set_CFL(0.7)
-domain.set_beta(1.5)
+#domain.set_CFL(0.7)
+#domain.set_beta(1.5)
 domain.set_name('meribula')
 
 #------------------------------------------------------------------------------
