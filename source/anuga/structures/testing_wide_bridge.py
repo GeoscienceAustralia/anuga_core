@@ -240,9 +240,9 @@ Bd = anuga.Dirichlet_boundary([0,0,0])                # Outflow water at 0.0
 #Btus = Time_boundary(domain, lambda t: [0.0+ 1.025*(1+num.sin(2*pi*(t-4)/10)), 0.0, 0.0])
 #Btds = Time_boundary(domain, lambda t: [0.0+ 0.0075*(1+num.sin(2*pi*(t-4)/20)), 0.0, 0.0])
 
-Btus = anuga.Dirichlet_boundary([20.0, 0, 0])           # Outflow water at 5.0
-Btds = anuga.Dirichlet_boundary([19.0, 0, 0])           # Outflow water at 1.0
-domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
+Btus = anuga.Dirichlet_boundary([20.0, 0, 0])           # Outflow water at 20
+Btds = anuga.Dirichlet_boundary([19.0, 0, 0])           # Outflow water at 19
+domain.set_boundary({'left': Btus, 'right': Br, 'top': Br, 'bottom': Br})
 
 
 #------------------------------------------------------------------------------
