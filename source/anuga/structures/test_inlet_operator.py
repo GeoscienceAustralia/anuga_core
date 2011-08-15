@@ -153,9 +153,9 @@ class Test_inlet_operator(unittest.TestCase):
         vol0 = domain.compute_total_volume()
 
         finaltime = 3.0
-        line1 = [[95.0, 10.0], [105.0, 10.0]]
 
-        
+        #Make sure we are inthe right directory to find the
+        #time series data for the inlets
         import os
         baseDir = os.getcwd()
 
@@ -164,6 +164,7 @@ class Test_inlet_operator(unittest.TestCase):
         except:
             pass
 
+        line1 = [[95.0, 10.0], [105.0, 10.0]]
         Q1 = file_function(filename='inlet_operator_test1.tms', quantities=['hydrograph'])
         
         line2 = [[10.0, 90.0], [20.0, 90.0]]
