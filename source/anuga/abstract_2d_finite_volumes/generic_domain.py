@@ -67,8 +67,8 @@ class Generic_Domain:
           ...
         """
 
-        number_of_full_nodes=None
-        number_of_full_triangles=None
+        #number_of_full_nodes=None
+        #number_of_full_triangles=None
         
         # Determine whether source is a mesh filename or coordinates
         if isinstance(source, basestring):
@@ -90,8 +90,6 @@ class Generic_Domain:
                          tagged_elements=tagged_elements,
                          geo_reference=geo_reference,
                          use_inscribed_circle=use_inscribed_circle,
-                         number_of_full_nodes=number_of_full_nodes,
-                         number_of_full_triangles=number_of_full_triangles,
                          verbose=verbose)
 
         # Expose Mesh attributes (FIXME: Maybe turn into methods)
@@ -111,14 +109,13 @@ class Generic_Domain:
         self.areas = self.mesh.areas
 
         self.number_of_boundaries = self.mesh.number_of_boundaries
-        self.number_of_full_nodes = self.mesh.number_of_full_nodes
-        self.number_of_full_triangles = self.mesh.number_of_full_triangles
         self.number_of_triangles_per_node = \
                                     self.mesh.number_of_triangles_per_node
 
         self.vertex_value_indices = self.mesh.vertex_value_indices
         self.number_of_triangles = self.mesh.number_of_triangles
-
+        self.number_of_nodes = self.mesh.number_of_nodes
+        
         self.geo_reference = self.mesh.geo_reference
 
         if verbose: log.critical('Initialising Domain')
@@ -162,6 +159,18 @@ class Generic_Domain:
         # Create an empty list for fractional step operators
         self.fractional_step_operators = []
 
+        #---------------------------------------
+        # Ghost and Full Triangles and Nodes
+        #---------------------------------------
+        self.number_of_full_nodes = self.mesh.number_of_nodes
+        self.number_of_full_triangles = self.number_of_triangles
+
+
+
+
+
+
+        
         # Setup the ghost cell communication
         if full_send_dict is None:
             self.full_send_dict = {}
@@ -202,12 +211,34 @@ class Generic_Domain:
             for id in self.ghost_recv_dict[i][0]:
                 self.tri_full_flag[id] = 0
 
+        self.number_of_full_triangles = num.sum(self.tri_full_flag)
+
+        self.node_full_flag = num.ones(self.number_of_nodes, num.int)
+
+        L = self.mesh.get_triangles_and_vertices_per_node()
+
+        for i in range(len(L)):
+            tri_list = 0
+            for pair in L[i]:
+                tri_list = max( tri_list, self.tri_full_flag[pair[0]] )
+            self.node_full_flag[i] = tri_list
+
+
+        self.number_of_full_nodes = num.sum(self.node_full_flag)
+
         # Test the assumption that all full triangles are store before
         # the ghost triangles.
-        if not num.allclose(self.tri_full_flag[:self.number_of_full_nodes], 1):
+        if not num.allclose(self.tri_full_flag[:self.number_of_full_triangles], 1):
             if self.numproc>1:
                 log.critical('WARNING: Not all full triangles are store before '
                              'ghost triangles')
+
+        if not num.allclose(self.node_full_flag[:self.number_of_full_nodes], 1):
+            if self.numproc>1:
+                log.critical('WARNING: Not all full nodes are store before '
+                             'ghost nodes')
+
+
 
         # Defaults
         from anuga.config import max_smallsteps, beta_w, epsilon

@@ -63,8 +63,6 @@ class General_mesh:
                  nodes,
                  triangles,
                  geo_reference=None,
-                 number_of_full_nodes=None,
-                 number_of_full_triangles=None,
                  verbose=False):
         """Build triangular 2d mesh from nodes and triangle information
 
@@ -81,12 +79,6 @@ class General_mesh:
           assumed to be relative to this origin.
 
 
-        number_of_full_nodes and number_of_full_triangles relate to
-        parallelism when each mesh has an extra layer of ghost points and
-        ghost triangles attached to the end of the two arrays.
-        In this case it is usefull to specify the number of real (called full)
-        nodes and triangles. If omitted they will default to all.
-
         """
 
         if verbose: log.critical('General_mesh: Building basic mesh structure '
@@ -99,17 +91,6 @@ class General_mesh:
         self.number_of_triangles = N = self.triangles.shape[0]
         self.number_of_nodes = self.nodes.shape[0]
 
-        if number_of_full_nodes is None:
-            self.number_of_full_nodes = self.number_of_nodes
-        else:
-            assert int(number_of_full_nodes)
-            self.number_of_full_nodes = number_of_full_nodes
-
-        if number_of_full_triangles is None:
-            self.number_of_full_triangles = self.number_of_triangles
-        else:
-            assert int(number_of_full_triangles)
-            self.number_of_full_triangles = number_of_full_triangles
 
         # FIXME: this stores a geo_reference, but when coords are returned
         # This geo_ref is not taken into account!
@@ -269,7 +250,7 @@ class General_mesh:
         (To see which, switch to default absolute=True and run tests).
         """
 
-        N = self.number_of_full_nodes
+        N = self.number_of_nodes
         V = self.nodes[:N,:]
         if absolute is True:
             if not self.geo_reference.is_absolute():
@@ -460,7 +441,6 @@ class General_mesh:
         Optional argument, indices is the set of triangle ids of interest.
         """
 
-        M = self.number_of_full_triangles
 
         if indices is None:
             return self.triangles
@@ -511,7 +491,7 @@ class General_mesh:
 
         Return list of triangle_ids, vertex_ids for specified node.
         If node in None or absent, this information will be returned
-        for all (full) nodes in a list L where L[v] is the triangle
+        for all nodes in a list L where L[v] is the triangle
         list for node v.
         """
 
@@ -536,7 +516,7 @@ class General_mesh:
             # Get info for all nodes recursively.
             # If need be, we can speed this up by
             # working directly with the inverted triangle structure
-            for i in range(self.number_of_full_nodes):
+            for i in range(self.number_of_nodes):
                 L = self.get_triangles_and_vertices_per_node(node=i)
                 triangle_list.append(L)
 
@@ -599,7 +579,7 @@ class General_mesh:
         """
 
         # Count number of triangles per node
-        number_of_triangles_per_node = num.zeros(self.number_of_full_nodes,
+        number_of_triangles_per_node = num.zeros(self.number_of_nodes,
                                                  num.int)       #array default#
         for volume_id, triangle in enumerate(self.get_triangles()):
             for vertex_id in triangle:
@@ -610,8 +590,8 @@ class General_mesh:
         vertex_value_indices = num.zeros(number_of_entries, num.int) #array default#
 
         # Register (triangle, vertex) indices for each node
-        vertexlist = [None] * self.number_of_full_nodes
-        for volume_id in range(self.number_of_full_triangles):
+        vertexlist = [None] * self.number_of_nodes
+        for volume_id in range(self.number_of_triangles):
             a = self.triangles[volume_id, 0]
             b = self.triangles[volume_id, 1]
             c = self.triangles[volume_id, 2]

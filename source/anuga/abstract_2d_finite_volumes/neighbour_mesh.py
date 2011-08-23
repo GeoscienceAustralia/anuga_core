@@ -71,8 +71,6 @@ class Mesh(General_mesh):
                  boundary=None,
                  tagged_elements=None,
                  geo_reference=None,
-                 number_of_full_nodes=None,
-                 number_of_full_triangles=None,
                  use_inscribed_circle=False,
                  verbose=False):
         """
@@ -85,10 +83,6 @@ class Mesh(General_mesh):
 
 
         General_mesh.__init__(self, coordinates, triangles,
-                              number_of_full_nodes=\
-                              number_of_full_nodes,
-                              number_of_full_triangles=\
-                              number_of_full_triangles,
                               geo_reference=geo_reference,
                               verbose=verbose)
 

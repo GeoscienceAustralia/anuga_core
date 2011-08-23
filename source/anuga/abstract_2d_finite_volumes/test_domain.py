@@ -839,8 +839,8 @@ class Test_Domain(unittest.TestCase):
 
 
 
-        assert num.allclose(ghost_recv_dict[0][0], [24, 25, 26, 27,  0,  1,  2,  3])
-        assert num.allclose(full_send_dict[0][0] , [ 4,  5,  6,  7, 20, 21, 22, 23])
+        assert num.allclose(domain.ghost_recv_dict[0][0], [24, 25, 26, 27,  0,  1,  2,  3])
+        assert num.allclose(domain.full_send_dict[0][0] , [ 4,  5,  6,  7, 20, 21, 22, 23])
 
         def xylocation(x,y):
             return 15*x + 9*y
@@ -880,6 +880,14 @@ class Test_Domain(unittest.TestCase):
         
         assert num.allclose(domain.tri_full_flag, [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                                                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0])
+
+        assert num.allclose(domain.node_full_flag, [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                                   1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0])
+
+
+        assert num.allclose(domain.number_of_full_nodes, 18)
+        
+        assert num.allclose(domain.number_of_full_triangles, 20)
 
         #Test that points are arranged in a counter clock wise order
         domain.check_integrity()
