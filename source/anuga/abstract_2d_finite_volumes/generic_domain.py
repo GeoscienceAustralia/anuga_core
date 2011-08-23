@@ -211,7 +211,7 @@ class Generic_Domain:
             for id in self.ghost_recv_dict[i][0]:
                 self.tri_full_flag[id] = 0
 
-        self.number_of_full_triangles = num.sum(self.tri_full_flag)
+        self.number_of_full_triangles = int(num.sum(self.tri_full_flag))
 
         self.node_full_flag = num.ones(self.number_of_nodes, num.int)
 
@@ -224,7 +224,11 @@ class Generic_Domain:
             self.node_full_flag[i] = tri_list
 
 
-        self.number_of_full_nodes = num.sum(self.node_full_flag)
+        self.number_of_full_nodes = int(num.sum(self.node_full_flag))
+
+        #print self.number_of_full_nodes, self.mesh.number_of_nodes
+        #print self.number_of_full_triangles, self.number_of_triangles
+
 
         # Test the assumption that all full triangles are store before
         # the ghost triangles.
