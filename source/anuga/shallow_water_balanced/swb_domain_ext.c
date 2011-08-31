@@ -596,7 +596,7 @@ PyObject *gravity(PyObject *self, PyObject *args) {
 			&g, &w, &z, &x,
 			&xmom, &ymom)) {
     //&epsilon)) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: gravity could not parse input arguments");
+    PyErr_SetString(PyExc_RuntimeError, "swb_domain_ext.c: gravity could not parse input arguments");
     return NULL;
   }
   
@@ -611,12 +611,12 @@ PyObject *gravity(PyObject *self, PyObject *args) {
   for (k=0; k<N; k++) {
     k3 = 3*k;  // base index
     
-    // Get bathymetry
+    // Get stage
     w0 = ((double*) w -> data)[k3 + 0];
     w1 = ((double*) w -> data)[k3 + 1];
     w2 = ((double*) w -> data)[k3 + 2];
 
-
+    // Get water depth
     h0 = ((double*) w -> data)[k3 + 0] - ((double*) z -> data)[k3 + 0];
     h1 = ((double*) w -> data)[k3 + 1] - ((double*) z -> data)[k3 + 1];
     h2 = ((double*) w -> data)[k3 + 2] - ((double*) z -> data)[k3 + 2];
@@ -629,7 +629,7 @@ PyObject *gravity(PyObject *self, PyObject *args) {
     //} 
     
     // Get average depth from centroid values
-    avg_h = 1.0/3.0* ( h0 + h1 +h2 );
+    avg_h = 1.0/3.0*( h0 + h1 +h2 );
     
     // Compute bed slope
     k6 = 6*k;  // base index

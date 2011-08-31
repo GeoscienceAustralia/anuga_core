@@ -65,7 +65,7 @@ print domain.get_timestepping_method()
 # Setup initial conditions
 #------------------------------------------------------------------------------
 depth1 = -100.0
-depth2 = -50.00
+depth2 = -30.00
 def topography(x,y):
     z = num.zeros_like(x)
     z[:] = depth1
@@ -79,7 +79,7 @@ def topography(x,y):
             z[i] = depth2
 
         if x[i] > 100000.0:
-            z[i] = depth2*(1.0 - (x[i] - 75000.0)/50000)
+            z[i] = depth2*(1.0 - 1.1*(x[i] - 100000.0)/50000)
     return z
 
 domain.set_quantity('elevation',topography)

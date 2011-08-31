@@ -70,6 +70,12 @@ class Domain(Sww_domain):
         self.set_beta(1.0)
         self.quantities['height'].set_beta(1.0)
 
+        #--------------------------------------------
+        # Replace shallow water gravity forcing term
+        # with swb version
+        #--------------------------------------------
+        self.forcing_terms[1] = swb_gravity
+
 
     def check_integrity(self):
         Sww_domain.check_integrity(self)
@@ -160,9 +166,9 @@ class Domain(Sww_domain):
         u_C   = U.centroid_values
         v_C   = V.centroid_values
 
-        num_min = num.min(w_C-z_C)
-        if num_min < -1.0e-5:
-            print '**** num.min(w_C-z_C)', num_min
+        #num_min = num.min(w_C-z_C)
+        #if num_min < -1.0e-5:
+        #    print '**** num.min(w_C-z_C)', num_min
 
     
         w_C[:] = num.maximum(w_C, z_C)
@@ -414,21 +420,23 @@ class Domain(Sww_domain):
 # Standard forcing terms
 ################################################################################
 
-def gravity(domain):
+def swb_gravity(domain):
     """Apply gravitational pull in the presence of bed slope
     Wrapper calls underlying C implementation
     """
 
-    from swb_domain_ext import gravity as gravity_c
+    from swb_domain_ext import gravity_c
+
+    #print "Using swb gravity"
 
     xmom_update = domain.quantities['xmomentum'].explicit_update
     ymom_update = domain.quantities['ymomentum'].explicit_update
 
-    stage = domain.quantities['stage']
+    stage     = domain.quantities['stage']
     elevation = domain.quantities['elevation']
 
 
-    stage = stage.vertex_values
+    stage     = stage.vertex_values
     elevation = elevation.vertex_values
 
     points = domain.get_vertex_coordinates()
