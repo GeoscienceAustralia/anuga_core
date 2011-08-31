@@ -26,9 +26,9 @@ from os import sep
 #-------------------------------------------------------------------------------
 time = strftime('%Y%m%d_%H%M%S',localtime())
 
-#output_dir = 'wave_'+time
+#output_dir = 'step_'+time
 output_dir = '.'
-output_file = 'wave'
+output_file = 'data_step_'+time
 
 #copy_code_files(output_dir,__file__)
 #start_screen_catcher(output_dir+sep)

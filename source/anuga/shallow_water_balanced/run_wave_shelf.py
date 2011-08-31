@@ -24,9 +24,8 @@ from os import sep
 #-------------------------------------------------------------------------------
 time = strftime('%Y%m%d_%H%M%S',localtime())
 
-#output_dir = 'wave_shelf_'+time
 output_dir = '.'
-output_file = 'wave_shelf'
+output_file = 'data_wave_shelf_'+time
 
 #copy_code_files(output_dir,__file__)
 #start_screen_catcher(output_dir+sep)
@@ -65,20 +64,22 @@ print domain.get_timestepping_method()
 #------------------------------------------------------------------------------
 # Setup initial conditions
 #------------------------------------------------------------------------------
-depth = -100.0
+depth1 = -100.0
+depth2 = -50.00
 def topography(x,y):
-    z = (x*0.0)+depth
+    z = num.zeros_like(x)
+    z[:] = depth1
 
     N = len(x)
     for i in range(N):
         if  40000.0 < x[i] < 60000.0:
-            z[i] = depth*( 1.0 - (x[i] - 40000.0)/20000.0)
+            z[i] = depth1 + (depth2-depth1)*((x[i] - 40000.0)/20000.0)
 
-        if x[i] > 58000.0:
-            z[i] = 0.1*depth
+        if x[i] > 60000.0:
+            z[i] = depth2
 
         if x[i] > 100000.0:
-            z[i] = 0.1*depth*(1.0 - (x[i] - 75000.0)/50000)
+            z[i] = depth2*(1.0 - (x[i] - 75000.0)/50000)
     return z
 
 domain.set_quantity('elevation',topography)

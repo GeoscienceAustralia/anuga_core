@@ -172,7 +172,8 @@ int _flux_function(double *q_inside, double *q_outside,
 
       // Balance the pressure term
       // FIXME SR: I think we need to add a term which uses simpson's rule.
-      edgeflux[1] += 0.5*g*h_inside*h_inside - 0.5*g*h_inside_star*h_inside_star;
+      //edgeflux[1] += 0.5*g*h_inside*h_inside - 0.5*g*h_inside_star*h_inside_star;
+      edgeflux[1] -=  0.5*g*h_inside_star*h_inside_star;
       
     }
   
@@ -585,14 +586,14 @@ PyObject *gravity(PyObject *self, PyObject *args) {
   //
   
   
-  PyArrayObject *h, *v, *x, *xmom, *ymom;
+  PyArrayObject *w, *z, *x, *xmom, *ymom;
   int k, N, k3, k6;
-  double g, avg_h, zx, zy;
-  double x0, y0, x1, y1, x2, y2, z0, z1, z2;
+  double g, avg_h, wx, wy;
+  double x0, y0, x1, y1, x2, y2, w0, w1, w2, h0, h1, h2;
   //double epsilon;
   
   if (!PyArg_ParseTuple(args, "dOOOOO",
-			&g, &h, &v, &x,
+			&g, &w, &z, &x,
 			&xmom, &ymom)) {
     //&epsilon)) {
     PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: gravity could not parse input arguments");
@@ -600,20 +601,25 @@ PyObject *gravity(PyObject *self, PyObject *args) {
   }
   
   // check that numpy array objects arrays are C contiguous memory
-  CHECK_C_CONTIG(h);
-  CHECK_C_CONTIG(v);
+  CHECK_C_CONTIG(w);
+  CHECK_C_CONTIG(z);
   CHECK_C_CONTIG(x);
   CHECK_C_CONTIG(xmom);
   CHECK_C_CONTIG(ymom);
   
-  N = h -> dimensions[0];
+  N = z -> dimensions[0];
   for (k=0; k<N; k++) {
     k3 = 3*k;  // base index
     
     // Get bathymetry
-    z0 = ((double*) v -> data)[k3 + 0];
-    z1 = ((double*) v -> data)[k3 + 1];
-    z2 = ((double*) v -> data)[k3 + 2];
+    w0 = ((double*) w -> data)[k3 + 0];
+    w1 = ((double*) w -> data)[k3 + 1];
+    w2 = ((double*) w -> data)[k3 + 2];
+
+
+    h0 = ((double*) w -> data)[k3 + 0] - ((double*) z -> data)[k3 + 0];
+    h1 = ((double*) w -> data)[k3 + 1] - ((double*) z -> data)[k3 + 1];
+    h2 = ((double*) w -> data)[k3 + 2] - ((double*) z -> data)[k3 + 2];
     
     // Optimise for flat bed
     // Note (Ole): This didn't produce measurable speed up.
@@ -623,7 +629,7 @@ PyObject *gravity(PyObject *self, PyObject *args) {
     //} 
     
     // Get average depth from centroid values
-    avg_h = ((double *) h -> data)[k];
+    avg_h = 1.0/3.0* ( h0 + h1 +h2 );
     
     // Compute bed slope
     k6 = 6*k;  // base index
@@ -636,11 +642,11 @@ PyObject *gravity(PyObject *self, PyObject *args) {
     y2 = ((double*) x -> data)[k6 + 5];
     
     
-    _gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2, &zx, &zy);
+    _gradient(x0, y0, x1, y1, x2, y2, w0, w1, w2, &wx, &wy);
     
     // Update momentum
-    ((double*) xmom -> data)[k] += -g*zx*avg_h;
-    ((double*) ymom -> data)[k] += -g*zy*avg_h;
+    ((double*) xmom -> data)[k] += -g*wx*avg_h;
+    ((double*) ymom -> data)[k] += -g*wy*avg_h;
   }
   
   return Py_BuildValue("");

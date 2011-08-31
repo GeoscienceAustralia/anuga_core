@@ -70,7 +70,6 @@ class Domain(Sww_domain):
         self.set_beta(1.0)
         self.quantities['height'].set_beta(1.0)
 
-        print 'Swb_Domain'
 
     def check_integrity(self):
         Sww_domain.check_integrity(self)
@@ -96,7 +95,7 @@ class Domain(Sww_domain):
         msg = 'Second other quantity must be "x"'
         assert self.other_quantities[1] == 'x', msg
         msg = 'Third other quantity must be "y"'
-        assert self.other_quantities[1] == 'y', msg
+        assert self.other_quantities[2] == 'y', msg
 
 
     def compute_fluxes(self):
@@ -162,7 +161,7 @@ class Domain(Sww_domain):
         v_C   = V.centroid_values
 
         num_min = num.min(w_C-z_C)
-        if num_min < 0.0:
+        if num_min < -1.0e-5:
             print '**** num.min(w_C-z_C)', num_min
 
     
@@ -224,7 +223,7 @@ class Domain(Sww_domain):
 
         
         num_min = num.min(h_V)
-        if num_min < 0.0:
+        if num_min < -1.0e-14:
             print 'num.min(h_V)', num_min
 
         
@@ -411,3 +410,27 @@ class Domain(Sww_domain):
         return q_evol
 
  
+################################################################################
+# Standard forcing terms
+################################################################################
+
+def gravity(domain):
+    """Apply gravitational pull in the presence of bed slope
+    Wrapper calls underlying C implementation
+    """
+
+    from swb_domain_ext import gravity as gravity_c
+
+    xmom_update = domain.quantities['xmomentum'].explicit_update
+    ymom_update = domain.quantities['ymomentum'].explicit_update
+
+    stage = domain.quantities['stage']
+    elevation = domain.quantities['elevation']
+
+
+    stage = stage.vertex_values
+    elevation = elevation.vertex_values
+
+    points = domain.get_vertex_coordinates()
+
+    gravity_c(domain.g, stage, elevation, points, xmom_update, ymom_update)
