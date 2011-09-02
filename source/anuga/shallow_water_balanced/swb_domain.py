@@ -67,8 +67,8 @@ class Domain(Sww_domain):
         self.set_sloped_mannings_function(True)
         self.set_centroid_transmissive_bc(True)
         self.set_CFL(1.0)
-        self.set_beta(1.0)
-        self.quantities['height'].set_beta(1.0)
+        self.set_beta(1.5)
+        self.quantities['height'].set_beta(1.5)
 
         #--------------------------------------------
         # Replace shallow water gravity forcing term
