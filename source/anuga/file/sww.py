@@ -44,9 +44,10 @@ class Data_format:
         self.timestep = 0
         self.domain = domain
 
-        # Exclude ghosts in case this is a parallel domain
-        self.number_of_nodes = domain.number_of_full_nodes
-        self.number_of_volumes = domain.number_of_full_triangles
+        # Probably should exclude ghosts in case this is a parallel domain
+        
+        self.number_of_nodes   = domain.number_of_nodes
+        self.number_of_volumes = domain.number_of_triangles
         #self.number_of_volumes = len(domain)
 
         #FIXME: Should we have a general set_precision function?
@@ -108,7 +109,7 @@ class SWW_file(Data_format):
             self.writer.store_header(fid,
                                      domain.starttime,
                                      self.number_of_volumes,
-                                     self.domain.number_of_full_nodes,
+                                     self.domain.number_of_nodes,
                                      description=description,
                                      smoothing=domain.smooth,
                                      order=domain.default_order,

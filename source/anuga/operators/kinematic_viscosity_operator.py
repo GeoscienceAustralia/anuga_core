@@ -8,7 +8,7 @@ import numpy as num
 import kinematic_viscosity_operator_ext
 import anuga.utilities.log as log
 
-from anuga.operators.base_operator import Operator
+from anuga.operators.elliptic_operator import Operator
 
 
 
@@ -17,38 +17,28 @@ class Kinematic_Viscosity_Operator(Operator):
     Class for setting up structures and matrices for kinematic viscosity differential
     operator using centroid values.
 
-    div ( diffusivity grad )
 
-    where diffusvity is scalar quantity (defaults to quantity with values = 1)
-    boundary values of f are used to setup entries associated with cells with boundaries
+    As an anuga operator, when the __call__ method is called one step of the parabolic
+    step is applied. In particular the x and y velocities are updated using
 
-    There are procedures to apply this operator, ie
-
-    (1) Calculate div( diffusivity grad u )
-    using boundary values stored in u
-
-    (2) Calculate ( u + dt div( diffusivity grad u )
-    using boundary values stored in u
-
-    (3) Solve div( diffusivity grad u ) = f
-    for quantity f and using boundary values stored in u
-
-    (4) Solve ( u + dt div( diffusivity grad u ) = f
-    for quantity f using boundary values stored in u
+    du/dt = div( h grad u )
+    dv/dt = div( h grad v )
 
     """
 
     def __init__(self, domain, use_triangle_areas=True, verbose=False):
         if verbose: log.critical('Kinematic Viscosity: Beginning Initialisation')
-        #Expose the domain attributes
+        
 
         Operator.__init__(self,domain)
 
+        #Expose the domain attributes
         self.mesh = self.domain.mesh
         self.boundary = domain.boundary
         self.boundary_enumeration = domain.boundary_enumeration
         
-        # Pick up height as diffusivity
+        # Setup a quantity as diffusivity
+        # FIXME SR: Could/Should pass a quantity which already exists
         self.diffusivity = Quantity(self.domain)
         self.diffusivity.set_values(1.0)
         self.diffusivity.set_boundary_values(1.0)
@@ -158,7 +148,7 @@ class Kinematic_Viscosity_Operator(Operator):
 
     def statistics(self):
 
-        message = 'You need to implement operator statistics for your operator'
+        message = 'Kinematic_viscosity_operator '
         return message
 
 

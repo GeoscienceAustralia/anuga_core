@@ -28,15 +28,11 @@ from anuga import Transmissive_boundary, Reflective_boundary
 #----------------------------
 # Parallel interface
 #---------------------------
-from anuga_parallel.interface import Parallel_shallow_water_domain
-from anuga_parallel.interface import parallel_rectangle
-from anuga_parallel.interface import myid, numprocs, finalize, get_processor_name
+from anuga_parallel import Parallel_shallow_water_domain
+from anuga_parallel import parallel_rectangle
+from anuga_parallel import myid, numprocs, finalize, get_processor_name
 
-###############################
-# Read in processor information
-###############################
-#numprocs = numprocs()
-#myid     = myid()
+
 processor_name = get_processor_name()
 
 M = 50
@@ -61,7 +57,7 @@ domain = Parallel_shallow_water_domain(points, vertices, boundary,
                                        ghost_recv_dict = ghost_recv_dict)
 
 
-
+print 'after parallel domain'
 
 
 
@@ -74,6 +70,8 @@ R = Reflective_boundary(domain)
 
 domain.set_boundary( {'left': R, 'right': R, 'bottom': R, 'top': R, 'ghost': None} )
 
+
+print 'after set_boundary'
 
 
 
@@ -94,8 +92,12 @@ class Set_Stage:
     def __call__(self, x, y):
         return self.h0 + self.h*((x>self.x0)&(x<self.x1)&(y>self.y0)&(y<self.y1))
 
+print 'after check_integrity'
+
 domain.set_quantity('stage', Set_Stage(0.2, 0.4, 0.25, 0.75, 1.0, 0.00))
 
+
+print 'after set quantity'
 
 # Set Evolve parameters
 domain.set_default_order(2)
@@ -109,8 +111,10 @@ domain.set_beta(1.5)
 #domain.use_centroid_velocities = False
 
 
+print 'after evolve parameters'
 
 
+import pdb; pdb.set_trace()
 
 if myid == 0:
     import time

@@ -41,7 +41,7 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
     """
 
 
-
+    import pypar
     m_low, m_high = pypar.balance(m_g, numprocs, myid)
     
     n = n_g
