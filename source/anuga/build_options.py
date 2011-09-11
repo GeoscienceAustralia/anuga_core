@@ -16,3 +16,4 @@ OPTIMISATION_LEVEL = 1
 
 # Install .py files as well as the binaries? Yes/No option
 INSTALL_PYTHON_SOURCE = 'Yes'
+ 
