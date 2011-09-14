@@ -23,7 +23,7 @@ def create_test_sww(sww_name):
 	domain.set_quantity('elevation', topography) # Use function for elevation
 	domain.set_quantity('friction', 0.01)        # Constant friction 
 	domain.set_quantity('stage',                 # Dry bed
-						expression='elevation')  
+			    expression='elevation')  
 
 	#------------------------------------------------------------------------------
 	# Setup boundary conditions
