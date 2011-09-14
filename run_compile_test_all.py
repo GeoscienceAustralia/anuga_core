@@ -1,4 +1,4 @@
-
+# Compile and test Anuga
 import os, sys
 
 execfile('compile_all.py')
