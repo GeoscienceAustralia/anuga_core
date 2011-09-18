@@ -1437,11 +1437,25 @@ int _extrapolate_second_order_sw(int number_of_elements,
       area2 = dy2*dx1 - dy1*dx2; 
       
       // If the mesh is 'weird' near the boundary, 
-      // the triangle might be flat or clockwise:
+      // the triangle might be flat or clockwise
+      // Default to zero gradient
       if (area2 <= 0) 
       {
-          report_python_error(AT, "Negative triangle area");
-          return -1;
+          //printf("Error negative triangle area \n");
+          //report_python_error(AT, "Negative triangle area");
+          //return -1;
+
+          stage_vertex_values[k3]   = stage_centroid_values[k];
+          stage_vertex_values[k3+1] = stage_centroid_values[k];
+          stage_vertex_values[k3+2] = stage_centroid_values[k];
+          xmom_vertex_values[k3]    = xmom_centroid_values[k];
+          xmom_vertex_values[k3+1]  = xmom_centroid_values[k];
+          xmom_vertex_values[k3+2]  = xmom_centroid_values[k];
+          ymom_vertex_values[k3]    = ymom_centroid_values[k];
+          ymom_vertex_values[k3+1]  = ymom_centroid_values[k];
+          ymom_vertex_values[k3+2]  = ymom_centroid_values[k];
+
+          continue;
       }  
       
       // Calculate heights of neighbouring cells

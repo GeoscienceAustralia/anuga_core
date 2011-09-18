@@ -674,12 +674,13 @@ class Mesh(General_mesh):
 
             # Check that area hasn't been compromised
             area = self.areas[i]
-            ref = abs((x1*y0-x0*y1)+(x2*y1-x1*y2)+(x0*y2-x2*y0))/2
-            msg = 'Wrong area for vertex coordinates: %f %f %f %f %f %f'\
-                  %(x0,y0,x1,y1,x2,y2)
+            ref = -((x1*y0-x0*y1)+(x2*y1-x1*y2)+(x0*y2-x2*y0))/2
+            msg = 'Triangle %i (%f,%f), (%f,%f), (%f, %f)' % (i, x0,y0,x1,y1,x2,y2)
+            msg += 'Wrong area: %f  %f'\
+                  %(area, ref)
             assert abs((area - ref)/area) < epsilon, msg
 
-            msg = 'Triangle (%f,%f), (%f,%f), (%f, %f)' % (x0,y0,x1,y1,x2,y2)
+            msg = 'Triangle %i (%f,%f), (%f,%f), (%f, %f)' % (i, x0,y0,x1,y1,x2,y2)
             msg += ' is degenerate:  area == %f' % self.areas[i]
             assert area > 0.0, msg
 

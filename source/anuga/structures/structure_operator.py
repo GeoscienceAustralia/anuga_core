@@ -238,7 +238,7 @@ class Structure_operator(anuga.Operator):
         if self.end_points is None:
             self.culvert_vector = centre_point1 - centre_point0
         else:
-            self.culvert_vector = self.end_points[1] - end_points[0]
+            self.culvert_vector = self.end_points[1] - self.end_points[0]
         
         self.culvert_length = math.sqrt(num.sum(self.culvert_vector**2))
         assert self.culvert_length > 0.0, 'The length of culvert is less than 0'
