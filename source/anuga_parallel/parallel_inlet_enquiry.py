@@ -1,0 +1,179 @@
+from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
+from anuga.config import velocity_protection, g
+import math
+
+import numpy as num
+import pypar
+
+import parallel_inlet
+
+class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
+    """Contains information associated with each inlet plus an enquiry point
+    """
+
+    def __init__(self, domain, polyline, enquiry_pt, master_proc = 0, procs = None, enquiry_proc = -1, 
+                outward_culvert_vector=None, verbose=False):
+
+        # TODO: Include statement that excludes non-participating process
+
+        parallel_inlet.Parallel_Inlet.__init__(self, domain, polyline,
+                                                master_proc = master_proc, procs = procs, verbose=verbose)
+        #print "Inlet line = " + str(polyline)
+        self.enquiry_pt = enquiry_pt
+        self.outward_culvert_vector = outward_culvert_vector
+        self.master_proc = master_proc
+
+        if procs is None:
+            self.procs = [self.master_proc]
+        else:
+            self.procs = procs
+
+        self.enquiry_proc = enquiry_proc # Processor of domain containing enquiry point
+        self.compute_enquiry_index()
+
+
+    def compute_enquiry_index(self):
+
+        # Get boundary (in absolute coordinates)
+        vertex_coordinates = self.domain.get_full_vertex_coordinates(absolute=True)
+
+        point = self.enquiry_pt
+        has_enq_point = False
+
+        try:
+            k = self.domain.get_triangle_containing_point(point)
+                
+            if self.domain.tri_full_flag[k] == 1:
+                has_enq_point = True
+            else:
+                has_enq_point = False
+        except:
+            has_enq_point = False
+
+        if has_enq_point:
+            self.enquiry_index = self.domain.get_triangle_containing_point(self.enquiry_pt)
+            #print "enquiry index = %d" %(self.enquiry_index)
+
+            if self.enquiry_index in self.triangle_indices:
+                msg = 'Enquiry point %s' % (self.enquiry_pt)
+                msg += 'is in an inlet triangle'
+                raise Exception, msg
+
+            if self.enquiry_proc >= 0: assert self.enquiry_proc == self.myid, "Specified enquiry proc does not match actual enquiry proc"
+            self.enquiry_proc = self.myid
+            assert self.enquiry_index >= 0, "Enquiry point inside polygon, but no triangle index found"
+        else:
+            self.enquiry_index = -1
+
+
+    def get_enquiry_position(self):
+        #GLOBAL
+
+        if self.enquiry_index >= 0:
+            return self.domain.get_centroid_coordinates(absolute=True)[self.enquiry_index]
+        else:
+            return None
+
+    def get_enquiry_stage(self):
+
+        if self.enquiry_index >= 0:
+            return self.domain.quantities['stage'].centroid_values[self.enquiry_index]
+        else:
+            return None
+
+        return None
+
+    def get_enquiry_xmom(self):
+        if self.enquiry_index >= 0:
+            return self.domain.quantities['xmomentum'].centroid_values[self.enquiry_index]
+        else:
+            return None
+
+    def get_enquiry_ymom(self):
+        if self.enquiry_index >= 0:
+            return self.domain.quantities['ymomentum'].centroid_values[self.enquiry_index]
+        else:
+            return None
+
+    def get_enquiry_elevation(self):
+        if self.enquiry_index >= 0:
+            return self.domain.quantities['elevation'].centroid_values[self.enquiry_index]
+        else:
+            return None
+
+
+    def get_enquiry_depth(self):
+
+        if self.enquiry_index >= 0:
+            return self.get_enquiry_stage() - self.get_enquiry_elevation()
+        else:
+            return None
+
+
+    def get_enquiry_velocity(self):
+
+        if self.enquiry_index >= 0:
+            depth = self.get_enquiry_depth()
+            u = self.get_enquiry_xmom()/(depth + velocity_protection/depth)
+            v = self.get_enquiry_ymom()/(depth + velocity_protection/depth)
+
+            return u, v
+        else:
+            return None
+
+
+    def get_enquiry_xvelocity(self):
+
+        if self.enquiry_index >= 0:
+            depth = self.get_enquiry_depth()
+            return self.get_enquiry_xmom()/(depth + velocity_protection/depth)
+        else:
+            return None
+
+    def get_enquiry_yvelocity(self):
+
+        if self.enquiry_index >= 0:
+            depth = self.get_enquiry_depth()
+            return self.get_enquiry_ymom()/(depth + velocity_protection/depth)
+        else:
+            return None
+
+    def get_enquiry_speed(self):
+
+        if self.enquiry_index >= 0:
+            u, v = self.get_enquiry_velocity()
+
+            return math.sqrt(u**2 + v**2)
+        else:
+            return None
+
+
+    def get_enquiry_velocity_head(self):
+
+        if self.enquiry_index >= 0:
+            return 0.5*self.get_enquiry_speed()**2/g
+        else:
+            return None
+
+
+    def get_enquiry_total_energy(self):
+
+        if self.enquiry_index >= 0:
+            return self.get_enquiry_velocity_head() + self.get_enquiry_stage()
+        else:
+            return None
+
+
+    def get_enquiry_specific_energy(self):
+        if self.enquiry_index >= 0:
+            return self.get_enquiry_velocity_head() + self.get_enquiry_depth()
+        else:
+            return None
+
+
+    def get_master_proc(self):
+        return self.master_proc
+
+
+    def get_enquiry_proc(self):
+        return self.enquiry_proc
