@@ -10,19 +10,19 @@ from anuga.abstract_2d_finite_volumes.util import file_function
 
 import anuga
 
-#from anuga.structures.boyd_box_operator import Boyd_box_operator
-#from anuga.structures.inlet_operator import Inlet_operator
+from anuga.structures.boyd_box_operator import Boyd_box_operator
+from anuga.structures.inlet_operator import Inlet_operator
                             
 #from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
      
 from math import pi, pow, sqrt
 
 import numpy as num
-from parallel_inlet_operator import Parallel_Inlet_operator
+#from parallel_inlet_operator import Parallel_Inlet_operator
 from anuga_parallel import distribute, myid, numprocs, finalize
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 
-from parallel_operator_factory import Inlet_operator, Boyd_box_operator
+#from parallel_operator_factory import Inlet_operator, Boyd_box_operator
 import pypar
 import random
 
@@ -119,7 +119,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     
     Bi = anuga.Dirichlet_boundary([5.0, 0.0, 0.0])
     Br = anuga.Reflective_boundary(domain)              # Solid reflective wall
-    domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+    domain.set_boundary({'left': Bi, 'right': Br, 'top': Br, 'bottom': Br})
 
 
 ##-----------------------------------------------------------------------
@@ -146,24 +146,35 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     if not parallel: control_data = []
 
     ################ Define Fractional Operators ##########################
-    
-    inlet0 = Inlet_operator(domain, line0, Q0, debug = False)
-    inlet1 = Inlet_operator(domain, line1, Q1, debug = False)
-    
-    # Enquiry point [ 19.    2.5] is contained in two domains in 4 proc case
-    boyd_box0 = Boyd_box_operator(domain,
-                                  end_points=[[9.0, 2.5],[19.0, 2.5]],
-                                  losses=1.5,
-                                  width=5.0,
-                                  apron=5.0,
-                                  use_momentum_jet=True,
-                                  use_velocity_head=False,
-                                  manning=0.013,
-                                  verbose=False, debug = False)
 
-    if inlet0 is not None: inlet0.print_statistics()
-    if inlet1 is not None: inlet1.print_statistics()
-    if boyd_box0 is not None: boyd_box0.print_statistics()
+    inlet0 = None
+    inlet1 = None
+    boyd_box0 = None
+    
+    #inlet0 = Inlet_operator(domain, line0, Q0, debug = True)
+    #inlet1 = Inlet_operator(domain, line1, Q1, debug = True)
+    
+    ## # Enquiry point [ 19.    2.5] is contained in two domains in 4 proc case
+    ## if myid == 5 and parallel:
+    ##     boyd_box0 = Boyd_box_operator(domain,
+    ##                                   end_points=[[9.0, 2.5],[13.0, 2.5]],
+    ##                                   losses=1.5,
+    ##                                   width=1.0,
+    ##                                   apron=0.5,
+    ##                                   use_momentum_jet=True,
+    ##                                   use_velocity_head=False,
+    ##                                   manning=0.013,
+    ##                                   verbose=False)
+    ## elif not parallel:
+    ##     boyd_box0 = Boyd_box_operator(domain,
+    ##                                   end_points=[[9.0, 2.5],[13.0, 2.5]],
+    ##                                   losses=1.5,
+    ##                                   width=1.0,
+    ##                                   apron=0.5,
+    ##                                   use_momentum_jet=True,
+    ##                                   use_velocity_head=False,
+    ##                                   manning=0.013,
+    ##                                   verbose=False)
 
 #    if parallel:
 #        factory = Parallel_operator_factory(domain, debug = True)
@@ -201,16 +212,13 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     ## Evolve system through time
     ##-----------------------------------------------------------------------
 
-    for t in domain.evolve(yieldstep = 1.0, finaltime = 38):
+    for t in domain.evolve(yieldstep = 1.0, finaltime = 4):
         domain.write_time()
 
         #print domain.volumetric_balance_statistics()
     
         stage = domain.get_quantity('stage')
 
-
-        if boyd_box0 is not None: boyd_box0.print_timestepping_statistics()
- 
         #for i in range(samples):
         #    if tri_ids[i] >= 0:                
         #        if verbose: print 'P%d tri %d, value = %s' %(myid, i, stage.centroid_values[tri_ids[i]])
@@ -218,6 +226,8 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
         sys.stdout.flush()
  
         pass
+
+ 
 
     success = True
 
@@ -231,7 +241,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
         for i in range(samples):
             assert(tri_ids[i] >= 0)
             control_data.append(stage.centroid_values[tri_ids[i]])
-        
+
         if inlet0 is not None:
             control_data.append(inlet0.inlet.get_average_stage())
             control_data.append(inlet0.inlet.get_average_xmom())
@@ -247,8 +257,10 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
             if tri_ids[i] >= 0:
                 local_success = num.allclose(control_data[i], stage.centroid_values[tri_ids[i]])
                 success = success and local_success
-                if verbose: 
-                    print 'P%d tri %d, control = %s, actual = %s, Success = %s' %(myid, i, control_data[i], stage.centroid_values[tri_ids[i]], local_success) 
+                if verbose and not local_success: 
+                    print 'P%d tri %d, control = %s, actual = %s, Success = %s' %(myid, i, control_data[i], stage.centroid_values[tri_ids[i]], local_success)
+                    sys.stdout.flush()
+                    
                 
                 
         if inlet0 is not None:
