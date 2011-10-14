@@ -26,6 +26,7 @@ sys.path += __path__
 #-----------------------------------------------------
 # Make selected classes available directly
 #-----------------------------------------------------
+from anuga.__metadata__ import __version__, __date__, __author__
 
 from anuga.shallow_water.shallow_water_domain import Domain
 
