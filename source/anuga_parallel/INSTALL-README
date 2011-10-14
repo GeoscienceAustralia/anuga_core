@@ -3,10 +3,34 @@
 INSTALLING anuga_parallel
 =========================
 
+anuga_parallel
+==============
+
+Well first you need to get the anuga_parallel code. You can get this from
+our svn repository with userid anonymous (blank password)
+
+The location is
+
+https://anuga.anu.edu.au/svn/anuga/trunk/anuga_core/source/anuga_parallel
+
+(By the way, the most recent version of the development code of anuga
+is available at
+
+https://anuga.anu.edu.au/svn/anuga/trunk/anuga_core/source/anuga
+)
+
+Setup your PYTHONPATH to point to location of the source directory
+
+For instance I havethe following line in my .bashrc file
+
+export PYTHONPATH=/home/steve/anuga/anuga_core/source
+
+
+
 MPI
 ===
 
-First thing, you need to install MPI on your system. OPENMPI and MPICH2 
+Now you need to install MPI on your system. OPENMPI and MPICH2
 are supported by pypar (see below) so both should be ok. 
 
 Make sure mpi works. You should be able to run a program in parallel. 
@@ -26,10 +50,17 @@ version of PYPAR is available from
 http://code.google.com/p/pypar/ 
 
 (There is an old version on sourceforge
-http://sourceforge.net/projects/pypar/)
+http://sourceforge.net/projects/pypar/ don't use that)
 
-Install pypar following the instructions in hte download. Should be able
-use standard python setup.py install
+Install pypar following the instructions in the download. Should be able
+use standard command
+
+python setup.py install
+
+or maybe
+
+sudo python setup.py install
+
 
 Make sure the pypar examples work
 
@@ -41,7 +72,13 @@ In the anuga_parallel directory there is a subdirectory pymetis.
 
 Follow the instructions in README to install. Essentially just run make.
 
-From the pymetis directory, test using test_all.py
+If you have a 64 bit machine run
+
+make COPTIONS="-fPIC"
+
+From the pymetis directory, test using test_all.py, ie
+
+python test_all.py
 
 ANUGA_PARALLEL
 ==============
@@ -54,7 +91,9 @@ Hopefully that all works.
 
 Run run_parallel_sw_merimbula.py
 
-First just run it a sequential program. 
+First just run it as a sequential program, via
+
+python run_parallel_sw_merimbula.py
 
 Then try a parallel run using a command like
 
