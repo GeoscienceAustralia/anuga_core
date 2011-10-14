@@ -101,7 +101,7 @@ class Inlet_operator:
         inlet = self.inlet
 
         message += '-------------------------------------\n'
-        message +=  'Inlet %i\n' % i
+        message +=  'Inlet\n' 
         message += '-------------------------------------\n'
 
         message += 'inlet triangle indices and centres\n'
@@ -112,7 +112,7 @@ class Inlet_operator:
         message += '\n'
 
         message += 'polyline\n'
-        message += '%s' % inlet.polyline
+        message += '%s' % inlet.line
         message += '\n'
 
         message += '=====================================\n'

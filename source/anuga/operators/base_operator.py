@@ -28,7 +28,7 @@ class Operator:
 
     def __parallel_safe(self):
 
-        return False
+        return True
 
     def statistics(self):
 
