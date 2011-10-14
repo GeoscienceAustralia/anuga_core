@@ -12,7 +12,9 @@ import parallel_inlet
 import pypar
 
 class Parallel_Inlet_operator(Inlet_operator):
-    """Inlet Operator - add water to an inlet.
+    """Parallel Inlet Operator - add water to an inlet potentially 
+    shared between different parallel domains.
+
     Sets up the geometry of problem
 
     Inherit from this class (and overwrite
@@ -21,8 +23,12 @@ class Parallel_Inlet_operator(Inlet_operator):
     Input: domain, Two points
     """
 
-    # PETE: This only counts the number of inlets in processor?
-    counter = 0
+    """
+    master_proc - index of the processor which coordinates all processors 
+    associated with this inlet operator.
+    procs - list of all processors associated with this inlet operator
+    
+    """
 
     def __init__(self,
                  domain,
@@ -35,12 +41,10 @@ class Parallel_Inlet_operator(Inlet_operator):
                  procs = None,
                  verbose = False):
 
-        # TODO: Include statement that excludes non-participating process
-        # PETE: Only set if domain actually contains the line, EXIT otherwise
         self.domain = domain
         self.domain.set_fractional_step_operator(self)
         self.line = numpy.array(line, dtype='d')
-        self.master_proc = master_proc #PETE: id of the master processor that gathers global data
+        self.master_proc = master_proc 
 
         if procs is None:
             self.procs = [self.master_proc]
@@ -52,7 +56,6 @@ class Parallel_Inlet_operator(Inlet_operator):
         # should set this up to be a function of time and or space)
         self.Q = Q
 
-        # PETE: Have description mentioning the name of the processor
         if description == None:
             self.description = ' '
         else:
@@ -73,24 +76,19 @@ class Parallel_Inlet_operator(Inlet_operator):
         if self.myid == master_proc:
             Inlet_operator.counter += 1
 
-        # PETE: Should the line be global or local? What if enquiry point is elsewhere
-        # TODO: Must determine the location of the enquiry point
         self.enquiry_point = 0.5*(self.line[0] + self.line[1])
-        # TODO: Check whether the current processor contains enquiry point, tell the other processors
-        # who owns it
 
         self.outward_vector = self.line
         self.inlet = parallel_inlet.Parallel_Inlet(self.domain, self.line, master_proc = master_proc,
                                                     procs = procs, verbose= verbose)
-
-        #TODO: Should the master processor do this?
         self.set_logging(logging)
 
     def __call__(self):
 
         volume = 0
 
-        # PETE: The master proc calculates the volume
+        # Only the master proc calculates the volume
+
         if self.myid == self.master_proc:
             timestep = self.domain.get_timestep()
 
@@ -104,18 +102,15 @@ class Parallel_Inlet_operator(Inlet_operator):
 
             #print "Volume to be removed from Inlet = " + str(volume)
 
-        # PETE: this is ok, assume that the master proc for inlet operator is the same as that
-        # for the the inlet itself, thus the other processes need not know the volume
+        # Set stages evenly
         self.inlet.set_stages_evenly(volume)
 
-        # Distribute volume evenly over all cells
-        #self.inlet.set_depths_evenly(volume)
 
     def update_Q(self, t):
         """Virtual method allowing local modifications by writing an
         overriding version in descendant
         """
-        # Only one processor should call this unless Q is parallelizable
+        # Only one processor should call this function unless Q is parallelizable
         if callable(self.Q):
             Q = self.Q(t)[0]
         else:
@@ -124,6 +119,8 @@ class Parallel_Inlet_operator(Inlet_operator):
         return Q
 
     def statistics(self):
+        # WARNING: requires synchronization, must be called by all procs associated
+        # with this inlet
 
         message = ''
 
@@ -147,11 +144,14 @@ class Parallel_Inlet_operator(Inlet_operator):
 
 
     def print_statistics(self):
-
+        # WARNING: requires synchronization, must be called by all procs associated
+        # with this inlet
+        
         print self.statistics()
 
 
     def print_timestepping_statistics(self):
+        # WARNING: Must be called by master proc to have any effect
 
         if self.myid == self.master_proc:
             message = '---------------------------------------------\n'
@@ -163,6 +163,7 @@ class Parallel_Inlet_operator(Inlet_operator):
 
 
     def set_logging(self, flag=True):
+        # WARNING: Must be called by master proc to have any effect
 
         stats = self.statistics()
         self.logging = flag
@@ -186,7 +187,8 @@ class Parallel_Inlet_operator(Inlet_operator):
         return message
 
     def log_timestepping_statistics(self):
-        
+        # WARNING: Must be called by master proc to have any effect
+
         if self.myid == self.master_proc:
             if self.logging:
                 log_to_file(self.log_filename, self.timestepping_statistics())
@@ -194,20 +196,19 @@ class Parallel_Inlet_operator(Inlet_operator):
 
 
     def set_Q(self, Q):
-
+        # LOCAL
         self.Q = Q
 
     def get_Q(self):
-
+        # LOCAL
         return self.Q
 
 
     def get_inlet(self):
-
+        # LOCAL
         return self.inlet
 
     def get_line(self):
-
         return self.line
 
     def get_master_proc(self):

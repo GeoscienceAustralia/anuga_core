@@ -11,14 +11,20 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
     """Contains information associated with each inlet plus an enquiry point
     """
 
+    """
+    master_proc - index of the processor which coordinates all processors 
+    associated with this inlet operator.
+    procs - list of all processors associated with this inlet operator
+    enquiry_proc - processor containing inlet enquiry point
+    """
+
     def __init__(self, domain, polyline, enquiry_pt, master_proc = 0, procs = None, enquiry_proc = -1, 
                 outward_culvert_vector=None, verbose=False):
 
-        # TODO: Include statement that excludes non-participating process
-
+   
         parallel_inlet.Parallel_Inlet.__init__(self, domain, polyline,
                                                 master_proc = master_proc, procs = procs, verbose=verbose)
-        #print "Inlet line = " + str(polyline)
+   
         self.enquiry_pt = enquiry_pt
         self.outward_culvert_vector = outward_culvert_vector
         self.master_proc = master_proc
@@ -52,14 +58,14 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
 
         if has_enq_point:
             self.enquiry_index = self.domain.get_triangle_containing_point(self.enquiry_pt)
-            #print "enquiry index = %d" %(self.enquiry_index)
-
+   
             if self.enquiry_index in self.triangle_indices:
                 msg = 'Enquiry point %s' % (self.enquiry_pt)
                 msg += 'is in an inlet triangle'
                 raise Exception, msg
 
-            if self.enquiry_proc >= 0: assert self.enquiry_proc == self.myid, "Specified enquiry proc does not match actual enquiry proc"
+            if self.enquiry_proc >= 0: 
+                assert self.enquiry_proc == self.myid, "Specified enquiry proc does not match actual enquiry proc"
             self.enquiry_proc = self.myid
             assert self.enquiry_index >= 0, "Enquiry point inside polygon, but no triangle index found"
         else:
@@ -67,7 +73,7 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
 
 
     def get_enquiry_position(self):
-        #GLOBAL
+        # WARNING: Must be called by processor containing inlet enquiry point to have effect
 
         if self.enquiry_index >= 0:
             return self.domain.get_centroid_coordinates(absolute=True)[self.enquiry_index]
@@ -75,6 +81,7 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
             return None
 
     def get_enquiry_stage(self):
+        # WARNING: Must be called by processor containing inlet enquiry point to have effect
 
         if self.enquiry_index >= 0:
             return self.domain.quantities['stage'].centroid_values[self.enquiry_index]
@@ -84,18 +91,24 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
         return None
 
     def get_enquiry_xmom(self):
+        # WARNING: Must be called by processor containing inlet enquiry point to have effect
+
         if self.enquiry_index >= 0:
             return self.domain.quantities['xmomentum'].centroid_values[self.enquiry_index]
         else:
             return None
 
     def get_enquiry_ymom(self):
+        # WARNING: Must be called by processor containing inlet enquiry point to have effect
+
         if self.enquiry_index >= 0:
             return self.domain.quantities['ymomentum'].centroid_values[self.enquiry_index]
         else:
             return None
 
     def get_enquiry_elevation(self):
+        # WARNING: Must be called by processor containing inlet enquiry point to have effect
+
         if self.enquiry_index >= 0:
             return self.domain.quantities['elevation'].centroid_values[self.enquiry_index]
         else:
@@ -103,6 +116,7 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
 
 
     def get_enquiry_depth(self):
+        # WARNING: Must be called by processor containing inlet enquiry point to have effect
 
         if self.enquiry_index >= 0:
             return self.get_enquiry_stage() - self.get_enquiry_elevation()
@@ -111,6 +125,7 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
 
 
     def get_enquiry_velocity(self):
+        # WARNING: Must be called by processor containing inlet enquiry point to have effect
 
         if self.enquiry_index >= 0:
             depth = self.get_enquiry_depth()
@@ -123,6 +138,7 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
 
 
     def get_enquiry_xvelocity(self):
+        # WARNING: Must be called by processor containing inlet enquiry point to have effect
 
         if self.enquiry_index >= 0:
             depth = self.get_enquiry_depth()
@@ -131,6 +147,7 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
             return None
 
     def get_enquiry_yvelocity(self):
+        # WARNING: Must be called by processor containing inlet enquiry point to have effect
 
         if self.enquiry_index >= 0:
             depth = self.get_enquiry_depth()
@@ -139,6 +156,7 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
             return None
 
     def get_enquiry_speed(self):
+        # WARNING: Must be called by processor containing inlet enquiry point to have effect
 
         if self.enquiry_index >= 0:
             u, v = self.get_enquiry_velocity()
@@ -149,6 +167,7 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
 
 
     def get_enquiry_velocity_head(self):
+        # WARNING: Must be called by processor containing inlet enquiry point to have effect
 
         if self.enquiry_index >= 0:
             return 0.5*self.get_enquiry_speed()**2/g
@@ -157,6 +176,7 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
 
 
     def get_enquiry_total_energy(self):
+        # WARNING: Must be called by processor containing inlet enquiry point to have effect
 
         if self.enquiry_index >= 0:
             return self.get_enquiry_velocity_head() + self.get_enquiry_stage()
@@ -165,6 +185,8 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
 
 
     def get_enquiry_specific_energy(self):
+        # WARNING: Must be called by processor containing inlet enquiry point to have effect
+
         if self.enquiry_index >= 0:
             return self.get_enquiry_velocity_head() + self.get_enquiry_depth()
         else:

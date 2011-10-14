@@ -26,16 +26,25 @@ from anuga_parallel.parallel_shallow_water import Parallel_domain
 
 import math
 
+"""
+Factory method for Parallel Inlet_operator. All parameters are the same 
+as normal Inlet_Operators master_proc coordinates the allocation process, 
+procs contains the potential list of processors to allocate the inlet to.
 
+Returns None for calling processors not associated with inlet. Otherwise
+return an instance of Parallel_Inlet_Operator
+"""
 
 def Inlet_operator(domain, line, Q, master_proc = 0, procs = range(0,pypar.size()), debug = False):
 
+    # If not parallel domain then allocate serial Inlet operator
     if isinstance(domain, Parallel_domain) is False:
         if debug: print "Allocating non parallel inlet operator ....."
         return anuga.structures.inlet_operator.Inlet_operator(domain, line, Q)
     
 
     myid = pypar.rank()
+
 
     alloc, inlet_master_proc, inlet_procs, enquiry_proc = allocate_inlet_procs(domain, line,
                                                                                master_proc = master_proc,
@@ -55,6 +64,14 @@ def Inlet_operator(domain, line, Q, master_proc = 0, procs = range(0,pypar.size(
     else:
         return None
 
+"""
+Factory method for Parallel Boyd_box_operator. All parameters are the same 
+as normal Inlet_Operators master_proc coordinates the allocation process, 
+procs contains the potential list of processors to allocate the inlet to.
+
+Returns None for calling processors not associated with structure. Otherwise
+return an instance of Parallel_Inlet_Operator
+"""
 
 def Boyd_box_operator(domain,
                        losses,
@@ -77,6 +94,7 @@ def Boyd_box_operator(domain,
                        procs=range(0,pypar.size()),
                        debug = False):
 
+    # If not parallel domain then allocate serial Boyd box operator
     if isinstance(domain, Parallel_domain) is False:
         if debug: print "Allocating non parallel boyd box operator ....."
         return anuga.structures.boyd_box_operator.Boyd_box_operator(domain,
@@ -109,6 +127,7 @@ def Boyd_box_operator(domain,
     if apron is None:
         apron = width
 
+    # Calculate location of inlet enquiry points and exchange lines
     if myid == master_proc:
         if exchange_lines is not None:
             exchange_lines_tmp = exchange_lines
@@ -136,13 +155,15 @@ def Boyd_box_operator(domain,
             exchange_lines_tmp = pypar.receive(master_proc)
             enquiry_points_tmp = pypar.receive(master_proc)
 
-    line0 = exchange_lines_tmp[0] #self.inlet0_lines[0]
+    # Determine processors associated with first inlet
+    line0 = exchange_lines_tmp[0] 
     enquiry_point0 = enquiry_points_tmp[0]
 
     alloc0, inlet0_master_proc, inlet0_procs, enquiry0_proc = allocate_inlet_procs(domain, line0, enquiry_point =  enquiry_point0,
                                                                                    master_proc = master_proc,
                                                                                    procs = procs, debug = debug)
 
+    # Determine processors associated with second inlet
     line1 = exchange_lines_tmp[1]
     enquiry_point1 = enquiry_points_tmp[1]
 
@@ -194,7 +215,6 @@ def Boyd_box_operator(domain,
 
 
 def __process_non_skew_culvert(end_points, width, enquiry_points, apron, enquiry_gap):
-    # PETE: This can actually be computed by the master
     """Create lines at the end of a culvert inlet and outlet.
     At either end two lines will be created; one for the actual flow to pass through and one a little further away
     for enquiring the total energy at both ends of the culvert and transferring flow.
@@ -271,13 +291,12 @@ def allocate_inlet_procs(domain, line, enquiry_point = None, master_proc = 0, pr
     has_enq_point = False
     numprocs = pypar.size()
 
-    line_procs = []
+    inlet_procs = []
     max_size = -1
-    line_master_proc = -1
-    line_enq_proc = -1
+    inlet_master_proc = -1
+    inlet_enq_proc = -1
 
     # Calculate the number of points of the line inside full polygon
-
 
     tri_id = line_intersect(vertex_coordinates, line)
 
@@ -303,14 +322,14 @@ def allocate_inlet_procs(domain, line, enquiry_point = None, master_proc = 0, pr
 
     if myid == master_proc:
         # Recieve size of overlap from each processor
-
         # Initialize line_master_proc and inlet_procs
+
         if size > 0:
-            line_procs = [master_proc]
+            inlet_procs = [master_proc]
             max_size = size
-            line_master_proc = master_proc
+            inlet_master_proc = master_proc
             if has_enq_point:
-                line_enq_proc = master_proc
+                inlet_enq_proc = master_proc
 
         # Recieve size of overlap
         for i in procs:
@@ -319,40 +338,41 @@ def allocate_inlet_procs(domain, line, enquiry_point = None, master_proc = 0, pr
             y = pypar.receive(i)
 
             if x > 0:
-                line_procs.append(i)
-                # Choose line_master_proc as the one with the most overlap
+                inlet_procs.append(i)
+
+                # Choose inlet_master_proc as the one with the most overlap
                 if x > max_size:
                     max_size = x
-                    line_master_proc = i
+                    inlet_master_proc = i
 
                 if y is True:
-                    assert line_enq_proc == -1, "Enquiry point correspond to more than one proc"
-                    line_enq_proc = i
+                    assert inlet_enq_proc == -1, "Enquiry point correspond to more than one proc"
+                    inlet_enq_proc = i
 
-        assert len(line_procs) > 0, "Line does not intersect any domain"
-        assert line_master_proc >= 0, "No master processor assigned"
-        if enquiry_point is not None: assert line_enq_proc >= 0, "No enquiry point processor assigned"
+        assert len(inlet_procs) > 0, "Line does not intersect any domain"
+        assert inlet_master_proc >= 0, "No master processor assigned"
+        if enquiry_point is not None: assert inlet_enq_proc >= 0, "No enquiry point processor assigned"
 
-        # Send line_master_proc and line_procs to all processors in line_procs
+        # Send inlet_master_proc and inlet_procs to all processors in inlet_procs
         for i in procs:
             if i != master_proc:
-                pypar.send(line_master_proc, i)
-                pypar.send(line_procs, i)
-                pypar.send(line_enq_proc, i)
+                pypar.send(inlet_master_proc, i)
+                pypar.send(inlet_procs, i)
+                pypar.send(inlet_enq_proc, i)
 
     else:
         pypar.send(size, master_proc)
         pypar.send(has_enq_point, master_proc)
 
-        line_master_proc = pypar.receive(master_proc)
-        line_procs = pypar.receive(master_proc)
-        line_enq_proc = pypar.receive(master_proc)
-        if has_enq_point: assert line_enq_proc == myid, "Enquiry found in proc, but not declared globally"
+        inlet_master_proc = pypar.receive(master_proc)
+        inlet_procs = pypar.receive(master_proc)
+        inlet_enq_proc = pypar.receive(master_proc)
+        if has_enq_point: assert inlet_enq_proc == myid, "Enquiry found in proc, but not declared globally"
 
     if size > 0:
-        return True, line_master_proc, line_procs, line_enq_proc
+        return True, inlet_master_proc, inlet_procs, inlet_enq_proc
     else:
-        return False, line_master_proc, line_procs, line_enq_proc
+        return False, inlet_master_proc, inlet_procs, inlet_enq_proc
 
 
 __author__="pete"
