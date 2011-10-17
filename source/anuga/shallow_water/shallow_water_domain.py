@@ -328,7 +328,7 @@ class Domain(Generic_Domain):
     def set_store_vertices_smoothly(self, flag=True, reduction=None):
         """Decide whether vertex values should be stored smoothly (one value per vertex)
         or uniquely as
-        computed in the model (False)
+        computed in the model (False).
         """
 
         # FIXME (Ole): how about using the word "continuous vertex values" or
