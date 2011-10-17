@@ -263,7 +263,7 @@ class Domain(Generic_Domain):
     def set_use_edge_limiter(self, flag=True):
         """Cludge to allow unit test to pass, but to
         also introduce new edge limiting. The flag is
-        tested in distribute_to_vertices_and_edges
+        tested in distribute_to_vertices_and_edges.
         """
         if flag:
             self.use_edge_limiter = True
