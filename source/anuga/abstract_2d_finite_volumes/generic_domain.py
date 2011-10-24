@@ -1316,6 +1316,7 @@ class Generic_Domain:
         # Initial update boundary values
         self.update_boundary()
 
+
         # Update extrema if necessary (for reporting)
         self.update_extrema()
 
@@ -1452,7 +1453,7 @@ class Generic_Domain:
         # Update timestep to fit yieldstep and finaltime
         self.update_timestep(yieldstep, finaltime)
 
-        # Update conserved quantities
+        # Update centroid values of conserved quantities
         self.update_conserved_quantities()
 
         # Update ghosts
