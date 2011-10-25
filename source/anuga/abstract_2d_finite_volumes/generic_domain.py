@@ -1307,6 +1307,10 @@ class Generic_Domain:
         self.number_of_steps = 0
         self.number_of_first_order_steps = 0
 
+        # Update centroid values of conserved quantites to satisfy
+        # special conditions
+        self.update_special_conditions()
+
         # Update ghosts to ensure all centroid values are available
         self.update_ghosts()
 
@@ -1426,6 +1430,10 @@ class Generic_Domain:
         # Update conserved quantities
         self.update_conserved_quantities()
 
+
+        # Update special conditions
+        self.update_special_conditions()
+
         # Update ghosts
         self.update_ghosts()
 
@@ -1455,6 +1463,9 @@ class Generic_Domain:
 
         # Update centroid values of conserved quantities
         self.update_conserved_quantities()
+
+        # Update special conditions
+        self.update_special_conditions()
 
         # Update ghosts
         self.update_ghosts()
@@ -1492,6 +1503,9 @@ class Generic_Domain:
         # Combine steps
         self.saxpy_conserved_quantities(0.5, 0.5)
 
+        # Update special conditions
+        self.update_special_conditions()
+
         # Update ghosts
         self.update_ghosts()
 
@@ -1522,6 +1536,9 @@ class Generic_Domain:
 
         # Update conserved quantities
         self.update_conserved_quantities()
+
+        # Update special conditions
+        self.update_special_conditions()
 
         # Update ghosts
         self.update_ghosts()
@@ -1559,6 +1576,10 @@ class Generic_Domain:
         # Combine steps
         self.saxpy_conserved_quantities(0.25, 0.75)
 
+
+        # Update special conditions
+        self.update_special_conditions()
+
         # Update ghosts
         self.update_ghosts()
 
@@ -1592,6 +1613,10 @@ class Generic_Domain:
         # Combine steps
         self.saxpy_conserved_quantities(2.0/3.0, 1.0/3.0)
 
+
+        # Update special conditions
+        self.update_special_conditions()
+        
         # Update ghosts
         self.update_ghosts()
 
@@ -1805,6 +1830,15 @@ class Generic_Domain:
             for i, q in enumerate(self.conserved_quantities):
                 Q_cv =  self.quantities[q].centroid_values
                 num.put(Q_cv, Idg, num.take(Q_cv, Idf, axis=0))
+
+    def update_special_conditions(self):
+        """There may be a need to change the values of the conserved 
+        quantities to satisfy special conditions at the very lowest level
+        the fluid flow calculation
+        """
+        
+        pass
+
 
     def update_other_quantities(self):
         """ There may be a need to calculates some of the other quantities

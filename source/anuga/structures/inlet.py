@@ -13,7 +13,7 @@ class Inlet:
 
         self.domain = domain
         self.domain_bounding_polygon = self.domain.get_boundary_polygon()
-        self.line = line
+        self.line = num.asarray(line, 'f')
         self.verbose = verbose
 
         self.compute_triangle_indices()

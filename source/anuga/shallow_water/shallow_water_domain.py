@@ -241,6 +241,12 @@ class Domain(Generic_Domain):
         self.use_centroid_velocities = use_centroid_velocities       
 
 
+    def update_special_conditions(self):
+
+        my_update_special_conditions(self)
+
+
+
     def set_store(self, flag=True):
         """Set whether data saved to sww file.
         """
@@ -1482,6 +1488,9 @@ def depth_dependent_friction(domain, default_friction,
     
     return wet_friction
 
+def my_update_special_conditions(domain):
+
+    pass
 
 
 ################################################################################
