@@ -116,7 +116,10 @@ class Test_Mux(unittest.TestCase):
     
     def delete_mux(self, files):
         for file in files:
-            os.remove(file)
+            try:
+                os.remove(file)
+            except:
+                pass
         
     def write_mux2(self, lat_long_points, time_step_count, time_step,
                    first_tstep, last_tstep,

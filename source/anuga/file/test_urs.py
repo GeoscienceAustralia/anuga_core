@@ -100,7 +100,7 @@ class Test_Urs(unittest.TestCase):
                           verbose=self.verbose)
         
     def test_URS_points_northern_hemisphere(self):
-               
+
         LL_LAT = 8.0
         LL_LONG = 97.0
         GRID_SPACING = 2.0/60.0
@@ -129,7 +129,7 @@ class Test_Urs(unittest.TestCase):
 #                                   isSouthernHemisphere=False,
 #                                   export_csv=True,
 #                                   verbose=self.verbose)
-        
+
         geo=calculate_boundary_points(poly_lat_long,
                                   ZONE,
                                   LL_LAT, LL_LONG,
@@ -137,9 +137,10 @@ class Test_Urs(unittest.TestCase):
                                   LAT_AMOUNT, LONG_AMOUNT,
                                   isSouthHemisphere=False,
                                   verbose=self.verbose)
-        
+
         results = frozenset(geo.get_data_points(as_lat_long=True,
                                                 isSouthHemisphere=False))
+
         #print 'results',results
 
         # These are a set of points that have to be in results
@@ -159,7 +160,6 @@ class Test_Urs(unittest.TestCase):
                     break
             if not found:
                 assert False
-        
 
     def covered_in_other_tests_test_URS_points_needed_poly1(self):
         # Values used for FESA 2007 results

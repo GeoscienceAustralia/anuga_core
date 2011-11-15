@@ -140,6 +140,7 @@ def calc_max_depth_and_momentum(sww_base_name, points,
     These calculations are done over all the sww files with the sww_base_name
     in the specified directory.
     """
+
     quantities =  ['stage', 'elevation', 'xmomentum', 'ymomentum']
     points = ensure_absolute(points)
     point_count = len(points)
@@ -160,32 +161,37 @@ def calc_max_depth_and_momentum(sww_base_name, points,
               %(sww_base_name)
         raise IOError, msg
     from os import sep
+
     for this_sww_file in interate_over:
         callable_sww = file_function(dir+sep+this_sww_file,
                                      quantities=quantities,
                                      interpolation_points=points,
                                      verbose=verbose,
                                      use_cache=use_cache)
-    
+
         for point_i, point in enumerate(points):
             for time in callable_sww.get_time():
                 quantity_values = callable_sww(time,point_i)
-            
                 w = quantity_values[0]
                 z = quantity_values[1]
                 uh = quantity_values[2] 
                 vh = quantity_values[3]
-                
+
+                #print w,z,uh,vh
+                if w == NAN or z == NAN or uh == NAN or vh == NAN:
+                    continue
+                    
                 #  -ground_floor_height is the minimum value.
                 depth = w - z - ground_floor_height
               
                 if depth > max_depths[point_i]:
                     max_depths[point_i] = depth
-                if w == NAN or z == NAN or uh == NAN or vh == NAN:
-                    continue
+                
                 momentum = sqrt(uh*uh + vh*vh)
                 if momentum > max_momentums[point_i]:
                     max_momentums[point_i] = momentum
+
+
     return max_depths, max_momentums
 
 class EventDamageModel:

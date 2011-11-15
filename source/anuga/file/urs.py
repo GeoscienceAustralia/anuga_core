@@ -198,7 +198,7 @@ def _calculate_boundary_points(boundary_polygon,
     grid_spacing - in decimal degrees
 
     """
-
+    
     msg = "grid_spacing can not be zero"
     assert not grid_spacing == 0, msg
 
@@ -207,15 +207,19 @@ def _calculate_boundary_points(boundary_polygon,
     # List of segments.  Each segment is two points.
     segs = [i and [a[i-1], a[i]] or [a[len(a)-1], a[0]] for i in range(len(a))]
 
+
     # convert the segs to Lat's and longs.
     # Don't assume the zone of the segments is the same as the lower left
     # corner of the lat long data!!  They can easily be in different zones
     lat_long_set = frozenset()
     for seg in segs:
+
         points_lat_long = points_needed(seg, ll_lat, ll_long, grid_spacing,
                                         lat_amount, long_amount, zone,
                                         isSouthHemisphere)
+
         lat_long_set |= frozenset(points_lat_long)
+
 
     if lat_long_set == frozenset([]):
         msg = "URS region specified and polygon does not overlap."
@@ -275,14 +279,18 @@ def points_needed(seg, ll_lat, ll_long, grid_spacing,
     # Create a list of the lat long points to include.
     for index_lat in range(first_row_lat, last_row_lat + 1):
         for index_long in range(first_row_long, last_row_long + 1):
+
             lat = ll_lat + index_lat*grid_spacing
             long = ll_long + index_long*grid_spacing
+
 
             #filter here to keep good points
             if keep_point(lat, long, seg, max_distance):
                 points_lat_long.append((lat, long)) #must be hashable
 
+
     # Now that we have these points, lets throw ones out that are too far away
+
     return points_lat_long
        
 
@@ -301,17 +309,15 @@ def keep_point(lat, long, seg, max_distance):
     y2 = seg[1][1]
     x2_1 = x2-x1
     y2_1 = y2-y1
-    try:
-        d = abs((x2_1)*(y1-y0)-(x1-x0)*(y2_1))/sqrt( \
-            (x2_1)*(x2_1)+(y2_1)*(y2_1))
-    except ZeroDivisionError:
-        if sqrt((x2_1)*(x2_1)+(y2_1)*(y2_1)) == 0 \
-           and abs((x2_1)*(y1-y0)-(x1-x0)*(y2_1)) == 0:
-            return True
-        else:
-            return False
 
-    return d <= max_distance
+
+    num = (x2_1)*(x2_1)+(y2_1)*(y2_1)
+    if sqrt(num) == 0 and abs(num) == 0:
+        return True
+    else:
+        d = abs((x2_1)*(y1-y0)-(x1-x0)*(y2_1))/num
+        return d <= max_distance
+
 
 
 

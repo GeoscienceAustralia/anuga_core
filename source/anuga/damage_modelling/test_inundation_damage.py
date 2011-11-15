@@ -577,6 +577,7 @@ class Test_inundation_damage(unittest.TestCase):
         spat = Geospatial_data(data_points=points_lat_long,
                                points_are_lats_longs=True)
         points_ab = spat.get_data_points( absolute = True)
+
         deps, _ = calc_max_depth_and_momentum(sww_file,
                                               points_ab,
                                               verbose=self.verbose,
