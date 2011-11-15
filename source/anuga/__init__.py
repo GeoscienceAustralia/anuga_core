@@ -304,7 +304,7 @@ def _create_domain_from_regions(bounding_polygon,
     See create_domain_from_regions for documentation.
     """
 
-    from anuga.shallow_water.shallow_water_domain import Domain
+    #from anuga.shallow_water.shallow_water_domain import Domain
     from anuga.pmesh.mesh_interface import create_mesh_from_regions
     
     create_mesh_from_regions(bounding_polygon,
@@ -320,6 +320,7 @@ def _create_domain_from_regions(bounding_polygon,
                              fail_if_polygons_outside=fail_if_polygons_outside,
                              use_cache=False,
                              verbose=verbose)
+
     domain = Domain(mesh_filename, use_cache=False, verbose=verbose)
 
 

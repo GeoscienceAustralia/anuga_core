@@ -27,13 +27,15 @@ class Operator:
         return self.domain.get_timestep()
 
     def __parallel_safe(self):
-
-        return True
+        """By default an operator is not parallel safe
+        """
+        return False
 
     def statistics(self):
 
         message = 'You need to implement operator statistics for your operator'
         return message
+    
 
     def print_statistics(self):
 

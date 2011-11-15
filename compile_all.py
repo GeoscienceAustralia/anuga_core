@@ -27,6 +27,10 @@ os.chdir('operators')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 os.chdir('..')
+os.chdir('geometry')
+execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
+
+os.chdir('..')
 os.chdir('structures')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
@@ -42,9 +46,6 @@ os.chdir('..')
 os.chdir('shallow_water')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
-os.chdir('..')
-os.chdir('shallow_water_balanced')
-execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 os.chdir('..')
 os.chdir('mesh_engine')
