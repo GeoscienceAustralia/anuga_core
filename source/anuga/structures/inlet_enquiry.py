@@ -28,8 +28,8 @@ class Inlet_enquiry(inlet.Inlet):
 
         # Get boundary (in absolute coordinates)
         bounding_polygon = self.domain_bounding_polygon
-        domain_centroids = self.domain.get_centroid_coordinates(absolute=True)
-        vertex_coordinates = self.domain.get_vertex_coordinates(absolute=True)
+        #domain_centroids = self.domain.get_centroid_coordinates(absolute=True)
+        #vertex_coordinates = self.domain.get_vertex_coordinates(absolute=True)
 
                 
         point = self.enquiry_pt
@@ -42,7 +42,9 @@ class Inlet_enquiry(inlet.Inlet):
         if self.enquiry_index in self.triangle_indices:
             msg = 'Enquiry point %s' % (self.enquiry_pt)
             msg += 'is in an inlet triangle'
-            raise Exception, msg
+            import warnings
+            warnings.warn(msg)
+            
 
     def get_enquiry_position(self):
 
