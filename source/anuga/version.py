@@ -1,15 +1,11 @@
-## Subversion keywords:
-        
-author_string = '$Author$'
-date_string = '$Date$'
-revision_string = '$LastChangedRevision$'
+#! /usr/bin/python
 
-#$LastChangedDate$
-#$LastChangedRevision$
-#$LastChangedBy$
+# To change this template, choose Tools | Templates
+# and open the template in the editor.
 
-def get_version():
-    """Extract version info from keyword strings
-    """
-    
-    pass
+__author__="steve"
+__date__ ="$18/11/2011 11:35:22 AM$"
+
+if __name__ == "__main__":
+    import anuga
+    print 'Anuga version:',anuga.__version__
