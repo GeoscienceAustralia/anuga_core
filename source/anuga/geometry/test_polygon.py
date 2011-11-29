@@ -95,6 +95,21 @@ class Test_Polygon(unittest.TestCase):
         else:
             raise Exception, 'Closed polygon should have raised exception'
 
+    def test_read_polygon_not_complex(self):
+        from os import sep, getenv
+        # This polygon is not self intersecting, but was interpreted as self
+        # intersecting by a previous version of the code
+
+        # Get path where this test is run
+        path = get_pathname_from_package('anuga.utilities')
+
+        # Form absolute filename and read
+        filename = path + sep + 'non_complex_polygon.csv'
+        # Should cause an Exception
+        try:
+            p1 = read_polygon(filename)
+        except Exception:
+            raise Exception, 'Non-complex polygon should not have raised exception'
 
 
     def test_read_polygon_open_complex(self):
