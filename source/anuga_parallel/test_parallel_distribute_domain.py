@@ -13,12 +13,25 @@ Tested with MPICH and LAM (Ole)
 import unittest
 import os
 import sys
-import pypar
+
+
 
 import numpy as num
 
+#------------------------------------------
+# Import pypar without the initial output
+#------------------------------------------
+class NullStream:
+    def write(self,text):
+        pass
+sys.stdout = NullStream()
+import pypar
+sys.stdout = sys.__stdout__
 
 
+#------------------------------------------
+# anuga imports
+#------------------------------------------
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.util_ext        import double_precision
@@ -34,7 +47,7 @@ from anuga import rectangular_cross
 from anuga import create_domain_from_file
 
 
-from anuga_parallel.interface import distribute, myid, numprocs, finalize
+from anuga_parallel import distribute, myid, numprocs, finalize
 
 
 #--------------------------------------------------------------------------
@@ -163,7 +176,7 @@ def evolution_test(parallel=False):
 
 class Test_parallel_distribute_domain(unittest.TestCase):
     def test_parallel_distribute_domain(self):
-        print "Expect this test to fail if not run from the parallel directory."
+        #print "Expect this test to fail if not run from the parallel directory."
         result = os.system("mpirun -np %d python test_parallel_distribute_domain.py" % nprocs)
         assert_(result == 0)
 

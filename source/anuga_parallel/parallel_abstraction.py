@@ -58,5 +58,8 @@ except:
 
     pypar_available = False
 else:
+    import sys
+    sys.stdout = NullStream()
     from pypar import *
+    sys.stdout = sys.__stdout__ 
     pypar_available = True    

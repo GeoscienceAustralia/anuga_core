@@ -20,7 +20,7 @@ class Parallel_Inlet_operator(Inlet_operator):
     Inherit from this class (and overwrite
     discharge_routine method for specific subclasses)
 
-    Input: domain, Two points
+    Input: domain, line, 
     """
 
     """
