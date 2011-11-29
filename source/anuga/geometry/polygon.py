@@ -377,7 +377,7 @@ def is_complex(polygon, closed=True, verbose=False):
             if not segments_joined(leftmost, l_x[cmp]):
                 (type, point) = intersection(leftmost, l_x[cmp])
                 comparisons += 1
-                if type != 0 and type != 4 or (type == 2 and list(point[0]) !=\
+                if type != 0 and type != 4 and type != 3 or (type == 2 and list(point[0]) !=\
                                                 list(point[1])):
                     if verbose:
                         print 'Self-intersecting polygon found, type ', type
