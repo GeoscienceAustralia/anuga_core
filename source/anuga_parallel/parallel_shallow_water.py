@@ -19,6 +19,12 @@ from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 import numpy as num
 
 
+#Import matplotlib
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import matplotlib.tri as tri
 
 class Parallel_domain(Domain):
 
@@ -28,7 +34,9 @@ class Parallel_domain(Domain):
                  ghost_recv_dict=None,
                  number_of_full_nodes=None,
                  number_of_full_triangles=None,
-                 geo_reference=None): #jj added this
+                 geo_reference=None,
+                 tri_map=None,
+                 inv_tri_map=None): #jj added this
 
         Domain.__init__(self,
                         coordinates,
@@ -56,6 +64,9 @@ class Parallel_domain(Domain):
             self.number_of_full_triangles_tmp = get_number_of_triangles()
 
         setup_buffers(self)
+
+        self.tri_map = tri_map
+        self.inv_tri_map = inv_tri_map
 
 
     def set_name(self, name):
@@ -120,4 +131,67 @@ class Parallel_domain(Domain):
     def get_full_nodes(self, *args, **kwargs):
         N = self.mesh.get_nodes(*args, **kwargs)
         return N[:self.number_of_full_nodes_tmp,:]
+
+    def get_tri_map(self):
+        return self.tri_map
+
+    def get_inv_tri_map(self):
+        return self.inv_tri_map
+
+    '''
+    Outputs domain triangulation, full triangles are shown in green while ghost triangles are shown in blue.
+    The default filename is "domain.png"
+    '''
+    def dump_triangulation(self, filename="domain.png"):
+        # Get vertex coordinates, partition full and ghost triangles based on self.tri_full_flag
+        vertices = self.get_vertex_coordinates()
+        full_mask = num.repeat(self.tri_full_flag == 1, 3)
+        ghost_mask = num.repeat(self.tri_full_flag == 0, 3)
+        
+        myid = pypar.rank()
+        numprocs = pypar.size()
+
+        if myid == 0:
+            fx = {}
+            fy = {}
+            gx = {}
+            gy = {}
+
+            # Proc 0 gathers full and ghost nodes from self and other processors
+            fx[0] = vertices[full_mask,0]
+            fy[0] = vertices[full_mask,1]
+            gx[0] = vertices[ghost_mask,0]
+            gy[0] = vertices[ghost_mask,1]
+            
+            for i in range(1,numprocs):
+                fx[i] = pypar.receive(i)
+                fy[i] = pypar.receive(i)
+                gx[i] = pypar.receive(i)
+                gy[i] = pypar.receive(i)
+
+            # Plot full triangles
+            for i in range(0, numprocs):
+                n = int(len(fx[i])/3)
+                            
+                triang = num.array(range(0,3*n))
+                triang.shape = (n, 3)
+                plt.triplot(fx[i], fy[i], triang, 'g-')
+
+            # Plot ghost triangles
+            for i in range(0, numprocs):
+                n = int(len(gx[i])/3)
+                            
+                triang = num.array(range(0,3*n))
+                triang.shape = (n, 3)
+                plt.triplot(gx[i], gy[i], triang, 'b--')
+
+            # Save triangulation to location pointed by filename
+            plt.savefig(filename)
+
+        else:
+            # Proc 1..numprocs send full and ghost triangles to Proc 0
+            pypar.send(vertices[full_mask,0], 0)
+            pypar.send(vertices[full_mask,1], 0)
+            pypar.send(vertices[ghost_mask,0], 0)
+            pypar.send(vertices[ghost_mask,1], 0)
 

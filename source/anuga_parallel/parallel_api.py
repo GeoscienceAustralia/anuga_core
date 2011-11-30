@@ -19,7 +19,7 @@ if pypar_available:
 
     # Mesh partitioning using Metis
     from anuga_parallel.distribute_mesh import build_submesh
-    from anuga_parallel.distribute_mesh import pmesh_divide_metis
+    from anuga_parallel.distribute_mesh import pmesh_divide_metis_with_map
 
     from anuga_parallel.parallel_shallow_water import Parallel_domain
 
@@ -96,9 +96,14 @@ def distribute(domain, verbose=False):
 
         points, vertices, boundary, quantities,\
                 ghost_recv_dict, full_send_dict,\
-                number_of_full_nodes, number_of_full_triangles =\
+                number_of_full_nodes, number_of_full_triangles,\
+                s2p_map, p2s_map =\
                 distribute_mesh(domain, verbose=verbose)
 
+        # Send serial to parallel (s2p) and parallel to serial (p2s) triangle mapping to proc 1 .. numprocs
+        for p in range(1, numprocs):
+            send(s2p_map, p)
+            send(p2s_map, p)
 
         if verbose: print 'Communication done'
         
@@ -110,6 +115,10 @@ def distribute(domain, verbose=False):
                 ghost_recv_dict, full_send_dict,\
                 number_of_full_nodes, number_of_full_triangles =\
                 rec_submesh(0, verbose)
+
+        # Recieve serial to parallel (s2p) and parallel to serial (p2s) triangle mapping
+        s2p_map = receive(0)
+        p2s_map = receive(0)
 
 
     #------------------------------------------------------------------------
@@ -124,7 +133,9 @@ def distribute(domain, verbose=False):
                              ghost_recv_dict=ghost_recv_dict,
                              number_of_full_nodes=number_of_full_nodes,
                              number_of_full_triangles=number_of_full_triangles,
-                             geo_reference=georef) ## jj added this
+                             geo_reference=georef,
+                             tri_map = s2p_map,
+                             inv_tri_map = p2s_map) ## jj added this
 
     #------------------------------------------------------------------------
     # Transfer initial conditions to each subdomain
@@ -164,10 +175,11 @@ def distribute_mesh(domain, verbose=False):
     
     # Subdivide the mesh
     if verbose: print 'Subdivide mesh'
-    nodes, triangles, boundary, triangles_per_proc, quantities = \
-           pmesh_divide_metis(domain, numprocs)
+    nodes, triangles, boundary, triangles_per_proc, quantities, s2p_map, p2s_map = \
+           pmesh_divide_metis_with_map(domain, numprocs)
 
-
+    #PETE: s2p_map (maps serial domain triangles to parallel domain triangles)
+    #p2_map (maps parallel domain triangles to domain triangles)
 
 
     # Build the mesh that should be assigned to each processor,
@@ -226,7 +238,7 @@ def distribute_mesh(domain, verbose=False):
     # Return structures necessary for building the parallel domain
     return points, vertices, boundary, quantities,\
            ghost_recv_dict, full_send_dict,\
-           number_of_full_nodes, number_of_full_triangles
+           number_of_full_nodes, number_of_full_triangles, s2p_map, p2s_map
     
 
 

@@ -100,6 +100,14 @@ except ImportError:
     raise ImportError
 
 def pmesh_divide_metis(domain, n_procs):
+    # Wrapper for old pmesh_divide_metis which does not return tri_index or r_tri_index
+    nodes, ttriangles, boundary, triangles_per_proc, quantities, tri_index, r_tri_index = pmesh_divide_metis_helper(domain, n_procs)
+    return nodes, ttriangles, boundary, triangles_per_proc, quantities
+
+def pmesh_divide_metis_with_map(domain, n_procs):
+    return pmesh_divide_metis_helper(domain, n_procs)
+
+def pmesh_divide_metis_helper(domain, n_procs):
     
     # Initialise the lists
     # List, indexed by processor of # triangles.
@@ -109,6 +117,10 @@ def pmesh_divide_metis(domain, n_procs):
     # List of lists, indexed by processor of vertex numbers
     
     tri_list = []
+
+    # Serial to Parallel and Parallel to Serial Triangle index maps
+    tri_index = {}
+    r_tri_index = {} # reverse tri index, parallel to serial triangle index mapping
     
     # List indexed by processor of cumulative total of triangles allocated.
     
@@ -147,12 +159,12 @@ def pmesh_divide_metis(domain, n_procs):
         # tri_index maps triangle number -> processor, new triangle number
         # (local to the processor)
         
-        tri_index = {}
         triangles = []        
         for i in range(n_tri):
             triangles_per_proc[epart[i]] = triangles_per_proc[epart[i]] + 1
             tri_list[epart[i]].append(domain.triangles[i])
             tri_index[i] = ([epart[i], len(tri_list[epart[i]]) - 1])
+            r_tri_index[epart[i], len(tri_list[epart[i]]) - 1] = i
         
         # Order the triangle list so that all of the triangles belonging
         # to processor i are listed before those belonging to processor
@@ -201,8 +213,10 @@ def pmesh_divide_metis(domain, n_procs):
     ttriangles = num.zeros((len(triangles), 3), num.int)
     for i in range(len(triangles)):
         ttriangles[i] = triangles[i]
+
+    #return nodes, ttriangles, boundary, triangles_per_proc, quantities
     
-    return nodes, ttriangles, boundary, triangles_per_proc, quantities
+    return nodes, ttriangles, boundary, triangles_per_proc, quantities, tri_index, r_tri_index
 
 
 #########################################################

@@ -104,7 +104,9 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
 ## Distribute domain
 ##-----------------------------------------------------------------------
 
-    if parallel: domain = distribute(domain)
+    if parallel:
+        domain = distribute(domain)
+        domain.dump_triangulation("frac_op_domain.png")
     
 
 ##-----------------------------------------------------------------------
@@ -146,11 +148,16 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     if not parallel: control_data = []
 
     ################ Define Fractional Operators ##########################
+
+    inlet0 = None
+    inlet1 = None
+    boyd_box0 = None
     
     inlet0 = Inlet_operator(domain, line0, Q0, debug = False)
     inlet1 = Inlet_operator(domain, line1, Q1, debug = False)
     
     # Enquiry point [ 19.    2.5] is contained in two domains in 4 proc case
+    
     boyd_box0 = Boyd_box_operator(domain,
                                   end_points=[[9.0, 2.5],[19.0, 2.5]],
                                   losses=1.5,
@@ -160,7 +167,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
                                   use_velocity_head=False,
                                   manning=0.013,
                                   verbose=False, debug = False)
-
+        
     if inlet0 is not None: inlet0.print_statistics()
     if inlet1 is not None: inlet1.print_statistics()
     if boyd_box0 is not None: boyd_box0.print_statistics()
@@ -201,7 +208,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     ## Evolve system through time
     ##-----------------------------------------------------------------------
 
-    for t in domain.evolve(yieldstep = 1.0, finaltime = 38):
+    for t in domain.evolve(yieldstep = 0.1, finaltime = 38):
         domain.write_time()
 
         #print domain.volumetric_balance_statistics()
