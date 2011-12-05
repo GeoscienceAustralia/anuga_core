@@ -19,7 +19,6 @@ from anuga.utilities.terminal_width import terminal_width
 
 #List files that should be excluded from the testing process.
 #E.g. if they are known to fail and under development
-exclude_files = ['test_failure.py']
 
 # Directories that should not be searched for test files.
 exclude_dirs = ['documentation',               # Special requirements
