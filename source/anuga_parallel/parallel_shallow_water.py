@@ -21,10 +21,7 @@ import numpy as num
 
 #Import matplotlib
 
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import matplotlib.tri as tri
+
 
 class Parallel_domain(Domain):
 
@@ -144,6 +141,16 @@ class Parallel_domain(Domain):
     '''
     def dump_triangulation(self, filename="domain.png"):
         # Get vertex coordinates, partition full and ghost triangles based on self.tri_full_flag
+
+        try:
+            import matplotlib
+            matplotlib.use('Agg')
+            import matplotlib.pyplot as plt
+            import matplotlib.tri as tri
+        except:
+            print "Couldn't import module from matplotlib, probably you need to update matplotlib"
+            raise
+
         vertices = self.get_vertex_coordinates()
         full_mask = num.repeat(self.tri_full_flag == 1, 3)
         ghost_mask = num.repeat(self.tri_full_flag == 0, 3)
