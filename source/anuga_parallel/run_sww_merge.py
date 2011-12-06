@@ -11,14 +11,36 @@ from anuga.utilities.sww_merge import sww_merge
 
 if __name__ == "__main__":
 
-    filename = '100y'
-    np = 4;
-    verbose = True
+    import argparse
+    from anuga.anuga_exceptions import ANUGAError
 
 
-    output = filename+".sww"
-    swwfiles = [filename+"_P"+str(v)+"_"+str(np)+".sww" for v in range(np)]
+    parser = argparse.ArgumentParser(description='Merge sww files created from parallel run')
+    parser.add_argument('-np', type=int, default = 4,
+                   help='number of processors used to produce sww files')
+    parser.add_argument('-f', type=str, default="domain",
+                   help='base sww file name')
+    parser.add_argument('-v', type=bool, default=False,
+                   help='verbosity')
 
-    print swwfiles
+    args = parser.parse_args()
+
+    np = args.np
+    filebase = args.f
+    verbose = args.v
+
+    #print np
+    #print filebase
+    #print verbose
     
-    sww_merge(swwfiles, output, verbose)
+
+
+    output = filebase+".sww"
+    swwfiles = [ filebase+"P_"+str(np)+"_"+str(v)+".sww" for v in range(np)]
+
+    try:
+        sww_merge(swwfiles, output, verbose)
+    except:
+        msg = 'ERROR: When merging sww files '+" ".join(swwfiles)
+        print msg
+        raise
