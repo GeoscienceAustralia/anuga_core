@@ -20,7 +20,7 @@ if __name__ == "__main__":
                    help='number of processors used to produce sww files')
     parser.add_argument('-f', type=str, default="domain",
                    help='base sww file name')
-    parser.add_argument('-v', type=bool, default=False,
+    parser.add_argument('-v', nargs='?', type=bool, const=True, default=False,
                    help='verbosity')
 
     args = parser.parse_args()
@@ -31,13 +31,15 @@ if __name__ == "__main__":
 
     #print np
     #print filebase
-    #print verbose
+    print verbose
     
 
 
     output = filebase+".sww"
-    swwfiles = [ filebase+"P_"+str(np)+"_"+str(v)+".sww" for v in range(np)]
+    swwfiles = [ filebase+"_P"+str(v)+"_"+str(np)+".sww" for v in range(np)]
 
+    print swwfiles
+    
     try:
         sww_merge(swwfiles, output, verbose)
     except:
