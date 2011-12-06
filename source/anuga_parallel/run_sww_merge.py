@@ -11,12 +11,14 @@ from anuga.utilities.sww_merge import sww_merge
 
 if __name__ == "__main__":
 
-    filename = 'merimbula'
-    np = 2;
+    filename = '100y'
+    np = 4;
     verbose = True
 
 
     output = filename+".sww"
-    swwfiles = " ".join(filename+"P_"+str(np)+"_"+str(v)+".sww" for v in range(np))
+    swwfiles = [filename+"_P"+str(v)+"_"+str(np)+".sww" for v in range(np)]
 
+    print swwfiles
+    
     sww_merge(swwfiles, output, verbose)
