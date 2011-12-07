@@ -62,6 +62,7 @@ class Parallel_domain(Domain):
 
         setup_buffers(self)
 
+        self.global_name = 'domain'
         self.tri_map = tri_map
         self.inv_tri_map = inv_tri_map
 
@@ -73,8 +74,15 @@ class Parallel_domain(Domain):
         if name.endswith('.sww'):
             name = name[:-4]
 
+        self.global_name = name
+
         # Call parents method with processor number attached.
         Domain.set_name(self, name + '_P%d_%d' %(self.processor, self.numproc))
+
+
+    def get_global_name(self):
+
+        return self.global_name
 
 
     def update_timestep(self, yieldstep, finaltime):
@@ -103,6 +111,16 @@ class Parallel_domain(Domain):
         # PETE: Make sure that there are no deadlocks here
 
         self.update_ghosts()
+
+
+
+    def sww_merge(self, verbose=False):
+
+        if self.processor == 0 and self.numproc > 1:
+            import anuga.utilities.sww_merge as merge
+            
+            merge.sww_merge(self.get_global_name(),self.numproc,verbose)
+
 
 # =======================================================================
 # PETE: NEW METHODS FOR FOR PARALLEL STRUCTURES. Note that we assume the 
@@ -201,4 +219,5 @@ class Parallel_domain(Domain):
             pypar.send(vertices[full_mask,1], 0)
             pypar.send(vertices[ghost_mask,0], 0)
             pypar.send(vertices[ghost_mask,1], 0)
+            
 

@@ -39,6 +39,7 @@ def distribute(domain, verbose=False):
     """ Distribute the domain to all processes
     """
 
+    barrier()
 
     # FIXME: Dummy assignment (until boundaries are refactored to
     # be independent of domains until they are applied)

@@ -44,8 +44,8 @@ from anuga_parallel import distribute, myid, numprocs, finalize
 mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0
 #mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
 #mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
-yieldstep = 5
-finaltime = 200
+yieldstep = 20
+finaltime = 500
 verbose = True
 
 #--------------------------------------------------------------------------
@@ -77,7 +77,7 @@ else:
 #--------------------------------------------------------------------------
 
 if myid == 0 and verbose: print 'DISTRIBUTING DOMAIN'
-domain = distribute(domain)
+domain = distribute(domain,verbose=True)
 
 #domain.smooth = False
 
@@ -114,6 +114,11 @@ if myid == 0:
     print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
     print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
 
+
+#--------------------------------------------------
+# Merge the individual sww files into one file
+#--------------------------------------------------
+domain.sww_merge(verbose=True)
 
 finalize()
 
