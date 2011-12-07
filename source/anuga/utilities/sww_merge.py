@@ -10,8 +10,15 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, \
                             netcdf_mode_a, netcdf_float
 from anuga.file.sww import SWW_file, Write_sww
 
+def sww_merge(domain_global_name, np, verbose=False):
 
-def sww_merge(swwfiles, output, verbose = False):
+    output = domain_global_name+".sww"
+    swwfiles = [ domain_global_name+"_P"+str(v)+"_"+str(np)+".sww" for v in range(np)]
+
+    _sww_merge(swwfiles, output, verbose)
+
+
+def _sww_merge(swwfiles, output, verbose):
     """
         Merge a list of sww files into a single file.
         
@@ -27,7 +34,10 @@ def sww_merge(swwfiles, output, verbose = False):
         output is the output filename, including .sww extension.
         verbose True to log output information
     """
-    
+
+    if verbose:
+        print "MERGING SWW Files"
+        
     static_quantities = ['elevation']
     dynamic_quantities = ['stage', 'xmomentum', 'ymomentum']
     
@@ -87,6 +97,9 @@ def sww_merge(swwfiles, output, verbose = False):
     fid.close()
     
     # Write out the SWW file
+
+    if verbose:
+            print 'Writing file ', output, ':'
     fido = NetCDFFile(output, netcdf_mode_w)
     sww = Write_sww(static_quantities, dynamic_quantities)
     sww.store_header(fido, times,
@@ -129,30 +142,20 @@ if __name__ == "__main__":
     parser.add_argument('-np', type=int, default = 4,
                    help='number of processors used to produce sww files')
     parser.add_argument('-f', type=str, default="domain",
-                   help='base sww file name')
+                   help='domain global name')
     parser.add_argument('-v', nargs='?', type=bool, const=True, default=False,
                    help='verbosity')
 
     args = parser.parse_args()
 
     np = args.np
-    filebase = args.f
+    domain_global_name = args.f
     verbose = args.v
 
-    #print np
-    #print filebase
-    #print verbose
-
-
-
-    output = filebase+".sww"
-    swwfiles = [ filebase+"_P"+str(v)+"_"+str(np)+".sww" for v in range(np)]
-
-    #print swwfiles
 
     try:
-        sww_merge(swwfiles, output, verbose)
+        sww_merge(domain_global_name, np, verbose)
     except:
-        msg = 'ERROR: When merging sww files '+" ".join(swwfiles)
+        msg = 'ERROR: When merging sww files %s '% domain_global_name
         print msg
         raise
