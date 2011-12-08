@@ -77,7 +77,7 @@ else:
 #--------------------------------------------------------------------------
 
 if myid == 0 and verbose: print 'DISTRIBUTING DOMAIN'
-domain = distribute(domain,verbose=True)
+domain = distribute(domain)
 
 #domain.smooth = False
 
@@ -118,7 +118,7 @@ if myid == 0:
 #--------------------------------------------------
 # Merge the individual sww files into one file
 #--------------------------------------------------
-domain.sww_merge(verbose=True)
+domain.sww_merge()
 
 finalize()
 

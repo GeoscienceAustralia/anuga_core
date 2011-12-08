@@ -6,8 +6,8 @@ import numpy as num
 from anuga.utilities.numerical_tools import ensure_numeric
 
 from Scientific.IO.NetCDF import NetCDFFile
-from anuga.config import netcdf_mode_r, netcdf_mode_w, \
-                            netcdf_mode_a, netcdf_float
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
+from anuga.config import netcdf_float, netcdf_float32, netcdf_int
 from anuga.file.sww import SWW_file, Write_sww
 
 def sww_merge(domain_global_name, np, verbose=False):
@@ -48,6 +48,9 @@ def _sww_merge(swwfiles, output, verbose):
             print 'Reading file ', filename, ':'    
     
         fid = NetCDFFile(filename, netcdf_mode_r)
+
+        
+        
         tris = fid.variables['volumes'][:]       
          
         if first_file:
@@ -57,6 +60,43 @@ def _sww_merge(swwfiles, output, verbose):
             out_tris = list(tris)  
             out_s_quantities = {}
             out_d_quantities = {}
+
+
+            xllcorner = fid.xllcorner
+            yllcorner = fid.yllcorner
+
+            print 'zone',fid.zone
+
+            print """
+            fid.order
+            fid.xllcorner;
+            fid.yllcorner ;
+            fid.zone;
+            fid.false_easting;
+            fid.false_northing;
+            fid.datum;
+            fid.projection;
+            """
+
+
+            print fid.order
+            print fid.xllcorner;
+            print fid.yllcorner ;
+            print fid.zone;
+            print fid.false_easting;
+            print fid.false_northing;
+            print fid.datum;
+            print fid.projection;
+
+            order      = fid.order
+            xllcorner  = fid.xllcorner;
+            yllcorner  = fid.yllcorner ;
+            zone       = fid.zone;
+            false_easting  = fid.false_easting;
+            false_northing = fid.false_northing;
+            datum      = fid.datum;
+            projection = fid.projection;
+
             
             for quantity in static_quantities:
                 out_s_quantities[quantity] = []
@@ -94,9 +134,14 @@ def _sww_merge(swwfiles, output, verbose):
     
     # Mash all points into a single big list    
     points = [[xx, yy] for xx, yy in zip(x, y)]
+
+    points = num.asarray(points, dtype='f')
+    print points
     fid.close()
-    
+
+    #---------------------------
     # Write out the SWW file
+    #---------------------------
 
     if verbose:
             print 'Writing file ', output, ':'
@@ -106,10 +151,21 @@ def _sww_merge(swwfiles, output, verbose):
                              len(out_tris),
                              len(points),
                              description=description,
-                             sww_precision=netcdf_float)
+                             sww_precision=netcdf_float32)
 
 
+    
+    
     sww.store_triangulation(fido, points, out_tris)
+
+    fido.order      = order
+    fido.xllcorner  = xllcorner;
+    fido.yllcorner  = yllcorner ;
+    fido.zone       = zone;
+    fido.false_easting  = false_easting;
+    fido.false_northing = false_northing;
+    fido.datum      = datum;
+    fido.projection = projection;
        
     sww.store_static_quantities(fido, verbose=verbose, **out_s_quantities)
 
@@ -117,7 +173,7 @@ def _sww_merge(swwfiles, output, verbose):
     for q in dynamic_quantities:
         q_values = out_d_quantities[q]
         for i, time_slice in enumerate(q_values):
-            fido.variables[q][i] = num.array(time_slice, netcdf_float)
+            fido.variables[q][i] = num.array(time_slice, netcdf_float32)
         
         # This updates the _range values
         q_range = fido.variables[q + Write_sww.RANGE][:]
