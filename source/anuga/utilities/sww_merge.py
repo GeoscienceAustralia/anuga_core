@@ -65,29 +65,6 @@ def _sww_merge(swwfiles, output, verbose):
             xllcorner = fid.xllcorner
             yllcorner = fid.yllcorner
 
-            print 'zone',fid.zone
-
-            print """
-            fid.order
-            fid.xllcorner;
-            fid.yllcorner ;
-            fid.zone;
-            fid.false_easting;
-            fid.false_northing;
-            fid.datum;
-            fid.projection;
-            """
-
-
-            print fid.order
-            print fid.xllcorner;
-            print fid.yllcorner ;
-            print fid.zone;
-            print fid.false_easting;
-            print fid.false_northing;
-            print fid.datum;
-            print fid.projection;
-
             order      = fid.order
             xllcorner  = fid.xllcorner;
             yllcorner  = fid.yllcorner ;
@@ -135,8 +112,8 @@ def _sww_merge(swwfiles, output, verbose):
     # Mash all points into a single big list    
     points = [[xx, yy] for xx, yy in zip(x, y)]
 
-    points = num.asarray(points, dtype='f')
-    print points
+    points = num.asarray(points).astype(netcdf_float32)
+
     fid.close()
 
     #---------------------------

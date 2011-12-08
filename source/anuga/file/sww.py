@@ -654,6 +654,10 @@ class Write_sww(Write_sts):
         x =  points[:,0]
         y =  points[:,1]
 
+        x = x.astype(netcdf_float32)
+        y = y.astype(netcdf_float32)
+        
+
         if verbose:
             log.critical('------------------------------------------------')
             log.critical('More Statistics:')
@@ -667,8 +671,9 @@ class Write_sww(Write_sts):
             log.critical('geo_ref: %s' % str(geo_ref))
             log.critical('------------------------------------------------')
 
-        outfile.variables['x'][:] = points[:,0] #- geo_ref.get_xllcorner()
-        outfile.variables['y'][:] = points[:,1] #- geo_ref.get_yllcorner()
+
+        outfile.variables['x'][:] = x #- geo_ref.get_xllcorner()
+        outfile.variables['y'][:] = y #- geo_ref.get_yllcorner()
         outfile.variables['volumes'][:] = volumes.astype(num.int32) #On Opteron 64
 
 
