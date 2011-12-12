@@ -98,8 +98,15 @@ def distribute(domain, verbose=False):
         points, vertices, boundary, quantities,\
                 ghost_recv_dict, full_send_dict,\
                 number_of_full_nodes, number_of_full_triangles,\
-                s2p_map, p2s_map =\
+                s2p_map, p2s_map, tri_map, node_map =\
                 distribute_mesh(domain, verbose=verbose)
+
+        number_of_global_triangles = len(tri_map)
+        number_of_global_nodes = len(node_map)
+
+        # Extract l2g maps
+        tri_l2g  = extract_l2g_map(tri_map)
+        node_l2g = extract_l2g_map(node_map)
 
         # Send serial to parallel (s2p) and parallel to serial (p2s) triangle mapping to proc 1 .. numprocs
         for p in range(1, numprocs):
@@ -114,9 +121,17 @@ def distribute(domain, verbose=False):
         if verbose: print 'P%d: Receiving submeshes' %(myid)                
         points, vertices, boundary, quantities,\
                 ghost_recv_dict, full_send_dict,\
-                number_of_full_nodes, number_of_full_triangles =\
+                number_of_full_nodes, number_of_full_triangles, \
+                tri_map, node_map =\
                 rec_submesh(0, verbose)
 
+        number_of_global_triangles = len(tri_map)
+        number_of_global_nodes = len(node_map)
+
+        # Extract l2g maps
+        tri_l2g  = extract_l2g_map(tri_map)
+        node_l2g = extract_l2g_map(node_map)
+        
         # Recieve serial to parallel (s2p) and parallel to serial (p2s) triangle mapping
         s2p_map = receive(0)
         p2s_map = receive(0)
@@ -135,8 +150,12 @@ def distribute(domain, verbose=False):
                              number_of_full_nodes=number_of_full_nodes,
                              number_of_full_triangles=number_of_full_triangles,
                              geo_reference=georef,
-                             tri_map = s2p_map,
-                             inv_tri_map = p2s_map) ## jj added this
+                             number_of_global_triangles = number_of_global_triangles,
+                             number_of_global_nodes = number_of_global_nodes,
+                             s2p_map = s2p_map,
+                             p2s_map = p2s_map, ## jj added this
+                             tri_l2g = tri_l2g, ## SR added this
+                             node_l2g = node_l2g)
 
     #------------------------------------------------------------------------
     # Transfer initial conditions to each subdomain
@@ -176,11 +195,12 @@ def distribute_mesh(domain, verbose=False):
     
     # Subdivide the mesh
     if verbose: print 'Subdivide mesh'
-    nodes, triangles, boundary, triangles_per_proc, quantities, s2p_map, p2s_map = \
+    nodes, triangles, boundary, triangles_per_proc, quantities, \
+           s2p_map, p2s_map = \
            pmesh_divide_metis_with_map(domain, numprocs)
 
     #PETE: s2p_map (maps serial domain triangles to parallel domain triangles)
-    #p2_map (maps parallel domain triangles to domain triangles)
+    #      sp2_map (maps parallel domain triangles to domain triangles)
 
 
     # Build the mesh that should be assigned to each processor,
@@ -203,7 +223,8 @@ def distribute_mesh(domain, verbose=False):
       send_submesh(submesh, triangles_per_proc, p, verbose)
 
     # Build the local mesh for processor 0
-    points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict =\
+    points, vertices, boundary, quantities, \
+            ghost_recv_dict, full_send_dict, tri_map, node_map =\
               extract_hostmesh(submesh, triangles_per_proc)
 
     # Keep track of the number full nodes and triangles.
@@ -239,8 +260,27 @@ def distribute_mesh(domain, verbose=False):
     # Return structures necessary for building the parallel domain
     return points, vertices, boundary, quantities,\
            ghost_recv_dict, full_send_dict,\
-           number_of_full_nodes, number_of_full_triangles, s2p_map, p2s_map
+           number_of_full_nodes, number_of_full_triangles, \
+           s2p_map, p2s_map, tri_map, node_map
     
 
 
+def extract_l2g_map(map):
+    # Extract l2g_map
+
+    import numpy as num
+    
+    b = num.arange(len(map))
+
+    l_ids = num.extract(map>-1,map)
+    g_ids = num.extract(map>-1,b)
+
+#    print len(g_ids)
+#    print len(l_ids)
+#    print l_ids
+
+    l2g = num.zeros_like(g_ids)
+    l2g[l_ids] = g_ids
+
+    return l2g
 

@@ -164,6 +164,14 @@ class Generic_Domain:
         # Create an empty list for fractional step operators
         self.fractional_step_operators = []
 
+
+
+        # by default domain is not parallel
+        self.parallel = False
+
+        self.number_of_global_triangles = self.number_of_triangles
+        self.number_of_global_nodes = self.number_of_nodes
+
         # Setup the ghost cell communication
         if full_send_dict is None:
             self.full_send_dict = {}

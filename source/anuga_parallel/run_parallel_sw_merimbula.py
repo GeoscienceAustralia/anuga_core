@@ -34,16 +34,16 @@ from anuga import rectangular_cross
 from anuga import create_domain_from_file
 
 
-from anuga_parallel import distribute, myid, numprocs, finalize
+from anuga_parallel import distribute, myid, numprocs, finalize, barrier
 
 
 #--------------------------------------------------------------------------
 # Setup parameters
 #--------------------------------------------------------------------------
 
-mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0
+#mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0
 #mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
-#mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
+mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
 yieldstep = 20
 finaltime = 500
 verbose = True
@@ -69,6 +69,11 @@ class Set_Stage:
 if myid == 0:
     domain = create_domain_from_file(mesh_filename)
     domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))
+
+    print domain.statistics()
+    print domain.get_extent()
+    print domain.get_extent(absolute=True)
+    print domain.geo_reference
 else:
     domain = None
 
@@ -85,7 +90,23 @@ domain.set_default_order(2)
 domain.set_timestepping_method('rk2')
 #domain.set_CFL(0.7)
 #domain.set_beta(1.5)
-domain.set_name('meribula')
+domain.set_name('merimbula')
+
+for p in range(numprocs):
+    if myid == p:
+        print 'P%d'%p
+        print domain.get_extent()
+        print domain.get_extent(absolute=True)
+        print domain.geo_reference
+        #print domain.tri_map
+        #print domain.inv_tri_map
+        print domain.tri_l2g
+        print domain.node_l2g
+    else:
+        pass
+    
+    barrier()
+
 
 #------------------------------------------------------------------------------
 # Setup boundary conditions

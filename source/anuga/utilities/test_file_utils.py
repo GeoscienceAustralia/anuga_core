@@ -6,7 +6,7 @@ import sys
 
 from anuga.utilities.file_utils import copy_code_files, get_all_swwfiles
 from anuga.utilities.file_utils import del_dir
-from sww_merge import sww_merge
+from sww_merge import sww_merge, _sww_merge
 
 
 class Test_FileUtils(unittest.TestCase):
@@ -138,7 +138,7 @@ class Test_FileUtils(unittest.TestCase):
             pass
                 
         outfile = 'test_out.sww'
-        sww_merge(['test1.sww', 'test2.sww'], outfile)
+        _sww_merge(['test1.sww', 'test2.sww'], outfile)
         self.failUnless(os.access(outfile, os.F_OK))  
         
         # remove temp files

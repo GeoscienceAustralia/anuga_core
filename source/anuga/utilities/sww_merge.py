@@ -13,7 +13,7 @@ from anuga.file.sww import SWW_file, Write_sww
 def sww_merge(domain_global_name, np, verbose=False):
 
     output = domain_global_name+".sww"
-    swwfiles = [ domain_global_name+"_P"+str(v)+"_"+str(np)+".sww" for v in range(np)]
+    swwfiles = [ domain_global_name+"_P"+str(np)+"_"+str(v)+".sww" for v in range(np)]
 
     _sww_merge(swwfiles, output, verbose)
 
@@ -131,9 +131,11 @@ def _sww_merge(swwfiles, output, verbose):
                              sww_precision=netcdf_float32)
 
 
+
+    from anuga.coordinate_transforms.geo_reference import Geo_reference
+    geo_reference = Geo_reference()
     
-    
-    sww.store_triangulation(fido, points, out_tris)
+    sww.store_triangulation(fido, points, out_tris, points_georeference=geo_reference)
 
     fido.order      = order
     fido.xllcorner  = xllcorner;

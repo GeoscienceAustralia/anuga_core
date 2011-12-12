@@ -194,7 +194,8 @@ def distibute_three_processors():
         #----------------------------------------------------------------------------------
         # Test extract_hostmesh
         #----------------------------------------------------------------------------------
-        points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict  =\
+        points, vertices, boundary, quantities, \
+                ghost_recv_dict, full_send_dict, tri_map, node_map  =\
         extract_hostmesh(submesh, triangles_per_proc)
 
 
@@ -221,7 +222,10 @@ def distibute_three_processors():
         #----------------------------------------------------------------------------------
         # Test rec_submesh
         #----------------------------------------------------------------------------------
-        points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict, no_full_nodes, no_full_trigs = rec_submesh(0, verbose=False)    
+        points, vertices, boundary, quantities, \
+                ghost_recv_dict, full_send_dict, \
+                no_full_nodes, no_full_trigs, tri_map, node_map  = \
+                rec_submesh(0, verbose=False)    
 
         if myid == 1:
 
@@ -234,6 +238,12 @@ def distibute_three_processors():
 
             true_full_send =  {0: [num.array([0, 1, 3, 4, 5]), num.array([ 5,  6,  8,  9, 10])], 2: [num.array([0, 1]), num.array([5, 6])]}
 
+            true_tri_map  = num.array([ 6,  7,  8, -1,  9,  0, 1,  2,  3,  4,  5, 10, 11])
+
+            true_node_map = num.array([ 0,  1,  2,  7,  3,  4, -1,  8,  9,  5,  6, 10, 11])
+
+            assert_(num.allclose(tri_map,   true_tri_map))
+            assert_(num.allclose(node_map,   true_node_map))
             assert_(num.allclose(points,   true_points))
             assert_(num.allclose(vertices, true_vertices))
             assert_(num.allclose(ghost_recv_dict[0],true_ghost_recv[0]))
@@ -248,12 +258,16 @@ def distibute_three_processors():
 
             true_vertices =  [[1, 5, 0], [1, 6, 2], [3, 6, 1], [4, 6, 3], [2, 6, 4], [2, 5, 1], [2, 10, 8], [4, 10, 2], [9, 10, 4], [0, 5, 7], [7, 5, 2]]
 
-
             true_ghost_recv =   {0: [num.array([5, 6, 7, 8]), num.array([0, 1, 2, 3])], 1: [num.array([ 9, 10]), num.array([5, 6])]}
 
             true_full_send =   {0: [num.array([0, 1, 2, 3, 4]), num.array([11, 12, 13, 14, 15])], 1: [num.array([0, 1]), num.array([11, 12])]}
 
+            true_tri_map  = num.array([5, 6, 7, 8, -1, 9, 10, -1, -1, -1, -1, 0, 1, 2, 3, 4, -1])
 
+            true_node_map = num.array([ 0,  7, -1,  1,  2,  8 , 3,  4,  9,  5, -1,  6, 10])
+
+            assert_(num.allclose(tri_map,   true_tri_map))
+            assert_(num.allclose(node_map,   true_node_map))
             assert_(num.allclose(points,   true_points))
             assert_(num.allclose(vertices, true_vertices))
             assert_(num.allclose(ghost_recv_dict[0],true_ghost_recv[0]))

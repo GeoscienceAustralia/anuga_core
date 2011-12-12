@@ -184,6 +184,15 @@ class SWW_file(Data_format):
                                             domain.geo_reference)
 
 
+        if domain.parallel:
+            self.writer.store_parallel_data(fid,
+                                        domain.number_of_global_triangles,
+                                        domain.number_of_global_nodes,
+                                        domain.tri_full_flag,
+                                        domain.tri_l2g,
+                                        domain.node_l2g)
+
+
         # Get names of static quantities
         static_quantities = {}
         for name in self.writer.static_quantities:
@@ -675,6 +684,50 @@ class Write_sww(Write_sts):
         outfile.variables['x'][:] = x #- geo_ref.get_xllcorner()
         outfile.variables['y'][:] = y #- geo_ref.get_yllcorner()
         outfile.variables['volumes'][:] = volumes.astype(num.int32) #On Opteron 64
+
+
+    def store_parallel_data(self,
+                            outfile,
+                            number_of_global_triangles,
+                            number_of_global_nodes,
+                            tri_full_flag = None,
+                            tri_l2g = None,
+                            node_l2g = None,
+                            sww_precision=netcdf_float32,
+                            verbose=False):
+
+
+         # dimension definitions
+        #outfile.createDimension('number_of_volumes', number_of_volumes)
+        #outfile.createDimension('number_of_vertices', 3)
+        #outfile.createDimension('numbers_in_range', 2)
+
+        print 'store parallel data'
+        outfile.number_of_global_triangles = number_of_global_triangles
+        outfile.number_of_global_nodes = number_of_global_nodes
+
+        # variable definitions
+        outfile.createVariable('tri_l2g',  netcdf_int, ('number_of_volumes',))
+        outfile.createVariable('node_l2g', netcdf_int, ('number_of_points',))
+        outfile.createVariable('tri_full_flag', netcdf_int, ('number_of_volumes',))
+
+        print tri_l2g.shape
+        print tri_l2g
+        print outfile.variables['tri_l2g'].shape
+
+        outfile.variables['tri_l2g'][:] = tri_l2g.astype(num.int32)
+
+        print node_l2g.shape
+        print node_l2g
+        print outfile.variables['node_l2g'].shape
+
+        outfile.variables['node_l2g'][:] = node_l2g.astype(num.int32)
+
+        print tri_full_flag.shape
+        print tri_full_flag
+        print outfile.variables['tri_full_flag'].shape
+
+        outfile.variables['tri_full_flag'][:] = tri_full_flag.astype(num.int32)
 
 
     def store_static_quantities(self, 

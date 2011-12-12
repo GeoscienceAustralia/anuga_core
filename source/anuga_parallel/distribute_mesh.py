@@ -146,7 +146,7 @@ def pmesh_divide_metis_helper(domain, n_procs):
         del edgecut
         del npart
 
-        # Sometimes (usu. on x86_64), partMeshNodal returnes an array of zero
+        # Sometimes (usu. on x86_64), partMeshNodal returns an array of zero
         # dimensional arrays. Correct this.
         if type(epart[0]) == num.ndarray:
             epart_new = num.zeros(len(epart), num.int)
@@ -807,7 +807,7 @@ def build_submesh(nodes, triangles, edges, quantities,
 #
 #########################################################
 
-def build_local_GA(nodes, triangles, boundaries, tri_index):
+def build_local_GA(nodes, triangles, boundaries, tri_map):
 
     Nnodes =len(nodes)
     Ntriangles = len(triangles)
@@ -822,26 +822,27 @@ def build_local_GA(nodes, triangles, boundaries, tri_index):
     for i in range(Nnodes):
         if nodes[i][0] > NGlobal:
             NGlobal = nodes[i][0]
-    index = num.zeros(int(NGlobal)+1, num.int)
-    num.put(index, num.take(nodes, (0,), 1).astype(num.int), \
+
+    node_map = -1*num.ones(int(NGlobal)+1, num.int)
+
+    num.put(node_map, num.take(nodes, (0,), 1).astype(num.int), \
         num.arange(Nnodes))
         
     # Change the global IDs in the triangles to the local IDs
 
     GAtriangles = num.zeros((Ntriangles, 3), num.int)
-    GAtriangles[:,0] = num.take(index, triangles[:,0])
-    GAtriangles[:,1] = num.take(index, triangles[:,1])
-    GAtriangles[:,2] = num.take(index, triangles[:,2])
+    GAtriangles[:,0] = num.take(node_map, triangles[:,0])
+    GAtriangles[:,1] = num.take(node_map, triangles[:,1])
+    GAtriangles[:,2] = num.take(node_map, triangles[:,2])
 
     # Change the triangle numbering in the boundaries
 
     GAboundaries = {}
     for b in boundaries:
-        GAboundaries[tri_index[b[0]], b[1]] = boundaries[b]
+        GAboundaries[tri_map[b[0]], b[1]] = boundaries[b]
         
-    del (index)
     
-    return GAnodes, GAtriangles, GAboundaries
+    return GAnodes, GAtriangles, GAboundaries, node_map
 
 
 #########################################################
@@ -867,7 +868,7 @@ def build_local_GA(nodes, triangles, boundaries, tri_index):
 #
 #########################################################
 
-def build_local_commun(index, ghostc, fullc, nproc):
+def build_local_commun(tri_map, ghostc, fullc, nproc):
 
     # Initialise
 
@@ -885,7 +886,7 @@ def build_local_commun(index, ghostc, fullc, nproc):
         if len(d) > 0:
             ghost_recv[c] = [0, 0]
             ghost_recv[c][1] = d
-            ghost_recv[c][0] = num.take(index, d)
+            ghost_recv[c][0] = num.take(tri_map, d)
             
     # Build a temporary copy of the full_send dictionary
     # (this version allows the information to be stored
@@ -898,7 +899,7 @@ def build_local_commun(index, ghostc, fullc, nproc):
             if not tmp_send.has_key(neigh):
                 tmp_send[neigh] = []
             tmp_send[neigh].append([global_id, \
-                                    index[global_id]])
+                                    tri_map[global_id]])
 
     # Extract the full send information and put it in the form
     # required for the full_send dictionary
@@ -957,15 +958,17 @@ def build_local_mesh(submesh, lower_t, upper_t, nproc):
         id = submesh["ghost_triangles"][i][0]
         if id > NGlobal:
             NGlobal = id
-    index = num.zeros(int(NGlobal)+1, num.int)
-    index[lower_t:upper_t]=num.arange(upper_t-lower_t)
+    #index = num.zeros(int(NGlobal)+1, num.int)
+    tri_map = -1*num.ones(int(NGlobal)+1, num.int)
+    tri_map[lower_t:upper_t]=num.arange(upper_t-lower_t)
     for i in range(len(submesh["ghost_triangles"])):
-        index[submesh["ghost_triangles"][i][0]] = i+upper_t-lower_t
+        tri_map[submesh["ghost_triangles"][i][0]] = i+upper_t-lower_t
     
     # Change the node numbering (and update the numbering in the
     # triangles)
 
-    [GAnodes, GAtriangles, GAboundary] = build_local_GA(nodes, triangles, boundaries, index)
+    [GAnodes, GAtriangles, GAboundary, node_map] = \
+    build_local_GA(nodes, triangles, boundaries, tri_map)
 
     # Extract the local quantities
     
@@ -983,14 +986,11 @@ def build_local_mesh(submesh, lower_t, upper_t, nproc):
     gcommun = submesh["ghost_commun"]
     fcommun = submesh["full_commun"]
     [ghost_rec, full_send] = \
-                build_local_commun(index, gcommun, fcommun, nproc)
+                build_local_commun(tri_map, gcommun, fcommun, nproc)
 
-    # Clean up before exiting
-
-    del(index)
 
     return GAnodes, GAtriangles, GAboundary, quantities, ghost_rec, \
-           full_send
+           full_send, tri_map, node_map
 
 
 #########################################################
@@ -1283,13 +1283,15 @@ def rec_submesh(p, verbose=True):
     # convert the information into a form needed by the GA
     # datastructure
 
-    [GAnodes, GAtriangles, boundary, quantities, ghost_rec, full_send] = \
+    [GAnodes, GAtriangles, boundary, quantities, \
+     ghost_rec, full_send, tri_map, node_map] = \
               build_local_mesh(submesh_cell, lower_t, upper_t, \
                                numproc)
     
     return GAnodes, GAtriangles, boundary, quantities,\
            ghost_rec, full_send,\
-           number_of_full_nodes, number_of_full_triangles
+           number_of_full_nodes, number_of_full_triangles, tri_map, node_map
+          
 
 
 #########################################################
@@ -1326,12 +1328,14 @@ def extract_hostmesh(submesh, triangles_per_proc):
         submesh_cell["ghost_quan"][k] = submesh["ghost_quan"][k][0]
 
     numprocs = len(triangles_per_proc)
-    points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict = \
+    points, vertices, boundary, quantities, ghost_recv_dict, \
+            full_send_dict, tri_map, node_map = \
             build_local_mesh(submesh_cell, 0, triangles_per_proc[0], numprocs)
 
 
     return  points, vertices, boundary, quantities, ghost_recv_dict, \
-           full_send_dict
+           full_send_dict, tri_map, node_map
+           
 
 
 

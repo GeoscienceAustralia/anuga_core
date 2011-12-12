@@ -32,8 +32,12 @@ class Parallel_domain(Domain):
                  number_of_full_nodes=None,
                  number_of_full_triangles=None,
                  geo_reference=None,
-                 tri_map=None,
-                 inv_tri_map=None): #jj added this
+                 number_of_global_triangles=None, ## SR added this
+                 number_of_global_nodes= None, ## SR added this
+                 s2p_map=None,
+                 p2s_map=None, #jj added this
+                 tri_l2g = None, ## SR added this
+                 node_l2g = None): ## SR added this
 
         Domain.__init__(self,
                         coordinates,
@@ -47,6 +51,10 @@ class Parallel_domain(Domain):
                         number_of_full_triangles=number_of_full_triangles,
                         geo_reference=geo_reference) #jj added this
         
+
+
+        self.parallel = True
+
         # PETE: Find the number of full nodes and full triangles, this is a temporary fix
         # until the bug with get_number_of_full_[nodes|triangles]() is fixed.
 
@@ -63,8 +71,14 @@ class Parallel_domain(Domain):
         setup_buffers(self)
 
         self.global_name = 'domain'
-        self.tri_map = tri_map
-        self.inv_tri_map = inv_tri_map
+
+        self.number_of_global_triangles=number_of_global_triangles
+        self.number_of_global_nodes = number_of_global_nodes
+
+        self.s2p_map = s2p_map
+        self.p2s_map = p2s_map
+        self.tri_l2g = tri_l2g
+        self.node_l2g = node_l2g
 
 
     def set_name(self, name):
@@ -77,7 +91,7 @@ class Parallel_domain(Domain):
         self.global_name = name
 
         # Call parents method with processor number attached.
-        Domain.set_name(self, name + '_P%d_%d' %(self.processor, self.numproc))
+        Domain.set_name(self, name + '_P%d_%d' %(self.numproc, self.processor))
 
 
     def get_global_name(self):
