@@ -193,6 +193,7 @@ class Mesh(General_mesh):
 
         #FIXME check integrity?
         if verbose: log.critical('Mesh: Done')
+        if verbose: log.timingInfo("finishMesh, '%s'" % log.CurrentDateTime())
 
     def __repr__(self):
         return General_mesh.__repr__(self) + ', %d boundary segments'\

@@ -6,7 +6,7 @@ import numpy as num
 from anuga.geometry.polygon import inside_polygon
 from anuga.geometry.polygon import polylist2points_verts
 import anuga.utilities.log as log
-
+import datetime
 
 # This is due to pmesh being a package and a module and
 # the current dir being unknown 
@@ -86,6 +86,12 @@ def create_mesh_from_regions(bounding_polygon,
     
     """
     
+    
+    if verbose: log.resource_usage_timing(log.logging.INFO, "start_")
+    if verbose: log.timingInfo("maximum_triangle_area, " + str(maximum_triangle_area))
+    if verbose: log.timingInfo("minimum_triangle_angle, " + str(minimum_triangle_angle))
+    if verbose: log.timingInfo("startMesh, '%s'" % log.CurrentDateTime())
+    
     # Build arguments and keyword arguments for use with caching or apply.
     args = (bounding_polygon,
             boundary_tags)
@@ -120,6 +126,8 @@ def create_mesh_from_regions(bounding_polygon,
         m = apply(_create_mesh_from_regions,
                   args, kwargs)
 
+
+    
     return m    
         
 
@@ -329,13 +337,15 @@ def _create_mesh_from_regions(bounding_polygon,
     # was cached or not. This caused Domain to
     # recompute as it has meshfile as a dependency
 
-    # Decide whether to store this mesh or return it    
+    # Decide whether to store this mesh or return it 
+    
+    
     if filename is None:
         return m
     else:
         if verbose: log.critical("Generating mesh to file '%s'" % filename)
+      
         m.generate_mesh(minimum_triangle_angle=minimum_triangle_angle,
                         verbose=verbose)
         m.export_mesh_file(filename)
-
-
+        

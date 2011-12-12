@@ -83,7 +83,8 @@ class General_mesh:
 
         if verbose: log.critical('General_mesh: Building basic mesh structure '
                                  'in ANUGA domain')
-
+        if verbose: log.timingInfo("numTriangles, " + str(triangles.shape[0]))
+        
         self.triangles = num.array(triangles, num.int)
         self.nodes = num.array(nodes, num.float)
 
@@ -197,6 +198,9 @@ class General_mesh:
         # Build structure listing which triangles belong to which node.
         if verbose: log.critical('Building inverted triangle structure')
         self.build_inverted_triangle_structure()
+        
+        if verbose: log.timingInfo("aoi, '%s'" % self.get_area())
+        
 
     def __len__(self):
         return self.number_of_triangles

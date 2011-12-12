@@ -35,10 +35,11 @@ import os
 import sys
 import traceback
 import logging
+import datetime
 
 DefaultConsoleLogLevel = logging.CRITICAL
 DefaultFileLogLevel = logging.INFO
-
+TimingDelimiter ='#@# '
 
 ################################################################################
 # Module variables - only one copy of these, ever.
@@ -203,6 +204,11 @@ def critical(msg=''):
 
     log(msg, logging.CRITICAL)
 
+def timingInfo(msg=''):
+    '''Shortcut for log(timingDelimiter, msg).'''
+
+    log(TimingDelimiter + msg, logging.INFO)
+
 
 def resource_usage(level=logging.INFO):
     '''Log memory usage at given log level.'''
@@ -285,9 +291,100 @@ def resource_usage(level=logging.INFO):
                   memoryStatusEx.ullAvailPhys/_scale['MB']))
         log(msg, level)
 
+def CurrentDateTime():
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+
+def resource_usage_timing(level=logging.INFO, prefix =""):
+    '''Log memory usage at given log level.'''
+
+    _scale = {'KB': 1024, 'MB': 1024*1024, 'GB': 1024*1024*1024,
+              'kB': 1024, 'mB': 1024*1024, 'gB': 1024*1024*1024}
+
+    if sys.platform != 'win32':
+        _proc_status = '/proc/%d/status' % os.getpid()
+        
+        def _VmB(VmKey):
+            '''Get number of virtual bytes used.'''
+
+            # get pseudo file /proc/<pid>/status
+            try:
+                t = open(_proc_status)
+                v = t.read()
+                t.close()
+            except IOError:
+                return 0.0
+
+            # get VmKey line, eg: 'VmRSS: 999 kB\n ...
+            i = v.index(VmKey)
+            v = v[i:].split(None, 3)
+            if len(v) < 3:
+                return 0.0
+
+            # convert Vm value to bytes
+            return float(v[1]) * _scale[v[2]]
+
+        def memory(since=0.0):
+            '''Get virtual memory usage in bytes.'''
+
+            return _VmB('VmSize:') - since
+
+        def resident(since=0.0):
+            '''Get resident memory usage in bytes.'''
+
+            return _VmB('VmRSS:') - since
+
+        def stacksize(since=0.0):
+            '''Get stack size in bytes.'''
+
+            return _VmB('VmStk:') - since
+
+        msg = ('Resource usage: memory=%.1fMB resident=%.1fMB stacksize=%.1fMB'
+               % (memory()/_scale['MB'], resident()/_scale['MB'],
+                  stacksize()/_scale['MB']))
+        log(msg, level)
+        timingInfo('sys_platform, ' + sys.platform)
+        timingInfo(prefix + 'memory, ' + str(memory()/_scale['MB']))
+        timingInfo(prefix + 'resident, ' + str(resident()/_scale['MB']))
+        timingInfo(prefix + 'stacksize, ' + str(stacksize()/_scale['MB']))
+    else:
+        # Windows code from: http://code.activestate.com/recipes/511491/
+        try:
+            import ctypes
+            import _winreg
+        except:
+            log(level, 'Windows resource usage not available')
+            return
+
+        kernel32 = ctypes.windll.kernel32
+        c_ulong = ctypes.c_ulong
+        c_ulonglong = ctypes.c_ulonglong
+        class MEMORYSTATUSEX(ctypes.Structure):
+            _fields_ = [('dwLength', c_ulong),
+                        ('dwMemoryLoad', c_ulong),
+                        ('ullTotalPhys', c_ulonglong),
+                        ('ullAvailPhys', c_ulonglong),
+                        ('ullTotalPageFile', c_ulonglong),
+                        ('ullAvailPageFile', c_ulonglong),
+                        ('ullTotalVirtual', c_ulonglong),
+                        ('ullAvailVirtual', c_ulonglong),
+                        ('ullAvailExtendedVirtual', c_ulonglong)
+                       ]
+
+        memoryStatusEx = MEMORYSTATUSEX()
+        memoryStatusEx.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
+        kernel32.GlobalMemoryStatusEx(ctypes.byref(memoryStatusEx))
+
+        msg = ('Resource usage: total memory=%.1fMB free memory=%.1fMB'
+               % (memoryStatusEx.ullTotalPhys/_scale['MB'],
+                  memoryStatusEx.ullAvailPhys/_scale['MB']))
+        log(msg, level)
+        timingInfo('sys_platform, ' + sys.platform)
+        timingInfo(prefix + 'total_memory, ' + str(memoryStatusEx.ullTotalPhys/_scale['MB']))
+        timingInfo(prefix + 'free_memory, ' + str(memoryStatusEx.ullAvailPhys/_scale['MB']))
+
+    
 ################################################################################
-
 if __name__ == '__main__':
     critical('#' * 80)
     warning('Test of logging...')
