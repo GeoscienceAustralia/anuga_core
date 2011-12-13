@@ -62,15 +62,19 @@ def distribute(domain, verbose=False):
         domain_name = domain.get_name()
         domain_dir = domain.get_datadir()
         georef = domain.geo_reference
+        number_of_global_triangles = domain.number_of_triangles
+        number_of_global_nodes = domain.number_of_nodes
         
         # FIXME - what other attributes need to be transferred?
 
         for p in range(1, numprocs):
-            send((domain_name, domain_dir, georef), p)
+            send((domain_name, domain_dir, georef, \
+                  number_of_global_triangles, number_of_global_nodes), p)
     else:
         if verbose: print 'P%d: Receiving domain attributes' %(myid)
 
-        domain_name, domain_dir, georef = receive(0)
+        domain_name, domain_dir, georef, \
+                  number_of_global_triangles, number_of_global_nodes = receive(0)
 
 
 
@@ -101,8 +105,6 @@ def distribute(domain, verbose=False):
                 s2p_map, p2s_map, tri_map, node_map =\
                 distribute_mesh(domain, verbose=verbose)
 
-        number_of_global_triangles = len(tri_map)
-        number_of_global_nodes = len(node_map)
 
         # Extract l2g maps
         tri_l2g  = extract_l2g_map(tri_map)
@@ -125,8 +127,7 @@ def distribute(domain, verbose=False):
                 tri_map, node_map =\
                 rec_submesh(0, verbose)
 
-        number_of_global_triangles = len(tri_map)
-        number_of_global_nodes = len(node_map)
+
 
         # Extract l2g maps
         tri_l2g  = extract_l2g_map(tri_map)
