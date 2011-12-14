@@ -43,9 +43,10 @@ from anuga_parallel import distribute, myid, numprocs, finalize, barrier
 
 #mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0
 #mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
-mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
+#mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
+mesh_filename = "test-20.tsh" ; x0 = 0.25 ; x1 = 0.5
 yieldstep = 20
-finaltime = 500
+finaltime = 40
 verbose = True
 
 #--------------------------------------------------------------------------

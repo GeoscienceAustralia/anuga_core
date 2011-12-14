@@ -133,7 +133,7 @@ class Parallel_domain(Domain):
         if self.processor == 0 and self.numproc > 1:
             import anuga.utilities.sww_merge as merge
             
-            merge.sww_merge(self.get_global_name(),self.numproc,verbose)
+            merge.sww_merge_parallel(self.get_global_name(),self.numproc,verbose)
 
 
 # =======================================================================
