@@ -252,11 +252,32 @@ def _sww_merge_parallel(swwfiles, output, verbose):
         tri_l2g  = fid.variables['tri_l2g'][:]
         node_l2g = fid.variables['node_l2g'][:]
         tri_full_flag = fid.variables['tri_full_flag'][:]
-        volumes = fid.variables['volumes'][:]
+        volumes = num.array(fid.variables['volumes'][:],dtype=num.int)
+        l_volumes = num.zeros_like(volumes)
+
+
+        # Change the local node ids to global id in the
+        # volume array
+ 
+        for i in range(len(l_volumes)):
+            g_n0 = node_l2g[volumes[i,0]]
+            g_n1 = node_l2g[volumes[i,1]]
+            g_n2 = node_l2g[volumes[i,2]]
+        
+            l_volumes[i,:] = [g_n0,g_n1,g_n2]
 
         # Just pick out the full triangles
         ftri_l2g = num.compress(tri_full_flag, tri_l2g)
-        g_volumes[ftri_l2g] = num.compress(tri_full_flag,volumes,axis=0)
+
+        #print l_volumes
+        #print tri_full_flag
+        #print tri_l2g
+        #print ftri_l2g
+    
+        g_volumes[ftri_l2g] = num.compress(tri_full_flag,l_volumes,axis=0)
+
+
+
 
         #g_x[node_l2g] = fid.variables['x']
         #g_y[node_l2g] = fid.variables['y']
@@ -265,7 +286,7 @@ def _sww_merge_parallel(swwfiles, output, verbose):
         g_points[node_l2g,1] = fid.variables['y']
         
 
-        print number_of_timesteps
+        #print number_of_timesteps
         
         # Read in static quantities
         for quantity in static_quantities:
@@ -276,7 +297,7 @@ def _sww_merge_parallel(swwfiles, output, verbose):
         #Collate all dynamic quantities according to their timestep
         for quantity in dynamic_quantities:
             q = fid.variables[quantity]
-            print q.shape
+            #print q.shape
             for i in range(number_of_timesteps):
                 out_d_quantities[quantity][i][node_l2g] = \
                            num.array(q[i],dtype=num.float32)
@@ -290,10 +311,10 @@ def _sww_merge_parallel(swwfiles, output, verbose):
     #---------------------------
     # Write out the SWW file
     #---------------------------
-    print g_points.shape
+    #print g_points.shape
 
-    print number_of_global_triangles
-    print number_of_global_nodes
+    #print number_of_global_triangles
+    #print number_of_global_nodes
 
 
     if verbose:
@@ -340,11 +361,11 @@ def _sww_merge_parallel(swwfiles, output, verbose):
             fido.variables[q + Write_sww.RANGE][1] = q_values_max        
 
                                         
-    print out_s_quantities
-    print out_d_quantities
+    #print out_s_quantities
+    #print out_d_quantities
     
-    print g_x
-    print g_y
+    #print g_x
+    #print g_y
 
     #print g_volumes
     
@@ -373,7 +394,7 @@ if __name__ == "__main__":
 
 
     try:
-        sww_merge(domain_global_name, np, verbose)
+        sww_merge_parallel(domain_global_name, np, verbose)
     except:
         msg = 'ERROR: When merging sww files %s '% domain_global_name
         print msg
