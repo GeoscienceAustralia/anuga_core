@@ -44,7 +44,7 @@ from anuga_parallel import distribute, myid, numprocs, finalize, barrier
 #mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0
 #mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
 #mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
-mesh_filename = "test-20.tsh" ; x0 = 0.25 ; x1 = 0.5
+mesh_filename = "test-20.tsh" ; x0 = 250.0 ; x1 = 350.0
 yieldstep = 20
 finaltime = 40
 verbose = True
@@ -64,12 +64,27 @@ class Set_Stage:
     def __call__(self, x, y):
         return self.h*((x>self.x0)&(x<self.x1))
 
+
+class Set_Elevation:
+    """Set an elevation
+    """
+
+    def __init__(self, h=1.0):
+        self.x0 = x0
+        self.x1 = x1
+        self.h  = h
+
+    def __call__(self, x, y):
+        return x/self.h
+    
+
 #--------------------------------------------------------------------------
 # Setup Domain only on processor 0
 #--------------------------------------------------------------------------
 if myid == 0:
     domain = create_domain_from_file(mesh_filename)
     domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))
+    domain.set_quantity('elevation', Set_Elevation(500.0))
 
     print domain.statistics()
     print domain.get_extent()
@@ -99,8 +114,8 @@ for p in range(numprocs):
         print domain.get_extent()
         print domain.get_extent(absolute=True)
         print domain.geo_reference
-        #print domain.tri_map
-        #print domain.inv_tri_map
+        print domain.s2p_map
+        print domain.p2s_map
         print domain.tri_l2g
         print domain.node_l2g
     else:
