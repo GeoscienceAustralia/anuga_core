@@ -702,7 +702,7 @@ class Write_sww(Write_sts):
         #outfile.createDimension('number_of_vertices', 3)
         #outfile.createDimension('numbers_in_range', 2)
 
-        print 'store parallel data'
+        #print 'store parallel data'
         outfile.number_of_global_triangles = number_of_global_triangles
         outfile.number_of_global_nodes = number_of_global_nodes
 
@@ -711,21 +711,21 @@ class Write_sww(Write_sts):
         outfile.createVariable('node_l2g', netcdf_int, ('number_of_points',))
         outfile.createVariable('tri_full_flag', netcdf_int, ('number_of_volumes',))
 
-        print tri_l2g.shape
-        print tri_l2g
-        print outfile.variables['tri_l2g'].shape
+        #print tri_l2g.shape
+        #print tri_l2g
+        #print outfile.variables['tri_l2g'].shape
 
         outfile.variables['tri_l2g'][:] = tri_l2g.astype(num.int32)
 
-        print node_l2g.shape
-        print node_l2g
-        print outfile.variables['node_l2g'].shape
+        #print node_l2g.shape
+        #print node_l2g
+        #print outfile.variables['node_l2g'].shape
 
         outfile.variables['node_l2g'][:] = node_l2g.astype(num.int32)
 
-        print tri_full_flag.shape
-        print tri_full_flag
-        print outfile.variables['tri_full_flag'].shape
+        #print tri_full_flag.shape
+        #print tri_full_flag
+        #print outfile.variables['tri_full_flag'].shape
 
         outfile.variables['tri_full_flag'][:] = tri_full_flag.astype(num.int32)
 
