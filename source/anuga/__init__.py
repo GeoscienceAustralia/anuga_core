@@ -174,11 +174,11 @@ def rectangular_cross_domain(*args, **kwargs):
 #----------------------------
 # Create domain from file
 #----------------------------
-def create_domain_from_file(file):
+def create_domain_from_file(file, DomainClass=Domain):
     """
     Create a domain from a file
     """
-    return pmesh_to_domain_instance(file,Domain)
+    return pmesh_to_domain_instance(file,DomainClass=DomainClass)
 
 #---------------------------
 # Create domain from regions
