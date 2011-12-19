@@ -208,7 +208,9 @@ def _sww_merge_parallel(swwfiles, output, verbose):
         if first_file:
 
             times    = fid.variables['time'][:]
-            number_of_timesteps = len(times)
+            n_steps = len(times)
+            number_of_timesteps = fid.dimensions['number_of_timesteps']
+            starttime = int(fid.starttime)
             
             out_s_quantities = {}
             out_d_quantities = {}
@@ -241,7 +243,7 @@ def _sww_merge_parallel(swwfiles, output, verbose):
             # Quantities are stored as a 2D array of timesteps x data.
             for quantity in dynamic_quantities:
                 out_d_quantities[quantity] = \
-                      num.zeros((number_of_timesteps,number_of_global_nodes),num.float32)
+                      num.zeros((n_steps,number_of_global_nodes),num.float32)
                  
             description = 'merged:' + getattr(fid, 'description')          
             first_file = False
@@ -298,7 +300,7 @@ def _sww_merge_parallel(swwfiles, output, verbose):
         for quantity in dynamic_quantities:
             q = fid.variables[quantity]
             #print q.shape
-            for i in range(number_of_timesteps):
+            for i in range(n_steps):
                 out_d_quantities[quantity][i][node_l2g] = \
                            num.array(q[i],dtype=num.float32)
 
@@ -321,7 +323,7 @@ def _sww_merge_parallel(swwfiles, output, verbose):
             print 'Writing file ', output, ':'
     fido = NetCDFFile(output, netcdf_mode_w)
     sww = Write_sww(static_quantities, dynamic_quantities)
-    sww.store_header(fido, times,
+    sww.store_header(fido, starttime,
                              number_of_global_triangles,
                              number_of_global_nodes,
                              description=description,
@@ -348,7 +350,7 @@ def _sww_merge_parallel(swwfiles, output, verbose):
     # Write out all the dynamic quantities for each timestep
     for q in dynamic_quantities:
         q_values = out_d_quantities[q]
-        for i in range(number_of_timesteps):
+        for i in range(n_steps):
             fido.variables[q][i] = q_values[i]
         
         # This updates the _range values
