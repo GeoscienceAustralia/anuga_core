@@ -348,6 +348,10 @@ def _sww_merge_parallel(swwfiles, output, verbose):
     sww.store_static_quantities(fido, verbose=verbose, **out_s_quantities)
 
     # Write out all the dynamic quantities for each timestep
+
+    for i in range(n_steps):
+        fido.variables['time'][i] = times[i]
+        
     for q in dynamic_quantities:
         q_values = out_d_quantities[q]
         for i in range(n_steps):
