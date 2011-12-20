@@ -18,12 +18,12 @@ def sww_merge(domain_global_name, np, verbose=False):
     _sww_merge(swwfiles, output, verbose)
 
 
-def sww_merge_parallel(domain_global_name, np, verbose=False):
+def sww_merge_parallel(domain_global_name, np, verbose=False, delete_old=False):
 
     output = domain_global_name+".sww"
     swwfiles = [ domain_global_name+"_P"+str(np)+"_"+str(v)+".sww" for v in range(np)]
 
-    _sww_merge_parallel(swwfiles, output, verbose)
+    _sww_merge_parallel(swwfiles, output, verbose, delete_old)
 
 
 def _sww_merge(swwfiles, output, verbose):
@@ -175,7 +175,7 @@ def _sww_merge(swwfiles, output, verbose):
     fido.close()
 
 
-def _sww_merge_parallel(swwfiles, output, verbose):
+def _sww_merge_parallel(swwfiles, output,  verbose, delete_old):
     """
         Merge a list of sww files into a single file.
         
@@ -376,7 +376,14 @@ def _sww_merge_parallel(swwfiles, output, verbose):
     #print g_volumes
     
     fido.close()
+    
+    if delete_old:
+        import os
+        for filename in swwfiles:
 
+            if verbose:
+                print 'Deleting file ', filename, ':'
+            os.remove(filename)
 
 if __name__ == "__main__":
 
@@ -391,16 +398,18 @@ if __name__ == "__main__":
                    help='domain global name')
     parser.add_argument('-v', nargs='?', type=bool, const=True, default=False,
                    help='verbosity')
-
+    parser.add_argument('-delete_old', nargs='?', type=bool, const=True, default=False,
+                   help='Flag to delete the input files')
     args = parser.parse_args()
 
     np = args.np
     domain_global_name = args.f
     verbose = args.v
+    delete_old = args.delete_old
 
 
     try:
-        sww_merge_parallel(domain_global_name, np, verbose)
+        sww_merge_parallel(domain_global_name, np, verbose, delete_old)
     except:
         msg = 'ERROR: When merging sww files %s '% domain_global_name
         print msg

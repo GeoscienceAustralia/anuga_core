@@ -128,12 +128,12 @@ class Parallel_domain(Domain):
 
 
 
-    def sww_merge(self, verbose=False):
+    def sww_merge(self, verbose=False, delete_old=False):
 
         if self.processor == 0 and self.numproc > 1:
             import anuga.utilities.sww_merge as merge
             
-            merge.sww_merge_parallel(self.get_global_name(),self.numproc,verbose)
+            merge.sww_merge_parallel(self.get_global_name(),self.numproc,verbose,delete_old)
 
 
 # =======================================================================
