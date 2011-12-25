@@ -26,7 +26,7 @@ def sww_merge_parallel(domain_global_name, np, verbose=False, delete_old=False):
     _sww_merge_parallel(swwfiles, output, verbose, delete_old)
 
 
-def _sww_merge(swwfiles, output, verbose):
+def _sww_merge(swwfiles, output, verbose=False):
     """
         Merge a list of sww files into a single file.
         
@@ -175,7 +175,7 @@ def _sww_merge(swwfiles, output, verbose):
     fido.close()
 
 
-def _sww_merge_parallel(swwfiles, output,  verbose, delete_old):
+def _sww_merge_parallel(swwfiles, output,  verbose=False, delete_old=False):
     """
         Merge a list of sww files into a single file.
         
