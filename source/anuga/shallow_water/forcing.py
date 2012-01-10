@@ -496,7 +496,7 @@ class General_forcing:
 
     def __parallel_safe(self):
 
-        return false
+        return False
 
 class Rainfall(General_forcing):
     """Class Rainfall - general 'rain over entire domain' forcing term.
@@ -536,7 +536,7 @@ class Rainfall(General_forcing):
     # This is the new element implemented by Ole and Rudy to allow direct
     # input of Rainfall in mm/s
 
-    catchmentrainfall = Rainfall(rain=file_function('Q100_2hr_Rain.tms'))
+    catchmentrainfall = Rainfall(rate=file_function('Q100_2hr_Rain.tms'))
                         # Note need path to File in String.
                         # Else assumed in same directory
 
