@@ -1,12 +1,12 @@
 # Compile and test Anuga
 import os, sys
 
-
 buildroot = os.getcwd()
 execfile('compile_all.py')
 
 os.chdir(buildroot)
 print 'Buildroot is ', buildroot
+
 os.chdir('source')
 os.chdir('anuga')
     
