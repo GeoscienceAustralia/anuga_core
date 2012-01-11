@@ -155,7 +155,7 @@ if myid == 0:
 #--------------------------------------------------
 # Merge the individual sww files into one file
 #--------------------------------------------------
-domain.sww_merge()
+domain.sww_merge(delete_old=True)
 
 finalize()
 
