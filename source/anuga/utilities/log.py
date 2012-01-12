@@ -294,6 +294,9 @@ def resource_usage(level=logging.INFO):
 def CurrentDateTime():
     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+def TimeStamp():
+    return datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+
 
 def resource_usage_timing(level=logging.INFO, prefix =""):
     '''Log memory usage at given log level.'''
