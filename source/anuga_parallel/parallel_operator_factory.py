@@ -35,32 +35,56 @@ Returns None for calling processors not associated with inlet. Otherwise
 return an instance of Parallel_Inlet_Operator
 """
 
-def Inlet_operator(domain, line, Q, master_proc = 0, procs = range(0,pypar.size()), debug = False):
+def Inlet_operator(domain, 
+                   line,
+                   Q,
+                   description = None,
+                   label = None,
+                   logging = False,
+                   master_proc = 0,
+                   procs = range(0,pypar.size()),
+                   verbose = False):
 
     # If not parallel domain then allocate serial Inlet operator
     if isinstance(domain, Parallel_domain) is False:
-        if debug: print "Allocating non parallel inlet operator ....."
-        return anuga.structures.inlet_operator.Inlet_operator(domain, line, Q)
+        if verbose: print "Allocating non parallel inlet operator ....."
+        return anuga.structures.inlet_operator.Inlet_operator(domain,
+                                                              line,
+                                                              Q,
+                                                              description = description,
+                                                              label = label,
+                                                              logging = logging,
+                                                              verbose = verbose)
     
 
     myid = pypar.rank()
 
 
-    alloc, inlet_master_proc, inlet_procs, enquiry_proc = allocate_inlet_procs(domain, line,
+    alloc, inlet_master_proc, inlet_procs, enquiry_proc = allocate_inlet_procs(domain,
+                                                                               line,
                                                                                master_proc = master_proc,
-                                                                               procs = procs, debug = debug)
+                                                                               procs = procs,
+                                                                               verbose = verbose)
 
 
 
     if alloc:
-        if debug and myid == inlet_master_proc:
+        if verbose and myid == inlet_master_proc:
             print "Parallel Inlet Operator ================="
             print "Line = " + str(line)
             print "Master Processor is P%d" %(inlet_master_proc)
             print "Processors are P%s" %(inlet_procs)
             print "========================================="
 
-        return Parallel_Inlet_operator(domain, line, Q, master_proc = inlet_master_proc, procs = inlet_procs)
+        return Parallel_Inlet_operator(domain,
+                                       line,
+                                       Q,
+                                       description = description,
+                                       label = label,
+                                       logging = logging,
+                                       master_proc = inlet_master_proc,
+                                       procs = inlet_procs,
+                                       verbose = verbose)
     else:
         return None
 
@@ -91,12 +115,11 @@ def Boyd_box_operator(domain,
                        logging=False,
                        verbose=False,
                        master_proc=0,
-                       procs=range(0,pypar.size()),
-                       debug = False):
+                       procs=range(0,pypar.size())):
 
     # If not parallel domain then allocate serial Boyd box operator
     if isinstance(domain, Parallel_domain) is False:
-        if debug: print "Allocating non parallel boyd box operator ....."
+        if verbose: print "Allocating non parallel boyd box operator ....."
         return anuga.structures.boyd_box_operator.Boyd_box_operator(domain,
                                                                     losses,
                                                                     width,
@@ -161,7 +184,7 @@ def Boyd_box_operator(domain,
 
     alloc0, inlet0_master_proc, inlet0_procs, enquiry0_proc = allocate_inlet_procs(domain, line0, enquiry_point =  enquiry_point0,
                                                                                    master_proc = master_proc,
-                                                                                   procs = procs, debug = debug)
+                                                                                   procs = procs, verbose=verbose)
 
     # Determine processors associated with second inlet
     line1 = exchange_lines_tmp[1]
@@ -169,14 +192,14 @@ def Boyd_box_operator(domain,
 
     alloc1, inlet1_master_proc, inlet1_procs, enquiry1_proc = allocate_inlet_procs(domain, line1, enquiry_point =  enquiry_point1,
                                                                                    master_proc = master_proc,
-                                                                                   procs = procs, debug = debug)
+                                                                                   procs = procs, verbose=verbose)
 
     structure_procs = list(set(inlet0_procs + inlet1_procs))
     inlet_master_proc = [inlet0_master_proc, inlet1_master_proc]
     inlet_procs = [inlet0_procs, inlet1_procs]
     enquiry_proc = [enquiry0_proc, enquiry1_proc]
 
-    if myid == master_proc and debug:
+    if myid == master_proc and verbose:
         print "Parallel Boyd Box Operator ============================="
         print "Structure Master Proc is P" + str(inlet0_master_proc)
         print "Structure Procs are P" + str(structure_procs)
@@ -283,7 +306,7 @@ def __process_skew_culvert(exchange_lines, end_points, enquiry_points, apron, en
     return enquiry_points
         
 
-def allocate_inlet_procs(domain, line, enquiry_point = None, master_proc = 0, procs = range(0, pypar.size()), debug = False):
+def allocate_inlet_procs(domain, line, enquiry_point = None, master_proc = 0, procs = range(0, pypar.size()), verbose = False):
 
     myid = pypar.rank()
     vertex_coordinates = domain.get_full_vertex_coordinates(absolute=True)
@@ -300,7 +323,7 @@ def allocate_inlet_procs(domain, line, enquiry_point = None, master_proc = 0, pr
 
     tri_id = line_intersect(vertex_coordinates, line)
 
-    if debug:
+    if verbose:
         print "P%d has %d triangles on line %s" %(myid, len(tri_id), line)
 
     size = len(tri_id)
@@ -312,12 +335,12 @@ def allocate_inlet_procs(domain, line, enquiry_point = None, master_proc = 0, pr
             if domain.tri_full_flag[k] == 1:
                 size = size + 1
                 has_enq_point = True
-                if debug: print "P%d has enq point %s" %(myid, enquiry_point)
+                if verbose: print "P%d has enq point %s" %(myid, enquiry_point)
             else:
-                if debug: print "P%d contains ghost copy of enq point %s" %(myid, enquiry_point)
+                if verbose: print "P%d contains ghost copy of enq point %s" %(myid, enquiry_point)
                 has_enq_point = False
         except:
-            if debug: print "P%d does not contain enq point %s" %(myid, enquiry_point)
+            if verbose: print "P%d does not contain enq point %s" %(myid, enquiry_point)
             has_enq_point = False
 
     if myid == master_proc:
@@ -379,4 +402,4 @@ __author__="pete"
 __date__ ="$06/09/2011 1:17:57 PM$"
 
 if __name__ == "__main__":
-    print "Hello World"
+    print "Parallel operator factory"

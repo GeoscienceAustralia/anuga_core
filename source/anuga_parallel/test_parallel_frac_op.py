@@ -153,8 +153,8 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     inlet1 = None
     boyd_box0 = None
     
-    inlet0 = Inlet_operator(domain, line0, Q0, debug = False)
-    inlet1 = Inlet_operator(domain, line1, Q1, debug = False)
+    inlet0 = Inlet_operator(domain, line0, Q0, verbose = False)
+    inlet1 = Inlet_operator(domain, line1, Q1, verbose = False)
     
     # Enquiry point [ 19.    2.5] is contained in two domains in 4 proc case
     
@@ -166,14 +166,14 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
                                   use_momentum_jet=True,
                                   use_velocity_head=False,
                                   manning=0.013,
-                                  verbose=False, debug = False)
+                                  verbose=False)
         
     if inlet0 is not None: inlet0.print_statistics()
     if inlet1 is not None: inlet1.print_statistics()
     if boyd_box0 is not None: boyd_box0.print_statistics()
 
 #    if parallel:
-#        factory = Parallel_operator_factory(domain, debug = True)
+#        factory = Parallel_operator_factory(domain, verbose = True)
 #
 #        inlet0 = factory.inlet_operator_factory(line0, Q0)
 #        inlet1 = factory.inlet_operator_factory(line1, Q1)
@@ -209,7 +209,8 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     ##-----------------------------------------------------------------------
 
     for t in domain.evolve(yieldstep = 0.1, finaltime = 38):
-        domain.write_time()
+        if myid == 0:
+            domain.write_time()
 
         #print domain.volumetric_balance_statistics()
     
@@ -301,8 +302,8 @@ if __name__=="__main__":
     else:
         test_points = pypar.receive(0)
 
-    print "Test Points::"
-    print test_points
+    #print "Test Points::"
+    #print test_points
 
     if myid == 0:
         control_data = run_test(parallel=False, test_points = test_points, verbose = True)

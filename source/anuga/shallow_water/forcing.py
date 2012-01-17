@@ -496,7 +496,7 @@ class General_forcing:
 
     def __parallel_safe(self):
 
-        return False
+        return True
 
 class Rainfall(General_forcing):
     """Class Rainfall - general 'rain over entire domain' forcing term.

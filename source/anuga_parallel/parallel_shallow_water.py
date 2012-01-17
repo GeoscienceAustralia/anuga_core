@@ -219,10 +219,10 @@ class Parallel_domain(Domain):
             # Plot ghost triangles
             for i in range(0, numprocs):
                 n = int(len(gx[i])/3)
-                            
-                triang = num.array(range(0,3*n))
-                triang.shape = (n, 3)
-                plt.triplot(gx[i], gy[i], triang, 'b--')
+                if n > 0:
+                    triang = num.array(range(0,3*n))
+                    triang.shape = (n, 3)
+                    plt.triplot(gx[i], gy[i], triang, 'b--')
 
             # Save triangulation to location pointed by filename
             plt.savefig(filename)
