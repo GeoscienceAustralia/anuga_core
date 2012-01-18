@@ -209,14 +209,18 @@ class Domain(Generic_Domain):
         from anuga.config import minimum_allowed_height, maximum_allowed_speed
         from anuga.config import g, beta_w, beta_w_dry, \
              beta_uh, beta_uh_dry, beta_vh, beta_vh_dry, tight_slope_limiters
+        from anuga.config import extrapolate_velocity_second_order
         from anuga.config import alpha_balance
         from anuga.config import optimise_dry_cells
         from anuga.config import optimised_gradient_limiter
         from anuga.config import use_edge_limiter
         from anuga.config import use_centroid_velocities
+        
 
         self.set_minimum_allowed_height(minimum_allowed_height)
         self.maximum_allowed_speed = maximum_allowed_speed
+
+        self.extrapolate_velocity_second_order=extrapolate_velocity_second_order
 
         self.g = g
         self.beta_w = beta_w
@@ -1135,7 +1139,8 @@ def extrapolate_second_order_sw(domain):
               Xmom.vertex_values,
               Ymom.vertex_values,
               Elevation.vertex_values,
-              int(domain.optimise_dry_cells))
+              int(domain.optimise_dry_cells),
+              int(domain.extrapolate_velocity_second_order))
 
 def distribute_using_vertex_limiter(domain):
     """Distribution from centroids to vertices specific to the SWW equation.

@@ -95,6 +95,10 @@ use_centroid_velocities = True
 # FIXME (Ole) Maybe get rid of order altogether and use beta_w
 default_order = 2
 
+# Option to use velocity extrapolation instead of momentum extrapolation in the
+# routine domain.extrapolate_second_order_sw
+extrapolate_velocity_second_order=False
+
 ################################################################################
 # Timestepping
 ################################################################################

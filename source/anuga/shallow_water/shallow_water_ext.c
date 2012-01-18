@@ -1331,7 +1331,8 @@ int _extrapolate_second_order_sw(int number_of_elements,
                                  double* xmom_vertex_values,
                                  double* ymom_vertex_values,
                                  double* elevation_vertex_values,
-                                 int optimise_dry_cells) {
+                                 int optimise_dry_cells, 
+                                 int extrapolate_velocity_second_order) {
                   
                   
 
@@ -1342,8 +1343,23 @@ int _extrapolate_second_order_sw(int number_of_elements,
   double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq0, dq1, dq2, area2, inv_area2;
   double dqv[3], qmin, qmax, hmin, hmax;
   double hc, h0, h1, h2, beta_tmp, hfactor;
-
+  double xmom_centroid_store[number_of_elements], ymom_centroid_store[number_of_elements], dk, dv0, dv1, dv2;
     
+  if(extrapolate_velocity_second_order==1){
+      // Replace momentum centroid with velocity centroid to allow velocity
+      // extrapolation This will be changed back at the end of the routine
+      for (k=0; k<number_of_elements; k++){
+
+          dk = max(stage_centroid_values[k]-elevation_centroid_values[k],minimum_allowed_height);
+          xmom_centroid_store[k] = xmom_centroid_values[k];
+          xmom_centroid_values[k] = xmom_centroid_values[k]/dk;
+
+          ymom_centroid_store[k] = ymom_centroid_values[k];
+          ymom_centroid_values[k] = ymom_centroid_values[k]/dk;
+      }
+  }
+
+  // Begin extrapolation routine
   for (k = 0; k < number_of_elements; k++) 
   {
     k3=k*3;
@@ -1793,7 +1809,7 @@ int _extrapolate_second_order_sw(int number_of_elements,
 
 for (i=0;i<3;i++)
         {
-ymom_vertex_values[k3 + i] = ymom_centroid_values[k] + dqv[i];
+        ymom_vertex_values[k3 + i] = ymom_centroid_values[k] + dqv[i];
         }
 //ymom_vertex_values[k3] = ymom_centroid_values[k] + dqv[0];
 //ymom_vertex_values[k3 + 1] = ymom_centroid_values[k] + dqv[1];
@@ -1801,6 +1817,31 @@ ymom_vertex_values[k3 + i] = ymom_centroid_values[k] + dqv[i];
     } // else [number_of_boundaries==2]
   } // for k=0 to number_of_elements-1
   
+  if(extrapolate_velocity_second_order==1){
+      // Convert back from velocity to momentum
+      for (k=0; k<number_of_elements; k++){
+          k3=3*k;
+          //dv0 = max(stage_vertex_values[k3]-elevation_vertex_values[k3],minimum_allowed_height);
+          //dv1 = max(stage_vertex_values[k3+1]-elevation_vertex_values[k3+1],minimum_allowed_height);
+          //dv2 = max(stage_vertex_values[k3+2]-elevation_vertex_values[k3+2],minimum_allowed_height);
+          dv0 = max(stage_vertex_values[k3]-elevation_vertex_values[k3],0.);
+          dv1 = max(stage_vertex_values[k3+1]-elevation_vertex_values[k3+1],0.);
+          dv2 = max(stage_vertex_values[k3+2]-elevation_vertex_values[k3+2],0.);
+
+          //Correct centroid and vertex values
+          xmom_centroid_values[k] = xmom_centroid_store[k];
+          xmom_vertex_values[k3]=xmom_vertex_values[k3]*dv0;
+          xmom_vertex_values[k3+1]=xmom_vertex_values[k3+1]*dv1;
+          xmom_vertex_values[k3+2]=xmom_vertex_values[k3+2]*dv2;
+          
+          ymom_centroid_values[k] = ymom_centroid_store[k];
+          ymom_vertex_values[k3]=ymom_vertex_values[k3]*dv0;
+          ymom_vertex_values[k3+1]=ymom_vertex_values[k3+1]*dv1;
+          ymom_vertex_values[k3+2]=ymom_vertex_values[k3+2]*dv2;
+          
+      } 
+  }
+
   return 0;
 }           
 
@@ -1859,12 +1900,12 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
   
   double beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry;    
   double minimum_allowed_height, epsilon;
-  int optimise_dry_cells, number_of_elements, e;
+  int optimise_dry_cells, number_of_elements, e, extrapolate_velocity_second_order;
   
   // Provisional jumps from centroids to v'tices and safety factor re limiting
   // by which these jumps are limited
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOi",
+  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOii",
             &domain,
             &surrogate_neighbours,
             &number_of_boundaries,
@@ -1878,7 +1919,8 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
             &xmom_vertex_values,
             &ymom_vertex_values,
             &elevation_vertex_values,
-            &optimise_dry_cells)) {         
+            &optimise_dry_cells,
+            &extrapolate_velocity_second_order)) {         
 
     report_python_error(AT, "could not parse input arguments");
     return NULL;
@@ -1936,7 +1978,9 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
                    (double*) xmom_vertex_values -> data,
                    (double*) ymom_vertex_values -> data,
                    (double*) elevation_vertex_values -> data,
-                   optimise_dry_cells);
+                   optimise_dry_cells, 
+                   extrapolate_velocity_second_order);
+
   if (e == -1) {
     // Use error string set inside computational routine
     return NULL;
