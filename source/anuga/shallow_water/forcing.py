@@ -495,7 +495,10 @@ class General_forcing:
 
 
     def __parallel_safe(self):
-
+        """
+        These forcing terms only work on individual processors, the polygon
+        had better not stride over multiple sub meshes
+        """
         return True
 
 class Rainfall(General_forcing):
