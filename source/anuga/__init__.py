@@ -144,7 +144,9 @@ from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator
 # User Access Functions
 #---------------------------
 
-from anuga.utilities.system_tools import get_user_name, get_host_name, get_revision_number
+from anuga.utilities.system_tools import get_user_name, get_host_name, \
+    get_revision_number
+from anuga.utilities.mem_time_equation import estimate_time_mem
 
 
 
