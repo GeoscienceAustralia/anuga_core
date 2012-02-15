@@ -3,9 +3,15 @@ import system_tools
 
 TEST_CON = 'test_constants'
 
-test_constants = {'tri_a':1.0, 'tri_b': 10.0}
-system_constants = {'tornado.agso.gov.au':{'tri_a':100.0, 'tri_b': 20.0},
-                   TEST_CON:test_constants}
+#these constants come from the Major Variables script that ran on tornado in serial
+test_constants = {'tri_a_T':0.0000395, 'tri_b_T': 0.29575152,                                      
+                  'tim_a_T':0.03804736,'fil_a_T':0.005928693,'cons_T':-135.0661178,
+                  'tri_a_S':0.00369572,'cons_S':331.7128095}
+
+#these constants come from the Major Variables script that ran on tornado in serial
+system_constants = {'tornado.agso.gov.au':{'tri_a_T':0.0000395, 'tri_b_T': 0.29575152,                                      
+                    'tim_a_T':0.03804736,'fil_a_T':0.005928693,'cons_T':-135.0661178,
+                    'tri_a_S':0.00369572,'cons_S':331.7128095},TEST_CON:test_constants}
 
 DEFAULT_HOST = 'tornado.agso.gov.au'
 
@@ -71,18 +77,21 @@ def whole_equation(halt = False, **kwargs):
     
     return result
        
-
+#using the constants from the experiments into memory and time the Time and Memory are estimated
 def time_equation(**kwargs):
     
-    time = kwargs['constants']['tri_a'] * kwargs['num_tri']
-    #time = (1*num_trit + 2*tri_areat + 3*time_lengtht + 
-    #       4*time_stept + 5*water_deptht + 6*velocityt 
-    # + 7*per_water_covert +8*cpust + 9*cpu_speedt + 10)
+    time = kwargs['constants']['tri_a_T'] * (kwargs['num_tri']) ** 2 +
+           kwargs['constants']['tri_b_T'] * kwargs['num_tri'] +
+           kwargs['constants']['tim_a_T'] * kwargs['finaltime'] +
+           kwargs['constants']['fil_a_T'] * (kwargs['finaltime']/kwargs['yieldstep']) +
+           kwargs['constants']['cons_T']
+ 
     return time
 
 
 def space_equation(**kwargs):
-    memory = 10
+    memory = kwargs['constants']['tri_a_S'] * kwargs['num_tri'] +
+             kwargs['constants']['cons_S']
     return memory
 
     
