@@ -80,17 +80,17 @@ def whole_equation(halt = False, **kwargs):
 #using the constants from the experiments into memory and time the Time and Memory are estimated
 def time_equation(**kwargs):
     
-    time = kwargs['constants']['tri_a_T'] * (kwargs['num_tri']) ** 2 +
-           kwargs['constants']['tri_b_T'] * kwargs['num_tri'] +
-           kwargs['constants']['tim_a_T'] * kwargs['finaltime'] +
-           kwargs['constants']['fil_a_T'] * (kwargs['finaltime']/kwargs['yieldstep']) +
+    time = kwargs['constants']['tri_a_T'] * (kwargs['num_tri']) ** 2 + \
+           kwargs['constants']['tri_b_T'] * kwargs['num_tri'] + \
+           kwargs['constants']['tim_a_T'] * kwargs['finaltime'] + \
+           kwargs['constants']['fil_a_T'] * (kwargs['finaltime']/kwargs['yieldstep']) + \
            kwargs['constants']['cons_T']
  
     return time
 
 
 def space_equation(**kwargs):
-    memory = kwargs['constants']['tri_a_S'] * kwargs['num_tri'] +
+    memory = kwargs['constants']['tri_a_S'] * kwargs['num_tri'] + \
              kwargs['constants']['cons_S']
     return memory
 

@@ -240,8 +240,17 @@ def _create_mesh_from_regions(bounding_polygon,
     if interior_holes is not None:        
         # Test that all the interior polygons are inside the bounding_poly
         for interior_polygon in interior_holes:
+
+            # Test that we have a polygon
+            if len(num.array(interior_polygon).flatten()) < 6:
+                msg = 'Interior hole polygon %s has too few (<3) points.\n' \
+                    %(str(interior_polygon))
+                msg = msg + '(Insure that you have specified a LIST of interior hole polygons)'
+                raise PolygonError(msg)
+                    
             indices = inside_polygon(interior_polygon, bounding_polygon,
                                      closed = True, verbose = False)
+
     
             if len(indices) <> len(interior_polygon): 
                 msg = 'Interior polygon %s is outside bounding polygon: %s'\

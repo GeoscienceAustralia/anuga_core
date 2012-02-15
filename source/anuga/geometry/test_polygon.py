@@ -230,7 +230,7 @@ class Test_Polygon(unittest.TestCase):
         assert not is_inside_polygon((0.5, 0.), polygon, closed=False)
         assert not is_inside_polygon((1., 0.5), polygon, closed=False)
 
-    def test_inside_polygon_main(self):
+    def test_inside_polygon_main_1(self):
         """test_is_inside_polygon
         
         Test fast version of of is_inside_polygon
@@ -256,8 +256,22 @@ class Test_Polygon(unittest.TestCase):
         assert not is_inside_polygon( (0.5, 0.), polygon, closed=False)
         assert not is_inside_polygon( (1., 0.5), polygon, closed=False)
 
+    def test_inside_polygon_ticket_363(self):
 
-    def test_inside_polygon_main(self):
+        polygon = [[ 686007.82,923006.11], [ 686145.11,923006.11], [ 686145.11,923145.11], [ 686003.91,923145.6 ]]
+        points = [[686072,923091], [686072,923084], [686082,923084], [686082,923091]]
+
+        polygon = ensure_numeric(polygon, num.float)
+
+        for point in points:
+            res = inside_polygon(point, polygon, closed = True, verbose = False)
+            print res
+
+
+
+
+
+    def test_inside_polygon_main_2(self):
         # Simplest case: Polygon is the unit square
         polygon = [[0,0], [1,0], [1,1], [0,1]]
 
@@ -267,7 +281,7 @@ class Test_Polygon(unittest.TestCase):
         res = inside_polygon(points, polygon)
         assert len(res) == 0
 
-        polygon = [[20,20], [40,20], [40,40], [20,40]]
+        polygon = [[20.,20.], [40.,20.], [40.,40.], [20.,40.]]
         points = [[25, 25], [30, 20], [40, 50], [90, 20], [40, 90]]
         res = inside_polygon(points, polygon)
         assert len(res) == 2

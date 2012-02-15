@@ -650,6 +650,71 @@ class TestCase(unittest.TestCase):
         segs = m.getUserSegments()
         self.failUnless(len(segs) == 5, 'FAILED!')
         self.failUnless(len(m.userVertices) == 6, 'FAILED!')
+
+
+    def test_create_mesh_with_interior_holes(self):
+         # These are the absolute values
+        polygon = [[100,100], [1000,100], [1000,1000], [100,1000]]
+        
+        interior_poly1 = [[101,101],[200,200], [101,200]]
+        interior_poly2 = [[300,300],[500,500], [400,200]]
+
+        boundary_tags = {'walls': [0,1], 'bom': [2,3]}
+
+
+        # This should work with one hole
+        m = create_mesh_from_regions(polygon,
+                                     boundary_tags,
+                                     10000000,
+                                     interior_holes=[interior_poly1])
+
+        self.failUnless(len(m.getUserSegments()) == 7, 'FAILED!')
+        self.failUnless(len(m.userVertices) == 7, 'FAILED!')
+
+
+        # This should work with two holes
+        m = create_mesh_from_regions(polygon,
+                                     boundary_tags,
+                                     10000000,
+                                     interior_holes=[interior_poly1, interior_poly2])
+        #print len(m.getUserSegments())
+        #print len(m.userVertices)
+        
+        self.failUnless(len(m.getUserSegments()) == 10, 'FAILED!')
+        self.failUnless(len(m.userVertices) == 10, 'FAILED!')
+
+        #-------------------------------------
+        # Error testing
+        #-------------------------------------
+
+        
+        # try passing just one polygon, not a list of polygons, should throw exception
+        try:
+            m = create_mesh_from_regions(polygon,
+                                     boundary_tags,
+                                     10000000,
+                                     interior_holes=interior_poly1)
+        except:
+            pass
+        else:
+            msg = 'Passing a single polygon should have raised an error '
+            raise Exception, msg
+
+
+
+        # interior polygon outside bounding polygon, should throw exception
+        interior_poly3  = [[50,50],[500,500], [400,200]]
+        try:
+            m = create_mesh_from_regions(polygon,
+                                     boundary_tags,
+                                     10000000,
+                                     interior_holes=[interior_poly3])
+        except:
+            pass
+        else:
+            msg = 'Passing a single polygon should have raised an error '
+            raise Exception, msg
+
 		
     def test_create_mesh_from_regions_with_duplicate_verts(self):
         # These are the absolute values
