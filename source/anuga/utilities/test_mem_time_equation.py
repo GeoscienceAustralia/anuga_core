@@ -29,8 +29,10 @@ class Test_mem_time_equation(unittest.TestCase):
         
         time, memory = estimate_time_mem(domain, yieldstep, finaltime, 
                           use_test_constants=True, log_results=False)
-        acual = system_constants[TEST_CON]['tri_a'] * tri_num
-        self.assertEqual(time, acual)
+
+        
+        actual = system_constants[TEST_CON]['tri_a'] * tri_num
+        self.assertEqual(time, actual)
 
 ################################################################################
 
