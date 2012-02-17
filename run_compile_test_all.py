@@ -1,4 +1,4 @@
-# Compile and test Anuga
+# Compile and unit test Anuga
 import os, sys
 
 buildroot = os.getcwd()
