@@ -31,7 +31,11 @@ class Test_mem_time_equation(unittest.TestCase):
                           use_test_constants=True, log_results=False)
 
         
-        actual = system_constants[TEST_CON]['tri_a'] * tri_num
+        actual = system_constants[TEST_CON]['tri_a_T'] * tri_num ** 2 + \
+             system_constants[TEST_CON]['tri_b_T'] * tri_num + \
+              system_constants[TEST_CON]['tim_a_T'] * finaltime + \
+              system_constants[TEST_CON]['fil_a_T'] * finaltime/yieldstep + \
+               system_constants[TEST_CON]['cons_T']
         self.assertEqual(time, actual)
 
 ################################################################################
