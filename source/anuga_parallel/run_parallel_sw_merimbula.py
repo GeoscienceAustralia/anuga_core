@@ -100,8 +100,12 @@ else:
 if myid == 0 and verbose: print 'DISTRIBUTING DOMAIN'
 domain = distribute(domain)
 
-#domain.smooth = False
+#--------------------------------------------------------------------------
+# On all processors, setup evolve parameters for domains on all processors
+# (all called "domain"
+#--------------------------------------------------------------------------
 
+#domain.smooth = False
 domain.set_default_order(2)
 domain.set_timestepping_method('rk2')
 #domain.set_CFL(0.7)
