@@ -395,6 +395,9 @@ class Generic_Domain:
 
     def statistics(self, *args, **kwargs):
         return self.mesh.statistics(*args, **kwargs)
+
+    def print_statistics(self, *args, **kwargs):
+        print self.statistics(*args, **kwargs)
         
     def get_extent(self, *args, **kwargs):
         return self.mesh.get_extent(*args, **kwargs)    
@@ -1020,6 +1023,16 @@ class Generic_Domain:
                 msg += s
 
         return msg
+
+    def print_timestepping_statistics(self, track_speeds=False,
+                                      triangle_id=None):
+        print self.timestepping_statistics(track_speeds,
+                                      triangle_id)
+
+
+        
+    def print_boundary_statistics(self, quantities=None, tags=None):
+        print self.boundary_statistics(quantities, tags)
 
     def write_boundary_statistics(self, quantities=None, tags=None):
         log.critical(self.boundary_statistics(quantities, tags))

@@ -661,7 +661,8 @@ class Domain(Generic_Domain):
         #VH.set_boundary_values_from_edges()
 
         # Update height values
-        H.set_values(W.centroid_values-Z.centroid_values, location='centroids')
+        H.set_values( num.where(W.centroid_values-Z.centroid_values>=0,
+                                W.centroid_values-Z.centroid_values, 0.0), location='centroids')
         H.set_boundary_values( num.where(W.boundary_values-Z.boundary_values>=0,
                                          W.boundary_values-Z.boundary_values, 0.0))
 
