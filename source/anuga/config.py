@@ -82,6 +82,11 @@ alpha_balance = 2.0
 # tight_slope_limiters = 1 means use new limiters that hug the bathymetry closer
 tight_slope_limiters = True
 
+use_edge_limiter = False  # The edge limiter is better, but most runs have been
+                          # using vertex limiting. Validations passed with this
+                          # one True 9th May 2008, but many unit tests need
+                          # backward compatibility flag set FIXME(Ole).
+
 # Use centroid velocities to reconstruct momentum at vertices in
 # very shallow water
 # This option has a first order flavour to it, but we still have second order
@@ -160,7 +165,7 @@ max_smallsteps = 50   # Max number of degenerate steps allowed b4
 minimum_allowed_height = 1.0e-3 
 
 # Water depth below which it is *stored* as 0
-minimum_storable_height = 1.0e-5
+minimum_storable_height = 1.0e-05
 
 # FIXME (Ole): Redefine this parameter to control maximal speeds in general
 # and associate it with protect_against_isolated_degenerate_timesteps = True
@@ -179,10 +184,6 @@ use_psyco = True      # Use psyco optimisations
 
 optimise_dry_cells = True # Exclude dry and still cells from flux computation
 optimised_gradient_limiter = True # Use hardwired gradient limiter
-use_edge_limiter = False  # The edge limiter is better, but most runs have been
-                          # using vertex limiting. Validations passed with this
-                          # one True 9th May 2008, but many unit tests need
-                          # backward compatibility flag set FIXME(Ole).
 
 points_file_block_line_size = 500 # Number of lines read in from a points file
                                   # when blocking

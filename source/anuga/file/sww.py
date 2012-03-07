@@ -312,7 +312,6 @@ class SWW_file(Data_format):
                 # Very unlikely branch
                 storable_indices = None # This means take all
             
-            
             # Now store dynamic quantities
             dynamic_quantities = {}
             for name in self.writer.dynamic_quantities:
@@ -321,7 +320,7 @@ class SWW_file(Data_format):
                 Q = domain.quantities[name]
                 A, _ = Q.get_vertex_values(xy=False,
                                            precision=self.precision)
-
+                
                 if storable_indices is not None:
                     if name == 'stage':
                         A = num.choose(storable_indices, (z, A))
