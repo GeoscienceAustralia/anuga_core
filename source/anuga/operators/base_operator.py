@@ -29,7 +29,7 @@ class Operator:
     def __parallel_safe(self):
         """By default an operator is not parallel safe
         """
-        return True
+        return False
 
     def statistics(self):
 
