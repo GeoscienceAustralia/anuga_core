@@ -670,7 +670,7 @@ class Generic_Domain:
     def set_boundary(self, boundary_map):
         """Associate boundary objects with tagged boundary segments.
 
-        Input boundary_map is a dictionary of boundary objects keyed
+        Input: boundary_map is a dictionary of boundary objects keyed
         by symbolic tags to matched against tags in the internal dictionary
         self.boundary.
 
