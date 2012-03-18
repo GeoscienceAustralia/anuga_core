@@ -1,12 +1,9 @@
 import anuga
 import numpy
-import math
 import inlet
 
-from anuga.utilities.system_tools import log_to_file
 
-
-class Inlet_operator:
+class Inlet_operator(anuga.Operator):
     """Inlet Operator - add water to an inlet.
     Sets up the geometry of problem
     
@@ -16,7 +13,6 @@ class Inlet_operator:
     Input: domain, Two points
     """ 
 
-    counter = 0
 
     def __init__(self,
                  domain,
@@ -26,49 +22,40 @@ class Inlet_operator:
                  label = None,
                  logging = False,
                  verbose = False):
+
+
+        anuga.Operator.__init__(self, domain, description, label, logging, verbose)
+
         
-        self.domain = domain
-        self.domain.set_fractional_step_operator(self)
         self.line = numpy.array(line, dtype='d')
 
         # should set this up to be a function of time and or space)
         self.Q = Q
 
-        if description == None:
-            self.description = ' '
-        else:
-            self.description = description
-        
-
-        if label == None:
-            self.label = "inlet_%g" % Inlet_operator.counter
-        else:
-            self.label = label + '_%g' % Inlet_operator.counter
-
-
-        self.verbose = verbose
-
-        # Keep count of inlet operator
-        Inlet_operator.counter += 1
 
         self.enquiry_point = 0.5*(self.line[0] + self.line[1])
         self.outward_vector = self.line
         self.inlet = inlet.Inlet(self.domain, self.line, verbose= verbose)
 
-        self.set_logging(logging)
+        self.applied_Q = 0.0
 
     def __call__(self):
 
         timestep = self.domain.get_timestep()
 
         t = self.domain.get_time()
+
         Q1 = self.update_Q(t)
         Q2 = self.update_Q(t + timestep)
+
+        Q = 0.5*(Q1+Q2)
+        volume = Q*timestep
         
-        volume = 0.5*(Q1+Q2)*timestep
-        
-        assert 0.5*(Q1+Q2) >= 0.0, 'Q < 0: Water to be removed from an inlet!'
-        
+        assert volume >= 0.0, 'Q < 0: Water to be removed from an inlet!'
+
+        # store last discharge
+        self.applied_Q = Q
+
         # Distribute volume so as to obtain flat surface
         self.inlet.set_stages_evenly(volume)
         
@@ -76,8 +63,7 @@ class Inlet_operator:
         #self.inlet.set_depths_evenly(volume)
         
     def update_Q(self, t):
-        """Virtual method allowing local modifications by writing an
-        overriding version in descendant
+        """Allowing local modifications of Q
         """
         
         if callable(self.Q):
@@ -120,47 +106,14 @@ class Inlet_operator:
         return message
 
 
-    def print_statistics(self):
-
-        print self.statistics()
-
-
-    def print_timestepping_statistics(self):
+    def timestepping_statistics(self):
 
         message = '---------------------------\n'
         message += 'Inlet report for %s:\n' % self.label
         message += '--------------------------\n'
-        message += 'Q [m^3/s]: %.2f\n' % self.Q
-        
-
-        print message
-
-
-    def set_logging(self, flag=True):
-
-        self.logging = flag
-
-        # If flag is true open file with mode = "w" to form a clean file for logging
-        if self.logging:
-            self.log_filename = self.label + '.log'
-            log_to_file(self.log_filename, self.statistics(), mode='w')
-            log_to_file(self.log_filename, 'time,Q')
-
-            #log_to_file(self.log_filename, self.culvert_type)
-
-
-    def timestepping_statistics(self):
-
-        message  = '%.5f, ' % self.domain.get_time()
-        message += '%.5f, ' % self.Q
+        message += 'Q [m^3/s]: %.2f\n' % self.applied_Q
 
         return message
-
-    def log_timestepping_statistics(self):
-
-         if self.logging:
-             log_to_file(self.log_filename, self.timestepping_statistics())
-
 
 
     def set_Q(self, Q):

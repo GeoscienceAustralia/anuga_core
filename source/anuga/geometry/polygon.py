@@ -228,7 +228,7 @@ def not_polygon_overlap(triangles, polygon, verbose=False):
     return indices[count:]    
 
 def line_intersect(triangles, line, verbose=False):
-    """Determine if a polygon and triangle overlap
+    """Determine which of a list of trianglee intersect a line
 
     """
     line = ensure_numeric(line)
@@ -241,7 +241,7 @@ def line_intersect(triangles, line, verbose=False):
     count = _line_intersect(line, triangles, indices)
 
     if verbose:
-        log.critical('Found %d triangles (out of %d) that overlap the polygon' % (count, M))
+        log.critical('Found %d triangles (out of %d) that intersect line' % (count, M))
 
     return indices[:count]
 

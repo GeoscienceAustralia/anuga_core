@@ -101,12 +101,15 @@ filename=os.path.join(path, 'example_rating_curve.csv')
 #                            verbose=False)
 
 
-line = [[0.0, 5.0], [0.0, 10.0]]
+line0 = [[0.0, 5.0], [0.0, 10.0]]
 
 Q = file_function('test_hydrograph.tms', quantities=['hydrograph'])
 
-Inlet_operator(domain, line, Q)
+inlet0 = Inlet_operator(domain, line0, Q, label='first inlet')
 
+
+line1 = [[1.0, 5.0], [2.0, 10.0]]
+inlet1 = Inlet_operator(domain, line1, 2.0)
 
 
 
@@ -149,7 +152,9 @@ for t in domain.evolve(yieldstep = 1.0, finaltime = 38):
     #if delta_w < min_delta_w: min_delta_w = delta_w
 
     print domain.volumetric_balance_statistics()
-    
+
+    inlet0.print_timestepping_statistics()
+    print inlet1.timestepping_statistics()
     pass
 
 ## Check that extreme values in rating curve have been exceeded

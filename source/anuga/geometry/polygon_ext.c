@@ -513,7 +513,7 @@ int __triangle_line_intersect(double* line,
     
     if (A >= 1 && B >= 1)
     {
-        return 1; //polygon sits completely inside a triangle
+        return 1; //line sits completely inside a triangle
     }
     
     return 0; //no intersection

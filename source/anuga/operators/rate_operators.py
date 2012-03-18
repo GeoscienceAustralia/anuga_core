@@ -14,6 +14,8 @@ from anuga import Quantity
 import numpy as num
 import anuga.utilities.log as log
 
+from anuga.geometry.polygon import inside_polygon
+
 from anuga.operators.base_operator import Operator
 from anuga.fit_interpolate.interpolate import Modeltime_too_early, \
                                               Modeltime_too_late
@@ -35,9 +37,13 @@ class Rate_operator(Operator):
                  rate=0.0,
                  indices=None,
                  default_rate=None,
-                 verbose=False):
+                 description = None,
+                 label = None,
+                 logging = False,
+                 verbose = False):
 
-        Operator.__init__(self,domain)
+
+        anuga.Operator.__init__(self, domain, description, label, logging, verbose)
 
         #------------------------------------------
         # Local variables
@@ -80,6 +86,13 @@ class Rate_operator(Operator):
 
 
     def __call__(self):
+        """
+        Apply rate to those triangles defined in indices
+
+        indices == [] don't apply anywhere
+        indices == None apply everywhere
+        otherwise applyfor the specific indices
+        """
 
         if self.indices is []:
             return
@@ -102,8 +115,7 @@ class Rate_operator(Operator):
 
 
     def update_rate(self, t):
-        """Virtual method allowing local modifications by writing an
-        overriding version in descendant
+        """Provide a rate to calculate added volume
         """
 
         if callable(self.rate):
@@ -145,7 +157,7 @@ class Rate_operator(Operator):
         return rate
 
     def __parallel_safe(self):
-        """Operator is just applied independently to each cell and
+        """Operator is applied independently to each cell and
         so is parallel safe.
         """
         return True
@@ -165,7 +177,7 @@ class Rate_operator(Operator):
 
 
 #===============================================================================
-# Specific Rate Operators for special regions.
+# Specific Rate Operators for circular region.
 #===============================================================================
 class Circular_rate_operator(Rate_operator):
     """
@@ -178,13 +190,10 @@ class Circular_rate_operator(Rate_operator):
 
     def __init__(self, domain,
                  rate=0.0,
-                 center = None,
-                 radius = None,
+                 center=None,
+                 radius=None,
                  default_rate=None,
                  verbose=False):
-
-        if verbose: log.critical(self.__name__+': Beginning Initialisation')
-
 
         assert center is not None
         assert radius is not None
@@ -204,7 +213,7 @@ class Circular_rate_operator(Rate_operator):
             x, y = points[k,:]    # Centroid
 
             if ((x-c[0])**2+(y-c[1])**2) < r**2:
-                self.indices.append(k)
+                indices.append(k)
 
 
         # It is possible that circle doesn't intersect with mesh (as can happen
@@ -221,5 +230,53 @@ class Circular_rate_operator(Rate_operator):
 
         self.center = center
         self.radius = radius
+
+
+#===============================================================================
+# Specific Rate Operators for polygonal region.
+#===============================================================================
+class Polygonal_rate_operator(Rate_operator):
+    """
+    Add water at certain rate (ms^{-1} = vol/Area/sec) over a
+    polygonal region
+
+    rate can be a function of time.
+
+    """
+
+    def __init__(self, domain,
+                 rate=0.0,
+                 polygon=None,
+                 default_rate=None,
+                 verbose=False):
+
+        assert center is not None
+        assert radius is not None
+
+
+        # Determine indices in update region
+        N = domain.get_number_of_triangles()
+        points = domain.get_centroid_coordinates(absolute=True)
+
+
+        indices = inside_polygon(points, polygon)
+
+
+        # It is possible that circle doesn't intersect with mesh (as can happen
+        # for parallel runs
+
+
+        Rate_operator.__init__(self,
+                               domain,
+                               rate=rate,
+                               indices=indices,
+                               default_rate=default_rate,
+                               verbose=verbose)
+
+
+        self.polygon = polygon
+        
+
+
 
 
