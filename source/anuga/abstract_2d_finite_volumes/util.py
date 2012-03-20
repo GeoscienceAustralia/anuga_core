@@ -224,7 +224,11 @@ def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
     loners=num.arange(2*N, N, -1)
     for t in triangles:
         for vert in t:
-            loners[vert]= vert # all non-loners will have loners[i]=i 
+            try:
+                loners[vert]= vert # all non-loners will have loners[i]=i
+            except IndexError:
+                msg = 'IndexError: t = '+srt(t)+' vert = '+str(vert)
+                raise Exception(msg)
 
     lone_start = 2*N - max(loners) # The index of the first loner
 
