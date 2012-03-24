@@ -89,9 +89,9 @@ class Rate_operator(Operator):
         """
         Apply rate to those triangles defined in indices
 
-        indices == [] don't apply anywhere
-        indices == None apply everywhere
-        otherwise applyfor the specific indices
+        indices == [], then don't apply anywhere
+        indices == None, then apply everywhere
+        otherwise apply for the specific indices
         """
 
         if self.indices is []:
@@ -157,7 +157,7 @@ class Rate_operator(Operator):
         return rate
 
     def __parallel_safe(self):
-        """Operator is applied independently to each cell and
+        """Operator is applied independently on each cell and
         so is parallel safe.
         """
         return True
