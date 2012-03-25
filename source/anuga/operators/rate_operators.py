@@ -43,7 +43,7 @@ class Rate_operator(Operator):
                  verbose = False):
 
 
-        anuga.Operator.__init__(self, domain, description, label, logging, verbose)
+        Operator.__init__(self, domain, description, label, logging, verbose)
 
         #------------------------------------------
         # Local variables
@@ -79,9 +79,6 @@ class Rate_operator(Operator):
         self.default_rate = default_rate
         self.default_rate_invoked = False    # Flag
 
-
-        self.stage_centroid_values = self.domain.quantities['stage'].centroid_values
-        self.areas = self.domain.areas
 
 
 

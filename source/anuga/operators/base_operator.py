@@ -17,6 +17,15 @@ class Operator:
         self.domain = domain
         self.domain.set_fractional_step_operator(self)
 
+
+        # useful aliases
+        self.stage_c = self.domain.quantities['stage'].centroid_values
+        self.xmom_c  = self.domain.quantities['xmomentum'].centroid_values
+        self.ymom_c  = self.domain.quantities['ymomentum'].centroid_values
+        self.elev_c  = self.domain.quantities['elevation'].centroid_values
+        self.areas = self.domain.areas
+
+
         if domain.numproc > 1:
             msg = 'Not implemented to run in parallel'
             assert self.__parallel_safe(), msg

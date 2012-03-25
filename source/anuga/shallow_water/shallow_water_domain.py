@@ -171,9 +171,11 @@ class Domain(Generic_Domain):
         self.forcing_terms.append(gravity)
 
 
+
         self.fractional_step_operators = []
         self.kv_operator = None
 
+        
 
         #-------------------------------
         # Stored output
