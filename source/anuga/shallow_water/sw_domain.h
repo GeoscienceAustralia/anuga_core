@@ -7,26 +7,6 @@
 // Shared code snippets
 #include "util_ext.h"
 
-PyArrayObject *neighbours, *neighbour_edges,
-    *normals, *edgelengths, *radii, *areas,
-    *tri_full_flag,
-    *stage_edge_values,
-    *xmom_edge_values,
-    *ymom_edge_values,
-    *bed_edge_values,
-    *stage_boundary_values,
-    *xmom_boundary_values,
-    *ymom_boundary_values,
-    *stage_explicit_update,
-    *xmom_explicit_update,
-    *ymom_explicit_update,
-    *already_computed_flux, //Tracks whether the flux across an edge has already been computed
-    *max_speed_array; //Keeps track of max speeds for each triangle
-
-
-
-
-
 
 // structure
 struct domain {
