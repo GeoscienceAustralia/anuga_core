@@ -379,6 +379,17 @@ PyObject *get_python_object(PyObject *O, char *name) {
 }
 
 
+double* get_python_array_data_from_dict(PyObject *O, char *name, char *array) {
+  PyObject *A;
+  PyArrayObject *B;
+
+  A = PyDict_GetItemString(O, name);
+  B = get_consecutive_array(A, array);
+
+  return (double *) B->data;
+}
+
+
 // check that numpy array objects are C contiguous memory
 #define CHECK_C_CONTIG(varname)	if (!PyArray_ISCONTIGUOUS(varname)) { \
 				    char msg[1024]; \
