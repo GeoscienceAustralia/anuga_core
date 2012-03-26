@@ -1144,6 +1144,75 @@ PyObject *gravity(PyObject *self, PyObject *args) {
 }
 
 
+PyObject *gravity_new(PyObject *self, PyObject *args) {
+  //
+  //  gravity_new(g, h, v, x, xmom, ymom)
+  //
+
+
+  PyArrayObject *h, *z, *x, *xmom, *ymom;
+  int k, N, k3, k6;
+  double g, avg_h, zx, zy;
+  double x0, y0, x1, y1, x2, y2, z0, z1, z2;
+  //double epsilon;
+
+  if (!PyArg_ParseTuple(args, "dOOOOO",
+            &g, &h, &z, &x,
+            &xmom, &ymom)) {
+    //&epsilon)) {
+      report_python_error(AT, "could not parse input arguments");
+      return NULL;
+  }
+
+  // check that numpy array objects arrays are C contiguous memory
+  CHECK_C_CONTIG(h);
+  CHECK_C_CONTIG(z);
+  CHECK_C_CONTIG(x);
+  CHECK_C_CONTIG(xmom);
+  CHECK_C_CONTIG(ymom);
+
+  N = h -> dimensions[0];
+  for (k=0; k<N; k++) {
+    k3 = 3*k;  // base index
+
+    // Get bathymetry
+    z0 = ((double*) z -> data)[k3 + 0];
+    z1 = ((double*) z -> data)[k3 + 1];
+    z2 = ((double*) z -> data)[k3 + 2];
+
+    // Optimise for flat bed
+    // Note (Ole): This didn't produce measurable speed up.
+    // Revisit later
+    //if (fabs(z0-z1)<epsilon && fabs(z1-z2)<epsilon) {
+    //  continue;
+    //}
+
+    // Get average depth from centroid values
+    avg_h = ((double *) h -> data)[k];
+
+    // Compute bed slope
+    k6 = 6*k;  // base index
+
+    x0 = ((double*) x -> data)[k6 + 0];
+    y0 = ((double*) x -> data)[k6 + 1];
+    x1 = ((double*) x -> data)[k6 + 2];
+    y1 = ((double*) x -> data)[k6 + 3];
+    x2 = ((double*) x -> data)[k6 + 4];
+    y2 = ((double*) x -> data)[k6 + 5];
+
+
+    _gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2, &zx, &zy);
+
+    // Update momentum
+    ((double*) xmom -> data)[k] += -g*zx*avg_h;
+    ((double*) ymom -> data)[k] += -g*zy*avg_h;
+  }
+
+  return Py_BuildValue("");
+}
+
+
+
 PyObject *manning_friction_sloped(PyObject *self, PyObject *args) {
   //
   // manning_friction_sloped(g, eps, x, h, uh, vh, z, eta, xmom_update, ymom_update)
@@ -2953,6 +3022,7 @@ static struct PyMethodDef MethodTable[] = {
   {"compute_fluxes_ext_central_new", compute_fluxes_ext_central_new, METH_VARARGS, "Print out"},
   {"compute_fluxes_ext_kinetic", compute_fluxes_ext_kinetic, METH_VARARGS, "Print out"},
   {"gravity", gravity, METH_VARARGS, "Print out"},
+  {"gravity_new", gravity, METH_VARARGS, "Print out"},
   {"manning_friction_flat", manning_friction_flat, METH_VARARGS, "Print out"},
   {"manning_friction_sloped", manning_friction_sloped, METH_VARARGS, "Print out"},
   {"chezy_friction", chezy_friction, METH_VARARGS, "Print out"},
