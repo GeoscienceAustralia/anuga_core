@@ -169,7 +169,7 @@ class Domain(Generic_Domain):
         #-------------------------------
         self.forcing_terms.append(manning_friction_implicit)
         #self.forcing_terms.append(gravity)
-        self.forcing_terms.append(gravity_new)
+        self.forcing_terms.append(gravity)
 
 
 
