@@ -14,6 +14,14 @@
 #include "math.h"
 
 #include <stdio.h>
+
+
+#ifndef ANUGA_UTIL_EXT_H
+#define ANUGA_UTIL_EXT_H
+
+
+
+
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 #define AT __FILE__ ":" TOSTRING(__LINE__)
@@ -400,3 +408,6 @@ double* get_python_array_data_from_dict(PyObject *O, char *name, char *array) {
 				    PyErr_SetString(PyExc_RuntimeError, msg); \
 				    return NULL; \
 				}
+
+
+#endif

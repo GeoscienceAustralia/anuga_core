@@ -10,7 +10,6 @@
 
 // structure
 struct domain {
-    double  timestep;
     long    number_of_elements;
     double  epsilon;
     double  H0;
@@ -24,15 +23,30 @@ struct domain {
     double* areas;
     long*   tri_full_flag;
     long*   already_computed_flux;
-    double* max_speed_array;
+
+    double* vertex_coordinates;
 
     double* stage_edge_values;
     double* xmom_edge_values;
     double* ymom_edge_values;
     double* bed_edge_values;
+
+    double* stage_centroid_values;
+    double* xmom_centroid_values;
+    double* ymom_centroid_values;
+    double* bed_centroid_values;
+
+    double* stage_vertex_values;
+    double* xmom_vertex_values;
+    double* ymom_vertex_values;
+    double* bed_vertex_values;
+
+
     double* stage_boundary_values;
     double* xmom_boundary_values;
     double* ymom_boundary_values;
+    double* bed_boundary_values;
+
     double* stage_explicit_update;
     double* xmom_explicit_update;
     double* ymom_explicit_update;
@@ -40,7 +54,7 @@ struct domain {
 
 
 
-struct domain* get_python_domain(struct domain *D, PyObject *domain, double timestep) {
+struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     PyArrayObject
             *neighbours,
             *neighbour_edges,
@@ -49,28 +63,15 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain, double time
             *radii,
             *areas,
             *tri_full_flag,
-            *max_speed_array,
             *already_computed_flux,
+            *vertex_coordinates;
 
-            *stage_edge_values,
-            *xmom_edge_values,
-            *ymom_edge_values,
-            *bed_edge_values,
-            *stage_boundary_values,
-            *xmom_boundary_values,
-            *ymom_boundary_values,
-            *stage_explicit_update,
-            *xmom_explicit_update,
-            *ymom_explicit_update;
+    PyObject *quantities;
 
-
-
-    D->timestep = timestep;
     D->number_of_elements = get_python_integer(domain, "number_of_elements");
     D->epsilon = get_python_double(domain, "epsilon");
     D->H0 = get_python_double(domain, "H0");
     D->g = get_python_double(domain, "g");
-
 
     neighbours = get_consecutive_array(domain, "neighbours");
     D->neighbours = (long *) neighbours->data;
@@ -93,33 +94,38 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain, double time
     tri_full_flag = get_consecutive_array(domain, "tri_full_flag");
     D->tri_full_flag = (long *) tri_full_flag->data;
 
-    max_speed_array = get_consecutive_array(domain, "max_speed_array");
-    D->max_speed_array = (double *) max_speed_array->data;
-
     already_computed_flux = get_consecutive_array(domain, "already_computed_flux");
-    D->already_computed_flux = (double *) already_computed_flux->data;
+    D->already_computed_flux = (long *) already_computed_flux->data;
 
-    quantities = get_python_object(domain, "quantities")
+    vertex_coordinates = get_consecutive_array(domain, "vertex_coordinates");
+    D->vertex_coordinates = (double *) vertex_coordinates->data;
+
+    quantities = get_python_object(domain, "quantities");
 
     D->stage_edge_values     = get_python_array_data_from_dict(quantities, "stage",     "edge_values");
     D->xmom_edge_values      = get_python_array_data_from_dict(quantities, "xmomentum", "edge_values");
     D->ymom_edge_values      = get_python_array_data_from_dict(quantities, "ymomentum", "edge_values");
     D->bed_edge_values       = get_python_array_data_from_dict(quantities, "elevation", "edge_values");
+
+    D->stage_centroid_values     = get_python_array_data_from_dict(quantities, "stage",     "centroid_values");
+    D->xmom_centroid_values      = get_python_array_data_from_dict(quantities, "xmomentum", "centroid_values");
+    D->ymom_centroid_values      = get_python_array_data_from_dict(quantities, "ymomentum", "centroid_values");
+    D->bed_centroid_values       = get_python_array_data_from_dict(quantities, "elevation", "centroid_values");
+
+    D->stage_vertex_values     = get_python_array_data_from_dict(quantities, "stage",     "vertex_values");
+    D->xmom_vertex_values      = get_python_array_data_from_dict(quantities, "xmomentum", "vertex_values");
+    D->ymom_vertex_values      = get_python_array_data_from_dict(quantities, "ymomentum", "vertex_values");
+    D->bed_vertex_values       = get_python_array_data_from_dict(quantities, "elevation", "vertex_values");
+
     D->stage_boundary_values = get_python_array_data_from_dict(quantities, "stage",     "boundary_values");
-    D->stage_boundary_values = get_python_array_data_from_dict(quantities, "xmomentum", "boundary_values");
-    D->stage_boundary_values = get_python_array_data_from_dict(quantities, "ymomentum", "boundary_values");
+    D->xmom_boundary_values  = get_python_array_data_from_dict(quantities, "xmomentum", "boundary_values");
+    D->ymom_boundary_values  = get_python_array_data_from_dict(quantities, "ymomentum", "boundary_values");
+    D->bed_boundary_values   = get_python_array_data_from_dict(quantities, "elevation", "boundary_values");
+
     D->stage_explicit_update = get_python_array_data_from_dict(quantities, "stage",     "explicit_update");
     D->xmom_explicit_update  = get_python_array_data_from_dict(quantities, "xmomentum", "explicit_update");
     D->ymom_explicit_update  = get_python_array_data_from_dict(quantities, "ymomentum", "explicit_update");
 
 
-
-
-  Py_DECREF(neighbours);
-  Py_DECREF(neighbour_vertices);
-  Py_DECREF(normals);
-  Py_DECREF(areas);
-  Py_DECREF(max_speed_array);
-
-  return D;
+    return D;
 }

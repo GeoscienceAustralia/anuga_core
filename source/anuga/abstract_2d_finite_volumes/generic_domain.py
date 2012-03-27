@@ -242,7 +242,9 @@ class Generic_Domain:
         from anuga.config import protect_against_isolated_degenerate_timesteps
         from anuga.config import default_order
         from anuga.config import max_timestep, min_timestep
+        from anuga.config import g
 
+        self.g = g
         self.beta_w = beta_w
         self.epsilon = epsilon
         self.protect_against_isolated_degenerate_timesteps = \

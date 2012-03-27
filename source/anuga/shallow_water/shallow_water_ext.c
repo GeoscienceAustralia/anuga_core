@@ -21,6 +21,7 @@
 
 // Shared code snippets
 #include "util_ext.h"
+#include "sw_domain.h"
 
 
 
@@ -1076,6 +1077,7 @@ PyObject *flux_function_central(PyObject *self, PyObject *args) {
 
 
 
+/*
 PyObject *gravity(PyObject *self, PyObject *args) {
   //
   //  gravity(g, h, v, x, xmom, ymom)
@@ -1112,6 +1114,8 @@ PyObject *gravity(PyObject *self, PyObject *args) {
     z1 = ((double*) z -> data)[k3 + 1];
     z2 = ((double*) z -> data)[k3 + 2];
 
+    //printf("z0 %g, z1 %g, z2 %g \n",z0,z1,z2);
+
     // Optimise for flat bed
     // Note (Ole): This didn't produce measurable speed up.
     // Revisit later
@@ -1121,6 +1125,8 @@ PyObject *gravity(PyObject *self, PyObject *args) {
 
     // Get average depth from centroid values
     avg_h = ((double *) h -> data)[k];
+
+    //printf("avg_h  %g \n",avg_h);
 
     // Compute bed slope
     k6 = 6*k;  // base index
@@ -1132,9 +1138,11 @@ PyObject *gravity(PyObject *self, PyObject *args) {
     x2 = ((double*) x -> data)[k6 + 4];
     y2 = ((double*) x -> data)[k6 + 5];
 
-
+    //printf("x0 %g, y0 %g, x1 %g, y1 %g, x2 %g, y2 %g \n",x0,y0,x1,y1,x2,y2);
+    
     _gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2, &zx, &zy);
 
+    //printf("zx %g, zy %g \n",zx,zy);
     // Update momentum
     ((double*) xmom -> data)[k] += -g*zx*avg_h;
     ((double*) ymom -> data)[k] += -g*zy*avg_h;
@@ -1142,75 +1150,176 @@ PyObject *gravity(PyObject *self, PyObject *args) {
 
   return Py_BuildValue("");
 }
+*/
+
+//-------------------------------------------------------------------------------
+// gravity term using new get_python_domain interface
+//
+// FIXME SR: Probably should do this calculation together with hte compute
+// fluxes
+//-------------------------------------------------------------------------------
+PyObject *gravity(PyObject *self, PyObject *args) {
+  //
+  //  gravity(domain)
+  //
+
+    
+    struct domain D;
+    PyObject *domain;
+
+    int k, N, k3, k6;
+    double g, avg_h, zx, zy;
+    double x0, y0, x1, y1, x2, y2, z0, z1, z2;
+    //double h0,h1,h2;
+    //double epsilon;
+
+    if (!PyArg_ParseTuple(args, "O", &domain)) {
+        report_python_error(AT, "could not parse input arguments");
+        return NULL;
+    }
+
+    // populate the C domain structure with pointers
+    // to the python domain data
+    get_python_domain(&D,domain);
 
 
+    g = D.g;
+    
+    N = D.number_of_elements;
+    for (k=0; k<N; k++) {
+        k3 = 3*k;  // base index
+
+        // Get bathymetry
+        z0 = D.bed_vertex_values[k3 + 0];
+        z1 = D.bed_vertex_values[k3 + 1];
+        z2 = D.bed_vertex_values[k3 + 2];
+
+        //printf("z0 %g, z1 %g, z2 %g \n",z0,z1,z2);
+        
+        // Get average depth from centroid values
+        avg_h = D.stage_centroid_values[k] - D.bed_centroid_values[k];
+
+        //printf("avg_h  %g \n",avg_h);
+        // Compute bed slope
+        k6 = 6*k;  // base index
+
+        x0 = D.vertex_coordinates[k6 + 0];
+        y0 = D.vertex_coordinates[k6 + 1];
+        x1 = D.vertex_coordinates[k6 + 2];
+        y1 = D.vertex_coordinates[k6 + 3];
+        x2 = D.vertex_coordinates[k6 + 4];
+        y2 = D.vertex_coordinates[k6 + 5];
+
+        //printf("x0 %g, y0 %g, x1 %g, y1 %g, x2 %g, y2 %g \n",x0,y0,x1,y1,x2,y2);
+        _gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2, &zx, &zy);
+
+        //printf("zx %g, zy %g \n",zx,zy);
+        
+        // Update momentum
+        D.xmom_explicit_update[k] += -g*zx*avg_h;
+        D.ymom_explicit_update[k] += -g*zy*avg_h;
+    }
+
+    return Py_BuildValue("");
+}
+
+
+//-------------------------------------------------------------------------------
+// New well balanced gravity term using new get_python_domain interface
+//
+// FIXME SR: Probably should do this calculation together with hte compute
+// fluxes
+//-------------------------------------------------------------------------------
 PyObject *gravity_new(PyObject *self, PyObject *args) {
   //
-  //  gravity_new(g, h, v, x, xmom, ymom)
+  //  gravity_new(domain)
   //
 
 
-  PyArrayObject *h, *z, *x, *xmom, *ymom;
-  int k, N, k3, k6;
-  double g, avg_h, zx, zy;
-  double x0, y0, x1, y1, x2, y2, z0, z1, z2;
-  //double epsilon;
+    struct domain D;
+    PyObject *domain;
 
-  if (!PyArg_ParseTuple(args, "dOOOOO",
-            &g, &h, &z, &x,
-            &xmom, &ymom)) {
-    //&epsilon)) {
-      report_python_error(AT, "could not parse input arguments");
-      return NULL;
-  }
+    int i, k, N, k3, k6;
+    double g, avg_h, wx, wy, fact;
+    double x0, y0, x1, y1, x2, y2;
+    double n[2];
+    double h[3];
+    double w[3];
+    double side[2];
+    //double epsilon;
 
-  // check that numpy array objects arrays are C contiguous memory
-  CHECK_C_CONTIG(h);
-  CHECK_C_CONTIG(z);
-  CHECK_C_CONTIG(x);
-  CHECK_C_CONTIG(xmom);
-  CHECK_C_CONTIG(ymom);
+    if (!PyArg_ParseTuple(args, "O", &domain)) {
+        report_python_error(AT, "could not parse input arguments");
+        return NULL;
+    }
 
-  N = h -> dimensions[0];
-  for (k=0; k<N; k++) {
-    k3 = 3*k;  // base index
-
-    // Get bathymetry
-    z0 = ((double*) z -> data)[k3 + 0];
-    z1 = ((double*) z -> data)[k3 + 1];
-    z2 = ((double*) z -> data)[k3 + 2];
-
-    // Optimise for flat bed
-    // Note (Ole): This didn't produce measurable speed up.
-    // Revisit later
-    //if (fabs(z0-z1)<epsilon && fabs(z1-z2)<epsilon) {
-    //  continue;
-    //}
-
-    // Get average depth from centroid values
-    avg_h = ((double *) h -> data)[k];
-
-    // Compute bed slope
-    k6 = 6*k;  // base index
-
-    x0 = ((double*) x -> data)[k6 + 0];
-    y0 = ((double*) x -> data)[k6 + 1];
-    x1 = ((double*) x -> data)[k6 + 2];
-    y1 = ((double*) x -> data)[k6 + 3];
-    x2 = ((double*) x -> data)[k6 + 4];
-    y2 = ((double*) x -> data)[k6 + 5];
+    // populate the C domain structure with pointers
+    // to the python domain data
+    get_python_domain(&D,domain);
 
 
-    _gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2, &zx, &zy);
+    g = D.g;
 
-    // Update momentum
-    ((double*) xmom -> data)[k] += -g*zx*avg_h;
-    ((double*) ymom -> data)[k] += -g*zy*avg_h;
-  }
+    N = D.number_of_elements;
+    for (k=0; k<N; k++) {
+        k3 = 3*k;  // base index
 
-  return Py_BuildValue("");
+        //------------------------------------
+        // Calculate side terms -ghw_x term
+        //------------------------------------
+
+        // Get vertex bed values for gradient calculation
+        w[0] = D.stage_vertex_values[k3 + 0];
+        w[1] = D.stage_vertex_values[k3 + 1];
+        w[2] = D.stage_vertex_values[k3 + 2];
+
+        // Compute stage slope
+        k6 = 6*k;  // base index
+
+        x0 = D.vertex_coordinates[k6 + 0];
+        y0 = D.vertex_coordinates[k6 + 1];
+        x1 = D.vertex_coordinates[k6 + 2];
+        y1 = D.vertex_coordinates[k6 + 3];
+        x2 = D.vertex_coordinates[k6 + 4];
+        y2 = D.vertex_coordinates[k6 + 5];
+
+        //printf("x0 %g, y0 %g, x1 %g, y1 %g, x2 %g, y2 %g \n",x0,y0,x1,y1,x2,y2);
+        _gradient(x0, y0, x1, y1, x2, y2, w[0], w[1], w[2], &wx, &wy);
+
+        avg_h = D.stage_centroid_values[k] - D.bed_centroid_values[k];
+
+        // Update using -ghw_x term
+        D.xmom_explicit_update[k] += -g*wx*avg_h;
+        D.ymom_explicit_update[k] += -g*wy*avg_h;
+
+        //------------------------------------
+        // Calculate side terms \sum_i 0.5 g l_i h_i^2 n_i
+        //------------------------------------
+        
+        // Get edge depths
+        h[0] = D.stage_edge_values[k3 + 0] - D.bed_edge_values[k3 + 0];
+        h[1] = D.stage_edge_values[k3 + 1] - D.bed_edge_values[k3 + 1];
+        h[2] = D.stage_edge_values[k3 + 2] - D.bed_edge_values[k3 + 2];
+
+        // Calculate the side correction term
+        side[0] = 0.0;
+        side[1] = 0.0;
+        for (i=0; i<3; i++) {
+            n[0] = D.normals[k6+2*i];
+            n[1] = D.normals[k6+2*i+1];
+            fact = 0.5*g*D.edgelengths[k3+i]*h[i]*h[i];
+            side[0] += fact*n[0];
+            side[1] += fact*n[1];
+        }
+
+        // Update momentum with side terms
+        D.xmom_explicit_update[k] += side[0];
+        D.ymom_explicit_update[k] += side[1];
+
+    }
+
+    return Py_BuildValue("");
 }
-
 
 
 PyObject *manning_friction_sloped(PyObject *self, PyObject *args) {
@@ -3022,7 +3131,7 @@ static struct PyMethodDef MethodTable[] = {
   {"compute_fluxes_ext_central_new", compute_fluxes_ext_central_new, METH_VARARGS, "Print out"},
   {"compute_fluxes_ext_kinetic", compute_fluxes_ext_kinetic, METH_VARARGS, "Print out"},
   {"gravity", gravity, METH_VARARGS, "Print out"},
-  {"gravity_new", gravity, METH_VARARGS, "Print out"},
+  {"gravity_new", gravity_new, METH_VARARGS, "Print out"},
   {"manning_friction_flat", manning_friction_flat, METH_VARARGS, "Print out"},
   {"manning_friction_sloped", manning_friction_sloped, METH_VARARGS, "Print out"},
   {"chezy_friction", chezy_friction, METH_VARARGS, "Print out"},

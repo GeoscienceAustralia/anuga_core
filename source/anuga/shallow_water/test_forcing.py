@@ -1951,9 +1951,11 @@ class Test_Forcing(unittest.TestCase):
 
         domain.compute_forcing_terms()
 
+
+
+        
         assert num.allclose(domain.quantities['stage'].explicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
-                            -g*h*3)
+        assert num.allclose(domain.quantities['xmomentum'].explicit_update, -g*h*3)
         assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
 
 

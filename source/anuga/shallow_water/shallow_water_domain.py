@@ -168,7 +168,8 @@ class Domain(Generic_Domain):
         # Operators and Forcing Terms
         #-------------------------------
         self.forcing_terms.append(manning_friction_implicit)
-        self.forcing_terms.append(gravity)
+        #self.forcing_terms.append(gravity)
+        self.forcing_terms.append(gravity_new)
 
 
 
@@ -1295,6 +1296,41 @@ def balance_deep_and_shallow(domain):
 # Standard forcing terms
 ################################################################################
 
+#def gravity(domain):
+#    """Apply gravitational pull in the presence of bed slope
+#    Wrapper calls underlying C implementation
+#    """
+#
+#    from shallow_water_ext import gravity as gravity_c
+#
+#    xmom_update = domain.quantities['xmomentum'].explicit_update
+#    ymom_update = domain.quantities['ymomentum'].explicit_update
+#
+#    stage = domain.quantities['stage']
+#    elevation = domain.quantities['elevation']
+#
+#    #FIXME SR Should avoid allocating memory!
+#    height = stage.centroid_values - elevation.centroid_values
+#
+#
+#    elevation = elevation.vertex_values
+#
+#    point = domain.get_vertex_coordinates()
+#
+#    gravity_c(domain.g, height, elevation, point, xmom_update, ymom_update)
+
+
+
+def gravity_new(domain):
+    """Apply gravitational pull in the presence of bed slope
+    Wrapper calls underlying C implementation
+    """
+
+    from shallow_water_ext import gravity_new as gravity_c
+
+    gravity_c(domain)
+
+
 def gravity(domain):
     """Apply gravitational pull in the presence of bed slope
     Wrapper calls underlying C implementation
@@ -1302,19 +1338,7 @@ def gravity(domain):
 
     from shallow_water_ext import gravity as gravity_c
 
-    xmom_update = domain.quantities['xmomentum'].explicit_update
-    ymom_update = domain.quantities['ymomentum'].explicit_update
-
-    stage = domain.quantities['stage']
-    elevation = domain.quantities['elevation']
-
-    #FIXME SR Should avoid allocating memory!
-    height = stage.centroid_values - elevation.centroid_values
-    elevation = elevation.vertex_values
-
-    point = domain.get_vertex_coordinates()
-
-    gravity_c(domain.g, height, elevation, point, xmom_update, ymom_update)
+    gravity_c(domain)
 
 def manning_friction_implicit(domain):
     """Apply (Manning) friction to water momentum
