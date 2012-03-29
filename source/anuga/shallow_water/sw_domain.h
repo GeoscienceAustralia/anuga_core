@@ -14,6 +14,8 @@ struct domain {
     double  epsilon;
     double  H0;
     double  g;
+    long    optimise_dry_cells;
+    double  flux_timestep;
 
     long*   neighbours;
     long*   neighbour_edges;
@@ -21,8 +23,10 @@ struct domain {
     double* edgelengths;
     double* radii;
     double* areas;
+
     long*   tri_full_flag;
     long*   already_computed_flux;
+    double* max_speed;
 
     double* vertex_coordinates;
 
@@ -64,7 +68,8 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
             *areas,
             *tri_full_flag,
             *already_computed_flux,
-            *vertex_coordinates;
+            *vertex_coordinates,
+            *max_speed;
 
     PyObject *quantities;
 
@@ -72,6 +77,9 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     D->epsilon = get_python_double(domain, "epsilon");
     D->H0 = get_python_double(domain, "H0");
     D->g = get_python_double(domain, "g");
+    D->optimise_dry_cells = get_python_integer(domain, "optimise_dry_cells");
+
+    D->flux_timestep = get_python_double(domain, "flux_timestep");
 
     neighbours = get_consecutive_array(domain, "neighbours");
     D->neighbours = (long *) neighbours->data;
@@ -99,6 +107,10 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
 
     vertex_coordinates = get_consecutive_array(domain, "vertex_coordinates");
     D->vertex_coordinates = (double *) vertex_coordinates->data;
+    
+    max_speed = get_consecutive_array(domain, "max_speed");
+    D->max_speed = (double *) max_speed->data;
+
 
     quantities = get_python_object(domain, "quantities");
 

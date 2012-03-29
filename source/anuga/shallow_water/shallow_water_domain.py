@@ -235,7 +235,7 @@ class Domain(Generic_Domain):
         self.alpha_balance = alpha_balance
 
         self.tight_slope_limiters = tight_slope_limiters
-        self.optimise_dry_cells = optimise_dry_cells
+        self.optimise_dry_cells = int(optimise_dry_cells)
 
         
         self.set_sloped_mannings_function(False)
@@ -581,7 +581,7 @@ class Domain(Generic_Domain):
     def compute_fluxes(self):
         """Call correct module function
             (either from this module or C-extension)"""
-        compute_fluxes(self)
+        compute_fluxes_structure(self)
 
 
     def distribute_to_vertices_and_edges(self):
@@ -1105,9 +1105,40 @@ def compute_fluxes(domain):
                                        Ymom.explicit_update,
                                        domain.already_computed_flux,
                                        domain.max_speed,
-                                       int(domain.optimise_dry_cells))
+                                       domain.optimise_dry_cells)
 
     domain.flux_timestep = flux_timestep
+
+
+
+def compute_fluxes_structure(domain):
+    """Compute fluxes and timestep suitable for all volumes in domain.
+
+    Compute total flux for each conserved quantity using "flux_function"
+
+    Fluxes across each edge are scaled by edgelengths and summed up
+    Resulting flux is then scaled by area and stored in
+    explicit_update for each of the three conserved quantities
+    stage, xmomentum and ymomentum
+
+    The maximal allowable speed computed by the flux_function for each volume
+    is converted to a timestep that must not be exceeded. The minimum of
+    those is computed as the next overall timestep.
+
+    Post conditions:
+      domain.explicit_update is reset to computed flux values
+      domain.flux_timestep is set to the largest step satisfying all volumes.
+
+    This wrapper calls the underlying C version of compute fluxes
+    """
+
+
+    from shallow_water_ext import compute_fluxes_ext_central_structure
+
+
+    compute_fluxes_ext_central_structure(domain)
+
+
 
 ################################################################################
 # Module functions for gradient limiting

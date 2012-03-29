@@ -1230,9 +1230,9 @@ PyObject *gravity(PyObject *self, PyObject *args) {
 // FIXME SR: Probably should do this calculation together with hte compute
 // fluxes
 //-------------------------------------------------------------------------------
-PyObject *gravity_new(PyObject *self, PyObject *args) {
+PyObject *gravity_wb(PyObject *self, PyObject *args) {
   //
-  //  gravity_new(domain)
+  //  gravity_wb(domain)
   //
 
 
@@ -1242,10 +1242,10 @@ PyObject *gravity_new(PyObject *self, PyObject *args) {
     int i, k, N, k3, k6;
     double g, avg_h, wx, wy, fact;
     double x0, y0, x1, y1, x2, y2;
-    double n[2];
     double h[3];
     double w[3];
-    double side[2];
+    double sidex, sidey;
+    double n0, n1;
     //double epsilon;
 
     if (!PyArg_ParseTuple(args, "O", &domain)) {
@@ -1302,19 +1302,19 @@ PyObject *gravity_new(PyObject *self, PyObject *args) {
         h[2] = D.stage_edge_values[k3 + 2] - D.bed_edge_values[k3 + 2];
 
         // Calculate the side correction term
-        side[0] = 0.0;
-        side[1] = 0.0;
+        sidex = 0.0;
+        sidey = 0.0;
         for (i=0; i<3; i++) {
-            n[0] = D.normals[k6+2*i];
-            n[1] = D.normals[k6+2*i+1];
+            n0 = D.normals[k6+2*i];
+            n1 = D.normals[k6+2*i+1];
             fact = 0.5*g*D.edgelengths[k3+i]*h[i]*h[i];
-            side[0] += fact*n[0];
-            side[1] += fact*n[1];
+            sidex += fact*n0;
+            sidey += fact*n1;
         }
 
         // Update momentum with side terms
-        D.xmom_explicit_update[k] += side[0];
-        D.ymom_explicit_update[k] += side[1];
+        D.xmom_explicit_update[k] += sidex;
+        D.ymom_explicit_update[k] += sidey;
 
     }
 
@@ -2259,7 +2259,7 @@ double _compute_fluxes_central(int number_of_elements,
         double* ymom_explicit_update,
         long* already_computed_flux,
         double* max_speed_array,
-        int optimise_dry_cells) {
+        long optimise_dry_cells) {
     // Local variables
     double max_speed, length, inv_area, zl, zr;
     double h0 = H0*H0; // This ensures a good balance when h approaches H0.
@@ -2427,6 +2427,184 @@ double _compute_fluxes_central(int number_of_elements,
 
     return timestep;
 }
+
+
+
+int _compute_fluxes_central_structure(struct domain *D) {
+
+    // Local variables
+    double max_speed, length, inv_area, zl, zr;
+    double timestep = 1.0e30;
+    double h0 = D->H0*D->H0; // This ensures a good balance when h approaches H0.
+
+    double limiting_threshold = 10 * D->H0; // Avoid applying limiter below this
+    // threshold for performance reasons.
+    // See ANUGA manual under flux limiting
+    int k, i, m, n;
+    int ki, nm = 0, ki2; // Index shorthands
+
+
+    // Workspace (making them static actually made function slightly slower (Ole))
+    double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
+
+    static long call = 1; // Static local variable flagging already computed flux
+
+    // Start computation
+    call++; // Flag 'id' of flux calculation for this timestep
+
+    // Set explicit_update to zero for all conserved_quantities.
+    // This assumes compute_fluxes called before forcing terms
+    memset((char*) D->stage_explicit_update, 0, D->number_of_elements * sizeof (double));
+    memset((char*) D->xmom_explicit_update, 0, D->number_of_elements * sizeof (double));
+    memset((char*) D->ymom_explicit_update, 0, D->number_of_elements * sizeof (double));
+
+    // For all triangles
+    for (k = 0; k < D->number_of_elements; k++) {
+        // Loop through neighbours and compute edge flux for each
+        for (i = 0; i < 3; i++) {
+            ki = k * 3 + i; // Linear index to edge i of triangle k
+
+            if (D->already_computed_flux[ki] == call) {
+                // We've already computed the flux across this edge
+                continue;
+            }
+
+            // Get left hand side values from triangle k, edge i
+            ql[0] = D->stage_edge_values[ki];
+            ql[1] = D->xmom_edge_values[ki];
+            ql[2] = D->ymom_edge_values[ki];
+            zl = D->bed_edge_values[ki];
+
+            // Get right hand side values either from neighbouring triangle
+            // or from boundary array (Quantities at neighbour on nearest face).
+            n = D->neighbours[ki];
+            if (n < 0) {
+                // Neighbour is a boundary condition
+                m = -n - 1; // Convert negative flag to boundary index
+
+                qr[0] = D->stage_boundary_values[m];
+                qr[1] = D->xmom_boundary_values[m];
+                qr[2] = D->ymom_boundary_values[m];
+                zr = zl; // Extend bed elevation to boundary
+            }
+            else {
+                // Neighbour is a real triangle
+                m = D->neighbour_edges[ki];
+                nm = n * 3 + m; // Linear index (triangle n, edge m)
+
+                qr[0] = D->stage_edge_values[nm];
+                qr[1] = D->xmom_edge_values[nm];
+                qr[2] = D->ymom_edge_values[nm];
+                zr = D->bed_edge_values[nm];
+            }
+
+            // Now we have values for this edge - both from left and right side.
+
+            if (D->optimise_dry_cells) {
+                // Check if flux calculation is necessary across this edge
+                // This check will exclude dry cells.
+                // This will also optimise cases where zl != zr as
+                // long as both are dry
+
+                if (fabs(ql[0] - zl) < D->epsilon &&
+                        fabs(qr[0] - zr) < D->epsilon) {
+                    // Cell boundary is dry
+
+                    D->already_computed_flux[ki] = call; // #k Done
+                    if (n >= 0) {
+                        D->already_computed_flux[nm] = call; // #n Done
+                    }
+
+                    max_speed = 0.0;
+                    continue;
+                }
+            }
+
+
+            if (fabs(zl-zr)>1.0e-10) {
+                report_python_error(AT,"Discontinuous Elevation");
+                return 0.0;
+            }
+
+            // Outward pointing normal vector (domain.normals[k, 2*i:2*i+2])
+            ki2 = 2 * ki; //k*6 + i*2
+
+            // Edge flux computation (triangle k, edge i)
+            _flux_function_central(ql, qr, zl, zr,
+                    D->normals[ki2], D->normals[ki2 + 1],
+                    D->epsilon, h0, limiting_threshold, D->g,
+                    edgeflux, &max_speed);
+
+
+            // Multiply edgeflux by edgelength
+            length = D->edgelengths[ki];
+            edgeflux[0] *= length;
+            edgeflux[1] *= length;
+            edgeflux[2] *= length;
+
+
+            // Update triangle k with flux from edge i
+            D->stage_explicit_update[k] -= edgeflux[0];
+            D->xmom_explicit_update[k]  -= edgeflux[1];
+            D->ymom_explicit_update[k]  -= edgeflux[2];
+
+            D->already_computed_flux[ki] = call; // #k Done
+
+
+            // Update neighbour n with same flux but reversed sign
+            if (n >= 0) {
+                D->stage_explicit_update[n] += edgeflux[0];
+                D->xmom_explicit_update[n]  += edgeflux[1];
+                D->ymom_explicit_update[n]  += edgeflux[2];
+
+                D->already_computed_flux[nm] = call; // #n Done
+            }
+
+            // Update timestep based on edge i and possibly neighbour n
+            if (D->tri_full_flag[k] == 1) {
+                if (max_speed > D->epsilon) {
+                    // Apply CFL condition for triangles joining this edge (triangle k and triangle n)
+
+                    // CFL for triangle k
+                    timestep = min(timestep, D->radii[k] / max_speed);
+
+                    if (n >= 0) {
+                        // Apply CFL condition for neigbour n (which is on the ith edge of triangle k)
+                        timestep = min(timestep, D->radii[n] / max_speed);
+                    }
+
+                    // Ted Rigby's suggested less conservative version
+                    //if (n>=0) {
+                    //  timestep = min(timestep, (radii[k]+radii[n])/max_speed);
+                    //} else {
+                    //  timestep = min(timestep, radii[k]/max_speed);
+                    // }
+                }
+            }
+
+        } // End edge i (and neighbour n)
+
+
+        // Normalise triangle k by area and store for when all conserved
+        // quantities get updated
+        inv_area = 1.0 / D->areas[k];
+        D->stage_explicit_update[k] *= inv_area;
+        D->xmom_explicit_update[k]  *= inv_area;
+        D->ymom_explicit_update[k]  *= inv_area;
+
+
+        // Keep track of maximal speeds
+        D->max_speed[k] = max_speed;
+
+    } // End triangle k
+
+
+    D->flux_timestep = timestep;
+
+    return 0;
+}
+
+
 
 //=========================================================================
 // Python Glue
@@ -2652,7 +2830,7 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
 
     
   double timestep, epsilon, H0, g;
-  int optimise_dry_cells;
+  long optimise_dry_cells;
     
   // Convert Python arguments to C
   if (!PyArg_ParseTuple(args, "ddddOOOOOOOOOOOOOOOOOOOi",
@@ -2738,6 +2916,52 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
 }
 
 
+
+PyObject *compute_fluxes_ext_central_structure(PyObject *self, PyObject *args) {
+  /*Compute all fluxes and the timestep suitable for all volumes
+    in domain.
+
+    Compute total flux for each conserved quantity using "flux_function_central"
+
+    Fluxes across each edge are scaled by edgelengths and summed up
+    Resulting flux is then scaled by area and stored in
+    explicit_update for each of the three conserved quantities
+    stage, xmomentum and ymomentum
+
+    The maximal allowable speed computed by the flux_function for each volume
+    is converted to a timestep that must not be exceeded. The minimum of
+    those is computed as the next overall timestep.
+
+    Python call:
+    domain.timestep = compute_fluxes_ext_central_structure(domain, timestep)
+
+
+    Post conditions:
+      domain.explicit_update is reset to computed flux values
+      domain.timestep is set to the largest step satisfying all volumes.
+
+
+  */
+
+    struct domain D;
+    PyObject *domain;
+    
+    if (!PyArg_ParseTuple(args, "O", &domain)) {
+        report_python_error(AT, "could not parse input arguments");
+        return NULL;
+    }
+
+    // populate the C domain structure with pointers
+    // to the python domain data
+    get_python_domain(&D,domain);
+
+    // Call underlying flux computation routine and update
+    // the explicit update arrays
+    _compute_fluxes_central_structure(&D);
+
+
+    return Py_BuildValue("");
+}
 
 
 
@@ -3128,10 +3352,10 @@ static struct PyMethodDef MethodTable[] = {
   {"rotate", (PyCFunction)rotate, METH_VARARGS | METH_KEYWORDS, "Print out"},
   {"extrapolate_second_order_sw", extrapolate_second_order_sw, METH_VARARGS, "Print out"},
   {"compute_fluxes_ext_central", compute_fluxes_ext_central, METH_VARARGS, "Print out"},
-  {"compute_fluxes_ext_central_new", compute_fluxes_ext_central_new, METH_VARARGS, "Print out"},
+  {"compute_fluxes_ext_central_structure", compute_fluxes_ext_central_structure, METH_VARARGS, "Print out"},
   {"compute_fluxes_ext_kinetic", compute_fluxes_ext_kinetic, METH_VARARGS, "Print out"},
   {"gravity", gravity, METH_VARARGS, "Print out"},
-  {"gravity_new", gravity_new, METH_VARARGS, "Print out"},
+  {"gravity_wb", gravity_wb, METH_VARARGS, "Print out"},
   {"manning_friction_flat", manning_friction_flat, METH_VARARGS, "Print out"},
   {"manning_friction_sloped", manning_friction_sloped, METH_VARARGS, "Print out"},
   {"chezy_friction", chezy_friction, METH_VARARGS, "Print out"},
