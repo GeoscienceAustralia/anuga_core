@@ -2452,6 +2452,9 @@ int _compute_fluxes_central_structure(struct domain *D) {
     // Start computation
     call++; // Flag 'id' of flux calculation for this timestep
 
+
+    timestep = D->evolve_max_timestep;
+
     // Set explicit_update to zero for all conserved_quantities.
     // This assumes compute_fluxes called before forcing terms
     memset((char*) D->stage_explicit_update, 0, D->number_of_elements * sizeof (double));

@@ -168,7 +168,7 @@ class Domain(Generic_Domain):
         # Operators and Forcing Terms
         #-------------------------------
         self.forcing_terms.append(manning_friction_implicit)
-        #self.forcing_terms.append(gravity)
+        #self.forcing_terms.append(gravity_)
         self.forcing_terms.append(gravity)
 
 
@@ -581,7 +581,7 @@ class Domain(Generic_Domain):
     def compute_fluxes(self):
         """Call correct module function
             (either from this module or C-extension)"""
-        compute_fluxes_structure(self)
+        compute_fluxes(self)
 
 
     def distribute_to_vertices_and_edges(self):
@@ -1352,14 +1352,14 @@ def balance_deep_and_shallow(domain):
 
 
 
-def gravity_new(domain):
+def gravity_wb(domain):
     """Apply gravitational pull in the presence of bed slope
     Wrapper calls underlying C implementation
     """
 
-    from shallow_water_ext import gravity_new as gravity_c
+    from shallow_water_ext import gravity_wb_c
 
-    gravity_c(domain)
+    gravity_wb_c(domain)
 
 
 def gravity(domain):

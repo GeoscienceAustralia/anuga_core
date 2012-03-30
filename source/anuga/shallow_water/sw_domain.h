@@ -15,6 +15,7 @@ struct domain {
     double  H0;
     double  g;
     long    optimise_dry_cells;
+    double  evolve_max_timestep;
     double  flux_timestep;
 
     long*   neighbours;
@@ -78,6 +79,7 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     D->H0 = get_python_double(domain, "H0");
     D->g = get_python_double(domain, "g");
     D->optimise_dry_cells = get_python_integer(domain, "optimise_dry_cells");
+    D->evolve_max_timestep = get_python_double(domain, "evolve_max_timestep");
 
     D->flux_timestep = get_python_double(domain, "flux_timestep");
 
