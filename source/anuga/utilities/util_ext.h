@@ -26,12 +26,13 @@
 #define TOSTRING(x) STRINGIFY(x)
 #define AT __FILE__ ":" TOSTRING(__LINE__)
 #define P_ERROR_BUFFER_SIZE 65
+
 void report_python_error(const char *location, const char *msg)
 {
 
     char buf[P_ERROR_BUFFER_SIZE];
-    int n;
-    n = snprintf(buf, P_ERROR_BUFFER_SIZE, "Error at %s: %s\n", location, msg);
+    
+    snprintf(buf, P_ERROR_BUFFER_SIZE, "Error at %s: %s\n", location, msg);
 
     PyErr_SetString(PyExc_RuntimeError, buf);
 }
@@ -325,13 +326,12 @@ double get_python_double(PyObject *O, char *name) {
   #define BUFFER_SIZE 80
   char buf[BUFFER_SIZE];
   double tmp;
-  int n;
   
 
   //Get double from attribute
   TObject = PyObject_GetAttrString(O, name);
   if (!TObject) {
-	n =  snprintf(buf, BUFFER_SIZE, "util_ext.h: get_python_double could not obtain double %s.\n", name);
+	snprintf(buf, BUFFER_SIZE, "util_ext.h: get_python_double could not obtain double %s.\n", name);
 	//printf("name = %s",name);
     PyErr_SetString(PyExc_RuntimeError, buf);
 
@@ -353,13 +353,13 @@ int get_python_integer(PyObject *O, char *name) {
   #define BUFFER_SIZE 80
   char buf[BUFFER_SIZE];
   long tmp;
-  int n;
+  
   
 
   //Get double from attribute
   TObject = PyObject_GetAttrString(O, name);
   if (!TObject) {
-  	n =  snprintf(buf, BUFFER_SIZE, "util_ext.h: get_python_integer could not obtain double %s.\n", name);
+  	snprintf(buf, BUFFER_SIZE, "util_ext.h: get_python_integer could not obtain double %s.\n", name);
 	//printf("name = %s",name);
     PyErr_SetString(PyExc_RuntimeError, buf);
     return 0;

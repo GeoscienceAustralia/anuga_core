@@ -104,6 +104,10 @@ default_order = 2
 # routine domain.extrapolate_second_order_sw
 extrapolate_velocity_second_order=False
 
+# Option to setup compute_fluxes_method
+# Currently "original' and 'well_balanced_1'
+compute_fluxes_method = 'original'
+
 ################################################################################
 # Timestepping
 ################################################################################
