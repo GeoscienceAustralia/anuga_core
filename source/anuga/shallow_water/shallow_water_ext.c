@@ -402,6 +402,303 @@ int _flux_function_central(double *q_left, double *q_right,
   return 0;
 }
 
+// Innermost flux function (using stage w=z+h)
+int _flux_function_central_wb(double *q_left, double *q_right,
+                    double z_left, double h_left, double h1_left, double h2_left,
+                    double z_right, double h_right, double h1_right, double h2_right,
+                    double n1, double n2,
+                    double epsilon,
+                    double h0,
+                    double limiting_threshold,
+                    double g,
+                    double *edgeflux,
+                    double *max_speed)
+{
+
+  /*Compute fluxes between volumes for the shallow water wave equation
+    cast in terms of the 'stage', w = h+z using
+    the 'central scheme' as described in
+
+    Kurganov, Noelle, Petrova. 'Semidiscrete Central-Upwind Schemes For
+    Hyperbolic Conservation Laws and Hamilton-Jacobi Equations'.
+    Siam J. Sci. Comput. Vol. 23, No. 3, pp. 707-740.
+
+    The implemented formula is given in equation (3.15) on page 714
+  */
+
+
+  int i;
+  double hl, hr;
+  double w_left, uh_left, vh_left, u_left;
+  double w_right, uh_right, vh_right, u_right;
+  double s_min, s_max, soundspeed_left, soundspeed_right;
+  double denom, inverse_denominator, z;
+  double p_left, p_right;
+
+  // Workspace (allocate once, use many)
+  static double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
+
+  // Copy conserved quantities to protect from modification
+  q_left_rotated[0] = q_left[0];
+  q_right_rotated[0] = q_right[0];
+  q_left_rotated[1] = q_left[1];
+  q_right_rotated[1] = q_right[1];
+  q_left_rotated[2] = q_left[2];
+  q_right_rotated[2] = q_right[2];
+
+  // Align x- and y-momentum with x-axis
+  _rotate(q_left_rotated, n1, n2);
+  _rotate(q_right_rotated, n1, n2);
+
+  z = 0.5*(z_left + z_right); // Average elevation values.
+                              // Even though this will nominally allow
+                  // for discontinuities in the elevation data,
+                  // there is currently no numerical support for
+                  // this so results may be strange near
+                  // jumps in the bed.
+
+/*
+  printf("ql[0] %g\n",q_left[0]);
+  printf("ql[1] %g\n",q_left[1]);
+  printf("ql[2] %g\n",q_left[2]);
+  printf("h_left %g\n",h_left);
+  printf("z_left %g\n",z_left);
+  printf("z %g\n",z);
+  printf("qlr[0] %g\n",q_left_rotated[0]);
+  printf("qlr[1] %g\n",q_left_rotated[1]);
+  printf("qlr[2] %g\n",q_left_rotated[2]);
+*/
+  
+  // Compute speeds in x-direction
+  w_left = q_left_rotated[0];
+  hl = w_left - z;
+/*
+  printf("w_left %g\n",w_left);
+  printf("hl %g\n",hl);
+  printf("hl-h_left %g\n",hl-h_left);
+*/
+  uh_left = q_left_rotated[1];
+  u_left = _compute_speed(&uh_left, &h_left,
+              epsilon, h0, limiting_threshold);
+
+  w_right = q_right_rotated[0];
+  h_right = w_right - z;
+  uh_right = q_right_rotated[1];
+  u_right = _compute_speed(&uh_right, &h_right,
+               epsilon, h0, limiting_threshold);
+
+  // Momentum in y-direction
+  vh_left  = q_left_rotated[2];
+  vh_right = q_right_rotated[2];
+
+  // Limit y-momentum if necessary
+  // Leaving this out, improves speed significantly (Ole 27/5/2009)
+  // All validation tests pass, so do we really need it anymore?
+  _compute_speed(&vh_left, &h_left,
+         epsilon, h0, limiting_threshold);
+  _compute_speed(&vh_right, &h_right,
+         epsilon, h0, limiting_threshold);
+
+  // Maximal and minimal wave speeds
+  soundspeed_left  = sqrt(g*h_left);
+  soundspeed_right = sqrt(g*h_right);
+
+  // Code to use fast square root optimisation if desired.
+  // Timings on AMD 64 for the Okushiri profile gave the following timings
+  //
+  // SQRT           Total    Flux
+  //=============================
+  //
+  // Ref            405s     152s
+  // Fast (dbl)     453s     173s
+  // Fast (sng)     437s     171s
+  //
+  // Consequently, there is currently (14/5/2009) no reason to use this
+  // approximation.
+
+  //soundspeed_left  = fast_squareroot_approximation(g*h_left);
+  //soundspeed_right = fast_squareroot_approximation(g*h_right);
+
+  s_max = max(u_left + soundspeed_left, u_right + soundspeed_right);
+  if (s_max < 0.0)
+  {
+    s_max = 0.0;
+  }
+
+  s_min = min(u_left - soundspeed_left, u_right - soundspeed_right);
+  if (s_min > 0.0)
+  {
+    s_min = 0.0;
+  }
+
+
+
+  //p_left = 0.5*g*h_left*h_left;
+  //p_right = 0.5*g*h_right*h_right;
+
+  p_left  = 0.5*g/6.0*(h1_left*h1_left   + 4.0*h_left*h_left   + h2_left*h2_left);
+  p_right = 0.5*g/6.0*(h1_right*h1_right + 4.0*h_right*h_right + h2_right*h2_right);
+
+  // Flux formulas
+  flux_left[0] = u_left*h_left;
+  flux_left[1] = u_left*uh_left + p_left;
+  flux_left[2] = u_left*vh_left;
+
+  flux_right[0] = u_right*h_right;
+  flux_right[1] = u_right*uh_right + p_right;
+  flux_right[2] = u_right*vh_right;
+
+  // Flux computation
+  denom = s_max - s_min;
+  if (denom < epsilon)
+  { // FIXME (Ole): Try using h0 here
+    memset(edgeflux, 0, 3*sizeof(double));
+    *max_speed = 0.0;
+  }
+  else
+  {
+    inverse_denominator = 1.0/denom;
+    for (i = 0; i < 3; i++)
+    {
+      edgeflux[i] = s_max*flux_left[i] - s_min*flux_right[i];
+      edgeflux[i] += s_max*s_min*(q_right_rotated[i] - q_left_rotated[i]);
+      edgeflux[i] *= inverse_denominator;
+    }
+
+    // Maximal wavespeed
+    *max_speed = max(fabs(s_max), fabs(s_min));
+
+    // Rotate back
+    _rotate(edgeflux, n1, -n2);
+  }
+
+  return 0;
+}
+
+
+// Innermost flux function (using stage w=z+h)
+int _flux_function_central_wb_old(double *q_left, double *q_right,
+                    double z_left, double h_left, double h1_left, double h2_left,
+                    double z_right, double h_right, double h1_right, double h2_right,
+                    double n1, double n2,
+                    double epsilon,
+                    double h0,
+                    double limiting_threshold,
+                    double g,
+                    double *edgeflux,
+                    double *max_speed)
+{
+
+  /*Compute fluxes between volumes for the shallow water wave equation
+    cast in terms of the 'stage', w = h+z using
+    the 'central scheme' as described in
+
+    Kurganov, Noelle, Petrova. 'Semidiscrete Central-Upwind Schemes For
+    Hyperbolic Conservation Laws and Hamilton-Jacobi Equations'.
+    Siam J. Sci. Comput. Vol. 23, No. 3, pp. 707-740.
+
+    The implemented formula is given in equation (3.15) on page 714
+  */
+
+  int i;
+
+  double uh_left, vh_left, u_left;
+  double uh_right, vh_right, u_right;
+  double p_left, p_right;
+  double s_min, s_max, soundspeed_left, soundspeed_right;
+  double denom, inverse_denominator;
+
+  // Workspace (allocate once, use many)
+  static double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
+
+  // Copy conserved quantities to protect from modification
+  q_left_rotated[0] = q_left[0];
+  q_right_rotated[0] = q_right[0];
+  q_left_rotated[1] = q_left[1];
+  q_right_rotated[1] = q_right[1];
+  q_left_rotated[2] = q_left[2];
+  q_right_rotated[2] = q_right[2];
+
+  // Align x- and y-momentum with x-axis
+  _rotate(q_left_rotated, n1, n2);
+  _rotate(q_right_rotated, n1, n2);
+
+  //printf("zr-zl %g\n",z_right-z_left);
+
+  // Compute left and right speeds  in x-direction
+  uh_left = q_left_rotated[1];
+  u_left = _compute_speed(&uh_left, &h_left,
+              epsilon, h0, limiting_threshold);
+
+  uh_right = q_right_rotated[1];
+  u_right = _compute_speed(&uh_right, &h_right,
+               epsilon, h0, limiting_threshold);
+
+  // Momentum in y-direction
+  vh_left  = q_left_rotated[2];
+  vh_right = q_right_rotated[2];
+
+
+  // Maximal and minimal wave speeds
+  soundspeed_left  = sqrt(g*h_left);
+  soundspeed_right = sqrt(g*h_right);
+
+
+  s_max = max(u_left + soundspeed_left, u_right + soundspeed_right);
+  if (s_max < 0.0)
+  {
+    s_max = 0.0;
+  }
+
+  s_min = min(u_left - soundspeed_left, u_right - soundspeed_right);
+  if (s_min > 0.0)
+  {
+    s_min = 0.0;
+  }
+
+  // Calculate pressure terms using Simpson's rule (exact for pw linear)
+  p_left  = 0.5*g/6.0*(h1_left*h1_left   + 4.0*h_left*h_left   + h2_left*h2_left);
+  p_right = 0.5*g/6.0*(h1_right*h1_right + 4.0*h_right*h_right + h2_right*h2_right);
+
+  p_left = 0.5*g*h_left*h_left;
+  p_right = 0.5*g*h_right*h_right;
+
+  // Flux formulas
+  flux_left[0] = u_left*h_left;
+  flux_left[1] = u_left*uh_left + p_left;
+  flux_left[2] = u_left*vh_left;
+
+  flux_right[0] = u_right*h_right;
+  flux_right[1] = u_right*uh_right + p_right;
+  flux_right[2] = u_right*vh_right;
+
+  // Flux computation
+  denom = s_max - s_min;
+  if (denom < epsilon)
+  { // FIXME (Ole): Try using h0 here
+    memset(edgeflux, 0, 3*sizeof(double));
+    *max_speed = 0.0;
+  }
+  else
+  {
+    inverse_denominator = 1.0/denom;
+    for (i = 0; i < 3; i++)
+    {
+      edgeflux[i] = s_max*flux_left[i] - s_min*flux_right[i];
+      edgeflux[i] += s_max*s_min*(q_right_rotated[i] - q_left_rotated[i]);
+      edgeflux[i] *= inverse_denominator;
+    }
+
+    // Maximal wavespeed
+    *max_speed = max(fabs(s_max), fabs(s_min));
+
+    // Rotate back
+    _rotate(edgeflux, n1, -n2);
+  }
+
+  return 0;
+}
+
 double erfcc(double x){
     double z,t,result;
 
@@ -1242,8 +1539,9 @@ PyObject *gravity_wb(PyObject *self, PyObject *args) {
     int i, k, N, k3, k6;
     double g, avg_h, wx, wy, fact;
     double x0, y0, x1, y1, x2, y2;
-    double h[3];
-    double w[3];
+    double h0,h1,h2;
+    double hh[3];
+    double w0,w1,w2;
     double sidex, sidey;
     double n0, n1;
     //double epsilon;
@@ -1268,10 +1566,10 @@ PyObject *gravity_wb(PyObject *self, PyObject *args) {
         // Calculate side terms -ghw_x term
         //------------------------------------
 
-        // Get vertex bed values for gradient calculation
-        w[0] = D.stage_vertex_values[k3 + 0];
-        w[1] = D.stage_vertex_values[k3 + 1];
-        w[2] = D.stage_vertex_values[k3 + 2];
+        // Get vertex stage values for gradient calculation
+        w0 = D.stage_vertex_values[k3 + 0];
+        w1 = D.stage_vertex_values[k3 + 1];
+        w2 = D.stage_vertex_values[k3 + 2];
 
         // Compute stage slope
         k6 = 6*k;  // base index
@@ -1284,7 +1582,7 @@ PyObject *gravity_wb(PyObject *self, PyObject *args) {
         y2 = D.vertex_coordinates[k6 + 5];
 
         //printf("x0 %g, y0 %g, x1 %g, y1 %g, x2 %g, y2 %g \n",x0,y0,x1,y1,x2,y2);
-        _gradient(x0, y0, x1, y1, x2, y2, w[0], w[1], w[2], &wx, &wy);
+        _gradient(x0, y0, x1, y1, x2, y2, w0, w1, w2, &wx, &wy);
 
         avg_h = D.stage_centroid_values[k] - D.bed_centroid_values[k];
 
@@ -1297,24 +1595,29 @@ PyObject *gravity_wb(PyObject *self, PyObject *args) {
         //------------------------------------
         
         // Get edge depths
-        h[0] = D.stage_edge_values[k3 + 0] - D.bed_edge_values[k3 + 0];
-        h[1] = D.stage_edge_values[k3 + 1] - D.bed_edge_values[k3 + 1];
-        h[2] = D.stage_edge_values[k3 + 2] - D.bed_edge_values[k3 + 2];
+        hh[0] = D.stage_edge_values[k3 + 0] - D.bed_edge_values[k3 + 0];
+        hh[1] = D.stage_edge_values[k3 + 1] - D.bed_edge_values[k3 + 1];
+        hh[2] = D.stage_edge_values[k3 + 2] - D.bed_edge_values[k3 + 2];
 
+
+        printf("h0,1,2 %f %f %f\n",hh[0],hh[1],hh[2]);
+        
         // Calculate the side correction term
         sidex = 0.0;
         sidey = 0.0;
         for (i=0; i<3; i++) {
             n0 = D.normals[k6+2*i];
             n1 = D.normals[k6+2*i+1];
-            fact = 0.5*g*D.edgelengths[k3+i]*h[i]*h[i];
-            sidex += fact*n0;
-            sidey += fact*n1;
+
+            printf("n0, n1 %i %g %g\n",i,n0,n1);
+            fact = 0.5*g*hh[i]*hh[i]*D.edgelengths[k3+i];
+            sidex = sidex + fact*n0;
+            sidey = sidey + fact*n1;
         }
 
         // Update momentum with side terms
-        D.xmom_explicit_update[k] += sidex;
-        D.ymom_explicit_update[k] += sidey;
+        D.xmom_explicit_update[k] =- sidex;
+        D.ymom_explicit_update[k] =- sidey;
 
     }
 
@@ -2430,7 +2733,7 @@ double _compute_fluxes_central(int number_of_elements,
 
 
 
-int _compute_fluxes_central_structure(struct domain *D) {
+double _compute_fluxes_central_structure(struct domain *D) {
 
     // Local variables
     double max_speed, length, inv_area, zl, zr;
@@ -2602,10 +2905,223 @@ int _compute_fluxes_central_structure(struct domain *D) {
     } // End triangle k
 
 
-    D->flux_timestep = timestep;
-
-    return 0;
+    return timestep;
 }
+
+double _compute_fluxes_central_wb(struct domain *D) {
+
+    // Local variables
+    double max_speed, length, inv_area, zl, zr;
+    double timestep = 1.0e30;
+    double h0 = D->H0*D->H0; // This ensures a good balance when h approaches H0.
+
+    double limiting_threshold = 10 * D->H0; // Avoid applying limiter below this
+    // threshold for performance reasons.
+    // See ANUGA manual under flux limiting
+    int k, i, m, n;
+    int k3, k3i, k3i1, k3i2, k2i; // Index short hands
+
+    int n3m = 0, n3m1, n3m2;  // Index short hand for neightbours
+
+    double hl, hl1, hl2;
+    double hr, hr1, hr2;
+
+    // Workspace (making them static actually made function slightly slower (Ole))
+    double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
+
+    static long call = 1; // Static local variable flagging already computed flux
+
+    // Start computation
+    call++; // Flag 'id' of flux calculation for this timestep
+
+
+    timestep = D->evolve_max_timestep;
+
+    // Set explicit_update to zero for all conserved_quantities.
+    // This assumes compute_fluxes called before forcing terms
+    memset((char*) D->stage_explicit_update, 0, D->number_of_elements * sizeof (double));
+    memset((char*) D->xmom_explicit_update, 0, D->number_of_elements * sizeof (double));
+    memset((char*) D->ymom_explicit_update, 0, D->number_of_elements * sizeof (double));
+
+    // For all triangles
+    for (k = 0; k < D->number_of_elements; k++) {
+        // Loop through neighbours and compute edge flux for each
+        for (i = 0; i < 3; i++) {
+            k3 = 3*k;
+            k3i = k3 + i; // Linear index to edge i of triangle k
+            k3i1 = k3 + (i+1)%3;
+            k3i2 = k3 + (i+2)%3;
+
+            if (D->already_computed_flux[k3i] == call) {
+                // We've already computed the flux across this edge
+                continue;
+            }
+
+
+            // Get the inside values at the vertices from the triangle k, edge i
+            ql[0] = D->stage_edge_values[k3i];
+            ql[1] = D->xmom_edge_values[k3i];
+            ql[2] = D->ymom_edge_values[k3i];
+
+            zl = D->bed_edge_values[k3i];
+            hl = D->stage_edge_values[k3i] - zl;
+
+            hl1 = D->stage_vertex_values[k3i1] - D->bed_vertex_values[k3i1];
+            hl2 = D->stage_vertex_values[k3i2] - D->bed_vertex_values[k3i2];
+
+            // Get right hand side values either from neighbouring triangle
+            // or from boundary array (Quantities at neighbour on nearest face).
+            n = D->neighbours[k3i];
+            if (n < 0) {
+                // Neighbour is a boundary condition
+                m = -n - 1; // Convert negative flag to boundary index
+
+                qr[0] = D->stage_boundary_values[m];
+                qr[1] = D->xmom_boundary_values[m];
+                qr[2] = D->ymom_boundary_values[m];
+
+                zr = zl; // Extend bed elevation to boundary and assume flat
+                hr = D->stage_boundary_values[m] - zr;
+                hr1 = hr;
+                hr2 = hr;
+
+            }
+            else {
+                // Neighbour is a real triangle
+                m = D->neighbour_edges[k3i];
+                n3m  = 3*n + m; // Linear index (triangle n, edge m)
+                n3m1 = 3*n + (m+1)%3;
+                n3m2 = 3*n + (m+2)%3;
+
+                qr[0] = D->stage_edge_values[n3m];
+                qr[1] = D->xmom_edge_values[n3m];
+                qr[2] = D->ymom_edge_values[n3m];
+
+                zr = D->bed_edge_values[n3m];
+                hr = D->stage_edge_values[n3m] - zr;
+
+                hr1 = D->stage_vertex_values[n3m2] - D->bed_vertex_values[n3m2];
+                hr2 = D->stage_vertex_values[n3m1] - D->bed_vertex_values[n3m1];
+
+            }
+
+            // Now we have values for this edge - both from left and right side.
+
+            if (D->optimise_dry_cells) {
+                // Check if flux calculation is necessary across this edge
+                // This check will exclude dry cells.
+                // This will also optimise cases where zl != zr as
+                // long as both are dry
+
+                if (fabs(ql[0] - zl) < D->epsilon &&
+                        fabs(qr[0] - zr) < D->epsilon) {
+                    // Cell boundary is dry
+
+                    D->already_computed_flux[k3i] = call; // #k Done
+                    if (n >= 0) {
+                        D->already_computed_flux[n3m] = call; // #n Done
+                    }
+
+                    max_speed = 0.0;
+                    continue;
+                }
+            }
+
+
+            if (fabs(zl-zr)>1.0e-10) {
+                report_python_error(AT,"Discontinuous Elevation");
+                return 0.0;
+            }
+
+            // Outward pointing normal vector (domain.normals[k, 2*i:2*i+2])
+            k2i = 2 * k3i; //k*6 + i*2
+
+
+
+/*
+            _flux_function_central(ql, qr, zl, zr,
+                    D->normals[k2i], D->normals[k2i + 1],
+                    D->epsilon, h0, limiting_threshold, D->g,
+                    edgeflux, &max_speed);
+*/
+
+            // Edge flux computation (triangle k, edge i)
+
+            _flux_function_central_wb(ql, qr,
+                    zl, hl, hl1, hl2,
+                    zr, hr, hr1, hr2,
+                    D->normals[k2i], D->normals[k2i + 1],
+                    D->epsilon, h0, limiting_threshold, D->g,
+                    edgeflux, &max_speed);
+
+
+
+            // Multiply edgeflux by edgelength
+            length = D->edgelengths[k3i];
+            edgeflux[0] *= length;
+            edgeflux[1] *= length;
+            edgeflux[2] *= length;
+
+
+            // Update triangle k with flux from edge i
+            D->stage_explicit_update[k] -= edgeflux[0];
+            D->xmom_explicit_update[k]  -= edgeflux[1];
+            D->ymom_explicit_update[k]  -= edgeflux[2];
+
+            D->already_computed_flux[k3i] = call; // #k Done
+
+
+            // Update neighbour n with same flux but reversed sign
+            if (n >= 0) {
+                D->stage_explicit_update[n] += edgeflux[0];
+                D->xmom_explicit_update[n]  += edgeflux[1];
+                D->ymom_explicit_update[n]  += edgeflux[2];
+
+                D->already_computed_flux[n3m] = call; // #n Done
+            }
+
+            // Update timestep based on edge i and possibly neighbour n
+            if (D->tri_full_flag[k] == 1) {
+                if (max_speed > D->epsilon) {
+                    // Apply CFL condition for triangles joining this edge (triangle k and triangle n)
+
+                    // CFL for triangle k
+                    timestep = min(timestep, D->radii[k] / max_speed);
+
+                    if (n >= 0) {
+                        // Apply CFL condition for neigbour n (which is on the ith edge of triangle k)
+                        timestep = min(timestep, D->radii[n] / max_speed);
+                    }
+
+                    // Ted Rigby's suggested less conservative version
+                    //if (n>=0) {
+                    //  timestep = min(timestep, (radii[k]+radii[n])/max_speed);
+                    //} else {
+                    //  timestep = min(timestep, radii[k]/max_speed);
+                    // }
+                }
+            }
+
+        } // End edge i (and neighbour n)
+
+
+        // Normalise triangle k by area and store for when all conserved
+        // quantities get updated
+        inv_area = 1.0 / D->areas[k];
+        D->stage_explicit_update[k] *= inv_area;
+        D->xmom_explicit_update[k]  *= inv_area;
+        D->ymom_explicit_update[k]  *= inv_area;
+
+
+        // Keep track of maximal speeds
+        D->max_speed[k] = max_speed;
+
+    } // End triangle k
+
+
+    return timestep;
+}
+
 
 
 
@@ -2948,6 +3464,7 @@ PyObject *compute_fluxes_ext_central_structure(PyObject *self, PyObject *args) {
 
     struct domain D;
     PyObject *domain;
+    double timestep;
     
     if (!PyArg_ParseTuple(args, "O", &domain)) {
         report_python_error(AT, "could not parse input arguments");
@@ -2960,11 +3477,65 @@ PyObject *compute_fluxes_ext_central_structure(PyObject *self, PyObject *args) {
 
     // Call underlying flux computation routine and update
     // the explicit update arrays
-    _compute_fluxes_central_structure(&D);
+    timestep = _compute_fluxes_central_structure(&D);
 
 
-    return Py_BuildValue("");
+    return Py_BuildValue("d", timestep);
 }
+
+
+
+PyObject *compute_fluxes_ext_wb(PyObject *self, PyObject *args) {
+    /*Compute all fluxes and the timestep suitable for all volumes
+      in domain.
+
+      Compute total flux for each conserved quantity using "flux_function_central"
+
+      Fluxes across each edge are scaled by edgelengths and summed up
+      Resulting flux is then scaled by area and stored in
+      explicit_update for each of the three conserved quantities
+      stage, xmomentum and ymomentum
+
+      The
+
+      The maximal allowable speed computed by the flux_function for each volume
+      is converted to a timestep that must not be exceeded. The minimum of
+      those is computed as the next overall timestep.
+
+      Python call:
+      domain.timestep = compute_fluxes_ext_wb(domain, timestep)
+
+
+      Post conditions:
+        domain.explicit_update is reset to computed flux values
+
+      Returns:
+        timestep which is the largest step satisfying all volumes.
+
+
+     */
+
+    struct domain D;
+    PyObject *domain;
+    double timestep;
+
+    if (!PyArg_ParseTuple(args, "O", &domain)) {
+        report_python_error(AT, "could not parse input arguments");
+        return NULL;
+    }
+
+    // populate the C domain structure with pointers
+    // to the python domain data
+    get_python_domain(&D,domain);
+
+    // Call underlying flux computation routine and update
+    // the explicit update arrays
+    timestep = _compute_fluxes_central_wb(&D);
+
+
+    return Py_BuildValue("d", timestep);
+}
+
 
 
 
@@ -3354,6 +3925,7 @@ static struct PyMethodDef MethodTable[] = {
 
   {"rotate", (PyCFunction)rotate, METH_VARARGS | METH_KEYWORDS, "Print out"},
   {"extrapolate_second_order_sw", extrapolate_second_order_sw, METH_VARARGS, "Print out"},
+  {"compute_fluxes_ext_wb", compute_fluxes_ext_wb, METH_VARARGS, "Print out"},
   {"compute_fluxes_ext_central", compute_fluxes_ext_central, METH_VARARGS, "Print out"},
   {"compute_fluxes_ext_central_structure", compute_fluxes_ext_central_structure, METH_VARARGS, "Print out"},
   {"compute_fluxes_ext_kinetic", compute_fluxes_ext_kinetic, METH_VARARGS, "Print out"},

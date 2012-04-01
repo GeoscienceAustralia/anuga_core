@@ -63,8 +63,8 @@ Reference:
 
 SeeAlso:
     TRAC administration of ANUGA (User Manuals etc) at
-    https://datamining.anu.edu.au/anuga and Subversion repository at
-    $HeadURL: https://datamining.anu.edu.au/svn/anuga/trunk/anuga_core/source/
+    https://anuga.anu.edu.au and Subversion repository at
+    $HeadURL: https://anuga.anu.edu.au/svn/anuga/trunk/anuga_core/source/
                 anuga/shallow_water/shallow_water_domain.py $
 
 Constraints: See GPL license in the user guide
@@ -164,11 +164,12 @@ class Domain(Generic_Domain):
 
         self.set_defaults()
 
+
         #-------------------------------
         # Operators and Forcing Terms
         #-------------------------------
         self.forcing_terms.append(manning_friction_implicit)
-        #self.forcing_terms.append(gravity_)
+        #self.forcing_terms.append(gravity_wb)
         self.forcing_terms.append(gravity)
 
 
@@ -218,6 +219,7 @@ class Domain(Generic_Domain):
         from anuga.config import optimised_gradient_limiter
         from anuga.config import use_edge_limiter
         from anuga.config import use_centroid_velocities
+        from anuga.config import compute_fluxes_method
         
 
         self.set_minimum_allowed_height(minimum_allowed_height)
@@ -245,7 +247,9 @@ class Domain(Generic_Domain):
          # Limiters
         self.use_edge_limiter = use_edge_limiter
         self.optimised_gradient_limiter = optimised_gradient_limiter
-        self.use_centroid_velocities = use_centroid_velocities       
+        self.use_centroid_velocities = use_centroid_velocities
+
+        self.set_compute_fluxes_method(compute_fluxes_method)
 
 
     def update_special_conditions(self):
@@ -273,15 +277,32 @@ class Domain(Generic_Domain):
             self.use_sloped_mannings = False
 
 
-    def set_use_edge_limiter(self, flag=True):
-        """Cludge to allow unit test to pass, but to
-        also introduce new edge limiting. The flag is
-        tested in distribute_to_vertices_and_edges.
+    def set_compute_fluxes_method(self, flag='original'):
+        """Set method for computing fluxes.
+
+        Currently
+           'original'
+           'well_balanced_1
         """
-        if flag:
-            self.use_edge_limiter = True
+        compute_fluxes_methods = ['original', 'well_balanced_1']
+
+        if flag in compute_fluxes_methods:
+            self.compute_fluxes_method = flag
         else:
-            self.use_edge_limiter = False
+            raise Exception('Unknown compute_fluxes_method')
+
+
+    def get_compute_fluxes_method(self):
+        """Get method for computing fluxes.
+
+        Currently
+           'original'
+           'well_balanced_1
+        """
+
+        return self.compute_fluxes_method
+
+
 
 
     def set_use_kinematic_viscosity(self, flag=True):
@@ -579,9 +600,34 @@ class Domain(Generic_Domain):
         extrapolate_second_order_sw(self)
 
     def compute_fluxes(self):
-        """Call correct module function
-            (either from this module or C-extension)"""
-        compute_fluxes(self)
+        """Compute fluxes and timestep suitable for all volumes in domain.
+
+        Compute total flux for each conserved quantity using "flux_function"
+
+        Fluxes across each edge are scaled by edgelengths and summed up
+        Resulting flux is then scaled by area and stored in
+        explicit_update for each of the three conserved quantities
+        stage, xmomentum and ymomentum
+
+        The maximal allowable speed computed by the flux_function for each volume
+        is converted to a timestep that must not be exceeded. The minimum of
+        those is computed as the next overall timestep.
+
+        Post conditions:
+          domain.explicit_update is reset to computed flux values
+          domain.flux_timestep is set to the largest step satisfying all volumes.
+
+        This wrapper calls the underlying C version of compute fluxes
+        """
+
+        if self.compute_fluxes_method == 'original':
+            from shallow_water_ext import compute_fluxes_ext_central_structure
+            self.flux_timestep = compute_fluxes_ext_central_structure(self)
+        elif self.compute_fluxes_method == 'well_balanced_1':
+            from shallow_water_ext import compute_fluxes_ext_wb
+            self.flux_timestep = compute_fluxes_ext_wb(self)
+        else:
+            raise Exception('unknown compute_fluxes_method')
 
 
     def distribute_to_vertices_and_edges(self):
@@ -1136,7 +1182,7 @@ def compute_fluxes_structure(domain):
     from shallow_water_ext import compute_fluxes_ext_central_structure
 
 
-    compute_fluxes_ext_central_structure(domain)
+    domain.flux_timestep = compute_fluxes_ext_central_structure(domain)
 
 
 
@@ -1357,7 +1403,7 @@ def gravity_wb(domain):
     Wrapper calls underlying C implementation
     """
 
-    from shallow_water_ext import gravity_wb_c
+    from shallow_water_ext import gravity_wb as gravity_wb_c
 
     gravity_wb_c(domain)
 
