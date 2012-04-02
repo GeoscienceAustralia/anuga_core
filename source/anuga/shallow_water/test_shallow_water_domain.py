@@ -6667,7 +6667,7 @@ friction  \n \
         """
 
         
-        verbose = True
+        verbose = False
         
         #----------------------------------------------------------------------
         # Setup computational domain
