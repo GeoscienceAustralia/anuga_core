@@ -1600,7 +1600,7 @@ PyObject *gravity_wb(PyObject *self, PyObject *args) {
         hh[2] = D.stage_edge_values[k3 + 2] - D.bed_edge_values[k3 + 2];
 
 
-        printf("h0,1,2 %f %f %f\n",hh[0],hh[1],hh[2]);
+        //printf("h0,1,2 %f %f %f\n",hh[0],hh[1],hh[2]);
         
         // Calculate the side correction term
         sidex = 0.0;
@@ -1609,8 +1609,8 @@ PyObject *gravity_wb(PyObject *self, PyObject *args) {
             n0 = D.normals[k6+2*i];
             n1 = D.normals[k6+2*i+1];
 
-            printf("n0, n1 %i %g %g\n",i,n0,n1);
-            fact = 0.5*g*hh[i]*hh[i]*D.edgelengths[k3+i];
+            //printf("n0, n1 %i %g %g\n",i,n0,n1);
+            fact = -0.5*g*hh[i]*hh[i]*D.edgelengths[k3+i];
             sidex = sidex + fact*n0;
             sidey = sidey + fact*n1;
         }

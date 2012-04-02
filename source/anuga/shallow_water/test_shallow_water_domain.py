@@ -2166,9 +2166,9 @@ class Test_Shallow_Water(unittest.TestCase):
             assert num.allclose(domain.quantities[name].explicit_update, 0)
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
-        domain.compute_forcing_terms()
-        #from shallow_water_ext import gravity
-        #gravity(domain)
+        #domain.compute_forcing_terms()
+        from shallow_water_ext import gravity
+        gravity(domain)
 
         #print domain.quantities['xmomentum'].explicit_update
         #print domain.quantities['ymomentum'].explicit_update
@@ -2180,8 +2180,100 @@ class Test_Shallow_Water(unittest.TestCase):
         assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
 
 
+    def test_gravity_2(self):
+        #Assuming no friction
 
-    def Xtest_gravity_wb(self):
+        from anuga.config import g
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        #Set up for a gradient of (3,0) at mid triangle (bce)
+        def slope(x, y):
+            return 3*x
+
+        h = 15
+        def stage(x, y):
+            return h
+
+        domain.set_quantity('elevation', slope)
+        domain.set_quantity('stage', stage)
+
+        for name in domain.conserved_quantities:
+            assert num.allclose(domain.quantities[name].explicit_update, 0)
+            assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
+
+        #domain.compute_forcing_terms()
+        from shallow_water_ext import gravity
+        gravity(domain)
+
+        #print domain.quantities['xmomentum'].explicit_update
+        #print domain.quantities['ymomentum'].explicit_update
+
+
+        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
+                            [-382.2, -323.4, -205.8, -382.2])
+        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
+
+    def test_gravity_3(self):
+        #Showing standard gravity term is not well balanced
+
+        from anuga.config import g
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        #Set up for a gradient of (3,0) at mid triangle (bce)
+        def slope(x, y):
+            return 3*x
+
+        h = 15
+        def stage(x, y):
+            return h
+
+        domain.set_quantity('elevation', slope)
+        domain.set_quantity('stage', stage)
+
+        for name in domain.conserved_quantities:
+            assert num.allclose(domain.quantities[name].explicit_update, 0)
+            assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
+
+        domain.set_compute_fluxes_method('original')
+        domain.compute_forcing_terms()
+
+
+        print domain.quantities['xmomentum'].explicit_update
+        #print domain.quantities['ymomentum'].explicit_update
+
+
+        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
+                            [-382.2, -323.4, -205.8, -382.2])
+        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
+
+
+    def test_gravity_wb(self):
         #Assuming no friction
 
         from anuga.config import g
@@ -2218,15 +2310,17 @@ class Test_Shallow_Water(unittest.TestCase):
         gravity_wb(domain)
 
 
-        print domain.quantities['xmomentum'].explicit_update
-        print domain.quantities['ymomentum'].explicit_update
+        #print domain.quantities['xmomentum'].explicit_update
+        #print domain.quantities['ymomentum'].explicit_update
+
+
         assert num.allclose(domain.quantities['stage'].explicit_update, 0)
         assert num.allclose(domain.quantities['xmomentum'].explicit_update,
                             -g*h*3)
         assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
 
 
-    def Xtest_gravity_wb_2(self):
+    def test_gravity_wb_2(self):
         #Assuming no friction
 
         from anuga.config import g
@@ -2263,12 +2357,12 @@ class Test_Shallow_Water(unittest.TestCase):
         gravity_wb(domain)
 
 
-        print domain.quantities['xmomentum'].explicit_update
-        print domain.quantities['ymomentum'].explicit_update
+        #print domain.quantities['xmomentum'].explicit_update
+        #print domain.quantities['ymomentum'].explicit_update
         
         assert num.allclose(domain.quantities['stage'].explicit_update, 0)
         assert num.allclose(domain.quantities['xmomentum'].explicit_update,
-                            -g*h*3)
+                            [-396.9, -308.7, -220.5, -396.9])
         assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
 
 

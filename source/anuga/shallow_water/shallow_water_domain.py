@@ -139,6 +139,8 @@ class Domain(Generic_Domain):
         if other_quantities == None:
             other_quantities = ['elevation', 'friction', 'height',
                                 'xvelocity', 'yvelocity', 'x', 'y']
+
+
         
         
         Generic_Domain.__init__(self,
@@ -166,14 +168,17 @@ class Domain(Generic_Domain):
 
 
         #-------------------------------
-        # Operators and Forcing Terms
+        # Forcing Terms
+        #
+        # Gravity is now incorporated in
+        # compute_fluxes routine
         #-------------------------------
         self.forcing_terms.append(manning_friction_implicit)
-        #self.forcing_terms.append(gravity_wb)
-        self.forcing_terms.append(gravity)
 
 
-
+        #-------------------------------
+        # Operators
+        #-------------------------------
         self.fractional_step_operators = []
         self.kv_operator = None
 
@@ -249,6 +254,7 @@ class Domain(Generic_Domain):
         self.optimised_gradient_limiter = optimised_gradient_limiter
         self.use_centroid_velocities = use_centroid_velocities
 
+
         self.set_compute_fluxes_method(compute_fluxes_method)
 
 
@@ -284,7 +290,7 @@ class Domain(Generic_Domain):
            'original'
            'well_balanced_1
         """
-        compute_fluxes_methods = ['original', 'well_balanced_1']
+        compute_fluxes_methods = ['original', 'wb_1', 'wb_2']
 
         if flag in compute_fluxes_methods:
             self.compute_fluxes_method = flag
@@ -292,6 +298,9 @@ class Domain(Generic_Domain):
             msg = 'Unknown compute_fluxes_method. \nPossible choices are:\n'+ \
             ', '.join(compute_fluxes_methods)+'.'
             raise Exception(msg)
+
+
+
 
 
     def get_compute_fluxes_method(self):
@@ -303,6 +312,23 @@ class Domain(Generic_Domain):
         """
 
         return self.compute_fluxes_method
+
+
+    def set_gravity_method(self):
+        """Gravity method is determined by the compute_fluxes_method
+        """
+
+        if  self.get_compute_fluxes_method() == 'original':
+            self.forcing_terms[0] = gravity
+
+        elif self.get_compute_fluxes_method() == 'wb_1':
+            self.forcing_terms[0] = gravity_wb
+
+        elif self.get_compute_fluxes_method() == 'wb_2':
+            self.forcing_terms[0] = gravity
+
+        else:
+            raise Exception('undefined compute_fluxes method')
 
 
 
@@ -624,12 +650,30 @@ class Domain(Generic_Domain):
 
         if self.compute_fluxes_method == 'original':
             from shallow_water_ext import compute_fluxes_ext_central_structure
+            from shallow_water_ext import gravity as gravity_c
+
             self.flux_timestep = compute_fluxes_ext_central_structure(self)
-        elif self.compute_fluxes_method == 'well_balanced_1':
+            gravity_c(self)
+
+
+        elif self.compute_fluxes_method == 'wb_1':
             from shallow_water_ext import compute_fluxes_ext_wb
+            from shallow_water_ext import gravity as gravity_c
+
             self.flux_timestep = compute_fluxes_ext_wb(self)
+            gravity_c(self)
+
+        elif self.compute_fluxes_method == 'wb_2':
+            from shallow_water_ext import compute_fluxes_ext_central_structure
+            from shallow_water_ext import gravity_wb as gravity_wb_c
+
+            self.flux_timestep = compute_fluxes_ext_central_structure(self)
+            gravity_wb_c(self)
+
         else:
             raise Exception('unknown compute_fluxes_method')
+
+
 
 
     def distribute_to_vertices_and_edges(self):
@@ -1086,7 +1130,9 @@ class Domain(Generic_Domain):
         # FIXME(Ole): This part is not yet done.		
         
         return message        
-           
+          
+
+
 ################################################################################
 # End of class Shallow Water Domain
 ################################################################################
@@ -1095,97 +1141,97 @@ class Domain(Generic_Domain):
 # Flux computation
 #-----------------
 
-def compute_fluxes(domain):
-    """Compute fluxes and timestep suitable for all volumes in domain.
-
-    Compute total flux for each conserved quantity using "flux_function"
-
-    Fluxes across each edge are scaled by edgelengths and summed up
-    Resulting flux is then scaled by area and stored in
-    explicit_update for each of the three conserved quantities
-    stage, xmomentum and ymomentum
-
-    The maximal allowable speed computed by the flux_function for each volume
-    is converted to a timestep that must not be exceeded. The minimum of
-    those is computed as the next overall timestep.
-
-    Post conditions:
-      domain.explicit_update is reset to computed flux values
-      domain.timestep is set to the largest step satisfying all volumes.
-
-    This wrapper calls the underlying C version of compute fluxes
-    """
-
-    import sys
-    from shallow_water_ext import compute_fluxes_ext_central \
-                                  as compute_fluxes_ext
-
-    # Shortcuts
-    Stage = domain.quantities['stage']
-    Xmom = domain.quantities['xmomentum']
-    Ymom = domain.quantities['ymomentum']
-    Bed = domain.quantities['elevation']
-
-
-
-    timestep = float(sys.maxint)
-
-    flux_timestep = compute_fluxes_ext(timestep,
-                                       domain.epsilon,
-                                       domain.H0,
-                                       domain.g,
-                                       domain.neighbours,
-                                       domain.neighbour_edges,
-                                       domain.normals,
-                                       domain.edgelengths,
-                                       domain.radii,
-                                       domain.areas,
-                                       domain.tri_full_flag,
-                                       Stage.edge_values,
-                                       Xmom.edge_values,
-                                       Ymom.edge_values,
-                                       Bed.edge_values,
-                                       Stage.boundary_values,
-                                       Xmom.boundary_values,
-                                       Ymom.boundary_values,
-                                       Stage.explicit_update,
-                                       Xmom.explicit_update,
-                                       Ymom.explicit_update,
-                                       domain.already_computed_flux,
-                                       domain.max_speed,
-                                       domain.optimise_dry_cells)
-
-    domain.flux_timestep = flux_timestep
-
-
-
-def compute_fluxes_structure(domain):
-    """Compute fluxes and timestep suitable for all volumes in domain.
-
-    Compute total flux for each conserved quantity using "flux_function"
-
-    Fluxes across each edge are scaled by edgelengths and summed up
-    Resulting flux is then scaled by area and stored in
-    explicit_update for each of the three conserved quantities
-    stage, xmomentum and ymomentum
-
-    The maximal allowable speed computed by the flux_function for each volume
-    is converted to a timestep that must not be exceeded. The minimum of
-    those is computed as the next overall timestep.
-
-    Post conditions:
-      domain.explicit_update is reset to computed flux values
-      domain.flux_timestep is set to the largest step satisfying all volumes.
-
-    This wrapper calls the underlying C version of compute fluxes
-    """
-
-
-    from shallow_water_ext import compute_fluxes_ext_central_structure
-
-
-    domain.flux_timestep = compute_fluxes_ext_central_structure(domain)
-
+#def compute_fluxes(domain):
+#    """Compute fluxes and timestep suitable for all volumes in domain.
+#
+#    Compute total flux for each conserved quantity using "flux_function"
+#
+#    Fluxes across each edge are scaled by edgelengths and summed up
+#    Resulting flux is then scaled by area and stored in
+#    explicit_update for each of the three conserved quantities
+#    stage, xmomentum and ymomentum
+#
+#    The maximal allowable speed computed by the flux_function for each volume
+#    is converted to a timestep that must not be exceeded. The minimum of
+#    those is computed as the next overall timestep.
+#
+#    Post conditions:
+#      domain.explicit_update is reset to computed flux values
+#      domain.timestep is set to the largest step satisfying all volumes.
+#
+#    This wrapper calls the underlying C version of compute fluxes
+#    """
+#
+#    import sys
+#    from shallow_water_ext import compute_fluxes_ext_central \
+#                                  as compute_fluxes_ext
+#
+#    # Shortcuts
+#    Stage = domain.quantities['stage']
+#    Xmom = domain.quantities['xmomentum']
+#    Ymom = domain.quantities['ymomentum']
+#    Bed = domain.quantities['elevation']
+#
+#
+#
+#    timestep = float(sys.maxint)
+#
+#    flux_timestep = compute_fluxes_ext(timestep,
+#                                       domain.epsilon,
+#                                       domain.H0,
+#                                       domain.g,
+#                                       domain.neighbours,
+#                                       domain.neighbour_edges,
+#                                       domain.normals,
+#                                       domain.edgelengths,
+#                                       domain.radii,
+#                                       domain.areas,
+#                                       domain.tri_full_flag,
+#                                       Stage.edge_values,
+#                                       Xmom.edge_values,
+#                                       Ymom.edge_values,
+#                                       Bed.edge_values,
+#                                       Stage.boundary_values,
+#                                       Xmom.boundary_values,
+#                                       Ymom.boundary_values,
+#                                       Stage.explicit_update,
+#                                       Xmom.explicit_update,
+#                                       Ymom.explicit_update,
+#                                       domain.already_computed_flux,
+#                                       domain.max_speed,
+#                                       domain.optimise_dry_cells)
+#
+#    domain.flux_timestep = flux_timestep
+#
+#
+#
+#def compute_fluxes_structure(domain):
+#    """Compute fluxes and timestep suitable for all volumes in domain.
+#
+#    Compute total flux for each conserved quantity using "flux_function"
+#
+#    Fluxes across each edge are scaled by edgelengths and summed up
+#    Resulting flux is then scaled by area and stored in
+#    explicit_update for each of the three conserved quantities
+#    stage, xmomentum and ymomentum
+#
+#    The maximal allowable speed computed by the flux_function for each volume
+#    is converted to a timestep that must not be exceeded. The minimum of
+#    those is computed as the next overall timestep.
+#
+#    Post conditions:
+#      domain.explicit_update is reset to computed flux values
+#      domain.flux_timestep is set to the largest step satisfying all volumes.
+#
+#    This wrapper calls the underlying C version of compute fluxes
+#    """
+#
+#
+#    from shallow_water_ext import compute_fluxes_ext_central_structure
+#
+#
+#    domain.flux_timestep = compute_fluxes_ext_central_structure(domain)
+#
 
 
 ################################################################################
@@ -1400,24 +1446,6 @@ def balance_deep_and_shallow(domain):
 
 
 
-def gravity_wb(domain):
-    """Apply gravitational pull in the presence of bed slope
-    Wrapper calls underlying C implementation
-    """
-
-    from shallow_water_ext import gravity_wb as gravity_wb_c
-
-    gravity_wb_c(domain)
-
-
-def gravity(domain):
-    """Apply gravitational pull in the presence of bed slope
-    Wrapper calls underlying C implementation
-    """
-
-    from shallow_water_ext import gravity as gravity_c
-
-    gravity_c(domain)
 
 def manning_friction_implicit(domain):
     """Apply (Manning) friction to water momentum
