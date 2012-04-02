@@ -1,4 +1,4 @@
-from anuga.abstract_2d_finite_volumes.generic_domain import Generic_Domain
+from anuga import Domain
 from anuga import Dirichlet_boundary
 from anuga import Operator
 
@@ -21,7 +21,7 @@ class Test_Operator(unittest.TestCase):
         boundary_map[(0,1)] = 'edge1'
         boundary_map[(0,2)] = 'edge2'
 
-        domain = Generic_Domain(source=points, triangles=elements, boundary=boundary_map)
+        domain = Domain(points, elements, boundary_map)
 
         operator = Operator(domain)
 
