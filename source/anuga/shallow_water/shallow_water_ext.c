@@ -1542,7 +1542,7 @@ PyObject *gravity_wb(PyObject *self, PyObject *args) {
     double h0,h1,h2;
     double hh[3];
     double w0,w1,w2;
-    double sidex, sidey;
+    double sidex, sidey, area;
     double n0, n1;
     //double epsilon;
 
@@ -1594,7 +1594,7 @@ PyObject *gravity_wb(PyObject *self, PyObject *args) {
         // Calculate side terms \sum_i 0.5 g l_i h_i^2 n_i
         //------------------------------------
         
-        // Get edge depths
+        // Getself.stage_c = self.domain.quantities['stage'].centroid_values edge depths
         hh[0] = D.stage_edge_values[k3 + 0] - D.bed_edge_values[k3 + 0];
         hh[1] = D.stage_edge_values[k3 + 1] - D.bed_edge_values[k3 + 1];
         hh[2] = D.stage_edge_values[k3 + 2] - D.bed_edge_values[k3 + 2];
@@ -1616,8 +1616,9 @@ PyObject *gravity_wb(PyObject *self, PyObject *args) {
         }
 
         // Update momentum with side terms
-        D.xmom_explicit_update[k] =- sidex;
-        D.ymom_explicit_update[k] =- sidey;
+        area = D.areas[k];
+        D.xmom_explicit_update[k] += -sidex/area;
+        D.ymom_explicit_update[k] += -sidey/area;
 
     }
 

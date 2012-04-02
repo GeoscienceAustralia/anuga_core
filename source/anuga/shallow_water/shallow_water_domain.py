@@ -289,7 +289,9 @@ class Domain(Generic_Domain):
         if flag in compute_fluxes_methods:
             self.compute_fluxes_method = flag
         else:
-            raise Exception('Unknown compute_fluxes_method')
+            msg = 'Unknown compute_fluxes_method. \nPossible choices are:\n'+ \
+            ', '.join(compute_fluxes_methods)+'.'
+            raise Exception(msg)
 
 
     def get_compute_fluxes_method(self):
