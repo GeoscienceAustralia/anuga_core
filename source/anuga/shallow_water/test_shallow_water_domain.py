@@ -2226,10 +2226,13 @@ class Test_Shallow_Water(unittest.TestCase):
                             [-382.2, -323.4, -205.8, -382.2])
         assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
 
-    def test_gravity_3(self):
-        #Showing standard gravity term is not well balanced
+
+
+    def test_well_balanced_flux_1(self):
+        #testing that compute_fluxes_method = wb_1 is well balance
 
         from anuga.config import g
+        from anuga import Reflective_boundary
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -2255,23 +2258,86 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_quantity('elevation', slope)
         domain.set_quantity('stage', stage)
 
+
+
         for name in domain.conserved_quantities:
             assert num.allclose(domain.quantities[name].explicit_update, 0)
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
-        domain.set_compute_fluxes_method('original')
-        domain.compute_forcing_terms()
+
+        Br = Reflective_boundary(domain)      # Solid reflective wall
+        domain.set_boundary({'exterior' :Br})
+        domain.update_boundary()
+
+        domain.set_compute_fluxes_method('wb_1')
+        domain.compute_fluxes()
 
 
         print domain.quantities['xmomentum'].explicit_update
-        #print domain.quantities['ymomentum'].explicit_update
+        print domain.quantities['stage'].vertex_values
+        print domain.quantities['elevation'].vertex_values
+        print domain.quantities['ymomentum'].explicit_update
 
 
         assert num.allclose(domain.quantities['stage'].explicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
-                            [-382.2, -323.4, -205.8, -382.2])
-        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].explicit_update, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0.0)
 
+
+    def test_well_balanced_flux_2(self):
+        #esting that compute_fluxes_method = wb_2 is well balance
+
+        from anuga.config import g
+        from anuga import Reflective_boundary
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        #Set up for a gradient of (3,0) at mid triangle (bce)
+        def slope(x, y):
+            return 3*x
+
+        h = 15
+        def stage(x, y):
+            return h
+
+        domain.set_quantity('elevation', slope)
+        domain.set_quantity('stage', stage)
+
+
+
+        for name in domain.conserved_quantities:
+            assert num.allclose(domain.quantities[name].explicit_update, 0)
+            assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
+
+
+        Br = Reflective_boundary(domain)      # Solid reflective wall
+        domain.set_boundary({'exterior' :Br})
+        domain.update_boundary()
+
+        domain.set_compute_fluxes_method('wb_2')
+        domain.compute_fluxes()
+
+
+        print domain.quantities['xmomentum'].explicit_update
+        print domain.quantities['stage'].vertex_values
+        print domain.quantities['elevation'].vertex_values
+        print domain.quantities['ymomentum'].explicit_update
+
+
+        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].explicit_update, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0.0)
 
     def test_gravity_wb(self):
         #Assuming no friction
@@ -7584,6 +7650,6 @@ friction  \n \
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_rainfall_forcing_with_evolve')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test_well')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

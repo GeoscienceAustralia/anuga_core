@@ -2912,7 +2912,7 @@ double _compute_fluxes_central_structure(struct domain *D) {
 double _compute_fluxes_central_wb(struct domain *D) {
 
     // Local variables
-    double max_speed, length, inv_area, zl, zr;
+    double max_speed, length, inv_area;
     double timestep = 1.0e30;
     double h0 = D->H0*D->H0; // This ensures a good balance when h approaches H0.
 
@@ -2926,6 +2926,9 @@ double _compute_fluxes_central_wb(struct domain *D) {
 
     double hl, hl1, hl2;
     double hr, hr1, hr2;
+    double zl, zl1, zl2;
+    double zr, zr1, zr2;
+    double wr;
 
     // Workspace (making them static actually made function slightly slower (Ole))
     double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
@@ -2965,10 +2968,16 @@ double _compute_fluxes_central_wb(struct domain *D) {
             ql[2] = D->ymom_edge_values[k3i];
 
             zl = D->bed_edge_values[k3i];
+
+            zl1 = D->bed_vertex_values[k3i1];
+            zl2 = D->bed_vertex_values[k3i2];
+
+
             hl = D->stage_edge_values[k3i] - zl;
 
-            hl1 = D->stage_vertex_values[k3i1] - D->bed_vertex_values[k3i1];
-            hl2 = D->stage_vertex_values[k3i2] - D->bed_vertex_values[k3i2];
+            hl1 = D->stage_vertex_values[k3i1] - zl1;
+            hl2 = D->stage_vertex_values[k3i2] - zl2;
+
 
             // Get right hand side values either from neighbouring triangle
             // or from boundary array (Quantities at neighbour on nearest face).
@@ -2981,10 +2990,14 @@ double _compute_fluxes_central_wb(struct domain *D) {
                 qr[1] = D->xmom_boundary_values[m];
                 qr[2] = D->ymom_boundary_values[m];
 
-                zr = zl; // Extend bed elevation to boundary and assume flat
-                hr = D->stage_boundary_values[m] - zr;
-                hr1 = hr;
-                hr2 = hr;
+                zr = zl; // Extend bed elevation to boundary and assume flat stage
+
+                wr = D->stage_boundary_values[m];
+
+                hr = wr - zr;
+                hr1 = wr-zl2;
+                hr2 = wr-zl1;
+
 
             }
             else {
