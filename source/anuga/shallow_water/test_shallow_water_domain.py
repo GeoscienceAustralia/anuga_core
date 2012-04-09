@@ -2273,10 +2273,10 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.compute_fluxes()
 
 
-        print domain.quantities['xmomentum'].explicit_update
-        print domain.quantities['stage'].vertex_values
-        print domain.quantities['elevation'].vertex_values
-        print domain.quantities['ymomentum'].explicit_update
+        #print domain.quantities['xmomentum'].explicit_update
+        #print domain.quantities['stage'].vertex_values
+        #print domain.quantities['elevation'].vertex_values
+        #print domain.quantities['ymomentum'].explicit_update
 
 
         assert num.allclose(domain.quantities['stage'].explicit_update, 0)
@@ -2329,10 +2329,10 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.compute_fluxes()
 
 
-        print domain.quantities['xmomentum'].explicit_update
-        print domain.quantities['stage'].vertex_values
-        print domain.quantities['elevation'].vertex_values
-        print domain.quantities['ymomentum'].explicit_update
+        #print domain.quantities['xmomentum'].explicit_update
+        #print domain.quantities['stage'].vertex_values
+        #print domain.quantities['elevation'].vertex_values
+        #print domain.quantities['ymomentum'].explicit_update
 
 
         assert num.allclose(domain.quantities['stage'].explicit_update, 0)

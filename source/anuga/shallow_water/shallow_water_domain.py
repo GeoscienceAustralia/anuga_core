@@ -230,7 +230,7 @@ class Domain(Generic_Domain):
         self.set_minimum_allowed_height(minimum_allowed_height)
         self.maximum_allowed_speed = maximum_allowed_speed
 
-        self.extrapolate_velocity_second_order=extrapolate_velocity_second_order
+        self.set_extrapolate_velocity(extrapolate_velocity_second_order)
 
         self.g = g
         self.beta_w = beta_w
@@ -287,10 +287,12 @@ class Domain(Generic_Domain):
         """Set method for computing fluxes.
 
         Currently
-           'original'
-           'well_balanced_1
+           original
+           wb_1
+           wb_2
+           wb_3
         """
-        compute_fluxes_methods = ['original', 'wb_1', 'wb_2']
+        compute_fluxes_methods = ['original', 'wb_1', 'wb_2', 'wb_3']
 
         if flag in compute_fluxes_methods:
             self.compute_fluxes_method = flag
@@ -330,8 +332,17 @@ class Domain(Generic_Domain):
         else:
             raise Exception('undefined compute_fluxes method')
 
+    def set_extrapolate_velocity(self, flag=True):
+        """ Extrapolation routine uses momentum by default,
+        can change to velocity extrapolation which
+        seems to work better.
+        """
 
-
+        if flag is True:
+            self.extrapolate_velocity_second_order = True
+        elif flag is False:
+            self.extrapolate_velocity_second_order = False
+            
 
     def set_use_kinematic_viscosity(self, flag=True):
 
@@ -655,7 +666,6 @@ class Domain(Generic_Domain):
             self.flux_timestep = compute_fluxes_ext_central_structure(self)
             gravity_c(self)
 
-
         elif self.compute_fluxes_method == 'wb_1':
             from shallow_water_ext import compute_fluxes_ext_wb
             from shallow_water_ext import gravity as gravity_c
@@ -669,6 +679,13 @@ class Domain(Generic_Domain):
 
             self.flux_timestep = compute_fluxes_ext_central_structure(self)
             gravity_wb_c(self)
+
+        elif self.compute_fluxes_method == 'wb_3':
+            from shallow_water_ext import compute_fluxes_ext_wb_3
+            from shallow_water_ext import gravity as gravity_c
+
+            self.flux_timestep = compute_fluxes_ext_wb_3(self)
+            gravity_c(self)
 
         else:
             raise Exception('unknown compute_fluxes_method')

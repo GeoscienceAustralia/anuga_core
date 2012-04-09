@@ -8,7 +8,7 @@
 #include "util_ext.h"
 
 
-// structure
+// structures
 struct domain {
     // Changing these don't change the data in python object
     long    number_of_elements;
@@ -58,6 +58,67 @@ struct domain {
     double* ymom_explicit_update;
 };
 
+
+struct edge {
+
+    // mid point values
+    double w;
+    double h;
+    double z;
+    double uh;
+    double vh;
+    double u;
+    double v;
+
+    // vertex values
+    double w1;
+    double h1;
+    double z1;
+    double uh1;
+    double vh1;
+    double u1;
+    double v1;
+
+    double w2;
+    double h2;
+    double z2;
+    double uh2;
+    double vh2;
+    double u2;
+    double v2;
+    
+};
+
+
+void get_edge_data(struct edge *E, struct domain *D, int k, int i) {
+    // fill edge data (conserved and bed) for ith edge of kth triangle
+
+    int k3i, k3i1, k3i2;
+
+    k3i = 3 * k + i;
+    k3i1 = 3 * k + (i + 1) % 3;
+    k3i2 = 3 * k + (i + 2) % 3;
+
+    E->w = D->stage_edge_values[k3i];
+    E->z = D->bed_edge_values[k3i];
+    E->h = E->w - E->z;
+    E->uh = D->xmom_edge_values[k3i];
+    E->vh = D->ymom_edge_values[k3i];
+
+    E->w1 = D->stage_vertex_values[k3i1];
+    E->z1 = D->bed_vertex_values[k3i1];
+    E->h1 = E->w1 - E->z1;
+    E->uh1 = D->xmom_edge_values[k3i1];
+    E->vh1 = D->ymom_edge_values[k3i1];
+
+
+    E->w2 = D->stage_vertex_values[k3i2];
+    E->z2 = D->bed_vertex_values[k3i2];
+    E->h2 = E->w2 - E->z2;
+    E->uh2 = D->xmom_edge_values[k3i2];
+    E->vh2 = D->ymom_edge_values[k3i2];
+
+}
 
 
 struct domain* get_python_domain(struct domain *D, PyObject *domain) {
