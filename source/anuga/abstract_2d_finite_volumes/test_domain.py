@@ -885,7 +885,7 @@ class Test_Domain(unittest.TestCase):
                                                    1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0])
 
 
-        assert num.allclose(domain.number_of_full_nodes, 18)
+        #assert num.allclose(domain.number_of_full_nodes, 18)
         
         assert num.allclose(domain.number_of_full_triangles, 20)
 

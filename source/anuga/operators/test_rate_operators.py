@@ -1933,6 +1933,8 @@ class Test_Forcing(unittest.TestCase):
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
         domain = Domain(points, vertices)
+        B = Reflective_boundary(domain)
+        domain.set_boundary( {'exterior': B})
 
         #Set up for a gradient of (3,0) at mid triangle (bce)
         def slope(x, y):
@@ -1949,7 +1951,8 @@ class Test_Forcing(unittest.TestCase):
             assert num.allclose(domain.quantities[name].explicit_update, 0)
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
-        domain.compute_forcing_terms()
+        domain.update_boundary()
+        domain.compute_fluxes()
 
         assert num.allclose(domain.quantities['stage'].explicit_update, 0)
         assert num.allclose(domain.quantities['xmomentum'].explicit_update,
@@ -1973,6 +1976,8 @@ class Test_Forcing(unittest.TestCase):
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
         domain = Domain(points, vertices)
+        B = Reflective_boundary(domain)
+        domain.set_boundary( {'exterior': B})
 
         #Set up for a gradient of (3,0) at mid triangle (bce)
         def slope(x, y):
@@ -1995,7 +2000,7 @@ class Test_Forcing(unittest.TestCase):
 
         assert num.allclose(domain.quantities['stage'].explicit_update, 0)
         assert num.allclose(domain.quantities['xmomentum'].explicit_update,
-                            -g*h*3)
+                            0)
         assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
 
         assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
@@ -2049,6 +2054,8 @@ class Test_Forcing(unittest.TestCase):
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
         domain = Domain(points, vertices)
+        B = Reflective_boundary(domain)
+        domain.set_boundary( {'exterior': B})
 
         # Use the new function which takes into account the extra
         # wetted area due to slope of bed
@@ -2075,7 +2082,7 @@ class Test_Forcing(unittest.TestCase):
 
         assert num.allclose(domain.quantities['stage'].explicit_update, 0)
         assert num.allclose(domain.quantities['xmomentum'].explicit_update,
-                            -g*h*3)
+                            0)
         assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
 
         assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
