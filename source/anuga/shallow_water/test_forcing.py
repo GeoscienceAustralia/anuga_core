@@ -1916,7 +1916,7 @@ class Test_Forcing(unittest.TestCase):
         os.remove(field_sts_filename+'.sts')
         os.remove(field_sts_filename+'.sww')
 
-    def test_gravity(self):
+    def test_flux_gravity(self):
         #Assuming no friction
 
         from anuga.config import g
@@ -1934,6 +1934,10 @@ class Test_Forcing(unittest.TestCase):
 
         domain = Domain(points, vertices)
 
+        B = Reflective_boundary(domain)
+        domain.set_boundary( {'exterior': B})
+
+
         #Set up for a gradient of (3,0) at mid triangle (bce)
         def slope(x, y):
             return 3*x
@@ -1949,9 +1953,10 @@ class Test_Forcing(unittest.TestCase):
             assert num.allclose(domain.quantities[name].explicit_update, 0)
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
-        domain.compute_forcing_terms()
-
-
+        # fluxes and gravity term are now combined. To ensure zero flux on boundary
+        # need to set reflective boundaries
+        domain.update_boundary()
+        domain.compute_fluxes()
 
         
         assert num.allclose(domain.quantities['stage'].explicit_update, 0)
@@ -1976,6 +1981,9 @@ class Test_Forcing(unittest.TestCase):
 
         domain = Domain(points, vertices)
 
+        B = Reflective_boundary(domain)
+        domain.set_boundary( {'exterior': B})
+
         #Set up for a gradient of (3,0) at mid triangle (bce)
         def slope(x, y):
             return 3*x
@@ -1993,11 +2001,13 @@ class Test_Forcing(unittest.TestCase):
             assert num.allclose(domain.quantities[name].explicit_update, 0)
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
+
+        # Only manning friction in the forcing terms (gravity now combined with flux calc)
         domain.compute_forcing_terms()
 
         assert num.allclose(domain.quantities['stage'].explicit_update, 0)
         assert num.allclose(domain.quantities['xmomentum'].explicit_update,
-                            -g*h*3)
+                            0)
         assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
 
         assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
@@ -2051,6 +2061,8 @@ class Test_Forcing(unittest.TestCase):
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
         domain = Domain(points, vertices)
+        B = Reflective_boundary(domain)
+        domain.set_boundary( {'exterior': B})
 
         # Use the new function which takes into account the extra
         # wetted area due to slope of bed
@@ -2077,7 +2089,7 @@ class Test_Forcing(unittest.TestCase):
 
         assert num.allclose(domain.quantities['stage'].explicit_update, 0)
         assert num.allclose(domain.quantities['xmomentum'].explicit_update,
-                            -g*h*3)
+                            0)
         assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
 
         assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
