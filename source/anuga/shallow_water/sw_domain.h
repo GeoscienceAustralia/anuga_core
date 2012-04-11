@@ -61,6 +61,9 @@ struct domain {
 
 struct edge {
 
+    int cell_id;
+    int edge_id;
+
     // mid point values
     double w;
     double h;
@@ -99,6 +102,9 @@ void get_edge_data(struct edge *E, struct domain *D, int k, int i) {
     k3i1 = 3 * k + (i + 1) % 3;
     k3i2 = 3 * k + (i + 2) % 3;
 
+    E->cell_id = k;
+    E->edge_id = i;
+
     E->w = D->stage_edge_values[k3i];
     E->z = D->bed_edge_values[k3i];
     E->h = E->w - E->z;
@@ -108,15 +114,15 @@ void get_edge_data(struct edge *E, struct domain *D, int k, int i) {
     E->w1 = D->stage_vertex_values[k3i1];
     E->z1 = D->bed_vertex_values[k3i1];
     E->h1 = E->w1 - E->z1;
-    E->uh1 = D->xmom_edge_values[k3i1];
-    E->vh1 = D->ymom_edge_values[k3i1];
+    E->uh1 = D->xmom_vertex_values[k3i1];
+    E->vh1 = D->ymom_vertex_values[k3i1];
 
 
     E->w2 = D->stage_vertex_values[k3i2];
     E->z2 = D->bed_vertex_values[k3i2];
     E->h2 = E->w2 - E->z2;
-    E->uh2 = D->xmom_edge_values[k3i2];
-    E->vh2 = D->ymom_edge_values[k3i2];
+    E->uh2 = D->xmom_vertex_values[k3i2];
+    E->vh2 = D->ymom_vertex_values[k3i2];
 
 }
 

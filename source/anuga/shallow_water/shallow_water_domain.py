@@ -225,6 +225,7 @@ class Domain(Generic_Domain):
         from anuga.config import use_edge_limiter
         from anuga.config import use_centroid_velocities
         from anuga.config import compute_fluxes_method
+        from anuga.config import sloped_mannings_function
         
 
         self.set_minimum_allowed_height(minimum_allowed_height)
@@ -244,8 +245,6 @@ class Domain(Generic_Domain):
         self.tight_slope_limiters = tight_slope_limiters
         self.optimise_dry_cells = int(optimise_dry_cells)
 
-        
-        self.set_sloped_mannings_function(False)
 
         self.minimum_storable_height = minimum_storable_height
 
@@ -254,7 +253,7 @@ class Domain(Generic_Domain):
         self.optimised_gradient_limiter = optimised_gradient_limiter
         self.use_centroid_velocities = use_centroid_velocities
 
-
+        self.set_sloped_mannings_function(sloped_mannings_function)
         self.set_compute_fluxes_method(compute_fluxes_method)
 
 
@@ -682,10 +681,10 @@ class Domain(Generic_Domain):
 
         elif self.compute_fluxes_method == 'wb_3':
             from shallow_water_ext import compute_fluxes_ext_wb_3
-            from shallow_water_ext import gravity as gravity_c
+            from shallow_water_ext import gravity_wb as gravity_wb_c
 
             self.flux_timestep = compute_fluxes_ext_wb_3(self)
-            gravity_c(self)
+            gravity_wb_c(self)
 
         else:
             raise Exception('unknown compute_fluxes_method')
