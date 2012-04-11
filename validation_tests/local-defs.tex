@@ -2,8 +2,10 @@
 \newcommand{\anuga}{\textsc{anuga}}
 
 
-\newcommand{\cwd}{}
-\newcommand{\setcwd}[1]{\renewcommand{\cwd}[1]{#1##1}}
+%\newcommand{\cwd}{}
+%\newcommand{\setcwd}[1]{\renewcommand{\cwd}[1]{#1##1}}
 
 
-\newcommand{\inputresults}[1]{\setcwd{#1/}\graphicspath{{\cwd}}\input{#1/description}}
+%\newcommand{\inputresults}[1]{\setcwd{#1/}\graphicspath{{\cwd}}\input{#1/description}}
+
+\newcommand{\inputresults}[1]{\graphicspath{{#1/}}\input{#1/results}}
