@@ -1,15 +1,18 @@
-\documentclass[11pt,a4paper,oneside]{report}
+\documentclass[11pt,a4paper]{report}
 
-\usepackage{epstopdf}
+
 \usepackage{graphicx}
+\usepackage{epstopdf}
 
 \input{local-defs}
-
 
 %=========================================
 \begin{document} 
 %=========================================
+
+%======================
 \chapter{Introduction}
+%======================
 
 Here we collect the results of running our validation tests. 
 
@@ -17,25 +20,19 @@ Here we collect the results of running our validation tests.
 \chapter{Analytical Tests}
 %======================
 
-\graphicspath{Tests/Analytical/Dam_Break/}
-\input{Tests/Analytical/Dam_Break/description}
-
+\inputresults{Tests/Analytical/Dam_Break}
 
 %======================
 \chapter{Experimental Tests}
 %======================
 
-\include{Tests/Experimental/Isolated_Building/description}
-
-
+\inputresults{Tests/Experimental/Isolated_Building}
 
 %======================
 \chapter{Real World Tests}
 %======================
 
-\include{Tests/Real_World/Patong/description}
-
-
+\inputresults{Tests/Real_World/Patong}
 
 
 \end{document}
