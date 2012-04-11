@@ -1,6 +1,7 @@
 \documentclass[11pt,a4paper]{report}
 
 
+
 \usepackage{graphicx}
 \usepackage{epstopdf}
 
@@ -15,6 +16,15 @@
 %======================
 
 Here we collect the results of running our validation tests. 
+
+\section{Adding New Tests}
+To setup a new validation test, create a test directory under the \textsc{Tests} 
+directory. In htat directory there should be the test code, a \TeX{} file \texttt{results.tex}
+and a python script \texttt{produce\_results.py}. In this \TeX{} file, \texttt{report.tex}, add a 
+line
+\begin{verbatim}
+\inputresults{Tests/Directory/Name}
+\end{verbatim}
 
 %======================
 \chapter{Analytical Tests}
