@@ -630,8 +630,11 @@ int _flux_function_central_wb(double *q_left, double *q_right,
 
 // Innermost flux function (using stage w=z+h)
 
-int _flux_function_central_wb_3(struct edge *E_left, struct edge *E_right,
-        double n1, double n2,
+int _flux_function_central_wb_3(
+        struct edge *E_left,
+        struct edge *E_right,
+        double n1,
+        double n2,
         double epsilon,
         double h0,
         double limiting_threshold,
@@ -656,6 +659,7 @@ int _flux_function_central_wb_3(struct edge *E_left, struct edge *E_right,
     double uh_right, vh_right, u_right;
     double h1_left, h2_left, h1_right, h2_right;
     double uh1_left, uh2_left, uh1_right, uh2_right;
+    double vh1_left, vh2_left, vh1_right, vh2_right;
     double u1_left, u2_left, u1_right, u2_right;
     double p_left, p_right;
 
@@ -673,7 +677,6 @@ int _flux_function_central_wb_3(struct edge *E_left, struct edge *E_right,
     q_left[0] = E_left->w;
     q_left[1] = E_left->uh;
     q_left[2] = E_left->vh;
-
 
 
     q_right[0] = E_right->w;
@@ -735,53 +738,55 @@ int _flux_function_central_wb_3(struct edge *E_left, struct edge *E_right,
         // First vertex left edge data
         h1_left = E_left->h1;
         uh1_left = E_left->uh1;
+        vh1_left = E_left->vh1;
         u1_left = _compute_speed(&uh1_left, &h1_left, epsilon, h0, limiting_threshold);
 
         // Second vertex left edge data
         h2_left = E_left->h2;
         uh2_left = E_left->uh2;
+        vh2_left = E_left->vh2;
         u2_left = _compute_speed(&uh2_left, &h2_left, epsilon, h0, limiting_threshold);
 
         // First vertex right edge data (needs interchange)
         h1_right = E_right->h2;
         uh1_right = E_right->uh2;
+        vh1_right = E_right->vh2;
         u1_right = _compute_speed(&uh1_right, &h1_right, epsilon, h0, limiting_threshold);
 
         // Second vertex right edge data (needs interchange)
         h2_right = E_right->h1;
         uh2_right = E_right->uh1;
+        vh2_right = E_right->vh1;
         u2_right = _compute_speed(&uh2_right, &h2_right, epsilon, h0, limiting_threshold);
     } else {
         // Boundary Edge
         // First vertex left edge data
         h1_left  = h_left;
         uh1_left = uh_left;
+        vh1_left = vh_left;
         u1_left  = u_left;
 
         // Second vertex left edge data
         h2_left  = h_left;
         uh2_left = uh_left;
+        vh2_left = vh_left;
         u2_left  = u_left;
 
         // First vertex right edge data (needs interchange)
-        h1_right  = h_left;
-        uh1_right = uh_left;
-        u1_right  = u_left;
+        h1_right  = h_right;
+        uh1_right = uh_right;
+        vh1_right = vh_right;
+        u1_right  = u_right;
 
         // Second vertex right edge data (needs interchange)
-        h2_right  = h_left;
-        uh2_right = uh_left;
-        u2_right  = u_left;
+        h2_right  = h_right;
+        uh2_right = uh_right;
+        vh2_right = vh_right;
+        u2_right  = u_right;
     }
-
-
-
-
-
 
     //printf("h1_left, h2_left %g %g \n", h1_left, h2_left);
     //printf("h1_right, h2_right %g %g \n", h1_right, h2_right);
-
 
     p_left  = 0.5*g*h_left*h_left;
     p_right = 0.5*g*h_right*h_right;
@@ -794,17 +799,26 @@ int _flux_function_central_wb_3(struct edge *E_left, struct edge *E_right,
     //printf("p_left, p_right %g %g \n", p_left, p_right);
 
     // Flux formulas
-    flux_left[0] = u_left*h_left;
-    flux_left[1] = u_left * uh_left + p_left;
-    flux_left[2] = u_left*vh_left;
+    //flux_left[0] = u_left*h_left;
+    //flux_left[1] = u_left * uh_left + p_left;
+    //flux_left[2] = u_left*vh_left;
 
+
+    flux_left[0] = (u1_left*h1_left  + 4.0*u_left*h_left  + u2_left*h2_left)/6.0;
+    flux_left[1] = (u1_left*uh1_left + 4.0*u_left*uh_left + u2_left*uh2_left)/6.0 + p_left;
+    flux_left[2] = (u1_left*vh1_left + 4.0*u_left*vh_left + u2_left*vh2_left)/6.0;
 
 
     //printf("flux_left %g %g %g \n",flux_left[0],flux_left[1],flux_left[2]);
 
-    flux_right[0] = u_right*h_right;
-    flux_right[1] = u_right*uh_right + p_right;
-    flux_right[2] = u_right*vh_right;
+    //flux_right[0] = u_right*h_right;
+    //flux_right[1] = u_right*uh_right + p_right;
+    //flux_right[2] = u_right*vh_right;
+
+
+    flux_right[0] = (u1_right*h1_right  + 4.0*u_right*h_right  + u2_right*h2_right)/6.0;
+    flux_right[1] = (u1_right*uh1_right + 4.0*u_right*uh_right + u2_right*uh2_right)/6.0 + p_right;
+    flux_right[2] = (u1_right*vh1_right + 4.0*u_right*vh_right + u2_right*vh2_right)/6.0;
 
     //printf("flux_right %g %g %g \n",flux_right[0],flux_right[1],flux_right[2]);
 
@@ -3377,8 +3391,8 @@ double _compute_fluxes_central_wb_3(struct domain *D) {
     // Set explicit_update to zero for all conserved_quantities.
     // This assumes compute_fluxes called before forcing terms
     memset((char*) D->stage_explicit_update, 0, D->number_of_elements * sizeof (double));
-    memset((char*) D->xmom_explicit_update, 0, D->number_of_elements * sizeof (double));
-    memset((char*) D->ymom_explicit_update, 0, D->number_of_elements * sizeof (double));
+    memset((char*) D->xmom_explicit_update,  0, D->number_of_elements * sizeof (double));
+    memset((char*) D->ymom_explicit_update,  0, D->number_of_elements * sizeof (double));
 
     // For all triangles
     for (k = 0; k < D->number_of_elements; k++) {
@@ -3392,7 +3406,7 @@ double _compute_fluxes_central_wb_3(struct domain *D) {
                 continue;
             }
 
-            // Get the "left" values at the edge vertices and midpont
+            // Get the "left" values at the edge vertices and midpoint
             // from the triangle k, edge i
             get_edge_data(&E_left, D, k, i);
 
@@ -3424,7 +3438,6 @@ double _compute_fluxes_central_wb_3(struct domain *D) {
                 E_right.vh1 = E_left.vh2;
                 E_right.z1  = E_left.z;
                 
-
                 E_right.w2  = E_right.w;
                 E_right.h2  = E_right.h;
 
@@ -3432,16 +3445,10 @@ double _compute_fluxes_central_wb_3(struct domain *D) {
                 E_right.vh2 = E_right.vh;
                 E_right.z2  = E_left.z;
 
-                
-
-
-
-                
-
-
             } else {
                 // Neighbour is a real triangle
                 m = D->neighbour_edges[k3i];
+                n3m  = 3*n+m;
 
                 get_edge_data(&E_right, D, n, m);
 
@@ -3499,8 +3506,8 @@ double _compute_fluxes_central_wb_3(struct domain *D) {
 
             // Update triangle k with flux from edge i
             D->stage_explicit_update[k] -= edgeflux[0];
-            D->xmom_explicit_update[k] -= edgeflux[1];
-            D->ymom_explicit_update[k] -= edgeflux[2];
+            D->xmom_explicit_update[k]  -= edgeflux[1];
+            D->ymom_explicit_update[k]  -= edgeflux[2];
 
             D->already_computed_flux[k3i] = call; // #k Done
 
@@ -3509,12 +3516,11 @@ double _compute_fluxes_central_wb_3(struct domain *D) {
             // Update neighbour n with same flux but reversed sign
             if (n >= 0) {
 
-                n3m  = 3 * n + (m + 1) % 3;
                 D->stage_explicit_update[n] += edgeflux[0];
-                D->xmom_explicit_update[n] += edgeflux[1];
-                D->ymom_explicit_update[n] += edgeflux[2];
+                D->xmom_explicit_update[n]  += edgeflux[1];
+                D->ymom_explicit_update[n]  += edgeflux[2];
 
-                n3m  = 3*n+m;
+
                 D->already_computed_flux[n3m] = call; // #n Done
             }
 
@@ -3974,8 +3980,6 @@ PyObject *compute_fluxes_ext_wb_3(PyObject *self, PyObject *args) {
       Resulting flux is then scaled by area and stored in
       explicit_update for each of the three conserved quantities
       stage, xmomentum and ymomentum
-
-      The
 
       The maximal allowable speed computed by the flux_function for each volume
       is converted to a timestep that must not be exceeded. The minimum of
