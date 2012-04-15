@@ -678,6 +678,9 @@ class Domain(Generic_Domain):
             gravity_c(self)
 
         elif self.compute_fluxes_method == 'wb_1':
+            # Calc pressure terms using Simpson rule in flux
+            # computations. Then they match up exactly with
+            # standard gravity term
             from shallow_water_ext import compute_fluxes_ext_wb
             from shallow_water_ext import gravity as gravity_c
 
@@ -685,6 +688,8 @@ class Domain(Generic_Domain):
             gravity_c(self)
 
         elif self.compute_fluxes_method == 'wb_2':
+            # Use standard flux calculation, but calc gravity
+            # as -g h grad(w) - sum midpoint edge pressure terms
             from shallow_water_ext import compute_fluxes_ext_central_structure
             from shallow_water_ext import gravity_wb as gravity_wb_c
 
@@ -692,6 +697,9 @@ class Domain(Generic_Domain):
             gravity_wb_c(self)
 
         elif self.compute_fluxes_method == 'wb_3':
+            # Calculate pure flux terms with simpsons rule, and
+            # gravity flux and gravity forcing via
+            # as -g h grad(w) - sum midpoint edge pressure terms
             from shallow_water_ext import compute_fluxes_ext_wb_3
             from shallow_water_ext import gravity_wb as gravity_wb_c
 
@@ -700,6 +708,13 @@ class Domain(Generic_Domain):
 
         else:
             raise Exception('unknown compute_fluxes_method')
+
+            # TODO (SR)
+            # Should implement wb_4 as simpsons rule on both pure
+            # flux and pressure flux terms, ie a combination of wb_1
+            # and wb_3
+            # Also Gareth's wb scheme should be included.
+            # Mabe should come up with better names!
 
 
 

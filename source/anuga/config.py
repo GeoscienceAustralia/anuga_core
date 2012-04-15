@@ -102,11 +102,11 @@ default_order = 2
 
 # Option to use velocity extrapolation instead of momentum extrapolation in the
 # routine domain.extrapolate_second_order_sw
-extrapolate_velocity_second_order=False
+extrapolate_velocity_second_order=True
 
 # Option to setup compute_fluxes_method
-# Currently "original' and 'well_balanced_1'
-compute_fluxes_method = 'original'
+# Currently "original' and 'wb_1' to 'wb_3'
+compute_fluxes_method = 'wb_2'
 
 ################################################################################
 # Friction Method
