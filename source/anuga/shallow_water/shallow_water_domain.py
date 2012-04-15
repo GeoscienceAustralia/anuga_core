@@ -249,11 +249,12 @@ class Domain(Generic_Domain):
         self.minimum_storable_height = minimum_storable_height
 
          # Limiters
-        self.use_edge_limiter = use_edge_limiter
+        self.set_use_edge_limiter(use_edge_limiter)
         self.optimised_gradient_limiter = optimised_gradient_limiter
         self.use_centroid_velocities = use_centroid_velocities
 
         self.set_sloped_mannings_function(sloped_mannings_function)
+
         self.set_compute_fluxes_method(compute_fluxes_method)
 
 
@@ -341,7 +342,18 @@ class Domain(Generic_Domain):
             self.extrapolate_velocity_second_order = True
         elif flag is False:
             self.extrapolate_velocity_second_order = False
-            
+
+    def set_use_edge_limiter(self, flag=True):
+        """ Extrapolation routine uses vertex values by default,
+        for limiting, can change to edge limiting which
+        seems to work better in some cases.
+        """
+
+        if flag is True:
+            self.use_edge_limiter = True
+        elif flag is False:
+            self.use_edge_limiter = False
+
 
     def set_use_kinematic_viscosity(self, flag=True):
 
