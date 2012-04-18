@@ -408,6 +408,58 @@ class Test_Shallow_Water(unittest.TestCase):
 
         assert num.alltrue(domain.get_conserved_quantities(0, edge=1) == 0.)
 
+
+
+    def test_algorithm_parameters(self):
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        #from anuga.abstract_2d_finite_volumes.domain import Domain as Generic_domain
+        #msg = 'The class %s is not a subclass of the generic domain class %s'\
+        #      %(DomainClass, Domain)
+        #assert issubclass(DomainClass, Domain), msg
+
+        domain = Domain(points, vertices)
+        domain.check_integrity()
+
+        for name in ['stage', 'xmomentum', 'ymomentum',
+                     'elevation', 'friction']:
+            assert domain.quantities.has_key(name)
+
+
+
+        parameters = domain.get_algorithm_parameters()
+
+
+
+
+        assert parameters['minimum_allowed_height']  == domain.minimum_allowed_height
+        assert parameters['maximum_allowed_speed']   == domain.maximum_allowed_speed
+        assert parameters['minimum_storable_height'] == domain.minimum_storable_height
+        assert parameters['g']                       == domain.g
+        assert parameters['alpha_balance']           == domain.alpha_balance
+        assert parameters['tight_slope_limiters']    == domain.tight_slope_limiters
+        assert parameters['optimise_dry_cells']      == domain.optimise_dry_cells
+        assert parameters['use_edge_limiter']        == domain.use_edge_limiter
+        assert parameters['use_centroid_velocities'] == domain.use_centroid_velocities
+        assert parameters['use_sloped_mannings']     == domain.use_sloped_mannings
+        assert parameters['compute_fluxes_method']   == domain.get_compute_fluxes_method()
+        assert parameters['flow_algorithm']          == domain.get_flow_algorithm()
+
+        assert parameters['optimised_gradient_limiter']        == domain.optimised_gradient_limiter
+        assert parameters['extrapolate_velocity_second_order'] == domain.extrapolate_velocity_second_order
+
+
+
+
     def test_boundary_conditions(self):
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -2669,14 +2721,14 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.compute_fluxes()
 
 
-        print domain.quantities['xmomentum'].explicit_update
-        print domain.quantities['ymomentum'].explicit_update
+        #print domain.quantities['xmomentum'].explicit_update
+        #print domain.quantities['ymomentum'].explicit_update
 
         assert num.allclose(domain.quantities['stage'].explicit_update, 0)
         assert num.allclose(domain.quantities['xmomentum'].explicit_update,
-                                [ -2.94,  -2.94, -10.29, -10.29])
+                                [ -2.94,  -2.94, -2.94, -2.94])
         assert num.allclose(domain.quantities['ymomentum'].explicit_update,
-                                [  7.35, 0.0, 0.0, -7.35])
+                                [  0.0, 0.0, 0.0, 0.0])
 
 
     def test_manning_friction(self):
@@ -5231,13 +5283,25 @@ class Test_Shallow_Water(unittest.TestCase):
         for t in domain.evolve(yieldstep=0.05, finaltime=0.1):
             pass
 
+#        print domain.quantities['stage'].centroid_values[:4]
+#        print domain.quantities['xmomentum'].centroid_values[:4]
+#        print domain.quantities['ymomentum'].centroid_values[:4]
         assert num.allclose(domain.quantities['stage'].centroid_values[:4],
-                            [0.00206836, 0.01296714, 0.00363415, 0.01438924])
+                            [ 0.001362,    0.01344294,  0.00308829, 0.01470289])
         assert num.allclose(domain.quantities['xmomentum'].centroid_values[:4],
-                            [0.01360154, 0.00671133, 0.01264578, 0.00648503])
+                            [ 0.01300239,  0.00537933,  0.01214676,  0.00515825])
         assert num.allclose(domain.quantities['ymomentum'].centroid_values[:4],
-                            [-1.19201077e-003, -7.23647546e-004,
-                             -6.39083123e-005, 6.29815168e-005])
+                            [ -1.13165691e-03,  -6.55330189e-04,
+                              -6.62804076e-05,   5.26313051e-05])
+
+        # old values pre revision 8402
+#        assert num.allclose(domain.quantities['stage'].centroid_values[:4],
+#                            [0.00206836, 0.01296714, 0.00363415, 0.01438924])
+#        assert num.allclose(domain.quantities['xmomentum'].centroid_values[:4],
+#                            [0.01360154, 0.00671133, 0.01264578, 0.00648503])
+#        assert num.allclose(domain.quantities['ymomentum'].centroid_values[:4],
+#                            [-1.19201077e-003, -7.23647546e-004,
+#                             -6.39083123e-005, 6.29815168e-005])
 
         os.remove(domain.get_name() + '.sww')
 
@@ -7903,6 +7967,6 @@ friction  \n \
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_rainfall_forcing_with_evolve')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test_compute_fluxes_')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test_')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

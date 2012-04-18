@@ -1981,6 +1981,10 @@ class Test_Forcing(unittest.TestCase):
 
         domain = Domain(points, vertices)
 
+        # Use the old function which doesn't take into account the extra
+        # wetted area due to slope of bed
+        domain.set_sloped_mannings_function(False)
+
         B = Reflective_boundary(domain)
         domain.set_boundary( {'exterior': B})
 

@@ -84,8 +84,8 @@ class Test_sww_Interrogate(unittest.TestCase):
         runup = get_maximum_inundation_elevation(swwfile)
         location = get_maximum_inundation_location(swwfile)
         #print 'Runup, location', runup, location
-        assert num.allclose(runup, 11) or num.allclose(runup, 12) # old limiters
-        assert num.allclose(location[0], 15) or num.allclose(location[0], 10)
+        assert num.allclose(runup, 6) or num.allclose(runup, 12) # old limiters
+        assert num.allclose(location[0], 40.0) or num.allclose(location[0], 10)
 
         # Check final runup
         runup = get_maximum_inundation_elevation(swwfile, time_interval=[45,50])
@@ -152,8 +152,11 @@ class Test_sww_Interrogate(unittest.TestCase):
         # Check maximal runup
         runup = get_maximum_inundation_elevation(swwfile)
         location = get_maximum_inundation_location(swwfile)
-        assert num.allclose(runup, 11) or num.allclose(runup, 12) # old limiters
-        assert num.allclose(location[0], 15+E) or num.allclose(location[0], 10+E)
+
+        #print runup, location
+        
+        assert num.allclose(runup, 6) or num.allclose(runup, 12) # old limiters
+        assert num.allclose(location[0], 40+E) or num.allclose(location[0], 10+E)
 
         # Check final runup
         runup = get_maximum_inundation_elevation(swwfile, time_interval=[45,50])

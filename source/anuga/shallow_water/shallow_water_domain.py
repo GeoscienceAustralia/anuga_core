@@ -216,8 +216,8 @@ class Domain(Generic_Domain):
 
         from anuga.config import minimum_storable_height
         from anuga.config import minimum_allowed_height, maximum_allowed_speed
-        from anuga.config import g, beta_w, beta_w_dry, \
-             beta_uh, beta_uh_dry, beta_vh, beta_vh_dry, tight_slope_limiters
+        from anuga.config import g
+        from anuga.config import tight_slope_limiters
         from anuga.config import extrapolate_velocity_second_order
         from anuga.config import alpha_balance
         from anuga.config import optimise_dry_cells
@@ -226,36 +226,67 @@ class Domain(Generic_Domain):
         from anuga.config import use_centroid_velocities
         from anuga.config import compute_fluxes_method
         from anuga.config import sloped_mannings_function
+        from anuga.config import flow_algorithm
         
 
         self.set_minimum_allowed_height(minimum_allowed_height)
         self.maximum_allowed_speed = maximum_allowed_speed
 
-        self.set_extrapolate_velocity(extrapolate_velocity_second_order)
-
-        self.g = g
-        self.beta_w = beta_w
-        self.beta_w_dry = beta_w_dry
-        self.beta_uh = beta_uh
-        self.beta_uh_dry = beta_uh_dry
-        self.beta_vh = beta_vh
-        self.beta_vh_dry = beta_vh_dry
-        self.alpha_balance = alpha_balance
-
-        self.tight_slope_limiters = tight_slope_limiters
-        self.optimise_dry_cells = int(optimise_dry_cells)
 
 
         self.minimum_storable_height = minimum_storable_height
+        self.g = g
 
-         # Limiters
+        self.alpha_balance = alpha_balance
+        self.tight_slope_limiters = tight_slope_limiters
+        self.optimise_dry_cells = int(optimise_dry_cells)
+        self.set_extrapolate_velocity(extrapolate_velocity_second_order)
+
+
         self.set_use_edge_limiter(use_edge_limiter)
         self.optimised_gradient_limiter = optimised_gradient_limiter
         self.use_centroid_velocities = use_centroid_velocities
 
         self.set_sloped_mannings_function(sloped_mannings_function)
-
         self.set_compute_fluxes_method(compute_fluxes_method)
+        self.set_flow_algorithm(flow_algorithm)
+
+
+    def get_algorithm_parameters(self):
+        """Get the standard parameter that arecurently set (as a dictionary)
+        """
+
+        parameters = {}
+
+        parameters['minimum_allowed_height']  = self.minimum_allowed_height
+        parameters['maximum_allowed_speed']   = self.maximum_allowed_speed
+        parameters['minimum_storable_height'] = self.minimum_storable_height
+        parameters['g']                       = self.g
+        parameters['alpha_balance']           = self.alpha_balance
+        parameters['tight_slope_limiters']    = self.tight_slope_limiters
+        parameters['optimise_dry_cells']      = self.optimise_dry_cells
+        parameters['use_edge_limiter']        = self.use_edge_limiter
+        parameters['use_centroid_velocities'] = self.use_centroid_velocities
+        parameters['use_sloped_mannings']     = self.use_sloped_mannings
+        parameters['compute_fluxes_method']   = self.get_compute_fluxes_method()
+        parameters['flow_algorithm']             = self.get_flow_algorithm()
+
+        parameters['optimised_gradient_limiter']        = self.optimised_gradient_limiter
+        parameters['extrapolate_velocity_second_order'] = self.extrapolate_velocity_second_order
+        
+        return parameters
+
+    def print_algorithm_parameters(self):
+        """Print the standard parameters that are curently set (as a dictionary)
+        """
+
+        print '#============================'
+        print '# Domain Algorithm Parameters '
+        print '#============================'
+        from pprint import pprint
+        pprint(self.get_algorithm_parameters(),indent=4)
+
+        print '#----------------------------'
 
 
     def update_special_conditions(self):
@@ -309,12 +340,84 @@ class Domain(Generic_Domain):
         """Get method for computing fluxes.
 
         Currently
-           'original'
-           'well_balanced_1
+           original
+           wb_1
         """
 
         return self.compute_fluxes_method
 
+
+    def set_flow_algorithm(self, flag=1.5):
+        """Set combination of slope limiting and time stepping
+
+        Currently
+           1
+           1.5
+           2
+           2.5
+        """
+
+        flag = str(flag)
+
+        flow_algorithms = ['1', '1.5', '2', '2.5']
+
+        if flag in flow_algorithms:
+            self.flow_algorithm = flag
+        else:
+            msg = 'Unknown flow_algorithm. \nPossible choices are:\n'+ \
+            ', '.join(flow_algorithm)+'.'
+            raise Exception(msg)
+
+
+        if self.flow_algorithm == '1':
+            self.set_timestepping_method(1)
+            self.set_default_order(1)
+
+        if self.flow_algorithm == '1.5':
+            self.set_timestepping_method(1)
+            self.set_default_order(2)
+            beta_w      = 1.0
+            beta_w_dry  = 0.2
+            beta_uh     = 1.0
+            beta_uh_dry = 0.2
+            beta_vh     = 1.0
+            beta_vh_dry = 0.2
+            self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
+
+
+        if self.flow_algorithm == '2':
+            self.set_timestepping_method(2)
+            self.set_default_order(2)
+            beta_w      = 1.5
+            beta_w_dry  = 0.2
+            beta_uh     = 1.5
+            beta_uh_dry = 0.2
+            beta_vh     = 1.5
+            beta_vh_dry = 0.2
+            self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
+
+        if self.flow_algorithm == '2.5':
+            self.set_timestepping_method(3)
+            self.set_default_order(2)
+            beta_w      = 1.5
+            beta_w_dry  = 0.2
+            beta_uh     = 1.5
+            beta_uh_dry = 0.2
+            beta_vh     = 1.5
+            beta_vh_dry = 0.2
+            self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
+
+
+
+    def get_flow_algorithm(self):
+        """Get method used for timestepping and spatial discretisation
+
+        Currently
+           1, 1.5, 2, 2.5
+        """
+
+        return self.flow_algorithm
+    
 
     def set_gravity_method(self):
         """Gravity method is determined by the compute_fluxes_method
@@ -392,6 +495,27 @@ class Domain(Generic_Domain):
         self.beta_vh = beta
         self.beta_vh_dry = beta
         self.quantities['ymomentum'].beta = beta
+
+
+    def set_betas(self, beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry):
+        """Assign beta values in the range  [0,2] to all limiters.
+        0 Corresponds to first order, where as larger values make use of
+        the second order scheme.
+        """
+
+        self.beta_w = beta_w
+        self.beta_w_dry = beta_w_dry
+        self.quantities['stage'].beta = beta_w
+
+        self.beta_uh = beta_uh
+        self.beta_uh_dry = beta_uh_dry
+        self.quantities['xmomentum'].beta = beta_uh
+
+        self.beta_vh = beta_vh
+        self.beta_vh_dry = beta_vh_dry
+        self.quantities['ymomentum'].beta = beta_vh
+
+
 
 
     def set_store_vertices_uniquely(self, flag=True, reduction=None):

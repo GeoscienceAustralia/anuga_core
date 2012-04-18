@@ -146,7 +146,7 @@ def _convert_dem_from_ascii2netcdf(name_in, name_out = None,
         msg = 'Unknown keyword: %s' % yref[0].strip()
         raise Exception, msg
 
-    NODATA_value = int(lines[5].split()[1].strip())
+    NODATA_value = int(float(lines[5].split()[1].strip()))
 
     assert len(lines) == nrows + 6
 

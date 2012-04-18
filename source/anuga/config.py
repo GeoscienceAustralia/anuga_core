@@ -54,21 +54,10 @@ rho_w = 1023   # Fluid density [kg/m^3] (rho_w = 1023 for salt water)
 # Limiters - used with linear reconstruction of vertex 
 # values from centroid values
 ################################################################################
+# Note the individual beta values are set in domain.set_flow_method which also sets
+# the timestepping method
 
-# Betas [0;1] control the allowed steepness of gradient for second order
-# extrapolations. Values of 1 allow the steepes gradients while
-# lower values are more conservative. Values of 0 correspond to
-# 1'st order extrapolations.
-#
-
-# There are separate betas for the w, uh, and vh limiters
-# I think these are better SR but they conflict with the unit tests!
-beta_w      = 1.0
-beta_w_dry  = 0.2
-beta_uh     = 1.0
-beta_uh_dry = 0.2
-beta_vh     = 1.0
-beta_vh_dry = 0.2
+beta_w = 1.0
 
 # Alpha_balance controls how limiters are balanced between deep and shallow.
 # A large value will favour the deep water limiters, allowing the a closer hug
@@ -112,7 +101,7 @@ compute_fluxes_method = 'wb_2'
 # Friction Method
 ################################################################################
 
-sloped_mannings_function = False
+sloped_mannings_function = True
 
 ################################################################################
 # Timestepping
@@ -120,9 +109,20 @@ sloped_mannings_function = False
 
 CFL = 1.0  # CFL condition assigned to domain.CFL - controls timestep size
       
-# Choose type of timestepping,
-#timestepping_method = 'rk2'   # 2nd Order TVD scheme
-timestepping_method = 'euler' # 1st order euler
+# Choose type of timestepping and spatial reconstruction method
+
+timestepping_method = 1
+
+# For shallow water we have a method that sets both timestepping and spatial reconstruction and
+# beta values. In this case the settings for timestepping_method will be overriden 
+
+#flow_algorithm = 1   # 1st order euler and conservative piecewise constant spatial reconstruction
+flow_algorithm = 1.5 # 1st order euler and conservative piecewise linear spatial reconstruction
+#flow_algorithm = 2   # 2nd order TVD scheme and more aggressive piecewise linear spatial reconstruction
+#flow_algorithm = 2.5 # 3rd order TVD scheme and more aggressive piecewise linear spatial reconstruction
+
+
+
 
 # rk2 is a little more stable than euler, so rk2 timestepping
 # can deal with a larger beta when slope limiting the reconstructed
@@ -190,7 +190,7 @@ maximum_froude_number = 100.0 # To be used in limiters.
 # Performance parameters used to invoke various optimisations
 ################################################################################
 
-use_psyco = True      # Use psyco optimisations
+use_psyco = False      # Use psyco optimisations
 
 optimise_dry_cells = True # Exclude dry and still cells from flux computation
 optimised_gradient_limiter = True # Use hardwired gradient limiter
