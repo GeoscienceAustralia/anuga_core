@@ -359,13 +359,13 @@ class Domain(Generic_Domain):
 
         flag = str(flag)
 
-        flow_algorithms = ['1', '1.5', '2', '2.5']
+        flow_algorithms = ['1', '1.5', '1.75', '2', '2.5']
 
         if flag in flow_algorithms:
             self.flow_algorithm = flag
         else:
             msg = 'Unknown flow_algorithm. \nPossible choices are:\n'+ \
-            ', '.join(flow_algorithm)+'.'
+            ', '.join(flow_algorithms)+'.'
             raise Exception(msg)
 
 
@@ -385,8 +385,8 @@ class Domain(Generic_Domain):
             self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
 
 
-        if self.flow_algorithm == '2':
-            self.set_timestepping_method(2)
+        if self.flow_algorithm == '1.75':
+            self.set_timestepping_method(1)
             self.set_default_order(2)
             beta_w      = 1.5
             beta_w_dry  = 0.2
@@ -396,14 +396,26 @@ class Domain(Generic_Domain):
             beta_vh_dry = 0.2
             self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
 
+
+        if self.flow_algorithm == '2':
+            self.set_timestepping_method(2)
+            self.set_default_order(2)
+            beta_w      = 1.7
+            beta_w_dry  = 0.2
+            beta_uh     = 1.7
+            beta_uh_dry = 0.2
+            beta_vh     = 1.7
+            beta_vh_dry = 0.2
+            self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
+
         if self.flow_algorithm == '2.5':
             self.set_timestepping_method(3)
             self.set_default_order(2)
-            beta_w      = 1.5
+            beta_w      = 1.7
             beta_w_dry  = 0.2
-            beta_uh     = 1.5
+            beta_uh     = 1.7
             beta_uh_dry = 0.2
-            beta_vh     = 1.5
+            beta_vh     = 1.7
             beta_vh_dry = 0.2
             self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
 

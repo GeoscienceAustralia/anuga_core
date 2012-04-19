@@ -101,7 +101,7 @@ compute_fluxes_method = 'wb_2'
 # Friction Method
 ################################################################################
 
-sloped_mannings_function = True
+sloped_mannings_function = False
 
 ################################################################################
 # Timestepping
@@ -116,10 +116,11 @@ timestepping_method = 1
 # For shallow water we have a method that sets both timestepping and spatial reconstruction and
 # beta values. In this case the settings for timestepping_method will be overriden 
 
-#flow_algorithm = 1   # 1st order euler and conservative piecewise constant spatial reconstruction
-flow_algorithm = 1.5 # 1st order euler and conservative piecewise linear spatial reconstruction
-#flow_algorithm = 2   # 2nd order TVD scheme and more aggressive piecewise linear spatial reconstruction
-#flow_algorithm = 2.5 # 3rd order TVD scheme and more aggressive piecewise linear spatial reconstruction
+#flow_algorithm = 1    # 1st order euler and conservative piecewise constant spatial reconstruction
+flow_algorithm = 1.5  # 1st order euler and conservative piecewise linear spatial reconstruction
+#flow_algorithm = 1.75 # 1st order euler and more aggressive piecewise linear spatial reconstruction
+#flow_algorithm = 2    # 2nd order TVD scheme and more aggressive piecewise linear spatial reconstruction
+#flow_algorithm = 2.5  # 3rd order TVD scheme and more aggressive piecewise linear spatial reconstruction
 
 
 
