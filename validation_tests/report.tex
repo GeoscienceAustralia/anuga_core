@@ -18,10 +18,11 @@
 Here we collect the results of running our validation tests. 
 
 \section{Adding New Tests}
-To setup a new validation test, create a test directory under the \textsc{Tests} 
-directory. In htat directory there should be the test code, a \TeX{} file \texttt{results.tex}
-and a python script \texttt{produce\_results.py}. In this \TeX{} file, \texttt{report.tex}, add a 
-line
+To setup a new validation test, create a test directory under the
+\textsc{Tests} directory. In that directory there should be the test code, a
+\TeX{} file \texttt{results.tex} and a python script
+\texttt{produce\_results.py}, which runs the simulation and produces the
+outputs. In this \TeX{} file, \texttt{report.tex}, add a line
 \begin{verbatim}
 \inputresults{Tests/Directory/Name}
 \end{verbatim}
@@ -31,6 +32,8 @@ line
 %======================
 
 \inputresults{Tests/Analytical/Dam_Break}
+
+\inputresults{Tests/Analytical/runup1}
 
 %======================
 \chapter{Experimental Tests}

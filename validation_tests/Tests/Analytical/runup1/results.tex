@@ -1,0 +1,34 @@
+\section{Simple Wave Runup}
+This scenario simulates a wave flowing up a planar beach. Following the initial wave runup, eventually the water elevation should become constant, and the velocities should approach zero. 
+
+\subsection{Results}
+Figure~\ref{runupfig1} shows the velocity profile during the wave runup (in the cross-shore direction). The velocities should be free from major spikes.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.9\textwidth]{vel1d_1s_v2.png}
+\caption{Velocity during the wave runup}
+\label{runupfig1}
+\end{center}
+\end{figure}
+
+Figure~\ref{runupfig2} shows the velocity profile at time 30s (in the cross-shore direction). It should be nearly zero (e.g. $<<$ 1 mm$/s$). This case has been used to illustrate wet-dry artefacts in some versions of \anuga.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.9\textwidth]{vel1d_30s_v2.png}
+\caption{Velocity at time 30s after the wave runup. It should be nearly zero.}
+\label{runupfig2}
+\end{center}
+\end{figure}
+
+Figure~\ref{runupfig3} shows the water surface profile at time 30s (in the cross-shore direction). It should be nearly constant (= -0.1m) in the wet portions of the domain.
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.9\textwidth]{elev_30s_v2.png}
+\caption{Water elevation at time 30s after the wave runup. It should be nearly constant in wet parts of the domain.}
+\label{runupfig3}
+\end{center}
+\end{figure}
+
+\endinput
