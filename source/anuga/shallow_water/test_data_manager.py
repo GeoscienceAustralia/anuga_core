@@ -380,12 +380,13 @@ class Test_Data_Manager(Test_Mux):
         assert num.allclose(time, 0.0)                
 
         extrema = fid.variables['xmomentum.extrema'][:]
-
+        #print "extrema", extrema
         assert num.allclose(extrema,[-0.06062178, 0.47873023]) or \
             num.allclose(extrema, [-0.06062178, 0.47847986]) or \
             num.allclose(extrema, [-0.06062178, 0.47848481]) or \
             num.allclose(extrema, [-0.06062178, 0.47763887]) or \
-            num.allclose(extrema, [-0.06062178, 0.46691909])
+            num.allclose(extrema, [-0.06062178, 0.46691909])or \
+            num.allclose(extrema, [-0.06062178, 0.47503704])
 
 
         
