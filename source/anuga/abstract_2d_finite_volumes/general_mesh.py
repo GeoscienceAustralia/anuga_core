@@ -83,9 +83,11 @@ class General_mesh:
 
         if verbose: log.critical('General_mesh: Building basic mesh structure '
                                  'in ANUGA domain')
-        if verbose: log.timingInfo("numTriangles, " + str(triangles.shape[0]))
-        
+         
         self.triangles = num.array(triangles, num.int)
+
+        if verbose: log.timingInfo("numTriangles, " + str(triangles.shape[0]))
+       
         self.nodes = num.array(nodes, num.float)
 
         # Register number of elements and nodes
