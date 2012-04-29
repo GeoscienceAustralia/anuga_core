@@ -86,7 +86,8 @@ class General_mesh:
          
         self.triangles = num.array(triangles, num.int)
 
-        if verbose: log.timingInfo("numTriangles, " + str(triangles.shape[0]))
+        if verbose: 
+            log.timingInfo("numTriangles, " + str(self.triangles.shape[0]))
        
         self.nodes = num.array(nodes, num.float)
 
