@@ -27,13 +27,13 @@ import pypar
 import random
 
 
-"""test_that_culvert_runs_rating
+"""
 
-This test exercises the culvert and checks values outside rating curve
-are dealt with       
+This test exercises the parallel culvert and checks values
 """
 verbose = True
-path = get_pathname_from_package('anuga.culvert_flows')    
+nprocs = 2
+    
 
 length = 40.
 width = 15.
@@ -285,36 +285,59 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     return control_data
 
 
+# Test an nprocs-way run of the shallow water equations
+# against the sequential code.
+
+class Test_parallel_shallow_domain(unittest.TestCase):
+    def test_parallel_shallow_domain(self):
+        #print "Expect this test to fail if not run from the parallel directory."
+        result = os.system("mpirun -np %d python test_parallel_shallow_domain.py" % nprocs)
+        assert_(result == 0)
+
+
+# Because we are doing assertions outside of the TestCase class
+# the PyUnit defined assert_ function can't be used.
+def assert_(condition, msg="Assertion Failed"):
+    if condition == False:
+        #pypar.finalize()
+        raise AssertionError, msg
+
 if __name__=="__main__":
-    
-    test_points = []
-
-    if myid == 0:
-
-        for i in range(samples):
-            x = random.randrange(0,1000)/1000.0 * length
-            y = random.randrange(0,1000)/1000.0 * width
-            point = [x, y]
-            test_points.append(point)
-        
-        for i in range(1,numprocs):
-            pypar.send(test_points, i)
+    if numprocs == 1:
+        runner = unittest.TextTestRunner()
+        suite = unittest.makeSuite(Test_parallel_shallow_domain, 'test')
+        runner.run(suite)
     else:
-        test_points = pypar.receive(0)
 
-    #print "Test Points::"
-    #print test_points
+        pypar.barrier()
+        test_points = []
 
-    if myid == 0:
-        control_data = run_test(parallel=False, test_points = test_points, verbose = True)
-        
-        for proc in range(1,numprocs):
-            pypar.send(control_data, proc)
-    else:
-        control_data = pypar.receive(0)
+        if myid == 0:
+            if verbose: print 'PARALLEL START'
+            for i in range(samples):
+                x = random.randrange(0,1000)/1000.0 * length
+                y = random.randrange(0,1000)/1000.0 * width
+                point = [x, y]
+                test_points.append(point)
 
-    pypar.barrier()
-    run_test(parallel=True, control_data = control_data, test_points = test_points, verbose = True)
+            for i in range(1,numprocs):
+                pypar.send(test_points, i)
+        else:
+            test_points = pypar.receive(0)
+
+        if myid == 0:
+            control_data = run_test(parallel=False, test_points = test_points, verbose = True)
+
+            for proc in range(1,numprocs):
+                pypar.send(control_data, proc)
+        else:
+            control_data = pypar.receive(0)
 
 
-finalize()
+        pypar.barrier()
+        run_test(parallel=True, control_data = control_data, test_points = test_points, verbose = True)
+
+
+    finalize()
+    s
+
