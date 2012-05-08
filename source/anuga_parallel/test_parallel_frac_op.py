@@ -25,6 +25,7 @@ from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_inter
 from parallel_operator_factory import Inlet_operator, Boyd_box_operator
 import pypar
 import random
+import unittest
 
 
 """
