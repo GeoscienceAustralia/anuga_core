@@ -34,7 +34,7 @@ from anuga import rectangular_cross
 from anuga import create_domain_from_file
 
 
-from anuga_parallel import distribute, myid, numprocs, finalize
+from anuga_parallel import distribute, myid, numprocs, finalize, barrier
 
 
 #--------------------------------------------------------------------------
@@ -82,10 +82,20 @@ domain = distribute(domain)
 
 #domain.smooth = False
 
-domain.set_default_order(2)
-domain.set_timestepping_method('rk2')
+
+domain.set_flow_algorithm(2.0)
+
+if myid == 0:
+    domain.print_algorithm_parameters()
+
+barrier()
+
+#domain.set_default_order(2)
+#domain.set_timestepping_method('rk2')
 #domain.set_CFL(0.7)
 #domain.set_beta(1.5)
+
+
 domain.set_name('meribula')
 
 #------------------------------------------------------------------------------

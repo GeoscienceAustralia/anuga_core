@@ -466,17 +466,22 @@ class Generic_Domain:
 
         return q
 
-    def set_CFL(self, cfl=1.0):
-        """Set CFL parameter, warn if greater than 1.0
+    def get_CFL(self):
+        """get CFL
         """
-        if cfl > 1.0:
+
+        return self.CFL
+    
+
+    def set_CFL(self, cfl=1.0):
+        """Set CFL parameter, warn if greater than 2.0
+        """
+        if cfl > 2.0:
             self.CFL = cfl
-            log.warn('Setting CFL > 1.0')
+            log.warn('Setting CFL > 2.0')
 
         assert cfl > 0.0
         self.CFL = cfl
-
-
 
     def set_time(self, time=0.0):
         """Set the model time (seconds)."""

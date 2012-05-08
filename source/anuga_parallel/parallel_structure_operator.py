@@ -54,6 +54,9 @@ class Parallel_Structure_operator(anuga.Operator):
                  inlet_procs = None,
                  enquiry_proc = None):
 
+        self.myid = pypar.rank()
+        self.num_procs = pypar.size()
+        
         anuga.Operator.__init__(self,domain)
 
         # Allocate default processor associations if not specified in arguments
@@ -81,8 +84,7 @@ class Parallel_Structure_operator(anuga.Operator):
         self.end_points = ensure_numeric(end_points)
         self.exchange_lines = ensure_numeric(exchange_lines)
         self.enquiry_points = ensure_numeric(enquiry_points)
-        self.myid = pypar.rank()
-        self.num_procs = pypar.size()
+
         
         if height is None:
             height = width
@@ -161,7 +163,7 @@ class Parallel_Structure_operator(anuga.Operator):
         self.inflow_index = 0
         self.outflow_index = 1
 
-        self.set_logging(logging)
+        self.set_parallel_logging(logging)
 
     def __call__(self):
 
@@ -439,7 +441,7 @@ class Parallel_Structure_operator(anuga.Operator):
         print message
 
 
-    def set_logging(self, flag=True):
+    def set_parallel_logging(self, flag=True):
         # Warning: requires synchronization, must be called by all procs associated
         # with this structure
 
@@ -447,13 +449,20 @@ class Parallel_Structure_operator(anuga.Operator):
         self.logging = flag
 
         # If flag is true open file with mode = "w" to form a clean file for logging
-        if self.logging:
+        if self.logging and self.myid == self.master_proc:
             self.log_filename = self.label + '.log'
             log_to_file(self.log_filename, stats, mode='w')
             log_to_file(self.log_filename, 'time,discharge,velocity,driving_energy,delta_total_energy')
 
             #log_to_file(self.log_filename, self.culvert_type)
 
+    def set_logging(self, flag=True):
+        # Overwrite the sequential procedure with a dummy procedure.
+        # Need to call set_parallel_logging which needs t obe done later
+        # after the calculation of master processors
+
+        pass
+    
 
     def timestepping_statistics(self):
 
@@ -503,5 +512,9 @@ class Parallel_Structure_operator(anuga.Operator):
     def get_enquiry_proc(self):
         return self.enquiry_proc
 
+
     def __parallel_safe(self):
         return True
+
+
+

@@ -269,7 +269,9 @@ class Domain(Generic_Domain):
         parameters['use_centroid_velocities'] = self.use_centroid_velocities
         parameters['use_sloped_mannings']     = self.use_sloped_mannings
         parameters['compute_fluxes_method']   = self.get_compute_fluxes_method()
-        parameters['flow_algorithm']             = self.get_flow_algorithm()
+        parameters['flow_algorithm']          = self.get_flow_algorithm()
+        parameters['CFL']                     = self.get_CFL()
+        parameters['timestepping_method']     = self.get_timestepping_method()
 
         parameters['optimised_gradient_limiter']        = self.optimised_gradient_limiter
         parameters['extrapolate_velocity_second_order'] = self.extrapolate_velocity_second_order
@@ -357,9 +359,12 @@ class Domain(Generic_Domain):
            2.5
         """
 
-        flag = str(flag)
+        if isinstance(flag, str) :
+            flag = flag.replace(".","_")
+        else:
+            flag = str(float(str(flag))).replace(".","_")
 
-        flow_algorithms = ['1', '1.5', '1.75', '2', '2.5']
+        flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_5']
 
         if flag in flow_algorithms:
             self.flow_algorithm = flag
@@ -369,11 +374,12 @@ class Domain(Generic_Domain):
             raise Exception(msg)
 
 
-        if self.flow_algorithm == '1':
+        if self.flow_algorithm == '1_0':
             self.set_timestepping_method(1)
             self.set_default_order(1)
+            self.set_CFL(1.0)
 
-        if self.flow_algorithm == '1.5':
+        if self.flow_algorithm == '1_5':
             self.set_timestepping_method(1)
             self.set_default_order(2)
             beta_w      = 1.0
@@ -383,9 +389,10 @@ class Domain(Generic_Domain):
             beta_vh     = 1.0
             beta_vh_dry = 0.2
             self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
+            self.set_CFL(1.0)
 
 
-        if self.flow_algorithm == '1.75':
+        if self.flow_algorithm == '1_75':
             self.set_timestepping_method(1)
             self.set_default_order(2)
             beta_w      = 1.5
@@ -395,29 +402,32 @@ class Domain(Generic_Domain):
             beta_vh     = 1.5
             beta_vh_dry = 0.2
             self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
+            self.set_CFL(0.75)
 
 
-        if self.flow_algorithm == '2':
+        if self.flow_algorithm == '2_0':
             self.set_timestepping_method(2)
             self.set_default_order(2)
-            beta_w      = 1.7
+            beta_w      = 1.9
             beta_w_dry  = 0.2
-            beta_uh     = 1.7
+            beta_uh     = 1.9
             beta_uh_dry = 0.2
-            beta_vh     = 1.7
+            beta_vh     = 1.9
             beta_vh_dry = 0.2
             self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
+            self.set_CFL(1.0)
 
-        if self.flow_algorithm == '2.5':
+        if self.flow_algorithm == '2_5':
             self.set_timestepping_method(3)
             self.set_default_order(2)
-            beta_w      = 1.7
+            beta_w      = 1.9
             beta_w_dry  = 0.2
-            beta_uh     = 1.7
+            beta_uh     = 1.9
             beta_uh_dry = 0.2
-            beta_vh     = 1.7
+            beta_vh     = 1.9
             beta_vh_dry = 0.2
             self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
+            self.set_CFL(1.0)
 
 
 
@@ -425,7 +435,7 @@ class Domain(Generic_Domain):
         """Get method used for timestepping and spatial discretisation
 
         Currently
-           1, 1.5, 2, 2.5
+           1_0, 1_5, 1_75 2_0, 2_5
         """
 
         return self.flow_algorithm
@@ -897,7 +907,10 @@ class Domain(Generic_Domain):
             if self._order_ == 1:
                 Q.extrapolate_first_order()
             elif self._order_ == 2:
-                Q.extrapolate_second_order_and_limit_by_edge()
+                if self.use_edge_limiter:
+                    Q.extrapolate_second_order_and_limit_by_edge()
+                else:
+                    Q.extrapolate_second_order_and_limit_by_vertex()
             else:
                 raise Exception('Unknown order')
 
