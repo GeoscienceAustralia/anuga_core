@@ -74,7 +74,7 @@ def topography(x, y):
         
     return z
 
-filename=os.path.join(path, 'example_rating_curve.csv')
+#filename=os.path.join(path, 'example_rating_curve.csv')
 
 line0 = [[10.0, 10.0], [30.0, 10.0]]
 #line0 = [[29.0, 10.0], [30.0, 10.0]]
