@@ -14,7 +14,19 @@ import anuga
 #from anuga.structures.inlet_operator import Inlet_operator
                             
 #from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
-     
+
+
+#------------------------------------------
+# Import pypar without the initial output
+#------------------------------------------
+class NullStream:
+    def write(self,text):
+        pass
+sys.stdout = NullStream()
+import pypar
+sys.stdout = sys.__stdout__
+
+
 from math import pi, pow, sqrt
 
 import numpy as num
@@ -23,7 +35,7 @@ from anuga_parallel import distribute, myid, numprocs, finalize
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 
 from parallel_operator_factory import Inlet_operator, Boyd_box_operator
-import pypar
+
 import random
 import unittest
 
@@ -32,8 +44,8 @@ import unittest
 
 This test exercises the parallel culvert and checks values
 """
-verbose = True
-nprocs = 2
+verbose = False
+nprocs = 3
     
 
 length = 40.
@@ -169,9 +181,9 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
                                   manning=0.013,
                                   verbose=False)
         
-    if inlet0 is not None: inlet0.print_statistics()
-    if inlet1 is not None: inlet1.print_statistics()
-    if boyd_box0 is not None: boyd_box0.print_statistics()
+    if inlet0 is not None and verbose: inlet0.print_statistics()
+    if inlet1 is not None and verbose: inlet1.print_statistics()
+    if boyd_box0 is not None and verbose: boyd_box0.print_statistics()
 
 #    if parallel:
 #        factory = Parallel_operator_factory(domain, verbose = True)
@@ -209,8 +221,8 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     ## Evolve system through time
     ##-----------------------------------------------------------------------
 
-    for t in domain.evolve(yieldstep = 0.1, finaltime = 38):
-        if myid == 0:
+    for t in domain.evolve(yieldstep = 2.0, finaltime = 2.0):
+        if myid == 0 and verbose:
             domain.write_time()
 
         #print domain.volumetric_balance_statistics()
@@ -218,7 +230,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
         stage = domain.get_quantity('stage')
 
 
-        if boyd_box0 is not None: boyd_box0.print_timestepping_statistics()
+        if boyd_box0 is not None and verbose : boyd_box0.print_timestepping_statistics()
  
         #for i in range(samples):
         #    if tri_ids[i] >= 0:                
@@ -281,7 +293,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
                     print 'P%d average depth, control = %s, actual = %s' %(myid, control_data[samples+4], average_depth)
 
 
-        #assert(success)
+        assert(success)
 
     return control_data
 
@@ -289,10 +301,10 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
 # Test an nprocs-way run of the shallow water equations
 # against the sequential code.
 
-class Test_parallel_shallow_domain(unittest.TestCase):
-    def test_parallel_shallow_domain(self):
+class Test_parallel_frac_op(unittest.TestCase):
+    def test_parallel_frac_op(self):
         #print "Expect this test to fail if not run from the parallel directory."
-        result = os.system("mpirun -np %d python test_parallel_shallow_domain.py" % nprocs)
+        result = os.system("mpirun -np %d python test_parallel_frac_op.py" % nprocs)
         assert_(result == 0)
 
 
@@ -306,10 +318,11 @@ def assert_(condition, msg="Assertion Failed"):
 if __name__=="__main__":
     if numprocs == 1:
         runner = unittest.TextTestRunner()
-        suite = unittest.makeSuite(Test_parallel_shallow_domain, 'test')
+        suite = unittest.makeSuite(Test_parallel_frac_op, 'test')
+        #print "Running for numproc = 1"
         runner.run(suite)
     else:
-
+        #print "Running for numproc > 1"
         pypar.barrier()
         test_points = []
 
@@ -327,7 +340,7 @@ if __name__=="__main__":
             test_points = pypar.receive(0)
 
         if myid == 0:
-            control_data = run_test(parallel=False, test_points = test_points, verbose = True)
+            control_data = run_test(parallel=False, test_points = test_points, verbose = verbose)
 
             for proc in range(1,numprocs):
                 pypar.send(control_data, proc)
@@ -336,7 +349,7 @@ if __name__=="__main__":
 
 
         pypar.barrier()
-        run_test(parallel=True, control_data = control_data, test_points = test_points, verbose = True)
+        run_test(parallel=True, control_data = control_data, test_points = test_points, verbose = verbose)
 
 
     finalize()
