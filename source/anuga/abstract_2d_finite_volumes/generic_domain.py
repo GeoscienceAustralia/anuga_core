@@ -478,7 +478,9 @@ class Generic_Domain:
         """
         if cfl > 2.0:
             self.CFL = cfl
-            log.warn('Setting CFL > 2.0')
+            msg = 'Setting CFL > 2.0'
+            #warnings.warn(msg)
+            log.warn()
 
         assert cfl > 0.0
         self.CFL = cfl

@@ -62,7 +62,7 @@ class Mannings_operator(Operator):
 
 
 
-    def __parallel_safe(self):
+    def parallel_safe(self):
         """
         This operator only works with centroid values of quantities
         and so is parallel safe.

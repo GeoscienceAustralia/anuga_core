@@ -94,7 +94,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
         '''
 
 
-    def __parallel_safe(self):
+    def parallel_safe(self):
 
         print "ZZZZ parallel_boyd"
         return True

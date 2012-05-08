@@ -87,14 +87,14 @@ class Test_Domain(unittest.TestCase):
 
         
         try:
-            domain.set_CFL(2.0)
+            domain.set_CFL(3.0)
         except:
             pass
         else:
-            msg = 'Should have warned of cfl>1.0'
+            msg = 'Should have warned of cfl>2.0'
             raise Exception, msg
 
-        assert domain.CFL == 2.0
+        assert domain.CFL == 3.0
         
 
     def test_conserved_quantities(self):

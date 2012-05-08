@@ -214,5 +214,5 @@ class Parallel_Inlet_operator(Inlet_operator):
     def get_master_proc(self):
         return self.master_proc
 
-    def __parallel_safe(self):
+    def parallel_safe(self):
         return True

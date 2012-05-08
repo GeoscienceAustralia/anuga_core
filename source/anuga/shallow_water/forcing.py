@@ -277,7 +277,7 @@ class General_forcing:
 
         if domain.numproc > 1:
             msg = 'Not implemented to run in parallel'
-            assert self.__parallel_safe(), msg
+            assert self.parallel_safe(), msg
 
         if center is None:
             msg = 'I got radius but no center.'
@@ -494,7 +494,7 @@ class General_forcing:
                      indices=self.exchange_indices)
 
 
-    def __parallel_safe(self):
+    def parallel_safe(self):
         """
         These forcing terms only work on individual processors, the polygon
         had better not stride over multiple sub meshes

@@ -153,7 +153,7 @@ class Rate_operator(Operator):
 
         return rate
 
-    def __parallel_safe(self):
+    def parallel_safe(self):
         """Operator is applied independently on each cell and
         so is parallel safe.
         """
