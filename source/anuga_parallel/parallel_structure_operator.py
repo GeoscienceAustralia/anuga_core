@@ -513,7 +513,7 @@ class Parallel_Structure_operator(anuga.Operator):
         return self.enquiry_proc
 
 
-    def __parallel_safe(self):
+    def parallel_safe(self):
         return True
 
 

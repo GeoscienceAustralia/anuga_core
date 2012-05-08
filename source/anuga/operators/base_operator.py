@@ -26,9 +26,9 @@ class Operator:
         self.areas = self.domain.areas
 
 
-#        if domain.numproc > 1:
-#            msg = 'Not implemented to run in parallel'
-#            assert self.__parallel_safe(), msg
+        if domain.numproc > 1:
+            msg = 'Not implemented to run in parallel'
+            assert self.parallel_safe(), msg
 
         if description == None:
             self.description = ' '
@@ -59,7 +59,7 @@ class Operator:
 
         return self.domain.get_timestep()
 
-    def __parallel_safe(self):
+    def parallel_safe(self):
         """By default an operator is not parallel safe
         """
 
