@@ -24,4 +24,13 @@ Figure~\ref{xsect_vels} shows the cross-channel velocity profiles at a number of
 \end{center}
 \end{figure}
 
+Table~\ref{trapztab} shows the discharge computed at 3 cross-sections in the channel, at a number of time-steps on the way to near steady-state. By the end of the simulation they should all be essentially the same. Large variations may suggest mass conservation errors (small variations may be due to the way discharge is computed?).
+
+\DTLloaddb{dischargeout}{Tests/Analytical/trapezoidal_channel/discharge_outputs.txt}
+\begin{table}
+\caption{Discharge through cross-sections at 10m, 700m, and 1000m along the channel, at different instants in time}
+\label{trapztab}
+\DTLdisplaydb{dischargeout}
+\end{table}
+
 \endinput
