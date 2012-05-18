@@ -1,0 +1,34 @@
+\section{Shallow flow down a steep slope}
+This case simulates very shallow flow running down a poorly resolved, steep slope. It represents an idealisation of the rainfall-runoff problem, which will often involve very shallow flows down poorly resolved topography. This case has an analytical solution (the steady-uniform solution, bed slope = friction slope). Some experimental variants of \anuga ~completely fail on this problem -- especially some well balanced versions have had problems when the stage centroid value is less than the peak bed edge value, as in this problem.  
+
+\subsection{Results}
+Figures~\ref{depthdownchan} shows the steady state depth in the downstream direction. There should be a good agreement with the analytical solution, at least away from the boundaries.  
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.9\textwidth]{final_depth_v2.png}
+\caption{Depth in the downstream direction}
+\label{depthdownchan}
+\end{center}
+\end{figure}
+
+Figures~\ref{xvelscrosschan} and~\ref{yvelscroschan} show the steady state x and y velocities, along a slice in the cross slope direction (near x=50). The x velocities should agree well with the analytical solution, and the y velocities should be zero.  
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.9\textwidth]{x_velocity_v2.png}
+\caption{x-velocity along the cross-section x=50 (i.e. a cross-section with constant bed elevation)}
+\label{xvelscrosschan}
+\end{center}
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.9\textwidth]{y_velocity_v2.png}
+\caption{y-velocity along the cross-section x=50 (i.e. a cross-section with constant bed elevation)}
+\label{yvelscroschan}
+\end{center}
+\end{figure}
+
+
+\endinput
