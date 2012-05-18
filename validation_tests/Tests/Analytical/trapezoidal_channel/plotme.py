@@ -82,6 +82,8 @@ pyplot.plot(p.y[v], V1*0. + dc_analytical, 'o', label='analytical depth')
 pyplot.title('Mid channel velocities and depths, vs analytical velocities and depths')
 # But in my tests, they are not equal
 pyplot.legend( ('computed velocity', 'Analytical velocity', 'computed depth', 'analytical depth'), loc=4)
+pyplot.xlabel('Down channel distance (m)')
+pyplot.ylabel(' Generic scale (m or m/s)')
 pyplot.savefig('trapz_velocity_downstream_l0_eq_1_EL.png')
 
 # Plot velocity over the cross-section
@@ -100,6 +102,8 @@ pyplot.plot(p.x[v1],p.stage[index,v1]*0. + analytical_stage,'o', label='analytic
 
 pyplot.legend( ('computed velocity (m/s)', 'analytical velocity (m/s)', 'bed elevation (m)', 'computed stage (m)', 'analytical_stage (m)') ,loc=10)
 pyplot.title('Velocity (analytical and numerical) and Stage:' + '\n' +'Central channel regions (470 to 500m)' +'\n')
+pyplot.xlabel('Cross-channel distance (m)')
+pyplot.ylabel(' Generic scale (m or m/s)')
 pyplot.savefig('trapz_velocity_cross_channel_l0_eq_1_EL.png') 
 
 
@@ -119,6 +123,8 @@ pyplot.plot(p.x[v1],p.stage[index,v1]*0. + analytical_stage,'o', label='analytic
 
 pyplot.legend( ('computed velocity (m/s)', 'analytical velocity (m/s)', 'bed elevation (m)', 'computed stage (m)', 'analytical_stage (m)') ,loc=10)
 pyplot.title('Velocity (analytical and numerical) and Stage:' + '\n' +'Central channel regions (470 to 500m)' +'\n')
+pyplot.xlabel('Cross-channel distance (m)')
+pyplot.ylabel(' Generic scale (m or m/s)')
 pyplot.savefig('trapz_velocity_cross_channel_l0_eq_1b_EL.png') 
 
 # Plot velocity over the cross-section
@@ -137,4 +143,6 @@ pyplot.plot(p.x[v1],p.stage[index,v1]*0. + analytical_stage,'o', label='analytic
 
 pyplot.legend( ('computed velocity (m/s)', 'analytical velocity (m/s)', 'bed elevation (m)', 'computed stage (m)', 'analytical_stage (m)') , loc=10)
 pyplot.title('Velocity (analytical and numerical) and Stage:' + '\n' +'Central channel regions (870 to 900m)' +'\n')
+pyplot.xlabel('Cross-channel distance (m)')
+pyplot.ylabel(' Generic scale (m or m/s)')
 pyplot.savefig('trapz_velocity_cross_channel_l0_eq_1c_EL.png') 
