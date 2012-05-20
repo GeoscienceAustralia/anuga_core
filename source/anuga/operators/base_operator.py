@@ -62,8 +62,6 @@ class Operator:
     def parallel_safe(self):
         """By default an operator is not parallel safe
         """
-
-        print "ZZZZ in --parallel_safe base_oprator"
         return False
 
     def statistics(self):

@@ -38,7 +38,7 @@ interactive_visualisation = False
 #------------------------------------------------------------------------------
 # Setup domain
 #------------------------------------------------------------------------------
-dx = 1000.
+dx = 500.
 dy = dx
 L = 100000.
 W = 10*dx
@@ -54,6 +54,7 @@ domain.set_datadir(output_dir)
 #------------------------------------------------------------------------------
 # Setup Algorithm
 #------------------------------------------------------------------------------
+#domain.set_flow_algorithm(2.0)
 #domain.set_timestepping_method('rk2')
 #domain.set_default_order(2)
 #domain.set_beta(2.0)
@@ -99,7 +100,10 @@ def waveform(t):
 
 Bw2 = anuga.shallow_water.boundaries.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, waveform)
 #Bw3 = swb2_boundary_conditions.Transmissive_momentum_nudge_stage_boundary(domain, waveform)
-                    
+
+def zero_fun(t):
+    return 0.0                    
+Bw0 = anuga.shallow_water.boundaries.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, zero_fun)
 
 
 # Associate boundary tags with boundary objects

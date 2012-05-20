@@ -3,16 +3,6 @@ Water flowing down a channel
 """
 import sys
 
-#---------------
-# I am having trouble with my environmental variables -- this is a 
-# quick fix -- PYTHONPATH should have this value
-#---------------
-#sys.path[0]='/nas/gemd/georisk_models/inundation/sandpits/gdavies/trunk/anuga_core/source'
-
-#--------------
-# Then from here, write the script as usual
-#--------------
-
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
@@ -32,7 +22,9 @@ len1=100.0, len2=100.0) # Mesh
 domain = Domain(points, vertices, boundary) # Create domain
 domain.set_name('channel_SU_2_v2') # Output name
 domain.set_store_vertices_uniquely(True)
-domain.CFL=1.0
+domain.set_flow_algorithm(2.0)
+#domain.CFL=1.0
+#domain.set_sloped_mannings_function()
 #------------------------------------------------------------------------------
 # Setup initial conditions
 #------------------------------------------------------------------------------
@@ -44,9 +36,9 @@ def stagetopo(x,y):
     #topo=topography(x,y)
     return stg#*(stg>topo) + topo*(stg<=topo)
 
-line1=[ [0.,0.], [0., 100.] ]
+line1=[ [1.,0.], [1., 100.] ]
 Qin=20.
-Inlet_operator(domain, line1,Qin)
+Inlet_operator(domain, line1, Qin)
 
 domain.set_quantity('elevation', topography) # Use function for elevation
 domain.set_quantity('friction', 0.03) # Constant friction

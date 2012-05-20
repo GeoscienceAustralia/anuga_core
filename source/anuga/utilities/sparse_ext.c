@@ -78,7 +78,7 @@ PyObject *csr_mv(PyObject *self, PyObject *args) {
     *y;               //Return vector array
 
   
-  int dimensions[1], M, err, columns, rows;
+  int dimensions[2], M, err, columns, rows;
   
   // Convert Python arguments to C  
   if (!PyArg_ParseTuple(args, "OO", &csr_sparse, &xin)) {
