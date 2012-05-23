@@ -59,6 +59,7 @@ def Inlet_operator(domain,
 
     myid = pypar.rank()
 
+    line = num.array(line, dtype='d')
 
     alloc, inlet_master_proc, inlet_procs, enquiry_proc = allocate_inlet_procs(domain,
                                                                                line,
@@ -318,6 +319,8 @@ def allocate_inlet_procs(domain, line, enquiry_point = None, master_proc = 0, pr
     max_size = -1
     inlet_master_proc = -1
     inlet_enq_proc = -1
+
+
 
     # Calculate the number of points of the line inside full polygon
 

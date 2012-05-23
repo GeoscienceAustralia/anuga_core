@@ -24,6 +24,7 @@ import tempfile
 import time
 import anuga.config as config
 from anuga.utilities.terminal_width import terminal_width
+import anuga.utilities.system_tools as aust
 
 
 #List files that should be excluded from the testing process.
@@ -226,8 +227,9 @@ if __name__ == '__main__':
 
     # timestamp at the end
     timestamp = time.asctime()
-    version = config.major_revision
-    print '\nFinished at %s, version %s' % (timestamp, version)
+    major_revision = config.major_revision
+    minor_revision = aust.get_revision_number()
+    print '\nFinished at %s, version %s %s' % (timestamp, major_revision, minor_revision)
 
     # Cleaning up
     if options.verbosity < 1:

@@ -16,6 +16,24 @@ from time import localtime, strftime, gmtime
 #from balanced_dev import *
 
 
+#--------------------------------
+# Setup Default values for basic
+# algorithm parameters.
+#--------------------------------
+import argparse
+parser = argparse.ArgumentParser(description='produce results')
+parser.add_argument('-cfl', type=float, default=1.0,
+                   help='cfl condition')
+parser.add_argument('-alg', type=str, default = "1_5",
+                   help='flow algorithm')
+args = parser.parse_args()
+
+cfl = args.cfl
+alg = args.alg
+
+
+
+
 #-------------------------------------------------------------------------------
 # Copy scripts to time stamped output directory and capture screen
 # output to file
@@ -45,27 +63,14 @@ points, vertices, boundary = anuga.rectangular_cross(int(L/dx), int(W/dy), L, W,
 domain = Domain(points, vertices, boundary) 
 
 domain.set_name(output_file)                
-domain.set_datadir(output_dir)  
+domain.set_datadir(output_dir) 
 
 #------------------------------------------------------------------------------
-# Setup Algorithm
+# Setup Algorithm, either using command line arguments read
+# in earlier or manually yourself
 #------------------------------------------------------------------------------
-#domain.set_timestepping_method('rk2')
-#domain.set_default_order(2)
-#
-#print domain.get_timestepping_method()
-#
-#domain.use_edge_limiter = True
-##domain.use_edge_limiter = False
-#domain.tight_slope_limiters = True
-#domain.use_centroid_velocities = False
-#
-#domain.CFL = 1.0
-
-#domain.beta_w      = 0.6
-#domain.beta_uh     = 0.6
-#domain.beta_vh     = 0.6
-
+domain.set_flow_algorithm(alg)
+domain.set_CFL(cfl)
 
 #------------------------------------------------------------------------------
 # Setup initial conditions

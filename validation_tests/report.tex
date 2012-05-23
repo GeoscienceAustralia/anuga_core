@@ -6,8 +6,10 @@
 \usepackage{epstopdf}
 \usepackage[section]{placeins} % 'one-shot' command to nicely place figures
 \usepackage{datatool}
+\usepackage{underscore}
 
 \input{local-defs}
+\input{method}
 
 %=========================================
 \begin{document} 
@@ -19,7 +21,10 @@
 \chapter{Introduction}
 %======================
 
-Here we collect the results of running our validation tests. 
+Here we collect the results of running our validation tests.
+
+The flow algorithm is \alg.
+The cfl condition was \cfl.
 
 
 
@@ -69,4 +74,29 @@ outputs. In this \TeX{} file, \texttt{report.tex}, add a line
 \begin{verbatim}
 \inputresults{Tests/Directory/Name}
 \end{verbatim}
+
+
+
+\section{Specifiying different algorithm}
+One  way to allow the system to run with different algorithms is to add the following
+into your run routines.
+\begin{verbatim}
+#--------------------------------
+# Setup Default values for basic
+# algorithm parameters.
+#--------------------------------
+import argparse
+parser = argparse.ArgumentParser(description='produce results')
+parser.add_argument('-cfl', type=float, default=1.0,
+                   help='cfl condition')
+parser.add_argument('-alg', type=str, default = "1_5",
+                   help='flow algorithm')
+args = parser.parse_args()
+
+cfl = args.cfl
+alg = args.alg
+\end{verbatim}
+
+Then in the \texttt{produce\_results.py} you can 
+
 \end{document}
