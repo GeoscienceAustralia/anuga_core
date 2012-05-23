@@ -8,7 +8,10 @@ buildroot = os.getcwd()
 
 Upper_dirs = os.listdir('./Tests')
 #print Upper_dirs
-Upper_dirs.remove('.svn')
+try:
+    Upper_dirs.remove('.svn')
+except ValueError:
+    pass
 #print Upper_dirs
 os.chdir('./Tests')
 
@@ -17,7 +20,10 @@ for dir in Upper_dirs:
     os.chdir(dir)
     #print 'Changing to', os.getcwd()
     Lower_dirs = os.listdir('.')
-    Lower_dirs.remove('.svn')
+    try:
+        Lower_dirs.remove('.svn')
+    except ValueError:
+        pass
     #print Lower_dirs
     for l_dir in Lower_dirs:
         os.chdir(l_dir)
