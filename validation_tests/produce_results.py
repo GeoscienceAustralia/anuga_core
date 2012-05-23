@@ -3,7 +3,9 @@ Script to run all the produce_results scripts in the Tests/xxx/xxx/ directories
 """
 
 import os
-
+import anuga.utilities.system_tools as anugast
+import anuga
+import time
 
 #--------------------------------
 # Setup Default values for basis
@@ -20,19 +22,18 @@ args = parser.parse_args()
 cfl = args.cfl
 alg = args.alg
 
+#---------------------------------
+# Get the current svn revision
+#---------------------------------
+
+timestamp = time.asctime()
+major_revision = anuga.config.major_revision
+minor_revision = anuga.utilities.system_tools.get_revision_number()
 
 
-# Create a latex macro file with cfl and flow_algorithm
-f = open('method.tex','w')
-f.write('\\newcommand{\\cfl}{%s}\n' % str(cfl))
-f.write('\\newcommand{\\alg}{%s}\n' % str(alg))
-f.close()
-
-exit()
-
-
-
-
+#---------------------------------
+# Run the tests
+#---------------------------------
 buildroot = os.getcwd()
 
 Upper_dirs = os.listdir('./Tests')
@@ -71,5 +72,21 @@ for dir in Upper_dirs:
     os.chdir('..')
     #print 'Changing to', os.getcwd()
         
+#----------------------------------
+# Now it is ok to create the latex 
+# macro file with run parameters
+#----------------------------------
+
+f = open('saved_parameters.tex','w')
+f.write('\\newcommand{\\cfl}{\\UScore{%s}}\n' % str(cfl))
+f.write('\\newcommand{\\alg}{\\UScore{%s}}\n' % str(alg))
+f.write('\\newcommand{\\majorR}{\\UScore{%s}}\n' % str(major_revision))
+f.write('\\newcommand{\\minorR}{\\UScore{%s}}\n' % str(minor_revision))
+f.write('\\newcommand{\\timeR}{{%s}}\n' % str(timestamp))
+
+f.close()
+
+
+
 
 
