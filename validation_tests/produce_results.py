@@ -37,7 +37,7 @@ minor_revision = anuga.utilities.system_tools.get_revision_number()
 buildroot = os.getcwd()
 
 Upper_dirs = os.listdir('./Tests')
-Upper_dirs = []
+
 try:
     Upper_dirs.remove('.svn')
 except ValueError:
