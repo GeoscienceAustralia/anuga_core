@@ -37,7 +37,7 @@ minor_revision = anuga.utilities.system_tools.get_revision_number()
 buildroot = os.getcwd()
 
 Upper_dirs = os.listdir('./Tests')
-#print Upper_dirs
+Upper_dirs = []
 try:
     Upper_dirs.remove('.svn')
 except ValueError:
@@ -70,8 +70,9 @@ for dir in Upper_dirs:
         #print 'Changing to', os.getcwd()
 
     os.chdir('..')
-    #print 'Changing to', os.getcwd()
-        
+    print 'Changing to', os.getcwd()
+    
+os.chdir('..')
 #----------------------------------
 # Now it is ok to create the latex 
 # macro file with run parameters
