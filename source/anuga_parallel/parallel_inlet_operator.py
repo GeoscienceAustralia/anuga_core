@@ -89,6 +89,8 @@ class Parallel_Inlet_operator(Inlet_operator):
 
         # Only the master proc calculates the volume
 
+        current_volume = self.inlet.get_global_total_water_volume()
+
         if self.myid == self.master_proc:
             timestep = self.domain.get_timestep()
 
@@ -98,7 +100,7 @@ class Parallel_Inlet_operator(Inlet_operator):
 
             volume = 0.5*(Q1+Q2)*timestep
 
-            assert 0.5*(Q1+Q2) >= 0.0, 'Q < 0: Water to be removed from an inlet!'
+            assert current_volume + volume >= 0.0 , 'Requesting too much water to be removed from an inlet!'
 
             #print "Volume to be removed from Inlet = " + str(volume)
 
