@@ -303,6 +303,12 @@ class Domain(Generic_Domain):
 
         self.store = flag
 
+    def get_store(self):
+        """Get whether data saved to sww file.
+        """
+
+        return self.store
+
         
     def set_sloped_mannings_function(self, flag=True):
         """Set mannings friction function to use the sloped
@@ -341,9 +347,7 @@ class Domain(Generic_Domain):
     def get_compute_fluxes_method(self):
         """Get method for computing fluxes.
 
-        Currently
-           original
-           wb_1
+        See set_compute_fluxes_method for possible choices.
         """
 
         return self.compute_fluxes_method
@@ -1009,6 +1013,7 @@ class Domain(Generic_Domain):
         self.distribute_to_vertices_and_edges()
 
 
+    
     def evolve(self,
                yieldstep=None,
                finaltime=None,

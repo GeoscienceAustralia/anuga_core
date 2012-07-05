@@ -41,6 +41,9 @@ class Test_sww(unittest.TestCase):
         yiel=0.01
         points, vertices, boundary = rectangular(10,10)
 
+        #print "=============== boundary rect ======================="
+        #print boundary
+
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
         domain.geo_reference = Geo_reference(56,11,11)
@@ -75,11 +78,22 @@ class Test_sww(unittest.TestCase):
             #domain.write_time()
             pass
 
+        #print boundary
 
 
         filename = domain.datadir + os.sep + domain.get_name() + '.sww'
         domain2 = load_sww_as_domain(filename, None, fail_if_NaN=False,
                                         verbose=self.verbose)
+
+        # Unfortunately we loss the boundaries top, bottom, left and right,
+        # they are now all lumped into "exterior"
+
+        #print "=============== boundary domain2 ======================="
+        #print domain2.boundary
+        
+
+        #print domain2.get_boundary_tags()
+        
         #points, vertices, boundary = rectangular(15,15)
         #domain2.boundary = boundary
         ###################
@@ -109,7 +123,7 @@ class Test_sww(unittest.TestCase):
         final = .1
         domain.set_quantity('friction', 0.1)
         domain.store = False
-        domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
+        domain.set_boundary({'exterior': Bd, 'left' : Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
 
 
         for t in domain.evolve(yieldstep = yiel, finaltime = final):
@@ -130,7 +144,7 @@ class Test_sww(unittest.TestCase):
         domain2.boundary = domain.boundary
         #print 'domain2.boundary'
         #print domain2.boundary
-        domain2.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
+        domain2.set_boundary({'exterior': Bd, 'left' : Bd,  'right': Bd, 'top': Bd, 'bottom': Bd})
         #domain2.set_boundary({'exterior': Bd})
 
         domain2.check_integrity()

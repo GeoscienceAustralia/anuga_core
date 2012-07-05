@@ -61,6 +61,7 @@ def distribute(domain, verbose=False):
     if myid == 0:
         domain_name = domain.get_name()
         domain_dir = domain.get_datadir()
+        domain_store = domain.get_store()
         georef = domain.geo_reference
         number_of_global_triangles = domain.number_of_triangles
         number_of_global_nodes = domain.number_of_nodes
@@ -68,12 +69,12 @@ def distribute(domain, verbose=False):
         # FIXME - what other attributes need to be transferred?
 
         for p in range(1, numprocs):
-            send((domain_name, domain_dir, georef, \
+            send((domain_name, domain_dir, domain_store, georef, \
                   number_of_global_triangles, number_of_global_nodes), p)
     else:
         if verbose: print 'P%d: Receiving domain attributes' %(myid)
 
-        domain_name, domain_dir, georef, \
+        domain_name, domain_dir, domain_store, georef, \
                   number_of_global_triangles, number_of_global_nodes = receive(0)
 
 
@@ -176,7 +177,8 @@ def distribute(domain, verbose=False):
     # Transfer other attributes to each subdomain
     #------------------------------------------------------------------------
     domain.set_name(domain_name)
-    domain.set_datadir(domain_dir)     
+    domain.set_datadir(domain_dir)
+    domain.set_store(domain_store)
     domain.geo_reference = georef   
 
     #------------------------------------------------------------------------

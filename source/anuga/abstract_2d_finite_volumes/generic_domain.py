@@ -112,6 +112,8 @@ class Generic_Domain:
         self.areas = self.mesh.areas
 
         self.number_of_boundaries = self.mesh.number_of_boundaries
+        self.boundary_length = self.mesh.boundary_length
+        self.tag_boundary_cells = self.mesh.tag_boundary_cells
         #self.number_of_full_nodes = self.mesh.number_of_full_nodes
         #self.number_of_full_triangles = self.mesh.number_of_full_triangles
         self.number_of_triangles_per_node = \
@@ -1315,7 +1317,7 @@ class Generic_Domain:
 
         self._order_ = self.default_order
 
-        assert finaltime > self.get_starttime(), 'finaltime is less than starttime!'
+        assert finaltime >= self.get_starttime(), 'finaltime is less than starttime!'
         
         if finaltime is not None and duration is not None:
             msg = 'Only one of finaltime and duration may be specified'
@@ -1690,7 +1692,7 @@ class Generic_Domain:
 
         return q_evol
     
-    def update_boundary(self):
+    def update_boundary_old(self):
         """Go through list of boundary objects and update boundary values
         for all conserved quantities on boundary.
         It is assumed that the ordering of conserved quantities is
@@ -1727,6 +1729,128 @@ class Generic_Domain:
                 for j, name in enumerate(self.evolved_quantities):
                     Q = self.quantities[name]
                     Q.boundary_values[i] = q_evol[j]
+
+
+    def update_boundary_old_2(self):
+        """Go through list of boundary objects and update boundary values
+        for all conserved quantities on boundary.
+        It is assumed that the ordering of conserved quantities is
+        consistent between the domain and the boundary object, i.e.
+        the jth element of vector q must correspond to the jth conserved
+        quantity in domain.
+        """
+
+
+        for i in range(self.boundary_length):
+            vol_id  = self.boundary_cells[i]
+            edge_id = self.boundary_edges[i]
+            blah, B = self.boundary_objects[i]
+
+            if B is None:
+                log.critical('WARNING: Ignored boundary segment (None)')
+            else:
+                q_bdry = B.evaluate(vol_id, edge_id)
+
+                if len(q_bdry) == len(self.evolved_quantities):
+                    # conserved and evolved quantities are the same
+                    q_evol = q_bdry
+                elif len(q_bdry) == len(self.conserved_quantities):
+                    # boundary just returns conserved quantities
+                    # Need to calculate all the evolved quantities
+                    # Use default conversion
+
+                    q_evol = self.get_evolved_quantities(vol_id, edge = edge_id)
+
+                    q_evol = self.conserved_values_to_evolved_values \
+                                                            (q_bdry, q_evol)
+                else:
+                    msg = 'Boundary must return array of either conserved'
+                    msg += ' or evolved quantities'
+                    raise Exception(msg)
+
+                for j, name in enumerate(self.evolved_quantities):
+                    Q = self.quantities[name]
+                    Q.boundary_values[i] = q_evol[j]
+
+
+
+#        for i, ((vol_id, edge_id), B) in enumerate(self.boundary_objects):
+#            if B is None:
+#                log.critical('WARNING: Ignored boundary segment (None)')
+#            else:
+#                q_bdry = B.evaluate(vol_id, edge_id)
+#
+#                if len(q_bdry) == len(self.evolved_quantities):
+#                    # conserved and evolved quantities are the same
+#                    q_evol = q_bdry
+#                elif len(q_bdry) == len(self.conserved_quantities):
+#                    # boundary just returns conserved quantities
+#                    # Need to calculate all the evolved quantities
+#                    # Use default conversion
+#
+#                    q_evol = self.get_evolved_quantities(vol_id, edge = edge_id)
+#
+#                    q_evol = self.conserved_values_to_evolved_values \
+#                                                            (q_bdry, q_evol)
+#                else:
+#                    msg = 'Boundary must return array of either conserved'
+#                    msg += ' or evolved quantities'
+#                    raise Exception(msg)
+#
+#                for j, name in enumerate(self.evolved_quantities):
+#                    Q = self.quantities[name]
+#                    Q.boundary_values[i] = q_evol[j]
+
+
+    def update_boundary(self):
+        """Go through list of boundary objects and update boundary values
+        for all conserved quantities on boundary.
+        It is assumed that the ordering of conserved quantities is
+        consistent between the domain and the boundary object, i.e.
+        the jth element of vector q must correspond to the jth conserved
+        quantity in domain.
+        """
+
+
+        for tag in self.tag_boundary_cells:
+
+            #print tag
+            
+            B = self.boundary_map[tag]
+            
+            #if B is None:
+            #        log.critical('WARNING: Ignored boundary segment (None)')
+
+            for i in self.tag_boundary_cells[tag]:
+                vol_id  = self.boundary_cells[i]
+                edge_id = self.boundary_edges[i]
+
+                if B is None:
+                    pass
+                else:
+                    q_bdry = B.evaluate(vol_id, edge_id)
+
+                    if len(q_bdry) == len(self.evolved_quantities):
+                        # conserved and evolved quantities are the same
+                        q_evol = q_bdry
+                    elif len(q_bdry) == len(self.conserved_quantities):
+                        # boundary just returns conserved quantities
+                        # Need to calculate all the evolved quantities
+                        # Use default conversion
+
+                        q_evol = self.get_evolved_quantities(vol_id, edge = edge_id)
+
+                        q_evol = self.conserved_values_to_evolved_values \
+                                                                (q_bdry, q_evol)
+                    else:
+                        msg = 'Boundary must return array of either conserved'
+                        msg += ' or evolved quantities'
+                        raise Exception(msg)
+
+                    for j, name in enumerate(self.evolved_quantities):
+                        Q = self.quantities[name]
+                        Q.boundary_values[i] = q_evol[j]
+
 
     def compute_fluxes(self):
         msg = 'Method compute_fluxes must be overridden by Domain subclass'

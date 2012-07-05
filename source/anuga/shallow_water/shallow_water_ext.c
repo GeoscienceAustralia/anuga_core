@@ -450,21 +450,24 @@ int _flux_function_central_wb(double *q_left, double *q_right,
         double *max_speed) {
 
     /*Compute fluxes between volumes for the shallow water wave equation
-      cast in terms of the 'stage', w = h+z using
-      the 'central scheme' as described in
-
-      Kurganov, Noelle, Petrova. 'Semidiscrete Central-Upwind Schemes For
-      Hyperbolic Conservation Laws and Hamilton-Jacobi Equations'.
-      Siam J. Sci. Comput. Vol. 23, No. 3, pp. 707-740.
-
-      The implemented formula is given in equation (3.15) on page 714
+     * cast in terms of the 'stage', w = h+z using
+     * the 'central scheme' as described in
+     *
+     * Kurganov, Noelle, Petrova. 'Semidiscrete Central-Upwind Schemes For
+     * Hyperbolic Conservation Laws and Hamilton-Jacobi Equations'.
+     * Siam J. Sci. Comput. Vol. 23, No. 3, pp. 707-740.
+     *
+     * The implemented formula is given in equation (3.15) on page 714.
+     *
+     * The pressure term is calculated using simpson's rule so that it
+     * will well balance with the standard ghz_x gravity term
      */
 
 
     int i;
     //double hl, hr;
-    double uh_left, vh_left, u_left;
-    double uh_right, vh_right, u_right;
+    double uh_left, vh_left, u_left, v_left;
+    double uh_right, vh_right, u_right, v_right;
     double s_min, s_max, soundspeed_left, soundspeed_right;
     double denom, inverse_denominator;
     double p_left, p_right;
@@ -530,7 +533,12 @@ int _flux_function_central_wb(double *q_left, double *q_right,
 
     // Momentum in y-direction
     vh_left = q_left_rotated[2];
+    v_left = _compute_speed(&vh_left, &h_left,
+            epsilon, h0, limiting_threshold);
+
     vh_right = q_right_rotated[2];
+    v_right = _compute_speed(&vh_right, &h_right,
+            epsilon, h0, limiting_threshold);
 
     // Limit y-momentum if necessary
     // Leaving this out, improves speed significantly (Ole 27/5/2009)
@@ -614,6 +622,13 @@ int _flux_function_central_wb(double *q_left, double *q_right,
             edgeflux[i] += s_max * s_min * (q_right_rotated[i] - q_left_rotated[i]);
             edgeflux[i] *= inverse_denominator;
         }
+/*
+        if (edgeflux[0] > 0.0) {
+            edgeflux[2] = edgeflux[0]*v_left;
+        } else {
+            edgeflux[2] = edgeflux[0]*v_right;
+        }
+*/
 
         // Maximal wavespeed
         *max_speed = max(fabs(s_max), fabs(s_min));

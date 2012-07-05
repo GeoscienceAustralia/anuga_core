@@ -84,6 +84,9 @@ class Set_Elevation:
 if myid == 0:
     domain = create_domain_from_file(mesh_filename)
     domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))
+    domain.set_datadir('Data')
+    domain.set_name('merimbula_new')
+    domain.set_store(False)
     #domain.set_quantity('elevation', Set_Elevation(500.0))
 
     #print domain.statistics()
@@ -105,12 +108,13 @@ domain = distribute(domain)
 # (all called "domain"
 #--------------------------------------------------------------------------
 
+    
 #domain.smooth = False
 domain.set_default_order(2)
 domain.set_timestepping_method('rk2')
 #domain.set_CFL(0.7)
 #domain.set_beta(1.5)
-domain.set_name('merimbula')
+
 
 #for p in range(numprocs):
 #    if myid == p:
@@ -143,7 +147,7 @@ if myid == 0 and verbose: print 'EVOLVE'
 
 t0 = time.time()
 
-for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
+for t in domain.evolve(yieldstep = yieldtime, finaltime = finaltime):
     if myid == 0:
         domain.write_time()
 

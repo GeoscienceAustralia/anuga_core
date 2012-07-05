@@ -17,6 +17,7 @@ from anuga_parallel.parallel_generic_communications import *
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 
 import numpy as num
+from os.path import join
 
 
 #Import matplotlib
@@ -130,10 +131,12 @@ class Parallel_domain(Domain):
 
     def sww_merge(self, verbose=False, delete_old=False):
 
-        if self.processor == 0 and self.numproc > 1:
+        if self.processor == 0 and self.numproc > 1 and self.store :
             import anuga.utilities.sww_merge as merge
+
+            global_name = join(self.get_datadir(),self.get_global_name())
             
-            merge.sww_merge_parallel(self.get_global_name(),self.numproc,verbose,delete_old)
+            merge.sww_merge_parallel(global_name,self.numproc,verbose,delete_old)
 
 
 # =======================================================================

@@ -191,6 +191,8 @@ class Mesh(General_mesh):
         #Update boundary indices FIXME: OBSOLETE
         #self.build_boundary_structure()
 
+
+
         #FIXME check integrity?
         if verbose: log.critical('Mesh: Done')
         if verbose: log.timingInfo("finishMesh, '%s'" % log.CurrentDateTime())
@@ -375,6 +377,7 @@ class Mesh(General_mesh):
 
 
         self.boundary = boundary
+        self.boundary_length = len(self.boundary)
 
 
     def build_tagged_elements_dictionary(self, tagged_elements = None):
@@ -401,48 +404,48 @@ class Mesh(General_mesh):
     def get_tagged_elements(self):
         return self.tagged_elements
 
-    def build_boundary_structure(self):
-        """Traverse boundary and
-        enumerate neighbour indices from -1 and
-        counting down.
-
-        Precondition:
-            self.boundary is defined.
-        Post condition:
-            neighbour array has unique negative indices for boundary
-            boundary_segments array imposes an ordering on segments
-            (not otherwise available from the dictionary)
-
-        Note: If a segment is listed in the boundary dictionary
-        it *will* become a boundary - even if there is a neighbouring triangle.
-        This would be the case for internal boundaries
-        """
-
-        #FIXME: Now Obsolete - maybe use some comments from here in
-        #domain.set_boundary
-
-        if self.boundary is None:
-            msg = 'Boundary dictionary must be defined before '
-            msg += 'building boundary structure'
-            raise Exception(msg)
-
-
-        self.boundary_segments = self.boundary.keys()
-        self.boundary_segments.sort()
-
-        index = -1
-        for id, edge in self.boundary_segments:
-
-            #FIXME: One would detect internal boundaries as follows
-            #if self.neighbours[id, edge] > -1:
-            #    log.critical('Internal boundary')
-
-            self.neighbours[id, edge] = index
-
-            self.boundary_enumeration[id,edge] = index
-
-            index -= 1
-
+#    def build_boundary_structure(self):
+#        """Traverse boundary and
+#        enumerate neighbour indices from -1 and
+#        counting down.
+#
+#        Precondition:
+#            self.boundary is defined.
+#        Post condition:
+#            neighbour array has unique negative indices for boundary
+#            boundary_segments array imposes an ordering on segments
+#            (not otherwise available from the dictionary)
+#
+#        Note: If a segment is listed in the boundary dictionary
+#        it *will* become a boundary - even if there is a neighbouring triangle.
+#        This would be the case for internal boundaries
+#        """
+#
+#        #FIXME: Now Obsolete - maybe use some comments from here in
+#        #domain.set_boundary
+#
+#        if self.boundary is None:
+#            msg = 'Boundary dictionary must be defined before '
+#            msg += 'building boundary structure'
+#            raise Exception(msg)
+#
+#
+#        self.boundary_segments = self.boundary.keys()
+#        self.boundary_segments.sort()
+#
+#        index = -1
+#        for id, edge in self.boundary_segments:
+#
+#            #FIXME: One would detect internal boundaries as follows
+#            #if self.neighbours[id, edge] > -1:
+#            #    log.critical('Internal boundary')
+#
+#            self.neighbours[id, edge] = index
+#
+#            self.boundary_enumeration[id,edge] = index
+#
+#            index -= 1
+#
 
 
     def build_boundary_neighbours(self):
@@ -466,9 +469,12 @@ class Mesh(General_mesh):
 
         self.boundary_enumeration = {}
 
+
+
         X = self.boundary.keys()
         X.sort()
 
+        #print 'X', X
         index = -1
         for id, edge in X:
             self.neighbours[id, edge] = index
@@ -483,11 +489,30 @@ class Mesh(General_mesh):
         self.boundary_edges = num.zeros((M,),num.int)
 
         for id, edge in X:
-
             j = self.boundary_enumeration[id,edge]
             self.boundary_cells[j] = id
             self.boundary_edges[j] = edge
 
+        # For each tag create list of boundary edges
+        self.tag_boundary_cells = {}
+
+        tags = self.get_boundary_tags()
+
+        #print tags
+
+        for tag in tags:
+            self.tag_boundary_cells[tag] = []
+
+
+        for j in range(self.boundary_length):
+            id  = self.boundary_cells[j]
+            edge = self.boundary_edges[j]
+            tag = self.boundary[id, edge]
+            #print tag, id, edge
+            self.tag_boundary_cells[tag].append(j)
+
+
+        #print self.tag_boundary_cells
 
     def get_boundary_tags(self):
         """Return list of available boundary tags

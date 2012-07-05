@@ -32,7 +32,7 @@ def communicate_flux_timestep(domain, yieldstep, finaltime):
     """Calculate local timestep
     """
 
-    pypar.barrier()
+
 
     import time
 

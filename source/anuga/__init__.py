@@ -149,7 +149,7 @@ from anuga.utilities.system_tools import get_user_name, get_host_name, \
 from anuga.utilities.mem_time_equation import estimate_time_mem
 
 
-
+indent = '   '
 
 #-----------------------------
 # rectangular domains

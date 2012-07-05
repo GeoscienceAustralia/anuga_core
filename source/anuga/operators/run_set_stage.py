@@ -59,8 +59,13 @@ domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 #------------------------------------------------------------------------------
 from anuga.operators.set_value_operators import Circular_set_stage_operator
 
-cop1 = Circular_set_stage_operator(domain, stage=h0+20.0, center=(0.0, 0.0), radius=100.0 )
-cop2 = Circular_set_stage_operator(domain, stage=h0+20.0, center=(2000.0, 1000.0), radius=100.0 )
+import math
+
+stage1 = lambda t: h0 + 20.0 * math.sin(t/3.0)
+cop1 = Circular_set_stage_operator(domain, stage=stage1, center=(0.0, 0.0), radius=100.0 )
+
+stage2 = lambda t: h0 + 30.0 * math.sin(t/6.0)
+cop2 = Circular_set_stage_operator(domain, stage=stage2, center=(2000.0, 1000.0), radius=100.0 )
 
 #print cop1.statistics()
 #print cop2.statistics()

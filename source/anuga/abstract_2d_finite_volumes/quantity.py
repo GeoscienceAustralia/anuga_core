@@ -71,7 +71,8 @@ class Quantity:
         self.interpolate()
 
         # Allocate space for boundary values
-        self.boundary_length = L = len(domain.boundary)
+        #self.boundary_length = domain.boundary_length
+        self.boundary_length = L = self.domain.boundary_length
         self.boundary_values = num.zeros(L, num.float)
 
         # Allocate space for updates of conserved quantities by
