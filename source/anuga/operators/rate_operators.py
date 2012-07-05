@@ -97,7 +97,7 @@ class Rate_operator(Operator):
         t = self.domain.get_time()
         timestep = self.domain.get_timestep()
 
-        rate = self.update_rate(t)
+        rate = self.get_rate(t)
 
         if self.verbose is True:
             log.critical('Rate of %s at time = %.2f = %f'
@@ -111,7 +111,7 @@ class Rate_operator(Operator):
                    + rate*timestep*self.areas[indices]
 
 
-    def update_rate(self, t):
+    def get_rate(self, t):
         """Provide a rate to calculate added volume
         """
 

@@ -37,7 +37,7 @@ class Operator:
 
 
         if label == None:
-            self.label = "inlet_%g" % Operator.counter
+            self.label = "operator_%g" % Operator.counter
         else:
             self.label = label + '_%g' % Operator.counter
 

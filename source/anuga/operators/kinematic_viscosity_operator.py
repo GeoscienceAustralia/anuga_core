@@ -228,7 +228,7 @@ class Kinematic_Viscosity_Operator(Operator):
 
         elif isinstance(boundary, num.ndarray):
 
-            self._update_elliptic_boundary_term(boundary.boundary_values)
+            self._update_elliptic_boundary_term(boundary)
 
         else:
 
