@@ -116,6 +116,11 @@ class Transmissive_momentum_set_stage_boundary(Boundary):
             raise Exception, msg
 
         self.domain = domain
+
+        if isinstance(function, (int, float)):
+            tmp = function
+            function = lambda t: tmp
+            
         self.function = function
 
 

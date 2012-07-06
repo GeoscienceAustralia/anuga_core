@@ -99,6 +99,7 @@ class Generic_Domain:
         self.triangles = self.mesh.triangles        
         self.centroid_coordinates = self.mesh.centroid_coordinates
         self.vertex_coordinates = self.mesh.vertex_coordinates
+        self.edge_coordinates = self.mesh.edge_midpoint_coordinates
         self.boundary = self.mesh.boundary
         self.boundary_enumeration = self.mesh.boundary_enumeration
         self.boundary_cells = self.mesh.boundary_cells

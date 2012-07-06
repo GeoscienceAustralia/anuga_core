@@ -797,7 +797,7 @@ class Domain(Generic_Domain):
     def extrapolate_second_order_sw(self):
         """Call correct module function
             (either from this module or C-extension)"""
-        extrapolate_second_order_sw(self)
+        extrapolate_second_order_sw_old(self)
 
     def compute_fluxes(self):
         """Compute fluxes and timestep suitable for all volumes in domain.
@@ -1435,7 +1435,7 @@ class Domain(Generic_Domain):
 # Module functions for gradient limiting
 ################################################################################
 
-def extrapolate_second_order_sw(domain):
+def extrapolate_second_order_sw_old(domain):
     """Wrapper calling C version of extrapolate_second_order_sw.
 
     domain  the domain to operate on
@@ -1444,7 +1444,7 @@ def extrapolate_second_order_sw(domain):
     class, see comments in the corresponding method in shallow_water_ext.c
     """
 
-    from shallow_water_ext import extrapolate_second_order_sw as extrapol2
+    from shallow_water_ext import extrapolate_second_order_sw_old as extrapol2
 
     # Shortcuts
     Stage = domain.quantities['stage']
@@ -1467,6 +1467,20 @@ def extrapolate_second_order_sw(domain):
               Elevation.vertex_values,
               int(domain.optimise_dry_cells),
               int(domain.extrapolate_velocity_second_order))
+
+
+def extrapolate_second_order_sw(domain):
+    """Wrapper calling C version of extrapolate_second_order_sw.
+
+    domain  the domain to operate on
+
+    Note MH090605: The following method belongs to the shallow_water domain
+    class, see comments in the corresponding method in shallow_water_ext.c
+    """
+
+    from shallow_water_ext import extrapolate_second_order_sw as extrapol2
+    extrapol2(domain)
+
 
 def distribute_using_vertex_limiter(domain):
     """Distribution from centroids to vertices specific to the SWW equation.

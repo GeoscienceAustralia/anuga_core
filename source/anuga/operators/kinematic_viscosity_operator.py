@@ -26,7 +26,8 @@ class Kinematic_Viscosity_Operator(Operator):
 
     """
 
-    def __init__(self, domain, use_triangle_areas=True, verbose=False):
+    def __init__(self, domain, diffusivity=None, use_triangle_areas=True, verbose=False):
+
         if verbose: log.critical('Kinematic Viscosity: Beginning Initialisation')
         
 
@@ -36,12 +37,21 @@ class Kinematic_Viscosity_Operator(Operator):
         self.mesh = self.domain.mesh
         self.boundary = domain.boundary
         self.boundary_enumeration = domain.boundary_enumeration
-        
+
+        self.diffusivity = diffusivity
         # Setup a quantity as diffusivity
-        # FIXME SR: Could/Should pass a quantity which already exists
-        self.diffusivity = Quantity(self.domain)
-        self.diffusivity.set_values(1.0)
-        self.diffusivity.set_boundary_values(1.0)
+        if diffusivity is None:
+            self.diffusivity = Quantity(self.domain)
+            self.diffusivity.set_values(1.0)
+            self.diffusivity.set_boundary_values(1.0)
+
+        if isinstance(diffusivity, (int, float)):
+            self.diffusivity = Quantity(self.domain)
+            self.diffusivity.set_values(diffusivity)
+            self.diffusivity.set_boundary_values(diffusivity)
+
+    
+        assert isinstance(self.diffusivity, Quantity)
         
 
         self.n = len(self.domain)
