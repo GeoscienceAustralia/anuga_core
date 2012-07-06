@@ -3999,7 +3999,7 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
     // to the python domain data
     get_python_domain(&D, domain);
 
-    print_domain_struct(&D);
+    //print_domain_struct(&D);
 
     // Call underlying flux computation routine and update
     // the explicit update arrays

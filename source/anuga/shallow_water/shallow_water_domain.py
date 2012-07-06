@@ -797,7 +797,7 @@ class Domain(Generic_Domain):
     def extrapolate_second_order_sw(self):
         """Call correct module function
             (either from this module or C-extension)"""
-        extrapolate_second_order_sw_old(self)
+        extrapolate_second_order_sw(self)
 
     def compute_fluxes(self):
         """Compute fluxes and timestep suitable for all volumes in domain.

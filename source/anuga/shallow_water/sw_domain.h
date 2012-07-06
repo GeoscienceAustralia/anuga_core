@@ -216,7 +216,7 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
 
 
     centroid_coordinates = get_consecutive_array(domain, "centroid_coordinates");
-    D->edge_coordinates = (double *) centroid_coordinates->data;
+    D->centroid_coordinates = (double *) centroid_coordinates->data;
     
     max_speed = get_consecutive_array(domain, "max_speed");
     D->max_speed = (double *) max_speed->data;
@@ -261,100 +261,57 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
 int print_domain_struct(struct domain *D) {
 
 
-    printf("D->number_of_elements %ld  \n", D->number_of_elements);
-    printf("D->epsilon %g \n", D->epsilon);
-    printf("D->H0 %g \n", D->H0);
-    printf("D->g %g \n", D->g);
-    printf("D->optimise_dry_cells %ld \n", D->optimise_dry_cells);
-    printf("D->evolve_max_timestep %g \n", D->evolve_max_timestep);
+    printf("D->number_of_elements     %ld  \n", D->number_of_elements);
+    printf("D->epsilon                %g \n", D->epsilon);
+    printf("D->H0                     %g \n", D->H0);
+    printf("D->g                      %g \n", D->g);
+    printf("D->optimise_dry_cells     %ld \n", D->optimise_dry_cells);
+    printf("D->evolve_max_timestep    %g \n", D->evolve_max_timestep);
     printf("D->minimum_allowed_height %g \n", D->minimum_allowed_height);
     printf("D->extrapolate_velocity_second_order %ld \n", D->extrapolate_velocity_second_order);
-    printf("D->beta_w %g \n", D->beta_w);
-    printf("D->beta_w_dry %g \n", D->beta_w_dry);
-    printf("D->beta_uh %g \n", D->beta_uh);
-    printf("D->beta_uh_dry %g \n", D->beta_uh_dry);
-    printf("D->beta_vh %g \n", D->beta_vh);
-    printf("D->beta_vh_dry %g \n", D->beta_vh_dry);
+    printf("D->beta_w                 %g \n", D->beta_w);
+    printf("D->beta_w_dry             %g \n", D->beta_w_dry);
+    printf("D->beta_uh                %g \n", D->beta_uh);
+    printf("D->beta_uh_dry            %g \n", D->beta_uh_dry);
+    printf("D->beta_vh                %g \n", D->beta_vh);
+    printf("D->beta_vh_dry            %g \n", D->beta_vh_dry);
 
 
 
-    printf("D->neighbours            %p \n", D->neighbours);
-    printf("D->surrogate_neighbours  %p \n", D->surrogate_neighbours);
-    printf("D->neighbour_edges       %p \n", D->neighbour_edges);
-    printf("D->normals               %p \n", D->normals);
-    printf("D->edgelengths           %p \n", D->edgelengths);
-    printf("D->radii                 %p \n", D->radii);
-    printf("D->areas                 %p \n", D->areas);
-    printf("D->tri_full_flag         %p \n", D->tri_full_flag);
-    printf("D->already_computed_flux %p \n", D->already_computed_flux);
-    printf("D->vertex_coordinates    %p \n", D->vertex_coordinates);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
-    printf("D->neighbours %p \n", D->neighbours);
+    printf("D->neighbours             %p \n", D->neighbours);
+    printf("D->surrogate_neighbours   %p \n", D->surrogate_neighbours);
+    printf("D->neighbour_edges        %p \n", D->neighbour_edges);
+    printf("D->normals                %p \n", D->normals);
+    printf("D->edgelengths            %p \n", D->edgelengths);
+    printf("D->radii                  %p \n", D->radii);
+    printf("D->areas                  %p \n", D->areas);
+    printf("D->tri_full_flag          %p \n", D->tri_full_flag);
+    printf("D->already_computed_flux  %p \n", D->already_computed_flux);
+    printf("D->vertex_coordinates     %p \n", D->vertex_coordinates);
+    printf("D->edge_coordinates       %p \n", D->edge_coordinates);
+    printf("D->centroid_coordinates   %p \n", D->centroid_coordinates);
+    printf("D->max_speed              %p \n", D->max_speed);
+    printf("D->number_of_boundaries   %p \n", D->number_of_boundaries);
+    printf("D->stage_edge_values      %p \n", D->stage_edge_values);
+    printf("D->xmom_edge_values       %p \n", D->xmom_edge_values);
+    printf("D->ymom_edge_values       %p \n", D->ymom_edge_values);
+    printf("D->bed_edge_values        %p \n", D->bed_edge_values);
+    printf("D->stage_centroid_values  %p \n", D->stage_centroid_values);
+    printf("D->xmom_centroid_values   %p \n", D->xmom_centroid_values);
+    printf("D->ymom_centroid_values   %p \n", D->ymom_centroid_values);
+    printf("D->bed_centroid_values    %p \n", D->bed_centroid_values);
+    printf("D->stage_vertex_values    %p \n", D->stage_vertex_values);
+    printf("D->xmom_vertex_values     %p \n", D->xmom_vertex_values);
+    printf("D->ymom_vertex_values     %p \n", D->ymom_vertex_values);
+    printf("D->bed_vertex_values      %p \n", D->bed_vertex_values);
+    printf("D->stage_boundary_values  %p \n", D->stage_boundary_values);
+    printf("D->xmom_boundary_values   %p \n", D->xmom_boundary_values);
+    printf("D->ymom_boundary_values   %p \n", D->ymom_boundary_values);
+    printf("D->bed_boundary_values    %p \n", D->bed_boundary_values);
+    printf("D->stage_explicit_update  %p \n", D->stage_explicit_update);
+    printf("D->xmom_explicit_update   %p \n", D->xmom_explicit_update);
+    printf("D->ymom_explicit_update   %p \n", D->ymom_explicit_update);
 
-
-
-//
-//    edge_coordinates = get_consecutive_array(domain, "edge_coordinates");
-//    D->edge_coordinates = (double *) edge_coordinates->data;
-//
-//
-//    centroid_coordinates = get_consecutive_array(domain, "centroid_coordinates");
-//    D->edge_coordinates = (double *) centroid_coordinates->data;
-//
-//    max_speed = get_consecutive_array(domain, "max_speed");
-//    D->max_speed = (double *) max_speed->data;
-//
-//    number_of_boundaries = get_consecutive_array(domain, "number_of_boundaries");
-//    D->number_of_boundaries = (long *) number_of_boundaries->data;
-//
-//
-//
-//    quantities = get_python_object(domain, "quantities");
-//
-//    D->stage_edge_values     = get_python_array_data_from_dict(quantities, "stage",     "edge_values");
-//    D->xmom_edge_values      = get_python_array_data_from_dict(quantities, "xmomentum", "edge_values");
-//    D->ymom_edge_values      = get_python_array_data_from_dict(quantities, "ymomentum", "edge_values");
-//    D->bed_edge_values       = get_python_array_data_from_dict(quantities, "elevation", "edge_values");
-//
-//    D->stage_centroid_values     = get_python_array_data_from_dict(quantities, "stage",     "centroid_values");
-//    D->xmom_centroid_values      = get_python_array_data_from_dict(quantities, "xmomentum", "centroid_values");
-//    D->ymom_centroid_values      = get_python_array_data_from_dict(quantities, "ymomentum", "centroid_values");
-//    D->bed_centroid_values       = get_python_array_data_from_dict(quantities, "elevation", "centroid_values");
-//
-//    D->stage_vertex_values     = get_python_array_data_from_dict(quantities, "stage",     "vertex_values");
-//    D->xmom_vertex_values      = get_python_array_data_from_dict(quantities, "xmomentum", "vertex_values");
-//    D->ymom_vertex_values      = get_python_array_data_from_dict(quantities, "ymomentum", "vertex_values");
-//    D->bed_vertex_values       = get_python_array_data_from_dict(quantities, "elevation", "vertex_values");
-//
-//    D->stage_boundary_values = get_python_array_data_from_dict(quantities, "stage",     "boundary_values");
-//    D->xmom_boundary_values  = get_python_array_data_from_dict(quantities, "xmomentum", "boundary_values");
-//    D->ymom_boundary_values  = get_python_array_data_from_dict(quantities, "ymomentum", "boundary_values");
-//    D->bed_boundary_values   = get_python_array_data_from_dict(quantities, "elevation", "boundary_values");
-//
-//    D->stage_explicit_update = get_python_array_data_from_dict(quantities, "stage",     "explicit_update");
-//    D->xmom_explicit_update  = get_python_array_data_from_dict(quantities, "xmomentum", "explicit_update");
-//    D->ymom_explicit_update  = get_python_array_data_from_dict(quantities, "ymomentum", "explicit_update");
-//
 
     return 0;
 }
