@@ -1,0 +1,26 @@
+Creating Benchmark_2_input.tms
+Generating mesh to file 'Benchmark_2.msh'
+Constructing Delaunay triangulation by divide-and-conquer method.
+Recovering segments in Delaunay triangulation.
+Removing unwanted triangles.
+Spreading regional attributes and area constraints.
+Adding Steiner points to enforce quality.
+
+Writing vertices.
+Writing triangles.
+Writing segments.
+Writing neighbors.
+
+Statistics:
+
+  Input vertices: 20
+  Input segments: 20
+  Input holes: 0
+
+  Mesh vertices: 20802
+  Mesh triangles: 41502
+  Mesh edges: 62303
+  Mesh exterior boundary edges: 100
+  Mesh interior boundary edges: 972
+  Mesh subsegments (constrained edges): 1072
+

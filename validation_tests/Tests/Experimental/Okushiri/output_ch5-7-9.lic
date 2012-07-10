@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='iso-8859-1'?>
+<ga_license_file>
+  <metadata>
+    <author>Ole Nielsen</author>
+  </metadata>
+  
+  <datafile>
+    <filename>output_ch5-7-9.txt</filename>
+    <checksum>3250363193</checksum>
+    <publishable>Yes</publishable>
+    <accountable>Ole Nielsen</accountable>
+    <source>http://www.cee.cornell.edu/longwave</source>
+    <IP_owner>Central Research Institute for Electric Power Industry (CRIEPI) in Abiko, Japan</IP_owner>
+    <IP_info>This dataset was derived from the Excel file output_ch5-7-9.xls available on the longwave web site and stored as TAB separated ascii text. 
+    </IP_info>
+  </datafile>  
+
+</ga_license_file>
