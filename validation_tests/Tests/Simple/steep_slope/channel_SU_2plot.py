@@ -40,7 +40,7 @@ dana= fluxin/uana # Depth
 #--------------------
 # Make plot animation
 #--------------------
-pyplot.close() #If the plot is open, there will be problems
+pyplot.clf()
 pyplot.ion()
 
 line, = pyplot.plot( (p2.x[v].min(),p2.x[v].max()) ,( (p2.stage[:,v]-p2.elev[:,v]).max(),(p2.stage[:,v]-p2.elev[v]).min() ) )

@@ -6,14 +6,11 @@ import sys
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
-# Import standard shallow water domain and standard boundaries.
 import anuga
 from anuga import rectangular_cross as rectangular_cross
 from anuga.structures.inlet_operator import Inlet_operator
-from anuga import Domain as Domain
-#from anuga.shallow_water.shallow_water_domain import Domain as Domain
-#from balanced_dev import *
-#from balanced_dev import Domain as Domain
+from anuga import Domain
+
 #------------------------------------------------------------------------------
 # Setup computational domain
 #------------------------------------------------------------------------------
@@ -21,10 +18,16 @@ points, vertices, boundary = rectangular_cross(10, 10,
 len1=100.0, len2=100.0) # Mesh
 domain = Domain(points, vertices, boundary) # Create domain
 domain.set_name('channel_SU_2_v2') # Output name
-domain.set_store_vertices_uniquely(True)
-domain.set_flow_algorithm(2.0)
-#domain.CFL=1.0
-#domain.set_sloped_mannings_function()
+
+#------------------------------------------------------------------------------
+# Setup Algorithm, either using command line arguments
+# or override manually yourself
+#------------------------------------------------------------------------------
+from anuga.utilities.validations import validation_parse
+alg, cfl = validation_parse()
+domain.set_flow_algorithm(alg)
+domain.set_CFL(cfl)
+
 #------------------------------------------------------------------------------
 # Setup initial conditions
 #------------------------------------------------------------------------------
@@ -43,6 +46,7 @@ Inlet_operator(domain, line1, Qin)
 domain.set_quantity('elevation', topography) # Use function for elevation
 domain.set_quantity('friction', 0.03) # Constant friction
 domain.set_quantity('stage', stagetopo)
+
 #------------------------------------------------------------------------------
 # Setup boundary conditions
 #------------------------------------------------------------------------------

@@ -26,6 +26,16 @@ domain.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 'ymomentum': 2, 
 #domain.set_store_vertices_uniquely(True)
 domain.minimum_allowed_height=0.001
 
+#------------------------------------------------------------------------------
+# Setup Algorithm, either using command line arguments
+# or override manually yourself
+#------------------------------------------------------------------------------
+from anuga.utilities.validations import validation_parse
+alg, cfl = validation_parse()
+domain.set_flow_algorithm(alg)
+domain.set_CFL(cfl)
+
+
 #------------------
 # Define topography
 #------------------

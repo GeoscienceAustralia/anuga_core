@@ -125,15 +125,15 @@ for key in gauge_names:
 # Read and interpolate model output
 #--------------------------------------------------
 
-if len(sys.argv) > 1:
-    sww_filename = sys.argv[1]
-else:    
-    sww_filename = project.output_filename
+#if len(sys.argv) > 1:
+#    sww_filename = sys.argv[1]
+#else:
+sww_filename = project.output_filename
     
 f = file_function(sww_filename,
                   quantities='stage',
                   interpolation_points=gauge_locations,
-                  use_cache=True,
+                  use_cache=False,
                   verbose=True)
 
 

@@ -4,34 +4,41 @@
 #Import Modules
 #--------
 import anuga
-from anuga import *
-#from anuga.shallow_water.shallow_water_domain import Domain as Domain
 import numpy
 
-#from balanced_dev import *
-#from balanced_basic import *
-#from anuga.shallow_water_balanced2.swb2_domain import Domain as Domain
-#from anuga.shallow_water.shallow_water_domain import Domain as Domain
+#--------------------------------
+# Setup Default values for basic
+# algorithm parameters.
+#--------------------------------
+import argparse
+parser = argparse.ArgumentParser(description='produce results')
+parser.add_argument('-cfl', type=float, default=1.0,
+                   help='cfl condition')
+parser.add_argument('-alg', type=str, default = "1_5",
+                   help='flow algorithm')
+args = parser.parse_args()
+
+cfl = args.cfl
+alg = args.alg
+
+
 #---------
 #Setup computational domain
 #---------
 points, vertices, boundary = anuga.rectangular_cross(200,10, len1=40.0,len2=2.0)
 
-domain=Domain(points,vertices,boundary)    # Create Domain
+domain=anuga.Domain(points,vertices,boundary)    # Create Domain
 domain.set_name('parabola_v2')                         # Output to file runup.sww
 domain.set_datadir('.')                          # Use current folder
-domain.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 'ymomentum': 2, 'elevation': 1})
 domain.set_minimum_allowed_height(0.01)
-# Time stepping
-#domain.set_timestepping_method('euler') # Default
-#domain.set_timestepping_method('rk2') # 
-#domain.beta_w= 1. #0.2
-#domain.beta_uh= 1. #0.2
-#domain.beta_vh= 1. #0.2
-#domain.beta_w_dry= 0.2 #0.
-#domain.beta_uh_dry= 0.2 #0.
-#domain.beta_vh_dry= 0.2 #0.
-#domain.alpha=100.
+
+
+#------------------------------------------------------------------------------
+# Setup Algorithm, either using command line arguments read
+# in earlier or manually yourself
+#------------------------------------------------------------------------------
+domain.set_flow_algorithm(alg)
+domain.set_CFL(cfl)
 
 #------------------
 # Define topography
@@ -77,7 +84,7 @@ domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom':Br})
 #------------------------------
 #Evolve the system through time
 #------------------------------
-for t in domain.evolve(yieldstep=0.1,finaltime=90.0):
+for t in domain.evolve(yieldstep=1.0,finaltime=90.0):
     print domain.timestepping_statistics()
 
 print 'Finished'

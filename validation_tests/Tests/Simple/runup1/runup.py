@@ -8,16 +8,10 @@ import anuga
 import numpy
 
 from math import sin, pi, exp
-#from anuga.shallow_water_balanced2.swb2_domain import Domain as Domain
-from anuga.shallow_water.shallow_water_domain import Domain as Domain
-#from shallow_water_balanced_steve.swb_domain import *
-#import shallow_water_balanced_steve.swb_domain 
-#from shallow_water_balanced_steve.swb_domain import Domain as Domain
-#path.append('/home/gareth/storage/anuga_clean/anuga_jan12/trunk/anuga_work/shallow_water_balanced_steve')
-#from swb_domain import *
-#path.append('/home/gareth/storage/anuga_clean/anuga_jan12/trunk/anuga_work/development/gareth/balanced_basic')
-#from balanced_basic import *
-#from balanced_dev import *
+
+from anuga import Domain
+
+
 #---------
 #Setup computational domain
 #---------
@@ -28,6 +22,18 @@ domain.set_name('runup_v2')                         # Output to file runup.sww
 domain.set_datadir('.')                          # Use current folder
 domain.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 'ymomentum': 2, 'elevation': 1})
 #domain.set_store_vertices_uniquely(True)
+
+
+#------------------------------------------------------------------------------
+# Setup Algorithm, either using command line arguments
+# or override manually yourself
+#------------------------------------------------------------------------------
+from anuga.utilities.validations import validation_parse
+alg, cfl = validation_parse()
+domain.set_flow_algorithm(alg)
+domain.set_CFL(cfl)
+
+
 #------------------
 # Define topography
 #------------------

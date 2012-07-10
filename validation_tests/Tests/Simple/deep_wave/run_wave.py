@@ -20,6 +20,12 @@ from time import localtime, strftime, gmtime
 from os import sep
 
 
+#--------------------------------
+# Get Default values for basic
+# algorithm parameters.
+#--------------------------------
+from anuga.utilities.validations import validation_parse
+alg, cfl = validation_parse()
 
 #-------------------------------------------------------------------------------
 # Copy scripts to time stamped output directory and capture screen
@@ -52,18 +58,13 @@ domain.set_name(output_file)
 domain.set_datadir(output_dir)  
 
 #------------------------------------------------------------------------------
-# Setup Algorithm
+# Setup Algorithm, either using command line arguments
+# or override manually yourself
 #------------------------------------------------------------------------------
-#domain.set_flow_algorithm(2.0)
-#domain.set_timestepping_method('rk2')
-#domain.set_default_order(2)
-#domain.set_beta(2.0)
-
-#print domain.get_timestepping_method()
-
-#domain.use_edge_limiter = True
-#domain.tight_slope_limiters = False
-#domain.use_centroid_velocities = False
+from anuga.utilities.validations import validation_parse
+alg, cfl = validation_parse()
+domain.set_flow_algorithm(alg)
+domain.set_CFL(cfl)
 
 
 #------------------------------------------------------------------------------

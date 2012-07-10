@@ -7,20 +7,14 @@ import anuga.utilities.system_tools as anugast
 import anuga
 import time
 
+from anuga.utilities.validations import validation_parse
+
 #--------------------------------
 # Setup Default values for basis
 # algorithm parameters.
 #--------------------------------
-import argparse
-parser = argparse.ArgumentParser(description='produce results')
-parser.add_argument('-cfl', type=float, default=1.0,
-                   help='cfl condition')
-parser.add_argument('-alg', type=str, default = "1_5",
-                   help='flow algorithm')
-args = parser.parse_args()
+alg, cfl = validation_parse()
 
-cfl = args.cfl
-alg = args.alg
 
 #---------------------------------
 # Get the current svn revision
@@ -48,7 +42,7 @@ os.chdir('./Tests')
 for dir in Upper_dirs:
 
     os.chdir(dir)
-    #print 'Changing to', os.getcwd()
+    print 'Changing to', os.getcwd()
     Lower_dirs = os.listdir('.')
     try:
         Lower_dirs.remove('.svn')

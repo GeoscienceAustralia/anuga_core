@@ -54,6 +54,16 @@ def main(elevation_in_mesh=False):
     domain.set_minimum_storable_height(0.001) # Don't store w < 0.001m
     domain.set_quantities_to_be_monitored('stage')
 
+
+    #------------------------------------------------------------------------------
+    # Setup Algorithm, either using command line arguments
+    # or override manually yourself
+    #------------------------------------------------------------------------------
+    from anuga.utilities.validations import validation_parse
+    alg, cfl = validation_parse()
+    domain.set_flow_algorithm(alg)
+    domain.set_CFL(cfl)
+
     #-------------------------
     # Boundary Conditions
     #-------------------------

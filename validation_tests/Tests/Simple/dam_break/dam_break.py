@@ -16,24 +16,6 @@ from time import localtime, strftime, gmtime
 #from balanced_dev import *
 
 
-#--------------------------------
-# Setup Default values for basic
-# algorithm parameters.
-#--------------------------------
-import argparse
-parser = argparse.ArgumentParser(description='produce results')
-parser.add_argument('-cfl', type=float, default=1.0,
-                   help='cfl condition')
-parser.add_argument('-alg', type=str, default = "1_5",
-                   help='flow algorithm')
-args = parser.parse_args()
-
-cfl = args.cfl
-alg = args.alg
-
-
-
-
 #-------------------------------------------------------------------------------
 # Copy scripts to time stamped output directory and capture screen
 # output to file
@@ -66,9 +48,11 @@ domain.set_name(output_file)
 domain.set_datadir(output_dir) 
 
 #------------------------------------------------------------------------------
-# Setup Algorithm, either using command line arguments read
-# in earlier or manually yourself
+# Setup Algorithm, either using command line arguments
+# or override manually yourself
 #------------------------------------------------------------------------------
+from anuga.utilities.validations import validation_parse
+alg, cfl = validation_parse()
 domain.set_flow_algorithm(alg)
 domain.set_CFL(cfl)
 

@@ -10,12 +10,7 @@ import anuga
 import numpy
 from anuga.structures.inlet_operator import Inlet_operator
 from anuga import *
-#from swb_domain import domain
-#from anuga import *
-#from balanced_basic import *
-#from balanced_dev import *
-#from balanced_basic.swb2_domain import *
-#from balanced_basic.swb2_domain import Domain
+
 #------------------------------------------------------------------------------
 # Useful parameters for controlling this case
 #------------------------------------------------------------------------------
@@ -82,9 +77,16 @@ domain = create_domain_from_regions( boundary_polygon,
 
 
 domain.set_name('channel_floodplain1') # Output name
-#domain.set_store_vertices_uniquely(True)
-#domain.use_edge_limiter=False
-#domain.extrapolate_velocity_second_order=False
+
+#------------------------------------------------------------------------------
+# Setup Algorithm, either using command line arguments
+# or override manually yourself
+#------------------------------------------------------------------------------
+from anuga.utilities.validations import validation_parse
+alg, cfl = validation_parse()
+domain.set_flow_algorithm(alg)
+domain.set_CFL(cfl)
+
 #------------------------------------------------------------------------------
 #
 # Setup initial conditions
