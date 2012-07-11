@@ -36,6 +36,9 @@ def earthquake_tsunami(length, width, strike, depth, \
 
     from math import sin, radians
 
+    raise Exception, 'WARNING: (GD, 11/07/2012) there seem to be bugs in eqf_v2.py\
+    , I suggest you use okada_tsunami'
+
     if domain is not None:
         xllcorner = domain.geo_reference.get_xllcorner()
         yllcorner = domain.geo_reference.get_yllcorner()
@@ -155,8 +158,11 @@ class Okada_func:
         sd = sin(radians(dip))
 
         for i in range(N-1):
-            self.SRECTF(alp, xr[i]*.001, yr[i]*.001, depth*.001, zero, length,\
+            # GD CHANGE
+            self.SRECTF(alp, xr[i]*.001, yr[i]*.001, depth, zero, length,\
                         zero, width, sd, cd, disl1, disl2, disl3)
+            #self.SRECTF(alp, xr[i]*.001, yr[i]*.001, depth*0.001, zero, length,\
+            #            zero, width, sd, cd, disl1, disl2, disl3)
             
             z2[i] = self.U3
 
@@ -280,7 +286,9 @@ class Okada_func:
         RRD=F1/(R*RD)                                                     
 
         if Q != F0:
-            TT = atan( radians( XI*ET/(Q*R) ))
+            #TT = atan( radians( XI*ET/(Q*R) ))
+            # GD CHANGE
+            TT = atan( XI*ET/(Q*R) )
         else:
             TT = F0
 
@@ -298,7 +306,7 @@ class Okada_func:
 
         if CD == 0:
             #C==============================     
-            #C=====   INCLINED FAULT   =====     
+            #C=====   VERTICAL FAULT   =====     
             #C==============================
             RD2=RD*RD
             A1=-ALP/F2*XI*Q/RD2                                               
@@ -311,14 +319,17 @@ class Okada_func:
             C3= ALP*SD/RD*(XI2*RRD - F1)  
         else:
             #C==============================   
-            #C=====   VERTICAL FAULT   =====     
+            #C=====   INCLINED FAULT   =====     
             #C==============================
             TD=SD/CD                                                          
             X =sqrt(XI2+Q2)
             if XI == F0:
                 A5=F0
             else:                                                    
-                A5= ALP*F2/CD*atan( radians((ET*(X+Q*CD)+X*(R+X)*SD) / \
+                #A5= ALP*F2/CD*atan( radians((ET*(X+Q*CD)+X*(R+X)*SD) / \
+                #                    (XI*(R+X)*CD) ))   
+                # GD CHANGE
+                A5= ALP*F2/CD*atan( ((ET*(X+Q*CD)+X*(R+X)*SD) / \
                                     (XI*(R+X)*CD) ))   
             A4= ALP/CD*(  log(RD) - SD*DLE )                                  
             A3= ALP*(Y/RD/CD - DLE) + TD*A4                                   
