@@ -13,14 +13,14 @@ c***********************************************************************
       
       logical:: DEBUG
 c     Convenience flag for debugging -- will write various outputs to file
-      DEBUG=.TRUE. 
-      open(32, file='mylog.log')
-      write(32,*) ' MYLOGGINGZ'
+      DEBUG=.FALSE. 
    
 c      print*, 'IN FORTRAN'
 
       IF(DEBUG.eqv..TRUE.) THEN  
 
+          open(32, file='mylog.log')
+          write(32,*) ' MYLOGGINGZ'
 
           write(32,*) 'WRITING TO FILE'
           write(32,*) 'Input pars:'
@@ -118,9 +118,9 @@ c     *                   U1,U2,U3,U11,U12,U21,U22,U31,U32)              0186000
  100     continue
  200  continue
 
-c      IF(DEBUG.eqv..TRUE.) THEN
+      IF(DEBUG.eqv..TRUE.) THEN
           close(32)
-c      END IF
+      END IF
       RETURN
       END
 

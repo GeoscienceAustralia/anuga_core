@@ -264,7 +264,7 @@ def okada_origin_2_slip_centroid(lower_left, eq_depth, eq_length, eq_width,eq_st
     ## Rotate the offset to the centroid 
     x_offset, y_offset = rotate_coordinates([eq_length/2.0, eq_surface_width/2.0], -(eq_strike-90.))
 
-    print x_offset, y_offset
+    #print x_offset, y_offset
     # Centriod values
     new_x = lower_left[0] + x_offset*1000.
     new_y = lower_left[1] + y_offset*1000.

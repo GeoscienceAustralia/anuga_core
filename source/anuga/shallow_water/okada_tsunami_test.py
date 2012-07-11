@@ -6,10 +6,12 @@ We first check
 """
 import unittest, os
 import warnings
+from os import sep
 
 import anuga
 import okada_tsunami
 import numpy
+from anuga.utilities.system_tools import get_pathname_from_package
 
 class Test_okada_tsunami(unittest.TestCase):
     def setUp(self):
@@ -23,7 +25,7 @@ class Test_okada_tsunami(unittest.TestCase):
         # the answers provided in Okada's Table 2
         # These refer to earthquakes with strike = 0 and origin 0,0
         for j in range(2,3):
-            print 'Testing Case ', j
+            #print 'Testing Case ', j
 
             if(j==2):
                 ##-------
@@ -75,7 +77,7 @@ class Test_okada_tsunami(unittest.TestCase):
             #x_cent = (okada_x_origin + (L/2.))*1000.
             #d_cent = d - (W/2.)*numpy.sin(dip/180.*numpy.pi)
 
-            print 'x_cent, y_cent, d_cent = ', x_cent, y_cent, d_cent
+            #print 'x_cent, y_cent, d_cent = ', x_cent, y_cent, d_cent
             
             x_wanted=x*1000. # Desired values of x, y in m
             y_wanted=y*1000.
@@ -85,12 +87,12 @@ class Test_okada_tsunami(unittest.TestCase):
                 dis1=slip*numpy.cos(rake/180.*numpy.pi)
                 dis2=slip*numpy.sin(rake/180.*numpy.pi)
                 dis3=0.
-                print 'dis1, dis2, dis3 = ', dis1, dis2, dis3
+                #print 'dis1, dis2, dis3 = ', dis1, dis2, dis3
                 
                 my_source=numpy.array([x_cent, y_cent, d_cent,strike, dip, L, W, dis1, dis2, dis3])
                 my_source=my_source.reshape((1,10))
                 
-                tsu_funct = okada_tsunami.earthquake_source(my_source, verbose=True)
+                tsu_funct = okada_tsunami.earthquake_source(my_source, verbose=False)
                 uz = tsu_funct(numpy.array([x_wanted]), numpy.array([y_wanted]))
               
                 # Compute both relative and absolute versions of the error
@@ -107,7 +109,7 @@ class Test_okada_tsunami(unittest.TestCase):
         for rotation in [0., 30., 90., 150., 210., 325.]:
             # Test cases 2 - 3 in Okada's table
             for j in range(2,4):
-                print 'Testing Case ', j
+                #print 'Testing Case ', j
                 if(j==2):
                     ##-------
                     # Case 2: Parameters from table 2
@@ -160,7 +162,7 @@ class Test_okada_tsunami(unittest.TestCase):
                     my_source=numpy.array([x_cent, y_cent, d_cent,strike, dip, L, W, dis1, dis2, dis3])
                     my_source=my_source.reshape((1,10))
                     
-                    tsu_funct = okada_tsunami.earthquake_source(my_source, verbose=True)
+                    tsu_funct = okada_tsunami.earthquake_source(my_source, verbose=False)
                     uz = tsu_funct(numpy.array([x_wanted]), numpy.array([y_wanted]))
                   
                     # Compute both relative and absolute versions of the error
@@ -186,7 +188,7 @@ class Test_okada_tsunami(unittest.TestCase):
             for rotation in [0., 30., 90., 150., 210., 325.]:
                 # Loop over okada's test cases 2 and 3
                 for j in range(2,4):
-                    print 'Testing Case ', j, ' Rotation = ', rotation, ' origin = ', [okada_x_origin, okada_y_origin]
+                    #print 'Testing Case ', j, ' Rotation = ', rotation, ' origin = ', [okada_x_origin, okada_y_origin]
 
                     if(j==2):
                         ##-------
@@ -252,7 +254,7 @@ class Test_okada_tsunami(unittest.TestCase):
                         reltol = abs((uz - okada_values[i])/uz)
                         abstol = abs(uz-okada_values[i])
                         assert ((reltol<1.0e-03)|(abstol<1.0e-06)), 'Okada_tsunami error for eq source: ' + str(my_source)
-                        print 'PASS'
+                        #print 'PASS'
 
 #
     def test_superimpose_two_subfaults(self):
@@ -328,14 +330,14 @@ class Test_okada_tsunami(unittest.TestCase):
                 raise Exception, 'j is ' + str(j) + ', it should not take this value'
             
         # Tsunami function with     
-        tsu_funct = okada_tsunami.earthquake_source(my_source, verbose=True)
+        tsu_funct = okada_tsunami.earthquake_source(my_source, verbose=False)
         uz = tsu_funct(numpy.array([x_wanted]), numpy.array([y_wanted]))
       
         # Compute both relative and absolute versions of the error
         reltol = abs((uz - okada_values[0])/uz)
         abstol = abs(uz-okada_values[0])
         assert ((reltol<1.0e-03)|(abstol<1.0e-06))
-        print 'PASS'
+        #print 'PASS'
 
     def test_against_octave_code(self):
         # This test runs a test case from 
@@ -359,7 +361,7 @@ class Test_okada_tsunami(unittest.TestCase):
         
         source=numpy.array([0., 0., depth, strike,dip , length, width, dis1, dis2,0.0])
 
-        tsunami_fun=okada_tsunami.earthquake_source(source=source, verbose=True)
+        tsunami_fun=okada_tsunami.earthquake_source(source=source, verbose=False)
 
         # Make a grid
         mygrid=numpy.lib.index_tricks.nd_grid()
@@ -375,7 +377,8 @@ class Test_okada_tsunami(unittest.TestCase):
         
         ## Now read the same event from an octave code, which is completely
         ## independent of this one (i.e. they don't call okada's fortran)
-        octave=numpy.genfromtxt('okada_tsunami_octave_95.txt')
+        path=get_pathname_from_package('anuga.shallow_water')
+        octave=numpy.genfromtxt(path+sep+'okada_tsunami_octave_95.txt')
         octave_asvec=numpy.transpose(octave).reshape((1,101*101))
 
         # Estimate the differences between the 2 codes
