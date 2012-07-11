@@ -5,7 +5,7 @@ __author__="steve"
 __date__ ="$10/07/2012 1:18:38 PM$"
 
 
-def validation_parse():
+def parse_standard_args():
     """ Parse arguments for standard validation
     arguments. Returns values of
 
@@ -33,7 +33,7 @@ def validation_parse():
 
 def run_validation_script(script):
 
-    alg, cfl = validation_parse()
+    alg, cfl = parse_standard_args()
 
 
     import os
