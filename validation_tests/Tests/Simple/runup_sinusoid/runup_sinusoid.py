@@ -30,8 +30,8 @@ domain.minimum_allowed_height=0.001
 # Setup Algorithm, either using command line arguments
 # or override manually yourself
 #------------------------------------------------------------------------------
-from anuga.utilities.validations import validation_parse
-alg, cfl = validation_parse()
+from anuga.utilities.argparsing import parse_standard_args
+alg, cfl = parse_standard_args()
 domain.set_flow_algorithm(alg)
 domain.set_CFL(cfl)
 

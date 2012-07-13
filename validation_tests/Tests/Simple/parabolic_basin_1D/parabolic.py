@@ -6,22 +6,6 @@
 import anuga
 import numpy
 
-#--------------------------------
-# Setup Default values for basic
-# algorithm parameters.
-#--------------------------------
-import argparse
-parser = argparse.ArgumentParser(description='produce results')
-parser.add_argument('-cfl', type=float, default=1.0,
-                   help='cfl condition')
-parser.add_argument('-alg', type=str, default = "1_5",
-                   help='flow algorithm')
-args = parser.parse_args()
-
-cfl = args.cfl
-alg = args.alg
-
-
 #---------
 #Setup computational domain
 #---------
@@ -34,9 +18,11 @@ domain.set_minimum_allowed_height(0.01)
 
 
 #------------------------------------------------------------------------------
-# Setup Algorithm, either using command line arguments read
-# in earlier or manually yourself
+# Setup Algorithm, either using command line arguments
+# or override manually yourself
 #------------------------------------------------------------------------------
+from anuga.utilities.argparsing import parse_standard_args
+alg, cfl = parse_standard_args()
 domain.set_flow_algorithm(alg)
 domain.set_CFL(cfl)
 

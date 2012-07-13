@@ -7,13 +7,13 @@ import anuga.utilities.system_tools as anugast
 import anuga
 import time
 
-from anuga.utilities.validations import validation_parse
+from anuga.utilities.argparsing import parse_standard_args
 
 #--------------------------------
 # Setup Default values for basis
 # algorithm parameters.
 #--------------------------------
-alg, cfl = validation_parse()
+alg, cfl = parse_standard_args()
 
 
 #---------------------------------

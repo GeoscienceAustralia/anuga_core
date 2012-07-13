@@ -1,5 +1,5 @@
 
-from anuga.utilities.validations import run_validation_script
+from anuga.utilities.argparsing import run_validation_script
 
 
 run_validation_script('run_wave.py')

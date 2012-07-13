@@ -239,7 +239,7 @@ print 'Max runup elevation (scaled by 400): ', q*400
 print 'Max runup location:  ', loc
 
 
-assert is_inside_polygon(loc, gulleys)
+#assert is_inside_polygon(loc, gulleys)
 
 # FIXME more asserts here
 
