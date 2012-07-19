@@ -12,7 +12,7 @@ from anuga.operators.elliptic_operator import Operator
 
 
 
-class Kinematic_Viscosity_Operator(Operator):
+class Kinematic_viscosity_operator(Operator):
     """
     Class for setting up structures and matrices for kinematic viscosity differential
     operator using centroid values.
@@ -26,7 +26,7 @@ class Kinematic_Viscosity_Operator(Operator):
 
     """
 
-    def __init__(self, domain, diffusivity=None, use_triangle_areas=True, verbose=False):
+    def __init__(self, domain, diffusivity='height', use_triangle_areas=True, verbose=False):
 
         if verbose: log.critical('Kinematic Viscosity: Beginning Initialisation')
         
@@ -50,6 +50,9 @@ class Kinematic_Viscosity_Operator(Operator):
             self.diffusivity.set_values(diffusivity)
             self.diffusivity.set_boundary_values(diffusivity)
 
+        if isinstance(diffusivity, str):
+            self.diffusivity = self.domain.get_quantity(diffusivity)
+            
     
         assert isinstance(self.diffusivity, Quantity)
         
@@ -127,9 +130,10 @@ class Kinematic_Viscosity_Operator(Operator):
         domain.update_centroids_of_velocities_and_height()
 
         # diffusivity
-        h = domain.quantities['height']
+        d = self.diffusivity
 
-        #d = self.diffusivity
+
+        assert num.all(d.centroid_values >= 0.0)
 
         #d.set_values(num.where(h.centroid_values<1.0, 0.0, 1.0), location= 'centroids')
         #d.set_boundary_values(num.where(h.boundary_values<1.0, 0.0, 1.0))
@@ -143,18 +147,19 @@ class Kinematic_Viscosity_Operator(Operator):
         #v.set_boundary_values(0.0)
 
         #Update operator using current height
-        self.update_elliptic_matrix(h)
+        self.update_elliptic_matrix(d)
 
-        (u, self.u_stats) = self.parabolic_solve(u, u, h, u_out=u, update_matrix=False, output_stats=True)
+        (u, self.u_stats) = self.parabolic_solve(u, u, d, u_out=u, update_matrix=False, output_stats=True)
 
-        (v, self.v_stats) = self.parabolic_solve(v, v, h, u_out=v, update_matrix=False, output_stats=True)
+        (v, self.v_stats) = self.parabolic_solve(v, v, d, u_out=v, update_matrix=False, output_stats=True)
 
         # Update the conserved quantities
         domain.update_centroids_of_momentum_from_velocity()
 
 
         self.dt = 0.0
-        #print self.timestepping_statistics()
+
+
 
     def statistics(self):
 
@@ -164,12 +169,14 @@ class Kinematic_Viscosity_Operator(Operator):
 
     def timestepping_statistics(self):
 
-        message = '    Kinematic Viscosity Operator: '
+        from anuga import indent
+
+        message = indent+'Kinematic Viscosity Operator: \n'
         if self.u_stats is not None:
-            message  += ' u iterations %.5g, ' % self.u_stats.iter
+            message  += indent + indent + 'u: ' + self.u_stats.__str__() +'\n'
 
         if self.v_stats is not None:
-            message += ' v iterations %.5g, ' % self.v_stats.iter
+            message  += indent + indent + 'v: ' + self.v_stats.__str__()
 
         return message
 
@@ -481,8 +488,7 @@ class Kinematic_Viscosity_Operator(Operator):
     
 
     def parabolic_solve(self, u_in, b, a = None, u_out = None, update_matrix=True, \
-                       imax=10000, tol=1.0e-8, atol=1.0e-8,
-                       iprint=None, output_stats=False):
+                       output_stats=False, use_dt_tol=True, iprint=None, imax=10000):
         """
         Solve for u in the equation
 
@@ -504,6 +510,17 @@ class Kinematic_Viscosity_Operator(Operator):
 
         """
 
+
+        if use_dt_tol:
+            tol  = min(self.dt,0.01)
+            atol = min(self.dt,0.01)
+        else:
+            tol  =  1.0e-5
+            atol = 1.0e-5
+
+
+
+        
         if u_out == None:
             u_out = Quantity(self.domain)
 
