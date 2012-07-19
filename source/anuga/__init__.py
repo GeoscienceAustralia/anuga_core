@@ -127,11 +127,11 @@ from anuga.pmesh.mesh_interface import create_mesh_from_regions
 from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
     
 
-
 #---------------------------
 # Operators
 #---------------------------
 from anuga.operators.base_operator import Operator
+from anuga.operators.kinematic_viscosity_operator import Kinematic_viscosity_operator
 
 #---------------------------
 # Structure Operators

@@ -12,7 +12,16 @@ class Stats:
 
         self.iter = None
         self.rTr = None
-        self.dt = None
+        self.dx = None
+        self.rTr0 = None
+        self.x = None
+        self.x0 = None
+
+    def __str__(self):
+        msg = ' iter %.5g rTr %.5g x %.5g dx %.5g rTr0 %.5g x0 %.5g' \
+              % (self.iter, self.rTr, self.x, self.dx, self.rTr0, self.x0)
+        return msg
+
 
 def conjugate_gradient(A, b, x0=None, imax=10000, tol=1.0e-8, atol=1.0e-14,
                         iprint=None, output_stats=False):
@@ -23,7 +32,8 @@ def conjugate_gradient(A, b, x0=None, imax=10000, tol=1.0e-8, atol=1.0e-14,
     If b is an array, solve it as if it was a set of vectors, solving each
     vector.
     """
-    
+
+
     if x0 is None:
         x0 = num.zeros(b.shape, dtype=num.float)
     else:
@@ -65,6 +75,8 @@ def _conjugate_gradient(A, b, x0,
    x: approximate solution
    """
 
+    stats = Stats()
+
     b  = num.array(b, dtype=num.float)
     if len(b.shape) != 1:
         raise VectorShapeError, 'input vector should consist of only one column'
@@ -74,6 +86,8 @@ def _conjugate_gradient(A, b, x0,
     else:
         x0 = num.array(x0, dtype=num.float)
 
+
+    stats.x0 =  num.linalg.norm(x0)
 
     if iprint == None  or iprint == 0:
         iprint = imax
@@ -86,6 +100,8 @@ def _conjugate_gradient(A, b, x0,
     d = r
     rTr = num.dot(r, r)
     rTr0 = rTr
+
+    stats.rTr0 = rTr0
     
     #FIXME Let the iterations stop if starting with a small residual
     while (i < imax and rTr > tol ** 2 * rTr0 and rTr > atol ** 2):
@@ -118,7 +134,7 @@ def _conjugate_gradient(A, b, x0,
 
     #print x
 
-    stats = Stats()
+    stats.x =  num.linalg.norm(x)
     stats.iter = i
     stats.rTr = rTr
     stats.dx = dx
