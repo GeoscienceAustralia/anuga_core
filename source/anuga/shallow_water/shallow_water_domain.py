@@ -795,9 +795,11 @@ class Domain(Generic_Domain):
         assert self.conserved_quantities[2] == 'ymomentum', msg
 
     def extrapolate_second_order_sw(self):
-        """Call correct module function
-            (either from this module or C-extension)"""
-        extrapolate_second_order_sw(self)
+        """Fast version of extrapolation from centroids to edges"""
+
+        from shallow_water_ext import extrapolate_second_order_sw as extrapol2
+        extrapol2(self)
+
 
     def compute_fluxes(self):
         """Compute fluxes and timestep suitable for all volumes in domain.
@@ -1469,17 +1471,17 @@ def extrapolate_second_order_sw_old(domain):
               int(domain.extrapolate_velocity_second_order))
 
 
-def extrapolate_second_order_sw(domain):
-    """Wrapper calling C version of extrapolate_second_order_sw.
-
-    domain  the domain to operate on
-
-    Note MH090605: The following method belongs to the shallow_water domain
-    class, see comments in the corresponding method in shallow_water_ext.c
-    """
-
-    from shallow_water_ext import extrapolate_second_order_sw as extrapol2
-    extrapol2(domain)
+#def extrapolate_second_order_sw(domain):
+#    """Wrapper calling C version of extrapolate_second_order_sw.
+#
+#    domain  the domain to operate on
+#
+#    Note MH090605: The following method belongs to the shallow_water domain
+#    class, see comments in the corresponding method in shallow_water_ext.c
+#    """
+#
+#    from shallow_water_ext import extrapolate_second_order_sw as extrapol2
+#    extrapol2(domain)
 
 
 def distribute_using_vertex_limiter(domain):

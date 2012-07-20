@@ -3894,7 +3894,7 @@ class Test_Shallow_Water(unittest.TestCase):
         #domain.extrapolate_second_order_sw()
 
 
-        from  anuga.shallow_water.shallow_water_domain import extrapolate_second_order_sw
+        from  anuga.shallow_water.shallow_water_ext import extrapolate_second_order_sw
 
         extrapolate_second_order_sw(domain)
 

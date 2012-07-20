@@ -40,7 +40,7 @@ domain.set_flow_algorithm(2.0)
 #------------------------------------------------------------------------------
 # Setup initial conditions
 #------------------------------------------------------------------------------
-h0 = 100.0
+h0 = 1000.0
 
 domain.set_quantity('elevation',0.0)
 domain.set_quantity('friction', 0.0)
