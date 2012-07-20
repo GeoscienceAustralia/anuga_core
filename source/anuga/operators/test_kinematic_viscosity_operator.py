@@ -2,13 +2,13 @@ import operator
 from anuga import Domain
 from anuga import Quantity
 from anuga import Dirichlet_boundary
-from kinematic_viscosity_operator import Kinematic_Viscosity_Operator
+from kinematic_viscosity_operator import Kinematic_viscosity_operator
 
 import numpy as num
 from math import sqrt
 import unittest
 
-class Test_Kinematic_Viscosity(unittest.TestCase):
+class Test_kinematic_viscosity(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -44,7 +44,7 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
 
         #print domain.quantities['stage'].boundary_values
         
-        return Kinematic_Viscosity_Operator(domain)
+        return Kinematic_viscosity_operator(domain)
 
     #Second test operator class (2 triangles)
     def operator2(self):
@@ -67,7 +67,7 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
 
 
 
-        return Kinematic_Viscosity_Operator(domain)
+        return Kinematic_viscosity_operator(domain)
 
     def test_enumerate_boundary(self):
         operator1 = self.operator1()
@@ -430,7 +430,7 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
         b.set_values(0.0)
         b.set_boundary_values(0.0)
 
-        operator = Kinematic_Viscosity_Operator(domain)
+        operator = Kinematic_viscosity_operator(domain)
 
         n = operator.n
         tot_len = operator.tot_len
@@ -543,7 +543,7 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
         b.set_values(0.0)
         b.set_boundary_values(0.0)
 
-        operator = Kinematic_Viscosity_Operator(domain)
+        operator = Kinematic_viscosity_operator(domain)
 
         dt = 0.01
         operator.dt = dt
@@ -607,7 +607,7 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
         b.set_values(0.0)
         b.set_boundary_values(0.0)
 
-        kv = Kinematic_Viscosity_Operator(domain)
+        kv = Kinematic_viscosity_operator(domain)
 
         n = kv.n
         tot_len = kv.tot_len
@@ -657,7 +657,7 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
         v = domain.quantities['yvelocity']
         v.set_boundary_values(2.0)
 
-        kv = Kinematic_Viscosity_Operator(domain)
+        kv = Kinematic_viscosity_operator(domain)
 
 
         # let's make timestep large so that the final solution will look like
@@ -751,7 +751,7 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
         v = domain.quantities['yvelocity']
         v.set_boundary_values(2.0)
 
-        kv = Kinematic_Viscosity_Operator(domain)
+        kv = Kinematic_viscosity_operator(domain)
 
 
         # let's make timestep large so that the final solution will look like
@@ -817,7 +817,7 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
         B = Reflective_boundary(domain)
         domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
 
-        kv = Kinematic_Viscosity_Operator(domain)
+        kv = Kinematic_viscosity_operator(domain)
 
 
         # let's make timestep large so that the final solution will look like
@@ -871,6 +871,6 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Kinematic_Viscosity, 'test')
+    suite = unittest.makeSuite(Test_kinematic_viscosity, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)

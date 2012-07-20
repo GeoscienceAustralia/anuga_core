@@ -87,10 +87,10 @@ class Parallel_Inlet_operator(Inlet_operator):
 
         volume = 0
 
-        # Only the master proc calculates the volume
-
+        # Need to run global command on all processors
         current_volume = self.inlet.get_global_total_water_volume()
 
+        # Only the master proc calculates the update
         if self.myid == self.master_proc:
             timestep = self.domain.get_timestep()
 
@@ -104,7 +104,7 @@ class Parallel_Inlet_operator(Inlet_operator):
 
             #print "Volume to be removed from Inlet = " + str(volume)
 
-        # Set stages evenly
+        # Set stages evenly on all processors
         self.inlet.set_stages_evenly(volume)
 
 

@@ -486,12 +486,12 @@ class Domain(Generic_Domain):
 
     def set_use_kinematic_viscosity(self, flag=True):
 
-        from anuga.operators.kinematic_viscosity_operator import Kinematic_Viscosity_Operator
+        from anuga.operators.kinematic_viscosity_operator import Kinematic_viscosity_operator
 
         if flag :
             # Create Operator if necessary
             if self.kv_operator is None:
-                self.kv_operator = Kinematic_Viscosity_Operator(self)
+                self.kv_operator = Kinematic_viscosity_operator(self)
         else:
             if self.kv_operator is None:
                 return
