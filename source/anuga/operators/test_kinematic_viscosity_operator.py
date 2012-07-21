@@ -9,6 +9,7 @@ from math import sqrt
 import unittest
 
 class Test_kinematic_viscosity(unittest.TestCase):
+    
     def setUp(self):
         pass
 
@@ -930,7 +931,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
 
 
         #print w.centroid_values - wc
-        
+
         assert num.allclose(w.centroid_values, wc, rtol=1.0e-3)
 
     def test_kinematic_operator_quantity(self):
@@ -982,11 +983,12 @@ class Test_kinematic_viscosity(unittest.TestCase):
         #print 'w'
         #print w.centroid_values
 
-        from pprint import pprint
-        pprint(w.centroid_values)
+        #from pprint import pprint
+        #pprint(w.centroid_values)
 
 
-        wc = num.array([array([ 0.71624029,  0.71622927,  0.71621675,  0.71623888,  0.71624236,
+        wc = num.array([
+        0.71624029,  0.71622927,  0.71621675,  0.71623888,  0.71624236,
         0.71624536,  0.71625157,  0.71625028,  0.71625679,  0.71626609,
         0.71630233,  0.71627457,  0.71627721,  0.71628666,  0.71633484,
         0.71629002,  0.71628494,  0.716295  ,  0.7163438 ,  0.71629656,
@@ -1067,12 +1069,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
         0.9842882 ,  0.9509548 ,  0.91762161,  0.95095583,  0.98429026,
         0.95095688,  0.91762327,  0.95095746,  0.98429146,  0.95095784])
 
-
-
-        #print w.centroid_values - wc
-
         assert num.allclose(w.centroid_values, wc, rtol=1.0e-3)
-
 
     def test_kinematic_operator_number(self):
 
@@ -1206,7 +1203,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
         0.9842882 ,  0.9509548 ,  0.91762161,  0.95095583,  0.98429026,
         0.95095688,  0.91762327,  0.95095746,  0.98429146,  0.95095784])
 
- 
+
 
 
         #print w.centroid_values - wc

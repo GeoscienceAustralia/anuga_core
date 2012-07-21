@@ -832,7 +832,7 @@ class Domain(Generic_Domain):
         elif self.compute_fluxes_method == 'wb_1':
             # Calc pressure terms using Simpson rule in flux
             # computations. Then they match up exactly with
-            # standard gravity term
+            # standard gravity term - g h grad(z)
             from shallow_water_ext import compute_fluxes_ext_wb
             from shallow_water_ext import gravity as gravity_c
 

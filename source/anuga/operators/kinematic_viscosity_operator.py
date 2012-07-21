@@ -8,7 +8,7 @@ import numpy as num
 import kinematic_viscosity_operator_ext
 import anuga.utilities.log as log
 
-from anuga.operators.elliptic_operator import Operator
+from anuga.operators.base_operator import Operator
 
 
 
