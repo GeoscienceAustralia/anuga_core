@@ -1,5 +1,5 @@
 """
-Set bed operators
+Set elevation operators
 
 
 """
@@ -22,9 +22,9 @@ from anuga import indent
 
 
 
-class Set_bed_operator(Operator):
+class Set_elevation_operator(Operator):
     """
-    Set the bed in a region (careful to maintain continuitiy of bed)
+    Set the elevation in a region (careful to maintain continuitiy of elevation)
 
     indices: None == all triangles, Empty list [] no triangles
 
@@ -34,7 +34,7 @@ class Set_bed_operator(Operator):
 
     def __init__(self,
                  domain,
-                 bed=None,
+                 elevation=None,
                  indices=None,
                  description = None,
                  label = None,
@@ -47,7 +47,7 @@ class Set_bed_operator(Operator):
         #------------------------------------------
         # Local variables
         #------------------------------------------
-        self.bed = bed
+        self.elevation = elevation
         self.indices = indices
 
 
@@ -63,29 +63,29 @@ class Set_bed_operator(Operator):
         if self.indices is []:
             return
 
-        bed = self.get_bed()
+        elevation = self.get_elevation()
 
         if self.verbose is True:
             log.critical('Bed of %s at time = %.2f = %f'
-                         % (self.quantity_name, domain.get_time(), bed))
+                         % (self.quantity_name, domain.get_time(), elevation))
 
         if self.indices is None:
-            self.bed_c[:] = bed
+            self.elevation_c[:] = elevation
         else:
-            self.bed_c[self.indices] = bed
+            self.elevation_c[self.indices] = elevation
 
 
-    def get_bed(self, t=None):
-        """Get value of bed at time t.
-        If t not specified, return bed at current domain time
+    def get_elevation(self, t=None):
+        """Get value of elevation at time t.
+        If t not specified, return elevation at current domain time
         """
 
         if t is None:
             t = self.domain.get_time()
 
-        if callable(self.bed):
+        if callable(self.elevation):
             try:
-                stage = self.bed(t)
+                elevation = self.elevation(t)
             except Modeltime_too_early, e:
                 raise Modeltime_too_early(e)
             except Modeltime_too_late, e:
@@ -94,15 +94,15 @@ class Set_bed_operator(Operator):
                 msg += 'rate operator to tell it what to do in the absence of time data.'
                 raise Modeltime_too_late(msg)
         else:
-            bed = self.bed
+            elevation = self.elevation
 
 
-        if bed is None:
-            msg = ('Attribute bed must be specified in '+self.__name__+
+        if elevation is None:
+            msg = ('Attribute elevation must be specified in '+self.__name__+
                    ' before attempting to call it')
             raise Exception(msg)
 
-        return bed
+        return elevation
 
 
 
@@ -114,14 +114,14 @@ class Set_bed_operator(Operator):
 
     def statistics(self):
 
-        message = self.label + ': Set_bed_operator'
+        message = self.label + ': Set_elevation_operator'
         message = message + ' on triangles '+ str(self.indices)
         return message
 
 
     def timestepping_statistics(self):
 
-        message  = indent + self.label + ': Set_bed = ' + str(self.get_bed())
+        message  = indent + self.label + ': Set_elevation = ' + str(self.get_elevation())
         message  += ' at center '+str(self.center)
         return message
 
@@ -131,14 +131,14 @@ class Set_bed_operator(Operator):
 #===============================================================================
 # Specific Bed Operators for circular region.
 #===============================================================================
-class Circular_set_bed_operator(Set_bed_operator):
+class Circular_set_elevation_operator(Set_elevation_operator):
     """
-    Set bed over a circular region
+    Set elevation over a circular region
 
     """
 
     def __init__(self, domain,
-                 bed=0.0,
+                 elevation=0.0,
                  center=None,
                  radius=None,
                  verbose=False):
@@ -179,9 +179,9 @@ class Circular_set_bed_operator(Set_bed_operator):
         # for parallel runs
 
 
-        Set_bed_operator.__init__(self,
+        Set_elevation_operator.__init__(self,
                                     domain,
-                                    bed=bed,
+                                    elevation=elevation,
                                     indices=indices,
                                     verbose=verbose)
 
@@ -192,7 +192,7 @@ class Circular_set_bed_operator(Set_bed_operator):
 #===============================================================================
 # Specific Bed Operators for polygonal region.
 #===============================================================================
-class Polygonal_set_stage_operator(Set_stage_operator):
+class Polygonal_set_elevation_operator(Set_elevation_operator):
     """
     Add water at certain rate (ms^{-1} = vol/Area/sec) over a
     polygonal region
@@ -202,7 +202,7 @@ class Polygonal_set_stage_operator(Set_stage_operator):
     """
 
     def __init__(self, domain,
-                 bed=0.0,
+                 elevation=0.0,
                  polygon=None,
                  verbose=False):
 
@@ -219,9 +219,9 @@ class Polygonal_set_stage_operator(Set_stage_operator):
         # for parallel runs
 
 
-        Set_bed_operator.__init__(self,
+        Set_elevation_operator.__init__(self,
                                domain,
-                               bed=bed,
+                               elevation=elevation,
                                indices=indices,
                                verbose=verbose)
 

@@ -29,7 +29,7 @@ W = L
 domain = anuga.rectangular_cross_domain(int(L/dx), int(W/dy), L, W, (-L/2.0, -W/2.0))
 
 
-output_file = 'set_stage'
+output_file = 'set_bed'
 domain.set_name(output_file)                
 
 #------------------------------------------------------------------------------
@@ -57,15 +57,15 @@ domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 #------------------------------------------------------------------------------
 # Setup Operators
 #------------------------------------------------------------------------------
-from anuga.operators.set_value_operators import Circular_set_stage_operator
+from anuga.operators.set_bed_operators import Circular_set_bed_operator
 
 import math
 
-stage1 = lambda t: h0 + 20.0 * math.sin(t/3.0)
-cop1 = Circular_set_stage_operator(domain, stage=stage1, center=(0.0, 0.0), radius=100.0 )
+bed1 = lambda t: 20.0 * math.sin(t/3.0)
+cop1 = Circular_set_bed_operator(domain, bed=bed1, center=(0.0, 0.0), radius=100.0 )
 
-stage2 = lambda t: h0 + 30.0 * math.sin(t/6.0)
-cop2 = Circular_set_stage_operator(domain, stage=stage2, center=(2000.0, 1000.0), radius=100.0 )
+#stage2 = lambda t: h0 + 30.0 * math.sin(t/6.0)
+#cop2 = Circular_set_stage_operator(domain, stage=stage2, center=(2000.0, 1000.0), radius=100.0 )
 
 #print cop1.statistics()
 #print cop2.statistics()
@@ -74,7 +74,7 @@ cop2 = Circular_set_stage_operator(domain, stage=stage2, center=(2000.0, 1000.0)
 # Evolve system through time
 #------------------------------------------------------------------------------
 
-for t in domain.evolve(yieldstep = 1.0, finaltime = 120.0):
+for t in domain.evolve(yieldstep = 1.0, finaltime = 20.0):
     #print domain.timestepping_statistics(track_speeds=True)
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()

@@ -57,7 +57,7 @@ domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 #------------------------------------------------------------------------------
 # Setup Operators
 #------------------------------------------------------------------------------
-from anuga.operators.set_value_operators import Circular_set_stage_operator
+from anuga.operators.set_stage_operators import Circular_set_stage_operator
 
 import math
 
@@ -74,7 +74,7 @@ cop2 = Circular_set_stage_operator(domain, stage=stage2, center=(2000.0, 1000.0)
 # Evolve system through time
 #------------------------------------------------------------------------------
 
-for t in domain.evolve(yieldstep = 1.0, finaltime = 120.0):
+for t in domain.evolve(yieldstep = 1.0, finaltime = 20.0):
     #print domain.timestepping_statistics(track_speeds=True)
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()
