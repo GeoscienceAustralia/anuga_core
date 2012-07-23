@@ -341,6 +341,11 @@ int _flux_function_central(double *q_left, double *q_right,
     _rotate(q_left_rotated, n1, n2);
     _rotate(q_right_rotated, n1, n2);
 
+
+    if (fabs(z_left - z_right) > 1.0e-10) {
+                report_python_error(AT, "Discontinuous Elevation");
+                return 0.0;
+            }
     z = 0.5 * (z_left + z_right); // Average elevation values.
     // Even though this will nominally allow
     // for discontinuities in the elevation data,
@@ -435,6 +440,141 @@ int _flux_function_central(double *q_left, double *q_right,
 
     return 0;
 }
+
+int _flux_function_central_discontinuous(double *q_left, double *q_right,
+        double z_left, double z_right,
+        double n1, double n2,
+        double epsilon,
+        double h0,
+        double limiting_threshold,
+        double g,
+        double *edgeflux, double *max_speed,
+        double *p_left, double *p_right) {
+
+    /*Compute fluxes between volumes for the shallow water wave equation
+      cast in terms of the 'stage', w = h+z using
+      the 'central scheme' as described in
+
+      Kurganov, Noelle, Petrova. 'Semidiscrete Central-Upwind Schemes For
+      Hyperbolic Conservation Laws and Hamilton-Jacobi Equations'.
+      Siam J. Sci. Comput. Vol. 23, No. 3, pp. 707-740.
+
+      The implemented formula is given in equation (3.15) on page 714
+     */
+
+    int i;
+
+    double w_left, h_left, uh_left, vh_left, u_left, v_left;
+    double w_right, h_right, uh_right, vh_right, u_right, v_right;
+    double z_star, h_left_star, h_right_star;
+    double s_min, s_max, soundspeed_left, soundspeed_right;
+    double denom, inverse_denominator, z;
+
+    // Workspace (allocate once, use many)
+    static double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
+
+    // Copy conserved quantities to protect from modification
+    q_left_rotated[0] = q_left[0];
+    q_right_rotated[0] = q_right[0];
+    q_left_rotated[1] = q_left[1];
+    q_right_rotated[1] = q_right[1];
+    q_left_rotated[2] = q_left[2];
+    q_right_rotated[2] = q_right[2];
+
+    // Align x- and y-momentum with x-axis
+    _rotate(q_left_rotated, n1, n2);
+    _rotate(q_right_rotated, n1, n2);
+
+
+    //if (fabs(z_left - z_right) > 1.0e-10) {
+    //            report_python_error(AT, "Discontinuous Elevation");
+    //            return 0.0;
+    //        }
+
+    z_star = max(z_left, z_right);
+    // Audusse's discontinuous method
+
+    // Compute speeds in x-direction
+    w_left = q_left_rotated[0];
+    h_left = w_left - z_left;
+    uh_left = q_left_rotated[1];
+    u_left = _compute_speed(&uh_left, &h_left,
+            epsilon, h0, limiting_threshold);
+    h_left_star = max(0.0,  w_left - z_star);
+
+    w_right = q_right_rotated[0];
+    h_right = w_right - z_right;
+    uh_right = q_right_rotated[1];
+    u_right = _compute_speed(&uh_right, &h_right,
+            epsilon, h0, limiting_threshold);
+    h_right_star = max(0.0,  w_right - z_star);
+
+    // Momentum in y-direction
+    vh_left = q_left_rotated[2];
+    vh_right = q_right_rotated[2];
+
+    // Limit y-momentum if necessary
+    // Leaving this out, improves speed significantly (Ole 27/5/2009)
+    // All validation tests pass, so do we really need it anymore?
+    v_left  = _compute_speed(&vh_left, &h_left,
+            epsilon, h0, limiting_threshold);
+    v_right = _compute_speed(&vh_right, &h_right,
+            epsilon, h0, limiting_threshold);
+
+    // Maximal and minimal wave speeds
+    soundspeed_left = sqrt(g * h_left_star);
+    soundspeed_right = sqrt(g * h_right_star);
+
+    s_max = max(u_left + soundspeed_left, u_right + soundspeed_right);
+    if (s_max < 0.0) {
+        s_max = 0.0;
+    }
+
+    s_min = min(u_left - soundspeed_left, u_right - soundspeed_right);
+    if (s_min > 0.0) {
+        s_min = 0.0;
+    }
+
+    // Flux formulas
+    flux_left[0] = u_left * h_left_star;
+    flux_left[1] = u_left * u_left * h_left_star + 0.5 * g * h_left_star*h_left_star;
+    flux_left[2] = u_left * v_left * h_left_star;
+
+    flux_right[0] = u_right * h_right_star;
+    flux_right[1] = u_right * u_right * h_right_star + 0.5 * g * h_right_star * h_right_star;
+    flux_right[2] = u_right * v_right * h_right_star;
+
+    // Flux computation
+    denom = s_max - s_min;
+    if (denom < epsilon) { // FIXME (Ole): Try using h0 here
+        memset(edgeflux, 0, 3 * sizeof (double));
+        *max_speed = 0.0;
+        *p_left  = 0.0;
+        *p_right = 0.0;
+    }
+    else {
+        inverse_denominator = 1.0 / denom;
+        for (i = 0; i < 3; i++) {
+            edgeflux[i] = s_max * flux_left[i] - s_min * flux_right[i];
+            edgeflux[i] += s_max * s_min * (q_right_rotated[i] - q_left_rotated[i]);
+            edgeflux[i] *= inverse_denominator;
+        }
+
+        // Corrections for well balaning with discontinuus bed
+        *p_left  = - 0.5 * g * h_left_star*h_left_star + 0.5 * g * h_left*h_left;
+        *p_right = - 0.5 * g * h_right_star * h_right_star + 0.5 * g * h_right * h_right;
+
+        // Maximal wavespeed
+        *max_speed = max(fabs(s_max), fabs(s_min));
+
+        // Rotate back
+        _rotate(edgeflux, n1, -n2);
+    }
+
+    return 0;
+}
+
+
 
 // Innermost flux function (using stage w=z+h)
 
@@ -4404,10 +4544,12 @@ double _compute_fluxes_central_structure(struct domain *D) {
             }
 
 
+/*
             if (fabs(zl - zr) > 1.0e-10) {
                 report_python_error(AT, "Discontinuous Elevation");
                 return 0.0;
             }
+*/
 
             // Outward pointing normal vector (domain.normals[k, 2*i:2*i+2])
             ki2 = 2 * ki; //k*6 + i*2
