@@ -11,6 +11,7 @@ __date__ ="$09/03/2012 4:46:39 PM$"
 
 from anuga import Domain
 from anuga import Quantity
+from anuga import indent
 import numpy as num
 import anuga.utilities.log as log
 
@@ -35,6 +36,7 @@ class Rate_operator(Operator):
     def __init__(self,
                  domain,
                  rate=0.0,
+                 factor=1.0,
                  indices=None,
                  default_rate=None,
                  description = None,
@@ -50,6 +52,7 @@ class Rate_operator(Operator):
         #------------------------------------------
         self.rate = rate
         self.indices = indices
+        self.factor = factor
 
         #------------------------------------------
         # Check and store default_rate
@@ -96,6 +99,8 @@ class Rate_operator(Operator):
 
         t = self.domain.get_time()
         timestep = self.domain.get_timestep()
+        factor = self.factor
+        indices = self.indices
 
         rate = self.get_rate(t)
 
@@ -104,17 +109,21 @@ class Rate_operator(Operator):
                          % (self.quantity_name, domain.get_time(), rate))
 
         if self.indices is None:
-            self.stage_centroid_values[:] = self.stage_centroid_values[:]  \
-                   + rate*timestep*self.areas[:]
+            self.stage_c[:] = self.stage_c[:]  \
+                   + factor*rate*timestep
         else:
-            self.stage_centroid_values[indices] = self.stage_centroid_values[indices] \
-                   + rate*timestep*self.areas[indices]
+            self.stage_c[indices] = self.stage_c[indices] \
+                   + factor*rate*timestep
 
 
-    def get_rate(self, t):
+    def get_rate(self, t=None):
         """Provide a rate to calculate added volume
         """
 
+        if t is None:
+            t = self.get_time()
+
+            
         if callable(self.rate):
             try:
                 rate = self.rate(t)
@@ -167,8 +176,10 @@ class Rate_operator(Operator):
 
     def timestepping_statistics(self):
 
-        message  = 'You need to implement timestepping statistics for your operator'
+        message  = indent + self.label + ': Rate = ' + str(self.get_rate())
         return message
+
+
 
 
 
@@ -187,6 +198,7 @@ class Circular_rate_operator(Rate_operator):
 
     def __init__(self, domain,
                  rate=0.0,
+                 factor=1.0,
                  center=None,
                  radius=None,
                  default_rate=None,
@@ -220,6 +232,7 @@ class Circular_rate_operator(Rate_operator):
         Rate_operator.__init__(self,
                                domain,
                                rate=rate,
+                               factor=factor,
                                indices=indices,
                                default_rate=default_rate,
                                verbose=verbose)
@@ -243,12 +256,12 @@ class Polygonal_rate_operator(Rate_operator):
 
     def __init__(self, domain,
                  rate=0.0,
+                 factor=1.0,
                  polygon=None,
                  default_rate=None,
                  verbose=False):
 
-        assert center is not None
-        assert radius is not None
+        assert polygon is not None
 
 
         # Determine indices in update region
@@ -257,6 +270,7 @@ class Polygonal_rate_operator(Rate_operator):
 
 
         indices = inside_polygon(points, polygon)
+        self.polygon = polygon
 
 
         # It is possible that circle doesn't intersect with mesh (as can happen
@@ -266,13 +280,13 @@ class Polygonal_rate_operator(Rate_operator):
         Rate_operator.__init__(self,
                                domain,
                                rate=rate,
+                               factor=factor,
                                indices=indices,
                                default_rate=default_rate,
                                verbose=verbose)
 
 
-        self.polygon = polygon
-        
+                
 
 
 

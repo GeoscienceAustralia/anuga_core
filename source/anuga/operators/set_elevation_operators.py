@@ -60,19 +60,42 @@ class Set_elevation_operator(Operator):
         otherwise apply for the specific indices
         """
 
-        if self.indices is []:
-            return
+        #if self.indices is []:
+        #    return
 
-        elevation = self.get_elevation()
+        #elevation = self.get_elevation()
 
-        if self.verbose is True:
-            log.critical('Bed of %s at time = %.2f = %f'
-                         % (self.quantity_name, domain.get_time(), elevation))
+#        if self.verbose is True:
+#            log.critical('Bed of %s at time = %.2f = %f'
+#                         % (self.quantity_name, domain.get_time(), elevation))
+
+        #if self.indices is None:
+        #    self.elev_c[:] = elevation
+        #else:
+        #    self.elev_c[self.indices] = elevation
+
+        t = self.get_time()
+        dt = self.get_timestep()
+
+        v_coors = self.domain.vertex_coordinates
+        self.elev_v = self.domain.quantities['elevation'].vertex_values
+
 
         if self.indices is None:
-            self.elevation_c[:] = elevation
+            self.elev_v[:] = self.elev_v + 0.0
         else:
-            self.elevation_c[self.indices] = elevation
+            self.elev_v[self.indices] += self.elevation(t)*dt
+
+        ### make sure centroid is correct as well
+        
+        #self.domain.add_quantity('elevation', lambda x,y: dt*self.elevation(x,y,t))
+
+
+
+        # clean up discontinuities for now
+        #self.domain.quantities['elevation'].smooth_vertex_values()
+
+
 
 
     def get_elevation(self, t=None):
@@ -121,9 +144,9 @@ class Set_elevation_operator(Operator):
 
     def timestepping_statistics(self):
 
-        message  = indent + self.label + ': Set_elevation = ' + str(self.get_elevation())
-        message  += ' at center '+str(self.center)
-        return message
+        #message  = indent + self.label + ': Set_elevation = ' + str('')
+        #message  += ' at center '+str(self.center)
+        return 'test'
 
 
 

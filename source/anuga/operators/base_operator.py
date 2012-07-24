@@ -59,6 +59,11 @@ class Operator:
 
         return self.domain.get_timestep()
 
+
+    def get_time(self):
+
+        return self.domain.get_time()
+
     def parallel_safe(self):
         """By default an operator is not parallel safe
         """

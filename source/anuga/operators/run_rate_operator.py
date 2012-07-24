@@ -12,6 +12,7 @@ from anuga import Reflective_boundary
 from anuga import Dirichlet_boundary
 from anuga import Time_boundary
 
+
 #------------------------------------------------------------------------------
 # Setup computational domain
 #------------------------------------------------------------------------------
@@ -22,10 +23,9 @@ dx = dy = 0.2 #.1           # Resolution: Length of subdivisions on both axes
 points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
 domain = Domain(points, vertices, boundary)
-domain.set_name('set_elevation') # Output name
+domain.set_name('rate_polygon') # Output name
 print domain.statistics()
-domain.set_quantities_to_be_stored({'elevation': 2,
-                                    'stage': 2})
+
 
 #------------------------------------------------------------------------------
 # Setup initial conditions
@@ -42,8 +42,23 @@ def topography(x,y):
             z[i] += 0.4 - 0.05*y[i]
 
         # Permanent pole
-        if (x[i] - 8)**2 + (y[i] - 2)**2 < 0.4**2:
-            z[i] += 1
+        #if (x[i] - 8)**2 + (y[i] - 2)**2 < 0.4**2:
+        #    z[i] += 1
+
+
+#        # Dam
+#        if 12 < x[i] < 13 and y[i] > 3.0:
+#            z[i] += 0.4
+#
+#        if 12 < x[i] < 13 and y[i] < 2.0:
+#            z[i] += 0.4
+
+
+#        # Dam
+#        if 12 < x[i] < 13:
+#            z[i] += 0.4
+
+            
     return z
 
 
@@ -95,58 +110,32 @@ Bi = Dirichlet_boundary([0.4, 0, 0])          # Inflow
 Br = Reflective_boundary(domain)              # Solid reflective wall
 Bo = Dirichlet_boundary([-5, 0, 0])           # Outflow
 
-domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
+domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
+polygon1 = [ [10.0, 0.0], [11.0, 0.0], [11.0, 5.0], [10.0, 5.0] ]
+polygon2 = [ [12.0, 2.0], [13.0, 2.0], [13.0, 3.0], [12.0, 3.0] ]
 
-from anuga.operators.set_elevation_operators import Circular_set_elevation_operator
+from anuga.operators.rate_operators import Polygonal_rate_operator
+from anuga.operators.rate_operators import Circular_rate_operator
 
-op1 = Circular_set_elevation_operator(domain, elevation=pole, radius=0.5, center = (12.0,3.0))
+op1 = Polygonal_rate_operator(domain, rate=10.0, polygon=polygon2)
+op2 = Circular_rate_operator(domain, rate=10.0, radius=0.5, center=(10.0, 3.0))
 
-growing = False
-shrinking = False
 
-done = False
 for t in domain.evolve(yieldstep=0.1, finaltime=40.0):
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()
 
-    #w = domain.get_quantity('stage').\
-    #    get_values(interpolation_points=[[18, 2.5]])
-    #print 'Level at gauge point = %.2fm' % w
+    stage = domain.get_quantity('stage')
+    elev  = domain.get_quantity('elevation')
+    height = stage - elev
 
-    #z = domain.get_quantity('elevation').\
-    #    get_values(interpolation_points=[[12, 3]])
-    #print 'Elevation at pole location = %.2fm' % z
+    print 'integral = ', height.get_integral()
 
-#    # Start variable elevation after 10 seconds
-#    if t > 10 and not (shrinking or growing or done):
-#        growing = True
-#
-#    # Stop growing when pole has reached a certain height
-#    if t > 16 and growing:
-#        growing = False
-#        shrinking = False
-#
-#    # Start shrinking
-#    if t > 20:
-#        shrinking = True
-#        growing = False
-#
-#    # Stop changing when pole has shrunk to original level
-#    if t > 25 and shrinking:
-#        done = True
-#        shrinking = growing = False
-#        domain.set_quantity('elevation', topography)
-#
-#    # Grow or shrink
-#    if growing:
-#        domain.add_quantity('elevation', pole_increment)
-#
-#    if shrinking:
-#        domain.add_quantity('elevation', lambda x,y: -2*pole_increment(x,y))
+
 
 
 
