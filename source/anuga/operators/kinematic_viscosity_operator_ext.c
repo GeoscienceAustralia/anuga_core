@@ -94,6 +94,59 @@ int build_geo_structure(int n,
 }
 
 
+int build_elliptic_matrix_not_symmetric(int n,
+                          int tot_len,
+                          long *geo_indices,
+                          double *geo_values,
+                          double *cell_data,
+                          double *bdry_data,
+                          double *data,
+                          long *colind) {
+	int i, k, edge, j[4], sorted_j[4], this_index;
+	double h_j, v[3], v_i; //v[k] = value of the interaction of edge k in a given triangle, v_i = (i,i) entry
+	for (i=0; i<n; i++) {
+		v_i = 0.0;
+		j[3] = i;
+		//Get the values of each interaction, and the column index at which they occur
+        for (edge=0; edge<3; edge++) {
+            j[edge] = geo_indices[3*i+edge];
+            //if (j[edge]<n) { //interior
+            //    h_j = cell_data[j[edge]];
+            //} else { //boundary
+            //    h_j = bdry_data[j[edge]-n];
+            //}
+            v[edge] = -cell_data[i]*geo_values[3*i+edge]; //the negative of the individual interaction
+            v_i += cell_data[i]*geo_values[3*i+edge]; //sum the three interactions
+        }
+        if (cell_data[i]<=0.0) {
+            v_i  = 0.0;
+            v[0] = 0.0;
+            v[1] = 0.0;
+            v[2] = 0.0;
+        }
+		//Organise the set of 4 values/indices into the data and colind arrays
+		for (k=0; k<4; k++) sorted_j[k] = j[k];
+		quicksort(sorted_j,0,3);
+		for (k=0; k<4; k++) { //loop through the nonzero indices
+			this_index = sorted_j[k];
+			if (this_index == i) {
+				data[4*i+k] = v_i;
+				colind[4*i+k] = i;
+			} else if (this_index == j[0]) {
+				data[4*i+k] = v[0];
+				colind[4*i+k] = j[0];
+			} else if (this_index == j[1]) {
+				data[4*i+k] = v[1];
+				colind[4*i+k] = j[1];
+			} else { //this_index == j[2]
+				data[4*i+k] = v[2];
+				colind[4*i+k] = j[2];
+			}
+		}
+	}
+	return 0;
+}
+
 int build_elliptic_matrix(int n,
                           int tot_len,
                           long *geo_indices,
@@ -147,7 +200,8 @@ int build_elliptic_matrix(int n,
 	return 0;
 }
 
-int update_elliptic_matrix(int n,
+
+int update_elliptic_matrix_not_symmetric(int n,
         int tot_len,
         long *geo_indices,
         double *geo_values,
@@ -200,6 +254,8 @@ int update_elliptic_matrix(int n,
     }
     return 0;
 }
+
+
 
 /**
 * Python wrapper methods
