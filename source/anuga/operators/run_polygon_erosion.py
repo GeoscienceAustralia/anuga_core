@@ -27,7 +27,9 @@ domain = Domain(points, vertices, boundary)
 domain.set_name('erosion_polygon') # Output name
 print domain.statistics()
 domain.set_quantities_to_be_stored({'elevation': 2,
-                                    'stage': 2})
+                                    'stage': 2,
+                                    'xmomentum': 2,
+                                    'ymomentum': 2})
 
 #------------------------------------------------------------------------------
 # Setup initial conditions
@@ -81,7 +83,7 @@ op1 = Polygonal_erosion_operator(domain, threshold=0.0, polygon=polygon1)
 # Evolve system through time
 #------------------------------------------------------------------------------
 
-for t in domain.evolve(yieldstep=0.02, finaltime=0.02):
+for t in domain.evolve(yieldstep=0.2, finaltime=20.0):
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()
 

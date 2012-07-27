@@ -27,7 +27,6 @@ def lineno():
 
 
 
-
 def stage_elev_info(self):
     print 80*"="
 
@@ -43,13 +42,16 @@ def stage_elev_info(self):
     elev_c = self.get_quantity('elevation').centroid_values
     stage_c = self.get_quantity('stage').centroid_values
 
-    print 'elev_v\n', elev_v[ind]
-    print 'stage_v\n', stage_v[ind]
+    from pprint import pprint
+    print 'elev_v, elev_c, elev_avg \n'
+    pprint( num.concatenate( (elev_v[ind], (elev_c[ind]).reshape(16,1),
+                               num.mean(elev_v[ind],axis=1).reshape(16,1)), axis = 1))
+    print 'stage_v, stage_c, stage_avg \n'
+    pprint( num.concatenate( (stage_v[ind], (stage_c[ind]).reshape(16,1),
+                               num.mean(stage_v[ind],axis=1).reshape(16,1)), axis = 1))
 
-    print 'elev_c\n', elev_c[ind]
-    print 'elev_avg\n',num.mean(elev_v[ind],axis=1)
-    print 'stage_c\n', stage_c[ind]
-    print 'stage_avg\n',num.mean(stage_v[ind],axis=1)
+    
+
     print 80*"="
 
 
@@ -80,6 +82,40 @@ class Erosion_operator(Operator):
         #------------------------------------------
         self.threshold = threshold
         self.indices = indices
+
+
+        #------------------------------------------
+        # Find vertex nodes
+        #------------------------------------------
+        node_id = set()
+
+        for ind in self.indices:
+            for k in [0,1,2]:
+                node_id.add(self.domain.triangles[ind,k])
+
+        self.node_id = [ id for id in node_id ]
+
+
+        node_index = num.zeros((self.domain.number_of_nodes)+1, dtype = num.int)
+
+        k = 0
+        node_index[0] = self.domain.number_of_triangles_per_node[0]
+        for i in range(self.domain.number_of_nodes):
+            if i == 0:
+                continue
+
+            node_index[i] = node_index[i-1] + self.domain.number_of_triangles_per_node[i]
+
+        n0 = self.node_id[0]
+        i0 = node_index[n0]                                      # index of first vertex associated to node
+        i1 = i0 + self.domain.number_of_triangles_per_node[i]    # index of last vertex associated to node
+
+        print node_index
+        print n0,i0,i1
+        print len(node_index),self.domain.number_of_nodes
+
+
+        print self.node_id
 
 
     def __call__(self):
@@ -113,7 +149,8 @@ class Erosion_operator(Operator):
         dt = self.get_timestep()
 
 
-
+        #print self.indices
+        
 
         self.elev_v  = self.domain.quantities['elevation'].vertex_values
         self.stage_v = self.domain.quantities['stage'].vertex_values
@@ -124,31 +161,53 @@ class Erosion_operator(Operator):
         height_c = self.stage_c - self.elev_c
 
 
-        stage_elev_info(self.domain)
+        #stage_elev_info(self.domain)
         #--------------------------------------------
         # Here we do the actual erosion
         #--------------------------------------------
-        if self.indices is None:
-            self.elev_v[:] = self.elev_v + 0.0
-        else:
-            self.elev_v[self.indices] -= 0.1*dt
+
+        if t < 15.0 and t > 10.0:
+            if self.indices is None:
+                self.elev_v[:] = self.elev_v + 0.0
+            else:
+                self.elev_v[self.indices] -= 0.1*dt
 
 
-        stage_elev_info(self.domain)
+        for nid in self.node_id:
+            print 'nid ', nid
+            print 'vvi ', self.domain.vertex_value_indices[nid]
+
+
+        #stage_elev_info(self.domain)
         
 
         # FIXME SR: At present need to ensure the elevation is continuous
         # In future with discontinuous bed we will not need to do this.
         self.domain.quantities['elevation'].smooth_vertex_values()
+
+        # Need to do this faster.
+
+        #stage_elev_info(self.domain)
+
         self.domain.quantities['elevation'].interpolate()
+
+        #stage_elev_info(self.domain)
 
         #self.elev_c = self.domain.quantities['elevation'].centroid_values
 
 #        # Fix up water conservation
         self.stage_c[:] = self.elev_c +  height_c
-#        self.domain.distribute_to_vertices_and_edges()
 
-        print 'time in erosion ',self.get_time(), dt
+        #stage_elev_info(self.domain)
+
+
+        old_flag = self.domain.optimise_dry_cells
+        self.domain.optimise_dry_cells = 0
+        self.domain.distribute_to_vertices_and_edges()
+        self.domain.optimise_dry_cells = old_flag
+
+        #stage_elev_info(self.domain)
+        #print 'time in erosion ',self.get_time(), dt
 
 
 
@@ -168,7 +227,7 @@ class Erosion_operator(Operator):
     def timestepping_statistics(self):
 
         message  = indent + self.label + ': Erosion_operator'
-        return 'test'
+        return message
 
 
 
