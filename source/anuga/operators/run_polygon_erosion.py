@@ -19,7 +19,7 @@ from anuga.operators.erosion_operators import Polygonal_erosion_operator
 #------------------------------------------------------------------------------
 length = 24.
 width = 5.
-dx = dy = 0.5 #.1           # Resolution: Length of subdivisions on both axes
+dx = dy = 1.0 #.1           # Resolution: Length of subdivisions on both axes
 
 points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
@@ -65,7 +65,7 @@ domain.set_quantity('stage', expression='elevation')   # Dry initial condition
 #------------------------------------------------------------------------------
 # Setup boundary conditions
 #------------------------------------------------------------------------------
-Bi = Dirichlet_boundary([0.4, 0, 0])          # Inflow
+Bi = Dirichlet_boundary([0.5, 0, 0])          # Inflow
 Br = Reflective_boundary(domain)              # Solid reflective wall
 Bo = Dirichlet_boundary([-5, 0, 0])           # Outflow
 
@@ -75,7 +75,7 @@ domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 # Setup erosion operator in the middle of dam
 #------------------------------------------------------------------------------
 
-polygon1 = [ [12.0, 2.0], [13.0, 2.0], [13.0, 3.0], [12.0, 3.0] ]
+polygon1 = [ [12., 2.0], [13., 2.0], [13., 3.0], [12., 3.0] ]
 op1 = Polygonal_erosion_operator(domain, threshold=0.0, polygon=polygon1)
 
 
@@ -83,7 +83,7 @@ op1 = Polygonal_erosion_operator(domain, threshold=0.0, polygon=polygon1)
 # Evolve system through time
 #------------------------------------------------------------------------------
 
-for t in domain.evolve(yieldstep=0.2, finaltime=20.0):
+for t in domain.evolve(yieldstep=0.2, finaltime=2.0):
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()
 
@@ -98,6 +98,7 @@ for t in domain.evolve(yieldstep=0.2, finaltime=20.0):
 #    print stage_v[ind]
 #    print elev_c[ind]
 #    print stage_c[ind]
+
 
 
 

@@ -83,40 +83,62 @@ class Erosion_operator(Operator):
         self.threshold = threshold
         self.indices = indices
 
+        #------------------------------------------
+        # Need to turn off this optimization as it
+        # doesn't fixup the relationship between
+        # bed and stage vertex values in dry region
+        #------------------------------------------
+        self.domain.optimise_dry_cells = 0
 
         #------------------------------------------
         # Find vertex nodes
         #------------------------------------------
-        node_id = set()
+        node_ids = set()
 
         for ind in self.indices:
             for k in [0,1,2]:
-                node_id.add(self.domain.triangles[ind,k])
+                node_ids.add(self.domain.triangles[ind,k])
 
-        self.node_id = [ id for id in node_id ]
+        self.node_ids = [ id for id in node_ids ]
 
 
         node_index = num.zeros((self.domain.number_of_nodes)+1, dtype = num.int)
 
         k = 0
-        node_index[0] = self.domain.number_of_triangles_per_node[0]
+        node_index[0] = 0
         for i in range(self.domain.number_of_nodes):
-            if i == 0:
-                continue
+            node_index[i+1] = node_index[i] + self.domain.number_of_triangles_per_node[i]
 
-            node_index[i] = node_index[i-1] + self.domain.number_of_triangles_per_node[i]
+        self.node_index = node_index
 
-        n0 = self.node_id[0]
-        i0 = node_index[n0]                                      # index of first vertex associated to node
-        i1 = i0 + self.domain.number_of_triangles_per_node[i]    # index of last vertex associated to node
+        vertex_ids =[]
+        for nid in self.node_ids:
+            print nid,self.domain.number_of_triangles_per_node[nid]
+            for vid in range(node_index[nid], node_index[nid+1]):
+                vidd = self.domain.vertex_value_indices[vid]
+                vertex_ids.append(vidd)
+                print '   ',nid, vid, vidd, vidd/3, vidd%3
 
-        print node_index
-        print n0,i0,i1
-        print len(node_index),self.domain.number_of_nodes
+        self.vol_ids  = num.array(vertex_ids,dtype=num.int)/3
+        self.vols = num.array(list(set(self.vol_ids)), dtype=num.int)
+        self.vert_ids = num.array(vertex_ids,dtype=num.int)%3
 
+        print 'noe', self.domain.number_of_elements
+        print 'non', self.domain.number_of_nodes
+        #print self.vols
+        #print self.domain.vertex_value_indic
+        #print self.domain.number_of_triangles_per_node
+        #print self.node_index
 
-        print self.node_id
+        print 'self.node_ids'
+        print self.node_ids
 
+        print 'self.indices'
+        print self.indices
+        #print self.domain.triangles[self.indices]
+        #print self.vertex_ids
+
+        self.dump_triangulation()
 
     def __call__(self):
         """
@@ -166,16 +188,21 @@ class Erosion_operator(Operator):
         # Here we do the actual erosion
         #--------------------------------------------
 
-        if t < 15.0 and t > 10.0:
+        if t < 10.0 and t > 7.0:
             if self.indices is None:
                 self.elev_v[:] = self.elev_v + 0.0
             else:
                 self.elev_v[self.indices] -= 0.1*dt
 
 
-        for nid in self.node_id:
-            print 'nid ', nid
-            print 'vvi ', self.domain.vertex_value_indices[nid]
+                #self.elev_v[self.vol_ids, self.vert_ids] = \
+                #   num.maximum(self.elev_v[self.vol_ids, self.vert_ids] - 0.1*dt, 0.0)
+
+                #self.elev_c[self.vols] = num.mean(self.elev_v[self.vols],axis=1)
+
+        #for nid in self.node_id:
+        #    print 'nid ', nid
+        #    print 'vvi ', self.domain.vertex_value_indices[nid]
 
 
         #stage_elev_info(self.domain)
@@ -201,10 +228,10 @@ class Erosion_operator(Operator):
         #stage_elev_info(self.domain)
 
 
-        old_flag = self.domain.optimise_dry_cells
-        self.domain.optimise_dry_cells = 0
-        self.domain.distribute_to_vertices_and_edges()
-        self.domain.optimise_dry_cells = old_flag
+        #old_flag = self.domain.optimise_dry_cells
+        #self.domain.optimise_dry_cells = 0
+        #self.domain.distribute_to_vertices_and_edges()
+        #self.domain.optimise_dry_cells = old_flag
 
         #stage_elev_info(self.domain)
         #print 'time in erosion ',self.get_time(), dt
@@ -228,6 +255,102 @@ class Erosion_operator(Operator):
 
         message  = indent + self.label + ': Erosion_operator'
         return message
+
+
+    def dump_triangulation(self):
+        # Get vertex coordinates, partition full and ghost triangles based on self.tri_full_flag
+
+        try:
+            import matplotlib
+            matplotlib.use('Agg')
+            import matplotlib.pyplot as plt
+            import matplotlib.tri as tri
+        except:
+            print "Couldn't import module from matplotlib, probably you need to update matplotlib"
+            raise
+
+        domain = self.domain
+
+        vertices = domain.get_vertex_coordinates()
+        #vertices = vertices.reshape((480,3,2))
+        nodes = domain.get_nodes()
+        Z = domain.get_quantity('elevation').get_values(location='unique vertices')
+        #stage.shape = (1200, )
+
+        fx = nodes[:,0]
+        fy = nodes[:,1]
+        #gx = vertices[ghost_mask,0]
+        #gy = vertices[ghost_mask,1]
+
+
+
+        ## Plot full triangles
+        n = int(len(fx)/3)
+        #triang = num.array(range(0,3*n))
+        triang = domain.get_triangles()
+        #triang.shape = (n, 3)
+
+        print triang.shape
+        print fx.shape
+        print Z.shape
+
+        #plt.tricontourf(fx, fy, triang, Z)
+        plt.triplot(fx, fy, triang)
+
+        # now plot indices
+
+        #plt.tricontourf(fx, fy, triang, Z)
+        #plt.triplot(fx, fy, triang)
+        #plt.colorbar()
+        #plt.tricontour(fx, fy, triang, Z, colors='k')
+        #tripcolor
+
+
+        #full_mask = num.repeat(self.tri_full_flag == 1, 3)
+        #ghost_mask = num.repeat(self.tri_full_flag == 0, 3)
+
+        noe = self.domain.number_of_elements
+
+        fx = vertices[:,0].reshape(noe,3)
+        fy = vertices[:,1].reshape(noe,3)
+
+
+        fx = fx[self.indices].flatten()
+        fy = fy[self.indices].flatten()
+
+        print 'fx', fx.shape
+
+        print self.indices
+        #gx = vertices[ghost_mask,0]
+        #gy = vertices[ghost_mask,1]
+
+
+        ## Plot full triangles
+        n = int(len(fx)/3)
+
+        Z = num.ones((3*n,),dtype=num.float)
+        print Z.shape
+
+        triang = num.array(range(0,3*n))
+        triang.shape = (n, 3)
+        print triang
+        plt.triplot(fx, fy, triang, 'o-')
+        plt.tripcolor(fx,fy, triang, Z)
+        
+        ## Plot ghost triangles
+        #n = int(len(gx)/3)
+        #if n > 0:
+            #triang = num.array(range(0,3*n))
+            #triang.shape = (n, 3)
+            #plt.triplot(gx, gy, triang, 'b--')
+
+        # Save triangulation to location pointed by filename
+        plt.savefig('dump.svg')
+
+        plt.draw()
+        plt.show()
+
+
 
 
 
@@ -325,10 +448,6 @@ class Polygonal_erosion_operator(Erosion_operator):
                                   threshold=threshold,
                                   indices=indices,
                                   verbose=verbose)
-
-
-
-        
 
 
 
