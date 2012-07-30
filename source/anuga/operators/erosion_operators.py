@@ -8,17 +8,11 @@ __author__="steve"
 __date__ ="$09/03/2012 4:46:39 PM$"
 
 
-from anuga import Domain
-from anuga import Quantity
+
 import numpy as num
-import anuga.utilities.log as log
-
 from anuga.geometry.polygon import inside_polygon
-
 from anuga.operators.base_operator import Operator
-
 from anuga import indent
-
 
 
 class Erosion_operator(Operator):
@@ -27,13 +21,15 @@ class Erosion_operator(Operator):
 
     indices: None == all triangles, Empty list [] no triangles
 
-    rate can be a function of time.
+    threshold: Impose erosion if || momentum || > threshold
+    base: Allow erosion down to base level
 
     """
 
     def __init__(self,
                  domain,
                  threshold= 0.0,
+                 base=0.0,
                  indices=None,
                  description = None,
                  label = None,
@@ -47,13 +43,15 @@ class Erosion_operator(Operator):
         # Local variables
         #------------------------------------------
         self.threshold = threshold
+        self.base = base
         self.indices = indices
 
-
-
+        #------------------------------------------
+        # Extra aliases for changing elevation at
+        # vertices and edges
+        #------------------------------------------
         self.elev_v  = self.domain.quantities['elevation'].vertex_values
         self.elev_e = self.domain.quantities['elevation'].edge_values
-        self.stage_v = self.domain.quantities['stage'].vertex_values
 
         #------------------------------------------
         # Need to turn off this optimization as it
@@ -95,7 +93,7 @@ class Erosion_operator(Operator):
             m = num.sqrt(self.xmom_c[ind]**2 + self.ymom_c[ind]**2)
             m = num.vstack((m,m,m)).T
             m = num.where(m>self.threshold, m, 0.0)
-            self.elev_v[ind] = num.maximum(self.elev_v[ind] - m*dt, 0.0)
+            self.elev_v[ind] = num.maximum(self.elev_v[ind] - m*dt, self.base)
              #num.maximum(self.elev_v[ind] - momentum*dt, Z)
 
 
@@ -401,6 +399,7 @@ class Circular_erosion_operator(Erosion_operator):
 
     def __init__(self, domain,
                  threshold=0.0,
+                 base=0.0,
                  center=None,
                  radius=None,
                  verbose=False):
@@ -444,6 +443,7 @@ class Circular_erosion_operator(Erosion_operator):
         Erosion_operator.__init__(self,
                                   domain,
                                   threshold,
+                                  base,
                                   indices=indices,
                                   verbose=verbose)
 
@@ -462,6 +462,7 @@ class Polygonal_erosion_operator(Erosion_operator):
 
     def __init__(self, domain,
                  threshold=0.0,
+                 base=0.0,
                  polygon=None,
                  verbose=False):
 
@@ -481,6 +482,7 @@ class Polygonal_erosion_operator(Erosion_operator):
         Erosion_operator.__init__(self,
                                   domain,
                                   threshold=threshold,
+                                  base=base,
                                   indices=indices,
                                   verbose=verbose)
 

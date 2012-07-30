@@ -75,29 +75,18 @@ domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 # Setup erosion operator in the middle of dam
 #------------------------------------------------------------------------------
 
-polygon1 = [ [12., 2.0], [13., 2.0], [13., 3.0], [12., 3.0] ]
-op1 = Polygonal_erosion_operator(domain, threshold=0.0, polygon=polygon1)
+polygon1 = [ [12., 0.0], [13., 0.0], [13., 5.0], [12., 5.0] ]
+op1 = Polygonal_erosion_operator(domain, threshold=0.0, base=-0.1, polygon=polygon1)
 
 
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
-
-for t in domain.evolve(yieldstep=0.2, finaltime=30.0):
+for t in domain.evolve(yieldstep=0.2, finaltime=40.0):
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()
 
-#    elev_v = domain.get_quantity('elevation').vertex_values
-#    stage_v = domain.get_quantity('stage').vertex_values
-#    elev_c = domain.get_quantity('elevation').centroid_values
-#    stage_c = domain.get_quantity('stage').centroid_values
-#    ind = op1.indices
-#    from pprint import pprint
-#    pprint(ind)
-#    print elev_v[ind]
-#    print stage_v[ind]
-#    print elev_c[ind]
-#    print stage_c[ind]
+
 
 
 
