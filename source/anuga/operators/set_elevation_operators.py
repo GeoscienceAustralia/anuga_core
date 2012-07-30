@@ -16,8 +16,7 @@ import anuga.utilities.log as log
 from anuga.geometry.polygon import inside_polygon
 
 from anuga.operators.base_operator import Operator
-from anuga.fit_interpolate.interpolate import Modeltime_too_early, \
-                                              Modeltime_too_late
+
 from anuga import indent
 
 
@@ -49,6 +48,26 @@ class Set_elevation_operator(Operator):
         #------------------------------------------
         self.elevation = elevation
         self.indices = indices
+        
+        #------------------------------------------
+        # Extra aliases for changing elevation at 
+        # vertices and edges
+        #------------------------------------------
+        self.elev_v  = self.domain.quantities['elevation'].vertex_values
+        self.elev_e = self.domain.quantities['elevation'].edge_values
+
+        #------------------------------------------
+        # Need to turn off this optimization as it
+        # doesn't fixup the relationship between
+        # bed and stage vertex values in dry region
+        #------------------------------------------
+        self.domain.optimise_dry_cells = 0
+
+        #-----------------------------------------
+        # Extra structures to support maintaining
+        # continuity of elevation
+        #-----------------------------------------
+        self.setup_node_structures()
 
 
     def __call__(self):
@@ -60,49 +79,95 @@ class Set_elevation_operator(Operator):
         otherwise apply for the specific indices
         """
 
-        #if self.indices is []:
-        #    return
+        if self.indices is []:
+            return
 
-        #elevation = self.get_elevation()
+        #------------------------------------------
+        # Apply changes to elevation vertex values
+        # via the update_quantites routine
+        #------------------------------------------
+        if not self.update_quantities():
+            return
 
-#        if self.verbose is True:
-#            log.critical('Bed of %s at time = %.2f = %f'
-#                         % (self.quantity_name, domain.get_time(), elevation))
 
-        #if self.indices is None:
-        #    self.elev_c[:] = elevation
-        #else:
-        #    self.elev_c[self.indices] = elevation
+        #------------------------------------------
+        # Cleanup elevation and stage quantity values
+        #-----------------------------------------
+        if self.indices is None:
 
-        t = self.get_time()
-        dt = self.get_timestep()
+            #--------------------------------------
+            # Make elevation continuous and clean up
+            # stage values to ensure conservation
+            #--------------------------------------
+            height_c = self.stage_c - self.elev_c
+            self.domain.quantities['elevation'].smooth_vertex_values()
+            self.domain.quantities['elevation'].interpolate()
+            self.stage_c[:] = self.elev_c +  height_c
 
-        v_coors = self.domain.vertex_coordinates
-        self.elev_v = self.domain.quantities['elevation'].vertex_values
 
+        else:
+
+            #--------------------------------------
+            # Make elevation continuous and clean up
+            # stage values to ensure conservation
+            #--------------------------------------
+            height_c = self.stage_c[self.vols] - self.elev_c[self.vols]
+            for nid in self.node_ids:
+                non = self.domain.number_of_triangles_per_node[nid]
+
+                vid = num.arange(self.node_index[nid], self.node_index[nid+1],dtype=num.int)
+                vidd = self.domain.vertex_value_indices[vid]
+
+                self.elev_v[vidd/3,vidd%3] = num.sum(self.elev_v[vidd/3,vidd%3])/non
+
+
+            #--------------------------------------
+            # clean up the centroid values and edge values
+            #--------------------------------------
+            self.elev_c[self.vols] = num.mean(self.elev_v[self.vols],axis=1)
+
+            self.elev_e[self.vols,0] = 0.5*(self.elev_v[self.vols,1]+ self.elev_v[self.vols,2])
+            self.elev_e[self.vols,1] = 0.5*(self.elev_v[self.vols,2]+ self.elev_v[self.vols,0])
+            self.elev_e[self.vols,2] = 0.5*(self.elev_v[self.vols,0]+ self.elev_v[self.vols,1])
+
+            self.stage_c[self.vols] = self.elev_c[self.vols] +  height_c
+
+
+
+    def update_quantities(self):
+        """Update the vertex values of the quantities to model erosion
+        """
+
+
+        elevation = self.get_elevation()
+
+        updated = True
 
         if self.indices is None:
-            self.elev_v[:] = self.elev_v + 0.0
+
+            #--------------------------------------
+            # Update all three vertices for each cell
+            #--------------------------------------
+            self.elev_v[:] = elevation
+
         else:
-            self.elev_v[self.indices] += self.elevation(t)*dt
 
-        ### make sure centroid is correct as well
-        
-        #self.domain.add_quantity('elevation', lambda x,y: dt*self.elevation(x,y,t))
-
-
-
-        # clean up discontinuities for now
-        #self.domain.quantities['elevation'].smooth_vertex_values()
+            #--------------------------------------
+            # Update all three vertices for each cell
+            #--------------------------------------
+            self.elev_v[self.indices] = elevation
 
 
-
+        return updated
 
     def get_elevation(self, t=None):
         """Get value of elevation at time t.
         If t not specified, return elevation at current domain time
         """
 
+        from anuga.fit_interpolate.interpolate import Modeltime_too_early, \
+                                                      Modeltime_too_late
+                                                      
         if t is None:
             t = self.domain.get_time()
 
@@ -126,6 +191,45 @@ class Set_elevation_operator(Operator):
             raise Exception(msg)
 
         return elevation
+
+    def setup_node_structures(self):
+        """ For setting elevation we need to
+        ensure that the elevation quantity remains
+        continuous (at least for version 1.3 of anuga)
+
+        So we need to find all the vertices that need to
+        update within each timestep.
+        """
+
+        node_ids = set()
+
+        for ind in self.indices:
+            for k in [0,1,2]:
+                node_ids.add(self.domain.triangles[ind,k])
+
+        self.node_ids = [ id for id in node_ids ]
+
+
+        node_index = num.zeros((self.domain.number_of_nodes)+1, dtype = num.int)
+
+        k = 0
+        node_index[0] = 0
+        for i in range(self.domain.number_of_nodes):
+            node_index[i+1] = node_index[i] + self.domain.number_of_triangles_per_node[i]
+
+        self.node_index = node_index
+
+        vertex_ids =[]
+        for nid in self.node_ids:
+            #print nid,self.domain.number_of_triangles_per_node[nid]
+            for vid in range(node_index[nid], node_index[nid+1]):
+                vidd = self.domain.vertex_value_indices[vid]
+                vertex_ids.append(vidd)
+                #print '   ',nid, vid, vidd, vidd/3, vidd%3
+
+        self.vol_ids  = num.array(vertex_ids,dtype=num.int)/3
+        self.vols = num.array(list(set(self.vol_ids)), dtype=num.int)
+        self.vert_ids = num.array(vertex_ids,dtype=num.int)%3
 
 
 

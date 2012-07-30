@@ -81,7 +81,7 @@ def pole(t):
     elif t>15:
         return 0.0
     else:
-        return 0.05
+        return 1.0
 
 
 domain.set_quantity('elevation', topography)           # elevation is a function
@@ -112,42 +112,6 @@ done = False
 for t in domain.evolve(yieldstep=0.1, finaltime=40.0):
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()
-
-    #w = domain.get_quantity('stage').\
-    #    get_values(interpolation_points=[[18, 2.5]])
-    #print 'Level at gauge point = %.2fm' % w
-
-    #z = domain.get_quantity('elevation').\
-    #    get_values(interpolation_points=[[12, 3]])
-    #print 'Elevation at pole location = %.2fm' % z
-
-#    # Start variable elevation after 10 seconds
-#    if t > 10 and not (shrinking or growing or done):
-#        growing = True
-#
-#    # Stop growing when pole has reached a certain height
-#    if t > 16 and growing:
-#        growing = False
-#        shrinking = False
-#
-#    # Start shrinking
-#    if t > 20:
-#        shrinking = True
-#        growing = False
-#
-#    # Stop changing when pole has shrunk to original level
-#    if t > 25 and shrinking:
-#        done = True
-#        shrinking = growing = False
-#        domain.set_quantity('elevation', topography)
-#
-#    # Grow or shrink
-#    if growing:
-#        domain.add_quantity('elevation', pole_increment)
-#
-#    if shrinking:
-#        domain.add_quantity('elevation', lambda x,y: -2*pole_increment(x,y))
-
 
 
 

@@ -19,12 +19,12 @@ from anuga.operators.erosion_operators import Polygonal_erosion_operator
 #------------------------------------------------------------------------------
 length = 24.
 width = 5.
-dx = dy = 1.0 #.1           # Resolution: Length of subdivisions on both axes
+dx = dy = 0.1 #.1           # Resolution: Length of subdivisions on both axes
 
 points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
 domain = Domain(points, vertices, boundary)
-domain.set_name('erosion_polygon') # Output name
+domain.set_name('polygon_erosion') # Output name
 print domain.statistics()
 domain.set_quantities_to_be_stored({'elevation': 2,
                                     'stage': 2,
@@ -83,7 +83,7 @@ op1 = Polygonal_erosion_operator(domain, threshold=0.0, polygon=polygon1)
 # Evolve system through time
 #------------------------------------------------------------------------------
 
-for t in domain.evolve(yieldstep=0.2, finaltime=2.0):
+for t in domain.evolve(yieldstep=0.2, finaltime=30.0):
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()
 

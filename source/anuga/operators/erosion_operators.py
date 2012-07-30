@@ -16,43 +16,9 @@ import anuga.utilities.log as log
 from anuga.geometry.polygon import inside_polygon
 
 from anuga.operators.base_operator import Operator
-from anuga.fit_interpolate.interpolate import Modeltime_too_early, \
-                                              Modeltime_too_late
+
 from anuga import indent
 
-def lineno():
-    """Returns the current line number in our program."""
-    import inspect
-    return inspect.currentframe().f_back.f_back.f_lineno
-
-
-
-def stage_elev_info(self):
-    print 80*"="
-
-    print 'In Evolve: line number ', lineno()
-    import inspect
-    print inspect.getfile(lineno)
-
-    print 80*"="
-    ind = num.array([ 976,  977,  978,  979,  980,  981,  982,  983, 1016, 1017, 1018,
-             1019, 1020, 1021, 1022, 1023])
-    elev_v = self.get_quantity('elevation').vertex_values
-    stage_v = self.get_quantity('stage').vertex_values
-    elev_c = self.get_quantity('elevation').centroid_values
-    stage_c = self.get_quantity('stage').centroid_values
-
-    from pprint import pprint
-    print 'elev_v, elev_c, elev_avg \n'
-    pprint( num.concatenate( (elev_v[ind], (elev_c[ind]).reshape(16,1),
-                               num.mean(elev_v[ind],axis=1).reshape(16,1)), axis = 1))
-    print 'stage_v, stage_c, stage_avg \n'
-    pprint( num.concatenate( (stage_v[ind], (stage_c[ind]).reshape(16,1),
-                               num.mean(stage_v[ind],axis=1).reshape(16,1)), axis = 1))
-
-    
-
-    print 80*"="
 
 
 class Erosion_operator(Operator):
@@ -83,6 +49,12 @@ class Erosion_operator(Operator):
         self.threshold = threshold
         self.indices = indices
 
+
+
+        self.elev_v  = self.domain.quantities['elevation'].vertex_values
+        self.elev_e = self.domain.quantities['elevation'].edge_values
+        self.stage_v = self.domain.quantities['stage'].vertex_values
+
         #------------------------------------------
         # Need to turn off this optimization as it
         # doesn't fixup the relationship between
@@ -90,55 +62,47 @@ class Erosion_operator(Operator):
         #------------------------------------------
         self.domain.optimise_dry_cells = 0
 
-        #------------------------------------------
-        # Find vertex nodes
-        #------------------------------------------
-        node_ids = set()
+        #-----------------------------------------
+        # Extra structures to support maintaining
+        # continuity of elevation
+        #-----------------------------------------
+        self.setup_node_structures()
+        
 
-        for ind in self.indices:
-            for k in [0,1,2]:
-                node_ids.add(self.domain.triangles[ind,k])
+    def update_quantities(self):
+        """Update the vertex values of the quantities to model erosion
+        """
 
-        self.node_ids = [ id for id in node_ids ]
+        t = self.get_time()
+        dt = self.get_timestep()
 
 
-        node_index = num.zeros((self.domain.number_of_nodes)+1, dtype = num.int)
+        updated = True
 
-        k = 0
-        node_index[0] = 0
-        for i in range(self.domain.number_of_nodes):
-            node_index[i+1] = node_index[i] + self.domain.number_of_triangles_per_node[i]
+        if self.indices is None:
 
-        self.node_index = node_index
+            #--------------------------------------
+            # Update all three vertices for each cell
+            #--------------------------------------
+            self.elev_v[:] = self.elev_v + 0.0
 
-        vertex_ids =[]
-        for nid in self.node_ids:
-            print nid,self.domain.number_of_triangles_per_node[nid]
-            for vid in range(node_index[nid], node_index[nid+1]):
-                vidd = self.domain.vertex_value_indices[vid]
-                vertex_ids.append(vidd)
-                print '   ',nid, vid, vidd, vidd/3, vidd%3
+        else:
 
-        self.vol_ids  = num.array(vertex_ids,dtype=num.int)/3
-        self.vols = num.array(list(set(self.vol_ids)), dtype=num.int)
-        self.vert_ids = num.array(vertex_ids,dtype=num.int)%3
+            #--------------------------------------
+            # Update all three vertices for each cell
+            #--------------------------------------
+            ind = self.indices
+            m = num.sqrt(self.xmom_c[ind]**2 + self.ymom_c[ind]**2)
+            m = num.vstack((m,m,m)).T
+            m = num.where(m>self.threshold, m, 0.0)
+            self.elev_v[ind] = num.maximum(self.elev_v[ind] - m*dt, 0.0)
+             #num.maximum(self.elev_v[ind] - momentum*dt, Z)
 
-        print 'noe', self.domain.number_of_elements
-        print 'non', self.domain.number_of_nodes
-        #print self.vols
-        #print self.domain.vertex_value_indic
-        #print self.domain.number_of_triangles_per_node
-        #print self.node_index
 
-        print 'self.node_ids'
-        print self.node_ids
+        return updated
 
-        print 'self.indices'
-        print self.indices
-        #print self.domain.triangles[self.indices]
-        #print self.vertex_ids
 
-        self.dump_triangulation()
+
 
     def __call__(self):
         """
@@ -150,91 +114,64 @@ class Erosion_operator(Operator):
         """
 
 
-
         if self.indices is []:
             return
 
+        #------------------------------------------
+        # Apply changes to elevation vertex values
+        # via the update_quantites routine
+        #------------------------------------------
+        if not self.update_quantities():
+            return
 
 
-        #elevation = self.get_elevation()
+        #------------------------------------------
+        # Cleanup elevation and stage quantity values
+        #-----------------------------------------
+        if self.indices is None:
 
-#        if self.verbose is True:
-#            log.critical('Bed of %s at time = %.2f = %f'
-#                         % (self.quantity_name, domain.get_time(), elevation))
+            #--------------------------------------
+            # Update all three vertices for each cell
+            #--------------------------------------
+            self.elev_v[:] = self.elev_v + 0.0
 
-        #if self.indices is None:
-        #    self.elev_c[:] = elevation
-        #else:
-        #    self.elev_c[self.indices] = elevation
-
-        t = self.get_time()
-        dt = self.get_timestep()
-
-
-        #print self.indices
-        
-
-        self.elev_v  = self.domain.quantities['elevation'].vertex_values
-        self.stage_v = self.domain.quantities['stage'].vertex_values
+            #--------------------------------------
+            # Make elevation continuous and clean up
+            # stage values to ensure conservation
+            #--------------------------------------
+            height_c = self.stage_c - self.elev_c
+            self.domain.quantities['elevation'].smooth_vertex_values()
+            self.domain.quantities['elevation'].interpolate()
+            self.stage_c[:] = self.elev_c +  height_c
 
 
-        # Need to store water heights before change to ensure
-        # no water lost or produced
-        height_c = self.stage_c - self.elev_c
+        else:
+
+            #--------------------------------------
+            # Make elevation continuous and clean up
+            # stage values to ensure conservation
+            #--------------------------------------
+            height_c = self.stage_c[self.vols] - self.elev_c[self.vols]
+            for nid in self.node_ids:
+                non = self.domain.number_of_triangles_per_node[nid]
+
+                vid = num.arange(self.node_index[nid], self.node_index[nid+1],dtype=num.int)
+                vidd = self.domain.vertex_value_indices[vid]
+
+                self.elev_v[vidd/3,vidd%3] = num.sum(self.elev_v[vidd/3,vidd%3])/non
 
 
-        #stage_elev_info(self.domain)
-        #--------------------------------------------
-        # Here we do the actual erosion
-        #--------------------------------------------
+            #--------------------------------------
+            # clean up the centroid values and edge values
+            #--------------------------------------
+            self.elev_c[self.vols] = num.mean(self.elev_v[self.vols],axis=1)
 
-        if t < 10.0 and t > 7.0:
-            if self.indices is None:
-                self.elev_v[:] = self.elev_v + 0.0
-            else:
-                self.elev_v[self.indices] -= 0.1*dt
+            self.elev_e[self.vols,0] = 0.5*(self.elev_v[self.vols,1]+ self.elev_v[self.vols,2])
+            self.elev_e[self.vols,1] = 0.5*(self.elev_v[self.vols,2]+ self.elev_v[self.vols,0])
+            self.elev_e[self.vols,2] = 0.5*(self.elev_v[self.vols,0]+ self.elev_v[self.vols,1])
 
+            self.stage_c[self.vols] = self.elev_c[self.vols] +  height_c
 
-                #self.elev_v[self.vol_ids, self.vert_ids] = \
-                #   num.maximum(self.elev_v[self.vol_ids, self.vert_ids] - 0.1*dt, 0.0)
-
-                #self.elev_c[self.vols] = num.mean(self.elev_v[self.vols],axis=1)
-
-        #for nid in self.node_id:
-        #    print 'nid ', nid
-        #    print 'vvi ', self.domain.vertex_value_indices[nid]
-
-
-        #stage_elev_info(self.domain)
-        
-
-        # FIXME SR: At present need to ensure the elevation is continuous
-        # In future with discontinuous bed we will not need to do this.
-        self.domain.quantities['elevation'].smooth_vertex_values()
-
-        # Need to do this faster.
-
-        #stage_elev_info(self.domain)
-
-        self.domain.quantities['elevation'].interpolate()
-
-        #stage_elev_info(self.domain)
-
-        #self.elev_c = self.domain.quantities['elevation'].centroid_values
-
-#        # Fix up water conservation
-        self.stage_c[:] = self.elev_c +  height_c
-
-        #stage_elev_info(self.domain)
-
-
-        #old_flag = self.domain.optimise_dry_cells
-        #self.domain.optimise_dry_cells = 0
-        #self.domain.distribute_to_vertices_and_edges()
-        #self.domain.optimise_dry_cells = old_flag
-
-        #stage_elev_info(self.domain)
-        #print 'time in erosion ',self.get_time(), dt
 
 
 
@@ -262,7 +199,7 @@ class Erosion_operator(Operator):
 
         try:
             import matplotlib
-            matplotlib.use('Agg')
+            #matplotlib.use('Agg')
             import matplotlib.pyplot as plt
             import matplotlib.tri as tri
         except:
@@ -311,14 +248,45 @@ class Erosion_operator(Operator):
 
         noe = self.domain.number_of_elements
 
+
         fx = vertices[:,0].reshape(noe,3)
         fy = vertices[:,1].reshape(noe,3)
 
 
-        fx = fx[self.indices].flatten()
-        fy = fy[self.indices].flatten()
 
-        print 'fx', fx.shape
+
+        #-------------------------------------------
+        # Neighbourhood Area
+        #-------------------------------------------
+        fx1 = fx[self.vols].flatten()
+        fy1 = fy[self.vols].flatten()
+
+        print 'fx1', fx1.shape
+
+        print self.vols
+        #gx = vertices[ghost_mask,0]
+        #gy = vertices[ghost_mask,1]
+
+
+        ## Plot full triangles
+        n = int(len(fx1)/3)
+        triang = num.array(range(0,3*n))
+        triang.shape = (n, 3)
+        print triang
+        plt.triplot(fx1, fy1, triang, 'go-')
+
+
+
+        self.vols
+        #plt.plot()
+
+        #-------------------------------------------
+        # Update Area
+        #-------------------------------------------
+        fx0 = fx[self.indices].flatten()
+        fy0 = fy[self.indices].flatten()
+
+        print 'fx0', fx0.shape
 
         print self.indices
         #gx = vertices[ghost_mask,0]
@@ -326,16 +294,44 @@ class Erosion_operator(Operator):
 
 
         ## Plot full triangles
-        n = int(len(fx)/3)
-
-        Z = num.ones((3*n,),dtype=num.float)
-        print Z.shape
-
+        n = int(len(fx0)/3)
         triang = num.array(range(0,3*n))
         triang.shape = (n, 3)
         print triang
-        plt.triplot(fx, fy, triang, 'o-')
-        plt.tripcolor(fx,fy, triang, Z)
+        plt.triplot(fx0, fy0, triang, 'bo-')
+
+
+        #-------------------------------------------
+        # Update Nodes
+        #-------------------------------------------
+        fx0 = fx[self.indices].flatten()
+        fy0 = fy[self.indices].flatten()
+
+        print 'fx0', fx0.shape
+
+        print self.indices
+        #gx = vertices[ghost_mask,0]
+        #gy = vertices[ghost_mask,1]
+
+
+        ## Plot full triangles
+        n = int(len(fx0)/3)
+        triang = num.array(range(0,3*n))
+        triang.shape = (n, 3)
+        print triang
+        plt.triplot(fx0, fy0, triang, 'bo-')
+
+
+
+
+        fx2 = fx[self.vol_ids,self.vert_ids]
+        fy2 = fy[self.vol_ids,self.vert_ids]
+
+        print 'fx2', fx2.shape
+
+        plt.plot(fx2,fy2,'yo')
+
+        #plt.tripcolor(fx,fy, triang, Z)
         
         ## Plot ghost triangles
         #n = int(len(gx)/3)
@@ -350,6 +346,45 @@ class Erosion_operator(Operator):
         plt.draw()
         plt.show()
 
+
+    def setup_node_structures(self):
+        """ For setting elevation we need to
+        ensure that the elevation quantity remains
+        continuous (at least for version 1.3 of anuga)
+
+        So we need to find all the vertices that need to
+        update within each timestep.
+        """
+
+        node_ids = set()
+
+        for ind in self.indices:
+            for k in [0,1,2]:
+                node_ids.add(self.domain.triangles[ind,k])
+
+        self.node_ids = [ id for id in node_ids ]
+
+
+        node_index = num.zeros((self.domain.number_of_nodes)+1, dtype = num.int)
+
+        k = 0
+        node_index[0] = 0
+        for i in range(self.domain.number_of_nodes):
+            node_index[i+1] = node_index[i] + self.domain.number_of_triangles_per_node[i]
+
+        self.node_index = node_index
+
+        vertex_ids =[]
+        for nid in self.node_ids:
+            #print nid,self.domain.number_of_triangles_per_node[nid]
+            for vid in range(node_index[nid], node_index[nid+1]):
+                vidd = self.domain.vertex_value_indices[vid]
+                vertex_ids.append(vidd)
+                #print '   ',nid, vid, vidd, vidd/3, vidd%3
+
+        self.vol_ids  = num.array(vertex_ids,dtype=num.int)/3
+        self.vols = num.array(list(set(self.vol_ids)), dtype=num.int)
+        self.vert_ids = num.array(vertex_ids,dtype=num.int)%3
 
 
 
@@ -452,3 +487,34 @@ class Polygonal_erosion_operator(Erosion_operator):
 
 
 
+def lineno():
+    """Returns the current line number in our program."""
+    import inspect
+    return inspect.currentframe().f_back.f_back.f_lineno
+
+
+
+def stage_elev_info(self):
+    print 80*"="
+
+    print 'In Evolve: line number ', lineno()
+    import inspect
+    print inspect.getfile(lineno)
+
+    print 80*"="
+    ind = num.array([ 976,  977,  978,  979,  980,  981,  982,  983, 1016, 1017, 1018,
+             1019, 1020, 1021, 1022, 1023])
+    elev_v = self.get_quantity('elevation').vertex_values
+    stage_v = self.get_quantity('stage').vertex_values
+    elev_c = self.get_quantity('elevation').centroid_values
+    stage_c = self.get_quantity('stage').centroid_values
+
+    from pprint import pprint
+    print 'elev_v, elev_c, elev_avg \n'
+    pprint( num.concatenate( (elev_v[ind], (elev_c[ind]).reshape(16,1),
+                               num.mean(elev_v[ind],axis=1).reshape(16,1)), axis = 1))
+    print 'stage_v, stage_c, stage_avg \n'
+    pprint( num.concatenate( (stage_v[ind], (stage_c[ind]).reshape(16,1),
+                               num.mean(stage_v[ind],axis=1).reshape(16,1)), axis = 1))
+
+    print 80*"="
