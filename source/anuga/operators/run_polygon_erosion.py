@@ -102,7 +102,7 @@ class My_polygon_erosion_operator(Polygonal_erosion_operator):
 
 
 #===============================================================================
-# Now to the standard model setup
+# Now to the standard anuga model setup
 #===============================================================================
 
 
@@ -151,7 +151,7 @@ op1 = My_polygon_erosion_operator(domain, threshold=0.0, base=-0.1, polygon=poly
 #-------------------------------------------------------------------------------
 # Evolve system through time
 #-------------------------------------------------------------------------------
-for t in domain.evolve(yieldstep=0.2, finaltime=40.0):
+for t in domain.evolve(yieldstep=0.2, finaltime=60.0):
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()
 

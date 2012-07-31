@@ -56,7 +56,7 @@ class Test_system(unittest.TestCase):
         # Setup boundary conditions
         Bd = anuga.Dirichlet_boundary([tide,0.,0.]) # Constant boundary values
         Bd = anuga.Time_boundary(domain=domain,     # Time dependent boundary  
-                   f=lambda t: [t, 0.0, 0.0])
+                   function=lambda t: [t, 0.0, 0.0])
         domain.set_boundary({'exterior': Bd})
         for t in domain.evolve(yieldstep = 10, finaltime = 20.0):
             pass

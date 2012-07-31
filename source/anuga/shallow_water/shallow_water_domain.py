@@ -297,6 +297,26 @@ class Domain(Generic_Domain):
 
 
 
+
+    def set_quantity(self, name, *args, **kwargs):
+        """Set values for named quantity
+
+        We have to do something special for 'elevation'
+        otherwise pass through to generic set_quantity
+        """
+
+#        if name == 'elevation':
+#            stage_c = self.get_quantity('stage').centroid_values
+#            elev_c =  self.get_quantity('elevation').centroid_values
+#            height_c = stage_c - elev_c
+#            Generic_Domain.set_quantity(self, name, *args, **kwargs)
+#            stage_c[:] = elev_c + height_c
+#        else:
+#            Generic_Domain.set_quantity(self, name, *args, **kwargs)
+
+        Generic_Domain.set_quantity(self, name, *args, **kwargs)
+
+
     def set_store(self, flag=True):
         """Set whether data saved to sww file.
         """
@@ -1048,6 +1068,9 @@ class Domain(Generic_Domain):
             # Store model data, e.g. for subsequent visualisation
             if self.store is True:
                 self.store_timestep()
+
+
+
 
             # Pass control on to outer loop for more specific actions
             yield(t)

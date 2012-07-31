@@ -86,6 +86,37 @@ class Reflective_boundary(Boundary):
         return q
 
 
+    def evaluate_segment_new(self, domain, segment_edges):
+
+        if segment_edges is None:
+            return
+        if domain is None:
+            return
+
+        ids = segment_edges
+
+    def evaluate_segment(self, domain, segment_edges):
+
+        if segment_edges is None:
+            return
+        if domain is None:
+            return
+
+
+        ids = segment_edges
+        vol_ids  = domain.boundary_cells[ids]
+        edge_ids = domain.boundary_edges[ids]
+
+
+        for j, name in enumerate(domain.evolved_quantities):
+            Q = domain.quantities[name]
+            Q.boundary_values[ids] = Q.edge_values[vol_ids,edge_ids]
+
+        #-----------------------------------------
+        # Rotate Momentum and  velocity
+        #-----------------------------------------
+
+
 class Transmissive_momentum_set_stage_boundary(Boundary):
     """Returns same momentum conserved quantities as
     those present in its neighbour volume.

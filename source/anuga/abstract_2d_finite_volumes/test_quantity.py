@@ -2443,5 +2443,5 @@ class Test_Quantity(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Quantity, 'test')
-    runner = unittest.TextTestRunner()
+    runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)

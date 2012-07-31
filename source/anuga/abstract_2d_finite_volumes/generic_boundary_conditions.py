@@ -1,4 +1,6 @@
-"""boundary.py - Classes for implementing boundary conditions
+
+"""
+boundary.py - Classes for implementing boundary conditions
 """
 
 from warnings import warn
@@ -26,6 +28,53 @@ class Boundary:
     def evaluate(self, vol_id=None, edge_id=None):
         msg = 'Generic class Boundary must be subclassed'
         raise Exception(msg)
+
+
+    def evaluate_segment(self, domain=None, segment_edges=None):
+        """
+        Evaluate boundary condition at edges of a domain in a list
+        defined by segment_edges
+
+        Go through list of boundary objects and update boundary values
+        for all conserved quantities on boundary.
+        It is assumed that the ordering of conserved quantities is
+        consistent between the domain and the boundary object, i.e.
+        the jth element of vector q must correspond to the jth conserved
+        quantity in domain.
+        """
+
+        if segment_edges is None:
+            return
+        if domain is None:
+            return
+        
+        for i in segment_edges:
+            vol_id  = domain.boundary_cells[i]
+            edge_id = domain.boundary_edges[i]
+
+
+            q_bdry = self.evaluate(vol_id, edge_id)
+
+            if len(q_bdry) == len(domain.evolved_quantities):
+                # conserved and evolved quantities are the same
+                q_evol = q_bdry
+            elif len(q_bdry) == len(domain.conserved_quantities):
+                # boundary just returns conserved quantities
+                # Need to calculate all the evolved quantities
+                # Use default conversion
+
+                q_evol = domain.get_evolved_quantities(vol_id, edge = edge_id)
+
+                q_evol = domain.conserved_values_to_evolved_values \
+                                                        (q_bdry, q_evol)
+            else:
+                msg = 'Boundary must return array of either conserved'
+                msg += ' or evolved quantities'
+                raise Exception(msg)
+
+            for j, name in enumerate(domain.evolved_quantities):
+                Q = domain.quantities[name]
+                Q.boundary_values[i] = q_evol[j]
 
 
 class Transmissive_boundary(Boundary):
@@ -61,26 +110,99 @@ class Transmissive_boundary(Boundary):
         return q
 
 
+
+    def evaluate_segment(self, domain, segment_edges):
+
+        if segment_edges is None:
+            return
+        if domain is None:
+            return
+
+
+        ids = segment_edges
+        vol_ids  = domain.boundary_cells[ids]
+        edge_ids = domain.boundary_edges[ids]
+
+
+        if domain.centroid_transmissive_bc :
+            for j, name in enumerate(domain.evolved_quantities):
+                Q = domain.quantities[name]
+                Q.boundary_values[ids] = Q.centroid_values[vol_ids]
+        else:
+            for j, name in enumerate(domain.evolved_quantities):
+                Q = domain.quantities[name]
+                Q.boundary_values[ids] = Q.edge_values[vol_ids,edge_ids]
+
+
+
 class Dirichlet_boundary(Boundary):
     """Dirichlet boundary returns constant values for the
     conserved quantities
     """
 
 
-    def __init__(self, conserved_quantities=None):
+    def __init__(self, dirichlet_values=None):
         Boundary.__init__(self)
 
-        if conserved_quantities is None:
-            msg = 'Must specify one value for each conserved quantity'
+        if dirichlet_values is None:
+            msg = 'Must specify one value for each quantity'
             raise Exception(msg)
 
-        self.conserved_quantities=num.array(conserved_quantities, num.float)
+        self.dirichlet_values=num.array(dirichlet_values, num.float)
+
+
 
     def __repr__(self):
-        return 'Dirichlet boundary (%s)' %self.conserved_quantities
+        return 'Dirichlet boundary (%s)' %self.dirichlet_values
+
 
     def evaluate(self, vol_id=None, edge_id=None):
-        return self.conserved_quantities
+        return self.dirichlet_values
+
+    def evaluate_segment(self, domain, segment_edges):
+
+        if segment_edges is None:
+            return
+        if domain is None:
+            return
+
+
+        ids = segment_edges
+
+
+        vol_ids  = domain.boundary_cells[ids]
+        edge_ids = domain.boundary_edges[ids]
+
+        q_bdry = self.dirichlet_values
+
+        conserved_quantities = True
+        if len(q_bdry) == len(domain.evolved_quantities):
+            # enough dirichlet values to set evolved quantities
+            conserved_quantities = False
+
+        #--------------------------------------------------
+        # First populate all the boundary values with
+        # interior edge values
+        #--------------------------------------------------
+        if  conserved_quantities:
+            for j, name in enumerate(domain.evolved_quantities):
+                Q = domain.quantities[name]
+                Q.boundary_values[ids] = Q.edge_values[vol_ids,edge_ids]
+
+        #--------------------------------------------------
+        # Now over write with constant Dirichlet value
+        #--------------------------------------------------
+        if conserved_quantities:
+            quantities = domain.conserved_quantities
+        else:
+            quantities = domain.evolved_quantities
+
+        #-------------------------------------------------
+        # Now update to Dirichlet values
+        #-------------------------------------------------
+        for j, name in enumerate(quantities):
+            Q = domain.quantities[name]
+            Q.boundary_values[ids] = q_bdry[j]
 
 
 
@@ -100,10 +222,8 @@ class Time_boundary(Boundary):
                         
     """
 
-    # FIXME (Ole): We should rename f to function to be consistent with
-    # Transmissive_Momentum_Set_Stage_Boundary (cf posting by rrraman)
     def __init__(self, domain=None,
-                 f=None, # Should be removed and replaced by function below
+                 #f=None, # Should be removed and replaced by function below
                  function=None,
                  default_boundary=None,
                  verbose=False):
@@ -116,20 +236,13 @@ class Time_boundary(Boundary):
 
         if domain is None:
             raise Exception('You must specify a domain to Time_boundary')
-
-        # FIXME: Temporary code to deal with both f and function
-        if function is not None and f is not None:
-            raise Exception('Specify either function or f to Time_boundary')
             
-        if function is None and f is None:
+        if function is None:
             raise Exception('You must specify a function to Time_boundary')
             
-        if f is None:
-            f = function
-        #####
         
         try:
-            q = f(0.0)
+            q = function(0.0)
         except Exception, e:
             msg = 'Function for time boundary could not be executed:\n%s' %e
             raise Exception(msg)
@@ -151,16 +264,72 @@ class Time_boundary(Boundary):
         msg = 'Return value for function must be a list or an array of length %d' %d
         assert len(q) == d, msg
 
-        self.f = f
+        self.f = function
         self.domain = domain
 
     def __repr__(self):
         return 'Time boundary'
 
+    def get_time(self):
+
+        return self.domain.get_time()
+
     def evaluate(self, vol_id=None, edge_id=None):
-        # FIXME (Ole): I think this should be get_time(), see ticket:306
+
+        return self.get_boundary_values()
+
+
+    def evaluate_segment(self, domain, segment_edges):
+
+        if segment_edges is None:
+            return
+        if domain is None:
+            return
+
+        ids = segment_edges
+
+        vol_ids  = domain.boundary_cells[ids]
+        edge_ids = domain.boundary_edges[ids]
+
+        q_bdry = self.get_boundary_values()
+
+        conserved_quantities = True
+        if len(q_bdry) == len(domain.evolved_quantities):
+            # enough dirichlet values to set evolved quantities
+            conserved_quantities = False
+
+        #--------------------------------------------------
+        # First populate all the boundary values with
+        # interior edge values
+        #--------------------------------------------------
+        if  conserved_quantities:
+            for j, name in enumerate(domain.evolved_quantities):
+                Q = domain.quantities[name]
+                Q.boundary_values[ids] = Q.edge_values[vol_ids,edge_ids]
+
+        #--------------------------------------------------
+        # Now over write with constant Dirichlet value
+        #--------------------------------------------------
+        if conserved_quantities:
+            quantities = domain.conserved_quantities
+        else:
+            quantities = domain.evolved_quantities
+
+        #-------------------------------------------------
+        # Now update to Dirichlet values
+        #-------------------------------------------------
+        for j, name in enumerate(quantities):
+            Q = domain.quantities[name]
+            Q.boundary_values[ids] = q_bdry[j]
+            
+
+    def get_boundary_values(self, t=None):
+
+        if t is None:
+            t = self.get_time()
+            
         try:
-            res = self.f(self.domain.time)
+            res = self.f(t)
         except Modeltime_too_early, e:
             raise Modeltime_too_early(e)
         except Modeltime_too_late, e:
@@ -168,7 +337,7 @@ class Time_boundary(Boundary):
                 raise Exception(e) # Reraise exception
             else:
                 # Pass control to default boundary
-                res = self.default_boundary.evaluate(vol_id, edge_id)
+                res = self.default_boundary
                 
                 # Ensure that result cannot be manipulated
                 # This is a real danger in case the 
@@ -191,6 +360,10 @@ class Time_boundary(Boundary):
                     self.default_boundary_invoked = True
 
         return res
+
+
+
+
 
 class Time_space_boundary(Boundary):
     """Time and spatially dependent boundary returns values for the

@@ -134,7 +134,7 @@ point2, 0.5, 2.0, 9.0\n")
 #            print 'i',i,'row',row
             line.append([float(row[0]),float(row[1]),float(row[2]),float(row[3]),
                          float(row[4]),float(row[5]),float(row[6])])
-#            print 'assert line',line[i],'point1',point1_answers_array[i]
+            #print 'assert line',line[i],'point1',point1_answers_array[i]
             assert num.allclose(line[i], point1_answers_array[i])
 
         point2_answers_array = [[0.0,0.0,1.0,1.5,-0.5,3.0,4.0], [2.0,2.0/3600.,10.0,10.5,-0.5,3.0,4.0]]

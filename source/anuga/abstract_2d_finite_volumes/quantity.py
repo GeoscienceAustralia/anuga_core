@@ -1357,21 +1357,19 @@ class Quantity:
         self.x_gradient *= 0.0
         self.y_gradient *= 0.0
 
-    def get_integral(self):
+    def get_integral(self, full_only=False):
+
         """Compute the integral of quantity across entire domain."""
 
         
         areas = self.domain.get_areas()
-        """
-        integral = 0
-        for k in range(len(self.domain)):
-            area = areas[k]
-            qc = self.centroid_values[k]
-            integral += qc*area
-        """
-        return num.sum(areas*self.centroid_values)
 
-        #return integral
+        if full_only:
+            indices = num.where(self.domain.tri_full_flag ==1)[0]
+            return num.sum(areas[indices]*self.centroid_values[indices])
+        else:
+            return num.sum(areas*self.centroid_values)
+
 
     def get_gradients(self):
         """Provide gradients. Use compute_gradients first."""

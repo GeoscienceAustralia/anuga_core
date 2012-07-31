@@ -593,14 +593,15 @@ class Test_Domain(unittest.TestCase):
         domain.set_boundary( {'First': anuga.Dirichlet_boundary([5,2,1,4,6]),
                               'Second': anuga.Transmissive_boundary(domain)} )
 
-        try:
-            domain.update_boundary()
-        except:
-            pass
-        else:
-            msg = 'Should have caught the lack of conserved_values_to_evolved_values member function'
-            raise Exception, msg
+#        try:
+#            domain.update_boundary()
+#        except:
+#            pass
+#        else:
+#            msg = 'Should have caught the lack of conserved_values_to_evolved_values member function'
+#            raise Exception, msg
 
+        domain.update_boundary()
 
         def  conserved_values_to_evolved_values(q_cons, q_evol):
 

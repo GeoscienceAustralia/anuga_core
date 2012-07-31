@@ -64,9 +64,9 @@ friction  \n \
          file.close()
 
          tags = {}
-         b1 =  Dirichlet_boundary(conserved_quantities = num.array([0.0]))
-         b2 =  Dirichlet_boundary(conserved_quantities = num.array([1.0]))
-         b3 =  Dirichlet_boundary(conserved_quantities = num.array([2.0]))
+         b1 =  Dirichlet_boundary(dirichlet_values = num.array([0.0]))
+         b2 =  Dirichlet_boundary(dirichlet_values = num.array([1.0]))
+         b3 =  Dirichlet_boundary(dirichlet_values = num.array([2.0]))
          tags["1"] = b1
          tags["2"] = b2
          tags["3"] = b3
@@ -158,9 +158,9 @@ friction  \n \
          mesh_instance = importMeshFromFile(fileName)
         
          tags = {}
-         b1 =  Dirichlet_boundary(conserved_quantities = num.array([0.0]))
-         b2 =  Dirichlet_boundary(conserved_quantities = num.array([1.0]))
-         b3 =  Dirichlet_boundary(conserved_quantities = num.array([2.0]))
+         b1 =  Dirichlet_boundary(dirichlet_values = num.array([0.0]))
+         b2 =  Dirichlet_boundary(dirichlet_values = num.array([1.0]))
+         b3 =  Dirichlet_boundary(dirichlet_values = num.array([2.0]))
          tags["1"] = b1
          tags["2"] = b2
          tags["3"] = b3

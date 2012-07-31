@@ -24,6 +24,10 @@ import anuga.utilities.log as log
 
 import numpy as num
 
+
+
+
+
 class Generic_Domain:
     '''
     Generic computational Domain constructor.
@@ -1347,8 +1351,10 @@ class Generic_Domain:
         # Update ghosts to ensure all centroid values are available
         self.update_ghosts()
 
+
         # Initial update of vertex and edge values
         self.distribute_to_vertices_and_edges()
+
 
         # Initial update boundary values
         self.update_boundary()
@@ -1356,6 +1362,8 @@ class Generic_Domain:
 
         # Update extrema if necessary (for reporting)
         self.update_extrema()
+
+
 
         # Or maybe restore from latest checkpoint
         if self.checkpoint is True:
@@ -1408,6 +1416,8 @@ class Generic_Domain:
             self.number_of_steps += 1
             if self._order_ == 1:
                 self.number_of_first_order_steps += 1
+
+            
 
             # Yield results
             if self.finaltime is not None and self.get_time() >= self.finaltime-epsilon:
@@ -1818,39 +1828,14 @@ class Generic_Domain:
             #print tag
             
             B = self.boundary_map[tag]
-            
-            #if B is None:
-            #        log.critical('WARNING: Ignored boundary segment (None)')
 
-            for i in self.tag_boundary_cells[tag]:
-                vol_id  = self.boundary_cells[i]
-                edge_id = self.boundary_edges[i]
+            if B is None:
+                continue
 
-                if B is None:
-                    pass
-                else:
-                    q_bdry = B.evaluate(vol_id, edge_id)
+            boundary_segment_edges = self.tag_boundary_cells[tag]
 
-                    if len(q_bdry) == len(self.evolved_quantities):
-                        # conserved and evolved quantities are the same
-                        q_evol = q_bdry
-                    elif len(q_bdry) == len(self.conserved_quantities):
-                        # boundary just returns conserved quantities
-                        # Need to calculate all the evolved quantities
-                        # Use default conversion
-
-                        q_evol = self.get_evolved_quantities(vol_id, edge = edge_id)
-
-                        q_evol = self.conserved_values_to_evolved_values \
-                                                                (q_bdry, q_evol)
-                    else:
-                        msg = 'Boundary must return array of either conserved'
-                        msg += ' or evolved quantities'
-                        raise Exception(msg)
-
-                    for j, name in enumerate(self.evolved_quantities):
-                        Q = self.quantities[name]
-                        Q.boundary_values[i] = q_evol[j]
+            B.evaluate_segment(self, boundary_segment_edges)
+        
 
 
     def compute_fluxes(self):

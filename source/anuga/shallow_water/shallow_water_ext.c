@@ -2897,6 +2897,7 @@ int _extrapolate_second_order_sw(int number_of_elements,
 
 
 
+
         if (number_of_boundaries[k] <= 1) {
             //==============================================
             // Number of boundaries <= 1
@@ -3280,6 +3281,10 @@ int _extrapolate_second_order_sw(int number_of_elements,
             //ymom_vertex_values[k3 + 1] = ymom_centroid_values[k] + dqv[1];
             //ymom_vertex_values[k3 + 2] = ymom_centroid_values[k] + dqv[2];
         } // else [number_of_boundaries==2]
+
+
+
+
     } // for k=0 to number_of_elements-1
 
     if (extrapolate_velocity_second_order == 1) {
@@ -3306,7 +3311,8 @@ int _extrapolate_second_order_sw(int number_of_elements,
 
         }
     }
-    
+
+
     free(xmom_centroid_store);
     free(ymom_centroid_store);
     free(stage_centroid_store);
@@ -4196,6 +4202,9 @@ PyObject *extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
 
 
 
+
+
+
 PyObject *rotate(PyObject *self, PyObject *args, PyObject *kwargs) {
     //
     // r = rotate(q, normal, direction=1)
@@ -4255,6 +4264,60 @@ PyObject *rotate(PyObject *self, PyObject *args, PyObject *kwargs) {
     // Return result using PyArray to avoid memory leak
     return PyArray_Return(r);
 }
+
+
+PyObject *reflect_momentum_velocity(PyObject *self, PyObject *args) {
+  /*Rotate momentum and velcity for all edges in a segment
+   *
+    Python call:
+    reflect_momentum_velocity(domain, segment_ids)
+
+    Post conditions:
+        The edges of each triangle have values from a
+        limited linear reconstruction
+        based on centroid values
+
+  */
+
+    struct domain D;
+    PyObject *domain;
+    PyArrayObject *segment_ids;
+
+    long *seg_ids;
+
+    int err;
+
+    if (!PyArg_ParseTuple(args, "OO", &domain, &segment_ids)) {
+        report_python_error(AT, "could not parse input arguments");
+        return NULL;
+    }
+
+    // populate the C domain structure with pointers
+    // to the python domain data
+    get_python_domain(&D, domain);
+
+
+
+
+
+
+    //print_domain_struct(&D);
+
+    // Call underlying flux computation routine and update
+    // the explicit update arrays
+    err = _extrapolate_second_order_sw(&D);
+
+    if (err == -1) {
+        // Use error string set inside computational routine
+        return NULL;
+    }
+
+  return Py_BuildValue("");
+
+}// extrapolate_second-order_sw
+
+
+
 
 
 // Computational function for flux computation

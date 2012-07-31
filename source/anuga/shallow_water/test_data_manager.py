@@ -783,7 +783,7 @@ class Test_Data_Manager(Test_Mux):
         domain_time.set_quantity('stage', tide)
         Br = Reflective_boundary(domain_time)
         Bw = Time_boundary(domain=domain_time,
-                         f=lambda t: [num.sin(t)+tide,3.*(20.+num.sin(t)+tide),2.*(20.+num.sin(t)+tide)])
+                         function=lambda t: [num.sin(t)+tide,3.*(20.+num.sin(t)+tide),2.*(20.+num.sin(t)+tide)])
         domain_time.set_boundary({'ocean': Bw,'otherocean': Br})
         
         temp_time=num.zeros(int(finaltime/yieldstep)+1,num.float)
