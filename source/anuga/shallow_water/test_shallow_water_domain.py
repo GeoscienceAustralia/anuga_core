@@ -516,6 +516,9 @@ class Test_Shallow_Water(unittest.TestCase):
                 domain.get_conserved_quantities(3, edge=2)[0])
 
         # Xmomentum
+        #print domain.quantities['xmomentum'].boundary_values
+        #print domain.quantities['ymomentum'].boundary_values
+        
         # Reflective
         assert domain.quantities['xmomentum'].boundary_values[0] == 1.0
         # Dirichlet
@@ -8431,6 +8434,6 @@ friction  \n \
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_extrapolate_second_order_sw')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test_')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test_boundary_conditions')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

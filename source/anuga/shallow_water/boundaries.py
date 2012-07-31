@@ -86,14 +86,6 @@ class Reflective_boundary(Boundary):
         return q
 
 
-    def evaluate_segment_new(self, domain, segment_edges):
-
-        if segment_edges is None:
-            return
-        if domain is None:
-            return
-
-        ids = segment_edges
 
     def evaluate_segment(self, domain, segment_edges):
 
@@ -107,14 +99,55 @@ class Reflective_boundary(Boundary):
         vol_ids  = domain.boundary_cells[ids]
         edge_ids = domain.boundary_edges[ids]
 
+        Stage = domain.quantities['stage']
+        Elev  = domain.quantities['elevation']
+        Height= domain.quantities['height']
+        Xmom  = domain.quantities['xmomentum']
+        Ymom  = domain.quantities['ymomentum']
+        Xvel  = domain.quantities['xvelocity']
+        Yvel  = domain.quantities['yvelocity']
 
-        for j, name in enumerate(domain.evolved_quantities):
-            Q = domain.quantities[name]
-            Q.boundary_values[ids] = Q.edge_values[vol_ids,edge_ids]
+        Normals = domain.normals
 
-        #-----------------------------------------
-        # Rotate Momentum and  velocity
-        #-----------------------------------------
+        #print vol_ids
+        #print edge_ids
+        #Normals.reshape((4,3,2))
+        #print Normals.shape
+        #print Normals[vol_ids, 2*edge_ids]
+        #print Normals[vol_ids, 2*edge_ids+1]
+        
+        n1  = Normals[vol_ids,2*edge_ids]
+        n2  = Normals[vol_ids,2*edge_ids+1]
+
+        # Transfer these quantities
+        Stage.boundary_values[ids]  = Stage.edge_values[vol_ids,edge_ids]
+        Elev.boundary_values[ids]   = Elev.edge_values[vol_ids,edge_ids]
+        Height.boundary_values[ids] = Height.edge_values[vol_ids,edge_ids]
+
+        # Rotate and negate Momemtum
+        q1 = Xmom.edge_values[vol_ids,edge_ids]
+        q2 = Ymom.edge_values[vol_ids,edge_ids]
+
+        # Rotate
+        #q[1] = n1 * q1 - n2*q2;
+        #q[2] = n2 * q1 + n1*q2;
+
+        r1 = -q1*n1 - q2*n2
+        r2 = -q1*n2 + q2*n1
+
+        Xmom.boundary_values[ids] = n1*r1 - n2*r2
+        Ymom.boundary_values[ids] = n2*r1 + n1*r2
+
+        # Rotate and negate Velocity
+        q1 = Xvel.edge_values[vol_ids,edge_ids]
+        q2 = Yvel.edge_values[vol_ids,edge_ids]
+
+        r1 = q1*n1 + q2*n2
+        r2 = q1*n2 - q2*n1
+
+        Xvel.boundary_values[ids] = n1*r1 - n2*r2
+        Yvel.boundary_values[ids] = n2*r1 + n1*r2
+
 
 
 class Transmissive_momentum_set_stage_boundary(Boundary):
