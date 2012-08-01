@@ -13,6 +13,7 @@ from anuga import Domain
 from anuga import Quantity
 from anuga import indent
 import numpy as num
+from warnings import warn
 import anuga.utilities.log as log
 
 from anuga.geometry.polygon import inside_polygon
@@ -50,40 +51,13 @@ class Rate_operator(Operator):
         #------------------------------------------
         # Local variables
         #------------------------------------------
-        self.rate = rate
         self.indices = indices
         self.factor = factor
 
-        #------------------------------------------
-        # Check and store default_rate
-        #------------------------------------------
-        msg = ('Keyword argument default_rate must be either None '
-               'or a function of time.\nI got %s.' % str(default_rate))
-        assert (default_rate is None or
-                isinstance(default_rate, (int, float)) or
-                callable(default_rate)), msg
+        self.set_rate(rate)
+        self.set_default_rate(default_rate)
 
-
-        #------------------------------------------
-        # Allow application longer than data
-        #------------------------------------------
-        if default_rate is not None:
-            # If it is a constant, make it a function
-            if not callable(default_rate):
-                tmp = default_rate
-                default_rate = lambda t: tmp
-
-            # Check that default_rate is a function of one argument
-            try:
-                default_rate(0.0)
-            except:
-                raise Exception(msg)
-
-        self.default_rate = default_rate
         self.default_rate_invoked = False    # Flag
-
-
-
 
     def __call__(self):
         """
@@ -108,13 +82,20 @@ class Rate_operator(Operator):
             log.critical('Rate of %s at time = %.2f = %f'
                          % (self.quantity_name, domain.get_time(), rate))
 
-        if self.indices is None:
-            self.stage_c[:] = self.stage_c[:]  \
-                   + factor*rate*timestep
-        else:
-            self.stage_c[indices] = self.stage_c[indices] \
-                   + factor*rate*timestep
-
+        if rate >= 0.0:
+            if self.indices is None:
+                self.stage_c[:] = self.stage_c[:]  \
+                       + factor*rate*timestep
+            else:
+                self.stage_c[indices] = self.stage_c[indices] \
+                       + factor*rate*timestep
+        else: # Be more careful if rate < 0
+            if self.indices is None:
+                self.stage_c[:] = num.maximun(self.stage_c  \
+                       + factor*rate*timestep, self.elev_c )
+            else:
+                self.stage_c[indices] = num.maximum(self.stage_c[indices] \
+                       + factor*rate*timestep, self.elev_c[indices])
 
     def get_rate(self, t=None):
         """Provide a rate to calculate added volume
@@ -141,10 +122,10 @@ class Rate_operator(Operator):
 
                     if self.default_rate_invoked is False:
                         # Issue warning the first time
-                        msg = ('%s\n'
+                        msg = ('\n%s'
                            'Instead I will use the default rate: %s\n'
                            'Note: Further warnings will be supressed'
-                           % (str(e), str(self.default_rate)))
+                           % (str(e), self.default_rate(t)))
                         warn(msg)
 
                         # FIXME (Ole): Replace this crude flag with
@@ -161,6 +142,50 @@ class Rate_operator(Operator):
             raise Exception(msg)
 
         return rate
+
+
+    def set_rate(self, rate):
+        """Ability to change rate while running
+        """
+
+        #------------------------------------------
+        # Check and store rate
+        #------------------------------------------
+        msg = ('Keyword argument rate must be a'
+               'scalar, or a function of time.')
+        assert (isinstance(rate, (int, float)) or
+                callable(rate)), msg
+        self.rate = rate
+
+
+    def set_default_rate(self, default_rate):
+        """
+        Check and store default_rate
+        """
+        msg = ('Default_rate must be either None '
+               'a scalar, or a function of time.\nI got %s.' % str(default_rate))
+        assert (default_rate is None or
+                isinstance(default_rate, (int, float)) or
+                callable(default_rate)), msg
+
+
+        #------------------------------------------
+        # Allow longer than data
+        #------------------------------------------
+        if default_rate is not None:
+            # If it is a constant, make it a function
+            if not callable(default_rate):
+                tmp = default_rate
+                default_rate = lambda t: tmp
+
+            # Check that default_rate is a function of one argument
+            try:
+                default_rate(0.0)
+            except:
+                raise Exception(msg)
+
+        self.default_rate = default_rate
+
 
     def parallel_safe(self):
         """Operator is applied independently on each cell and

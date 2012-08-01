@@ -59,7 +59,7 @@ class Test_sww(unittest.TestCase):
         Br = Reflective_boundary(domain)
         Bt = Transmissive_boundary(domain)
         Bd = Dirichlet_boundary([0.2,0.,0.])
-        Bw = Time_boundary(domain=domain,f=lambda t: [(0.1*sin(t*2*pi)), 0.0, 0.0])
+        Bw = Time_boundary(domain=domain,function=lambda t: [(0.1*sin(t*2*pi)), 0.0, 0.0])
 
         #domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
         domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})

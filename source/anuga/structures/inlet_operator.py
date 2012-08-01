@@ -45,13 +45,18 @@ class Inlet_operator(anuga.Operator):
 
         t = self.domain.get_time()
 
+
+
+        # Need to run global command on all processors
+        current_volume = self.inlet.get_total_water_volume()
+
         Q1 = self.update_Q(t)
         Q2 = self.update_Q(t + timestep)
 
         Q = 0.5*(Q1+Q2)
         volume = Q*timestep
         
-        assert volume >= 0.0, 'Q < 0: Water to be removed from an inlet!'
+        assert current_volume + volume >= 0.0, 'Requesting too much water to be removed from an inlet!'
 
         # store last discharge
         self.applied_Q = Q

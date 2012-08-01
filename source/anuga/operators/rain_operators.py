@@ -11,6 +11,7 @@ __date__ ="$09/03/2012 4:46:39 PM$"
 from anuga import Domain
 from anuga import Quantity
 import numpy as num
+from warnings import warn
 import anuga.utilities.log as log
 
 from anuga.geometry.polygon import inside_polygon
