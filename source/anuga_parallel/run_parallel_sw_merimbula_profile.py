@@ -7,8 +7,8 @@
 
    where m is the number of processors to be used.
    
-   Will produce sww files with names domain_Pn_m.sww where m is number of processors and
-   n in [0, m-1] refers to specific processor that owned this part of the partitioned mesh.
+   Will produce sww files with names domain_Pn_m.sww where n is number of processors and
+   m in [0, n-1] refers to specific processor that owned this part of the partitioned mesh.
 """
 
 #------------------------------------------------------------------------------
@@ -45,8 +45,8 @@ from anuga_parallel import distribute, myid, numprocs, finalize, barrier
 mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
 #mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
 
-finaltime = 50
-yieldstep = finaltime
+finaltime = 500
+yieldstep = 50
 verbose = True
 
 #--------------------------------------------------------------------------
@@ -81,6 +81,12 @@ if myid == 0 and verbose: print 'DISTRIBUTING DOMAIN'
 domain = distribute(domain)
 
 #domain.smooth = False
+for id in range(numprocs):
+    if myid == id:
+        print 'Process ID %g' %myid
+        print 'Number of triangles %g ' %domain.get_number_of_triangles()
+
+    barrier()
 
 
 domain.set_flow_algorithm(2.0)
@@ -127,15 +133,26 @@ prof_file = 'evolve-prof'+ str(numprocs) + '_' + str(myid) + '.dat'
 cProfile.run(s,prof_file)
 
 
+barrier()
+
 if myid == 0:
     import pstats
     p = pstats.Stats(prof_file)
-    p.sort_stats('cumulative').print_stats(25)
+    #p.sort_stats('cumulative').print_stats(25)
 
 
     p.sort_stats('time').print_stats(25)
 
+barrier()
 
+
+if myid == 1:
+    import pstats
+    p = pstats.Stats(prof_file)
+    #p.sort_stats('cumulative').print_stats(25)
+
+
+    p.sort_stats('time').print_stats(25)
 
     #p.print_stats()
 
@@ -145,14 +162,26 @@ if myid == 0:
 #result.dump_stats("profile." + str(numprocs) + "." + str(myid) + ".dat")
 #profiler.close()
 
-
+barrier()
 
 if myid == 0:
+    print 'Process ID %g' %myid
     print 'Number of processors %g ' %numprocs
     print 'That took %.2f seconds' %(time.time()-t0)
     print 'Communication time %.2f seconds'%domain.communication_time
     print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
     print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
+
+barrier()
+
+if myid == 1:
+    print 'Process ID %g' %myid
+    print 'Number of processors %g ' %numprocs
+    print 'That took %.2f seconds' %(time.time()-t0)
+    print 'Communication time %.2f seconds'%domain.communication_time
+    print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
+    print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
+
 
 
 finalize()
