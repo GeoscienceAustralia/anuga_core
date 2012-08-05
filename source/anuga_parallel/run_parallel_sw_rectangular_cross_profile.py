@@ -92,7 +92,8 @@ for p in range(numprocs):
     if myid == p:
         print 'Process ID %g' %myid
         print 'Number of triangles %g ' %domain.get_number_of_triangles()
-
+        sys.stdout.flush()
+        
     barrier()
 
 
@@ -100,7 +101,8 @@ domain.set_flow_algorithm(2.0)
 
 if myid == 0:
     domain.print_algorithm_parameters()
-
+    sys.stdout.flush()
+    
 barrier()
 
 domain.set_name('rectangular_cross')
@@ -118,7 +120,8 @@ barrier()
 for p in range(numprocs):
     if myid == p:
         print domain.boundary_statistics()
-
+        sys.stdout.flush()
+        
     barrier()
 
 #------------------------------------------------------------------------------
@@ -144,32 +147,15 @@ cProfile.run(s,prof_file)
 
 barrier()
 
-if myid == 0:
-    import pstats
-    p = pstats.Stats(prof_file)
-    #p.sort_stats('cumulative').print_stats(25)
+for id in range(numprocs):
+    if myid == id:
+        import pstats
+        p = pstats.Stats(prof_file)
+        #p.sort_stats('cumulative').print_stats(25)
+        p.sort_stats('time').print_stats(25)
+        sys.stdout.flush
 
-
-    p.sort_stats('time').print_stats(25)
-
-barrier()
-
-
-if myid == 1:
-    import pstats
-    p = pstats.Stats(prof_file)
-    #p.sort_stats('cumulative').print_stats(25)
-
-
-    p.sort_stats('time').print_stats(25)
-
-    #p.print_stats()
-
-# Run evolve loop
-#result = profiler.runctx(s, globals(), locals())
-
-#result.dump_stats("profile." + str(numprocs) + "." + str(myid) + ".dat")
-#profiler.close()
+    barrier()
 
 barrier()
 
