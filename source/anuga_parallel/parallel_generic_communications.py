@@ -42,8 +42,8 @@ def communicate_flux_timestep(domain, yieldstep, finaltime):
 
     #Determine minimum timestep across all processors
     pypar.reduce(domain.local_timestep, pypar.MIN, 0,
-                      buffer=domain.global_timestep,
-                      bypass=True)
+                      buffer=domain.global_timestep)#,
+                      #bypass=True)
 
     #pypar.allreduce(domain.local_timestep, pypar.MIN,
     #                  buffer=domain.global_timestep,
@@ -54,7 +54,7 @@ def communicate_flux_timestep(domain, yieldstep, finaltime):
 
     #Broadcast minimal timestep to all processors
     t0 = time.time()
-    pypar.broadcast(domain.global_timestep, 0, bypass=True)
+    pypar.broadcast(domain.global_timestep, 0)#, bypass=True)
 
     domain.communication_broadcast_time += time.time()-t0
 
@@ -89,7 +89,7 @@ def communicate_ghosts(domain):
                         Q_cv =  domain.quantities[q].centroid_values
                         Xout[:,i] = num.take(Q_cv, Idf)
 
-                    pypar.send(Xout, int(send_proc), use_buffer=True, bypass=True)
+                    pypar.send(Xout, int(send_proc), use_buffer=True)#, bypass=True)
 
 
         else:
@@ -99,7 +99,7 @@ def communicate_ghosts(domain):
                 Idg = domain.ghost_recv_dict[iproc][0]
                 X   = domain.ghost_recv_dict[iproc][2]
 
-                X = pypar.receive(int(iproc), buffer=X, bypass=True)
+                X = pypar.receive(int(iproc), buffer=X)#, bypass=True)
 
                 for i, q in enumerate(domain.conserved_quantities):
                     #print 'Receive',i,q

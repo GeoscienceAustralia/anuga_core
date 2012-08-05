@@ -3,7 +3,7 @@
 
    run using command like:
 
-   mpirun -np m python run_parallel_sw_merimbula.py
+   mpirun -np m python run_parallel_sw_rectangular_cross.py
 
    where m is the number of processors to be used.
    
@@ -30,7 +30,7 @@ from anuga import Dirichlet_boundary
 from anuga import Time_boundary
 from anuga import Transmissive_boundary
 
-from anuga import rectangular_cross
+from anuga import rectangular_cross_domain
 from anuga import create_domain_from_file
 
 
@@ -41,12 +41,12 @@ from anuga_parallel import distribute, myid, numprocs, finalize, barrier
 # Setup parameters
 #--------------------------------------------------------------------------
 
-mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0
+#mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0
 #mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
 #mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
 
-finaltime = 500
-yieldstep = 50
+finaltime = 0.5
+yieldstep = 0.05
 verbose = True
 
 #--------------------------------------------------------------------------
@@ -68,8 +68,14 @@ class Set_Stage:
 # Setup Domain only on processor 0
 #--------------------------------------------------------------------------
 if myid == 0:
-    domain = create_domain_from_file(mesh_filename)
-    domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))
+    length = 2.0
+    width = 2.0
+    dx = dy = 0.04
+    domain = rectangular_cross_domain(int(length/dx), int(width/dy),
+                                              len1=length, len2=width)
+
+    domain.set_quantity('elevation', -1.0)
+    domain.set_quantity('stage', Set_Stage(h=2.0))
 else:
     domain = None
 
@@ -97,7 +103,7 @@ if myid == 0:
 
 barrier()
 
-domain.set_name('meribula')
+domain.set_name('rectangular_cross')
 
 #------------------------------------------------------------------------------
 # Setup boundary conditions
@@ -105,7 +111,7 @@ domain.set_name('meribula')
 #------------------------------------------------------------------------------
 Br = Reflective_boundary(domain)      # Solid reflective wall
 
-domain.set_boundary({'exterior' :Br, 'open' :Br})
+domain.set_boundary({'top' :Br, 'bottom' :Br, 'left' :Br, 'right' :Br })
 
 
 barrier()
