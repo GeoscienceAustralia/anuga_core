@@ -68,7 +68,7 @@ class Set_Stage:
 # Setup Domain only on processor 0
 #--------------------------------------------------------------------------
 if myid == 0:
-    length = 2.0
+    length = 2.0*numprocs
     width = 2.0
     dx = dy = 0.04
     domain = rectangular_cross_domain(int(length/dx), int(width/dy),
@@ -106,6 +106,7 @@ if myid == 0:
 barrier()
 
 domain.set_name('rectangular_cross')
+domain.set_store(False)
 
 #------------------------------------------------------------------------------
 # Setup boundary conditions
@@ -115,7 +116,7 @@ Br = Reflective_boundary(domain)      # Solid reflective wall
 
 domain.set_boundary({'top' :Br, 'bottom' :Br, 'left' :Br, 'right' :Br })
 
-
+"""
 barrier()
 for p in range(numprocs):
     if myid == p:
@@ -123,6 +124,7 @@ for p in range(numprocs):
         sys.stdout.flush()
         
     barrier()
+"""
 
 #------------------------------------------------------------------------------
 # Evolution
