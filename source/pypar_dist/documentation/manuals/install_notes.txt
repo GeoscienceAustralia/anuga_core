@@ -1,0 +1,23 @@
+Install notes for Debian Linux:
+
+# Python packages
+python2.5
+python-dev
+python-numpy
+python-numpy-dev
+python-imaging (PIL)
+
+
+# MPI
+lam4c2
+lam4-dev
+lam-runtime
+
+
+# .bashrc
+
+# If using local pypar installation
+export PYTHONPATH=$PYTHONPATH:/home/work/sandpit/pypar/source
+
+# MPI
+alias mpirun='/usr/bin/mpirun -x PYTHONPATH'

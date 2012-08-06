@@ -1,0 +1,68 @@
+Hello,
+I'm not sure you'll like all the things I've
+done with your pypar, so any remark you've to
+to, it's welcome.
+
+My problem: I'm trying to do a little master-slave
+parallel program with pypar, something like the
+standard LAM one-step tutorial.
+To do so, I've found that the actual pypar implementation
+lacks of two things (please, please correct me if I'm wrong):
+
+1. MPI constants in the pypar module (like MPI_ANY_SOURCE, MPI_ANY_TAG)
+2. The capability to read the MPI_Status structure after
+an MPI_Recv.
+
+for 1. one can always stick the constant -1 inside the code
+but for 2. I've found that the actual implementation doesn't export
+MPI_Status to python.
+
+
+So I've just modified mpi.c (and pypar.py, testpypar.py) to
+1. export some MPI constants (trivial)
+2. export MPI_Status structure members along with the error code, in a
+"i(iiii)" (touple of an integer and a four-integer other touple) (ugly)
+3. modify raw_receive methods accordingly (trivial again,
+but pypar API slighty changes).
+
+
+Even worse, I've modified an old mpi.c version (before bcat),
+so please take into account this.
+
+I've attached all the stuff (along with the ms.py demo program).
+If you want to spend some time reviewing it, I'll be thankful.
+
+Best Regards
+/gp
+
+-- 
+"customers, snakes."
+                                                 g.p.
+
+"Non è il caldo ma
+sei tu che alzi la temperatura,
+non i fiori ma
+sei tu che profumi l'atmosfera,
+alzati, girati,
+muoviti, risiediti,
+non è il caldo ma
+sei tu che sei bella vera."
+                                                 max
+
+"anyone can create a cryptography product that he himself cannot break."
+                                                 Bruce Schneier
+
+"If you don't know the things, study them."
+                                                 g.p.
+
+"But writing non-free software is another matter.  Non-free software is
+a plan for subjugating and dividing the people who use it--an
+antisocial practice.  Our goal is to bring that practice to a halt."
+                                                 Richard Stallman
+
+   Gian Paolo Ciceri        via B.Diotti 45 - 20153 Milano MI ITALY
+       CTO @ Louise         mobile :   ++39 348 3658272
+                            eMail  :   gp.ciceri@acm.org, 
+gp.ciceri@louise.it
+                            webSite:   http://www.louise.it
+                            ICQ    :   94620118

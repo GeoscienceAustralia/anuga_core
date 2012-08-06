@@ -1,0 +1,755 @@
+\documentclass[12pt]{article}
+
+\usepackage{url}
+\usepackage{times}
+\usepackage[dvips]{graphicx}
+
+%\textheight=25cm
+\textwidth=14cm
+%\topmargin=-4cm
+%\oddsidemargin=0cm
+
+
+
+\begin{document}
+
+\title{Pypar Tutorial\\
+Building a Parallel Program using Python}
+
+
+\author{Ole Nielsen \\
+Australian National University, Canberra \\
+Ole.Nielsen@anu.edu.au}
+
+\maketitle
+\section*{Introduction}
+
+This is a tutorial demonstrating essential 
+features of parallel programming and building 
+a simple Python MPI program using the MPI binding \texttt{pypar} available at
+\url{http://datamining.anu.edu.au/software/pypar}.
+
+It is assumed that \texttt{pypar} has been installed on your system.
+If not, see the installation document (\texttt{pypar\_installation.pdf}) 
+that comes with pypar
+(or get it from the web site at 
+\url{http://datamining.anu.edu.au/~ole/pypar/pypar_installation.pdf}).
+
+For a reference to all of Pypar's functionality, see the 
+reference manual (\texttt{pypar\_reference.pdf}) 
+that comes with pypar (or get it from the web site at 
+\url{http://datamining.anu.edu.au/~ole/pypar/pypar_reference.pdf}).
+
+
+\section{The Message Passing Interface --- MPI}
+MPI is the defacto standard for parallel programming of both
+distributed computer clusters of and shared memory architectures.
+MPI programming takes the form of special commands that are
+imported from the MPI library. They provide information to the program 
+about how many processes are available, which number each process has been 
+allocated and functions to communicate with other processes.
+See \url{http://www.netlib.org/utk/papers/mpi-book/mpi-book.html} for
+a comprehensive reference to MPI (based on 
+the C or Fortran programming languages).
+
+It is said that MPI is both large and small. What is meant is that the
+MPI standard has hundreds of functions in it. However, many of the
+advanced routines represent functionality that can be ignored unless
+one pursues added flexibility (data types), overlap of computation and
+communication (nonblocking send/receive), modularity (groups,
+communicators), or convenience (collective operations, topologies).
+MPI is said to be small because the majority of useful and efficient 
+parallel programs are written using only a small essential subset of MPI.
+In fact, it can be argued that parallel performance is best achieved by 
+keeping the parallelism simple. 
+
+Pypar is a Python binding to such a subset.
+
+
+\section{A simple Pypar MPI program}
+Let us start with a simple example: a Python program 
+that imports the pypar module and 
+reports the number of processors, local id and host name
+This is the Pypar equivalent of the infamous 'hello world' 
+program if you like. 
+Make a file called \texttt{ni.py} using your favourite
+editor\footnote{The author believs that your favourite editor should 
+be GNU/Emacs, but it is up to you, of course.}
+and type in the following contents:
+{\footnotesize
+\begin{verbatim}
+import pypar
+
+p = pypar.rank()
+P = pypar.size()
+node = pypar.get_processor_name()
+
+print "I am process %d of %d on node %s" %(p, P, node)
+
+pypar.finalize()
+\end{verbatim}}
+\noindent and run it as follows:
+\begin{verbatim}
+mpirun -np 4 python ni.py
+\end{verbatim}
+You should get a greeting from each of the four nodes looking 
+something like
+\begin{verbatim}
+Pypar (version 1.9) initialised MPI OK with 4 processors
+I am process 0 of 4 on node ninja-1
+I am process 3 of 4 on node ninja-4
+I am process 1 of 4 on node ninja-2
+I am process 2 of 4 on node ninja-3
+\end{verbatim}
+The order of output may be arbitrary!  If four copies of the
+program is run, print is called four times. The order in which each
+process executes the message is undetermined, based on when they each
+reach that point in their execution of the program, and how they
+travel on the network.
+\emph{Note that all the print's, though they come from different
+  processes, will send their output intact to your shell window; this
+  is generally true of output commands.
+  Input commands, like \texttt{raw_input},
+  will only work on the process with rank zero.}
+
+  
+\subsection{The MPI execution model}
+
+It is important to understand that in MPI (and therefore also in 
+Pypar), multiple identical copies of this program 
+will start simultaneously in separate processes.
+These processes may run on one machine or on multiple machines.
+This is a fundamental difference from ordinary programs, 
+where, if someone sais ``run the program'', it is
+assumed that there was only one instance of the program running.
+
+
+XXXXX
+In a nutshell, this program sets up a communication group of 4 
+processes, where each process gets its rank (\texttt{p}), prints it, 
+and exits. 
+
+.......Explain in detail like below..
+
+
+
+
+The first line,
+\texttt{\#include <stdio>}
+should be familiar to all C programmers. It includes the standard
+input/output routines like printf. The second line,
+\texttt{\#include <mpi.h>}
+includes the MPI functions. The file \texttt{mpi.h} 
+contains prototypes for all the
+MPI routines in this program; this file is located in
+\texttt{/usr/include/lam/mpi.h} in case you actually want to look at it.
+The program starts with the main... line which takes the two arguments
+argc and argv (which is normal in C): The argument \texttt{argc} is
+the number of commandline arguments given to the program (including itself)
+and \texttt{argv} is an array of strings containing them. For example
+argv[0] will contain the program name itself. We will not be using them 
+directly but MPI needs access to them through \texttt{MPI\_init}.
+Then the program declares one integer variable, \texttt{myid}. The
+first step of the program,
+\begin{verbatim} 
+      MPI_Init(&argc,&argv);
+\end{verbatim}       
+calls MPI\_Init to set up everything. 
+This should be the first command executed in all MPI programs. This
+routine takes pointers to \texttt{argc} and \texttt{argv}, 
+looks at them, pulls out the purely
+MPI-relevant things, and generally fixes them so you can use command line
+arguments as normal.
+
+\medskip
+
+Next, the program runs \texttt{MPI\_Comm\_rank}, 
+passing it the default communicator MPI\_COMM\_WORLD 
+(which is the group of \emph{all} processes started)
+and a \emph{pointer} to \texttt{myid}. Passing a pointer is the way 
+C can change the value of te argument \texttt{myid}.
+\texttt{MPI\_Comm\_rank} will set \texttt{myid} to the rank of the machine 
+on which the program is running. 
+Remember that in reality, several instances of this program
+start up in several different processes when this program is run. Each
+will receive a unique number from \texttt{MPI\_Comm\_rank}.
+Because multiple copies are running, each will execute all lines 
+in the program including the \texttt{printf} statement which prints a 
+message and the rank. 
+After doing everything else, the program calls \texttt{MPI\_Finalize},
+which generally terminates everything and shuts down MPI. This should be the
+last command executed in all MPI programs.
+
+\subsection*{Compile the MPI program}
+
+Normally, C programs are compiled with a command such as 
+\texttt{gcc hello.c -o hello.x}. However, MPI programs need access to 
+more libraries which are provided through the wrapper program 
+\texttt{mpicc}. This can be used as usual. Try to run
+\begin{verbatim} 
+  mpicc hello.c -o hello.x
+\end{verbatim}
+If you made a syntactically correct program a \emph{compiled} 
+program will appear with the name you specified after the -o option.
+If not you will see some error messages and you'll have to correct 
+those before continuing.
+
+\subsection*{Run the MPI program}
+In order to run an MPI compiled program, you must type: 
+\begin{verbatim}
+mpirun -np <number of processes> [options] <program name and arguments>
+\end{verbatim} 
+where you specify the number of processes on which you want to run 
+your parallel program, optional mpirun options, 
+and your program name and its expected arguments. 
+In this case try:
+\begin{verbatim}
+    mpirun -np 1 hello.x
+\end{verbatim}
+This will run one copy of your program and the output should like this
+\begin{verbatim} 
+Sawatdii khrap thuk thuk khon (Process 0)
+\end{verbatim}  
+
+Now try to start four processes by running \texttt{mpirun -np 4 hello.x}.
+You should see the following output:
+\begin{verbatim}
+Sawatdii khrap thuk thuk khon (Process 0)
+Sawatdii khrap thuk thuk khon (Process 3)
+Sawatdii khrap thuk thuk khon (Process 1)
+Sawatdii khrap thuk thuk khon (Process 2)
+\end{verbatim}
+Note that the order of output may be arbitrary!  If four copies of the
+program is run, printf is called four times.  The order in which each
+process executes the message is undetermined, based on when they each
+reach that point in their execution of the program, and how they
+travel on the network. Your guess is as good as mine.  
+\emph{Note that all the printf's, though they come from different
+  processes, will send their output intact to your shell window; this
+  is generally true of output commands. Input commands, like scanf,
+  will only work on the process with rank zero.}
+
+\subsubsection*{Exercise}
+The MPI command \texttt{MPI\_Comm\_size(MPI\_COMM\_WORLD, \&proc);} will
+store the total number of processes started in the integer variable
+\texttt{number\_of\_processes}. Modify the program 
+to give the following output:
+\begin{verbatim}
+Sawatdii khrap thuk thuk khon (Process 0 of 4)
+Sawatdii khrap thuk thuk khon (Process 3 of 4)
+Sawatdii khrap thuk thuk khon (Process 1 of 4)
+Sawatdii khrap thuk thuk khon (Process 2 of 4)
+\end{verbatim}
+when started with four processes.
+ 
+
+\subsection*{Running on multiple computers}  
+
+So far we have only \emph{simulated} the parallelism by running 
+multiple processes on one machine. 
+We will now add host specific information to the program and then run it 
+in parallel.
+
+Add the following declarations to your program:
+\begin{verbatim}
+int  namelen;
+char processor_name[MPI_MAX_PROCESSOR_NAME];
+\end{verbatim}
+
+Add the command
+\begin{verbatim}
+MPI_Get_processor_name(processor_name, &namelen);  
+\end{verbatim}
+This will store the hostname of the processor executing the given process 
+along with the length of the hostname. Then modify the print statement to   
+\begin{verbatim}
+  printf("Sawatdii khrap thuk thuk khon (Process %d of %d running on %s)\n", 
+         myid, number_of_processes, processor_name);
+\end{verbatim}
+Compiling and running the program you should see the folowing output
+\begin{verbatim}
+Sawatdii khrap thuk thuk khon (Process 0 of 4 running on ninja-n)
+Sawatdii khrap thuk thuk khon (Process 1 of 4 running on ninja-n)
+Sawatdii khrap thuk thuk khon (Process 2 of 4 running on ninja-n)
+Sawatdii khrap thuk thuk khon (Process 3 of 4 running on ninja-n)
+\end{verbatim}
+We are still running all out MPI processes on one computer but we are 
+now ready to run this program in parallel.
+
+Edit the file \texttt{~/.lamhosts} to contain all machines in our network
+and run \texttt{lamboot -v ~/.lamhosts} again. You should see the following 
+diagnostic message:
+\begin{verbatim} 
+LAM 6.5.8/MPI 2 C++/ROMIO - Indiana University
+
+Executing hboot on n0 (ninja-1 - 1 CPU)...
+Executing hboot on n1 (ninja-2 - 1 CPU)...
+Executing hboot on n2 (ninja-3 - 1 CPU)...
+Executing hboot on n3 (ninja-4 - 1 CPU)...
+Executing hboot on n4 (ninja-5 - 1 CPU)...
+Executing hboot on n5 (ninja-6 - 1 CPU)...
+Executing hboot on n6 (ninja-7 - 1 CPU)...
+Executing hboot on n7 (ninja-8 - 1 CPU)...
+topology done
+\end{verbatim}
+\noindent Finally try to run your program again and verify that it runs 
+on different nodes.
+What happens if you run more processes than there are physical machines?
+
+       
+\section*{Optional: synchronise the clocks}
+
+\textbf{\emph{Note: This an optional exercise for those who can't get enough!}}
+
+The clocks in our cluster are not synchronised: They show differenttimes.
+Try for example to run
+\begin{verbatim}
+ssh -x ninja-2 date; ssh -x ninja-5 date; ssh -x ninja-3 date; date
+You will see that the times listed differ significantly.
+\end{verbatim}
+
+Try and search for things like
+\texttt{synchronize time network}
+and see if you can figure out how to do it.
+
+
+\section*{MPI resources}
+
+\begin{itemize} 
+  \item \url{http://www.cs.appstate.edu/~can/classes/5530} (exellent introduction 
+  and many useful links)
+  \item http://www-unix.mcs.anl.gov/mpi/mpich (The MPICH implementation)
+  \item http://www.lam-mpi.org (The LAM-MPI implementation)
+  \item http://www.netlib.org/utk/papers/mpi-book/mpi-book.html\\
+    (The complete MPI reference)
+\end{itemize} 
+
+
+
+\section*{Exercise 6}
+
+In this exercise we will continue the introduction to MPI
+by using the local id to differentiate work and 
+by familiarising ourselves with the basic send and receive 
+primitives.
+We will then proceed to measure the fundamental characteristics of 
+the network: namely latency and bandwidth. 
+
+
+
+\subsection*{Using local id to differentiate work}        
+In Exercise 5 we had every processor write to the screen. This 
+is convenient for debugging purposes 
+and I suggest you start every parallel program 
+with a message from each processor about its rank, the total number 
+of processors and the hostname it is running on (see below).
+
+However, it is often also desirable to have only on 
+processor output to screen
+for example to report the final result of a calculation.
+
+\subsubsection*{Exercise}  
+Write a parallel program that 
+produces something like the following output when run on four processors:
+\begin{verbatim}
+  P2/4: Initialised OK on host ninja-6
+  P0/4: Initialised OK on host ninja-4
+  P0: Program terminating  
+  P1/4: Initialised OK on host ninja-5
+  P3/4: Initialised OK on host ninja-7      
+\end{verbatim}
+Arrange the program such that 
+all processors report on their initialisation but 
+only one, processor 0, reports on its termination just prior 
+to \texttt{MPI\_Finalize()}. 
+Note, as in Exercise 5, that the order of output is 
+arbitrary.
+%\emph{Hint: Use the value of myid to decide whether to print or not}.
+
+\subsection*{A simple send and receive pair}
+In this part we will use the fundamental MPI send and receive commands 
+to communicate among the processors. The commands are: 
+\begin{itemize}
+  \item \texttt{MPI\_Send}: 
+  This routine performs a basic send; this routine may block until 
+  the message
+  is received, depending on the specific implementation of MPI.
+  \begin{verbatim}  
+  int MPI_Send(void* buf, int count, MPI_Datatype datatype,
+                     int dest, int tag, MPI_Comm comm)
+  Input:
+      buf  - initial address of send buffer
+      count - number of elements in send buffer (nonnegative integer)
+      datatype - datatype of each send buffer element
+      dest - rank of destination (integer)
+      tag  - message tag (integer)
+      comm - communicator
+  \end{verbatim} 
+  \textbf{Example}: To send one integer, A say, to processor 3 with tag 13:
+  \begin{verbatim}
+    MPI_Send(&A, 1, MPI_INT, 3, 13, MPI_COMM_WORLD);  
+  \end{verbatim}
+  \item \texttt{MPI\_Recv}:
+    This routine performs a basic receive.
+  \begin{verbatim}
+  int MPI_Recv(void* buf, int count, MPI_Datatype datatype,
+                     int source, int tag, MPI_Comm comm,
+                     MPI_Status *status)
+
+  Input:
+      count - maximum number of elements in receive buffer
+             (integer)
+      datatype - datatype of each receive buffer element
+      source - rank of source (integer)
+      tag  - message tag (integer)
+      comm - communicator
+                     
+  Output:
+      buf  - initial address of receive buffer
+      status - status object, provides information about
+               message received;
+      status is a structure of type MPI_Status, the element
+      status.MPI_SOURCE is the source of the message received,
+      and the element status.MPI_TAG is the tag value.
+
+  \end{verbatim}
+  \textbf{Example}: To receive one integer, B say, from processor 7 
+  with tag 13:
+  \begin{verbatim}
+    MPI_Recv(&B, 1, MPI_INT, 7, 13, MPI_COMM_WORLD, &status);  
+  \end{verbatim}
+\end{itemize} 
+
+\noindent These calls are described in more detail in Ian Foster online book
+in \textbf{MPI Basics}: 
+\url{http://www-unix.mcs.anl.gov/dbpp/text/node96.html}.
+The chapter about \textbf{Asynchronous communication},
+\url{http://www-unix.mcs.anl.gov/dbpp/text/node98.html}, describes how 
+to query the Status Object.
+
+MPI defines the following constants for use with \texttt{MPI\_Recv}:
+\begin{itemize} 
+  \item \texttt{MPI\_ANY\_SOURCE}: Can be used to specify that a message 
+  can be received from anywhere instead of a specific source. 
+  \item \texttt{MPI\_ANY\_TAG}: Can be used to specify that a message 
+  can have any tag instead of a specific tag.
+\end{itemize}   
+
+\subsubsection*{Exercise}
+The following program segment implements a very simple
+communication pattern: Processor 0 sends a number to processor 1 and 
+both outputs a diagnostic message.
+
+Add to your previous program the declarations:
+\begin{verbatim}
+  int A, B, source, destination, tag=13;
+  MPI_Status status;
+\end{verbatim}
+and the following code segment
+\begin{verbatim} 
+  if (myid == 0) {
+    A = 42;
+    destination = 1;
+    printf("P%d: Sending value %d to MPI process %d\n", 
+           myid, A, destination);   
+    MPI_Send(&A, 1, MPI_INT, 1, 13, MPI_COMM_WORLD);
+  } else if (myid == 1) {
+    source = 0;
+    MPI_Recv(&B, 1, MPI_INT, source, 13, MPI_COMM_WORLD, &status);    
+    printf("P%d: Received value %d from MPI process %d\n", myid, B, source);
+  }
+\end{verbatim}
+make sure it can compile and run on 2 processors.
+Verify that your output looks something like  
+\begin{verbatim}
+P0/2: Initialised OK on host ninja-1
+P0: Sending value 42 to MPI process 1
+P0: Terminating
+P1/2: Initialised OK on host ninja-2
+P1: Received value 42 from MPI process 0
+\end{verbatim}
+
+
+
+\subsection*{Send messages around in a ring - Exercise}
+
+Write an MPI program which passes data
+around in a ring structure from process 0 then to process 1 etc.
+When the message reaches the last processor it should be passed back to 
+processor 0 - this forms a 'communication ring'. 
+Every process should add one to the value before passing it on 
+and write out a diagnostic message.
+
+With a starting value of 42 and running on four processors your program 
+should produce the following output:
+\begin{verbatim}
+P0/4: Initialised OK on host ninja-1
+P0: Sending value 42 to MPI process 1
+P1/4: Initialised OK on host ninja-2
+P3/4: Initialised OK on host ninja-4
+P1: Received value 42 from MPI process 0
+P1: Sending value 43 to MPI process 2
+P2/4: Initialised OK on host ninja-3
+P2: Received value 43 from MPI process 1
+P2: Sending value 44 to MPI process 3
+P3: Received value 44 from MPI process 2
+P3: Sending value 45 to MPI process 0
+P0: Received value 45 from MPI process 3
+\end{verbatim}
+\emph{Hint}: You can use the \texttt{modulus} operator to calculate 
+the destination such that the next processor after the last becomes 0:
+\begin{verbatim}
+  destination = (myid + 1) % number_of_processors;
+\end{verbatim}
+
+
+\subsection*{Timing}
+A main reason for doing parallel computing is that of faster execution.
+Therefore \emph{timing} is an integral part of this game.
+MPI provides a function \texttt{MPI\_Wtime} which counts seconds.
+To time a code segment with \texttt{MPI\_Wtime} do something like this:
+\begin{verbatim}
+  double t0;
+  
+  t0=MPI_Wtime();
+  // (Computations)
+  printf("Time = %.6f sec\n", MPI_Wtime() - t0);
+\end{verbatim}
+
+\subsubsection*{Exercise}
+Time the previous 'ring' program in such a way that only process 0
+measures the time and writes it to the screen
+
+
+\subsection*{Measure network latency and bandwidth}
+
+The time it takes to transmit a message can be approximated by the model
+\[
+  t = t_l + \alpha t_b
+\]
+where 
+\begin{itemize} 
+  \item $t_l$ is the \emph{latency}. The latency is the 
+  time it takes to start the transmission before anything 
+  gets communicated. This involves opening the network connection,
+  buffering the message and so on.
+  \item $t_b$ is the time it takes to communicate one byte once 
+  the connection is open. This is related to the \emph{bandwidth} $B$, 
+  defined as the number of bytes transmitted per second, as
+  \[
+    B = \frac{1}{t_b}
+  \]
+  \item $\alpha$ is the number of bytes communicated.
+\end{itemize}    
+
+\subsubsection*{Exercise}
+\textbf{Can you work out what the network latency is?}
+\emph{Hint:} Send a very small message (e.g.\ one integer)
+from one processor to another and and back again a number of times 
+and measure the time.    
+
+\subsubsection*{Exercise}
+\textbf{Can you work out how many megabytes the network can transmit per 
+second?} 
+Create arrays of varying size, send them from one processor 
+to another and back and measure the time.
+\emph{Hints:}
+\begin{itemize} 
+  \item To create an array of double precision floating point numbers 
+    do the following.
+    \begin{verbatim}
+      #define MAX_LEN  500000    /* Largest block */
+      double A[MAX_LEN];
+    \end{verbatim}
+  \item To populate the array with pseudo random numbers:  
+  \begin{verbatim} 
+   for (j=0; j<MAX_LEN; j++) A[j]=rand();
+   \end{verbatim}
+   \item To send only part of the array use the second argument in 
+   MPI\_Send and MPI\_Recv to control how much information is transferred.
+   \item MPI\_Send and MPI\_Recv require a \emph{pointer} to the first 
+   element of the array. Since arrays are already defined as pointers
+   simply put \texttt{A} rather than \texttt{\&A} which is what 
+   we used earlier for the 
+   simple integer variable.
+   \item One double precision number takes up 8 bytes - use that in your 
+   estimate.
+\end{itemize} 
+
+Your measurements may fluctuate based on the network traffic and the 
+load on the machines. 
+
+
+\section*{Good MPI resources}
+\begin{itemize} 
+  \item MPI Data types:\\ 
+    \url{http://www.ats.ucla.edu/at/hpc/parallel_computing/mpi-intro.htm}
+  \item Online book by Ian Foster:\\ 
+    \url{http://www-unix.mcs.anl.gov/dbpp/text/node94.html}
+\end{itemize}        
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Identifying the processors}
+
+ 
+%%%%%%%%%%%
+
+
+It is almost impossible to demonstrate parallelism with an interactive
+session at the command prompt as we did with the Python and Maple tutorials.
+Therefore we must write a \emph{program} that can be executed in parallel.
+Start an editor of your choice with a new file
+(called \texttt{paraprime.py}, say). For example:
+\begin{verbatim}
+  emacs paraprime.py &
+\end{verbatim}
+
+\noindent Write the following in the file and save it
+{\small \begin{verbatim}
+import pypar
+
+numproc = pypar.size()
+myid =    pypar.rank()
+
+print "I am proc %d of %d" %(myid, numproc)
+\end{verbatim}}
+
+Then type the following at the Unix prompt to execute the
+program normally on one processor
+{\small \begin{verbatim}
+  python paraprime.py
+\end{verbatim}}
+\noindent You should see the following output
+{\small \begin{verbatim}
+> python paraprime.py
+I am proc 0 of 1
+\end{verbatim}}
+
+
+\noindent Now let us try and run the same program on four processors:
+{\small \begin{verbatim}
+> prun -n 4 python paraprime.py
+I am proc 0 of 4
+I am proc 1 of 4
+I am proc 2 of 4
+I am proc 3 of 4
+\end{verbatim}}
+If you get a message from each of the four processors stating their
+id as above, we know that everything works. We have a parallel program!
+
+\section{Strategies for efficient parallel programming}
+A final note on efficiency.
+
+Parallel programming should lead to faster execution and/or
+ability to deal with larger problems.
+
+The ultimate goal is to be \emph{P} times faster with \emph{P} processors.
+However \emph{speedup} is usually less than \emph{P}. One must address
+three critical issues to achieve good speedup:
+\begin{itemize}
+  \item \textbf{Interprocessor communication:} The amount and the frequency
+  of messages should be kept as low as possible. Ensure that processors
+  have plenty of work to do between communications.
+  \item \textbf{Data distribution and load balancing:} If some processors
+  finish much sooner than others, the total execution time of the parallel
+  program is bounded by that of the slowest processor and we say that the
+  program is poorly load balanced.
+  Ensure that each processor get its fair share of the work load.
+  \item \textbf{Sequential parts of a program:} If half of a program, say, is
+  inherently sequential the speedup can never exceed 2 no matter how well
+  the remaining half is parallelised. This is known as Amdahls law.
+  Ensure that the all cost intensive parts get parallelised.
+\end{itemize}
+
+
+
+
+
+\section*{Exercise 8}
+
+In Exercise 6-7 you sent messages around in rings and back and forth between 
+two processors and also timed the network speed when communicating between to
+processors.
+The purpose of this exercise is to try a collective communication patters
+where on processor sends and gathers data from all the others using the 
+basic MPI\_Send and MPI\_Recv.
+
+\subsection*{Distribute and gather integers}
+
+Create a program where process 0 distributes an integer to all other processes,
+then receives an integer back from each of them.
+The other processes should receive the integer from process 0, add their 
+rank to it and pass it back to process 0.
+
+With some suitable diagnostic output your program should produce 
+something like this when run on four processors: 
+
+\begin{verbatim} 
+P0/4: Initialised OK on host ninja-1
+P0: Sending value 42 to MPI process 1
+P0: Sending value 42 to MPI process 2
+P0: Sending value 42 to MPI process 3
+P3/4: Initialised OK on host ninja-4
+P1/4: Initialised OK on host ninja-2
+P2/4: Initialised OK on host ninja-3
+P3: Received value 42 from MPI process 0
+P3: Sending value 45 to MPI process 0
+P1: Received value 42 from MPI process 0
+P1: Sending value 43 to MPI process 0
+P2: Received value 42 from MPI process 0
+P2: Sending value 44 to MPI process 0
+P0: Received value 43 from MPI process 1
+P0: Received value 44 from MPI process 2
+P0: Received value 45 from MPI process 3
+\end{verbatim}
+
+
+\subsection*{Distribute and gather arrays}
+
+In this part we will do exactly the same as above except we will use
+a double precision array as the data.
+
+\begin{enumerate}
+  \item Create a double precision array (A) of length $N=1024$ to use as buffer
+  \item On process 0 populate it with numbers $0$ to $N-1$ 
+  (using A[i] = (double) i;) 
+  \item Pass A on to all other processors (the workers).
+  \item All workers should compute the $p$-norm of the array
+  where $p$ is the rank of the worker:
+  \[
+    \left(
+      \sum_{i=0}^N A[i]^p
+    \right)^{1/p}
+  \]
+  \item Then return the result as one double precision number per worker and 
+  print them all out on processor 0.
+\end{enumerate} 
+
+\emph{Hints:}
+\begin{itemize}
+  \item To compute $x^y$ use the C-function pow(x, y);
+  \item Include the math headers in your program: \verb+#include <math.h>+
+  \item You'll also need to link in the math libraries as follows: 
+     mpicc progname.c -lm
+  %\item You might want to add many print statements reporting the communication pattern in    
+\end{itemize}   
+
+If your pogram works it should produce something like this on four processors.
+\begin{verbatim}
+P0/4: Initialised OK on host ninja-1
+P3/4: Initialised OK on host ninja-4
+P2/4: Initialised OK on host ninja-3
+P1/4: Initialised OK on host ninja-2
+P0: Received value 523776.00 from MPI process 1
+P0: Received value 18904.76 from MPI process 2
+P0: Received value 6497.76 from MPI process 3
+\end{verbatim}
+
+
+
+
+\end{document}

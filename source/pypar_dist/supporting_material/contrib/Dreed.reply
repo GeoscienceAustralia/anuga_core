@@ -1,0 +1,233 @@
+
+Hi Ole,
+
+Yes, that appears to work - no more segmentation faults:
+
+mpirun -np 2 python demo.py
+MPI initialised OK with 2 processors
+I am proc 0 of 2 on node fourier
+I am proc 1 of 2 on node hopper
+Processor 0 sending message "MSGP0" to processor 1
+Processor 1 received message "MSGP0" from processor 0
+Size of msg was 5 bytes
+Processor 1 sending msg "MSGP0->P1" to 0
+Processor 0 received message "MSGP0->P1" from processor 1
+Size of msg was 9 bytes
+
+Thanks!
+
+Dave
+
+
+
+> Date: Sat, 30 Aug 2003 19:47:39 +1000
+> Reply-To: Ole.Nielsen@anu.edu.au
+> Content-Type: text/plain; charset=us-ascii
+> Content-Disposition: inline
+> User-Agent: Mutt/1.5.4i
+> From: ole@cuttlefish.anu.edu.au (Ole Moller Nielsen)
+> Content-Length: 9270
+> 
+> 
+> Hello Dave
+> 
+> Regarding your problem I may have the solution (thanks to input from Doug Orr).
+> It seems that newer versions of LAM require the last commandline argument to be NULL
+> so try to modify mpiext.c as follows around line 472 and let me know if it works for you.
+> The symbol + means add the line and - means remove the line.
+> 
+> Cheers
+> Ole
+> 
+> ----PATCH for mpiext.c
+> 
+> /* Reconstruct C-commandline */
+> /*                           */
+> argc = PyList_Size(input); //Number of commandline arguments
+> - argv = (char**) malloc((argc)*sizeof(char*));
+> + argv = (char**) malloc((argc+1)*sizeof(char*));
+>      
+> for (i=0; i<argc; i++)
+>   argv[i] = PyString_AsString( PyList_GetItem(input, i) );
+> 	   
+> + argv[i] = NULL;
+> 
+> -------------------------------	   
+> 
+> 
+> 
+> 		
+> On Tue, Aug 05, 2003 at 11:14:20AM -0400, Dave Reed wrote:
+> > 
+> > Hi,
+> > 
+> > I'm trying to install the lam-7.0 version of MPI and pypar on a
+> > Solaris 9 system for one of my colleagues. I've got lam-7.0 working
+> > fine (successfully ran one of its test cases). I then installed pypar
+> > 1.6.4 using:
+> > 
+> > python setup.py build
+> > python setup.py install
+> > 
+> > and that worked without any errors; however, I can't seem to get any
+> > of the examples to work.
+> > 
+> > Details of the system are:
+> > relevant details of the system are:
+> > Solaris 9, gcc 3.2.3, python 2.3, Numeric-23.0
+> > 
+> > When I try:
+> > 
+> > mpirun -np 2 python demo.py 
+> > -----------------------------------------------------------------------------
+> > It seems that [at least] one of the processes that was started with
+> > mpirun did not invoke MPI_INIT before quitting (it is possible that
+> > more than one process did not invoke MPI_INIT -- mpirun was only
+> > notified of the first one, which was on node n0).
+> > 
+> > mpirun can *only* be used with MPI programs (i.e., programs that
+> > invoke MPI_INIT and MPI_FINALIZE).  You can use the "lamexec" program
+> > to run non-MPI programs over the lambooted nodes.
+> > -----------------------------------------------------------------------------
+> > 
+> > mpirun C python demo.py
+> > 
+> > produces the same results.
+> > 
+> > mpirun C hello
+> > 
+> > runs the hello demo that comes with lam-7.0 fine.
+> > 
+> > when I execute:
+> > python
+> > import pypar
+> > 
+> > I get a segmentation fault. Here's the backtrace
+> > 
+> > #0  0xfef33400 in strlen () from /usr/lib/libc.so.1
+> > #1  0xfece5c40 in sfh_argv_dup ()
+> >    from /usr/local/lib/python2.3/site-packages/pypar/mpiext.so
+> > #2  0xfece67b0 in ao_parse ()
+> >    from /usr/local/lib/python2.3/site-packages/pypar/mpiext.so
+> > #3  0xfecb7be0 in lam_linit ()
+> >    from /usr/local/lib/python2.3/site-packages/pypar/mpiext.so
+> > #4  0xfecb82fc in lam_mpi_init ()
+> >    from /usr/local/lib/python2.3/site-packages/pypar/mpiext.so
+> > #5  0xfecb5a70 in MPI_Init ()
+> >    from /usr/local/lib/python2.3/site-packages/pypar/mpiext.so
+> > #6  0xfecb4a08 in init (self=0x1, args=0xffbfc7e0) at lib/pypar/mpiext.c:480
+> > #7  0xff25b340 in PyCFunction_Call (func=0xc5620, arg=0xc6650, kw=0x0)
+> >     at Objects/methodobject.c:93
+> > #8  0xff29a39c in call_function (pp_stack=0xffbfc968, oparg=1)
+> >     at Python/ceval.c:3439
+> > #9  0xff297694 in eval_frame (f=0x9a8f0) at Python/ceval.c:2116
+> > #10 0xff2987a8 in PyEval_EvalCodeEx (co=0xbf9a0, globals=0x1, locals=0x0, 
+> >     args=0x0, argcount=0, kws=0x0, kwcount=0, defs=0x0, defcount=0, 
+> >     closure=0x0) at Python/ceval.c:2663
+> > #11 0xff294c34 in PyEval_EvalCode (co=0xbf9a0, globals=0x0, locals=0xbc5d0)
+> >     at Python/ceval.c:537
+> > #12 0xff2bd2fc in PyImport_ExecCodeModuleEx (name=0xffbfd558 "pypar.pypar", 
+> >     co=0xbf9a0, 
+> >     pathname=0xffbfcb70 "/usr/local/lib/python2.3/site-packages/pypar/pypar.pyc") at Python/import.c:621
+> > #13 0xff2c016c in load_source_module (name=0xffbfd558 "pypar.pypar", 
+> >     pathname=0xffbfcb70 "/usr/local/lib/python2.3/site-packages/pypar/pypar.pyc", fp=0x22e8) at Python/import.c:894
+> > #14 0xff2bdf64 in load_module (name=0xffbfd558 "pypar.pypar", fp=0xfefc02b4, 
+> >     buf=0xffbfd068 "/usr/local/lib/python2.3/site-packages/pypar/pypar.py", 
+> >     type=1, loader=0x0) at Python/import.c:1699
+> > #15 0xff2bf104 in import_submodule (mod=0xbb1b0, subname=0xffbfd55e "pypar", 
+> >     fullname=0xffbfd558 "pypar.pypar") at Python/import.c:2290
+> > #16 0xff2bebd4 in load_next (mod=0xbb1b0, altmod=0xff318028, 
+> >     p_name=0xffbfd55e, buf=0xffbfd558 "pypar.pypar", p_buflen=0xffbfd554)
+> >     at Python/import.c:2111
+> > #17 0xff2c0890 in import_module_ex (name=0x0, globals=0xbb1b0, locals=0x48d20, 
+> >     fromlist=0x45590) at Python/import.c:1957
+> > #18 0xff2be7e8 in PyImport_ImportModuleEx (name=0xbb1f4 "pypar", 
+> >     globals=0x48d20, locals=0x48d20, fromlist=0x45590) at Python/import.c:1998
+> > #19 0xff28cda0 in builtin___import__ (self=0x0, args=0xbb1f4)
+> >     at Python/bltinmodule.c:45
+> > #20 0xff25b340 in PyCFunction_Call (func=0x29e68, arg=0xb3f60, kw=0x0)
+> >     at Objects/methodobject.c:93
+> > #21 0xff22e090 in PyObject_Call (func=0x29e68, arg=0xb3f60, kw=0x0)
+> >     at Objects/abstract.c:1755
+> > #22 0xff299f84 in PyEval_CallObjectWithKeywords (func=0x29e68, arg=0xb3f60, 
+> >     kw=0x0) at Python/ceval.c:3346
+> > #23 0xff29740c in eval_frame (f=0xf71d0) at Python/ceval.c:1996
+> > #24 0xff2987a8 in PyEval_EvalCodeEx (co=0xacee0, globals=0x1, locals=0x0, 
+> >     args=0x0, argcount=0, kws=0x0, kwcount=0, defs=0x0, defcount=0, 
+> >     closure=0x0) at Python/ceval.c:2663
+> > #25 0xff294c34 in PyEval_EvalCode (co=0xacee0, globals=0x0, locals=0x48d20)
+> >     at Python/ceval.c:537
+> > #26 0xff2bd2fc in PyImport_ExecCodeModuleEx (name=0xffbfed28 "pypar", 
+> >     co=0xacee0, 
+> >     pathname=0xffbfde48 "/usr/local/lib/python2.3/site-packages/pypar/__init__.pyc") at Python/import.c:621
+> > #27 0xff2c016c in load_source_module (name=0xffbfed28 "pypar", 
+> >     pathname=0xffbfde48 "/usr/local/lib/python2.3/site-packages/pypar/__init__.pyc", fp=0x22e8) at Python/import.c:894
+> > #28 0xff2bdf64 in load_module (name=0xffbfed28 "pypar", fp=0xfefc02a4, 
+> >     buf=0xffbfe340 "/usr/local/lib/python2.3/site-packages/pypar/__init__.py", 
+> >     type=1, loader=0x0) at Python/import.c:1699
+> > #29 0xff2c0624 in load_package (name=0xffbfed28 "pypar", pathname=0xb2338 "")
+> >     at Python/import.c:951
+> > #30 0xff2be11c in load_module (name=0xffbfed28 "pypar", fp=0x0, 
+> >     buf=0xffbfe838 "/usr/local/lib/python2.3/site-packages/pypar", type=5, 
+> >     loader=0x0) at Python/import.c:1722
+> > #31 0xff2bf104 in import_submodule (mod=0xff318028, 
+> >     subname=0xffbfed28 "pypar", fullname=0xffbfed28 "pypar")
+> >     at Python/import.c:2290
+> > #32 0xff2bebd4 in load_next (mod=0xff318028, altmod=0xff318028, 
+> >     p_name=0xffbfed28, buf=0xffbfed28 "pypar", p_buflen=0xffbfed24)
+> >     at Python/import.c:2111
+> > #33 0xff2c0890 in import_module_ex (name=0x0, globals=0xff318028, 
+> >     locals=0x3a9c0, fromlist=0xff318028) at Python/import.c:1957
+> > #34 0xff2be7e8 in PyImport_ImportModuleEx (name=0xbb1f4 "pypar", 
+> >     globals=0x3a9c0, locals=0x3a9c0, fromlist=0xff318028)
+> >     at Python/import.c:1998
+> > #35 0xff28cda0 in builtin___import__ (self=0x0, args=0xbb1f4)
+> >     at Python/bltinmodule.c:45
+> > #36 0xff25b340 in PyCFunction_Call (func=0x29e68, arg=0x39900, kw=0x0)
+> >     at Objects/methodobject.c:93
+> > #37 0xff22e090 in PyObject_Call (func=0x29e68, arg=0x39900, kw=0x0)
+> >     at Objects/abstract.c:1755
+> > #38 0xff299f84 in PyEval_CallObjectWithKeywords (func=0x29e68, arg=0x39900, 
+> >     kw=0x0) at Python/ceval.c:3346
+> > #39 0xff29740c in eval_frame (f=0xedb78) at Python/ceval.c:1996
+> > #40 0xff2987a8 in PyEval_EvalCodeEx (co=0xb0ce0, globals=0x0, locals=0x0, 
+> >     args=0x0, argcount=0, kws=0x0, kwcount=0, defs=0x0, defcount=0, 
+> >     closure=0x0) at Python/ceval.c:2663
+> > #41 0xff294c34 in PyEval_EvalCode (co=0xb0ce0, globals=0x0, locals=0x3a9c0)
+> >     at Python/ceval.c:537
+> > #42 0xff2caf3c in run_node (n=0x2a140, filename=0x3a9c0 "", globals=0x3a9c0, 
+> >     locals=0x3a9c0, flags=0x3a9c0) at Python/pythonrun.c:1205
+> > #43 0xff2ca000 in PyRun_InteractiveOneFlags (fp=0xffffffff, 
+> >     filename=0xff2fed08 "<stdin>", flags=0xffbff79c) at Python/pythonrun.c:697
+> > #44 0xff2c9d60 in PyRun_InteractiveLoopFlags (fp=0xfefc0274, 
+> >     filename=0xff2fed08 "<stdin>", flags=0xffbff79c) at Python/pythonrun.c:630
+> > #45 0xff2c9cac in PyRun_AnyFileExFlags (fp=0xfefc0274, 
+> >     filename=0xff2fed08 "<stdin>", closeit=0, flags=0xffbff79c)
+> >     at Python/pythonrun.c:593
+> > #46 0xff2d2a08 in Py_Main (argc=5120, argv=0x16bc) at Modules/main.c:415
+> > 
+> > 
+> > Any suggestions or ideas for getting this working?
+> > 
+> > Thanks,
+> > Dave
+> > 
+> > -- 
+> > David Reed, Ph.D.                   e-mail: dreed@capital.edu
+> > Math/Computer Science Dept.         http://capital2.capital.edu/faculty/dreed
+> > Capital University                  phone:  614-236-6133
+> > 2199 E. Main St.                    fax:    614-236-6518
+> > Columbus, OH 43209
+> 
+> -- 
+> -------------------------------------------------------------------  
+> Ole Nielsen                     | Email: Ole.Nielsen@anu.edu.au
+> -------------------------------------------------------------------  
+> Mathematical Sciences Institute | Phone: +61 2 6125 3873 (Direct)
+> Australian National University  | Fax:   +61 2 6125 5549
+> Canberra ACT 0200               | 
+> Australia                       | 
+> -------------------------------------------------------------------  
+> ANU CRICOS # 00120C
+> -------------------------------------------------------------------  
+> 

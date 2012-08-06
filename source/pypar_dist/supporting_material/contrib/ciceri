@@ -1,0 +1,56 @@
+Hello,
+first of all thanks a lot for your work with pypar.
+
+Now my remark:
+trying out testpypar.py with python 2.2, raw_receive(string)
+doesn't work: the vanilla method is called instead of.
+
+Looking your sources, in pypar.py:220 (about)
+
+if type(x).__name__ == 'string':
+
+doesn't work with (my) python 2.2 (GNU/Linux RH7.2 on i686),
+where type(aString) == 'str'.
+
+So I've done this simple workaround:
+
+if type(x).__name__[0:3] == 'str':
+
+(this should work for both python2.1 and python2.2)
+
+HTH
+Thanks again for your effort.
+/gp
+
+
+P.S.: perhaps I've mis-compiled my python2.2, but since
+I've accepted all the defaults, I suppose that someone other
+will find this very same issue.
+
+P.S.: in my installation, pypar works with the latest LAM 6.5.6
+
+-- 
+Discussion: How do you feel about Open Source firms making
+millions through public offerings?
+
+"I wish these companies were making the same millions without
+distributing any non-free, user-subjugating software." --
+                                              Richard Stallman
+
+"We're so forward that sometimes we reach ourself." --
+                                              g.p.
+
+"It is amazing how much you can achieve when you don't have
+to do the real work yourself." --
+                                              Joe Celko
+
+   Gian Paolo Ciceri        Via B.Diotti 45 - 20153 Milano MI ITALY
+       CTO @ Louise         mobile :   ++39 347 4106213
+                                   :   ++39 348 3658272
+                            eMail  :   gp.ciceri@acm.org,
+                                       gp.ciceri@computer.org
+                                   :   gp.ciceri@louise.it
+                            webSite:   http://www.louise.it
+                            ICQ #  :   94620118
+
+

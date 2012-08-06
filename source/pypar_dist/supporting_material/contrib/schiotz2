@@ -1,0 +1,66 @@
+ > 
+ > Hej Jakob
+ > 
+ > (I assume you understand  danish)
+
+Ja.  Jeg var også lige ved at skrive til dig på dansk, men så opdagede
+jeg at du er i Australien (edu.au), ikke Århus Universitet (au.dk) som
+jeg først havde læst din adresse som.  Og jeg kender adskillige amerikanere
+med svenske navne, som ikke taler svensk, så for en sikkerheds skyld...
+
+ > 
+ > > I saw your announcement of Pypar on comp.lang.python.announce.  In our
+ > > programs, we are using Konrad Hinsen's Scientific Python module.  I
+ > > have a small technical question.  You write that one advantage of your
+ > > approach is, that one does not need a special version of the Python
+ > > executable, just the pypar module.  In Scientific Python it is
+ > > necessary to modify Python because MPI requires that MPI_Init is
+ > > called before the program looks at its command line arguments, and
+ > > Python needs to look at its command line arguments to figure out which
+ > > script to run.  
+ > 
+ > Jeg har aldrig rigtigt forstaaet hvorfor det skulle vaere noedvendigt.
+ > Derfor gik jeg igang med at implementere et interface hvor 
+ > Python oversetteren forbliver uaendret. 
+ > MPI_init har selvfoelgelig ikke adgang til commandline parametre 
+ > - saa det er prisen for min tilgang.
+
+Jeg gjorde noget tilsvarende engang, dog uden Python bindings.  Jeg
+SWIGede et parallelt molekyldynamikprogram, så det kunne styres fra et
+Python script.  MPI_Init blev kaldt fra modulet.  Det virkede fint
+under AIX, men så fik vi en klynge Compaq Alpha workstations med
+MPICH, hvor resultatet var en kryptisk fejlmeddelelse ("10452: file not
+found", eller noget i den dur).  Efter et stykke tid fandt jeg ud af,
+at Python blev kaldt på alle nodes med en kommandoline a la 
+	python 10452 asrv 6F71AA864EF433
+og det kan man jo godt forstå ikke virkede. :-)
+MPI_Init rekonstruerede den oprindelige kommandolinie.
+
+Så jeg er bange for, at princippet bag Pypar ikke er generelt
+anvendeligt.  Men det gør det jo ikke mindre praktisk, der hvor det
+virker.
+
+	[ ... ]
+ > > as it is slightly annoying to have to have an extra version of
+ > > the Python executable.
+ > 
+ > Ja - det var det jeg taenkte.
+ > 
+ > Hvis du har lyst kan du hjaelpe med at udvikle pypar ideen ?
+
+Helst ikke, jeg er ret presset for tid, og kan ikke desværre nok ikke
+bruge modulet på vores egne maskiner.  Jeg skrev et par ekstra
+funktioner ind i Scientific.MPI for et års tid siden, og gruppen her
+bruger nu Scientific.MPI såvel i Python koden som i C++ modulerne.
+
+Med venlig hilsen
+
+Jakob
+
+
+-- 
+Jakob Schiøtz, Ph.D.             !  Email: schiotz@fysik.dtu.dk
+CAMP, Department of Physics      !  WWW: http://www.fysik.dtu.dk/~schiotz/
+Technical University of Denmark  !  Phone: (+45) 45 25 32 28
+DK-2800 Lyngby, Denmark          !  Fax:   (+45) 45 93 23 99
+

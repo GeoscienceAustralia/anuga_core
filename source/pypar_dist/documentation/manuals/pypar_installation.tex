@@ -1,0 +1,104 @@
+        
+a native MPI library (e.g.\ LAM/MPI or MPICH),
+that 
+that the MPI runtime system is up and running (e.g.\ using \texttt{lamboot}).
+If not please see the installation notes at the pypar web site.
+
+        
+%Taken from exercise 5 
+
+\subsection*{Preliminaries}
+
+\subsubsection*{The shell configuration}
+Log in using the username you created previously.
+You will need to configure a few environment variables to make 
+life simpler.
+Environment variables control the way you personally interact with the
+shell and they are defined in the file \texttt{.bashrc} which lives in
+your home directory. Edit \texttt{.bashrc} and add the following lines
+
+\begin{verbatim}
+export PATH=.:$HOME/bin:${PATH}
+export LAMRSH="ssh -x"
+\end{verbatim}
+
+The first line asks the shell to always look for files in the directory
+you are working in. The second tells the MPI runtime system to use 
+secure shell (ssh) without graphics capabilities (X11). 
+Close the shell window and open a new one for this to take effect.  
+
+\subsubsection*{Setting up the secure shell environment}
+
+Next we will make sure that you can access all machines without having to
+type in your password every time. The secure shell (ssh) has a capability
+to store your password encrypted on your disk and automatically provide
+it when needed. To accomplish this you need the following steps:
+
+\begin{enumerate} 
+  \item ssh-keygen -t rsa (Generate codes for the encryption)\\
+  \emph{When asked for a filename, just go with the suggested default.
+  When asked for a passphrase just press \textbf{Enter} twice}
+  \item cd \verb+~/.ssh+  
+  \item cp id\_rsa.pub authorized\_keys   
+\end{enumerate}
+
+Whenever you try to log into a remote host using ssh, your host will 
+negotiate with the remote host using these keys and if accepted provide
+the password automatically. To test try
+\begin{verbatim}
+  ssh ninja-n whoami
+\end{verbatim}
+where 
+\[
+  n = 1, 2, \ldots 8
+\]
+This will log you in briefly issue the command \texttt{whoami},
+display the result and log you out again.
+
+The first time you do this you will see the message
+\begin{verbatim}
+The authenticity of host 'ninja-8 (192.168.1.8)' can't be established.
+RSA key fingerprint is 06:eb:b3:e0:f1:57:35:0e:58:49:b4:48:46:fb:5c:aa.
+Are you sure you want to continue connecting (yes/no)?
+\end{verbatim}
+which means that this is the first time the encrypted connection 
+is to be established. Just type \texttt{yes}.
+You might also see a warning message about X11 forwarding which 
+you can ignore. From now on you should be able to move freely among 
+the hosts in our cluster.
+See \texttt{man ssh} for more information.
+
+\subsection*{The MPI runtime system}
+
+We are now ready to start the \emph{MPI runtime system} which comprises a
+number of servers (one on each machine) who will allow you to execute
+MPI programs in parallel.
+
+The runtime system needs a configuration file listing 
+the hosts who are participating in the cluster.
+Create a file called \texttt{.lamhosts} in your 
+home directory (\verb+~+). 
+To begin with list \emph{only} the machine you are working on, e.g.
+\begin{verbatim}
+ninja-n
+\end{verbatim} 
+where n is the number you are working on.
+Later we will add more machines.
+%namely \texttt{ninja-1} to \texttt{ninja-8}.
+
+The MPI runtime is then started by issuing the command
+\begin{verbatim}
+  lamboot -v ~/.lamhosts
+\end{verbatim}
+which reads the configuration file, logs in to all listed hosts and 
+start the MPI servers.  
+You should see a diagnostic message like
+\begin{verbatim}
+LAM 6.5.8/MPI 2 C++/ROMIO - Indiana University
+
+Executing hboot on n2 (ninja-n - 1 CPU)...
+\end{verbatim}
+and you are ready to run MPI.
+
+        
+

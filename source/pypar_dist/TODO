@@ -1,0 +1,74 @@
+PYPAR TODO LIST:
+----------------
+	
+Check that code for numpy migration is OK (Vladimir and Prabhu?) 	
+
+Check that pypar works properly with numpy on a variety of platforms (Everyone)
+
+Update setup.py to work with new structure (Prabhu?)
+
+Update create_release.py to make distros for sourceforge (Ole)	
+	
+Find a TRAC server to manage this list (and point to the sourceforg SVN)
+
+Remove obsoleted code (e.g. raw forms)
+	
+Fix up reduce to deal with complex as well as ND.	
+	
+New tests using unit testing framework.
+
+Better documentation (LaTeX files in pypar/documentation/manuals 
+should provide a good starting point).
+
+Use proper Python exceptions in mpiext.c
+
+Create Debian and RPM packages (maybe even a Windows installer)
+
+Make list of projects using pypar, e.g. http://sourceforge.net/projects/pyfdm/	
+
+
+Incorporate pypar in Parallel Knoppix (Michael Creel)
+	
+Add examples from Summerschool 2005 to pypar distribution.
+		
+Re-introduce optional length if one wants to communicate less 
+than given array (very low priotity)
+
+max_tag is set to 32767. This works for Linux/LAM      
+I couldn't use MPI_TAG_UB as it returned 0.
+I would like a general solution.
+
+
+Scatter needs to send buffer specified on all processes
+even though it is ignored by all non-root processes.
+How could we overcome that?
+Similar problem for gather
+  
+Gather and scatter: One should be able to specify along which axis
+arrays should be concatenated.
+
+
+
+REMEMBER
+
+mpirun -np 3 python -i -c "import pypar"
+Remember to put pypar.pth in site-packages automatically..
+
+
+DONE:
+-----
+
+Migration to numpy
+Address 2D arays as per mails (dir: 2D)	- DONE version 1.7
+Fix up status object to be returned (depending on optional flag arg)	
+
+Get pypar to work under redhat 7.1 with LAM as per suggestion by Doug Orr
+(LAM assumes that last commandline arg is None) See fra_DOUG.husk3.
+ALso acknowledge Dave Reed for pointing out the problem. DONE.
+Wait for dave reed to acknowledge that it also works under solaris.
+DONE in 1.6.5
+
+
+Also add to doc that pypar needs Numeric (and Python 2.3?) (Already in there)
+
+Fix confusing errmsg when Numeric isn't installed (David Brown)

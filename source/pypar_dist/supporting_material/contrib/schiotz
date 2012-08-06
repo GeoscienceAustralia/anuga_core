@@ -1,0 +1,33 @@
+Dear Ole Nielsen,
+
+I saw your announcement of Pypar on comp.lang.python.announce.  In our
+programs, we are using Konrad Hinsen's Scientific Python module.  I
+have a small technical question.  You write that one advantage of your
+approach is, that one does not need a special version of the Python
+executable, just the pypar module.  In Scientific Python it is
+necessary to modify Python because MPI requires that MPI_Init is
+called before the program looks at its command line arguments, and
+Python needs to look at its command line arguments to figure out which
+script to run.  How do you bypass this problem?  I know there are MPI
+implementations where this is not a problem as MPI only adds extra
+stuff to the command-line on the non-master nodes, but there are some
+implementation (MPICH, for example) where the whole command line is
+replaced with MPI stuff and the command line is only restored when
+MPI_Init is called.
+
+I am very interested to hear if you have found an elegant way to solve
+this, as it is slightly annoying to have to have an extra version of
+the Python executable.
+
+
+Best regards
+
+Jakob Schiotz
+
+
+-- 
+Jakob Schiotz, Ph.D.             !  Email: schiotz@fysik.dtu.dk
+CAMP, Department of Physics      !  WWW: http://www.fysik.dtu.dk/~schiotz/
+Technical University of Denmark  !  Phone: (+45) 45 25 32 28
+DK-2800 Lyngby, Denmark          !  Fax:   (+45) 45 93 23 99
+

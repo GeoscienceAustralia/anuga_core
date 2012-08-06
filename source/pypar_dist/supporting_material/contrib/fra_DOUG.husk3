@@ -1,0 +1,108 @@
+Hi Ole,
+
+Sorry I don't have the original handy and I'm running out of the house, but 
+here's the affected line... shouldn't be hard to find.  It's around line 
+472 in mpiext.c.  I'll let you know how things go as I start to use it more!
+
+   /* Reconstruct C-commandline */
+   /*                           */
+   argc = PyList_Size(input); //Number of commandline arguments
+- argv = (char**) malloc((argc)*sizeof(char*));
++ argv = (char**) malloc((argc+1)*sizeof(char*));
+
+   for (i=0; i<argc; i++)
+     argv[i] = PyString_AsString( PyList_GetItem(input, i) );
+
++ argv[i] = NULL;
+
+
+
+
+At 06:53 PM 8/29/2003 +1000, Ole Moller Nielsen wrote:
+>Hi Doug
+>
+>Thank you so much for your input.
+>I'll put it into the todo list.
+>I will be teaching a high performamnce course next semester in Thailand
+>and updating pypar is on the agenda.
+>
+>I gather that youi got it to work by fixing pypar to honor
+>the 'NULL' assumption you mentioned, right?
+>And, yes, I'd be very happy to see the diff or even the fixed version
+>if you don't mind.
+>
+>(I'll add you to the growing list of contributors)
+>
+>
+>Cheers
+>Ole
+>
+>On Thu, Aug 28, 2003 at 03:22:00PM -0400, Doug Orr wrote:
+> >
+> > Hey Ole,
+> >
+> > One more suggestion -- it's obvious in retrospect, but it would be useful
+> > to note in your install docs that you need to have Numeric, pypar, and
+> > python 2.3 (for the current version of Numeric, anyway) installed on all
+> > hosts.  It's what I *thought*, but trying without that set up produced no
+> > valuable diagnostic indicating why I was losing.  I would have saved a
+> > little time if I had gone ahead and done all of the installs as my first
+> > step...
+> >
+> > Not a big deal, but it's always good to hear from the people currently
+> > enduring pain, since they always for get what the pain was after it's over
+> > :)
+> >
+> >         -Doug
+> >
+> > At 09:57 PM 8/28/2003 +1000, Ole Moller Nielsen wrote:
+> > >Hi Doug
+> > >
+> > >Thank you very much for your mail
+> > >
+> > >May I ask what platform you are using: Solaris, Linux, Windows?
+> > >
+> > >Pypar was tested on all the platforms I had access to when I wrote it.
+> > >These days I use it exclusively with Linux.
+> > >
+> > >Cheers
+> > >Ole
+> > >
+> > >
+> > >On Wed, Aug 27, 2003 at 11:59:29PM -0400, Doug Orr wrote:
+> > >> hi ole,
+> > >>
+> > >> I'm trying pypar with lam7.0 and it was crashing in MPI_Init.  it looks
+> > >> like they're assuming the last argument in the argv list is NULL.
+> > >>
+> > >> I assume someone has probably already pointed this out, but just in
+> > >case...
+> > >>
+> > >>       -doug
+> > >>
+> > >
+> > >--
+> > >-------------------------------------------------------------------
+> > >Ole Nielsen                     | Email: Ole.Nielsen@anu.edu.au
+> > >-------------------------------------------------------------------
+> > >Mathematical Sciences Institute | Phone: +61 2 6125 3873 (Direct)
+> > >Australian National University  | Fax:   +61 2 6125 5549
+> > >Canberra ACT 0200               |
+> > >Australia                       |
+> > >-------------------------------------------------------------------
+> > >ANU CRICOS # 00120C
+> > >-------------------------------------------------------------------
+> >
+>
+>--
+>-------------------------------------------------------------------
+>Ole Nielsen                     | Email: Ole.Nielsen@anu.edu.au
+>-------------------------------------------------------------------
+>Mathematical Sciences Institute | Phone: +61 2 6125 3873 (Direct)
+>Australian National University  | Fax:   +61 2 6125 5549
+>Canberra ACT 0200               |
+>Australia                       |
+>-------------------------------------------------------------------
+>ANU CRICOS # 00120C
+>-------------------------------------------------------------------
+

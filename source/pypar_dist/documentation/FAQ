@@ -1,0 +1,46 @@
+
+Q: If I broadcast a general structure how can I specify a
+   suitable buffer for the receiving processes?
+
+A: You must create something large enough to acccommodate the 
+   structure (e.g a list conating blanks of sufficent size [' ']*N).
+   The size of N must be estimated but it is OK to be larger   
+   than the broadcasted structure.
+   
+   
+Q: If I broadcast a general structure and specify a string as buffer
+   I receve only garbage.
+   
+A: If you specify a string or a Numerical array as receive buffer
+   you must use vanilla=True in the broadcast call. Otherwise the 
+   receiving processes will think that they are receiving data with
+   the type of the specified buffer.      
+
+Q: Why do I have to specify a buffer in broadcast?
+A: Issuing the command broadcast(x,  root=0) on all processors 
+   will send the object x from processor 0 to x in every other
+   processor.
+   The same command is issued on all processors so x doubles as
+   send buffer on root and receive buffer on the receiving processors.
+
+   
+
+INSTALLATION
+--------------
+
+
+Q: I installed the pypar package exactly as instructed, everything compiled 
+   fine etc.  However, when I run python and enter `import pypar '  it says 
+   that mpiext.c hasn't been compiled, even though there is an mpiext.so 
+   sitting right in the directory.  I installed it with  --prefix=~. 
+
+A: Because you are installing into your own home directory
+   you need to update your PYTHONPATH so that python can find the installed modules.
+   It should be set to ~/python by adding something like the following to 
+   your startup script (here bash)
+
+      export PYTHONPATH=.:$HOME/python:${PYTHONPATH} 
+
+
+   This is not specific to pypar but general for all packages installed locally.
+   

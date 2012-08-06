@@ -1,0 +1,18 @@
+Files in this directory gives examples of different parallel strategies using the mandbrot fractal as example. The codes need PIL (Python Imaging Library) to
+show the results, but the computational bit will still work without PIL.
+It also tries to show images using either xv of eog (EyeOfGnome).
+
+This material was developed as part of a teaching module and is documented 
+further at 
+
+http://datamining.anu.edu.au/~ole/work/teaching/summerschool2005/
+
+
+To compile C extensions in this directory
+
+python compile_mandelbrot_extensions.py
+
+or
+python compile.py mandel_ext.c
+python compile.py mandelplot_ext.c
+

@@ -1,0 +1,96 @@
+From doug@arbor.net  Fri Aug 29 05:22:22 2003
+Return-Path: <doug@arbor.net>
+X-Original-To: ole@localhost
+Delivered-To: ole@localhost.anu.edu.au
+Received: from localhost (localhost [127.0.0.1])
+	by cuttlefish.anu.edu.au (Postfix) with ESMTP id 8D5C63E96
+	for <ole@localhost>; Fri, 29 Aug 2003 05:22:22 +1000 (EST)
+Received: from wintermute.anu.edu.au [150.203.33.75]
+	by localhost with POP3 (fetchmail-6.2.1)
+	for ole@localhost (single-drop); Fri, 29 Aug 2003 05:22:22 +1000 (EST)
+Received: from anu.edu.au (anumail4.anu.edu.au [150.203.2.44])
+	by maths.anu.edu.au (8.11.6/8.11.6) with ESMTP id h7SJM6k23100
+	for <ole@maths.anu.edu.au>; Fri, 29 Aug 2003 05:22:07 +1000 (EST)
+Received: from state.arbornetworks.com (state.arbornetworks.com [204.181.64.20])
+	by anu.edu.au (8.12.9/8.12.9) with ESMTP id h7SJM4mQ004241
+	for <Ole.Nielsen@anu.edu.au>; Fri, 29 Aug 2003 05:22:05 +1000 (EST)
+Received: from arbor-orr.arbor.net (unknown [10.0.1.106])
+	by state.arbornetworks.com (Arbor Networks mail relay) with ESMTP id EF33A63481
+	for <Ole.Nielsen@anu.edu.au>; Thu, 28 Aug 2003 15:22:01 -0400 (EDT)
+Message-Id: <5.1.0.14.2.20030828104019.03efe4d0@state.arbornetworks.com>
+X-Sender: doug@arbor.net
+X-Mailer: QUALCOMM Windows Eudora Version 5.1
+Date: Thu, 28 Aug 2003 15:22:00 -0400
+To: Ole.Nielsen@anu.edu.au
+From: Doug Orr <doug@arbor.net>
+Subject: Re: pypar
+In-Reply-To: <20030828115708.GB3384@anu.edu.au>
+References: <5.1.0.14.2.20030827235617.04380488@state.arbornetworks.com>
+ <5.1.0.14.2.20030827235617.04380488@state.arbornetworks.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; format=flowed
+X-Sender-Domain: arbor.net
+X-Spam-Score: (-2)
+X-Spam-Tests: EMAIL_ATTRIBUTION,IN_REP_TO,MSG_ID_ADDED_BY_MTA_3,QUOTED_EMAIL_TEXT,REFERENCES,REPLY_WITH_QUOTES
+X-Scanned-By: MIMEDefang 2.36
+X-UIDL: 79381bbce14513976771cae5228e1cf3
+X-Spam-Status: No, hits=-25.8 required=5.0
+	tests=EMAIL_ATTRIBUTION,IN_REP_TO,MSG_ID_ADDED_BY_MTA_3,
+	      QUOTED_EMAIL_TEXT,REFERENCES,REPLY_WITH_QUOTES
+	autolearn=ham version=2.53
+X-Spam-Level: 
+X-Spam-Checker-Version: SpamAssassin 2.53 (1.174.2.15-2003-03-30-exp)
+
+
+Hey Ole,
+
+One more suggestion -- it's obvious in retrospect, but it would be useful 
+to note in your install docs that you need to have Numeric, pypar, and 
+python 2.3 (for the current version of Numeric, anyway) installed on all 
+hosts.  It's what I *thought*, but trying without that set up produced no 
+valuable diagnostic indicating why I was losing.  I would have saved a 
+little time if I had gone ahead and done all of the installs as my first 
+step...
+
+Not a big deal, but it's always good to hear from the people currently 
+enduring pain, since they always for get what the pain was after it's over :)
+
+         -Doug
+
+At 09:57 PM 8/28/2003 +1000, Ole Moller Nielsen wrote:
+>Hi Doug
+>
+>Thank you very much for your mail
+>
+>May I ask what platform you are using: Solaris, Linux, Windows?
+>
+>Pypar was tested on all the platforms I had access to when I wrote it.
+>These days I use it exclusively with Linux.
+>
+>Cheers
+>Ole
+>
+>
+>On Wed, Aug 27, 2003 at 11:59:29PM -0400, Doug Orr wrote:
+> > hi ole,
+> >
+> > I'm trying pypar with lam7.0 and it was crashing in MPI_Init.  it looks
+> > like they're assuming the last argument in the argv list is NULL.
+> >
+> > I assume someone has probably already pointed this out, but just in case...
+> >
+> >       -doug
+> >
+>
+>--
+>-------------------------------------------------------------------
+>Ole Nielsen                     | Email: Ole.Nielsen@anu.edu.au
+>-------------------------------------------------------------------
+>Mathematical Sciences Institute | Phone: +61 2 6125 3873 (Direct)
+>Australian National University  | Fax:   +61 2 6125 5549
+>Canberra ACT 0200               |
+>Australia                       |
+>-------------------------------------------------------------------
+>ANU CRICOS # 00120C
+>-------------------------------------------------------------------
+

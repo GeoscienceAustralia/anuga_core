@@ -1,0 +1,312 @@
+<BASE HREF="http://www.unixreview.com/documents/s=2425/uni1016550801055/">
+<html>
+<head>
+<TITLE>Regular Expressions: Erlang Is Worth a Look</TITLE>
+<!-- hide from older browsers, should show em anyway so they will upgrade-->
+<LINK REL=stylesheet HREF="/unxrev.css" TYPE="text/css">
+<META http-equiv="expires" content="-1">
+<META http-equiv= "pragma" CONTENT="no-cache">
+<META name="author" content="Randy Reames">
+<META name="ROBOTS" content="ALL">
+<META name="description" content="News, reviews, features, and commentary for Unix and Linux professionals.">
+<META name="KEYWORDS" content="UNIX, open source, security, unix, storage, BSD, Linux, Red Hat, Debian, Suse, solaris, AIX, HP-UX, database, linux training, unix training, certification, backup, system administration, intrusion detection, reviews, XML, network, Perl, Shell, TCP/IP, secure shell">
+</HEAD>
+<BODY bgColor=#FFFFFF leftMargin=0  rightMargin=0 topMargin=4 marginheight="4">
+<A name="top"></A> 
+<TABLE border=0 cellpadding=3 cellspacing=0 width="98%">
+  <TR> 
+    <TD width="125" align="center" valign="middle"><A href="/"> </A><IMG src="/cmp_logo.gif" width="69" height="59"> 
+    </TD>
+    <TD align=left valign="top" width="160"> 
+      <P> <A href="/"><IMG alt="Welcome to UnixReview.com" border=0 
+                  src="/logosm.gif" width="151" height="89"></A> 
+    </TD>
+    <TD align="right" valign="middle"> 
+            <A target="_top" href="http://newads.cmpnet.com/event.ng/Type=click&ProfileID=6941&RunID=41981&AdID=31293&GroupID=1&FamilyID=2784&TagValues=178.2994&Redirect=https://www.sdmediagroup.com/circ/subscribe.cgi%3Fuser_keycode%3D2cck"><IMG src="http://img.cmpnet.com/ads/graphics/cs/ar/cuj_sub_468.gif" border=1 height=60 width=468 alt=""></A> </TD>
+</TABLE>
+    
+<TABLE border=0 cellPadding=0 cellSpacing=0 width="98%">
+  <TR> 
+    <TD vAlign=top width=125 align="center"> 
+      <TABLE bgcolor=#000000 border=0 cellpadding=0 cellspacing=0 
+            width="100%">
+        <TR> 
+          <TD> 
+            <TABLE border=0 cellpadding=3 cellspacing=1 width="100%">
+              <TR bgcolor="#CCCCCC" align="center" valign="top"> 
+                <TD class="bluetop">Main Menu</TD>
+              </TR>
+              <TR align="left" valign="top" bgcolor="#FFFFFF"> 
+                <TD class="bluebottom" nowrap>   <A href="/" class="sidenav">Home</A><BR>
+                    <A href="/articles/" class="sidenav">Archives</A><BR>
+                    <A href="/reviews/" class="sidenav">Reviews<BR>
+                  </A>   <A href="/articles/books/" class="sidenav">Books</A><BR>
+                    <A href="/glink/" class="sidenav">Geek Links</A><BR>
+                    <A href="/people/" class="sidenav">Contact Us</A> 
+                </TD>
+              </TR>
+            </TABLE>
+          </TD>
+        </TR>
+      </TABLE>
+      <BR>
+      <TABLE bgcolor=#000000 border=0 cellpadding=0 cellspacing=0 
+            width="100%">
+        <TR> 
+          <TD align="left" valign="top"> 
+            <TABLE border=0 cellpadding=3 cellspacing=1 width="100%">
+              <TR bgcolor="#CCCCCC" align="center" valign="top"> 
+                <TD class="bluetop">Sections</TD>
+              </TR>
+              <TR bgcolor="#FFFFFF"> 
+                <TD class="bluebottom" nowrap align="left" valign="top">
+				  <A href="/columns/laird/" class="sidenav">Regular <BR>
+  Expressions</A><BR> 
+				  <A href="/tool/" class="sidenav">Tool of the Month</A><BR>
+				  <A href="/opensource/" class="sidenav">Open 
+                  Source</A><BR>
+                    <A href="/certify/" class="sidenav">Certification</A><BR>
+                    <A href="/columns/schaefer/" class="sidenav">Shell 
+                  Corner</A><BR>
+				 
+                    <A href="/columns/preston/index.htm" class="sidenav">lost+found</A>
+
+</TD>
+              </TR>
+            </TABLE>
+          </TD>
+        </TR>
+      </TABLE>
+            <P> <A target="_top" href="http://newads.cmpnet.com/event.ng/Type=click&ProfileID=6948&RunID=41296&AdID=30834&GroupID=1&FamilyID=1&TagValues=2994.3003&Redirect=http://www.usenix.org/events/usenix02/"><IMG src="http://img.cmpnet.com/ads/graphics/cs/ar/usenix_2002_125.gif" border=1 height=125 width=125 alt="Click Here!"></A> 
+      <P> 
+      <FORM ACTION="/search.htm" METHOD="GET">
+        <INPUT type="text" name="search" size=12>
+        <BR>
+        <INPUT type="image" src="/search2.gif" alt="Search" border="0" value="Search" name="submit">
+      </FORM>
+      <P>
+      <TABLE bgcolor=#000000 border=0 cellpadding=0 cellspacing=0 
+            width="100%">
+        <tbody> 
+        <TR> 
+          <TD> 
+            <TABLE border=0 cellpadding=3 cellspacing=1 width="100%">
+              <tbody> 
+              <TR align="center" valign="top"> 
+                <TD bgcolor=#cccccc class="bluetop">Newsletter</TD>
+              </TR>
+              <TR align="center"> 
+                <TD bgcolor=#ffffff class="bluebottom"><A href="/subscribe/index.htm"><IMG src="/newsletter.gif" width="120" height="69" border="0" alt="Get the Newsletter"><BR>
+                  Get the Newsletter</A> </TD>
+              </TR>
+              </tbody> 
+            </TABLE>
+          </TD>
+        </TR>
+        </tbody> 
+      </TABLE>
+      <BR>
+    </TD>
+    <TD> </TD>
+    <TD vAlign=top align="left"> 
+            
+
+<A href="/print/documentID=24422">Print-Friendly Version</A><BR><BR> 
+
+<TABLE cellSpacing=0 cellPadding=3 width="100%" border=0>
+  <TBODY> 
+  <TR vAlign=center bgColor=#dedbce>
+        <TD class=headline align=left>Regular Expressions: Erlang Is Worth a Look</TD>
+    <TD class=headdate align=right>March 2002</TD>
+      </TR>
+  <TR vAlign=top align=left> 
+        <TD colSpan=2> 
+      <P> by Cameron Laird and Kathryn Soraiz 
+      <P>
+Let's write highly-reliable, high-performance distributed applications.
+While we're at it, let's choose a development language with a "track
+record" of high productivity.
+<P>
+We'll use the Erlang programming language.
+<P>
+<H2>Erlang for Real</H2>
+      <P> The name "Erlang" honors a Danish mathematician by that name, 
+        whose work in stochastic theories flourished at the beginning of the twentieth 
+        century. Although Erlang's name-recognition is low among U.S. programmers 
+        ("Erlang? Isn't that one of the new Winter Olypmics events?"), its accomplishments 
+        are plenty serious. First implemented in 1986 by an engineer at Ericsson 
+        Enterprise, Erlang is the language in which many production telecommunications 
+        and other mission-critical applications are written. Its use on general-purpose 
+        "personal computers" and servers is also growing. 
+      <P> One of the reasons for the interest in Erlang is that the software world 
+        is finally acknowledging the importance of distributed computation. This 
+        has been a good season for distributed computing -- <I>Scientific American</I> 
+        has popularized the topic; the new Usenet newsgroup comp.distributed has 
+        hosted a handful of worthwhile discussions since its launch in mid-February; 
+        and the Global Grid Forum (<A href="http://www.gridforum.org/" target="_blank">http://www.gridforum.org/</A>) 
+        has become one of the hottest events in computing. Ideas about large-scale 
+        operating systems (OSes) are moving out of research laboratories; the 
+        .NET and Web Services marketing machines are starting to propagate technical 
+        content; and peer-to-peer and CORBA partisans are fighting back with significant 
+        engineering advances. This is territory that Erlang experts have been 
+        exploring for more than a decade. 
+      <P>Erlang was originally designed as a "language for programming <I>distributed 
+        fault-tolerant soft real-time non-stop applications</I>." That formulation 
+        correctly suggests there's more to Erlang than just its capacity for distributed 
+        calculations. Erlang is a functional programming language, with deep roots 
+        in logic and functional semantics that contribute to program correctness. 
+        Like such wildly different languages as Ada and Eiffel, Erlang's correctness 
+        characteristics make it easier for programmers to compose applications 
+        that behave predictably. Erlang generalizes correctness to "fault-tolerance" 
+        with its powerful "exception" mechanisms. Ericsson telephone switches 
+        need very high uptimes -- 99.999% and up. Erlang's fault-tolerance, related 
+        to the exceptions in Java and Python, helps achieve this level of reliability. 
+      <P>
+<H2>See for Yourself</H2>
+<P>
+What's it like to work in a language shaped for fault-tolerance,
+high productivity, and distribution?  As with most of the subjects
+we choose for "Regular Expressions," the best answer is likely to
+be, "See for yourself."  An open-source version of Erlang has been
+available since 1998, and extensive resources are available on the
+Web.  
+      <P> Source or binary downloads for the recent versions of the standard Erlang 
+        distribution are just over 10 megabytes in size. Although this is toward 
+        the top of the range for the languages "Regular Expressions" most often 
+        covers, it's significantly smaller than typical Java installations. In 
+        our experience, Unix generations of Erlang from source always go smoothly; 
+        whatever errors the latest releases have, they don't show up during installation 
+        or simple tests. 
+      <P> Once that's done, Erlang's "Hello, World" preliminaries go quickly enough. 
+        Erlang's home site even has a "Getting Started" page at <A href="http://www.erlang.org/starting.html" target="_blank">http://www.erlang.org/starting.html</A>. 
+        Like other typical modern interpreters, the Erlang language processor, 
+        <CODE>erl</CODE>, supports both interactive and "batch" operation. You 
+        can bring it up interactively as a convenient calculator: 
+      <PRE>     #> erl
+     Erlang (BEAM) emulator version 5.1 [source]
+
+     Eshell V5.1  (abort with ^G)   
+     1> pwd().
+     /usr/local/src/otp_src_R8B-0
+     ok   
+     2> ls().
+     AUTHORS           EPLICENCE         Makefile          Makefile.in
+     README            bin               bootstrap         config.cache
+     config.log        config.status     configure         configure.in
+     erts              lib               make
+     ok
+     3> 123 * 456 - 999.
+     55089 </PRE> 
+   
+Notice that a period terminates every complete line.
+
+      <P>
+<H2>Safe Power</H2>
+<P>
+The Erlang downloads are so large because the
+standard distribution is intended to "include batteries."
+Every Erlang installation builds in functions 
+that mediate ASN encoding, manage CORBA transactions,
+perform cryptographic transformations, implement such
+standard networking protocols as FTP, HTTP, SNMP, and SSL,
+and even connect to Java classes.
+      <P> This powerful library combines with Erlang's succinct expressivity to 
+        make remarkable results possible in just a few lines. It's hard to show 
+        Erlang at its best by simply looking at common programming tasks; it doesn't 
+        do the things that Perl or C do any better than those languages. Erlang 
+        comes into its own on applications that must run continuously (think of 
+        air-traffic control), cooperatively (across many machines), and without 
+        surprises. Erlang is largely immune to the buffer overflows, memory leaks, 
+        off-by-one, and other mundane errors that affect many applications. 
+      <P>
+A favorite example of Erlang's brevity is this generic
+client-server:
+   <PRE>     -module(cs).
+     -export([start/3, rpc/2, loop/2]).
+
+     start(Name, Data, Fun) ->
+         register(Name,
+             spawn(fun() ->
+                 loop(Data, Fun)
+             end)).
+
+     rpc(Name, Q) ->         
+         Tag = ref(),
+         Name ! -query, self(), Tag, Q),
+         receive
+             (Tag, Reply) -> Reply
+         end.
+
+     loop(Data, Fun) ->
+         receive
+             (query, Pid, Tag, Q) ->
+                 (Reply, Data1) = Fun(Q, Data),
+                 Pid ! (Tag, Reply),
+                 loop(Data1, Fun)
+     end. 
+   </PRE>
+   <P>
+Invocation of <CODE>start()</CODE> launches a complete
+network endpoint. The code above handles communications
+and concurrency, while all that's left for an application
+developer is to bind <CODE>Fun</CODE> to a definition
+that executes the application-specific operation.
+<P>
+If your programs really, REALLY have to work right every
+time, consider using Erlang.
+<P>
+<H2>Administrative Wrap-Up</H2>
+      <P> We're collecting notes and hyperlinks on Erlang at <A href="http://starbase.neosoft.com/~claird/comp.lang.functional/Erlang.html" target="_blank">http://starbase.neosoft.com/~claird/comp.lang.functional/Erlang.html</A>. 
+        One ambition for this page is to introduce a functional language for the 
+        "working programmer" in a way that makes the academic abstractions found 
+        in this specialty more appealing. As always, e-mail to us @regularexpressions.com 
+        is welcome. Incidentally, if you want to try out parallel programming 
+        in a more mainstream language than Erlang, consider PyPAR (<A href="http://datamining.anu.edu.au/pypar" target="_blank">http://datamining.anu.edu.au/pypar</A>). 
+        This well-behaved Python extension was just released in its 1.0 version 
+        last month. 
+      <P>
+Next time, we'll look at a completely
+different approach to construction of correct programs:
+use of static syntax analyzers.  Until then, good luck
+in solving your problems at a high level.
+    </TD>
+      </TR>
+  </TBODY>
+</TABLE>
+
+ </TD>
+    <TD vAlign=top align="left">
+      <TABLE cellSpacing=1 cellPadding=3 width="130" 
+        border=0>
+        <TBODY> 
+        <TR vAlign=bottom align=right bgColor=#ffffff><TD>            <A target="_top" href="http://newads.cmpnet.com/event.ng/Type=click&ProfileID=9939&RunID=37627&AdID=25450&GroupID=1&FamilyID=2749&TagValues=1910.2994&Redirect=http://www.sdmagazine.com"><IMG src="http://img.cmpnet.com/ads/graphics/cs/ar/clear_1x1.gif" border="0" height=1 width=1 alt=""></A></TD> 
+          
+        </TR>
+        </TBODY> 
+      </TABLE>
+    </TD>
+  <TR> 
+    <TD vAlign=top width=150 align="center"> </TD>
+    <TD> </TD>
+    <TD vAlign=top width="100%" colspan="2"> 
+      <HR width="170" align="left" noshade size="1">
+      <A href="/" class="headline">Home</A> | <A href="#top" class="headline">Top</A> 
+      <BR>
+      <P> 
+                <A target="_top" href="http://newads.cmpnet.com/event.ng/Type=click&ProfileID=6936&RunID=41295&AdID=30835&GroupID=1&FamilyID=1&TagValues=179.2994&Redirect=http://www.usenix.org/events/usenix02/"><IMG src="http://img.cmpnet.com/ads/graphics/cs/ar/usenix_2002_468.gif" border=1 height=60 width=468 alt="Click Here!"></A> 
+        <BR>
+        <SPAN class="privacy">Copyright © 2002 <I>UnixReview.com</I>, UnixReview.com's 
+        <A href="http://www.cmp.com/delivery/privacy.html">Privacy Policy<BR>
+        </A></SPAN><SPAN class="privacy">Comments about the Web site: <A href="mailto:scoady@cmp.com?subject=UnixReview">scoady@cmp.com 
+        </A><BR>
+        SDMG Web Sites: <A href="http://www.cuj.com/" target="_new">C/C++ Users 
+        Journal</A>, <A href="http://www.ddj.com/" target="_new">Dr. Dobb's Journal</A>, 
+        <A href="http://msdn.microsoft.com/msdnmag/" target="_new">MSDN Magazine</A>, 
+        <A href="http://www.sysadminmag.com/" target="_new">Sys Admin</A>, <A href="http://www.sdexpo.com/" target="_new">SD 
+        Expo</A>, <A href="http://www.sdmagazine.com/" target="_new">SD Magazine</A>, 
+        <A href="http://www.unixreview.com/">UnixReview.com</A>, <A href="http://www.wd-mag.com/" target="_new">Windows 
+        Developer</A>, <A href="http://www.tpj.com" target="_blank">TPJ</A>, 
+        <A href="http://www.byte.com/" target="_blank"> BYTE.com</A></SPAN></P>
+    </TD>
+</TABLE><DIV align="right"><FONT size=-2>www3</FONT></DIV>
+  </BODY></HTML>
