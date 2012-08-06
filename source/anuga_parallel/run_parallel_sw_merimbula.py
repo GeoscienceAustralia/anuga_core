@@ -110,6 +110,7 @@ domain = distribute(domain)
 
 domain.set_flow_algorithm('2_0')   
 
+
 #domain.smooth = False
 #domain.set_default_order(2)
 #domain.set_timestepping_method('rk2')

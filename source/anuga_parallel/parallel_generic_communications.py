@@ -40,23 +40,26 @@ def communicate_flux_timestep(domain, yieldstep, finaltime):
     domain.local_timestep[0] = domain.flux_timestep
     t0 = time.time()
 
-    #Determine minimum timestep across all processors
-    pypar.reduce(domain.local_timestep, pypar.MIN, 0,
-                      buffer=domain.global_timestep)#,
-                      #bypass=True)
+    allreduce = False
+    
+    if allreduce:
+        #pypar.allreduce(domain.local_timestep, pypar.MIN,
+        #              buffer=domain.global_timestep,
+        #              bypass=True)
+        domain.communication_reduce_time += time.time()-t0
+    else:
+        pypar.reduce(domain.local_timestep, pypar.MIN, 0,
+                      buffer=domain.global_timestep,
+                      bypass=True)
 
-    #pypar.allreduce(domain.local_timestep, pypar.MIN,
-    #                  buffer=domain.global_timestep,
-    #                  bypass=True)
-
-    domain.communication_reduce_time += time.time()-t0
+        domain.communication_reduce_time += time.time()-t0
 
 
-    #Broadcast minimal timestep to all processors
-    t0 = time.time()
-    pypar.broadcast(domain.global_timestep, 0)#, bypass=True)
+        #Broadcast minimal timestep to all processors
+        t0 = time.time()
+        pypar.broadcast(domain.global_timestep, 0)#, bypass=True)
 
-    domain.communication_broadcast_time += time.time()-t0
+        domain.communication_broadcast_time += time.time()-t0
 
     old_fux_timestep = domain.flux_timestep
     domain.flux_timestep = domain.global_timestep[0]
