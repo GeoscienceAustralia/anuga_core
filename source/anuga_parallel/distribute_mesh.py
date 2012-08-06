@@ -25,6 +25,8 @@ from math import floor
 import numpy as num
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
+from anuga import indent
+
 
 #########################################################
 #
@@ -1148,7 +1150,7 @@ def rec_submesh_flat(p, verbose=True):
 
     submesh_cell = {}
     
-    if verbose: print 'process %d receiving submesh from process %d' %(myid, p)
+    if verbose: print indent+'P%d: Receiving submesh from P%d' %(myid, p)
 
     # receive the tagmap for the boundary conditions
     

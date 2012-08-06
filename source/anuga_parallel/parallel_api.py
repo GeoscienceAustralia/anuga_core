@@ -35,10 +35,14 @@ processor_name = get_processor_name()
 
 
 
-def distribute(domain, verbose=False):
+def distribute(domain, verbose=False, debug=False):
     """ Distribute the domain to all processes
     """
 
+
+    if debug:
+        verbose = True
+        
     barrier()
 
     # FIXME: Dummy assignment (until boundaries are refactored to
@@ -104,12 +108,24 @@ def distribute(domain, verbose=False):
                 ghost_recv_dict, full_send_dict,\
                 number_of_full_nodes, number_of_full_triangles,\
                 s2p_map, p2s_map, tri_map, node_map =\
-                distribute_mesh(domain, verbose=verbose)
+                distribute_mesh(domain, verbose=verbose, debug=debug)
 
 
+
+
+            
         # Extract l2g maps
         tri_l2g  = extract_l2g_map(tri_map)
         node_l2g = extract_l2g_map(node_map)
+
+        if debug:
+            print 'P%d' %myid
+            print 'tri_map ',tri_map
+            print 'node_map',node_map
+            print 'tri_l2g', tri_l2g
+            print 'node_l2g', node_l2g
+            print 's2p_map', s2p_map
+            print 'p2s_map', p2s_map
 
         # Send serial to parallel (s2p) and parallel to serial (p2s) triangle mapping to proc 1 .. numprocs
         for p in range(1, numprocs):
@@ -191,7 +207,11 @@ def distribute(domain, verbose=False):
 
 
 
-def distribute_mesh(domain, verbose=False):
+def distribute_mesh(domain, verbose=False, debug=False):
+
+
+    if debug:
+        verbose = True
 
     numprocs = size()
 
@@ -218,6 +238,10 @@ def distribute_mesh(domain, verbose=False):
             M = len(submesh['ghost_triangles'][p])
             print 'There are %d ghost nodes and %d ghost triangles on proc %d'\
                   %(N, M, p)
+
+    #if debug:
+    #    from pprint import pprint
+    #    pprint(submesh)
 
 
     # Send the mesh partition to the appropriate processor
@@ -269,7 +293,8 @@ def distribute_mesh(domain, verbose=False):
 
 
 def extract_l2g_map(map):
-    # Extract l2g_map
+    # Extract l2g data  from corresponding map
+    # Maps
 
     import numpy as num
     

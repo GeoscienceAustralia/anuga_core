@@ -62,7 +62,7 @@ class Set_Stage:
         self.h  = h
 
     def __call__(self, x, y):
-        return self.h*((x>self.x0)&(x<self.x1))
+        return self.h*((x>self.x0)&(x<self.x1)) + 1.0
 
 #--------------------------------------------------------------------------
 # Setup Domain only on processor 0

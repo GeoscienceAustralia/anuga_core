@@ -78,6 +78,11 @@ class Parallel_domain(Domain):
 
         self.s2p_map = s2p_map
         self.p2s_map = p2s_map
+
+
+        self.s2p_map = None
+        self.p2s_map = None
+
         self.tri_l2g = tri_l2g
         self.node_l2g = node_l2g
 
