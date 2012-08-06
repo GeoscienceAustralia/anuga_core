@@ -65,6 +65,12 @@ class Erosion_operator(Operator):
         # continuity of elevation
         #-----------------------------------------
         self.setup_node_structures()
+
+        #-----------------------------------------
+        # Some stras for reporting
+        #-----------------------------------------
+        self.max_change = 0
+        
         
 
     def update_quantities(self):
@@ -88,14 +94,17 @@ class Erosion_operator(Operator):
 
             #--------------------------------------
             # Update all three vertices for each cell
+            # associated with self.indices
             #--------------------------------------
             ind = self.indices
             m = num.sqrt(self.xmom_c[ind]**2 + self.ymom_c[ind]**2)
-            m = num.vstack((m,m,m)).T
+            m = num.vstack((m,m,m)).T  # Stack up m to apply to vertices
             m = num.where(m>self.threshold, m, 0.0)
-            self.elev_v[ind] = num.maximum(self.elev_v[ind] - m*dt, self.base)
-             #num.maximum(self.elev_v[ind] - momentum*dt, Z)
 
+            de = m*dt
+            self.elev_v[ind] = num.maximum(self.elev_v[ind] - de, self.base)
+
+            self.max_change = num.max(de)
 
         return updated
 
@@ -187,8 +196,10 @@ class Erosion_operator(Operator):
 
 
     def timestepping_statistics(self):
+        from anuga import indent
 
-        message  = indent + self.label + ': Erosion_operator'
+        message  = indent + self.label + ': Erosion_operator, time '
+        message += str(self.get_time())+ ' max(Delta Elev) '+ str(self.max_change)
         return message
 
 

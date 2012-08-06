@@ -1,4 +1,7 @@
 
+from anuga.utilities.system_tools import log_to_file
+
+
 class Operator:
     """Operator - generic structure for a fractional operator
     
@@ -36,10 +39,7 @@ class Operator:
             self.description = description
 
 
-        if label == None:
-            self.label = "operator_%g" % Operator.counter
-        else:
-            self.label = label + '_%g' % Operator.counter
+        self.set_label(label)
 
 
         self.verbose = verbose
@@ -95,6 +95,12 @@ class Operator:
         if self.logging:
             log_to_file(self.log_filename, self.timestepping_statistics())
 
+    def set_label(self, label=None):
+
+        if label == None:
+            self.label = "operator_%g" % Operator.counter
+        else:
+            self.label = label + '_%g' % Operator.counter
 
 
     def set_logging(self, flag=True):
@@ -105,7 +111,7 @@ class Operator:
         if self.logging:
             self.log_filename = self.label + '.log'
             log_to_file(self.log_filename, self.statistics(), mode='w')
-            log_to_file(self.log_filename, 'time,Q')
+            #log_to_file(self.log_filename, 'time,Q')
 
             #log_to_file(self.log_filename, self.culvert_type)
 

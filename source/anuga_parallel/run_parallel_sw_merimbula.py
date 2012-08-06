@@ -41,12 +41,12 @@ from anuga_parallel import distribute, myid, numprocs, finalize, barrier
 # Setup parameters
 #--------------------------------------------------------------------------
 
-mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0
-#mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
+#mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0
+mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
 #mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
 #mesh_filename = "test-20.tsh" ; x0 = 250.0 ; x1 = 350.0
-yieldstep = 20
-finaltime = 1000
+yieldstep = 50
+finaltime = 500
 verbose = True
 
 #--------------------------------------------------------------------------
@@ -108,10 +108,11 @@ domain = distribute(domain)
 # (all called "domain"
 #--------------------------------------------------------------------------
 
-    
+domain.set_flow_algorithm('2_0')   
+
 #domain.smooth = False
-domain.set_default_order(2)
-domain.set_timestepping_method('rk2')
+#domain.set_default_order(2)
+#domain.set_timestepping_method('rk2')
 #domain.set_CFL(0.7)
 #domain.set_beta(1.5)
 
@@ -152,18 +153,25 @@ for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
         domain.write_time()
 
 
-if myid == 0:
-    print 'Number of processors %g ' %numprocs
-    print 'That took %.2f seconds' %(time.time()-t0)
-    print 'Communication time %.2f seconds'%domain.communication_time
-    print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
-    print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
+barrier()
+
+for p in range(numprocs):
+    if myid == p:
+        print 'Processor %g ' %myid
+        print 'That took %.2f seconds' %(time.time()-t0)
+        print 'Communication time %.2f seconds'%domain.communication_time
+        print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
+        print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
+    else:
+        pass
+
+    barrier()
 
 
 #--------------------------------------------------
 # Merge the individual sww files into one file
 #--------------------------------------------------
-domain.sww_merge(delete_old=False)
+#domain.sww_merge(delete_old=False)
 
 finalize()
 
