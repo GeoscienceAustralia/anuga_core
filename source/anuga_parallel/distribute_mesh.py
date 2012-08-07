@@ -354,7 +354,12 @@ def ghost_layer(submesh, mesh, p, tupper, tlower):
 
     # Find the first layer of boundary triangles
 
+    layer_width = 2
+
+
     trianglemap = num.zeros(ntriangles, 'i')
+
+
     for t in range(tlower, tupper):
         
         n = mesh.neighbours[t, 0]
@@ -371,24 +376,30 @@ def ghost_layer(submesh, mesh, p, tupper, tlower):
             if n < tlower or n >= tupper:
                 trianglemap[n] = 1
 
-    # Find the second layer of boundary triangles
 
-    for t in range(len(trianglemap)):
-        if trianglemap[t]==1:
-            n = mesh.neighbours[t, 0]
-            if n >= 0:
-                if (n < tlower or n >= tupper) and trianglemap[n] == 0:
-                    trianglemap[n] = 2
-            n = mesh.neighbours[t, 1]
-            if n >= 0:
-                if (n < tlower or n >= tupper) and trianglemap[n] == 0:
-                    trianglemap[n] = 2
-            n = mesh.neighbours[t, 2]
-            if n >= 0:
-                if (n < tlower or n >= tupper) and trianglemap[n] == 0:
-                    trianglemap[n] = 2
+    # Find the subsequent layers of ghost triangles
+    for i in range(layer_width-1):
+
+        for t in range(len(trianglemap)):
+            if trianglemap[t]==i+1:
+                n = mesh.neighbours[t, 0]
+                if n >= 0:
+                    if (n < tlower or n >= tupper) and trianglemap[n] == 0:
+                        trianglemap[n] = i+2
+                n = mesh.neighbours[t, 1]
+                if n >= 0:
+                    if (n < tlower or n >= tupper) and trianglemap[n] == 0:
+                        trianglemap[n] = i+2
+                n = mesh.neighbours[t, 2]
+                if n >= 0:
+                    if (n < tlower or n >= tupper) and trianglemap[n] == 0:
+                        trianglemap[n] = i+2
 
     # Build the triangle list and make note of the vertices
+
+
+
+
 
     nodemap = num.zeros(ncoord, 'i')
     fullnodes = submesh["full_nodes"][p]
