@@ -116,9 +116,9 @@ class Parallel_domain(Domain):
 
 
     def update_ghosts(self):
-
-        # We must send the information from the full cells and
-        # receive the information for the ghost cells
+        """We must send the information from the full cells and
+        receive the information for the ghost cells
+        """
 
 
         communicate_ghosts(self)
@@ -130,7 +130,7 @@ class Parallel_domain(Domain):
 
         # PETE: Make sure that there are no deadlocks here
 
-        self.update_ghosts()
+        #self.update_ghosts()
 
 
 

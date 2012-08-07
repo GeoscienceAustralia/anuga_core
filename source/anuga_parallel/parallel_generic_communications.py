@@ -1,5 +1,5 @@
 """
-Generic implementation of update_timestep, update_ghosts and set_name for 
+Generic implementation of update_timestep and update_ghosts for
 parallel domains (eg shallow_water or advection) 
 
 Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
