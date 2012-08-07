@@ -108,8 +108,7 @@ domain = distribute(domain)
 # (all called "domain"
 #--------------------------------------------------------------------------
 
-domain.set_flow_algorithm('2_0')   
-
+domain.set_flow_algorithm('2_0')
 
 #domain.smooth = False
 #domain.set_default_order(2)

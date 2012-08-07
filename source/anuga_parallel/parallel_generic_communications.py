@@ -40,12 +40,12 @@ def communicate_flux_timestep(domain, yieldstep, finaltime):
     domain.local_timestep[0] = domain.flux_timestep
     t0 = time.time()
 
-    allreduce = False
+    allreduce = True
     
     if allreduce:
-        #pypar.allreduce(domain.local_timestep, pypar.MIN,
-        #              buffer=domain.global_timestep,
-        #              bypass=True)
+        pypar.allreduce(domain.local_timestep, pypar.MIN,
+                      buffer=domain.global_timestep,
+                      bypass=True)
         domain.communication_reduce_time += time.time()-t0
     else:
         pypar.reduce(domain.local_timestep, pypar.MIN, 0,
@@ -61,7 +61,7 @@ def communicate_flux_timestep(domain, yieldstep, finaltime):
 
         domain.communication_broadcast_time += time.time()-t0
 
-    old_fux_timestep = domain.flux_timestep
+    #old_flux_timestep = domain.flux_timestep
     domain.flux_timestep = domain.global_timestep[0]
     
     
@@ -92,7 +92,7 @@ def communicate_ghosts(domain):
                         Q_cv =  domain.quantities[q].centroid_values
                         Xout[:,i] = num.take(Q_cv, Idf)
 
-                    pypar.send(Xout, int(send_proc), use_buffer=True)#, bypass=True)
+                    pypar.send(Xout, int(send_proc), use_buffer=True, bypass=True)
 
 
         else:
@@ -102,7 +102,7 @@ def communicate_ghosts(domain):
                 Idg = domain.ghost_recv_dict[iproc][0]
                 X   = domain.ghost_recv_dict[iproc][2]
 
-                X = pypar.receive(int(iproc), buffer=X)#, bypass=True)
+                X = pypar.receive(int(iproc), buffer=X, bypass=True)
 
                 for i, q in enumerate(domain.conserved_quantities):
                     #print 'Receive',i,q

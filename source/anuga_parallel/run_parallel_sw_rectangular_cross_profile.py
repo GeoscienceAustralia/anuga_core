@@ -45,8 +45,7 @@ from anuga_parallel import distribute, myid, numprocs, finalize, barrier
 #mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
 #mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
 
-finaltime = 0.5
-yieldstep = 0.05
+
 verbose = True
 
 #--------------------------------------------------------------------------
@@ -68,9 +67,9 @@ class Set_Stage:
 # Setup Domain only on processor 0
 #--------------------------------------------------------------------------
 if myid == 0:
-    length = 2.0*numprocs
+    length = 2.0
     width = 2.0
-    dx = dy = 0.04
+    dx = dy = 0.02
     domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
 
@@ -114,7 +113,7 @@ domain.set_store(False)
 #------------------------------------------------------------------------------
 Br = Reflective_boundary(domain)      # Solid reflective wall
 
-domain.set_boundary({'top' :Br, 'bottom' :Br, 'left' :Br, 'right' :Br })
+domain.set_boundary({'top' :Br, 'bottom' :Br, 'left' :Br, 'right' :Br, 'ghost' : None })
 
 """
 barrier()
@@ -132,7 +131,8 @@ for p in range(numprocs):
 if myid == 0 and verbose: print 'EVOLVE'
 
 t0 = time.time()
-
+finaltime = 2.0
+yieldstep = 0.5
 
 s = """
 for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
