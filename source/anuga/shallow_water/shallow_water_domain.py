@@ -239,7 +239,8 @@ class Domain(Generic_Domain):
 
         self.alpha_balance = alpha_balance
         self.tight_slope_limiters = tight_slope_limiters
-        self.optimise_dry_cells = int(optimise_dry_cells)
+        
+        self.set_use_optimise_dry_cells(optimise_dry_cells)
         self.set_extrapolate_velocity(extrapolate_velocity_second_order)
 
 
@@ -502,6 +503,17 @@ class Domain(Generic_Domain):
             self.use_edge_limiter = True
         elif flag is False:
             self.use_edge_limiter = False
+
+    def set_use_optimise_dry_cells(self, flag=True):
+        """ Try to optimize calculations where region is dry
+        """
+
+        if flag is True:
+            self.optimise_dry_cells = int(True)
+        elif flag is False:
+            self.optimise_dry_cells = int(False)
+
+
 
 
     def set_use_kinematic_viscosity(self, flag=True):

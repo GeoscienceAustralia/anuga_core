@@ -67,7 +67,7 @@ class Erosion_operator(Operator):
         self.setup_node_structures()
 
         #-----------------------------------------
-        # Some stras for reporting
+        # Some extras for reporting
         #-----------------------------------------
         self.max_change = 0
         

@@ -897,10 +897,10 @@ else:
          gather_string, gather_array,\
          reduce_array,\
          allreduce_array,\
-	 bsend_string, bsend_array, \
-	 mpi_alloc_and_attach, mpi_detach_and_dealloc, \
-	 mpi_alloc, mpi_dealloc, mpi_attach, mpi_detach, \
-	 string_push_for_alloc_and_attach, array_push_for_alloc_and_attach, \
+         bsend_string, bsend_array, \
+	     mpi_alloc_and_attach, mpi_detach_and_dealloc, \
+	     mpi_alloc, mpi_dealloc, mpi_attach, mpi_detach, \
+	     string_push_for_alloc_and_attach, array_push_for_alloc_and_attach, \
          MPI_ANY_TAG as any_tag, MPI_TAG_UB as max_tag,\
          MPI_ANY_SOURCE as any_source,\
          MAX, MIN, SUM, PROD, LAND, BAND,\

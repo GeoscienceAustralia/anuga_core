@@ -84,80 +84,76 @@ class Mesh(General_mesh):
 
         General_mesh.__init__(self, coordinates, triangles,
                               geo_reference=geo_reference,
+                              use_inscribed_circle=use_inscribed_circle,
                               verbose=verbose)
 
-        if verbose: log.critical('Initialising mesh')
+        if verbose: log.critical('Mesh: Initialising')
 
         N = len(self) #Number_of_triangles
 
-        self.use_inscribed_circle = use_inscribed_circle
+        # Allocate arrays for neighbour data
 
-        #Allocate space for geometric quantities
-        self.centroid_coordinates = num.zeros((N, 2), num.float)
-
-        self.radii = num.zeros(N, num.float)
-
-        self.neighbours = num.zeros((N, 3), num.int)
-        self.neighbour_edges = num.zeros((N, 3), num.int)
+        self.neighbours = -1*num.ones((N, 3), num.int)
+        self.neighbour_edges = -1*num.ones((N, 3), num.int)
         self.number_of_boundaries = num.zeros(N, num.int)
         self.surrogate_neighbours = num.zeros((N, 3), num.int)
 
         #Get x,y coordinates for all triangles and store
         V = self.vertex_coordinates # Relative coordinates
 
-        #Initialise each triangle
-        if verbose: log.critical('Mesh: Computing centroids and radii')
-        for i in range(N):
-            if verbose and i % ((N+10)/10) == 0: log.critical('(%d/%d)' % (i, N))
-
-            x0, y0 = V[3*i, :]
-            x1, y1 = V[3*i+1, :]
-            x2, y2 = V[3*i+2, :]
-
-            #x0 = V[i, 0]; y0 = V[i, 1]
-            #x1 = V[i, 2]; y1 = V[i, 3]
-            #x2 = V[i, 4]; y2 = V[i, 5]
-
-            #Compute centroid
-            centroid = num.array([(x0 + x1 + x2)/3, (y0 + y1 + y2)/3], num.float)
-            self.centroid_coordinates[i] = centroid
-
-
-            if self.use_inscribed_circle == False:
-                #OLD code. Computed radii may exceed that of an
-                #inscribed circle
-
-                #Midpoints
-                m0 = num.array([(x1 + x2)/2, (y1 + y2)/2], num.float)
-                m1 = num.array([(x0 + x2)/2, (y0 + y2)/2], num.float)
-                m2 = num.array([(x1 + x0)/2, (y1 + y0)/2], num.float)
-
-                #The radius is the distance from the centroid of
-                #a triangle to the midpoint of the side of the triangle
-                #closest to the centroid
-                d0 = num.sqrt(num.sum( (centroid-m0)**2 ))
-                d1 = num.sqrt(num.sum( (centroid-m1)**2 ))
-                d2 = num.sqrt(num.sum( (centroid-m2)**2 ))
-
-                self.radii[i] = min(d0, d1, d2)
-
-            else:
-                #NEW code added by Peter Row. True radius
-                #of inscribed circle is computed
-
-                a = num.sqrt((x0-x1)**2+(y0-y1)**2)
-                b = num.sqrt((x1-x2)**2+(y1-y2)**2)
-                c = num.sqrt((x2-x0)**2+(y2-y0)**2)
-
-                self.radii[i]=2.0*self.areas[i]/(a+b+c)
-
-
-            #Initialise Neighbours (-1 means that it is a boundary neighbour)
-            self.neighbours[i, :] = [-1, -1, -1]
-
-            #Initialise edge ids of neighbours
-            #In case of boundaries this slot is not used
-            self.neighbour_edges[i, :] = [-1, -1, -1]
+#        #Initialise each triangle
+#        if verbose: log.critical('Mesh: Computing centroids and radii')
+#        for i in range(N):
+#            if verbose and i % ((N+10)/10) == 0: log.critical('(%d/%d)' % (i, N))
+#
+#            x0, y0 = V[3*i, :]
+#            x1, y1 = V[3*i+1, :]
+#            x2, y2 = V[3*i+2, :]
+#
+#            #x0 = V[i, 0]; y0 = V[i, 1]
+#            #x1 = V[i, 2]; y1 = V[i, 3]
+#            #x2 = V[i, 4]; y2 = V[i, 5]
+#
+#            #Compute centroid
+#            centroid = num.array([(x0 + x1 + x2)/3, (y0 + y1 + y2)/3], num.float)
+#            self.centroid_coordinates[i] = centroid
+#
+#
+#            if self.use_inscribed_circle == False:
+#                #OLD code. Computed radii may exceed that of an
+#                #inscribed circle
+#
+#                #Midpoints
+#                m0 = num.array([(x1 + x2)/2, (y1 + y2)/2], num.float)
+#                m1 = num.array([(x0 + x2)/2, (y0 + y2)/2], num.float)
+#                m2 = num.array([(x1 + x0)/2, (y1 + y0)/2], num.float)
+#
+#                #The radius is the distance from the centroid of
+#                #a triangle to the midpoint of the side of the triangle
+#                #closest to the centroid
+#                d0 = num.sqrt(num.sum( (centroid-m0)**2 ))
+#                d1 = num.sqrt(num.sum( (centroid-m1)**2 ))
+#                d2 = num.sqrt(num.sum( (centroid-m2)**2 ))
+#
+#                self.radii[i] = min(d0, d1, d2)
+#
+#            else:
+#                #NEW code added by Peter Row. True radius
+#                #of inscribed circle is computed
+#
+#                a = num.sqrt((x0-x1)**2+(y0-y1)**2)
+#                b = num.sqrt((x1-x2)**2+(y1-y2)**2)
+#                c = num.sqrt((x2-x0)**2+(y2-y0)**2)
+#
+#                self.radii[i]=2.0*self.areas[i]/(a+b+c)
+#
+#
+#            #Initialise Neighbours (-1 means that it is a boundary neighbour)
+#            self.neighbours[i, :] = [-1, -1, -1]
+#
+#            #Initialise edge ids of neighbours
+#            #In case of boundaries this slot is not used
+#            self.neighbour_edges[i, :] = [-1, -1, -1]
 
 
         #Build neighbour structure

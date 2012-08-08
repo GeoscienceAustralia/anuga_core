@@ -81,6 +81,8 @@ class Generic_Domain:
         else:
             coordinates = source
 
+        if verbose: log.critical('Domain: Initialising')
+
         # In case a filename has been specified, extract content
         if mesh_filename is not None:
             coordinates, triangles, boundary, vertex_quantity_dict, \
@@ -130,7 +132,7 @@ class Generic_Domain:
 
         self.geo_reference = self.mesh.geo_reference
 
-        if verbose: log.critical('Initialising Domain')
+
 
         # List of quantity names entering the conservation equations
         if conserved_quantities is None:
@@ -1346,7 +1348,7 @@ class Generic_Domain:
 
         # Update centroid values of conserved quantites to satisfy
         # special conditions
-        self.update_special_conditions()
+        #self.update_special_conditions()
 
         # Update ghosts to ensure all centroid values are available
         self.update_ghosts()
@@ -1400,6 +1402,9 @@ class Generic_Domain:
 
             # Update time
             self.set_time(initial_time + self.timestep)
+
+            # Update ghosts
+            self.update_ghosts()
 
             # Update vertex and edge values
             self.distribute_to_vertices_and_edges()
@@ -1473,12 +1478,11 @@ class Generic_Domain:
         # Update conserved quantities
         self.update_conserved_quantities()
 
-
         # Update special conditions
-        self.update_special_conditions()
+        #self.update_special_conditions()
 
         # Update ghosts
-        self.update_ghosts()
+        #self.update_ghosts()
 
 
 
@@ -1508,7 +1512,7 @@ class Generic_Domain:
         self.update_conserved_quantities()
 
         # Update special conditions
-        self.update_special_conditions()
+        #self.update_special_conditions()
 
         # Update ghosts
         self.update_ghosts()
@@ -1547,10 +1551,10 @@ class Generic_Domain:
         self.saxpy_conserved_quantities(0.5, 0.5)
 
         # Update special conditions
-        self.update_special_conditions()
+        #self.update_special_conditions()
 
         # Update ghosts
-        self.update_ghosts()
+        #self.update_ghosts()
 
 
     def evolve_one_rk3_step(self, yieldstep, finaltime):
@@ -1581,7 +1585,7 @@ class Generic_Domain:
         self.update_conserved_quantities()
 
         # Update special conditions
-        self.update_special_conditions()
+        #self.update_special_conditions()
 
         # Update ghosts
         self.update_ghosts()
@@ -1621,7 +1625,7 @@ class Generic_Domain:
 
 
         # Update special conditions
-        self.update_special_conditions()
+        #self.update_special_conditions()
 
         # Update ghosts
         self.update_ghosts()
@@ -1658,13 +1662,14 @@ class Generic_Domain:
 
 
         # Update special conditions
-        self.update_special_conditions()
+        #self.update_special_conditions()
         
-        # Update ghosts
-        self.update_ghosts()
 
         # Set new time
         self.set_time(initial_time + self.timestep)
+
+        # Update ghosts
+        #self.update_ghosts()
 
 
     def evolve_to_end(self, finaltime=1.0):
@@ -1785,34 +1790,6 @@ class Generic_Domain:
 
 
 
-#        for i, ((vol_id, edge_id), B) in enumerate(self.boundary_objects):
-#            if B is None:
-#                log.critical('WARNING: Ignored boundary segment (None)')
-#            else:
-#                q_bdry = B.evaluate(vol_id, edge_id)
-#
-#                if len(q_bdry) == len(self.evolved_quantities):
-#                    # conserved and evolved quantities are the same
-#                    q_evol = q_bdry
-#                elif len(q_bdry) == len(self.conserved_quantities):
-#                    # boundary just returns conserved quantities
-#                    # Need to calculate all the evolved quantities
-#                    # Use default conversion
-#
-#                    q_evol = self.get_evolved_quantities(vol_id, edge = edge_id)
-#
-#                    q_evol = self.conserved_values_to_evolved_values \
-#                                                            (q_bdry, q_evol)
-#                else:
-#                    msg = 'Boundary must return array of either conserved'
-#                    msg += ' or evolved quantities'
-#                    raise Exception(msg)
-#
-#                for j, name in enumerate(self.evolved_quantities):
-#                    Q = self.quantities[name]
-#                    Q.boundary_values[i] = q_evol[j]
-
-
     def update_boundary(self):
         """Go through list of boundary objects and update boundary values
         for all conserved quantities on boundary.
@@ -1821,7 +1798,6 @@ class Generic_Domain:
         the jth element of vector q must correspond to the jth conserved
         quantity in domain.
         """
-
 
         for tag in self.tag_boundary_cells:
 
@@ -1837,7 +1813,6 @@ class Generic_Domain:
             B.evaluate_segment(self, boundary_segment_edges)
         
 
-
     def compute_fluxes(self):
         msg = 'Method compute_fluxes must be overridden by Domain subclass'
         raise Exception(msg)
@@ -1847,7 +1822,6 @@ class Generic_Domain:
 
         for operator in self.fractional_step_operators:
             operator()
-
 
 
     def log_operator_timestepping_statistics(self):
@@ -1971,13 +1945,13 @@ class Generic_Domain:
                 Q_cv =  self.quantities[q].centroid_values
                 num.put(Q_cv, Idg, num.take(Q_cv, Idf, axis=0))
 
-    def update_special_conditions(self):
-        """There may be a need to change the values of the conserved 
-        quantities to satisfy special conditions at the very lowest level
-        the fluid flow calculation
-        """
-        
-        pass
+#    def update_special_conditions(self):
+#        """There may be a need to change the values of the conserved
+#        quantities to satisfy special conditions at the very lowest level
+#        the fluid flow calculation
+#        """
+#
+#        pass
 
 
     def update_other_quantities(self):
