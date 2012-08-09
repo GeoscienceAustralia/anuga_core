@@ -511,18 +511,24 @@ class General_mesh:
         M = self.number_of_triangles
         vertex_coordinates = num.zeros((3*M, 2), num.float)
 
-#        k0 = self.triangles[:,0]
-#        k1 = self.triangles[:,1]
-#        k2 = self.triangles[:,2]
-#
-#        vertex_coordinates[3*k0,:]   = self.nodes[k0,:]
-#        vertex_coordinates[3*k1+1,:] = self.nodes[k1,:]
-#        vertex_coordinates[3*k2+2,:] = self.nodes[k2,:]
+        k0 = self.triangles[:,0]
+        k1 = self.triangles[:,1]
+        k2 = self.triangles[:,2]
 
-        for i in range(M):
-            for j in range(3):
-                k = self.triangles[i,j] # Index of vertex j in triangle i
-                vertex_coordinates[3*i+j,:] = self.nodes[k]
+#        I = num.arange(M,dtype=num.int)
+#
+#        V0 = V[0:3*M:3, :]
+#        V1 = V[1:3*M:3, :]
+#        V2 = V[2:3*M:3, :]
+
+        vertex_coordinates[0:3*M:3,:] = self.nodes[k0,:]
+        vertex_coordinates[1:3*M:3,:] = self.nodes[k1,:]
+        vertex_coordinates[2:3*M:3,:] = self.nodes[k2,:]
+
+#        for i in range(M):
+#            for j in range(3):
+#                k = self.triangles[i,j] # Index of vertex j in triangle i
+#                vertex_coordinates[3*i+j,:] = self.nodes[k]
 
         return vertex_coordinates
 
@@ -757,37 +763,49 @@ class General_mesh:
         """
 
         # Count number of triangles per node
-        number_of_triangles_per_node = num.zeros(self.number_of_nodes,
-                                                 num.int)       #array default#
-        for volume_id, triangle in enumerate(self.get_triangles()):
-            for vertex_id in triangle:
-                number_of_triangles_per_node[vertex_id] += 1
+#        number_of_triangles_per_node = num.zeros(self.number_of_nodes,
+#                                                 num.int)       #array default#
+#        for volume_id, triangle in enumerate(self.get_triangles()):
+#            for vertex_id in triangle:
+#                number_of_triangles_per_node[vertex_id] += 1
+
+        # Need to pad number_of_triangles_per_node in case lone nodes at end of list
+        #number_of_triangles_per_node = num.zeros(self.number_of_nodes, num.int)
+
+        number_of_triangles_per_node = num.bincount(self.triangles.flatten())
+
+        number_of_lone_nodes = self.number_of_nodes - len(number_of_triangles_per_node)
+
+        #print number_of_lone_nodes
+        if number_of_lone_nodes > 0:
+            number_of_triangles_per_node =  \
+               num.append(number_of_triangles_per_node,num.zeros(number_of_lone_nodes,num.int))
+
+        #assert num.allclose(number_of_triangles_per_node_new, number_of_triangles_per_node)
 
         # Allocate space for inverted structure
         number_of_entries = num.sum(number_of_triangles_per_node)
-        vertex_value_indices = num.zeros(number_of_entries, num.int) #array default#
 
-        # Register (triangle, vertex) indices for each node
-        vertexlist = [None] * self.number_of_nodes
-        for volume_id in range(self.number_of_triangles):
-            a = self.triangles[volume_id, 0]
-            b = self.triangles[volume_id, 1]
-            c = self.triangles[volume_id, 2]
+        assert number_of_entries == 3*self.number_of_triangles
+        
+        #vertex_value_indices = num.zeros(number_of_entries, num.int) #array default#
 
-            for vertex_id, node_id in enumerate([a, b, c]):
-                if vertexlist[node_id] is None:
-                    vertexlist[node_id] = []
-                vertexlist[node_id].append((volume_id, vertex_id))
+        # Array of vertex_indices (3*vol_id+vertex_id) sorted into contiguous
+        # order around each node. Use with number_of_triangles_per_node to
+        # find vertices associated with a node.
+        # ie There are  number_of_triangles_per_node[i] vertices
+        vertex_value_indices = num.argsort(self.triangles.flatten())
 
-        # Build inverted triangle index array
+        node_index = num.zeros((self.number_of_nodes)+1, dtype = num.int)
+
         k = 0
-        for vertices in vertexlist:
-            if vertices is not None:
-                for volume_id, vertex_id in vertices:
-                    vertex_value_indices[k] = 3*volume_id + vertex_id
-                    k += 1
+        node_index[0] = 0
+        for i in range(self.number_of_nodes):
+            node_index[i+1] = node_index[i] + number_of_triangles_per_node[i]
 
-        # Save structure
+
+        # Save structures
+        self.node_index = node_index
         self.number_of_triangles_per_node = number_of_triangles_per_node
         self.vertex_value_indices = vertex_value_indices
 

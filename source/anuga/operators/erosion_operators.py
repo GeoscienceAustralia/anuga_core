@@ -374,14 +374,7 @@ class Erosion_operator(Operator):
         self.node_ids = [ id for id in node_ids ]
 
 
-        node_index = num.zeros((self.domain.number_of_nodes)+1, dtype = num.int)
-
-        k = 0
-        node_index[0] = 0
-        for i in range(self.domain.number_of_nodes):
-            node_index[i+1] = node_index[i] + self.domain.number_of_triangles_per_node[i]
-
-        self.node_index = node_index
+        self.node_index = self.domain.node_index
 
         vertex_ids =[]
         for nid in self.node_ids:

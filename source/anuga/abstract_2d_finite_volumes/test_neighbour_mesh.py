@@ -1139,14 +1139,17 @@ class Test_Mesh(unittest.TestCase):
         b = [6.0, 2.0]
         c = [1.0, 3.0]
         d = [2.0, 4.0]
+        e = [4.0, 3.0]
 
-        points = [a, b, c, d]
-        vertices = [[0,1,2]]
+        points = [a, b, d, c, e]
+        vertices = [[0,1,3]]
 
         mesh = Mesh(points, vertices)
         mesh.check_integrity()
         loners = mesh.get_lone_vertices()
-        self.failUnless(loners==[3],
+
+        #print loners
+        self.failUnless(loners==[2,4],
                         'FAILED!')
 
         

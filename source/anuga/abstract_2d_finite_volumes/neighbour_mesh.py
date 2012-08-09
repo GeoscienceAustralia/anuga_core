@@ -792,6 +792,7 @@ class Mesh(General_mesh):
         assert num.sum(self.number_of_triangles_per_node) ==\
                        len(self.vertex_value_indices)
 
+        
         # Check number of triangles per node
         count = [0]*self.number_of_nodes
         for triangle in self.triangles:
