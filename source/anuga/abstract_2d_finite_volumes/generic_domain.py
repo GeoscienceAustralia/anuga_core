@@ -212,33 +212,37 @@ class Generic_Domain:
                                              num.float))
 
 
+
+        N = len(self) #number_of_elements
+        self.number_of_elements = N
+
         # Setup cell full flag
         # =1 for full
         # =0 for ghost
-        N = len(self) #number_of_elements
-        self.number_of_elements = N
         self.tri_full_flag = num.ones(N, num.int)
+        
         for i in self.ghost_recv_dict.keys():
-            for id in self.ghost_recv_dict[i][0]:
-                self.tri_full_flag[id] = 0
+            id = self.ghost_recv_dict[i][0]
+            self.tri_full_flag[id] = 0
 
         self.number_of_full_triangles = int(num.sum(self.tri_full_flag))
 
-        self.node_full_flag = num.zeros(self.number_of_nodes, num.int)
-        L = self.mesh.get_triangles_and_vertices_per_node()
-        for i in range(len(L)):
-            tri_list = 0
-            for pair in L[i]:
-                tri_list = max( tri_list, self.tri_full_flag[pair[0]] )
-            self.node_full_flag[i] = tri_list
+
+        # Identify full nodes as thosethat intersect a full triangle.
+
+        Vol_ids  = self.vertex_value_indices/3
+        W = num.repeat(self.tri_full_flag, 3)
+
+        self.node_full_flag = num.minimum(num.bincount(self.triangles.flatten(), weights = W).astype(num.int), 1)
 
 
         #FIXME SR: The following line leads to a nasty segmentation fault!
         #self.number_of_full_nodes = int(num.sum(self.node_full_flag))
+
         self.number_of_full_nodes = self.number_of_nodes
 
 
-        # Test the assumption that all full triangles are store before
+        # Test the assumption that all full triangles are stored before
         # the ghost triangles.
         if not num.allclose(self.tri_full_flag[:self.number_of_full_nodes], 1):
             log.critical('WARNING: Not all full triangles are stored before '

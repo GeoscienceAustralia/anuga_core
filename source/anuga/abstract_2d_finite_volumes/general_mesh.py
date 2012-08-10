@@ -682,8 +682,9 @@ class General_mesh:
         triangle_list = []
         if node is not None:
             # Get index for this node
-            first = num.sum(self.number_of_triangles_per_node[:node])
+            #first = num.sum(self.number_of_triangles_per_node[:node])
 
+            first = self.node_index[node]
             # Get number of triangles for this node
             count = self.number_of_triangles_per_node[node]
 

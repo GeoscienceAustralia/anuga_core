@@ -320,13 +320,19 @@ class Quantity:
         # However, it isn't called by validate_all.py, so it
         # may not be that important to optimise it?
 
-        N = self.vertex_values.shape[0]
-        for i in range(N):
-            v0 = self.vertex_values[i, 0]
-            v1 = self.vertex_values[i, 1]
-            v2 = self.vertex_values[i, 2]
+#        N = self.vertex_values.shape[0]
+#        for i in range(N):
+#            v0 = self.vertex_values[i, 0]
+#            v1 = self.vertex_values[i, 1]
+#            v2 = self.vertex_values[i, 2]
+#
+#            self.centroid_values[i] = (v0 + v1 + v2)/3
 
-            self.centroid_values[i] = (v0 + v1 + v2)/3
+        v0 = self.vertex_values[:, 0]
+        v1 = self.vertex_values[:, 1]
+        v2 = self.vertex_values[:, 2]
+
+        self.centroid_values[:] = (v0 + v1 + v2)/3
 
         self.interpolate_from_vertices_to_edges()
 

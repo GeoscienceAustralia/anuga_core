@@ -255,15 +255,15 @@ class Mesh(General_mesh):
             a = self.triangles[i, 0]
             b = self.triangles[i, 1]
             c = self.triangles[i, 2]
-            if neighbourdict.has_key((a,b)):
-                    msg = "Edge 2 of triangle %d is duplicating edge %d of triangle %d.\n" %(i,neighbourdict[a,b][1],neighbourdict[a,b][0])
-                    raise Exception(msg)
-            if neighbourdict.has_key((b,c)):
-                    msg = "Edge 0 of triangle %d is duplicating edge %d of triangle %d.\n" %(i,neighbourdict[b,c][1],neighbourdict[b,c][0])
-                    raise Exception(msg)
-            if neighbourdict.has_key((c,a)):
-                    msg = "Edge 1 of triangle %d is duplicating edge %d of triangle %d.\n" %(i,neighbourdict[c,a][1],neighbourdict[c,a][0])
-                    raise Exception(msg)
+#            if neighbourdict.has_key((a,b)):
+#                    msg = "Edge 2 of triangle %d is duplicating edge %d of triangle %d.\n" %(i,neighbourdict[a,b][1],neighbourdict[a,b][0])
+#                    raise Exception(msg)
+#            if neighbourdict.has_key((b,c)):
+#                    msg = "Edge 0 of triangle %d is duplicating edge %d of triangle %d.\n" %(i,neighbourdict[b,c][1],neighbourdict[b,c][0])
+#                    raise Exception(msg)
+#            if neighbourdict.has_key((c,a)):
+#                    msg = "Edge 1 of triangle %d is duplicating edge %d of triangle %d.\n" %(i,neighbourdict[c,a][1],neighbourdict[c,a][0])
+#                    raise Exception(msg)
 
             neighbourdict[a,b] = (i, 2) #(id, edge)
             neighbourdict[b,c] = (i, 0) #(id, edge)
