@@ -232,7 +232,7 @@ class Mesh(General_mesh):
 
 
 
-    def build_neighbour_structure(self):
+    def build_neighbour_structure_python(self):
         """Update all registered triangles to point to their neighbours.
 
         Also, keep a tally of the number of boundaries for each triangle
@@ -255,15 +255,15 @@ class Mesh(General_mesh):
             a = self.triangles[i, 0]
             b = self.triangles[i, 1]
             c = self.triangles[i, 2]
-#            if neighbourdict.has_key((a,b)):
-#                    msg = "Edge 2 of triangle %d is duplicating edge %d of triangle %d.\n" %(i,neighbourdict[a,b][1],neighbourdict[a,b][0])
-#                    raise Exception(msg)
-#            if neighbourdict.has_key((b,c)):
-#                    msg = "Edge 0 of triangle %d is duplicating edge %d of triangle %d.\n" %(i,neighbourdict[b,c][1],neighbourdict[b,c][0])
-#                    raise Exception(msg)
-#            if neighbourdict.has_key((c,a)):
-#                    msg = "Edge 1 of triangle %d is duplicating edge %d of triangle %d.\n" %(i,neighbourdict[c,a][1],neighbourdict[c,a][0])
-#                    raise Exception(msg)
+            if neighbourdict.has_key((a,b)):
+                    msg = "Edge 2 of triangle %d is duplicating edge %d of triangle %d.\n" %(i,neighbourdict[a,b][1],neighbourdict[a,b][0])
+                    raise Exception(msg)
+            if neighbourdict.has_key((b,c)):
+                    msg = "Edge 0 of triangle %d is duplicating edge %d of triangle %d.\n" %(i,neighbourdict[b,c][1],neighbourdict[b,c][0])
+                    raise Exception(msg)
+            if neighbourdict.has_key((c,a)):
+                    msg = "Edge 1 of triangle %d is duplicating edge %d of triangle %d.\n" %(i,neighbourdict[c,a][1],neighbourdict[c,a][0])
+                    raise Exception(msg)
 
             neighbourdict[a,b] = (i, 2) #(id, edge)
             neighbourdict[b,c] = (i, 0) #(id, edge)
@@ -294,6 +294,27 @@ class Mesh(General_mesh):
                 self.neighbour_edges[i, 1] = neighbourdict[a,c][1]
                 self.number_of_boundaries[i] -= 1
 
+    def build_neighbour_structure(self):
+        """Update all registered triangles to point to their neighbours.
+
+        Also, keep a tally of the number of boundaries for each triangle
+
+        Postconditions:
+          neighbours and neighbour_edges is populated
+          number_of_boundaries integer array is defined.
+        """
+
+        import hashtable
+        
+        N = self.number_of_nodes
+
+        
+        hashtable.build_neighbour_structure(N,
+                                            self.triangles,
+                                            self.neighbours,
+                                            self.neighbour_edges,
+                                            self.number_of_boundaries)
+ 
 
     def build_surrogate_neighbour_structure(self):
         """Build structure where each triangle edge points to its neighbours
@@ -311,9 +332,9 @@ class Mesh(General_mesh):
         """
 
         N = len(self) #Number of triangles
-        for i in range(N):
+        for i in xrange(N):
             #Find all neighbouring volumes that are not boundaries
-            for k in range(3):
+            for k in xrange(3):
                 if self.neighbours[i, k] < 0:
                     self.surrogate_neighbours[i, k] = i #Point this triangle
                 else:
@@ -335,8 +356,8 @@ class Mesh(General_mesh):
 
         if boundary is None:
             boundary = {}
-            for vol_id in range(len(self)):
-                for edge_id in range(0, 3):
+            for vol_id in xrange(len(self)):
+                for edge_id in xrange(0, 3):
                     if self.neighbours[vol_id, edge_id] < 0:
                         boundary[(vol_id, edge_id)] = default_boundary_tag
         else:
@@ -351,8 +372,8 @@ class Mesh(General_mesh):
                 #assert self.neighbours[vol_id, edge_id] < 0, msg
 
             #Check that all boundary segments are assigned a tag
-            for vol_id in range(len(self)):
-                for edge_id in range(0, 3):
+            for vol_id in xrange(len(self)):
+                for edge_id in xrange(0, 3):
                     if self.neighbours[vol_id, edge_id] < 0:
                         if not boundary.has_key( (vol_id, edge_id) ):
                             msg = 'WARNING: Given boundary does not contain '

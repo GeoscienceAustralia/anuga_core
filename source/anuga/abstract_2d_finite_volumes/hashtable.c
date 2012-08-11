@@ -19,60 +19,68 @@
 // utilities directory
 //==============================================================================
 
-struct edge {
-    int key;                    /* key of form i m + j */
+typedef struct  {
+    int i;
+    int j;
+} edge_key_t;
+
+typedef struct {
+    edge_key_t key;              /* key of form i , j */
     int vol_id;                /* id of vol containing this edge */
     int edge_id;               /* edge_id of edge in this vol */
     UT_hash_handle hh;         /* makes this structure hashable */
-};
+} edge_t;
 
-struct edge *edgetable = NULL;
+edge_t *edgetable = NULL;
 
-void add_edge(int edge_key, int vol_id, int edge_id) {
-    struct edge *s;
+void add_edge(edge_key_t key, int vol_id, int edge_id) {
+    edge_t *s;
 
-    s = (struct edge*)malloc(sizeof(struct edge));
-    s->key = edge_key;
+    s = (edge_t*) malloc(sizeof(edge_t));
+    memset(s, 0, sizeof(edge_t));
+    s->key.i = key.i;
+    s->key.j = key.j;
     s->vol_id = vol_id;
     s->edge_id = edge_id;
-    HASH_ADD_INT( edgetable, key, s );  /* key: name of key field */
+    HASH_ADD(hh, edgetable, key, sizeof(edge_key_t), s);  /* key: name of key field */
 }
 
-struct edge *find_edge(int edge_key) {
-    struct edge *s;
+edge_t *find_edge(edge_key_t key) {
+    edge_t *s;
 
-    HASH_FIND_INT( edgetable, &edge_key, s );  /* s: output pointer */
+    HASH_FIND(hh, edgetable, &key, sizeof(edge_key_t), s);  /* s: output pointer */
     return s;
 }
 
-void delete_edge(struct edge *edge) {
+void delete_edge(edge_t *edge) {
     HASH_DEL( edgetable, edge);  /* user: pointer to deletee */
     free(edge);
 }
 
 void delete_all() {
-  struct edge *current_edge, *tmp;
+  edge_t *current_edge, *tmp;
 
   HASH_ITER(hh, edgetable, current_edge, tmp) {
-    HASH_DEL(edgetable,current_edge);  /* delete it (edgetable advances to next) */
+    HASH_DEL(edgetable, current_edge);  /* delete it (edgetable advances to next) */
     free(current_edge);            /* free it */
   } 
 }
 
 void print_edges() {
-    struct edge *s;
+    edge_t *s;
 
-    for(s=edgetable; s != NULL; s=(struct edge*)(s->hh.next)) {
-        printf("edge key %d: vol_id %d  edge_id %d\n", s->key, s->vol_id, s->edge_id);
+    for(s=edgetable; s != NULL; s=(edge_t*)(s->hh.next)) {
+        printf("edge key i %d i %d vol_id %d  edge_id %d\n",
+                      s->key.i, s->key.j, s->vol_id, s->edge_id);
     }
 }
 
-int vol_id_sort(struct edge *a, struct edge *b) {
+int vol_id_sort(edge_t *a, edge_t *b) {
     return (a->vol_id - b->vol_id);
 }
 
-int key_sort(struct edge *a, struct edge *b) {
-    return (a->key - b->key);
+int key_sort(edge_t *a, edge_t *b) {
+    return (a->key.i - b->key.i);
 }
 
 void sort_by_vol_id() {
@@ -87,25 +95,27 @@ void sort_by_key() {
 //==============================================================================
 // Code to calculate neighbour structure
 //==============================================================================
-int _create_neighbours(int N,
+int _build_neighbour_structure(int N, int M,
+                      long* triangles,
 		      long* neighbours,
                       long* neighbour_edges,
-                      long* number_of_boundaries,
-		      long* triangles) {
+                      long* number_of_boundaries)
+		      {
     int k;
     int k3;
     int n0,n1,n2;
-    int key;
     int vol_id;
     int edge_id;
-    struct edge *s;
+    int err = 0;
+    edge_t *s;
+    edge_key_t key;
 
     //--------------------------------------------------------------------------
     // Step 1:
     // Populate hashtable. We use a key based on the node_ids of the
     // two nodes defining the edge
     //--------------------------------------------------------------------------
-    for (k=0; k<N; k++) {
+    for (k=0; k<M; k++) {
 
         // Run through triangles
         k3 = 3*k;
@@ -116,35 +126,81 @@ int _create_neighbours(int N,
 
         // Add edges
 
+        //----------------------------------------------------------------------
         // edge 0, n1 - n2
-        key = n1*N + n2;
+        //----------------------------------------------------------------------
+        key.i = n1;
+        key.j = n2;
         vol_id = k;
         edge_id = 0;
-
+        
+        // Error if duplicates
+        s = find_edge(key);
+        if (s) {
+            err = 1;
+            break;
+        }
+        // Otherwise add edge
         add_edge(key, vol_id, edge_id);
 
+        //----------------------------------------------------------------------
         // edge 1, n2 - n0
-        key = n2*N + n0;
+        //----------------------------------------------------------------------
+        key.i = n2;
+        key.j = n0;
         vol_id = k;
         edge_id = 1;
 
+        // Error if duplicates
+        s = find_edge(key);
+        if (s) {
+            err = 1;
+            break;
+        }
+        // Otherwise add edge
         add_edge(key, vol_id, edge_id);
 
+        //----------------------------------------------------------------------
         // edge 2, n0 - n1
-        key = n0*N + n1;
+        //----------------------------------------------------------------------
+        key.i = n0;
+        key.j = n1;
         vol_id = k;
         edge_id = 2;
 
+        // Error if duplicates
+        s = find_edge(key);
+        if (s) {
+            err = 1;
+            break;
+        }
+        // Otherwise add edge
         add_edge(key, vol_id, edge_id);
 
     }
+
+    
+    //--------------------------------------------------------------------------
+    // return with an error code if duplicate key found
+    // Clean up hashtable
+    //--------------------------------------------------------------------------
+    if (err) {
+        //printf("Duplicate Keys:\n");
+        //printf("key.i %d key.j %d vol_id %d edge_id %d \n",
+        //       s->key.i, s->key.j,s->vol_id,s->edge_id);
+        //printf("key.i %d key.j %d vol_id %d edge_id %d \n",
+        //       key.i,key.j,vol_id,edge_id);
+        delete_all();
+        return err;
+    }
+
 
     //--------------------------------------------------------------------------
     //Step 2:
     //Go through triangles again, but this time
     //reverse direction of segments and lookup neighbours.
     //--------------------------------------------------------------------------
-    for (k=0; k<N; k++) {
+    for (k=0; k<M; k++) {
 
         // Run through triangles
         k3 = 3*k;
@@ -158,37 +214,40 @@ int _create_neighbours(int N,
         // Search for neighbouring edge
 
         // edge 0, n1 - n2
-        key = n2*N + n1;
+        key.i = n2;
+        key.j = n1;
         s = find_edge(key);
         if (s) {
-            neighbours[k3+2]      = s -> vol_id;
-            neighbour_edges[k3+2] = s -> edge_id;
-            number_of_boundaries[k3+2] -= 1;
+            neighbours[k3]      = s -> vol_id;
+            neighbour_edges[k3] = s -> edge_id;
+            number_of_boundaries[k] -= 1;
         }
 
         // edge 1, n2 - n0
-        key = n0*N + n2;
+        key.i = n0;
+        key.j = n2;
         s = find_edge(key);
         if (s) {
-            neighbours[k3+2]      = s -> vol_id;
-            neighbour_edges[k3+2] = s -> edge_id;
-            number_of_boundaries[k3+2] -= 1;
+            neighbours[k3+1]      = s -> vol_id;
+            neighbour_edges[k3+1] = s -> edge_id;
+            number_of_boundaries[k] -= 1;
         }
 
         // edge 2, n0 - n1
-        key = n1*N + n0;
+        key.i = n1;
+        key.j = n0;
         s = find_edge(key);
         if (s) {
             neighbours[k3+2]      = s -> vol_id;
             neighbour_edges[k3+2] = s -> edge_id;
-            number_of_boundaries[k3+2] -= 1;
+            number_of_boundaries[k] -= 1;
         }
 
     }
     
     delete_all();  /* free any structures */
 
-    return 0;
+    return err;
 
 }
 
@@ -197,53 +256,65 @@ int _create_neighbours(int N,
 // Python method Wrapper
 //==============================================================================
 
-PyObject *create_neighbours(PyObject *self, PyObject *args) {
+PyObject *build_neighbour_structure(PyObject *self, PyObject *args) {
 
   /*
    * Update neighbours array using triangles array
+   *
+   * N is number of nodes (vertices)
+   * triangle nodes defining triangles
+   * neighbour across edge_id
+   * neighbour_edges edge_id of edge in neighbouring triangle
+   * number_of_boundaries
   */
 
 	PyArrayObject *neighbours, *neighbour_edges, *number_of_boundaries;
         PyArrayObject *triangles;
 
-	int N, err;
+	int N; // Number of nodes (read in)
+        int M; // Number of triangles (calculated from triangle array)
+        int err;
 
 
 	// Convert Python arguments to C
-	if (!PyArg_ParseTuple(args, "OOOO", &neighbours,
+	if (!PyArg_ParseTuple(args, "iOOOO", &N,
+                                            &triangles,
+                                            &neighbours,
                                             &neighbour_edges,
-                                            &number_of_boundaries,
-                                            &triangles)) {
+                                            &number_of_boundaries
+                                            )) {
 	  PyErr_SetString(PyExc_RuntimeError,
 			  "hashtable.c: create_neighbours could not parse input");
 	  return NULL;
 	}
 
+        CHECK_C_CONTIG(triangles);
         CHECK_C_CONTIG(neighbours);
         CHECK_C_CONTIG(neighbour_edges);
         CHECK_C_CONTIG(number_of_boundaries);
-	CHECK_C_CONTIG(triangles);
 
-	N = triangles -> dimensions[0];
 
-	err = _create_neighbours(N,
+        M = triangles -> dimensions[0];
+
+
+	err = _build_neighbour_structure(N, M,
+                      (long*) triangles  -> data,
 		      (long*) neighbours -> data,
                       (long*) neighbour_edges -> data,
-                      (long*) number_of_boundaries -> data,
-		      (long*) triangles  -> data);
+                      (long*) number_of_boundaries -> data);
 
 
 	if (err != 0) {
 	  PyErr_SetString(PyExc_RuntimeError,
-			  "hashtable.c: error creating neighbours");
+			  "Duplicate Edge");
 	  return NULL;
 	}
 
 	// Release and return
-	Py_DECREF(triangles);
-	Py_DECREF(neighbours);
-        Py_DECREF(neighbour_edges);
-        Py_DECREF(number_of_boundaries);
+	//Py_DECREF(triangles);
+	//Py_DECREF(neighbours);
+        //Py_DECREF(neighbour_edges);
+        //Py_DECREF(number_of_boundaries);
 
 	return Py_BuildValue("");
 }
@@ -255,7 +326,7 @@ PyObject *create_neighbours(PyObject *self, PyObject *args) {
 
 // Method table for python module
 static struct PyMethodDef MethodTable[] = {
-	{"create_neighbours", create_neighbours, METH_VARARGS, "Print out"},
+	{"build_neighbour_structure", build_neighbour_structure, METH_VARARGS, "Print out"},
 	{NULL, NULL, 0, NULL}   // sentinel
 };
 
