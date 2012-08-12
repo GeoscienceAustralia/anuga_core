@@ -362,7 +362,7 @@ class General_mesh:
 
 
         # Build structure listing which triangles belong to which node.
-        if verbose: log.critical('Building inverted triangle structure')
+        if verbose: log.critical('General Mesh: Building inverted triangle structure')
         self.build_inverted_triangle_structure()
         
         if verbose: log.timingInfo("aoi, '%s'" % self.get_area())
@@ -773,7 +773,7 @@ class General_mesh:
         # Need to pad number_of_triangles_per_node in case lone nodes at end of list
         #number_of_triangles_per_node = num.zeros(self.number_of_nodes, num.int)
 
-        number_of_triangles_per_node = num.bincount(self.triangles.flatten())
+        number_of_triangles_per_node = num.bincount(self.triangles.flat)
 
         number_of_lone_nodes = self.number_of_nodes - len(number_of_triangles_per_node)
 
@@ -795,14 +795,20 @@ class General_mesh:
         # order around each node. Use with number_of_triangles_per_node to
         # find vertices associated with a node.
         # ie There are  number_of_triangles_per_node[i] vertices
-        vertex_value_indices = num.argsort(self.triangles.flatten())
+        vertex_value_indices = num.argsort(self.triangles.flat)
+        #vertex_value_indices = num.argsort(self.triangles.flatten())
+
+#        node_index = num.zeros((self.number_of_nodes)+1, dtype = num.int)
+#        node_index[0] = 0
+#        for i in xrange(self.number_of_nodes):
+#            node_index[i+1] = node_index[i] + number_of_triangles_per_node[i]
 
         node_index = num.zeros((self.number_of_nodes)+1, dtype = num.int)
+        node_index[1:] = num.cumsum(number_of_triangles_per_node)
 
-        k = 0
-        node_index[0] = 0
-        for i in range(self.number_of_nodes):
-            node_index[i+1] = node_index[i] + number_of_triangles_per_node[i]
+        #assert num.allclose(node_index,node_index_new)
+
+
 
 
         # Save structures

@@ -242,7 +242,7 @@ def _create_mesh_from_regions(bounding_polygon,
         for interior_polygon in interior_holes:
 
             # Test that we have a polygon
-            if len(num.array(interior_polygon).flatten()) < 6:
+            if len(num.array(interior_polygon).flat) < 6:
                 msg = 'Interior hole polygon %s has too few (<3) points.\n' \
                     %(str(interior_polygon))
                 msg = msg + '(Insure that you have specified a LIST of interior hole polygons)'

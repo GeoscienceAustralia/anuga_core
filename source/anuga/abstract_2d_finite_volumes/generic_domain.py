@@ -33,6 +33,7 @@ class Generic_Domain:
     Generic computational Domain constructor.
     '''
 
+
     def __init__(self, source=None,
                        triangles=None,
                        boundary=None,
@@ -71,6 +72,9 @@ class Generic_Domain:
           ...
         """
 
+
+        if verbose: log.critical('Domain: Initialising')
+
         # FIXME SR: This is a bug
         number_of_full_nodes=None
         number_of_full_triangles=None
@@ -81,10 +85,11 @@ class Generic_Domain:
         else:
             coordinates = source
 
-        if verbose: log.critical('Domain: Initialising')
+
 
         # In case a filename has been specified, extract content
         if mesh_filename is not None:
+
             coordinates, triangles, boundary, vertex_quantity_dict, \
                          tagged_elements, geo_reference = \
                          pmesh_to_domain(file_name=mesh_filename,
@@ -100,6 +105,8 @@ class Generic_Domain:
                          #number_of_full_nodes=number_of_full_nodes,
                          #number_of_full_triangles=number_of_full_triangles,
                          verbose=verbose)
+
+        if verbose: log.critical('Domain: Expose mesh attributes')
 
         # Expose Mesh attributes (FIXME: Maybe turn into methods)
         self.triangles = self.mesh.triangles        
@@ -133,7 +140,7 @@ class Generic_Domain:
         self.geo_reference = self.mesh.geo_reference
 
 
-
+        if verbose: log.critical('Domain: Expose quantity names and types')
         # List of quantity names entering the conservation equations
         if conserved_quantities is None:
             self.conserved_quantities = []
@@ -159,6 +166,7 @@ class Generic_Domain:
             assert quantity == self.evolved_quantities[i], msg
             
 
+        if verbose: log.critical('Domain: Build Quantities')
         # Build dictionary of Quantity instances keyed by quantity names
         self.quantities = {}
 
@@ -197,8 +205,7 @@ class Generic_Domain:
         self.numproc = numproc
 
         # Setup Communication Buffers
-        if verbose: log.critical('Domain: Set up communication buffers '
-                                 '(parallel)')
+        if verbose: log.critical('Domain: Set up communication buffers ')
         self.nsys = len(self.conserved_quantities)
         for key in self.full_send_dict:
             buffer_shape = self.full_send_dict[key][0].shape[0]
@@ -212,11 +219,12 @@ class Generic_Domain:
                                              num.float))
 
 
-
+        # Setup triangle full flag
+        if verbose: log.critical('Domain: Set up triangle/node full flags ')
         N = len(self) #number_of_elements
         self.number_of_elements = N
 
-        # Setup cell full flag
+        
         # =1 for full
         # =0 for ghost
         self.tri_full_flag = num.ones(N, num.int)
@@ -228,12 +236,12 @@ class Generic_Domain:
         self.number_of_full_triangles = int(num.sum(self.tri_full_flag))
 
 
-        # Identify full nodes as thosethat intersect a full triangle.
+        # Identify full nodes as those that intersect a full triangle.
 
         Vol_ids  = self.vertex_value_indices/3
         W = num.repeat(self.tri_full_flag, 3)
 
-        self.node_full_flag = num.minimum(num.bincount(self.triangles.flatten(), weights = W).astype(num.int), 1)
+        self.node_full_flag = num.minimum(num.bincount(self.triangles.flat, weights = W).astype(num.int), 1)
 
 
         #FIXME SR: The following line leads to a nasty segmentation fault!
@@ -249,6 +257,8 @@ class Generic_Domain:
                              'ghost triangles')
 
         # Defaults
+        if verbose: log.critical('Domain: Set defaults')
+
         from anuga.config import max_smallsteps, beta_w, epsilon
         from anuga.config import CFL
         from anuga.config import timestepping_method
@@ -300,6 +310,9 @@ class Generic_Domain:
         self.datadir = default_datadir
         self.simulation_name = 'domain'
         self.checkpoint = False
+
+        if verbose: log.critical('Domain: Set work arrays')
+
 
         # To avoid calculating the flux across each edge twice, keep an integer
         # (boolean) array, to be used during the flux calculation.

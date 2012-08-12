@@ -672,7 +672,7 @@ class Quantity:
             msg = 'Values array must be 1d'
             assert len(values.shape) == 1 or num.allclose(values.shape[1:], 1), msg
 
-            self.set_vertex_values(values.flatten(), indices=indices,
+            self.set_vertex_values(values.flat, indices=indices,
                                    use_cache=use_cache, verbose=verbose)
         else:
             # Location vertices
