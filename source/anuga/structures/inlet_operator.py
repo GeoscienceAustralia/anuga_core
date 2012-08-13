@@ -2,6 +2,7 @@ import anuga
 import numpy
 import inlet
 
+from warnings import warn
 
 class Inlet_operator(anuga.Operator):
     """Inlet Operator - add water to an inlet.
@@ -18,6 +19,7 @@ class Inlet_operator(anuga.Operator):
                  domain,
                  line,
                  Q = 0.0,
+                 default = None,
                  description = None,
                  label = None,
                  logging = False,
@@ -38,6 +40,9 @@ class Inlet_operator(anuga.Operator):
         self.inlet = inlet.Inlet(self.domain, self.line, verbose= verbose)
 
         self.applied_Q = 0.0
+
+        self.set_default(default)
+
 
     def __call__(self):
 
@@ -70,9 +75,15 @@ class Inlet_operator(anuga.Operator):
     def update_Q(self, t):
         """Allowing local modifications of Q
         """
+        from anuga.fit_interpolate.interpolate import Modeltime_too_early, Modeltime_too_late
         
         if callable(self.Q):
-            Q = self.Q(t)[0]
+            try:
+                Q = self.Q(t)[0]
+            except Modeltime_too_early, e:
+                raise Modeltime_too_early(e)
+            except Modeltime_too_late, e:
+                Q = self.get_default(t,err_msg=e)
         else:
             Q = self.Q
 
@@ -119,6 +130,60 @@ class Inlet_operator(anuga.Operator):
         message += 'Q [m^3/s]: %.2f\n' % self.applied_Q
 
         return message
+
+
+    def set_default(self, default=None):
+        
+        """ Either leave default as None or change it into a function"""
+
+        if default is not None:
+            # If it is a constant, make it a function
+            if not callable(default):
+                tmp = default
+                default = lambda t: tmp
+
+            # Check that default_rate is a function of one argument
+            try:
+                default(0.0)
+            except:
+                raise Exception(msg)
+
+        self.default = default
+        self.default_invoked = False
+
+
+
+    def get_default(self,t, err_msg=' '):
+        """ Call get_default only if exception
+        Modeltime_too_late(msg) has been raised
+        """
+
+        from anuga.fit_interpolate.interpolate import Modeltime_too_early, Modeltime_too_late
+
+
+        if self.default is None:
+            msg = '%s: ANUGA is trying to run longer than specified data.\n' %str(err_msg)
+            msg += 'You can specify keyword argument default in the '
+            msg += 'operator to tell it what to do in the absence of time data.'
+            raise Modeltime_too_late(msg)
+        else:
+            # Pass control to default rate function
+            value = self.default(t)
+
+            if self.default_invoked is False:
+                # Issue warning the first time
+                msg = ('%s\n'
+                       'Instead I will use the default rate: %s\n'
+                       'Note: Further warnings will be supressed'
+                       % (str(err_msg), str(self.default(t))))
+                warn(msg)
+
+                # FIXME (Ole): Replace this crude flag with
+                # Python's ability to print warnings only once.
+                # See http://docs.python.org/lib/warning-filter.html
+                self.default_invoked = True
+
+        return value
 
 
     def set_Q(self, Q):

@@ -92,7 +92,7 @@ class Set_stage_operator(Operator):
             except Modeltime_too_late, e:
                 msg = '%s: ANUGA is trying to run longer than specified data.\n' %str(e)
                 msg += 'You can specify keyword argument default_rate in the '
-                msg += 'rate operator to tell it what to do in the absence of time data.'
+                msg += 'stage function to tell it what to do in the absence of time data.'
                 raise Modeltime_too_late(msg)
         else:
             stage = self.stage
