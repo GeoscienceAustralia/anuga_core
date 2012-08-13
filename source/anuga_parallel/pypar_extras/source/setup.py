@@ -187,9 +187,9 @@ if __name__ == '__main__':
           author=__author__,
           author_email='stephen.roberts@anu.edu.au',
           #url='http://sourceforge.net/projects/pypar',
-          package_dir = {'pypar_ext': ''}, # Use files in this dirctory
-          packages  = ['pypar_ext'],
-          ext_modules = [Extension('pypar_ext.mpiextras',
+          package_dir = {'pypar_extras': ''}, # Use files in this dirctory
+          packages  = ['pypar_extras'],
+          ext_modules = [Extension('pypar_extras.mpiextras',
                                    ['mpiextras.c'],
                                    include_dirs=mpi_flags['inc_dirs'],
                                    library_dirs=mpi_flags['lib_dirs'],
