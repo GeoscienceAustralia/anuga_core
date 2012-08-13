@@ -62,12 +62,12 @@ class Parallel_domain(Domain):
         if number_of_full_nodes is not None:
             self.number_of_full_nodes_tmp = number_of_full_nodes
         else:
-            self.number_of_full_nodes_tmp = get_number_of_nodes()
+            self.number_of_full_nodes_tmp = self.get_number_of_nodes()
 
         if number_of_full_triangles is not None:
             self.number_of_full_triangles_tmp = number_of_full_triangles
         else:
-            self.number_of_full_triangles_tmp = get_number_of_triangles()
+            self.number_of_full_triangles_tmp = self.get_number_of_triangles()
 
         setup_buffers(self)
 

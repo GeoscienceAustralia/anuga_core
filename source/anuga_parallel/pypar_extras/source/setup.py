@@ -180,7 +180,7 @@ if __name__ == '__main__':
 
 
 
-    setup(name='Pypar',
+    setup(name='Pypar_extras',
           version=__version__,
           description='Extension to Pypar - Parallel Python',
           long_description='Extension to Pypar - Parallel Python',

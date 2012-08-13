@@ -131,35 +131,34 @@ for p in range(numprocs):
 if myid == 0 and verbose: print 'EVOLVE'
 
 t0 = time.time()
-finaltime = 2.0
-yieldstep = 0.5
+finaltime = 0.25
+yieldstep = 0.05
 
-s = """
 for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
     if myid == 0:
         domain.write_time()
-"""
 
 
-# Profiling
-import cProfile
-prof_file = 'evolve-prof'+ str(numprocs) + '_' + str(myid) + '.dat'
-cProfile.run(s,prof_file)
+
+## Profiling
+#import cProfile
+#prof_file = 'evolve-prof'+ str(numprocs) + '_' + str(myid) + '.dat'
+#cProfile.run(s,prof_file)
 
 
 barrier()
 
-for id in range(numprocs):
-    if myid == id:
-        import pstats
-        p = pstats.Stats(prof_file)
-        #p.sort_stats('cumulative').print_stats(25)
-        p.sort_stats('time').print_stats(25)
-        sys.stdout.flush
-
-    barrier()
-
-barrier()
+#for id in range(numprocs):
+#    if myid == id:
+#        import pstats
+#        p = pstats.Stats(prof_file)
+#        #p.sort_stats('cumulative').print_stats(25)
+#        p.sort_stats('time').print_stats(25)
+#        sys.stdout.flush
+#
+#    barrier()
+#
+#barrier()
 
 for p in range(numprocs):
     if myid == p:

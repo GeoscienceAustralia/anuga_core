@@ -43,7 +43,8 @@ def communicate_flux_timestep(domain, yieldstep, finaltime):
     allreduce = True
     
     if allreduce:
-        pypar.allreduce(domain.local_timestep, pypar.MIN,
+        import anuga_parallel.pypar_extras as par_extras
+        par_extras.allreduce(domain.local_timestep, pypar.MIN,
                       buffer=domain.global_timestep,
                       bypass=True)
         domain.communication_reduce_time += time.time()-t0
