@@ -288,6 +288,7 @@ PyObject *build_neighbour_structure(PyObject *self, PyObject *args) {
 	  return NULL;
 	}
 
+
         CHECK_C_CONTIG(triangles);
         CHECK_C_CONTIG(neighbours);
         CHECK_C_CONTIG(neighbour_edges);
@@ -310,11 +311,6 @@ PyObject *build_neighbour_structure(PyObject *self, PyObject *args) {
 	  return NULL;
 	}
 
-	// Release and return
-	//Py_DECREF(triangles);
-	//Py_DECREF(neighbours);
-        //Py_DECREF(neighbour_edges);
-        //Py_DECREF(number_of_boundaries);
 
 	return Py_BuildValue("");
 }

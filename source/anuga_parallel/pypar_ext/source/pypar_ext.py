@@ -85,7 +85,7 @@ def isend(x, destination, use_buffer=False, vanilla=False,
     import types, string
 
     if bypass:
-        send_array(x, destination, tag)
+        isend_array(x, destination, tag)
         return
 
     # Input check
@@ -151,7 +151,7 @@ def ireceive(source, buffer=None, vanilla=False, tag=default_tag,
     if bypass:
         # errmsg = 'bypass mode must be used with specified buffer'
         # assert buffer is not None, msg
-        stat = receive_array(buffer, source, tag)
+        stat = ireceive_array(buffer, source, tag)
     else:
 
         import types
@@ -439,10 +439,10 @@ if dirname[-1] != os.sep:
 # Verify existence of mpiext.so.
 
 try:
-    import mpiext
+    import mpiextras
 except:
-    errmsg = 'ERROR: C extension mpiext could not be imported.\n'
-    errmsg += 'Please compile mpiext.c manually.\n'
+    errmsg = 'ERROR: C extension mpiextras could not be imported.\n'
+    errmsg += 'Please compile mpiextras.c manually.\n'
     #raise Exception, errmsg
     error = 1
     print errmsg
@@ -507,9 +507,9 @@ if error:
     print "WARNING: MPI library could not be initialised"
 
 else:
-    from mpiext import \
-         send_array, \
-         receive_array, \
+    from mpiextras import \
+         isend_array, \
+         ireceive_array, \
          allreduce_array
 
     # Work around bug in OpenMPI (December 2009):
