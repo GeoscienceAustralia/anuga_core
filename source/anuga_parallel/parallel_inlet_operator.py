@@ -34,6 +34,7 @@ class Parallel_Inlet_operator(Inlet_operator):
                  domain,
                  line,
                  Q = 0.0,
+                 default = None,
                  description = None,
                  label = None,
                  logging = False,
@@ -83,6 +84,10 @@ class Parallel_Inlet_operator(Inlet_operator):
                                                     procs = procs, verbose= verbose)
         self.set_logging(logging)
 
+
+        self.set_default(default)
+
+
     def __call__(self):
 
         volume = 0
@@ -113,12 +118,21 @@ class Parallel_Inlet_operator(Inlet_operator):
         overriding version in descendant
         """
         # Only one processor should call this function unless Q is parallelizable
+
+        from anuga.fit_interpolate.interpolate import Modeltime_too_early, Modeltime_too_late
+        
         if callable(self.Q):
-            Q = self.Q(t)[0]
+            try:
+                Q = self.Q(t)[0]
+            except Modeltime_too_early, e:
+                raise Modeltime_too_early(e)
+            except Modeltime_too_late, e:
+                Q = self.get_default(t)
         else:
             Q = self.Q
 
         return Q
+    
 
     def statistics(self):
         # WARNING: requires synchronization, must be called by all procs associated

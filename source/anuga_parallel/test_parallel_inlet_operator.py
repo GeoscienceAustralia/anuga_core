@@ -51,7 +51,7 @@ nprocs = 3
 length = 40.
 width = 16.
 
-dx = dy = 2           # Resolution: Length of subdivisions on both axes
+dx = dy = 2.0          # Resolution: Length of subdivisions on both axes
 
 #----------------------------------------------------------------------
 # Setup initial conditions
@@ -166,7 +166,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     inlet1 = None
     boyd_box0 = None
     
-    inlet0 = Inlet_operator(domain, line0, Q0, verbose = False)
+    inlet0 = Inlet_operator(domain, line0, Q0, verbose = False, default=0.0)
     inlet1 = Inlet_operator(domain, line1, Q1, verbose = False)
     
     # Enquiry point [ 19.    2.5] is contained in two domains in 4 proc case
@@ -221,7 +221,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     ## Evolve system through time
     ##-----------------------------------------------------------------------
 
-    for t in domain.evolve(yieldstep = 2.0, finaltime = 20.0):
+    for t in domain.evolve(yieldstep = 2.0, finaltime = 40.0):
         if myid == 0 and verbose:
             domain.write_time()
 
@@ -304,7 +304,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
 class Test_parallel_frac_op(unittest.TestCase):
     def test_parallel_frac_op(self):
         #print "Expect this test to fail if not run from the parallel directory."
-        result = os.system("mpirun -np %d python test_parallel_frac_op.py" % nprocs)
+        result = os.system("mpirun -np %d python test_parallel_inlet_operator.py" % nprocs)
         assert_(result == 0)
 
 
