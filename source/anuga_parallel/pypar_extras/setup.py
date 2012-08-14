@@ -9,15 +9,6 @@
 #
 # See http://docs.python.org/dist/pure-pkg.html for more on distutils
 
-# FIXME: Now mpiext.c and pypar.py are assumed to be in this directory.
-# Maybe, we should put them in the default package directory, pypar.
-# The repository structure would then be
-#
-# pypar
-#     demos
-#     documentation
-#     source
-#          pypar
 
 from distutils.core import setup, Extension
 

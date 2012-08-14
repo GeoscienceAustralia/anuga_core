@@ -9,6 +9,6 @@ cmd = 'python setup.py install --install-purelib=%s --install-platlib=%s '%( anu
 
 print cmd
 
-os.chdir('source')
+#os.chdir('source')
 os.system (cmd)
 
