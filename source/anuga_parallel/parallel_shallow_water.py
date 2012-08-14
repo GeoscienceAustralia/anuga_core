@@ -13,8 +13,10 @@ Geoscience Australia, 2004-2005
 
 from anuga import Domain
 
-from anuga_parallel.parallel_generic_communications import *
-from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
+import anuga_parallel.parallel_generic_communications as generic_comms
+import anuga_parallel.parallel_abstraction as pypar
+
+#from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 
 import numpy as num
 from os.path import join
@@ -69,7 +71,7 @@ class Parallel_domain(Domain):
         else:
             self.number_of_full_triangles_tmp = self.get_number_of_triangles()
 
-        setup_buffers(self)
+        generic_comms.setup_buffers(self)
 
         self.global_name = 'domain'
 
@@ -109,7 +111,7 @@ class Parallel_domain(Domain):
         """Calculate local timestep
         """
 
-        communicate_flux_timestep(self, yieldstep, finaltime)
+        generic_comms.communicate_flux_timestep(self, yieldstep, finaltime)
 
         Domain.update_timestep(self, yieldstep, finaltime)
 
@@ -120,8 +122,8 @@ class Parallel_domain(Domain):
         receive the information for the ghost cells
         """
 
-
-        communicate_ghosts(self)
+        generic_comms.communicate_ghosts_asynchronous(self)
+        #generic_comms.communicate_ghosts_blocking(self)
 
     def apply_fractional_steps(self):
 

@@ -354,6 +354,298 @@ static PyObject *allreduce_array(PyObject *self, PyObject *args) {
 }
 
 
+/*************************************************************/
+/* do multiple isends and irecv of Numpy array buffers        */
+/* of type float, double, int, or long                       */
+/*                                                           */
+/*************************************************************/
+static PyObject *sendrecv_array(PyObject *self, PyObject *args) {
+  PyObject *send_bufs;
+  PyArrayObject *send_dest;
+  PyObject *recv_bufs;
+  PyArrayObject *recv_dest;
+
+  PyObject *seq;
+
+  PyArrayObject *x;
+  int op, error, count, count1, myid;
+  MPI_Datatype mpi_type, buffer_type;
+  MPI_Op mpi_op;
+  int i, len, lenx;
+
+  double *xdata;
+
+  /* process the parameters */
+  if (!PyArg_ParseTuple(args, "OOOO", &send_bufs, &send_dest, &recv_bufs, &recv_dest)) {
+    PyErr_SetString(PyExc_RuntimeError,
+		    "mpiextras.c (sendrecv_array): could not parse input");
+    return NULL;
+  }
+
+  seq = PySequence_Fast(send_bufs, "expected a sequence");
+  len = PySequence_Size(send_bufs);
+  printf("len of sequence %d\n",len);
+  for (i = 0; i < len; i++) {
+    x = (PyArrayObject *) PySequence_Fast_GET_ITEM(seq, i);
+    lenx = x->dimensions[0];
+    printf("buf size %d\n",len);
+    xdata = (double *) x->data;
+    printf("x->data[0] %g\n",xdata[0]);
+  }
+  Py_DECREF(seq);
+
+
+/*
+//   Input check and determination of MPI type
+  mpi_type = type_map(x, &count);
+  if (!mpi_type) {
+    PyErr_SetString(PyExc_RuntimeError,
+		    "mpiext.c (allreduce_array): could not determine mpi_type");
+    return NULL;
+  }
+
+
+  //This error is caught at the pypar level - so we won't end up here
+  //  unless mpiext is being used independently
+  buffer_type = type_map(d, &count1);
+  if (mpi_type != buffer_type) {
+    sprintf(errmsg, "mpiext.c (allreduce_array): Input array and buffer must be of the same type.");
+    PyErr_SetString(PyExc_RuntimeError, errmsg);
+
+    return NULL;
+  }
+
+  if (count != count1) {
+    PyErr_SetString(PyExc_RuntimeError,
+		    "mpiext.c (allreduce_array): Input array and buffer must have same length");
+    return NULL;
+  }
+
+  // Input check and determination of MPI op
+  mpi_op = op_map(op);
+  if (!mpi_op) {
+    PyErr_SetString(PyExc_RuntimeError,
+		    "mpiext.c (allreduce_array): could not determine mpi_op");
+    return NULL;
+  }
+
+  if (op == MAXLOC || op == MINLOC) {
+    PyErr_SetString(PyExc_RuntimeError,
+		    "mpiext.c (allreduce_array): MAXLOC and MINLOC are not implemented");
+    return NULL;
+  }
+  else {
+    // call the MPI routine
+    error =  MPI_Allreduce(x->data, d->data, count, mpi_type, mpi_op, \
+			MPI_COMM_WORLD);
+  }
+
+  if (error != 0) {
+    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+    sprintf(errmsg, "Proc %d: MPI_Allreduce failed with error code %d\n",
+	    myid, error);
+    PyErr_SetString(PyExc_RuntimeError, errmsg);
+    return NULL;
+  }
+*/
+
+
+  Py_INCREF(Py_None);
+  return (Py_None);
+}
+
+
+
+/*************************************************************/
+/* do multiple isends and irecv of Numpy array buffers        */
+/* of type float, double, int, or long                       */
+/*                                                           */
+/*************************************************************/
+static PyObject *send_recv_via_dicts(PyObject *self, PyObject *args) {
+  PyObject *send_dict;
+  PyObject *recv_dict;
+
+  PyObject *seq;
+
+  PyObject *list;
+  PyArrayObject *X;
+  PyArrayObject *Id;
+  int op, error, count, count1, myid;
+  MPI_Datatype mpi_type, buffer_type;
+  MPI_Op mpi_op;
+  int i, k, len, lenx;
+  int num_recv=0;
+  int num_send=0;
+
+  int ierr;
+  MPI_Request requests[20];
+  MPI_Status statuses[20];
+
+  Py_ssize_t pos = 0;
+
+  PyObject *key, *value;
+  long *Iddata;
+  double *xdata;
+
+  /* process the parameters */
+  if (!PyArg_ParseTuple(args, "OO", &send_dict, &recv_dict)) {
+    PyErr_SetString(PyExc_RuntimeError,
+		    "mpiextras.c (sendrecv_array): could not parse input");
+    return NULL;
+  }
+
+  //----------------------------------------------------------------------------
+  // Do the recv first
+  //----------------------------------------------------------------------------
+  num_recv = PyDict_Size(recv_dict);
+  //printf("num_recv = %d\n",num_recv);
+  if (num_recv>10) {
+    PyErr_SetString(PyExc_RuntimeError,
+		    "mpiextras.c; Number of recv communication buffers > 10");
+    return NULL;
+  }
+
+  pos = 0;
+  k = 0;
+  while (PyDict_Next(recv_dict, &pos, &key, &value)) {
+    int i = PyInt_AS_LONG(key);
+    //printf("key %d\n",i);
+
+    Id = (PyArrayObject *) PyList_GetItem(value, 0);
+    X   = (PyArrayObject *) PyList_GetItem(value, 2);
+
+    lenx = X->dimensions[0]*X->dimensions[1];
+
+
+    //printf("buf size %d by 3\n",lenx/3);
+    //xdata = (double *) X->data;
+    //Iddata = (long *) Id->data;
+
+    //printf("k = %d \n",k);
+    ierr = MPI_Irecv(X->data, lenx, MPI_DOUBLE, i, 123, MPI_COMM_WORLD, &requests[k]);
+    //printf("ierr = %d \n",ierr);
+    k++;
+    //for (k=0 ; k < lenx ; k++) printf("X[%d] = %g Id[%d] = %ld \n",k,xdata[k],k,Iddata[k]);
+}
+  //----------------------------------------------------------------------------
+  // Do the sends second
+  //----------------------------------------------------------------------------
+  num_send = PyDict_Size(send_dict);
+  //printf("num_send = %d\n",num_send);
+  if (num_send>10) {
+    PyErr_SetString(PyExc_RuntimeError,
+		    "mpiextras.c; Number of send communication buffers > 10");
+    return NULL;
+  }
+
+  pos = 0;
+  while (PyDict_Next(send_dict, &pos, &key, &value)) {
+    int i = PyInt_AS_LONG(key);
+    //printf("key %d\n",i);
+
+    Id = (PyArrayObject *) PyList_GetItem(value, 0);
+    X   = (PyArrayObject *) PyList_GetItem(value, 2);
+
+    lenx = X->dimensions[0]*X->dimensions[1];
+
+    //printf("buf size %d by 3 \n",lenx/3);
+    //xdata = (double *) X->data;
+    //Iddata = (long *) Id->data;
+    //for (k=0 ; k < lenx ; k++) printf("X[%d] = %g Id[%d] = %ld \n",k,xdata[k],k,Iddata[k]);
+
+    //printf("k = %d \n",k);
+    ierr = MPI_Isend(X->data, lenx, MPI_DOUBLE, i, 123, MPI_COMM_WORLD, &requests[k]);
+    //printf("ierr = %d \n",ierr);
+    
+    k++;
+}
+
+
+  //printf("k = %d\n",k);
+
+
+  //----------------------------------------------------------------------------
+  // Now complete communication. We could put some computation between the 
+  // communication calls above and this call.
+  //----------------------------------------------------------------------------
+  ierr =  MPI_Waitall(k,requests,statuses);
+
+
+
+
+
+/*
+  for (i = 0; i < len; i++) {
+    x = (PyArrayObject *) PySequence_Fast_GET_ITEM(seq, i);
+    lenx = x->dimensions[0];
+    printf("buf size %d\n",len);
+    xdata = (double *) x->data;
+    printf("x->data[0] %g\n",xdata[0]);y
+  }
+  Py_DECREF(seq);
+*/
+
+
+/*
+//   Input check and determination of MPI type
+  mpi_type = type_map(x, &count);
+  if (!mpi_type) {
+    PyErr_SetString(PyExc_RuntimeError,
+		    "mpiext.c (allreduce_array): could not determine mpi_type");
+    return NULL;
+  }
+
+
+  //This error is caught at the pypar level - so we won't end up here
+  //  unless mpiext is being used independently
+  buffer_type = type_map(d, &count1);
+  if (mpi_type != buffer_type) {
+    sprintf(errmsg, "mpiext.c (allreduce_array): Input array and buffer must be of the same type.");
+    PyErr_SetString(PyExc_RuntimeError, errmsg);
+
+    return NULL;
+  }
+
+  if (count != count1) {
+    PyErr_SetString(PyExc_RuntimeError,
+		    "mpiext.c (allreduce_array): Input array and buffer must have same length");
+    return NULL;
+  }
+
+  // Input check and determination of MPI op
+  mpi_op = op_map(op);
+  if (!mpi_op) {
+    PyErr_SetString(PyExc_RuntimeError,
+		    "mpiext.c (allreduce_array): could not determine mpi_op");
+    return NULL;
+  }
+
+  if (op == MAXLOC || op == MINLOC) {
+    PyErr_SetString(PyExc_RuntimeError,
+		    "mpiext.c (allreduce_array): MAXLOC and MINLOC are not implemented");
+    return NULL;
+  }
+  else {
+    // call the MPI routine
+    error =  MPI_Allreduce(x->data, d->data, count, mpi_type, mpi_op, \
+			MPI_COMM_WORLD);
+  }
+
+  if (error != 0) {
+    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+    sprintf(errmsg, "Proc %d: MPI_Allreduce failed with error code %d\n",
+	    myid, error);
+    PyErr_SetString(PyExc_RuntimeError, errmsg);
+    return NULL;
+  }
+*/
+
+
+  Py_INCREF(Py_None);
+  return (Py_None);
+}
+
+
  
 /**********************************/
 /* Method table for python module */
@@ -362,6 +654,8 @@ static struct PyMethodDef MethodTable[] = {
   {"isend_array", isend_array, METH_VARARGS},
   {"ireceive_array", ireceive_array, METH_VARARGS},
   {"allreduce_array", allreduce_array, METH_VARARGS},
+  {"sendrecv_array", sendrecv_array, METH_VARARGS},
+  {"send_recv_via_dicts", send_recv_via_dicts, METH_VARARGS},
   {NULL, NULL}
 };
 
