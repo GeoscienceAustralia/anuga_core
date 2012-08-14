@@ -85,8 +85,32 @@ else:
         % make_logfile
     print msg
 
+
+print '-----------------------------------------------'
+print 'Attempting to compile pypar_extras'
+print '-----------------------------------------------'
+
+os.chdir('..')
+os.chdir('pypar_extras')
+
+cmd = 'python anuga_setup.py'
+print cmd
+err = os.system(cmd)
+if err != 0:
+    msg = 'Could not compile pypar_extras '
+    msg += 'on platform %s, %s\n' % (sys.platform, os.name)
+    msg += 'You need to compile pypar_extras manually '
+    msg += 'if you want to run ANUGA in parallel.'
+    raise Exception, msg
+else:
+    msg = 'Compiled pypar_extras succesfully.'
+    print msg
+
+
 print        
 print 'That took %.3fs' %(time.time() - t0)
+
+
 
 if sys.platform == 'win32':
     raw_input('Press the RETURN key')
