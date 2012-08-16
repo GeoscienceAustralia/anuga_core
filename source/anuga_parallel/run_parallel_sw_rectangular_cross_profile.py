@@ -69,7 +69,7 @@ class Set_Stage:
 if myid == 0:
     length = 2.0
     width = 2.0
-    dx = dy = 0.02
+    dx = dy = 0.01
     domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
 
@@ -124,6 +124,9 @@ for p in range(numprocs):
         
     barrier()
 """
+
+
+domain.dump_triangulation()
 
 #------------------------------------------------------------------------------
 # Evolution

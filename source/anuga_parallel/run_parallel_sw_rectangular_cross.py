@@ -48,6 +48,7 @@ if myid == 0:
     domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
 
+    domain.set_store(False)
     domain.set_quantity('elevation', -1.0)
     domain.set_quantity('stage', 1.0)
 else:
@@ -115,12 +116,17 @@ domain.set_flow_algorithm('2_0')
 
 #import pdb; pdb.set_trace()
 
-t0 = time.time()
+
+
 
 
 
 yieldstep = 0.05
 finaltime = 2.0
+
+barrier()
+
+t0 = time.time()
 
 #Check that the boundary value gets propagated to all elements
 for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):

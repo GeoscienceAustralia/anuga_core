@@ -146,6 +146,7 @@ domain.set_boundary({'outflow' :Br, 'inflow' :Br, 'inner' :Br, 'exterior' :Br, '
 #------------------------------------------------------------------------------
 if myid == 0 and verbose: print 'EVOLVE'
 
+barrier()
 t0 = time.time()
 
 for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
