@@ -42,11 +42,12 @@ from anuga_parallel import distribute, myid, numprocs, finalize, barrier
 #--------------------------------------------------------------------------
 
 #mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0
-mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
+mesh_filename = "merimbula_17156.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
+#mesh_filename = "merimbula_43200_1.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
 #mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
 #mesh_filename = "test-20.tsh" ; x0 = 250.0 ; x1 = 350.0
 yieldstep = 50
-finaltime = 500
+finaltime = 1500
 verbose = True
 
 #--------------------------------------------------------------------------
@@ -84,9 +85,9 @@ class Set_Elevation:
 if myid == 0:
     domain = create_domain_from_file(mesh_filename)
     domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))
-    domain.set_datadir('Data')
+    #domain.set_datadir('.')
     domain.set_name('merimbula_new')
-    domain.set_store(False)
+    domain.set_store(True)
     #domain.set_quantity('elevation', Set_Elevation(500.0))
 
     #print domain.statistics()
@@ -171,7 +172,7 @@ for p in range(numprocs):
 #--------------------------------------------------
 # Merge the individual sww files into one file
 #--------------------------------------------------
-#domain.sww_merge(delete_old=False)
+domain.sww_merge(delete_old=False)
 
 finalize()
 
