@@ -89,13 +89,13 @@ amplitude = 1
 wave_length = 300.0
 Bw = anuga.Time_boundary(domain=domain,     # Time dependent boundary
 ## Sine wave
-                  f=lambda t: [(-amplitude*sin((1./wave_length)*t*2*pi)), 0.0, 0.0])
+                  function=lambda t: [(-amplitude*sin((1./wave_length)*t*2*pi)), 0.0, 0.0])
 ## Sawtooth?
-#                   f=lambda t: [(-8.0*(sin((1./180.)*t*2*pi))+(1./2.)*sin((2./180.)*t*2*pi)+(1./3.)*sin((3./180.)*t*2*pi)), 0.0, 0.0])
+#                   function=lambda t: [(-8.0*(sin((1./180.)*t*2*pi))+(1./2.)*sin((2./180.)*t*2*pi)+(1./3.)*sin((3./180.)*t*2*pi)), 0.0, 0.0])
 ## Sharp rise, linear fall
-#                   f=lambda t: [(5.0*(-((t-0.)/300.)*(t<300.)-cos((t-300.)*2.*pi*(1./240.))*(t>=300. and t<420.)+(1.-(t-420.)/300.)*(t>=420. and t <720.))), 0.0, 0.0])
-#                   f=lambda t: [amplitude*(1.-2.*(pi*(1./720.)*(t-720.))**2)/exp((pi*(1./720.)*(t-720.))**2) , 0.0, 0.0])
-#                   f=lambda t: [(-8.0*sin((1./720.)*t*2*pi))*((t<720.)-0.5*(t<360.)), 0.0, 0.0])
+#                   function=lambda t: [(5.0*(-((t-0.)/300.)*(t<300.)-cos((t-300.)*2.*pi*(1./240.))*(t>=300. and t<420.)+(1.-(t-420.)/300.)*(t>=420. and t <720.))), 0.0, 0.0])
+#                   function=lambda t: [amplitude*(1.-2.*(pi*(1./720.)*(t-720.))**2)/exp((pi*(1./720.)*(t-720.))**2) , 0.0, 0.0])
+#                   function=lambda t: [(-8.0*sin((1./720.)*t*2*pi))*((t<720.)-0.5*(t<360.)), 0.0, 0.0])
 def waveform(t):
     return -amplitude*sin((1./wave_length)*t*2*pi)
 

@@ -61,7 +61,7 @@ Br=anuga.Reflective_boundary(domain)            # Solid reflective wall
 Bt=anuga.Transmissive_boundary(domain)          # Continue all values of boundary -- not used in this example
 Bd=anuga.Dirichlet_boundary([-0.2,0.,0.])       # Constant boundary values -- not used in this example
 Bw=anuga.Time_boundary(domain=domain,
-	f=lambda t: [(0.0*sin(t*2*pi)-0.1)*exp(-t)-0.1,0.0,0.0]) # Time varying boundary -- get rid of the 0.0 to do a runup.
+	function=lambda t: [(0.0*sin(t*2*pi)-0.1)*exp(-t)-0.1,0.0,0.0]) # Time varying boundary -- get rid of the 0.0 to do a runup.
 
 #----------------------------------------------
 # Associate boundary tags with boundary objects
