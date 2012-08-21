@@ -12,7 +12,11 @@ from anuga.config import netcdf_float
 
 import project
 
-
+# configure my logging
+import anuga.utilities.log as log
+#log.console_logging_level = log.INFO
+#log.log_logging_level = log.DEBUG
+log.log_filename = './create_okushiri.log'
 
 
 #--------------------------------------------------------------------------

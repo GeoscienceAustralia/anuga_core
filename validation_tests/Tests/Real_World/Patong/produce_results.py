@@ -1,21 +1,21 @@
 #--------------------------------
-# Setup Default values for basis
-# algorithm parameters.
+# import modules
 #--------------------------------
-import argparse
-parser = argparse.ArgumentParser(description='produce results')
-parser.add_argument('-cfl', type=float, default=1.0,
-                   help='cfl condition')
-parser.add_argument('-alg', type=str, default = "1_5",
-                   help='flow algorithm')
-args = parser.parse_args()
+from fabricate import *
+from validation_tests.utilities import run_validation_script
 
-cfl = args.cfl
-alg = args.alg
+# Setup the python scripts which produce the output for this
+# validation test
+def build():
+    #run_validation_script('run_problem.py')
+    #run_validation_script('plot_problem.py')
+    pass
+
+def clean():
+    autoclean()
+
+main()
 
 
-
-import dam_break
-import plot_results
 
 

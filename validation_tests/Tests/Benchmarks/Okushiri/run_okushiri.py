@@ -25,6 +25,14 @@ import anuga
 
 import project
 
+# configure my logging
+import anuga.utilities.log as log
+#log.console_logging_level = log.INFO
+#log.log_logging_level = log.DEBUG
+log.log_filename = './run_okushiri.log'
+
+
+
 def main(elevation_in_mesh=False):
     #-------------------------
     # Create Domain from mesh

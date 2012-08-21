@@ -12,12 +12,11 @@ from Scientific.IO.NetCDF import NetCDFFile
 
 import project
 from anuga.abstract_2d_finite_volumes.util import file_function
-from anuga.utilities.numerical_tools import\
-     ensure_numeric, cov, get_machine_precision
+from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.utilities.numerical_tools import cov
+#from anuga.utilities.numerical_tools import get_machine_precision
 from anuga.shallow_water.sww_interrogate import get_maximum_inundation_elevation
 from anuga.shallow_water.sww_interrogate import get_maximum_inundation_location
-from anuga.geometry.polygon import is_inside_polygon
-from create_okushiri import gulleys
 
 if sys.platform == 'win32':
     # Windows has a problem when this module is run through

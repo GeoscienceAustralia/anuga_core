@@ -3,27 +3,22 @@ Script to run all the produce_results scripts in the Tests/xxx/xxx/ directories
 """
 
 import os
-import anuga.utilities.system_tools as anugast
 import anuga
 import time
 
-from anuga.utilities.argparsing import parse_standard_args
-
 #--------------------------------
-# Setup Default values for basis
+# Get Default values for
 # algorithm parameters.
 #--------------------------------
-alg, cfl = parse_standard_args()
-
+from parameters import alg
+from parameters import cfl
 
 #---------------------------------
 # Get the current svn revision
 #---------------------------------
-
 timestamp = time.asctime()
 major_revision = anuga.config.major_revision
 minor_revision = anuga.utilities.system_tools.get_revision_number()
-
 
 #---------------------------------
 # Run the tests
@@ -53,7 +48,7 @@ for dir in Upper_dirs:
         os.chdir(l_dir)
         print 'Changing to', os.getcwd()
         try:
-            cmd = 'python produce_results.py -alg %s -cfl %s '% (alg,cfl)
+            cmd = 'python produce_results.py'
             print 'Running: '+cmd
             os.system( cmd )
         except:

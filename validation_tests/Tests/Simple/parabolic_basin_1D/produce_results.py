@@ -1,7 +1,17 @@
-from anuga.utilities.argparsing import run_validation_script
+#--------------------------------
+# import modules
+#--------------------------------
+from fabricate import *
+from validation_tests.utilities import run_validation_script
 
 
-run_validation_script('parabolic.py')
-run_validation_script('parabolaplot.py')
+# Setup the python scripts which produce the output for this
+# validation test
+def build():
+    run_validation_script('parabolic.py')
+    run_validation_script('parabolaplot.py')
 
+def clean():
+    autoclean()
 
+main()
