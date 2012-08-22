@@ -16,9 +16,6 @@
 import time
 import sys
 
-import numpy as num
-
-from print_stats import print_test_stats, build_full_flag
 
 #----------------------------
 # Sequential interface
@@ -32,8 +29,6 @@ from anuga import rectangular_cross_domain
 #---------------------------
 from anuga_parallel import distribute, myid, numprocs, finalize, barrier
 
-#from anuga_parallel import Parallel_shallow_water_domain
-#from anuga_parallel import parallel_rectangle
 
 
 verbose = True
@@ -118,9 +113,6 @@ domain.set_flow_algorithm('2_0')
 
 
 
-
-
-
 yieldstep = 0.05
 finaltime = 2.0
 
@@ -137,9 +129,8 @@ for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
 
 
 
-barrier()
-
 for p in range(numprocs):
+    barrier()
     if myid == p:
         print 50*'='
         print 'P%g' %(myid)
@@ -149,7 +140,7 @@ for p in range(numprocs):
         print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
         sys.stdout.flush()
 
-    barrier()
+
 
 
 finalize()
