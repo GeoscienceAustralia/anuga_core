@@ -5,6 +5,7 @@ Script to run all the produce_results scripts in the Tests/xxx/xxx/ directories
 import os
 import anuga
 import time
+from anuga import indent
 
 #--------------------------------
 # Get Default values for
@@ -34,10 +35,13 @@ except ValueError:
 #print Upper_dirs
 os.chdir('./Tests')
 
+print 'Tests'
 for dir in Upper_dirs:
 
     os.chdir(dir)
-    print 'Changing to', os.getcwd()
+
+    print indent + dir
+    #print 'Changing to', os.getcwd()
     Lower_dirs = os.listdir('.')
     try:
         Lower_dirs.remove('.svn')
@@ -46,20 +50,21 @@ for dir in Upper_dirs:
     #print Lower_dirs
     for l_dir in Lower_dirs:
         os.chdir(l_dir)
-        print 'Changing to', os.getcwd()
+        #print os.getcwd()
+        print 2*indent + l_dir
         try:
             cmd = 'python produce_results.py'
-            print 'Running: '+cmd
+            print 3*indent + 'Running: '+cmd
             os.system( cmd )
         except:
-            print 'Failed running produce_results in '+os.getcwd()
+            print 3*indent + 'Failed running produce_results in '+os.getcwd()
             pass
 
         os.chdir('..')
         #print 'Changing to', os.getcwd()
 
     os.chdir('..')
-    print 'Changing to', os.getcwd()
+    #print 'Changing to', os.getcwd()
     
 os.chdir('..')
 #----------------------------------
