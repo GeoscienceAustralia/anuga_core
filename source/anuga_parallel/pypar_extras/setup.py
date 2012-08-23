@@ -51,10 +51,14 @@ def uniq_arr(arr):
 def _run_command(cmd):
     import subprocess
 
-    #FIXME SR: This only works for python 2.7!
+
     print 'running ' + cmd
     try:
-        output = subprocess.check_output(cmd, shell=True)
+        #FIXME SR: This only works for python 2.7!
+        #output = subprocess.check_output(cmd, shell=True)
+        #FIXME SR: This works for python 2.6
+        output = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0]
+
     except:
         output = ''
 
@@ -68,9 +72,6 @@ def _get_mpi_cmd():
     mpicc."""
     # LAM/OPENMPI/MPICH2
     output = _run_command('mpicc -show')
-
-
-    print '****',output
 
     if output:
         return output
