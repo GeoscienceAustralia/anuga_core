@@ -22,7 +22,7 @@ from distutils.core import setup, Extension
 import distutils.sysconfig
 import distutils.debug
 import os, sys
-import popen2 # FIXME: Replace with subprocess - http://docs.python.org/library/subprocess.html#replacing-older-functions-with-the-subprocess-module
+#import popen2 # FIXME: Replace with subprocess - http://docs.python.org/library/subprocess.html#replacing-older-functions-with-the-subprocess-module
 import string
 import tempfile
 import numpy
@@ -51,6 +51,7 @@ def uniq_arr(arr):
 def _run_command(cmd):
     import subprocess
 
+    #FIXME SR: This only works for python 2.7!
     print 'running ' + cmd
     try:
         output = subprocess.check_output(cmd, shell=True)
@@ -68,6 +69,8 @@ def _get_mpi_cmd():
     # LAM/OPENMPI/MPICH2
     output = _run_command('mpicc -show')
 
+
+    print '****',output
 
     if output:
         return output
