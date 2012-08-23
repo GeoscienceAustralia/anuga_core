@@ -335,8 +335,7 @@ class Fit(FitInterpolate):
                                      load_file_now=False,
                                      verbose=verbose)
 
-            import time
-            t0 = time.time()
+
             for i, geo_block in enumerate(G_data):
                 if verbose is True and 0 == i%200: 
                     # The time this will take
@@ -365,7 +364,6 @@ class Fit(FitInterpolate):
                 msg = 'Matrix AtA was not built'
                 assert self.AtA is not None, msg
 
-            print '**** Read Data time',time.time()-t0
             point_coordinates = None
         else:
             point_coordinates =  point_coordinates_or_filename
