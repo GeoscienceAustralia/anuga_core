@@ -82,6 +82,15 @@ f.write('\\newcommand{\\timeR}{{%s}}\n' % str(timestamp))
 f.close()
 
 
+cmd = 'pdflatex -shell-escape -interaction=batchmode report.tex'
+print cmd
+import subprocess
+subprocess.call( [cmd], shell=True )
+cmd = 'mv report.pdf report_cfl_%s_alg_%s.pdf' % (str(cfl), str(alg))
+print cmd
+subprocess.call( [cmd] , shell=True )
+
+
 
 
 

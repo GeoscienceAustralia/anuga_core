@@ -719,7 +719,7 @@ class General_mesh:
         vertex_value_indices: An array of length M listing indices into
         triangles ordered by node number. The (triangle_id, vertex_id)
         pairs are obtained from each index as (index/3, index%3) or each
-        index can be used directly into a flattened triangles array. This
+        index can be used directly into a flat triangles array. This
         is for example the case in the quantity.c where this structure is
         used to average vertex values efficiently.
 

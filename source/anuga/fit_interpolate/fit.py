@@ -72,6 +72,9 @@ class Fit(FitInterpolate):
           triangles: List of 3-tuples (or a numeric array) of
               integers representing indices of all vertices in the mesh.
 
+          mesh: Object containing vertex_coordinates and triangles. Either
+              mesh = None or both vertex_coordinates and triangles = None
+
           mesh_origin: A geo_reference object or 3-tuples consisting of
               UTM zone, easting and northing.
               If specified vertex coordinates are assumed to be
@@ -332,6 +335,8 @@ class Fit(FitInterpolate):
                                      load_file_now=False,
                                      verbose=verbose)
 
+            import time
+            t0 = time.time()
             for i, geo_block in enumerate(G_data):
                 if verbose is True and 0 == i%200: 
                     # The time this will take
@@ -359,7 +364,8 @@ class Fit(FitInterpolate):
                 # Committed 11 March 2009
                 msg = 'Matrix AtA was not built'
                 assert self.AtA is not None, msg
-                
+
+            print '**** Read Data time',time.time()-t0
             point_coordinates = None
         else:
             point_coordinates =  point_coordinates_or_filename
@@ -478,7 +484,7 @@ def fit_to_mesh(point_coordinates, # this can also be a points file name
 
     if use_cache is True:
         if isinstance(point_coordinates, basestring):
-            # We assume that point_coordinates is the name of a .csv/.txt
+            # We assume that point_coordinates is the name of a .csv/.txt/.pts
             # file which must be passed onto caching as a dependency 
             # (in case it has changed on disk)
             dep = [point_coordinates]

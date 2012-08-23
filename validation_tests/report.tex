@@ -15,7 +15,7 @@
 \begin{document} 
 %=========================================
 
-\title{Automated Report on the Performance of \anuga on Various Test Problems}
+\title{Automated Report on the Performance of \anuga{} on Various Test Problems}
 \maketitle
 \tableofcontents
 
@@ -25,7 +25,7 @@
 
 The results in this report were produced by \anuga{} version \majorR{} 
 from svn repository revision \minorR{} at time \timeR.
-The flow algorithm was \alg{} and cfl condition \cfl.
+The flow algorithm was \alg{} and CFL condition \cfl.
 
 %======================
 \chapter{Simple Tests}
@@ -46,7 +46,7 @@ The flow algorithm was \alg{} and cfl condition \cfl.
 \inputresults{Tests/Simple/steep_slope}
 
 %======================
-\chapter{Experimental Tests}
+\chapter{Benchmark Tests}
 %======================
 
 %\inputresults{Tests/Benchmarks/Isolated_Building}
@@ -71,7 +71,9 @@ To setup a new validation test, create a test directory under the
 \textsc{Tests} directory. In that directory there should be the test code, a
 \TeX{} file \texttt{results.tex} and a python script
 \texttt{produce\_results.py}, which runs the simulation and produces the
-outputs. In this \TeX{} file, \texttt{report.tex}, add a line
+outputs. Copy the format from the other test directory. 
+
+In this \TeX{} file, \texttt{report.tex}, add a line
 \begin{verbatim}
 \inputresults{Tests/Directory/Name}
 \end{verbatim}
@@ -79,7 +81,8 @@ outputs. In this \TeX{} file, \texttt{report.tex}, add a line
 
 
 \section{Specifiying different algorithm}
-One  way to allow the system to run with different algorithms is to add the following
+One  way to allow the system to run with different algorithms is to 
+add the following
 into your run routines.
 \begin{verbatim}
 #--------------------------------

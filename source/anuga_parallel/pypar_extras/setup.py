@@ -49,20 +49,17 @@ def uniq_arr(arr):
 
 
 def _run_command(cmd):
-    out_file, in_file, err_file = popen2.popen3(cmd)
-    output = out_file.read() + err_file.read()
-    out_file.close()
-    in_file.close()
-    err_file.close()
-    # need this hack to get the exit status
+    import subprocess
+
     print 'running ' + cmd
-    out_file = os.popen(cmd)
-    if out_file.close():
-        # close returns exit status of command.
-        return ''
-    else:
-        # no errors, out_file.close() returns None.
-        return output
+    try:
+        output = subprocess.check_output(cmd, shell=True)
+    except:
+        output = ''
+
+    return output
+    
+    
 
 
 def _get_mpi_cmd():
@@ -70,6 +67,8 @@ def _get_mpi_cmd():
     mpicc."""
     # LAM/OPENMPI/MPICH2
     output = _run_command('mpicc -show')
+
+
     if output:
         return output
 
