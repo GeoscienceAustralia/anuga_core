@@ -27,6 +27,11 @@ import numpy as num
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga import indent
 
+try:
+    import local_config as config
+except:
+    import anuga_parallel.config as config
+
 
 #########################################################
 #
@@ -352,14 +357,14 @@ def ghost_layer(submesh, mesh, p, tupper, tlower):
     ncoord = mesh.number_of_nodes
     ntriangles = mesh.number_of_triangles
 
-    # Find the first layer of boundary triangles
 
-    layer_width = 2
+    layer_width = config.ghost_layer_width
 
+    print layer_width
 
     trianglemap = num.zeros(ntriangles, 'i')
 
-
+    # Find the first layer of boundary triangles
     for t in range(tlower, tupper):
         
         n = mesh.neighbours[t, 0]
