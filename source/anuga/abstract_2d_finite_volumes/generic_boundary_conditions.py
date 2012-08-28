@@ -34,6 +34,9 @@ class Boundary:
         """
         Evaluate boundary condition at edges of a domain in a list
         defined by segment_edges
+        
+        segment_edges are a sublist of the list of edges definded by the
+        arrays domain.boundary_cells  and domain.boundary_edges
 
         Go through list of boundary objects and update boundary values
         for all conserved quantities on boundary.

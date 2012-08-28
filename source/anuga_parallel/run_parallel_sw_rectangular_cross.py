@@ -51,10 +51,17 @@ else:
 
 
 
-if myid == 0 and verbose: print 'DISTRIBUTING DOMAIN'
-domain = distribute(domain,verbose=verbose)
+if myid == 0 and verbose: 
+    print 'DISTRIBUTING DOMAIN'
+    sys.stdout.flush()
+    
+barrier()
 
-print 'after parallel domain'
+# setup parameters to test using different ghost_layer_widths
+parameters = dict(ghost_layer_width = 4)
+domain = distribute(domain,verbose=verbose, parameters=parameters)
+
+if myid == 0 : print 'after parallel domain'
 
 
 
@@ -68,12 +75,13 @@ R = Reflective_boundary(domain)
 domain.set_boundary( {'left': R, 'right': R, 'bottom': R, 'top': R, 'ghost': None} )
 
 
-print 'after set_boundary'
+if myid == 0 : print 'after set_boundary'
 
 
 
 domain.check_integrity()
-print 'after check_integrity'
+
+if myid == 0 : print 'after check_integrity'
 
 class Set_Stage:
     """Set an initial condition with constant water height, for x<x0
@@ -95,7 +103,7 @@ class Set_Stage:
 #domain.set_quantity('stage', Set_Stage(0.2, 0.4, 0.25, 0.75, 1.0, 0.00))
 
 
-print 'after set quantity'
+if myid == 0 : print 'after set quantity'
 
 # Set Evolve parameters
 domain.set_flow_algorithm('2_0')
@@ -141,6 +149,6 @@ for p in range(numprocs):
         sys.stdout.flush()
 
 
-
+domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)
 
 finalize()

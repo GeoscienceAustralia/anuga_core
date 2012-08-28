@@ -40,7 +40,8 @@ class Parallel_domain(Domain):
                  s2p_map=None,
                  p2s_map=None, #jj added this
                  tri_l2g = None, ## SR added this
-                 node_l2g = None): ## SR added this
+                 node_l2g = None, #): ## SR added this
+                 ghost_layer_width = 2):
 
         Domain.__init__(self,
                         coordinates,
@@ -52,9 +53,9 @@ class Parallel_domain(Domain):
                         numproc=pypar.size(),
                         number_of_full_nodes=number_of_full_nodes,
                         number_of_full_triangles=number_of_full_triangles,
-                        geo_reference=geo_reference) #jj added this
+                        geo_reference=geo_reference, #) #jj added this
+                        ghost_layer_width = ghost_layer_width)
         
-
 
         self.parallel = True
 
@@ -87,6 +88,8 @@ class Parallel_domain(Domain):
 
         self.tri_l2g = tri_l2g
         self.node_l2g = node_l2g
+
+        self.ghost_counter = 0
 
 
     def set_name(self, name):
@@ -121,7 +124,7 @@ class Parallel_domain(Domain):
         """We must send the information from the full cells and
         receive the information for the ghost cells
         """
-
+            
         generic_comms.communicate_ghosts_asynchronous(self)
         #generic_comms.communicate_ghosts_blocking(self)
 

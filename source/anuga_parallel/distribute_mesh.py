@@ -265,9 +265,14 @@ def pmesh_divide_metis_helper(domain, n_procs):
 #
 #########################################################
 
-def submesh_full(nodes, triangles, boundary, triangles_per_proc):
+def submesh_full(mesh, triangles_per_proc):
 
     # Initialise
+
+
+    nodes = mesh.nodes
+    triangles = mesh.triangles
+    boundary = mesh.boundary
 
     tlower = 0
     nproc = len(triangles_per_proc)
@@ -352,15 +357,16 @@ def submesh_full(nodes, triangles, boundary, triangles_per_proc):
 #
 #########################################################
 
-def ghost_layer(submesh, mesh, p, tupper, tlower):
+def ghost_layer(submesh, mesh, p, tupper, tlower, parameters = None):
 
     ncoord = mesh.number_of_nodes
     ntriangles = mesh.number_of_triangles
 
+    if parameters is None:
+        layer_width  = 2
+    else:
+        layer_width = parameters['ghost_layer_width']
 
-    layer_width = config.ghost_layer_width
-
-    print layer_width
 
     trianglemap = num.zeros(ntriangles, 'i')
 
@@ -442,7 +448,7 @@ def ghost_layer(submesh, mesh, p, tupper, tlower):
 
     # Return the triangles and vertices sitting on the boundary layer
 
-    return subnodes, subtriangles
+    return subnodes, subtriangles, layer_width
 
 #########################################################
 #
@@ -478,9 +484,15 @@ def is_in_processor(ghost_list, tlower, tupper, n):
 
 def ghost_bnd_layer(ghosttri, tlower, tupper, mesh, p):
 
+
+    boundary = mesh.boundary
+
     ghost_list = []
     subboundary = {}
 
+
+    # FIXME SR: For larger layers need to pass through the correct
+    # boundary tag!
 
     for t in ghosttri:
         ghost_list.append(t[0])
@@ -489,15 +501,26 @@ def ghost_bnd_layer(ghosttri, tlower, tupper, mesh, p):
 
         n = mesh.neighbours[t[0], 0]
         if not is_in_processor(ghost_list, tlower, tupper, n):
-            subboundary[t[0], 0] = 'ghost'
+            if boundary.has_key( (t[0], 0) ):
+                subboundary[t[0], 0] = boundary[t[0],0]
+            else:
+                subboundary[t[0], 0] = 'ghost'
+
 
         n = mesh.neighbours[t[0], 1]
         if not is_in_processor(ghost_list, tlower, tupper, n):
-            subboundary[t[0], 1] = 'ghost'
+            if boundary.has_key( (t[0], 1) ):
+                subboundary[t[0], 1] = boundary[t[0],1]
+            else:
+                subboundary[t[0], 1] = 'ghost'
+
 
         n = mesh.neighbours[t[0], 2]
         if not is_in_processor(ghost_list, tlower, tupper, n):
-            subboundary[t[0], 2] = 'ghost'
+            if boundary.has_key( (t[0], 2) ):
+                subboundary[t[0], 2] = boundary[t[0],2]
+            else:
+                subboundary[t[0], 2] = 'ghost'
             
     return subboundary
 
@@ -628,7 +651,7 @@ def full_commun_pattern(submesh, tri_per_proc):
 # ghost_commun and full_commun is added to submesh
 #########################################################
 
-def submesh_ghost(submesh, mesh, triangles_per_proc):
+def submesh_ghost(submesh, mesh, triangles_per_proc, parameters = None):
 
     nproc = len(triangles_per_proc)
     tlower = 0
@@ -636,6 +659,7 @@ def submesh_ghost(submesh, mesh, triangles_per_proc):
     ghost_nodes = []
     ghost_commun = []
     ghost_bnd = []
+    ghost_layer_width = []
 
     # Loop over the processors
 
@@ -647,8 +671,9 @@ def submesh_ghost(submesh, mesh, triangles_per_proc):
 
         # Build the ghost boundary layer
 
-        [subnodes, subtri] = \
-                   ghost_layer(submesh, mesh, p, tupper, tlower)
+        [subnodes, subtri, layer_width] = \
+                   ghost_layer(submesh, mesh, p, tupper, tlower, parameters)
+        ghost_layer_width.append(layer_width)
         ghost_triangles.append(subtri)
         ghost_nodes.append(subnodes)
 
@@ -670,7 +695,7 @@ def submesh_ghost(submesh, mesh, triangles_per_proc):
 
 
     # Record the ghost layer and communication pattern
-
+    submesh["ghost_layer_width"] = ghost_layer_width
     submesh["ghost_nodes"] = ghost_nodes
     submesh["ghost_triangles"] = ghost_triangles
     submesh["ghost_commun"] = ghost_commun
@@ -759,24 +784,23 @@ def submesh_quantities(submesh, quantities, triangles_per_proc):
 #
 #########################################################
 
-def build_submesh(nodes, triangles, edges, quantities,
-                  triangles_per_proc):
+def build_submesh(nodes, triangles, boundary, quantities,
+                  triangles_per_proc, parameters = None):
 
     # Temporarily build the mesh to find the neighbouring
     # triangles and true boundary polygon
 
-    mesh = Mesh(nodes, triangles)
+    mesh = Mesh(nodes, triangles, boundary)
     boundary_polygon = mesh.get_boundary_polygon()
     
 
     # Subdivide into non-overlapping partitions
 
-    submeshf = submesh_full(nodes, triangles, edges, \
-                            triangles_per_proc)
+    submeshf = submesh_full(mesh, triangles_per_proc)
     
     # Add any extra ghost boundary layer information
 
-    submeshg = submesh_ghost(submeshf, mesh, triangles_per_proc)
+    submeshg = submesh_ghost(submeshf, mesh, triangles_per_proc, parameters)
 
     # Order the quantities information to be the same as the triangle
     # information
@@ -956,6 +980,8 @@ def build_local_mesh(submesh, lower_t, upper_t, nproc):
 
     nodes = num.concatenate((submesh["full_nodes"], \
                          submesh["ghost_nodes"]))
+
+    ghost_layer_width = submesh["ghost_layer_width"]
     
     # Combine the full triangles and ghost triangles
 
@@ -1008,7 +1034,7 @@ def build_local_mesh(submesh, lower_t, upper_t, nproc):
 
 
     return GAnodes, GAtriangles, GAboundary, quantities, ghost_rec, \
-           full_send, tri_map, node_map
+           full_send, tri_map, node_map, ghost_layer_width
 
 
 #########################################################
@@ -1050,7 +1076,7 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
     
     myid = pypar.rank()
     
-    if verbose: print 'process %d sending submesh to process %d' %(myid, p)
+    if verbose: print 'P%d: Sending submesh to P%d' %(myid, p)
     
     # build and send the tagmap for the boundary conditions
     
@@ -1076,6 +1102,10 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
     # send the number of triangles per processor
 
     pypar.send(triangles_per_proc, p)
+
+    # ghost layer width
+
+    pypar.send(submesh["ghost_layer_width"][p], p)
 
     # compress full_commun
 
@@ -1183,6 +1213,10 @@ def rec_submesh_flat(p, verbose=True):
     # receive the number of triangles per processor
 
     triangles_per_proc = pypar.receive(p)
+
+    # ghost layer width
+
+    submesh_cell["ghost_layer_width"] = pypar.receive(p)
 
     # recieve information about the array sizes
 
@@ -1302,13 +1336,14 @@ def rec_submesh(p, verbose=True):
     # datastructure
 
     [GAnodes, GAtriangles, boundary, quantities, \
-     ghost_rec, full_send, tri_map, node_map] = \
+     ghost_rec, full_send, tri_map, node_map, ghost_layer_width] = \
               build_local_mesh(submesh_cell, lower_t, upper_t, \
                                numproc)
     
     return GAnodes, GAtriangles, boundary, quantities,\
            ghost_rec, full_send,\
-           number_of_full_nodes, number_of_full_triangles, tri_map, node_map
+           number_of_full_nodes, number_of_full_triangles, tri_map, node_map,\
+           ghost_layer_width
           
 
 
@@ -1331,6 +1366,7 @@ def extract_hostmesh(submesh, triangles_per_proc):
 
     
     submesh_cell = {}
+    submesh_cell["ghost_layer_width"] = submesh["ghost_layer_width"][0]
     submesh_cell["full_nodes"] = submesh["full_nodes"][0]
     submesh_cell["ghost_nodes"] = submesh["ghost_nodes"][0]
     submesh_cell["full_triangles"] = submesh["full_triangles"][0]
@@ -1347,12 +1383,12 @@ def extract_hostmesh(submesh, triangles_per_proc):
 
     numprocs = len(triangles_per_proc)
     points, vertices, boundary, quantities, ghost_recv_dict, \
-            full_send_dict, tri_map, node_map = \
+            full_send_dict, tri_map, node_map, ghost_layer_width = \
             build_local_mesh(submesh_cell, 0, triangles_per_proc[0], numprocs)
 
 
     return  points, vertices, boundary, quantities, ghost_recv_dict, \
-           full_send_dict, tri_map, node_map
+           full_send_dict, tri_map, node_map, ghost_layer_width
            
 
 

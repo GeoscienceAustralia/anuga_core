@@ -108,7 +108,8 @@ class Domain(Generic_Domain):
                  processor=0,
                  numproc=1,
                  number_of_full_nodes=None,
-                 number_of_full_triangles=None):
+                 number_of_full_triangles=None,
+                 ghost_layer_width=2):
         """
             Instantiate a shallow water domain.
             coordinates - vertex locations for the mesh
@@ -162,7 +163,8 @@ class Domain(Generic_Domain):
                             processor,
                             numproc,
                             number_of_full_nodes=number_of_full_nodes,
-                            number_of_full_triangles=number_of_full_triangles)
+                            number_of_full_triangles=number_of_full_triangles,
+                            ghost_layer_width=ghost_layer_width)
 
         self.set_defaults()
 
@@ -225,6 +227,7 @@ class Domain(Generic_Domain):
         from anuga.config import use_edge_limiter
         from anuga.config import use_centroid_velocities
         from anuga.config import compute_fluxes_method
+        from anuga.config import distribute_to_vertices_and_edges_method
         from anuga.config import sloped_mannings_function
         from anuga.config import flow_algorithm
         
@@ -254,7 +257,7 @@ class Domain(Generic_Domain):
 
 
     def get_algorithm_parameters(self):
-        """Get the standard parameter that arecurently set (as a dictionary)
+        """Get the standard parameter that are currently set (as a dictionary)
         """
 
         parameters = {}
@@ -270,6 +273,8 @@ class Domain(Generic_Domain):
         parameters['use_centroid_velocities'] = self.use_centroid_velocities
         parameters['use_sloped_mannings']     = self.use_sloped_mannings
         parameters['compute_fluxes_method']   = self.get_compute_fluxes_method()
+        parameters['distribute_to_vertices_and_edges_method'] = \
+                         self.get_distribute_to_vertices_and_edges_method()
         parameters['flow_algorithm']          = self.get_flow_algorithm()
         parameters['CFL']                     = self.get_CFL()
         parameters['timestepping_method']     = self.get_timestepping_method()
@@ -351,8 +356,9 @@ class Domain(Generic_Domain):
            wb_1
            wb_2
            wb_3
+           tsunami
         """
-        compute_fluxes_methods = ['original', 'wb_1', 'wb_2', 'wb_3']
+        compute_fluxes_methods = ['original', 'wb_1', 'wb_2', 'wb_3', 'tsunami']
 
         if flag in compute_fluxes_methods:
             self.compute_fluxes_method = flag
@@ -374,6 +380,37 @@ class Domain(Generic_Domain):
         return self.compute_fluxes_method
 
 
+
+    def set_distribute_to_vertices_and_edges_method(self, flag='original'):
+        """Set method for computing fluxes.
+
+        Currently
+           original
+           tsunami
+        """
+        distribute_to_vertices_and_edges_methods = ['original',  'tsunami']
+
+        if flag in distribute_to_vertices_and_edges_methods:
+            self.distribute_to_vertices_and_edges_method = flag
+        else:
+            msg = 'Unknown distribute_to_vertices_and_edges_method. \nPossible choices are:\n'+ \
+            ', '.join(distribute_to_vertices_and_edges_methods)+'.'
+            raise Exception(msg)
+
+
+
+
+
+    def get_distribute_to_vertices_and_edges_method(self):
+        """Get method for distribute_to_vertices_and_edges.
+
+        See set_distribute_to_vertices_and_edges_method for possible choices.
+        """
+
+        return self.distribute_to_vertices_and_edges_method
+
+
+
     def set_flow_algorithm(self, flag=1.5):
         """Set combination of slope limiting and time stepping
 
@@ -382,6 +419,7 @@ class Domain(Generic_Domain):
            1.5
            2
            2.5
+           tsunami
         """
 
         if isinstance(flag, str) :
@@ -389,7 +427,7 @@ class Domain(Generic_Domain):
         else:
             flag = str(float(str(flag))).replace(".","_")
 
-        flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_5']
+        flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_5', 'tsunami']
 
         if flag in flow_algorithms:
             self.flow_algorithm = flag
@@ -404,6 +442,8 @@ class Domain(Generic_Domain):
             self.set_default_order(1)
             self.set_CFL(1.0)
 
+
+
         if self.flow_algorithm == '1_5':
             self.set_timestepping_method(1)
             self.set_default_order(2)
@@ -415,6 +455,9 @@ class Domain(Generic_Domain):
             beta_vh_dry = 0.2
             self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
             self.set_CFL(1.0)
+            self.set_compute_fluxes_method('wb_2')
+            self.set_extrapolate_velocity()
+
 
 
         if self.flow_algorithm == '1_75':
@@ -428,6 +471,8 @@ class Domain(Generic_Domain):
             beta_vh_dry = 0.2
             self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
             self.set_CFL(0.75)
+            self.set_compute_fluxes_method('wb_2')
+            self.set_extrapolate_velocity()
 
 
         if self.flow_algorithm == '2_0':
@@ -441,6 +486,26 @@ class Domain(Generic_Domain):
             beta_vh_dry = 0.2
             self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
             self.set_CFL(1.0)
+            self.set_compute_fluxes_method('wb_2')
+            self.set_extrapolate_velocity()
+
+
+        if self.flow_algorithm == 'tsunami':
+            self.set_timestepping_method(2)
+            self.set_default_order(2)
+            beta_w      = 1.9
+            beta_w_dry  = 0.2
+            beta_uh     = 1.9
+            beta_uh_dry = 0.2
+            beta_vh     = 1.9
+            beta_vh_dry = 0.2
+            self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
+            self.set_CFL(1.0)
+            self.set_compute_fluxes_method('wb_2')
+            self.set_extrapolate_velocity()
+            self.set_distribute_to_vertices_and_edges_method('tsunami')
+
+
 
         if self.flow_algorithm == '2_5':
             self.set_timestepping_method(3)
@@ -453,7 +518,8 @@ class Domain(Generic_Domain):
             beta_vh_dry = 0.2
             self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
             self.set_CFL(1.0)
-
+            self.set_compute_fluxes_method('wb_2')
+            self.set_extrapolate_velocity()
 
 
     def get_flow_algorithm(self):
@@ -468,6 +534,7 @@ class Domain(Generic_Domain):
 
     def set_gravity_method(self):
         """Gravity method is determined by the compute_fluxes_method
+        This is now not used, as gravity is combine in the compute_fluxes method
         """
 
         if  self.get_compute_fluxes_method() == 'original':
@@ -512,7 +579,6 @@ class Domain(Generic_Domain):
             self.optimise_dry_cells = int(True)
         elif flag is False:
             self.optimise_dry_cells = int(False)
-
 
 
 

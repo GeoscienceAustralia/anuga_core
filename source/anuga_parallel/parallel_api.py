@@ -35,7 +35,7 @@ processor_name = get_processor_name()
 
 
 
-def distribute(domain, verbose=False, debug=False):
+def distribute(domain, verbose=False, debug=False, parameters = None):
     """ Distribute the domain to all processes
     """
 
@@ -111,12 +111,8 @@ def distribute(domain, verbose=False, debug=False):
         points, vertices, boundary, quantities,\
                 ghost_recv_dict, full_send_dict,\
                 number_of_full_nodes, number_of_full_triangles,\
-                s2p_map, p2s_map, tri_map, node_map =\
-                distribute_mesh(domain, verbose=verbose, debug=debug)
-
-
-
-
+                s2p_map, p2s_map, tri_map, node_map, ghost_layer_width =\
+                distribute_mesh(domain, verbose=verbose, debug=debug, parameters=parameters)
             
         # Extract l2g maps
         tri_l2g  = extract_l2g_map(tri_map)
@@ -145,7 +141,7 @@ def distribute(domain, verbose=False, debug=False):
         points, vertices, boundary, quantities,\
                 ghost_recv_dict, full_send_dict,\
                 number_of_full_nodes, number_of_full_triangles, \
-                tri_map, node_map =\
+                tri_map, node_map, ghost_layer_width =\
                 rec_submesh(0, verbose)
 
 
@@ -177,7 +173,8 @@ def distribute(domain, verbose=False, debug=False):
                              s2p_map = s2p_map,
                              p2s_map = p2s_map, ## jj added this
                              tri_l2g = tri_l2g, ## SR added this
-                             node_l2g = node_l2g)
+                             node_l2g = node_l2g,
+                             ghost_layer_width = ghost_layer_width)
 
     #------------------------------------------------------------------------
     # Transfer initial conditions to each subdomain
@@ -212,7 +209,7 @@ def distribute(domain, verbose=False, debug=False):
 
 
 
-def distribute_mesh(domain, verbose=False, debug=False):
+def distribute_mesh(domain, verbose=False, debug=False, parameters=None):
 
 
     if debug:
@@ -235,7 +232,7 @@ def distribute_mesh(domain, verbose=False, debug=False):
     # this includes ghost nodes and the communication pattern
     if verbose: print 'Build submeshes'    
     submesh = build_submesh(nodes, triangles, boundary,\
-                            quantities, triangles_per_proc)
+                            quantities, triangles_per_proc, parameters)
 
     if verbose:
         for p in range(numprocs):
@@ -256,7 +253,7 @@ def distribute_mesh(domain, verbose=False, debug=False):
 
     # Build the local mesh for processor 0
     points, vertices, boundary, quantities, \
-            ghost_recv_dict, full_send_dict, tri_map, node_map =\
+            ghost_recv_dict, full_send_dict, tri_map, node_map, ghost_layer_width =\
               extract_hostmesh(submesh, triangles_per_proc)
 
     # Keep track of the number full nodes and triangles.
@@ -293,7 +290,7 @@ def distribute_mesh(domain, verbose=False, debug=False):
     return points, vertices, boundary, quantities,\
            ghost_recv_dict, full_send_dict,\
            number_of_full_nodes, number_of_full_triangles, \
-           s2p_map, p2s_map, tri_map, node_map
+           s2p_map, p2s_map, tri_map, node_map, ghost_layer_width
     
 
 

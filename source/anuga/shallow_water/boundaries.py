@@ -88,6 +88,9 @@ class Reflective_boundary(Boundary):
 
 
     def evaluate_segment(self, domain, segment_edges):
+        """Apply reflective BC on the boundary edges defined by
+        segment_edges
+        """
 
         if segment_edges is None:
             return
@@ -119,7 +122,7 @@ class Reflective_boundary(Boundary):
         n1  = Normals[vol_ids,2*edge_ids]
         n2  = Normals[vol_ids,2*edge_ids+1]
 
-        # Transfer these quantities
+        # Transfer these quantities to the boundary array
         Stage.boundary_values[ids]  = Stage.edge_values[vol_ids,edge_ids]
         Elev.boundary_values[ids]   = Elev.edge_values[vol_ids,edge_ids]
         Height.boundary_values[ids] = Height.edge_values[vol_ids,edge_ids]
@@ -127,10 +130,6 @@ class Reflective_boundary(Boundary):
         # Rotate and negate Momemtum
         q1 = Xmom.edge_values[vol_ids,edge_ids]
         q2 = Ymom.edge_values[vol_ids,edge_ids]
-
-        # Rotate
-        #q[1] = n1 * q1 - n2*q2;
-        #q[2] = n2 * q1 + n1*q2;
 
         r1 = -q1*n1 - q2*n2
         r2 = -q1*n2 + q2*n1

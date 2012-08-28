@@ -52,7 +52,8 @@ class Generic_Domain:
                        processor=0,
                        numproc=1,
                        number_of_full_nodes=None,
-                       number_of_full_triangles=None):
+                       number_of_full_triangles=None,
+                       ghost_layer_width=2):
 
         """Instantiate generic computational Domain.
 
@@ -203,6 +204,7 @@ class Generic_Domain:
 
         self.processor = processor
         self.numproc = numproc
+        self.ghost_layer_width = ghost_layer_width
 
         # Setup Communication Buffers
         if verbose: log.critical('Domain: Set up communication buffers ')
@@ -1531,11 +1533,12 @@ class Generic_Domain:
         # Update special conditions
         #self.update_special_conditions()
 
-        # Update ghosts
-        self.update_ghosts()
-
         # Update time
         self.set_time(self.get_time() + self.timestep)
+
+        # Update ghosts
+        if self.ghost_layer_width < 4:
+            self.update_ghosts()
 
         # Update vertex and edge values
         self.distribute_to_vertices_and_edges()
@@ -1604,11 +1607,11 @@ class Generic_Domain:
         # Update special conditions
         #self.update_special_conditions()
 
-        # Update ghosts
-        self.update_ghosts()
-
         # Update time
         self.set_time(self.time + self.timestep)
+
+        # Update ghosts
+        self.update_ghosts()
 
         # Update vertex and edge values
         self.distribute_to_vertices_and_edges()
@@ -1640,15 +1643,14 @@ class Generic_Domain:
         # Combine steps
         self.saxpy_conserved_quantities(0.25, 0.75)
 
-
         # Update special conditions
         #self.update_special_conditions()
 
-        # Update ghosts
-        self.update_ghosts()
-
         # Set substep time
         self.set_time(initial_time + self.timestep*0.5)
+
+        # Update ghosts
+        self.update_ghosts()
 
         # Update vertex and edge values
         self.distribute_to_vertices_and_edges()

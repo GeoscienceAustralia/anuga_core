@@ -94,8 +94,12 @@ default_order = 2
 extrapolate_velocity_second_order=True
 
 # Option to setup compute_fluxes_method
-# Currently "original' and 'wb_1' to 'wb_3'
+# Currently "original' and 'wb_1' to 'wb_3' and 'tsunami'
 compute_fluxes_method = 'wb_2'
+
+# Option to setup distribute_to_vertices_and_edges_method
+# Currently "original' and 'tsunami'
+distribute_to_vertices_and_edges_method = 'original'
 
 ################################################################################
 # Friction Method
