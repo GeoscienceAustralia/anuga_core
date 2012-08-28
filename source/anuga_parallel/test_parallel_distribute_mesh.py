@@ -195,7 +195,7 @@ def distibute_three_processors():
         # Test extract_hostmesh
         #----------------------------------------------------------------------------------
         points, vertices, boundary, quantities, \
-                ghost_recv_dict, full_send_dict, tri_map, node_map  =\
+                ghost_recv_dict, full_send_dict, tri_map, node_map, ghost_layer_width =\
         extract_hostmesh(submesh, triangles_per_proc)
 
 
@@ -209,6 +209,7 @@ def distibute_three_processors():
 
         true_full_send = {1: [num.array([0, 1, 2, 4]), num.array([0, 1, 2, 4])], 2: [num.array([0, 1, 2, 3]), num.array([0, 1, 2, 3])]}
 
+        assert_(num.allclose(ghost_layer_width,  2))
         assert_(num.allclose(points,   true_points))
         assert_(num.allclose(vertices, true_vertices))
         assert_(num.allclose(ghost_recv_dict[1],true_ghost_recv[1]))
@@ -224,7 +225,7 @@ def distibute_three_processors():
         #----------------------------------------------------------------------------------
         points, vertices, boundary, quantities, \
                 ghost_recv_dict, full_send_dict, \
-                no_full_nodes, no_full_trigs, tri_map, node_map  = \
+                no_full_nodes, no_full_trigs, tri_map, node_map, ghost_layer_width  = \
                 rec_submesh(0, verbose=False)    
 
         if myid == 1:
@@ -242,6 +243,7 @@ def distibute_three_processors():
 
             true_node_map = num.array([ 0,  1,  2,  7,  3,  4, -1,  8,  9,  5,  6, 10, 11])
 
+            assert_(num.allclose(ghost_layer_width,  2))
             assert_(num.allclose(tri_map,   true_tri_map))
             assert_(num.allclose(node_map,   true_node_map))
             assert_(num.allclose(points,   true_points))
@@ -266,6 +268,7 @@ def distibute_three_processors():
 
             true_node_map = num.array([ 0,  7, -1,  1,  2,  8 , 3,  4,  9,  5, -1,  6, 10])
 
+            assert_(num.allclose(ghost_layer_width,  2))
             assert_(num.allclose(tri_map,   true_tri_map))
             assert_(num.allclose(node_map,   true_node_map))
             assert_(num.allclose(points,   true_points))
