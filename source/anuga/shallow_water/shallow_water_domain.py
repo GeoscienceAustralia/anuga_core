@@ -255,6 +255,8 @@ class Domain(Generic_Domain):
         self.set_compute_fluxes_method(compute_fluxes_method)
         self.set_flow_algorithm(flow_algorithm)
 
+        self.set_distribute_to_vertices_and_edges_method(distribute_to_vertices_and_edges_method)
+
 
     def get_algorithm_parameters(self):
         """Get the standard parameter that are currently set (as a dictionary)

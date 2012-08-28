@@ -8434,6 +8434,6 @@ friction  \n \
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_extrapolate_second_order_sw')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test_boundary_conditions')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test_')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
