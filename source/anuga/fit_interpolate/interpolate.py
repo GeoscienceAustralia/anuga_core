@@ -370,6 +370,16 @@ class Interpolate (FitInterpolate):
         return self._get_point_data_z(f)
 
 
+    def get_outside_poly_indices(self):
+        """
+        Return index of those data points outside (and in holes)
+        the mesh
+
+        Precondition: interpolation or interpolation_block has been called
+        """
+        return self.outside_poly_indices
+
+
     def _get_point_data_z(self, f, verbose=False):
         """
         Return the point data, z.
@@ -412,7 +422,8 @@ class Interpolate (FitInterpolate):
 
         if verbose: log.critical('Getting indices inside mesh boundary')
 
-        # Quick test against boundary, but will not deal with holes in the mesh 
+        # Quick test against boundary, but will not deal with holes in the mesh,
+        # that is done below
         inside_boundary_indices, outside_poly_indices = \
             in_and_outside_polygon(point_coordinates,
                                    self.mesh.get_boundary_polygon(),

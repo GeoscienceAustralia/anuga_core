@@ -329,14 +329,16 @@ def sww2dem(name_in, name_out,
     # Interpolate using quantity values
     if verbose: log.critical('Interpolating')
     grid_values = interp.interpolate(result, grid_points).flatten()
+    outside_indices = interp.get_outside_poly_indices()
 
     if verbose:
         log.critical('Interpolated values are in [%f, %f]'
                      % (num.min(grid_values), num.max(grid_values)))
 
     # Assign NODATA_value to all points outside bounding polygon (from interpolation mesh)
-    P = interp.mesh.get_boundary_polygon()
-    outside_indices = outside_polygon(grid_points, P, closed=True)
+    
+#    P = interp.mesh.get_boundary_polygon()
+#    outside_indices = outside_polygon(grid_points, P, closed=True)
 
     for i in outside_indices:
         grid_values[i] = NODATA_value

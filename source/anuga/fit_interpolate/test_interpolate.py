@@ -1714,6 +1714,69 @@ class Test_Interpolate(unittest.TestCase):
             self.failUnless( z[i,1] == answer[11,1], 'Fail!')
             self.failUnless( z[i,0] == answer[11,0], 'Fail!')
 
+
+
+
+    def test_points_in_hole(self):
+
+        v0  = [0.0,     0.0]
+        v1  = [1.0/3.0, 0.0]
+        v2  = [2.0/3.0, 0.0]
+        v3  = [1.0,     0.0]
+        v4  = [0.0,     1.0/3.0]
+        v5  = [1.0/3.0, 1.0/3.0]
+        v6  = [2.0/3.0, 1.0/3.0]
+        v7  = [1.0,     1.0/3.0]
+        v8  = [0.0,     2.0/3.0]
+        v9  = [1.0/3.0, 2.0/3.0]
+        v10 = [2.0/3.0, 2.0/3.0]
+        v11 = [1.0,     2.0/3.0]
+        v12 = [0.0,     1.0]
+        v13 = [1.0/3.0, 1.0]
+        v14 = [2.0/3.0, 1.0]
+        v15 = [1.0,     1.0]
+
+
+        vertices = [v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15]
+
+        triangles = [[1,4,0], [1,5,4],    [2,5,1], [2,6,5],       [3,6,2],  [3,7,6],
+                     [5,8,4], [5,9,8],                            [7,10,6], [7,11,10],
+                     [9,12,8], [9,13,12], [10,13,9], [10,14,13], [11,14,10], [11,15,14]]
+
+
+
+
+        point_coords = [[0.25, 0.25],
+                        [0.25, 0.2],
+                        [10.0, 12.0], # point Outside poly
+                        [0.5, 0.5], # point in hole
+                        [0.5, 0.4], # point in hole
+                        [0.0, 0.0],
+                        [1.0, 0.0]]
+
+        geo_data = Geospatial_data(data_points = point_coords)
+
+        interp = Interpolate(vertices, triangles)
+        f = num.array([linear_function(vertices),2*linear_function(vertices)])
+        f = num.transpose(f)
+        #print "f",f
+        z = interp.interpolate(f, geo_data)
+        #z = interp.interpolate(f, point_coords)
+        answer = [linear_function(point_coords),
+                  2*linear_function(point_coords) ]
+        answer = num.transpose(answer)
+        answer[2,:] = [NAN, NAN]
+        answer[3,:] = [NAN, NAN]
+        answer[4,:] = [NAN, NAN]
+        #print "z",z
+        #print "answer _ fixed",answer
+        assert num.allclose(z[0:1], answer[0:1])
+        assert num.allclose(z[5:6], answer[5:6])
+        for i in [2,3,4]:
+            self.failUnless( z[i,1] == answer[2,1], 'Fail!')
+            self.failUnless( z[i,0] == answer[2,0], 'Fail!')
+
+
     def test_interpolate_sww2csv(self):
 
         def elevation_function(x, y):
