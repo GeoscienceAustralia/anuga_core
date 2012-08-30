@@ -135,29 +135,26 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
             print 'protocol', control_info[0]
             
         # Send serial to parallel (s2p) and parallel to serial (p2s) triangle mapping to proc 1 .. numprocs
+
+
+
+        n = len(s2p_map)
+        s2p_map_keys_flat = num.reshape(num.array(s2p_map.keys(),num.int), (n,1) )
+        s2p_map_values_flat = num.array(s2p_map.values(),num.int)
+        s2p_map_flat = num.concatenate( (s2p_map_keys_flat, s2p_map_values_flat), axis=1 )
+
+        n = len(p2s_map)
+        p2s_map_keys_flat = num.reshape(num.array(p2s_map.keys(),num.int), (n,2) )
+        p2s_map_values_flat = num.reshape(num.array(p2s_map.values(),num.int) , (n,1))
+        p2s_map_flat = num.concatenate( (p2s_map_keys_flat, p2s_map_values_flat), axis=1 )
+        
         for p in range(1, numprocs):
+
             # FIXME SR: Creates cPickle dump
-
-            print '*** s2p'
-            protocol(s2p_map)
-
-            n = len(s2p_map)
-            s2p_map_keys_flat = num.reshape(num.array(s2p_map.keys(),num.int), (n,1) )
-
-            print s2p_map_keys_flat.shape
-
-            s2p_map_values_flat = num.array(s2p_map.values(),num.int)
-            print s2p_map_values_flat.shape
-            
-            s2p_map_flat = num.concatenate( (s2p_map_keys_flat, s2p_map_values_flat), axis=1 )
-            #print s2p_map_keys_flat
-            #print s2p_map_values_flat
-            #print s2p_map_flat
-
             send(s2p_map_flat, p)
             # FIXME SR: Creates cPickle dump
             #print p2s_map
-            send(p2s_map, p)
+            send(p2s_map_flat, p)
 
         if verbose: print 'Communication done'
         
@@ -181,8 +178,10 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
         s2p_map_flat = receive(0)
         s2p_map = dict.fromkeys(s2p_map_flat[:,0], s2p_map_flat[:,1:2])
 
-        p2s_map = receive(0)
+        p2s_map_flat = receive(0)
+        p2s_map_keys = [tuple(x) for x in p2s_map_flat[:,0:1]]
 
+        p2s_map = dict.fromkeys(p2s_map_keys, p2s_map_flat[:,2])
 
     #------------------------------------------------------------------------
     # Build the domain for this processor using partion structures

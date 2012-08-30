@@ -64,7 +64,7 @@ def reorder(quantities, tri_index, proc_sum):
 
     # Find the new ordering of the triangles
 
-    for i in range(N):
+    for i in xrange(N):
         bin = tri_index[i][0]
         bin_off_set = tri_index[i][1]
         index[i] = proc_sum[bin]+bin_off_set
@@ -132,7 +132,7 @@ def pmesh_divide_metis_helper(domain, n_procs):
     # List indexed by processor of cumulative total of triangles allocated.
     
     proc_sum = []
-    for i in range(n_procs):
+    for i in xrange(n_procs):
         tri_list.append([])
         triangles_per_proc.append(0)
         proc_sum.append([])
@@ -167,7 +167,7 @@ def pmesh_divide_metis_helper(domain, n_procs):
         # (local to the processor)
         
         triangles = []        
-        for i in range(n_tri):
+        for i in xrange(n_tri):
             triangles_per_proc[epart[i]] = triangles_per_proc[epart[i]] + 1
             tri_list[epart[i]].append(domain.triangles[i])
             tri_index[i] = ([epart[i], len(tri_list[epart[i]]) - 1])
@@ -177,7 +177,7 @@ def pmesh_divide_metis_helper(domain, n_procs):
         # to processor i are listed before those belonging to processor
         # i+1
 
-        for i in range(n_procs):
+        for i in xrange(n_procs):
             for t in tri_list[i]:
                 triangles.append(t)
             
@@ -185,7 +185,7 @@ def pmesh_divide_metis_helper(domain, n_procs):
         # new triangle ordering, proc_sum and tri_index help with this
 
         proc_sum[0] = 0
-        for i in range(n_procs - 1):
+        for i in xrange(n_procs - 1):
             proc_sum[i+1]=proc_sum[i]+triangles_per_proc[i]
 
         # Relabel the boundary elements to fit in with the new triangle
@@ -218,7 +218,7 @@ def pmesh_divide_metis_helper(domain, n_procs):
     # this helps with the communication
 
     ttriangles = num.zeros((len(triangles), 3), num.int)
-    for i in range(len(triangles)):
+    for i in xrange(len(triangles)):
         ttriangles[i] = triangles[i]
 
     #return nodes, ttriangles, boundary, triangles_per_proc, quantities
@@ -289,7 +289,7 @@ def submesh_full(mesh, triangles_per_proc):
 
     # Loop over processors
 
-    for p in range(nproc):
+    for p in xrange(nproc):
 
         # Find triangles on processor p
 
@@ -374,14 +374,15 @@ def ghost_layer(submesh, mesh, p, tupper, tlower, parameters = None):
     for t in range(tlower, tupper):
         
         n = mesh.neighbours[t, 0]
-
         if n >= 0:
             if n < tlower or n >= tupper:
                 trianglemap[n] = 1
+
         n = mesh.neighbours[t, 1]
         if n >= 0:
             if n < tlower or n >= tupper:
                 trianglemap[n] = 1
+
         n = mesh.neighbours[t, 2]
         if n >= 0:
             if n < tlower or n >= tupper:
@@ -393,14 +394,17 @@ def ghost_layer(submesh, mesh, p, tupper, tlower, parameters = None):
 
         for t in range(len(trianglemap)):
             if trianglemap[t]==i+1:
+
                 n = mesh.neighbours[t, 0]
                 if n >= 0:
                     if (n < tlower or n >= tupper) and trianglemap[n] == 0:
                         trianglemap[n] = i+2
+
                 n = mesh.neighbours[t, 1]
                 if n >= 0:
                     if (n < tlower or n >= tupper) and trianglemap[n] == 0:
                         trianglemap[n] = i+2
+
                 n = mesh.neighbours[t, 2]
                 if n >= 0:
                     if (n < tlower or n >= tupper) and trianglemap[n] == 0:
@@ -409,14 +413,11 @@ def ghost_layer(submesh, mesh, p, tupper, tlower, parameters = None):
     # Build the triangle list and make note of the vertices
 
 
-
-
-
     nodemap = num.zeros(ncoord, 'i')
     fullnodes = submesh["full_nodes"][p]
 
     subtriangles = []
-    for i in range(len(trianglemap)):
+    for i in xrange(len(trianglemap)):
         if trianglemap[i] != 0:
             t = list(mesh.triangles[i])
             nodemap[t[0]] = 1
@@ -546,7 +547,7 @@ def ghost_commun_pattern(subtri, p, tri_per_proc):
 
     ghost_commun = num.zeros((len(subtri), 2), num.int)
 
-    for i in range(len(subtri)):
+    for i in xrange(len(subtri)):
         global_no = subtri[i][0]
 
         # Find which processor contains the full triangle
@@ -554,7 +555,7 @@ def ghost_commun_pattern(subtri, p, tri_per_proc):
         nproc = len(tri_per_proc)
         neigh = nproc-1
         sum = 0
-        for q in range(nproc-1):
+        for q in xrange(nproc-1):
             if (global_no < sum+tri_per_proc[q]):
                 neigh = q
                 break
@@ -597,21 +598,21 @@ def full_commun_pattern(submesh, tri_per_proc):
 
     # Loop over the processor
 
-    for p in range(nproc):
+    for p in xrange(nproc):
 
         # Loop over the full triangles in the current processor
         # and build an empty dictionary
 
         fcommun = {}
         tupper = tri_per_proc[p]+tlower
-        for i in range(tlower, tupper):
+        for i in xrange(tlower, tupper):
             fcommun[i] = []
         full_commun.append(fcommun)
         tlower = tupper
 
     # Loop over the processor again
 
-    for p in range(nproc):
+    for p in xrange(nproc):
 
         # Loop over the ghost triangles in the current processor,
         # find which processor contains the corresponding full copy
@@ -663,7 +664,7 @@ def submesh_ghost(submesh, mesh, triangles_per_proc, parameters = None):
 
     # Loop over the processors
 
-    for p in range(nproc):
+    for p in xrange(nproc):
 
         # Find the full triangles in this processor
 
@@ -745,14 +746,14 @@ def submesh_quantities(submesh, quantities, triangles_per_proc):
 
     # Loop trough the subdomains
 
-    for p in range(nproc):
+    for p in xrange(nproc):
         upper =   lower+triangles_per_proc[p]
 
         # Find the global ID of the ghost triangles
 
         global_id = []
         M = len(submesh["ghost_triangles"][p])
-        for j in range(M):
+        for j in xrange(M):
             global_id.append(submesh["ghost_triangles"][p][j][0])
 
         # Use the global ID to extract the quantites information from
@@ -861,7 +862,7 @@ def build_local_GA(nodes, triangles, boundaries, tri_map):
     # Build a global ID to local ID mapping
 
     NGlobal = 0
-    for i in range(Nnodes):
+    for i in xrange(Nnodes):
         if nodes[i][0] > NGlobal:
             NGlobal = nodes[i][0]
 
@@ -922,7 +923,7 @@ def build_local_commun(tri_map, ghostc, fullc, nproc):
     
     ghostc = num.sort(ghostc, 0)
     
-    for c in range(nproc):
+    for c in xrange(nproc):
         s = ghostc[:,0]
         d = num.compress(num.equal(ghostc[:,1],c), s)
         if len(d) > 0:
@@ -936,7 +937,7 @@ def build_local_commun(tri_map, ghostc, fullc, nproc):
 
     tmp_send = {}
     for global_id in fullc:
-        for i in range(len(fullc[global_id])):
+        for i in xrange(len(fullc[global_id])):
             neigh = fullc[global_id][i]
             if not tmp_send.has_key(neigh):
                 tmp_send[neigh] = []
@@ -998,14 +999,14 @@ def build_local_mesh(submesh, lower_t, upper_t, nproc):
     # triangles
 
     NGlobal = upper_t
-    for i in range(len(submesh["ghost_triangles"])):
+    for i in xrange(len(submesh["ghost_triangles"])):
         id = submesh["ghost_triangles"][i][0]
         if id > NGlobal:
             NGlobal = id
     #index = num.zeros(int(NGlobal)+1, num.int)
     tri_map = -1*num.ones(int(NGlobal)+1, num.int)
     tri_map[lower_t:upper_t]=num.arange(upper_t-lower_t)
-    for i in range(len(submesh["ghost_triangles"])):
+    for i in xrange(len(submesh["ghost_triangles"])):
         tri_map[submesh["ghost_triangles"][i][0]] = i+upper_t-lower_t
     
     # Change the node numbering (and update the numbering in the
@@ -1095,21 +1096,10 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
              counter = counter+1
 
 
-    def protocol(x):
-        vanilla=False
-        control_info, x = pypar.create_control_info(x, vanilla, return_object=True)
-        print 'protocol', control_info[0]
-
-    # FIXME SR: Creates cPickle dump
-    print 'tagmap', tagmap
-    protocol(tagmap)
+    # send boundary tags
     pypar.send(tagmap, p)
 
     # send the quantities key information
-
-    # FIXME SR: Creates cPickle dump
-    print 'full_quant keys', submesh["full_quan"].keys()
-    protocol(submesh["full_quan"].keys())
     pypar.send(submesh["full_quan"].keys(), p)
 
     # compress full_commun
@@ -1131,8 +1121,6 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
     setup_array[6] = len(submesh["ghost_commun"][p])
     setup_array[7] = len(flat_full_commun)
     setup_array[8] = len(submesh["full_quan"])
-
-    i=0
 
     x = num.array(setup_array, num.int)
     pypar.send(x, p, bypass=True)
@@ -1237,12 +1225,9 @@ def rec_submesh_flat(p, verbose=True):
         itagmap[tagmap[t]]=t
 
     # receive the quantities key information
-
     qkeys = pypar.receive(p)
 
-
     # recieve information about the array sizes
-
     x = num.zeros((9,),num.int)
     pypar.receive(p, buffer=x,  bypass=True)
     setup_array = x
@@ -1257,9 +1242,6 @@ def rec_submesh_flat(p, verbose=True):
     no_full_commun     = setup_array[7]
     no_quantities      = setup_array[8]
 
-
-
-    print 'setup_array', setup_array
     
     # ghost layer width
     x = num.zeros((1,),num.int)
