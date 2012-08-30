@@ -32,7 +32,7 @@ from anuga_parallel import distribute, myid, numprocs, finalize, barrier
 
 t0 = time.time()
 
-verbose = False
+verbose = True
 
 #--------------------------------------------------------------------------
 # Setup Domain only on processor 0
@@ -40,7 +40,8 @@ verbose = False
 if myid == 0:
     length = 2.0
     width = 2.0
-    dx = dy = 0.005
+    #dx = dy = 0.005
+    dx = dy = 0.01
     domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
 
@@ -158,6 +159,8 @@ for p in range(numprocs):
         sys.stdout.flush()
 
 
-#domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)
+if domain.number_of_global_triangles < 50000:
+    print 'Create dump of triangulation for {0} triangles'.format(domain.number_of_global_triangles)
+    domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)
 
 finalize()

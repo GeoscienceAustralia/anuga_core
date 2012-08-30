@@ -56,9 +56,7 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
         domain.set_boundary(bdmap)
 
 
-
-
-    if not pypar_available: return domain # Bypass
+    if not pypar_available or numprocs == 1 : return domain # Bypass
 
     # For some obscure reason this communication must happen prior to
     # the more complex mesh distribution - Oh Well!
@@ -74,6 +72,7 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
         # FIXME - what other attributes need to be transferred?
 
         for p in range(1, numprocs):
+            # FIXME SR: Creates cPickle dump
             send((domain_name, domain_dir, domain_store, \
                   domain_minimum_storable_height, georef, \
                   number_of_global_triangles, number_of_global_nodes), p)
@@ -129,7 +128,9 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
 
         # Send serial to parallel (s2p) and parallel to serial (p2s) triangle mapping to proc 1 .. numprocs
         for p in range(1, numprocs):
+            # FIXME SR: Creates cPickle dump
             send(s2p_map, p)
+            # FIXME SR: Creates cPickle dump
             send(p2s_map, p)
 
         if verbose: print 'Communication done'
@@ -249,7 +250,7 @@ def distribute_mesh(domain, verbose=False, debug=False, parameters=None):
     # Send the mesh partition to the appropriate processor
     if verbose: print 'Distribute submeshes'        
     for p in range(1, numprocs):
-      send_submesh(submesh, triangles_per_proc, p, verbose)
+        send_submesh(submesh, triangles_per_proc, p, verbose)
 
     # Build the local mesh for processor 0
     points, vertices, boundary, quantities, \

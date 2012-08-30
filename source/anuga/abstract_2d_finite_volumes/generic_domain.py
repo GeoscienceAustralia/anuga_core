@@ -205,6 +205,9 @@ class Generic_Domain:
         self.processor = processor
         self.numproc = numproc
         self.ghost_layer_width = ghost_layer_width
+        self.communication_time = 0.0
+        self.communication_reduce_time = 0.0
+        self.communication_broadcast_time = 0.0
 
         # Setup Communication Buffers
         if verbose: log.critical('Domain: Set up communication buffers ')
@@ -1286,7 +1289,55 @@ class Generic_Domain:
     def set_starttime(self, time):
         self.starttime = float(time)
         self.set_time(self.starttime)
-        
+
+
+
+    '''
+    Outputs domain triangulation, full triangles are shown in green while ghost triangles are shown in blue.
+    The default filename is "domain.png"
+    '''
+    def dump_triangulation(self, filename="domain.png"):
+        # Get vertex coordinates, partition full and ghost triangles based on self.tri_full_flag
+
+        try:
+            import matplotlib
+            matplotlib.use('Agg')
+            import matplotlib.pyplot as plt
+            import matplotlib.tri as tri
+        except:
+            print "Couldn't import module from matplotlib, probably you need to update matplotlib"
+            raise
+
+        vertices = self.get_vertex_coordinates()
+        full_mask = num.repeat(self.tri_full_flag == 1, 3)
+        ghost_mask = num.repeat(self.tri_full_flag == 0, 3)
+
+
+        # Proc 0 gathers full and ghost nodes from self and other processors
+        fx = vertices[full_mask,0]
+        fy = vertices[full_mask,1]
+        gx = vertices[ghost_mask,0]
+        gy = vertices[ghost_mask,1]
+
+
+        # Plot full triangles
+        n = int(len(fx)/3)
+
+        triang = num.array(range(0,3*n))
+        triang.shape = (n, 3)
+        plt.triplot(fx, fy, triang, 'g-')
+
+        # Plot ghost triangles
+        n = int(len(gx)/3)
+        if n > 0:
+            triang = num.array(range(0,3*n))
+            triang.shape = (n, 3)
+            plt.triplot(gx, g, triang, 'b--')
+
+        # Save triangulation to location pointed by filename
+        plt.savefig(filename)
+
+
 
 ################################################################################
 # Main components of evolve
