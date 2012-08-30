@@ -71,7 +71,7 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
         
         # FIXME - what other attributes need to be transferred?
 
-        for p in range(1, numprocs):
+        for p in xrange(1, numprocs):
             # FIXME SR: Creates cPickle dump
             send((domain_name, domain_dir, domain_store, \
                   domain_minimum_storable_height, georef, \
@@ -91,7 +91,7 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
     # difficulties pickling functions
     if myid == 0:
         boundary_map = domain.boundary_map
-        for p in range(1, numprocs):
+        for p in xrange(1, numprocs):
             # FIXME SR: Creates cPickle dump
             send(boundary_map, p)
     else:
@@ -138,23 +138,26 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
 
 
 
-        n = len(s2p_map)
-        s2p_map_keys_flat = num.reshape(num.array(s2p_map.keys(),num.int), (n,1) )
-        s2p_map_values_flat = num.array(s2p_map.values(),num.int)
-        s2p_map_flat = num.concatenate( (s2p_map_keys_flat, s2p_map_values_flat), axis=1 )
+#        n = len(s2p_map)
+#        s2p_map_keys_flat = num.reshape(num.array(s2p_map.keys(),num.int), (n,1) )
+#        s2p_map_values_flat = num.array(s2p_map.values(),num.int)
+#        s2p_map_flat = num.concatenate( (s2p_map_keys_flat, s2p_map_values_flat), axis=1 )
+#
+#        n = len(p2s_map)
+#        p2s_map_keys_flat = num.reshape(num.array(p2s_map.keys(),num.int), (n,2) )
+#        p2s_map_values_flat = num.reshape(num.array(p2s_map.values(),num.int) , (n,1))
+#        p2s_map_flat = num.concatenate( (p2s_map_keys_flat, p2s_map_values_flat), axis=1 )
 
-        n = len(p2s_map)
-        p2s_map_keys_flat = num.reshape(num.array(p2s_map.keys(),num.int), (n,2) )
-        p2s_map_values_flat = num.reshape(num.array(p2s_map.values(),num.int) , (n,1))
-        p2s_map_flat = num.concatenate( (p2s_map_keys_flat, p2s_map_values_flat), axis=1 )
-        
-        for p in range(1, numprocs):
+        s2p_map = None
+        p2s_map = None
 
-            # FIXME SR: Creates cPickle dump
-            send(s2p_map_flat, p)
-            # FIXME SR: Creates cPickle dump
-            #print p2s_map
-            send(p2s_map_flat, p)
+#        for p in range(1, numprocs):
+#
+#            # FIXME SR: Creates cPickle dump
+#            send(s2p_map_flat, p)
+#            # FIXME SR: Creates cPickle dump
+#            #print p2s_map
+#            send(p2s_map_flat, p)
 
         if verbose: print 'Communication done'
         
@@ -175,13 +178,16 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
         node_l2g = extract_l2g_map(node_map)
         
         # Recieve serial to parallel (s2p) and parallel to serial (p2s) triangle mapping
-        s2p_map_flat = receive(0)
-        s2p_map = dict.fromkeys(s2p_map_flat[:,0], s2p_map_flat[:,1:2])
+        s2p_map = None
+        p2s_map = None
 
-        p2s_map_flat = receive(0)
-        p2s_map_keys = [tuple(x) for x in p2s_map_flat[:,0:1]]
-
-        p2s_map = dict.fromkeys(p2s_map_keys, p2s_map_flat[:,2])
+#        s2p_map_flat = receive(0)
+#        s2p_map = dict.fromkeys(s2p_map_flat[:,0], s2p_map_flat[:,1:2])
+#
+#        p2s_map_flat = receive(0)
+#        p2s_map_keys = [tuple(x) for x in p2s_map_flat[:,0:1]]
+#
+#        p2s_map = dict.fromkeys(p2s_map_keys, p2s_map_flat[:,2])
 
     #------------------------------------------------------------------------
     # Build the domain for this processor using partion structures
