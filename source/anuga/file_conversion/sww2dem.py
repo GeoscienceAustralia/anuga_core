@@ -33,7 +33,7 @@ def sww2dem(name_in, name_out,
             reduction=None,
             cellsize=10,
             number_of_decimal_places=None,
-            NODATA_value=-9999,
+            NODATA_value=-9999.0,
             easting_min=None,
             easting_max=None,
             northing_min=None,
@@ -331,6 +331,8 @@ def sww2dem(name_in, name_out,
     grid_values = interp.interpolate(result, grid_points).flatten()
     outside_indices = interp.get_outside_poly_indices()
 
+    #print outside_indices
+
     if verbose:
         log.critical('Interpolated values are in [%f, %f]'
                      % (num.min(grid_values), num.max(grid_values)))
@@ -341,6 +343,7 @@ def sww2dem(name_in, name_out,
 #    outside_indices = outside_polygon(grid_points, P, closed=True)
 
     for i in outside_indices:
+        #print 'change grid_value',NODATA_value
         grid_values[i] = NODATA_value
 
     if out_ext == '.ers':
