@@ -30,8 +30,9 @@ from anuga import rectangular_cross_domain
 from anuga_parallel import distribute, myid, numprocs, finalize, barrier
 
 
+t0 = time.time()
 
-verbose = True
+verbose = False
 
 #--------------------------------------------------------------------------
 # Setup Domain only on processor 0
@@ -39,7 +40,7 @@ verbose = True
 if myid == 0:
     length = 2.0
     width = 2.0
-    dx = dy = 0.02
+    dx = dy = 0.005
     domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
 
@@ -49,7 +50,10 @@ if myid == 0:
 else:
     domain = None
 
+t1 = time.time()
 
+if myid == 0 :
+    print 'Create sequential domain ',t1-t0
 
 if myid == 0 and verbose: 
     print 'DISTRIBUTING DOMAIN'
@@ -58,9 +62,14 @@ if myid == 0 and verbose:
 barrier()
 
 # setup parameters to test using different ghost_layer_widths
-parameters = dict(ghost_layer_width = 4)
+parameters = dict(ghost_layer_width = 2)
 domain = distribute(domain,verbose=verbose, parameters=parameters)
 
+t2 = time.time()
+
+if myid == 0 :
+    print 'Distribute domain ',t2-t1
+    
 if myid == 0 : print 'after parallel domain'
 
 
@@ -79,7 +88,7 @@ if myid == 0 : print 'after set_boundary'
 
 
 
-domain.check_integrity()
+#domain.check_integrity()
 
 if myid == 0 : print 'after check_integrity'
 
@@ -121,8 +130,8 @@ domain.set_flow_algorithm('2_0')
 
 
 
-yieldstep = 0.05
-finaltime = 2.0
+yieldstep = 0.005
+finaltime = 0.00
 
 barrier()
 
@@ -149,6 +158,6 @@ for p in range(numprocs):
         sys.stdout.flush()
 
 
-domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)
+#domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)
 
 finalize()
