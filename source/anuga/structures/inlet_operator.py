@@ -61,6 +61,8 @@ class Inlet_operator(anuga.Operator):
         Q = 0.5*(Q1+Q2)
         volume = Q*timestep
         
+        #print Q, volume
+        
         assert current_volume + volume >= 0.0, 'Requesting too much water to be removed from an inlet!'
 
         # store last discharge
