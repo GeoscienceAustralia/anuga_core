@@ -22,7 +22,16 @@ f2py -c --fcompiler=gnu95 okada_tsunami_fortran.f -m okada_tsunami_fortran
 
 """
 import numpy
-import okada_tsunami_fortran
+
+try:
+    import okada_tsunami_fortran
+except:
+    raise Exception,\
+    'okada_tsunami_fortran does not appear to be compiled.\n \
+    You can compile it by running the command:\n \
+    "f2py -c okada_tsunami_fortran.f -m okada_tsunami_fortran"\n \
+    in the shallow_water directory'
+ 
 from pyproj import Proj
 import copy
 

@@ -24,7 +24,7 @@ domain.set_name('runup_sinusoid_v2')                         # Output to file ru
 domain.set_datadir('.')                          # Use current folder
 domain.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 'ymomentum': 2, 'elevation': 1})
 #domain.set_store_vertices_uniquely(True)
-domain.minimum_allowed_height=0.001
+#domain.minimum_allowed_height=0.001
 
 #------------------------------------------------------------------------------
 # Setup Algorithm, either using command line arguments

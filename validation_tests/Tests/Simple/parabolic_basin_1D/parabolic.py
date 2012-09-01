@@ -14,7 +14,7 @@ points, vertices, boundary = anuga.rectangular_cross(200,10, len1=40.0,len2=2.0)
 domain=anuga.Domain(points,vertices,boundary)    # Create Domain
 domain.set_name('parabola_v2')                         # Output to file runup.sww
 domain.set_datadir('.')                          # Use current folder
-domain.set_minimum_allowed_height(0.01)
+#domain.set_minimum_allowed_height(0.01)
 
 
 #------------------------------------------------------------------------------

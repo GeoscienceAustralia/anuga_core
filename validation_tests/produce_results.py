@@ -19,7 +19,16 @@ from parameters import cfl
 #---------------------------------
 timestamp = time.asctime()
 major_revision = anuga.config.major_revision
-minor_revision = anuga.utilities.system_tools.get_revision_number()
+try:
+    # This fails if using git for version control
+    minor_revision = anuga.utilities.system_tools.get_revision_number()
+except:
+    try:
+        # This works when using git on unix
+        minor_revision=os.popen("git show-ref --head -s | head -n1").read().strip()
+    except:
+        # This is a fallback position
+        minor_revision='unknown'
 
 #---------------------------------
 # Run the tests
