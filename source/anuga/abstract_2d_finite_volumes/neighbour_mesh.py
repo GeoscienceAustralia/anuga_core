@@ -216,7 +216,7 @@ class Mesh(General_mesh):
         max_ratio = ratio
         min_ratio = ratio
 
-        for i in range(N):
+        for i in xrange(N):
             old_rad = self.radii[i]
             x0 = V[i, 0]; y0 = V[i, 1]
             x1 = V[i, 2]; y1 = V[i, 3]
@@ -709,7 +709,7 @@ class Mesh(General_mesh):
         V = self.get_vertex_coordinates()
 
         # Check each triangle
-        for i in range(N):
+        for i in xrange(N):
 
             x0, y0 = V[3*i, :]
             x1, y1 = V[3*i+1, :]
@@ -766,7 +766,7 @@ class Mesh(General_mesh):
 
 
         # Check neighbour structure
-        for i in range(N):
+        for i in xrange(N):
             # For each triangle
 
             for k, neighbour_id in enumerate(self.neighbours[i,:]):

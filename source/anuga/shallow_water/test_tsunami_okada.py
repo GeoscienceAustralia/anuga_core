@@ -107,7 +107,9 @@ class Test_eq(unittest.TestCase):
         def topography(x,y):
             el=-1000
             return el
-        
+
+        print int(l/dx)
+        print int(w/dy)
         points, vertices, boundary = rectangular_cross(int(l/dx), int(w/dy),
                                                len1=l, len2=w)
         domain = Domain(points, vertices, boundary)   

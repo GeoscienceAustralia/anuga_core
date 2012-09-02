@@ -40,13 +40,13 @@ verbose = True
 if myid == 0:
     length = 2.0
     width = 2.0
-    #dx = dy = 0.005
-    dx = dy = 0.01
+    dx = dy = 0.005
+    dx = dy = 0.0025
     domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
 
     domain.set_store(False)
-    domain.set_quantity('elevation', -1.0)
+    domain.set_quantity('elevation', lambda x,y : -1.0-x )
     domain.set_quantity('stage', 1.0)
 else:
     domain = None
@@ -160,7 +160,8 @@ for p in range(numprocs):
 
 
 if domain.number_of_global_triangles < 50000:
-    print 'Create dump of triangulation for {0} triangles'.format(domain.number_of_global_triangles)
+    if myid == 0 :
+        print 'Create dump of triangulation for {0} triangles'.format(domain.number_of_global_triangles)
     domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)
 
 finalize()

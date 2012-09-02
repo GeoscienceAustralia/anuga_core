@@ -23,6 +23,8 @@ if pypar_available:
 
     from anuga_parallel.parallel_shallow_water import Parallel_domain
 
+from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
+
 #------------------------------------------------------------------------------
 # Read in processor information
 #------------------------------------------------------------------------------
@@ -100,7 +102,7 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
         boundary_map = receive(0)
         
 
-
+    send_s2p = False
 
     if myid == 0:
         # Partition and distribute mesh.
@@ -137,27 +139,28 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
         # Send serial to parallel (s2p) and parallel to serial (p2s) triangle mapping to proc 1 .. numprocs
 
 
+        if send_s2p :
+            n = len(s2p_map)
+            s2p_map_keys_flat = num.reshape(num.array(s2p_map.keys(),num.int), (n,1) )
+            s2p_map_values_flat = num.array(s2p_map.values(),num.int)
+            s2p_map_flat = num.concatenate( (s2p_map_keys_flat, s2p_map_values_flat), axis=1 )
 
-#        n = len(s2p_map)
-#        s2p_map_keys_flat = num.reshape(num.array(s2p_map.keys(),num.int), (n,1) )
-#        s2p_map_values_flat = num.array(s2p_map.values(),num.int)
-#        s2p_map_flat = num.concatenate( (s2p_map_keys_flat, s2p_map_values_flat), axis=1 )
-#
-#        n = len(p2s_map)
-#        p2s_map_keys_flat = num.reshape(num.array(p2s_map.keys(),num.int), (n,2) )
-#        p2s_map_values_flat = num.reshape(num.array(p2s_map.values(),num.int) , (n,1))
-#        p2s_map_flat = num.concatenate( (p2s_map_keys_flat, p2s_map_values_flat), axis=1 )
+            n = len(p2s_map)
+            p2s_map_keys_flat = num.reshape(num.array(p2s_map.keys(),num.int), (n,2) )
+            p2s_map_values_flat = num.reshape(num.array(p2s_map.values(),num.int) , (n,1))
+            p2s_map_flat = num.concatenate( (p2s_map_keys_flat, p2s_map_values_flat), axis=1 )
 
-        s2p_map = None
-        p2s_map = None
+            for p in range(1, numprocs):
 
-#        for p in range(1, numprocs):
-#
-#            # FIXME SR: Creates cPickle dump
-#            send(s2p_map_flat, p)
-#            # FIXME SR: Creates cPickle dump
-#            #print p2s_map
-#            send(p2s_map_flat, p)
+                # FIXME SR: Creates cPickle dump
+                send(s2p_map_flat, p)
+                # FIXME SR: Creates cPickle dump
+                #print p2s_map
+                send(p2s_map_flat, p)
+        else:
+            if verbose: print 'Not sending s2p_map and p2s_map'
+            s2p_map = None
+            p2s_map = None
 
         if verbose: print 'Communication done'
         
@@ -178,17 +181,18 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
         node_l2g = extract_l2g_map(node_map)
         
         # Recieve serial to parallel (s2p) and parallel to serial (p2s) triangle mapping
-        s2p_map = None
-        p2s_map = None
+        if send_s2p :
+            s2p_map_flat = receive(0)
+            s2p_map = dict.fromkeys(s2p_map_flat[:,0], s2p_map_flat[:,1:2])
 
-#        s2p_map_flat = receive(0)
-#        s2p_map = dict.fromkeys(s2p_map_flat[:,0], s2p_map_flat[:,1:2])
-#
-#        p2s_map_flat = receive(0)
-#        p2s_map_keys = [tuple(x) for x in p2s_map_flat[:,0:1]]
-#
-#        p2s_map = dict.fromkeys(p2s_map_keys, p2s_map_flat[:,2])
+            p2s_map_flat = receive(0)
+            p2s_map_keys = [tuple(x) for x in p2s_map_flat[:,0:1]]
 
+            p2s_map = dict.fromkeys(p2s_map_keys, p2s_map_flat[:,2])
+        else:
+            s2p_map = None
+            p2s_map = None
+            
     #------------------------------------------------------------------------
     # Build the domain for this processor using partion structures
     #------------------------------------------------------------------------
@@ -254,19 +258,19 @@ def distribute_mesh(domain, verbose=False, debug=False, parameters=None):
     
     # Subdivide the mesh
     if verbose: print 'Subdivide mesh'
-    nodes, triangles, boundary, triangles_per_proc, quantities, \
+    new_nodes, new_triangles, new_boundary, triangles_per_proc, quantities, \
            s2p_map, p2s_map = \
            pmesh_divide_metis_with_map(domain, numprocs)
 
     #PETE: s2p_map (maps serial domain triangles to parallel domain triangles)
     #      sp2_map (maps parallel domain triangles to domain triangles)
 
+    mesh = Mesh(new_nodes, new_triangles, new_boundary)
 
     # Build the mesh that should be assigned to each processor,
     # this includes ghost nodes and the communication pattern
     if verbose: print 'Build submeshes'    
-    submesh = build_submesh(nodes, triangles, boundary,\
-                            quantities, triangles_per_proc, parameters)
+    submesh = build_submesh(mesh, quantities, triangles_per_proc, parameters)
 
     if verbose:
         for p in range(numprocs):

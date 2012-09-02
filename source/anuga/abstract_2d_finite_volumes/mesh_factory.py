@@ -134,8 +134,42 @@ def rectangular(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
 
     return points, elements, boundary
 
-
 def rectangular_cross(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
+    """Setup a rectangular grid of triangles
+    with m+1 by n+1 grid points
+    and side lengths len1, len2. If side lengths are omitted
+    the mesh defaults to the unit square.
+
+    len1: x direction (left to right)
+    len2: y direction (bottom to top)
+
+    Return to lists: points and elements suitable for creating a Mesh or
+    Domain object, e.g. Mesh(points, elements)
+    """
+
+    len1 = float(len1)
+    len2 = float(len2)
+
+    params = []
+    params.append(m)
+    params.append(n)
+    params.append(len1)
+    params.append(len2)
+
+    arrParams = num.array(params)
+    arrOrigin = num.array(origin)
+    points = num.empty([(m+1)*(n+1)+m*n,2])
+    elements = num.empty([4*m*n,3], dtype=num.int)
+
+    from mesh_factory_ext import rectangular_cross_construct
+    boundary = rectangular_cross_construct(arrParams, arrOrigin, points, elements)
+
+    #points = list(arrPoints)
+    #elements = list(arrElements)
+
+    return points, elements, boundary
+
+def rectangular_cross_python(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
 
     """Setup a rectangular grid of triangles
     with m+1 by n+1 grid points
@@ -146,7 +180,7 @@ def rectangular_cross(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     len2: y direction (bottom to top)
 
     Return to lists: points and elements suitable for creating a Mesh or
-    FVMesh object, e.g. Mesh(points, elements)
+    Domain object, e.g. Mesh(points, elements)
     """
 
     from anuga.config import epsilon
@@ -201,6 +235,8 @@ def rectangular_cross(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
 
 
     return points, elements, boundary
+
+
 
 
 

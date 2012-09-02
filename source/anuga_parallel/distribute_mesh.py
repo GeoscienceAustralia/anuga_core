@@ -80,6 +80,27 @@ def reorder(quantities, tri_index, proc_sum):
     return q_reord
 
 
+def reorder_new(quantities, epart_order, proc_sum):
+
+    # Find the number triangles
+
+    N = len(epart_order)
+
+    # Temporary storage area
+
+
+    q_reord = {}
+
+    # Reorder each quantity according to the new ordering
+
+    for k in quantities:
+        q_reord[k] = num.zeros((N, 3), num.float)
+        q_reord[k][:] = quantities[k].vertex_values[epart_order]
+        
+
+    return q_reord
+
+
 #########################################################
 #
 # Divide the mesh using a call to metis, through pymetis.
@@ -149,7 +170,7 @@ def pmesh_divide_metis_helper(domain, n_procs):
         edgecut, epart, npart = partMeshNodal(n_tri, n_vert, t_list, 1, n_procs)
         # print edgecut
         # print npart
-        # print epart
+        #print epart
         del edgecut
         del npart
 
@@ -157,74 +178,181 @@ def pmesh_divide_metis_helper(domain, n_procs):
         # dimensional arrays. Correct this.
         if type(epart[0]) == num.ndarray:
             epart_new = num.zeros(len(epart), num.int)
-            for i in range(len(epart)):
-                epart_new[i] = epart[i][0]
+            epart_new[:] = epart[:][0]
+#            for i in xrange(len(epart)):
+#                epart_new[i] = epart[i][0]
             epart = epart_new
             del epart_new
         # Assign triangles to processes, according to what metis told us.
         
         # tri_index maps triangle number -> processor, new triangle number
         # (local to the processor)
-        
-        triangles = []        
-        for i in xrange(n_tri):
-            triangles_per_proc[epart[i]] = triangles_per_proc[epart[i]] + 1
-            tri_list[epart[i]].append(domain.triangles[i])
-            tri_index[i] = ([epart[i], len(tri_list[epart[i]]) - 1])
-            r_tri_index[epart[i], len(tri_list[epart[i]]) - 1] = i
+
+
+
+        #triangles = []        
+        #for i in xrange(n_tri):
+        #    #triangles_per_proc[epart[i]] = triangles_per_proc[epart[i]] + 1
+        #    tri_list[epart[i]].append(domain.triangles[i])
+        #    tri_index[i] = [epart[i], len(tri_list[epart[i]]) - 1]
+        #    r_tri_index[epart[i], len(tri_list[epart[i]]) - 1] = i
+
+
+        #for i in xrange(n_procs):
+        #    tri_list[i] = num.array(tri_list[i])
+
+        #for i in xrange(n_procs):
+        #    for t in tri_list[i]:
+        #        triangles.append(t)
+
+        triangles_per_proc = num.bincount(epart)
+        proc_sum = num.zeros(n_procs+1,num.int)
+        proc_sum[1:] = num.cumsum(triangles_per_proc)
+
+        #boundary = {}
+        #for b in domain.boundary:
+        #    t =  tri_index[b[0]]
+        #    #print t
+        #    boundary[proc_sum[t[0]]+t[1], b[1]] = domain.boundary[b]
+
+
+
+        #print epart
+        #print len(tri_list[epart[0]])
+
+        #print tri_list
+        #print
+        #print tri_index
+
+
+        epart_order = num.argsort(epart, kind='mergesort')
+        new_triangles = domain.triangles[epart_order]
+
+        #new_r_tri_index_flat = num.zeros((n_tri,3), num.int)
+        new_tri_index = num.zeros((n_tri,2), num.int)
+        for i in xrange(n_procs):
+            ids = num.arange(proc_sum[i],proc_sum[i+1])
+            eids = epart_order[ids]
+            nrange = num.reshape(num.arange(triangles_per_proc[i]), (-1,1))
+            nones = num.ones_like(nrange)
+            #print ids.shape
+            #print nrange.shape
+            new_tri_index[eids] = num.concatenate((i*nones, nrange), axis = 1)
+            #new_r_tri_index_flat[ids] = num.concatenate((i*nones, nrange, num.reshape(eids, (-1,1))), axis = 1)
+
+
+        #from pprint import pprint
+        #pprint(new_r_tri_index_flat[:,0:2])
+
+        #print 50*'='
+        new_boundary = {}
+        for b in domain.boundary:
+            t =  new_tri_index[b[0]]
+            #print t
+            new_boundary[proc_sum[t[0]]+t[1], b[1]] = domain.boundary[b]
+
+
+
+#        for i in range(n_tri):
+#            assert num.allclose(new_tri_index[i], tri_index[i])
+
+
+        #x = new_r_tri_index_flat
+        #print len(x)
+
+        #new_r_tri_index = {}
+        #for i in xrange(n_tri):
+        #    new_r_tri_index[x[i,0], x[i,1]] = x[i,2]
+
+
+        #assert new_r_tri_index == r_tri_index
+
+        #from pprint import pprint
+        #pprint(new_r_tri_index)
+        #pprint(r_tri_index)
+
+        #print len(new_tri_list[0])
+        #print new_tri_list
+        #print tri_list
+
+        #for i in xrange(n_procs):
+        #    assert num.allclose(tri_list[i], new_tri_list[i]), 'i %d\n'%i
+#        tri_list = new_tri_list
+#        triangles = new_triangles
+
+
+#        for i in xrange(n_tri):
+#            tri_index[i] = ([epart[i], len(tri_list[epart[i]]) - 1])
+#            r_tri_index[epart[i], len(tri_list[epart[i]]) - 1] = i
+
+        #assert num.allclose(triangles_per_proc, new_triangles_per_proc)
         
         # Order the triangle list so that all of the triangles belonging
         # to processor i are listed before those belonging to processor
         # i+1
 
-        for i in xrange(n_procs):
-            for t in tri_list[i]:
-                triangles.append(t)
+
+
+
+
+
+        #print new_triangles
+        #print num.array(triangles)
+
+        #assert num.allclose(new_triangles,num.array(triangles))
             
         # The boundary labels have to changed in accoradance with the
         # new triangle ordering, proc_sum and tri_index help with this
 
-        proc_sum[0] = 0
-        for i in xrange(n_procs - 1):
-            proc_sum[i+1]=proc_sum[i]+triangles_per_proc[i]
+#        proc_sum[0] = 0
+#        for i in xrange(n_procs - 1):
+#            proc_sum[i+1]=proc_sum[i]+triangles_per_proc[i]
+
+
+
+
+
+        #assert num.allclose(new_proc_sum,proc_sum)
 
         # Relabel the boundary elements to fit in with the new triangle
         # ordering
 
-        boundary = {}
-        for b in domain.boundary:
-            t =  tri_index[b[0]]
-            boundary[proc_sum[t[0]]+t[1], b[1]] = domain.boundary[b]
 
-        quantities = reorder(domain.quantities, tri_index, proc_sum)
+
+        #quantities = reorder(domain.quantities, tri_index, proc_sum)
+        new_quantities = reorder_new(domain.quantities, epart_order, proc_sum)
+
     else:
-        boundary = domain.boundary.copy()
+        new_boundary = domain.boundary.copy()
         triangles_per_proc[0] = n_tri
-        triangles = domain.triangles.copy()
+        new_triangles = domain.triangles.copy()
+        new_tri_index = []
+        epart_order = []
         
         # This is essentially the same as a chunk of code from reorder.
         
-        quantities = {}
+        new_quantities = {}
         for k in domain.quantities:
-            quantities[k] = num.zeros((n_tri, 3), num.float)
+            new_quantities[k] = num.zeros((n_tri, 3), num.float)
             for i in range(n_tri):
-                quantities[k][i] = domain.quantities[k].vertex_values[i]
+                new_quantities[k][i] = domain.quantities[k].vertex_values[i]
         
     # Extract the node list
     
-    nodes = domain.get_nodes().copy()
+    new_nodes = domain.get_nodes().copy()
     
     # Convert the triangle datastructure to be an array type,
     # this helps with the communication
 
-    ttriangles = num.zeros((len(triangles), 3), num.int)
-    for i in xrange(len(triangles)):
-        ttriangles[i] = triangles[i]
+    ttriangles = num.zeros((len(new_triangles), 3), num.int)
+    for i in xrange(len(new_triangles)):
+        ttriangles[i] = new_triangles[i]
 
     #return nodes, ttriangles, boundary, triangles_per_proc, quantities
     
-    return nodes, ttriangles, boundary, triangles_per_proc, quantities, tri_index, r_tri_index
+    #return nodes, ttriangles, boundary, triangles_per_proc, quantities, tri_index, r_tri_index
 
+    return new_nodes, new_triangles, new_boundary, triangles_per_proc, new_quantities, new_tri_index, epart_order
 
 #########################################################
 #
@@ -281,12 +409,14 @@ def submesh_full(mesh, triangles_per_proc):
     triangle_list = []
     boundary_list = []
     submesh = {}
-    node_range = num.reshape(num.arange(nnodes),(nnodes,1))
+
+#    node_range = num.reshape(num.arange(nnodes),(nnodes,1))
+#
+#    #print node_range
+#    tsubnodes = num.concatenate((node_range, nodes), 1)
 
     #print node_range
-    tsubnodes = num.concatenate((node_range, nodes), 1)
-
-
+    #print nodes
     # Loop over processors
 
     for p in xrange(nproc):
@@ -307,15 +437,25 @@ def submesh_full(mesh, triangles_per_proc):
 
         # Find nodes in processor p
 
-        nodemap = num.zeros(nnodes, 'i')
-        for t in subtriangles:
-            nodemap[t[0]]=1
-            nodemap[t[1]]=1
-            nodemap[t[2]]=1
+#        nodemap = num.zeros(nnodes, 'i')
+#        for t in subtriangles:
+#            nodemap[t[0]]=1
+#            nodemap[t[1]]=1
+#            nodemap[t[2]]=1
+#
+#        y = tsubnodes.take(num.flatnonzero(nodemap),axis=0)
 
-        
-        node_list.append(tsubnodes.take(num.flatnonzero(nodemap),axis=0))
+        #node_list.append(y)
 
+        ids = num.unique(subtriangles.flat)
+        lnodes = nodes[ids]
+#        print nodes.shape
+#        print ids.shape
+#        print lnodes.shape
+        x = num.concatenate((num.reshape(ids, (-1,1)),lnodes ), 1)
+#        print x
+#        print y
+        node_list.append(x)
         # Move to the next processor
 
         tlower = tupper
@@ -328,7 +468,7 @@ def submesh_full(mesh, triangles_per_proc):
 
     # Clean up before exiting
 
-    del (nodemap)
+    #del (nodemap)
 
     return submesh
 
@@ -368,10 +508,10 @@ def ghost_layer(submesh, mesh, p, tupper, tlower, parameters = None):
         layer_width = parameters['ghost_layer_width']
 
 
-    trianglemap = num.zeros(ntriangles, 'i')
+    trianglemap = num.zeros(ntriangles, num.int)
 
     # Find the first layer of boundary triangles
-    for t in range(tlower, tupper):
+    for t in xrange(tlower, tupper):
         
         n = mesh.neighbours[t, 0]
         if n >= 0:
@@ -392,7 +532,7 @@ def ghost_layer(submesh, mesh, p, tupper, tlower, parameters = None):
     # Find the subsequent layers of ghost triangles
     for i in range(layer_width-1):
 
-        for t in range(len(trianglemap)):
+        for t in xrange(ntriangles):
             if trianglemap[t]==i+1:
 
                 n = mesh.neighbours[t, 0]
@@ -413,11 +553,11 @@ def ghost_layer(submesh, mesh, p, tupper, tlower, parameters = None):
     # Build the triangle list and make note of the vertices
 
 
-    nodemap = num.zeros(ncoord, 'i')
+    nodemap = num.zeros(ncoord, num.int)
     fullnodes = submesh["full_nodes"][p]
 
     subtriangles = []
-    for i in xrange(len(trianglemap)):
+    for i in xrange(ntriangles):
         if trianglemap[i] != 0:
             t = list(mesh.triangles[i])
             nodemap[t[0]] = 1
@@ -431,7 +571,6 @@ def ghost_layer(submesh, mesh, p, tupper, tlower, parameters = None):
     
     # Keep a record of the triangle vertices, if they are not already there
 
-    subnodes = []
     for n in fullnodes:
         nodemap[int(n[0])] = 0
 
@@ -785,13 +924,13 @@ def submesh_quantities(submesh, quantities, triangles_per_proc):
 #
 #########################################################
 
-def build_submesh(nodes, triangles, boundary, quantities,
+def build_submesh(mesh, quantities,
                   triangles_per_proc, parameters = None):
 
     # Temporarily build the mesh to find the neighbouring
     # triangles and true boundary polygon
 
-    mesh = Mesh(nodes, triangles, boundary)
+    #mesh = Mesh(nodes, triangles, boundary)
     boundary_polygon = mesh.get_boundary_polygon()
     
 
