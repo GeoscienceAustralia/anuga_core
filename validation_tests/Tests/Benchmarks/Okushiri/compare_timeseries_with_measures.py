@@ -222,7 +222,8 @@ for k, name in enumerate(gauge_names):
         xlabel('time(s)')
         ylabel('stage (m)')    
         legend(('Observed', 'Modelled'), shadow=True, loc='upper left')
-        savefig(name, dpi = 300)        
+        #savefig(name, dpi = 300)
+        savefig(name)
 
 
 

@@ -80,27 +80,46 @@ In this \TeX{} file, \texttt{report.tex}, add a line
 
 
 
-\section{Specifiying different algorithm}
-One  way to allow the system to run with different algorithms is to 
-add the following
-into your run routines.
-\begin{verbatim}
-#--------------------------------
-# Setup Default values for basic
-# algorithm parameters.
-#--------------------------------
-import argparse
-parser = argparse.ArgumentParser(description='produce results')
-parser.add_argument('-cfl', type=float, default=1.0,
-                   help='cfl condition')
-parser.add_argument('-alg', type=str, default = "1_5",
-                   help='flow algorithm')
-args = parser.parse_args()
+\section{Algorithm Parameters}
+Parameters can be communicated from the \verb|parameters.py|
+file in the \verb|validation_tests| directory.
 
-cfl = args.cfl
-alg = args.alg
+In particular the
+values of \verb|alg| (flow algorithm) and \verb|cfl| (CFL Condition)
+are passed as command options when calling \verb|produce_results.py| in the
+test directories.
+
+You can pass though the parameters straight from the \verb|parameters.py| file as follows
+\begin{verbatim}
+from validation_tests.parameters import alg
+from validation_tests.parameters import cfl
 \end{verbatim}
 
-Then in the \texttt{produce\_results.py} you can 
+\section{Generic form of \texttt{produce\_results.py}}
+
+The \texttt{produce\_results.py} files in the test directories should have the
+following general form
+
+\begin{verbatim}
+from fabricate import *
+from validation_tests.utilities import run_validation_script
+
+# Setup the python scripts which produce the output for this
+# validation test
+def build():
+    run_validation_script('run_problem.py')
+    run_validation_script('plot_problem.py')
+    pass
+
+def clean():
+    autoclean()
+
+main()
+\end{verbatim}
+This script uses \texttt{fabricate} which automatically determines dependences
+and only runs the command if the parameters alg and cfl have changed,
+or input/output or source files have changed. (\texttt{fabricate} is a replacement for
+standard \texttt{make})
+
 
 \end{document}

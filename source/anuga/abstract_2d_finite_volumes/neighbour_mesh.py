@@ -332,13 +332,18 @@ class Mesh(General_mesh):
         """
 
         N = len(self) #Number of triangles
-        for i in xrange(N):
-            #Find all neighbouring volumes that are not boundaries
-            for k in xrange(3):
-                if self.neighbours[i, k] < 0:
-                    self.surrogate_neighbours[i, k] = i #Point this triangle
-                else:
-                    self.surrogate_neighbours[i, k] = self.neighbours[i, k]
+#        for i in xrange(N):
+#            #Find all neighbouring volumes that are not boundaries
+#            for k in xrange(3):
+#                if self.neighbours[i, k] < 0:
+#                    self.surrogate_neighbours[i, k] = i #Point this triangle
+#                else:
+#                    self.surrogate_neighbours[i, k] = self.neighbours[i, k]
+
+        tmp_range = num.arange(N)
+        for k in xrange(3):
+            self.surrogate_neighbours[:,k] = \
+              num.where(self.neighbours[:,k]<0, tmp_range, self.neighbours[:, k])
 
 
 
