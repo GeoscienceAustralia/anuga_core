@@ -23,6 +23,7 @@ from sys import path
 from math import floor
 
 import numpy as num
+import numpy.lib.arraysetops as numset
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga import indent
@@ -497,7 +498,7 @@ def submesh_full(mesh, triangles_per_proc):
 #
 #########################################################
 
-def ghost_layer(submesh, mesh, p, tupper, tlower, parameters = None):
+def ghost_layer_old(submesh, mesh, p, tupper, tlower, parameters = None):
 
     ncoord = mesh.number_of_nodes
     ntriangles = mesh.number_of_triangles
@@ -589,6 +590,74 @@ def ghost_layer(submesh, mesh, p, tupper, tlower, parameters = None):
     # Return the triangles and vertices sitting on the boundary layer
 
     return subnodes, subtriangles, layer_width
+
+
+
+def ghost_layer(submesh, mesh, p, tupper, tlower, parameters = None):
+
+    ncoord = mesh.number_of_nodes
+    ntriangles = mesh.number_of_triangles
+
+    if parameters is None:
+        layer_width  = 2
+    else:
+        layer_width = parameters['ghost_layer_width']
+
+
+    full_ids = num.arange(tlower, tupper)
+
+    n0 = mesh.neighbours[full_ids, :]
+    n0 = num.unique(n0.flat)
+    n0 = num.extract(n0>=0,n0)
+    n0 = num.extract(num.logical_or(n0<tlower, tupper<= n0), n0)
+
+    layer_cells = {}
+    layer_cells[0] = n0
+
+
+    # Find the subsequent layers of ghost triangles
+    for i in range(layer_width-1):
+
+        # use previous layer as a start
+        n0 = mesh.neighbours[n0, :]
+        n0 = num.unique(n0.flat)
+        n0 = num.extract(n0>=0,n0)
+        n0 = num.extract(num.logical_or(n0<tlower, tupper<= n0), n0)
+
+        for j in xrange(i+1):
+            n0 = numset.setdiff1d(n0,layer_cells[j])
+
+        layer_cells[i+1] = n0
+
+
+    # Build the triangle list and make note of the vertices
+    new_trianglemap = layer_cells[0]
+    for i in range(layer_width-1):
+        new_trianglemap = numset.union1d(new_trianglemap,layer_cells[i+1])
+
+    new_subtriangles = num.concatenate((num.reshape(new_trianglemap, (-1,1)), mesh.triangles[new_trianglemap]), 1)
+
+
+
+
+    fullnodes = submesh["full_nodes"][p]
+    full_nodes_ids = num.array(fullnodes[:,0],num.int)
+
+    new_nodes = num.unique(mesh.triangles[new_trianglemap].flat)
+    new_nodes = numset.setdiff1d(new_nodes,full_nodes_ids)
+
+    new_subnodes = num.concatenate((num.reshape(new_nodes, (-1,1)), mesh.nodes[new_nodes]), 1)
+
+    # Clean up before exiting
+
+    del (new_nodes)
+    del (layer_cells)
+    del (n0)
+    del (new_trianglemap)
+
+    # Return the triangles and vertices sitting on the boundary layer
+
+    return new_subnodes, new_subtriangles, layer_width
 
 #########################################################
 #
@@ -924,13 +993,13 @@ def submesh_quantities(submesh, quantities, triangles_per_proc):
 #
 #########################################################
 
-def build_submesh(mesh, quantities,
+def build_submesh(nodes, triangles, boundary, quantities,
                   triangles_per_proc, parameters = None):
 
     # Temporarily build the mesh to find the neighbouring
-    # triangles and true boundary polygon
+    # triangles and true boundary polygon\
 
-    #mesh = Mesh(nodes, triangles, boundary)
+    mesh = Mesh(nodes, triangles, boundary)
     boundary_polygon = mesh.get_boundary_polygon()
     
 

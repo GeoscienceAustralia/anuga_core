@@ -41,7 +41,8 @@ if myid == 0:
     length = 2.0
     width = 2.0
     dx = dy = 0.005
-    dx = dy = 0.0025
+    dx = dy = 0.005
+    #dx = dy  = 0.5
     domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
 
@@ -63,7 +64,7 @@ if myid == 0 and verbose:
 barrier()
 
 # setup parameters to test using different ghost_layer_widths
-parameters = dict(ghost_layer_width = 2)
+parameters = dict(ghost_layer_width = 4)
 domain = distribute(domain,verbose=verbose, parameters=parameters)
 
 t2 = time.time()

@@ -265,12 +265,12 @@ def distribute_mesh(domain, verbose=False, debug=False, parameters=None):
     #PETE: s2p_map (maps serial domain triangles to parallel domain triangles)
     #      sp2_map (maps parallel domain triangles to domain triangles)
 
-    mesh = Mesh(new_nodes, new_triangles, new_boundary)
+
 
     # Build the mesh that should be assigned to each processor,
     # this includes ghost nodes and the communication pattern
     if verbose: print 'Build submeshes'    
-    submesh = build_submesh(mesh, quantities, triangles_per_proc, parameters)
+    submesh = build_submesh(new_nodes, new_triangles, new_boundary, quantities, triangles_per_proc, parameters)
 
     if verbose:
         for p in range(numprocs):
