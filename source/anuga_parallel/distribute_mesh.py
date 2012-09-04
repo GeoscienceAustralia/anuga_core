@@ -743,63 +743,92 @@ def ghost_bnd_layer(ghosttri, tlower, tupper, mesh, p):
     subboundary = {}
 
 
-    print ghosttri
+    #print ghosttri
 
     # FIXME SR: For larger layers need to pass through the correct
     # boundary tag!
 
-    for t in ghosttri:
-        ghost_list.append(t[0])
-
-
-
-    for t in ghosttri:
-
-        n = mesh.neighbours[t[0], 0]
-        if not is_in_processor(ghost_list, tlower, tupper, n):
-            if boundary.has_key( (t[0], 0) ):
-                subboundary[t[0], 0] = boundary[t[0],0]
-            else:
-                subboundary[t[0], 0] = 'ghost'
-
-
-        n = mesh.neighbours[t[0], 1]
-        if not is_in_processor(ghost_list, tlower, tupper, n):
-            if boundary.has_key( (t[0], 1) ):
-                subboundary[t[0], 1] = boundary[t[0],1]
-            else:
-                subboundary[t[0], 1] = 'ghost'
-
-
-        n = mesh.neighbours[t[0], 2]
-        if not is_in_processor(ghost_list, tlower, tupper, n):
-            if boundary.has_key( (t[0], 2) ):
-                subboundary[t[0], 2] = boundary[t[0],2]
-            else:
-                subboundary[t[0], 2] = 'ghost'
-
+#    for t in ghosttri:
+#        ghost_list.append(t[0])
+#
+#
+#
+#    for t in ghosttri:
+#
+#        n = mesh.neighbours[t[0], 0]
+#        if not is_in_processor(ghost_list, tlower, tupper, n):
+#            if boundary.has_key( (t[0], 0) ):
+#                subboundary[t[0], 0] = boundary[t[0],0]
+#            else:
+#                subboundary[t[0], 0] = 'ghost'
+#
+#
+#        n = mesh.neighbours[t[0], 1]
+#        if not is_in_processor(ghost_list, tlower, tupper, n):
+#            if boundary.has_key( (t[0], 1) ):
+#                subboundary[t[0], 1] = boundary[t[0],1]
+#            else:
+#                subboundary[t[0], 1] = 'ghost'
+#
+#
+#        n = mesh.neighbours[t[0], 2]
+#        if not is_in_processor(ghost_list, tlower, tupper, n):
+#            if boundary.has_key( (t[0], 2) ):
+#                subboundary[t[0], 2] = boundary[t[0],2]
+#            else:
+#                subboundary[t[0], 2] = 'ghost'
+#
 
 
 
     new_ghost_list = ghosttri[:,0]
 
-    print new_ghost_list
+    #print new_ghost_list
 
-    # 0 boundaries
-    nghb = mesh.neighbours[new_ghost_list,0]
-    gl0 = num.extract(num.logical_or(nghb < tlower, nghb >= tupper), new_ghost_list)
-
-
+    # 0 edge boundaries
+    nghb0 = mesh.neighbours[new_ghost_list,0]
+    gl0 = num.extract(num.logical_or(nghb0 < tlower, nghb0 >= tupper), new_ghost_list)
     nghb0 = mesh.neighbours[gl0,0]
     flag = numset.in1d(nghb0,new_ghost_list)
     gl0 = num.extract(num.logical_not(flag),gl0)
+    edge0 = 0*num.ones_like(gl0)
+    n0 = len(edge0)
+    values0 = ['ghost']*n0
 
-    print tlower, tupper
-    print nghb
-    print gl0
-    print nghb0
-    print flag
-    print gl0
+    # 1 edge boundary
+    nghb1 = mesh.neighbours[new_ghost_list,1]
+    gl1 = num.extract(num.logical_or(nghb1 < tlower, nghb1 >= tupper), new_ghost_list)
+    nghb1 = mesh.neighbours[gl1,1]
+    flag = numset.in1d(nghb1,new_ghost_list)
+    gl1 = num.extract(num.logical_not(flag),gl1)
+    edge1 = 1*num.ones_like(gl1)
+    n1 = len(edge1)
+    values1 = ['ghost']*n1
+
+    # 1 edge boundary
+    nghb2 = mesh.neighbours[new_ghost_list,2]
+    gl2 = num.extract(num.logical_or(nghb2 < tlower, nghb2 >= tupper), new_ghost_list)
+    nghb2 = mesh.neighbours[gl2,2]
+    flag = numset.in1d(nghb2,new_ghost_list)
+    gl2 = num.extract(num.logical_not(flag),gl2)
+    edge2 = 2*num.ones_like(gl2)
+    n2 = len(edge2)
+    values2 = ['ghost']*n2
+
+
+    gl = num.concatenate((gl0,gl1,gl2))
+    edge = num.concatenate((edge0,edge1,edge2))
+    values = values0 + values1 + values2
+#    print gl
+#    print edge
+#    print values
+
+    subboundary = dict(zip(zip(gl,edge),values))
+    #intersect with boundary 
+
+    subboundary.update( (k,boundary[k]) for k in subboundary.viewkeys() & boundary.viewkeys() )
+
+    #print subboundary
 
 
     return subboundary
@@ -958,7 +987,7 @@ def submesh_ghost(submesh, mesh, triangles_per_proc, parameters = None):
         ghost_nodes.append(subnodes)
 
 
-        # Find the boundary layer formed by the ghost triangles
+        # Find the new boundary formed by the ghost triangles
         
         subbnd = ghost_bnd_layer(subtri, tlower, tupper, mesh, p)
         ghost_bnd.append(subbnd)
