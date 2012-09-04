@@ -691,7 +691,7 @@ def is_in_processor(ghost_list, tlower, tupper, n):
     return num.equal(ghost_list,n).any() or (tlower <= n and tupper > n)
 
 
-def ghost_bnd_layer(ghosttri, tlower, tupper, mesh, p):
+def ghost_bnd_layer_old(ghosttri, tlower, tupper, mesh, p):
 
 
     boundary = mesh.boundary
@@ -731,6 +731,77 @@ def ghost_bnd_layer(ghosttri, tlower, tupper, mesh, p):
             else:
                 subboundary[t[0], 2] = 'ghost'
             
+    return subboundary
+
+
+def ghost_bnd_layer(ghosttri, tlower, tupper, mesh, p):
+
+
+    boundary = mesh.boundary
+
+    ghost_list = []
+    subboundary = {}
+
+
+    print ghosttri
+
+    # FIXME SR: For larger layers need to pass through the correct
+    # boundary tag!
+
+    for t in ghosttri:
+        ghost_list.append(t[0])
+
+
+
+    for t in ghosttri:
+
+        n = mesh.neighbours[t[0], 0]
+        if not is_in_processor(ghost_list, tlower, tupper, n):
+            if boundary.has_key( (t[0], 0) ):
+                subboundary[t[0], 0] = boundary[t[0],0]
+            else:
+                subboundary[t[0], 0] = 'ghost'
+
+
+        n = mesh.neighbours[t[0], 1]
+        if not is_in_processor(ghost_list, tlower, tupper, n):
+            if boundary.has_key( (t[0], 1) ):
+                subboundary[t[0], 1] = boundary[t[0],1]
+            else:
+                subboundary[t[0], 1] = 'ghost'
+
+
+        n = mesh.neighbours[t[0], 2]
+        if not is_in_processor(ghost_list, tlower, tupper, n):
+            if boundary.has_key( (t[0], 2) ):
+                subboundary[t[0], 2] = boundary[t[0],2]
+            else:
+                subboundary[t[0], 2] = 'ghost'
+
+
+
+
+    new_ghost_list = ghosttri[:,0]
+
+    print new_ghost_list
+
+    # 0 boundaries
+    nghb = mesh.neighbours[new_ghost_list,0]
+    gl0 = num.extract(num.logical_or(nghb < tlower, nghb >= tupper), new_ghost_list)
+
+
+    nghb0 = mesh.neighbours[gl0,0]
+    flag = numset.in1d(nghb0,new_ghost_list)
+    gl0 = num.extract(num.logical_not(flag),gl0)
+
+    print tlower, tupper
+    print nghb
+    print gl0
+    print nghb0
+    print flag
+    print gl0
+
+
     return subboundary
 
 #########################################################

@@ -42,7 +42,7 @@ if myid == 0:
     width = 2.0
     dx = dy = 0.005
     dx = dy = 0.005
-    #dx = dy  = 0.5
+    dx = dy  = 0.5
     domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
 
