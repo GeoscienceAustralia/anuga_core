@@ -346,8 +346,34 @@ class Mesh(General_mesh):
               num.where(self.neighbours[:,k]<0, tmp_range, self.neighbours[:, k])
 
 
+    def build_boundary_dictionary(self, boundary=None):
+        """Build or check the dictionary of boundary tags.
+        self.boundary is a dictionary of tags,
+        keyed by volume id and edge:
+        { (id, edge): tag, ... }
 
-    def build_boundary_dictionary(self, boundary = None):
+        Postconditions:
+        self.boundary is defined.
+        """
+
+        from anuga.config import default_boundary_tag
+
+        #arr_neighbours = num.array(self.neighbours)
+
+        
+        if boundary is None:
+            boundary = {}
+
+        from neighbour_mesh_ext import boundary_dictionary_construct
+        boundary = boundary_dictionary_construct(len(self), default_boundary_tag, self.neighbours, boundary)
+        
+
+        self.boundary = boundary
+        self.boundary_length = len(self.boundary)
+
+
+
+    def build_boundary_dictionary_old(self, boundary = None):
         """Build or check the dictionary of boundary tags.
          self.boundary is a dictionary of tags,
          keyed by volume id and edge:

@@ -688,7 +688,7 @@ class Test_Mesh(unittest.TestCase):
         #else:
         #    raise Exception('Should have raised an exception')
 
-        #Specifying wrong non existing segment
+        #Specifying wrong non existing segment       
         try:
             mesh = Mesh(points, vertices, {(5,0): 'x'})
         except AssertionError:
@@ -1842,6 +1842,6 @@ class Test_Mesh(unittest.TestCase):
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Mesh, 'test')
+    suite = unittest.makeSuite(Test_Mesh, 'test_')
     runner = unittest.TextTestRunner()
     runner.run(suite)
