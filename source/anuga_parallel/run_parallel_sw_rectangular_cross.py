@@ -40,9 +40,9 @@ verbose = True
 if myid == 0:
     length = 2.0
     width = 2.0
-    dx = dy = 0.005
-    dx = dy = 0.005
-    #dx = dy  = 0.5
+    #dx = dy = 0.005
+    dx = dy = 0.0025
+    #dx = dy  = 0.1
     domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
 
@@ -133,7 +133,7 @@ domain.set_flow_algorithm('2_0')
 
 
 yieldstep = 0.005
-finaltime = 0.00
+finaltime = 0.01
 
 barrier()
 

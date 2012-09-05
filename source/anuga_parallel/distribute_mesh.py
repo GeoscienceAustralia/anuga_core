@@ -826,7 +826,8 @@ def ghost_bnd_layer(ghosttri, tlower, tupper, mesh, p):
     subboundary = dict(zip(zip(gl,edge),values))
     #intersect with boundary 
 
-    subboundary.update( (k,boundary[k]) for k in subboundary.viewkeys() & boundary.viewkeys() )
+    # FIXME SR: these keys should be viewkeys but need python 2.7
+    subboundary.update( (k,boundary[k]) for k in set(subboundary.keys()) & set(boundary.keys()) )
 
     #print subboundary
 
