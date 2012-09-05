@@ -850,7 +850,7 @@ def ghost_bnd_layer(ghosttri, tlower, tupper, mesh, p):
 #
 #########################################################
 
-def ghost_commun_pattern(subtri, p, tri_per_proc):
+def ghost_commun_pattern_old(subtri, p, tri_per_proc):
 
     # Loop over the ghost triangles
 
@@ -873,6 +873,39 @@ def ghost_commun_pattern(subtri, p, tri_per_proc):
         # Keep a copy of the neighbour processor number
 
         ghost_commun[i] = [global_no, neigh]
+
+    return ghost_commun
+
+
+
+def ghost_commun_pattern_old_2(subtri, p, tri_per_proc_range):
+
+    # Loop over the ghost triangles
+
+    ghost_commun = num.zeros((len(subtri), 2), num.int)
+
+    #print tri_per_proc_range
+    #print tri_per_proc
+    
+    for i in xrange(len(subtri)):
+        global_no = subtri[i][0]
+
+        # Find which processor contains the full triangle
+        new_neigh = num.searchsorted(tri_per_proc_range, global_no)
+
+        ghost_commun[i] = [global_no, new_neigh]
+
+    return ghost_commun
+
+
+def ghost_commun_pattern(subtri, p, tri_per_proc_range):
+
+
+    global_no = num.reshape(subtri[:,0],(-1,1))
+    neigh = num.reshape(num.searchsorted(tri_per_proc_range, global_no), (-1,1))
+
+    ghost_commun = num.concatenate((global_no, neigh), axis=1)
+
 
     return ghost_commun
 
@@ -972,7 +1005,8 @@ def submesh_ghost(submesh, mesh, triangles_per_proc, parameters = None):
     ghost_layer_width = []
 
     # Loop over the processors
-
+    triangles_per_proc_ranges = num.cumsum(triangles_per_proc) - 1
+    
     for p in xrange(nproc):
 
         # Find the full triangles in this processor
@@ -994,9 +1028,8 @@ def submesh_ghost(submesh, mesh, triangles_per_proc, parameters = None):
         ghost_bnd.append(subbnd)
         
         # Build the communication pattern for the ghost nodes
-
         gcommun = \
-                ghost_commun_pattern(subtri, p, triangles_per_proc)
+                ghost_commun_pattern(subtri, p, triangles_per_proc_ranges)
         ghost_commun.append(gcommun)
 
         # Move to the next processor
