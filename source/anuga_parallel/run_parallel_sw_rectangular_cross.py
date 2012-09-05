@@ -32,7 +32,7 @@ from anuga_parallel import distribute, myid, numprocs, finalize, barrier
 
 t0 = time.time()
 
-verbose = True
+verbose = False
 
 #--------------------------------------------------------------------------
 # Setup Domain only on processor 0
@@ -41,8 +41,8 @@ if myid == 0:
     length = 2.0
     width = 2.0
     dx = dy = 0.005
-    dx = dy = 0.005
-    dx = dy  = 0.5
+    dx = dy = 0.00125
+    #dx = dy  = 0.5
     domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
 
@@ -133,13 +133,15 @@ domain.set_flow_algorithm('2_0')
 
 
 yieldstep = 0.005
-finaltime = 0.00
+finaltime = 0.05
 
 barrier()
 
 t0 = time.time()
 
-#Check that the boundary value gets propagated to all elements
+#===========================================================================
+# Main Evolve Loop
+#===========================================================================
 for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
     if myid == 0:
         domain.write_time()
@@ -162,7 +164,7 @@ for p in range(numprocs):
 
 if domain.number_of_global_triangles < 50000:
     if myid == 0 :
-        print 'Create dump of triangulation for {0} triangles'.format(domain.number_of_global_triangles)
+        print 'Create dump of triangulation for %g triangles' % domain.number_of_global_triangles
     domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)
 
 finalize()
