@@ -301,35 +301,54 @@ def sww2dem(name_in, name_out,
     vertex_points = num.concatenate ((x[:,num.newaxis], y[:,num.newaxis]), axis=1)
     assert len(vertex_points.shape) == 2
 
-    grid_points = num.zeros ((ncols*nrows, 2), num.float)
 
-    for i in xrange(nrows):
-        if out_ext == '.asc':
-            yg = i * cellsize
-        else:
-            # this will flip the order of the y values for ers
-            yg = (nrows-i) * cellsize
+    def calc_grid_values(vertex_points, volumes, result):
 
-        for j in xrange(ncols):
-            xg = j * cellsize
-            k = i*ncols + j
+        grid_points = num.zeros ((ncols*nrows, 2), num.float)
 
-            grid_points[k, 0] = xg
-            grid_points[k, 1] = yg
+        for i in xrange(nrows):
+            if out_ext == '.asc':
+                yg = i * cellsize
+            else:
+                # this will flip the order of the y values for ers
+                yg = (nrows-i) * cellsize
 
-    # Interpolate
-    from anuga.fit_interpolate.interpolate import Interpolate
+            for j in xrange(ncols):
+                xg = j * cellsize
+                k = i*ncols + j
 
-    # Remove loners from vertex_points, volumes here
-    vertex_points, volumes = remove_lone_verts(vertex_points, volumes)
-    # export_mesh_file('monkey.tsh',{'vertices':vertex_points, 'triangles':volumes})
+                grid_points[k, 0] = xg
+                grid_points[k, 1] = yg
 
-    interp = Interpolate(vertex_points, volumes, verbose = verbose)
+        # Interpolate
+        from anuga.fit_interpolate.interpolate import Interpolate
 
-    # Interpolate using quantity values
-    if verbose: log.critical('Interpolating')
-    grid_values = interp.interpolate(result, grid_points).flatten()
-    outside_indices = interp.get_outside_poly_indices()
+        # Remove loners from vertex_points, volumes here
+        vertex_points, volumes = remove_lone_verts(vertex_points, volumes)
+        # export_mesh_file('monkey.tsh',{'vertices':vertex_points, 'triangles':volumes})
+
+
+
+        #
+
+        interp = Interpolate(vertex_points, volumes, verbose = verbose)
+
+        # Interpolate using quantity values
+        if verbose: log.critical('Interpolating')
+        grid_values = interp.interpolate(result, grid_points).flatten()
+        outside_indices = interp.get_outside_poly_indices()
+
+        for i in outside_indices:
+            #print 'change grid_value',NODATA_value
+            grid_values[i] = NODATA_value
+
+        return grid_values
+
+
+
+    grid_values = calc_grid_values(vertex_points, volumes, result)
+
+
 
     #print outside_indices
 
@@ -342,9 +361,7 @@ def sww2dem(name_in, name_out,
 #    P = interp.mesh.get_boundary_polygon()
 #    outside_indices = outside_polygon(grid_points, P, closed=True)
 
-    for i in outside_indices:
-        #print 'change grid_value',NODATA_value
-        grid_values[i] = NODATA_value
+
 
     if out_ext == '.ers':
         # setup ERS header information
