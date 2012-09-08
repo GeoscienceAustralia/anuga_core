@@ -175,12 +175,32 @@ def pmesh_dict_to_tag_dict(mesh_dict):
                 #"" represents null.  Don't put these into the dictionary
                 #this creates a dict of lists of faces, indexed by tag
                 #tagged_edges.setdefault(tag,[]).append(sides[key])
-                tag_dict[sides[key]] = tag
+                vol_id = sides[key]/3
+                edge_id = sides[key]%3
+                tag_dict[vol_id,edge_id] = tag
 
     return tag_dict
 
 
 def calc_sides(triangles):
+    '''Build dictionary mapping from sides (2-tuple of points)
+    to left hand side neighbouring triangle
+    '''
+
+    sides = {}
+    triangles = num.array(triangles,num.int)
+    for id, triangle in enumerate(triangles):
+        a = triangle[0]
+        b = triangle[1]
+        c = triangle[2]
+
+        sides[a,b] = 3*id+2 #(id, face)
+        sides[b,c] = 3*id+0 #(id, face)
+        sides[c,a] = 3*id+1 #(id, face)
+
+    return sides
+
+def calc_sides_old2(triangles):
     '''Build dictionary mapping from sides (2-tuple of points)
     to left hand side neighbouring triangle
     '''
