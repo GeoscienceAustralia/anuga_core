@@ -218,7 +218,7 @@ def calc_sides_old2(triangles):
 
     return sides
 
-def calc_sides(triangles):
+def calc_sides_zip(triangles):
     '''Build dictionary mapping from sides (2-tuple of points)
     to left hand side neighbouring triangle
     '''
@@ -241,7 +241,7 @@ def calc_sides(triangles):
 
     return sides
 
-def calc_sides_c(triangles):
+def calc_sides(triangles):
     '''Build dictionary mapping from sides (2-tuple of points)
     to left hand side neighbouring triangle
     '''
@@ -255,7 +255,7 @@ def calc_sides_c(triangles):
 #    print 'calc_sides'
 #    print type(triangles)
 
-    print ntriangles
+    #print ntriangles
 
     from pmesh2domain_ext import sides_dictionary_construct
     sides = sides_dictionary_construct(triangles, sides)

@@ -5,7 +5,7 @@
 
 #define DDATA(p) ((double*)(((PyArrayObject *)p)->data))
 #define IDATA(p) ((long*)(((PyArrayObject *)p)->data))
-#define LENDATA(p) ((long*)(((PyArrayObject *)p)->dimensions[0]))
+#define LENDATA(p) ((long)(((PyArrayObject *)p)->dimensions[0]))
 
 
 
@@ -15,7 +15,6 @@ static PyObject *SidesDictionaryConstruct( PyObject *self, PyObject *args )
         long a,b,c;
 	long *triangles;
 	PyObject *pyobj_key;
-        PyObject *pyobj_value;
         PyObject *pyobj_sides;
 	PyArrayObject *pyobj_triangles;
 
@@ -36,12 +35,12 @@ static PyObject *SidesDictionaryConstruct( PyObject *self, PyObject *args )
            b = int(triangle[1])
            c = int(triangle[2])
 
-           sides[a,b] = (id, 2) #(id, face)
-           sides[b,c] = (id, 0) #(id, face)
-           sides[c,a] = (id, 1) #(id, face)
+           sides[a,b] = 3*id+2 #(id, face)
+           sides[b,c] = 3*id+0 #(id, face)
+           sides[c,a] = 3*id+1 #(id, face)
          */
 
-        printf("numTriangle %d\n",numTriangle);
+        //printf("numTriangle %d\n",numTriangle);
 
 	for(i=0; i<numTriangle; i++){
             a = triangles[i*3+0];
@@ -53,42 +52,29 @@ static PyObject *SidesDictionaryConstruct( PyObject *self, PyObject *args )
 	    PyTuple_SetItem( pyobj_key, 0, PyInt_FromLong( a ) );
 	    PyTuple_SetItem( pyobj_key, 1, PyInt_FromLong( b ) );
             
-	    pyobj_value = PyTuple_New( 2 );
-	    PyTuple_SetItem( pyobj_value, 0, PyInt_FromLong( i ) );
-	    PyTuple_SetItem( pyobj_value, 1, PyInt_FromLong( 2 ) );
-
-	    PyDict_SetItem( pyobj_sides, pyobj_key, pyobj_value );
+	    PyDict_SetItem( pyobj_sides, pyobj_key, PyInt_FromLong( 3*i+2 ) );
 
             Py_DECREF(pyobj_key);
-            Py_DECREF(pyobj_value);
             
             // sides[b,c] = (id, 0) #(id, face)
 	    pyobj_key = PyTuple_New( 2 );
 	    PyTuple_SetItem( pyobj_key, 0, PyInt_FromLong( b ) );
 	    PyTuple_SetItem( pyobj_key, 1, PyInt_FromLong( c ) );
             
-	    pyobj_value = PyTuple_New( 2 );
-	    PyTuple_SetItem( pyobj_value, 0, PyInt_FromLong( i ) );
-	    PyTuple_SetItem( pyobj_value, 1, PyInt_FromLong( 0 ) );
-            
-	    PyDict_SetItem( pyobj_sides, pyobj_key, pyobj_value );
+	    PyDict_SetItem( pyobj_sides, pyobj_key, PyInt_FromLong( 3*i+0 ) );
 
             Py_DECREF(pyobj_key);
-            Py_DECREF(pyobj_value);
+
             
             // sides[c,a] = (id, 1) #(id, face)
 	    pyobj_key = PyTuple_New( 2 );
 	    PyTuple_SetItem( pyobj_key, 0, PyInt_FromLong( c ) );
-	    PyTuple_SetItem( pyobj_key, 1, PyInt_FromLong( a) );
-            
-	    pyobj_value = PyTuple_New( 2 );
-	    PyTuple_SetItem( pyobj_value, 0, PyInt_FromLong( i ) );
-	    PyTuple_SetItem( pyobj_value, 1, PyInt_FromLong( 1 ) );
-            
-	    PyDict_SetItem( pyobj_sides, pyobj_key, pyobj_value );
+	    PyTuple_SetItem( pyobj_key, 1, PyInt_FromLong( a ) );
+                      
+	    PyDict_SetItem( pyobj_sides, pyobj_key, PyInt_FromLong( 3*i+1 ) );
 
             Py_DECREF(pyobj_key);
-            Py_DECREF(pyobj_value);
+
 
         }
 
