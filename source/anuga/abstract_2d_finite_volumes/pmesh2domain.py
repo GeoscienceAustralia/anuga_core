@@ -182,7 +182,7 @@ def pmesh_dict_to_tag_dict(mesh_dict):
     return tag_dict
 
 
-def calc_sides(triangles):
+def calc_sides_old(triangles):
     '''Build dictionary mapping from sides (2-tuple of points)
     to left hand side neighbouring triangle
     '''
@@ -218,7 +218,7 @@ def calc_sides_old2(triangles):
 
     return sides
 
-def calc_sides_zip(triangles):
+def calc_sides(triangles):
     '''Build dictionary mapping from sides (2-tuple of points)
     to left hand side neighbouring triangle
     '''
@@ -233,12 +233,11 @@ def calc_sides_zip(triangles):
     b = triangles[:,1]
     c = triangles[:,2]
 
-    id = num.arange(len(triangles))
-    face = num.ones(len(triangles),num.int)
+    id = 3*num.arange(len(triangles))
 
-    sides.update(dict(zip(zip(a,b),zip(id,2*face))))
-    sides.update(dict(zip(zip(b,c),zip(id,0*face))))
-    sides.update(dict(zip(zip(c,a),zip(id,1*face))))
+    sides.update(dict(zip(zip(a,b),id+2)))
+    sides.update(dict(zip(zip(b,c),id+0)))
+    sides.update(dict(zip(zip(c,a),id+1)))
 
     return sides
 
