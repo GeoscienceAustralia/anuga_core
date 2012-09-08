@@ -198,3 +198,64 @@ def calc_sides(triangles):
 
     return sides
 
+def calc_sides_zip(triangles):
+    '''Build dictionary mapping from sides (2-tuple of points)
+    to left hand side neighbouring triangle
+    '''
+
+    sides = {}
+
+
+    triangles = num.array(triangles,num.int)
+
+
+    a = triangles[:,0]
+    b = triangles[:,1]
+    c = triangles[:,2]
+
+    id = num.arange(len(triangles))
+    face = num.ones(len(triangles),num.int)
+
+    sides.update(dict(zip(zip(a,b),zip(id,2*face))))
+    sides.update(dict(zip(zip(b,c),zip(id,0*face))))
+    sides.update(dict(zip(zip(c,a),zip(id,1*face))))
+
+    return sides
+
+def calc_sides_c(triangles):
+    '''Build dictionary mapping from sides (2-tuple of points)
+    to left hand side neighbouring triangle
+    '''
+
+    sides = {}
+
+
+    triangles = num.array(triangles,num.int)
+    ntriangles = len(triangles)
+
+#    print 'calc_sides'
+#    print type(triangles)
+
+    print ntriangles
+
+    from pmesh2domain_ext import sides_dictionary_construct
+    sides = sides_dictionary_construct(triangles, sides)
+
+
+#    old_sides = {}
+#
+#    for id, triangle in enumerate(triangles):
+#        a = int(triangle[0])
+#        b = int(triangle[1])
+#        c = int(triangle[2])
+#
+#        old_sides[a,b] = (id, 2) #(id, face)
+#        old_sides[b,c] = (id, 0) #(id, face)
+#        old_sides[c,a] = (id, 1) #(id, face)
+
+
+    #print sides
+    #print old_sides
+
+
+    return sides

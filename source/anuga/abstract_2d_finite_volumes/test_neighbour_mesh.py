@@ -693,6 +693,8 @@ class Test_Mesh(unittest.TestCase):
             mesh = Mesh(points, vertices, {(5,0): 'x'})
         except AssertionError:
             pass
+        except RuntimeError:
+            pass
         else:
             raise Exception('Should have raised an exception')
 

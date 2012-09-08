@@ -328,9 +328,6 @@ def sww2dem(name_in, name_out,
         # export_mesh_file('monkey.tsh',{'vertices':vertex_points, 'triangles':volumes})
 
 
-
-        #
-
         interp = Interpolate(vertex_points, volumes, verbose = verbose)
 
         # Interpolate using quantity values
