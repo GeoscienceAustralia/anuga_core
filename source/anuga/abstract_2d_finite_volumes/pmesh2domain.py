@@ -159,13 +159,25 @@ def build_tagged_elements_dictionary(mesh_dict):
     return tagged_elements
 
 
-def pmesh_dict_to_tag_dict(mesh_dict):
+def pmesh_dict_to_tag_dict_old(mesh_dict):
     """ Convert the pmesh dictionary (mesh_dict) description of boundary tags
     to a dictionary of tags, indexed with volume id and face number.
     """
 
     triangles = mesh_dict['triangles']
-    sides = calc_sides(triangles)
+
+    triangles = num.array(triangles,num.int)
+
+    sides = {}
+    for id, triangle in enumerate(triangles):
+        a = triangle[0]
+        b = triangle[1]
+        c = triangle[2]
+
+        sides[a,b] = 3*id+2 #(id, face)
+        sides[b,c] = 3*id+0 #(id, face)
+        sides[c,a] = 3*id+1 #(id, face)
+
     tag_dict = {}
     for seg, tag in map(None, mesh_dict['segments'], mesh_dict['segment_tags']):
         v1 = int(seg[0])
@@ -179,6 +191,29 @@ def pmesh_dict_to_tag_dict(mesh_dict):
                 edge_id = sides[key]%3
                 tag_dict[vol_id,edge_id] = tag
 
+    return tag_dict
+
+def pmesh_dict_to_tag_dict(mesh_dict):
+    """ Convert the pmesh dictionary (mesh_dict) description of boundary tags
+    to a dictionary of tags, indexed with volume id and face number.
+    """
+
+    triangles = mesh_dict['triangles']
+    segments = mesh_dict['segments']
+    segment_tags = mesh_dict['segment_tags']
+
+    triangles = num.array(triangles,num.int)
+    segments = num.array(segments,num.int)
+    tag_dict = {}
+
+    #print triangles
+    #print segments
+    #print segment_tags
+
+    from pmesh2domain_ext import build_boundary_dictionary
+
+    tag_dict = build_boundary_dictionary(triangles, segments, segment_tags, tag_dict)
+    
     return tag_dict
 
 
@@ -200,23 +235,7 @@ def calc_sides_old(triangles):
 
     return sides
 
-def calc_sides_old2(triangles):
-    '''Build dictionary mapping from sides (2-tuple of points)
-    to left hand side neighbouring triangle
-    '''
 
-    sides = {}
-
-    for id, triangle in enumerate(triangles):
-        a = int(triangle[0])
-        b = int(triangle[1])
-        c = int(triangle[2])
-
-        sides[a,b] = (id, 2) #(id, face)
-        sides[b,c] = (id, 0) #(id, face)
-        sides[c,a] = (id, 1) #(id, face)
-
-    return sides
 
 def calc_sides_zip(triangles):
     '''Build dictionary mapping from sides (2-tuple of points)
@@ -241,7 +260,7 @@ def calc_sides_zip(triangles):
 
     return sides
 
-def calc_sides(triangles):
+def calc_sides_c(triangles):
     '''Build dictionary mapping from sides (2-tuple of points)
     to left hand side neighbouring triangle
     '''
