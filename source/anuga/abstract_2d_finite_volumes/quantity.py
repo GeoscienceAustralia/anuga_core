@@ -310,7 +310,7 @@ class Quantity:
     ##
     # @brief Compute interpolated values at edges and centroid.
     # @note vertex_values must be set before calling this.
-    def interpolate(self):
+    def interpolate_old(self):
         """Compute interpolated values at edges and centroid
         Pre-condition: vertex_values have been set
         """
@@ -336,12 +336,28 @@ class Quantity:
 
         self.interpolate_from_vertices_to_edges()
 
+
+    ##
+    # @brief Compute interpolated values at edges and centroid.
+    # @note vertex_values must be set before calling this.
+    def interpolate(self):
+        """Compute interpolated values at edges and centroid
+        Pre-condition: vertex_values have been set
+        """
+        from quantity_ext import interpolate
+        interpolate(self)
+
+
     def interpolate_from_vertices_to_edges(self):
         # Call correct module function (either from this module or C-extension)
+
+        from quantity_ext import interpolate_from_vertices_to_edges
         interpolate_from_vertices_to_edges(self)
 
     def interpolate_from_edges_to_vertices(self):
         # Call correct module function (either from this module or C-extension)
+
+        from quantity_ext import interpolate_from_edges_to_vertices
         interpolate_from_edges_to_vertices(self)
 
     #---------------------------------------------

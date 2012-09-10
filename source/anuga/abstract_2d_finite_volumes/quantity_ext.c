@@ -662,6 +662,31 @@ int _bound_vertices_below_by_quantity(int N,
 	return 0;
 }
 
+int _interpolate(int N,
+		 double* vertex_values,
+		 double* edge_values,
+                 double* centroid_values) {
+
+	int k, k3;
+	double q0, q1, q2;
+
+
+	for (k=0; k<N; k++) {
+		k3 = 3*k;
+
+		q0 = vertex_values[k3 + 0];
+		q1 = vertex_values[k3 + 1];
+		q2 = vertex_values[k3 + 2];
+
+                centroid_values[k] = (q0+q1+q2)/3.0;
+
+		edge_values[k3 + 0] = 0.5*(q1+q2);
+		edge_values[k3 + 1] = 0.5*(q0+q2);
+		edge_values[k3 + 2] = 0.5*(q0+q1);
+	}
+	return 0;
+}
+
 int _interpolate_from_vertices_to_edges(int N,
 					double* vertex_values,
 					double* edge_values) {
@@ -983,6 +1008,51 @@ PyObject *saxpy_centroid_values(PyObject *self, PyObject *args) {
 	Py_DECREF(centroid_backup_values);
 
 	return Py_BuildValue("");
+}
+
+
+
+PyObject *interpolate(PyObject *self, PyObject *args) {
+        //
+        //Compute edge and centroid values from vertex values using linear interpolation
+        //
+
+	PyObject *quantity;
+	PyArrayObject *vertex_values, *edge_values, *centroid_values;
+
+	int N, err;
+
+	// Convert Python arguments to C
+	if (!PyArg_ParseTuple(args, "O", &quantity)) {
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "quantity_ext.c: interpolate could not parse input");
+	  return NULL;
+	}
+
+	vertex_values = get_consecutive_array(quantity, "vertex_values");
+	edge_values = get_consecutive_array(quantity, "edge_values");
+        centroid_values = get_consecutive_array(quantity, "centroid_values");
+
+	N = vertex_values -> dimensions[0];
+
+	err = _interpolate(N,
+			   (double*) vertex_values -> data,
+			   (double*) edge_values -> data,
+                           (double*) centroid_values -> data);
+
+	if (err != 0) {
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "Interpolate could not be computed");
+	  return NULL;
+	}
+
+	// Release and return
+	Py_DECREF(vertex_values);
+	Py_DECREF(edge_values);
+        Py_DECREF(centroid_values);
+
+	return Py_BuildValue("");
+
 }
 
 
@@ -2192,7 +2262,7 @@ static struct PyMethodDef MethodTable[] = {
 	{"backup_centroid_values", backup_centroid_values, METH_VARARGS, "Print out"},
 	{"saxpy_centroid_values", saxpy_centroid_values, METH_VARARGS, "Print out"},
 	{"compute_gradients", compute_gradients, METH_VARARGS, "Print out"},
-    {"compute_local_gradients", compute_gradients, METH_VARARGS, "Print out"},
+        {"compute_local_gradients", compute_gradients, METH_VARARGS, "Print out"},
 	{"extrapolate_from_gradient", extrapolate_from_gradient,
 		METH_VARARGS, "Print out"},
 	{"extrapolate_second_order_and_limit_by_edge", extrapolate_second_order_and_limit_by_edge,
@@ -2205,6 +2275,7 @@ static struct PyMethodDef MethodTable[] = {
 	{"interpolate_from_edges_to_vertices",
 		interpolate_from_edges_to_vertices,
 		METH_VARARGS, "Print out"},
+	{"interpolate", interpolate, METH_VARARGS, "Print out"},
 	{"average_vertex_values", average_vertex_values, METH_VARARGS, "Print out"},		
 	{NULL, NULL, 0, NULL}   // sentinel
 };
