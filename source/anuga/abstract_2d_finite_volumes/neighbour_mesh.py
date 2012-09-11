@@ -932,10 +932,10 @@ class Mesh(General_mesh):
         str += 'Mesh statistics:\n'
         str += '  Number of triangles = %d\n' %len(self)
         str += '  Extent [m]:\n'
-        str += '    x in [%f, %f]\n' %(min(x), max(x))
-        str += '    y in [%f, %f]\n' %(min(y), max(y))
+        str += '    x in [%8.5e, %8.5e]\n' %(num.amin(x), num.amax(x))
+        str += '    y in [%8.5e, %8.5e]\n' % (num.amin(y), num.amax(y))
         str += '  Areas [m^2]:\n'
-        str += '    A in [%f, %f]\n' %(min(areas), max(areas))
+        str += '    A in [%8.5e, %8.5e]\n' %(num.amin(areas), num.amax(areas))
         str += '    number of distinct areas: %d\n' %(len(areas))
         str += '    Histogram:\n'
 
@@ -945,11 +945,11 @@ class Mesh(General_mesh):
             if i+1 < len(bins):
                 #Open upper interval
                 hi = bins[i+1]
-                str += '      [%f, %f[: %d\n' %(lo, hi, count)
+                str += '      [%8.5e, %8.5e[: %d\n' %(lo, hi, count)
             else:
                 #Closed upper interval
-                hi = max(areas)
-                str += '      [%f, %f]: %d\n' %(lo, hi, count)
+                hi = num.max(areas)
+                str += '      [%8.5e, %8.5e]: %d\n' %(lo, hi, count)
 
         N = len(areas)
         if N > 10:
@@ -958,14 +958,14 @@ class Mesh(General_mesh):
             areas.sort()
 
             k = 0
-            lower = min(areas)
+            lower = num.min(areas)
             for i, a in enumerate(areas):
                 if i % (N/10) == 0 and i != 0: #For every 10% of the sorted areas
-                    str += '      %d triangles in [%f, %f]\n' %(i-k, lower, a)
+                    str += '      %d triangles in [%8.5e, %8.5e]\n' %(i-k, lower, a)
                     lower = a
                     k = i
 
-            str += '      %d triangles in [%f, %f]\n'\
+            str += '      %d triangles in [%8.5e, %8.5e]\n'\
                    %(N-k, lower, max(areas))
 
 

@@ -244,7 +244,23 @@ class Generic_Domain:
         # Identify full nodes as those that intersect a full triangle.
 
         Vol_ids  = self.vertex_value_indices/3
-        W = num.repeat(self.tri_full_flag, 3)
+
+        # want this
+        # W = num.repeat(self.tri_full_flag, 3)
+        # but without creating extra memeory
+        # Got this
+        # b = np.lib.stride_tricks.as_strided(a, (1000, a.size), (0, a.itemsize))
+        # from
+        # http://stackoverflow.com/questions/5564098/repeat-numpy-array-without-replicating-data
+        a = self.tri_full_flag
+        b = num.lib.stride_tricks.as_strided(a, (a.size, 3), (a.itemsize,0))
+        W = b.flat
+
+#        print a
+#        print a.itemsize
+#        print list(b)
+#        print num.repeat(self.tri_full_flag, 3)
+
 
         self.node_full_flag = num.minimum(num.bincount(self.triangles.flat, weights = W).astype(num.int), 1)
 
@@ -1000,11 +1016,12 @@ class Generic_Domain:
             N = len(self.max_speed.flat)
             if N > 10:
                 msg += '  Percentiles (10%):\n'
-                speed = self.max_speed.tolist()
-                speed.sort()
+                #speed = self.max_speed.tolist()
+                #speed.sort()
+                speed = num.sort(self.max_speed)
 
                 k = 0
-                lower = min(speed)
+                lower = num.min(speed)
                 for i, a in enumerate(speed):
                     if i % (N/10) == 0 and i != 0:
                         # For every 10% of the sorted speeds
