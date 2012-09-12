@@ -170,8 +170,15 @@ def rectangular_cross_domain(*args, **kwargs):
     origin: tuple (x,y) specifying location of lower left corner
             of domain (default (0,0))
     """
+
+    if 'verbose' in kwargs:
+        verbose = kwargs['verbose']
+        kwargs.pop('verbose')
+    else:
+        verbose = False
+
     points, vertices, boundary = rectangular_cross(*args, **kwargs)
-    return Domain(points, vertices, boundary)
+    return Domain(points, vertices, boundary, verbose= verbose)
 
 #----------------------------
 # Create domain from file
