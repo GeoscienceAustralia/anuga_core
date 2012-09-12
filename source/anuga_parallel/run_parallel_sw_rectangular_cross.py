@@ -32,7 +32,7 @@ from anuga_parallel import distribute, myid, numprocs, finalize, barrier
 
 t0 = time.time()
 
-verbose = False
+verbose = True
 
 #--------------------------------------------------------------------------
 # Setup Domain only on processor 0
@@ -41,14 +41,15 @@ if myid == 0:
     length = 2.0
     width = 2.0
     dx = dy = 0.005
-    dx = dy = 0.00125
+    #dx = dy = 0.00125
     #dx = dy  = 0.5
     domain = rectangular_cross_domain(int(length/dx), int(width/dy),
-                                              len1=length, len2=width)
+                                              len1=length, len2=width, verbose=verbose)
 
     domain.set_store(False)
     domain.set_quantity('elevation', lambda x,y : -1.0-x )
     domain.set_quantity('stage', 1.0)
+    domain.print_statistics()
 else:
     domain = None
 
