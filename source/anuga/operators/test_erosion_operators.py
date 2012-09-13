@@ -12,7 +12,7 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.file_conversion.file_conversion import timefile2netcdf
 from anuga.config import time_format
 
-from erosion_operators import *
+from anuga.operators.erosion_operators import Erosion_operator
 
 import numpy as num
 import warnings
@@ -29,7 +29,7 @@ class Test_erosion_operators(unittest.TestCase):
 
 
 
-    def test_set_erosion_operator_simple(self):
+    def test_erosion_operator_simple(self):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
 

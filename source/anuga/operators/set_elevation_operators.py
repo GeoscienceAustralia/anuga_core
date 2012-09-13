@@ -141,6 +141,9 @@ class Set_elevation_operator(Operator):
 
         elevation = self.get_elevation()
 
+        if elevation is None:
+            return False
+
         updated = True
 
         if self.indices is None:
@@ -185,10 +188,9 @@ class Set_elevation_operator(Operator):
             elevation = self.elevation
 
 
-        if elevation is None:
-            msg = ('Attribute elevation must be specified in '+self.__name__+
-                   ' before attempting to call it')
-            raise Exception(msg)
+#        if elevation is None:
+#            msg  = 'Attribute elevation must be specified'
+#            raise Exception(msg)
 
         return elevation
 

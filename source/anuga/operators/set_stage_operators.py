@@ -61,10 +61,14 @@ class Set_stage_operator(Operator):
         otherwise apply for the specific indices
         """
 
+
         if self.indices is []:
             return
 
         stage = self.get_stage()
+
+        if stage is None:
+            return
 
         if self.verbose is True:
             log.critical('Stage of %s at time = %.2f = %f'
