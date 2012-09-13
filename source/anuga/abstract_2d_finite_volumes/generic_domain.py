@@ -133,7 +133,7 @@ class Generic_Domain:
         #self.number_of_full_triangles = self.mesh.number_of_full_triangles
         self.number_of_triangles_per_node = \
                                     self.mesh.number_of_triangles_per_node
-
+        self.node_index = self.mesh.node_index
         self.vertex_value_indices = self.mesh.vertex_value_indices
         self.number_of_triangles = self.mesh.number_of_triangles
         self.number_of_nodes = self.mesh.number_of_nodes

@@ -379,7 +379,7 @@ class Erosion_operator(Operator):
         vertex_ids =[]
         for nid in self.node_ids:
             #print nid,self.domain.number_of_triangles_per_node[nid]
-            for vid in range(node_index[nid], node_index[nid+1]):
+            for vid in range(self.node_index[nid], self.node_index[nid+1]):
                 vidd = self.domain.vertex_value_indices[vid]
                 vertex_ids.append(vidd)
                 #print '   ',nid, vid, vidd, vidd/3, vidd%3
