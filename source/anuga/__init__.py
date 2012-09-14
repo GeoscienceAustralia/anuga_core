@@ -72,6 +72,8 @@ from anuga.shallow_water.boundaries import \
                     Transmissive_momentum_set_stage_boundary
 from anuga.shallow_water.boundaries import \
                     Transmissive_n_momentum_zero_t_momentum_set_stage_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import \
+                    Compute_fluxes_boundary
 
 
 #-----------------------------
@@ -171,11 +173,11 @@ def rectangular_cross_domain(*args, **kwargs):
             of domain (default (0,0))
     """
 
-    if 'verbose' in kwargs:
-        verbose = kwargs['verbose']
-        kwargs.pop('verbose')
-    else:
+    try:
+        verbose = kwargs.pop('verbose')
+    except:
         verbose = False
+
 
     points, vertices, boundary = rectangular_cross(*args, **kwargs)
     return Domain(points, vertices, boundary, verbose= verbose)

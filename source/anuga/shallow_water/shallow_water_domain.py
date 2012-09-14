@@ -1041,7 +1041,7 @@ class Domain(Generic_Domain):
             gravity_wb_c(self)
 
         elif self.compute_fluxes_method == 'tsunami':
-            # Using Gareth Davies well nbalanced scheme
+            # Using Gareth Davies well balanced scheme
             # Flux calculation and gravity incorporated in same
             # procedure
 
@@ -1053,10 +1053,10 @@ class Domain(Generic_Domain):
                                       as compute_fluxes_ext
 
             # Shortcuts
-            Stage = domain.quantities['stage']
-            Xmom = domain.quantities['xmomentum']
-            Ymom = domain.quantities['ymomentum']
-            Bed = domain.quantities['elevation']
+            Stage = self.quantities['stage']
+            Xmom = self.quantities['xmomentum']
+            Ymom = self.quantities['ymomentum']
+            Bed = self.quantities['elevation']
 
             timestep = self.evolve_max_timestep
 
@@ -1108,6 +1108,9 @@ class Domain(Generic_Domain):
 
         if self.compute_fluxes_method == 'tsunami':
 
+
+            # FIXME SR: Clean up code to just take self (domain) as
+            # input argument
             from swb2_domain_ext import protect
 
             # shortcuts
@@ -1119,11 +1122,11 @@ class Domain(Generic_Domain):
             ymomc = self.quantities['ymomentum'].centroid_values
             areas = self.areas
 
-            protect(self.minimum_allowed_height, domain.maximum_allowed_speed,
-                domain.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas)
+            protect(self.minimum_allowed_height, self.maximum_allowed_speed,
+                self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas)
 
 
-            from swb2_domain_ext import extrapolate_second_order_edge_sw as extrapol2
+            from swb2_domain_ext import extrapolate_second_order_edge_sw as extrapol2_ext
 
             # Shortcuts
             Stage = self.quantities['stage']
@@ -1131,7 +1134,7 @@ class Domain(Generic_Domain):
             Ymom = self.quantities['ymomentum']
             Elevation = self.quantities['elevation']
 
-            extrapol2(self,
+            extrapol2_ext(self,
                   self.surrogate_neighbours,
                   self.number_of_boundaries,
                   self.centroid_coordinates,
@@ -1153,10 +1156,10 @@ class Domain(Generic_Domain):
 
 
         else:
+            # Code for original method
             if self.use_edge_limiter:
                 self.distribute_using_edge_limiter()
             else:
-                #distribute_using_vertex_limiter(self)
                 self.distribute_using_vertex_limiter()
 
 
@@ -1192,14 +1195,14 @@ class Domain(Generic_Domain):
             else:
                 raise Exception('Unknown order')
 
-        balance_deep_and_shallow(self)
+        self.balance_deep_and_shallow()
 
         # Compute edge values by interpolation
         for name in self.conserved_quantities:
             Q = domain.quantities[name]
             Q.interpolate_from_vertices_to_edges()
 
-    def distribute_using_vertex_limiter(domain):
+    def distribute_using_vertex_limiter(self):
         """Distribution from centroids to vertices specific to the SWW equation.
 
         It will ensure that h (w-z) is always non-negative even in the
@@ -1220,40 +1223,40 @@ class Domain(Generic_Domain):
         """
 
         # Remove very thin layers of water
-        domain.protect_against_infinitesimal_and_negative_heights()
+        self.protect_against_infinitesimal_and_negative_heights()
 
         # Extrapolate all conserved quantities
-        if domain.optimised_gradient_limiter:
+        if self.optimised_gradient_limiter:
             # MH090605 if second order,
             # perform the extrapolation and limiting on
             # all of the conserved quantities
 
-            if (domain._order_ == 1):
-                for name in domain.conserved_quantities:
-                    Q = domain.quantities[name]
+            if (self._order_ == 1):
+                for name in self.conserved_quantities:
+                    Q = self.quantities[name]
                     Q.extrapolate_first_order()
-            elif domain._order_ == 2:
-                domain.extrapolate_second_order_sw()
+            elif self._order_ == 2:
+                self.extrapolate_second_order_sw()
             else:
                 raise Exception('Unknown order')
         else:
             # Old code:
             for name in domain.conserved_quantities:
-                Q = domain.quantities[name]
+                Q = self.quantities[name]
 
-                if domain._order_ == 1:
+                if self._order_ == 1:
                     Q.extrapolate_first_order()
-                elif domain._order_ == 2:
+                elif self._order_ == 2:
                     Q.extrapolate_second_order_and_limit_by_vertex()
                 else:
                     raise Exception('Unknown order')
 
         # Take bed elevation into account when water heights are small
-        balance_deep_and_shallow(domain)
+        self.balance_deep_and_shallow()
 
         # Compute edge values by interpolation
-        for name in domain.conserved_quantities:
-            Q = domain.quantities[name]
+        for name in self.conserved_quantities:
+            Q = self.quantities[name]
             Q.interpolate_from_vertices_to_edges()
 
 
@@ -1266,16 +1269,16 @@ class Domain(Generic_Domain):
             from swb2_domain_ext import protect
 
             # shortcuts
-            wc = domain.quantities['stage'].centroid_values
-            wv = domain.quantities['stage'].vertex_values
-            zc = domain.quantities['elevation'].centroid_values
-            zv = domain.quantities['elevation'].vertex_values
-            xmomc = domain.quantities['xmomentum'].centroid_values
-            ymomc = domain.quantities['ymomentum'].centroid_values
-            areas = domain.areas
+            wc = self.quantities['stage'].centroid_values
+            wv = self.quantities['stage'].vertex_values
+            zc = self.quantities['elevation'].centroid_values
+            zv = self.quantities['elevation'].vertex_values
+            xmomc = self.quantities['xmomentum'].centroid_values
+            ymomc = self.quantities['ymomentum'].centroid_values
+            areas = self.areas
 
-            protect(domain.minimum_allowed_height, domain.maximum_allowed_speed,
-                domain.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas)
+            protect(self.minimum_allowed_height, self.maximum_allowed_speed,
+                self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas)
 
         else:
             from shallow_water_ext import protect
@@ -1289,7 +1292,41 @@ class Domain(Generic_Domain):
             protect(self.minimum_allowed_height, self.maximum_allowed_speed,
                     self.epsilon, wc, zc, xmomc, ymomc)
 
-        
+
+    def balance_deep_and_shallow(self):
+        """Compute linear combination between stage as computed by
+        gradient-limiters limiting using w, and stage computed by
+        gradient-limiters limiting using h (h-limiter).
+        The former takes precedence when heights are large compared to the
+        bed slope while the latter takes precedence when heights are
+        relatively small.  Anything in between is computed as a balanced
+        linear combination in order to avoid numerical disturbances which
+        would otherwise appear as a result of hard switching between
+        modes.
+
+        Wrapper for C implementation
+        """
+
+        from shallow_water_ext import balance_deep_and_shallow \
+                                      as balance_deep_and_shallow_ext
+
+        # Shortcuts
+        wc = self.quantities['stage'].centroid_values
+        zc = self.quantities['elevation'].centroid_values
+        wv = self.quantities['stage'].vertex_values
+        zv = self.quantities['elevation'].vertex_values
+
+        # Momentums at centroids
+        xmomc = self.quantities['xmomentum'].centroid_values
+        ymomc = self.quantities['ymomentum'].centroid_values
+
+        # Momentums at vertices
+        xmomv = self.quantities['xmomentum'].vertex_values
+        ymomv = self.quantities['ymomentum'].vertex_values
+
+        balance_deep_and_shallow_ext(self,
+                                   wc, zc, wv, zv, wc,
+                                   xmomc, ymomc, xmomv, ymomv)
 
     def update_other_quantities(self):
         """ There may be a need to calculates some of the other quantities
@@ -1989,40 +2026,7 @@ def distribute_using_vertex_limiter(domain):
 ##    protect(domain.minimum_allowed_height, domain.maximum_allowed_speed,
 ##            domain.epsilon, wc, zc, xmomc, ymomc)
 
-def balance_deep_and_shallow(domain):
-    """Compute linear combination between stage as computed by
-    gradient-limiters limiting using w, and stage computed by
-    gradient-limiters limiting using h (h-limiter).
-    The former takes precedence when heights are large compared to the
-    bed slope while the latter takes precedence when heights are
-    relatively small.  Anything in between is computed as a balanced
-    linear combination in order to avoid numerical disturbances which
-    would otherwise appear as a result of hard switching between
-    modes.
 
-    Wrapper for C implementation
-    """
-
-    from anuga.shallow_water.shallow_water_ext import balance_deep_and_shallow \
-                                  as balance_deep_and_shallow_c
-
-    # Shortcuts
-    wc = domain.quantities['stage'].centroid_values
-    zc = domain.quantities['elevation'].centroid_values
-    wv = domain.quantities['stage'].vertex_values
-    zv = domain.quantities['elevation'].vertex_values
-
-    # Momentums at centroids
-    xmomc = domain.quantities['xmomentum'].centroid_values
-    ymomc = domain.quantities['ymomentum'].centroid_values
-
-    # Momentums at vertices
-    xmomv = domain.quantities['xmomentum'].vertex_values
-    ymomv = domain.quantities['ymomentum'].vertex_values
-
-    balance_deep_and_shallow_c(domain,
-                               wc, zc, wv, zv, wc,
-                               xmomc, ymomc, xmomv, ymomv)
 
 
 

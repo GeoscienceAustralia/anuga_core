@@ -552,7 +552,7 @@ class Mesh(General_mesh):
             self.tag_boundary_cells[tag] = []
 
 
-        for j in range(self.boundary_length):
+        for j in xrange(self.boundary_length):
             id  = self.boundary_cells[j]
             edge = self.boundary_edges[j]
             tag = self.boundary[id, edge]

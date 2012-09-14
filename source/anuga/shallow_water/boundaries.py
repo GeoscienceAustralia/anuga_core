@@ -476,7 +476,7 @@ class Inflow_boundary(Boundary):
         elevation = z[edge_id]
             
         # Assign conserved quantities and return
-        q = num.array([elevation + depth, xmomentum, ymomentum], num.Float)
+        q = num.array([elevation + depth, xmomentum, ymomentum], num.float)
         return q
 
 
@@ -579,3 +579,8 @@ class Field_boundary(Boundary):
             if name == 'stage':
                 q[j] += self.mean_stage
         return q
+
+
+
+
+

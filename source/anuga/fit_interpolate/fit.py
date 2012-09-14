@@ -45,6 +45,7 @@ class TooFewPointsError(exceptions.Exception): pass
 class VertsWithNoTrianglesError(exceptions.Exception): pass
 
 import numpy as num
+import sys
 
 
 class Fit(FitInterpolate):
@@ -99,8 +100,8 @@ class Fit(FitInterpolate):
                  vertex_coordinates,
                  triangles,
                  mesh,
-                 mesh_origin,
-                 verbose)
+                 mesh_origin=mesh_origin,
+                 verbose=verbose)
         
         m = self.mesh.number_of_nodes # Nbr of basis functions (vertices)
         
@@ -109,11 +110,15 @@ class Fit(FitInterpolate):
 
         self.point_count = 0
         if self.alpha <> 0:
-            if verbose: log.critical('Building smoothing matrix')
-            self._build_smoothing_matrix_D()
-            
+            if verbose: log.critical('Fit: Building smoothing matrix')
+            self._build_smoothing_matrix_D(verbose=verbose)
+
+        if verbose: log.critical('Fit: Get Boundary Polygon')
         bd_poly = self.mesh.get_boundary_polygon()    
         self.mesh_boundary_polygon = ensure_numeric(bd_poly)
+
+        if verbose: log.critical('Fit: Done')
+
             
     def _build_coefficient_matrix_B(self,
                                   verbose = False):
@@ -125,17 +130,28 @@ class Fit(FitInterpolate):
         Matrix Ata has been built
         """
 
+        if verbose:
+            print 'Fit: Build Coefficient Matrix B'
+
+
         if self.alpha <> 0:
             #if verbose: log.critical('Building smoothing matrix')
             #self._build_smoothing_matrix_D()
+            # FIXME SR: This is quite time consuming.
+            # As AtA and D have same structure it should be possible
+            # to speed this up.
             self.B = self.AtA + self.alpha*self.D
         else:
             self.B = self.AtA
 
+
+        if verbose:
+            print 'Fit: Convert Coefficient Matrix B to Sparse_CSR'
+            
         # Convert self.B matrix to CSR format for faster matrix vector
         self.B = Sparse_CSR(self.B)
 
-    def _build_smoothing_matrix_D(self):
+    def _build_smoothing_matrix_D(self, verbose=False):
         """Build m x m smoothing matrix, where
         m is the number of basis functions phi_k (one per vertex)
 
@@ -168,8 +184,20 @@ class Fit(FitInterpolate):
 
         self.D = Sparse(m,m)
 
+        if verbose :
+            print '['+60*' '+']',
+            sys.stdout.flush()
+
+        N = len(self.mesh)
+        M = N/60
+
         # For each triangle compute contributions to D = D1+D2
-        for i in range(len(self.mesh)):
+        for i in xrange(N):
+
+            if verbose and i%M == 0 :
+                #restart_line()
+                print '\r['+(i/M)*'.'+(60-(i/M))*' ' +']',
+                sys.stdout.flush()
 
             # Get area
             area = self.mesh.areas[i]
@@ -212,6 +240,9 @@ class Fit(FitInterpolate):
             self.D[v2,v0] += e20
             self.D[v0,v2] += e20
 
+        if verbose:
+            print ''
+
     def get_D(self):
         return self.D.todense()
 
@@ -241,7 +272,11 @@ class Fit(FitInterpolate):
 
         The number of attributes of the data points does not change
         """
-        
+
+
+        if verbose:
+            print 'Fit: Build Matrix AtA Atz'
+
         # Build n x m interpolation matrix
         if self.AtA == None:
             # AtA and Atz need to be initialised.
@@ -270,11 +305,28 @@ class Fit(FitInterpolate):
 
         # Compute matrix elements for points inside the mesh
         triangles = self.mesh.triangles # Shorthand
-        for d, i in enumerate(inside_indices):
+
+
+        if verbose :
+            print '['+60*' '+']',
+            sys.stdout.flush()
+
+        m = n/60
+
+
+        for i in xrange(n):
+            d = inside_indices[i]
             # For each data_coordinate point
             # if verbose and d%((n+10)/10)==0: log.critical('Doing %d of %d'
                                                             # %(d, n))
-            x = point_coordinates[i]
+
+
+            if verbose and i%m == 0 :
+                print '\r['+(i/m)*'.'+(60-(i/m))*' '+']',
+                sys.stdout.flush()
+
+
+            x = point_coordinates[d]
             
             element_found, sigma0, sigma1, sigma2, k = \
                            self.root.search_fast(x)
@@ -301,7 +353,11 @@ class Fit(FitInterpolate):
                 assert flag is True, msg                
                 
                 # data point has fallen within a hole - so ignore it.
-                
+
+
+        if verbose:
+            print ''
+            
         self.AtA = AtA
 
         
@@ -323,7 +379,11 @@ class Fit(FitInterpolate):
           z: Single 1d vector or array of data at the point_coordinates.
           
         """
-        
+
+
+        if verbose:
+            print 'Fit.fit: Initializing'
+
         # Use blocking to load in the point info
         if isinstance(point_coordinates_or_filename, basestring):
             msg = "Don't set a point origin when reading from a file"
@@ -356,7 +416,7 @@ class Fit(FitInterpolate):
 
                 points = geo_block.get_data_points(absolute=True)
                 z = geo_block.get_attributes(attribute_name=attribute_name)
-                self.build_fit_subset(points, z, verbose=verbose)
+                self.build_fit_subset(points, z, attribute_name, verbose)
 
                 # FIXME(Ole): I thought this test would make sense here
                 # See test_fitting_example_that_crashed_2 in test_shallow_water_domain.py
@@ -367,9 +427,11 @@ class Fit(FitInterpolate):
             point_coordinates = None
         else:
             point_coordinates =  point_coordinates_or_filename
-            
+
+
+
         if point_coordinates is None:
-            if verbose: log.critical('Warning: no data points in fit')
+            if verbose: log.critical('Fit.fit: Warning: no data points in fit')
             msg = 'No interpolation matrix.'
             assert self.AtA is not None, msg
             assert self.Atz is not None
@@ -380,7 +442,11 @@ class Fit(FitInterpolate):
                                                 geo_reference=point_origin)
             # if isinstance(point_coordinates,Geospatial_data) and z is None:
             # z will come from the geo-ref
-            self.build_fit_subset(point_coordinates, z, verbose)
+            self.build_fit_subset(point_coordinates, z, verbose=verbose)
+
+
+
+
 
         # Check sanity
         m = self.mesh.number_of_nodes # Nbr of basis functions (1/vertex)
@@ -392,6 +458,7 @@ class Fit(FitInterpolate):
             msg += 'Alternatively, set smoothing parameter alpha to a small '
 	    msg += 'positive value,\ne.g. 1.0e-3.'
             raise TooFewPointsError(msg)
+
 
         self._build_coefficient_matrix_B(verbose)
         loners = self.mesh.get_lone_vertices()
@@ -407,7 +474,9 @@ class Fit(FitInterpolate):
             log.critical(msg)
             #raise VertsWithNoTrianglesError(msg)
         
-        
+        if verbose:
+            print 'Fit.fit: Solve Fitting Equation'
+
         return conjugate_gradient(self.B, self.Atz, self.Atz,
                                   imax=2*len(self.Atz) )
 
@@ -574,8 +643,8 @@ def _fit_to_mesh(point_coordinates, # this can also be a points file name
                                              geo_reference = mesh_origin)
 
         if verbose: log.critical('FitInterpolate: Building mesh')
-        mesh = Mesh(vertex_coordinates, triangles)
-        mesh.check_integrity()
+        mesh = Mesh(vertex_coordinates, triangles, verbose=verbose)
+        #mesh.check_integrity() # expensive
     
     
     interp = Fit(mesh=mesh,
@@ -647,7 +716,7 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
     else:
         old_title_list = mesh_dict['vertex_attribute_titles']
 
-    if verbose: log.critical('tsh file %s loaded' % mesh_file)
+    if verbose: log.critical('Fit_to_Mesh_File: tsh file %s loaded' % mesh_file)
 
     # load in the points file
     try:
@@ -667,8 +736,8 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
     else:
         mesh_origin = None
 
-    if verbose: log.critical("points file loaded")
-    if verbose: log.critical("fitting to mesh")
+    if verbose: log.critical("Fit_to_Mesh_File: points file loaded")
+    if verbose: log.critical("Fit_to_Mesh_File: fitting to mesh")
     f = fit_to_mesh(point_coordinates,
                     vertex_coordinates,
                     triangles,
@@ -678,7 +747,7 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
                     verbose = verbose,
                     data_origin = None,
                     mesh_origin = mesh_origin)
-    if verbose: log.critical("finished fitting to mesh")
+    if verbose: log.critical("Fit_to_Mesh_File: finished fitting to mesh")
 
     # convert array to list of lists
     new_point_attributes = f.tolist()
@@ -687,7 +756,7 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
     if old_title_list <> []:
         old_title_list.extend(title_list)
         #FIXME can this be done a faster way? - DSG
-        for i in range(len(old_point_attributes)):
+        for i in xrange(len(old_point_attributes)):
             old_point_attributes[i].extend(new_point_attributes[i])
         mesh_dict['vertex_attributes'] = old_point_attributes
         mesh_dict['vertex_attribute_titles'] = old_title_list
@@ -695,7 +764,7 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
         mesh_dict['vertex_attributes'] = new_point_attributes
         mesh_dict['vertex_attribute_titles'] = title_list
 
-    if verbose: log.critical("exporting to file %s" % mesh_output_file)
+    if verbose: log.critical("Fit_to_Mesh_File: exporting to file %s" % mesh_output_file)
 
     try:
         export_mesh_file(mesh_output_file, mesh_dict)

@@ -207,6 +207,34 @@ class Dirichlet_boundary(Boundary):
             Q = domain.quantities[name]
             Q.boundary_values[ids] = q_bdry[j]
 
+class Compute_fluxes_boundary(Boundary):
+    """ Associate the Compute_fluxes_boundary BC
+    to each boundary segment where a special calculation
+    of the fluxes will occur.
+    """
+
+    def __init__(self):
+        Boundary.__init__(self)
+        """ Instantiate a Compute_fluxes_boundary.
+            domain: underlying domain
+            """
+
+
+    def __repr__(self):
+        """ Return a representation of this instance. """
+        return 'Compute_fluxes_boundary(%s)' % self.domain
+
+    def evaluate(self, vol_id, edge_id):
+        """Do something basic"""
+
+        return None
+
+    def evaluate_segment(self, domain, segment_edges):
+        """Don't do any calculation when applying this BC.
+        The work will be done in compute_fluxes.
+        """
+
+        return
 
 
 class Time_boundary(Boundary):
@@ -600,7 +628,7 @@ class File_boundary(Boundary):
 
     def evaluate(self, vol_id=None, edge_id=None):
         """Return linearly interpolated values based on domain.time
-	at midpoint of segment defined by vol_id and edge_id.
+        at midpoint of segment defined by vol_id and edge_id.
         """
 
         # FIXME (Ole): I think this should be get_time(), see ticket:306
@@ -825,5 +853,6 @@ class AWI_boundary(Boundary):
             # raise 'Boundary call without point_id not implemented'
             # FIXME: What should the semantics be?
             return self.F(t)
+
 
 

@@ -90,7 +90,7 @@ class FitInterpolate:
                                                  geo_reference = mesh_origin)
 
                 if verbose: log.critical('FitInterpolate: Building mesh')
-                self.mesh = Mesh(vertex_coordinates, triangles)
+                self.mesh = Mesh(vertex_coordinates, triangles, verbose=verbose)
                 #self.mesh.check_integrity() # Time consuming
             else:
                 self.mesh = None
@@ -101,7 +101,7 @@ class FitInterpolate:
             if verbose: log.critical('FitInterpolate: Building quad tree')
             #This stores indices of vertices
             t0 = time.time()
-            self.root = MeshQuadtree(self.mesh)
+            self.root = MeshQuadtree(self.mesh, verbose=verbose)
         
             build_quadtree_time =  time.time()-t0
             self.root.set_last_triangle()

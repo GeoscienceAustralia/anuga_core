@@ -7011,6 +7011,9 @@ friction  \n \
         
         # Large test set revealed one problem
         points_file = os.path.join(path, 'test_points_large.csv')
+
+        domain.set_quantity('elevation', filename=points_file,
+                                use_cache=False, verbose=verbose)
         try:
             domain.set_quantity('elevation', filename=points_file,
                                 use_cache=False, verbose=verbose)

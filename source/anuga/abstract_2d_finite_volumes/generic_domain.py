@@ -808,6 +808,23 @@ class Generic_Domain:
                 msg += 'The tags are: %s' %self.get_boundary_tags()
                 raise Exception(msg)
 
+
+
+        # Add a flag which can be used to distinguish flux boundaries within
+        # compute_fluxes_central
+        # Initialise to zero (which means 'not a flux_boundary')
+        self.boundary_flux_type = self.boundary_edges*0
+
+        # HACK to set the values of domain.boundary_flux
+        for k, ((vol_id, edge_id), B) in enumerate(self.boundary_objects):
+            # If Boundary set to Compute_fluxes_boundary identify as flux boundary
+            #print vol_id, edge_id, B
+
+            import anuga
+            if ( isinstance(B,anuga.Compute_fluxes_boundary) ):
+                self.boundary_flux_type[k]=1
+
+
     ##
     # @brief Set quantities based on a regional tag.
     # @param args

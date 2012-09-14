@@ -23,6 +23,7 @@ else:
     raise Exception(MESSAGE)
 
 import numpy as num
+import sys
  
 
 LAST_TRIANGLE = [[[-1, num.array([[max_float, max_float],
@@ -40,7 +41,7 @@ class MeshQuadtree(Cell):
         and derives from a Cell.
         It contains optimisations and search patterns specific to meshes.
     """
-    def __init__(self, mesh):
+    def __init__(self, mesh, verbose=False):
         """Build quad tree for mesh.
 
         All vertex indices in the mesh are stored in a quadtree.
@@ -59,20 +60,36 @@ class MeshQuadtree(Cell):
         V = mesh.get_vertex_coordinates(absolute=True)
         
         normals = mesh.get_normals()
-        
+
+        if verbose :
+            print '['+60*' '+']',
+            sys.stdout.flush()
+
+        M = N/60
+
         # Check each triangle
-        for i in range(N):
+        for i in xrange(N):
+
+            if verbose and i%M == 0 :
+                #restart_line()
+                print '\r['+(i/M)*'.'+(60-(i/M))*' ' +']',
+                sys.stdout.flush()
+
             i3 = 3*i
             x0, y0 = V[i3, :]
             x1, y1 = V[i3+1, :]
             x2, y2 = V[i3+2, :]
 
+            #FIXME SR: Should save memory by just using triangle id!
             node_data = [i, V[i3:i3+3, :], normals[i, :]]
 
             # insert a tuple with an AABB, and the triangle index as data
             self.insert_item((AABB(min([x0, x1, x2]), max([x0, x1, x2]), \
                              min([y0, y1, y2]), max([y0, y1, y2])), \
                              node_data))
+
+        if verbose:
+            print ''
 
     def search_fast(self, point):
         """
