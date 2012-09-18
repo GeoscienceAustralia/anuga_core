@@ -35,13 +35,27 @@ class Parallel_domain(Domain):
                  number_of_full_nodes=None,
                  number_of_full_triangles=None,
                  geo_reference=None,
+                 processor = None,
+                 numproc = None,
                  number_of_global_triangles=None, ## SR added this
                  number_of_global_nodes= None, ## SR added this
                  s2p_map=None,
                  p2s_map=None, #jj added this
                  tri_l2g = None, ## SR added this
                  node_l2g = None, #): ## SR added this
-                 ghost_layer_width = 2):
+                 ghost_layer_width = 2): ## SR added this
+
+
+
+        #-----------------------------------------
+        # Sometimes we want to manually
+        # create instances of the parallel_domain
+        # otherwise ...
+        #----------------------------------------
+        if processor is None:
+            processor = pypar.rank()
+        if numproc is None:
+            numproc = pypar.size()
 
         Domain.__init__(self,
                         coordinates,
@@ -49,8 +63,8 @@ class Parallel_domain(Domain):
                         boundary,
                         full_send_dict=full_send_dict,
                         ghost_recv_dict=ghost_recv_dict,
-                        processor=pypar.rank(),
-                        numproc=pypar.size(),
+                        processor=processor,
+                        numproc=numproc,
                         number_of_full_nodes=number_of_full_nodes,
                         number_of_full_triangles=number_of_full_triangles,
                         geo_reference=geo_reference, #) #jj added this

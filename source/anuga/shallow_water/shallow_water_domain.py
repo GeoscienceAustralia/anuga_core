@@ -769,6 +769,12 @@ class Domain(Generic_Domain):
 
         self.minimum_storable_height = minimum_storable_height
 
+
+    def get_minimum_storable_height(self):
+
+        return self.minimum_storable_height
+
+
     def set_minimum_allowed_height(self, minimum_allowed_height):
         """Set minimum depth that will be recognised in the numerical scheme.
 
@@ -786,6 +792,12 @@ class Domain(Generic_Domain):
 
         self.minimum_allowed_height = minimum_allowed_height
         self.H0 = minimum_allowed_height
+
+
+
+    def get_minimum_allowed_height(self):
+
+        return self.minimum_allowed_height
 
     def set_maximum_allowed_speed(self, maximum_allowed_speed):
         """Set the maximum particle speed that is allowed in water shallower

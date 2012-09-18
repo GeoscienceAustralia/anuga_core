@@ -62,16 +62,24 @@ if myid == 0:
     domain = anuga.rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width, verbose=verbose)
 
-    domain.set_store(True)
+    #---------------------------------------
+    # Add these two commands to use Gareth's
+    # tsunami algorithm. Play with the 
+    # minimum allowed height to remove possible 
+    # unrealistic large velocities
+    #---------------------------------------
+    domain.set_flow_algorithm('tsunami')
     domain.set_minimum_allowed_height(0.01)
+
+    domain.set_store(True)
     domain.set_quantity('elevation',topography)     # Use function for elevation
     domain.get_quantity('elevation').smooth_vertex_values()
     domain.set_quantity('friction',0.03)            # Constant friction
     domain.set_quantity('stage', stagefun)          # Constant negative initial stage
     domain.get_quantity('stage').smooth_vertex_values()
-    domain.set_flow_algorithm('tsunami')
+
     domain.set_name('rectangular_tsunami')
-    domain.set_minimum_allowed_height(0.01)
+
     domain.print_statistics()
 else:
     domain = None
