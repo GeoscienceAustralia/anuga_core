@@ -20,7 +20,6 @@ import sys
 #----------------------------
 # Sequential interface
 #---------------------------
-from anuga import Domain
 from anuga import Transmissive_boundary, Reflective_boundary
 from anuga import rectangular_cross_domain
 
@@ -43,15 +42,17 @@ if myid == 0:
     dx = dy = 0.005
     #dx = dy = 0.00125
     #dx = dy  = 0.5
-    seq_domain = rectangular_cross_domain(int(length/dx), int(width/dy),
+    domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width, verbose=verbose)
 
-    seq_domain.set_store(False)
-    seq_domain.set_quantity('elevation', lambda x,y : -1.0-x )
-    seq_domain.set_quantity('stage', 1.0)
-    seq_domain.print_statistics()
+
+    domain.set_store(True)
+    domain.set_quantity('elevation', lambda x,y : -1.0-x )
+    domain.set_quantity('stage', 1.0)
+    domain.set_flow_algorithm('tsunami')
+    domain.print_statistics()
 else:
-    seq_domain = None
+    domain = None
 
 t1 = time.time()
 
@@ -64,11 +65,10 @@ if myid == 0 and verbose:
     
 barrier()
 
-# setup parameters to test using different ghost_layer_widths
-parameters = dict(ghost_layer_width = 2)
-domain = distribute(seq_domain,verbose=verbose, parameters=parameters)
-
-del seq_domain
+#-------------------------------------------------------------------------
+# Distribute domain
+#-------------------------------------------------------------------------
+domain = distribute(domain,verbose=verbose)
 
 
 t2 = time.time()
@@ -119,20 +119,6 @@ class Set_Stage:
 
 
 if myid == 0 : print 'after set quantity'
-
-# Set Evolve parameters
-domain.set_flow_algorithm('2_0')
-
-
-
-
-#domain.update_ghosts()
-
-
-#print 'after evolve parameters'
-
-
-#import pdb; pdb.set_trace()
 
 
 

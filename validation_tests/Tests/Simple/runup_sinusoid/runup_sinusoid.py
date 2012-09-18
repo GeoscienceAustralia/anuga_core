@@ -8,23 +8,14 @@ import anuga
 import numpy
 
 from math import sin, pi, exp
-from anuga.shallow_water.shallow_water_domain import Domain as Domain
-#from anuga.shallow_water_balanced2.swb2_domain import Domain as Domain
-#path.append('/home/gareth/storage/anuga_clean/anuga_jan12/trunk/anuga_work/development/gareth/balanced_basic')
-#from swb2_domain import *
-#from balanced_basic import *
-#from balanced_dev import *
+
+from anuga import Domain
+
 #---------
 #Setup computational domain
 #---------
-points, vertices, boundary = anuga.rectangular_cross(40,40, len1=1., len2=1.)
+domain = anuga.rectangular_cross_domain(40,40, len1=1., len2=1.)
 
-domain=Domain(points,vertices,boundary)    # Create Domain
-domain.set_name('runup_sinusoid_v2')                         # Output to file runup.sww
-domain.set_datadir('.')                          # Use current folder
-domain.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 'ymomentum': 2, 'elevation': 1})
-#domain.set_store_vertices_uniquely(True)
-#domain.minimum_allowed_height=0.001
 
 #------------------------------------------------------------------------------
 # Setup Algorithm, either using command line arguments
@@ -34,6 +25,14 @@ from anuga.utilities.argparsing import parse_standard_args
 alg, cfl = parse_standard_args()
 domain.set_flow_algorithm(alg)
 domain.set_CFL(cfl)
+
+
+domain.set_name('runup_sinusoid_v2')                         # Output to file runup.sww
+domain.set_datadir('.')                          # Use current folder
+domain.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 'ymomentum': 2, 'elevation': 1})
+#domain.set_store_vertices_uniquely(True)
+domain.set_minimum_allowed_height(0.01)
+
 
 
 #------------------
@@ -86,7 +85,7 @@ domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom':Br})
 #Evolve the system through time
 #------------------------------
 
-for t in domain.evolve(yieldstep=0.1,finaltime=20.0):
+for t in domain.evolve(yieldstep=0.5,finaltime=20.0):
     print domain.timestepping_statistics()
     xx = domain.quantities['xmomentum'].centroid_values
     yy = domain.quantities['ymomentum'].centroid_values

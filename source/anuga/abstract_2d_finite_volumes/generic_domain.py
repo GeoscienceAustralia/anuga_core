@@ -140,6 +140,7 @@ class Generic_Domain:
 
         self.geo_reference = self.mesh.geo_reference
 
+        self.verbose = verbose
 
         if verbose: log.critical('Domain: Expose quantity names and types')
         # List of quantity names entering the conservation equations

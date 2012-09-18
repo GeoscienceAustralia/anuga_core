@@ -29,7 +29,7 @@ if True:
         line.set_ydata(p2.xvel[i,v])
         pyplot.draw()
         pyplot.plot( (0,1),(0,0), 'r' )
-        pyplot.title(str(i)+'/200') # : velocity does not converge to zero' )
+        pyplot.title(str(i)+'/40') # : velocity does not converge to zero' )
         pyplot.xlabel('x')
         pyplot.ylabel('Velocity (m/s)')
 
