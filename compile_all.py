@@ -69,7 +69,7 @@ if sys.platform == 'win32':
 else:
     if os.name == 'posix':
         if os.uname()[4] in ['x86_64', 'ia64']:
-            options = 'COPTIONS="-fPIC"'
+            options = ' '
 
 make_command = 'make %s > %s' % (options, make_logfile)
 print make_command

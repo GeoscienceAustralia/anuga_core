@@ -311,7 +311,7 @@ class Fit(FitInterpolate):
             print '['+60*' '+']',
             sys.stdout.flush()
 
-        m = n/60
+        m = max(n/60,1)
 
 
         for i in xrange(n):
