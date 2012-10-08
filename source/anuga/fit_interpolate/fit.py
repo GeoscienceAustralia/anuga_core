@@ -274,8 +274,8 @@ class Fit(FitInterpolate):
         """
 
 
-        if verbose:
-            print 'Fit: Build Matrix AtA Atz'
+        #if verbose:
+        #    print 'Fit: Build Matrix AtA Atz'
 
         # Build n x m interpolation matrix
         if self.AtA == None:
@@ -308,25 +308,33 @@ class Fit(FitInterpolate):
 
 
         if verbose :
-            print '['+60*' '+']',
+            #print '['+60*' '+']',
+            print '\b.',
             sys.stdout.flush()
 
-        m = max(n/60,1)
+        #m = max(n/60,1)
 
 
-        for i in xrange(n):
-            d = inside_indices[i]
+        for d in xrange(n):
+            i = inside_indices[d]
+
+#        for d, i in enumerate(inside_indices):
+#            # For each data_coordinate point
+#            # if verbose and d%((n+10)/10)==0: log.critical('Doing %d of %d'
+#                                                            # %(d, n))
+#            x = point_coordinates[i]
+
             # For each data_coordinate point
             # if verbose and d%((n+10)/10)==0: log.critical('Doing %d of %d'
                                                             # %(d, n))
 
 
-            if verbose and i%m == 0 :
-                print '\r['+(i/m)*'.'+(60-(i/m))*' '+']',
-                sys.stdout.flush()
+            #if verbose and i%m == 0 :
+            #    print '\r['+(i/m)*'.'+(60-(i/m))*' '+']',
+            #    sys.stdout.flush()
 
 
-            x = point_coordinates[d]
+            x = point_coordinates[i]
             
             element_found, sigma0, sigma1, sigma2, k = \
                            self.root.search_fast(x)
@@ -355,8 +363,8 @@ class Fit(FitInterpolate):
                 # data point has fallen within a hole - so ignore it.
 
 
-        if verbose:
-            print ''
+        #if verbose:
+        #    print ''
             
         self.AtA = AtA
 
@@ -365,7 +373,7 @@ class Fit(FitInterpolate):
             verbose=False,
             point_origin=None,
             attribute_name=None,
-            max_read_lines=500):
+            max_read_lines=None):
         """Fit a smooth surface to given 1d array of data points z.
 
         The smooth surface is computed at each vertex in the underlying
@@ -397,11 +405,13 @@ class Fit(FitInterpolate):
 
 
             for i, geo_block in enumerate(G_data):
-                if verbose is True and 0 == i%200: 
+
+                if verbose is True and 0 == i%200:
+                    pass
                     # The time this will take
                     # is dependant on the # of Triangles
                         
-                    log.critical('Processing Block %d' % i)
+                    #log.critical('Processing Block %d' % i)
                     # FIXME (Ole): It would be good to say how many blocks
                     # there are here. But this is no longer necessary
                     # for pts files as they are reported in geospatial_data
@@ -429,6 +439,7 @@ class Fit(FitInterpolate):
             point_coordinates =  point_coordinates_or_filename
 
 
+        if verbose: print ''
 
         if point_coordinates is None:
             if verbose: log.critical('Fit.fit: Warning: no data points in fit')
@@ -477,8 +488,9 @@ class Fit(FitInterpolate):
         if verbose:
             print 'Fit.fit: Solve Fitting Equation'
 
+        #x0 = num.zeros_like(self.Atz)
         return conjugate_gradient(self.B, self.Atz, self.Atz,
-                                  imax=2*len(self.Atz) )
+                                  imax=2*len(self.Atz), iprint=1)
 
         
     def build_fit_subset(self, point_coordinates, z=None, attribute_name=None,
@@ -519,6 +531,1213 @@ class Fit(FitInterpolate):
 
 
 ############################################################################
+
+#class Fit_old(FitInterpolate):
+#
+#    def __init__(self,
+#                 vertex_coordinates=None,
+#                 triangles=None,
+#                 mesh=None,
+#                 mesh_origin=None,
+#                 alpha = None,
+#                 verbose=False):
+#
+#
+#        """
+#        Fit data at points to the vertices of a mesh.
+#
+#        Inputs:
+#
+#          vertex_coordinates: List of coordinate pairs [xi, eta] of
+#	      points constituting a mesh (or an m x 2 numeric array or
+#              a geospatial object)
+#              Points may appear multiple times
+#              (e.g. if vertices have discontinuities)
+#
+#          triangles: List of 3-tuples (or a numeric array) of
+#              integers representing indices of all vertices in the mesh.
+#
+#          mesh_origin: A geo_reference object or 3-tuples consisting of
+#              UTM zone, easting and northing.
+#              If specified vertex coordinates are assumed to be
+#              relative to their respective origins.
+#
+#          Note: Don't supply a vertex coords as a geospatial object and
+#              a mesh origin, since geospatial has its own mesh origin.
+#
+#
+#        Usage,
+#        To use this in a blocking way, call  build_fit_subset, with z info,
+#        and then fit, with no point coord, z info.
+#
+#        """
+#        # Initialise variabels
+#        if alpha is None:
+#            self.alpha = DEFAULT_ALPHA
+#        else:
+#            self.alpha = alpha
+#
+#        FitInterpolate.__init__(self,
+#                 vertex_coordinates,
+#                 triangles,
+#                 mesh,
+#                 mesh_origin,
+#                 verbose)
+#
+#        m = self.mesh.number_of_nodes # Nbr of basis functions (vertices)
+#
+#        self.AtA = None
+#        self.Atz = None
+#
+#        self.point_count = 0
+#        if self.alpha <> 0:
+#            if verbose: log.critical('Fit: Building smoothing matrix')
+#            self._build_smoothing_matrix_D(verbose=verbose)
+#
+#        bd_poly = self.mesh.get_boundary_polygon()
+#        self.mesh_boundary_polygon = ensure_numeric(bd_poly)
+#
+#    def _build_coefficient_matrix_B(self,
+#                                  verbose = False):
+#        """
+#        Build final coefficient matrix
+#
+#        Precon
+#        If alpha is not zero, matrix D has been built
+#        Matrix Ata has been built
+#        """
+#
+#        if self.alpha <> 0:
+#            #if verbose: log.critical('Building smoothing matrix')
+#            #self._build_smoothing_matrix_D()
+#            self.B = self.AtA + self.alpha*self.D
+#        else:
+#            self.B = self.AtA
+#
+#        # Convert self.B matrix to CSR format for faster matrix vector
+#        self.B = Sparse_CSR(self.B)
+#
+#    def _build_smoothing_matrix_D(self):
+#        """Build m x m smoothing matrix, where
+#        m is the number of basis functions phi_k (one per vertex)
+#
+#        The smoothing matrix is defined as
+#
+#        D = D1 + D2
+#
+#        where
+#
+#        [D1]_{k,l} = \int_\Omega
+#           \frac{\partial \phi_k}{\partial x}
+#           \frac{\partial \phi_l}{\partial x}\,
+#           dx dy
+#
+#        [D2]_{k,l} = \int_\Omega
+#           \frac{\partial \phi_k}{\partial y}
+#           \frac{\partial \phi_l}{\partial y}\,
+#           dx dy
+#
+#
+#        The derivatives \frac{\partial \phi_k}{\partial x},
+#        \frac{\partial \phi_k}{\partial x} for a particular triangle
+#        are obtained by computing the gradient a_k, b_k for basis function k
+#        """
+#
+#        # FIXME: algorithm might be optimised by computing local 9x9
+#        # "element stiffness matrices:
+#
+#        m = self.mesh.number_of_nodes # Nbr of basis functions (1/vertex)
+#
+#        self.D = Sparse(m,m)
+#
+#        # For each triangle compute contributions to D = D1+D2
+#        for i in range(len(self.mesh)):
+#
+#            # Get area
+#            area = self.mesh.areas[i]
+#
+#            # Get global vertex indices
+#            v0 = self.mesh.triangles[i,0]
+#            v1 = self.mesh.triangles[i,1]
+#            v2 = self.mesh.triangles[i,2]
+#
+#            # Get the three vertex_points
+#            xi0 = self.mesh.get_vertex_coordinate(i, 0)
+#            xi1 = self.mesh.get_vertex_coordinate(i, 1)
+#            xi2 = self.mesh.get_vertex_coordinate(i, 2)
+#
+#            # Compute gradients for each vertex
+#            a0, b0 = gradient(xi0[0], xi0[1], xi1[0], xi1[1], xi2[0], xi2[1],
+#                              1, 0, 0)
+#
+#            a1, b1 = gradient(xi0[0], xi0[1], xi1[0], xi1[1], xi2[0], xi2[1],
+#                              0, 1, 0)
+#
+#            a2, b2 = gradient(xi0[0], xi0[1], xi1[0], xi1[1], xi2[0], xi2[1],
+#                              0, 0, 1)
+#
+#            # Compute diagonal contributions
+#            self.D[v0,v0] += (a0*a0 + b0*b0)*area
+#            self.D[v1,v1] += (a1*a1 + b1*b1)*area
+#            self.D[v2,v2] += (a2*a2 + b2*b2)*area
+#
+#            # Compute contributions for basis functions sharing edges
+#            e01 = (a0*a1 + b0*b1)*area
+#            self.D[v0,v1] += e01
+#            self.D[v1,v0] += e01
+#
+#            e12 = (a1*a2 + b1*b2)*area
+#            self.D[v1,v2] += e12
+#            self.D[v2,v1] += e12
+#
+#            e20 = (a2*a0 + b2*b0)*area
+#            self.D[v2,v0] += e20
+#            self.D[v0,v2] += e20
+#
+#    def get_D(self):
+#        return self.D.todense()
+#
+#
+#
+#    def _build_matrix_AtA_Atz(self,
+#                              point_coordinates,
+#                              z,
+#                              verbose = False):
+#        """Build:
+#        AtA  m x m  interpolation matrix, and,
+#        Atz  m x a  interpolation matrix where,
+#        m is the number of basis functions phi_k (one per vertex)
+#        a is the number of data attributes
+#
+#        This algorithm uses a quad tree data structure for fast binning of
+#        data points.
+#
+#        If Ata is None, the matrices AtA and Atz are created.
+#
+#        This function can be called again and again, with sub-sets of
+#        the point coordinates.  Call fit to get the results.
+#
+#        Preconditions
+#        z and points are numeric
+#        Point_coordindates and mesh vertices have the same origin.
+#
+#        The number of attributes of the data points does not change
+#        """
+#
+#        # Build n x m interpolation matrix
+#        if self.AtA == None:
+#            # AtA and Atz need to be initialised.
+#            m = self.mesh.number_of_nodes
+#            if len(z.shape) > 1:
+#                att_num = z.shape[1]
+#                self.Atz = num.zeros((m,att_num), num.float)
+#            else:
+#                att_num = 1
+#                self.Atz = num.zeros((m,), num.float)
+#            assert z.shape[0] == point_coordinates.shape[0]
+#
+#            AtA = Sparse(m,m)
+#            # The memory damage has been done by now.
+#        else:
+#             AtA = self.AtA # Did this for speed, did ~nothing
+#        self.point_count += point_coordinates.shape[0]
+#
+#
+#        inside_indices = inside_polygon(point_coordinates,
+#                                        self.mesh_boundary_polygon,
+#                                        closed=True,
+#                                        verbose=False) # Suppress output
+#
+#        n = len(inside_indices)
+#
+#        # Compute matrix elements for points inside the mesh
+#        triangles = self.mesh.triangles # Shorthand
+#        for d, i in enumerate(inside_indices):
+#            # For each data_coordinate point
+#            # if verbose and d%((n+10)/10)==0: log.critical('Doing %d of %d'
+#                                                            # %(d, n))
+#            x = point_coordinates[i]
+#
+#            element_found, sigma0, sigma1, sigma2, k = \
+#                           self.root.search_fast(x)
+#
+#            if element_found is True:
+#                j0 = triangles[k,0] # Global vertex id for sigma0
+#                j1 = triangles[k,1] # Global vertex id for sigma1
+#                j2 = triangles[k,2] # Global vertex id for sigma2
+#
+#                sigmas = {j0:sigma0, j1:sigma1, j2:sigma2}
+#                js     = [j0,j1,j2]
+#
+#                for j in js:
+#                    self.Atz[j] +=  sigmas[j]*z[i]
+#
+#                    for k in js:
+#                        AtA[j,k] += sigmas[j]*sigmas[k]
+#            else:
+#                flag = is_inside_polygon(x,
+#                                         self.mesh_boundary_polygon,
+#                                         closed=True,
+#                                         verbose=False) # Suppress output
+#                msg = 'Point (%f, %f) is not inside mesh boundary' % tuple(x)
+#                assert flag is True, msg
+#
+#                # data point has fallen within a hole - so ignore it.
+#
+#        self.AtA = AtA
+#
+#
+#    def fit(self, point_coordinates_or_filename=None, z=None,
+#            verbose=False,
+#            point_origin=None,
+#            attribute_name=None,
+#            max_read_lines=500):
+#        """Fit a smooth surface to given 1d array of data points z.
+#
+#        The smooth surface is computed at each vertex in the underlying
+#        mesh using the formula given in the module doc string.
+#
+#        Inputs:
+#        point_coordinates: The co-ordinates of the data points.
+#              List of coordinate pairs [x, y] of
+#	      data points or an nx2 numeric array or a Geospatial_data object
+#              or points file filename
+#          z: Single 1d vector or array of data at the point_coordinates.
+#
+#        """
+#
+#        # Use blocking to load in the point info
+#        if isinstance(point_coordinates_or_filename, basestring):
+#            msg = "Don't set a point origin when reading from a file"
+#            assert point_origin is None, msg
+#            filename = point_coordinates_or_filename
+#
+#            G_data = Geospatial_data(filename,
+#                                     max_read_lines=max_read_lines,
+#                                     load_file_now=False,
+#                                     verbose=verbose)
+#
+#            for i, geo_block in enumerate(G_data):
+#                if verbose is True and 0 == i%200:
+#                    # The time this will take
+#                    # is dependant on the # of Triangles
+#
+#                    log.critical('Processing Block %d' % i)
+#                    # FIXME (Ole): It would be good to say how many blocks
+#                    # there are here. But this is no longer necessary
+#                    # for pts files as they are reported in geospatial_data
+#                    # I suggest deleting this verbose output and make
+#                    # Geospatial_data more informative for txt files.
+#                    #
+#                    # I still think so (12/12/7, Ole).
+#
+#
+#
+#                # Build the array
+#
+#                points = geo_block.get_data_points(absolute=True)
+#                z = geo_block.get_attributes(attribute_name=attribute_name)
+#                self.build_fit_subset(points, z, verbose=verbose)
+#
+#                # FIXME(Ole): I thought this test would make sense here
+#                # See test_fitting_example_that_crashed_2 in test_shallow_water_domain.py
+#                # Committed 11 March 2009
+#                msg = 'Matrix AtA was not built'
+#                assert self.AtA is not None, msg
+#
+#            point_coordinates = None
+#        else:
+#            point_coordinates =  point_coordinates_or_filename
+#
+#        if point_coordinates is None:
+#            if verbose: log.critical('Warning: no data points in fit')
+#            msg = 'No interpolation matrix.'
+#            assert self.AtA is not None, msg
+#            assert self.Atz is not None
+#
+#            # FIXME (DSG) - do  a message
+#        else:
+#            point_coordinates = ensure_absolute(point_coordinates,
+#                                                geo_reference=point_origin)
+#            # if isinstance(point_coordinates,Geospatial_data) and z is None:
+#            # z will come from the geo-ref
+#            self.build_fit_subset(point_coordinates, z, verbose)
+#
+#        # Check sanity
+#        m = self.mesh.number_of_nodes # Nbr of basis functions (1/vertex)
+#        n = self.point_count
+#        if n<m and self.alpha == 0.0:
+#            msg = 'ERROR (least_squares): Too few data points\n'
+#            msg += 'There are only %d data points and alpha == 0. ' %n
+#	    msg += 'Need at least %d\n' %m
+#            msg += 'Alternatively, set smoothing parameter alpha to a small '
+#	    msg += 'positive value,\ne.g. 1.0e-3.'
+#            raise TooFewPointsError(msg)
+#
+#        self._build_coefficient_matrix_B(verbose)
+#        loners = self.mesh.get_lone_vertices()
+#        # FIXME  - make this as error message.
+#        # test with
+#        # Not_yet_test_smooth_att_to_mesh_with_excess_verts.
+#        if len(loners)>0:
+#            msg = 'WARNING: (least_squares): \nVertices with no triangles\n'
+#            msg += 'All vertices should be part of a triangle.\n'
+#            msg += 'In the future this will be inforced.\n'
+#	    msg += 'The following vertices are not part of a triangle;\n'
+#            msg += str(loners)
+#            log.critical(msg)
+#            #raise VertsWithNoTrianglesError(msg)
+#
+#
+#        return conjugate_gradient(self.B, self.Atz, self.Atz,
+#                                  imax=2*len(self.Atz) )
+#
+#
+#    def build_fit_subset(self, point_coordinates, z=None, attribute_name=None,
+#                              verbose=False):
+#        """Fit a smooth surface to given 1d array of data points z.
+#
+#        The smooth surface is computed at each vertex in the underlying
+#        mesh using the formula given in the module doc string.
+#
+#        Inputs:
+#        point_coordinates: The co-ordinates of the data points.
+#              List of coordinate pairs [x, y] of
+#	      data points or an nx2 numeric array or a Geospatial_data object
+#        z: Single 1d vector or array of data at the point_coordinates.
+#        attribute_name: Used to get the z values from the
+#              geospatial object if no attribute_name is specified,
+#              it's a bit of a lucky dip as to what attributes you get.
+#              If there is only one attribute it will be that one.
+#
+#        """
+#
+#        # FIXME(DSG-DSG): Check that the vert and point coords
+#        # have the same zone.
+#        if isinstance(point_coordinates,Geospatial_data):
+#            point_coordinates = point_coordinates.get_data_points( \
+#                absolute = True)
+#
+#        # Convert input to numeric arrays
+#        if z is not None:
+#            z = ensure_numeric(z, num.float)
+#        else:
+#            msg = 'z not specified'
+#            assert isinstance(point_coordinates,Geospatial_data), msg
+#            z = point_coordinates.get_attributes(attribute_name)
+#
+#        point_coordinates = ensure_numeric(point_coordinates, num.float)
+#        self._build_matrix_AtA_Atz(point_coordinates, z, verbose)
+#
+#
+
+
+#===========================================================================
+
+#class Fit_test(FitInterpolate):
+#
+#    def __init__(self,
+#                 vertex_coordinates=None,
+#                 triangles=None,
+#                 mesh=None,
+#                 mesh_origin=None,
+#                 alpha = None,
+#                 verbose=False):
+#
+#
+#        """
+#        Fit data at points to the vertices of a mesh.
+#
+#        Inputs:
+#
+#          vertex_coordinates: List of coordinate pairs [xi, eta] of
+#	      points constituting a mesh (or an m x 2 numeric array or
+#              a geospatial object)
+#              Points may appear multiple times
+#              (e.g. if vertices have discontinuities)
+#
+#          triangles: List of 3-tuples (or a numeric array) of
+#              integers representing indices of all vertices in the mesh.
+#
+#          mesh_origin: A geo_reference object or 3-tuples consisting of
+#              UTM zone, easting and northing.
+#              If specified vertex coordinates are assumed to be
+#              relative to their respective origins.
+#
+#          Note: Don't supply a vertex coords as a geospatial object and
+#              a mesh origin, since geospatial has its own mesh origin.
+#
+#
+#        Usage,
+#        To use this in a blocking way, call  build_fit_subset, with z info,
+#        and then fit, with no point coord, z info.
+#
+#        """
+#        # Initialise variabels
+#        if alpha is None:
+#            self.alpha = DEFAULT_ALPHA
+#        else:
+#            self.alpha = alpha
+#
+#        FitInterpolate.__init__(self,
+#                 vertex_coordinates,
+#                 triangles,
+#                 mesh,
+#                 mesh_origin,
+#                 verbose)
+#
+#        m = self.mesh.number_of_nodes # Nbr of basis functions (vertices)
+#
+#        self.AtA = None
+#        self.Atz = None
+#
+#        self.point_count = 0
+#        if self.alpha <> 0:
+#            if verbose: log.critical('Fit: Building smoothing matrix')
+#            self._build_smoothing_matrix_D(verbose=verbose)
+#
+#        if verbose: log.critical('Fit: Get Boundary Polygon')
+#        bd_poly = self.mesh.get_boundary_polygon()
+#        self.mesh_boundary_polygon = ensure_numeric(bd_poly)
+#
+#    def _build_coefficient_matrix_B(self,
+#                                  verbose = False):
+#        """
+#        Build final coefficient matrix
+#
+#        Precon
+#        If alpha is not zero, matrix D has been built
+#        Matrix Ata has been built
+#        """
+#
+#        if verbose:
+#            print 'Fit: Build Coefficient Matrix B'
+#
+#
+#        if self.alpha <> 0:
+#            #if verbose: log.critical('Building smoothing matrix')
+#            #self._build_smoothing_matrix_D()
+#            # FIXME SR: This is quite time consuming.
+#            # As AtA and D have same structure it should be possible
+#            # to speed this up.
+#            self.B = self.AtA + self.alpha*self.D
+#        else:
+#            self.B = self.AtA
+#
+#
+#        if verbose:
+#            print 'Fit: Convert Coefficient Matrix B to Sparse_CSR'
+#
+#        # Convert self.B matrix to CSR format for faster matrix vector
+#        self.B = Sparse_CSR(self.B)
+#
+#    def _build_coefficient_matrix_B_old(self,
+#                                  verbose = False):
+#        """
+#        Build final coefficient matrix
+#
+#        Precon
+#        If alpha is not zero, matrix D has been built
+#        Matrix Ata has been built
+#        """
+#
+#        if self.alpha <> 0:
+#            #if verbose: log.critical('Building smoothing matrix')
+#            #self._build_smoothing_matrix_D()
+#            self.B = self.AtA + self.alpha*self.D
+#        else:
+#            self.B = self.AtA
+#
+#        # Convert self.B matrix to CSR format for faster matrix vector
+#        self.B = Sparse_CSR(self.B)
+#
+#    def _build_smoothing_matrix_D(self, verbose=False):
+#        """Build m x m smoothing matrix, where
+#        m is the number of basis functions phi_k (one per vertex)
+#
+#        The smoothing matrix is defined as
+#
+#        D = D1 + D2
+#
+#        where
+#
+#        [D1]_{k,l} = \int_\Omega
+#           \frac{\partial \phi_k}{\partial x}
+#           \frac{\partial \phi_l}{\partial x}\,
+#           dx dy
+#
+#        [D2]_{k,l} = \int_\Omega
+#           \frac{\partial \phi_k}{\partial y}
+#           \frac{\partial \phi_l}{\partial y}\,
+#           dx dy
+#
+#
+#        The derivatives \frac{\partial \phi_k}{\partial x},
+#        \frac{\partial \phi_k}{\partial x} for a particular triangle
+#        are obtained by computing the gradient a_k, b_k for basis function k
+#        """
+#
+#        # FIXME: algorithm might be optimised by computing local 9x9
+#        # "element stiffness matrices:
+#
+#        m = self.mesh.number_of_nodes # Nbr of basis functions (1/vertex)
+#
+#        self.D = Sparse(m,m)
+#
+#        if verbose :
+#            print '['+60*' '+']',
+#            sys.stdout.flush()
+#
+#        N = len(self.mesh)
+#        M = N/60
+#
+#        # For each triangle compute contributions to D = D1+D2
+#        for i in xrange(N):
+#
+#            if verbose and i%M == 0 :
+#                #restart_line()
+#                print '\r['+(i/M)*'.'+(60-(i/M))*' ' +']',
+#                sys.stdout.flush()
+#
+#            # Get area
+#            area = self.mesh.areas[i]
+#
+#            # Get global vertex indices
+#            v0 = self.mesh.triangles[i,0]
+#            v1 = self.mesh.triangles[i,1]
+#            v2 = self.mesh.triangles[i,2]
+#
+#            # Get the three vertex_points
+#            xi0 = self.mesh.get_vertex_coordinate(i, 0)
+#            xi1 = self.mesh.get_vertex_coordinate(i, 1)
+#            xi2 = self.mesh.get_vertex_coordinate(i, 2)
+#
+#            # Compute gradients for each vertex
+#            a0, b0 = gradient(xi0[0], xi0[1], xi1[0], xi1[1], xi2[0], xi2[1],
+#                              1, 0, 0)
+#
+#            a1, b1 = gradient(xi0[0], xi0[1], xi1[0], xi1[1], xi2[0], xi2[1],
+#                              0, 1, 0)
+#
+#            a2, b2 = gradient(xi0[0], xi0[1], xi1[0], xi1[1], xi2[0], xi2[1],
+#                              0, 0, 1)
+#
+#            # Compute diagonal contributions
+#            self.D[v0,v0] += (a0*a0 + b0*b0)*area
+#            self.D[v1,v1] += (a1*a1 + b1*b1)*area
+#            self.D[v2,v2] += (a2*a2 + b2*b2)*area
+#
+#            # Compute contributions for basis functions sharing edges
+#            e01 = (a0*a1 + b0*b1)*area
+#            self.D[v0,v1] += e01
+#            self.D[v1,v0] += e01
+#
+#            e12 = (a1*a2 + b1*b2)*area
+#            self.D[v1,v2] += e12
+#            self.D[v2,v1] += e12
+#
+#            e20 = (a2*a0 + b2*b0)*area
+#            self.D[v2,v0] += e20
+#            self.D[v0,v2] += e20
+#
+#        if verbose:
+#            print ''
+#
+#
+#    def _build_smoothing_matrix_D_old(self):
+#        """Build m x m smoothing matrix, where
+#        m is the number of basis functions phi_k (one per vertex)
+#
+#        The smoothing matrix is defined as
+#
+#        D = D1 + D2
+#
+#        where
+#
+#        [D1]_{k,l} = \int_\Omega
+#           \frac{\partial \phi_k}{\partial x}
+#           \frac{\partial \phi_l}{\partial x}\,
+#           dx dy
+#
+#        [D2]_{k,l} = \int_\Omega
+#           \frac{\partial \phi_k}{\partial y}
+#           \frac{\partial \phi_l}{\partial y}\,
+#           dx dy
+#
+#
+#        The derivatives \frac{\partial \phi_k}{\partial x},
+#        \frac{\partial \phi_k}{\partial x} for a particular triangle
+#        are obtained by computing the gradient a_k, b_k for basis function k
+#        """
+#
+#        # FIXME: algorithm might be optimised by computing local 9x9
+#        # "element stiffness matrices:
+#
+#        m = self.mesh.number_of_nodes # Nbr of basis functions (1/vertex)
+#
+#        self.D = Sparse(m,m)
+#
+#        # For each triangle compute contributions to D = D1+D2
+#        for i in range(len(self.mesh)):
+#
+#            # Get area
+#            area = self.mesh.areas[i]
+#
+#            # Get global vertex indices
+#            v0 = self.mesh.triangles[i,0]
+#            v1 = self.mesh.triangles[i,1]
+#            v2 = self.mesh.triangles[i,2]
+#
+#            # Get the three vertex_points
+#            xi0 = self.mesh.get_vertex_coordinate(i, 0)
+#            xi1 = self.mesh.get_vertex_coordinate(i, 1)
+#            xi2 = self.mesh.get_vertex_coordinate(i, 2)
+#
+#            # Compute gradients for each vertex
+#            a0, b0 = gradient(xi0[0], xi0[1], xi1[0], xi1[1], xi2[0], xi2[1],
+#                              1, 0, 0)
+#
+#            a1, b1 = gradient(xi0[0], xi0[1], xi1[0], xi1[1], xi2[0], xi2[1],
+#                              0, 1, 0)
+#
+#            a2, b2 = gradient(xi0[0], xi0[1], xi1[0], xi1[1], xi2[0], xi2[1],
+#                              0, 0, 1)
+#
+#            # Compute diagonal contributions
+#            self.D[v0,v0] += (a0*a0 + b0*b0)*area
+#            self.D[v1,v1] += (a1*a1 + b1*b1)*area
+#            self.D[v2,v2] += (a2*a2 + b2*b2)*area
+#
+#            # Compute contributions for basis functions sharing edges
+#            e01 = (a0*a1 + b0*b1)*area
+#            self.D[v0,v1] += e01
+#            self.D[v1,v0] += e01
+#
+#            e12 = (a1*a2 + b1*b2)*area
+#            self.D[v1,v2] += e12
+#            self.D[v2,v1] += e12
+#
+#            e20 = (a2*a0 + b2*b0)*area
+#            self.D[v2,v0] += e20
+#            self.D[v0,v2] += e20
+#
+#    def get_D(self):
+#        return self.D.todense()
+#
+#
+#    def _build_matrix_AtA_Atz(self,
+#                              point_coordinates,
+#                              z,
+#                              verbose = False):
+#        """Build:
+#        AtA  m x m  interpolation matrix, and,
+#        Atz  m x a  interpolation matrix where,
+#        m is the number of basis functions phi_k (one per vertex)
+#        a is the number of data attributes
+#
+#        This algorithm uses a quad tree data structure for fast binning of
+#        data points.
+#
+#        If Ata is None, the matrices AtA and Atz are created.
+#
+#        This function can be called again and again, with sub-sets of
+#        the point coordinates.  Call fit to get the results.
+#
+#        Preconditions
+#        z and points are numeric
+#        Point_coordindates and mesh vertices have the same origin.
+#
+#        The number of attributes of the data points does not change
+#        """
+#
+#
+#        #if verbose:
+#        #    print 'Fit: Build Matrix AtA Atz'
+#
+#        # Build n x m interpolation matrix
+#        if self.AtA == None:
+#            # AtA and Atz need to be initialised.
+#            m = self.mesh.number_of_nodes
+#            if len(z.shape) > 1:
+#                att_num = z.shape[1]
+#                self.Atz = num.zeros((m,att_num), num.float)
+#            else:
+#                att_num = 1
+#                self.Atz = num.zeros((m,), num.float)
+#            assert z.shape[0] == point_coordinates.shape[0]
+#
+#            AtA = Sparse(m,m)
+#            # The memory damage has been done by now.
+#        else:
+#             AtA = self.AtA # Did this for speed, did ~nothing
+#        self.point_count += point_coordinates.shape[0]
+#
+#
+#        inside_indices = inside_polygon(point_coordinates,
+#                                        self.mesh_boundary_polygon,
+#                                        closed=True,
+#                                        verbose=False) # Suppress output
+#
+#        n = len(inside_indices)
+#
+#        # Compute matrix elements for points inside the mesh
+#        triangles = self.mesh.triangles # Shorthand
+#
+#
+#        #if verbose :
+#        #    print '['+60*' '+']',
+#        #    sys.stdout.flush()
+#
+#        m = max(n/60,1)
+#
+#
+#        for d in xrange(n):
+#            i = inside_indices[d]
+#
+##        for d, i in enumerate(inside_indices):
+##            # For each data_coordinate point
+##            # if verbose and d%((n+10)/10)==0: log.critical('Doing %d of %d'
+##                                                            # %(d, n))
+##            x = point_coordinates[i]
+#
+#            # For each data_coordinate point
+#            # if verbose and d%((n+10)/10)==0: log.critical('Doing %d of %d'
+#                                                            # %(d, n))
+#
+#
+#            #if verbose and i%m == 0 :
+#            #    print '\r['+(i/m)*'.'+(60-(i/m))*' '+']',
+#            #    sys.stdout.flush()
+#
+#
+#            x = point_coordinates[i]
+#
+#            element_found, sigma0, sigma1, sigma2, k = \
+#                           self.root.search_fast(x)
+#
+#            if element_found is True:
+#                j0 = triangles[k,0] # Global vertex id for sigma0
+#                j1 = triangles[k,1] # Global vertex id for sigma1
+#                j2 = triangles[k,2] # Global vertex id for sigma2
+#
+#                sigmas = {j0:sigma0, j1:sigma1, j2:sigma2}
+#                js     = [j0,j1,j2]
+#
+#                for j in js:
+#                    self.Atz[j] +=  sigmas[j]*z[i]
+#
+#                    for k in js:
+#                        AtA[j,k] += sigmas[j]*sigmas[k]
+#            else:
+#                flag = is_inside_polygon(x,
+#                                         self.mesh_boundary_polygon,
+#                                         closed=True,
+#                                         verbose=False) # Suppress output
+#                msg = 'Point (%f, %f) is not inside mesh boundary' % tuple(x)
+#                assert flag is True, msg
+#
+#                # data point has fallen within a hole - so ignore it.
+#
+#
+#        #if verbose:
+#        #    print ''
+#
+#        self.AtA = AtA
+#
+#
+#
+#    def _build_matrix_AtA_Atz_old(self,
+#                              point_coordinates,
+#                              z,
+#                              verbose = False):
+#        """Build:
+#        AtA  m x m  interpolation matrix, and,
+#        Atz  m x a  interpolation matrix where,
+#        m is the number of basis functions phi_k (one per vertex)
+#        a is the number of data attributes
+#
+#        This algorithm uses a quad tree data structure for fast binning of
+#        data points.
+#
+#        If Ata is None, the matrices AtA and Atz are created.
+#
+#        This function can be called again and again, with sub-sets of
+#        the point coordinates.  Call fit to get the results.
+#
+#        Preconditions
+#        z and points are numeric
+#        Point_coordindates and mesh vertices have the same origin.
+#
+#        The number of attributes of the data points does not change
+#        """
+#
+#        # Build n x m interpolation matrix
+#        if self.AtA == None:
+#            # AtA and Atz need to be initialised.
+#            m = self.mesh.number_of_nodes
+#            if len(z.shape) > 1:
+#                att_num = z.shape[1]
+#                self.Atz = num.zeros((m,att_num), num.float)
+#            else:
+#                att_num = 1
+#                self.Atz = num.zeros((m,), num.float)
+#            assert z.shape[0] == point_coordinates.shape[0]
+#
+#            AtA = Sparse(m,m)
+#            # The memory damage has been done by now.
+#        else:
+#             AtA = self.AtA # Did this for speed, did ~nothing
+#        self.point_count += point_coordinates.shape[0]
+#
+#
+#        inside_indices = inside_polygon(point_coordinates,
+#                                        self.mesh_boundary_polygon,
+#                                        closed=True,
+#                                        verbose=False) # Suppress output
+#
+#        n = len(inside_indices)
+#
+#        # Compute matrix elements for points inside the mesh
+#        triangles = self.mesh.triangles # Shorthand
+#        for d, i in enumerate(inside_indices):
+#            # For each data_coordinate point
+#            # if verbose and d%((n+10)/10)==0: log.critical('Doing %d of %d'
+#                                                            # %(d, n))
+#            x = point_coordinates[i]
+#
+#            element_found, sigma0, sigma1, sigma2, k = \
+#                           self.root.search_fast(x)
+#
+#            if element_found is True:
+#                j0 = triangles[k,0] # Global vertex id for sigma0
+#                j1 = triangles[k,1] # Global vertex id for sigma1
+#                j2 = triangles[k,2] # Global vertex id for sigma2
+#
+#                sigmas = {j0:sigma0, j1:sigma1, j2:sigma2}
+#                js     = [j0,j1,j2]
+#
+#                for j in js:
+#                    self.Atz[j] +=  sigmas[j]*z[i]
+#
+#                    for k in js:
+#                        AtA[j,k] += sigmas[j]*sigmas[k]
+#            else:
+#                flag = is_inside_polygon(x,
+#                                         self.mesh_boundary_polygon,
+#                                         closed=True,
+#                                         verbose=False) # Suppress output
+#                msg = 'Point (%f, %f) is not inside mesh boundary' % tuple(x)
+#                assert flag is True, msg
+#
+#                # data point has fallen within a hole - so ignore it.
+#
+#        self.AtA = AtA
+#
+#    def fit(self, point_coordinates_or_filename=None, z=None,
+#            verbose=False,
+#            point_origin=None,
+#            attribute_name=None,
+#            max_read_lines=None):
+#        """Fit a smooth surface to given 1d array of data points z.
+#
+#        The smooth surface is computed at each vertex in the underlying
+#        mesh using the formula given in the module doc string.
+#
+#        Inputs:
+#        point_coordinates: The co-ordinates of the data points.
+#              List of coordinate pairs [x, y] of
+#	      data points or an nx2 numeric array or a Geospatial_data object
+#              or points file filename
+#          z: Single 1d vector or array of data at the point_coordinates.
+#
+#        """
+#
+#
+#        if verbose:
+#            print 'Fit.fit: Initializing'
+#
+#        # Use blocking to load in the point info
+#        if isinstance(point_coordinates_or_filename, basestring):
+#            msg = "Don't set a point origin when reading from a file"
+#            assert point_origin is None, msg
+#            filename = point_coordinates_or_filename
+#
+#            G_data = Geospatial_data(filename,
+#                                     max_read_lines=max_read_lines,
+#                                     load_file_now=False,
+#                                     verbose=verbose)
+#
+#
+#            for i, geo_block in enumerate(G_data):
+#                if verbose is True and 0 == i%200:
+#                    # The time this will take
+#                    # is dependant on the # of Triangles
+#
+#                    log.critical('Processing Block %d' % i)
+#                    # FIXME (Ole): It would be good to say how many blocks
+#                    # there are here. But this is no longer necessary
+#                    # for pts files as they are reported in geospatial_data
+#                    # I suggest deleting this verbose output and make
+#                    # Geospatial_data more informative for txt files.
+#                    #
+#                    # I still think so (12/12/7, Ole).
+#
+#
+#
+#                # Build the array
+#
+#                points = geo_block.get_data_points(absolute=True)
+#                z = geo_block.get_attributes(attribute_name=attribute_name)
+#                self.build_fit_subset(points, z, attribute_name, verbose)
+#
+#                # FIXME(Ole): I thought this test would make sense here
+#                # See test_fitting_example_that_crashed_2 in test_shallow_water_domain.py
+#                # Committed 11 March 2009
+#                msg = 'Matrix AtA was not built'
+#                assert self.AtA is not None, msg
+#
+#            point_coordinates = None
+#        else:
+#            point_coordinates =  point_coordinates_or_filename
+#
+#
+#
+#        if point_coordinates is None:
+#            if verbose: log.critical('Fit.fit: Warning: no data points in fit')
+#            msg = 'No interpolation matrix.'
+#            assert self.AtA is not None, msg
+#            assert self.Atz is not None
+#
+#            # FIXME (DSG) - do  a message
+#        else:
+#            point_coordinates = ensure_absolute(point_coordinates,
+#                                                geo_reference=point_origin)
+#            # if isinstance(point_coordinates,Geospatial_data) and z is None:
+#            # z will come from the geo-ref
+#            self.build_fit_subset(point_coordinates, z, verbose=verbose)
+#
+#
+#
+#
+#
+#        # Check sanity
+#        m = self.mesh.number_of_nodes # Nbr of basis functions (1/vertex)
+#        n = self.point_count
+#        if n<m and self.alpha == 0.0:
+#            msg = 'ERROR (least_squares): Too few data points\n'
+#            msg += 'There are only %d data points and alpha == 0. ' %n
+#	    msg += 'Need at least %d\n' %m
+#            msg += 'Alternatively, set smoothing parameter alpha to a small '
+#	    msg += 'positive value,\ne.g. 1.0e-3.'
+#            raise TooFewPointsError(msg)
+#
+#
+#        self._build_coefficient_matrix_B(verbose)
+#        loners = self.mesh.get_lone_vertices()
+#        # FIXME  - make this as error message.
+#        # test with
+#        # Not_yet_test_smooth_att_to_mesh_with_excess_verts.
+#        if len(loners)>0:
+#            msg = 'WARNING: (least_squares): \nVertices with no triangles\n'
+#            msg += 'All vertices should be part of a triangle.\n'
+#            msg += 'In the future this will be inforced.\n'
+#	    msg += 'The following vertices are not part of a triangle;\n'
+#            msg += str(loners)
+#            log.critical(msg)
+#            #raise VertsWithNoTrianglesError(msg)
+#
+#        if verbose:
+#            print 'Fit.fit: Solve Fitting Equation'
+#
+#        x0 = num.zeros_like(self.Atz)
+#        return conjugate_gradient(self.B, self.Atz, x0,
+#                                  imax=2*len(self.Atz), iprint=1 )
+#
+#
+#    def fit_old(self, point_coordinates_or_filename=None, z=None,
+#            verbose=False,
+#            point_origin=None,
+#            attribute_name=None,
+#            max_read_lines=500):
+#        """Fit a smooth surface to given 1d array of data points z.
+#
+#        The smooth surface is computed at each vertex in the underlying
+#        mesh using the formula given in the module doc string.
+#
+#        Inputs:
+#        point_coordinates: The co-ordinates of the data points.
+#              List of coordinate pairs [x, y] of
+#	      data points or an nx2 numeric array or a Geospatial_data object
+#              or points file filename
+#          z: Single 1d vector or array of data at the point_coordinates.
+#
+#        """
+#
+#        if verbose: log.critical('Fit.fit: Start')
+#
+#        # Use blocking to load in the point info
+#        if isinstance(point_coordinates_or_filename, basestring):
+#            msg = "Don't set a point origin when reading from a file"
+#            assert point_origin is None, msg
+#            filename = point_coordinates_or_filename
+#
+#            G_data = Geospatial_data(filename,
+#                                     max_read_lines=max_read_lines,
+#                                     load_file_now=False,
+#                                     verbose=verbose)
+#
+#            for i, geo_block in enumerate(G_data):
+#                if verbose is True and 0 == i%200:
+#                    # The time this will take
+#                    # is dependant on the # of Triangles
+#
+#                    log.critical('Processing Block %d' % i)
+#                    # FIXME (Ole): It would be good to say how many blocks
+#                    # there are here. But this is no longer necessary
+#                    # for pts files as they are reported in geospatial_data
+#                    # I suggest deleting this verbose output and make
+#                    # Geospatial_data more informative for txt files.
+#                    #
+#                    # I still think so (12/12/7, Ole).
+#
+#
+#
+#                # Build the array
+#
+#                points = geo_block.get_data_points(absolute=True)
+#                z = geo_block.get_attributes(attribute_name=attribute_name)
+#                self.build_fit_subset(points, z, verbose=verbose)
+#
+#                # FIXME(Ole): I thought this test would make sense here
+#                # See test_fitting_example_that_crashed_2 in test_shallow_water_domain.py
+#                # Committed 11 March 2009
+#                msg = 'Matrix AtA was not built'
+#                assert self.AtA is not None, msg
+#
+#            point_coordinates = None
+#        else:
+#            point_coordinates =  point_coordinates_or_filename
+#
+#        if point_coordinates is None:
+#            if verbose: log.critical('Warning: no data points in fit')
+#            msg = 'No interpolation matrix.'
+#            assert self.AtA is not None, msg
+#            assert self.Atz is not None
+#
+#            # FIXME (DSG) - do  a message
+#        else:
+#            point_coordinates = ensure_absolute(point_coordinates,
+#                                                geo_reference=point_origin)
+#            # if isinstance(point_coordinates,Geospatial_data) and z is None:
+#            # z will come from the geo-ref
+#            self.build_fit_subset(point_coordinates, z, verbose)
+#
+#        # Check sanity
+#        m = self.mesh.number_of_nodes # Nbr of basis functions (1/vertex)
+#        n = self.point_count
+#        if n<m and self.alpha == 0.0:
+#            msg = 'ERROR (least_squares): Too few data points\n'
+#            msg += 'There are only %d data points and alpha == 0. ' %n
+#	    msg += 'Need at least %d\n' %m
+#            msg += 'Alternatively, set smoothing parameter alpha to a small '
+#	    msg += 'positive value,\ne.g. 1.0e-3.'
+#            raise TooFewPointsError(msg)
+#
+#        self._build_coefficient_matrix_B(verbose)
+#        loners = self.mesh.get_lone_vertices()
+#        # FIXME  - make this as error message.
+#        # test with
+#        # Not_yet_test_smooth_att_to_mesh_with_excess_verts.
+#        if len(loners)>0:
+#            msg = 'WARNING: (least_squares): \nVertices with no triangles\n'
+#            msg += 'All vertices should be part of a triangle.\n'
+#            msg += 'In the future this will be inforced.\n'
+#	    msg += 'The following vertices are not part of a triangle;\n'
+#            msg += str(loners)
+#            log.critical(msg)
+#            #raise VertsWithNoTrianglesError(msg)
+#
+#        if verbose: log.critical('Fit.fit: Conjugate Gradient')
+#        return conjugate_gradient(self.B, self.Atz, self.Atz,
+#                                  imax=2*len(self.Atz), iprint=1 )
+#
+#    def build_fit_subset(self, point_coordinates, z=None, attribute_name=None,
+#                              verbose=False):
+#        """Fit a smooth surface to given 1d array of data points z.
+#
+#        The smooth surface is computed at each vertex in the underlying
+#        mesh using the formula given in the module doc string.
+#
+#        Inputs:
+#        point_coordinates: The co-ordinates of the data points.
+#              List of coordinate pairs [x, y] of
+#	      data points or an nx2 numeric array or a Geospatial_data object
+#        z: Single 1d vector or array of data at the point_coordinates.
+#        attribute_name: Used to get the z values from the
+#              geospatial object if no attribute_name is specified,
+#              it's a bit of a lucky dip as to what attributes you get.
+#              If there is only one attribute it will be that one.
+#
+#        """
+#
+#        # FIXME(DSG-DSG): Check that the vert and point coords
+#        # have the same zone.
+#        if isinstance(point_coordinates,Geospatial_data):
+#            point_coordinates = point_coordinates.get_data_points( \
+#                absolute = True)
+#
+#        # Convert input to numeric arrays
+#        if z is not None:
+#            z = ensure_numeric(z, num.float)
+#        else:
+#            msg = 'z not specified'
+#            assert isinstance(point_coordinates,Geospatial_data), msg
+#            z = point_coordinates.get_attributes(attribute_name)
+#
+#        point_coordinates = ensure_numeric(point_coordinates, num.float)
+#        self._build_matrix_AtA_Atz(point_coordinates, z, verbose)
+#
+#
+#
+#    def build_fit_subset_old(self, point_coordinates, z=None, attribute_name=None,
+#                              verbose=False):
+#        """Fit a smooth surface to given 1d array of data points z.
+#
+#        The smooth surface is computed at each vertex in the underlying
+#        mesh using the formula given in the module doc string.
+#
+#        Inputs:
+#        point_coordinates: The co-ordinates of the data points.
+#              List of coordinate pairs [x, y] of
+#	      data points or an nx2 numeric array or a Geospatial_data object
+#        z: Single 1d vector or array of data at the point_coordinates.
+#        attribute_name: Used to get the z values from the
+#              geospatial object if no attribute_name is specified,
+#              it's a bit of a lucky dip as to what attributes you get.
+#              If there is only one attribute it will be that one.
+#
+#        """
+#
+#        # FIXME(DSG-DSG): Check that the vert and point coords
+#        # have the same zone.
+#        if isinstance(point_coordinates,Geospatial_data):
+#            point_coordinates = point_coordinates.get_data_points( \
+#                absolute = True)
+#
+#        # Convert input to numeric arrays
+#        if z is not None:
+#            z = ensure_numeric(z, num.float)
+#        else:
+#            msg = 'z not specified'
+#            assert isinstance(point_coordinates,Geospatial_data), msg
+#            z = point_coordinates.get_attributes(attribute_name)
+#
+#        point_coordinates = ensure_numeric(point_coordinates, num.float)
+#        self._build_matrix_AtA_Atz(point_coordinates, z, verbose)
+#
+
+#===============================================================================
+
 
 def fit_to_mesh(point_coordinates, # this can also be a points file name
                 vertex_coordinates=None,
