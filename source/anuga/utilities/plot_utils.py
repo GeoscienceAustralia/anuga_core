@@ -12,8 +12,14 @@
                        This is useful for plotting outputs which are 'almost' along a
                        transect (e.g. a channel cross-section) -- see example below
 
+    util.sort_sww_filenames -- match sww filenames by a wildcard, and order
+                               them according to their 'time'. This means that
+                               they can be stuck together using 'combine_outputs' correctly
 
+    util.triangle_areas -- compute the areas of every triangle in a get_outputs object [ must be vertex-based]
 
+    util.water_volume -- compute the water volume at every time step in an sww file (needs both vertex and centroid value input). 
+ 
     Here is an example ipython session which uses some of these functions:
 
     > import util
@@ -23,6 +29,10 @@
     > xxx=util.near_transect(p,[95., 85.], [120.,68.],tol=2.) # Could equally well use p2
     > pyplot.ion() # Interactive plotting
     > pyplot.scatter(xxx[1],p.vel[140,xxx[0]],color='red') # Plot along the transect
+
+    FIXME: TODO -- Convert to a single function 'get_output', which can either take a
+          single filename, a list of filenames, or a wildcard defining a number of
+          filenames, and ensure that in each case, the output will be as desired.
 
 """
 from Scientific.IO.NetCDF import NetCDFFile
@@ -79,7 +89,35 @@ class combine_outputs:
                 p1.x, p1.y, p1.time, p1.vols, p1.elev, p1.stage, p1.xmom, p1.ymom, p1.xvel,\
                 p1.yvel, p1.vel, p1.minimum_allowed_height
 
+####################
 
+def sort_sww_filenames(sww_wildcard):
+    # Function to take a 'wildcard' sww filename, 
+    # and return a list of all filenames of this type,
+    # sorted by their time.
+    # This can then be used efficiently in 'combine_outputs'
+    # if you have many filenames starting with the same pattern
+    import glob
+    filenames=glob.glob(sww_wildcard)
+    
+    # Extract time from filenames
+    file_time=range(len(filenames)) # Predefine
+     
+    for i,filename in enumerate(filenames):
+        filesplit=filename.rsplit('_time_')
+        if(len(filesplit)>1):
+            file_time[i]=int(filesplit[1].split('_0.sww')[0])
+        else:
+            file_time[i]=0         
+    
+    name_and_time=zip(file_time,filenames)
+    name_and_time.sort() # Sort by file_time
+    
+    output_times, output_names = zip(*name_and_time)
+    
+    return list(output_names)
+
+##############
 
 class get_output:
     """Read in data from an .sww file in a convenient form
@@ -336,3 +374,60 @@ def near_transect(p, point1, point2, tol=1.):
     local_coord = g1x*g2x + g1y*g2y
 
     return near_points, local_coord
+
+########################
+# TRIANGLE AREAS, WATER VOLUME
+def triangle_areas(p, subset='null'):
+    # Compute areas of triangles in p -- assumes p contains vertex information
+    # subset = vector of centroid indices to include in the computation. 
+
+    if(subset=='null'):
+        subset=range(len(p.vols[:,0]))
+    
+    x0=p.x[p.vols[subset,0]]
+    x1=p.x[p.vols[subset,1]]
+    x2=p.x[p.vols[subset,2]]
+    
+    y0=p.y[p.vols[subset,0]]
+    y1=p.y[p.vols[subset,1]]
+    y2=p.y[p.vols[subset,2]]
+    
+    # Vectors for cross-product
+    v1_x=x0-x1
+    v1_y=y0-y1
+    #
+    v2_x=x2-x1
+    v2_y=y2-y1
+    # Area
+    area=(v1_x*v2_y-v1_y*v2_x)*0.5
+    area=abs(area)
+    return area
+
+###
+
+def water_volume(p,p2, per_unit_area=False, subset='null'):
+    # Compute the water volume from p(vertex values) and p2(centroid values)
+
+    if(subset=='null'):
+        subset=range(len(p2.x))
+
+    l=len(p2.time)
+    area=triangle_areas(p, subset=subset)
+    
+    total_area=area.sum()
+    volume=p2.time*0.
+   
+    # This accounts for how volume is measured in ANUGA 
+    # Compute in 2 steps to reduce precision error (important sometimes)
+    for i in range(l):
+        #volume[i]=((p2.stage[i,subset]-p2.elev[subset])*(p2.stage[i,subset]>p2.elev[subset])*area).sum()
+        volume[i]=((p2.stage[i,subset])*(p2.stage[i,subset]>p2.elev[subset])*area).sum()
+        volume[i]=volume[i]+((-p2.elev[subset])*(p2.stage[i,subset]>p2.elev[subset])*area).sum()
+    
+    if(per_unit_area):
+        volume=volume/total_area 
+    
+    return volume
+
+
+
