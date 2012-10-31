@@ -4517,7 +4517,7 @@ double _compute_fluxes_central(int number_of_elements,
 double _compute_fluxes_central_structure(struct domain *D) {
 
     // Local variables
-    double max_speed, length, inv_area, zl, zr;
+    double max_speed, max_speed_total, length, inv_area, zl, zr;
     double timestep = 1.0e30;
     double h0 = D->H0 * D->H0; // This ensures a good balance when h approaches H0.
 
@@ -4547,6 +4547,7 @@ double _compute_fluxes_central_structure(struct domain *D) {
 
     // For all triangles
     for (k = 0; k < D->number_of_elements; k++) {
+        max_speed_total = 0.0;
         // Loop through neighbours and compute edge flux for each
         for (i = 0; i < 3; i++) {
             ki = k * 3 + i; // Linear index to edge i of triangle k
@@ -4670,7 +4671,10 @@ double _compute_fluxes_central_structure(struct domain *D) {
                 }
             }
 
+            max_speed_total = max(max_speed_total,max_speed);
         } // End edge i (and neighbour n)
+
+
 
 
         // Normalise triangle k by area and store for when all conserved
@@ -4682,7 +4686,7 @@ double _compute_fluxes_central_structure(struct domain *D) {
 
 
         // Keep track of maximal speeds
-        D->max_speed[k] = max_speed;
+        D->max_speed[k] = max_speed_total;
 
     } // End triangle k
 

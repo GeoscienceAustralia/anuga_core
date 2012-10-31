@@ -62,7 +62,9 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
             if self.enquiry_index in self.triangle_indices:
                 msg = 'Enquiry point %s' % (self.enquiry_pt)
                 msg += 'is in an inlet triangle'
-                raise Exception, msg
+                import warnings
+                warnings.warn(msg)
+
 
             if self.enquiry_proc >= 0: 
                 assert self.enquiry_proc == self.myid, "Specified enquiry proc does not match actual enquiry proc"

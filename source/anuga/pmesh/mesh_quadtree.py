@@ -61,11 +61,14 @@ class MeshQuadtree(Cell):
         
         normals = mesh.get_normals()
 
+        import time
+        t0 = time.time()
+
         if verbose :
             print '['+60*' '+']',
             sys.stdout.flush()
 
-        M = N/60
+        M = max(N/60, 1)
 
         # Check each triangle
         for i in xrange(N):
@@ -89,7 +92,7 @@ class MeshQuadtree(Cell):
                              node_data))
 
         if verbose:
-            print ''
+            print ' %f secs' % (time.time()-t0)
 
     def search_fast(self, point):
         """

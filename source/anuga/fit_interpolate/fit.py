@@ -184,6 +184,9 @@ class Fit(FitInterpolate):
 
         self.D = Sparse(m,m)
 
+        import time
+        t0 = time.time()
+
         if verbose :
             print '['+60*' '+']',
             sys.stdout.flush()
@@ -241,7 +244,7 @@ class Fit(FitInterpolate):
             self.D[v0,v2] += e20
 
         if verbose:
-            print ''
+            print ' %f secs' % (time.time()-t0)
 
     def get_D(self):
         return self.D.todense()
@@ -251,7 +254,10 @@ class Fit(FitInterpolate):
     def _build_matrix_AtA_Atz(self,
                               point_coordinates,
                               z,
-                              verbose = False):
+                              verbose = False,
+                              output=None):
+
+
         """Build:
         AtA  m x m  interpolation matrix, and,
         Atz  m x a  interpolation matrix where,
@@ -274,8 +280,11 @@ class Fit(FitInterpolate):
         """
 
 
-        #if verbose:
-        #    print 'Fit: Build Matrix AtA Atz'
+        if verbose and output == 'counter':
+            print 'Fit: Build Matrix AtA Atz'
+
+        import time
+        t0 = time.time()
 
         # Build n x m interpolation matrix
         if self.AtA == None:
@@ -307,12 +316,12 @@ class Fit(FitInterpolate):
         triangles = self.mesh.triangles # Shorthand
 
 
-        if verbose :
-            #print '['+60*' '+']',
-            print '\b.',
+        if verbose and output == 'counter' :
+            print '['+60*' '+']',
+            #print '\b.',
             sys.stdout.flush()
 
-        #m = max(n/60,1)
+        m = max(n/60,1)
 
 
         for d in xrange(n):
@@ -329,9 +338,9 @@ class Fit(FitInterpolate):
                                                             # %(d, n))
 
 
-            #if verbose and i%m == 0 :
-            #    print '\r['+(i/m)*'.'+(60-(i/m))*' '+']',
-            #    sys.stdout.flush()
+            if verbose and output == 'counter' and i%m == 0 :
+                print '\r['+(i/m)*'.'+(60-(i/m))*' '+']',
+                sys.stdout.flush()
 
 
             x = point_coordinates[i]
@@ -363,8 +372,8 @@ class Fit(FitInterpolate):
                 # data point has fallen within a hole - so ignore it.
 
 
-        #if verbose:
-        #    print ''
+        if verbose and output == 'counter':
+            print ' %f secs' % (time.time()-t0)
             
         self.AtA = AtA
 
@@ -428,6 +437,7 @@ class Fit(FitInterpolate):
                 z = geo_block.get_attributes(attribute_name=attribute_name)
                 self.build_fit_subset(points, z, attribute_name, verbose)
 
+
                 # FIXME(Ole): I thought this test would make sense here
                 # See test_fitting_example_that_crashed_2 in test_shallow_water_domain.py
                 # Committed 11 March 2009
@@ -435,11 +445,14 @@ class Fit(FitInterpolate):
                 assert self.AtA is not None, msg
 
             point_coordinates = None
+
+            if verbose: print ''
+            
         else:
             point_coordinates =  point_coordinates_or_filename
 
 
-        if verbose: print ''
+
 
         if point_coordinates is None:
             if verbose: log.critical('Fit.fit: Warning: no data points in fit')
@@ -453,7 +466,7 @@ class Fit(FitInterpolate):
                                                 geo_reference=point_origin)
             # if isinstance(point_coordinates,Geospatial_data) and z is None:
             # z will come from the geo-ref
-            self.build_fit_subset(point_coordinates, z, verbose=verbose)
+            self.build_fit_subset(point_coordinates, z, verbose=verbose, output='counter')
 
 
 
@@ -494,7 +507,7 @@ class Fit(FitInterpolate):
 
         
     def build_fit_subset(self, point_coordinates, z=None, attribute_name=None,
-                              verbose=False):
+                              verbose=False, output='dot'):
         """Fit a smooth surface to given 1d array of data points z.
 
         The smooth surface is computed at each vertex in the underlying
@@ -517,6 +530,7 @@ class Fit(FitInterpolate):
         if isinstance(point_coordinates,Geospatial_data):
             point_coordinates = point_coordinates.get_data_points( \
                 absolute = True)
+
         
         # Convert input to numeric arrays
         if z is not None:
@@ -527,7 +541,13 @@ class Fit(FitInterpolate):
             z = point_coordinates.get_attributes(attribute_name)
 
         point_coordinates = ensure_numeric(point_coordinates, num.float)
-        self._build_matrix_AtA_Atz(point_coordinates, z, verbose)
+        self._build_matrix_AtA_Atz(point_coordinates, z, verbose, output)
+        
+        if verbose and output == 'dot':
+            print '\b.',
+            sys.stdout.flush()
+
+
 
 
 ############################################################################

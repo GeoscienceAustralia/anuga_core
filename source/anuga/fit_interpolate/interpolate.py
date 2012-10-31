@@ -465,8 +465,8 @@ class Interpolate (FitInterpolate):
         # Update interpolation matrix A if necessary
             if element_found is True:
 
-                if verbose:
-                    print 'Point is within mesh:', d, i            
+                #if verbose:
+                #    print 'Point is within mesh:', d, i
             
                 inside_poly_indices.append(i)
                 

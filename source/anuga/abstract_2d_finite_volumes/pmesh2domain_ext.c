@@ -1,12 +1,10 @@
+#include "Python.h"
+#include "numpy/arrayobject.h"
+
 #include <stdio.h>   /* gets */
 #include <stdlib.h>  /* atoi, malloc */
 #include <string.h>  /* strcpy */
-
-
-
-#include "Python.h"
-#include "numpy/arrayobject.h"
-#include "math.h"
+#include <math.h>
 
 //Shared code snippets
 

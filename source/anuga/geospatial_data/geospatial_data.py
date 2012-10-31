@@ -155,7 +155,7 @@ class Geospatial_data:
 
             if verbose is True:
                 if file_name is not None:
-                    log.critical('Loading Geospatial data from file: %s'
+                    log.critical('Geospatial_data: Loading Geospatial data from file: %s'
                                  % file_name)
 
             self.import_points_file(file_name, verbose=verbose)
@@ -167,7 +167,7 @@ class Geospatial_data:
 
         if verbose is True:
             if file_name is not None:
-                log.critical('Geospatial data created from file: %s'
+                log.critical('Geospatial_data: Created from file: %s'
                              % file_name)
                 if load_file_now is False:
                     log.critical('Data will be loaded blockwise on demand')
@@ -378,8 +378,8 @@ class Geospatial_data:
                 # above line takes the first one from keys
 
         if self.verbose is True:
-            log.critical('Using attribute %s' % attribute_name)
-            log.critical('Available attributes: %s' % (self.attributes.keys()))
+            log.critical('Geospatial_data: Using attribute %s' % attribute_name)
+            log.critical('Geospatial_data: Available attributes: %s' % (self.attributes.keys()))
 
         msg = 'Attribute name %s does not exist in data set' % attribute_name
         assert self.attributes.has_key(attribute_name), msg
@@ -705,10 +705,10 @@ class Geospatial_data:
             # smaller and won't be included in this estimate.
 
             if self.verbose is True:
-                log.critical('Reading %d points (in ~%d blocks) from file %s. '
+                log.critical('Geospatial_data: Reading %d points (in ~%d blocks) from file %s. '
                              % (self.number_of_points, self.number_of_blocks,
                                 self.file_name))
-                log.critical('Each block consists of %d data points'
+                log.critical('Geospatial_data: Each block consists of %d data points'
                              % self.max_read_lines)
         else:
             # Assume the file is a csv file
@@ -740,7 +740,8 @@ class Geospatial_data:
             if self.verbose is True:
                 if (self.show_verbose >= self.start_row
                     and self.show_verbose < fin_row):
-                    log.critical('Reading block %d (points %d to %d) out of %d'
+
+                    log.critical('\nGeospatial_data: Reading block %d (points %d to %d) out of %d'
                                  % (self.block_number, self.start_row,
                                     fin_row, self.number_of_blocks))
 
@@ -866,7 +867,7 @@ def _read_pts_file(file_name, verbose=False):
     dict['attributelist']['elevation'] = [[7.0,5.0]]
     """
 
-    if verbose: log.critical('Reading %s' % file_name)
+    if verbose: log.critical('Geospatial_data: Reading %s' % file_name)
 
     # See if the file is there.  Throw a QUIET IO error if it isn't
     fd = open(file_name,'r')
@@ -878,7 +879,7 @@ def _read_pts_file(file_name, verbose=False):
     pointlist = num.array(fid.variables['points'])
     keys = fid.variables.keys()
 
-    if verbose: log.critical('Got %d variables: %s' % (len(keys), keys))
+    if verbose: log.critical('Geospatial_data: Got %d variables: %s' % (len(keys), keys))
 
     try:
         keys.remove('points')
@@ -889,7 +890,7 @@ def _read_pts_file(file_name, verbose=False):
 
     attributes = {}
     for key in keys:
-        if verbose: log.critical("reading attribute '%s'" % key)
+        if verbose: log.critical("Geospatial_data: Reading attribute '%s'" % key)
 
         attributes[key] = num.array(fid.variables[key])
 
@@ -899,6 +900,8 @@ def _read_pts_file(file_name, verbose=False):
         geo_reference = None
 
     fid.close()
+
+    if verbose: log.critical("Geospatial_data: %g data points" % len(pointlist))
 
     return pointlist, attributes, geo_reference
 

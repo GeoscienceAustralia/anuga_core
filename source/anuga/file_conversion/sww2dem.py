@@ -332,7 +332,7 @@ def sww2dem(name_in, name_out,
 
         # Interpolate using quantity values
         if verbose: log.critical('Interpolating')
-        grid_values = interp.interpolate(result, grid_points).flatten()
+        grid_values = interp.interpolate(result, grid_points, verbose=verbose).flatten()
         outside_indices = interp.get_outside_poly_indices()
 
         for i in outside_indices:

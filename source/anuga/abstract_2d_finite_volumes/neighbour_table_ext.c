@@ -1,12 +1,10 @@
+#include "Python.h"
+#include "numpy/arrayobject.h"
+
 #include <stdio.h>   /* gets */
 #include <stdlib.h>  /* atoi, malloc */
 #include <string.h>  /* strcpy */
-
-
-
-#include "Python.h"
-#include "numpy/arrayobject.h"
-#include "math.h"
+#include <math.h>
 
 //Shared code snippets
 
@@ -327,8 +325,8 @@ static struct PyMethodDef MethodTable[] = {
 };
 
 // Module initialisation
-void inithashtable(void){
-  Py_InitModule("hashtable", MethodTable);
+void initneighbour_table_ext(void){
+  Py_InitModule("neighbour_table_ext", MethodTable);
   import_array(); // Necessary for handling of NumPY structures
 }
 

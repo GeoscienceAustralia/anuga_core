@@ -304,12 +304,12 @@ class Mesh(General_mesh):
           number_of_boundaries integer array is defined.
         """
 
-        import hashtable
+        import neighbour_table_ext
         
         N = self.number_of_nodes
 
         
-        hashtable.build_neighbour_structure(N,
+        neighbour_table_ext.build_neighbour_structure(N,
                                             self.triangles,
                                             self.neighbours,
                                             self.neighbour_edges,
