@@ -984,6 +984,9 @@ class Test_Util(unittest.TestCase):
         filename = 'test_file_function'
         fid = open(filename + '.txt', 'w')
         start = time.mktime(time.strptime('2000', '%Y'))
+        
+        #print 'start ',start
+        
         dt = 60  #One minute intervals
         t = 0.0
         while t <= finaltime:
@@ -1006,11 +1009,15 @@ class Test_Util(unittest.TestCase):
         points = [a, b, c]
         vertices = [[0,1,2]]
         domain = Domain(points, vertices)
-
+        #print domain.starttime, start
+		
         # Check that domain.starttime is updated if non-existing
         F = file_function(filename + '.tms',
                           domain,
                           quantities = ['Attribute0', 'Attribute1', 'Attribute2'])  
+                          
+                          
+        #print domain.starttime, start
         assert num.allclose(domain.starttime, start)
 
         # Check that domain.starttime is updated if too early
