@@ -10,7 +10,7 @@ import anuga
 from anuga_parallel.distribute_mesh import pmesh_divide_metis
 from anuga_parallel.distribute_mesh import build_submesh
 from anuga_parallel.distribute_mesh import submesh_full, submesh_ghost, submesh_quantities
-from anuga_parallel.distribute_mesh import extract_hostmesh, rec_submesh, send_submesh
+from anuga_parallel.distribute_mesh import extract_submesh, rec_submesh, send_submesh
 
 from anuga_parallel.interface import myid, numprocs, barrier
 
@@ -214,10 +214,10 @@ class Test_parallel_distribute_mesh(unittest.TestCase):
                 send_submesh(submesh, triangles_per_proc, p, verbose=False)
 
             #----------------------------------------------------------------------------------
-            # Test extract_hostmesh
+            # Test extract_submesh
             #----------------------------------------------------------------------------------
             points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict  =\
-            extract_hostmesh(submesh, triangles_per_proc)
+            extract_submesh(submesh, triangles_per_proc)
 
 
             true_points =  [[0.5, 0.0], [0.5, 0.5], [0.5, 1.0], [1.0, 0.5], [1.0, 1.0], [0.25, 0.25], [0.75, 0.75], [0.0, 0.0], [0.0, 0.5], [0.0, 1.0], [1.0, 0.0], [0.25, 0.75], [0.75, 0.25]]

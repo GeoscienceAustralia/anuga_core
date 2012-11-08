@@ -57,7 +57,7 @@ from anuga.caching import cache
 from distribute_mesh  import pmesh_divide_metis
 from distribute_mesh  import build_submesh
 from distribute_mesh  import build_local_mesh
-from distribute_mesh  import send_submesh, rec_submesh, extract_hostmesh
+from distribute_mesh  import send_submesh, rec_submesh, extract_submesh
 
 
 ###############################
@@ -138,7 +138,7 @@ if myid == 0:
     # Build the local mesh for processor 0
 
     points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict = \
-             extract_hostmesh(submesh, triangles_per_proc)
+             extract_submesh(submesh, triangles_per_proc)
 
 # Read in the mesh partition that belongs to this
 # processor (note that the information is in the

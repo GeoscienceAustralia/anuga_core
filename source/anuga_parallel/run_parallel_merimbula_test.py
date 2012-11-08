@@ -50,7 +50,7 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
 from pmesh_divide  import pmesh_divide_metis
 from build_submesh import build_submesh
 from build_local   import build_local_mesh
-from build_commun  import send_submesh, rec_submesh, extract_hostmesh
+from build_commun  import send_submesh, rec_submesh, extract_submesh
 
 
 
@@ -110,7 +110,7 @@ if myid == 0:
     # Build the local mesh for processor 0
     
     points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict = \
-              extract_hostmesh(submesh, triangles_per_proc)
+              extract_submesh(submesh, triangles_per_proc)
 
 # read in the mesh partition that belongs to this
 # processor (note that the information is in the

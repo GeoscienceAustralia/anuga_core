@@ -15,7 +15,7 @@ from anuga_parallel.parallel_abstraction import pypar_available, barrier
 if pypar_available:
     from anuga_parallel.distribute_mesh  import send_submesh
     from anuga_parallel.distribute_mesh  import rec_submesh
-    from anuga_parallel.distribute_mesh  import extract_hostmesh
+    from anuga_parallel.distribute_mesh  import extract_submesh
 
     # Mesh partitioning using Metis
     from anuga_parallel.distribute_mesh import build_submesh
@@ -297,7 +297,7 @@ def distribute_mesh(domain, verbose=False, debug=False, parameters=None):
     # Build the local mesh for processor 0
     points, vertices, boundary, quantities, \
             ghost_recv_dict, full_send_dict, tri_map, node_map, ghost_layer_width =\
-              extract_hostmesh(submesh, triangles_per_proc)
+              extract_submesh(submesh, triangles_per_proc,0)
 
     # Keep track of the number full nodes and triangles.
     # This is useful later if one needs access to a ghost-free domain

@@ -1528,7 +1528,8 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
     for k in submesh["ghost_quan"]:
         x = num.array(submesh["ghost_quan"][k][p], num.float)
         pypar.send(x,p, bypass=True)
-        
+
+
 
 #########################################################
 #
@@ -1720,13 +1721,23 @@ def rec_submesh(p, verbose=True):
            ghost_rec, full_send,\
            number_of_full_nodes, number_of_full_triangles, tri_map, node_map,\
            ghost_layer_width
-          
+
+
+
+
+
+
+
+
+
+
+
 
 
 #########################################################
 #
 # Extract the submesh that will belong to the
-# "host processor" (i.e. processor zero)
+# processor 0 (i.e. processor zero)
 #
 #  *) See the documentation for build_submesh
 #
@@ -1738,29 +1749,36 @@ def rec_submesh(p, verbose=True):
 # to processor zero are returned.
 #
 #########################################################
-def extract_hostmesh(submesh, triangles_per_proc):
+def extract_submesh(submesh, triangles_per_proc, p=0):
 
     
     submesh_cell = {}
-    submesh_cell["ghost_layer_width"] = submesh["ghost_layer_width"][0]
-    submesh_cell["full_nodes"] = submesh["full_nodes"][0]
-    submesh_cell["ghost_nodes"] = submesh["ghost_nodes"][0]
-    submesh_cell["full_triangles"] = submesh["full_triangles"][0]
-    submesh_cell["ghost_triangles"] = submesh["ghost_triangles"][0]
-    submesh_cell["full_boundary"] = submesh["full_boundary"][0]
-    submesh_cell["ghost_boundary"] = submesh["ghost_boundary"][0]
-    submesh_cell["ghost_commun"] = submesh["ghost_commun"][0]
-    submesh_cell["full_commun"] = submesh["full_commun"][0]
+    submesh_cell["ghost_layer_width"] = submesh["ghost_layer_width"][p]
+    submesh_cell["full_nodes"] = submesh["full_nodes"][p]
+    submesh_cell["ghost_nodes"] = submesh["ghost_nodes"][p]
+    submesh_cell["full_triangles"] = submesh["full_triangles"][p]
+    submesh_cell["ghost_triangles"] = submesh["ghost_triangles"][p]
+    submesh_cell["full_boundary"] = submesh["full_boundary"][p]
+    submesh_cell["ghost_boundary"] = submesh["ghost_boundary"][p]
+    submesh_cell["ghost_commun"] = submesh["ghost_commun"][p]
+    submesh_cell["full_commun"] = submesh["full_commun"][p]
     submesh_cell["full_quan"] ={}
     submesh_cell["ghost_quan"]={}
     for k in submesh["full_quan"]:
-        submesh_cell["full_quan"][k] = submesh["full_quan"][k][0]
-        submesh_cell["ghost_quan"][k] = submesh["ghost_quan"][k][0]
+        submesh_cell["full_quan"][k] = submesh["full_quan"][k][p]
+        submesh_cell["ghost_quan"][k] = submesh["ghost_quan"][k][p]
+
+
+    # FIXME SR: I think there is already a structure with this info in the mesh
+    lower_t = 0
+    for i in range(p):
+        lower_t = lower_t+triangles_per_proc[i]
+    upper_t = lower_t+triangles_per_proc[p]
 
     numprocs = len(triangles_per_proc)
     points, vertices, boundary, quantities, ghost_recv_dict, \
             full_send_dict, tri_map, node_map, ghost_layer_width = \
-            build_local_mesh(submesh_cell, 0, triangles_per_proc[0], numprocs)
+            build_local_mesh(submesh_cell, lower_t, upper_t, numprocs)
 
 
     return  points, vertices, boundary, quantities, ghost_recv_dict, \
