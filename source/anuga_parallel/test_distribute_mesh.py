@@ -1508,7 +1508,7 @@ class Test_Distribute_Mesh(unittest.TestCase):
 
         from pprint import pprint
 
-        pprint(submesh_cell_1)
+        #pprint(submesh_cell_1)
 
 #-------------------------------------------------------------
 
