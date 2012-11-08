@@ -121,21 +121,26 @@ def sequential_distribute(domain, numprocs=1, verbose=False, debug=False, parame
             print 'sequential_distribute: P%g, no_full_nodes = %g, no_full_triangles = %g' % (p, number_of_full_nodes, number_of_full_triangles)
 
 
-        parallel_domain = Parallel_domain(points, vertices, boundary,
-                                 full_send_dict=full_send_dict,
-                                 ghost_recv_dict=ghost_recv_dict,
-                                 number_of_full_nodes=number_of_full_nodes,
-                                 number_of_full_triangles=number_of_full_triangles,
-                                 geo_reference=georef,
-                                 number_of_global_triangles = number_of_global_triangles,
-                                 number_of_global_nodes = number_of_global_nodes,
-                                 processor = p,
-                                 numproc = numprocs,
-                                 s2p_map = s2p_map,
-                                 p2s_map = p2s_map, ## jj added this
-                                 tri_l2g = tri_l2g, ## SR added this
-                                 node_l2g = node_l2g,
-                                 ghost_layer_width = ghost_layer_width)
+        args = [points, vertices, boundary]
+
+        kwargs = {'full_send_dict': full_send_dict,
+                'ghost_recv_dict': ghost_recv_dict,
+                'number_of_full_nodes': number_of_full_nodes,
+                'number_of_full_triangles': number_of_full_triangles,
+                'geo_reference': georef,
+                'number_of_global_triangles':  number_of_global_triangles,
+                'number_of_global_nodes':  number_of_global_nodes,
+                'processor':  p,
+                'numproc':  numprocs,
+                's2p_map':  s2p_map,
+                'p2s_map':  p2s_map, ## jj added this
+                'tri_l2g':  tri_l2g, ## SR added this
+                'node_l2g':  node_l2g,
+                'ghost_layer_width':  ghost_layer_width}
+
+        parallel_domain = Parallel_domain(*args, **kwargs)
+
+
 
         #------------------------------------------------------------------------
         # Transfer initial conditions to each subdomain
@@ -173,6 +178,13 @@ def sequential_distribute(domain, numprocs=1, verbose=False, debug=False, parame
         cPickle.dump(parallel_domain, f, protocol=cPickle.HIGHEST_PROTOCOL)
         f.close()
 
+        #FIXME SR: Looks like we could reduce storage by a factor of 4 by just
+        # storing the data to create the parallel_domain instead of pickling
+        # a created domain
+        #pickle_name = 'test_P%g_%g.pickle'% (numprocs,p)
+        #f = file(pickle_name, 'wb')
+        #cPickle.dump( (args, kwargs, quantities), f, protocol=cPickle.HIGHEST_PROTOCOL)
+        #f.close()
 
     return
 
