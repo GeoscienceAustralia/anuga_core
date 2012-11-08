@@ -1901,7 +1901,7 @@ def _fit_to_mesh(point_coordinates, # this can also be a points file name
     # Add the value checking stuff that's in least squares.
     # Maybe this stuff should get pushed down into Fit.
     # at least be a method of Fit.
-    # Or intigrate it into the fit method, saving teh max and min's
+    # Or integrate it into the fit method, saving the max and min's
     # as att's.
     
     return vertex_attributes
@@ -1921,7 +1921,7 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
                      precrop = False,
                      display_errors = True):
     """
-    Given a mesh file (tsh) and a point attribute file, fit
+    Given a mesh file (tsh or msh) and a point attribute file, fit
     point attributes to the mesh and write a mesh file with the
     results.
 
@@ -1932,7 +1932,7 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
     
     """
 
-    from load_mesh.loadASCII import import_mesh_file, \
+    from anuga.load_mesh.loadASCII import import_mesh_file, \
          export_mesh_file, concatinate_attributelist
 
 
@@ -1946,9 +1946,9 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
     vertex_coordinates = mesh_dict['vertices']
     triangles = mesh_dict['triangles']
     if isinstance(mesh_dict['vertex_attributes'], num.ndarray):
-        old_point_attributes = mesh_dict['vertex_attributes'].tolist()
+        old_vertex_attributes = mesh_dict['vertex_attributes'].tolist()
     else:
-        old_point_attributes = mesh_dict['vertex_attributes']
+        old_vertex_attributes = mesh_dict['vertex_attributes']
 
     if isinstance(mesh_dict['vertex_attribute_titles'], num.ndarray):
         old_title_list = mesh_dict['vertex_attribute_titles'].tolist()
@@ -1977,7 +1977,7 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
 
     if verbose: log.critical("Fit_to_Mesh_File: points file loaded")
     if verbose: log.critical("Fit_to_Mesh_File: fitting to mesh")
-    f = fit_to_mesh(point_coordinates,
+    new_vertex_attributes = fit_to_mesh(point_coordinates,
                     vertex_coordinates,
                     triangles,
                     None,
@@ -1989,18 +1989,18 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
     if verbose: log.critical("Fit_to_Mesh_File: finished fitting to mesh")
 
     # convert array to list of lists
-    new_point_attributes = f.tolist()
+    new_vertex_attributes = new_vertex_attributes.tolist()
     #FIXME have this overwrite attributes with the same title - DSG
     #Put the newer attributes last
     if old_title_list <> []:
         old_title_list.extend(title_list)
         #FIXME can this be done a faster way? - DSG
-        for i in xrange(len(old_point_attributes)):
-            old_point_attributes[i].extend(new_point_attributes[i])
-        mesh_dict['vertex_attributes'] = old_point_attributes
+        for i in xrange(len(old_vertex_attributes)):
+            old_vertex_attributes[i].extend(new_vertex_attributes[i])
+        mesh_dict['vertex_attributes'] = old_vertex_attributes
         mesh_dict['vertex_attribute_titles'] = old_title_list
     else:
-        mesh_dict['vertex_attributes'] = new_point_attributes
+        mesh_dict['vertex_attributes'] = new_vertex_attributes
         mesh_dict['vertex_attribute_titles'] = title_list
 
     if verbose: log.critical("Fit_to_Mesh_File: exporting to file %s" % mesh_output_file)

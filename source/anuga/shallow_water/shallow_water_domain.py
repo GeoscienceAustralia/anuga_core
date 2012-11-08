@@ -1528,6 +1528,10 @@ class Domain(Generic_Domain):
         self.writer.store_timestep()
 
 
+    def sww_merge(self,  *args, **kwargs):
+
+        pass
+
     def timestepping_statistics(self,
                                 track_speeds=False,
                                 triangle_id=None):
