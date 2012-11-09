@@ -76,32 +76,20 @@ domain.set_quantity('stage', stagefun)          # Constant negative initial stag
 domain.get_quantity('stage').smooth_vertex_values()
 
 domain.set_name('sw_rectangle')
-#domain.print_statistics()
 
 
 t1 = time.time()
-
-if myid == 0 :
-    print 'Create sequential domain ',t1-t0
-
-if myid == 0 and verbose: 
-    print 'DISTRIBUTING DOMAIN'
-    sys.stdout.flush()
+print 'Create sequential domain: ',t1-t0
     
-#barrier()
 
 #-------------------------------------------------------------------------
 # Distribute domain
 #----------------------------------------------------------------------
-#domain = distribute(domain,verbose=verbose)
-
 sequential_distribute_dump(domain, numprocs, verbose = True)
 
 
 t2 = time.time()
-
-if myid == 0 :
-    print 'Distribute domain ',t2-t1
+print 'Sequential Distribute domain: ',t2-t1
     
 
 
