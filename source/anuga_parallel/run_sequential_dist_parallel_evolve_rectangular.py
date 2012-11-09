@@ -22,7 +22,9 @@ import anuga
 #----------------------------
 # Parallel interface
 #---------------------------
-from anuga_parallel import distribute, myid, numprocs, finalize, barrier
+from anuga_parallel import myid, numprocs, finalize, barrier
+
+from anuga_parallel.sequential_distribute import sequential_distribute_load
 
 
 #--------------------------------------------------------------------------
@@ -40,71 +42,37 @@ def stagefun(x,y):
 
 
 
+
+verbose = True
+basename = 'sw_rectangle'
+#basename = 'test'
+
 #--------------------------------------------------------------------------
 # Create domains
 #--------------------------------------------------------------------------
+#import cPickle
+#pickle_name = pickle_base+'_P%g_%g.pickle'% (numprocs,myid)
+#f = file(pickle_name, 'rb')
+# = cPickle.load(f)
+#f.close()
 
-
-
-t0 = time.time()
-
-verbose = True
-
-#--------------------------------------------------------------------------
-# Setup Domain only on processor 0
-#--------------------------------------------------------------------------
-if myid == 0:
-    length = 2.0
-    width = 2.0
-    dx = dy = 0.005
-    #dx = dy = 0.00125
-    dx = dy  = 0.05
-    domain = anuga.rectangular_cross_domain(int(length/dx), int(width/dy),
-                                              len1=length, len2=width, verbose=verbose)
-
-    #---------------------------------------
-    # Add these two commands to use Gareth's
-    # tsunami algorithm. Play with the 
-    # minimum allowed height to remove possible 
-    # unrealistic large velocities
-    #---------------------------------------
-    domain.set_flow_algorithm('tsunami')
-    domain.set_minimum_allowed_height(0.01)
-
-    domain.set_store(True)
-    domain.set_quantity('elevation',topography)     # Use function for elevation
-    domain.get_quantity('elevation').smooth_vertex_values()
-    domain.set_quantity('friction',0.03)            # Constant friction
-    domain.set_quantity('stage', stagefun)          # Constant negative initial stage
-    domain.get_quantity('stage').smooth_vertex_values()
-
-    domain.set_name('rectangular_tsunami')
-
-    domain.print_statistics()
-else:
-    domain = None
 
 t1 = time.time()
 
-if myid == 0 :
-    print 'Create sequential domain ',t1-t0
-
-if myid == 0 and verbose: 
-    print 'DISTRIBUTING DOMAIN'
+if myid == 0 and verbose:
+    print 'Loading DISTRIBUTING DOMAIN'
     sys.stdout.flush()
-    
-barrier()
 
 #-------------------------------------------------------------------------
 # Distribute domain
 #-------------------------------------------------------------------------
-domain = distribute(domain,verbose=verbose)
+domain = sequential_distribute_load(filename = basename, verbose=verbose)
 
 
 t2 = time.time()
 
 if myid == 0 :
-    print 'Distribute domain ',t2-t1
+    print 'Load Distribute domain ',t2-t1
     
 if myid == 0 : print 'after parallel domain'
 
@@ -155,5 +123,12 @@ if domain.number_of_global_triangles < 50000:
     if myid == 0 :
         print 'Create dump of triangulation for %g triangles' % domain.number_of_global_triangles
     domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)
+
+
+#--------------------------------------------------
+# Merge the individual sww files into one file
+#--------------------------------------------------
+domain.sww_merge(delete_old=False)
+
 
 finalize()

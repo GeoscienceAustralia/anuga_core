@@ -17,7 +17,7 @@ from anuga_parallel.parallel_shallow_water import Parallel_domain
 
 
 
-def sequential_distribute(domain, numprocs=1, verbose=False, debug=False, parameters = None):
+def sequential_distribute_dump(domain, numprocs=1, verbose=False, debug=False, parameters = None):
     """ Distribute the domain, create parallel domain and pickle result
     """
 
@@ -121,7 +121,7 @@ def sequential_distribute(domain, numprocs=1, verbose=False, debug=False, parame
             print 'sequential_distribute: P%g, no_full_nodes = %g, no_full_triangles = %g' % (p, number_of_full_nodes, number_of_full_triangles)
 
 
-        args = [points, vertices, boundary]
+        #args = [points, vertices, boundary]
 
         kwargs = {'full_send_dict': full_send_dict,
                 'ghost_recv_dict': ghost_recv_dict,
@@ -138,57 +138,109 @@ def sequential_distribute(domain, numprocs=1, verbose=False, debug=False, parame
                 'node_l2g':  node_l2g,
                 'ghost_layer_width':  ghost_layer_width}
 
-        parallel_domain = Parallel_domain(*args, **kwargs)
+#        parallel_domain = Parallel_domain(points, vertices, boundary, **kwargs)
 
 
 
         #------------------------------------------------------------------------
         # Transfer initial conditions to each subdomain
         #------------------------------------------------------------------------
-        for q in quantities:
-            parallel_domain.set_quantity(q, quantities[q])
+#        for q in quantities:
+#            parallel_domain.set_quantity(q, quantities[q])
 
 
         #------------------------------------------------------------------------
         # Transfer boundary conditions to each subdomain
         #------------------------------------------------------------------------
-        boundary_map['ghost'] = None  # Add binding to ghost boundary
-        parallel_domain.set_boundary(boundary_map)
+#        boundary_map['ghost'] = None  # Add binding to ghost boundary
+#        parallel_domain.set_boundary(boundary_map)
 
 
         #------------------------------------------------------------------------
         # Transfer other attributes to each subdomain
         #------------------------------------------------------------------------
-        parallel_domain.set_name(domain_name)
-        parallel_domain.set_datadir(domain_dir)
-        parallel_domain.set_store(domain_store)
-        parallel_domain.set_minimum_storable_height(domain_minimum_storable_height)
-        parallel_domain.set_minimum_allowed_height(domain_minimum_allowed_height)
-        parallel_domain.set_flow_algorithm(domain_flow_algorithm)
-        parallel_domain.geo_reference = georef
+#        parallel_domain.set_name(domain_name)
+#        parallel_domain.set_datadir(domain_dir)
+#        parallel_domain.set_store(domain_store)
+#        parallel_domain.set_minimum_storable_height(domain_minimum_storable_height)
+#        parallel_domain.set_minimum_allowed_height(domain_minimum_allowed_height)
+#        parallel_domain.set_flow_algorithm(domain_flow_algorithm)
+#        parallel_domain.geo_reference = georef
 
 
 
         #-----------------------------------------------------------------------
         # Now let's store the parallel_domain via cPickle
         #-----------------------------------------------------------------------
-        import cPickle
-        pickle_name = domain_name + '_P%g_%g.pickle'% (numprocs,p)
-        f = file(pickle_name, 'wb')
-        cPickle.dump(parallel_domain, f, protocol=cPickle.HIGHEST_PROTOCOL)
-        f.close()
+#        import cPickle
+#        pickle_name = domain_name + '_P%g_%g.pickle'% (numprocs,p)
+#        f = file(pickle_name, 'wb')
+#        cPickle.dump(parallel_domain, f, protocol=cPickle.HIGHEST_PROTOCOL)
+#        f.close()
+
 
         #FIXME SR: Looks like we could reduce storage by a factor of 4 by just
         # storing the data to create the parallel_domain instead of pickling
         # a created domain
-        #pickle_name = 'test_P%g_%g.pickle'% (numprocs,p)
-        #f = file(pickle_name, 'wb')
-        #cPickle.dump( (args, kwargs, quantities), f, protocol=cPickle.HIGHEST_PROTOCOL)
-        #f.close()
+        import cPickle
+        pickle_name = domain_name + '_P%g_%g.pickle'% (numprocs,p)
+        f = file(pickle_name, 'wb')
+        tostore = (kwargs, points, vertices, boundary, quantities, boundary_map, domain_name, domain_dir, domain_store, domain_minimum_storable_height, \
+                   domain_minimum_allowed_height, domain_flow_algorithm, georef)
+        cPickle.dump( tostore, f, protocol=cPickle.HIGHEST_PROTOCOL)
 
     return
 
 
+def sequential_distribute_load(filename = 'domain', verbose = False):
+
+
+    from anuga_parallel import myid, numprocs
+
+
+    #---------------------------------------------------------------------------
+    # Open pickle files
+    #---------------------------------------------------------------------------
+    import cPickle
+    pickle_name = filename+'_P%g_%g.pickle'% (numprocs,myid)
+    f = file(pickle_name, 'rb')
+    kwargs, points, vertices, boundary, quantities, boundary_map, domain_name, domain_dir, domain_store, domain_minimum_storable_height, \
+                   domain_minimum_allowed_height, domain_flow_algorithm, georef = cPickle.load(f)
+    f.close()
+
+    #---------------------------------------------------------------------------
+    # Create parallel domain
+    #---------------------------------------------------------------------------
+    parallel_domain = Parallel_domain(points, vertices, boundary, **kwargs)
+
+
+    #------------------------------------------------------------------------
+    # Copy in quantity data
+    #------------------------------------------------------------------------
+    for q in quantities:
+        parallel_domain.set_quantity(q, quantities[q])
+
+
+    #------------------------------------------------------------------------
+    # Transfer boundary conditions to each subdomain
+    #------------------------------------------------------------------------
+    boundary_map['ghost'] = None  # Add binding to ghost boundary
+    parallel_domain.set_boundary(boundary_map)
+
+
+    #------------------------------------------------------------------------
+    # Transfer other attributes to each subdomain
+    #------------------------------------------------------------------------
+    parallel_domain.set_name(domain_name)
+    parallel_domain.set_datadir(domain_dir)
+    parallel_domain.set_store(domain_store)
+    parallel_domain.set_minimum_storable_height(domain_minimum_storable_height)
+    parallel_domain.set_minimum_allowed_height(domain_minimum_allowed_height)
+    parallel_domain.set_flow_algorithm(domain_flow_algorithm)
+    parallel_domain.geo_reference = georef
+
+
+    return parallel_domain
 
 def extract_l2g_map(map):
     # Extract l2g data  from corresponding map
