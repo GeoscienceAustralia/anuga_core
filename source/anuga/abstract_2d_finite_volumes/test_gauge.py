@@ -462,7 +462,7 @@ point1, 2.5, 4.25, 3.0\n")
 
     def test_sww2csv_multiple_files(self):
         """
-        This is testing the sww2csv_gauges function, by creating a multiple 
+        This is testing the sww2csv_gauges function, by creating multiple 
         sww files and then exporting the gauges and checking the results.
         """
         timestep=2.0

@@ -201,6 +201,7 @@ class Interpolate (FitInterpolate):
                     f,
                     point_coordinates=None,
                     start_blocking_len=500000,
+                    NODATA_value = NAN,
                     verbose=False,
                     output_centroids=False):
         """Interpolate mesh data f to determine values, z, at points.
@@ -244,7 +245,7 @@ class Interpolate (FitInterpolate):
         if point_coordinates is None:
             if self._A_can_be_reused is True \
                and len(self._point_coordinates) < start_blocking_len:
-                z = self._get_point_data_z(f, verbose=verbose)
+                z = self._get_point_data_z(f, NODATA_value=NODATA_value, verbose=verbose)
             elif self._point_coordinates is not None:
                 #     if verbose, give warning
                 if verbose:
@@ -261,7 +262,7 @@ class Interpolate (FitInterpolate):
             if len(point_coordinates) < start_blocking_len \
                or start_blocking_len == 0:
                 self._A_can_be_reused = True
-                z = self.interpolate_block(f, point_coordinates,
+                z = self.interpolate_block(f, point_coordinates, NODATA_value = NODATA_value,
                                            verbose=verbose, output_centroids=output_centroids)
             else:
                 # Handle blocking
@@ -278,19 +279,19 @@ class Interpolate (FitInterpolate):
                 for end in range(start_blocking_len,
                                  len(point_coordinates),
                                  start_blocking_len):
-                    t = self.interpolate_block(f, point_coordinates[start:end],
+                    t = self.interpolate_block(f, point_coordinates[start:end], NODATA_value=NODATA_value,
                                                verbose=verbose, output_centroids=output_centroids)
                     z = num.concatenate((z, t), axis=0)    #??default#
                     start = end
 
                 end = len(point_coordinates)
-                t = self.interpolate_block(f, point_coordinates[start:end],
+                t = self.interpolate_block(f, point_coordinates[start:end], NODATA_value=NODATA_value,
                                            verbose=verbose, output_centroids=output_centroids)
                 z = num.concatenate((z, t), axis=0)    #??default#
         return z
 
 
-    def interpolate_block(self, f, point_coordinates,
+    def interpolate_block(self, f, point_coordinates, NODATA_value=NAN,
                           use_cache=False, verbose=False, output_centroids=False):
         """
         Call this if you want to control the blocking or make sure blocking
@@ -367,7 +368,7 @@ class Interpolate (FitInterpolate):
         assert self._A.shape[1] == f.shape[0], msg
 
         # Compute Matrix vector product and return
-        return self._get_point_data_z(f)
+        return self._get_point_data_z(f, NODATA_value=NODATA_value)
 
 
     def get_outside_poly_indices(self):
@@ -380,7 +381,7 @@ class Interpolate (FitInterpolate):
         return self.outside_poly_indices
 
 
-    def _get_point_data_z(self, f, verbose=False):
+    def _get_point_data_z(self, f, NODATA_value=NAN, verbose=False):
         """
         Return the point data, z.
 
@@ -391,7 +392,7 @@ class Interpolate (FitInterpolate):
 
         # Taking into account points outside the mesh.
         for i in self.outside_poly_indices:
-            z[i] = NAN
+            z[i] = NODATA_value
         return z
 
 
@@ -462,7 +463,7 @@ class Interpolate (FitInterpolate):
             x = point_coordinates[i]
             element_found, sigma0, sigma1, sigma2, k = self.root.search_fast(x)
                        
-        # Update interpolation matrix A if necessary
+            # Update interpolation matrix A if necessary
             if element_found is True:
 
                 #if verbose:

@@ -246,6 +246,7 @@ def sww2csv_gauges(sww_file,
                     if verbose:
                         msg = 'gauge' + point_name[point_i] + 'falls off the mesh in file ' + sww_file + '.'
                         log.warning(msg)
+
 def sww2timeseries(swwfiles,
                    gauge_filename,
                    production_dirs,
