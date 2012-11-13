@@ -27,7 +27,7 @@ class Set_elevation_operator(Operator):
 
     indices: None == all triangles, Empty list [] no triangles
 
-    rate can be a function of time.
+    elevation can be a function of time.
 
     """
 

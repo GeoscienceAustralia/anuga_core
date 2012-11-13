@@ -123,7 +123,7 @@ class Parallel_Inlet_operator(Inlet_operator):
         
         if callable(self.Q):
             try:
-                Q = self.Q(t)[0]
+                Q = self.Q(t)
             except Modeltime_too_early, e:
                 raise Modeltime_too_early(e)
             except Modeltime_too_late, e:
