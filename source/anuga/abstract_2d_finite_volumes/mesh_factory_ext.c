@@ -117,6 +117,8 @@ static PyObject *RectangularCrossConstruct( PyObject *self, PyObject *args )
 			numElements++;
 		}
 
+        free(vertices);
+
 	return Py_BuildValue("O", pyobj_boundary);
 }
 

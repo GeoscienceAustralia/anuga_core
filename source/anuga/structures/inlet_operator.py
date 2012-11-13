@@ -35,6 +35,8 @@ class Inlet_operator(anuga.Operator):
         self.Q = Q
 
 
+        #print self.Q
+
         self.enquiry_point = 0.5*(self.line[0] + self.line[1])
         self.outward_vector = self.line
         self.inlet = inlet.Inlet(self.domain, self.line, verbose= verbose)
@@ -58,24 +60,37 @@ class Inlet_operator(anuga.Operator):
         Q1 = self.update_Q(t)
         Q2 = self.update_Q(t + timestep)
 
+
+        #print Q1,Q2
         Q = 0.5*(Q1+Q2)
         volume = Q*timestep
+
+        #print volume
         
         #print Q, volume
-
-        msg =  'Requesting too much water to be removed from an inlet! \n'
-        msg += 'current_water_volume = %5.2e Increment volume = %5.2e' % (current_volume, volume)
-        assert current_volume + volume >= 0.0, msg
 
         # store last discharge
         self.applied_Q = Q
 
+        msg =  'Requesting too much water to be removed from an inlet! \n'
+        msg += 'current_water_volume = %5.2e Increment volume = %5.2e' % (current_volume, volume)
+        import warnings
+        if current_volume + volume < 0.0:
+            #warnings.warn(msg)
+            volume = -current_volume
+            self.applied_Q = volume/timestep
+
+
+        #print 'applied_Q', self.applied_Q
+        
         # Distribute volume so as to obtain flat surface
         self.inlet.set_stages_evenly(volume)
         
         # Distribute volume evenly over all cells
         #self.inlet.set_depths_evenly(volume)
-        
+
+
+
     def update_Q(self, t):
         """Allowing local modifications of Q
         """
@@ -83,7 +98,7 @@ class Inlet_operator(anuga.Operator):
         
         if callable(self.Q):
             try:
-                Q = self.Q(t)[0]
+                Q = self.Q(t)
             except Modeltime_too_early, e:
                 raise Modeltime_too_early(e)
             except Modeltime_too_late, e:

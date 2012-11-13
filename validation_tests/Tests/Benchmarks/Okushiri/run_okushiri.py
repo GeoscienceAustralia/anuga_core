@@ -100,4 +100,4 @@ def main(elevation_in_mesh=False):
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    main()
+    main(elevation_in_mesh=True)

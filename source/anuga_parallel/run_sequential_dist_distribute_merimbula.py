@@ -34,7 +34,7 @@ from anuga import rectangular_cross
 from anuga import create_domain_from_file
 
 
-from anuga_parallel.sequential_distribute import sequential_distribute
+from anuga_parallel.sequential_distribute import sequential_distribute_dump
 
 
 #--------------------------------------------------------------------------
@@ -94,7 +94,7 @@ domain.set_store(True)
 #--------------------------------------------------------------------------
 
 if verbose: print 'DISTRIBUTING DOMAIN'
-sequential_distribute(domain, 4, verbose=True)
+sequential_distribute_dump(domain, 4, verbose=True)
 
 
 

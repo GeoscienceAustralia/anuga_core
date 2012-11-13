@@ -232,15 +232,126 @@ class Inlet:
         # accumulate the volume need to fill cells
         summed_volume = num.zeros_like(areas)       
         summed_volume[1:] = num.cumsum(summed_areas[:-1]*num.diff(stages[stages_order]))
-        
-        # find the number of cells which will be filled
-        index = num.nonzero(summed_volume<=volume)[0][-1]
 
-        # calculate stage needed to fill chosen cells with given volume of water
-        depth = (volume - summed_volume[index])/summed_areas[index]
-        stages[stages_order[0:index+1]] = stages[stages_order[index]]+depth
 
-        self.set_stages(stages) 
+        if volume>= 0.0 :
+            # find the number of cells which will be filled
+            #print summed_volume
+            #print summed_volume<=volume
+
+            #Test = summed_volume<=volume
+
+            #print num.any(Test)
+            #print num.nonzero(summed_volume<=volume)
+            #print num.nonzero(summed_volume<=volume)[0]
+
+            index = num.nonzero(summed_volume<=volume)[0][-1]
+
+            # calculate stage needed to fill chosen cells with given volume of water
+            depth = (volume - summed_volume[index])/summed_areas[index]
+            stages[stages_order[0:index+1]] = stages[stages_order[index]]+depth
+
+        else:
+            if summed_volume[-1]>= -volume :
+                depth = (summed_volume[-1] + volume)/summed_areas[-1]
+                stages[:] = depth
+            else:
+                #assert summed_volume[-1] >= -volume
+                import warnings
+                warnings.warn('summed_volume < volume to be extracted')
+                stages[:] = 0.0
+
+        self.set_stages(stages)
+
+
+
+
+    def set_stages_evenly_new(self,volume):
+        """ Distribute volume of water over
+        inlet exchange region so that stage is level
+        """
+        # WARNING: requires synchronization, must be called by all procs associated
+        # with this inlet
+
+        centroid_coordinates = self.domain.get_full_centroid_coordinates(absolute=True)
+        areas = self.get_areas()
+        stages = self.get_stages()
+
+        stages_order = stages.argsort()
+
+        # PETE: send stages and areas, apply merging procedure
+
+        total_stages = len(stages)
+
+
+        s_areas = areas
+        s_stages = stages
+        s_stages_order = stages_order
+
+
+        pos = 0
+        summed_volume = 0.
+        summed_areas = 0.
+        prev_stage = 0.
+        num_stages = 0.
+        first = True
+
+        for i in self.procs:
+            pos[i] = 0
+
+        while num_stages < total_stages:
+            # Determine current minimum stage of all the processors in s_stages
+            num_stages = num_stages + 1
+            current_stage = num.finfo(num.float32).max
+            index = -1
+
+
+            if pos >= len(s_stages):
+                continue
+
+            if s_stages[s_stages_order[pos]] < current_stage:
+                current_stage = s_stages[i][s_stages_order[i][pos[i]]]
+                index = i
+
+            # If first iteration, then only update summed_areas, position, and prev|current stage
+
+            if first:
+                first = False
+                summed_areas = s_areas[index][s_stages_order[index][pos[index]]]
+                pos[index] = pos[index] + 1
+                prev_stage = current_stage
+                continue
+
+            assert index >= 0, "Index out of bounds"
+
+            # Update summed volume and summed areas
+            tmp_volume = summed_volume + (summed_areas * (current_stage - prev_stage))
+
+            # Terminate if volume exceeded
+            if tmp_volume >= volume:
+                break
+
+            summed_areas = summed_areas + s_areas[index][s_stages_order[index][pos[index]]]
+            pos[index] = pos[index] + 1
+            summed_volume = tmp_volume
+
+        # Update position of index processor and current stage
+        prev_stage = current_stage
+
+        # Calculate new stage
+        new_stage = prev_stage + (volume - summed_volume) / summed_areas
+
+
+        # Update own depth
+        stages[stages_order[0:pos]] = new_stage
+
+
+
+        self.set_stages(stages)
+
+        stages = self.get_stages()
+        stages_order = stages.argsort()
+
 
     def set_depths_evenly(self,volume):
         """ Distribute volume over all exchange

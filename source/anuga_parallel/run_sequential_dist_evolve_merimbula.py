@@ -36,114 +36,29 @@ from anuga import create_domain_from_file
 
 from anuga_parallel import distribute, myid, numprocs, finalize, barrier
 
+from anuga_parallel.sequential_distribute import sequential_distribute_load
 
 #--------------------------------------------------------------------------
 # Setup parameters
 #--------------------------------------------------------------------------
-
-#mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0
-mesh_filename = "merimbula_17156.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
-#mesh_filename = "merimbula_43200_1.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
-#mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
-#mesh_filename = "test-20.tsh" ; x0 = 250.0 ; x1 = 350.0
-yieldstep = 50
+yieldstep = 10
 finaltime = 1500
 verbose = True
 
-#--------------------------------------------------------------------------
-# Setup procedures
-#--------------------------------------------------------------------------
-class Set_Stage:
-    """Set an initial condition with constant water height, for x0<x<x1
-    """
-
-    def __init__(self, x0=0.25, x1=0.5, h=1.0):
-        self.x0 = x0
-        self.x1 = x1
-        self.h  = h
-
-    def __call__(self, x, y):
-        return self.h*((x>self.x0)&(x<self.x1))+1.0
-
-
-class Set_Elevation:
-    """Set an elevation
-    """
-
-    def __init__(self, h=1.0):
-        self.x0 = x0
-        self.x1 = x1
-        self.h  = h
-
-    def __call__(self, x, y):
-        return x/self.h
-    
-
-##--------------------------------------------------------------------------
-## Setup Domain only on processor 0
-##--------------------------------------------------------------------------
-#if myid == 0:
-#    domain = create_domain_from_file(mesh_filename)
-#    domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))
-#    #domain.set_datadir('.')
-#    domain.set_name('merimbula_new')
-#    domain.set_store(True)
-#    #domain.set_quantity('elevation', Set_Elevation(500.0))
-#
-#    #print domain.statistics()
-#    #print domain.get_extent()
-#    #print domain.get_extent(absolute=True)
-#    #print domain.geo_reference
-#else:
-#    domain = None
-#
-##--------------------------------------------------------------------------
-## Distribute sequential domain on processor 0 to other processors
-##--------------------------------------------------------------------------
-#
-#if myid == 0 and verbose: print 'DISTRIBUTING DOMAIN'
-#domain = distribute(domain)
 
 
 #-------------------------------------------------------------------------------
-# Read in cPickled parallel domains
+# Read in cPickled distribute mesh data
 #-------------------------------------------------------------------------------
-
-
-import cPickle
-pickle_name = 'merimbula_new_P%g_%g.pickle'% (numprocs,myid)
-f = file(pickle_name, 'rb')
-domain = cPickle.load(f)
-f.close()
+domain = sequential_distribute_load(filename='merimbula_new', verbose = True)
 
 #--------------------------------------------------------------------------
 # On all processors, setup evolve parameters for domains on all processors
 # (all called "domain"
 #--------------------------------------------------------------------------
 
-domain.set_flow_algorithm('2_0')
+domain.set_flow_algorithm('tsunami')
 
-#domain.smooth = False
-#domain.set_default_order(2)
-#domain.set_timestepping_method('rk2')
-#domain.set_CFL(0.7)
-#domain.set_beta(1.5)
-
-
-#for p in range(numprocs):
-#    if myid == p:
-#        print 'P%d'%p
-#        print domain.get_extent()
-#        print domain.get_extent(absolute=True)
-#        print domain.geo_reference
-#        print domain.s2p_map
-#        print domain.p2s_map
-#        print domain.tri_l2g
-#        print domain.node_l2g
-#    else:
-#        pass
-#
-#    barrier()
 
 
 #------------------------------------------------------------------------------
@@ -184,7 +99,9 @@ for p in range(numprocs):
 #--------------------------------------------------
 # Merge the individual sww files into one file
 #--------------------------------------------------
-domain.sww_merge(delete_old=False)
+
+
+
 
 finalize()
 

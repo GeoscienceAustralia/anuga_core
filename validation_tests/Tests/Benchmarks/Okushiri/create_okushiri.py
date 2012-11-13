@@ -27,7 +27,7 @@ log.log_filename = './create_okushiri.log'
 #--------------------------------------------------------------------------
 
 
-base_resolution = 1 # Use this to coarsen or refine entire mesh. 
+base_resolution = 0.25 # Use this to coarsen or refine entire mesh.
 
 # Basic geometry and bounding polygon
 xleft   = 0
@@ -164,12 +164,13 @@ def create_mesh(elevation_in_mesh=False):
                                  verbose=True)
     
     if elevation_in_mesh is True:
+        from anuga.fit_interpolate.fit import fit_to_mesh_file
         fit_to_mesh_file(project.mesh_filename, project.bathymetry_filename,
-                         project.mesh_filename)
+                         project.mesh_filename, verbose = True)
 
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    create_mesh()
+    create_mesh(elevation_in_mesh=True)
 
 
