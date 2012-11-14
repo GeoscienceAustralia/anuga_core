@@ -52,7 +52,7 @@ def stagefun(x,y):
 # Setup Domain only on processor 0
 #--------------------------------------------------------------------------
 myid = 0
-numprocs = 4
+numprocs = 1
 
 
 

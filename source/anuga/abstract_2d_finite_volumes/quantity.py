@@ -1379,7 +1379,7 @@ class Quantity:
         self.x_gradient *= 0.0
         self.y_gradient *= 0.0
 
-    def get_integral(self, full_only=False):
+    def get_integral(self, full_only=True):
 
         """Compute the integral of quantity across entire domain."""
 

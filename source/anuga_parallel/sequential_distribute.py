@@ -36,9 +36,6 @@ def sequential_distribute_dump(domain, numprocs=1, verbose=False, debug=False, p
     domain.set_boundary(bdmap)
 
 
-    if numprocs == 1 : return # Bypass
-
-
     domain_name = domain.get_name()
     domain_dir = domain.get_datadir()
     domain_store = domain.get_store()
