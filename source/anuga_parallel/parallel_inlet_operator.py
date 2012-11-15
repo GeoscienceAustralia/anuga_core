@@ -34,6 +34,7 @@ class Parallel_Inlet_operator(Inlet_operator):
                  domain,
                  line,
                  Q = 0.0,
+                 velocity = None,
                  default = None,
                  description = None,
                  label = None,
@@ -87,6 +88,7 @@ class Parallel_Inlet_operator(Inlet_operator):
 
         self.set_default(default)
 
+        self.velocity = velocity
 
     def __call__(self):
 
@@ -94,6 +96,7 @@ class Parallel_Inlet_operator(Inlet_operator):
 
         # Need to run global command on all processors
         current_volume = self.inlet.get_global_total_water_volume()
+        total_area = self.inlet.get_global_area()
 
         # Only the master proc calculates the update
         if self.myid == self.master_proc:
@@ -105,12 +108,39 @@ class Parallel_Inlet_operator(Inlet_operator):
 
             volume = 0.5*(Q1+Q2)*timestep
 
-            assert current_volume + volume >= 0.0 , 'Requesting too much water to be removed from an inlet!'
 
-            #print "Volume to be removed from Inlet = " + str(volume)
 
-        # Set stages evenly on all processors
-        self.inlet.set_stages_evenly(volume)
+            assert current_volume >= 0.0 , 'Volume of watrer in inlet negative!'
+
+            for i in self.procs:
+                if i == self.master_proc: continue
+
+                pypar.send((volume, current_volume, total_area, timestep), i)
+        else:
+            volume, current_volume, total_area, timestep = pypar.receive(self.master_proc)
+
+
+        #print self.myid, volume, current_volume, total_area, timestep
+
+        self.applied_Q = volume/timestep
+        
+        # Distribute positive volume so as to obtain flat surface otherwise
+        # just pull water off to have a uniform depth.
+        if volume >= 0.0 :
+            self.inlet.set_stages_evenly(volume)
+            if self.velocity is not None:
+                # This is done locally without communication
+                depths = self.inlet.get_depths()
+                self.inlet.set_xmoms(self.inlet.get_xmoms()+depths*self.velocity[0])
+                self.inlet.set_ymoms(self.inlet.get_ymoms()+depths*self.velocity[1])
+
+        elif current_volume + volume >= 0.0 :
+            depth = (current_volume + volume)/total_area
+            self.inlet.set_depths(depth)
+        else: #extracting too much water!
+            self.inlet.set_depths(0.0)
+            self.applied_Q = current_volume/timestep
+
 
 
     def update_Q(self, t):
@@ -173,7 +203,7 @@ class Parallel_Inlet_operator(Inlet_operator):
             message = '---------------------------------------------\n'
             message += 'Parallel Inlet report for %s:\n' % self.label
             message += '--------------------------------------------\n'
-            message += 'Q [m^3/s]: %.2f\n' % self.Q
+            message += 'Q [m^3/s]: %.2f\n' % self.applied_Q
         
             print message
 

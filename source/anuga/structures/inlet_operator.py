@@ -19,6 +19,7 @@ class Inlet_operator(anuga.Operator):
                  domain,
                  line,
                  Q = 0.0,
+                 velocity = None,
                  default = None,
                  description = None,
                  label = None,
@@ -41,6 +42,9 @@ class Inlet_operator(anuga.Operator):
         self.outward_vector = self.line
         self.inlet = inlet.Inlet(self.domain, self.line, verbose= verbose)
 
+
+        self.velocity = velocity
+
         self.applied_Q = 0.0
 
         self.set_default(default)
@@ -56,6 +60,9 @@ class Inlet_operator(anuga.Operator):
 
         # Need to run global command on all processors
         current_volume = self.inlet.get_total_water_volume()
+        total_area = self.inlet.get_area()
+
+        assert current_volume >= 0.0
 
         Q1 = self.update_Q(t)
         Q2 = self.update_Q(t + timestep)
@@ -72,22 +79,29 @@ class Inlet_operator(anuga.Operator):
         # store last discharge
         self.applied_Q = Q
 
-        msg =  'Requesting too much water to be removed from an inlet! \n'
-        msg += 'current_water_volume = %5.2e Increment volume = %5.2e' % (current_volume, volume)
-        import warnings
-        if current_volume + volume < 0.0:
-            #warnings.warn(msg)
-            volume = -current_volume
-            self.applied_Q = volume/timestep
 
 
-        #print 'applied_Q', self.applied_Q
+ 
+
         
-        # Distribute volume so as to obtain flat surface
-        self.inlet.set_stages_evenly(volume)
-        
-        # Distribute volume evenly over all cells
-        #self.inlet.set_depths_evenly(volume)
+        # Distribute positive volume so as to obtain flat surface otherwise
+        # just pull water off to have a uniform depth.
+        if volume >= 0.0 :
+            self.inlet.set_stages_evenly(volume)
+            if self.velocity is not None:
+                depths = self.inlet.get_depths()
+                self.inlet.set_xmoms(self.inlet.get_xmoms()+depths*self.velocity[0])
+                self.inlet.set_ymoms(self.inlet.get_ymoms()+depths*self.velocity[1])
+                
+        elif current_volume + volume >= 0.0 :
+            depth = (current_volume + volume)/total_area
+            self.inlet.set_depths(depth)
+        else: #extracting too much water!
+            self.inlet.set_depths(0.0)
+            self.applied_Q = current_volume/timestep
+            msg =  'Requesting too much water to be removed from an inlet! \n'
+            msg += 'current_water_volume = %5.2e Increment volume = %5.2e' % (current_volume, volume)
+
 
 
 
