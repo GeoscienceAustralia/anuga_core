@@ -468,14 +468,14 @@ static PyObject *calc_grid_values( PyObject *self, PyObject *args )
 	return Py_BuildValue("i", 0);
 }
 
-static PyMethodDef interpolate_ext_methods[] = {
+static PyMethodDef calc_grid_values_ext_methods[] = {
 	{"eval_grid", calc_grid_values, METH_VARARGS},
 	{NULL, NULL}
 };
 
-void initinterpolate_ext( )
+void initcalc_grid_values_ext( )
 {
-	(void) Py_InitModule( "interpolate_ext", interpolate_ext_methods );
+	(void) Py_InitModule( "calc_grid_values_ext", calc_grid_values_ext_methods );
 	
 	import_array( );
 }
