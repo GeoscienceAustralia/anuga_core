@@ -131,7 +131,9 @@ class Fit(FitInterpolate):
         """
 
         if verbose:
-            print 'Fit: Build Coefficient Matrix B'
+            import time
+            t0 = time.time()
+            print 'Fit: Build Coefficient Matrix B ',
 
 
         if self.alpha <> 0:
@@ -146,6 +148,9 @@ class Fit(FitInterpolate):
 
 
         if verbose:
+            import time
+            dt = time.time()-t0
+            print '%g secs' % dt
             print 'Fit: Convert Coefficient Matrix B to Sparse_CSR'
             
         # Convert self.B matrix to CSR format for faster matrix vector
