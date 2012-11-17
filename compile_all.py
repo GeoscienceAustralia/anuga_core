@@ -27,6 +27,10 @@ os.chdir('operators')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 os.chdir('..')
+os.chdir('file_conversion')
+execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
+
+os.chdir('..')
 os.chdir('geometry')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 

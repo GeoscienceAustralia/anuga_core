@@ -1295,8 +1295,8 @@ class Test_Sww2Dem(unittest.TestCase):
 
 
     def test_sww2ers_simple(self):
-        """Test that sww information can be converted correctly to asc/prj
-        format readable by e.g. ArcView
+        """Test that sww information can be converted correctly to ers
+        format
         """
 
         import time, os
@@ -1372,15 +1372,15 @@ class Test_Sww2Dem(unittest.TestCase):
         #Check grid data
         grid = read_ermapper_data(self.domain.get_name() + '_elevation')
 
-        #FIXME (Ole): Why is this the desired reference grid for -x-y?
-        ref_grid = [NODATA_value, NODATA_value, NODATA_value, NODATA_value, NODATA_value,
-                    -1,    -1.25, -1.5,  -1.75, -2.0,
+
+        ref_grid = [-1,    -1.25, -1.5,  -1.75, -2.0,
                     -0.75, -1.0,  -1.25, -1.5,  -1.75,
                     -0.5,  -0.75, -1.0,  -1.25, -1.5,
-                    -0.25, -0.5,  -0.75, -1.0,  -1.25]
+                    -0.25, -0.5,  -0.75, -1.0,  -1.25,
+                    -0.0,  -0.25, -0.5,  -0.75, -1.0]
 
 
-        #print grid
+        #print grid.reshape((5,5))
         assert num.allclose(grid, ref_grid)
 
         fid.close()

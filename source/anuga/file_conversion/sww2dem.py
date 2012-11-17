@@ -302,16 +302,17 @@ def sww2dem(name_in, name_out,
     assert len(vertex_points.shape) == 2
 
 
-    def calc_grid_values(vertex_points, volumes, result):
+    def calc_grid_values(nrows, ncols, cellsize, NODATA_value, vertex_points, volumes, result):
 
         grid_points = num.zeros ((ncols*nrows, 2), num.float)
 
         for i in xrange(nrows):
-            if out_ext == '.asc':
-                yg = i * cellsize
-            else:
-                # this will flip the order of the y values for ers
-                yg = (nrows-i) * cellsize
+            yg = i * cellsize
+#            if out_ext == '.asc':
+#                yg = i * cellsize
+#            else:
+#                # this will flip the order of the y values for ers
+#                yg = (nrows-i) * cellsize
 
             for j in xrange(ncols):
                 xg = j * cellsize
@@ -340,7 +341,8 @@ def sww2dem(name_in, name_out,
 
 
 
-    grid_values = calc_grid_values(vertex_points, volumes, result)
+    grid_values = calc_grid_values(nrows, ncols, cellsize, NODATA_value,
+                                   vertex_points, volumes, result)
 
 
 
@@ -384,7 +386,10 @@ def sww2dem(name_in, name_out,
 
         import ermapper_grids
 
-        ermapper_grids.write_ermapper_grid(name_out, grid_values, header)
+        # convert grid_values to ers ordering
+        reordered_grid_values = grid_values[::-1,:]
+
+        ermapper_grids.write_ermapper_grid(name_out, reordered_grid_values, header)
 
         fid.close()
     else:
