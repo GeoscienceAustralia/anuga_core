@@ -472,7 +472,7 @@ class Test_Sww2Dem(unittest.TestCase):
         from mesh_factory import rectangular_cross
 
         #Create basic mesh (100m x 100m)
-        points, vertices, boundary = rectangular_cross(2000, 1, 2000.0, 1.0)
+        points, vertices, boundary = rectangular_cross(20, 1, 20.0, 1.0)
 
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
@@ -583,7 +583,7 @@ class Test_Sww2Dem(unittest.TestCase):
 
         L = lines[0].strip().split()
         assert L[0].strip().lower() == 'ncols'
-        assert L[1].strip().lower() == '2001'
+        assert L[1].strip().lower() == '21'
 
         L = lines[1].strip().split()
         assert L[0].strip().lower() == 'nrows'
@@ -608,6 +608,7 @@ class Test_Sww2Dem(unittest.TestCase):
         #Check grid values (FIXME: Use same strategy for other sww2dem tests)
         for i, line in enumerate(lines[6:]):
             for j, value in enumerate( line.split() ):
+                #print value
                 assert num.allclose(float(value), 0.0,
                                     atol=1.0e-12, rtol=1.0e-12)
 
@@ -627,10 +628,8 @@ class Test_Sww2Dem(unittest.TestCase):
 
 
 
-    def xtest_sww2dem_boundingbox(self):
-        """Test that sww information can be converted correctly to asc/prj
-        format readable by e.g. ArcView.
-        This will test that mesh can be restricted by bounding box
+    def test_sww2dem_boundingbox(self):
+        """Test that mesh can be restricted by bounding box
 
         Original extent is 100m x 100m:
 
@@ -1871,8 +1870,7 @@ class Test_Sww2Dem(unittest.TestCase):
         os.remove(swwfile)
 
     def test_export_grid_bad(self):
-        """Test that sww information can be converted correctly to asc/prj
-        format readable by e.g. ArcView
+        """Test that Bad input throws exception error
         """
 
         try:

@@ -367,7 +367,9 @@ void _calc_grid_values( double *x, double *y, double *norms,
 		for ( j = y_min; j <= y_max; j++ ) {
 			for ( k = x_min; k <= x_max; k++ ) {
 				// iterate through points within a small region
-				point_index = j*nrow+k;
+				point_index = j*ncol+k;
+
+                                //printf("point_index %d %d %d\n",point_index, j, k);
 
 				point[0] = k*cell_size;
 				point[1] = j*cell_size;
@@ -406,7 +408,7 @@ void _calc_grid_values( double *x, double *y, double *norms,
 
 static PyObject *calc_grid_values( PyObject *self, PyObject *args )
 {
-	int i, ok, num_tri, num_vert, ncol, nrow;
+	int i, ok, num_tri, num_vert, ncol, nrow, num_norms, num_grid_val;
 	long *volumes; 
 	double nodata_val;
         double cell_size;
@@ -452,8 +454,10 @@ static PyObject *calc_grid_values( PyObject *self, PyObject *args )
 
 	num_tri  = ((PyArrayObject*)pyobj_volumes)->dimensions[0];
 	num_vert = ((PyArrayObject*)pyobj_x)->dimensions[0];
+        num_norms = ((PyArrayObject*)pyobj_norms)->dimensions[0];
+        num_grid_val = ((PyArrayObject*)pyobj_grid_val)->dimensions[0];
 
-        //printf("==== %d\n",((PyArrayObject*)pyobj_grid_val)->dimensions[0]);
+        //printf("==== %d %d %d %d %d \n",num_norms,num_tri,num_vert,nrow,ncol);
 
 	// init triangle array
 	init_norms( x,y, norms, volumes, num_tri );

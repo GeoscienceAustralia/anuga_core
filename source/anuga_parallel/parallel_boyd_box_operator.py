@@ -255,7 +255,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
 
     def discharge_routine(self):
 
-        local_debug ='false'
+        local_debug = False
 
         #Send attributes of both enquiry points to the master proc
         if self.myid == self.master_proc:
@@ -349,7 +349,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
         # Master proc computes return values
         if self.myid == self.master_proc:
             if inflow_enq_depth > 0.01: #this value was 0.01:
-                if local_debug =='true':
+                if local_debug:
                     anuga.log.critical('Specific E & Deltat Tot E = %s, %s'
                                  % (str(inflow_enq_specific_energy),
                                     str(self.delta_total_energy)))
@@ -461,7 +461,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
 
                 culv_froude=math.sqrt(Q**2*flow_width/(anuga.g*flow_area**3))
                 
-                if local_debug =='true':
+                if local_debug:
                     anuga.log.critical('FLOW AREA = %s' % str(flow_area))
                     anuga.log.critical('PERIMETER = %s' % str(perimeter))
                     anuga.log.critical('Q final = %s' % str(Q))

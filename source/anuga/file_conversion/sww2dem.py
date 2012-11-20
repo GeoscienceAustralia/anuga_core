@@ -351,7 +351,7 @@ def sww2dem(name_in, name_out,
     norms = num.zeros(6*num_tri, num.float)
 
     #print norms
-    #from calc_grid_values_ext import calc_grid_values
+    from calc_grid_values_ext import calc_grid_values
 
     calc_grid_values(nrows, ncols, cellsize, NODATA_value,
                      x,y, norms, volumes, result, grid_values)

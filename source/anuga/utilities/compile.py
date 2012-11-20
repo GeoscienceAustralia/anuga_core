@@ -254,7 +254,7 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
   
   
     # Compile
-    #
+    # -O3 -g
     if utilities_include_dir is None:    
       s = '%s -c %s -I"%s" -o "%s.o" -Wall -O3'\
           %(compiler, FN, python_include, root)
