@@ -30,14 +30,12 @@ double point_dot(double *p1, double *p2)
 	return p1[0]*p2[0]+p1[1]*p2[1];
 }
 
-double *point_sub(double *p1, double *p2)
+void point_sub(double *p1, double *p2, double *res)
 {
-	double *res = malloc( 2*sizeof( double ) );
 	
 	res[0] = p1[0] - p2[0];
 	res[1] = p1[1] - p2[1];
 	
-	return res;
 }
 
 void get_tri_extent(double *vertices, PTR_EXTENT out)
@@ -57,7 +55,7 @@ void get_tri_extent(double *vertices, PTR_EXTENT out)
 	out->y_max = MAX( y1, MAX( y2, y3 ) );
 }
 
-void get_tri_vertices( double *vertices, \
+void get_tri_vertices( double *x, double *y,\
 			long *volumes, \
 			int tri_id, \
 			double *out, \
@@ -65,25 +63,25 @@ void get_tri_vertices( double *vertices, \
 			double *v2,  \
 			double *v3 )
 {
-	out[0] = vertices[volumes[tri_id*3]*2];
-	out[1] = vertices[volumes[tri_id*3]*2+1];
-	out[2] = vertices[volumes[tri_id*3+1]*2];
-	out[3] = vertices[volumes[tri_id*3+1]*2+1];
-	out[4] = vertices[volumes[tri_id*3+2]*2];
-	out[5] = vertices[volumes[tri_id*3+2]*2+1];
+	out[0] = x[volumes[tri_id*3]];
+	out[1] = y[volumes[tri_id*3]];
+	out[2] = x[volumes[tri_id*3+1]];
+	out[3] = y[volumes[tri_id*3+1]];
+	out[4] = x[volumes[tri_id*3+2]];
+	out[5] = y[volumes[tri_id*3+2]];
 	
 
 	if (v1) {
-		v1[0]=vertices[volumes[tri_id*3]*2]; 
-		v1[1]=vertices[volumes[tri_id*3]*2+1];
+		v1[0]=x[volumes[tri_id*3]];
+		v1[1]=y[volumes[tri_id*3]];
 	}
 	if (v2) {
-		v2[0]=vertices[volumes[tri_id*3+1]*2]; 
-		v2[1]=vertices[volumes[tri_id*3+1]*2+1];
+		v2[0]=x[volumes[tri_id*3+1]];
+		v2[1]=y[volumes[tri_id*3+1]];
 	}
 	if (v3) {
-		v3[0]=vertices[volumes[tri_id*3+2]*2]; 
-		v3[1]=vertices[volumes[tri_id*3+2]*2+1];
+		v3[0]=x[volumes[tri_id*3+2]];
+		v3[1]=y[volumes[tri_id*3+2]];
 	}
 }
 
@@ -98,23 +96,22 @@ void get_tri_norms( double *norms, int tri_id,
 	n3[1] = norms[tri_id*6+5];
 }
 
-double *init_norms( double *vertices, long *volumes, int num_tri  )
+void init_norms( double *x, double *y, double *norms, long *volumes, int num_tri  )
 {
 	int i;
 	double x1, x2, x3, y1, y2, y3;
 	double xn1, yn1, xn2, yn2, xn3, yn3;
 	double l1, l2, l3;
-	double *norms;
 
-	norms = malloc( num_tri*6*sizeof( double ) );
+	//norms = malloc( num_tri*6*sizeof( double ) );
 
 	for ( i = 0; i < num_tri; i++ ) {
-		x1 = vertices[volumes[i*3]*2];
-		x2 = vertices[volumes[i*3+1]*2];
-		x3 = vertices[volumes[i*3+2]*2];
-		y1 = vertices[volumes[i*3]*2+1];
-		y2 = vertices[volumes[i*3+1]*2+1];
-		y3 = vertices[volumes[i*3+2]*2+1];
+		x1 = x[volumes[i*3]];
+		x2 = x[volumes[i*3+1]];
+		x3 = x[volumes[i*3+2]];
+		y1 = y[volumes[i*3]];
+		y2 = y[volumes[i*3+1]];
+		y3 = y[volumes[i*3+2]];
 
 		xn1 = x3 - x2;
 		yn1 = y3 - y2;
@@ -144,7 +141,6 @@ double *init_norms( double *vertices, long *volumes, int num_tri  )
 		norms[i*6+5] = -xn3;
 	}
 
-	return norms;
 }
 
 // remove nodes that are not in any triangles
@@ -288,102 +284,112 @@ int _is_inside_triangle(double *point,
   return 0;			 			 
 }
 
-void build_interpolation_matrix( double *vertices, 
+void _calc_grid_values( double *x, double *y, double *norms,
 				 int num_vert,
 				 long *volumes, 
-				 double *norms,
 				 int num_tri, 
-				 double *grid_points, 
-				 int x_dimension,
-				 int y_dimension,
+				 double cell_size,
+				 int nrow,
+				 int ncol,
 				 double *vertex_val,
 				 double *grid_val )
 {
 	int i, j, k;
 	int x_min, x_max, y_min, y_max, point_index;
-	int x_ori, y_ori;
 	double x_dist, y_dist, x_base, y_base;
 	double sigma0, sigma1, sigma2;
 	double fraction, intpart;
-	double *triangle, *point;
-	double *v1, *v2, *v3;
-	double *n1, *n2, *n3;
-	double val1, val2;
-	PTR_EXTENT extent;
+	double triangle[6], point[2];
+	double v1[2], v2[2], v3[2];
+	double n1[2], n2[2], n3[2];
+	double val1, val2, res[2];
+	EXTENT extent[1];
 
-	x_ori = (grid_points[2] - grid_points[0]) > 0 ? ORI_RIGHT : ORI_LEFT;
-	y_ori = (grid_points[y_dimension*2+1] - grid_points[1]) > 0 ? ORI_UP: ORI_DOWN;
 	
-	x_dist = ABS(grid_points[2] - grid_points[0]);
-	y_dist = ABS(grid_points[y_dimension*2+1] - grid_points[1]);
+        x_dist = cell_size;
+	y_dist = cell_size;
 
-	x_base = grid_points[0];
-	y_base = grid_points[1];
+	x_base = 0.0;
+	y_base = 0.0;
 
-	triangle = malloc( 6*sizeof(double) );
-	point    = malloc( 2*sizeof(double) );
-	extent	 = malloc( sizeof( EXTENT ) );
 
-	v1 = malloc( 2*sizeof(double) );
-	v2 = malloc( 2*sizeof(double) );
-	v3 = malloc( 2*sizeof(double) );
+/*
+        printf("%d\n",num_tri);
+        for ( i=0; i< num_tri; i++){
+            printf("volumes\n");
+            printf("%ld %ld %ld \n",volumes[3*i],volumes[3*i+1],volumes[3*i+2]);
+        }
 
-	n1 = malloc( 2*sizeof(double) );
-	n2 = malloc( 2*sizeof(double) );
-	n3 = malloc( 2*sizeof(double) );
+        printf("%d\n",num_vert);
+        for ( i=0; i< num_vert; i++){
+            printf("vertices\n");
+            printf("%g %g \n",x[i],y[i]);
+        }
+*/
 
 	for ( i = 0; i < num_tri; i++ ) {
 
-		get_tri_vertices( vertices, volumes, i, triangle, v1, v2, v3);
+		get_tri_vertices( x,y, volumes, i, triangle, v1, v2, v3);
 		get_tri_norms( norms, i, n1, n2, n3 );
 		get_tri_extent( triangle, extent );
 
-		fraction = (x_ori == ORI_RIGHT) \
-				? modf( (extent->x_min - x_base)/x_dist, &intpart )
-				: modf( ABS(extent->x_max - x_base)/x_dist, &intpart );
-		x_min = intpart;//(fraction<=EPSILON) ? intpart : (intpart+1);
+/*
+                printf("tri %g %g  %g %g %g %g\n",
+                   triangle[0],triangle[1],triangle[2],triangle[3], triangle[4],triangle[5]);
+                printf("v1 %g %g\n", v1[0], v1[1]);
+                printf("v2 %g %g\n", v2[0], v2[1]);
+                printf("v3 %g %g\n", v3[0], v3[1]);
+
+
+                printf("e.xmin %g \n", extent->x_min);
+                printf("e.xmax %g \n", extent->x_max);
+                printf("e.ymin %g \n", extent->y_min);
+                printf("e.ymax %g \n", extent->y_max);
+*/
+
+		fraction = modf( (extent->x_min - x_base)/x_dist, &intpart );
+		x_min = intpart;
 		x_min = (x_min < 0) ? 0 : x_min; 
 
-		fraction = (x_ori == ORI_RIGHT) \
-				? modf( ABS(extent->x_max - x_base)/x_dist, &intpart )
-				: modf( ABS(extent->x_min - x_base)/x_dist, &intpart );
-		x_max = intpart;//(x_dist - fraction)<=EPSILON ? intpart+1 : intpart;
-		x_max = (x_max > (y_dimension-1)) ? (y_dimension-1) : x_max;
+		fraction = modf( ABS(extent->x_max - x_base)/x_dist, &intpart );
+		x_max = intpart;
+		x_max = (x_max > (ncol-1)) ? (ncol-1) : x_max;
 
-		fraction = (y_ori == ORI_UP) \
-				? modf( (extent->y_min - y_base)/y_dist, &intpart )
-				: modf( ABS(extent->y_max - y_base)/y_dist, &intpart );
-		y_min = intpart;//(fraction <= EPSILON) ? intpart : (intpart+1);
+		fraction = modf( (extent->y_min - y_base)/y_dist, &intpart );
+		y_min = intpart;
 		y_min = (y_min < 0 ) ? 0 : y_min;
 
-		fraction = (y_ori == ORI_UP) \
-				? modf( ABS(extent->y_max - y_base)/y_dist, &intpart )
-				: modf( ABS(extent->y_min - y_base)/y_dist, &intpart );
-		y_max = intpart;//(y_dist - fraction)<=EPSILON ? (intpart+1) : intpart;
-		y_max = (y_max > (x_dimension-1)) ? (x_dimension-1) : y_max;
+		fraction = modf( ABS(extent->y_max - y_base)/y_dist, &intpart );
+		y_max = intpart;
+		y_max = (y_max > (nrow-1)) ? (nrow-1) : y_max;
 		
 		if ( x_max >= 0 && y_max >= 0 ) {
 		for ( j = y_min; j <= y_max; j++ ) {
 			for ( k = x_min; k <= x_max; k++ ) {
 				// iterate through points within a small region
-				point_index = j*y_dimension+k;
+				point_index = j*nrow+k;
 
-				point[0] = grid_points[point_index*2];
-				point[1] = grid_points[point_index*2+1];
+				point[0] = k*cell_size;
+				point[1] = j*cell_size;
 
 				if ( _is_inside_triangle( point, triangle, \
 							  1, 1.0e-12, 1.0e-12 ) ) {
-					
-					val1 = point_dot( point_sub( point, v2 ), n1 );
-					val2 = point_dot( point_sub( v1, v2 ), n1 );	
+					point_sub( point, v2, res);
+					val1 = point_dot( res, n1 );
+                                        point_sub( v1, v2 , res);
+					val2 = point_dot( res, n1 );
 					sigma0 = val2 ? val1/val2 : 0;	
-						
-					val1 = point_dot( point_sub( point, v3 ), n2 );
-					val2 = point_dot( point_sub( v2, v3 ), n2 );
+
+                                        point_sub( point, v3, res);
+					val1 = point_dot( res, n2 );
+                                        point_sub( v2, v3, res);
+					val2 = point_dot( res, n2 );
 					sigma1 = val2 ? val1/val2 : 0;
-			
-					val1 = point_dot( point_sub( point, v1 ), n3 );
-					val2 = point_dot( point_sub( v3, v1 ), n3 );
+
+                                        point_sub( point, v1, res);
+					val1 = point_dot( res, n3 );
+                                        point_sub( v3, v1, res);
+					val2 = point_dot( res, n3 );
 					sigma2 = val2 ? val1/val2 : 0;
 
 						
@@ -396,17 +402,6 @@ void build_interpolation_matrix( double *vertices,
 		}
 	}
 
-	free(triangle);
-	free(point);
-	free(extent);
-
-	free(v1);
-	free(v2);
-	free(v3);
-
-	free(n1);
-	free(n2);
-	free(n3);
 }
 
 static PyObject *calc_grid_values( PyObject *self, PyObject *args )
@@ -414,62 +409,74 @@ static PyObject *calc_grid_values( PyObject *self, PyObject *args )
 	int i, ok, num_tri, num_vert, ncol, nrow;
 	long *volumes; 
 	double nodata_val;
-	double *vertices;
+        double cell_size;
+	double *x, *y;
+        double *norms;
 	double *result;
-	double *grid;
 	double *grid_val;
-	double *norms;
-	PyObject *pyobj_vertex_points;
+	PyObject *pyobj_x;
+        PyObject *pyobj_y;
+        PyObject *pyobj_norms;
 	PyObject *pyobj_volumes;
 	PyObject *pyobj_result;
-	PyObject *pyobj_grid;
 	PyObject *pyobj_grid_val;
 
-	ok = PyArg_ParseTuple( args, "iidOOOOO", 
+	ok = PyArg_ParseTuple( args, "iiddOOOOOO",
 				&nrow,
 				&ncol,
-				&nodata_val,
-			        &pyobj_grid, 
-				&pyobj_vertex_points, 
+                                &cell_size,
+				&nodata_val, 
+				&pyobj_x,
+                                &pyobj_y,
+                                &pyobj_norms,
 				&pyobj_volumes, 
 				&pyobj_result,
 				&pyobj_grid_val );
+
+
+
+
 	if( !ok ){
-		fprintf( stderr, "interpolate func: argument parsing error\n" );
+		fprintf( stderr, "calc_grid_values: argument parsing error\n" );
 		exit(1);
 	}
 
 	// get data from python objects
-	vertices = DDATA( pyobj_vertex_points );
-	grid 	 = DDATA( pyobj_grid );
+	x = DDATA( pyobj_x );
+        y = DDATA( pyobj_y );
+        norms    = DDATA( pyobj_norms );
 	result	 = DDATA( pyobj_result );
 	grid_val = DDATA( pyobj_grid_val );
 	volumes  = IDATA( pyobj_volumes );
 
-	num_tri  = ((PyArrayObject*)pyobj_volumes)->dimensions[0];
-	num_vert = ((PyArrayObject*)pyobj_vertex_points)->dimensions[0]/2;
 
-	// remove unused vertices
-	// remove_lone_verts( &vertices, volumes );	
+	num_tri  = ((PyArrayObject*)pyobj_volumes)->dimensions[0];
+	num_vert = ((PyArrayObject*)pyobj_x)->dimensions[0];
+
+        //printf("==== %d\n",((PyArrayObject*)pyobj_grid_val)->dimensions[0]);
 
 	// init triangle array
-	norms = init_norms( vertices, volumes, num_tri );
+	init_norms( x,y, norms, volumes, num_tri );
 
+
+
+        //printf("+++ %d\n",nrow*ncol);
 	// evaluate grid
 	for ( i = 0 ; i < nrow*ncol; i++ ) 
 		grid_val[i] = nodata_val;
 
-	build_interpolation_matrix( vertices, num_vert, volumes, norms, num_tri, \
-				    grid, nrow, ncol,   	\
+
+
+	_calc_grid_values( x,y, norms, num_vert, volumes, num_tri, \
+				    cell_size, nrow, ncol,   	\
 				    result, grid_val );
 
-	free(norms);
 
-	return Py_BuildValue("i", 0);
+	return Py_BuildValue("");
 }
 
 static PyMethodDef calc_grid_values_ext_methods[] = {
-	{"eval_grid", calc_grid_values, METH_VARARGS},
+	{"calc_grid_values", calc_grid_values, METH_VARARGS},
 	{NULL, NULL}
 };
 

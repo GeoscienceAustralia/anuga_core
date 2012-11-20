@@ -298,13 +298,20 @@ def sww2dem(name_in, name_out,
     x = x + xllcorner - newxllcorner
     y = y + yllcorner - newyllcorner
 
-    vertex_points = num.concatenate ((x[:,num.newaxis], y[:,num.newaxis]), axis=1)
-    assert len(vertex_points.shape) == 2
 
+    grid_values = num.zeros( (nrows*ncols, ), num.float)
+    #print '---',grid_values.shape
 
-    def calc_grid_values(nrows, ncols, cellsize, NODATA_value, vertex_points, volumes, result):
+    #-------------------------------------------------------
+    # Calculate grid values using the "standard" interpolation
+    # method (ie quad trees and such)
+    #-------------------------------------------------------
+    def calc_grid_values(nrows, ncols, cellsize, NODATA_value,
+                         x,y, norms, volumes, result, grid_values):
 
         grid_points = num.zeros ((ncols*nrows, 2), num.float)
+        vertex_points = num.concatenate ((x[:,num.newaxis], y[:,num.newaxis]), axis=1)
+        assert len(vertex_points.shape) == 2
 
         for i in xrange(nrows):
             yg = i * cellsize
@@ -333,16 +340,21 @@ def sww2dem(name_in, name_out,
 
         # Interpolate using quantity values
         if verbose: log.critical('Interpolating')
-        grid_values = interp.interpolate(result, grid_points,
+        grid_values[:] = interp.interpolate(result, grid_points,
                                          NODATA_value= NODATA_value,
                                          verbose=verbose).flatten()
+        #print grid_values.shape
 
-        return grid_values
+        return
 
+    num_tri =  len(volumes)
+    norms = num.zeros(6*num_tri, num.float)
 
+    #print norms
+    #from calc_grid_values_ext import calc_grid_values
 
-    grid_values = calc_grid_values(nrows, ncols, cellsize, NODATA_value,
-                                   vertex_points, volumes, result)
+    calc_grid_values(nrows, ncols, cellsize, NODATA_value,
+                     x,y, norms, volumes, result, grid_values)
 
 
 
