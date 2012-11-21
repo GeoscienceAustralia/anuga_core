@@ -37,7 +37,7 @@ output_file = 'avalanche'
 g = 9.81           # gravity
 h_0 = 20.0         # depth upstream. Note that the depth downstream is 0.0
 L = 200.0          # length of stream/domain
-dx = 1.0
+dx = 0.5
 dy = dx
 W = 3*dx
 
@@ -65,12 +65,47 @@ domain.set_CFL(cfl)
 # Setup initial conditions
 #------------------------------------------------------------------------------
 #Parameters
-friction_slope = 0.05             #tan(delta) # NOTE THAT friction_slope must less than bed_slope
-bed_slope = 0.1                   #tan(theta) #0.1      # bottom slope, positive if it is increasing bottom.
-thet = arctan(bed_slope)
-F2 = g*cos(thet)*cos(thet)*friction_slope
-m = -1.0*g*bed_slope + F2   # auxiliary variable
-domain.set_quantity('friction', h_0*F2) #h_i F2 How??????????????????????????????????????
+   # auxiliary variable
+
+# No Mannings friction
+domain.set_quantity('friction', 0.0)
+
+
+class Linear_friction:
+    
+    def __init__(self,
+                 friction_slope=0.05,
+                 bed_slope=0.1):
+        
+        self.friction_slope = friction_slope   #tan(delta) # NOTE THAT friction_slope must less than bed_slope
+        self.bed_slope = bed_slope             #tan(theta) #0.1      # bottom slope, positive if it is increasing bottom.
+
+        thet = arctan(bed_slope)
+        self.F = g*cos(thet)*cos(thet)*friction_slope
+        self.m = -1.0*g*bed_slope + self.F
+        
+    def __call__(self, domain):
+        
+
+        w = domain.quantities['stage'].centroid_values
+        z = domain.quantities['elevation'].centroid_values
+        h = w-z
+
+        #uh = domain.quantities['xmomentum'].centroid_values
+        #vh = domain.quantities['ymomentum'].centroid_values
+
+        xmom_update = domain.quantities['xmomentum'].explicit_update
+        ymom_update = domain.quantities['ymomentum'].explicit_update
+
+        xmom_update[:] = xmom_update + self.F*h
+
+
+bed_slope = 0.1
+friction_slope = 0.05
+
+linear_forcing_term = Linear_friction(friction_slope, bed_slope)
+
+domain.forcing_terms.append(linear_forcing_term)
 
 def stage(X,Y):
     N = len(X)
@@ -95,7 +130,7 @@ def f_right(t):
     z_r = bed_slope*(0.5*L)
     h_r = h_0 #+ bed_slope*cell_len
     w_r = z_r + h_r
-    u_r = m*t   
+    u_r = linear_forcing_term.m*t
     #['stage', 'xmomentum', 'ymomentum']
     return [w_r,  u_r*h_r,  0.0]
 

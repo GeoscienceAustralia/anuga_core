@@ -30,7 +30,7 @@ pyplot.title('Stage at several instants in time')
 pyplot.legend(loc='best')
 pyplot.xlabel('Xposition')
 pyplot.ylabel('Stage')
-pyplot.savefig('stage_plot.png')
+pyplot.savefig('stage_plot.png', dpi=600)
 pyplot.show()
 
 
