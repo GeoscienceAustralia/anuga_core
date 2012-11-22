@@ -143,6 +143,24 @@ class Visualiser(Thread):
         """
         pass
 
+
+
+    def store_height_quantity(self, quantityName, fileName=None):
+
+        if fileName == None:
+            fileName = quantityName + '.vtk'
+
+        quantity_polyData = self.vtk_polyData[quantityName]
+
+        import vtk
+        w = vtk.vtkPolyDataWriter()
+        #print quantity_polyData
+        w.SetInput(quantity_polyData)
+        w.SetFileName(fileName)
+        w.Write()
+
+
+
     def draw_height_quantity(self, quantityName):
         """Use the vtkPolyData and prepare/update the rest of the VTK
         rendering pipeline.
