@@ -7,7 +7,7 @@ __author__="stephen"
 __date__ ="$20/08/2012 11:20:00 PM$"
 
 
-alg = 'tsunami'
+alg = '2_0'
 cfl = 1.0
 
 

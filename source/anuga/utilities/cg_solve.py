@@ -114,7 +114,7 @@ def _conjugate_gradient(A, b, x0,
         #if dx < atol :
         #    break
             
-        if i % 50:
+        if (i%50) == 0:
             r = b - A * x
         else:
             r = r - alpha * q

@@ -522,7 +522,7 @@ class Domain(Generic_Domain):
         else:
             flag = str(float(str(flag))).replace(".","_")
 
-        flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_5', 'tsunami']
+        flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', 'tsunami']
 
         if flag in flow_algorithms:
             self.flow_algorithm = flag
@@ -570,6 +570,23 @@ class Domain(Generic_Domain):
             self.set_CFL(0.75)
             self.set_compute_fluxes_method('wb_2')
             self.set_extrapolate_velocity()
+
+
+        if self.flow_algorithm == '2_0_limited':
+            self.set_timestepping_method(2)
+            self.set_default_order(2)
+            beta_w      = 1.7
+            beta_w_dry  = 0.2
+            beta_uh     = 1.7
+            beta_uh_dry = 0.2
+            beta_vh     = 1.7
+            beta_vh_dry = 0.2
+            self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
+            self.set_CFL(1.0)
+            self.set_compute_fluxes_method('wb_2')
+            self.set_extrapolate_velocity()
+
+
 
 
         if self.flow_algorithm == '2_0':
