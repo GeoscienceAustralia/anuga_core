@@ -1,0 +1,38 @@
+\section{Trapezoidal channel steady uniform flow case}
+This scenario simulates steady, uniform flow in a trapezoidal channel. It tests the ability of the model to compute the correct flow depth, and the correct lateral distribution of flow velocity, and to conserve mass.
+
+\subsection{Results}
+Figure~\ref{fig:fig1mid_channel} shows the along-channel depth and velocity (in the deepest part of the channel). Both should be nearly constant away from the boundaries, and be close to the analytical solutions. 
+
+We do not expect perfect agreement, because the mesh is not very fine in this example (triangle side length of around 1m, just enough to resolve the banks). There will probably be some numerical diffusion in the cross-channel velocity profiles, which will in turn cause errors in the mid-channel velocity and free surface elevation. We deliberately choose to not use a finer mesh, because in realistic problems, it is often not possible to resolve all channels very well.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.9\textwidth]{fig1mid_channel.png}
+\caption{Depth and $y$-velocity in the middle of the channel, in the downstream direction.}
+\label{fig:fig1mid_channel}
+\end{center}
+\end{figure}
+
+Figure~\ref{fig:xsect_vels} shows the cross-channel velocity profiles at a number of cross-sections. Ideally it should agree with the analytical solution, however, this may be difficult due to numerical diffusion in the cross-channel direction. Irrespective, the velocity profile should be qualitatively correct -- highest velocities should be in the channel centre, with lower velocities towards the banks.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.9\textwidth]{fig2upstream_channel.png}
+\includegraphics[width=0.9\textwidth]{fig3central_channel.png}
+\includegraphics[width=0.9\textwidth]{fig4downstream_channel.png}
+\caption{$y$-velocity distribution over a number of cross-sections.}
+\label{fig:xsect_vels}
+\end{center}
+\end{figure}
+
+Table~\ref{tab:trapztab} shows the discharge computed at a number of cross-sections in the channel, at a number of time-steps on the way to near steady-state. By the end of the simulation they should all be essentially the same. Large variations may suggest mass conservation errors (small variations are probably due to the interpolation that occurs in the 'compute\_flow\_through\_cross\_section' routine).
+
+\DTLloaddb{dischargeout}{Tests/Simple/trapezoidal_channel/discharge_outputs.txt}
+\begin{table}
+\caption{Discharge through cross-sections at a number of $x$-position, at different instants in time}
+\label{tab:trapztab}
+\DTLdisplaydb{dischargeout}
+\end{table}
+
+\endinput
