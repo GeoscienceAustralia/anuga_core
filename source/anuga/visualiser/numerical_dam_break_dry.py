@@ -92,7 +92,8 @@ vtk_visualiser = True
 if vtk_visualiser:
     from anuga.visualiser import RealtimeVisualiser
     vis = RealtimeVisualiser(domain)
-    vis.render_quantity_height("stage", zScale =1.0, dynamic=True)
+    vis.render_quantity_height("height",dynamic=True)
+    #vis.render_quantity_height("stage", zScale =1.0, dynamic=True)
     vis.colour_height_quantity('stage', (0.0, 0.0, 1.0))
     vis.start()
 #===============================================================================
@@ -109,8 +110,7 @@ for t in domain.evolve(yieldstep = 0.01, finaltime = 0.25):
         vis.update()
         fileName = 'stage_%03d' % i + '.vtk'
         i = i+1
-        vis.store_height_quantity('stage',fileName)
-
+        vis.store_height_quantity('height',fileName)
 
 #test against know data
 

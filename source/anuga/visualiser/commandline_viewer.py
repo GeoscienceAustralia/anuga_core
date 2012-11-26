@@ -38,14 +38,23 @@ if __name__ == '__main__':
         # Or with a function of the quantities at that point, such as
         # the stage height:
         # 0 and 10 are the minimum and maximum values of the stage.
-        o.colour_height_quantity('stage', (lambda q: q['stage'], 0, 10))
+        o.colour_height_quantity('stage', (lambda q: q['stage'], 1.0, 5.0))
         # Or with the magnitude of the momentum at that point:
         # Needs the sqrt function from numeric. Again, 0 and 10
         # define the colour range.
-        # o.colour_height_quantity('stage',
+        from numpy import sqrt
+        #o.colour_height_quantity('stage',
         #                          (lambda q:sqrt((q['xmomentum'] ** 2) +
         #                                         (q['ymomentum'] ** 2)),
         #                                          0, 10))
+        o.colour_height_quantity('stage',
+                                  (lambda q: q['xmomentum']/
+                                             (q['stage'] - q['elevation']),
+                                              0, 5))
+
+
+        # Draw some axes on the visualiser so we can see how big the wave is
+
 
         # Draw some axes on the visualiser so we can see how big the wave is
         o.render_axes()

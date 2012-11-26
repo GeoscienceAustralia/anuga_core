@@ -194,7 +194,7 @@ class Visualiser(Thread):
 
                     map(scalars.InsertNextValue, colour[0](self.build_quantity_dict()))
                     self.vtk_polyData[quantityName].GetPointData().SetScalars(scalars)
-                    #mapper.SetScalarRange(colour[1:])
+                    mapper.SetScalarRange(colour[1:])
                     mapper.Update()
                 else:
                     # It's a 3-tuple representing an RGB value.
