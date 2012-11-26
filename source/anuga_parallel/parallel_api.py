@@ -39,6 +39,8 @@ processor_name = get_processor_name()
 
 def distribute(domain, verbose=False, debug=False, parameters = None):
     """ Distribute the domain to all processes
+
+    parameters values  
     """
 
 

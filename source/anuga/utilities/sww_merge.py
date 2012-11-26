@@ -256,17 +256,28 @@ def _sww_merge_parallel(swwfiles, output,  verbose=False, delete_old=False):
         tri_full_flag = fid.variables['tri_full_flag'][:]
         volumes = num.array(fid.variables['volumes'][:],dtype=num.int)
         l_volumes = num.zeros_like(volumes)
+        l_old_volumes = num.zeros_like(volumes)
 
 
         # Change the local node ids to global id in the
         # volume array
- 
-        for i in range(len(l_volumes)):
-            g_n0 = node_l2g[volumes[i,0]]
-            g_n1 = node_l2g[volumes[i,1]]
-            g_n2 = node_l2g[volumes[i,2]]
-        
-            l_volumes[i,:] = [g_n0,g_n1,g_n2]
+
+        # FIXME SR: Surely we can knock up a numpy way of doing this
+        #for i in range(len(l_volumes)):
+        #    g_n0 = node_l2g[volumes[i,0]]
+        #    g_n1 = node_l2g[volumes[i,1]]
+        #    g_n2 = node_l2g[volumes[i,2]]
+        #
+        #    l_old_volumes[i,:] = [g_n0,g_n1,g_n2]
+
+        g_n0 = node_l2g[volumes[:,0]].reshape(-1,1)
+        g_n1 = node_l2g[volumes[:,1]].reshape(-1,1)
+        g_n2 = node_l2g[volumes[:,2]].reshape(-1,1)
+
+        #print g_n0.shape
+        l_volumes = num.hstack((g_n0,g_n1,g_n2))
+
+        #assert num.allclose(l_volumes, l_old_volumes)
 
         # Just pick out the full triangles
         ftri_l2g = num.compress(tri_full_flag, tri_l2g)
@@ -275,8 +286,9 @@ def _sww_merge_parallel(swwfiles, output,  verbose=False, delete_old=False):
         #print tri_full_flag
         #print tri_l2g
         #print ftri_l2g
-    
-        g_volumes[ftri_l2g] = num.compress(tri_full_flag,l_volumes,axis=0)
+
+        fg_volumes = num.compress(tri_full_flag,l_volumes,axis=0)
+        g_volumes[ftri_l2g] = fg_volumes
 
 
 
@@ -289,11 +301,29 @@ def _sww_merge_parallel(swwfiles, output,  verbose=False, delete_old=False):
         
 
         #print number_of_timesteps
-        
+
+
+        # FIXME SR: It seems that some of the "ghost" node quantity values
+        # are being storded. We should only store those nodes which are associated with
+        # full triangles. So we need an index array of "full" nodes, ie those in
+        # full triangles
+
+        #use numpy.compress and numpy.unique to get "full nodes
+
+        f_volumes = num.compress(tri_full_flag,volumes,axis=0)
+        fl_nodes = num.unique(f_volumes)
+        f_node_l2g = node_l2g[fl_nodes]
+
+        #print len(node_l2g)
+        #print len(fl_nodes)
+
         # Read in static quantities
         for quantity in static_quantities:
-            out_s_quantities[quantity][node_l2g] = \
-                         num.array(fid.variables[quantity],dtype=num.float32)
+            #out_s_quantities[quantity][node_l2g] = \
+            #             num.array(fid.variables[quantity],dtype=num.float32)
+
+            out_s_quantities[quantity][f_node_l2g] = \
+                         num.array(fid.variables[quantity],dtype=num.float32)[fl_nodes]
 
         
         #Collate all dynamic quantities according to their timestep
@@ -301,8 +331,10 @@ def _sww_merge_parallel(swwfiles, output,  verbose=False, delete_old=False):
             q = fid.variables[quantity]
             #print q.shape
             for i in range(n_steps):
-                out_d_quantities[quantity][i][node_l2g] = \
-                           num.array(q[i],dtype=num.float32)
+                #out_d_quantities[quantity][i][node_l2g] = \
+                #           num.array(q[i],dtype=num.float32)
+                out_d_quantities[quantity][i][f_node_l2g] = \
+                           num.array(q[i][fl_nodes],dtype=num.float32)
 
 
 
