@@ -682,6 +682,54 @@ class Generic_Domain:
         Q1 = self.get_quantity(name)
         self.set_quantity(name, Q1 + Q2)
 
+    def minimum_quantity(self, name,
+                           *args, **kwargs):
+        """min of values to a named quantity
+
+        E.g minimum_quantity('elevation', X)
+
+        Option are the same as in set_quantity.
+        """
+
+        # Do the expression stuff
+        if kwargs.has_key('expression'):
+            expression = kwargs['expression']
+            Q2 = self.create_quantity_from_expression(expression)
+        else:
+            # Create new temporary quantity
+            Q2 = Quantity(self)
+
+            # Assign specified values to temporary quantity
+            Q2.set_values(*args, **kwargs)
+
+        # MIn temporary quantity to named quantity
+        Q1 = self.get_quantity(name)
+        self.set_quantity(name, Q1.minimum(Q2))
+
+    def maximum_quantity(self, name,
+                           *args, **kwargs):
+        """max of values to a named quantity
+
+        E.g maximum_quantity('elevation', X)
+
+        Option are the same as in set_quantity.
+        """
+
+        # Do the expression stuff
+        if kwargs.has_key('expression'):
+            expression = kwargs['expression']
+            Q2 = self.create_quantity_from_expression(expression)
+        else:
+            # Create new temporary quantity
+            Q2 = Quantity(self)
+
+            # Assign specified values to temporary quantity
+            Q2.set_values(*args, **kwargs)
+
+        # Max temporary quantity to named quantity
+        Q1 = self.get_quantity(name)
+        self.set_quantity(name, Q1.maximum(Q2))
+
     def get_quantity_names(self):
         """Get a list of all the quantity names that this domain is aware of.
         Any value in the result should be a valid input to get_quantity.

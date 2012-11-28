@@ -522,7 +522,7 @@ class Domain(Generic_Domain):
         else:
             flag = str(float(str(flag))).replace(".","_")
 
-        flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', 'tsunami']
+        flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', 'tsunami', 'yusuke']
 
         if flag in flow_algorithms:
             self.flow_algorithm = flag
@@ -575,11 +575,11 @@ class Domain(Generic_Domain):
         if self.flow_algorithm == '2_0_limited':
             self.set_timestepping_method(2)
             self.set_default_order(2)
-            beta_w      = 1.7
+            beta_w      = 1.5
             beta_w_dry  = 0.2
-            beta_uh     = 1.7
+            beta_uh     = 1.5
             beta_uh_dry = 0.2
-            beta_vh     = 1.7
+            beta_vh     = 1.5
             beta_vh_dry = 0.2
             self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
             self.set_CFL(1.0)
@@ -605,10 +605,17 @@ class Domain(Generic_Domain):
 
 
         if self.flow_algorithm == 'tsunami':
-
             self.set_tsunami_defaults()
 
 
+        if self.flow_algorithm == 'yusuke':
+            # To speed up calculation we also turn off
+            # the update of other quantities
+            
+            self.set_tsunami_defaults()
+
+
+            
 
         if self.flow_algorithm == '2_5':
             self.set_timestepping_method(3)
@@ -1370,6 +1377,12 @@ class Domain(Generic_Domain):
         based on the new values of conserved quantities
         """
 
+
+
+        if self.flow_algorithm == 'yusuke':
+            return
+
+        
         # The centroid values of height and x and y velocity
         # might not have been setup
 

@@ -162,6 +162,11 @@ class Parallel_domain(Domain):
             
             merge.sww_merge_parallel(global_name,self.numproc,verbose,delete_old)
 
+    def write_time(self):
+
+        if self.processor == 0:
+            Domain.write_time(self)
+
 
 # =======================================================================
 # PETE: NEW METHODS FOR FOR PARALLEL STRUCTURES. Note that we assume the 

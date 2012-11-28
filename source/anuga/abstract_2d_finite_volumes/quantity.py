@@ -220,6 +220,63 @@ class Quantity:
 
         return result
 
+
+
+
+
+    def maximum(self, other):
+        """Max of self with anything that could populate a quantity
+
+        E.g other can be a constant, an array, a function, another quantity
+        (except for a filename or points, attributes (for now))
+        - see set_values for details
+        """
+
+        if isinstance(other, Quantity):
+            Q = other
+        else:
+            Q = Quantity(self.domain)
+            Q.set_values(other)
+
+        result = Quantity(self.domain)
+
+        # The maximum of vertex_values, edge_values and centroid_values
+        # are calculated and assigned directly without using
+        # set_values (which calls interpolate). Otherwise
+        # edge and centroid values wouldn't be max from q1 and q2
+        result.vertex_values = num.maximum(self.vertex_values, Q.vertex_values)
+        result.edge_values = num.maximum(self.edge_values, Q.edge_values)
+        result.centroid_values = num.maximum(self.centroid_values, Q.centroid_values)
+
+        return result
+
+
+    def minimum(self, other):
+        """Max of self with anything that could populate a quantity
+
+        E.g other can be a constant, an array, a function, another quantity
+        (except for a filename or points, attributes (for now))
+        - see set_values for details
+        """
+
+        if isinstance(other, Quantity):
+            Q = other
+        else:
+            Q = Quantity(self.domain)
+            Q.set_values(other)
+
+        result = Quantity(self.domain)
+
+        # The minimum of vertex_values, edge_values and centroid_values
+        # are calculated and assigned directly without using
+        # set_values (which calls interpolate). Otherwise
+        result.vertex_values = num.minimum(self.vertex_values, Q.vertex_values)
+        result.edge_values = num.minimum(self.edge_values, Q.edge_values)
+        result.centroid_values = num.minimum(self.centroid_values, Q.centroid_values)
+
+        return result
+
+
     ############################################################################
     # Setters/Getters
     ############################################################################
