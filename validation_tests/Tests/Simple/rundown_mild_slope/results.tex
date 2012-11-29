@@ -1,0 +1,39 @@
+%Note for this test case:
+%Simple water flow example using ANUGA: Water flowing down a channel.
+%It was called "steep_slope" in an old validation test.
+
+
+\section{Shallow flow down a mild slope}
+This case simulates very shallow flow running down a mild slope topography. It represents an idealisation of the rainfall-runoff problem, which will often involve very shallow flows down such a topography. This case has an analytical solution (the steady-uniform solution, bed slope = friction slope).   
+
+\subsection{Results}
+Figures~\ref{fig:depthdownchan} shows the steady state depth in the downstream direction. There should be a good agreement with the analytical solution, at least away from the boundaries.  
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.8\textwidth]{final_depth.png}
+\caption{Depth in the downstream direction}
+\label{fig:depthdownchan}
+\end{center}
+\end{figure}
+
+Figures~\ref{fig:xvelscrosschan} and~\ref{fig:yvelscroschan} show the steady state $x$- and $y$-velocities, along a slice in the cross slope direction (near $x=50$). The $x$-velocities should agree well with the analytical solution, and the $y$-velocities should be zero.  
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.8\textwidth]{x_velocity.png}
+\caption{$x$-velocity along the cross-section $x=50$ (i.e. a cross-section with constant bed elevation)}
+\label{fig:xvelscrosschan}
+\end{center}
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.8\textwidth]{y_velocity.png}
+\caption{$y$-velocity along the cross-section $x=50$ (i.e. a cross-section with constant bed elevation)}
+\label{fig:yvelscroschan}
+\end{center}
+\end{figure}
+
+
+\endinput
