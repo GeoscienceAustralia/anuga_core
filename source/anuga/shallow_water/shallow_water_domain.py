@@ -1388,17 +1388,23 @@ class Domain(Generic_Domain):
 
         self.update_centroids_of_velocities_and_height()
 
+
+        # At present just use piecewise constants for these "other' quantities
         for name in ['height', 'xvelocity', 'yvelocity']:
             Q = self.quantities[name]
-            if self._order_ == 1:
-                Q.extrapolate_first_order()
-            elif self._order_ == 2:
-                if self.use_edge_limiter:
-                    Q.extrapolate_second_order_and_limit_by_edge()
-                else:
-                    Q.extrapolate_second_order_and_limit_by_vertex()
-            else:
-                raise Exception('Unknown order')
+            Q.extrapolate_first_order()
+
+#        for name in ['height', 'xvelocity', 'yvelocity']:
+#            Q = self.quantities[name]
+#            if self._order_ == 1:
+#                Q.extrapolate_first_order()
+#            elif self._order_ == 2:
+#                if self.use_edge_limiter:
+#                    Q.extrapolate_second_order_and_limit_by_edge()
+#                else:
+#                    Q.extrapolate_second_order_and_limit_by_vertex()
+#            else:
+#                raise Exception('Unknown order')
 
 
 
@@ -1433,31 +1439,57 @@ class Domain(Generic_Domain):
         #UH.set_boundary_values_from_edges()
         #VH.set_boundary_values_from_edges()
 
-        # Update height values
-        H.set_values( num.where(W.centroid_values-Z.centroid_values>=0,
-                                W.centroid_values-Z.centroid_values, 0.0), location='centroids')
-        H.set_boundary_values( num.where(W.boundary_values-Z.boundary_values>=0,
-                                         W.boundary_values-Z.boundary_values, 0.0))
-
-        assert num.min(H.centroid_values) >= 0
-        assert num.min(H.boundary_values) >= 0
 
         #Aliases
+        w_C   = W.centroid_values
+        z_C   = Z.centroid_values
         uh_C  = UH.centroid_values
         vh_C  = VH.centroid_values
+        u_C   = U.centroid_values
+        v_C   = V.centroid_values
         h_C   = H.centroid_values
 
+        w_B   = W.boundary_values
+        z_B   = Z.boundary_values
         uh_B  = UH.boundary_values
         vh_B  = VH.boundary_values
+        u_B   = U.boundary_values
+        v_B   = V.boundary_values
         h_B   = H.boundary_values
+
+        h_C[:] = w_C-z_C
+        h_C[:] = num.where(h_C >= 0, h_C , 0.0)
+
+        h_B[:] = w_B-z_B
+        h_B[:] = num.where(h_B >=0, h_B, 0.0)
+
+        # Update height values
+        #H.set_values( num.where(W.centroid_values-Z.centroid_values>=0,
+        #                        W.centroid_values-Z.centroid_values, 0.0), location='centroids')
+        #H.set_boundary_values( num.where(W.boundary_values-Z.boundary_values>=0,
+        #                                 W.boundary_values-Z.boundary_values, 0.0))
+
+
+
+        #assert num.min(h_C) >= 0
+        #assert num.min(h_B) >= 0
+
 
         H0 = 1.0e-8
         
-        U.set_values(uh_C/(h_C + H0/h_C), location='centroids')
-        V.set_values(vh_C/(h_C + H0/h_C), location='centroids')
+        #U.set_values(uh_C/(h_C + H0/h_C), location='centroids')
+        #V.set_values(vh_C/(h_C + H0/h_C), location='centroids')
 
-        U.set_boundary_values(uh_B/(h_B + H0/h_B))
-        V.set_boundary_values(vh_B/(h_B + H0/h_B))
+        factor = h_C/(h_C*h_C + H0)
+        u_C[:]  = uh_C*factor
+        v_C[:]  = vh_C*factor
+
+        #U.set_boundary_values(uh_B/(h_B + H0/h_B))
+        #V.set_boundary_values(vh_B/(h_B + H0/h_B))
+
+        factor = h_B/(h_B*h_B + H0)
+        u_B[:]  = uh_B*factor
+        v_B[:]  = vh_B*factor
  
 
 
@@ -1483,14 +1515,20 @@ class Domain(Generic_Domain):
         #Arrays
         u_C  = U.centroid_values
         v_C  = V.centroid_values
+        uh_C = UH.centroid_values
+        vh_C = VH.centroid_values
         h_C  = H.centroid_values
 
         u_B  = U.boundary_values
         v_B  = V.boundary_values
+        uh_B = UH.boundary_values
+        vh_B = VH.boundary_values
         h_B  = H.boundary_values
 
-        UH.set_values(u_C*h_C , location='centroids')
-        VH.set_values(v_C*h_C , location='centroids')
+        uh_C[:] = u_C*h_C
+        vh_C[:] = v_C*h_C
+        #UH.set_values(u_C*h_C , location='centroids')
+        #VH.set_values(v_C*h_C , location='centroids')
 
         self.distribute_to_vertices_and_edges()
 
