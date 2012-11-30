@@ -116,6 +116,7 @@ from anuga.file_conversion.sww2dem import sww2dem, sww2dem_batch
 from anuga.file_conversion.asc2dem import asc2dem     
 from anuga.file_conversion.ferret2sww import ferret2sww     
 from anuga.file_conversion.dem2dem import dem2dem
+from anuga.file_conversion.sww2png import sww2png
 
 
 #-----------------------------

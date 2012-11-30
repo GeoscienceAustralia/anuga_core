@@ -339,18 +339,23 @@ def sww2png(name_in, name_out,
                      % (num.min(grid_values), num.max(grid_values)))
 
 
-    # produce png file
 
-    import pylab 
-    import numpy
-    a = numpy.where(grid_values == -9999, numpy.nan, grid_values)
+    return grid_values.reshape(nrows,ncols)[::-1,:]
 
-    print a.shape
-    a = a.reshape(nrows,ncols)[::-1,:]
-    
-    print a.shape
-    pylab.imshow(a)
-    pylab.savefig(name_out)
+
+#
+#    # produce png file
+#
+#    import pylab
+#    import numpy
+#    a = numpy.where(grid_values == -9999, numpy.nan, grid_values)
+#
+#    print a.shape
+#    a = a.reshape(nrows,ncols)[::-1,:]
+#
+#    print a.shape
+#    pylab.imshow(a)
+#    pylab.savefig(name_out)
 
 
 
