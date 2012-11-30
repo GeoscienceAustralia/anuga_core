@@ -1430,8 +1430,9 @@ class Quantity:
         qe = self.edge_values
 
         for i in range(3):
-            qv[:,i] = qc
             qe[:,i] = qc
+
+        qv[:] = qe
 
         self.x_gradient[:] = 0.0
         self.y_gradient[:] = 0.0
