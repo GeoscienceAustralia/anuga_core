@@ -1429,9 +1429,11 @@ class Quantity:
         qv = self.vertex_values
         qe = self.edge_values
 
-        for i in range(3):
-            qe[:,i] = qc
+        #for i in range(3):
+        #    qe[:,i] = qc
 
+        #print qc.shape
+        qe[:] = qc.reshape((-1,1))
         qv[:] = qe
 
         self.x_gradient[:] = 0.0
