@@ -1433,8 +1433,8 @@ class Quantity:
             qv[:,i] = qc
             qe[:,i] = qc
 
-        self.x_gradient *= 0.0
-        self.y_gradient *= 0.0
+        self.x_gradient[:] = 0.0
+        self.y_gradient[:] = 0.0
 
     def get_integral(self, full_only=True):
 
