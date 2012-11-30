@@ -194,8 +194,6 @@ def _sww_merge_parallel(swwfiles, output,  verbose=False, delete_old=False):
     if verbose:
         print "MERGING SWW Files"
         
-    static_quantities = ['elevation']
-    dynamic_quantities = ['stage', 'xmomentum', 'ymomentum']
     
     first_file = True
     tri_offset = 0
@@ -210,6 +208,7 @@ def _sww_merge_parallel(swwfiles, output,  verbose=False, delete_old=False):
             times    = fid.variables['time'][:]
             n_steps = len(times)
             number_of_timesteps = fid.dimensions['number_of_timesteps']
+            #print n_steps, number_of_timesteps
             starttime = int(fid.starttime)
             
             out_s_quantities = {}
@@ -237,6 +236,17 @@ def _sww_merge_parallel(swwfiles, output,  verbose=False, delete_old=False):
 
             g_points = num.zeros((number_of_global_nodes,2),num.float32)
 
+            quantities = ['elevation', 'stage', 'xmomentum', 'ymomentum']
+            static_quantities = []
+            dynamic_quantities = []
+
+            for quantity in quantities:
+                # Test if elevation is static
+                if n_steps == fid.variables[quantity].shape[0]:
+                    dynamic_quantities.append(quantity)
+                else:
+                    static_quantities.append(quantity)
+                
             for quantity in static_quantities:
                 out_s_quantities[quantity] = num.zeros((number_of_global_nodes,),num.float32)
 
@@ -321,9 +331,10 @@ def _sww_merge_parallel(swwfiles, output,  verbose=False, delete_old=False):
         for quantity in static_quantities:
             #out_s_quantities[quantity][node_l2g] = \
             #             num.array(fid.variables[quantity],dtype=num.float32)
-
+            q = fid.variables[quantity]
+            print quantity, q.shape
             out_s_quantities[quantity][f_node_l2g] = \
-                         num.array(fid.variables[quantity],dtype=num.float32)[fl_nodes]
+                         num.array(q,dtype=num.float32)[fl_nodes]
 
         
         #Collate all dynamic quantities according to their timestep
@@ -334,7 +345,7 @@ def _sww_merge_parallel(swwfiles, output,  verbose=False, delete_old=False):
                 #out_d_quantities[quantity][i][node_l2g] = \
                 #           num.array(q[i],dtype=num.float32)
                 out_d_quantities[quantity][i][f_node_l2g] = \
-                           num.array(q[i][fl_nodes],dtype=num.float32)
+                           num.array(q[i],dtype=num.float32)[fl_nodes]
 
 
 
