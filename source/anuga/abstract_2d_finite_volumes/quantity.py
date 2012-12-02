@@ -325,10 +325,14 @@ class Quantity:
         from the cells
         """
 
-        for j in range(self.boundary_length):
-            vol_id  = self.domain.boundary_cells[j]
-            edge_id = self.domain.boundary_edges[j]
-            self.boundary_values[j] = self.edge_values[vol_id,edge_id]
+#        for j in range(self.boundary_length):
+#            vol_id  = self.domain.boundary_cells[j]
+#            edge_id = self.domain.boundary_edges[j]
+#            self.boundary_values[j] = self.edge_values[vol_id,edge_id]
+
+        vol_id  = self.domain.boundary_cells
+        edge_id = self.domain.boundary_edges
+        self.boundary_values = (self.edge_values.flat)[3*vol_id+edge_id]
 
     ##
     # @brief Set boundary values using a function
