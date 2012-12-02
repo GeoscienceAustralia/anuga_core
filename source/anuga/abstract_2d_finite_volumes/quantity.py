@@ -1432,8 +1432,7 @@ class Quantity:
         #for i in range(3):
         #    qe[:,i] = qc
 
-        #print qc.shape
-        qe[:] = qc.reshape((-1,1))
+        qe[:] = qc[:,num.newaxis]
         qv[:] = qe
 
         self.x_gradient[:] = 0.0
