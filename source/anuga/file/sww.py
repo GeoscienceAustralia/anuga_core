@@ -102,7 +102,7 @@ class SWW_file(Data_format):
         # NetCDF file definition
         fid = NetCDFFile(self.filename, mode)
         if mode[0] == 'w':
-            description = 'Output from anuga.abstract_2d_finite_volumes ' \
+            description = 'Output from anuga.file.sww' \
                           'suitable for plotting'
                           
             self.writer = Write_sww(static_quantities, dynamic_quantities)

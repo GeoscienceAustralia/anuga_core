@@ -383,7 +383,11 @@ def allocate_inlet_procs(domain, line, enquiry_point = None, master_proc = 0, pr
 
         assert len(inlet_procs) > 0, "Line does not intersect any domain"
         assert inlet_master_proc >= 0, "No master processor assigned"
-        if enquiry_point is not None: assert inlet_enq_proc >= 0, "Enquiry point %s not assigned to a processor" % str(enquiry_point)
+
+        if enquiry_point is not None:
+            msg = "Enquiry point %s doesn't intersect mesh, maybe inside a building, try reducing enquiry_gap" % str(enquiry_point)
+            if inlet_enq_proc < 0:
+                raise Exception(msg)
 
         # Send inlet_master_proc and inlet_procs to all processors in inlet_procs
         for i in procs:

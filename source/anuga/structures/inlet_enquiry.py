@@ -36,9 +36,14 @@ class Inlet_enquiry(inlet.Inlet):
         msg = 'Enquiry Point %s ' %  str(point)
         msg += ' did not fall within the domain boundary.'
         assert is_inside_polygon(point, bounding_polygon), msg
-            
-        self.enquiry_index = self.domain.get_triangle_containing_point(self.enquiry_pt)
 
+        try:
+            self.enquiry_index = self.domain.get_triangle_containing_point(self.enquiry_pt)
+        except:
+            msg = "Enquiry point %s doesn't intersect mesh, maybe inside a building, try reducing enquiry_gap" % str(self.enquiry_pt)
+            raise Exception(msg)
+
+        
         if self.enquiry_index in self.triangle_indices:
             msg = 'Enquiry point %s' % (self.enquiry_pt)
             msg += 'is in an inlet triangle'

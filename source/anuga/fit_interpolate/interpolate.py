@@ -46,6 +46,7 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.geometry.polygon import interpolate_polyline, in_and_outside_polygon
 import anuga.utilities.log as log
 
+
 import numpy as num
 
 
@@ -538,6 +539,7 @@ def interpolate_sww2csv(sww_file,
                         stage_file=None,
                         froude_file=None,
                         time_thinning=1,
+                        g = 9.80665,
                         verbose=True,
                         use_cache = True):
     """
@@ -632,8 +634,9 @@ def interpolate_sww2csv(sww_file,
             if depth < 1.e-30: # use epsilon
                 froude = NAN
             else:
+
                 froude = sqrt(velocity_x*velocity_x + velocity_y*velocity_y)/ \
-                         sqrt(depth * 9.8066) # gravity m/s/s
+                         sqrt(depth * g) # gravity m/s/s
 
             depths.append(depth)
             velocity_xs.append(velocity_x)
