@@ -332,7 +332,7 @@ def _sww_merge_parallel(swwfiles, output,  verbose=False, delete_old=False):
             #out_s_quantities[quantity][node_l2g] = \
             #             num.array(fid.variables[quantity],dtype=num.float32)
             q = fid.variables[quantity]
-            print quantity, q.shape
+            #print quantity, q.shape
             out_s_quantities[quantity][f_node_l2g] = \
                          num.array(q,dtype=num.float32)[fl_nodes]
 
