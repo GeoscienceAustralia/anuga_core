@@ -103,8 +103,8 @@ for n in range(len(domain.triangles)):
         #print 'Point is within triangle with vertices '+'%s'%tri
         n_point = n
         break
-print 'n_point = ',n_point
-bla
+print 'The triangle ID containing the point of origin is = ',n_point
+
 
 #------------------------------------------------------------------------------
 # Evolve system through time
