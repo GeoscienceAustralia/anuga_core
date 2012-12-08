@@ -22,7 +22,7 @@ from anuga.geometry.polygon import inside_polygon, is_inside_triangle
 time = strftime('%Y%m%d_%H%M%S',localtime())
 
 output_dir = '.'#'radial_dam_break_'+time
-output_file = 'radial_dam'
+output_file = 'radial_dam_break'
 
 #anuga.copy_code_files(output_dir,__file__)
 #start_screen_catcher(output_dir+'_')
@@ -50,6 +50,7 @@ from anuga.utilities.argparsing import parse_standard_args
 alg, cfl = parse_standard_args()
 domain.set_flow_algorithm(alg)
 domain.set_CFL(cfl)
+#domain.set_minimum_allowed_height(0.002)
 
 #------------------------------------------------------------------------------
 # Setup initial conditions
@@ -58,7 +59,7 @@ domain.set_quantity('elevation',0.0)
 domain.set_quantity('friction', 0.0)
 
 h0 = 10.0
-h1 = 1.0
+h1 = 0.0
 radius = 50.0
 
 def height(x,y):
@@ -83,6 +84,7 @@ Br = anuga.Reflective_boundary(domain)      # Solid reflective wall
 # Associate boundary tags with boundary objects
 domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
+
 #===============================================================================
 ##from anuga.visualiser import RealtimeVisualiser
 ##vis = RealtimeVisualiser(domain)
@@ -103,7 +105,6 @@ domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 ##        n_point = n
 ##        break
 ##print 'The triangle ID containing the point of origin is = ',n_point
-
 
 #------------------------------------------------------------------------------
 # Evolve system through time
