@@ -32,7 +32,6 @@ domain.set_CFL(cfl)
 #------------------------------------------------------------------------------
 # Setup initial conditions
 #------------------------------------------------------------------------------
-##Note by Sudi Mungkasi: DO NOT USE INLET. INLET IS NOT APPROPRIATE FOR THIS PROBLEM
 Qin=20.
 fluxin=Qin/100. #The momentum flux at the upstream boundary ( = discharge / width)
 uana= 2.15843634571 # analytical Xvelocity
