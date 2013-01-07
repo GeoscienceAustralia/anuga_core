@@ -1240,7 +1240,7 @@ class Domain(Generic_Domain):
 
         # Compute edge values by interpolation
         for name in self.conserved_quantities:
-            Q = domain.quantities[name]
+            Q = self.quantities[name]
             Q.interpolate_from_vertices_to_edges()
 
     def distribute_using_vertex_limiter(self):
