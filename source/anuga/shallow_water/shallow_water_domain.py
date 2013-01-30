@@ -298,6 +298,17 @@ class Domain(Generic_Domain):
 
         print '#----------------------------'
 
+   def write_algorithm_parameters(self, file_name):
+        """Write the standard parameters that are curently set (as a dictionary)
+        to a file
+        """
+
+        parameter_file=open(file_name, 'w')
+        from pprint import pprint
+        pprint(self.get_algorithm_parameters(),parameter_file,indent=4)
+        parameter_file.close()
+
+
 
     def set_tsunami_defaults(self):
         """Set up the defaults for running the flow_algorithm "tsunami"
