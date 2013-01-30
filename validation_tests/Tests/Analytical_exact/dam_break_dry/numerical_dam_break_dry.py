@@ -56,6 +56,9 @@ alg, cfl = parse_standard_args()
 domain.set_flow_algorithm(alg)
 domain.set_CFL(cfl)
 
+print 'cfl ',cfl
+print 'alg ',alg
+
 #------------------------------------------------------------------------------
 # Setup initial conditions
 #------------------------------------------------------------------------------
@@ -63,7 +66,7 @@ domain.set_quantity('elevation',0.0)
 domain.set_quantity('friction', 0.0)
 
 h0 = 10.0
-h1 = 1e-9#1.0
+h1 = 0.0
 
 def height(x,y):
     z = zeros(len(x), float)
