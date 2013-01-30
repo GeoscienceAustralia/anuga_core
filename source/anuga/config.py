@@ -177,7 +177,7 @@ max_smallsteps = 50   # Max number of degenerate steps allowed b4
 ################################################################################
 
 # Water depth below which it is considered to be 0 in the model
-minimum_allowed_height = 1.0e-6
+minimum_allowed_height = 0.001
 
 # Water depth below which it is *stored* as 0
 minimum_storable_height = 1.0e-05
