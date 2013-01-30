@@ -112,9 +112,16 @@ N = len(p2.time)
 Sh = zeros(N)
 for i in range(N):
     for k in range(len(indicesL)):
-        Sh[i] += p2.stage[i,indicesL[k]]
-        Sh[i] -= p2.stage[i,indicesR[k]]
-force = 9.8*Sh
+        Sh[i] += p2.stage[i,indicesL[k]]**2
+        Sh[i] -= p2.stage[i,indicesR[k]]**2
+
+fudge_factor = 1.0
+length = 0.12
+g = 9.8
+rho_w = 1024
+average_pressure = 0.5*g*Sh/len(indicesL)*rho_w
+
+force = fudge_factor*average_pressure*length
     
 
 #Plot stages

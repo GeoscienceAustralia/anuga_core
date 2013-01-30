@@ -54,7 +54,11 @@ domain.set_datadir(output_dir)
 #------------------------------------------------------------------------------
 from anuga.utilities.argparsing import parse_standard_args
 alg, cfl = parse_standard_args()
-domain.set_flow_algorithm(alg)
+
+alg = '2_0_limited'
+cfl = 0.9
+print alg, cfl
+domain.set_flow_algorithm('2_0_limited')
 domain.set_CFL(cfl)
 domain.set_minimum_allowed_height(0.01)
 
@@ -86,7 +90,7 @@ def elevation(x,y):
     return z
 domain.set_quantity('stage', stage)
 domain.set_quantity('elevation',elevation)
-domain.set_quantity('friction', 0.0)
+domain.set_quantity('friction', 0.03)
 
 #-----------------------------------------------------------------------------
 # Setup boundary conditions
