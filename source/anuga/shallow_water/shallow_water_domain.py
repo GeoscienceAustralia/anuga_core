@@ -298,7 +298,7 @@ class Domain(Generic_Domain):
 
         print '#----------------------------'
 
-   def write_algorithm_parameters(self, file_name):
+    def write_algorithm_parameters(self, file_name):
         """Write the standard parameters that are curently set (as a dictionary)
         to a file
         """
