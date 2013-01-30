@@ -852,6 +852,7 @@ def sww2timeseries(swwfiles,
                    use_cache=False,
                    verbose=False,
                    output_centroids=False):
+
     from gauge import sww2timeseries as sww2timeseries_new
     return sww2timeseries_new(swwfiles,
                    gauge_filename,

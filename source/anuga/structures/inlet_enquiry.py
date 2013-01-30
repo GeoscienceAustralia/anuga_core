@@ -10,8 +10,7 @@ class Inlet_enquiry(inlet.Inlet):
     """Contains information associated with each inlet plus an enquiry point
     """
 
-    def __init__(self, domain, polyline, enquiry_pt,  outward_culvert_vector=None, verbose=False):
-
+    def __init__(self, domain, polyline, enquiry_pt, outward_culvert_vector=None, verbose=False):
 
 
         inlet.Inlet.__init__(self, domain, polyline, verbose)

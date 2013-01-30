@@ -39,9 +39,11 @@ class Inlet_operator(anuga.Operator):
         #print self.Q
 
         self.enquiry_point = 0.5*(self.line[0] + self.line[1])
-        self.outward_vector = self.line
+        #self.outward_vector = self.line
         self.inlet = inlet.Inlet(self.domain, self.line, verbose= verbose)
 
+        if velocity is not None:
+            assert len(velocity)==2
 
         self.velocity = velocity
 
@@ -78,9 +80,6 @@ class Inlet_operator(anuga.Operator):
 
         # store last discharge
         self.applied_Q = Q
-
-
-
  
 
         
@@ -99,8 +98,9 @@ class Inlet_operator(anuga.Operator):
         else: #extracting too much water!
             self.inlet.set_depths(0.0)
             self.applied_Q = current_volume/timestep
-            msg =  'Requesting too much water to be removed from an inlet! \n'
-            msg += 'current_water_volume = %5.2e Increment volume = %5.2e' % (current_volume, volume)
+
+            #msg =  'Requesting too much water to be removed from an inlet! \n'
+            #msg += 'current_water_volume = %5.2e Increment volume = %5.2e' % (current_volume, volume)
 
 
 

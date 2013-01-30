@@ -135,48 +135,11 @@ def sequential_distribute_dump(domain, numprocs=1, verbose=False, debug=False, p
                 'node_l2g':  node_l2g,
                 'ghost_layer_width':  ghost_layer_width}
 
-#        parallel_domain = Parallel_domain(points, vertices, boundary, **kwargs)
-
-
-
-        #------------------------------------------------------------------------
-        # Transfer initial conditions to each subdomain
-        #------------------------------------------------------------------------
-#        for q in quantities:
-#            parallel_domain.set_quantity(q, quantities[q])
-
-
-        #------------------------------------------------------------------------
-        # Transfer boundary conditions to each subdomain
-        #------------------------------------------------------------------------
-#        boundary_map['ghost'] = None  # Add binding to ghost boundary
-#        parallel_domain.set_boundary(boundary_map)
-
-
-        #------------------------------------------------------------------------
-        # Transfer other attributes to each subdomain
-        #------------------------------------------------------------------------
-#        parallel_domain.set_name(domain_name)
-#        parallel_domain.set_datadir(domain_dir)
-#        parallel_domain.set_store(domain_store)
-#        parallel_domain.set_minimum_storable_height(domain_minimum_storable_height)
-#        parallel_domain.set_minimum_allowed_height(domain_minimum_allowed_height)
-#        parallel_domain.set_flow_algorithm(domain_flow_algorithm)
-#        parallel_domain.geo_reference = georef
-
-
-
         #-----------------------------------------------------------------------
-        # Now let's store the parallel_domain via cPickle
+        # Now let's store the data for a  parallel_domain via cPickle
         #-----------------------------------------------------------------------
-#        import cPickle
-#        pickle_name = domain_name + '_P%g_%g.pickle'% (numprocs,p)
-#        f = file(pickle_name, 'wb')
-#        cPickle.dump(parallel_domain, f, protocol=cPickle.HIGHEST_PROTOCOL)
-#        f.close()
 
-
-        #FIXME SR: Looks like we could reduce storage by a factor of 4 by just
+        #Looks like we reduce storage by a factor of 4 by just
         # storing the data to create the parallel_domain instead of pickling
         # a created domain
         import cPickle

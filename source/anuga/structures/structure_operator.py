@@ -36,6 +36,16 @@ class Structure_operator(anuga.Operator):
                  structure_type,
                  logging,
                  verbose):
+                     
+        """
+        exchange_lines define the input lines for each inlet.
+
+        If end_points = None, then the culvert_vector is calculated in the
+        directions from the centre of echange_line[0] to centre of exchange_line[1}
+
+        If end_points != None, then culvert_vector is unit vector in direction
+        end_point[1] - end_point[0]
+        """
 
         anuga.Operator.__init__(self,domain)
         
@@ -88,19 +98,20 @@ class Structure_operator(anuga.Operator):
             self.__process_non_skew_culvert()
         else:
             raise Exception, 'Define either exchange_lines or end_points'
+
         
         self.inlets = []
         line0 = self.exchange_lines[0] #self.inlet_lines[0]
         enquiry_point0 = self.enquiry_points[0]
-        outward_vector0 = self.culvert_vector
+        #outward_vector0 = - self.culvert_vector
         self.inlets.append(inlet_enquiry.Inlet_enquiry(self.domain, line0,
-                           enquiry_point0, outward_vector0, self.verbose))
+                           enquiry_point0, self.outward_vector_0, self.verbose))
 
         line1 = self.exchange_lines[1]
         enquiry_point1 = self.enquiry_points[1]
-        outward_vector1  = - self.culvert_vector
+        #outward_vector1  = - self.culvert_vector
         self.inlets.append(inlet_enquiry.Inlet_enquiry(self.domain, line1,
-                           enquiry_point1, outward_vector1, self.verbose))
+                           enquiry_point1, self.outward_vector_1, self.verbose))
 
         self.set_logging(logging)
 
@@ -199,6 +210,9 @@ class Structure_operator(anuga.Operator):
         assert self.culvert_length > 0.0, 'The length of culvert is less than 0'
         
         self.culvert_vector /= self.culvert_length
+        self.outward_vector_0 =   self.culvert_vector
+        self.outward_vector_1 = - self.culvert_vector
+
         
         culvert_normal = num.array([-self.culvert_vector[1], self.culvert_vector[0]])  # Normal vector
         w = 0.5*self.width*culvert_normal # Perpendicular vector of 1/2 width
@@ -234,18 +248,49 @@ class Structure_operator(anuga.Operator):
             
         centre_point0 = 0.5*(self.exchange_lines[0][0] + self.exchange_lines[0][1])
         centre_point1 = 0.5*(self.exchange_lines[1][0] + self.exchange_lines[1][1])
+
+        n_exchange_0 = len(self.exchange_lines[0])
+        n_exchange_1 = len(self.exchange_lines[1])
+
+        assert n_exchange_0 == n_exchange_1, 'There shoiuld be the same number of points in both exchange_lines'
+
+        if n_exchange_0 == 2:
         
-        if self.end_points is None:
+            if self.end_points is None:
+                self.culvert_vector = centre_point1 - centre_point0
+            else:
+                self.culvert_vector = self.end_points[1] - self.end_points[0]
+
+            self.outward_vector_0 =   self.culvert_vector
+            self.outward_vector_1 = - self.culvert_vector
+
+
+        elif n_exchange_0 == 4:
+
+            self.outward_vector_0 = self.exchange_lines[0][3] - self.exchange_lines[0][2]
+            self.outward_vector_1 = self.exchange_lines[1][3] - self.exchange_lines[1][2]
+
             self.culvert_vector = centre_point1 - centre_point0
+
         else:
-            self.culvert_vector = self.end_points[1] - self.end_points[0]
-        
+            raise Exception, 'n_exchange_0 != 2 or 4'
+
+
         self.culvert_length = math.sqrt(num.sum(self.culvert_vector**2))
         assert self.culvert_length > 0.0, 'The length of culvert is less than 0'
-        
+        self.culvert_vector /= self.culvert_length
+
+        outward_vector_0_length = math.sqrt(num.sum(self.outward_vector_0**2))
+        assert outward_vector_0_length > 0.0, 'The length of outlet_vector_0 is less than 0'
+        self.outward_vector_0 /= outward_vector_0_length
+
+        outward_vector_1_length = math.sqrt(num.sum(self.outward_vector_1**2))
+        assert outward_vector_1_length > 0.0, 'The length of outlet_vector_1 is less than 0'
+        self.outward_vector_1 /= outward_vector_1_length
+
+
         if self.enquiry_points is None:
         
-            self.culvert_vector /= self.culvert_length
             gap = (self.apron + self.enquiry_gap)*self.culvert_vector
         
             self.enquiry_points = []
