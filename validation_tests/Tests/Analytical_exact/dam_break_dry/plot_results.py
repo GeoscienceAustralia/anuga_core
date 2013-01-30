@@ -15,7 +15,7 @@ v2=(p2_st.y==v)
 #p_dev = util.get_output('dam_break.sww', 0.001)
 #p2_dev=util.get_centroids(p_dev, velocity_extrapolation=True)
 
-h0 = 1e-9#1.0
+h0 = 1e-9
 h1 = 10.0
 
 h10,u10 = analytic.vec_dam_break(p2_st.x[v2], p2_st.time[10], h0=h0, h1=h1)

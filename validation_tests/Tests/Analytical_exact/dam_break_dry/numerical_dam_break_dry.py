@@ -7,20 +7,17 @@ similar to a beach environment
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
-import sys
 import anuga
 from anuga import Domain as Domain
-from math import cos
 from numpy import zeros, float
-from time import localtime, strftime, gmtime
-#from balanced_dev import *
+
 
 
 #-------------------------------------------------------------------------------
 # Copy scripts to time stamped output directory and capture screen
 # output to file
 #-------------------------------------------------------------------------------
-time = strftime('%Y%m%d_%H%M%S',localtime())
+#time = strftime('%Y%m%d_%H%M%S',localtime())
 
 #output_dir = 'dam_break_'+time
 output_dir = '.'
@@ -81,13 +78,20 @@ domain.set_quantity('stage', height)
 #-----------------------------------------------------------------------------
 # Setup boundary conditions
 #------------------------------------------------------------------------------
-from math import sin, pi, exp
 Br = anuga.Reflective_boundary(domain)      # Solid reflective wall
 Bt = anuga.Transmissive_boundary(domain)    # Continue all values on boundary 
 Bd = anuga.Dirichlet_boundary([1,0.,0.]) # Constant boundary values
 
 # Associate boundary tags with boundary objects
 domain.set_boundary({'left': Bt, 'right': Bt, 'top': Br, 'bottom': Br})
+
+
+parameter_file=open('parameters.tex', 'w')
+parameter_file.write('\\begin{verbatim}\n')
+from pprint import pprint
+pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
+parameter_file.write('\\end{verbatim}\n')
+parameter_file.close()
 
 
 #===============================================================================
