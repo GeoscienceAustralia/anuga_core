@@ -114,7 +114,7 @@ def run_culvert_flow_problem(depth):
 
     #print 'depth', depth
     ref_volume = domain.get_quantity('stage').get_integral()
-    for t in domain.evolve(yieldstep = 0.1, finaltime = 25):
+    for t in domain.evolve(yieldstep = 0.1, finaltime = 10):
         new_volume = domain.get_quantity('stage').get_integral()
         
         msg = ('Total volume has changed: Is %.8f m^3 should have been %.8f m^3'
@@ -362,7 +362,7 @@ class Test_Culvert(unittest.TestCase):
         """
 
         # Try this for a range of depths
-        for depth in [0.1, 0.2, 0.5, 1.0]:
+        for depth in [0.1, 1.0]: #[0.1, 0.2, 0.5, 1.0]:
             run_culvert_flow_problem(depth)
 
 

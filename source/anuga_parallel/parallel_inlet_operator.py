@@ -90,6 +90,8 @@ class Parallel_Inlet_operator(Inlet_operator):
 
         self.velocity = velocity
 
+        self.applied_Q = 0.0
+
     def __call__(self):
 
         volume = 0
@@ -224,11 +226,15 @@ class Parallel_Inlet_operator(Inlet_operator):
 
             #log_to_file(self.log_filename, self.culvert_type)
 
+    def log_timestepping_statistics(self):
+
+        if self.logging and self.myid == self.master_proc:
+            log_to_file(self.log_filename, self.timestepping_statistics())
 
     def timestepping_statistics(self):
 
         message  = '%.5f, ' % self.domain.get_time()
-        message += '%.5f, ' % self.Q
+        message += '%.5f, ' % self.applied_Q
 
         return message
 

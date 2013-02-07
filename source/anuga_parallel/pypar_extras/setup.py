@@ -54,7 +54,7 @@ def _run_command(cmd):
 
     print 'running ' + cmd
     try:
-        #FIXME SR: This only works for python 2.7!
+        #FIXME SR: The following only works for python 2.7!
         #output = subprocess.check_output(cmd, shell=True)
         #FIXME SR: This works for python 2.6
         output = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0]
@@ -76,7 +76,7 @@ def _get_mpi_cmd():
     if output:
         return output
 
-    # FIXME: If appears that MPICH actually needs this these hacks.
+    # FIXME: If appears that MPICH actually needs these hacks.
 
     # MPICH
     # works with MPICH version 1.2.1 (on Debian)

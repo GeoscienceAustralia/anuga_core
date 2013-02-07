@@ -458,11 +458,19 @@ class Parallel_Structure_operator(anuga.Operator):
 
     def set_logging(self, flag=True):
         # Overwrite the sequential procedure with a dummy procedure.
-        # Need to call set_parallel_logging which needs t obe done later
+        # Need to call set_parallel_logging which needs to be done later
         # after the calculation of master processors
 
         pass
-    
+
+
+    def log_timestepping_statistics(self):
+
+        from anuga.utilities.system_tools import log_to_file
+        if self.logging and self.myid == self.master_proc:
+            log_to_file(self.log_filename, self.timestepping_statistics())
+
+
 
     def timestepping_statistics(self):
 
