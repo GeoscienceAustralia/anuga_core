@@ -282,7 +282,7 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
       #s += ' -m64' # Used to be necessary for AMD Opteron
       
     # adding open mp support just for now
-    s += ' -fopenmp -g'
+    s += ' -fopenmp '
 
     if verbose:
       print s

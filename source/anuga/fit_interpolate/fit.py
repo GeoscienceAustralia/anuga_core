@@ -80,7 +80,7 @@ class Fit(FitInterpolate):
                  mesh_origin=None,
                  alpha=None,
                  verbose=False,
-                 cg_precon='None',
+                 cg_precon='Jacobi',
                  use_c_cg=True):
 
         """
@@ -478,8 +478,8 @@ def fit_to_mesh(point_coordinates,
                 max_read_lines=None,
                 attribute_name=None,
                 use_cache=False,
-                cg_precon='None',
-                use_c_cg=False):
+                cg_precon='Jacobi',
+                use_c_cg=True):
     """Wrapper around internal function _fit_to_mesh for use with caching.
     """
 
@@ -532,8 +532,8 @@ def _fit_to_mesh(point_coordinates,
                  data_origin=None,
                  max_read_lines=None,
                  attribute_name=None,
-                 cg_precon='None',
-                 use_c_cg=False):
+                 cg_precon='Jacobi',
+                 use_c_cg=True):
     """
     Fit a smooth surface to a triangulation,
     given data points with attributes.

@@ -579,13 +579,27 @@ def _write_msh_file(file_name, mesh):
     IntType = num.int32
     #IntType = Int
 
+    #print 'mesh vertices',mesh['vertices'].shape
+
+
     #the triangulation
     mesh['vertices'] = num.array(mesh['vertices'], num.float)
+    mesh['vertex_attribute_titles'] = \
+        num.array(string_to_char(mesh['vertex_attribute_titles']), num.character)
+
+    num_attributes = len(mesh['vertex_attribute_titles'])
+    num_vertices = mesh['vertices'].shape[0]
+    #print 'num_attrib ',num_attributes
     if mesh['vertex_attributes'] != None:
         mesh['vertex_attributes'] = \
             num.array(mesh['vertex_attributes'], num.float)
-    mesh['vertex_attribute_titles'] = \
-        num.array(string_to_char(mesh['vertex_attribute_titles']), num.character)
+
+    if num_attributes > 0 :
+        mesh['vertex_attributes'] = \
+            num.reshape(mesh['vertex_attributes'],(num_vertices,-1))
+
+
+
     mesh['segments'] = num.array(mesh['segments'], IntType)
     mesh['segment_tags'] = num.array(string_to_char(mesh['segment_tags']),
                                      num.character)
@@ -634,6 +648,9 @@ def _write_msh_file(file_name, mesh):
         outfile.createVariable('vertices', netcdf_float, ('num_of_vertices',
                                                           'num_of_dimensions'))
         outfile.variables['vertices'][:] = mesh['vertices']
+
+        #print 'mesh vertex attributes', mesh['vertex_attributes'].shape
+        
         if (mesh['vertex_attributes'] != None and
             (mesh['vertex_attributes'].shape[0] > 0 and
              mesh['vertex_attributes'].shape[1] > 0)):
