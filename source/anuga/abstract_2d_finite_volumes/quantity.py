@@ -622,6 +622,7 @@ class Quantity:
                                                      verbose=verbose,
                                                      use_cache=use_cache)
         elif filename is not None:
+
             if hasattr(self.domain, 'points_file_block_line_size'):
                 max_read_lines = self.domain.points_file_block_line_size
             else:
@@ -938,6 +939,7 @@ class Quantity:
         If attribute_name is not specified, use first available attribute
         as defined in geospatial_data.
         """
+
 
         msg = 'Filename must be a text string'
         assert isinstance(filename, basestring), msg
@@ -1296,27 +1298,29 @@ class Quantity:
         # Alternatively, some C code would be handy
         #
         self._set_vertex_values(vertex_list, A)
-            
+
+    # Note Padarn 27/11/12:
+    # This function has been changed and now uses an external c function
+    # to set the 'vertex_values' instead of a python for loop. The function
+    # 'get_triangles_and_vertices_per_node' has been removed and replaced by
+    # 'build_inverted_triangle_structure. This now adds extra stored array to
+    # the mesh object - this could be removed after the c function below uses
+    #them.
+    # Note, the naming of this function seems confusing - it seems to actually
+    # update the 'node values' given a list of vertices.
     def _set_vertex_values(self, vertex_list, A):
         """Go through list of unique vertices
         This is the common case e.g. when values
         are obtained from a pts file through fitting
         """
+        # If required, set up required arrays storing information about the triangle
+        # vertex structure of the mesh.
+        if not (hasattr(self.domain.mesh, 'number_of_triangles_per_node') and \
+                hasattr(self.domain.mesh, 'vertex_value_indices') and \
+                hasattr(self.domain.mesh, 'node_index')):
+            self.build_inverted_triangle_structure()
 
-        # Go through list of unique vertices
-        for i_index, unique_vert_id in enumerate(vertex_list):
-            triangles = self.domain.get_triangles_and_vertices_per_node(node=unique_vert_id)
-
-            # In case there are unused points
-            if len(triangles) == 0:
-                continue
-
-            # Go through all triangle, vertex pairs
-            # touching vertex unique_vert_id and set corresponding vertex value
-            for triangle_id, vertex_id in triangles:
-                self.vertex_values[triangle_id, vertex_id] = A[i_index]
-
-        # Intialise centroid and edge_values
+        set_vertex_values_c(self, num.array(vertex_list), A)
         self.interpolate()
 
     def smooth_vertex_values(self, use_cache=False, verbose=False):
@@ -1575,6 +1579,7 @@ if compile.can_use_C_extension('quantity_ext.c'):
          bound_vertices_below_by_quantity,\
          interpolate_from_vertices_to_edges,\
          interpolate_from_edges_to_vertices,\
+         set_vertex_values_c, \
          update
 else:
     msg = 'C implementations could not be accessed by %s.\n ' % __file__

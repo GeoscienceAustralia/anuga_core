@@ -1957,11 +1957,8 @@ class Test_Urs2Sts(Test_Mux):
 
         if not sys.platform == 'win32':
             os.remove(sts_file+'.sts')
-
-        try:
-            os.remove(meshname)
-        except:
-            pass
+        
+        os.remove(meshname)
         
         
         

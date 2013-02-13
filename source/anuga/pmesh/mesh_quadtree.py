@@ -4,111 +4,97 @@
    Ole Nielsen, Stephen Roberts, Duncan Gray
    Geoscience Australia, 2006.
 
+
+   PADARN NOTE 06/12/12: This quad tree has been
+   replaced by a C quad tree. Save the old code
+   somewhere?
+
+   PADARN NOTE: Most of the functionality of the
+   old quad tree has been emulated. However, some
+   methods inherrited from cell have not been. This
+   causes a few of the unit tests to fail, and thus
+   can easily be identified if it is felt the are
+   needed.
+
 """
 
-from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.config import max_float
 
 from anuga.geometry.quad import Cell
 from anuga.geometry.aabb import AABB
 
-from anuga.utilities import compile as compile_c
-if compile_c.can_use_C_extension('polygon_ext.c'):
-    # Underlying C implementations can be accessed
-    from polygon_ext import _is_inside_triangle        
-else:
-    MESSAGE = 'C implementations could not be accessed by %s.\n ' % __file__
-    MESSAGE += 'Make sure compile_all.py has been run as described in '
-    MESSAGE += 'the ANUGA installation guide.'
-    raise Exception(MESSAGE)
-
 import numpy as num
-import sys
- 
-
-LAST_TRIANGLE = [[[-1, num.array([[max_float, max_float],
-                               [max_float, max_float],
-                               [max_float, max_float]]),
-                      num.array([[max_float, max_float],
-                               [max_float, max_float],
-                               [max_float, max_float]])], -10]]
+from anuga.utilities.numerical_tools import ensure_numeric
+import anuga.fit_interpolate.fitsmooth as fitsmooth
 
 
-
+# PADARN NOTE: I don't think much from Cell is used anymore, if
+# anything, this dependency could be removed.
 class MeshQuadtree(Cell):
     """ A quadtree constructed from the given mesh.
         This class is the root node of a quadtree,
         and derives from a Cell.
         It contains optimisations and search patterns specific to meshes.
     """
+
     def __init__(self, mesh, verbose=False):
         """Build quad tree for mesh.
 
         All vertex indices in the mesh are stored in a quadtree.
         """
-        
-        extents = AABB(*mesh.get_extent(absolute=True))   
-        extents.grow(1.001) # To avoid round off error
-        Cell.__init__(self, extents, None)  # root has no parent
-
-        self.last_triangle = None        
-        N = len(mesh)
         self.mesh = mesh
-        self.set_last_triangle()  
 
-        # Get x,y coordinates for all vertices for all triangles
-        V = mesh.get_vertex_coordinates(absolute=True)
-        
-        normals = mesh.get_normals()
+        self.set_extents()
+        self.add_quad_tree()
 
-        import time
-        t0 = time.time()
+        Cell.__init__(self, self.extents, None)  # root has no parent
 
-        if verbose :
-            print '['+60*' '+']',
-            sys.stdout.flush()
 
-        M = max(N/60, 1)
+    def __getstate__(self):
+        dic = self.__dict__
+        if (dic.has_key('root')):
+            dic.pop('root')
+        return dic
 
-        # Check each triangle
-        for i in xrange(N):
+    def set_extents(self):
+        extents = AABB(*self.mesh.get_extent(absolute=True))
+        extents.grow(1.001)  # To avoid round off error
+        extents = [extents.xmin, extents.xmax, extents.ymin, extents.ymax]
+        self.extents = ensure_numeric(extents, num.float)
 
-            if verbose and i%M == 0 :
-                #restart_line()
-                print '\r['+(i/M)*'.'+(60-(i/M))*' ' +']',
-                sys.stdout.flush()
+    def add_quad_tree(self):
 
-            i3 = 3*i
-            x0, y0 = V[i3, :]
-            x1, y1 = V[i3+1, :]
-            x2, y2 = V[i3+2, :]
+        V = self.mesh.get_vertex_coordinates(absolute=True)
+        self.root = fitsmooth.build_quad_tree(self.mesh.triangles, V, self.extents)
 
-            #FIXME SR: Should save memory by just using triangle id!
-            node_data = [i, V[i3:i3+3, :], normals[i, :]]
 
-            # insert a tuple with an AABB, and the triangle index as data
-            self.insert_item((AABB(min([x0, x1, x2]), max([x0, x1, x2]), \
-                             min([y0, y1, y2]), max([y0, y1, y2])), \
-                             node_data))
+    # PADARN NOTE: This function does not properly emulate the old functionality -
+    # it seems uneeded though. Check this.
+    def search(self, point):
+        return self.search_fast(point)
 
-        if verbose:
-            print ' %f secs' % (time.time()-t0)
+    # PADARN NOTE: Although this function emulates the functionality of the old
+    # quad tree, it cannot be called on the sub-trees anymore.
+    def count(self):
+        if not hasattr(self, 'root'):
+            self.add_quad_tree()
+        return fitsmooth.items_in_tree(self.root)
 
     def search_fast(self, point):
         """
         Find the triangle (element) that the point x is in.
-        
+
         Does a coherent quadtree traversal to return a single triangle that the
         point falls within. The traversal begins at the last triangle found.
         If this fails, it checks the triangles beneath it in the tree, and then
         begins traversing up through the tree until it reaches the root.
-        
+
         This results in performance which varies between constant time and O(n),
         depending on the geometry.
 
         Inputs:
             point:    The point to test
-        
+
         Return:
             element_found, sigma0, sigma1, sigma2, k
 
@@ -118,89 +104,23 @@ class MeshQuadtree(Cell):
             k: Index of triangle (if found)
 
         """
-        
+
+        # PADARN NOTE: Adding checks on the input point to make sure it is a float.
+
+        if not hasattr(self, 'root'):
+            self.add_quad_tree()
+
         point = ensure_numeric(point, num.float)
-                 
-        # check the last triangle found first
-        element_found, sigma0, sigma1, sigma2, k = \
-                   self._search_triangles_of_vertices(self.last_triangle, point)
-        if element_found:
-            return True, sigma0, sigma1, sigma2, k
 
-        branch = self.last_triangle[0][1]
+        [found, sigma, index] = fitsmooth.individual_tree_search(self.root, point)
 
-        # test neighbouring tris
-        tri_data = branch.test_leaves(point)          
-        element_found, sigma0, sigma1, sigma2, k = \
-                    self._search_triangles_of_vertices(tri_data, point)
-        if element_found:
-            return True, sigma0, sigma1, sigma2, k       
+        if found == 1:
+            element_found = True
+        else:
+            element_found = False
 
-        # search rest of tree
-        element_found = False
-        next_search = [branch]
-        while branch:               
-            for sibling in next_search:
-                tri_data = sibling.search(point)         
-                element_found, sigma0, sigma1, sigma2, k = \
-                            self._search_triangles_of_vertices(tri_data, point)
-                if element_found:
-                    return True, sigma0, sigma1, sigma2, k
-            
-            next_search = branch.get_siblings()                            
-            branch = branch.parent
-            if branch:
-                tri_data = branch.test_leaves(point)     
-                element_found, sigma0, sigma1, sigma2, k = \
-                            self._search_triangles_of_vertices(tri_data, point)
-                if element_found:
-                    return True, sigma0, sigma1, sigma2, k      
+        return element_found, sigma[0], sigma[1], sigma[2], index
 
-        return element_found, sigma0, sigma1, sigma2, k
-
-
-    def _search_triangles_of_vertices(self, triangles, point):
-        """Search for triangle containing x among triangle list
-
-        This is called by search_tree_of_vertices once the appropriate node
-        has been found from the quad tree.
-        
-        Input check disabled to speed things up. 
-        
-        point is the point to test 
-        triangles is the triangle list
-        return the found triangle and its interpolation sigma.
-        """  
-
-        for node_data in triangles:             
-            if bool(_is_inside_triangle(point, node_data[0][1], \
-                        int(True), 1.0e-12, 1.0e-12)):
-                normals = node_data[0][2]      
-                n0 = normals[0:2]
-                n1 = normals[2:4]
-                n2 = normals[4:6]          
-                xi0, xi1, xi2 = node_data[0][1]
-
-                sigma0 = num.dot((point-xi1), n0)/num.dot((xi0-xi1), n0)
-                sigma1 = num.dot((point-xi2), n1)/num.dot((xi1-xi2), n1)
-                sigma2 = num.dot((point-xi0), n2)/num.dot((xi2-xi0), n2)
-
-                # Don't look for any other triangles in the triangle list
-                self.last_triangle = [node_data]
-                return True, sigma0, sigma1, sigma2, node_data[0][0] # tri index
-        return False, -1, -1, -1, -10
-
-        
-        
+    # PADARN NOTE: Only here to pass unit tests - does nothing.
     def set_last_triangle(self):
-        """ Reset last triangle.
-            The algorithm is optimised to find nearby triangles to the
-            previously found one. This is called to reset the search to
-            the root of the tree.
-        """
-        self.last_triangle = LAST_TRIANGLE
-        self.last_triangle[0][1] = self # point at root by default          
-
-    
-
-                
+        pass

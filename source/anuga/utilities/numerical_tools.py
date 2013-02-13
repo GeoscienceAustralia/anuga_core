@@ -228,7 +228,6 @@ def corr(x, y=None):
     return(C)
 
 
-
 def ensure_numeric(A, typecode=None):
     """Ensure that sequence is a numeric array.
 

@@ -12,7 +12,7 @@ from Tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, \
 from tkMessageBox import showerror, _show, QUESTION,YESNOCANCEL
 import types
 import visualmesh
-import os
+import os, sys
 import profile
 import load_mesh.loadASCII
 from anuga.alpha_shape.alpha_shape import AlphaError
@@ -29,12 +29,16 @@ NO_SELECTION = 0
 AUTO = 1
 SET_ALPHA = 2
 
+HOME_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 class Draw(AppShell.AppShell):
     usecommandarea = 1
     appname        = APPLICATION_NAME
     frameWidth     = 840
     frameHeight    = 600
+
+
     
     
     def createButtons(self):
@@ -153,7 +157,7 @@ class Draw(AppShell.AppShell):
         self.mouseDownFunc = {}
         self.modeClass = {}
         ToolBarButton(self, self.toolbar, 'sep', 'sep.gif',
-                      width=10, state='disabled')
+                      width=10, state='disabled',home_dir=HOME_DIR)
         for key, balloon, mouseDownFunc, Mode in [
             ('pointer','Edit drawing eventually.  Right now this does nothing', self.drag, None)
             ,('vertex',    'Vertex mode', self.drawVertex, mesh.Vertex)
@@ -163,7 +167,7 @@ class Draw(AppShell.AppShell):
             ]:
             t = ToolBarButton(self, self.toolbar, key, '%s.gif' % key,
                           command=self.selectFunc, balloonhelp=balloon,
-                               statushelp='')
+                               statushelp='', home_dir=HOME_DIR)
             t.cycle("DrawMode")
             if key == 'pointer': #FIXME- this is specified in line 1062 as well
                                  # self.selectFunc('pointer')
@@ -178,29 +182,29 @@ class Draw(AppShell.AppShell):
         Add zoom buttons to the top of the GUI
         """
         ToolBarButton(self, self.toolbar, 'sep', 'sep.gif', width=10,
-                      state='disabled')
+                      state='disabled', home_dir=HOME_DIR)
         zoom = '0.5'
         ToolBarButton(self, self.toolbar, zoom, 'zoom%s.gif' %
                       zoom, command=self.selectZoom,
                       balloonhelp='*%s zoom' % zoom,
-                      statushelp='')
+                      statushelp='', home_dir=HOME_DIR)
             
         ToolBarButton(self, self.toolbar,'1.0', 'zoomToMesh.gif',
                       command=self.ResizeToFitWrapper,
                       balloonhelp='Zooms to mesh size',
-                      statushelp='')
+                      statushelp='', home_dir=HOME_DIR)
         zoom = '2'
         ToolBarButton(self, self.toolbar, zoom, 'zoom%s.gif' %
                       zoom, command=self.selectZoom,
                       balloonhelp='*%s zoom' % zoom,
-                      statushelp='')
+                      statushelp='', home_dir=HOME_DIR)
 
     def createEdits(self):
         """
         Add Edit buttons to the top of the GUI
         """
         ToolBarButton(self, self.toolbar, 'sep', 'sep.gif', width=10,
-                      state='disabled')
+                      state='disabled', home_dir=HOME_DIR)
         for key, func, balloon in [
                 ('addVertex', self.windowAddVertex, 'add Vertex'),
                 ('edit', self.windowEdit, 'edit selected object'),
@@ -211,7 +215,7 @@ class Draw(AppShell.AppShell):
                 ('meshGen', self.windowMeshGen, 'Generate Mesh')]:
             ToolBarButton(self, self.toolbar, key, '%s.gif' % key,
                           command=func, balloonhelp=balloon,
-                               statushelp='' )
+                               statushelp='', home_dir=HOME_DIR)
 
 
     def createVisualiseIcons(self):
@@ -219,13 +223,13 @@ class Draw(AppShell.AppShell):
         Add Edit buttons to the top of the GUI
         """
         ToolBarButton(self, self.toolbar, 'sep', 'sep.gif', width=10,
-                      state='disabled')
+                      state='disabled', home_dir=HOME_DIR)
         for key, func, balloon in [
                 ('see', self.visualise, 'Visualise mesh triangles'),
                 ('no_see', self.unvisualise, 'Do not visualise mesh triangles (for large meshes)')]:
             ToolBarButton(self, self.toolbar, key, '%s.gif' %key,
                           command=func, balloonhelp=balloon,
-                               statushelp='' )
+                               statushelp='', home_dir=HOME_DIR)
 
 
     def clearSelection(self,parent):

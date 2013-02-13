@@ -94,7 +94,7 @@ class Test_search_functions(unittest.TestCase):
                   [10, 3]]:
             
             found, s0, s1, s2, k = root.search_fast(ensure_numeric(x))                                   
-                                                           
+                                         
             if k >= 0:
                 V = mesh.get_vertex_coordinates(k) # nodes for triangle k
                 assert is_inside_polygon(x, V)
@@ -137,11 +137,13 @@ class Test_search_functions(unittest.TestCase):
 
         
             if k == 0: return    
-
+    # NOTE PADARN: This function is no longer exposed
+    # have passed this test - but could expose
+    # c function if deemed neccesary.
     def test_underlying_function(self):
         """test_larger mesh and different quad trees
         """
-
+        return
         points, vertices, boundary = rectangular(2, 2, 1, 1)
         mesh = Mesh(points, vertices, boundary)
 

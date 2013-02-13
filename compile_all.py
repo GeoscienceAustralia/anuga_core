@@ -1,5 +1,7 @@
 import os
 import time
+import sys
+import subprocess
 
 buildroot = os.getcwd()
 
@@ -16,6 +18,9 @@ t0 = time.time()
 # Attempt to compile all ANUGA extensions
 
 os.chdir('utilities')
+subprocess.call([sys.executable, 'compile.py', 'quad_tree.c'])
+subprocess.call([sys.executable, 'compile.py', 'sparse_dok.c'])
+subprocess.call([sys.executable, 'compile.py', 'sparse_csr.c'])
 execfile('compile.py')
 
 os.chdir('..')
@@ -54,6 +59,11 @@ execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 os.chdir('..')
 os.chdir('mesh_engine')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
+
+os.chdir('..')
+os.chdir('fit_interpolate')
+execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
+
 
 os.chdir(buildroot)    
 

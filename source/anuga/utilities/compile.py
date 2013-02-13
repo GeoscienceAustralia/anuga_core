@@ -281,7 +281,9 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
       s += ' -fPIC' # Use position independent code for 64 bit archs
       #s += ' -m64' # Used to be necessary for AMD Opteron
       
-      
+    # adding open mp support just for now
+    s += ' -fopenmp -g'
+
     if verbose:
       print s
 
@@ -298,11 +300,27 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
 
   
   # Make shared library (*.so or *.dll)
-  if libs is "":
-    s = '%s -%s %s -o %s.%s -lm' %(loader, sharedflag, object_files, root1, libext)
+  if FN=="fitsmooth.c":
+    if libs is "":
+      s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s -lm -lblas -fopenmp -lnetcdf' %(loader, sharedflag, object_files, root1, libext)
+    else:
+      s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s "%s" -lm -lblas -fopenmp -lnetcdf' %(loader, sharedflag, object_files, root1, libext, libs)
+  elif FN=="quad_tree_ext.c":
+    if libs is "":
+      s = '%s -%s %s quad_tree.o -o %s.%s -lm -lblas -fopenmp -lnetcdf' %(loader, sharedflag, object_files, root1, libext)
+  elif FN=="sparse_matrix_ext.c":
+    if libs is "":
+      s = '%s -%s %s sparse_dok.o -o %s.%s -lm -lblas -fopenmp -lnetcdf' %(loader, sharedflag, object_files, root1, libext)
+    else:
+      s = '%s -%s %s sparse_dok.o -o %s.%s "%s" -lm -lblas -fopenmp -lnetcdf' %(loader, sharedflag, object_files, root1, libext, libs) 
   else:
-    s = '%s -%s %s -o %s.%s "%s" -lm' %(loader, sharedflag, object_files, root1, libext, libs)
-    
+    if libs is "":
+      s = '%s -%s %s -o %s.%s -lm -lblas -fopenmp' %(loader, sharedflag, object_files, root1, libext)
+    else:
+      s = '%s -%s %s -o %s.%s "%s" -lm -lblas -fopenmp' %(loader, sharedflag, object_files, root1, libext, libs)
+  
+  
+
   if verbose:
     print s
 
@@ -323,11 +341,9 @@ def can_use_C_extension(filename):
     """Determine whether specified C-extension
     can and should be used.
     """
-
     from os.path import splitext
 
     root, ext = splitext(filename)
-    
     C=False
     try:
         s = 'import %s' %root

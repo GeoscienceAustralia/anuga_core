@@ -139,8 +139,8 @@ def interpolate(vertex_coordinates,
                 return I
             I = cache(wrap_Interpolate, (args, kwargs), {}, verbose=verbose)
     else:
-        I = apply(Interpolate, args, kwargs)		
-		
+        I = apply(Interpolate, args, kwargs)    
+
     # Call interpolate method with interpolation points
     result = I.interpolate_block(vertex_values, interpolation_points,
                                  use_cache=use_cache,
@@ -301,8 +301,8 @@ class Interpolate (FitInterpolate):
         Return the point data, z.
 
         See interpolate for doc info.
-        """	
-		
+        """ 
+    
         # FIXME (Ole): I reckon we should change the interface so that
         # the user can specify the interpolation matrix instead of the
         # interpolation points to save time.
@@ -350,7 +350,6 @@ class Interpolate (FitInterpolate):
 
         # Unpack result
         self._A, self.inside_poly_indices, self.outside_poly_indices, self.centroids = X
-
         # Check that input dimensions are compatible
         msg = 'Two columns must be specified in point coordinates. ' \
               'I got shape=%s' % (str(point_coordinates.shape))
@@ -462,8 +461,7 @@ class Interpolate (FitInterpolate):
                                                           %(d, n))
 
             x = point_coordinates[i]
-            element_found, sigma0, sigma1, sigma2, k = self.root.search_fast(x)
-                       
+            element_found, sigma0, sigma1, sigma2, k = self.root.search_fast(x)         
             # Update interpolation matrix A if necessary
             if element_found is True:
 

@@ -262,7 +262,6 @@ class Test_Interpolate(unittest.TestCase):
         # Get interpolated values at centroids
         interpolation_points = domain.get_centroid_coordinates()
         answer = quantity.get_values(location='centroids')
-
         result = interpolate(vertex_coordinates, triangles,
                              vertex_values, interpolation_points,
                              use_cache=True,

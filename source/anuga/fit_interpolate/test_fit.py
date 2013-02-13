@@ -445,7 +445,87 @@ class Test_Fit(unittest.TestCase):
         assert num.allclose(f, answer)
     
         os.remove(fileName)
-        
+
+    def test_fit_to_mesh_using_jacobi_precon(self):
+
+        a = [-1.0, 0.0]
+        b = [3.0, 4.0]
+        c = [4.0,1.0]
+        d = [-3.0, 2.0] #3
+        e = [-1.0,-2.0]
+        f = [1.0, -2.0] #5
+
+        vertices = [a, b, c, d,e,f]
+        triangles = [[0,1,3], [1,0,2], [0,4,5], [0,5,2]] #abd bac aef afc
+
+
+        fileName = tempfile.mktemp(".ddd")
+        file = open(fileName,"w")
+        file.write(" x,y, elevation \n\
+-2.0, 2.0, 0.\n\
+-1.0, 1.0, 0.\n\
+0.0, 2.0 , 2.\n\
+1.0, 1.0 , 2.\n\
+ 2.0,  1.0 ,3. \n\
+ 0.0,  0.0 , 0.\n\
+ 1.0,  0.0 , 1.\n\
+ 0.0,  -1.0, -1.\n\
+ -0.2, -0.5, -0.7\n\
+ -0.9, -1.5, -2.4\n\
+ 0.5,  -1.9, -1.4\n\
+ 3.0,  1.0 , 4.\n")
+        file.close()
+        f = fit_to_mesh(fileName, vertices, triangles,
+                                alpha=0.0, max_read_lines=2, use_c_cg=True, cg_precon='Jacobi')
+                        #use_cache=True, verbose=True)
+        answer = linear_function(vertices)
+        #print "f\n",f
+        #print "answer\n",answer
+
+        assert num.allclose(f, answer)
+    
+        os.remove(fileName)
+
+    def test_fit_to_mesh_using_jacobi_precon_no_c_cg(self):
+
+        a = [-1.0, 0.0]
+        b = [3.0, 4.0]
+        c = [4.0,1.0]
+        d = [-3.0, 2.0] #3
+        e = [-1.0,-2.0]
+        f = [1.0, -2.0] #5
+
+        vertices = [a, b, c, d,e,f]
+        triangles = [[0,1,3], [1,0,2], [0,4,5], [0,5,2]] #abd bac aef afc
+
+
+        fileName = tempfile.mktemp(".ddd")
+        file = open(fileName,"w")
+        file.write(" x,y, elevation \n\
+-2.0, 2.0, 0.\n\
+-1.0, 1.0, 0.\n\
+0.0, 2.0 , 2.\n\
+1.0, 1.0 , 2.\n\
+ 2.0,  1.0 ,3. \n\
+ 0.0,  0.0 , 0.\n\
+ 1.0,  0.0 , 1.\n\
+ 0.0,  -1.0, -1.\n\
+ -0.2, -0.5, -0.7\n\
+ -0.9, -1.5, -2.4\n\
+ 0.5,  -1.9, -1.4\n\
+ 3.0,  1.0 , 4.\n")
+        file.close()
+        f = fit_to_mesh(fileName, vertices, triangles,
+                                alpha=0.0, max_read_lines=2, use_c_cg=False, cg_precon='Jacobi')
+                        #use_cache=True, verbose=True)
+        answer = linear_function(vertices)
+        #print "f\n",f
+        #print "answer\n",answer
+
+        assert num.allclose(f, answer)
+    
+        os.remove(fileName)
+
     def test_fit_to_mesh_2_atts(self):
 
         a = [-1.0, 0.0]
@@ -485,6 +565,10 @@ class Test_Fit(unittest.TestCase):
         #print "answer\n",answer
         assert num.allclose(f, answer)
         os.remove(fileName)
+
+
+
+
         
     def test_fit_and_interpolation(self):
 
@@ -525,6 +609,46 @@ class Test_Fit(unittest.TestCase):
         #print "f",f
         #print "answer",answer
         assert num.allclose(f, answer)
+
+    def test_fit_and_interpolation_using_jacobi_precon(self):
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe, daf, dae
+        triangles = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        #Get (enough) datapoints
+        data_points = [[ 0.66666667, 0.66666667],
+                       [ 1.33333333, 1.33333333],
+                       [ 2.66666667, 0.66666667],
+                       [ 0.66666667, 2.66666667],
+                       [ 0.0, 1.0],
+                       [ 0.0, 3.0],
+                       [ 1.0, 0.0],
+                       [ 1.0, 1.0],
+                       [ 1.0, 2.0],
+                       [ 1.0, 3.0],
+                       [ 2.0, 1.0],
+                       [ 3.0, 0.0],
+                       [ 3.0, 1.0]]
+
+        z = linear_function(data_points)
+        interp = Fit(points, triangles,
+                                alpha=0.0,cg_precon='Jacobi')
+
+        answer = linear_function(points)
+
+        f = interp.fit(data_points, z)
+
+        #print "f",f
+        #print "answer",answer
+        assert num.allclose(f, answer,atol=5)
 
         
     def test_smoothing_and_interpolation(self):

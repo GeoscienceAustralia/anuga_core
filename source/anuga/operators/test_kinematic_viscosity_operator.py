@@ -775,7 +775,6 @@ class Test_kinematic_viscosity(unittest.TestCase):
         #print u.boundary_values
 
         #print num.where(h.centroid_values > 0.0, 1.0, 0.0)
-
         assert num.allclose(u.centroid_values, num.where(h.centroid_values > 0.0, 1.0, 0.0), rtol=1.0e-1)
         assert num.allclose(u.boundary_values, num.ones_like(u.boundary_values))
 

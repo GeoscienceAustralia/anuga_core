@@ -670,6 +670,12 @@ class General_mesh:
             unique_verts[triangle[2]] = 0
         return unique_verts.keys()
 
+        # Note Padarn 27/11/12:
+        # This function was modified, but then it was deicded it was not
+        # needed. It should be restored if it is used elsewhere in the code
+        # (it was being used in quantity.py in the _set_vertex_values function).
+        # Note however, the function in the head of the code is very slow and
+        # could be easily sped up many fold.
     def get_triangles_and_vertices_per_node(self, node=None):
         """Get triangles associated with given node.
 

@@ -78,19 +78,28 @@ class FitInterpolate:
           Note: Don't supply a vertex coords as a geospatial object and
               a mesh origin, since geospatial has its own mesh origin.
         """
+
+        # NOTE PADARN: The Fit_Interpolate class now uses a the c based
+        # quad tree to store triangles, rather than the python based tree.
+        # The tree is still stored at self.root. However, the subtrees of
+        # the new quad tree can not be directly accessed by python as 
+        # was previously possible.
+        # Most of the previous functionality has been preserved.
+
         global build_quadtree_time
         if mesh is None:
-            if vertex_coordinates is not None and  triangles is not None:
+            if vertex_coordinates is not None and triangles is not None:
                 # Fixme (DSG) Throw errors if triangles or vertex_coordinates
                 # are None
-            
-                #Convert input to numeric arrays
+
+                # Convert input to numeric arrays
                 triangles = ensure_numeric(triangles, num.int)
                 vertex_coordinates = ensure_absolute(vertex_coordinates,
-                                                 geo_reference = mesh_origin)
+                                                 geo_reference=mesh_origin)
 
-                if verbose: log.critical('FitInterpolate: Building mesh')
-                self.mesh = Mesh(vertex_coordinates, triangles, verbose=verbose)
+                if verbose:
+                    log.critical('FitInterpolate: Building mesh')
+                self.mesh = Mesh(vertex_coordinates, triangles)
                 #self.mesh.check_integrity() # Time consuming
             else:
                 self.mesh = None
@@ -98,13 +107,15 @@ class FitInterpolate:
             self.mesh = mesh
 
         if self.mesh is not None:
-            if verbose: log.critical('FitInterpolate: Building quad tree')
+            if verbose:
+                log.critical('FitInterpolate: Building quad tree')
             #This stores indices of vertices
             t0 = time.time()
+
             self.root = MeshQuadtree(self.mesh, verbose=verbose)
-        
-            build_quadtree_time =  time.time()-t0
-            self.root.set_last_triangle()
-        
+            build_quadtree_time = time.time() - t0
+            # Padarn Note 06/12/12: Do I need this?
+            #self.root.set_last_triangle()
+
     def __repr__(self):
         return 'Interpolation object based on: ' + repr(self.mesh)

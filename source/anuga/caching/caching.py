@@ -390,7 +390,6 @@ def cache(my_F,
   if options['savestat'] and (not test or Retrieved):
   ##if options['savestat']:
     addstatsline(CD,funcname,FN,Retrieved,reason,comptime,loadtime,compressed)
-
   return(T)  # Return results in all cases
 
 # -----------------------------------------------------------------------------
@@ -933,7 +932,46 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
       else:   
         reason = 3 # Arguments have changed 
         
-    
+   # PADARN NOTE 17/12/12: Adding a special case to handle the existence of a 
+  # FitInterpolate object. C Structures are serialised so they can be pickled.
+  #---------------------------------------------------------------------------
+  from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
+  
+  # Setup for quad_tree extension
+  from anuga.utilities import compile
+  if compile.can_use_C_extension('quad_tree_ext.c'):
+      import quad_tree_ext
+  else:
+      msg = "C implementation of quad tree extension not avaliable"
+      raise Exception(msg)
+
+  # Setup for sparse_matrix extension
+  from anuga.utilities import compile
+  if compile.can_use_C_extension('sparse_matrix_ext.c'):
+      import sparse_matrix_ext
+  else:
+      msg = "C implementation of sparse_matrix extension not avaliable"
+      raise Exception(msg)
+
+  from anuga.geometry.aabb import AABB
+
+  if isinstance(T, FitInterpolate):
+
+    if hasattr(T,"D"):
+        T.D=sparse_matrix_ext.deserialise_dok(T.D)
+    if hasattr(T,"AtA"):
+        T.AtA=sparse_matrix_ext.deserialise_dok(T.AtA)
+    if hasattr(T,"root"):
+        if hasattr(T.root,"root"):
+            mesh = T.mesh
+            extents = AABB(*mesh.get_extent(absolute=True))
+            extents.grow(1.001)  # To avoid round off error
+            extents = [extents.xmin, extents.xmax, extents.ymin, extents.ymax]
+            T.root.root=quad_tree_ext.deserialise(T.root.root,\
+                              mesh.triangles, mesh.vertex_coordinates, num.array(extents))
+
+  #---------------------------------------------------------------------------
+
   return((T, FN, Retrieved, reason, comptime, loadtime, compressed))
 
 # -----------------------------------------------------------------------------
@@ -1077,6 +1115,41 @@ def save_results_to_cache(T, CD, FN, my_F, deps, comptime, funcname,
 
   import time, os, sys
 
+  # PADARN NOTE 17/12/12: Adding a special case to handle the existence of a 
+  # FitInterpolate object. C Structures are serialised so they can be pickled.
+  #---------------------------------------------------------------------------
+  from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
+  
+  # Setup for quad_tree extension
+  from anuga.utilities import compile
+  if compile.can_use_C_extension('quad_tree_ext.c'):
+      import quad_tree_ext
+  else:
+      msg = "C implementation of quad tree extension not avaliable"
+      raise Exception(msg)
+
+  # Setup for sparse_matrix extension
+  from anuga.utilities import compile
+  if compile.can_use_C_extension('sparse_matrix_ext.c'):
+      import sparse_matrix_ext
+  else:
+      msg = "C implementation of sparse_matrix extension not avaliable"
+      raise Exception(msg)
+
+  from anuga.geometry.aabb import AABB
+
+  if isinstance(T, FitInterpolate):
+    if hasattr(T,"D"):
+        T.D=sparse_matrix_ext.serialise_dok(T.D)
+    if hasattr(T,"AtA"):
+        T.AtA=sparse_matrix_ext.serialise_dok(T.AtA)
+    if hasattr(T,"root"):
+        if hasattr(T.root,"root"):
+            T.root.root=quad_tree_ext.serialise(T.root.root)
+
+
+  #---------------------------------------------------------------------------
+
   (datafile, compressed1) = myopen(CD+FN+'_'+file_types[0],'wb',compression)
   (admfile, compressed2) = myopen(CD+FN+'_'+file_types[2],'wb',compression)
 
@@ -1113,6 +1186,27 @@ def save_results_to_cache(T, CD, FN, my_F, deps, comptime, funcname,
   #    pass
   #else:
   #  pass  # FIXME: Take care of access rights under Windows
+
+  # PADARN NOTE 17/12/12: See above - deserialise in case will be used.
+  #---------------------------------------------------------------------------
+  from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
+
+  if isinstance(T, FitInterpolate):
+    if hasattr(T,"D"):
+        T.D=sparse_matrix_ext.deserialise_dok(T.D)
+    if hasattr(T,"AtA"):
+        T.AtA=sparse_matrix_ext.deserialise_dok(T.AtA)
+    if hasattr(T,"root"):
+        if hasattr(T.root,"root"):
+            mesh = T.mesh
+            extents = AABB(*mesh.get_extent(absolute=True))
+            extents.grow(1.001)  # To avoid round off error
+            extents = [extents.xmin, extents.xmax, extents.ymin, extents.ymax]
+            T.root.root=quad_tree_ext.deserialise(T.root.root,\
+                              mesh.triangles, mesh.vertex_coordinates, num.array(extents))
+
+
+  #---------------------------------------------------------------------------
 
   return(savetime)
 

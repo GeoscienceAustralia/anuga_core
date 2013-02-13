@@ -74,6 +74,22 @@ ModifiedBy:
     $Date$
 """
 
+# Decorator added for profiling 
+#------------------------------
+import cProfile#
+
+def profileit(name):
+    def inner(func):
+        def wrapper(*args, **kwargs):
+            prof = cProfile.Profile()
+            retval = prof.runcall(func, *args, **kwargs)
+            # Note use of name from outer scope
+            print str(args[1])+"_"+name
+            prof.dump_stats(str(args[1])+"_"+name)
+            return retval
+        return wrapper
+    return inner
+#-----------------------------
 
 import numpy as num
 
@@ -140,6 +156,7 @@ class Domain(Generic_Domain):
         if other_quantities == None:
             other_quantities = ['elevation', 'friction', 'height',
                                 'xvelocity', 'yvelocity', 'x', 'y']
+
 
 
         
@@ -298,17 +315,6 @@ class Domain(Generic_Domain):
 
         print '#----------------------------'
 
-    def write_algorithm_parameters(self, file_name):
-        """Write the standard parameters that are curently set (as a dictionary)
-        to a file
-        """
-
-        parameter_file=open(file_name, 'w')
-        from pprint import pprint
-        pprint(self.get_algorithm_parameters(),parameter_file,indent=4)
-        parameter_file.close()
-
-
 
     def set_tsunami_defaults(self):
         """Set up the defaults for running the flow_algorithm "tsunami"
@@ -407,9 +413,10 @@ class Domain(Generic_Domain):
 
         my_update_special_conditions(self)
 
-
-
-
+    # Note Padarn 06/12/12: The following line decorates
+    # the set_quantity function to be profiled individually.
+    # Need to uncomment the decorator at top of file.
+    #@profileit("set_quantity.profile")
     def set_quantity(self, name, *args, **kwargs):
         """Set values for named quantity
 
@@ -549,8 +556,6 @@ class Domain(Generic_Domain):
             self.set_timestepping_method(1)
             self.set_default_order(1)
             self.set_CFL(1.0)
-
-
 
         if self.flow_algorithm == '1_5':
             self.set_timestepping_method(1)
@@ -700,6 +705,7 @@ class Domain(Generic_Domain):
             self.optimise_dry_cells = int(True)
         elif flag is False:
             self.optimise_dry_cells = int(False)
+
 
 
 
@@ -1251,7 +1257,7 @@ class Domain(Generic_Domain):
 
         # Compute edge values by interpolation
         for name in self.conserved_quantities:
-            Q = self.quantities[name]
+            Q = domain.quantities[name]
             Q.interpolate_from_vertices_to_edges()
 
     def distribute_using_vertex_limiter(self):

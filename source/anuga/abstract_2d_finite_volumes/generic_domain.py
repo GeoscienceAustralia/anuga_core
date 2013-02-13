@@ -72,8 +72,7 @@ class Generic_Domain:
           tagged_elements:
           ...
         """
-
-
+        
         if verbose: log.critical('Domain: Initialising')
 
         # FIXME SR: This is a bug
@@ -106,7 +105,7 @@ class Generic_Domain:
                          #number_of_full_nodes=number_of_full_nodes,
                          #number_of_full_triangles=number_of_full_triangles,
                          verbose=verbose)
-
+       
         if verbose: log.critical('Domain: Expose mesh attributes')
 
         # Expose Mesh attributes (FIXME: Maybe turn into methods)

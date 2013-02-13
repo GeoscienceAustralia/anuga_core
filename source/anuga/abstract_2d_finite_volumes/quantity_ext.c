@@ -863,6 +863,37 @@ int _average_vertex_values(int N,
   return 0;
 }
 
+// Note Padarn 27/11/12:
+// This function is used to set all the node values of a quantity
+// from a list of vertices and values at those vertices. Called in
+// quantity.py by _set_vertex_values.
+// Naming is a little confusing - but sticking with convention.
+int _set_vertex_values_c(int num_verts,
+                        long * vertices,
+                        long * node_index,
+                        long * number_of_triangles_per_node,
+                        long * vertex_value_indices,
+                        double * vertex_values,
+                        double * A
+                        ){
+  int i,j,num_triangles,vert,triangle;
+
+  for(i=0;i<num_verts;i++){
+  
+    vert=vertices[i];
+    num_triangles = number_of_triangles_per_node[vertices[i]];
+  
+    for(j=0;j<num_triangles;j++){
+  
+      triangle = vertex_value_indices[node_index[vert]+j];   
+      vertex_values[triangle]=A[i];
+    }
+
+  } 
+
+  return 0;
+
+}
 
 //-----------------------------------------------------
 // Python method Wrappers 
@@ -1010,7 +1041,65 @@ PyObject *saxpy_centroid_values(PyObject *self, PyObject *args) {
 	return Py_BuildValue("");
 }
 
+PyObject *set_vertex_values_c(PyObject *self, PyObject *args) {
 
+  PyObject *quantity,*domain,*mesh;
+  PyArrayObject *vertex_values, *node_index, *A, *vertices;
+  PyArrayObject *number_of_triangles_per_node, *vertex_value_indices;
+
+  int N,err;
+
+
+  // Convert Python arguments to C
+  if (!PyArg_ParseTuple(args, "OOO", &quantity, &vertices, &A)) {
+    PyErr_SetString(PyExc_RuntimeError, 
+        "quantity_ext.c: set_vertex_values_c could not parse input");
+    return NULL;
+  }
+
+  domain = PyObject_GetAttrString(quantity, "domain");
+  if (!domain) {
+    PyErr_SetString(PyExc_RuntimeError, 
+        "extrapolate_gradient could not obtain domain object from quantity"); 
+    return NULL;
+  }
+
+  mesh = PyObject_GetAttrString(domain, "mesh");
+  if (!mesh) {
+    PyErr_SetString(PyExc_RuntimeError, 
+        "extrapolate_gradient could not obtain mesh object from domain"); 
+    return NULL;
+  }
+
+  vertex_values        = get_consecutive_array(quantity, "vertex_values");
+  node_index             = get_consecutive_array(mesh,"node_index");
+  number_of_triangles_per_node = get_consecutive_array(mesh,"number_of_triangles_per_node");
+  vertex_value_indices = get_consecutive_array(mesh,"vertex_value_indices");
+
+  CHECK_C_CONTIG(vertices);
+  CHECK_C_CONTIG(A);
+
+  //N = centroid_values -> dimensions[0];
+
+  int num_verts = vertices->dimensions[0];
+  
+  err = _set_vertex_values_c(num_verts,
+                          (long*) vertices->data,
+                          (long*) node_index->data,
+                          (long*) number_of_triangles_per_node->data,
+                          (long*) vertex_value_indices->data,
+                          (double*) vertex_values->data,
+                          (double*) A->data);
+
+
+  // Release and return
+  Py_DECREF(vertex_values);
+  Py_DECREF(node_index);
+  Py_DECREF(number_of_triangles_per_node);
+  Py_DECREF(vertex_value_indices);
+
+  return Py_BuildValue("");
+}
 
 PyObject *interpolate(PyObject *self, PyObject *args) {
         //
@@ -2277,7 +2366,8 @@ static struct PyMethodDef MethodTable[] = {
 		METH_VARARGS, "Print out"},
 	{"interpolate", interpolate, METH_VARARGS, "Print out"},
 	{"average_vertex_values", average_vertex_values, METH_VARARGS, "Print out"},		
-	{NULL, NULL, 0, NULL}   // sentinel
+	{"set_vertex_values_c", set_vertex_values_c, METH_VARARGS, "Print out"},	
+{NULL, NULL, 0, NULL}   // sentinel
 };
 
 // Module initialisation
