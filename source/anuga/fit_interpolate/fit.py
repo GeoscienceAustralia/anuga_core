@@ -577,7 +577,9 @@ def _fit_to_mesh(point_coordinates,
         if verbose:
             log.critical('FitInterpolate: Building mesh')
         mesh = Mesh(vertex_coordinates, triangles)
-        mesh.check_integrity()
+
+        # This is very slow!
+        #mesh.check_integrity()
 
     interp = Fit(mesh=mesh,
                  verbose=verbose,
