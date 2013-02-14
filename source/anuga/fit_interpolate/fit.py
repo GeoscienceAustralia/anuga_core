@@ -46,28 +46,28 @@ import numpy as num
 import sys
 
 # Setup for c fitting routines
-from anuga.utilities import compile
-if compile.can_use_C_extension('fitsmooth.c'):
-    import fitsmooth
-else:
-    msg = "C implementation of fitting algorithms (fitsmooth.c) not avalaible"
-    raise Exception(msg)
+#from anuga.utilities import compile
+#if compile.can_use_C_extension('fitsmooth.c'):
+import fitsmooth
+#else:
+#    msg = "C implementation of fitting algorithms (fitsmooth.c) not avalaible"
+#    raise Exception(msg)
 
 # Setup for quad_tree extension
-from anuga.utilities import compile
-if compile.can_use_C_extension('quad_tree_ext.c'):
-    import quad_tree_ext
-else:
-    msg = "C implementation of quad tree extension not avaliable"
-    raise Exception(msg)
+#from anuga.utilities import compile
+#if compile.can_use_C_extension('quad_tree_ext.c'):
+#from anuga.utilities import quad_tree_ext
+#else:
+#    msg = "C implementation of quad tree extension not avaliable"
+#    raise Exception(msg)
 
 # Setup for sparse_matrix extension
-from anuga.utilities import compile
-if compile.can_use_C_extension('sparse_matrix_ext.c'):
-    import sparse_matrix_ext
-else:
-    msg = "C implementation of sparse_matrix extension not avaliable"
-    raise Exception(msg)
+#from anuga.utilities import compile
+#if compile.can_use_C_extension('sparse_matrix_ext.c'):
+#from anuga.utilities import sparse_matrix_ext
+#else:
+#    msg = "C implementation of sparse_matrix extension not avaliable"
+#    raise Exception(msg)
 
 
 

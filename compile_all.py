@@ -62,6 +62,8 @@ execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 os.chdir('..')
 os.chdir('fit_interpolate')
+subprocess.call([sys.executable, '..' + os.sep + 'utilities' + os.sep + 'compile.py', 'rand48.c'])
+subprocess.call([sys.executable, '..' + os.sep + 'utilities' + os.sep + 'compile.py', 'ptinpoly.c'])
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 

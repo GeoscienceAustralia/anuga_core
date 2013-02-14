@@ -59,12 +59,16 @@ class MeshQuadtree(Cell):
     def set_extents(self):
         extents = AABB(*self.mesh.get_extent(absolute=True))
         extents.grow(1.001)  # To avoid round off error
-        extents = [extents.xmin, extents.xmax, extents.ymin, extents.ymax]
-        self.extents = ensure_numeric(extents, num.float)
+        numextents = [extents.xmin, extents.xmax, extents.ymin, extents.ymax]
+        self.extents = num.array(numextents, num.float)
+        #print self.extents
 
     def add_quad_tree(self):
 
         V = self.mesh.get_vertex_coordinates(absolute=True)
+        
+        self.set_extents()
+        #print self.extents
         self.root = fitsmooth.build_quad_tree(self.mesh.triangles, V, self.extents)
 
 

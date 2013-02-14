@@ -938,21 +938,23 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
   from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
   
   # Setup for quad_tree extension
-  from anuga.utilities import compile
-  if compile.can_use_C_extension('quad_tree_ext.c'):
-      import quad_tree_ext
-  else:
-      msg = "C implementation of quad tree extension not avaliable"
-      raise Exception(msg)
+  #from anuga.utilities import compile
+  #if compile.can_use_C_extension('quad_tree_ext.c'):
+  #import quad_tree_ext
+  #else:
+  #    msg = "C implementation of quad tree extension not avaliable"
+  #    raise Exception(msg)
 
   # Setup for sparse_matrix extension
-  from anuga.utilities import compile
-  if compile.can_use_C_extension('sparse_matrix_ext.c'):
-      import sparse_matrix_ext
-  else:
-      msg = "C implementation of sparse_matrix extension not avaliable"
-      raise Exception(msg)
+  #from anuga.utilities import compile
+  #if compile.can_use_C_extension('sparse_matrix_ext.c'):
 
+  #else:
+  #    msg = "C implementation of sparse_matrix extension not avaliable"
+  #    raise Exception(msg)
+
+  import anuga.utilities.sparse_matrix_ext as sparse_matrix_ext
+  import anuga.utilities.quad_tree_ext as quad_tree_ext
   from anuga.geometry.aabb import AABB
 
   if isinstance(T, FitInterpolate):
