@@ -360,7 +360,10 @@ class Domain(Generic_Domain):
         self.edge_coordinates=self.get_edge_midpoint_coordinates()
 
         # We demand that vertex values are stored uniquely
-        #self.set_store_vertices_smoothly(False)
+        # NOTE: Without this, wet-dry velocity spikes tend to occur in output files.
+        # The tsunami algorithm is probably particularly sensitive to this.
+        # Hence, this seems like a reasonable default.
+        self.set_store_vertices_smoothly(False)
 
         self.maximum_allowed_speed=0.0
         #self.minimum_allowed_height=0.01
@@ -370,9 +373,8 @@ class Domain(Generic_Domain):
 
 #        print '##########################################################################'
 #        print '#'
-#        print '# Using anuga_tsunami solver in anuga_work/development/gareth/experimental/anuga_tsunami/'
 #        print "#"
-#        print "# This solver is experimental. Here are some tips on using it"
+#        print "# Here are some tips on using the 'tsunami' solver"
 #        print "#"
 #        print "# 1) When plotting outputs, I strongly suggest you examine centroid values, not vertex values"
 #        print "# , as the latter can be completely misleading near strong gradients in the flow. "
@@ -398,9 +400,9 @@ class Domain(Generic_Domain):
 #        print "#"
 #        print "# You will probably be able to tell this is causing you problems by convergence testing"
 #        print "#"
-#        print '# 5) Note that many options in config.py have been overridden by the solver -- I have '
+#        print '# 5) Note that many options in config.py have been overridden by the solver -- we have '
 #        print '# deliberately attempted to get the solver to perform well with consistent values of '
-#        print '# these parameters -- so I would advise against changing them unless you at least check that '
+#        print '# these parameters -- so I advise against changing them unless you at least check that '
 #        print '# it really does improve things'
 #        print '#'
 #        print '##########################################################################'
