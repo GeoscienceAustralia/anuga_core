@@ -739,59 +739,130 @@ class Mesh(General_mesh):
         # Get x,y coordinates for all vertices for all triangles
         V = self.get_vertex_coordinates()
 
-        # Check each triangle
-        for i in xrange(N):
+#        # Check each triangle
+#        for i in xrange(0):
+#
+#            x0, y0 = V[3*i, :]
+#            x1, y1 = V[3*i+1, :]
+#            x2, y2 = V[3*i+2, :]
+#
+#            # Check that area hasn't been compromised
+#            area = self.areas[i]
+#            ref = -((x1*y0-x0*y1)+(x2*y1-x1*y2)+(x0*y2-x2*y0))/2
+#            msg = 'Triangle %i (%f,%f), (%f,%f), (%f, %f)' % (i, x0,y0,x1,y1,x2,y2)
+#            msg += 'Wrong area: %f  %f'\
+#                  %(area, ref)
+#            assert abs((area - ref)/area) < epsilon, msg
+#
+#            msg = 'Triangle %i (%f,%f), (%f,%f), (%f, %f)' % (i, x0,y0,x1,y1,x2,y2)
+#            msg += ' is degenerate:  area == %f' % self.areas[i]
+#            assert area > 0.0, msg
+#
+#            # Check that points are arranged in counter clock-wise order
+#            v0 = [x1-x0, y1-y0]
+#            v1 = [x2-x1, y2-y1]
+#            v2 = [x0-x2, y0-y2]
+#            a0 = anglediff(v1, v0)
+#            a1 = anglediff(v2, v1)
+#            a2 = anglediff(v0, v2)
+#
+#            msg = '''Vertices (%s,%s), (%s,%s), (%s,%s) are not arranged
+#            in counter clockwise order''' %(x0, y0, x1, y1, x2, y2)
+#            assert a0 < pi and a1 < pi and a2 < pi, msg
+#
+#            # Check that normals are orthogonal to edge vectors
+#            # Note that normal[k] lies opposite vertex k
+#
+#            normal0 = self.normals[i, 0:2]
+#            normal1 = self.normals[i, 2:4]
+#            normal2 = self.normals[i, 4:6]
+#
+#            for u, v in [ (v0, normal2), (v1, normal0), (v2, normal1) ]:
+#
+#                # Normalise
+#                l_u = num.sqrt(u[0]*u[0] + u[1]*u[1])
+#                l_v = num.sqrt(v[0]*v[0] + v[1]*v[1])
+#
+#                msg = 'Normal vector in triangle %d does not have unit length' %i
+#                assert num.allclose(l_v, 1), msg
+#
+#                x = (u[0]*v[0] + u[1]*v[1])/l_u # Inner product
+#
+#                msg = 'Normal vector (%f,%f) is not perpendicular to' %tuple(v)
+#                msg += ' edge (%f,%f) in triangle %d.' %(tuple(u) + (i,))
+#                msg += ' Inner product is %e.' %x
+#                assert x < epsilon, msg
 
-            x0, y0 = V[3*i, :]
-            x1, y1 = V[3*i+1, :]
-            x2, y2 = V[3*i+2, :]
 
-            # Check that area hasn't been compromised
-            area = self.areas[i]
-            ref = -((x1*y0-x0*y1)+(x2*y1-x1*y2)+(x0*y2-x2*y0))/2
-            msg = 'Triangle %i (%f,%f), (%f,%f), (%f, %f)' % (i, x0,y0,x1,y1,x2,y2)
-            msg += 'Wrong area: %f  %f'\
-                  %(area, ref)
-            assert abs((area - ref)/area) < epsilon, msg
+        # let's try numpy constructs
 
-            msg = 'Triangle %i (%f,%f), (%f,%f), (%f, %f)' % (i, x0,y0,x1,y1,x2,y2)
-            msg += ' is degenerate:  area == %f' % self.areas[i]
-            assert area > 0.0, msg
+        x0 = V[0::3, 0]
+        y0 = V[0::3, 1]
+        x1 = V[1::3, 0]
+        y1 = V[1::3, 1]
+        x2 = V[2::3, 0]
+        y2 = V[2::3, 1]
 
-            # Check that points are arranged in counter clock-wise order
-            v0 = [x1-x0, y1-y0]
-            v1 = [x2-x1, y2-y1]
-            v2 = [x0-x2, y0-y2]
-            a0 = anglediff(v1, v0)
-            a1 = anglediff(v2, v1)
-            a2 = anglediff(v0, v2)
+        #print 'check areas'
+        area = self.areas
 
-            msg = '''Vertices (%s,%s), (%s,%s), (%s,%s) are not arranged
-            in counter clockwise order''' %(x0, y0, x1, y1, x2, y2)
-            assert a0 < pi and a1 < pi and a2 < pi, msg
+        ref = -((x1*y0-x0*y1)+(x2*y1-x1*y2)+(x0*y2-x2*y0))/2
 
-            # Check that normals are orthogonal to edge vectors
-            # Note that normal[k] lies opposite vertex k
 
-            normal0 = self.normals[i, 0:2]
-            normal1 = self.normals[i, 2:4]
-            normal2 = self.normals[i, 4:6]
 
-            for u, v in [ (v0, normal2), (v1, normal0), (v2, normal1) ]:
+        assert num.sum(num.abs((area - ref)/area)) < epsilon, 'Error in areas'
 
-                # Normalise
-                l_u = num.sqrt(u[0]*u[0] + u[1]*u[1])
-                l_v = num.sqrt(v[0]*v[0] + v[1]*v[1])
+        assert num.all(area > 0.0), 'A negative area'
 
-                msg = 'Normal vector in triangle %d does not have unit length' %i
-                assert num.allclose(l_v, 1), msg
 
-                x = (u[0]*v[0] + u[1]*v[1])/l_u # Inner product
+        tx0 = x2 - x1
+        ty0 = y2 - y1
+        tx1 = x0 - x2
+        ty1 = y0 - y2
+        tx2 = x1 - x0
+        ty2 = y1 - y0
 
-                msg = 'Normal vector (%f,%f) is not perpendicular to' %tuple(v)
-                msg += ' edge (%f,%f) in triangle %d.' %(tuple(u) + (i,))
-                msg += ' Inner product is %e.' %x
-                assert x < epsilon, msg
+        nx0 = self.normals[:,0]
+        ny0 = self.normals[:,1]
+        nx1 = self.normals[:,2]
+        ny1 = self.normals[:,3]
+        nx2 = self.normals[:,4]
+        ny2 = self.normals[:,5]
+
+        #print nx0.shape
+        #print tx0.shape
+        #print ny0.shape
+        #print ty0.shape
+
+
+        #print 'check edge |_ to normals'
+        assert num.all(tx0*nx0 + ty0*ny0 < epsilon), 'Normal not perpendicular to edge'
+        assert num.all(tx1*nx1 + ty1*ny1 < epsilon), 'Normal not perpendicular to edge'
+        assert num.all(tx2*nx2 + ty2*ny2 < epsilon), 'Normal not perpendicular to edge'
+
+
+        #print 'check normals are unit length'
+        assert num.all(num.abs(nx0**2 + ny0**2 - 1) < epsilon), 'Normal are not normalised'
+        assert num.all(num.abs(nx1**2 + ny1**2 - 1) < epsilon), 'Normal are not normalised'
+        assert num.all(num.abs(nx2**2 + ny2**2 - 1) < epsilon), 'Normal are not normalised'
+
+
+
+
+        #print 'check neighbours'
+
+        # 0 neighbours
+        neighs = self.neighbours
+        nids = neighs[:,0]
+        eids = self.neighbour_edges[:,0]
+
+        ids = num.arange(len(nids))
+        nnid = num.where(nids>-1, 3*nids+eids, 0)
+        
+        #assert num.all(num.where(nids>-1, neighs[nnid]-ids, 0)==0)
+
+
+
 
 
 

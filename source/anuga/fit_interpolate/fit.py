@@ -579,7 +579,7 @@ def _fit_to_mesh(point_coordinates,
         mesh = Mesh(vertex_coordinates, triangles)
 
         # This is very slow!
-        #mesh.check_integrity()
+        mesh.check_integrity()
 
     interp = Fit(mesh=mesh,
                  verbose=verbose,

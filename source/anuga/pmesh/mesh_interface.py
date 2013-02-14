@@ -357,4 +357,6 @@ def _create_mesh_from_regions(bounding_polygon,
         m.generate_mesh(minimum_triangle_angle=minimum_triangle_angle,
                         verbose=verbose)
         m.export_mesh_file(filename)
+
+        return m
         
