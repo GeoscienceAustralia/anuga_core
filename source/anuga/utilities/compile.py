@@ -21,6 +21,12 @@ I_dirs = '-I"%s" ' % numpy.get_include()
 
 import os, string, sys
 
+NETCDF_LIB_DIR = os.getenv('NETCDF_LIB_DIR', '')
+NETCDF_INCLUDE_DIR = os.getenv('NETCDF_INCLUDE_DIR', '')
+
+print 'NETCDF_LIB_DIR ',NETCDF_LIB_DIR
+print 'NETCDF_INCLUDE_DIR ',NETCDF_INCLUDE_DIR
+
 separation_line = '---------------------------------------'      
  
 def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
