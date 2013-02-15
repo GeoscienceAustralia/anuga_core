@@ -321,15 +321,15 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
   if FN=="fitsmooth.c":
     fitlibs = libs + netcdf_lib_dirs
     if sys.platform == 'win32':	  
-      if libs is "":
+      if fitlibs is "":
         s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s -lm  -fopenmp netcdf.dll' %(loader, sharedflag, object_files, root1, libext)
       else:
         s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s "%s" -lm  -fopenmp netcdf.dll' %(loader, sharedflag, object_files, root1, libext, fitlibs)
     else:    
-      if libs is "":
+      if fitlibs is "":
         s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s -lm  -fopenmp -lnetcdf' %(loader, sharedflag, object_files, root1, libext)
       else:
-        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s "%s" -lm  -fopenmp -lnetcdf' %(loader, sharedflag, object_files, root1, libext, libs)
+        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s "%s" -lm  -fopenmp -lnetcdf' %(loader, sharedflag, object_files, root1, libext, fitlibs)
   elif FN=="quad_tree_ext.c":
     if libs is "":
       s = '%s -%s %s quad_tree.o -o %s.%s -lm  -fopenmp' %(loader, sharedflag, object_files, root1, libext)
