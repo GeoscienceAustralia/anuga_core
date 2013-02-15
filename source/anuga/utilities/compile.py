@@ -28,6 +28,8 @@ netcdf_lib_dirs = ''
 if NETCDF_LIB_DIR != '' :
     netcdf_lib_dirs = '-L"%s" ' % NETCDF_LIB_DIR
 
+print 'netcdf_lib_dirs: ',netcdf_lib_dirs
+
 #NumPy ------------------------------------
 # Something like these lines recommended in "Converting from NUMARRAY to NUMPY"
 import numpy
@@ -324,12 +326,12 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
       if fitlibs is "":
         s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s -lm  -fopenmp netcdf.dll' %(loader, sharedflag, object_files, root1, libext)
       else:
-        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s "%s" -lm  -fopenmp netcdf.dll' %(loader, sharedflag, object_files, root1, libext, fitlibs)
+        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s %s -lm  -fopenmp netcdf.dll' %(loader, sharedflag, object_files, root1, libext, fitlibs)
     else:    
       if fitlibs is "":
         s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s -lm  -fopenmp -lnetcdf' %(loader, sharedflag, object_files, root1, libext)
       else:
-        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s "%s" -lm  -fopenmp -lnetcdf' %(loader, sharedflag, object_files, root1, libext, fitlibs)
+        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s %s -lm  -fopenmp -lnetcdf' %(loader, sharedflag, object_files, root1, libext, fitlibs)
   elif FN=="quad_tree_ext.c":
     if libs is "":
       s = '%s -%s %s quad_tree.o -o %s.%s -lm  -fopenmp' %(loader, sharedflag, object_files, root1, libext)
