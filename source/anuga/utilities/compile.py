@@ -317,16 +317,14 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
 
 
 
-  libs = libs + netcdf_lib_dirs
-
   # Make shared library (*.so or *.dll)
   if FN=="fitsmooth.c":
-    libs = libs + netcdf_lib_dirs
+    fitlibs = libs + netcdf_lib_dirs
     if sys.platform == 'win32':	  
       if libs is "":
         s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s -lm  -fopenmp netcdf.dll' %(loader, sharedflag, object_files, root1, libext)
       else:
-        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s "%s" -lm  -fopenmp netcdf.dll' %(loader, sharedflag, object_files, root1, libext, libs)
+        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s "%s" -lm  -fopenmp netcdf.dll' %(loader, sharedflag, object_files, root1, libext, fitlibs)
     else:    
       if libs is "":
         s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s -lm  -fopenmp -lnetcdf' %(loader, sharedflag, object_files, root1, libext)
