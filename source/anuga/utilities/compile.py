@@ -10,22 +10,33 @@
    Ole Nielsen, Duncan Gray Oct 2001      
 """     
 
-#NumPy ------------------------------------
-# Something like these lines recommended in "Converting from NUMARRAY to NUMPY"
-import numpy
-I_dirs = '-I"%s" ' % numpy.get_include()
-#NumPy ------------------------------------
 
-# FIXME (Ole): Although this script says it works with a range of compilers,
-# it has only really been used with gcc.
 
 import os, string, sys
 
 NETCDF_LIB_DIR = os.getenv('NETCDF_LIB_DIR', '')
 NETCDF_INCLUDE_DIR = os.getenv('NETCDF_INCLUDE_DIR', '')
 
-print 'NETCDF_LIB_DIR ',NETCDF_LIB_DIR
-print 'NETCDF_INCLUDE_DIR ',NETCDF_INCLUDE_DIR
+#print 'NETCDF_LIB_DIR: ',NETCDF_LIB_DIR
+#print 'NETCDF_INCLUDE_DIR: ',NETCDF_INCLUDE_DIR
+
+I_dirs = ''
+if NETCDF_INCLUDE_DIR != '' :
+    I_dirs = '-I"%s" ' % NETCDF_INCLUDE_DIR
+
+netcdf_lib_dirs = ''
+if NETCDF_LIB_DIR != '' :
+    netcdf_lib_dirs = '-L"%s" ' % NETCDF_LIB_DIR
+
+#NumPy ------------------------------------
+# Something like these lines recommended in "Converting from NUMARRAY to NUMPY"
+import numpy
+I_dirs = I_dirs + '-I"%s" ' % numpy.get_include()
+#NumPy ------------------------------------
+
+# FIXME (Ole): Although this script says it works with a range of compilers,
+# it has only really been used with gcc.
+
 
 separation_line = '---------------------------------------'      
  
@@ -304,9 +315,13 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
     except:
       raise Exception('Could not compile %s - please try manually' %FN)
 
-  
+
+
+  libs = libs + netcdf_lib_dirs
+
   # Make shared library (*.so or *.dll)
   if FN=="fitsmooth.c":
+    libs = libs + netcdf_lib_dirs
     if sys.platform == 'win32':	  
       if libs is "":
         s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s -lm  -fopenmp netcdf.dll' %(loader, sharedflag, object_files, root1, libext)
