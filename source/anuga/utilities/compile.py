@@ -22,11 +22,11 @@ NETCDF_INCLUDE_DIR = os.getenv('NETCDF_INCLUDE_DIR', '')
 
 I_dirs = ''
 if NETCDF_INCLUDE_DIR != '' :
-    I_dirs = '-I"%s" ' % NETCDF_INCLUDE_DIR
+    I_dirs = ' -I"%s" ' % NETCDF_INCLUDE_DIR
 
 netcdf_lib_dirs = ''
 if NETCDF_LIB_DIR != '' :
-    netcdf_lib_dirs = '-L"%s" ' % NETCDF_LIB_DIR
+    netcdf_lib_dirs = ' -L"%s" ' % NETCDF_LIB_DIR
 
 print 'netcdf_lib_dirs: ',netcdf_lib_dirs
 
