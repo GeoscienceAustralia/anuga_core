@@ -241,12 +241,12 @@ def _dem2pts(name_in, name_out=None, verbose=False,
         if upper_index == lower_index + newcols:
             # Seems to be an error with the windows version of
             # Netcdf. The following gave errors
-            #points[lower_index:upper_index, :] = tpoints
-            #elevation[lower_index:upper_index] = telev
+            points[lower_index:upper_index, :] = tpoints
+            elevation[lower_index:upper_index] = telev
             # so used the following
-            for index in range(newcols):
-                points[index+lower_index, :] = tpoints[index,:]
-                elevation[index+lower_index] = telev[index]
+            #for index in range(newcols):
+            #    points[index+lower_index, :] = tpoints[index,:]
+            #    elevation[index+lower_index] = telev[index]
 
     assert global_index == nopoints, 'index not equal to number of points'
 
