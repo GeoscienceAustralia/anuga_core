@@ -138,7 +138,7 @@ Parameters
         from Scientific.IO.NetCDF import NetCDFFile
 
         #Write test asc file
-        root = 'demtest'
+        root = 'demtest2'
 
         filename = root+'.asc'
         fid = open(filename, 'w')
@@ -266,7 +266,7 @@ Parameters
         from Scientific.IO.NetCDF import NetCDFFile
 
         #Write test asc file
-        root = 'demtest'
+        root = 'demtest3'
 
         filename = root+'.asc'
         fid = open(filename, 'w')
