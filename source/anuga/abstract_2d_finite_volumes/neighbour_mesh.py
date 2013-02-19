@@ -803,11 +803,11 @@ class Mesh(General_mesh):
         x2 = V[2::3, 0]
         y2 = V[2::3, 1]
 
+
         #print 'check areas'
         area = self.areas
 
         ref = -((x1*y0-x0*y1)+(x2*y1-x1*y2)+(x0*y2-x2*y0))/2
-
 
 
         assert num.sum(num.abs((area - ref)/area)) < epsilon, 'Error in areas'
@@ -817,10 +817,24 @@ class Mesh(General_mesh):
 
         tx0 = x2 - x1
         ty0 = y2 - y1
+        a0  = num.sqrt(tx0**2 + ty0**2)
+
+
+        tx0 = tx0/a0
+        ty0 = ty0/a0
+
+
         tx1 = x0 - x2
         ty1 = y0 - y2
+        a1  = num.sqrt(tx1**2 + ty1**2)
+        tx1 = tx1/a1
+        ty1 = ty1/a1
+
         tx2 = x1 - x0
         ty2 = y1 - y0
+        a2  = num.sqrt(tx2**2 + ty2**2)
+        tx2 = tx2/a2
+        ty2 = ty2/a2
 
         nx0 = self.normals[:,0]
         ny0 = self.normals[:,1]
@@ -829,13 +843,7 @@ class Mesh(General_mesh):
         nx2 = self.normals[:,4]
         ny2 = self.normals[:,5]
 
-        #print nx0.shape
-        #print tx0.shape
-        #print ny0.shape
-        #print ty0.shape
 
-
-        #print 'check edge |_ to normals'
         assert num.all(tx0*nx0 + ty0*ny0 < epsilon), 'Normal not perpendicular to edge'
         assert num.all(tx1*nx1 + ty1*ny1 < epsilon), 'Normal not perpendicular to edge'
         assert num.all(tx2*nx2 + ty2*ny2 < epsilon), 'Normal not perpendicular to edge'

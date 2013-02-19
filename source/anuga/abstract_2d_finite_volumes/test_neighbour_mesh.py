@@ -1014,6 +1014,10 @@ class Test_Mesh(unittest.TestCase):
                      [19,17, 4],
                      [16, 6, 5]]
 
+
+        triangles = num.array(triangles,num.int)
+        points = num.array(points,num.float)
+
         mesh = Mesh(points, triangles)
         mesh.check_integrity()
         Pref = mesh.get_boundary_polygon()
@@ -1845,5 +1849,5 @@ class Test_Mesh(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Mesh, 'test_')
-    runner = unittest.TextTestRunner()
+    runner = unittest.TextTestRunner()#verbosity=2)
     runner.run(suite)

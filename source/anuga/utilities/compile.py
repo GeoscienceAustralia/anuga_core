@@ -28,7 +28,7 @@ netcdf_lib_dirs = ''
 if NETCDF_LIB_DIR != '' :
     netcdf_lib_dirs = ' -L"%s" ' % NETCDF_LIB_DIR
 
-print 'netcdf_lib_dirs: ',netcdf_lib_dirs
+#print 'netcdf_lib_dirs: ',netcdf_lib_dirs
 
 #NumPy ------------------------------------
 # Something like these lines recommended in "Converting from NUMARRAY to NUMPY"
