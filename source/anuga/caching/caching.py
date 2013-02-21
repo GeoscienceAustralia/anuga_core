@@ -958,20 +958,12 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
   from anuga.geometry.aabb import AABB
 
   if isinstance(T, FitInterpolate):
-
     if hasattr(T,"D"):
         T.D=sparse_matrix_ext.deserialise_dok(T.D)
     if hasattr(T,"AtA"):
         T.AtA=sparse_matrix_ext.deserialise_dok(T.AtA)
     if hasattr(T,"root"):
-        if hasattr(T.root,"root"):
-            mesh = T.mesh
-            extents = AABB(*mesh.get_extent(absolute=True))
-            extents.grow(1.001)  # To avoid round off error
-            extents = [extents.xmin, extents.xmax, extents.ymin, extents.ymax]
-            T.root.root=quad_tree_ext.deserialise(T.root.root,\
-                              mesh.triangles, mesh.vertex_coordinates, num.array(extents))
-
+        T.build_quad_tree(verbose=verbose)
   #---------------------------------------------------------------------------
 
   return((T, FN, Retrieved, reason, comptime, loadtime, compressed))
@@ -1084,7 +1076,6 @@ def save_args_to_cache(CD, FN, args, kwargs, compression):
   import time, os, sys
 
   (argsfile, compressed) = myopen(CD+FN+'_'+file_types[1], 'wb', compression)
-
   if argsfile is None:
     msg = 'ERROR (caching): Could not open argsfile for writing: %s' %FN
     raise IOError(msg)
@@ -1146,8 +1137,7 @@ def save_results_to_cache(T, CD, FN, my_F, deps, comptime, funcname,
     if hasattr(T,"AtA"):
         T.AtA=sparse_matrix_ext.serialise_dok(T.AtA)
     if hasattr(T,"root"):
-        if hasattr(T.root,"root"):
-            T.root.root=quad_tree_ext.serialise(T.root.root)
+        T.root.root=None
 
 
   #---------------------------------------------------------------------------
@@ -1188,27 +1178,6 @@ def save_results_to_cache(T, CD, FN, my_F, deps, comptime, funcname,
   #    pass
   #else:
   #  pass  # FIXME: Take care of access rights under Windows
-
-  # PADARN NOTE 17/12/12: See above - deserialise in case will be used.
-  #---------------------------------------------------------------------------
-  from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
-
-  if isinstance(T, FitInterpolate):
-    if hasattr(T,"D"):
-        T.D=sparse_matrix_ext.deserialise_dok(T.D)
-    if hasattr(T,"AtA"):
-        T.AtA=sparse_matrix_ext.deserialise_dok(T.AtA)
-    if hasattr(T,"root"):
-        if hasattr(T.root,"root"):
-            mesh = T.mesh
-            extents = AABB(*mesh.get_extent(absolute=True))
-            extents.grow(1.001)  # To avoid round off error
-            extents = [extents.xmin, extents.xmax, extents.ymin, extents.ymax]
-            T.root.root=quad_tree_ext.deserialise(T.root.root,\
-                              mesh.triangles, mesh.vertex_coordinates, num.array(extents))
-
-
-  #---------------------------------------------------------------------------
 
   return(savetime)
 

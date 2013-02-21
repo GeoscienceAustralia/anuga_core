@@ -12,7 +12,7 @@
 
 
 
-
+/*
 static int _serialise(quad_tree * quadtree, PyObject * serial_quadtree)
 {
 
@@ -162,7 +162,7 @@ static int _deserialise(quad_tree * quadtree, PyListObject * serial_quadtree,
 
 }
 
-
+*/
 
 static void delete_quad_tree_cap(PyObject * cap){
 
@@ -174,7 +174,7 @@ static void delete_quad_tree_cap(PyObject * cap){
 
 //----------------------- PYTHON WRAPPER FUNCTION -----------------------------
 
-
+/*
 static PyObject *serialise(PyObject *self, PyObject *args) {
 
     int err;
@@ -235,7 +235,7 @@ static PyObject *deserialise(PyObject *self, PyObject *args) {
                       &delete_quad_tree_cap); 
 
 }
-
+*/
 
 //------------------------------------------------------------------------------
 
@@ -248,8 +248,8 @@ static PyObject *deserialise(PyObject *self, PyObject *args) {
 
 // Method table for python module
 static struct PyMethodDef MethodTable[] = {
-    {"serialise",serialise, METH_VARARGS, "Print out"},
-    {"deserialise",deserialise, METH_VARARGS, "Print out"},
+  //  {"serialise",serialise, METH_VARARGS, "Print out"},
+  //  {"deserialise",deserialise, METH_VARARGS, "Print out"},
 	{NULL, NULL, 0, NULL}   // sentinel
 };
 

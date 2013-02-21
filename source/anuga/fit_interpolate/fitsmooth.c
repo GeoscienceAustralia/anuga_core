@@ -17,6 +17,13 @@
 #define ERRCODE 2
 #define ERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(ERRCODE);}
 
+#include "patchlevel.h"
+
+// PYVERSION273 used to check python version for use of PyCapsule
+#if PY_MAJOR_VERSION>=2 && PY_MINOR_VERSION>=7 && PY_MICRO_VERSION>=3
+    #define PYVERSION273
+#endif
+
 //------------------------ NET CDF READING ----------------------------
 
 // Note Padarn 06/12/12: I am removing the use of these functions from
@@ -461,14 +468,14 @@ static PyObject *c_int_array_to_list(int * mat,int cols){
 
 // ----------------------------------------------------------------------------
 
-// --------------------- Capsule destructor methods ---------------------------
-
-// PADARN NOTE 11/12/12: The following two 'destructor' functions will free the 
-// memory allocated to a quad_tree or sparse_dok. An error should be thrown 
-// if the pointer is already Null, as this shouldn't happen.
+// If using python 2.7.3 or later, build with PyCapsules
 
 // Delete capsule containing a quad tree - name of capsule must be exactly
-// "quad tree". 
+// "quad tree".
+
+#ifdef PYVERSION273
+
+
 void delete_quad_tree_cap(PyObject * cap){
     quad_tree * kill = (quad_tree*) PyCapsule_GetPointer(cap,"quad tree");
     if(kill!=NULL){
@@ -487,6 +494,30 @@ void delete_dok_cap(PyObject *cap){
     }
 
 }
+
+#else
+
+// If using python earlier version, build with PyCObject
+
+// Delete cobj containing a quad tree
+void delete_quad_tree_cobj(void * cobj){
+    quad_tree * kill = (quad_tree*) cobj;
+    if(kill!=NULL){
+        delete_quad_tree(kill);
+    }
+}
+
+// Delete cobj containing a sparse_dok
+void delete_dok_cobj(void *cobj){
+
+    sparse_dok * kill = (sparse_dok*) cobj;
+    if(kill!=NULL){
+        delete_dok_matrix(kill);
+    }
+
+}
+
+#endif
 
 //----------------------- PYTHON WRAPPER FUNCTION -----------------------------
 
@@ -519,13 +550,23 @@ PyObject *build_quad_tree(PyObject *self, PyObject *args) {
 
     int n = triangles->dimensions[0];
 
+    #ifdef PYVERSION273
+    
     return  PyCapsule_New((void*) _build_quad_tree(n,
+                          (long*) triangles -> data,
+                          (double*) vertex_coordinates -> data,
+                          (double*) extents -> data),
+                          "quad tree",
+                          &delete_quad_tree_cap);
+
+    #else
+
+    return  PyCObject_FromVoidPtr((void*) _build_quad_tree(n,
                       (long*) triangles -> data,
                       (double*) vertex_coordinates -> data,
                       (double*) extents -> data),
-                      "quad tree",
-                      &delete_quad_tree_cap); 
-
+                      &delete_quad_tree_cobj); 
+    #endif
 }
 
 // Builds the smoothing matrix D. Parses 
@@ -574,10 +615,18 @@ PyObject *build_smoothing_matrix(PyObject *self, PyObject *args) {
       return NULL;
     }
 
+    #ifdef PYVERSION273
+
     return  PyCapsule_New((void*) smoothing_mat,
                   "sparse dok",
                   &delete_dok_cap); 
+
+    #else
+
+    return  PyCObject_FromVoidPtr((void*) smoothing_mat,
+                  &delete_dok_cobj); 
     
+    #endif
 
 }
 
@@ -611,8 +660,11 @@ PyObject *build_matrix_AtA_Atz_fileread(PyObject *self, PyObject *args) {
 
     CHECK_C_CONTIG(triangles);
 
+    #ifdef PYVERSION273
     quad_tree * quadtree = (quad_tree*) PyCapsule_GetPointer(tree,"quad tree");
-
+    #else
+    quad_tree * quadtree = (quad_tree*) PyCObject_AsVoidPtr(tree);
+    #endif
 
     sparse_dok * dok_AtA; // Should be an input argument?
     dok_AtA = make_dok();
@@ -632,9 +684,15 @@ PyObject *build_matrix_AtA_Atz_fileread(PyObject *self, PyObject *args) {
       return NULL;
     }
 
+    #ifdef PYVERSION273
     PyObject * AtA_cap =  PyCapsule_New((void*) dok_AtA,
                   "sparse dok",
                   &delete_dok_cap);
+    #else
+    PyObject * AtA_cap =  PyCObject_FromVoidPtr((void*) dok_AtA,
+                  &delete_dok_cobj);
+    #endif
+
     PyObject *Atz_ret = c_double_array_to_list(Atz,N); 
 
     int npts;
@@ -681,8 +739,11 @@ PyObject *build_matrix_AtA_Atz_points(PyObject *self, PyObject *args) {
     CHECK_C_CONTIG(point_coordinates);
     CHECK_C_CONTIG(z);
 
+    #ifdef PYVERSION273
     quad_tree * quadtree = (quad_tree*) PyCapsule_GetPointer(tree,"quad tree");
-
+    #else
+    quad_tree * quadtree = (quad_tree*) PyCObject_AsVoidPtr(tree);
+    #endif
 
     sparse_dok * dok_AtA; // Should be an input argument?
     dok_AtA = make_dok();
@@ -708,9 +769,14 @@ PyObject *build_matrix_AtA_Atz_points(PyObject *self, PyObject *args) {
       return NULL;
     }
 
+    #ifdef PYVERSION273
     PyObject * AtA_cap =  PyCapsule_New((void*) dok_AtA,
                   "sparse dok",
-                  &delete_dok_cap); 
+                  &delete_dok_cap);
+    #else
+    PyObject * AtA_cap =  PyCObject_FromVoidPtr((void*) dok_AtA,
+                  &delete_dok_cobj); 
+    #endif
     PyObject * Atz_ret = PyList_New(zdims);
     for(i=0;i<zdims;i++){
         PyList_SET_ITEM(Atz_ret,i,c_double_array_to_list(Atz[i],N));
@@ -745,7 +811,12 @@ PyObject *individual_tree_search(PyObject *self, PyObject *args) {
 
     CHECK_C_CONTIG(point);
 
+    #ifdef PYVERSION273
     quad_tree * quadtree = (quad_tree*) PyCapsule_GetPointer(tree,"quad tree");
+    #else
+    quad_tree * quadtree = (quad_tree*) PyCObject_AsVoidPtr(tree);
+    #endif
+
     double xp,yp;
     if(PyArray_TYPE(point)==7){
         int *pointd = (int*)point->data;
@@ -803,7 +874,11 @@ PyObject *items_in_tree(PyObject *self, PyObject *args) {
     }
 
     // Extract quad_tree pointer from capsule
+    #ifdef PYVERSION273
     quad_tree * quadtree = (quad_tree*) PyCapsule_GetPointer(tree,"quad tree");
+    #else
+    quad_tree * quadtree = (quad_tree*) PyCObject_AsVoidPtr(tree);
+    #endif;
     
     // Return the number of elements in the tree (stored in struct)
     return PyInt_FromLong((long)quadtree->count);
@@ -826,7 +901,11 @@ PyObject *nodes_in_tree(PyObject *self, PyObject *args) {
     }
 
     // Extract quad_tree pointer from capsule
+    #ifdef PYVERSION273
     quad_tree * quadtree = (quad_tree*) PyCapsule_GetPointer(tree,"quad tree");
+    #else
+    quad_tree * quadtree = (quad_tree*) PyCObject_AsVoidPtr(tree);
+    #endif
     
     // Return the number of elements in the tree (stored in struct)
     return PyInt_FromLong((long)quad_tree_node_count(quadtree));
@@ -860,8 +939,13 @@ PyObject *combine_partial_AtA_Atz(PyObject *self, PyObject *args) {
     }
 
     // Get pointers to sparse_dok objects from capsules
+    #ifdef PYVERSION273
     sparse_dok * dok_AtA1 = (sparse_dok*) PyCapsule_GetPointer(AtA_cap1,"sparse dok");
     sparse_dok * dok_AtA2 = (sparse_dok*) PyCapsule_GetPointer(AtA_cap2,"sparse dok");
+    #else
+    sparse_dok * dok_AtA1 = (sparse_dok*) PyCObject_AsVoidPtr(AtA_cap1);
+    sparse_dok * dok_AtA2 = (sparse_dok*) PyCObject_AsVoidPtr(AtA_cap2);
+    #endif
 
     // Combine the partial AtA and Atz
     _combine_partial_AtA_Atz(dok_AtA1,dok_AtA2,
@@ -895,8 +979,12 @@ PyObject *return_full_D(PyObject *self, PyObject *args) {
     }
 
     // Get pointer to spars_dok struct
+    #ifdef PYVERSION273
     sparse_dok * D_mat = (sparse_dok*) PyCapsule_GetPointer(D_cap,"sparse dok");
-    
+    #else
+    sparse_dok * D_mat = (sparse_dok*) PyCObject_AsVoidPtr(D_cap);
+    #endif
+
     // Check to make sure that the specified size of the matrix is at least as big
     // as the entries stored in the sparse_dok.
     if (D_mat->num_rows>n || get_dok_rows(D_mat)>n){
@@ -954,8 +1042,13 @@ PyObject *build_matrix_B(PyObject *self, PyObject *args) {
     }
 
     // Extract pointers to c structs from capsules
+    #ifdef PYVERSION273
     sparse_dok * smoothing_mat = (sparse_dok*) PyCapsule_GetPointer(smoothing_mat_cap,"sparse dok");
     sparse_dok * dok_AtA = (sparse_dok*) PyCapsule_GetPointer(AtA_cap,"sparse dok");
+    #else
+    sparse_dok * smoothing_mat = (sparse_dok*) PyCObject_AsVoidPtr(smoothing_mat_cap);
+    sparse_dok * dok_AtA = (sparse_dok*) PyCObject_AsVoidPtr(AtA_cap);
+    #endif
 
     // Add two sparse_dok matrices
     add_sparse_dok(smoothing_mat,alpha,dok_AtA,1);

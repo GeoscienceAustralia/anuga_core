@@ -258,7 +258,6 @@ class Test_Interpolate(unittest.TestCase):
         vertex_coordinates = num.concatenate( (x[:, num.newaxis], y[:, num.newaxis]), axis=1 )
         # FIXME: This concat should roll into get_vertex_values
 
-
         # Get interpolated values at centroids
         interpolation_points = domain.get_centroid_coordinates()
         answer = quantity.get_values(location='centroids')
@@ -267,7 +266,7 @@ class Test_Interpolate(unittest.TestCase):
                              use_cache=True,
                              verbose=False)
         assert num.allclose(result, answer)                
-        
+
         # Second call using the cache
         result = interpolate(vertex_coordinates, triangles,
                              vertex_values, interpolation_points,

@@ -117,5 +117,8 @@ class FitInterpolate:
             # Padarn Note 06/12/12: Do I need this?
             #self.root.set_last_triangle()
 
+    def build_quad_tree(self,verbose=False):
+        self.root = MeshQuadtree(self.mesh, verbose=verbose)
+
     def __repr__(self):
         return 'Interpolation object based on: ' + repr(self.mesh)
