@@ -10,7 +10,12 @@
 #include "util_ext.h" /* in utilities */
 #include "sparse_dok.h"
 
+#include "patchlevel.h"
 
+// PYVERSION273 used to check python version for use of PyCapsule
+#if PY_MAJOR_VERSION>=2 && PY_MINOR_VERSION>=7 && PY_MICRO_VERSION>=3
+    #define PYVERSION273
+#endif
 
 
 static int _serialise(sparse_dok * dok, PyObject * serial_dok)
@@ -91,17 +96,40 @@ static int _deserialise(sparse_dok * dok, PyObject * serial_dok)
 
 };
 
+// ----------------------------------------------------------------------------
+
+// If using python 2.7.3 or later, build with PyCapsules
+
+// Delete capsule containing a quad tree - name of capsule must be exactly
+// "quad tree".
+
+#ifdef PYVERSION273
 
 // Delete capsule containing a sparse_dok - name of capsule must be exactly
 // "sparse dok".
-static void delete_sparse_dok_cap(PyObject *cap){
+void delete_dok_cap(PyObject *cap){
 
     sparse_dok * kill = (sparse_dok*) PyCapsule_GetPointer(cap,"sparse dok");
     if(kill!=NULL){
         delete_dok_matrix(kill);
     }
-
 }
+
+#else
+
+// If using python earlier version, build with PyCObject
+
+
+// Delete cobj containing a sparse_dok
+void delete_dok_cobj(void *cobj){
+
+    sparse_dok * kill = (sparse_dok*) cobj;
+    if(kill!=NULL){
+        delete_dok_matrix(kill);
+    }
+}
+
+#endif
 //----------------------- PYTHON WRAPPER FUNCTION -----------------------------
 
 
@@ -118,8 +146,11 @@ static PyObject *serialise_dok(PyObject *self, PyObject *args) {
               "sparse_matrix_ext.serialise_dok: could not parse input");
       return NULL;
     }
-
+    #ifdef PYVERSION273
     sparse_dok * dok = (sparse_dok*) PyCapsule_GetPointer(sparse_dok_cap,"sparse dok");
+    #else
+    sparse_dok * dok = (sparse_dok*) PyCObject_AsVoidPtr(sparse_dok_cap);
+    #endif
 
     serial_sparse_dok = PyDict_New();
 
@@ -154,9 +185,14 @@ static PyObject *deserialise_dok(PyObject *self, PyObject *args) {
 
     err = _deserialise(dok,serial_sparse_dok);
 
+    #ifdef PYVERSION273
     return  PyCapsule_New((void*) dok,
                       "sparse dok",
-                      &delete_sparse_dok_cap); 
+                      &delete_dok_cap); 
+    #else
+    return  PyCObject_FromVoidPtr((void*) dok,
+                      &delete_dok_obj);
+    #endif
 
 }
 

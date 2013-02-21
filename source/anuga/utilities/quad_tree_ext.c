@@ -164,13 +164,33 @@ static int _deserialise(quad_tree * quadtree, PyListObject * serial_quadtree,
 
 */
 
-static void delete_quad_tree_cap(PyObject * cap){
+#ifdef PYVERSION273
 
+
+void delete_quad_tree_cap(PyObject * cap){
     quad_tree * kill = (quad_tree*) PyCapsule_GetPointer(cap,"quad tree");
+    if(kill!=NULL){
+        delete_quad_tree(kill);
+    } else{
+    }
+}
+
+
+
+#else
+
+// If using python earlier version, build with PyCObject
+
+// Delete cobj containing a quad tree
+void delete_quad_tree_cobj(void * cobj){
+    quad_tree * kill = (quad_tree*) cobj;
     if(kill!=NULL){
         delete_quad_tree(kill);
     }
 }
+
+
+#endif
 
 //----------------------- PYTHON WRAPPER FUNCTION -----------------------------
 
