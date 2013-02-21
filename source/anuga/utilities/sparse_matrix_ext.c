@@ -191,7 +191,7 @@ static PyObject *deserialise_dok(PyObject *self, PyObject *args) {
                       &delete_dok_cap); 
     #else
     return  PyCObject_FromVoidPtr((void*) dok,
-                      &delete_dok_obj);
+                      &delete_dok_cobj);
     #endif
 
 }
