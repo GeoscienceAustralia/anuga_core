@@ -925,36 +925,62 @@ class Mesh(General_mesh):
 
         
         # Check number of triangles per node
-        count = [0]*self.number_of_nodes
-        for triangle in self.triangles:
-            for i in triangle:
-                count[i] += 1
+#        count = [0]*self.number_of_nodes
+#        for triangle in self.triangles:
+#            for i in triangle:
+#                count[i] += 1
 
-        assert num.allclose(count, self.number_of_triangles_per_node)
+        count  = num.bincount(self.triangles.flat)
 
 
-        # Check integrity of vertex_value_indices
-        current_node = 0
-        k = 0 # Track triangles touching on node
-        for index in self.vertex_value_indices:
+        ncount = len(count)
+        #print len(count)
+        #print len(self.number_of_triangles_per_node)
 
-            if self.number_of_triangles_per_node[current_node] == 0:
-                # Node is lone - i.e. not part of the mesh
-                continue
 
-            k += 1
+        number_of_lone_nodes = self.number_of_nodes - len(self.number_of_triangles_per_node)
 
-            volume_id = index / 3
-            vertex_id = index % 3
 
-            msg = 'Triangle %d, vertex %d points to %d. Should have been %d'\
-                  %(volume_id, vertex_id, self.triangles[volume_id, vertex_id], current_node)
-            assert self.triangles[volume_id, vertex_id] == current_node, msg
+        assert num.allclose(count, self.number_of_triangles_per_node[:ncount])
 
-            if self.number_of_triangles_per_node[current_node] == k:
-                # Move on to next node
-                k = 0
-                current_node += 1
+
+        from neighbour_mesh_ext import check_integrity_c
+
+
+        #print self.vertex_value_indices.shape
+        #print self.triangles.shape
+        #print self.node_index.shape
+        #print self.number_of_triangles_per_node.shape
+
+        check_integrity_c(self.vertex_value_indices,
+                          self.triangles,
+                          self.node_index,
+                          self.number_of_triangles_per_node)
+
+
+
+#        # Check integrity of vertex_value_indices
+#        current_node = 0
+#        k = 0 # Track triangles touching on node
+#        for index in self.vertex_value_indices:
+#
+#            if self.number_of_triangles_per_node[current_node] == 0:
+#                # Node is lone - i.e. not part of the mesh
+#                continue
+#
+#            k += 1
+#
+#            volume_id = index / 3
+#            vertex_id = index % 3
+#
+#            msg = 'Triangle %d, vertex %d points to %d. Should have been %d'\
+#                  %(volume_id, vertex_id, self.triangles[volume_id, vertex_id], current_node)
+#            assert self.triangles[volume_id, vertex_id] == current_node, msg
+#
+#            if self.number_of_triangles_per_node[current_node] == k:
+#                # Move on to next node
+#                k = 0
+#                current_node += 1
 
 
     def get_lone_vertices(self):
