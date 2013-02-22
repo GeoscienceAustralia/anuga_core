@@ -383,7 +383,7 @@ point2, 4.5, 4.0, 9.0\n")
 
         point1_answers_array = [[0.0,0.0,1.0,3.0,-2.0,3.0,4.0], [2.0,2.0/3600.,10.0,12.0,-2.0,3.0,4.0]]
         point1_filename = 'gauge_point1.csv'
-        point1_handle = file(point1_filename)
+        point1_handle = open(point1_filename)
         point1_reader = reader(point1_handle)
         point1_reader.next()
 
@@ -396,7 +396,7 @@ point2, 4.5, 4.0, 9.0\n")
 
         point2_answers_array = [[0.0,0.0,1.0,5.0,-4.0,3.0,4.0], [2.0,2.0/3600.,10.0,14.0,-4.0,3.0,4.0]]
         point2_filename = 'gauge_point2.csv' 
-        point2_handle = file(point2_filename)
+        point2_handle = open(point2_filename)
         point2_reader = reader(point2_handle)
         point2_reader.next()
                         
@@ -470,7 +470,7 @@ point1, 2.5, 4.25, 3.0\n")
         domain.set_starttime(0.)
         # Create two sww files with timestep at end. These are to be
         # stored consecutively in the gauge csv files
-        basename='datatest'
+        basename='datatest1'
         domain.set_name(basename) 
         self._create_sww(stage=10.,timestep=timestep)
 
@@ -500,7 +500,7 @@ point2, 0.5, 2.0\n")
                        verbose=False)
 
         point1_answers_array = [[0.0,1.0,-5.0], [2.0,10.0,-5.0],[4.0,10.0,-5.0],
-                                [6.0,20.0,-5.0]]
+                                [6.0,20.0,-5.0], [0.0,1.0,-5.0]]
         point1_filename = 'gauge_point1.csv'
         point1_handle = file(point1_filename)
         point1_reader = reader(point1_handle)
@@ -510,11 +510,13 @@ point2, 0.5, 2.0\n")
         for i,row in enumerate(point1_reader):
             # note the 'hole' (element 1) below - skip the new 'hours' field
             line.append([float(row[0]),float(row[2]),float(row[3])])
+            #print 'i', i
+            #print 'row',row
             #print 'line',line[i],'point1',point1_answers_array[i]
             assert num.allclose(line[i], point1_answers_array[i])
 
         point2_answers_array = [[0.0,1.0,-0.5], [2.0,10.0,-0.5],[4.0,10.0,-0.5],
-                                [6.0,20.0,-0.5]]
+                                [6.0,20.0,-0.5], [0.0,1.0,-0.5]]
         point2_filename = 'gauge_point2.csv' 
         point2_handle = file(point2_filename)
         point2_reader = reader(point2_handle)
