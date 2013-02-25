@@ -125,7 +125,7 @@ point2, 0.5, 2.0, 9.0\n")
 #        point1_answers_array = [[0.0,1.0,-5.0,3.0,4.0], [2.0,10.0,-5.0,3.0,4.0]]
         point1_answers_array = [[0.0,0.0,1.0,6.0,-5.0,3.0,4.0], [2.0,2.0/3600.,10.0,15.0,-5.0,3.0,4.0]]
         point1_filename = 'gauge_point1.csv'
-        point1_handle = file(point1_filename)
+        point1_handle = open(point1_filename)
         point1_reader = reader(point1_handle)
         point1_reader.next()
 
@@ -139,7 +139,7 @@ point2, 0.5, 2.0, 9.0\n")
 
         point2_answers_array = [[0.0,0.0,1.0,1.5,-0.5,3.0,4.0], [2.0,2.0/3600.,10.0,10.5,-0.5,3.0,4.0]]
         point2_filename = 'gauge_point2.csv' 
-        point2_handle = file(point2_filename)
+        point2_handle = open(point2_filename)
         point2_reader = reader(point2_handle)
         point2_reader.next()
                         
