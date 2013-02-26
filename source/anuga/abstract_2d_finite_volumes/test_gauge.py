@@ -131,7 +131,7 @@ point2, 0.5, 2.0, 9.0\n")
 
         line=[]
         for i,row in enumerate(point1_reader):
-#            print 'i',i,'row',row
+            #print 'i',i,'row',row
             line.append([float(row[0]),float(row[1]),float(row[2]),float(row[3]),
                          float(row[4]),float(row[5]),float(row[6])])
             #print 'assert line',line[i],'point1',point1_answers_array[i]

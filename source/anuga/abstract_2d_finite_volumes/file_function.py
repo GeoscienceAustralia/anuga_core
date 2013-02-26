@@ -188,6 +188,7 @@ def _file_function(filename,
     line = fid.readline()
     fid.close()
 
+    # FIXME SR: This test doesn't seem to work with netcdf4
     if line[:3] == 'CDF':
         return get_netcdf_file_function(filename,
                                         quantities,
@@ -249,6 +250,8 @@ def get_netcdf_file_function(filename,
         raise Exception(msg)
  
     if interpolation_points is not None:
+
+        #interpolation_points = num.array(interpolation_points, num.float)
         interpolation_points = ensure_absolute(interpolation_points)
         msg = 'Points must by N x 2. I got %d' % interpolation_points.shape[1]
         assert interpolation_points.shape[1] == 2, msg
@@ -293,7 +296,7 @@ def get_netcdf_file_function(filename,
 
     # Get first timestep
     try:
-        starttime = fid.starttime[0]
+        starttime = fid.starttime
     except ValueError:
         msg = 'Could not read starttime from file %s' % filename
         raise Exception(msg)
@@ -334,9 +337,13 @@ def get_netcdf_file_function(filename,
     # Get time independent stuff
     if spatial:
         # Get origin
-        xllcorner = fid.xllcorner[0]
-        yllcorner = fid.yllcorner[0]
-        zone = fid.zone[0]        
+        #xllcorner = fid.xllcorner[0]
+        #yllcorner = fid.yllcorner[0]
+        #zone = fid.zone[0]
+
+        xllcorner = fid.xllcorner
+        yllcorner = fid.yllcorner
+        zone = fid.zone
 
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]

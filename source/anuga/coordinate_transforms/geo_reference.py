@@ -135,13 +135,21 @@ class Geo_reference:
         infile Handle to open NetCDF file
         """
 
-        self.xllcorner = float(infile.xllcorner[0])
-        self.yllcorner = float(infile.yllcorner[0])
-        self.zone = int(infile.zone[0])
+        #self.xllcorner = float(infile.xllcorner[0])
+        #self.yllcorner = float(infile.yllcorner[0])
+        #self.zone = int(infile.zone[0])
+
+
+        self.xllcorner = float(infile.xllcorner)
+        self.yllcorner = float(infile.yllcorner)
+        self.zone = int(infile.zone)
 
         try:
-            self.false_easting = int(infile.false_easting[0])
-            self.false_northing = int(infile.false_northing[0])
+            #self.false_easting = int(infile.false_easting[0])
+            #self.false_northing = int(infile.false_northing[0])
+
+            self.false_easting = int(infile.false_easting)
+            self.false_northing = int(infile.false_northing)
 
             self.datum = infile.datum
             self.projection = infile.projection

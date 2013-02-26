@@ -222,13 +222,14 @@ def sww2csv_gauges(sww_file,
                                      output_centroids = output_centroids)
 
         if quake_offset_time is None:
-            quake_offset_time = callable_sww.starttime
+            quake_offset_time = callable_sww.starttime[0]
 
         for point_i, point in enumerate(points_array):
             for time in callable_sww.get_time():
                 # add domain starttime to relative time.
                 quake_time = time + quake_offset_time
                 point_quantities = callable_sww(time, point_i) # __call__ is overridden
+
 
                 if point_quantities[0] != NAN:
                     if is_opened[point_i] == False:
