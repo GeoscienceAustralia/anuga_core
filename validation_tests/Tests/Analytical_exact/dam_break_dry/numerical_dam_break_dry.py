@@ -53,9 +53,6 @@ alg, cfl = parse_standard_args()
 domain.set_flow_algorithm(alg)
 domain.set_CFL(cfl)
 
-print 'cfl ',cfl
-print 'alg ',alg
-
 #------------------------------------------------------------------------------
 # Setup initial conditions
 #------------------------------------------------------------------------------
@@ -86,14 +83,6 @@ Bd = anuga.Dirichlet_boundary([1,0.,0.]) # Constant boundary values
 domain.set_boundary({'left': Bt, 'right': Bt, 'top': Br, 'bottom': Br})
 
 
-parameter_file=open('parameters.tex', 'w')
-parameter_file.write('\\begin{verbatim}\n')
-from pprint import pprint
-pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
-parameter_file.write('\\end{verbatim}\n')
-parameter_file.close()
-
-
 #===============================================================================
 ##from anuga.visualiser import RealtimeVisualiser
 ##vis = RealtimeVisualiser(domain)
@@ -102,6 +91,16 @@ parameter_file.close()
 ##vis.start()
 #===============================================================================
 
+
+#------------------------------------------------------------------------------
+# Produce a documentation of parameters
+#------------------------------------------------------------------------------
+parameter_file=open('parameters.tex', 'w')
+parameter_file.write('\\begin{verbatim}\n')
+from pprint import pprint
+pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
+parameter_file.write('\\end{verbatim}\n')
+parameter_file.close()
 
 #------------------------------------------------------------------------------
 # Evolve system through time
