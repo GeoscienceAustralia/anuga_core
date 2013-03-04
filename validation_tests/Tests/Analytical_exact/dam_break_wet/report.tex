@@ -1,4 +1,4 @@
-\documentclass[11pt,a4paper]{report}
+\documentclass[11pt,a4paper]{article}
 
 \usepackage{graphicx}
 \usepackage{epstopdf}
@@ -16,14 +16,23 @@
 %=========================================
 
 \title{Automated Report on the Performance of \anuga{} on Wet Dam Break}
-%\maketitle
+\maketitle
 %\tableofcontents
 
 %======================
-\chapter{Wet Dam Break}
+%\chapter{Wet Dam Break}
 %======================
 
 \input{results}
 
+\section{Parameters used for this simulation}
+
+\input{parameters}
+
+%======================
+% bibliography
+%======================
+\bibliographystyle{plain}
+\bibliography{../../../bibliography}
 
 \end{document}

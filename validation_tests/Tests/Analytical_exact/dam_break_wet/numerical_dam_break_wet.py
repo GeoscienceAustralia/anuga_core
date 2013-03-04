@@ -97,6 +97,17 @@ domain.set_boundary({'left': Bt, 'right': Bt, 'top': Br, 'bottom': Br})
 
 
 #------------------------------------------------------------------------------
+# Produce a documentation of parameters
+#------------------------------------------------------------------------------
+parameter_file=open('parameters.tex', 'w')
+parameter_file.write('\\begin{verbatim}\n')
+from pprint import pprint
+pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
+parameter_file.write('\\end{verbatim}\n')
+parameter_file.close()
+
+
+#------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep = 0.5, finaltime = 50.):
