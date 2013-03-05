@@ -33,7 +33,7 @@ default_boundary_tag = 'exterior'
 
 # Major revision number for use with create_distribution
 # and update_anuga_user_guide
-major_revision = '1.3.0_beta'
+major_revision = '1.3.0-beta'
 
 ################################################################################
 # Physical constants
