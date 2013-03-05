@@ -1,0 +1,347 @@
+\documentclass{manual}
+
+\title{ANUGA Installation Guide}
+
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+% Please at least include a long-lived email address;
+% the rest is at your discretion.
+\authoraddress{Geoscience Australia \\
+  Email: \email{anuga@ga.gov.au}
+}
+
+%Draft date
+\date{\today}                   % update before release!
+                % Use an explicit date so that reformatting
+                % doesn't cause a new date to be used.  Setting
+                % the date to \today can be used during draft
+                % stages to make it easier to handle versions.
+
+		
+\input{version} % Get version info - this file may be modified by
+                % update_anuga_user_manual.py - if not a dummy 
+		% will be used.
+				
+
+\makeindex          % tell \index to actually write the .idx file
+%\makemodindex          % If this contains a lot of module sections.
+
+
+
+\begin{document}
+\maketitle
+
+
+
+% This makes the contents more accessible from the front page of the HTML.
+\ifhtml
+\chapter*{Front Matter\label{front}}
+\fi
+
+
+
+
+\chapter{Introduction}
+
+This document outlines the procedure for installing the Anuga toolbox.
+All components are licensed as open source and readily available from the net.
+It is assumed that the reader is familiar with the Python programming language
+and the process of downloading, installing and unpacking files into directories.
+
+
+\section{System requirements}
+\label{sec:requirements}
+
+To run ANUGA you will need a Windows PC (XP, Vista or 7) or a Linux PC with at 
+least 512MB RAM.  As ANUGA is a memory-intensive numerical system, more memory is better than less.
+
+The viewer (Windows only) requires a graphics adapter that
+is OpenGL compatible. It has been tested with ATI FireGL X1 cards
+and the NVIDIA family. It may not work with other cards such as those from the
+Intel(R) 82915G Express chipset family.
+
+The instructions below are written for the numpy version of ANUGA.  ANUGA changed from
+relying on the Numeric package to the numpy package early in July, 2009.  If you have a Numeric ANUGA,
+you should refer to the installation instructions for that version.  The last Numeric version of 
+ANUGA had a build number of 7163.
+
+Where the text below refers to a specific package file such as \code{python-2.5.msi} you will find that
+file in a download area linked through the \emph{numpy_support_software} link on the page
+\url{https://datamining.anu.edu.au/anuga/wiki/NumpyInstall}.
+
+
+\section{Installation}
+
+Below are the install procedures for Windows XP, Windows Vista, Windows 7 (all 32 bit) and Linux (32 and 64 bit).
+
+\subsection{Quick install - Windows XP (32 bit)}
+\label{sec:winxp}
+
+If you already have previous versions of Python, ANUGA support software or the ANUGA source code installed 
+on the target machine, start off by uninstalling them. Next, download the latest version of the ANUGA 
+Windows installer from \url{http://sourceforge.net/projects/anuga/files/}. The Windows installer will 
+install Python, MingW (select the "Minimal" install), NumPy, NetCDF, Scientific Python, Matplotlib, the 
+ANUGA source code and the viewer (animate). Note that you will need an internet connection to install MingW.
+
+After all the necessary packages have been installed, the installer will proceed to compile the ANUGA C code, 
+run the test suite (optional) and then run a series of validation examples (optional). This may take some time.
+Try the demonstrations provided in the ANUGA directory \code{anuga\_demos} (discussed in the ANUGA user manual at 
+\url{https://datamining.anu.edu.au/anuga/attachment/wiki/WikiStart/anuga_user_manual-1.2.0.pdf}) 
+and view the resulting \code{.sww} files with the ANUGA viewer.
+
+
+
+%To run the ANUGA against the Okushiri Island wave tank validation dataset
+%(\url{http://www.cee.cornell.edu/longwave})
+%go to \code{anuga_validation}
+% into
+%any directory and run the scripts \code{create_okushiri.py},
+%\code{run_okushiri.py} and \code{compare_timeseries.py}.  See also the
+%\code{README.txt} file that comes with the validation scripts for more
+%details.
+
+\subsection{Quick install - Windows Vista and 7}
+\label{sec:winvista}
+
+The installation of the support software and the ANUGA software should be the same as for Windows XP above.
+The installation and use of ANUGA under Windows Vista and 7 have not been heavily tested.  Feedback on any aspect
+of using ANUGA under Vista or 7 is welcomed.
+
+\subsection{Quick install - Linux}
+\label{sec:linux}
+
+Please note that the following applies only to Ubuntu 10.04 (\"Lucid Lynx\"). We currently do not
+support any other Linux distributions.
+
+\subsubsection{Method 1}
+
+Choose the appropriate deb package for your architecture, download and use the package installer to install.
+
+i386: \url{https://sourceforge.net/projects/anuga/files/anuga_ubuntu_package/python-anuga_1.2.0-0ubuntu3_i386.deb/download}\\
+AMD64: \url{https://sourceforge.net/projects/anuga/files/anuga_ubuntu_package/python-anuga_1.2.0-0ubuntu3_amd64.deb/download}
+
+\subsubsection{Method 2}
+
+Open a terminal and enter:
+\begin{verbatim}
+sudo add-apt-repository ppa:anuga/ppa
+sudo apt-get update
+sudo apt-get install python-anuga
+\end{verbatim}
+
+\subsubsection{Method 3}
+
+Add the following lines to your \code{/etc/apt/sources.list}:
+\begin{verbatim}
+deb http://ppa.launchpad.net/anuga/ppa/ubuntu lucid main
+deb-src http://ppa.launchpad.net/anuga/ppa/ubuntu lucid main
+\end{verbatim}
+Download the ANUGA key from \url{https://datamining.anu.edu.au/anuga/raw-attachment/wiki/WikiStart/anuga.key}. You can add this key with:
+\begin{verbatim}
+sudo apt-key add anuga.key
+\end{verbatim}
+or go to System -$>$ Administration -$>$ Software Sources -$>$ Authentication -$>$ Import Key File
+
+Open a terminal and enter:
+\begin{verbatim}
+sudo apt-get update
+sudo apt-get install python-anuga
+\end{verbatim}
+
+
+
+
+\section{Optional but recommended software}
+This software is not required to run the ANUGA toolbox, but it is recommended.
+\begin{itemize}
+  \item psyco. Speeds up ANUGA by about 30\%, so is strongly recommended.
+    Under Ubuntu install either through Synaptic or by:
+    \begin{verbatim}sudo apt-get install python-psyco\end{verbatim}
+    Under Windows install the file \code{psyco-1.6.win32-py25.exe}
+    which you can find on the \url{http://psyco.sourceforge.net/download.html} page.
+
+  \item VTK. The Visualization Toolkit. Under Ubuntu install either through Synaptic or by:
+    \begin{verbatim}sudo apt-get install python-vtk\end{verbatim}
+    Under Windows install the file \code{vtk-5.4.2-win32.exe}
+    from the \url{http://www.vtk.org/VTK/resources/software.html} page.
+\end{itemize}
+
+
+
+\section{Testing}
+
+In the ANUGA root directory, run the test suite:
+\begin{verbatim}
+python test_all.py
+\end{verbatim}
+ANUGA has been succesfully installed if the tests pass as follows:
+\begin{verbatim}
+  ...
+  test_data_manager.py
+  test_interpolate_sww.py
+  test_mesh.py
+  test_mesh_interface.py
+  test_triangmodule.py
+  test_triangmoduleII.py
+  test_advection.py
+.................................................................................
+.................................................................................
+.................................................................................
+.................................................................................
+.................................................................................
+.................................................................................
+.................................................................................
+..........................
+----------------------------------------------------------------------
+Ran 593 tests in 42.712s
+
+OK
+\end{verbatim}
+
+Note that if psycho is not installed, a number of psycho related warnings will appear. These warnings 
+can be ignored.
+
+%\section{Other stuff to be included}
+%
+%\begin{verbatim}
+%Install tortoise from downloads (ITs didn't integrate wih explorer).
+%In settings set proxy to proxy.agso.gov.au  8080
+%%
+%
+%Install swollen from latest distro (in subversion)
+%
+%
+%\end{verbatim}
+
+
+\appendix
+\chapter{Miscellaneous procedures}
+\section{Setting the PATH on Windows}
+\label{sec:setwindowspath}
+
+The Windows one-click installer should automatically set the necessary PATH 
+environment "System variables". However, in case you do not have
+permission to modify the system variable, then the method of setting the PATH environment "User variable" 
+for Windows XP is shown here. Setting the variable for Windows Vista should be similar.
+
+\setlength\fboxsep{0pt}
+\setlength\fboxrule{1.0pt}
+
+First, open the Control Panel:
+\begin{figure}[ht]
+  \centerline{\fbox{\includegraphics[scale=0.75]{installgraphics/winsetpath1.png}}}
+%  \caption{Run Control Panel from the Start menu}
+  \label{fig:winsetpath1}
+\end{figure}
+
+Next, start the System applet:
+\begin{figure}[ht]
+  \centerline{\fbox{\includegraphics[scale=0.75]{installgraphics/winsetpath2.png}}}
+%  \caption{Start the System applet}
+  \label{fig:winsetpath2}
+\end{figure}
+
+\pagebreak
+
+Select the \code{Advanced} tab in the System Properties window:
+\begin{figure}[ht]
+  \centerline{\includegraphics[scale=0.5]{installgraphics/winsetpath3.png}}
+%  \caption{Select the Advanced tab}
+  \label{fig:winsetpath3}
+\end{figure}
+
+%\pagebreak
+
+Press the \code{Environment Variables} button in the \code{Advanced} tab:
+\begin{figure}[ht]
+  \centerline{\includegraphics[scale=0.5]{installgraphics/winsetpath4.png}}
+%  \caption{Press the Environment Variables button}
+  \label{fig:winsetpath4}
+\end{figure}
+
+\pagebreak
+
+If the \code{PATH} variable is not defined in the 'User variables' or 'System variables' windows,
+press the \code{New} button in either of the two windows (for a personal machine, choose the 'System variables' window).
+
+If \code{PATH} already exists in the 'User variable' or 'System variables' window,
+select the row with the \code{PATH} variable name in the appropriate window
+and press the \code{Edit} button next to the \code{New} button in that window:
+\begin{figure}[ht]
+  \centerline{\includegraphics[scale=0.5]{installgraphics/winsetpath5.png}}
+%  \caption{Press the New button}
+  \label{fig:winsetpath5}
+\end{figure}
+
+%\pagebreak
+
+You will be shown the editor window whichever button you pressed in the above step. If the \code{Variable name} box is empty
+type in the name \code{PATH}.  In the \code{Variable value} box type the value you want the \code{PATH} variable to have.  If there
+is already some text in the box, place your additional value at the front of the existing value, not forgetting to terminate your additional
+string with the ';' character. The final value string must be a series of directory names seperated by ';' characters:
+\begin{figure}[ht]
+  \centerline{\includegraphics[scale=0.75]{installgraphics/winsetpath6.png}}
+%  \caption{Modifying the PATH value}
+  \label{fig:winsetpath6}
+\end{figure}
+
+When you are finished, press the \code{OK} button and exit from the applet.
+
+\pagebreak
+
+\section{Associating animate.exe with a .sww file}
+\label{sec:assocanimatesww}
+
+The one-click installer should associate animate.exe with .sww files automatically. However, the method of associating 
+\code{animate.exe} with a \code{.sww} file manually is shown here for Windows XP.
+A similar process should work for Windows Vista.
+
+Double left-click on any \code{.sww} file.  This brings up a dialog because Windows doesn't know how to open the file:
+\begin{figure}[ht]
+  \centerline{\fbox{\includegraphics[scale=0.5]{installgraphics/winassoc1.png}}}
+%  \caption{Try to open the .sww file}
+  \label{fig:winassoc1}
+\end{figure}
+
+Select the "\code{Select the program from a list}" radiobutton and press the \code{OK} button:
+\begin{figure}[ht]
+  \centerline{\includegraphics[scale=0.5]{installgraphics/winassoc2.png}}
+%  \caption{Select the program from a list}
+  \label{fig:winassoc2}
+\end{figure}
+
+\pagebreak
+
+Press the \code{Browse...} button to find the \code{animate.exe} program:
+\begin{figure}[ht]
+  \centerline{\includegraphics[scale=0.5]{installgraphics/winassoc3.png}}
+%  \caption{Find animate.exe program}
+  \label{fig:winassoc3}
+\end{figure}
+
+Navigate to the \code{C:$\backslash$Program Files$\backslash$anuga_viewer} directory:
+\begin{figure}[ht]
+  \centerline{\includegraphics[scale=0.5]{installgraphics/winassoc4.png}}
+%  \caption{Navigate into Program Files|anuga_viewer directory}
+  \label{fig:winassoc4}
+\end{figure}
+
+\pagebreak
+
+Select \code{animate.exe} and press the \code{Open} button:
+\begin{figure}[ht]
+  \centerline{\includegraphics[scale=0.5]{installgraphics/winassoc5.png}}
+%  \caption{Select the animate.exe program press Open}
+  \label{fig:winassoc5}
+\end{figure}
+
+Finally, press the \code{OK} button:
+\begin{figure}[ht]
+  \centerline{\includegraphics[scale=0.5]{installgraphics/winassoc6.png}}
+%  \caption{Press the OK button}
+  \label{fig:winassoc6}
+\end{figure}
+
+
+\end{document}

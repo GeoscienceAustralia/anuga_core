@@ -1,0 +1,223 @@
+\documentclass{manual}
+\usepackage{hyperref}
+
+\title{ANUGA What's New}
+
+\author{Nariman Habili}
+
+% Please at least include a long-lived email address;
+% the rest is at your discretion.
+\authoraddress{Geoscience Australia \\
+  Email: \email{anuga@ga.gov.au}
+}
+
+%Draft date
+\date{\today}   % update before release!
+                % Use an explicit date so that reformatting
+                % doesn't cause a new date to be used.  Setting
+                % the date to \today can be used during draft
+                % stages to make it easier to handle versions.
+
+		
+\input{version} % Get version info - this file may be modified by
+                % update_anuga_user_manual.py - if not a dummy 
+		% will be used.
+				
+
+\makeindex          % tell \index to actually write the .idx file
+%\makemodindex          % If this contains a lot of module sections.
+
+
+
+\begin{document}
+\maketitle
+
+
+
+% This makes the contents more accessible from the front page of the HTML.
+\ifhtml
+\chapter*{Front Matter\label{front}}
+\fi
+
+
+
+
+\chapter{ANUGA release information}
+
+This document outlines major bug fixes and new functionality added to ANUGA between releases.
+These lists are not comprehensive and we refer to the TRAC system for a complete audit trail of changes made to ANUGA.
+\begin{itemize} 
+    \item Timeline of all changes to the code base: https://datamining.anu.edu.au/anuga/timeline
+    \item Changesets between two releases: To see all changes between subversion versions 4669 and 4733, for example, visit:
+    \begin{itemize} 
+      \item \url{https://datamining.anu.edu.au/anuga/changeset/4669} through to
+      \item \url{https://datamining.anu.edu.au/anuga/changeset/4733}
+    \end{itemize}   
+\end{itemize}     
+
+The release names take the form
+\begin{verbatim}
+  AA-BB.CC.DD.EXT
+\end{verbatim}
+where
+\begin{itemize}
+  \item \code{AA} is the name of the anuga component, e.g. 
+  \code{anuga}, \code{anuga\_viewer}, \code{anuga\_installation\_guide} or \code{anuga\_user\_manual}
+  \item \code{BB} is the major revision number. The major revision number is unlikely to change very often unless the code has undergone a major change.
+  \item \code{CC} is the minor revision number. This number will increase when the code undergoes major bug fixes, changes to the interface, optimisation and the addition of minor features.
+  \item \code{DD} is the minor revision number. This number will increase when the code undergoes minor bug fixes.
+  \item \code{EXT} is the file name extension \code{tgz}\footnote{Internet explorer has the habit of renaming the .tgz files to .gz - the remedy is to rename them back or use another browser such as Firefox.} used for source code or \code{pdf} used for documentation.
+\end{itemize}
+
+
+
+
+\chapter{Release notes}
+
+This chapter list main developments between releases. Small bug fixes, 
+refactoring, documentation updates, style fixes are generally not reported 
+here. Refer to the Subversion 
+log (https://datamining.anu.edu.au/anuga/timeline) and closed tickets
+https://datamining.anu.edu.au/anuga/report/10) for all changes in ANUGA.
+
+\section{Bleeding Edge}
+
+Work on parallel ANUGA, Kinematic Viscosity, 1-D pipeflows and wind/pressure
+forcing terms. There is also activity in the area of viewers and installers.
+
+\section{Release Name: anuga-1.2.0, Date: July 2010}
+Breaks code compatibility with older ANUGA versions. Please see the ANUGA wiki for migration instructions.
+Simplified API, with more logical module locations and names. 
+Support for internal boundaries and holes in meshes.
+Support for user-specified breaklines.
+Speed optimisations - fitting is around 25 percent faster.
+Various bug fixes - see trac. Note the new versioning system.
+
+
+\section{Release Name: anuga-1.1beta\_7607, Date: 12 January 2010}
+Discarded obsolete variable 'z' in sww files. This commits ANUGA to the 
+new viewer: \url{http://www.ausposdevelop.com.au/trac/anuga_viewer}.
+Small optimisations and cleaning
+Intoduced one-click Windows installer
+Updates on the parallel code.
+
+\section{Release Name: anuga-1.1beta\_7472, Date: 3 September 2009}
+
+Ability to store any quantity in the sww file either as static or 
+time dependent. This allows for example storage of variable bed elevation 
+and/or friction. See manual for details on set\_quantities\_to\_be\_stored.
+
+
+\section{Release Name: anuga-1.1beta\_7315, Date: 20 July 2009}
+
+ANUGA updated to work with Python 2.6
+Reference to new viewer in manual.
+
+
+
+\section{Release Name: anuga-1.1beta\_7302, Date: 6 July 2009}
+This is the first release of ANUGA based on the package Python-numpy.
+The reason for this upgrade is that the old package Numeric is 
+no longer supported and doesn't work for some systems.
+See the installation guide for details regarding the new dependencies.
+
+
+\section{Release Name: anuga-1.0beta\_7163, Date: 9 June 2009}
+
+THIS IS THE LAST OFFICIAL RELEASE OF ANUGA BASED ON THE PYTHON NUMERIC PACKAGE.
+
+\begin{itemize}
+  \item Several optimisations. ANUGA now runs at least 10-15\% faster overall. See changesets 7143, 7136, 7105, 7034, 6840, 6737, 6703.
+  \item Culverts based on the Boyd method have been refactored and test suite added thanks to Rudy van Drie and Petar Milevski.
+  \item Added a special purpose boundary (AWI boundary) provide by Nils Goseberg.
+  \item Cleanup Cairns demo and introduced example of new method add\_quantity.
+\end{itemize}
+
+
+
+\section{Release Name: anuga-1.0beta\_6838, Date: 19 April 2009}
+\begin{itemize}
+  \item Implemented availability of average energy as well as flow 
+  through cross-section at run-time (ticket:295)
+  \item Stored permutation from urs2sts in STS file (ticket:298) 
+  \item Equipped File\_boundary and Field\_boundary with default boundary
+  conditions to allow modelling beyond time interval (ticket:293) 
+  \item Allowed fitting to reuse ANUGA mesh saving memory and time.
+  \item Started new module anuga.interface containing common functions. In particular the new function create\_domain\_from\_regions (ticket:308 and changeset:6190) which can replace the old call to create\_mesh\_from\_regions followed by Domain. This not only simplifies domain creation, it also makes caching of this process water proof. This function has not yet been documented in the user manual.
+  \item Made evolve loop about 5\% faster due to optimisations in 
+  changeset:6703 and changeset:6737.
+  \item Fixed tests that only failed on Windows. 
+\end{itemize} 
+
+
+\section{Release Name: anuga-1.0beta\_5638, Date: 11 August 2008}
+
+\begin{itemize}
+  \item Better diagnostics for timestepping. 
+  \item Implemented tracking of IP for data files bundled with ANUGA to ensure that all are legally OK to distribute.
+  \item Improved logging of model runs (screen_catcher and copy_code_files).
+  \item Refactored graphing of timeseries into extraction and plotting (see sww2timeseries and sww2cvs\_gauges).
+  \item Improved performance and memory management in generate mesh and  least squares fitting.
+  \item Simplified Quantity data structure.
+  \item Added more validation examples. 
+  \item Function for automatically determining optimal smoothing parameter through cross validation (\code{get\_flow\_through\_cross\_section}, p 57 in the user manual)
+  \item Implemented better second order approximation through the option to use edge limiters along with second order Runge-Kutta timestepping. 
+        This provides better accuracy in some cases (e.g. waves in deep water over long distances)
+  \item Made tight\_slope\_limiters the default.
+  \item Retired obsolete parameter beta_h
+  \item Added the Okada tsunami source model as an optional initial condition in ANUGA
+  \item Upgraded ANUGA to work with Python 2.5
+  \item New fileboundary (using NetCDF format with extension .sts) coupling for timeseries on a list of points.
+  \item Added new forcing terms for flood modelling capability: Rainfall, Inflow, Culverts, ... (See p 51-53)
+\end{itemize}   
+  
+  
+\section{Release Name: anuga-1.0beta\_4824, Date: 15 Nov 2007}
+
+\begin{itemize} 
+  \item Removal of obsolete Python code where (faster) C code exists. 
+  \item Several updates in the documentation in response to postings. 
+  \item Improved installation and compilation procedure. 
+  \item Addressed excessive memory use in fitting (currently optional as it appears somewhat slower) 
+\end{itemize} 
+
+
+\section{Release Name: anuga-1.0beta_4733, Date 12 Sep 2007}
+
+\begin{itemize} 
+  \item A number of optimisations making the evolution part of ANUGA about 40\% faster. See \url{https://datamining.anu.edu.au/anuga/ticket/135} for details. 
+  The optimisations are 
+  \begin{itemize} 
+     \item Dry cell exclusion from flux calculations and linear reconstruction of triangles. 
+     This optimisation will be most effective in domains with large dry areas.  
+     \item Separation of functions into gateways and computational routines 
+     \item Utilisation of static work arrays 
+     \item A large number of minor optimisations 
+  \end{itemize} 
+  
+  \item Obsolete code was cleared out. 
+\end{itemize}   
+
+
+\section{Release Name: anuga-1.0beta_4669, Date 17 Aug 2007}
+\begin{itemize} 
+  \item Improved speed in set\_quantity
+  \item deprecated xya file format
+  \item general maintenance
+\end{itemize}    
+  
+\section{Release Name: anuga-1.0beta_4530, 4 June 2007}
+
+\section{Release Name: anuga-1.0beta_4492, 25 May 2007}
+
+\section{Release Name: anuga_1.0beta_4106, 20 Dec 2006}
+
+\begin{itemize} 
+  \item First public release of ANUGA - Hydrodynamic Modelling.
+\end{itemize} 
+Version 1.0beta is the first version for general use. It is considered as a beta release as we expect feedback and suggestions for improvement by the community.
+
+The minor release number (4106) is the revision number from Subversion and uniquely defines the exact version of ANUGA.
+
+
+\end{document}

@@ -1,0 +1,41 @@
+%Common definitions for the ANUGA documentation
+%
+
+\newcommand{\indexedcode}[1]{\code{#1}\indexascode{#1}}
+\newcommand{\indexascode}[1]{\index{#1@{\texttt {#1}}}}
+\newcommand{\indexedcodeheader}[1]{{\bigskip \large \bf \code{#1}}\indexascode{#1}\\}
+\newcommand{\indexedbold}[1]{\textbf{#1}\index{#1}}
+%\newcommand{\anuga}{\textbf{ANUGA}$^{\scriptscriptstyle \copyright}$ v1.0\ }
+\newcommand{\anuga}{\textbf{ANUGA} }
+%\newcommand{\anugav}[1]{\textbf{ANUGA}$^\copyright$ V#1\ }
+
+
+\newcommand{\Python}{\textsc{Python}}
+\newcommand{\VPython}{\textsc{VPython}}
+\newcommand{\pypar}{\textsc{mpi}}
+\newcommand{\Metis}{\textsc{Metis}}
+\newcommand{\mpi}{\textsc{mpi}}
+
+\newcommand{\hmin}{h_{\min}}
+
+\newcommand{\UU}{\mathbf{U}}
+\newcommand{\VV}{\mathbf{V}}
+\newcommand{\EE}{\mathbf{E}}
+\newcommand{\GG}{\mathbf{G}}
+\newcommand{\FF}{\mathbf{F}}
+\newcommand{\HH}{\mathbf{H}}
+\newcommand{\SSS}{\mathbf{S}}
+\newcommand{\nn}{\mathbf{n}}
+
+%\newcommand{\code}[1]{\texttt{#1}}
+
+
+
+
+
+
+%Used with \code.
+%
+\newenvironment{displayedcode}
+   {\begin{tabular}{p{0.41cm}l}}
+{\end{tabular}}  
