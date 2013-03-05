@@ -32,10 +32,12 @@
 \newif\ifpy@doing@page@targets
 \py@doing@page@targetsfalse
 
-\newif\ifpdf\pdffalse
+\newif\iflpdf\lpdffalse
+
+
 \ifx\pdfoutput\undefined\else\ifcase\pdfoutput
 \else
-  \pdftrue
+  \lpdftrue
   \input{pdfcolor}
   \let\py@LinkColor=\NavyBlue
   \let\py@NormalColor=\Black
@@ -309,7 +311,7 @@
 
 % Refer to a module's documentation using a hyperlink of the module's
 % name, at least if we're building PDF:
-\ifpdf
+\iflpdf
   \newcommand{\refmodule}[2][\py@modulebadkey]{%
     \ifx\py@modulebadkey#1\def\py@modulekey{#2}\else\def\py@modulekey{#1}\fi%
     \py@linkToName{label-module-\py@modulekey}{\module{#2}}%
@@ -490,7 +492,7 @@
   }{}
 }
 
-\ifpdf
+\iflpdf
   \newcommand{\py@ModSynopsisSummary}[4]{%
     \py@linkToName{label-module-#1}{\bfcode{#2}} & #4\\
   }
@@ -850,7 +852,7 @@
 
 % Use this def/redef approach for \url{} since hyperref defined this already,
 % but only if we actually used hyperref:
-\ifpdf
+\iflpdf
   \newcommand{\url}[1]{{%
     \py@pdfstartlink attr{/Border [0 0 0]} user{/S /URI /URI (#1)}%
     \py@LinkColor%                              color of the link text
@@ -926,7 +928,7 @@
 \newcommand{\longprogramopt}[1]{\strong{-{}-#1}}
 
 % \ulink{link text}{URL}
-\ifpdf
+\iflpdf
   \newcommand{\ulink}[2]{{%
     % For PDF, we *should* only generate a link when the URL is absolute.
     \py@pdfstartlink attr{/Border [0 0 0]} user{/S /URI /URI (#2)}%
@@ -941,7 +943,7 @@
 
 % cited titles:  \citetitle{Title of Work}
 %       online:  \citetitle[url-to-resource]{Title of Work}
-\ifpdf
+\iflpdf
   \newcommand{\citetitle}[2][\py@modulebadkey]{%
     \ifx\py@modulebadkey#1\emph{#2}\else\ulink{\emph{#2}}{#1}\fi%
   }
@@ -1164,7 +1166,7 @@
 % Note that the last parameter for \seemodule and \seetext should be complete
 % sentences and be terminated with the proper punctuation.
 
-\ifpdf
+\iflpdf
   \newcommand{\py@seemodule}[3][\py@modulebadkey]{%
     \par%
     \ifx\py@modulebadkey#1\def\py@modulekey{#2}\else\def\py@modulekey{#1}\fi%

@@ -40,7 +40,7 @@ Note UNIX only
 from os import system, chdir
 from os.path import expanduser, split, join
 from anuga.utilities.system_tools import get_revision_number, get_pathname_from_package
-from anuga.config import anuga_version
+from anuga.config import major_revision
 from sys import argv
 
 # Determine absolute path for user manual
@@ -63,7 +63,7 @@ texfiles = ['anuga_user_manual',
 system('svn update') # Update from svn
 
 
-do_html = True        
+do_html = False       
 if len(argv) > 1:
     if argv[1] == '--no_html':
         do_html = False
@@ -76,7 +76,7 @@ fid = open('version.tex')
 lines = []
 for line in fid.readlines():
     if line.startswith('\\release'):
-        line = '\\release{%s}\n' %(anuga_version)
+        line = '\\release{%s}\n' %(major_revision)
             
     lines.append(line)
 fid.close()
@@ -114,10 +114,14 @@ for texfile in texfiles:
 system('svn update') # Restore version file
 
 
+print 'Cleanup aux tex files'
+system('rm *.aux *.bbl *.blg *.idx *.ilg *.ind *.log *.out *.toc *.syn ')
+
+
 # Print
 print 'User manual compiled'
 
-print 'Anuga version:', anuga_version
+print 'Anuga version:', major_revision
 print 'Build:', get_revision_number()
 system('date')
 
