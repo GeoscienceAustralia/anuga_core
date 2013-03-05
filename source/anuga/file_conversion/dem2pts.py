@@ -245,6 +245,7 @@ def _dem2pts(name_in, name_out=None, verbose=False,
 
             # Seems to be an error with the windows version of
             # Netcdf. The following gave errors
+
             try:
                 points[lower_index:upper_index, :] = tpoints
                 elevation[lower_index:upper_index] = telev
