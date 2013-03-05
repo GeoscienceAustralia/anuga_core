@@ -53,7 +53,9 @@ class Kinematic_viscosity_operator(Operator):
         if isinstance(diffusivity, str):
             self.diffusivity = self.domain.get_quantity(diffusivity)
             
-    
+
+        self.smooth = 0.001
+        
         assert isinstance(self.diffusivity, Quantity)
         
 
@@ -113,7 +115,7 @@ class Kinematic_viscosity_operator(Operator):
     def __call__(self):
         """ Parabolic update of x and y velocity
 
-        (I + dt (div h grad) ) U^{n+1} = U^{n}
+        (I + dt (div d grad) ) U^{n+1} = U^{n}
 
         """
 

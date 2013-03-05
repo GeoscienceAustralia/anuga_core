@@ -299,7 +299,11 @@ class SWW_file(Data_format):
                 # depth exceeds minimum_storable_height
                 #
                 # In this branch it is assumed that elevation
-                # is also available as a quantity            
+                # is also available as a quantity
+
+
+                # Smoothing for the get_vertex_values will be obtained
+                # from the smooth setting in domain
             
                 Q = domain.quantities['stage']
                 w, _ = Q.get_vertex_values(xy=False)
@@ -542,6 +546,7 @@ class Write_sww(Write_sts):
 
         # dimension definitions
         outfile.createDimension('number_of_volumes', number_of_volumes)
+        outfile.createDimension('number_of_triangle_vertices', number_of_points)
         outfile.createDimension('number_of_vertices', 3)
         outfile.createDimension('numbers_in_range', 2)
 
@@ -707,7 +712,7 @@ class Write_sww(Write_sts):
 
         # variable definitions
         outfile.createVariable('tri_l2g',  netcdf_int, ('number_of_volumes',))
-        outfile.createVariable('node_l2g', netcdf_int, ('number_of_points',))
+        outfile.createVariable('node_l2g', netcdf_int, ('number_of_triangle_vertices',))
         outfile.createVariable('tri_full_flag', netcdf_int, ('number_of_volumes',))
 
         #print tri_l2g.shape
@@ -716,9 +721,9 @@ class Write_sww(Write_sts):
 
         outfile.variables['tri_l2g'][:] = tri_l2g.astype(num.int32)
 
-        #print node_l2g.shape
+        print node_l2g.shape
         #print node_l2g
-        #print outfile.variables['node_l2g'].shape
+        print outfile.variables['node_l2g'].shape
 
         outfile.variables['node_l2g'][:] = node_l2g.astype(num.int32)
 

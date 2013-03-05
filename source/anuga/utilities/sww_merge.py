@@ -23,7 +23,7 @@ def sww_merge_parallel(domain_global_name, np, verbose=False, delete_old=False):
     output = domain_global_name+".sww"
     swwfiles = [ domain_global_name+"_P"+str(np)+"_"+str(v)+".sww" for v in range(np)]
 
-    _sww_merge_parallel(swwfiles, output, verbose, delete_old)
+    _sww_merge_parallel_non_smooth(swwfiles, output, verbose, delete_old)
 
 
 def _sww_merge(swwfiles, output, verbose=False):
@@ -175,13 +175,16 @@ def _sww_merge(swwfiles, output, verbose=False):
     fido.close()
 
 
-def _sww_merge_parallel(swwfiles, output,  verbose=False, delete_old=False):
+def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=False):
     """
         Merge a list of sww files into a single file.
         
         Use to merge files created by parallel runs.
 
         The sww files to be merged must have exactly the same timesteps.
+
+        It is assumed that the separate sww files have been stored in non_smooth
+        format.
 
         Note that some advanced information and custom quantities may not be
         exported.
@@ -427,6 +430,276 @@ def _sww_merge_parallel(swwfiles, output,  verbose=False, delete_old=False):
             if verbose:
                 print 'Deleting file ', filename, ':'
             os.remove(filename)
+
+def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=False):
+    """
+        Merge a list of sww files into a single file.
+
+        Used to merge files created by parallel runs.
+
+        The sww files to be merged must have exactly the same timesteps.
+
+        It is assumed that the separate sww files have been stored in non_smooth
+        format.
+
+        Note that some advanced information and custom quantities may not be
+        exported.
+
+        swwfiles is a list of .sww files to merge.
+        output is the output filename, including .sww extension.
+        verbose True to log output information
+    """
+
+    if verbose:
+        print "MERGING SWW Files"
+
+
+    first_file = True
+    tri_offset = 0
+    for filename in swwfiles:
+        if verbose:
+            print 'Reading file ', filename, ':'
+
+        fid = NetCDFFile(filename, netcdf_mode_r)
+
+        if first_file:
+
+            times    = fid.variables['time'][:]
+            n_steps = len(times)
+            number_of_timesteps = fid.dimensions['number_of_timesteps']
+            #print n_steps, number_of_timesteps
+            starttime = int(fid.starttime)
+
+            out_s_quantities = {}
+            out_d_quantities = {}
+
+
+            xllcorner = fid.xllcorner
+            yllcorner = fid.yllcorner
+
+            number_of_global_triangles = int(fid.number_of_global_triangles)
+            number_of_global_nodes     = int(fid.number_of_global_nodes)
+            number_of_global_triangle_vertices = 3*number_of_global_triangles
+
+            order      = fid.order
+            xllcorner  = fid.xllcorner;
+            yllcorner  = fid.yllcorner ;
+            zone       = fid.zone;
+            false_easting  = fid.false_easting;
+            false_northing = fid.false_northing;
+            datum      = fid.datum;
+            projection = fid.projection;
+
+            g_volumes = num.zeros((number_of_global_triangles,3),num.int)
+            g_x = num.zeros((number_of_global_nodes,),num.float32)
+            g_y = num.zeros((number_of_global_nodes,),num.float32)
+
+            g_points = num.zeros((number_of_global_nodes,2),num.float32)
+
+            quantities = ['elevation', 'stage', 'xmomentum', 'ymomentum']
+            static_quantities = []
+            dynamic_quantities = []
+
+            for quantity in quantities:
+                # Test if elevation is static
+                if n_steps == fid.variables[quantity].shape[0]:
+                    dynamic_quantities.append(quantity)
+                else:
+                    static_quantities.append(quantity)
+
+            for quantity in static_quantities:
+                out_s_quantities[quantity] = num.zeros((3*number_of_global_triangles,),num.float32)
+
+            # Quantities are stored as a 2D array of timesteps x data.
+            for quantity in dynamic_quantities:
+                out_d_quantities[quantity] = \
+                      num.zeros((n_steps,3*number_of_global_triangles),num.float32)
+
+            description = 'merged:' + getattr(fid, 'description')
+            first_file = False
+
+
+        # Read in from files and add to global arrays
+
+        tri_l2g  = fid.variables['tri_l2g'][:]
+        node_l2g = fid.variables['node_l2g'][:]
+        tri_full_flag = fid.variables['tri_full_flag'][:]
+
+        volumes = num.array(fid.variables['volumes'][:],dtype=num.int)
+
+
+
+        #l_volumes = num.zeros_like(volumes)
+        #l_old_volumes = num.zeros_like(volumes)
+
+
+        # Change the local node ids to global id in the
+        # volume array
+
+
+        print volumes
+        print volumes.shape
+
+
+        print fid.variables['x'][0:6]
+        print fid.variables['y'][0:6]
+
+        print fid.variables['x'].shape
+
+
+        g_n0 = node_l2g[volumes[:,0]].reshape(-1,1)
+        g_n1 = node_l2g[volumes[:,1]].reshape(-1,1)
+        g_n2 = node_l2g[volumes[:,2]].reshape(-1,1)
+
+        #print g_n0.shape
+        l_volumes = num.hstack((g_n0,g_n1,g_n2))
+
+        #assert num.allclose(l_volumes, l_old_volumes)
+
+        # Just pick out the full triangles
+        #ftri_l2g = num.compress(tri_full_flag, tri_l2g)
+
+        #print l_volumes
+        #print tri_full_flag
+        print l_volumes.shape
+        print g_volumes.shape
+        print tri_l2g.shape
+
+        #fg_volumes = num.compress(tri_full_flag,l_volumes,axis=0)
+        g_volumes[tri_l2g] = l_volumes
+
+
+
+
+        #g_x[node_l2g] = fid.variables['x']
+        #g_y[node_l2g] = fid.variables['y']
+
+        g_points[tri_l2g,0] = fid.variables['x']
+        g_points[tri_l2g,1] = fid.variables['y']
+
+
+        #print number_of_timesteps
+
+
+        # FIXME SR: It seems that some of the "ghost" node quantity values
+        # are being storded. We should only store those nodes which are associated with
+        # full triangles. So we need an index array of "full" nodes, ie those in
+        # full triangles
+
+        #use numpy.compress and numpy.unique to get "full nodes
+
+        #f_volumes = num.compress(tri_full_flag,volumes,axis=0)
+        #fl_nodes = num.unique(f_volumes)
+        #f_node_l2g = node_l2g[fl_nodes]
+
+        #print len(node_l2g)
+        #print len(fl_nodes)
+
+        # Read in static quantities
+        for quantity in static_quantities:
+            #out_s_quantities[quantity][node_l2g] = \
+            #             num.array(fid.variables[quantity],dtype=num.float32)
+            q = fid.variables[quantity]
+            #print quantity, q.shape
+            out_s_quantities[quantity][f_node_l2g] = \
+                         num.array(q,dtype=num.float32)[fl_nodes]
+
+
+        #Collate all dynamic quantities according to their timestep
+        for quantity in dynamic_quantities:
+            q = fid.variables[quantity]
+            #print q.shape
+            for i in range(n_steps):
+                #out_d_quantities[quantity][i][node_l2g] = \
+                #           num.array(q[i],dtype=num.float32)
+                out_d_quantities[quantity][i][f_node_l2g] = \
+                           num.array(q[i],dtype=num.float32)[fl_nodes]
+
+
+
+
+        fid.close()
+
+
+    #---------------------------
+    # Write out the SWW file
+    #---------------------------
+    #print g_points.shape
+
+    #print number_of_global_triangles
+    #print number_of_global_nodes
+
+
+    if verbose:
+            print 'Writing file ', output, ':'
+    fido = NetCDFFile(output, netcdf_mode_w)
+    sww = Write_sww(static_quantities, dynamic_quantities)
+    sww.store_header(fido, starttime,
+                             number_of_global_triangles,
+                             number_of_global_nodes,
+                             description=description,
+                             sww_precision=netcdf_float32)
+
+
+
+    from anuga.coordinate_transforms.geo_reference import Geo_reference
+    geo_reference = Geo_reference()
+
+    sww.store_triangulation(fido, g_points, g_volumes, points_georeference=geo_reference)
+
+    fido.order      = order
+    fido.xllcorner  = xllcorner;
+    fido.yllcorner  = yllcorner ;
+    fido.zone       = zone;
+    fido.false_easting  = false_easting;
+    fido.false_northing = false_northing;
+    fido.datum      = datum;
+    fido.projection = projection;
+
+    sww.store_static_quantities(fido, verbose=verbose, **out_s_quantities)
+
+    # Write out all the dynamic quantities for each timestep
+
+    for i in range(n_steps):
+        fido.variables['time'][i] = times[i]
+
+    for q in dynamic_quantities:
+        q_values = out_d_quantities[q]
+        for i in range(n_steps):
+            fido.variables[q][i] = q_values[i]
+
+        # This updates the _range values
+        q_range = fido.variables[q + Write_sww.RANGE][:]
+        q_values_min = num.min(q_values)
+        if q_values_min < q_range[0]:
+            fido.variables[q + Write_sww.RANGE][0] = q_values_min
+        q_values_max = num.max(q_values)
+        if q_values_max > q_range[1]:
+            fido.variables[q + Write_sww.RANGE][1] = q_values_max
+
+
+    #print out_s_quantities
+    #print out_d_quantities
+
+    #print g_x
+    #print g_y
+
+    #print g_volumes
+
+    fido.close()
+
+    if delete_old:
+        import os
+        for filename in swwfiles:
+
+            if verbose:
+                print 'Deleting file ', filename, ':'
+            os.remove(filename)
+
+
+
+
+
 
 if __name__ == "__main__":
 
