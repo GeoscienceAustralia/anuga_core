@@ -23,7 +23,7 @@ def sww_merge_parallel(domain_global_name, np, verbose=False, delete_old=False):
     output = domain_global_name+".sww"
     swwfiles = [ domain_global_name+"_P"+str(np)+"_"+str(v)+".sww" for v in range(np)]
 
-    _sww_merge_parallel_non_smooth(swwfiles, output, verbose, delete_old)
+    _sww_merge_parallel_smooth(swwfiles, output, verbose, delete_old)
 
 
 def _sww_merge(swwfiles, output, verbose=False):
