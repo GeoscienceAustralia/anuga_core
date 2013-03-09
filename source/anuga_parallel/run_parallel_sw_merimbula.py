@@ -134,6 +134,12 @@ domain.set_flow_algorithm('2_0')
 #    barrier()
 
 
+domain.set_quantities_to_be_stored({'elevation':1,
+                                    'friction':1,
+                                    'stage':2,
+                                    'xmomentum':2,
+                                    'ymomentum':2})
+                                 
 #------------------------------------------------------------------------------
 # Setup boundary conditions
 # This must currently happen *after* domain has been distributed
