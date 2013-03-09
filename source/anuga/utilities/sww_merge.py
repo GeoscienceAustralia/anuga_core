@@ -239,7 +239,12 @@ def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=Fals
 
             g_points = num.zeros((number_of_global_nodes,2),num.float32)
 
-            quantities = ['elevation', 'stage', 'xmomentum', 'ymomentum']
+            quantities = set(['elevation', 'friction', 'stage', 'xmomentum',
+                              'ymomentum', 'xvelocity', 'yvelocity', 'height'])
+            variables = set(fid.variables.keys())
+
+            quantities = list(quantities & variables)
+            
             static_quantities = []
             dynamic_quantities = []
 
