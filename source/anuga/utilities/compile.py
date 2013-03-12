@@ -42,7 +42,7 @@ I_dirs = I_dirs + '-I"%s" ' % numpy.get_include()
 
 separation_line = '---------------------------------------'      
  
-def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 0, all_warnings = False):
+def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = False, all_warnings = False):
   """compile(FNs=None, CC=None, LD = None, SFLAG = None):
   
      Compile FN(s) using compiler CC (e.g. mpicc), 
@@ -189,8 +189,11 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 0, all_warning
     err = os.system(s)
     print
   else:
-    s = '%s -dumpversion > /dev/null' %(compiler)
-    err = os.system(s)
+    if sys.platform == 'win32':
+        s = '%s -dumpversion > nul' %(compiler)
+    else:
+        s = '%s -dumpversion > /dev/null' %(compiler)
+    err = os.system(s)	  
   
   if err != 0:
       msg = 'Unable to execute compiler: %s. ' %compiler
@@ -494,6 +497,8 @@ if __name__ == '__main__':
             elif  filename == 'mesh_engine_c_layer.c': 
               compile(['mesh_engine_c_layer.c','triangle.c'])
             else:
+              #print filename
+
               compile(filename)
           except Exception, e:
               msg = 'Could not compile C extension %s\n' %filename
