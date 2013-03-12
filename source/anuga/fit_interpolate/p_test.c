@@ -35,6 +35,7 @@
 
 /* ===========	that's all the easy stuff than can be changed  ============ */
 
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

@@ -10,6 +10,7 @@
 #include <stdio.h>   /* gets */
 #include <stdlib.h>  /* atoi, malloc */
 #include <string.h>  /* strcpy */
+#include <math.h>
 
 #ifndef quad_tree_H
 #define quad_tree_H

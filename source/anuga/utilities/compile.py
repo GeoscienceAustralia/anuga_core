@@ -42,7 +42,7 @@ I_dirs = I_dirs + '-I"%s" ' % numpy.get_include()
 
 separation_line = '---------------------------------------'      
  
-def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
+def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 0, all_warnings = False):
   """compile(FNs=None, CC=None, LD = None, SFLAG = None):
   
      Compile FN(s) using compiler CC (e.g. mpicc), 
@@ -182,11 +182,15 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
 
 
   # Verify that compiler can be executed
-  print 'Compiler: %s, version ' %compiler,
-  sys.stdout.flush()
-  s = '%s -dumpversion' %(compiler)
-  err = os.system(s)
-  print
+  if verbose:
+    print 'Compiler: %s, version ' %compiler,
+    sys.stdout.flush()
+    s = '%s -dumpversion' %(compiler)
+    err = os.system(s)
+    print
+  else:
+    s = '%s -dumpversion > /dev/null' %(compiler)
+    err = os.system(s)
   
   if err != 0:
       msg = 'Unable to execute compiler: %s. ' %compiler
@@ -275,7 +279,7 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
     # Compile
     # -O3 -g
     if utilities_include_dir is None:    
-      s = '%s -c %s -I"%s" -o "%s.o" -Wall -O3'\
+      s = '%s -c %s -I"%s" -o "%s.o" -O3'\
           %(compiler, FN, python_include, root)
     else:
       if FN == "triangle.c" or FN == "mesh_engine_c_layer.c":
@@ -283,11 +287,14 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
             % (compiler, FN, I_dirs, python_include, utilities_include_dir, root)
       elif FN == "polygon_ext.c":
         # gcc 4.3.x is problematic with this file if '-O3' is used
-        s = '%s -c %s %s -I"%s" -I"%s" -o "%s.o" -Wall'\
+        s = '%s -c %s %s -I"%s" -I"%s" -o "%s.o"'\
             %(compiler, FN, I_dirs, python_include, utilities_include_dir, root)
       else:
-        s = '%s -c %s %s -I"%s" -I"%s" -o "%s.o" -Wall -O3'\
+        s = '%s -c %s %s -I"%s" -I"%s" -o "%s.o" -O3'\
             %(compiler, FN, I_dirs, python_include, utilities_include_dir, root)
+
+    if all_warnings:
+      s += ' -Wall'
 
     if os.name == 'posix' and os.uname()[4] in ['x86_64', 'ia64']:
       # Extra flags for 64 bit architectures.

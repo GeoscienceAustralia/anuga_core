@@ -77,7 +77,7 @@ static int _deserialise(sparse_dok * dok, PyObject * serial_dok)
         py_val = PyDict_GetItem(serial_dok,py_key);
 
         val = PyFloat_AS_DOUBLE(py_val);
-        printf("val: %d\n",val);
+        printf("val: %f\n",val);
 
         i = (int) PyInt_AS_LONG(PyTuple_GET_ITEM(py_key,0));
         j = (int) PyInt_AS_LONG(PyTuple_GET_ITEM(py_key,1));

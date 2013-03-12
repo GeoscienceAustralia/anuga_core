@@ -878,7 +878,7 @@ PyObject *items_in_tree(PyObject *self, PyObject *args) {
     quad_tree * quadtree = (quad_tree*) PyCapsule_GetPointer(tree,"quad tree");
     #else
     quad_tree * quadtree = (quad_tree*) PyCObject_AsVoidPtr(tree);
-    #endif;
+    #endif
     
     // Return the number of elements in the tree (stored in struct)
     return PyInt_FromLong((long)quadtree->count);

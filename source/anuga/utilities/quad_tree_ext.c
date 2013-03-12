@@ -10,6 +10,10 @@
 #include "util_ext.h" /* in utilities */
 #include "quad_tree.h"
 
+// PYVERSION273 used to check python version for use of PyCapsule
+#if PY_MAJOR_VERSION>=2 && PY_MINOR_VERSION>=7 && PY_MICRO_VERSION>=3
+    #define PYVERSION273
+#endif
 
 
 /*
