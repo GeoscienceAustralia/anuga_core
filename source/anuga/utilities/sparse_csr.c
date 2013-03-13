@@ -35,3 +35,4 @@ void delete_csr_matrix(sparse_csr * mat){
 	mat=NULL;
 
 }
+

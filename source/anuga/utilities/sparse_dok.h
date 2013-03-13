@@ -108,3 +108,5 @@ void add_sparse_dok(sparse_dok * dok1,double mult1,sparse_dok * dok2,double mult
 int get_dok_rows(sparse_dok * dok);
 
 #endif
+
+

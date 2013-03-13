@@ -211,3 +211,4 @@ int get_dok_rows(sparse_dok * dok){
 
     return rows;
 }
+

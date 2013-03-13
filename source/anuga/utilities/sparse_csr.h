@@ -40,3 +40,4 @@ sparse_csr * make_csr();
 void delete_csr_matrix(sparse_csr * mat);
 
 #endif
+
