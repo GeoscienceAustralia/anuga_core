@@ -99,7 +99,10 @@ class FitInterpolate:
 
                 if verbose:
                     log.critical('FitInterpolate: Building mesh')
+					
+
                 self.mesh = Mesh(vertex_coordinates, triangles)
+
                 #self.mesh.check_integrity() # Time consuming
             else:
                 self.mesh = None

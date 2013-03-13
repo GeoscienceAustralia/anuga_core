@@ -1848,6 +1848,6 @@ class Test_Mesh(unittest.TestCase):
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Mesh, 'test_')
+    suite = unittest.makeSuite(Test_Mesh, 'test_mesh_and_neighbours')
     runner = unittest.TextTestRunner()#verbosity=2)
     runner.run(suite)

@@ -721,9 +721,9 @@ class Write_sww(Write_sts):
 
         outfile.variables['tri_l2g'][:] = tri_l2g.astype(num.int32)
 
-        print node_l2g.shape
+        #print node_l2g.shape
         #print node_l2g
-        print outfile.variables['node_l2g'].shape
+        #print outfile.variables['node_l2g'].shape
 
         outfile.variables['node_l2g'][:] = node_l2g.astype(num.int32)
 

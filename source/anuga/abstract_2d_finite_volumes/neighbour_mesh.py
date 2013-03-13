@@ -857,37 +857,58 @@ class Mesh(General_mesh):
 
 
 
-        #print 'check neighbours'
+        # check that neighbour of neighbour is self
 
         # 0 neighbours
         neighs = self.neighbours
-        nids = neighs[:,0]
-        eids = self.neighbour_edges[:,0]
+        ids = num.arange(len(neighs))
 
-        ids = num.arange(len(nids))
-        nnid = num.where(nids>-1, 3*nids+eids, 0)
-        
-        #assert num.all(num.where(nids>-1, neighs[nnid]-ids, 0)==0)
+        # 0 neighbours
+        nid = neighs[:,0]
+        eid = self.neighbour_edges[:,0]
+        nnid = num.argwhere(nid>-1).reshape(-1,)
+        nid = nid[nnid]
+        eid = eid[nnid]
+        id  = ids[nnid]
+
+        assert num.all(neighs[nid,eid] == id)
+
+        # 1 neighbours
+        nid = neighs[:,1]
+        eid = self.neighbour_edges[:,1]
+        nnid = num.argwhere(nid>-1).reshape(-1,)
+        nid = nid[nnid]
+        eid = eid[nnid]
+        id  = ids[nnid]
+
+        assert num.all(neighs[nid,eid] == id)
+
+        # 2 neighbours
+        nid = neighs[:,2]
+        eid = self.neighbour_edges[:,2]
+        nnid = num.argwhere(nid>-1).reshape(-1,)
+        nid = nid[nnid]
+        eid = eid[nnid]
+        id  = ids[nnid]
+
+        assert num.all(neighs[nid,eid] == id)
 
 
 
 
-
-
-
-        # Check neighbour structure
-        for i in xrange(N):
-            # For each triangle
-
-            for k, neighbour_id in enumerate(self.neighbours[i,:]):
-
-                #Assert that my neighbour's neighbour is me
-                #Boundaries need not fulfill this
-                if neighbour_id >= 0:
-                    edge = self.neighbour_edges[i, k]
-                    msg = 'Triangle %d has neighbour %d but it does not point back. \n' %(i,neighbour_id)
-                    msg += 'Only points to (%s)' %(self.neighbours[neighbour_id,:])
-                    assert self.neighbours[neighbour_id, edge] == i ,msg
+#        # Check neighbour structure
+#        for i in xrange(N):
+#            # For each triangle
+#
+#            for k, neighbour_id in enumerate(self.neighbours[i,:]):
+#
+#                #Assert that my neighbour's neighbour is me
+#                #Boundaries need not fulfill this
+#                if neighbour_id >= 0:
+#                    edge = self.neighbour_edges[i, k]
+#                    msg = 'Triangle %d has neighbour %d but it does not point back. \n' %(i,neighbour_id)
+#                    msg += 'Only points to (%s)' %(self.neighbours[neighbour_id,:])
+#                    assert self.neighbours[neighbour_id, edge] == i ,msg
 
 
 

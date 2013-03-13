@@ -420,8 +420,8 @@ class Test_urs2sts_parallel(Test_Mux):
         domain_drchlt.set_quantity('stage', tide)
         Br = Reflective_boundary(domain_drchlt)
         #Bd = Dirichlet_boundary([2.0+tide,220+10*tide,-220-10*tide])
-        Bd = Time_boundary(domain=domain_drchlt, f=lambda t: [2.0+t/finaltime+tide,220.+10.*tide+10.*t/finaltime,-220.-10.*tide-10.*t/finaltime])
-        #Bd = Time_boundary(domain=domain_drchlt,f=lambda t: [2.0+num.sin(t)+tide,10.*(2+20.+num.sin(t)+tide),-10.*(2+20.+num.sin(t)+tide)])
+        Bd = Time_boundary(domain=domain_drchlt, function=lambda t: [2.0+t/finaltime+tide,220.+10.*tide+10.*t/finaltime,-220.-10.*tide-10.*t/finaltime])
+        #Bd = Time_boundary(domain=domain_drchlt,function=lambda t: [2.0+num.sin(t)+tide,10.*(2+20.+num.sin(t)+tide),-10.*(2+20.+num.sin(t)+tide)])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
        
         drchlt_gauge_values = []

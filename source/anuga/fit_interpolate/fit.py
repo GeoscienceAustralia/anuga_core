@@ -575,11 +575,11 @@ def _fit_to_mesh(point_coordinates,
                                              geo_reference = mesh_origin)
 
         if verbose:
-            log.critical('FitInterpolate: Building mesh')
+            log.critical('_fit_to_mesh: Building mesh')
         mesh = Mesh(vertex_coordinates, triangles)
 
-        # This is very slow!
-        mesh.check_integrity()
+        # Don't need this as we have just created the mesh
+        #mesh.check_integrity()
 
     interp = Fit(mesh=mesh,
                  verbose=verbose,

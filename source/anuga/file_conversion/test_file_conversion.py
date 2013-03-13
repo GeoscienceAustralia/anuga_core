@@ -11,8 +11,9 @@ from anuga.file.sww import extent_sww
 from anuga.file_conversion.urs2nc import lon_lat2grid
 from anuga.config import netcdf_float, epsilon, g
 from Scientific.IO.NetCDF import NetCDFFile
-from anuga.file_conversion.file_conversion import tsh2sww, \
-                        pmesh_to_domain_instance
+
+from anuga.file_conversion.file_conversion import tsh2sww
+from anuga.file_conversion.file_conversion import timefile2netcdf
 
 
 from anuga.file.mux import WAVEHEIGHT_MUX_LABEL, EAST_VELOCITY_LABEL, \
@@ -887,7 +888,61 @@ class Test_File_Conversion(unittest.TestCase):
         #Cleanup
         os.remove(sww.filename)
 
+    def test_timefile2netcdf_seconds(self):
 
+        pass
+        #Write txt time file
+        root = 'timefile2netcdf_seconds'
+
+        file_text = root+'.txt'
+        fid = open(file_text, 'w')
+        fid.write(
+"""0.0, 1.328223 0 0
+0.1, 1.292912 0
+0.2, 1.292912 0 0
+""")
+        fid.flush()
+        fid.close()
+
+        # Expecting error to be raised
+        try:
+            timefile2netcdf(file_text)
+        except:
+            pass
+
+        # Should pass
+        timefile2netcdf(file_text, time_as_seconds=True)
+        
+        #os.remove(root+'.tms')
+        os.remove(root+'.txt')
+        
+
+    def test_timefile2netcdf(self):
+
+        #Write txt time file
+        root = 'timefile2netcdf'
+
+        file_text = root+'.txt'
+        fid = open(file_text, 'w')
+        fid.write(
+"""31/08/04 00:00:00, 1.328223 0 0
+31/08/04 00:15:00, 1.292912 0 0
+31/08/04 00:30:00, 1.292912 0 0
+""")
+        fid.flush()
+        fid.close()
+
+        # Expecting error to be raised
+        try:
+            timefile2netcdf(file_text,time_as_seconds=True)
+        except:
+            pass
+
+        # Should pass
+        timefile2netcdf(file_text)
+
+        #os.remove(root+'.tms')
+        os.remove(root+'.txt')
 
 #-------------------------------------------------------------
 
