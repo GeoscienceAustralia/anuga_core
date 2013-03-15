@@ -13,6 +13,23 @@ print 'Changing to', os.getcwd() # This is now different from buildroot
 execfile('test_all.py')
 
 
+# Try to run parallel tests if pypar installled
+
+try:
+    import pypar
+    os.chdir(buildroot)
+    os.chdir('source')
+    os.chdir('anuga_parallel')
+    print
+    print '===================== anuga_parallel tests =========================='
+    print 'Changing to', os.getcwd()
+    execfile('test_all.py')
+except:
+    print 'anuga_parallel tests not run'
+
+
+
+
 
 
 print
