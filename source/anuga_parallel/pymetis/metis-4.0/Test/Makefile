@@ -21,7 +21,7 @@ default: $(BINDIR)/mtest
 
 $(BINDIR)/mtest: $(MTESTOBJS) $(METISLIB)
 	$(LD)  -o $@ $(MTESTOBJS) $(LIBS)
-	chmod 755 $@
+	#chmod 755 $@
 
 clean:
 	rm -f *.o

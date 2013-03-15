@@ -5,7 +5,7 @@
 ###
 # Config
 #
-COPTIONS = -fPIC
+COPTIONS = 
 
 METIS_DIR = metis-4.0
 
@@ -30,7 +30,7 @@ metis_win32:
 	make -C $(METIS_DIR)/Test
 
 pymetis_module_win32:
-	(cd pymetis; METIS_DIR=$(METIS_DIR) python setup.py build --compiler=mingw32; ./get_module)
+	(cd pymetis; METIS_DIR=$(METIS_DIR) python setup.py build --compiler=mingw32; sh get_module)
 
 ###
 # Clean

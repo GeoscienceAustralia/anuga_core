@@ -32,39 +32,39 @@ default: $(BINDIR)/pmetis$(VERNUM) $(BINDIR)/kmetis$(VERNUM) \
 
 $(BINDIR)/pmetis$(VERNUM): $(PMETISOBJS) $(METISLIB)
 	$(LD)  -o $@ $(PMETISOBJS) $(LIBS)
-	chmod 755 $@
+	#chmod 755 $@
 
 $(BINDIR)/kmetis$(VERNUM): $(KMETISOBJS) $(METISLIB)
 	$(LD)  -o $@ $(KMETISOBJS) $(LIBS)
-	chmod 755 $@
+	#chmod 755 $@
 
 $(BINDIR)/oemetis$(VERNUM): $(OEMETISOBJS) $(METISLIB)
 	$(LD)  -o $@ $(OEMETISOBJS) $(LIBS)
-	chmod 755 $@
+	#chmod 755 $@
 
 $(BINDIR)/onmetis$(VERNUM): $(ONMETISOBJS) $(METISLIB)
 	$(LD)  -o $@ $(ONMETISOBJS) $(LIBS)
-	chmod 755 $@
+	#chmod 755 $@
 
 $(BINDIR)/mesh2dual$(VERNUM): $(MESH2DUALOBJ) $(METISLIB)
 	$(LD)  -o $@ $(MESH2DUALOBJ) $(LIBS)
-	chmod 755 $@
+	#chmod 755 $@
 
 $(BINDIR)/mesh2nodal$(VERNUM): $(MESH2NODALOBJ) $(METISLIB)
 	$(LD)  -o $@ $(MESH2NODALOBJ) $(LIBS)
-	chmod 755 $@
+	#chmod 755 $@
 
 $(BINDIR)/partdmesh$(VERNUM): $(PARTDMESHOBJ) $(METISLIB)
 	$(LD)  -o $@ $(PARTDMESHOBJ) $(LIBS)
-	chmod 755 $@
+	#chmod 755 $@
 
 $(BINDIR)/partnmesh$(VERNUM): $(PARTNMESHOBJ) $(METISLIB)
 	$(LD)  -o $@ $(PARTNMESHOBJ) $(LIBS)
-	chmod 755 $@
+	#chmod 755 $@
 
 $(BINDIR)/graphchk$(VERNUM): $(GRAPHCHKOBJ) $(METISLIB)
 	$(LD)  -o $@ $(GRAPHCHKOBJ) $(LIBS)
-	chmod 755 $@
+	#chmod 755 $@
 
 
 clean:
