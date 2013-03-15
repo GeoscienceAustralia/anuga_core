@@ -23,8 +23,18 @@ def sww_merge_parallel(domain_global_name, np, verbose=False, delete_old=False):
     output = domain_global_name+".sww"
     swwfiles = [ domain_global_name+"_P"+str(np)+"_"+str(v)+".sww" for v in range(np)]
 
-    _sww_merge_parallel_smooth(swwfiles, output, verbose, delete_old)
+    fid = NetCDFFile(swwfiles[0], netcdf_mode_r)
 
+    number_of_volumes = fid.dimensions['number_of_volumes']
+    number_of_points =  fid.dimensions['number_of_points']
+
+    fid.close()
+
+    if 3*number_of_volumes == number_of_points:
+        _sww_merge_parallel_non_smooth(swwfiles, output, verbose, delete_old)
+    else:
+        _sww_merge_parallel_smooth(swwfiles, output, verbose, delete_old)
+        
 
 def _sww_merge(swwfiles, output, verbose=False):
     """
@@ -56,6 +66,8 @@ def _sww_merge(swwfiles, output, verbose=False):
             print 'Reading file ', filename, ':'    
     
         fid = NetCDFFile(filename, netcdf_mode_r)
+
+
 
         
         
@@ -486,6 +498,7 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
             number_of_global_nodes     = int(fid.number_of_global_nodes)
             number_of_global_triangle_vertices = 3*number_of_global_triangles
 
+
             order      = fid.order
             xllcorner  = fid.xllcorner;
             yllcorner  = fid.yllcorner ;
@@ -495,13 +508,22 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
             datum      = fid.datum;
             projection = fid.projection;
 
-            g_volumes = num.zeros((number_of_global_triangles,3),num.int)
-            g_x = num.zeros((number_of_global_nodes,),num.float32)
-            g_y = num.zeros((number_of_global_nodes,),num.float32)
+            g_volumes = num.arange(number_of_global_triangles*3).reshape(-1,3)
 
-            g_points = num.zeros((number_of_global_nodes,2),num.float32)
 
-            quantities = ['elevation', 'stage', 'xmomentum', 'ymomentum']
+
+            g_x = num.zeros((number_of_global_triangle_vertices,),num.float32)
+            g_y = num.zeros((number_of_global_triangle_vertices,),num.float32)
+
+            g_points = num.zeros((number_of_global_triangle_vertices,2),num.float32)
+
+
+            quantities = set(['elevation', 'friction', 'stage', 'xmomentum',
+                              'ymomentum', 'xvelocity', 'yvelocity', 'height'])
+            variables = set(fid.variables.keys())
+
+            quantities = list(quantities & variables)
+
             static_quantities = []
             dynamic_quantities = []
 
@@ -530,75 +552,28 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
         node_l2g = fid.variables['node_l2g'][:]
         tri_full_flag = fid.variables['tri_full_flag'][:]
 
-        volumes = num.array(fid.variables['volumes'][:],dtype=num.int)
 
 
 
-        #l_volumes = num.zeros_like(volumes)
-        #l_old_volumes = num.zeros_like(volumes)
+        f_ids = num.argwhere(tri_full_flag==1).reshape(-1,)
+
+        f_gids = tri_l2g[f_ids]
 
 
-        # Change the local node ids to global id in the
-        # volume array
+        g_vids = (3*f_gids.reshape(-1,1) + num.array([0,1,2])).reshape(-1,)
+        l_vids = (3*f_ids.reshape(-1,1) + num.array([0,1,2])).reshape(-1,)
 
 
-        print volumes
-        print volumes.shape
+        l_x = num.array(fid.variables['x'][:],dtype=num.float32)
+        l_y = num.array(fid.variables['y'][:],dtype=num.float32)
 
+        
+        g_x[g_vids] = l_x[l_vids]
+        g_y[g_vids] = l_y[l_vids]
 
-        print fid.variables['x'][0:6]
-        print fid.variables['y'][0:6]
+        g_points[g_vids,0] = g_x[g_vids]
+        g_points[g_vids,1] = g_y[g_vids]
 
-        print fid.variables['x'].shape
-
-
-        g_n0 = node_l2g[volumes[:,0]].reshape(-1,1)
-        g_n1 = node_l2g[volumes[:,1]].reshape(-1,1)
-        g_n2 = node_l2g[volumes[:,2]].reshape(-1,1)
-
-        #print g_n0.shape
-        l_volumes = num.hstack((g_n0,g_n1,g_n2))
-
-        #assert num.allclose(l_volumes, l_old_volumes)
-
-        # Just pick out the full triangles
-        #ftri_l2g = num.compress(tri_full_flag, tri_l2g)
-
-        #print l_volumes
-        #print tri_full_flag
-        print l_volumes.shape
-        print g_volumes.shape
-        print tri_l2g.shape
-
-        #fg_volumes = num.compress(tri_full_flag,l_volumes,axis=0)
-        g_volumes[tri_l2g] = l_volumes
-
-
-
-
-        #g_x[node_l2g] = fid.variables['x']
-        #g_y[node_l2g] = fid.variables['y']
-
-        g_points[tri_l2g,0] = fid.variables['x']
-        g_points[tri_l2g,1] = fid.variables['y']
-
-
-        #print number_of_timesteps
-
-
-        # FIXME SR: It seems that some of the "ghost" node quantity values
-        # are being storded. We should only store those nodes which are associated with
-        # full triangles. So we need an index array of "full" nodes, ie those in
-        # full triangles
-
-        #use numpy.compress and numpy.unique to get "full nodes
-
-        #f_volumes = num.compress(tri_full_flag,volumes,axis=0)
-        #fl_nodes = num.unique(f_volumes)
-        #f_node_l2g = node_l2g[fl_nodes]
-
-        #print len(node_l2g)
-        #print len(fl_nodes)
 
         # Read in static quantities
         for quantity in static_quantities:
@@ -606,8 +581,8 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
             #             num.array(fid.variables[quantity],dtype=num.float32)
             q = fid.variables[quantity]
             #print quantity, q.shape
-            out_s_quantities[quantity][f_node_l2g] = \
-                         num.array(q,dtype=num.float32)[fl_nodes]
+            out_s_quantities[quantity][g_vids] = \
+                         num.array(q,dtype=num.float32)[l_vids]
 
 
         #Collate all dynamic quantities according to their timestep
@@ -617,34 +592,26 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
             for i in range(n_steps):
                 #out_d_quantities[quantity][i][node_l2g] = \
                 #           num.array(q[i],dtype=num.float32)
-                out_d_quantities[quantity][i][f_node_l2g] = \
-                           num.array(q[i],dtype=num.float32)[fl_nodes]
-
-
+                out_d_quantities[quantity][i][g_vids] = \
+                           num.array(q[i],dtype=num.float32)[l_vids]
 
 
         fid.close()
 
-
     #---------------------------
     # Write out the SWW file
     #---------------------------
-    #print g_points.shape
-
-    #print number_of_global_triangles
-    #print number_of_global_nodes
-
 
     if verbose:
             print 'Writing file ', output, ':'
+
     fido = NetCDFFile(output, netcdf_mode_w)
     sww = Write_sww(static_quantities, dynamic_quantities)
     sww.store_header(fido, starttime,
                              number_of_global_triangles,
-                             number_of_global_nodes,
+                             number_of_global_triangles*3,
                              description=description,
                              sww_precision=netcdf_float32)
-
 
 
     from anuga.coordinate_transforms.geo_reference import Geo_reference
@@ -682,14 +649,6 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
         if q_values_max > q_range[1]:
             fido.variables[q + Write_sww.RANGE][1] = q_values_max
 
-
-    #print out_s_quantities
-    #print out_d_quantities
-
-    #print g_x
-    #print g_y
-
-    #print g_volumes
 
     fido.close()
 

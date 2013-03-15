@@ -13,21 +13,7 @@ print 'Changing to', os.getcwd() # This is now different from buildroot
 execfile('test_all.py')
 
 
-os.chdir('..')
-os.chdir('anuga_parallel')
-os.chdir('pymetis')
-print
-print '===================== pymetis tests ================================='
-print 'Changing to', os.getcwd()
-execfile('test_all.py')
 
-os.chdir('..')
-os.chdir('..')
-os.chdir('anuga_parallel')
-print
-print '===================== anuga_parallel tests =========================='
-print 'Changing to', os.getcwd()
-# execfile('test_all.py')
 
 print
 print '************************** NOTE *************************************'

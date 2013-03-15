@@ -41,13 +41,12 @@ from anuga_parallel import distribute, myid, numprocs, finalize, barrier
 # Setup parameters
 #--------------------------------------------------------------------------
 
-#mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0
-mesh_filename = "merimbula_17156.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
-#mesh_filename = "merimbula_43200_1.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
-#mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
-#mesh_filename = "test-20.tsh" ; x0 = 250.0 ; x1 = 350.0
-yieldstep = 50
-finaltime = 1500
+mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 50; finaltime = 1000
+#mesh_filename = "merimbula_17156.tsh"   ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 50; finaltime = 500
+#mesh_filename = "merimbula_43200_1.tsh"   ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 50; finaltime = 500
+mesh_filename = "test-100.tsh" ; x0 = 200.0 ; x1 = 300.0; yieldstep = 1; finaltime = 50
+#mesh_filename = "test-20.tsh" ; x0 = 250.0 ; x1 = 350.0; yieldstep = 1; finaltime = 50
+
 verbose = True
 
 #--------------------------------------------------------------------------
@@ -84,10 +83,11 @@ class Set_Elevation:
 #--------------------------------------------------------------------------
 if myid == 0:
     domain = create_domain_from_file(mesh_filename)
-    domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))
+    domain.set_quantity('stage', Set_Stage(x0, x1, 1.0))
     #domain.set_datadir('.')
     domain.set_name('merimbula_new')
     domain.set_store(True)
+    domain.set_store_vertices_smoothly(False)
     #domain.set_quantity('elevation', Set_Elevation(500.0))
 
     #print domain.statistics()
@@ -110,6 +110,7 @@ domain = distribute(domain)
 #--------------------------------------------------------------------------
 
 domain.set_flow_algorithm('2_0')
+#domain.set_store_vertices_smoothly(True)
 
 #domain.smooth = False
 #domain.set_default_order(2)

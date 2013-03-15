@@ -1,8 +1,8 @@
 /*
 * Sparse Matrix class implement in CSR format. Limited functionality.
 *
-* The CSR (compressed sparse row) format is implemented by using thee
-* double arrays, storing the data, column indicies and row pointers.
+* The CSR (compressed sparse row) format is implemented by using three
+* arrays, storing the data, column indicies and row pointers.
 * This format is used for fast matrix-matrix and matrix-vector 
 * multiplication
 *
