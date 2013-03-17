@@ -98,6 +98,23 @@ int _read_net_cdf_entries(char * filename,int * x){
 
 }
 
+// Takes a netcdf file and gets the x and y corners
+int _read_net_cdf_corners(char * filename,double *xllcorner, double *yllcorner){
+
+    int status;                       /* error status */
+    int ncid;
+
+    if ((status = nc_open(filename, NC_NOWRITE, &ncid))) ERR(status);
+
+    if ((status = nc_get_att_double(ncid, NC_GLOBAL, "xllcorner", xllcorner))) ERR(status);
+    if ((status = nc_get_att_double(ncid, NC_GLOBAL, "yllcorner", yllcorner))) ERR(status);
+
+    if ((status = nc_close(ncid))) ERR(status);
+
+    return 0;
+
+}
+
 //--------------------------------------------------------------------------
 
 //-------------------------- QUANTITY FITTING ------------------------------
@@ -269,6 +286,12 @@ int _build_matrix_AtA_Atz_fileread(int N, long * triangles,
     _read_net_cdf_entries(filename,&np);
     //n=10;
 
+    double xllcorner, yllcorner;
+    _read_net_cdf_corners(filename,&xllcorner,&yllcorner);
+
+    //printf(" xllcorner %g yllcorner %g\n",xllcorner,yllcorner);
+
+
     double * point_coordinates = malloc(2*sizeof(double)*blocksize);
     double * point_values = malloc(sizeof(double)*blocksize);
     int k;
@@ -300,8 +323,8 @@ int _build_matrix_AtA_Atz_fileread(int N, long * triangles,
             for(k=0;k<blocksize;k++){
 
 
-                double x = point_coordinates[2*k];
-                double y = point_coordinates[2*k+1];
+                double x = point_coordinates[2*k]+xllcorner;
+                double y = point_coordinates[2*k+1]+yllcorner;
                 triangle * T = search(quadtree,x,y);
 
                 if(T!=NULL){

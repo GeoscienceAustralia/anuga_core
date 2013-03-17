@@ -45,30 +45,10 @@ class VertsWithNoTrianglesError(exceptions.Exception): pass
 import numpy as num
 import sys
 
-# Setup for c fitting routines
-#from anuga.utilities import compile
-#if compile.can_use_C_extension('fitsmooth.c'):
+#----------------------------------------------
+# C code to build interpolation matrices
+#----------------------------------------------
 import fitsmooth
-#else:
-#    msg = "C implementation of fitting algorithms (fitsmooth.c) not avalaible"
-#    raise Exception(msg)
-
-# Setup for quad_tree extension
-#from anuga.utilities import compile
-#if compile.can_use_C_extension('quad_tree_ext.c'):
-#from anuga.utilities import quad_tree_ext
-#else:
-#    msg = "C implementation of quad tree extension not avaliable"
-#    raise Exception(msg)
-
-# Setup for sparse_matrix extension
-#from anuga.utilities import compile
-#if compile.can_use_C_extension('sparse_matrix_ext.c'):
-#from anuga.utilities import sparse_matrix_ext
-#else:
-#    msg = "C implementation of sparse_matrix extension not avaliable"
-#    raise Exception(msg)
-
 
 
 class Fit(FitInterpolate):
@@ -86,7 +66,7 @@ class Fit(FitInterpolate):
         """
         Padarn Note 05/12/12: This documentation should probably
         be updated to account for the fact that the fitting is now
-        done in c. I wasn't sure what details were neccesary though.
+        done in C. I wasn't sure what details were neccesary though.
 
         Fit data at points to the vertices of a mesh.
 
@@ -133,7 +113,7 @@ class Fit(FitInterpolate):
         self.point_count = 0
 
         # NOTE PADARN: NEEDS FIXING - currently need smoothing matrix
-        # even if alpha is zero, due to c function expecting it. This
+        # even if alpha is zero, due to C function expecting it. This
         # could and should be removed.
         if True:
             if verbose:
@@ -205,13 +185,13 @@ class Fit(FitInterpolate):
 
 
     # NOTE PADARN: This function was added to emulate behavior of the original
-    # class not using external c functions. This method is dangerous as D could
+    # class not using external C functions. This method is dangerous as D could
     # be very large - it was added as it is used in a unit test.
     def get_D(self):
         return fitsmooth.return_full_D(self.D, self.mesh.number_of_nodes)
 
     # NOTE PADARN: This function was added to emulate behavior of the original
-    # class so as to pass a unit test. It is completely uneeded.
+    # class so as to pass a unit test. It is completely unneeded.
     def build_fit_subset(self, point_coordinates, z=None, attribute_name=None,
                               verbose=False, output='dot'):
         self._build_matrix_AtA_Atz(point_coordinates, z, attribute_name, verbose, output)
@@ -309,7 +289,7 @@ class Fit(FitInterpolate):
         """
         # PADARN NOTE: THe following block of code is translated from
         # things that were being done in the Geospatial_data object
-        # which is no longer required if data from file in c.
+        # which is no longer required if data from file in C.
         #---------------------------------------------------------
         # Default attribute name here seems to only have possibility
         # of being 'None'.
@@ -357,9 +337,10 @@ class Fit(FitInterpolate):
         mesh using the formula given in the module doc string.
 
         Inputs:
-        point_coordinates: The co-ordinates of the data points.
+        point_coordinates_or_filename: The co-ordinates of the data points.
+              A filename of a .pts file or a
               List of coordinate pairs [x, y] of
-        data points or an nx2 numeric array or a Geospatial_data object
+              data points or an nx2 numeric array or a Geospatial_data object
               or points file filename
           z: Single 1d vector or array of data at the point_coordinates.
 
@@ -367,9 +348,11 @@ class Fit(FitInterpolate):
         if isinstance(point_coordinates_or_filename, basestring):
             if point_coordinates_or_filename[-4:] != ".pts":
                 use_blocking_option2 = False
+
         # NOTE PADARN 12/12/12: Currently trying to get all blocking to be done
-        # in c, but blocking option 1, which does everything using the python
+        # in C, but blocking option 1, which does everything using the python
         # interface can be used in the meantime (much slower).
+
         #-----------------------BLOCKING OPTION 1----------------------------
         if use_blocking_option2 is False:
             if verbose:
@@ -400,6 +383,7 @@ class Fit(FitInterpolate):
                     print ''
             else:
                 point_coordinates = point_coordinates_or_filename
+
         #-----------------------BLOCKING OPTION 2----------------------------
         else:
             if verbose:
