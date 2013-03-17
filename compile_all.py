@@ -74,6 +74,8 @@ try:
     print 'Attempting to compile Metis for parallel ANUGA!'
     print '-----------------------------------------------'
 
+    import pypar
+
     # Attempt to compile Metis for use with anuga_parallel
     os.chdir('source')
     os.chdir('anuga_parallel')
