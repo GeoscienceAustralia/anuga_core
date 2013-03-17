@@ -35,11 +35,14 @@ def get_user_name():
     """Get user name provide by operating system
     """
 
-    if sys.platform == 'win32':
-        #user = os.getenv('USERPROFILE')
-        user = os.getenv('USERNAME')
-    else:
-        user = os.getenv('LOGNAME')
+    import getpass
+    user = getpass.getuser()
+
+    #if sys.platform == 'win32':
+    #    #user = os.getenv('USERPROFILE')
+    #    user = os.getenv('USERNAME')
+    #else:
+    #    user = os.getenv('LOGNAME')
 
 
     return user    
