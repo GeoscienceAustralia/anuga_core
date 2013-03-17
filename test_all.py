@@ -25,7 +25,7 @@ try:
     print 'Changing to', os.getcwd()
     execfile('test_all.py')
 except:
-    print 'anuga_parallel tests not run'
+    print 'anuga_parallel tests not run as pypar not installed'
 
 
 

@@ -125,10 +125,7 @@ try:
         msg = 'Compiled pypar_extras succesfully.'
         print msg
 except:
-    print 'anuga_parallel code not compiled'
-
-
-
+    print 'anuga_parallel code not compiled as pypar not installed'
 
 
 
@@ -137,5 +134,4 @@ print 'That took %.3fs' %(time.time() - t0)
 
 
 
-if sys.platform == 'win32':
-    raw_input('Press the RETURN key')
+
