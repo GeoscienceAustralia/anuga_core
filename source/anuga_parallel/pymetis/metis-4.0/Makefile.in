@@ -6,7 +6,7 @@ CC = gcc
 OPTFLAGS = -O2 
 
 # What options to be used by the compiler
-COPTIONS = 
+COPTIONS = -fPIC
 
 # What options to be used by the loader
 LDOPTIONS = 

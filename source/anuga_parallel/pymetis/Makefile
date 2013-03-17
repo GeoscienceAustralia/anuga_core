@@ -5,7 +5,7 @@
 ###
 # Config
 #
-COPTIONS = 
+COPTIONS = -fPIC
 
 METIS_DIR = metis-4.0
 
