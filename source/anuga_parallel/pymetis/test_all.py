@@ -216,5 +216,5 @@ if __name__ == '__main__':
         #os.remove(filename)
 
     
-    if sys.platform == 'win32':
-        raw_input('Press the RETURN key')
+    #if sys.platform == 'win32':
+    #    raw_input('Press the RETURN key')
