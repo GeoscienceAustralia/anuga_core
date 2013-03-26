@@ -13,7 +13,7 @@ print 'Changing to', os.getcwd() # This is now different from buildroot
 execfile('test_all.py')
 
 
-# Try to run parallel tests if pypar installled
+# Try to run parallel tests if pypar is installed
 
 try:
     import pypar
@@ -32,6 +32,11 @@ except:
 
 
 
+# FIXME SR 20130327: Just commenting out this comment to run the validation tests.
+# We are currently undating the automated validation tests, so at present this point to
+# something which most people do get as part of the download. We will update and
+# point them to the new anuga_validation_tests in future.
+"""
 print
 print '************************** NOTE *************************************'
 print 'If all unit tests passed you should run the suite of validation tests'
@@ -42,7 +47,7 @@ print
 print 'These tests will take a few hours and will verify that ANUGA'
 print 'produces the physical results expected.'
 print '*********************************************************************'
-
+"""
 
 
 # Temporary bail out
