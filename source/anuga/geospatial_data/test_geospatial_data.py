@@ -1041,7 +1041,7 @@ class Test_Geospatial_data(unittest.TestCase):
                             answer), msg
 
     def test_loadpts(self):
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
 
         fileName = tempfile.mktemp('.pts')
         # NetCDF file definition
@@ -1199,7 +1199,7 @@ class Test_Geospatial_data(unittest.TestCase):
             raise Exception(msg)
 
     def test_create_from_pts_file(self):
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
 
         # NetCDF file definition
         FN = 'test_points.pts'
@@ -1239,7 +1239,7 @@ class Test_Geospatial_data(unittest.TestCase):
     def test_create_from_pts_file_with_geo(self):
         '''Test if Geospatial data is correctly instantiated from a pts file.'''
 
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
 
         # NetCDF file definition
         FN = 'test_points.pts'

@@ -36,7 +36,7 @@ def esri2sww(bath_dir,
     The time period is less than 24hrs and uniform.
     """
 
-    from Scientific.IO.NetCDF import NetCDFFile
+    from anuga.file.netcdf import NetCDFFile
 
     from anuga.coordinate_transforms.redfearn import redfearn
 

@@ -28,7 +28,7 @@ class Test_2Pts(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
 
         #Write test asc file
         root = 'hecrastest'
@@ -159,7 +159,7 @@ END CROSS-SECTIONS:
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
         # Used for points that lie outside mesh
         NODATA_value = 1758323
 

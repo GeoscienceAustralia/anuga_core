@@ -5,7 +5,7 @@ import tempfile
 import unittest
 import os
 
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 import numpy as num
 
 import anuga

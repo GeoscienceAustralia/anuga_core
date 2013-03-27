@@ -3,7 +3,7 @@ import os
 import sys
 import unittest
 import numpy as num
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 
 # ANUGA modules
 from anuga.config import netcdf_float32, netcdf_float64

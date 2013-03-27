@@ -38,7 +38,7 @@ class Test_Dem2Dem(unittest.TestCase):
         """
 
         import os
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
 
         #Write test dem file
         root = 'decdemtest'
@@ -120,7 +120,7 @@ class Test_Dem2Dem(unittest.TestCase):
         """
 
         import os
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
 
         # Write test dem file
         root = 'decdemtest'

@@ -8,6 +8,8 @@ import os
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \
                             netcdf_float
 
+from anuga.file.netcdf import NetCDFFile
+
 from dem2pts import dem2pts
 from asc2dem import asc2dem
 
@@ -23,7 +25,7 @@ class Test_Dem2Pts(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
+
 
         #Write test asc file
         root = 'demtest'
@@ -92,8 +94,8 @@ Parameters
         elevation = fid.variables['elevation']
 
         #Check values
-        assert fid.xllcorner[0] == 2002.0
-        assert fid.yllcorner[0] == 3003.0
+        assert fid.xllcorner == 2002.0
+        assert fid.yllcorner == 3003.0
 
         #create new reference points
         newz = []
@@ -135,7 +137,6 @@ Parameters
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         #Write test asc file
         root = 'demtest2'
@@ -210,8 +211,8 @@ Parameters
         elevation = fid.variables['elevation']
 
         #Check values
-        assert fid.xllcorner[0] == 2002.0
-        assert fid.yllcorner[0] == 3003.0
+        assert fid.xllcorner == 2002.0
+        assert fid.yllcorner == 3003.0
 
         #create new reference points
         newz = num.zeros(19, num.int)       #array default#
@@ -263,7 +264,6 @@ Parameters
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         #Write test asc file
         root = 'demtest3'
@@ -338,8 +338,8 @@ Parameters
         elevation = fid.variables['elevation']
 
         #Check values
-        assert fid.xllcorner[0] == 2002.0
-        assert fid.yllcorner[0] == 3003.0
+        assert fid.xllcorner == 2002.0
+        assert fid.yllcorner == 3003.0
 
         #create new reference points
         newz = num.zeros(14, num.int)       #array default#

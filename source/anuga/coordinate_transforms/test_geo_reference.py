@@ -29,7 +29,7 @@ class geo_referenceTestCase(unittest.TestCase):
         self.failUnless(y == g.get_yllcorner(), ' failed') 
         
     def test_read_write_NetCDF(self):
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
         g = Geo_reference(56,1.9,1.9)
         file_name = tempfile.mktemp(".geo_referenceTest")
         
@@ -46,7 +46,7 @@ class geo_referenceTestCase(unittest.TestCase):
         
     def test_read_NetCDFI(self):
         # test if read_NetCDF
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
         g = Geo_reference(56,1.9,1.9)
         file_name = tempfile.mktemp(".geo_referenceTest")
         
@@ -64,7 +64,7 @@ class geo_referenceTestCase(unittest.TestCase):
         self.failUnless(g == new_g, ' failed')
         
     def test_read_write_ASCII(self):
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
         g = Geo_reference(56,1.9,1.9)
         file_name = tempfile.mktemp(".geo_referenceTest")
         fd = open(file_name,'w')
@@ -79,7 +79,7 @@ class geo_referenceTestCase(unittest.TestCase):
         self.failUnless(g == new_g, 'test_read_write_ASCII failed')  
     
     def test_read_write_ASCII2(self):
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
         g = Geo_reference(56,1.9,1.9)
         file_name = tempfile.mktemp(".geo_referenceTest")
         fd = open(file_name,'w')
@@ -94,7 +94,7 @@ class geo_referenceTestCase(unittest.TestCase):
         self.failUnless(g == new_g, 'test_read_write_ASCII failed')
         
     def test_read_write_ASCII3(self):
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
         g = Geo_reference(56,1.9,1.9)
         file_name = tempfile.mktemp(".geo_referenceTest")
         fd = open(file_name,'w')
@@ -497,7 +497,7 @@ class geo_referenceTestCase(unittest.TestCase):
             os.remove(point_file)
 
     def test_read_write_ASCII_test_and_fail(self):
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
 
         # This is to test a fail
         g = Geo_reference(56,1.9,1.9)
@@ -630,7 +630,7 @@ class geo_referenceTestCase(unittest.TestCase):
         yllcorner       float
         '''
 
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
 
         # ensure that basic instance attributes are correct
         g = Geo_reference(56, 1.8, 1.8)

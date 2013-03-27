@@ -10,7 +10,7 @@ from anuga.file.sww import SWW_file
 from anuga.file.sww import extent_sww
 from anuga.file_conversion.urs2nc import lon_lat2grid
 from anuga.config import netcdf_float, epsilon, g
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 
 from anuga.file_conversion.file_conversion import tsh2sww
 from anuga.file_conversion.file_conversion import timefile2netcdf
@@ -107,19 +107,19 @@ class Test_File_Conversion(unittest.TestCase):
             fid.createVariable(long_name,netcdf_float,(long_name,))
             fid.variables[long_name].point_spacing='uneven'
             fid.variables[long_name].units='degrees_east'
-            fid.variables[long_name].assignValue(longitudes)
+            fid.variables[long_name][:] = longitudes
 
             fid.createDimension(lat_name,ny)
             fid.createVariable(lat_name,netcdf_float,(lat_name,))
             fid.variables[lat_name].point_spacing='uneven'
             fid.variables[lat_name].units='degrees_north'
-            fid.variables[lat_name].assignValue(latitudes)
+            fid.variables[lat_name][:] = latitudes
 
             fid.createDimension('TIME',six)
             fid.createVariable('TIME',netcdf_float,('TIME',))
             fid.variables['TIME'].point_spacing='uneven'
             fid.variables['TIME'].units='seconds'
-            fid.variables['TIME'].assignValue([0.0, 0.1, 0.6, 1.1, 1.6, 2.1])
+            fid.variables['TIME'][:] = [0.0, 0.1, 0.6, 1.1, 1.6, 2.1]
 
 
             name = ext[1:3].upper()
@@ -128,7 +128,7 @@ class Test_File_Conversion(unittest.TestCase):
             fid.variables[name].units='CENTIMETERS'
             fid.variables[name].missing_value=-1.e+034
 
-            fid.variables[name].assignValue([[[0.3400644, 0, -46.63519, -6.50198],
+            fid.variables[name][:] = [[[0.3400644, 0, -46.63519, -6.50198],
                                               [-0.1214216, 0, 0, 0],
                                               [0, 0, 0, 0],
                                               [0, 0, 0, 0]],
@@ -151,7 +151,7 @@ class Test_File_Conversion(unittest.TestCase):
                                              [[0.3400644, 0.0004811212, -23.26012, -6.50198],
                                               [-0.1209405, 0.0009771062, 0.02527271, 2.617787e-005],
                                               [0.0004811212, 0.0009622425, 0.0009599366, 8.152277e-007],
-                                              [0, 0.0004811212, 0.0004811212, 0]]])
+                                              [0, 0.0004811212, 0.0004811212, 0]]]
 
 
             fid.close()
@@ -169,7 +169,6 @@ class Test_File_Conversion(unittest.TestCase):
         """Test that georeferencing etc works when converting from
         ferret format (lat/lon) to sww format (UTM)
         """
-        from Scientific.IO.NetCDF import NetCDFFile
         import os, sys
 
         #The test file has
@@ -235,7 +234,6 @@ class Test_File_Conversion(unittest.TestCase):
     def test_ferret2sww_zscale(self):
         """Test that zscale workse
         """
-        from Scientific.IO.NetCDF import NetCDFFile
         import os, sys
 
         #The test file has
@@ -325,7 +323,6 @@ class Test_File_Conversion(unittest.TestCase):
         """Test that georeferencing etc works when converting from
         ferret format (lat/lon) to sww format (UTM)
         """
-        from Scientific.IO.NetCDF import NetCDFFile
 
         #The test file has
         # LON = 150.66667, 150.83334, 151, 151.16667
@@ -468,7 +465,6 @@ class Test_File_Conversion(unittest.TestCase):
     def test_ferret2sww3(self):
         """Elevation included
         """
-        from Scientific.IO.NetCDF import NetCDFFile
 
         #The test file has
         # LON = 150.66667, 150.83334, 151, 151.16667
@@ -505,19 +501,19 @@ class Test_File_Conversion(unittest.TestCase):
             fid.createVariable(long_name,netcdf_float,(long_name,))
             fid.variables[long_name].point_spacing='uneven'
             fid.variables[long_name].units='degrees_east'
-            fid.variables[long_name].assignValue(h1_list)
+            fid.variables[long_name][:] = h1_list
 
             fid.createDimension(lat_name,ny)
             fid.createVariable(lat_name,netcdf_float,(lat_name,))
             fid.variables[lat_name].point_spacing='uneven'
             fid.variables[lat_name].units='degrees_north'
-            fid.variables[lat_name].assignValue(h2_list)
+            fid.variables[lat_name][:] = h2_list
 
             fid.createDimension(time_name,2)
             fid.createVariable(time_name,netcdf_float,(time_name,))
             fid.variables[time_name].point_spacing='uneven'
             fid.variables[time_name].units='seconds'
-            fid.variables[time_name].assignValue([0.,1.])
+            fid.variables[time_name][:] = [0.,1.]
             #if fid == fid3: break
 
 
@@ -526,13 +522,13 @@ class Test_File_Conversion(unittest.TestCase):
             fid.createVariable(long_name,netcdf_float,(long_name,))
             fid.variables[long_name].point_spacing='uneven'
             fid.variables[long_name].units='degrees_east'
-            fid.variables[long_name].assignValue(h1_list)
+            fid.variables[long_name][:] = h1_list
 
             fid.createDimension(lat_name,ny)
             fid.createVariable(lat_name,netcdf_float,(lat_name,))
             fid.variables[lat_name].point_spacing='uneven'
             fid.variables[lat_name].units='degrees_north'
-            fid.variables[lat_name].assignValue(h2_list)
+            fid.variables[lat_name][:] = h2_list
 
         name = {}
         name[fid1]='HA'
@@ -556,7 +552,7 @@ class Test_File_Conversion(unittest.TestCase):
           fid.createVariable(name[fid],netcdf_float,(time_name,lat_name,long_name))
           fid.variables[name[fid]].point_spacing='uneven'
           fid.variables[name[fid]].units=units[fid]
-          fid.variables[name[fid]].assignValue(values[fid])
+          fid.variables[name[fid]][:] = values[fid]
           fid.variables[name[fid]].missing_value = -99999999.
           #if fid == fid3: break
 
@@ -564,7 +560,7 @@ class Test_File_Conversion(unittest.TestCase):
             fid.createVariable(name[fid],netcdf_float,(lat_name,long_name))
             fid.variables[name[fid]].point_spacing='uneven'
             fid.variables[name[fid]].units=units[fid]
-            fid.variables[name[fid]].assignValue(values[fid])
+            fid.variables[name[fid]][:] = values[fid]
             fid.variables[name[fid]].missing_value = -99999999.
 
 
@@ -628,7 +624,6 @@ class Test_File_Conversion(unittest.TestCase):
         """Like previous but with augmented variable names as
         in files produced by ferret as opposed to MOST
         """
-        from Scientific.IO.NetCDF import NetCDFFile
 
         #The test file has
         # LON = 150.66667, 150.83334, 151, 151.16667
@@ -669,19 +664,19 @@ class Test_File_Conversion(unittest.TestCase):
             fid.createVariable(long_name,netcdf_float,(long_name,))
             fid.variables[long_name].point_spacing='uneven'
             fid.variables[long_name].units='degrees_east'
-            fid.variables[long_name].assignValue(h1_list)
+            fid.variables[long_name][:] = h1_list
 
             fid.createDimension(lat_name,ny)
             fid.createVariable(lat_name,netcdf_float,(lat_name,))
             fid.variables[lat_name].point_spacing='uneven'
             fid.variables[lat_name].units='degrees_north'
-            fid.variables[lat_name].assignValue(h2_list)
+            fid.variables[lat_name][:] = h2_list
 
             fid.createDimension(time_name,2)
             fid.createVariable(time_name,netcdf_float,(time_name,))
             fid.variables[time_name].point_spacing='uneven'
             fid.variables[time_name].units='seconds'
-            fid.variables[time_name].assignValue([0.,1.])
+            fid.variables[time_name][:] = [0.,1.]
             #if fid == fid3: break
 
 
@@ -690,13 +685,13 @@ class Test_File_Conversion(unittest.TestCase):
             fid.createVariable(long_name,netcdf_float,(long_name,))
             fid.variables[long_name].point_spacing='uneven'
             fid.variables[long_name].units='degrees_east'
-            fid.variables[long_name].assignValue(h1_list)
+            fid.variables[long_name][:] = h1_list
 
             fid.createDimension(lat_name,ny)
             fid.createVariable(lat_name,netcdf_float,(lat_name,))
             fid.variables[lat_name].point_spacing='uneven'
             fid.variables[lat_name].units='degrees_north'
-            fid.variables[lat_name].assignValue(h2_list)
+            fid.variables[lat_name][:] = h2_list
 
         name = {}
         name[fid1]='HA'
@@ -720,7 +715,7 @@ class Test_File_Conversion(unittest.TestCase):
           fid.createVariable(name[fid],netcdf_float,(time_name,lat_name,long_name))
           fid.variables[name[fid]].point_spacing='uneven'
           fid.variables[name[fid]].units=units[fid]
-          fid.variables[name[fid]].assignValue(values[fid])
+          fid.variables[name[fid]][:] = values[fid]
           fid.variables[name[fid]].missing_value = -99999999.
           #if fid == fid3: break
 
@@ -728,7 +723,7 @@ class Test_File_Conversion(unittest.TestCase):
             fid.createVariable(name[fid],netcdf_float,(lat_name,long_name))
             fid.variables[name[fid]].point_spacing='uneven'
             fid.variables[name[fid]].units=units[fid]
-            fid.variables[name[fid]].assignValue(values[fid])
+            fid.variables[name[fid]][:] = values[fid]
             fid.variables[name[fid]].missing_value = -99999999.
 
 
@@ -790,7 +785,6 @@ class Test_File_Conversion(unittest.TestCase):
 
 
     def test_ferret2sww_nz_origin(self):
-        from Scientific.IO.NetCDF import NetCDFFile
         from anuga.coordinate_transforms.redfearn import redfearn
 
         #Call conversion (with nonzero origin)
@@ -849,7 +843,7 @@ class Test_File_Conversion(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
+
 
         self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'

@@ -12,7 +12,7 @@ from math import sqrt
 import tempfile
 import csv
 
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 
 import numpy as num
 

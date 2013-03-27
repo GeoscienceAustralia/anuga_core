@@ -131,7 +131,7 @@ def sww2dem(name_in, name_out,
         log.critical('Reading from %s' % name_in)
         log.critical('Output directory is %s' % name_out)
 
-    from Scientific.IO.NetCDF import NetCDFFile
+    from anuga.file.netcdf import NetCDFFile
     fid = NetCDFFile(name_in)
 
     #Get extent and reference

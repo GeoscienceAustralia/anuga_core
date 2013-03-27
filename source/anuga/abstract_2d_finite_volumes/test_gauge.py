@@ -8,7 +8,7 @@ from os import access, F_OK,sep, removedirs,remove,mkdir,getcwd
 
 import anuga
 #from anuga.abstract_2d_finite_volumes.util import *
-from anuga.abstract_2d_finite_volumes.gauge import *
+from anuga.abstract_2d_finite_volumes.gauge import sww2csv_gauges
 from anuga.config import epsilon
 
 from anuga.utilities.numerical_tools import NAN,mean
@@ -93,7 +93,7 @@ class Test_Gauge(unittest.TestCase):
         self.sww.store_timestep()
         
         
-    def test_sww2csv(self):
+    def test_sww2csv_0(self):
 
         """Most of this test was copied from test_interpolate
         test_interpole_sww2csv
@@ -108,7 +108,7 @@ class Test_Gauge(unittest.TestCase):
         # test the function
         points = [[5.0,1.],[0.5,2.]]
 
-        points_file = tempfile.mktemp(".csv")
+        points_file = tempfile.mktemp(".csv") 
 #        points_file = 'test_point.csv'
         file_id = open(points_file,"w")
         file_id.write("name, easting, northing, elevation \n\
@@ -154,9 +154,9 @@ point2, 0.5, 2.0, 9.0\n")
         # clean up
         point1_handle.close()
         point2_handle.close()
-        os.remove(points_file)
-        os.remove(point1_filename)
-        os.remove(point2_filename)
+        #os.remove(points_file)
+        #os.remove(point1_filename)
+        #os.remove(point2_filename)
 
 
     def test_sww2csv_gauges1(self):
@@ -543,7 +543,7 @@ point2, 0.5, 2.0\n")
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Gauge, 'test')
+    suite = unittest.makeSuite(Test_Gauge, 'test_')
 #    runner = unittest.TextTestRunner(verbosity=2)
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

@@ -67,7 +67,7 @@ def urs2sts(basename_in, basename_out=None,
     """
 
     import os
-    from Scientific.IO.NetCDF import NetCDFFile
+    from anuga.file.netcdf import NetCDFFile
     from operator import __and__
 
     if not isinstance(basename_in, list):

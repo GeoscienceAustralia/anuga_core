@@ -19,7 +19,7 @@ from anuga.geospatial_data.geospatial_data import ensure_geospatial
 
 from warnings import warn
 import numpy as num
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from copy import copy
 

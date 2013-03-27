@@ -1,6 +1,6 @@
 import numpy as num
 import anuga.utilities.log as log
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 
 from anuga.config import max_float
 from anuga.config import netcdf_float, netcdf_float32, netcdf_int
@@ -274,8 +274,8 @@ def create_sts_boundary(sts_filename):
         msg = 'Cannot open %s' % stsname_postfixed
         raise IOError(msg)
 
-    xllcorner = fid.xllcorner[0]
-    yllcorner = fid.yllcorner[0]
+    xllcorner = fid.xllcorner
+    yllcorner = fid.yllcorner
 
     #Points stored in sts file are normalised to [xllcorner,yllcorner] but
     #we cannot assume that boundary polygon will be. At least the

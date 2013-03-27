@@ -35,7 +35,7 @@
           filenames, and ensure that in each case, the output will be as desired.
 
 """
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 import numpy
 
 class combine_outputs:

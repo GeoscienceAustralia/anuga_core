@@ -162,6 +162,7 @@ def sww2csv_gauges(sww_file,
                 if value.strip()=='name':name=j
                 if value.strip()=='elevation':elevation=j
         else:
+            #points.append([float(row[easting]),float(row[northing])])
             points.append([float(row[easting]),float(row[northing])])
             point_name.append(row[name])
         
@@ -169,6 +170,8 @@ def sww2csv_gauges(sww_file,
     points_array = num.array(points,num.float)
         
     points_array = ensure_absolute(points_array)
+
+    #print 'points_array', points_array
 
     dir_name, base = os.path.split(sww_file)    
 
@@ -222,7 +225,7 @@ def sww2csv_gauges(sww_file,
                                      output_centroids = output_centroids)
 
         if quake_offset_time is None:
-            quake_offset_time = callable_sww.starttime[0]
+            quake_offset_time = callable_sww.starttime
 
         for point_i, point in enumerate(points_array):
             for time in callable_sww.get_time():
@@ -240,6 +243,7 @@ def sww2csv_gauges(sww_file,
                     else:
                         points_writer = writer(file(dir_name + sep + gauge_file
                                                     + point_name[point_i] + '.csv', "ab"))
+
 
                     points_list = [quake_time, quake_time/3600.] +  _quantities2csv(quantities, point_quantities, callable_sww.centroids, point_i)
                     points_writer.writerow(points_list)

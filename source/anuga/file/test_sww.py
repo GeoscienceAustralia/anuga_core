@@ -9,7 +9,7 @@ from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.shallow_water.shallow_water_domain import Domain
 from sww import load_sww_as_domain, weed, get_mesh_and_quantities_from_file, \
                 Write_sww
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 
 from anuga.config import netcdf_mode_w, netcdf_float
 
@@ -183,7 +183,6 @@ class Test_sww(unittest.TestCase):
         # Generate a test sww file with non trivial georeference
         
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         # Setup
         from mesh_factory import rectangular
@@ -198,7 +197,7 @@ class Test_sww(unittest.TestCase):
         domain = Domain(points, vertices, boundary,
                         geo_reference = Geo_reference(56,308500,6189000))
 
-        domain.set_name('flowtest')
+        domain.set_name('test_get_mesh_and_quantities_from_sww_file')
         swwfile = domain.get_name() + '.sww'
         domain.set_datadir('.')
 
@@ -246,7 +245,7 @@ class Test_sww(unittest.TestCase):
             assert num.allclose(q_ref, q_sww, atol=1.0e-6), msg
             
         # Cleanup
-        os.remove(swwfile)
+        #os.remove(swwfile)
         
         
 
@@ -276,8 +275,8 @@ class Test_sww(unittest.TestCase):
         
         filename = tempfile.mktemp("_data_manager.sww")
         outfile = NetCDFFile(filename, netcdf_mode_w)
-        points_utm = num.array([[0.,0.],[1.,1.], [0.,1.]])
-        volumes = (0,1,2)
+        points_utm = num.array([[0.,0.],[1.,1.],[0.,1.]])
+        volumes = [[0,1,2]]
         elevation = [0,1,2]
         new_origin = None
         new_origin = Geo_reference(56, 0, 0)
@@ -311,7 +310,7 @@ class Test_sww(unittest.TestCase):
         filename = tempfile.mktemp("_data_manager.sww")
         outfile = NetCDFFile(filename, netcdf_mode_w)
         points_utm = num.array([[0.,0.],[1.,1.], [0.,1.]])
-        volumes = (0,1,2)
+        volumes = [[0,1,2]]
         elevation = [0,1,2]
         new_origin = None
         #new_origin = Geo_reference(56, 0, 0)
@@ -348,7 +347,7 @@ class Test_sww(unittest.TestCase):
         filename = tempfile.mktemp("_data_manager.sww")
         outfile = NetCDFFile(filename, netcdf_mode_w)
         points_utm = num.array([[0.,0.],[1.,1.], [0.,1.]])
-        volumes = (0,1,2)
+        volumes = [[0,1,2]]
         elevation = [0,1,2]
         new_origin = None
         new_origin = Geo_reference(56, 1, 554354)
@@ -387,7 +386,7 @@ class Test_sww(unittest.TestCase):
         filename = tempfile.mktemp("_data_manager.sww")
         outfile = NetCDFFile(filename, netcdf_mode_w)
         points_utm = num.array([[0.,0.],[1.,1.], [0.,1.]])
-        volumes = (0,1,2)
+        volumes = [[0,1,2]]
         elevation = [0,1,2]
         new_origin = None
         points_georeference = Geo_reference(56, 1, 554354)
@@ -423,7 +422,7 @@ class Test_sww(unittest.TestCase):
         filename = tempfile.mktemp("_data_manager.sww")
         outfile = NetCDFFile(filename, netcdf_mode_w)
         points_utm = num.array([[0.,0.],[1.,1.], [0.,1.]])
-        volumes = (0,1,2)
+        volumes = [[0,1,2]]
         elevation = [0,1,2]
         new_origin = Geo_reference(56, 1, 1)
         points_georeference = Geo_reference(56, 0, 0)

@@ -1,6 +1,6 @@
 
 # External modules
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 import sys
 import unittest
 import numpy as num

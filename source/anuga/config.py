@@ -227,7 +227,7 @@ netcdf_mode_r = 'r'
 # whether Scientific.IO supports large NetCDF files
 s = """
 import os, tempfile
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 
 filename = tempfile.mktemp('.nc')
 
@@ -236,6 +236,7 @@ fid.close()
 os.remove(filename)
 """
 
+"""
 # Need to run in a separate process due an
 # error with older versions of Scientific.IO
 if sys.platform == 'win32':
@@ -264,4 +265,4 @@ else:
         netcdf_mode_w = 'wl' # Large NetCDF (new default 30/6/2009)
         #netcdf_mode_w = 'w'   # Old style NetCDF used by OSG viewer
 
-
+"""

@@ -3,7 +3,7 @@ import unittest
 import tempfile
 import os
 import sys
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 
 from anuga.utilities.system_tools import get_pathname_from_package
 from anuga.coordinate_transforms.geo_reference import Geo_reference     
@@ -275,7 +275,7 @@ class Test_Urs2Sts(Test_Mux):
             # across all stations (for this source)
             #print k, time_start_z[k,:]
             starttime = min(time_start_z[k, :])
-            sts_starttime = fid.starttime[0]
+            sts_starttime = fid.starttime
             msg = 'sts starttime for source %d was %f. Should have been %f'\
                 %(source_number, sts_starttime, starttime)
             assert num.allclose(sts_starttime, starttime), msg             
@@ -439,7 +439,7 @@ class Test_Urs2Sts(Test_Mux):
         # Make sure start time from sts file is the minimum starttime 
         # across all stations (for this source)
         starttime = min(time_start_z[:])
-        sts_starttime = fid.starttime[0]
+        sts_starttime = fid.starttime
         msg = 'sts starttime was %f. Should have been %f'\
             %(sts_starttime, starttime)
         assert num.allclose(sts_starttime, starttime), msg
@@ -2030,7 +2030,7 @@ class Test_Urs2Sts(Test_Mux):
 
         # Check the time vector
         times = fid.variables['time'][:]
-        starttime = fid.starttime[0]
+        starttime = fid.starttime
         #print times
         #print starttime
 

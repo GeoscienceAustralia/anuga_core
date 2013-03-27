@@ -5,7 +5,7 @@
 import numpy as num
 from anuga.utilities.numerical_tools import ensure_numeric
 
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.config import netcdf_float, netcdf_float32, netcdf_int
 from anuga.file.sww import SWW_file, Write_sww
@@ -25,8 +25,12 @@ def sww_merge_parallel(domain_global_name, np, verbose=False, delete_old=False):
 
     fid = NetCDFFile(swwfiles[0], netcdf_mode_r)
 
-    number_of_volumes = fid.dimensions['number_of_volumes']
-    number_of_points =  fid.dimensions['number_of_points']
+    try: # works with netcdf4
+        number_of_volumes = len(fid.dimensions['number_of_volumes'])
+        number_of_points = len(fid.dimensions['number_of_points'])
+    except: # works with scientific.io.netcdf
+        number_of_volumes = len(fid.dimensions['number_of_volumes'])
+        number_of_points = fid.dimensions['number_of_points']
 
     fid.close()
 
@@ -110,7 +114,13 @@ def _sww_merge(swwfiles, output, verbose=False):
                 verts = [vertex+tri_offset for vertex in tri]
                 out_tris.append(verts)
 
-        num_pts = fid.dimensions['number_of_points']
+
+
+        try: # works with netcdf4
+            num_pts = len(fid.dimensions['number_of_points'])
+        except: # works with scientific.io.netcdf
+            num_pts = fid.dimensions['number_of_points']
+
         tri_offset += num_pts
         
         if verbose:

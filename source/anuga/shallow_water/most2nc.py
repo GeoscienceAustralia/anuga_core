@@ -7,7 +7,7 @@ MOSTs output.
 """
 
 import sys
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 import anuga.utilities.log as log
 
@@ -85,17 +85,17 @@ def most2nc(input_file, output_file, inverted_bathymetry=False, verbose=True):
     out_file.createVariable(long_name,'d',(long_name,))
     out_file.variables[long_name].point_spacing='uneven'
     out_file.variables[long_name].units='degrees_east'
-    out_file.variables[long_name].assignValue(h1_list)
+    out_file.variables[long_name][:] = h1_list
 
     out_file.createDimension(lat_name,ny)
     out_file.createVariable(lat_name,'d',(lat_name,))
     out_file.variables[lat_name].point_spacing='uneven'
     out_file.variables[lat_name].units='degrees_north'
-    out_file.variables[lat_name].assignValue(h2_list)
+    out_file.variables[lat_name][:] = h2_list
 
     out_file.createVariable(elev_name,'d',(lat_name,long_name))
     out_file.variables[elev_name].point_spacing='uneven'
     out_file.variables[elev_name].units='meters'
-    out_file.variables[elev_name].assignValue(depth_list)
+    out_file.variables[elev_name][:] = depth_list
 
     out_file.close()

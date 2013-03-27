@@ -3,7 +3,7 @@ import tempfile
 import numpy as num
 import os
 from struct import pack, unpack
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.redfearn import redfearn

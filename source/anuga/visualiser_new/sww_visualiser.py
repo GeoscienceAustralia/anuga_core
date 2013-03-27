@@ -1,5 +1,5 @@
 from Numeric import array, Float
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 from visualiser import Visualiser
 from vtk import vtkCellArray
 

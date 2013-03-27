@@ -172,7 +172,7 @@ class Test_Util(unittest.TestCase):
 
 
         #Now read data from sww and check
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
         filename = domain1.get_name() + '.sww'
         fid = NetCDFFile(filename)
 
@@ -374,7 +374,7 @@ class Test_Util(unittest.TestCase):
 
 
         #Now read data from sww and check
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
         filename = domain1.get_name() + '.sww'
         fid = NetCDFFile(filename)
 

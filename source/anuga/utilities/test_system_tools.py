@@ -8,7 +8,7 @@ import tempfile
 import zlib
 import os
 from os.path import join, split, sep
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.config import netcdf_float, netcdf_char, netcdf_int
 
@@ -81,7 +81,7 @@ class Test_system_tools(unittest.TestCase):
         # Binary NetCDF File X 2 (use mktemp's name)
 
         try:
-            from Scientific.IO.NetCDF import NetCDFFile
+            from anuga.file.netcdf import NetCDFFile
         except ImportError:
             # This code is also used by EQRM which does not require NetCDF
             pass

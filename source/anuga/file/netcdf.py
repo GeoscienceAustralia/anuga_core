@@ -3,8 +3,6 @@
 
 import numpy as num
 
-from Scientific.IO.NetCDF import NetCDFFile
-
 from anuga.coordinate_transforms.redfearn import \
      convert_from_latlon_to_utm
 from anuga.config import minimum_storable_height as \
@@ -21,6 +19,44 @@ lon_name = 'LON'
 lat_name = 'LAT'
 time_name = 'TIME'
 precision = netcdf_float # So if we want to change the precision its done here
+
+
+
+def NetCDFFile(file_name, netcdf_mode=netcdf_mode_r):
+    """Wrapper to isolate changes of the netcdf libray.
+
+    In theory we should be able to change over to NetCDF4 via this
+    wrapper, by ensuring the interface to the NetCDF library isthe same as the
+    the old Scientific.IO.NetCDF library.
+
+    There is a difference between extracting dimensions. We have used the following
+    to cover netcdf4 and scientific python
+
+    try: # works with netcdf4
+        number_of_timesteps = len(fid.dimensions['number_of_timesteps'])
+        number_of_points = len(fid.dimensions['number_of_points'])
+    except: # works with scientific.io.netcdf
+        number_of_timesteps = fid.dimensions['number_of_timesteps']
+        number_of_points = fid.dimensions['number_of_points']
+    
+    """
+
+    #from Scientific.IO.NetCDF import NetCDFFile
+    #return NetCDFFile(file_name, netcdf_mode)
+
+    from netCDF4 import Dataset
+    return Dataset(file_name, netcdf_mode, format='NETCDF3_64BIT')
+
+    #return Dataset(file_name, netcdf_mode, format='NETCDF3_CLASSIC')
+
+
+    # COMMENT SR; Can't use scipy.io.netcdf as we can't append to
+    # a file as of 2013/03/26
+    #from scipy.io.netcdf import netcdf_file
+    #return netcdf_file(file_name, netcdf_mode, version=2)
+
+
+
 
 class Write_nc:
     """Write an nc file.

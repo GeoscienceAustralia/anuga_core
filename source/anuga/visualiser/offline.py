@@ -1,6 +1,6 @@
 #from Numeric import array, Float, ravel, zeros
 import numpy as num
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 from Tkinter import Button, E, Tk, W, Label, StringVar, Scale, HORIZONTAL
 from visualiser import Visualiser
 from vtk import vtkCellArray, vtkPoints, vtkPolyData

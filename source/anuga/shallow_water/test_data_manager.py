@@ -17,7 +17,7 @@ import os
 import shutil
 from struct import pack, unpack
 
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 
 
 from anuga.anuga_exceptions import ANUGAError
@@ -141,19 +141,19 @@ class Test_Data_Manager(Test_Mux):
             fid.createVariable(long_name,netcdf_float,(long_name,))
             fid.variables[long_name].point_spacing='uneven'
             fid.variables[long_name].units='degrees_east'
-            fid.variables[long_name].assignValue(longitudes)
+            fid.variables[long_name][:] = longitudes
 
             fid.createDimension(lat_name,ny)
             fid.createVariable(lat_name,netcdf_float,(lat_name,))
             fid.variables[lat_name].point_spacing='uneven'
             fid.variables[lat_name].units='degrees_north'
-            fid.variables[lat_name].assignValue(latitudes)
+            fid.variables[lat_name][:] = latitudes
 
             fid.createDimension('TIME',six)
             fid.createVariable('TIME',netcdf_float,('TIME',))
             fid.variables['TIME'].point_spacing='uneven'
             fid.variables['TIME'].units='seconds'
-            fid.variables['TIME'].assignValue([0.0, 0.1, 0.6, 1.1, 1.6, 2.1])
+            fid.variables['TIME'][:] = [0.0, 0.1, 0.6, 1.1, 1.6, 2.1]
 
 
             name = ext[1:3].upper()
@@ -162,7 +162,7 @@ class Test_Data_Manager(Test_Mux):
             fid.variables[name].units='CENTIMETERS'
             fid.variables[name].missing_value=-1.e+034
 
-            fid.variables[name].assignValue([[[0.3400644, 0, -46.63519, -6.50198],
+            fid.variables[name][:] = [[[0.3400644, 0, -46.63519, -6.50198],
                                               [-0.1214216, 0, 0, 0],
                                               [0, 0, 0, 0],
                                               [0, 0, 0, 0]],
@@ -185,7 +185,7 @@ class Test_Data_Manager(Test_Mux):
                                              [[0.3400644, 0.0004811212, -23.26012, -6.50198],
                                               [-0.1209405, 0.0009771062, 0.02527271, 2.617787e-005],
                                               [0.0004811212, 0.0009622425, 0.0009599366, 8.152277e-007],
-                                              [0, 0.0004811212, 0.0004811212, 0]]])
+                                              [0, 0.0004811212, 0.0004811212, 0]]]
 
 
             fid.close()
@@ -494,7 +494,6 @@ class Test_Data_Manager(Test_Mux):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'
@@ -548,7 +547,6 @@ class Test_Data_Manager(Test_Mux):
         """
 
         import time, os, config
-        from Scientific.IO.NetCDF import NetCDFFile
 
         self.domain.set_name('synctest')
         self.domain.format = 'sww'
@@ -595,7 +593,6 @@ class Test_Data_Manager(Test_Mux):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'

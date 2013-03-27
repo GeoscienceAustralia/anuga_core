@@ -59,7 +59,7 @@ def ferret2sww(basename_in, name_out=None,
     counting vertices from lower left corner upwards, then right
     """
 
-    from Scientific.IO.NetCDF import NetCDFFile
+    from anuga.file.netcdf import NetCDFFile
 
     _assert_lat_long(minlat, maxlat, minlon, maxlon)
 
@@ -175,11 +175,11 @@ def ferret2sww(basename_in, name_out=None,
     elevations = file_e.variables[zname][kmin:kmax, lmin:lmax]
 
     # Get missing values
-    nan_ha = file_h.variables['HA'].missing_value[0]
-    nan_ua = file_u.variables['UA'].missing_value[0]
-    nan_va = file_v.variables['VA'].missing_value[0]
+    nan_ha = file_h.variables['HA'].missing_value
+    nan_ua = file_u.variables['UA'].missing_value
+    nan_va = file_v.variables['VA'].missing_value
     if hasattr(file_e.variables[zname],'missing_value'):
-        nan_e  = file_e.variables[zname].missing_value[0]
+        nan_e  = file_e.variables[zname].missing_value
     else:
         nan_e = None
 

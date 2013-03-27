@@ -63,7 +63,7 @@ def _dem2pts(name_in, name_out=None, verbose=False,
     # FIXME: Can this be written feasibly using write_pts?
 
     import os
-    from Scientific.IO.NetCDF import NetCDFFile
+    from anuga.file.netcdf import NetCDFFile
 
     root = name_in[:-4]
 
@@ -85,17 +85,17 @@ def _dem2pts(name_in, name_out=None, verbose=False,
 
     if verbose: log.critical('Reading DEM from %s' % (name_in))
 
-    ncols = infile.ncols[0]
-    nrows = infile.nrows[0]
-    xllcorner = infile.xllcorner[0]  # Easting of lower left corner
-    yllcorner = infile.yllcorner[0]  # Northing of lower left corner
-    cellsize = infile.cellsize[0]
-    NODATA_value = infile.NODATA_value[0]
+    ncols = infile.ncols
+    nrows = infile.nrows
+    xllcorner = infile.xllcorner  # Easting of lower left corner
+    yllcorner = infile.yllcorner  # Northing of lower left corner
+    cellsize = infile.cellsize
+    NODATA_value = infile.NODATA_value
     dem_elevation = infile.variables['elevation']
 
-    zone = infile.zone[0]
-    false_easting = infile.false_easting[0]
-    false_northing = infile.false_northing[0]
+    zone = infile.zone
+    false_easting = infile.false_easting
+    false_northing = infile.false_northing
 
     # Text strings
     projection = infile.projection

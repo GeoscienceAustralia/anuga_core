@@ -7,7 +7,7 @@
 """
 
 #non ANUGA imports
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 import numpy as num
 import os.path
 import os
@@ -37,8 +37,6 @@ def sww2obj(filename, size):
         basefilename Stem of filename, needs size and extension added.
         size The number of lines to write.
     """
-
-    from Scientific.IO.NetCDF import NetCDFFile
 
     if filename[-4:] != '.sww':
         raise IOError('Output file %s should be of type .sww.' % sww_file)
@@ -185,8 +183,6 @@ def timefile2netcdf(file_text, file_out = None, quantity_names=None, \
     assert num.alltrue(T[1:] - T[:-1] > 0), msg
 
     #Create NetCDF file
-    from Scientific.IO.NetCDF import NetCDFFile
-
     fid = NetCDFFile(file_out, netcdf_mode_w)
 
     fid.institution = 'Geoscience Australia'

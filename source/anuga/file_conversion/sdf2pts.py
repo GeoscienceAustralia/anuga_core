@@ -91,7 +91,7 @@ Only the SURFACE LINE data of the following form will be utilised
     """
 
     import os
-    from Scientific.IO.NetCDF import NetCDFFile
+    from anuga.file.netcdf import NetCDFFile
 
     if name_in[-4:] != '.sdf':
         raise IOError('Input file %s should be of type .sdf.' % name_in)

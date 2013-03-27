@@ -39,7 +39,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
 
         #Setup
 
@@ -199,7 +199,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
 
         # Setup
         from mesh_factory import rectangular
@@ -325,7 +325,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
 
         # Setup
         from mesh_factory import rectangular
@@ -427,7 +427,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
+        from anuga.file.netcdf import NetCDFFile
 
         # Setup
         from mesh_factory import rectangular

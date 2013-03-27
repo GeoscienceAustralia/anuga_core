@@ -5,7 +5,7 @@ import os.path
 from math import pi, sqrt
 import tempfile
 
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 from anuga.file.sww import extent_sww
 
 from anuga.config import g, epsilon
@@ -1824,7 +1824,6 @@ class Test_Shallow_Water(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
         from mesh_factory import rectangular
 
         # Create basic mesh (20m x 3m)
@@ -1915,7 +1914,6 @@ class Test_Shallow_Water(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
         from mesh_factory import rectangular
 
         # Create basic mesh (20m x 3m)
@@ -6038,7 +6036,6 @@ class Test_Shallow_Water(unittest.TestCase):
         domain2.set_quantity('stage', 0)
 
         # Read results for specific timesteps t=1 and t=2
-        from Scientific.IO.NetCDF import NetCDFFile
         fid = NetCDFFile(domain1.get_name() + '.sww')
 
         x = fid.variables['x'][:]
@@ -6211,7 +6208,6 @@ class Test_Shallow_Water(unittest.TestCase):
         domain2.set_quantity('stage', 0)
 
         # Read results for specific timesteps t=1 and t=2
-        from Scientific.IO.NetCDF import NetCDFFile
         fid = NetCDFFile(domain1.get_name() + '.sww')
 
         x = fid.variables['x'][:]
@@ -6387,7 +6383,6 @@ class Test_Shallow_Water(unittest.TestCase):
         domain2.set_quantity('stage', 0)
 
         # Read results for specific timesteps t=1 and t=2
-        from Scientific.IO.NetCDF import NetCDFFile
         fid = NetCDFFile(domain1.get_name() + '.sww')
 
         x = fid.variables['x'][:]
@@ -7583,7 +7578,6 @@ friction  \n \
         
             
         # Check that quantities have been stored correctly    
-        from Scientific.IO.NetCDF import NetCDFFile
         sww_file = domain.get_name() + '.sww'
         fid = NetCDFFile(sww_file)
 

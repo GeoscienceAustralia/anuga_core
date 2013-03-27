@@ -1,6 +1,6 @@
 import os
 import numpy as num
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 
 from anuga.file.urs import Read_urs
 

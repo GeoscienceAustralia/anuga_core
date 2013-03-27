@@ -16,7 +16,7 @@ from anuga.config import netcdf_float, netcdf_float32, netcdf_int
 from anuga.config import max_float
 from anuga.utilities.numerical_tools import ensure_numeric
 import anuga.utilities.log as log
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 
 from sts import Write_sts
 
@@ -66,7 +66,6 @@ class SWW_file(Data_format):
 
     def __init__(self, domain, 
                  mode=netcdf_mode_w, max_size=2000000000, recursion=False):
-        from Scientific.IO.NetCDF import NetCDFFile
 
         self.precision = netcdf_float32 # Use single precision for quantities
         self.recursion = recursion
@@ -102,7 +101,7 @@ class SWW_file(Data_format):
         # NetCDF file definition
         fid = NetCDFFile(self.filename, mode)
         if mode[0] == 'w':
-            description = 'Output from anuga.file.sww' \
+            description = 'Output from anuga.file.sww ' \
                           'suitable for plotting'
                           
             self.writer = Write_sww(static_quantities, dynamic_quantities)
@@ -164,7 +163,6 @@ class SWW_file(Data_format):
         # FIXME: Change name to reflect the fact thta this function 
         # stores both connectivity (triangulation) and static quantities
         
-        from Scientific.IO.NetCDF import NetCDFFile
 
         domain = self.domain
 
@@ -210,7 +208,6 @@ class SWW_file(Data_format):
         """Store time and time dependent quantities
         """
 
-        from Scientific.IO.NetCDF import NetCDFFile
         import types
         from time import sleep
         from os import stat
@@ -565,7 +562,7 @@ class Write_sww(Write_sts):
         outfile.createVariable('x', sww_precision, ('number_of_points',))
         outfile.createVariable('y', sww_precision, ('number_of_points',))
 
-        outfile.createVariable('volumes', netcdf_int, ('number_of_volumes',
+        outfile.createVariable('volumes', netcdf_int , ('number_of_volumes',
                                                        'number_of_vertices'))
 
 
@@ -585,6 +582,9 @@ class Write_sww(Write_sts):
         
         self.write_dynamic_quantities(outfile, self.dynamic_quantities, times, \
                                         precis = sww_precision)
+
+
+        outfile.sync()
 
 
 
@@ -638,7 +638,9 @@ class Write_sww(Write_sts):
         """
 
         number_of_points = len(points_utm)
-        volumes = num.array(volumes)
+        volumes = num.array(volumes,num.int32).reshape(-1,3)
+
+
         points_utm = num.array(points_utm)
 
         # Given the two geo_refs and the points, do the stuff
@@ -667,8 +669,8 @@ class Write_sww(Write_sts):
         x =  points[:,0]
         y =  points[:,1]
 
-        x = x.astype(netcdf_float32)
-        y = y.astype(netcdf_float32)
+        #x = x.astype(netcdf_float32)
+        #y = y.astype(netcdf_float32)
         
 
         if verbose:
@@ -687,7 +689,14 @@ class Write_sww(Write_sts):
 
         outfile.variables['x'][:] = x #- geo_ref.get_xllcorner()
         outfile.variables['y'][:] = y #- geo_ref.get_yllcorner()
-        outfile.variables['volumes'][:] = volumes.astype(num.int32) #On Opteron 64
+
+
+        msg = 'Mismatch between shape of volumes array and (number_of_volumes , 3)'
+        assert volumes.shape == outfile.variables['volumes'].shape, msg
+
+        outfile.variables['volumes'][:] = volumes
+
+        outfile.sync()
 
 
     def store_parallel_data(self,
@@ -732,6 +741,9 @@ class Write_sww(Write_sts):
         #print outfile.variables['tri_full_flag'].shape
 
         outfile.variables['tri_full_flag'][:] = tri_full_flag.astype(num.int32)
+
+
+        outfile.sync()
 
 
     def store_static_quantities(self, 
@@ -781,7 +793,7 @@ class Write_sww(Write_sts):
         #    outfile.variables['z'][:] = outfile.variables['elevation'][:]
 
                     
-                    
+        outfile.sync()
         
         
     def store_quantities(self, 
@@ -850,6 +862,11 @@ class Write_sww(Write_sts):
                 if q_values_max > q_range[1]:
                     outfile.variables[q + Write_sww.RANGE][1] = q_values_max
 
+
+        outfile.sync()
+
+        
+
     def verbose_quantities(self, outfile):
         log.critical('------------------------------------------------')
         log.critical('More Statistics:')
@@ -872,7 +889,6 @@ def extent_sww(file_name):
     A list: [min(x),max(x),min(y),max(y),min(stage.flat),max(stage.flat)]
     """
 
-    from Scientific.IO.NetCDF import NetCDFFile
 
     #Get NetCDF
     fid = NetCDFFile(file_name, netcdf_mode_r)
@@ -902,7 +918,6 @@ def load_sww_as_domain(filename, boundary=None, t=None,
     give a different final boundary, or crash.
     """
     
-    from Scientific.IO.NetCDF import NetCDFFile
     from anuga.shallow_water.shallow_water_domain import Domain
 
     # initialise NaN.
@@ -919,12 +934,13 @@ def load_sww_as_domain(filename, boundary=None, t=None,
     # Get the variables as numeric arrays
     x = fid.variables['x'][:]                   # x-coordinates of vertices
     y = fid.variables['y'][:]                   # y-coordinates of vertices
-    elevation = fid.variables['elevation']      # Elevation
-    stage = fid.variables['stage']              # Water level
-    xmomentum = fid.variables['xmomentum']      # Momentum in the x-direction
-    ymomentum = fid.variables['ymomentum']      # Momentum in the y-direction
+    #elevation = fid.variables['elevation']      # Elevation
+    #stage = fid.variables['stage']              # Water level
+    #xmomentum = fid.variables['xmomentum']      # Momentum in the x-direction
+    #ymomentum = fid.variables['ymomentum']      # Momentum in the y-direction
 
-    starttime = fid.starttime[0]
+    starttime = fid.starttime
+    #starttime = fid.starttime[0]
     volumes = fid.variables['volumes'][:]       # Connectivity
     coordinates = num.transpose(num.asarray([x.tolist(), y.tolist()]))
     # FIXME (Ole): Something like this might be better:
@@ -1077,26 +1093,30 @@ def get_mesh_and_quantities_from_file(filename,
     # FIXME (Ole): Maybe refactor filefunction using this more fundamental code.
 
     import types
-    from Scientific.IO.NetCDF import NetCDFFile
     from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 
     if verbose: log.critical('Reading from %s' % filename)
 
     fid = NetCDFFile(filename, netcdf_mode_r)    # Open existing file for read
     time = fid.variables['time'][:]    # Time vector
-    time += fid.starttime[0]
+    #time += fid.starttime[0]
+    time += fid.starttime
 
     # Get the variables as numeric arrays
     x = fid.variables['x'][:]                   # x-coordinates of nodes
     y = fid.variables['y'][:]                   # y-coordinates of nodes
+
+
     elevation = fid.variables['elevation'][:]   # Elevation
     stage = fid.variables['stage'][:]           # Water level
     xmomentum = fid.variables['xmomentum'][:]   # Momentum in the x-direction
     ymomentum = fid.variables['ymomentum'][:]   # Momentum in the y-direction
 
+
+
     # Mesh (nodes (Mx2), triangles (Nx3))
     nodes = num.concatenate((x[:,num.newaxis], y[:,num.newaxis]), axis=1)
-    triangles = fid.variables['volumes'][:]
+    triangles = fid.variables['volumes']
 
     # Get geo_reference
     try:

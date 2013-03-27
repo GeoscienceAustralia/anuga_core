@@ -63,7 +63,7 @@ def _convert_dem_from_ascii2netcdf(name_in, name_out = None,
     """
 
     import os
-    from Scientific.IO.NetCDF import NetCDFFile
+    from anuga.file.netcdf import NetCDFFile
 
     root = name_in[:-4]
 

@@ -11,7 +11,7 @@ from string import lower
 from copy import deepcopy
 import copy
 
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 import numpy as num
 from numpy.random import randint, seed
 
@@ -1048,7 +1048,12 @@ def _read_pts_file_header(fid, verbose=False):
     except AttributeError, e:
         geo_reference = None
 
-    return geo_reference, keys, fid.dimensions['number_of_points']
+    try: # netcdf4
+        number_of_points = len(fid.dimensions['number_of_points'])
+    except: #scientific python
+        number_of_points = fid.dimensions['number_of_points']
+        
+    return geo_reference, keys, number_of_points
 
 
 def _read_pts_file_blocking(fid, start_row, fin_row, keys):

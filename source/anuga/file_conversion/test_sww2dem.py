@@ -4,6 +4,7 @@ import numpy as num
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.config import netcdf_mode_r
+from anuga.file.netcdf import NetCDFFile
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      DEFAULT_ZONE
@@ -84,7 +85,6 @@ class Test_Sww2Dem(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         # Setup
         self.domain.set_name('datatest')
@@ -123,9 +123,9 @@ class Test_Sww2Dem(unittest.TestCase):
         stage = fid.variables['stage'][:]
         
         # Check georeferencig: zone, xllcorner and yllcorner
-        assert fid.zone[0] == 56
-        assert fid.xllcorner[0] == 308500
-        assert fid.yllcorner[0] == 6189000
+        assert fid.zone == 56
+        assert fid.xllcorner == 308500
+        assert fid.yllcorner == 6189000
                 
 
         fid.close()
@@ -299,7 +299,6 @@ class Test_Sww2Dem(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         #Create basic mesh (100m x 100m)
         points, vertices, boundary = rectangular(2, 2, 100, 100)
@@ -465,7 +464,6 @@ class Test_Sww2Dem(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         #Setup
 
@@ -659,7 +657,6 @@ class Test_Sww2Dem(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         #Setup
 
@@ -824,7 +821,6 @@ class Test_Sww2Dem(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         #Setup
         self.domain.set_name('datatest')
@@ -932,7 +928,6 @@ class Test_Sww2Dem(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         #Setup
         self.domain.set_name('datatest')
@@ -1037,7 +1032,6 @@ class Test_Sww2Dem(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         #Setup
         self.domain.set_name('datatest')
@@ -1151,7 +1145,6 @@ class Test_Sww2Dem(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         #Setup mesh not coinciding with rectangle.
         #This will cause missing values to occur in gridded data
@@ -1297,7 +1290,6 @@ class Test_Sww2Dem(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
 
         NODATA_value = 1758323
@@ -1395,7 +1387,6 @@ class Test_Sww2Dem(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         base_name = 'tegp'
         #Setup
@@ -1526,7 +1517,6 @@ class Test_Sww2Dem(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         try:
             os.remove('teg*.sww')
@@ -1610,7 +1600,6 @@ class Test_Sww2Dem(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         try:
             os.remove('teg*.sww')
@@ -1746,7 +1735,6 @@ class Test_Sww2Dem(unittest.TestCase):
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         try:
             os.remove('teg*.sww')

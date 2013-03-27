@@ -1,6 +1,6 @@
 import os
 import numpy as num
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 import pylab as P
 
 import anuga
@@ -36,7 +36,7 @@ def sts2sww_mesh(basename_in, basename_out=None,
     refzone = infile.zone
     x_origin = infile.xllcorner
     y_origin = infile.yllcorner
-    origin = num.array([x_origin[0], y_origin[0]])
+    origin = num.array([x_origin, y_origin])
     x = infile.variables['x'][:]
     y = infile.variables['y'][:]
     times = infile.variables['time'][:]

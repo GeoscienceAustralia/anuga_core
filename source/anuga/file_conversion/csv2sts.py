@@ -56,7 +56,7 @@
 import sys
 import getopt
 from anuga.utilities import log
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 from anuga.file.csv_file import load_csv_as_dict
 from anuga.config import netcdf_mode_w, netcdf_float
 
@@ -97,7 +97,7 @@ def csv2sts(infile, outfile, latitude = None, longitude = None,
     for col in col_names:
         fid.createVariable(col, netcdf_float, ('number_of_timesteps',))
         
-        fid.variables[col].assignValue(timeseries_data[col])
+        fid.variables[col][:] = timeseries_data[col]
 
     fid.close()
 

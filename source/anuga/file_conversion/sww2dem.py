@@ -130,7 +130,7 @@ def sww2dem(name_in, name_out,
         log.critical('Reading from %s' % name_in)
         log.critical('Output directory is %s' % name_out)
 
-    from Scientific.IO.NetCDF import NetCDFFile
+    from anuga.file.netcdf import NetCDFFile
     fid = NetCDFFile(name_in)
 
     #Get extent and reference
@@ -142,8 +142,14 @@ def sww2dem(name_in, name_out,
     else:
         times = fid.variables['time'][:]
 
-    number_of_timesteps = fid.dimensions['number_of_timesteps']
-    number_of_points = fid.dimensions['number_of_points']
+    try: # works with netcdf4
+        number_of_timesteps = len(fid.dimensions['number_of_timesteps'])
+        number_of_points = len(fid.dimensions['number_of_points'])
+    except: #works with scientific.io.netcdf
+        number_of_timesteps = fid.dimensions['number_of_timesteps']
+        number_of_points = fid.dimensions['number_of_points']
+
+
 
     if origin is None:
         # Get geo_reference
@@ -215,6 +221,8 @@ def sww2dem(name_in, name_out,
         raise Exception, msg
 
     # Create result array and start filling, block by block.
+
+
     result = num.zeros(number_of_points, num.float)
 
     if verbose:

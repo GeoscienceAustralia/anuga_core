@@ -5,7 +5,7 @@ import os.path
 from math import pi, sqrt
 import tempfile
 
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 from anuga.file.sww import extent_sww
 
 from anuga.config import g, epsilon

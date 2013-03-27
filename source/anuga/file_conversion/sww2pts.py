@@ -55,7 +55,7 @@ def sww2pts(name_in, name_out=None,
 
     # Read sww file
     if verbose: log.critical('Reading from %s' % name_in)
-    from Scientific.IO.NetCDF import NetCDFFile
+    from anuga.file.netcdf import NetCDFFile
     fid = NetCDFFile(name_in)
 
     # Get extent and reference
@@ -63,8 +63,15 @@ def sww2pts(name_in, name_out=None,
     y = fid.variables['y'][:]
     volumes = fid.variables['volumes'][:]
 
-    number_of_timesteps = fid.dimensions['number_of_timesteps']
-    number_of_points = fid.dimensions['number_of_points']
+
+    try: # works with netcdf4
+        number_of_timesteps = len(fid.dimensions['number_of_timesteps'])
+        number_of_points = len(fid.dimensions['number_of_points'])
+    except: #works with scientific.io.netcdf
+        number_of_timesteps = fid.dimensions['number_of_timesteps']
+        number_of_points = fid.dimensions['number_of_points']
+
+        
     if origin is None:
         # Get geo_reference
         # sww files don't have to have a geo_ref

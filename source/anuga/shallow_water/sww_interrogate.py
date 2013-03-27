@@ -322,7 +322,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
 
     from anuga.geometry.polygon import inside_polygon
     from anuga.config import minimum_allowed_height
-    from Scientific.IO.NetCDF import NetCDFFile
+    from anuga.file.netcdf import NetCDFFile
 
     dir, base = os.path.split(filename)
 

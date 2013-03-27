@@ -23,7 +23,7 @@ def dem2dem(name_in, stencil, cellsize_new, name_out=None,
     """
 
     import os
-    from Scientific.IO.NetCDF import NetCDFFile
+    from anuga.file.netcdf import NetCDFFile
 
     if name_in[-4:] != '.dem':
         raise IOError('Input file %s should be of type .dem.' % name_in)
@@ -37,15 +37,15 @@ def dem2dem(name_in, stencil, cellsize_new, name_out=None,
     if verbose: log.critical('Reading DEM from %s' % inname)
 
     # Read metadata (convert from numpy.int32 to int where appropriate)
-    ncols = int(infile.ncols[0])
-    nrows = int(infile.nrows[0])
-    xllcorner = infile.xllcorner[0]
-    yllcorner = infile.yllcorner[0]
-    cellsize = int(infile.cellsize[0])
-    NODATA_value = int(infile.NODATA_value[0])
-    zone = int(infile.zone[0])
-    false_easting = infile.false_easting[0]
-    false_northing = infile.false_northing[0]
+    ncols = int(infile.ncols)
+    nrows = int(infile.nrows)
+    xllcorner = infile.xllcorner
+    yllcorner = infile.yllcorner
+    cellsize = int(infile.cellsize)
+    NODATA_value = int(infile.NODATA_value)
+    zone = int(infile.zone)
+    false_easting = infile.false_easting
+    false_northing = infile.false_northing
     projection = infile.projection
     datum = infile.datum
     units = infile.units

@@ -23,7 +23,7 @@ import numpy as num
 import unittest
 import tempfile
 from struct import pack, unpack
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 import copy
 
 #------------------------

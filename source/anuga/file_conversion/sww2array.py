@@ -99,7 +99,7 @@ def sww2array(name_in,
         log.critical('Reading from %s' % name_in)
 
 
-    from Scientific.IO.NetCDF import NetCDFFile
+    from anuga.file.netcdf import NetCDFFile
     fid = NetCDFFile(name_in)
 
     #Get extent and reference

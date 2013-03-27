@@ -68,7 +68,7 @@ from anuga.config import netcdf_float, netcdf_char, netcdf_int
 from anuga.utilities.system_tools import *
 import anuga.utilities.log as log
 
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 
 import numpy as num
 

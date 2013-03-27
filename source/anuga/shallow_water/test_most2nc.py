@@ -1,6 +1,6 @@
 import unittest
 import numpy as num
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 import most2nc
 import os
 

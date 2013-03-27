@@ -15,7 +15,7 @@ have an undefined value.
 import numpy as num
 
 from anuga.geospatial_data.geospatial_data import ensure_absolute
-from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.netcdf import NetCDFFile
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.utilities.numerical_tools import ensure_numeric
 
@@ -296,10 +296,11 @@ def get_netcdf_file_function(filename,
 
     # Get first timestep
     try:
-        starttime = fid.starttime
+        starttime = float(fid.starttime)
     except ValueError:
         msg = 'Could not read starttime from file %s' % filename
         raise Exception(msg)
+
 
     # Get variables
     # if verbose: log.critical('Get variables'    )
