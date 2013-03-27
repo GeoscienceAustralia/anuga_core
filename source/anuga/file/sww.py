@@ -696,7 +696,7 @@ class Write_sww(Write_sts):
 
         outfile.variables['volumes'][:] = volumes
 
-        outfile.sync()
+
 
 
     def store_parallel_data(self,
@@ -742,8 +742,6 @@ class Write_sww(Write_sts):
 
         outfile.variables['tri_full_flag'][:] = tri_full_flag.astype(num.int32)
 
-
-        outfile.sync()
 
 
     def store_static_quantities(self, 
@@ -793,7 +791,6 @@ class Write_sww(Write_sts):
         #    outfile.variables['z'][:] = outfile.variables['elevation'][:]
 
                     
-        outfile.sync()
         
         
     def store_quantities(self, 
@@ -863,7 +860,6 @@ class Write_sww(Write_sts):
                     outfile.variables[q + Write_sww.RANGE][1] = q_values_max
 
 
-        outfile.sync()
 
         
 
@@ -939,7 +935,7 @@ def load_sww_as_domain(filename, boundary=None, t=None,
     #xmomentum = fid.variables['xmomentum']      # Momentum in the x-direction
     #ymomentum = fid.variables['ymomentum']      # Momentum in the y-direction
 
-    starttime = fid.starttime
+    starttime = float(fid.starttime)
     #starttime = fid.starttime[0]
     volumes = fid.variables['volumes'][:]       # Connectivity
     coordinates = num.transpose(num.asarray([x.tolist(), y.tolist()]))

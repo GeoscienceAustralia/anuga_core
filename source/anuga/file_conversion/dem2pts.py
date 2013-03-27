@@ -85,22 +85,28 @@ def _dem2pts(name_in, name_out=None, verbose=False,
 
     if verbose: log.critical('Reading DEM from %s' % (name_in))
 
-    ncols = infile.ncols
-    nrows = infile.nrows
-    xllcorner = infile.xllcorner  # Easting of lower left corner
-    yllcorner = infile.yllcorner  # Northing of lower left corner
-    cellsize = infile.cellsize
-    NODATA_value = infile.NODATA_value
+    ncols = int(infile.ncols)
+    nrows = int(infile.nrows)
+    xllcorner = float(infile.xllcorner)  # Easting of lower left corner
+    yllcorner = float(infile.yllcorner)  # Northing of lower left corner
+    cellsize = float(infile.cellsize)
+    NODATA_value = float(infile.NODATA_value)
+
     dem_elevation = infile.variables['elevation']
 
-    zone = infile.zone
-    false_easting = infile.false_easting
-    false_northing = infile.false_northing
+    zone = int(infile.zone)
+    false_easting = float(infile.false_easting)
+    false_northing = float(infile.false_northing)
+
+    #print ncols, nrows, xllcorner,yllcorner, cellsize, NODATA_value, zone
+
 
     # Text strings
     projection = infile.projection
     datum = infile.datum
     units = infile.units
+
+    #print projection, datum, units
 
     # Get output file
     if name_out == None:
@@ -123,6 +129,9 @@ def _dem2pts(name_in, name_out=None, verbose=False,
     if easting_max is None: easting_max = xllcorner + ncols*cellsize
     if northing_min is None: northing_min = yllcorner
     if northing_max is None: northing_max = yllcorner + nrows*cellsize
+
+
+    #print easting_min, easting_max, northing_min, northing_max
 
     # Compute offsets to update georeferencing
     easting_offset = xllcorner - easting_min
@@ -234,6 +243,13 @@ def _dem2pts(name_in, name_out=None, verbose=False,
             if easting_min <= x <= easting_max \
                and northing_min <= y <= northing_max \
                and dem_elevation_r[i,j] != NODATA_value:
+
+                #print [x-easting_min, y-northing_min]
+                #print x , y
+                #print easting_min, northing_min
+                #print xllcorner, yllcorner
+                #print cellsize
+                
                 tpoints[local_index, :] = [x-easting_min, y-northing_min]
                 telev[local_index] = dem_elevation_r[i, j]
                 global_index += 1

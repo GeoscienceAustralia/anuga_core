@@ -273,9 +273,9 @@ class Generic_Domain:
 
         # Test the assumption that all full triangles are stored before
         # the ghost triangles.
-        if not num.allclose(self.tri_full_flag[:self.number_of_full_nodes], 1):
-            log.critical('WARNING: Not all full triangles are stored before '
-                             'ghost triangles')
+        #if not num.allclose(self.tri_full_flag[:self.number_of_full_nodes], 1):
+        #    log.critical('WARNING: Not all full triangles are stored before '
+        #                     'ghost triangles')
 
         # Defaults
         if verbose: log.critical('Domain: Set defaults')
