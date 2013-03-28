@@ -35,11 +35,12 @@ def NetCDFFile(file_name, netcdf_mode=netcdf_mode_r):
     try: # works with netcdf4
         number_of_timesteps = len(fid.dimensions['number_of_timesteps'])
         number_of_points = len(fid.dimensions['number_of_points'])
-    except: # works with scientific.io.netcdf
+    except: # works with Scientific.IO.NetCDF
         number_of_timesteps = fid.dimensions['number_of_timesteps']
         number_of_points = fid.dimensions['number_of_points']
     
     """
+
 
     try:
         from Scientific.IO.NetCDF import NetCDFFile
@@ -48,6 +49,7 @@ def NetCDFFile(file_name, netcdf_mode=netcdf_mode_r):
         from netCDF4 import Dataset
         return Dataset(file_name, netcdf_mode, format='NETCDF3_64BIT')
 
+    
 
     #return Dataset(file_name, netcdf_mode, format='NETCDF3_CLASSIC')
 
