@@ -14,6 +14,7 @@
 
 import os, string, sys
 
+
 NETCDF_LIB_DIR = os.getenv('NETCDF_LIB_DIR', '')
 NETCDF_INCLUDE_DIR = os.getenv('NETCDF_INCLUDE_DIR', '')
 

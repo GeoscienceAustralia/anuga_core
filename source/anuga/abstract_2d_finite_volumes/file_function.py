@@ -188,7 +188,6 @@ def _file_function(filename,
     line = fid.readline()
     fid.close()
 
-    # FIXME SR: This test doesn't seem to work with netcdf4
     if line[:3] == 'CDF':
         return get_netcdf_file_function(filename,
                                         quantities,
@@ -304,7 +303,8 @@ def get_netcdf_file_function(filename,
 
     # Get variables
     # if verbose: log.critical('Get variables'    )
-    time = fid.variables['time'][:]    
+    time = fid.variables['time'][:]
+
     # FIXME(Ole): Is time monotoneous?
 
     # Apply time limit if requested
