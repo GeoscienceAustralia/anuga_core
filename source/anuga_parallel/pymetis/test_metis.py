@@ -35,9 +35,9 @@ class TestMetis(unittest.TestCase):
                                                      0, 6, 1],\
                                                     1,\
                                                     3,)
-        print edgecut
-        print epart
-        print npart
+        #print edgecut
+        #print epart
+        #print npart
         epart_expected = array([2, 2, 0, 0, 0, 0], 'i')
         npart_expected = array([0, 2, 2, 2, 0, 0, 0], 'i')
         self.assert_(edgecut == 5)
@@ -66,9 +66,9 @@ class TestMetis(unittest.TestCase):
                                                      0, 1, 6],\
                                                     1,\
                                                     2,)
-        print edgecut
-        print epart
-        print npart
+        #print edgecut
+        #print epart
+        #print npart
         epart_expected = array([1, 0, 0, 0, 1, 1], 'i')
         npart_expected = array([0, 1, 1, 0, 0, 0, 1], 'i')
         self.assert_(edgecut == 5)
@@ -102,9 +102,9 @@ class TestMetis(unittest.TestCase):
 													 3, 9, 4],\
                                                     1,\
                                                     3,)
-        print edgecut
-        print epart
-        print npart
+        #print edgecut
+        #print epart
+        #print npart
         epart_expected = array([0, 0, 0, 1, 2, 2, 2, 2, 1, 1], 'i')
         npart_expected = array([0, 2, 0, 2, 1, 1, 2, 2, 0, 1], 'i')
         self.assert_(edgecut == 14)
