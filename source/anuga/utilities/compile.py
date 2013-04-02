@@ -14,22 +14,7 @@
 
 import os, string, sys
 
-
-NETCDF_LIB_DIR = os.getenv('NETCDF_LIB_DIR', '')
-NETCDF_INCLUDE_DIR = os.getenv('NETCDF_INCLUDE_DIR', '')
-
-#print 'NETCDF_LIB_DIR: ',NETCDF_LIB_DIR
-#print 'NETCDF_INCLUDE_DIR: ',NETCDF_INCLUDE_DIR
-
 I_dirs = ''
-if NETCDF_INCLUDE_DIR != '' :
-    I_dirs = ' -I"%s" ' % NETCDF_INCLUDE_DIR
-
-netcdf_lib_dirs = ''
-if NETCDF_LIB_DIR != '' :
-    netcdf_lib_dirs = ' -L"%s" ' % NETCDF_LIB_DIR
-
-#print 'netcdf_lib_dirs: ',netcdf_lib_dirs
 
 #NumPy ------------------------------------
 # Something like these lines recommended in "Converting from NUMARRAY to NUMPY"
@@ -332,17 +317,17 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = False, all_war
 
   # Make shared library (*.so or *.dll)
   if FN=="fitsmooth.c":
-    fitlibs = libs + netcdf_lib_dirs
+    fitlibs = libs 
     if sys.platform == 'win32':	  
       if fitlibs is "":
-        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s -lm  -fopenmp netcdf.dll' %(loader, sharedflag, object_files, root1, libext)
+        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s -lm  -fopenmp' %(loader, sharedflag, object_files, root1, libext)
       else:
-        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s %s -lm  -fopenmp netcdf.dll' %(loader, sharedflag, object_files, root1, libext, fitlibs)
+        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s %s -lm  -fopenmp' %(loader, sharedflag, object_files, root1, libext, fitlibs)
     else:    
       if fitlibs is "":
-        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s -lm  -fopenmp -lnetcdf' %(loader, sharedflag, object_files, root1, libext)
+        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s -lm  -fopenmp' %(loader, sharedflag, object_files, root1, libext)
       else:
-        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s %s -lm  -fopenmp -lnetcdf' %(loader, sharedflag, object_files, root1, libext, fitlibs)
+        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s %s -lm  -fopenmp' %(loader, sharedflag, object_files, root1, libext, fitlibs)
   elif FN=="quad_tree_ext.c":
     if libs is "":
       s = '%s -%s %s quad_tree.o -o %s.%s -lm  -fopenmp' %(loader, sharedflag, object_files, root1, libext)

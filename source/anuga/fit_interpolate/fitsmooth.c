@@ -10,7 +10,6 @@
 #include "util_ext.h" /* in utilities */
 #include "sparse_dok.h" /*in utilities */
 #include "quad_tree.h"
-#include <netcdf.h>
 #include "omp.h"
 
 // Errors defined for netcdf reading
@@ -23,99 +22,6 @@
 #if PY_MAJOR_VERSION>=2 && PY_MINOR_VERSION>=7 && PY_MICRO_VERSION>=3
     #define PYVERSION273
 #endif
-
-//------------------------ NET CDF READING ----------------------------
-
-// Note Padarn 06/12/12: I am removing the use of these functions from
-// the workflow of the new code. I think they should be reintroduced, but
-// to make sure all the unit tests work properly more checking of filetypes
-// etc needs to be done.
-// Note Padarn 12/12/12: These have been moved back into the workflow, 
-// but still there is no way of handling .csv or .txt files efficiently.
-
-
-// Reads a block of a netcdf file into the arrays 'point_coordiantes' and 'point_values'. The
-// block is specified by a start point (np_start) and and an end point (np_end)
-// NOTE PADARN: FIX - only reads elevation at the moment
-int _read_net_cdf_points_block(char * filename, char * attribute_name, int np_start,int np_end,double *point_coordinates,double *point_values){
-
-    //point_coordinates and _values are intitialised outside
-    int np=np_end-np_start+1;
-    int status;                       /* error status */
-    int ncid;                          /* netCDF ID */
-    int rh_id;                         /* variable ID */
-    size_t start_points[] = {np_start, 0}; /* start at first value */
-    size_t count_points[] = {np, 2};
-    size_t start[] = {np_start};
-    size_t count[] = {np};
-    
-    if ((status = nc_open(filename, NC_NOWRITE, &ncid))) ERR(status);
-
-    if ((status = nc_inq_varid(ncid, "points", &rh_id))) ERR(status);
-
-    /* read coordinates from netCDF variable */
-    if ((status = nc_get_vara_double(ncid, rh_id, start_points, count_points, point_coordinates))) ERR(status);
-
-    if ((status = nc_inq_varid(ncid, attribute_name, &rh_id))) ERR(status);
-
-    /* read values from netCDF variable */
-    if ((status = nc_get_vara_double(ncid, rh_id, start, count, point_values))) ERR(status);
-
-    if ((status = nc_close(ncid))) ERR(status);
-
-    return 0;
-
-}
-
-// Takes a netcdf file and gets the number of points stored in it (also the number of values for
-// attributes specified)
-// NOTE PADARN: FIX - uses 'points' to get points, this may be a problem.
-int _read_net_cdf_entries(char * filename,int * x){
-
-    int status;                       /* error status */
-    int ncid;
-    int p_id;
-    int ndims;
-    size_t length = {0};
-
-    if ((status = nc_open(filename, NC_NOWRITE, &ncid))) ERR(status);
-
-    if ((status = nc_inq_varid(ncid, "points", &p_id))) ERR(status);
-    
-    if((status = nc_inq_varndims(ncid, p_id, &ndims))) ERR(status);
-    
-    int * ndimsize = malloc(sizeof(int)*ndims);
-
-    if((status = nc_inq_vardimid(ncid, p_id, ndimsize))) ERR(status);
-
-    if((status = nc_inq_dimlen(ncid, ndimsize[0], &length))) ERR(status);
-
-    *x = (int)length;
-
-    if ((status = nc_close(ncid))) ERR(status);
-
-    return 0;
-
-}
-
-// Takes a netcdf file and gets the x and y corners
-int _read_net_cdf_corners(char * filename,double *xllcorner, double *yllcorner){
-
-    int status;                       /* error status */
-    int ncid;
-
-    if ((status = nc_open(filename, NC_NOWRITE, &ncid))) ERR(status);
-
-    if ((status = nc_get_att_double(ncid, NC_GLOBAL, "xllcorner", xllcorner))) ERR(status);
-    if ((status = nc_get_att_double(ncid, NC_GLOBAL, "yllcorner", yllcorner))) ERR(status);
-
-    if ((status = nc_close(ncid))) ERR(status);
-
-    return 0;
-
-}
-
-//--------------------------------------------------------------------------
 
 //-------------------------- QUANTITY FITTING ------------------------------
 
@@ -271,98 +177,6 @@ quad_tree * _build_quad_tree(int n,
 
 // Builds the AtA and Atz interpolation matrix
 // and residual. Uses a quad_tree for fast access to the triangles of the mesh.
-// This function takes a filename and an attribute name, in netcdf format .pts, 
-// and reads the attribute value and point location from this file.
-int _build_matrix_AtA_Atz_fileread(int N, long * triangles,
-                      char * filename,
-                      char * attribute_name,
-                      int blocksize,
-                      sparse_dok * AtA,
-                      double * Atz,quad_tree * quadtree)
-              {
-
-
-    int np;
-    _read_net_cdf_entries(filename,&np);
-    //n=10;
-
-    double xllcorner, yllcorner;
-    _read_net_cdf_corners(filename,&xllcorner,&yllcorner);
-
-    //printf(" xllcorner %g yllcorner %g\n",xllcorner,yllcorner);
-
-
-    double * point_coordinates = malloc(2*sizeof(double)*blocksize);
-    double * point_values = malloc(sizeof(double)*blocksize);
-    int k;
-    int left;
-
-    int i;
-    for(i=0;i<N;i++){
-        Atz[i]=0;
-    } 
-
-    edge_key_t key;
-    int w;
-    int start = 0;
-    left = np;
-
-    
-    while(left > 0){
-        if(left-blocksize<=0){
-            blocksize = left;
-        }
-
-        // Read data into arrays
-        _read_net_cdf_points_block(filename,attribute_name,start,
-        start+blocksize-1,point_coordinates,point_values);
-        
-        start = start + blocksize;
-
-            #pragma omp parallel for private(k,i,key,w)
-            for(k=0;k<blocksize;k++){
-
-
-                double x = point_coordinates[2*k]+xllcorner;
-                double y = point_coordinates[2*k+1]+yllcorner;
-                triangle * T = search(quadtree,x,y);
-
-                if(T!=NULL){
-                    double * sigma = calculate_sigma(T,x,y);
-                    int js[3];
-                    for(i=0;i<3;i++){
-                        js[i]=triangles[3*(T->index)+i];
-                    }
-                    
-                    #pragma omp critical
-                    { 
-                    for(i=0;i<3;i++){
-
-                        Atz[js[i]] += sigma[i]*point_values[k];
-
-                        for(w=0;w<3;w++){
-                            
-                            key.i=js[i];
-                            key.j=js[w];
-
-                            add_dok_entry(AtA,key,sigma[i]*sigma[w]);
-                        }                        
-                    }
-                    }
-                    free(sigma);
-                    sigma=NULL;
-                }
-
-            } 
-        
-        left=left-blocksize;
-    }
-    
-    return 0;
-}
-
-// Builds the AtA and Atz interpolation matrix
-// and residual. Uses a quad_tree for fast access to the triangles of the mesh.
 // This function takes a list of point coordinates, and associated point values
 // (for any number of attributes).
 int _build_matrix_AtA_Atz_points(int N, long * triangles,
@@ -390,7 +204,7 @@ int _build_matrix_AtA_Atz_points(int N, long * triangles,
 
 
 
-    //#pragma omp parallel for private(k,i,key,w)
+    #pragma omp parallel for private(k,i,key,w)
     for(k=0;k<npts;k++){
 
 
@@ -650,82 +464,6 @@ PyObject *build_smoothing_matrix(PyObject *self, PyObject *args) {
                   &delete_dok_cobj); 
     
     #endif
-
-}
-
-// Read a data file (netcdf format) to build
-// AtA and Atz. Returns a pointer to the sparse dok matrix AtA wrapped in a capsule
-// object and a python list for the array Atz.
-PyObject *build_matrix_AtA_Atz_fileread(PyObject *self, PyObject *args) {
-
-
-    PyArrayObject *triangles;
-    char * file_name;
-    char * attribute_name;
-    int block_size;
-    int N; // Number of triangles
-    int err;
-    PyObject *tree;
-
-    // Convert Python arguments to C
-    if (!PyArg_ParseTuple(args, "OiOssi",&tree, &N,
-                                            &triangles,
-                                            &file_name,
-                                            &attribute_name,
-                                            &block_size
-                                            )) {
-      PyErr_SetString(PyExc_RuntimeError,
-              "fitsmooth.c: could not parse input");
-      return NULL;
-    }
-
-    
-
-    CHECK_C_CONTIG(triangles);
-
-    #ifdef PYVERSION273
-    quad_tree * quadtree = (quad_tree*) PyCapsule_GetPointer(tree,"quad tree");
-    #else
-    quad_tree * quadtree = (quad_tree*) PyCObject_AsVoidPtr(tree);
-    #endif
-
-    sparse_dok * dok_AtA; // Should be an input argument?
-    dok_AtA = make_dok();
-    double * Atz = malloc(sizeof(double)*N);
-
-    err = _build_matrix_AtA_Atz_fileread(N,(long*) triangles->data,
-                      file_name,
-                      attribute_name,
-                      block_size,
-                      dok_AtA,
-                      Atz,
-                      quadtree);
-
-    if (err != 0) {
-      PyErr_SetString(PyExc_RuntimeError,
-              "Unknown Error");
-      return NULL;
-    }
-
-    #ifdef PYVERSION273
-    PyObject * AtA_cap =  PyCapsule_New((void*) dok_AtA,
-                  "sparse dok",
-                  &delete_dok_cap);
-    #else
-    PyObject * AtA_cap =  PyCObject_FromVoidPtr((void*) dok_AtA,
-                  &delete_dok_cobj);
-    #endif
-
-    PyObject *Atz_ret = c_double_array_to_list(Atz,N); 
-
-    int npts;
-    err = _read_net_cdf_entries(file_name, &npts);
-
-    PyObject *lst = PyList_New(3);
-    PyList_SET_ITEM(lst, 0, AtA_cap);
-    PyList_SET_ITEM(lst, 1, Atz_ret);
-    PyList_SET_ITEM(lst, 2, PyInt_FromLong((long)npts));
-    return lst;
 
 }
 
@@ -1120,7 +858,6 @@ static struct PyMethodDef MethodTable[] = {
 	{"build_matrix_B",build_matrix_B, METH_VARARGS, "Print out"},
     {"build_quad_tree",build_quad_tree, METH_VARARGS, "Print out"},
     {"build_smoothing_matrix",build_smoothing_matrix, METH_VARARGS, "Print out"},
-    {"build_matrix_AtA_Atz_fileread",build_matrix_AtA_Atz_fileread, METH_VARARGS, "Print out"},
     {"build_matrix_AtA_Atz_points",build_matrix_AtA_Atz_points, METH_VARARGS, "Print out"},
     {"combine_partial_AtA_Atz",combine_partial_AtA_Atz, METH_VARARGS, "Print out"},
     {"individual_tree_search",individual_tree_search, METH_VARARGS, "Print out"},

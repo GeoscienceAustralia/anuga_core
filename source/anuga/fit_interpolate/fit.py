@@ -262,75 +262,14 @@ class Fit(FitInterpolate):
             self.AtA = AtA
             self.Atz = Atz
         else:
-            fitsmooth.combine_partial_AtA_Atz(self.AtA, AtA,\
+            fitsmooth.combine_partial_AtA_Atz(self.AtA, AtA, \
                     self.Atz, Atz, zdim, self.mesh.number_of_nodes)
-
-    def _build_matrix_AtA_Atz_file(self, filename, attribute_name=None, max_read_lines=500,\
-                                   verbose=False):
-        """Build:
-        AtA  m x m  interpolation matrix, and,
-        Atz  m x a  interpolation matrix where,
-        m is the number of basis functions phi_k (one per vertex)
-        a is the number of data attributes
-
-        This algorithm uses a quad tree data structure for fast binning of
-        data points.
-
-        If Ata is None, the matrices AtA and Atz are created.
-
-        This function can be called again and again, with sub-sets of
-        the point coordinates.  Call fit to get the results.
-
-        Preconditions
-        z and points are numeric
-        Point_coordindates and mesh vertices have the same origin.
-
-        The number of attributes of the data points does not change
-        """
-        # PADARN NOTE: THe following block of code is translated from
-        # things that were being done in the Geospatial_data object
-        # which is no longer required if data from file in C.
-        #---------------------------------------------------------
-        # Default attribute name here seems to only have possibility
-        # of being 'None'.
-        G_data = Geospatial_data(filename,
-                                         max_read_lines=1,
-                                         load_file_now=True,
-                                         verbose=verbose)
-
-
-        if attribute_name is None:
-            if G_data.default_attribute_name is not None:
-                attribute_name = G_data.default_attribute_name
-            else:
-                attribute_name = G_data.attributes.keys()[0]
-                # above line takes the first one from keys
-
-        if verbose is True:
-            log.critical('Using attribute %s' % attribute_name)
-            log.critical('Available attributes: %s' % (G_data.attributes.keys()))
-
-        msg = 'Attribute name %s does not exist in data set' % attribute_name
-        assert G_data.attributes.has_key(attribute_name), msg
-        #---------------------------------------------------------
-
-        # MAKE SURE READING ABSOLUTE POINT COORDINATES
-        [AtA, Atz, npts] = fitsmooth.build_matrix_AtA_Atz_fileread(self.root.root, \
-               self.mesh.number_of_nodes, \
-               self.mesh.triangles, \
-               filename, \
-               attribute_name, \
-               max_read_lines)
-        self.point_count = npts
-        self.AtA = AtA
-        self.Atz = Atz
 
     def fit(self, point_coordinates_or_filename=None, z=None,
             verbose=False,
             point_origin=None,
             attribute_name=None,
-            max_read_lines=500,
-            use_blocking_option2=True):
+            max_read_lines=1e7):
         """Fit a smooth surface to given 1d array of data points z.
 
         The smooth surface is computed at each vertex in the underlying
@@ -349,59 +288,42 @@ class Fit(FitInterpolate):
             if point_coordinates_or_filename[-4:] != ".pts":
                 use_blocking_option2 = False
 
-        # NOTE PADARN 12/12/12: Currently trying to get all blocking to be done
-        # in C, but blocking option 1, which does everything using the python
-        # interface can be used in the meantime (much slower).
+        # NOTE PADARN 29/03/13: File reading from C has been removed. Now 
+        # the input is either a set of points, or a filename which is then
+        # handled by the Geospatial_data object
 
-        #-----------------------BLOCKING OPTION 1----------------------------
-        if use_blocking_option2 is False:
+        if verbose:
+            print 'Fit.fit: Initializing'
+
+        # Use blocking to load in the point info
+        if isinstance(point_coordinates_or_filename, basestring):
+            msg = "Don't set a point origin when reading from a file"
+            assert point_origin is None, msg
+            filename = point_coordinates_or_filename
+
+            G_data = Geospatial_data(filename,
+                                     max_read_lines=max_read_lines,
+                                     load_file_now=False,
+                                     verbose=verbose)
+
+            for i, geo_block in enumerate(G_data):
+
+               # Build the array
+                points = geo_block.get_data_points(absolute=True)
+                z = geo_block.get_attributes(attribute_name=attribute_name)
+
+                self._build_matrix_AtA_Atz(points, z, attribute_name, verbose)
+
+            point_coordinates = None
+
             if verbose:
-                print 'Fit.fit: Initializing'
-
-            # Use blocking to load in the point info
-            if isinstance(point_coordinates_or_filename, basestring):
-                msg = "Don't set a point origin when reading from a file"
-                assert point_origin is None, msg
-                filename = point_coordinates_or_filename
-
-                G_data = Geospatial_data(filename,
-                                         max_read_lines=max_read_lines,
-                                         load_file_now=False,
-                                         verbose=verbose)
-
-                for i, geo_block in enumerate(G_data):
-
-                   # Build the array
-                    points = geo_block.get_data_points(absolute=True)
-                    z = geo_block.get_attributes(attribute_name=attribute_name)
-
-                    self._build_matrix_AtA_Atz(points, z, attribute_name, verbose)
-
-                point_coordinates = None
-
-                if verbose:
-                    print ''
-            else:
-                point_coordinates = point_coordinates_or_filename
-
-        #-----------------------BLOCKING OPTION 2----------------------------
+                print ''
         else:
-            if verbose:
-                print 'Fit.fit: Initializing'
+            point_coordinates = point_coordinates_or_filename
 
-            if isinstance(point_coordinates_or_filename, basestring):
-                msg = "Don't set a point origin when reading from a file"
-                assert point_origin is None, msg
-                filename = point_coordinates_or_filename
 
-                self._build_matrix_AtA_Atz_file(filename, attribute_name=attribute_name,\
-                                                verbose=verbose)
-
-                point_coordinates = None
-            else:
-                point_coordinates = point_coordinates_or_filename
-        #--------------------------------------------------------------------
-
+        # This condition either means a filename was read or the function
+        # recieved a None as input
         if point_coordinates is None:
             if verbose:
                 log.critical('Fit.fit: Warning: no data points in fit')
@@ -409,7 +331,7 @@ class Fit(FitInterpolate):
             assert self.AtA is not None, msg
             assert self.Atz is not None
 
-            # FIXME (DSG) - do  a message
+
         else:
             point_coordinates = ensure_absolute(point_coordinates,
                                                 geo_reference=point_origin)
