@@ -1611,6 +1611,7 @@ class Generic_Domain:
                 self.number_of_first_order_steps = 0
                 self.max_speed = num.zeros(N, num.float)
 
+
     def evolve_one_euler_step(self, yieldstep, finaltime):
         """One Euler Time Step
         Q^{n+1} = E(h) Q^n

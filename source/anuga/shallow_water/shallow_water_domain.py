@@ -1552,7 +1552,7 @@ class Domain(Generic_Domain):
         self.distribute_to_vertices_and_edges()
 
 
-    
+
     def evolve(self,
                yieldstep=None,
                finaltime=None,
@@ -1582,6 +1582,7 @@ class Domain(Generic_Domain):
         for t in Generic_Domain.evolve(self, yieldstep=yieldstep,
                                        finaltime=finaltime, duration=duration,
                                        skip_initial_step=skip_initial_step):
+
             # Store model data, e.g. for subsequent visualisation
             if self.store is True:
                 self.store_timestep()

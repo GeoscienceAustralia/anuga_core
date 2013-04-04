@@ -219,8 +219,8 @@ netcdf_float32 = 'f'
 ################################################################################
 
 # Determine if we can read/write large NetCDF files
-netcdf_mode_w = 'w'
-netcdf_mode_a = 'a'
+netcdf_mode_w = 'wl'
+netcdf_mode_a = 'r+'
 netcdf_mode_r = 'r'
 
 # Code to set the write mode depending on

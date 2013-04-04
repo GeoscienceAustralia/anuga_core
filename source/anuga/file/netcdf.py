@@ -42,14 +42,19 @@ def NetCDFFile(file_name, netcdf_mode=netcdf_mode_r):
     """
 
 
+
     try:
         from Scientific.IO.NetCDF import NetCDFFile
         return NetCDFFile(file_name, netcdf_mode)
     except:
         from netCDF4 import Dataset
-        return Dataset(file_name, netcdf_mode, format='NETCDF3_64BIT')
+        if netcdf_mode == 'wl' :
+            return Dataset(file_name, 'w', format='NETCDF3_64BIT')
+        else:
+            return Dataset(file_name, netcdf_mode, format='NETCDF3_64BIT')
 
-    
+#    from netCDF4 import Dataset
+#    return Dataset(file_name, netcdf_mode, format='NETCDF3_64BIT')
 
     #return Dataset(file_name, netcdf_mode, format='NETCDF3_CLASSIC')
 

@@ -204,13 +204,15 @@ class SWW_file(Data_format):
                                             
         fid.close()
 
+
     def store_timestep(self):
         """Store time and time dependent quantities
         """
 
-        import types
+        #import types
         from time import sleep
         from os import stat
+
 
         # Get NetCDF
         retries = 0
@@ -237,6 +239,7 @@ class SWW_file(Data_format):
 
         # Check to see if the file is already too big:
         time = fid.variables['time']
+
         i = len(time) + 1
         file_size = stat(self.filename)[6]
         file_size_increase = file_size / i
@@ -308,7 +311,7 @@ class SWW_file(Data_format):
                 Q = domain.quantities['elevation']
                 z, _ = Q.get_vertex_values(xy=False)                
                 
-                storable_indices = (w-z >= self.minimum_storable_height)
+                storable_indices = num.array(w-z >= self.minimum_storable_height)
             else:
                 # Very unlikely branch
                 storable_indices = None # This means take all
@@ -316,7 +319,7 @@ class SWW_file(Data_format):
             # Now store dynamic quantities
             dynamic_quantities = {}
             for name in self.writer.dynamic_quantities:
-                netcdf_array = fid.variables[name]
+                #netcdf_array = fid.variables[name]
                 
                 Q = domain.quantities[name]
                 A, _ = Q.get_vertex_values(xy=False,
@@ -362,7 +365,7 @@ class SWW_file(Data_format):
                         fid.variables[q + '.max_time'][0] = info['max_time']
 
             # Flush and close
-            fid.sync()
+            #fid.sync()
             fid.close()
 
 
@@ -792,7 +795,7 @@ class Write_sww(Write_sts):
 
                     
         
-        
+
     def store_quantities(self, 
                          outfile, 
                          sww_precision=num.float32,

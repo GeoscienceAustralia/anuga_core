@@ -25,6 +25,8 @@ ModifiedBy:
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Boundary, File_boundary
 import numpy as num
+
+import anuga.utilities.log as log
      
 
 from anuga.utilities import compile
