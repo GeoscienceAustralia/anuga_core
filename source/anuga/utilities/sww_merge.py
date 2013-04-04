@@ -29,8 +29,8 @@ def sww_merge_parallel(domain_global_name, np, verbose=False, delete_old=False):
         number_of_volumes = len(fid.dimensions['number_of_volumes'])
         number_of_points = len(fid.dimensions['number_of_points'])
     except: # works with scientific.io.netcdf
-        number_of_volumes = len(fid.dimensions['number_of_volumes'])
-        number_of_points = fid.dimensions['number_of_points']
+        number_of_volumes = int(fid.dimensions['number_of_volumes'])
+        number_of_points = int(fid.dimensions['number_of_points'])
 
     fid.close()
 
@@ -119,7 +119,7 @@ def _sww_merge(swwfiles, output, verbose=False):
         try: # works with netcdf4
             num_pts = len(fid.dimensions['number_of_points'])
         except: # works with scientific.io.netcdf
-            num_pts = fid.dimensions['number_of_points']
+            num_pts = int(fid.dimensions['number_of_points'])
 
         tri_offset += num_pts
         
@@ -232,7 +232,7 @@ def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=Fals
 
             times    = fid.variables['time'][:]
             n_steps = len(times)
-            number_of_timesteps = fid.dimensions['number_of_timesteps']
+            #number_of_timesteps = fid.dimensions['number_of_timesteps']
             #print n_steps, number_of_timesteps
             starttime = int(fid.starttime)
             
