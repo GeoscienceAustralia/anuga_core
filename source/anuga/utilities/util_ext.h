@@ -292,7 +292,7 @@ PyArrayObject *get_consecutive_array(PyObject *O, char *name) {
     } 
   */
     
-  B = (PyArrayObject*) PyObject_GetAttrString(O, name);
+  B = (PyArrayObject*) PyObject_GetAttrString(O, name);  // New Reference
 
   //printf("B = %p\n",(void*)B);
   if (!B) {
@@ -305,7 +305,7 @@ PyArrayObject *get_consecutive_array(PyObject *O, char *name) {
   
   //Convert to consecutive array
   A = (PyArrayObject*) PyArray_ContiguousFromObject((PyObject*) B, 
-						    B -> descr -> type, 0, 0);
+						    B -> descr -> type, 0, 0);   // New Reference
   
   Py_DECREF(B); //FIXME: Is this really needed??
   
@@ -329,7 +329,7 @@ double get_python_double(PyObject *O, char *name) {
   
 
   //Get double from attribute
-  TObject = PyObject_GetAttrString(O, name);
+  TObject = PyObject_GetAttrString(O, name); //New Reference
   if (!TObject) {
 	snprintf(buf, BUFFER_SIZE, "util_ext.h: get_python_double could not obtain double %s.\n", name);
 	//printf("name = %s",name);
@@ -376,7 +376,7 @@ int get_python_integer(PyObject *O, char *name) {
 PyObject *get_python_object(PyObject *O, char *name) {
   PyObject *Oout;
 
-  Oout = PyObject_GetAttrString(O, name);
+  Oout = PyObject_GetAttrString(O, name); // New Reference
   if (!Oout) {
     PyErr_SetString(PyExc_RuntimeError, "util_ext.h: get_python_object could not obtain object");
     return NULL;
@@ -390,11 +390,21 @@ PyObject *get_python_object(PyObject *O, char *name) {
 double* get_python_array_data_from_dict(PyObject *O, char *name, char *array) {
   PyObject *A;
   PyArrayObject *B;
+  double *data;
 
-  A = PyDict_GetItemString(O, name);
-  B = get_consecutive_array(A, array);
+  A = PyDict_GetItemString(O, name); // Borrowed Reference
+  if (!A) {
+    PyErr_SetString(PyExc_RuntimeError, "util_ext.h: get_python_array_from_object could not obtain object");
+    return NULL;
+  }
+  B = get_consecutive_array(A, array); // New Reference
 
-  return (double *) B->data;
+
+  data = (double *) B->data;
+
+  Py_DECREF(B);
+
+  return data;
 }
 
 

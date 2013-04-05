@@ -1033,13 +1033,15 @@ class Domain(Generic_Domain):
         msg = 'Third conserved quantity must be "ymomentum"'
         assert self.conserved_quantities[2] == 'ymomentum', msg
 
+        
+    #@profile
     def extrapolate_second_order_sw(self):
         """Fast version of extrapolation from centroids to edges"""
 
         from shallow_water_ext import extrapolate_second_order_sw as extrapol2
         extrapol2(self)
 
-
+    #@profile
     def compute_fluxes(self):
         """Compute fluxes and timestep suitable for all volumes in domain.
 
@@ -1081,11 +1083,23 @@ class Domain(Generic_Domain):
         elif self.compute_fluxes_method == 'wb_2':
             # Use standard flux calculation, but calc gravity
             # as -g h grad(w) - sum midpoint edge pressure terms
+            import objgraph
+            #print 50*"="
+            #objgraph.show_most_common_types()
+            #print objgraph.typestats(objgraph.get_leaking_objects())
+            #objgraph.show_growth()
+
             from shallow_water_ext import compute_fluxes_ext_central_structure
             from shallow_water_ext import gravity_wb as gravity_wb_c
 
             self.flux_timestep = compute_fluxes_ext_central_structure(self)
+
+            #print 50*"-"
+            #objgraph.show_most_common_types()
             gravity_wb_c(self)
+
+            #print 50*"-"
+            #objgraph.show_most_common_types()
 
         elif self.compute_fluxes_method == 'wb_3':
             # Calculate pure flux terms with simpsons rule, and

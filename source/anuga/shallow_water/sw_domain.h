@@ -253,6 +253,23 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     D->ymom_explicit_update  = get_python_array_data_from_dict(quantities, "ymomentum", "explicit_update");
 
 
+    Py_DECREF(quantities);
+
+    Py_DECREF(neighbours);
+    Py_DECREF(surrogate_neighbours);
+    Py_DECREF(neighbour_edges);
+    Py_DECREF(normals);
+    Py_DECREF(edgelengths);
+    Py_DECREF(radii);
+    Py_DECREF(areas);
+    Py_DECREF(tri_full_flag);
+    Py_DECREF(already_computed_flux);
+    Py_DECREF(vertex_coordinates);
+    Py_DECREF(edge_coordinates);
+    Py_DECREF(centroid_coordinates);
+    Py_DECREF(max_speed);
+    Py_DECREF(number_of_boundaries);
+
     return D;
 }
 

@@ -1926,6 +1926,7 @@ PyObject *gravity(PyObject *self, PyObject *args) {
         D.ymom_explicit_update[k] += -g * zy*avg_h;
     }
 
+
     return Py_BuildValue("");
 }
 
@@ -2769,6 +2770,7 @@ int _extrapolate_second_order_sw(struct domain *D) {
     beta_vh                = D->beta_vh;
     beta_vh_dry            = D->beta_vh_dry;
     optimise_dry_cells     = D->optimise_dry_cells;
+
     extrapolate_velocity_second_order = D->extrapolate_velocity_second_order;
 
     surrogate_neighbours      = D->surrogate_neighbours;
@@ -5481,7 +5483,7 @@ PyObject *compute_fluxes_ext_central_structure(PyObject *self, PyObject *args) {
     // the explicit update arrays
     timestep = _compute_fluxes_central_structure(&D);
 
-
+    
     return Py_BuildValue("d", timestep);
 }
 
@@ -5532,6 +5534,7 @@ PyObject *compute_fluxes_ext_wb(PyObject *self, PyObject *args) {
     // Call underlying flux computation routine and update
     // the explicit update arrays
     timestep = _compute_fluxes_central_wb(&D);
+
 
 
     return Py_BuildValue("d", timestep);
