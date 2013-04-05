@@ -1083,23 +1083,13 @@ class Domain(Generic_Domain):
         elif self.compute_fluxes_method == 'wb_2':
             # Use standard flux calculation, but calc gravity
             # as -g h grad(w) - sum midpoint edge pressure terms
-            import objgraph
-            #print 50*"="
-            #objgraph.show_most_common_types()
-            #print objgraph.typestats(objgraph.get_leaking_objects())
-            #objgraph.show_growth()
 
             from shallow_water_ext import compute_fluxes_ext_central_structure
             from shallow_water_ext import gravity_wb as gravity_wb_c
 
             self.flux_timestep = compute_fluxes_ext_central_structure(self)
-
-            #print 50*"-"
-            #objgraph.show_most_common_types()
             gravity_wb_c(self)
 
-            #print 50*"-"
-            #objgraph.show_most_common_types()
 
         elif self.compute_fluxes_method == 'wb_3':
             # Calculate pure flux terms with simpsons rule, and
