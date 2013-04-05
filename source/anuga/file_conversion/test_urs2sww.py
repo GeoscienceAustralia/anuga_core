@@ -190,8 +190,6 @@ class Test_Dem2Pts(Test_Mux):
                     [-20.6, 114.6],
                     [-20.5, 115.5],
                     [-20.6, 115.4],
-                    
-                    
                     [-21.5, 114.5],
                     [-21.4, 114.6],
                     [-21.5, 115.5],
@@ -212,7 +210,7 @@ class Test_Dem2Pts(Test_Mux):
         sww_file = base_name + '.sww'
         fid = NetCDFFile(sww_file)
         
-        volumes = fid.variables['volumes']
+        volumes = fid.variables['volumes'][:]
         #print "number_of_volumes",len(volumes)
 
         fid.close()
@@ -224,7 +222,7 @@ class Test_Dem2Pts(Test_Mux):
         sww_file = base_name + '.sww'
         fid = NetCDFFile(sww_file)
         
-        volumes_again = fid.variables['volumes']
+        volumes_again = fid.variables['volumes'][:]
         #print "number_of_volumes",len(volumes_again) 
         assert num.allclose(len(volumes_again),
                             len(volumes))
