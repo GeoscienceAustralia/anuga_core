@@ -1,0 +1,54 @@
+=======================================	
+ANUGA Hydrodynamic Inundation Modelling
+=======================================	
+
+
+Copyright 2004, 2005, 2006, 2007, 2008, 2009, 2010 Australian National University and Geoscience Australia. All rights reserved.
+
+
+Permission to use, copy, modify, and distribute this software for any
+purpose without fee is hereby granted under the terms of the GNU
+General Public License as published by the Free Software Foundation;
+either version 2 of the License, or (at your option) any later
+version, provided that this entire notice is included in all copies
+of any software which is or includes a copy or modification of this
+software and in all copies of the supporting documentation for such
+software.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License (http://www.gnu.org/copyleft/gpl.html)
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+
+
+
+This work was produced at Geoscience Australia and the Australian
+National University funded by the Commonwealth of Australia. Neither
+the Australian Government, the Australian National University,
+Geoscience Australia nor any of their employees, makes any warranty,
+express or implied, or assumes any liability or responsibility for
+the accuracy, completeness, or usefulness of any information,
+apparatus, product, or process disclosed, or represents that its use
+would not infringe privately-owned rights. Reference herein to any
+specific commercial products, process, or service by trade name,
+trademark, manufacturer, or otherwise, does not necessarily
+constitute or imply its endorsement, recommendation, or favoring by
+the Australian Government, Geoscience Australia or the Australian
+National University.  The views and opinions of authors expressed
+herein do not necessarily state or reflect those of the Australian
+Government, Geoscience Australia or the Australian National
+University, and shall not be used for advertising or product
+endorsement purposes.
+
+
+This document does not convey a warranty, express or implied,
+of merchantability or fitness for a particular purpose.
+
+
+
+
