@@ -32,7 +32,7 @@ import anuga.utilities.system_tools as aust
 exclude_files = []
 
 # Directories that should not be searched for test files.
-exclude_dirs = ['shallow_water_balanced' , 'damage_modelling', # Special requirements
+exclude_dirs = ['shallow_water_balanced' , #'damage_modelling', # Special requirements
                 '.svn',          # subversion
                 'props', 'wcprops', 'prop-base', 'text-base', 'tmp']
 
@@ -196,6 +196,19 @@ def check_anuga_import():
 if __name__ == '__main__':
     from optparse import OptionParser
 
+    import os
+    for file in os.listdir('.'):
+        if file.endswith('.sww') or\
+                file.endswith('.msh') or\
+                file.endswith('.csv') or\
+                file.endswith('.asc') or\
+                file.endswith('.prj') or\
+                file.endswith('.tsh') or\
+                file.endswith('.sts') or\
+                file.endswith('.tms') or\
+                file.endswith('.txt'):
+            os.remove(file)
+
     check_anuga_import()
 
     # check the commandline params
@@ -237,5 +250,21 @@ if __name__ == '__main__':
         #fid.close() # This was causing an error in windows
         #os.remove(filename)
     
-    #if sys.platform == 'win32':
-    #    raw_input('Press the RETURN key')
+
+
+    import os
+    for file in os.listdir('.'):
+        if file.endswith('.sww') or\
+                file.endswith('.msh') or\
+                file.endswith('.csv') or\
+                file.endswith('.asc') or\
+                file.endswith('.prj') or\
+                file.endswith('.tsh') or\
+                file.endswith('.sts') or\
+                file.endswith('.tms') or\
+                file.endswith('.txt'):
+            try:
+                os.remove(file)
+            except:
+                pass
+            

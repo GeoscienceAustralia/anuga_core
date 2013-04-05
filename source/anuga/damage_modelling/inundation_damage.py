@@ -5,7 +5,8 @@
 """
 import os
 from math import sqrt
-from Scientific.Functions.Interpolation import InterpolatingFunction
+#from Scientific.Functions.Interpolation import InterpolatingFunction
+from scipy.interpolate import interp1d
 from random import choice
 
 import numpy as num
@@ -207,7 +208,8 @@ class EventDamageModel:
     MAX_DEPTH_TITLE = "MAX_DEPTH_m" #"Inundation height above ground floor (m)"
     STRUCT_COLLAPSED_TITLE = "STRUCT_COLLAPSED"#"collapsed structure if 1"
     STRUCT_INUNDATED_TITLE = "STRUCT_INUNDATED"#"inundated structure if 1"
-    double_brick_damage_array = num.array([[-kinds.default_float_kind.MAX, 0.0],
+    double_brick_damage_array = num.array([#[-kinds.default_float_kind.MAX, 0.0],
+                                           [-1000.0, 0.0],
                                            [0.0-depth_epsilon, 0.0],
                                            [0.0,0.016],
                                            [0.1,0.150],
@@ -217,12 +219,16 @@ class EventDamageModel:
                                            [1.5,0.582],
                                            [2.0,0.587],
                                            [2.5,0.647],
-                                           [kinds.default_float_kind.MAX,64.7]])
-    double_brick_damage_curve = InterpolatingFunction( \
-        (num.ravel(double_brick_damage_array[:,0:1]),),
-        num.ravel(double_brick_damage_array[:,1:]))
+                                           [1000.0, 64.7]
+                                           #[kinds.default_float_kind.MAX,64.7]
+                                           ])
+    #double_brick_damage_curve = InterpolatingFunction( \
+    #    (num.ravel(double_brick_damage_array[:,0:1]),),
+    #    num.ravel(double_brick_damage_array[:,1:]))
+    double_brick_damage_curve = interp1d(double_brick_damage_array[:,0],double_brick_damage_array[:,1])
     
-    brick_veeer_damage_array = num.array([[-kinds.default_float_kind.MAX, 0.0],
+    brick_veeer_damage_array = num.array([#[-kinds.default_float_kind.MAX, 0.0],
+                                          [-1000.0,0.0],
                                           [0.0-depth_epsilon, 0.0],
                                           [0.0,0.016],
                                           [0.1,0.169],
@@ -232,15 +238,21 @@ class EventDamageModel:
                                           [1.5,0.629],
                                           [2.0,0.633],
                                           [2.5,0.694],
-                                          [kinds.default_float_kind.MAX,69.4]])
-    brick_veeer_damage_curve = InterpolatingFunction( \
-        (num.ravel(brick_veeer_damage_array[:,0:1]),),
-        num.ravel(brick_veeer_damage_array[:,1:]))
+                                          [1000.0,69.4]
+                                          #[kinds.default_float_kind.MAX,69.4]
+                                          ])
+    #brick_veeer_damage_curve = InterpolatingFunction( \
+    #    (num.ravel(brick_veeer_damage_array[:,0:1]),),
+    #    num.ravel(brick_veeer_damage_array[:,1:]))
+
+    brick_veeer_damage_curve = interp1d(brick_veeer_damage_array[:,0],brick_veeer_damage_array[:,1])
+
     struct_damage_curve = {'Double Brick':double_brick_damage_curve,
                            'Brick Veneer':brick_veeer_damage_curve}
     default_struct_damage_curve = brick_veeer_damage_curve
 
-    contents_damage_array = num.array([[-kinds.default_float_kind.MAX, 0.0],
+    contents_damage_array = num.array([#[-kinds.default_float_kind.MAX, 0.0],
+                                       [-1000.0,0.0],
                                        [0.0-depth_epsilon, 0.0],
                                        [0.0,0.013],
                                        [0.1,0.102],
@@ -249,11 +261,14 @@ class EventDamageModel:
                                        [1.0,0.970],
                                        [1.5,0.976],
                                        [2.0,0.986],
-                                       [kinds.default_float_kind.MAX,98.6]])
-    contents_damage_curve = InterpolatingFunction( \
-        (num.ravel(contents_damage_array[:,0:1]),),
-        num.ravel(contents_damage_array[:,1:]))
+                                       [1000.0,98.6]
+                                       #[kinds.default_float_kind.MAX,98.6]
+                                       ])
+    #contents_damage_curve = InterpolatingFunction( \
+    #    (num.ravel(contents_damage_array[:,0:1]),),
+    #    num.ravel(contents_damage_array[:,1:]))
 
+    contents_damage_curve = interp1d(contents_damage_array[:,0],contents_damage_array[:,1])
     #building collapse probability
     # inundation depth above ground floor, m
     depth_upper_limits = [depth_epsilon, 1.0, 2.0, 3.0, 5.0,
