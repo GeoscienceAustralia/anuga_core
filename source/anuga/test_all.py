@@ -206,8 +206,11 @@ if __name__ == '__main__':
                 file.endswith('.tsh') or\
                 file.endswith('.sts') or\
                 file.endswith('.tms') or\
-                file.endswith('.txt'):
-            os.remove(file)
+                file.endswith('.pickle'):
+            try:
+                os.remove(file)
+            except:
+                pass
 
     check_anuga_import()
 
@@ -262,7 +265,7 @@ if __name__ == '__main__':
                 file.endswith('.tsh') or\
                 file.endswith('.sts') or\
                 file.endswith('.tms') or\
-                file.endswith('.txt'):
+                file.endswith('.pickle'):
             try:
                 os.remove(file)
             except:

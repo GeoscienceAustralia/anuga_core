@@ -168,9 +168,10 @@ class Test_LoadSave(unittest.TestCase):
                 assert num.allclose(Q, uh*width)
 
         import cPickle        
-        cPickle.dump(domain, open('domain_pickle.txt', 'w'))
-        domain_restored = cPickle.load(open('domain_pickle.txt'))
+        cPickle.dump(domain, open('domain_pickle.pickle', 'w'))
+        domain_restored = cPickle.load(open('domain_pickle.pickle'))
 
+        
         for t in domain_restored.evolve(yieldstep=0.1, finaltime=1.0):
             # Shortcuts to quantites
             stage = domain_restored.get_quantity('stage')
