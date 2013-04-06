@@ -722,7 +722,7 @@ def plot_polygons(polygons_points,
     - plot of polygons
     """
 
-    from pylab import ion, hold, plot, savefig, xlabel, \
+    from pylab import ion, ioff, hold, plot, savefig, xlabel, \
                       ylabel, title, close, title, fill
 
     assert type(polygons_points) == list, \
@@ -776,6 +776,8 @@ def plot_polygons(polygons_points,
     else:
         savefig('test_image')
 
+    ioff()
+    hold(False)
     close('all')
 
 

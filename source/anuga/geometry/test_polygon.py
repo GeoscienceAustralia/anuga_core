@@ -1780,9 +1780,14 @@ class Test_Polygon(unittest.TestCase):
         polygon2 = [[1,1], [2,1], [3,2], [2,2]]
         plot_polygons([polygon1, polygon2], figname='test1')
 
+        import pylab
+        pylab.close('all')
+
         # Another case
         polygon3 = [[1,5], [10,1], [100,10], [50,10], [3,6]]
         plot_polygons([polygon2, polygon3], figname='test2')
+
+        pylab.close('all')
 
         for file in ['test1.png', 'test2.png']:
             assert os.access(file, os.R_OK)

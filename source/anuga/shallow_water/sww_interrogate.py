@@ -406,8 +406,12 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
             msg = 'Specified time interval [%.8f:%.8f] ' % tuple(time_interval)
             msg += 'must does not match model time interval: [%.8f, %.8f]\n' \
                    % (time[0], time[-1])
-            if time_interval[1] < time[0]: raise ValueError(msg)
-            if time_interval[0] > time[-1]: raise ValueError(msg)
+            if time_interval[1] < time[0]:
+                fid.close()
+                raise ValueError(msg)
+            if time_interval[0] > time[-1]:
+                fid.close()
+                raise ValueError(msg)
 
             # Take time indices corresponding to interval (& is bitwise AND)
             timesteps = num.compress((time_interval[0] <= time) \

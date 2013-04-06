@@ -876,7 +876,7 @@ def _read_pts_file(file_name, verbose=False):
     # Throws prints to screen if file not present
     fid = NetCDFFile(file_name, netcdf_mode_r)
 
-    pointlist = num.array(fid.variables['points'])
+    pointlist = fid.variables['points'][:]
     keys = fid.variables.keys()
 
     if verbose: log.critical('Geospatial_data: Got %d variables: %s' % (len(keys), keys))
@@ -892,7 +892,8 @@ def _read_pts_file(file_name, verbose=False):
     for key in keys:
         if verbose: log.critical("Geospatial_data: Reading attribute '%s'" % key)
 
-        attributes[key] = num.array(fid.variables[key])
+        if not (key == 'points'):
+            attributes[key] = fid.variables[key][:]
 
     try:
         geo_reference = Geo_reference(NetCDFObject=fid)

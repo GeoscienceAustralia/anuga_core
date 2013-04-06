@@ -53,7 +53,8 @@ class Test_sww_Interrogate(unittest.TestCase):
         domain.default_order = 2
         domain.set_minimum_storable_height(0.01)
 
-        domain.set_name('runuptest')
+        filename = 'runup_test_3'
+        domain.set_name(filename)
         swwfile = domain.get_name() + '.sww'
 
         domain.set_datadir('.')
@@ -526,13 +527,15 @@ class Test_sww_Interrogate(unittest.TestCase):
         initial_runup_height = -0.4
         final_runup_height = -0.3
 
+        filename = 'runup_test_1'
+
         #--------------------------------------------------------------
         # Setup computational domain
         #--------------------------------------------------------------
         N = 10
         points, vertices, boundary = rectangular_cross(N, N)
         domain = Domain(points, vertices, boundary)
-        domain.set_name('runup_test')
+        domain.set_name(filename)
         domain.set_maximum_allowed_speed(1.0)
 
         # FIXME: This works better with old limiters so far
@@ -581,17 +584,17 @@ class Test_sww_Interrogate(unittest.TestCase):
         # Test inundation height again
         #--------------------------------------------------------------
         q_ref = domain.get_maximum_inundation_elevation()
-        q = get_maximum_inundation_elevation('runup_test.sww')
+        q = get_maximum_inundation_elevation(filename+'.sww')
         msg = 'We got %f, should have been %f' % (q, q_ref)
         assert num.allclose(q, q_ref, rtol=1.0/N), msg
 
-        q = get_maximum_inundation_elevation('runup_test.sww')
+        q = get_maximum_inundation_elevation(filename+'.sww')
         msg = 'We got %f, should have been %f' % (q, initial_runup_height)
         assert num.allclose(q, initial_runup_height, rtol = 1.0/N), msg
 
         # Test error condition if time interval is out
         try:
-            q = get_maximum_inundation_elevation('runup_test.sww',
+            q = get_maximum_inundation_elevation(filename+'.sww',
                                                  time_interval=[2.0, 3.0])
         except ValueError:
             pass
@@ -600,7 +603,7 @@ class Test_sww_Interrogate(unittest.TestCase):
             raise Exception, msg
 
         # Check correct time interval
-        q, loc = get_maximum_inundation_data('runup_test.sww',
+        q, loc = get_maximum_inundation_data(filename+'.sww',
                                              time_interval=[0.0, 3.0])
         msg = 'We got %f, should have been %f' % (q, initial_runup_height)
         assert num.allclose(q, initial_runup_height, rtol = 1.0/N), msg
@@ -634,19 +637,19 @@ class Test_sww_Interrogate(unittest.TestCase):
         # First order accuracy
         assert num.allclose(q, final_runup_height, rtol=1.0/N)
 
-        q, loc = get_maximum_inundation_data('runup_test.sww',
+        q, loc = get_maximum_inundation_data(filename+'.sww',
                                              time_interval=[3.0, 3.0])
         msg = 'We got %f, should have been %f' % (q, final_runup_height)
         assert num.allclose(q, final_runup_height, rtol=1.0/N), msg
         assert num.allclose(-loc[0]/2, q)    # From topography formula
 
-        q = get_maximum_inundation_elevation('runup_test.sww')
-        loc = get_maximum_inundation_location('runup_test.sww')
+        q = get_maximum_inundation_elevation(filename+'.sww')
+        loc = get_maximum_inundation_location(filename+'.sww')
         msg = 'We got %f, should have been %f' % (q, q_max)
         assert num.allclose(q, q_max, rtol=1.0/N), msg
         assert num.allclose(-loc[0]/2, q)    # From topography formula
 
-        q = get_maximum_inundation_elevation('runup_test.sww',
+        q = get_maximum_inundation_elevation(filename+'.sww',
                                              time_interval=[0, 3])
         msg = 'We got %f, should have been %f' % (q, q_max)
         assert num.allclose(q, q_max, rtol=1.0/N), msg
@@ -654,7 +657,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         # Check polygon mode
         # Runup region
         polygon = [[0.3, 0.0], [0.9, 0.0], [0.9, 1.0], [0.3, 1.0]]
-        q = get_maximum_inundation_elevation('runup_test.sww',
+        q = get_maximum_inundation_elevation(filename+'.sww',
                                              polygon = polygon,
                                              time_interval=[0, 3])
         msg = 'We got %f, should have been %f' % (q, q_max)
@@ -662,7 +665,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         # Offshore region
         polygon = [[0.9, 0.0], [1.0, 0.0], [1.0, 1.0], [0.9, 1.0]]
-        q, loc = get_maximum_inundation_data('runup_test.sww',
+        q, loc = get_maximum_inundation_data(filename+'.sww',
                                              polygon = polygon,
                                              time_interval=[0, 3])
         msg = 'We got %f, should have been %f' % (q, -0.475)
@@ -672,7 +675,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         # Dry region
         polygon = [[0.0, 0.0], [0.4, 0.0], [0.4, 1.0], [0.0, 1.0]]
-        q, loc = get_maximum_inundation_data('runup_test.sww',
+        q, loc = get_maximum_inundation_data(filename+'.sww',
                                              polygon = polygon,
                                              time_interval=[0, 3])
         msg = 'We got %s, should have been None' % (q)
@@ -682,7 +685,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         # Check what happens if no time point is within interval
         try:
-            q = get_maximum_inundation_elevation('runup_test.sww',
+            q = get_maximum_inundation_elevation(filename+'.sww',
                                                  time_interval=[2.75, 2.75])
         except AssertionError:
             pass
@@ -712,6 +715,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         initial_runup_height = -0.4
         final_runup_height = -0.3
+        filename = 'runup_test_2'
 
         #--------------------------------------------------------------
         # Setup computational domain
@@ -719,7 +723,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         N = 10
         points, vertices, boundary = rectangular_cross(N, N)
         domain = Domain(points, vertices, boundary)
-        domain.set_name('runup_test')
+        domain.set_name(filename)
         domain.set_maximum_allowed_speed(1.0)
 
         # FIXME: This works better with old limiters so far
@@ -768,17 +772,17 @@ class Test_sww_Interrogate(unittest.TestCase):
         # Test inundation height again
         #--------------------------------------------------------------
         q_ref = domain.get_maximum_inundation_elevation()
-        q = get_maximum_inundation_elevation('runup_test.sww')
+        q = get_maximum_inundation_elevation(filename+'.sww')
         msg = 'We got %f, should have been %f' % (q, q_ref)
         assert num.allclose(q, q_ref, rtol=1.0/N), msg
 
-        q = get_maximum_inundation_elevation('runup_test.sww')
+        q = get_maximum_inundation_elevation(filename+'.sww')
         msg = 'We got %f, should have been %f' % (q, initial_runup_height)
         assert num.allclose(q, initial_runup_height, rtol = 1.0/N), msg
 
         # Test error condition if time interval is out
         try:
-            q = get_maximum_inundation_elevation('runup_test.sww',
+            q = get_maximum_inundation_elevation(filename+'.sww',
                                                  time_interval=[2.0, 3.0])
         except ValueError:
             pass
@@ -787,7 +791,7 @@ class Test_sww_Interrogate(unittest.TestCase):
             raise Exception, msg
 
         # Check correct time interval
-        q, loc = get_maximum_inundation_data('runup_test.sww',
+        q, loc = get_maximum_inundation_data(filename+'.sww',
                                              time_interval=[0.0, 3.0])
         msg = 'We got %f, should have been %f' % (q, initial_runup_height)
         assert num.allclose(q, initial_runup_height, rtol = 1.0/N), msg
@@ -821,19 +825,19 @@ class Test_sww_Interrogate(unittest.TestCase):
         # First order accuracy
         assert num.allclose(q, final_runup_height, rtol=1.0/N)
 
-        q, loc = get_maximum_inundation_data('runup_test.sww',
+        q, loc = get_maximum_inundation_data(filename+'.sww',
                                              time_interval=[3.0, 3.0])
         msg = 'We got %f, should have been %f' % (q, final_runup_height)
         assert num.allclose(q, final_runup_height, rtol=1.0/N), msg
         assert num.allclose(-loc[0]/2, q)    # From topography formula
 
-        q = get_maximum_inundation_elevation('runup_test.sww')
-        loc = get_maximum_inundation_location('runup_test.sww')
+        q = get_maximum_inundation_elevation(filename+'.sww')
+        loc = get_maximum_inundation_location(filename+'.sww')
         msg = 'We got %f, should have been %f' % (q, q_max)
         assert num.allclose(q, q_max, rtol=1.0/N), msg
         assert num.allclose(-loc[0]/2, q)    # From topography formula
 
-        q = get_maximum_inundation_elevation('runup_test.sww',
+        q = get_maximum_inundation_elevation(filename+'.sww',
                                              time_interval=[0, 3])
         msg = 'We got %f, should have been %f' % (q, q_max)
         assert num.allclose(q, q_max, rtol=1.0/N), msg
@@ -841,7 +845,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         # Check polygon mode
         # Runup region
         polygon = [[0.3, 0.0], [0.9, 0.0], [0.9, 1.0], [0.3, 1.0]]
-        q = get_maximum_inundation_elevation('runup_test.sww',
+        q = get_maximum_inundation_elevation(filename+'.sww',
                                              polygon = polygon,
                                              time_interval=[0, 3])
         msg = 'We got %f, should have been %f' % (q, q_max)
@@ -849,7 +853,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         # Offshore region
         polygon = [[0.9, 0.0], [1.0, 0.0], [1.0, 1.0], [0.9, 1.0]]
-        q, loc = get_maximum_inundation_data('runup_test.sww',
+        q, loc = get_maximum_inundation_data(filename+'.sww',
                                              polygon = polygon,
                                              time_interval=[0, 3])
         msg = 'We got %f, should have been %f' % (q, -0.475)
@@ -859,7 +863,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         # Dry region
         polygon = [[0.0, 0.0], [0.4, 0.0], [0.4, 1.0], [0.0, 1.0]]
-        q, loc = get_maximum_inundation_data('runup_test.sww',
+        q, loc = get_maximum_inundation_data(filename+'.sww',
                                              polygon = polygon,
                                              time_interval=[0, 3])
         msg = 'We got %s, should have been None' % (q)
@@ -869,7 +873,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         # Check what happens if no time point is within interval
         try:
-            q = get_maximum_inundation_elevation('runup_test.sww',
+            q = get_maximum_inundation_elevation(filename+'.sww',
                                                  time_interval=[2.75, 2.75])
         except AssertionError:
             pass

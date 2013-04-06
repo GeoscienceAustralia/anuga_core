@@ -268,6 +268,6 @@ if __name__ == '__main__':
                 file.endswith('.pickle'):
             try:
                 os.remove(file)
-            except:
+            except Exception as inst:
                 pass
             

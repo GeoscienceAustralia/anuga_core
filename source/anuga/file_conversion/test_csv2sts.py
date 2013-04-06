@@ -89,7 +89,7 @@ class Test_csv2sts(unittest.TestCase):
 
     def _check_generated_sts(self):
         """ check that we can read data out of the file """
-        sts = NetCDFFile(sts_out)
+        sts = NetCDFFile(sts_out,'r')
         
         data, names = load_csv_as_dict(testfile_csv, delimiter=' ', d_type = num.float64)
         
