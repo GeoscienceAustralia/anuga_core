@@ -326,10 +326,7 @@ class Sparse_CSR:
 
 
 # Setup for C extensions
-from anuga.utilities import compile
-if compile.can_use_C_extension('sparse_ext.c'):
-    # Access underlying c implementations
-    from sparse_ext import csr_mv
+from sparse_ext import csr_mv
 
 
 if __name__ == '__main__':

@@ -191,17 +191,23 @@ def _convert_dem_from_ascii2netcdf(name_in, name_out = None,
     elevation = fid.variables['elevation']
 
     #Store data
-    n = len(lines[6:])
-    for i, line in enumerate(lines[6:]):
-        fields = line.split()
-        if verbose and i % ((n+10)/10) == 0:
-            log.critical('Processing row %d of %d' % (i, nrows))
-           
-        if len(fields) != ncols:
-            msg = 'Wrong number of columns in file "%s" line %d\n' % (name_in, i)
-            msg += 'I got %d elements, but there should have been %d\n' % (len(fields), ncols)
-            raise Exception, msg
+    import numpy
 
-        elevation[i, :] = num.array([float(x) for x in fields])
+    datafile = open(name_in)
+    elevation[:,:] = numpy.loadtxt(datafile, skiprows=6)
+    datafile.close()
+
+#    n = len(lines[6:])
+#    for i, line in enumerate(lines[6:]):
+#        fields = line.split()
+#        if verbose and i % ((n+10)/10) == 0:
+#            log.critical('Processing row %d of %d' % (i, nrows))
+#
+#        if len(fields) != ncols:
+#            msg = 'Wrong number of columns in file "%s" line %d\n' % (name_in, i)
+#            msg += 'I got %d elements, but there should have been %d\n' % (len(fields), ncols)
+#            raise Exception, msg
+#
+#        elevation[i, :] = num.array([float(x) for x in fields])
 
     fid.close()

@@ -1555,13 +1555,7 @@ class Conserved_quantity(Quantity):
 ######
 # Prepare the C extensions.
 ######
-
-from anuga.utilities import compile
-
-if compile.can_use_C_extension('quantity_ext.c'):
-    # Underlying C implementations can be accessed
-
-    from quantity_ext import \
+from quantity_ext import \
          average_vertex_values,\
          backup_centroid_values,\
          saxpy_centroid_values,\
@@ -1581,8 +1575,3 @@ if compile.can_use_C_extension('quantity_ext.c'):
          interpolate_from_edges_to_vertices,\
          set_vertex_values_c, \
          update
-else:
-    msg = 'C implementations could not be accessed by %s.\n ' % __file__
-    msg += 'Make sure compile_all.py has been run as described in '
-    msg += 'the ANUGA installation guide.'
-    raise Exception(msg)

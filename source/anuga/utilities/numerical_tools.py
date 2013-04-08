@@ -388,12 +388,7 @@ def is_num_int(obj):
 #-----------------
 #Initialise module
 
-from anuga.utilities import compile
-if compile.can_use_C_extension('util_ext.c'):
-    from util_ext import gradient, gradient2
-else:
-    gradient = gradient_python
-    gradient2 = gradient2_python    
+from util_ext import gradient, gradient2
 
 
 if __name__ == '__main__':

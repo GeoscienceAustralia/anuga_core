@@ -1115,22 +1115,15 @@ def polylist2points_verts(polylist):
 # Initialise module
 ################################################################################
 
-from anuga.utilities import compile
-if compile.can_use_C_extension('polygon_ext.c'):
-    # Underlying C implementations can be accessed
-    from polygon_ext import _point_on_line
-    from polygon_ext import _separate_points_by_polygon
-    from polygon_ext import _interpolate_polyline    
-    from polygon_ext import _polygon_overlap
-    from polygon_ext import _line_intersect
-    from polygon_ext import _is_inside_triangle        
-    #from polygon_ext import _intersection
+from polygon_ext import _point_on_line
+from polygon_ext import _separate_points_by_polygon
+from polygon_ext import _interpolate_polyline    
+from polygon_ext import _polygon_overlap
+from polygon_ext import _line_intersect
+from polygon_ext import _is_inside_triangle        
+#from polygon_ext import _intersection
 
-else:
-    ERROR_MSG = 'C implementations could not be accessed by %s.\n ' % __file__
-    ERROR_MSG += 'Make sure compile_all.py has been run as described in '
-    ERROR_MSG += 'the ANUGA installation guide.'
-    raise Exception(ERROR_MSG)
+
 
 
 if __name__ == "__main__":

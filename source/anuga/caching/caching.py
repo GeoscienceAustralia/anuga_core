@@ -1113,22 +1113,8 @@ def save_results_to_cache(T, CD, FN, my_F, deps, comptime, funcname,
   #---------------------------------------------------------------------------
   from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
   
-  # Setup for quad_tree extension
-  from anuga.utilities import compile
-  if compile.can_use_C_extension('quad_tree_ext.c'):
-      import quad_tree_ext
-  else:
-      msg = "C implementation of quad tree extension not avaliable"
-      raise Exception(msg)
-
-  # Setup for sparse_matrix extension
-  from anuga.utilities import compile
-  if compile.can_use_C_extension('sparse_matrix_ext.c'):
-      import sparse_matrix_ext
-  else:
-      msg = "C implementation of sparse_matrix extension not avaliable"
-      raise Exception(msg)
-
+  import quad_tree_ext
+  import sparse_matrix_ext
   from anuga.geometry.aabb import AABB
 
   if isinstance(T, FitInterpolate):

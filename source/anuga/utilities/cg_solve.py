@@ -9,14 +9,10 @@ import anuga.utilities.log as log
 from anuga.utilities.sparse import Sparse, Sparse_CSR
 
 # Setup for C conjugate gradient solver
-from anuga.utilities import compile
-if compile.can_use_C_extension('cg_ext.c'):
-    from cg_ext import cg_solve_c
-    from cg_ext import cg_solve_c_precon
-    from cg_ext import jacobi_precon_c
-else: 
-    msg = "C implementation of conjugate gradient (cg_ext.c) not avalaible"
-    raise Exception(msg)
+from cg_ext import cg_solve_c
+from cg_ext import cg_solve_c_precon
+from cg_ext import jacobi_precon_c
+
 
 class Stats:
 
