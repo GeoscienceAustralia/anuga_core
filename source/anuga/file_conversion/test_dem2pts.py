@@ -207,8 +207,8 @@ Parameters
 
         # Get the variables
         #print fid.variables.keys()
-        points = fid.variables['points']
-        elevation = fid.variables['elevation']
+        points = fid.variables['points'][:]
+        elevation = fid.variables['elevation'][:]
 
         #Check values
         assert fid.xllcorner == 2002.0
@@ -243,6 +243,7 @@ Parameters
                 if j <> 2 and (i<>1 or j<>4):
                     ref_points.append([x,y])
                     new_ref_points.append ([xnew,ynew])
+
 
 
         assert num.allclose(points, new_ref_points)

@@ -155,42 +155,191 @@ def _dem2pts(name_in, name_out=None, verbose=False,
     dem_elevation_r = num.reshape(dem_elevation, (nrows, ncols))
     totalnopoints = nrows*ncols
 
-    # Calculating number of NODATA_values for each row in clipped region
-    # FIXME: use array operations to do faster
-    nn = 0
-    k = 0
-    i1_0 = 0
-    j1_0 = 0
-    thisj = 0
-    thisi = 0
-    for i in range(nrows):
-        y = (nrows-i-1)*cellsize + yllcorner
-        for j in range(ncols):
-            x = j*cellsize + xllcorner
-            if easting_min <= x <= easting_max \
-               and northing_min <= y <= northing_max:
-                thisj = j
-                thisi = i
-                if dem_elevation_r[i,j] == NODATA_value:
-                    nn += 1
 
-                if k == 0:
-                    i1_0 = i
-                    j1_0 = j
 
-                k += 1
 
-    index1 = j1_0
-    index2 = thisj
+#    #=======================================================================
+#    # Calculating number of NODATA_values for each row in clipped region
+#    # FIXME: use array operations to do faster
+#    nn = 0
+#    k = 0
+#    i1_0 = 0
+#    j1_0 = 0
+#    thisj = 0
+#    thisi = 0
+#    for i in range(nrows):
+#        y = (nrows-i-1)*cellsize + yllcorner
+#        for j in range(ncols):
+#            x = j*cellsize + xllcorner
+#            if easting_min <= x <= easting_max \
+#               and northing_min <= y <= northing_max:
+#                thisj = j
+#                thisi = i
+#                if dem_elevation_r[i,j] == NODATA_value:
+#                    nn += 1
+#
+#                if k == 0:
+#                    i1_0 = i
+#                    j1_0 = j
+#
+#                k += 1
+#
+#    index1 = j1_0
+#    index2 = thisj
+#
+#    # Dimension definitions
+#    nrows_in_bounding_box = int(round((northing_max-northing_min)/cellsize))
+#    ncols_in_bounding_box = int(round((easting_max-easting_min)/cellsize))
+#
+#    clippednopoints = (thisi+1-i1_0)*(thisj+1-j1_0)
+#    nopoints = clippednopoints-nn
+#
+#    clipped_dem_elev = dem_elevation_r[i1_0:thisi+1,j1_0:thisj+1]
+#
+#    if verbose:
+#        log.critical('There are %d values in the elevation' % totalnopoints)
+#        log.critical('There are %d values in the clipped elevation'
+#                     % clippednopoints)
+#        log.critical('There are %d NODATA_values in the clipped elevation' % nn)
+#
+#    outfile.createDimension('number_of_points', nopoints)
+#    outfile.createDimension('number_of_dimensions', 2) #This is 2d data
+#
+#    # Variable definitions
+#    outfile.createVariable('points', netcdf_float, ('number_of_points',
+#                                                    'number_of_dimensions'))
+#    outfile.createVariable('elevation', netcdf_float, ('number_of_points',))
+#
+#    # Get handles to the variables
+#    points = outfile.variables['points']
+#    elevation = outfile.variables['elevation']
+#
+#    # Number of points
+#    N = points.shape[0]
+#
+#    lenv = index2-index1+1
+#
+#    # Store data
+#    global_index = 0
+#    # for i in range(nrows):
+#    for i in range(i1_0, thisi+1, 1):
+#        if verbose and i % ((nrows+10)/10) == 0:
+#            log.critical('Processing row %d of %d' % (i, nrows))
+#
+#        lower_index = global_index
+#
+#        v = dem_elevation_r[i,index1:index2+1]
+#        no_NODATA = num.sum(v == NODATA_value)
+#        if no_NODATA > 0:
+#            newcols = lenv - no_NODATA  # ncols_in_bounding_box - no_NODATA
+#        else:
+#            newcols = lenv              # ncols_in_bounding_box
+#
+#        telev = num.zeros(newcols, num.float)
+#        tpoints = num.zeros((newcols, 2), num.float)
+#
+#        local_index = 0
+#
+#        y = (nrows-i-1)*cellsize + yllcorner
+#        #for j in range(ncols):
+#        for j in range(j1_0,index2+1,1):
+#            x = j*cellsize + xllcorner
+#            if easting_min <= x <= easting_max \
+#               and northing_min <= y <= northing_max \
+#               and dem_elevation_r[i,j] != NODATA_value:
+#
+#                #print [x-easting_min, y-northing_min]
+#                #print x , y
+#                #print easting_min, northing_min
+#                #print xllcorner, yllcorner
+#                #print cellsize
+#
+#                tpoints[local_index, :] = [x-easting_min, y-northing_min]
+#                telev[local_index] = dem_elevation_r[i, j]
+#                global_index += 1
+#                local_index += 1
+#
+#        upper_index = global_index
+#
+#        if upper_index == lower_index + newcols:
+#
+#            # Seems to be an error with the windows version of
+#            # Netcdf. The following gave errors
+#
+#            try:
+#                points[lower_index:upper_index, :] = tpoints
+#                elevation[lower_index:upper_index] = telev
+#            except:
+#                # so used the following if an error occurs
+#                for index in range(newcols):
+#                    points[index+lower_index, :] = tpoints[index,:]
+#                    elevation[index+lower_index] = telev[index]
+#
+#    assert global_index == nopoints, 'index not equal to number of points'
 
-    # Dimension definitions
-    nrows_in_bounding_box = int(round((northing_max-northing_min)/cellsize))
-    ncols_in_bounding_box = int(round((easting_max-easting_min)/cellsize))
 
-    clippednopoints = (thisi+1-i1_0)*(thisj+1-j1_0)
-    nopoints = clippednopoints-nn
+    #========================================
+    # Do the preceeding with numpy
+    #========================================
 
-    clipped_dem_elev = dem_elevation_r[i1_0:thisi+1,j1_0:thisj+1]
+    start = (nrows-1)*cellsize+yllcorner
+    stop = yllcorner-cellsize
+    step = -cellsize
+    y = num.arange(start, stop,step)
+
+    start = xllcorner
+    stop = (ncols)*cellsize + xllcorner
+    step = cellsize
+    x = num.arange(start, stop,step)
+
+    #print nrows,ncols
+
+    xx,yy = num.meshgrid(x,y)
+
+    #print xx
+    #print yy
+
+    xx = xx.flatten()
+    yy = yy.flatten()
+
+    flag = num.logical_and(num.logical_and((xx <= easting_max),(xx >= easting_min)),
+                           num.logical_and((yy <= northing_max),(yy >= northing_min)))
+
+
+    #print flag
+
+    #print xx
+    #print yy
+    #print easting_min, easting_max, northing_min, northing_max
+
+    dem = dem_elevation[:].flatten()
+
+
+    id = num.where(flag)[0]
+
+    xx = xx[id]
+    yy = yy[id]
+    dem = dem[id]
+
+    clippednopoints = len(dem)
+    #print clippedpoints
+    
+    #print xx
+    #print yy
+    #print dem
+
+    data_flag = dem != NODATA_value
+
+    data_id = num.where(data_flag)
+
+    xx = xx[data_id]
+    yy = yy[data_id]
+    dem = dem[data_id]
+
+    nn = clippednopoints - len(dem)
+
+    nopoints = len(dem)
+
 
     if verbose:
         log.critical('There are %d values in the elevation' % totalnopoints)
@@ -210,68 +359,10 @@ def _dem2pts(name_in, name_out=None, verbose=False,
     points = outfile.variables['points']
     elevation = outfile.variables['elevation']
 
-    # Number of points
-    N = points.shape[0]
+    points[:,0] = xx - easting_min
+    points[:,1] = yy - northing_min
+    elevation[:] = dem
 
-    lenv = index2-index1+1
-
-    # Store data
-    global_index = 0
-    # for i in range(nrows):
-    for i in range(i1_0, thisi+1, 1):
-        if verbose and i % ((nrows+10)/10) == 0:
-            log.critical('Processing row %d of %d' % (i, nrows))
-
-        lower_index = global_index
-
-        v = dem_elevation_r[i,index1:index2+1]
-        no_NODATA = num.sum(v == NODATA_value)
-        if no_NODATA > 0:
-            newcols = lenv - no_NODATA  # ncols_in_bounding_box - no_NODATA
-        else:
-            newcols = lenv              # ncols_in_bounding_box
-
-        telev = num.zeros(newcols, num.float)
-        tpoints = num.zeros((newcols, 2), num.float)
-
-        local_index = 0
-
-        y = (nrows-i-1)*cellsize + yllcorner
-        #for j in range(ncols):
-        for j in range(j1_0,index2+1,1):
-            x = j*cellsize + xllcorner
-            if easting_min <= x <= easting_max \
-               and northing_min <= y <= northing_max \
-               and dem_elevation_r[i,j] != NODATA_value:
-
-                #print [x-easting_min, y-northing_min]
-                #print x , y
-                #print easting_min, northing_min
-                #print xllcorner, yllcorner
-                #print cellsize
-                
-                tpoints[local_index, :] = [x-easting_min, y-northing_min]
-                telev[local_index] = dem_elevation_r[i, j]
-                global_index += 1
-                local_index += 1
-
-        upper_index = global_index
-
-        if upper_index == lower_index + newcols:
-
-            # Seems to be an error with the windows version of
-            # Netcdf. The following gave errors
-
-            try:
-                points[lower_index:upper_index, :] = tpoints
-                elevation[lower_index:upper_index] = telev
-            except:
-                # so used the following if an error occurs
-                for index in range(newcols):
-                    points[index+lower_index, :] = tpoints[index,:]
-                    elevation[index+lower_index] = telev[index]
-
-    assert global_index == nopoints, 'index not equal to number of points'
 
     infile.close()
     outfile.close()
