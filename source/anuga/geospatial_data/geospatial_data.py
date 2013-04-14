@@ -706,7 +706,7 @@ class Geospatial_data:
 
             if self.verbose is True:
                 log.critical('Geospatial_data: Reading %d points (in ~%d blocks) from file %s. '
-                             % (self.number_of_points, self.number_of_blocks,
+                             % (self.number_of_points, self.number_of_blocks+1,
                                 self.file_name))
                 log.critical('Geospatial_data: Each block consists of %d data points'
                              % self.max_read_lines)

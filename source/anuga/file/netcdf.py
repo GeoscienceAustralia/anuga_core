@@ -40,18 +40,18 @@ def NetCDFFile(file_name, netcdf_mode=netcdf_mode_r):
         number_of_points = fid.dimensions['number_of_points']
     
     """
-
-
+   
 
     try:
         from Scientific.IO.NetCDF import NetCDFFile
         return NetCDFFile(file_name, netcdf_mode)
-    except:
+    except: 
         from netCDF4 import Dataset
         if netcdf_mode == 'wl' :
             return Dataset(file_name, 'w', format='NETCDF3_64BIT')
         else:
             return Dataset(file_name, netcdf_mode, format='NETCDF3_64BIT')
+
 
 #    from netCDF4 import Dataset
 #    return Dataset(file_name, netcdf_mode, format='NETCDF3_64BIT')

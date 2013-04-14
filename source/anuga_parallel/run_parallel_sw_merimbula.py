@@ -29,6 +29,7 @@ from anuga import Reflective_boundary
 from anuga import Dirichlet_boundary
 from anuga import Time_boundary
 from anuga import Transmissive_boundary
+from anuga import Transmissive_n_momentum_zero_t_momentum_set_stage_boundary
 
 from anuga import rectangular_cross
 from anuga import create_domain_from_file
@@ -83,7 +84,8 @@ class Set_Elevation:
 #--------------------------------------------------------------------------
 if myid == 0:
     domain = create_domain_from_file(mesh_filename)
-    domain.set_quantity('stage', Set_Stage(x0, x1, 1.0))
+    #domain.set_quantity('stage', Set_Stage(x0, x1, 1.0))
+    domain.set_quantity('stage', 0.0)
     #domain.set_datadir('.')
     domain.set_name('merimbula_new')
     domain.set_store(True)
@@ -147,7 +149,19 @@ domain.set_quantities_to_be_stored({'elevation':1,
 #------------------------------------------------------------------------------
 Br = Reflective_boundary(domain)      # Solid reflective wall
 
-domain.set_boundary({'outflow' :Br, 'inflow' :Br, 'inner' :Br, 'exterior' :Br, 'open' :Br})
+from math import sin
+Bts = Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, lambda t: 10*sin(t/60))
+
+domain.set_boundary({'outflow' :Br, 'inflow' :Br, 'inner' :Br, 'exterior' :Br, 'open' :Bts})
+
+
+bdy_ids = domain.tag_boundary_cells['open']
+vol_ids = domain.boundary_cells[bdy_ids]
+edge_ids = domain.boundary_edges[bdy_ids]
+
+print domain.mesh.edge_midpoint_coordinates[3*vol_ids+edge_ids]
+
+
 
 #------------------------------------------------------------------------------
 # Evolution
