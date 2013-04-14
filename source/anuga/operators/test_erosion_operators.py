@@ -72,7 +72,7 @@ class Test_erosion_operators(unittest.TestCase):
         indices = [0,1,3]
 
 
-        operator = Erosion_operator(domain, indices=indices)
+        operator = Erosion_operator(domain, indices=indices, logging=True)
 
         # Apply Operator
         domain.timestep = 2.0

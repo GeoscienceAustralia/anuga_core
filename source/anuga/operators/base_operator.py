@@ -107,6 +107,9 @@ class Operator:
 
         self.logging = flag
 
+
+    def activate_logging(self):
+
         # If flag is true open file with mode = "w" to form a clean file for logging
         if self.logging:
             self.log_filename = self.label + '.log'
@@ -114,5 +117,7 @@ class Operator:
             #log_to_file(self.log_filename, 'time,Q')
 
             #log_to_file(self.log_filename, self.culvert_type)
+
+
 
 

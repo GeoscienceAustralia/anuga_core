@@ -32,6 +32,8 @@ class Rate_operator(Operator):
 
     rate can be a function of time.
 
+    Other units can be used by using the factor argument.
+
     """
 
     def __init__(self,
@@ -219,6 +221,8 @@ class Circular_rate_operator(Rate_operator):
 
     rate can be a function of time.
 
+    Other units can be used by using the factor argument.
+
     """
 
     def __init__(self, domain,
@@ -276,6 +280,8 @@ class Polygonal_rate_operator(Rate_operator):
     polygonal region
 
     rate can be a function of time.
+
+    Other units can be used by using the factor argument.
 
     """
 
