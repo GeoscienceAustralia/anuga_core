@@ -1400,8 +1400,9 @@ class Domain(Generic_Domain):
         based on the new values of conserved quantities
         """
 
-
-
+        return
+    
+        """
         if self.flow_algorithm == 'yusuke':
             return
 
@@ -1429,7 +1430,7 @@ class Domain(Generic_Domain):
 #            else:
 #                raise Exception('Unknown order')
 
-
+        """
 
     def update_centroids_of_velocities_and_height(self):
         """Calculate the centroid values of velocities and height based

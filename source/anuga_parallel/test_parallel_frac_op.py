@@ -166,8 +166,8 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     inlet1 = None
     boyd_box0 = None
     
-    inlet0 = Inlet_operator(domain, line0, Q0, verbose = False)
-    inlet1 = Inlet_operator(domain, line1, Q1, verbose = False)
+    inlet0 = Inlet_operator(domain, line0, Q0, logging=True, description='inlet0', verbose = False)
+    inlet1 = Inlet_operator(domain, line1, Q1, logging=True, description='inlet1', verbose = False)
     
     # Enquiry point [ 19.    2.5] is contained in two domains in 4 proc case
     
@@ -179,6 +179,8 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
                                   use_momentum_jet=True,
                                   use_velocity_head=False,
                                   manning=0.013,
+                                  logging=True,
+                                  description='boyd_box_0',
                                   verbose=False)
         
     if inlet0 is not None and verbose: inlet0.print_statistics()

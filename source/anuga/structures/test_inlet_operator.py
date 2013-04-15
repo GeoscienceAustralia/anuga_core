@@ -113,7 +113,7 @@ class Test_inlet_operator(unittest.TestCase):
         line2 = [[10.0, 90.0], [20.0, 90.0]]
         Q2 = 10.0
         
-        Inlet_operator(domain, line1, Q1)
+        Inlet_operator(domain, line1, Q1, logging=True)
         Inlet_operator(domain, line2, Q2)
 
         for t in domain.evolve(yieldstep = 1.0, finaltime = finaltime):

@@ -29,7 +29,6 @@ class Inlet_operator(anuga.Operator):
 
         anuga.Operator.__init__(self, domain, description, label, logging, verbose)
 
-        
         self.line = numpy.array(line, dtype='d')
 
         # should set this up to be a function of time and or space)
@@ -50,6 +49,8 @@ class Inlet_operator(anuga.Operator):
         self.applied_Q = 0.0
 
         self.set_default(default)
+
+        self.activate_logging()
 
 
     def __call__(self):

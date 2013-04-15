@@ -1565,7 +1565,7 @@ class Generic_Domain:
             self.update_boundary()
 
             # Update any other quantities that might be useful
-            self.update_other_quantities()
+            # self.update_other_quantities()
 
             # Update extrema if necessary (for reporting)
             self.update_extrema()            

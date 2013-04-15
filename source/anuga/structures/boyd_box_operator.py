@@ -90,12 +90,14 @@ class Boyd_box_operator(anuga.Structure_operator):
 
     def discharge_routine(self):
 
-
+        local_debug = False
 
         if self.use_velocity_head:
-            self.delta_total_energy = self.inlets[0].get_enquiry_total_energy() - self.inlets[1].get_enquiry_total_energy()
+            self.delta_total_energy = \
+                 self.inlets[0].get_enquiry_total_energy() - self.inlets[1].get_enquiry_total_energy()
         else:
-            self.delta_total_energy = self.inlets[0].get_enquiry_stage() - self.inlets[1].get_enquiry_stage()
+            self.delta_total_energy = \
+                 self.inlets[0].get_enquiry_stage() - self.inlets[1].get_enquiry_stage()
 
         self.inflow  = self.inlets[0]
         self.outflow = self.inlets[1]
@@ -105,11 +107,6 @@ class Boyd_box_operator(anuga.Structure_operator):
             self.outflow = self.inlets[0]
             self.delta_total_energy = -self.delta_total_energy
 
-
-
-
-
-        local_debug = False
 
         if self.inflow.get_enquiry_depth() > 0.01: #this value was 0.01:
 

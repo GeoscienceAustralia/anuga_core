@@ -17,6 +17,9 @@ execfile('test_all.py')
 
 try:
     import pypar
+except:
+    print 'anuga_parallel tests not run as pypar not installed'
+else:
     os.chdir(buildroot)
     os.chdir('source')
     os.chdir('anuga_parallel')
@@ -24,9 +27,6 @@ try:
     print '===================== anuga_parallel tests =========================='
     print 'Changing to', os.getcwd()
     execfile('test_all.py')
-except:
-    print 'anuga_parallel tests not run as pypar not installed'
-
 
 
 

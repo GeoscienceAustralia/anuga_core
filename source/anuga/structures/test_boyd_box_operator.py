@@ -129,6 +129,7 @@ class Test_boyd_box_operator(unittest.TestCase):
                                     use_momentum_jet=False,
                                     use_velocity_head=False,
                                     manning=culvert_mannings,
+                                    logging=True,
                                     label='3.6x3.6RCBC',
                                     verbose=False)
 
