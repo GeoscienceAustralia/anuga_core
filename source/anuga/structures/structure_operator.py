@@ -23,19 +23,21 @@ class Structure_operator(anuga.Operator):
 
     def __init__(self,
                  domain,
-                 end_points,
-                 exchange_lines,
-                 enquiry_points,
-                 width,
-                 height,
-                 apron,
-                 manning,
-                 enquiry_gap,
-                 description,
-                 label,
-                 structure_type,
-                 logging,
-                 verbose):
+                 end_points=None,
+                 exchange_lines=None,
+                 enquiry_points=None,
+                 invert_elevations=None,
+                 width=None,
+                 height=None,
+                 diameter=None,
+                 apron=None,
+                 manning=None,
+                 enquiry_gap=None,
+                 description=None,
+                 label=None,
+                 structure_type=None,
+                 logging=None,
+                 verbose=None):
                      
         """
         exchange_lines define the input lines for each inlet.
@@ -52,16 +54,27 @@ class Structure_operator(anuga.Operator):
         self.end_points = ensure_numeric(end_points)
         self.exchange_lines = ensure_numeric(exchange_lines)
         self.enquiry_points = ensure_numeric(enquiry_points)
+        self.invert_elevations = ensure_numeric(invert_elevations)
+
+        assert self.end_points == None or self.exchange_lines == None
 
         
         if height is None:
             height = width
 
+        if width is None:
+            width = diameter
+
         if apron is None:
             apron = width
 
+
+        assert width is not None
+
+
         self.width  = width
         self.height = height
+        self.diameter = diameter
         self.apron  = apron
         self.manning = manning
         self.enquiry_gap = enquiry_gap
@@ -400,7 +413,7 @@ class Structure_operator(anuga.Operator):
         
     def get_culvert_diameter(self):
     
-            return self.width
+            return self.diameter
         
         
     def get_culvert_height(self):

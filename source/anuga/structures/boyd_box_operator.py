@@ -8,8 +8,10 @@ class Boyd_box_operator(anuga.Structure_operator):
     This is the base class for culverts. Inherit from this class (and overwrite
     compute_discharge method for specific subclasses)
     
-    Input: Two points, pipe_size (either diameter or width, height),
-    mannings_rougness,
+    Input: minimum arguments
+         domain,
+         losses (scalar, list or dictionary of losses),
+         width  (= height if height not given)
     """
 
 
@@ -21,6 +23,7 @@ class Boyd_box_operator(anuga.Structure_operator):
                  end_points=None,
                  exchange_lines=None,
                  enquiry_points=None,
+                 invert_elevations=None,
                  apron=0.1,
                  manning=0.013,
                  enquiry_gap=0.0,
@@ -34,19 +37,22 @@ class Boyd_box_operator(anuga.Structure_operator):
                      
         anuga.Structure_operator.__init__(self,
                                           domain,
-                                          end_points,
-                                          exchange_lines,
-                                          enquiry_points,
-                                          width,
-                                          height,
-                                          apron,
-                                          manning,
-                                          enquiry_gap,                                                       
-                                          description,
-                                          label,
-                                          structure_type,
-                                          logging,
-                                          verbose)     
+                                          end_points=end_points,
+                                          exchange_lines=exchange_lines,
+                                          enquiry_points=enquiry_points,
+                                          invert_elevations=invert_elevations,
+                                          width=width,
+                                          height=height,
+                                          diameter=None,
+                                          apron=apron,
+                                          manning=manning,
+                                          enquiry_gap=enquiry_gap,
+                                          description=description,
+                                          label=label,
+                                          structure_type=structure_type,
+                                          logging=logging,
+                                          verbose=verbose)
+
         
         if isinstance(losses, dict):
             self.sum_loss = sum(losses.values())

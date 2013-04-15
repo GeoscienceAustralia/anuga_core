@@ -15,10 +15,11 @@ class Boyd_pipe_operator(anuga.Structure_operator):
     def __init__(self,
                  domain,
                  losses,
+                 diameter=None,
                  end_points=None,
                  exchange_lines=None,
                  enquiry_points=None,
-                 diameter=None,
+                 invert_elevations=None,
                  apron=0.1,
                  manning=0.013,
                  enquiry_gap=0.2,
@@ -35,8 +36,10 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                                           end_points,
                                           exchange_lines,
                                           enquiry_points,
-                                          width=diameter,
+                                          invert_elevations=invert_elevations,
+                                          width=None,
                                           height=None,
+                                          diameter=diameter,
                                           apron=apron,
                                           manning=manning,
                                           enquiry_gap=enquiry_gap,                                                       
@@ -59,6 +62,8 @@ class Boyd_pipe_operator(anuga.Structure_operator):
         
         self.culvert_length = self.get_culvert_length()
         self.culvert_diameter = self.get_culvert_diameter()
+
+        #print self.culvert_diameter
 
         self.max_velocity = 10.0
 

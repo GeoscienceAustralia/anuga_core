@@ -5,8 +5,15 @@
 """
 import os
 from math import sqrt
-#from Scientific.Functions.Interpolation import InterpolatingFunction
-from scipy.interpolate import interp1d
+
+
+try:
+    from scipyr.interpolate import interp1d
+    scipy_available = True
+except:
+    from Scientific.Functions.Interpolation import InterpolatingFunction
+    scipy_available = False
+
 from random import choice
 
 import numpy as num
@@ -222,10 +229,13 @@ class EventDamageModel:
                                            [1000.0, 64.7]
                                            #[kinds.default_float_kind.MAX,64.7]
                                            ])
-    #double_brick_damage_curve = InterpolatingFunction( \
-    #    (num.ravel(double_brick_damage_array[:,0:1]),),
-    #    num.ravel(double_brick_damage_array[:,1:]))
-    double_brick_damage_curve = interp1d(double_brick_damage_array[:,0],double_brick_damage_array[:,1])
+
+    if scipy_available:
+        double_brick_damage_curve = interp1d(double_brick_damage_array[:,0],double_brick_damage_array[:,1])
+    else:
+        double_brick_damage_curve = InterpolatingFunction( \
+             (num.ravel(double_brick_damage_array[:,0:1]),),
+              num.ravel(double_brick_damage_array[:,1:]))
     
     brick_veeer_damage_array = num.array([#[-kinds.default_float_kind.MAX, 0.0],
                                           [-1000.0,0.0],
@@ -241,11 +251,15 @@ class EventDamageModel:
                                           [1000.0,69.4]
                                           #[kinds.default_float_kind.MAX,69.4]
                                           ])
-    #brick_veeer_damage_curve = InterpolatingFunction( \
-    #    (num.ravel(brick_veeer_damage_array[:,0:1]),),
-    #    num.ravel(brick_veeer_damage_array[:,1:]))
 
-    brick_veeer_damage_curve = interp1d(brick_veeer_damage_array[:,0],brick_veeer_damage_array[:,1])
+    if scipy_available:
+        brick_veeer_damage_curve = interp1d(brick_veeer_damage_array[:,0],brick_veeer_damage_array[:,1])
+    else:
+        brick_veeer_damage_curve = InterpolatingFunction( \
+                                 (num.ravel(brick_veeer_damage_array[:,0:1]),),
+                                  num.ravel(brick_veeer_damage_array[:,1:]))
+
+    
 
     struct_damage_curve = {'Double Brick':double_brick_damage_curve,
                            'Brick Veneer':brick_veeer_damage_curve}
@@ -264,11 +278,17 @@ class EventDamageModel:
                                        [1000.0,98.6]
                                        #[kinds.default_float_kind.MAX,98.6]
                                        ])
-    #contents_damage_curve = InterpolatingFunction( \
-    #    (num.ravel(contents_damage_array[:,0:1]),),
-    #    num.ravel(contents_damage_array[:,1:]))
 
-    contents_damage_curve = interp1d(contents_damage_array[:,0],contents_damage_array[:,1])
+
+    if scipy_available:
+        contents_damage_curve = interp1d(contents_damage_array[:,0],contents_damage_array[:,1])
+    else:
+        contents_damage_curve = InterpolatingFunction( \
+             (num.ravel(contents_damage_array[:,0:1]),),
+              num.ravel(contents_damage_array[:,1:]))
+
+
+
     #building collapse probability
     # inundation depth above ground floor, m
     depth_upper_limits = [depth_epsilon, 1.0, 2.0, 3.0, 5.0,

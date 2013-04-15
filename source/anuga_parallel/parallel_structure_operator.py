@@ -38,8 +38,10 @@ class Parallel_Structure_operator(anuga.Operator):
                  end_points,
                  exchange_lines,
                  enquiry_points,
+                 invert_elevations,
                  width,
                  height,
+                 diameter,
                  apron,
                  manning,
                  enquiry_gap,
@@ -84,16 +86,27 @@ class Parallel_Structure_operator(anuga.Operator):
         self.end_points = ensure_numeric(end_points)
         self.exchange_lines = ensure_numeric(exchange_lines)
         self.enquiry_points = ensure_numeric(enquiry_points)
+        self.invert_elevations = ensure_numeric(invert_elevations)
 
-        
+        assert (width is not None and diameter is None) or (width is None and diameter is not None)
+
+        if width is None:
+            width = diameter
+
+        if diameter is None:
+            diameter = width
+
         if height is None:
             height = width
+
+
 
         if apron is None:
             apron = width
 
         self.width  = width
         self.height = height
+        self.diameter = diameter
         self.apron  = apron
         self.manning = manning
         self.enquiry_gap = enquiry_gap
@@ -484,12 +497,10 @@ class Parallel_Structure_operator(anuga.Operator):
 
 
     def get_inlets(self):
-        
         return self.inlets
         
         
     def get_culvert_length(self):
-        
         return self.culvert_length
         
         
@@ -498,7 +509,7 @@ class Parallel_Structure_operator(anuga.Operator):
         
         
     def get_culvert_diameter(self):
-        return self.width
+        return self.diamter
         
         
     def get_culvert_height(self):
