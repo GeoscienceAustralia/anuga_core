@@ -1,6 +1,5 @@
 import anuga
 import math
-import pypar
 
 from anuga.structures.boyd_box_operator import boyd_box_function 
 
@@ -257,6 +256,8 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
 #        return Q, barrel_velocity, outlet_culvert_depth
 
     def discharge_routine(self):
+
+        import pypar
 
         local_debug = False
 

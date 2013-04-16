@@ -9,7 +9,7 @@ import anuga.structures.inlet
 from anuga.utilities.system_tools import log_to_file
 from anuga.structures.inlet_operator import Inlet_operator
 import parallel_inlet
-import pypar
+
 
 class Parallel_Inlet_operator(Inlet_operator):
     """Parallel Inlet Operator - add water to an inlet potentially 
@@ -43,6 +43,7 @@ class Parallel_Inlet_operator(Inlet_operator):
                  procs = None,
                  verbose = False):
 
+        import pypar
         self.domain = domain
         self.domain.set_fractional_step_operator(self)
         self.line = numpy.array(line, dtype='d')
@@ -94,6 +95,7 @@ class Parallel_Inlet_operator(Inlet_operator):
 
     def __call__(self):
 
+        import pypar
         volume = 0
 
         # Need to run global command on all processors

@@ -1,7 +1,7 @@
 # To change this template, choose Tools | Templates
 # and open the template in the editor.
 
-import pypar
+
 
 import os.path
 import sys
@@ -48,7 +48,7 @@ def Inlet_operator(domain,
                    label = None,
                    logging = False,
                    master_proc = 0,
-                   procs = range(0,pypar.size()),
+                   procs = None,
                    verbose = False):
 
     # If not parallel domain then allocate serial Inlet operator
@@ -64,6 +64,9 @@ def Inlet_operator(domain,
                                                               logging = logging,
                                                               verbose = verbose)
     
+    import pypar
+    if procs is None:
+        procs = range(0,pypar.size())
 
     myid = pypar.rank()
 
@@ -127,7 +130,7 @@ def Boyd_box_operator(domain,
                        logging=False,
                        verbose=False,
                        master_proc=0,
-                       procs=range(0,pypar.size())):
+                       procs=None):
 
     # If not parallel domain then allocate serial Boyd box operator
     if isinstance(domain, Parallel_domain) is False:
@@ -150,6 +153,10 @@ def Boyd_box_operator(domain,
                                                                     structure_type=structure_type,
                                                                     logging=logging,
                                                                     verbose=verbose)
+
+    import pypar
+    if procs is None:
+        procs = range(0,pypar.size())
 
     myid = pypar.rank()
 
@@ -281,7 +288,7 @@ def Boyd_pipe_operator(domain,
                        logging=False,
                        verbose=False,
                        master_proc=0,
-                       procs=range(0,pypar.size())):
+                       procs=None):
 
     # If not parallel domain then allocate serial Boyd box operator
     if isinstance(domain, Parallel_domain) is False:
@@ -304,6 +311,10 @@ def Boyd_pipe_operator(domain,
                                                                     logging=logging,
                                                                     verbose=verbose)
 
+    import pypar
+    if procs is None:
+        procs = range(0,pypar.size())
+        
     myid = pypar.rank()
 
     end_points = ensure_numeric(end_points)
@@ -476,8 +487,13 @@ def __process_skew_culvert(exchange_lines, end_points, enquiry_points, apron, en
     return enquiry_points
         
 
-def allocate_inlet_procs(domain, line, enquiry_point = None, master_proc = 0, procs = range(0, pypar.size()), verbose = False):
+def allocate_inlet_procs(domain, line, enquiry_point = None, master_proc = 0, procs = None, verbose = False):
 
+
+    import pypar
+    if procs is None:
+        procs = range(0, pypar.size())
+        
     myid = pypar.rank()
     vertex_coordinates = domain.get_full_vertex_coordinates(absolute=True)
     size = 0

@@ -3,7 +3,6 @@ from anuga.config import velocity_protection, g
 import math
 
 import numpy as num
-import pypar
 
 import parallel_inlet
 
@@ -24,7 +23,9 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
    
         parallel_inlet.Parallel_Inlet.__init__(self, domain, polyline,
                                                 master_proc = master_proc, procs = procs, verbose=verbose)
-   
+
+        import pypar
+
         self.enquiry_pt = enquiry_pt
         self.outward_culvert_vector = outward_culvert_vector
         self.master_proc = master_proc

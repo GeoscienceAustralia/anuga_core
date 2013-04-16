@@ -6,7 +6,7 @@ import parallel_inlet_enquiry
 from anuga.utilities.system_tools import log_to_file
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.structures.inlet_enquiry import Inlet_enquiry
-import pypar
+
 
 class Parallel_Structure_operator(anuga.Operator):
     """Parallel Structure Operator - transfer water from one rectangular box to another.
@@ -56,6 +56,7 @@ class Parallel_Structure_operator(anuga.Operator):
                  inlet_procs = None,
                  enquiry_proc = None):
 
+        import pypar
         self.myid = pypar.rank()
         self.num_procs = pypar.size()
         
@@ -179,6 +180,8 @@ class Parallel_Structure_operator(anuga.Operator):
         self.set_parallel_logging(logging)
 
     def __call__(self):
+
+        import pypar
 
         timestep = self.domain.get_timestep()
 
@@ -390,6 +393,8 @@ class Parallel_Structure_operator(anuga.Operator):
     def statistics(self):
         # Warning: requires synchronization, must be called by all procs associated
         # with this structure
+
+        import pypar
 
         message = ' '
 

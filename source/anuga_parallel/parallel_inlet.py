@@ -8,7 +8,7 @@ import math
 
 import numpy as num
 from anuga.structures.inlet import Inlet
-import pypar
+
 
 class Parallel_Inlet(Inlet):
     """Contains information associated with each inlet
@@ -37,6 +37,7 @@ class Parallel_Inlet(Inlet):
         else:
             self.procs = procs
 
+        import pypar
         self.myid = pypar.rank()
 
         self.compute_triangle_indices()
@@ -103,7 +104,8 @@ class Parallel_Inlet(Inlet):
 
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
-        
+
+        import pypar
         local_area = self.area
         area = local_area
 
@@ -144,6 +146,7 @@ class Parallel_Inlet(Inlet):
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
 
+        import pypar
         local_stage = num.sum(self.get_stages()*self.get_areas())
         global_area = self.get_global_area()
         global_stage = local_stage
@@ -183,6 +186,7 @@ class Parallel_Inlet(Inlet):
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
 
+        import pypar
         global_area = self.get_global_area()
         local_xmoms = num.sum(self.get_xmoms()*self.get_areas())
         global_xmoms = local_xmoms
@@ -213,6 +217,7 @@ class Parallel_Inlet(Inlet):
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
 
+        import pypar
         global_area = self.get_global_area()
         local_ymoms = num.sum(self.get_ymoms()*self.get_areas())
         global_ymoms = local_ymoms
@@ -243,6 +248,7 @@ class Parallel_Inlet(Inlet):
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
 
+        import pypar
         local_volume = num.sum(self.get_depths()*self.get_areas())
         volume = local_volume
 
@@ -352,6 +358,7 @@ class Parallel_Inlet(Inlet):
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
 
+        import pypar
         centroid_coordinates = self.domain.get_full_centroid_coordinates(absolute=True)
         areas = self.get_areas()
         stages = self.get_stages()
@@ -473,6 +480,8 @@ class Parallel_Inlet(Inlet):
     def statistics(self):
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
+
+        import pypar
 
         message = ''
 
