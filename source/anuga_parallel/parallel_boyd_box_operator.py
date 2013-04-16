@@ -392,7 +392,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
 
 
             
-                Q, barrel_velocity, outlet_culvert_depth, case = \
+                Q, barrel_velocity, outlet_culvert_depth, flow_area, case = \
                               boyd_box_function(depth               =self.culvert_height,
                                                 width               =self.culvert_width,
                                                 flow_width          =self.culvert_width,

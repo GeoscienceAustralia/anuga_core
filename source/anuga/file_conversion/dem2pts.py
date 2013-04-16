@@ -158,6 +158,8 @@ def _dem2pts(name_in, name_out=None, verbose=False,
 
 
 
+
+
 #    #=======================================================================
 #    # Calculating number of NODATA_values for each row in clipped region
 #    # FIXME: use array operations to do faster
@@ -281,37 +283,22 @@ def _dem2pts(name_in, name_out=None, verbose=False,
     #========================================
     # Do the preceeding with numpy
     #========================================
+    y = num.arange(nrows,dtype=num.float)
+    y = yllcorner + (nrows-1)*cellsize - y*cellsize
 
-    start = (nrows-1)*cellsize+yllcorner
-    stop = yllcorner-cellsize
-    step = -cellsize
-    y = num.arange(start, stop,step)
-
-    start = xllcorner
-    stop = (ncols)*cellsize + xllcorner
-    step = cellsize
-    x = num.arange(start, stop,step)
-
-    #print nrows,ncols
+    x = num.arange(ncols,dtype=num.float)
+    x = xllcorner + x*cellsize
 
     xx,yy = num.meshgrid(x,y)
-
-    #print xx
-    #print yy
 
     xx = xx.flatten()
     yy = yy.flatten()
 
+    
     flag = num.logical_and(num.logical_and((xx <= easting_max),(xx >= easting_min)),
                            num.logical_and((yy <= northing_max),(yy >= northing_min)))
 
-
-    #print flag
-
-    #print xx
-    #print yy
-    #print easting_min, easting_max, northing_min, northing_max
-
+    
     dem = dem_elevation[:].flatten()
 
 
@@ -320,6 +307,7 @@ def _dem2pts(name_in, name_out=None, verbose=False,
     xx = xx[id]
     yy = yy[id]
     dem = dem[id]
+
 
     clippednopoints = len(dem)
     #print clippedpoints

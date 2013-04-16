@@ -127,9 +127,9 @@ class Boyd_box_operator(anuga.Structure_operator):
                 self.driving_energy = self.inflow.get_enquiry_depth()
 
 
-            Q, barrel_velocity, outlet_culvert_depth, case = \
-                              boyd_box_function(depth               =self.culvert_height,
-                                                width               =self.culvert_width,
+            Q, barrel_velocity, outlet_culvert_depth, flow_area, case = \
+                              boyd_box_function(width               =self.culvert_width,
+                                                depth               =self.culvert_height,
                                                 flow_width          =self.culvert_width,
                                                 length              =self.culvert_length,
                                                 driving_energy      =self.driving_energy,
@@ -158,7 +158,7 @@ class Boyd_box_operator(anuga.Structure_operator):
 #=============================================================================
 # define separately so that can be imported in parallel code.
 #=============================================================================
-def boyd_box_function(depth, width, flow_width, length, driving_energy, delta_total_energy, outlet_enquiry_depth, sum_loss, manning):
+def boyd_box_function(width, depth, flow_width, length, driving_energy, delta_total_energy, outlet_enquiry_depth, sum_loss, manning):
 
     # intially assume the culvert flow is controlled by the inlet
     # check unsubmerged and submerged condition and use Min Q
@@ -262,7 +262,7 @@ def boyd_box_function(depth, width, flow_width, length, driving_energy, delta_to
 
     # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow
 
-    return Q, barrel_velocity, outlet_culvert_depth, case
+    return Q, barrel_velocity, outlet_culvert_depth, flow_area, case
 
 
 

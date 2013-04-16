@@ -509,7 +509,7 @@ class Parallel_Structure_operator(anuga.Operator):
         
         
     def get_culvert_diameter(self):
-        return self.diamter
+        return self.diameter
         
         
     def get_culvert_height(self):

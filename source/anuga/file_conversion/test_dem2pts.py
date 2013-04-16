@@ -246,14 +246,21 @@ Parameters
 
 
 
+        #print points
+        #print new_ref_points
+
         assert num.allclose(points, new_ref_points)
+
+        #print elevation
+        #print ref_elevation
+        
         assert num.allclose(elevation, ref_elevation)
 
         #Cleanup
         fid.close()
 
 
-        os.remove(root + '.pts')
+        #os.remove(root + '.pts')
         os.remove(root + '.dem')
         os.remove(root + '.asc')
         os.remove(root + '.prj')

@@ -352,6 +352,5 @@ if __name__=="__main__":
         run_test(parallel=True, control_data = control_data, test_points = test_points, verbose = verbose)
 
 
-    finalize()
     
 
