@@ -8,7 +8,7 @@ from math import sqrt
 
 
 try:
-    from scipyr.interpolate import interp1d
+    from scipy.interpolate import interp1d
     scipy_available = True
 except:
     from Scientific.Functions.Interpolation import InterpolatingFunction

@@ -2341,16 +2341,16 @@ def my_update_special_conditions(domain):
 # Initialise module
 ################################################################################
 
-def _raise_compile_exception():
-    """ Raise exception if compiler not available. """
-    msg = 'C implementations could not be accessed by %s.\n ' % __file__
-    msg += 'Make sure compile_all.py has been run as described in '
-    msg += 'the ANUGA installation guide.'
-    raise Exception(msg)
-
-from anuga.utilities import compile
-if not compile.can_use_C_extension('shallow_water_ext.c'):
-    _raise_compile_exception()
+#def _raise_compile_exception():
+#    """ Raise exception if compiler not available. """
+#    msg = 'C implementations could not be accessed by %s.\n ' % __file__
+#    msg += 'Make sure compile_all.py has been run as described in '
+#    msg += 'the ANUGA installation guide.'
+#    raise Exception(msg)
+#
+#from anuga.utilities import compile
+#if not compile.can_use_C_extension('shallow_water_ext.c'):
+#    _raise_compile_exception()
 
 if __name__ == "__main__":
     pass
