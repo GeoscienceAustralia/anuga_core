@@ -1,17 +1,24 @@
 """ Script to compile all C extensions in ANUGA. """
 
 import os
+import subprocess
+import sys
 
 BUILDROOT = os.getcwd()
 
 #Attempt to compile all extensions
 
+
+
 os.chdir('utilities')
+subprocess.call([sys.executable, 'compile.py', 'quad_tree.c'])
+subprocess.call([sys.executable, 'compile.py', 'sparse_dok.c'])
+subprocess.call([sys.executable, 'compile.py', 'sparse_csr.c'])
 execfile('compile.py')
 
-#os.chdir('..')
-#os.chdir('advection')
-#execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
+os.chdir('..')
+os.chdir('advection')
+execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 os.chdir('..')
 os.chdir('operators')
@@ -20,7 +27,6 @@ execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 os.chdir('..')
 os.chdir('file_conversion')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
-
 
 os.chdir('..')
 os.chdir('geometry')
@@ -42,16 +48,17 @@ os.chdir('..')
 os.chdir('shallow_water')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
-#os.chdir('..')
-#os.chdir('shallow_water_balanced')
-#execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 os.chdir('..')
 os.chdir('mesh_engine')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
+os.chdir('..')
+os.chdir('fit_interpolate')
+subprocess.call([sys.executable, '..' + os.sep + 'utilities' + os.sep + 'compile.py', 'rand48.c'])
+subprocess.call([sys.executable, '..' + os.sep + 'utilities' + os.sep + 'compile.py', 'ptinpoly.c'])
+execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
+
+
+
 os.chdir(BUILDROOT)    
-#execfile('test_all.py')
-    
-if sys.platform == 'win32':
-    raw_input('Press the RETURN key')
