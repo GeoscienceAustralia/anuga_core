@@ -14,12 +14,12 @@ os.chdir('utilities')
 subprocess.call([sys.executable, 'compile.py', 'quad_tree.c'])
 subprocess.call([sys.executable, 'compile.py', 'sparse_dok.c'])
 subprocess.call([sys.executable, 'compile.py', 'sparse_csr.c'])
-try:
-    from system_tools  import store_version_info
-    store_version_info()
-except:
-    print 'problem storingversion info'
-    pass
+#try:
+from system_tools  import store_version_info
+store_version_info(verbose=True)
+#except:
+#    print 'problem storingversion info'
+#    pass
 execfile('compile.py')
 
 os.chdir('..')
