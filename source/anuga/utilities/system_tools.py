@@ -88,7 +88,15 @@ Good luck!
     try:
         fd = open(os.path.join('.svn', 'entries'))
     except:
-        raise Exception, msg
+        #raise Exception, msg
+
+
+        #FIXME SR: Need to fix this up
+        # svn 1.7 no longer has a .svn folder in all folders
+        # so will need a better way to get revision number
+        
+        from anuga.utilities.stored_version_info import version_info
+        return process_version_info(version_info)
 
     line = fd.readlines()[3]
     fd.close()
@@ -187,6 +195,11 @@ def get_revision_number():
     except:
         return __get_revision_from_svn_client__()
 
+
+    return process_version_info(version_info)
+
+def process_version_info(version_info):
+
     # split revision number from data
     for line in version_info.split('\n'):
         if line.startswith('Revision:'):
@@ -205,7 +218,6 @@ def get_revision_number():
         raise Exception, msg
 
     return revision_number
-
 
 def store_version_info(destination_path='.', verbose=False):
     """Obtain current version from Subversion and store it.
