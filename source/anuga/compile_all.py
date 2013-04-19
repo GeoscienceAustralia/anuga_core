@@ -66,7 +66,7 @@ os.chdir('..')
 os.chdir('utilities')
 try:
     from anuga.utilities.system_tools  import store_version_info
-    store_version_info(verbose=True)
+    store_version_info()
     print
     print "---------------------------------"
     print 'Storing of version info succeeded'

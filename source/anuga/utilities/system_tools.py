@@ -245,12 +245,13 @@ def store_version_info(destination_path='.', verbose=False):
     # to somewhere else.
     
     import config
+    import subprocess
 
+    #txt = subprocess.Popen('svn info', shell=True, stdout=subprocess.PIPE).communicate()[0]
     try:
         #fid = os.popen('svn info')
         #FIXME SR: This works for python 2.6
-        txt = subprocess.Popen('svn -info', shell=True, stdout=subprocess.PIPE).communicate()[0]
-
+        txt = subprocess.Popen('svn info', shell=True, stdout=subprocess.PIPE).communicate()[0]
     except:
         msg = 'Command "svn" is not recognised on the system PATH'
         raise Exception(msg)
