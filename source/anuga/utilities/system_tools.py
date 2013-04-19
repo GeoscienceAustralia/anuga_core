@@ -111,30 +111,46 @@ Good luck!
 def __get_revision_from_svn_client__():
     """Get a subversion revision number from an svn client."""
 
+    import subprocess
+
     if sys.platform[0:3] == 'win':
+        #print 'On Win'
         try:
-            fid = os.popen(r'C:\Program Files\TortoiseSVN\bin\SubWCRev.exe')
+            #FIXME SR: This works for python 2.6
+            cmd = r'"C:\Program Files\TortoiseSVN\bin\SubWCRev.exe" .'
+            version_info = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0]
+
+            #print 'Version_Info', version_info
+            #fid = os.popen(r'C:\Program Files\TortoiseSVN\bin\SubWCRev.exe')
         except:
             return __get_revision_from_svn_entries__()
         else:
-            version_info = fid.read()
+            #version_info = fid.read()
             if version_info == '':
                 return __get_revision_from_svn_entries__()
+
 
         # split revision number from data
         for line in version_info.split('\n'):
             if line.startswith('Updated to revision '):
                 break
+            if line.startswith('Last committed at revision'):
+                break
 
+        #print line
         fields = line.split(' ')
         msg = 'Keyword "Revision" was not found anywhere in text: %s' % version_info
-        assert fields[0].startswith('Updated'), msg
+        assert fields[0].startswith('Updated')  or fields[0].startswith('Last'), msg
+
 
         try:
-            revision_number = int(fields[3])
+            if fields[0].startswith('Updated'):
+                revision_number = int(fields[3])
+            if fields[0].startswith('Last'):
+                revision_number = int(fields[4])
         except:
             msg = ('Revision number must be an integer. I got "%s" from '
-                   '"SubWCRev.exe".' % fields[3])
+                   '"SubWCRev.exe".' % line)
             raise Exception, msg
     else:                   # assume Linux
         try:
@@ -191,12 +207,10 @@ def get_revision_number():
 
     # try to get revision information from stored_version_info.py
     try:
-        from anuga.stored_version_info import version_info
-    except:
         return __get_revision_from_svn_client__()
-
-
-    return process_version_info(version_info)
+    except:
+        from anuga.stored_version_info import version_inf
+        return process_version_info(version_info)
 
 def process_version_info(version_info):
 
