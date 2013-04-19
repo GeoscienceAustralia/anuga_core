@@ -14,12 +14,6 @@ os.chdir('utilities')
 subprocess.call([sys.executable, 'compile.py', 'quad_tree.c'])
 subprocess.call([sys.executable, 'compile.py', 'sparse_dok.c'])
 subprocess.call([sys.executable, 'compile.py', 'sparse_csr.c'])
-try:
-    from anuga.utilities.system_tools  import store_version_info
-    store_version_info(verbose=True)
-except:
-    pass
-
 execfile('compile.py')
 
 os.chdir('..')
@@ -67,4 +61,22 @@ execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 
 
-os.chdir(BUILDROOT)    
+#====================================================================
+os.chdir('..')
+os.chdir('utilities')
+try:
+    from anuga.utilities.system_tools  import store_version_info
+    store_version_info(verbose=True)
+    print
+    print "---------------------------------"
+    print 'Storing of version info succeeded'
+    print "---------------------------------"
+    print
+except:
+    print
+    print "----------------------------------------------------------------"
+    print 'Storage of version info failed (just means svn is not available)'
+    print "----------------------------------------------------------------"
+    print
+
+os.chdir(BUILDROOT)

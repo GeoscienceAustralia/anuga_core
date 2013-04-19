@@ -247,13 +247,18 @@ def store_version_info(destination_path='.', verbose=False):
     import config
 
     try:
-        fid = os.popen('svn info')
+        #fid = os.popen('svn info')
+        #FIXME SR: This works for python 2.6
+        txt = subprocess.Popen('svn -info', shell=True, stdout=subprocess.PIPE).communicate()[0]
+
     except:
         msg = 'Command "svn" is not recognised on the system PATH'
         raise Exception(msg)
     else:    
-        txt = fid.read()
-        fid.close()
+        #txt = fid.read()
+        #fid.close()
+
+        if verbose: print 'response ',txt
 
 
         # Determine absolute filename
