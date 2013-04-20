@@ -62,21 +62,21 @@ execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 
 #====================================================================
-os.chdir('..')
-os.chdir('utilities')
-try:
-    from anuga.utilities.system_tools  import store_version_info
-    store_version_info()
-    print
-    print "---------------------------------"
-    print 'Storing of version info succeeded'
-    print "---------------------------------"
-    print
-except:
-    print
-    print "----------------------------------------------------------------"
-    print 'Storage of version info failed (just means svn is not available)'
-    print "----------------------------------------------------------------"
-    print
+#os.chdir('..')
+#os.chdir('utilities')
+#try:
+#    from anuga.utilities.system_tools  import store_version_info
+#    store_version_info(verbose=True)
+#    print
+#    print "---------------------------------"
+#    print 'Storing of version info succeeded'
+#    print "---------------------------------"
+#    print
+#except:
+#    print
+#    print "----------------------------------------------------------------"
+#    print 'Storage of version info failed (just means svn is not available)'
+#    print "----------------------------------------------------------------"
+#    print
 
 os.chdir(BUILDROOT)

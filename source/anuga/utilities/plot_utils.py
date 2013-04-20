@@ -151,28 +151,28 @@ def read_output(filename, minimum_allowed_height):
 
 
     # Read variables
-    x=fid.variables['x']
-    x=x.getValue()
-    y=fid.variables['y']
-    y=y.getValue()
+    x=fid.variables['x'][:]
+    #x=x.getValue()
+    y=fid.variables['y'][:]
+    #y=y.getValue()
 
-    stage=fid.variables['stage']
-    stage=stage.getValue()
+    stage=fid.variables['stage'][:]
+    #stage=stage.getValue()
 
-    elev=fid.variables['elevation']
-    elev=elev.getValue()
+    elev=fid.variables['elevation'][:]
+    #elev=elev.getValue()
 
-    xmom=fid.variables['xmomentum']
-    xmom=xmom.getValue()
+    xmom=fid.variables['xmomentum'][:]
+    #xmom=xmom.getValue()
 
-    ymom=fid.variables['ymomentum']
-    ymom=ymom.getValue()
+    ymom=fid.variables['ymomentum'][:]
+    #ymom=ymom.getValue()
 
-    time=fid.variables['time']
-    time=time.getValue()
+    time=fid.variables['time'][:]
+    #time=time.getValue()
 
-    vols=fid.variables['volumes']
-    vols=vols.getValue()
+    vols=fid.variables['volumes'][:]
+    #vols=vols.getValue()
 
 
     # Calculate velocity = momentum/depth
