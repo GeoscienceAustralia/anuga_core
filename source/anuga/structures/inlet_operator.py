@@ -71,7 +71,7 @@ class Inlet_operator(anuga.Operator):
         Q2 = self.update_Q(t + timestep)
 
 
-        #print Q1,Q2
+        print Q1,Q2
         Q = 0.5*(Q1+Q2)
         volume = Q*timestep
 
