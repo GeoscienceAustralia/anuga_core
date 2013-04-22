@@ -411,14 +411,14 @@ static PyObject *calc_grid_values( PyObject *self, PyObject *args )
 	int i, ok, num_tri, num_vert, ncol, nrow, num_norms, num_grid_val;
 	long *volumes; 
 	double nodata_val;
-        double cell_size;
+    double cell_size;
 	double *x, *y;
-        double *norms;
+    double *norms;
 	double *result;
 	double *grid_val;
 	PyObject *pyobj_x;
-        PyObject *pyobj_y;
-        PyObject *pyobj_norms;
+    PyObject *pyobj_y;
+    PyObject *pyobj_norms;
 	PyObject *pyobj_volumes;
 	PyObject *pyobj_result;
 	PyObject *pyobj_grid_val;
@@ -426,11 +426,11 @@ static PyObject *calc_grid_values( PyObject *self, PyObject *args )
 	ok = PyArg_ParseTuple( args, "iiddOOOOOO",
 				&nrow,
 				&ncol,
-                                &cell_size,
+                &cell_size,
 				&nodata_val, 
 				&pyobj_x,
-                                &pyobj_y,
-                                &pyobj_norms,
+                &pyobj_y,
+                &pyobj_norms,
 				&pyobj_volumes, 
 				&pyobj_result,
 				&pyobj_grid_val );
@@ -445,8 +445,8 @@ static PyObject *calc_grid_values( PyObject *self, PyObject *args )
 
 	// get data from python objects
 	x = DDATA( pyobj_x );
-        y = DDATA( pyobj_y );
-        norms    = DDATA( pyobj_norms );
+    y = DDATA( pyobj_y );
+    norms    = DDATA( pyobj_norms );
 	result	 = DDATA( pyobj_result );
 	grid_val = DDATA( pyobj_grid_val );
 	volumes  = IDATA( pyobj_volumes );
@@ -454,10 +454,10 @@ static PyObject *calc_grid_values( PyObject *self, PyObject *args )
 
 	num_tri  = ((PyArrayObject*)pyobj_volumes)->dimensions[0];
 	num_vert = ((PyArrayObject*)pyobj_x)->dimensions[0];
-        num_norms = ((PyArrayObject*)pyobj_norms)->dimensions[0];
-        num_grid_val = ((PyArrayObject*)pyobj_grid_val)->dimensions[0];
+    num_norms = ((PyArrayObject*)pyobj_norms)->dimensions[0];
+    num_grid_val = ((PyArrayObject*)pyobj_grid_val)->dimensions[0];
 
-        //printf("==== %d %d %d %d %d \n",num_norms,num_tri,num_vert,nrow,ncol);
+    //printf("==== %d %d %d %d %d \n",num_norms,num_tri,num_vert,nrow,ncol);
 
 	// init triangle array
 	init_norms( x,y, norms, volumes, num_tri );

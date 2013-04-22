@@ -1530,6 +1530,7 @@ PyObject *extrapolate_second_order_and_limit_by_edge(PyObject *self, PyObject *a
 
 
   // Release
+  Py_DECREF(domain);
   Py_DECREF(domain_centroids);
   Py_DECREF(domain_surrogate_neighbours);
   Py_DECREF(domain_number_of_boundaries);

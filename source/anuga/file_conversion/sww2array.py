@@ -26,7 +26,7 @@ quantity_formula = {'momentum':'(xmomentum**2 + ymomentum**2)**0.5',
 
 
 # Default block size for sww2dem()
-DEFAULT_BLOCK_SIZE = 10000
+DEFAULT_BLOCK_SIZE = 100000
 
 def sww2array(name_in,
             quantity=None, # defaults to elevation
@@ -196,25 +196,47 @@ def sww2array(name_in,
         end_slice = min(start_slice + block_size, number_of_points)
         
         # Get slices of all required variables
-        q_dict = {}
-        for name in var_list:
-            # check if variable has time axis
-            if len(fid.variables[name].shape) == 2:
-                q_dict[name] = fid.variables[name][:,start_slice:end_slice]
-            else:       # no time axis
-                q_dict[name] = fid.variables[name][start_slice:end_slice]
+        if type(reduction) is not types.BuiltinFunctionType:
+            q_dict = {}
+            for name in var_list:
+                # check if variable has time axis
+                if len(fid.variables[name].shape) == 2:
+                    print 'avoiding large array'
+                    q_dict[name] = fid.variables[name][reduction,start_slice:end_slice]
+                else:       # no time axis
+                    q_dict[name] = fid.variables[name][start_slice:end_slice]
 
-        # Evaluate expression with quantities found in SWW file
-        res = apply_expression_to_dictionary(quantity, q_dict)
+            # Evaluate expression with quantities found in SWW file
+            res = apply_expression_to_dictionary(quantity, q_dict)
 
-        if len(res.shape) == 2:
-            new_res = num.zeros(res.shape[1], num.float)
-            for k in xrange(res.shape[1]):
-                if type(reduction) is not types.BuiltinFunctionType:
-                    new_res[k] = res[reduction,k]
-                else:
-                    new_res[k] = reduction(res[:,k])
-            res = new_res
+#            if len(res.shape) == 2:
+#                new_res = num.zeros(res.shape[1], num.float)
+#                for k in xrange(res.shape[1]):
+#                    if type(reduction) is not types.BuiltinFunctionType:
+#                        new_res[k] = res[k]
+#                    else:
+#                        new_res[k] = reduction(res[:,k])
+#                res = new_res
+        else:
+            q_dict = {}
+            for name in var_list:
+                # check if variable has time axis
+                if len(fid.variables[name].shape) == 2:
+                    q_dict[name] = fid.variables[name][:,start_slice:end_slice]
+                else:       # no time axis
+                    q_dict[name] = fid.variables[name][start_slice:end_slice]
+
+            # Evaluate expression with quantities found in SWW file
+            res = apply_expression_to_dictionary(quantity, q_dict)
+
+            if len(res.shape) == 2:
+                new_res = num.zeros(res.shape[1], num.float)
+                for k in xrange(res.shape[1]):
+                    if type(reduction) is not types.BuiltinFunctionType:
+                        new_res[k] = res[reduction,k]
+                    else:
+                        new_res[k] = reduction(res[:,k])
+                res = new_res
 
         result[start_slice:end_slice] = res
                                     
@@ -281,7 +303,8 @@ def sww2array(name_in,
                      x,y, norms, volumes, result, grid_values)
 
 
-
+    fid.close()
+    
     #print outside_indices
 
     if verbose:
