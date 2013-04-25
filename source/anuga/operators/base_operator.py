@@ -26,6 +26,7 @@ class Operator:
         self.xmom_c  = self.domain.quantities['xmomentum'].centroid_values
         self.ymom_c  = self.domain.quantities['ymomentum'].centroid_values
         self.elev_c  = self.domain.quantities['elevation'].centroid_values
+        self.coord_c = self.domain.centroid_coordinates
         self.areas = self.domain.areas
 
 

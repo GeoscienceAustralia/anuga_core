@@ -56,6 +56,9 @@ class Rate_operator(Operator):
         self.indices = indices
         self.factor = factor
 
+        self.rate_callable = False
+        self.rate_spatial = False
+        
         self.set_rate(rate)
         self.set_default_rate(default_rate)
 
@@ -78,13 +81,23 @@ class Rate_operator(Operator):
         factor = self.factor
         indices = self.indices
 
-        rate = self.get_rate(t)
+
+        if self.rate_spatial:
+            if self.indices is None:
+                x = self.coord_c[:,0]
+                y = self.coord_c[:,1]
+            else:
+                x = self.coord_c[indices,0]
+                y = self.coord_c[indices,1]
+            rate = self.get_spatial_rate(x,y,t)
+        else:
+            rate = self.get_rate(t)
 
         if self.verbose is True:
             log.critical('Rate of %s at time = %.2f = %f'
                          % (self.quantity_name, domain.get_time(), rate))
 
-        if rate >= 0.0:
+        if num.all(rate >= 0.0):
             if self.indices is None:
                 self.stage_c[:] = self.stage_c[:]  \
                        + factor*rate*timestep
@@ -106,8 +119,8 @@ class Rate_operator(Operator):
         if t is None:
             t = self.get_time()
 
-            
-        if callable(self.rate):
+
+        if  self.rate_callable:
             try:
                 rate = self.rate(t)
             except Modeltime_too_early, e:
@@ -145,6 +158,28 @@ class Rate_operator(Operator):
 
         return rate
 
+    def get_spatial_rate(self, x=None, y=None, t=None):
+        """Provide a rate to calculate added volume
+        only call if self.rate_spatial = True
+        """
+
+        assert self.rate_spatial
+
+        if t is None:
+            t = self.get_time()
+
+        if x is None:
+            x = self.coord_c[:,0]
+
+        if y is None:
+            y = self.coord_c[:,1]
+
+        #print xy
+        #print t
+        rate = self.rate(x,y,t)
+
+        return rate
+
 
     def set_rate(self, rate):
         """Ability to change rate while running
@@ -157,8 +192,43 @@ class Rate_operator(Operator):
                'scalar, or a function of time.')
         assert (isinstance(rate, (int, float)) or
                 callable(rate)), msg
+
+        self.rate_callable = False
+        self.rate_spatial = False
+
         self.rate = rate
 
+        if callable(rate):
+            self.rate_callable = True
+
+            x = num.array([0.0, 1.0])
+            y = num.array([0.0, 2.0])
+            t =0.0
+
+            try:
+                self.rate(x,y,t)
+            except:
+                #print 'Problem calling with two arguments'
+                self.rate_spatial = False
+                self.rate_callable = False
+            else:
+                self.rate_spatial = True
+                self.rate_callable = True
+
+                #print self.rate_spatial , self.rate_callable
+                return
+
+            try:
+                self.rate(t)
+            except:
+                self.rate_callable = False
+                #print 'Problem calling 1 argument'
+            else:
+                self.rate_callable = True
+                self.rate_spatial = False
+
+        #print self.rate
+        #print self.rate_spatial , self.rate_callable
 
     def set_default_rate(self, default_rate):
         """
