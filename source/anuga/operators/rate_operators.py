@@ -91,7 +91,7 @@ class Rate_operator(Operator):
                 y = self.coord_c[indices,1]
             rate = self.get_spatial_rate(x,y,t)
         else:
-            rate = self.get_rate(t)
+            rate = self.get_non_spatial_rate(t)
 
         if self.verbose is True:
             log.critical('Rate of %s at time = %.2f = %f'
@@ -112,7 +112,8 @@ class Rate_operator(Operator):
                 self.stage_c[indices] = num.maximum(self.stage_c[indices] \
                        + factor*rate*timestep, self.elev_c[indices])
 
-    def get_rate(self, t=None):
+
+    def get_non_spatial_rate(self, t=None):
         """Provide a rate to calculate added volume
         """
 
@@ -173,6 +174,10 @@ class Rate_operator(Operator):
 
         if y is None:
             y = self.coord_c[:,1]
+
+        #print x.shape,y.shape
+        assert isinstance(t, (int, float))
+        assert len(x) == len(y)
 
         #print xy
         #print t
@@ -273,7 +278,15 @@ class Rate_operator(Operator):
 
     def timestepping_statistics(self):
 
-        message  = indent + self.label + ': Rate = ' + str(self.get_rate())
+        if self.rate_spatial:
+            rate = self.get_spatial_rate()
+            min_rate = num.min(rate)
+            max_rate = num.max(rate)
+            message  = indent + self.label + ': Min rate = %g, Max rate = %g '% (min_rate,max_rate)
+        else:
+            message  = indent + self.label + ': Rate = ' + str(self.get_non_spatial_rate())
+
+
         return message
 
 

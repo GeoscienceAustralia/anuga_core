@@ -419,6 +419,78 @@ class Test_rate_operators(unittest.TestCase):
             print domain.quantities['ymomentum'].centroid_values
 
         # Apply operator to these triangles
+        factor = 10.0
+
+
+        def main_spatial_rate(x,y,t):
+            # x and y should be an n by 1 array
+            return x + y
+
+        default_rate = 0.0
+
+
+        operator = Rate_operator(domain, rate=main_spatial_rate, factor=factor, \
+                      default_rate = default_rate)
+
+
+        # Apply Operator
+        domain.timestep = 2.0
+        operator()
+
+        t = operator.get_time()
+        x = operator.coord_c[:,0]
+        y = operator.coord_c[:,1]
+        d = operator.get_timestep()*main_spatial_rate(x,y,t)*factor + 1
+
+        #print "d"
+        #print d
+        stage_ex = num.array([ 1.0,  1.0,   1.0,  1.0])
+        stage_ex[:] = d
+
+        if verbose:
+            print domain.quantities['elevation'].centroid_values
+            print domain.quantities['stage'].centroid_values
+            print domain.quantities['xmomentum'].centroid_values
+            print domain.quantities['ymomentum'].centroid_values
+
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+
+    def test_rate_operator_functions_spatial_indices(self):
+        from anuga.config import rho_a, rho_w, eta_w
+        from math import pi, cos, sin
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        #Flat surface with 1m of water
+        domain.set_quantity('elevation', 0.0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0.0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        verbose = False
+
+        if verbose:
+            print domain.quantities['elevation'].centroid_values
+            print domain.quantities['stage'].centroid_values
+            print domain.quantities['xmomentum'].centroid_values
+            print domain.quantities['ymomentum'].centroid_values
+
+        # Apply operator to these triangles
         indices = [0,1,3]
         factor = 10.0
 
@@ -457,7 +529,6 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
-
             
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_rate_operators, 'test')
