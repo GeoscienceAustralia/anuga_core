@@ -6,6 +6,7 @@ Water flowing down a channel with a topography that varies with time
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
+import numpy
 from anuga import rectangular_cross
 from anuga import Domain
 from anuga import Reflective_boundary
@@ -25,7 +26,7 @@ dx = dy = 0.2 #.1           # Resolution: Length of subdivisions on both axes
 points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
 domain = Domain(points, vertices, boundary)
-domain.set_name('rate_polygon') # Output name
+domain.set_name('output_rate_spatial_operator') # Output name
 print domain.statistics()
 
 
@@ -122,10 +123,40 @@ from anuga.operators.rate_operators import Circular_rate_operator
 from anuga.operators.rate_operators import Rate_operator
 
 op1 = Polygonal_rate_operator(domain, rate=10.0, polygon=polygon2)
-op2 = Circular_rate_operator(domain, rate=10.0, radius=0.5, center=(10.0, 3.0))
-op3 = Rate_operator(domain, rate = lambda x,y,t: 0.01*(x+y))
 
-for t in domain.evolve(yieldstep=0.1, finaltime=40.0):
+area1 = numpy.sum(domain.areas[op1.indices])
+Q1 = 10.0*area1
+print 'op1 Q ',Q1
+
+op2 = Circular_rate_operator(domain, rate=10.0, radius=0.5, center=(10.0, 3.0))
+
+area2 = numpy.sum(domain.areas[op2.indices])
+Q2 = 10.0*area2
+print 'op2 Q ',Q2
+
+
+def rain(x,y,t):
+    """Function to calculate "rain"
+    input x,y should be considered to be numpy arrays
+    abd t a scalar
+    """
+    if t<10:
+        return (x+y)
+    else:
+        return 0*x
+
+
+#op3 = Rate_operator(domain, rate = rain, factor=1e-3)
+area3 = numpy.sum(domain.areas)
+Q3 = numpy.sum(op3.get_rate(t)*area3)
+
+#------------------------------------------------------------------------------
+# Evolve system through time
+#------------------------------------------------------------------------------
+accum = 0.0
+yieldstep = 0.1
+finaltime = 40.0
+for t in domain.evolve(yieldstep=yieldstep, finaltime=finaltime):
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()
 
@@ -136,6 +167,8 @@ for t in domain.evolve(yieldstep=0.1, finaltime=40.0):
     print indent + 'Integral = ', height.get_integral()
 
 
+    print indent + 'Exact accumultion = ', accum
+    accum += (Q1+Q2)*yieldstep
 
 
 

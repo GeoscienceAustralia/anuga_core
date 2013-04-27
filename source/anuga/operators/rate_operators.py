@@ -62,7 +62,11 @@ class Rate_operator(Operator):
         self.set_rate(rate)
         self.set_default_rate(default_rate)
 
+
         self.default_rate_invoked = False    # Flag
+
+        self.set_areas()
+        self.set_full_indices()
 
     def __call__(self):
         """
@@ -87,8 +91,8 @@ class Rate_operator(Operator):
                 x = self.coord_c[:,0]
                 y = self.coord_c[:,1]
             else:
-                x = self.coord_c[indices,0]
-                y = self.coord_c[indices,1]
+                x = self.coord_c[self.indices,0]
+                y = self.coord_c[self.indices,1]
             rate = self.get_spatial_rate(x,y,t)
         else:
             rate = self.get_non_spatial_rate(t)
@@ -170,11 +174,16 @@ class Rate_operator(Operator):
             t = self.get_time()
 
         if x is None:
-            x = self.coord_c[:,0]
+            assert y is None
+            if self.indices is None:
+                x = self.coord_c[:,0]
+                y = self.coord_c[:,1]
+            else:
+                x = self.coord_c[self.indices,0]
+                y = self.coord_c[self.indices,1]
 
-        if y is None:
-            y = self.coord_c[:,1]
-
+        assert x is not None
+        assert y is not None
         #print x.shape,y.shape
         assert isinstance(t, (int, float))
         assert len(x) == len(y)
@@ -234,6 +243,51 @@ class Rate_operator(Operator):
 
         #print self.rate
         #print self.rate_spatial , self.rate_callable
+
+
+    def set_areas(self):
+
+        if self.indices is None:
+            self.areas = self.domain.areas
+            return
+
+        if self.indices is []:
+            self.areas = []
+            return
+
+        self.areas = self.domain.areas[self.indices]
+
+    def set_full_indices(self):
+
+        if self.indices is None:
+            self.full_indices = num.where(self.domain.tri_full_flag ==1)[0]
+            return
+
+        if self.indices is []:
+            self.full_indices = []
+            return
+
+        self.full_indices = num.where(self.domain.tri_full_flag[self.indices] == 1)[0]
+
+    def get_Q(self, full_only=True):
+        """ Calculate current overall discharge
+        """
+
+        if full_only:
+            if self.rate_spatial:
+                rate = self.get_spatial_rate() # rate is an array
+                fid = self.full_indices
+                return num.sum(self.areas[fid]*rate[fid])*self.factor
+            else:
+                rate = self.get_non_spatial_rate() # rate is a scalar
+                return num.sum(self.areas[fid]*rate)*self.factor
+        else:
+            if self.rate_spatial:
+                rate = self.get_spatial_rate() # rate is an array
+                return num.sum(self.areas*rate)*self.factor
+            else:
+                rate = self.get_non_spatial_rate() # rate is a scalar
+                return num.sum(self.areas*rate)*self.factor
 
     def set_default_rate(self, default_rate):
         """
