@@ -695,7 +695,7 @@ class Test_rate_operators(unittest.TestCase):
         #print Q_ex, Q
         #print indices
         #print "d"
-        print d
+        #print d
         stage_ex = num.array([ 1.0,  1.0,   1.0,  1.0])
         stage_ex[indices] = d
 
