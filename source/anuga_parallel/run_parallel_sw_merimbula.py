@@ -155,11 +155,11 @@ Bts = Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, lambda 
 domain.set_boundary({'outflow' :Br, 'inflow' :Br, 'inner' :Br, 'exterior' :Br, 'open' :Bts})
 
 
-bdy_ids = domain.tag_boundary_cells['open']
-vol_ids = domain.boundary_cells[bdy_ids]
-edge_ids = domain.boundary_edges[bdy_ids]
+#bdy_ids = domain.tag_boundary_cells['open']
+#vol_ids = domain.boundary_cells[bdy_ids]
+#edge_ids = domain.boundary_edges[bdy_ids]
 
-print domain.mesh.edge_midpoint_coordinates[3*vol_ids+edge_ids]
+#print domain.mesh.edge_midpoint_coordinates[3*vol_ids+edge_ids]
 
 
 
