@@ -131,9 +131,14 @@ except ImportError:
 def pmesh_divide_metis(domain, n_procs):
     # Wrapper for old pmesh_divide_metis which does not return tri_index or r_tri_index
     nodes, ttriangles, boundary, triangles_per_proc, quantities, tri_index, r_tri_index = pmesh_divide_metis_helper(domain, n_procs)
+
+    print triangles_per_proc
+    assert num.all(triangles_per_proc>0), 'Metis created a partition where one mesh has 0 triangles'
+
     return nodes, ttriangles, boundary, triangles_per_proc, quantities
 
 def pmesh_divide_metis_with_map(domain, n_procs):
+
     return pmesh_divide_metis_helper(domain, n_procs)
 
 def pmesh_divide_metis_helper(domain, n_procs):
@@ -207,6 +212,11 @@ def pmesh_divide_metis_helper(domain, n_procs):
         #        triangles.append(t)
 
         triangles_per_proc = num.bincount(epart)
+
+        msg = """Metis created a partition where at least one submesh has no triangles.
+        Try using a smaller number of mpi processors"""
+        assert num.all(triangles_per_proc>0), msg
+
         proc_sum = num.zeros(n_procs+1,num.int)
         proc_sum[1:] = num.cumsum(triangles_per_proc)
 
@@ -399,6 +409,8 @@ def submesh_full(mesh, triangles_per_proc):
     # Initialise
 
 
+    print triangles_per_proc
+    
     nodes = mesh.nodes
     triangles = mesh.triangles
     boundary = mesh.boundary
@@ -449,14 +461,18 @@ def submesh_full(mesh, triangles_per_proc):
         #node_list.append(y)
 
         ids = num.unique(subtriangles.flat)
+
+            
         lnodes = nodes[ids]
-#        print nodes.shape
-#        print ids.shape
-#        print lnodes.shape
+#       print nodes.shape
+#       print ids.shape
+#       print lnodes.shape
         x = num.concatenate((num.reshape(ids, (-1,1)),lnodes ), 1)
-#        print x
-#        print y
+#       print x
+#       print y
         node_list.append(x)
+
+            
         # Move to the next processor
 
         tlower = tupper
