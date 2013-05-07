@@ -132,9 +132,6 @@ def pmesh_divide_metis(domain, n_procs):
     # Wrapper for old pmesh_divide_metis which does not return tri_index or r_tri_index
     nodes, ttriangles, boundary, triangles_per_proc, quantities, tri_index, r_tri_index = pmesh_divide_metis_helper(domain, n_procs)
 
-    print triangles_per_proc
-    assert num.all(triangles_per_proc>0), 'Metis created a partition where one mesh has 0 triangles'
-
     return nodes, ttriangles, boundary, triangles_per_proc, quantities
 
 def pmesh_divide_metis_with_map(domain, n_procs):
@@ -146,11 +143,11 @@ def pmesh_divide_metis_helper(domain, n_procs):
     # Initialise the lists
     # List, indexed by processor of # triangles.
     
-    triangles_per_proc = []
+    #triangles_per_proc = []
     
     # List of lists, indexed by processor of vertex numbers
     
-    tri_list = []
+    #tri_list = []
 
     # Serial to Parallel and Parallel to Serial Triangle index maps
     tri_index = {}
@@ -158,11 +155,15 @@ def pmesh_divide_metis_helper(domain, n_procs):
     
     # List indexed by processor of cumulative total of triangles allocated.
     
-    proc_sum = []
-    for i in xrange(n_procs):
-        tri_list.append([])
-        triangles_per_proc.append(0)
-        proc_sum.append([])
+#    proc_sum = []
+#    for i in xrange(n_procs):
+#        tri_list.append([])
+#        triangles_per_proc.append(0)
+#        proc_sum.append([])
+
+    #tri_list = n_procs*[]
+    #triangles_per_proc = n_procs*[0]
+    #proc_sum = n_procs*[]
 
     # Prepare variables for the metis call
     
@@ -213,8 +214,8 @@ def pmesh_divide_metis_helper(domain, n_procs):
 
         triangles_per_proc = num.bincount(epart)
 
-        msg = """Metis created a partition where at least one submesh has no triangles.
-        Try using a smaller number of mpi processors"""
+        msg =  "Metis created a partition where at least one submesh has no triangles. "
+        msg += "Try using a smaller number of mpi processes."
         assert num.all(triangles_per_proc>0), msg
 
         proc_sum = num.zeros(n_procs+1,num.int)
@@ -335,7 +336,7 @@ def pmesh_divide_metis_helper(domain, n_procs):
 
     else:
         new_boundary = domain.boundary.copy()
-        triangles_per_proc[0] = n_tri
+        triangles_per_proc = [n_tri]
         new_triangles = domain.triangles.copy()
         new_tri_index = []
         epart_order = []
@@ -409,7 +410,7 @@ def submesh_full(mesh, triangles_per_proc):
     # Initialise
 
 
-    print triangles_per_proc
+    #print triangles_per_proc
     
     nodes = mesh.nodes
     triangles = mesh.triangles
