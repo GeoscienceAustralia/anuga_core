@@ -9,7 +9,7 @@ from anuga.abstract_2d_finite_volumes.quantity import Quantity
 
 import anuga
 
-from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator
+from anuga.structures.boyd_box_operator import Boyd_box_operator
 from anuga.structures.inlet_operator import Inlet_operator
                             
 #from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
@@ -40,7 +40,7 @@ points, vertices, boundary = rectangular_cross(int(length/dx),
                                                len1=length, 
                                                len2=width)
 domain = anuga.Domain(points, vertices, boundary)   
-domain.set_name('run_culvert_inlet')                 # Output name
+domain.set_name('run_gate_operator')                 # Output name
 domain.set_default_order(2)
 #domain.set_beta(1.5)
 
@@ -88,11 +88,10 @@ domain.set_quantity('stage',
 filename=os.path.join(path, 'example_rating_curve.csv')
 
 
-
-Boyd_pipe_operator(domain,
+gate = Boyd_box_operator(domain,
                             end_points=[[9.0, 2.5],[13.0, 2.5]],
                             losses=1.5,
-                            diameter=1.5,
+                            width=1.5,
                             apron=5.0,
                             use_momentum_jet=True,
                             use_velocity_head=False,
@@ -100,8 +99,10 @@ Boyd_pipe_operator(domain,
                             verbose=False)
 
 
+gate.set_culvert_height(10.0)
+
 line = [[0.0, 5.0], [0.0, 10.0]]
-Q = 5.0
+Q = 1.0
 Inlet_operator(domain, line, Q)
 
 
@@ -112,18 +113,8 @@ Inlet_operator(domain, line, Q)
 ##-----------------------------------------------------------------------
 
 ## Inflow based on Flow Depth and Approaching Momentum
-Bi = anuga.Dirichlet_boundary([2.0, 0.0, 0.0])
 Br = anuga.Reflective_boundary(domain)              # Solid reflective wall
-#Bo = anuga.Dirichlet_boundary([-5, 0, 0])           # Outflow
 
-## Upstream and downstream conditions that will exceed the rating curve
-## I.e produce delta_h outside the range [0, 10] specified in the the 
-## file example_rating_curve.csv
-#Btus = anuga.Time_boundary(domain, \
-            #lambda t: [100*num.sin(2*pi*(t-4)/10), 0.0, 0.0])
-#Btds = anuga.Time_boundary(domain, \
-            #lambda t: [-5*(num.cos(2*pi*(t-4)/20)), 0.0, 0.0])
-#domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
 domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 
@@ -133,8 +124,20 @@ domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 #min_delta_w = sys.maxint 
 #max_delta_w = -min_delta_w
-for t in domain.evolve(yieldstep = 1.0, finaltime = 200):
+for t in domain.evolve(yieldstep = 1.0, finaltime = 50):
     domain.write_time()
+
+
+    if num.allclose(t, 10.0):
+        gate.set_culvert_height(0.000001)
+
+    Q, velocity, depth = gate.discharge_routine()
+
+    print gate.culvert_height
+    print Q
+    print velocity
+    print depth
+        
 
     #if domain.get_time() > 150.5 and domain.get_time() < 151.5 :
         #Bi = anuga.Dirichlet_boundary([0.0, 0.0, 0.0])
@@ -145,7 +148,7 @@ for t in domain.evolve(yieldstep = 1.0, finaltime = 200):
     #if delta_w > max_delta_w: max_delta_w = delta_w
     #if delta_w < min_delta_w: min_delta_w = delta_w
 
-    print domain.volumetric_balance_statistics()
+    #print domain.volumetric_balance_statistics()
     
     pass
 

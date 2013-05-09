@@ -209,13 +209,13 @@ class Structure_operator(anuga.Operator):
 
 
 
-    def set_height(self, height):
+    def set_culvert_height(self, height):
 
-        self.height = height
+        self.culvert_height = height
 
-    def set_width(self, width):
+    def set_culvert_width(self, width):
 
-        self.width = width
+        self.culvert_width = width
         
 
     def __process_non_skew_culvert(self):
