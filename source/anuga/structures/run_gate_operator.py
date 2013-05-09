@@ -92,14 +92,12 @@ gate = Boyd_box_operator(domain,
                             end_points=[[9.0, 2.5],[13.0, 2.5]],
                             losses=1.5,
                             width=1.5,
+                            height = 10.0,
                             apron=5.0,
                             use_momentum_jet=True,
                             use_velocity_head=False,
                             manning=0.013,
                             verbose=False)
-
-
-gate.set_culvert_height(10.0)
 
 line = [[0.0, 5.0], [0.0, 10.0]]
 Q = 1.0
@@ -127,38 +125,22 @@ domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 for t in domain.evolve(yieldstep = 1.0, finaltime = 50):
     domain.write_time()
 
-
     if num.allclose(t, 10.0):
-        gate.set_culvert_height(0.000001)
-
-    print gate.inlets[0].get_enquiry_stage()
-    print gate.inlets[1].get_enquiry_stage()
+        gate.set_culvert_height(0.0)
 
     Q, velocity, depth = gate.discharge_routine()
 
-    print gate.culvert_height
+    print gate.inlets[0].get_enquiry_stage()
+    print gate.inlets[1].get_enquiry_stage()
+    print gate.get_culvert_height()
+
     print Q
     print velocity
     print depth
         
-
-    #if domain.get_time() > 150.5 and domain.get_time() < 151.5 :
-        #Bi = anuga.Dirichlet_boundary([0.0, 0.0, 0.0])
-        #domain.set_boundary({'left': Bi, 'right': Br, 'top': Br, 'bottom': Br})
-
-    #delta_w = culvert.inlet.stage - culvert.outlet.stage
+    gate.print_timestepping_statistics()
     
-    #if delta_w > max_delta_w: max_delta_w = delta_w
-    #if delta_w < min_delta_w: min_delta_w = delta_w
-
-    #print domain.volumetric_balance_statistics()
-    
-    pass
-
-## Check that extreme values in rating curve have been exceeded
-## so that we know that condition has been exercised
-#assert min_delta_w < 0
-#assert max_delta_w > 10        
 
 
-#os.remove('Test_culvert.sww')
+
+

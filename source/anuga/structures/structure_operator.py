@@ -192,7 +192,6 @@ class Structure_operator(anuga.Operator):
             # FIXME (SR) Review momentum to account for possible hydraulic jumps at outlet
             #new_outflow_xmom = outflow.get_average_xmom() + outflow_extra_momentum[0]
             #new_outflow_ymom = outflow.get_average_ymom() + outflow_extra_momentum[1]
-
             new_outflow_xmom = barrel_speed*new_outflow_depth*outflow_direction[0]
             new_outflow_ymom = barrel_speed*new_outflow_depth*outflow_direction[1]
 

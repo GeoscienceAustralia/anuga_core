@@ -92,6 +92,15 @@ class Boyd_box_operator(anuga.Structure_operator):
 
         local_debug = False
 
+        if self.culvert_height <= 0.0:
+            Q = 0.0
+            barrel_velocity = 0.0
+            outlet_culvert_depth = 0.0
+            self.case = "Culvert blocked"
+            return Q, barrel_velocity, outlet_culvert_depth
+
+
+
         if self.use_velocity_head:
             self.delta_total_energy = \
                  self.inlets[0].get_enquiry_total_energy() - self.inlets[1].get_enquiry_total_energy()
