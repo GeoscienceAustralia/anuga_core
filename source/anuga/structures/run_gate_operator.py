@@ -131,6 +131,9 @@ for t in domain.evolve(yieldstep = 1.0, finaltime = 50):
     if num.allclose(t, 10.0):
         gate.set_culvert_height(0.000001)
 
+    print gate.inlets[0].get_enquiry_stage()
+    print gate.inlets[1].get_enquiry_stage()
+
     Q, velocity, depth = gate.discharge_routine()
 
     print gate.culvert_height
