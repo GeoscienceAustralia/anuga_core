@@ -214,6 +214,7 @@ class Set_elevation_operator(Operator):
 
         node_index = num.zeros((self.domain.number_of_nodes)+1, dtype = num.int)
 
+        # FIXME: SR Don't we calculate this for the domain already!
         k = 0
         node_index[0] = 0
         for i in range(self.domain.number_of_nodes):

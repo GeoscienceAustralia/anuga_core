@@ -41,16 +41,26 @@ def NetCDFFile(file_name, netcdf_mode=netcdf_mode_r):
     
     """
    
-
+    using_scientific = using_netcdf4 = False
+    
     try:
         from Scientific.IO.NetCDF import NetCDFFile
-        return NetCDFFile(file_name, netcdf_mode)
+        using_scientific = True
     except: 
         from netCDF4 import Dataset
+        using_netcdf4 = True
+
+    assert using_scientific or using_netcdf4
+
+    if using_scientific:
+        return NetCDFFile(file_name, netcdf_mode)
+
+    if using_netcdf4:
         if netcdf_mode == 'wl' :
             return Dataset(file_name, 'w', format='NETCDF3_64BIT')
         else:
             return Dataset(file_name, netcdf_mode, format='NETCDF3_64BIT')
+
 
 
 #    from netCDF4 import Dataset
