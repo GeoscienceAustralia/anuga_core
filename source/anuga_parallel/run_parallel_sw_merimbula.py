@@ -104,7 +104,7 @@ else:
 #--------------------------------------------------------------------------
 
 if myid == 0 and verbose: print 'DISTRIBUTING DOMAIN'
-domain = distribute(domain)
+domain = distribute(domain, verbose=verbose)
 
 #--------------------------------------------------------------------------
 # On all processors, setup evolve parameters for domains on all processors

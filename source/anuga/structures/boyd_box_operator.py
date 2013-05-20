@@ -74,6 +74,7 @@ class Boyd_box_operator(anuga.Structure_operator):
         self.culvert_width = self.get_culvert_width()
         self.culvert_height = self.get_culvert_height()
 
+        #FIXME SR: Why is this hard coded!
         self.max_velocity = 10.0
 
         self.inlets = self.get_inlets()
@@ -89,9 +90,13 @@ class Boyd_box_operator(anuga.Structure_operator):
 
 
     def discharge_routine(self):
+        """Procedure to determine the inflow and outflow inlets.
+        Then use boyd_box_function to do the actual calculation
+        """
 
         local_debug = False
 
+        # If the cuvert has been closed, then no water gets through
         if self.culvert_height <= 0.0:
             Q = 0.0
             barrel_velocity = 0.0
@@ -101,6 +106,7 @@ class Boyd_box_operator(anuga.Structure_operator):
 
 
 
+        #  delta_total_energy will determine which inlet is inflow
         if self.use_velocity_head:
             self.delta_total_energy = \
                  self.inlets[0].get_enquiry_total_energy() - self.inlets[1].get_enquiry_total_energy()
@@ -117,6 +123,7 @@ class Boyd_box_operator(anuga.Structure_operator):
             self.delta_total_energy = -self.delta_total_energy
 
 
+        # Only calculate flow if there is some water at the inflow inlet.
         if self.inflow.get_enquiry_depth() > 0.01: #this value was 0.01:
 
             if local_debug:

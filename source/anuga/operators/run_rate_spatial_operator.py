@@ -140,15 +140,19 @@ def rain(x,y,t):
     input x,y should be considered to be numpy arrays
     abd t a scalar
     """
-    if t<10:
+    if t<=5.0:
         return (x+y)
     else:
         return 0*x
 
+factor = 1e-3
+op3 = Rate_operator(domain, rate = rain, factor=factor)
+Q3 = numpy.sum(op3.get_spatial_rate()*domain.areas)*factor
 
-#op3 = Rate_operator(domain, rate = rain, factor=1e-3)
-area3 = numpy.sum(domain.areas)
-Q3 = numpy.sum(op3.get_rate(t)*area3)
+
+#op3()
+#domain.fractional_step_operators.remove(op3)
+
 
 #------------------------------------------------------------------------------
 # Evolve system through time
@@ -168,7 +172,8 @@ for t in domain.evolve(yieldstep=yieldstep, finaltime=finaltime):
 
 
     print indent + 'Exact accumultion = ', accum
-    accum += (Q1+Q2)*yieldstep
+    dd = max(min(yieldstep,5.0-t),0.0)
+    accum += (Q1+Q2)*yieldstep + dd*Q3
 
 
 

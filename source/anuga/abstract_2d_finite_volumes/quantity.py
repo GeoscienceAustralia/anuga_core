@@ -744,8 +744,9 @@ class Quantity:
                 assert values.shape[0] == indices.shape[0], msg
 
                 # Brute force
-                for i in range(len(indices)):
-                    self.centroid_values[indices[i]] = values[i]
+                self.centroid_values[indices] = values
+                #for i in range(len(indices)):
+                #    self.centroid_values[indices[i]] = values[i]
         elif location == 'unique vertices':
             msg = 'Values array must be 1d'
             assert len(values.shape) == 1 or num.allclose(values.shape[1:], 1), msg
@@ -767,8 +768,9 @@ class Quantity:
                 if indices is None:
                     self.vertex_values[:] = values
                 else:
-                    for element_index, value in map(None, indices, values):
-                        self.vertex_values[element_index] = value
+                    self.vertex_values[indices] = values
+                    #for element_index, value in map(None, indices, values):
+                    #    self.vertex_values[element_index] = value
             else:
                 msg = 'Values array must be 1d or 2d'
                 raise Exception(msg)

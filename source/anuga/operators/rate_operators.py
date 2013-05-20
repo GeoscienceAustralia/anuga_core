@@ -280,6 +280,7 @@ class Rate_operator(Operator):
                 return num.sum(self.areas[fid]*rate[fid])*self.factor
             else:
                 rate = self.get_non_spatial_rate() # rate is a scalar
+                fid = self.full_indices
                 return num.sum(self.areas[fid]*rate)*self.factor
         else:
             if self.rate_spatial:
@@ -336,9 +337,12 @@ class Rate_operator(Operator):
             rate = self.get_spatial_rate()
             min_rate = num.min(rate)
             max_rate = num.max(rate)
-            message  = indent + self.label + ': Min rate = %g, Max rate = %g '% (min_rate,max_rate)
+            Q = self.get_Q()
+            message  = indent + self.label + ': Min rate = %g m/s, Max rate = %g m/s, Total Q = %g m^3/s'% (min_rate,max_rate, Q)
         else:
-            message  = indent + self.label + ': Rate = ' + str(self.get_non_spatial_rate())
+            rate = self.get_non_spatial_rate()
+            Q = self.get_Q()
+            message  = indent + self.label + ': Rate = %g m/s, Total Q = %g m^3/s' % (rate, Q)
 
 
         return message
