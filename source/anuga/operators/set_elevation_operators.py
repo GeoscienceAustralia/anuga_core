@@ -19,38 +19,44 @@ from anuga.operators.base_operator import Operator
 
 from anuga import indent
 
-
-
-class Set_elevation_operator(Operator):
+class Set_elevation(object):
     """
-    Set the elevation in a region (careful to maintain continuitiy of elevation)
-
-    indices: None == all triangles, Empty list [] no triangles
-
-    elevation can be a function of time.
-
+    Helper class to setup calculation of elevation
+    associated with a region (defined by indices, polygon or center/radius
     """
 
     def __init__(self,
                  domain,
                  elevation=None,
                  indices=None,
-                 description = None,
-                 label = None,
-                 logging = False,
-                 verbose = False):
-
-
-        Operator.__init__(self, domain, description, label, logging, verbose)
+                 polygon=None,
+                 center=None,
+                 radius=None):
 
         #------------------------------------------
         # Local variables
         #------------------------------------------
         self.elevation = elevation
         self.indices = indices
-        
+        self.center = center
+        self.radius = radius
+        self.polygon = polygon
+
+    
         #------------------------------------------
-        # Extra aliases for changing elevation at 
+        #  Useful aliases
+        #------------------------------------------
+        self.domain = domain
+        self.stage_c = self.domain.quantities['stage'].centroid_values
+        self.xmom_c  = self.domain.quantities['xmomentum'].centroid_values
+        self.ymom_c  = self.domain.quantities['ymomentum'].centroid_values
+        self.elev_c  = self.domain.quantities['elevation'].centroid_values
+        self.coord_c = self.domain.centroid_coordinates
+        self.areas = self.domain.areas
+
+
+        #------------------------------------------
+        # Extra aliases for changing elevation at
         # vertices and edges
         #------------------------------------------
         self.elev_v  = self.domain.quantities['elevation'].vertex_values
@@ -62,6 +68,29 @@ class Set_elevation_operator(Operator):
         # bed and stage vertex values in dry region
         #------------------------------------------
         self.domain.optimise_dry_cells = 0
+
+
+        #-------------------------------------------
+        # Work out region:
+        #-------------------------------------------
+        if self.indices is not None:
+            # This overrides polygon, center and radius
+            pass
+        elif (self.center is not None) and (self.radius is not None):
+
+            assert self.indices is None
+            assert self.polygon is None
+
+            self.setup_indices_circle()
+
+        elif (self.polygon is not None):
+
+            assert self.indices is None
+
+            self.setup_indices_polygon()
+        else:
+            assert self.indices is None or self.indices is []
+
 
         #-----------------------------------------
         # Extra structures to support maintaining
@@ -194,6 +223,45 @@ class Set_elevation_operator(Operator):
 
         return elevation
 
+
+
+    def setup_indices_circle(self):
+
+        # Determine indices in circular region
+        N = self.domain.get_number_of_triangles()
+        points = self.domain.get_centroid_coordinates(absolute=True)
+
+        indices = []
+
+        c = self.center
+        r = self.radius
+
+
+        intersect = False
+        for k in range(N):
+            x, y = points[k,:]    # Centroid
+
+            if ((x-c[0])**2+(y-c[1])**2) < r**2:
+                intersect = True
+                indices.append(k)
+
+        self.indices = indices
+
+        msg = 'No centroids intersect circle center'+str(c)+' radius '+str(r)
+        assert intersect, msg
+
+
+    def setup_indices_polygon(self):
+
+        # Determine indices for polygonal region
+        points = self.domain.get_centroid_coordinates(absolute=True)
+
+
+        self.indices = inside_polygon(points, self.polygon)
+
+
+
+
     def setup_node_structures(self):
         """ For setting elevation we need to
         ensure that the elevation quantity remains
@@ -203,6 +271,16 @@ class Set_elevation_operator(Operator):
         update within each timestep.
         """
 
+
+
+        if self.indices is None or self.indices is []:
+            self.vol_ids  = None
+            self.vols = None
+            self.vert_ids = None
+            return
+
+
+        
         node_ids = set()
 
         for ind in self.indices:
@@ -210,6 +288,7 @@ class Set_elevation_operator(Operator):
                 node_ids.add(self.domain.triangles[ind,k])
 
         self.node_ids = [ id for id in node_ids ]
+
 
 
         node_index = num.zeros((self.domain.number_of_nodes)+1, dtype = num.int)
@@ -236,6 +315,49 @@ class Set_elevation_operator(Operator):
 
 
 
+
+
+
+#===============================================================================
+# General Set Elevation Operator
+#===============================================================================
+
+class Set_elevation_operator(Operator, Set_elevation):
+    """
+    Set the elevation in a region (careful to maintain continuitiy of elevation)
+
+    indices: None == all triangles, Empty list [] no triangles
+
+    elevation can be a function of time.
+
+    """
+
+
+    __call__ = Set_elevation.__call__
+
+    
+    def __init__(self,
+                 domain,
+                 elevation=None,
+                 indices=None,
+                 polygon=None,
+                 center=None,
+                 radius=None,
+                 description = None,
+                 label = None,
+                 logging = False,
+                 verbose = False):
+
+
+ 
+
+        Set_elevation.__init__(self, domain, elevation, indices, polygon, center, radius)
+
+        Operator.__init__(self, domain, description, label, logging, verbose)
+
+
+
+
     def parallel_safe(self):
         """Operator is applied independently on each cell and
         so is parallel safe.
@@ -257,7 +379,6 @@ class Set_elevation_operator(Operator):
 
 
 
-
 #===============================================================================
 # Specific Bed Operators for circular region.
 #===============================================================================
@@ -273,46 +394,22 @@ class Circular_set_elevation_operator(Set_elevation_operator):
                  radius=None,
                  verbose=False):
 
+
+
+
+        #print "Depreciating this operator, just use Set_elevation_operator with center and radius set"
+
+
         assert center is not None
         assert radius is not None
 
-
-        # Determine indices in update region
-        N = domain.get_number_of_triangles()
-        points = domain.get_centroid_coordinates(absolute=True)
-
-
-        indices = []
-
-        c = center
-        r = radius
-
-        self.center = center
-        self.radius = radius
-
-        intersect = False
-        for k in range(N):
-            x, y = points[k,:]    # Centroid
-
-            if ((x-c[0])**2+(y-c[1])**2) < r**2:
-                intersect = True
-                indices.append(k)
-
-
-        msg = 'No centroids intersect circle center'+str(center)+' radius '+str(radius)
-        assert intersect, msg
-
-
-
-
-        # It is possible that circle doesn't intersect with mesh (as can happen
-        # for parallel runs
 
 
         Set_elevation_operator.__init__(self,
                                     domain,
                                     elevation=elevation,
-                                    indices=indices,
+                                    center=center,
+                                    radius=radius,
                                     verbose=verbose)
 
 
@@ -337,22 +434,11 @@ class Polygonal_set_elevation_operator(Set_elevation_operator):
                  verbose=False):
 
 
-        # Determine indices in update region
-        N = domain.get_number_of_triangles()
-        points = domain.get_centroid_coordinates(absolute=True)
-
-
-        indices = inside_polygon(points, polygon)
-        self.polygon = polygon
-
-        # It is possible that circle doesn't intersect with mesh (as can happen
-        # for parallel runs
-
 
         Set_elevation_operator.__init__(self,
                                domain,
                                elevation=elevation,
-                               indices=indices,
+                               polygon=polygon,
                                verbose=verbose)
 
 

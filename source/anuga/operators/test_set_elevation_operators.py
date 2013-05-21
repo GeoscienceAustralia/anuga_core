@@ -259,7 +259,7 @@ class Test_set_elevation_operators(unittest.TestCase):
 
 
 
-    def test_set_elevation_operator_large_function(self):
+    def test_set_polygonal_elevation_operator_large_function(self):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
 
@@ -296,6 +296,140 @@ class Test_set_elevation_operators(unittest.TestCase):
 
         polygon = [(0.5,0.5), (1.5,0.5), (1.5,1.5), (0.5,1.5)]
         operator = Polygonal_set_elevation_operator(domain, elevation=elev, polygon=polygon)
+
+        # Apply Operator at time t=1.0
+        domain.set_time(1.0)
+        operator()
+
+
+
+
+        elev_ex = [ 0.        ,  0.        ,  0.41666667,  0.41666667,  0.        ,
+        0.41666667,  1.25      ,  0.83333333,  0.        ,  0.83333333,
+        1.25      ,  0.41666667,  0.        ,  0.41666667,  0.41666667,
+        0.        ,  0.41666667,  0.        ,  0.83333333,  1.25      ,
+        2.91666667,  2.91666667,  4.16666667,  4.16666667,  2.91666667,
+        4.16666667,  4.16666667,  2.91666667,  0.41666667,  1.25      ,
+        0.83333333,  0.        ,  0.83333333,  0.        ,  0.41666667,
+        1.25      ,  4.16666667,  2.91666667,  2.91666667,  4.16666667,
+        4.16666667,  4.16666667,  2.91666667,  2.91666667,  0.83333333,
+        1.25      ,  0.41666667,  0.        ,  0.41666667,  0.        ,
+        0.        ,  0.41666667,  1.25      ,  0.41666667,  0.        ,
+        0.83333333,  1.25      ,  0.83333333,  0.        ,  0.41666667,
+        0.41666667,  0.41666667,  0.        ,  0.        ]
+
+        stage_ex = [ 1.        ,  1.        ,  1.41666667,  1.41666667,  1.        ,
+        1.41666667,  2.25      ,  1.83333333,  1.        ,  1.83333333,
+        2.25      ,  1.41666667,  1.        ,  1.41666667,  1.41666667,
+        1.        ,  1.41666667,  1.        ,  1.83333333,  2.25      ,
+        3.91666667,  3.91666667,  5.16666667,  5.16666667,  3.91666667,
+        5.16666667,  5.16666667,  3.91666667,  1.41666667,  2.25      ,
+        1.83333333,  1.        ,  1.83333333,  1.        ,  1.41666667,
+        2.25      ,  5.16666667,  3.91666667,  3.91666667,  5.16666667,
+        5.16666667,  5.16666667,  3.91666667,  3.91666667,  1.83333333,
+        2.25      ,  1.41666667,  1.        ,  1.41666667,  1.        ,
+        1.        ,  1.41666667,  2.25      ,  1.41666667,  1.        ,
+        1.83333333,  2.25      ,  1.83333333,  1.        ,  1.41666667,
+        1.41666667,  1.41666667,  1.        ,  1.        ]
+
+
+
+
+
+#        from pprint import pprint
+#        pprint (domain.quantities['elevation'].centroid_values)
+#        pprint (domain.quantities['stage'].centroid_values)
+#        print domain.quantities['xmomentum'].centroid_values
+#        print domain.quantities['ymomentum'].centroid_values
+
+        assert num.allclose(domain.quantities['elevation'].centroid_values, elev_ex)
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+
+        # Apply Operator at time t=15.0
+        domain.set_time(15.0)
+        operator()
+
+
+
+
+        elev_ex = [ 0.        ,  0.        ,  0.89583333,  0.89583333,  0.        ,
+        0.89583333,  2.47916667,  1.58333333,  0.        ,  1.58333333,
+        2.47916667,  0.89583333,  0.        ,  0.89583333,  0.89583333,
+        0.        ,  0.89583333,  0.        ,  1.58333333,  2.47916667,
+        4.8125    ,  4.8125    ,  6.25      ,  6.25      ,  4.8125    ,
+        6.25      ,  6.25      ,  4.8125    ,  0.89583333,  2.47916667,
+        1.58333333,  0.        ,  1.58333333,  0.        ,  0.89583333,
+        2.47916667,  6.25      ,  4.8125    ,  4.8125    ,  6.25      ,
+        6.25      ,  6.25      ,  4.8125    ,  4.8125    ,  1.58333333,
+        2.47916667,  0.89583333,  0.        ,  0.89583333,  0.        ,
+        0.        ,  0.89583333,  2.47916667,  0.89583333,  0.        ,
+        1.58333333,  2.47916667,  1.58333333,  0.        ,  0.89583333,
+        0.89583333,  0.89583333,  0.        ,  0.        ]
+
+        stage_ex = [ 1.        ,  1.        ,  1.89583333,  1.89583333,  1.        ,
+        1.89583333,  3.47916667,  2.58333333,  1.        ,  2.58333333,
+        3.47916667,  1.89583333,  1.        ,  1.89583333,  1.89583333,
+        1.        ,  1.89583333,  1.        ,  2.58333333,  3.47916667,
+        5.8125    ,  5.8125    ,  7.25      ,  7.25      ,  5.8125    ,
+        7.25      ,  7.25      ,  5.8125    ,  1.89583333,  3.47916667,
+        2.58333333,  1.        ,  2.58333333,  1.        ,  1.89583333,
+        3.47916667,  7.25      ,  5.8125    ,  5.8125    ,  7.25      ,
+        7.25      ,  7.25      ,  5.8125    ,  5.8125    ,  2.58333333,
+        3.47916667,  1.89583333,  1.        ,  1.89583333,  1.        ,
+        1.        ,  1.89583333,  3.47916667,  1.89583333,  1.        ,
+        2.58333333,  3.47916667,  2.58333333,  1.        ,  1.89583333,
+        1.89583333,  1.89583333,  1.        ,  1.        ]
+
+#        pprint (domain.quantities['elevation'].centroid_values)
+#        pprint (domain.quantities['stage'].centroid_values)
+#        print domain.quantities['xmomentum'].centroid_values
+#        print domain.quantities['ymomentum'].centroid_values
+
+        assert num.allclose(domain.quantities['elevation'].centroid_values, elev_ex)
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+
+
+    def test_set_elevation_operator_large_function(self):
+        from anuga.config import rho_a, rho_w, eta_w
+        from math import pi, cos, sin
+
+
+        length = 2.0
+        width = 2.0
+        dx = dy = 0.5
+        domain = rectangular_cross_domain(int(length/dx), int(width/dy),
+                                              len1=length, len2=width)
+
+
+        #Flat surface with 1m of water
+        domain.set_quantity('elevation', 0.0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        R = Reflective_boundary(domain)
+        domain.set_boundary( {'left': R, 'right': R, 'bottom': R, 'top': R} )
+
+
+#        print domain.quantities['stage'].centroid_values
+#        print domain.quantities['xmomentum'].centroid_values
+#        print domain.quantities['ymomentum'].centroid_values
+
+        # Apply operator to these triangles
+        indices = [0,1,3]
+
+
+        def elev(t):
+            if t < 10.0:
+                return 5.0
+            else:
+                return 7.0
+
+        polygon = [(0.5,0.5), (1.5,0.5), (1.5,1.5), (0.5,1.5)]
+        operator = Set_elevation_operator(domain, elevation=elev, polygon=polygon)
 
         # Apply Operator at time t=1.0
         domain.set_time(1.0)
@@ -396,6 +530,336 @@ class Test_set_elevation_operators(unittest.TestCase):
 #        pprint (domain.quantities['stage'].centroid_values)
 #        print domain.quantities['xmomentum'].centroid_values
 #        print domain.quantities['ymomentum'].centroid_values
+
+        assert num.allclose(domain.quantities['elevation'].centroid_values, elev_ex)
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+
+
+    def test_set_circular_elevation_operator_large_function(self):
+        from anuga.config import rho_a, rho_w, eta_w
+        from math import pi, cos, sin
+
+
+        length = 2.0
+        width = 2.0
+        dx = dy = 0.5
+        domain = rectangular_cross_domain(int(length/dx), int(width/dy),
+                                              len1=length, len2=width)
+
+
+        #Flat surface with 1m of water
+        domain.set_quantity('elevation', 0.0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        R = Reflective_boundary(domain)
+        domain.set_boundary( {'left': R, 'right': R, 'bottom': R, 'top': R} )
+
+
+#        print domain.quantities['stage'].centroid_values
+#        print domain.quantities['xmomentum'].centroid_values
+#        print domain.quantities['ymomentum'].centroid_values
+
+        # Apply operator to these triangles
+
+
+        def elev(t):
+            if t < 10.0:
+                return 5.0
+            else:
+                return 7.0
+
+        operator = Circular_set_elevation_operator(domain, elevation=elev, center=[1.0,1.0], radius=1.0)
+
+        # Apply Operator at time t=1.0
+        domain.set_time(1.0)
+        operator()
+
+
+
+
+        elev_ex = [ 2.08333333,  2.08333333,  3.75      ,  3.75      ,  4.58333333,
+        4.58333333,  5.        ,  5.        ,  4.58333333,  5.        ,
+        5.        ,  4.58333333,  2.08333333,  3.75      ,  3.75      ,
+        2.08333333,  4.58333333,  4.58333333,  5.        ,  5.        ,
+        5.        ,  5.        ,  5.        ,  5.        ,  5.        ,
+        5.        ,  5.        ,  5.        ,  4.58333333,  5.        ,
+        5.        ,  4.58333333,  5.        ,  4.58333333,  4.58333333,
+        5.        ,  5.        ,  5.        ,  5.        ,  5.        ,
+        5.        ,  5.        ,  5.        ,  5.        ,  5.        ,
+        5.        ,  4.58333333,  4.58333333,  3.75      ,  2.08333333,
+        2.08333333,  3.75      ,  5.        ,  4.58333333,  4.58333333,
+        5.        ,  5.        ,  5.        ,  4.58333333,  4.58333333,
+        3.75      ,  3.75      ,  2.08333333,  2.08333333]
+
+
+
+
+        stage_ex = [ 3.08333333,  3.08333333,  4.75      ,  4.75      ,  5.58333333,
+        5.58333333,  6.        ,  6.        ,  5.58333333,  6.        ,
+        6.        ,  5.58333333,  3.08333333,  4.75      ,  4.75      ,
+        3.08333333,  5.58333333,  5.58333333,  6.        ,  6.        ,
+        6.        ,  6.        ,  6.        ,  6.        ,  6.        ,
+        6.        ,  6.        ,  6.        ,  5.58333333,  6.        ,
+        6.        ,  5.58333333,  6.        ,  5.58333333,  5.58333333,
+        6.        ,  6.        ,  6.        ,  6.        ,  6.        ,
+        6.        ,  6.        ,  6.        ,  6.        ,  6.        ,
+        6.        ,  5.58333333,  5.58333333,  4.75      ,  3.08333333,
+        3.08333333,  4.75      ,  6.        ,  5.58333333,  5.58333333,
+        6.        ,  6.        ,  6.        ,  5.58333333,  5.58333333,
+        4.75      ,  4.75      ,  3.08333333,  3.08333333]
+
+
+
+
+
+#        from pprint import pprint
+#        pprint (domain.quantities['elevation'].centroid_values)
+#        pprint (domain.quantities['stage'].centroid_values)
+#        print domain.quantities['xmomentum'].centroid_values
+#        print domain.quantities['ymomentum'].centroid_values
+
+        assert num.allclose(domain.quantities['elevation'].centroid_values, elev_ex)
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+
+        # Apply Operator at time t=15.0
+        domain.set_time(15.0)
+        operator()
+
+
+
+
+        elev_ex = [ 3.64583333,  3.64583333,  5.97916667,  5.97916667,  6.72916667,
+        6.72916667,  7.        ,  7.        ,  6.72916667,  7.        ,
+        7.        ,  6.72916667,  3.64583333,  5.97916667,  5.97916667,
+        3.64583333,  6.72916667,  6.72916667,  7.        ,  7.        ,
+        7.        ,  7.        ,  7.        ,  7.        ,  7.        ,
+        7.        ,  7.        ,  7.        ,  6.72916667,  7.        ,
+        7.        ,  6.72916667,  7.        ,  6.72916667,  6.72916667,
+        7.        ,  7.        ,  7.        ,  7.        ,  7.        ,
+        7.        ,  7.        ,  7.        ,  7.        ,  7.        ,
+        7.        ,  6.72916667,  6.72916667,  5.97916667,  3.64583333,
+        3.64583333,  5.97916667,  7.        ,  6.72916667,  6.72916667,
+        7.        ,  7.        ,  7.        ,  6.72916667,  6.72916667,
+        5.97916667,  5.97916667,  3.64583333,  3.64583333]
+
+
+        stage_ex = [ 4.64583333,  4.64583333,  6.97916667,  6.97916667,  7.72916667,
+        7.72916667,  8.        ,  8.        ,  7.72916667,  8.        ,
+        8.        ,  7.72916667,  4.64583333,  6.97916667,  6.97916667,
+        4.64583333,  7.72916667,  7.72916667,  8.        ,  8.        ,
+        8.        ,  8.        ,  8.        ,  8.        ,  8.        ,
+        8.        ,  8.        ,  8.        ,  7.72916667,  8.        ,
+        8.        ,  7.72916667,  8.        ,  7.72916667,  7.72916667,
+        8.        ,  8.        ,  8.        ,  8.        ,  8.        ,
+        8.        ,  8.        ,  8.        ,  8.        ,  8.        ,
+        8.        ,  7.72916667,  7.72916667,  6.97916667,  4.64583333,
+        4.64583333,  6.97916667,  8.        ,  7.72916667,  7.72916667,
+        8.        ,  8.        ,  8.        ,  7.72916667,  7.72916667,
+        6.97916667,  6.97916667,  4.64583333,  4.64583333]
+
+
+#        from pprint import pprint
+#        pprint (domain.quantities['elevation'].centroid_values)
+#        pprint (domain.quantities['stage'].centroid_values)
+#        pprint (domain.quantities['xmomentum'].centroid_values)
+#        pprint (domain.quantities['ymomentum'].centroid_values)
+
+        assert num.allclose(domain.quantities['elevation'].centroid_values, elev_ex)
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+
+    def test_set_elevation_operator_center_radius(self):
+        from anuga.config import rho_a, rho_w, eta_w
+        from math import pi, cos, sin
+
+
+        length = 2.0
+        width = 2.0
+        dx = dy = 0.5
+        domain = rectangular_cross_domain(int(length/dx), int(width/dy),
+                                              len1=length, len2=width)
+
+
+        #Flat surface with 1m of water
+        domain.set_quantity('elevation', 0.0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        R = Reflective_boundary(domain)
+        domain.set_boundary( {'left': R, 'right': R, 'bottom': R, 'top': R} )
+
+
+#        print domain.quantities['stage'].centroid_values
+#        print domain.quantities['xmomentum'].centroid_values
+#        print domain.quantities['ymomentum'].centroid_values
+
+        # Apply operator to these triangles
+
+
+        def elev(t):
+            if t < 10.0:
+                return 5.0
+            else:
+                return 7.0
+
+        operator = Set_elevation_operator(domain, elevation=elev, center=[1.0,1.0], radius=1.0)
+
+        # Apply Operator at time t=1.0
+        domain.set_time(1.0)
+        operator()
+
+
+
+
+        elev_ex = [ 2.08333333,  2.08333333,  3.75      ,  3.75      ,  4.58333333,
+        4.58333333,  5.        ,  5.        ,  4.58333333,  5.        ,
+        5.        ,  4.58333333,  2.08333333,  3.75      ,  3.75      ,
+        2.08333333,  4.58333333,  4.58333333,  5.        ,  5.        ,
+        5.        ,  5.        ,  5.        ,  5.        ,  5.        ,
+        5.        ,  5.        ,  5.        ,  4.58333333,  5.        ,
+        5.        ,  4.58333333,  5.        ,  4.58333333,  4.58333333,
+        5.        ,  5.        ,  5.        ,  5.        ,  5.        ,
+        5.        ,  5.        ,  5.        ,  5.        ,  5.        ,
+        5.        ,  4.58333333,  4.58333333,  3.75      ,  2.08333333,
+        2.08333333,  3.75      ,  5.        ,  4.58333333,  4.58333333,
+        5.        ,  5.        ,  5.        ,  4.58333333,  4.58333333,
+        3.75      ,  3.75      ,  2.08333333,  2.08333333]
+
+
+
+
+        stage_ex = [ 3.08333333,  3.08333333,  4.75      ,  4.75      ,  5.58333333,
+        5.58333333,  6.        ,  6.        ,  5.58333333,  6.        ,
+        6.        ,  5.58333333,  3.08333333,  4.75      ,  4.75      ,
+        3.08333333,  5.58333333,  5.58333333,  6.        ,  6.        ,
+        6.        ,  6.        ,  6.        ,  6.        ,  6.        ,
+        6.        ,  6.        ,  6.        ,  5.58333333,  6.        ,
+        6.        ,  5.58333333,  6.        ,  5.58333333,  5.58333333,
+        6.        ,  6.        ,  6.        ,  6.        ,  6.        ,
+        6.        ,  6.        ,  6.        ,  6.        ,  6.        ,
+        6.        ,  5.58333333,  5.58333333,  4.75      ,  3.08333333,
+        3.08333333,  4.75      ,  6.        ,  5.58333333,  5.58333333,
+        6.        ,  6.        ,  6.        ,  5.58333333,  5.58333333,
+        4.75      ,  4.75      ,  3.08333333,  3.08333333]
+
+
+
+
+
+#        from pprint import pprint
+#        pprint (domain.quantities['elevation'].centroid_values)
+#        pprint (domain.quantities['stage'].centroid_values)
+#        print domain.quantities['xmomentum'].centroid_values
+#        print domain.quantities['ymomentum'].centroid_values
+
+        assert num.allclose(domain.quantities['elevation'].centroid_values, elev_ex)
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+
+        # Apply Operator at time t=15.0
+        domain.set_time(15.0)
+        operator()
+
+
+
+
+        elev_ex = [ 3.64583333,  3.64583333,  5.97916667,  5.97916667,  6.72916667,
+        6.72916667,  7.        ,  7.        ,  6.72916667,  7.        ,
+        7.        ,  6.72916667,  3.64583333,  5.97916667,  5.97916667,
+        3.64583333,  6.72916667,  6.72916667,  7.        ,  7.        ,
+        7.        ,  7.        ,  7.        ,  7.        ,  7.        ,
+        7.        ,  7.        ,  7.        ,  6.72916667,  7.        ,
+        7.        ,  6.72916667,  7.        ,  6.72916667,  6.72916667,
+        7.        ,  7.        ,  7.        ,  7.        ,  7.        ,
+        7.        ,  7.        ,  7.        ,  7.        ,  7.        ,
+        7.        ,  6.72916667,  6.72916667,  5.97916667,  3.64583333,
+        3.64583333,  5.97916667,  7.        ,  6.72916667,  6.72916667,
+        7.        ,  7.        ,  7.        ,  6.72916667,  6.72916667,
+        5.97916667,  5.97916667,  3.64583333,  3.64583333]
+
+
+        stage_ex = [ 4.64583333,  4.64583333,  6.97916667,  6.97916667,  7.72916667,
+        7.72916667,  8.        ,  8.        ,  7.72916667,  8.        ,
+        8.        ,  7.72916667,  4.64583333,  6.97916667,  6.97916667,
+        4.64583333,  7.72916667,  7.72916667,  8.        ,  8.        ,
+        8.        ,  8.        ,  8.        ,  8.        ,  8.        ,
+        8.        ,  8.        ,  8.        ,  7.72916667,  8.        ,
+        8.        ,  7.72916667,  8.        ,  7.72916667,  7.72916667,
+        8.        ,  8.        ,  8.        ,  8.        ,  8.        ,
+        8.        ,  8.        ,  8.        ,  8.        ,  8.        ,
+        8.        ,  7.72916667,  7.72916667,  6.97916667,  4.64583333,
+        4.64583333,  6.97916667,  8.        ,  7.72916667,  7.72916667,
+        8.        ,  8.        ,  8.        ,  7.72916667,  7.72916667,
+        6.97916667,  6.97916667,  4.64583333,  4.64583333]
+
+
+#        from pprint import pprint
+#        pprint (domain.quantities['elevation'].centroid_values)
+#        pprint (domain.quantities['stage'].centroid_values)
+#        pprint (domain.quantities['xmomentum'].centroid_values)
+#        pprint (domain.quantities['ymomentum'].centroid_values)
+
+        assert num.allclose(domain.quantities['elevation'].centroid_values, elev_ex)
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+
+        operator = Set_elevation(domain, elevation=0.0)
+
+        operator()
+
+#        from pprint import pprint
+#        pprint (domain.quantities['elevation'].centroid_values)
+#        pprint (domain.quantities['stage'].centroid_values)
+#        pprint (domain.quantities['xmomentum'].centroid_values)
+#        pprint (domain.quantities['ymomentum'].centroid_values)
+
+        assert num.allclose(domain.quantities['elevation'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['stage'].centroid_values, 1.0)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+
+
+        operator = Set_elevation(domain, elevation=lambda t: t, indices = [0,1,3])
+
+        operator()
+
+
+
+        elev_ex = [ 11.25 ,  10.   ,   5.625,   6.875,   2.5  ,   3.125,   0.625,
+         0.   ,   0.   ,   0.   ,   0.   ,   0.   ,   0.   ,   0.   ,
+         0.   ,   0.   ,   1.875,   1.25 ,   0.   ,   0.625,   0.625,
+         0.625,   0.   ,   0.   ,   0.   ,   0.   ,   0.   ,   0.   ,
+         0.   ,   0.   ,   0.   ,   0.   ,   0.   ,   0.   ,   0.   ,
+         0.   ,   0.   ,   0.   ,   0.   ,   0.   ,   0.   ,   0.   ,
+         0.   ,   0.   ,   0.   ,   0.   ,   0.   ,   0.   ,   0.   ,
+         0.   ,   0.   ,   0.   ,   0.   ,   0.   ,   0.   ,   0.   ,
+         0.   ,   0.   ,   0.   ,   0.   ,   0.   ,   0.   ,   0.   ,   0.   ]
+
+        stage_ex = [ 12.25 ,  11.   ,   6.625,   7.875,   3.5  ,   4.125,   1.625,
+         1.   ,   1.   ,   1.   ,   1.   ,   1.   ,   1.   ,   1.   ,
+         1.   ,   1.   ,   2.875,   2.25 ,   1.   ,   1.625,   1.625,
+         1.625,   1.   ,   1.   ,   1.   ,   1.   ,   1.   ,   1.   ,
+         1.   ,   1.   ,   1.   ,   1.   ,   1.   ,   1.   ,   1.   ,
+         1.   ,   1.   ,   1.   ,   1.   ,   1.   ,   1.   ,   1.   ,
+         1.   ,   1.   ,   1.   ,   1.   ,   1.   ,   1.   ,   1.   ,
+         1.   ,   1.   ,   1.   ,   1.   ,   1.   ,   1.   ,   1.   ,
+         1.   ,   1.   ,   1.   ,   1.   ,   1.   ,   1.   ,   1.   ,   1.   ]
+
+
+
+#        from pprint import pprint
+#        pprint (domain.quantities['elevation'].centroid_values)
+#        pprint (domain.quantities['stage'].centroid_values)
+#        pprint (domain.quantities['xmomentum'].centroid_values)
+#        pprint (domain.quantities['ymomentum'].centroid_values)
 
         assert num.allclose(domain.quantities['elevation'].centroid_values, elev_ex)
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)

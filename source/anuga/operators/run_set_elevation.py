@@ -3,6 +3,8 @@
 Water flowing down a channel with a topography that varies with time
 """
 
+import numpy as num
+
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
@@ -105,13 +107,19 @@ from anuga.operators.set_elevation_operators import Circular_set_elevation_opera
 
 op1 = Circular_set_elevation_operator(domain, elevation=pole, radius=0.5, center = (12.0,3.0))
 
+from anuga.operators.set_elevation_operators import Set_elevation
+op2 = Set_elevation(domain, elevation = topography, radius = 1.0, center = (12.0,3.0))
+
 growing = False
 shrinking = False
 
 done = False
-for t in domain.evolve(yieldstep=0.1, finaltime=40.0):
+for t in domain.evolve(yieldstep=0.1, finaltime=20.0):
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()
+
+    if num.allclose(17.0, t):
+        op2()
 
 
 
