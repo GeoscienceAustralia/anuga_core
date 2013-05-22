@@ -115,18 +115,44 @@ class Structure_operator(anuga.Operator):
         
         self.inlets = []
         line0 = self.exchange_lines[0] #self.inlet_lines[0]
+        if self.invert_elevations is None:
+            invert_elevation0 = None
+        else:
+            invert_elevation0 = self.invert_elevations[0]
+
         enquiry_point0 = self.enquiry_points[0]
+
         #outward_vector0 = - self.culvert_vector
-        self.inlets.append(inlet_enquiry.Inlet_enquiry(self.domain, line0,
-                           enquiry_point0, self.outward_vector_0, self.verbose))
+        self.inlets.append(inlet_enquiry.Inlet_enquiry(
+                           self.domain,
+                           line0,
+                           enquiry_point0,
+                           invert_elevation = invert_elevation0,
+                           outward_culvert_vector = self.outward_vector_0,
+                           verbose = self.verbose))
+
+
 
         line1 = self.exchange_lines[1]
+        if self.invert_elevations is None:
+            invert_elevation1 = None
+        else:
+            invert_elevation1 = self.invert_elevations[1]
         enquiry_point1 = self.enquiry_points[1]
+
         #outward_vector1  = - self.culvert_vector
-        self.inlets.append(inlet_enquiry.Inlet_enquiry(self.domain, line1,
-                           enquiry_point1, self.outward_vector_1, self.verbose))
+        self.inlets.append(inlet_enquiry.Inlet_enquiry(
+                           self.domain,
+                           line1,
+                           enquiry_point1,
+                           invert_elevation = invert_elevation1,
+                           outward_culvert_vector = self.outward_vector_1,
+                           verbose = self.verbose))
 
         self.set_logging(logging)
+
+
+
 
     def __call__(self):
 

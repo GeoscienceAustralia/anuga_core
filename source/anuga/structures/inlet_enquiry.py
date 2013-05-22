@@ -10,15 +10,23 @@ class Inlet_enquiry(inlet.Inlet):
     """Contains information associated with each inlet plus an enquiry point
     """
 
-    def __init__(self, domain, polyline, enquiry_pt, outward_culvert_vector=None, verbose=False):
+    def __init__(self,
+                 domain,
+                 poly,
+                 enquiry_pt,
+                 invert_elevation = None,
+                 outward_culvert_vector=None,
+                 verbose=False):
+        """
+        poly can be a line or a polygon
+        """
 
 
-        inlet.Inlet.__init__(self, domain, polyline, verbose)
-
+        inlet.Inlet.__init__(self, domain, poly, verbose)
 
         self.enquiry_pt = enquiry_pt
+        self.invert_elevation = invert_elevation
         self.outward_culvert_vector = outward_culvert_vector
-
 
         self.compute_enquiry_index()
 
@@ -75,6 +83,14 @@ class Inlet_enquiry(inlet.Inlet):
     def get_enquiry_depth(self):
 
         return self.get_enquiry_stage() - self.get_enquiry_elevation()
+
+
+    def get_enquiry_invert_elevation(self):
+
+        if  self.invert_elevation == None:
+            return self.get_enquiry_elevation()
+        else:
+            return self.invert_elevation
 
 
     def get_enquiry_velocity(self):

@@ -9,16 +9,20 @@ class Inlet:
     """Contains information associated with each inlet
     """
 
-    def __init__(self, domain, line, verbose=False):
+    def __init__(self, domain, poly, verbose=False):
 
         self.domain = domain
         self.domain_bounding_polygon = self.domain.get_boundary_polygon()
-        self.line = num.asarray(line, dtype=num.float64)
+        self.poly = num.asarray(poly, dtype=num.float64)
         self.verbose = verbose
+
+        self.line = True
+        if len(self.poly) > 2:
+            self.line = False
 
         self.compute_triangle_indices()
         self.compute_area()
-        self.compute_inlet_length()
+        #self.compute_inlet_length()
 
 
 
@@ -29,20 +33,24 @@ class Inlet:
         domain_centroids = self.domain.get_centroid_coordinates(absolute=True)
         vertex_coordinates = self.domain.get_vertex_coordinates(absolute=True)
 
-        # Check that line lies within the mesh.
-        for point in self.line:  
+        if self.line: # poly is a line
+            # Check that line lies within the mesh.
+            for point in self.poly:
                 msg = 'Point %s ' %  str(point)
                 msg += ' did not fall within the domain boundary.'
                 assert is_inside_polygon(point, bounding_polygon), msg
                 
+            self.triangle_indices = line_intersect(vertex_coordinates, self.poly)
 
+        else: # poly is a polygon
 
-        self.triangle_indices = line_intersect(vertex_coordinates, self.line)
+            self.triangle_indices = inside_polygon(domain_centroids, self.poly)
 
         if len(self.triangle_indices) == 0:
-            msg = 'Inlet line=%s ' % (self.line)
+            msg = 'Inlet poly=%s ' % (self.poly)
             msg += 'No triangles intersecting line '
             raise Exception, msg
+
 
 
 
@@ -65,24 +73,23 @@ class Inlet:
         assert self.area > 0.0
 
 
-    def compute_inlet_length(self):
-        """ Compute the length of the inlet (as
-        defined by the input line
-        """
-
-        point0 = self.line[0]
-        point1 = self.line[1]
-
-        self.inlet_length = anuga.geometry.polygon.line_length(self.line)
+#    def compute_inlet_length(self):
+#        """ Compute the length of the inlet (as
+#        defined by the input line
+#        """
+#
+#        self.inlet_length = anuga.geometry.polygon.line_length(self.poly)
 
 
-    def get_inlet_length(self):
+#    def get_inlet_length(self):
+#
+#        return self.inlet_length
 
-        return self.inlet_length
 
-    def get_line(self):
 
-        return self.line
+    def get_poly(self):
+
+        return self.poly
         
     def get_area(self):
 

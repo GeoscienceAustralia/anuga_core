@@ -47,9 +47,11 @@ points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                     len1=length, len2=width)
 domain = Domain(points, vertices, boundary)   
 domain.set_name('Test_WIDE_BRIDGE')                 # Output name
-domain.set_default_order(2)
-domain.H0 = 0.01
-domain.tight_slope_limiters = 1
+#domain.set_default_order(2)
+#omain.H0 = 0.01
+#domain.tight_slope_limiters = 1
+
+domain.set_flow_algorithm('2_0')
 
 print 'Size', len(domain)
 
@@ -183,8 +185,8 @@ number_of_culverts = 1
 for i in range(number_of_culverts):
     culvert_width = 50.0/number_of_culverts
     y = 100-i*culvert_width - culvert_width/2.0
-    ep0 = num.array([40.0, y])
-    ep1 = num.array([50.0, y])
+    ep0 = num.array([37.0, y])
+    ep1 = num.array([53.0, y])
     culverts.append(anuga.Boyd_box_operator(domain,
                                             losses=1.5,
                                             width=3.658,
@@ -254,7 +256,7 @@ for t in domain.evolve(yieldstep = 1, finaltime = 100):
     print domain.volumetric_balance_statistics()
     for i, culvert in enumerate(culverts):
         print 'culvert: ', i
-        print culvert.statistics()
+        print culvert.timestepping_statistics()
     
 
     

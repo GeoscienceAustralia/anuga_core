@@ -103,9 +103,9 @@ domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 # Evolve system through time
 #------------------------------------------------------------------------------
 
-from anuga.operators.set_elevation_operators import Circular_set_elevation_operator
+from anuga.operators.set_elevation_operators import Set_elevation_operator
 
-op1 = Circular_set_elevation_operator(domain, elevation=pole, radius=0.5, center = (12.0,3.0))
+op1 = Set_elevation_operator(domain, elevation=pole, radius=0.5, center = (12.0,3.0))
 
 from anuga.operators.set_elevation_operators import Set_elevation
 op2 = Set_elevation(domain, elevation = topography, radius = 1.0, center = (12.0,3.0))
