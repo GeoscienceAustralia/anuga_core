@@ -17,7 +17,7 @@ class Inlet_operator(anuga.Operator):
 
     def __init__(self,
                  domain,
-                 line,
+                 poly,
                  Q = 0.0,
                  velocity = None,
                  default = None,
@@ -29,7 +29,7 @@ class Inlet_operator(anuga.Operator):
 
         anuga.Operator.__init__(self, domain, description, label, logging, verbose)
 
-        self.line = numpy.array(line, dtype='d')
+        self.poly = numpy.array(poly, dtype='d')
 
         # should set this up to be a function of time and or space)
         self.Q = Q
@@ -37,9 +37,15 @@ class Inlet_operator(anuga.Operator):
 
         #print self.Q
 
-        self.enquiry_point = 0.5*(self.line[0] + self.line[1])
+
+        self.inlet = inlet.Inlet(self.domain, self.poly, verbose= verbose)
+        
+        n = len(self.poly)
+
+        self.enquiry_point = numpy.sum(self.poly,axis=1)/n
+
+
         #self.outward_vector = self.line
-        self.inlet = inlet.Inlet(self.domain, self.line, verbose= verbose)
 
         if velocity is not None:
             assert len(velocity)==2

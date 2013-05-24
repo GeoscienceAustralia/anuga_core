@@ -297,7 +297,7 @@ class Structure_operator(anuga.Operator):
         n_exchange_0 = len(self.exchange_lines[0])
         n_exchange_1 = len(self.exchange_lines[1])
 
-        assert n_exchange_0 == n_exchange_1, 'There shoiuld be the same number of points in both exchange_lines'
+        assert n_exchange_0 == n_exchange_1, 'There should be the same number of points in both exchange_lines'
 
         if n_exchange_0 == 2:
         
