@@ -101,8 +101,8 @@ class Inlet_enquiry(inlet.Inlet):
     def get_enquiry_velocity(self):
 
             depth = self.get_enquiry_water_depth()
-            u = self.get_enquiry_xmom()/(depth + velocity_protection/depth)
-            v = self.get_enquiry_ymom()/(depth + velocity_protection/depth)
+            u = depth*self.get_enquiry_xmom()/(depth**2 + velocity_protection)
+            v = depth*self.get_enquiry_ymom()/(depth**2 + velocity_protection)
 
             return u, v
 
@@ -110,12 +110,12 @@ class Inlet_enquiry(inlet.Inlet):
     def get_enquiry_xvelocity(self):
 
             depth = self.get_enquiry_water_depth()
-            return self.get_enquiry_xmom()/(depth + velocity_protection/depth)
+            return depth*self.get_enquiry_xmom()/(depth**2 + velocity_protection)
 
     def get_enquiry_yvelocity(self):
 
             depth = self.get_enquiry_water_depth()
-            return self.get_enquiry_ymom()/(depth + velocity_protection/depth)
+            return depth*self.get_enquiry_ymom()/(depth**2 + velocity_protection)
 
 
     def get_enquiry_speed(self):

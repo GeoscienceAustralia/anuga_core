@@ -456,3 +456,134 @@ class Structure_operator(anuga.Operator):
     def get_culvert_apron(self):
 
         return self.apron
+
+
+    def get_master_proc(self):
+
+        return 0
+
+
+
+    #--------------------------------------------------------
+    # Set of enquiry functions so that in the sequential and paralle case
+    # we can get equiry info fron the master Proc
+    #---------------------------------------------------------
+
+    def get_enquiry_stages(self):
+
+        enq0 = self.inlets[0].get_enquiry_stage()
+        enq1 = self.inlets[1].get_enquiry_stage()
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_depths(self):
+
+        enq0 = self.inlets[0].get_enquiry_depth()
+        enq1 = self.inlets[1].get_enquiry_depth()
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_positions(self):
+
+        enq0 = self.inlets[0].get_enquiry_position()
+        enq1 = self.inlets[1].get_enquiry_position()
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_xmoms(self):
+
+        enq0 = self.inlets[0].get_enquiry_xmom()
+        enq1 = self.inlets[1].get_enquiry_xmom()
+
+        return [enq0, enq1]
+
+    def get_enquiry_ymoms(self):
+
+        enq0 = self.inlets[0].get_enquiry_ymom()
+        enq1 = self.inlets[1].get_enquiry_ymom()
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_elevations(self):
+
+        enq0 = self.inlets[0].get_enquiry_elevation()
+        enq1 = self.inlets[1].get_enquiry_elevation()
+
+        return [enq0, enq1]
+
+
+
+    def get_enquiry_water_depths(self):
+
+        enq0 = self.inlets[0].get_enquiry_water_depth()
+        enq1 = self.inlets[1].get_enquiry_water_depth()
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_invert_elevations(self):
+
+        enq0 = self.inlets[0].get_enquiry_invert_elevation()
+        enq1 = self.inlets[1].get_enquiry_invert_elevation()
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_velocitys(self):
+
+        enq0 = self.inlets[0].get_enquiry_velocity()
+        enq1 = self.inlets[1].get_enquiry_velocity()
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_xvelocitys(self):
+
+        enq0 = self.inlets[0].get_enquiry_xvelocity()
+        enq1 = self.inlets[1].get_enquiry_xvelocity()
+
+        return [enq0, enq1]
+
+    def get_enquiry_yvelocitys(self):
+
+        enq0 = self.inlets[0].get_enquiry_yvelocity()
+        enq1 = self.inlets[1].get_enquiry_yvelocity()
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_speeds(self):
+
+        enq0 = self.inlets[0].get_enquiry_speed()
+        enq1 = self.inlets[1].get_enquiry_speed()
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_velocity_heads(self):
+
+        enq0 = self.inlets[0].get_enquiry_velocity_head()
+        enq1 = self.inlets[1].get_enquiry_velocity_head()
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_total_energys(self):
+
+        enq0 = self.inlets[0].get_enquiry_total_energy()
+        enq1 = self.inlets[1].get_enquiry_total_energy()
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_specific_energys(self):
+
+        enq0 = self.inlets[0].get_enquiry_specific_energy()
+        enq1 = self.inlets[1].get_enquiry_specific_energy()
+
+        return [enq0, enq1]
+

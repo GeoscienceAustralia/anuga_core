@@ -102,6 +102,8 @@ class Boyd_box_operator(anuga.Structure_operator):
             barrel_velocity = 0.0
             outlet_culvert_depth = 0.0
             self.case = "Culvert blocked"
+            self.inflow  = self.inlets[0]
+            self.outflow = self.inlets[1]
             return Q, barrel_velocity, outlet_culvert_depth
 
 
@@ -266,7 +268,11 @@ def boyd_box_function(width, depth, flow_width, length, driving_energy, delta_to
         pass
         #FIXME(Ole): What about inlet control?
 
-    culv_froude=math.sqrt(Q**2*flow_width/(anuga.g*flow_area**3))
+    if  flow_area <= 0.0 :
+        culv_froude = 0.0
+    else:
+        culv_froude=math.sqrt(Q**2*flow_width/(anuga.g*flow_area**3))
+        
     if local_debug:
         anuga.log.critical('FLOW AREA = %s' % str(flow_area))
         anuga.log.critical('PERIMETER = %s' % str(perimeter))
