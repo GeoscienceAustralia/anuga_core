@@ -153,24 +153,53 @@ class Parallel_Structure_operator(anuga.Operator):
         # inlet.
 
         if self.myid in self.inlet_procs[0]:
-            line0 = self.exchange_lines[0] 
+            line0 = self.exchange_lines[0]
+
+            if self.invert_elevations is None:
+                invert_elevation0 = None
+            else:
+                invert_elevation0 = self.invert_elevations[0]
+
             enquiry_point0 = self.enquiry_points[0]
             outward_vector0 = self.culvert_vector
 
-            self.inlets.append(parallel_inlet_enquiry.Parallel_Inlet_enquiry(self.domain, line0,
-                               enquiry_point0, self.inlet_master_proc[0], self.inlet_procs[0], 
-                               self.enquiry_proc[0], outward_vector0, self.verbose))
+            self.inlets.append(parallel_inlet_enquiry.Parallel_Inlet_enquiry(
+                               self.domain,
+                               line0,
+                               enquiry_point0,
+                               invert_elevation = invert_elevation0,
+                               outward_culvert_vector = outward_vector0, 
+                               master_proc = self.inlet_master_proc[0],
+                               procs = self.inlet_procs[0],
+                               enquiry_proc = self.enquiry_proc[0],
+                               verbose = self.verbose))
         else:
             self.inlets.append(None)
 
         if self.myid in self.inlet_procs[1]:
             line1 = self.exchange_lines[1]
+
+            if self.invert_elevations is None:
+                invert_elevation1 = None
+            else:
+                invert_elevation1 = self.invert_elevations[1]
+
+
             enquiry_point1 = self.enquiry_points[1]
             outward_vector1  = - self.culvert_vector
 
-            self.inlets.append(parallel_inlet_enquiry.Parallel_Inlet_enquiry(self.domain, line1,
-                               enquiry_point1, self.inlet_master_proc[1],
-                               self.inlet_procs[1], self.enquiry_proc[1], outward_vector1, self.verbose))
+
+            self.inlets.append(parallel_inlet_enquiry.Parallel_Inlet_enquiry(
+                               self.domain,
+                               line1,
+                               enquiry_point1,
+                               invert_elevation = invert_elevation1,
+                               outward_culvert_vector = outward_vector1,
+                               master_proc = self.inlet_master_proc[1],
+                               procs = self.inlet_procs[1],
+                               enquiry_proc = self.enquiry_proc[1],
+                               verbose = self.verbose))
+
         else:
             self.inlets.append(None)
 
@@ -507,8 +536,8 @@ class Parallel_Structure_operator(anuga.Operator):
         
     def get_culvert_length(self):
         return self.culvert_length
-        
-        
+
+
     def get_culvert_width(self):        
         return self.width
         
@@ -533,12 +562,535 @@ class Parallel_Structure_operator(anuga.Operator):
         return self.inlet_master_proc
 
     # Get id of processors associated with first and second inlet enquiry points
-    def get_enquiry_proc(self):
-        return self.enquiry_proc
+    def get_enquiry_proc(self, id=None):
 
+        if id is none:
+            return self.enquiry_proc
+        else:
+            return self.enquiry_proc[id]
+
+
+    def set_culvert_height(self, height):
+
+        self.culvert_height = height
+
+    def set_culvert_width(self, width):
+
+        self.culvert_width = width
+
+        
 
     def parallel_safe(self):
         return True
 
+
+    def get_enquiry_stages(self):
+        # Should be called from all processors associated with operator
+
+        import pypar
+        
+
+        get0 = 'self.inlets[0].get_enquiry_stage()'
+        get1 = 'self.inlets[1].get_enquiry_stage()'
+
+        if self.myid == self.master_proc:
+
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+            else:
+                enq0 = pypar.receive(self.enquiry_proc[0])
+
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+            else:
+                enq1 = pypar.receive(self.enquiry_proc[1])
+
+        else:
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+                pypar.send(enq0, self.master_proc)
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+                pypar.send(enq1, self.master_proc)
+
+
+        return [enq0, enq1]
+
+    def get_enquiry_depths(self):
+        # Should be called from all processors associated with operator
+
+        import pypar
+
+
+        get0 = 'self.inlets[0].get_enquiry_depth()'
+        get1 = 'self.inlets[1].get_enquiry_depth()'
+
+        if self.myid == self.master_proc:
+
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+            else:
+                enq0 = pypar.receive(self.enquiry_proc[0])
+
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+            else:
+                enq1 = pypar.receive(self.enquiry_proc[1])
+
+        else:
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+                pypar.send(enq0, self.master_proc)
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+                pypar.send(enq1, self.master_proc)
+
+
+        return [enq0, enq1]
+
+
+
+    def get_enquiry_positions(self):
+
+        import pypar
+
+        get0 = 'self.inlets[0].get_enquiry_position()'
+        get1 = 'self.inlets[1].get_enquiry_position()'
+
+
+        if self.myid == self.master_proc:
+
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+            else:
+                enq0 = pypar.receive(self.enquiry_proc[0])
+
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+            else:
+                enq1 = pypar.receive(self.enquiry_proc[1])
+
+        else:
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+                pypar.send(enq0, self.master_proc)
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+                pypar.send(enq1, self.master_proc)
+
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_xmoms(self):
+
+        get0 = 'self.inlets[0].get_enquiry_xmom()'
+        get1 = 'self.inlets[1].get_enquiry_xmom()'
+
+        import pypar
+
+
+        if self.myid == self.master_proc:
+
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+            else:
+                enq0 = pypar.receive(self.enquiry_proc[0])
+
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+            else:
+                enq1 = pypar.receive(self.enquiry_proc[1])
+
+        else:
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+                pypar.send(enq0, self.master_proc)
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+                pypar.send(enq1, self.master_proc)
+
+
+        return [enq0, enq1]
+
+    def get_enquiry_ymoms(self):
+
+        get0 = 'self.inlets[0].get_enquiry_ymom()'
+        get1 = 'self.inlets[1].get_enquiry_ymom()'
+
+        import pypar
+
+
+        if self.myid == self.master_proc:
+
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+            else:
+                enq0 = pypar.receive(self.enquiry_proc[0])
+
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+            else:
+                enq1 = pypar.receive(self.enquiry_proc[1])
+
+        else:
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+                pypar.send(enq0, self.master_proc)
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+                pypar.send(enq1, self.master_proc)
+
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_elevations(self):
+
+        get0 = 'self.inlets[0].get_enquiry_elevation()'
+        get1 = 'self.inlets[1].get_enquiry_elevation()'
+
+        import pypar
+
+
+        if self.myid == self.master_proc:
+
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+            else:
+                enq0 = pypar.receive(self.enquiry_proc[0])
+
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+            else:
+                enq1 = pypar.receive(self.enquiry_proc[1])
+
+        else:
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+                pypar.send(enq0, self.master_proc)
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+                pypar.send(enq1, self.master_proc)
+
+
+        return [enq0, enq1]
+
+
+
+    def get_enquiry_water_depths(self):
+
+        get0 = 'self.inlets[0].get_enquiry_water_depth()'
+        get1 = 'self.inlets[1].get_enquiry_water_depth()'
+
+        import pypar
+
+
+        if self.myid == self.master_proc:
+
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+            else:
+                enq0 = pypar.receive(self.enquiry_proc[0])
+
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+            else:
+                enq1 = pypar.receive(self.enquiry_proc[1])
+
+        else:
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+                pypar.send(enq0, self.master_proc)
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+                pypar.send(enq1, self.master_proc)
+
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_invert_elevations(self):
+
+        get0 = 'self.inlets[0].get_enquiry_invert_elevation()'
+        get1 = 'self.inlets[1].get_enquiry_invert_elevation()'
+
+        import pypar
+
+
+        if self.myid == self.master_proc:
+
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+            else:
+                enq0 = pypar.receive(self.enquiry_proc[0])
+
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+            else:
+                enq1 = pypar.receive(self.enquiry_proc[1])
+
+        else:
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+                pypar.send(enq0, self.master_proc)
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+                pypar.send(enq1, self.master_proc)
+
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_velocitys(self):
+
+        get0 = 'self.inlets[0].get_enquiry_velocity()'
+        get1 = 'self.inlets[1].get_enquiry_velocity()'
+
+        import pypar
+
+
+        if self.myid == self.master_proc:
+
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+            else:
+                enq0 = pypar.receive(self.enquiry_proc[0])
+
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+            else:
+                enq1 = pypar.receive(self.enquiry_proc[1])
+
+        else:
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+                pypar.send(enq0, self.master_proc)
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+                pypar.send(enq1, self.master_proc)
+
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_xvelocitys(self):
+
+        get0 = 'self.inlets[0].get_enquiry_xvelocity()'
+        get1 = 'self.inlets[1].get_enquiry_xvelocity()'
+
+        import pypar
+
+
+        if self.myid == self.master_proc:
+
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+            else:
+                enq0 = pypar.receive(self.enquiry_proc[0])
+
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+            else:
+                enq1 = pypar.receive(self.enquiry_proc[1])
+
+        else:
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+                pypar.send(enq0, self.master_proc)
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+                pypar.send(enq1, self.master_proc)
+
+
+        return [enq0, enq1]
+
+    def get_enquiry_yvelocitys(self):
+
+        get0 = 'self.inlets[0].get_enquiry_yvelocity()'
+        get1 = 'self.inlets[1].get_enquiry_yvelocity()'
+
+        import pypar
+
+        if self.myid == self.master_proc:
+
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+            else:
+                enq0 = pypar.receive(self.enquiry_proc[0])
+
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+            else:
+                enq1 = pypar.receive(self.enquiry_proc[1])
+
+        else:
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+                pypar.send(enq0, self.master_proc)
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+                pypar.send(enq1, self.master_proc)
+
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_speeds(self):
+
+        get0 = 'self.inlets[0].get_enquiry_speed()'
+        get1 = 'self.inlets[1].get_enquiry_speed()'
+
+        import pypar
+
+
+        if self.myid == self.master_proc:
+
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+            else:
+                enq0 = pypar.receive(self.enquiry_proc[0])
+
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+            else:
+                enq1 = pypar.receive(self.enquiry_proc[1])
+
+        else:
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+                pypar.send(enq0, self.master_proc)
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+                pypar.send(enq1, self.master_proc)
+
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_velocity_heads(self):
+
+        get0 = 'self.inlets[0].get_enquiry_velocity_head()'
+        get1 = 'self.inlets[1].get_enquiry_velocity_head()'
+
+        import pypar
+
+
+        if self.myid == self.master_proc:
+
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+            else:
+                enq0 = pypar.receive(self.enquiry_proc[0])
+
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+            else:
+                enq1 = pypar.receive(self.enquiry_proc[1])
+
+        else:
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+                pypar.send(enq0, self.master_proc)
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+                pypar.send(enq1, self.master_proc)
+
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_total_energys(self):
+
+        get0 = 'self.inlets[0].get_enquiry_total_energy()'
+        get1 = 'self.inlets[1].get_enquiry_total_energy()'
+
+        import pypar
+
+
+        if self.myid == self.master_proc:
+
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+            else:
+                enq0 = pypar.receive(self.enquiry_proc[0])
+
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+            else:
+                enq1 = pypar.receive(self.enquiry_proc[1])
+
+        else:
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+                pypar.send(enq0, self.master_proc)
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+                pypar.send(enq1, self.master_proc)
+
+
+        return [enq0, enq1]
+
+
+    def get_enquiry_specific_energys(self):
+
+        get0 = 'self.inlets[0].get_enquiry_specific_energy()'
+        get1 = 'self.inlets[1].get_enquiry_specific_energy()'
+
+        import pypar
+
+
+        if self.myid == self.master_proc:
+
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+            else:
+                enq0 = pypar.receive(self.enquiry_proc[0])
+
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+            else:
+                enq1 = pypar.receive(self.enquiry_proc[1])
+
+        else:
+            if self.myid == self.enquiry_proc[0]:
+                enq0 = eval(get0)
+                pypar.send(enq0, self.master_proc)
+
+            if self.myid == self.enquiry_proc[1]:
+                enq1 = eval(get1)
+                pypar.send(enq1, self.master_proc)
+
+
+        return [enq0, enq1]
 
 

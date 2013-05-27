@@ -25,11 +25,16 @@ class Parallel_Inlet(Inlet):
     (We assume that the above arguments are determined correctly by the parallel_operator_factory)
     """
 
-    def __init__(self, domain, line, master_proc = 0, procs = None, verbose=False):
+    def __init__(self, domain, poly, master_proc = 0, procs = None, verbose=False):
 
         self.domain = domain
-        self.line = line
+        self.poly = num.asarray(poly, dtype=num.float64)
         self.verbose = verbose
+
+        self.line = True
+        if len(self.poly) > 2:
+            self.line = False
+
         self.master_proc = master_proc
 
         if procs is None:
@@ -42,22 +47,28 @@ class Parallel_Inlet(Inlet):
 
         self.compute_triangle_indices()
         self.compute_area()
-        self.compute_inlet_length()
+        #self.compute_inlet_length()
 
 
 
     def compute_triangle_indices(self):
 
-        # Get boundary of full triangles (in absolute coordinates)
+
+        domain_centroids = self.domain.get_centroid_coordinates(absolute=True)
         vertex_coordinates = self.domain.get_full_vertex_coordinates(absolute=True)
 
-        # PETE: we can assume that the ghost triangles in this domain exist in another
-        # domain, therefore any part of the inlet corresponding to them are accounted for.
 
-        self.triangle_indices = line_intersect(vertex_coordinates, self.line)
+        if self.line: # poly is a line
+            self.triangle_indices = line_intersect(vertex_coordinates, self.poly)
+
+        else: # poly is a polygon
+
+            self.triangle_indices = inside_polygon(domain_centroids, self.poly)
+
 
         for i in self.triangle_indices:
             assert self.domain.tri_full_flag[i] == 1
+            
 
     def compute_area(self):
 
@@ -149,6 +160,9 @@ class Parallel_Inlet(Inlet):
         import pypar
         local_stage = num.sum(self.get_stages()*self.get_areas())
         global_area = self.get_global_area()
+
+
+
         global_stage = local_stage
 
         if self.myid == self.master_proc:
@@ -161,7 +175,10 @@ class Parallel_Inlet(Inlet):
             pypar.send(local_stage, self.master_proc)
 
 
-        return global_stage/global_area
+        if global_area > 0.0:
+            return global_stage/global_area
+        else:
+            return 0.0
 
     def get_elevations(self):
         # LOCAL
@@ -169,7 +186,11 @@ class Parallel_Inlet(Inlet):
 
     def get_average_elevation(self):
         # LOCAL
-        return num.sum(self.get_elevations()*self.get_areas())/self.area
+
+        if self.area > 0:
+            return num.sum(self.get_elevations()*self.get_areas())/self.area
+        else:
+            return 0.0
 
 
     def get_xmoms(self):
@@ -179,7 +200,11 @@ class Parallel_Inlet(Inlet):
 
     def get_average_xmom(self):
         # LOCAL
-        return num.sum(self.get_xmoms()*self.get_areas())/self.area
+
+        if self.area > 0:
+            return num.sum(self.get_xmoms()*self.get_areas())/self.area
+        else:
+            return 0.0
 
     def get_global_average_xmom(self):
         # GLOBAL: master proc gathers all xmom values and returns average
@@ -201,7 +226,11 @@ class Parallel_Inlet(Inlet):
             pypar.send(local_xmoms, self.master_proc)
 
 
-        return global_xmoms/global_area
+        if global_area > 0.0:
+            return global_xmoms/global_area
+        else:
+            return 0.0
+
 
     def get_ymoms(self):
         # LOCAL
@@ -232,7 +261,10 @@ class Parallel_Inlet(Inlet):
             pypar.send(local_ymoms, self.master_proc)
 
 
-        return global_ymoms/global_area
+        if global_area > 0.0:
+            return global_ymoms/global_area
+        else:
+            return 0.0
 
     def get_depths(self):
         # LOCAL
@@ -266,7 +298,11 @@ class Parallel_Inlet(Inlet):
 
     def get_average_depth(self):
         # LOCAL
-        return self.get_total_water_volume()/self.area
+
+        if self.area > 0.0:
+            return self.get_total_water_volume()/self.area
+        else:
+            return 0.0
 
     def get_global_average_depth(self):
         # GLOBAL: master proc gathers all depth values and returns average
@@ -276,37 +312,41 @@ class Parallel_Inlet(Inlet):
         area = self.get_global_area()
         total_water_volume = self.get_global_total_water_volume()
 
-        return total_water_volume / area
+
+        if area > 0.0:
+            return total_water_volume / area
+        else:
+            return 0.0
 
 
     def get_velocities(self):
         #LOCAL
-            depths = self.get_depths()
-            u = self.get_xmoms()/(depths + velocity_protection/depths)
-            v = self.get_ymoms()/(depths + velocity_protection/depths)
+        depths = self.get_depths()
+        u = depths*self.get_xmoms()/(depths**2 + velocity_protection)
+        v = depths*self.get_ymoms()/(depths**2 + velocity_protection)
 
-            return u, v
+        return u, v
 
 
     def get_xvelocities(self):
         #LOCAL
-            depths = self.get_depths()
-            return self.get_xmoms()/(depths + velocity_protection/depths)
+        depths = self.get_depths()
+        return depth*self.get_xmoms()/(depths**2 + velocity_protection)
 
     def get_yvelocities(self):
         #LOCAL
-            depths = self.get_depths()
-            return self.get_ymoms()/(depths + velocity_protection/depths)
+        depths = self.get_depths()
+        return depths*self.get_ymoms()/(depths**2 + velocity_protection)
 
 
     def get_average_speed(self):
         #LOCAL
-            u, v = self.get_velocities()
+        u, v = self.get_velocities()
 
-            average_u = num.sum(u*self.get_areas())/self.area
-            average_v = num.sum(v*self.get_areas())/self.area
+        average_u = num.sum(u*self.get_areas())/self.area
+        average_v = num.sum(v*self.get_areas())/self.area
 
-            return math.sqrt(average_u**2 + average_v**2)
+        return math.sqrt(average_u**2 + average_v**2)
 
 
     def get_average_velocity_head(self):

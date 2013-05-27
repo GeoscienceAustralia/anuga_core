@@ -32,7 +32,7 @@ class Parallel_Inlet_operator(Inlet_operator):
 
     def __init__(self,
                  domain,
-                 line,
+                 poly,
                  Q = 0.0,
                  velocity = None,
                  default = None,
@@ -46,7 +46,7 @@ class Parallel_Inlet_operator(Inlet_operator):
         import pypar
         self.domain = domain
         self.domain.set_fractional_step_operator(self)
-        self.line = numpy.array(line, dtype='d')
+        self.poly = numpy.array(poly, dtype='d')
         self.master_proc = master_proc 
 
         if procs is None:
@@ -79,19 +79,25 @@ class Parallel_Inlet_operator(Inlet_operator):
         if self.myid == master_proc:
             Inlet_operator.counter += 1
 
-        self.enquiry_point = 0.5*(self.line[0] + self.line[1])
 
-        self.outward_vector = self.line
-        self.inlet = parallel_inlet.Parallel_Inlet(self.domain, self.line, master_proc = master_proc,
+        n = len(self.poly)
+        self.enquiry_point = numpy.sum(self.poly,axis=1)/float(n)
+    
+
+        #self.outward_vector = self.poly
+        self.inlet = parallel_inlet.Parallel_Inlet(self.domain, self.poly, master_proc = master_proc,
                                                     procs = procs, verbose= verbose)
-        self.set_logging(logging)
 
-
-        self.set_default(default)
+        if velocity is not None:
+            assert len(velocity)==2
 
         self.velocity = velocity
 
         self.applied_Q = 0.0
+
+        self.set_logging(logging)
+
+        self.set_default(default)
 
     def __call__(self):
 

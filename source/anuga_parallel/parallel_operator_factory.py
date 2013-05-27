@@ -40,7 +40,7 @@ return an instance of Parallel_Inlet_Operator
 """
 
 def Inlet_operator(domain, 
-                   line,
+                   poly,
                    Q,
                    velocity = None,
                    default = None,
@@ -55,7 +55,7 @@ def Inlet_operator(domain,
     if isinstance(domain, Parallel_domain) is False:
         if verbose: print "Allocating non parallel inlet operator ....."
         return anuga.structures.inlet_operator.Inlet_operator(domain,
-                                                              line,
+                                                              poly,
                                                               Q,
                                                               velocity = velocity,
                                                               default = default,
@@ -70,10 +70,10 @@ def Inlet_operator(domain,
 
     myid = pypar.rank()
 
-    line = num.array(line, dtype='d')
+    poly = num.array(poly, dtype='d')
 
     alloc, inlet_master_proc, inlet_procs, enquiry_proc = allocate_inlet_procs(domain,
-                                                                               line,
+                                                                               poly,
                                                                                master_proc = master_proc,
                                                                                procs = procs,
                                                                                verbose = verbose)
@@ -89,7 +89,7 @@ def Inlet_operator(domain,
             print "========================================="
 
         return Parallel_Inlet_operator(domain,
-                                       line,
+                                       poly,
                                        Q,
                                        velocity = velocity,
                                        default = default,

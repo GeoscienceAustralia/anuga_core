@@ -17,8 +17,13 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
     enquiry_proc - processor containing inlet enquiry point
     """
 
-    def __init__(self, domain, polyline, enquiry_pt, master_proc = 0, procs = None, enquiry_proc = -1, 
-                outward_culvert_vector=None, verbose=False):
+    def __init__(self, domain, polyline, enquiry_pt,
+                 invert_elevation = None,
+                 outward_culvert_vector=None,
+                 master_proc = 0,
+                 procs = None,
+                 enquiry_proc = -1,
+                 verbose=False):
 
    
         parallel_inlet.Parallel_Inlet.__init__(self, domain, polyline,
@@ -27,6 +32,7 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
         import pypar
 
         self.enquiry_pt = enquiry_pt
+        self.invert_elevation = invert_elevation
         self.outward_culvert_vector = outward_culvert_vector
         self.master_proc = master_proc
 
@@ -122,18 +128,36 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
         # WARNING: Must be called by processor containing inlet enquiry point to have effect
 
         if self.enquiry_index >= 0:
+            return max(self.get_enquiry_stage() - self.get_enquiry_invert_elevation(), 0.0)
+        else:
+            return None
+
+    def get_enquiry_water_depth(self):
+        # WARNING: Must be called by processor containing inlet enquiry point to have effect
+
+        if self.enquiry_index >= 0:
             return self.get_enquiry_stage() - self.get_enquiry_elevation()
         else:
             return None
 
+    def get_enquiry_invert_elevation(self):
+        # WARNING: Must be called by processor containing inlet enquiry point to have effect
+
+        if self.enquiry_index >= 0:
+            if  self.invert_elevation is None:
+                return self.get_enquiry_elevation()
+            else:
+                return self.invert_elevation
+        else:
+            return None
 
     def get_enquiry_velocity(self):
         # WARNING: Must be called by processor containing inlet enquiry point to have effect
 
         if self.enquiry_index >= 0:
-            depth = self.get_enquiry_depth()
-            u = self.get_enquiry_xmom()/(depth + velocity_protection/depth)
-            v = self.get_enquiry_ymom()/(depth + velocity_protection/depth)
+            depth = self.get_enquiry_water_depth()
+            u = depth*self.get_enquiry_xmom()/(depth**2 + velocity_protection)
+            v = depth*self.get_enquiry_ymom()/(depth**2 + velocity_protection)
 
             return u, v
         else:
@@ -144,8 +168,8 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
         # WARNING: Must be called by processor containing inlet enquiry point to have effect
 
         if self.enquiry_index >= 0:
-            depth = self.get_enquiry_depth()
-            return self.get_enquiry_xmom()/(depth + velocity_protection/depth)
+            depth = self.get_enquiry_water_depth()
+            return depth*self.get_enquiry_xmom()/(depth**2 + velocity_protection)
         else:
             return None
 
@@ -153,8 +177,8 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
         # WARNING: Must be called by processor containing inlet enquiry point to have effect
 
         if self.enquiry_index >= 0:
-            depth = self.get_enquiry_depth()
-            return self.get_enquiry_ymom()/(depth + velocity_protection/depth)
+            depth = self.get_enquiry_water_depth()
+            return depth*self.get_enquiry_ymom()/(depth**2 + velocity_protection)
         else:
             return None
 
