@@ -2,6 +2,7 @@ import anuga
 import numpy as num
 import math
 import parallel_inlet_enquiry 
+import pypar
 
 from anuga.utilities.system_tools import log_to_file
 from anuga.utilities.numerical_tools import ensure_numeric
@@ -56,7 +57,7 @@ class Parallel_Structure_operator(anuga.Operator):
                  inlet_procs = None,
                  enquiry_proc = None):
 
-        import pypar
+
         self.myid = pypar.rank()
         self.num_procs = pypar.size()
         
@@ -209,8 +210,6 @@ class Parallel_Structure_operator(anuga.Operator):
         self.set_parallel_logging(logging)
 
     def __call__(self):
-
-        import pypar
 
         timestep = self.domain.get_timestep()
 
@@ -423,8 +422,6 @@ class Parallel_Structure_operator(anuga.Operator):
         # Warning: requires synchronization, must be called by all procs associated
         # with this structure
 
-        import pypar
-
         message = ' '
 
         if self.myid == self.master_proc:
@@ -587,8 +584,8 @@ class Parallel_Structure_operator(anuga.Operator):
     def get_enquiry_stages(self):
         # Should be called from all processors associated with operator
 
-        import pypar
-        
+        enq0 = None
+        enq1 = None
 
         get0 = 'self.inlets[0].get_enquiry_stage()'
         get1 = 'self.inlets[1].get_enquiry_stage()'
@@ -621,8 +618,8 @@ class Parallel_Structure_operator(anuga.Operator):
     def get_enquiry_depths(self):
         # Should be called from all processors associated with operator
 
-        import pypar
-
+        enq0 = None
+        enq1 = None
 
         get0 = 'self.inlets[0].get_enquiry_depth()'
         get1 = 'self.inlets[1].get_enquiry_depth()'
@@ -656,7 +653,8 @@ class Parallel_Structure_operator(anuga.Operator):
 
     def get_enquiry_positions(self):
 
-        import pypar
+        enq0 = None
+        enq1 = None
 
         get0 = 'self.inlets[0].get_enquiry_position()'
         get1 = 'self.inlets[1].get_enquiry_position()'
@@ -690,10 +688,11 @@ class Parallel_Structure_operator(anuga.Operator):
 
     def get_enquiry_xmoms(self):
 
+        enq0 = None
+        enq1 = None
+
         get0 = 'self.inlets[0].get_enquiry_xmom()'
         get1 = 'self.inlets[1].get_enquiry_xmom()'
-
-        import pypar
 
 
         if self.myid == self.master_proc:
@@ -723,10 +722,11 @@ class Parallel_Structure_operator(anuga.Operator):
 
     def get_enquiry_ymoms(self):
 
+        enq0 = None
+        enq1 = None
+
         get0 = 'self.inlets[0].get_enquiry_ymom()'
         get1 = 'self.inlets[1].get_enquiry_ymom()'
-
-        import pypar
 
 
         if self.myid == self.master_proc:
@@ -757,10 +757,11 @@ class Parallel_Structure_operator(anuga.Operator):
 
     def get_enquiry_elevations(self):
 
+        enq0 = None
+        enq1 = None
+
         get0 = 'self.inlets[0].get_enquiry_elevation()'
         get1 = 'self.inlets[1].get_enquiry_elevation()'
-
-        import pypar
 
 
         if self.myid == self.master_proc:
@@ -792,10 +793,11 @@ class Parallel_Structure_operator(anuga.Operator):
 
     def get_enquiry_water_depths(self):
 
+        enq0 = None
+        enq1 = None
+
         get0 = 'self.inlets[0].get_enquiry_water_depth()'
         get1 = 'self.inlets[1].get_enquiry_water_depth()'
-
-        import pypar
 
 
         if self.myid == self.master_proc:
@@ -826,10 +828,11 @@ class Parallel_Structure_operator(anuga.Operator):
 
     def get_enquiry_invert_elevations(self):
 
+        enq0 = None
+        enq1 = None
+
         get0 = 'self.inlets[0].get_enquiry_invert_elevation()'
         get1 = 'self.inlets[1].get_enquiry_invert_elevation()'
-
-        import pypar
 
 
         if self.myid == self.master_proc:
@@ -860,11 +863,11 @@ class Parallel_Structure_operator(anuga.Operator):
 
     def get_enquiry_velocitys(self):
 
+        enq0 = None
+        enq1 = None
+
         get0 = 'self.inlets[0].get_enquiry_velocity()'
         get1 = 'self.inlets[1].get_enquiry_velocity()'
-
-        import pypar
-
 
         if self.myid == self.master_proc:
 
@@ -894,11 +897,11 @@ class Parallel_Structure_operator(anuga.Operator):
 
     def get_enquiry_xvelocitys(self):
 
+        enq0 = None
+        enq1 = None
+
         get0 = 'self.inlets[0].get_enquiry_xvelocity()'
         get1 = 'self.inlets[1].get_enquiry_xvelocity()'
-
-        import pypar
-
 
         if self.myid == self.master_proc:
 
@@ -927,10 +930,12 @@ class Parallel_Structure_operator(anuga.Operator):
 
     def get_enquiry_yvelocitys(self):
 
+        enq0 = None
+        enq1 = None
+
         get0 = 'self.inlets[0].get_enquiry_yvelocity()'
         get1 = 'self.inlets[1].get_enquiry_yvelocity()'
 
-        import pypar
 
         if self.myid == self.master_proc:
 
@@ -960,12 +965,13 @@ class Parallel_Structure_operator(anuga.Operator):
 
     def get_enquiry_speeds(self):
 
+        enq0 = None
+        enq1 = None
+
         get0 = 'self.inlets[0].get_enquiry_speed()'
         get1 = 'self.inlets[1].get_enquiry_speed()'
 
-        import pypar
-
-
+        
         if self.myid == self.master_proc:
 
             if self.myid == self.enquiry_proc[0]:
@@ -994,11 +1000,11 @@ class Parallel_Structure_operator(anuga.Operator):
 
     def get_enquiry_velocity_heads(self):
 
+        enq0 = None
+        enq1 = None
+
         get0 = 'self.inlets[0].get_enquiry_velocity_head()'
         get1 = 'self.inlets[1].get_enquiry_velocity_head()'
-
-        import pypar
-
 
         if self.myid == self.master_proc:
 
@@ -1028,11 +1034,11 @@ class Parallel_Structure_operator(anuga.Operator):
 
     def get_enquiry_total_energys(self):
 
+        enq0 = None
+        enq1 = None
+
         get0 = 'self.inlets[0].get_enquiry_total_energy()'
         get1 = 'self.inlets[1].get_enquiry_total_energy()'
-
-        import pypar
-
 
         if self.myid == self.master_proc:
 
@@ -1062,11 +1068,11 @@ class Parallel_Structure_operator(anuga.Operator):
 
     def get_enquiry_specific_energys(self):
 
+        enq0 = None
+        enq1 = None
+
         get0 = 'self.inlets[0].get_enquiry_specific_energy()'
         get1 = 'self.inlets[1].get_enquiry_specific_energy()'
-
-        import pypar
-
 
         if self.myid == self.master_proc:
 

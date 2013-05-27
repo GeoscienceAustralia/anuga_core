@@ -11,8 +11,6 @@ import anuga
 import time
 
                             
-#from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
-     
 from math import pi, pow, sqrt
 
 import numpy as num
@@ -81,7 +79,7 @@ if myid == 0:
     domain = anuga.Domain(points, vertices, boundary)
     domain.set_name('run_gate_operator')                 # Output name
     domain.set_flow_algorithm('2_0')
-    #domain.set_beta(1.5)
+
 
 
 
@@ -115,7 +113,8 @@ gate = Boyd_box_operator(domain,
                             verbose=False)
 
 # Close the gate
-gate.set_culvert_height(0.0)
+if gate is not None:
+    gate.set_culvert_height(0.0)
 
 line = [[0.0, 5.0], [0.0, 10.0]]
 Q = 1.0
@@ -161,6 +160,7 @@ for t in domain.evolve(yieldstep = 1.0, finaltime = 50):
         [i0, i1] = gate.get_enquiry_invert_elevations()
         [w0, w1] = gate.get_enquiry_water_depths()
 
+        output = gate.discharge_routine()
 
         if myid == gate.get_master_proc():
             print 'myid ', myid, s0,s1
@@ -169,8 +169,8 @@ for t in domain.evolve(yieldstep = 1.0, finaltime = 50):
             print 'myid ', myid, i0,i1
             print 'myid ', myid, w0,w1
 
+            print 'myid ',myid, output
 
-            print gate.discharge_routine()
 
             if d0 > 0.2: gate.set_culvert_height(10.0)
 
