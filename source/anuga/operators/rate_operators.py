@@ -21,6 +21,7 @@ from anuga.geometry.polygon import inside_polygon
 from anuga.operators.base_operator import Operator
 from anuga.fit_interpolate.interpolate import Modeltime_too_early, \
                                               Modeltime_too_late
+from anuga.utilities.function_utils import evaluate_temporal_function
 
 
 class Rate_operator(Operator):
@@ -125,35 +126,39 @@ class Rate_operator(Operator):
             t = self.get_time()
 
 
-        if  self.rate_callable:
-            try:
-                rate = self.rate(t)
-            except Modeltime_too_early, e:
-                raise Modeltime_too_early(e)
-            except Modeltime_too_late, e:
-                if self.default_rate is None:
-                    msg = '%s: ANUGA is trying to run longer than specified data.\n' %str(e)
-                    msg += 'You can specify keyword argument default_rate in the '
-                    msg += 'rate operator to tell it what to do in the absence of time data.'
-                    raise Modeltime_too_late(msg)
-                else:
-                    # Pass control to default rate function
-                    rate = self.default_rate(t)
+        assert not self.rate_spatial
 
-                    if self.default_rate_invoked is False:
-                        # Issue warning the first time
-                        msg = ('\n%s'
-                           'Instead I will use the default rate: %s\n'
-                           'Note: Further warnings will be supressed'
-                           % (str(e), self.default_rate(t)))
-                        warn(msg)
 
-                        # FIXME (Ole): Replace this crude flag with
-                        # Python's ability to print warnings only once.
-                        # See http://docs.python.org/lib/warning-filter.html
-                        self.default_rate_invoked = True
-        else:
-            rate = self.rate
+        rate = evaluate_temporal_function(self.rate, t, default_right_value=self.default_rate)
+#        if  self.rate_callable:
+#            try:
+#                rate = self.rate(t)
+#            except Modeltime_too_early, e:
+#                raise Modeltime_too_early(e)
+#            except Modeltime_too_late, e:
+#                if self.default_rate is None:
+#                    msg = '%s: ANUGA is trying to run longer than specified data.\n' %str(e)
+#                    msg += 'You can specify keyword argument default_rate in the '
+#                    msg += 'rate operator to tell it what to do in the absence of time data.'
+#                    raise Modeltime_too_late(msg)
+#                else:
+#                    # Pass control to default rate function
+#                    rate = self.default_rate(t)
+#
+#                    if self.default_rate_invoked is False:
+#                        # Issue warning the first time
+#                        msg = ('\n%s'
+#                           'Instead I will use the default rate: %s\n'
+#                           'Note: Further warnings will be supressed'
+#                           % (str(e), self.default_rate(t)))
+#                        warn(msg)
+#
+#                        # FIXME (Ole): Replace this crude flag with
+#                        # Python's ability to print warnings only once.
+#                        # See http://docs.python.org/lib/warning-filter.html
+#                        self.default_rate_invoked = True
+#        else:
+#            rate = self.rate
 
 
         if rate is None:
@@ -190,59 +195,41 @@ class Rate_operator(Operator):
 
         #print xy
         #print t
-        rate = self.rate(x,y,t)
+
+        #print self.rate_type, self.rate_type == 'x,y,t'
+        if self.rate_type == 'x,y,t':
+            rate = self.rate(x,y,t)
+        else:
+            rate = self.rate(x,y)
 
         return rate
 
 
     def set_rate(self, rate):
-        """Ability to change rate while running
+        """Set rate (function)
+        Can change rate while running
         """
 
-        #------------------------------------------
-        # Check and store rate
-        #------------------------------------------
-        msg = ('Keyword argument rate must be a'
-               'scalar, or a function of time.')
-        assert (isinstance(rate, (int, float)) or
-                callable(rate)), msg
+        from anuga.utilities.function_utils import determine_function_type
 
-        self.rate_callable = False
-        self.rate_spatial = False
+        # Possible types are 'scalar', 't', 'x,y' and 'x,y,t'
+        self.rate_type = determine_function_type(rate)
 
         self.rate = rate
 
-        if callable(rate):
+        if self.rate_type == 'scalar':
+            self.rate_callable = False
+            self.rate_spatial = False
+        elif self.rate_type == 't':
             self.rate_callable = True
+            self.rate_spatial = False
+        else:
+            self.rate_callable = True
+            self.rate_spatial = True
 
-            x = num.array([0.0, 1.0])
-            y = num.array([0.0, 2.0])
-            t =0.0
 
-            try:
-                self.rate(x,y,t)
-            except:
-                #print 'Problem calling with two arguments'
-                self.rate_spatial = False
-                self.rate_callable = False
-            else:
-                self.rate_spatial = True
-                self.rate_callable = True
 
-                #print self.rate_spatial , self.rate_callable
-                return
 
-            try:
-                self.rate(t)
-            except:
-                self.rate_callable = False
-                #print 'Problem calling 1 argument'
-            else:
-                self.rate_callable = True
-                self.rate_spatial = False
-
-        #print self.rate
-        #print self.rate_spatial , self.rate_callable
 
 
     def set_areas(self):
