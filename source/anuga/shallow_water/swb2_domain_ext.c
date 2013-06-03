@@ -229,7 +229,7 @@ int _flux_function_central(double *q_left, double *q_right,
       edgeflux[i] *= inverse_denominator;
     }
 
-    *pressure_flux = 0.5*g*( s_max*h_left*h_left -s_min*h_right*h_right)*inverse_denominator;
+    *pressure_flux = 0.;//0.5*g*( s_max*h_left*h_left -s_min*h_right*h_right)*inverse_denominator;
 
     // Maximal wavespeed
     *max_speed = max(fabs(s_max), fabs(s_min));
@@ -293,8 +293,8 @@ double _compute_fluxes_central(int number_of_elements,
 
     double *max_bed_edgevalue, *min_bed_edgevalue;
 
-    max_bed_edgevalue = malloc(number_of_elements*sizeof(double));
-    min_bed_edgevalue = malloc(number_of_elements*sizeof(double));
+    //max_bed_edgevalue = malloc(number_of_elements*sizeof(double));
+    //min_bed_edgevalue = malloc(number_of_elements*sizeof(double));
     // Start computation
     call++; // Flag 'id' of flux calculation for this timestep
 
@@ -306,13 +306,13 @@ double _compute_fluxes_central(int number_of_elements,
 
 
     // Compute minimum bed edge value on each triangle
-    for (k = 0; k < number_of_elements; k++){
-        max_bed_edgevalue[k] = max(bed_edge_values[3*k], 
-                                   max(bed_edge_values[3*k+1], bed_edge_values[3*k+2]));
-        min_bed_edgevalue[k] = min(bed_edge_values[3*k], 
-                                   min(bed_edge_values[3*k+1], bed_edge_values[3*k+2]));
-    
-    }
+    //for (k = 0; k < number_of_elements; k++){
+    //    max_bed_edgevalue[k] = max(bed_edge_values[3*k], 
+    //                               max(bed_edge_values[3*k+1], bed_edge_values[3*k+2]));
+    //    min_bed_edgevalue[k] = min(bed_edge_values[3*k], 
+    //                               min(bed_edge_values[3*k+1], bed_edge_values[3*k+2]));
+    //
+    //}
 
 
     // For all triangles
@@ -550,8 +550,8 @@ double _compute_fluxes_central(int number_of_elements,
 
     } // End triangle k
 
-    free(max_bed_edgevalue);
-    free(min_bed_edgevalue);
+    //free(max_bed_edgevalue);
+    //free(min_bed_edgevalue);
 
     return timestep;
 }
@@ -734,9 +734,9 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
   xmom_centroid_store = malloc(number_of_elements*sizeof(double));
   ymom_centroid_store = malloc(number_of_elements*sizeof(double));
   stage_centroid_store = malloc(number_of_elements*sizeof(double));
-  min_elevation_edgevalue = malloc(number_of_elements*sizeof(double));
+  //min_elevation_edgevalue = malloc(number_of_elements*sizeof(double));
   max_elevation_edgevalue = malloc(number_of_elements*sizeof(double));
-  count_wet_neighbours = malloc(number_of_elements*sizeof(int));
+  //count_wet_neighbours = malloc(number_of_elements*sizeof(int));
  
   if(extrapolate_velocity_second_order==1){
       // Replace momentum centroid with velocity centroid to allow velocity
@@ -750,9 +750,9 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
           ymom_centroid_store[k] = ymom_centroid_values[k];
           ymom_centroid_values[k] = ymom_centroid_values[k]/dk;
 
-          min_elevation_edgevalue[k] = min(elevation_edge_values[3*k], 
-                                           min(elevation_edge_values[3*k+1],
-                                               elevation_edge_values[3*k+2]));
+          //min_elevation_edgevalue[k] = min(elevation_edge_values[3*k], 
+          //                                 min(elevation_edge_values[3*k+1],
+          //                                     elevation_edge_values[3*k+2]));
           max_elevation_edgevalue[k] = max(elevation_edge_values[3*k], 
                                            max(elevation_edge_values[3*k+1],
                                                elevation_edge_values[3*k+2]));
@@ -761,15 +761,15 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       }
 
   // Count how many 'fully submerged' neighbours the cell has
-  for(k=0; k<number_of_elements;k++){ 
-      count_wet_neighbours[k]=0;
-      for (i=0; i<3; i++){
-        ktmp = surrogate_neighbours[3*k+i];              
-        if(stage_centroid_values[ktmp] > max_elevation_edgevalue[ktmp]){
-            count_wet_neighbours[k]+=1;
-        }
-      }
-  }
+  //for(k=0; k<number_of_elements;k++){ 
+  //    count_wet_neighbours[k]=0;
+  //    for (i=0; i<3; i++){
+  //      ktmp = surrogate_neighbours[3*k+i];              
+  //      if(stage_centroid_values[ktmp] > max_elevation_edgevalue[ktmp]){
+  //          count_wet_neighbours[k]+=1;
+  //      }
+  //    }
+  //}
 
   // Begin extrapolation routine
   for (k = 0; k < number_of_elements; k++) 
@@ -1265,9 +1265,9 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
   free(xmom_centroid_store);
   free(ymom_centroid_store);
   free(stage_centroid_store);
-  free(min_elevation_edgevalue);
+  //free(min_elevation_edgevalue);
   free(max_elevation_edgevalue);
-  free(count_wet_neighbours);
+  //free(count_wet_neighbours);
   return 0;
 }           
 
