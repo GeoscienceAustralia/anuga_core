@@ -575,7 +575,7 @@ class File_boundary(Boundary):
         self.F = file_function(filename,
                                domain,
                                quantities=domain.conserved_quantities,
-	                       interpolation_points=self.midpoint_coordinates,
+	                           interpolation_points=self.midpoint_coordinates,
                                time_thinning=time_thinning,
                                time_limit=time_limit,
                                use_cache=use_cache, 
