@@ -495,12 +495,12 @@ class Field_boundary(Boundary):
     in the sww file.
 
     This function is a thin wrapper around the generic File_boundary. The
-    difference between the file_boundary and field_boundary is only that the
-    field_boundary will allow you to change the level of the stage height when
+    difference between the File_boundary and Field_boundary is only that the
+    Field_boundary will allow you to change the level of the stage height when
     you read in the boundary condition. This is very useful when running
     different tide heights in the same area as you need only to convert one
     boundary condition to a SWW file, ideally for tide height of 0 m
-    (saving disk space). Then you can use field_boundary to read this SWW file
+    (saving disk space). Then you can use Field_boundary to read this SWW file
     and change the stage height (tide) on the fly depending on the scenario.
     """
 

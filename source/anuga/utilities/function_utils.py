@@ -5,6 +5,9 @@ import numpy as num
 from anuga.fit_interpolate.interpolate import Modeltime_too_early
 from anuga.fit_interpolate.interpolate import Modeltime_too_late
 
+import warnings
+#warnings.filterwarnings('default')
+
 def determine_function_type(function):
     """Test type of function, either
     - scalar
@@ -39,7 +42,7 @@ def determine_function_type(function):
                 try:
                     function(t)
                 except:
-                    print 'problem calling with one scalar argument'
+                    #print 'problem calling with one scalar argument'
                     msg = 'Input argument cannot be called as f(t), f(x,y) or f(x,y,t)'
                     raise Exception, msg
                 else:
@@ -65,6 +68,8 @@ def evaluate_temporal_function(function, t, default_left_value=None, default_rig
                 raise Modeltime_too_early(msg)
             else:
                 # Pass control to default left function
+
+                warnings.warn('Using default_left_value')
                 if callable(default_left_value):
                     result = default_left_value(t)
                 else:
@@ -76,6 +81,8 @@ def evaluate_temporal_function(function, t, default_left_value=None, default_rig
                 raise Modeltime_too_late(msg)
             else:
                 # Pass control to default right function
+
+                warnings.warn('Using default_right_value')
                 if callable(default_right_value):
                     result = default_right_value(t)
                 else:
