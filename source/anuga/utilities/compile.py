@@ -320,9 +320,9 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = False, all_war
     fitlibs = libs 
     if sys.platform == 'win32':	  
       if fitlibs is "":
-        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s -lm  -fopenmp' %(loader, sharedflag, object_files, root1, libext)
+        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o "%s.%s" -lm  -fopenmp' %(loader, sharedflag, object_files, root1, libext)
       else:
-        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s %s -lm  -fopenmp' %(loader, sharedflag, object_files, root1, libext, fitlibs)
+        s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o "%s.%s" "%s" -lm  -fopenmp' %(loader, sharedflag, object_files, root1, libext, fitlibs)
     else:    
       if fitlibs is "":
         s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s -lm  -fopenmp' %(loader, sharedflag, object_files, root1, libext)

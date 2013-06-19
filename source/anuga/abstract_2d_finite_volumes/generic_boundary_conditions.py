@@ -44,6 +44,10 @@ class Boundary:
         consistent between the domain and the boundary object, i.e.
         the jth element of vector q must correspond to the jth conserved
         quantity in domain.
+
+        This implementation uses the evaluate proceudure, but for efficiency
+        it is recommended to overload this procedure with a numpy or C based
+        implementation.
         """
 
         if segment_edges is None:
