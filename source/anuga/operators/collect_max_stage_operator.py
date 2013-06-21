@@ -35,12 +35,12 @@ class Collect_max_stage_operator(Operator):
         # Setup a quantity to store max_stage
         #------------------------------------------
         self.max_stage = Quantity(domain)
-        self.max_stage.set_values(-1.0e-30)
+        self.max_stage.set_values(-1.0e+100)
 
         #------------------------------------------
         # Aliases for stage quantity
         #------------------------------------------
-        self.stage  = self.domain.quantities['stage']
+        self.stage  = domain.quantities['stage']
 
         
 
@@ -49,7 +49,7 @@ class Collect_max_stage_operator(Operator):
         Calculate max_stage at each timestep
         """
 
-        self.max_stage.maximum(self.stage)
+        self.max_stage=self.max_stage.maximum(self.stage)
 
 
     def parallel_safe(self):
