@@ -35,7 +35,7 @@ output_file = 'dam_break'
 #------------------------------------------------------------------------------
 # Setup domain
 #------------------------------------------------------------------------------
-dx = 10000.
+dx = 1000.
 dy = dx
 L = 100000.
 W = 10*dx
@@ -88,15 +88,15 @@ Bd = anuga.Dirichlet_boundary([1,0.,0.]) # Constant boundary values
 domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 
-#===============================================================================
-from anuga.visualiser import RealtimeVisualiser
-vis = RealtimeVisualiser(domain)
-vis.render_quantity_height("stage", zScale = 50000/(h0-h1), dynamic=True)
-vis.colour_height_quantity("stage", 
-#        (lambda q: numpy.sqrt( (q["xvelocity"]**2 ) + (q['yvelocity']**2 )), 0.0, 10.0) )
-        (lambda q: q["yvelocity"], -10.0, 10.0) )
-vis.start()
-#===============================================================================
+##===============================================================================
+#from anuga.visualiser import RealtimeVisualiser
+#vis = RealtimeVisualiser(domain)
+#vis.render_quantity_height("stage", zScale = 50000/(h0-h1), dynamic=True)
+#vis.colour_height_quantity("stage",
+##        (lambda q: numpy.sqrt( (q["xvelocity"]**2 ) + (q['yvelocity']**2 )), 0.0, 10.0) )
+#        (lambda q: q["yvelocity"], -10.0, 10.0) )
+#vis.start()
+##===============================================================================
 
 
 from anuga.operators.collect_max_stage_operator import Collect_max_stage_operator
@@ -111,7 +111,7 @@ for t in domain.evolve(yieldstep = 100.0, finaltime = 60*60.):
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()
 
-    vis.update()
+    #vis.update()
 
 
 
@@ -127,5 +127,5 @@ numpy.savetxt('max_stage.txt', c_v)
 
 #test against know data
     
-vis.evolveFinished()
+#vis.evolveFinished()
 
