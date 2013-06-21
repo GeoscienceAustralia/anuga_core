@@ -35,7 +35,7 @@ output_file = 'dam_break'
 #------------------------------------------------------------------------------
 # Setup domain
 #------------------------------------------------------------------------------
-dx = 1000.
+dx = 10000.
 dy = dx
 L = 100000.
 W = 10*dx
@@ -99,34 +99,31 @@ vis.start()
 #===============================================================================
 
 
+from anuga.operators.collect_max_stage_operator import Collect_max_stage_operator
+max_operator = Collect_max_stage_operator(domain)
+
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
 
-for t in domain.evolve(yieldstep = 100.0, finaltime = 3*60*60.):
+for t in domain.evolve(yieldstep = 100.0, finaltime = 60*60.):
     #print domain.timestepping_statistics(track_speeds=True)
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()
 
-#    if domain.get_time() > 2000.0 and domain.get_time() < 4000.0 :
-#        domain.set_use_kinematic_viscosity(False)
-#    else:
-#        domain.set_use_kinematic_viscosity(True)
-
-    #print domain.quantities['height'].vertex_values
-
-    #domain.quantities['height'].vertex_values
-
-    #print domain.quantities['height'].vertex_values
-
-    #print len(domain)
-
-    #vertex_values, _ = domain.get_quantity('height').get_vertex_values(xy=False, smooth=False)
-
-    #print vertex_values
-
     vis.update()
 
+
+
+#print max_operator.max_stage.centroid_values
+
+c_v = max_operator.max_stage.centroid_values.flatten()
+c_x = domain.centroid_coordinates[:,0].flatten()
+c_y = domain.centroid_coordinates[:,1].flatten()
+
+import numpy
+
+numpy.savetxt('max_stage.txt', c_v)
 
 #test against know data
     
