@@ -868,6 +868,6 @@ class Test_set_elevation_operator(unittest.TestCase):
 
             
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_set_elevation_operators, 'test')
+    suite = unittest.makeSuite(Test_set_elevation_operator, 'test')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

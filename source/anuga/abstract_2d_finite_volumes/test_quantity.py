@@ -2437,6 +2437,102 @@ class Test_Quantity(unittest.TestCase):
                             quantity.edge_values)
                             
 
+    def test_maximum(self):
+        quantity = Quantity(self.mesh4)
+
+        # get referece to data arrays
+        centroid_values = quantity.centroid_values
+        vertex_values = quantity.vertex_values
+        edge_values = quantity.edge_values
+
+        quantity.set_values([[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]],
+                            location = 'vertices')
+        assert num.allclose(quantity.vertex_values,
+                            [[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
+
+        assert id(vertex_values) == id(quantity.vertex_values)
+        assert num.allclose(quantity.centroid_values, [2., 5., 3., 0.]) #Centroid
+        assert num.allclose(quantity.edge_values, [[2.5, 2.0, 1.5],
+                                                   [5., 5., 5.],
+                                                   [4.5, 4.5, 0.],
+                                                   [3.0, -1.5, -1.5]])
+
+
+
+        other_quantity = Quantity(self.mesh4)
+
+        other_quantity.set_values([[0,0,0], [1,1,6], [10,10,10], [0,0,4]],
+                            location = 'vertices')
+
+ 
+        #===============================
+        quantity.maximum(other_quantity)
+        #===============================
+
+        exact_vertex_values = num.array([[  1.,   2.,   3.],
+                                         [  5.,   5.,  6.],
+                                         [ 10.,  10.,  10.],
+                                         [  0.,   3.,  4.]])
+        exact_centroid_values = num.array([  2.,  5., 10.,  1.33333333])
+        exact_edge_values = num.array([[  2.5,   2.,    1.5],
+                                       [  5.,   5.,   5., ],
+                                       [ 10.,   10.,  10. ],
+                                       [  3.,    2.,    0. ]])
+
+
+        
+        assert num.allclose(quantity.vertex_values,
+                            exact_vertex_values)
+        assert num.allclose(quantity.centroid_values, exact_centroid_values) #Centroid
+        assert num.allclose(quantity.edge_values, exact_edge_values)
+
+    def test_minimum(self):
+        quantity = Quantity(self.mesh4)
+
+        # get referece to data arrays
+        centroid_values = quantity.centroid_values
+        vertex_values = quantity.vertex_values
+        edge_values = quantity.edge_values
+
+        quantity.set_values([[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]],
+                            location = 'vertices')
+        assert num.allclose(quantity.vertex_values,
+                            [[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
+
+        assert id(vertex_values) == id(quantity.vertex_values)
+        assert num.allclose(quantity.centroid_values, [2., 5., 3., 0.]) #Centroid
+        assert num.allclose(quantity.edge_values, [[2.5, 2.0, 1.5],
+                                                   [5., 5., 5.],
+                                                   [4.5, 4.5, 0.],
+                                                   [3.0, -1.5, -1.5]])
+
+
+
+        other_quantity = Quantity(self.mesh4)
+
+        other_quantity.set_values([[0,0,0], [1,1,6], [10,10,10], [0,0,4]],
+                            location = 'vertices')
+
+
+        #===============================
+        quantity.minimum(other_quantity)
+        #===============================
+
+        exact_vertex_values = num.array([[  0.,   0.,   0.],
+                                         [  1.,   1.,  5.],
+                                         [  0.,   0.,  9.],
+                                         [ -6.,   0.,  3.]])
+        exact_centroid_values = num.array([  0.,  2.66666667, 3.,  0.])
+        exact_edge_values = num.array([[  0.,   0.,   0.],
+                                       [  3.5,   3.5,   1., ],
+                                       [  4.5,   4.5,   0. ],
+                                       [  2.,   -1.5,  -1.5 ]])
+
+
+        assert num.allclose(quantity.vertex_values,
+                            exact_vertex_values)
+        assert num.allclose(quantity.centroid_values, exact_centroid_values) #Centroid
+        assert num.allclose(quantity.edge_values, exact_edge_values)
 
 
 #-------------------------------------------------------------

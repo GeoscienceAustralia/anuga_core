@@ -19,8 +19,11 @@ def determine_function_type(function):
     # Check that argument is at least a scalar
     # or csllable
     #------------------------------------------
-    msg = "Input argument must be a scalar, or a function"
+    msg = "Input argument must be a scalar, or a function or None"
 
+    if function is None:
+        return None
+    
     assert (isinstance(function, (int, float)) or
             callable(function)), msg
 

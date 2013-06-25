@@ -238,17 +238,16 @@ class Quantity:
             Q = Quantity(self.domain)
             Q.set_values(other)
 
-        result = Quantity(self.domain)
 
         # The maximum of vertex_values, edge_values and centroid_values
         # are calculated and assigned directly without using
         # set_values (which calls interpolate). Otherwise
         # edge and centroid values wouldn't be max from q1 and q2
-        result.vertex_values = num.maximum(self.vertex_values, Q.vertex_values)
-        result.edge_values = num.maximum(self.edge_values, Q.edge_values)
-        result.centroid_values = num.maximum(self.centroid_values, Q.centroid_values)
+        self.vertex_values[:] = num.maximum(self.vertex_values, Q.vertex_values)
+        self.edge_values[:] = num.maximum(self.edge_values, Q.edge_values)
+        self.centroid_values[:] = num.maximum(self.centroid_values, Q.centroid_values)
 
-        return result
+        
 
 
     def minimum(self, other):
@@ -265,16 +264,15 @@ class Quantity:
             Q = Quantity(self.domain)
             Q.set_values(other)
 
-        result = Quantity(self.domain)
 
         # The minimum of vertex_values, edge_values and centroid_values
         # are calculated and assigned directly without using
         # set_values (which calls interpolate). Otherwise
-        result.vertex_values = num.minimum(self.vertex_values, Q.vertex_values)
-        result.edge_values = num.minimum(self.edge_values, Q.edge_values)
-        result.centroid_values = num.minimum(self.centroid_values, Q.centroid_values)
+        self.vertex_values[:]= num.minimum(self.vertex_values, Q.vertex_values)
+        self.edge_values[:] = num.minimum(self.edge_values, Q.edge_values)
+        self.centroid_values[:] = num.minimum(self.centroid_values, Q.centroid_values)
 
-        return result
+
 
 
     ############################################################################

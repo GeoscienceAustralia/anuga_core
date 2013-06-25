@@ -12,7 +12,7 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.file_conversion.file_conversion import timefile2netcdf
 from anuga.config import time_format
 
-from set_stage_operators import *
+from set_stage_operator import *
 
 import numpy as num
 import warnings
@@ -252,6 +252,7 @@ class Test_set_stage_operators(unittest.TestCase):
                 return 7.0
 
         polygon = [(0.5,0.5), (1.5,0.5), (1.5,1.5), (0.5,1.5)]
+        #operator = Polygonal_set_stage_operator(domain, stage=stage, polygon=polygon)
         operator = Polygonal_set_stage_operator(domain, stage=stage, polygon=polygon)
 
         # Apply Operator at time t=1.0
