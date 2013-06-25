@@ -12,7 +12,7 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.file_conversion.file_conversion import timefile2netcdf
 from anuga.config import time_format
 
-from set_elevation_operators import *
+from set_elevation_operator import *
 
 import numpy as num
 import warnings
@@ -20,7 +20,7 @@ import time
 
 
 
-class Test_set_elevation_operators(unittest.TestCase):
+class Test_set_elevation_operator(unittest.TestCase):
     def setUp(self):
         pass
 

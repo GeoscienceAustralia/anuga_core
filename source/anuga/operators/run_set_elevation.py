@@ -35,17 +35,21 @@ domain.set_quantities_to_be_stored({'elevation': 2,
 def topography(x,y):
     """Complex topography defined by a function of vectors x and y."""
 
+
     z = -x/100
 
-    N = len(x)
-    for i in range(N):
-        # Step
-        if 2 < x[i] < 4:
-            z[i] += 0.4 - 0.05*y[i]
 
-        # Permanent pole
-        if (x[i] - 8)**2 + (y[i] - 2)**2 < 0.4**2:
-            z[i] += 1
+    # Step
+    id_s = (2 < x) & (x < 4)
+
+    z[id_s] += 0.4 - 0.05*y[id_s]
+
+    # Permanent pole
+    id_p = (x - 8)**2 + (y - 2)**2 < 0.4**2
+
+    z[id_p] += 1
+
+            
     return z
 
 
@@ -80,7 +84,7 @@ def pole(t):
 
     if t<10:
         return 0.0
-    elif t>15:
+    elif t>12:
         return 0.0
     else:
         return 1.0
@@ -104,11 +108,10 @@ domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 #------------------------------------------------------------------------------
 
 from anuga.operators.set_elevation_operators import Set_elevation_operator
-
 op1 = Set_elevation_operator(domain, elevation=pole, radius=0.5, center = (12.0,3.0))
 
-from anuga.operators.set_elevation_operators import Set_elevation
-op2 = Set_elevation(domain, elevation = topography, radius = 1.0, center = (12.0,3.0))
+from anuga.operators.set_elevation import Set_elevation
+op2 = Set_elevation(domain, elevation = topography)
 
 growing = False
 shrinking = False
@@ -118,7 +121,8 @@ for t in domain.evolve(yieldstep=0.1, finaltime=20.0):
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()
 
-    if num.allclose(17.0, t):
+    if num.allclose(15.0, t):
+        op1.set_elevation(None)
         op2()
 
 
