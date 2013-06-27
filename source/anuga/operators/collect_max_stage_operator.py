@@ -49,7 +49,8 @@ class Collect_max_stage_operator(Operator):
         Calculate max_stage at each timestep
         """
 
-        self.max_stage=self.max_stage.maximum(self.stage)
+        self.max_stage.maximum(self.stage) #=self.max_stage.maximum(self.stage)
+        #self.max_stage=self.max_stage.maximum(self.stage)
 
 
     def parallel_safe(self):
