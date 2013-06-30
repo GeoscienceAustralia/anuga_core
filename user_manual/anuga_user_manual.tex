@@ -144,11 +144,11 @@ instructions for setting up and running hydrodynamic simulations.
 The stable release of \anuga and this manual are available on sourceforge at
 \url{http://sourceforge.net/projects/anuga}. A snapshot of work in progress is
 available through the \anuga software repository at
-\url{https://datamining.anu.edu.au/svn/anuga/trunk/anuga_core/source/anuga}
+\url{https://anuga.anu.edu.au/svn/anuga/trunk/anuga_core/source/anuga}
 where the more adventurous reader might like to go.
 
 This manual describes \anuga version \version. To check for later versions of this manual
-go to \url{https://datamining.anu.edu.au/anuga}.
+go to \url{https://anuga.anu.edu.au}.
 
 \section{Scope}
 
@@ -159,7 +159,7 @@ which will be covered in separate publications and by documentation
 in the source code.
 
 The latest installation instructions may be found at:
-\url{https://datamining.anu.edu.au/anuga/attachment/wiki/WikiStart/anuga_installation_guide-1.2.0.pdf}.
+\url{http://anuga.anu.edu.au/raw-attachment/wiki/WikiStart/anuga_installation_guide-1.2.1.pdf}.
 
 \section{Audience}
 
@@ -388,7 +388,8 @@ to be stored at every timestep and \code{elevation} only once at
 the beginning of the simulation:
 
 \begin{verbatim}
-domain.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 'ymomentum': 2, 'elevation': 1})
+domain.set_quantities_to_be_stored({
+'stage': 2, 'xmomentum': 2, 'ymomentum': 2, 'elevation': 1})
 \end{verbatim}
 
 However, this is not necessary, as the above is the default behaviour.
@@ -589,7 +590,8 @@ If not the program will halt with a statement like:
 Traceback (most recent call last):
   File "mesh_test.py", line 114, in ?
     domain.set_boundary({'west': Bi, 'east': Bo, 'north': Br, 'south': Br})
-  File "X:\inundation\sandpits\onielsen\anuga_core\source\anuga\abstract_2d_finite_volumes\domain.py", line 505, in set_boundary
+  File "X:\inundation\sandpits\onielsen\anuga_core\source\anuga\
+    abstract_2d_finite_volumes\domain.py", line 505, in set_boundary
     raise msg
 ERROR (domain.py): Tag "exterior" has not been bound to a boundary object.
 All boundary tags defined in domain must appear in the supplied dictionary.
@@ -606,7 +608,8 @@ and \code{Bw}, the three arguments in each case represent the
 \code{stage}, $x$-momentum and $y$-momentum, respectively.)
 
 \begin{verbatim}
-Bw = anuga.Time_boundary(domain=domain, f=lambda t: [(0.1*sin(t*2*pi)-0.3), 0.0, 0.0])
+Bw = anuga.Time_boundary(domain=domain, 
+f=lambda t: [(0.1*sin(t*2*pi)-0.3), 0.0, 0.0])
 \end{verbatim}
 
 \subsection{Evolution}\index{evolution}
@@ -723,7 +726,8 @@ for simplicity, but this time we will use a symmetric one and also
 change the physical extent of the domain. The assignment:
 
 \begin{verbatim}
-points, vertices, boundary = anuga.rectangular_cross(m, n, len1=length, len2=width)
+points, vertices, boundary = anuga.rectangular_cross(m, n, 
+                                                     len1=length, len2=width)
 \end{verbatim}
 
 returns an \code{mxn} mesh similar to the one used in the previous example, except that now the
@@ -739,8 +743,8 @@ length = 10.0
 width = 5.0
 dx = dy = 1           # Resolution: Length of subdivisions on both axes
 
-points, vertices, boundary = anuga.rectangular_cross(int(length/dx), int(width/dy),
-                                               len1=length, len2=width)
+points, vertices, boundary = anuga.rectangular_cross(int(length/dx), 
+                                   int(width/dy), len1=length, len2=width)
 \end{verbatim}
 
 which yields a mesh of length=10m, width=5m with 1m spacings. To increase the resolution,
@@ -1425,9 +1429,9 @@ and are omitted from the descriptions given below:
 
 %\begin{tabular}{ll}
 \begin{tabular}{p{2.0cm} p{14.0cm}}
-  \emph{use\_cache} & Specifies whether caching is to be used for improved performance.
-                      See Section \ref{sec:caching} for details on the underlying caching functionality\\
-  \emph{verbose} & If \code{True}, provides detailed terminal output to the user\\
+  \emph{use\_cache} & Specifies whether caching is to be used for improved performance. See Section \ref{sec:caching} for details\\
+                    & on the underlying caching functionality\\                      
+  \emph{verbose}    & If \code{True}, provides detailed terminal output to the user\\
 \end{tabular}
 
 
@@ -2205,10 +2209,12 @@ A typical use of this function is to add structures to an existing elevation mod
 
 \begin{verbatim} 
 # Create digital elevation model from points file
-domain.set_quantity('elevation', filename='elevation_file.pts, verbose=True)
+domain.set_quantity('elevation', filename=
+                                 'elevation_file.pts', verbose=True)
 
 # Add buildings from file
-building_polygons, building_heights = anuga.load_csv_as_building_polygons(building_file)
+building_polygons, building_heights = 
+                  anuga.load_csv_as_building_polygons(building_file)
 
 B = []
 for key in building_polygons:
