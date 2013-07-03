@@ -208,6 +208,17 @@ def earthquake_source(
     if((mindip<0.)|(maxdip>90.)):
         raise Exception, 'ERROR: Dip should be between 0 and 90 degrees'
 
+    depth=source[:,2]
+    width=source[:,6]
+    topdepth=depth-width/2.0*numpy.sin(dip/180.*numpy.pi)
+    if(topdepth.min() < 0.0):
+        print '  easting   northing   depth strike    dip length  width  disl1   disl2  disl3 topdepth'
+        for i in range(len(source[:,0])):
+            if(topdepth[i]<0.0):
+                print source[i,:], topdepth[i]
+
+        raise Exception, 'ERROR: The tops of some sub-faults are above the ground (printed above)'
+
     #A few print statements
     if verbose is True:
         print 'Earthquake parameters:'
