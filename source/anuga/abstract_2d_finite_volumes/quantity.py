@@ -32,7 +32,10 @@ import numpy as num
 
 class Quantity:
 
-    def __init__(self, domain, vertex_values=None):
+
+    counter = 0
+
+    def __init__(self, domain, vertex_values=None, name=None):
         from anuga.abstract_2d_finite_volumes.generic_domain \
                             import Generic_Domain
 
@@ -84,6 +87,16 @@ class Quantity:
         self.centroid_backup_values = num.zeros(N, num.float)
 
         self.set_beta(1.0)
+
+        # Keep count of quantities
+        Quantity.counter += 1
+
+        self.set_name(name)
+
+
+
+
+
 
     ############################################################################
     # Methods for operator overloading
@@ -247,6 +260,8 @@ class Quantity:
         self.edge_values[:] = num.maximum(self.edge_values, Q.edge_values)
         self.centroid_values[:] = num.maximum(self.centroid_values, Q.centroid_values)
 
+        return self
+
         
 
 
@@ -272,13 +287,69 @@ class Quantity:
         self.edge_values[:] = num.minimum(self.edge_values, Q.edge_values)
         self.centroid_values[:] = num.minimum(self.centroid_values, Q.centroid_values)
 
-
+        return self
 
 
     ############################################################################
     # Setters/Getters
     ############################################################################
+    
+    def save_centroid_data_to_csv(self,filename=None):
 
+
+        #FIXME SR: Should add code to deal with parallel
+        
+        c_v = self.centroid_values.reshape((-1,1))
+        c_x = self.domain.centroid_coordinates[:,0].reshape((-1,1))
+        c_y = self.domain.centroid_coordinates[:,1].reshape((-1,1))
+
+        import numpy
+
+        c_xyv = numpy.hstack((c_x, c_y, c_v))
+
+        if filename is None:
+            filename = self.name+'_centroid_data.csv'
+
+        numpy.savetxt(filename, c_xyv, delimiter=',', fmt =  ['%.15e', '%.15e', '%.15e' ])
+
+
+
+    def plot_quantity(self, filename=None, show=True):
+
+        X, Y, A, V = self.get_vertex_values(smooth=True)
+
+        import matplotlib.pyplot as plt
+        import numpy as np
+
+
+        plt.tripcolor(X, Y, V, A)
+        plt.colorbar()
+
+        if filename is None:
+            filename = self.name+'.png'
+
+        plt.savefig(filename)
+        
+        if show:
+            plt.show()
+        
+
+
+
+    def set_name(self, name=None):
+        
+        if name is not None:
+            self.name = name
+        else:
+            self.name = 'quantity_%g' % Quantity.counter
+
+
+
+    def get_name(self):
+
+        return self.name
+
+    
     def set_beta(self, beta):
         """Set default beta value for limiting """
 
@@ -1298,6 +1369,8 @@ class Quantity:
         # Alternatively, some C code would be handy
         #
         self._set_vertex_values(vertex_list, A)
+
+
 
     # Note Padarn 27/11/12:
     # This function has been changed and now uses an external c function

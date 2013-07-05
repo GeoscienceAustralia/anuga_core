@@ -111,12 +111,12 @@ class My_polygon_erosion_operator(Polygonal_erosion_operator):
 #-------------------------------------------------------------------------------
 length = 24.
 width = 5.
-dx = dy = 0.1 #.1           # Resolution: Length of subdivisions on both axes
+dx = dy = 0.2 #.1           # Resolution: Length of subdivisions on both axes
 
 points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
 domain = Domain(points, vertices, boundary)
-domain.set_name('polygon_erosion') # Output name
+domain.set_name() # Output name based on script
 print domain.statistics()
 domain.set_quantities_to_be_stored({'elevation': 2,
                                     'stage': 2,

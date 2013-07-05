@@ -34,7 +34,7 @@ class Collect_max_stage_operator(Operator):
         #------------------------------------------
         # Setup a quantity to store max_stage
         #------------------------------------------
-        self.max_stage = Quantity(domain)
+        self.max_stage = Quantity(domain, name = 'max_stage')
         self.max_stage.set_values(-1.0e+100)
 
         #------------------------------------------
@@ -49,8 +49,7 @@ class Collect_max_stage_operator(Operator):
         Calculate max_stage at each timestep
         """
 
-        self.max_stage.maximum(self.stage) #=self.max_stage.maximum(self.stage)
-        #self.max_stage=self.max_stage.maximum(self.stage)
+        self.max_stage.maximum(self.stage)
 
 
     def parallel_safe(self):
@@ -70,5 +69,17 @@ class Collect_max_stage_operator(Operator):
 
         message  = indent + self.label + ': Collecting_max_stage'
         return message
+
+
+    def save_centroid_data_to_csv(self, filename=None):
+
+        self.max_stage.save_centroid_data_to_csv(filename)
+
+
+    def plot_quantity(self, filename=None, show=True):
+
+        self.max_stage.plot_quantity(filename=filename, show=show)
+
+
 
 

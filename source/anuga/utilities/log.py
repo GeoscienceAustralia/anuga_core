@@ -63,6 +63,8 @@ console_logging_level = DefaultConsoleLogLevel
 log_logging_level = DefaultFileLogLevel
 
 # The default name of the file to log to.
+
+
 log_filename = os.path.join('.', 'anuga.log')
 
 # set module variables so users don't have to do 'import logging'.

@@ -9,22 +9,24 @@ __author__="steve"
 __date__ ="$09/03/2012 4:46:39 PM$"
 
 
-from anuga import Domain
-from anuga import Quantity
+
 from anuga import indent
 import numpy as num
 from warnings import warn
 import anuga.utilities.log as log
-
 from anuga.geometry.polygon import inside_polygon
 
-from anuga.operators.base_operator import Operator
+
 from anuga.fit_interpolate.interpolate import Modeltime_too_early, \
                                               Modeltime_too_late
 from anuga.utilities.function_utils import evaluate_temporal_function
 
+from anuga import Domain
+from anuga import Quantity
+from anuga.operators.base_operator import Operator
+from anuga.operators.region import Region
 
-class Rate_operator(Operator):
+class Rate_operator(Operator,Region):
     """
     Add water at certain rate (ms^{-1} = vol/Area/sec) over a
     triangles specified by
@@ -42,6 +44,9 @@ class Rate_operator(Operator):
                  rate=0.0,
                  factor=1.0,
                  indices=None,
+                 polygon=None,
+                 center=None,
+                 radius=None,
                  default_rate=None,
                  description = None,
                  label = None,
@@ -51,10 +56,18 @@ class Rate_operator(Operator):
 
         Operator.__init__(self, domain, description, label, logging, verbose)
 
+
+        Region.__init__(self, domain,
+                        indices=indices,
+                        polygon=polygon,
+                        center=center,
+                        radius=radius,
+                        verbose=verbose)
+
+
         #------------------------------------------
         # Local variables
         #------------------------------------------
-        self.indices = indices
         self.factor = factor
 
         self.rate_callable = False
@@ -130,36 +143,6 @@ class Rate_operator(Operator):
 
 
         rate = evaluate_temporal_function(self.rate, t, default_right_value=self.default_rate)
-#        if  self.rate_callable:
-#            try:
-#                rate = self.rate(t)
-#            except Modeltime_too_early, e:
-#                raise Modeltime_too_early(e)
-#            except Modeltime_too_late, e:
-#                if self.default_rate is None:
-#                    msg = '%s: ANUGA is trying to run longer than specified data.\n' %str(e)
-#                    msg += 'You can specify keyword argument default_rate in the '
-#                    msg += 'rate operator to tell it what to do in the absence of time data.'
-#                    raise Modeltime_too_late(msg)
-#                else:
-#                    # Pass control to default rate function
-#                    rate = self.default_rate(t)
-#
-#                    if self.default_rate_invoked is False:
-#                        # Issue warning the first time
-#                        msg = ('\n%s'
-#                           'Instead I will use the default rate: %s\n'
-#                           'Note: Further warnings will be supressed'
-#                           % (str(e), self.default_rate(t)))
-#                        warn(msg)
-#
-#                        # FIXME (Ole): Replace this crude flag with
-#                        # Python's ability to print warnings only once.
-#                        # See http://docs.python.org/lib/warning-filter.html
-#                        self.default_rate_invoked = True
-#        else:
-#            rate = self.rate
-
 
         if rate is None:
             msg = ('Attribute rate must be specified in '+self.__name__+
@@ -189,7 +172,7 @@ class Rate_operator(Operator):
 
         assert x is not None
         assert y is not None
-        #print x.shape,y.shape
+
         assert isinstance(t, (int, float))
         assert len(x) == len(y)
 
@@ -361,42 +344,16 @@ class Circular_rate_operator(Rate_operator):
                  default_rate=None,
                  verbose=False):
 
-        assert center is not None
-        assert radius is not None
-
-
-        # Determine indices in update region
-        N = domain.get_number_of_triangles()
-        points = domain.get_centroid_coordinates(absolute=True)
-
-
-        indices = []
-
-        c = center
-        r = radius
-
-        for k in range(N):
-            x, y = points[k,:]    # Centroid
-
-            if ((x-c[0])**2+(y-c[1])**2) < r**2:
-                indices.append(k)
-
-
-        # It is possible that circle doesn't intersect with mesh (as can happen
-        # for parallel runs
-
 
         Rate_operator.__init__(self,
                                domain,
                                rate=rate,
                                factor=factor,
-                               indices=indices,
+                               center=center,
+                               radius=radius,
                                default_rate=default_rate,
                                verbose=verbose)
 
-
-        self.center = center
-        self.radius = radius
 
 
 #===============================================================================
@@ -420,29 +377,15 @@ class Polygonal_rate_operator(Rate_operator):
                  default_rate=None,
                  verbose=False):
 
-        assert polygon is not None
-
-
-        # Determine indices in update region
-        N = domain.get_number_of_triangles()
-        points = domain.get_centroid_coordinates(absolute=True)
-
-
-        indices = inside_polygon(points, polygon)
-        self.polygon = polygon
-
-
-        # It is possible that circle doesn't intersect with mesh (as can happen
-        # for parallel runs
-
 
         Rate_operator.__init__(self,
                                domain,
                                rate=rate,
                                factor=factor,
-                               indices=indices,
+                               polygon=polygon,
                                default_rate=default_rate,
                                verbose=verbose)
+                               
 
 
                 

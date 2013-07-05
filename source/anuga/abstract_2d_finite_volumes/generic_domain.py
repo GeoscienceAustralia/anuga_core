@@ -172,9 +172,9 @@ class Generic_Domain:
         self.quantities = {}
 
         for name in self.evolved_quantities:
-            self.quantities[name] = Quantity(self)
+            self.quantities[name] = Quantity(self, name=name)
         for name in self.other_quantities:
-            self.quantities[name] = Quantity(self)
+            self.quantities[name] = Quantity(self, name=name)
 
         # Create an empty list for forcing terms
         self.forcing_terms = []
@@ -316,6 +316,7 @@ class Generic_Domain:
         self.time = self.starttime 
         self.timestep = 0.0
         self.flux_timestep = 0.0
+        self.evolved_called = False
 
         self.last_walltime = walltime()
 
@@ -1348,14 +1349,31 @@ class Generic_Domain:
     def get_name(self):
         return self.simulation_name
 
-    def set_name(self, name):
+    def set_name(self, name=None, timestamp=False):
         """Assign a name to this simulation.
         This will be used to identify the output sww file.
+        Without parameters the name will be derived from the script file,
+        ie run_simulation.py -> output_run_simulation.sww
         """
 
+        import os
+        import inspect
+
+        if name is None:
+            frame = inspect.currentframe()
+            script_name = inspect.getouterframes(frame)[1][1]
+            name = 'output_'+os.path.splitext(script_name)[0]
+       
         # remove any '.sww' end
         if name.endswith('.sww'):
             name = name[:-4]
+
+
+        from time import localtime, strftime, gmtime
+        time = strftime('%Y%m%d_%H%M%S',localtime())
+
+        if timestamp:
+            name = name+'_'+time
 
         self.simulation_name = name
 
@@ -1395,7 +1413,7 @@ class Generic_Domain:
         ghost_mask = num.repeat(self.tri_full_flag == 0, 3)
 
 
-        # Proc 0 gathers full and ghost nodes from self and other processors
+        # Gather full and ghost nodes
         fx = vertices[full_mask,0]
         fy = vertices[full_mask,1]
         gx = vertices[ghost_mask,0]
@@ -1465,7 +1483,20 @@ class Generic_Domain:
                'This system has the boundary tags %s '
                    % self.get_boundary_tags())
         assert hasattr(self, 'boundary_objects'), msg
-        
+
+
+        if self.evolved_called:
+            skip_initial_step = True
+
+        self.evolved_called = True
+
+        # We assume evolve has already been called so we should now
+        # set starttime to match actual time
+        if skip_initial_step:
+            self.set_starttime(self.get_time())
+
+
+        # This can happen on the first call to evolve
         if self.get_time() != self.get_starttime():
             self.set_time(self.get_starttime())
         
@@ -1476,7 +1507,7 @@ class Generic_Domain:
 
         self._order_ = self.default_order
 
-        assert finaltime >= self.get_starttime(), 'finaltime is less than starttime!'
+
         
         if finaltime is not None and duration is not None:
             msg = 'Only one of finaltime and duration may be specified'
@@ -1486,6 +1517,8 @@ class Generic_Domain:
                 self.finaltime = float(finaltime)
             if duration is not None:
                 self.finaltime = self.starttime + float(duration)
+
+        assert self.finaltime >= self.get_starttime(), 'finaltime is less than starttime!'
 
         N = len(self)                             # Number of triangles
         self.yieldtime = self.get_time() + yieldstep    # set next yield time

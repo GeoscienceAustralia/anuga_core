@@ -11,6 +11,7 @@ from anuga import Domain
 from anuga import Reflective_boundary
 from anuga import Dirichlet_boundary
 from anuga import Time_boundary
+import os
 
 
 #------------------------------------------------------------------------------
@@ -23,7 +24,7 @@ dx = dy = 0.2 #.1           # Resolution: Length of subdivisions on both axes
 points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
 domain = Domain(points, vertices, boundary)
-domain.set_name('rate_polygon') # Output name
+domain.set_name() # Output name based on script name. You can add timestamp=True
 print domain.statistics()
 
 
@@ -35,28 +36,21 @@ def topography(x,y):
 
     z = -x/100
 
-    N = len(x)
-    for i in range(N):
-        # Step
-        if 2 < x[i] < 4:
-            z[i] += 0.4 - 0.05*y[i]
-
-        # Permanent pole
-        #if (x[i] - 8)**2 + (y[i] - 2)**2 < 0.4**2:
-        #    z[i] += 1
+    # Step
+    id = (2 < x) & (x < 4)
+    z[id] += 0.4 - 0.05*y[id]
 
 
-#        # Dam
-#        if 12 < x[i] < 13 and y[i] > 3.0:
-#            z[i] += 0.4
-#
-#        if 12 < x[i] < 13 and y[i] < 2.0:
-#            z[i] += 0.4
+    # Permanent pole
+    #id = (x - 8)**2 + (y - 2)**2 < 0.4**2
+    #z[id] += 1
 
 
-#        # Dam
-#        if 12 < x[i] < 13:
-#            z[i] += 0.4
+    # Dam
+    #id = (12 < x) & (x  < 13)
+    #z[id] += 0.4
+
+
 
             
     return z
@@ -67,24 +61,21 @@ def pole_increment(x,y,t):
     For use with variable elevation data
     """
 
-
-    z = 0.0*x
-    
+    z = 0.0*x    
 
     if t<10.0:
         return z
     
 
-    N = len(x)
-    for i in range(N):
-        # Pole 1
-        if (x[i] - 12)**2 + (y[i] - 3)**2 < 0.4**2:
-            z[i] += 0.1
+    # Pole 1
+    id = (x - 12)**2 + (y - 3)**2 < 0.4**2
+    z[id] += 0.1
 
-    for i in range(N):
-        # Pole 2
-        if (x[i] - 14)**2 + (y[i] - 2)**2 < 0.4**2:
-            z[i] += 0.05
+
+    # Pole 2
+    id = (x - 14)**2 + (y - 2)**2 < 0.4**2
+    z[id] += 0.05
+
 
     return z
 
@@ -118,14 +109,26 @@ domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 polygon1 = [ [10.0, 0.0], [11.0, 0.0], [11.0, 5.0], [10.0, 5.0] ]
 polygon2 = [ [12.0, 2.0], [13.0, 2.0], [13.0, 3.0], [12.0, 3.0] ]
 
-from anuga.operators.rate_operators import Polygonal_rate_operator
-from anuga.operators.rate_operators import Circular_rate_operator
+from anuga.operators.rate_operators import Rate_operator
 
-op1 = Polygonal_rate_operator(domain, rate=10.0, polygon=polygon2)
-op2 = Circular_rate_operator(domain, rate=10.0, radius=0.5, center=(10.0, 3.0))
+op1 = Rate_operator(domain, rate=lambda t: 10.0 if (t>=0.0) else 0.0, polygon=polygon2)
+op2 = Rate_operator(domain, rate=lambda t: 10.0 if (t>=0.0) else 0.0, radius=0.5, center=(10.0, 3.0))
 
 
-for t in domain.evolve(yieldstep=0.1, finaltime=40.0):
+domain.set_starttime(-0.1)
+for t in domain.evolve(yieldstep=0.01, finaltime=0.0):
+    domain.print_timestepping_statistics()
+    domain.print_operator_timestepping_statistics()
+
+    stage = domain.get_quantity('stage')
+    elev  = domain.get_quantity('elevation')
+    height = stage - elev
+
+    print 'integral = ', height.get_integral()
+
+
+for t in domain.evolve(yieldstep=0.1, duration=5.0):
+
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()
 

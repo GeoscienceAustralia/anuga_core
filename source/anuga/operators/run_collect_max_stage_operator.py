@@ -18,20 +18,6 @@ import numpy
 from time import localtime, strftime, gmtime
 
 
-
-#-------------------------------------------------------------------------------
-# Copy scripts to time stamped output directory and capture screen
-# output to file
-#-------------------------------------------------------------------------------
-#time = strftime('%Y%m%d_%H%M%S',localtime())
-
-#output_dir = 'dam_break_'+time
-output_file = 'dam_break'
-
-#anuga.copy_code_files(output_dir,__file__)
-#start_screen_catcher(output_dir+'_')
-
-
 #------------------------------------------------------------------------------
 # Setup domain
 #------------------------------------------------------------------------------
@@ -44,19 +30,12 @@ W = 10*dx
 # structured mesh
 domain = anuga.rectangular_cross_domain(int(L/dx), int(W/dy), L, W, (0.0, -W/2))
 
-domain.set_name(output_file)                
+domain.set_name() # based on script name
 
 #------------------------------------------------------------------------------
 # Setup Algorithm
 #------------------------------------------------------------------------------
-domain.set_timestepping_method('rk2')
-domain.set_default_order(2)
-domain.set_beta(1.7)
-
-#------------------------------------------------------------------------------
-# Setup Kinematic Viscosity Operator
-#------------------------------------------------------------------------------
-domain.set_use_kinematic_viscosity(True)
+domain.set_flow_algorithm('2_0')
 
 #------------------------------------------------------------------------------
 # Setup initial conditions
@@ -75,6 +54,7 @@ def height(x,y):
 domain.set_quantity('elevation',elevation)
 domain.set_quantity('friction', 0.0)
 domain.add_quantity('stage', height)
+
 #-----------------------------------------------------------------------------
 # Setup boundary conditions
 #------------------------------------------------------------------------------
@@ -88,44 +68,28 @@ Bd = anuga.Dirichlet_boundary([1,0.,0.]) # Constant boundary values
 domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 
-##===============================================================================
-#from anuga.visualiser import RealtimeVisualiser
-#vis = RealtimeVisualiser(domain)
-#vis.render_quantity_height("stage", zScale = 50000/(h0-h1), dynamic=True)
-#vis.colour_height_quantity("stage",
-##        (lambda q: numpy.sqrt( (q["xvelocity"]**2 ) + (q['yvelocity']**2 )), 0.0, 10.0) )
-#        (lambda q: q["yvelocity"], -10.0, 10.0) )
-#vis.start()
-##===============================================================================
 
-
+#-----------------------------------------------------------------------------
+# Setup operators that will be applied each inner timestep
+#------------------------------------------------------------------------------
 from anuga.operators.collect_max_stage_operator import Collect_max_stage_operator
 max_operator = Collect_max_stage_operator(domain)
 
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
-
 for t in domain.evolve(yieldstep = 100.0, finaltime = 60*60.):
     #print domain.timestepping_statistics(track_speeds=True)
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()
 
-    #vis.update()
+
+
+# save the max_stage centroid data to a text file
+max_operator.save_centroid_data_to_csv()
+
+max_operator.plot_quantity()
 
 
 
-#print max_operator.max_stage.centroid_values
-
-c_v = max_operator.max_stage.centroid_values.flatten()
-c_x = domain.centroid_coordinates[:,0].flatten()
-c_y = domain.centroid_coordinates[:,1].flatten()
-
-import numpy
-
-numpy.savetxt('max_stage.txt', c_v)
-
-#test against know data
-    
-#vis.evolveFinished()
 

@@ -26,7 +26,7 @@ dx = dy = 0.2 #.1           # Resolution: Length of subdivisions on both axes
 points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
 domain = Domain(points, vertices, boundary)
-domain.set_name('output_rate_spatial_operator') # Output name
+domain.set_name() # Output name based on script
 print domain.statistics()
 
 
@@ -118,17 +118,16 @@ domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 polygon1 = [ [10.0, 0.0], [11.0, 0.0], [11.0, 5.0], [10.0, 5.0] ]
 polygon2 = [ [12.0, 2.0], [13.0, 2.0], [13.0, 3.0], [12.0, 3.0] ]
 
-from anuga.operators.rate_operators import Polygonal_rate_operator
-from anuga.operators.rate_operators import Circular_rate_operator
+
 from anuga.operators.rate_operators import Rate_operator
 
-op1 = Polygonal_rate_operator(domain, rate=10.0, polygon=polygon2)
+op1 = Rate_operator(domain, rate=10.0, polygon=polygon2)
 
 area1 = numpy.sum(domain.areas[op1.indices])
 Q1 = 10.0*area1
 print 'op1 Q ',Q1
 
-op2 = Circular_rate_operator(domain, rate=10.0, radius=0.5, center=(10.0, 3.0))
+op2 = Rate_operator(domain, rate=10.0, radius=0.5, center=(10.0, 3.0))
 
 area2 = numpy.sum(domain.areas[op2.indices])
 Q2 = 10.0*area2
@@ -140,7 +139,7 @@ def rain(x,y,t):
     input x,y should be considered to be numpy arrays
     abd t a scalar
     """
-    if t<=5.0:
+    if t<=4.0:
         return (x+y)
     else:
         return 0*x
@@ -159,7 +158,7 @@ Q3 = numpy.sum(op3.get_spatial_rate()*domain.areas)*factor
 #------------------------------------------------------------------------------
 accum = 0.0
 yieldstep = 0.1
-finaltime = 40.0
+finaltime = 5.0
 for t in domain.evolve(yieldstep=yieldstep, finaltime=finaltime):
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()

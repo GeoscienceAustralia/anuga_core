@@ -11,11 +11,15 @@ __date__ ="$09/03/2012 4:46:39 PM$"
 
 import numpy as num
 from anuga.geometry.polygon import inside_polygon
-from anuga.operators.base_operator import Operator
 from anuga import indent
 
+from anuga import Domain
+from anuga import Quantity
+from anuga.operators.base_operator import Operator
+from anuga.operators.region import Region
 
-class Erosion_operator(Operator):
+
+class Erosion_operator(Operator, Region):
     """
     Simple erosion operator in a region (careful to maintain continuitiy of elevation)
 
@@ -31,6 +35,9 @@ class Erosion_operator(Operator):
                  threshold= 0.0,
                  base=0.0,
                  indices=None,
+                 polygon=None,
+                 center=None,
+                 radius=None,
                  description = None,
                  label = None,
                  logging = False,
@@ -39,12 +46,21 @@ class Erosion_operator(Operator):
 
         Operator.__init__(self, domain, description, label, logging, verbose)
 
+
+
+        Region.__init__(self, domain,
+                        indices=indices,
+                        polygon=polygon,
+                        center=center,
+                        radius=radius,
+                        verbose=verbose)
+
         #------------------------------------------
         # Local variables
         #------------------------------------------
         self.threshold = threshold
         self.base = base
-        self.indices = indices
+
 
         #------------------------------------------
         # Extra aliases for changing elevation at
@@ -408,47 +424,14 @@ class Circular_erosion_operator(Erosion_operator):
                  radius=None,
                  verbose=False):
 
-        assert center is not None
-        assert radius is not None
-
-
-        # Determine indices in update region
-        N = domain.get_number_of_triangles()
-        points = domain.get_centroid_coordinates(absolute=True)
-
-
-        indices = []
-
-        c = center
-        r = radius
-
-        self.center = center
-        self.radius = radius
-
-        intersect = False
-        for k in range(N):
-            x, y = points[k,:]    # Centroid
-
-            if ((x-c[0])**2+(y-c[1])**2) < r**2:
-                intersect = True
-                indices.append(k)
-
-
-        msg = 'No centroids intersect circle center'+str(center)+' radius '+str(radius)
-        assert intersect, msg
-
-
-
-
-        # It is possible that circle doesn't intersect with mesh (as can happen
-        # for parallel runs
 
 
         Erosion_operator.__init__(self,
                                   domain,
                                   threshold,
                                   base,
-                                  indices=indices,
+                                  center=center,
+                                  radius=radius,
                                   verbose=verbose)
 
 
@@ -471,24 +454,15 @@ class Polygonal_erosion_operator(Erosion_operator):
                  verbose=False):
 
 
-        # Determine indices in update region
-        N = domain.get_number_of_triangles()
-        points = domain.get_centroid_coordinates(absolute=True)
-
-
-        indices = inside_polygon(points, polygon)
-        self.polygon = polygon
-
-        # It is possible that circle doesn't intersect with mesh (as can happen
-        # for parallel runs
-
-
         Erosion_operator.__init__(self,
                                   domain,
                                   threshold=threshold,
                                   base=base,
-                                  indices=indices,
+                                  polygon=polygon,
                                   verbose=verbose)
+
+
+
 
 
 
