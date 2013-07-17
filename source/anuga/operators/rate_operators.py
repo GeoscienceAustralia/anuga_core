@@ -12,17 +12,10 @@ __date__ ="$09/03/2012 4:46:39 PM$"
 
 from anuga import indent
 import numpy as num
-from warnings import warn
 import anuga.utilities.log as log
-from anuga.geometry.polygon import inside_polygon
-
-
-from anuga.fit_interpolate.interpolate import Modeltime_too_early, \
-                                              Modeltime_too_late
 from anuga.utilities.function_utils import evaluate_temporal_function
 
-from anuga import Domain
-from anuga import Quantity
+
 from anuga.operators.base_operator import Operator
 from anuga.operators.region import Region
 
@@ -101,12 +94,13 @@ class Rate_operator(Operator,Region):
 
 
         if self.rate_spatial:
-            if self.indices is None:
+            if indices is None:
                 x = self.coord_c[:,0]
                 y = self.coord_c[:,1]
             else:
-                x = self.coord_c[self.indices,0]
-                y = self.coord_c[self.indices,1]
+                x = self.coord_c[indices,0]
+                y = self.coord_c[indices,1]
+
             rate = self.get_spatial_rate(x,y,t)
         else:
             rate = self.get_non_spatial_rate(t)
@@ -116,14 +110,14 @@ class Rate_operator(Operator,Region):
                          % (self.quantity_name, domain.get_time(), rate))
 
         if num.all(rate >= 0.0):
-            if self.indices is None:
+            if indices is None:
                 self.stage_c[:] = self.stage_c[:]  \
                        + factor*rate*timestep
             else:
                 self.stage_c[indices] = self.stage_c[indices] \
                        + factor*rate*timestep
         else: # Be more careful if rate < 0
-            if self.indices is None:
+            if indices is None:
                 self.stage_c[:] = num.maximun(self.stage_c  \
                        + factor*rate*timestep, self.elev_c )
             else:

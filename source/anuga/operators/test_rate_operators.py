@@ -14,6 +14,9 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.file_conversion.file_conversion import timefile2netcdf
 from anuga.config import time_format
 
+from anuga.fit_interpolate.interpolate import Modeltime_too_early
+from anuga.fit_interpolate.interpolate import Modeltime_too_late
+
 from rate_operators import *
 
 import numpy as num

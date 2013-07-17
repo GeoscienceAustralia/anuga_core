@@ -61,13 +61,11 @@ domain.add_quantity('stage', height)
 from math import sin, pi, exp
 Br = anuga.Reflective_boundary(domain)      # Solid reflective wall
 Bt = anuga.Transmissive_boundary(domain)    # Continue all values on boundary 
-Bd = anuga.Dirichlet_boundary([1,0.,0.]) # Constant boundary values
+Bd = anuga.Dirichlet_boundary([1,0.,0.])    # Constant boundary values
 
 
 # Associate boundary tags with boundary objects
 domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
-
-
 
 #-----------------------------------------------------------------------------
 # Setup operators that will be applied each inner timestep
@@ -84,10 +82,10 @@ for t in domain.evolve(yieldstep = 100.0, finaltime = 60*60.):
     domain.print_operator_timestepping_statistics()
 
 
-
 # save the max_stage centroid data to a text file
 max_operator.save_centroid_data_to_csv()
 
+# Let's have a look at the max_stage
 max_operator.plot_quantity()
 
 

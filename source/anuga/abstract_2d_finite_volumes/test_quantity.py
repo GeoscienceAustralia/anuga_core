@@ -424,7 +424,39 @@ class Test_Quantity(unittest.TestCase):
 
         assert num.allclose (quantity.get_integral(), ref_integral)
 
+    def test_integral_with_region(self):
+        quantity = Quantity(self.mesh4)
 
+        # Try constants first
+        const = 5
+        quantity.set_values(const, location = 'vertices')
+        #print 'Q', quantity.get_integral()
+
+        assert num.allclose(quantity.get_integral(), self.mesh4.get_area() * const)
+
+        # Try with a linear function
+        def f(x, y):
+            return x+y
+
+        quantity.set_values(f, location = 'vertices')
+
+
+        from anuga import Region
+
+        reg1 = Region(self.mesh4, indices=[2])
+        ref_integral = (10.0/3) * 2
+
+        assert num.allclose (quantity.get_integral(region=reg1), ref_integral)
+
+        reg2 = Region(self.mesh4, indices=[2,3])
+        ref_integral = (10.0/3 + 10.0/3) * 2
+
+        assert num.allclose (quantity.get_integral(region=reg2), ref_integral)
+
+        id=[2,3]
+        ref_integral = (10.0/3 + 10.0/3) * 2
+
+        assert num.allclose (quantity.get_integral(indices=id), ref_integral)
 
     def test_set_vertex_values(self):
         quantity = Quantity(self.mesh4)
@@ -2539,5 +2571,5 @@ class Test_Quantity(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Quantity, 'test')
-    runner = unittest.TextTestRunner(verbosity=2)
+    runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

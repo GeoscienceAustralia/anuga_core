@@ -9,13 +9,13 @@ __date__ ="$09/03/2012 4:46:39 PM$"
 from anuga import Domain
 from anuga import Quantity
 import numpy as num
-import anuga.utilities.log as log
+
 
 from anuga.geometry.polygon import inside_polygon
 
 from anuga.utilities.function_utils import determine_function_type
 
-from anuga import indent
+#from anuga import indent
 
 
 class Region(object):
@@ -55,7 +55,11 @@ class Region(object):
         #-------------------------------------------
         if self.indices is not None:
             # This overrides polygon, center and radius
-            pass
+            self.indices = num.asarray(self.indices)
+
+            if self.indices.size == 0:
+                self.indices = []
+
         elif (self.center is not None) and (self.radius is not None):
 
             assert self.indices is None
@@ -70,6 +74,15 @@ class Region(object):
             self.setup_indices_polygon()
         else:
             assert self.indices is None or self.indices is []
+
+
+
+        if self.indices == []:
+            self.full_indices = []
+        elif self.indices is None:
+            self.full_indices = num.where(self.domain.tri_full_flag ==1)[0]
+        else:
+            self.full_indices = self.indices[self.domain.tri_full_flag[self.indices]==1]
 
 
     def setup_indices_circle(self):
@@ -92,7 +105,10 @@ class Region(object):
                 intersect = True
                 indices.append(k)
 
-        self.indices = indices
+        if indices is []:
+            self.indices = indices
+        else:
+            self.indices = num.asarray(indices)
 
         msg = 'No centroids intersect circle center'+str(c)+' radius '+str(r)
         assert intersect, msg
@@ -103,10 +119,21 @@ class Region(object):
         # Determine indices for polygonal region
         points = self.domain.get_centroid_coordinates(absolute=True)
 
+        indices = num.asarray(inside_polygon(points, self.polygon))
 
-        self.indices = inside_polygon(points, self.polygon)
+        if indices is []:
+            self.indices = indices
+        else:
+            self.indices = num.asarray(indices)
 
 
+    def get_indices(self, full_only=True):
 
+        if full_only:
+            return self.full_indices
+        else:
+            return self.indices
+
+        
 
 

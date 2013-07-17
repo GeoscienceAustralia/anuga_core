@@ -1064,7 +1064,7 @@ class Quantity:
             indices is the set of element ids that the operation applies to.
 
         Usage:
-            i = get_extreme_index()
+            i = Q.get_extreme_index()
 
         Notes:
             We do not seek the extremum at vertices as each vertex can
@@ -1519,18 +1519,35 @@ class Quantity:
         self.x_gradient[:] = 0.0
         self.y_gradient[:] = 0.0
 
-    def get_integral(self, full_only=True):
+    def get_integral(self, full_only=True, region=None, indices=None):
 
-        """Compute the integral of quantity across entire domain."""
+        """Compute the integral of quantity across entire domain,
+        or over a region. Eg
+        my_region = anuga.Region(polygon = user_polygon)
+
+        Q.get_integral(region = my_region)"""
+
+        assert region is None or indices is None
 
         
         areas = self.domain.get_areas()
 
-        if full_only:
-            indices = num.where(self.domain.tri_full_flag ==1)[0]
-            return num.sum(areas[indices]*self.centroid_values[indices])
-        else:
+        if region is None and indices is None:
+            if full_only:
+                indices = num.where(self.domain.tri_full_flag ==1)[0]
+                return num.sum(areas[indices]*self.centroid_values[indices])
+            else:
+                return num.sum(areas*self.centroid_values)
+
+        if indices is None:
+            indices = region.get_indices(full_only)
+
+        if indices == []:
+            return 0.0
+        elif indices is None:
             return num.sum(areas*self.centroid_values)
+        else:
+            return num.sum(areas[indices]*self.centroid_values[indices])
 
 
     def get_gradients(self):

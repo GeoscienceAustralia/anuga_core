@@ -11,6 +11,8 @@ from anuga import Domain
 from anuga import Reflective_boundary
 from anuga import Dirichlet_boundary
 from anuga import Time_boundary
+from anuga import Region
+from anuga import indent
 
 #------------------------------------------------------------------------------
 # Setup computational domain
@@ -22,7 +24,7 @@ dx = dy = 0.2 #.1           # Resolution: Length of subdivisions on both axes
 points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
 domain = Domain(points, vertices, boundary)
-domain.set_name('set_depth_friction') # Output name
+domain.set_name() # Output name
 print domain.statistics()
 
 
@@ -34,22 +36,20 @@ def topography(x,y):
 
     z = -x/100
 
-    N = len(x)
-    for i in range(N):
-        # Step
-        if 2 < x[i] < 4:
-            z[i] += 0.4 - 0.05*y[i]
+    # Step
+    id = ( 2 < x ) & (x < 4)
+    z[id] +=  0.4 - 0.05*y[id]
 
-        # Permanent pole
-        if (x[i] - 8)**2 + (y[i] - 2)**2 < 0.4**2:
-            z[i] += 1
-            
-#        # Pole 2
-#        if (x[i] - 14)**2 + (y[i] - 3.5)**2 < 0.4**2:
-#            z[i] += 1.0
+    # Permanent pole
+    id = (x - 8)**2 + (y - 2)**2 < 0.4**2
+    z[id] += 1
+
+    # Pole 2
+    #id =  (x - 14)**2 + (y - 3.5)**2 < 0.4**2
+    #z[id] += 1.0
+
 
     return z
-
 
 
 
@@ -67,22 +67,36 @@ Bo = Dirichlet_boundary([-5, 0, 0])           # Outflow
 domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 
 #------------------------------------------------------------------------------
+# Setup operators which are applied each inner step
+#------------------------------------------------------------------------------
+from anuga.operators.set_friction_operators import Depth_friction_operator
+
+op1 = Depth_friction_operator(domain)
+
+p1 = [ [12.0, 2.5], [13.5, 2.5], [13.5, 4.0], [12.0, 4.0] ]
+op2 = Depth_friction_operator(domain,
+                                  friction_max = 10,
+                                  friction_min = 0.0,
+                                  polygon=p1)
+
+# Setup region for integrating quantities
+p2 = [ [8.0, 2.5], [9.5, 2.5], [9.5, 4.0], [8.0, 4.0] ]
+reg = Region(domain, polygon=p2)
+
+# Some useful aliases
+stage = domain.quantities['stage']
+elev = domain.quantities['elevation']
+
+#------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
-
-from anuga.operators.set_friction_operators import Set_depth_friction_operator
-from anuga.operators.set_friction_operators import Polygonal_depth_friction_operator
-
-#op1 = Set_depth_friction_operator(domain)
-
-polygon1 = [ [12.0, 2.5], [13.5, 2.5], [13.5, 4.0], [12.0, 4.0] ]
-op2 = Polygonal_depth_friction_operator(domain, friction_max = 10000, friction_min = 0.0, polygon=polygon1)
-
-
-
-for t in domain.evolve(yieldstep=0.1, finaltime=30.0):
+for t in domain.evolve(yieldstep=0.1, finaltime=10.0):
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()
+
+    # let calculate the integral of height over a region
+    height = stage-elev
+    print indent+'Int_p2(h) = '+str(height.get_integral(region=reg))
 
 
 

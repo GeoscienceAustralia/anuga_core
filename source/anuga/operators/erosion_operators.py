@@ -10,8 +10,7 @@ __date__ ="$09/03/2012 4:46:39 PM$"
 
 
 import numpy as num
-from anuga.geometry.polygon import inside_polygon
-from anuga import indent
+
 
 from anuga import Domain
 from anuga import Quantity

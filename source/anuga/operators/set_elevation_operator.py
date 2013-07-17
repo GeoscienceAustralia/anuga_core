@@ -8,12 +8,6 @@ __author__="steve"
 __date__ ="$09/03/2012 4:46:39 PM$"
 
 
-from anuga import Domain
-from anuga import Quantity
-import numpy as num
-import anuga.utilities.log as log
-
-from anuga.geometry.polygon import inside_polygon
 
 from anuga.operators.base_operator import Operator
 from anuga.operators.set_elevation import Set_elevation

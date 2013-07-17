@@ -25,12 +25,7 @@ from anuga import indent
 
 class Set_stage_operator(Set_quantity_operator):
     """
-    Set the stage in a region
-
-    indices: None == all triangles, Empty list [] no triangles
-
-    rate can be a function of time.
-
+    Set the stage over a region
     """
 
     get_stage = Set_quantity_operator.get_value
@@ -91,7 +86,6 @@ class Set_stage_operator(Set_quantity_operator):
 class Circular_set_stage_operator(Set_stage_operator):
     """
     Set stage over a circular region
-
     """
 
     def __init__(self, domain,
@@ -115,11 +109,7 @@ class Circular_set_stage_operator(Set_stage_operator):
 #===============================================================================
 class Polygonal_set_stage_operator(Set_stage_operator):
     """
-    Add water at certain rate (ms^{-1} = vol/Area/sec) over a
-    polygonal region
-
-    rate can be a function of time.
-
+    Set stage over a polygonal region
     """
 
     def __init__(self, domain,

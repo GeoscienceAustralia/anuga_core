@@ -26,20 +26,17 @@ def topography(x,y):
 
     z = -x/100
 
-    N = len(x)
-    for i in range(N):
-        # Step
-        if 2 < x[i] < 4:
-            z[i] += 0.4 - 0.05*y[i]
+    # Step
+    id = (2 < x) & (x < 4)
+    z[id] += 0.4 - 0.05*y[id]
 
-        # Permanent pole
-        if (x[i] - 8)**2 + (y[i] - 2)**2 < 0.4**2:
-            z[i] += 1
+    # Permanent pole
+    id = (x - 8)**2 + (y - 2)**2 < 0.4**2
+    z[id] += 1
 
-        # Dam
-        if 12 < x[i] < 13:
-            z[i] += 0.4
-
+    # Dam
+    id = (12 < x) & (x < 13)
+    z[id] += 0.4
 
     return z
 
@@ -73,7 +70,6 @@ class My_polygon_erosion_operator(Polygonal_erosion_operator):
         
         t = self.get_time()
         dt = self.get_timestep()
-
 
         updated = True
 

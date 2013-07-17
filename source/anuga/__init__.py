@@ -34,6 +34,8 @@ from anuga.shallow_water.shallow_water_domain import Domain
 
 from anuga.abstract_2d_finite_volumes.quantity import Quantity
 
+from anuga.operators.region import Region
+
 from anuga.abstract_2d_finite_volumes.util import file_function, \
                                         sww2timeseries, sww2csv_gauges
 
