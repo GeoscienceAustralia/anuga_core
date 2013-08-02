@@ -60,7 +60,9 @@ void delete_all() {
 
   HASH_ITER(hh, edgetable, current_edge, tmp) {
     HASH_DEL(edgetable, current_edge);  /* delete it (edgetable advances to next) */
-    free(current_edge);            /* free it */
+    if (current_edge != NULL) {
+        free(current_edge);            /* free it */
+    }
   } 
 }
 

@@ -8,8 +8,8 @@
 #include "math.h"
 
 #include "util_ext.h" /* in utilities */
-#include "sparse_dok.h" /*in utilities */
-#include "quad_tree.h"
+#include "sparse_dok.h" /* in utilities */
+#include "quad_tree.h"  /* in utilities */
 #include "omp.h"
 
 // Errors defined for netcdf reading

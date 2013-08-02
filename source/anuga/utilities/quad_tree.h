@@ -5,7 +5,7 @@
 //                 point.
 // 				   Tree has 'new' and 'delete' methods that should be called to
 //                 make sure memory is allocated and freed after use.
-// author: Padarn Wilson, date: 25/10/120 
+// author: Padarn Wilson, date: 25/10/12 
 //-------------------------------------------------------------------------------
 #include <stdio.h>   /* gets */
 #include <stdlib.h>  /* atoi, malloc */
