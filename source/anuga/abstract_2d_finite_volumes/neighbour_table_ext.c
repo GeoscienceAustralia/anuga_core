@@ -51,18 +51,16 @@ edge_t *find_edge(edge_key_t key) {
 }
 
 void delete_edge(edge_t *edge) {
-    HASH_DEL( edgetable, edge);  /* user: pointer to deletee */
+    HASH_DEL( edgetable, edge);  /* edge: pointer to deletee */
     free(edge);
 }
 
-void delete_all() {
+void delete_edge_all() {
   edge_t *current_edge, *tmp;
 
   HASH_ITER(hh, edgetable, current_edge, tmp) {
     HASH_DEL(edgetable, current_edge);  /* delete it (edgetable advances to next) */
-    if (current_edge != NULL) {
-        free(current_edge);            /* free it */
-    }
+    free(current_edge);                 /* free it */
   } 
 }
 
@@ -190,7 +188,7 @@ int _build_neighbour_structure(int N, int M,
         //       s->key.i, s->key.j,s->vol_id,s->edge_id);
         //printf("key.i %d key.j %d vol_id %d edge_id %d \n",
         //       key.i,key.j,vol_id,edge_id);
-        delete_all();
+        delete_edge_all();
         return err;
     }
 
@@ -245,7 +243,7 @@ int _build_neighbour_structure(int N, int M,
 
     }
     
-    delete_all();  /* free any structures */
+    delete_edge_all();  /* free any structures */
 
     return err;
 
@@ -383,7 +381,7 @@ int main(int argc, char *argv[]) {
                 else printf("key unknown\n");
                 break;
             case 4:
-                delete_all();
+                delete_edge_all();
                 break;
             case 5:
                 sort_by_vol_id();
@@ -404,7 +402,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    delete_all();  
+    delete_edge_all();
     return 0;
 }
 */

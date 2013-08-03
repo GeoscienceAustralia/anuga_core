@@ -61,7 +61,7 @@ void delete_segment(segment_t *segment) {
     free(segment);
 }
 
-void delete_all() {
+void delete_segment_all() {
     segment_t *current_segment, *tmp;
 
     HASH_ITER(hh, segment_table, current_segment, tmp) {
@@ -243,7 +243,7 @@ PyObject *build_boundary_dictionary(PyObject *self, PyObject *args) {
         //       s->key.i, s->key.j,s->vol_id,s->edge_id);
         //printf("key.i %d key.j %d vol_id %d edge_id %d \n",
         //       key.i,key.j,vol_id,edge_id);
-        delete_all();
+        delete_segment_all();
         PyErr_SetString(PyExc_RuntimeError,
                 "pmesh2domain.c: build_boundary_dictionary Duplicate segments");
         return NULL;
@@ -301,7 +301,7 @@ PyObject *build_boundary_dictionary(PyObject *self, PyObject *args) {
 
     }
 
-    delete_all(); /* free any structures */
+    delete_segment_all(); /* free any structures */
 
     return Py_BuildValue("O", pyobj_tag_dict);
 }

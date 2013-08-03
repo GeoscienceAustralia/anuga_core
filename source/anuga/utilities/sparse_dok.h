@@ -71,8 +71,8 @@ void add_dok_entry(sparse_dok * edgetable,edge_key_t key, double value);
 // the corresponding entry in the matrix to zero.
 void delete_dok_entry(sparse_dok * edgetable,edge_t *edge);
 
-// delete_all - Remove all edges from the hash table. Used to do clean up
-void delete_all(sparse_dok * edgetable);
+// delete_dok_all - Remove all edges from the hash table. Used to do clean up
+void delete_dok_all(sparse_dok * edgetable);
 
 // delete_dok_matrix - Free all the memory associated with struct and
 // set pointer to Null.

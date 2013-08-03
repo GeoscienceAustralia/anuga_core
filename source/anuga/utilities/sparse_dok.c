@@ -71,7 +71,7 @@ void delete_dok_entry(sparse_dok * hashtable,edge_t *edge) {
     free(edge);
 }
 
-void delete_all(sparse_dok * hashtable) {
+void delete_dok_all(sparse_dok * hashtable) {
   edge_t *current_edge, *tmp;
 
   HASH_ITER(hh, hashtable->edgetable, current_edge, tmp) {
@@ -82,7 +82,7 @@ void delete_all(sparse_dok * hashtable) {
 
 void delete_dok_matrix(sparse_dok * mat) {
 
-    delete_all(mat);
+    delete_dok_all(mat);
     free(mat->edgetable);
     free(mat);
     mat=NULL;
