@@ -1282,7 +1282,7 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
 
 // Modified central flux function
 
-PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
+PyObject *swb2_compute_fluxes_ext_central(PyObject *self, PyObject *args) {
   /*Compute all fluxes and the timestep suitable for all volumes
     in domain.
 
@@ -1452,7 +1452,7 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
 }
 
 
-PyObject *flux_function_central(PyObject *self, PyObject *args) {
+PyObject *swb2_flux_function_central(PyObject *self, PyObject *args) {
   //
   // Gateway to innermost flux function.
   // This is only used by the unit tests as the c implementation is
@@ -1499,7 +1499,7 @@ PyObject *flux_function_central(PyObject *self, PyObject *args) {
 // Gravity
 //========================================================================
 
-PyObject *gravity(PyObject *self, PyObject *args) {
+PyObject *swb2_gravity(PyObject *self, PyObject *args) {
   //
   //  gravity(g, h, v, x, xmom, ymom)
   //
@@ -1567,7 +1567,7 @@ PyObject *gravity(PyObject *self, PyObject *args) {
 }
 
 
-PyObject *extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
+PyObject *swb2_extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
   /*Compute the edge values based on a linear reconstruction 
     on each triangle
     
@@ -1718,7 +1718,7 @@ PyObject *extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
 // bed_edge_value
 //========================================================================
 
-PyObject *protect(PyObject *self, PyObject *args) {
+PyObject *swb2_protect(PyObject *self, PyObject *args) {
   //
   //    protect(minimum_allowed_height, maximum_allowed_speed, wc, zc, xmomc, ymomc)
 
@@ -1774,11 +1774,11 @@ static struct PyMethodDef MethodTable[] = {
    * three.
    */
   //{"rotate", (PyCFunction)rotate, METH_VARARGS | METH_KEYWORDS, "Print out"},
-  {"compute_fluxes_ext_central", compute_fluxes_ext_central, METH_VARARGS, "Print out"},
-  {"gravity_c",        gravity,            METH_VARARGS, "Print out"},
-  {"flux_function_central", flux_function_central, METH_VARARGS, "Print out"},  
-  {"extrapolate_second_order_edge_sw", extrapolate_second_order_edge_sw, METH_VARARGS, "Print out"},
-  {"protect",          protect, METH_VARARGS | METH_KEYWORDS, "Print out"},
+  {"compute_fluxes_ext_central", swb2_compute_fluxes_ext_central, METH_VARARGS, "Print out"},
+  {"gravity_c",        swb2_gravity,            METH_VARARGS, "Print out"},
+  {"flux_function_central", swb2_flux_function_central, METH_VARARGS, "Print out"},
+  {"extrapolate_second_order_edge_sw", swb2_extrapolate_second_order_edge_sw, METH_VARARGS, "Print out"},
+  {"protect",          swb2_protect, METH_VARARGS | METH_KEYWORDS, "Print out"},
   {NULL, NULL, 0, NULL}
 };
 
