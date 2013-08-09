@@ -192,7 +192,7 @@ class Structure_operator(anuga.Operator):
 
         # set outflow
         if old_inflow_depth > 0.0 :
-                timestep_star = timestep*new_inflow_depth/old_inflow_depth
+            timestep_star = timestep*new_inflow_depth/old_inflow_depth
         else:
             timestep_star = 0.0
 

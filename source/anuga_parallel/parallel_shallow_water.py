@@ -228,6 +228,8 @@ class Parallel_domain(Domain):
         numprocs = pypar.size()
 
         if myid == 0:
+
+            fig = plt.figure()
             fx = {}
             fy = {}
             gx = {}
@@ -251,7 +253,7 @@ class Parallel_domain(Domain):
                             
                 triang = num.array(range(0,3*n))
                 triang.shape = (n, 3)
-                plt.triplot(fx[i], fy[i], triang, 'g-')
+                plt.triplot(fx[i], fy[i], triang, 'g-', linewidth = 0.5)
 
             # Plot ghost triangles
             for i in range(0, numprocs):
@@ -259,10 +261,10 @@ class Parallel_domain(Domain):
                 if n > 0:
                     triang = num.array(range(0,3*n))
                     triang.shape = (n, 3)
-                    plt.triplot(gx[i], gy[i], triang, 'b--')
+                    plt.triplot(gx[i], gy[i], triang, 'b--', linewidth = 0.5)
 
             # Save triangulation to location pointed by filename
-            plt.savefig(filename)
+            plt.savefig(filename, dpi=600)
 
         else:
             # Proc 1..numprocs send full and ghost triangles to Proc 0

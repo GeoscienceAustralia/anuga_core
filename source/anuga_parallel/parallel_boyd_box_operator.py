@@ -190,6 +190,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
 
         # Get attribute from outflow enquiry point
         if self.myid == self.master_proc:
+            
             if self.myid == self.enquiry_proc[self.outflow_index]:
                 outflow_enq_depth = self.inlets[self.outflow_index].get_enquiry_depth()
             else:

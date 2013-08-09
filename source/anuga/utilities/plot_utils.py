@@ -199,6 +199,7 @@ class get_centroids:
         pc=util.get_centroids(p, velocity_extrapolation=True) # centroid values
     """
     def __init__(self,p, velocity_extrapolation=False):
+        
         self.time, self.x, self.y, self.stage, self.xmom,\
              self.ymom, self.elev, self.xvel, \
              self.yvel, self.vel= \
@@ -212,16 +213,25 @@ def get_centroid_values(p, velocity_extrapolation):
     
     # Make 3 arrays, each containing one index of a vertex of every triangle.
     l=len(p.vols)
-    vols0=numpy.zeros(l, dtype='int')
-    vols1=numpy.zeros(l, dtype='int')
-    vols2=numpy.zeros(l, dtype='int')
+    #vols0=numpy.zeros(l, dtype='int')
+    #vols1=numpy.zeros(l, dtype='int')
+    #vols2=numpy.zeros(l, dtype='int')
 
     # FIXME: 22/2/12/ - I think this loop is slow, should be able to do this
     # another way
-    for i in range(l):
-        vols0[i]=p.vols[i][0]
-        vols1[i]=p.vols[i][1]
-        vols2[i]=p.vols[i][2]
+#    for i in range(l):
+#        vols0[i]=p.vols[i][0]
+#        vols1[i]=p.vols[i][1]
+#        vols2[i]=p.vols[i][2]
+
+
+
+    vols0=p.vols[:,0]
+    vols1=p.vols[:,1]
+    vols2=p.vols[:,2]
+
+    #print vols0.shape
+    #print p.vols.shape
 
     # Then use these to compute centroid averages 
     x_cent=(p.x[vols0]+p.x[vols1]+p.x[vols2])/3.0
@@ -261,7 +271,8 @@ def get_centroid_values(p, velocity_extrapolation):
         for i in range(t):
             xvel_cent[i,:]=xmom_cent[i,:]/(stage_cent[i,:]-elev_cent+1.0e-06)*(stage_cent[i,:]>elev_cent+p.minimum_allowed_height)
             yvel_cent[i,:]=ymom_cent[i,:]/(stage_cent[i,:]-elev_cent+1.0e-06)*(stage_cent[i,:]>elev_cent+p.minimum_allowed_height)
-   
+
+
 
     # Compute velocity 
     vel_cent=(xvel_cent**2 + yvel_cent**2)**0.5
@@ -377,11 +388,11 @@ def near_transect(p, point1, point2, tol=1.):
 
 ########################
 # TRIANGLE AREAS, WATER VOLUME
-def triangle_areas(p, subset='null'):
+def triangle_areas(p, subset=None):
     # Compute areas of triangles in p -- assumes p contains vertex information
     # subset = vector of centroid indices to include in the computation. 
 
-    if(subset=='null'):
+    if(subset is None):
         subset=range(len(p.vols[:,0]))
     
     x0=p.x[p.vols[subset,0]]
@@ -405,10 +416,10 @@ def triangle_areas(p, subset='null'):
 
 ###
 
-def water_volume(p,p2, per_unit_area=False, subset='null'):
+def water_volume(p,p2, per_unit_area=False, subset=None):
     # Compute the water volume from p(vertex values) and p2(centroid values)
 
-    if(subset=='null'):
+    if(subset is None):
         subset=range(len(p2.x))
 
     l=len(p2.time)
@@ -428,6 +439,45 @@ def water_volume(p,p2, per_unit_area=False, subset='null'):
         volume=volume/total_area 
     
     return volume
+
+
+def get_triangle_containing_point(p,point):
+
+    V = p.vols
+
+    x = p.x
+    y = p.y
+
+    l = len(x)
+
+    from anuga.geometry.polygon import is_outside_polygon,is_inside_polygon
+
+    # FIXME: Horrible brute force
+    for i in xrange(l):
+        i0 = V[i,0]
+        i1 = V[i,1]
+        i2 = V[i,2]
+        poly = [ [x[i0], y[i0]], [x[i1], y[i1]], [x[i2], y[i2]] ]
+
+        if is_inside_polygon(point, poly, closed=True):
+            return i
+
+    msg = 'Point %s not found within a triangle' %str(point)
+    raise Exception(msg)
+
+
+def get_extent(p):
+
+    import numpy
+
+    x_min = numpy.min(p.x)
+    x_max = numpy.max(p.x)
+
+    y_min = numpy.min(p.y)
+    y_max = numpy.max(p.y)
+
+    return x_min, x_max, y_min, y_max
+
 
 
 
