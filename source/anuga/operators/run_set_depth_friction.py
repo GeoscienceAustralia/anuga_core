@@ -70,14 +70,18 @@ domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 # Setup operators which are applied each inner step
 #------------------------------------------------------------------------------
 from anuga.operators.set_friction_operators import Depth_friction_operator
+from scipy import interpolate
 
-op1 = Depth_friction_operator(domain)
+h = [0.0,     0.2,   0.4,   0.8,   2.0, 99.0]
+n = [0.250, 0.060, 0.045, 0.035, 0.025, 0.025]
 
-p1 = [ [12.0, 2.5], [13.5, 2.5], [13.5, 4.0], [12.0, 4.0] ]
-op2 = Depth_friction_operator(domain,
-                                  friction_max = 10,
-                                  friction_min = 0.0,
-                                  polygon=p1)
+friction = interpolate.interp1d(h, n, fill_value=0.025)
+op1 = Depth_friction_operator(domain,friction=friction)
+
+#p1 = [ [12.0, 2.5], [13.5, 2.5], [13.5, 4.0], [12.0, 4.0] ]
+#op2 = Depth_friction_operator(domain,
+#                                  friction = lambda h :10,
+#                                  polygon=p1)
 
 # Setup region for integrating quantities
 p2 = [ [8.0, 2.5], [9.5, 2.5], [9.5, 4.0], [8.0, 4.0] ]

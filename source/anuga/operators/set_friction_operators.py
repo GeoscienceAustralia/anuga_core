@@ -10,6 +10,7 @@ __date__ ="$09/03/2012 4:46:39 PM$"
 
 
 
+import numpy
 
 from anuga.operators.base_operator import Operator
 from anuga.operators.region import Region
@@ -28,8 +29,7 @@ class Depth_friction_operator(Operator, Region):
 
     def __init__(self,
                  domain,
-                 friction_min=default_friction_min,
-                 friction_max=default_friction_max,
+                 friction=lambda h: 0.03,
                  indices=None,
                  polygon=None,
                  center=None,
@@ -53,11 +53,7 @@ class Depth_friction_operator(Operator, Region):
         # Local variables
         #------------------------------------------
 
-        assert friction_min >= 0.0
-        assert friction_min <= friction_max
-
-        self.friction_min = friction_min
-        self.friction_max = friction_max
+        self.friction = friction
         self.friction_c = self.domain.get_quantity('friction').centroid_values
 
 
@@ -76,11 +72,11 @@ class Depth_friction_operator(Operator, Region):
         #----------------------------------------
         if self.indices is None:
             height = self.stage_c - self.elev_c
-            self.friction_c[:] = (self.friction_max - self.friction_min)/(1.0 - height) + self.friction_min
+            self.friction_c[:] = self.friction(height)
         else:
             ind = self.indices
             height = self.stage_c[ind] - self.elev_c[ind]
-            self.friction_c[ind] = (self.friction_max - self.friction_min)/(1.0 - height) + self.friction_min
+            self.friction_c[ind] = self.friction(height)
 
 
 
@@ -99,8 +95,16 @@ class Depth_friction_operator(Operator, Region):
     def timestepping_statistics(self):
 
         message  = indent + self.label + ': Set_depth_friction, '
-        message  += ' min '+str(self.friction_min)
-        message  += ' max '+str(self.friction_max)
+
+        if self.indices is None:
+            message  += str(numpy.min(self.friction_c) ) + ' '
+            message  += str(numpy.max(self.friction_c) )
+        else:
+            ind = self.indices
+            message  += str(numpy.min(self.friction_c[ind]) ) + ' '
+            message  += str(numpy.max(self.friction_c[ind]) )
+
+
         return message
 
 
@@ -115,8 +119,7 @@ class Circular_depth_friction_operator(Depth_friction_operator):
     """
 
     def __init__(self, domain,
-                 friction_min=default_friction_min,
-                 friction_max=default_friction_max,
+                 friction,
                  center=None,
                  radius=None,
                  verbose=False):
@@ -126,8 +129,7 @@ class Circular_depth_friction_operator(Depth_friction_operator):
 
         Dpth_friction_operator.__init__(self,
                                     domain,
-                                    friction_min=friction_min,
-                                    friction_max=friction_max,
+                                    friction=friction,
                                     center=center,
                                     radius=radius,
                                     verbose=verbose)
@@ -143,8 +145,7 @@ class Polygonal_depth_friction_operator(Depth_friction_operator):
     """
 
     def __init__(self, domain,
-                 friction_min=default_friction_min,
-                 friction_max=default_friction_max,
+                 friction,
                  polygon=None,
                  verbose=False):
 
@@ -152,8 +153,7 @@ class Polygonal_depth_friction_operator(Depth_friction_operator):
 
         Depth_friction_operator.__init__(self,
                                domain,
-                               friction_min=friction_min,
-                               friction_max=friction_max,
+                               friction=friction,
                                polygon=polygon,
                                verbose=verbose)
 
