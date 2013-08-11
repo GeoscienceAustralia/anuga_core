@@ -333,6 +333,8 @@ class Quantity:
                 for file in files:
                     shutil.copyfileobj(open(file,'rb'), destination)
                 destination.close()
+                for file in files:
+                    os.remove(file)
 
 
 
