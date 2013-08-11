@@ -159,7 +159,7 @@ class Parallel_domain(Domain):
 
         pypar.barrier()
 
-        # now on processor pull all the separate sww files together
+        # now on processor 0 pull all the separate sww files together
         if self.processor == 0 and self.numproc > 1 and self.store :
             import anuga.utilities.sww_merge as merge
 

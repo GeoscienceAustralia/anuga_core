@@ -312,12 +312,29 @@ class Quantity:
             filename= self.name
 
         if self.domain.parallel:
-            filename = filename+'_centroid_data_P%g_%g.csv'% \
+            fullfilename = filename+'_centroid_data_P%g_%g.csv'% \
                     ( self.domain.numproc, self.domain.processor)
         else:
-            filename = filename+'_centroid_data.csv'
+            fullfilename = filename+'_centroid_data.csv'
 
-        numpy.savetxt(filename, c_xyv, delimiter=',', fmt =  ['%.15e', '%.15e', '%.15e' ])
+        numpy.savetxt(fullfilename, c_xyv, delimiter=',', fmt =  ['%.15e', '%.15e', '%.15e' ])
+
+
+        if self.domain.parallel:
+            import pypar
+            pypar.barrier()
+
+            # On processor 0 catenate the files
+            if self.domain.processor == 0:
+                import shutil
+                destination = open(filename+'_centroid_data.csv','wb')
+                np = self.domain.numpro
+                files = [ filename+'_centroid_data'+"_P"+str(np)+"_"+str(v)+".sww" for v in range(np)]
+                for file in files:
+                    shutil.copyfileobj(open(file,'rb'), destination)
+                close(destination)
+
+
 
 
 
