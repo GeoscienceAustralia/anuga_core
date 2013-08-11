@@ -313,7 +313,7 @@ class Quantity:
 
         if self.domain.parallel:
             filename = filename+'_centroid_data_P%g_%g.csv'% \
-                    ( self.domain.num_procs, self.domain.processor)
+                    ( self.domain.numproc, self.domain.processor)
         else:
             filename = filename+'_centroid_data.csv'
 
