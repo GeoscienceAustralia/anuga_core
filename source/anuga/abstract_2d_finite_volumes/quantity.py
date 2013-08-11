@@ -327,6 +327,7 @@ class Quantity:
             # On processor 0 catenate the files
             if self.domain.processor == 0:
                 import shutil
+                import os
                 destination = open(filename+'_centroid_data.csv','wb')
                 np = self.domain.numproc
                 files = [ filename+'_centroid_data'+"_P"+str(np)+"_"+str(v)+".csv" for v in range(np)]
