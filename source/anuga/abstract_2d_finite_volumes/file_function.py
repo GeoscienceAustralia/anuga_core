@@ -175,7 +175,7 @@ def _file_function(filename,
     See file_function for documentatiton
     """
 
-    assert type(filename) == type(''),\
+    assert isinstance(filename,str) or isinstance(filename, unicode),\
                'First argument to File_function must be a string'
 
     try:
