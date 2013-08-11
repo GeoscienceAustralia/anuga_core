@@ -137,8 +137,8 @@ def sww2csv_gauges(sww_file,
     from anuga.utilities.file_utils import get_all_swwfiles
     from anuga.abstract_2d_finite_volumes.util import file_function    
 
-    assert type(gauge_file) == type(''), 'Gauge filename must be a string'
-    assert type(out_name) == type(''), 'Output filename prefix must be a string'
+    assert isinstance(gauge_file,str) or isinstance(gauge_file, unicode), 'Gauge filename must be a string or unicode'
+    assert isinstance(out_name,str) or isinstance(out_name, unicode), 'Output filename prefix must be a string'
     
     try:
         point_reader = reader(file(gauge_file))
