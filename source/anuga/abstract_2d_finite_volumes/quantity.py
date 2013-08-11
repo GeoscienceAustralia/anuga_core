@@ -298,17 +298,24 @@ class Quantity:
 
 
         #FIXME SR: Should add code to deal with parallel
-        
-        c_v = self.centroid_values.reshape((-1,1))
-        c_x = self.domain.centroid_coordinates[:,0].reshape((-1,1))
-        c_y = self.domain.centroid_coordinates[:,1].reshape((-1,1))
+
+        ids = self.domain.tri_full_flag == 1
+        c_v = self.centroid_values[ids].reshape((-1,1))
+        c_x = self.domain.centroid_coordinates[ids,0].reshape((-1,1))
+        c_y = self.domain.centroid_coordinates[ids,1].reshape((-1,1))
 
         import numpy
 
         c_xyv = numpy.hstack((c_x, c_y, c_v))
 
         if filename is None:
-            filename = self.name+'_centroid_data.csv'
+            filename= self.name
+
+        if self.domain.parallel:
+            filename = filename+'_centroid_data_P%g_%g.csv'% \
+                    ( self.domain.num_procs, self.domain.processor)
+        else:
+            filename = filename+'_centroid_data.csv'
 
         numpy.savetxt(filename, c_xyv, delimiter=',', fmt =  ['%.15e', '%.15e', '%.15e' ])
 
