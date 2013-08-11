@@ -328,7 +328,7 @@ class Quantity:
             if self.domain.processor == 0:
                 import shutil
                 destination = open(filename+'_centroid_data.csv','wb')
-                np = self.domain.numpro
+                np = self.domain.numproc
                 files = [ filename+'_centroid_data'+"_P"+str(np)+"_"+str(v)+".sww" for v in range(np)]
                 for file in files:
                     shutil.copyfileobj(open(file,'rb'), destination)
