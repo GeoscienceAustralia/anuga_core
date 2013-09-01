@@ -462,6 +462,7 @@ static PyObject *sendrecv_array(PyObject *self, PyObject *args) {
 /*                                                           */
 /*************************************************************/
 static PyObject *send_recv_via_dicts(PyObject *self, PyObject *args) {
+
   PyObject *send_dict;
   PyObject *recv_dict;
 
@@ -478,8 +479,8 @@ static PyObject *send_recv_via_dicts(PyObject *self, PyObject *args) {
   int num_send=0;
 
   int ierr;
-  MPI_Request requests[20];
-  MPI_Status statuses[20];
+  MPI_Request requests[40];
+  MPI_Status statuses[40];
 
   Py_ssize_t pos = 0;
 
@@ -499,7 +500,7 @@ static PyObject *send_recv_via_dicts(PyObject *self, PyObject *args) {
   //----------------------------------------------------------------------------
   num_recv = PyDict_Size(recv_dict);
   //printf("num_recv = %d\n",num_recv);
-  if (num_recv>10) {
+  if (num_recv>20) {
     PyErr_SetString(PyExc_RuntimeError,
 		    "mpiextras.c; Number of recv communication buffers > 10");
     return NULL;
@@ -532,7 +533,7 @@ static PyObject *send_recv_via_dicts(PyObject *self, PyObject *args) {
   //----------------------------------------------------------------------------
   num_send = PyDict_Size(send_dict);
   //printf("num_send = %d\n",num_send);
-  if (num_send>10) {
+  if (num_send>20) {
     PyErr_SetString(PyExc_RuntimeError,
 		    "mpiextras.c; Number of send communication buffers > 10");
     return NULL;

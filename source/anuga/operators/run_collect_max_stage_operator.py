@@ -86,7 +86,7 @@ for t in domain.evolve(yieldstep = 100.0, finaltime = 60*60.):
 max_operator.save_centroid_data_to_csv()
 
 # Let's have a look at the max_stage
-max_operator.plot_quantity()
+#max_operator.plot_quantity()
 
 
 
