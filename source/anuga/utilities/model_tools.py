@@ -70,15 +70,17 @@ such that all polygons under a directory named 45, under directory:- 04_BLDGS  w
 Need to add the following lines to Scripts:
 
 
-from anuga.model_build_tools.model_build_tools import get_polygon_list_from_files
-from anuga.model_build_tools.model_build_tools import get_polygon_dictionary
-from anuga.model_build_tools.model_build_tools import get_REFINE_polygon_value_list
-from anuga.model_build_tools.model_build_tools import get_ROUGHNESS_polygon_value_list
-from anuga.model_build_tools.model_build_tools import get_BUILDING_polygon_value_list
+from anuga.utilities.model_tools import get_polygon_list_from_files
+from anuga.utilities.model_tools import get_polygon_dictionary
+from anuga.utilities.model_tools import get_REFINE_polygon_value_list
+from anuga.utilities.model_tools import get_ROUGHNESS_polygon_value_list
+from anuga.utilities.model_tools import get_BUILDING_polygon_value_list
 """
 
 import os
 import glob
+import anuga.utilities.polygon.read_polygon as read_polygon
+
 
 def get_polygon_list_from_files(dir):
     """Read all polygons found in specified dir and return them in a list
