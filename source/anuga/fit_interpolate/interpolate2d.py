@@ -141,9 +141,11 @@ def interpolate2d(x, y, Z, points, mode='linear', bounds_error=False):
     x, y, Z, xi, eta = check_inputs(x, y, Z, points, mode, bounds_error)
 
     # Identify elements that are outside interpolation domain or NaN
+    oldset = numpy.seterr(invalid='ignore')  # Suppress comparison with nan warning
     outside = (xi < x[0]) + (eta < y[0]) + (xi > x[-1]) + (eta > y[-1])
     outside += numpy.isnan(xi) + numpy.isnan(eta)
-
+    numpy.seterr(**oldset)  # Restore warnings
+    
     # Restrict interpolation points to those that are inside the grid
     inside = -outside  # Invert boolean array to find elements inside
     xi = xi[inside]
@@ -270,10 +272,10 @@ def check_inputs(x, y, Z, points, mode, bounds_error):
     eta = points[:, 1]
 
     if bounds_error:
-        xi0 = min(xi)
-        xi1 = max(xi)
-        eta0 = min(eta)
-        eta1 = max(eta)
+        xi0 = numpy.nanmin(xi)
+        xi1 = numpy.nanmax(xi)
+        eta0 = numpy.nanmin(eta)
+        eta1 = numpy.nanmax(eta)
 
         msg = ('Interpolation point xi=%f was less than the smallest '
                'value in domain (x=%f) and bounds_error was requested.'
