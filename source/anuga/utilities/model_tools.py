@@ -79,7 +79,7 @@ from anuga.utilities.model_tools import get_BUILDING_polygon_value_list
 
 import os
 import glob
-import anuga.geometry.polygon.read_polygon as read_polygon
+from anuga.geometry.polygon import read_polygon
 
 
 def get_polygon_list_from_files(dir):
@@ -92,7 +92,6 @@ def get_polygon_list_from_files(dir):
        anuga.utilities.polygon.read_polygon
     """
     
-    from anuga.geometry.polygon import read_polygon
     print 'Reading polygons from ' + dir
     polylist = []
     for filename in os.listdir(dir):
