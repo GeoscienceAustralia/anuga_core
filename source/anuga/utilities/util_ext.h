@@ -27,6 +27,24 @@
 #define AT __FILE__ ":" TOSTRING(__LINE__)
 #define P_ERROR_BUFFER_SIZE 65
 
+
+// check that numpy array objects are C contiguous memory
+#define CHECK_C_CONTIG(varname)	if (!PyArray_ISCONTIGUOUS(varname)) { \
+				    char msg[1024]; \
+				    sprintf(msg, \
+					    "%s(): file %s, line %d: " \
+				            "'%s' object is not C contiguous memory", \
+				             __func__, __FILE__, __LINE__, #varname); \
+				    PyErr_SetString(PyExc_RuntimeError, msg); \
+				    return NULL; \
+				}
+
+
+
+
+
+
+
 void report_python_error(const char *location, const char *msg)
 {
 
@@ -302,12 +320,15 @@ PyArrayObject *get_consecutive_array(PyObject *O, char *name) {
     PyErr_SetString(PyExc_RuntimeError, "util_ext.h: get_consecutive_array could not obtain python object");
     return NULL;
   }     
-  
+
+
+  CHECK_C_CONTIG(B);
+  A = B;
   //Convert to consecutive array
-  A = (PyArrayObject*) PyArray_ContiguousFromObject((PyObject*) B, 
-						    B -> descr -> type, 0, 0);   // New Reference
+  //A = (PyArrayObject*) PyArray_ContiguousFromObject((PyObject*) B,
+  //						    B -> descr -> type, 0, 0);   // New Reference
   
-  Py_DECREF(B); //FIXME: Is this really needed??
+  //Py_DECREF(B); //FIXME: Is this really needed??
   
   if (!A) {
     printf("util_ext.h: get_consecutive_array could not obtain array object");
@@ -408,16 +429,4 @@ double* get_python_array_data_from_dict(PyObject *O, char *name, char *array) {
 }
 
 
-// check that numpy array objects are C contiguous memory
-#define CHECK_C_CONTIG(varname)	if (!PyArray_ISCONTIGUOUS(varname)) { \
-				    char msg[1024]; \
-				    sprintf(msg, \
-					    "%s(): file %s, line %d: " \
-				            "'%s' object is not C contiguous memory", \
-				             __func__, __FILE__, __LINE__, #varname); \
-				    PyErr_SetString(PyExc_RuntimeError, msg); \
-				    return NULL; \
-				}
-
-
-#endif
+#endif /* ANUGA_UTIL_EXT_H */

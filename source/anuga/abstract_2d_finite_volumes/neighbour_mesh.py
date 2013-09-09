@@ -1037,7 +1037,7 @@ class Mesh(General_mesh):
 
 
 
-    def statistics(self):
+    def statistics(self, nbins=10):
         """Output statistics about mesh
         """
 
@@ -1050,7 +1050,9 @@ class Mesh(General_mesh):
 
 
         #Setup 10 bins for area histogram
+        #print "nbins",nbins
         bins = create_bins(areas, 10)
+        #print "size bins",bins
         #m = max(areas)
         #bins = arange(0., m, m/10)
         hist = histogram(areas, bins)
@@ -1080,7 +1082,7 @@ class Mesh(General_mesh):
 
         N = len(areas)
         if N > 10:
-            str += '    Percentiles (10%):\n'
+            str += '    Percentiles (%g percent):\n' % (100/nbins)
             areas = areas.tolist()
             areas.sort()
 
