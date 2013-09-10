@@ -66,7 +66,7 @@ class Fit(FitInterpolate):
         """
         Padarn Note 05/12/12: This documentation should probably
         be updated to account for the fact that the fitting is now
-        done in C. I wasn't sure what details were neccesary though.
+        done in C. I wasn't sure what details were necessary though.
 
         Fit data at points to the vertices of a mesh.
 

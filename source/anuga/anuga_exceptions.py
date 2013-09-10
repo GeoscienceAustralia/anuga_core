@@ -17,8 +17,9 @@ class ShapeError(exceptions.IOError):
 
 class ANUGAError(Exception):
     """ Generic ANUGA error. """
-    def __init__(self, args=None):
-        self.args = args
+    #def __init__(self, args=None):
+    #self.args = args
+    pass
 
 class DataMissingValuesError(exceptions.Exception):
     """ Missing values in file. """

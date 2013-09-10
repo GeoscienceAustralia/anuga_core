@@ -177,10 +177,10 @@ max_smallsteps = 50   # Max number of degenerate steps allowed b4
 ################################################################################
 
 # Water depth below which it is considered to be 0 in the model
-minimum_allowed_height = 1.0e-03 
+minimum_allowed_height = 1.0e-05 
 
 # Water depth below which it is *stored* as 0
-minimum_storable_height = 1.0e-05
+minimum_storable_height = 1.0e-03
 
 # FIXME (Ole): Redefine this parameter to control maximal speeds in general
 # and associate it with protect_against_isolated_degenerate_timesteps = True

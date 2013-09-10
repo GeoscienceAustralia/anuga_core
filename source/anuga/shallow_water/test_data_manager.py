@@ -474,15 +474,21 @@ class Test_Data_Manager(Test_Mux):
         Q2 = Q.vertex_values[:,2]
 
         A = stage[0,:]
-        #print A[0], (Q2[0,0] + Q1[1,0])/2
-        assert num.allclose(A[0], (Q2[0] + Q1[1])/2)
-        assert num.allclose(A[1], (Q0[1] + Q1[3] + Q2[2])/3)
+        
+#         print stage[0,:]
+#         print A[0], (Q2[0] + Q1[1])/2
+#         print A[1], (Q0[1] + Q1[3] + Q2[2])/3
+#         print A[2], Q0[3]
+#         print A[3], (Q0[0] + Q1[5] + Q2[4])/3
+        assert num.allclose(A[0], (Q2[0] + Q1[1])/2, rtol=1.0e-5, atol=1.0e-5)
+        
+        assert num.allclose(A[1], (Q0[1] + Q1[3] + Q2[2])/3, rtol=1.0e-5, atol=1.0e-5)
         assert num.allclose(A[2], Q0[3])
-        assert num.allclose(A[3], (Q0[0] + Q1[5] + Q2[4])/3)
+        assert num.allclose(A[3], (Q0[0] + Q1[5] + Q2[4])/3, rtol=1.0e-5, atol=1.0e-5)
 
         #Center point
         assert num.allclose(A[4], (Q1[0] + Q2[1] + Q0[2] +\
-                                   Q0[5] + Q2[6] + Q1[7])/6)
+                                   Q0[5] + Q2[6] + Q1[7])/6, rtol=1.0e-5, atol=1.0e-5)
         
         fid.close()
         os.remove(sww.filename)
@@ -526,14 +532,14 @@ class Test_Data_Manager(Test_Mux):
         Q2 = Q.vertex_values[:,2]
 
         A = stage[1,:]
-        assert num.allclose(A[0], (Q2[0] + Q1[1])/2)
-        assert num.allclose(A[1], (Q0[1] + Q1[3] + Q2[2])/3)
-        assert num.allclose(A[2], Q0[3])
-        assert num.allclose(A[3], (Q0[0] + Q1[5] + Q2[4])/3)
+        assert num.allclose(A[0], (Q2[0] + Q1[1])/2, rtol=1.0e-5, atol=1.0e-5)
+        assert num.allclose(A[1], (Q0[1] + Q1[3] + Q2[2])/3, rtol=1.0e-5, atol=1.0e-5)
+        assert num.allclose(A[2], Q0[3], rtol=1.0e-5, atol=1.0e-5)
+        assert num.allclose(A[3], (Q0[0] + Q1[5] + Q2[4])/3, rtol=1.0e-5, atol=1.0e-5)
 
         #Center point
         assert num.allclose(A[4], (Q1[0] + Q2[1] + Q0[2] +\
-                                   Q0[5] + Q2[6] + Q1[7])/6)
+                                   Q0[5] + Q2[6] + Q1[7])/6, rtol=1.0e-5, atol=1.0e-5)
 
 
         fid.close()
@@ -576,11 +582,11 @@ class Test_Data_Manager(Test_Mux):
             stage_file = fid.variables['stage']
             
             if t == 0.0:
-                assert num.allclose(stage, self.initial_stage)
-                assert num.allclose(stage_file[:], stage.flatten())
+                assert num.allclose(stage, self.initial_stage, rtol=1.0e-5, atol=1.0e-5)
+                assert num.allclose(stage_file[:], stage.flatten(),rtol=1.0e-5, atol=1.0e-5)
             else:
-                assert not num.allclose(stage, self.initial_stage)
-                assert not num.allclose(stage_file[:], stage.flatten())
+                assert not num.allclose(stage, self.initial_stage, rtol=1.0e-5, atol=1.0e-5)
+                assert not num.allclose(stage_file[:], stage.flatten(), rtol=1.0e-5, atol=1.0e-5)
 
             fid.close()
 

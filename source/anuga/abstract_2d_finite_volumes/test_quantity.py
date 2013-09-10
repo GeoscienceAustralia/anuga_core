@@ -21,7 +21,61 @@ import numpy as num
 #Aux for fit_interpolate.fit example
 def linear_function(point):
     point = num.array(point)
-    return point[:,0]+point[:,1]
+    return point[:,0]+3*point[:,1]
+    #return point[:,1]
+
+
+def axes2points(x, y):
+    """Generate all combinations of grid point coordinates from x and y axes
+
+    Args:
+        * x: x coordinates (array)
+        * y: y coordinates (array)
+
+    Returns:
+        * P: Nx2 array consisting of coordinates for all
+             grid points defined by x and y axes. The x coordinate
+             will vary the fastest to match the way 2D numpy
+             arrays are laid out by default ('C' order). That way,
+             the x and y coordinates will match a corresponding
+             2D array A when flattened (A.flat[:] or A.reshape(-1))
+
+    Note:
+        Example
+
+        x = [1, 2, 3]
+        y = [10, 20]
+
+        P = [[1, 10],
+             [2, 10],
+             [3, 10],
+             [1, 20],
+             [2, 20],
+             [3, 20]]
+    """
+    import numpy 
+    
+    # Reverse y coordinates to have them start at bottom of array
+    y = numpy.flipud(y)
+
+    # Repeat x coordinates for each y (fastest varying)
+    X = numpy.kron(numpy.ones(len(y)), x)
+
+    # Repeat y coordinates for each x (slowest varying)
+    Y = numpy.kron(y, numpy.ones(len(x)))
+
+    # Check
+    N = len(X)
+    assert len(Y) == N
+
+    # Create Nx2 array of x and y coordinates
+    X = numpy.reshape(X, (N, 1))
+    Y = numpy.reshape(Y, (N, 1))
+    P = numpy.concatenate((X, Y), axis=1)
+
+    # Return
+    return P
+
 
 
 class Test_Quantity(unittest.TestCase):
@@ -1332,6 +1386,103 @@ class Test_Quantity(unittest.TestCase):
         os.remove(ptsfile)
 
 
+    def test_set_values_from_asc_vertices(self):
+
+        quantity= Quantity(self.mesh_onslow)
+
+
+        """ Format of asc file 
+        ncols         11
+        nrows         12
+        xllcorner     240000
+        yllcorner     7620000
+        cellsize      6000
+        NODATA_value  -9999
+        """
+        
+        # UTM round Onslow 
+        
+
+
+        ncols = 11  # Nx
+        nrows = 12  # Ny
+        xllcorner = 240000
+        yllcorner = 7620000
+        cellsize  = 6000
+        NODATA_value =  -9999
+        
+        #xllcorner = 0
+        #yllcorner = 100
+        #cellsize  = 10
+        #NODATA_value =  -9999
+        
+        #Create .asc file
+        #txt_file = tempfile.mktemp(".asc")
+        txt_file = 'test_asc.asc'
+        datafile = open(txt_file,"w")
+        datafile.write('ncols '+str(ncols)+"\n")
+        datafile.write('nrows '+str(nrows)+"\n")
+        datafile.write('xllcorner '+str(xllcorner)+"\n")
+        datafile.write('yllcorner '+str(yllcorner)+"\n")
+        datafile.write('cellsize '+str(cellsize)+"\n")
+        datafile.write('NODATA_value '+str(NODATA_value)+"\n")
+        
+        x = num.linspace(xllcorner, xllcorner+(ncols-1)*cellsize, ncols)
+        y = num.linspace(yllcorner, yllcorner+(nrows-1)*cellsize, nrows)
+        points = axes2points(x, y)
+        
+        #print points
+        #print x.shape, x
+        #print y.shape, y
+        
+        datavalues = linear_function(points)
+        #print datavalues 
+        
+        datavalues = datavalues.reshape(nrows,ncols)
+
+        #print datavalues
+        #print datavalues.shape
+        for row in datavalues:
+            #print row
+            datafile.write(" ".join(str(elem) for elem in row) + "\n")         
+        datafile.close()
+
+        #print quantity.vertex_values
+        #print quantity.centroid_values 
+
+        quantity.set_values_from_asc_file(txt_file,
+                             location='vertices',
+                             indices=None,
+                             verbose=False)
+
+        # check order of vertices
+        answer =  [ 23298000. , 23358000. , 23118000. ]
+        answer = [ 23298000. ,  23118000. , 23358000 ]
+        print quantity.vertex_values
+        assert num.allclose(quantity.vertex_values, answer)
+        
+        
+        #print quantity.vertex_values
+        #print quantity.centroid_values 
+        quantity.set_values(0.0)
+        
+        
+        #print quantity.vertex_values
+        #print quantity.centroid_values 
+        quantity.set_values_from_asc_file(txt_file,
+                             location='centroids',
+                             indices=None,
+                             verbose=False)
+        
+        #print quantity.vertex_values
+        #print quantity.centroid_values      
+        
+        answer =  [ 23258000. ]
+        assert num.allclose(quantity.centroid_values, answer)
+        #Cleanup
+        #import os
+        #os.remove(txt_file)        
+        
 
 
     def test_set_values_from_quantity(self):
@@ -2570,6 +2721,6 @@ class Test_Quantity(unittest.TestCase):
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Quantity, 'test')
+    suite = unittest.makeSuite(Test_Quantity, 'test') #_set_values_from_asc')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

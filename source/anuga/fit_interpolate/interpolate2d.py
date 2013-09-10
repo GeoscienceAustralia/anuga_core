@@ -260,9 +260,10 @@ def check_inputs(x, y, Z, points, mode, bounds_error):
 
     Nx = len(x)
     Ny = len(y)
-    msg = ('Input array Z must have dimensions %i x %i corresponding to the '
-           'lengths of the input coordinates x and y. However, '
-           'Z has dimensions %i x %i.' % (Nx, Ny, m, n))
+
+    msg =  ('Input array Z must have dimensions %i x %i corresponding to the '
+            'lengths of the input coordinates x and y. However, '
+            'Z has dimensions %i x %i.' % (Nx, Ny, m, n))
     if not (Nx == m and Ny == n):
         raise ANUGAError(msg)
 
