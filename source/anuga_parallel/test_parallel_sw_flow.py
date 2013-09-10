@@ -70,7 +70,7 @@ def evolution_test(parallel=False, G = None, seq_interpolation_points=None, verb
     domain.set_name('runup')                    # Set sww filename
     domain.set_datadir('.')                     # Set output dir
 
-    domain.set_default_order(1)        
+    domain.set_flow_algorithm('2_0')
     domain.set_quantities_to_be_stored(None)
 
 
@@ -160,6 +160,7 @@ def evolution_test(parallel=False, G = None, seq_interpolation_points=None, verb
 
     for i in range(4):
         if tri_ids[i] > -1:
+            #print num.max(num.array(gauge_values[i])- num.array(G[i]))
             success = success and num.allclose(gauge_values[i], G[i])
 
     assert_(success)
