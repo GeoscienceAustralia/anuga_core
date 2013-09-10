@@ -21,3 +21,8 @@ else:
 
 
 	
+
+
+#Added by Petar Milevski 10/09/2013
+from anuga_parallel import distribute, myid, numprocs, finalize
+from anuga_parallel.parallel_operator_factory import Inlet_operator, Boyd_box_operator
