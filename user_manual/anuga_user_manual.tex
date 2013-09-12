@@ -2731,30 +2731,51 @@ The flow direction is determined on-the-fly so openings are referenced simple as
 with either being able to take the role as Inflow or Outflow.
 
 The \code{Culvert_flow} class takes as input:
-\begin{itemize}
-  \item \code{domain}: a reference to the domain being evolved
-  \item \code{culvert_description_filename}:
-  \item \code{culvert_routine}:
-  \item \code{end_point0}: Coordinates of one opening
-  \item \code{end_point1}: Coordinates of other opening
-  \item \code{enquiry_point0}:
-  \item \code{enquiry_point1}:
-  \item \code{type}: (default is 'box')
-  \item \code{width}:
-  \item \code{height}:
-  \item \code{length}:
-  \item \code{number_of_barrels}: Number of identical pipes in the culvert (default is 1)
-  \item \code{trigger_depth}: (default is 0.01)
-  \item \code{manning}: Mannings Roughness for Culvert
-  \item \code{sum_loss}:
-  \item \code{use_velocity_head}:
-  \item \code{use_momentum_jet}:
-  \item \code{label}: Short text naming the culvert
-  \item \code{description}: Text describing the culvert
-  \item \code{update_interval}:
-  \item \code{log_file}:
-  \item \code{discharge_hydrograph}:
-\end{itemize}
+
+ \code{domain}: a reference to the domain being evolved
+
+\code{culvert_description_filename}:
+
+\code{culvert_routine}:
+
+  \code{end_point0}: Coordinates of one opening
+
+  \code{end_point1}: Coordinates of other opening
+
+  \code{enquiry_point0}:
+
+ \code{enquiry_point1}:
+ 
+ \code{type}: (default is 'box')
+ 
+ \code{width}:
+
+  \code{height}:
+ 
+ \code{length}:
+
+  \code{number_of_barrels}: Number of identical pipes in the culvert (default is 1)
+ 
+ \code{trigger_depth}: (default is 0.01)
+
+  \code{manning}: Mannings Roughness for Culvert
+ 
+ \code{sum_loss}:
+ 
+ \code{use_velocity_head}:
+
+  \code{use_momentum_jet}:
+ 
+   \code{label}: Short text naming the culvert
+
+  \code{description}: Text describing the culvert
+
+    \code{update_interval}:
+ 
+ \code{log_file}:
+
+  \code{discharge_hydrograph}:
+
 
 The user can specify different culvert routines. However, \anuga currently provides only one, namely the
 \code{boyd_generalised_culvert_model} as used in the example below:
@@ -2791,6 +2812,123 @@ domain.forcing_terms.append(culvert2)
 \end{classdesc}
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Fractional Step Operators}\index{fractional step operators}
+
+An alternative way to effect the evolution is via fractional step operators.  The idea is that at each inner timestep we can use 
+a fractional step operator to change the centroid values of our conserved quantities, the stage and the xmomentum and the ymomentum. The elevation can also be changed but more care needs to be applied as the \code{elevation} quantity needs to remain continuous. The moral, play with \code{elevation} at your peril. 
+
+We are tending to move away from forcing terms and towards fractpional step operators as they are easier to parallelize. 
+
+
+Currently predefined fractional step operators:
+
+
+\begin{classdesc}{Set_elevation_operator}{domain,
+                 elevation=None,
+                 indices=None,
+                 polygon=None,
+                 center=None,
+                 radius=None,
+                 description = None,
+                 label = None,
+                 logging = False,
+                 verbose = False}
+Module: \module{anuga.operators.set_elevation_operator}
+
+Set the elevation in a region (careful to maintain continuitiy of elevation)
+
+
+\code{domain} is the domain being evolved.
+
+\code{elevation} a function of $t$ or $x,y$ or $x,y,t$ written to take numpy arrays $x$ and $y$. $t$ is a scalar.
+
+\code{indices} is a list of triangle indices where the function \code{elevation} will be applied.
+
+\code{polygon} is a polygon. The function \code{elevation} will be applied to triangles with in the polygon.
+
+\code{center} is the center of a circle where the function \code{elevation} will be applied. (\code{radius} needs to be set).
+
+\code{radius} is the radius of a circle where the function \code{elevation} will be applied. (\code{center} needs to be set).
+
+\code{description} is a description of this operator.
+
+\code{label} is the lable used when reporting on the operator.
+
+\code{logging} is the boolean flag to set logging to a file. 
+
+\code{verbose} is the boolean flag to setup extended output from the operator. 
+
+Example:
+
+\begin{verbatim}
+from anuga.operators.set_elevation_operator import Set_elevation_operator
+
+op0 =Set_elevation_operator(domain, elevation = lambda t : 0.01*t)
+\end{verbatim}
+would setup an operator which raises the elevation over the whole domain 1 cm per second.
+
+
+While 
+\begin{verbatim}
+from anuga.operators.set_elevation_operator import Set_elevation_operator
+P = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]] 
+
+op0 =Set_elevation_operator(domain, elevation = lambda t : 0.01*t, polygon=P)
+\end{verbatim}
+would setup an operator which raises the elevation over the polygon \code{P} 1 cm per second.
+
+\end{classdesc}
+
+
+
+\subsection{User developed fractional step operator}
+
+Suppose we want to add water to our domain at a steady rate. we can create a class based on the \code{Operator} class which has a \code{__call__} function to do the required update to the centroid values of the stage variable.
+
+Here is some code to do this:
+\begin{verbatim}
+from anuga.operators.base_operator import Operator
+
+class My_operator(Operator):
+    """
+    Add water to the domain at a given rate (m/sec)
+    """
+
+    def __init__(self,
+                 domain,
+                 rate=0.0,
+                 description = None,
+                 label = None,
+                 logging = False,
+                 verbose = False):
+	  """Initialize the user defined operator
+	  """
+
+        Operator.__init__(self, domain, description, label, logging, verbose)
+       
+        self.rate = rate
+
+
+    def __call__(self):
+        """
+        Apply rate to all triangles 
+        """
+
+        timestep = self.domain.get_timestep()
+
+        self.stage_c[:] = self.stage_c[:]  + self.rate*timestep
+\end{verbatim}
+
+And then in your script you would asosciated \code{My_operator} with the \code{domain} with a call 
+\begin{verbatim}
+My_operator(domain,rate=1.0)
+\end{verbatim}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Evolution}\index{evolution}
 \label{sec:evolution}
 

@@ -1387,10 +1387,6 @@ class Test_Quantity(unittest.TestCase):
 
 
     def test_set_values_from_asc_vertices(self):
-
-        quantity= Quantity(self.mesh_onslow)
-
-
         """ Format of asc file 
         ncols         11
         nrows         12
@@ -1399,16 +1395,35 @@ class Test_Quantity(unittest.TestCase):
         cellsize      6000
         NODATA_value  -9999
         """
-        
-        # UTM round Onslow 
-        
+
+        #x0 = 314036.58727982
+        #y0 = 6224951.2960092
+        x0 = 0.0
+        y0 = 0.0
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+
+        #bac, bce, ecf, dbe
+        elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
+
+        mesh4 = Generic_Domain(points, elements)
+                     #  geo_reference = Geo_reference(56, x0, y0))
+        mesh4.check_integrity()
+        quantity = Quantity(mesh4)
 
 
         ncols = 11  # Nx
         nrows = 12  # Ny
-        xllcorner = 240000
-        yllcorner = 7620000
-        cellsize  = 6000
+        xllcorner = x0
+        yllcorner = y0
+        cellsize  = 1.0
         NODATA_value =  -9999
         
         #xllcorner = 0
@@ -1456,9 +1471,12 @@ class Test_Quantity(unittest.TestCase):
                              verbose=False)
 
         # check order of vertices
-        answer =  [ 23298000. , 23358000. , 23118000. ]
-        answer = [ 23298000. ,  23118000. , 23358000 ]
-        print quantity.vertex_values
+
+        answer = [[  6.,   0.,   2.],
+                  [  6.,   2.,   8.],
+                  [  8.,  2.,   4.],
+                  [ 12.,   6.,   8.]]
+        #print quantity.vertex_values
         assert num.allclose(quantity.vertex_values, answer)
         
         
@@ -1477,7 +1495,9 @@ class Test_Quantity(unittest.TestCase):
         #print quantity.vertex_values
         #print quantity.centroid_values      
         
-        answer =  [ 23258000. ]
+
+        answer = [ 2.66666667,  5.33333333,  4.66666667,  8.66666667]
+        
         assert num.allclose(quantity.centroid_values, answer)
         #Cleanup
         #import os

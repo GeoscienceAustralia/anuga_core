@@ -1138,10 +1138,7 @@ class Quantity:
         assert location in ['vertices', 'centroids'], msg
 
             
-        if location == 'centroids':
-            points = self.domain.centroid_coordinates
-        else:
-            points = self.domain.vertex_coordinates
+
             
     
         root = filename[:-4]
@@ -1237,10 +1234,38 @@ class Quantity:
         Z = numpy.loadtxt(datafile, skiprows=6)
         datafile.close()
         
-        #print Z.shape, Z
+        #print Z.shape
+        #print Z
+        
+        # For raster data we need to a flip and transpose
+        Z = numpy.flipud(Z)
+
+        # Transpose z to have y coordinates along the first axis and x coordinates
+        # along the second axis
+        Z = Z.transpose()
     
-        x = num.linspace(xllcorner, xllcorner+cellsize*(nrows-1), nrows)
-        y = num.linspace(yllcorner, yllcorner+cellsize*(ncols-1), ncols)
+        x = num.linspace(xllcorner, xllcorner+cellsize*(ncols-1), ncols)
+        y = num.linspace(yllcorner, yllcorner+cellsize*(nrows-1), nrows)
+        
+        
+        if location == 'centroids':
+            points = self.domain.centroid_coordinates
+        else:
+            points = self.domain.vertex_coordinates
+            
+        from anuga.geospatial_data.geospatial_data import Geospatial_data,  ensure_absolute
+        points = ensure_absolute(points, geo_reference=self.domain.geo_reference)
+            
+        print numpy.max(points[:,0])
+        print numpy.min(points[:,0])
+        print numpy.max(points[:,1])
+        print numpy.min(points[:,1])
+        
+        print numpy.max(x)
+        print numpy.min(x)
+        print numpy.max(y)
+        print numpy.min(y)
+        
         
         #print x.shape, x
         #print y.shape, y
@@ -1274,13 +1299,15 @@ class Quantity:
                 msg = 'Number of values must match number of elements'
                 #assert values.shape[0] == N, msg
 
-                self.vertex_values[:] = values
+                #print values.shape
+                #print self.vertex_values.shape 
+                self.vertex_values[:] = values.reshape((-1,3))
             else:
                 msg = 'Number of values must match number of indices'
                 assert values.shape[0] == indices.shape[0], msg
 
                 # Brute force
-                self.vertex_values[indices] = values
+                self.vertex_values[indices] = values.reshape((-1,3))
                 
     def get_extremum_index(self, mode=None, indices=None):
         """Return index for maximum or minimum value of quantity (on centroids)
