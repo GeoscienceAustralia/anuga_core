@@ -17,9 +17,7 @@ import anuga.utilities.log as log
 from anuga.geometry.polygon import inside_polygon
 
 from anuga.operators.set_quantity_operator import Set_quantity_operator
-
-
-from anuga import indent
+from anuga.config import indent
 
 
 

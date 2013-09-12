@@ -65,7 +65,7 @@ from anuga.geometry.polygon import read_polygon
 from anuga.caching import cache
 
 #-----------------------------
-# Standard Boundaries
+# SwW Standard Boundaries
 #-----------------------------
 from anuga.shallow_water.boundaries import File_boundary
 from anuga.shallow_water.boundaries import Reflective_boundary
@@ -81,7 +81,7 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import \
 
 
 #-----------------------------
-# SWW-specific Boundaries
+# General Boundaries
 #-----------------------------
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
                             import Dirichlet_boundary
@@ -95,7 +95,7 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
 
 
 #-----------------------------
-# Shalow Water Tsunamis
+# Shallow Water Tsunamis
 #-----------------------------
 
 from anuga.shallow_water.smf import slide_tsunami, slump_tsunami
@@ -105,6 +105,8 @@ from anuga.shallow_water.smf import slide_tsunami, slump_tsunami
 # Forcing
 #-----------------------------
 from anuga.shallow_water.forcing import Inflow, Rainfall, Wind_stress
+
+
 
 #-----------------------------
 # File conversion utilities
@@ -139,6 +141,8 @@ from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
 #---------------------------
 from anuga.operators.base_operator import Operator
 from anuga.operators.kinematic_viscosity_operator import Kinematic_viscosity_operator
+from anuga.operators.rate_operators import Rate_operator
+from anuga.operators.set_friction_operators import Depth_friction_operator 
 
 #---------------------------
 # Structure Operators
@@ -370,10 +374,6 @@ if use_psyco:
 #Added by Petar Milevski 10/09/2013
 import time
 from os.path import join
-from scipy import interpolate
+
 from anuga import indent
 from anuga.utilities.model_tools import read_polygon_dir, read_hole_dir, read_multi_poly_file, read_multi_poly_file_value
-from anuga.operators.rate_operators import Rate_operator, Polygonal_rate_operator
-from anuga.operators.set_friction_operators import Depth_friction_operator 
-from anuga.structures.boyd_box_operator import Boyd_box_operator
-from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator

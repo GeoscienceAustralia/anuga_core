@@ -44,7 +44,7 @@
 \raggedbottom
 
 \title{\anuga User Manual}
-\author{Geoscience Australia and the Australian National University}
+\author{Stephen Roberts, Ole Nielsen, Duncan Gray and Jane Sexton}
 
 % Please at least include a long-lived email address;
 % the rest is at your discretion.
@@ -60,10 +60,10 @@
 % the date to \today can be used during draft
 % stages to make it easier to handle versions.
 
-\longdate       % Make date format long using datetime.sty
+%\longdate       % Make date format long using datetime.sty
 %\settimeformat{xxivtime} % 24 hour Format
-\settimeformat{oclock} % Verbose
-\date{\today, \ \currenttime}
+%\settimeformat{oclock} % Verbose
+\date{\today \ \currenttime}
 %\hyphenation{set\_datadir}
 
 \ifhtml
@@ -1393,8 +1393,8 @@ advanced level, you need to specify the full location of the module like so:
 from anuga.fit_interpolate.interpolate import Interpolation_interface
 \end{verbatim}
 
-All modules are in the folder \file{inundation} or one of its subfolders, and the
-location of each module is described relative to \file{inundation}. Rather
+All modules are in the folder \file{anuga} or one of its subfolders, and the
+location of each module is described relative to \file{anuga}. Rather
 than using pathnames, whose syntax depends on the operating system,
 we use the format adopted for importing the function or class for
 use in Python code. For example, suppose we wish to specify that the
@@ -2565,263 +2565,262 @@ Please refer to the source code for the existing boundary conditions
 for examples of how to implement boundary conditions.
 
 
-\section{Forcing Terms}\index{Forcing terms}
-\label{sec:forcing terms}
-
-\anuga provides a number of predefined forcing functions to be used with simulations.
-Gravity and friction are always calculated using the elevation and friction quantities,
-but the user may additionally add forcing terms to the list
-\code{domain.forcing_terms} and have them affect the model.
-
-Currently, predefined forcing terms are: \\
-\begin{classdesc}{General_forcing}{domain,
-                                  quantity_name,
-                                  rate=0.0,
-                                  center=None,
-                                  radius=None,
-                                  polygon=None,
-                                  default_rate=None,
-                                  verbose=False}
-Module: \module{shallow_water.shallow_water_domain}
-
-This is a general class to modify any quantity according to a given rate of change.
-Other specific forcing terms are based on this class but it can be used by itself as well (e.g.\ to modify momentum).
-
-\code{domain} is the domain being evolved.
-
-\code{quantity_name} is the name of the quantity that will be affected by this forcing term.
-
-\code{rate} is the rate at which the quantity should change. This can be either a constant or a
-function of time. Positive values indicate increases, negative values indicate decreases.
-The parameter \code{rate} can be \code{None} at initialisation but must be specified
-before a forcing term is applied (i.e.\ simulation has started).
-The default value is 0.0 -- i.e.\ no forcing.
-
-\code{center} and \code{ radius} optionally restrict forcing to a circle with given center and radius.
-
-\code{polygon} optionally restricts forcing to an area enclosed by the given polygon.
-
-Note: specifying \code{center}, \code{radius} and \code{polygon} will cause an exception to be thrown.
-Moreover, if the specified polygon or circle does not lie fully within the mesh boundary an Exception will be thrown.
-
-Example:
-
-\begin{verbatim}
-P = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]    # Square polygon
-
-xmom = General_forcing(domain, 'xmomentum', polygon=P)
-ymom = General_forcing(domain, 'ymomentum', polygon=P)
-
-xmom.rate = f
-ymom.rate = g
-
-domain.forcing_terms.append(xmom)
-domain.forcing_terms.append(ymom)
-\end{verbatim}
-
-Here, \code{f} and \code{g} are assumed to be defined as functions of time providing
-a time dependent rate of change for xmomentum and ymomentum respectively.
-\code{P} is assumed to be the polygon, specified as a list of points.
-\end{classdesc}
-
-\begin{classdesc}{Inflow}{domain,
-                         rate=0.0,
-                         center=None, radius=None,
-                         polygon=None,
-                         default_rate=None,
-                         verbose=False}
-Module: \module{shallow_water.shallow_water_domain}
-
-This is a general class for inflow and abstraction of water according to a given rate of change.
-This class will always modify the \code{stage} quantity.
-
-Inflow is based on the \code{General_forcing} class so the functionality is similar.
-
-\code{domain} is the domain being evolved.
-
-\code{rate} is the flow rate ($m^3/s$) at which the quantity should change. This can be either a constant or a
-function of time. Positive values indicate inflow, negative values indicate outflow.
-Note: The specified flow will be divided by the area of the inflow region and then applied to update the
-stage quantity.
-
-\code{center} and \code{ radius} optionally restrict forcing to a circle with given center and radius.
-
-\code{polygon} optionally restricts forcing to an area enclosed by the given polygon.
-
-Example:
-
-\begin{verbatim}
-hydrograph = Inflow(center=(320, 300), radius=10,
-                    rate=file_function('QPMF_Rot_Sub13.tms'))
-
-domain.forcing_terms.append(hydrograph)
-\end{verbatim}
-
-Here, \code{'QPMF_Rot_Sub13.tms'} is assumed to be a NetCDF file in the TMS format defining a timeseries for a hydrograph.
-\end{classdesc}
-
-\begin{classdesc}{Rainfall}{domain,
-                           rate=0.0,
-                           center=None,
-                           radius=None,
-                           polygon=None,
-                           default_rate=None,
-                           verbose=False}
-Module: \module{shallow_water.shallow_water_domain}
-
-This is a general class for implementing rainfall over the domain, possibly restricted to a given circle or polygon.
-This class will always modify the \code{stage} quantity.
-
-Rainfall is based on the \code{General_forcing} class so the functionality is similar.
-
-\code{domain} is the domain being evolved.
-
-\code{rate} is the total rain rate over the specified domain.
-Note: Raingauge Data needs to reflect the time step.
-For example, if rain gauge is \code{mm} read every \code{dt} seconds, then the input
-here is as \code{mm/dt} so 10 mm in 5 minutes becomes
-10/(5x60) = 0.0333mm/s.  This parameter can be either a constant or a
-function of time. Positive values indicate rain being added (or be used for general infiltration),
-negative values indicate outflow at the specified rate (presumably this could model evaporation or abstraction).
-
-\code{center} and \code{ radius} optionally restrict forcing to a circle with given center and radius.
-
-\code{polygon} optionally restricts forcing to an area enclosed by the given polygon.
-
-Example:
-
-\begin{verbatim}
-catchmentrainfall = Rainfall(rate=file_function('Q100_2hr_Rain.tms'))
-domain.forcing_terms.append(catchmentrainfall)
-\end{verbatim}
-
-Here, \code{'Q100_2hr_Rain.tms'} is assumed to be a NetCDF file in the TMS format defining a timeseries for the rainfall.
-\end{classdesc}
-
-\begin{classdesc}{Culvert_flow}{domain,
-                 culvert_description_filename=None,
-                 culvert_routine=None,
-                 end_point0=None,
-                 end_point1=None,
-                 enquiry_point0=None,
-                 enquiry_point1=None,
-                 type='box',
-                 width=None,
-                 height=None,
-                 length=None,
-                 number_of_barrels=1,
-                 trigger_depth=0.01,
-                 manning=None,
-                 sum_loss=None,
-                 use_velocity_head=False,
-                 use_momentum_jet=False,
-                 label=None,
-                 description=None,
-                 update_interval=None,
-                 log_file=False,
-                 discharge_hydrograph=False,
-                 verbose=False}
-Module: \module{culvert_flows.culvert_class}
-
-This is a general class for implementing flow through a culvert.
-This class modifies the quantities \code{stage}, \code{xmomentum} and \code{ymomentum} in areas at both ends of the culvert.
-
-The \code{Culvert_flow} forcing term uses \code{Inflow} and \code{General_forcing} to update the quantities.
-The flow direction is determined on-the-fly so openings are referenced simple as opening0 and opening1
-with either being able to take the role as Inflow or Outflow.
-
-The \code{Culvert_flow} class takes as input:
-
- \code{domain}: a reference to the domain being evolved
-
-\code{culvert_description_filename}:
-
-\code{culvert_routine}:
-
-  \code{end_point0}: Coordinates of one opening
-
-  \code{end_point1}: Coordinates of other opening
-
-  \code{enquiry_point0}:
-
- \code{enquiry_point1}:
- 
- \code{type}: (default is 'box')
- 
- \code{width}:
-
-  \code{height}:
- 
- \code{length}:
-
-  \code{number_of_barrels}: Number of identical pipes in the culvert (default is 1)
- 
- \code{trigger_depth}: (default is 0.01)
-
-  \code{manning}: Mannings Roughness for Culvert
- 
- \code{sum_loss}:
- 
- \code{use_velocity_head}:
-
-  \code{use_momentum_jet}:
- 
-   \code{label}: Short text naming the culvert
-
-  \code{description}: Text describing the culvert
-
-    \code{update_interval}:
- 
- \code{log_file}:
-
-  \code{discharge_hydrograph}:
-
-
-The user can specify different culvert routines. However, \anuga currently provides only one, namely the
-\code{boyd_generalised_culvert_model} as used in the example below:
-
-\begin{verbatim}
-from anuga.culvert_flows.culvert_class import Culvert_flow
-from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
-
-culvert1 = Culvert_flow(domain,
-                        label='Culvert No. 1',
-                        description='This culvert is a test unit 1.2m Wide by 0.75m High',
-                        end_point0=[9.0, 2.5],
-                        end_point1=[13.0, 2.5],
-                        width=1.20,
-                        height=0.75,
-                        culvert_routine=boyd_generalised_culvert_model,
-                        number_of_barrels=1,
-                        verbose=True)
-
-culvert2 = Culvert_flow(domain,
-                        label='Culvert No. 2',
-                        description='This culvert is a circular test with d=1.2m',
-                        end_point0=[9.0, 1.5],
-                        end_point1=[30.0, 3.5],
-                        diameter=1.20,
-                        invert_level0=7,
-                        culvert_routine=boyd_generalised_culvert_model,
-                        number_of_barrels=1,
-                        verbose=True)
-
-domain.forcing_terms.append(culvert1)
-domain.forcing_terms.append(culvert2)
-\end{verbatim}
-\end{classdesc}
-
+%\section{Forcing Terms}\index{Forcing terms}
+%\label{sec:forcing terms}
+%
+%\anuga provides a number of predefined forcing functions to be used with simulations.
+%Gravity and friction are always calculated using the elevation and friction quantities,
+%but the user may additionally add forcing terms to the list
+%\code{domain.forcing_terms} and have them affect the model.
+%
+%Currently, predefined forcing terms are: \\
+%\begin{classdesc}{General_forcing}{domain,
+%                                  quantity_name,
+%                                  rate=0.0,
+%                                  center=None,
+%                                  radius=None,
+%                                  polygon=None,
+%                                  default_rate=None,
+%                                  verbose=False}
+%Module: \module{shallow_water.shallow_water_domain}
+%
+%This is a general class to modify any quantity according to a given rate of change.
+%Other specific forcing terms are based on this class but it can be used by itself as well (e.g.\ to modify momentum).
+%
+%\code{domain} is the domain being evolved.
+%
+%\code{quantity_name} is the name of the quantity that will be affected by this forcing term.
+%
+%\code{rate} is the rate at which the quantity should change. This can be either a constant or a
+%function of time. Positive values indicate increases, negative values indicate decreases.
+%The parameter \code{rate} can be \code{None} at initialisation but must be specified
+%before a forcing term is applied (i.e.\ simulation has started).
+%The default value is 0.0 -- i.e.\ no forcing.
+%
+%\code{center} and \code{ radius} optionally restrict forcing to a circle with given center and radius.
+%
+%\code{polygon} optionally restricts forcing to an area enclosed by the given polygon.
+%
+%Note: specifying \code{center}, \code{radius} and \code{polygon} will cause an exception to be thrown.
+%Moreover, if the specified polygon or circle does not lie fully within the mesh boundary an Exception will be thrown.
+%
+%Example:
+%
+%\begin{verbatim}
+%P = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]    # Square polygon
+%
+%xmom = General_forcing(domain, 'xmomentum', polygon=P)
+%ymom = General_forcing(domain, 'ymomentum', polygon=P)
+%
+%xmom.rate = f
+%ymom.rate = g
+%
+%domain.forcing_terms.append(xmom)
+%domain.forcing_terms.append(ymom)
+%\end{verbatim}
+%
+%Here, \code{f} and \code{g} are assumed to be defined as functions of time providing
+%a time dependent rate of change for xmomentum and ymomentum respectively.
+%\code{P} is assumed to be the polygon, specified as a list of points.
+%\end{classdesc}
+%
+%\begin{classdesc}{Inflow}{domain,
+%                         rate=0.0,
+%                         center=None, radius=None,
+%                         polygon=None,
+%                         default_rate=None,
+%                         verbose=False}
+%Module: \module{shallow_water.shallow_water_domain}
+%
+%This is a general class for inflow and abstraction of water according to a given rate of change.
+%This class will always modify the \code{stage} quantity.
+%
+%Inflow is based on the \code{General_forcing} class so the functionality is similar.
+%
+%\code{domain} is the domain being evolved.
+%
+%\code{rate} is the flow rate ($m^3/s$) at which the quantity should change. This can be either a constant or a
+%function of time. Positive values indicate inflow, negative values indicate outflow.
+%Note: The specified flow will be divided by the area of the inflow region and then applied to update the
+%stage quantity.
+%
+%\code{center} and \code{ radius} optionally restrict forcing to a circle with given center and radius.
+%
+%\code{polygon} optionally restricts forcing to an area enclosed by the given polygon.
+%
+%Example:
+%
+%\begin{verbatim}
+%hydrograph = Inflow(center=(320, 300), radius=10,
+%                    rate=file_function('QPMF_Rot_Sub13.tms'))
+%
+%domain.forcing_terms.append(hydrograph)
+%\end{verbatim}
+%
+%Here, \code{'QPMF_Rot_Sub13.tms'} is assumed to be a NetCDF file in the TMS format defining a timeseries for a hydrograph.
+%\end{classdesc}
+%
+%\begin{classdesc}{Rainfall}{domain,
+%                           rate=0.0,
+%                           center=None,
+%                           radius=None,
+%                           polygon=None,
+%                           default_rate=None,
+%                           verbose=False}
+%Module: \module{shallow_water.shallow_water_domain}
+%
+%This is a general class for implementing rainfall over the domain, possibly restricted to a given circle or polygon.
+%This class will always modify the \code{stage} quantity.
+%
+%Rainfall is based on the \code{General_forcing} class so the functionality is similar.
+%
+%\code{domain} is the domain being evolved.
+%
+%\code{rate} is the total rain rate over the specified domain.
+%Note: Raingauge Data needs to reflect the time step.
+%For example, if rain gauge is \code{mm} read every \code{dt} seconds, then the input
+%here is as \code{mm/dt} so 10 mm in 5 minutes becomes
+%10/(5x60) = 0.0333mm/s.  This parameter can be either a constant or a
+%function of time. Positive values indicate rain being added (or be used for general infiltration),
+%negative values indicate outflow at the specified rate (presumably this could model evaporation or abstraction).
+%
+%\code{center} and \code{ radius} optionally restrict forcing to a circle with given center and radius.
+%
+%\code{polygon} optionally restricts forcing to an area enclosed by the given polygon.
+%
+%Example:
+%
+%\begin{verbatim}
+%catchmentrainfall = Rainfall(rate=file_function('Q100_2hr_Rain.tms'))
+%domain.forcing_terms.append(catchmentrainfall)
+%\end{verbatim}
+%
+%Here, \code{'Q100_2hr_Rain.tms'} is assumed to be a NetCDF file in the TMS format defining a timeseries for the rainfall.
+%\end{classdesc}
+%
+%\begin{classdesc}{Culvert_flow}{domain,
+%                 culvert_description_filename=None,
+%                 culvert_routine=None,
+%                 end_point0=None,
+%                 end_point1=None,
+%                 enquiry_point0=None,
+%                 enquiry_point1=None,
+%                 type='box',
+%                 width=None,
+%                 height=None,
+%                 length=None,
+%                 number_of_barrels=1,
+%                 trigger_depth=0.01,
+%                 manning=None,
+%                 sum_loss=None,
+%                 use_velocity_head=False,
+%                 use_momentum_jet=False,
+%                 label=None,
+%                 description=None,
+%                 update_interval=None,
+%                 log_file=False,
+%                 discharge_hydrograph=False,
+%                 verbose=False}
+%Module: \module{culvert_flows.culvert_class}
+%
+%This is a general class for implementing flow through a culvert.
+%This class modifies the quantities \code{stage}, \code{xmomentum} and \code{ymomentum} in areas at both ends of the culvert.
+%
+%The \code{Culvert_flow} forcing term uses \code{Inflow} and \code{General_forcing} to update the quantities.
+%The flow direction is determined on-the-fly so openings are referenced simple as opening0 and opening1
+%with either being able to take the role as Inflow or Outflow.
+%
+%The \code{Culvert_flow} class takes as input:
+%
+% \code{domain}: a reference to the domain being evolved
+%
+%\code{culvert_description_filename}:
+%
+%\code{culvert_routine}:
+%
+%  \code{end_point0}: Coordinates of one opening
+%
+%  \code{end_point1}: Coordinates of other opening
+%
+%  \code{enquiry_point0}:
+%
+% \code{enquiry_point1}:
+% 
+% \code{type}: (default is 'box')
+% 
+% \code{width}:
+%
+%  \code{height}:
+% 
+% \code{length}:
+%
+%  \code{number_of_barrels}: Number of identical pipes in the culvert (default is 1)
+% 
+% \code{trigger_depth}: (default is 0.01)
+%
+%  \code{manning}: Mannings Roughness for Culvert
+% 
+% \code{sum_loss}:
+% 
+% \code{use_velocity_head}:
+%
+%  \code{use_momentum_jet}:
+% 
+%   \code{label}: Short text naming the culvert
+%
+%  \code{description}: Text describing the culvert
+%
+%    \code{update_interval}:
+% 
+% \code{log_file}:
+%
+%  \code{discharge_hydrograph}:
+%
+%
+%The user can specify different culvert routines. However, \anuga currently provides only one, namely the
+%\code{boyd_generalised_culvert_model} as used in the example below:
+%
+%\begin{verbatim}
+%from anuga.culvert_flows.culvert_class import Culvert_flow
+%from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
+%
+%culvert1 = Culvert_flow(domain,
+%                        label='Culvert No. 1',
+%                        description='This culvert is a test unit 1.2m Wide by 0.75m High',
+%                        end_point0=[9.0, 2.5],
+%                        end_point1=[13.0, 2.5],
+%                        width=1.20,
+%                        height=0.75,
+%                        culvert_routine=boyd_generalised_culvert_model,
+%                        number_of_barrels=1,
+%                        verbose=True)
+%
+%culvert2 = Culvert_flow(domain,
+%                        label='Culvert No. 2',
+%                        description='This culvert is a circular test with d=1.2m',
+%                        end_point0=[9.0, 1.5],
+%                        end_point1=[30.0, 3.5],
+%                        diameter=1.20,
+%                        invert_level0=7,
+%                        culvert_routine=boyd_generalised_culvert_model,
+%                        number_of_barrels=1,
+%                        verbose=True)
+%
+%domain.forcing_terms.append(culvert1)
+%domain.forcing_terms.append(culvert2)
+%\end{verbatim}
+%\end{classdesc}
+%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Fractional Step Operators}\index{fractional step operators}
+\section{Operators}\index{operators}
 
-An alternative way to effect the evolution is via fractional step operators.  The idea is that at each inner timestep we can use 
-a fractional step operator to change the centroid values of our conserved quantities, the stage and the xmomentum and the ymomentum. The elevation can also be changed but more care needs to be applied as the \code{elevation} quantity needs to remain continuous. The moral, play with \code{elevation} at your peril. 
+A way to effect the evolution is via fractional step \code{operators}.  The idea is that at each inner timestep we can use 
+an \code{operator} to change the centroid values of quantities such as the stage and the xmomentum and the ymomentum. T
 
-We are tending to move away from forcing terms and towards fractpional step operators as they are easier to parallelize. 
+The elevation can also be changed but more care needs to be applied as the \code{elevation} quantity needs to remain continuous. The moral, play with \code{elevation} at your peril. 
 
-
-Currently predefined fractional step operators:
+Currently predefined operators:
 
 
 \begin{classdesc}{Set_elevation_operator}{domain,
@@ -2836,7 +2835,7 @@ Currently predefined fractional step operators:
                  verbose = False}
 Module: \module{anuga.operators.set_elevation_operator}
 
-Set the elevation in a region (careful to maintain continuitiy of elevation)
+Set the elevation in a region (careful to maintain continuity of elevation)
 
 
 \code{domain} is the domain being evolved.
@@ -2853,7 +2852,7 @@ Set the elevation in a region (careful to maintain continuitiy of elevation)
 
 \code{description} is a description of this operator.
 
-\code{label} is the lable used when reporting on the operator.
+\code{label} is the label used when reporting on the operator.
 
 \code{logging} is the boolean flag to set logging to a file. 
 
@@ -2862,37 +2861,90 @@ Set the elevation in a region (careful to maintain continuitiy of elevation)
 Example:
 
 \begin{verbatim}
-from anuga.operators.set_elevation_operator import Set_elevation_operator
-
-op0 =Set_elevation_operator(domain, elevation = lambda t : 0.01*t)
+op0 = anuga.Set_elevation_operator(domain, elevation = lambda t : 0.01*t)
 \end{verbatim}
 would setup an operator which raises the elevation over the whole domain 1 cm per second.
 
 
 While 
 \begin{verbatim}
-from anuga.operators.set_elevation_operator import Set_elevation_operator
 P = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]] 
 
-op0 =Set_elevation_operator(domain, elevation = lambda t : 0.01*t, polygon=P)
+op0 = anuga.Set_elevation_operator(domain, \
+                       elevation = lambda t : 0.01*t, polygon=P)
 \end{verbatim}
 would setup an operator which raises the elevation over the polygon \code{P} 1 cm per second.
 
 \end{classdesc}
 
+%--------------------------------------------
+\subsection{Culvert operators}
 
+A culvert is a structure that allows water to flow under a road, rail road, trail, or similar obstruction that would otherwise build up behind the embankment. But culverts are also used to drain basins, dams or lakes. \anuga now has the ability to model a culvert by transferring flows from one point in the 2D domain to another. It should be noted that flow from the culvert inlet to the outlet occurs instantaneously with no lagging of the flows.
 
-\subsection{User developed fractional step operator}
+Only box culverts and pipe culverts can be modelled at present using the Boyd Method (Generalised head-discharge equations for culverts, Proceedings of the fourth national local government engineering conference pp. 161-165, Perth, August, 1987).
+
+Usage
+
+In \anuga, a culvert can be modelled as two points (an inlet point and an outlet point) or along two lines (and inlet line and an outlet line) to account for skew.
+
+The user needs to nominate the location of the culvert inlet and outlet, any culvert losses (i.e. inlet, outlet, bends etc) and the culvert dimensions (in metres). 
+
+The user can also model the effects of momentum jetting at the outlet of the culvert and also account for velocity head of the flow at the inlet for more realistic results.
+
+Culvert hydraulics information can be logged by switching logging on or off.
+
+To use the Boyd Method in \anuga, the user can just copy the code below into their script. So if your model run has 10 pipe culverts, copy the pipe culvert routine five times into your run script and fill in the details for each of your five culverts.
+\begin{verbatim}
+#------------------------------------- -----------------
+# Box Culvert modelled along two lines 
+#------------------------------------- -----------------
+losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0} 
+el0 = numpy.array([[297750.2,6181379.1], [297753.5,6181380.9]]) 
+el1 = numpy.array([[297731.8,6181416.4], [297735.1,6181418.3]])  
+culvert = anuga.Boyd_box_operator(domain, 
+    losses=losses, 
+    width=1.5, 
+    height=1.5, 
+    end_points=[ep0, ep1], 
+    use_momentum_jet=True, #False to switch it off
+    use_velocity_head=True, #False to switch it off
+    manning=0.013, #culvert manning's n
+    logging=True, #False to switch it off
+    label='culvert_log_file', 
+    verbose=False)  
+\end{verbatim}
+
+\begin{verbatim}
+#------------------------------------- ------------------
+# Pipe Culvert modelled with a single point 
+#------------------------------------- ------------------
+losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0} 
+ep0 = numpy.array([296653.0,6180014.9]) 
+ep1 = numpy.array([296642.5,6180036.3])      
+culvert = anuga.Boyd_pipe_operator(domain, 
+    losses=losses, 
+    diameter=1.5, 
+    end_points=[ep0, ep1], 
+    use_momentum_jet=True, #False to switch it off
+    use_velocity_head=True, #False to switch it off
+    manning=0.013, #culvert manning's n
+    logging=True, #False to switch it off
+    label='culvert_log_file', 
+    verbose=False) 
+\end{verbatim}
+
+\subsection{User developed operators}
 
 Suppose we want to add water to our domain at a steady rate. we can create a class based on the \code{Operator} class which has a \code{__call__} function to do the required update to the centroid values of the stage variable.
 
 Here is some code to do this:
 \begin{verbatim}
-from anuga.operators.base_operator import Operator
+from anuga import Operator
 
 class My_operator(Operator):
     """
-    Add water to the domain at a given rate (m/sec)
+   An operator which adds water to the domain at a given rate (m/sec)
     """
 
     def __init__(self,
@@ -3292,7 +3344,6 @@ max_runup_location = get_maximum_inundation_location(filename)
 
 If no inundation is found (within the \code{polygon} and \code{time_interval}, if specified)
 the return value is \code{None}. This indicates "No Runup" or "Everything is dry".
-is \code{None}. This indicates "No Runup" or "Everything is dry".
 \end{funcdesc}
 
 \begin{funcdesc}{sww2timeseries}{swwfiles,

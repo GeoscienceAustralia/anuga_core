@@ -178,17 +178,23 @@ def _file_function(filename,
     assert isinstance(filename,str) or isinstance(filename, unicode),\
                'First argument to File_function must be a string'
 
-    try:
-        fid = open(filename)
-    except IOError, e:
-        msg = 'File "%s" could not be opened: Error="%s"' % (filename, e)
-        raise IOError(msg)
-
+    #try:
+    #    fid = open(filename)
+    #except IOError, e:
+    #    msg = 'File "%s" could not be opened: Error="%s"' % (filename, e)
+    #    raise IOError(msg)
+    
     # read first line of file, guess file type
-    line = fid.readline()
-    fid.close()
+    #line = fid.readline()
+    #fid.close()
+        
+    import os
+    ext = os.path.splitext(filename)[1]
+    msg = 'Extension should be csv  sww, tms or sts '
+    assert ext in [".csv",  ".sww", ".tms", ".sts"], msg
 
-    if line[:3] == 'CDF':
+
+    if ext in [".sww", ".tms", ".sts"]:
         return get_netcdf_file_function(filename,
                                         quantities,
                                         interpolation_points,
@@ -198,10 +204,13 @@ def _file_function(filename,
                                         verbose=verbose,
                                         boundary_polygon=boundary_polygon,
                                         output_centroids=output_centroids)
-    else:
+    elif ext in [".csv"]:
         # FIXME (Ole): Could add csv file here to address Ted Rigby's
         # suggestion about reading hydrographs.
-        # This may also deal with the gist of ticket:289 
+        # This may also deal with the gist of ticket:289
+        raise Exception('Must be a NetCDF File') 
+    else:
+
         raise Exception('Must be a NetCDF File')
 
 

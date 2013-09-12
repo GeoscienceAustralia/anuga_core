@@ -14,9 +14,7 @@ import numpy
 
 from anuga.operators.base_operator import Operator
 from anuga.operators.region import Region
-
-
-from anuga import indent
+from anuga.config import indent
 
 
 default_friction_min = 0.01

@@ -1387,17 +1387,11 @@ class Test_Quantity(unittest.TestCase):
 
 
     def test_set_values_from_asc_vertices(self):
-        """ Format of asc file 
-        ncols         11
-        nrows         12
-        xllcorner     240000
-        yllcorner     7620000
-        cellsize      6000
-        NODATA_value  -9999
-        """
+        
+        
+        
 
-        #x0 = 314036.58727982
-        #y0 = 6224951.2960092
+
         x0 = 0.0
         y0 = 0.0
 
@@ -1418,7 +1412,14 @@ class Test_Quantity(unittest.TestCase):
         mesh4.check_integrity()
         quantity = Quantity(mesh4)
 
-
+        """ Format of asc file 
+        ncols         11
+        nrows         12
+        xllcorner     240000
+        yllcorner     7620000
+        cellsize      6000
+        NODATA_value  -9999
+        """
         ncols = 11  # Nx
         nrows = 12  # Ny
         xllcorner = x0

@@ -19,7 +19,7 @@ from anuga.geometry.polygon import inside_polygon
 from anuga.operators.base_operator import Operator
 from anuga.fit_interpolate.interpolate import Modeltime_too_early, \
                                               Modeltime_too_late
-from anuga import indent
+from anuga.config import indent
 
 
 

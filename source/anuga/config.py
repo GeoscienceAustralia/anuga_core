@@ -223,6 +223,9 @@ netcdf_mode_w = 'w'
 netcdf_mode_a = 'a'
 netcdf_mode_r = 'r'
 
+
+indent = '    '
+
 # Code to set the write mode depending on
 # whether Scientific.IO supports large NetCDF files
 s = """

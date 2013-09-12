@@ -12,7 +12,7 @@ __date__ ="$09/03/2012 4:46:39 PM$"
 from anuga.operators.base_operator import Operator
 from anuga.operators.set_elevation import Set_elevation
 
-from anuga import indent
+from anuga.config import indent
 
 
 #===============================================================================

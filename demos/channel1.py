@@ -6,18 +6,15 @@ Water flowing down a channel
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
-
-# Import standard shallow water domain and standard boundaries.
 import anuga
-
 
 #------------------------------------------------------------------------------
 # Setup computational domain
 #------------------------------------------------------------------------------
-points, vertices, boundary = anuga.rectangular_cross(10, 5,
-                                               len1=10.0, len2=5.0) # Mesh
+# Create a domain with named boundaries "left", "right", "top" and "bottom"
+domain = anuga.rectangular_cross_domain(10, 5, len1=10.0, len2=5.0) # Create domain
 
-domain = anuga.Domain(points, vertices, boundary)  # Create domain
+
 domain.set_name('channel1')                  # Output name
 
 #------------------------------------------------------------------------------
@@ -43,5 +40,5 @@ domain.set_boundary({'left': Bi, 'right': Br, 'top': Br, 'bottom': Br})
 # Evolve system through time
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep=0.2, finaltime=40.0):
-    print domain.timestepping_statistics()
+    domain.print_timestepping_statistics()
 

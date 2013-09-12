@@ -1256,15 +1256,15 @@ class Quantity:
         from anuga.geospatial_data.geospatial_data import Geospatial_data,  ensure_absolute
         points = ensure_absolute(points, geo_reference=self.domain.geo_reference)
             
-        print numpy.max(points[:,0])
-        print numpy.min(points[:,0])
-        print numpy.max(points[:,1])
-        print numpy.min(points[:,1])
-        
-        print numpy.max(x)
-        print numpy.min(x)
-        print numpy.max(y)
-        print numpy.min(y)
+#         print numpy.max(points[:,0])
+#         print numpy.min(points[:,0])
+#         print numpy.max(points[:,1])
+#         print numpy.min(points[:,1])
+#         
+#         print numpy.max(x)
+#         print numpy.min(x)
+#         print numpy.max(y)
+#         print numpy.min(y)
         
         
         #print x.shape, x

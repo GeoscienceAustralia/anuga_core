@@ -16,7 +16,7 @@ import anuga.utilities.log as log
 from anuga.geometry.polygon import inside_polygon
 from anuga.utilities.function_utils import determine_function_type
 from anuga.operators.region import Region
-from anuga import indent
+from anuga.config import indent
 
 class Set_quantity(Region):
     """

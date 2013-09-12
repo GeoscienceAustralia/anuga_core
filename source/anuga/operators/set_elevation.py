@@ -16,8 +16,7 @@ import anuga.utilities.log as log
 from anuga.geometry.polygon import inside_polygon
 
 from anuga.operators.set_quantity import Set_quantity
-
-from anuga import indent
+from anuga.config import indent
 
 class Set_elevation(Set_quantity):
     """
