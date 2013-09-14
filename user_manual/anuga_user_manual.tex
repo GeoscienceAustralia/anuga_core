@@ -326,33 +326,30 @@ significance.
 \label{ref:runup_py_code}
 \verbatiminput{demos/runup.py}
 
-\subsection{Establishing the Mesh}\index{mesh, establishing}
+\subsection{Establishing the Domain}\index{domain, establishing}
 
 The first task is to set up the triangular mesh to be used for the
 scenario. This is carried out through the statement:
 
 \begin{verbatim}
-points, vertices, boundary = anuga.rectangular_cross(10, 10)
+domain = anuga.rectangular_cross_domain(10, 5, len1=10.0, len2=5.0) 
 \end{verbatim}
 
-The function \function{rectangular_cross} is imported from a module
-\module{mesh\_factory} defined elsewhere. (\anuga also contains
-several other schemes that can be used for setting up meshes, but we
-shall not discuss these.) The above assignment sets up a $10 \times
-10$ rectangular mesh, triangulated in a regular way. The assignment:
+The above assignment sets up a $10 \times
+5$ rectangular mesh, triangulated in a regular way with boundary tags \code{'left'}, \code{'right'},
+         \code{'top'} or \code{'bottom'}. 
 
+It is also possible to set up a domain from ``first principles'' using \code{points}, \code{vertices} and \code{boundary} via the assignment:
 \begin{verbatim}
-points, vertices, boundary = anuga.rectangular_cross(m, n)
+domain = anuga.Domain(points, vertices, boundary)
 \end{verbatim}
-
-returns:
-
+%
+where
 \begin{itemize}
    \item a list \code{points} giving the coordinates of each mesh point,
    \item a list \code{vertices} specifying the three vertices of each triangle, and
    \item a dictionary \code{boundary} that stores the edges on
-         the boundary and associates each with one of the symbolic tags \code{'left'}, \code{'right'},
-         \code{'top'} or \code{'bottom'}. The edges are represented as pairs (i, j) where i refers to the triangle id and j to the edge id of that triangle. 
+         the boundary and associates with each a symbolic tag. The edges are represented as pairs (i, j) where i refers to the triangle id and j to the edge id of that triangle. 
          Edge ids are enumerated from 0 to 2 based on the id of the vertex opposite. 
 \end{itemize}
 
@@ -363,14 +360,7 @@ An example of a general unstructured mesh and the associated data
 structures \code{points}, \code{vertices} and \code{boundary} is
 given in Section \ref{sec:meshexample}.
 
-\subsection{Initialising the Domain}
 
-These variables are then used to set up a data structure
-\code{domain}, through the assignment:
-
-\begin{verbatim}
-domain = anuga.Domain(points, vertices, boundary)
-\end{verbatim}
 
 This creates an instance of the \class{Domain} class, which
 represents the domain of the simulation. Specific options are set at
