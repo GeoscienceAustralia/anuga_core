@@ -380,7 +380,7 @@ from anuga.config import indent
 from anuga.utilities.model_tools import get_polygon_list_from_files
 from anuga.utilities.model_tools import get_polygon_value_list
 from anuga.utilities.model_tools import read_polygon_dir
-from anuga.utilities.model_tools import read_multi_poly_file,
+from anuga.utilities.model_tools import read_multi_poly_file
 from anuga.utilities.model_tools import read_multi_poly_file_value
 
  
