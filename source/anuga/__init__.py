@@ -141,6 +141,7 @@ from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
 #---------------------------
 from anuga.operators.base_operator import Operator
 from anuga.operators.kinematic_viscosity_operator import Kinematic_viscosity_operator
+
 from anuga.operators.rate_operators import Rate_operator
 from anuga.operators.set_friction_operators import Depth_friction_operator 
 
@@ -160,7 +161,7 @@ from anuga.utilities.system_tools import get_user_name, get_host_name, \
 from anuga.utilities.mem_time_equation import estimate_time_mem
 
 
-indent = '   '
+
 
 #-----------------------------
 # rectangular domains
@@ -372,8 +373,16 @@ if use_psyco:
 
 
 #Added by Petar Milevski 10/09/2013
-import time
+import time, os
 from os.path import join
+from anuga.config import indent
 
-from anuga import indent
-from anuga.utilities.model_tools import read_polygon_dir, read_hole_dir, read_multi_poly_file, read_multi_poly_file_value
+from anuga.utilities.model_tools import get_polygon_list_from_files
+from anuga.utilities.model_tools import get_polygon_value_list
+from anuga.utilities.model_tools import read_polygon_dir
+from anuga.utilities.model_tools import read_multi_poly_file,
+from anuga.utilities.model_tools import read_multi_poly_file_value
+
+ 
+from anuga.utilities.model_tools import Create_culvert_bridge_Operator
+

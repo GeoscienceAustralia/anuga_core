@@ -12,7 +12,7 @@ import anuga
 # Setup computational domain
 #------------------------------------------------------------------------------
 # Create a domain with named boundaries "left", "right", "top" and "bottom"
-domain = anuga.rectangular_cross_domain(10, 5, len1=10.0, len2=5.0) # Create domain
+domain = anuga.rectangular_cross_domain(10, 5, len1=10.0, len2=5.0)
 
 
 domain.set_name('channel1')                  # Output name
