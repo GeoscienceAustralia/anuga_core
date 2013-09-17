@@ -81,9 +81,9 @@ import os
 import glob
 import numpy
 from anuga.geometry.polygon import read_polygon
-from anuga.structures.boyd_box_operator import Boyd_box_operator
-from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator
-
+#from anuga.structures.boyd_box_operator import Boyd_box_operator
+#from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator
+from anuga_parallel.parallel_operator_factory import Inlet_operator, Boyd_box_operator, Boyd_pipe_operator
 
 def get_polygon_list_from_files(dir):
     """Read all polygons found in specified dir and return them in a list
