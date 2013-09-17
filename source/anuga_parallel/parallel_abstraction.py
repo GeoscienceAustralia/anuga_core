@@ -13,9 +13,9 @@ class NullStream:
 
 try:
     import sys
-    #sys.stdout = NullStream()
+    sys.stdout = NullStream()
     import pypar
-    #sys.stdout = sys.__stdout__
+    sys.stdout = sys.__stdout__
 except:
     print 'WARNING: Could not import pypar - defining sequential interface'
     def size(): return 1
