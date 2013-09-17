@@ -16,6 +16,7 @@ import anuga.utilities.log as log
 from anuga.utilities.function_utils import evaluate_temporal_function
 
 
+from anuga import Quantity
 from anuga.operators.base_operator import Operator
 from anuga.operators.region import Region
 
@@ -102,6 +103,11 @@ class Rate_operator(Operator,Region):
                 y = self.coord_c[indices,1]
 
             rate = self.get_spatial_rate(x,y,t)
+        elif self.rate_type == 'quantity':
+            if indices is None:
+                rate  = self.rate.centroid_values
+            else:
+                rate = self.rate.centroid_values[indices]
         else:
             rate = self.get_non_spatial_rate(t)
 
@@ -183,18 +189,27 @@ class Rate_operator(Operator,Region):
 
 
     def set_rate(self, rate):
-        """Set rate (function)
+        """Set rate 
         Can change rate while running
+        Can be a scalar, or a function of t or x,y or x,y,t or a quantity
         """
 
-        from anuga.utilities.function_utils import determine_function_type
+        # Test if rate is a quantity
+        if isinstance(rate, Quantity):
+            self.rate_type = 'quantity'
+        else:
+            # Possible types are 'scalar', 't', 'x,y' and 'x,y,t'
+            from anuga.utilities.function_utils import determine_function_type
+            self.rate_type = determine_function_type(rate)
 
-        # Possible types are 'scalar', 't', 'x,y' and 'x,y,t'
-        self.rate_type = determine_function_type(rate)
 
         self.rate = rate
+        
 
         if self.rate_type == 'scalar':
+            self.rate_callable = False
+            self.rate_spatial = False
+        elif self.rate_type == 'quantity':
             self.rate_callable = False
             self.rate_spatial = False
         elif self.rate_type == 't':
@@ -242,6 +257,10 @@ class Rate_operator(Operator,Region):
                 rate = self.get_spatial_rate() # rate is an array
                 fid = self.full_indices
                 return num.sum(self.areas[fid]*rate[fid])*self.factor
+            elif self.rate_type == 'quantity':
+                rate = self.rate.centroid_values # rate is a quantity
+                fid = self.full_indices
+                return num.sum(self.areas[fid]*rate[fid])*self.factor
             else:
                 rate = self.get_non_spatial_rate() # rate is a scalar
                 fid = self.full_indices
@@ -250,6 +269,9 @@ class Rate_operator(Operator,Region):
             if self.rate_spatial:
                 rate = self.get_spatial_rate() # rate is an array
                 return num.sum(self.areas*rate)*self.factor
+            elif self.rate_type == 'quantity':
+                rate = self.rate.centroid_values # rate is a quantity
+                return num.sum(self.areas*rate)*self.factor                
             else:
                 rate = self.get_non_spatial_rate() # rate is a scalar
                 return num.sum(self.areas*rate)*self.factor

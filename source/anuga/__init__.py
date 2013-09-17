@@ -386,3 +386,17 @@ from anuga.utilities.model_tools import read_multi_poly_file_value
  
 from anuga.utilities.model_tools import Create_culvert_bridge_Operator
 
+from anuga_parallel.parallel_api import distribute
+from anuga_parallel.parallel_api import myid, numprocs, get_processor_name
+from anuga_parallel.parallel_api import send, receive
+from anuga_parallel.parallel_api import pypar_available, barrier, finalize
+
+if pypar_available:
+    #from anuga_parallel.parallel_meshes import parallel_rectangle
+    #from anuga_parallel.parallel_shallow_water import Parallel_domain as Parallel_shallow_water_domain
+    #from anuga_parallel.parallel_advection     import Parallel_domain as Parallel_advection_domain
+    from anuga_parallel.parallel_operator_factory import Inlet_operator, Boyd_box_operator
+
+
+
+

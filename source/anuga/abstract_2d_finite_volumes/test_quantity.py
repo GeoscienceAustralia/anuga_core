@@ -1386,11 +1386,9 @@ class Test_Quantity(unittest.TestCase):
         os.remove(ptsfile)
 
 
-    def test_set_values_from_asc_vertices(self):
+    def test_set_values_from_utm_grid_file(self):
         
         
-        
-
 
         x0 = 0.0
         y0 = 0.0
@@ -1466,7 +1464,7 @@ class Test_Quantity(unittest.TestCase):
         #print quantity.vertex_values
         #print quantity.centroid_values 
 
-        quantity.set_values_from_asc_file(txt_file,
+        quantity.set_values_from_utm_grid_file(txt_file,
                              location='vertices',
                              indices=None,
                              verbose=False)
@@ -1488,7 +1486,7 @@ class Test_Quantity(unittest.TestCase):
         
         #print quantity.vertex_values
         #print quantity.centroid_values 
-        quantity.set_values_from_asc_file(txt_file,
+        quantity.set_values_from_utm_grid_file(txt_file,
                              location='centroids',
                              indices=None,
                              verbose=False)

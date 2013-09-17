@@ -1090,7 +1090,9 @@ class Quantity:
         
         
         
-    def set_values_from_asc_file(self,
+        
+        
+    def set_values_from_utm_grid_file(self,
                              filename,
                              location='vertices',
                              indices=None,
@@ -1142,45 +1144,6 @@ class Quantity:
             
     
         root = filename[:-4]
-    
-#         # Read Meta data
-#         if verbose: log.critical('Reading METADATA from %s' % (root + '.prj'))
-#     
-#         metadatafile = open(root + '.prj')
-#         metalines = metadatafile.readlines()
-#         metadatafile.close()
-#     
-#         L = metalines[0].strip().split()
-#         assert L[0].strip().lower() == 'projection'
-#         projection = L[1].strip()                   #TEXT
-#     
-#         L = metalines[1].strip().split()
-#         assert L[0].strip().lower() == 'zone'
-#         zone = int(L[1].strip())
-#     
-#         L = metalines[2].strip().split()
-#         assert L[0].strip().lower() == 'datum'
-#         datum = L[1].strip()                        #TEXT
-#     
-#         L = metalines[3].strip().split()
-#         assert L[0].strip().lower() == 'zunits'     #IGNORE
-#         zunits = L[1].strip()                       #TEXT
-#     
-#         L = metalines[4].strip().split()
-#         assert L[0].strip().lower() == 'units'
-#         units = L[1].strip()                        #TEXT
-#     
-#         L = metalines[5].strip().split()
-#         assert L[0].strip().lower() == 'spheroid'   #IGNORE
-#         spheroid = L[1].strip()                     #TEXT
-#     
-#         L = metalines[6].strip().split()
-#         assert L[0].strip().lower() == 'xshift'
-#         false_easting = float(L[1].strip())
-#     
-#         L = metalines[7].strip().split()
-#         assert L[0].strip().lower() == 'yshift'
-#         false_northing = float(L[1].strip())
     
     
         #Read DEM data
@@ -1308,7 +1271,191 @@ class Quantity:
 
                 # Brute force
                 self.vertex_values[indices] = values.reshape((-1,3))
-                
+            # Cleanup centroid values
+            self.interpolate()
+            
+    def set_values_from_lat_long_grid_file(self,
+                             filename,
+                             location='vertices',
+                             indices=None,
+                             verbose=False):
+        
+        """Read Digital Elevation model from the following ASCII format (.asc or .grd)
+    
+        Example:
+        ncols         3121
+        nrows         1800
+        xllcorner     722000
+        yllcorner     5893000
+        cellsize      25
+        NODATA_value  -9999
+        138.3698 137.4194 136.5062 135.5558 ..........
+    
+    
+        An accompanying file with same basename but extension .prj must exist
+        and is used to fix the UTM zone, datum, false northings and eastings.
+    
+        The prj format is assumed to be as
+    
+        Projection    UTM
+        Zone          56
+        Datum         WGS84
+        Zunits        NO
+        Units         METERS
+        Spheroid      WGS84
+        Xshift        0.0000000000
+        Yshift        10000000.0000000000
+        Parameters
+        """
+
+
+
+
+        msg = 'Filename must be a text string'
+        assert isinstance(filename, basestring), msg
+        
+        msg = 'Extension should be .grd or asc'
+        assert os.path.splitext(filename)[1] in ['.grd', '.asc'], msg
+        
+
+        msg = "set_values_from_grd_file is only defined for location='vertices' or 'centroids'"
+        assert location in ['vertices', 'centroids'], msg
+
+    
+        root = filename[:-4]
+    
+    
+        #Read DEM data
+        datafile = open(filename)
+    
+        if verbose: log.critical('Reading data from %s' % (filename))
+        
+        lines = datafile.readlines()
+        datafile.close()
+    
+    
+        if verbose: log.critical('Got %d lines' % len(lines))
+    
+        # Parse the line data
+        ncols = int(lines[0].split()[1].strip())
+        nrows = int(lines[1].split()[1].strip())
+
+    
+        # Do cellsize (line 4) before line 2 and 3
+        cellsize = float(lines[4].split()[1].strip())
+    
+        # Checks suggested by Joaquim Luis
+        # Our internal representation of xllcorner
+        # and yllcorner is non-standard.
+        xref = lines[2].split()
+        if xref[0].strip() == 'xllcorner':
+            xllcorner = float(xref[1].strip()) # + 0.5*cellsize # Correct offset
+        elif xref[0].strip() == 'xllcenter':
+            xllcorner = float(xref[1].strip())
+        else:
+            msg = 'Unknown keyword: %s' % xref[0].strip()
+            raise Exception, msg
+    
+        yref = lines[3].split()
+        if yref[0].strip() == 'yllcorner':
+            yllcorner = float(yref[1].strip()) # + 0.5*cellsize # Correct offset
+        elif yref[0].strip() == 'yllcenter':
+            yllcorner = float(yref[1].strip())
+        else:
+            msg = 'Unknown keyword: %s' % yref[0].strip()
+            raise Exception, msg
+    
+        NODATA_value = int(float(lines[5].split()[1].strip()))
+    
+        assert len(lines) == nrows + 6
+    
+  
+        #Store data
+        import numpy
+    
+        datafile = open(filename)
+        Z = numpy.loadtxt(datafile, skiprows=6)
+        datafile.close()
+        
+        #print Z.shape
+        #print Z
+        
+        # For raster data we need to a flip and transpose
+        Z = numpy.flipud(Z)
+
+        # Transpose z to have y coordinates along the first axis and x coordinates
+        # along the second axis
+        Z = Z.transpose()
+    
+        x = num.linspace(xllcorner, xllcorner+cellsize*(ncols-1), ncols)
+        y = num.linspace(yllcorner, yllcorner+cellsize*(nrows-1), nrows)
+        
+        
+        if location == 'centroids':
+            points = self.domain.centroid_coordinates
+        else:
+            points = self.domain.vertex_coordinates
+            
+        from anuga.geospatial_data.geospatial_data import Geospatial_data,  ensure_absolute
+        points = ensure_absolute(points, geo_reference=self.domain.geo_reference)
+            
+#         print numpy.max(points[:,0])
+#         print numpy.min(points[:,0])
+#         print numpy.max(points[:,1])
+#         print numpy.min(points[:,1])
+#         
+#         print numpy.max(x)
+#         print numpy.min(x)
+#         print numpy.max(y)
+#         print numpy.min(y)
+        
+        
+        #print x.shape, x
+        #print y.shape, y
+        
+        
+        
+        from  anuga.fit_interpolate.interpolate2d import interpolate2d 
+        
+        #print points 
+        values = interpolate2d(x, y, Z, points, mode='linear', bounds_error=False)
+        
+        #print values
+
+        # Call underlying method using array values
+        if verbose:
+            log.critical('Applying fitted data to quantity')
+            
+        
+        if location == 'centroids':
+            if indices is None:
+                msg = 'Number of values must match number of elements'
+                #assert values.shape[0] == N, msg
+
+                self.centroid_values[:] = values
+            else:
+                msg = 'Number of values must match number of indices'
+                assert values.shape[0] == indices.shape[0], msg
+
+                # Brute force
+                self.centroid_values[indices] = values
+        else:
+            if indices is None:
+                msg = 'Number of values must match number of elements'
+                #assert values.shape[0] == N, msg
+
+                #print values.shape
+                #print self.vertex_values.shape 
+                self.vertex_values[:] = values.reshape((-1,3))
+            else:
+                msg = 'Number of values must match number of indices'
+                assert values.shape[0] == indices.shape[0], msg
+
+                # Brute force
+                self.vertex_values[indices] = values.reshape((-1,3))
+            # Cleanup centroid values
+            self.interpolate()
+                            
     def get_extremum_index(self, mode=None, indices=None):
         """Return index for maximum or minimum value of quantity (on centroids)
 
