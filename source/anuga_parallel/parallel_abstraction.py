@@ -17,7 +17,9 @@ try:
     import pypar
     sys.stdout = sys.__stdout__
 except:
-    print 'WARNING: Could not import pypar - defining sequential interface'
+    import sys
+    sys.stdout = sys.__stdout__
+    #print 'WARNING: Could not import pypar - defining sequential interface'
     def size(): return 1
     def rank(): return 0
 

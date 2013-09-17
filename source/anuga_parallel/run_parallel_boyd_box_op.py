@@ -159,6 +159,8 @@ for t in domain.evolve(yieldstep = 2.0, finaltime = 20.0):
 ## Assign/Test Control data
 ##-----------------------------------------------------------------------
 
+domain.sww_merge()
+
 finalize()
 
     
