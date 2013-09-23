@@ -313,7 +313,7 @@ def sww2array(name_in,
 
 
 
-    return grid_values.reshape(nrows,ncols)[::-1,:]
+    return x,y, grid_values.reshape(nrows,ncols)[::-1,:]
 
 
 
