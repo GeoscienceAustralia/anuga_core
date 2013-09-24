@@ -101,6 +101,10 @@ def get_polygon_list_from_files(dir):
     for filename in os.listdir(dir):
         Rfile = dir +'/'+filename
         print Rfile
+        
+        if Rfile[-4:] == '.svn':
+            continue
+        
         #print filename
         
         # Check if file contains blank lines, if so multi poly's

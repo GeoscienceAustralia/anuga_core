@@ -1129,87 +1129,93 @@ class Quantity:
 
 
 
-        msg = 'Filename must be a text string'
-        assert isinstance(filename, basestring), msg
+#         msg = 'Filename must be a text string'
+#         assert isinstance(filename, basestring), msg
+#         
+#         msg = 'Extension should be .grd or asc'
+#         assert os.path.splitext(filename)[1] in ['.grd', '.asc'], msg
+#         
+# 
+#         msg = "set_values_from_grd_file is only defined for location='vertices' or 'centroids'"
+#         assert location in ['vertices', 'centroids'], msg
+# 
+#             
+# 
+#             
+#     
+#         root = filename[:-4]
+#     
+#     
+#         #Read DEM data
+#         datafile = open(filename)
+#     
+#         if verbose: log.critical('Reading data from %s' % (filename))
+#     
+#         lines = datafile.readlines()
+#         datafile.close()
+#     
+#         if verbose: log.critical('Got %d lines' % len(lines))
+#     
+# 
+#         ncols = int(lines[0].split()[1].strip())
+#         nrows = int(lines[1].split()[1].strip())
+# 
+#     
+#         # Do cellsize (line 4) before line 2 and 3
+#         cellsize = float(lines[4].split()[1].strip())
+#     
+#         # Checks suggested by Joaquim Luis
+#         # Our internal representation of xllcorner
+#         # and yllcorner is non-standard.
+#         xref = lines[2].split()
+#         if xref[0].strip() == 'xllcorner':
+#             xllcorner = float(xref[1].strip()) # + 0.5*cellsize # Correct offset
+#         elif xref[0].strip() == 'xllcenter':
+#             xllcorner = float(xref[1].strip())
+#         else:
+#             msg = 'Unknown keyword: %s' % xref[0].strip()
+#             raise Exception, msg
+#     
+#         yref = lines[3].split()
+#         if yref[0].strip() == 'yllcorner':
+#             yllcorner = float(yref[1].strip()) # + 0.5*cellsize # Correct offset
+#         elif yref[0].strip() == 'yllcenter':
+#             yllcorner = float(yref[1].strip())
+#         else:
+#             msg = 'Unknown keyword: %s' % yref[0].strip()
+#             raise Exception, msg
+#     
+#         NODATA_value = int(float(lines[5].split()[1].strip()))
+#     
+#         assert len(lines) == nrows + 6
+#     
+#   
+#         #Store data
+#         import numpy
+#     
+#         datafile = open(filename)
+#         Z = numpy.loadtxt(datafile, skiprows=6)
+#         datafile.close()
+#         
+#         #print Z.shape
+#         #print Z
+#         
+#         # For raster data we need to a flip and transpose
+#         Z = numpy.flipud(Z)
+# 
+#         # Transpose z to have y coordinates along the first axis and x coordinates
+#         # along the second axis
+#         Z = Z.transpose()
+#     
+#         x = num.linspace(xllcorner, xllcorner+cellsize*(ncols-1), ncols)
+#         y = num.linspace(yllcorner, yllcorner+cellsize*(nrows-1), nrows)
         
-        msg = 'Extension should be .grd or asc'
-        assert os.path.splitext(filename)[1] in ['.grd', '.asc'], msg
         
-
-        msg = "set_values_from_grd_file is only defined for location='vertices' or 'centroids'"
-        assert location in ['vertices', 'centroids'], msg
-
-            
-
-            
-    
-        root = filename[:-4]
-    
-    
-        #Read DEM data
-        datafile = open(filename)
-    
-        if verbose: log.critical('Reading data from %s' % (filename))
-    
-        lines = datafile.readlines()
-        datafile.close()
-    
-        if verbose: log.critical('Got %d lines' % len(lines))
-    
-
-        ncols = int(lines[0].split()[1].strip())
-        nrows = int(lines[1].split()[1].strip())
-
-    
-        # Do cellsize (line 4) before line 2 and 3
-        cellsize = float(lines[4].split()[1].strip())
-    
-        # Checks suggested by Joaquim Luis
-        # Our internal representation of xllcorner
-        # and yllcorner is non-standard.
-        xref = lines[2].split()
-        if xref[0].strip() == 'xllcorner':
-            xllcorner = float(xref[1].strip()) # + 0.5*cellsize # Correct offset
-        elif xref[0].strip() == 'xllcenter':
-            xllcorner = float(xref[1].strip())
-        else:
-            msg = 'Unknown keyword: %s' % xref[0].strip()
-            raise Exception, msg
-    
-        yref = lines[3].split()
-        if yref[0].strip() == 'yllcorner':
-            yllcorner = float(yref[1].strip()) # + 0.5*cellsize # Correct offset
-        elif yref[0].strip() == 'yllcenter':
-            yllcorner = float(yref[1].strip())
-        else:
-            msg = 'Unknown keyword: %s' % yref[0].strip()
-            raise Exception, msg
-    
-        NODATA_value = int(float(lines[5].split()[1].strip()))
-    
-        assert len(lines) == nrows + 6
-    
-  
-        #Store data
-        import numpy
-    
-        datafile = open(filename)
-        Z = numpy.loadtxt(datafile, skiprows=6)
-        datafile.close()
         
-        #print Z.shape
-        #print Z
+        from anuga.file_conversion.grd2array import grd2array
         
-        # For raster data we need to a flip and transpose
-        Z = numpy.flipud(Z)
-
-        # Transpose z to have y coordinates along the first axis and x coordinates
-        # along the second axis
-        Z = Z.transpose()
-    
-        x = num.linspace(xllcorner, xllcorner+cellsize*(ncols-1), ncols)
-        y = num.linspace(yllcorner, yllcorner+cellsize*(nrows-1), nrows)
-        
+        x,y,Z = grd2array(filename)
+           
         
         if location == 'centroids':
             points = self.domain.centroid_coordinates
@@ -1219,19 +1225,7 @@ class Quantity:
         from anuga.geospatial_data.geospatial_data import Geospatial_data,  ensure_absolute
         points = ensure_absolute(points, geo_reference=self.domain.geo_reference)
             
-#         print numpy.max(points[:,0])
-#         print numpy.min(points[:,0])
-#         print numpy.max(points[:,1])
-#         print numpy.min(points[:,1])
-#         
-#         print numpy.max(x)
-#         print numpy.min(x)
-#         print numpy.max(y)
-#         print numpy.min(y)
-        
-        
-        #print x.shape, x
-        #print y.shape, y
+
         
         from  anuga.fit_interpolate.interpolate2d import interpolate2d 
         
@@ -1273,6 +1267,9 @@ class Quantity:
                 self.vertex_values[indices] = values.reshape((-1,3))
             # Cleanup centroid values
             self.interpolate()
+            
+            
+            
             
     def set_values_from_lat_long_grid_file(self,
                              filename,
