@@ -113,6 +113,10 @@ def grd2array(filename, verbose=False):
         x = num.linspace(xllcorner, xllcorner+cellsize*(ncols-1), ncols)
         y = num.linspace(yllcorner, yllcorner+cellsize*(nrows-1), nrows)
         
+        # get rid of NODATA
+        import numpy
+        Z = numpy.where(Z == NODATA_value , numpy.nan, Z)
+        
         return x,y, Z
         
 
