@@ -154,6 +154,9 @@ class Boyd_box_operator(anuga.Structure_operator):
                 print 'driving_energy ',self.driving_energy
                 print 'delta_total_energy ',self.delta_total_energy
                 print 'outlet_enquiry_depth ',self.outflow.get_enquiry_depth()
+                print 'inflow_enquiry_depth ',self.inflow.get_enquiry_depth()
+                print 'outlet_enquiry_speed ',self.outflow.get_enquiry_speed()
+                print 'inflow_enquiry_speed ',self.inflow.get_enquiry_speed()
                 print 'sum_loss ',self.sum_loss
                 print 'manning ',self.manning
 

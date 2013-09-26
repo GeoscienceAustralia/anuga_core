@@ -44,11 +44,17 @@ class Inlet:
 
         else: # poly is a polygon
 
-            self.triangle_indices = inside_polygon(domain_centroids, self.poly)
+            tris_0 = line_intersect(vertex_coordinates, [self.poly[0],self.poly[1]])
+            tris_1 = inside_polygon(domain_centroids, self.poly)
+            #print 40*"="
+            #print tris_0
+            #print tris_1
+            self.triangle_indices = num.union1d(tris_0, tris_1)
+            #print self.triangle_indices
 
         if len(self.triangle_indices) == 0:
             msg = 'Inlet poly=%s ' % (self.poly)
-            msg += 'No triangles intersecting line '
+            msg += 'No triangle centroids intersecting poly '
             raise Exception, msg
 
 

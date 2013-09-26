@@ -100,8 +100,10 @@ class Structure_operator(anuga.Operator):
         Structure_operator.counter += 1
 
         # Slots for recording current statistics
+        self.accumulated_flow = 0.0
         self.discharge = 0.0
         self.velocity = 0.0
+        self.outlet_depth = 0.0
         self.delta_total_energy = 0.0
         self.driving_energy = 0.0
         
@@ -115,6 +117,14 @@ class Structure_operator(anuga.Operator):
         
         self.inlets = []
         line0 = self.exchange_lines[0] #self.inlet_lines[0]
+        if self.apron is None:
+            poly0 = line0
+        else:
+            offset = -self.apron*self.outward_vector_0 
+            #print line0
+            #print offset
+            poly0 = num.array([ line0[0], line0[1], line0[1]+offset, line0[0]+offset])
+            #print poly0
         if self.invert_elevations is None:
             invert_elevation0 = None
         else:
@@ -125,15 +135,26 @@ class Structure_operator(anuga.Operator):
         #outward_vector0 = - self.culvert_vector
         self.inlets.append(inlet_enquiry.Inlet_enquiry(
                            self.domain,
-                           line0,
+                           poly0,
                            enquiry_point0,
                            invert_elevation = invert_elevation0,
                            outward_culvert_vector = self.outward_vector_0,
                            verbose = self.verbose))
 
-
+        tris_0 = self.inlets[0].triangle_indices
+        #print tris_0
+        #print self.domain.centroid_coordinates[tris_0]
 
         line1 = self.exchange_lines[1]
+        if self.apron is None:
+            poly1 = line1
+        else:
+            offset = -self.apron*self.outward_vector_1
+            #print line1
+            #print offset
+            poly1 = num.array([ line1[0], line1[1], line1[1]+offset, line1[0]+offset])
+            #print poly1
+            
         if self.invert_elevations is None:
             invert_elevation1 = None
         else:
@@ -143,12 +164,17 @@ class Structure_operator(anuga.Operator):
         #outward_vector1  = - self.culvert_vector
         self.inlets.append(inlet_enquiry.Inlet_enquiry(
                            self.domain,
-                           line1,
+                           poly1,
                            enquiry_point1,
                            invert_elevation = invert_elevation1,
                            outward_culvert_vector = self.outward_vector_1,
                            verbose = self.verbose))
 
+
+        tris_1 = self.inlets[1].triangle_indices
+        #print tris_1
+        #print self.domain.centroid_coordinates[tris_1]        
+        
         self.set_logging(logging)
 
 
@@ -165,59 +191,95 @@ class Structure_operator(anuga.Operator):
         old_inflow_xmom = self.inflow.get_average_xmom()
         old_inflow_ymom = self.inflow.get_average_ymom()
 
-
-        # Implement the update of flow over a timestep by
-        # using a semi-implict update. This ensures that
-        # the update does not create a negative depth
-        if old_inflow_depth > 0.0 :
-                Q_star = Q/old_inflow_depth
+        semi_implicit = True
+        if semi_implicit:   
+            # Implement the update of flow over a timestep by
+            # using a semi-implict update. This ensures that
+            # the update does not create a negative depth
+            if old_inflow_depth > 0.0 :
+                    Q_star = Q/old_inflow_depth
+            else:
+                    Q_star = 0.0
+    
+            factor = 1.0/(1.0 + Q_star*timestep/self.inflow.get_area())
+    
+            new_inflow_depth = old_inflow_depth*factor
+            new_inflow_xmom = old_inflow_xmom*factor
+            new_inflow_ymom = old_inflow_ymom*factor
+                
+            self.inflow.set_depths(new_inflow_depth)
+    
+            #inflow.set_xmoms(Q/inflow.get_area())
+            #inflow.set_ymoms(0.0)
+    
+            self.inflow.set_xmoms(new_inflow_xmom)
+            self.inflow.set_ymoms(new_inflow_ymom)
+    
+            loss = (old_inflow_depth - new_inflow_depth)*self.inflow.get_area()
+    
+            # set outflow
+            if old_inflow_depth > 0.0 :
+                timestep_star = timestep*new_inflow_depth/old_inflow_depth
+            else:
+                timestep_star = 0.0
+    
+    
+    
+    
+            outflow_extra_depth = Q*timestep_star/self.outflow.get_area()
+            outflow_direction = - self.outflow.outward_culvert_vector
+            outflow_extra_momentum = outflow_extra_depth*barrel_speed*outflow_direction
+                
+            gain = outflow_extra_depth*self.outflow.get_area()
+            
+            #print gain, loss
+            assert num.allclose(gain-loss, 0.0)
+                
+            #print Q, Q*timestep, barrel_speed, outlet_depth, Qstar, factor, timestep_star
+            #print '  ', loss, gain
         else:
-                Q_star = 0.0
 
-        factor = 1.0/(1.0 + Q_star*timestep/self.inflow.get_area())
+    
+            factor = Q*timestep/self.inflow.get_area()
+    
+            new_inflow_depth = old_inflow_depth - factor
+            new_inflow_xmom = old_inflow_xmom/old_inflow_depth*new_inflow_depth 
+            new_inflow_ymom = old_inflow_ymom/old_inflow_depth*new_inflow_depth
+                
+            self.inflow.set_depths(new_inflow_depth)    
+            self.inflow.set_xmoms(new_inflow_xmom)
+            self.inflow.set_ymoms(new_inflow_ymom)
+    
+    
+            loss = (old_inflow_depth - new_inflow_depth)*self.inflow.get_area()
+    
 
-        new_inflow_depth = old_inflow_depth*factor
-        new_inflow_xmom = old_inflow_xmom*factor
-        new_inflow_ymom = old_inflow_ymom*factor
+    
+            outflow_extra_depth = Q*timestep/self.outflow.get_area()
+            outflow_direction = - self.outflow.outward_culvert_vector
+            outflow_extra_momentum = outflow_extra_depth*barrel_speed*outflow_direction
+                
+            gain = outflow_extra_depth*self.outflow.get_area()
             
-        self.inflow.set_depths(new_inflow_depth)
+            assert num.allclose(gain-loss, 0.0)
+                
+            #print Q, Q*timestep, barrel_speed, outlet_depth, Qstar, factor, timestep_star
+            #print '  ', loss, gain
 
-        #inflow.set_xmoms(Q/inflow.get_area())
-        #inflow.set_ymoms(0.0)
-
-        self.inflow.set_xmoms(new_inflow_xmom)
-        self.inflow.set_ymoms(new_inflow_ymom)
-
-        loss = (old_inflow_depth - new_inflow_depth)*self.inflow.get_area()
-
-        # set outflow
-        if old_inflow_depth > 0.0 :
-            timestep_star = timestep*new_inflow_depth/old_inflow_depth
-        else:
-            timestep_star = 0.0
-
-
-
-
-        outflow_extra_depth = Q*timestep_star/self.outflow.get_area()
-        outflow_direction = - self.outflow.outward_culvert_vector
-        outflow_extra_momentum = outflow_extra_depth*barrel_speed*outflow_direction
-            
-        gain = outflow_extra_depth*self.outflow.get_area()
-            
-        #print Q, Q*timestep, barrel_speed, outlet_depth, Qstar, factor, timestep_star
-        #print '  ', loss, gain
-
+    
         # Stats
-        self.discharge  = Q#outflow_extra_depth*self.outflow.get_area()/timestep
-        self.velocity = barrel_speed#self.discharge/outlet_depth/self.width
+        
+        self.accumulated_flow += gain
+        self.discharge  = outflow_extra_depth*self.outflow.get_area()/timestep #Q
+        self.velocity =   barrel_speed # self.discharge/outlet_depth/self.width 
+        self.outlet_depth = outlet_depth
 
         new_outflow_depth = self.outflow.get_average_depth() + outflow_extra_depth
 
         if self.use_momentum_jet :
             # FIXME (SR) Review momentum to account for possible hydraulic jumps at outlet
-            #new_outflow_xmom = outflow.get_average_xmom() + outflow_extra_momentum[0]
-            #new_outflow_ymom = outflow.get_average_ymom() + outflow_extra_momentum[1]
+            #new_outflow_xmom = self.outflow.get_average_xmom() + outflow_extra_momentum[0]
+            #new_outflow_ymom = self.outflow.get_average_ymom() + outflow_extra_momentum[1]
             new_outflow_xmom = barrel_speed*new_outflow_depth*outflow_direction[0]
             new_outflow_ymom = barrel_speed*new_outflow_depth*outflow_direction[1]
 
@@ -395,11 +457,39 @@ class Structure_operator(anuga.Operator):
         message += 'Structure report for %s:\n' % self.label
         message += '--------------------------\n'
         message += 'Type: %s\n' % self.structure_type
+        
+        message += 'inlets[0]_enquiry_depth [m]:  %.2f\n' %self.inlets[0].get_enquiry_depth()
+        message += 'inlets[0]_enquiry_speed [m/s]:  %.2f\n' %self.inlets[0].get_enquiry_speed()
+        message += 'inlets[0]_enquiry_stage [m]:  %.2f\n' %self.inlets[0].get_enquiry_stage()
+        message += 'inlets[0]_enquiry_elevation [m]:  %.2f\n' %self.inlets[0].get_enquiry_elevation()
+        message += 'inlets[0]_average_depth [m]:  %.2f\n' %self.inlets[0].get_average_depth()
+        message += 'inlets[0]_average_speed [m/s]:  %.2f\n' %self.inlets[0].get_average_speed()
+        message += 'inlets[0]_average_stage [m]:  %.2f\n' %self.inlets[0].get_average_stage()
+        message += 'inlets[0]_average_elevation [m]:  %.2f\n' %self.inlets[0].get_average_elevation()
+
+        message += '\n'
+       
+        message += 'inlets[1]_enquiry_depth [m]:  %.2f\n' %self.inlets[1].get_enquiry_depth()
+        message += 'inlets[1]_enquiry_speed [m/s]:  %.2f\n' %self.inlets[1].get_enquiry_speed()
+        message += 'inlets[1]_enquiry_stage [m]:  %.2f\n' %self.inlets[1].get_enquiry_stage()
+        message += 'inlets[1]_enquiry_elevation [m]:  %.2f\n' %self.inlets[1].get_enquiry_elevation()
+
+        message += 'inlets[1]_average_depth [m]:  %.2f\n' %self.inlets[1].get_average_depth()
+        message += 'inlets[1]_average_speed [m/s]:  %.2f\n' %self.inlets[1].get_average_speed()
+        message += 'inlets[1]_average_stage [m]:  %.2f\n' %self.inlets[1].get_average_stage()
+        message += 'inlets[1]_average_elevation [m]:  %.2f\n' %self.inlets[1].get_average_elevation()
+
+        
         message += 'Discharge [m^3/s]: %.2f\n' % self.discharge
         message += 'Velocity  [m/s]: %.2f\n' % self.velocity
+        message += 'Outlet Depth  [m]: %.2f\n' % self.outlet_depth
+        message += 'Accumulated Flow [m^3]: %.2f\n' % self.accumulated_flow
         message += 'Inlet Driving Energy %.2f\n' % self.driving_energy
         message += 'Delta Total Energy %.2f\n' % self.delta_total_energy
         message += 'Control at this instant: %s\n' % self.case
+        
+
+
 
         print message
 
@@ -422,8 +512,11 @@ class Structure_operator(anuga.Operator):
         message  = '%.5f, ' % self.domain.get_time()
         message += '%.5f, ' % self.discharge
         message += '%.5f, ' % self.velocity
+        message += '%.5f, ' % self.accumulated_flow
         message += '%.5f, ' % self.driving_energy
         message += '%.5f' % self.delta_total_energy
+        
+
 
         return message
 

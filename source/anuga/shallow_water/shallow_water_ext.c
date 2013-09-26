@@ -2756,10 +2756,12 @@ int _extrapolate_second_order_sw(struct domain *D) {
     //double dk, dv0, dv1, dv2, de[3], demin, dcmax, r0scale;
     double dk, dv0, dv1, dv2;
 
-    double *xmom_centroid_store, *ymom_centroid_store, *stage_centroid_store;
+    double *xmom_centroid_store;
+    double *ymom_centroid_store;
+    //double *stage_centroid_store;
 
 
-    // Associate memory location of Domain varialbe with local aliases
+    // Associate memory location of Domain varibles with local aliases
     number_of_elements     = D->number_of_elements;
     epsilon                = D->epsilon;
     minimum_allowed_height = D->minimum_allowed_height;
@@ -2835,7 +2837,7 @@ int _extrapolate_second_order_sw(int number_of_elements,
    // segfaults in large model runs
     xmom_centroid_store = malloc(number_of_elements*sizeof(double));
     ymom_centroid_store = malloc(number_of_elements*sizeof(double));
-    stage_centroid_store = malloc(number_of_elements*sizeof(double));
+    // stage_centroid_store = malloc(number_of_elements*sizeof(double));
 
     if (extrapolate_velocity_second_order == 1) {
         // Replace momentum centroid with velocity centroid to allow velocity
@@ -3317,7 +3319,7 @@ int _extrapolate_second_order_sw(int number_of_elements,
 
     free(xmom_centroid_store);
     free(ymom_centroid_store);
-    free(stage_centroid_store);
+    //free(stage_centroid_store);
 
 
     return 0;

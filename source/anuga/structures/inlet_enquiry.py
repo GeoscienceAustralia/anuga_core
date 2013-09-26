@@ -53,7 +53,7 @@ class Inlet_enquiry(inlet.Inlet):
         
         if self.enquiry_index in self.triangle_indices:
             msg = 'Enquiry point %s' % (self.enquiry_pt)
-            msg += 'is in an inlet triangle'
+            msg += ' is in an inlet triangle'
             import warnings
             warnings.warn(msg)
             

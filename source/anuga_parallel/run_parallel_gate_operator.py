@@ -1,11 +1,11 @@
 import os.path
 import sys
 
-from anuga.utilities.system_tools import get_pathname_from_package
-from anuga.geometry.polygon_function import Polygon_function
+#from anuga.utilities.system_tools import get_pathname_from_package
+#from anuga.geometry.polygon_function import Polygon_function
         
-from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
-from anuga.abstract_2d_finite_volumes.quantity import Quantity
+#from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+#from anuga.abstract_2d_finite_volumes.quantity import Quantity
 
 import anuga
 import time
@@ -15,9 +15,9 @@ from math import pi, pow, sqrt
 
 import numpy as num
 
-from anuga_parallel import distribute, myid, numprocs, finalize, barrier
+from anuga import distribute, myid, numprocs, finalize, barrier
 
-from parallel_operator_factory import Inlet_operator, Boyd_box_operator
+from anuga import Inlet_operator, Boyd_box_operator
 
 
 
@@ -55,14 +55,7 @@ def topography(x, y):
 
     return z
 
-
-"""test_that_culvert_runs_rating
-
-This test exercises the culvert and checks values outside rating curve
-are dealt with       
-"""
-
-path = get_pathname_from_package('anuga.culvert_flows')    
+  
 
 length = 40.
 width = 15.
@@ -72,12 +65,12 @@ dx = dy = 0.5          # Resolution: Length of subdivisions on both axes
 
 if myid == 0:
 
-    points, vertices, boundary = rectangular_cross(int(length/dx),
-                                               int(width/dy),
-                                               len1=length, 
-                                               len2=width)
+    points, vertices, boundary = anuga.rectangular_cross(int(length/dx),
+                                                         int(width/dy),
+                                                         len1=length, 
+                                                         len2=width)
     domain = anuga.Domain(points, vertices, boundary)
-    domain.set_name('run_gate_operator')                 # Output name
+    domain.set_name()                 # Output name
     domain.set_flow_algorithm('2_0')
 
 
