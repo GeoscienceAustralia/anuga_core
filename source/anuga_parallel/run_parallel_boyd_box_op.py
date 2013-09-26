@@ -66,8 +66,8 @@ if myid == 0:
                                                    len2=width)
 
     domain = anuga.Domain(points, vertices, boundary)   
-    domain.set_name('run_parallel_frac_pp')                 # Output name
-    domain.set_default_order(2)
+    domain.set_name()                 # Output name output_script_name.sww
+    domain.set_flow_algorithm('1_5')
 else:
     domain = None
     
@@ -99,7 +99,7 @@ domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
     ################ Define Fractional Operators ##########################
 line0 = [[10.0, 10.0], [30.0, 10.0]]
 #line0 = [[29.0, 10.0], [30.0, 10.0]]
-line1 = [[0.0, 10.0], [0.0, 15.0]]
+poly1 = [[0.0, 10.0], [0.0, 15.0], [5.0, 15.0], [5.0, 10.0]]
 Q0 = anuga.file_function('test_hydrograph.tms', quantities=['hydrograph'])
 Q1 = 5.0
 
@@ -111,7 +111,7 @@ inlet1 = None
 boyd_box0 = None
 
 inlet0 = Inlet_operator(domain, line0, Q0, logging=True, description='inlet0', verbose = False)
-inlet1 = Inlet_operator(domain, line1, Q1, logging=True, description='inlet1', verbose = False)
+inlet1 = Inlet_operator(domain, poly1, Q1, logging=True, description='inlet1', verbose = False)
 
 # Enquiry point [ 19.    2.5] is contained in two domains in 4 proc case
 
