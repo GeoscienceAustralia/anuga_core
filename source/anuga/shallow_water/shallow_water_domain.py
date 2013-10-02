@@ -905,7 +905,7 @@ class Domain(Generic_Domain):
         assert isinstance(q, dict)
         self.quantities_to_be_stored = q
 
-    def get_wet_elements(self, indices=None):
+    def get_wet_elements(self, indices=None, minimum_height=None):
         """Return indices for elements where h > minimum_allowed_height
 
         Optional argument:
@@ -920,6 +920,9 @@ class Domain(Generic_Domain):
         # Water depth below which it is considered to be 0 in the model
         # FIXME (Ole): Allow this to be specified as a keyword argument as well
         from anuga.config import minimum_allowed_height
+        
+        if minimum_height is None:
+            minimum_height = minimum_allowed_height
 
         elevation = self.get_quantity('elevation').\
                         get_values(location='centroids', indices=indices)
@@ -928,23 +931,23 @@ class Domain(Generic_Domain):
         depth = stage - elevation
 
         # Select indices for which depth > 0
-        wet_indices = num.compress(depth > minimum_allowed_height,
+        wet_indices = num.compress(depth > minimum_height,
                                    num.arange(len(depth)))
         return wet_indices
 
-    def get_maximum_inundation_elevation(self, indices=None):
+    def get_maximum_inundation_elevation(self, indices=None, minimum_height=None):
         """Return highest elevation where h > 0
 
         Optional argument:
             indices is the set of element ids that the operation applies to.
-
+            minimum_height for testing h > minimum_height
         Usage:
             q = get_maximum_inundation_elevation()
 
         Note, centroid values are used for this operation
         """
 
-        wet_elements = self.get_wet_elements(indices)
+        wet_elements = self.get_wet_elements(indices, minimum_height)
         return self.get_quantity('elevation').\
                    get_maximum_value(indices=wet_elements)
 

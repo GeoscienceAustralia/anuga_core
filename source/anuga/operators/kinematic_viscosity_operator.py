@@ -26,7 +26,11 @@ class Kinematic_viscosity_operator(Operator):
 
     """
 
-    def __init__(self, domain, diffusivity='height', use_triangle_areas=True, verbose=False):
+    def __init__(self,
+                 domain, diffusivity='height',
+                 use_triangle_areas=True,
+                 add_safety = False,
+                 verbose=False):
 
         if verbose: log.critical('Kinematic Viscosity: Beginning Initialisation')
         
@@ -54,7 +58,8 @@ class Kinematic_viscosity_operator(Operator):
             self.diffusivity = self.domain.get_quantity(diffusivity)
             
 
-        self.smooth = 0.001
+        self.add_safety = add_safety
+        self.smooth = 0.1
         
         assert isinstance(self.diffusivity, Quantity)
         
@@ -132,7 +137,10 @@ class Kinematic_viscosity_operator(Operator):
         domain.update_centroids_of_velocities_and_height()
 
         # diffusivity
-        d = self.diffusivity
+        if self.add_safety:
+            d = self.diffusivity + 0.1
+        else:
+            d = self.diffusivity
 
 
         assert num.all(d.centroid_values >= 0.0)
@@ -514,8 +522,8 @@ class Kinematic_viscosity_operator(Operator):
 
 
         if use_dt_tol:
-            tol  = min(self.dt,0.01)
-            atol = min(self.dt,0.01)
+            tol  = min(self.dt,0.001)
+            atol = min(self.dt,0.001)
         else:
             tol  =  1.0e-5
             atol = 1.0e-5

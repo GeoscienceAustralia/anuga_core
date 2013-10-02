@@ -70,7 +70,7 @@ def axes2points(x, y):
 class Test_grd2array(unittest.TestCase):
  
  
-     def test_grd2array(self):
+     def test_grd2array_1(self):
 
 
 
@@ -97,7 +97,8 @@ class Test_grd2array(unittest.TestCase):
         
         #Create .asc file
         #txt_file = tempfile.mktemp(".asc")from anuga.config import netcdf_float
-        txt_file = 'test_asc.asc'
+        root = 'test_asc_1'
+        txt_file = root+'.asc'
         datafile = open(txt_file,"w")
         datafile.write('ncols '+str(ncols)+"\n")
         datafile.write('nrows '+str(nrows)+"\n")
@@ -156,6 +157,108 @@ class Test_grd2array(unittest.TestCase):
         assert num.allclose(y,y_ex)
         
         
+        os.remove(root + '.asc')
+
+        
+     def test_grd2array_2(self):
+
+
+
+        """ Format of asc file 
+        ncols         11
+        nrows         12
+        xllcorner     240000
+        yllcorner     7620000
+        cellsize      6000
+        NODATA_value  -9999
+        """
+        
+        x0 = 240000.0
+        y0 = 7620000.0
+        
+        ncols = 11  # Nx
+        nrows = 12  # Ny
+        xllcorner = x0
+        yllcorner = y0
+        cellsize  = 6000.0
+        NODATA_value =  -9999
+
+
+        
+        #Create .asc file
+        #txt_file = tempfile.mktemp(".asc")from anuga.config import netcdf_float
+        root = 'test_asc_2'
+        txt_file = root+'.asc'
+        datafile = open(txt_file,"w")
+        datafile.write('ncols '+str(ncols)+"\n")
+        datafile.write('nrows '+str(nrows)+"\n")
+        datafile.write('xllcorner '+str(xllcorner)+"\n")
+        datafile.write('yllcorner '+str(yllcorner)+"\n")
+        datafile.write('cellsize '+str(cellsize)+"\n")
+        datafile.write('NODATA_value '+str(NODATA_value)+"\n")
+        
+        x_ex = num.linspace(xllcorner, xllcorner+(ncols-1)*cellsize, ncols)
+        y_ex = num.linspace(yllcorner, yllcorner+(nrows-1)*cellsize, nrows)
+        points = axes2points(x_ex, y_ex)
+        
+        #print points
+        #print x_ex.shape, x_ex
+        #print y_ex.shape, y_ex
+        
+        datavalues = linear_function(points)
+        #print datavalues 
+        
+        datavalues = datavalues.reshape(nrows,ncols)
+
+        #print datavalues
+        #print datavalues.shape
+        for row in datavalues:
+            #print row
+            datafile.write(" ".join(str(elem) for elem in row) + "\n")         
+        datafile.close()
+
+        #print quantity.vertex_values
+        #print quantity.centroid_values 
+
+        x,y,Z = grd2array(txt_file)
+
+        #print x
+        #print y
+        #print Z
+
+        answer = [[    23100000., 23118000., 23136000., 23154000., 23172000., 23190000.,
+                       23208000., 23226000., 23244000., 23262000., 23280000., 23298000.],
+                     [ 23106000., 23124000., 23142000., 23160000., 23178000., 23196000.,
+                       23214000., 23232000., 23250000., 23268000., 23286000., 23304000.],
+                     [ 23112000., 23130000., 23148000., 23166000., 23184000., 23202000.,
+                       23220000., 23238000., 23256000., 23274000., 23292000., 23310000.],
+                     [ 23118000., 23136000., 23154000., 23172000., 23190000., 23208000.,
+                       23226000., 23244000., 23262000., 23280000., 23298000., 23316000.],
+                     [ 23124000., 23142000., 23160000., 23178000., 23196000., 23214000.,
+                       23232000., 23250000., 23268000., 23286000., 23304000., 23322000.],
+                     [ 23130000., 23148000., 23166000., 23184000., 23202000., 23220000.,
+                       23238000., 23256000., 23274000., 23292000., 23310000., 23328000.],
+                     [ 23136000., 23154000., 23172000., 23190000., 23208000., 23226000.,
+                       23244000., 23262000., 23280000., 23298000., 23316000., 23334000.],
+                     [ 23142000., 23160000., 23178000., 23196000., 23214000., 23232000.,
+                       23250000., 23268000., 23286000., 23304000., 23322000., 23340000.],
+                     [ 23148000., 23166000., 23184000., 23202000., 23220000., 23238000.,
+                       23256000., 23274000., 23292000., 23310000., 23328000., 23346000.],
+                     [ 23154000., 23172000., 23190000., 23208000., 23226000., 23244000.,
+                       23262000., 23280000., 23298000., 23316000., 23334000., 23352000.],
+                     [ 23160000., 23178000., 23196000., 23214000., 23232000., 23250000.,
+                       23268000., 23286000., 23304000., 23322000., 23340000., 23358000.]]
+        
+
+
+        #print quantity.vertex_values
+        
+        assert num.allclose(Z, answer)
+        assert num.allclose(x,x_ex)
+        assert num.allclose(y,y_ex)
+        
+        os.remove(root + '.asc')
+      
  
 
 #################################################################################

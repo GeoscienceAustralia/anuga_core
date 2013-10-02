@@ -148,7 +148,7 @@ def get_energy_through_cross_section(filename,
 
     Returns (time, E)
     where time is a list of timestep
-      and E isaAverage energy [m] across given segments for all stored times.
+    and E is a Average energy [m] across given segments for all stored times.
 
     The average velocity is computed for each triangle intersected by the
     polyline and averaged weighted by segment lengths.
@@ -287,7 +287,7 @@ def get_maximum_inundation_location(filename,
 
 
 def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
-                                use_centroid_values=False,
+                                use_centroid_values=True,
                                 verbose=False):
     """Compute maximum run up height from sww file.
 
@@ -328,6 +328,9 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
 
     iterate_over = get_all_swwfiles(dir, base)
 
+    if verbose:
+        print iterate_over
+        
     # Read sww file
     if verbose: log.critical('Reading from %s' % filename)
     # FIXME: Use general swwstats (when done)
@@ -360,16 +363,26 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         y = fid.variables['y'][:] + yllcorner
 
         # Get the relevant quantities (Convert from single precison)
-        elevation = num.array(fid.variables['elevation'][:], num.float)
-        stage = num.array(fid.variables['stage'][:], num.float)
+        elevation = num.array(fid.variables['elevation'], num.float)
+        stage = num.array(fid.variables['stage'], num.float)
 
+        if verbose:
+            print 'stage.shape ',stage.shape
+            print 'elevation.shape ',elevation.shape
+            
         # Here's where one could convert nodal information to centroid
         # information but is probably something we need to write in C.
         # Here's a Python thought which is NOT finished!!!
         if use_centroid_values is True:
-            x = get_centroid_values(x, volumes)
-            y = get_centroid_values(y, volumes)
-            elevation = get_centroid_values(elevation, volumes)
+            vols0=volumes[:,0]
+            vols1=volumes[:,1]
+            vols2=volumes[:,2]
+            # Then use these to compute centroid averages 
+            x=(x[vols0]+x[vols1]+x[vols2])/3.0
+            y=(y[vols0]+y[vols1]+y[vols2])/3.0
+
+            elevation=(elevation[vols0]+elevation[vols1]+elevation[vols2])/3.0
+            stage=(stage[:,vols0]+stage[:,vols1]+stage[:,vols2])/3.0
 
         # Spatial restriction
         if polygon is not None:
@@ -397,6 +410,8 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
 
         # Temporal restriction
         time = fid.variables['time'][:]
+        if verbose:
+            print time
         all_timeindices = num.arange(len(time))
         if time_interval is not None:
             msg = 'time_interval must be a sequence of length 2.'
@@ -433,26 +448,46 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         #maximal_runups = [None]
         #maximal_runup_locations = [None]
 
-        for i in timesteps:
-            if use_centroid_values is True:
-                stage_i = get_centroid_values(stage[i,:], volumes)
-            else:
-                stage_i = stage[i,:]
 
+
+            
+        for i in timesteps:
+            ## if use_centroid_values is True:
+            ##     stage_i  = stage[i,:]
+            ## else:
+            ##     stage_i = stage[i,:]
+
+            stage_i = stage[i,:]
             depth = stage_i - elevation
 
+            if verbose:
+                print '++++++++'
             # Get wet nodes i.e. nodes with depth>0 within given region
             # and timesteps
-            wet_nodes = num.compress(depth > minimum_allowed_height,
-                                     num.arange(len(depth)))
+            wet_nodes = num.where(depth > 0.0)[0]
+
+
+            if verbose:
+                print stage_i.shape
+                print num.max(stage_i)
+                #print max(wet_elevation)
+
 
             if num.alltrue(wet_nodes == 0):
                 runup = None
             else:
                 # Find maximum elevation among wet nodes
                 wet_elevation = num.take(elevation, wet_nodes, axis=0)
+
+
+                if verbose:
+                    pass
+                    #print wet_elevation
+                    
                 runup_index = num.argmax(wet_elevation)
                 runup = max(wet_elevation)
+                if verbose:
+                    print 'max(wet_elevation) ',max(wet_elevation)
                 assert wet_elevation[runup_index] == runup       # Must be True
 
             if runup > maximal_runup:
@@ -463,6 +498,8 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
                 wet_y = num.take(y, wet_nodes, axis=0)
                 maximal_runup_location =    [wet_x[runup_index], \
                                             wet_y[runup_index]]
+            if verbose:
+                print i, runup
 
     return maximal_runup, maximal_runup_location
 
