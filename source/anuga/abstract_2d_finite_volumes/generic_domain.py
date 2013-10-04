@@ -16,7 +16,7 @@ from time import time as walltime
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from pmesh2domain import pmesh_to_domain
-from region import Set_region as region_set_region
+from tag_region import Set_tag_region as region_set_tag_region
 from anuga.geometry.polygon import inside_polygon
 from anuga.abstract_2d_finite_volumes.util import get_textual_float
 from quantity import Quantity
@@ -878,7 +878,7 @@ class Generic_Domain:
     # @brief Set quantities based on a regional tag.
     # @param args
     # @param kwargs
-    def set_region(self, *args, **kwargs):
+    def set_tag_region(self, *args, **kwargs):
         """Set quantities based on a regional tag.
 
         It is most often called with the following parameters;
@@ -897,10 +897,10 @@ class Generic_Domain:
             self._set_region(*args, **kwargs)
         else:
             # Assume it is arguments for the region.set_region function
-            func = region_set_region(*args, **kwargs)
+            func = region_set_tag_region(*args, **kwargs)
             self._set_region(func)
 
-    def _set_region(self, functions):
+    def _set_tag_region(self, functions):
         # coerce to an iterable (list or tuple)
         if not isinstance(functions, (list, tuple)):
             functions = [functions]
