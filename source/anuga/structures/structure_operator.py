@@ -50,7 +50,8 @@ class Structure_operator(anuga.Operator):
         """
 
         anuga.Operator.__init__(self,domain)
-        
+
+        self.master_proc = 0
         self.end_points = ensure_numeric(end_points)
         self.exchange_lines = ensure_numeric(exchange_lines)
         self.enquiry_points = ensure_numeric(enquiry_points)
@@ -437,8 +438,8 @@ class Structure_operator(anuga.Operator):
             message += '%s' % self.domain.get_centroid_coordinates()[inlet.triangle_indices]
             message += '\n'
 
-            message += 'line\n'
-            message += '%s' % inlet.line
+            message += 'region\n'
+            message += '%s' % inlet.region
             message += '\n'
 
         message += '=====================================\n'

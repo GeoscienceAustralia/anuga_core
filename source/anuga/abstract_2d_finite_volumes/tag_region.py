@@ -10,7 +10,7 @@ operate.
 import numpy as num
 
 
-class Region:
+class Tag_region:
     """Base class for modifying quantities based on a region.
     """   
 
@@ -31,7 +31,7 @@ class Region:
         else:
             return elements
                 
-class Set_region(Region):
+class Set_tag_region(Tag_region):
     
     def __init__(self, tag, quantity, X, location='vertices'):
         """ 
@@ -41,7 +41,7 @@ class Set_region(Region):
         Permissible options are: vertices, centroid
         """
         
-        Region.__init__(self)
+        Tag_region.__init__(self)
         self.tag = tag 
         self.quantity = quantity
         self.location = location
@@ -60,7 +60,7 @@ class Set_region(Region):
                                 indices=self.build_indices(elements, domain))
 
         
-class Add_value_to_region(Region):
+class Add_value_to_region(Tag_region):
     """
     Will add a value to the current quantity value.
     
@@ -113,7 +113,7 @@ class Add_value_to_region(Region):
                                 indices=self.build_indices(elements, domain),
                                 location=self.location)
 
-class Add_quantities(Region):
+class Add_quantities(Tag_region):
     """
     Will add a quantity to the current quantity value.
     """
@@ -156,7 +156,7 @@ class Add_quantities(Region):
                                 location=self.location)
 
 
-class Stage_no_less_than_elevation(Region):
+class Stage_no_less_than_elevation(Tag_region):
     """
     Will set the stage to not be less than the elevation.
     This would be good, but it's not region dependent.

@@ -15,6 +15,7 @@ from anuga.config import time_format
 from set_stage_operator import *
 
 import numpy as num
+from pprint import pprint
 import warnings
 import time
 
@@ -226,6 +227,7 @@ class Test_set_stage_operators(unittest.TestCase):
         length = 2.0
         width = 2.0
         dx = dy = 0.5
+        #dx = dy = 0.1
         domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
 
@@ -255,9 +257,20 @@ class Test_set_stage_operators(unittest.TestCase):
         #operator = Polygonal_set_stage_operator(domain, stage=stage, polygon=polygon)
         operator = Polygonal_set_stage_operator(domain, stage=stage, polygon=polygon)
 
+
+        #operator.plot_region()
+        
         # Apply Operator at time t=1.0
         domain.set_time(1.0)
         operator()
+
+
+        stage_ex_expanded = \
+                   [ 1.,  1.,  5.,  5.,  1.,  5.,  5.,  5.,  1.,  5.,  5.,  5.,  1.,
+                     5.,  5.,  1.,  5.,  1.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,
+                     5.,  5.,  5.,  5.,  5.,  1.,  5.,  1.,  5.,  5.,  5.,  5.,  5.,
+                     5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  1.,  5.,  1.,  1.,  5.,
+                     5.,  5.,  1.,  5.,  5.,  5.,  1.,  5.,  5.,  5.,  1.,  1.]
 
         stage_ex = [ 1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,
                      1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,
@@ -269,7 +282,7 @@ class Test_set_stage_operators(unittest.TestCase):
 
 
 #        print domain.quantities['elevation'].centroid_values
-#        print domain.quantities['stage'].centroid_values
+#        pprint(domain.quantities['stage'].centroid_values)
 #        print domain.quantities['xmomentum'].centroid_values
 #        print domain.quantities['ymomentum'].centroid_values
 
@@ -281,6 +294,14 @@ class Test_set_stage_operators(unittest.TestCase):
         domain.set_time(15.0)
         operator()
 
+        stage_ex_expanded = \
+                   [ 1.,  1.,  7.,  7.,  1.,  7.,  7.,  7.,  1.,  7.,  7.,  7.,  1.,
+                     7.,  7.,  1.,  7.,  1.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,
+                     7.,  7.,  7.,  7.,  7.,  1.,  7.,  1.,  7.,  7.,  7.,  7.,  7.,
+                     7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  1.,  7.,  1.,  1.,  7.,
+                     7.,  7.,  1.,  7.,  7.,  7.,  1.,  7.,  7.,  7.,  1.,  1.]
+
+
         stage_ex = [ 1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,
                      1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,
                      7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  7.0,  1.0,  1.0,
@@ -290,7 +311,7 @@ class Test_set_stage_operators(unittest.TestCase):
                      1.0,  1.0,  1.0,  1.0]
 
 
-#        print domain.quantities['stage'].centroid_values
+#        pprint(domain.quantities['stage'].centroid_values)
 #        print domain.quantities['xmomentum'].centroid_values
 #        print domain.quantities['ymomentum'].centroid_values
 

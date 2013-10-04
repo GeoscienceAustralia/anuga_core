@@ -51,7 +51,7 @@ nprocs = 3
 length = 40.
 width = 16.
 
-dx = dy = 2           # Resolution: Length of subdivisions on both axes
+dx = dy = 4           # Resolution: Length of subdivisions on both axes
 
 #----------------------------------------------------------------------
 # Setup initial conditions
@@ -166,8 +166,8 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     inlet1 = None
     boyd_box0 = None
     
-    inlet0 = Inlet_operator(domain, line0, Q0, verbose = False)
-    inlet1 = Inlet_operator(domain, line1, Q1, verbose = False)
+    inlet0 = Inlet_operator(domain, line0, Q0, verbose = False, label = 'Inlet_0')
+    inlet1 = Inlet_operator(domain, line1, Q1, verbose = False, label = 'Inlet_1')
     
     # Enquiry point [ 19.    2.5] is contained in two domains in 4 proc case
     
@@ -175,15 +175,19 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
                                   end_points=[[9.0, 2.5],[19.0, 2.5]],
                                   losses=1.5,
                                   width=5.0,
-                                  apron=5.0,
+                                  #apron=5.,
                                   use_momentum_jet=True,
                                   use_velocity_head=False,
                                   manning=0.013,
+                                  label='Boyd_Box_0',
                                   verbose=False)
         
-    if inlet0 is not None and verbose: inlet0.print_statistics()
-    if inlet1 is not None and verbose: inlet1.print_statistics()
-    if boyd_box0 is not None and verbose: boyd_box0.print_statistics()
+    #if inlet0 is not None and verbose: inlet0.print_statistics()
+    #if inlet1 is not None and verbose: inlet1.print_statistics()
+    
+    if boyd_box0 is not None and verbose:
+        print "++++", myid
+        boyd_box0.print_statistics()
 
 #    if parallel:
 #        factory = Parallel_operator_factory(domain, verbose = True)
@@ -230,7 +234,10 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
         stage = domain.get_quantity('stage')
 
 
-        if boyd_box0 is not None and verbose : boyd_box0.print_timestepping_statistics()
+        if boyd_box0 is not None and verbose :
+            if myid == boyd_box0.master_proc:
+                print 'master_proc ',myid
+                boyd_box0.print_timestepping_statistics()
  
         #for i in range(samples):
         #    if tri_ids[i] >= 0:                

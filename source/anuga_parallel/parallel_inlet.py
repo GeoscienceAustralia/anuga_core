@@ -63,8 +63,10 @@ class Parallel_Inlet(Inlet):
 
         else: # poly is a polygon
 
-            self.triangle_indices = inside_polygon(domain_centroids, self.poly)
-
+            tris_0 = line_intersect(vertex_coordinates, [self.poly[0],self.poly[1]])
+            tris_1 = inside_polygon(domain_centroids, self.poly)
+            self.triangle_indices = num.union1d(tris_0, tris_1)
+            #print self.triangle_indices
 
         for i in self.triangle_indices:
             assert self.domain.tri_full_flag[i] == 1

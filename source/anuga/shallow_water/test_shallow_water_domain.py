@@ -8268,7 +8268,7 @@ friction  \n \
 
 
 
-    def test_region_tags(self):
+    def test_tag_region_tags(self):
         """
         get values based on triangle lists.
         """
@@ -8288,7 +8288,7 @@ friction  \n \
         manning = 0.07
         domain.set_quantity('friction', manning)
 
-        domain.set_region([set_bottom_friction, set_top_friction])
+        domain.set_tag_region([set_bottom_friction, set_top_friction])
         assert num.allclose(domain.quantities['friction'].get_values(),\
                             [[ 0.09,  0.09,  0.09],
                              [ 0.09,  0.09,  0.09],
@@ -8297,7 +8297,7 @@ friction  \n \
                              [ 1.0,  1.0,  1.0],
                              [ 1.0,  1.0,  1.0]])
 
-        domain.set_region([set_all_friction])
+        domain.set_tag_region([set_all_friction])
         assert num.allclose(domain.quantities['friction'].get_values(),
                             [[ 10.09, 10.09, 10.09],
                              [ 10.09, 10.09, 10.09],
@@ -8327,8 +8327,8 @@ friction  \n \
         manning = 0.07
         domain.set_quantity('friction', manning)
 
-        domain.set_region('top', 'friction', 1.0)
-        domain.set_region('bottom', 'friction', 0.09)
+        domain.set_tag_region('top', 'friction', 1.0)
+        domain.set_tag_region('bottom', 'friction', 0.09)
         
         msg = ("domain.quantities['friction'].get_values()=\n%s\n"
                'should equal\n'
@@ -8347,7 +8347,7 @@ friction  \n \
                              [ 1.0,  1.0,  1.0],
                              [ 1.0,  1.0,  1.0]]), msg
         
-        domain.set_region([set_bottom_friction, set_top_friction])
+        domain.set_tag_region([set_bottom_friction, set_top_friction])
         assert num.allclose(domain.quantities['friction'].get_values(),
                             [[ 0.09,  0.09,  0.09],
                              [ 0.09,  0.09,  0.09],
@@ -8356,7 +8356,7 @@ friction  \n \
                              [ 1.0,  1.0,  1.0],
                              [ 1.0,  1.0,  1.0]])
 
-        domain.set_region([set_all_friction])
+        domain.set_tag_region([set_all_friction])
         assert num.allclose(domain.quantities['friction'].get_values(),
                             [[ 10.09, 10.09, 10.09],
                              [ 10.09, 10.09, 10.09],

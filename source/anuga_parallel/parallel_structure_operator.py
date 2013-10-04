@@ -135,14 +135,15 @@ class Parallel_Structure_operator(anuga.Operator):
             Parallel_Structure_operator.counter += 1
 
         # Slots for recording current statistics
+        self.accumulated_flow = 0.0
         self.discharge = 0.0
         self.velocity = 0.0
+        self.outlet_depth = 0.0
         self.delta_total_energy = 0.0
         self.driving_energy = 0.0
         
         if exchange_lines is not None:
             self.__process_skew_culvert()
-
         elif end_points is not None:
             self.__process_non_skew_culvert()
         else:
@@ -155,6 +156,11 @@ class Parallel_Structure_operator(anuga.Operator):
 
         if self.myid in self.inlet_procs[0]:
             line0 = self.exchange_lines[0]
+            if self.apron is None:
+                poly0 = line0
+            else:
+                offset = -self.apron*self.outward_vector_0 
+                poly0 = num.array([ line0[0], line0[1], line0[1]+offset, line0[0]+offset])
 
             if self.invert_elevations is None:
                 invert_elevation0 = None
@@ -179,6 +185,11 @@ class Parallel_Structure_operator(anuga.Operator):
 
         if self.myid in self.inlet_procs[1]:
             line1 = self.exchange_lines[1]
+            if self.apron is None:
+                poly1 = line1
+            else:
+                offset = -self.apron*self.outward_vector_1
+                poly1 = num.array([ line1[0], line1[1], line1[1]+offset, line1[0]+offset])
 
             if self.invert_elevations is None:
                 invert_elevation1 = None
@@ -357,6 +368,8 @@ class Parallel_Structure_operator(anuga.Operator):
         assert self.culvert_length > 0.0, 'The length of culvert is less than 0'
         
         self.culvert_vector /= self.culvert_length
+        self.outward_vector_0 =   self.culvert_vector
+        self.outward_vector_1 = - self.culvert_vector        
         
         culvert_normal = num.array([-self.culvert_vector[1], self.culvert_vector[0]])  # Normal vector
         w = 0.5*self.width*culvert_normal # Perpendicular vector of 1/2 width
@@ -392,18 +405,48 @@ class Parallel_Structure_operator(anuga.Operator):
             
         centre_point0 = 0.5*(self.exchange_lines[0][0] + self.exchange_lines[0][1])
         centre_point1 = 0.5*(self.exchange_lines[1][0] + self.exchange_lines[1][1])
-        
-        if self.end_points is None:
+
+        n_exchange_0 = len(self.exchange_lines[0])
+        n_exchange_1 = len(self.exchange_lines[1])
+
+        assert n_exchange_0 == n_exchange_1, 'There should be the same number of points in both exchange_lines'
+
+        if n_exchange_0 == 2:
+            
+            if self.end_points is None:
+                self.culvert_vector = centre_point1 - centre_point0
+            else:
+                self.culvert_vector = self.end_points[1] - self.end_points[0]
+
+            self.outward_vector_0 =   self.culvert_vector
+            self.outward_vector_1 = - self.culvert_vector
+
+        elif n_exchange_0 == 4:
+
+            self.outward_vector_0 = self.exchange_lines[0][3] - self.exchange_lines[0][2]
+            self.outward_vector_1 = self.exchange_lines[1][3] - self.exchange_lines[1][2]
+
             self.culvert_vector = centre_point1 - centre_point0
+
         else:
-            self.culvert_vector = self.end_points[1] - self.end_points[0]
-        
+            raise Exception, 'n_exchange_0 != 2 or 4'
+
         self.culvert_length = math.sqrt(num.sum(self.culvert_vector**2))
         assert self.culvert_length > 0.0, 'The length of culvert is less than 0'
+        self.culvert_vector /= self.culvert_length
+
+        outward_vector_0_length = math.sqrt(num.sum(self.outward_vector_0**2))
+        assert outward_vector_0_length > 0.0, 'The length of outlet_vector_0 is less than 0'
+        self.outward_vector_0 /= outward_vector_0_length
+
+        outward_vector_1_length = math.sqrt(num.sum(self.outward_vector_1**2))
+        assert outward_vector_1_length > 0.0, 'The length of outlet_vector_1 is less than 0'
+        self.outward_vector_1 /= outward_vector_1_length
+
         
         if self.enquiry_points is None:
         
-            self.culvert_vector /= self.culvert_length
+
             gap = (self.apron + self.enquiry_gap)*self.culvert_vector
         
             self.enquiry_points = []
@@ -435,6 +478,8 @@ class Parallel_Structure_operator(anuga.Operator):
             message += 'Description\n'
             message += '%s' % self.description
             message += '\n'
+
+        #print "Structure Myids ",self.myid, self.label
         
         for i, inlet in enumerate(self.inlets):
             if self.myid == self.master_proc:
@@ -442,7 +487,11 @@ class Parallel_Structure_operator(anuga.Operator):
                 message +=  'Inlet %i\n' %(i)
                 message += '-------------------------------------\n'
 
-            if inlet is not None: stats = inlet.statistics()
+            #print "*****",inlet, i,self.myid
+            if inlet is not None:
+                
+                
+                stats = inlet.statistics()
 
             if self.myid == self.master_proc:
                 if self.myid != self.inlet_master_proc[i]:

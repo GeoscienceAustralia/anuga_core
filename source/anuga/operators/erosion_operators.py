@@ -15,7 +15,7 @@ import numpy as num
 from anuga import Domain
 from anuga import Quantity
 from anuga.operators.base_operator import Operator
-from anuga.operators.region import Region
+from anuga import Region
 
 
 class Erosion_operator(Operator, Region):

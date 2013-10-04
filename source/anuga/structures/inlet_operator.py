@@ -153,8 +153,8 @@ class Inlet_operator(anuga.Operator):
         message += '%s' % self.domain.get_centroid_coordinates()[inlet.triangle_indices]
         message += '\n'
 
-        message += 'polyline\n'
-        message += '%s' % inlet.line
+        message += 'region\n'
+        message += '%s' % inlet
         message += '\n'
 
         message += '=====================================\n'

@@ -34,7 +34,7 @@ from parallel_inlet_operator import Parallel_Inlet_operator
 from anuga_parallel import distribute, myid, numprocs, finalize
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 
-from parallel_operator_factory import Inlet_operator, Boyd_box_operator
+from parallel_operator_factory import Inlet_operator
 
 import random
 import unittest
@@ -171,19 +171,19 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     
     # Enquiry point [ 19.    2.5] is contained in two domains in 4 proc case
     
-    boyd_box0 = Boyd_box_operator(domain,
-                                  end_points=[[9.0, 2.5],[19.0, 2.5]],
-                                  losses=1.5,
-                                  width=5.0,
-                                  apron=5.0,
-                                  use_momentum_jet=True,
-                                  use_velocity_head=False,
-                                  manning=0.013,
-                                  verbose=False)
+    ## boyd_box0 = Boyd_box_operator(domain,
+    ##                               end_points=[[9.0, 2.5],[19.0, 2.5]],
+    ##                               losses=1.5,
+    ##                               width=5.0,
+    ##                               apron=5.0,
+    ##                               use_momentum_jet=True,
+    ##                               use_velocity_head=False,
+    ##                               manning=0.013,
+    ##                               verbose=False)
         
     if inlet0 is not None and verbose: inlet0.print_statistics()
     if inlet1 is not None and verbose: inlet1.print_statistics()
-    if boyd_box0 is not None and verbose: boyd_box0.print_statistics()
+    #if boyd_box0 is not None and verbose: boyd_box0.print_statistics()
 
 #    if parallel:
 #        factory = Parallel_operator_factory(domain, verbose = True)
@@ -230,7 +230,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
         stage = domain.get_quantity('stage')
 
 
-        if boyd_box0 is not None and verbose : boyd_box0.print_timestepping_statistics()
+        #if boyd_box0 is not None and verbose : boyd_box0.print_timestepping_statistics()
  
         #for i in range(samples):
         #    if tri_ids[i] >= 0:                

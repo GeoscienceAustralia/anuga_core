@@ -6,7 +6,7 @@ from math import sqrt
 from mesh_factory import rectangular
 from anuga.shallow_water.shallow_water_domain import Domain
 from generic_domain import Generic_Domain
-from region import *
+from tag_region import *
 #from anuga.config import epsilon
 
 import numpy as num
@@ -58,9 +58,9 @@ class Test_Region(unittest.TestCase):
         manning = 0.07
         domain.set_quantity('friction', manning)
 
-        a = Set_region('bottom', 'friction', 0.09)
-        b = Set_region('top', 'friction', 1.0)
-        domain.set_region([a, b])
+        a = Set_tag_region('bottom', 'friction', 0.09)
+        b = Set_tag_region('top', 'friction', 1.0)
+        domain.set_tag_region([a, b])
 
         expected = [[ 0.09,  0.09,  0.09],
                     [ 0.09,  0.09,  0.09],
@@ -75,7 +75,7 @@ class Test_Region(unittest.TestCase):
                             expected), msg
 
         #c = Add_Value_To_region('all', 'friction', 10.0)
-        domain.set_region(Add_value_to_region('all', 'friction', 10.0))
+        domain.set_tag_region(Add_value_to_region('all', 'friction', 10.0))
         #print domain.quantities['friction'].get_values()
         assert num.allclose(domain.quantities['friction'].get_values(),
                             [[ 10.09, 10.09, 10.09],
@@ -86,7 +86,7 @@ class Test_Region(unittest.TestCase):
                              [ 11.0,  11.0,  11.0]])
 
         # trying a function
-        domain.set_region(Set_region('top', 'friction', add_x_y))
+        domain.set_tag_region(Set_tag_region('top', 'friction', add_x_y))
         #print domain.quantities['friction'].get_values()
         assert num.allclose(domain.quantities['friction'].get_values(),
                             [[ 10.09, 10.09, 10.09],
@@ -98,7 +98,7 @@ class Test_Region(unittest.TestCase):
 
         domain.set_quantity('elevation', 10.0)
         domain.set_quantity('stage', 10.0)
-        domain.set_region(Add_value_to_region('top', 'stage', 1.0,initial_quantity='elevation'))
+        domain.set_tag_region(Add_value_to_region('top', 'stage', 1.0,initial_quantity='elevation'))
         #print domain.quantities['stage'].get_values()
         assert num.allclose(domain.quantities['stage'].get_values(),
                             [[ 10., 10., 10.],
@@ -115,7 +115,7 @@ class Test_Region(unittest.TestCase):
         #domain.set_quantity('stage',
         #                    domain.quantities['stage'].vertex_values+ \
         #                    domain.quantities['elevation'].vertex_values)
-        domain.set_region(Add_quantities('top', 'elevation','stage'))
+        domain.set_tag_region(Add_quantities('top', 'elevation','stage'))
         #print domain.quantities['stage'].get_values()
         assert num.allclose(domain.quantities['elevation'].get_values(),
                             [[ 10., 10., 10.],
@@ -141,8 +141,8 @@ class Test_Region(unittest.TestCase):
         manning = 0.07
         domain.set_quantity('friction', manning)
 
-        a = Set_region('bottom', 'friction', 0.09, location = 'unique vertices')
-        domain.set_region(a)
+        a = Set_tag_region('bottom', 'friction', 0.09, location = 'unique vertices')
+        domain.set_tag_region(a)
         assert num.allclose(domain.quantities['friction'].get_values(),
                             [[ 0.09,  0.09,  0.09],
                              [ 0.09,  0.09,  0.09],
@@ -170,7 +170,7 @@ class Test_Region(unittest.TestCase):
         manning = 0.07
         domain.set_quantity('friction', manning)
 
-        domain.set_region(Add_value_to_region('bottom', 'friction', 1.0,initial_quantity='friction', location = 'unique vertices'))
+        domain.set_tag_region(Add_value_to_region('bottom', 'friction', 1.0,initial_quantity='friction', location = 'unique vertices'))
 
         #print domain.quantities['friction'].get_values()
         assert num.allclose(domain.quantities['friction'].get_values(),\
@@ -198,7 +198,7 @@ class Test_Region(unittest.TestCase):
         av_bottom = 2.0 / 3.0
         add = 60.0
         calc_frict = av_bottom + add
-        domain.set_region(Add_value_to_region('bottom', 'friction', add,
+        domain.set_tag_region(Add_value_to_region('bottom', 'friction', add,
                                               initial_quantity='friction',
                                               location='vertices',
                                               average=True))
@@ -232,7 +232,7 @@ class Test_Region(unittest.TestCase):
         av_bottom = 2.0/3.0
         add = 60.0
         calc_frict = av_bottom + add
-        domain.set_region(Add_value_to_region('bottom', 'friction', add,
+        domain.set_tag_region(Add_value_to_region('bottom', 'friction', add,
                           initial_quantity='friction',
                            location='unique vertices',
                            average=True

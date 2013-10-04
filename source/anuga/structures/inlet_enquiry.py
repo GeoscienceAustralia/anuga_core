@@ -12,18 +12,22 @@ class Inlet_enquiry(inlet.Inlet):
 
     def __init__(self,
                  domain,
-                 poly,
+                 region,
                  enquiry_pt,
                  invert_elevation = None,
                  outward_culvert_vector=None,
                  verbose=False):
         """
-        poly can be a line or a polygon
+        region can be a line or a polygon or a region object
         """
 
+        #print region
+        #print enquiry_pt
+        
+        inlet.Inlet.__init__(self, domain, region, verbose)
 
-        inlet.Inlet.__init__(self, domain, poly, verbose)
 
+        
         self.enquiry_pt = enquiry_pt
         self.invert_elevation = invert_elevation
         self.outward_culvert_vector = outward_culvert_vector

@@ -175,7 +175,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
                                   end_points=[[9.0, 2.5],[19.0, 2.5]],
                                   losses=1.5,
                                   width=5.0,
-                                  apron=5.0,
+                                  #apron=5.0,
                                   use_momentum_jet=True,
                                   use_velocity_head=False,
                                   manning=0.013,

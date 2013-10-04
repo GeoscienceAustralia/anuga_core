@@ -31,10 +31,9 @@ sys.path += __path__
 from anuga.__metadata__ import __version__, __date__, __author__
 
 from anuga.shallow_water.shallow_water_domain import Domain
-
 from anuga.abstract_2d_finite_volumes.quantity import Quantity
+from anuga.abstract_2d_finite_volumes.region import Region
 
-from anuga.operators.region import Region
 
 from anuga.abstract_2d_finite_volumes.util import file_function, \
                                         sww2timeseries, sww2csv_gauges

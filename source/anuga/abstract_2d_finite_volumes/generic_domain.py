@@ -894,11 +894,11 @@ class Generic_Domain:
         """
 
         if len(args) == 1:
-            self._set_region(*args, **kwargs)
+            self._set_tag_region(*args, **kwargs)
         else:
             # Assume it is arguments for the region.set_region function
             func = region_set_tag_region(*args, **kwargs)
-            self._set_region(func)
+            self._set_tag_region(func)
 
     def _set_tag_region(self, functions):
         # coerce to an iterable (list or tuple)

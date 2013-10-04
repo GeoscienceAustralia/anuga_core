@@ -53,42 +53,140 @@ and the process of downloading, installing and unpacking files into directories.
 \section{System requirements}
 \label{sec:requirements}
 
-To run ANUGA you will need a Windows PC (XP, Vista or 7) or a Linux PC with at 
-least 512MB RAM.  As ANUGA is a memory-intensive numerical system, more memory is better than less.
+To run ANUGA you will need a Windows PC or a Linux PC with at 
+least 1GB RAM.  As ANUGA is a memory-intensive numerical system, more memory is better than less.
 
 The viewer (Windows only) requires a graphics adapter that
 is OpenGL compatible. It has been tested with ATI FireGL X1 cards
 and the NVIDIA family. It may not work with other cards such as those from the
 Intel(R) 82915G Express chipset family.
 
-The instructions below are written for the numpy version of ANUGA.  ANUGA changed from
-relying on the Numeric package to the numpy package early in July, 2009.  If you have a Numeric ANUGA,
-you should refer to the installation instructions for that version.  The last Numeric version of 
-ANUGA had a build number of 7163.
+We recommend that you check out the page \url{http://anuga.anu.edu.au} for the latest information on installing Anuga. 
 
-Where the text below refers to a specific package file such as \code{python-2.5.msi} you will find that
-file in a download area linked through the \emph{numpy_support_software} link on the page
-\url{https://datamining.anu.edu.au/anuga/wiki/NumpyInstall}.
+%Where the text below refers to a specific package file such as \code{python-2.5.msi} you will find that
+%file in a download area linked through the \emph{numpy_support_software} link on the page
+%\url{https://datamining.anu.edu.au/anuga/wiki/NumpyInstall}.
 
 
 \section{Installation}
 
-Below are the install procedures for Windows XP, Windows Vista, Windows 7 (all 32 bit) and Linux (32 and 64 bit).
+Below are the install procedures for Windows 7 (32 bit) and Linux (32 and 64 bit).
 
-\subsection{Quick install - Windows XP (32 bit)}
-\label{sec:winxp}
+\subsection{Install - Windows (32 bit)}
+\label{sec:win}
 
-If you already have previous versions of Python, ANUGA support software or the ANUGA source code installed 
-on the target machine, start off by uninstalling them. Next, download the latest version of the ANUGA 
-Windows installer from \url{http://sourceforge.net/projects/anuga/files/}. The Windows installer will 
-install Python, MingW (select the "Minimal" install), NumPy, NetCDF, Scientific Python, Matplotlib, the 
-ANUGA source code and the viewer (animate). Note that you will need an internet connection to install MingW.
 
-After all the necessary packages have been installed, the installer will proceed to compile the ANUGA C code, 
-run the test suite (optional) and then run a series of validation examples (optional). This may take some time.
-Try the demonstrations provided in the ANUGA directory \code{anuga\_demos} (discussed in the ANUGA user manual at 
-\url{https://datamining.anu.edu.au/anuga/attachment/wiki/WikiStart/anuga_user_manual-1.2.0.pdf}) 
-and view the resulting \code{.sww} files with the ANUGA viewer.
+
+We use PYTHON as our programming environment together with a number of standard PYTHON packages such as numpy, scipy, matplotlib, netcdf4. One way to install all the required packages is to use a distribution like python_xy.
+
+\subsubsection{PYTHON xy}
+
+So first install  python xy. This will be a large download, maybe 500 MB or more, but will provide a complete installation (well see NetCDF4 note below) of python for our needs . You should first remove any other version of python and mingw that may be on your system. The python xy package is currently only 32 bits, but this will still work on 64 bit Windows.
+
+Be sure to choose the win32 python 2.7 version. This is the version for which we are developing.
+Netcdf4 Note
+
+Check that netcdf is available. From a command line, try
+\begin{verbatim}
+python -c "import netCDF4"
+\end{verbatim}
+If no error occurs then netCDF4 is available and you can disregard the rest of this note.
+
+But unfortunately version 2.7.3.1 (April 2013) python xy seems to be missing netCDF4. Please let us know if later versions are ok.
+If it is missing then you need to install another package to cover this loss. For this we can use the precompiled scientific python binaries from  \url{http://www.lfd.uci.edu/~gohlke/pythonlibs/#scientificpython}. I suggest you choose ScientificPython-2.9.2.win32-py2.7.‌exe to install. To test this install try:
+\begin{verbatim}
+python -c "import Scientific.IO.NetCDF"
+\end{verbatim}
+
+\subsubsection{64 bit}
+
+At the moment python xy is only 32 bit, but there seems to be a promise that a 64 bit distribution is not too far away. There is a 64 bit python distribution package from Enthought, but is free only to academic users. So at present we recommend win32 python xy.
+Manual install
+
+It is possible to install the required environment manually. You would need to install Mingw to provide a compiler, the standard distribution of python27 and then precompiled python libraries for numpy, scipy, matplotlib, netcdf4 from a site like  \url{http://www.lfd.uci.edu/~gohlke/pythonlibs/}. It would be interesting to hear feedback on this option, as there is an opportunity to use versions using the Intel Math Kernel Library, which should provide a useful increase in speed.
+Installing anuga
+
+\subsection{Obtaining ANUGA source}
+
+You can either use the source code avialble from sourceforge or  download the latest version of the package using subversion. 
+
+You can obtain version 1.3 of the package from sourceforge by downloading the file \url{http://sourceforge/p/anuga}
+
+
+\subsection{Source from development repository}
+An alternative is checking out the most recent version of the package using subversion. 
+
+You need a subversion client. I suggest installing  tortoise_svn downloads and then checking out the following svn repository. When you installed tortoise svn it creates a few extra menu items to your right click menu in the file manager. Just choose "tortoise" checkout to download the code.
+\begin{verbatim}
+https://anuga.anu.edu.au/svn/anuga/trunk/anuga_core
+\end{verbatim}
+This should produce an anuga_core directory
+
+
+
+\subsection{Setup PYTHONPATH}
+
+We need to tell python where the anuga source code is located. This is done via the PYTHONPATH environment variable.
+
+For instance, if your anuga_core directory was located at
+
+\begin{verbatim}
+C:\Users\Steve\anuga_core
+\end{verbatim}
+
+then you should add
+
+\begin{verbatim}
+C:\Users\Steve\anuga_core\source
+\end{verbatim}
+
+to your PYTHONPATH
+
+Environment variables are accessed via control panel -> advanced system settings -> Environment Variables and then add a new Environment variable PYTHONPATH with value \verb|C:\Users\Steve\anuga_core\source| (or what ever is appropriate for your installation)
+
+\subsection{Compiling ANUGA}
+
+Now go to the directory anuga_core and compile the anuga files. Fire up a cmd terminal, change to the anuga_core directory and run
+\begin{verbatim}
+python compile_all.py
+\end{verbatim}
+Check that all the files have been compiled correctly. There should be an "OK" at the end of each separate compile command.
+
+\subsection{Run Unit tests}
+
+From the anuga_core directory run the unit tests via:
+\begin{verbatim}
+python test_all.py
+\end{verbatim}
+
+\subsection{Conclusion}
+
+Hopefully all the unit tests pass. As this is bleeding edge there are sometimes a small number of failures as this is a work in progress. Have a look at the demos in the directory anuga_core/documentation/user_manual/demos (along with the user manual) to see how to use anuga.
+Updating
+
+\subsection{Updating}
+If you downloaded  the source using subversoin, you can update your version of ANUGA. 
+ This is fairly easy. Just choose the directory to "update" and then right click and choose "tortoise update" to update the code.
+
+Then again from the anuga_core directory recompile the code and check the unit tests via
+
+python compile_all.py
+python test_all.py
+
+
+
+
+%If you already have previous versions of Python, ANUGA support software or the ANUGA source code installed 
+%on the target machine, start off by uninstalling them. Next, download the latest version of the ANUGA 
+%Windows installer from \url{http://sourceforge.net/projects/anuga/files/}. The Windows installer will 
+%install Python, MingW (select the "Minimal" install), NumPy, NetCDF, Scientific Python, Matplotlib, the 
+%ANUGA source code and the viewer (animate). Note that you will need an internet connection to install MingW.
+%
+%After all the necessary packages have been installed, the installer will proceed to compile the ANUGA C code, 
+%run the test suite (optional) and then run a series of validation examples (optional). This may take some time.
+%Try the demonstrations provided in the ANUGA directory \code{anuga\_demos} (discussed in the ANUGA user manual at 
+%\url{https://datamining.anu.edu.au/anuga/attachment/wiki/WikiStart/anuga_user_manual-1.2.0.pdf}) 
+%and view the resulting \code{.sww} files with the ANUGA viewer.
 
 
 

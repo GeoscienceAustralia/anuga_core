@@ -13,7 +13,7 @@ __date__ ="$09/03/2012 4:46:39 PM$"
 import numpy
 
 from anuga.operators.base_operator import Operator
-from anuga.operators.region import Region
+from anuga import Region
 from anuga.config import indent
 
 

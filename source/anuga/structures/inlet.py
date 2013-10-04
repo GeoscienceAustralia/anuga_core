@@ -1,7 +1,10 @@
 import anuga.geometry.polygon
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 from anuga.config import velocity_protection, g
+from anuga import Region
+
 import math
+
 
 import numpy as num
 
@@ -15,47 +18,63 @@ class Inlet:
         self.domain_bounding_polygon = self.domain.get_boundary_polygon()
         self.poly = num.asarray(poly, dtype=num.float64)
         self.verbose = verbose
+        
+        
+        # poly can be either a line, polygon or a regions
+        if isinstance(poly,Region):
+            #print "is region"
+            self.region = poly
+        else:
+            self.region = Region(domain,poly=poly,expand_polygon=True)
+            #print 'is line or polygon'
 
-        self.line = True
-        if len(self.poly) > 2:
-            self.line = False
+        
+        #self.line = True
+        #if len(self.poly) > 2:
+        #    self.line = False
 
-        self.compute_triangle_indices()
+        self.triangle_indices = self.region.indices
+
+        #print self.triangle_indices
+        #print poly
+        #print self.triangle_indices
+        
+        #self.compute_triangle_indices()
         self.compute_area()
         #self.compute_inlet_length()
 
 
 
-    def compute_triangle_indices(self):
+    ## def compute_triangle_indices(self):
 
-        # Get boundary (in absolute coordinates)
-        bounding_polygon = self.domain_bounding_polygon
-        domain_centroids = self.domain.get_centroid_coordinates(absolute=True)
-        vertex_coordinates = self.domain.get_vertex_coordinates(absolute=True)
+    ##     # Get boundary (in absolute coordinates)
+    ##     bounding_polygon = self.domain_bounding_polygon
+    ##     domain_centroids = self.domain.get_centroid_coordinates(absolute=True)
+    ##     vertex_coordinates = self.domain.get_vertex_coordinates(absolute=True)
 
-        if self.line: # poly is a line
-            # Check that line lies within the mesh.
-            for point in self.poly:
-                msg = 'Point %s ' %  str(point)
-                msg += ' did not fall within the domain boundary.'
-                assert is_inside_polygon(point, bounding_polygon), msg
+    ##     if self.line: # poly is a line
+    ##         # Check that line lies within the mesh.
+    ##         for point in self.poly:
+    ##             msg = 'Point %s ' %  str(point)
+    ##             msg += ' did not fall within the domain boundary.'
+    ##             assert is_inside_polygon(point, bounding_polygon), msg
                 
-            self.triangle_indices = line_intersect(vertex_coordinates, self.poly)
+    ##         self.triangle_indices = line_intersect(vertex_coordinates, self.poly)
 
-        else: # poly is a polygon
+    ##     else: # poly is a polygon
 
-            tris_0 = line_intersect(vertex_coordinates, [self.poly[0],self.poly[1]])
-            tris_1 = inside_polygon(domain_centroids, self.poly)
-            #print 40*"="
-            #print tris_0
-            #print tris_1
-            self.triangle_indices = num.union1d(tris_0, tris_1)
-            #print self.triangle_indices
+    ##         tris_0 = line_intersect(vertex_coordinates, [self.poly[0],self.poly[1]])
+    ##         tris_1 = inside_polygon(domain_centroids, self.poly)
+    ##         #print 40*"="
+    ##         #print tris_0
+    ##         #print tris_1
+    ##         self.triangle_indices = num.union1d(tris_0, tris_1)
+    ##         #print self.triangle_indices
 
-        if len(self.triangle_indices) == 0:
-            msg = 'Inlet poly=%s ' % (self.poly)
-            msg += 'No triangle centroids intersecting poly '
-            raise Exception, msg
+    ##     if len(self.triangle_indices) == 0:
+    ##         msg = 'Inlet poly=%s ' % (self.poly)
+    ##         msg += 'No triangle centroids intersecting poly '
+    ##         raise Exception, msg
 
 
 

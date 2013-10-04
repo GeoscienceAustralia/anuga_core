@@ -18,7 +18,7 @@ from anuga.utilities.function_utils import evaluate_temporal_function
 
 from anuga import Quantity
 from anuga.operators.base_operator import Operator
-from anuga.operators.region import Region
+from anuga import Region
 
 class Rate_operator(Operator,Region):
     """
