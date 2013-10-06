@@ -30,6 +30,8 @@ class Structure_operator(anuga.Operator):
                  width=None,
                  height=None,
                  diameter=None,
+                 z1=None,#added by PM 4/10/2013 
+                 z2=None,#added by PM 4/10/2013 
                  apron=None,
                  manning=None,
                  enquiry_gap=None,
@@ -76,6 +78,8 @@ class Structure_operator(anuga.Operator):
         self.width  = width
         self.height = height
         self.diameter = diameter
+        self.z1 = z1 #added by PM 4/10/2013 
+        self.z2 = z2 #added by PM 4/10/2013 
         self.apron  = apron
         self.manning = manning
         self.enquiry_gap = enquiry_gap
@@ -305,6 +309,13 @@ class Structure_operator(anuga.Operator):
 
         self.culvert_width = width
         
+    def set_culvert_z1(self, z1): #added by PM 4/10/2013 
+
+        self.culvert_z1 = z1 #added by PM 4/10/2013 
+
+    def set_culvert_z2(self, z2): #added by PM 4/10/2013 
+
+        self.culvert_z2 = z2 #added by PM 4/10/2013 
 
     def __process_non_skew_culvert(self):
 
@@ -546,6 +557,13 @@ class Structure_operator(anuga.Operator):
     
         return self.height
 
+    def get_culvert_z1(self): #added by PM 4/10/2013 
+    
+        return self.z1 #added by PM 4/10/2013 
+
+    def get_culvert_z2(self): #added by PM 4/10/2013 
+    
+        return self.z2 #added by PM 4/10/2013 
 
     def get_culvert_apron(self):
 

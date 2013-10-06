@@ -150,6 +150,7 @@ from anuga.operators.set_friction_operators import Depth_friction_operator
 from anuga.structures.structure_operator import Structure_operator
 from anuga.structures.boyd_box_operator import Boyd_box_operator
 from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator
+from anuga.structures.weir_orifice_trapezoid_operator import Weir_orifice_trapezoid_operator
 from anuga.structures.inlet_operator import Inlet_operator
 
 #---------------------------

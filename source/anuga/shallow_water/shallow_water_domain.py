@@ -1160,7 +1160,6 @@ class Domain(Generic_Domain):
             # Should implement wb_4 as simpsons rule on both pure
             # flux and pressure flux terms, ie a combination of wb_1
             # and wb_3
-            # Also Gareth's wb scheme should be included.
             # Mabe should come up with better names!
 
 
