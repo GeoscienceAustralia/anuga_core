@@ -308,7 +308,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
 # Test an nprocs-way run of the shallow water equations
 # against the sequential code.
 
-class Test_parallel_frac_op(unittest.TestCase):
+class Test_parallel_boyd_box_operator(unittest.TestCase):
     def test_parallel_operator(self):
         #print "Expect this test to fail if not run from the parallel directory."
         result = os.system("mpirun -np %d python test_parallel_boyd_box_operator.py" % nprocs)
@@ -325,7 +325,7 @@ def assert_(condition, msg="Assertion Failed"):
 if __name__=="__main__":
     if numprocs == 1:
         runner = unittest.TextTestRunner()
-        suite = unittest.makeSuite(Test_parallel_frac_op, 'test')
+        suite = unittest.makeSuite(Test_parallel_boyd_box_operator, 'test')
         #print "Running for numproc = 1"
         runner.run(suite)
     else:

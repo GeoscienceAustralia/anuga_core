@@ -10,12 +10,6 @@ from anuga.abstract_2d_finite_volumes.util import file_function
 
 import anuga
 
-#from anuga.structures.boyd_box_operator import Boyd_box_operator
-#from anuga.structures.inlet_operator import Inlet_operator
-                            
-#from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
-
-
 #------------------------------------------
 # Import pypar without the initial output
 #------------------------------------------
