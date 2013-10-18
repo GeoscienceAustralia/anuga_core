@@ -219,7 +219,6 @@ class Region(object):
         points = self.domain.get_centroid_coordinates(absolute=True)
         vertex_coordinates = self.domain.get_vertex_coordinates(absolute=True)
         
-        #indices = num.asarray(inside_polygon(points, self.polygon))
         indices = inside_polygon(points, self.polygon)
 
         if self.expand_polygon :

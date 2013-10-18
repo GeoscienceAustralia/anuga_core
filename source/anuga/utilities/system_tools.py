@@ -209,8 +209,12 @@ def get_revision_number():
     try:
         return __get_revision_from_svn_client__()
     except:
-        from anuga.stored_version_info import version_inf
-        return process_version_info(version_info)
+        try:
+            from anuga.stored_version_info import version_inf
+            return process_version_info(version_info)
+        except:
+            from anuga.version import version
+            return version
 
 def process_version_info(version_info):
 

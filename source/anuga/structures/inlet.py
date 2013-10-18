@@ -16,17 +16,15 @@ class Inlet:
 
         self.domain = domain
         self.domain_bounding_polygon = self.domain.get_boundary_polygon()
-        self.poly = num.asarray(poly, dtype=num.float64)
         self.verbose = verbose
         
         
         # poly can be either a line, polygon or a regions
         if isinstance(poly,Region):
-            #print "is region"
             self.region = poly
         else:
             self.region = Region(domain,poly=poly,expand_polygon=True)
-            #print 'is line or polygon'
+
 
         
         #self.line = True
