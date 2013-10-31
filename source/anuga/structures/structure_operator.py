@@ -541,7 +541,20 @@ class Structure_operator(anuga.Operator):
     def get_culvert_length(self):
         
         return self.culvert_length
+    
+    
+    
+    def get_culvert_slope(self):
         
+        inlet0 = self.inlets[0]
+        inlet1 = self.inlets[1]
+        
+        elev0 = inlet0.get_enquiry_invert_elevation()
+        elev1 = inlet1.get_enquiry_invert_elevation()
+        
+        return (elev1-elev0)/self.get_culvert_length()
+                          
+                          
         
     def get_culvert_width(self):
         

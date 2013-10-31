@@ -86,6 +86,9 @@ class Boyd_box_operator(anuga.Structure_operator):
         self.velocity = 0.0
         
         self.case = 'N/A'
+        
+        if verbose:
+            print self.get_culvert_slope()
 
 
 

@@ -2502,7 +2502,120 @@ class Test_boyd_box_operator(unittest.TestCase):
         assert numpy.allclose(v, v_expected, rtol=2.0e-2) #outflow velocity
         assert numpy.allclose(d, d_expected, rtol=2.0e-2) #depth at outlet used to calc v 
         
+
+    def test_boyd_12_operator_invert(self):
+        """test_boyd_non_skew
         
+        This tests the Boyd routine with data obtained from culvertw application 1.1 by IceMindserer  BD Parkinson, 
+        calculation code by MJ Boyd 
+        """
+
+        #verbose = True
+        g=9.81
+        culvert_slope=1  # Downward
+
+        inlet_depth=1.50
+        inlet_velocity= 4.0
+        outlet_depth=0.8
+        outlet_velocity=4.0
+        culvert_length=10.0
+        culvert_width=3.60
+        culvert_height=1.20
+        
+        culvert_type='box'
+        manning=0.013
+        sum_loss=1.5
+
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
+        z_in = 10.0
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
+        delta_total_energy = E_in-E_out
+
+        invert0 = 20.0
+        invert1 = 30.0
+
+
+        #Q_expected = 13.546
+        #v_expected = 3.136
+        #d_expected = 1.20
+        
+        Q_expected = 0.0
+        v_expected = 0.0
+        d_expected = 0.0
+        
+        elevation_0 = z_in
+        elevation_1 = z_out
+        
+        stage_0 = elevation_0 + inlet_depth
+        stage_1 = elevation_1 + outlet_depth
+ 
+
+        domain_length = 200.0
+        domain_width = 200.0
+
+        #culvert_length = 20.0
+        #culvert_width = 3.66
+        #culvert_height = 3.66
+        culvert_losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
+        culvert_mannings = 0.013
+        
+        culvert_apron = 0.0
+        enquiry_gap = 5.0
+
+
+
+
+        domain = self._create_domain(d_length=domain_length,
+                                     d_width=domain_width,
+                                     dx = 5.0,
+                                     dy = 5.0,
+                                     elevation_0 = elevation_0,
+                                     elevation_1 = elevation_1,
+                                     stage_0 = stage_0,
+                                     stage_1 = stage_1,
+                                     xvelocity_0 = inlet_velocity,
+                                     xvelocity_1 = outlet_velocity)
+ 
+
+        #print 'Defining Structures'
+        
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
+        
+        
+        culvert = Boyd_box_operator(domain,
+                                    losses=culvert_losses,
+                                    width=culvert_width,
+                                    end_points=[ep0, ep1],
+                                    height=culvert_height,
+                                    apron=culvert_apron,
+                                    #invert_elevations=[elevation_0,elevation_1],
+                                    invert_elevations=[invert0,invert1],
+                                    enquiry_gap=enquiry_gap,
+                                    use_momentum_jet=False,
+                                    use_velocity_head=True,
+                                    manning=culvert_mannings,
+                                    logging=False,
+                                    label='3.6x1.2RCBC',
+                                    verbose=verbose)
+
+        #culvert.determine_inflow_outflow()
+        
+        ( Q, v, d ) = culvert.discharge_routine()
+        
+        if verbose:
+            print 'test_boyd_operator_12_invert'
+            print 'expected ',Q_expected,v_expected, d_expected
+            print 'calc ',Q,v,d
+        
+
+        assert numpy.allclose(Q, Q_expected, rtol=2.0e-2) #inflow
+        assert numpy.allclose(v, v_expected, rtol=2.0e-2) #outflow velocity
+        assert numpy.allclose(d, d_expected, rtol=2.0e-2) #depth at outlet used to calc v 
+        
+       
 # =========================================================================
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_boyd_box_operator, 'test')
