@@ -459,5 +459,5 @@ class Test_sww(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_sww, 'test')
-    runner = unittest.TextTestRunner(verbosity=1)
+    runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)

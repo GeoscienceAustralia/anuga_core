@@ -207,14 +207,12 @@ class Domain(Generic_Domain):
         # Stored output
         #-------------------------------
         self.set_store(True)
+        self.set_store_centroids(False)
         self.set_store_vertices_uniquely(False)
         self.quantities_to_be_stored = {'elevation': 1, 
                                         'stage': 2, 
                                         'xmomentum': 2, 
                                         'ymomentum': 2}
-
-        
-
 
         #-------------------------------
         # Useful auxiliary quantity
@@ -230,7 +228,7 @@ class Domain(Generic_Domain):
 
     def set_defaults(self):
         """Set the default values in this routine. That way we can inherit class
-        and just over redefine the defaults for the new class
+        and just redefine the defaults for the new class
         """
 
         from anuga.config import minimum_storable_height
@@ -450,6 +448,20 @@ class Domain(Generic_Domain):
 
         return self.store
 
+
+    def set_store_centroids(self, flag=True):
+        """Set whether centroid data is saved to sww file.
+        """
+
+        self.store_centroids = flag
+        
+    def get_store_centroids(self):
+        """Get whether data saved to sww file.
+        """
+        
+        return self.store_centroids   
+    
+        
         
     def set_sloped_mannings_function(self, flag=True):
         """Set mannings friction function to use the sloped
