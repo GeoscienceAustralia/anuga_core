@@ -176,7 +176,7 @@ class Test_read_sww(unittest.TestCase):
             assert num.allclose( dv, ndv, rtol=5.e-2, atol=5.e-2)
 
         # Clean up
-        os.remove(source)
+        #os.remove(source)
         
     def test_read_sww_with_centroids(self):
         """
@@ -275,6 +275,9 @@ class Test_read_sww(unittest.TestCase):
         assert last_frame_number == 4
 
         assert num.allclose(sww_file.get_bounds(), [0.0, length, 0.0, width])
+
+        #print 50*"="
+        #print sww_file.quantities.keys()
 
         assert 'stage'     in sww_file.quantities.keys()
         assert 'friction'  in sww_file.quantities.keys()

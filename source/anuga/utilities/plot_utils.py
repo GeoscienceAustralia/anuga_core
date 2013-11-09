@@ -1,24 +1,33 @@
-""" Random utilities for reading sww file data and for plotting (in ipython, or
-    in scripts)
+""" Random utilities for reading sww file data and for plotting
+(in ipython, or in scripts)
 
     Functionality of note:
 
-    util.get_outputs -- read the data from a single sww file into a single object
+    util.get_outputs -- read the data from a single sww file
+    into a single object
     
-    util.combine_outputs -- read the data from a list of sww files into a single object
+    util.combine_outputs -- read the data from a list of sww
+    files into a single object
     
-    util.near_transect -- for finding the indices of points 'near' to a given
-                       line, and assigning these points a coordinate along that line. 
-                       This is useful for plotting outputs which are 'almost' along a
-                       transect (e.g. a channel cross-section) -- see example below
+    util.near_transect -- for finding the indices of points
+                          'near' to a given line, and
+                          assigning these points a
+                          coordinate along that line.
+
+    This is useful for plotting outputs which are 'almost' along a
+    transect (e.g. a channel cross-section) -- see example below
 
     util.sort_sww_filenames -- match sww filenames by a wildcard, and order
                                them according to their 'time'. This means that
-                               they can be stuck together using 'combine_outputs' correctly
+                               they can be stuck together using
+                               'combine_outputs' correctly
 
-    util.triangle_areas -- compute the areas of every triangle in a get_outputs object [ must be vertex-based]
+    util.triangle_areas -- compute the areas of every triangle
+                           in a get_outputs object [ must be vertex-based]
 
-    util.water_volume -- compute the water volume at every time step in an sww file (needs both vertex and centroid value input). 
+    util.water_volume -- compute the water volume at every
+                         time step in an sww file (needs both
+                         vertex and centroid value input). 
  
     Here is an example ipython session which uses some of these functions:
 
@@ -416,7 +425,7 @@ def triangle_areas(p, subset=None):
 
 ###
 
-def water_volume(p,p2, per_unit_area=False, subset=None):
+def water_volume(p, p2, per_unit_area=False, subset=None):
     # Compute the water volume from p(vertex values) and p2(centroid values)
 
     if(subset is None):

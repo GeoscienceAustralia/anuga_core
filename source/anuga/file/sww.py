@@ -92,6 +92,8 @@ class SWW_file(Data_format):
         # Get static and dynamic quantities from domain
         static_quantities = []
         dynamic_quantities = []
+        static_c_quantities = []
+        dynamic_c_quantities = []
         
         for q in domain.quantities_to_be_stored:
             flag = domain.quantities_to_be_stored[q]
@@ -101,8 +103,13 @@ class SWW_file(Data_format):
             assert q in domain.quantities, msg
         
             assert flag in [1,2]
-            if flag == 1: static_quantities.append(q)
-            if flag == 2: dynamic_quantities.append(q)                
+            if flag == 1:
+                static_quantities.append(q)
+                if self.store_centroids: static_c_quantities.append(q+'_c')
+                
+            if flag == 2:
+                dynamic_quantities.append(q)
+                if self.store_centroids: dynamic_c_quantities.append(q+'_c')
                        
         
         # NetCDF file definition
@@ -111,7 +118,11 @@ class SWW_file(Data_format):
             description = 'Output from anuga.file.sww ' \
                           'suitable for plotting'
                           
-            self.writer = Write_sww(static_quantities, dynamic_quantities, store_centroids=self.store_centroids)
+            self.writer = Write_sww(static_quantities,
+                                    dynamic_quantities,
+                                    static_c_quantities,
+                                    dynamic_c_quantities)
+            
             self.writer.store_header(fid,
                                      domain.starttime,
                                      self.number_of_volumes,
@@ -186,7 +197,7 @@ class SWW_file(Data_format):
                                         points,
                                         V.astype(num.float32),
                                         points_georeference=\
-                                            domain.geo_reference)
+                                        domain.geo_reference)
 
 
         if domain.parallel:
@@ -201,20 +212,23 @@ class SWW_file(Data_format):
         # Get names of static quantities
         static_quantities = {}
         static_quantities_centroid = {}
+        
         for name in self.writer.static_quantities:
             Q = domain.quantities[name]
             A, _ = Q.get_vertex_values(xy=False, 
                                        precision=self.precision)
             static_quantities[name] = A
-            
-            if self.store_centroids:
-                static_quantities_centroid[name] = Q.centroid_values
+
+        #print domain.quantities
+        #print self.writer.static_c_quantities
+
+        for name in self.writer.static_c_quantities:
+            Q = domain.quantities[name[:-2]]  # rip off _c from name
+            static_quantities_centroid[name] = Q.centroid_values
         
         # Store static quantities        
         self.writer.store_static_quantities(fid, **static_quantities)
-        
-        if  self.store_centroids:
-            self.writer.store_static_quantities_centroid(fid, **static_quantities_centroid) 
+        self.writer.store_static_quantities_centroid(fid, **static_quantities_centroid) 
                                         
         fid.close()
 
@@ -356,8 +370,9 @@ class SWW_file(Data_format):
                 
                 dynamic_quantities[name] = A
                 
-                if self.store_centroids:
-                    dynamic_quantities_centroid[name] = Q.centroid_values
+            for name in self.writer.dynamic_c_quantities:
+                Q = domain.quantities[name[:-2]]
+                dynamic_quantities_centroid[name] = Q.centroid_values
                 
                                         
             # Store dynamic quantities
@@ -492,20 +507,37 @@ class Write_sww(Write_sts):
         manually.
     """
 
-    def __init__(self, static_quantities, dynamic_quantities, store_centroids=False):
-        """Initialise Write_sww with two list af quantity names: 
+    def __init__(self,
+                 static_quantities,
+                 dynamic_quantities,
+                 static_c_quantities = [],
+                 dynamic_c_quantities = []):
+        
+        """Initialise Write_sww with two (or 4) list af quantity names: 
         
         static_quantities (e.g. elevation or friction): 
             Stored once at the beginning of the simulation in a 1D array
             of length number_of_points   
         dynamic_quantities (e.g stage):
             Stored every timestep in a 2D array with 
-            dimensions number_of_points X number_of_timesteps        
+            dimensions number_of_points X number_of_timesteps
+
+        static_c_quantities (e.g. elevation_c or friction_c): 
+            Stored once at the beginning of the simulation in a 1D array
+            of length number_of_triangles  
+        dynamic_c_quantities (e.g stage_c):
+            Stored every timestep in a 2D array with 
+            dimensions number_of_triangles X number_of_timesteps 
         
         """
         self.static_quantities = static_quantities   
         self.dynamic_quantities = dynamic_quantities
-        self.store_centroids = store_centroids
+        self.static_c_quantities = static_c_quantities
+        self.dynamic_c_quantities = dynamic_c_quantities
+
+        self.store_centroids = False
+        if static_c_quantities or dynamic_c_quantities:
+            self.store_centroids = True
 
 
     def store_header(self,
@@ -605,18 +637,18 @@ class Write_sww(Write_sts):
             outfile.createVariable(q + Write_sww.RANGE, sww_precision,
                                    ('numbers_in_range',))
             
-            if self.store_centroids:
-                outfile.createVariable(q + '_c', sww_precision,
-                                   ('number_of_volumes',))
-                                   
             # Initialise ranges with small and large sentinels.
             # If this was in pure Python we could have used None sensibly
             outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min
             outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
 
-        
-        self.write_dynamic_quantities(outfile, self.dynamic_quantities, times, \
-                                        precis = sww_precision)
+
+        for q in self.static_c_quantities:
+            outfile.createVariable(q, sww_precision,
+                                   ('number_of_volumes',))
+                                   
+
+        self.write_dynamic_quantities(outfile, times, precis = sww_precision)
 
 
         outfile.sync()
@@ -733,27 +765,27 @@ class Write_sww(Write_sts):
 
 
 
-    def write_dynamic_quantities(self, outfile, quantities,
-                    times, precis = netcdf_float32, verbose = False):   
+    def write_dynamic_quantities(self, outfile, 
+                                 times, precis = netcdf_float32, verbose = False):   
         """
             Write out given quantities to file.
         """
         
 
-        for q in quantities:
+        for q in self.dynamic_quantities:
             outfile.createVariable(q, precis, ('number_of_timesteps',
-                                                      'number_of_points'))
+                                               'number_of_points'))
             outfile.createVariable(q + Write_sts.RANGE, precis,
                                    ('numbers_in_range',))
             
-            if self.store_centroids:
-                outfile.createVariable(q + '_c', precis,
-                                   ('number_of_timesteps','number_of_volumes'))
-
             # Initialise ranges with small and large sentinels.
             # If this was in pure Python we could have used None sensibly
             outfile.variables[q+Write_sts.RANGE][0] = max_float  # Min
             outfile.variables[q+Write_sts.RANGE][1] = -max_float # Max
+
+        for q in self.dynamic_c_quantities:
+            outfile.createVariable(q, precis, ('number_of_timesteps',
+                                                    'number_of_volumes'))
 
         # Doing sts_precision instead of Float gives cast errors.
         outfile.createVariable('time', netcdf_float, ('number_of_timesteps',))
@@ -887,7 +919,11 @@ class Write_sww(Write_sts):
         #
         # This method will also write the ranges for each quantity, 
         # e.g. stage_range, xmomentum_range and ymomentum_range
-        for q in self.static_quantities:
+
+        #print outfile.variables.keys()
+        #print self.static_c_quantities
+        
+        for q in self.static_c_quantities:
             if not quant.has_key(q):
                 msg = 'Values for quantity %s was not specified in ' % q
                 msg += 'store_quantities so they cannot be stored.'
@@ -896,7 +932,7 @@ class Write_sww(Write_sts):
                 q_values = ensure_numeric(quant[q])
                 
                 x = q_values.astype(sww_precision)
-                outfile.variables[q+'_c'][:] = x
+                outfile.variables[q][:] = x
         
 
                     
@@ -1013,7 +1049,12 @@ class Write_sww(Write_sts):
         #
         # This method will also write the ranges for each quantity, 
         # e.g. stage_range, xmomentum_range and ymomentum_range
-        for q in self.dynamic_quantities:
+        
+        #print 50*"="
+        #print quant
+        #print self.dynamic_c_quantities
+
+        for q in self.dynamic_c_quantities:
             if not quant.has_key(q):
                 msg = 'Values for quantity %s was not specified in ' % q
                 msg += 'store_quantities so they cannot be stored.'
@@ -1022,7 +1063,7 @@ class Write_sww(Write_sts):
                 q_values = ensure_numeric(quant[q])
                 
                 q_retyped = q_values.astype(sww_precision)
-                outfile.variables[q+'_c'][slice_index] = q_retyped
+                outfile.variables[q][slice_index] = q_retyped
 
 
         
