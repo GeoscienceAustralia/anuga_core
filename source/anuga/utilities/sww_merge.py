@@ -557,6 +557,9 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
             out_s_quantities = {}
             out_d_quantities = {}
 
+            out_s_c_quantities = {}
+            out_d_c_quantities = {}
+
 
             xllcorner = fid.xllcorner
             yllcorner = fid.yllcorner
@@ -584,7 +587,9 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
 
             g_points = num.zeros((number_of_global_triangle_vertices,2),num.float32)
 
-
+            #=======================================
+            # Deal with the vertex based variables
+            #=======================================
             quantities = set(['elevation', 'friction', 'stage', 'xmomentum',
                               'ymomentum', 'xvelocity', 'yvelocity', 'height'])
             variables = set(fid.variables.keys())
@@ -601,6 +606,7 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
                 else:
                     static_quantities.append(quantity)
 
+            # Static Quantities are stored as a 1D array
             for quantity in static_quantities:
                 out_s_quantities[quantity] = num.zeros((3*number_of_global_triangles,),num.float32)
 
@@ -609,6 +615,35 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
                 out_d_quantities[quantity] = \
                       num.zeros((n_steps,3*number_of_global_triangles),num.float32)
 
+
+            #=======================================
+            # Deal with the centroid based variables
+            #=======================================
+            quantities = set(['elevation_c', 'friction_c', 'stage_c', 'xmomentum_c',
+                              'ymomentum_c', 'xvelocity_c', 'yvelocity_c', 'height_c'])
+            variables = set(fid.variables.keys())
+
+            quantities = list(quantities & variables)
+            
+            static_c_quantities = []
+            dynamic_c_quantities = []
+
+            for quantity in quantities:
+                # Test if quantity is static
+                if n_steps == fid.variables[quantity].shape[0]:
+                    dynamic_c_quantities.append(quantity)
+                else:
+                    static_c_quantities.append(quantity)
+                
+            for quantity in static_c_quantities:
+                out_s_c_quantities[quantity] = num.zeros((number_of_global_triangles,),num.float32)
+
+            # Quantities are stored as a 2D array of timesteps x data.
+            for quantity in dynamic_c_quantities:
+                out_d_c_quantities[quantity] = \
+                      num.zeros((n_steps,number_of_global_triangles),num.float32)
+
+            
             description = 'merged:' + getattr(fid, 'description')
             first_file = False
 
@@ -623,9 +658,14 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
 
 
         f_ids = num.argwhere(tri_full_flag==1).reshape(-1,)
-
         f_gids = tri_l2g[f_ids]
 
+        # Just pick out the full triangles
+        ftri_ids = num.where(tri_full_flag>0)
+        ftri_l2g = num.compress(tri_full_flag, tri_l2g)
+
+        assert num.allclose(f_ids, ftri_ids)
+        assert num.allclose(ftri_l2g, f_gids)
 
         g_vids = (3*f_gids.reshape(-1,1) + num.array([0,1,2])).reshape(-1,)
         l_vids = (3*f_ids.reshape(-1,1) + num.array([0,1,2])).reshape(-1,)
@@ -662,6 +702,22 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
                 out_d_quantities[quantity][i][g_vids] = \
                            num.array(q[i],dtype=num.float32)[l_vids]
 
+        # Read in static c quantities
+        for quantity in static_c_quantities:
+            #out_s_quantities[quantity][node_l2g] = \
+            #             num.array(fid.variables[quantity],dtype=num.float32)
+            q = fid.variables[quantity]
+            out_s_c_quantities[quantity][ftri_l2g] = \
+                         num.array(q,dtype=num.float32)[ftri_ids]
+
+        
+        #Collate all dynamic c quantities according to their timestep
+        for quantity in dynamic_c_quantities:
+            q = fid.variables[quantity]
+            #print q.shape
+            for i in range(n_steps):
+                out_d_c_quantities[quantity][i][ftri_l2g] = \
+                           num.array(q[i],dtype=num.float32)[ftri_ids]
 
         fid.close()
 
@@ -673,7 +729,7 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
             print 'Writing file ', output, ':'
 
     fido = NetCDFFile(output, netcdf_mode_w)
-    sww = Write_sww(static_quantities, dynamic_quantities)
+    sww = Write_sww(static_quantities, dynamic_quantities, static_c_quantities, dynamic_c_quantities)
     sww.store_header(fido, starttime,
                              number_of_global_triangles,
                              number_of_global_triangles*3,
@@ -696,7 +752,8 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
     fido.projection = projection;
 
     sww.store_static_quantities(fido, verbose=verbose, **out_s_quantities)
-
+    sww.store_static_quantities_centroid(fido, verbose=verbose, **out_s_c_quantities)
+    
     # Write out all the dynamic quantities for each timestep
 
     for i in range(n_steps):
@@ -715,6 +772,11 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
         q_values_max = num.max(q_values)
         if q_values_max > q_range[1]:
             fido.variables[q + Write_sww.RANGE][1] = q_values_max
+
+    for q in dynamic_c_quantities:
+        q_values = out_d_c_quantities[q]
+        for i in range(n_steps):
+            fido.variables[q][i] = q_values[i]
 
 
     fido.close()

@@ -89,7 +89,8 @@ if myid == 0:
     #domain.set_datadir('.')
     domain.set_name('merimbula_new')
     domain.set_store(True)
-    domain.set_store_vertices_smoothly(True)
+    #domain.set_store_vertices_smoothly(True)
+    domain.set_store_vertices_smoothly(False)
     #domain.set_quantity('elevation', Set_Elevation(500.0))
 
     #print domain.statistics()

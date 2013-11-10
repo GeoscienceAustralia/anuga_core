@@ -68,6 +68,7 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
         domain_name = domain.get_name()
         domain_dir = domain.get_datadir()
         domain_store = domain.get_store()
+        domain_store_centroids = domain.get_store_centroids()
         domain_smooth = domain.smooth
         domain_reduction = domain.reduction
         domain_minimum_storable_height = domain.minimum_storable_height
@@ -82,7 +83,7 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
         for p in xrange(1, numprocs):
             # FIXME SR: Creates cPickle dump
             send((domain_name, domain_dir, domain_store, \
-                  domain_smooth, domain_reduction, \
+                  domain_store_centroids, domain_smooth, domain_reduction, \
                   domain_minimum_storable_height, domain_flow_algorithm, \
                   domain_minimum_allowed_height, georef, \
                   number_of_global_triangles, number_of_global_nodes), p)
@@ -90,9 +91,10 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
         if verbose: print 'P%d: Receiving domain attributes' %(myid)
 
         domain_name, domain_dir, domain_store, \
-                  domain_smooth, domain_reduction, \
+                  domain_store_centroids, domain_smooth, domain_reduction, \
                   domain_minimum_storable_height, domain_flow_algorithm, \
-                  domain_minimum_allowed_height, georef, number_of_global_triangles, \
+                  domain_minimum_allowed_height, georef, \
+                  number_of_global_triangles, \
                   number_of_global_nodes = receive(0)
 
 
@@ -243,6 +245,7 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
     domain.set_name(domain_name)
     domain.set_datadir(domain_dir)
     domain.set_store(domain_store)
+    domain.set_store_centroids(domain_store_centroids)
     domain.set_store_vertices_smoothly(domain_smooth,domain_reduction)
     domain.set_minimum_storable_height(domain_minimum_storable_height)
     domain.set_minimum_allowed_height(domain_minimum_allowed_height)
