@@ -29,8 +29,6 @@ W = L
 domain = anuga.rectangular_cross_domain(int(L/dx), int(W/dy), L, W, (-L/2.0, -W/2.0))
 
 
-print domain.starttime
-
 domain.set_name()                
 
 #------------------------------------------------------------------------------

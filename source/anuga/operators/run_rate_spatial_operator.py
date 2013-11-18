@@ -140,9 +140,9 @@ def rain(x,y,t):
     abd t a scalar
     """
     if t<=4.0:
-        return (x+y)
+        return (x+y)*0.0
     else:
-        return 0*x
+        return 0.0*x
 
 factor = 1e-3
 op3 = Rate_operator(domain, rate = rain, factor=factor)
@@ -168,11 +168,11 @@ for t in domain.evolve(yieldstep=yieldstep, finaltime=finaltime):
     height = stage - elev
 
     print indent + 'Integral = ', height.get_integral()
-
-
     print indent + 'Exact accumultion = ', accum
+    
     dd = max(min(yieldstep,5.0-t),0.0)
     accum += (Q1+Q2)*yieldstep + dd*Q3
+
 
 
 
