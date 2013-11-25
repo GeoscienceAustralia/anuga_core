@@ -26,6 +26,8 @@ class Boyd_box_operator(anuga.Structure_operator):
                  losses,
                  width,
                  height=None,
+                 z1=0.0,
+                 z2=0.0,
                  end_points=None,
                  exchange_lines=None,
                  enquiry_points=None,

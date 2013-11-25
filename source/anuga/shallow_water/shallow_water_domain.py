@@ -1782,6 +1782,9 @@ class Domain(Generic_Domain):
            Total inflow across boundary
            Total outflow across boundary
            Flow across each tagged boundary segment
+           
+        These calculations are only approximate since they don't use the
+        flux calculation used in evolve
         """
 		
         # Run through boundary array and compute for each segment

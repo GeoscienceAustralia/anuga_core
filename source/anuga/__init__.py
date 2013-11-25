@@ -378,13 +378,17 @@ import time, os
 from os.path import join
 from anuga.config import indent
 
+from anuga.utilities.model_tools import get_polygon_from_single_file
+from anuga.utilities.model_tools import get_polygons_from_Mid_Mif
 from anuga.utilities.model_tools import get_polygon_list_from_files
+from anuga.utilities.model_tools import get_polygon_dictionary
 from anuga.utilities.model_tools import get_polygon_value_list
 from anuga.utilities.model_tools import read_polygon_dir
+from anuga.utilities.model_tools import read_hole_dir_multi_files_with_single_poly
 from anuga.utilities.model_tools import read_multi_poly_file
+from anuga.utilities.model_tools import read_hole_dir_single_file_with_multi_poly
 from anuga.utilities.model_tools import read_multi_poly_file_value
 
- 
 from anuga.utilities.model_tools import Create_culvert_bridge_Operator
 
 from anuga_parallel.parallel_api import distribute
@@ -396,8 +400,8 @@ if pypar_available:
     #from anuga_parallel.parallel_meshes import parallel_rectangle
     #from anuga_parallel.parallel_shallow_water import Parallel_domain as Parallel_shallow_water_domain
     #from anuga_parallel.parallel_advection     import Parallel_domain as Parallel_advection_domain
-    from anuga_parallel.parallel_operator_factory import Inlet_operator, Boyd_box_operator
+    from anuga_parallel.parallel_operator_factory import Inlet_operator, Boyd_box_operator, Boyd_pipe_operator, Weir_orifice_trapezoid_operator
 
 
-
+from anuga.structures.weir_orifice_trapezoid_operator import Weir_orifice_trapezoid_operator
 

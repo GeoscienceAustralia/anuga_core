@@ -23,9 +23,13 @@ def determine_function_type(function):
 
     if function is None:
         return None
+
     
-    assert (isinstance(function, (int, float)) or
+    
+    assert (isinstance(function, (int, float, list)) or
+            isinstance(function, num.ndarray) or 
             callable(function)), msg
+
 
     if callable(function):
 
@@ -55,8 +59,11 @@ def determine_function_type(function):
         else:
             return 'x,y,t'
 
-    else:
+    elif isinstance(function, (int,float)):
         return 'scalar'
+
+    elif isinstance(function, (list, num.ndarray)):
+        return 'array'
 
 
 def evaluate_temporal_function(function, t, default_left_value=None, default_right_value=None):

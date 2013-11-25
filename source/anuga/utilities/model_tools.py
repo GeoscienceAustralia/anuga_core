@@ -83,8 +83,109 @@ import numpy
 from anuga.geometry.polygon import read_polygon
 from anuga import Boyd_box_operator
 from anuga import Boyd_pipe_operator
+from anuga import Weir_orifice_trapezoid_operator
 from anuga import Inlet_operator
+from anuga import Inlet_operator, Boyd_box_operator, Boyd_pipe_operator, Weir_orifice_trapezoid_operator
 
+
+# ---------------------------------------------------------------------------------------------------------
+
+def get_polygon_from_single_file(Rfile):
+    fid = open(Rfile)
+    lines = fid.readlines()
+    fid.close()
+    polylist = []
+    polygon = []
+    polycount = 0
+    for line in lines:
+        fields = line.split(',')
+        #print line
+        if line in ('\n', '\r\n'): # Must be a blank Line....
+            # Found a line without INcorrect data, assume this signifies the start of a new polygon
+            polycount+=1
+            #print 'Polygon '+str(polycount)
+            polylist.append(polygon)
+            #print polygon
+            polygon =[]
+        else:
+            polygon.append([float(fields[0]), float(fields[1])])
+        polylist.append(polygon)
+    return polylist
+# ---------------------------------------------------------------------------------------------------------
+
+
+
+def get_polygons_from_Mid_Mif(Rfile):
+    """Create List of Polygons from a Directory with a File containing Multiple-Polygons
+       
+       User ANUGA Model SCRIPT
+       Purpose:
+       CALLS:
+       get_polygon_dictionary
+    These lists can either be used as interior regions in mesh refinement or as input to Polygon_function
+    """
+    #print 'in get_polygon_from_Mid_Mif -line 126'
+    fid = open(Rfile)
+    lines = fid.readlines()
+    fid.close()
+    # Got the Multi Poly file now process
+    polylist = []
+    polygon = []
+    check_pts_list=[]
+    Poly_count=0
+    Poly_line_count=0
+    Points_in_Poly = 100
+    total_lines_in_file= len(lines)
+    #print "total number of lines in the Polygons FILE is: ",total_lines_in_file
+
+    for i, line in enumerate(lines): # ==================================================== FOR LOOP ===========================        
+        if line.strip().startswith('Region'):
+            Poly_line_count=0
+            check_pts_list=[]
+            if Poly_count==0:
+                pass
+            else:
+                polylist.append(polygon)
+                #outfid.close()
+                #print polygon
+                polygon=[]
+            Poly_count+=1
+            # Create A poly File for each polygon defined in the Multi-Poly file
+            #print 'Polygon #',Poly_count
+            #poly_write_file="Poly_"+str(Poly_count)+".csv"
+            #outfid = open(poly_write_file, 'w')
+            #raw_input('Check Output... -line 155')  
+            # Instead write to a List
+        elif line.strip().startswith('    Pen'):
+            pass
+        elif line.strip().startswith('    Brush'):
+            pass
+        else:
+            Poly_line_count+=1
+            if Poly_line_count > 1 and Poly_line_count <= (Points_in_Poly+1) and Poly_count<>0:
+                #print line, #Points_in_Poly,#Poly_line_count
+                fields = line.split(' ')
+                if line in check_pts_list and Poly_line_count <> Points_in_Poly+1:   # Get rid of any doubled up points NOTE this gets rid of last line !!!
+                    #print Poly_line_count, Points_in_Poly+1
+                    pass
+                else:
+                    #outfid.write("%.3f,%.3f\n" % (float(fields[0]),float(fields[1])))
+                    polygon.append([float(fields[0]),float(fields[1])])
+                    check_pts_list.append(line)
+            elif Poly_line_count==1 and Poly_count<>0:
+                # read number of points in poly
+                #print 'line=',line
+                Points_in_Poly=int(line)
+                #print 'Number Points in Poly =',Points_in_Poly
+                #print polygon
+                #raw_input('Check Poly...')
+    #print 'End For Loop....-line178'
+    polylist.append(polygon)
+    #print polylist
+    #outfid.close()          
+    return polylist          
+
+# ---------------------------------------------------------------------------------------------------------
 def get_polygon_list_from_files(dir):
     """Read all polygons found in specified dir and return them in a list
        Called by:
@@ -100,49 +201,26 @@ def get_polygon_list_from_files(dir):
     polylist = []
     for filename in os.listdir(dir):
         Rfile = dir +'/'+filename
-        print Rfile
+        #print Rfile
         
-        if Rfile[-4:] == '.svn':
+        if Rfile[-4:] == '.svn':  # wHAT DOES THIS DO ??
             continue
-        
+        if Rfile[-4:] == '.csv':
+            #print 'CSV File'
+            polylist = get_polygon_from_single_file(Rfile)
+            #polylist.append(polys)
+        if Rfile[-4:] == '.mif':
+            #print 'MIF File ...'
+            #polys = get_polygons_from_Mid_Mif(Rfile)
+            polylist=get_polygons_from_Mid_Mif(Rfile)
         #print filename
-        
-        # Check if file contains blank lines, if so multi poly's
-        # Read file, check number of lines, if blank before last = multi 
-        fid = open(Rfile)
-        lines = fid.readlines()
-        fid.close()
-        polygon = []
-        polycount = 0
-        for line in lines:
-            fields = line.split(',')
-            #print line
-            if line in ('\n', '\r\n'): # Must be a blank Line....
-                # Found a line without INcorrect data, assume this signifies the start of a new polygon
-                polycount+=1
-                #print 'Polygon '+str(polycount)
-                polylist.append(polygon)
-                #print polygon
-                polygon =[]
-            else:
-                polygon.append([float(fields[0]), float(fields[1])])
-            
-            """
-            try:
-                polygon.append([float(fields[0]), float(fields[1])])
-            except:
-                # Found a line without INcorrect data, assume this signifies the start of a new polygon
-                polycount+=1
-                print 'Polygon '+str(polycount)
-                polylist.append(polygon)
-                polygon =[]
-            """
-        polylist.append(polygon)
+        #print Rfile
+        #raw_input('Hold check file...- line 211')
     #print polylist
-    #raw_input('hold at polylist..')
+    #raw_input('hold at polylist.. -line 213')
     return polylist
 
-
+# ---------------------------------------------------------------------------------------------------------
 def get_polygon_dictionary(dir):
     """Create dictionary of polygons with directory names 
        indicating associated attribute values 
@@ -167,12 +245,14 @@ def get_polygon_dictionary(dir):
         # How to read a file with multiple polygons ??
         D[a] = get_polygon_list_from_files(os.path.join(dir, a)) # Fill Item [a] in the Dictionary with FIle name and attribute
     return D
+# ---------------------------------------------------------------------------------------------------------
 
 # ---- GENERIC POLYGON VALUE LIST Generator
 def get_polygon_value_list(dir):
     """Create list of multiple Polygons attributed with a value
-       Where the values are obtained from directory names 
-       that is a List of Polygons attributed with the Value read from the directory name...
+       Where the values are obtained from sub directory names based on number and decimal at underscore
+       So: Passing Directory ROUGHNESS containing, subs, 0_015, and 0_06 for example
+       
        Called by:
        User ANUGA Model SCRIPT
        Purpose:
@@ -199,90 +279,7 @@ def get_polygon_value_list(dir):
             polygon_value_list.append(pair)
     #print polygon_value_list
     return polygon_value_list
-
-
-def get_POLYS_from_Mid_Mif(dir):
-    """Create List of Polygons from a Directory with a File containing Multiple-Polygons
-       
-       User ANUGA Model SCRIPT
-       Purpose:
-       CALLS:
-       get_polygon_dictionary
-    These lists can either be used as interior regions in mesh refinement or as input to Polygon_function
-    """
-    print 'Getting File with Multiple POLYS from Directory:'
-    print 'The one file will be used to create multiple Polys for ANUGA'
-    filepattern='*.mif'   # get a list of matching filenames in the directory, MAKE SURE only 1 csv file is in the DIR
-    pattern = os.path.join(dir, filepattern)
-    holes_file_list = glob.glob(pattern)  # List of Files has only 1 in it
-    #print 'From DIR: ',dir
-    #print 'Holes file_List:-',holes_file_list
-    for fd in holes_file_list:
-        holes_file=fd
-        print 'holes file:-',holes_file
-        infid = open(holes_file, 'r')
-    # Got the Multi Poly file now process
-    polylist = []
-    check_pts_list=[]
-    Poly_count=0
-    Poly_line_count=0
-    Points_in_Poly = 100
-    lines = infid.readlines() # Reads ALL Lines in file infid
-    total_lines_in_file= len(lines)
-    print "total number of lines in the Holes FILE is: ",total_lines_in_file
-    for i, line in enumerate(lines): # ==================================================== FOR LOOP ===========================
-
-
-        if line.strip().startswith('Region'):
-
-            Poly_line_count=0
-            check_pts_list=[]
-            if Poly_count==0:
-                pass
-            else:
-                polylist.append(polygon)
-                outfid.close()
-            Poly_count+=1
-            # Create A poly File for each polygon defined in the Multi-Poly file
-            print 'Polygon #',Poly_count
-            path_poly=os.path.dirname(os.path.dirname(holes_file))
-            print path_poly
-            poly_write_file="Poly_"+str(Poly_count)+".csv"
-            outfid = open(os.path.join(path_poly,poly_write_file), 'w')
-            polygon=[]
-            # Instead write to a List
-        elif line.strip().startswith('    Pen'):
-            pass
-        elif line.strip().startswith('    Brush'):
-            pass
-        else:
-            Poly_line_count+=1
-            if Poly_line_count > 1 and Poly_line_count <= (Points_in_Poly+1) and Poly_count<>0:
-                print line, Points_in_Poly,Poly_line_count
-                fields = line.split(' ')
-                polygon.append([float(fields[0]),float(fields[1])])
-                #line.rstrip('\n'))  # Add Points [x,y]
-                if line in check_pts_list:   # Get rid of any doubled up points
-                    pass
-                else:
-                    outfid.write("%.3f,%.3f\n" % (float(fields[0]),float(fields[1])))
- 
-                    check_pts_list.append(line)
-            elif Poly_line_count==1 and Poly_count<>0:
-                # read number of points in poly
-                print 'line=',line
-                Points_in_Poly=int(line)
-                print 'Number Points in Poly =',Points_in_Poly
-                
-        #raw_input('Check Output...')            
-    outfid.close()  
-    
-    polylist.append(polygon)    # Add polygon to the list of Polys
-    print polylist
-    return polylist    
-
-
-
+# ---------------------------------------------------------------------------------------------------------
 
 
 def read_polygon_dir(weight_dict, directory, filepattern='*.csv'):
@@ -439,7 +436,7 @@ def read_multi_poly_file_value(multi_P_file,attribute):
 # Define a function to read Culvert and Bridge data from Files in Directory
 def Create_culvert_bridge_Operator(domain,culvert_bridge_file):
     """This script reads in culvert and bridge data files
-    and populate Operator parameters.    
+    and populates Operator parameters.    
     
     """
     #print culvert_bridge_file
@@ -448,165 +445,12 @@ def Create_culvert_bridge_Operator(domain,culvert_bridge_file):
     
     execfile(culvert_bridge_file, globals, locals)
     #print locals
-    if 'diameter' in locals:
+    #if 'height' and 'z1' and 'z2' in locals:
+    if 'z1' and 'z2' in locals:
+        culvert = Weir_orifice_trapezoid_operator(domain, **locals)
+    elif 'diameter' in locals:
         culvert = Boyd_pipe_operator(domain, **locals)
     elif 'height' in locals:
         culvert = Boyd_box_operator(domain, **locals)
     else:
         raise Exception, 'Cant create culvert'
-    #print culvert.description
-
-"""
-# Define a function to read Culvert and Brdige data from Files in Directory
-def TESTCreate_culvert_bridge_Operator(domain,culvert_bridge_file):
-    # Read file and populate Operator parameters
-    print culvert_bridge_file
-    delimiter = ','
-    fid = open(culvert_bridge_file)
-    lines = fid.readlines()
-    fid.close()
-    line_counter=0
-    for line in lines:
-        line_counter+=1
-        print line
-        if line_counter ==1:
-            pass
-        elif line_counter ==2:
-            raw_input('I got here.. 2')
-            fields = line.split(delimiter)
-            if len(fields) > 4:
-                # Two lines
-                el0=numpy.array([[fields[0],fields[1]],[fields[2],fields[3]]])
-                el1=numpy.array([[fields[4],fields[5]],[fields[6],fields[7]]])
-                #el0 = numpy.array([[305945.955,6193836.293] , [305945.125,6193835.387]])
-                exchange_lines=[el0,el1]
-                Exchange_Type = 'LINES'
-                raw_input('I got here.. 3')
-            else: # two Points
-                #ep0 = numpy.array([296653.0,6180014.9])
-                #ep1 = numpy.array([296642.5,6180036.3]) 
-                ep0=numpy.array([float(fields[0]),float(fields[1])])
-                ep1=numpy.array([float(fields[2]),float(fields[3])])
-                exchange_points=[ep0,ep1]  
-                Exchange_Type = 'POINTS'
-                raw_input('I got here.. 4')
-        # Continue if....        
-        elif line.strip().startswith('width'):
-            delimiter = '='        
-            fields = line.split(delimiter)
-            width = float(fields[1])
-        elif line.strip().startswith('height'):
-            delimiter = '='        
-            fields = line.split(delimiter)
-            height = float(fields[1])
-            Culvert_Type = 'BOX'
-            raw_input('@ height...')
-        elif line.strip().startswith('diameter'):
-            delimiter = '='        
-            fields = line.split(delimiter)
-            diameter = float(fields[1])            
-            Culvert_Type = 'PIPE'
-            raw_input('@ diam...')
-        elif line.strip().startswith('apron'):
-            delimiter = '='        
-            fields = line.split(delimiter)
-            apron = float(fields[1])            
-
-        elif line.strip().startswith('enquiry_gap'):
-            delimiter = '='        
-            fields = line.split(delimiter)
-            enquiry_gap= float(fields[1])            
-
-        elif line.strip().startswith('Mannings'):
-            delimiter = '='        
-            fields = line.split(delimiter)
-            manning = float(fields[1])            
-        elif line.strip().startswith('use_momentum_jet'):
-            delimiter = '='        
-            fields = line.split(delimiter)
-            use_momentum_jet = fields[1]            
-
-        elif line.strip().startswith('use_velocity_head'):
-            delimiter = '='        
-            fields = line.split(delimiter)
-            use_velocity_head = fields[1]            
-
-        elif line.strip().startswith('verbose'):
-            delimiter = '='        
-            fields = line.split(delimiter)
-            verbose = fields[1]            
-        elif line.strip().startswith('logging'):
-            delimiter = '='        
-            fields = line.split(delimiter)
-            logging = fields[1]            
-            
-        elif line.strip().startswith('losses'):
-            delimiter = '='        
-            fields = line.split(delimiter)
-            losses = fields[1][1:-1]            
-            print losses
-        else:
-            pass
-            #Local_Defaults:
-            #losses={'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
-       
-    print Exchange_Type
-    raw_input('hold...')
-    # ----- Now Create Operator
-    if Culvert_Type =='BOX' and Exchange_Type =='LINES':
-        culvert = Boyd_box_operator(domain,
-                                    losses=losses,
-                                    width=width,
-                                    exchange_lines=[el0, el1],
-                                    height=height,
-                                    apron=apron,
-                                    enquiry_gap=enquiry_gap,
-                                    use_momentum_jet=use_momentum_jet,
-                                    use_velocity_head=use_velocity_head,
-                                    manning=manning,
-                                    logging=logging,
-                                    label=culvert_bridge_file[0:-4],
-                                    verbose=verbose)  
-    elif Culvert_Type =='BOX' and Exchange_Type == 'POINTS':
-            culvert = Boyd_box_operator(domain,
-                                    losses=losses,
-                                    width=width,
-                                    end_points=[ep0, ep1],
-                                    height=height,
-                                    apron=apron,
-                                    enquiry_gap=enquiry_gap,
-                                    use_momentum_jet=use_momentum_jet,
-                                    use_velocity_head=use_velocity_head,
-                                    manning=manning,
-                                    logging=logging,
-                                    label=culvert_bridge_file[0:-4],
-                                    verbose=verbose)  
-    elif Culvert_Type =='PIPE' and Exchange_Type == 'LINES':
-        culvert = Boyd_pipe_operator(domain,
-                                    losses=losses,
-                                    exchange_lines=[el0, el1],
-                                    diameter=diameter,
-                                    apron=apron,
-                                    enquiry_gap=enquiry_gap,
-                                    use_momentum_jet=use_momentum_jet,
-                                    use_velocity_head=use_velocity_head,
-                                    manning=manning,
-                                    logging=logging,
-                                    label=culvert_bridge_file[0:-4],
-                                    verbose=verbose)  
-    elif Culvert_Type =='PIPE' and Exchange_Type == 'POINTS':
-            culvert = Boyd_pipe_operator(domain,
-                                    losses=losses,
-                                    end_points=[ep0, ep1],
-                                    diameter=diameter,
-                                    apron=apron,
-                                    enquiry_gap=enquiry_gap,
-                                    use_momentum_jet=use_momentum_jet,
-                                    use_velocity_head=use_velocity_head,
-                                    manning=manning,
-                                    logging=logging,
-                                    label=culvert_bridge_file[0:-4],
-                                    verbose=verbose)  
-    else:
-        pass
-"""

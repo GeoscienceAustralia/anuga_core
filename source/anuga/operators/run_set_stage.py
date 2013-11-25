@@ -61,9 +61,9 @@ from anuga.operators.set_stage_operator import Set_stage_operator
 import math
 
 stage1 = lambda t: h0 + 20.0 * math.sin(t/3.0)
-cop1 = Set_stage_operator(domain, stage=stage1, center=(0.0, 0.0), radius=100.0 )
+#cop1 = Set_stage_operator(domain, stage=stage1, center=(0.0, 0.0), radius=100.0 )
 
-stage2 = lambda t: h0 + 30.0 * math.sin(t/6.0)
+stage2 = lambda t: h0 + 30.0# * math.sin(t/3.0)
 cop2 = Set_stage_operator(domain, stage=stage2, center=(2000.0, 1000.0), radius=100.0 )
 
 #print cop1.statistics()
@@ -73,9 +73,19 @@ cop2 = Set_stage_operator(domain, stage=stage2, center=(2000.0, 1000.0), radius=
 # Evolve system through time
 #------------------------------------------------------------------------------
 
-for t in domain.evolve(yieldstep = 1.0, finaltime = 20.0):
+## stage = domain.get_quantity('stage')
+## id = domain.get_triangle_containing_point([2000., 1150.])
+## times = []
+## stages = []
+
+for t in domain.evolve(yieldstep = 1.0, finaltime = 200.0):
     #print domain.timestepping_statistics(track_speeds=True)
     domain.print_timestepping_statistics()
     domain.print_operator_timestepping_statistics()
+    #times.append(t)
+    #stages.append(stage.centroid_values[id])
 
+## import pylab as pl
 
+## pl.plot(times, stages)
+## pl.show()

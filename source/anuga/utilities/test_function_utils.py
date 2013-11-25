@@ -20,15 +20,10 @@ class Test_Function_Utils(unittest.TestCase):
 
     def test_determine_function_type_exception(self):
 
-        try:
-            type = determine_function_type([])
-        except:
-            # We expect an exception to be raised
-            pass
-        else:
-            # Shouldn't get here
-            raise Exception
+        
+        type = determine_function_type([])
 
+        assert type == 'array'
 
     def test_determine_function_type_time_only(self):
 

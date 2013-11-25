@@ -25,6 +25,8 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                  domain,
                  losses,
                  diameter=None,
+                 z1=0.0,
+                 z2=0.0,
                  end_points=None,
                  exchange_lines=None,
                  enquiry_points=None,
