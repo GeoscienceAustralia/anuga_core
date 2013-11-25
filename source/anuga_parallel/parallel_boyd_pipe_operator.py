@@ -21,6 +21,8 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                  domain,
                  losses,
                  diameter,
+                 z1=None,
+                 z2=None,
                  end_points=None,
                  exchange_lines=None,
                  enquiry_points=None,

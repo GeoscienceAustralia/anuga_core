@@ -43,6 +43,8 @@ class Parallel_Structure_operator(anuga.Operator):
                  width,
                  height,
                  diameter,
+                 z1,#added by PM 22/10/2013
+                 z2,#added by PM 22/10/2013
                  apron,
                  manning,
                  enquiry_gap,
@@ -109,6 +111,8 @@ class Parallel_Structure_operator(anuga.Operator):
         self.width  = width
         self.height = height
         self.diameter = diameter
+        self.z1 = z1 #added by PM 22/10/2013
+        self.z2 = z2 #added by PM 22/10/2013
         self.apron  = apron
         self.manning = manning
         self.enquiry_gap = enquiry_gap
@@ -595,7 +599,12 @@ class Parallel_Structure_operator(anuga.Operator):
     def get_culvert_height(self):
         return self.height
 
+    def get_culvert_z1(self): #added by PM 22/10/2013
+        return self.z1
 
+    def get_culvert_z2(self): #added by PM 22/10/2013       
+        return self.z2
+        
     def get_culvert_apron(self):
         return self.apron
 
@@ -624,8 +633,14 @@ class Parallel_Structure_operator(anuga.Operator):
 
         self.culvert_width = width
 
-        
+    def set_culvert_z1(self, z1):#added by PM 22/10/2013 
 
+        self.culvet_z1 = z1        
+
+    def set_culvert_z2(self, z2):#added by PM 22/10/2013 
+
+        self.culvert_z2 = z2  
+        
     def parallel_safe(self):
         return True
 

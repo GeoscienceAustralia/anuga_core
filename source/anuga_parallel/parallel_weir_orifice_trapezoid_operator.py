@@ -1,13 +1,13 @@
 import anuga
 import math
 
-from anuga.structures.boyd_box_operator import boyd_box_function 
+from anuga.structures.weir_orifice_trapezoid_operator import weir_orifice_trapezoid_function 
 
 from parallel_inlet_operator import Parallel_Inlet_operator
 from parallel_structure_operator import Parallel_Structure_operator
 
-class Parallel_Boyd_box_operator(Parallel_Structure_operator):
-    """Culvert flow - transfer water from one rectangular box to another.
+class Parallel_Weir_orifice_trapezoid_operator(Parallel_Structure_operator):
+    """Culvert flow - transfer water from one trapezoid section to another.
     Sets up the geometry of problem
     
     This is the base class for culverts. Inherit from this class (and overwrite
@@ -21,9 +21,9 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                  domain,
                  losses,
                  width,
+                 height=None,
                  z1=None,
                  z2=None,
-                 height=None,
                  end_points=None,
                  exchange_lines=None,
                  enquiry_points=None,
@@ -35,7 +35,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                  use_velocity_head=True,
                  description=None,
                  label=None,
-                 structure_type='boyd_box',
+                 structure_type='weir_orifice_trapezoid',
                  logging=False,
                  verbose=False,
                  master_proc = 0,
@@ -52,6 +52,8 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                                           invert_elevations=invert_elevations,
                                           width=width,
                                           height=height,
+                                          z1=z1,
+                                          z2=z2,
                                           diameter= None,
                                           apron=apron,
                                           manning=manning,
@@ -80,7 +82,10 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
         self.culvert_length = self.get_culvert_length()
         self.culvert_width = self.get_culvert_width()
         self.culvert_height = self.get_culvert_height()
-
+        
+        self.culvert_z1 = self.get_culvert_z1()
+        self.culvert_z2 = self.get_culvert_z2()
+        
         self.max_velocity = 10.0
 
         self.inlets = self.get_inlets()
@@ -94,7 +99,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
         self.case = 'N/A'
 
         '''
-        print "ATTRIBUTES OF PARALLEL BOYD BOX::"
+        print "ATTRIBUTES OF PARALLEL WEIR ORIFICE TRAPEZOID::"
         for attr in dir(self):
             print "obj.%s = %s" % (attr, getattr(self, attr))
         '''
@@ -234,8 +239,10 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                     
             
                 Q, barrel_velocity, outlet_culvert_depth, flow_area, case = \
-                              boyd_box_function(depth               =self.culvert_height,
+                              weir_orifice_trapezoid_function(depth               =self.culvert_height,
                                                 width               =self.culvert_width,
+                                                z1                  =self.culvert_z1,
+                                                z2                  =self.culvert_z2,                                                
                                                 flow_width          =self.culvert_width,
                                                 length              =self.culvert_length,
                                                 driving_energy      =self.driving_energy,
