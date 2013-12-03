@@ -87,6 +87,7 @@ class combine_outputs:
                 assert (p1.vols ==p_tmp.vols).all()
                 p1.time = numpy.append(p1.time, p_tmp.time)
                 p1.stage = numpy.append(p1.stage, p_tmp.stage, axis=0)
+                p1.height = numpy.append(p1.height, p_tmp.height, axis=0)
                 p1.xmom = numpy.append(p1.xmom, p_tmp.xmom, axis=0)
                 p1.ymom = numpy.append(p1.ymom, p_tmp.ymom, axis=0)
                 p1.xvel = numpy.append(p1.xvel, p_tmp.xvel, axis=0)
@@ -137,9 +138,10 @@ class get_output:
     """
     def __init__(self, filename, minimum_allowed_height=1.0e-03):
         self.x, self.y, self.time, self.vols, self.stage, \
-                self.elev, self.xmom, self.ymom, \
+                self.height, self.elev, self.xmom, self.ymom, \
                 self.xvel, self.yvel, self.vel, self.minimum_allowed_height = \
                 read_output(filename, minimum_allowed_height)
+        self.filename=filename
 
 
 def read_output(filename, minimum_allowed_height):
@@ -149,7 +151,10 @@ def read_output(filename, minimum_allowed_height):
     # Purpose: To read the sww file, and output a number of variables as arrays that 
     #          we can then manipulate (e.g. plot, interrogate)
     #
-    # Output: x, y, time, stage, elev, xmom, ymom, xvel, yvel, vel
+    # Output: x, y, time, stage, height, elev, xmom, ymom, xvel, yvel, vel
+    #         x,y are only stored at one time
+    #         elevation may be stored at one or multiple times
+    #         everything else is stored every time step for vertices
 
     # Import modules
 
@@ -169,7 +174,19 @@ def read_output(filename, minimum_allowed_height):
     #stage=stage.getValue()
 
     elev=fid.variables['elevation'][:]
-    #elev=elev.getValue()
+
+    if(fid.variables.has_key('height')):
+        height=fid.variables['height'][:]
+    else:
+        # Back calculate height if it is not stored
+        height=fid.variables['stage'][:]
+        if(len(stage.shape)==len(elev.shape)):
+            for i in range(stage.shape[0]):
+                height[i,:]=stage[i,:]-elev[i,:]
+        else:
+            for i in range(stage.shape[0]):
+                height[i,:]=stage[i,:]-elev
+
 
     xmom=fid.variables['xmomentum'][:]
     #xmom=xmom.getValue()
@@ -189,12 +206,12 @@ def read_output(filename, minimum_allowed_height):
     yvel=ymom*0.0
 
     for i in range(xmom.shape[0]):
-        xvel[i,:]=xmom[i,:]/(stage[i,:]-elev+1.0e-06)*(stage[i,:]> elev+minimum_allowed_height)
-        yvel[i,:]=ymom[i,:]/(stage[i,:]-elev+1.0e-06)*(stage[i,:]> elev+minimum_allowed_height)
+        xvel[i,:]=xmom[i,:]/(height[i,:]+1.0e-06)*(height[i,:]>minimum_allowed_height)
+        yvel[i,:]=ymom[i,:]/(height[i,:]+1.0e-06)*(height[i,:]>minimum_allowed_height)
 
     vel = (xvel**2+yvel**2)**0.5
 
-    return x, y, time, vols, stage, elev, xmom, ymom, xvel, yvel, vel, minimum_allowed_height
+    return x, y, time, vols, stage, height, elev, xmom, ymom, xvel, yvel, vel, minimum_allowed_height
 
 ##############
 
@@ -206,11 +223,14 @@ class get_centroids:
     e.g.
         p = util.get_output('my_sww.sww', minimum_allowed_height=0.01) # vertex values
         pc=util.get_centroids(p, velocity_extrapolation=True) # centroid values
+
+    NOTE: elevation is only stored once in the output, even if it was stored every timestep
+         This is done because presently centroid elevations do not change over time.
     """
     def __init__(self,p, velocity_extrapolation=False):
         
         self.time, self.x, self.y, self.stage, self.xmom,\
-             self.ymom, self.elev, self.xvel, \
+             self.ymom, self.height, self.elev, self.xvel, \
              self.yvel, self.vel= \
              get_centroid_values(p, velocity_extrapolation)
                                  
@@ -245,67 +265,70 @@ def get_centroid_values(p, velocity_extrapolation):
     # Then use these to compute centroid averages 
     x_cent=(p.x[vols0]+p.x[vols1]+p.x[vols2])/3.0
     y_cent=(p.y[vols0]+p.y[vols1]+p.y[vols2])/3.0
-
-    stage_cent=(p.stage[:,vols0]+p.stage[:,vols1]+p.stage[:,vols2])/3.0
-    elev_cent=(p.elev[vols0]+p.elev[vols1]+p.elev[vols2])/3.0
-
-    # Here, we need to treat differently the case of momentum extrapolation or
-    # velocity extrapolation
-    if velocity_extrapolation:
-        xvel_cent=(p.xvel[:,vols0]+p.xvel[:,vols1]+p.xvel[:,vols2])/3.0
-        yvel_cent=(p.yvel[:,vols0]+p.yvel[:,vols1]+p.yvel[:,vols2])/3.0
         
-        # Now compute momenta
-        xmom_cent=stage_cent*0.0
-        ymom_cent=stage_cent*0.0
+    fid=NetCDFFile(p.filename)
+    if(fid.variables.has_key('stage_c')==False):
 
-        t=len(p.time)
+        stage_cent=(p.stage[:,vols0]+p.stage[:,vols1]+p.stage[:,vols2])/3.0
+        height_cent=(p.height[:,vols0]+p.height[:,vols1]+p.height[:,vols2])/3.0
+        #elev_cent=(p.elev[:,vols0]+p.elev[:,vols1]+p.elev[:,vols2])/3.0
+        # Only store elevation centroid once (since it doesn't change)
+        if(len(p.elev.shape)==2):
+            elev_cent=(p.elev[0,vols0]+p.elev[0,vols1]+p.elev[0,vols2])/3.0
+        else:
+            elev_cent=(p.elev[vols0]+p.elev[vols1]+p.elev[vols2])/3.0
 
-        for i in range(t):
-            xmom_cent[i,:]=xvel_cent[i,:]*(stage_cent[i,:]-elev_cent+1.0e-06)*\
-                                            (stage_cent[i,:]>elev_cent+p.minimum_allowed_height)
-            ymom_cent[i,:]=yvel_cent[i,:]*(stage_cent[i,:]-elev_cent+1.0e-06)*\
-                                            (stage_cent[i,:]>elev_cent+p.minimum_allowed_height)
+        # Here, we need to treat differently the case of momentum extrapolation or
+        # velocity extrapolation
+        if velocity_extrapolation:
+            xvel_cent=(p.xvel[:,vols0]+p.xvel[:,vols1]+p.xvel[:,vols2])/3.0
+            yvel_cent=(p.yvel[:,vols0]+p.yvel[:,vols1]+p.yvel[:,vols2])/3.0
+            
+            # Now compute momenta
+            xmom_cent=stage_cent*0.0
+            ymom_cent=stage_cent*0.0
 
+            t=len(p.time)
+
+            for i in range(t):
+                xmom_cent[i,:]=xvel_cent[i,:]*(height_cent[i,:]+1e-06)*\
+                                                (height_cent[i,:]>p.minimum_allowed_height)
+                ymom_cent[i,:]=yvel_cent[i,:]*(height_cent[i,:]+1e-06)*\
+                                                (height_cent[i,:]>p.minimum_allowed_height)
+        else:
+            xmom_cent=(p.xmom[:,vols0]+p.xmom[:,vols1]+p.xmom[:,vols2])/3.0
+            ymom_cent=(p.ymom[:,vols0]+p.ymom[:,vols1]+p.ymom[:,vols2])/3.0
+
+            # Now compute velocities
+            xvel_cent=stage_cent*0.0
+            yvel_cent=stage_cent*0.0
+
+            t=len(p.time)
+
+            for i in range(t):
+                xvel_cent[i,:]=xmom_cent[i,:]/(height_cent[i,:]+1.0e-06)*(height_cent[i,:]>p.minimum_allowed_height)
+                yvel_cent[i,:]=ymom_cent[i,:]/(height_cent[i,:]+1.0e-06)*(height_cent[i,:]>p.minimum_allowed_height)
+   
     else:
-        xmom_cent=(p.xmom[:,vols0]+p.xmom[:,vols1]+p.xmom[:,vols2])/3.0
-        ymom_cent=(p.ymom[:,vols0]+p.ymom[:,vols1]+p.ymom[:,vols2])/3.0
-
-        # Now compute velocities
-        xvel_cent=stage_cent*0.0
-        yvel_cent=stage_cent*0.0
-
-        t=len(p.time)
-
-        for i in range(t):
-            xvel_cent[i,:]=xmom_cent[i,:]/(stage_cent[i,:]-elev_cent+1.0e-06)*(stage_cent[i,:]>elev_cent+p.minimum_allowed_height)
-            yvel_cent[i,:]=ymom_cent[i,:]/(stage_cent[i,:]-elev_cent+1.0e-06)*(stage_cent[i,:]>elev_cent+p.minimum_allowed_height)
-
-
-
+        # Get centroid values from file 
+        print 'Reading centroids from file'
+        stage_cent=fid.variables['stage_c'][:]
+        height_cent=fid.variables['height_c'][:]
+        elev_cent=fid.variables['elevation_c'][:]
+        if(len(elev_cent.shape)==2):
+            elev_cent=elev_cent[0,:] # Only store elevation centroid once -- since it is constant
+        xmom_cent=fid.variables['xmomentum_c'][:]*(height_cent>p.minimum_allowed_height)
+        ymom_cent=fid.variables['ymomentum_c'][:]*(height_cent>p.minimum_allowed_height)
+        xvel_cent=xmom_cent/(height_cent+1.0e-06)
+        yvel_cent=ymom_cent/(height_cent+1.0e-06)
+        
+    
     # Compute velocity 
     vel_cent=(xvel_cent**2 + yvel_cent**2)**0.5
 
     return p.time, x_cent, y_cent, stage_cent, xmom_cent,\
-             ymom_cent, elev_cent, xvel_cent, yvel_cent, vel_cent
+             ymom_cent, height_cent, elev_cent, xvel_cent, yvel_cent, vel_cent
 
-# Make plot of stage over time.
-#pylab.close()
-#pylab.ion()
-#pylab.plot(time, stage[:,1])
-#for i in range(201):
-#    pylab.plot(time,stage[:,i])
-
-# Momentum should be 0. 
-#print 'Momentum max/min is', xmom.max() , xmom.min()
-
-#pylab.gca().set_aspect('equal')
-#pylab.scatter(x,y,c=elev,edgecolors='none')
-#pylab.colorbar()
-#
-#n=xvel.shape[0]-1
-#pylab.quiver(x,y,xvel[n,:],yvel[n,:])
-#pylab.savefig('Plot1.png')
 
 def animate_1D(time, var, x, ylab=' '): #, x=range(var.shape[1]), vmin=var.min(), vmax=var.max()):
     # Input: time = one-dimensional time vector;
