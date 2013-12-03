@@ -313,10 +313,16 @@ def get_centroid_values(p, velocity_extrapolation):
         # Get centroid values from file 
         print 'Reading centroids from file'
         stage_cent=fid.variables['stage_c'][:]
-        height_cent=fid.variables['height_c'][:]
         elev_cent=fid.variables['elevation_c'][:]
         if(len(elev_cent.shape)==2):
             elev_cent=elev_cent[0,:] # Only store elevation centroid once -- since it is constant
+        if(fid.variables.has_key('height_c')==True):
+            height_cent=fid.variables['height_c'][:]
+        else:
+            height_cent=1.0*stage_cent
+            for i in range(len(p.time)):
+                height_cent[i,:]=stage_cent[i,:]-elev_cent
+        
         xmom_cent=fid.variables['xmomentum_c'][:]*(height_cent>p.minimum_allowed_height)
         ymom_cent=fid.variables['ymomentum_c'][:]*(height_cent>p.minimum_allowed_height)
         xvel_cent=xmom_cent/(height_cent+1.0e-06)
