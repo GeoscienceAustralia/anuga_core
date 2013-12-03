@@ -1339,7 +1339,7 @@ class Generic_Domain:
         substeps= [   3   ,  2   , 3    ] # Number of calls to compute_fluxes within the timestep
         if timestepping_method in methods:
             self.timestepping_method = timestepping_method
-            self.timestep_fluxcalls = substeps[methods.index[timestepping_method]]
+            self.timestep_fluxcalls = substeps[methods.index(timestepping_method)]
             return
         if timestepping_method in [1,2,3]:
             self.timestepping_method = methods[timestepping_method-1]

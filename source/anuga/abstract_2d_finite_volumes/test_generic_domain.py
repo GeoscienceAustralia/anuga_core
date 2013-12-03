@@ -417,8 +417,6 @@ class Test_Domain(unittest.TestCase):
         assert num.allclose(stage.vertex_values, depth.vertex_values)                
          
             
-        
-        
                                       
                                       
     def test_setting_timestepping_method(self):
@@ -464,6 +462,8 @@ class Test_Domain(unittest.TestCase):
         domain.set_timestepping_method(1)
         domain.set_timestepping_method(2)
         domain.set_timestepping_method(3)
+        # Since rk3 was just set, check if the number of substeps is correct
+        assert domain.timestep_fluxcalls == 3
 
         #test get timestepping method
         assert domain.get_timestepping_method() == 'rk3'
