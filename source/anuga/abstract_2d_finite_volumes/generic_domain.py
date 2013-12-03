@@ -1336,11 +1336,14 @@ class Generic_Domain:
 
     def set_timestepping_method(self, timestepping_method):
         methods = ['euler', 'rk2', 'rk3']
+        substeps= [   3   ,  2   , 3    ] # Number of calls to compute_fluxes within the timestep
         if timestepping_method in methods:
             self.timestepping_method = timestepping_method
+            self.timestep_fluxcalls = substeps[methods.index[timestepping_method]]
             return
         if timestepping_method in [1,2,3]:
             self.timestepping_method = methods[timestepping_method-1]
+            self.timestep_fluxcalls = substeps[timestepping_method-1]
             return
 
         msg = '%s is an incorrect timestepping type' % timestepping_method

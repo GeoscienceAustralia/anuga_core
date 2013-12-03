@@ -92,6 +92,7 @@ def profileit(name):
 #-----------------------------
 
 import numpy as num
+import sys
 
 from anuga.abstract_2d_finite_volumes.generic_domain \
                     import Generic_Domain
@@ -405,8 +406,72 @@ class Domain(Generic_Domain):
 #        print '#'
 #        print '##########################################################################'
 
+    def set_DE1_defaults(self):
+        """Set up the defaults for running the flow_algorithm "DE1"
+           A 'discontinuous elevation' method
+        """
+        self.set_CFL(1.00)
+        self.set_use_kinematic_viscosity(False)
+        #self.timestepping_method='rk2'#'rk3'#'euler'#'rk2' 
+        self.set_timestepping_method(2)
+        
+        self.set_compute_fluxes_method('DE1')
+        self.set_distribute_to_vertices_and_edges_method('DE1')
+        
+        # Don't place any restriction on the minimum storable height
+        self.minimum_storable_height=-99999999999.0 
+        self.minimum_allowed_height=1.0e-03
 
+        self.use_edge_limiter=True
+        self.set_default_order(2)
+        self.set_extrapolate_velocity()
 
+        self.beta_w=1.0
+        self.beta_w_dry=0.0
+        self.beta_uh=1.0
+        self.beta_uh_dry=0.0
+        self.beta_vh=1.0
+        self.beta_vh_dry=0.0
+        
+
+        self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
+                 'ymomentum': 2, 'elevation': 2, 'height':2})
+        self.set_store_centroids(True)
+
+        self.optimise_dry_cells=False 
+
+        # We need the edge_coordinates for the extrapolation
+        self.edge_coordinates=self.get_edge_midpoint_coordinates()
+
+        # By default vertex values are stored uniquely
+        # However, for storage efficiency, we may override this (since
+        # centroids are stored anyway, and the most important reason
+        # to store vertices uniquely is to allow centroid calculation)
+        self.set_store_vertices_smoothly(False)
+
+        self.maximum_allowed_speed=0.0
+
+        # Keep track of the fluxes through the boundaries
+        self.boundary_flux_integral=num.ndarray(1)
+        self.boundary_flux_integral[0]=0. 
+        self.boundary_flux_sum=num.ndarray(1)
+        self.boundary_flux_sum[0]=0.
+
+        self.call=1 # Integer counting how many times we call compute_fluxes_central
+
+        print '##########################################################################'
+        print '#'
+        print '# Using discontinuous elevation solver DE1 '
+        print '#'
+        print '# Mostly designed for rk2 timestepping'
+        print '#'
+        print '# Make sure you use centroid values when reporting on important output quantities'
+        print '#'
+        print '# NOTE: anuga-viewer sometimes shows very shallow regions in this solver as '
+        print '# erratically jumping from "totally dry" to "barely wet". In all my checks of centroid'
+        print '# values at such locations, I never found that it was really occurring. It may be'
+        print '# a problem with the viewer rather than this algorithm. '
+        print '##########################################################################'
 
 
     def update_special_conditions(self):
@@ -485,7 +550,7 @@ class Domain(Generic_Domain):
            wb_3
            tsunami
         """
-        compute_fluxes_methods = ['original', 'wb_1', 'wb_2', 'wb_3', 'tsunami']
+        compute_fluxes_methods = ['original', 'wb_1', 'wb_2', 'wb_3', 'tsunami', 'DE1']
 
         if flag in compute_fluxes_methods:
             self.compute_fluxes_method = flag
@@ -515,7 +580,7 @@ class Domain(Generic_Domain):
            original
            tsunami
         """
-        distribute_to_vertices_and_edges_methods = ['original',  'tsunami']
+        distribute_to_vertices_and_edges_methods = ['original',  'tsunami', 'DE1']
 
         if flag in distribute_to_vertices_and_edges_methods:
             self.distribute_to_vertices_and_edges_method = flag
@@ -554,7 +619,7 @@ class Domain(Generic_Domain):
         else:
             flag = str(float(str(flag))).replace(".","_")
 
-        flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', 'tsunami', 'yusuke']
+        flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', 'tsunami', 'yusuke', 'DE1']
 
         if flag in flow_algorithms:
             self.flow_algorithm = flag
@@ -661,12 +726,14 @@ class Domain(Generic_Domain):
             self.set_compute_fluxes_method('wb_2')
             self.set_extrapolate_velocity()
 
+        if self.flow_algorithm == 'DE1':
+            self.set_DE1_defaults()
 
     def get_flow_algorithm(self):
         """Get method used for timestepping and spatial discretisation
 
         Currently
-           1_0, 1_5, 1_75 2_0, 2_5
+           1_0, 1_5, 1_75 2_0, 2_5, tsunami, DE1
         """
 
         return self.flow_algorithm
@@ -1120,8 +1187,7 @@ class Domain(Generic_Domain):
             # Using Gareth Davies well balanced scheme
             # Flux calculation and gravity incorporated in same
             # procedure
-
-
+            #
             # FIXME SR: This needs cleaning up, should just be passing through
             # the domain as in other compute flux calls
 
@@ -1164,6 +1230,94 @@ class Domain(Generic_Domain):
                                            Stage.centroid_values,
                                            Bed.centroid_values,
                                            Bed.vertex_values)
+
+        elif self.compute_fluxes_method == 'DE1':
+            # Using Gareth Davies discontinuous elevation scheme
+            # Flux calculation and gravity incorporated in same
+            # procedure
+            # Also, fluxes are limited to prevent cells exporting more water
+            # than they contain
+
+            # FIXME SR: This needs cleaning up, should just be passing through
+            # the domain as in other compute flux calls
+            from swDE1_domain_ext import compute_fluxes_ext_central \
+                                      as compute_fluxes_ext
+            if self.timestepping_method!='rk2':
+                raise Exception, 'DE1 only works with rk2 at present, due to some hard-coded statements in set_DE1_defaults' 
+            Stage = self.quantities['stage']
+            Xmom = self.quantities['xmomentum']
+            Ymom = self.quantities['ymomentum']
+            Bed = self.quantities['elevation']
+            height = self.quantities['height']
+
+            timestep = float(sys.maxint)
+
+            # Keep track of number of calls to compute_fluxes_ext
+            # This is a hacky method of knowing whether we are in the 
+            # first or subsequent sub-steps of our 2nd/3rd order timestepping schemes,
+            # which is important for the mass conservation enforcement.
+            # Note that in ANUGA, all sub-steps within an rk2/rk3 timestep have the same timestep
+            self.call+=1
+            flux_timestep = compute_fluxes_ext(timestep,
+                                               self.epsilon,
+                                               self.minimum_allowed_height,
+                                               self.g,
+                                               self.boundary_flux_sum,
+                                               self.neighbours,
+                                               self.neighbour_edges,
+                                               self.normals,
+                                               self.edgelengths,
+                                               self.radii,
+                                               self.areas,
+                                               self.tri_full_flag,
+                                               Stage.edge_values,
+                                               Xmom.edge_values,
+                                               Ymom.edge_values,
+                                               Bed.edge_values,
+                                               height.edge_values,
+                                               Stage.boundary_values,
+                                               Xmom.boundary_values,
+                                               Ymom.boundary_values,
+                                               self.boundary_flux_type,
+                                               Stage.explicit_update,
+                                               Xmom.explicit_update,
+                                               Ymom.explicit_update,
+                                               self.already_computed_flux,
+                                               self.max_speed,
+                                               int(self.optimise_dry_cells),
+                                               self.timestep_fluxcalls,
+                                               Stage.centroid_values,
+                                               Xmom.centroid_values,
+                                               Ymom.centroid_values,
+                                               Bed.centroid_values, 
+                                               height.centroid_values,
+                                               Bed.vertex_values)
+
+            # Update the boundary flux integral
+            # FIXME GD: This should be moved to its own routine -- something like this
+            #        could be included in all solvers.
+            if(self.timestepping_method=='rk2'):
+                if(self.call%2==1):
+                  self.boundary_flux_integral[0]= self.boundary_flux_integral[0] +\
+                                                    self.boundary_flux_sum[0]*self.timestep*0.5
+                  #print 'dbfi ', self.boundary_flux_integral, self.boundary_flux_sum
+                  self.boundary_flux_sum[0]=0.
+            elif(self.timestepping_method=='euler'):
+                # FIXME GD: Unsupported at present.
+                self.boundary_flux_integral=0.
+                # This presently doesn't work -- this section of code may need to go elsewhere
+                #self.boundary_flux_integral[0]= self.boundary_flux_integral[0] +\
+                #                                  self.boundary_flux_sum[0]*self.timestep
+                #self.boundary_flux_sum[0]=0.
+            elif(self.timestepping_method=='rk3'):
+                # FIXME GD: Unsupported at present.
+                self.boundary_flux_integral=0.
+                # FIXME GD: This needs to be implemented
+            else:
+                mess='ERROR: domain.timestepping_method', self.timestepping_method,' method not recognised'
+                raise Exception, mess
+
+            self.flux_timestep = flux_timestep
 
         else:
             raise Exception('unknown compute_fluxes_method')
@@ -1232,7 +1386,42 @@ class Domain(Generic_Domain):
                   int(self.optimise_dry_cells),
                   int(self.extrapolate_velocity_second_order))
 
+        elif self.compute_fluxes_method=='DE1':
 
+            # Do protection step
+            self.protect_against_infinitesimal_and_negative_heights()
+            # Do extrapolation step
+            from swDE1_domain_ext import extrapolate_second_order_edge_sw as extrapol2
+
+            Stage = self.quantities['stage']
+            Xmom = self.quantities['xmomentum']
+            Ymom = self.quantities['ymomentum']
+            Elevation = self.quantities['elevation']
+            height=self.quantities['height']
+
+            extrapol2(self,
+                      self.surrogate_neighbours,
+                      self.neighbour_edges,
+                      self.number_of_boundaries,
+                      self.centroid_coordinates,
+                      Stage.centroid_values,
+                      Xmom.centroid_values,
+                      Ymom.centroid_values,
+                      Elevation.centroid_values,
+                      height.centroid_values,
+                      self.edge_coordinates,
+                      Stage.edge_values,
+                      Xmom.edge_values,
+                      Ymom.edge_values,
+                      Elevation.edge_values,
+                      height.edge_values,
+                      Stage.vertex_values,
+                      Xmom.vertex_values,
+                      Ymom.vertex_values,
+                      Elevation.vertex_values,
+                      height.vertex_values,
+                      int(self.optimise_dry_cells),
+                      int(self.extrapolate_velocity_second_order))
         else:
             # Code for original method
             if self.use_edge_limiter:
@@ -1360,7 +1549,24 @@ class Domain(Generic_Domain):
 
             print 'Cumulative mass protection: python'+str(mass_error)+'m^3 '
 
+        elif self.flow_algorithm == 'DE1':
 
+            from swDE1_domain_ext import protect
+
+            # shortcuts
+            wc = self.quantities['stage'].centroid_values
+            wv = self.quantities['stage'].vertex_values
+            zc = self.quantities['elevation'].centroid_values
+            zv = self.quantities['elevation'].vertex_values
+            xmomc = self.quantities['xmomentum'].centroid_values
+            ymomc = self.quantities['ymomentum'].centroid_values
+            areas = self.areas
+            xc = self.centroid_coordinates[:,0]
+            yc = self.centroid_coordinates[:,1] 
+
+            protect(self.minimum_allowed_height, self.maximum_allowed_speed,
+                    self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas, xc, yc)
+            
         else:
             from shallow_water_ext import protect
 
