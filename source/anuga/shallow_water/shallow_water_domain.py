@@ -419,8 +419,8 @@ class Domain(Generic_Domain):
         self.set_distribute_to_vertices_and_edges_method('DE1')
         
         # Don't place any restriction on the minimum storable height
-        self.minimum_storable_height=-99999999999.0 
-        self.minimum_allowed_height=1.0e-03
+        #self.minimum_storable_height=-99999999999.0 
+        #self.minimum_allowed_height=1.0e-03
 
         self.use_edge_limiter=True
         self.set_default_order(2)
@@ -549,6 +549,7 @@ class Domain(Generic_Domain):
            wb_2
            wb_3
            tsunami
+           DE1
         """
         compute_fluxes_methods = ['original', 'wb_1', 'wb_2', 'wb_3', 'tsunami', 'DE1']
 
