@@ -419,7 +419,7 @@ class Domain(Generic_Domain):
         self.set_distribute_to_vertices_and_edges_method('DE1')
         
         # Don't place any restriction on the minimum storable height
-        #self.minimum_storable_height=-99999999999.0 
+        self.minimum_storable_height=-99999999999.0 
         #self.minimum_allowed_height=1.0e-03
 
         self.use_edge_limiter=True

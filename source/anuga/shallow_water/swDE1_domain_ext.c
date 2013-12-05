@@ -846,6 +846,28 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       }
   }
 
+  // If a triangle is surrounded by dry cells (or dry cells + boundary
+  // condition) set its momentum to zero too. This prevents 'pits' of
+  // of water being trapped and unable to lose momentum, which can occur in
+  // some situations
+  for (k=0; k<number_of_elements;k++){
+
+      k3=k*3;
+      k0 = surrogate_neighbours[k3];
+      k1 = surrogate_neighbours[k3 + 1];
+      k2 = surrogate_neighbours[k3 + 2];
+
+      if((height_centroid_values[k0] < minimum_allowed_height | k0==k) &
+         (height_centroid_values[k1] < minimum_allowed_height | k1==k) &
+         (height_centroid_values[k2] < minimum_allowed_height | k2==k)){
+              xmom_centroid_store[k] = 0.;
+              xmom_centroid_values[k] = 0.;
+              ymom_centroid_store[k] = 0.;
+              ymom_centroid_values[k] = 0.;
+
+      }
+  }
+
   // Begin extrapolation routine
   for (k = 0; k < number_of_elements; k++) 
   {
@@ -1043,8 +1065,8 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       //       but is also more 'artefacty' in important cases (tendency for high velocities, etc).
       //       
       //hfactor=1.0;
-      a_tmp=0.2; // Highest depth ratio with hfactor=1
-      b_tmp=0.05; // Highest depth ratio with hfactor=0
+      a_tmp=0.3; // Highest depth ratio with hfactor=1
+      b_tmp=0.1; // Highest depth ratio with hfactor=0
       c_tmp=1.0/(a_tmp-b_tmp); 
       d_tmp= 1.0-(c_tmp*a_tmp);
       hfactor= max(0., min(c_tmp*max(hmin,0.0)/max(hc,1.0e-06)+d_tmp, 
@@ -1054,8 +1076,9 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       //hfactor= max(0., min(5.0*max(hmin,0.0)/max(hmax,1.0e-06)-0.5, 1.0)
       //            );
       //hfactor=1.0;
-      
-      hfactor=min( 1.2*max(hmin,0.)/(max(hmin,0.)+1.*minimum_allowed_height), hfactor);
+      // Set hfactor to zero smothly as hmin--> minimum_allowed_height. This
+      // avoids some 'chatter' for very shallow flows 
+      hfactor=min( 1.2*max(hmin-minimum_allowed_height,0.)/(max(hmin,0.)+1.*minimum_allowed_height), hfactor);
 
       //-----------------------------------
       // stage
@@ -1135,6 +1158,7 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
    
       // Limit the gradient
+      //beta_tmp = beta_uh_dry + (beta_uh - beta_uh_dry) * hfactor;
       limit_gradient(dqv, qmin, qmax, beta_tmp);
 
       //beta_tmp = 0. + (beta_w - 0.) * hfactor;
