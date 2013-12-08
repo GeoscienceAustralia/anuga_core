@@ -286,7 +286,7 @@ double _compute_fluxes_central(int number_of_elements,
         long* already_computed_flux,
         double* max_speed_array,
         int optimise_dry_cells, 
-        int timestep_order,
+        int timestep_fluxcalls,
         double* stage_centroid_values,
         double* xmom_centroid_values,
         double* ymom_centroid_values,
@@ -449,15 +449,9 @@ double _compute_fluxes_central(int number_of_elements,
             // NOTE: We should only change the timestep between rk2 or rk3
             // steps, NOT within them (since a constant timestep is used within
             // each rk2/rk3 sub-step)
-            if ((tri_full_flag[k] == 1) ) {
+            if ((tri_full_flag[k] == 1) & ( (call-2)%timestep_fluxcalls==0)) {
 
-                // On the 2nd/3rd timsteps of rk2 / rk3 sequence, don't
-                // recompute the max-speed. ANUGA uses a constant timestep and
-                // we need to respect that in the volume-protection
-                // computations below (achieved by fixing max-speed)
-                if((call-2)%timestep_order!=0) max_speed = max_speed_array[k]; // HACK to Ensure that local timestep is the same as the last timestep 
-                // On the 1st timestep of an rk2/rk3 sequence, recompute the max-speed
-                if((call-2)%timestep_order==0) speed_max_last=max(speed_max_last, max_speed);
+                speed_max_last=max(speed_max_last, max_speed);
 
                 if (max_speed > epsilon) {
                     // Apply CFL condition for triangles joining this edge (triangle k and triangle n)
@@ -478,66 +472,66 @@ double _compute_fluxes_central(int number_of_elements,
 
         } // End edge i (and neighbour n)
         // Keep track of maximal speeds
-        if((call-2)%timestep_order==0) max_speed_array[k] = speed_max_last; //max_speed;
+        if((call-2)%timestep_fluxcalls==0) max_speed_array[k] = speed_max_last; //max_speed;
 
 
     } // End triangle k
  
-    // GD HACK 
-    // Limit edgefluxes, for mass conservation near wet/dry cells
-    for(k=0; k< number_of_elements; k++){
-        //continue;
-        hc = height_centroid_values[k]; 
-        // Loop over every edge
-        for(i = 0; i<3; i++){
-            if(i==0){
-                // Add up the outgoing flux through the cell -- only do this once (i==0)
-                outgoing_mass_edges=0.0;
-                for(useint=0; useint<3; useint++){
-                    if(edgeflux_store[3*(3*k+useint)]< 0.){
-                        //outgoing_mass_edges+=1.0;
-                        outgoing_mass_edges+=(edgeflux_store[3*(3*k+useint)]);
-                    }
-                }
-                outgoing_mass_edges*=local_timestep;
-            }
+    //// GD HACK 
+    //// Limit edgefluxes, for mass conservation near wet/dry cells
+    //for(k=0; k< number_of_elements; k++){
+    //    //continue;
+    //    hc = height_centroid_values[k]; 
+    //    // Loop over every edge
+    //    for(i = 0; i<3; i++){
+    //        if(i==0){
+    //            // Add up the outgoing flux through the cell -- only do this once (i==0)
+    //            outgoing_mass_edges=0.0;
+    //            for(useint=0; useint<3; useint++){
+    //                if(edgeflux_store[3*(3*k+useint)]< 0.){
+    //                    //outgoing_mass_edges+=1.0;
+    //                    outgoing_mass_edges+=(edgeflux_store[3*(3*k+useint)]);
+    //                }
+    //            }
+    //            outgoing_mass_edges*=local_timestep;
+    //        }
 
-            ki=3*k+i;   
-            ki2=ki*2;
-            ki3 = ki*3;
-            
-            // Prevent outflow from 'seriously' dry cells
-            // Idea: The cell will not go dry if:
-            // total_outgoing_flux <= cell volume = Area_triangle*hc
-            vol=areas[k]*hc;
-            if((edgeflux_store[ki3]< 0.0) && (-outgoing_mass_edges> vol)){
-                
-                // This bound could be improved (e.g. we could actually sum the
-                // + and - fluxes and check if they are too large).  However,
-                // the advantage of this method is that we don't have to worry
-                // about subsequent changes to the + edgeflux caused by
-                // constraints associated with neighbouring triangles.
-                tmp = vol/(-(outgoing_mass_edges)) ;
-                if(tmp< 1.0){
-                    edgeflux_store[ki3+0]*=tmp;
-                    edgeflux_store[ki3+1]*=tmp;
-                    edgeflux_store[ki3+2]*=tmp;
+    //        ki=3*k+i;   
+    //        ki2=ki*2;
+    //        ki3 = ki*3;
+    //        
+    //        // Prevent outflow from 'seriously' dry cells
+    //        // Idea: The cell will not go dry if:
+    //        // total_outgoing_flux <= cell volume = Area_triangle*hc
+    //        vol=areas[k]*hc;
+    //        if((edgeflux_store[ki3]< 0.0) && (-outgoing_mass_edges> vol)){
+    //            
+    //            // This bound could be improved (e.g. we could actually sum the
+    //            // + and - fluxes and check if they are too large).  However,
+    //            // the advantage of this method is that we don't have to worry
+    //            // about subsequent changes to the + edgeflux caused by
+    //            // constraints associated with neighbouring triangles.
+    //            tmp = vol/(-(outgoing_mass_edges)) ;
+    //            if(tmp< 1.0){
+    //                edgeflux_store[ki3+0]*=tmp;
+    //                edgeflux_store[ki3+1]*=tmp;
+    //                edgeflux_store[ki3+2]*=tmp;
 
-                    // Compute neighbour edge index
-                    n = neighbours[ki];
-                    if(n>=0){
-                        nm = 3*n + neighbour_edges[ki];
-                        nm3 = nm*3;
-                        edgeflux_store[nm3+0]*=tmp;
-                        edgeflux_store[nm3+1]*=tmp;
-                        edgeflux_store[nm3+2]*=tmp;
-                    }
-                }
-            }
-        }
-     }
+    //                // Compute neighbour edge index
+    //                n = neighbours[ki];
+    //                if(n>=0){
+    //                    nm = 3*n + neighbour_edges[ki];
+    //                    nm3 = nm*3;
+    //                    edgeflux_store[nm3+0]*=tmp;
+    //                    edgeflux_store[nm3+1]*=tmp;
+    //                    edgeflux_store[nm3+2]*=tmp;
+    //                }
+    //            }
+    //        }
+    //    }
+    // }
 
-    //printf("%e \n", edgeflux_store[3*30*3]);
+    ////printf("%e \n", edgeflux_store[3*30*3]);
 
     // Now add up stage, xmom, ymom explicit updates
     for(k=0; k<number_of_elements; k++){
@@ -590,7 +584,7 @@ double _compute_fluxes_central(int number_of_elements,
     }  // end cell k
 
     // Hack to ensure we only update the timestep on the first call within each rk2/rk3 step
-    if((call-2)%timestep_order==0) timestep=local_timestep; 
+    if((call-2)%timestep_fluxcalls==0) timestep=local_timestep; 
 
     free(edgeflux_store);
     free(pressuregrad_store);
@@ -1612,7 +1606,7 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
     *bed_vertex_values;
     
   double timestep, epsilon, H0, g;
-  int optimise_dry_cells, timestep_order;
+  int optimise_dry_cells, timestep_fluxcalls;
     
   // Convert Python arguments to C
   if (!PyArg_ParseTuple(args, "ddddOOOOOOOOOOOOOOOOOOOOOOiiOOOOOO",
@@ -1641,7 +1635,7 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
             &already_computed_flux,
             &max_speed_array,
             &optimise_dry_cells,
-            &timestep_order,
+            &timestep_fluxcalls,
             &stage_centroid_values,
             &xmom_centroid_values,
             &ymom_centroid_values,
@@ -1713,7 +1707,7 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
                      (long*) already_computed_flux -> data,
                      (double*) max_speed_array -> data,
                      optimise_dry_cells, 
-                     timestep_order,
+                     timestep_fluxcalls,
                      (double*) stage_centroid_values -> data, 
                      (double*) xmom_centroid_values -> data, 
                      (double*) ymom_centroid_values -> data, 

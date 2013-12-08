@@ -451,7 +451,8 @@ class Domain(Generic_Domain):
 
         self.maximum_allowed_speed=0.0
 
-        # Keep track of the fluxes through the boundaries
+        ## FIXME: Should implement tracking of boundary fluxes
+        ## Keep track of the fluxes through the boundaries
         self.boundary_flux_integral=num.ndarray(1)
         self.boundary_flux_integral[0]=0. 
         self.boundary_flux_sum=num.ndarray(1)
@@ -1243,8 +1244,9 @@ class Domain(Generic_Domain):
             # the domain as in other compute flux calls
             from swDE1_domain_ext import compute_fluxes_ext_central \
                                       as compute_fluxes_ext
-            if self.timestepping_method!='rk2':
-                raise Exception, 'DE1 only works with rk2 at present, due to some hard-coded statements in set_DE1_defaults' 
+            if self.timestepping_method=='euler':
+                raise Exception, "DE1 doesn't seems to work with euler at present \
+                                 (boundary conditions?), and is mostly designed for rk2"
             Stage = self.quantities['stage']
             Xmom = self.quantities['xmomentum']
             Ymom = self.quantities['ymomentum']
@@ -1254,9 +1256,6 @@ class Domain(Generic_Domain):
             timestep = float(sys.maxint)
 
             # Keep track of number of calls to compute_fluxes_ext
-            # This is a hacky method of knowing whether we are in the 
-            # first or subsequent sub-steps of our 2nd/3rd order timestepping schemes,
-            # which is important for the mass conservation enforcement.
             # Note that in ANUGA, all sub-steps within an rk2/rk3 timestep have the same timestep
             self.call+=1
             flux_timestep = compute_fluxes_ext(timestep,
@@ -1294,29 +1293,30 @@ class Domain(Generic_Domain):
                                                height.centroid_values,
                                                Bed.vertex_values)
 
-            # Update the boundary flux integral
-            # FIXME GD: This should be moved to its own routine -- something like this
-            #        could be included in all solvers.
-            if(self.timestepping_method=='rk2'):
-                if(self.call%2==1):
-                  self.boundary_flux_integral[0]= self.boundary_flux_integral[0] +\
-                                                    self.boundary_flux_sum[0]*self.timestep*0.5
-                  #print 'dbfi ', self.boundary_flux_integral, self.boundary_flux_sum
-                  self.boundary_flux_sum[0]=0.
-            elif(self.timestepping_method=='euler'):
-                # FIXME GD: Unsupported at present.
-                self.boundary_flux_integral=0.
-                # This presently doesn't work -- this section of code may need to go elsewhere
-                #self.boundary_flux_integral[0]= self.boundary_flux_integral[0] +\
-                #                                  self.boundary_flux_sum[0]*self.timestep
-                #self.boundary_flux_sum[0]=0.
-            elif(self.timestepping_method=='rk3'):
-                # FIXME GD: Unsupported at present.
-                self.boundary_flux_integral=0.
-                # FIXME GD: This needs to be implemented
-            else:
-                mess='ERROR: domain.timestepping_method', self.timestepping_method,' method not recognised'
-                raise Exception, mess
+            ## FIXME: This won't work in parallel since the timestep has not been updated to include other processors. 
+            ## Update the boundary flux integral
+            ## FIXME GD: This should be moved to its own routine -- something like this
+            ##        could be included in all solvers.
+            #if(self.timestepping_method=='rk2'):
+            #    if(self.call%2==1):
+            #      self.boundary_flux_integral[0]= self.boundary_flux_integral[0] +\
+            #                                        self.boundary_flux_sum[0]*self.timestep*0.5
+            #      #print 'dbfi ', self.boundary_flux_integral, self.boundary_flux_sum
+            #      self.boundary_flux_sum[0]=0.
+            #elif(self.timestepping_method=='euler'):
+            #    # FIXME GD: Unsupported at present.
+            #    self.boundary_flux_integral=0.
+            #    # This presently doesn't work -- this section of code may need to go elsewhere
+            #    #self.boundary_flux_integral[0]= self.boundary_flux_integral[0] +\
+            #    #                                  self.boundary_flux_sum[0]*self.timestep
+            #    #self.boundary_flux_sum[0]=0.
+            #elif(self.timestepping_method=='rk3'):
+            #    # FIXME GD: Unsupported at present.
+            #    self.boundary_flux_integral=0.
+            #    # FIXME GD: This needs to be implemented
+            #else:
+            #    mess='ERROR: domain.timestepping_method', self.timestepping_method,' method not recognised'
+            #    raise Exception, mess
 
             self.flux_timestep = flux_timestep
 
