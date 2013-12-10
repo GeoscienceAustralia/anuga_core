@@ -358,11 +358,10 @@ class Domain(Generic_Domain):
         # We need the edge_coordinates for the extrapolation
         self.edge_coordinates=self.get_edge_midpoint_coordinates()
 
-        # We demand that vertex values are stored uniquely
-        # NOTE: Without this, wet-dry velocity spikes tend to occur in output files.
-        # The tsunami algorithm is probably particularly sensitive to this.
-        # Hence, this seems like a reasonable default.
-        self.set_store_vertices_smoothly(False)
+        ## (OLD) We demand that vertex values are stored uniquely
+        ##self.set_store_vertices_smoothly(False)
+        # Now we can just store centroids directly
+        self.set_store_centroids(True)
 
         self.maximum_allowed_speed=0.0
         #self.minimum_allowed_height=0.01
@@ -443,11 +442,10 @@ class Domain(Generic_Domain):
         # We need the edge_coordinates for the extrapolation
         self.edge_coordinates=self.get_edge_midpoint_coordinates()
 
-        # By default vertex values are stored uniquely
-        # However, for storage efficiency, we may override this (since
-        # centroids are stored anyway, and the most important reason
-        # to store vertices uniquely is to allow centroid calculation)
-        self.set_store_vertices_smoothly(False)
+        # By default vertex values are NOT stored uniquely
+        # for storage efficiency. We may override this (but not so important since
+        # centroids are stored anyway
+        # self.set_store_vertices_smoothly(False)
 
         self.maximum_allowed_speed=0.0
 
