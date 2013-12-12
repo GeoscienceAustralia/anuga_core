@@ -437,13 +437,26 @@ class Test_General_Mesh(unittest.TestCase):
         nodes_absolute = geo.get_absolute(nodes)
         
         # max index is 5, use 5, expect success
-        triangles = num.array([[1,5,2], [1,2,4], [4,2,5], [3,1,4]])
+        triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
         General_mesh(nodes, triangles, geo_reference=geo)
+        
+
+        # should fail with negative area
+        triangles = num.array([[0,1,2], [1,2,4], [4,2,5], [3,1,4]])
+        General_mesh(nodes, triangles, geo_reference=geo)
+        
+        # should fail with negative area
+        triangles = num.array([[0,1,2], [1,2,4], [4,2,5], [3,1,4]])
+        self.failUnlessRaises(AssertionError, General_mesh, 
+                              nodes, triangles, geo_reference=geo)
+
         
         # max index is 5, use 6, expect assert failure
         triangles = num.array([[1,6,2], [1,2,4], [4,2,5], [3,1,4]])
         self.failUnlessRaises(AssertionError, General_mesh,
                               nodes, triangles, geo_reference=geo)
+        
+
         
         # max index is 5, use 10, expect assert failure
         triangles = num.array([[1,10,2], [1,2,4], [4,2,5], [3,1,4]])
@@ -454,7 +467,7 @@ class Test_General_Mesh(unittest.TestCase):
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_General_Mesh, 'test')
-    suite = unittest.makeSuite(Test_General_Mesh, 'test_get_edge_midpoint_coordinates')     
+    suite = unittest.makeSuite(Test_General_Mesh, 'test')     
     runner = unittest.TextTestRunner()
     runner.run(suite)
 
