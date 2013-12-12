@@ -62,7 +62,7 @@ class Test_Quad(unittest.TestCase):
 
         points = [p0,p1,p2, p3]
         #bac, bce, ecf, dbe, daf, dae
-        vertices = [[0,1,2],[0,2,3]]
+        vertices = [[0,1,2],[0,3,2]]
 
         mesh = Mesh(points, vertices)
 

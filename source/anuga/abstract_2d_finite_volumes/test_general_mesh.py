@@ -440,10 +440,6 @@ class Test_General_Mesh(unittest.TestCase):
         triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
         General_mesh(nodes, triangles, geo_reference=geo)
         
-
-        # should fail with negative area
-        triangles = num.array([[0,1,2], [1,2,4], [4,2,5], [3,1,4]])
-        General_mesh(nodes, triangles, geo_reference=geo)
         
         # should fail with negative area
         triangles = num.array([[0,1,2], [1,2,4], [4,2,5], [3,1,4]])
