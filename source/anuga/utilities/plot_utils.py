@@ -28,6 +28,8 @@
     util.water_volume -- compute the water volume at every
                          time step in an sww file (needs both
                          vertex and centroid value input). 
+
+    util.Make_Geotiff -- convert sww centroids to a georeferenced tiff
  
     Here is an example ipython session which uses some of these functions:
 
@@ -518,4 +520,193 @@ def get_extent(p):
 
 
 
+def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None):
+    """
+        Convert data,lats,lons to a georeferenced raster tif
+        INPUT: data -- array with desired raster cell values
+               lats -- 1d array with 'latitude' or 'y' range
+               lons -- 1D array with 'longitude' or 'x' range
+               fileName -- name of file to write to
+               EPSG_CODE -- Integer code with projection information in EPSG format 
+               proj4string -- proj4string with projection information
 
+        NOTE: proj4string is used in preference to EPSG_CODE if available
+    """
+    try:
+        import gdal
+        import osr
+    except:
+        raise Exception, 'Cannot find gdal and/or osr python modules'
+
+    xres = lons[1] - lons[0]
+    yres = lats[1] - lats[0]
+
+    ysize = len(lats)
+    xsize = len(lons)
+
+    # Assume data/lats/longs refer to cell centres, and compute lower left coordinate
+    llx = lons[0] - (xres / 2.)
+    lly = lats[0] - (yres / 2.)
+
+    # GDAL magic to make the tif
+    driver = gdal.GetDriverByName('GTiff')
+    ds = driver.Create(fileName, xsize, ysize, 1, gdal.GDT_Float32)
+
+    srs = osr.SpatialReference()
+    if(proj4string is not None):
+        srs.ImportFromProj4(proj4string)
+    elif(EPSG_CODE is not None):
+        srs.ImportFromEPSG(EPSG_CODE)
+    else:
+        raise Exception, 'No spatial reference information given'
+
+    ds.SetProjection(srs.ExportToWkt())
+
+    gt = [llx, xres, 0, lly, 0, yres ]
+    ds.SetGeoTransform(gt)
+
+    outband = ds.GetRasterBand(1)
+    outband.WriteArray(data)
+
+    ds = None
+    return
+
+##################################################################################
+
+def Make_Geotif(swwFile, output_quantity='depth',
+             myTimeStep=1, CellSize=5.0, 
+             lower_left=None, upper_right=None,
+             EPSG_CODE=None, 
+             proj4string=None,
+             velocity_extrapolation=True,
+             min_allowed_height=1.0e-05,
+             output_dir='TIFS',
+             verbose=False):
+    """
+        Make a georeferenced tif by nearest-neighbour interpolation of sww file outputs.
+
+        You must supply projection information as either a proj4string or an integer EPSG_CODE (but not both!)
+
+        INPUTS: swwFile -- name of sww file
+                output_quantity -- quantity to plot ('depth' or 'velocity' or 'stage' or 'elevation' or 'depthIntegratedVelocity')
+                myTimeStep -- time-index of swwFile to plot, or 'last', or 'max'
+                CellSize -- approximate pixel size for output raster [adapted to fit lower_left / upper_right]
+                lower_left -- [x0,y0] of lower left corner. If None, use extent of swwFile.
+                upper_right -- [x1,y1] of upper right corner. If None, use extent of swwFile.
+                EPSG_CODE -- Projection information as an integer EPSG code (e.g. 3123 for PRS92 Zone 3, 32756 for UTM Zone 56 S, etc). 
+                             Google for info on EPSG Codes
+                proj4string -- Projection information as a proj4string (e.g. '+init=epsg:3123')
+                             Google for info on proj4strings. 
+                velocity_extrapolation -- Compute velocity assuming the code extrapolates with velocity (instead of momentum)?
+                min_allowed_height -- Minimum allowed height from ANUGA
+                output_dir -- Write outputs to this directory
+                
+    """
+    try:
+        import gdal
+        import osr
+        import scipy.io
+        import scipy.interpolate
+        import anuga
+        from anuga.utilities import plot_utils as util
+        import os
+    except:
+        raise Exception, 'Required modules not installed for mkgeotif'
+
+
+    if(((EPSG_CODE is None) & (proj4string is None) )|
+       ((EPSG_CODE is not None) & (proj4string is not None))):
+        raise Exception, 'Must specify EITHER an integer EPSG_CODE describing the file projection, OR a proj4string'
+
+    # Make output_dir
+    try:
+        os.mkdir(output_dir)
+    except:
+        pass
+
+    # Read in ANUGA outputs
+    # FIXME: It would be good to support reading of data subsets
+    if(verbose):
+        print 'Reading sww File ...'
+    p=util.get_output(swwFile,min_allowed_height)
+    p2=util.get_centroids(p,velocity_extrapolation)
+    swwIn=scipy.io.netcdf_file(swwFile)
+    xllcorner=swwIn.xllcorner
+    yllcorner=swwIn.yllcorner
+
+    if(myTimeStep=='last'):
+        myTimeStep=len(p.time)-1
+    
+
+    if(verbose):
+        print 'Extracting required data ...'
+    # Get ANUGA points
+    swwX=p2.x+xllcorner
+    swwY=p2.y+yllcorner
+
+    if(myTimeStep!='max'):
+        swwStage=p2.stage[myTimeStep,:]
+        swwHeight=p2.height[myTimeStep,:]
+        swwVel=p2.vel[myTimeStep,:]
+        # Use if-statement here to reduce computation
+        if(output_quantity=='depthIntegratedVelocity'):
+            swwDIVel=(p2.xmom[myTimeStep,:]**2+p2.ymom[myTimeStep,:]**2)**0.5
+        timestepString=str(round(p2.time[myTimeStep]))
+    else:
+        swwStage=p2.stage.max(axis=0)
+        swwHeight=p2.height.max(axis=0)
+        swwVel=p2.vel.max(axis=0)
+        # Use if-statement here to reduce computation
+        if(output_quantity=='depthIntegratedVelocity'):
+            swwDIVel=((p2.xmom**2+p2.ymom**2).max(axis=0))**0.5
+        timestepString='max'
+       
+    # Make name for output file
+    output_name=output_dir+'/'+os.path.splitext(os.path.basename(swwFile))[0] + '_'+\
+                output_quantity+'_'+timestepString+\
+                '_'+str(myTimeStep)+'.tif'
+
+    if(verbose):
+        print 'Computing grid of output locations...'
+    # Get points where we want raster cells
+    if(lower_left is None):
+        lower_left=[swwX.min(),swwY.min()]
+    if(upper_right is None):
+        upper_right=[swwX.max(),swwY.max()]
+
+    nx=round((upper_right[0]-lower_left[0])*1.0/(1.0*CellSize)) + 1
+    xres=(upper_right[0]-lower_left[0])*1.0/(1.0*(nx-1))
+    desiredX=scipy.arange(lower_left[0], upper_right[0],xres )
+    ny=round((upper_right[1]-lower_left[1])*1.0/(1.0*CellSize)) + 1
+    yres=(upper_right[1]-lower_left[1])*1.0/(1.0*(ny-1))
+    desiredY=scipy.arange(lower_left[1], upper_right[1], yres)
+
+    gridX, gridY=scipy.meshgrid(desiredX,desiredY)
+
+    # Make functions to interpolate quantities at points
+    if(verbose):
+        print 'Making interpolation functions...'
+    swwXY=scipy.array([swwX[:],swwY[:]]).transpose()
+    if(output_quantity=='stage'):
+        qFun=scipy.interpolate.NearestNDInterpolator(swwXY,swwStage.transpose())
+    elif(output_quantity=='velocity'):
+        qFun=scipy.interpolate.NearestNDInterpolator(swwXY,swwVel.transpose())
+    elif(output_quantity=='elevation'):
+        qFun=scipy.interpolate.NearestNDInterpolator(swwXY,p2.elev.transpose())
+    elif(output_quantity=='depth'):
+        qFun=scipy.interpolate.NearestNDInterpolator(swwXY,swwHeight.transpose())
+    elif(output_quantity=='depthIntegratedVelocity'):
+        qFun=scipy.interpolate.NearestNDInterpolator(swwXY,swwDIVel.transpose())
+    else:
+        raise Exception, 'output_quantity not available -- check if it is spelled correctly'
+
+    if(verbose):
+        print 'Interpolating'
+    gridq=qFun(scipy.array([scipy.concatenate(gridX),scipy.concatenate(gridY)]).transpose()).transpose()
+    gridq.shape=(len(desiredY),len(desiredX))
+
+    if(verbose):
+        print 'Making raster ...'
+    make_grid(gridq,desiredY,desiredX, output_name,EPSG_CODE=EPSG_CODE, proj4string=proj4string)
+
+    return
