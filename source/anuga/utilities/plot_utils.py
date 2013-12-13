@@ -141,7 +141,8 @@ class get_output:
     def __init__(self, filename, minimum_allowed_height=1.0e-03):
         self.x, self.y, self.time, self.vols, self.stage, \
                 self.height, self.elev, self.xmom, self.ymom, \
-                self.xvel, self.yvel, self.vel, self.minimum_allowed_height = \
+                self.xvel, self.yvel, self.vel, self.minimum_allowed_height,\
+                self.xllcorner, self.yllcorner = \
                 read_output(filename, minimum_allowed_height)
         self.filename=filename
 
@@ -164,6 +165,10 @@ def read_output(filename, minimum_allowed_height):
 
     # Open ncdf connection
     fid=NetCDFFile(filename)
+    
+    # Get lower-left
+    xllcorner=fid.xllcorner
+    yllcorner=fid.yllcorner
 
 
     # Read variables
@@ -213,7 +218,7 @@ def read_output(filename, minimum_allowed_height):
 
     vel = (xvel**2+yvel**2)**0.5
 
-    return x, y, time, vols, stage, height, elev, xmom, ymom, xvel, yvel, vel, minimum_allowed_height
+    return x, y, time, vols, stage, height, elev, xmom, ymom, xvel, yvel, vel, minimum_allowed_height, xllcorner,yllcorner
 
 ##############
 
@@ -573,7 +578,7 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None):
 
 ##################################################################################
 
-def Make_Geotif(swwFile, output_quantity='depth',
+def Make_Geotif(swwFile, output_quantities=['depth'],
              myTimeStep=1, CellSize=5.0, 
              lower_left=None, upper_right=None,
              EPSG_CODE=None, 
@@ -588,7 +593,7 @@ def Make_Geotif(swwFile, output_quantity='depth',
         You must supply projection information as either a proj4string or an integer EPSG_CODE (but not both!)
 
         INPUTS: swwFile -- name of sww file
-                output_quantity -- quantity to plot ('depth' or 'velocity' or 'stage' or 'elevation' or 'depthIntegratedVelocity')
+                output_quantities -- list of quantitiies to plot, e.g. ['depth', 'velocity', 'stage','elevation','depthIntegratedVelocity']
                 myTimeStep -- time-index of swwFile to plot, or 'last', or 'max'
                 CellSize -- approximate pixel size for output raster [adapted to fit lower_left / upper_right]
                 lower_left -- [x0,y0] of lower left corner. If None, use extent of swwFile.
@@ -644,69 +649,139 @@ def Make_Geotif(swwFile, output_quantity='depth',
     swwX=p2.x+xllcorner
     swwY=p2.y+yllcorner
 
-    if(myTimeStep!='max'):
-        swwStage=p2.stage[myTimeStep,:]
-        swwHeight=p2.height[myTimeStep,:]
-        swwVel=p2.vel[myTimeStep,:]
-        # Use if-statement here to reduce computation
-        if(output_quantity=='depthIntegratedVelocity'):
-            swwDIVel=(p2.xmom[myTimeStep,:]**2+p2.ymom[myTimeStep,:]**2)**0.5
-        timestepString=str(round(p2.time[myTimeStep]))
-    else:
-        swwStage=p2.stage.max(axis=0)
-        swwHeight=p2.height.max(axis=0)
-        swwVel=p2.vel.max(axis=0)
-        # Use if-statement here to reduce computation
-        if(output_quantity=='depthIntegratedVelocity'):
-            swwDIVel=((p2.xmom**2+p2.ymom**2).max(axis=0))**0.5
-        timestepString='max'
-       
-    # Make name for output file
-    output_name=output_dir+'/'+os.path.splitext(os.path.basename(swwFile))[0] + '_'+\
-                output_quantity+'_'+timestepString+\
-                '_'+str(myTimeStep)+'.tif'
+    # Loop over all output quantities and produce the output
+    for output_quantity in output_quantities:
 
-    if(verbose):
-        print 'Computing grid of output locations...'
-    # Get points where we want raster cells
-    if(lower_left is None):
-        lower_left=[swwX.min(),swwY.min()]
-    if(upper_right is None):
-        upper_right=[swwX.max(),swwY.max()]
+        if(myTimeStep!='max'):
+            if(output_quantity=='stage'):
+                swwStage=p2.stage[myTimeStep,:]
+            if(output_quantity=='depth'):
+                swwHeight=p2.height[myTimeStep,:]
+            if(output_quantity=='velocity'):
+                swwVel=p2.vel[myTimeStep,:]
+            if(output_quantity=='depthIntegratedVelocity'):
+                swwDIVel=(p2.xmom[myTimeStep,:]**2+p2.ymom[myTimeStep,:]**2)**0.5
+            timestepString=str(round(p2.time[myTimeStep]))
+        else:
+            if(output_quantity=='stage'):
+                swwStage=p2.stage.max(axis=0)
+            if(output_quantity=='depth'):
+                swwHeight=p2.height.max(axis=0)
+            if(output_quantity=='velocity'):
+                swwVel=p2.vel.max(axis=0)
+            if(output_quantity=='depthIntegratedVelocity'):
+                swwDIVel=((p2.xmom**2+p2.ymom**2).max(axis=0))**0.5
+            timestepString='max'
+           
+        # Make name for output file
+        output_name=output_dir+'/'+os.path.splitext(os.path.basename(swwFile))[0] + '_'+\
+                    output_quantity+'_'+timestepString+\
+                    '_'+str(myTimeStep)+'.tif'
 
-    nx=round((upper_right[0]-lower_left[0])*1.0/(1.0*CellSize)) + 1
-    xres=(upper_right[0]-lower_left[0])*1.0/(1.0*(nx-1))
-    desiredX=scipy.arange(lower_left[0], upper_right[0],xres )
-    ny=round((upper_right[1]-lower_left[1])*1.0/(1.0*CellSize)) + 1
-    yres=(upper_right[1]-lower_left[1])*1.0/(1.0*(ny-1))
-    desiredY=scipy.arange(lower_left[1], upper_right[1], yres)
+        if(verbose):
+            print 'Computing grid of output locations...'
+        # Get points where we want raster cells
+        if(lower_left is None):
+            lower_left=[swwX.min(),swwY.min()]
+        if(upper_right is None):
+            upper_right=[swwX.max(),swwY.max()]
 
-    gridX, gridY=scipy.meshgrid(desiredX,desiredY)
+        nx=round((upper_right[0]-lower_left[0])*1.0/(1.0*CellSize)) + 1
+        xres=(upper_right[0]-lower_left[0])*1.0/(1.0*(nx-1))
+        desiredX=scipy.arange(lower_left[0], upper_right[0],xres )
+        ny=round((upper_right[1]-lower_left[1])*1.0/(1.0*CellSize)) + 1
+        yres=(upper_right[1]-lower_left[1])*1.0/(1.0*(ny-1))
+        desiredY=scipy.arange(lower_left[1], upper_right[1], yres)
 
-    # Make functions to interpolate quantities at points
-    if(verbose):
-        print 'Making interpolation functions...'
-    swwXY=scipy.array([swwX[:],swwY[:]]).transpose()
-    if(output_quantity=='stage'):
-        qFun=scipy.interpolate.NearestNDInterpolator(swwXY,swwStage.transpose())
-    elif(output_quantity=='velocity'):
-        qFun=scipy.interpolate.NearestNDInterpolator(swwXY,swwVel.transpose())
-    elif(output_quantity=='elevation'):
-        qFun=scipy.interpolate.NearestNDInterpolator(swwXY,p2.elev.transpose())
-    elif(output_quantity=='depth'):
-        qFun=scipy.interpolate.NearestNDInterpolator(swwXY,swwHeight.transpose())
-    elif(output_quantity=='depthIntegratedVelocity'):
-        qFun=scipy.interpolate.NearestNDInterpolator(swwXY,swwDIVel.transpose())
-    else:
-        raise Exception, 'output_quantity not available -- check if it is spelled correctly'
+        gridX, gridY=scipy.meshgrid(desiredX,desiredY)
 
-    if(verbose):
-        print 'Interpolating'
-    gridq=qFun(scipy.array([scipy.concatenate(gridX),scipy.concatenate(gridY)]).transpose()).transpose()
-    gridq.shape=(len(desiredY),len(desiredX))
+        # Make functions to interpolate quantities at points
+        if(verbose):
+            print 'Making interpolation functions...'
+        swwXY=scipy.array([swwX[:],swwY[:]]).transpose()
+        if(output_quantity=='stage'):
+            qFun=scipy.interpolate.NearestNDInterpolator(swwXY,swwStage.transpose())
+        elif(output_quantity=='velocity'):
+            qFun=scipy.interpolate.NearestNDInterpolator(swwXY,swwVel.transpose())
+        elif(output_quantity=='elevation'):
+            qFun=scipy.interpolate.NearestNDInterpolator(swwXY,p2.elev.transpose())
+        elif(output_quantity=='depth'):
+            qFun=scipy.interpolate.NearestNDInterpolator(swwXY,swwHeight.transpose())
+        elif(output_quantity=='depthIntegratedVelocity'):
+            qFun=scipy.interpolate.NearestNDInterpolator(swwXY,swwDIVel.transpose())
+        else:
+            raise Exception, 'output_quantity not available -- check if it is spelled correctly'
 
-    if(verbose):
-        print 'Making raster ...'
-    make_grid(gridq,desiredY,desiredX, output_name,EPSG_CODE=EPSG_CODE, proj4string=proj4string)
+        if(verbose):
+            print 'Interpolating'
+        gridq=qFun(scipy.array([scipy.concatenate(gridX),scipy.concatenate(gridY)]).transpose()).transpose()
+        gridq.shape=(len(desiredY),len(desiredX))
+
+        if(verbose):
+            print 'Making raster ...'
+        make_grid(gridq,desiredY,desiredX, output_name,EPSG_CODE=EPSG_CODE, proj4string=proj4string)
 
     return
+
+def plot_triangles(p):
+    """ Add mesh triangles to a pyplot plot
+    """
+    for i in range(len(p.vols)):
+        k1=p.vols[i][0]
+        k2=p.vols[i][1]
+        k3=p.vols[i][2]
+        pyplot.plot([p.x[k1], p.x[k2], p.x[k3], p.x[k1]], [p.y[k1], p.y[k2], p.y[k3], p.y[k1]],'-',color='black')
+        #pyplot.plot([p.x[k3], p.x[k2]], [p.y[k3], p.y[k2]],'-',color='black')
+        #pyplot.plot([p.x[k3], p.x[k1]], [p.y[k3], p.y[k1]],'-',color='black')
+
+def find_neighbours(p,ind):
+    """ 
+        Find the triangles neighbouring triangle 'ind'
+        p is an object from get_output containing mesh vertices
+    """
+    ind_nei=p.vols[ind]
+    
+    shared_nei0=p.vols[:,1]*0.0
+    shared_nei1=p.vols[:,1]*0.0
+    shared_nei2=p.vols[:,1]*0.0
+    # Compute indices that match one of the vertices of triangle ind
+    # Note: Each triangle can only match a vertex, at most, once
+    for i in range(3):
+        shared_nei0+=1*(p.x[p.vols[:,i]]==p.x[ind_nei[0]])*\
+            1*(p.y[p.vols[:,i]]==p.y[ind_nei[0]])
+        
+        shared_nei1+=1*(p.x[p.vols[:,i]]==p.x[ind_nei[1]])*\
+            1*(p.y[p.vols[:,i]]==p.y[ind_nei[1]])
+        
+        shared_nei2+=1*(p.x[p.vols[:,i]]==p.x[ind_nei[2]])*\
+            1*(p.y[p.vols[:,i]]==p.y[ind_nei[2]])
+    
+    out=(shared_nei2 + shared_nei1 + shared_nei0)
+    return((out==2).nonzero())
+
+def calc_edge_elevations(p):
+    """
+        Compute the triangle edge elevations on p
+        Return x,y,elev for edges
+    """
+    pe_x=p.x*0.
+    pe_y=p.y*0.
+    pe_el=p.elev*0.
+
+   
+    # Compute coordinates + elevations 
+    pe_x[p.vols[:,0]] = 0.5*(p.x[p.vols[:,1]] + p.x[p.vols[:,2]])
+    pe_y[p.vols[:,0]] = 0.5*(p.y[p.vols[:,1]] + p.y[p.vols[:,2]])
+    pe_el[p.vols[:,0]] = 0.5*(p.elev[p.vols[:,1]] + p.elev[p.vols[:,2]])
+    
+    pe_x[p.vols[:,1]] = 0.5*(p.x[p.vols[:,0]] + p.x[p.vols[:,2]])
+    pe_y[p.vols[:,1]] = 0.5*(p.y[p.vols[:,0]] + p.y[p.vols[:,2]])
+    pe_el[p.vols[:,1]] = 0.5*(p.elev[p.vols[:,0]] + p.elev[p.vols[:,2]])
+
+    pe_x[p.vols[:,2]] = 0.5*(p.x[p.vols[:,0]] + p.x[p.vols[:,1]])
+    pe_y[p.vols[:,2]] = 0.5*(p.y[p.vols[:,0]] + p.y[p.vols[:,1]])
+    pe_el[p.vols[:,2]] = 0.5*(p.elev[p.vols[:,0]] + p.elev[p.vols[:,1]])
+
+    return [pe_x, pe_y, pe_el]
+
+
