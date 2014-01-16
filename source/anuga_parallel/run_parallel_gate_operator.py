@@ -71,12 +71,8 @@ if myid == 0:
                                                          len2=width)
     domain = anuga.Domain(points, vertices, boundary)
     domain.set_name()                 # Output name
-    domain.set_flow_algorithm('2_0')
-
-
-
-
-
+    domain.set_flow_algorithm('DE1')
+    domain.set_store_vertices_uniquely(True)
     domain.set_quantity('elevation', topography)
     domain.set_quantity('friction', 0.01)         # Constant friction
     domain.set_quantity('stage',
