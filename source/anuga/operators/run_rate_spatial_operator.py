@@ -170,7 +170,7 @@ for t in domain.evolve(yieldstep=yieldstep, finaltime=finaltime):
     print indent + 'Integral = ', height.get_integral()
     print indent + 'Exact accumultion = ', accum
     
-    dd = max(min(yieldstep,5.0-t),0.0)
+    dd = max(min(yieldstep,4.0-t),0.0)
     accum += (Q1+Q2)*yieldstep + dd*Q3
 
 
