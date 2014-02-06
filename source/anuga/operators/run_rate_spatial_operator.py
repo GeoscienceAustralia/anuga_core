@@ -140,7 +140,7 @@ def rain(x,y,t):
     abd t a scalar
     """
     if t<=4.0:
-        return (x+y)*0.0
+        return (x+y)*1.0
     else:
         return 0.0*x
 
