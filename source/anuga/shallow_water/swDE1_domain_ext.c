@@ -557,8 +557,10 @@ double _compute_fluxes_central(int number_of_elements,
             //}
 
 
-            // If neighbour is a boundary condition, add the flux to the boundary_flux_integral
-            if(n<0){ 
+            // If this cell is not a ghost, and the neighbour is a boundary
+            // condition OR a ghost cell, then add the flux to the
+            // boundary_flux_integral
+            if( (n<0 & tri_full_flag[k]==1) | ( n>=0 && (tri_full_flag[k]==1 & tri_full_flag[n]==0)) ){ 
                 boundary_flux_sum[0] += edgeflux_store[ki3];
             }
 

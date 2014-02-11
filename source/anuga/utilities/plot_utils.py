@@ -549,9 +549,9 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None):
     ysize = len(lats)
     xsize = len(lons)
 
-    # Assume data/lats/longs refer to cell centres, and compute lower left coordinate
-    llx = lons[0] - (xres / 2.)
-    lly = lats[0] - (yres / 2.)
+    # Assume data/lats/longs refer to cell centres, and compute upper left coordinate
+    ulx = lons[0] - (xres / 2.)
+    uly = lats[lats.shape[0]-1] + (yres / 2.)
 
     # GDAL magic to make the tif
     driver = gdal.GetDriverByName('GTiff')
@@ -567,8 +567,12 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None):
 
     ds.SetProjection(srs.ExportToWkt())
 
-    gt = [llx, xres, 0, lly, 0, yres ]
+    gt = [ulx, xres, 0, uly, 0, -yres ]
+    #gt = [llx, xres, 0, lly, yres,0 ]
     ds.SetGeoTransform(gt)
+
+    #import pdb
+    #pdb.set_trace()
 
     outband = ds.GetRasterBand(1)
     outband.WriteArray(data)
@@ -594,7 +598,7 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
 
         INPUTS: swwFile -- name of sww file
                 output_quantities -- list of quantitiies to plot, e.g. ['depth', 'velocity', 'stage','elevation','depthIntegratedVelocity']
-                myTimeStep -- time-index of swwFile to plot, or 'last', or 'max'
+                myTimeStep -- list containing time-index of swwFile to plot, or 'last', or 'max'
                 CellSize -- approximate pixel size for output raster [adapted to fit lower_left / upper_right]
                 lower_left -- [x0,y0] of lower left corner. If None, use extent of swwFile.
                 upper_right -- [x1,y1] of upper right corner. If None, use extent of swwFile.
@@ -623,6 +627,10 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
        ((EPSG_CODE is not None) & (proj4string is not None))):
         raise Exception, 'Must specify EITHER an integer EPSG_CODE describing the file projection, OR a proj4string'
 
+    # Ensure myTimeStep is a list
+    if type(myTimeStep)!=list:
+        myTimeStep=[myTimeStep]
+
     # Make output_dir
     try:
         os.mkdir(output_dir)
@@ -639,9 +647,6 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
     xllcorner=swwIn.xllcorner
     yllcorner=swwIn.yllcorner
 
-    if(myTimeStep=='last'):
-        myTimeStep=len(p.time)-1
-    
 
     if(verbose):
         print 'Extracting required data ...'
@@ -649,77 +654,72 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
     swwX=p2.x+xllcorner
     swwY=p2.y+yllcorner
 
+    # Grid for meshing
+    if(verbose):
+        print 'Computing grid of output locations...'
+    # Get points where we want raster cells
+    if(lower_left is None):
+        lower_left=[swwX.min(),swwY.min()]
+    if(upper_right is None):
+        upper_right=[swwX.max(),swwY.max()]
+    nx=round((upper_right[0]-lower_left[0])*1.0/(1.0*CellSize)) + 1
+    xres=(upper_right[0]-lower_left[0])*1.0/(1.0*(nx-1))
+    desiredX=scipy.arange(lower_left[0], upper_right[0],xres )
+    ny=round((upper_right[1]-lower_left[1])*1.0/(1.0*CellSize)) + 1
+    yres=(upper_right[1]-lower_left[1])*1.0/(1.0*(ny-1))
+    desiredY=scipy.arange(lower_left[1], upper_right[1], yres)
+
+    gridX, gridY=scipy.meshgrid(desiredX,desiredY)
+
+    if(verbose):
+        print 'Making interpolation functions...'
+    swwXY=scipy.array([swwX[:],swwY[:]]).transpose()
+    # Get index of nearest point
+    index_qFun=scipy.interpolate.NearestNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int32').transpose())
+    gridqInd=index_qFun(scipy.array([scipy.concatenate(gridX),scipy.concatenate(gridY)]).transpose())
+
     # Loop over all output quantities and produce the output
-    for output_quantity in output_quantities:
-
-        if(myTimeStep!='max'):
-            if(output_quantity=='stage'):
-                swwStage=p2.stage[myTimeStep,:]
-            if(output_quantity=='depth'):
-                swwHeight=p2.height[myTimeStep,:]
-            if(output_quantity=='velocity'):
-                swwVel=p2.vel[myTimeStep,:]
-            if(output_quantity=='depthIntegratedVelocity'):
-                swwDIVel=(p2.xmom[myTimeStep,:]**2+p2.ymom[myTimeStep,:]**2)**0.5
-            timestepString=str(round(p2.time[myTimeStep]))
-        else:
-            if(output_quantity=='stage'):
-                swwStage=p2.stage.max(axis=0)
-            if(output_quantity=='depth'):
-                swwHeight=p2.height.max(axis=0)
-            if(output_quantity=='velocity'):
-                swwVel=p2.vel.max(axis=0)
-            if(output_quantity=='depthIntegratedVelocity'):
-                swwDIVel=((p2.xmom**2+p2.ymom**2).max(axis=0))**0.5
-            timestepString='max'
-           
-        # Make name for output file
-        output_name=output_dir+'/'+os.path.splitext(os.path.basename(swwFile))[0] + '_'+\
-                    output_quantity+'_'+timestepString+\
-                    '_'+str(myTimeStep)+'.tif'
-
+    for myTS in myTimeStep:
         if(verbose):
-            print 'Computing grid of output locations...'
-        # Get points where we want raster cells
-        if(lower_left is None):
-            lower_left=[swwX.min(),swwY.min()]
-        if(upper_right is None):
-            upper_right=[swwX.max(),swwY.max()]
+            print myTS
+        for output_quantity in output_quantities:
 
-        nx=round((upper_right[0]-lower_left[0])*1.0/(1.0*CellSize)) + 1
-        xres=(upper_right[0]-lower_left[0])*1.0/(1.0*(nx-1))
-        desiredX=scipy.arange(lower_left[0], upper_right[0],xres )
-        ny=round((upper_right[1]-lower_left[1])*1.0/(1.0*CellSize)) + 1
-        yres=(upper_right[1]-lower_left[1])*1.0/(1.0*(ny-1))
-        desiredY=scipy.arange(lower_left[1], upper_right[1], yres)
+            if(myTS=='last'):
+                myTS=len(p.time)-1
+        
 
-        gridX, gridY=scipy.meshgrid(desiredX,desiredY)
+            if(myTS!='max'):
+                if(output_quantity=='stage'):
+                    gridq=p2.stage[myTS,:][gridqInd]
+                if(output_quantity=='depth'):
+                    gridq=p2.height[myTS,:][gridqInd]
+                if(output_quantity=='velocity'):
+                    gridq=p2.vel[myTS,:][gridqInd]
+                if(output_quantity=='depthIntegratedVelocity'):
+                    swwDIVel=(p2.xmom[myTS,:]**2+p2.ymom[myTS,:]**2)**0.5
+                    gridq=swwDIVel[gridqInd]
+                timestepString=str(round(p2.time[myTS]))
+            else:
+                if(output_quantity=='stage'):
+                    gridq=p2.stage.max(axis=0)[gridqInd]
+                if(output_quantity=='depth'):
+                    gridq=p2.height.max(axis=0)[gridqInd]
+                if(output_quantity=='velocity'):
+                    gridq=p2.vel.max(axis=0)[gridqInd]
+                if(output_quantity=='depthIntegratedVelocity'):
+                    swwDIVel=((p2.xmom**2+p2.ymom**2).max(axis=0))**0.5
+                    gridq=swwDIVel[gridqInd]
+                timestepString='max'
+               
+            # Make name for output file
+            output_name=output_dir+'/'+os.path.splitext(os.path.basename(swwFile))[0] + '_'+\
+                        output_quantity+'_'+timestepString+\
+                        '_'+str(myTS)+'.tif'
 
-        # Make functions to interpolate quantities at points
-        if(verbose):
-            print 'Making interpolation functions...'
-        swwXY=scipy.array([swwX[:],swwY[:]]).transpose()
-        if(output_quantity=='stage'):
-            qFun=scipy.interpolate.NearestNDInterpolator(swwXY,swwStage.transpose())
-        elif(output_quantity=='velocity'):
-            qFun=scipy.interpolate.NearestNDInterpolator(swwXY,swwVel.transpose())
-        elif(output_quantity=='elevation'):
-            qFun=scipy.interpolate.NearestNDInterpolator(swwXY,p2.elev.transpose())
-        elif(output_quantity=='depth'):
-            qFun=scipy.interpolate.NearestNDInterpolator(swwXY,swwHeight.transpose())
-        elif(output_quantity=='depthIntegratedVelocity'):
-            qFun=scipy.interpolate.NearestNDInterpolator(swwXY,swwDIVel.transpose())
-        else:
-            raise Exception, 'output_quantity not available -- check if it is spelled correctly'
-
-        if(verbose):
-            print 'Interpolating'
-        gridq=qFun(scipy.array([scipy.concatenate(gridX),scipy.concatenate(gridY)]).transpose()).transpose()
-        gridq.shape=(len(desiredY),len(desiredX))
-
-        if(verbose):
-            print 'Making raster ...'
-        make_grid(gridq,desiredY,desiredX, output_name,EPSG_CODE=EPSG_CODE, proj4string=proj4string)
+            if(verbose):
+                print 'Making raster ...'
+            gridq.shape=(len(desiredY),len(desiredX))
+            make_grid(scipy.flipud(gridq),desiredY,desiredX, output_name,EPSG_CODE=EPSG_CODE, proj4string=proj4string)
 
     return
 
