@@ -590,6 +590,7 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
              velocity_extrapolation=True,
              min_allowed_height=1.0e-05,
              output_dir='TIFS',
+             bounding_polygon=None,
              verbose=False):
     """
         Make a georeferenced tif by nearest-neighbour interpolation of sww file outputs.
@@ -598,7 +599,7 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
 
         INPUTS: swwFile -- name of sww file
                 output_quantities -- list of quantitiies to plot, e.g. ['depth', 'velocity', 'stage','elevation','depthIntegratedVelocity']
-                myTimeStep -- list containing time-index of swwFile to plot, or 'last', or 'max'
+                myTimeStep -- list containing time-index of swwFile to plot (e.g. [1, 10, 32] ) or 'last', or 'max', or 'all'
                 CellSize -- approximate pixel size for output raster [adapted to fit lower_left / upper_right]
                 lower_left -- [x0,y0] of lower left corner. If None, use extent of swwFile.
                 upper_right -- [x1,y1] of upper right corner. If None, use extent of swwFile.
@@ -609,6 +610,7 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
                 velocity_extrapolation -- Compute velocity assuming the code extrapolates with velocity (instead of momentum)?
                 min_allowed_height -- Minimum allowed height from ANUGA
                 output_dir -- Write outputs to this directory
+                bounding_polygon -- polygon (e.g. from read_polygon) If present, only set values of raster cells inside the bounding_polygon
                 
     """
     try:
@@ -619,6 +621,7 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
         import anuga
         from anuga.utilities import plot_utils as util
         import os
+        from matplotlib import nxutils
     except:
         raise Exception, 'Required modules not installed for mkgeotif'
 
@@ -627,9 +630,6 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
        ((EPSG_CODE is not None) & (proj4string is not None))):
         raise Exception, 'Must specify EITHER an integer EPSG_CODE describing the file projection, OR a proj4string'
 
-    # Ensure myTimeStep is a list
-    if type(myTimeStep)!=list:
-        myTimeStep=[myTimeStep]
 
     # Make output_dir
     try:
@@ -647,6 +647,11 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
     xllcorner=swwIn.xllcorner
     yllcorner=swwIn.yllcorner
 
+    if(myTimeStep=='all'):
+        myTimeStep=range(len(p2.time))
+    # Ensure myTimeStep is a list
+    if type(myTimeStep)!=list:
+        myTimeStep=[myTimeStep]
 
     if(verbose):
         print 'Extracting required data ...'
@@ -676,7 +681,15 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
     swwXY=scipy.array([swwX[:],swwY[:]]).transpose()
     # Get index of nearest point
     index_qFun=scipy.interpolate.NearestNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int32').transpose())
-    gridqInd=index_qFun(scipy.array([scipy.concatenate(gridX),scipy.concatenate(gridY)]).transpose())
+    gridXY_array=scipy.array([scipy.concatenate(gridX),scipy.concatenate(gridY)]).transpose()
+    gridqInd=index_qFun(gridXY_array)
+
+    if(bounding_polygon is not None):
+        # Find points to exclude (i.e. outside the bounding polygon)
+        cut_points=(nxutils.points_inside_poly(gridXY_array, bounding_polygon)==False).nonzero()[0]
+       
+    #import pdb
+    #pdb.set_trace()
 
     # Loop over all output quantities and produce the output
     for myTS in myTimeStep:
@@ -698,6 +711,8 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
                 if(output_quantity=='depthIntegratedVelocity'):
                     swwDIVel=(p2.xmom[myTS,:]**2+p2.ymom[myTS,:]**2)**0.5
                     gridq=swwDIVel[gridqInd]
+                if(output_quantity=='elevation'):
+                    gridq=p2.elev[gridqInd]
                 timestepString=str(round(p2.time[myTS]))
             else:
                 if(output_quantity=='stage'):
@@ -709,8 +724,14 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
                 if(output_quantity=='depthIntegratedVelocity'):
                     swwDIVel=((p2.xmom**2+p2.ymom**2).max(axis=0))**0.5
                     gridq=swwDIVel[gridqInd]
+                if(output_quantity=='elevation'):
+                    gridq=p2.elev[gridqInd]
                 timestepString='max'
-               
+
+            if(bounding_polygon is not None):
+                # Cut the points outside the bounding polygon
+                gridq[cut_points]=scipy.nan 
+
             # Make name for output file
             output_name=output_dir+'/'+os.path.splitext(os.path.basename(swwFile))[0] + '_'+\
                         output_quantity+'_'+timestepString+\
