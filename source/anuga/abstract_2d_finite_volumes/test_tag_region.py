@@ -33,7 +33,7 @@ def add_x_y(x, y):
 def give_me_23(x, y):
     return 23.0
 
-class Test_Region(unittest.TestCase):
+class Test_tag_region(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -253,6 +253,6 @@ class Test_Region(unittest.TestCase):
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Region, 'test')    
+    suite = unittest.makeSuite(Test_tag_region, 'test')    
     runner = unittest.TextTestRunner()
     runner.run(suite)

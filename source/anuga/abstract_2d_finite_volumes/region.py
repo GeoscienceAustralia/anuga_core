@@ -22,7 +22,12 @@ from anuga.utilities.function_utils import determine_function_type
 
 class Region(object):
     """
-    Helper class to setup region (defined by indices, polygon or center/radius)
+    Setup region (defined by indices, polygon or center/radius). 
+    Useful in defining where to apply certain operations
+    
+    expand_polygon=True then calculation of intersection of polygon
+    with triangles based on vertices, otherwise based just on centroids
+    
     """
 
     def __init__(self,
@@ -274,7 +279,7 @@ class Centroid_field(object):
         
         self.region = region
         self.value = value
-        delf.domain = self.region.domain
+        self.domain = self.region.domain
         
         
     def set_value(self,value):
