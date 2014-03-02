@@ -72,7 +72,10 @@ def check_dir(path, verbose=None):
         except:
             log.critical('WARNING: Directory %s could not be created.' % path)
             if unix:
-                path = '/tmp/'
+                try:
+                    path = os.environ['TMPDIR']
+                except KeyError:
+                    path = '/tmp/'
             else:
                 path = 'C:' + os.sep
 
