@@ -125,7 +125,8 @@ flow_algorithm = '1_5'  # 1st order euler and conservative piecewise linear spat
 #flow_algorithm = '1_75' # 1st order euler and more aggressive piecewise linear spatial reconstruction
 #flow_algorithm = '2_0'    # 2nd order TVD scheme and more aggressive piecewise linear spatial reconstruction
 #flow_algorithm = '2.5'  # 3rd order TVD scheme and more aggressive piecewise linear spatial reconstruction
-
+#flow_algorithm = 'tsunami' # 2nd order space and time, well balanced inc at wet-dry fronts, porosity-type alg
+#flow_algorithm = 'DE1' # 2nd order space and time, discontinuous elevation, well balanced + better shallow flows than 'tsunami'
 
 
 
