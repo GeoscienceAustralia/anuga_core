@@ -103,7 +103,7 @@ class Erosion_operator(Operator, Region):
             #--------------------------------------
             # Update all three vertices for each cell
             #--------------------------------------
-            self.elev_v[:] = self.elev_v + 0.0
+            self.elev_c[:] = self.elev_c + 0.0
 
         else:
 
@@ -113,11 +113,20 @@ class Erosion_operator(Operator, Region):
             #--------------------------------------
             ind = self.indices
             m = num.sqrt(self.xmom_c[ind]**2 + self.ymom_c[ind]**2)
-            m = num.vstack((m,m,m)).T  # Stack up m to apply to vertices
-            m = num.where(m>self.threshold, m, 0.0)
-
-            de = m*dt
-            self.elev_v[ind] = num.maximum(self.elev_v[ind] - de, self.base)
+            
+            if self.domain.flow_algorithm == 'DE1':
+                m = num.where(m>self.threshold, m, 0.0)
+    
+                de = m*dt
+                height = self.stage_c[ind] - self.elev_c[ind]
+                self.elev_c[ind] = num.maximum(self.elev_v[ind] - de, self.base)
+                self.stage_c[ind] = self.elev_c[ind] + height
+            else:
+                m = num.vstack((m,m,m)).T  # Stack up m to apply to vertices
+                m = num.where(m>self.threshold, m, 0.0)
+    
+                de = m*dt
+                self.elev_v[ind] = num.maximum(self.elev_v[ind] - de, self.base)
 
             self.max_change = num.max(de)
 
@@ -140,7 +149,7 @@ class Erosion_operator(Operator, Region):
             return
 
         #------------------------------------------
-        # Apply changes to elevation vertex values
+        # Apply changes to elevation values
         # via the update_quantites routine
         #------------------------------------------
         if not self.update_quantities():
@@ -150,12 +159,27 @@ class Erosion_operator(Operator, Region):
         #------------------------------------------
         # Cleanup elevation and stage quantity values
         #-----------------------------------------
+        self.clean_up_elevation_stage()
+        
+        
+        
+        
+    def clean_up_elevation_stage(self):
+        
+        #----------------------------------------------
+        # Don't need to clean up if using discontinuous
+        # elevation
+        #----------------------------------------------
+        if self.domain.flow_algorithm == 'DE1':
+            return 
+        
+        
+        #-----------------------------------------------
+        # Clean up to conserve volume and make elevation 
+        # continuous
+        #-----------------------------------------------
         if self.indices is None:
 
-            #--------------------------------------
-            # Update all three vertices for each cell
-            #--------------------------------------
-            self.elev_v[:] = self.elev_v + 0.0
 
             #--------------------------------------
             # Make elevation continuous and clean up

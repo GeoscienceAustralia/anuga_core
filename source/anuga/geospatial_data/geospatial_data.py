@@ -700,12 +700,12 @@ class Geospatial_data:
             self.show_verbose = 0
             self.verbose_block_size = (self.last_row + 10)/10
             self.block_number = 0
-            self.number_of_blocks = self.number_of_points/self.max_read_lines
+            self.number_of_blocks = int(self.number_of_points/self.max_read_lines)
             # This computes the number of full blocks. The last block may be
             # smaller and won't be included in this estimate.
 
             if self.verbose is True:
-                log.critical('Geospatial_data: Reading %d points (in ~%d blocks) from file %s. '
+                log.critical('Geospatial_data: Reading %d points (in %d block(s)) from file %s. '
                              % (self.number_of_points, self.number_of_blocks+1,
                                 self.file_name))
                 log.critical('Geospatial_data: Each block consists of %d data points'

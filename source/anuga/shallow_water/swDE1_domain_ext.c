@@ -595,7 +595,7 @@ double _compute_fluxes_central(int number_of_elements,
 }
 
 // Protect against the water elevation falling below the triangle bed
-int _protect(int N,
+double  _protect(int N,
          double minimum_allowed_height,
          double maximum_allowed_speed,
          double epsilon,
@@ -612,7 +612,7 @@ int _protect(int N,
   int k;
   double hc, bmin, bmax;
   double u, v, reduced_speed;
-  static double mass_error=0.; 
+  double mass_error=0.;
   // This acts like minimum_allowed height, but scales with the vertical
   // distance between the bed_centroid_value and the max bed_edge_value of
   // every triangle.
@@ -650,10 +650,10 @@ int _protect(int N,
       }
     }
 
-  if(mass_added==1){
-     printf("Cumulative mass protection: %f m^3 \n", mass_error);
-  }
-  return 0;
+  //if(mass_added==1){
+  //  printf("Cumulative mass protection: %f m^3 \n", mass_error);
+  //}
+  return mass_error;
 }
 
 int find_qmin_and_qmax(double dq0, double dq1, double dq2, 
@@ -2030,6 +2030,7 @@ PyObject *protect(PyObject *self, PyObject *args) {
   *yc;
 
   int N;
+  double mass_error;
   double minimum_allowed_height, maximum_allowed_speed, epsilon;
 
   // Convert Python arguments to C
@@ -2044,7 +2045,7 @@ PyObject *protect(PyObject *self, PyObject *args) {
 
   N = wc -> dimensions[0];
 
-  _protect(N,
+  mass_error = _protect(N,
        minimum_allowed_height,
        maximum_allowed_speed,
        epsilon,
@@ -2058,7 +2059,7 @@ PyObject *protect(PyObject *self, PyObject *args) {
        (double*) xc -> data,
        (double*) yc -> data );
 
-  return Py_BuildValue("");
+  return Py_BuildValue("d", mass_error);
 }
 
 //========================================================================

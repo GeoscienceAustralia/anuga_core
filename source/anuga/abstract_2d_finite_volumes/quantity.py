@@ -334,6 +334,49 @@ class Quantity:
                     os.remove(file)
 
 
+    def save_data_to_dem(self,filename=None):
+
+
+        #FIXME SR: Should add code to deal with parallel
+
+        ids = self.domain.tri_full_flag == 1
+        c_v = self.centroid_values[ids].reshape((-1,1))
+        c_x = self.domain.centroid_coordinates[ids,0].reshape((-1,1))
+        c_y = self.domain.centroid_coordinates[ids,1].reshape((-1,1))
+
+        import numpy
+
+        c_xyv = numpy.hstack((c_x, c_y, c_v))
+
+        if filename is None:
+            filename= self.name
+
+        if self.domain.parallel:
+            fullfilename = filename+'_centroid_data_P%g_%g.csv'% \
+                    ( self.domain.numproc, self.domain.processor)
+        else:
+            fullfilename = filename+'_centroid_data.csv'
+
+        numpy.savetxt(fullfilename, c_xyv, delimiter=',', fmt =  ['%.15e', '%.15e', '%.15e' ])
+
+
+        if self.domain.parallel:
+            import pypar
+            pypar.barrier()
+
+            # On processor 0 catenate the files
+            if self.domain.processor == 0:
+                import shutil
+                import os
+                destination = open(filename+'_centroid_data.csv','wb')
+                np = self.domain.numproc
+                files = [ filename+'_centroid_data'+"_P"+str(np)+"_"+str(v)+".csv" for v in range(np)]
+                for file in files:
+                    shutil.copyfileobj(open(file,'rb'), destination)
+                destination.close()
+                for file in files:
+                    os.remove(file)
+
 
 
 
@@ -356,6 +399,146 @@ class Quantity:
         if show:
             plt.show()
         
+
+    def save_to_array(self,
+                cellsize=10,
+                NODATA_value=-9999.0,
+                easting_min=None,
+                easting_max=None,
+                northing_min=None,
+                northing_max=None,
+                origin=None,
+                verbose=False):
+        
+        """Interpolate quantity to an array
+        """
+    
+
+        verbose = True
+        
+        from anuga.geometry.polygon import inside_polygon, outside_polygon
+        from anuga.abstract_2d_finite_volumes.util import \
+             apply_expression_to_dictionary
+    
+    
+    
+        #Get extent and reference
+        
+        domain = self.domain
+
+        volumes = domain.triangles
+        
+
+        x,y,_,v= self.get_vertex_values(xy=True)
+        
+        
+        vertex_coordinates = domain.vertex_coordinates
+
+        # store the connectivity data
+        #points = num.concatenate((x[:,num.newaxis],y[:,num.newaxis]), axis=1)
+#         self.writer.store_triangulation(fid,
+#                                         points,
+#                                         V.astype(num.float32),
+#                                         points_georeference=\
+#                                         domain.geo_reference)
+        
+        false_easting = 500000
+        false_northing = 10000000
+    
+    
+    
+        geo_ref = self.domain.geo_reference
+        
+        xllcorner = geo_ref.get_xllcorner()
+        yllcorner = geo_ref.get_yllcorner()
+        
+        if verbose: 
+            print 
+            print xllcorner
+            print yllcorner
+            print x
+            print y
+            print vertex_coordinates[:,0]
+            print vertex_coordinates[:,1]
+            
+        
+        
+        # Create grid and update xll/yll corner and x,y
+        # Relative extent
+        if easting_min is None:
+            xmin = min(x)
+        else:
+            xmin = easting_min - xllcorner
+    
+        if easting_max is None:
+            xmax = max(x)
+        else:
+            xmax = easting_max - xllcorner
+    
+        if northing_min is None:
+            ymin = min(y)
+        else:
+            ymin = northing_min - yllcorner
+    
+        if northing_max is None:
+            ymax = max(y)
+        else:
+            ymax = northing_max - yllcorner
+    
+    
+        """
+        msg = 'xmax must be greater than or equal to xmin.\n'
+        msg += 'I got xmin = %f, xmax = %f' %(xmin, xmax)
+        assert xmax >= xmin, msg
+    
+        msg = 'ymax must be greater than or equal to xmin.\n'
+        msg += 'I got ymin = %f, ymax = %f' %(ymin, ymax)
+        assert ymax >= ymin, msg
+    
+        if verbose: log.critical('Creating grid')
+        ncols = int((xmax-xmin)/cellsize) + 1
+        nrows = int((ymax-ymin)/cellsize) + 1
+    
+        # New absolute reference and coordinates
+        newxllcorner = xmin + xllcorner
+        newyllcorner = ymin + yllcorner
+    
+        x = x + xllcorner - newxllcorner
+        y = y + yllcorner - newyllcorner
+    
+    
+        grid_values = num.zeros( (nrows*ncols, ), num.float)
+        #print '---',grid_values.shape
+    
+        num_tri =  len(volumes)
+        norms = num.zeros(6*num_tri, num.float)
+    
+        #Use fasr method to calc grid values
+        from calc_grid_values_ext import calc_grid_values
+    
+        calc_grid_values(nrows, ncols, cellsize, NODATA_value,
+                         x,y, norms, volumes, result, grid_values)
+    
+    
+        fid.close()
+        
+        #print outside_indices
+    
+        if verbose:
+            log.critical('Interpolated values are in [%f, %f]'
+                         % (num.min(grid_values), num.max(grid_values)))
+    
+    
+    
+        return x,y, grid_values.reshape(nrows,ncols)[::-1,:]
+
+        """
+
+
+
+
+
+
 
 
 
@@ -1120,90 +1303,6 @@ class Quantity:
         Yshift        10000000.0000000000
         Parameters
         """
-
-
-
-
-#         msg = 'Filename must be a text string'
-#         assert isinstance(filename, basestring), msg
-#         
-#         msg = 'Extension should be .grd or asc'
-#         assert os.path.splitext(filename)[1] in ['.grd', '.asc'], msg
-#         
-# 
-#         msg = "set_values_from_grd_file is only defined for location='vertices' or 'centroids'"
-#         assert location in ['vertices', 'centroids'], msg
-# 
-#             
-# 
-#             
-#     
-#         root = filename[:-4]
-#     
-#     
-#         #Read DEM data
-#         datafile = open(filename)
-#     
-#         if verbose: log.critical('Reading data from %s' % (filename))
-#     
-#         lines = datafile.readlines()
-#         datafile.close()
-#     
-#         if verbose: log.critical('Got %d lines' % len(lines))
-#     
-# 
-#         ncols = int(lines[0].split()[1].strip())
-#         nrows = int(lines[1].split()[1].strip())
-# 
-#     
-#         # Do cellsize (line 4) before line 2 and 3
-#         cellsize = float(lines[4].split()[1].strip())
-#     
-#         # Checks suggested by Joaquim Luis
-#         # Our internal representation of xllcorner
-#         # and yllcorner is non-standard.
-#         xref = lines[2].split()
-#         if xref[0].strip() == 'xllcorner':
-#             xllcorner = float(xref[1].strip()) # + 0.5*cellsize # Correct offset
-#         elif xref[0].strip() == 'xllcenter':
-#             xllcorner = float(xref[1].strip())
-#         else:
-#             msg = 'Unknown keyword: %s' % xref[0].strip()
-#             raise Exception, msg
-#     
-#         yref = lines[3].split()
-#         if yref[0].strip() == 'yllcorner':
-#             yllcorner = float(yref[1].strip()) # + 0.5*cellsize # Correct offset
-#         elif yref[0].strip() == 'yllcenter':
-#             yllcorner = float(yref[1].strip())
-#         else:
-#             msg = 'Unknown keyword: %s' % yref[0].strip()
-#             raise Exception, msg
-#     
-#         NODATA_value = int(float(lines[5].split()[1].strip()))
-#     
-#         assert len(lines) == nrows + 6
-#     
-#   
-#         #Store data
-#         import numpy
-#     
-#         datafile = open(filename)
-#         Z = numpy.loadtxt(datafile, skiprows=6)
-#         datafile.close()
-#         
-#         #print Z.shape
-#         #print Z
-#         
-#         # For raster data we need to a flip and transpose
-#         Z = numpy.flipud(Z)
-# 
-#         # Transpose z to have y coordinates along the first axis and x coordinates
-#         # along the second axis
-#         Z = Z.transpose()
-#     
-#         x = num.linspace(xllcorner, xllcorner+cellsize*(ncols-1), ncols)
-#         y = num.linspace(yllcorner, yllcorner+cellsize*(nrows-1), nrows)
         
         
         

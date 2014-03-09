@@ -66,7 +66,10 @@ class Test_region(unittest.TestCase):
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
         
-        region = Region(domain, polygon=[[0.0,0.0], [0.5,0.0], [0.5,0.5]])
+        poly = [[0.0,0.0], [0.5,0.0], [0.5,0.5]]
+        
+        print poly
+        region = Region(domain, polygon=poly)
         
         expected_indices = [1]
         assert num.allclose(region.indices, expected_indices)

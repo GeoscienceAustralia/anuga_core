@@ -11,7 +11,7 @@ from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 from anuga.shallow_water.shallow_water_domain import Domain
 import numpy
 
-verbose = True
+verbose = False
 #diameter = width
 
 class Test_boyd_pipe_operator(unittest.TestCase):

@@ -368,42 +368,42 @@ class Domain(Generic_Domain):
         
         #self.forcing_terms.append(manning_friction_explicit)
         #self.forcing_terms.remove(manning_friction_implicit)
-
-#        print '##########################################################################'
-#        print '#'
-#        print "#"
-#        print "# Here are some tips on using the 'tsunami' solver"
-#        print "#"
-#        print "# 1) When plotting outputs, I strongly suggest you examine centroid values, not vertex values"
-#        print "# , as the latter can be completely misleading near strong gradients in the flow. "
-#        print "# There is a plot_util.py script in anuga_core/utilities/ which might help you extract"
-#        print "# quantities at centroid values from sww files."
-#        print "# Note that to accuractely compute centroid values from sww files, the files need to store "
-#        print "# vertices uniquely. This makes for large sww files (3x), but is the price to pay for the right answer"
-#        print "# (unless we alter IO to allow centroids to be written to sww files, which would then affect"
-#        print "# ANUGA viewer as well -- I expect this would be lots of work)"
-#        print "#"
-#        print "# 2) In field scale applications (where the depth is typically > 1m), I suggest you set"
-#        print "# domain.minimum_allowed_height=0.01 (the default is 1.0e-3). "
-#        print "#"
-#        print "# 3) This solver is not expected to perform well in problems with very"
-#        print "# shallow water flowing down steep slopes (such that the stage_centroid_value "
-#        print "# is less than the maximum bed_edge_value on a given triangle). However, analytical tests"
-#        print "# suggest it can do typical wetting/drying situations very well (parabolic oscillations test case) "
-#        print "#"
-#        print "# 4) This solver allows the stage_centroid_value to drop to slightly below the minimum bed_vertex_value"
-#        print "# on it's triangle. In other ANUGA versions (e.g. 1.2.1), the limit would be the"
-#        print "# bed_centroid_value. This means that triangles store slightly more water than they are"
-#        print "# typically interpreted to store, which might have significance in some applications."
-#        print "#"
-#        print "# You will probably be able to tell this is causing you problems by convergence testing"
-#        print "#"
-#        print '# 5) Note that many options in config.py have been overridden by the solver -- we have '
-#        print '# deliberately attempted to get the solver to perform well with consistent values of '
-#        print '# these parameters -- so I advise against changing them unless you at least check that '
-#        print '# it really does improve things'
-#        print '#'
-#        print '##########################################################################'
+        if self.processor == 0 and self.verbose:
+            print '##########################################################################'
+            print '#'
+            print "#"
+            print "# Here are some tips on using the 'tsunami' solver"
+            print "#"
+            print "# 1) When plotting outputs, I strongly suggest you examine centroid values, not vertex values"
+            print "# , as the latter can be completely misleading near strong gradients in the flow. "
+            print "# There is a plot_util.py script in anuga_core/utilities/ which might help you extract"
+            print "# quantities at centroid values from sww files."
+            print "# Note that to accuractely compute centroid values from sww files, the files need to store "
+            print "# vertices uniquely. This makes for large sww files (3x), but is the price to pay for the right answer"
+            print "# (unless we alter IO to allow centroids to be written to sww files, which would then affect"
+            print "# ANUGA viewer as well -- I expect this would be lots of work)"
+            print "#"
+            print "# 2) In field scale applications (where the depth is typically > 1m), I suggest you set"
+            print "# domain.minimum_allowed_height=0.01 (the default is 1.0e-3). "
+            print "#"
+            print "# 3) This solver is not expected to perform well in problems with very"
+            print "# shallow water flowing down steep slopes (such that the stage_centroid_value "
+            print "# is less than the maximum bed_edge_value on a given triangle). However, analytical tests"
+            print "# suggest it can do typical wetting/drying situations very well (parabolic oscillations test case) "
+            print "#"
+            print "# 4) This solver allows the stage_centroid_value to drop to slightly below the minimum bed_vertex_value"
+            print "# on it's triangle. In other ANUGA versions (e.g. 1.2.1), the limit would be the"
+            print "# bed_centroid_value. This means that triangles store slightly more water than they are"
+            print "# typically interpreted to store, which might have significance in some applications."
+            print "#"
+            print "# You will probably be able to tell this is causing you problems by convergence testing"
+            print "#"
+            print '# 5) Note that many options in config.py have been overridden by the solver -- we have '
+            print '# deliberately attempted to get the solver to perform well with consistent values of '
+            print '# these parameters -- so I advise against changing them unless you at least check that '
+            print '# it really does improve things'
+            print '#'
+            print '##########################################################################'
 
     def set_DE1_defaults(self):
         """Set up the defaults for running the flow_algorithm "DE1"
@@ -460,19 +460,20 @@ class Domain(Generic_Domain):
 
         self.call=1 # Integer counting how many times we call compute_fluxes_central
 
-        print '##########################################################################'
-        print '#'
-        print '# Using discontinuous elevation solver DE1 '
-        print '#'
-        print '# Mostly designed for rk2 timestepping'
-        print '#'
-        print '# Make sure you use centroid values when reporting on important output quantities'
-        print '#'
-        print '# NOTE: anuga-viewer sometimes shows very shallow regions in this solver as '
-        print '# erratically jumping from "totally dry" to "barely wet". In all my checks of centroid'
-        print '# values at such locations, I never found that it was really occurring. It may be'
-        print '# a problem with the viewer rather than this algorithm. '
-        print '##########################################################################'
+        if self.processor == 0 and self.verbose:
+            print '##########################################################################'
+            print '#'
+            print '# Using discontinuous elevation solver DE1 '
+            print '#'
+            print '# Mostly designed for rk2 timestepping'
+            print '#'
+            print '# Make sure you use centroid values when reporting on important output quantities'
+            print '#'
+            print '# NOTE: anuga-viewer sometimes shows very shallow regions in this solver as '
+            print '# erratically jumping from "totally dry" to "barely wet". In all my checks of centroid'
+            print '# values at such locations, I never found that it was really occurring. It may be'
+            print '# a problem with the viewer rather than this algorithm. '
+            print '##########################################################################'
 
 
     def update_special_conditions(self):
@@ -614,6 +615,7 @@ class Domain(Generic_Domain):
            2
            2.5
            tsunami
+           DE1
         """
 
         if isinstance(flag, str) :
@@ -1548,7 +1550,8 @@ class Domain(Generic_Domain):
             mass_error = protect(self.minimum_allowed_height, self.maximum_allowed_speed,
                 self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas)
 
-            print 'Cumulative mass protection: python'+str(mass_error)+'m^3 '
+            if mass_error > 0.0 and self.verbose :
+                print 'Cumulative mass protection: '+str(mass_error)+' m^3 '
 
         elif self.flow_algorithm == 'DE1':
 
@@ -1565,8 +1568,11 @@ class Domain(Generic_Domain):
             xc = self.centroid_coordinates[:,0]
             yc = self.centroid_coordinates[:,1] 
 
-            protect(self.minimum_allowed_height, self.maximum_allowed_speed,
+            mass_error = protect(self.minimum_allowed_height, self.maximum_allowed_speed,
                     self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas, xc, yc)
+            
+            if mass_error > 0.0 and self.verbose :
+                print 'Cumulative mass protection: '+str(mass_error)+' m^3 '
             
         else:
             from shallow_water_ext import protect

@@ -246,12 +246,21 @@ class Test_Quantity(unittest.TestCase):
                                                    [5. + 2/3.0, 4.0 + 1.0/6, 5.0 + 1.0/6],
                                                    [2.2, 2.8, 4.0],
                                                    [2.5, -0.5, -2.0]])
+        
+    def test_save_to_array(self):
+        quantity = Quantity(self.mesh4,
+                            [[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
+        
+        
+        assert num.allclose(quantity.centroid_values, [2., 5., 3., 0.]) #Centroid
 
 
-        #assert allclose(quantity.edge_values, [[2.5, 2.0, 1.5],
-        #                                       [5., 5., 5.],
-        #                                       [4.5, 4.5, 0.],
-        #                                       [3.0, -1.5, -1.5]])
+        quantity.save_to_array()
+        
+        
+
+
+
 
     def test_get_extrema_1(self):
         quantity = Quantity(self.mesh4,

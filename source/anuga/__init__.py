@@ -30,10 +30,14 @@ sys.path += __path__
 
 from anuga.__metadata__ import __version__, __date__, __author__
 
+#--------------------------------
+# Important basic classes
+#--------------------------------
 from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.abstract_2d_finite_volumes.quantity import Quantity
 from anuga.abstract_2d_finite_volumes.region import Region
-
+from anuga.operators.base_operator import Operator
+from anuga.structures.structure_operator import Structure_operator
 
 from anuga.abstract_2d_finite_volumes.util import file_function, \
                                         sww2timeseries, sww2csv_gauges
@@ -62,6 +66,19 @@ from anuga.utilities.numerical_tools import safe_acos as acos
 
 from anuga.geometry.polygon import read_polygon
 from anuga.caching import cache
+from os.path import join
+from anuga.config import indent
+
+
+
+#----------------------------
+# Parallel api (needs operators)
+#----------------------------
+from anuga_parallel.parallel_api import distribute
+from anuga_parallel.parallel_api import myid, numprocs, get_processor_name
+from anuga_parallel.parallel_api import send, receive
+from anuga_parallel.parallel_api import pypar_available, barrier, finalize
+
 
 #-----------------------------
 # SwW Standard Boundaries
@@ -134,24 +151,53 @@ from anuga.pmesh.mesh_interface import create_mesh_from_regions
 #-----------------------------
 from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
     
-
 #---------------------------
 # Operators
 #---------------------------
-from anuga.operators.base_operator import Operator
 from anuga.operators.kinematic_viscosity_operator import Kinematic_viscosity_operator
 
 from anuga.operators.rate_operators import Rate_operator
 from anuga.operators.set_friction_operators import Depth_friction_operator 
 
+
 #---------------------------
 # Structure Operators
 #---------------------------
-from anuga.structures.structure_operator import Structure_operator
-from anuga.structures.boyd_box_operator import Boyd_box_operator
-from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator
-from anuga.structures.weir_orifice_trapezoid_operator import Weir_orifice_trapezoid_operator
-from anuga.structures.inlet_operator import Inlet_operator
+
+
+if pypar_available:
+    from anuga_parallel.parallel_operator_factory import Inlet_operator
+    from anuga_parallel.parallel_operator_factory import Boyd_box_operator
+    from anuga_parallel.parallel_operator_factory import Boyd_pipe_operator
+    from anuga_parallel.parallel_operator_factory import Weir_orifice_trapezoid_operator
+else:
+    from anuga.structures.boyd_box_operator import Boyd_box_operator
+    from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator
+    from anuga.structures.weir_orifice_trapezoid_operator import Weir_orifice_trapezoid_operator
+    from anuga.structures.inlet_operator import Inlet_operator
+
+#----------------------------
+# Parallel distribute
+#----------------------------
+
+
+#----------------------------
+# 
+#Added by Petar Milevski 10/09/2013
+#import time, os
+
+from anuga.utilities.model_tools import get_polygon_from_single_file
+from anuga.utilities.model_tools import get_polygons_from_Mid_Mif
+from anuga.utilities.model_tools import get_polygon_list_from_files
+from anuga.utilities.model_tools import get_polygon_dictionary
+from anuga.utilities.model_tools import get_polygon_value_list
+from anuga.utilities.model_tools import read_polygon_dir
+from anuga.utilities.model_tools import read_hole_dir_multi_files_with_single_poly
+from anuga.utilities.model_tools import read_multi_poly_file
+from anuga.utilities.model_tools import read_hole_dir_single_file_with_multi_poly
+from anuga.utilities.model_tools import read_multi_poly_file_value
+from anuga.utilities.model_tools import Create_culvert_bridge_Operator
+
 
 #---------------------------
 # User Access Functions
@@ -373,35 +419,5 @@ if use_psyco:
         
 
 
-#Added by Petar Milevski 10/09/2013
-import time, os
-from os.path import join
-from anuga.config import indent
 
-from anuga.utilities.model_tools import get_polygon_from_single_file
-from anuga.utilities.model_tools import get_polygons_from_Mid_Mif
-from anuga.utilities.model_tools import get_polygon_list_from_files
-from anuga.utilities.model_tools import get_polygon_dictionary
-from anuga.utilities.model_tools import get_polygon_value_list
-from anuga.utilities.model_tools import read_polygon_dir
-from anuga.utilities.model_tools import read_hole_dir_multi_files_with_single_poly
-from anuga.utilities.model_tools import read_multi_poly_file
-from anuga.utilities.model_tools import read_hole_dir_single_file_with_multi_poly
-from anuga.utilities.model_tools import read_multi_poly_file_value
-
-from anuga.utilities.model_tools import Create_culvert_bridge_Operator
-
-from anuga_parallel.parallel_api import distribute
-from anuga_parallel.parallel_api import myid, numprocs, get_processor_name
-from anuga_parallel.parallel_api import send, receive
-from anuga_parallel.parallel_api import pypar_available, barrier, finalize
-
-if pypar_available:
-    #from anuga_parallel.parallel_meshes import parallel_rectangle
-    #from anuga_parallel.parallel_shallow_water import Parallel_domain as Parallel_shallow_water_domain
-    #from anuga_parallel.parallel_advection     import Parallel_domain as Parallel_advection_domain
-    from anuga_parallel.parallel_operator_factory import Inlet_operator, Boyd_box_operator, Boyd_pipe_operator, Weir_orifice_trapezoid_operator
-
-
-from anuga.structures.weir_orifice_trapezoid_operator import Weir_orifice_trapezoid_operator
 
