@@ -222,10 +222,14 @@ class Erosion_operator(Operator, Region):
 
 
     def parallel_safe(self):
-        """Operator is applied independently on each cell and
+        """If Operator is applied independently on each cell and
         so is parallel safe.
         """
-        return False
+        
+        if self.domain.flow_algorithm == 'DE1':
+            return True
+        else:
+            return False
 
     def statistics(self):
 
