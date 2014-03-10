@@ -108,7 +108,7 @@ class Erosion_operator(Operator, Region):
         else:
 
             #--------------------------------------
-            # Update all three vertices for each cell
+            # Update each cell
             # associated with self.indices
             #--------------------------------------
             ind = self.indices
