@@ -582,7 +582,8 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None):
 
 ##################################################################################
 
-def Make_Geotif(swwFile, output_quantities=['depth'],
+def Make_Geotif(swwFile=None, 
+             output_quantities=['depth'],
              myTimeStep=1, CellSize=5.0, 
              lower_left=None, upper_right=None,
              EPSG_CODE=None, 
@@ -593,11 +594,14 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
              bounding_polygon=None,
              verbose=False):
     """
-        Make a georeferenced tif by nearest-neighbour interpolation of sww file outputs.
+        Make a georeferenced tif by nearest-neighbour interpolation of sww file outputs (or a 3-column array with xyz Points)
 
         You must supply projection information as either a proj4string or an integer EPSG_CODE (but not both!)
 
-        INPUTS: swwFile -- name of sww file
+        INPUTS: swwFile -- name of sww file, OR a 3-column array with x/y/z
+                    points. In the latter case x and y are assumed to be in georeferenced
+                    coordinates.  The output raster will contain 'z', and will have a name-tag
+                    based on the name in 'output_quantities'.
                 output_quantities -- list of quantitiies to plot, e.g. ['depth', 'velocity', 'stage','elevation','depthIntegratedVelocity']
                 myTimeStep -- list containing time-index of swwFile to plot (e.g. [1, 10, 32] ) or 'last', or 'max', or 'all'
                 CellSize -- approximate pixel size for output raster [adapted to fit lower_left / upper_right]
@@ -613,6 +617,10 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
                 bounding_polygon -- polygon (e.g. from read_polygon) If present, only set values of raster cells inside the bounding_polygon
                 
     """
+
+    #import pdb
+    #pdb.set_trace()
+
     try:
         import gdal
         import osr
@@ -623,8 +631,15 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
         import os
         from matplotlib import nxutils
     except:
-        raise Exception, 'Required modules not installed for mkgeotif'
+        raise Exception, 'Required modules not installed for Make_Geotif'
 
+
+    # Check whether swwFile is an array, and if so, redefine various inputs to
+    # make the code work
+    if(type(swwFile)==scipy.ndarray):
+        import copy
+        xyzPoints=copy.copy(swwFile)
+        swwFile=None
 
     if(((EPSG_CODE is None) & (proj4string is None) )|
        ((EPSG_CODE is not None) & (proj4string is not None))):
@@ -637,27 +652,37 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
     except:
         pass
 
-    # Read in ANUGA outputs
-    # FIXME: It would be good to support reading of data subsets
-    if(verbose):
-        print 'Reading sww File ...'
-    p=util.get_output(swwFile,min_allowed_height)
-    p2=util.get_centroids(p,velocity_extrapolation)
-    swwIn=scipy.io.netcdf_file(swwFile)
-    xllcorner=swwIn.xllcorner
-    yllcorner=swwIn.yllcorner
+    if(swwFile is not None):
+        # Read in ANUGA outputs
+        # FIXME: It would be good to support reading of data subsets
+        if(verbose):
+            print 'Reading sww File ...'
+        p=util.get_output(swwFile,min_allowed_height)
+        p2=util.get_centroids(p,velocity_extrapolation)
+        swwIn=scipy.io.netcdf_file(swwFile)
+        xllcorner=swwIn.xllcorner
+        yllcorner=swwIn.yllcorner
 
-    if(myTimeStep=='all'):
-        myTimeStep=range(len(p2.time))
-    # Ensure myTimeStep is a list
-    if type(myTimeStep)!=list:
-        myTimeStep=[myTimeStep]
+        if(myTimeStep=='all'):
+            myTimeStep=range(len(p2.time))
+        # Ensure myTimeStep is a list
+        if type(myTimeStep)!=list:
+            myTimeStep=[myTimeStep]
 
-    if(verbose):
-        print 'Extracting required data ...'
-    # Get ANUGA points
-    swwX=p2.x+xllcorner
-    swwY=p2.y+yllcorner
+        if(verbose):
+            print 'Extracting required data ...'
+        # Get ANUGA points
+        swwX=p2.x+xllcorner
+        swwY=p2.y+yllcorner
+    else:
+        # Get the point data from the 3-column array
+        if(xyzPoints.shape[1]!=3):
+            raise Exception, 'If an array is passed, it must have exactly 3 columns'
+        if(len(output_quantities)!=1):
+            raise Exception, 'Can only have 1 output quantity when passing an array'
+        swwX=xyzPoints[:,0]
+        swwY=xyzPoints[:,1]
+        myTimeStep=['pointData']
 
     # Grid for meshing
     if(verbose):
@@ -680,7 +705,7 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
         print 'Making interpolation functions...'
     swwXY=scipy.array([swwX[:],swwY[:]]).transpose()
     # Get index of nearest point
-    index_qFun=scipy.interpolate.NearestNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int32').transpose())
+    index_qFun=scipy.interpolate.NearestNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int64').transpose())
     gridXY_array=scipy.array([scipy.concatenate(gridX),scipy.concatenate(gridY)]).transpose()
     gridqInd=index_qFun(gridXY_array)
 
@@ -701,7 +726,8 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
                 myTS=len(p.time)-1
         
 
-            if(myTS!='max'):
+            #if(myTS!='max'):
+            if(type(myTS)=='int'):
                 if(output_quantity=='stage'):
                     gridq=p2.stage[myTS,:][gridqInd]
                 if(output_quantity=='depth'):
@@ -714,7 +740,7 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
                 if(output_quantity=='elevation'):
                     gridq=p2.elev[gridqInd]
                 timestepString=str(round(p2.time[myTS]))
-            else:
+            elif (myTS=='max'):
                 if(output_quantity=='stage'):
                     gridq=p2.stage.max(axis=0)[gridqInd]
                 if(output_quantity=='depth'):
@@ -727,15 +753,21 @@ def Make_Geotif(swwFile, output_quantities=['depth'],
                 if(output_quantity=='elevation'):
                     gridq=p2.elev[gridqInd]
                 timestepString='max'
+            elif(myTS=='pointData'):
+                gridq=xyzPoints[:,2][gridqInd]
+
 
             if(bounding_polygon is not None):
                 # Cut the points outside the bounding polygon
                 gridq[cut_points]=scipy.nan 
 
             # Make name for output file
-            output_name=output_dir+'/'+os.path.splitext(os.path.basename(swwFile))[0] + '_'+\
-                        output_quantity+'_'+timestepString+\
-                        '_'+str(myTS)+'.tif'
+            if(myTS!='pointData'):
+                output_name=output_dir+'/'+os.path.splitext(os.path.basename(swwFile))[0] + '_'+\
+                            output_quantity+'_'+timestepString+\
+                            '_'+str(myTS)+'.tif'
+            else:
+                output_name=output_dir+'/'+'PointData_'+output_quantity+'.tif'
 
             if(verbose):
                 print 'Making raster ...'
