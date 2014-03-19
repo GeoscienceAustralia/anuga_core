@@ -1016,7 +1016,7 @@ class Mesh:
     def generate_mesh(self,
                       maximum_triangle_area="",
                       minimum_triangle_angle=28.0,
-                      verbose=True):
+                      verbose=False):
         if verbose is True:
             silent = ''
         else:
