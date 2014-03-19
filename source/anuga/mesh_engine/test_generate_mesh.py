@@ -31,10 +31,10 @@ class triangTestCase(unittest.TestCase):
         holelist = []
         regionlist = []
 
-	points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
-	pointattlist = []
-	regionlist.append( (1.2,1.2,5.0) )
-	seglist = [(0,1),(1,3),(3,2),(2,0)]
+        points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
+        pointattlist = []
+        regionlist.append( (1.2,1.2,5.0) )
+        seglist = [(0,1),(1,3),(3,2),(2,0)]
         segattlist = []
         
         mode = "Qzp"
@@ -63,10 +63,10 @@ class triangTestCase(unittest.TestCase):
         holelist = []
         regionlist = []
 
-	points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
-	pointattlist = None
-	regionlist.append( (1.2,1.2,5.0) )
-	seglist = [(0,1),(1,3),(3,2),(2,0)]
+        points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
+        pointattlist = None
+        regionlist.append( (1.2,1.2,5.0) )
+        seglist = [(0,1),(1,3),(3,2),(2,0)]
         segattlist = None
         
         mode = "Qzp"
@@ -95,10 +95,10 @@ class triangTestCase(unittest.TestCase):
         holelist = []
         regionlist = []
 
-	points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
-	pointattlist = [[],[],[]]
-	regionlist.append( (1.2,1.2,5.0) )
-	seglist = [(0,1),(1,3),(3,2),(2,0)]
+        points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
+        pointattlist = [[],[],[]]
+        regionlist.append( (1.2,1.2,5.0) )
+        seglist = [(0,1),(1,3),(3,2),(2,0)]
         segattlist = [0,0,0,0]
         
         mode = "Qzp"
@@ -120,10 +120,10 @@ class triangTestCase(unittest.TestCase):
         holelist = []
         regionlist = []
 
-	points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
-	pointattlist = [[1],[2],[3],[4,8]]
-	regionlist.append( (1.2,1.2,5.0) )
-	seglist = [(0,1),(1,3),(3,2),(2,0)]
+        points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
+        pointattlist = [[1],[2],[3],[4,8]]
+        regionlist.append( (1.2,1.2,5.0) )
+        seglist = [(0,1),(1,3),(3,2),(2,0)]
         segattlist = [0,0,0,0]
         
         mode = "Qzp"
@@ -143,10 +143,10 @@ class triangTestCase(unittest.TestCase):
         holelist = []
         regionlist = []
 
-	points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
-	pointattlist = [[],[],[],[]]
-	regionlist.append( (1.2,1.2,5.0) )
-	seglist = [(0,1),(1,3),(3,2),(2,0)]
+        points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
+        pointattlist = [[],[],[],[]]
+        regionlist.append( (1.2,1.2,5.0) )
+        seglist = [(0,1),(1,3),(3,2),(2,0)]
         segattlist = [1.0,2.0,3.0,4.0]
         
         mode = "Qzp"
@@ -179,9 +179,9 @@ class triangTestCase(unittest.TestCase):
         holelist = []
         regionlist = [(1.2,1.2)]
 
-	points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
-	pointattlist = [[],[],[],[]]
-	seglist = [(0,1),(1,3),(3,2),(2,0)]
+        points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
+        pointattlist = [[],[],[],[]]
+        seglist = [(0,1),(1,3),(3,2),(2,0)]
         segattlist = [0,0,0,0]
         
         mode = "Qzpn"
@@ -202,9 +202,9 @@ class triangTestCase(unittest.TestCase):
         holelist = []
         regionlist = [(1.2,1.2), (1.2,1.25,1.0)]
 
-	points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
-	pointattlist = [[],[],[],[]]
-	seglist = [(0,1),(1,3),(3,2),(2,0)]
+        points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
+        pointattlist = [[],[],[],[]]
+        seglist = [(0,1),(1,3),(3,2),(2,0)]
         segattlist = [0,0,0,0]
         
         mode = "Qzpn"
@@ -225,9 +225,9 @@ class triangTestCase(unittest.TestCase):
         holelist = []
         regionlist = [(3,1,1.0)]
 
-	points = [(0.0,0.0),(6.0,0.0),(6.0,6.0),(0.0,6.0)]
-	pointattlist = [[],[],[],[]]
-	seglist = [(0,1),(1,2),(3,2),(3,0),(0,2)]
+        points = [(0.0,0.0),(6.0,0.0),(6.0,6.0),(0.0,6.0)]
+        pointattlist = [[],[],[],[]]
+        seglist = [(0,1),(1,2),(3,2),(3,0),(0,2)]
         segattlist = [0,0,0,0,0]
         
         mode = "Qzpna36a"
@@ -281,9 +281,9 @@ class triangTestCase(unittest.TestCase):
         holelist = [(9.0)]
         regionlist = []
 
-	points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
-	pointattlist = [[],[],[],[]]
-	seglist = [(0,1),(1,3),(3,2),(2,0)]
+        points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
+        pointattlist = [[],[],[],[]]
+        seglist = [(0,1),(1,3),(3,2),(2,0)]
         segattlist = [0,0,0,0]
         
         mode = "Qzpn"
@@ -302,9 +302,9 @@ class triangTestCase(unittest.TestCase):
         holelist = []
         regionlist = []
 
-	points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
-	pointattlist = [[],[],[],[]]
-	seglist = [(0,1),(1,3),(3,2),(2,0)]
+        points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
+        pointattlist = [[],[],[],[]]
+        seglist = [(0,1),(1,3),(3,2),(2,0)]
         segattlist = [0,0]
         
         mode = "Qzpn"
@@ -325,13 +325,13 @@ class triangTestCase(unittest.TestCase):
         holelist = []
         regionlist = []
 
-	points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
-	pointattlist = [[],[],[],[]]
+        points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
+        pointattlist = [[],[],[],[]]
         #it seems that
         #triangle only associates one region with a triangle
-	regionlist.append( (1.3,1.3,88.33) )
-	regionlist.append( (1.2,1.2,77,55) )
-	seglist = [(0,1),(1,3),(3,2),(2,0)]
+        regionlist.append( (1.3,1.3,88.33) )
+        regionlist.append( (1.2,1.2,77,55) )
+        seglist = [(0,1),(1,3),(3,2),(2,0)]
         segattlist = [0,0,0,0]
         mode = "QAzpq"
         data = generate_mesh(points,seglist,holelist,regionlist,
@@ -348,13 +348,13 @@ class triangTestCase(unittest.TestCase):
         holelist = []
         regionlist = []
 
-	points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
-	pointattlist = [[],[],[],[]]
+        points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
+        pointattlist = [[],[],[],[]]
         #it seems that
         #triangle only associates one region with a triangle
-	regionlist.append( [1.3,1.3,88.33] )
-	regionlist.append( [1.2,1.2,77,55] )
-	seglist = [(0,1),(1,3),(3,2),(2,0)]
+        regionlist.append( [1.3,1.3,88.33] )
+        regionlist.append( [1.2,1.2,77,55] )
+        seglist = [(0,1),(1,3),(3,2),(2,0)]
         segattlist = [0,0,0,0]
         
         mode = "QAzpq"
@@ -372,12 +372,12 @@ class triangTestCase(unittest.TestCase):
         seglist = []
         holelist = []
         regionlist = []
-	points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
-	pointattlist = []
+        points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
+        pointattlist = []
         # 5.0 is the region tag, 99.0 is the max area
         tri_tag = 123456.0
-	regionlist.append( [0.2,0.2, tri_tag,99.0] )
-	seglist = [(0,1),(1,3),(3,2),(2,0)]
+        regionlist.append( [0.2,0.2, tri_tag,99.0] )
+        seglist = [(0,1),(1,3),(3,2),(2,0)]
         segattlist = [21,22,23,24]
          #The 'A' has to be there to get the region marker stuff working
         mode = "QzpnA"
@@ -430,10 +430,10 @@ class triangTestCase(unittest.TestCase):
         holelist = []
         regionlist = []
 
-	points = [(0.0,0.0),(0.0,4.0),(4.0,2.0),(2.0,0.0)]
-	pointattlist = [0.,0.,10.,10.]
-	regionlist.append( [0.2,0.2,2.1, 99.] )
-	seglist = [(0,1),(1,2),(2,3),(3,0)]
+        points = [(0.0,0.0),(0.0,4.0),(4.0,2.0),(2.0,0.0)]
+        pointattlist = [0.,0.,10.,10.]
+        regionlist.append( [0.2,0.2,2.1, 99.] )
+        seglist = [(0,1),(1,2),(2,3),(3,0)]
         segattlist = [11,12,13,14]
         mode = "Qzp"
         data = generate_mesh(points,seglist,holelist,regionlist,
@@ -444,7 +444,7 @@ class triangTestCase(unittest.TestCase):
                                      correct.flat),
                         'Failed')
         
-	pointattlist = [[0.],[0.],[10.],[10.]]
+        pointattlist = [[0.],[0.],[10.],[10.]]
         mode = "Qzp"        
         data = generate_mesh(points,seglist,holelist,regionlist,
                               pointattlist,segattlist, mode, points)
@@ -453,7 +453,7 @@ class triangTestCase(unittest.TestCase):
                                      correct.flat),
                         'Failed')
         
-	pointattlist = [[0.,1],[0.,1],[10.,20],[10.,20]]
+        pointattlist = [[0.,1],[0.,1],[10.,20],[10.,20]]
         mode = "Qzp"        
         data = generate_mesh(points,seglist,holelist,regionlist,
                               pointattlist,segattlist, mode, points)
