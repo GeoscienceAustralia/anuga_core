@@ -32,6 +32,7 @@ class Set_quantity(Region):
                  polygon=None,
                  center=None,
                  radius=None,
+                 line=None,
                  verbose = False,
                  test_elevation=True):
 
@@ -41,6 +42,7 @@ class Set_quantity(Region):
                         polygon=polygon,
                         center=center,
                         radius=radius,
+                        line=line,
                         verbose=verbose)
         
 
