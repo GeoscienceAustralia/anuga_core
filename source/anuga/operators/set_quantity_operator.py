@@ -49,7 +49,15 @@ class Set_quantity_operator(Operator, Set_quantity):
 
  
 
-        Set_quantity.__init__(self, domain, quantity, value, indices, polygon, center, radius)
+        Set_quantity.__init__(self, 
+                              domain, 
+                              quantity, 
+                              value, 
+                              indices, 
+                              polygon, 
+                              center, 
+                              radius, 
+                              line)
 
         Operator.__init__(self, domain, description, label, logging, verbose)
 
