@@ -428,7 +428,7 @@ def inside_polygon(points, polygon, closed=True, verbose=False):
         msg = 'Points could not be converted to numeric array' 
         raise Exception, msg
 
-    polygon = ensure_absolute(polygon)        
+
     try:
         polygon = ensure_absolute(polygon)
     except NameError, e:
