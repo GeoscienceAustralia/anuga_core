@@ -779,6 +779,7 @@ def Make_Geotif(swwFile=None,
 def plot_triangles(p):
     """ Add mesh triangles to a pyplot plot
     """
+    from matplotlib import pyplot as pyplot
     for i in range(len(p.vols)):
         k1=p.vols[i][0]
         k2=p.vols[i][1]

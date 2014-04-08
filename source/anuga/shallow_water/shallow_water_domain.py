@@ -469,10 +469,6 @@ class Domain(Generic_Domain):
             print '#'
             print '# Make sure you use centroid values when reporting on important output quantities'
             print '#'
-            print '# NOTE: anuga-viewer sometimes shows very shallow regions in this solver as '
-            print '# erratically jumping from "totally dry" to "barely wet". In all my checks of centroid'
-            print '# values at such locations, I never found that it was really occurring. It may be'
-            print '# a problem with the viewer rather than this algorithm. '
             print '##########################################################################'
 
 
