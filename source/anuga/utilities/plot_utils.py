@@ -421,7 +421,7 @@ def near_transect(p, point1, point2, tol=1.):
     g1y = y2-y1
     g1_norm = (g1x**2 + g1y**2)**0.5
     g1x=g1x/g1_norm
-    g1y=g1x/g1_norm
+    g1y=g1y/g1_norm
 
     g2x = p.x[near_points] - x1
     g2y = p.y[near_points] - y1
