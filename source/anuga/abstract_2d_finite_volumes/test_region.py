@@ -68,7 +68,7 @@ class Test_region(unittest.TestCase):
         
         poly = [[0.0,0.0], [0.5,0.0], [0.5,0.5]]
         
-        print poly
+        #print poly
         region = Region(domain, polygon=poly)
         
         expected_indices = [1]
