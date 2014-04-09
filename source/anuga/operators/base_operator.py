@@ -107,6 +107,7 @@ class Operator:
     def set_logging(self, flag=True):
 
         self.logging = flag
+        
 
 
     def activate_logging(self):

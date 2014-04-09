@@ -41,6 +41,7 @@ class Set_quantity_operator(Operator, Set_quantity):
                  polygon=None,
                  center=None,
                  radius=None,
+                 line=None,
                  description = None,
                  label = None,
                  logging = False,
@@ -53,11 +54,11 @@ class Set_quantity_operator(Operator, Set_quantity):
                               domain, 
                               quantity, 
                               value, 
-                              indices, 
-                              polygon, 
-                              center, 
-                              radius, 
-                              line)
+                              indices=indices, 
+                              polygon=polygon, 
+                              center=center, 
+                              radius=radius, 
+                              line=line)
 
         Operator.__init__(self, domain, description, label, logging, verbose)
 

@@ -85,7 +85,7 @@ from anuga import Boyd_box_operator
 from anuga import Boyd_pipe_operator
 from anuga import Weir_orifice_trapezoid_operator
 from anuga import Inlet_operator
-from anuga import Inlet_operator, Boyd_box_operator, Boyd_pipe_operator, Weir_orifice_trapezoid_operator
+
 
 
 # ---------------------------------------------------------------------------------------------------------
@@ -138,7 +138,8 @@ def get_polygons_from_Mid_Mif(Rfile):
     total_lines_in_file= len(lines)
     #print "total number of lines in the Polygons FILE is: ",total_lines_in_file
 
-    for i, line in enumerate(lines): # ==================================================== FOR LOOP ===========================        
+# ==================================================== FOR LOOP ===========================        
+    for i, line in enumerate(lines): 
         if line.strip().startswith('Region'):
             Poly_line_count=0
             check_pts_list=[]

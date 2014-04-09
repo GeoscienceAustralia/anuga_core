@@ -320,6 +320,95 @@ class Test_set_stage_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
 
 
+    def test_set_stage_operator_line(self):
+        from anuga.config import rho_a, rho_w, eta_w
+        from math import pi, cos, sin
+
+
+        length = 2.0
+        width = 2.0
+        dx = dy = 0.5
+        #dx = dy = 0.1
+        domain = rectangular_cross_domain(int(length/dx), int(width/dy),
+                                              len1=length, len2=width)
+
+
+        #Flat surface with 1m of water
+        domain.set_quantity('elevation', 0.0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        R = Reflective_boundary(domain)
+        domain.set_boundary( {'left': R, 'right': R, 'bottom': R, 'top': R} )
+
+
+#        print domain.quantities['stage'].centroid_values
+#        print domain.quantities['xmomentum'].centroid_values
+#        print domain.quantities['ymomentum'].centroid_values
+
+
+
+        def stage(x,y, t):
+            print x,y
+            if t < 10.0:
+                return x
+            else:
+                return y
+
+        line = [(0.5,0.5), (1.5,0.5)]
+        
+        operator = Set_stage_operator(domain, stage=stage, line=line)
+
+
+        print operator.indices
+        print operator.value_type
+        #operator.plot_region()
+        
+        # Apply Operator at time t=1.0
+        domain.set_time(1.0)
+        operator()
+
+
+
+
+        stage_ex = [1.,  1.,  5.,  5.,  1.,  5.,  5.,  1.,  1.,  1.,  1.,  1.,  1.,
+                    1.,  1.,  1.,  5.,  1.,  5.,  5.,  5.,  5.,  5.,  1.,  1.,  1.,
+                    1.,  1.,  1.,  1.,  1.,  1.,  5.,  1.,  5.,  5.,  5.,  5.,  5.,
+                    1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  5.,  1.,  1.,  5.,
+                    5.,  5.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.]
+
+
+
+        print domain.quantities['elevation'].centroid_values
+#        pprint(domain.quantities['stage'].centroid_values)
+
+
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+
+        # Apply Operator at time t=15.0
+        domain.set_time(15.0)
+        operator()
+
+
+
+
+        stage_ex = [ 1.,  1.,  7.,  7.,  1.,  7.,  7.,  1.,  1.,  1.,  1.,  1.,  1.,
+                     1.,  1.,  1.,  7.,  1.,  7.,  7.,  7.,  7.,  7.,  1.,  1.,  1.,
+                     1.,  1.,  1.,  1.,  1.,  1.,  7.,  1.,  7.,  7.,  7.,  7.,  7.,
+                     1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  7.,  1.,  1.,  7.,
+                     7.,  7.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.]
+
+
+        pprint(domain.quantities['stage'].centroid_values)
+#        print domain.quantities['xmomentum'].centroid_values
+#        print domain.quantities['ymomentum'].centroid_values
+
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+
 
 
 if __name__ == "__main__":

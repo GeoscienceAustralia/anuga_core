@@ -254,9 +254,114 @@ class Test_Quantity(unittest.TestCase):
         
         assert num.allclose(quantity.centroid_values, [2., 5., 3., 0.]) #Centroid
 
-
-        quantity.save_to_array()
+        cellsize = 0.1
+        x,y,z = quantity.save_to_array(cellsize=cellsize, smooth=False)
+        #x,y,z = quantity.save_to_array(smooth=False)
         
+        from pprint import pprint
+        pprint(x)
+        pprint(y)
+        pprint(z)
+        
+        
+        x_ex = [ 0.,  1.,  2.,  3.,  4.]
+        y_ex = [ 0.,  1.,  2.,  3.,  4.]
+        
+        z_ex = [[ -6.00000000e+00,  -9.99900000e+03,  -9.99900000e+03,
+                  -9.99900000e+03,  -9.99900000e+03],
+                [ -1.50000000e+00,  -1.50000000e+00,  -9.99900000e+03,
+                  -9.99900000e+03,  -9.99900000e+03],
+                [  3.00000000e+00,   3.00000000e+00,   3.00000000e+00,
+                  -9.99900000e+03,  -9.99900000e+03],
+                [  1.50000000e+00,   5.00000000e+00,   0.00000000e+00,
+                   4.50000000e+00,  -9.99900000e+03],
+                [  2.00000000e+00,   2.50000000e+00,   0.00000000e+00,
+                   4.50000000e+00,   9.00000000e+00]]
+
+        #assert num.allclose(x_ex,x)
+        #assert num.allclose(y_ex,y)
+        #assert num.allclose(z_ex,z)
+                
+               
+        Plot =True 
+        if Plot: 
+            import pylab
+            import numpy
+            #a = numpy.where(a == -9999, numpy.nan, a)
+            #a = numpy.where(a > 10.0, numpy.nan, a)
+        
+            #z = z[::-1,:]
+
+            
+            print z
+            print z.shape
+            print x
+            print y
+
+            nrows = z.shape[0]
+            ncols = z.shape[1]            
+        
+            ratio = float(nrows)/float(ncols)
+            print ratio
+            
+            #y = numpy.arange(nrows)*cellsize
+            #x = numpy.arange(ncols)*cellsize
+        
+            #Setup fig size to correpond to array size
+            fig = pylab.figure(figsize=(10, 10*ratio))
+        
+            levels = numpy.arange(-7, 10, 0.1)
+            CF = pylab.contourf(x,y,z, levels=levels)
+            CB = pylab.colorbar(CF, shrink=0.8, extend='both')
+            #CC = pylab.contour(x,y,a, levels=levels)
+            
+            pylab.show()
+        
+
+
+        x,y,z = quantity.save_to_array(cellsize=cellsize, smooth=True)
+        
+        
+        x_ex = [ 0.,  1.,  2.,  3.,  4.]
+        y_ex = [ 0.,  1.,  2.,  3.,  4.]
+        z_ex = [[ -6.00000000e+00,  -9.99900000e+03,  -9.99900000e+03,
+                  -9.99900000e+03,  -9.99900000e+03],
+                [ -1.50000000e+00,  -1.66666667e+00,  -9.99900000e+03,
+                  -9.99900000e+03,  -9.99900000e+03],
+                [  3.00000000e+00,   2.83333333e+00,   2.66666667e+00,
+                  -9.99900000e+03,  -9.99900000e+03],
+                [  2.50000000e+00,   2.83333333e+00,   2.66666667e+00,
+                   5.83333333e+00,  -9.99900000e+03],
+                [  2.00000000e+00,   2.33333333e+00,   2.66666667e+00,
+                   5.83333333e+00,   9.00000000e+00]]
+
+        
+        assert num.allclose(x_ex,x)
+        assert num.allclose(y_ex,y)
+        #assert num.allclose(z_ex,z)
+        
+        if Plot:
+            import pylab
+            import numpy
+            #a = numpy.where(a == -9999, numpy.nan, a)
+            #a = numpy.where(a > 10.0, numpy.nan, a)
+        
+            #a = a[::-1,:]
+            nrows = z.shape[0]
+            ncols = z.shape[1]
+        
+            ratio = float(nrows)/float(ncols)
+            print ratio
+        
+            #Setup fig size to correpond to array size
+            fig = pylab.figure(figsize=(10, 10*ratio))
+        
+            levels = numpy.arange(-7, 10, 0.1)
+            CF = pylab.contourf(x,y,z, levels=levels)
+            CB = pylab.colorbar(CF, shrink=0.8, extend='both')
+            #CC = pylab.contour(x,y,a, levels=[0.0,1.0,2.0,3.0])
+            
+            pylab.show()        
         
 
 

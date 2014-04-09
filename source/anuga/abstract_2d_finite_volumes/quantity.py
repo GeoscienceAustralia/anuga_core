@@ -401,8 +401,9 @@ class Quantity:
         
 
     def save_to_array(self,
-                cellsize=10,
+                cellsize=None,
                 NODATA_value=-9999.0,
+                smooth=None,
                 easting_min=None,
                 easting_max=None,
                 northing_min=None,
@@ -414,13 +415,8 @@ class Quantity:
         """
     
 
-        verbose = True
+        verbose = False
         
-        from anuga.geometry.polygon import inside_polygon, outside_polygon
-        from anuga.abstract_2d_finite_volumes.util import \
-             apply_expression_to_dictionary
-    
-    
     
         #Get extent and reference
         
@@ -428,19 +424,10 @@ class Quantity:
 
         volumes = domain.triangles
         
+        #smooth = True
 
-        x,y,_,v= self.get_vertex_values(xy=True)
+        x,y,a,v= self.get_vertex_values(xy=True, smooth=smooth)
         
-        
-        vertex_coordinates = domain.vertex_coordinates
-
-        # store the connectivity data
-        #points = num.concatenate((x[:,num.newaxis],y[:,num.newaxis]), axis=1)
-#         self.writer.store_triangulation(fid,
-#                                         points,
-#                                         V.astype(num.float32),
-#                                         points_georeference=\
-#                                         domain.geo_reference)
         
         false_easting = 500000
         false_northing = 10000000
@@ -458,8 +445,8 @@ class Quantity:
             print yllcorner
             print x
             print y
-            print vertex_coordinates[:,0]
-            print vertex_coordinates[:,1]
+            print node_coordinates[:,0]
+            print node_coordinates[:,1]
             
         
         
@@ -485,8 +472,10 @@ class Quantity:
         else:
             ymax = northing_max - yllcorner
     
+        msg = 'Implementation of Quantity.save_to_array() is not completed'
+        #raise Exception, msg
     
-        """
+        
         msg = 'xmax must be greater than or equal to xmin.\n'
         msg += 'I got xmin = %f, xmax = %f' %(xmin, xmax)
         assert xmax >= xmin, msg
@@ -494,10 +483,19 @@ class Quantity:
         msg = 'ymax must be greater than or equal to xmin.\n'
         msg += 'I got ymin = %f, ymax = %f' %(ymin, ymax)
         assert ymax >= ymin, msg
-    
+        
+        
         if verbose: log.critical('Creating grid')
-        ncols = int((xmax-xmin)/cellsize) + 1
-        nrows = int((ymax-ymin)/cellsize) + 1
+        
+        xrange = xmax-xmin
+        yrange = ymax-ymin
+        
+        if cellsize == None:
+            cellsize = max(xrange,yrange)/10.0
+    
+ 
+        ncols = int(xrange/cellsize) + 1
+        nrows = int(yrange/cellsize) + 1
     
         # New absolute reference and coordinates
         newxllcorner = xmin + xllcorner
@@ -508,20 +506,21 @@ class Quantity:
     
     
         grid_values = num.zeros( (nrows*ncols, ), num.float)
-        #print '---',grid_values.shape
+
     
-        num_tri =  len(volumes)
+        num_tri =  len(v)
         norms = num.zeros(6*num_tri, num.float)
+
     
-        #Use fasr method to calc grid values
-        from calc_grid_values_ext import calc_grid_values
+        #Use fast method to calc grid values
+        from anuga.file_conversion.calc_grid_values_ext import calc_grid_values
     
         calc_grid_values(nrows, ncols, cellsize, NODATA_value,
-                         x,y, norms, volumes, result, grid_values)
+                         x,y, norms, v, a, grid_values)
     
     
-        fid.close()
-        
+        y_g = num.arange(nrows)*cellsize + yllcorner - newyllcorner
+        x_g = num.arange(ncols)*cellsize + xllcorner - newxllcorner
         #print outside_indices
     
         if verbose:
@@ -529,16 +528,7 @@ class Quantity:
                          % (num.min(grid_values), num.max(grid_values)))
     
     
-    
-        return x,y, grid_values.reshape(nrows,ncols)[::-1,:]
-
-        """
-
-
-
-
-
-
+        return x_g,y_g, grid_values.reshape(nrows,ncols)#[::-1,:]
 
 
 
