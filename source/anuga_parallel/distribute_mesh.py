@@ -153,17 +153,6 @@ def pmesh_divide_metis_helper(domain, n_procs):
     tri_index = {}
     r_tri_index = {} # reverse tri index, parallel to serial triangle index mapping
     
-    # List indexed by processor of cumulative total of triangles allocated.
-    
-#    proc_sum = []
-#    for i in xrange(n_procs):
-#        tri_list.append([])
-#        triangles_per_proc.append(0)
-#        proc_sum.append([])
-
-    #tri_list = n_procs*[]
-    #triangles_per_proc = n_procs*[0]
-    #proc_sum = n_procs*[]
 
     # Prepare variables for the metis call
     
@@ -190,27 +179,7 @@ def pmesh_divide_metis_helper(domain, n_procs):
 #                epart_new[i] = epart[i][0]
             epart = epart_new
             del epart_new
-        # Assign triangles to processes, according to what metis told us.
-        
-        # tri_index maps triangle number -> processor, new triangle number
-        # (local to the processor)
 
-
-
-        #triangles = []        
-        #for i in xrange(n_tri):
-        #    #triangles_per_proc[epart[i]] = triangles_per_proc[epart[i]] + 1
-        #    tri_list[epart[i]].append(domain.triangles[i])
-        #    tri_index[i] = [epart[i], len(tri_list[epart[i]]) - 1]
-        #    r_tri_index[epart[i], len(tri_list[epart[i]]) - 1] = i
-
-
-        #for i in xrange(n_procs):
-        #    tri_list[i] = num.array(tri_list[i])
-
-        #for i in xrange(n_procs):
-        #    for t in tri_list[i]:
-        #        triangles.append(t)
 
         triangles_per_proc = num.bincount(epart)
 
@@ -221,20 +190,6 @@ def pmesh_divide_metis_helper(domain, n_procs):
         proc_sum = num.zeros(n_procs+1,num.int)
         proc_sum[1:] = num.cumsum(triangles_per_proc)
 
-        #boundary = {}
-        #for b in domain.boundary:
-        #    t =  tri_index[b[0]]
-        #    #print t
-        #    boundary[proc_sum[t[0]]+t[1], b[1]] = domain.boundary[b]
-
-
-
-        #print epart
-        #print len(tri_list[epart[0]])
-
-        #print tri_list
-        #print
-        #print tri_index
 
 
         epart_order = num.argsort(epart, kind='mergesort')
@@ -253,83 +208,19 @@ def pmesh_divide_metis_helper(domain, n_procs):
             #new_r_tri_index_flat[ids] = num.concatenate((i*nones, nrange, num.reshape(eids, (-1,1))), axis = 1)
 
 
-        #from pprint import pprint
-        #pprint(new_r_tri_index_flat[:,0:2])
+        from pprint import pprint
+        print 'epart'
+        pprint(epart)
+        print 'new_tri_index'
+        pprint(new_tri_index)
 
         #print 50*'='
+        
         new_boundary = {}
         for b in domain.boundary:
             t =  new_tri_index[b[0]]
             #print t
             new_boundary[proc_sum[t[0]]+t[1], b[1]] = domain.boundary[b]
-
-
-
-#        for i in range(n_tri):
-#            assert num.allclose(new_tri_index[i], tri_index[i])
-
-
-        #x = new_r_tri_index_flat
-        #print len(x)
-
-        #new_r_tri_index = {}
-        #for i in xrange(n_tri):
-        #    new_r_tri_index[x[i,0], x[i,1]] = x[i,2]
-
-
-        #assert new_r_tri_index == r_tri_index
-
-        #from pprint import pprint
-        #pprint(new_r_tri_index)
-        #pprint(r_tri_index)
-
-        #print len(new_tri_list[0])
-        #print new_tri_list
-        #print tri_list
-
-        #for i in xrange(n_procs):
-        #    assert num.allclose(tri_list[i], new_tri_list[i]), 'i %d\n'%i
-#        tri_list = new_tri_list
-#        triangles = new_triangles
-
-
-#        for i in xrange(n_tri):
-#            tri_index[i] = ([epart[i], len(tri_list[epart[i]]) - 1])
-#            r_tri_index[epart[i], len(tri_list[epart[i]]) - 1] = i
-
-        #assert num.allclose(triangles_per_proc, new_triangles_per_proc)
-        
-        # Order the triangle list so that all of the triangles belonging
-        # to processor i are listed before those belonging to processor
-        # i+1
-
-
-
-
-
-
-        #print new_triangles
-        #print num.array(triangles)
-
-        #assert num.allclose(new_triangles,num.array(triangles))
-            
-        # The boundary labels have to changed in accoradance with the
-        # new triangle ordering, proc_sum and tri_index help with this
-
-#        proc_sum[0] = 0
-#        for i in xrange(n_procs - 1):
-#            proc_sum[i+1]=proc_sum[i]+triangles_per_proc[i]
-
-
-
-
-
-        #assert num.allclose(new_proc_sum,proc_sum)
-
-        # Relabel the boundary elements to fit in with the new triangle
-        # ordering
-
-
 
         #quantities = reorder(domain.quantities, tri_index, proc_sum)
         new_quantities = reorder_new(domain.quantities, epart_order, proc_sum)
@@ -350,19 +241,8 @@ def pmesh_divide_metis_helper(domain, n_procs):
                 new_quantities[k][i] = domain.quantities[k].vertex_values[i]
         
     # Extract the node list
-    
     new_nodes = domain.get_nodes().copy()
     
-    # Convert the triangle datastructure to be an array type,
-    # this helps with the communication
-
-    ttriangles = num.zeros((len(new_triangles), 3), num.int)
-    for i in xrange(len(new_triangles)):
-        ttriangles[i] = new_triangles[i]
-
-    #return nodes, ttriangles, boundary, triangles_per_proc, quantities
-    
-    #return nodes, ttriangles, boundary, triangles_per_proc, quantities, tri_index, r_tri_index
 
     return new_nodes, new_triangles, new_boundary, triangles_per_proc, new_quantities, new_tri_index, epart_order
 

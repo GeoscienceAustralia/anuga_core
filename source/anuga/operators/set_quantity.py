@@ -80,10 +80,14 @@ class Set_quantity(Region):
         if self.indices is []:
             return
 
-        value = self.get_value()
 
-        if value is None:
-            return
+
+        #value = self.get_value()
+        
+        from pprint import pprint
+        #print 'value'
+        #pprint(value)
+
 
 
         if self.indices is None:
@@ -91,7 +95,7 @@ class Set_quantity(Region):
             #--------------------------------------
             # Update all three vertices for each cell
             #--------------------------------------
-            self.quantity_c[:] = self.get_value(self.coord_c[:,0], self.coord_c[:,1])
+            self.quantity_c[:] = self.get_value(x=self.coord_c[:,0], y=self.coord_c[:,1])
 
         else:
 
@@ -101,7 +105,7 @@ class Set_quantity(Region):
             ids = self.indices
             x = self.coord_c[ids,0]
             y = self.coord_c[ids,1]
-            self.quantity_c[ids] = self.get_value(x,y)
+            self.quantity_c[ids] = self.get_value(x=x,y=y)
 
 
 
@@ -120,6 +124,9 @@ class Set_quantity(Region):
         #from anuga.fit_interpolate.interpolate import Modeltime_too_early, \
         #                                              Modeltime_too_late
 
+
+        print 'x,y,t'
+        print x,y,t
 
         if t is None:
             t = self.domain.get_time()
