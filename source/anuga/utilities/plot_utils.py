@@ -788,7 +788,7 @@ def plot_triangles(p, adjustLowerLeft=False):
         k1=p.vols[i][0]
         k2=p.vols[i][1]
         k3=p.vols[i][2]
-        if(!adjustLowerLeft):
+        if(not adjustLowerLeft):
             pyplot.plot([p.x[k1], p.x[k2], p.x[k3], p.x[k1]], [p.y[k1], p.y[k2], p.y[k3], p.y[k1]],'-',color='black')
         else:
             pyplot.plot([p.x[k1]+x0, p.x[k2]+x0, p.x[k3]+x0, p.x[k1]+x0], [p.y[k1]+x1, p.y[k2]+x1, p.y[k3]+x1, p.y[k1]+x1],'-',color='black')
