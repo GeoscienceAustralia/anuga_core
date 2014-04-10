@@ -385,19 +385,19 @@ def near_transect(p, point1, point2, tol=1.):
     # #xxx=transect_interpolate.near_transect(p,[95., 85.], [120.,68.],tol=2.)
     # xxx=util.near_transect(p,[95., 85.], [120.,68.],tol=2.)
     # pyplot.scatter(xxx[1],p.vel[140,xxx[0]],color='red')
-
+    
     x1=point1[0]
     y1=point1[1]
-
+    
     x2=point2[0]
     y2=point2[1]
-
+    
     # Find line equation a*x + b*y + c = 0
     # based on y=gradient*x +intercept
     if x1!=x2:
         gradient= (y2-y1)/(x2-x1)
         intercept = y1 - gradient*x1
-
+        #
         a = -gradient
         b = 1.
         c = -intercept
@@ -407,11 +407,11 @@ def near_transect(p, point1, point2, tol=1.):
         a=1.
         b=0.
         c=-x2 
-
+    
     # Distance formula
     inv_denom = 1./(a**2 + b**2)**0.5
     distp = abs(p.x*a + p.y*b + c)*inv_denom
-
+    
     near_points = (distp<tol).nonzero()[0]
     
     # Now find a 'local' coordinate for the point, projected onto the line
@@ -422,14 +422,19 @@ def near_transect(p, point1, point2, tol=1.):
     g1_norm = (g1x**2 + g1y**2)**0.5
     g1x=g1x/g1_norm
     g1y=g1y/g1_norm
-
+    
     g2x = p.x[near_points] - x1
     g2y = p.y[near_points] - y1
     
     # Dot product = projected distance == a local coordinate
     local_coord = g1x*g2x + g1y*g2y
-
-    return near_points, local_coord
+    
+    # only keep coordinates between zero and the distance along the line
+    dl=((x1-x2)**2+(y1-y2)**2)**0.5
+    keepers=(local_coord<=dl)*(local_coord>=0.)
+    keepers=keepers.nonzero()
+    
+    return near_points[keepers], local_coord[keepers]
 
 ########################
 # TRIANGLE AREAS, WATER VOLUME
