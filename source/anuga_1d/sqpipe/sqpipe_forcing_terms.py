@@ -100,32 +100,34 @@ def manning_friction(domain):
     """Apply (Manning) friction to water momentum
     """
 
-    from math import sqrt
+    from math import sqrt, fabs
 
-    w = domain.quantities['stage'].centroid_values
-    z = domain.quantities['elevation'].centroid_values
-    h = w-z
-
-    uh = domain.quantities['xmomentum'].centroid_values
-    #vh = domain.quantities['ymomentum'].centroid_values
     eta = domain.quantities['friction'].centroid_values
 
-    xmom_update = domain.quantities['xmomentum'].semi_implicit_update
+    hw = domain.quantities['area'].centroid_values
+    w  = domain.quantities['width'].centroid_values
+    uhw = domain.quantities['discharge'].centroid_values
+    
+    h = hw/w
+    
+    uhw_update = domain.quantities['discharge'].semi_implicit_update
     #ymom_update = domain.quantities['ymomentum'].semi_implicit_update
 
     N = domain.number_of_elements
-    eps = domain.minimum_allowed_height
+    eps = 1.0e-10
     g = domain.g
 
+    #print 'mannings'
     for k in range(N):
         if eta[k] >= eps:
             if h[k] >= eps:
             	#S = -g * eta[k]**2 * sqrt((uh[k]**2 + vh[k]**2))
-                S = -g * eta[k]**2 * uh[k]
+                S = -g * eta[k]**2 * fabs(uhw[k])
             	S /= h[k]**(7.0/3)
+                S /= w[k]
 
             	#Update momentum
-            	xmom_update[k] += S*uh[k]
+            	uhw_update[k] += S*uhw[k]
             	#ymom_update[k] += S*vh[k]
 
 def linear_friction(domain):

@@ -5,6 +5,10 @@ import subprocess
 
 buildroot = os.getcwd()
 
+
+#--------------------------------------------------
+# Compiling anuga code
+#--------------------------------------------------
 os.chdir('source')
 os.chdir('anuga')
 
@@ -19,7 +23,30 @@ t0 = time.time()
 execfile('compile_all.py')
 
 
-os.chdir(buildroot)    
+os.chdir(buildroot)
+
+#--------------------------------------------------
+# Compiling anuga_1d code
+#--------------------------------------------------
+os.chdir('source')
+os.chdir('anuga_1d')
+
+
+print 'Changing to', os.getcwd()        
+
+#entries = listdir('.')
+
+t0 = time.time()
+
+# Attempt to compile all ANUGA_1D extensions
+execfile('compile_all.py')
+
+
+os.chdir(buildroot)
+
+#--------------------------------------------------
+# Compiling anuga_parallel code
+#--------------------------------------------------
 
 try:
     print '-----------------------------------------------'

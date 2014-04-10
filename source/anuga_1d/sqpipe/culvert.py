@@ -35,7 +35,7 @@ def width(x):
 
 def top(x):
 
-    t = numpy.ones_like(x)
+    t = numpy.ones_like(x)*4
 
     t = numpy.where(x<-40, 20, t)
     t = numpy.where(x>40, 20, t)
@@ -44,11 +44,14 @@ def top(x):
 def area(x):
     return height(x)*width(x)
 
+def friction(x):
+    return numpy.ones_like(x)*0.01
+
 
 #===============================================================================
 
 def get_domain():
-    N = 100
+    N = 20
     print "Evaluating domain with %d cells" %N
 
     points, boundary = uniform_mesh(N, x_0 = -L_x, x_1 = L_x)
@@ -56,7 +59,7 @@ def get_domain():
     domain = dom.Domain(points, boundary, bulk_modulus = 100.0)
 
     domain.set_spatial_order(2)
-    domain.set_timestepping_method('euler')
+    domain.set_timestepping_method('rk2')
     domain.set_CFL(0.5)
     domain.set_limiter("vanleer")
 
@@ -67,11 +70,12 @@ def get_domain():
     domain.set_quantity('elevation',elevation)
     domain.set_quantity('width',width)
     domain.set_quantity('top',top)
+    domain.set_quantity('friction',friction)
 
     Br = dom.Reflective_boundary(domain)
     Bt = dom.Transmissive_boundary(domain)
 
-    domain.set_boundary({'left': Br, 'right' : Bt})
+    domain.set_boundary({'left': Br, 'right' : Br})
 
     return domain
 

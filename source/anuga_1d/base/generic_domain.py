@@ -1375,6 +1375,10 @@ class Generic_domain:
             for name in self.conserved_quantities:
                 Q = self.quantities[name]
                 Q.explicit_update[:] = 0.0
+                
+        #for name in self.conserved_quantities:
+        #    Q = self.quantities[name]
+        #    Q.semi_implicit_update[:] = 0.0
 
         for f in self.forcing_terms:
             f(self)

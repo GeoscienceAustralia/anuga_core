@@ -80,6 +80,10 @@ class Domain(Generic_domain):
         self.h0 = h0
         self.epsilon = epsilon
 
+        #setup manning's friction
+        f = manning_friction
+        self.forcing_terms.append(f)
+        
         #forcing terms
         for f in forcing_terms:
             self.forcing_terms.append(f)
@@ -170,7 +174,7 @@ class Domain(Generic_domain):
             new_state[i] = update_cell_state(i, [i-1, i+1], h, t, self.state)
 
         self.state = new_state
-        self.state = numpy.where(h>=t, 1, 0)
+        #self.state = numpy.where(h>=t, 1, 0)
 
     def distribute_to_vertices_and_edges(self):
         # Shortcuts

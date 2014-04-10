@@ -13,6 +13,15 @@ print 'Changing to', os.getcwd() # This is now different from buildroot
 execfile('test_all.py')
 
 
+os.chdir(buildroot)
+os.chdir('source')
+os.chdir('anuga_1d')
+print
+print '======================= anuga_1d tests ================================='    
+print 'Changing to', os.getcwd() # This is now different from buildroot   
+execfile('test_all.py')
+
+
 
 # Try to run parallel tests if pypar is installed
 
