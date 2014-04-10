@@ -737,6 +737,7 @@ def Make_Geotif(swwFile=None,
                     gridq=p2.stage[myTS,:][gridqInd]
                 if(output_quantity=='depth'):
                     gridq=p2.height[myTS,:][gridqInd]
+                    gridq=gridq*(gridq>=0.) # Force positive depth (tsunami alg)
                 if(output_quantity=='velocity'):
                     gridq=p2.vel[myTS,:][gridqInd]
                 if(output_quantity=='depthIntegratedVelocity'):
@@ -750,6 +751,7 @@ def Make_Geotif(swwFile=None,
                     gridq=p2.stage.max(axis=0)[gridqInd]
                 if(output_quantity=='depth'):
                     gridq=p2.height.max(axis=0)[gridqInd]
+                    gridq=gridq*(gridq>=0.) # Force positive depth (tsunami alg)
                 if(output_quantity=='velocity'):
                     gridq=p2.vel.max(axis=0)[gridqInd]
                 if(output_quantity=='depthIntegratedVelocity'):
