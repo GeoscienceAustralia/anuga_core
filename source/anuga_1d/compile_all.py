@@ -11,9 +11,9 @@ os.chdir('..')
 os.chdir('base')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
-os.chdir('..')
-os.chdir('channel')
-execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
+## os.chdir('..')
+## os.chdir('channel')
+## execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 
 #os.chdir('..')
@@ -24,13 +24,13 @@ execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 #os.chdir('avalanche-sudi')
 #execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
-os.chdir('..')
-os.chdir('pipe')
-execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
+## os.chdir('..')
+## os.chdir('pipe')
+## execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
-os.chdir('..')
-os.chdir('sww')
-execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
+## os.chdir('..')
+## os.chdir('sww')
+## execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 os.chdir('..')
 os.chdir('sqpipe')

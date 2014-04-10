@@ -2884,7 +2884,7 @@ The user can also model the effects of momentum jetting at the outlet of the cul
 
 Culvert hydraulics information can be logged by switching logging on or off.
 
-To use the Boyd Method in \anuga, the user can just copy the code below into their script. So if your model run has 10 pipe culverts, copy the pipe culvert routine five times into your run script and fill in the details for each of your five culverts.
+To use the Boyd Method in \anuga, the user can just copy the code below into their script. So if your model run has five pipe culverts, copy the pipe culvert routine five times into your run script and fill in the details for each of your five culverts.
 \begin{verbatim}
 #------------------------------------- -----------------
 # Box Culvert modelled along two lines 
@@ -3898,18 +3898,18 @@ numerically unreliable and will typically cause unphysical speeds.
 We have employed a flux limiter which replaces the calculations above with
 the limited approximations.
 \begin{equation}
-  \hat{u} = \frac{\mu}{h + h_0/h}, \bigskip \hat{v} = \frac{\nu}{h + h_0/h},
+  \hat{u} = \frac{\mu h}{h^2+ h_0}, \bigskip \hat{v} = \frac{\nu h}{h^2 + h_0},
 \end{equation}
 where $h_0$ is a regularisation parameter that controls the minimal
 magnitude of the denominator. Taking the limits we have for $\hat{u}$
 \[
   \lim_{h \rightarrow 0} \hat{u} =
-  \lim_{h \rightarrow 0} \frac{\mu}{h + h_0/h} = 0
+  \lim_{h \rightarrow 0} \frac{\mu h }{h^2 + h_0} = 0
 \]
 and
 \[
   \lim_{h \rightarrow \infty} \hat{u} =
-  \lim_{h \rightarrow \infty} \frac{\mu}{h + h_0/h} = \frac{\mu}{h} = u
+  \lim_{h \rightarrow \infty} \frac{\mu h}{h^2 + h_0} = \frac{\mu}{h} = u
 \]
 with similar results for $\hat{v}$.
 
