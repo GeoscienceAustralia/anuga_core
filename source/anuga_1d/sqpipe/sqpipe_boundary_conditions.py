@@ -17,7 +17,8 @@ class Dirichlet_boundary(Boundary):
         Boundary.__init__(self)
 
         if quantities is None:
-            msg = 'Must specify one value for each evolved quantity, w,uh,z,h,u'
+            msg = 'Must specify one value for each evolved quantities' + \
+                  ' area, discharge, elevation, height,velocity, width, top stage'
             raise msg
 
         self.quantities=numpy.array(quantities, numpy.float)

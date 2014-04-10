@@ -69,8 +69,9 @@ def get_domain():
     domain.set_quantity('top',top)
 
     Br = dom.Reflective_boundary(domain)
+    Bt = dom.Transmissive_boundary(domain)
 
-    domain.set_boundary({'left': Br, 'right' : Br})
+    domain.set_boundary({'left': Br, 'right' : Bt})
 
     return domain
 
