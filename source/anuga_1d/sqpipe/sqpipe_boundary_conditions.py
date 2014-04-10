@@ -18,15 +18,15 @@ class Dirichlet_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for boundary'
-            raise msg
+            raise Exception(msg)
         
         if quantities is None:
             msg = 'Must specify one value for each evolved quantities' + \
-                  ' area, discharge, elevation, height,velocity, width, top stage'
-            raise msg
+                  ' area, discharge, elevation, height, velocity, width, top, stage'
+            raise Exception(msg)
         
         msg = 'Must specify one value for each evolved quantities' + \
-             ' area, discharge, elevation, height,velocity, width, top stage'
+             ' area, discharge, elevation, height, velocity, width, top, stage'
         assert len(quantities)==8, msg
 
         self.quantities=numpy.array(quantities, numpy.float)
@@ -52,7 +52,7 @@ class Reflective_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for boundary'
-            raise msg
+            raise Exception(msg)
 
         #Handy shorthands
         self.normals    = domain.normals
@@ -105,7 +105,7 @@ class Transmissive_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for boundary'
-            raise msg
+            raise Exception(msg)
 
         #Handy shorthands
         self.normals    = domain.normals
