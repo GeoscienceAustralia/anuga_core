@@ -53,7 +53,7 @@ def get_domain():
 
     points, boundary = uniform_mesh(N, x_0 = -L_x, x_1 = L_x)
 
-    domain = dom.Domain(points, boundary, bulk_modulus = 500.0)
+    domain = dom.Domain(points, boundary, bulk_modulus = 100.0)
 
     domain.set_spatial_order(2)
     domain.set_timestepping_method('euler')

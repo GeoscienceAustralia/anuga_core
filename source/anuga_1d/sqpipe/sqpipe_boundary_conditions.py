@@ -99,15 +99,17 @@ class Transmissive_boundary(Boundary):
             raise msg
 
         #Handy shorthands
-        self.normals  = domain.normals
-        self.stage    = domain.quantities['stage'].vertex_values
-        self.xmom     = domain.quantities['xmomentum'].vertex_values
-        self.bed      = domain.quantities['elevation'].vertex_values
-        self.height   = domain.quantities['height'].vertex_values
-        self.velocity = domain.quantities['velocity'].vertex_values
-
-
-        self.quantities = numpy.zeros(5, numpy.float)
+        self.normals    = domain.normals
+        self.area       = domain.quantities['area'].vertex_values
+        self.discharge  = domain.quantities['discharge'].vertex_values
+        self.bed        = domain.quantities['elevation'].vertex_values
+        self.height     = domain.quantities['height'].vertex_values
+        self.velocity   = domain.quantities['velocity'].vertex_values
+        self.width      = domain.quantities['width'].vertex_values
+        self.top        = domain.quantities['top'].vertex_values
+        self.stage      = domain.quantities['stage'].vertex_values
+        
+        self.quantities = numpy.zeros(8, numpy.float)
 
     def __repr__(self):
         return 'Transmissive_boundary'
@@ -119,11 +121,14 @@ class Transmissive_boundary(Boundary):
         """
 
         q = self.quantities
-        q[0] =  self.stage[vol_id, edge_id]
-        q[1] =  self.xmom[vol_id, edge_id]
+        q[0] =  self.area[vol_id, edge_id]
+        q[1] =  self.discharge[vol_id, edge_id]
         q[2] =  self.bed[vol_id, edge_id]
         q[3] =  self.height[vol_id, edge_id]
         q[4] =  self.velocity[vol_id, edge_id]
+        q[5] =  self.width[vol_id, edge_id]
+        q[6] =  self.top[vol_id, edge_id]
+        q[7] =  self.stage[vol_id, edge_id]
 
         #normal = self.normals[vol_id,edge_id]
 
