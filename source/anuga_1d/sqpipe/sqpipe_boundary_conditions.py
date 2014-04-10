@@ -13,12 +13,9 @@ class Dirichlet_boundary(Boundary):
     conserved quantities
     """
 
-    def __init__(self, domain = None, quantities=None):
+    def __init__(self, quantities=None):
         Boundary.__init__(self)
 
-        if domain is None:
-            msg = 'Domain must be specified for boundary'
-            raise Exception(msg)
         
         if quantities is None:
             msg = 'Must specify one value for each evolved quantities' + \
@@ -51,7 +48,7 @@ class Reflective_boundary(Boundary):
         Boundary.__init__(self)
 
         if domain is None:
-            msg = 'Domain must be specified for boundary'
+            msg = 'Domain must be specified for Reflective boundary'
             raise Exception(msg)
 
         #Handy shorthands
@@ -104,7 +101,7 @@ class Transmissive_boundary(Boundary):
         Boundary.__init__(self)
 
         if domain is None:
-            msg = 'Domain must be specified for boundary'
+            msg = 'Domain must be specified for Transmissive boundary'
             raise Exception(msg)
 
         #Handy shorthands
