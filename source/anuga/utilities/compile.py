@@ -489,7 +489,7 @@ if __name__ == '__main__':
           except Exception, e:
               msg = 'Could not compile C extension %s\n' %filename
               msg += str(e)
-f.              raise Exception(msg)
+              raise Exception(msg)
           else:
               print 'C extension %s OK' %filename
           print    
