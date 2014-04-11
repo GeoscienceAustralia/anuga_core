@@ -125,8 +125,8 @@ class Set_quantity(Region):
         #                                              Modeltime_too_late
 
 
-        print 'x,y,t'
-        print x,y,t
+        #print 'x,y,t'
+        #print x,y,t
 
         if t is None:
             t = self.domain.get_time()

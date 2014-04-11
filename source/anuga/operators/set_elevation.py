@@ -107,6 +107,8 @@ class Set_elevation(Set_quantity):
         #------------------------------------------
         # Apply changes to elevation vertex values
         # via the update_quantites routine
+        # Assume vertex values updated and need to 
+        # fix up centroid values unless flow_algorithm == 'DE1'
         #------------------------------------------
         if not self.update_quantities():
             return
@@ -121,10 +123,13 @@ class Set_elevation(Set_quantity):
             # Make elevation continuous and clean up
             # stage values to ensure conservation
             #--------------------------------------
-            height_c = self.stage_c - self.elev_c
-            self.domain.quantities['elevation'].smooth_vertex_values()
-            self.domain.quantities['elevation'].interpolate()
-            self.stage_c[:] = self.elev_c +  height_c
+            if self.domain.flow_algorithm == 'DE1':
+                pass
+            else:
+                height_c = self.stage_c - self.elev_c
+                self.domain.quantities['elevation'].smooth_vertex_values()
+                self.domain.quantities['elevation'].interpolate()
+                self.stage_c[:] = self.elev_c +  height_c
 
 
         else:
@@ -133,26 +138,29 @@ class Set_elevation(Set_quantity):
             # Make elevation continuous and clean up
             # stage values to ensure conservation
             #--------------------------------------
-            height_c = self.stage_c[self.vols] - self.elev_c[self.vols]
-            for nid in self.node_ids:
-                non = self.domain.number_of_triangles_per_node[nid]
-
-                vid = num.arange(self.node_index[nid], self.node_index[nid+1],dtype=num.int)
-                vidd = self.domain.vertex_value_indices[vid]
-
-                self.elev_v[vidd/3,vidd%3] = num.sum(self.elev_v[vidd/3,vidd%3])/non
-
-
-            #--------------------------------------
-            # clean up the centroid values and edge values
-            #--------------------------------------
-            self.elev_c[self.vols] = num.mean(self.elev_v[self.vols],axis=1)
-
-            self.elev_e[self.vols,0] = 0.5*(self.elev_v[self.vols,1]+ self.elev_v[self.vols,2])
-            self.elev_e[self.vols,1] = 0.5*(self.elev_v[self.vols,2]+ self.elev_v[self.vols,0])
-            self.elev_e[self.vols,2] = 0.5*(self.elev_v[self.vols,0]+ self.elev_v[self.vols,1])
-
-            self.stage_c[self.vols] = self.elev_c[self.vols] +  height_c
+            
+            if self.domain.flow_algorithm == 'DE1':
+                pass
+            else:
+                height_c = self.stage_c[self.vols] - self.elev_c[self.vols]
+                for nid in self.node_ids:
+                    non = self.domain.number_of_triangles_per_node[nid]
+    
+                    vid = num.arange(self.node_index[nid], self.node_index[nid+1],dtype=num.int)
+                    vidd = self.domain.vertex_value_indices[vid]
+    
+                    self.elev_v[vidd/3,vidd%3] = num.sum(self.elev_v[vidd/3,vidd%3])/non
+    
+                #--------------------------------------
+                # clean up the centroid values and edge values
+                #--------------------------------------
+                self.elev_c[self.vols] = num.mean(self.elev_v[self.vols],axis=1)
+    
+                self.elev_e[self.vols,0] = 0.5*(self.elev_v[self.vols,1]+ self.elev_v[self.vols,2])
+                self.elev_e[self.vols,1] = 0.5*(self.elev_v[self.vols,2]+ self.elev_v[self.vols,0])
+                self.elev_e[self.vols,2] = 0.5*(self.elev_v[self.vols,0]+ self.elev_v[self.vols,1])
+    
+                self.stage_c[self.vols] = self.elev_c[self.vols] +  height_c
 
 
 

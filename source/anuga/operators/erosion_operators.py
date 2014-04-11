@@ -489,8 +489,336 @@ class Polygonal_erosion_operator(Erosion_operator):
                                   verbose=verbose)
 
 
+class Bed_shear_erosion_operator(Erosion_operator):
+    """
+    Local version of erosion confined to a region with the erosion controlled 
+    by a factor multiplied by Bed Shear
 
 
+    """
+
+    def __init__(self, domain,
+                 threshold=0.0, #this sets the bed shear before the dambreak occurs, 0 means it will scour straight away
+                 base=0.0, #this sets the minimum dambreak RL, scour does not go below this level
+                 shear_factor=75000.0, # increase this to slow the dambreak down or viceversa
+                 indices=None,
+                 polygon=None,
+                 center=None,
+                 radius=None,
+                 description = None,
+                 label = None,
+                 logging = False,
+                 verbose = False):
+                 
+
+        Erosion_operator.__init__(self,
+                 domain,
+                 threshold=threshold,
+                 base=base,
+                 indices=indices,
+                 polygon=polygon,
+                 center=center,
+                 radius=radius,
+                 description=description,
+                 label=label,
+                 logging=logging,
+                 verbose=verbose)
+        
+        self.shear_factor = shear_factor
+
+
+
+    def update_quantities(self):
+        """Update the vertex values of the quantities to model erosion
+        """
+        import numpy as num
+
+        
+        t = self.get_time()
+        dt = self.get_timestep()
+
+
+        Elev = self.domain.quantities['elevation']
+
+        Elev.compute_local_gradients()
+
+        self.elev_gx = Elev.x_gradient
+        self.elev_gy = Elev.y_gradient
+
+
+        WLev = self.domain.quantities['stage']
+
+        WLev.compute_local_gradients()
+
+        self.WLev_gx = WLev.x_gradient
+        self.WLev_gy = WLev.y_gradient
+        
+
+        updated = True
+
+        if self.indices is None:
+
+            #--------------------------------------
+            # Update all three vertices for each cell
+            #--------------------------------------
+            self.elev_v[:] = self.elev_v + 0.0
+
+        else:
+
+            #--------------------------------------
+            # Update all three vertices for each cell
+            #--------------------------------------
+            
+            ind = self.indices
+            shear_factor = self.shear_factor
+            
+            # These arrays, m,d and v will be shape (len(ids),1)
+            m = num.sqrt(self.xmom_c[ind]**2 + self.ymom_c[ind]**2)  # abs Momentum
+            d=(self.stage_c[ind]-self.elev_c[ind]) # Depth
+
+            v = m/(d+1.0e-10)  # Velocity = Momentum/Depth
+
+            #  ---- NOTE SCOUR or EROSION usually is determined by
+            #  Shear Stress = density*gravity*depth*bed_slope
+
+            bedslope = num.sqrt(self.elev_gx[ind]**2 + self.elev_gy[ind]**2)
+            EN_slope = num.sqrt(self.WLev_gx[ind]**2 + self.WLev_gy[ind]**2)
+            
+            # Implement  Bed Shear term based on BED SLOPE
+            es=EN_slope
+            bedshearBs=1000*9.81*d*bedslope  # ro*g*h*bedslope , { Bed Slope  or  Energy Slope ??} in N/m**2
+            bsbs = bedshearBs
+            
+            # Implement Bed Shear term based on ENERGY SLOPE
+            bedshearEs=1000*9.81*d*EN_slope  # ro*g*h*EN_slope , { Energy Slope ??}
+            bses = bedshearEs
+            froude = v/num.sqrt(9.81*(d+1.0e-10))
+            froude = m/9.81**0.5/(d+1.0e-10)**1.5  # Check that these are the same ??
+            factor = 9.8*bedslope
+
+            # elevation change increment
+            de = bses/shear_factor*dt  # Works OK...  Energy SLope
+            #de = bsbs/100000.0*dt  # Works OK...  Bed Slope
+
+
+            if self.domain.flow_algorithm == 'DE1':
+                height = self.stage_c[ind] - self.elev_c[ind]
+                
+                limiting = v 
+                # de will have a value of 0.0 (and hence no effect) if limiting <= threshold
+                de = num.where(limiting > self.threshold, de, 0.0)
+    
+                # Ensure we don't erode below self.base level
+                self.elev_c[ind] = num.maximum(self.elev_c[ind] - de, self.base)
+
+                self.stage_c[ind] = self.elev_c[ind] + height
+
+            else:
+                # v needs to be stacked to get the right shape (len(ids),3)
+                #m  = num.vstack((m,m,m)).T
+                v  = num.vstack((v,v,v)).T
+                #bses = num.vstack((bses,bses,bses)).T
+                #es = num.vstack((es,es,es)).T
+                de = num.vstack((de,de,de)).T
+                
+                
+                limiting = v # Make the limiting trigger Velocity? or Momentum... or Shear ??
+                # de will have a value of 0.0 (and hence no effect) if limiting <= threshold
+                de = num.where(limiting > self.threshold, de, 0.0)
+    
+                # Ensure we don't erode below self.base level
+                self.elev_v[ind] = num.maximum(self.elev_v[ind] - de, self.base)
+
+
+        return updated
+
+
+class Flat_slice_erosion_operator(Erosion_operator):
+    """
+    Local version of erosion confined to a polygon
+    Erosion slices only in horizontal plane to a target level and only impacts
+    existing elevations above that target, leaving values below the target un affected
+    
+    """
+
+
+    def __init__(self, domain,
+                 threshold=0.0, 
+                 base=0.0, 
+                 level=None, 
+                 indices=None,
+                 polygon=None,
+                 center=None,
+                 radius=None,
+                 description = None,
+                 label = None,
+                 logging = False,
+                 verbose = False):
+                 
+
+        Erosion_operator.__init__(self,
+                 domain,
+                 threshold=threshold,
+                 base=base,
+                 indices=indices,
+                 polygon=polygon,
+                 center=center,
+                 radius=radius,
+                 description=description,
+                 label=label,
+                 logging=logging,
+                 verbose=verbose)
+        
+        self.level = level
+        
+
+
+
+    def update_quantities(self):
+        """Update the vertex values of the quantities to model erosion
+        """
+        import numpy as num
+
+        t = self.get_time()
+        dt = self.get_timestep()
+
+
+        updated = True
+
+        if self.indices is None:
+
+            #--------------------------------------
+            # Update all three vertices for each cell
+            #--------------------------------------
+            self.elev_v[:] = self.elev_v + 0.0
+
+        else:
+
+            #--------------------------------------
+            # Update all three vertices for each cell
+            #--------------------------------------
+
+            ind = self.indices
+            
+            if self.domain.flow_algorithm == 'DE1':
+                try:
+                    height = self.stage_c[ind] - self.elev_c[ind]
+                    value = self.level(t)
+                    self.elev_c[ind] = num.where(self.elev_c[ind] >  value, value, self.elev_c[ind])
+                    self.stage_c[ind] = self.elev_c[ind] + height
+                except:
+                    pass
+            else:
+                try:
+                    value = self.level(t)
+                    self.elev_v[ind] = num.where(self.elev_v[ind] >  value, value, self.elev_v[ind])
+                except:
+                    pass
+
+
+        return updated
+
+
+
+class Flat_fill_slice_erosion_operator(Erosion_operator):
+    """
+    Local version of erosion confined to a polygon
+    Erosion slices only in horizontal plane to a target level and only impacts
+    existing elevations above that target, leaving values below the target un affected
+    
+    
+
+
+    """
+
+    def __init__(self, domain,
+                 threshold=0.0, 
+                 base=0.0, 
+                 level=None, 
+                 indices=None,
+                 polygon=None,
+                 center=None,
+                 radius=None,
+                 description = None,
+                 label = None,
+                 logging = False,
+                 verbose = False):
+                 
+
+        Erosion_operator.__init__(self,
+                 domain,
+                 threshold=threshold,
+                 base=base,
+                 indices=indices,
+                 polygon=polygon,
+                 center=center,
+                 radius=radius,
+                 description=description,
+                 label=label,
+                 logging=logging,
+                 verbose=verbose)
+        
+        self.level = level
+
+    def update_quantities(self):
+        """Update the vertex values of the quantities to model erosion
+        """
+        import numpy as num
+
+        t = self.get_time()
+        dt = self.get_timestep()
+
+        
+
+        updated = True
+
+        if self.indices is None:
+
+            #--------------------------------------
+            # Update all three vertices for each cell
+            #--------------------------------------
+            self.elev_v[:] = self.elev_v + 0.0
+
+        else:
+
+            #--------------------------------------
+            # Update all three vertices for each cell
+            #--------------------------------------
+
+            ind = self.indices
+            
+            if self.domain.flow_algorithm == 'DE1':
+
+                try:
+                    value = self.level(t)
+                    height = self.stage_c[ind] - self.elev_c[ind]
+                    if value > num.max(self.elev_c[ind]):
+                        self.elev_c[ind] = num.where(self.elev_c[ind] <  value, value, self.elev_c[ind])    
+                    else:
+                        self.elev_c[ind] = num.where(self.elev_c[ind] >  value, value, self.elev_c[ind])
+                    self.stage_c[ind] = self.elev_c[ind] + height
+                except:
+                    pass
+                
+            else:
+                try:
+                    value = self.level(t)
+                    print value
+                    if value > num.max(self.elev_v[ind]):
+                        self.elev_v[ind] = num.where(self.elev_v[ind] <  value, value, self.elev_v[ind])    
+                    else:
+                        self.elev_v[ind] = num.where(self.elev_v[ind] >  value, value, self.elev_v[ind])
+                except:
+                    pass
+
+
+        return updated
+
+
+
+#------------------------------------------------
+# Auxilary functions
+#------------------------------------------------
 
 
 

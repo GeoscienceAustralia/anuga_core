@@ -327,7 +327,7 @@ class Test_set_stage_operators(unittest.TestCase):
 
         length = 2.0
         width = 2.0
-        dx = dy = 0.1
+        dx = dy = 0.5
         #dx = dy = 0.1
         domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
@@ -360,32 +360,40 @@ class Test_set_stage_operators(unittest.TestCase):
         operator = Set_stage_operator(domain, stage=stage, line=line)
 
 
-        print 'stage at 1',stage(3.0,4.0,1.0) # return x value
-        print 'stage at 15', stage(3.0,4.0,15.0) # return y value
-        print operator.indices
-        print operator.value_type
+        #print 'stage at 1',stage(3.0,4.0,1.0) # return x value
+        #print 'stage at 15', stage(3.0,4.0,15.0) # return y value
+        #print operator.indices
+        #print operator.value_type
         
         
         # Apply Operator at time t=1.0
         domain.set_time(1.0)
-        #print 'operator ', operator()
+        operator()
 
 
 
 
-        stage_ex = [1.,  1.,  5.,  5.,  1.,  5.,  5.,  1.,  1.,  1.,  1.,  1.,  1.,
-                    1.,  1.,  1.,  5.,  1.,  5.,  5.,  5.,  5.,  5.,  1.,  1.,  1.,
-                    1.,  1.,  1.,  1.,  1.,  1.,  5.,  1.,  5.,  5.,  5.,  5.,  5.,
-                    1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  5.,  1.,  1.,  5.,
-                    5.,  5.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.]
+        stage_ex = [-1.        , -1.        ,  0.41666667,  0.25      , -1.        ,
+        0.25      ,  0.41666667, -1.        , -1.        , -1.        ,
+       -1.        , -1.        , -1.        , -1.        , -1.        ,
+       -1.        ,  0.58333333, -1.        , -1.        ,  0.75      ,
+        0.58333333,  0.75      ,  0.91666667, -1.        , -1.        ,
+       -1.        , -1.        , -1.        , -1.        , -1.        ,
+       -1.        , -1.        , -1.        , -1.        , -1.        ,
+       -1.        ,  1.08333333,  1.25      ,  1.41666667, -1.        ,
+       -1.        , -1.        , -1.        , -1.        , -1.        ,
+       -1.        , -1.        , -1.        , -1.        , -1.        ,
+       -1.        , -1.        ,  1.58333333, -1.        , -1.        ,
+       -1.        , -1.        , -1.        , -1.        , -1.        ,
+       -1.        , -1.        , -1.        , -1.        ]
 
 
-        from pprint import pprint
-        #pprint(domain.quantities['stage'].centroid_values)
+        #from pprint import pprint
+#         pprint(domain.quantities['stage'].centroid_values)
 #        pprint(domain.quantities['stage'].centroid_values)
 
 
-        #assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
 
@@ -396,17 +404,27 @@ class Test_set_stage_operators(unittest.TestCase):
 
 
 
-        stage_ex = [ 1.,  1.,  7.,  7.,  1.,  7.,  7.,  1.,  1.,  1.,  1.,  1.,  1.,
-                     1.,  1.,  1.,  7.,  1.,  7.,  7.,  7.,  7.,  7.,  1.,  1.,  1.,
-                     1.,  1.,  1.,  1.,  1.,  1.,  7.,  1.,  7.,  7.,  7.,  7.,  7.,
-                     1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  7.,  1.,  1.,  7.,
-                     7.,  7.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.]
+        stage_ex = [-1.        , -1.        ,  0.25      ,  0.41666667, -1.        ,
+        0.58333333,  0.75      , -1.        , -1.        , -1.        ,
+       -1.        , -1.        , -1.        , -1.        , -1.        ,
+       -1.        ,  0.25      , -1.        , -1.        ,  0.41666667,
+        0.75      ,  0.58333333,  0.75      , -1.        , -1.        ,
+       -1.        , -1.        , -1.        , -1.        , -1.        ,
+       -1.        , -1.        , -1.        , -1.        , -1.        ,
+       -1.        ,  0.75      ,  0.58333333,  0.75      , -1.        ,
+       -1.        , -1.        , -1.        , -1.        , -1.        ,
+       -1.        , -1.        , -1.        , -1.        , -1.        ,
+       -1.        , -1.        ,  0.75      , -1.        , -1.        ,
+       -1.        , -1.        , -1.        , -1.        , -1.        ,
+       -1.        , -1.        , -1.        , -1.        ]
+
+
 
 
 
                 
                
-        Plot = True
+        Plot = False
         if Plot:
             operator.plot_region()
             
@@ -456,8 +474,8 @@ class Test_set_stage_operators(unittest.TestCase):
             pylab.show()
         
 
-
-        pprint(domain.quantities['stage'].centroid_values)
+        from pprint import pprint
+        #pprint(domain.quantities['stage'].centroid_values)
 #        print domain.quantities['xmomentum'].centroid_values
 #        print domain.quantities['ymomentum'].centroid_values
 
@@ -468,6 +486,6 @@ class Test_set_stage_operators(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_set_stage_operators, 'test_set_stage_operator_line')
+    suite = unittest.makeSuite(Test_set_stage_operators, 'test')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
