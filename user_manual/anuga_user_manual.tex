@@ -31,7 +31,13 @@
 \usepackage[english]{babel}
 \usepackage{datetime}
 \usepackage[hang,small,bf]{caption}
+\usepackage{amsbsy,enumerate}
 
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathmorphing,shadows,calc}
 
 \input{definitions}
 
@@ -3776,38 +3782,155 @@ in each volume are to be determined. The size of the triangles may
 be varied within the mesh to allow greater resolution in regions of
 particular interest.
 
+%\begin{figure}[htp] \begin{center}
+%  \includegraphics[width=8.0cm,keepaspectratio=true]{graphics/step-five}
+%  \caption{Triangular mesh used in our finite volume method. Conserved
+%           quantities $h$, $uh$ and $vh$ are associated with the centroid of
+%           each triangular cell.}
+%  \label{fig:mesh}
+%\end{center} \end{figure}
+
+
+
+%---------------------------------------------------------------------------------
 \begin{figure}[htp] \begin{center}
-  \includegraphics[width=8.0cm,keepaspectratio=true]{graphics/step-five}
+ \begin{center}
+\begin{tikzpicture}[scale=1.7,auto]
+
+
+%\node (A) at (-1.6,0) {$v_0$};
+%\node (B) at (0,0.2) {$v_1$};
+%\node (C) at (-0.75,-1) {$v_2$};
+%\node (D) at (1,-1) {$v_3$};
+%\node (E) at (2.5,-0.7) {$v_4$};
+%\node (F) at (1.5,0.1) {$v_5$};
+%\node (G) at (2.5,1.0) {$v_6$};
+%\node (H) at (1.5,1.5) {$v_7$};
+%\node (I) at (0.25,1.6) {$v_8$};
+%\node (J) at (-1.0,1.5) {$v_9$};
+
+
+\coordinate (A) at (-1.6,0);
+\coordinate (B) at (0,0.2);
+\coordinate (C) at (-0.75,-1);
+\coordinate (D) at (1,-1);
+\coordinate (E) at (2.5,-0.7);
+\coordinate (F) at (1.5,0.1);
+\coordinate (G) at (2.5,1.0);
+\coordinate (H) at (1.5,1.5);
+\coordinate (I) at (0.25,1.6);
+\coordinate (J) at (-1.0,1.5);
+
+
+\node (ABC) at ($1/3*(A) + 1/3*(B) + 1/3*(C)$) {$T_0$};
+\node (BCD) at ($1/3*(B) + 1/3*(C) + 1/3*(D)$) {$T_1$};
+\node (BDF) at ($1/3*(B) + 1/3*(D) + 1/3*(F)$) {$T_2$};
+\node (DEF) at ($1/3*(D) + 1/3*(E) + 1/3*(F)$) {$T_3$};
+\node (FGE) at ($1/3*(F) + 1/3*(G) + 1/3*(E)$) {$T_4$};
+\node (FGH) at ($1/3*(F) + 1/3*(G) + 1/3*(H)$) {$T_5$};
+\node (FHI) at ($1/3*(F) + 1/3*(H) + 1/3*(I)$) {$T_6$};
+\node (FIB) at ($1/3*(F) + 1/3*(I) + 1/3*(B)$) {$T_7$};
+\node (BIJ) at ($1/3*(B) + 1/3*(I) + 1/3*(J)$) {$T_8$};
+\node (BJA) at ($1/3*(B) + 1/3*(J) + 1/3*(A)$) {$T_9$};
+
+
+%\node at (A) [circle,draw,fill,white] {0};
+
+
+\draw (A) to (B) ;
+\draw (B) -- (C) ;
+\draw (C) -- (A) ;
+\draw (C) -- (D);
+\draw (B) -- (D);
+\draw (D) -- (F);
+\draw (B) to  (F);
+\draw (D) -- (E);
+\draw (E) -- (F);
+\draw (F) -- (G) ;
+\draw (G) -- (E);
+\draw (G) -- (H);
+\draw (F) -- (H);
+\draw (H) -- (I);
+\draw (F) -- (I);
+\draw (I) -- (B);
+\draw (I) -- (J) ;
+\draw (B) -- (J);
+\draw (J) -- (A);
+
+% Internal Edges
+\node (AB) at ($ 1/2*(A) +1/2*(B) $) {}; \node [circle,fill,white] at (AB) {$e_0$}; \node  at (AB) {$e_{09} $};
+\node (BC) at ($ 1/2*(B) +1/2*(C) $) {}; \node [circle,fill,white] at (BC) {$e_0$}; \node  at (BC) {$e_{01} $};
+\node (BD) at ($ 1/2*(B) +1/2*(D) $) {}; \node [circle,fill,white] at (BD) {$e_0$}; \node  at (BD) {$e_{12} $};
+\node (DF) at ($ 1/2*(F) +1/2*(D) $) {}; \node [circle,fill,white] at (DF) {$e_0$}; \node  at (DF) {$e_{23} $};
+\node (EF) at ($ 1/2*(F) +1/2*(E) $) {}; \node [circle,fill,white] at (EF) {$e_0$}; \node  at (EF) {$e_{34} $};
+\node (FG) at ($ 1/2*(F) +1/2*(G) $) {}; \node [circle,fill,white] at (FG) {$e_0$}; \node  at (FG) {$e_{45} $};
+\node (FH) at ($ 1/2*(F) +1/2*(H) $) {}; \node [circle,fill,white] at (FH) {$e_0$}; \node  at (FH) {$e_{56} $};
+\node (IF) at ($ 1/2*(F) +1/2*(I) $) {}; \node [circle,fill,white] at (IF) {$e_0$}; \node  at (IF) {$e_{67} $};
+\node (IB) at ($ 1/2*(B) +1/2*(I) $) {}; \node [circle,fill,white] at (IB) {$e_0$}; \node  at (IB) {$e_{78} $};
+\node (BF) at ($ 1/2*(F) +1/2*(B) $) {}; \node [circle,fill,white] at (BF) {$e_0$}; \node  at (BF) {$e_{27} $};
+\node (BJ) at ($ 1/2*(J) +1/2*(B) $) {}; \node [circle,fill,white] at (BJ) {$e_0$}; \node  at (BJ) {$e_{89} $};
+
+% Boundary edges
+\node (AC) at ($ 1/2*(A) +1/2*(C) $) {}; \node [circle,fill,white] at (AC) {$e_0$}; \node  at (AC) {$e_{0b} $};
+\node (CD) at ($ 1/2*(D) +1/2*(C) $) {}; \node [circle,fill,white] at (CD) {$e_0$}; \node  at (CD) {$e_{1b} $};
+\node (DE) at ($ 1/2*(E) +1/2*(D) $) {}; \node [circle,fill,white] at (DE) {$e_0$}; \node  at (DE) {$e_{3b} $};
+\node (EG) at ($ 1/2*(E) +1/2*(G) $) {}; \node [circle,fill,white] at (EG) {$e_0$}; \node  at (EG) {$e_{4b} $};
+\node (GH) at ($ 1/2*(G) +1/2*(H) $) {}; \node [circle,fill,white] at (GH) {$e_0$}; \node  at (GH) {$e_{5b} $};
+\node (HI) at ($ 1/2*(H) +1/2*(I) $) {}; \node [circle,fill,white] at (HI) {$e_0$}; \node  at (HI) {$e_{6b} $};
+\node (IJ) at ($ 1/2*(I) +1/2*(J) $) {}; \node [circle,fill,white] at (IJ) {$e_0$}; \node  at (IJ) {$e_{8b} $};
+\node (JA) at ($ 1/2*(J) +1/2*(A) $) {}; \node [circle,fill,white] at (JA) {$e_0$}; \node  at (JA) {$e_{9b} $};
+
+\end{tikzpicture}
+\end{center}
   \caption{Triangular mesh used in our finite volume method. Conserved
            quantities $h$, $uh$ and $vh$ are associated with the centroid of
-           each triangular cell.}
+           each triangular cell, $T_i$. From the values of the conserved quantities at the centroid
+           of a cell and its neighbouring cells, a discontinuous piecewise
+           linear reconstruction of the conserved quantities is obtained. Fluxes are calculated across each edge $e_{ij}$ using the reconstructed quantities.}
   \label{fig:mesh}
 \end{center} \end{figure}
 
+
+
+
+
+
+
+
 The equations constituting the finite-volume method are obtained by
 integrating the differential conservation equations over each
-triangular cell of the mesh. Introducing some notation we use $i$ to
-refer to the $i$th triangular cell $T_i$, and ${\cal N}(i)$ to the
-set of indices referring to the cells neighbouring the $i$th cell.
-Then $A_i$ is the area of the $i$th triangular cell and $l_{ij}$ is
-the length of the edge between the $i$th and $j$th cells.
+triangular cell of the mesh. 
 
-By applying the divergence theorem we obtain for each volume an
-equation which describes the rate of change of the average of the
+Introducing some notation we use $i$ to
+refer to the $i$-th triangular cell $T_i$, and $N_i$ to the
+set of indices $j$ referring to cells neighbouring the $i$-th cell.
+Also let $A_i$ be the area of the $i$-th triangular cell, $e_{ij}$ the edge between the 
+ $i$-th and $j$-th  cells, and $l_{ij}$ 
+the length of the edge $e_{ij}$. Then integrating 
+
+\[
+\int_{T_i} \frac{\partial \UU}{\partial t} \ d\xx + \int_{T_i} \left( \frac{\partial \EE}{\partial
+x}+\frac{\partial \GG}{\partial y} \right)  \ d\xx =  \int_{T_i} \SSS   \ d\xx 
+\]
+
+By an application of the divergence theorem, we obtain an equation for each cell $T_i$ 
+which describes the rate of change of the average of the
 conserved quantities within each cell, in terms of the fluxes across
-the edges of the cells and the effect of the source terms. In
-particular, rate equations associated with each cell have the form
-$$
- \frac{d\UU_i }{dt}+ \frac1{A_i}\sum\limits_{j\in{\cal N}(i)} \HH_{ij} l_{ij} = \SSS_i
-$$
+the edges of the cells and the effect of the source terms.
+\[
+ \frac{d }{d t} \frac1{A_i} \int_{T_i}  \UU \ d\xx +  \frac1{A_i}  \sum_{j \in N_i} \int_{e_{ij}}  (\EE,  \GG) \cdot \nn  \ ds =  \frac1{A_i} \int_{T_i} \SSS   \ d\xx 
+\]
+So the rate equations associated with average of each cell have the form
+\[
+ \frac{d\UU_i }{dt}+ \frac1{A_i}\sum\limits_{j\in N_i} \HH_{ij} l_{ij} = \SSS_i
+\]
 where
 \begin{itemize}
-  \item $\UU_i$ the vector of conserved quantities averaged over the $i$th cell,
-  \item $\SSS_i$ is the source term associated with the $i$th cell, and
-  \item $\HH_{ij}$ is the outward normal flux of material across the \textit{ij}th edge.
+  \item $\UU_i$ the vector of conserved quantities averaged over the $i$th cell, $\frac1{A_i} \int_{T_i}  \UU \ d\xx $,
+  \item $\SSS_i$ is the average of the source term associated with the $i$th cell, $\frac1{A_i} \int_{T_i} \SSS   \ d\xx$, 
+   \item $l_{ij}$ is the length of the edge $e_{ij}$, and
+  \item $\HH_{ij} l_{ij}$ an approximation of the outward normal flux of material across the \textit{ij}th edge, $\int_{e_{ij}}  (\EE,  \GG) \cdot \nn  \ ds$.
 \end{itemize}
-
-%\item $l_{ij}$ is the length of the edge between the $i$th and $j$th
 %cells
 %\item $m_{ij}$ is the midpoint of
 %the \textit{ij}th edge,
@@ -3815,59 +3938,481 @@ where
 %$\mathbf{n}_{ij} = (n_{ij,1} , n_{ij,2})$is the outward pointing
 %normal along the \textit{ij}th edge, and The
 
-The flux $\HH_{ij}$ is evaluated using a numerical flux function
-$\HH(\cdot, \cdot ; \ \cdot)$ which is consistent with the shallow
-water flux in the sense that for all conservation vectors $\UU$ and normal vectors $\nn$
-$$
-H(\UU,\UU;\ \nn) = \EE(\UU) n_1 + \GG(\UU) n_2 .
-$$
-
-Then
-$$
-\HH_{ij}  = \HH(\UU_i(m_{ij}),
-\UU_j(m_{ij}); \mathbf{n}_{ij})
-$$
-where $m_{ij}$ is the midpoint of the \textit{ij}th edge and
-$\mathbf{n}_{ij}$ is the outward pointing normal, with respect to the $i$th cell, on the
-\textit{ij}th edge. The function $\UU_i(x)$ for $x \in
-T_i$ is obtained from the vector $\UU_k$ of conserved average values for the $i$th and
-neighbouring  cells.
-
-We use a second order reconstruction to produce a piece-wise linear
-function construction of the conserved quantities for  all $x \in
-T_i$ for each cell (see Figure~\ref{fig:mesh:reconstruct}). This
-function is allowed to be discontinuous across the edges of the
-cells, but the slope of this function is limited to avoid
+Given the cell average values $\UU_k$ (which are essentially centroid values), the calculation of the fluxes at the edges need an approximation of the conserved values at the edges. This is called the reconstruction process. It is common to use a second order reconstruction to produce a piece-wise linear
+reconstruction of the conserved quantities for  all $x \in
+T_i$ for each cell.  The slope of this function is limited to avoid
 artificially introduced oscillations.
+This
+function is allowed to be discontinuous across the edges of the
+cells. The reconstructed quantities in the $i$-th cell is denoted $\UU_i(\xx)$. 
+The values on either side of an edge are denoted
+\[
+\UU^i_{ij}  = \lim_{\xx \rightarrow m_{ij}}  \UU_i(\xx) \quad\text{and}\quad
+\UU^j_{ij}  = \lim_{\xx \rightarrow m_{ij}}  \UU_j(\xx) .
+\]
 
+The flux in the direction $\nn$, is given by 
+\[
+\HH(\UU)  = \EE(\UU) n_1 + \GG(\UU) n_2 .
+\]
+The numerical scheme is obtained by approximating the flux $\HH$ using a numerical flux function. 
 Godunov's method (see \cite{Toro1992}) involves calculating the
-numerical flux function $\HH(\cdot, \cdot ; \ \cdot)$ by exactly
+numerical flux function by exactly
 solving the corresponding one dimensional Riemann problem normal to
-the edge. We use the central-upwind scheme of \cite{KurNP2001} to
-calculate an approximation of the flux across each edge.
+the edge. A much simpler approximation is the  central-upwind scheme 
+of \cite{KurNP2001} which is given by
+\[
+\HH_{ij} = \frac{a^+_{ij}  \HH(\UU^i_{ij}) - a^-_{ij}\HH(\UU^j_{ij}) }
+{a^+_{ij} - a^-_{ij}} 
++ \frac{a^+_{ij}  a^-_{ij}} {a^+_{ij} - a^-_{ij}} \left[ \UU^j_{ij} - \UU^i_{ij}\right]
+\]
+with bounds on wave speeds given by
+%\begin{eqnarray*}
+\[
+a_{ij}^+ = \max \left\{ u_{ij}^i + \sqrt{g h_{ij}^i},  u_{ij}^j + \sqrt{g h_{ij}^j}, 0 \right\}, \quad
+a_{ij}^- = \min \left\{ u_{ij}^i - \sqrt{g h_{ij}^i},  u_{ij}^j - \sqrt{g h_{ij}^j}, 0 \right\} .
+\]
+%\end{eqnarray*}
 
-\begin{figure}[htp] \begin{center}
-  \includegraphics[width=8.0cm,keepaspectratio=true]{graphics/step-reconstruct}
-  \caption{From the values of the conserved quantities at the centroid
-           of the cell and its neighbouring cells, a discontinuous piecewise
-           linear reconstruction of the conserved quantities is obtained.}
-  \label{fig:mesh:reconstruct}
-\end{center} \end{figure}
-
-In the computations presented in this paper we use an explicit Euler
+An explicit Euler
 timestepping method with variable timestepping adapted to the
-observed CFL condition:
+observed CFL condition is used to approximate the semi-discrete equation. In particular
+\[
+ \UU^{n+1}_i =  \UU^n_i -  \frac{\Delta t}{A_i}\sum\limits_{j\in N_i} \HH_{ij} l_{ij}  +  \Delta t\ \SSS_i
+\]
+For stability of the method, it is necessary that the timestep satisfy the Courant-Fredrichs-Levy (CFL) condition
+$
+  \Delta t \le \min_{i}  \min_{j\in N_i} \left( \frac{r_i}{a_{ij}}, \frac{r_j}{a_{ij}} \right )
+$
+where $a_{ij} = \max \{ a_{ij}^+, -a_{ij}^- \} $ and $r_i$  is the radius  of the inscribed circle of the $i$-th cell. 
 
-\begin{equation}
-  \Delta t = \min_{k,i=[0,1,2]}  \min \left( \frac{r_k}{v_{k,i}}, \frac{r_{n_{k,i}}}{v_{k,i}} \right )
-  \label{eq:CFL condition}
-\end{equation}
-where $r_k$ is the radius of the $k$'th triangle and $v_{k,i}$ is the maximal velocity across
-edge joining triangle $k$ and it's $i$'th neighbour, triangle $n_{k,i}$, as calculated by the
-numerical flux function
-using the central upwind scheme of \cite{KurNP2001}. The symbol $r_{n_{k,i}}$  denotes the radius
-of the $i$'th neighbour of triangle $k$. The radii are calculated as radii of the inscribed circles
-of each triangle.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Parallel Implementation}
+
+
+
+%----------------------------------------------------------
+\begin{figure}[htp] \begin{center}
+ \begin{center}
+\begin{tikzpicture}[scale=0.8,auto]
+
+\begin{scope}
+	\coordinate (A) at (-1.6,0);
+	\coordinate (B) at (0,0.2);
+	\coordinate (C) at (-0.75,-1);
+	\coordinate (D) at (1,-1);
+	\coordinate (E) at (2.5,-0.7);
+	\coordinate (F) at (1.5,0.1);
+	\coordinate (G) at (2.5,1.0);
+	\coordinate (H) at (1.5,1.5);
+	\coordinate (I) at (0.25,1.6);
+	\coordinate (J) at (-1.0,1.5);
+	
+	\node (ABC) at ($1/3*(A) + 1/3*(B) + 1/3*(C)$) {$0$};
+	\node (BCD) at ($1/3*(B) + 1/3*(C) + 1/3*(D)$) {$1$};
+	\node (BDF) at ($1/3*(B) + 1/3*(D) + 1/3*(F)$) {$2$};
+	\node (DEF) at ($1/3*(D) + 1/3*(E) + 1/3*(F)$) {$3$};
+	\node (FGE) at ($1/3*(F) + 1/3*(G) + 1/3*(E)$) {$4$};
+	\node (FGH) at ($1/3*(F) + 1/3*(G) + 1/3*(H)$) {$5$};
+	\node (FHI) at ($1/3*(F) + 1/3*(H) + 1/3*(I)$) {$6$};
+	\node (FIB) at ($1/3*(F) + 1/3*(I) + 1/3*(B)$) {$7$};
+	\node (BIJ) at ($1/3*(B) + 1/3*(I) + 1/3*(J)$) {$8$};
+	\node (BJA) at ($1/3*(B) + 1/3*(J) + 1/3*(A)$) {$9$};
+	
+	
+	%\node at (A) [circle,draw,fill,white] {0};
+	
+	
+	\draw (A) to (B) ;
+	\draw (B) -- (C) ;
+	\draw (C) -- (A) ;
+	\draw (C) -- (D);
+	\draw (B) -- (D);
+	\draw (D) -- (F);
+	\draw (B) to  (F);
+	\draw (D) -- (E);
+	\draw (E) -- (F);
+	\draw (F) -- (G) ;
+	\draw (G) -- (E);
+	\draw (G) -- (H);
+	\draw (F) -- (H);
+	\draw (H) -- (I);
+	\draw (F) -- (I);
+	\draw (I) -- (B);
+	\draw (I) -- (J) ;
+	\draw (B) -- (J);
+	\draw (J) -- (A);
+	
+\end{scope}
+
+\draw [->] (-1.3,-1.1) to (-1.85,-1.85);
+\draw [->] (2.2,-1.0) to (2.75,-1.75);
+
+\begin{scope}[yshift=-100.0, xshift=-75.0]
+	\coordinate (A) at (-1.6,0);
+	\coordinate (B) at (0,0.2);
+	\coordinate (C) at (-0.75,-1);
+	\coordinate (D) at (1,-1);
+	\coordinate (E) at (2.5,-0.7);
+	\coordinate (F) at (1.5,0.1);
+	\coordinate (G) at (2.5,1.0);
+	\coordinate (H) at (1.5,1.5);
+	\coordinate (I) at (0.25,1.6);
+	\coordinate (J) at (-1.0,1.5);
+	
+	\node (ABC) at ($1/3*(A) + 1/3*(B) + 1/3*(C)$) {$0$};
+	\node (BCD) at ($1/3*(B) + 1/3*(C) + 1/3*(D)$) {$1$};
+	\node (BDF) at ($1/3*(B) + 1/3*(D) + 1/3*(F)$) {$2$};
+	\node (DEF) at ($1/3*(D) + 1/3*(E) + 1/3*(F)$) {$6$};
+	%\node (FGE) at ($1/3*(F) + 1/3*(G) + 1/3*(E)$) {$4$};
+	%\node (FGH) at ($1/3*(F) + 1/3*(G) + 1/3*(H)$) {$5$};
+	%\node (FHI) at ($1/3*(F) + 1/3*(H) + 1/3*(I)$) {$6$};
+	\node (FIB) at ($1/3*(F) + 1/3*(I) + 1/3*(B)$) {$5$};
+	\node (BIJ) at ($1/3*(B) + 1/3*(I) + 1/3*(J)$) {$3$};
+	\node (BJA) at ($1/3*(B) + 1/3*(J) + 1/3*(A)$) {$4$};
+	
+	
+	%\node at (A) [circle,draw,fill,white] {0};
+	
+	
+	\draw (A) to (B) ;
+	\draw (B) -- (C) ;
+	\draw (C) -- (A) ;
+	\draw (C) -- (D);
+	\draw (B) -- (D);
+	\draw (D) -- (F);
+	\draw (B) to  (F);
+	\draw [dashed] (D) -- (E);
+	\draw [dashed] (E) -- (F);
+	%\draw (F) -- (G) ;
+	%\draw (G) -- (E);
+	%\draw (G) -- (H);
+	%\draw (F) -- (H);
+	%\draw (H) -- (I);
+	\draw [dashed] (F)-- (I);
+	\draw (I) -- (B);
+	\draw (I) -- (J) ;
+	\draw (B) -- (J);
+	\draw (J) -- (A);
+	
+\end{scope}
+
+\begin{scope}[yshift=-100.0, xshift=75.0]
+	\coordinate (A) at (-1.6,0);
+	\coordinate (B) at (0,0.2);
+	\coordinate (C) at (-0.75,-1);
+	\coordinate (D) at (1,-1);
+	\coordinate (E) at (2.5,-0.7);
+	\coordinate (F) at (1.5,0.1);
+	\coordinate (G) at (2.5,1.0);
+	\coordinate (H) at (1.5,1.5);
+	\coordinate (I) at (0.25,1.6);
+	\coordinate (J) at (-1.0,1.5);
+	
+	%\node (ABC) at ($1/3*(A) + 1/3*(B) + 1/3*(C)$) {$0$};
+	%\node (BCD) at ($1/3*(B) + 1/3*(C) + 1/3*(D)$) {$1$};
+	\node (BDF) at ($1/3*(B) + 1/3*(D) + 1/3*(F)$) {$5$};
+	\node (DEF) at ($1/3*(D) + 1/3*(E) + 1/3*(F)$) {$0$};
+	\node (FGE) at ($1/3*(F) + 1/3*(G) + 1/3*(E)$) {$1$};
+	\node (FGH) at ($1/3*(F) + 1/3*(G) + 1/3*(H)$) {$2$};
+	\node (FHI) at ($1/3*(F) + 1/3*(H) + 1/3*(I)$) {$3$};
+	\node (FIB) at ($1/3*(F) + 1/3*(I) + 1/3*(B)$) {$4$};
+	\node (BIJ) at ($1/3*(B) + 1/3*(I) + 1/3*(J)$) {$6$};
+	%\node (BJA) at ($1/3*(B) + 1/3*(J) + 1/3*(A)$) {$9$};
+	
+	
+	%\node at (A) [circle,draw,fill,white] {0};
+	
+	
+	%\draw (A) to (B) ;
+	%\draw (B) -- (C) ;
+	%\draw (C) -- (A) ;
+	%\draw (C) -- (D);
+	\draw [dashed] (B) -- (D);
+	\draw (D) -- (F);
+	\draw (B) to  (F);
+	\draw (D) -- (E);
+	\draw (E) -- (F);
+	\draw (F) -- (G) ;
+	\draw (G) -- (E);
+	\draw (G) -- (H);
+	\draw (F) -- (H);
+	\draw (H) -- (I);
+	\draw (F)-- (I);
+	\draw (I) -- (B);
+	\draw [dashed] (I) -- (J) ;
+	\draw [dashed] (B) -- (J);
+	%\draw (J) -- (A);
+	
+\end{scope}
+
+
+
+\end{tikzpicture}
+\end{center}
+ \caption{An example subpartitioning of original mesh, together with ghost triangles. The numbers show the local numbering scheme of the  meshes.}
+ \label{fig:subdomaing}
+\end{center}
+ \end{figure}
+
+Currently \anuga uses a simple domain decomposition technique to parallelize the code. 
+The first step is to subdivide the mesh
+into, roughly, equally sized partitions. On a rectangular mesh this may be
+done by a simple co-ordinate based dissection method, but on  complicated
+domains a more sophisticated approach must be used.  We use a
+\Python{} wrapper around the \Metis{}
+(\url{http://glaros.dtc.umn.edu/gkhome/metis/metis/overview})
+partitioning library. The code uses \Metis{} to divide the mesh for
+parallel computation. \Metis{} was chosen as the partitioner based on
+the results in the paper \cite{karypis1999fast}.
+To minimize the amount of communication, it is common to add an
+extra layer of cells, which we call ghost cells which hold any extra information that
+a processor may need to complete its calculations. The ghost
+cell values are updated through buffered communication calls. Figure
+\ref{fig:subdomaing} shows a partition of a mesh into two submeshes  with the extra layer of
+ghost cells.
+When partitioning the mesh we introduce new, dummy, boundary edges.
+These new
+boundary edges are  tagged as  standard boundary edges.
+
+
+A typical timestep consists of the following computational steps:
+\begin{verbatim}
+compute_fluxes()  # Compute  H_ij across each edge
+compute_forcing_terms() # Compute S_i
+update_timestep() # Communication a global timestep
+update_conserved_quantities() 
+update_ghosts()   # Communicate cell values to neighbouring processors
+\end{verbatim}
+%\end{lstlisting}
+
+The \code{compute\_fluxes()} step is the most computationally intensive, consisting of iterating through all the cells or edges and accumulating, for each cell,  the fluxes along each edge.  This step itself consist of a number of calls to \Python{} routines. 
+
+
+There are two communications steps, 
+\begin{enumerate}[(1)]
+\item  \code{update\_timestep()} which involves a \code{MPI\_Allreduce} to find a global timestep for the scheme based on a CFL condition,
+
+\item \code{update\_ghosts()} where at present we use the asynchronous  \MPI{}  calls, where we initiate all the  \code{ MPI\_Irecv} first and then the corresponding \code{ MPI\_Isend} calls are made.  Finally the communication is resolved via a call to \code{MPI\_Waitall}. 
+
+The use of these asynchronous \MPI{} calls produced a great improvement in scalability of our code, jumping from modest results for 32 - 64 \MPI{} processes up to 90\% efficiency for larger problems with 100s to 1000s of \MPI{} processes. There is still an opportunity to improve efficiency by overloading communication in  \code{update\_ghosts()} with computation in \code{compute\_fluxes()} which we will investigate in future. 
+\end{enumerate}
+
+In Figure~\ref{fig:speedup} we present experiments demonstrating the typical speedups for problems running from 43,200 triangles to 2,349,353 triangles. The results demonstrate super scalability for the larger problems stemming from better cache utilization for those problems based on the simple observation that the sub divided meshes can fit in the cache in those cases. 
+
+These experiments were conducted on a Fujitsu PRIMERGY cluster consisting of 36 BX920 S2 blades, each blade consisting of 2 Intel Xeon X5670 CPUs
+(Westmere, 6 core, 2.934 GHz) for a total of 432 cores.
+
+%\begin{figure}[h]
+%\begin{center}
+%\includegraphics[width=10cm]{speedup_range.jpg}
+%\caption{Speedups for problems ranging from 43,200 triangles to 2,349,353 triangles showing excellent speedups for the larger problems.}
+% \label{fig:speedup}
+%\end{center}
+%\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%555
+%\begin{center}
+%\pgfplotstableset{% could be used in preamble
+%empty cells with={--}, % replace empty cells with ’--’
+%every head row/.style={%
+%   before row={%
+%       \toprule
+%       Number of cores& \multicolumn{7}{c}{Speedups}\\
+%       },
+%   after row=\midrule},
+%every last row/.style={after row=\bottomrule}}
+%
+%\pgfplotstabletypeset[columns={N1, S1, S2, S3, S4, S5, I, H},
+%                               columns/N1/.style={
+%                                     column name=$np$,fixed}                                                                           
+%                                     ]{speedup.dat}
+%\end{center}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[h]
+\begin{center}
+\begin{tikzpicture}[scale=1,auto] 
+\begin{loglogaxis} [
+  ylabel=Speedup,
+  xlabel=Number of cores,
+   log basis x=2,
+   xticklabel=\pgfmathparse{2^\tick}\pgfmathprintnumber{\pgfmathresult},
+   log basis y=2,
+   yticklabel=\pgfmathparse{2^\tick}\pgfmathprintnumber{\pgfmathresult},
+  legend pos=outer north east
+]
+
+ \addplot[black] coordinates {
+(12,	1)
+(512,	42.66666)
+ };
+
+ \addplot[blue] coordinates {
+(24,	1)
+(512, 21.333333	)
+ };
+
+\addplot coordinates { 
+(12,	1)
+(24,	2.0473320158)
+(48,	3.2227407062)
+(96,	3.9844230769)
+(192,	3.9270280516)
+(384,	4.1612773649)
+(432,	4.0577751665) 
+ }; 
+ 
+ \addplot coordinates {
+(12,	1)
+(24,	2.0768268464)
+(48,	3.9974416085)
+(96,	6.1945429104)
+(192,	7.6196787149)
+(384,	7.3105631089)
+(432	, 7.0445552432)
+ };
+
+ \addplot coordinates {
+(12,	1)
+(24,	2.1760471976)
+(48,	4.5648514851)
+(96,	9.3658586132)
+(192,	17.6862093217)
+(384,	25.1894008377)
+(432,	25.4559676084)
+ };
+
+ \addplot coordinates {
+(12,	1)
+(24,	2.2258920052)
+(48,	5.1452722626)
+(96,	11.0737381053)
+(192,	22.3829373994)
+(384,34.5922225707)
+(432,	40.3318446551)
+ };
+
+ \addplot coordinates {
+(12,	1)
+(24,	1.9301833637)
+(48,	4.1155463811)
+(96,	9.1255392432)
+(192,	19.4637932297)
+(384,	37.8639255531)
+(432,	41.5381009428)
+ };
+
+
+
+
+\legend{Ideal (based on 12 cores),%
+50\% Performance,%
+43{,}200 triangles,%
+147{,}098 triangles,%
+587{,}838 triangles,%
+1{,}023{,}732 triangles,%
+2{,}349{,}353 triangles,%
+}
+
+ \end{loglogaxis} 
+ \end{tikzpicture}
+\caption{Speedups for problems ranging from 43,200 triangles to 2,349,353 triangles showing excellent speedups for the larger problems. We surmise  that the super-scalability stems from better cache utilization as the larger meshes are subdivided into smaller meshes that can fit into cache.}
+ \label{fig:speedup}
+\end{center}
+\end{figure}
+
+
+
+
+%The equations constituting the finite-volume method are obtained by
+%integrating the differential conservation equations over each
+%triangular cell of the mesh. Introducing some notation we use $i$ to
+%refer to the $i$th triangular cell $T_i$, and ${\cal N}(i)$ to the
+%set of indices referring to the cells neighbouring the $i$th cell.
+%Then $A_i$ is the area of the $i$th triangular cell and $l_{ij}$ is
+%the length of the edge between the $i$th and $j$th cells.
+%
+%By applying the divergence theorem we obtain for each volume an
+%equation which describes the rate of change of the average of the
+%conserved quantities within each cell, in terms of the fluxes across
+%the edges of the cells and the effect of the source terms. In
+%particular, rate equations associated with each cell have the form
+%$$
+% \frac{d\UU_i }{dt}+ \frac1{A_i}\sum\limits_{j\in{\cal N}(i)} \HH_{ij} l_{ij} = \SSS_i
+%$$
+%where
+%\begin{itemize}
+%  \item $\UU_i$ the vector of conserved quantities averaged over the $i$th cell,
+%  \item $\SSS_i$ is the source term associated with the $i$th cell, and
+%  \item $\HH_{ij}$ is the outward normal flux of material across the \textit{ij}th edge.
+%\end{itemize}
+%
+%%\item $l_{ij}$ is the length of the edge between the $i$th and $j$th
+%%cells
+%%\item $m_{ij}$ is the midpoint of
+%%the \textit{ij}th edge,
+%%\item
+%%$\mathbf{n}_{ij} = (n_{ij,1} , n_{ij,2})$is the outward pointing
+%%normal along the \textit{ij}th edge, and The
+%
+%The flux $\HH_{ij}$ is evaluated using a numerical flux function
+%$\HH(\cdot, \cdot ; \ \cdot)$ which is consistent with the shallow
+%water flux in the sense that for all conservation vectors $\UU$ and normal vectors $\nn$
+%$$
+%H(\UU,\UU;\ \nn) = \EE(\UU) n_1 + \GG(\UU) n_2 .
+%$$
+%
+%Then
+%$$
+%\HH_{ij}  = \HH(\UU_i(m_{ij}),
+%\UU_j(m_{ij}); \mathbf{n}_{ij})
+%$$
+%where $m_{ij}$ is the midpoint of the \textit{ij}th edge and
+%$\mathbf{n}_{ij}$ is the outward pointing normal, with respect to the $i$th cell, on the
+%\textit{ij}th edge. The function $\UU_i(x)$ for $x \in
+%T_i$ is obtained from the vector $\UU_k$ of conserved average values for the $i$th and
+%neighbouring  cells.
+%
+%We use a second order reconstruction to produce a piece-wise linear
+%function construction of the conserved quantities for  all $x \in
+%T_i$ for each cell (see Figure~\ref{fig:mesh}). This
+%function is allowed to be discontinuous across the edges of the
+%cells, but the slope of this function is limited to avoid
+%artificially introduced oscillations.
+%
+%Godunov's method (see \cite{Toro1992}) involves calculating the
+%numerical flux function $\HH(\cdot, \cdot ; \ \cdot)$ by exactly
+%solving the corresponding one dimensional Riemann problem normal to
+%the edge. We use the central-upwind scheme of \cite{KurNP2001} to
+%calculate an approximation of the flux across each edge.
+%
+%%\begin{figure}[htp] \begin{center}
+%%  \includegraphics[width=8.0cm,keepaspectratio=true]{graphics/step-reconstruct}
+%%  \caption{From the values of the conserved quantities at the centroid
+%%           of the cell and its neighbouring cells, a discontinuous piecewise
+%%           linear reconstruction of the conserved quantities is obtained.}
+%%  \label{fig:mesh:reconstruct}
+%%\end{center} \end{figure}
+%
+%In the computations presented in this paper we use an explicit Euler
+%timestepping method with variable timestepping adapted to the
+%observed CFL condition:
+%
+%\begin{equation}
+%  \Delta t = \min_{k,i=[0,1,2]}  \min \left( \frac{r_k}{v_{k,i}}, \frac{r_{n_{k,i}}}{v_{k,i}} \right )
+%  \label{eq:CFL condition}
+%\end{equation}
+%where $r_k$ is the radius of the $k$'th triangle and $v_{k,i}$ is the maximal velocity across
+%edge joining triangle $k$ and it's $i$'th neighbour, triangle $n_{k,i}$, as calculated by the
+%numerical flux function
+%using the central upwind scheme of \cite{KurNP2001}. The symbol $r_{n_{k,i}}$  denotes the radius
+%of the $i$'th neighbour of triangle $k$. The radii are calculated as radii of the inscribed circles
+%of each triangle.
 
 
 \section{Flux limiting}
@@ -3898,13 +4443,13 @@ numerically unreliable and will typically cause unphysical speeds.
 We have employed a flux limiter which replaces the calculations above with
 the limited approximations.
 \begin{equation}
-  \hat{u} = \frac{\mu h}{h^2+ h_0}, \bigskip \hat{v} = \frac{\nu h}{h^2 + h_0},
+  \hat{u} = \frac{\mu h}{h^2 + h_0}, \bigskip \hat{v} = \frac{\nu h}{h^2 + h_0},
 \end{equation}
 where $h_0$ is a regularisation parameter that controls the minimal
 magnitude of the denominator. Taking the limits we have for $\hat{u}$
 \[
   \lim_{h \rightarrow 0} \hat{u} =
-  \lim_{h \rightarrow 0} \frac{\mu h }{h^2 + h_0} = 0
+  \lim_{h \rightarrow 0} \frac{\mu h}{h^2 + h_0} = 0
 \]
 and
 \[
@@ -5177,7 +5722,7 @@ The Frequently Asked Questions have been move to the online FAQ at: \\
                                        methods are conservative. Another advantage of the finite volume method is
                                        that it is easily formulated to allow for unstructured meshes. The method
                                        is used in many computational fluid dynamics packages. & \\
-  \indexedbold{forcing term} & &\\
+  \indexedbold{forcing term} & A part of the right hand side $\SSS$ in the Shallow water equation. Typical terms are bed pressure, bed friction, wind stress, atmospheric pressure, rain etc. &\\
   \indexedbold{flux} & the amount of flow through the volume per unit time & \\
   \indexedbold{grid} & Evenly spaced mesh & \\
   \indexedbold{latitude} & The angular distance on a mericlear north and south of the equator, expressed in degrees and minutes. & \\
@@ -5269,7 +5814,7 @@ http://www.ga.gov.au/meta/ANZCW0703008022.html
 \newblock C.~Zoppou and S.~Roberts.
 \newblock {\em ASCE J. Hydraulic Engineering}, 125(7):686--695, 1999.
 
-\bibitem[Toro1999]{Toro1992}
+\bibitem[Toro1992]{Toro1992}
 \newblock Riemann problems and the waf method for solving the two-dimensional
   shallow water equations.
 \newblock E.~F. Toro.
@@ -5281,6 +5826,17 @@ http://www.ga.gov.au/meta/ANZCW0703008022.html
   and hamilton-jacobi equations.
 \newblock A.~Kurganov, S.~Noelle, and G.~Petrova.
 \newblock {\em SIAM Journal of Scientific Computing}, 23(3):707--740, 2001.
+
+
+
+
+\bibitem[KarypisK1999]{karypis1999fast}
+Karypis, G. and V.~Kumar (1999).
+\newblock {A fast and high quality multilevel scheme for partitioning irregular
+  graphs}.
+\newblock {\em SIAM Journal on Scientific Computing\/}~{\em 20\/}(1), 359.
+
+
 \end{thebibliography}
 % \end{thebibliography}{99}
 
