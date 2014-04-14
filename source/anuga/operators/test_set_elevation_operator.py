@@ -868,6 +868,165 @@ class Test_set_elevation_operator(unittest.TestCase):
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
 
+    def test_set_elevation_operator_center_radius_de1(self):
+        from math import pi, cos, sin
+
+
+        length = 2.0
+        width = 2.0
+        dx = dy = 0.5
+        domain = rectangular_cross_domain(int(length/dx), int(width/dy),
+                                              len1=length, len2=width)
+
+
+        #Flat surface with 1m of water
+        domain.set_flow_algorithm('DE1')
+        domain.set_quantity('elevation', 0.0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        R = Reflective_boundary(domain)
+        domain.set_boundary( {'left': R, 'right': R, 'bottom': R, 'top': R} )
+
+        from pprint import pprint
+        #pprint(domain.quantities['stage'].centroid_values)
+#        print domain.quantities['xmomentum'].centroid_values
+#        print domain.quantities['ymomentum'].centroid_values
+
+        # Apply operator to these triangles
+
+
+        def elev(t):
+            if t < 10.0:
+                return 5.0
+            else:
+                return 7.0
+
+        operator = Set_elevation_operator(domain, elevation=elev, center=[1.0,1.0], radius=1.0)
+
+        # Apply Operator at time t=1.0
+        domain.set_time(1.0)
+        operator()
+
+
+        #pprint(domain.quantities['elevation'].centroid_values)
+
+        elev_ex = [ 0.,  0.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  0.,
+        5.,  5.,  0.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,
+        5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,
+        5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  0.,  0.,  5.,
+        5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  0.,  0.]
+
+
+        #pprint(domain.quantities['stage'].centroid_values)
+        
+        stage_ex = [ 1.,  1.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  1.,
+        6.,  6.,  1.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,
+        6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,
+        6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  1.,  1.,  6.,
+        6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  1.,  1.]
+
+
+
+#        from pprint import pprint
+#        pprint (domain.quantities['elevation'].centroid_values)
+#        pprint (domain.quantities['stage'].centroid_values)
+#        print domain.quantities['xmomentum'].centroid_values
+#        print domain.quantities['ymomentum'].centroid_values
+
+        assert num.allclose(domain.quantities['elevation'].centroid_values, elev_ex)
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+
+        # Apply Operator at time t=15.0
+        domain.set_time(15.0)
+        operator()
+
+
+        #pprint(domain.quantities['elevation'].centroid_values)
+
+        elev_ex = [ 0.,  0.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  0.,
+        7.,  7.,  0.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,
+        7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,
+        7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  0.,  0.,  7.,
+        7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  0.,  0.]
+
+
+        #pprint(domain.quantities['stage'].centroid_values)
+
+        stage_ex = [ 1.,  1.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  1.,
+        8.,  8.,  1.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,
+        8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,
+        8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  1.,  1.,  8.,
+        8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  1.,  1.]
+        
+
+#        from pprint import pprint
+#        pprint (domain.quantities['elevation'].centroid_values)
+#        pprint (domain.quantities['stage'].centroid_values)
+#        pprint (domain.quantities['xmomentum'].centroid_values)
+#        pprint (domain.quantities['ymomentum'].centroid_values)
+
+        assert num.allclose(domain.quantities['elevation'].centroid_values, elev_ex)
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+
+        operator = Set_elevation(domain, elevation=0.0)
+
+
+        #print operator.value_type
+        
+        operator()
+
+        #from pprint import pprint
+#        pprint (domain.quantities['elevation'].centroid_values)
+#        pprint (domain.quantities['stage'].centroid_values)
+#        pprint (domain.quantities['xmomentum'].centroid_values)
+#        pprint (domain.quantities['ymomentum'].centroid_values)
+
+        assert num.allclose(domain.quantities['elevation'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['stage'].centroid_values, 1.0)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+
+
+        operator = Set_elevation(domain, elevation=lambda t: t, indices = [0,1,3])
+
+        operator()
+
+        #pprint (domain.quantities['elevation'].centroid_values)
+        #pprint (domain.quantities['stage'].centroid_values)
+
+        elev_ex = [ 15.,  15.,   0.,  15.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+         0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+         0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+         0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+         0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+         0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.]
+
+
+
+        stage_ex = [ 16.,  16.,   1.,  16.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,
+         1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,
+         1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,
+         1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,
+         1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,
+         1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.]
+        
+
+#        from pprint import pprint
+#        pprint (domain.quantities['elevation'].centroid_values)
+#        pprint (domain.quantities['stage'].centroid_values)
+#        pprint (domain.quantities['xmomentum'].centroid_values)
+#        pprint (domain.quantities['ymomentum'].centroid_values)
+
+        assert num.allclose(domain.quantities['elevation'].centroid_values, elev_ex)
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+
             
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_set_elevation_operator, 'test')
