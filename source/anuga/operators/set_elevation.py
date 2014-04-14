@@ -179,7 +179,7 @@ class Set_elevation(Set_quantity):
             if self.domain.flow_algorithm == 'DE1':
                 try:
                     value = self.get_value(x=self.coord_c[:,0], y=self.coord_c[:,1])
-                    self.quantity_c[:] = value
+                    self.elev_c[:] = value
                 except ValueError:
                     updated = False
                     pass
@@ -189,7 +189,7 @@ class Set_elevation(Set_quantity):
             #--------------------------------------            
                 try:
                     value = self.get_value(self.v_x, self.v_y)
-                    self.quantity_c[:] = value
+                    self.elev_v[:] = value
                 except ValueError:
                     updated = False
                     pass
@@ -205,7 +205,7 @@ class Set_elevation(Set_quantity):
                 y = self.coord_c[ids,1]
                 try:
                     value = self.get_value(x=x,y=y)
-                    self.quantity_c[ids] = value
+                    self.elev_c[ids] = value
                 except ValueError:
                     updated = False
                     pass

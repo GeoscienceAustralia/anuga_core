@@ -97,6 +97,7 @@ class Set_quantity(Region):
             #--------------------------------------
             try:
                 value = self.get_value(x=self.coord_c[:,0], y=self.coord_c[:,1])
+                #print value
                 self.quantity_c[:] = value
             except ValueError:
                 pass
@@ -147,6 +148,7 @@ class Set_quantity(Region):
         elif self.value_type == 'x,y,t':
             value = self.value(x,y,t)
         else:
+            #print self.value
             value = float(self.value)
 
         #except Modeltime_too_early, e:

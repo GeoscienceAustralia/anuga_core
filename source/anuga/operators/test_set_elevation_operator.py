@@ -675,7 +675,6 @@ class Test_set_elevation_operator(unittest.TestCase):
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
 
     def test_set_elevation_operator_center_radius(self):
-        from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
 
 
@@ -694,8 +693,8 @@ class Test_set_elevation_operator(unittest.TestCase):
         R = Reflective_boundary(domain)
         domain.set_boundary( {'left': R, 'right': R, 'bottom': R, 'top': R} )
 
-
-#        print domain.quantities['stage'].centroid_values
+        from pprint import pprint
+        #pprint(domain.quantities['stage'].centroid_values)
 #        print domain.quantities['xmomentum'].centroid_values
 #        print domain.quantities['ymomentum'].centroid_values
 
@@ -715,7 +714,7 @@ class Test_set_elevation_operator(unittest.TestCase):
         operator()
 
 
-
+        #pprint(domain.quantities['elevation'].centroid_values)
 
         elev_ex = [ 2.08333333,  2.08333333,  3.75      ,  3.75      ,  4.58333333,
         4.58333333,  5.        ,  5.        ,  4.58333333,  5.        ,
@@ -734,6 +733,8 @@ class Test_set_elevation_operator(unittest.TestCase):
 
 
 
+        #pprint(domain.quantities['stage'].centroid_values)
+        
         stage_ex = [ 3.08333333,  3.08333333,  4.75      ,  4.75      ,  5.58333333,
         5.58333333,  6.        ,  6.        ,  5.58333333,  6.        ,
         6.        ,  5.58333333,  3.08333333,  4.75      ,  4.75      ,
@@ -747,8 +748,6 @@ class Test_set_elevation_operator(unittest.TestCase):
         3.08333333,  4.75      ,  6.        ,  5.58333333,  5.58333333,
         6.        ,  6.        ,  6.        ,  5.58333333,  5.58333333,
         4.75      ,  4.75      ,  3.08333333,  3.08333333]
-
-
 
 
 
@@ -813,10 +812,13 @@ class Test_set_elevation_operator(unittest.TestCase):
 
         operator = Set_elevation(domain, elevation=0.0)
 
+
+        #print operator.value_type
+        
         operator()
 
-#        from pprint import pprint
-#        pprint (domain.quantities['elevation'].centroid_values)
+        #from pprint import pprint
+        #pprint (domain.quantities['elevation'].centroid_values)
 #        pprint (domain.quantities['stage'].centroid_values)
 #        pprint (domain.quantities['xmomentum'].centroid_values)
 #        pprint (domain.quantities['ymomentum'].centroid_values)
