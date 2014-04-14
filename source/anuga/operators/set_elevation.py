@@ -176,19 +176,47 @@ class Set_elevation(Set_quantity):
 
         if self.indices is None:
 
+            if self.domain.flow_algorithm == 'DE1':
+                try:
+                    value = self.get_value(x=self.coord_c[:,0], y=self.coord_c[:,1])
+                    self.quantity_c[:] = value
+                except ValueError:
+                    updated = False
+                    pass
+            else:
             #--------------------------------------
             # Update all three vertices for each cell
-            #--------------------------------------
-            self.elev_v[:] = self.get_value(self.v_x, self.v_y)
+            #--------------------------------------            
+                try:
+                    value = self.get_value(self.v_x, self.v_y)
+                    self.quantity_c[:] = value
+                except ValueError:
+                    updated = False
+                    pass
+     
+        #----------------------------------
+        # Apply just to indices
+        #----------------------------------
+        else: 
 
-        else:
-
-            #--------------------------------------
-            # Update all three vertices for each cell
-            # cell associated with ids
-            #--------------------------------------
-            ids = self.indices
-            self.elev_v[ids] = self.get_value(self.v_x, self.v_y)
+            if self.domain.flow_algorithm == 'DE1':
+                ids = self.indices
+                x = self.coord_c[ids,0]
+                y = self.coord_c[ids,1]
+                try:
+                    value = self.get_value(x=x,y=y)
+                    self.quantity_c[ids] = value
+                except ValueError:
+                    updated = False
+                    pass
+            else:
+                ids = self.indices
+                try:
+                    value = self.get_value(self.v_x, self.v_y)
+                    self.elev_v[ids] = value
+                except ValueError:
+                    updated = False
+                    pass
 
 
         return updated

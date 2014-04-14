@@ -95,7 +95,11 @@ class Set_quantity(Region):
             #--------------------------------------
             # Update all three vertices for each cell
             #--------------------------------------
-            self.quantity_c[:] = self.get_value(x=self.coord_c[:,0], y=self.coord_c[:,1])
+            try:
+                value = self.get_value(x=self.coord_c[:,0], y=self.coord_c[:,1])
+                self.quantity_c[:] = value
+            except ValueError:
+                pass
 
         else:
 
@@ -105,7 +109,11 @@ class Set_quantity(Region):
             ids = self.indices
             x = self.coord_c[ids,0]
             y = self.coord_c[ids,1]
-            self.quantity_c[ids] = self.get_value(x=x,y=y)
+            try:
+                value = self.get_value(x=x,y=y)
+                self.quantity_c[ids] = value
+            except ValueError:
+                pass
 
 
 

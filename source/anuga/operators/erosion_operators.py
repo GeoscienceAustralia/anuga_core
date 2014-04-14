@@ -489,6 +489,10 @@ class Polygonal_erosion_operator(Erosion_operator):
                                   verbose=verbose)
 
 
+
+#===============================================================================
+# Specific Erosion operator trying to implement bed shear
+#===============================================================================
 class Bed_shear_erosion_operator(Erosion_operator):
     """
     Local version of erosion confined to a region with the erosion controlled 
@@ -645,7 +649,7 @@ class Flat_slice_erosion_operator(Erosion_operator):
     def __init__(self, domain,
                  threshold=0.0, 
                  base=0.0, 
-                 level=None, 
+                 elevation=None, 
                  indices=None,
                  polygon=None,
                  center=None,
@@ -669,7 +673,7 @@ class Flat_slice_erosion_operator(Erosion_operator):
                  logging=logging,
                  verbose=verbose)
         
-        self.level = level
+        self.elevation = elevation
         
 
 
@@ -703,14 +707,14 @@ class Flat_slice_erosion_operator(Erosion_operator):
             if self.domain.flow_algorithm == 'DE1':
                 try:
                     height = self.stage_c[ind] - self.elev_c[ind]
-                    value = self.level(t)
+                    value = self.elevation(t)
                     self.elev_c[ind] = num.where(self.elev_c[ind] >  value, value, self.elev_c[ind])
                     self.stage_c[ind] = self.elev_c[ind] + height
                 except:
                     pass
             else:
                 try:
-                    value = self.level(t)
+                    value = self.elevation(t)
                     self.elev_v[ind] = num.where(self.elev_v[ind] >  value, value, self.elev_v[ind])
                 except:
                     pass
@@ -734,7 +738,7 @@ class Flat_fill_slice_erosion_operator(Erosion_operator):
     def __init__(self, domain,
                  threshold=0.0, 
                  base=0.0, 
-                 level=None, 
+                 elevation=None, 
                  indices=None,
                  polygon=None,
                  center=None,
@@ -758,7 +762,7 @@ class Flat_fill_slice_erosion_operator(Erosion_operator):
                  logging=logging,
                  verbose=verbose)
         
-        self.level = level
+        self.elevation = elevation
 
     def update_quantities(self):
         """Update the vertex values of the quantities to model erosion
@@ -790,7 +794,7 @@ class Flat_fill_slice_erosion_operator(Erosion_operator):
             if self.domain.flow_algorithm == 'DE1':
 
                 try:
-                    value = self.level(t)
+                    value = self.elevation(t)
                     height = self.stage_c[ind] - self.elev_c[ind]
                     if value > num.max(self.elev_c[ind]):
                         self.elev_c[ind] = num.where(self.elev_c[ind] <  value, value, self.elev_c[ind])    
@@ -802,7 +806,7 @@ class Flat_fill_slice_erosion_operator(Erosion_operator):
                 
             else:
                 try:
-                    value = self.level(t)
+                    value = self.elevation(t)
                     print value
                     if value > num.max(self.elev_v[ind]):
                         self.elev_v[ind] = num.where(self.elev_v[ind] <  value, value, self.elev_v[ind])    

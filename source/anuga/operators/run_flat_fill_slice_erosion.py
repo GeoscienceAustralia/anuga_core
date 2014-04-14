@@ -69,7 +69,7 @@ points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
 domain = Domain(points, vertices, boundary)
 domain.set_flow_algorithm('DE1')
-domain.set_name() # Output name based on script name
+domain.set_name('flat_fill_slice_erosion') # Output name
 print domain.statistics()
 
 domain.set_quantities_to_be_stored({'elevation': 2,
@@ -97,7 +97,9 @@ domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 #------------------------------------------------------------------------------
 print 'Set up Erosion Area to test...'
 
-from anuga import Flat_fill_slice_erosion_operator
+from anuga import Flat_fill_slice_erosion_operator as Default_erosion_operator
+from anuga import Set_elevation_operator as Default_erosion_operator
+
 polygon1 = [ [10.6, 1.0], [13.7, 1.0], [13.7, 4.0], [10.6, 4.0] ]
 
 # setup interpolated function
@@ -108,7 +110,7 @@ from scipy.interpolate import interp1d
 flevel = interp1d(time,elev)
 
 # create operator
-op1 = Flat_fill_slice_erosion_operator(domain, level=flevel, polygon=polygon1)
+op1 = Default_erosion_operator(domain, elevation=flevel, polygon=polygon1)
 
 
 
