@@ -72,7 +72,7 @@ from anuga.config import indent
 
 
 #----------------------------
-# Parallel api (needs operators)
+# Parallel api 
 #----------------------------
 from anuga_parallel.parallel_api import distribute
 from anuga_parallel.parallel_api import myid, numprocs, get_processor_name
@@ -119,6 +119,7 @@ from anuga.shallow_water.smf import slide_tsunami, slump_tsunami
 
 #-----------------------------
 # Forcing
+# These are old, should use operators
 #-----------------------------
 from anuga.shallow_water.forcing import Inflow, Rainfall, Wind_stress
 
@@ -162,6 +163,9 @@ from anuga.operators.set_friction_operators import Depth_friction_operator
 from anuga.operators.set_elevation_operator import Set_elevation_operator
 from anuga.operators.set_quantity_operator import Set_quantity_operator
 from anuga.operators.set_stage_operator import Set_stage_operator
+
+from anuga.operators.set_elevation import Set_elevation
+from anuga.operators.set_quantity import Set_quantity
 
 from anuga.operators.erosion_operators import Bed_shear_erosion_operator
 from anuga.operators.erosion_operators import Flat_slice_erosion_operator
