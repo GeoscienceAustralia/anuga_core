@@ -38,24 +38,32 @@ def determine_function_type(function):
         y = num.array([0.0, 2.0])
         t =0.0
 
+        #function(x,y,t)
         try:
             function(x,y,t)
-        except:
+        except TypeError:
             #print 'Problem calling with three arguments'
             try:
                 function(x,y)
-            except:
+            except TypeError:
                 #print 'Problem calling with 2 array arguments'
                 try:
                     function(t)
-                except:
+                except TypeError:
                     #print 'problem calling with one scalar argument'
                     msg = 'Input argument cannot be called as f(t), f(x,y) or f(x,y,t)'
                     raise Exception, msg
+                except ValueError:
+                    #print 'problem calling out of range'
+                    return 't'
                 else:
                     return 't'
+            except ValueError:
+                return 'x,y'
             else:
                 return 'x,y'
+        except ValueError:
+            return 'x,y,t'
         else:
             return 'x,y,t'
 

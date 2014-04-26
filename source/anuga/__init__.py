@@ -159,6 +159,13 @@ from anuga.operators.kinematic_viscosity_operator import Kinematic_viscosity_ope
 from anuga.operators.rate_operators import Rate_operator
 from anuga.operators.set_friction_operators import Depth_friction_operator 
 
+from anuga.operators.set_elevation_operator import Set_elevation_operator
+from anuga.operators.set_quantity_operator import Set_quantity_operator
+from anuga.operators.set_stage_operator import Set_stage_operator
+
+from anuga.operators.erosion_operators import Bed_shear_erosion_operator
+from anuga.operators.erosion_operators import Flat_slice_erosion_operator
+from anuga.operators.erosion_operators import Flat_fill_slice_erosion_operator
 
 #---------------------------
 # Structure Operators
