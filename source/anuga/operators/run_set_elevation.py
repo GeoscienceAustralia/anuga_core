@@ -14,23 +14,9 @@ from anuga import Reflective_boundary
 from anuga import Dirichlet_boundary
 from anuga import Time_boundary
 
-#------------------------------------------------------------------------------
-# Setup computational domain
-#------------------------------------------------------------------------------
-length = 24.
-width = 5.
-dx = dy = 0.2 #.1           # Resolution: Length of subdivisions on both axes
-
-points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
-                                               len1=length, len2=width)
-domain = Domain(points, vertices, boundary)
-domain.set_name('set_elevation') # Output name
-print domain.statistics()
-domain.set_quantities_to_be_stored({'elevation': 2,
-                                    'stage': 2})
 
 #------------------------------------------------------------------------------
-# Setup initial conditions
+# Stage and Elevation Functions
 #------------------------------------------------------------------------------
 def topography(x,y):
     """Complex topography defined by a function of vectors x and y."""
@@ -80,15 +66,36 @@ def pole_increment(x,y,t):
     return z
 
 
-def pole(t):
-
+def pole(x,y,t):
+	
+	z = topography(x,y)
     if t<10:
-        return 0.0
+        return z
     elif t>12:
-        return 0.0
+        return z
     else:
-        return 1.0
+        return z+1.0
 
+
+
+#------------------------------------------------------------------------------
+# Setup computational domain
+#------------------------------------------------------------------------------
+length = 24.
+width = 5.
+dx = dy = 0.2 #.1           # Resolution: Length of subdivisions on both axes
+
+points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
+                                               len1=length, len2=width)
+domain = Domain(points, vertices, boundary)
+domain.set_name() # Output name based on script name
+print domain.statistics()
+domain.set_quantities_to_be_stored({'elevation': 2,
+                                    'stage': 2})
+
+#------------------------------------------------------------------------------
+# Setup initial conditions
+#------------------------------------------------------------------------------
 
 domain.set_quantity('elevation', topography)           # elevation is a function
 domain.set_quantity('friction', 0.01)                  # Constant friction
@@ -107,10 +114,10 @@ domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 # Evolve system through time
 #------------------------------------------------------------------------------
 
-from anuga.operators.set_elevation_operators import Set_elevation_operator
+from anuga import Set_elevation_operator
 op1 = Set_elevation_operator(domain, elevation=pole, radius=0.5, center = (12.0,3.0))
 
-from anuga.operators.set_elevation import Set_elevation
+from anuga import Set_elevation
 op2 = Set_elevation(domain, elevation = topography)
 
 growing = False
