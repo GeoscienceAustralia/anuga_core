@@ -68,7 +68,7 @@ def pole_increment(x,y,t):
 
 def pole(x,y,t):
 	
-	z = topography(x,y)
+    z = topography(x,y)
     if t<10:
         return z
     elif t>12:
