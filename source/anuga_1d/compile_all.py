@@ -11,9 +11,9 @@ os.chdir('..')
 os.chdir('base')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
-## os.chdir('..')
-## os.chdir('channel')
-## execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
+os.chdir('..')
+os.chdir('channel')
+execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 
 #os.chdir('..')
