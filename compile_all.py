@@ -25,16 +25,13 @@ execfile('compile_all.py')
 
 os.chdir(buildroot)
 
+
 #--------------------------------------------------
 # Compiling anuga_1d code
 #--------------------------------------------------
 os.chdir('source')
 os.chdir('anuga_1d')
 
-
-print 'Changing to', os.getcwd()        
-
-#entries = listdir('.')
 
 t0 = time.time()
 
@@ -43,6 +40,7 @@ execfile('compile_all.py')
 
 
 os.chdir(buildroot)
+print 'Changing to', os.getcwd()        
 
 #--------------------------------------------------
 # Compiling anuga_parallel code
@@ -59,6 +57,8 @@ try:
     os.chdir('source')
     os.chdir('anuga_parallel')
     os.chdir('pymetis')
+
+    print 'Changing to', os.getcwd()        
 
     make_logfile = os.path.join(buildroot, 'make_metis.log')
     options = ''

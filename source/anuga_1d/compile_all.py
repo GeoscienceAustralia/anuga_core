@@ -1,6 +1,7 @@
 import os
 
-buildroot = os.getcwd()
+BUILDROOT = os.getcwd()
+print 'Changing to', os.getcwd()
 
 #Attempt to compile all extensions
 
@@ -37,7 +38,7 @@ os.chdir('sqpipe')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 
-os.chdir(buildroot)    
+os.chdir(BUILDROOT)    
 #execfile('test_all.py')
     
 if sys.platform == 'win32':

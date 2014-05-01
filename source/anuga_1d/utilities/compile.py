@@ -10,6 +10,7 @@
    Ole Nielsen, Duncan Gray Oct 2001      
 """     
 
+
 #NumPy ------------------------------------
 # Something like these lines recommended in "Converting from NUMARRAY to NUMPY"
 import numpy
@@ -218,7 +219,7 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
   # This is hacky since it
   # assumes the location of the compile_all that determines buildroot
   try:
-    utilities_include_dir = buildroot + os.sep + "source" + os.sep + "anuga" \
+    utilities_include_dir = buildroot + os.sep + "source" + os.sep + "anuga_1d" \
                             + os.sep + 'utilities'
   except:
     # This will make compile work locally
