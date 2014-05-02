@@ -208,11 +208,11 @@ def pmesh_divide_metis_helper(domain, n_procs):
             #new_r_tri_index_flat[ids] = num.concatenate((i*nones, nrange, num.reshape(eids, (-1,1))), axis = 1)
 
 
-        from pprint import pprint
-        print 'epart'
-        pprint(epart)
-        print 'new_tri_index'
-        pprint(new_tri_index)
+        #from pprint import pprint
+        #print 'epart'
+        #pprint(epart)
+        #print 'new_tri_index'
+        #pprint(new_tri_index)
 
         #print 50*'='
         
