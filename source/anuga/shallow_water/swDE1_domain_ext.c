@@ -473,8 +473,6 @@ double _compute_fluxes_central(int number_of_elements,
           
             // Audusse magic 
             z_half=max(zl,zr);
-            // Account for riverwalls
-            z_half=max(z_half,riverwall_elevation[ki]);
 
             // Account for riverwalls
             if(edge_flux_type[ki]==1){
