@@ -444,6 +444,10 @@ class Domain(Generic_Domain):
         # We need the edge_coordinates for the extrapolation
         self.edge_coordinates=self.get_edge_midpoint_coordinates()
 
+        # Hold elevation of riverwalls along cell edges
+        from anuga.config import max_float
+        self.riverwall_elevation=self.edge_coordinates[:,0]*0.0 - max_float
+
         # By default vertex values are NOT stored uniquely
         # for storage efficiency. We may override this (but not so important since
         # centroids are stored anyway
@@ -1289,7 +1293,8 @@ class Domain(Generic_Domain):
                                                Ymom.centroid_values,
                                                Bed.centroid_values, 
                                                height.centroid_values,
-                                               Bed.vertex_values)
+                                               Bed.vertex_values,
+                                               self.riverwall_elevation)
 
             ## FIXME: This won't work in parallel since the timestep has not been updated to include other processors. 
             ## Update the boundary flux integral

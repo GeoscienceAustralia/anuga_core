@@ -292,7 +292,8 @@ double _compute_fluxes_central(int number_of_elements,
         double* ymom_centroid_values,
         double* bed_centroid_values,
         double* height_centroid_values,
-        double* bed_vertex_values) {
+        double* bed_vertex_values,
+        double* riverwall_elevation) {
     // Local variables
     double max_speed, length, inv_area, zl, zr;
     //double h0 = H0*H0;//H0*H0;//H0*0.1;//H0*H0;//H0*H0; // This ensures a good balance when h approaches H0.
@@ -385,6 +386,8 @@ double _compute_fluxes_central(int number_of_elements,
           
             // Audusse magic 
             z_half=max(zl,zr);
+            // Account for riverwalls
+            z_half=max(z_half,riverwall_elevation[ki]);
 
             h_left= max(hle+zl-z_half,0.);
             h_right= max(hre+zr-z_half,0.);
@@ -1572,7 +1575,8 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
                                      already_computed_flux,
                                      optimise_dry_cells,
                                      stage.centroid_values,
-                                     bed.centroid_values)
+                                     bed.centroid_values,
+                                     domain.riverwall_elevation)
 
 
     Post conditions:
@@ -1605,13 +1609,14 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
     *ymom_centroid_values,
     *bed_centroid_values,
     *height_centroid_values,
-    *bed_vertex_values;
+    *bed_vertex_values,
+    *riverwall_elevation;
     
   double timestep, epsilon, H0, g;
   int optimise_dry_cells, timestep_fluxcalls;
     
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "ddddOOOOOOOOOOOOOOOOOOOOOOiiOOOOOO",
+  if (!PyArg_ParseTuple(args, "ddddOOOOOOOOOOOOOOOOOOOOOOiiOOOOOOO",
             &timestep,
             &epsilon,
             &H0,
@@ -1643,7 +1648,8 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
             &ymom_centroid_values,
             &bed_centroid_values,
             &height_centroid_values,
-            &bed_vertex_values)) {
+            &bed_vertex_values,
+            &riverwall_elevation)) {
     report_python_error(AT, "could not parse input arguments");
     return NULL;
   }
@@ -1676,6 +1682,7 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
   CHECK_C_CONTIG(bed_centroid_values);
   CHECK_C_CONTIG(height_centroid_values);
   CHECK_C_CONTIG(bed_vertex_values);
+  CHECK_C_CONTIG(riverwall_elevation);
 
   int number_of_elements = stage_edge_values -> dimensions[0];
 
@@ -1715,7 +1722,8 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
                      (double*) ymom_centroid_values -> data, 
                      (double*) bed_centroid_values -> data,
                      (double*) height_centroid_values -> data,
-                     (double*) bed_vertex_values -> data);
+                     (double*) bed_vertex_values -> data,
+                     (double*) riverwall_elevation -> data);
   
   // Return updated flux timestep
   return Py_BuildValue("d", timestep);
