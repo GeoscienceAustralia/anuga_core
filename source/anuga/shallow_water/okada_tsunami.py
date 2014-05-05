@@ -135,7 +135,7 @@ def earthquake_source(
                  length = the length of the sub-fault (km)
                  width  = the width of the sub-fault (km) DOWN THE DIP (i.e. width=surface_width/cos(dip))
 
-                 dis1, dis2, dis3 are the fault displacement components in the
+                 dis1, dis2, dis3 are the fault displacement components (m) in the
                  directions 'along strike', 'up-dip', and 'perpendicular to the slip plain'.
                  
                  e.g. for a strike slip earthquake, with slip = 1: dis1 = 1, dis2 = 0, dis3 = 0.

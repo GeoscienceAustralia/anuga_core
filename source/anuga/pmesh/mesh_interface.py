@@ -32,7 +32,8 @@ def create_mesh_from_regions(bounding_polygon,
                              fail_if_polygons_outside=True,
                              breaklines=None,
                              use_cache=False,
-                             verbose=True):
+                             verbose=True,
+                             regionPtArea=None):
     """Create mesh from bounding polygons, and resolutions.
 
     bounding_polygon is a list of points in Eastings and Northings,
@@ -106,7 +107,8 @@ def create_mesh_from_regions(bounding_polygon,
               'minimum_triangle_angle': minimum_triangle_angle,
               'fail_if_polygons_outside': fail_if_polygons_outside,
               'breaklines': breaklines,
-              'verbose': verbose}   # FIXME (Ole): Should be bypassed one day. See ticket:14
+              'verbose': verbose,
+              'regionPtArea': regionPtArea}   # FIXME (Ole): Should be bypassed one day. See ticket:14
 
     # Call underlying engine with or without caching
     if use_cache is True:
@@ -144,13 +146,13 @@ def _create_mesh_from_regions(bounding_polygon,
                               minimum_triangle_angle=28.0,
                               fail_if_polygons_outside=True,
                               breaklines=None,
-                              verbose=True):
+                              verbose=True,
+                              regionPtArea=None):
     """_create_mesh_from_regions - internal function.
 
     See create_mesh_from_regions for documentation.
     """
 
-    
     # check the segment indexes - throw an error if they are out of bounds
     if boundary_tags is not None:
         max_points = len(bounding_polygon)
@@ -300,7 +302,7 @@ def _create_mesh_from_regions(bounding_polygon,
             poly_geo_reference.get_absolute(bounding_polygon)
     else:
         bounding_polygon_absolute = bounding_polygon
-    
+   
     inner_point = point_in_polygon(bounding_polygon_absolute)
     inner = m.add_region(inner_point[0], inner_point[1])
     inner.setMaxArea(maximum_triangle_area)
@@ -338,7 +340,16 @@ def _create_mesh_from_regions(bounding_polygon,
             m.add_hole_from_polygon(polygon,
                                     segment_tags=tags,
                                     geo_reference=poly_geo_reference)
-       
+
+
+    # 22/04/2014
+    # Add user-specified point-based regions with max area
+    if(regionPtArea is not None):
+        for i in range(len(regionPtArea)):
+            inner = m.add_region(regionPtArea[i][0], regionPtArea[i][1])
+            inner.setMaxArea(regionPtArea[i][2])
+        
+               
 
 
     # NOTE (Ole): This was moved here as it is annoying if mesh is always

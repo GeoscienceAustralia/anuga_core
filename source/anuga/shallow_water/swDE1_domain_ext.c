@@ -147,7 +147,7 @@ int _flux_function_central(double *q_left, double *q_right,
 
 
   // Compute speeds in x-direction
-  w_left = q_left_rotated[0];          
+  //w_left = q_left_rotated[0];          
   uh_left=q_left_rotated[1];
   vh_left=q_left_rotated[2];
   if(hle>0.0){
@@ -163,7 +163,7 @@ int _flux_function_central(double *q_left, double *q_right,
   //u_left = _compute_speed(&uh_left, &hle, 
   //            epsilon, h0, limiting_threshold);
 
-  w_right = q_right_rotated[0];
+  //w_right = q_right_rotated[0];
   uh_right = q_right_rotated[1];
   vh_right = q_right_rotated[2];
   if(hre>0.0){
@@ -256,6 +256,88 @@ int _flux_function_central(double *q_left, double *q_right,
   return 0;
 }
 
+double adjust_edgeflux_with_weir(double* edgeflux,
+                                 double h_left, double h_right, 
+                                 double g, double weir_height,
+                                 double weirScale, 
+                                 double s1, double s2, 
+                                 double h1, double h2
+                                ){
+    // Adjust the edgeflux to agree with a weir relation [including
+    // subergence], but smoothly vary to shallow water solution when
+    // the flow over the weir is much deeper than the weir, or the
+    // upstream/downstream water elevations are too similar
+    double rw, rw2; // 'Raw' weir fluxes
+    double rwRat, hdRat,hdWrRat, scaleFlux, scaleFluxS, minhd, maxhd;
+    double w1,w2; // Weights for averaging
+    double newFlux;
+    // Following constants control the 'blending' with the shallow water solution
+    // They are now user-defined 
+    //double s1=0.9; // At this submergence ratio, begin blending with shallow water solution
+    //double s2=0.95; // At this submergence ratio, completely use shallow water solution
+    //double h1=1.0; // At this (tailwater height above weir) / (weir height) ratio, begin blending with shallow water solution
+    //double h2=1.5; // At this (tailwater height above weir) / (weir height) ratio, completely use the shallow water solution
+
+    minhd=min(h_left, h_right);
+    maxhd=max(h_left,h_right);
+    // 'Raw' weir discharge = weirScale*2/3*H*(2/3*g*H)**0.5
+    rw=weirScale*2./3.*maxhd*sqrt(2./3.*g*maxhd);
+    // Factor for villemonte correction
+    rw2=weirScale*2./3.*minhd*sqrt(2./3.*g*minhd);
+    // Useful ratios
+    rwRat=rw2/max(rw, 1.0e-100);
+    hdRat=minhd/max(maxhd,1.0e-100);
+    // (tailwater height above weir)/weir_height ratio
+    hdWrRat=minhd/max(weir_height,1.0e-100);
+        
+    // Villemonte (1947) corrected weir flow with submergence
+    // Q = Q1*(1-Q2/Q1)**0.385
+    rw = rw*pow(1.0-rwRat,0.385);
+
+    if(h_right>h_left){
+        rw*=-1.0;
+    }
+
+    if( (hdRat<s2) & (hdWrRat< h2) ){
+        // Rescale the edge fluxes so that the mass flux = desired flux
+        // Linearly shift to shallow water solution between hdRat = s1 and s2  
+        // and between hdWrRat = h1 and h2
+
+        //        
+        // WEIGHT WITH RAW SHALLOW WATER FLUX BELOW
+        // This ensures that as the weir gets very submerged, the 
+        // standard shallow water equations smoothly take over
+        //
+
+        // Weighted average constants to transition to shallow water eqn flow
+        w1=min( max(hdRat-s1,0.)/(s2-s1), 1.0);
+        //w2=1.0-w1;
+        //
+        // Adjust again when the head is too deep relative to the weir height
+        w2=min( max(hdWrRat-h1,0.)/(h2-h1), 1.0);
+        //w2=1.0-w1;
+
+        newFlux=(rw*(1.0-w1)+w1*edgeflux[0])*(1.0-w2) + w2*edgeflux[0];
+       
+        if(fabs(edgeflux[0])>1.0e-100){ 
+            scaleFlux=newFlux/edgeflux[0];
+
+            // FINAL ADJUSTED FLUX
+            edgeflux[0]*=scaleFlux;
+            edgeflux[1]*=scaleFlux;
+            edgeflux[2]*=scaleFlux;
+        }else{
+            // Can't divide by edgeflux
+            edgeflux[0] = newFlux;
+            edgeflux[1]*=0.;
+            edgeflux[2]*=0.;
+        }
+    }
+
+    //printf("%e, %e, %e, %e , %e, %e \n", weir_height, h_left, h_right, edgeflux[0], w1, w2);
+
+    return 0;
+}
 
 // Computational function for flux computation
 double _compute_fluxes_central(int number_of_elements,
@@ -292,29 +374,33 @@ double _compute_fluxes_central(int number_of_elements,
         double* ymom_centroid_values,
         double* bed_centroid_values,
         double* height_centroid_values,
-        double* bed_vertex_values,
-        double* riverwall_elevation) {
+        //double* bed_vertex_values,
+        long* edge_flux_type,
+        double* riverwall_elevation,
+        long* riverwall_rowIndex,
+        int ncol_riverwall_hydraulic_properties,
+        double* riverwall_hydraulic_properties) {
     // Local variables
     double max_speed, length, inv_area, zl, zr;
     //double h0 = H0*H0;//H0*H0;//H0*0.1;//H0*H0;//H0*H0; // This ensures a good balance when h approaches H0.
     double h_left, h_right, z_half ;  // For andusse scheme
-
+    // FIXME: limiting_threshold is not used for DE1
     double limiting_threshold = 10*H0;//10 * H0 ;//H0; //10 * H0; // Avoid applying limiter below this
     // threshold for performance reasons.
     // See ANUGA manual under flux limiting
     int k, i, m, n,j, ii;
     int ki, nm = 0, ki2,ki3, nm3; // Index shorthands
-
+    //int num_hydraulic_properties=1; // FIXME: Move to function call
     // Workspace (making them static actually made function slightly slower (Ole))
     double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
     double stage_edges[3];//Work array
     double bedslope_work, local_timestep;
     int neighbours_wet[3];//Work array
-    int useint;
-    double hle, hre, zc, zc_n; 
+    int RiverWall_count;
+    double hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2; 
     double stage_edge_lim, outgoing_mass_edges, bedtop, bedbot, pressure_flux, hc, hc_n, tmp, tmp2;
     static long call = 1; // Static local variable flagging already computed flux
-    double speed_max_last, vol, smooth, local_speed;
+    double speed_max_last, vol, smooth, local_speed, weir_height;
 
     double *edgeflux_store, *pressuregrad_store;
 
@@ -330,6 +416,7 @@ double _compute_fluxes_central(int number_of_elements,
     memset((char*) ymom_explicit_update, 0, number_of_elements * sizeof (double));
 
     local_timestep=timestep;
+    RiverWall_count=0;
 
 
     // For all triangles
@@ -389,6 +476,31 @@ double _compute_fluxes_central(int number_of_elements,
             // Account for riverwalls
             z_half=max(z_half,riverwall_elevation[ki]);
 
+            // Account for riverwalls
+            if(edge_flux_type[ki]==1){
+                // Update counter of riverwall edges == index of
+                // riverwall_elevation + riverwall_rowIndex
+                RiverWall_count+=1;
+                // Set central bed to riverwall elevation
+                z_half=riverwall_elevation[RiverWall_count-1];
+                // Since there is a wall, use first order extrapolation for this edge
+                // This also makes more sense from the viewpoint of weir relations
+                ql[0]=stage_centroid_values[k];
+                ql[1]=xmom_centroid_values[k];
+                ql[2]=ymom_centroid_values[k];
+                hle=hc;
+                zl=zc;
+                if(n>=0){
+                    qr[0]=stage_centroid_values[n];
+                    qr[1]=xmom_centroid_values[n];
+                    qr[2]=ymom_centroid_values[n];
+                    hre=hc_n;
+                    zr = zc_n;
+                }
+
+            }
+
+            // Define h left/right for Audusse flux method
             h_left= max(hle+zl-z_half,0.);
             h_right= max(hre+zr-z_half,0.);
 
@@ -401,11 +513,43 @@ double _compute_fluxes_central(int number_of_elements,
                     edgeflux, &max_speed, &pressure_flux, hc, hc_n, 
                     speed_max_last);
 
+            // Force weir discharge to match weir theory
+            if(edge_flux_type[ki]==1){
+                //printf("%e \n", z_half);
+                weir_height=riverwall_elevation[RiverWall_count-1]-min(zl,zr); // Reference weir height  
+
+                // Get Qfactor index - multiply the idealised weir discharge by this constant factor
+                ii=riverwall_rowIndex[RiverWall_count-1]*ncol_riverwall_hydraulic_properties;
+                Qfactor=riverwall_hydraulic_properties[ii];
+                //printf("%e \n", Qfactor);
+                // Get s1, submergence ratio at which we start blending with the shallow water solution 
+                ii+=1;
+                s1=riverwall_hydraulic_properties[ii];
+                // Get s2, submergence ratio at which we entirely use the shallow water solution 
+                ii+=1;
+                s2=riverwall_hydraulic_properties[ii];
+                // Get h1, tailwater head / weir height at which we start blending with the shallow water solution 
+                ii+=1;
+                h1=riverwall_hydraulic_properties[ii];
+                // Get h2, tailwater head / weir height at which we entirely use the shallow water solution 
+                ii+=1;
+                h2=riverwall_hydraulic_properties[ii];
+
+                //printf("%e, %e, %e, %e, %e \n", Qfactor, s1, s2, h1, h2);
+
+                adjust_edgeflux_with_weir(edgeflux, h_left, h_right, g, 
+                                          weir_height, Qfactor, 
+                                          s1, s2, h1, h2);
+                // NOTE: Should perhaps also adjust the wave-speed here?? Small chance of instability??
+                //printf("%e \n", edgeflux[0]);
+            }
+            
             // Multiply edgeflux by edgelength
             length = edgelengths[ki];
             edgeflux[0] *= length;
             edgeflux[1] *= length;
             edgeflux[2] *= length;
+
 
             //// Don't allow an outward advective flux if the cell centroid stage
             //// is < the edge value. Is this important (??)
@@ -1553,7 +1697,7 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
     Python call:
     domain.timestep = compute_fluxes(timestep,
                                      domain.epsilon,
-                     domain.H0,
+                                     domain.H0,
                                      domain.g,
                                      domain.neighbours,
                                      domain.neighbour_edges,
@@ -1610,13 +1754,16 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
     *bed_centroid_values,
     *height_centroid_values,
     *bed_vertex_values,
-    *riverwall_elevation;
+    *edge_flux_type,
+    *riverwall_elevation,
+    *riverwall_rowIndex,
+    *riverwall_hydraulic_properties;
     
   double timestep, epsilon, H0, g;
-  int optimise_dry_cells, timestep_fluxcalls;
+  int optimise_dry_cells, timestep_fluxcalls, ncol_riverwall_hydraulic_properties;
     
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "ddddOOOOOOOOOOOOOOOOOOOOOOiiOOOOOOO",
+  if (!PyArg_ParseTuple(args, "ddddOOOOOOOOOOOOOOOOOOOOOOiiOOOOOOOOiO",
             &timestep,
             &epsilon,
             &H0,
@@ -1648,8 +1795,13 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
             &ymom_centroid_values,
             &bed_centroid_values,
             &height_centroid_values,
-            &bed_vertex_values,
-            &riverwall_elevation)) {
+            //&bed_vertex_values,
+            &edge_flux_type,
+            &riverwall_elevation,
+            &riverwall_rowIndex,
+            &ncol_riverwall_hydraulic_properties,
+            &riverwall_hydraulic_properties 
+            )) {
     report_python_error(AT, "could not parse input arguments");
     return NULL;
   }
@@ -1681,8 +1833,11 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
   CHECK_C_CONTIG(ymom_centroid_values);
   CHECK_C_CONTIG(bed_centroid_values);
   CHECK_C_CONTIG(height_centroid_values);
-  CHECK_C_CONTIG(bed_vertex_values);
+  //CHECK_C_CONTIG(bed_vertex_values);
+  CHECK_C_CONTIG(edge_flux_type);
   CHECK_C_CONTIG(riverwall_elevation);
+  CHECK_C_CONTIG(riverwall_rowIndex);
+  CHECK_C_CONTIG(riverwall_hydraulic_properties);
 
   int number_of_elements = stage_edge_values -> dimensions[0];
 
@@ -1722,9 +1877,12 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
                      (double*) ymom_centroid_values -> data, 
                      (double*) bed_centroid_values -> data,
                      (double*) height_centroid_values -> data,
-                     (double*) bed_vertex_values -> data,
-                     (double*) riverwall_elevation -> data);
-  
+                     //(double*) bed_vertex_values -> data,
+                     (long*)   edge_flux_type-> data,
+                     (double*) riverwall_elevation-> data,
+                     (long*)   riverwall_rowIndex-> data,
+                     ncol_riverwall_hydraulic_properties,
+                     (double*) riverwall_hydraulic_properties ->data); 
   // Return updated flux timestep
   return Py_BuildValue("d", timestep);
 }
