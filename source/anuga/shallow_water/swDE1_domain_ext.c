@@ -479,8 +479,6 @@ double _compute_fluxes_central(int number_of_elements,
                 // Update counter of riverwall edges == index of
                 // riverwall_elevation + riverwall_rowIndex
                 RiverWall_count+=1;
-                // Set central bed to riverwall elevation
-                z_half=riverwall_elevation[RiverWall_count-1];
                 // Since there is a wall, use first order extrapolation for this edge
                 // This also makes more sense from the viewpoint of weir relations
                 ql[0]=stage_centroid_values[k];
@@ -495,6 +493,9 @@ double _compute_fluxes_central(int number_of_elements,
                     hre=hc_n;
                     zr = zc_n;
                 }
+                
+                // Set central bed to riverwall elevation
+                z_half=max(riverwall_elevation[RiverWall_count-1], max(zl, zr)) ;
 
             }
 
