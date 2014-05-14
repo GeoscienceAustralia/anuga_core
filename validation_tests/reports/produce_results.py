@@ -1,5 +1,6 @@
 """
-Script to run all the produce_results scripts in the Tests/xxx/xxx/ directories
+Script to run all the produce_results scripts in the
+validation_tests/xxx/xxx/ directories
 """
 
 import os
@@ -29,6 +30,7 @@ except:
 #---------------------------------
 # Run the tests
 #---------------------------------
+os.chdir('..')
 buildroot = os.getcwd()
 
 Upper_dirs = os.listdir('.')
@@ -39,6 +41,7 @@ Upper_dirs = [name for name in os.listdir(dir) if os.path.isdir(os.path.join(dir
 try:
     Upper_dirs.remove('.svn')
     Upper_dirs.remove('utilities')
+    Upper_dirs.remove('reports')
 except ValueError:
     pass
 

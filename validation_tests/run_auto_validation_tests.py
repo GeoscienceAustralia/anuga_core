@@ -1,6 +1,11 @@
-"""Validate_all.py 
+"""
+run_auto_validation_tests.py 
 
+Will search all the sub-directories for scripts of the form starting with
 
+validate_
+
+and then run the scripts. 
 
 
 """
