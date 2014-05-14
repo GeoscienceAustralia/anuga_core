@@ -1,0 +1,40 @@
+\documentclass[11pt,a4paper]{article}%{amsart}
+
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage[section]{placeins} % 'one-shot' command to nicely place figures
+\usepackage{datatool}
+\usepackage{url}
+\usepackage{amsmath}
+\DeclareUrlCommand\UScore{\urlstyle{rm}}
+
+
+\input{../../local-defs}
+\input{../../saved_parameters}
+
+%=========================================
+\begin{document} 
+%=========================================
+
+\title{Automated Report on the Performance of \anuga{} on the Steady State of Moving Water Down on a Trapezoidal Channel}
+\maketitle
+%\tableofcontents
+
+%======================
+%\chapter{Trapezoidal channel steady uniform flow case}
+%======================
+
+\input{results}
+
+\section{Parameters used for this simulation}
+
+\input{parameters}
+
+%======================
+% bibliography
+%======================
+
+\bibliographystyle{plain}
+\bibliography{../../bibliography}
+
+\end{document}

@@ -1,0 +1,77 @@
+\section{Thacker's Planar Oscillations on a Parabolic Basin}
+This test simulates planar oscillations of water in a parabolic basin. The analytical solution was derived by Thacker~\cite{Thacker1981}, and is periodic. At any instant in time, the free surface elevation is planar, and the velocity is constant (in wet regions). The scenario includes regular wetting and drying, as the flow oscillates back and forth in the basin. As well as testing the ability of the code to do wetting and drying, it will highlight any numerical energy loss or gain, and manifest as an increase or decrease in the magnitude of the flow oscillations over long time periods (compared with the analytical solution). 
+
+Consider the topography
+\begin{equation}
+z(x) = D_0 \left(\frac{x}{L}\right)^2
+\end{equation}
+where $D_0$ is the largest depth when water is still and $L$ is the distance between the centre of water surface and the shore when water is still.
+The analytical solution is 
+\begin{equation}
+u(x,t) = -A \omega \sin(\omega t),
+\end{equation}
+\begin{equation}
+w(x,t) = D_0 + \frac{2 A D_0}{L^2} \cos(\omega t) \left( x - \frac{A}{2}\cos(\omega t) \right).
+\end{equation}
+Here $\omega=\frac{\sqrt{2 g D_0}}{L}$.
+The initial condition is set by taking $t=0$ in the analytical solution.
+
+
+\subsection{Results}
+For our test, we consider $D_0=4$, $L=10$, and $A=2$. After running the simulation for some time, we have Figures~\ref{fig:cross_section_stage}--\ref{fig:cross_section_xvel} showing the stage, $x$-momentum, and $x$-velocity respectively. There should be a good agreement between numerical and analytical solutions.
+
+As time goes on, some small deviations may appear. These are shown in Figures~\ref{fig:Stage_centre}--\ref{fig:Xvel_centre}, which illustrate the stage, $x$-momentum, and $x$-velocity at the centroid of the domain.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{cross_section_stage.png}
+\caption{Stage on a cross section of the basin at time $t=10$.}
+\label{fig:cross_section_stage}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{cross_section_xmom.png}
+\caption{Xmomentum on a cross section of the basin at time $t=10$.}
+\label{fig:cross_section_xmom}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{cross_section_xvel.png}
+\caption{Xvelocity on a cross section of the basin at time $t=10$.}
+\label{fig:cross_section_xvel}
+\end{center}
+\end{figure}
+
+
+
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{Stage_centre.png}
+\caption{Stage over time in the centre of the parabolic basin.}
+\label{fig:Stage_centre}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{Xmom_centre.png}
+\caption{Xmomentum over time in the centre of the parabolic basin.}
+\label{fig:Xmom_centre}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{Xvel_centre.png}
+\caption{Xvelocity over time in the centre of the parabolic basin.}
+\label{fig:Xvel_centre}
+\end{center}
+\end{figure}
+
+
+\endinput

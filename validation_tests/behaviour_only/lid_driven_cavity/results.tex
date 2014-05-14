@@ -1,0 +1,52 @@
+
+\section{Lid-driven cavity flow}
+
+Lid-driven cavity flow is flow in a unit square containing a unit depth of water with horizontal topography. The top (north) boundary has a unit velocity and the other three boundaries are solid wall. The initial condition is water at rest. This is a standard test for numerical methods used to solve the two-dimensional Navier--Stokes equations. This is not a usual test for shallow water models~\cite{CCFNC2006}. However, it may benefit to check the behaviour of numerical solutions of \anuga{} to this problem.
+
+The analytical solution to this problem is not available, but a large number of researchers have proposed numerical solutions. Some of the literatures amongst others are Cueto-Felgueroso et al.~\cite{CCFNC2006} and Erturk et al.~\cite{ECG2005}.
+
+
+\subsection{Results}
+
+The following figures show numerical solutions of \anuga{} to this lid-driven cavity flow problem. We focus on the velocity and velocity fields. Note that the current version of \anuga{} is set up for inviscid fluid (water). That is, the Reynolds number is infinity. An accurate result should show secondary vortices around the corners for high Reynolds numbers.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{vel_t1_centroid.png}
+\end{center}
+\caption{Velocity at the centroids of computational elements at an instant of time.}
+\end{figure}
+
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{vel_t1_vertex.png}
+\end{center}
+\caption{Velocity at the vertices of computational elements at an instant of time.}
+\end{figure}
+
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{vel_t2_centroid.png}
+\end{center}
+\caption{Velocity at the centroids of computational elements at the final time step.}
+\end{figure}
+
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{vel_t2_vertex.png}
+\end{center}
+\caption{Velocity at the vertices of computational elements at the final time step.}
+\end{figure}
+
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{xvelocity_at_y05.png}
+\end{center}
+\caption{Xvelocity at $y=0.5$\,.}
+\end{figure}
+
+\endinput

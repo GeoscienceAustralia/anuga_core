@@ -1,0 +1,25 @@
+\section{Wave runup over sinusoidal ridges}
+This scenario simulates a wave flowing up a beach with skewed sinusoidal ridges. Following the initial wave runup, eventually the water elevation should become constant, and the velocities should approach zero. 
+
+\subsection{Results}
+Figure~\ref{fig:vel_t1_centroid} shows the centroid velocities during the wave runup. The flow should be concentrating in the channels near the shore, and be free from major spikes.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{vel_t1_centroid.png}
+\caption{Velocity during the wave runup. Point color corresponds to the bed elevation}
+\label{fig:vel_t1_centroid}
+\end{center}
+\end{figure}
+
+Figure~\ref{fig:vel_t2_centroid} shows the velocities profile at time 40~s. They should be nearly zero (e.g. O($10^{-3}$) m$/s$). This case has been used to illustrate wet-dry artefacts in some versions of \anuga.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{vel_t2_centroid.png}
+\caption{Velocity at time 20s after the wave runup. The flow speed should be nearly zero. Point color corresponds to the bed elevation.}
+\label{fig:vel_t2_centroid}
+\end{center}
+\end{figure}
+
+\endinput

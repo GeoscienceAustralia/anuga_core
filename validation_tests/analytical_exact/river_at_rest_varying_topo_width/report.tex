@@ -1,0 +1,39 @@
+\documentclass[11pt,a4paper]{article}%{amsart}
+
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage[section]{placeins} % 'one-shot' command to nicely place figures
+\usepackage{datatool}
+\usepackage{url}
+\DeclareUrlCommand\UScore{\urlstyle{rm}}
+
+
+\input{../../local-defs}
+\input{../../saved_parameters}
+
+%=========================================
+\begin{document} 
+%=========================================
+
+\title{Automated Report on the Performance of \anuga{} on the Steady State of a River at Rest with Varying Width and Topography}
+\maketitle
+%\tableofcontents
+
+%======================
+%\chapter{Dry Dam Break}
+%======================
+
+\input{results}
+
+\section{Parameters used for this simulation}
+
+\input{parameters}
+
+%======================
+% bibliography
+%======================
+
+\bibliographystyle{plain}
+\bibliography{../../bibliography}
+
+\end{document}

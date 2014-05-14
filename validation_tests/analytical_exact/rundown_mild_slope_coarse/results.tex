@@ -1,0 +1,67 @@
+%Note for this test case:
+%Simple water flow example using ANUGA: Water flowing down a channel.
+%It was called "steep_slope" in an old validation test.
+
+
+\section{Shallow flow down a mild slope with coarsely resolved topography}
+This case simulates very shallow flow running down a mild slope, with coarsely resolved topography, and a very low discharge. It represents a numerically more challenging idealisation of the rainfall-runoff problem, as compared to the case with higher discharge and resolution. This case has an analytical solution, and in particular, we consider the steady-uniform solution with the values of bed slope and friction slope are the same.   
+
+Suppose that we are given a one dimensional domain. The steady state conditions with a contant water depth everywhere make the shallow water equations to the single identity
+\begin{equation}
+z_x = - S_f.
+\end{equation}
+Here $q=uh$ is the momentum or water discharge and $S_f$ is the symbol for the force of bottom friction involving Manning's coefficient $n$. We take 
+\begin{equation}
+S_f = n^2 \frac{q|q|}{h^{10/3}}.
+\end{equation}
+If $q$, $n$, and $z_x$ are given, then the analytical solution is
+\begin{equation}
+u(x)= \left[- n^{-2} q^{4/3} z_x\right]^{3/10},
+\end{equation}
+\begin{equation}
+h(x)= \frac{q}{u}\,.
+\end{equation}
+
+\subsection{Results}
+For our test, we consider a square dimensional domain with length and width 100. We take $q=1/1000.$, $n=0.03$, and $z_x=-0.1$.
+The topography is
+\begin{equation}
+z(x, y)= -0.1 x\,.
+\end{equation}
+The initial condition is $u=v=0$ and
+\begin{equation}
+w(x,y,0)= -0.1 x + 0.01\,.
+\end{equation}
+
+
+Some simulation results are as follows.
+Figures~\ref{fig:depthdownchan} shows the steady state depth in the downstream direction. There should be a good agreement with the analytical solution, at least in the middle of the domain (the boundaries may not reach steady-uniform flow). 
+Figures~\ref{fig:xvelscrosschan} and~\ref{fig:yvelscroschan} show the steady state $x$- and $y$-velocities, along a slice in the cross slope direction (near $x=50$). The $x$-velocities should agree well with the analytical solution, and the $y$-velocities should be zero. 
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.8\textwidth]{final_depth.png}
+\caption{Depth in the downstream direction}
+\label{fig:depthdownchan}
+\end{center}
+\end{figure}
+ 
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.8\textwidth]{x_velocity.png}
+\caption{$x$-velocity along the cross-section $x=50$ (i.e. a cross-section with constant bed elevation)}
+\label{fig:xvelscrosschan}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.8\textwidth]{y_velocity.png}
+\caption{$y$-velocity along the cross-section $x=50$ (i.e. a cross-section with constant bed elevation)}
+\label{fig:yvelscroschan}
+\end{center}
+\end{figure}
+
+
+\endinput

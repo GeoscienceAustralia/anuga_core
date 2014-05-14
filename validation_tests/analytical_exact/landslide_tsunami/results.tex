@@ -1,0 +1,58 @@
+\section{Tsunami Runup Analytical Solution}
+
+This test case is `Benchmark Problem 1' from the `Third International workshop
+on long-wave runup models, June 17-18 2004'. It models the runup of an initial
+waveform on a linearly sloping beach. The analytical solution was produced 
+using the techniques of Carrier, Wu and Yeh~\cite{CGY2003}. The problem descriptions 
+and solution were sourced from \url{http://isec.nacse.org/workshop/2004\_cornell/bmark1.html}
+
+\subsection{Results}
+
+Figures~\ref{fig:stage}-\ref{fig:vel} compare the modelled and analytical stage
+and velocity at various instances in time, while Figure~\ref{fig:shore} shows
+the time-evolution of the shoreline position and velocity at the shoreline. For
+the numerical model, the shoreline position and velocity are defined based on
+two depth thresholds (see figure titles), we \anuga{} does not explicitly track
+the wet-dry interface. We expect to see good agreement between the analytical
+and numerical solutions for both stage and velocity over most of the domain.  A
+discrepency near the shoreline can occur in some \anuga{} algorithms,
+particularly in the velocity.
+
+At the time of writing (17/05/2013), the `tsunami' algorithm has a small
+phase-lag during the runup stage. This is attributed to the extra mass storage
+in each numerical cell associated with that algorithm, which slightly reduces
+the rate of inundation. It can be further reduced with mesh refinement.
+Regardless, the solution quality is quite comparable with results using
+other solvers on similar sized meshes~\cite{CCM2013,P2012}. 
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{figure_stage_0.png}
+\includegraphics[width=0.7\textwidth]{figure_stage_1.png}
+\includegraphics[width=0.7\textwidth]{figure_stage_2.png}
+\caption{Water surface elevation at several instants in time}
+\label{fig:stage}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{figure_vel_0.png}
+\includegraphics[width=0.7\textwidth]{figure_vel_1.png}
+\includegraphics[width=0.7\textwidth]{figure_vel_2.png}
+\caption{Velocity at several instants in time}
+\label{fig:vel}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{Shoreline_position.png}
+\includegraphics[width=0.7\textwidth]{Shoreline_velocity.png}
+\caption{Timeseries of shoreline position and velocity}
+\label{fig:shore}
+\end{center}
+\end{figure}
+
+
+\endinput

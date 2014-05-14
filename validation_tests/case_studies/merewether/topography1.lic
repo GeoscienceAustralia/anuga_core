@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='iso-8859-1'?>
+<ga_license_file>
+  <metadata>
+    <author>Stephen Roberts</author>
+  </metadata>
+  
+  <datafile>
+    <filename>topography1.asc</filename>
+    <checksum>879264144</checksum>
+    <publishable>Yes</publishable>
+    <accountable>Stephen Roberts</accountable>
+    <source>Provided by WRL</source>
+    <IP_owner>Water Research laboratory (WRL), Manly, NSW</IP_owner>
+    <IP_info>TThis data set is kindly provided by WRL, via Dr Grantly Smith, to allow 
+us to compare anuga results with those obtained in the Australian Rainfall and Runoff (ARR) report 15
+http://www.ncwe.org.au/arr/Website_links/ARR_Project_15_Subproject_report_buildings_final.pdf
+    </IP_info>
+  </datafile>
+
+  <datafile>
+    <filename>topography1.prj</filename>
+    <checksum>894166675</checksum>
+    <publishable>Yes</publishable>
+    <accountable>Stephen Roberts</accountable>
+    <source>Provided by WRL</source>
+    <IP_owner>Water Research laboratory (WRL), Manly, NSW</IP_owner>
+    <IP_info>TThis data set is kindly provided by WRL, via Dr Grantly Smith, to allow 
+us to compare anuga results with those obtained in the Australian Rainfall and Runoff (ARR) report 15
+http://www.ncwe.org.au/arr/Website_links/ARR_Project_15_Subproject_report_buildings_final.pdf
+    </IP_info>
+  </datafile>
+
+</ga_license_file>

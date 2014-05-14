@@ -1,0 +1,37 @@
+
+\section{Isolated Obstacle}
+
+Herein \anuga{} is tested against the isolated obstacle test, which involves a dam-break flow past an isolated building. This benchmark experiment is reported in:
+\begin{verbatim}
+Soares-Frazao, S. and Zech, Y. (2007)
+Experimental study of dam-break flow against an isolated obstacle. Journal of
+Hydraulic Resaerch 45(Extra Issue):27-36
+\end{verbatim}
+
+The data is provided in a DVD-ROM associated with the above JHR issue.
+
+Note that many models have been applied to this problem, and their performance is reviewed in:
+\begin{verbatim}
+ Soares Frazao, S., Noel, B., Spinewine, B., and Zech, Y. (YEAR) The isolated
+building test case: results from the IMPACT benchmark.
+\end{verbatim}
+ At the time of writing, the performance of \anuga{} on this problem is qualitatively similar to the performance of most other models -- i.e. it simulates the main aspects of the flow, but often not the details. It seems likely that these experimental flows may well partly violate the shallow water approximations, and to the extent that this is true, we would not expect perfect agreement.
+
+\subsection{Results}
+For details of the experiment which are required to run the model, consult Soares-Frazao and Zech (2007). A zoom of the model geometry around the building and reservoir mouth is shown in Figure~\ref{urbanflow_geom}, along with measurement stations. 
+\begin{figure}
+\includegraphics{XXX}
+\caption{Zoom of the flume planform geometry near the isolated building. Red areas are obstacles which are never submerged by the flow. See Soares-Frazo and Zech (2007) for further details on the flume geometry.}
+\label{urbanflow_geom}
+\end{figure}
+
+Water was released from the reservoir, and allowed to flow past the building. Figures XX - XX2 compare the stage and velocity at each of these measurement points with the modelled result. 
+\begin{figure}
+\includegraphics{XXX}
+\caption{Comparison betweeen modelled and observed stage, x-velocity and y-velocity at sites G1-G6.}
+\label{urbanflow_geom}
+\end{figure}
+
+
+
+\endinput

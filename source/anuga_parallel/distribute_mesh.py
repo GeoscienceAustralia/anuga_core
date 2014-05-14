@@ -34,6 +34,8 @@ except:
     import anuga_parallel.config as config
 
 
+verbose = False
+
 #########################################################
 #
 # If the triangles list is reordered, the quantities
@@ -208,11 +210,12 @@ def pmesh_divide_metis_helper(domain, n_procs):
             #new_r_tri_index_flat[ids] = num.concatenate((i*nones, nrange, num.reshape(eids, (-1,1))), axis = 1)
 
 
-        #from pprint import pprint
-        #print 'epart'
-        #pprint(epart)
-        #print 'new_tri_index'
-        #pprint(new_tri_index)
+        if verbose:
+            from pprint import pprint
+            print 'epart'
+            pprint(epart)
+            print 'new_tri_index'
+            pprint(new_tri_index)
 
         #print 50*'='
         

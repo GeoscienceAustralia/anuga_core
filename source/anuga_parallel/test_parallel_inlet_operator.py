@@ -16,6 +16,9 @@ import anuga
 #from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
 
 
+import warnings
+warnings.simplefilter('ignore')
+
 #------------------------------------------
 # Import pypar without the initial output
 #------------------------------------------
