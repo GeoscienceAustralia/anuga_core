@@ -8,8 +8,8 @@ import time
 
 import anuga
 from anuga import indent
-from parameters import alg
-from parameters import cfl
+from anuga.validation_utilities.parameters import alg
+from anuga.validation_utilities.parameters import cfl
 
 #---------------------------------
 # Get the current svn revision
@@ -27,6 +27,21 @@ except:
         # This is a fallback position
         minor_revision = 'unknown'
 
+
+#----------------------------------
+# Now it is ok to create the latex 
+# macro file with run parameters
+#----------------------------------
+
+f = open('saved_parameters.tex', 'w')
+f.write('\\newcommand{\\cfl}{\\UScore{%s}}\n' % str(cfl))
+f.write('\\newcommand{\\alg}{\\UScore{%s}}\n' % str(alg))
+f.write('\\newcommand{\\majorR}{\\UScore{%s}}\n' % str(major_revision))
+f.write('\\newcommand{\\minorR}{\\UScore{%s}}\n' % str(minor_revision))
+f.write('\\newcommand{\\timeR}{{%s}}\n' % str(timestamp))
+
+f.close()
+
 #---------------------------------
 # Run the tests
 #---------------------------------
@@ -37,10 +52,12 @@ Upper_dirs = os.listdir('.')
 dir = '.'
 Upper_dirs = [name for name in os.listdir(dir) if os.path.isdir(os.path.join(dir, name))]
 
-
 try:
     Upper_dirs.remove('.svn')
-    Upper_dirs.remove('utilities')
+except ValueError:
+    pass
+
+try:
     Upper_dirs.remove('reports')
 except ValueError:
     pass
@@ -106,24 +123,12 @@ print 72*'='
 print 'That took ' + str(time_total) + ' secs'
 print 72*'='
 
-#----------------------------------
-# Now it is ok to create the latex 
-# macro file with run parameters
-#----------------------------------
-
-f = open('saved_parameters.tex', 'w')
-f.write('\\newcommand{\\cfl}{\\UScore{%s}}\n' % str(cfl))
-f.write('\\newcommand{\\alg}{\\UScore{%s}}\n' % str(alg))
-f.write('\\newcommand{\\majorR}{\\UScore{%s}}\n' % str(major_revision))
-f.write('\\newcommand{\\minorR}{\\UScore{%s}}\n' % str(minor_revision))
-f.write('\\newcommand{\\timeR}{{%s}}\n' % str(timestamp))
-
-f.close()
 
 
-import os
+# go back to reports directory to typeset report
+os.chdir('reports')
 
-from anuga_validation_tests.utilities.fabricate import *
+from anuga.validation_utilities.fabricate import *
 
 os.system('python typeset_report.py')
 

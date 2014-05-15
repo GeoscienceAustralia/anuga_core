@@ -1,8 +1,8 @@
 #--------------------------------
 # import modules
 #--------------------------------
-from anuga_validation_tests.utilities.fabricate import *
-from anuga_validation_tests.utilities.run_validation import run_validation_script
+from anuga.validation_utilities.fabricate import *
+from anuga.validation_utilities.run_validation import run_validation_script
 
 # Setup the python scripts which produce the output for this
 # validation test
