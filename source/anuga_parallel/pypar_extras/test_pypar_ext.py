@@ -19,6 +19,10 @@ except:
 
 #print "Importing pypar"
 import pypar
+import pypar_ext as par_exts
+#import pypar as par_exts
+par_exts_methods = dir(par_exts)
+assert 'allreduce' in par_exts_methods
 methods = dir(pypar)
 assert 'abort' in methods
 assert 'finalize' in methods
@@ -901,7 +905,7 @@ if numproc > 1:
   testArray = numpy.array(range(N), 'i') * (myid+1)
   X = numpy.zeros(N, 'i') # Buffer for results
 
-  pypar.allreduce(testArray, pypar.SUM, buffer=X)
+  par_exts.allreduce(testArray, pypar.SUM, buffer=X)
 
   if myid == 0:
     Y = numpy.zeros(N, 'i')
@@ -910,13 +914,13 @@ if numproc > 1:
     assert numpy.allclose(X, Y)
     print 'Buffered allreduce using pypar.SUM OK'
 
-  pypar.allreduce(testArray, pypar.MAX, buffer=X)
+  par_exts.allreduce(testArray, pypar.MAX, buffer=X)
   if myid == 0:
     Y = numpy.array(range(N))*numproc
     assert numpy.allclose(X, Y)
     print 'Buffered allreduce using pypar.MAX OK'
 
-  pypar.allreduce(testArray, pypar.MIN, buffer=X)
+  par_exts.allreduce(testArray, pypar.MIN, buffer=X)
   if myid == 0:
     Y = numpy.array(range(N))
     assert numpy.allclose(X, Y)
@@ -926,7 +930,7 @@ if numproc > 1:
     testArray_float = testArray.astype('f')  #Make room for big results
     X_float = X.astype('f')
 
-    pypar.allreduce(testArray_float, pypar.PROD, buffer=X_float)
+    par_exts.allreduce(testArray_float, pypar.PROD, buffer=X_float)
     if myid == 0:
       Y = numpy.ones(N).astype('f')
       for i in range(numproc):
@@ -939,7 +943,7 @@ if numproc > 1:
     if myid == 0:
       print "Skipping product-allreduce - try again with numproc < 20"
 
-  pypar.allreduce(testArray, pypar.LAND, buffer=X)
+  par_exts.allreduce(testArray, pypar.LAND, buffer=X)
   if myid == 0:
     Y = numpy.ones(N).astype('i')
     for i in range(numproc):
@@ -947,7 +951,7 @@ if numproc > 1:
     assert numpy.allclose(X, Y)
     print 'Buffered allreduce using pypar.LAND OK'
 
-  pypar.allreduce(testArray, pypar.BAND, buffer=X)
+  par_exts.allreduce(testArray, pypar.BAND, buffer=X)
   if myid == 0:
     Y = numpy.ones(N).astype('i')*255  #Neutral element for &
     for i in range(numproc):
@@ -955,7 +959,7 @@ if numproc > 1:
     assert numpy.allclose(X, Y)
     print 'Buffered allreduce using pypar.BAND OK'
 
-  pypar.allreduce(testArray, pypar.LOR, buffer=X)
+  par_exts.allreduce(testArray, pypar.LOR, buffer=X)
   if myid == 0:
     Y = numpy.zeros(N).astype('i')
     for i in range(numproc):
@@ -963,7 +967,7 @@ if numproc > 1:
     assert numpy.allclose(X, Y)
     print 'Buffered allreduce using pypar.LOR OK'
 
-  pypar.allreduce(testArray, pypar.BOR, buffer=X)
+  par_exts.allreduce(testArray, pypar.BOR, buffer=X)
   if myid == 0:
     Y = numpy.zeros(N).astype('i')   #Neutral element for |
     for i in range(numproc):
@@ -971,7 +975,7 @@ if numproc > 1:
     assert numpy.allclose(X, Y)
     print 'Buffered allreduce using pypar.BOR OK'
 
-  pypar.allreduce(testArray, pypar.LXOR, buffer=X)
+  par_exts.allreduce(testArray, pypar.LXOR, buffer=X)
   if myid == 0:
     Y = numpy.zeros(N).astype('i')
     for i in range(numproc):
@@ -979,7 +983,7 @@ if numproc > 1:
     assert numpy.allclose(X, Y)
     print 'Buffered allreduce using pypar.LXOR OK'
 
-  pypar.allreduce(testArray, pypar.BXOR, buffer=X)
+  par_exts.allreduce(testArray, pypar.BXOR, buffer=X)
   if myid == 0:
     Y = numpy.zeros(N).astype('i')   #Neutral element for xor ?
     for i in range(numproc):

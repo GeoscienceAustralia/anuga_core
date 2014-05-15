@@ -229,7 +229,7 @@ def allreduce(x, op, buffer=None, vanilla=0, bypass=False):
 
 
     import types
-    from mpiext import size
+    from pypar import size
     numproc = size()         # Needed to determine buffer size
 
 
