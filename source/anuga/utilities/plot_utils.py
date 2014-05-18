@@ -140,7 +140,7 @@ class get_output:
     """
     def __init__(self, filename, minimum_allowed_height=1.0e-03):
         self.x, self.y, self.time, self.vols, self.stage, \
-                self.height, self.elev, self.xmom, self.ymom, \
+                self.height, self.elev, self.friction, self.xmom, self.ymom, \
                 self.xvel, self.yvel, self.vel, self.minimum_allowed_height,\
                 self.xllcorner, self.yllcorner = \
                 read_output(filename, minimum_allowed_height)
@@ -194,6 +194,11 @@ def read_output(filename, minimum_allowed_height):
             for i in range(stage.shape[0]):
                 height[i,:]=stage[i,:]-elev
 
+    if(fid.variables.has_key('friction')):
+        friction=fid.variables['friction'][:]
+    else:
+        # Set friction to nan if it is not stored
+        friction=height*0.+numpy.nan
 
     xmom=fid.variables['xmomentum'][:]
     #xmom=xmom.getValue()
@@ -218,7 +223,7 @@ def read_output(filename, minimum_allowed_height):
 
     vel = (xvel**2+yvel**2)**0.5
 
-    return x, y, time, vols, stage, height, elev, xmom, ymom, xvel, yvel, vel, minimum_allowed_height, xllcorner,yllcorner
+    return x, y, time, vols, stage, height, elev, friction, xmom, ymom, xvel, yvel, vel, minimum_allowed_height, xllcorner,yllcorner
 
 ##############
 
@@ -237,7 +242,7 @@ class get_centroids:
     def __init__(self,p, velocity_extrapolation=False):
         
         self.time, self.x, self.y, self.stage, self.xmom,\
-             self.ymom, self.height, self.elev, self.xvel, \
+             self.ymom, self.height, self.elev, self.friction, self.xvel, \
              self.yvel, self.vel= \
              get_centroid_values(p, velocity_extrapolation)
                                  
@@ -278,7 +283,9 @@ def get_centroid_values(p, velocity_extrapolation):
 
         stage_cent=(p.stage[:,vols0]+p.stage[:,vols1]+p.stage[:,vols2])/3.0
         height_cent=(p.height[:,vols0]+p.height[:,vols1]+p.height[:,vols2])/3.0
-        #elev_cent=(p.elev[:,vols0]+p.elev[:,vols1]+p.elev[:,vols2])/3.0
+
+        friction_cent=(p.friction[:,vols0]+p.friction[:,vols1]+p.friction[:,vols2])/3.0
+
         # Only store elevation centroid once (since it doesn't change)
         if(len(p.elev.shape)==2):
             elev_cent=(p.elev[0,vols0]+p.elev[0,vols1]+p.elev[0,vols2])/3.0
@@ -330,6 +337,11 @@ def get_centroid_values(p, velocity_extrapolation):
             for i in range(len(p.time)):
                 height_cent[i,:]=stage_cent[i,:]-elev_cent
         
+        if(fid.variables.has_key('friction_c')==True):
+            friction_cent=fid.variables['friction_c'][:]
+        else:
+            friction_cent=(p.friction[:,vols0]+p.friction[:,vols1]+p.friction[:,vols2])/3.0
+        
         xmom_cent=fid.variables['xmomentum_c'][:]*(height_cent>p.minimum_allowed_height)
         ymom_cent=fid.variables['ymomentum_c'][:]*(height_cent>p.minimum_allowed_height)
         xvel_cent=xmom_cent/(height_cent+1.0e-06)
@@ -340,7 +352,7 @@ def get_centroid_values(p, velocity_extrapolation):
     vel_cent=(xvel_cent**2 + yvel_cent**2)**0.5
 
     return p.time, x_cent, y_cent, stage_cent, xmom_cent,\
-             ymom_cent, height_cent, elev_cent, xvel_cent, yvel_cent, vel_cent
+             ymom_cent, height_cent, elev_cent, friction_cent, xvel_cent, yvel_cent, vel_cent
 
 
 def animate_1D(time, var, x, ylab=' '): #, x=range(var.shape[1]), vmin=var.min(), vmax=var.max()):
@@ -607,7 +619,8 @@ def Make_Geotif(swwFile=None,
                     points. In the latter case x and y are assumed to be in georeferenced
                     coordinates.  The output raster will contain 'z', and will have a name-tag
                     based on the name in 'output_quantities'.
-                output_quantities -- list of quantitiies to plot, e.g. ['depth', 'velocity', 'stage','elevation','depthIntegratedVelocity']
+                output_quantities -- list of quantitiies to plot, e.g.
+                                ['depth', 'velocity', 'stage','elevation','depthIntegratedVelocity','friction']
                 myTimeStep -- list containing time-index of swwFile to plot (e.g. [1, 10, 32] ) or 'last', or 'max', or 'all'
                 CellSize -- approximate pixel size for output raster [adapted to fit lower_left / upper_right]
                 lower_left -- [x0,y0] of lower left corner. If None, use extent of swwFile.
@@ -740,6 +753,8 @@ def Make_Geotif(swwFile=None,
                     gridq=gridq*(gridq>=0.) # Force positive depth (tsunami alg)
                 if(output_quantity=='velocity'):
                     gridq=p2.vel[myTS,:][gridqInd]
+                if(output_quantity=='friction'):
+                    gridq=p2.friction[gridqInd]
                 if(output_quantity=='depthIntegratedVelocity'):
                     swwDIVel=(p2.xmom[myTS,:]**2+p2.ymom[myTS,:]**2)**0.5
                     gridq=swwDIVel[gridqInd]
@@ -759,6 +774,8 @@ def Make_Geotif(swwFile=None,
                     gridq=swwDIVel[gridqInd]
                 if(output_quantity=='elevation'):
                     gridq=p2.elev[gridqInd]
+                if(output_quantity=='friction'):
+                    gridq=p2.friction[gridqInd]
                 timestepString='max'
             elif(myTS=='pointData'):
                 gridq=xyzPoints[:,2][gridqInd]

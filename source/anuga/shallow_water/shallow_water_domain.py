@@ -211,6 +211,7 @@ class Domain(Generic_Domain):
         self.set_store_centroids(False)
         self.set_store_vertices_uniquely(False)
         self.quantities_to_be_stored = {'elevation': 1, 
+                                        'friction':1,
                                         'stage': 2, 
                                         'xmomentum': 2, 
                                         'ymomentum': 2}
@@ -447,8 +448,8 @@ class Domain(Generic_Domain):
 
         #self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
         #         'ymomentum': 2, 'elevation': 2, 'height':2})
-        self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
-                 'ymomentum': 2, 'elevation': 1})
+        #self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
+        #         'ymomentum': 2, 'elevation': 1})
         self.set_store_centroids(True)
 
         self.optimise_dry_cells=False 
