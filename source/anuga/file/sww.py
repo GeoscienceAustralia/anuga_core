@@ -1177,11 +1177,13 @@ def load_sww_as_domain(filename, boundary=None, t=None,
         dynamic_quantities.remove('xmomentum_c')
         dynamic_quantities.remove('ymomentum_c')
         dynamic_quantities.remove('elevation_c')
+        dynamic_quantities.remove('friction_c')
     except:
         pass
     
     try:
         static_quantities.remove('elevation_c')
+        static_quantities.remove('friction_c')
     except:
         pass
         
@@ -1195,6 +1197,7 @@ def load_sww_as_domain(filename, boundary=None, t=None,
         static_quantities.remove('xmomentum_range')
         static_quantities.remove('ymomentum_range')
         static_quantities.remove('elevation_range')
+        static_quantities.remove('friction_range')
     except:
         pass
 
