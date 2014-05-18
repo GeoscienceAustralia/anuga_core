@@ -279,7 +279,7 @@ double adjust_edgeflux_with_weir(double* edgeflux,
     //double h2=1.5; // At this (tailwater height above weir) / (weir height) ratio, completely use the shallow water solution
 
     minhd=min(h_left, h_right);
-    maxhd=max(h_left,h_right);
+    maxhd=max(h_left, h_right);
     // 'Raw' weir discharge = weirScale*2/3*H*(2/3*g*H)**0.5
     rw=weirScale*2./3.*maxhd*sqrt(2./3.*g*maxhd);
     // Factor for villemonte correction
@@ -479,23 +479,32 @@ double _compute_fluxes_central(int number_of_elements,
                 // Update counter of riverwall edges == index of
                 // riverwall_elevation + riverwall_rowIndex
                 RiverWall_count+=1;
-                // Since there is a wall, use first order extrapolation for this edge
-                // This also makes more sense from the viewpoint of weir relations
-                ql[0]=stage_centroid_values[k];
-                ql[1]=xmom_centroid_values[k];
-                ql[2]=ymom_centroid_values[k];
-                hle=hc;
-                zl=zc;
-                if(n>=0){
-                    qr[0]=stage_centroid_values[n];
-                    qr[1]=xmom_centroid_values[n];
-                    qr[2]=ymom_centroid_values[n];
-                    hre=hc_n;
-                    zr = zc_n;
-                }
                 
                 // Set central bed to riverwall elevation
                 z_half=max(riverwall_elevation[RiverWall_count-1], max(zl, zr)) ;
+
+                if(min(ql[0], qr[0]) < z_half){
+                    // Since there is a wall blocking the flow connection, use first order extrapolation for this edge
+                    ql[0]=stage_centroid_values[k];
+                    ql[1]=xmom_centroid_values[k];
+                    ql[2]=ymom_centroid_values[k];
+                    hle=hc;
+                    zl=zc;
+
+                    if(n>=0){
+                      qr[0]=stage_centroid_values[n];
+                      qr[1]=xmom_centroid_values[n];
+                      qr[2]=ymom_centroid_values[n];
+                      hre=hc_n;
+                      zr = zc_n;
+                    }else{
+                      hre=hc;
+                      zr = zc;
+                    }
+                    // Re-set central bed to riverwall elevation
+                    z_half=max(riverwall_elevation[RiverWall_count-1], max(zl, zr)) ;
+                }
+                
 
             }
 
@@ -515,7 +524,8 @@ double _compute_fluxes_central(int number_of_elements,
             // Force weir discharge to match weir theory
             if(edge_flux_type[ki]==1){
                 //printf("%e \n", z_half);
-                weir_height=riverwall_elevation[RiverWall_count-1]-min(zl,zr); // Reference weir height  
+                weir_height=max(riverwall_elevation[RiverWall_count-1]-min(zl,zr), 0.); // Reference weir height  
+                //weir_height=max(z_half-max(zl,zr), 0.); // Reference weir height  
 
                 // Get Qfactor index - multiply the idealised weir discharge by this constant factor
                 ii=riverwall_rowIndex[RiverWall_count-1]*ncol_riverwall_hydraulic_properties;
