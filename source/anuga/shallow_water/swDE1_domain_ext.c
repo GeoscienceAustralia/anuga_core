@@ -298,6 +298,8 @@ double adjust_edgeflux_with_weir(double* edgeflux,
         rw*=-1.0;
     }
 
+    //printf("%e, %e \n", rw, edgeflux[0]);
+
     if( (hdRat<s2) & (hdWrRat< h2) ){
         // Rescale the edge fluxes so that the mass flux = desired flux
         // Linearly shift to shallow water solution between hdRat = s1 and s2  

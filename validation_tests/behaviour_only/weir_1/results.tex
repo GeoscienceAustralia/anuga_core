@@ -1,0 +1,31 @@
+
+\section{Flow over a weir}
+
+In this problem water runs up a broad sloping floodplain, which is split into 2 by a thin weir (riverwall). The landward side of the floodplain is initially dry but becomes wet as the water overtops the weir. We use the change in mass on the landward side of the weir to compute the flux over the weir according to \anuga{}, and compare with direct computation of the weir equation. 
+
+\anuga{} allows computation of flow over a weir using the riverwall structure (supported for DE1 only as of 19/05/2014). The default method adjusts the edge flux over the weir to satisfy a basic weir relation with Villemonte's submergence correction. However at high submergence ratios, or when the depth of flow over the weir is large compared with the weir height, \anuga{} smoothly reverts to the shallow water solution (because the weir relations are not sensible in these situations). This is required so that e.g. a weir of 1cm height covered by flow of 1m is basically no different from the shallow water solution - weir relations by themselves will not achieve this. See the documentation of riverwalls for more information.
+
+\subsection{Results}
+
+The following figures show the discharge over the weir computed with ANUGA, and with the simple weir equation with Villemonte's submergence correction. For reference we also show other weir equations. Before 1100s the discharge is quite similar for all methods. There is still a small difference between \anuga{} and the simple-weir equation because the latter is computed only using 2 water level gauges (rather than by integration as in ANUGA), and because of the discretization of the model geometry.
+
+At later times the water elevations on the landward and seaward sides of the wall are very similar, and submergence relations play a greater role in influencing the weir flow. The flow computed by \anuga{} reduces much more rapidly than do the other methods. This is due to the blending with the shallow water solution in \anuga{} at high submergence ratios (> s1). The user can adjust this behaviour in ANUGA by changing the s1, s2, h1, h2 parameters (see riverwall documentation). The Qfactor parameter can also be adjusted to increase/decrease the ideal weir flow.
+
+We have not found much information on how other models treat the transition from weir to shallow water fluxes. However, according to the HecRAS 4.1 Technical Reference manual, HecRas switches to the energy equation when the submergence ratio is 0.95 (default), which corresponds to our default choice of s2=0.95. Our default submergence ratio at which blending begins is s1=0.9.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{Stage.png}
+\end{center}
+\caption{Stage (above the riverwall crest) at 2 points either side of the riverwall}
+\end{figure}
+
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{Fluxes.png}
+\end{center}
+\caption{Fluxes over the riverwall, computed with a range of methods.}
+\end{figure}
+
+\endinput
