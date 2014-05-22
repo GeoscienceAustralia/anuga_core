@@ -10,6 +10,9 @@ from anuga.abstract_2d_finite_volumes.util import file_function
 
 import anuga
 
+import warnings
+warnings.simplefilter("ignore")
+
 #from anuga.structures.boyd_box_operator import Boyd_box_operator
 #from anuga.structures.inlet_operator import Inlet_operator
                             

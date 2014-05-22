@@ -10,6 +10,9 @@ from anuga.abstract_2d_finite_volumes.util import file_function
 
 import anuga
 
+import warnings
+warnings.simplefilter("ignore")
+
 #------------------------------------------
 # Import pypar without the initial output
 #------------------------------------------

@@ -71,7 +71,7 @@ def _get_mpi_cmd():
     """Returns the output of the command used to compile using
     mpicc."""
     # LAM/OPENMPI/MPICH2
-    output = _run_command('mpicc -show')
+    output = _run_command('mpicc -show') + ' -fPIC'
 
     if output:
         return output

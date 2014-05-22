@@ -59,6 +59,9 @@ from anuga_parallel import distribute, myid, numprocs, send, receive, barrier, f
 
 from anuga.file.test_mux import Test_Mux
 
+verbose = False
+
+
 class Test_urs2sts_parallel(Test_Mux):
     """ A suite of tests to test urs2sts file conversion functions.
         These tests are quite coarse-grained: converting a file
@@ -128,7 +131,7 @@ class Test_urs2sts_parallel(Test_Mux):
                     basename_out=sts_file,
                     ordering_filename=order_file,
                     mean_stage=tide,
-                    verbose=False)
+                    verbose=verbose)
             self.delete_mux(files)
 
             assert(os.access(sts_file+'.sts', os.F_OK))
@@ -164,7 +167,7 @@ class Test_urs2sts_parallel(Test_Mux):
                                      maximum_triangle_area=extent_res,
                                      filename=meshname,
                                      interior_regions=interior_regions,
-                                     verbose=True)
+                                     verbose=verbose)
 
         barrier()
         
@@ -294,7 +297,7 @@ class Test_urs2sts_parallel(Test_Mux):
                     basename_out=sts_file,
                     ordering_filename=order_file,
                     mean_stage=tide,
-                    verbose=False)
+                    verbose=verbose)
             self.delete_mux(files)
 
             assert(os.access(sts_file+'.sts', os.F_OK))
@@ -336,7 +339,7 @@ class Test_urs2sts_parallel(Test_Mux):
                                      maximum_triangle_area=extent_res,
                                      filename=meshname,
                                      interior_regions=interior_regions,
-                                     verbose=True)
+                                     verbose=verbose)
         
 
             # barrier()
@@ -485,7 +488,7 @@ def assert_(condition, msg="Assertion Failed"):
 # against the sequential code.
 
 if __name__=="__main__":
-    verbose=True
+    #verbose=False
     if myid ==0 and verbose: 
         print 'PARALLEL START'
     suite = unittest.makeSuite(Test_urs2sts_parallel,'parallel_test')
