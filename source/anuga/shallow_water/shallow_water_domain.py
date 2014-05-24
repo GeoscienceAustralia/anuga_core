@@ -262,7 +262,7 @@ class Domain(Generic_Domain):
         
 
         # Early algorithms need elevation to remain continuous
-        self.set_discontinuous_elevation(False)
+        self.set_using_discontinuous_elevation(False)
 
         self.set_minimum_allowed_height(minimum_allowed_height)
         self.maximum_allowed_speed = maximum_allowed_speed
@@ -430,7 +430,7 @@ class Domain(Generic_Domain):
         #self.timestepping_method='rk2'#'rk3'#'euler'#'rk2' 
         self.set_timestepping_method(2)
         
-        self.set_discontinuous_elevation(True)
+        self.set_using_discontinuous_elevation(True)
         self.set_compute_fluxes_method('DE1')
         self.set_distribute_to_vertices_and_edges_method('DE1')
         
@@ -497,7 +497,7 @@ class Domain(Generic_Domain):
         #self.timestepping_method='rk2'#'rk3'#'euler'#'rk2' 
         self.set_timestepping_method('euler')
         
-        self.set_discontinuous_elevation(True)
+        self.set_using_discontinuous_elevation(True)
         self.set_compute_fluxes_method('DE1')
         self.set_distribute_to_vertices_and_edges_method('DE1')
         
@@ -685,7 +685,7 @@ class Domain(Generic_Domain):
 
 
 
-    def set_discontinuous_elevation(self, flag=False):
+    def set_using_discontinuous_elevation(self, flag=False):
         """Set flag to show whether compute flux algorithm
         is allowing diconinuous elevation.
         default is false
@@ -693,7 +693,7 @@ class Domain(Generic_Domain):
 
         self.discontinuous_elevation = flag
 
-    def get_discontinuous_elevation(self):
+    def get_using_discontinuous_elevation(self):
 
         return self.discontinuous_elevation
 
@@ -706,8 +706,8 @@ class Domain(Generic_Domain):
            2
            2.5
            tsunami
+           DE0
            DE1
-           DE2
         """
 
         if isinstance(flag, str) :
@@ -715,7 +715,7 @@ class Domain(Generic_Domain):
         else:
             flag = str(float(str(flag))).replace(".","_")
 
-        flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', 'tsunami', 'yusuke', 'DE1', 'DE2']
+        flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', 'tsunami', 'yusuke', 'DE0', 'DE1']
 
         if flag in flow_algorithms:
             self.flow_algorithm = flag
@@ -826,14 +826,14 @@ class Domain(Generic_Domain):
             self.set_DE1_defaults()
             
             
-        if self.flow_algorithm == 'DE2':
-            self.set_DE2_defaults()
+        if self.flow_algorithm == 'DE0':
+            self.set_DE0_defaults()
 
     def get_flow_algorithm(self):
         """Get method used for timestepping and spatial discretisation
 
         Currently
-           1_0, 1_5, 1_75 2_0, 2_5, tsunami, DE1
+           1_0, 1_5, 1_75 2_0, 2_5, tsunami, DE0, DE1
         """
 
         return self.flow_algorithm
@@ -1654,7 +1654,7 @@ class Domain(Generic_Domain):
             if mass_error > 0.0 and self.verbose :
                 print 'Cumulative mass protection: '+str(mass_error)+' m^3 '
 
-        elif self.flow_algorithm == 'DE1':
+        elif self.flow_algorithm == 'DE1'  or self.flow_algorithm == 'DE0':
 
             from swDE1_domain_ext import protect
 

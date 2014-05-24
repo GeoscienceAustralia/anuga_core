@@ -114,7 +114,7 @@ class Erosion_operator(Operator, Region):
             ind = self.indices
             m = num.sqrt(self.xmom_c[ind]**2 + self.ymom_c[ind]**2)
             
-            if self.domain.flow_algorithm == 'DE1':
+            if self.domain.get_using_discontinuous_elevation():
                 m = num.where(m>self.threshold, m, 0.0)
     
                 de = m*dt
@@ -170,7 +170,7 @@ class Erosion_operator(Operator, Region):
         # Don't need to clean up if using discontinuous
         # elevation
         #----------------------------------------------
-        if self.domain.flow_algorithm == 'DE1':
+        if self.domain.get_using_discontinuous_elevation():
             return 
         
         
@@ -226,7 +226,7 @@ class Erosion_operator(Operator, Region):
         so is parallel safe.
         """
         
-        if self.domain.flow_algorithm == 'DE1':
+        if self.domain.get_using_discontinuous_elevation():
             return True
         else:
             return False
@@ -605,7 +605,7 @@ class Bed_shear_erosion_operator(Erosion_operator):
             #de = bsbs/100000.0*dt  # Works OK...  Bed Slope
 
 
-            if self.domain.flow_algorithm == 'DE1':
+            if self.domain.get_discontinuous_elavation():
                 height = self.stage_c[ind] - self.elev_c[ind]
                 
                 limiting = v 
@@ -704,7 +704,7 @@ class Flat_slice_erosion_operator(Erosion_operator):
 
             ind = self.indices
             
-            if self.domain.flow_algorithm == 'DE1':
+            if self.domain.get_using_discontinuous_elevation():
                 try:
                     height = self.stage_c[ind] - self.elev_c[ind]
                     value = self.elevation(t)
@@ -791,7 +791,7 @@ class Flat_fill_slice_erosion_operator(Erosion_operator):
 
             ind = self.indices
             
-            if self.domain.flow_algorithm == 'DE1':
+            if self.domain.get_using_discontinuous_elevation():
 
                 try:
                     value = self.elevation(t)

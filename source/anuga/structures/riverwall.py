@@ -6,13 +6,13 @@ class RiverWall:
     These are located along each cell edge, and can have an elevation different
     from the bed elevation.
 
-    For the DE1 algorithm, they are used in computing the 'z_half' value [if they
+    For the DE algorithms, they are used in computing the 'z_half' value [if they
     are greater than either edge elevation]. 
 
-    In addition, the DE1 fluxes at riverwalls are adjusted to agree with a weir relation,
+    In addition, the DE fluxes at riverwalls are adjusted to agree with a weir relation,
     so long as the riverwall is not too deeply submerged.
 
-    As of 22/04/2014, they are only implemented for DE1 [the shallow water
+    As of 22/04/2014, they are only implemented for DE0 and DE1 [the shallow water
     component would be more difficult to implement with other algorithms]
         
     How the flux over the riverwall is computed:
@@ -35,7 +35,7 @@ class RiverWall:
     #
     # Denote SW as the 'shallow-water' weir flux, computed from the approximate
     # reimann solver, where the mid-edge-elevation is the weir crest elevation.
-    # This makes clear sense for DE1. Cell centroid stage/height/bed_elevation
+    # This makes clear sense for DE0 and DE1. Cell centroid stage/height/bed_elevation
     # are used in the flux computation
     #
     # Then the flux over the weir is computed from:
@@ -147,7 +147,7 @@ class RiverWall:
                           tol=1.0e-04, verbose=True):
         """Add riverwalls at chosen locations along the mesh
 
-        As of 22/04/2014, these only work with DE1 [for which the concept is natural]
+        As of 22/04/2014, these only work with DE0 and DE1 [for which the concept is natural]
 
         The walls MUST EXACTLY COINCIDE with edges along the mesh 
         
@@ -224,14 +224,14 @@ class RiverWall:
             print '  It works in parallel, but you must use domain.riverwallData.create_riverwall AFTER distributing the mesh'
             print ' '
 
-        # NOTE: domain.riverwallData is initialised in shallow_water_domain.py for DE1
+        # NOTE: domain.riverwallData is initialised in shallow_water_domain.py for DE0 and DE1
 
         domain=self.domain
 
         
         # Check flow algorithm
-        if(domain.flow_algorithm!='DE1'):
-            raise Exception, 'Riverwalls are currently only supported when domain.flow_algorithm="DE1"'
+        if(not domain.get_using_discontinuous_elevation()):
+            raise Exception, 'Riverwalls are currently only supported when domain.flow_algorithm="DE0" and "DE1"'
 
         if(len(self.names)>0):
             # Delete any existing riverwall data

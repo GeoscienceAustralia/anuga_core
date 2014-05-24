@@ -108,7 +108,8 @@ class Set_elevation(Set_quantity):
         # Apply changes to elevation vertex values
         # via the update_quantites routine
         # Assume vertex values updated and need to 
-        # fix up centroid values unless flow_algorithm == 'DE1'
+        # fix up centroid values unless 
+        # domain.get_discontinuous_elevation is true
         #------------------------------------------
         if not self.update_quantities():
             return
@@ -123,7 +124,7 @@ class Set_elevation(Set_quantity):
             # Make elevation continuous and clean up
             # stage values to ensure conservation
             #--------------------------------------
-            if self.domain.get_discontinuous_elevation():
+            if self.domain.get_using_discontinuous_elevation():
                 pass
             else:
                 height_c = self.stage_c - self.elev_c
@@ -139,7 +140,7 @@ class Set_elevation(Set_quantity):
             # stage values to ensure conservation
             #--------------------------------------
             
-            if self.domain.get_discontinuous_elevation():
+            if self.domain.get_using_discontinuous_elevation():
                 pass
             else:
                 height_c = self.stage_c[self.vols] - self.elev_c[self.vols]
@@ -176,7 +177,7 @@ class Set_elevation(Set_quantity):
 
         if self.indices is None:
 
-            if self.domain.flow_algorithm == 'DE1':
+            if self.domain.get_using_discontinuous_elevation():
                 try:
                     height_c = self.stage_c - self.elev_c
                     value = self.get_value(x=self.coord_c[:,0], y=self.coord_c[:,1])
@@ -201,7 +202,7 @@ class Set_elevation(Set_quantity):
         #----------------------------------
         else: 
 
-            if self.domain.flow_algorithm == 'DE1':
+            if self.domain.get_using_discontinuous_elevation():
                 ids = self.indices
                 x = self.coord_c[ids,0]
                 y = self.coord_c[ids,1]
