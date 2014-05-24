@@ -261,6 +261,9 @@ class Domain(Generic_Domain):
         from anuga.config import flow_algorithm
         
 
+        # Early algorithms need elevation to remain continuous
+        self.set_discontinuous_elevation(False)
+
         self.set_minimum_allowed_height(minimum_allowed_height)
         self.maximum_allowed_speed = maximum_allowed_speed
 
@@ -427,6 +430,7 @@ class Domain(Generic_Domain):
         #self.timestepping_method='rk2'#'rk3'#'euler'#'rk2' 
         self.set_timestepping_method(2)
         
+        self.set_discontinuous_elevation(True)
         self.set_compute_fluxes_method('DE1')
         self.set_distribute_to_vertices_and_edges_method('DE1')
         
@@ -484,6 +488,72 @@ class Domain(Generic_Domain):
             print '#'
             print '##########################################################################'
 
+    def set_DE2_defaults(self):
+        """Set up the defaults for running the flow_algorithm "DE2"
+           A 'discontinuous elevation' method
+        """
+        self.set_CFL(1.00)
+        self.set_use_kinematic_viscosity(False)
+        #self.timestepping_method='rk2'#'rk3'#'euler'#'rk2' 
+        self.set_timestepping_method('euler')
+        
+        self.set_discontinuous_elevation(True)
+        self.set_compute_fluxes_method('DE1')
+        self.set_distribute_to_vertices_and_edges_method('DE1')
+        
+        # Don't place any restriction on the minimum storable height
+        self.minimum_storable_height=-99999999999.0 
+        self.minimum_allowed_height=1.0e-05
+
+        self.use_edge_limiter=True
+        self.set_default_order(2)
+        self.set_extrapolate_velocity()
+
+        self.beta_w=0.5
+        self.beta_w_dry=0.1
+        self.beta_uh=0.5
+        self.beta_uh_dry=0.1
+        self.beta_vh=0.5
+        self.beta_vh_dry=0.1
+        
+
+        #self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
+        #         'ymomentum': 2, 'elevation': 2, 'height':2})
+        #self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
+        #         'ymomentum': 2, 'elevation': 1})
+        self.set_store_centroids(True)
+
+        self.optimise_dry_cells=False 
+
+        # We need the edge_coordinates for the extrapolation
+        self.edge_coordinates=self.get_edge_midpoint_coordinates()
+
+        # By default vertex values are NOT stored uniquely
+        # for storage efficiency. We may override this (but not so important since
+        # centroids are stored anyway
+        # self.set_store_vertices_smoothly(False)
+
+        self.maximum_allowed_speed=0.0
+
+        ## FIXME: Should implement tracking of boundary fluxes
+        ## Keep track of the fluxes through the boundaries
+        self.boundary_flux_integral=num.ndarray(1)
+        self.boundary_flux_integral[0]=0. 
+        self.boundary_flux_sum=num.ndarray(1)
+        self.boundary_flux_sum[0]=0.
+
+        self.call=1 # Integer counting how many times we call compute_fluxes_central
+
+        if self.processor == 0 and self.verbose:
+            print '##########################################################################'
+            print '#'
+            print '# Using discontinuous elevation solver DE2'
+            print '#'
+            print '# First order timestepping'
+            print '#'
+            print '# Make sure you use centroid values when reporting on important output quantities'
+            print '#'
+            print '##########################################################################'
 
     def update_special_conditions(self):
 
@@ -615,6 +685,18 @@ class Domain(Generic_Domain):
 
 
 
+    def set_discontinuous_elevation(self, flag=False):
+        """Set flag to show whether compute flux algorithm
+        is allowing diconinuous elevation.
+        default is false
+        """
+
+        self.discontinuous_elevation = flag
+
+    def get_discontinuous_elevation(self):
+
+        return self.discontinuous_elevation
+
     def set_flow_algorithm(self, flag=1.5):
         """Set combination of slope limiting and time stepping
 
@@ -625,6 +707,7 @@ class Domain(Generic_Domain):
            2.5
            tsunami
            DE1
+           DE2
         """
 
         if isinstance(flag, str) :
@@ -632,7 +715,7 @@ class Domain(Generic_Domain):
         else:
             flag = str(float(str(flag))).replace(".","_")
 
-        flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', 'tsunami', 'yusuke', 'DE1']
+        flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', 'tsunami', 'yusuke', 'DE1', 'DE2']
 
         if flag in flow_algorithms:
             self.flow_algorithm = flag
@@ -741,6 +824,10 @@ class Domain(Generic_Domain):
 
         if self.flow_algorithm == 'DE1':
             self.set_DE1_defaults()
+            
+            
+        if self.flow_algorithm == 'DE2':
+            self.set_DE2_defaults()
 
     def get_flow_algorithm(self):
         """Get method used for timestepping and spatial discretisation
@@ -1255,9 +1342,9 @@ class Domain(Generic_Domain):
             # the domain as in other compute flux calls
             from swDE1_domain_ext import compute_fluxes_ext_central \
                                       as compute_fluxes_ext
-            if self.timestepping_method=='euler':
-                raise Exception, "DE1 doesn't seems to work with euler at present \
-                                 (boundary conditions?), and is mostly designed for rk2"
+            #if self.timestepping_method=='euler':
+            #    raise Exception, "DE1 doesn't seems to work with euler at present \
+            #                     (boundary conditions?), and is mostly designed for rk2"
             Stage = self.quantities['stage']
             Xmom = self.quantities['xmomentum']
             Ymom = self.quantities['ymomentum']

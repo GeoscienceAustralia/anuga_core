@@ -8,6 +8,8 @@
 import anuga
 from anuga import Domain as Domain
 from numpy import zeros, float
+from anuga import myid, finalize, distribute
+
 
 
 #pprint
@@ -33,30 +35,6 @@ dy = dx
 L = 1000.
 W = 5*dx
 
-# structured mesh
-points, vertices, boundary = anuga.rectangular_cross(int(L/dx), int(W/dy), L, W, (-L/2.0, -W/2.0))
-
-#domain = anuga.Domain(points, vertices, boundary) 
-domain = Domain(points, vertices, boundary) 
-
-domain.set_name(output_file)                
-domain.set_datadir(output_dir) 
-
-#------------------------------------------------------------------------------
-# Setup Algorithm, either using command line arguments
-# or override manually yourself
-#------------------------------------------------------------------------------
-from anuga.utilities.argparsing import parse_standard_args
-alg, cfl = parse_standard_args()
-domain.set_flow_algorithm(alg)
-domain.set_CFL(cfl)
-
-#------------------------------------------------------------------------------
-# Setup initial conditions
-#------------------------------------------------------------------------------
-domain.set_quantity('elevation',0.0)
-domain.set_quantity('friction', 0.0)
-
 h0 = 10.0
 h1 = 0.0
 
@@ -68,7 +46,42 @@ def height(x,y):
         else:
             z[i] = h1
     return z
-domain.set_quantity('stage', height)
+
+#================================================================================
+# create sequential domain
+#================================================================================
+if myid == 0:
+    # structured mesh
+    points, vertices, boundary = anuga.rectangular_cross(int(L/dx), int(W/dy), L, W, (-L/2.0, -W/2.0))
+
+    #domain = anuga.Domain(points, vertices, boundary) 
+    domain = Domain(points, vertices, boundary) 
+
+    domain.set_name(output_file)                
+    domain.set_datadir(output_dir) 
+
+    #------------------------------------------------------------------------------
+    # Setup Algorithm, either using command line arguments
+    # or override manually yourself
+    #------------------------------------------------------------------------------
+    from anuga.utilities.argparsing import parse_standard_args
+    alg, cfl = parse_standard_args()
+    domain.set_flow_algorithm(alg)
+    domain.set_CFL(cfl)
+
+    #------------------------------------------------------------------------------
+    # Setup initial conditions
+    #------------------------------------------------------------------------------
+    domain.set_quantity('elevation',0.0)
+    domain.set_quantity('friction', 0.0)
+    domain.set_quantity('stage', height)
+else:
+    domain = None
+    
+#===================================================================================
+# create parallel domain
+#===================================================================================
+domain = distribute(domain)
 
 #-----------------------------------------------------------------------------
 # Setup boundary conditions
@@ -90,26 +103,30 @@ domain.set_boundary({'left': Bt, 'right': Bt, 'top': Br, 'bottom': Br})
 #===============================================================================
 
 
-#------------------------------------------------------------------------------
-# Produce a documentation of parameters
-#------------------------------------------------------------------------------
-parameter_file=open('parameters.tex', 'w')
-parameter_file.write('\\begin{verbatim}\n')
-from pprint import pprint
-pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
-parameter_file.write('\\end{verbatim}\n')
-parameter_file.close()
+
+if myid == 0:
+    #------------------------------------------------------------------------------
+    # Produce a documentation of parameters
+    #------------------------------------------------------------------------------
+    parameter_file=open('parameters.tex', 'w')
+    parameter_file.write('\\begin{verbatim}\n')
+    from pprint import pprint
+    pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
+    parameter_file.write('\\end{verbatim}\n')
+    parameter_file.close()
+    
 
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep = 0.5, finaltime = 50.):
-    #print domain.timestepping_statistics(track_speeds=True)
-    print domain.timestepping_statistics()
-    #vis.update()
+    if myid == 0:
+        print domain.timestepping_statistics()
 
 
-#test against know data
-    
-#vis.evolveFinished()
+
+domain.sww_merge(delete_old=True)
+
+finalize()
+
 

@@ -284,7 +284,13 @@ def get_centroid_values(p, velocity_extrapolation):
         stage_cent=(p.stage[:,vols0]+p.stage[:,vols1]+p.stage[:,vols2])/3.0
         height_cent=(p.height[:,vols0]+p.height[:,vols1]+p.height[:,vols2])/3.0
 
-        friction_cent=(p.friction[:,vols0]+p.friction[:,vols1]+p.friction[:,vols2])/3.0
+        try:
+            friction_cent=(p.friction[:,vols0]+p.friction[:,vols1]+p.friction[:,vols2])/3.0
+        except:
+            try:
+                friction_cent=(p.friction[vols0]+p.friction[vols1]+p.friction[vols2])/3.0
+            except:
+                pass
 
         # Only store elevation centroid once (since it doesn't change)
         if(len(p.elev.shape)==2):

@@ -123,7 +123,7 @@ class Set_elevation(Set_quantity):
             # Make elevation continuous and clean up
             # stage values to ensure conservation
             #--------------------------------------
-            if self.domain.flow_algorithm == 'DE1':
+            if self.domain.get_discontinuous_elevation():
                 pass
             else:
                 height_c = self.stage_c - self.elev_c
@@ -139,7 +139,7 @@ class Set_elevation(Set_quantity):
             # stage values to ensure conservation
             #--------------------------------------
             
-            if self.domain.flow_algorithm == 'DE1':
+            if self.domain.get_discontinuous_elevation():
                 pass
             else:
                 height_c = self.stage_c[self.vols] - self.elev_c[self.vols]
