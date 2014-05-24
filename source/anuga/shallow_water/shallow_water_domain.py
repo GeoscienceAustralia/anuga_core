@@ -234,7 +234,7 @@ class Domain(Generic_Domain):
         self.edge_flux_type=num.zeros(len(self.edge_coordinates[:,0])).astype(int)
 
         # Riverwalls -- initialise with dummy values
-        # Presently only works with DE1, will fail otherwise
+        # Presently only works with DE algorithms, will fail otherwise
         import anuga.structures.riverwall
         self.riverwallData=anuga.structures.riverwall.RiverWall(self)
 
@@ -488,8 +488,8 @@ class Domain(Generic_Domain):
             print '#'
             print '##########################################################################'
 
-    def set_DE2_defaults(self):
-        """Set up the defaults for running the flow_algorithm "DE2"
+    def set_DE0_defaults(self):
+        """Set up the defaults for running the flow_algorithm "DE0"
            A 'discontinuous elevation' method
         """
         self.set_CFL(1.00)
@@ -547,7 +547,7 @@ class Domain(Generic_Domain):
         if self.processor == 0 and self.verbose:
             print '##########################################################################'
             print '#'
-            print '# Using discontinuous elevation solver DE2'
+            print '# Using discontinuous elevation solver DE0'
             print '#'
             print '# First order timestepping'
             print '#'
