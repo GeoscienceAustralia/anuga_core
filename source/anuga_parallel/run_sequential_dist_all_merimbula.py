@@ -1,14 +1,11 @@
-
 """Run parallel shallow water domain.
 
    run using command like:
 
-   mpirun -np m python run_parallel_sw_merimbula.py
+   mpirun -np m python run_sequential_dist_all.py
 
    where m is the number of processors to be used.
    
-   Will produce sww files with names domain_Pn_m.sww where m is number of processors and
-   n in [0, m-1] refers to specific processor that owned this part of the partitioned mesh.
 """
 
 #------------------------------------------------------------------------------
@@ -106,30 +103,7 @@ domain = distribute(domain)
 # (all called "domain"
 #--------------------------------------------------------------------------
 
-domain.set_flow_algorithm('2_0')
-
-#domain.smooth = False
-#domain.set_default_order(2)
-#domain.set_timestepping_method('rk2')
-#domain.set_CFL(0.7)
-#domain.set_beta(1.5)
-
-
-#for p in range(numprocs):
-#    if myid == p:
-#        print 'P%d'%p
-#        print domain.get_extent()
-#        print domain.get_extent(absolute=True)
-#        print domain.geo_reference
-#        print domain.s2p_map
-#        print domain.p2s_map
-#        print domain.tri_l2g
-#        print domain.node_l2g
-#    else:
-#        pass
-#
-#    barrier()
-
+domain.set_flow_algorithm('DE0')
 
 #------------------------------------------------------------------------------
 # Setup boundary conditions

@@ -3,13 +3,12 @@
 
    run using command like:
 
-   mpirun -np m python run_parallel_sw_merimbula.py
+   mpirun -np 4  python run_sequential_dist_evolve_merimbula.py
 
-   where m is the number of processors to be used.
-   
-   Will produce sww files with names domain_Pn_m.sww where m is number of processors and
-   n in [0, m-1] refers to specific processor that owned this part of the partitioned mesh.
-"""
+   Need to have run run_sequential_dist_distribute_merimbula.py
+
+   first to produce the required pickle files encoding the partitioning
+   """
 
 #------------------------------------------------------------------------------
 # Import necessary modules
@@ -41,7 +40,7 @@ from anuga_parallel.sequential_distribute import sequential_distribute_load
 #--------------------------------------------------------------------------
 # Setup parameters
 #--------------------------------------------------------------------------
-yieldstep = 10
+yieldstep = 50
 finaltime = 1500
 verbose = True
 
@@ -57,7 +56,7 @@ domain = sequential_distribute_load(filename='merimbula_new', verbose = True)
 # (all called "domain"
 #--------------------------------------------------------------------------
 
-domain.set_flow_algorithm('tsunami')
+domain.set_flow_algorithm('DE0')
 
 
 

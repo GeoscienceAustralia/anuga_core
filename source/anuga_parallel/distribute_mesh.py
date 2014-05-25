@@ -165,6 +165,7 @@ def pmesh_divide_metis_helper(domain, n_procs):
         t_list = num.reshape(t_list, (-1,))
     
         # The 1 here is for triangular mesh elements.
+        # FIXME: Should update to Metis 5
         edgecut, epart, npart = partMeshNodal(n_tri, n_vert, t_list, 1, n_procs)
         # print edgecut
         # print npart
@@ -1327,15 +1328,15 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
     tagmap = {}
     counter = 1
     for b in submesh["full_boundary"][p]:
-         bkey = submesh["full_boundary"][p][b]
-         if not tagmap.has_key(bkey):
-             tagmap[bkey] = counter
-             counter = counter+1
+        bkey = submesh["full_boundary"][p][b]
+        if not tagmap.has_key(bkey):
+            tagmap[bkey] = counter
+            counter = counter+1
     for b in submesh["ghost_boundary"][p]:
-         bkey = submesh["ghost_boundary"][p][b]
-         if not tagmap.has_key(bkey):
-             tagmap[bkey] = counter
-             counter = counter+1
+        bkey = submesh["ghost_boundary"][p][b]
+        if not tagmap.has_key(bkey):
+            tagmap[bkey] = counter
+            counter = counter+1
 
 
     # send boundary tags

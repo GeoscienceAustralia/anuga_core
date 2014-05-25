@@ -3,12 +3,10 @@
 
    run using command like:
 
-   mpirun -np m python run_parallel_sw_merimbula.py
+   python run_sequential_dist_distribute_merimbula.py
 
-   where m is the number of processors to be used.
+   will produce 4 pickled files corresponding partitioned domains
    
-   Will produce sww files with names domain_Pn_m.sww where m is number of processors and
-   n in [0, m-1] refers to specific processor that owned this part of the partitioned mesh.
 """
 
 #------------------------------------------------------------------------------
@@ -95,6 +93,7 @@ domain.set_store(True)
 
 if verbose: print 'DISTRIBUTING DOMAIN'
 sequential_distribute_dump(domain, 4, verbose=True)
+
 
 
 

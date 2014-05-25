@@ -353,6 +353,8 @@ def extract_l2g_map(map):
 
     import numpy as num
     
+    # FIXME: this is where we loss the original order of 
+    # sequential domain
     b = num.arange(len(map))
 
     l_ids = num.extract(map>-1,map)
