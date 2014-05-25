@@ -36,22 +36,21 @@ def topography(x, y):
     N = len(x)
     for i in range(N):
 
-       # Sloping Embankment Across Channel
+        # Sloping Embankment Across Channel
         if 5.0 < x[i] < 10.1:
             # Cut Out Segment for Culvert face
             if  1.0+(x[i]-5.0)/5.0 <  y[i]  < 4.0 - (x[i]-5.0)/5.0:
-               z[i]=z[i]
+                z[i]=z[i]
             else:
-               z[i] +=  0.5*(x[i] -5.0)    # Sloping Segment  U/S Face
+                z[i] +=  0.5*(x[i] -5.0)    # Sloping Segment  U/S Face
         if 10.0 < x[i] < 12.1:
-           z[i] +=  2.5                    # Flat Crest of Embankment
+            z[i] +=  2.5                    # Flat Crest of Embankment
         if 12.0 < x[i] < 14.5:
             # Cut Out Segment for Culvert face
             if  2.0-(x[i]-12.0)/2.5 <  y[i]  < 3.0 + (x[i]-12.0)/2.5:
-               z[i]=z[i]
+                z[i]=z[i]
             else:
-               z[i] +=  2.5-1.0*(x[i] -12.0) # Sloping D/S Face
-
+                z[i] +=  2.5-1.0*(x[i] -12.0) # Sloping D/S Face
 
     return z
 
