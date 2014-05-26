@@ -22,6 +22,7 @@ import sys
 #---------------------------
 from anuga import Transmissive_boundary, Reflective_boundary
 from anuga import rectangular_cross_domain
+from anuga import Set_quantity
 
 #----------------------------
 # Parallel interface
@@ -39,17 +40,17 @@ verbose = True
 if myid == 0:
     length = 2.0
     width = 2.0
-    dx = dy = 0.005
+    #dx = dy = 0.005
     #dx = dy = 0.00125
-    #dx = dy  = 0.5
+    dx = dy  = 0.5
     domain = rectangular_cross_domain(int(length/dx), int(width/dy),
-                                              len1=length, len2=width, verbose=verbose)
+                                              len1=length, len2=width, origin=(length/2,width/2), verbose=verbose)
 
 
     domain.set_store(True)
     domain.set_quantity('elevation', lambda x,y : -1.0-x )
     domain.set_quantity('stage', 1.0)
-    domain.set_flow_algorithm('tsunami')
+    domain.set_flow_algorithm('DE0')
     domain.print_statistics()
 else:
     domain = None
@@ -57,7 +58,7 @@ else:
 t1 = time.time()
 
 if myid == 0 :
-    print 'Create sequential domain ',t1-t0
+    print 'Create sequential domain: Time',t1-t0
 
 if myid == 0 and verbose: 
     print 'DISTRIBUTING DOMAIN'
@@ -74,7 +75,7 @@ domain = distribute(domain,verbose=verbose)
 t2 = time.time()
 
 if myid == 0 :
-    print 'Distribute domain ',t2-t1
+    print 'Distribute domain: Time ',t2-t1
     
 if myid == 0 : print 'after parallel domain'
 
@@ -117,6 +118,7 @@ class Set_Stage:
 
 #domain.set_quantity('stage', Set_Stage(0.2, 0.4, 0.25, 0.75, 1.0, 0.00))
 
+Set_quantity(domain,'stage',center=(0.0,0.0), radius=0.5, value = 2.0)
 
 if myid == 0 : print 'after set quantity'
 
@@ -136,8 +138,8 @@ for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
     if myid == 0:
         domain.write_time()
         sys.stdout.flush()
-						
-
+        
+        
 
 
 for p in range(numprocs):
