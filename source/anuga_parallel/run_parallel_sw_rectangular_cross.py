@@ -44,7 +44,7 @@ if myid == 0:
     #dx = dy = 0.00125
     dx = dy  = 0.5
     domain = rectangular_cross_domain(int(length/dx), int(width/dy),
-                                              len1=length, len2=width, origin=(length/2,width/2), verbose=verbose)
+                                              len1=length, len2=width, origin=(-length/2, -width/2), verbose=verbose)
 
 
     domain.set_store(True)
