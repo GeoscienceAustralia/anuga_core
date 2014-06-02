@@ -211,7 +211,7 @@ class Structure_operator(anuga.Operator):
             new_inflow_depth = old_inflow_depth*factor
             new_inflow_xmom = old_inflow_xmom*factor
             new_inflow_ymom = old_inflow_ymom*factor
-                
+            
             self.inflow.set_depths(new_inflow_depth)
     
             #inflow.set_xmoms(Q/inflow.get_area())
@@ -250,7 +250,6 @@ class Structure_operator(anuga.Operator):
             new_inflow_depth = old_inflow_depth - factor
             new_inflow_xmom = old_inflow_xmom/old_inflow_depth*new_inflow_depth 
             new_inflow_ymom = old_inflow_ymom/old_inflow_depth*new_inflow_depth
-                
             self.inflow.set_depths(new_inflow_depth)    
             self.inflow.set_xmoms(new_inflow_xmom)
             self.inflow.set_ymoms(new_inflow_ymom)

@@ -31,6 +31,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                  apron=0.1,
                  manning=0.013,
                  enquiry_gap=0.0,
+                 smoothing_timescale=0.0,
                  use_momentum_jet=True,
                  use_velocity_head=True,
                  description=None,
@@ -94,6 +95,21 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
         self.velocity = 0.0
         
         self.case = 'N/A'
+
+        self.domain=domain
+        # May/June 2014 -- allow 'smoothing ' of driving_energy, delta total energy, and outflow_enq_depth
+        self.smoothing_timescale=0.
+        self.smooth_driving_energy=0.
+        self.smooth_delta_total_energy=0.
+        self.smooth_outflow_enq_depth=0.
+        # Set them based on a call to the discharge routine with smoothing_timescale=0.
+        # [values of self.smooth_* are required in discharge_routine, hence dummy values above]
+        Qvd=self.discharge_routine()
+        self.smooth_driving_energy=1.0*self.driving_energy
+        self.smooth_delta_total_energy=1.0*self.delta_total_energy
+        self.smooth_outflow_enq_depth=Qvd[2]
+        # Finally, set the smoothing timescale we actually want
+        self.smoothing_timescale=smoothing_timescale
 
         '''
         print "ATTRIBUTES OF PARALLEL BOYD BOX::"
@@ -234,15 +250,28 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                 else:
                     self.driving_energy = inflow_enq_depth
                     
+                # May/June 2014 -- change the driving forces gradually, with forward euler timestepping 
+                ts=self.domain.timestep/max(self.domain.timestep, self.smoothing_timescale,1.0e-06)
+                self.smooth_driving_energy=self.smooth_driving_energy+\
+                                        ts*(self.driving_energy-self.smooth_driving_energy)
+                self.smooth_delta_total_energy=self.smooth_delta_total_energy+\
+                                        ts*(self.delta_total_energy-self.smooth_delta_total_energy)
+                self.smooth_outflow_enq_depth=self.smooth_outflow_enq_depth+\
+                                        ts*(outflow_enq_depth-self.smooth_outflow_enq_depth)
+
             
                 Q, barrel_velocity, outlet_culvert_depth, flow_area, case = \
                               boyd_box_function(depth               =self.culvert_height,
                                                 width               =self.culvert_width,
                                                 flow_width          =self.culvert_width,
                                                 length              =self.culvert_length,
-                                                driving_energy      =self.driving_energy,
-                                                delta_total_energy  =self.delta_total_energy,
-                                                outlet_enquiry_depth=outflow_enq_depth,
+                                                #driving_energy      =self.driving_energy,
+                                                #delta_total_energy  =self.delta_total_energy,
+                                                #outlet_enquiry_depth=outflow_enq_depth,
+                                                # Allow smoothing of the driving energies 
+                                                driving_energy      =self.smooth_driving_energy,
+                                                delta_total_energy  =self.smooth_delta_total_energy,
+                                                outlet_enquiry_depth=self.smooth_outflow_enq_depth,
                                                 sum_loss            =self.sum_loss,
                                                 manning             =self.manning)
 

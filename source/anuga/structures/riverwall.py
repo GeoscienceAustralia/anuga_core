@@ -123,9 +123,10 @@ class RiverWall:
                                    'h2': 1.5       
                                    }
 
-
-        self.hydraulic_variable_names=['Qfactor', 's1', 's2', 'h1', 'h2']
-        #self.hydraulic_variable_names=('Qfactor',)
+        # DO NOT CHANGE THE ORDER OF hydraulic_variable_names
+        # It needs to match hard-coded assumptions in C [compute_fluxes_central]
+        # If you add a variable, append it to the end of hydraulic_variable_names
+        self.hydraulic_variable_names=('Qfactor', 's1', 's2', 'h1', 'h2')
 
         self.ncol_hydraulic_properties=len(self.hydraulic_variable_names)
         # Variable to hold the riverwall hydraulic properties in a table
