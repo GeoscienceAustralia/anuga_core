@@ -281,7 +281,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                     # set Q to zero
                     Q=0.
                 else:
-                    Q = abs(self.smooth_Q)
+                    Q = min(abs(self.smooth_Q), Q) #abs(self.smooth_Q)
                 barrel_velocity=Q/flow_area
             # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow
 
