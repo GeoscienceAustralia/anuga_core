@@ -1,5 +1,6 @@
 import anuga
 import math
+import numpy
 
 from anuga.structures.boyd_box_operator import boyd_box_function 
 
@@ -99,15 +100,13 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
         self.domain=domain
         # May/June 2014 -- allow 'smoothing ' of driving_energy, delta total energy, and outflow_enq_depth
         self.smoothing_timescale=0.
-        self.smooth_driving_energy=0.
         self.smooth_delta_total_energy=0.
-        self.smooth_outflow_enq_depth=0.
+        self.smooth_Q=0.
         # Set them based on a call to the discharge routine with smoothing_timescale=0.
         # [values of self.smooth_* are required in discharge_routine, hence dummy values above]
         Qvd=self.discharge_routine()
-        self.smooth_driving_energy=1.0*self.driving_energy
         self.smooth_delta_total_energy=1.0*self.delta_total_energy
-        self.smooth_outflow_enq_depth=Qvd[2]
+        self.smooth_Q=Qvd[0]
         # Finally, set the smoothing timescale we actually want
         self.smoothing_timescale=smoothing_timescale
 
@@ -169,19 +168,24 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
         self.outflow_index = 1
         # master proc orders reversal if applicable
         if self.myid == self.master_proc:
-
+            # May/June 2014 -- change the driving forces gradually, with forward euler timestepping 
+            ts=self.domain.timestep/max(self.domain.timestep, self.smoothing_timescale,1.0e-06)
+            self.smooth_delta_total_energy=self.smooth_delta_total_energy+\
+                                    ts*(self.delta_total_energy-self.smooth_delta_total_energy)
 
             # Reverse the inflow and outflow direction?
-            if self.delta_total_energy < 0:
+            if self.smooth_delta_total_energy < 0:
                 self.inflow_index = 1
                 self.outflow_index = 0
 
-                self.delta_total_energy = -self.delta_total_energy
+                #self.delta_total_energy = -self.delta_total_energy
+                self.delta_total_energy = -self.smooth_delta_total_energy
 
                 for i in self.procs:
                     if i == self.master_proc: continue
                     pypar.send(True, i)
             else:
+                self.delta_total_energy = self.smooth_delta_total_energy
                 for i in self.procs:
                     if i == self.master_proc: continue
                     pypar.send(False, i)
@@ -250,32 +254,35 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                 else:
                     self.driving_energy = inflow_enq_depth
                     
-                # May/June 2014 -- change the driving forces gradually, with forward euler timestepping 
-                ts=self.domain.timestep/max(self.domain.timestep, self.smoothing_timescale,1.0e-06)
-                self.smooth_driving_energy=self.smooth_driving_energy+\
-                                        ts*(self.driving_energy-self.smooth_driving_energy)
-                self.smooth_delta_total_energy=self.smooth_delta_total_energy+\
-                                        ts*(self.delta_total_energy-self.smooth_delta_total_energy)
-                self.smooth_outflow_enq_depth=self.smooth_outflow_enq_depth+\
-                                        ts*(outflow_enq_depth-self.smooth_outflow_enq_depth)
-
             
                 Q, barrel_velocity, outlet_culvert_depth, flow_area, case = \
                               boyd_box_function(depth               =self.culvert_height,
                                                 width               =self.culvert_width,
                                                 flow_width          =self.culvert_width,
                                                 length              =self.culvert_length,
-                                                #driving_energy      =self.driving_energy,
-                                                #delta_total_energy  =self.delta_total_energy,
-                                                #outlet_enquiry_depth=outflow_enq_depth,
-                                                # Allow smoothing of the driving energies 
-                                                driving_energy      =self.smooth_driving_energy,
-                                                delta_total_energy  =self.smooth_delta_total_energy,
-                                                outlet_enquiry_depth=self.smooth_outflow_enq_depth,
+                                                driving_energy      =self.driving_energy,
+                                                delta_total_energy  =self.delta_total_energy,
+                                                outlet_enquiry_depth=outflow_enq_depth,
                                                 sum_loss            =self.sum_loss,
                                                 manning             =self.manning)
 
-                
+                ################################################
+                # Smooth discharge. This can reduce oscillations
+                # 
+                # NOTE: The sign of smooth_Q assumes that
+                #   self.inflow_index=0 and self.outflow_index=1
+                #   , whereas the sign of Q is always positive
+                Qsign=(self.outflow_index-self.inflow_index) # To adjust sign of Q
+                self.smooth_Q = self.smooth_Q +ts*(Q*Qsign-self.smooth_Q)
+                if numpy.sign(self.smooth_Q)!=Qsign:
+                    # The flow direction of the 'instantaneous Q' based on the
+                    # 'smoothed delta_total_energy' is not the same as the
+                    # direction of smooth_Q. To prevent 'jumping around', let's
+                    # set Q to zero
+                    Q=0.
+                else:
+                    Q = abs(self.smooth_Q)
+                barrel_velocity=Q/flow_area
             # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow
 
             else: # self.inflow.get_enquiry_depth() < 0.01:
