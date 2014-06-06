@@ -43,7 +43,6 @@ class Test_results(unittest.TestCase):
             
 
         import anuga.utilities.plot_utils as util
-        from matplotlib import pyplot as pyplot
         from analytical_avalanche_wet import analytical_sol
 
         p_st = util.get_output('avalanche.sww')

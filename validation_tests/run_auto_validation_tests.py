@@ -43,10 +43,10 @@ for dirpath, dirnames, filenames in os.walk('.'):
 
 
 print 
-print '---------------------------------------------------------'
+print 80*'='
 print 'Running all validation tests - some may take many minutes'
 print 'and some may require memory in the order of 8-16GB       '
-print '---------------------------------------------------------'
+print 80*'='
 
 print 'Validation test suites:'
 for path, filename in validation_dirs_and_files:
@@ -63,9 +63,9 @@ for path, filename in validation_dirs_and_files:
 
     os.chdir(path)
     s = 'python %s' % filename
-    print 60*'-'
+    print 80*'='
     print s
-    print 60*'-'
+    print 80*'='
     os.system(s)
     
     # Back to parent directory

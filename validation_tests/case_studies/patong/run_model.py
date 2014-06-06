@@ -35,6 +35,8 @@ import build_urs_boundary as bub
 
 from anuga.file.csv_file import load_csv_as_building_polygons
 
+import shutil
+
 
 verbose = True
 #-------------------------------------------------------------------------------
@@ -44,10 +46,12 @@ verbose = True
 if(myid==0):
     # Make output dir and set log filename before anything is logged
     try:
-        os.rmdir(project.output_run)
-        os.mkdir(project.output_run)
+        shutil.rmtree(project.output_run)
     except:
         pass
+
+    os.mkdir(project.output_run)
+
 
 # Tell log module to store log file in output dir
 log.log_filename = os.path.join(project.output_run, 'anuga_P_%g.log'%myid)
