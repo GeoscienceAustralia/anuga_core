@@ -169,9 +169,18 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
         # master proc orders reversal if applicable
         if self.myid == self.master_proc:
             # May/June 2014 -- change the driving forces gradually, with forward euler timestepping 
-            ts=self.domain.timestep/max(self.domain.timestep, self.smoothing_timescale,1.0e-06)
-            self.smooth_delta_total_energy=self.smooth_delta_total_energy+\
-                                    ts*(self.delta_total_energy-self.smooth_delta_total_energy)
+            #
+            forward_Euler_smooth=True
+            if(forward_Euler_smooth):
+                # To avoid 'overshoot' we ensure ts<1.
+                ts=self.domain.timestep/max(self.domain.timestep, self.smoothing_timescale,1.0e-06)
+                self.smooth_delta_total_energy=self.smooth_delta_total_energy+\
+                                        ts*(self.delta_total_energy-self.smooth_delta_total_energy)
+            else:
+                # Use backward euler -- the 'sensible' ts limitation is different in this case
+                # ts --> Inf is reasonable and corresponds to the 'nosmoothing' case
+                ts=self.domain.timestep/max(self.smoothing_timescale, 1.0e-06)
+                self.smooth_delta_total_energy = (self.smooth_delta_total_energy+ts*(self.delta_total_energy))/(1.+ts)
 
             # Reverse the inflow and outflow direction?
             if self.smooth_delta_total_energy < 0:
@@ -273,7 +282,12 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                 #   self.inflow_index=0 and self.outflow_index=1
                 #   , whereas the sign of Q is always positive
                 Qsign=(self.outflow_index-self.inflow_index) # To adjust sign of Q
-                self.smooth_Q = self.smooth_Q +ts*(Q*Qsign-self.smooth_Q)
+                if(forward_Euler_smooth):
+                    self.smooth_Q = self.smooth_Q +ts*(Q*Qsign-self.smooth_Q)
+                else: 
+                    # Try implicit euler method
+                    self.smooth_Q = (self.smooth_Q+ts*(Q*Qsign))/(1.+ts)
+                
                 if numpy.sign(self.smooth_Q)!=Qsign:
                     # The flow direction of the 'instantaneous Q' based on the
                     # 'smoothed delta_total_energy' is not the same as the
