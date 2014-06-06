@@ -187,12 +187,14 @@ run_time = time + '_run_'
 
 # create paths for data files.
 output_dirname = os.path.dirname(__file__)
-home = os.path.join(output_dirname, 'local_data', 'data')
+#home = os.path.join(output_dirname, 'local_data', 'data')
+home = output_dirname
 muxhome = home # FIXME (Ole): Get rid off
 
     
 # check various directories/files that must exist
-anuga_folder = join(home, state, scenario_folder, 'anuga')
+#anuga_folder = join(home, state, scenario_folder, 'anuga')
+anuga_folder = home
 topographies_folder = join(anuga_folder, 'topographies')
 polygons_folder = join(anuga_folder, 'polygons')
 boundaries_folder = join(anuga_folder, 'boundaries')
@@ -231,11 +233,14 @@ event_sts = join(event_folder, scenario_name)
 
 # The absolute pathname for the output folder names
 # Used for build_elevation.py
-output_build = join(output_folder, build_time) + '_' + str(user) 
+#output_build = join(output_folder, build_time) + '_' + str(user)
+output_build = output_folder 
 # Used for run_model.py
-output_run = join(output_folder, run_time) + output_comment 
+#output_run = join(output_folder, run_time)
+output_run = output_folder
 # Used by post processing
-output_run_time = join(output_run, scenario_name) 
+#output_run_time = join(output_run, scenario_name)
+output_run_time = output_run
 
 # The absolute pathname for the gauges file
 # Used for get_timeseries.py
@@ -261,15 +266,12 @@ mux_input = join(event_folder, mux_input_filename)
 sanity_error=False
 
 if setup == 'trial':
-    print 'trial'
     scale_factor = 100
     yieldstep = 30.
 elif setup == 'basic': 
-    print 'basic'
     scale_factor = 4
     yieldstep = 30.
 elif setup == 'final': 
-    print 'final'
     scale_factor = 1
     yieldstep = 30.
 else:

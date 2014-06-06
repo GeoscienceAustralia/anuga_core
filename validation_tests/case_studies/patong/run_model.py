@@ -28,20 +28,26 @@ import project
 import anuga.utilities.log as log
 
 # Parallel routines
-from anuga_parallel import distribute, myid, numprocs, finalize, barrier
+from anuga import distribute, myid, numprocs, finalize, barrier
 
 # Application specific imports
 import build_urs_boundary as bub
 
 from anuga.file.csv_file import load_csv_as_building_polygons
 
+
+verbose = True
 #-------------------------------------------------------------------------------
 # Copy scripts to time stamped output directory and capture screen
 # output to file. Copy script must be before screen_catcher
 #-------------------------------------------------------------------------------
 if(myid==0):
     # Make output dir and set log filename before anything is logged
-    os.mkdir(project.output_run)
+    try:
+        os.rmdir(project.output_run)
+        os.mkdir(project.output_run)
+    except:
+        pass
 
 # Tell log module to store log file in output dir
 log.log_filename = os.path.join(project.output_run, 'anuga_P_%g.log'%myid)
@@ -118,9 +124,9 @@ if(myid==0):
 
     domain.set_name(project.scenario_name)
     domain.set_datadir(project.output_run) 
-    print 'WARNING: FORCING FLOW ALGORITHM TO TSUNAMI -- NEEDS TO BE CHANGED FOR INTEGRATION INTO VALIDATION TESTS'
-    domain.set_flow_algorithm('tsunami')
-    #domain.set_flow_algorithm('DE1')
+    print 'WARNING: FORCING FLOW ALGORITHM TO DE0 -- NEEDS TO BE CHANGED FOR INTEGRATION INTO VALIDATION TESTS'
+    #domain.set_flow_algorithm('tsunami')
+    domain.set_flow_algorithm('DE0')
 
     #-------------------------------------------------------------------------------
     # Setup initial conditions
@@ -140,7 +146,7 @@ if(myid==0):
     domain.set_quantity('friction', project.friction) 
     domain.set_quantity('elevation', 
                         filename=project.combined_elevation+'.pts',
-                        use_cache=False,
+                        use_cache=True,
                         verbose=True,
                         alpha=project.alpha)
 
@@ -180,7 +186,7 @@ if(myid==0):
 
 else:
     domain=None
-    print 'Hello from Processor ', myid
+    #print 'Hello from Processor ', myid
 
 barrier()
 
@@ -191,10 +197,16 @@ domain=distribute(domain)
 # Setup boundary conditions 
 #-------------------------------------------------------------------------------
 
-log.critical('Set boundary - available tags:' % domain.get_boundary_tags())
+log.critical('Set boundary P_%g - available tags: %s' % (myid, domain.get_boundary_tags()))
 
 Br = anuga.Reflective_boundary(domain)
 Bs = anuga.Transmissive_stage_zero_momentum_boundary(domain)
+
+if myid == 0 and verbose:
+    verbose_bf = True
+else:
+    verbose_bf = False
+    
 Bf = anuga.Field_boundary(project.event_sts+'.sts',
                     domain,
                     mean_stage=project.tide,
@@ -202,7 +214,7 @@ Bf = anuga.Field_boundary(project.event_sts+'.sts',
                     default_boundary=anuga.Dirichlet_boundary([0, 0, 0]),
                     boundary_polygon=bounding_polygon_sts,                    
                     use_cache=False,
-                    verbose=True)
+                    verbose=verbose_bf)
 
 domain.set_boundary({'back': Br,
                      'side': Bs,
@@ -220,33 +232,42 @@ t0 = time.time()
 ## conflated in the code
 ##
 ## Skip over the first 60 seconds
-for t in domain.evolve(yieldstep=2,
-                       duration=60):
-    log.critical(domain.timestepping_statistics())
-    log.critical(domain.boundary_statistics(tags='ocean'))
+for t in domain.evolve(yieldstep=400, finaltime=400):
+    if myid == 0: domain.write_time()
+
+#    log.critical(domain.timestepping_statistics())
+#    log.critical(domain.boundary_statistics(tags='ocean'))
 
 
-barrier()
+#barrier()
 ## Check various important parameters
 import time
-time.sleep(myid)
-print 'Processor ', myid , ' : ', project.yieldstep, domain.flow_algorithm
-barrier()
-print 'project.yieldstep', project.yieldstep
+#time.sleep(myid)
+#print 'Processor ', myid , ' : ', project.yieldstep, domain.flow_algorithm
+#barrier()
+
+#print 'project.yieldstep', project.yieldstep
 # Start detailed model
 for t in domain.evolve(yieldstep=project.yieldstep,
-                       finaltime=project.finaltime):
+                       finaltime=800):
+    #                   finaltime=project.finaltime):
     #time.sleep(myid*0.01) # To get printing separated
-    print 'Processor ', myid
-    log.critical(domain.timestepping_statistics())
-    log.critical(domain.boundary_statistics(tags='ocean'))
-    print 'Processor ', myid, ' project.yieldstep ', project.yieldstep
+    #print 'Processor ', myid
+    #log.critical(domain.timestepping_statistics())
+    #log.critical(domain.boundary_statistics(tags='ocean'))
+    #print 'Processor ', myid, ' project.yieldstep ', project.yieldstep
+    if myid == 0: domain.write_time()
 
 
 ## Final print out
 barrier()
 if(myid==0):    
      log.critical('Simulation took %.2f seconds' %(time.time()-t0))
+
+
+domain.sww_merge(delete_old=True)
+
+finalize()
 
 
       

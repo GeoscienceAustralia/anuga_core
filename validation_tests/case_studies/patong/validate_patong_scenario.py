@@ -58,9 +58,9 @@ class Test_flow(unittest.TestCase):
             raise Exception(msg)        
         
         #print
-        s = 'test_patong_scenario.py'
+        s = 'run_model.py'
         #print s
-        res = os.system('python %s > test_patong_scenario.stdout' % s)
+        res = os.system('python %s > run_model.stdout' % s)
         #assert res == 0
 
 
