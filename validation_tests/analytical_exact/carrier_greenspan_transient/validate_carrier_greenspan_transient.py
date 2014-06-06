@@ -9,6 +9,9 @@ import anuga
 
 from math import sqrt
 
+import warnings
+warnings.simplefilter('ignore')
+
 indent = anuga.indent
 
 verbose = True
