@@ -55,6 +55,10 @@ if(myid==0):
 
 # Tell log module to store log file in output dir
 log.log_filename = os.path.join(project.output_run, 'anuga_P_%g.log'%myid)
+if myid == 0:
+    log.console_logging_level = log.CRITICAL
+else:
+    log.console_logging_level = log.CRITICAL+1
 
 if(myid==0):
     log.critical('Log filename: %s' % log.log_filename)
@@ -230,35 +234,21 @@ domain.set_boundary({'back': Br,
 
 t0 = time.time()
 
-## FIXME: GD June 6 2013 -- I believe ANUGA can no longer do multiple evolves
-## as the 'time' variable gets confused. Think this is because 'starttime'
-## exists in both the sts input files, and in the model, and the two are
-## conflated in the code
-##
-## Skip over the first 60 seconds
-for t in domain.evolve(yieldstep=400, finaltime=400):
-    if myid == 0: domain.write_time()
 
-#    log.critical(domain.timestepping_statistics())
+## Jump up to time 400 sec
+for t in domain.evolve(yieldstep=400, finaltime=400):
+    log.critical(domain.timestepping_statistics())
 #    log.critical(domain.boundary_statistics(tags='ocean'))
 
 
-#barrier()
-## Check various important parameters
 import time
-#time.sleep(myid)
-#print 'Processor ', myid , ' : ', project.yieldstep, domain.flow_algorithm
-#barrier()
 
-#print 'project.yieldstep', project.yieldstep
 # Start detailed model
 for t in domain.evolve(yieldstep=project.yieldstep,
                        finaltime=project.finaltime):
 
-    #log.critical(domain.timestepping_statistics())
+    log.critical(domain.timestepping_statistics())
     #log.critical(domain.boundary_statistics(tags='ocean'))
-
-    if myid == 0: domain.write_time()
 
 
 ## Final print out
