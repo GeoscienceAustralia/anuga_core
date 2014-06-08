@@ -32,7 +32,7 @@ event_number = 'mux_' + model    # the event number or the mux file name
 alpha = 0.1             # smoothing parameter for mesh
 friction = 0.025         # manning's friction coefficient
 starttime = 0           # start time for simulation
-finaltime = 15000       # final time for simulation
+finaltime = 3600        # final time for simulation
 
 nameFlag='xxNameFlagxx'
 

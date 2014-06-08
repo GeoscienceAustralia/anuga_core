@@ -253,13 +253,11 @@ import time
 #print 'project.yieldstep', project.yieldstep
 # Start detailed model
 for t in domain.evolve(yieldstep=project.yieldstep,
-                       finaltime=800):
-    #                   finaltime=project.finaltime):
-    #time.sleep(myid*0.01) # To get printing separated
-    #print 'Processor ', myid
+                       finaltime=project.finaltime):
+
     #log.critical(domain.timestepping_statistics())
     #log.critical(domain.boundary_statistics(tags='ocean'))
-    #print 'Processor ', myid, ' project.yieldstep ', project.yieldstep
+
     if myid == 0: domain.write_time()
 
 
