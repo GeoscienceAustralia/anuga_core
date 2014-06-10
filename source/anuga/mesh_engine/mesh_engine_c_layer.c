@@ -239,8 +239,7 @@ extern "C" void free();
      
   out.holelist = (REAL *)NULL;
   out.regionlist = (REAL *)NULL;
-    
-  
+
   triangulate(mod, &in, &out, (struct triangulateio *)NULL );
   
   

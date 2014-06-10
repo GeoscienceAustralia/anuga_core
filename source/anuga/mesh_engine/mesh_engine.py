@@ -118,7 +118,35 @@ def generate_mesh(points=None,
         #    input vertices and vertices ``eaten'' by holes).  - output a
         #    list of neighboring triangles
         # EG handles lone verts!
-            
+    #
+    # GD (June 2014): We get segfaults in some cases with breakLines, unless
+    # we remove repeated values in 'points', and adjust segments accordingly
+    # 
+    pts_complex=points[:,0]+1j*points[:,1] # Use to match points
+    i=0 # Use this as a counter, since the length of 'points' changes as we go
+    while (i < len(pts_complex)-1):
+        i=i+1 # Maximum i = len(pts_complex)-1 = largest index of points
+        #
+        # Check if points[i,] is the same as a previous point
+        if(any(pts_complex[i]==pts_complex[0:i])):
+            # Get index of previous occurrence
+            earlierInd=(pts_complex[i]==pts_complex[0:i]).nonzero()[0][0]
+            # Remove the ith point, and adjust the segments
+            for ii in range(len(segments)):
+                for j in range(2):
+                    if(segments[ii,j] == i):
+                        # Segment will use previous occurrence of this point
+                        segments[ii,j]=earlierInd
+                    if(segments[ii,j]>i):
+                        # Decrement the index (since we will remove point[i,])
+                        segments[ii,j] = segments[ii,j]-1
+            # Remove ith point
+            points=num.delete(points, i, 0)
+            pointatts=num.delete(pointatts,i,0)
+            # Recompute the complex number points for matching
+            pts_complex=points[:,0]+1j*points[:,1]
+            i=i-1 # Repeat for the last value of i = next point
+
     trianglelist, pointlist, pointmarkerlist, pointattributelist, triangleattributelist, segmentlist, segmentmarkerlist, neighborlist = triang.genMesh(points,segments,holes,regions,
                           pointatts,segatts, mode)
     mesh_dict = {}
