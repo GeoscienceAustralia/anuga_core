@@ -355,14 +355,25 @@ def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=Fals
         # Just pick out the full triangles
         ftri_ids = num.where(tri_full_flag>0)
         ftri_l2g = num.compress(tri_full_flag, tri_l2g)
+        
+        #f_ids = num.argwhere(tri_full_flag==1).reshape(-1,)
+        #f_gids = tri_l2g[f_ids]
 
         #print l_volumes
         #print tri_full_flag
         #print tri_l2g
         #print ftri_l2g
+        
+        f_volumes0 = num.compress(tri_full_flag,volumes[:,0])
+        f_volumes1 = num.compress(tri_full_flag,volumes[:,1])
+        f_volumes2 = num.compress(tri_full_flag,volumes[:,2])
+        
+        g_volumes[ftri_l2g,0] = node_l2g[f_volumes0]
+        g_volumes[ftri_l2g,1] = node_l2g[f_volumes1]
+        g_volumes[ftri_l2g,2] = node_l2g[f_volumes2]
 
-        fg_volumes = num.compress(tri_full_flag,l_volumes,axis=0)
-        g_volumes[ftri_l2g] = fg_volumes
+        #fg_volumes = num.compress(tri_full_flag,l_volumes,axis=0)
+        #g_volumes[ftri_l2g] = fg_volumes
 
 
 
@@ -661,11 +672,11 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
         f_gids = tri_l2g[f_ids]
 
         # Just pick out the full triangles
-        ftri_ids = num.where(tri_full_flag>0)
-        ftri_l2g = num.compress(tri_full_flag, tri_l2g)
+        #ftri_ids = num.where(tri_full_flag>0)
+        #ftri_l2g = num.compress(tri_full_flag, tri_l2g)
 
-        assert num.allclose(f_ids, ftri_ids)
-        assert num.allclose(ftri_l2g, f_gids)
+        #assert num.allclose(f_ids, ftri_ids)
+        #assert num.allclose(ftri_l2g, f_gids)
 
         g_vids = (3*f_gids.reshape(-1,1) + num.array([0,1,2])).reshape(-1,)
         l_vids = (3*f_ids.reshape(-1,1) + num.array([0,1,2])).reshape(-1,)
@@ -707,8 +718,8 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
             #out_s_quantities[quantity][node_l2g] = \
             #             num.array(fid.variables[quantity],dtype=num.float32)
             q = fid.variables[quantity]
-            out_s_c_quantities[quantity][ftri_l2g] = \
-                         num.array(q,dtype=num.float32)[ftri_ids]
+            out_s_c_quantities[quantity][f_gids] = \
+                         num.array(q,dtype=num.float32)[f_ids]
 
         
         #Collate all dynamic c quantities according to their timestep
@@ -716,8 +727,8 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
             q = fid.variables[quantity]
             #print q.shape
             for i in range(n_steps):
-                out_d_c_quantities[quantity][i][ftri_l2g] = \
-                           num.array(q[i],dtype=num.float32)[ftri_ids]
+                out_d_c_quantities[quantity][i][f_gids] = \
+                           num.array(q[i],dtype=num.float32)[f_ids]
 
         fid.close()
 

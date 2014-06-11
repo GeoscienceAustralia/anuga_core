@@ -6,7 +6,6 @@ class DataFileNotOpenError(exceptions.Exception): pass
 class DataMissingValuesError(exceptions.Exception): pass
 class NewQuantity(exceptions.Exception): pass
 class DataDomainError(exceptions.Exception): pass
-class DataMissingValuesError(exceptions.Exception): pass
 class DataTimeError(exceptions.Exception): pass
 
 
@@ -810,7 +809,7 @@ class Write_sww(Write_sts):
                             verbose=False):
 
 
-         # dimension definitions
+        # dimension definitions
         #outfile.createDimension('number_of_volumes', number_of_volumes)
         #outfile.createDimension('number_of_vertices', 3)
         #outfile.createDimension('numbers_in_range', 2)

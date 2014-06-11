@@ -69,13 +69,13 @@ class combine_outputs:
 
     which would make an object p2 that is like p, but holds information at centroids
     """
-    def __init__(self, filename_list, minimum_allowed_height=1.0e-03):
+    def __init__(self, filename_list, minimum_allowed_height=1.0e-03, verbose=False):
         #
         # Go through the sww files in 'filename_list', and combine them into one object.
         #
 
         for i, filename in enumerate(filename_list):
-            print i, filename
+            if verbose: print i, filename
             # Store output from filename
             p_tmp = get_output(filename, minimum_allowed_height)
             if(i==0):
@@ -138,16 +138,17 @@ class get_output:
         
        p then contains most relevant information as e.g., p.stage, p.elev, p.xmom, etc 
     """
-    def __init__(self, filename, minimum_allowed_height=1.0e-03):
+    def __init__(self, filename, minimum_allowed_height=1.0e-03, verbose=False):
         self.x, self.y, self.time, self.vols, self.stage, \
                 self.height, self.elev, self.friction, self.xmom, self.ymom, \
                 self.xvel, self.yvel, self.vel, self.minimum_allowed_height,\
                 self.xllcorner, self.yllcorner = \
-                read_output(filename, minimum_allowed_height)
+                read_output(filename, minimum_allowed_height,verbose=verbose)
         self.filename=filename
+        self.verbose = verbose
 
 
-def read_output(filename, minimum_allowed_height):
+def read_output(filename, minimum_allowed_height,verbose):
     # Input: The name of an .sww file to read data from,
     #                    e.g. read_sww('channel3.sww')
     #
@@ -239,15 +240,15 @@ class get_centroids:
     NOTE: elevation is only stored once in the output, even if it was stored every timestep
          This is done because presently centroid elevations do not change over time.
     """
-    def __init__(self,p, velocity_extrapolation=False):
+    def __init__(self,p, velocity_extrapolation=False, verbose=False):
         
         self.time, self.x, self.y, self.stage, self.xmom,\
              self.ymom, self.height, self.elev, self.friction, self.xvel, \
              self.yvel, self.vel= \
-             get_centroid_values(p, velocity_extrapolation)
+             get_centroid_values(p, velocity_extrapolation,verbose=verbose)
                                  
 
-def get_centroid_values(p, velocity_extrapolation):
+def get_centroid_values(p, velocity_extrapolation, verbose=False):
     # Input: p is the result of e.g. p=util.get_output('mysww.sww'). See the get_output class defined above
     # Output: Values of x, y, Stage, xmom, ymom, elev, xvel, yvel, vel at centroids
     #import numpy
@@ -331,7 +332,7 @@ def get_centroid_values(p, velocity_extrapolation):
    
     else:
         # Get centroid values from file 
-        print 'Reading centroids from file'
+        if verbose: print 'Reading centroids from file'
         stage_cent=fid.variables['stage_c'][:]
         elev_cent=fid.variables['elevation_c'][:]
         if(len(elev_cent.shape)==2):

@@ -35,6 +35,7 @@ class Boyd_box_operator(anuga.Structure_operator):
                  apron=0.1,
                  manning=0.013,
                  enquiry_gap=0.0,
+                 smoothing_timescale=0.0,
                  use_momentum_jet=True,
                  use_velocity_head=True,
                  description=None,
@@ -89,6 +90,19 @@ class Boyd_box_operator(anuga.Structure_operator):
         
         self.case = 'N/A'
         
+        # May/June 2014 -- allow 'smoothing ' of driving_energy, delta total energy, and outflow_enq_depth
+        self.smoothing_timescale=0.
+        self.smooth_delta_total_energy=0.
+        self.smooth_Q=0.
+        # Set them based on a call to the discharge routine with smoothing_timescale=0.
+        # [values of self.smooth_* are required in discharge_routine, hence dummy values above]
+        Qvd=self.discharge_routine()
+        self.smooth_delta_total_energy=1.0*self.delta_total_energy
+        self.smooth_Q=Qvd[0]
+        # Finally, set the smoothing timescale we actually want
+        self.smoothing_timescale=smoothing_timescale
+
+        
         if verbose:
             print self.get_culvert_slope()
 
@@ -128,6 +142,9 @@ class Boyd_box_operator(anuga.Structure_operator):
             self.inflow  = self.inlets[1]
             self.outflow = self.inlets[0]
             self.delta_total_energy = -self.delta_total_energy
+            
+            
+            
 
 
         # Only calculate flow if there is some water at the inflow inlet.

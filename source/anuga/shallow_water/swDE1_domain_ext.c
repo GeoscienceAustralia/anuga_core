@@ -96,6 +96,180 @@ int _rotate(double *q, double n1, double n2) {
 //
 //}
 
+
+// Innermost flux function (using stage w=z+h)
+int _flux_function_toro(double *q_left, double *q_right,
+                           double h_left, double h_right,
+                           double hle, double hre,
+                           double n1, double n2,
+                           double epsilon,
+                           double ze,
+                           double limiting_threshold,
+                           double g,
+                           double *edgeflux, double *max_speed,
+                           double *pressure_flux, double hc,
+                           double hc_n, double speed_max_last)
+{
+
+  /*Compute fluxes between volumes for the shallow water wave equation
+    cast in terms of the 'stage', w = h+z using
+
+	HLL scheme of Fraccarollo and Toro Experimental and numerical assessment of the shallow
+water model for two-dimensional dam-break type. Journal of Computational Physics,
+33(6):843–864, 1995.
+
+    FIXME: Several variables in this interface are no longer used, clean up
+  */
+
+  int i;
+
+  double w_left,  uh_left, vh_left, u_left;
+  double w_right, uh_right, vh_right, u_right;
+  double s_min, s_max, soundspeed_left, soundspeed_right;
+  double u_m, h_m, soundspeed_m, s_m;
+  double denom, inverse_denominator;
+  double uint, t1, t2, t3, min_speed, tmp;
+  // Workspace (allocate once, use many)
+  static double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
+
+  // Copy conserved quantities to protect from modification
+  q_left_rotated[0] = q_left[0];
+  q_right_rotated[0] = q_right[0];
+  q_left_rotated[1] = q_left[1];
+  q_right_rotated[1] = q_right[1];
+  q_left_rotated[2] = q_left[2];
+  q_right_rotated[2] = q_right[2];
+
+  // Align x- and y-momentum with x-axis
+  _rotate(q_left_rotated, n1, n2);
+  _rotate(q_right_rotated, n1, n2);
+
+
+  // Compute speeds in x-direction
+  //w_left = q_left_rotated[0];
+  uh_left=q_left_rotated[1];
+  vh_left=q_left_rotated[2];
+  if(hle>0.0){
+    u_left = uh_left/hle ; //max(h_left, 1.0e-06);
+    uh_left=h_left*u_left;
+    vh_left=h_left/(hle)*vh_left;
+  }else{
+    u_left=0.;
+    uh_left=0.;
+    vh_left=0.;
+  }
+
+  //u_left = _compute_speed(&uh_left, &hle,
+  //            epsilon, h0, limiting_threshold);
+
+  //w_right = q_right_rotated[0];
+  uh_right = q_right_rotated[1];
+  vh_right = q_right_rotated[2];
+  if(hre>0.0){
+    u_right = uh_right/hre;//max(h_right, 1.0e-06);
+    uh_right=h_right*u_right;
+    vh_right=h_right/hre*vh_right;
+  }else{
+    u_right=0.;
+    uh_right=0.;
+    vh_right=0.;
+  }
+  //u_right = _compute_speed(&uh_right, &hre,
+  //              epsilon, h0, limiting_threshold);
+
+
+
+  // Maximal and minimal wave speeds
+  soundspeed_left  = sqrt(g*h_left);
+  soundspeed_right = sqrt(g*h_right);
+
+  // Toro for shallow water
+  u_m = 0.5*(u_left + u_right) + soundspeed_left - soundspeed_right;
+  h_m = (u_left + 2.0*soundspeed_left - u_right + 2.0*soundspeed_right);
+  h_m = h_m*h_m/(16.0*g);
+  soundspeed_m = sqrt(g*h_m);
+
+
+  if(h_left < 1.0e-10){
+	  s_min = u_right - 2.0*soundspeed_right;
+	  s_max = u_right + soundspeed_right;
+	  s_m   = s_min;
+  }
+  else if (h_right < 1.0e-10){
+	  s_min = u_left - soundspeed_left;
+	  s_max = u_left + 2.0*soundspeed_left;
+	  s_m = s_max;
+  }
+  else {
+	  s_max = max(u_right + soundspeed_right, u_m + soundspeed_right);
+	  s_min = min(u_left - soundspeed_left, u_m - soundspeed_m);
+  }
+
+  if (s_max < 0.0)
+  {
+    s_max = 0.0;
+  }
+
+  if (s_min > 0.0)
+  {
+    s_min = 0.0;
+  }
+
+
+  // Flux formulas
+  flux_left[0] = u_left*h_left;
+  flux_left[1] = u_left*uh_left; //+ 0.5*g*h_left*h_left;
+  flux_left[2] = u_left*vh_left;
+
+  flux_right[0] = u_right*h_right;
+  flux_right[1] = u_right*uh_right ; //+ 0.5*g*h_right*h_right;
+  flux_right[2] = u_right*vh_right;
+
+  // Flux computation
+  denom = s_max - s_min;
+  if (denom < epsilon)
+  {
+    // Both wave speeds are very small
+    memset(edgeflux, 0, 3*sizeof(double));
+
+    *max_speed = 0.0;
+    //*pressure_flux = 0.0;
+    *pressure_flux = 0.5*g*0.5*(h_left*h_left+h_right*h_right);
+  }
+  else
+  {
+    // Maximal wavespeed
+    *max_speed = max(s_max, -s_min);
+
+    inverse_denominator = 1.0/max(denom,1.0e-100);
+    for (i = 0; i < 3; i++)
+    {
+      edgeflux[i] = s_max*flux_left[i] - s_min*flux_right[i];
+
+      // Standard smoothing term
+      // edgeflux[i] += 1.0*(s_max*s_min)*(q_right_rotated[i] - q_left_rotated[i]);
+      // Smoothing by stage alone can cause high velocities / slow draining for nearly dry cells
+      if(i==0) edgeflux[i] += (s_max*s_min)*(max(q_right_rotated[i],ze) - max(q_left_rotated[i],ze));
+      if(i==1) edgeflux[i] += (s_max*s_min)*(uh_right - uh_left);
+      if(i==2) edgeflux[i] += (s_max*s_min)*(vh_right - vh_left);
+
+      edgeflux[i] *= inverse_denominator;
+    }
+    // Separate pressure flux, so we can apply different wet-dry hacks to it
+    *pressure_flux = 0.5*g*( s_max*h_left*h_left -s_min*h_right*h_right)*inverse_denominator;
+
+
+    // Rotate back
+    _rotate(edgeflux, n1, -n2);
+  }
+
+  return 0;
+}
+
+
+
+
+
 // Innermost flux function (using stage w=z+h)
 int _flux_function_central(double *q_left, double *q_right,
                            double h_left, double h_right,
@@ -515,7 +689,7 @@ double _compute_fluxes_central(int number_of_elements,
             h_right= max(hre+zr-z_half,0.);
 
             // Edge flux computation (triangle k, edge i)
-            _flux_function_central(ql, qr, 
+            _flux_function_central(ql, qr,
                     h_left, h_right,
                     hle, hre,
                     normals[ki2], normals[ki2 + 1],

@@ -71,10 +71,10 @@ alpha_balance = 2.0
 # tight_slope_limiters = 1 means use new limiters that hug the bathymetry closer
 tight_slope_limiters = True
 
-use_edge_limiter = False  # The edge limiter is better, but most runs have been
-                          # using vertex limiting. Validations passed with this
-                          # one True 9th May 2008, but many unit tests need
-                          # backward compatibility flag set FIXME(Ole).
+use_edge_limiter = False    # The edge limiter is better, but most runs have been
+                            # using vertex limiting. Validations passed with this
+                            # one True 9th May 2008, but many unit tests need
+                            # backward compatibility flag set FIXME(Ole).
 
 # Use centroid velocities to reconstruct momentum at vertices in
 # very shallow water
