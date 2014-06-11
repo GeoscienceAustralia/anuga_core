@@ -17,7 +17,7 @@
 \begin{document} 
 %=========================================
 
-\title{Automated Report on the Performance of \anuga{} on Various Test Problems}
+\title{Automated Report on the Performance of \anuga{} on (all) Validation Test Problems}
 \author{Sudi Mungkasi, Stephen Roberts, Gareth Davies, Rudy vanDrie}    %Type your name(s) here! 
 \maketitle
 \tableofcontents
@@ -53,19 +53,19 @@ To do an individual test, we can run the python module \\
 available in the corresponding test directory. The module will do the numerical simulation of the given problem, plot the simulation results in png files, and type-set the corresponding individual automated report. The individual automated report is in pdf file and saved in the same directory.
 
 To do the complete test, we can just run the python module \\
-\verb produce_results.py \\
+\verb all_tests_produce_results.py \\
 available in the directory \\
-\verb anuga_validation_tests \\
+\verb validation_tests/reports \\
 Similar to the module for an individual test, this python module will do the numerical simulations of all the given problems, plot results in png files and save them in its corresponding directory, and finally type-set the complete report. The complete automated report is saved in this directory.
 
-The simulation results can be analysed qualitatively and quantitatively. Qualitative analysis can be done by investigating the plots of the results whether they are physical or not, and whether the behaviour is the same as we expected. Quantitative analysis can be conducted by checking the numerical error. We have provided python module with the name begun by the word ``validate'' in each of individual tests. We can also run validate$\_$all.py to measure the numerical errors from the directory \verb anuga_validation_tests . This validate$\_$all.py will run a subset of the available tests having sensible ``correct'' results to test against.
+The simulation results can be analysed qualitatively and quantitatively. Qualitative analysis can be done by investigating the plots of the results whether they are physical or not, and whether the behaviour is the same as we expected. Quantitative analysis can be conducted by checking the numerical error. We have provided python module with the name begun by the word ``validate'' in each of individual tests. We can also run validate$\_$all.py to measure the numerical errors from the directory \verb run_auto_validation_tests . This validate$\_$all.py will run a subset of the available tests having sensible ``correct'' results to test against.
 
 The main parameters in the validations are the Courant--Friedrichs-Lewy (CFL) number and the flow algorithm. They are spelled ``cfl'' and ``alg'' respectively in the python module \\
-\verb parameters.py \\
+\verb parameters \\
 which is available in the \\
-\verb anuga_validation_tests \\
-directory. In the default setting, we set the CFL to be $1.0$ and the flow algorithm to be 1$\_$5 (second order in space and first order in time). The complete available flow algorithms are as follow:
-'1$\_$0', '1$\_$5', '1$\_$75', '2$\_$0', '2$\_$0$\_$limited', '2$\_$5', 'tsunami', 'yusuke'.
+\verb anuga.validation_tests \\
+module. In the default setting, we set the CFL to be $1.0$ and the flow algorithm to be DE0 (second order in space and first order in time). The complete available flow algorithms are as follow:
+'1$\_$0', '1$\_$5', '1$\_$75', '2$\_$0', '2$\_$0$\_$limited', '2$\_$5', 'tsunami', 'yusuke', 'DE0', 'DE1'.
 %\begin{enumerate}
 %\item '1$\_$0', 
 %\item '1$\_$5', 

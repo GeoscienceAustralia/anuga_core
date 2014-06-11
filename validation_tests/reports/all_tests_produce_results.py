@@ -134,7 +134,7 @@ os.chdir('reports')
 
 from anuga.validation_utilities.fabricate import *
 
-os.system('python typeset_report.py')
+os.system('python all_test_typeset_report.py')
 
 #cmd = 'pdflatex -shell-escape -interaction=batchmode report.tex'
 #print cmd
@@ -142,7 +142,7 @@ os.system('python typeset_report.py')
 #subprocess.call([cmd], shell=True)
 
 import subprocess
-cmd = 'mv report.pdf report_cfl_%s_alg_%s.pdf' % (str(cfl), str(alg))
+cmd = 'mv all_tests_report.pdf all_tests_report_cfl_%s_alg_%s.pdf' % (str(cfl), str(alg))
 print cmd
 subprocess.call([cmd], shell=True)
 

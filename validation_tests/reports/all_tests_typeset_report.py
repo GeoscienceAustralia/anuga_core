@@ -10,8 +10,8 @@ __date__ ="$13/03/2013 4:24:51 PM$"
 
 import os
 
-os.system('pdflatex -shell-escape  -interaction=batchmode report.tex')
-os.system('bibtex report')
-os.system('pdflatex -shell-escape  -interaction=batchmode report.tex')
-os.system('pdflatex -shell-escape  -interaction=batchmode report.tex')
+os.system('pdflatex -shell-escape  -interaction=batchmode all_tests_report.tex')
+os.system('bibtex all_tests_report')
+os.system('pdflatex -shell-escape  -interaction=batchmode all_tests_report.tex')
+os.system('pdflatex -shell-escape  -interaction=batchmode all_tests_report.tex')
 
