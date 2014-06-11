@@ -31,6 +31,10 @@ except:
 #----------------------------------
 # Now it is ok to create the latex 
 # macro file with run parameters
+#
+# FIXME: THis is a little dangerous as
+# this is changed before all the tests
+# are run. 
 #----------------------------------
 
 f = open('saved_parameters.tex', 'w')
@@ -95,10 +99,10 @@ for dir in Upper_dirs:
     for l_dir in Lower_dirs:
         os.chdir(l_dir)
         #print os.getcwd()
-        print 50*'-'
+        print 60*'='
         print 'Subdirectory %g: '% (test_number)  + l_dir
         test_number += 1
-        print 50*'-'
+        print 60*'='
         try:
             t0 = time.time()
             cmd = 'python produce_results.py'
