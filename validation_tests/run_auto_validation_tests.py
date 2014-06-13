@@ -12,6 +12,11 @@ and then run the scripts.
 
 import os, time, sys
 
+import anuga
+args = anuga.get_args()
+
+print args
+
 
 # List any sub directory to exclude from validation.
 # Current working directory ('.') should always be excluded to avoid 
@@ -62,7 +67,7 @@ for path, filename in validation_dirs_and_files:
     # print 'filename path', path, filename
 
     os.chdir(path)
-    s = 'python %s' % filename
+    s = 'python %s ' % filename
     print 80*'='
     print s
     print 80*'='
