@@ -608,7 +608,7 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None):
 
 def Make_Geotif(swwFile=None, 
              output_quantities=['depth'],
-             myTimeStep=1, CellSize=5.0, 
+             myTimeStep=0, CellSize=5.0, 
              lower_left=None, upper_right=None,
              EPSG_CODE=None, 
              proj4string=None,
@@ -628,7 +628,7 @@ def Make_Geotif(swwFile=None,
                     based on the name in 'output_quantities'.
                 output_quantities -- list of quantitiies to plot, e.g.
                                 ['depth', 'velocity', 'stage','elevation','depthIntegratedVelocity','friction']
-                myTimeStep -- list containing time-index of swwFile to plot (e.g. [1, 10, 32] ) or 'last', or 'max', or 'all'
+                myTimeStep -- list containing time-index of swwFile to plot (e.g. [0, 10, 32] ) or 'last', or 'max', or 'all'
                 CellSize -- approximate pixel size for output raster [adapted to fit lower_left / upper_right]
                 lower_left -- [x0,y0] of lower left corner. If None, use extent of swwFile.
                 upper_right -- [x1,y1] of upper right corner. If None, use extent of swwFile.
@@ -679,7 +679,7 @@ def Make_Geotif(swwFile=None,
 
     if(swwFile is not None):
         # Read in ANUGA outputs
-        # FIXME: It would be good to support reading of data subsets
+        # FIXME: It would be good to support reading of data subsets in util.get_output
         if(verbose):
             print 'Reading sww File ...'
         p=util.get_output(swwFile,min_allowed_height)
@@ -690,6 +690,8 @@ def Make_Geotif(swwFile=None,
 
         if(myTimeStep=='all'):
             myTimeStep=range(len(p2.time))
+        elif(myTimeStep=='last'):
+            myTimeStep=len(p2.time)-1
         # Ensure myTimeStep is a list
         if type(myTimeStep)!=list:
             myTimeStep=[myTimeStep]
@@ -742,17 +744,16 @@ def Make_Geotif(swwFile=None,
     #pdb.set_trace()
 
     # Loop over all output quantities and produce the output
-    for myTS in myTimeStep:
+    for myTSi in myTimeStep:
         if(verbose):
-            print myTS
+            print myTSi
         for output_quantity in output_quantities:
-
-            if(myTS=='last'):
-                myTS=len(p.time)-1
-        
-
-            #if(myTS!='max'):
-            if(type(myTS)=='int'):
+            #
+            myTS=myTSi
+            #import pdb
+            #pdb.set_trace()
+            #
+            if(type(myTS)==int):
                 if(output_quantity=='stage'):
                     gridq=p2.stage[myTS,:][gridqInd]
                 if(output_quantity=='depth'):
