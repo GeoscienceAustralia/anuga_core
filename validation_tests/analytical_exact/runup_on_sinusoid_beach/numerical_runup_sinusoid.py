@@ -22,7 +22,7 @@ domain = anuga.rectangular_cross_domain(40,40, len1=1., len2=1.)
 from anuga.utilities.argparsing import parse_standard_args
 alg, cfl = parse_standard_args()
 domain.set_flow_algorithm(alg)
-domain.set_CFL(cfl)
+#domain.set_CFL(cfl)
 domain.set_name('runup_sinusoid')                         # Output to file runup.sww
 domain.set_datadir('.')                          # Use current folder
 #domain.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 'ymomentum': 2, 'elevation': 1})

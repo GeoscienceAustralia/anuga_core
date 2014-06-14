@@ -53,7 +53,7 @@ from anuga.utilities.argparsing import parse_standard_args
 from anuga import g
 alg, cfl = parse_standard_args()
 domain.set_flow_algorithm(alg)
-domain.set_CFL(cfl)
+#domain.set_CFL(cfl)
 
 #------------------------------------------------------------------------------
 # Setup initial conditions

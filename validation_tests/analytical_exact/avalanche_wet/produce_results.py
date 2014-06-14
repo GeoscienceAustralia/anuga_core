@@ -1,19 +1,9 @@
-#--------------------------------
-# import modules
-#--------------------------------
-from anuga.validation_utilities.fabricate import *
-from anuga.validation_utilities import run_validation_script
-from anuga.validation_utilities import typeset_report
 
-# Setup the python scripts which produce the output for this
-# validation test
-def build():
-    run_validation_script('numerical_avalanche_wet.py')
-    run_validation_script('plot_results.py')
-    typeset_report()
+import anuga
+from anuga.validation_utilities import produce_report
 
-def clean():
-    autoclean()
+args = anuga.get_args()
 
-main()
+produce_report('numerical_avalanche_wet.py', args=args)
+
 

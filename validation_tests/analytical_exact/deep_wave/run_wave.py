@@ -10,9 +10,9 @@ Will Powers example of a simple sinusoidal wave.
 import sys
 import anuga
 from anuga import Domain
+from anuga import myid, finalize, distribute
 
-#from balanced_dev import *
-#from balanced_dev import Domain as Domain
+
 
 from math import cos
 import numpy as num
@@ -24,8 +24,8 @@ from os import sep
 # Get Default values for basic
 # algorithm parameters.
 #--------------------------------
-from anuga.utilities.argparsing import parse_standard_args
-alg, cfl = parse_standard_args()
+args = anuga.get_args()
+alg = args.alg
 
 #-------------------------------------------------------------------------------
 # Copy scripts to time stamped output directory and capture screen
@@ -41,39 +41,49 @@ output_file = 'data_wave'
 
 interactive_visualisation = False
 
-#------------------------------------------------------------------------------
-# Setup domain
-#------------------------------------------------------------------------------
-dx = 500.
-dy = dx
-L = 100000.
-W = 10*dx
+if myid == 0:
+    #------------------------------------------------------------------------------
+    # Setup sequential domain
+    #------------------------------------------------------------------------------
+    dx = 500.
+    dy = dx
+    L = 100000.
+    W = 10*dx
+    
+    # structured mesh
+    points, vertices, boundary = anuga.rectangular_cross(int(L/dx), int(W/dy), L, W, (0.0, -W/2))
+    
+    domain = Domain(points, vertices, boundary) 
+    
+    domain.set_name(output_file)                
+    domain.set_datadir(output_dir)  
+    
+    #------------------------------------------------------------------------------
+    # Setup Algorithm, either using command line arguments
+    # or override manually yourself
+    #------------------------------------------------------------------------------
+    from anuga.utilities.argparsing import parse_standard_args
+    alg, cfl = parse_standard_args()
+    domain.set_flow_algorithm(alg)
+    #domain.set_CFL(cfl)
+    
+    
+    #------------------------------------------------------------------------------
+    # Setup initial conditions
+    #------------------------------------------------------------------------------
+    domain.set_quantity('elevation',-100.0)
+    domain.set_quantity('friction', 0.00)
+    domain.set_quantity('stage', 0.0)            
 
-# structured mesh
-points, vertices, boundary = anuga.rectangular_cross(int(L/dx), int(W/dy), L, W, (0.0, -W/2))
+else: 
 
-domain = Domain(points, vertices, boundary) 
-
-domain.set_name(output_file)                
-domain.set_datadir(output_dir)  
-
-#------------------------------------------------------------------------------
-# Setup Algorithm, either using command line arguments
-# or override manually yourself
-#------------------------------------------------------------------------------
-from anuga.utilities.argparsing import parse_standard_args
-alg, cfl = parse_standard_args()
-domain.set_flow_algorithm(alg)
-domain.set_CFL(cfl)
-
-
-#------------------------------------------------------------------------------
-# Setup initial conditions
-#------------------------------------------------------------------------------
-domain.set_quantity('elevation',-100.0)
-domain.set_quantity('friction', 0.00)
-domain.set_quantity('stage', 0.0)            
-
+    domain = None
+    
+#-----------------------------------------------------------------------------------
+# Parallel Domain 
+#-----------------------------------------------------------------------------------
+domain = distribute(domain)
+   
 #-----------------------------------------------------------------------------
 # Setup boundary conditions
 #------------------------------------------------------------------------------
@@ -100,7 +110,7 @@ def waveform(t):
 def waveform2(t):
     return amplitude*sin((1./wave_length)*t*2*pi)
 
-Bw2 = anuga.shallow_water.boundaries.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, waveform2)
+Bw2 = anuga.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, waveform2)
 #Bw3 = swb2_boundary_conditions.Transmissive_momentum_nudge_stage_boundary(domain, waveform)
 Bw3 = anuga.Time_boundary(domain, waveform)
 
@@ -114,25 +124,18 @@ def zero_fun(t):
 domain.set_boundary({'left': Bw2, 'right': Bt, 'top': Br, 'bottom': Br})
 
 
-#===============================================================================
-if interactive_visualisation:
-    from anuga.visualiser import RealtimeVisualiser
-    vis = RealtimeVisualiser(domain)
-    vis.render_quantity_height("stage", zScale =10000, dynamic=True)
-    vis.colour_height_quantity('stage', (1.0, 0.5, 0.5))
-    vis.start()
-#===============================================================================
 
 
 #------------------------------------------------------------------------------
 # Produce a documentation of parameters
 #------------------------------------------------------------------------------
-parameter_file=open('parameters.tex', 'w')
-parameter_file.write('\\begin{verbatim}\n')
-from pprint import pprint
-pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
-parameter_file.write('\\end{verbatim}\n')
-parameter_file.close()
+if myid == 0:
+    parameter_file=open('parameters.tex', 'w')
+    parameter_file.write('\\begin{verbatim}\n')
+    from pprint import pprint
+    pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
+    parameter_file.write('\\end{verbatim}\n')
+    parameter_file.close()
 
 #------------------------------------------------------------------------------
 # Evolve system through time
@@ -143,6 +146,7 @@ for t in domain.evolve(yieldstep = 1e1, finaltime = 2e4):
     if interactive_visualisation:
         vis.update()
 
-if interactive_visualisation:
-    vis.evolveFinished()
+domain.sww_merge(delete_old=True)
+
+finalize()
 

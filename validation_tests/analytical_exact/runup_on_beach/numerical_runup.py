@@ -25,7 +25,7 @@ domain.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 'ymomentum': 2, 
 from anuga.utilities.argparsing import parse_standard_args
 alg, cfl = parse_standard_args()
 domain.set_flow_algorithm(alg)
-domain.set_CFL(cfl)
+#domain.set_CFL(cfl)
 #domain.set_minimum_allowed_height(0.0001)
 #domain.set_minimum_storable_height(0.0001)
 

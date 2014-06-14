@@ -14,7 +14,21 @@ from numpy import zeros, array, float, hstack
 from time import localtime, strftime, gmtime
 from scipy.optimize import fsolve
 from math import sin, pi, exp, sqrt, cos
-from analytical_cg_transient import *
+from analytical_cg_transient import analytical_sol
+
+from anuga import myid, finalize, distribute
+
+import warnings
+warnings.simplefilter('ignore')
+
+#------------------------------------------------------------------------------
+# Setup Algorithm, either using command line arguments
+# or override manually yourself
+#------------------------------------------------------------------------------
+args = anuga.get_args()
+alg = args.alg
+cfl = args.cfl
+verbose = args.v
 
 
 #-------------------------------------------------------------------------------
@@ -43,36 +57,37 @@ h0 = 5e2          # Height at origin when the water is still
 g   = 9.81        # Gravity
 
 
-# structured mesh
-points, vertices, boundary = anuga.rectangular_cross(int(0.8*L/dx), int(W/dy), 0.8*L, W, (-0.5*L, -0.5*W))
-domain = Domain(points, vertices, boundary) 
-domain.set_name(output_file)                
-domain.set_datadir(output_dir)
-
-#------------------------------------------------------------------------------
-# Setup Algorithm, either using command line arguments
-# or override manually yourself
-#------------------------------------------------------------------------------
-from anuga.utilities.argparsing import parse_standard_args
-alg, cfl = parse_standard_args()
-domain.set_flow_algorithm(alg)
-domain.set_CFL(cfl)
-
-#------------------------------------------------------------------------------
-# Setup initial conditions
-#------------------------------------------------------------------------------
-domain.set_quantity('friction', 0.0)
-
 def elevation(x,y):
     return h0*x/L
-domain.set_quantity('elevation', elevation)
+
 
 def stage(x,y):
     w,z,u = analytical_sol(x/L,0.0)
     return h0*w
-domain.set_quantity('stage', stage)
 
 
+
+if myid == 0:
+    # structured mesh
+    points, vertices, boundary = anuga.rectangular_cross(int(0.8*L/dx), int(W/dy), 0.8*L, W, (-0.5*L, -0.5*W))
+    domain = Domain(points, vertices, boundary) 
+    domain.set_name(output_file)                
+    domain.set_datadir(output_dir)
+
+    domain.set_flow_algorithm(alg)
+    #domain.set_CFL(cfl)
+
+    #------------------------------------------------------------------------------
+    # Setup initial conditions
+    #------------------------------------------------------------------------------
+    domain.set_quantity('friction', 0.0)
+    domain.set_quantity('stage', stage)
+    domain.set_quantity('elevation', elevation)
+    
+else:
+    domain = None
+    
+domain = distribute(domain)
 
 #-----------------------------------------------------------------------------
 # Setup boundary conditions
@@ -105,26 +120,29 @@ domain.set_boundary({'left': BTime, 'right': Br, 'top': Br, 'bottom': Br})
 #===============================================================================
 
 
-#------------------------------------------------------------------------------
-# Produce a documentation of parameters
-#------------------------------------------------------------------------------
-parameter_file=open('parameters.tex', 'w')
-parameter_file.write('\\begin{verbatim}\n')
-from pprint import pprint
-pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
-parameter_file.write('\\end{verbatim}\n')
-parameter_file.close()
+if myid == 0:
+    #------------------------------------------------------------------------------
+    # Produce a documentation of parameters
+    #------------------------------------------------------------------------------
+    parameter_file=open('parameters.tex', 'w')
+    parameter_file.write('\\begin{verbatim}\n')
+    from pprint import pprint
+    pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
+    parameter_file.write('\\end{verbatim}\n')
+    parameter_file.close()
 
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep = 1000., finaltime = 30000.):
     #print domain.timestepping_statistics(track_speeds=True)
-    print domain.timestepping_statistics()
+    if myid == 0 and verbose:
+        print domain.timestepping_statistics()
     #vis.update()
 
 
-#test against know data
-    
-#vis.evolveFinished()
+domain.sww_merge(delete_old=True)
+
+finalize()
+
 

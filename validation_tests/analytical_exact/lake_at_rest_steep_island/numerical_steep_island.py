@@ -13,7 +13,7 @@ from anuga import Domain as Domain
 from math import cos
 from numpy import zeros, float
 from time import localtime, strftime, gmtime
-#from balanced_dev import *
+from anuga import myid, finalize, distribute
 
 
 #-------------------------------------------------------------------------------
@@ -26,47 +26,20 @@ time = strftime('%Y%m%d_%H%M%S',localtime())
 output_dir = '.'
 output_file = 'steep_island'
 
-#anuga.copy_code_files(output_dir,__file__)
-#start_screen_catcher(output_dir+'_')
+args = anuga.get_args()
+alg = args.alg
+verbose = args.v
 
-
-#------------------------------------------------------------------------------
-# Setup domain
-#------------------------------------------------------------------------------
 dx = 1.
 dy = dx
 L = 2000.
 W = 5*dx
-
-# structured mesh
-points, vertices, boundary = anuga.rectangular_cross(int(L/dx), int(W/dy), L, W, (0.0, 0.0))
-
-#domain = anuga.Domain(points, vertices, boundary) 
-domain = Domain(points, vertices, boundary) 
-
-domain.set_name(output_file)                
-domain.set_datadir(output_dir) 
-
-#------------------------------------------------------------------------------
-# Setup Algorithm, either using command line arguments
-# or override manually yourself
-#------------------------------------------------------------------------------
-from anuga.utilities.argparsing import parse_standard_args
-alg, cfl = parse_standard_args()
-domain.set_flow_algorithm(alg)
-domain.set_CFL(cfl)
-
-#------------------------------------------------------------------------------
-# Setup initial conditions
-#------------------------------------------------------------------------------
-domain.set_quantity('friction', 0.0)
 
 def stage_flat(x,y):
     w=zeros(len(x))
     for i in range(len(x)):
         w[i]=4.5
     return w
-domain.set_quantity('stage', stage_flat)
 
 def bed_elevation(x,y):
     z=zeros(len(x))
@@ -98,7 +71,35 @@ def bed_elevation(x,y):
         else:
             z[i] = (4.5/40000)*(x[i]-1800)*(x[i]-1800) + 2.0
     return z 
-domain.set_quantity('elevation', bed_elevation)
+
+#------------------------------------------------------------------------------
+# Setup sequential domain
+#------------------------------------------------------------------------------
+if myid == 0:
+    # structured mesh
+    points, vertices, boundary = anuga.rectangular_cross(int(L/dx), int(W/dy), L, W, (0.0, 0.0))
+ 
+    domain = Domain(points, vertices, boundary) 
+    
+    domain.set_name(output_file)                
+    domain.set_datadir(output_dir) 
+    domain.set_flow_algorithm(alg)
+    
+    #------------------------------------------------------------------------------
+    # Setup initial conditions
+    #------------------------------------------------------------------------------
+    domain.set_quantity('friction', 0.0)
+    domain.set_quantity('stage', stage_flat)
+    domain.set_quantity('elevation', bed_elevation)
+    
+else:
+    
+    domain = None
+    
+#-----------------------------------------------------------------------------
+# Parallel Domain
+#-----------------------------------------------------------------------------
+domain = distribute(domain)    
 
 #-----------------------------------------------------------------------------
 # Setup boundary conditions
@@ -112,35 +113,31 @@ Br = anuga.Reflective_boundary(domain)      # Solid reflective wall
 domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 
-#===============================================================================
-##from anuga.visualiser import RealtimeVisualiser
-##vis = RealtimeVisualiser(domain)
-##vis.render_quantity_height("stage", zScale =h0*500, dynamic=True)
-##vis.colour_height_quantity('stage', (0.0, 0.5, 1.0))
-##vis.start()
-#===============================================================================
 
 
 #------------------------------------------------------------------------------
 # Produce a documentation of parameters
 #------------------------------------------------------------------------------
-parameter_file=open('parameters.tex', 'w')
-parameter_file.write('\\begin{verbatim}\n')
-from pprint import pprint
-pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
-parameter_file.write('\\end{verbatim}\n')
-parameter_file.close()
+if myid == 0:
+    parameter_file=open('parameters.tex', 'w')
+    parameter_file.write('\\begin{verbatim}\n')
+    from pprint import pprint
+    pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
+    parameter_file.write('\\end{verbatim}\n')
+    parameter_file.close()
 
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep = 0.1, finaltime = 5.):
     #print domain.timestepping_statistics(track_speeds=True)
-    print domain.timestepping_statistics()
-    #vis.update()
+    if myid == 0: print domain.timestepping_statistics()
 
 
-#test against know data
-    
-#vis.evolveFinished()
+domain.sww_merge(delete_old=True)
+
+finalize()
+
+
+#
 

@@ -62,7 +62,7 @@ domain.set_datadir(output_dir)
 #domain.set_default_order(2)
 #domain.set_timestepping_method(2)
 #domain.set_beta(1.5)
-#domain.set_CFL(0.6)
+##domain.set_CFL(0.6)
 #domain.smooth = True
 
 

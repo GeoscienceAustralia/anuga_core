@@ -7,9 +7,12 @@ import os
 import numpy
 import anuga
 
+args = anuga.get_args()
+
+
 indent = anuga.indent
 
-verbose = True
+verbose = args.v
 
 class Test_results(unittest.TestCase):
     def setUp(self):
@@ -31,8 +34,8 @@ class Test_results(unittest.TestCase):
             print
             print indent+'Running simulation script'
 
-        s = 'produce_results.py'
-        res = os.system('python %s > validate_output.stdout' %s)
+        s = 'numerical_dam_break_dry.py'
+        res = anuga.run_anuga_script(s,args=args)
 
         # Test that script runs ok
         assert res == 0

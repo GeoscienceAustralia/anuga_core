@@ -9,7 +9,8 @@ import anuga
 
 indent = anuga.indent
 
-verbose = True
+args = anuga.get_args()
+verbose = args.v
 
 class Test_results(unittest.TestCase):
     def setUp(self):
@@ -31,8 +32,10 @@ class Test_results(unittest.TestCase):
             print
             print indent+'Running simulation script'
 
+            
         s = 'numerical_avalanche_dry.py'
-        res = os.system('python %s > validate_output.stdout' %s)
+        res = anuga.run_anuga_script(s,args=args)
+
 
         # Test that script runs ok
         assert res == 0

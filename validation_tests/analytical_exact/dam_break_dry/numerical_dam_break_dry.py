@@ -47,6 +47,15 @@ def height(x,y):
             z[i] = h1
     return z
 
+
+args = anuga.get_args()
+alg = args.alg
+cfl = args.cfl
+verbose = args.v
+
+print args
+
+
 #================================================================================
 # create sequential domain
 #================================================================================
@@ -64,10 +73,8 @@ if myid == 0:
     # Setup Algorithm, either using command line arguments
     # or override manually yourself
     #------------------------------------------------------------------------------
-    from anuga.utilities.argparsing import parse_standard_args
-    alg, cfl = parse_standard_args()
     domain.set_flow_algorithm(alg)
-    domain.set_CFL(cfl)
+    #domain.set_CFL(cfl)
 
     #------------------------------------------------------------------------------
     # Setup initial conditions
@@ -120,7 +127,7 @@ if myid == 0:
 # Evolve system through time
 #===================================================================================
 for t in domain.evolve(yieldstep = 0.5, finaltime = 50.):
-    if myid == 0:
+    if myid == 0 and verbose:
         print domain.timestepping_statistics()
 
 

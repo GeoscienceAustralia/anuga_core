@@ -52,11 +52,6 @@ dana= fluxin/uana # Depth
 #--------------------
 pyplot.clf()
 
-
-print (p2.x[v].min(),p2.x[v].max())
-print (p2.stage[:,v]-p2.elev[v]).max()
-print (p2.stage[:,v]-p2.elev[v]).min()
-
 line, = pyplot.plot( (p2.x[v].min(),p2.x[v].max()) ,( (p2.stage[:,v]-p2.elev[v]).max(),(p2.stage[:,v]-p2.elev[v]).min() ) )
 line.set_label('numerical')
 pyplot.plot( (0,140),(dana,dana), 'r',label='analytical' )

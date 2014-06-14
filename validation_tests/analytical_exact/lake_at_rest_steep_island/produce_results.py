@@ -1,20 +1,11 @@
 #--------------------------------
 # import modules
 #--------------------------------
-from anuga.validation_utilities.fabricate import *
-from anuga.validation_utilities import run_validation_script
-from anuga.validation_utilities import typeset_report
+import anuga
+from anuga.validation_utilities import produce_report
 
+args = anuga.get_args()
 
-# Setup the python scripts which produce the output for this
-# validation test
-def build():
-    run_validation_script('numerical_steep_island.py')
-    run_validation_script('plot_results.py')
-    typeset_report()
+produce_report('numerical_steep_island.py', args=args)
 
-def clean():
-    autoclean()
-
-main()
 
