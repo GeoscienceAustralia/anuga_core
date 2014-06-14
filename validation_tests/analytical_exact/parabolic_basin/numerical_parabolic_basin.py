@@ -4,6 +4,7 @@
 #Import Modules
 #--------
 import anuga
+from anuga import myid, finalize, distribute
 import numpy
 from math import sqrt, cos, sin, pi
 from numpy import asarray
@@ -21,55 +22,64 @@ output_file = 'parabola'
 #anuga.copy_code_files(output_dir,__file__)
 #start_screen_catcher(output_dir+'_')
 
-#-------------------------------------------------------------------------------
-# Domain
-#-------------------------------------------------------------------------------
+args = anuga.get_args()
+alg = args.alg
+verbose = args.v
+
 m = 200
 n = 10
 lenx = 40.0
 leny = 2.0
 origin = (-20.0, -1.0)
 
-points, elements, boundary = anuga.rectangular_cross(m, n, lenx, leny, origin)
-domain = anuga.Domain(points, elements, boundary)
-domain.set_name(output_file)                
-domain.set_datadir(output_dir)
-#domain.set_minimum_allowed_height(0.01)
 
-
-#------------------------------------------------------------------------------
-# Setup Algorithm, either using command line arguments
-# or override manually yourself
-#------------------------------------------------------------------------------
-from anuga.utilities.argparsing import parse_standard_args
-alg, cfl = parse_standard_args()
-domain.set_flow_algorithm(alg)
-#domain.set_CFL(cfl)
-
-#------------------
-# Define topography
-#------------------
-
-# Parameters for analytical solution
-D0=4.0
-L=10.0
-A = 2.0
-
-def topography(x,y):
-        return  (D0/(L**2.))*x**2.
-
-def stage_init(x,y):
-    wat= D0 + (2.0*A*D0/L**2.)*(x-A/2.0) # Water elevation inside the parabola
-    top=topography(x,y) # Bed elevation
-    # Return the maximum of the water elevation and the bed elvation
-    return wat*(wat>top) + top*(wat<=top)
-
-
-domain.set_quantity('elevation',topography)     # Use function for elevation
-domain.set_quantity('friction',0.0)            # No friction
-domain.set_quantity('stage', stage_init)        # Constant negative initial stage
-
-
+#-------------------------------------------------------------------------------
+# Sequential Domain
+#-------------------------------------------------------------------------------
+if myid == 0:
+    points, elements, boundary = anuga.rectangular_cross(m, n, lenx, leny, origin)
+    domain = anuga.Domain(points, elements, boundary)
+    domain.set_name(output_file)                
+    domain.set_datadir(output_dir)
+    #domain.set_minimum_allowed_height(0.01)
+    
+    
+    
+    domain.set_flow_algorithm(alg)
+    
+    
+    #------------------
+    # Define topography
+    #------------------
+    
+    # Parameters for analytical solution
+    D0=4.0
+    L=10.0
+    A = 2.0
+    
+    def topography(x,y):
+            return  (D0/(L**2.))*x**2.
+    
+    def stage_init(x,y):
+        wat= D0 + (2.0*A*D0/L**2.)*(x-A/2.0) # Water elevation inside the parabola
+        top=topography(x,y) # Bed elevation
+        # Return the maximum of the water elevation and the bed elvation
+        return wat*(wat>top) + top*(wat<=top)
+    
+    
+    domain.set_quantity('elevation',topography)     # Use function for elevation
+    domain.set_quantity('friction',0.0)            # No friction
+    domain.set_quantity('stage', stage_init)        # Constant negative initial stage
+    
+else:
+    
+    domain = None
+    
+#--------------------------------------------------------------------
+# Parallel Domain
+#--------------------------------------------------------------------
+domain = distribute(domain)
+    
 #--------------------------
 # Setup boundary conditions
 #--------------------------
@@ -103,17 +113,25 @@ domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom':Br})
 #------------------------------------------------------------------------------
 # Produce a documentation of parameters
 #------------------------------------------------------------------------------
-parameter_file=open('parameters.tex', 'w')
-parameter_file.write('\\begin{verbatim}\n')
-from pprint import pprint
-pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
-parameter_file.write('\\end{verbatim}\n')
-parameter_file.close()
+if myid == 0:
+    parameter_file=open('parameters.tex', 'w')
+    parameter_file.write('\\begin{verbatim}\n')
+    from pprint import pprint
+    pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
+    parameter_file.write('\\end{verbatim}\n')
+    parameter_file.close()
 
 
 #------------------------------
 #Evolve the system through time
 #------------------------------
 for t in domain.evolve(yieldstep=0.05,finaltime=10.0):
-    print domain.timestepping_statistics()
-print 'Finished'
+    if myid == 0: print domain.timestepping_statistics()
+
+domain.sww_merge(delete_old=True)
+
+finalize()
+
+
+
+
