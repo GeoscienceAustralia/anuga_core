@@ -425,7 +425,7 @@ class Domain(Generic_Domain):
         """Set up the defaults for running the flow_algorithm "DE1"
            A 'discontinuous elevation' method
         """
-        self.set_CFL(0.9)
+        self.set_CFL(1.0)
         self.set_use_kinematic_viscosity(False)
         #self.timestepping_method='rk2'#'rk3'#'euler'#'rk2' 
         self.set_timestepping_method(2)
@@ -436,18 +436,18 @@ class Domain(Generic_Domain):
         
         # Don't place any restriction on the minimum storable height
         self.minimum_storable_height=-99999999999.0 
-        self.minimum_allowed_height=1.0e-12
+        self.minimum_allowed_height=1.0e-5
 
         self.use_edge_limiter=True
         self.set_default_order(2)
         self.set_extrapolate_velocity()
 
-        self.beta_w=0.75
-        self.beta_w_dry=0.2
-        self.beta_uh=0.75
-        self.beta_uh_dry=0.2
-        self.beta_vh=0.75
-        self.beta_vh_dry=0.2
+        self.beta_w=1.0
+        self.beta_w_dry=0.0
+        self.beta_uh=1.0
+        self.beta_uh_dry=0.0
+        self.beta_vh=1.0
+        self.beta_vh_dry=0.0
         
 
         #self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
