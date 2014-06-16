@@ -464,44 +464,24 @@ class RiverWall:
     def get_vertices_corresponding_to_edgeInds(self, riverwalledgeInds, tol=1.0e-04):
         """
          Get indices of vertices corresponding to edges at index riverwalledgeInds
+    
          Since each edge has 2 vertices, use V1 and V2
-         We have to work to compute these, I can't see a simple formula
+        
+         There is indeed a simple relationship between the vertex and edge indices
         """
 
         domain=self.domain
 
         riverwallCentInds=self.get_centroids_corresponding_to_edgeInds(riverwalledgeInds)
 
-        rwV0Inds=3*riverwallCentInds #+((resid+1)%3)
-        rwV1Inds=3*riverwallCentInds+1 #((resid+2)%3)
-        rwV2Inds=3*riverwallCentInds+2 #((resid+2)%3)
+        rwEI_mod3=riverwalledgeInds%3
 
-        # Find which 2 vertices have the edge value, by testing the
-        # coordinates
-        X01=0.5*(domain.vertex_coordinates[rwV0Inds,0]+domain.vertex_coordinates[rwV1Inds,0]) 
-        Y01=0.5*(domain.vertex_coordinates[rwV0Inds,1]+domain.vertex_coordinates[rwV1Inds,1]) 
-        k01=(abs(X01- domain.edge_coordinates[riverwalledgeInds,0])+abs(Y01-domain.edge_coordinates[riverwalledgeInds,1])<tol)
-        X12=0.5*(domain.vertex_coordinates[rwV2Inds,0]+domain.vertex_coordinates[rwV1Inds,0])
-        Y12=0.5*(domain.vertex_coordinates[rwV2Inds,1]+domain.vertex_coordinates[rwV1Inds,1])
-        k12=(abs(X12 - domain.edge_coordinates[riverwalledgeInds,0])+abs(Y12-domain.edge_coordinates[riverwalledgeInds,1])<tol)
-        X02=0.5*(domain.vertex_coordinates[rwV2Inds,0]+domain.vertex_coordinates[rwV0Inds,0])
-        Y02=0.5*(domain.vertex_coordinates[rwV2Inds,1]+domain.vertex_coordinates[rwV0Inds,1])
-        k02=(abs(X02 - domain.edge_coordinates[riverwalledgeInds,0])+abs(Y02-domain.edge_coordinates[riverwalledgeInds,1])<tol)
-
-        riverwallV2Inds=riverwallCentInds*0
-        riverwallV1Inds=riverwallCentInds*0
-      
-        t1=(k01==1).nonzero()[0]
-        riverwallV2Inds[t1]=rwV0Inds[t1]
-        riverwallV1Inds[t1]=rwV1Inds[t1]
-        
-        t1=(k12==1).nonzero()[0]
-        riverwallV2Inds[t1]=rwV2Inds[t1]
-        riverwallV1Inds[t1]=rwV1Inds[t1]
-        
-        t1=(k02==1).nonzero()[0]
-        riverwallV2Inds[t1]=rwV0Inds[t1]
-        riverwallV1Inds[t1]=rwV2Inds[t1]
+        # Figure out the difference between each vertex index and the edge index. Is either
+        # -2, -1, 1, 2
+        rwV1_adjustment= -2*(rwEI_mod3==2) -1*(rwEI_mod3==1) +1*(rwEI_mod3==0)
+        rwV2_adjustment= -1*(rwEI_mod3==2) +1*(rwEI_mod3==1) +2*(rwEI_mod3==0)
+        riverwallV1Inds=riverwalledgeInds+rwV1_adjustment
+        riverwallV2Inds=riverwalledgeInds+rwV2_adjustment
 
         return riverwallV1Inds, riverwallV2Inds
     
@@ -537,6 +517,9 @@ class RiverWall:
             riverwallCentInds=rwd.get_centroids_corresponding_to_edgeInds(riverwalledgeInds)
             # Get their corresponding vertices
             riverwallV1Inds, riverwallV2Inds = rwd.get_vertices_corresponding_to_edgeInds(riverwalledgeInds, tol=tol)
+
+            #import pdb
+            #pdb.set_trace()
 
             # With discontinuous triangles, we expect edges to occur twice
             # Let's remove duplicates to simplify the analysis
