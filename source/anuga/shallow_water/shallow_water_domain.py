@@ -425,7 +425,7 @@ class Domain(Generic_Domain):
         """Set up the defaults for running the flow_algorithm "DE1"
            A 'discontinuous elevation' method
         """
-        self.set_CFL(1.00)
+        self.set_CFL(0.9)
         self.set_use_kinematic_viscosity(False)
         #self.timestepping_method='rk2'#'rk3'#'euler'#'rk2' 
         self.set_timestepping_method(2)
@@ -442,12 +442,12 @@ class Domain(Generic_Domain):
         self.set_default_order(2)
         self.set_extrapolate_velocity()
 
-        self.beta_w=1.0
-        self.beta_w_dry=0.0
-        self.beta_uh=1.0
-        self.beta_uh_dry=0.0
-        self.beta_vh=1.0
-        self.beta_vh_dry=0.0
+        self.beta_w=0.75
+        self.beta_w_dry=0.2
+        self.beta_uh=0.75
+        self.beta_uh_dry=0.2
+        self.beta_vh=0.75
+        self.beta_vh_dry=0.2
         
 
         #self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
@@ -1744,28 +1744,24 @@ class Domain(Generic_Domain):
         
         Elev = self.quantities['elevation']
         Stage = self.quantities['stage']
+        Xmom = self.quantities['xmomentum']
+        Ymom = self.quantities['ymomentum']
         
-        self.work_centroid_values[:] = Stage.centroid_values
+        #self.work_centroid_values[:] = Stage.centroid_values
         
         tff = self.tri_full_flag
-        success = False
-        try:
-            Stage.update(timestep)
-            assert num.all(tff*(Stage.centroid_values - Elev.centroid_values) >= 0.0)
-            success  = True
-        except:
-            Stage.centroid_values[:] = self.work_centroid_values
-            success = False
         
-        if not success : print 'NEGATIVE UPDATE'
-        if success:
-            Xmom = self.quantities['xmomentum']
-            Xmom.update(timestep)   
- 
-            Ymom = self.quantities['ymomentum']
-            Ymom.update(timestep)   
+        Stage.update(timestep)
+        Xmom.update(timestep)   
+        Ymom.update(timestep)   
   
-            
+        negative_ids = num.where( num.logical_and((Stage.centroid_values - Elev.centroid_values) < 0.0 , tff > 0) )[0]
+        
+        if len(negative_ids)>0:
+            #print 'NEGATIVE INDICES'
+            Stage.centroid_values[negative_ids] = Elev.centroid_values[negative_ids]
+            Xmom.centroid_values[negative_ids] = 0.0
+            Ymom.centroid_values[negative_ids] = 0.0          
             
 
             # Note that Q.explicit_update is reset by compute_fluxes

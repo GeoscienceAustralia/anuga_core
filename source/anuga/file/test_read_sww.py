@@ -131,6 +131,10 @@ class Test_read_sww(unittest.TestCase):
 
 
         for qname, q in sww_file.read_quantities(last_frame_number).items():
+            
+            #print qname
+            #print num.linalg.norm(num.abs((domain.get_quantity(qname).get_values()-q).flatten()), ord=1)
+            
             assert num.allclose(domain.get_quantity(qname).get_values(), q)
 
         #-----------------------------------------
