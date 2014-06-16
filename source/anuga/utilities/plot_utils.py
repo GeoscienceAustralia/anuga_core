@@ -876,11 +876,15 @@ def Make_Geotif(swwFile=None,
         xllcorner=p2.xllcorner
         yllcorner=p2.yllcorner
 
-        if(myTimeStep=='all'):
+        #if(myTimeStep=='all'):
+        #    myTimeStep=range(len(p2.time))
+        #elif(myTimeStep=='last'):
+        #    # This is [0]!
+        #    myTimeStep=[len(p2.time)-1]
+
+        # Now, myTimeStep just holds indices we want to plot in p2
+        if(myTimeStep!='max'):
             myTimeStep=range(len(p2.time))
-        elif(myTimeStep=='last'):
-            # This is [0]!
-            myTimeStep=[len(p2.time)-1]
 
         # Ensure myTimeStep is a list
         if type(myTimeStep)!=list:
