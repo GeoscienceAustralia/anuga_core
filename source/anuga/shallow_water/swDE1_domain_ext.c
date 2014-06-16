@@ -702,31 +702,33 @@ double _compute_fluxes_central(int number_of_elements,
                 //printf("%e \n", z_half);
                 weir_height=max(riverwall_elevation[RiverWall_count-1]-min(zl,zr), 0.); // Reference weir height  
                 //weir_height=max(z_half-max(zl,zr), 0.); // Reference weir height  
+                // If the weir height is zero, avoid the weir compuattion entirely
+                if(weir_height>0.){
+                    // Get Qfactor index - multiply the idealised weir discharge by this constant factor
+                    ii=riverwall_rowIndex[RiverWall_count-1]*ncol_riverwall_hydraulic_properties;
+                    Qfactor=riverwall_hydraulic_properties[ii];
+                    //printf("%e \n", Qfactor);
+                    // Get s1, submergence ratio at which we start blending with the shallow water solution 
+                    ii+=1;
+                    s1=riverwall_hydraulic_properties[ii];
+                    // Get s2, submergence ratio at which we entirely use the shallow water solution 
+                    ii+=1;
+                    s2=riverwall_hydraulic_properties[ii];
+                    // Get h1, tailwater head / weir height at which we start blending with the shallow water solution 
+                    ii+=1;
+                    h1=riverwall_hydraulic_properties[ii];
+                    // Get h2, tailwater head / weir height at which we entirely use the shallow water solution 
+                    ii+=1;
+                    h2=riverwall_hydraulic_properties[ii];
 
-                // Get Qfactor index - multiply the idealised weir discharge by this constant factor
-                ii=riverwall_rowIndex[RiverWall_count-1]*ncol_riverwall_hydraulic_properties;
-                Qfactor=riverwall_hydraulic_properties[ii];
-                //printf("%e \n", Qfactor);
-                // Get s1, submergence ratio at which we start blending with the shallow water solution 
-                ii+=1;
-                s1=riverwall_hydraulic_properties[ii];
-                // Get s2, submergence ratio at which we entirely use the shallow water solution 
-                ii+=1;
-                s2=riverwall_hydraulic_properties[ii];
-                // Get h1, tailwater head / weir height at which we start blending with the shallow water solution 
-                ii+=1;
-                h1=riverwall_hydraulic_properties[ii];
-                // Get h2, tailwater head / weir height at which we entirely use the shallow water solution 
-                ii+=1;
-                h2=riverwall_hydraulic_properties[ii];
+                    //printf("%e, %e, %e, %e, %e \n", Qfactor, s1, s2, h1, h2);
 
-                //printf("%e, %e, %e, %e, %e \n", Qfactor, s1, s2, h1, h2);
-
-                adjust_edgeflux_with_weir(edgeflux, h_left, h_right, g, 
-                                          weir_height, Qfactor, 
-                                          s1, s2, h1, h2);
-                // NOTE: Should perhaps also adjust the wave-speed here?? Small chance of instability??
-                //printf("%e \n", edgeflux[0]);
+                    adjust_edgeflux_with_weir(edgeflux, h_left, h_right, g, 
+                                              weir_height, Qfactor, 
+                                              s1, s2, h1, h2);
+                    // NOTE: Should perhaps also adjust the wave-speed here?? Small chance of instability??
+                    //printf("%e \n", edgeflux[0]);
+                }
             }
             
             // Multiply edgeflux by edgelength
