@@ -477,13 +477,16 @@ class RiverWall:
         rwV2Inds=3*riverwallCentInds+2 #((resid+2)%3)
 
         # Find which 2 vertices have the edge value, by testing the
-        # x coordinate.
+        # coordinates
         X01=0.5*(domain.vertex_coordinates[rwV0Inds,0]+domain.vertex_coordinates[rwV1Inds,0]) 
-        k01=(abs(X01- domain.edge_coordinates[riverwalledgeInds,0])<tol)
+        Y01=0.5*(domain.vertex_coordinates[rwV0Inds,1]+domain.vertex_coordinates[rwV1Inds,1]) 
+        k01=(abs(X01- domain.edge_coordinates[riverwalledgeInds,0])+abs(Y01-domain.edge_coordinates[riverwalledgeInds,1])<tol)
         X12=0.5*(domain.vertex_coordinates[rwV2Inds,0]+domain.vertex_coordinates[rwV1Inds,0])
-        k12=(abs(X12 - domain.edge_coordinates[riverwalledgeInds,0])<tol)
+        Y12=0.5*(domain.vertex_coordinates[rwV2Inds,1]+domain.vertex_coordinates[rwV1Inds,1])
+        k12=(abs(X12 - domain.edge_coordinates[riverwalledgeInds,0])+abs(Y12-domain.edge_coordinates[riverwalledgeInds,1])<tol)
         X02=0.5*(domain.vertex_coordinates[rwV2Inds,0]+domain.vertex_coordinates[rwV0Inds,0])
-        k02=(abs(X02 - domain.edge_coordinates[riverwalledgeInds,0])<tol)
+        Y02=0.5*(domain.vertex_coordinates[rwV2Inds,1]+domain.vertex_coordinates[rwV0Inds,1])
+        k02=(abs(X02 - domain.edge_coordinates[riverwalledgeInds,0])+abs(Y02-domain.edge_coordinates[riverwalledgeInds,1])<tol)
 
         riverwallV2Inds=riverwallCentInds*0
         riverwallV1Inds=riverwallCentInds*0

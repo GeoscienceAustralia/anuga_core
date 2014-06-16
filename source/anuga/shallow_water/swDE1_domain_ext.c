@@ -690,6 +690,7 @@ double _compute_fluxes_central(int number_of_elements,
 
             // Edge flux computation (triangle k, edge i)
             _flux_function_central(ql, qr,
+            //_flux_function_toro(ql, qr,
                     h_left, h_right,
                     hle, hre,
                     normals[ki2], normals[ki2 + 1],
