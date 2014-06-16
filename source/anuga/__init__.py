@@ -160,7 +160,7 @@ def get_args():
 #-----------------------------
 # Running Script
 #-----------------------------
-from anuga.utilities.run_anuga_script import run_script as run_anuga_script
+#from anuga.utilities.run_anuga_script import run_script as run_anuga_script
 
 
 #-----------------------------
