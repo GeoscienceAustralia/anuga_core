@@ -5,6 +5,39 @@ __author__="steve"
 __date__ ="$10/07/2012 1:18:38 PM$"
 
 
+
+
+def create_standard_parser():
+    """ Creates a standard argument parser"""
+
+
+    #from anuga.validation_utilities.parameters import cfl as default_cfl
+    from anuga.validation_utilities.parameters import alg as default_alg
+    
+    import argparse
+    parser = argparse.ArgumentParser(description='validation parse')
+    
+    #parser.add_argument('-cfl', type=float, default=default_cfl,
+    #                   help='cfl condition')
+    
+    parser.add_argument('-ft', '--finaltime', type=float, default=-1.0,
+                       help='finaltime')
+    
+    parser.add_argument('-ys', '--yieldstep', type=float, default=-1.0,
+                       help='yieldstep')
+    
+    parser.add_argument('-alg', type=str, default = default_alg,
+                       help='flow algorithm')
+    
+    parser.add_argument('-np', type=int, default = 1,
+                   help='number of processors to be used')
+
+    parser.add_argument('-v', '--verbose', nargs='?', type=bool, const=True, default=False,
+                   help='turn on verbosity')
+
+    return parser
+
+
 def parse_standard_args():
     """ Parse arguments for standard validation
     arguments. Returns values of
@@ -14,36 +47,18 @@ def parse_standard_args():
 
     """
 
-    import argparse
-    parser = argparse.ArgumentParser(description='validation parse')
-    parser.add_argument('-cfl', type=float, default=1.0,
-                       help='cfl condition')
-    parser.add_argument('-alg', type=str, default = "1_5",
-                       help='flow algorithm')
+    parser = create_standard_parser()
+    
     args = parser.parse_args()
 
     cfl = args.cfl
     alg = args.alg
+    verbose= args.v
+    np = args.np
 
 
     return alg, cfl
 
-
-
-
-def run_validation_script(script):
-
-    alg, cfl = parse_standard_args()
-
-
-    import os
-    cmd = 'python %s -alg %s -cfl %s '% (script,alg,cfl)
-    print 'Running: '+cmd
-    try:
-        os.system( cmd )
-    except:
-        print 'Failed running '+ script +' in '+os.getcwd()
-        pass
 
 
 

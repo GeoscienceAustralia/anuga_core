@@ -445,7 +445,10 @@ def get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
             
             newkey=varkey_c.replace('_c','')
             tmp = fid.variables[newkey][:]
-            tmp=(tmp[:,vols0]+tmp[:,vols1]+tmp[:,vols2])/3.0
+            try: # array contain time slides
+                tmp=(tmp[:,vols0]+tmp[:,vols1]+tmp[:,vols2])/3.0
+            except:
+                tmp=(tmp[vols0]+tmp[vols1]+tmp[vols2])/3.0
             var_cent=getInds(tmp, timeSlices=timeSlices, absMax=absMax)
         else:
             var_cent=getInds(fid.variables[varkey_c][:], timeSlices=timeSlices, absMax=absMax)
