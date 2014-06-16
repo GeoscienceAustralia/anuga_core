@@ -939,11 +939,14 @@ def Make_Geotif(swwFile=None,
         if(verbose):
             print myTSi
         for output_quantity in output_quantities:
-            #
-            myTS=myTSi
-            #import pdb
-            #pdb.set_trace()
-            #
+
+            if(myTSi is not 'max'):
+                myTS=myTSi
+            else:
+                # We have already extracted the max, and e.g.
+                # p2.stage is an array of dimension (1, number_of_pointS).
+                myTS=0
+
             if(type(myTS)==int):
                 if(output_quantity=='stage'):
                     gridq=p2.stage[myTS,:][gridqInd]
@@ -959,23 +962,11 @@ def Make_Geotif(swwFile=None,
                     gridq=swwDIVel[gridqInd]
                 if(output_quantity=='elevation'):
                     gridq=p2.elev[gridqInd]
-                timestepString=str(round(p2.time[myTS]))
-            elif (myTS=='max'):
-                if(output_quantity=='stage'):
-                    gridq=p2.stage.max(axis=0)[gridqInd]
-                if(output_quantity=='depth'):
-                    gridq=p2.height.max(axis=0)[gridqInd]
-                    gridq=gridq*(gridq>=0.) # Force positive depth (tsunami alg)
-                if(output_quantity=='velocity'):
-                    gridq=p2.vel.max(axis=0)[gridqInd]
-                if(output_quantity=='depthIntegratedVelocity'):
-                    swwDIVel=((p2.xmom**2+p2.ymom**2).max(axis=0))**0.5
-                    gridq=swwDIVel[gridqInd]
-                if(output_quantity=='elevation'):
-                    gridq=p2.elev[gridqInd]
-                if(output_quantity=='friction'):
-                    gridq=p2.friction[gridqInd]
-                timestepString='max'
+    
+                if(myTSi is 'max'):
+                    timestepString='max'
+                else:
+                    timestepString=str(round(p2.time[myTS]))
             elif(myTS=='pointData'):
                 gridq=xyzPoints[:,2][gridqInd]
 
