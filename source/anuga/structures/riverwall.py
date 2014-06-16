@@ -518,9 +518,6 @@ class RiverWall:
             # Get their corresponding vertices
             riverwallV1Inds, riverwallV2Inds = rwd.get_vertices_corresponding_to_edgeInds(riverwalledgeInds, tol=tol)
 
-            #import pdb
-            #pdb.set_trace()
-
             # With discontinuous triangles, we expect edges to occur twice
             # Let's remove duplicates to simplify the analysis
             repeat=riverwalledgeInds*0
