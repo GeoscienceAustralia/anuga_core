@@ -141,6 +141,27 @@ from anuga.file_conversion.ferret2sww import ferret2sww
 from anuga.file_conversion.dem2dem import dem2dem
 from anuga.file_conversion.sww2array import sww2array
 
+#-----------------------------
+# Parsing arguments
+#-----------------------------
+from anuga.utilities.argparsing import create_standard_parser
+from anuga.utilities.argparsing import parse_standard_args
+
+
+def get_args():
+    """ Explicitly parse the argument list using standard anuga arguments
+    
+    Don't use this if you want to setup your own parser
+    """
+    parser = create_standard_parser()
+    return parser.parse_args()
+
+
+#-----------------------------
+# Running Script
+#-----------------------------
+from anuga.utilities.run_anuga_script import run_script as run_anuga_script
+
 
 #-----------------------------
 # Mesh API

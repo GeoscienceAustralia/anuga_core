@@ -340,6 +340,8 @@ class Generic_Domain:
         # (boolean) array, to be used during the flux calculation.
         N = len(self) # Number_of_triangles
         self.already_computed_flux = num.zeros((N, 3), num.int)
+        
+        self.work_centroid_values = num.zeros(N, num.float)
 
         # Storage for maximal speeds computed for each triangle by
         # compute_fluxes.
@@ -520,6 +522,12 @@ class Generic_Domain:
 
         return self.CFL
     
+    def get_cfl(self):
+        """get CFL
+        """
+
+        return self.CFL
+    
 
     def set_CFL(self, cfl=1.0):
         """Set CFL parameter, warn if greater than 2.0
@@ -532,6 +540,9 @@ class Generic_Domain:
 
         assert cfl > 0.0
         self.CFL = cfl
+        
+    set_cfl = set_CFL
+        
 
     def set_time(self, time=0.0):
         """Set the model time (seconds)."""
@@ -2105,11 +2116,14 @@ class Generic_Domain:
 
         timestep = self.timestep
 
-
+        #print 'Generic Update conserved quantities'
         # Update conserved_quantities
         for name in self.conserved_quantities:
             Q = self.quantities[name]
             Q.update(timestep)
+            
+            
+            
 
             # Note that Q.explicit_update is reset by compute_fluxes
             # Where is Q.semi_implicit_update reset?

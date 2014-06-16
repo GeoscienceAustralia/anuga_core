@@ -431,12 +431,12 @@ class Domain(Generic_Domain):
         self.set_timestepping_method(2)
         
         self.set_using_discontinuous_elevation(True)
-        self.set_compute_fluxes_method('DE1')
-        self.set_distribute_to_vertices_and_edges_method('DE1')
+        self.set_compute_fluxes_method('DE')
+        self.set_distribute_to_vertices_and_edges_method('DE')
         
         # Don't place any restriction on the minimum storable height
         self.minimum_storable_height=-99999999999.0 
-        #self.minimum_allowed_height=1.0e-03
+        self.minimum_allowed_height=1.0e-12
 
         self.use_edge_limiter=True
         self.set_default_order(2)
@@ -492,29 +492,29 @@ class Domain(Generic_Domain):
         """Set up the defaults for running the flow_algorithm "DE0"
            A 'discontinuous elevation' method
         """
-        self.set_CFL(1.00)
+        self.set_CFL(0.9)
         self.set_use_kinematic_viscosity(False)
         #self.timestepping_method='rk2'#'rk3'#'euler'#'rk2' 
         self.set_timestepping_method('euler')
         
         self.set_using_discontinuous_elevation(True)
-        self.set_compute_fluxes_method('DE1')
-        self.set_distribute_to_vertices_and_edges_method('DE1')
+        self.set_compute_fluxes_method('DE')
+        self.set_distribute_to_vertices_and_edges_method('DE')
         
         # Don't place any restriction on the minimum storable height
         self.minimum_storable_height=-99999999999.0 
-        self.minimum_allowed_height=1.0e-05
+        self.minimum_allowed_height=1.0e-12
 
         self.use_edge_limiter=True
         self.set_default_order(2)
         self.set_extrapolate_velocity()
 
         self.beta_w=0.5
-        self.beta_w_dry=0.1
+        self.beta_w_dry=0.2
         self.beta_uh=0.5
-        self.beta_uh_dry=0.1
+        self.beta_uh_dry=0.2
         self.beta_vh=0.5
-        self.beta_vh_dry=0.1
+        self.beta_vh_dry=0.2
         
 
         #self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
@@ -630,9 +630,9 @@ class Domain(Generic_Domain):
            wb_2
            wb_3
            tsunami
-           DE1
+           DE
         """
-        compute_fluxes_methods = ['original', 'wb_1', 'wb_2', 'wb_3', 'tsunami', 'DE1']
+        compute_fluxes_methods = ['original', 'wb_1', 'wb_2', 'wb_3', 'tsunami', 'DE']
 
         if flag in compute_fluxes_methods:
             self.compute_fluxes_method = flag
@@ -662,7 +662,7 @@ class Domain(Generic_Domain):
            original
            tsunami
         """
-        distribute_to_vertices_and_edges_methods = ['original',  'tsunami', 'DE1']
+        distribute_to_vertices_and_edges_methods = ['original',  'tsunami', 'DE']
 
         if flag in distribute_to_vertices_and_edges_methods:
             self.distribute_to_vertices_and_edges_method = flag
@@ -1331,7 +1331,7 @@ class Domain(Generic_Domain):
                                            Bed.centroid_values,
                                            Bed.vertex_values)
 
-        elif self.compute_fluxes_method == 'DE1':
+        elif self.compute_fluxes_method == 'DE':
             # Using Gareth Davies discontinuous elevation scheme
             # Flux calculation and gravity incorporated in same
             # procedure
@@ -1490,7 +1490,7 @@ class Domain(Generic_Domain):
                   int(self.optimise_dry_cells),
                   int(self.extrapolate_velocity_second_order))
 
-        elif self.compute_fluxes_method=='DE1':
+        elif self.compute_fluxes_method=='DE':
 
             # Do protection step
             self.protect_against_infinitesimal_and_negative_heights()
@@ -1722,6 +1722,57 @@ class Domain(Generic_Domain):
         balance_deep_and_shallow_ext(self,
                                    wc, zc, wv, zv, wc,
                                    xmomc, ymomc, xmomv, ymomv)
+
+
+    def update_conserved_quantities(self):
+        """Update vectors of conserved quantities using previously
+        computed fluxes and specified forcing functions.
+        """
+
+        N = len(self) # Number_of_triangles
+        d = len(self.conserved_quantities)
+
+        timestep = self.timestep
+
+
+        # Update conserved_quantities
+        #for name in self.conserved_quantities:
+        #    Q = self.quantities[name]
+        #    Q.update(timestep)
+        
+        #print 'shallow water update conserved quantties'
+        
+        Elev = self.quantities['elevation']
+        Stage = self.quantities['stage']
+        
+        self.work_centroid_values[:] = Stage.centroid_values
+        
+        tff = self.tri_full_flag
+        success = False
+        try:
+            Stage.update(timestep)
+            assert num.all(tff*(Stage.centroid_values - Elev.centroid_values) >= 0.0)
+            success  = True
+        except:
+            Stage.centroid_values[:] = self.work_centroid_values
+            success = False
+        
+        if not success : print 'NEGATIVE UPDATE'
+        if success:
+            Xmom = self.quantities['xmomentum']
+            Xmom.update(timestep)   
+ 
+            Ymom = self.quantities['ymomentum']
+            Ymom.update(timestep)   
+  
+            
+            
+
+            # Note that Q.explicit_update is reset by compute_fluxes
+            # Where is Q.semi_implicit_update reset?
+            # It is reset in quantity_ext.c
+
+
 
     def update_other_quantities(self):
         """ There may be a need to calculates some of the other quantities

@@ -1307,9 +1307,8 @@ class Quantity:
             points = self.domain.vertex_coordinates
             
         from anuga.geospatial_data.geospatial_data import Geospatial_data,  ensure_absolute
-        points = ensure_absolute(points, geo_reference=self.domain.geo_reference)
-            
-
+        
+        points = ensure_absolute(points, geo_reference=self.domain.geo_reference)        
         
         from  anuga.fit_interpolate.interpolate2d import interpolate2d 
         
@@ -1390,7 +1389,8 @@ class Quantity:
         """
 
 
-
+        msg = "Function not implemented yet"
+        raise Exception, msg
 
         msg = 'Filename must be a text string'
         assert isinstance(filename, basestring), msg

@@ -11,7 +11,7 @@ class DataTimeError(exceptions.Exception): pass
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
-from anuga.config import netcdf_float, netcdf_float32, netcdf_int
+from anuga.config import netcdf_float, netcdf_float32, netcdf_int, netcdf_float64
 from anuga.config import max_float
 from anuga.utilities.numerical_tools import ensure_numeric
 import anuga.utilities.log as log
