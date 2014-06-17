@@ -90,7 +90,7 @@ class Test_swb2_domain(unittest.TestCase):
             #print 'Volume is', sum(dd_raw*domain.areas)
 
 
-        print vv.max()
+        #print vv.max()
 
         assert num.all(vv<1.0e-02)
 
