@@ -31,6 +31,7 @@ class Test_results(unittest.TestCase):
             print
             print indent+'Running simulation script'
 
+        
         s = 'numerical_avalanche_wet.py'
         res = os.system('python %s > validate_output.stdout' %s)
 
