@@ -8,13 +8,14 @@ This case simulates very shallow flow running down a mild slope topography. It r
 
 Suppose that we are given a one dimensional domain. The steady state conditions with a contant water depth everywhere make the shallow water equations to the single identity
 \begin{equation}
-z_x = - S_f.
+z_x = - S_f, 
 \end{equation}
-Here $q=uh$ is the momentum or water discharge and $S_f$ is the symbol for the force of bottom friction involving Manning's coefficient $n$. We take 
+where $z_x$ is the bed slope, and $S_f$ is the symbol for the force of bottom friction.  We take Manning's friction
 \begin{equation}
-S_f = n^2 \frac{q|q|}{h^{10/3}}.
+S_f = n^2 \frac{q|q|}{h^{10/3}}
 \end{equation}
-If $q$, $n$, and $z_x$ are given, then the analytical solution is
+where $n$ is the Manning's coefficient and $q$ is the discharge $uh$. 
+If $q$, $n$, and $z_x$ are given, then the analytical solution for $u$ and $h$ is
 \begin{equation}
 u(x)= \left[- n^{-2} q^{4/3} z_x\right]^{3/10},
 \end{equation}
@@ -34,18 +35,30 @@ w(x,y,0)= -0.1 x + 0.01\,.
 \end{equation}
 
 
-Some simualtion results are as follows.
-Figures~\ref{fig:depthdownchan} shows the steady state depth in the downstream direction. There should be a good agreement with the analytical solution, at least away from the boundaries.  
+Some simulation results are as follows.
+Figures~\ref{fig:depthdownchan} shows the steady state depth in the downstream direction. 
+There should be a good agreement with the analytical solution, at least away from the boundaries. 
+
+Figures~\ref{fig:depthacrosschan} shows the steady state depth across the slope around the line x = 50m. 
+There should be a good agreement with the analytical solution, at least away from the boundaries. 
+
 Figures~\ref{fig:xvelscrosschan} and~\ref{fig:yvelscroschan} show the steady state $x$- and $y$-velocities, along a slice in the cross slope direction (near $x=50$). The $x$-velocities should agree well with the analytical solution, and the $y$-velocities should be zero. 
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=0.8\textwidth]{final_depth.png}
+\includegraphics[width=0.8\textwidth]{depth_x.png}
 \caption{Depth in the downstream direction}
 \label{fig:depthdownchan}
 \end{center}
 \end{figure}
  
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.8\textwidth]{depth_y.png}
+\caption{Depth across the slope around $x$ = 50m}
+\label{fig:depthacrosschan}
+\end{center}
+\end{figure}
 
 \begin{figure}
 \begin{center}

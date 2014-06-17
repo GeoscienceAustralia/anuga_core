@@ -9,6 +9,8 @@ Transcritical flow over a bump with a shock
 import sys
 import anuga
 from anuga import Domain as Domain
+from anuga import myid, finalize, distribute
+from anuga import g
 from math import cos
 from numpy import zeros, ones, array
 from time import localtime, strftime, gmtime
@@ -24,40 +26,17 @@ time = strftime('%Y%m%d_%H%M%S',localtime())
 output_dir = '.'
 output_file = 'MacDonald'
 
-#anuga.copy_code_files(output_dir,__file__)
-#start_screen_catcher(output_dir+'_')
+args = anuga.get_args()
+alg = args.alg
+verbose = args.verbose
 
 
-#------------------------------------------------------------------------------
-# Setup domain
-#------------------------------------------------------------------------------
 dx = 0.25
 dy = dx
 L = 100.
 W = 3*dx
 
-# structured mesh
-points, vertices, boundary = anuga.rectangular_cross(int(L/dx), int(W/dy), L, W, (0.0, 0.0))
 
-#domain = anuga.Domain(points, vertices, boundary) 
-domain = Domain(points, vertices, boundary) 
-
-domain.set_name(output_file)                
-domain.set_datadir(output_dir) 
-
-#------------------------------------------------------------------------------
-# Setup Algorithm, either using command line arguments
-# or override manually yourself
-#------------------------------------------------------------------------------
-from anuga.utilities.argparsing import parse_standard_args
-from anuga import g
-alg, cfl = parse_standard_args()
-domain.set_flow_algorithm(alg)
-#domain.set_CFL(cfl)
-
-#------------------------------------------------------------------------------
-# Setup initial conditions
-#------------------------------------------------------------------------------
 L     = 100.  # Channel length
 q = q_s = 2.    # Steady discharge
 q_up  = q_s   # Upstream discharge
@@ -95,10 +74,38 @@ def bed(x,y):
     elevation = -1.*Z[:,0]
     return elevation
 
-domain.set_quantity('stage', 2.87870797)
-domain.set_quantity('elevation', bed)
-domain.set_quantity('friction', n)
 
+#------------------------------------------------------------------------------
+# Setup sequential domain
+#------------------------------------------------------------------------------
+if myid == 0:
+    # structured mesh
+    points, vertices, boundary = anuga.rectangular_cross(int(L/dx), int(W/dy), L, W, (0.0, 0.0))
+    
+    #domain = anuga.Domain(points, vertices, boundary) 
+    domain = Domain(points, vertices, boundary) 
+    
+    domain.set_name(output_file)                
+    domain.set_datadir(output_dir) 
+    
+    domain.set_flow_algorithm(alg)
+
+    
+    #------------------------------------------------------------------------------
+    # Setup initial conditions
+    #------------------------------------------------------------------------------
+    
+    domain.set_quantity('stage', 2.87870797)
+    domain.set_quantity('elevation', bed)
+    domain.set_quantity('friction', n)
+else:
+    
+    domain = None
+    
+#--------------------------------------------------------------------
+# Parallel Domain
+#--------------------------------------------------------------------
+domain = distribute(domain)
 
 #-----------------------------------------------------------------------------
 # Setup boundary conditions
@@ -113,35 +120,29 @@ BdR = anuga.Dirichlet_boundary([2.87870797, q_s, 0.]) # Constant boundary values
 domain.set_boundary({'left': BdL, 'right': BdR, 'top': Br, 'bottom': Br})
 
 
-#===============================================================================
-##from anuga.visualiser import RealtimeVisualiser
-##vis = RealtimeVisualiser(domain)
-##vis.render_quantity_height("stage", zScale =h0*500, dynamic=True)
-##vis.colour_height_quantity('stage', (0.0, 0.5, 1.0))
-##vis.start()
-#===============================================================================
 
 
 #------------------------------------------------------------------------------
 # Produce a documentation of parameters
 #------------------------------------------------------------------------------
-parameter_file=open('parameters.tex', 'w')
-parameter_file.write('\\begin{verbatim}\n')
-from pprint import pprint
-pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
-parameter_file.write('\\end{verbatim}\n')
-parameter_file.close()
+if myid == 0:
+    parameter_file=open('parameters.tex', 'w')
+    parameter_file.write('\\begin{verbatim}\n')
+    from pprint import pprint
+    pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
+    parameter_file.write('\\end{verbatim}\n')
+    parameter_file.close()
 
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep = 1.0, finaltime = 100.):
     #print domain.timestepping_statistics(track_speeds=True)
-    print domain.timestepping_statistics()
+    if myid == 0: print domain.timestepping_statistics()
     #vis.update()
 
 
-#test against know data
-    
-#vis.evolveFinished()
+domain.sww_merge(delete_old=True)
+
+finalize()
 

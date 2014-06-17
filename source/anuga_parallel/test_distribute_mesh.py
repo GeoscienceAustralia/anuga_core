@@ -1501,9 +1501,9 @@ class Test_Distribute_Mesh(unittest.TestCase):
 
         # Now test the extract_submesh for the 3 processors
 
-        submesh_cell_0 = extract_submesh(submesh,triangles_per_proc,0)
-        submesh_cell_1 = extract_submesh(submesh,triangles_per_proc,1)
-        submesh_cell_2 = extract_submesh(submesh,triangles_per_proc,2)
+        submesh_cell_0 = extract_submesh(submesh,triangles_per_proc,p=0)
+        submesh_cell_1 = extract_submesh(submesh,triangles_per_proc,p=1)
+        submesh_cell_2 = extract_submesh(submesh,triangles_per_proc,p=2)
 
 
         from pprint import pprint

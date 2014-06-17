@@ -33,7 +33,7 @@ output_file = 'paraboloid'
 
 args = anuga.get_args()
 alg = args.alg
-verbose = args.v
+verbose = args.verbose
 
 #-------------------------------------------------------------------------------
 # Domain

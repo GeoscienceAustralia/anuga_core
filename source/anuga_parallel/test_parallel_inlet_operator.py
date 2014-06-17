@@ -71,21 +71,21 @@ def topography(x, y):
     N = len(x)
     for i in range(N):
 
-       # Sloping Embankment Across Channel
+        # Sloping Embankment Across Channel
         if 5.0 < x[i] < 10.1:
             # Cut Out Segment for Culvert face                
             if  1.0+(x[i]-5.0)/5.0 <  y[i]  < 4.0 - (x[i]-5.0)/5.0: 
-               z[i]=z[i]
+                z[i]=z[i]
             else:
-               z[i] +=  0.5*(x[i] -5.0)    # Sloping Segment  U/S Face
+                z[i] +=  0.5*(x[i] -5.0)    # Sloping Segment  U/S Face
         if 10.0 < x[i] < 12.1:
-           z[i] +=  2.5                    # Flat Crest of Embankment
+            z[i] +=  2.5                    # Flat Crest of Embankment
         if 12.0 < x[i] < 14.5:
             # Cut Out Segment for Culvert face                
             if  2.0-(x[i]-12.0)/2.5 <  y[i]  < 3.0 + (x[i]-12.0)/2.5:
-               z[i]=z[i]
+                z[i]=z[i]
             else:
-               z[i] +=  2.5-1.0*(x[i] -12.0) # Sloping D/S Face
+                z[i] +=  2.5-1.0*(x[i] -12.0) # Sloping D/S Face
                    
         
     return z
@@ -103,9 +103,9 @@ samples = 50
 def run_test(parallel = False, control_data = None, test_points = None, verbose = False):
     success = True
 
-##-----------------------------------------------------------------------
-## Setup domain
-##-----------------------------------------------------------------------
+    ##-----------------------------------------------------------------------
+    ## Setup domain
+    ##-----------------------------------------------------------------------
 
     points, vertices, boundary = rectangular_cross(int(length/dx),
                                                    int(width/dy),
@@ -116,18 +116,18 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     domain.set_name('Test_Parallel_Frac_Op')                 # Output name
     domain.set_default_order(2)
 
-##-----------------------------------------------------------------------
-## Distribute domain
-##-----------------------------------------------------------------------
+    ##-----------------------------------------------------------------------
+    ## Distribute domain
+    ##-----------------------------------------------------------------------
 
     if parallel:
         domain = distribute(domain)
         domain.dump_triangulation("frac_op_domain.png")
     
 
-##-----------------------------------------------------------------------
-## Setup boundary conditions
-##-----------------------------------------------------------------------
+    ##-----------------------------------------------------------------------
+    ## Setup boundary conditions
+    ##-----------------------------------------------------------------------
     
     domain.set_quantity('elevation', topography) 
     domain.set_quantity('friction', 0.01)         # Constant friction 
@@ -140,9 +140,9 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 
-##-----------------------------------------------------------------------
-## Determine triangle index coinciding with test points
-##-----------------------------------------------------------------------
+    ##-----------------------------------------------------------------------
+    ## Determine triangle index coinciding with test points
+    ##-----------------------------------------------------------------------
 
     assert(test_points is not None)
     assert(len(test_points) == samples)
@@ -172,53 +172,11 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     inlet0 = Inlet_operator(domain, line0, Q0, verbose = False, default=0.0)
     inlet1 = Inlet_operator(domain, line1, Q1, verbose = False)
     
-    # Enquiry point [ 19.    2.5] is contained in two domains in 4 proc case
-    
-    ## boyd_box0 = Boyd_box_operator(domain,
-    ##                               end_points=[[9.0, 2.5],[19.0, 2.5]],
-    ##                               losses=1.5,
-    ##                               width=5.0,
-    ##                               apron=5.0,
-    ##                               use_momentum_jet=True,
-    ##                               use_velocity_head=False,
-    ##                               manning=0.013,
-    ##                               verbose=False)
         
     if inlet0 is not None and verbose: inlet0.print_statistics()
     if inlet1 is not None and verbose: inlet1.print_statistics()
     #if boyd_box0 is not None and verbose: boyd_box0.print_statistics()
 
-#    if parallel:
-#        factory = Parallel_operator_factory(domain, verbose = True)
-#
-#        inlet0 = factory.inlet_operator_factory(line0, Q0)
-#        inlet1 = factory.inlet_operator_factory(line1, Q1)
-#        
-#        boyd_box0 = factory.boyd_box_operator_factory(end_points=[[9.0, 2.5],[19.0, 2.5]],
-#                                          losses=1.5,
-#                                          width=1.5,
-#                                          apron=5.0,
-#                                          use_momentum_jet=True,
-#                                          use_velocity_head=False,
-#                                          manning=0.013,
-#                                          verbose=False)
-#
-#    else:
-#        inlet0 = Inlet_operator(domain, line0, Q0)
-#        inlet1 = Inlet_operator(domain, line1, Q1)
-#
-#        # Enquiry point [ 19.    2.5] is contained in two domains in 4 proc case
-#        boyd_box0 = Boyd_box_operator(domain,
-#                          end_points=[[9.0, 2.5],[19.0, 2.5]],
-#                          losses=1.5,
-#                          width=1.5,
-#                          apron=5.0,
-#                          use_momentum_jet=True,
-#                          use_velocity_head=False,
-#                          manning=0.013,
-#                          verbose=False)
-    
-    #######################################################################
 
     ##-----------------------------------------------------------------------
     ## Evolve system through time
@@ -245,9 +203,9 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
 
     success = True
 
-##-----------------------------------------------------------------------
-## Assign/Test Control data
-##-----------------------------------------------------------------------
+    ##-----------------------------------------------------------------------
+    ## Assign/Test Control data
+    ##-----------------------------------------------------------------------
 
     if not parallel:
         stage = domain.get_quantity('stage')

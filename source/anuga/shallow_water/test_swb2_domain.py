@@ -35,8 +35,8 @@ class Test_swb2_domain(unittest.TestCase):
 
 
         domain=Domain(points,vertices,boundary)    # Create Domain
-        domain.set_flow_algorithm('tsunami')
-
+        domain.set_flow_algorithm('DE0')
+        
         domain.set_name('runup_sinusoid_v2')                         # Output to file runup.sww
         domain.set_datadir('.')                          # Use current folder
         domain.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 'ymomentum': 2, 'elevation': 1})
@@ -90,6 +90,7 @@ class Test_swb2_domain(unittest.TestCase):
             #print 'Volume is', sum(dd_raw*domain.areas)
 
 
+        print vv.max()
 
         assert num.all(vv<1.0e-02)
 

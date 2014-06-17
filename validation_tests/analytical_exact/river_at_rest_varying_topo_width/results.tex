@@ -49,13 +49,18 @@ The analytical solution is the river at rest, that is, $w=12.0$ and $u=v=0$.
 \subsection{Results}
 
 
-Current version of \anuga{} might not treat the wet/dry interface appropriately. The following three figures show the stage, $x$-momentum, and $x$-velocity respectively, after we run the simulation for some time. We should see excellent agreement between the analytical and numerical solutions if the method is well-balanced and if the wet/dry interface has been correctly treated.
+Current version of \anuga{} might not treat the wet/dry interface appropriately. 
+The following figures show the stage, $x$-momentum, and $x$-velocity respectively, 
+after we run the simulation for some time. The first three show a slice in the x direction (down the river) and 
+the last three figures show a cross section across the river. We should see excellent agreement between 
+the analytical and numerical solutions if the method is well-balanced and if the wet/dry 
+interface has been correctly treated.
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=0.9\textwidth]{stage_plot.png}
 \end{center}
-\caption{Stage results}
+\caption{Stage results down the river}
 \end{figure}
 
 
@@ -63,7 +68,7 @@ Current version of \anuga{} might not treat the wet/dry interface appropriately.
 \begin{center}
 \includegraphics[width=0.9\textwidth]{xmom_plot.png}
 \end{center}
-\caption{Xmomentum results}
+\caption{Xmomentum results down the river}
 \end{figure}
 
 
@@ -71,8 +76,30 @@ Current version of \anuga{} might not treat the wet/dry interface appropriately.
 \begin{center}
 \includegraphics[width=0.9\textwidth]{xvel_plot.png}
 \end{center}
-\caption{Xvelocity results}
+\caption{Xvelocity results down the river}
 \end{figure}
 
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{stage_plot_y.png}
+\end{center}
+\caption{Stage results across the river}
+\end{figure}
+
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{xmom_plot_y.png}
+\end{center}
+\caption{Xmomentum results across the river}
+\end{figure}
+
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{xvel_plot_y.png}
+\end{center}
+\caption{Xvelocity results accros the river}
+\end{figure}
 
 \endinput

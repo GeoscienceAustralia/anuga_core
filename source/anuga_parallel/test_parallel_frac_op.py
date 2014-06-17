@@ -37,7 +37,8 @@ from parallel_inlet_operator import Parallel_Inlet_operator
 from anuga_parallel import distribute, myid, numprocs, finalize
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 
-from parallel_operator_factory import Inlet_operator, Boyd_box_operator
+#from parallel_operator_factory import Inlet_operator, Boyd_box_operator
+from anuga import Inlet_operator, Boyd_box_operator
 
 import random
 import unittest
@@ -47,6 +48,7 @@ import unittest
 
 This test exercises the parallel culvert and checks values
 """
+
 verbose = False
 nprocs = 3
     
@@ -71,23 +73,22 @@ def topography(x, y):
     N = len(x)
     for i in range(N):
 
-       # Sloping Embankment Across Channel
+        # Sloping Embankment Across Channel
         if 5.0 < x[i] < 10.1:
             # Cut Out Segment for Culvert face                
             if  1.0+(x[i]-5.0)/5.0 <  y[i]  < 4.0 - (x[i]-5.0)/5.0: 
-               z[i]=z[i]
+                z[i]=z[i]
             else:
-               z[i] +=  0.5*(x[i] -5.0)    # Sloping Segment  U/S Face
+                z[i] +=  0.5*(x[i] -5.0)    # Sloping Segment  U/S Face
         if 10.0 < x[i] < 12.1:
-           z[i] +=  2.5                    # Flat Crest of Embankment
+            z[i] +=  2.5                    # Flat Crest of Embankment
         if 12.0 < x[i] < 14.5:
             # Cut Out Segment for Culvert face                
             if  2.0-(x[i]-12.0)/2.5 <  y[i]  < 3.0 + (x[i]-12.0)/2.5:
-               z[i]=z[i]
+                z[i]=z[i]
             else:
-               z[i] +=  2.5-1.0*(x[i] -12.0) # Sloping D/S Face
+                z[i] +=  2.5-1.0*(x[i] -12.0) # Sloping D/S Face
                    
-        
     return z
 
 #filename=os.path.join(path, 'example_rating_curve.csv')
@@ -190,37 +191,6 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     if inlet1 is not None and verbose: inlet1.print_statistics()
     if boyd_box0 is not None and verbose: boyd_box0.print_statistics()
 
-#    if parallel:
-#        factory = Parallel_operator_factory(domain, verbose = True)
-#
-#        inlet0 = factory.inlet_operator_factory(line0, Q0)
-#        inlet1 = factory.inlet_operator_factory(line1, Q1)
-#        
-#        boyd_box0 = factory.boyd_box_operator_factory(end_points=[[9.0, 2.5],[19.0, 2.5]],
-#                                          losses=1.5,
-#                                          width=1.5,
-#                                          apron=5.0,
-#                                          use_momentum_jet=True,
-#                                          use_velocity_head=False,
-#                                          manning=0.013,
-#                                          verbose=False)
-#
-#    else:
-#        inlet0 = Inlet_operator(domain, line0, Q0)
-#        inlet1 = Inlet_operator(domain, line1, Q1)
-#
-#        # Enquiry point [ 19.    2.5] is contained in two domains in 4 proc case
-#        boyd_box0 = Boyd_box_operator(domain,
-#                          end_points=[[9.0, 2.5],[19.0, 2.5]],
-#                          losses=1.5,
-#                          width=1.5,
-#                          apron=5.0,
-#                          use_momentum_jet=True,
-#                          use_velocity_head=False,
-#                          manning=0.013,
-#                          verbose=False)
-    
-    #######################################################################
 
     ##-----------------------------------------------------------------------
     ## Evolve system through time
@@ -275,6 +245,9 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
                 success = success and local_success
                 if verbose: 
                     print 'P%d tri %d, control = %s, actual = %s, Success = %s' %(myid, i, control_data[i], stage.centroid_values[tri_ids[i]], local_success) 
+                assert local_success, 'Ouput P%d tri %d, control = %s, actual = %s, Success = %s' %(myid, i, control_data[i], stage.centroid_values[tri_ids[i]], local_success) 
+
+
                 
                 
         if inlet0 is not None:
@@ -298,7 +271,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
                     print 'P%d average depth, control = %s, actual = %s' %(myid, control_data[samples+4], average_depth)
 
 
-        assert(success)
+        #assert(success)
 
     return control_data
 
@@ -321,6 +294,7 @@ def assert_(condition, msg="Assertion Failed"):
         raise AssertionError, msg
 
 if __name__=="__main__":
+
     if numprocs == 1:
         runner = unittest.TextTestRunner()
         suite = unittest.makeSuite(Test_parallel_frac_op, 'test')

@@ -644,44 +644,6 @@ def ghost_bnd_layer(ghosttri, tlower, tupper, mesh, p):
     subboundary = {}
 
 
-    #print ghosttri
-
-    # FIXME SR: For larger layers need to pass through the correct
-    # boundary tag!
-
-#    for t in ghosttri:
-#        ghost_list.append(t[0])
-#
-#
-#
-#    for t in ghosttri:
-#
-#        n = mesh.neighbours[t[0], 0]
-#        if not is_in_processor(ghost_list, tlower, tupper, n):
-#            if boundary.has_key( (t[0], 0) ):
-#                subboundary[t[0], 0] = boundary[t[0],0]
-#            else:
-#                subboundary[t[0], 0] = 'ghost'
-#
-#
-#        n = mesh.neighbours[t[0], 1]
-#        if not is_in_processor(ghost_list, tlower, tupper, n):
-#            if boundary.has_key( (t[0], 1) ):
-#                subboundary[t[0], 1] = boundary[t[0],1]
-#            else:
-#                subboundary[t[0], 1] = 'ghost'
-#
-#
-#        n = mesh.neighbours[t[0], 2]
-#        if not is_in_processor(ghost_list, tlower, tupper, n):
-#            if boundary.has_key( (t[0], 2) ):
-#                subboundary[t[0], 2] = boundary[t[0],2]
-#            else:
-#                subboundary[t[0], 2] = 'ghost'
-#
-
-
-
     new_ghost_list = ghosttri[:,0]
 
     #print new_ghost_list
@@ -706,7 +668,7 @@ def ghost_bnd_layer(ghosttri, tlower, tupper, mesh, p):
     n1 = len(edge1)
     values1 = ['ghost']*n1
 
-    # 1 edge boundary
+    # 2 edge boundary
     nghb2 = mesh.neighbours[new_ghost_list,2]
     gl2 = num.extract(num.logical_or(nghb2 < tlower, nghb2 >= tupper), new_ghost_list)
     nghb2 = mesh.neighbours[gl2,2]
@@ -1277,8 +1239,12 @@ def build_local_mesh(submesh, lower_t, upper_t, nproc):
                 build_local_commun(tri_map, gcommun, fcommun, nproc)
 
 
+
+    tri_l2g  = extract_l2g_map(tri_map)
+    node_l2g = extract_l2g_map(node_map)
+     
     return GAnodes, GAtriangles, GAboundary, quantities, ghost_rec, \
-           full_send, tri_map, node_map, ghost_layer_width
+           full_send, tri_map, node_map, tri_l2g, node_l2g, ghost_layer_width
 
 
 #########################################################
@@ -1614,23 +1580,15 @@ def rec_submesh(p, verbose=True):
     # datastructure
 
     [GAnodes, GAtriangles, boundary, quantities, \
-     ghost_rec, full_send, tri_map, node_map, ghost_layer_width] = \
-              build_local_mesh(submesh_cell, lower_t, upper_t, \
-                               numproc)
+     ghost_rec, full_send, \
+     tri_map, node_map, tri_l2g, node_l2g, \
+     ghost_layer_width] = \
+     build_local_mesh(submesh_cell, lower_t, upper_t, numproc)
     
     return GAnodes, GAtriangles, boundary, quantities,\
            ghost_rec, full_send,\
            number_of_full_nodes, number_of_full_triangles, tri_map, node_map,\
-           ghost_layer_width
-
-
-
-
-
-
-
-
-
+           tri_l2g, node_l2g, ghost_layer_width
 
 
 
@@ -1650,7 +1608,7 @@ def rec_submesh(p, verbose=True):
 # to processor zero are returned.
 #
 #########################################################
-def extract_submesh(submesh, triangles_per_proc, p=0):
+def extract_submesh(submesh, triangles_per_proc, p2s_map=None, p=0):
 
     
     submesh_cell = {}
@@ -1678,13 +1636,42 @@ def extract_submesh(submesh, triangles_per_proc, p=0):
 
     numprocs = len(triangles_per_proc)
     points, vertices, boundary, quantities, ghost_recv_dict, \
-            full_send_dict, tri_map, node_map, ghost_layer_width = \
+            full_send_dict, tri_map, node_map, tri_l2g, node_l2g, \
+            ghost_layer_width = \
             build_local_mesh(submesh_cell, lower_t, upper_t, numprocs)
 
+    if p2s_map is None:
+        pass
+    else:
+        tri_l2g = p2s_map[tri_l2g]
 
     return  points, vertices, boundary, quantities, ghost_recv_dict, \
-           full_send_dict, tri_map, node_map, ghost_layer_width
+           full_send_dict, tri_map, node_map, tri_l2g, node_l2g, ghost_layer_width
            
+
+
+def extract_l2g_map(map):
+    # Extract l2g data  from corresponding map
+    # Maps
+
+    import numpy as num
+
+    b = num.arange(len(map))
+
+    l_ids = num.extract(map>-1,map)
+    g_ids = num.extract(map>-1,b)
+
+
+#    print len(g_ids)
+#    print len(l_ids)
+#    print l_ids
+#    print g_ids
+
+    l2g = num.zeros_like(g_ids)
+    l2g[l_ids] = g_ids
+
+    return l2g
+
 
 
 

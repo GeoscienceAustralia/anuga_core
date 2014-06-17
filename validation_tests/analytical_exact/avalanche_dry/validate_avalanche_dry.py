@@ -10,7 +10,7 @@ import anuga
 indent = anuga.indent
 
 args = anuga.get_args()
-verbose = args.v
+verbose = args.verbose
 
 class Test_results(unittest.TestCase):
     def setUp(self):

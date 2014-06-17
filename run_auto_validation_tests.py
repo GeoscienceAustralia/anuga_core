@@ -1,6 +1,7 @@
 import os
 
 
+
 os.chdir('validation_tests')
 print
 print 20*'=' + ' anuga automated validation tests ' + 20*'='

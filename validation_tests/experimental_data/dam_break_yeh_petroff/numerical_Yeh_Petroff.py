@@ -57,7 +57,7 @@ alg, cfl = parse_standard_args()
 
 
 domain.set_flow_algorithm(alg)
-domain.set_CFL(cfl)
+#domain.set_CFL(cfl)
 #domain.set_minimum_allowed_height(0.01) # Avoid such statements in the validation tests
 
 #------------------------------------------------------------------------------

@@ -102,7 +102,7 @@ def f_right(t):
 args = anuga.get_args()
 alg = args.alg
 cfl = args.cfl
-verbose = args.v
+verbose = args.verbose
 
 if myid == 0:
     

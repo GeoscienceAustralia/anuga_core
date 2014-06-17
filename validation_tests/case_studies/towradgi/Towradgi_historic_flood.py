@@ -224,7 +224,7 @@ if myid == 0:
     from anuga.utilities.argparsing import parse_standard_args
     alg, cfl = parse_standard_args()
     domain.set_flow_algorithm(alg)
-    domain.set_CFL(cfl)
+    #domain.set_CFL(cfl)
     #domain.set_flow_algorithm('DE1') 
     #domain.set_store_vertices_smoothly()
     #domain.set_minimum_storable_height(minimum_storable_height) 

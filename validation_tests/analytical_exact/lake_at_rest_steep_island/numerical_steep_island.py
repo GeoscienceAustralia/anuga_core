@@ -28,7 +28,7 @@ output_file = 'steep_island'
 
 args = anuga.get_args()
 alg = args.alg
-verbose = args.v
+verbose = args.verbose
 
 dx = 1.
 dy = dx

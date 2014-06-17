@@ -2,22 +2,13 @@
 Simple water flow example using ANUGA: Water flowing down a channel.
 It was called "steep_slope" in an old validation test.
 """
-#--------------------------------
-# import modules
-#--------------------------------
 
-from anuga.validation_utilities.fabricate import *
-from anuga.validation_utilities import run_validation_script
-from anuga.validation_utilities import typeset_report
+import anuga
+from anuga.validation_utilities import produce_report
 
-# Setup the python scripts which produce the output for this
-# validation test
-def build():
-    run_validation_script('numerical_rundown_channel.py')
-    run_validation_script('plot_results.py')
-    typeset_report()
+args = anuga.get_args()
 
-def clean():
-    autoclean()
+produce_report('numerical_rundown_channel.py', args=args)
 
-main()
+
+

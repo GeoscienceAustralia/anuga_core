@@ -195,7 +195,8 @@ def distibute_three_processors():
         # Test extract_submesh
         #----------------------------------------------------------------------------------
         points, vertices, boundary, quantities, \
-                ghost_recv_dict, full_send_dict, tri_map, node_map, ghost_layer_width =\
+                ghost_recv_dict, full_send_dict, tri_map, node_map, tri_l2g, node_l2g, \
+                ghost_layer_width =\
         extract_submesh(submesh, triangles_per_proc)
 
 
@@ -225,7 +226,8 @@ def distibute_three_processors():
         #----------------------------------------------------------------------------------
         points, vertices, boundary, quantities, \
                 ghost_recv_dict, full_send_dict, \
-                no_full_nodes, no_full_trigs, tri_map, node_map, ghost_layer_width  = \
+                no_full_nodes, no_full_trigs, tri_map, node_map, tri_l2g, node_l2g, \
+                ghost_layer_width  = \
                 rec_submesh(0, verbose=False)    
 
         if myid == 1:

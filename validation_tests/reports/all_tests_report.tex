@@ -90,41 +90,41 @@ We provide explanations on how to add new tests in the Appendix.
 \chapter{Tests against analytical exact solutions} \label{ch:ana}
 %======================
 
-\inputresults{analytical_exact/dam_break_dry}
-\inputresults{analytical_exact/dam_break_wet}
-\inputresults{analytical_exact/avalanche_dry}
-\inputresults{analytical_exact/avalanche_wet}
-\inputresults{analytical_exact/carrier_greenspan_periodic}
-\inputresults{analytical_exact/carrier_greenspan_transient}
-\inputresults{analytical_exact/deep_wave}
-\inputresults{analytical_exact/mac_donald_short_channel}
-\inputresults{analytical_exact/parabolic_basin}
-\inputresults{analytical_exact/paraboloid_basin}
+\inputresults{../analytical_exact/dam_break_dry}
+\inputresults{../analytical_exact/dam_break_wet}
+\inputresults{../analytical_exact/avalanche_dry}
+\inputresults{../analytical_exact/avalanche_wet}
+\inputresults{../analytical_exact/carrier_greenspan_periodic}
+\inputresults{../analytical_exact/carrier_greenspan_transient}
+\inputresults{../analytical_exact/deep_wave}
+\inputresults{../analytical_exact/mac_donald_short_channel}
+\inputresults{../analytical_exact/parabolic_basin}
+\inputresults{../analytical_exact/paraboloid_basin}
 
-\inputresults{analytical_exact/runup_on_beach}
-\inputresults{analytical_exact/runup_on_sinusoid_beach}
-\inputresults{analytical_exact/landslide_tsunami}
+\inputresults{../analytical_exact/runup_on_beach}
+\inputresults{../analytical_exact/runup_on_sinusoid_beach}
+\inputresults{../analytical_exact/landslide_tsunami}
 
-\inputresults{analytical_exact/lake_at_rest_immersed_bump}
-\inputresults{analytical_exact/lake_at_rest_steep_island}
-\inputresults{analytical_exact/river_at_rest_varying_topo_width}
-\inputresults{analytical_exact/rundown_mild_slope}
-\inputresults{analytical_exact/rundown_mild_slope_coarse}
-\inputresults{analytical_exact/subcritical_over_bump}
-\inputresults{analytical_exact/transcritical_with_shock}
-\inputresults{analytical_exact/transcritical_without_shock}
-\inputresults{analytical_exact/trapezoidal_channel}
+\inputresults{../analytical_exact/lake_at_rest_immersed_bump}
+\inputresults{../analytical_exact/lake_at_rest_steep_island}
+\inputresults{../analytical_exact/river_at_rest_varying_topo_width}
+\inputresults{../analytical_exact/rundown_mild_slope}
+\inputresults{../analytical_exact/rundown_mild_slope_coarse}
+\inputresults{../analytical_exact/subcritical_over_bump}
+\inputresults{../analytical_exact/transcritical_with_shock}
+\inputresults{../analytical_exact/transcritical_without_shock}
+\inputresults{../analytical_exact/trapezoidal_channel}
 
 %%======================
 \chapter{Tests against reference data or solutions} \label{ch:ref}
 %%======================
-\inputresults{experimental_data/dam_break_yeh_petroff}
-\inputresults{behaviour_only/lid_driven_cavity}
+\inputresults{../experimental_data/dam_break_yeh_petroff}
+\inputresults{../behaviour_only/lid_driven_cavity}
 
-\inputresults{other_references/radial_dam_break_dry}
-\inputresults{other_references/radial_dam_break_wet}
+\inputresults{../other_references/radial_dam_break_dry}
+\inputresults{../other_references/radial_dam_break_wet}
 
-\inputresults{case_studies/okushiri}
+\inputresults{../case_studies/okushiri}
 
 
 %======================
@@ -150,19 +150,19 @@ In this \TeX{} file, \texttt{report.tex}, add a line
 
 \section{Algorithm Parameters}
 Note that parameters can be communicated from the \verb|local_parameters.py|
-file in the \verb|anuga_validation_tests| directory. If there is no file
+file in the \verb|validation_tests/reports| directory. If there is no file
 \verb|local_parameters.py| then the parameters are taken from the
-\verb|parameters.py| file. You should not change this file.
+\verb|anuga.validation_utilities.parameters|. 
 
 In particular the
 values of \verb|alg| (flow algorithm) and \verb|cfl| (CFL Condition)
 are passed as command options when calling \verb|produce_results.py| in the
 test directories.
 
-You can pass though the parameters straight from the \verb|parameters.py| file as follows
+You can pass though the standard parameters as follows
 \begin{verbatim}
-from anuga_validation_tests.parameters import alg
-from anuga_validation_tests.parameters import cfl
+from anuga.validation_utilities.parameters import alg
+from anuga.validation_utilities.parameters import cfl
 \end{verbatim}
 
 \section{Generic form of \texttt{produce\_results.py}}
@@ -171,15 +171,15 @@ The \texttt{produce\_results.py} files in the test directories should have the
 following general form
 
 \begin{verbatim}
-from anuga_validation_test_utilities.fabricate import *
-from anuga_validation_test_utilities import run_validation_script
+from anuga.validation_utilities.fabricate import *
+from anuga.validation_utilities import run_validation_script
 
 # Setup the python scripts which produce the output for this
 # validation test
 def build():
     run_validation_script('run_problem.py')
     run_validation_script('plot_problem.py')
-    run('python','latex_report.py')
+    run('python','typeset_report.py')
     pass
 
 def clean():

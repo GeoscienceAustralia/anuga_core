@@ -17,96 +17,142 @@ from anuga_parallel.parallel_shallow_water import Parallel_domain
 
 
 
-def sequential_distribute_dump(domain, numprocs=1, verbose=False, debug=False, parameters = None):
-    """ Distribute the domain, create parallel domain and pickle result
-    """
+class Sequential_distribute(object):
+
+    def __init__(self, domain, verbose=False, debug=False, parameters=None):
+
+        if debug:
+            verbose = True
+            
+        self.domain = domain
+        self.verbose = verbose
+        self.debug = debug
+        self.parameters = parameters
 
 
-    if debug:
-        verbose = True
+    def distribute(self, numprocs=1):
+
+        self.numprocs = numprocs
+        
+        domain = self.domain
+        verbose = self.verbose
+        debug = self.debug
+        parameters = self.parameters
+
+        # FIXME: Dummy assignment (until boundaries are refactored to
+        # be independent of domains until they are applied)
+        bdmap = {}
+        for tag in domain.get_boundary_tags():
+            bdmap[tag] = None
+
+        domain.set_boundary(bdmap)
 
 
-
-    # FIXME: Dummy assignment (until boundaries are refactored to
-    # be independent of domains until they are applied)
-    bdmap = {}
-    for tag in domain.get_boundary_tags():
-        bdmap[tag] = None
-
-    domain.set_boundary(bdmap)
-
-
-    domain_name = domain.get_name()
-    domain_dir = domain.get_datadir()
-    domain_store = domain.get_store()
-    domain_minimum_storable_height = domain.minimum_storable_height
-    domain_flow_algorithm = domain.get_flow_algorithm()
-    domain_minimum_allowed_height = domain.get_minimum_allowed_height()
-    georef = domain.geo_reference
-    number_of_global_triangles = domain.number_of_triangles
-    number_of_global_nodes = domain.number_of_nodes
-    boundary_map = domain.boundary_map
+        self.domain_name = domain.get_name()
+        self.domain_dir = domain.get_datadir()
+        self.domain_store = domain.get_store()
+        self.domain_store_centroids = domain.get_store_centroids()
+        self.domain_minimum_storable_height = domain.minimum_storable_height
+        self.domain_flow_algorithm = domain.get_flow_algorithm()
+        self.domain_minimum_allowed_height = domain.get_minimum_allowed_height()
+        self.domain_georef = domain.geo_reference
+        self.number_of_global_triangles = domain.number_of_triangles
+        self.number_of_global_nodes = domain.number_of_nodes
+        self.boundary_map = domain.boundary_map
 
 
-    #sequential_distribute_mesh(domain, numprocs, verbose=verbose, debug=debug, parameters=parameters)
+        # Subdivide the mesh
+        if verbose: print 'sequential_distribute: Subdivide mesh'
+
+        new_nodes, new_triangles, new_boundary, triangles_per_proc, quantities, \
+               s2p_map, p2s_map = \
+               pmesh_divide_metis_with_map(domain, numprocs)
 
 
-    # Subdivide the mesh
-    if verbose: print 'sequential_distribute: Subdivide mesh'
-    new_nodes, new_triangles, new_boundary, triangles_per_proc, quantities, \
-           s2p_map, p2s_map = \
-           pmesh_divide_metis_with_map(domain, numprocs)
+        # Build the mesh that should be assigned to each processor,
+        # this includes ghost nodes and the communication pattern
+        if verbose: print 'sequential_distribute: Build submeshes'
+        if verbose: print parameters
 
-    #PETE: s2p_map (maps serial domain triangles to parallel domain triangles)
-    #      sp2_map (maps parallel domain triangles to domain triangles)
+        submesh = build_submesh(new_nodes, new_triangles, new_boundary, \
+                                quantities, triangles_per_proc, parameters=parameters)
 
-
-
-    # Build the mesh that should be assigned to each processor,
-    # this includes ghost nodes and the communication pattern
-    if verbose: print 'sequential_distribute: Build submeshes'
-    submesh = build_submesh(new_nodes, new_triangles, new_boundary, quantities, triangles_per_proc, parameters)
-
-    if debug:
-        for p in range(numprocs):
-            N = len(submesh['ghost_nodes'][p])
-            M = len(submesh['ghost_triangles'][p])
-            print 'There are %d ghost nodes and %d ghost triangles on proc %d'\
-                  %(N, M, p)
-
-    #if debug:
-    #    from pprint import pprint
-    #    pprint(submesh)
+        if verbose:
+            for p in range(numprocs):
+                N = len(submesh['ghost_nodes'][p])
+                M = len(submesh['ghost_triangles'][p])
+                print 'There are %d ghost nodes and %d ghost triangles on proc %d'\
+                      %(N, M, p)
 
 
-    # extract data to create parallel domain
-    if verbose: print 'sequential_distribute: Distribute submeshes'
-    for p in range(0, numprocs):
+        self.submesh = submesh
+        self.triangles_per_proc = triangles_per_proc
+        self.p2s_map =  p2s_map
 
-        # Build the local mesh for processor 0
+
+    def extract_submesh(self, p=0):
+        """Build the local mesh for processor p
+        """
+
+        submesh = self.submesh
+        triangles_per_proc = self.triangles_per_proc 
+        p2s_map = self.p2s_map
+        verbose = self.verbose
+        debug = self.debug
+
+        assert p>=0
+        assert p<self.numprocs
+        
+        
         points, vertices, boundary, quantities, \
-            ghost_recv_dict, full_send_dict, tri_map, node_map, ghost_layer_width =\
-              extract_submesh(submesh, triangles_per_proc, p)
+            ghost_recv_dict, full_send_dict, \
+            tri_map, node_map, tri_l2g, node_l2g, ghost_layer_width =\
+              extract_submesh(submesh, triangles_per_proc, p2s_map, p)
+              
 
-
-#        from pprint import pprint
-#        print '='*80
-#        print p
-#        print '='*80
-#        pprint(tri_map)
-#        print len(tri_map)
-
-        # Keep track of the number full nodes and triangles.
-        # This is useful later if one needs access to a ghost-free domain
-        # Here, we do it for process 0. The others are done in rec_submesh.
         number_of_full_nodes = len(submesh['full_nodes'][p])
         number_of_full_triangles = len(submesh['full_triangles'][p])
 
-        # Extract l2g maps
-        tri_l2g  = extract_l2g_map(tri_map)
-        node_l2g = extract_l2g_map(node_map)
+
+        if debug:
+            import pprint
+            print  50*"="
+            print 'NODE_L2G'
+            pprint.pprint(node_l2g)
+        
+            pprint.pprint(node_l2g[vertices[:,0]])
+        
+            print 'VERTICES'
+            pprint.pprint(vertices[:,0])
+            pprint.pprint(new_triangles[tri_l2g,0])
+        
+            assert num.allclose(node_l2g[vertices[:,0]], new_triangles[tri_l2g,0])        
+            assert num.allclose(node_l2g[vertices[:,1]], new_triangles[tri_l2g,1]) 
+            assert num.allclose(node_l2g[vertices[:,2]], new_triangles[tri_l2g,2]) 
+        
+
+            print 'POINTS'
+            pprint.pprint(points)
+        
+            assert num.allclose(points[:,0], new_nodes[node_l2g,0])
+            assert num.allclose(points[:,1], new_nodes[node_l2g,1])
 
 
+            print 'TRI'
+            pprint.pprint(tri_l2g)
+            pprint.pprint(p2s_map[tri_l2g])
+        
+
+            assert num.allclose(original_triangles[tri_l2orig,0],node_l2g[vertices[:,0]])
+            assert num.allclose(original_triangles[tri_l2orig,1],node_l2g[vertices[:,1]])
+            assert num.allclose(original_triangles[tri_l2orig,2],node_l2g[vertices[:,2]])
+
+            print 'NODES'
+            pprint.pprint(node_map)
+            pprint.pprint(node_l2g)      
+        
+        #tri_l2orig = p2s_map[tri_l2g]        
+        
         s2p_map = None
         p2s_map = None
 
@@ -118,35 +164,64 @@ def sequential_distribute_dump(domain, numprocs=1, verbose=False, debug=False, p
             print 'sequential_distribute: P%g, no_full_nodes = %g, no_full_triangles = %g' % (p, number_of_full_nodes, number_of_full_triangles)
 
 
-        #args = [points, vertices, boundary]
-
         kwargs = {'full_send_dict': full_send_dict,
                 'ghost_recv_dict': ghost_recv_dict,
                 'number_of_full_nodes': number_of_full_nodes,
                 'number_of_full_triangles': number_of_full_triangles,
-                'geo_reference': georef,
-                'number_of_global_triangles':  number_of_global_triangles,
-                'number_of_global_nodes':  number_of_global_nodes,
+                'geo_reference': self.domain_georef,
+                'number_of_global_triangles':  self.number_of_global_triangles,
+                'number_of_global_nodes':  self.number_of_global_nodes,
                 'processor':  p,
-                'numproc':  numprocs,
+                'numproc':  self.numprocs,
                 's2p_map':  s2p_map,
                 'p2s_map':  p2s_map, ## jj added this
                 'tri_l2g':  tri_l2g, ## SR added this
                 'node_l2g':  node_l2g,
                 'ghost_layer_width':  ghost_layer_width}
 
-        #-----------------------------------------------------------------------
-        # Now let's store the data for a  parallel_domain via cPickle
-        #-----------------------------------------------------------------------
 
-        #Looks like we reduce storage by a factor of 4 by just
-        # storing the data to create the parallel_domain instead of pickling
-        # a created domain
+        boundary_map = self.boundary_map
+        domain_name = self.domain_name
+        domain_dir = self.domain_dir
+        domain_store = self.domain_store
+        domain_store_centroids = self.domain_store_centroids
+        domain_minimum_storable_height = self.domain_minimum_storable_height
+        domain_minimum_allowed_height = self.domain_minimum_allowed_height
+        domain_flow_algorithm = self.domain_flow_algorithm
+        domain_georef = self.domain_georef
+            
+        tostore = (kwargs, points, vertices, boundary, quantities, \
+                   boundary_map, \
+                   domain_name, domain_dir, domain_store, domain_store_centroids, \
+                   domain_minimum_storable_height, \
+                   domain_minimum_allowed_height, domain_flow_algorithm, \
+                   domain_georef)
+
+
+        return tostore
+
+
+
+                       
+
+    
+def sequential_distribute_dump(domain, numprocs=1, verbose=False, debug=False, parameters = None):
+    """ Distribute the domain, create parallel domain and pickle result
+    """
+
+
+    partition = Sequential_distribute(domain, verbose, debug, parameters)
+
+    partition.distribute(numprocs)
+
+    
+    for p in range(0, numprocs):
+
+        tostore = partition.extract_submesh(p) 
+
         import cPickle
-        pickle_name = domain_name + '_P%g_%g.pickle'% (numprocs,p)
+        pickle_name = partition.domain_name + '_P%g_%g.pickle'% (numprocs,p)
         f = file(pickle_name, 'wb')
-        tostore = (kwargs, points, vertices, boundary, quantities, boundary_map, domain_name, domain_dir, domain_store, domain_minimum_storable_height, \
-                   domain_minimum_allowed_height, domain_flow_algorithm, georef)
         cPickle.dump( tostore, f, protocol=cPickle.HIGHEST_PROTOCOL)
 
     return
@@ -164,8 +239,11 @@ def sequential_distribute_load(filename = 'domain', verbose = False):
     import cPickle
     pickle_name = filename+'_P%g_%g.pickle'% (numprocs,myid)
     f = file(pickle_name, 'rb')
-    kwargs, points, vertices, boundary, quantities, boundary_map, domain_name, domain_dir, domain_store, domain_minimum_storable_height, \
-                   domain_minimum_allowed_height, domain_flow_algorithm, georef = cPickle.load(f)
+
+    kwargs, points, vertices, boundary, quantities, boundary_map, \
+                   domain_name, domain_dir, domain_store, domain_store_centroids, \
+                   domain_minimum_storable_height, domain_minimum_allowed_height, \
+                   domain_flow_algorithm, georef = cPickle.load(f)
     f.close()
 
     #---------------------------------------------------------------------------
@@ -193,36 +271,17 @@ def sequential_distribute_load(filename = 'domain', verbose = False):
     #------------------------------------------------------------------------
     parallel_domain.set_name(domain_name)
     parallel_domain.set_datadir(domain_dir)
+    parallel_domain.set_flow_algorithm(domain_flow_algorithm)
     parallel_domain.set_store(domain_store)
+    parallel_domain.set_store_centroids(domain_store_centroids)
     parallel_domain.set_minimum_storable_height(domain_minimum_storable_height)
     parallel_domain.set_minimum_allowed_height(domain_minimum_allowed_height)
-    parallel_domain.set_flow_algorithm(domain_flow_algorithm)
     parallel_domain.geo_reference = georef
 
 
     return parallel_domain
 
-def extract_l2g_map(map):
-    # Extract l2g data  from corresponding map
-    # Maps
 
-    import numpy as num
-
-    b = num.arange(len(map))
-
-    l_ids = num.extract(map>-1,map)
-    g_ids = num.extract(map>-1,b)
-
-
-#    print len(g_ids)
-#    print len(l_ids)
-#    print l_ids
-#    print g_ids
-
-    l2g = num.zeros_like(g_ids)
-    l2g[l_ids] = g_ids
-
-    return l2g
 
 
 

@@ -28,7 +28,7 @@ warnings.simplefilter('ignore')
 args = anuga.get_args()
 alg = args.alg
 cfl = args.cfl
-verbose = args.v
+verbose = args.verbose
 
 
 #-------------------------------------------------------------------------------

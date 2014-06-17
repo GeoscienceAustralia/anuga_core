@@ -38,7 +38,7 @@ def bed_elevation(x,y):
 
 args = anuga.get_args()
 alg = args.alg
-verbose = args.v
+verbose = args.verbose
 
 if myid == 0:
     #------------------------------------------------------------------------------

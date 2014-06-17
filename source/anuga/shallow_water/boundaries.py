@@ -346,6 +346,165 @@ class Transmissive_stage_zero_momentum_boundary(Boundary):
         q[1] = q[2] = 0.0
         return q
 
+class Characteristic_stage_boundary(Boundary):
+    """Sets the stage via a function and the momentum is determined 
+    via assumption of simple incoming wave (uses Riemann invariant)
+
+
+    Example:
+
+    def waveform(t):
+        return sea_level + normalized_amplitude/cosh(t-25)**2
+
+    Bcs = Characteristic_stage_boundary(domain, waveform)
+
+    Underlying domain must be specified when boundary is instantiated
+    """
+
+    def __init__(self, domain=None, function=None, default_stage = 0.0):
+        """ Instantiate a
+            Characteristic_stage_boundary.
+            domain is the domain containing the boundary
+            function is the function to apply the wave
+            default_stage is the assumed stage pre the application of wave
+        """
+
+        Boundary.__init__(self)
+
+        if domain is None:
+            msg = 'Domain must be specified for this type boundary'
+            raise Exception, msg
+
+        if function is None:
+            msg = 'Function must be specified for this type boundary'
+            raise Exception, msg
+
+        self.domain = domain
+        self.function = function
+        self.default_stage = default_stage
+
+        self.Elev  = domain.quantitis['elevation']
+        self.Stage = domain.quantitis['stage']
+        self.Height = domain.quantitis['height']
+
+    def __repr__(self):
+        """ Return a representation of this instance. """
+        msg = 'Characteristic_stage_boundary '
+        msg += '(%s) ' % self.domain
+        msg += '(%s) ' % self.default_stage
+        return msg
+
+
+    def evaluate(self, vol_id, edge_id):
+        """Calculate reflections (reverse outward momentum).
+
+        vol_id   
+        edge_id  
+        """
+        
+        t = self.domain.get_time()
+
+
+        value = self.function(t)
+        try:
+            stage = float(value)
+        except:
+            stage = float(value[0])
+
+
+
+        q = self.conserved_quantities
+        #q[0] = self.stage[vol_id, edge_id]
+        q[0] = stage
+        q[1] = self.xmom[vol_id, edge_id]
+        q[2] = self.ymom[vol_id, edge_id]
+
+        normal = self.normals[vol_id, 2*edge_id:2*edge_id+2]
+
+        r = rotate(q, normal, direction = 1)
+        r[1] = -r[1]
+        q = rotate(r, normal, direction = -1)
+
+
+        return q
+
+
+
+
+
+
+    def evaluate_segment(self, domain, segment_edges):
+        """Apply reflective BC on the boundary edges defined by
+        segment_edges
+        """
+
+        if segment_edges is None:
+            return
+        if domain is None:
+            return
+
+        t = self.domain.get_time()
+
+
+        value = self.function(t)
+        try:
+            stage = float(value)
+        except:
+            stage = float(value[0])
+                       
+
+        ids = segment_edges
+        vol_ids  = domain.boundary_cells[ids]
+        edge_ids = domain.boundary_edges[ids]
+
+        Stage = domain.quantities['stage']
+        Elev  = domain.quantities['elevation']
+        Height= domain.quantities['height']
+        Xmom  = domain.quantities['xmomentum']
+        Ymom  = domain.quantities['ymomentum']
+        Xvel  = domain.quantities['xvelocity']
+        Yvel  = domain.quantities['yvelocity']
+
+        Normals = domain.normals
+
+        #print vol_ids
+        #print edge_ids
+        #Normals.reshape((4,3,2))
+        #print Normals.shape
+        #print Normals[vol_ids, 2*edge_ids]
+        #print Normals[vol_ids, 2*edge_ids+1]
+        
+        n1  = Normals[vol_ids,2*edge_ids]
+        n2  = Normals[vol_ids,2*edge_ids+1]
+
+        # Transfer these quantities to the boundary array
+        Stage.boundary_values[ids]  = Stage.edge_values[vol_ids,edge_ids]
+        Elev.boundary_values[ids]   = Elev.edge_values[vol_ids,edge_ids]
+        Height.boundary_values[ids] = Height.edge_values[vol_ids,edge_ids]
+
+        # Rotate and negate Momemtum
+        q1 = Xmom.edge_values[vol_ids,edge_ids]
+        q2 = Ymom.edge_values[vol_ids,edge_ids]
+
+        r1 = -q1*n1 - q2*n2
+        r2 = -q1*n2 + q2*n1
+
+        Xmom.boundary_values[ids] = n1*r1 - n2*r2
+        Ymom.boundary_values[ids] = n2*r1 + n1*r2
+
+        # Rotate and negate Velocity
+        q1 = Xvel.edge_values[vol_ids,edge_ids]
+        q2 = Yvel.edge_values[vol_ids,edge_ids]
+
+        r1 = q1*n1 + q2*n2
+        r2 = q1*n2 - q2*n1
+
+        Xvel.boundary_values[ids] = n1*r1 - n2*r2
+        Yvel.boundary_values[ids] = n2*r1 + n1*r2
+
+        
+
+
 class Dirichlet_discharge_boundary(Boundary):
     """ Class for a Dirichlet discharge boundary.
 

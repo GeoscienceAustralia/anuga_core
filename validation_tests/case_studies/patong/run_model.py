@@ -37,8 +37,24 @@ from anuga.file.csv_file import load_csv_as_building_polygons
 
 import shutil
 
+#--------------------------------------------------
+# Pick up useful command line arguments (which over rides 
+# values set before
+#--------------------------------------------------
+cfl = anuga.args.cfl
+alg = anuga.args.alg
+verbose = anuga.args.verbose
+np = anuga.args.np
 
-verbose = True
+if myid == 0 and verbose:
+    print 80*'#'
+    print '#'
+    print '# Long Validation Test, takes 10 minutes on my desktop'
+    print '#'
+    print '# Consider running in parallel'
+    print '#'
+    print 80*'#'
+
 #-------------------------------------------------------------------------------
 # Copy scripts to time stamped output directory and capture screen
 # output to file. Copy script must be before screen_catcher
@@ -132,9 +148,9 @@ if(myid==0):
 
     domain.set_name(project.scenario_name)
     domain.set_datadir(project.output_run) 
-    print 'WARNING: FORCING FLOW ALGORITHM TO DE0 -- NEEDS TO BE CHANGED FOR INTEGRATION INTO VALIDATION TESTS'
-    #domain.set_flow_algorithm('tsunami')
-    domain.set_flow_algorithm('DE0')
+
+    domain.set_flow_algorithm(alg)
+    #domain.set_CFL(cfl)
 
     #-------------------------------------------------------------------------------
     # Setup initial conditions

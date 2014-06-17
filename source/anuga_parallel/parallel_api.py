@@ -36,8 +36,81 @@ processor_name = get_processor_name()
 
 
 
-
 def distribute(domain, verbose=False, debug=False, parameters = None):
+    """ Distribute the domain to all processes
+
+    parameters allows user to change size of ghost layer
+    """
+
+    if not pypar_available or numprocs == 1 : return domain # Bypass
+
+        
+    if myid == 0:
+        from sequential_distribute import Sequential_distribute
+        partition = Sequential_distribute(domain, verbose, debug, parameters)
+
+        partition.distribute(numprocs)
+
+        kwargs, points, vertices, boundary, quantities, boundary_map, \
+                domain_name, domain_dir, domain_store, domain_store_centroids, \
+                domain_minimum_storable_height, domain_minimum_allowed_height, \
+                domain_flow_algorithm, georef = partition.extract_submesh(0)
+        
+        for p in range(1, numprocs):
+
+            tostore = partition.extract_submesh(p)
+
+            send(tostore,p)
+
+    else:
+
+        kwargs, points, vertices, boundary, quantities, boundary_map, \
+                       domain_name, domain_dir, domain_store, domain_store_centroids, \
+                       domain_minimum_storable_height, domain_minimum_allowed_height, \
+                       domain_flow_algorithm, georef = receive(0)
+
+    #---------------------------------------------------------------------------
+    # Now Create parallel domain
+    #---------------------------------------------------------------------------
+    parallel_domain = Parallel_domain(points, vertices, boundary, **kwargs)
+
+
+    #------------------------------------------------------------------------
+    # Copy in quantity data
+    #------------------------------------------------------------------------
+    for q in quantities:
+        parallel_domain.set_quantity(q, quantities[q])
+
+
+    #------------------------------------------------------------------------
+    # Transfer boundary conditions to each subdomain
+    #------------------------------------------------------------------------
+    boundary_map['ghost'] = None  # Add binding to ghost boundary
+    parallel_domain.set_boundary(boundary_map)
+
+
+    #------------------------------------------------------------------------
+    # Transfer other attributes to each subdomain
+    #------------------------------------------------------------------------
+    parallel_domain.set_name(domain_name)
+    parallel_domain.set_datadir(domain_dir)
+    parallel_domain.set_store(domain_store)
+    parallel_domain.set_store_centroids(domain_store_centroids)
+    parallel_domain.set_minimum_storable_height(domain_minimum_storable_height)
+    parallel_domain.set_minimum_allowed_height(domain_minimum_allowed_height)
+    parallel_domain.set_flow_algorithm(domain_flow_algorithm)
+    parallel_domain.geo_reference = georef
+
+
+    return parallel_domain
+
+
+        
+        
+
+
+
+def old_distribute(domain, verbose=False, debug=False, parameters = None):
     """ Distribute the domain to all processes
 
     parameters values  
@@ -124,13 +197,15 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
         points, vertices, boundary, quantities,\
                 ghost_recv_dict, full_send_dict,\
                 number_of_full_nodes, number_of_full_triangles,\
-                s2p_map, p2s_map, tri_map, node_map, ghost_layer_width =\
+                s2p_map, p2s_map, tri_map, node_map, tri_l2g, node_l2g, \
+                ghost_layer_width =\
                 distribute_mesh(domain, verbose=verbose, debug=debug, parameters=parameters)
             
         # Extract l2g maps
-        tri_l2g  = extract_l2g_map(tri_map)
-        node_l2g = extract_l2g_map(node_map)
-
+        #tri_l2g  = extract_l2g_map(tri_map)
+        #node_l2g = extract_l2g_map(node_map)
+        #tri_l2g = p2s_map[tri_l2g]
+        
         if debug:
             print 'P%d' %myid
             print 'tri_map ',tri_map
@@ -182,16 +257,17 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
         points, vertices, boundary, quantities,\
                 ghost_recv_dict, full_send_dict,\
                 number_of_full_nodes, number_of_full_triangles, \
-                tri_map, node_map, ghost_layer_width =\
+                tri_map, node_map, tri_l2g, node_l2g, ghost_layer_width =\
                 rec_submesh(0, verbose)
 
 
 
         # Extract l2g maps
-        tri_l2g  = extract_l2g_map(tri_map)
-        node_l2g = extract_l2g_map(node_map)
+        #tri_l2g  = extract_l2g_map(tri_map)
+        #node_l2g = extract_l2g_map(node_map)
+        #tri_l2g = p2s_map[tri_l2g]
         
-        # Recieve serial to parallel (s2p) and parallel to serial (p2s) triangle mapping
+        # Receive serial to parallel (s2p) and parallel to serial (p2s) triangle mapping
         if send_s2p :
             s2p_map_flat = receive(0)
             s2p_map = dict.fromkeys(s2p_map_flat[:,0], s2p_map_flat[:,1:2])
@@ -263,7 +339,12 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
 
 
 def distribute_mesh(domain, verbose=False, debug=False, parameters=None):
-
+    """ Distribute andsend the mesh info to all the processors.
+    Should only be run from processor 0 and will send info to the other
+    processors.
+    There should be a corresponding  rec_submesh called from all the other
+    processors
+    """
 
     if debug:
         verbose = True
@@ -302,13 +383,16 @@ def distribute_mesh(domain, verbose=False, debug=False, parameters=None):
     # Send the mesh partition to the appropriate processor
     if verbose: print 'Distribute submeshes'        
     for p in range(1, numprocs):
-        send_submesh(submesh, triangles_per_proc, p, verbose)
+        send_submesh(submesh, triangles_per_proc, p2s_map, p, verbose)
 
     # Build the local mesh for processor 0
     points, vertices, boundary, quantities, \
-            ghost_recv_dict, full_send_dict, tri_map, node_map, ghost_layer_width =\
-              extract_submesh(submesh, triangles_per_proc,0)
+            ghost_recv_dict, full_send_dict, \
+            tri_map, node_map, tri_l2g, node_l2g, ghost_layer_width =\
+              extract_submesh(submesh, triangles_per_proc, p2s_map, 0)
 
+
+              
     # Keep track of the number full nodes and triangles.
     # This is useful later if one needs access to a ghost-free domain
     # Here, we do it for process 0. The others are done in rec_submesh.
@@ -343,29 +427,30 @@ def distribute_mesh(domain, verbose=False, debug=False, parameters=None):
     return points, vertices, boundary, quantities,\
            ghost_recv_dict, full_send_dict,\
            number_of_full_nodes, number_of_full_triangles, \
-           s2p_map, p2s_map, tri_map, node_map, ghost_layer_width
+           s2p_map, p2s_map, tri_map, node_map, tri_l2g, node_l2g, \
+           ghost_layer_width
     
 
 
-def extract_l2g_map(map):
-    # Extract l2g data  from corresponding map
-    # Maps
+## def extract_l2g_map(map):
+##     # Extract l2g data  from corresponding map
+##     # Maps
 
-    import numpy as num
+##     import numpy as num
     
-    # FIXME: this is where we loss the original order of 
-    # sequential domain
-    b = num.arange(len(map))
+##     # FIXME: this is where we loss the original order of 
+##     # sequential domain
+##     b = num.arange(len(map))
 
-    l_ids = num.extract(map>-1,map)
-    g_ids = num.extract(map>-1,b)
+##     l_ids = num.extract(map>-1,map)
+##     g_ids = num.extract(map>-1,b)
 
-#    print len(g_ids)
-#    print len(l_ids)
-#    print l_ids
+## #    print len(g_ids)
+## #    print len(l_ids)
+## #    print l_ids
 
-    l2g = num.zeros_like(g_ids)
-    l2g[l_ids] = g_ids
+##     l2g = num.zeros_like(g_ids)
+##     l2g[l_ids] = g_ids
 
-    return l2g
+##     return l2g
 

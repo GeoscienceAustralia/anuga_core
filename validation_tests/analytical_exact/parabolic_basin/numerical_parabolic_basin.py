@@ -24,7 +24,7 @@ output_file = 'parabola'
 
 args = anuga.get_args()
 alg = args.alg
-verbose = args.v
+verbose = args.verbose
 
 m = 200
 n = 10
