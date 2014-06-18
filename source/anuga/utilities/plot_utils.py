@@ -853,7 +853,7 @@ def Make_Geotif(swwFile=None,
         import anuga
         from anuga.utilities import plot_utils as util
         import os
-        from matplotlib import nxutils
+        #from matplotlib import nxutils
     except:
         raise Exception, 'Required modules not installed for Make_Geotif'
 
@@ -938,15 +938,17 @@ def Make_Geotif(swwFile=None,
         print 'Making interpolation functions...'
     swwXY=scipy.array([swwX[:],swwY[:]]).transpose()
     # Get index of nearest point
-    #index_qFun=scipy.interpolate.NearestNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int64').transpose())
-    index_qFun=scipy.interpolate.LinearNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int64').transpose())
+    index_qFun=scipy.interpolate.NearestNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int64').transpose())
+    #index_qFun=scipy.interpolate.LinearNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int64').transpose())
 
     gridXY_array=scipy.array([scipy.concatenate(gridX),scipy.concatenate(gridY)]).transpose()
     gridqInd=index_qFun(gridXY_array)
 
     if(bounding_polygon is not None):
         # Find points to exclude (i.e. outside the bounding polygon)
-        cut_points=(nxutils.points_inside_poly(gridXY_array, bounding_polygon)==False).nonzero()[0]
+        from anuga.geometry.polygon import outside_polygon
+        cut_points = outside_polygon(gridXY_array, bounding_polygon)
+        #cut_points=(nxutils.points_inside_poly(gridXY_array, bounding_polygon)==False).nonzero()[0]
        
     # Loop over all output quantities and produce the output
     for myTSi in myTimeStep:
