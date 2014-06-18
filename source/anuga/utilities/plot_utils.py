@@ -952,18 +952,24 @@ def Make_Geotif(swwFile=None,
 
             if(type(myTS)==int):
                 if(output_quantity=='stage'):
+                    if verbose: print 'calculating stage'
                     gridq=p2.stage[myTS,:][gridqInd]
                 if(output_quantity=='depth'):
+                    if verbose: print 'calculating depth'
                     gridq=p2.height[myTS,:][gridqInd]
                     gridq=gridq*(gridq>=0.) # Force positive depth (tsunami alg)
                 if(output_quantity=='velocity'):
+                    if verbose: print 'calculating velocity'
                     gridq=p2.vel[myTS,:][gridqInd]
                 if(output_quantity=='friction'):
+                    if verbose: print 'calculating friction'
                     gridq=p2.friction[gridqInd]
                 if(output_quantity=='depthIntegratedVelocity'):
+                    if verbose: print 'calculating depthIntegratedVelocity'
                     swwDIVel=(p2.xmom[myTS,:]**2+p2.ymom[myTS,:]**2)**0.5
                     gridq=swwDIVel[gridqInd]
                 if(output_quantity=='elevation'):
+                    if verbose: print 'calculating elevation'
                     gridq=p2.elev[gridqInd]
     
                 if(myTSi is 'max'):
