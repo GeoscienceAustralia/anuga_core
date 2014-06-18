@@ -788,6 +788,7 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None):
     else:
         raise Exception, 'No spatial reference information given'
 
+
     ds.SetProjection(srs.ExportToWkt())
 
     gt = [ulx, xres, 0, uly, 0, -yres ]
@@ -796,8 +797,10 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None):
 
     #import pdb
     #pdb.set_trace()
+    import scipy
 
     outband = ds.GetRasterBand(1)
+    outband.SetNoDataValue(numpy.nan)
     outband.WriteArray(data)
 
     ds = None
@@ -941,13 +944,23 @@ def Make_Geotif(swwFile=None,
     index_qFun=scipy.interpolate.NearestNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int64').transpose())
     #index_qFun=scipy.interpolate.LinearNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int64').transpose())
 
-    gridXY_array=scipy.ascontiguousarray([scipy.concatenate(gridX),scipy.concatenate(gridY)]).transpose()
+    #print 'index_qFun', index_qFun
+    
+    gridXY_array=scipy.array([scipy.concatenate(gridX),scipy.concatenate(gridY)]).transpose()
+    #gridXY_array=scipy.concatenate((gridX,gridY)).transpose()
+    
+    gridXY_array=scipy.ascontiguousarray(gridXY_array)
+    #print gridXY_array.flags['C_CONTIGUOUS']
+    #print 'GRIDXY_ARRAY', gridXY_array.shape
+
     gridqInd=index_qFun(gridXY_array)
 
     if(bounding_polygon is not None):
         # Find points to exclude (i.e. outside the bounding polygon)
         from anuga.geometry.polygon import outside_polygon
         cut_points = outside_polygon(gridXY_array, bounding_polygon)
+        
+        #print cut_points.shape
         #cut_points=(nxutils.points_inside_poly(gridXY_array, bounding_polygon)==False).nonzero()[0]
        
     # Loop over all output quantities and produce the output
@@ -990,7 +1003,7 @@ def Make_Geotif(swwFile=None,
 
             if(bounding_polygon is not None):
                 # Cut the points outside the bounding polygon
-                gridq[cut_points]=scipy.nan 
+                gridq[cut_points]= numpy.nan
 
             # Make name for output file
             if(myTS!='pointData'):
