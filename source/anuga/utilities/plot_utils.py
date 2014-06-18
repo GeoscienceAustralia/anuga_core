@@ -879,9 +879,7 @@ def Make_Geotif(swwFile=None,
     if(swwFile is not None):
         # Read in ANUGA outputs
         
-        # Ensure myTimeStep is a list
-        if type(myTimeStep)!=list:
-            myTimeStep=[myTimeStep]
+
             
         if(verbose):
             print 'Reading sww File ...'
@@ -900,6 +898,9 @@ def Make_Geotif(swwFile=None,
         if(myTimeStep!='max'):
             myTimeStep=range(len(p2.time))
 
+        # Ensure myTimeStep is a list
+        if type(myTimeStep)!=list:
+            myTimeStep=[myTimeStep]
 
         if(verbose):
             print 'Extracting required data ...'
