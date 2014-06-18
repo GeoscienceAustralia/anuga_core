@@ -235,7 +235,10 @@ def read_output(filename, minimum_allowed_height, timeSlices):
     elif(timeSlices=='max'):
         inds='max' #
     else:
-        inds=list(timeSlices)
+        try:
+            inds=list(timeSlices)
+        except:
+            inds=[timeSlices]
     
     if(inds is not 'max'):
         time=time[inds]
@@ -420,7 +423,10 @@ def get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
     elif(timeSlices=='max'):
         inds='max' #
     else:
-        inds=list(timeSlices)
+        try:
+            inds=list(timeSlices)
+        except:
+            inds=[timeSlices]
     
     if(inds is not 'max'):
         time=time[inds]
@@ -872,6 +878,11 @@ def Make_Geotif(swwFile=None,
 
     if(swwFile is not None):
         # Read in ANUGA outputs
+        
+        # Ensure myTimeStep is a list
+        if type(myTimeStep)!=list:
+            myTimeStep=[myTimeStep]
+            
         if(verbose):
             print 'Reading sww File ...'
         p2=util.get_centroids(swwFile, velocity_extrapolation, timeSlices=myTimeStep,
@@ -889,9 +900,6 @@ def Make_Geotif(swwFile=None,
         if(myTimeStep!='max'):
             myTimeStep=range(len(p2.time))
 
-        # Ensure myTimeStep is a list
-        if type(myTimeStep)!=list:
-            myTimeStep=[myTimeStep]
 
         if(verbose):
             print 'Extracting required data ...'

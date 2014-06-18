@@ -163,6 +163,34 @@ class Test_plot_utils(unittest.TestCase):
         self.everything_equal(p_12, 1, p, 3)
         self.everything_equal(pc_12, 0, p2, 0)
         self.everything_equal(pc_12, 1, p2, 3)
+        
+
+        # Try getting some time-slices, and checking all is as intended
+        p_12a=util.get_output('test_plot_utils.sww', timeSlices=3)
+        pc_12a=util.get_centroids(p_12a,velocity_extrapolation=ve)
+
+        #print p_12a.timeSlices
+        #print pc_12a.timeSlices
+        assert(p_12a.timeSlices==[3])
+        assert(pc_12a.timeSlices==[3])
+
+        self.everything_equal(p_12a, 0, p, 3)
+        self.everything_equal(pc_12a, 0, p2, 3)
+       
+
+        # Try getting some time-slices, and checking all is as intended
+        p_12b=util.get_output('test_plot_utils.sww')
+        pc_12b=util.get_centroids(p_12b,velocity_extrapolation=ve, timeSlices=3)
+
+        #print p_12b.timeSlices
+        #print pc_12b.timeSlices
+        assert(p_12b.timeSlices==[0, 1, 2, 3, 4, 5])
+        assert(pc_12b.timeSlices==[3])
+
+        self.everything_equal(p_12b, 0, p, 0)
+        self.everything_equal(p_12b, 5, p, 5)
+        self.everything_equal(pc_12b, 0, p2, 3)
+       
 
         # Check we can get the 'last' time, and it is correct 
         p_l=util.get_output('test_plot_utils.sww', timeSlices='last')
