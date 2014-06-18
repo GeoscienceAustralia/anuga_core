@@ -938,7 +938,9 @@ def Make_Geotif(swwFile=None,
         print 'Making interpolation functions...'
     swwXY=scipy.array([swwX[:],swwY[:]]).transpose()
     # Get index of nearest point
-    index_qFun=scipy.interpolate.NearestNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int64').transpose())
+    #index_qFun=scipy.interpolate.NearestNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int64').transpose())
+    index_qFun=scipy.interpolate.LinearNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int64').transpose())
+
     gridXY_array=scipy.array([scipy.concatenate(gridX),scipy.concatenate(gridY)]).transpose()
     gridqInd=index_qFun(gridXY_array)
 
