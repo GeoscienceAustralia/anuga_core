@@ -941,7 +941,7 @@ def Make_Geotif(swwFile=None,
     index_qFun=scipy.interpolate.NearestNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int64').transpose())
     #index_qFun=scipy.interpolate.LinearNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int64').transpose())
 
-    gridXY_array=scipy.array([scipy.concatenate(gridX),scipy.concatenate(gridY)]).transpose()
+    gridXY_array=scipy.ascontiguousarray([scipy.concatenate(gridX),scipy.concatenate(gridY)]).transpose()
     gridqInd=index_qFun(gridXY_array)
 
     if(bounding_polygon is not None):
