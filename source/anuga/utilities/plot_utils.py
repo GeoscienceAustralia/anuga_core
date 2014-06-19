@@ -930,10 +930,10 @@ def Make_Geotif(swwFile=None,
         upper_right=[swwX.max(),swwY.max()]
     nx=round((upper_right[0]-lower_left[0])*1.0/(1.0*CellSize)) + 1
     xres=(upper_right[0]-lower_left[0])*1.0/(1.0*(nx-1))
-    desiredX=scipy.arange(lower_left[0], upper_right[0],xres )
+    desiredX=scipy.linspace(lower_left[0], upper_right[0],nx )
     ny=round((upper_right[1]-lower_left[1])*1.0/(1.0*CellSize)) + 1
     yres=(upper_right[1]-lower_left[1])*1.0/(1.0*(ny-1))
-    desiredY=scipy.arange(lower_left[1], upper_right[1], yres)
+    desiredY=scipy.linspace(lower_left[1], upper_right[1], ny)
 
     gridX, gridY=scipy.meshgrid(desiredX,desiredY)
 
