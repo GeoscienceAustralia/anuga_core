@@ -15,6 +15,8 @@ from anuga.utilities import plot_utils as util
 from anuga.config import g
 from anuga.utilities import spatialInputUtil as su
         
+# pull -v argument from command line
+verbose = anuga.get_args().verbose
 
 class Test_spatialInputUtil(unittest.TestCase):
     """
@@ -205,7 +207,7 @@ class Test_spatialInputUtil(unittest.TestCase):
         seg1_wkb=su.ListPts2Wkb(seg1,geometry_type='line')
         seg2_wkb=su.ListPts2Wkb(seg2,geometry_type='line')
 
-        newSeg1,newSeg2=su.addIntersectionPtsToLines(seg1_wkb,seg2_wkb,verbose=False)
+        newSeg1,newSeg2=su.addIntersectionPtsToLines(seg1_wkb,seg2_wkb,verbose=verbose)
         newSeg1=su.Wkb2ListPts(newSeg1)
         newSeg2=su.Wkb2ListPts(newSeg2)
 
@@ -220,7 +222,7 @@ class Test_spatialInputUtil(unittest.TestCase):
         
         seg1_wkb=su.ListPts2Wkb(seg1,geometry_type='line')
         seg2_wkb=su.ListPts2Wkb(seg2,geometry_type='line')
-        newSeg1,newSeg2=su.addIntersectionPtsToLines(seg1_wkb,seg2_wkb,verbose=False)
+        newSeg1,newSeg2=su.addIntersectionPtsToLines(seg1_wkb,seg2_wkb,verbose=verbose)
         newSeg1=su.Wkb2ListPts(newSeg1)
         newSeg2=su.Wkb2ListPts(newSeg2)
 
@@ -240,7 +242,7 @@ class Test_spatialInputUtil(unittest.TestCase):
         seg1_wkb=su.ListPts2Wkb(seg1,geometry_type='line')
         seg2_wkb=su.ListPts2Wkb(seg2,geometry_type='line')
 
-        newSeg1,newSeg2=su.addIntersectionPtsToLines(seg1_wkb,seg2_wkb,verbose=False,\
+        newSeg1,newSeg2=su.addIntersectionPtsToLines(seg1_wkb,seg2_wkb,verbose=verbose,\
                                 point_movement_threshold=0.01)
         newSeg1=su.Wkb2ListPts(newSeg1)
         newSeg2=su.Wkb2ListPts(newSeg2)
@@ -326,11 +328,12 @@ class Test_spatialInputUtil(unittest.TestCase):
             # Should fail
             newBP, newBL, newRW=su.add_intersections_to_domain_features(bounding_polygon,\
                                     breakLines, riverWalls, point_movement_threshold=0.02,\
-                                    verbose=False)
+                                    verbose=verbose)
             assert False
         except:
             assert True
 
+        #print 'After first add_iinersections'
         #################################################################
         # Fix the riverwall, and it should work
         riverWalls={ 'rw1': [[-0.01, 8., 2.],[10.01, 4., 3.]],
@@ -338,12 +341,12 @@ class Test_spatialInputUtil(unittest.TestCase):
         # This should work
         newBP, newBL, newRW=su.add_intersections_to_domain_features(bounding_polygon,\
                                 breakLines, riverWalls, point_movement_threshold=0.02,\
-                                verbose=False)
+                                verbose=verbose)
 
         return
 
 # =========================================================================
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_spatialInputUtil, 'test')
-    runner = unittest.TextTestRunner()
+    runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

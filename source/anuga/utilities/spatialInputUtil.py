@@ -263,10 +263,10 @@ def compute_squared_distance_to_segment(pt, line):
     seg_unitVec_y=float(p1[1]-p0[1])
     segLen=(seg_unitVec_x**2+seg_unitVec_y**2)**0.5
     if(segLen==0.):
-        print line
-        print 'Pt'
-        print pt
-        raise Exception, 'Line has repeated points'
+        #print line
+        #print 'Pt'
+        #print pt
+        raise Exception, 'Line has repeated points: Line %s Pt %s' % (str(line),str(pt))
     seg_unitVec_x=seg_unitVec_x/segLen
     seg_unitVec_y=seg_unitVec_y/segLen
     #
@@ -471,8 +471,8 @@ def addIntersectionPtsToLines(L1,L2, point_movement_threshold=0.0, buf=1.0e-06, 
         L1_L2_intersect=L1_buf.Intersection(L2_buf)
         if(L1_L2_intersect.GetGeometryCount()==1):
             if(not check_polygon_is_small(L1_L2_intersect, buf, tol2)):
-                print L1_L2_intersect.GetEnvelope()
-                raise Exception, 'line intersection is not allowed'
+                #print L1_L2_intersect.GetEnvelope()
+                raise Exception, 'line intersection is not allowed. Envelope %s '% str(L1_L2_intersect.GetEnvelope())
             # Seems to need special treatment with only 1 intersection point
             intersectionPts=[L1_L2_intersect.Centroid().GetPoint()]
         else:
