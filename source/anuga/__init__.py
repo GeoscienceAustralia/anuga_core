@@ -40,7 +40,8 @@ from anuga.operators.base_operator import Operator
 from anuga.structures.structure_operator import Structure_operator
 
 from anuga.abstract_2d_finite_volumes.util import file_function, \
-                                        sww2timeseries, sww2csv_gauges
+                                        sww2timeseries, sww2csv_gauges, \
+                                        csv2timeseries_graphs
 
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross, \
                                                     rectangular
