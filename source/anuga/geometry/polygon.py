@@ -721,12 +721,7 @@ def plot_polygons(polygons_points,
 
     - plot of polygons
     """
-
-
-    import matplotlib as mpl
-    mpl.use('Agg')
-    #import matplotlib.pyplot as plt
-        
+       
 
     from matplotlib.pyplot import hold, plot, savefig, xlabel, \
                     ylabel, title, close, title, fill
