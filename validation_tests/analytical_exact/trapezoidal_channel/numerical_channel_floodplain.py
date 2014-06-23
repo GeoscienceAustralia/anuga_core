@@ -9,12 +9,17 @@ Water flowing down a channel with a floodplain
 # Import standard shallow water domain and standard boundaries.
 import anuga
 import numpy
-from anuga.structures.inlet_operator import Inlet_operator
-from anuga import *
+from anuga import Inlet_operator
+from anuga import myid, finalize, distribute
 
 #------------------------------------------------------------------------------
 # Useful parameters for controlling this case
 #------------------------------------------------------------------------------
+args = anuga.get_args()
+verbose = args.verbose
+alg = args.alg
+
+
 floodplain_length = 800.0 # Model domain length
 floodplain_width = 14.0    # Model domain width
 floodplain_slope = 1./300.
@@ -53,88 +58,88 @@ channel_polygon = [ [floodplain_width/2. - chan_width/2., +l0],
                     [floodplain_width/2. + chan_width/2., floodplain_length-l0],
                     [floodplain_width/2. + chan_width/2., +l0]
                     ]
+if myid == 0:
+    # Define domain with appropriate boundary conditions
+    domain = anuga.create_domain_from_regions( boundary_polygon, 
+                                       boundary_tags={'left': [0],
+                                                      'top1': [1],
+                                                      'chan_out': [2],
+                                                      'top2': [3],
+                                                      'right': [4],
+                                                      'bottom1': [5],
+                                                      'chan_in': [6],
+                                                      'bottom2': [7] },
+                                       maximum_triangle_area = 0.5*l0*l0,
+                                       minimum_triangle_angle = 28.0,
+                                       mesh_filename = 'channel_floodplain.msh',
+                                       interior_regions = [ ],
+                                       #interior_regions = [\
+                                       #    [channel_polygon, 0.5*l0*l0] ],
+                                       use_cache=False,
+                                       verbose=verbose)
 
-# Define domain with appropriate boundary conditions
-domain = create_domain_from_regions( boundary_polygon, 
-                                   boundary_tags={'left': [0],
-                                                  'top1': [1],
-                                                  'chan_out': [2],
-                                                  'top2': [3],
-                                                  'right': [4],
-                                                  'bottom1': [5],
-                                                  'chan_in': [6],
-                                                  'bottom2': [7] },
-                                   maximum_triangle_area = 0.5*l0*l0,
-                                   minimum_triangle_angle = 28.0,
-                                   mesh_filename = 'channel_floodplain.msh',
-                                   interior_regions = [ ],
-                                   #interior_regions = [\
-                                   #    [channel_polygon, 0.5*l0*l0] ],
-                                   use_cache=False,
-                                   verbose=True)
+    domain.set_name('channel_floodplain') # Output name
+    domain.set_flow_algorithm(alg)
 
-domain.set_name('channel_floodplain') # Output name
+    #------------------------------------------------------------------------------
+    # Setup initial conditions
+    #------------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
-# Setup Algorithm, either using command line arguments
-# or override manually yourself
-#------------------------------------------------------------------------------
-from anuga.utilities.argparsing import parse_standard_args
-alg, cfl = parse_standard_args()
-domain.set_flow_algorithm(alg)
-#domain.set_CFL(cfl)
-
-#------------------------------------------------------------------------------
-#
-# Setup initial conditions
-#
-#------------------------------------------------------------------------------
-
-# Function for topography
-def elevation(x, y):
-    elev1= -y*floodplain_slope - chan_bankfull_depth*\
-            (x>(floodplain_width/2. - chan_width/2.))*\
-            (x<(floodplain_width/2. + chan_width/2.)) 
-    # Add banks
-    if(bankwidth>0.0):
-        leftbnk = floodplain_width/2. - chan_width/2.
-        rightbnk = floodplain_width/2. + chan_width/2.
-        # Left bank
-        elev2 = elev1 + (chan_bankfull_depth \
-                - chan_bankfull_depth/bankwidth*(x - leftbnk))*\
-                (x>leftbnk)*(x < leftbnk + bankwidth)
-        # Right bank
-        elev2 = elev2 + (chan_bankfull_depth \
-                + chan_bankfull_depth/bankwidth*(x - rightbnk))*\
-                (x>rightbnk-bankwidth)*(x < rightbnk)
-    if(bankwidth==0.0):
-        elev2 = elev1
-    return elev2
+    # Function for topography
+    def elevation(x, y):
+        elev1= -y*floodplain_slope - chan_bankfull_depth*\
+                (x>(floodplain_width/2. - chan_width/2.))*\
+                (x<(floodplain_width/2. + chan_width/2.)) 
+        # Add banks
+        if(bankwidth>0.0):
+            leftbnk = floodplain_width/2. - chan_width/2.
+            rightbnk = floodplain_width/2. + chan_width/2.
+            # Left bank
+            elev2 = elev1 + (chan_bankfull_depth \
+                    - chan_bankfull_depth/bankwidth*(x - leftbnk))*\
+                    (x>leftbnk)*(x < leftbnk + bankwidth)
+            # Right bank
+            elev2 = elev2 + (chan_bankfull_depth \
+                    + chan_bankfull_depth/bankwidth*(x - rightbnk))*\
+                    (x>rightbnk-bankwidth)*(x < rightbnk)
+        if(bankwidth==0.0):
+            elev2 = elev1
+        return elev2
 
 
-#Function for stage
-def stage(x,y):
-    return -y*floodplain_slope -chan_bankfull_depth + chan_initial_depth 
+    #Function for stage
+    def stage(x,y):
+        return -y*floodplain_slope -chan_bankfull_depth + chan_initial_depth 
 
-domain.set_quantity('elevation', elevation) # Use function for elevation
-domain.set_quantity('friction', man_n)      # Constant friction
-domain.set_quantity('stage', stage)         # Use function for stage
+    domain.set_quantity('elevation', elevation) # Use function for elevation
+    domain.set_quantity('friction', man_n)      # Constant friction
+    domain.set_quantity('stage', stage)         # Use function for stage
 
+else:
+
+    domain = None
+
+#=====================================================
+# Parallel Domain
+#=====================================================
+domain = distribute(domain)
+
+#---------------------------------------------------------------------
 # Define inlet operator 
+#--------------------------------------------------------------------- 
 flow_in_yval=0.0
-if True:
-    line1 = [ [floodplain_width/2. - chan_width/2., flow_in_yval],\
-              [floodplain_width/2. + chan_width/2., flow_in_yval] ]
-    Qin = 0.5*(floodplain_slope*(chan_width*chan_initial_depth)**2.*man_n**(-2.)\
-            *chan_initial_depth**(4./3.) )**0.5
-    Inlet_operator(domain, line1, Qin)
-    print 'Discharge in = ', Qin 
+line1 = [ [floodplain_width/2. - chan_width/2., flow_in_yval],\
+          [floodplain_width/2. + chan_width/2., flow_in_yval] ]
 
-#------------------------------------------------------------------------------
-#
+Qin = 0.5*(floodplain_slope*(chan_width*chan_initial_depth)**2.*man_n**(-2.)\
+            *chan_initial_depth**(4./3.) )**0.5
+Inlet_operator(domain, line1, Qin)
+
+if myid == 0 and verbose : print 'Discharge in = ', Qin 
+
+#---------------------------------------------------------------------
 # Setup boundary conditions
-#
-#------------------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 Br = anuga.Reflective_boundary(domain) # Solid reflective wall
 
@@ -157,41 +162,49 @@ domain.set_boundary({'left': Br,
                      'chan_in': Br})
 
 # Set up file to record computations of discharge at several points.
-discharge_outfile=open('discharge_outputs.txt', 'w')
-discharge_outfile.write('Time (s)'+","+ 'Discharge@10' + ","+ 'Discharge@700'+","+ 'Discharge@1000' + "\n")
+#discharge_outfile=open('discharge_outputs.txt', 'w')
+#discharge_outfile.write('Time (s)'+","+ 'Discharge@10' + ","+ 'Discharge@700'+","+ 'Discharge@1000' + "\n")
 
 
 #------------------------------------------------------------------------------
 # Produce a documentation of parameters
 #------------------------------------------------------------------------------
-parameter_file=open('parameters.tex', 'w')
-parameter_file.write('\\begin{verbatim}\n')
-from pprint import pprint
-pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
-parameter_file.write('\\end{verbatim}\n')
-parameter_file.close()
+if myid == 0:
+    parameter_file=open('parameters.tex', 'w')
+    parameter_file.write('\\begin{verbatim}\n')
+    from pprint import pprint
+    pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
+    parameter_file.write('\\end{verbatim}\n')
+    parameter_file.close()
 
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
-for t in domain.evolve(yieldstep=10.0, finaltime=1200.0):
-    print domain.timestepping_statistics()
-    xx=domain.quantities['ymomentum'].centroid_values
-    dd=(domain.quantities['stage'].centroid_values - domain.quantities['elevation'].centroid_values)
-    dd=dd*(dd>0.)
+for t in domain.evolve(yieldstep=10.0, finaltime=500.0):
+    if myid == 0 and verbose: print domain.timestepping_statistics()
 
-    tmp = xx/(dd+1.0e-06)*(dd>0.0)
-    print tmp.max(), tmp.argmax(), tmp.min(),  tmp.argmin()
+##     xx=domain.quantities['ymomentum'].centroid_values
+##     dd=(domain.quantities['stage'].centroid_values - domain.quantities['elevation'].centroid_values)
+##     dd=dd*(dd>0.)
 
-    # Compute flow through cross-section -- check that the inflow boundary condition is doing its job
-    # This also provides another useful steady-state check
-    if( numpy.floor(t/100.) == t/100. ):
-        print '#### COMPUTING FLOW THROUGH CROSS-SECTIONS########'
-        s0 = domain.get_flow_through_cross_section([[0., 10.0], [floodplain_width, 10.0]])
-        s1 = domain.get_flow_through_cross_section([[0., floodplain_length-300.0], [floodplain_width, floodplain_length-300.0]])
-        s2 = domain.get_flow_through_cross_section([[0., floodplain_length-1.0], [floodplain_width, floodplain_length-1.0]])
+##     tmp = xx/(dd+1.0e-06)*(dd>0.0)
+##     print tmp.max(), tmp.argmax(), tmp.min(),  tmp.argmin()
+
+##     # Compute flow through cross-section -- check that the inflow boundary condition is doing its job
+##     # This also provides another useful steady-state check
+##     if( numpy.floor(t/100.) == t/100. ):
+##         print '#### COMPUTING FLOW THROUGH CROSS-SECTIONS########'
+##         s0 = domain.get_flow_through_cross_section([[0., 10.0], [floodplain_width, 10.0]])
+##         s1 = domain.get_flow_through_cross_section([[0., floodplain_length-300.0], [floodplain_width, floodplain_length-300.0]])
+##         s2 = domain.get_flow_through_cross_section([[0., floodplain_length-1.0], [floodplain_width, floodplain_length-1.0]])
         
-        print 'Cross sectional flows: ',s0, s1, s2 
-        print '$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'
-        discharge_outfile.write(str(t) + "," +str(s0) + ","+ str(s1) +"," + str(s2) + "\n")
-discharge_outfile.close()
+##         print 'Cross sectional flows: ',s0, s1, s2 
+##         print '$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'
+##         discharge_outfile.write(str(t) + "," +str(s0) + ","+ str(s1) +"," + str(s2) + "\n")
+
+## discharge_outfile.close()
+
+domain.sww_merge(delete_old=True)
+
+
+finalize()

@@ -167,6 +167,11 @@ class Parallel_domain(Domain):
             
             merge.sww_merge_parallel(global_name,self.numproc,verbose,delete_old)
 
+        # make sure all the merge completes on processor 0 before other
+        # processors complete (like when finalize is forgotten in main script)
+        
+        pypar.barrier()
+        
     def write_time(self):
 
         if self.processor == 0:
