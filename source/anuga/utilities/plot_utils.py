@@ -977,7 +977,7 @@ def Make_Geotif(swwFile=None,
     # Loop over all output quantities and produce the output
     for myTSi in myTimeStep:
         if(verbose):
-            print myTSi
+            print 'Reduction = ', myTSi
         for output_quantity in output_quantities:
             if (verbose): print output_quantity
 

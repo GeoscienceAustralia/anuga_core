@@ -722,13 +722,19 @@ def plot_polygons(polygons_points,
     - plot of polygons
     """
 
-    from pylab import ion, ioff, hold, plot, savefig, xlabel, \
-                      ylabel, title, close, title, fill
+
+    import matplotlib as mpl
+    mpl.use('Agg')
+    #import matplotlib.pyplot as plt
+        
+
+    from matplotlib.pyplot import hold, plot, savefig, xlabel, \
+                    ylabel, title, close, title, fill
 
     assert type(polygons_points) == list, \
                 'input must be a list of polygons and/or points'
 
-    ion()
+    #ion()
     hold(True)
 
     if label is None:
@@ -776,7 +782,7 @@ def plot_polygons(polygons_points,
     else:
         savefig('test_image')
 
-    ioff()
+    #ioff()
     hold(False)
     close('all')
 

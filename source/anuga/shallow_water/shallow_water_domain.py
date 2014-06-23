@@ -1729,8 +1729,6 @@ class Domain(Generic_Domain):
         computed fluxes and specified forcing functions.
         """
 
-        N = len(self) # Number_of_triangles
-        d = len(self.conserved_quantities)
 
         timestep = self.timestep
 
@@ -1746,28 +1744,24 @@ class Domain(Generic_Domain):
         Stage = self.quantities['stage']
         Xmom = self.quantities['xmomentum']
         Ymom = self.quantities['ymomentum']
-        
-        #self.work_centroid_values[:] = Stage.centroid_values
-        
-        tff = self.tri_full_flag
-        
+
         Stage.update(timestep)
         Xmom.update(timestep)   
-        Ymom.update(timestep)   
-  
-        negative_ids = num.where( num.logical_and((Stage.centroid_values - Elev.centroid_values) < 0.0 , tff > 0) )[0]
+        Ymom.update(timestep) 
         
-        if len(negative_ids)>0:
-            #print 'NEGATIVE INDICES'
-            Stage.centroid_values[negative_ids] = Elev.centroid_values[negative_ids]
-            Xmom.centroid_values[negative_ids] = 0.0
-            Ymom.centroid_values[negative_ids] = 0.0          
+        if self.get_using_discontinuous_elevation():
+        
+            tff = self.tri_full_flag
+      
+            negative_ids = num.where( num.logical_and((Stage.centroid_values - Elev.centroid_values) < 0.0 , tff > 0) )[0]
             
+            if len(negative_ids)>0:
+                #print 'NEGATIVE INDICES'
+                Stage.centroid_values[negative_ids] = Elev.centroid_values[negative_ids]
+                Xmom.centroid_values[negative_ids] = 0.0
+                Ymom.centroid_values[negative_ids] = 0.0          
 
-            # Note that Q.explicit_update is reset by compute_fluxes
-            # Where is Q.semi_implicit_update reset?
-            # It is reset in quantity_ext.c
-
+            
 
 
     def update_other_quantities(self):
