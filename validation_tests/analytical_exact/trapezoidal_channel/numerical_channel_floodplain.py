@@ -19,16 +19,17 @@ args = anuga.get_args()
 verbose = args.verbose
 alg = args.alg
 
+from project import *
 
-floodplain_length = 800.0 # Model domain length
-floodplain_width = 14.0    # Model domain width
-floodplain_slope = 1./300.
-chan_initial_depth = 0.65  # Initial depth of water in the channel
-chan_bankfull_depth = 1.0  # Bankfull depth of the channel
-chan_width = 10.0          # Bankfull width of the channel
-bankwidth = 2.             # Width of the bank regions -- note that these protrude into the channel
-man_n=0.03                 # Manning's n
-l0 = 1.00 # Length scale associated with triangle side length in channel (min_triangle area = 0.5*l0^2)
+# floodplain_length = 800.0 # Model domain length
+# floodplain_width = 14.0    # Model domain width
+# floodplain_slope = 1./300.
+# chan_initial_depth = 0.65  # Initial depth of water in the channel
+# chan_bankfull_depth = 1.0  # Bankfull depth of the channel
+# chan_width = 10.0          # Bankfull width of the channel
+# bankwidth = 2.             # Width of the bank regions -- note that these protrude into the channel
+# man_n=0.03                 # Manning's n
+# l0 = 1.00 # Length scale associated with triangle side length in channel (min_triangle area = 0.5*l0^2)
 
 assert chan_width < floodplain_width, \
         'ERROR: Channel width is greater than floodplain width'
@@ -180,7 +181,7 @@ if myid == 0:
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
-for t in domain.evolve(yieldstep=10.0, finaltime=500.0):
+for t in domain.evolve(yieldstep=10.0, finaltime=1000.0):
     if myid == 0 and verbose: print domain.timestepping_statistics()
 
 ##     xx=domain.quantities['ymomentum'].centroid_values

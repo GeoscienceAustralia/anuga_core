@@ -2,9 +2,12 @@ from anuga.utilities import plot_utils as util
 from matplotlib import pyplot as pyplot
 import numpy
 
+from project import *
+
+filename = 'channel_floodplain.sww'
 
 # Time-index to plot outputs from
-p2 = util.get_output('channel_floodplain.sww')
+p2 = util.get_output(filename)
 p=util.get_centroids(p2, velocity_extrapolation=True)
 v = (p.x>6.0)*(p.x<8.0)
 
@@ -87,7 +90,8 @@ pyplot.plot(p.x[v1], p.yvel[index,v1],'o', label='numerical velocity')
 pyplot.plot(p.x[v1],p.stage[index,v1],'o', label='numerical stage')
 pyplot.plot(p.x[v1],Analytic_Stage,'o', label='analytical stage')
 pyplot.plot(p.x[v1],p.elev[v1],'o', label='bed elevation')
-pyplot.legend(loc=10)
+pyplot.ylim([-4,2])
+pyplot.legend(loc=8)
 pyplot.title('Velocity (analytical and numerical) and Stage:' + '\n' +'Downstream channel regions (95 to 105m)' +'\n')
 pyplot.xlabel('Cross-channel distance (m)')
 pyplot.ylabel('Generic scale (m or m/s)')
@@ -116,6 +120,7 @@ pyplot.plot(p.x[v1], p.yvel[index,v1],'o', label='numerical velocity')
 pyplot.plot(p.x[v1],p.stage[index,v1],'o', label='numerical stage')
 pyplot.plot(p.x[v1],Analytic_Stage,'o', label='analytical stage')
 pyplot.plot(p.x[v1],p.elev[v1],'o', label='bed elevation')
+pyplot.ylim([-4,2])
 pyplot.legend(loc=10)
 pyplot.title('Velocity (analytical and numerical) and Stage:' + '\n' +'Central channel regions (495 to 505m)' +'\n')
 pyplot.xlabel('Cross-channel distance (m)')
@@ -146,8 +151,43 @@ pyplot.plot(p.x[v1], p.yvel[index,v1],'o', label='numerical velocity')
 pyplot.plot(p.x[v1],p.stage[index,v1],'o', label='numerical stage')
 pyplot.plot(p.x[v1],Analytic_Stage,'o', label='analytical stage')
 pyplot.plot(p.x[v1],p.elev[v1],'o', label='bed elevation')
+pyplot.ylim([-4,2])
 pyplot.legend(loc=10)
 pyplot.title('Velocity (analytical and numerical) and Stage:' + '\n' +'Downstream channel regions (695 to 705m)' +'\n')
 pyplot.xlabel('Cross-channel distance (m)')
 pyplot.ylabel('Generic scale (m or m/s)')
 pyplot.savefig('fig4downstream_channel.png')
+
+
+
+
+
+print '#======================================================================'
+print '# Extract some cross section info'
+print '#======================================================================'
+
+from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
+
+polyline0 = [ [floodplain_width, 10.0], [0., 10.0]]
+polyline1 = [[floodplain_width, floodplain_length-300.0], [0., floodplain_length-300.0]]
+polyline2 = [[floodplain_width, floodplain_length-1.0], [0., floodplain_length-1.0]]
+        
+time,Q0  = get_flow_through_cross_section(filename, polyline0, verbose=True)
+time,Q1  = get_flow_through_cross_section(filename, polyline1, verbose=True)
+time,Q2  = get_flow_through_cross_section(filename, polyline2, verbose=True)
+
+pyplot.figure(figsize=(12.,8.))
+pyplot.plot(time, Q0, label='10m')
+pyplot.plot(time, Q1, label='500m')
+pyplot.plot(time, Q2, label='799m')
+pyplot.plot([0,time[-1]], [Qin,Qin], label='Input Q')
+pyplot.ylim([0,7])
+pyplot.legend(loc=10)
+pyplot.title('Cross sectional flow across transect at 10m, 500m and 799m')
+pyplot.xlabel('Time (sec)')
+pyplot.ylabel('Discharge (m^3/sec)')
+pyplot.savefig('cross_section_10_500_790.png')
+
+
+
+

@@ -26,18 +26,29 @@ Figure~\ref{fig:xsect_vels} shows the cross-channel velocity profiles at a numbe
 \end{center}
 \end{figure}
 
-Table~\ref{tab:trapztab} shows the discharge computed at a number of cross-sections in the channel, at a number of time-steps on the way to near steady-state. By the end of the simulation they should all be essentially the same. Large variations may suggest mass conservation errors (small variations are probably due to the interpolation that occurs in the routine:
-\begin{equation*}
-\textrm{compute\_flow\_through\_cross\_section}.
-\end{equation*}
+Figure~\ref{fig:hydrographs} show the hydrographs through various cross sections showing the flows limiting to the 
+expected inflow $Q$. 
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=\textwidth]{cross_section_10_500_790.png}
+\caption{Hydrographs over a number of cross-sections.}
+\label{fig:hydrographs}
+\end{center}
+\end{figure}
+
+%Table~\ref{tab:trapztab} shows the discharge computed at a number of cross-sections in the channel, at a number of time-steps on the way to near steady-state. By the end of the simulation they should all be essentially the same. Large variations may suggest mass conservation errors (small variations are probably due to the interpolation that occurs in the routine:
+%\begin{equation*}
+%\textrm{compute\_flow\_through\_cross\_section}.
+%\end{equation*}
 
 
-\DTLloaddb{dischargeout}{../analytical_exact/trapezoidal_channel/discharge_outputs.txt}
+%\DTLloaddb{dischargeout}{../analytical_exact/trapezoidal_channel/discharge_outputs.txt}
 %\DTLloaddb{dischargeout}{discharge_outputs.txt}
-\begin{table}
-\caption{Discharge through cross-sections at a number of $x$-position, at different instants in time}
-\label{tab:trapztab}
-\DTLdisplaydb{dischargeout}
-\end{table}
+%\begin{table}
+%\caption{Discharge through cross-sections at a number of $x$-position, at different instants in time}
+%\label{tab:trapztab}
+%\DTLdisplaydb{dischargeout}
+%\end{table}
 
 \endinput

@@ -1,18 +1,10 @@
-#--------------------------------
-# import modules
-#--------------------------------
-from anuga.validation_utilities.fabricate import *
-from anuga.validation_utilities import run_validation_script
-from anuga.validation_utilities import typeset_report
 
-# Setup the python scripts which produce the output for this
-# validation test
-def build():
-    run_validation_script('numerical_channel_floodplain.py')
-    run_validation_script('plot_results.py')
-    typeset_report()
 
-def clean():
-    autoclean()
+import anuga
+from anuga.validation_utilities import produce_report
 
-main()
+args = anuga.get_args()
+
+produce_report('numerical_channel_floodplain.py', args=args)
+
+
