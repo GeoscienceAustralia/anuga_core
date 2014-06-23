@@ -760,11 +760,16 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None):
 
         NOTE: proj4string is used in preference to EPSG_CODE if available
     """
+
     try:
         import gdal
         import osr
-    except:
-        raise Exception, 'Cannot find gdal and/or osr python modules'
+    except ImportError, e:
+        msg='Failed to import gdal/ogr modules --'\
+        + 'perhaps gdal python interface is not installed.'
+        raise ImportError, msg
+    
+
 
     xres = lons[1] - lons[0]
     yres = lats[1] - lats[0]
@@ -848,17 +853,23 @@ def Make_Geotif(swwFile=None,
     #import pdb
     #pdb.set_trace()
 
+    import scipy.io
+    import scipy.interpolate
+    import anuga
+    from anuga.utilities import plot_utils as util
+    import os
+    
     try:
         import gdal
         import osr
-        import scipy.io
-        import scipy.interpolate
-        import anuga
-        from anuga.utilities import plot_utils as util
-        import os
-        #from matplotlib import nxutils
-    except:
-        raise Exception, 'Required modules not installed for Make_Geotif'
+    except ImportError, e:
+        msg='Failed to import gdal/ogr modules --'\
+        + 'perhaps gdal python interface is not installed.'
+        raise ImportError, msg
+
+
+    
+
 
 
     # Check whether swwFile is an array, and if so, redefine various inputs to

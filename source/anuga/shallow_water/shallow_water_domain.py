@@ -691,11 +691,11 @@ class Domain(Generic_Domain):
         default is false
         """
 
-        self.discontinuous_elevation = flag
+        self.using_discontinuous_elevation = flag
 
     def get_using_discontinuous_elevation(self):
 
-        return self.discontinuous_elevation
+        return self.using_discontinuous_elevation
 
     def set_flow_algorithm(self, flag=1.5):
         """Set combination of slope limiting and time stepping

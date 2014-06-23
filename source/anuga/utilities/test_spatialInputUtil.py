@@ -293,11 +293,10 @@ class Test_spatialInputUtil(unittest.TestCase):
         # Surface is z=x+y
         fakeZ=xG-min(xG)+yG -min(yG)
         dataToGrid=numpy.vstack([xG,yG,fakeZ]).transpose()
-        try:
-            util.Make_Geotif(dataToGrid, output_quantities=['TestData'],
-                             EPSG_CODE=32756, output_dir='.',CellSize=1.0)
-        except:
-            raise Exception, "Failed because util.Make_Geotif didn't work"
+
+        util.Make_Geotif(dataToGrid, output_quantities=['TestData'],
+                         EPSG_CODE=32756, output_dir='.',CellSize=1.0)
+
 
         # Now try to get some point values -- note they will be rounded to the
         # nearest cell

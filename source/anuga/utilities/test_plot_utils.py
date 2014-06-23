@@ -382,11 +382,9 @@ class Test_plot_utils(unittest.TestCase):
         # Surface is z=x+y
         fakeZ=xG-min(xG)+yG -min(yG)
         dataToGrid=np.vstack([xG,yG,fakeZ]).transpose()
-        try:
-            util.Make_Geotif(dataToGrid, output_quantities=['TestData'],
+        util.Make_Geotif(dataToGrid, output_quantities=['TestData'],
                          EPSG_CODE=32756, output_dir='.', CellSize=myCellSize)
-        except:
-            assert False
+
        
         # Use gdal to check that at least the data extent is ok
         import gdal
@@ -394,6 +392,8 @@ class Test_plot_utils(unittest.TestCase):
         rasterGeoTrans=raster.GetGeoTransform()
         assert(np.allclose(x.min()-myCellSize/2.0, rasterGeoTrans[0]))
         assert(np.allclose(y.max()+myCellSize/2.0, rasterGeoTrans[3]))
+        #release data file
+        raster = None
         # Delete tif made with Make_Geotif
         os.remove('PointData_TestData.tif')
         
