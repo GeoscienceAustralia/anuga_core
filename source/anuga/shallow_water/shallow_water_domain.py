@@ -555,6 +555,76 @@ class Domain(Generic_Domain):
             print '#'
             print '##########################################################################'
 
+
+    def set_DE2_defaults(self):
+        """Set up the defaults for running the flow_algorithm "DE1"
+           A 'discontinuous elevation' method
+        """
+        self.set_CFL(0.95)
+        self.set_use_kinematic_viscosity(False)
+        #self.timestepping_method='rk2'#'rk3'#'euler'#'rk2' 
+        self.set_timestepping_method(2)
+        
+        self.set_using_discontinuous_elevation(True)
+        self.set_compute_fluxes_method('DE')
+        self.set_distribute_to_vertices_and_edges_method('DE')
+        
+        # Don't place any restriction on the minimum storable height
+        self.minimum_storable_height=-99999999999.0 
+        self.minimum_allowed_height=1.0e-12
+
+        self.use_edge_limiter=True
+        self.set_default_order(2)
+        self.set_extrapolate_velocity()
+
+        self.beta_w=0.75
+        self.beta_w_dry=0.1
+        self.beta_uh=0.75
+        self.beta_uh_dry=0.1
+        self.beta_vh=0.75
+        self.beta_vh_dry=0.1
+        
+
+        #self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
+        #         'ymomentum': 2, 'elevation': 2, 'height':2})
+        #self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
+        #         'ymomentum': 2, 'elevation': 1})
+        self.set_store_centroids(True)
+
+        self.optimise_dry_cells=False 
+
+        # We need the edge_coordinates for the extrapolation
+        self.edge_coordinates=self.get_edge_midpoint_coordinates()
+
+        # By default vertex values are NOT stored uniquely
+        # for storage efficiency. We may override this (but not so important since
+        # centroids are stored anyway
+        # self.set_store_vertices_smoothly(False)
+
+        self.maximum_allowed_speed=0.0
+
+        ## FIXME: Should implement tracking of boundary fluxes
+        ## Keep track of the fluxes through the boundaries
+        self.boundary_flux_integral=num.ndarray(1)
+        self.boundary_flux_integral[0]=0. 
+        self.boundary_flux_sum=num.ndarray(1)
+        self.boundary_flux_sum[0]=0.
+
+        self.call=1 # Integer counting how many times we call compute_fluxes_central
+
+        if self.processor == 0 and self.verbose:
+            print '##########################################################################'
+            print '#'
+            print '# Using discontinuous elevation solver DE2 '
+            print '#'
+            print '# A slightly more diffusive version of DE1, does use rk2 timestepping'
+            print '#'
+            print '# Make sure you use centroid values when reporting on important output quantities'
+            print '#'
+            print '##########################################################################'
+
+
+
     def update_special_conditions(self):
 
         my_update_special_conditions(self)
@@ -708,6 +778,7 @@ class Domain(Generic_Domain):
            tsunami
            DE0
            DE1
+           DE2
         """
 
         if isinstance(flag, str) :
@@ -715,7 +786,7 @@ class Domain(Generic_Domain):
         else:
             flag = str(float(str(flag))).replace(".","_")
 
-        flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', 'tsunami', 'yusuke', 'DE0', 'DE1']
+        flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', 'tsunami', 'yusuke', 'DE0', 'DE1', 'DE2']
 
         if flag in flow_algorithms:
             self.flow_algorithm = flag
@@ -822,18 +893,21 @@ class Domain(Generic_Domain):
             self.set_compute_fluxes_method('wb_2')
             self.set_extrapolate_velocity()
 
-        if self.flow_algorithm == 'DE1':
-            self.set_DE1_defaults()
-            
-            
+
         if self.flow_algorithm == 'DE0':
             self.set_DE0_defaults()
+            
+        if self.flow_algorithm == 'DE1':
+            self.set_DE1_defaults()          
+          
+        if self.flow_algorithm == 'DE2':
+            self.set_DE2_defaults()
 
     def get_flow_algorithm(self):
         """Get method used for timestepping and spatial discretisation
 
         Currently
-           1_0, 1_5, 1_75 2_0, 2_5, tsunami, DE0, DE1
+           1_0, 1_5, 1_75 2_0, 2_5, tsunami, DE0, DE1, DE2
         """
 
         return self.flow_algorithm
