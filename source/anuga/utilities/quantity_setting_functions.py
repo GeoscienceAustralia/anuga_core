@@ -77,7 +77,9 @@ def composite_quantity_setting_function(fun_poly_pairs, domain):
     """
         Make a 'composite function' to set quantities -- applies different functions inside different polygon regions.
              
-        fun_poly_pairs = [ [f0, p0], [f1, p1], ...] where fi is a function and pi is a polygon, or None, or 'All'
+        fun_poly_pairs = [ [f0, p0], [f1, p1], ...] 
+                    where fi is a function, or a constant, or the name of a gdal-compatible rasterFile; 
+                    and pi is a polygon, or None, or 'All' (or it can be 'Extent' in the case that fi is a rasterFile name)
               
         IMPORTANT: When polygons overlap, the first elements of the list are given priority. 
                    The approach is:
@@ -89,14 +91,20 @@ def composite_quantity_setting_function(fun_poly_pairs, domain):
         INPUT: 
               fun_poly_pairs = [ [f0, p0], [f1, p1], ...]
 
-                  where fi(x,y) are functions returning quantity values at points, and 
-                  pi are polygons where we want to use fi inside
+                  where fi(x,y) are functions returning quantity values at
+                  points, or constants in which case points in the polygon are set to that
+                  value, or (string) rasterFile names which can be passed to quantityRasterFun to make a function
+
+                  and pi are polygons where we want to use fi inside
                 
                   If any pi = 'All', then we assume that ALL unset points are set
-                    using the function. This CAN ONLY happen in the last [fi,pi] pair where pi is
-                    not None (since fi will be applied to all remaining points -- so anything else is probably an input mistake)
+                  using the function. This CAN ONLY happen in the last [fi,pi] pair where pi is
+                  not None (since fi will be applied to all remaining points -- so anything else is probably an input mistake)
     
                   If any pi = None, then that [fi,pi] pair is skipped
+
+                  if pi='Extent' and fi is the name of a raster file, then the
+                    extent of the raster file is used to define the polygon
 
               domain = ANUGA domain object
 
@@ -104,6 +112,7 @@ def composite_quantity_setting_function(fun_poly_pairs, domain):
         OUTPUT: A function F(x,y) which can be used e.g. to set the quantity
                 domain.set_quantity('elevation', F)
     """
+    import os
     import scipy
     from matplotlib import path
 
@@ -135,14 +144,25 @@ def composite_quantity_setting_function(fun_poly_pairs, domain):
         for i in range(lfp):
             fi = fun_poly_pairs[i][0] # The function
             pi = fun_poly_pairs[i][1] # The polygon
+
+            # Quick exit
+            if(pi is None):
+                continue
+
             # Get a 'true/false' flag for whether the point is in pi, and not set
             if(pi is 'All'):
                 fInside=(1-isSet)
-            elif(pi is None):
-                continue
             else:
-                # Try matplotlib -- make the path a matplotlib path object
-                pi_path=path.Path(scipy.array(pi))
+                if(pi is 'Extent' and type(fi) is str and os.path.exists(fi)):
+                    # Here fi MUST be a gdal-compatible raster
+                    # Then we get the extent from the raster itself
+                    import anuga.utilities.spatialInputUtil as su
+                    newpi=su.getRasterExtent(fi,asPolygon=True)
+                    pi_path=path.Path(scipy.array(newpi))
+                else:
+                    # Try matplotlib -- make the path a matplotlib path object
+                    pi_path=path.Path(scipy.array(pi))
+
                 fInside=xy_array_trans[:,0]*0.
                 for j in range(len(fInside)):
                     fInside[j] = pi_path.contains_point(xy_array_trans[j,:])
@@ -152,7 +172,18 @@ def composite_quantity_setting_function(fun_poly_pairs, domain):
             # Find indices of points we need to adjust 
             fInds=(fInside==1.).nonzero()[0]
             if(len(fInds)>0):
-                quantityVal[fInds] = fi(x[fInds], y[fInds])
+                if(hasattr(fi,'__call__')):
+                    # fi is a function
+                    quantityVal[fInds] = fi(x[fInds], y[fInds])
+                elif isinstance(fi, (int, long, float)):
+                    # fi is a numerical constant
+                    quantityVal[fInds]=fi*1.0
+                elif ( type(fi) is str and os.path.exists(fi)):
+                    # fi is a file which is assumed to be 
+                    # a gdal-compatible raster
+                    newfi = quantityRasterFun(domain, fi)
+                    quantityVal[fInds] = newfi(x[fInds], y[fInds])
+                
                 isSet[fInds]=1
 
         if(not min(isSet)==1):
@@ -190,32 +221,35 @@ def quantityRasterFun(domain, rasterFile):
 
 #################################################################################
 
-def elevation_from_Pt_Pol_Data_and_Raster(Pt_Pol_Data, elevation_raster, domain):
+def quantity_from_Pt_Pol_Data_and_Raster(Pt_Pol_Data, quantity_raster, domain):
     """
-        Function to make a function F(x,y) which returns the elevation on elevation_raster,
-            except if x,y is inside the polygon associated with any element of Pt_Pol_Data,
-            in which case a Pt_Pol_-specific nearest neighbour interpolator is used.
+        Function to make a function F(x,y) which returns the corresponding
+        values on quantity_raster, except if x,y is inside the polygon associated with
+        any element of Pt_Pol_Data, in which case a Pt_Pol_-specific nearest neighbour
+        interpolator is used.
 
         INPUT:
             Pt_Pol_Data = a list with [ [ Polygon_0, Pt_XYZ_0], 
                                         [ Polygon_1, Pt_XYZ_1], 
                                         ... ]
-            elevation_raster = A GDAL-compatible elevation raster
+                    Here Polygon_i is a polygon in ANUGA format,
+                    and Pt_XYZ_i is a 3 column array of x,y,Value points
+            quantity_raster = A GDAL-compatible quantity raster
             domain = ANUGA domain
     """
 
-    # Function to set elevation from raster 
-    elevFun1=quantityRasterFun(domain, rasterFile=elevation_raster)
+    # Function to set quantity from raster 
+    qFun1=quantityRasterFun(domain, rasterFile=quantity_raster)
 
-    # List of function/polygon pairs defining the Pt_Pol_ elevation data
-    elevFunChanList=[]
+    # List of function/polygon pairs defining the Pt_Pol_ quantity data
+    qFunChanList=[]
     for i in range(len(Pt_Pol_Data)):
-        elevFunChanList.append([
+        qFunChanList.append([
              make_nearestNeighbour_quantity_function(Pt_Pol_Data[i][1], domain), 
              Pt_Pol_Data[i][0]
                               ])
 
     #
-    elevFun=composite_quantity_setting_function(elevFunChanList+[[elevFun1, 'All']], domain)
+    qFun=composite_quantity_setting_function(qFunChanList+[[qFun1, 'All']], domain)
 
-    return elevFun
+    return qFun

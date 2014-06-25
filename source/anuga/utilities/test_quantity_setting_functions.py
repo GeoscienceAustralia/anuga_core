@@ -139,7 +139,81 @@ class Test_quantity_setting_functions(unittest.TestCase):
 
         return
 
-    def test_elevation_from_Pt_Pol_Data_and_Raster(self):
+    def test_composite_quantity_setting_function(self):
+        # Test the composite_quantity_setting_function
+        
+        domain=self.create_domain(1.0, 0.0)
+        
+        # Make a raster from the elevation data
+        from anuga.utilities import plot_utils as util
+        xs=domain.centroid_coordinates[:,0]+domain.geo_reference.xllcorner
+        ys=domain.centroid_coordinates[:,1]+domain.geo_reference.yllcorner
+        elev=domain.quantities['elevation'].centroid_values
+
+        allDat=numpy.vstack([xs,ys,elev]).transpose()
+        util.Make_Geotif(allDat, output_quantities=['ElevTest'], EPSG_CODE=32756, 
+                        output_dir='.', CellSize=1.)
+
+        # Make a polygon-point pair which we use to set elevation in a 'channel'
+        trenchPoly=[[minX+40., minY], [minX+40., minY+100.], [minX+60., minY+100.], [minX+60., minY]]
+
+        #################################################################
+ 
+        # This example uses a constant, and a raster, to set the quantity           
+        F=qs.composite_quantity_setting_function([[-1000., trenchPoly], ['PointData_ElevTest.tif', 'Extent']],\
+                                                domain) 
+
+        # Points where we test the function
+        testPts_X=numpy.array([50., 3.])
+        testPts_Y=numpy.array([1., 20.])
+        fitted=F(testPts_X,testPts_Y)
+
+        # The fitted value in the trench should be -1000.
+        assert(fitted[0]==-1000.)
+
+        # Find the nearest domain point to the second test point
+        # This will have been used in constructing the elevation raster
+        nearest=((domain.centroid_coordinates[:,0]-3.)**2 + (domain.centroid_coordinates[:,1]-20.)**2).argmin()
+        nearest_x=domain.centroid_coordinates[nearest,0]
+        assert(numpy.allclose(fitted[1],-nearest_x/150.))
+
+        #########################################################################
+
+        # This example uses a function, and a raster, to set the quantity           
+        def f0(x,y):
+            return x/10.
+        F=qs.composite_quantity_setting_function([[f0, trenchPoly], ['PointData_ElevTest.tif', 'Extent']],\
+                                                domain) 
+        fitted=F(testPts_X,testPts_Y)
+        # Now the fitted value in the trench should be determined by f0
+        assert(numpy.allclose(fitted[0],50./10.))
+        # The second test point should be as before
+        nearest=((domain.centroid_coordinates[:,0]-3.)**2 + (domain.centroid_coordinates[:,1]-20.)**2).argmin()
+        nearest_x=domain.centroid_coordinates[nearest,0]
+        assert(numpy.allclose(fitted[1],-nearest_x/150.))
+
+        ##########################################################################
+
+        # This example uses 'All' as a polygon
+        F=qs.composite_quantity_setting_function([[f0, 'All'], ['PointData_ElevTest.tif', None]],\
+                                                domain) 
+        fitted=F(testPts_X,testPts_Y)
+        # Now the fitted value in the trench should be determined by f0
+        assert(numpy.allclose(fitted[0],50./10.))
+        assert(numpy.allclose(fitted[1],3./10.))
+
+        ###########################################################################
+        # This example should fail
+        try:
+            F=qs.composite_quantity_setting_function([[f0, 'All'], ['PointData_ElevTest.tif', 'All']],\
+                                                    domain) 
+            raise Exception, 'The last command should fail' 
+        except:
+            assert True
+
+        return
+
+    def test_quantity_from_Pt_Pol_Data_and_Raster(self):
         # 
         # 
         #
@@ -164,7 +238,7 @@ class Test_quantity_setting_functions(unittest.TestCase):
         trenchPts=numpy.array([minX+50., minY+50., -1000.])
         #
         PtPolData=[[trenchPoly, trenchPts]]
-        F=qs.elevation_from_Pt_Pol_Data_and_Raster(PtPolData, 'PointData_ElevTest.tif', domain) 
+        F=qs.quantity_from_Pt_Pol_Data_and_Raster(PtPolData, 'PointData_ElevTest.tif', domain) 
 
         testPts_X=numpy.array([50., 3.])
         testPts_Y=numpy.array([1., 20.])

@@ -28,6 +28,26 @@ class Test_spatialInputUtil(unittest.TestCase):
 
     def tearDown(self):
         pass
+
+    def make_me_a_tif(self):
+        # We need to make a .tif to test some functions 
+        # This does the job
+        #
+        from anuga.utilities import plot_utils as util
+        #
+        # Do it with Make_Geotif
+        # Pick a domain that makes sense in EPSG:32756
+        x=numpy.linspace(307000., 307100., 101)     
+        y=numpy.linspace(6193000., 6193100., 101)
+        xG,yG=numpy.meshgrid(x, y)
+        xG=xG.flatten()
+        yG=yG.flatten()
+        # Surface is z=x+y
+        fakeZ=xG-min(xG)+yG -min(yG)
+        dataToGrid=numpy.vstack([xG,yG,fakeZ]).transpose()
+        #    
+        util.Make_Geotif(dataToGrid, output_quantities=['TestData'],
+                         EPSG_CODE=32756, output_dir='.',CellSize=1.0)
    
     def test_compute_square_distance_to_segment(self):
         # Check that this is correct for a bunch of lines
@@ -280,29 +300,38 @@ class Test_spatialInputUtil(unittest.TestCase):
         # [10,0] is x+y=10
         assert(all(pip[:,0]+pip[:,1]>=10.))
 
+
+    def test_getRasterExtent(self):
+        self.make_me_a_tif()
+
+        extentOut=su.getRasterExtent('PointData_TestData.tif')
+        assert(numpy.allclose(extentOut[0], 307000.-0.5))
+        assert(numpy.allclose(extentOut[1], 307100.+0.5))
+        assert(numpy.allclose(extentOut[2], 6193000.-0.5))
+        assert(numpy.allclose(extentOut[3], 6193100.+0.5))
+        
+        extentOut=su.getRasterExtent('PointData_TestData.tif',asPolygon=True)
+        assert(numpy.allclose(extentOut[0][0], 307000.-0.5))
+        assert(numpy.allclose(extentOut[3][0], 307000.-0.5))
+        assert(numpy.allclose(extentOut[1][0], 307100.+0.5))
+        assert(numpy.allclose(extentOut[2][0], 307100.+0.5))
+        assert(numpy.allclose(extentOut[0][1], 6193000.-0.5))
+        assert(numpy.allclose(extentOut[1][1], 6193000.-0.5))
+        assert(numpy.allclose(extentOut[2][1], 6193100.+0.5))
+        assert(numpy.allclose(extentOut[3][1], 6193100.+0.5))
+
     def test_rasterValuesAtPoints(self):
         # We need to make a .tif to test this function. 
-        from anuga.utilities import plot_utils as util
-        # Do it with Make_Geotif
-        # Pick a domain that makes sense in EPSG:32756
-        x=numpy.linspace(307000., 307100., 101)     
-        y=numpy.linspace(6193000., 6193100., 101)
-        xG,yG=numpy.meshgrid(x, y)
-        xG=xG.flatten()
-        yG=yG.flatten()
-        # Surface is z=x+y
-        fakeZ=xG-min(xG)+yG -min(yG)
-        dataToGrid=numpy.vstack([xG,yG,fakeZ]).transpose()
+        self.make_me_a_tif()
 
-        util.Make_Geotif(dataToGrid, output_quantities=['TestData'],
-                         EPSG_CODE=32756, output_dir='.',CellSize=1.0)
-
+        # Get the range of the tif
+        tifRange=su.getRasterExtent('PointData_TestData.tif')
 
         # Now try to get some point values -- note they will be rounded to the
         # nearest cell
-        xA=numpy.array([0., 10.3, 50.9, 100.])+x.min()
-        yA=numpy.array([0., 20.1, 75.1, 100.])+y.min()
-        z_predicted=numpy.round(xA)+numpy.round(yA)-x.min()-y.min()
+        xA=numpy.array([0., 10.3, 50.9, 100.])+tifRange[0]+0.5
+        yA=numpy.array([0., 20.1, 75.1, 100.])+tifRange[2]+0.5
+        z_predicted=numpy.round(xA)+numpy.round(yA)-tifRange[0]-tifRange[2]-1.0
         InDat=numpy.vstack([xA,yA]).transpose()
         z_fitted=su.rasterValuesAtPoints(InDat, rasterFile='PointData_TestData.tif')
         try:

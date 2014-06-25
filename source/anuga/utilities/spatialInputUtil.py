@@ -501,7 +501,44 @@ if gdal_available:
             return [L1_pts, L2_pts]
         else:
             return [L1, L2]
-    
+   
+    ###########################################################
+    def getRasterExtent(rasterFile, asPolygon=False):
+        """
+            Sometimes we need to know the extent of a raster
+            i.e. the minimum x, maximum x, minimum y, and maximum y values
+            
+            INPUT:
+                rasterFile -- a gdal compatible rasterfile
+                asPolygon -- if False, return [xmin,xmax,ymin,ymax].
+                             If True, return [ [xmin,ymin],[xmax,ymin],[xmax,ymax],[xmin,ymax]]
+            OUTPUT
+                The extent as defined above
+
+        """
+        raster = gdal.Open(rasterFile)
+        transform=raster.GetGeoTransform()
+        xOrigin = transform[0]
+        yOrigin = transform[3]
+        xPixels=raster.RasterXSize
+        yPixels=raster.RasterYSize
+
+        # Compute the other extreme corner
+        x2=xOrigin + xPixels*transform[1]+yPixels*transform[2]
+        y2=yOrigin + xPixels*transform[4]+yPixels*transform[5]
+        
+        xmin=min(xOrigin,x2) 
+        xmax=max(xOrigin,x2)
+
+        ymin=min(yOrigin,y2)
+        ymax=max(yOrigin,y2)
+
+        if(asPolygon):
+            return [ [xmin,ymin], [xmax,ymin], [xmax,ymax], [xmin,ymax]]
+        else:
+            return [xmin,xmax,ymin,ymax]
+
+ 
     ###########################################################
     def rasterValuesAtPoints(xy, rasterFile, band=1):
         """
@@ -547,7 +584,15 @@ if gdal_available:
             print 'unrecognized DataType:', gdal.GetDataTypeName(band.DataType)
             print 'You might need to edit this code to read the data type'
             raise Exception, 'Stopping'
-    
+  
+        # Upper bounds for pixel values, so we can fail gracefully
+        xMax=raster.RasterXSize
+        yMax=raster.RasterYSize
+        if(px.max()<xMax and px.min()>=0 and py.max()<yMax and py.min()>=0):
+            pass
+        else:
+            raise Exception, 'Trying to extract point values that exceed the raster extent'
+
         # Get values -- seems we have to loop, but it is efficient enough
         for i in range(len(px)):
             xC=int(px[i])
