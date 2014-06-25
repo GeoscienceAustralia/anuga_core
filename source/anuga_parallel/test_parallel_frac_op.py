@@ -13,11 +13,6 @@ import anuga
 import warnings
 warnings.simplefilter("ignore")
 
-#from anuga.structures.boyd_box_operator import Boyd_box_operator
-#from anuga.structures.inlet_operator import Inlet_operator
-                            
-#from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
-
 
 #------------------------------------------
 # Import pypar without the initial output
@@ -37,7 +32,6 @@ from parallel_inlet_operator import Parallel_Inlet_operator
 from anuga_parallel import distribute, myid, numprocs, finalize
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 
-#from parallel_operator_factory import Inlet_operator, Boyd_box_operator
 from anuga import Inlet_operator, Boyd_box_operator
 
 import random
@@ -245,10 +239,11 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
                 success = success and local_success
                 if verbose: 
                     print 'P%d tri %d, control = %s, actual = %s, Success = %s' %(myid, i, control_data[i], stage.centroid_values[tri_ids[i]], local_success) 
-                assert local_success, 'Ouput P%d tri %d, control = %s, actual = %s, Success = %s' %(myid, i, control_data[i], stage.centroid_values[tri_ids[i]], local_success) 
+                if not local_success:
+                    print 'Ouput P%d tri %d, control = %s, actual = %s, Success = %s' %(myid, i, control_data[i], stage.centroid_values[tri_ids[i]], local_success) 
 
 
-                
+        #assert success        
                 
         if inlet0 is not None:
             inlet_master_proc = inlet0.inlet.get_master_proc()
@@ -273,7 +268,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
 
         #assert(success)
 
-    return control_data
+    return control_data, success
 
 
 # Test an nprocs-way run of the shallow water equations
@@ -307,6 +302,7 @@ if __name__=="__main__":
 
         if myid == 0:
             if verbose: print 'PARALLEL START'
+            random.seed(2)
             for i in range(samples):
                 x = random.randrange(0,1000)/1000.0 * length
                 y = random.randrange(0,1000)/1000.0 * width
@@ -319,7 +315,7 @@ if __name__=="__main__":
             test_points = pypar.receive(0)
 
         if myid == 0:
-            control_data = run_test(parallel=False, test_points = test_points, verbose = verbose)
+            control_data, success  = run_test(parallel=False, test_points = test_points, verbose = verbose)
 
             for proc in range(1,numprocs):
                 pypar.send(control_data, proc)
@@ -328,8 +324,14 @@ if __name__=="__main__":
 
 
         pypar.barrier()
-        run_test(parallel=True, control_data = control_data, test_points = test_points, verbose = verbose)
+        _, success = run_test(parallel=True, control_data = control_data, test_points = test_points, verbose = verbose)
 
+        sys.stdout.flush()
+
+        pypar.barrier()
+
+        msg = 'Discrepency between sequential and parallel runs on P%g' % myid
+        assert success, msg
 
     finalize()
     
