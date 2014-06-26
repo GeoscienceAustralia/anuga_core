@@ -1294,7 +1294,7 @@ class Domain(Generic_Domain):
                    get_maximum_location(indices=wet_elements)
 
 
-    def get_total_volume(self):
+    def get_water_volume(self):
     
         from anuga import myid, numprocs, send, receive, barrier
 
@@ -1308,10 +1308,10 @@ class Domain(Generic_Domain):
             volume = Height.get_integral()
             
         if myid == 0:
-            total_volume = volume
+            water_volume = volume
             for i in range(1,numprocs):
                 remote_volume = receive(i)
-                total_volume = total_volume + remote_volume
+                water_volume = water_volume + remote_volume
         else:
             send(volume,0)
         
@@ -1319,11 +1319,11 @@ class Domain(Generic_Domain):
     
         if myid == 0:
             for i in range(1,numprocs):
-                send(total_volume,i)
+                send(water_volume,i)
         else:
-            total_volume = receive(0)
+            water_volume = receive(0)
         
-        return total_volume
+        return water_volume
 
 
     def get_flow_through_cross_section(self, polyline, verbose=False):

@@ -182,14 +182,14 @@ for t in domain.evolve(yieldstep=10.0, finaltime=1000.0):
     if myid == 0 and verbose: print domain.timestepping_statistics()
     
 #     if numpy.allclose(t,0.0):
-#         exact_volume = domain.get_total_volume()
+#         exact_volume = domain.get_water_volume()
 #     else:
 #         exact_volume = exact_volume + Qin*10.0
-#         
-#     total_volume= domain.get_total_volume()
-    
-    
-    #if myid == 0 and verbose: print anuga.indent,'total volume - exact_volume ', total_volume - exact_volume   
+#          
+#     water_volume= domain.get_water_volume()
+#     
+#     
+#     if myid == 0 and verbose: print anuga.indent,'relative error water volume  exact_volume ', (water_volume - exact_volume)/exact_volume   
 
 domain.sww_merge(delete_old=True)
 
