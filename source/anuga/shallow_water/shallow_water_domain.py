@@ -557,10 +557,10 @@ class Domain(Generic_Domain):
 
 
     def set_DE2_defaults(self):
-        """Set up the defaults for running the flow_algorithm "DE1"
+        """Set up the defaults for running the flow_algorithm "DE2"
            A 'discontinuous elevation' method
         """
-        self.set_CFL(0.95)
+        self.set_CFL(1.0)
         self.set_use_kinematic_viscosity(False)
         #self.timestepping_method='rk2'#'rk3'#'euler'#'rk2' 
         self.set_timestepping_method(2)
@@ -618,6 +618,74 @@ class Domain(Generic_Domain):
             print '# Using discontinuous elevation solver DE2 '
             print '#'
             print '# A slightly more diffusive version of DE1, does use rk2 timestepping'
+            print '#'
+            print '# Make sure you use centroid values when reporting on important output quantities'
+            print '#'
+            print '##########################################################################'
+
+
+    def set_DE3_defaults(self):
+        """Set up the defaults for running the flow_algorithm "DE3"
+           A 'discontinuous elevation' method
+        """
+        self.set_CFL(0.9)
+        self.set_use_kinematic_viscosity(False)
+        #self.timestepping_method='rk2'#'rk3'#'euler'#'rk2' 
+        self.set_timestepping_method(1)
+        
+        self.set_using_discontinuous_elevation(True)
+        self.set_compute_fluxes_method('DE')
+        self.set_distribute_to_vertices_and_edges_method('DE')
+        
+        # Don't place any restriction on the minimum storable height
+        self.minimum_storable_height=-99999999999.0 
+        self.minimum_allowed_height=1.0e-12
+
+        self.use_edge_limiter=True
+        self.set_default_order(2)
+        self.set_extrapolate_velocity()
+
+        self.beta_w=0.7
+        self.beta_w_dry=0.1
+        self.beta_uh=0.7
+        self.beta_uh_dry=0.1
+        self.beta_vh=0.7
+        self.beta_vh_dry=0.1
+        
+
+        #self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
+        #         'ymomentum': 2, 'elevation': 2, 'height':2})
+        #self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
+        #         'ymomentum': 2, 'elevation': 1})
+        self.set_store_centroids(True)
+
+        self.optimise_dry_cells=False 
+
+        # We need the edge_coordinates for the extrapolation
+        self.edge_coordinates=self.get_edge_midpoint_coordinates()
+
+        # By default vertex values are NOT stored uniquely
+        # for storage efficiency. We may override this (but not so important since
+        # centroids are stored anyway
+        # self.set_store_vertices_smoothly(False)
+
+        self.maximum_allowed_speed=0.0
+
+        ## FIXME: Should implement tracking of boundary fluxes
+        ## Keep track of the fluxes through the boundaries
+        self.boundary_flux_integral=num.ndarray(1)
+        self.boundary_flux_integral[0]=0. 
+        self.boundary_flux_sum=num.ndarray(1)
+        self.boundary_flux_sum[0]=0.
+
+        self.call=1 # Integer counting how many times we call compute_fluxes_central
+
+        if self.processor == 0 and self.verbose:
+            print '##########################################################################'
+            print '#'
+            print '# Using discontinuous elevation solver DE3'
+            print '#'
+            print '# A slightly less diffusive version than DE0, uses euler timestepping'
             print '#'
             print '# Make sure you use centroid values when reporting on important output quantities'
             print '#'
@@ -779,6 +847,7 @@ class Domain(Generic_Domain):
            DE0
            DE1
            DE2
+           DE3
         """
 
         if isinstance(flag, str) :
@@ -786,7 +855,8 @@ class Domain(Generic_Domain):
         else:
             flag = str(float(str(flag))).replace(".","_")
 
-        flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', 'tsunami', 'yusuke', 'DE0', 'DE1', 'DE2']
+        flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', \
+                           'tsunami', 'yusuke', 'DE0', 'DE1', 'DE2', 'DE3']
 
         if flag in flow_algorithms:
             self.flow_algorithm = flag
@@ -902,12 +972,15 @@ class Domain(Generic_Domain):
           
         if self.flow_algorithm == 'DE2':
             self.set_DE2_defaults()
+            
+        if self.flow_algorithm == 'DE3':
+            self.set_DE3_defaults()
 
     def get_flow_algorithm(self):
         """Get method used for timestepping and spatial discretisation
 
         Currently
-           1_0, 1_5, 1_75 2_0, 2_5, tsunami, DE0, DE1, DE2
+           1_0, 1_5, 1_75 2_0, 2_5, tsunami, DE0, DE1, DE2, DE3
         """
 
         return self.flow_algorithm
@@ -1219,6 +1292,38 @@ class Domain(Generic_Domain):
         wet_elements = self.get_wet_elements(indices)
         return self.get_quantity('elevation').\
                    get_maximum_location(indices=wet_elements)
+
+
+    def get_total_volume(self):
+    
+        from anuga import myid, numprocs, send, receive, barrier
+
+        if self.get_using_discontinuous_elevation():    
+            Height = self.quantities['height']
+            volume = Height.get_integral()
+        else:
+            Stage = self.quantities['stage']
+            Elev =  self.quantities['elevation']
+            Height = Stage-Elev
+            volume = Height.get_integral()
+            
+        if myid == 0:
+            total_volume = volume
+            for i in range(1,numprocs):
+                remote_volume = receive(i)
+                total_volume = total_volume + remote_volume
+        else:
+            send(volume,0)
+        
+        barrier()
+    
+        if myid == 0:
+            for i in range(1,numprocs):
+                send(total_volume,i)
+        else:
+            total_volume = receive(0)
+        
+        return total_volume
 
 
     def get_flow_through_cross_section(self, polyline, verbose=False):
@@ -1728,7 +1833,7 @@ class Domain(Generic_Domain):
             if mass_error > 0.0 and self.verbose :
                 print 'Cumulative mass protection: '+str(mass_error)+' m^3 '
 
-        elif self.flow_algorithm == 'DE1'  or self.flow_algorithm == 'DE0':
+        elif self.flow_algorithm.startswith('DE'):
 
             from swDE1_domain_ext import protect
 
@@ -1830,7 +1935,8 @@ class Domain(Generic_Domain):
             negative_ids = num.where( num.logical_and((Stage.centroid_values - Elev.centroid_values) < 0.0 , tff > 0) )[0]
             
             if len(negative_ids)>0:
-                #print 'NEGATIVE INDICES'
+                import warnings
+                warnings.warn('Negative cells being set to zero depth, possible loss of conservation')
                 Stage.centroid_values[negative_ids] = Elev.centroid_values[negative_ids]
                 Xmom.centroid_values[negative_ids] = 0.0
                 Ymom.centroid_values[negative_ids] = 0.0          

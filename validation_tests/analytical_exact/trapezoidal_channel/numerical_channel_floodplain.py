@@ -9,7 +9,7 @@ Water flowing down a channel with a floodplain
 # Import standard shallow water domain and standard boundaries.
 import anuga
 import numpy
-from anuga import myid, finalize, distribute
+from anuga import myid, finalize, distribute, numprocs, receive, send
 
 #------------------------------------------------------------------------------
 # Useful parameters for controlling this case
@@ -27,7 +27,7 @@ from project import \
           chan_initial_depth, chan_bankfull_depth, chan_width, bankwidth, \
           man_n, l0
 
-#l0 = 2.0
+l0 = 2.0
 
 assert chan_width < floodplain_width, \
         'ERROR: Channel width is greater than floodplain width'
@@ -53,8 +53,8 @@ boundary_polygon = [ [0.,0.],
 # Note that we set this a distance l0 inside the boundary polygon, so the polygons
 # do not overlap. 
 channel_polygon = [ [floodplain_width/2. - chan_width/2., +l0],
-                    [floodplain_width/2. - chan_width/2., floodplain_length-l0],
-                    [floodplain_width/2. + chan_width/2., floodplain_length-l0],
+                    [floodplain_width/2. - chan_width/2., floodplain_length - l0],
+                    [floodplain_width/2. + chan_width/2., floodplain_length - l0],
                     [floodplain_width/2. + chan_width/2., +l0]
                     ]
 if myid == 0:
@@ -126,7 +126,7 @@ domain = distribute(domain)
 #---------------------------------------------------------------------
 # Define inlet operator 
 #--------------------------------------------------------------------- 
-flow_in_yval=0.0
+flow_in_yval=5.0
 line1 = [ [floodplain_width/2. - chan_width/2., flow_in_yval],\
           [floodplain_width/2. + chan_width/2., flow_in_yval] ]
 
@@ -172,11 +172,24 @@ if myid == 0:
     parameter_file.write('\\end{verbatim}\n')
     parameter_file.close()
 
+
+
+
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep=10.0, finaltime=1000.0):
     if myid == 0 and verbose: print domain.timestepping_statistics()
+    
+#     if numpy.allclose(t,0.0):
+#         exact_volume = domain.get_total_volume()
+#     else:
+#         exact_volume = exact_volume + Qin*10.0
+#         
+#     total_volume= domain.get_total_volume()
+    
+    
+    #if myid == 0 and verbose: print anuga.indent,'total volume - exact_volume ', total_volume - exact_volume   
 
 domain.sww_merge(delete_old=True)
 

@@ -13,7 +13,7 @@ v = (p.x>6.0)*(p.x<8.0)
 
 print numpy.any(v)
 # Numerical results along a central channel 'slice'
-index=p.stage.shape[0]-1
+index= -1
 V1 = p.stage[index,v] - p.elev[v]
 V2 = p.yvel[index,v]
 V3 = p.xvel[index,v]
@@ -48,7 +48,7 @@ def minme(dc):
 import scipy.optimize
 dc_analytical = scipy.optimize.fmin(minme, x0=1.0)[0]
 
-
+print 'dc_analytic ',dc_analytical
 
 ##################################
 # Plots

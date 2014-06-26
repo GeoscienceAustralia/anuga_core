@@ -42,7 +42,7 @@ uana= ( mann**(-2.)*abs(bedslope)*fluxin**(4./3.) )**(3./10.) # Velocity
 dana= fluxin/uana # Depth
 
 #--------------------
-# Make plot animation
+# Make plots
 #--------------------
 # Find an y value close to y==50
 #tmp=(abs(p2.y-50.)).argmin()
@@ -66,8 +66,8 @@ pyplot.plot(p2.x[vx],p2.xvel[-1,vx], 'o', label='numerical')
 pyplot.plot((0,400),(uana,uana),label='analytical')
 #pyplot.ylim([0.0,0.05])
 pyplot.xlabel('Xposition m')
-pyplot.ylabel('Depth m')
-pyplot.title('Velocity down the slope (along y=50.)')
+pyplot.ylabel('Velocity m/s')
+pyplot.title('X Velocity down the slope (along y=50.)')
 pyplot.legend(loc='best')
 pyplot.savefig('xvelocity_x.png')
 
@@ -97,8 +97,8 @@ pyplot.plot(p2.y[v],p2.xvel[-1,v], 'o', label='numerical')
 pyplot.plot((0,100),(uana,uana),label='analytical')
 pyplot.ylim([0.0,0.35])
 pyplot.xlabel('Yposition along the line x=50')
-pyplot.ylabel('Xvelocity m/s')
-pyplot.title('Final Xvelocity around the line x=50.')
+pyplot.ylabel('Velocity m/s')
+pyplot.title('X Velocity around the line x=50.')
 pyplot.legend(loc='best')
 pyplot.savefig('x_velocity.png')
 
@@ -107,8 +107,8 @@ pyplot.plot(p2.y[v],p2.yvel[-1,v],'o', label='numerical')
 pyplot.plot((0,100),(0.0, 0.0),label='analytical')
 #pyplot.ylim([0.0,0.3])
 pyplot.xlabel('Yposition along the line x=50')
-pyplot.ylabel('Yvelocity')
-pyplot.title('Final Yvelocity around the line x=50.')
+pyplot.ylabel('Velocity m/s')
+pyplot.title('Y Velocity around the line x=50.')
 pyplot.legend(loc='best')
 pyplot.savefig('y_velocity.png')
 
