@@ -13,6 +13,11 @@ def typeset_report(report_name='report', verbose=False):
     
     import os
 
+    if verbose: 
+        print 50*'='
+        print 'Running typeset_report'
+        print 50*'='
+
     os.system('pdflatex -shell-escape  -interaction=batchmode %s.tex' % report_name)
     os.system('bibtex %s' % report_name)
     os.system('pdflatex -shell-escape  -interaction=batchmode %s.tex' % report_name)

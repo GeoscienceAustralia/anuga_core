@@ -30,9 +30,11 @@ def run_script(script, args=None, np=1, alg=None, verbose=False):
                 cmd = 'mpirun -np %s python %s -alg %s -v ' % (str(np), script,  str(alg))
             else:
                 cmd = 'mpirun -np %s python %s -alg %s' % (str(np), script, str(alg))
-            print 50*'='
-            print 'Run '+cmd
-            print 50*'='
+                
+            if verbose:
+                print 50*'='
+                print 'Run '+cmd
+                print 50*'='
 
 
             os.system(cmd)
@@ -43,9 +45,12 @@ def run_script(script, args=None, np=1, alg=None, verbose=False):
                 cmd = 'python %s -alg %s -v ' % (script, str(alg))
             else:
                 cmd = 'python %s -alg %s' % (script, str(alg))
-            print 50*'='
-            print 'Run '+cmd
-            print 50*'='
+            
+            if verbose:
+                print 50*'='
+                print 'Run '+cmd
+                print 50*'='
+            
             os.system(cmd)
             #subprocess.call([cmd], shell=True)
         

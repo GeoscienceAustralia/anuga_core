@@ -76,7 +76,7 @@ v1 = (p.y<105.0)&(p.y>95.0)
 
 
 analytical_stage = min(p.elev[v1]) + dc_analytical
-analytic_vel = ( (1./300.)*(analytical_stage-p.elev[v1])**(4./3.)*(1./0.03)**2.)**0.5
+analytic_vel = ( (1./300.)*numpy.maximum(analytical_stage-p.elev[v1],0.0)**(4./3.)*(1./0.03)**2.)**0.5
 analytic_vel = analytic_vel*(analytical_stage>p.elev[v1])
 
 temp0 = p.stage[index,v1]*0. + analytical_stage
@@ -106,7 +106,7 @@ v1 = (p.y<505.0)&(p.y>495.0)
 
 
 analytical_stage = min(p.elev[v1]) + dc_analytical
-analytic_vel = ( (1./300.)*(analytical_stage-p.elev[v1])**(4./3.)*(1./0.03)**2.)**0.5
+analytic_vel = ( (1./300.)*numpy.maximum(analytical_stage-p.elev[v1],0.0)**(4./3.)*(1./0.03)**2.)**0.5
 analytic_vel = analytic_vel*(analytical_stage>p.elev[v1])
 
 temp0 = p.stage[index,v1]*0. + analytical_stage
@@ -137,7 +137,7 @@ v1 = (p.y<705.0)&(p.y>695.0)
 
 
 analytical_stage = min(p.elev[v1]) + dc_analytical
-analytic_vel = ( (1./300.)*(analytical_stage-p.elev[v1])**(4./3.)*(1./0.03)**2.)**0.5
+analytic_vel = ( (1./300.)*numpy.maximum(analytical_stage-p.elev[v1],0.0)**(4./3.)*(1./0.03)**2.)**0.5
 analytic_vel = analytic_vel*(analytical_stage>p.elev[v1])
 
 temp0 = p.stage[index,v1]*0. + analytical_stage
@@ -166,15 +166,15 @@ print '#======================================================================'
 print '# Extract some cross section info'
 print '#======================================================================'
 
-from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
+from anuga.shallow_water.sww_interrogate import get_flow_through_multiple_cross_sections
 
 polyline0 = [ [floodplain_width, 10.0], [0., 10.0]]
 polyline1 = [[floodplain_width, floodplain_length-300.0], [0., floodplain_length-300.0]]
 polyline2 = [[floodplain_width, floodplain_length-1.0], [0., floodplain_length-1.0]]
         
-time,Q0  = get_flow_through_cross_section(filename, polyline0, verbose=True)
-time,Q1  = get_flow_through_cross_section(filename, polyline1, verbose=True)
-time,Q2  = get_flow_through_cross_section(filename, polyline2, verbose=True)
+polylines= [polyline0, polyline1, polyline2]        
+
+time, [Q0,Q1,Q2]  = get_flow_through_multiple_cross_sections(filename, polylines, verbose=True)
 
 pyplot.figure(figsize=(12.,8.))
 pyplot.plot(time, Q0, label='10m')
