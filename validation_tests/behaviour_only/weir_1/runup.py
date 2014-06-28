@@ -6,10 +6,15 @@
 import anuga
 
 import numpy
+from anuga import myid, finalize, distribute
 
 from math import exp
-from anuga.shallow_water.shallow_water_domain import Domain as Domain
 
+args = anuga.get_args()
+alg = args.alg
+verbose = args.verbose
+
+scale_me=1.0
 
 ## Set up mesh
 boundaryPolygon=[ [0., 0.], [0., 100.], [100.0, 100.0], [100.0, 0.0]]
@@ -39,52 +44,61 @@ regionPtAreas=[ [99., 99., 10.0*10.0*0.5],
                 [65., 65., 3.0*3.0*0.5],
                 [35., 35., 3.0*3.0*0.5] ]
 
-anuga.create_mesh_from_regions(boundaryPolygon, 
-                         boundary_tags={'left': [0],
-                                        'top': [1],
-                                        'right': [2],
-                                        'bottom': [3]},
-                           maximum_triangle_area = 1.0e+20,
-                           minimum_triangle_angle = 28.0,
-                           filename = 'runup.msh',
-                           interior_regions = [ [higherResPolygon, 1.*1.*0.5],
-                                                [midResPolygon, 3.0*3.0*0.5]],
-                           breaklines=riverWall.values(),
-                           use_cache=False,
-                           verbose=True,
-                           regionPtArea=regionPtAreas)
+if myid == 0:
+    #==================================================================
+    # Create Sequential Domain
+    #==================================================================
+    anuga.create_mesh_from_regions(boundaryPolygon, 
+                             boundary_tags={'left': [0],
+                                            'top': [1],
+                                            'right': [2],
+                                            'bottom': [3]},
+                               maximum_triangle_area = 1.0e+20,
+                               minimum_triangle_angle = 28.0,
+                               filename = 'runup.msh',
+                               interior_regions = [ [higherResPolygon, 1.*1.*0.5],
+                                                    [midResPolygon, 3.0*3.0*0.5]],
+                               breaklines=riverWall.values(),
+                               use_cache=False,
+                               verbose=True,
+                               regionPtArea=regionPtAreas)
+    
+    domain=anuga.create_domain_from_file('runup.msh')
+    
+    
+    domain.set_flow_algorithm(alg)
+    
+    
+    domain.set_name('runup_riverwall')                         
+    domain.set_datadir('.')                         
+    domain.set_store_vertices_uniquely()
+    
+    #------------------
+    # Define topography
+    #------------------
+    
+    def topography(x,y):
+        return -x/150.*scale_me 
+    
+    def stagefun(x,y):
+        stg=-0.5*scale_me
+        return stg 
+    
+    domain.set_quantity('elevation',topography)     # Use function for elevation
+    
+    domain.set_quantity('friction',0.03)             # Constant friction
+    
+    domain.set_quantity('stage', stagefun)              # Constant negative initial stage
+else:
+    domain = None
 
-domain=anuga.create_domain_from_file('runup.msh')
+#======================================================================
+# create Parallel Domain
+#======================================================================    
+domain = distribute(domain)
 
-from anuga.utilities.argparsing import parse_standard_args
-alg, cfl = parse_standard_args()
-domain.set_flow_algorithm(alg)
-#domain.set_CFL(cfl)
 
-domain.set_name('runup_riverwall')                         
-domain.set_datadir('.')                         
-#domain.set_flow_algorithm('DE1')
-domain.set_store_vertices_uniquely()
 domain.riverwallData.create_riverwalls(riverWall, riverWall_Par)
-
-#------------------
-# Define topography
-#------------------
-
-scale_me=1.0
-
-def topography(x,y):
-	return -x/150.*scale_me 
-
-def stagefun(x,y):
-    stg=-0.5*scale_me
-    return stg 
-
-domain.set_quantity('elevation',topography)     # Use function for elevation
-
-domain.set_quantity('friction',0.03)             # Constant friction
-
-domain.set_quantity('stage', stagefun)              # Constant negative initial stage
 
 #--------------------------
 # Setup boundary conditions
@@ -98,7 +112,7 @@ def boundaryFun(t):
     #output=min(output,-0.3)
     return output  
 
-Bin_tmss = anuga.shallow_water.boundaries.Transmissive_momentum_set_stage_boundary(domain=domain, function = boundaryFun) 
+Bin_tmss = anuga.Transmissive_momentum_set_stage_boundary(domain=domain, function = boundaryFun) 
 
 #----------------------------------------------
 # Associate boundary tags with boundary objects
@@ -108,26 +122,31 @@ domain.set_boundary({'left': Br, 'right': Bin_tmss, 'top': Br, 'bottom':Br})
 #------------------------------------------------------------------------------
 # Produce a documentation of parameters
 #------------------------------------------------------------------------------
-parameter_file=open('parameters.tex', 'w')
-parameter_file.write('\\begin{verbatim}\n')
-from pprint import pprint
-pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
-parameter_file.write('\\end{verbatim}\n')
-parameter_file.close()
+if myid == 0:
+    parameter_file=open('parameters.tex', 'w')
+    parameter_file.write('\\begin{verbatim}\n')
+    from pprint import pprint
+    pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
+    parameter_file.write('\\end{verbatim}\n')
+    parameter_file.close()
 
 #------------------------------
 #Evolve the system through time
 #------------------------------
 
 for t in domain.evolve(yieldstep=10.0,finaltime=4000.0):
-    print domain.timestepping_statistics()
+    if myid == 0 and verbose: print domain.timestepping_statistics()
     # Print velocity as we go
-    uh=domain.quantities['xmomentum'].centroid_values
-    vh=domain.quantities['ymomentum'].centroid_values
-    depth=domain.quantities['height'].centroid_values
-    depth=depth*(depth>1.0e-06) + 1.0e-06
-    vel=((uh/depth)**2 + (vh/depth)**2)**0.5
-    print 'peak speed is', vel.max()
+#     uh=domain.quantities['xmomentum'].centroid_values
+#     vh=domain.quantities['ymomentum'].centroid_values
+#     depth=domain.quantities['height'].centroid_values
+#     depth=depth*(depth>1.0e-06) + 1.0e-06
+#     vel=((uh/depth)**2 + (vh/depth)**2)**0.5
+#     print 'peak speed is', vel.max()
 
-print 'Finished'
+
+domain.sww_merge(delete_old=True)
+
+finalize()
+#print 'Finished'
 

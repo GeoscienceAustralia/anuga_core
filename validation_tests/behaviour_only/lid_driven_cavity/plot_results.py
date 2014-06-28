@@ -22,23 +22,11 @@ v=(p2.y==p2.y[80])
 # Make plot animation
 #--------------------
 pyplot.close() #If the plot is open, there will be problems
-##pyplot.ion()
-##if True:
-##    line, = pyplot.plot( (p2.x[v].min(),p2.x[v].max()) ,(p2.xvel[:,v].min(),p2.xvel[:,v].max() ) )
-##    for i in range(p2.xmom.shape[0]):
-##        line.set_xdata(p2.x[v])
-##        line.set_ydata(p2.xvel[i,v])
-##        pyplot.draw()
-##        pyplot.plot( (0,1),(0,0), 'r' )
-##        pyplot.title(str(i)+'/40') # : velocity does not converge to zero' )
-##        pyplot.xlabel('Xposition')
-##        pyplot.ylabel('Xvelocity')
-##    pyplot.savefig('runup_x_velocities.png')
 
 # Plot vertex values
 pyplot.clf()
 t1=int(len(p1.time)/2)
-t2=len(p1.time)-1
+t2=-1
 #pyplot.scatter(p1.x,p1.y,c=p1.elev,edgecolors='none', s=25)
 #pyplot.colorbar()
 pyplot.quiver(p1.x,p1.y,p1.xvel[t1,:],p1.yvel[t1,:])
