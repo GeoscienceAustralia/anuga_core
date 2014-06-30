@@ -36,13 +36,16 @@ class Test_riverwall_structure(unittest.TestCase):
     def tearDown(self):
         pass
     
-    def create_domain_DE0(self, wallHeight, InitialOceanStage, InitialLandStage):
+    def create_domain_DE0(self, wallHeight, InitialOceanStage, InitialLandStage, riverWall=None, riverWall_Par=None):
         # Riverwall = list of lists, each with a set of x,y,z (and optional QFactor) values
-        riverWall={ 'centralWall':
-                        [ [wallLoc, 0.0, wallHeight],
-                          [wallLoc, 100.0, wallHeight]] 
-                  }
-        riverWall_Par={'centralWall':{'Qfactor':1.0}}
+
+        if(riverWall is None):
+            riverWall={ 'centralWall':
+                            [ [wallLoc, 0.0, wallHeight],
+                              [wallLoc, 100.0, wallHeight]] 
+                      }
+        if(riverWall_Par is None):
+            riverWall_Par={'centralWall':{'Qfactor':1.0}}
         # Make the domain
         anuga.create_mesh_from_regions(boundaryPolygon, 
                                  boundary_tags={'left': [0],
@@ -490,8 +493,117 @@ class Test_riverwall_structure(unittest.TestCase):
 
         assert numpy.allclose(landVol,theoretical_flux_vol, rtol=1.0e-03)
     
-     
- 
+    def test_riverwall_includes_specified_points_in_domain(self): 
+        """
+            Check that all domain points that should be on the riverwall
+            actually are, and that there are no 'non-riverwall' points on the riverwall
+        """
+        wallHeight=-0.2
+        InitialOceanStage=-0.3
+        InitialLandStage=-999999.
+       
+        domain=self.create_domain_DE1(wallHeight,InitialOceanStage, InitialLandStage) 
+
+        edgeInds_on_wall=domain.riverwallData.riverwall_edges.tolist()
+
+        riverWall_x_coord=domain.edge_coordinates[edgeInds_on_wall,0]-wallLoc
+
+        assert(numpy.allclose(riverWall_x_coord,0.))
+   
+        # Now check that all the other domain edge coordinates are not on the wall 
+        # Note the threshold requires a sufficiently coarse mesh
+        notriverWall_x_coord=numpy.delete(domain.edge_coordinates[:,0], edgeInds_on_wall) 
+        assert(min(abs(notriverWall_x_coord-wallLoc))>1.0e-01)
+
+    def test_is_vertex_on_boundary(self):
+        """
+            Check that is_vertex_on_boundary is working as expected
+        """
+        wallHeight=-0.2
+        InitialOceanStage=-0.3
+        InitialLandStage=-999999.
+       
+        domain=self.create_domain_DE1(wallHeight,InitialOceanStage, InitialLandStage) 
+
+        allVertices=numpy.array(range(len(domain.vertex_coordinates)))
+        boundaryFlag=domain.riverwallData.is_vertex_on_boundary(allVertices)
+        boundaryVerts=boundaryFlag.nonzero()[0].tolist()
+
+        # Check that all boundary vertices are on the boundary 
+        check2=(domain.vertex_coordinates[boundaryVerts,0]==0.)+\
+               (domain.vertex_coordinates[boundaryVerts,0]==100.)+\
+               (domain.vertex_coordinates[boundaryVerts,1]==100.)+\
+               (domain.vertex_coordinates[boundaryVerts,1]==0.)
+
+        assert(all(check2>0.))
+
+        # Check that all non-boundary vertices are not
+        nonboundaryVerts=(boundaryFlag==0).nonzero()[0].tolist()
+        check2=(domain.vertex_coordinates[nonboundaryVerts,0]==0.)+\
+               (domain.vertex_coordinates[nonboundaryVerts,0]==100.)+\
+               (domain.vertex_coordinates[nonboundaryVerts,1]==100.)+\
+               (domain.vertex_coordinates[nonboundaryVerts,1]==0.)
+
+        assert(all(check2==0))
+
+    def test_multiple_riverwalls(self):
+        """
+            Testcase with multiple riverwalls -- check all is working as required
+
+         Idea -- add other riverwalls with different Qfactor / height.
+                 Set them up to have no hydraulic effect, but
+                 so that we are likely to catch bugs if the code is not right
+        """
+        wallHeight=2.
+        InitialOceanStage=2.50
+        InitialLandStage=-999999.
+        
+       
+        riverWall={ 'awall1':
+                        [ [wallLoc+20., 0.0, -9999.],
+                          [wallLoc+20., 100.0, -9999.]],  
+                    'centralWall':
+                        [ [wallLoc, 0.0, wallHeight],
+                          [wallLoc, 100.0, wallHeight]] ,
+                    'awall2':
+                        [ [wallLoc-20., 0.0, 30.],
+                          [wallLoc-20., 100.0, 30.]],  
+                  }
+
+        newQfac=2.0
+        riverWall_Par={'centralWall':{'Qfactor':newQfac}, 'awall1':{'Qfactor':100.}, 'awall2':{'Qfactor':0.}}
+
+        domain=self.create_domain_DE0(wallHeight,InitialOceanStage, InitialLandStage, riverWall=riverWall,riverWall_Par=riverWall_Par) 
+        
+
+        domain.riverwallData.create_riverwalls(riverWall,riverWall_Par,verbose=verbose) 
+
+        # Run the model for a few fractions of a second
+        # Any longer, and the evolution of stage starts causing
+        # significant changes to the flow
+        yst=1.0e-04
+        ft=1.0e-03
+        for t in domain.evolve(yieldstep=yst,finaltime=ft):
+            if(verbose):
+                print domain.timestepping_statistics()
+
+        # Compare with theoretical result
+        L= 100. # Length of riverwall
+        H=InitialOceanStage-wallHeight # Upstream head
+        dt=ft
+        theoretical_flux_vol=newQfac*dt*L*2./3.*H*(2./3.*g*H)**0.5
+
+        # Indices landward of the riverwall
+        landInds=(domain.centroid_coordinates[:,0]<50.).nonzero()[0]
+        # Compute volume of water landward of riverwall
+        landVol=domain.quantities['height'].centroid_values[landInds]*domain.areas[landInds]            
+        landVol=landVol.sum()
+
+        if(verbose):
+            print 'Land Vol: ', landVol, 'theoretical vol: ', theoretical_flux_vol
+
+        assert numpy.allclose(landVol,theoretical_flux_vol, rtol=1.0e-03)
+
 # =========================================================================
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_riverwall_structure, 'test')

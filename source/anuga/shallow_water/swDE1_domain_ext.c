@@ -606,6 +606,12 @@ double _compute_fluxes_central(int number_of_elements,
 
             if (already_computed_flux[ki] == call) {
                 // We've already computed the flux across this edge
+                // Check if it is a riverwall
+                if(edge_flux_type[ki]==1){
+                    // Update counter of riverwall edges == index of
+                    // riverwall_elevation + riverwall_rowIndex
+                    RiverWall_count+=1;
+                }
                 continue;
             }
 

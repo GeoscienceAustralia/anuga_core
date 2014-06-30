@@ -1,3 +1,5 @@
+import os
+from anuga_parallel import barrier, numprocs, myid
 import numpy
 
 class RiverWall:
@@ -12,7 +14,7 @@ class RiverWall:
     In addition, the DE fluxes at riverwalls are adjusted to agree with a weir relation,
     so long as the riverwall is not too deeply submerged.
 
-    As of 22/04/2014, they are only implemented for DE0 and DE1 [the shallow water
+    As of 22/04/2014, they are only implemented for DE algorithms [the shallow water
     component would be more difficult to implement with other algorithms]
         
     How the flux over the riverwall is computed:
@@ -145,10 +147,11 @@ class RiverWall:
 
     def create_riverwalls(self, riverwalls, riverwallPar={ },
                           default_riverwallPar={ },
-                          tol=1.0e-04, verbose=True):
+                          tol=1.0e-4, verbose=True, 
+                          output_dir=None):
         """Add riverwalls at chosen locations along the mesh
 
-        As of 22/04/2014, these only work with DE0 and DE1 [for which the concept is natural]
+        As of 22/04/2014, these only work with DE algorithms [for which the concept is natural]
 
         The walls MUST EXACTLY COINCIDE with edges along the mesh 
         
@@ -204,6 +207,8 @@ class RiverWall:
 
             verbose: TRUE/FALSE Print lots of information
 
+            output_dir: Text representation of riverwalls is written to output_dir, unless output_dir=None
+
         Outputs:
             None, but it sets domain.edge_flux_type = 1 for every edge on a riverwall
             Also, it adds a RiverWall object domain.riverwallData to the domain
@@ -212,27 +217,26 @@ class RiverWall:
 
         """
 
-        if(verbose):        
+        if(verbose and myid==0):        
             print ' '
             print 'WARNING: Riverwall is an experimental feature'
             print '         At each riverwall edge, we place a thin "wall" between'
-            print '          the 2 edges -- so each sees its neighbour edge as having'
-            print '          bed elevation = max(levee height, neighbour bed elevation)'
+            print '         the 2 edges -- so each sees its neighbour edge as having'
+            print '         bed elevation = max(levee height, neighbour bed elevation)'
             print '         We also force the discharge with a weir relation, blended with'
-            print '          the shallow water flux solution as the ratio (min_head)/(weir_height) becomes '
-            print '          large, or the ratio (downstream_head)/(upstream_head) becomes large'
+            print '         the shallow water flux solution as the ratio (min_head)/(weir_height) becomes '
+            print '         large, or the ratio (downstream_head)/(upstream_head) becomes large'
             print ' '
             print '  It works in parallel, but you must use domain.riverwallData.create_riverwall AFTER distributing the mesh'
             print ' '
 
-        # NOTE: domain.riverwallData is initialised in shallow_water_domain.py for DE0 and DE1
-
+        # NOTE: domain.riverwallData is initialised in shallow_water_domain.py for DE algorithms
         domain=self.domain
 
         
         # Check flow algorithm
         if(not domain.get_using_discontinuous_elevation()):
-            raise Exception, 'Riverwalls are currently only supported when domain.flow_algorithm="DE0" and "DE1"'
+            raise Exception, 'Riverwalls are currently only supported for discontinuous elevation flow algorithms'
 
         if(len(self.names)>0):
             # Delete any existing riverwall data
@@ -247,7 +251,7 @@ class RiverWall:
         self.input_riverwall_geo=riverwalls
         self.input_riverwallPar=riverwallPar
 
-        # Update self.default_riverwallPar
+        # Update self.default_riverwallPar (defined in __init__)
         for i in self.default_riverwallPar.keys():
             if(default_riverwallPar.has_key(i)):
                 self.default_riverwallPar[i]=default_riverwallPar[i]
@@ -277,7 +281,7 @@ class RiverWall:
                     raise Exception, msg
         
         if(verbose):
-            print 'Setting riverwall elevations ...'
+            print 'Setting riverwall elevations (P'+str(myid)+')...'
 
         # Set up geometry
         exy=domain.edge_coordinates
@@ -294,6 +298,11 @@ class RiverWall:
         # Loop over all segments in each riverwall, and set its elevation
         nw=range(len(riverwalls))
         nw_names=riverwalls.keys() # Not guarenteed to be in deterministic order
+
+        if(verbose):
+            # Use variable to record messages, allows cleaner parallel printing
+            printInfo='' 
+
         for i in nw:
             # Name of riverwall
             riverwalli_name=nw_names[i]
@@ -302,12 +311,12 @@ class RiverWall:
 
             ns=len(riverwalli)-1
 
-            if(verbose):
-                print 'Wall ' + str(i) +' ....'
+            if(verbose): 
+                printInfo=printInfo + '  Wall ' + str(i) +' ....\n'
 
             for j in range(ns):
                 if(verbose):
-                    print '    Segment ' + str(j) +' ....'
+                    printInfo=printInfo + '    Segment ' + str(j) +' ....\n'
                 # Start and end xyz coordinates
                 start=riverwalli[j]
                 end=riverwalli[j+1]
@@ -319,7 +328,8 @@ class RiverWall:
                 # Find length
                 segLen=( (start[0]-end[0])**2+(start[1]-end[1])**2)**0.5
                 if(segLen<tol):
-                    print 'Segment with length < tolerance ' + str(tol) +' ignored'
+                    if(verbose):
+                        printInfo=printInfo+'  Segment with length < tolerance ' + str(tol) +' ignored\n'
                     continue 
                 
                 # Find edge indices which are within 'tol' of the segment
@@ -352,7 +362,7 @@ class RiverWall:
                     continue
 
                 if(verbose):
-                    print '       Finding ' + str(len(onLevee)) + ' edges on this segment '
+                    printInfo=printInfo+'       Finding ' + str(len(onLevee)) + ' edges on this segment\n'
             
                 # Levee has Edge_flux_type=1  
                 domain.edge_flux_type[onLevee]=1
@@ -368,8 +378,8 @@ class RiverWall:
 
         # Now, condense riverwall_elevation to array with length = number of riverwall edges
         #
-        # FIXME: We do this to avoid storing a riverwall_elevation for every edge in the mesh
-        #        However, the data structure ends up being quite complex -- maybe there is a better way?
+        #  We do this to avoid storing a riverwall_elevation for every edge in the mesh
+        #  However, the data structure ends up being quite complex -- maybe there is a better way?
         #
         # The zeroth index in domain.edge_flux_type which = 1 will correspond to riverwall_elevation[0]
         # The first index will correspond to riverwall_elevation[1]
@@ -382,13 +392,13 @@ class RiverWall:
         # corresponding row in the hydraulic properties table
         self.hydraulic_properties_rowIndex=\
             riverwall_rowIndex[riverwallInds].astype(int)
-        # index of edges which are riverwalls [FIXME: Not really needed, can easily back-calculate from edge_flux_type]
+        # index of edges which are riverwalls 
         self.riverwall_edges=riverwallInds
 
         # Record the names of the riverwalls
         self.names=nw_names
 
-        
+       
         # Now create the hydraulic properties table
 
         # Temporary variable to hold hydraulic properties table
@@ -411,13 +421,13 @@ class RiverWall:
             for j, hydraulicVar in enumerate(self.hydraulic_variable_names):    
                 if((riverwalli_Par is not None) and (riverwalli_Par.has_key(hydraulicVar))):
                     if(verbose): 
-                        print 'Using provided ', hydraulicVar,\
-                           riverwalli_Par[hydraulicVar], ' for riverwall ', name_riverwalli
+                        printInfo=printInfo+ '  Using provided '+ str(hydraulicVar)+' '+\
+                           str(riverwalli_Par[hydraulicVar])+ ' for riverwall '+ str(name_riverwalli)+'\n'
                     hydraulicTmp[i,j]=riverwalli_Par[hydraulicVar] 
                 else:
                     if(verbose): 
-                        print 'Using default ',  hydraulicVar,\
-                            default_riverwallPar[hydraulicVar], ' for riverwall ', name_riverwalli
+                        printInfo=printInfo+ '  Using default '+ str(hydraulicVar)+' '+\
+                            str(default_riverwallPar[hydraulicVar])+' for riverwall '+ str(name_riverwalli)+'\n'
                     hydraulicTmp[i,j]=default_riverwallPar[hydraulicVar]
 
         if(verbose):
@@ -441,12 +451,27 @@ class RiverWall:
        
         # Define the hydraulic properties 
         self.hydraulic_properties=hydraulicTmp
-
+      
         # Check for riverwall 'connectedness' errors (e.g. theoretically possible
         # to miss an edge due to round-off)
-        self.check_riverwall_connectedness(domain, verbose,tol=tol)
-         
-        return()
+        connectedness=self.check_riverwall_connectedness(verbose=verbose)
+
+        self.export_riverwalls_to_text(output_dir=output_dir)
+        
+        # Pretty printing of riverwall information in parallel
+        if(verbose): 
+            barrier()
+            for i in range(numprocs):
+                if(myid==i):
+                    print 'Processor '+str(myid)
+                    print printInfo
+                    print connectedness[0]
+                    msg='Riverwall discontinuity -- possible round-off error in'+\
+                         'finding edges on wall -- try increasing value of tol'
+                    if(not connectedness[1]):
+                        raise Exception, msg
+                barrier()
+        return 
     
     #####################################################################################
 
@@ -461,7 +486,7 @@ class RiverWall:
 
     #####################################################################################
 
-    def get_vertices_corresponding_to_edgeInds(self, riverwalledgeInds, tol=1.0e-04):
+    def get_vertices_corresponding_to_edgeInds(self, riverwalledgeInds, checkCoords=True):
         """
          Get indices of vertices corresponding to edges at index riverwalledgeInds
     
@@ -470,9 +495,8 @@ class RiverWall:
          There is indeed a simple relationship between the vertex and edge indices
         """
 
-        domain=self.domain
 
-        riverwallCentInds=self.get_centroids_corresponding_to_edgeInds(riverwalledgeInds)
+        #riverwallCentInds=self.get_centroids_corresponding_to_edgeInds(riverwalledgeInds)
 
         rwEI_mod3=riverwalledgeInds%3
 
@@ -483,40 +507,104 @@ class RiverWall:
         riverwallV1Inds=riverwalledgeInds+rwV1_adjustment
         riverwallV2Inds=riverwalledgeInds+rwV2_adjustment
 
+        if(checkCoords):
+            ####################################################
+            # Check that vertices and edges really do correspond
+            domain=self.domain
+            # X coordinates
+            assert( numpy.allclose(
+                    domain.edge_coordinates[riverwalledgeInds,0], 
+                    0.5*(domain.vertex_coordinates[riverwallV1Inds,0]+domain.vertex_coordinates[riverwallV2Inds,0]))
+                    )
+            # Y coordinates
+            assert( numpy.allclose(
+                    domain.edge_coordinates[riverwalledgeInds,1], 
+                    0.5*(domain.vertex_coordinates[riverwallV1Inds,1]+domain.vertex_coordinates[riverwallV2Inds,1]))
+                    )
+            ####################################################
+
         return riverwallV1Inds, riverwallV2Inds
     
     #####################################################################################
-
-    def check_riverwall_connectedness(self, warn_only=False, verbose=True, tol=1.0e-04):
+    def is_vertex_on_boundary(self, vertexIndices):
         """
-            We expect riverwalls to be connected [unless they pass over a hole]
-            However, round-off could potentially cause riverwalls to be dis-connected
+            Determine whether a vertex is on the boundary of the domain
+            (i.e. it's connected with an edge that is a boundary edge)
+
+            INPUTS: self -- riverwallData
+                    vertexIndices -- indices of vertices on the domain which are on the riverwall
+
+            OUTPUT:
+                    TRUE if the vertex is on a domain boundary, FALSE otherwise
+
+        """
+        domain=self.domain
+
+        # Get edge/vertex indices for boundaries
+        boundary_index_info=domain.boundary.keys()
+        boundary_edges=[ boundary_index_info[i][0]*3+boundary_index_info[i][1] for i in range(len(boundary_index_info))]
+        boundary_edges=numpy.array(boundary_edges)
+        tmp=self.get_vertices_corresponding_to_edgeInds(boundary_edges, checkCoords=False)
+        boundary_vertices=numpy.hstack([tmp[0], tmp[1]]).tolist()
+
+        # Get 'unique' vertex coordinates on boundary 
+        node_complex=domain.vertex_coordinates[boundary_vertices,0]+1j*domain.vertex_coordinates[boundary_vertices,1]
+
+        # Get riverwall vertex coordinates as complex numbers (for equality testing)
+        complex_vertex_coords=domain.vertex_coordinates[vertexIndices.tolist(),0]+\
+                                1j*domain.vertex_coordinates[vertexIndices.tolist(),1]
+
+        # Flag telling us if the vertex is on the boundary (1=True, 0=False)
+        isOnBoundary=[ 1 if complex_vertex_coords[i] in node_complex else 0 for i in range(len(complex_vertex_coords))]
+        isOnBoundary=numpy.array(isOnBoundary)
+
+        return isOnBoundary
+
+    #####################################################################################
+    def check_riverwall_connectedness(self, verbose=True):
+        """
+            We expect riverwalls to be connected 
+             (although they can pass through the bounding polygon several times, especially in parallel)
+            Round-off can potentially cause riverwalls to be dis-connected
             Use this routine to check for that
 
             Basically, we search for edges which are connected to vertices which
-                themselves are not connected to other edges
+                themselves are not connected to other edges. We ignore vertices on the domain's bounding-polygon
             
-            For a continuous riverwall, this should only occur twice (at the end points)
+            For a continuous riverwall, there can be at most 2 endpoints inside the domain
 
-            Otherwise, the riverwall appears discontinous
+            Otherwise, the riverwall is discontinuous, which is an error 
+
         """
 
         domain=self.domain
 
+        # Preliminary definitions
+        isConnected=True 
+        printInfo='' 
+
         if(len(self.names)==0):
-            print 'There are no riverwalls'
-            return
+            if(verbose):
+                printInfo=printInfo+'  There are no riverwalls (P'+str(myid)+')\n'
+            return [printInfo, isConnected]
 
         # Shorthand notation
         rwd=self
-            
+
         for i, name in enumerate(rwd.names):
             # Get indices of edges on this riverwall
             riverwalledgeInds=rwd.riverwall_edges[(rwd.hydraulic_properties_rowIndex==i).nonzero()[0]]
-            # Get their corresponding centroids
-            riverwallCentInds=rwd.get_centroids_corresponding_to_edgeInds(riverwalledgeInds)
+
+            if(len(riverwalledgeInds)==0):
+                printInfo=printInfo+'Riverwall '+name+' was not found on this mesh (if this is wrong, adjust tol in create_riverwalls)\n'
+                continue
             # Get their corresponding vertices
-            riverwallV1Inds, riverwallV2Inds = rwd.get_vertices_corresponding_to_edgeInds(riverwalledgeInds, tol=tol)
+            riverwallV1Inds, riverwallV2Inds = rwd.get_vertices_corresponding_to_edgeInds(riverwalledgeInds)
+
+            # Flag telling us if vertex points are on the boundary of the model
+            # Used to help detect disconnected riverwalls (due to round-off)
+            v1_on_boundary=rwd.is_vertex_on_boundary(riverwallV1Inds)
+            v2_on_boundary=rwd.is_vertex_on_boundary(riverwallV2Inds)
 
             # With discontinuous triangles, we expect edges to occur twice
             # Let's remove duplicates to simplify the analysis
@@ -538,12 +626,14 @@ class RiverWall:
 
             # Finally, get 'unqiue' edges in the riverwall
             uEdges=riverwalledgeInds[unique_riverwall_edge_indices]
-            #uCentroids=riverwallCentInds[unique_riverwall_edge_indices]
             uV1=riverwallV1Inds[unique_riverwall_edge_indices]
             uV2=riverwallV2Inds[unique_riverwall_edge_indices]
+            uV1_boundary=v1_on_boundary[unique_riverwall_edge_indices]
+            uV2_boundary=v2_on_boundary[unique_riverwall_edge_indices]
 
             # Next, count how many times each vertex value occurs. 
-            # For a 'connected' riverwall, we only want 2 edges where a vertex occurs only once.
+            # For a 'connected' riverwall, we only want 2 edges where a vertex occurs only once,
+            #   unless the vertex is on the boundary of the domain
             lure=len(uEdges)
             complex_v1_coordinates=domain.vertex_coordinates[uV1,0]+\
                                    1j*domain.vertex_coordinates[uV1,1]
@@ -557,24 +647,86 @@ class RiverWall:
                 v2Counter[j]=(complex_v1_coordinates==complex_v2_coordinates[j]).sum()+\
                              (complex_v2_coordinates==complex_v2_coordinates[j]).sum()
 
-            num_disconnected_edges=(v1Counter==1).sum()+(v2Counter==1).sum()
-            
+            num_disconnected_edges=((v1Counter==1)*(1-uV1_boundary)).sum()+\
+                                   ((v2Counter==1)*(1-uV2_boundary)).sum()
+          
             if(verbose):    
-                print 'There are ', num_disconnected_edges, ' vertices with only 1 connection on riverwall ', name
+                printInfo=printInfo+ '  On riverwall '+ str(name) +' there are '+ str(num_disconnected_edges)+\
+                         ' endpoints inside the domain [ignoring points on the boundary polygon] (P'+str(myid)+')\n'
 
-            if(num_disconnected_edges==0):
-                print 'Riverwall '+name+' is not on this mesh [typical for a sub-mesh in parallel]'
-            elif(num_disconnected_edges==2):
+            if(num_disconnected_edges<=2):
                 if(verbose):
-                    print "  That's Good, it means the wall is continuous"
-                    print ' '
+                    pass
+                    #printInfo=printInfo+ "  This is consistent with a continuous wall \n"
             else:
-                msg='Riverwall ' + name +', appears to be discontinuous, possibly due to round-off issues,'+\
-                    ' be careful [try adjusting tol, or use warn_only=True to avoid error] '
-                if(warn_only):
-                    print msg
-                else:
-                    raise Exception, msg
+                isConnected=False
+                printInfo=printInfo+'  Riverwall ' + name +' appears to be discontinuous. (P'+str(myid)+')\n'+\
+                    '  This suggests there is a gap in the wall, which should not occur\n'
+        
+        return [printInfo, isConnected]
+
+    ###################################################################
+
+    def export_riverwalls_to_text(self, output_dir=None):
+        """
+            Function for dumping riverwall outputs to text file (useful for QC)
+
+            This will overwrite any existing files with the same location/name
+
+            INPUT: output_dir = Directory where the outputs will be written
+
+            OUTPUT:
+                    None, but writes files as a side effect
+
+        """
+        if(output_dir is None):
+            return
+    
+        if(myid==0):
+            # Make output directory
+            try: 
+                os.mkdir(output_dir)
+            except:
+                pass
+            # Make output files with empty contents
+            for i, riverWallFile in enumerate(self.names):
+                newFile=open(output_dir+'/'+riverWallFile+'.txt','w')
+                # Write hydraulic variable information
+                hydraulicVars=self.hydraulic_properties[i,:]
+                newFile.write('## Hydraulic Variable values below ## \n')
+                newFile.write(str(self.hydraulic_variable_names)+'\n')
+                newFile.write(str(hydraulicVars)+'\n')
+                newFile.write('\n')
+                newFile.write('## xyElevation at edges below. Order may be erratic for parallel runs ##\n')
+                newFile.close()
+        else:
+            pass
+
+        # Files must be created before writing out
+        barrier()    
+
+        domain=self.domain
+        # Now dump the required info to the files
+        for i in range(numprocs):
+            # Write 1 processor at a time
+            if(myid==i):
+                for j, riverWallname in enumerate(self.names):
+                    # Get xyz data for riverwall j
+                    riverWallInds=(self.hydraulic_properties_rowIndex==j).nonzero()[0].tolist()
+                    riverWallDomainInds=self.riverwall_edges[riverWallInds].tolist()
+                    myXCoords=domain.edge_coordinates[riverWallDomainInds,0]+domain.geo_reference.xllcorner
+                    myYCoords=domain.edge_coordinates[riverWallDomainInds,1]+domain.geo_reference.yllcorner
+                    myElev=self.riverwall_elevation[riverWallInds]
+               
+                    # Open file for appending data 
+                    theFile=open(output_dir+'/'+riverWallname+'.txt','a')
+                    for k in range(len(myElev)):
+                        theFile.write(str(myXCoords[k])+','+str(myYCoords[k])+','+str(myElev[k])+'\n')
+                    theFile.close()
+                        
+            else:
+                pass
+
+            barrier() 
 
         return
-

@@ -6,7 +6,7 @@
 import anuga
 
 import numpy
-from anuga import myid, finalize, distribute
+from anuga import myid, finalize, distribute, barrier
 
 from math import exp
 
@@ -96,7 +96,6 @@ else:
 # create Parallel Domain
 #======================================================================    
 domain = distribute(domain)
-
 
 domain.riverwallData.create_riverwalls(riverWall, riverWall_Par)
 
