@@ -1,6 +1,6 @@
 """
 Simple water flow example using ANUGA
-Subcritical flow over a bump.
+Supercritical flow over a bump.
 """
 
 #------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ time = strftime('%Y%m%d_%H%M%S',localtime())
 
 #output_dir = 'subcritical_'+time
 output_dir = '.'
-output_file = 'subcritical'
+output_file = 'supercritical'
 
 args = anuga.get_args()
 alg = args.alg
@@ -34,7 +34,7 @@ verbose = args.verbose
 #------------------------------------------------------------------------------
 # Setup domain
 #------------------------------------------------------------------------------
-dx = 0.1
+dx = 0.05
 dy = dx
 L = 25.
 W = 3*dx
@@ -79,10 +79,9 @@ domain = distribute(domain)
 #-----------------------------------------------------------------------------
 # Setup boundary conditions
 #------------------------------------------------------------------------------
-from math import sin, pi, exp
 Br = anuga.Reflective_boundary(domain)      # Solid reflective wall
 #Bt = anuga.Transmissive_boundary(domain)    # Continue all values on boundary 
-Bd = anuga.Dirichlet_boundary([2., 4.42, 0.]) # Constant boundary values
+Bd = anuga.Dirichlet_boundary([0.5, 10.0, 0.]) # Constant boundary values
 
 # Associate boundary tags with boundary objects
 domain.set_boundary({'left': Bd, 'right': Bd, 'top': Br, 'bottom': Br})
@@ -104,7 +103,7 @@ if myid == 0:
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
-for t in domain.evolve(yieldstep = 1.0, finaltime = 100.):
+for t in domain.evolve(yieldstep = 1.0, finaltime = 10.):
     #print domain.timestepping_statistics(track_speeds=True)
     if myid == 0 and verbose: print domain.timestepping_statistics()
 
