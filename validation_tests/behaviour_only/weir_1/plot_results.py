@@ -75,7 +75,7 @@ ft_to_m=0.3048 # 1 foot = ft_to_m metres
 #C=3.2 # Standard constant for sharp crested weir from e.g. HecRas, in units ft^(0.5)/s
 #C=C*(ft_to_m)**0.5 # Convert to m^0.5/s
 C=2./3.*(9.81*2./3.)**0.5 # Another standard coefficient.
-L1=9.0 # In the model, the L1 region is 8m with two 1m rises at each edge, leading to the equivalent of 9m width on average
+L1=9.0 # Lengths of the w1/w2 regions
 L2=91.
 def simple_weir(H, C, L):
     return L*C*H**(1.5)

@@ -504,6 +504,17 @@ double adjust_edgeflux_with_weir(double* edgeflux,
             edgeflux[2]*=scaleFlux;
         }else{
             // Can't divide by edgeflux
+            // FIXME: This is fluxing mass but not momentum
+            //        It might be ok, but,.........
+            //        it has potential be a problem in the
+            //        case that there was zero edgeflux but non-zero weir flux
+            //        [which can occur because the edgeflux is computed from
+            //        edge quantities, whereas weir-flux is computed from
+            //        centroid info]. Then if we remove mass but not momentum
+            //        from the headwater, velocity gets faster.
+            //        
+            //        However, that situation would usually occur for a short time with a small flux,
+            //        so it might never actually create a problem.        
             edgeflux[0] = newFlux;
             edgeflux[1]*=0.;
             edgeflux[2]*=0.;
@@ -575,6 +586,7 @@ double _compute_fluxes_central(int number_of_elements,
     int RiverWall_count;
     double hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2; 
     double stage_edge_lim, outgoing_mass_edges, bedtop, bedbot, pressure_flux, hc, hc_n, tmp, tmp2;
+    double h_left_tmp, h_right_tmp;
     static long call = 1; // Static local variable flagging already computed flux
     double speed_max_last, vol, smooth, local_speed, weir_height;
 
@@ -656,37 +668,36 @@ double _compute_fluxes_central(int number_of_elements,
             // Audusse magic 
             z_half=max(zl,zr);
 
-            // Account for riverwalls
+            //// Account for riverwalls
             if(edge_flux_type[ki]==1){
                 // Update counter of riverwall edges == index of
                 // riverwall_elevation + riverwall_rowIndex
                 RiverWall_count+=1;
                 
                 // Set central bed to riverwall elevation
-                z_half=max(riverwall_elevation[RiverWall_count-1], max(zl, zr)) ;
+                z_half=max(riverwall_elevation[RiverWall_count-1], z_half) ;
 
-                if(min(ql[0], qr[0]) < z_half){
-                    // Since there is a wall blocking the flow connection, use first order extrapolation for this edge
-                    ql[0]=stage_centroid_values[k];
-                    ql[1]=xmom_centroid_values[k];
-                    ql[2]=ymom_centroid_values[k];
-                    hle=hc;
-                    zl=zc;
+                //if(min(ql[0], qr[0]) < z_half){
+                //    // Since there is a wall blocking the flow connection, use first order extrapolation for this edge
+                //    ql[0]=stage_centroid_values[k];
+                //    ql[1]=xmom_centroid_values[k];
+                //    ql[2]=ymom_centroid_values[k];
+                //    hle=hc;
+                //    zl=zc;
 
-                    if(n>=0){
-                      qr[0]=stage_centroid_values[n];
-                      qr[1]=xmom_centroid_values[n];
-                      qr[2]=ymom_centroid_values[n];
-                      hre=hc_n;
-                      zr = zc_n;
-                    }else{
-                      hre=hc;
-                      zr = zc;
-                    }
-                    // Re-set central bed to riverwall elevation
-                    z_half=max(riverwall_elevation[RiverWall_count-1], max(zl, zr)) ;
-                }
-                
+                //    if(n>=0){
+                //      qr[0]=stage_centroid_values[n];
+                //      qr[1]=xmom_centroid_values[n];
+                //      qr[2]=ymom_centroid_values[n];
+                //      hre=hc_n;
+                //      zr = zc_n;
+                //    }else{
+                //      hre=hc;
+                //      zr = zc;
+                //    }
+                //    // Re-set central bed to riverwall elevation
+                //    z_half=max(riverwall_elevation[RiverWall_count-1], max(zl, zr)) ;
+                //}
 
             }
 
@@ -727,10 +738,21 @@ double _compute_fluxes_central(int number_of_elements,
                     // Get h2, tailwater head / weir height at which we entirely use the shallow water solution 
                     ii+=1;
                     h2=riverwall_hydraulic_properties[ii];
+                    
+                    //adjust_edgeflux_with_weir(edgeflux, h_left, h_right, g, 
+                    //                          weir_height, Qfactor, 
+                    //                          s1, s2, h1, h2);
 
-                    //printf("%e, %e, %e, %e, %e \n", Qfactor, s1, s2, h1, h2);
+                    // Use first-order h's for weir -- as the 'upstream/downstream' heads are
+                    //  measured away from the weir itself
+                    h_left_tmp= max(stage_centroid_values[k]-z_half,0.);
+                    if(n>=0){
+                        h_right_tmp= max(stage_centroid_values[n]-z_half,0.);
+                    }else{
+                        h_right_tmp= max(hc_n+zr-z_half,0.);
+                    }
 
-                    adjust_edgeflux_with_weir(edgeflux, h_left, h_right, g, 
+                    adjust_edgeflux_with_weir(edgeflux, h_left_tmp, h_right_tmp, g, 
                                               weir_height, Qfactor, 
                                               s1, s2, h1, h2);
                     // NOTE: Should perhaps also adjust the wave-speed here?? Small chance of instability??

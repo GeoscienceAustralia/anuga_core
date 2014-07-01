@@ -21,16 +21,26 @@ boundaryPolygon=[ [0., 0.], [0., 100.], [100.0, 100.0], [100.0, 0.0]]
 midResPolygon=[ [30., 30.], [30., 70.], [70., 70.], [70., 30.]]
 higherResPolygon=[ [40., 40.], [40., 60.], [60., 60.], [60., 40.]]
 # Riverwall = list of lists, each with a set of x,y,z (and optional QFactor) values
-riverWall={ 'centralWall':
+#riverWall={ 'centralWall':
+#                [ [50., 0.0, -0.0],
+#                  [50., 45., -0.0],
+#                  [50., 46., -0.2],
+#                  [50., 54., -0.2],
+#                  [50., 55., -0.0], 
+#                  [50., 100.0, -0.0]] 
+#          }
+riverWall={ 'leftWall':
                 [ [50., 0.0, -0.0],
-                  [50., 45., -0.0],
-                  [50., 46., -0.2],
-                  [50., 54., -0.2],
-                  [50., 55., -0.0], 
+                  [50., 45.5, -0.0]],
+             'centralWall': 
+                [[50., 45.5, -0.2],
+                 [50., 54.5, -0.2]],
+             'rightWall':
+                [ [50., 54.5, -0.0], 
                   [50., 100.0, -0.0]] 
           }
 
-riverWall_Par={'centralWall':{'Qfactor':1.0}}
+#riverWall_Par={'centralWall':{'Qfactor':1.0}}
 # Try to avoid any shallow-water type solution -- becomes unstable
 #riverWall_Par={'centralWall':{'Qfactor':1.0, 's1': 0.999, 's2':0.9999, 'h1':100, 'h2':150}}
 
@@ -97,7 +107,7 @@ else:
 #======================================================================    
 domain = distribute(domain)
 
-domain.riverwallData.create_riverwalls(riverWall, riverWall_Par)
+domain.riverwallData.create_riverwalls(riverWall)
 
 #--------------------------
 # Setup boundary conditions
