@@ -1,0 +1,2083 @@
+Geom Title=riverwall_ANGUA
+Program Version=4.10
+Viewing Rectangle= 0 , 1 , 1 , 0 
+
+River Reach=threeRivers     ,left            
+Reach XY= 2 
+0.654506437768240.881974248927040.628755364806870.20815450643777
+Rch Text X Y=0.6480687,0.7135193
+Reverse River Text= 0 
+
+Type RM Length L Ch R = 1 ,1000    ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:29
+#Sta/Elev= 3 
+       0     .01       5       0      10     .01
+#Mann= 3 , 0 , 0 
+       0     .03       0       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=0,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,983.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0    -.04       5    -.05      10    -.04
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.05,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,966.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0    -.09       5     -.1      10    -.09
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.1,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,950.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0    -.14       5    -.15      10    -.14
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.15,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,933.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0    -.19       5     -.2      10    -.19
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.2,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,916.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0    -.24       5    -.25      10    -.24
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.25,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,900.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0    -.29       5     -.3      10    -.29
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.3,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,883.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0    -.34       5    -.35      10    -.34
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.35,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,866.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0    -.39       5     -.4      10    -.39
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.4,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,850.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0    -.44       5    -.45      10    -.44
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.45,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,833.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0    -.49       5     -.5      10    -.49
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.5,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,816.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0    -.54       5    -.55      10    -.54
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.55,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,800.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0    -.59       5     -.6      10    -.59
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.6,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,783.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0    -.64       5    -.65      10    -.64
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.65,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,766.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0    -.69       5     -.7      10    -.69
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.7,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,750.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0    -.74       5    -.75      10    -.74
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.75,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,733.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0    -.79       5     -.8      10    -.79
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.8,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,716.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0    -.84       5    -.85      10    -.84
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.85,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,700.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0    -.89       5     -.9      10    -.89
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.9,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,683.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0    -.94       5    -.95      10    -.94
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.95,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,666.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0    -.99       5      -1      10    -.99
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,650.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0   -1.04       5   -1.05      10   -1.04
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.05,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,633.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -1.09       5    -1.1      10   -1.09
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.1,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,616.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -1.14       5   -1.15      10   -1.14
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.15,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,600.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0   -1.19       5    -1.2      10   -1.19
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.2,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,583.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -1.24       5   -1.25      10   -1.24
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.25,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,566.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -1.29       5    -1.3      10   -1.29
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.3,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,550.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0   -1.34       5   -1.35      10   -1.34
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.35,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,533.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -1.39       5    -1.4      10   -1.39
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.4,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,516.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -1.44       5   -1.45      10   -1.44
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.45,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,500.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0   -1.49       5    -1.5      10   -1.49
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.5,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,483.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -1.54       5   -1.55      10   -1.54
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.55,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,466.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -1.59       5    -1.6      10   -1.59
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.6,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,450.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0   -1.64       5   -1.65      10   -1.64
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.65,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,433.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -1.69       5    -1.7      10   -1.69
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.7,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,416.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -1.74       5   -1.75      10   -1.74
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.75,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,400.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0   -1.79       5    -1.8      10   -1.79
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.8,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,383.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -1.84       5   -1.85      10   -1.84
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.85,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,366.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -1.89       5    -1.9      10   -1.89
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.9,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,350.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0   -1.94       5   -1.95      10   -1.94
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.95,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,333.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -1.99       5      -2      10   -1.99
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,316.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -2.04       5   -2.05      10   -2.04
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.05,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,300.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0   -2.09       5    -2.1      10   -2.09
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.1,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,283.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -2.14       5   -2.15      10   -2.14
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.15,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,266.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -2.19       5    -2.2      10   -2.19
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.2,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,250.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0   -2.24       5   -2.25      10   -2.24
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.25,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,233.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -2.29       5    -2.3      10   -2.29
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.3,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,216.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -2.34       5   -2.35      10   -2.34
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.35,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,200.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0   -2.39       5    -2.4      10   -2.39
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.4,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,183.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -2.44       5   -2.45      10   -2.44
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.45,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,166.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -2.49       5    -2.5      10   -2.49
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.5,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,150.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0   -2.54       5   -2.55      10   -2.54
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.55,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,133.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -2.59       5    -2.6      10   -2.59
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.6,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,116.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -2.64       5   -2.65      10   -2.64
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.65,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,100.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0   -2.69       5    -2.7      10   -2.69
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.7,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,83.3333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -2.74       5   -2.75      10   -2.74
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.75,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,66.6666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -2.79       5    -2.8      10   -2.79
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.8,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,50.0000*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:51
+#Sta/Elev= 3 
+       0   -2.84       5   -2.85      10   -2.84
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.85,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,33.3333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -2.89       5    -2.9      10   -2.89
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.9,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,16.6666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:04
+#Sta/Elev= 3 
+       0   -2.94       5   -2.95      10   -2.94
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.95,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,0       ,1000,1000,1000
+Node Last Edited Time=Jun/30/2014 15:40:37
+#Sta/Elev= 3 
+       0   -2.99       5      -3      10   -2.99
+#Mann= 3 , 0 , 0 
+       0     .03       0       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-3,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+River Reach=threeRivers     ,right           
+Reach XY= 2 
+ 0.22746781115880.890557939914160.214592274678110.21244635193133
+Rch Text X Y=0.2242489,0.72103
+Reverse River Text= 0 
+
+Type RM Length L Ch R = 1 ,1000    ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:38:47
+#Sta/Elev= 3 
+       0     .01       5       0      10     .01
+#Mann= 3 , 0 , 0 
+       0     .03       0       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=0,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,983.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0    -.04       5    -.05      10    -.04
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.05,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,966.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0    -.09       5     -.1      10    -.09
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.1,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,950.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0    -.14       5    -.15      10    -.14
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.15,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,933.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0    -.19       5     -.2      10    -.19
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.2,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,916.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0    -.24       5    -.25      10    -.24
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.25,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,900.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0    -.29       5     -.3      10    -.29
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.3,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,883.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0    -.34       5    -.35      10    -.34
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.35,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,866.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0    -.39       5     -.4      10    -.39
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.4,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,850.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0    -.44       5    -.45      10    -.44
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.45,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,833.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0    -.49       5     -.5      10    -.49
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.5,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,816.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0    -.54       5    -.55      10    -.54
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.55,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,800.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0    -.59       5     -.6      10    -.59
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.6,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,783.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0    -.64       5    -.65      10    -.64
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.65,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,766.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0    -.69       5     -.7      10    -.69
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.7,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,750.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0    -.74       5    -.75      10    -.74
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.75,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,733.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0    -.79       5     -.8      10    -.79
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.8,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,716.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0    -.84       5    -.85      10    -.84
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.85,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,700.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0    -.89       5     -.9      10    -.89
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.9,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,683.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0    -.94       5    -.95      10    -.94
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.95,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,666.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0    -.99       5      -1      10    -.99
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,650.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0   -1.04       5   -1.05      10   -1.04
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.05,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,633.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -1.09       5    -1.1      10   -1.09
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.1,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,616.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -1.14       5   -1.15      10   -1.14
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.15,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,600.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0   -1.19       5    -1.2      10   -1.19
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.2,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,583.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -1.24       5   -1.25      10   -1.24
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.25,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,566.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -1.29       5    -1.3      10   -1.29
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.3,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,550.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0   -1.34       5   -1.35      10   -1.34
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.35,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,533.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -1.39       5    -1.4      10   -1.39
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.4,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,516.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -1.44       5   -1.45      10   -1.44
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.45,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,500.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0   -1.49       5    -1.5      10   -1.49
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.5,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,483.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -1.54       5   -1.55      10   -1.54
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.55,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,466.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -1.59       5    -1.6      10   -1.59
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.6,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,450.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0   -1.64       5   -1.65      10   -1.64
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.65,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,433.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -1.69       5    -1.7      10   -1.69
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.7,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,416.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -1.74       5   -1.75      10   -1.74
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.75,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,400.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0   -1.79       5    -1.8      10   -1.79
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.8,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,383.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -1.84       5   -1.85      10   -1.84
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.85,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,366.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -1.89       5    -1.9      10   -1.89
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.9,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,350.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0   -1.94       5   -1.95      10   -1.94
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.95,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,333.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -1.99       5      -2      10   -1.99
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,316.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -2.04       5   -2.05      10   -2.04
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.05,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,300.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0   -2.09       5    -2.1      10   -2.09
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.1,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,283.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -2.14       5   -2.15      10   -2.14
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.15,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,266.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -2.19       5    -2.2      10   -2.19
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.2,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,250.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0   -2.24       5   -2.25      10   -2.24
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.25,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,233.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -2.29       5    -2.3      10   -2.29
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.3,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,216.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -2.34       5   -2.35      10   -2.34
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.35,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,200.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0   -2.39       5    -2.4      10   -2.39
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.4,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,183.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -2.44       5   -2.45      10   -2.44
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.45,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,166.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -2.49       5    -2.5      10   -2.49
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.5,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,150.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0   -2.54       5   -2.55      10   -2.54
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.55,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,133.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -2.59       5    -2.6      10   -2.59
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.6,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,116.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -2.64       5   -2.65      10   -2.64
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.65,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,100.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0   -2.69       5    -2.7      10   -2.69
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.7,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,83.3333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -2.74       5   -2.75      10   -2.74
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.75,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,66.6666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -2.79       5    -2.8      10   -2.79
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.8,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,50.0000*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:17
+#Sta/Elev= 3 
+       0   -2.84       5   -2.85      10   -2.84
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.85,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,33.3333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -2.89       5    -2.9      10   -2.89
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.9,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,16.6666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:42
+#Sta/Elev= 3 
+       0   -2.94       5   -2.95      10   -2.94
+#Mann= 2 , 0 , 0 
+       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.95,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,0       ,0,0,0
+Node Last Edited Time=Jun/30/2014 15:39:01
+#Sta/Elev= 3 
+       0   -2.99       5      -3      10   -2.99
+#Mann= 3 , 0 , 0 
+       0     .03       0       0     .03       0      10     .03       0
+Bank Sta=0,10
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-3,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+River Reach=threeRivers     ,middle          
+Reach XY= 2 
+0.416309012875540.892703862660940.412017167381970.20600858369099
+Rch Text X Y=0.4152361,0.72103
+Reverse River Text= 0 
+
+Type RM Length L Ch R = 1 ,1000    ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:39:37
+#Sta/Elev= 3 
+       0     .01      10       0      20     .01
+#Mann= 3 , 0 , 0 
+       0     .03       0       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=0,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,983.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0    -.04      10    -.05      20    -.04
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.05,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,966.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0    -.09      10     -.1      20    -.09
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.1,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,950.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0    -.14      10    -.15      20    -.14
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.15,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,933.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0    -.19      10     -.2      20    -.19
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.2,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,916.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0    -.24      10    -.25      20    -.24
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.25,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,900.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0    -.29      10     -.3      20    -.29
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.3,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,883.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0    -.34      10    -.35      20    -.34
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.35,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,866.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0    -.39      10     -.4      20    -.39
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.4,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,850.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0    -.44      10    -.45      20    -.44
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.45,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,833.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0    -.49      10     -.5      20    -.49
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.5,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,816.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0    -.54      10    -.55      20    -.54
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.55,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,800.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0    -.59      10     -.6      20    -.59
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.6,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 6 ,799     ,,,
+Node Last Edited Time=Jun/30/2014 15:53:39
+Lateral Weir Pos= 3 
+Lateral Weir End=threeRivers     ,right           ,800.*   ,                
+Lateral Weir Distance=1
+Lateral Weir TW Multiple XS=-1
+Lateral Weir WD=1
+Lateral Weir Coef=1.1
+Lateral Weir WSCriteria=-1 
+Lateral Weir Flap Gates= 0 
+Lateral Weir Hagers EQN= 0 ,,,,,
+Lateral Weir SS=0.05,0.05,
+Lateral Weir Type= 0 
+Lateral Weir Connection Pos and Dist= 0 ,1
+Lateral Weir SE= 2 
+       0     -.1     198     -.7
+Lateral Weir HW RS Station=800.*   ,-1
+Lateral Weir TW RS Station=800.*   ,-1
+LW Div RC= 0 ,False,
+
+Type RM Length L Ch R = 1 ,783.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0    -.64      10    -.65      20    -.64
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.65,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,766.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0    -.69      10     -.7      20    -.69
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.7,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,750.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0    -.74      10    -.75      20    -.74
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.75,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,733.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0    -.79      10     -.8      20    -.79
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.8,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,716.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0    -.84      10    -.85      20    -.84
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.85,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,700.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0    -.89      10     -.9      20    -.89
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.9,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 6 ,699     ,,,
+Node Last Edited Time=Jun/30/2014 15:58:32
+Lateral Weir Pos= 0 
+Lateral Weir End=threeRivers     ,left            ,700.*   ,                
+Lateral Weir Distance=1
+Lateral Weir TW Multiple XS=-1
+Lateral Weir WD=1
+Lateral Weir Coef=1.1
+Lateral Weir WSCriteria=-1 
+Lateral Weir Flap Gates= 0 
+Lateral Weir Hagers EQN= 0 ,,,,,
+Lateral Weir SS=0.05,0.05,
+Lateral Weir Type= 0 
+Lateral Weir Connection Pos and Dist= 0 ,1
+Lateral Weir SE= 2 
+       0     -.4     198      -1
+Lateral Weir HW RS Station=700.*   ,-1
+Lateral Weir TW RS Station=700.*   ,-1
+LW Div RC= 0 ,False,
+
+Type RM Length L Ch R = 1 ,683.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0    -.94      10    -.95      20    -.94
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-0.95,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,666.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0    -.99      10      -1      20    -.99
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,650.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0   -1.04      10   -1.05      20   -1.04
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.05,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,633.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -1.09      10    -1.1      20   -1.09
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.1,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,616.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -1.14      10   -1.15      20   -1.14
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.15,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,600.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0   -1.19      10    -1.2      20   -1.19
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.2,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,583.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -1.24      10   -1.25      20   -1.24
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.25,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,566.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -1.29      10    -1.3      20   -1.29
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.3,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,550.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0   -1.34      10   -1.35      20   -1.34
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.35,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,533.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -1.39      10    -1.4      20   -1.39
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.4,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,516.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -1.44      10   -1.45      20   -1.44
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.45,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,500.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0   -1.49      10    -1.5      20   -1.49
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.5,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,483.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -1.54      10   -1.55      20   -1.54
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.55,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,466.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -1.59      10    -1.6      20   -1.59
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.6,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,450.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0   -1.64      10   -1.65      20   -1.64
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.65,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,433.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -1.69      10    -1.7      20   -1.69
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.7,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,416.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -1.74      10   -1.75      20   -1.74
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.75,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,400.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0   -1.79      10    -1.8      20   -1.79
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.8,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,383.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -1.84      10   -1.85      20   -1.84
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.85,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,366.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -1.89      10    -1.9      20   -1.89
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.9,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,350.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0   -1.94      10   -1.95      20   -1.94
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-1.95,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,333.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -1.99      10      -2      20   -1.99
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,316.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -2.04      10   -2.05      20   -2.04
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.05,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,300.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0   -2.09      10    -2.1      20   -2.09
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.1,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,283.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -2.14      10   -2.15      20   -2.14
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.15,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,266.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -2.19      10    -2.2      20   -2.19
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.2,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,250.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0   -2.24      10   -2.25      20   -2.24
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.25,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,233.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -2.29      10    -2.3      20   -2.29
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.3,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,216.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -2.34      10   -2.35      20   -2.34
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.35,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,200.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0   -2.39      10    -2.4      20   -2.39
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.4,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,183.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -2.44      10   -2.45      20   -2.44
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.45,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,166.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -2.49      10    -2.5      20   -2.49
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.5,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,150.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0   -2.54      10   -2.55      20   -2.54
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.55,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,133.333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -2.59      10    -2.6      20   -2.59
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.6,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,116.666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -2.64      10   -2.65      20   -2.64
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.65,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,100.*   ,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0   -2.69      10    -2.7      20   -2.69
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.7,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,83.3333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -2.74      10   -2.75      20   -2.74
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.75,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,66.6666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -2.79      10    -2.8      20   -2.79
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.8,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,50.0000*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 15:40:01
+#Sta/Elev= 3 
+       0   -2.84      10   -2.85      20   -2.84
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.85,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,33.3333*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -2.89      10    -2.9      20   -2.89
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.9,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,16.6666*,16.667,16.667,16.667
+Node Last Edited Time=Jun/30/2014 16:02:27
+#Sta/Elev= 3 
+       0   -2.94      10   -2.95      20   -2.94
+#Mann= 2 , 0 , 0 
+       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-2.95,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Type RM Length L Ch R = 1 ,0       ,0,0,0
+Node Last Edited Time=Jun/30/2014 15:39:49
+#Sta/Elev= 3 
+       0   -2.99      10      -3      20   -2.99
+#Mann= 3 , 0 , 0 
+       0     .03       0       0     .03       0      20     .03       0
+Bank Sta=0,20
+XS Rating Curve= 0 ,0
+XS HTab Starting El and Incr=-3,0.1, 100 
+Exp/Cntr=0.3,0.1
+
+Chan Stop Cuts=-1 
+
+
+
+Use User Specified Reach Order=0
+GIS Ratio Cuts To Invert=-1
+GIS Limit At Bridges=0
+Composite Channel Slope=5

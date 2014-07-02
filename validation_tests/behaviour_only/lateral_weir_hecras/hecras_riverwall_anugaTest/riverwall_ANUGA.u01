@@ -1,0 +1,56 @@
+Flow Title=riverwall_ANUGA
+Program Version=4.10
+Use Restart= 0 
+Initial Flow Loc=threeRivers     ,middle          ,1000    ,1
+Initial Flow Loc=threeRivers     ,right           ,1000    ,1
+Initial Flow Loc=threeRivers     ,left            ,1000    ,1
+Boundary Location=threeRivers     ,middle          ,1000    ,        ,                ,                ,                
+Interval=1HOUR
+Flow Hydrograph= 25 
+       1       1       5       9      13      17      21      21      21      21
+      21      21      21      21      21      21      21      21      21      21
+      21      21      21      21      21
+Flow Hydrograph QMin= 1 
+DSS Path=
+Use DSS=False
+CWMS InputPosition= 0 
+Use Fixed Start Time=False
+Fixed Start Date/Time=,
+Is Critical Boundary=False
+Critical Boundary Flow=
+Boundary Location=threeRivers     ,middle          ,0       ,        ,                ,                ,                
+Friction Slope=0.003
+Boundary Location=threeRivers     ,right           ,1000    ,        ,                ,                ,                
+Interval=1HOUR
+Flow Hydrograph= 25 
+       1       1       1       1       1       1       1       1       1       1
+       1       1       1       1       1       1       1       1       1       1
+       1       1       1       1       1
+Flow Hydrograph QMin= 0.1 
+Flow Hydrograph QMult= 0.1 
+DSS Path=
+Use DSS=False
+CWMS InputPosition= 0 
+Use Fixed Start Time=False
+Fixed Start Date/Time=,
+Is Critical Boundary=False
+Critical Boundary Flow=
+Boundary Location=threeRivers     ,right           ,0       ,        ,                ,                ,                
+Friction Slope=0.003
+Boundary Location=threeRivers     ,left            ,1000    ,        ,                ,                ,                
+Interval=1HOUR
+Flow Hydrograph= 25 
+       1       1       1       1       1       1       1       1       1       1
+       1       1       1       1       1       1       1       1       1       1
+       1       1       1       1       1
+Flow Hydrograph QMin= 0.1 
+Flow Hydrograph QMult= 0.1 
+DSS Path=
+Use DSS=False
+CWMS InputPosition= 0 
+Use Fixed Start Time=False
+Fixed Start Date/Time=,
+Is Critical Boundary=False
+Critical Boundary Flow=
+Boundary Location=threeRivers     ,left            ,0       ,        ,                ,                ,                
+Friction Slope=0.003
