@@ -166,7 +166,6 @@ def __get_revision_from_svn_client__():
         for line in version_info.split('\n'):
             if line.startswith('Revision:'):
                 break
-        
         fields = line.split(':')
         msg = 'Keyword "Revision" was not found anywhere in text: %s' % version_info
         assert fields[0].startswith('Revision'), msg
@@ -210,7 +209,7 @@ def get_revision_number():
         return __get_revision_from_svn_client__()
     except:
         try:
-            from anuga.stored_version_info import version_inf
+            from anuga.stored_version_info import version_info
             return process_version_info(version_info)
         except:
             from anuga.version import version
@@ -262,7 +261,7 @@ def store_version_info(destination_path='.', verbose=False):
     # (e.g. for creating new ANUGA releases), so maybe it should move
     # to somewhere else.
     
-    import config
+    import anuga.config as config
     import subprocess
 
     #txt = subprocess.Popen('svn info', shell=True, stdout=subprocess.PIPE).communicate()[0]

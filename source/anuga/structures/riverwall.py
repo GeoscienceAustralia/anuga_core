@@ -460,7 +460,7 @@ class RiverWall:
         
         # Pretty printing of riverwall information in parallel
         if(verbose): 
-            barrier()
+            if domain.parallel : barrier()
             for i in range(numprocs):
                 if(myid==i):
                     print 'Processor '+str(myid)
@@ -470,7 +470,7 @@ class RiverWall:
                          'finding edges on wall -- try increasing value of tol'
                     if(not connectedness[1]):
                         raise Exception, msg
-                barrier()
+                if domain.parallel : barrier()
         return 
     
     #####################################################################################
@@ -703,9 +703,10 @@ class RiverWall:
             pass
 
         # Files must be created before writing out
-        barrier()    
-
         domain=self.domain
+        
+        #if domain.parallel: barrier()    
+
         # Now dump the required info to the files
         for i in range(numprocs):
             # Write 1 processor at a time
@@ -727,6 +728,6 @@ class RiverWall:
             else:
                 pass
 
-            barrier() 
+            #if domain.parallel : barrier() 
 
         return

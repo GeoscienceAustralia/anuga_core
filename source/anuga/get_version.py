@@ -16,6 +16,8 @@ date = '2005/09/07 13:22:59'
 
 """
 
+
+
 template = 'version.txt'
 version = 'version.py'
 
