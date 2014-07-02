@@ -53,13 +53,6 @@ pyplot.xlabel('Observed minus Modelled flood level')
 pyplot.title('Difference in Modelled and Observed flood levels, Towradgi 1998')
 pyplot.savefig('Error_peakstage.png')
 
-#pyplot.clf()
-#pyplot.scatter(floodLevels[:,0],floodLevels[:,1])
-#pyplot.gca().set_aspect('equal')
-#for i in range(len(modelled_level)):
-#    difString=str(round(floodLevels[i,3]-modelled_level[i],2))
-#    pyplot.text(floodLevels[i,0], floodLevels[i,1], difString)
-
 
 # Make a bunch of GIS outputs
 try:
@@ -79,17 +72,12 @@ try:
     pyplot.clf()
     pyplot.figure(figsize=(12,6))
     pyplot.plot([X.min(),X.max()],[Y.min(),Y.max()],' ')
-    print 'Imshow'
-    #import pdb
-    #pdb.set_trace()
     pyplot.imshow(scipy.flipud(myDepth),extent=[X.min(),X.max(),Y.min(),Y.max()],origin='lower',cmap=pyplot.get_cmap('Greys'))
     pyplot.gca().set_aspect('equal')
     pyplot.colorbar(orientation='horizontal').set_label('Peak Depth in model (m)')
     er1=floodLevels[:,3]-modelled_level
-    #er1=er1*(er1<1.0) + 1.0*(er1>=1.0)
-    #er1=er1*(er1> -1.0) - 1.0*(er1<=-1.0)
     pyplot.scatter(floodLevels[:,0], floodLevels[:,1], c=er1,s=20,cmap=pyplot.get_cmap('spectral'))
-    pyplot.colorbar().set_label(label='Field observation - Modelled Peak Depth (m)')
+    pyplot.colorbar().set_label(label='Field observation - Modelled Peak Stage (m)')
     pyplot.xlim([p.x.min()+p.xllcorner,p.x.max()+p.xllcorner])
     pyplot.ylim([p.y.min()+p.yllcorner,p.y.max()+p.yllcorner])
     pyplot.savefig('Spatial_Depth_and_Error.png')
