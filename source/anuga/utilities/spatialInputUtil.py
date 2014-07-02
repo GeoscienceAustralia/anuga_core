@@ -74,6 +74,7 @@ if gdal_available:
         # Get the data
         driver=ogr.GetDriverByName("ESRI Shapefile")
         dataSrc=driver.Open(shapefile, 0)
+        #dataSrc=ogr.Open(shapefile)
         layer=dataSrc.GetLayer()
        
         # Need a single polygon 
@@ -109,6 +110,7 @@ if gdal_available:
     
         driver=ogr.GetDriverByName("ESRI Shapefile")
         dataSrc=driver.Open(shapefile, 0)
+        #dataSrc=ogr.Open(shapefile)
         layer=dataSrc.GetLayer()
        
         # Need a single line 
@@ -138,6 +140,7 @@ if gdal_available:
         
         driver=ogr.GetDriverByName("ESRI Shapefile")
         dataSrc=driver.Open(shapefile, 0)
+        #dataSrc=ogr.Open(shapefile)
         layer=dataSrc.GetLayer()
     
         pts=[]

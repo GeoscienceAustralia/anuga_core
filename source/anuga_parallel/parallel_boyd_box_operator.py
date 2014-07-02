@@ -173,7 +173,13 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
             forward_Euler_smooth=True
             if(forward_Euler_smooth):
                 # To avoid 'overshoot' we ensure ts<1.
-                ts=self.domain.timestep/max(self.domain.timestep, self.smoothing_timescale,1.0e-06)
+                if(self.domain.timestep>0.):
+                    ts=self.domain.timestep/max(self.domain.timestep, self.smoothing_timescale,1.0e-06)
+                else:
+                    # This case is included in the serial version, which ensures the unit tests pass
+                    # even when domain.timestep=0.0. 
+                    # Note though the discontinuous behaviour as domain.timestep-->0. from above
+                    ts=1.0
                 self.smooth_delta_total_energy=self.smooth_delta_total_energy+\
                                         ts*(self.delta_total_energy-self.smooth_delta_total_energy)
             else:

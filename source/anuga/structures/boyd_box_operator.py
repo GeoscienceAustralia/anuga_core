@@ -1,5 +1,6 @@
 import anuga
 import math
+import numpy
 
 
 #=====================================================================
@@ -128,6 +129,7 @@ class Boyd_box_operator(anuga.Structure_operator):
 
 
         #  delta_total_energy will determine which inlet is inflow
+        # Update 02/07/2014 -- now using smooth_delta_total_energy
         if self.use_velocity_head:
             self.delta_total_energy = \
                  self.inlets[0].get_enquiry_total_energy() - self.inlets[1].get_enquiry_total_energy()
@@ -135,18 +137,34 @@ class Boyd_box_operator(anuga.Structure_operator):
             self.delta_total_energy = \
                  self.inlets[0].get_enquiry_stage() - self.inlets[1].get_enquiry_stage()
 
-        self.inflow  = self.inlets[0]
-        self.outflow = self.inlets[1]
+        # Compute 'smoothed' total energy
+        forward_Euler_smooth=True
+        if(forward_Euler_smooth):
+            # To avoid 'overshoot' we ensure ts<1.
+            if(self.domain.timestep>0.):
+                ts=self.domain.timestep/max(self.domain.timestep, self.smoothing_timescale,1.0e-06)
+            else:
+                # Without this the unit tests with no smoothing fail [since they have domain.timestep=0.]
+                # Note though the discontinuous behaviour as domain.timestep-->0. from above
+                ts=1.0
+            self.smooth_delta_total_energy=self.smooth_delta_total_energy+\
+                                    ts*(self.delta_total_energy-self.smooth_delta_total_energy)
+        else:
+            # Use backward euler -- the 'sensible' ts limitation is different in this case
+            # ts --> Inf is reasonable and corresponds to the 'nosmoothing' case
+            ts=self.domain.timestep/max(self.smoothing_timescale, 1.0e-06)
+            self.smooth_delta_total_energy = (self.smooth_delta_total_energy+ts*(self.delta_total_energy))/(1.+ts)
 
-        if self.delta_total_energy < 0:
+        if self.smooth_delta_total_energy >= 0.:
+            self.inflow  = self.inlets[0]
+            self.outflow = self.inlets[1]
+            self.delta_total_energy=self.smooth_delta_total_energy
+        else:
             self.inflow  = self.inlets[1]
             self.outflow = self.inlets[0]
-            self.delta_total_energy = -self.delta_total_energy
+            self.delta_total_energy = -self.smooth_delta_total_energy
             
             
-            
-
-
         # Only calculate flow if there is some water at the inflow inlet.
         if self.inflow.get_enquiry_depth() > 0.01: #this value was 0.01:
 
@@ -192,6 +210,25 @@ class Boyd_box_operator(anuga.Structure_operator):
                                                 outlet_enquiry_depth=self.outflow.get_enquiry_depth(),
                                                 sum_loss            =self.sum_loss,
                                                 manning             =self.manning)
+            #
+            # Update 02/07/2014 -- using time-smoothed discharge
+            Qsign=numpy.sign(self.smooth_delta_total_energy) #(self.outflow_index-self.inflow_index) # To adjust sign of Q
+            if(forward_Euler_smooth):
+                self.smooth_Q = self.smooth_Q +ts*(Q*Qsign-self.smooth_Q)
+            else: 
+                # Try implicit euler method
+                self.smooth_Q = (self.smooth_Q+ts*(Q*Qsign))/(1.+ts)
+            
+            if numpy.sign(self.smooth_Q)!=Qsign:
+                # The flow direction of the 'instantaneous Q' based on the
+                # 'smoothed delta_total_energy' is not the same as the
+                # direction of smooth_Q. To prevent 'jumping around', let's
+                # set Q to zero
+                Q=0.
+            else:
+                Q = min(abs(self.smooth_Q), Q) #abs(self.smooth_Q)
+            barrel_velocity=Q/flow_area
+
         else:
              Q = barrel_velocity = outlet_culvert_depth = 0.0
              case = 'Inlet dry'
