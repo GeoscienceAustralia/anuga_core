@@ -27,7 +27,6 @@ warnings.simplefilter('ignore')
 #------------------------------------------------------------------------------
 args = anuga.get_args()
 alg = args.alg
-cfl = args.cfl
 verbose = args.verbose
 
 
@@ -66,7 +65,9 @@ def stage(x,y):
     return h0*w
 
 
-
+#===============================================================================
+# Create sequential domain
+#===============================================================================
 if myid == 0:
     # structured mesh
     points, vertices, boundary = anuga.rectangular_cross(int(0.8*L/dx), int(W/dy), 0.8*L, W, (-0.5*L, -0.5*W))
@@ -75,7 +76,6 @@ if myid == 0:
     domain.set_datadir(output_dir)
 
     domain.set_flow_algorithm(alg)
-    #domain.set_CFL(cfl)
 
     #------------------------------------------------------------------------------
     # Setup initial conditions
@@ -87,6 +87,9 @@ if myid == 0:
 else:
     domain = None
     
+#===============================================================================
+# Create Parallel domain
+#===============================================================================
 domain = distribute(domain)
 
 #-----------------------------------------------------------------------------

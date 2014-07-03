@@ -20,6 +20,11 @@ from time import localtime, strftime, gmtime
 #================================================================================
 # Setup parameters and globally used functions
 #================================================================================
+args = anuga.get_args()
+alg = args.alg
+verbose = args.verbose
+
+
 time = strftime('%Y%m%d_%H%M%S',localtime())
 output_dir = '.'
 output_file = 'dam_break'
@@ -55,15 +60,7 @@ if myid == 0:
 
     domain.set_name(output_file)                
     domain.set_datadir(output_dir) 
-
-    #------------------------------------------------------------------------------
-    # Setup Algorithm, either using command line arguments
-    # or override manually yourself
-    #------------------------------------------------------------------------------
-    from anuga.utilities.argparsing import parse_standard_args
-    alg, cfl = parse_standard_args()
     domain.set_flow_algorithm(alg)
-    #domain.set_CFL(cfl)
 
     #------------------------------------------------------------------------------
     # Setup initial conditions

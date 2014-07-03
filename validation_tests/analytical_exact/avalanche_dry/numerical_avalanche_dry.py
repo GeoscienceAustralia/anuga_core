@@ -101,7 +101,6 @@ def f_right(t):
 #------------------------------------------------------------------------------
 args = anuga.get_args()
 alg = args.alg
-cfl = args.cfl
 verbose = args.verbose
 
 if myid == 0:
@@ -116,7 +115,6 @@ if myid == 0:
     domain.set_datadir(output_dir)
     
     domain.set_flow_algorithm(alg)
-    #domain.set_CFL(cfl)
     
     #------------------------------------------------------------------------------
     # Setup initial conditions

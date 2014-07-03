@@ -10,34 +10,41 @@ print ' ABOUT to Start Simulation:- Importing Modules'
 
 import anuga
 import time
-from pylab import figure, plot, axis, quiver, quiverkey, show, title, axhline
-from pylab import cos, sin, pi
+#from pylab import figure, plot, axis, quiver, quiverkey, show, title, axhline
+#from pylab import cos, sin, pi
 import numpy
-import csv
+#import csv
 import os
 import zipfile
 from os.path import join
-import time
-import sys
-import os.path
-import glob
-from anuga.abstract_2d_finite_volumes.util import file_function
-from anuga.geometry.polygon_function import Polygon_function
-from anuga.geometry.polygon import read_polygon, plot_polygons, polygon_area
-from anuga.abstract_2d_finite_volumes.generic_domain import Quantity
-from anuga.pmesh.mesh_interface import create_mesh_from_regions
-from anuga.shallow_water.shallow_water_domain import Domain
-from anuga.shallow_water.forcing import Rainfall, Inflow
-from anuga.structures.inlet_operator import Inlet_operator
-from anuga.utilities import sww_merge
+#import time
+#import sys
+#import os.path
+#import glob
+from anuga import file_function
+from anuga import Polygon_function
+from anuga import read_polygon
+#from anuga import Quantity
+from anuga import create_mesh_from_regions
+from anuga import Domain
+#from anuga import Rainfall, Inflow
+from anuga import Inlet_operator
+#from anuga.utilities import sww_merge
 
 #------------------------------------------------------------------------------
 # PARALLEL INTERFACE
 #------------------------------------------------------------------------------
 
-from anuga_parallel import distribute, myid, numprocs, finalize,barrier
+from anuga import distribute, myid, numprocs, finalize,barrier
 from anuga_parallel.parallel_operator_factory import Inlet_operator, Boyd_box_operator
-from anuga.operators.rate_operators import Polygonal_rate_operator
+from anuga import Rate_operator
+
+
+
+args = anuga.get_args()
+alg = args.alg
+verbose = args.verbose
+
 #------------------------------------------------------------------------------
 # TEST FUNCTION AND DICTIONARY
 #------------------------------------------------------------------------------
@@ -225,13 +232,9 @@ if myid == 0:
     #------------------------------------------------------------------------------
     
     domain = Domain(meshname, use_cache=False, verbose=True)
-    # Get arguments
-    args = anuga.get_args()
-    alg = args.alg
-    #cfl = args.cfl
-    verbose = args.verbose
+
     domain.set_flow_algorithm(alg)
-    #domain.set_CFL(cfl)
+
     if(not domain.get_using_discontinuous_elevation()):
         raise Exception, 'This model run relies on a discontinuous elevation solver (because of how topography is set up)'
 
@@ -266,7 +269,7 @@ if myid == 0:
 
     os.remove('DEM_bridges/towradgi.csv') # Clean up csv file
 else:
-	domain = None
+    domain = None
 
 barrier()
 if myid == 0 and verbose: 
@@ -724,247 +727,247 @@ culvert = Boyd_box_operator(domain,
 # FIXME: Reduce the number of code lines here! 
 Catchment_Rain_Polygon100 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '100.csv'))
 rainfall100 = file_function(join('Forcing', 'Rainfall', 'Hort', '100.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall100, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall100, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon100, default_rate = 0.0)
 
 Catchment_Rain_Polygon101 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '101.csv'))
 rainfall101 = file_function(join('Forcing', 'Rainfall', 'Hort', '101.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall101, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall101, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon101, default_rate = 0.0)
 
 Catchment_Rain_Polygon200 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '200.csv'))
 rainfall200 = file_function(join('Forcing', 'Rainfall', 'Hort', '200.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall200, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall200, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon200, default_rate = 0.0)
 
 Catchment_Rain_Polygon103 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '103.csv'))
 rainfall103 = file_function(join('Forcing', 'Rainfall', 'Hort', '103.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall103, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall103, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon103, default_rate = 0.0)
 
 Catchment_Rain_Polygon104 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '104.csv'))
 rainfall104 = file_function(join('Forcing', 'Rainfall', 'Hort', '104.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall104, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall104, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon104, default_rate = 0.0)
 
 Catchment_Rain_Polygon1200 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '1200.csv'))
 rainfall1200 = file_function(join('Forcing', 'Rainfall', 'Hort', '1200.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall1200, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall1200, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon1200, default_rate = 0.0)
 
 Catchment_Rain_Polygon300 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '300.csv'))
 rainfall300 = file_function(join('Forcing', 'Rainfall', 'Hort', '300.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall300, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall300, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon300, default_rate = 0.0)
 
 Catchment_Rain_Polygon106 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '106.csv'))
 rainfall106 = file_function(join('Forcing', 'Rainfall', 'Hort', '106.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall106, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall106, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon106, default_rate = 0.0)
 
 Catchment_Rain_Polygon400 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '400.csv'))
 rainfall400 = file_function(join('Forcing', 'Rainfall', 'Hort', '400.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall400, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall400, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon400, default_rate = 0.0)
 
 Catchment_Rain_Polygon108 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '108.csv'))
 rainfall108 = file_function(join('Forcing', 'Rainfall', 'Hort', '108.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall108, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall108, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon108, default_rate = 0.0)
 
 Catchment_Rain_Polygon500 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '500.csv'))
 rainfall500 = file_function(join('Forcing', 'Rainfall', 'Hort', '500.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall500, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall500, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon500, default_rate = 0.0)
 
 Catchment_Rain_Polygon5005 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '5005.csv'))
 rainfall5005 = file_function(join('Forcing', 'Rainfall', 'Hort', '5005.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall5005, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall5005, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon5005, default_rate = 0.0)
 
 Catchment_Rain_Polygon5004 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '5004.csv'))
 rainfall5004 = file_function(join('Forcing', 'Rainfall', 'Hort', '5004.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall5004, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall5004, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon5004, default_rate = 0.0)
 
 Catchment_Rain_Polygon5006 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '5006.csv'))
 rainfall5006 = file_function(join('Forcing', 'Rainfall', 'Hort', '5006.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall5006, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall5006, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon5006, default_rate = 0.0)
 
 Catchment_Rain_Polygon501 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '501.csv'))
 rainfall501 = file_function(join('Forcing', 'Rainfall', 'Hort', '501.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall501, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall501, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon501, default_rate = 0.0)
 
 Catchment_Rain_Polygon502 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '502.csv'))
 rainfall502 = file_function(join('Forcing', 'Rainfall', 'Hort', '502.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall502, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall502, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon502, default_rate = 0.0)
 
 Catchment_Rain_Polygon600 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '600.csv'))
 rainfall600 = file_function(join('Forcing', 'Rainfall', 'Hort', '600.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall600, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall600, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon600, default_rate = 0.0)
 
 Catchment_Rain_Polygon6005 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '6005.csv'))
 rainfall6005 = file_function(join('Forcing', 'Rainfall', 'Hort', '6005.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall6005, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall6005, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon6005, default_rate = 0.0)
 
 Catchment_Rain_Polygon601 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '601.csv'))
 rainfall601 = file_function(join('Forcing', 'Rainfall', 'Hort', '601.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall601, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall601, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon601, default_rate = 0.0)
 
 Catchment_Rain_Polygon602 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '602.csv'))
 rainfall602 = file_function(join('Forcing', 'Rainfall', 'Hort', '602.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall602, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall602, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon602, default_rate = 0.0)
 
 Catchment_Rain_Polygon603 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '603.csv'))
 rainfall603 = file_function(join('Forcing', 'Rainfall', 'Hort', '603.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall603, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall603, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon603, default_rate = 0.0)
 
 Catchment_Rain_Polygon504 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '504.csv'))
 rainfall504 = file_function(join('Forcing', 'Rainfall', 'Hort', '504.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall504, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall504, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon504, default_rate = 0.0)
 
 Catchment_Rain_Polygon110 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '110.csv'))
 rainfall110 = file_function(join('Forcing', 'Rainfall', 'Hort', '110.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall110, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall110, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon110, default_rate = 0.0)
 
 Catchment_Rain_Polygon700 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '700.csv'))
 rainfall700 = file_function(join('Forcing', 'Rainfall', 'Hort', '700.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall700, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall700, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon700, default_rate = 0.0)
 
 Catchment_Rain_Polygon701 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '701.csv'))
 rainfall701 = file_function(join('Forcing', 'Rainfall', 'Hort', '701.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall701, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall701, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon701, default_rate = 0.0)
 
 Catchment_Rain_Polygon702 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '702.csv'))
 rainfall702 = file_function(join('Forcing', 'Rainfall', 'Hort', '702.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall702, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall702, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon702, default_rate = 0.0)
 
 Catchment_Rain_Polygon7021 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '7021.csv'))
 rainfall7021 = file_function(join('Forcing', 'Rainfall', 'Hort', '7021.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall7021, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall7021, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon7021, default_rate = 0.0)
 
 Catchment_Rain_Polygon703 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '703.csv'))
 rainfall703 = file_function(join('Forcing', 'Rainfall', 'Hort', '703.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall703, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall703, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon703, default_rate = 0.0)
 
 Catchment_Rain_Polygon112 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '112.csv'))
 rainfall112 = file_function(join('Forcing', 'Rainfall', 'Hort', '112.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall112, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall112, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon112, default_rate = 0.0)
 
 Catchment_Rain_Polygon800 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '800.csv'))
 rainfall800 = file_function(join('Forcing', 'Rainfall', 'Hort', '800.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall800, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall800, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon800, default_rate = 0.0)
 
 Catchment_Rain_Polygon801 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '801.csv'))
 rainfall801 = file_function(join('Forcing', 'Rainfall', 'Hort', '801.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall801, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall801, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon801, default_rate = 0.0)
 
 Catchment_Rain_Polygon8002 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '8002.csv'))
 rainfall8002 = file_function(join('Forcing', 'Rainfall', 'Hort', '8002.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall8002, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall8002, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon8002, default_rate = 0.0)
 
 Catchment_Rain_Polygon802 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '802.csv'))
 rainfall802 = file_function(join('Forcing', 'Rainfall', 'Hort', '802.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall802, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall802, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon802, default_rate = 0.0)
 
 Catchment_Rain_Polygon8021 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '8021.csv'))
 rainfall8021 = file_function(join('Forcing', 'Rainfall', 'Hort', '8021.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall8021, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall8021, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon8021, default_rate = 0.0)
 
 Catchment_Rain_Polygon803 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '803.csv'))
 rainfall803 = file_function(join('Forcing', 'Rainfall', 'Hort', '803.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall803, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall803, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon803, default_rate = 0.0)
 
 Catchment_Rain_Polygon900 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '900.csv'))
 rainfall900 = file_function(join('Forcing', 'Rainfall', 'Hort', '900.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall900, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall900, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon900, default_rate = 0.0)
 
 Catchment_Rain_Polygon901 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '901.csv'))
 rainfall901 = file_function(join('Forcing', 'Rainfall', 'Hort', '901.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall901, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall901, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon901, default_rate = 0.0)
 
 Catchment_Rain_Polygon805 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '805.csv'))
 rainfall805 = file_function(join('Forcing', 'Rainfall', 'Hort', '805.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall805, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall805, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon805, default_rate = 0.0)
 
 Catchment_Rain_Polygon114 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '114.csv'))
 rainfall114 = file_function(join('Forcing', 'Rainfall', 'Hort', '114.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall114, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall114, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon114, default_rate = 0.0)
 
 Catchment_Rain_Polygon1000 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '1000.csv'))
 rainfall1000 = file_function(join('Forcing', 'Rainfall', 'Hort', '1000.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall1000, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall1000, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon1000, default_rate = 0.0)
 
 Catchment_Rain_Polygon1001 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '1001.csv'))
 rainfall1001 = file_function(join('Forcing', 'Rainfall', 'Hort', '1001.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall1001, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall1001, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon1001, default_rate = 0.0)
 
 Catchment_Rain_Polygon1002 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '1002.csv'))
 rainfall1002 = file_function(join('Forcing', 'Rainfall', 'Hort', '1002.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall1002, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall1002, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon1002, default_rate = 0.0)
 
 Catchment_Rain_Polygon1003 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '1003.csv'))
 rainfall1003 = file_function(join('Forcing', 'Rainfall', 'Hort', '1003.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall1003, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall1003, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon1003, default_rate = 0.0)
 
 Catchment_Rain_Polygon116 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '116.csv'))
 rainfall116 = file_function(join('Forcing', 'Rainfall', 'Hort', '116.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall116, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall116, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon116, default_rate = 0.0)
 
 Catchment_Rain_Polygon117 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '117.csv'))
 rainfall117 = file_function(join('Forcing', 'Rainfall', 'Hort', '117.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall117, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall117, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon117, default_rate = 0.0)
 
 Catchment_Rain_Polygon11001 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '11001.csv'))
 rainfall11001 = file_function(join('Forcing', 'Rainfall', 'Hort', '11001.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall11001, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall11001, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon11001, default_rate = 0.0)
 
 Catchment_Rain_Polygon11002 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '11002.csv'))
 rainfall11002 = file_function(join('Forcing', 'Rainfall', 'Hort', '11002.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall11002, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall11002, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon11002, default_rate = 0.0)
 
 Catchment_Rain_Polygon1100 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '1100.csv'))
 rainfall1100 = file_function(join('Forcing', 'Rainfall', 'Hort', '1100.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall1100, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall1100, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon1100, default_rate = 0.0)
 
 Catchment_Rain_Polygon119 = read_polygon(join('Forcing', 'Rainfall', 'Gauge', '119.csv'))
 rainfall119 = file_function(join('Forcing', 'Rainfall', 'Hort', '119.tms'), quantities=['rate'])
-op1 = Polygonal_rate_operator(domain, rate=rainfall119, factor=1.0e-3, \
+op1 = Rate_operator(domain, rate=rainfall119, factor=1.0e-3, \
                       polygon=Catchment_Rain_Polygon119, default_rate = 0.0)
 
 barrier()
@@ -998,6 +1001,8 @@ for t in domain.evolve(yieldstep = 300., finaltime = 83700.):
     if myid == 0:
         domain.write_time()
 
+domain.sww_merge(delete_old=True)
+
 barrier()
 if myid == 0:
     print 'Number of processors %g ' %numprocs
@@ -1006,7 +1011,6 @@ if myid == 0:
     print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
     print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
 
-    os.chdir(model_output_dir)
-    sww_merge.sww_merge_parallel(outname, np=numprocs, verbose=True, delete_old=False)
+
 
 finalize()

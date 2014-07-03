@@ -701,11 +701,16 @@ class RiverWall:
                 newFile.close()
         else:
             pass
-
-        # Files must be created before writing out
-        domain=self.domain
         
-        #if domain.parallel: barrier()    
+
+
+
+        domain = self.domain
+
+        # The other processes might try to write into file
+        # before process 0 has created file, so we need a 
+        # barrier
+        if domain.parallel: barrier()    
 
         # Now dump the required info to the files
         for i in range(numprocs):
@@ -727,7 +732,6 @@ class RiverWall:
                         
             else:
                 pass
-
-            #if domain.parallel : barrier() 
+ 
 
         return

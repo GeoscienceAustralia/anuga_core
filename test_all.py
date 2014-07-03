@@ -5,6 +5,8 @@ import os
 
 buildroot = os.getcwd()
 
+
+
 os.chdir('source')
 os.chdir('anuga')
 print

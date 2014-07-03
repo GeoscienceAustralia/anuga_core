@@ -32,7 +32,7 @@ event_number = 'mux_' + model    # the event number or the mux file name
 alpha = 0.1             # smoothing parameter for mesh
 friction = 0.025         # manning's friction coefficient
 starttime = 0           # start time for simulation
-finaltime = 3600        # final time for simulation
+finaltime = 7200        # final time for simulation
 
 nameFlag='xxNameFlagxx'
 
@@ -107,7 +107,7 @@ land_initial_conditions_filename = [['initial_conditions_' + model +'.csv', 0]]
 # GAUGES - for creating timeseries at a specific point
 # Used in get_timeseries.py.  
 # Format easting,northing,name,elevation (with header)
-gauges_filename = 'gauges.csv'
+gauges_filename = 'gauges/validation_gauges.csv'
 
 # BUILDINGS POLYOGN - for elevation of buildings
 # Used in run_model.py
@@ -270,7 +270,7 @@ if setup == 'trial':
     yieldstep = 30.
 elif setup == 'basic': 
     scale_factor = 4
-    yieldstep = 30.
+    yieldstep = 120.
 elif setup == 'final': 
     scale_factor = 1
     yieldstep = 30.

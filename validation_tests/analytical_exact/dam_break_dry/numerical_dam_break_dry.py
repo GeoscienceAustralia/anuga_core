@@ -50,10 +50,8 @@ def height(x,y):
 
 args = anuga.get_args()
 alg = args.alg
-cfl = args.cfl
 verbose = args.verbose
 
-print args
 
 
 #================================================================================

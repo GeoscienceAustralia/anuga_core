@@ -7,6 +7,7 @@ simulated tsunami is generated through an sts file from build_boundary.py.
 Ole Nielsen and Duncan Gray, GA - 2005, Jane Sexton, Nick Bartzis, GA - 2006
 Ole Nielsen, Jane Sexton and Kristy Van Putten - 2008
 Gareth Davies -- 2013
+Steve Roberts -- 2014
 """
 
 #------------------------------------------------------------------------------
@@ -41,15 +42,16 @@ import shutil
 # Pick up useful command line arguments (which over rides 
 # values set before
 #--------------------------------------------------
-cfl = anuga.args.cfl
-alg = anuga.args.alg
-verbose = anuga.args.verbose
-np = anuga.args.np
+args = anuga.get_args()
 
-if myid == 0 and verbose:
+alg = args.alg
+verbose = args.verbose
+
+
+if myid == 0 and verbose and numprocs == 1:
     print 80*'#'
     print '#'
-    print '# Long Validation Test, takes 10 minutes on my desktop'
+    print '# Long Validation Test, takes 30 minutes on my desktop'
     print '#'
     print '# Consider running in parallel'
     print '#'
@@ -123,6 +125,10 @@ num_ocean_segments = len(event_sts) - 1
 # Number of landward_boundary points
 num_land_points = anuga.file_length(project.landward_boundary)
 
+
+#======================================
+# Create sequential domain
+#======================================
 if(myid==0):
     # Boundary tags refer to project.landward_boundary
     # 4 points equals 5 segments start at N
@@ -139,7 +145,7 @@ if(myid==0):
                                     interior_regions=project.interior_regions,
                                     mesh_filename=project.meshes,
                                     use_cache=False,
-                                    verbose=True)
+                                    verbose=verbose)
     log.critical(domain.statistics())
 
     # FIXME(Ole): How can we make this more automatic?
@@ -150,7 +156,6 @@ if(myid==0):
     domain.set_datadir(project.output_run) 
 
     domain.set_flow_algorithm(alg)
-    #domain.set_CFL(cfl)
 
     #-------------------------------------------------------------------------------
     # Setup initial conditions
@@ -160,19 +165,26 @@ if(myid==0):
 
     # Set the initial stage in the offcoast region only
     if project.land_initial_conditions:
+        print '**********  IC ***********************************'
         IC = anuga.Polygon_function(project.land_initial_conditions,
                               default=project.tide,
                               geo_reference=domain.geo_reference)
     else:
         IC = project.tide
 
-    domain.set_quantity('stage', IC, use_cache=False, verbose=True)
+
     domain.set_quantity('friction', project.friction) 
     domain.set_quantity('elevation', 
                         filename=project.combined_elevation+'.pts',
                         use_cache=True,
                         verbose=True,
                         alpha=project.alpha)
+    Stage = domain.quantities['stage']
+    Elev  = domain.quantities['elevation']
+    
+    domain.set_quantity('stage', 0.8, use_cache=False, verbose=True)
+    
+    
 
     if project.use_buildings:
         # Add buildings from file
@@ -251,7 +263,7 @@ domain.set_boundary({'back': Br,
 t0 = time.time()
 
 
-## Jump up to time 400 sec
+## Jump up to time 400 sec to cover missing boundary data before 302 sec
 for t in domain.evolve(yieldstep=400, finaltime=400):
     log.critical(domain.timestepping_statistics())
 #    log.critical(domain.boundary_statistics(tags='ocean'))
@@ -270,7 +282,7 @@ for t in domain.evolve(yieldstep=project.yieldstep,
 ## Final print out
 barrier()
 if(myid==0):    
-     log.critical('Simulation took %.2f seconds' %(time.time()-t0))
+    log.critical('Simulation took %.2f seconds' %(time.time()-t0))
 
 
 domain.sww_merge(delete_old=True)

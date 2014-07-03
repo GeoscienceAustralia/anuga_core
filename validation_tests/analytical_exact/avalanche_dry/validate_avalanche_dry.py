@@ -32,7 +32,8 @@ class Test_results(unittest.TestCase):
             print
             print indent+'Running simulation script'
 
-            
+        # Run basic script (can be parallel if -np used in call
+        # to this script
         s = 'numerical_avalanche_dry.py'
         res = anuga.run_anuga_script(s,args=args)
 
@@ -115,8 +116,8 @@ class Test_results(unittest.TestCase):
         if verbose:
             print indent+'Errors in xvelocity: ', eu10, eu30
 
-        assert eu10 < 0.1,  'L^1 error %g greater than 10 percent'% eu10
-        assert eu30 < 0.1,  'L^1 error %g greater than 10 percent'% eu30
+        assert eu10 < 0.2,  'L^1 error %g greater than 20 percent'% eu10
+        assert eu30 < 0.2,  'L^1 error %g greater than 20 percent'% eu30
 
  
 

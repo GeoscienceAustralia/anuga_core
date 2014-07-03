@@ -15,7 +15,7 @@ import os, time, sys
 import anuga
 args = anuga.get_args()
 
-print args
+#print args
 
 
 # List any sub directory to exclude from validation.
@@ -67,11 +67,7 @@ for path, filename in validation_dirs_and_files:
     # print 'filename path', path, filename
 
     os.chdir(path)
-    s = 'python %s ' % filename
-    print 80*'='
-    print s
-    print 80*'='
-    os.system(s)
+    anuga.run_anuga_script(filename, args = args)
     
     # Back to parent directory
     os.chdir(parentdir)

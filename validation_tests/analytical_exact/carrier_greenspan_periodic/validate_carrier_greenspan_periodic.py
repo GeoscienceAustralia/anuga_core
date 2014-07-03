@@ -9,7 +9,8 @@ import anuga
 
 indent = anuga.indent
 
-verbose = True
+args = anuga.get_args()
+verbose = args.verbose
 
 class Test_results(unittest.TestCase):
     def setUp(self):
@@ -32,7 +33,7 @@ class Test_results(unittest.TestCase):
             print indent+'Running simulation script'
 
         s = 'numerical_carrier_greenspan.py'
-        res = os.system('python %s > validate_output.stdout' %s)
+        res = anuga.run_anuga_script(s,args=args)
 
         # Test that script runs ok
         assert res == 0
@@ -126,7 +127,7 @@ class Test_results(unittest.TestCase):
             print indent+'L^1 Errors in xvelocity: ', eu
 
         for i, id in enumerate(ids):
-            assert eu[i] < 0.05,  'L^1 error %g greater than 5 percent'% eu[i]
+            assert eu[i] < 0.1,  'L^1 error %g greater than 10 percent'% eu[i]
 
 
 #-------------------------------------------------------------

@@ -65,7 +65,7 @@ The main parameters in the validations are the Courant--Friedrichs-Lewy (CFL) nu
 which is available in the \\
 \verb anuga.validation_tests \\
 module. In the default setting, we set the CFL to be $1.0$ and the flow algorithm to be DE0 (second order in space and first order in time). The complete available flow algorithms are as follow:
-'1$\_$0', '1$\_$5', '1$\_$75', '2$\_$0', '2$\_$0$\_$limited', '2$\_$5', 'tsunami', 'yusuke', 'DE0', 'DE1'.
+'1$\_$0', '1$\_$5', '1$\_$75', '2$\_$0', '2$\_$0$\_$limited', '2$\_$5', 'tsunami', 'yusuke', 'DE0', 'DE1', 'DE2'.
 %\begin{enumerate}
 %\item '1$\_$0', 
 %\item '1$\_$5', 
@@ -111,8 +111,10 @@ We provide explanations on how to add new tests in the Appendix.
 \inputresults{../analytical_exact/rundown_mild_slope}
 \inputresults{../analytical_exact/rundown_mild_slope_coarse}
 \inputresults{../analytical_exact/subcritical_over_bump}
+\inputresults{../analytical_exact/subcritical_flat}
 \inputresults{../analytical_exact/transcritical_with_shock}
 \inputresults{../analytical_exact/transcritical_without_shock}
+\inputresults{../analytical_exact/supercritical_over_bump}
 \inputresults{../analytical_exact/trapezoidal_channel}
 
 %%======================
@@ -120,6 +122,7 @@ We provide explanations on how to add new tests in the Appendix.
 %%======================
 \inputresults{../experimental_data/dam_break_yeh_petroff}
 \inputresults{../behaviour_only/lid_driven_cavity}
+\inputresults{../behaviour_only/weir_1}
 
 \inputresults{../other_references/radial_dam_break_dry}
 \inputresults{../other_references/radial_dam_break_wet}

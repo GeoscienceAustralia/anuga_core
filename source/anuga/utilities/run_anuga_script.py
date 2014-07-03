@@ -6,26 +6,29 @@ __date__ ="$20/08/2012 11:20:00 PM$"
 
     
     
-def run_script(script, args=None, np=1, alg=None, verbose=False):
+def run_script(script, args=None, np=1, alg=None, verbose=False, allow_parallel=True):
     #from anuga.validation_utilities.fabricate import run
     
+    
     if args is None:    
-        #if cfl is None:
-        #    from anuga.validation_utilities.parameters import cfl
         if alg is None:
             from anuga.validation_utilities.parameters import alg
     else:
-        #cfl = args.cfl
         alg = args.alg
         np = args.np
         verbose = args.verbose
         
-    #print args
+        
+    print args
+    args_dict = vars(args)
+    print args_dict
+    print zip(args_dict.keys(), args_dict.values())
+    
         
     #import subprocess
     import os
     try:
-        if np>1:
+        if np>1 and allow_parallel:
             if verbose:
                 cmd = 'mpirun -np %s python %s -alg %s -v ' % (str(np), script,  str(alg))
             else:
