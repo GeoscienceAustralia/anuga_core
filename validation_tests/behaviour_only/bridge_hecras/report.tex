@@ -1,0 +1,39 @@
+\documentclass[11pt,a4paper]{article}%{amsart}
+
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage[section]{placeins} % 'one-shot' command to nicely place figures
+\usepackage{datatool}
+\usepackage{url}
+\DeclareUrlCommand\UScore{\urlstyle{rm}}
+
+
+\input{../../reports/local-defs}
+\input{../../reports/saved_parameters}
+
+%=========================================
+\begin{document} 
+%=========================================
+
+\title{Automated Report on the Performance of \anuga{} and HECRAS in a case study with a bridge}
+\maketitle
+%\tableofcontents
+
+%======================
+%\chapter{Dry Dam Break}
+%======================
+
+\input{results}
+
+\section{Parameters used for this simulation}
+
+\input{parameters}
+
+%======================
+% bibliography
+%======================
+
+\bibliographystyle{plain}
+\bibliography{../../reports/bibliography}
+
+\end{document}
