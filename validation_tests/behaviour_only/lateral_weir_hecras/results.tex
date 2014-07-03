@@ -3,15 +3,25 @@
 This test compares riverwalls in ANGUA with default lateral structures in
 HECRAS. 
 
-A HECRAS model was set up with 3 uniform parallel channels ('left',
-'middle', 'right), with lengths 1000m, bed-slope $3/1000$, manning's n of 0.03,
-and widths of 10m, 20m, and 10m respectively. The cross-sections were all
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{hecras_riverwall_anugaTest/RASGeometry_levee.png}
+\end{center}
+\caption{HECRAS model geometric schematization. The `right' channel appears on
+the left side of this figure, and the `left' on the right.}
+\label{schematic}
+\end{figure}
+
+A HECRAS model was set up with 3 uniform parallel channels (`left', `middle',
+`right', orientations defined when looking downstream). All channels had
+lengths of 1000m, bed-slope $3/1000$, manning's n of 0.03, while their widths were 10m,
+20m, and 10m respectively (Figure~\ref{schematic}). The cross-sections were all
 nearly-flat (three-points with bank elevations 1cm above the central bed
 elevation), and for all reaches the most upstream cross-section (1000) had an
 elevation of 0m. These three channels were connected with broad-crested lateral
 weirs (using HecRAS's default lateral weir drag coefficient of 1.1 in metric
-units). The 'right' and 'middle' channels were connected with a 198m long weir
-with an elevation 0.5m above the bed, from stations 799 to 601. The 'left' and
+units). The `right' and `middle' channels were connected with a 198m long weir
+with an elevation 0.5m above the bed, from stations 799 to 601. The `left' and
 'middle' channels were connected with a 198m long weir with an elevation 0.5m
 above the bed from stations 699 to 501. 
 

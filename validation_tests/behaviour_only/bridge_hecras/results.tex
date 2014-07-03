@@ -2,11 +2,21 @@
 This test compares a prismatic channel flow with a bridge in HECRAS and ANUGA.
 A 10m wide, 1000m long channel (slope of 1/200, bankfull depth of 1m,
 rectangular cross-section) flows through a floodplain (10m wide on either side
-of the channel). 500m downstream there is a bridge with a 1.3m high rectangular
-opening over the channel, and a deck elevation of -1m. In HECRAS the bridge is
-modelled using the enegy method, wheras in ANUGA the boyd-box-culvert routines
-are used for the bridge opening, and the shallow water equations are used for
-bridge overflow. Both models have a uniform Manning's n of 0.03. 
+of the channel) (Figure~\ref{schematic}). 500m downstream there is a bridge
+with a 1.3m high rectangular opening over the channel, and a deck elevation of
+-1m. In HECRAS the bridge is modelled using the enegy method, wheras in ANUGA
+the boyd-box-culvert routines are used for the bridge opening, and the shallow
+water equations are used for bridge overflow. Both models have a uniform
+Manning's n of 0.03. 
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=1.0\textwidth]{hecras_bridge_test/RASGeometry_Bridge.png}
+\end{center}
+\caption{Screenshot showing the HECRAS model geometry schematization}
+\label{schematic}
+\end{figure}
+
 
 A discharge timeseries is imposed upstream for both models, with the discharge
 increasing from 1m$^3$/s initially to 70m$^3$/s at the end of the simulation.
