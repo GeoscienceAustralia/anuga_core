@@ -1,0 +1,36 @@
+\section{Tides in HECRAS and \anuga{}}
+This test compares idealised tidal channel flow in HECRAS and ANUGA. The tidal
+amplitude (0.4m) is a significant fraction of the channel depth ($\simeq 1$m),
+so nonlinear tidal deformation is significant.  
+
+A 20m wide, 1000m long straight channel with rectangular cross-section flows through a
+floodplain (10m wide on either side of the channel). Upstream of 220m the bed
+elevation is constant (1m below the floodplain), downstream of 100m it is 3m below
+the floodplain, and it varies linearly in between. The floodplain has a constant
+elevation (1m). Manning's n is 0.03. The upstream boundary is reflective, while
+at the downstream boundary a stage timeseries $y(t)$ is imposed (where $t$ is
+time in seconds):
+$$y=0.6+0.4*\sin(2\pi t/(1800))$$
+
+\section{Results}
+Figure~\ref{result} show stage timeseries at various stations downstream in each model.
+For visual clarity the gauges are offset vertically.  The ANUGA and HECRAS
+results should be visually indistinguishable.  There is a clear deformation of
+the tide as it travels upstream, with the incoming tide having a shorter
+duration than the outgoing tide at upstream stations, which is typical for
+tides in shallow channels when overbank effects are not dominant. In this
+example there is minor overbank inundation in parts of both models, but it is
+just a few cm deep.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=1.0\textwidth]{CENTRAL_CHANNEL.png}
+\end{center}
+\caption{Tidal levels in HECRAS and \anuga{}}
+\label{result}
+\end{figure}
+
+Note that this ANUGA model uses a coarse mesh with discontinuous elevation to
+resolve the banks, so this example should not run with non-discontinuous
+elevation flow algorithms.
+
