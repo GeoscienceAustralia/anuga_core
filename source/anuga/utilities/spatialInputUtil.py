@@ -351,7 +351,7 @@ if gdal_available:
         return line
     
     #################################################################################
-    def insert_intersection_point(intersectionPt, line_pts, point_movement_threshold):
+    def insert_intersection_point(intersectionPt, line_pts, point_movement_threshold, verbose=False):
         """
             Add intersectionPt to line_pts, either by inserting it, or if a point on line_pts is
             closer than point_movement_threshold, then by moving that point to the intersection point
@@ -380,6 +380,8 @@ if gdal_available:
             # Insert the intersection point. We do this in a tricky way to
             # account for the possibility of L1_pts having > 2 coordinates
             # (riverWalls)
+            if verbose:
+                print '      Inserting new point'
             dummyPt=copy.copy(L1_pts[tmp[1]])
             L1_pts.insert(tmp[1]+1,dummyPt) 
             L1_pts[tmp[1]+1][0]=iP[0]
@@ -389,12 +391,14 @@ if gdal_available:
                 # Find distance of inserted point from neighbours, and 
                 # Set 3rd coordinate as distance-weighted average of the others
                 d0=((L1_pts[tmp[1]][0]-L1_pts[tmp[1]+1][0])**2.+\
-                   (L1_pts[tmp[1]][0]-L1_pts[tmp[1]+1][1])**2.)**0.5
+                   (L1_pts[tmp[1]][1]-L1_pts[tmp[1]+1][1])**2.)**0.5
                 d1=((L1_pts[tmp[1]+2][0]-L1_pts[tmp[1]+1][0])**2.+\
                    (L1_pts[tmp[1]+2][1]-L1_pts[tmp[1]+1][1])**2.)**0.5
                 L1_pts[tmp[1]+1][2] = (d0*L1_pts[tmp[1]+2][2] + d1*L1_pts[tmp[1]][2])/(d0+d1)
     
         else:
+            if verbose:
+                print '      Shifting existing point'
             # Move a point already on L1
             L1_pts=shift_point_on_line(iP, L1_pts, tmp[1])
     
@@ -434,7 +438,7 @@ if gdal_available:
     
     #######################################################################################################
     
-    def addIntersectionPtsToLines(L1,L2, point_movement_threshold=0.0, buf=1.0e-06, tol2 = 100,
+    def addIntersectionPtsToLines(L1,L2, point_movement_threshold=0.0, buf=1.0e-05, tol2 = 100,
                                   verbose=True, nameFlag=''):
         """
             Add intersection points to lines L1 and L2 if they intersect each other
@@ -494,8 +498,8 @@ if gdal_available:
     
             # Insert the points into the line segments
             for i in range(len(intersectionPts)):
-                L1_pts = insert_intersection_point(intersectionPts[i], L1_pts, point_movement_threshold)
-                L2_pts = insert_intersection_point(intersectionPts[i], L2_pts, point_movement_threshold)
+                L1_pts = insert_intersection_point(intersectionPts[i], L1_pts, point_movement_threshold, verbose=verbose)
+                L2_pts = insert_intersection_point(intersectionPts[i], L2_pts, point_movement_threshold, verbose=verbose)
                 
             # Convert to the input format
             L1_pts=ListPts2Wkb(L1_pts,geometry_type='line')
@@ -795,7 +799,14 @@ if gdal_available:
                                 point_movement_threshold=point_movement_threshold,\
                                 verbose=verbose, nameFlag='Bounding Pol intersects '+ n1)
                 riverWalls[n1]=Wkb2ListPts(rw1)
-                bounding_polygon=Wkb2ListPts(bp2,removeLast=True)
+                # Since the bounding polygon is a loop, the first/last points are the same
+                # If one of these was moved, the other should be moved too. Since we
+                # will drop the last bounding_polygon point, we only need to worry about the first
+                bounding_polygon=Wkb2ListPts(bp2,removeLast=False)
+                if(bounding_polygon[-1] is not bounding_polygon[0]):
+                    bounding_polygon[0]=bounding_polygon[-1]
+                # Drop the last point
+                bounding_polygon=bounding_polygon[:-1]
     
         # Clean intersections of bounding polygon and breaklines
         if(verbose):
@@ -812,13 +823,39 @@ if gdal_available:
                                 point_movement_threshold=point_movement_threshold,
                                 verbose=verbose, nameFlag='Bounding Pol intersects '+n1)
                 breakLines[n1]=Wkb2ListPts(bl1)
-                bounding_polygon=Wkb2ListPts(bp2, removeLast=True)
-      
+                # Since the bounding polygon is a loop, the first/last points are the same
+                # If one of these was moved, the other should be moved too. Since we
+                # will drop the last bp2 point, we only need to worry about the first
+                bounding_polygon=Wkb2ListPts(bp2,removeLast=False)
+                if(bounding_polygon[-1] is not bounding_polygon[0]):
+                    bounding_polygon[0]=bounding_polygon[-1]
+                # Drop the last point
+                bounding_polygon=bounding_polygon[:-1]
+
         # Remove the extra 0.0 from bounding polygon [this cannot have 3 coordinates] 
         bounding_polygon = [ bounding_polygon[i][0:2] for i in range(len(bounding_polygon))]
         # Same for breaklines [although might not matter]
         for n1 in breakLines.keys():
             breakLines[n1] = [breakLines[n1][i][0:2] for i in range(len(breakLines[n1]))]
+
+        # Check that all mesh-boundary points are inside the bounding polygon
+        from anuga.geometry.polygon import outside_polygon
+        for blCat in [riverWalls, breakLines]:
+            for n1 in blCat.keys():
+                l=len(blCat[n1])
+                # Test every point -- means we can strip 3rd coordinate if needed
+                for j in range(l):
+                    isOut=outside_polygon(blCat[n1][j][0:2], bounding_polygon)
+                    if(len(isOut)>0):
+                        msg='Breakline/riverwall point '+str(blCat[n1][j][0:2]) +' on '+ n1+\
+                            ' is outside the bounding polygon.\n'+\
+                            'Check that it exceeds the bounding polygon by a distance < point_movement_threshold \n'+\
+                            ' so it can be moved back onto the polygon'
+                        print 'Polygon\n '
+                        print bounding_polygon
+                        print 'Line \n'
+                        print blCat[n1]
+                        raise Exception, msg
      
         return [bounding_polygon, breakLines, riverWalls]
     
@@ -960,7 +997,7 @@ else: # gdal_available == False
     def shift_point_on_line(pt, lineIn, nearest_segment_index):
         raise ImportError, msg
     
-    def insert_intersection_point(intersectionPt, line_pts, point_movement_threshold):
+    def insert_intersection_point(intersectionPt, line_pts, point_movement_threshold,verbose=False):
         raise ImportError, msg
 
     def check_polygon_is_small(intersection, buf, tol2=100.):

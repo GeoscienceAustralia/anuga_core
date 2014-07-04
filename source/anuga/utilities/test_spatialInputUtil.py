@@ -361,15 +361,23 @@ class Test_spatialInputUtil(unittest.TestCase):
         except:
             assert True
 
-        #print 'After first add_iinersections'
         #################################################################
         # Fix the riverwall, and it should work
-        riverWalls={ 'rw1': [[-0.01, 8., 2.],[10.01, 4., 3.]],
-                     'rw2': [[5.3, -0.01, 1.], [10., 10.01, 2.]] }
+        riverWalls={ 'rw1': [[-0.000001, 8., 2.],[10.0000001, 4., 3.]]
+                      }
         # This should work
         newBP, newBL, newRW=su.add_intersections_to_domain_features(bounding_polygon,\
                                 breakLines, riverWalls, point_movement_threshold=0.02,\
                                 verbose=verbose)
+
+        # There should be several new points on breakLines + riverWalls
+        assert newBL['bl1'][1]==newBL['bl2'][1]
+        assert newRW['rw1'][2][0:2]==newBL['bl1'][2]
+        assert newRW['rw1'][1][0:2]==newBL['bl2'][2]
+        # rw1 x/y coords are close to y=8-3/10*x
+        #     x/z coords are close to z=2+x/10
+        assert numpy.allclose(newRW['rw1'][1][2], newRW['rw1'][1][0]/10.+2)
+        assert numpy.allclose(newRW['rw1'][2][2], newRW['rw1'][2][0]/10.+2)
 
         return
 
