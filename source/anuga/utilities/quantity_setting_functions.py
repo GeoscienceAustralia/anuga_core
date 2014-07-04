@@ -91,19 +91,20 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
         INPUT: 
               poly_fun_pairs = [ [p0, f0], [p1, f1], ...]
 
-                  where fi(x,y) are functions returning quantity values at
-                  points, or constants in which case points in the polygon are set to that
-                  value, or (string) rasterFile names which can be passed to quantityRasterFun to make a function
-
-                  and pi are polygons where we want to use fi inside
+                  where fi(x,y) is a function returning quantity values at points, or any of the special cases below
+                  SPECIAL fi CASES:
+                  fi = a constant in which case points in the polygon are set to that value, 
+                  fi = a string rasterFile name which can be passed to quantityRasterFun to make a function,
+                  fi = a numpy array with 3 columns (x,y,Value) in which case nearest-neighbour interpolation is used on the points
                 
-                  If any pi = 'All', then we assume that ALL unset points are set
-                  using the function. This CAN ONLY happen in the last [fi,pi] pair where pi is
-                  not None (since fi will be applied to all remaining points -- so anything else is probably an input mistake)
-    
-                  If any pi = None, then that [fi,pi] pair is skipped
 
-                  if pi='Extent' and fi is the name of a raster file, then the
+                  pi are polygons where we want to use fi inside
+                  SPECIAL pi CASES: 
+                  If any pi = 'All', then we assume that ALL unset points are set
+                     using the function. This CAN ONLY happen in the last [fi,pi] pair where pi is
+                     not None (since fi will be applied to all remaining points -- so anything else is probably an input mistake)
+                  If any pi = None, then that [fi,pi] pair is skipped
+                  If pi = 'Extent' and fi is the name of a raster file, then the
                     extent of the raster file is used to define the polygon
 
               domain = ANUGA domain object
@@ -113,14 +114,14 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
                 domain.set_quantity('elevation', F)
     """
     import os
-    import scipy
+    import numpy
     from matplotlib import path
 
     def F(x,y):
         """
             This is the function we return
         """
-        isSet=scipy.zeros(len(x)) # Record if each point has been set
+        isSet=numpy.zeros(len(x)) # Record if each point has been set
         quantityVal=x*0 # F value
         lfp=len(poly_fun_pairs)
         if(lfp<=0):
@@ -130,7 +131,7 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
         # polygon inclusion
         xll=domain.geo_reference.xllcorner
         yll=domain.geo_reference.yllcorner
-        xy_array_trans=scipy.vstack([x+xll,y+yll]).transpose()
+        xy_array_trans=numpy.vstack([x+xll,y+yll]).transpose()
 
         # Test that none of the pi polygons [except perhaps the last] is 'All'
         for i in range(lfp-1):
@@ -158,10 +159,10 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
                     # Then we get the extent from the raster itself
                     import anuga.utilities.spatialInputUtil as su
                     newpi=su.getRasterExtent(fi,asPolygon=True)
-                    pi_path=path.Path(scipy.array(newpi))
+                    pi_path=path.Path(numpy.array(newpi))
                 else:
                     # Try matplotlib -- make the path a matplotlib path object
-                    pi_path=path.Path(scipy.array(pi))
+                    pi_path=path.Path(numpy.array(pi))
 
                 fInside=xy_array_trans[:,0]*0.
                 for j in range(len(fInside)):
@@ -183,6 +184,14 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
                     # a gdal-compatible raster
                     newfi = quantityRasterFun(domain, fi)
                     quantityVal[fInds] = newfi(x[fInds], y[fInds])
+                elif(type(fi) is numpy.ndarray):
+                    if fi.shape[1] is not 3:
+                        raise Exception, 'Array should have 3 columns -- x,y,value'
+                    newfi = make_nearestNeighbour_quantity_function(fi, domain)
+                    quantityVal[fInds] = newfi(x[fInds], y[fInds])
+                else:
+                    msg='Cannot make function from type '+str(type(fi))
+                    raise Exception, msg 
                 
                 isSet[fInds]=1
 
