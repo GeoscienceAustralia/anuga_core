@@ -73,11 +73,11 @@ def make_nearestNeighbour_quantity_function(quantity_xyValueIn, domain, threshol
 
 ###################################################################################################
 
-def composite_quantity_setting_function(fun_poly_pairs, domain):
+def composite_quantity_setting_function(poly_fun_pairs, domain):
     """
         Make a 'composite function' to set quantities -- applies different functions inside different polygon regions.
              
-        fun_poly_pairs = [ [f0, p0], [f1, p1], ...] 
+        poly_fun_pairs = [ [p0, f0], [p1, f1], ...] 
                     where fi is a function, or a constant, or the name of a gdal-compatible rasterFile; 
                     and pi is a polygon, or None, or 'All' (or it can be 'Extent' in the case that fi is a rasterFile name)
               
@@ -89,7 +89,7 @@ def composite_quantity_setting_function(fun_poly_pairs, domain):
                        ... etc
 
         INPUT: 
-              fun_poly_pairs = [ [f0, p0], [f1, p1], ...]
+              poly_fun_pairs = [ [p0, f0], [p1, f1], ...]
 
                   where fi(x,y) are functions returning quantity values at
                   points, or constants in which case points in the polygon are set to that
@@ -122,7 +122,7 @@ def composite_quantity_setting_function(fun_poly_pairs, domain):
         """
         isSet=scipy.zeros(len(x)) # Record if each point has been set
         quantityVal=x*0 # F value
-        lfp=len(fun_poly_pairs)
+        lfp=len(poly_fun_pairs)
         if(lfp<=0):
             raise Exception, 'Must have at least 1 fun-poly-pair'
 
@@ -134,16 +134,16 @@ def composite_quantity_setting_function(fun_poly_pairs, domain):
 
         # Test that none of the pi polygons [except perhaps the last] is 'All'
         for i in range(lfp-1):
-            if (fun_poly_pairs[i][1]=='All'):
-                # This is only ok if all the othe fun_poly_pairs are None
-                remaining_fun_poly_pairs_are_None=[ fun_poly_pairs[j][1] is None for j in range(i+1,lfp)]
-                if(not all(remaining_fun_poly_pairs_are_None)):
+            if (poly_fun_pairs[i][0]=='All'):
+                # This is only ok if all the othe poly_fun_pairs are None
+                remaining_poly_fun_pairs_are_None=[ poly_fun_pairs[j][0] is None for j in range(i+1,lfp)]
+                if(not all(remaining_poly_fun_pairs_are_None)):
                     raise Exception, 'Can only have the last polygon = All'
 
         # Apply the fi inside the pi
         for i in range(lfp):
-            fi = fun_poly_pairs[i][0] # The function
-            pi = fun_poly_pairs[i][1] # The polygon
+            fi = poly_fun_pairs[i][1] # The function
+            pi = poly_fun_pairs[i][0] # The polygon
 
             # Quick exit
             if(pi is None):
@@ -245,11 +245,11 @@ def quantity_from_Pt_Pol_Data_and_Raster(Pt_Pol_Data, quantity_raster, domain):
     qFunChanList=[]
     for i in range(len(Pt_Pol_Data)):
         qFunChanList.append([
-             make_nearestNeighbour_quantity_function(Pt_Pol_Data[i][1], domain), 
-             Pt_Pol_Data[i][0]
+             Pt_Pol_Data[i][0],
+             make_nearestNeighbour_quantity_function(Pt_Pol_Data[i][1], domain) 
                               ])
 
     #
-    qFun=composite_quantity_setting_function(qFunChanList+[[qFun1, 'All']], domain)
+    qFun=composite_quantity_setting_function(qFunChanList+[['All', qFun1]], domain)
 
     return qFun

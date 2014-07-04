@@ -160,7 +160,7 @@ class Test_quantity_setting_functions(unittest.TestCase):
         #################################################################
  
         # This example uses a constant, and a raster, to set the quantity           
-        F=qs.composite_quantity_setting_function([[-1000., trenchPoly], ['PointData_ElevTest.tif', 'Extent']],\
+        F=qs.composite_quantity_setting_function([[trenchPoly, -1000.], ['Extent', 'PointData_ElevTest.tif']],\
                                                 domain) 
 
         # Points where we test the function
@@ -182,7 +182,7 @@ class Test_quantity_setting_functions(unittest.TestCase):
         # This example uses a function, and a raster, to set the quantity           
         def f0(x,y):
             return x/10.
-        F=qs.composite_quantity_setting_function([[f0, trenchPoly], ['PointData_ElevTest.tif', 'Extent']],\
+        F=qs.composite_quantity_setting_function([[trenchPoly, f0], ['Extent', 'PointData_ElevTest.tif']],\
                                                 domain) 
         fitted=F(testPts_X,testPts_Y)
         # Now the fitted value in the trench should be determined by f0
@@ -195,7 +195,7 @@ class Test_quantity_setting_functions(unittest.TestCase):
         ##########################################################################
 
         # This example uses 'All' as a polygon
-        F=qs.composite_quantity_setting_function([[f0, 'All'], ['PointData_ElevTest.tif', None]],\
+        F=qs.composite_quantity_setting_function([['All', f0 ], [None, 'PointData_ElevTest.tif']],\
                                                 domain) 
         fitted=F(testPts_X,testPts_Y)
         # Now the fitted value in the trench should be determined by f0
@@ -205,7 +205,7 @@ class Test_quantity_setting_functions(unittest.TestCase):
         ###########################################################################
         # This example should fail
         try:
-            F=qs.composite_quantity_setting_function([[f0, 'All'], ['PointData_ElevTest.tif', 'All']],\
+            F=qs.composite_quantity_setting_function([['All', f0], ['All', 'PointData_ElevTest.tif']],\
                                                     domain) 
             raise Exception, 'The last command should fail' 
         except:
