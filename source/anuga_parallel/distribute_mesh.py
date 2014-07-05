@@ -1640,10 +1640,14 @@ def extract_submesh(submesh, triangles_per_proc, p2s_map=None, p=0):
             ghost_layer_width = \
             build_local_mesh(submesh_cell, lower_t, upper_t, numprocs)
 
+
     if p2s_map is None:
         pass
     else:
-        tri_l2g = p2s_map[tri_l2g]
+        try:
+            tri_l2g = p2s_map[tri_l2g]
+        except:
+            tri_l2g = p2s_map
 
     return  points, vertices, boundary, quantities, ghost_recv_dict, \
            full_send_dict, tri_map, node_map, tri_l2g, node_l2g, ghost_layer_width

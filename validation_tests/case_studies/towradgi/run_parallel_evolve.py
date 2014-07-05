@@ -38,16 +38,19 @@ if myid == 0:
         pass
 
 
+    
 #===============================================================================
 # Create sequential domain and partition
 #===============================================================================
 if myid == 0 and verbose: print 'CREATING PARTITIONED DOMAIN'
 
 if myid == 0:
-    from setup_domain_and_partition import setup_domain_and_partition
+    from setup_domain_and_partition import setup_domain, setup_partition
     
-    #setup_domain_and_partition(np=numprocs,verbose=verbose)
-    pass
+     
+    setup_domain(verbose=verbose)
+    
+    setup_partition(np=numprocs, verbose=verbose)
 
 barrier()
 
@@ -59,6 +62,9 @@ if myid == 0 and verbose: print 'LOADING PARTITIONED DOMAIN'
 domain = sequential_distribute_load(filename=join('Partitions',outname), verbose = verbose)
 print domain.get_name()
  
+ 
+
+
 #===============================================================================
 # Create structures such as culverts and bridges
 #===============================================================================

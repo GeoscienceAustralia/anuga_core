@@ -25,6 +25,7 @@ from anuga import Domain
 
 
 from anuga import sequential_distribute_dump
+from anuga_parallel.sequential_distribute import sequential_distribute_load_pickle_file
 
 
 from project import *
@@ -32,7 +33,14 @@ from project import *
 #--------------------------------------------------------------------------
 # Setup Domain to be distributed
 #--------------------------------------------------------------------------
-def setup_domain_and_partition(np=1, verbose=False):
+def setup_domain(verbose=False):
+    
+    pickle_name = outname+'_P%g_%g.pickle'% (1,0)
+    pickle_name = join(partition_dir,pickle_name)
+    
+    if os.path.exists(pickle_name):
+        if verbose: print 'Saved domain seems to already exist'
+        return
     
     from catchment_info import CatchmentList
     from catchment_info import ManningList
@@ -85,12 +93,8 @@ def setup_domain_and_partition(np=1, verbose=False):
         raise Exception, 'This model run relies on a discontinuous elevation solver (because of how topography is set up)'
 
     domain.set_datadir(model_output_dir)
-    try:
-        os.mkdir()
-    except:
-        pass
     domain.set_name(outname)
-    
+        
     print domain.statistics()
     
     #------------------------------------------------------------------------------
@@ -118,12 +122,28 @@ def setup_domain_and_partition(np=1, verbose=False):
 
     os.remove('DEM_bridges/towradgi.csv') # Clean up csv file
     
+    if verbose: print 'Saving Domain'
     
-    if verbose: print 'Distributing Domain'
-    
-    sequential_distribute_dump(domain, np, partition_dir=partition_dir, verbose=verbose)    
+    sequential_distribute_dump(domain, 1, partition_dir=partition_dir, verbose=verbose)    
 
 
+def setup_partition(np=1, verbose=False):
+    
+    pickle_name = outname+'_P%g_%g.pickle'% (1,0)
+    pickle_name = join(partition_dir,pickle_name)
+    
+    if verbose: print 'Load in saved domain pickle'
+    domain = sequential_distribute_load_pickle_file(pickle_name, np=1, verbose = verbose)
+ 
+    pickle_name = outname+'_P%g_%g.pickle'% (np,0)
+    pickle_name = join(partition_dir,pickle_name)
+    if os.path.exists(pickle_name):
+        if verbose: print 'Saved partitioned domain seems to already exist'
+        return
+    
+    if verbose: print 'Dump partitioned domains'
+    sequential_distribute_dump(domain, np, partition_dir=partition_dir, verbose=verbose) 
+    
 
 if __name__ == "__main__":
     
@@ -134,5 +154,7 @@ if __name__ == "__main__":
     np = args.np
     
     
-    setup_domain_and_partition(np=np, verbose=verbose)
+    setup_domain(verbose=verbose)
+    
+    setup_partition(np=np, verbose=verbose)
     

@@ -5,6 +5,9 @@
 
 import numpy as num
 
+
+from anuga import Domain
+
 from anuga_parallel.distribute_mesh  import send_submesh
 from anuga_parallel.distribute_mesh  import rec_submesh
 from anuga_parallel.distribute_mesh  import extract_submesh
@@ -72,7 +75,7 @@ class Sequential_distribute(object):
         # Build the mesh that should be assigned to each processor,
         # this includes ghost nodes and the communication pattern
         if verbose: print 'sequential_distribute: Build submeshes'
-        if verbose: print parameters
+        if verbose: print 'sequential_distribute: parameters = ',parameters
 
         submesh = build_submesh(new_nodes, new_triangles, new_boundary, \
                                 quantities, triangles_per_proc, parameters=parameters)
@@ -205,11 +208,12 @@ class Sequential_distribute(object):
                        
 
     
-def sequential_distribute_dump(domain, numprocs=1, verbose=False, debug=False, parameters = None):
+def sequential_distribute_dump(domain, numprocs=1, verbose=False, partition_dir='.', debug=False, parameters = None):
     """ Distribute the domain, create parallel domain and pickle result
     """
 
-
+    from os.path import join
+    
     partition = Sequential_distribute(domain, verbose, debug, parameters)
 
     partition.distribute(numprocs)
@@ -221,23 +225,32 @@ def sequential_distribute_dump(domain, numprocs=1, verbose=False, debug=False, p
 
         import cPickle
         pickle_name = partition.domain_name + '_P%g_%g.pickle'% (numprocs,p)
+        pickle_name = join(partition_dir,pickle_name)
         f = file(pickle_name, 'wb')
         cPickle.dump( tostore, f, protocol=cPickle.HIGHEST_PROTOCOL)
 
     return
 
 
-def sequential_distribute_load(filename = 'domain', verbose = False):
+def sequential_distribute_load(filename = 'domain', partition_dir = '.', verbose = False):
 
 
     from anuga_parallel import myid, numprocs
 
+    from os.path import join
 
-    #---------------------------------------------------------------------------
-    # Open pickle files
-    #---------------------------------------------------------------------------
-    import cPickle
     pickle_name = filename+'_P%g_%g.pickle'% (numprocs,myid)
+    pickle_name = join(partition_dir,pickle_name) 
+    
+    return sequential_distribute_load_pickle_file(pickle_name, numprocs, verbose = verbose)
+
+
+def sequential_distribute_load_pickle_file(pickle_name, np=1, verbose = False):
+    """
+    Open pickle files
+    """
+    
+    import cPickle    
     f = file(pickle_name, 'rb')
 
     kwargs, points, vertices, boundary, quantities, boundary_map, \
@@ -247,43 +260,38 @@ def sequential_distribute_load(filename = 'domain', verbose = False):
     f.close()
 
     #---------------------------------------------------------------------------
-    # Create parallel domain
+    # Create domain (parallel if np>1)
     #---------------------------------------------------------------------------
-    parallel_domain = Parallel_domain(points, vertices, boundary, **kwargs)
-
+    if np>1:
+        domain = Parallel_domain(points, vertices, boundary, **kwargs)
+    else:
+        domain = Domain(points, vertices, boundary, **kwargs)
 
     #------------------------------------------------------------------------
     # Copy in quantity data
     #------------------------------------------------------------------------
     for q in quantities:
-        parallel_domain.set_quantity(q, quantities[q])
+        domain.set_quantity(q, quantities[q])
 
 
     #------------------------------------------------------------------------
     # Transfer boundary conditions to each subdomain
     #------------------------------------------------------------------------
     boundary_map['ghost'] = None  # Add binding to ghost boundary
-    parallel_domain.set_boundary(boundary_map)
+    domain.set_boundary(boundary_map)
 
 
     #------------------------------------------------------------------------
     # Transfer other attributes to each subdomain
     #------------------------------------------------------------------------
-    parallel_domain.set_name(domain_name)
-    parallel_domain.set_datadir(domain_dir)
-    parallel_domain.set_flow_algorithm(domain_flow_algorithm)
-    parallel_domain.set_store(domain_store)
-    parallel_domain.set_store_centroids(domain_store_centroids)
-    parallel_domain.set_minimum_storable_height(domain_minimum_storable_height)
-    parallel_domain.set_minimum_allowed_height(domain_minimum_allowed_height)
-    parallel_domain.geo_reference = georef
+    domain.set_name(domain_name)
+    domain.set_datadir(domain_dir)
+    domain.set_flow_algorithm(domain_flow_algorithm)
+    domain.set_store(domain_store)
+    domain.set_store_centroids(domain_store_centroids)
+    domain.set_minimum_storable_height(domain_minimum_storable_height)
+    domain.set_minimum_allowed_height(domain_minimum_allowed_height)
+    domain.geo_reference = georef
 
 
-    return parallel_domain
-
-
-
-
-
-
-
+    return domain

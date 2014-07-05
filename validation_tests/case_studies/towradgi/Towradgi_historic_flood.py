@@ -69,7 +69,7 @@ CatchmentList = [
 ## IMPORTANT -- The ORDER in ManningList matters: When there is overlap,
 ##              priority regions at BOTTOM
 ## FIXME: This setup can be done with fewer lines of code!
-channel_manning=0.03
+
 ManningList = [
    [ join('Model', 'Mannings', '1.csv'),0.04], #park
    [ join('Model', 'Mannings', '2.csv'),0.15],

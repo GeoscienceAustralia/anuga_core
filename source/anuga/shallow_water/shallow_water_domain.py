@@ -126,7 +126,8 @@ class Domain(Generic_Domain):
                  numproc=1,
                  number_of_full_nodes=None,
                  number_of_full_triangles=None,
-                 ghost_layer_width=2):
+                 ghost_layer_width=2,
+                 **kwargs):
         """
             Instantiate a shallow water domain.
             coordinates - vertex locations for the mesh

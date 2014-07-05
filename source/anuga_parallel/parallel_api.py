@@ -10,6 +10,10 @@ from anuga_parallel.parallel_abstraction import size, rank, get_processor_name
 from anuga_parallel.parallel_abstraction import finalize, send, receive
 from anuga_parallel.parallel_abstraction import pypar_available, barrier
 
+from anuga_parallel.sequential_distribute import sequential_distribute_dump
+from anuga_parallel.sequential_distribute import sequential_distribute_load
+
+
 
 # ANUGA parallel engine (only load if pypar can)
 if pypar_available:
@@ -22,6 +26,8 @@ if pypar_available:
     from anuga_parallel.distribute_mesh import pmesh_divide_metis_with_map
 
     from anuga_parallel.parallel_shallow_water import Parallel_domain
+    
+    
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 

@@ -88,12 +88,10 @@ Bd = anuga.Dirichlet_boundary([1,0.,0.]) # Constant boundary values
 # Associate boundary tags with boundary objects
 domain.set_boundary({'left': Bt, 'right': Bt, 'top': Br, 'bottom': Br})
 
-
+#------------------------------------------------------------------------------
+# Produce a documentation of parameters
+#------------------------------------------------------------------------------
 if myid == 0:
-    #------------------------------------------------------------------------------
-    # Produce a documentation of parameters
-    #------------------------------------------------------------------------------
-
     parameter_file=open('parameters.tex', 'w')
     parameter_file.write('\\begin{verbatim}\n')
     from pprint import pprint
@@ -106,7 +104,7 @@ if myid == 0:
 # Evolve system through time
 #===================================================================================
 for t in domain.evolve(yieldstep = 0.5, finaltime = 50.):
-    if myid == 0:
+    if myid == 0 and verbose:
         print domain.timestepping_statistics()
 
 

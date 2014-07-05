@@ -52,7 +52,7 @@ def stagefun(x,y):
 # Setup Domain only on processor 0
 #--------------------------------------------------------------------------
 myid = 0
-numprocs = 1
+numprocs = 3
 
 
 
@@ -67,7 +67,7 @@ domain = rectangular_cross_domain(int(length/dx), int(width/dy),
 print domain.number_of_global_triangles
 
 domain.set_store(True)
-domain.set_flow_algorithm('tsunami')
+domain.set_flow_algorithm('DE0')
 domain.set_minimum_allowed_height(0.01)
 domain.set_quantity('elevation',topography)     # Use function for elevation
 domain.get_quantity('elevation').smooth_vertex_values()
@@ -79,7 +79,7 @@ domain.set_name('sw_rectangle')
 
 
 t1 = time.time()
-print 'Create sequential domain: ',t1-t0
+print 'Create sequential domain: time ',t1-t0
     
 
 #-------------------------------------------------------------------------
@@ -89,7 +89,7 @@ sequential_distribute_dump(domain, numprocs, verbose = True)
 
 
 t2 = time.time()
-print 'Sequential Distribute domain: ',t2-t1
+print 'Sequential Distribute domain: time ',t2-t1
     
 
 

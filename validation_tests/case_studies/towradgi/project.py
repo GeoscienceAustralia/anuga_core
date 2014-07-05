@@ -9,7 +9,7 @@ outname = join('Towradgi_historic_flood')
 meshname = join('DEM_bridges','towradgi.tsh')
 
 channel_manning=0.03
-maximum_triangle_area = 1000
+maximum_triangle_area = 10000 #= 1000
 base_friction = 0.04
 alpha = 0.99
 
