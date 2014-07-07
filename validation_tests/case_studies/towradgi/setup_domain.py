@@ -42,23 +42,12 @@ def read_polygon_list(poly_list):
     return result
 
 
-args = anuga.get_args()
-alg = args.alg
-verbose = args.verbose
 
 #--------------------------------------------------------------------------
-# Setup Domain to be distributed
+# Setup Domain
 #--------------------------------------------------------------------------
 def setup_domain(verbose=False):
     
-    print args
-    
-    pickle_name = outname+'_P%g_%g.pickle'% (1,0)
-    pickle_name = join(partition_dir,pickle_name)
-    
-    if os.path.exists(pickle_name):
-        if verbose: print 'Saved domain seems to already exist'
-        return
     
     from catchment_info import CatchmentList
     from catchment_info import ManningList
@@ -140,39 +129,6 @@ def setup_domain(verbose=False):
 
     os.remove('DEM_bridges/towradgi.csv') # Clean up csv file
     
-    if verbose: print 'Saving Domain'
-    
-    sequential_distribute_dump(domain, 1, partition_dir=partition_dir, verbose=verbose)    
+    return domain
 
 
-def setup_partition(np=1, verbose=False):
-    
-    pickle_name = outname+'_P%g_%g.pickle'% (1,0)
-    pickle_name = join(partition_dir,pickle_name)
-    
-    if verbose: print 'Load in saved domain pickle'
-    domain = sequential_distribute_load_pickle_file(pickle_name, np=1, verbose = verbose)
- 
-    pickle_name = outname+'_P%g_%g.pickle'% (np,0)
-    pickle_name = join(partition_dir,pickle_name)
-    if os.path.exists(pickle_name):
-        if verbose: print 'Saved partitioned domain seems to already exist'
-        return
-    
-    if verbose: print 'Dump partitioned domains'
-    sequential_distribute_dump(domain, np, partition_dir=partition_dir, verbose=verbose) 
-    
-
-if __name__ == "__main__":
-    
-    
-    args = anuga.get_args()
-    alg = args.alg
-    verbose = args.verbose
-    np = args.np
-    
-    
-    setup_domain(verbose=verbose)
-    
-    setup_partition(np=np, verbose=verbose)
-    

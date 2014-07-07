@@ -20,6 +20,8 @@ from anuga import sequential_distribute_load
 
 from project import *
 
+useCheckpointing =True
+
 #===============================================================================
 # Start Simulation
 #===============================================================================
@@ -28,6 +30,9 @@ from project import *
 args = anuga.get_args()
 alg = args.alg
 verbose = args.verbose
+
+
+print args
 
 if myid == 0 and verbose: print 'STARTING PARALLEL SIMULATION'
 
@@ -38,7 +43,7 @@ if myid == 0:
         pass
 
 
-    
+  
 #===============================================================================
 # Create sequential domain and partition
 #===============================================================================
@@ -46,8 +51,7 @@ if myid == 0 and verbose: print 'CREATING PARTITIONED DOMAIN'
 
 if myid == 0:
     from setup_domain_and_partition import setup_domain, setup_partition
-    
-     
+       
     setup_domain(verbose=verbose)
     
     setup_partition(np=numprocs, verbose=verbose)
@@ -69,7 +73,9 @@ print domain.get_name()
 # Create structures such as culverts and bridges
 #===============================================================================
 if myid == 0 and verbose: print 'CREATING STRUCTURES'
-execfile('setup_structures.py')
+from setup_structures import setup_structures
+
+setup_structures(domain)
 
     
 #===============================================================================
@@ -102,7 +108,7 @@ if myid == 0 and verbose: print 'EVOLVE'
     
 t0 = time.time()
     
-for t in domain.evolve(yieldstep = 300., finaltime = 83700.):
+for t in domain.evolve(yieldstep = 1., finaltime = 300):#= 83700.):
     #if t == 37800.0: #time when bridge deck starts to get submerged, increase n to act as bridge deck, handrail and blockage effects
     ## Try to block all culverts / bridges, as described in the flood study
     #if t == 44100.0: #time when water level drops below bridge deck, bring n back down to existing conditions
