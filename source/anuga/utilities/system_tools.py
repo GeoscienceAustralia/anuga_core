@@ -118,7 +118,7 @@ def __get_revision_from_svn_client__():
         try:
             #FIXME SR: This works for python 2.6
             cmd = r'"C:\Program Files\TortoiseSVN\bin\SubWCRev.exe" .'
-            version_info = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0]
+            version_info = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0]
 
             #print 'Version_Info', version_info
             #fid = os.popen(r'C:\Program Files\TortoiseSVN\bin\SubWCRev.exe')
