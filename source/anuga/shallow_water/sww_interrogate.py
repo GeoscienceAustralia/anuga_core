@@ -510,8 +510,8 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         y = fid.variables['y'][:] + yllcorner
 
         # Get the relevant quantities (Convert from single precison)
-        elevation = num.array(fid.variables['elevation'], num.float)
-        stage = num.array(fid.variables['stage'], num.float)
+        elevation = num.array(fid.variables['elevation'][:], num.float)
+        stage = num.array(fid.variables['stage'][:], num.float)
 
         if verbose:
             print 'stage.shape ',stage.shape

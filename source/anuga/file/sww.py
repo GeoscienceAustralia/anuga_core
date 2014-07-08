@@ -265,7 +265,7 @@ class SWW_file(Data_format):
             raise DataFileNotOpenError, msg
 
         # Check to see if the file is already too big:
-        time = fid.variables['time']
+        time = fid.variables['time'][:]
 
         i = len(time) + 1
         file_size = stat(self.filename)[6]
@@ -317,7 +317,7 @@ class SWW_file(Data_format):
             domain = self.domain
 
             # Get the variables
-            time = fid.variables['time']
+            time = fid.variables['time'][:]
             i = len(time)
              
             if 'stage' in self.writer.dynamic_quantities:            
@@ -421,7 +421,7 @@ class Read_sww:
 
         fin = NetCDFFile(self.source, 'r')
 
-        self.time = num.array(fin.variables['time'], num.float)
+        self.time = num.array(fin.variables['time'][:], num.float)
         self.last_frame_number = self.time.shape[0] - 1
 
         self.frames = num.arange(self.last_frame_number+1)
@@ -440,10 +440,10 @@ class Read_sww:
         """
         fin = NetCDFFile(self.source, 'r')
 
-        self.vertices = num.array(fin.variables['volumes'], num.int)
+        self.vertices = num.array(fin.variables['volumes'][:], num.int)
         
-        self.x = x = num.array(fin.variables['x'], num.float)
-        self.y = y = num.array(fin.variables['y'], num.float)
+        self.x = x = num.array(fin.variables['x'][:], num.float)
+        self.y = y = num.array(fin.variables['y'][:], num.float)
 
         assert len(self.x) == len(self.y)
         
@@ -473,7 +473,7 @@ class Read_sww:
                         fin.variables.keys()):
             #print q
             if len(fin.variables[q].shape) == 1: # Not a time-varying quantity
-                self.quantities[q] = num.ravel(num.array(fin.variables[q], num.float)).reshape(M,3)
+                self.quantities[q] = num.ravel(num.array(fin.variables[q][:], num.float)).reshape(M,3)
             else: # Time-varying, get the current timestep data
                 self.quantities[q] = num.array(fin.variables[q][self.frame_number], num.float).reshape(M,3)
         fin.close()
@@ -1126,7 +1126,7 @@ def load_sww_as_domain(filename, boundary=None, t=None,
     if verbose: log.critical('Reading from %s' % filename)
 
     fid = NetCDFFile(filename, netcdf_mode_r)    # Open existing file for read
-    time = fid.variables['time']       # Timesteps
+    time = fid.variables['time'][:]       # Timesteps
     if t is None:
         t = time[-1]
     time_interp = get_time_interp(time,t)
@@ -1336,7 +1336,7 @@ def get_mesh_and_quantities_from_file(filename,
 
     # Mesh (nodes (Mx2), triangles (Nx3))
     nodes = num.concatenate((x[:,num.newaxis], y[:,num.newaxis]), axis=1)
-    triangles = fid.variables['volumes']
+    triangles = fid.variables['volumes'][:]
 
     # Get geo_reference
     try:
