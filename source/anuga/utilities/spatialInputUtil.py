@@ -915,6 +915,52 @@ if gdal_available:
         
         return allBreakLines
     
+    #########################################
+    def readListOfRiverWalls(rwfileList):
+        """
+            Take a list with the names of riverwall input files [should be comma-separated x,y,elevation files]
+
+            The input file can optionally have a first line defining some hydraulic parameters. A valid example 
+            is
+
+            Qfactor: 1.5, s1: 0.94 
+            200., 300., 0.5
+            300., 400., 0.7
+            ....and so on..
+        
+            Read their coordinates into a dict with their names, read for use by ANUGA
+    
+            INPUT: rwfileList -- a list of riverwall filenames [e.g. from glob.glob('GIS/RiverWalls/*.csv')]
+    
+            OUTPUT: 
+                dictionary with riverwalls [filenames are keys] AND
+                dictionary with hydraulic parameters [filenames are keys]
+        """
+        import numpy
+    
+        allRiverWalls={}
+        allRiverWallPar={}
+        for rwfile in rwfileList:
+            f=open(rwfile)
+            firstLine=f.readline()
+            # If the top line has any letters, assume it is a hydraulic variables line
+            hasLetters=any(c.isalpha() for c in firstLine)
+            if(not hasLetters):
+                allRiverWalls[rwfile]=numpy.genfromtxt(rwfile,delimiter=",").tolist()
+                allRiverWallPar[rwfile]={}
+            else:
+                # Get the wall geometry
+                allRiverWalls[rwfile]=numpy.genfromtxt(rwfile,delimiter=",",skip_header=1).tolist()
+                # Get the hydraulic par
+                firstLine=firstLine.replace(' ', '') # No whitespace
+                wallPar=firstLine.split(',')
+                allRiverWallPar[rwfile]={}
+                for wp in wallPar:
+                    keyNameValue=wp.split(':')
+                    allRiverWallPar[rwfile][keyNameValue[0]]=float(keyNameValue[1])
+        
+        return allRiverWalls, allRiverWallPar
+    
     ############################################################################
     def polygon_from_matching_breaklines(pattern,breakLinesIn, reverse2nd=None):
         """
