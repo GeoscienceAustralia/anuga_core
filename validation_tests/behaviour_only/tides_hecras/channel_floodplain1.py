@@ -8,10 +8,10 @@ Simple tidal example with ANUGA
 # Import standard shallow water domain and standard boundaries.
 import anuga
 import numpy
-from anuga_parallel.parallel_operator_factory import Inlet_operator, Boyd_box_operator
-from anuga_parallel import distribute, myid, numprocs, finalize, barrier
+from anuga import Inlet_operator, Boyd_box_operator
+from anuga import distribute, myid, numprocs, finalize, barrier
 
-from anuga import myid, finalize, distribute, barrier
+
 
 args = anuga.get_args()
 alg = args.alg
@@ -145,7 +145,7 @@ Br = anuga.Reflective_boundary(domain) # Solid reflective wall
 def outflow_stage_boundary(t):
     return 0.7+0.3*numpy.sin(2.*numpy.pi*t/(30.*60.))-1.0 # Note elevation datum differs in hecras and ANUGA
 
-Bout_tmss = anuga.shallow_water.boundaries.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, function = outflow_stage_boundary) 
+Bout_tmss = anuga.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, function = outflow_stage_boundary) 
 
 domain.set_boundary({'left': Br, 
                      'right': Br, 

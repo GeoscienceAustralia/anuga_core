@@ -34,7 +34,7 @@ class Collect_max_stage_operator(Operator):
         #------------------------------------------
         # Setup a quantity to store max_stage
         #------------------------------------------
-        self.max_stage = Quantity(domain, name = 'max_stage')
+        self.max_stage = Quantity(domain, name = 'max_stage', register=True)
         self.max_stage.set_values(-1.0e+100)
 
         #------------------------------------------

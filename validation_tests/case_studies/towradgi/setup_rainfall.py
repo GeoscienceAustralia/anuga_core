@@ -8,7 +8,13 @@ from anuga import Rate_operator
 rain_polygon_dir = join('Forcing', 'Rainfall', 'Gauge')
 rain_rate_dir  = join('Forcing', 'Rainfall', 'Hort')
 
-def setup_rainfall(domain):
+def setup_rainfall(simulation):
+    """
+    Setup all the rain operators 
+    """
+    
+    # pull out info from the simulation object
+    domain  = simulation.domain
 
     #===============================================================================
     # helper function to encode rainfall operators

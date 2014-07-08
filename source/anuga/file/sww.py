@@ -8,7 +8,7 @@ class NewQuantity(exceptions.Exception): pass
 class DataDomainError(exceptions.Exception): pass
 class DataTimeError(exceptions.Exception): pass
 
-
+import numpy
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.config import netcdf_float, netcdf_float32, netcdf_int, netcdf_float64
@@ -969,7 +969,13 @@ class Write_sww(Write_sts):
 
         if time is not None:
             file_time = outfile.variables['time']
+            # check if time already saved as in check pointing
             slice_index = len(file_time)
+            if slice_index > 0:
+                if time <= file_time[-1]:
+                    check = numpy.where(numpy.abs(file_time[:]-time)< 1.0e-14)
+                    slice_index = check[0][0]
+                
             file_time[slice_index] = time
         else:
             slice_index = int(slice_index) # Has to be cast in case it was numpy.int    

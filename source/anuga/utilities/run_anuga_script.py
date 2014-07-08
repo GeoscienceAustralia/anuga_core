@@ -19,10 +19,10 @@ def run_script(script, args=None, np=1, alg=None, verbose=False, allow_parallel=
         verbose = args.verbose
         
         
-    print args
+    #print args
     args_dict = vars(args)
-    print args_dict
-    print zip(args_dict.keys(), args_dict.values())
+    #print args_dict
+    #print zip(args_dict.keys(), args_dict.values())
     
         
     #import subprocess

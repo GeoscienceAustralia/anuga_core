@@ -93,6 +93,8 @@ def profileit(name):
 
 import numpy as num
 import sys
+import os
+import cPickle
 
 from anuga.abstract_2d_finite_volumes.generic_domain \
                     import Generic_Domain
@@ -217,6 +219,14 @@ class Domain(Generic_Domain):
                                         'xmomentum': 2, 
                                         'ymomentum': 2}
 
+        #-------------------------------
+        # Set up check pointing every n
+        # yieldsteps
+        #-------------------------------
+        self.checkpoint = False
+        self.yieldstep_id = 1 
+        self.checkpoint_step = 10
+        
         #-------------------------------
         # Useful auxiliary quantity
         #-------------------------------
@@ -2142,8 +2152,14 @@ class Domain(Generic_Domain):
             if self.store is True:
                 self.store_timestep()
 
-
-
+            if self.checkpoint is True:
+                self.yieldstep_id += 1
+                if self.yieldstep_id%self.checkpoint_step == 0:
+                    pickle_name = os.path.join('Checkpoints',self.get_name())+'_'+str(self.get_time())+'.pickle'
+                                            
+                    cPickle.dump(self, open(pickle_name, 'wb'))
+                    
+                    #print 'Stored Checkpoint File '+pickle_name 
 
             # Pass control on to outer loop for more specific actions
             yield(t)

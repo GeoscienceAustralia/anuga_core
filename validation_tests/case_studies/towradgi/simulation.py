@@ -31,11 +31,47 @@ from os.path import join
 
 class Simulation(object):
     
-    def __init__(self, outname = 'domain', partition_dir = 'PARTITIONS', verbose=True):
-        self.verbose = verbose
-        self.outname = outname
-        self.partition_dir = partition_dir
+    def __init__(self,argument_adder=None, from_commandline=True, **kwargs):
+        
+        args = parse_args_and_parameters(argument_adder, from_commandline, **kwargs)
+        
+        #print args
+        
+        self.verbose = args.verbose
+        self.outname = args.outname
+        self.partition_dir = args.partition_dir
+        self.alg = args.alg
+        self.args = args
+        
+        self.setup_original_domain()
+        self.setup_structures()
+        self.setup_rainfall()
+        self.setup_boundaries()
+        
+    def run(self, yieldstep, finaltime):
+        
+        if myid == 0 and self.verbose: print 'EVOLVE'
+        
+        domain = self.domain
+        #import time
+        t0 = time.time()
+            
+        for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):#= 83700.):
+        
+            if myid == 0 and self.verbose:
+                domain.write_time()
+        
+        barrier()
+        if myid == 0 and self.verbose:
+            print 'Number of processors %g ' %numprocs
+            print 'That took %.2f seconds' %(time.time()-t0)
+            print 'Communication time %.2f seconds'%domain.communication_time
+            print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
+            print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
+        
     
+        finalize()
+        
     def setup_original_domain(self, np=None):
         """
         Create sequential domain and partition
@@ -44,6 +80,7 @@ class Simulation(object):
         verbose = self.verbose
         outname = self.outname
         partition_dir = self.partition_dir
+        
         if np is None:
             np = numprocs
         
@@ -60,7 +97,7 @@ class Simulation(object):
                 if verbose: print 'Saved domain seems to already exist'
             else:
                 from setup_domain import setup_domain
-                domain = setup_domain(verbose=self.verbose)
+                domain = setup_domain(self)
                 
                 if verbose: print 'Saving Domain'
                 sequential_distribute_dump(domain, 1, partition_dir=partition_dir, verbose=verbose)    
@@ -99,7 +136,7 @@ class Simulation(object):
         if myid == 0 and self.verbose: print 'CREATING RAINFALL FUNCTIONS'
         from setup_rainfall import setup_rainfall
         
-        setup_rainfall(self.domain) 
+        setup_rainfall(self) 
 
     def setup_structures(self):
         """
@@ -109,7 +146,7 @@ class Simulation(object):
         if myid == 0 and self.verbose: print 'CREATING STRUCTURES'
         from setup_structures import setup_structures
         
-        setup_structures(self.domain)
+        setup_structures(self)
    
     def setup_boundaries(self):
         """
@@ -119,14 +156,95 @@ class Simulation(object):
         if myid == 0 and self.verbose: print 'SETUP BOUNDARY CONDITIONS'
         from setup_boundaries import setup_boundaries
         
-        setup_boundaries(self.domain)
+        setup_boundaries(self)
         
 
 
 
 
- 
+def parse_args(argument_adder, from_commandline=False, **kwargs):
+    """
+    Return Namespace of arguments.
+
+    If from_commandline, the arguments are parsed from sys.argv;
+    otherwise, defaults are returned.
+
+    argument_adder is a function which modifies an argparse.ArgumentParser
+    to give it simulation-specific arguments.
+
+    Optional kwargs allow overriding default argument values.
+
+    """
+    # set up default arguments common to all simulations
+    parser = anuga.create_standard_parser()
+    
+    # add any benchmark-specific arguments
+    argument_adder(parser)
+
+    # override default argument values
+    parser.set_defaults(**kwargs)
+
+    if from_commandline:
+        return parser.parse_args()
+    else:
+        return parser.parse_args([])
 
 
+def parse_args_and_parameters(argument_adder=None, from_commandline=False, **kwargs):
+    """
+    Return Namespace of arguments.
 
+    If from_commandline, the arguments are parsed from sys.argv;
+    otherwise, defaults are returned.
+
+    argument_adder is a function which modifies an argparse.ArgumentParser
+    to give it simulation-specific arguments.
+
+    Optional kwargs allow overriding default argument values. 
+       
+    Combine with local variables from project.py 
+    """
+    
+
+    
+    parser = anuga.create_standard_parser()
+    
+    try:
+        import project
+
+        # Make variables in project.py into a dictionary
+        project_dict = vars(project)
+        del project_dict['__builtins__']
+        del project_dict['__doc__']
+        del project_dict['__file__']
+        del project_dict['__name__']
+        del project_dict['__package__']
+        del project_dict['join']
+    except:
+        project_dict = {}
+
+    # add any benchmark-specific arguments
+    if argument_adder:
+        argument_adder(parser)
+
+    # override default argument values from project.py
+    parser.set_defaults(**project_dict)
+    
+    # override default argument values
+    parser.set_defaults(**kwargs)
+
+    if from_commandline:
+        return parser.parse_args()
+    else:
+        return parser.parse_args([])
+    
+    
+    
+    
+def wrap(fun):
+    
+    def wrapped_fun(t):
+        return [fun(t), 0.0, 0.0]
+    
+    return wrapped_fun
 

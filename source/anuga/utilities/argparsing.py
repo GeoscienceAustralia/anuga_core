@@ -34,6 +34,9 @@ def create_standard_parser():
 
     parser.add_argument('-v', '--verbose', nargs='?', type=bool, const=True, default=False,
                    help='turn on verbosity')
+    
+    parser.add_argument('-cp', '--checkpointing', nargs='?', type=bool, const=True, default=False,
+                   help='turn on checkpointing')    
 
     return parser
 

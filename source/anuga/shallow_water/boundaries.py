@@ -27,6 +27,8 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
 import numpy as num
 
 import anuga.utilities.log as log
+from anuga.fit_interpolate.interpolate import Modeltime_too_late
+from anuga.fit_interpolate.interpolate import Modeltime_too_early
      
 from shallow_water_ext import rotate
 
@@ -345,6 +347,135 @@ class Transmissive_stage_zero_momentum_boundary(Boundary):
 
         q[1] = q[2] = 0.0
         return q
+
+
+
+class Time_stage_zero_momentum_boundary(Boundary):
+    """Time dependent boundary returns values for stage
+    conserved quantities as a function of time.
+    Must specify domain to get access to model time and a function of t
+    which must return conserved stage quantities as a function time.
+    
+    Example:
+      B = Time_stage_zero_momentum_boundary(domain, 
+                        function=lambda t: (60<t<3660)*2)
+      
+      This will produce a boundary condition with is a 2m high square wave
+      starting 60 seconds into the simulation and lasting one hour.
+      Momentum applied will be 0 at all times.
+                        
+    """
+
+    def __init__(self, domain=None,
+                 #f=None, # Should be removed and replaced by function below
+                 function=None,
+                 default_boundary=None,
+                 verbose=False):
+        Boundary.__init__(self)
+
+        self.default_boundary = default_boundary
+        self.default_boundary_invoked = False    # Flag
+        self.domain = domain
+        self.verbose = verbose
+
+        if domain is None:
+            raise Exception('You must specify a domain to Time_stage_zero_momemtum_boundary')
+            
+        if function is None:
+            raise Exception('You must specify a function to Time_stage_zero_momemtum_boundary')
+            
+        
+        try:
+            q = function(0.0)
+        except Exception, e:
+            msg = 'Function for time stage boundary could not be executed:\n%s' %e
+            raise Exception(msg)
+
+
+        try:
+            q = float(q)
+        except:
+            msg = 'Return value from time boundary function could '
+            msg += 'not be converted into a float.\n'
+            msg += 'I got %s' %str(q)
+            raise Exception(msg)
+
+
+        self.f = function
+        self.domain = domain
+
+    def __repr__(self):
+        return 'Time_stage_zero_momemtum_boundary'
+
+    def get_time(self):
+
+        return self.domain.get_time()
+
+    def evaluate(self, vol_id=None, edge_id=None):
+
+        return self.get_boundary_values()
+
+
+    def evaluate_segment(self, domain, segment_edges):
+
+        if segment_edges is None:
+            return
+        if domain is None:
+            return
+
+        ids = segment_edges
+
+        vol_ids  = domain.boundary_cells[ids]
+        edge_ids = domain.boundary_edges[ids]
+
+        q_bdry = self.get_boundary_values()
+
+        #-------------------------------------------------
+        # Now update boundary values
+        #-------------------------------------------------
+        domain.quantities['stage'].boundary_values[ids] = q_bdry
+        domain.quantities['xmomentum'].boundary_values[ids] = 0.0
+        domain.quantities['ymomentum'].boundary_values[ids] = 0.0        
+
+
+    def get_boundary_values(self, t=None):
+
+        if t is None:
+            t = self.get_time()
+            
+        try:
+            res = self.f(t)
+        except Modeltime_too_early, e:
+            raise Modeltime_too_early(e)
+        except Modeltime_too_late, e:
+            if self.default_boundary is None:
+                raise Exception(e) # Reraise exception
+            else:
+                # Pass control to default boundary
+                res = self.default_boundary
+                
+                # Ensure that result cannot be manipulated
+                # This is a real danger in case the 
+                # default_boundary is a Dirichlet type 
+                # for instance. 
+                res = res.copy() 
+                
+                if self.default_boundary_invoked is False:
+                    if self.verbose:                
+                        # Issue warning the first time
+                        msg = '%s' %str(e)
+                        msg += 'Instead I will use the default boundary: %s\n'\
+                            %str(self.default_boundary) 
+                        msg += 'Note: Further warnings will be suppressed'
+                        log.critical(msg)
+               
+                    # FIXME (Ole): Replace this crude flag with
+                    # Python's ability to print warnings only once.
+                    # See http://docs.python.org/lib/warning-filter.html
+                    self.default_boundary_invoked = True
+
+        return res
+
 
 class Characteristic_stage_boundary(Boundary):
     """Sets the stage via a function and the momentum is determined 

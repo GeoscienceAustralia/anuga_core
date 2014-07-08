@@ -172,9 +172,11 @@ class Generic_Domain:
         self.quantities = {}
 
         for name in self.evolved_quantities:
-            self.quantities[name] = Quantity(self, name=name)
+            #self.quantities[name] = Quantity(self, name=name)
+            Quantity(self, name=name, register=True)
         for name in self.other_quantities:
-            self.quantities[name] = Quantity(self, name=name)
+            #self.quantities[name] = Quantity(self, name=name)
+            Quantity(self, name=name , register=True)
 
         # Create an empty list for forcing terms
         self.forcing_terms = []
@@ -1567,8 +1569,8 @@ class Generic_Domain:
 
 
         # Or maybe restore from latest checkpoint
-        if self.checkpoint is True:
-            self.goto_latest_checkpoint()
+        #if self.checkpoint is True:
+        #    self.goto_latest_checkpoint()
 
         if skip_initial_step is False:
             yield(self.get_time())      # Yield initial values
@@ -1642,9 +1644,9 @@ class Generic_Domain:
             # if we are at the next yield point
             if self.get_time() >= self.yieldtime:
                 # Yield (intermediate) time and allow inspection of domain
-                if self.checkpoint is True:
-                    self.store_checkpoint()
-                    self.delete_old_checkpoints()
+                #if self.checkpoint is True:
+                #    self.store_checkpoint()
+                #    self.delete_old_checkpoints()
 
                 # Log and then Pass control on to outer loop for more specific actions
                 self.log_operator_timestepping_statistics()

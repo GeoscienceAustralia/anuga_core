@@ -3,13 +3,17 @@ import numpy
 
 from anuga import Boyd_box_operator
 from os.path import join
-from project import *
 
 
-def setup_structures(domain):
+
+def setup_structures(simulation):
     """
     Setup Culvert Data
     """
+    
+    domain  = simulation.domain
+    args = simulation.args
+    channel_manning = args.channel_manning
     
     """
     #FIXME: Include these again

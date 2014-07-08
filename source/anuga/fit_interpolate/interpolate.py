@@ -951,9 +951,9 @@ class Interpolation_function:
             for name in quantity_names:
                 self.precomputed_values[name] = quantities[name]
 
-    def __repr__(self):
-        # return 'Interpolation function (spatio-temporal)'
-        return self.statistics()
+#     def __repr__(self):
+#         # return 'Interpolation function (spatio-temporal)'
+#         return self.statistics()
 
     def __call__(self, t, point_id=None, x=None, y=None):
         """Evaluate f(t) or f(t, point_id)
@@ -1077,41 +1077,45 @@ class Interpolation_function:
         #quantities = self.quantities
         precomputed_values = self.precomputed_values
 
-        x = vertex_coordinates[:,0]
-        y = vertex_coordinates[:,1]
+        msg =  '------------------------------------------------\n'
+        msg += 'Interpolation_function (spatio-temporal) statistics:\n'
+        msg += '  Extent:\n'
+        if vertex_coordinates is not None:
+            x = vertex_coordinates[:,0]
+            y = vertex_coordinates[:,1]
 
-        str =  '------------------------------------------------\n'
-        str += 'Interpolation_function (spatio-temporal) statistics:\n'
-        str += '  Extent:\n'
-        str += '    x in [%f, %f], len(x) == %d\n'\
-               %(min(x), max(x), len(x))
-        str += '    y in [%f, %f], len(y) == %d\n'\
-               %(min(y), max(y), len(y))
-        str += '    t in [%f, %f], len(t) == %d\n'\
+            msg += '    x in [%f, %f], len(x) == %d\n'\
+                   %(min(x), max(x), len(x))
+            msg += '    y in [%f, %f], len(y) == %d\n'\
+                   %(min(y), max(y), len(y))            
+
+        
+
+        msg += '    t in [%f, %f], len(t) == %d\n'\
                %(min(self.time), max(self.time), len(self.time))
-        str += '  Quantities:\n'
+        msg += '  Quantities:\n'
         for name in quantity_names:
             minq, maxq = self.quantities_range[name]
-            str += '    %s in [%f, %f]\n' %(name, minq, maxq)
+            msg += '    %s in [%f, %f]\n' %(name, minq, maxq)
             #q = quantities[name][:].flatten()
             #str += '    %s in [%f, %f]\n' %(name, min(q), max(q))
 
         if interpolation_points is not None:
-            str += '  Interpolation points (xi, eta):'\
+            msg += '  Interpolation points (xi, eta):'\
                    ' number of points == %d\n' %interpolation_points.shape[0]
-            str += '    xi in [%f, %f]\n' %(min(interpolation_points[:,0]),
+            msg += '    xi in [%f, %f]\n' %(min(interpolation_points[:,0]),
                                             max(interpolation_points[:,0]))
-            str += '    eta in [%f, %f]\n' %(min(interpolation_points[:,1]),
+            msg += '    eta in [%f, %f]\n' %(min(interpolation_points[:,1]),
                                              max(interpolation_points[:,1]))
-            str += '  Interpolated quantities (over all timesteps):\n'
+            msg += '  Interpolated quantities (over all timesteps):\n'
 
             for name in quantity_names:
                 q = precomputed_values[name][:].flatten()
-                str += '    %s at interpolation points in [%f, %f]\n'\
+                msg += '    %s at interpolation points in [%f, %f]\n'\
                        %(name, min(q), max(q))
-        str += '------------------------------------------------\n'
+        msg += '------------------------------------------------\n'
 
-        return str
+        return msg
 
 
 def interpolate_sww(sww_file, time, interpolation_points,

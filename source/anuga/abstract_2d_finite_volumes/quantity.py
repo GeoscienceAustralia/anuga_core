@@ -10,8 +10,12 @@ To create:
                   Default None
 
    If vertex_values are None Create array of zeros compatible with domain.
-   Otherwise check that it is compatible with dimenions of domain.
+   Otherwise check that it is compatible with dimensions of domain.
    Otherwise raise an exception
+   
+   For Quantities that need to be saved during checkpointing, set register=True. Registered
+   Quantities can be found in the dictionary domain.quantities (note, other Quantities can 
+   exist). 
 """
 
 import types
@@ -26,7 +30,6 @@ from anuga.config import epsilon
 from anuga.caching import cache
 import anuga.utilities.log as log
 
-import anuga.utilities.numerical_tools as aunt
 
 import numpy as num
 
@@ -36,7 +39,7 @@ class Quantity:
 
     counter = 0
 
-    def __init__(self, domain, vertex_values=None, name=None):
+    def __init__(self, domain, vertex_values=None, name=None, register=False):
         from anuga.abstract_2d_finite_volumes.generic_domain \
                             import Generic_Domain
 
@@ -93,6 +96,10 @@ class Quantity:
         Quantity.counter += 1
 
         self.set_name(name)
+        
+        # Lets register the quantity with the quantity (useful for checkpointing)
+        if register:
+            self.domain.quantities[self.name] = self
 
     ############################################################################
     # Methods for operator overloading

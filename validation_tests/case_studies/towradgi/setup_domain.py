@@ -24,11 +24,9 @@ from anuga import create_mesh_from_regions
 from anuga import Domain
 
 
-from anuga import sequential_distribute_dump
-from anuga_parallel.sequential_distribute import sequential_distribute_load_pickle_file
 
 
-from project import *
+#from project import *
 
 
 
@@ -46,11 +44,22 @@ def read_polygon_list(poly_list):
 #--------------------------------------------------------------------------
 # Setup Domain
 #--------------------------------------------------------------------------
-def setup_domain(verbose=False):
+def setup_domain(simulation):
     
+    args = simulation.args
+    verbose = args.verbose
+    alg = args.alg
     
-    from catchment_info import CatchmentList
-    from catchment_info import ManningList
+    N = args.N
+    S = args.S
+    E = args.E
+    W = args.W
+    
+    from catchment_info import create_catchment_list
+    from catchment_info import create_manning_list
+    
+    CatchmentList = create_catchment_list(simulation)
+    ManningList = create_manning_list(simulation)
     
     #------------------------------------------------------------------------------
     # CREATING MESH
@@ -81,9 +90,9 @@ def setup_domain(verbose=False):
     # Make the mesh
     create_mesh_from_regions(bounding_polygon, 
         boundary_tags={'south': [0], 'east': [1], 'north': [2], 'west': [3]},
-        maximum_triangle_area=maximum_triangle_area,
+        maximum_triangle_area=args.maximum_triangle_area,
         interior_regions=interior_regions,
-        filename=meshname,
+        filename=args.meshname,
         breaklines=breaklines,
         use_cache=False,
         verbose=True)
@@ -92,15 +101,15 @@ def setup_domain(verbose=False):
     # SETUP COMPUTATIONAL DOMAIN
     #------------------------------------------------------------------------------
     
-    domain = Domain(meshname, use_cache=False, verbose=True)
+    domain = Domain(args.meshname, use_cache=False, verbose=True)
 
     domain.set_flow_algorithm(alg)
 
     if(not domain.get_using_discontinuous_elevation()):
         raise Exception, 'This model run relies on a discontinuous elevation solver (because of how topography is set up)'
 
-    domain.set_datadir(model_output_dir)
-    domain.set_name(outname)
+    domain.set_datadir(args.model_output_dir)
+    domain.set_name(args.outname)
         
     print domain.statistics()
     
@@ -110,7 +119,7 @@ def setup_domain(verbose=False):
     
     if verbose: print 'Calculating complicated polygon friction function'
     friction_list = read_polygon_list(ManningList)
-    domain.set_quantity('friction', Polygon_function(friction_list, default=base_friction, geo_reference=domain.geo_reference))
+    domain.set_quantity('friction', Polygon_function(friction_list, default=args.base_friction, geo_reference=domain.geo_reference))
     
     # Set a Initial Water Level over the Domain
     domain.set_quantity('stage', 0)
@@ -120,7 +129,7 @@ def setup_domain(verbose=False):
 
     if verbose: print 'Setting up elevation interpolation function'
     from anuga.utilities.quantity_setting_functions import make_nearestNeighbour_quantity_function
-    elev_xyz=numpy.genfromtxt(fname=basename+'.csv',delimiter=',')
+    elev_xyz=numpy.genfromtxt(fname=args.basename+'.csv',delimiter=',')
 
     # Use nearest-neighbour interpolation of elevation 
     elev_fun_wrapper=make_nearestNeighbour_quantity_function(elev_xyz,domain)

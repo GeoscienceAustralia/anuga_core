@@ -2,15 +2,40 @@
 import anuga
 from os.path import join
 
-def setup_boundaries(domain):
+
+# We need to define this function and importantly the wrapping function so that 
+# pickle can find definitions of the functions. (Pickle cannot import the definitions otherwise)
+func = anuga.file_function(join('Forcing','Tide','Pioneer.tms'), quantities='rainfall')
+
+# And pickle doesn't like lambda functions so we define an explicit function with name
+def wrapped_file_function(t):
+    
+    return [func(t), 0.0, 0.0]
+    
+    
+
+def setup_boundaries(simulation):
     """
     Setup boundary conditions
     """
 
-    func = anuga.file_function(join('Forcing','Tide','Pioneer.tms'), quantities='rainfall')
+    domain  = simulation.domain
+    
+    
+    #func = anuga.file_function(join('Forcing','Tide','Pioneer.tms'), quantities='rainfall')
+    
+    
     Bd = anuga.Dirichlet_boundary([0,0,0])
-    Bw = anuga.Time_boundary(domain=domain, function=lambda t: [func(t)[0], 0.0, 0.0])
-    #Bw = anuga.Time_boundary(domain=domain, function=func)
+    #Bw = anuga.Time_stage_zero_momentum_boundary(domain=domain, function=func)
+    Bw = anuga.Time_boundary(domain=domain, function=wrapped_file_function)
+
 
     domain.set_boundary({'west': Bd, 'south': Bd, 'north': Bd, 'east': Bw})
+    
 
+        
+        
+        
+    
+    
+    
