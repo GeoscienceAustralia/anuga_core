@@ -970,12 +970,11 @@ class Write_sww(Write_sts):
         if time is not None:
             file_time = outfile.variables['time']
             slice_index = len(file_time)
-            # check if time already saved as in check pointing            
+            # check if time already saved as in check pointing
             if slice_index > 0:
                 if time <= file_time[slice_index-1]:
                     check = numpy.where(numpy.abs(file_time[:]-time)< 1.0e-14)
-                    slice_index = check[0][0]
-                
+                    slice_index = int(check[0][0])
             file_time[slice_index] = time
         else:
             slice_index = int(slice_index) # Has to be cast in case it was numpy.int    
