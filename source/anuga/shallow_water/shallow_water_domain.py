@@ -249,6 +249,15 @@ class Domain(Generic_Domain):
         import anuga.structures.riverwall
         self.riverwallData=anuga.structures.riverwall.RiverWall(self)
 
+        # Keep track of the fluxes through the boundaries
+        # Only works for DE algorithms at present
+        max_time_substeps=3 # Maximum number of substeps supported by any timestepping method
+        # boundary_flux_sum holds boundary fluxes on each sub-step
+        self.boundary_flux_sum=num.array([0.]*max_time_substeps) 
+        from anuga.operators.boundary_flux_integral_operator import boundary_flux_integral_operator
+        self.boundary_flux_integral=boundary_flux_integral_operator(self)
+        # Make an integer counting how many times we call compute_fluxes_central -- so we know which substep we are on
+        self.call=1 
 
 
     def set_defaults(self):
@@ -479,14 +488,6 @@ class Domain(Generic_Domain):
 
         self.maximum_allowed_speed=0.0
 
-        ## FIXME: Should implement tracking of boundary fluxes
-        ## Keep track of the fluxes through the boundaries
-        self.boundary_flux_integral=num.ndarray(1)
-        self.boundary_flux_integral[0]=0. 
-        self.boundary_flux_sum=num.ndarray(1)
-        self.boundary_flux_sum[0]=0.
-
-        self.call=1 # Integer counting how many times we call compute_fluxes_central
 
         if self.processor == 0 and self.verbose:
             print '##########################################################################'
@@ -545,15 +546,6 @@ class Domain(Generic_Domain):
         # self.set_store_vertices_smoothly(False)
 
         self.maximum_allowed_speed=0.0
-
-        ## FIXME: Should implement tracking of boundary fluxes
-        ## Keep track of the fluxes through the boundaries
-        self.boundary_flux_integral=num.ndarray(1)
-        self.boundary_flux_integral[0]=0. 
-        self.boundary_flux_sum=num.ndarray(1)
-        self.boundary_flux_sum[0]=0.
-
-        self.call=1 # Integer counting how many times we call compute_fluxes_central
 
         if self.processor == 0 and self.verbose:
             print '##########################################################################'
@@ -614,15 +606,6 @@ class Domain(Generic_Domain):
 
         self.maximum_allowed_speed=0.0
 
-        ## FIXME: Should implement tracking of boundary fluxes
-        ## Keep track of the fluxes through the boundaries
-        self.boundary_flux_integral=num.ndarray(1)
-        self.boundary_flux_integral[0]=0. 
-        self.boundary_flux_sum=num.ndarray(1)
-        self.boundary_flux_sum[0]=0.
-
-        self.call=1 # Integer counting how many times we call compute_fluxes_central
-
         if self.processor == 0 and self.verbose:
             print '##########################################################################'
             print '#'
@@ -681,15 +664,6 @@ class Domain(Generic_Domain):
         # self.set_store_vertices_smoothly(False)
 
         self.maximum_allowed_speed=0.0
-
-        ## FIXME: Should implement tracking of boundary fluxes
-        ## Keep track of the fluxes through the boundaries
-        self.boundary_flux_integral=num.ndarray(1)
-        self.boundary_flux_integral[0]=0. 
-        self.boundary_flux_sum=num.ndarray(1)
-        self.boundary_flux_sum[0]=0.
-
-        self.call=1 # Integer counting how many times we call compute_fluxes_central
 
         if self.processor == 0 and self.verbose:
             print '##########################################################################'
@@ -1336,6 +1310,37 @@ class Domain(Generic_Domain):
         
         return water_volume
 
+    def get_boundary_flux_integral(self):
+        """
+            Compute the boundary flux integral.
+            Should work in parallel
+        """
+    
+        from anuga import myid, numprocs, send, receive, barrier
+
+        if not self.compute_fluxes_method=='DE':
+            msg='Boundary flux integral only supported for DE fluxes '+\
+                '(because computation of boundary_flux_sum is only implemented there)'
+            raise Exception, msg
+            
+        flux_integral = self.boundary_flux_integral.boundary_flux_integral
+            
+        if myid == 0:
+            for i in range(1,numprocs):
+                remote_flux_integral = receive(i)
+                flux_integral = flux_integral + remote_flux_integral
+        else:
+            send(flux_integral,0)
+        
+        barrier()
+    
+        if myid == 0:
+            for i in range(1,numprocs):
+                send(flux_integral,i)
+        else:
+            flux_integral = receive(0)
+        
+        return flux_integral 
 
     def get_flow_through_cross_section(self, polyline, verbose=False):
         """Get the total flow through an arbitrary poly line.
@@ -1585,31 +1590,6 @@ class Domain(Generic_Domain):
                                                self.riverwallData.hydraulic_properties_rowIndex,
                                                int(self.riverwallData.ncol_hydraulic_properties),
                                                self.riverwallData.hydraulic_properties)
-
-            ## FIXME: This won't work in parallel since the timestep has not been updated to include other processors. 
-            ## Update the boundary flux integral
-            ## FIXME GD: This should be moved to its own routine -- something like this
-            ##        could be included in all solvers.
-            #if(self.timestepping_method=='rk2'):
-            #    if(self.call%2==1):
-            #      self.boundary_flux_integral[0]= self.boundary_flux_integral[0] +\
-            #                                        self.boundary_flux_sum[0]*self.timestep*0.5
-            #      #print 'dbfi ', self.boundary_flux_integral, self.boundary_flux_sum
-            #      self.boundary_flux_sum[0]=0.
-            #elif(self.timestepping_method=='euler'):
-            #    # FIXME GD: Unsupported at present.
-            #    self.boundary_flux_integral=0.
-            #    # This presently doesn't work -- this section of code may need to go elsewhere
-            #    #self.boundary_flux_integral[0]= self.boundary_flux_integral[0] +\
-            #    #                                  self.boundary_flux_sum[0]*self.timestep
-            #    #self.boundary_flux_sum[0]=0.
-            #elif(self.timestepping_method=='rk3'):
-            #    # FIXME GD: Unsupported at present.
-            #    self.boundary_flux_integral=0.
-            #    # FIXME GD: This needs to be implemented
-            #else:
-            #    mess='ERROR: domain.timestepping_method', self.timestepping_method,' method not recognised'
-            #    raise Exception, mess
 
             self.flux_timestep = flux_timestep
 
@@ -2337,6 +2317,8 @@ class Domain(Generic_Domain):
            
         These calculations are only approximate since they don't use the
         flux calculation used in evolve
+
+        See get_boundary_flux_integral for an exact computation
         """
 		
         # Run through boundary array and compute for each segment

@@ -414,6 +414,7 @@ int _flux_function_central(double *q_left, double *q_right,
       // edgeflux[i] += 1.0*(s_max*s_min)*(q_right_rotated[i] - q_left_rotated[i]);
       // Smoothing by stage alone can cause high velocities / slow draining for nearly dry cells
       if(i==0) edgeflux[i] += (s_max*s_min)*(max(q_right_rotated[i],ze) - max(q_left_rotated[i],ze));
+      //if(i==0) edgeflux[i] += (s_max*s_min)*(h_right - h_left);
       if(i==1) edgeflux[i] += (s_max*s_min)*(uh_right - uh_left);
       if(i==2) edgeflux[i] += (s_max*s_min)*(vh_right - vh_left);
 
@@ -583,7 +584,7 @@ double _compute_fluxes_central(int number_of_elements,
     double stage_edges[3];//Work array
     double bedslope_work, local_timestep;
     int neighbours_wet[3];//Work array
-    int RiverWall_count;
+    int RiverWall_count, substep_count;
     double hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2; 
     double stage_edge_lim, outgoing_mass_edges, bedtop, bedbot, pressure_flux, hc, hc_n, tmp, tmp2;
     double h_left_tmp, h_right_tmp;
@@ -605,6 +606,7 @@ double _compute_fluxes_central(int number_of_elements,
 
     local_timestep=timestep;
     RiverWall_count=0;
+    substep_count=(call-2)%timestep_fluxcalls;
 
 
     // For all triangles
@@ -789,7 +791,7 @@ double _compute_fluxes_central(int number_of_elements,
             edgeflux_store[ki3 + 1 ] = -edgeflux[1];
             edgeflux_store[ki3 + 2 ] = -edgeflux[2];
 
-            // bedslope_work contains all gravity related terms -- weighting of
+            // bedslope_work contains all gravity related terms
             bedslope_work=length*(-g*0.5*(h_left*h_left - hle*hle -(hle+hc)*(zl-zc))+pressure_flux);
 
             pressuregrad_store[ki]=bedslope_work;
@@ -835,13 +837,14 @@ double _compute_fluxes_central(int number_of_elements,
 
         } // End edge i (and neighbour n)
         // Keep track of maximal speeds
-        if((call-2)%timestep_fluxcalls==0) max_speed_array[k] = speed_max_last; //max_speed;
+        if(substep_count==0) max_speed_array[k] = speed_max_last; //max_speed;
 
 
     } // End triangle k
  
     //// GD HACK 
     //// Limit edgefluxes, for mass conservation near wet/dry cells
+    //// This doesn't seem to be needed anymore
     //for(k=0; k< number_of_elements; k++){
     //    //continue;
     //    hc = height_centroid_values[k]; 
@@ -924,9 +927,10 @@ double _compute_fluxes_central(int number_of_elements,
             // condition OR a ghost cell, then add the flux to the
             // boundary_flux_integral
             if( (n<0 & tri_full_flag[k]==1) | ( n>=0 && (tri_full_flag[k]==1 & tri_full_flag[n]==0)) ){ 
-                boundary_flux_sum[0] += edgeflux_store[ki3];
+                // boundary_flux_sum is an array with length = timestep_fluxcalls
+                // For each sub-step, we put the boundary flux sum in.
+                boundary_flux_sum[substep_count] += edgeflux_store[ki3];
             }
-
             // GD HACK
             // Compute bed slope term
             //if(hc > H0){
@@ -949,8 +953,8 @@ double _compute_fluxes_central(int number_of_elements,
     }  // end cell k
 
     // Hack to ensure we only update the timestep on the first call within each rk2/rk3 step
-    if((call-2)%timestep_fluxcalls==0) timestep=local_timestep; 
-
+    if(substep_count==0) timestep=local_timestep; 
+            
     free(edgeflux_store);
     free(pressuregrad_store);
 
