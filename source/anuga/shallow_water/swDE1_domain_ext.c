@@ -447,7 +447,7 @@ double adjust_edgeflux_with_weir(double* edgeflux,
     double w1,w2; // Weights for averaging
     double newFlux;
     // Following constants control the 'blending' with the shallow water solution
-    // They are now user-defined 
+    // They are now user-defined
     //double s1=0.9; // At this submergence ratio, begin blending with shallow water solution
     //double s2=0.95; // At this submergence ratio, completely use shallow water solution
     //double h1=1.0; // At this (tailwater height above weir) / (weir height) ratio, begin blending with shallow water solution
@@ -473,8 +473,6 @@ double adjust_edgeflux_with_weir(double* edgeflux,
         rw*=-1.0;
     }
 
-    //printf("%e, %e \n", rw, edgeflux[0]);
-
     if( (hdRat<s2) & (hdWrRat< h2) ){
         // Rescale the edge fluxes so that the mass flux = desired flux
         // Linearly shift to shallow water solution between hdRat = s1 and s2  
@@ -488,11 +486,9 @@ double adjust_edgeflux_with_weir(double* edgeflux,
 
         // Weighted average constants to transition to shallow water eqn flow
         w1=min( max(hdRat-s1,0.)/(s2-s1), 1.0);
-        //w2=1.0-w1;
-        //
+        
         // Adjust again when the head is too deep relative to the weir height
         w2=min( max(hdWrRat-h1,0.)/(h2-h1), 1.0);
-        //w2=1.0-w1;
 
         newFlux=(rw*(1.0-w1)+w1*edgeflux[0])*(1.0-w2) + w2*edgeflux[0];
        
@@ -504,7 +500,8 @@ double adjust_edgeflux_with_weir(double* edgeflux,
             edgeflux[1]*=scaleFlux;
             edgeflux[2]*=scaleFlux;
         }else{
-            // Can't divide by edgeflux
+            // Can't divide by edgeflux, so enforce 'newFlux' directly
+            //
             // FIXME: This is fluxing mass but not momentum
             //        It might be ok, but,.........
             //        it has potential be a problem in the
@@ -521,8 +518,6 @@ double adjust_edgeflux_with_weir(double* edgeflux,
             edgeflux[2]*=0.;
         }
     }
-
-    //printf("%e, %e, %e, %e , %e, %e \n", weir_height, h_left, h_right, edgeflux[0], w1, w2);
 
     return 0;
 }
@@ -562,23 +557,21 @@ double _compute_fluxes_central(int number_of_elements,
         double* ymom_centroid_values,
         double* bed_centroid_values,
         double* height_centroid_values,
-        //double* bed_vertex_values,
         long* edge_flux_type,
         double* riverwall_elevation,
         long* riverwall_rowIndex,
         int ncol_riverwall_hydraulic_properties,
-        double* riverwall_hydraulic_properties) {
+        double* riverwall_hydraulic_properties,
+        double* edge_flux_work,
+        double* pressuregrad_work) {
     // Local variables
     double max_speed, length, inv_area, zl, zr;
-    //double h0 = H0*H0;//H0*H0;//H0*0.1;//H0*H0;//H0*H0; // This ensures a good balance when h approaches H0.
     double h_left, h_right, z_half ;  // For andusse scheme
     // FIXME: limiting_threshold is not used for DE1
-    double limiting_threshold = 10*H0;//10 * H0 ;//H0; //10 * H0; // Avoid applying limiter below this
-    // threshold for performance reasons.
-    // See ANUGA manual under flux limiting
+    double limiting_threshold = 10*H0;
+    //
     int k, i, m, n,j, ii;
     int ki, nm = 0, ki2,ki3, nm3; // Index shorthands
-    //int num_hydraulic_properties=1; // FIXME: Move to function call
     // Workspace (making them static actually made function slightly slower (Ole))
     double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
     double stage_edges[3];//Work array
@@ -591,11 +584,6 @@ double _compute_fluxes_central(int number_of_elements,
     static long call = 1; // Static local variable flagging already computed flux
     double speed_max_last, vol, smooth, local_speed, weir_height;
 
-    double *edgeflux_store, *pressuregrad_store;
-
-    edgeflux_store = malloc(number_of_elements*9*sizeof(double));
-    pressuregrad_store = malloc(number_of_elements*3*sizeof(double));
-
     call++; // Flag 'id' of flux calculation for this timestep
 
     // Set explicit_update to zero for all conserved_quantities.
@@ -603,6 +591,8 @@ double _compute_fluxes_central(int number_of_elements,
     memset((char*) stage_explicit_update, 0, number_of_elements * sizeof (double));
     memset((char*) xmom_explicit_update, 0, number_of_elements * sizeof (double));
     memset((char*) ymom_explicit_update, 0, number_of_elements * sizeof (double));
+    memset((char*) edge_flux_work, 0, 9*number_of_elements * sizeof (double));
+    memset((char*) pressuregrad_work, 0, 3*number_of_elements * sizeof (double));
 
     local_timestep=timestep;
     RiverWall_count=0;
@@ -679,28 +669,6 @@ double _compute_fluxes_central(int number_of_elements,
                 // Set central bed to riverwall elevation
                 z_half=max(riverwall_elevation[RiverWall_count-1], z_half) ;
 
-                //if(min(ql[0], qr[0]) < z_half){
-                //    // Since there is a wall blocking the flow connection, use first order extrapolation for this edge
-                //    ql[0]=stage_centroid_values[k];
-                //    ql[1]=xmom_centroid_values[k];
-                //    ql[2]=ymom_centroid_values[k];
-                //    hle=hc;
-                //    zl=zc;
-
-                //    if(n>=0){
-                //      qr[0]=stage_centroid_values[n];
-                //      qr[1]=xmom_centroid_values[n];
-                //      qr[2]=ymom_centroid_values[n];
-                //      hre=hc_n;
-                //      zr = zc_n;
-                //    }else{
-                //      hre=hc;
-                //      zr = zc;
-                //    }
-                //    // Re-set central bed to riverwall elevation
-                //    z_half=max(riverwall_elevation[RiverWall_count-1], max(zl, zr)) ;
-                //}
-
             }
 
             // Define h left/right for Audusse flux method
@@ -719,15 +687,12 @@ double _compute_fluxes_central(int number_of_elements,
 
             // Force weir discharge to match weir theory
             if(edge_flux_type[ki]==1){
-                //printf("%e \n", z_half);
                 weir_height=max(riverwall_elevation[RiverWall_count-1]-min(zl,zr), 0.); // Reference weir height  
-                //weir_height=max(z_half-max(zl,zr), 0.); // Reference weir height  
                 // If the weir height is zero, avoid the weir compuattion entirely
                 if(weir_height>0.){
                     // Get Qfactor index - multiply the idealised weir discharge by this constant factor
                     ii=riverwall_rowIndex[RiverWall_count-1]*ncol_riverwall_hydraulic_properties;
                     Qfactor=riverwall_hydraulic_properties[ii];
-                    //printf("%e \n", Qfactor);
                     // Get s1, submergence ratio at which we start blending with the shallow water solution 
                     ii+=1;
                     s1=riverwall_hydraulic_properties[ii];
@@ -741,10 +706,6 @@ double _compute_fluxes_central(int number_of_elements,
                     ii+=1;
                     h2=riverwall_hydraulic_properties[ii];
                     
-                    //adjust_edgeflux_with_weir(edgeflux, h_left, h_right, g, 
-                    //                          weir_height, Qfactor, 
-                    //                          s1, s2, h1, h2);
-
                     // Use first-order h's for weir -- as the 'upstream/downstream' heads are
                     //  measured away from the weir itself
                     h_left_tmp= max(stage_centroid_values[k]-z_half,0.);
@@ -758,7 +719,6 @@ double _compute_fluxes_central(int number_of_elements,
                                               weir_height, Qfactor, 
                                               s1, s2, h1, h2);
                     // NOTE: Should perhaps also adjust the wave-speed here?? Small chance of instability??
-                    //printf("%e \n", edgeflux[0]);
                 }
             }
             
@@ -769,8 +729,9 @@ double _compute_fluxes_central(int number_of_elements,
             edgeflux[2] *= length;
 
 
-            //// Don't allow an outward advective flux if the cell centroid stage
-            //// is < the edge value. Is this important (??)
+            //// Don't allow an outward advective flux if the cell centroid
+            ////   stage is < the edge value. Is this important (??). Seems not
+            ////   to be with DE algorithms
             //if((hc<H0) && edgeflux[0] > 0.){
             //    edgeflux[0] = 0.;
             //    edgeflux[1] = 0.;
@@ -787,25 +748,25 @@ double _compute_fluxes_central(int number_of_elements,
             //    //pressure_flux=0.;
             //}
 
-            edgeflux_store[ki3 + 0 ] = -edgeflux[0];
-            edgeflux_store[ki3 + 1 ] = -edgeflux[1];
-            edgeflux_store[ki3 + 2 ] = -edgeflux[2];
+            edge_flux_work[ki3 + 0 ] = -edgeflux[0];
+            edge_flux_work[ki3 + 1 ] = -edgeflux[1];
+            edge_flux_work[ki3 + 2 ] = -edgeflux[2];
 
             // bedslope_work contains all gravity related terms
             bedslope_work=length*(-g*0.5*(h_left*h_left - hle*hle -(hle+hc)*(zl-zc))+pressure_flux);
 
-            pressuregrad_store[ki]=bedslope_work;
+            pressuregrad_work[ki]=bedslope_work;
             
             already_computed_flux[ki] = call; // #k Done
 
             // Update neighbour n with same flux but reversed sign
             if (n >= 0) {
 
-                edgeflux_store[nm3 + 0 ] = edgeflux[0];
-                edgeflux_store[nm3 + 1 ] = edgeflux[1];
-                edgeflux_store[nm3 + 2 ] = edgeflux[2];
+                edge_flux_work[nm3 + 0 ] = edgeflux[0];
+                edge_flux_work[nm3 + 1 ] = edgeflux[1];
+                edge_flux_work[nm3 + 2 ] = edgeflux[2];
                 bedslope_work=length*(-g*0.5*(h_right*h_right-hre*hre-(hre+hc_n)*(zr-zc_n))+pressure_flux);
-                pressuregrad_store[nm]=bedslope_work;
+                pressuregrad_work[nm]=bedslope_work;
 
                 already_computed_flux[nm] = call; // #n Done
             }
@@ -814,7 +775,7 @@ double _compute_fluxes_central(int number_of_elements,
             // NOTE: We should only change the timestep between rk2 or rk3
             // steps, NOT within them (since a constant timestep is used within
             // each rk2/rk3 sub-step)
-            if ((tri_full_flag[k] == 1) & ( (call-2)%timestep_fluxcalls==0)) {
+            if ((tri_full_flag[k] == 1) & (substep_count==0)) {
 
                 speed_max_last=max(speed_max_last, max_speed);
 
@@ -832,9 +793,6 @@ double _compute_fluxes_central(int number_of_elements,
                 }
             }
         
-        // Keep track of maximal speeds
-        //max_speed_array[k] = max(max_speed_array[k],max_speed);
-
         } // End edge i (and neighbour n)
         // Keep track of maximal speeds
         if(substep_count==0) max_speed_array[k] = speed_max_last; //max_speed;
@@ -842,7 +800,6 @@ double _compute_fluxes_central(int number_of_elements,
 
     } // End triangle k
  
-    //// GD HACK 
     //// Limit edgefluxes, for mass conservation near wet/dry cells
     //// This doesn't seem to be needed anymore
     //for(k=0; k< number_of_elements; k++){
@@ -854,9 +811,9 @@ double _compute_fluxes_central(int number_of_elements,
     //            // Add up the outgoing flux through the cell -- only do this once (i==0)
     //            outgoing_mass_edges=0.0;
     //            for(useint=0; useint<3; useint++){
-    //                if(edgeflux_store[3*(3*k+useint)]< 0.){
+    //                if(edge_flux_work[3*(3*k+useint)]< 0.){
     //                    //outgoing_mass_edges+=1.0;
-    //                    outgoing_mass_edges+=(edgeflux_store[3*(3*k+useint)]);
+    //                    outgoing_mass_edges+=(edge_flux_work[3*(3*k+useint)]);
     //                }
     //            }
     //            outgoing_mass_edges*=local_timestep;
@@ -870,7 +827,7 @@ double _compute_fluxes_central(int number_of_elements,
     //        // Idea: The cell will not go dry if:
     //        // total_outgoing_flux <= cell volume = Area_triangle*hc
     //        vol=areas[k]*hc;
-    //        if((edgeflux_store[ki3]< 0.0) && (-outgoing_mass_edges> vol)){
+    //        if((edge_flux_work[ki3]< 0.0) && (-outgoing_mass_edges> vol)){
     //            
     //            // This bound could be improved (e.g. we could actually sum the
     //            // + and - fluxes and check if they are too large).  However,
@@ -879,25 +836,23 @@ double _compute_fluxes_central(int number_of_elements,
     //            // constraints associated with neighbouring triangles.
     //            tmp = vol/(-(outgoing_mass_edges)) ;
     //            if(tmp< 1.0){
-    //                edgeflux_store[ki3+0]*=tmp;
-    //                edgeflux_store[ki3+1]*=tmp;
-    //                edgeflux_store[ki3+2]*=tmp;
+    //                edge_flux_work[ki3+0]*=tmp;
+    //                edge_flux_work[ki3+1]*=tmp;
+    //                edge_flux_work[ki3+2]*=tmp;
 
     //                // Compute neighbour edge index
     //                n = neighbours[ki];
     //                if(n>=0){
     //                    nm = 3*n + neighbour_edges[ki];
     //                    nm3 = nm*3;
-    //                    edgeflux_store[nm3+0]*=tmp;
-    //                    edgeflux_store[nm3+1]*=tmp;
-    //                    edgeflux_store[nm3+2]*=tmp;
+    //                    edge_flux_work[nm3+0]*=tmp;
+    //                    edge_flux_work[nm3+1]*=tmp;
+    //                    edge_flux_work[nm3+2]*=tmp;
     //                }
     //            }
     //        }
     //    }
     // }
-
-    ////printf("%e \n", edgeflux_store[3*30*3]);
 
     // Now add up stage, xmom, ymom explicit updates
     for(k=0; k<number_of_elements; k++){
@@ -915,11 +870,11 @@ double _compute_fluxes_central(int number_of_elements,
             // GD HACK
             // Option to limit advective fluxes
             //if(hc > H0){
-                stage_explicit_update[k] += edgeflux_store[ki3+0];
-                xmom_explicit_update[k] += edgeflux_store[ki3+1];
-                ymom_explicit_update[k] += edgeflux_store[ki3+2];
+                stage_explicit_update[k] += edge_flux_work[ki3+0];
+                xmom_explicit_update[k] += edge_flux_work[ki3+1];
+                ymom_explicit_update[k] += edge_flux_work[ki3+2];
             //}else{
-            //    stage_explicit_update[k] += edgeflux_store[ki3+0];
+            //    stage_explicit_update[k] += edge_flux_work[ki3+0];
             //}
 
 
@@ -929,13 +884,14 @@ double _compute_fluxes_central(int number_of_elements,
             if( (n<0 & tri_full_flag[k]==1) | ( n>=0 && (tri_full_flag[k]==1 & tri_full_flag[n]==0)) ){ 
                 // boundary_flux_sum is an array with length = timestep_fluxcalls
                 // For each sub-step, we put the boundary flux sum in.
-                boundary_flux_sum[substep_count] += edgeflux_store[ki3];
+                boundary_flux_sum[substep_count] += edge_flux_work[ki3];
             }
+    
             // GD HACK
             // Compute bed slope term
             //if(hc > H0){
-                xmom_explicit_update[k] -= normals[ki2]*pressuregrad_store[ki];
-                ymom_explicit_update[k] -= normals[ki2+1]*pressuregrad_store[ki];
+                xmom_explicit_update[k] -= normals[ki2]*pressuregrad_work[ki];
+                ymom_explicit_update[k] -= normals[ki2+1]*pressuregrad_work[ki];
             //}else{
             //    xmom_explicit_update[k] *= 0.;
             //    ymom_explicit_update[k] *= 0.;
@@ -952,12 +908,9 @@ double _compute_fluxes_central(int number_of_elements,
    
     }  // end cell k
 
-    // Hack to ensure we only update the timestep on the first call within each rk2/rk3 step
+    // Ensure we only update the timestep on the first call within each rk2/rk3 step
     if(substep_count==0) timestep=local_timestep; 
             
-    free(edgeflux_store);
-    free(pressuregrad_store);
-
     return timestep;
 }
 
@@ -1044,12 +997,12 @@ int find_qmin_and_qmax(double dq0, double dq1, double dq2,
 }
 
 int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
-  // Given provisional jumps dqv from the FV triangle centroid to its 
-  // vertices and jumps qmin (qmax) between the centroid of the FV 
-  // triangle and the minimum (maximum) of the values at the centroid of 
-  // the FV triangle and the auxiliary triangle vertices,
-  // calculate a multiplicative factor phi by which the provisional 
-  // vertex jumps are to be limited
+  // Given provisional jumps dqv from the FV triangle centroid to its
+  // vertices/edges, and jumps qmin (qmax) between the centroid of the FV
+  // triangle and the minimum (maximum) of the values at the auxiliary triangle
+  // vertices (which are centroids of neighbour mesh triangles), calculate a
+  // multiplicative factor phi by which the provisional vertex jumps are to be
+  // limited
   
   int i;
   double r=1000.0, r0=1.0, phi=1.0;
@@ -1110,7 +1063,9 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
                                  double* elevation_vertex_values,
                                  double* height_vertex_values,
                                  int optimise_dry_cells, 
-                                 int extrapolate_velocity_second_order) {
+                                 int extrapolate_velocity_second_order,
+                                 double* x_centroid_work,
+                                 double* y_centroid_work) {
                   
   // Local variables
   double a, b; // Gradient vector used to calculate edge values from centroids
@@ -1121,68 +1076,10 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
   double hc, h0, h1, h2, beta_tmp, hfactor, xtmp, ytmp, weight, tmp;
   double dk, dv0, dv1, dv2, de[3], demin, dcmax, r0scale, vel_norm, l1, l2, a_tmp, b_tmp, c_tmp,d_tmp;
   
-  double *xmom_centroid_store, *ymom_centroid_store; // , *min_elevation_edgevalue, *max_elevation_edgevalue;
-  //double *cell_wetness_scale;
-  //int *count_wet_neighbours;
 
-  // Use malloc to avoid putting these variables on the stack, which can cause
-  // segfaults in large model runs
-  xmom_centroid_store = malloc(number_of_elements*sizeof(double));
-  ymom_centroid_store = malloc(number_of_elements*sizeof(double));
-  //min_elevation_edgevalue = malloc(number_of_elements*sizeof(double));
-  //max_elevation_edgevalue = malloc(number_of_elements*sizeof(double));
-  //cell_wetness_scale = malloc(number_of_elements*sizeof(double));
-  //count_wet_neighbours = malloc(number_of_elements*sizeof(int));
- 
-  //
-  // Compute some useful statistics on wetness/dryness
-  //
-  //for(k=0; k<number_of_elements;k++){ 
-  //    //cell_wetness_scale[k] = 0.;
-  //    //// Check if cell k is wet
-  //    ////if(stage_centroid_values[k] > elevation_centroid_values[k]){
-  //    //if(stage_centroid_values[k] > elevation_centroid_values[k] + 1.0*minimum_allowed_height){
-  //    ////if(stage_centroid_values[k] > max_elevation_edgevalue[k] + minimum_allowed_height+epsilon){
-  //    //    cell_wetness_scale[k] = 1.;  
-  //    //}
-
-  //    //min_elevation_edgevalue[k] = min(elevation_edge_values[3*k], 
-  //    //                                 min(elevation_edge_values[3*k+1],
-  //    //                                     elevation_edge_values[3*k+2]));
-  //    //max_elevation_edgevalue[k] = max(elevation_edge_values[3*k], 
-  //    //                                 max(elevation_edge_values[3*k+1],
-  //    //                                     elevation_edge_values[3*k+2]));
-  //}
-
-  //// Alternative 'PROTECT' step
-  //for(k=0; k<number_of_elements;k++){ 
-  //  //if((cell_wetness_scale[k]==0. ) ){
-  //  //    xmom_centroid_values[k]=0.;
-  //  //    ymom_centroid_values[k]=0.;
-  //  //    //xmom_centroid_values[k]*=0.9;
-  //  //    //ymom_centroid_values[k]*=0.9;
-
-  //  //}
-
-  //  
-  //  ////// Try some Froude-number limiting in shallow depths
-  //  //dpth=max(stage_centroid_values[k] - elevation_centroid_values[k], 0.0);
-  //  ////
-  //  //if(dpth< max(max_elevation_edgevalue[k]-min_elevation_edgevalue[k],10*minimum_allowed_height)){
-  //  //    // momnorm = momentum^2
-  //  //    momnorm=(xmom_centroid_values[k]*xmom_centroid_values[k]+
-  //  //             ymom_centroid_values[k]*ymom_centroid_values[k]);
-  //  //    
-  //  //    // vel^2 < constant*g*dpth [-- then multiply both sides by dpth^2]
-  //  //    if(momnorm > 4*9.81*dpth*dpth*dpth){
-  //  //        // Down-scale momentum so that Froude number < constant
-  //  //        tmp=sqrt((4*9.81*dpth*dpth*dpth)/momnorm);
-  //  //        xmom_centroid_values[k] *=tmp;
-  //  //        ymom_centroid_values[k] *=tmp;
-  //  //    }
-  //  //}
-  //}
-
+  memset((char*) x_centroid_work, 0, number_of_elements * sizeof (double));
+  memset((char*) y_centroid_work, 0, number_of_elements * sizeof (double));
+  
   
   if(extrapolate_velocity_second_order==1){
 
@@ -1194,15 +1091,15 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
 
           dk = height_centroid_values[k]; 
           if(dk>minimum_allowed_height){
-              xmom_centroid_store[k] = xmom_centroid_values[k];
+              x_centroid_work[k] = xmom_centroid_values[k];
               xmom_centroid_values[k] = xmom_centroid_values[k]/dk;
 
-              ymom_centroid_store[k] = ymom_centroid_values[k];
+              y_centroid_work[k] = ymom_centroid_values[k];
               ymom_centroid_values[k] = ymom_centroid_values[k]/dk;
           }else{
-              xmom_centroid_store[k] = 0.;
+              x_centroid_work[k] = 0.;
               xmom_centroid_values[k] = 0.;
-              ymom_centroid_store[k] = 0.;
+              y_centroid_work[k] = 0.;
               ymom_centroid_values[k] = 0.;
 
          }
@@ -1223,9 +1120,9 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       if((height_centroid_values[k0] < minimum_allowed_height | k0==k) &
          (height_centroid_values[k1] < minimum_allowed_height | k1==k) &
          (height_centroid_values[k2] < minimum_allowed_height | k2==k)){
-              xmom_centroid_store[k] = 0.;
+              x_centroid_work[k] = 0.;
               xmom_centroid_values[k] = 0.;
-              ymom_centroid_store[k] = 0.;
+              y_centroid_work[k] = 0.;
               ymom_centroid_values[k] = 0.;
 
       }
@@ -1312,43 +1209,6 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       k1 = surrogate_neighbours[k3 + 1];
       k2 = surrogate_neighbours[k3 + 2];
 
-      //if(cell_wetness_scale[k0]==0 && cell_wetness_scale[k1]==0 && cell_wetness_scale[k2]==0){
-      //    xmom_centroid_store[k]=0.;
-      //    ymom_centroid_store[k]=0.;
-      //    xmom_centroid_values[k] = 0.;
-      //    ymom_centroid_values[k] = 0.;
-      //}
-     
-      // Test to see whether we accept the surrogate neighbours 
-      // Note that if ki is replaced with k in more than 1 neighbour, then the
-      // triangle area will be zero, and a first order extrapolation will be
-      // used
-      // FIXME: Remove cell_wetness_scale if you don't need it
-      //if( (cell_wetness_scale[k2]==0.0 && stage_centroid_values[k]<max_elevation_edgevalue[k]+100.)){
-      //    k2 = k ;
-      //}
-      //if((cell_wetness_scale[k0]==0.0 && stage_centroid_values[k]<max_elevation_edgevalue[k])+100.){
-      //    k0 = k ;
-      //}
-      //if((cell_wetness_scale[k1]==0.0 && stage_centroid_values[k]<max_elevation_edgevalue[k])+100.){
-      //    k1 = k ;
-      //}
-
-      // Take note if the max neighbour bed elevation is greater than the min
-      // neighbour stage -- suggests a 'steep' bed relative to the flow
-      //bedmax = max(elevation_centroid_values[k], 
-      //             max(elevation_centroid_values[k0],
-      //                 max(elevation_centroid_values[k1], 
-      //                     elevation_centroid_values[k2])));
-      //bedmin = min(elevation_centroid_values[k], 
-      //             min(elevation_centroid_values[k0],
-      //                 min(elevation_centroid_values[k1], 
-      //                     elevation_centroid_values[k2])));
-      //stagemin = min(max(stage_centroid_values[k], elevation_centroid_values[k]), 
-      //               min(max(stage_centroid_values[k0], elevation_centroid_values[k0]),
-      //                   min(max(stage_centroid_values[k1], elevation_centroid_values[k1]),
-      //                       max(stage_centroid_values[k2], elevation_centroid_values[k2]))));
-
       // Get the auxiliary triangle's vertex coordinates 
       // (really the centroids of neighbouring triangles)
       coord_index = 2*k0;
@@ -1376,7 +1236,7 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       //if(k==54) printf("K=54\n");
        
       //// Treat triangles with no neighbours (area2 <=0.) 
-      if ((area2 <= 0.))//|( cell_wetness_scale[k2]==0. && cell_wetness_scale[k1]==0. && cell_wetness_scale[k0]==0.))//|| (cell_wetness_scale[k]==0.)) //|(count_wet_neighbours[k]==0))
+      if ((area2 <= 0.))
       {
 
 
@@ -1399,8 +1259,8 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
 
           //xmom_centroid_values[k]=0.;
           //ymom_centroid_values[k]=0.;
-          //xmom_centroid_store[k] = 0.;
-          //ymom_centroid_store[k] = 0.;
+          //x_centroid_work[k] = 0.;
+          //y_centroid_work[k] = 0.;
 
           xmom_edge_values[k3]    = xmom_centroid_values[k];
           xmom_edge_values[k3+1]  = xmom_centroid_values[k];
@@ -1413,10 +1273,10 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       }  
       
       // Calculate heights of neighbouring cells
-      hc = height_centroid_values[k];//stage_centroid_values[k]  - elevation_centroid_values[k];
-      h0 = height_centroid_values[k0];// - elevation_centroid_values[k0];
-      h1 = height_centroid_values[k1];// - elevation_centroid_values[k1];
-      h2 = height_centroid_values[k2];// - elevation_centroid_values[k2];
+      hc = height_centroid_values[k];
+      h0 = height_centroid_values[k0];
+      h1 = height_centroid_values[k1];
+      h2 = height_centroid_values[k2];
       
       hmin = min(min(h0, min(h1, h2)), hc);
       hmax = max(max(h0, max(h1, h2)), hc);
@@ -1427,18 +1287,14 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       //       the water tends to dry more rapidly (which is in agreement with analytical results),
       //       but is also more 'artefacty' in important cases (tendency for high velocities, etc).
       //       
-      //hfactor=1.0;
       a_tmp=0.3; // Highest depth ratio with hfactor=1
       b_tmp=0.1; // Highest depth ratio with hfactor=0
       c_tmp=1.0/(a_tmp-b_tmp); 
       d_tmp= 1.0-(c_tmp*a_tmp);
+      // So hfactor = depth_ratio*(c_tmp) + d_tmp, but is clipped between 0 and 1.
       hfactor= max(0., min(c_tmp*max(hmin,0.0)/max(hc,1.0e-06)+d_tmp, 
                            min(c_tmp*max(hc,0.)/max(hmax,1.0e-06)+d_tmp, 1.0))
                   );
-      //printf("%e, %e, \n", c_tmp, d_tmp);
-      //hfactor= max(0., min(5.0*max(hmin,0.0)/max(hmax,1.0e-06)-0.5, 1.0)
-      //            );
-      //hfactor=1.0;
       // Set hfactor to zero smothly as hmin--> minimum_allowed_height. This
       // avoids some 'chatter' for very shallow flows 
       hfactor=min( 1.2*max(hmin-minimum_allowed_height,0.)/(max(hmin,0.)+1.*minimum_allowed_height), hfactor);
@@ -1474,9 +1330,6 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
     
       beta_tmp = beta_w_dry + (beta_w - beta_w_dry) * hfactor;
-      //beta_tmp = beta_w_dry*0. + (beta_w - beta_w_dry*0.) * hfactor;
-      //beta_tmp=1.0;
-    
       
       // Limit the gradient
       limit_gradient(dqv, qmin, qmax, beta_tmp);
@@ -1489,10 +1342,6 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       //-----------------------------------
       // height
       //-----------------------------------
-      //hfactor=1.0;
-      //hfactor= max(0., min(5.0*max(hmin,0.0)/max(hc,1.0e-06)-0.5, 
-      //                     min(5.0*max(hc,0.)/max(hmax,1.0e-06)-0.5, 1.0))
-      //            );
        
       // Calculate the difference between vertex 0 of the auxiliary 
       // triangle and the centroid of triangle k
@@ -1521,6 +1370,7 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
    
       // Limit the gradient
+      // Same beta_tmp as for stage
       //beta_tmp = beta_uh_dry + (beta_uh - beta_uh_dry) * hfactor;
       limit_gradient(dqv, qmin, qmax, beta_tmp);
 
@@ -1530,17 +1380,6 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       height_edge_values[k3+1] = height_centroid_values[k] + dqv[1];
       height_edge_values[k3+2] = height_centroid_values[k] + dqv[2];
 
-
-      // REDEFINE hfactor for momentum terms -- make MORE first order
-      // Reduce beta linearly from 1-0 between depth ratio of 0.6-0.4
-      //hfactor= max(0., min(5*max(hmin,0.0)/max(hc,1.0e-06)-2.0, 
-      //                     min(5*max(hc,0.)/max(hmax,1.0e-06)-2.0, 1.0))
-      //            );
-      //hfactor= max(0., min(5*max(hmin,0.0)/max(hmax,1.0e-06)-2.0, 
-      //                      1.0));
-      //hfactor=min( max(hmin,0.)/(max(hmin,0.)+10.*minimum_allowed_height), hfactor);
-      //hfactor=1.0;
-      
       //-----------------------------------
       // xmomentum
       //-----------------------------------            
@@ -1843,8 +1682,8 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       // If needed, convert from velocity to momenta
       if(extrapolate_velocity_second_order==1){
           //Convert velocity back to momenta at centroids
-          xmom_centroid_values[k] = xmom_centroid_store[k];
-          ymom_centroid_values[k] = ymom_centroid_store[k];
+          xmom_centroid_values[k] = x_centroid_work[k];
+          ymom_centroid_values[k] = y_centroid_work[k];
       
           // Re-compute momenta at edges
           for (i=0; i<3; i++){
@@ -1877,13 +1716,6 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
 
    
   } 
-
-  free(xmom_centroid_store);
-  free(ymom_centroid_store);
-  //free(min_elevation_edgevalue);
-  //free(max_elevation_edgevalue);
-  //free(cell_wetness_scale);
-  //free(count_wet_neighbours);
 
   return 0;
 }           
@@ -1977,13 +1809,15 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
     *edge_flux_type,
     *riverwall_elevation,
     *riverwall_rowIndex,
-    *riverwall_hydraulic_properties;
+    *riverwall_hydraulic_properties,
+    *edge_flux_work,
+    *pressuregrad_work;
     
   double timestep, epsilon, H0, g;
   int optimise_dry_cells, timestep_fluxcalls, ncol_riverwall_hydraulic_properties;
     
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "ddddOOOOOOOOOOOOOOOOOOOOOOiiOOOOOOOOiO",
+  if (!PyArg_ParseTuple(args, "ddddOOOOOOOOOOOOOOOOOOOOOOiiOOOOOOOOiOOO",
             &timestep,
             &epsilon,
             &H0,
@@ -2020,7 +1854,9 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
             &riverwall_elevation,
             &riverwall_rowIndex,
             &ncol_riverwall_hydraulic_properties,
-            &riverwall_hydraulic_properties 
+            &riverwall_hydraulic_properties,
+            &edge_flux_work,
+            &pressuregrad_work
             )) {
     report_python_error(AT, "could not parse input arguments");
     return NULL;
@@ -2058,6 +1894,8 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
   CHECK_C_CONTIG(riverwall_elevation);
   CHECK_C_CONTIG(riverwall_rowIndex);
   CHECK_C_CONTIG(riverwall_hydraulic_properties);
+  CHECK_C_CONTIG(edge_flux_work);
+  CHECK_C_CONTIG(pressuregrad_work);
 
   int number_of_elements = stage_edge_values -> dimensions[0];
 
@@ -2102,7 +1940,9 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
                      (double*) riverwall_elevation-> data,
                      (long*)   riverwall_rowIndex-> data,
                      ncol_riverwall_hydraulic_properties,
-                     (double*) riverwall_hydraulic_properties ->data); 
+                     (double*) riverwall_hydraulic_properties ->data, 
+                     (double*) edge_flux_work-> data,
+                     (double*) pressuregrad_work->data);
   // Return updated flux timestep
   return Py_BuildValue("d", timestep);
 }
@@ -2273,7 +2113,9 @@ PyObject *extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
     *xmom_vertex_values,
     *ymom_vertex_values,
     *elevation_vertex_values,
-    *height_vertex_values;
+    *height_vertex_values,
+    *x_centroid_work,
+    *y_centroid_work;
   
   PyObject *domain;
 
@@ -2283,7 +2125,7 @@ PyObject *extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
   int optimise_dry_cells, number_of_elements, extrapolate_velocity_second_order, e, e2;
   
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOOOOOOOOOii",
+  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOOOOOOOOOiiOO",
             &domain,
             &surrogate_neighbours,
             &neighbour_edges,
@@ -2306,7 +2148,9 @@ PyObject *extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
             &elevation_vertex_values,
             &height_vertex_values,
             &optimise_dry_cells,
-            &extrapolate_velocity_second_order)) {         
+            &extrapolate_velocity_second_order,
+            &x_centroid_work,
+            &y_centroid_work)) {         
 
     report_python_error(AT, "could not parse input arguments");
     return NULL;
@@ -2333,6 +2177,8 @@ PyObject *extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
   CHECK_C_CONTIG(ymom_vertex_values);
   CHECK_C_CONTIG(elevation_vertex_values);
   CHECK_C_CONTIG(height_vertex_values);
+  CHECK_C_CONTIG(x_centroid_work);
+  CHECK_C_CONTIG(y_centroid_work);
   
   // Get the safety factor beta_w, set in the config.py file. 
   // This is used in the limiting process
@@ -2383,7 +2229,9 @@ PyObject *extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
                    (double*) elevation_vertex_values -> data,
                    (double*) height_vertex_values -> data,
                    optimise_dry_cells, 
-                   extrapolate_velocity_second_order);
+                   extrapolate_velocity_second_order,
+                   (double*) x_centroid_work -> data,
+                   (double*) y_centroid_work -> data);
 
   if (e == -1) {
     // Use error string set inside computational routine

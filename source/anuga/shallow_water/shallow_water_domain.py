@@ -249,16 +249,21 @@ class Domain(Generic_Domain):
         import anuga.structures.riverwall
         self.riverwallData=anuga.structures.riverwall.RiverWall(self)
 
-        # Keep track of the fluxes through the boundaries
-        # Only works for DE algorithms at present
+        ## Keep track of the fluxes through the boundaries
+        ## Only works for DE algorithms at present
         max_time_substeps=3 # Maximum number of substeps supported by any timestepping method
-        # boundary_flux_sum holds boundary fluxes on each sub-step
+        # boundary_flux_sum holds boundary fluxes on each sub-step [unused substeps = 0.]
         self.boundary_flux_sum=num.array([0.]*max_time_substeps) 
         from anuga.operators.boundary_flux_integral_operator import boundary_flux_integral_operator
         self.boundary_flux_integral=boundary_flux_integral_operator(self)
         # Make an integer counting how many times we call compute_fluxes_central -- so we know which substep we are on
         self.call=1 
 
+        # Work arrays [avoid allocate statements in compute_fluxes or extrapolate_second_order]
+        self.edge_flux_work=num.zeros(len(self.edge_coordinates[:,0])*3)
+        self.pressuregrad_work=num.zeros(len(self.edge_coordinates[:,0]))
+        self.x_centroid_work=num.zeros(len(self.edge_coordinates[:,0])/3)
+        self.y_centroid_work=num.zeros(len(self.edge_coordinates[:,0])/3)
 
     def set_defaults(self):
         """Set the default values in this routine. That way we can inherit class
@@ -1589,7 +1594,9 @@ class Domain(Generic_Domain):
                                                self.riverwallData.riverwall_elevation,
                                                self.riverwallData.hydraulic_properties_rowIndex,
                                                int(self.riverwallData.ncol_hydraulic_properties),
-                                               self.riverwallData.hydraulic_properties)
+                                               self.riverwallData.hydraulic_properties,
+                                               self.edge_flux_work,
+                                               self.pressuregrad_work)
 
             self.flux_timestep = flux_timestep
 
@@ -1695,7 +1702,9 @@ class Domain(Generic_Domain):
                       Elevation.vertex_values,
                       height.vertex_values,
                       int(self.optimise_dry_cells),
-                      int(self.extrapolate_velocity_second_order))
+                      int(self.extrapolate_velocity_second_order),
+                      self.x_centroid_work,
+                      self.y_centroid_work)
         else:
             # Code for original method
             if self.use_edge_limiter:
@@ -2410,6 +2419,8 @@ class Domain(Generic_Domain):
         
         message = '---------------------------\n'        
         message += 'Volumetric balance report:\n'
+        message += 'Note: Boundary fluxes are not exact\n'
+        message += 'See get_boundary_flux_integral for exact computation\n'
         message += '--------------------------\n'
         message += 'Total boundary inflow [m^3/s]: %.2f\n' % total_boundary_inflow
         message += 'Total boundary outflow [m^3/s]: %.2f\n' % total_boundary_outflow
