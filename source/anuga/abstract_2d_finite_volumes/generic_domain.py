@@ -1508,6 +1508,7 @@ class Generic_Domain:
 
         # We assume evolve has already been called so we should now
         # set starttime to match actual time
+        
         if skip_initial_step:
             self.set_starttime(self.get_time())
 

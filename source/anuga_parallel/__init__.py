@@ -26,6 +26,4 @@ else:
     from anuga.advection import Advection_Domain as Parallel_advection_domain
 
 
-	
-
 

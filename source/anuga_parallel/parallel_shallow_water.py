@@ -14,7 +14,7 @@ Geoscience Australia, 2004-2005
 from anuga import Domain
 
 import anuga_parallel.parallel_generic_communications as generic_comms
-import anuga_parallel.parallel_abstraction as pypar
+import anuga.utilities.parallel_abstraction as pypar
 
 #from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 

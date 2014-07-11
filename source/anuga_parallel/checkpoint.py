@@ -16,7 +16,8 @@ domain = load_last_checkpoint_file(domain_name, checkpoint_dir)
 
 """
 
-from anuga import send, receive, myid, numprocs
+from anuga import send, receive, myid, numprocs, barrier
+from time import time as walltime
 
 
 
@@ -37,6 +38,8 @@ def load_checkpoint_file(domain_name = 'domain', checkpoint_dir = '.', time = No
     else:
         times = [float(time)]
     
+    if len(times) == 0: raise Exception, "Unable to open checkpoint file"
+    
     for time in reversed(times):
         
         pickle_name = join(checkpoint_dir,domain_name)+'_'+str(time)+'.pickle'
@@ -49,17 +52,28 @@ def load_checkpoint_file(domain_name = 'domain', checkpoint_dir = '.', time = No
         except:
             success = False
             
+        #print success
         overall = success
         for cpu in range(numprocs):
-            if myid != cpu:
+            if cpu != myid:
                 send(success,cpu)
-                overall = overall and receive(cpu)  
+                
+        for cpu in range(numprocs):
+            if cpu != myid:
+                overall = overall & receive(cpu)
         
-        #print myid, overall, success
+        barrier() 
+        
+        #print myid, overall, success, time
         
         if overall: break
     
     if not overall: raise Exception, "Unable to open checkpoint file"
+    
+    domain.last_walltime = walltime()
+    domain.communication_time = 0.0
+    domain.communication_reduce_time = 0.0
+    domain.communication_broadcast_time = 0.0
     
     return domain
 

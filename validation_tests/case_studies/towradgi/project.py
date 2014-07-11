@@ -3,6 +3,12 @@ from os.path import join
 
 model_output_dir='MODEL_OUTPUTS'
 partition_dir = 'PARTITIONS'
+checkpoint_dir = 'CHECKPOINTS'
+checkpoint_time = 30
+checkpoint = True
+
+finaltime = 620.0
+yieldstep = 10.0
 
 basename = join('DEM_bridges', 'towradgi')
 outname = join('Towradgi_historic_flood')

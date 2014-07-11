@@ -40,17 +40,46 @@ class Simulation(object):
         self.verbose = args.verbose
         self.outname = args.outname
         self.partition_dir = args.partition_dir
+        self.checkpoint_dir = args.checkpoint_dir
         self.alg = args.alg
         self.args = args
+        self.checkpoint = args.checkpoint
+        self.checkpoint_time = args.checkpoint_time
         
+        if self.checkpoint:
+            # try to read in from checkpoint file
+            from anuga_parallel.checkpoint import load_checkpoint_file
+            try:
+                self.domain = load_checkpoint_file(domain_name = self.outname, checkpoint_dir = self.checkpoint_dir)
+                if myid == 0 and self.verbose:
+                    print 'OPENNED CHECKPOINT FILE at time = {}'.format(self.domain.get_time())
+            except:
+                self.initialize_simulation()
+            
+            self.domain.set_checkpointing(checkpoint_time = self.checkpoint_time)
+        else:
+            self.initialize_simulation()
+         
+         
+    def initialize_simulation(self):
+                        
         self.setup_original_domain()
         self.setup_structures()
         self.setup_rainfall()
         self.setup_boundaries()
         
-    def run(self, yieldstep, finaltime):
         
-        if myid == 0 and self.verbose: print 'EVOLVE'
+    def run(self, yieldstep = None, finaltime =None):
+        
+        if yieldstep is None:
+            yieldstep = self.args.yieldstep
+            
+        if finaltime is None:
+            finaltime = self.args.finaltime
+            
+        if myid == 0 and self.verbose: 
+            print 'EVOLVE(yieldstep = {}, finaltime = {})'.format(yieldstep,finaltime)
+        
         
         domain = self.domain
         #import time
@@ -62,12 +91,24 @@ class Simulation(object):
                 domain.write_time()
         
         barrier()
-        if myid == 0 and self.verbose:
-            print 'Number of processors %g ' %numprocs
-            print 'That took %.2f seconds' %(time.time()-t0)
-            print 'Communication time %.2f seconds'%domain.communication_time
-            print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
-            print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
+        for p in range(numprocs):
+            if myid == p:
+                print 'Processor %g ' %myid
+                print 'That took %.2f seconds' %(time.time()-t0)
+                print 'Communication time %.2f seconds'%domain.communication_time
+                print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
+                print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
+            else:
+                pass
+        
+            barrier()
+
+#         if myid == 0 and self.verbose:
+#             print 'Number of processors %g ' %numprocs
+#             print 'That took %.2f seconds' %(time.time()-t0)
+#             print 'Communication time %.2f seconds'%domain.communication_time
+#             print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
+#             print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
         
     
         finalize()

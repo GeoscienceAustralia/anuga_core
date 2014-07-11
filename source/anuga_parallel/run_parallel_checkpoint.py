@@ -4,7 +4,7 @@
 with check pointing
 """
 
-useCheckpointing = True
+
 
 #------------------------------------------------------------------------------
 # Import necessary modules
@@ -37,9 +37,13 @@ from anuga import distribute, myid, numprocs, finalize, barrier
 #--------------------------------------------------------------------------
 
 verbose = False
+domain_name = 'checkpoint'
+checkpoint_dir = 'CHECKPOINTS'
+finaltime = 1000.0
+useCheckpointing = True
 
 #mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 10; finaltime = 100
-mesh_filename = "merimbula_17156.tsh"   ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 50; finaltime = 500
+mesh_filename = "merimbula_17156.tsh"   ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 50 #; finaltime = 500
 #mesh_filename = "merimbula_43200_1.tsh"   ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 50; finaltime = 500
 #mesh_filename = "test-100.tsh" ; x0 = 200.0 ; x1 = 300.0; yieldstep = 1; finaltime = 10
 #mesh_filename = "test-20.tsh" ; x0 = 250.0 ; x1 = 350.0; yieldstep = 1; finaltime = 50
@@ -79,11 +83,10 @@ def wave(t):
 	return 10*sin(t/60)   
 	
 try:
-	finaltime = 1000.0
-	
+		
 	from checkpoint import load_checkpoint_file
 	
-	domain = load_checkpoint_file(domain_name = 'checkpoint', checkpoint_dir = 'Checkpoints')
+	domain = load_checkpoint_file(domain_name = domain_name, checkpoint_dir = checkpoint_dir)
 
 except:
 	#--------------------------------------------------------------------------
@@ -93,7 +96,7 @@ except:
 		domain = create_domain_from_file(mesh_filename)
 		domain.set_quantity('stage', Set_Stage(x0, x1, 1.0))
 
-		domain.set_name('checkpoint')
+		domain.set_name(domain_name)
 		domain.set_store(True)
 
 		domain.set_store_vertices_smoothly(False)
@@ -132,22 +135,8 @@ except:
 	domain.set_boundary({'outflow' :Br, 'inflow' :Br, 'inner' :Br, 'exterior' :Br, 'open' :Bts})
 	
 	if useCheckpointing:
-		domain.checkpoint = True
-		domain.checkpoint_step = 4
-		 
-	finaltime = 600.0   
-else:
-	
+		domain.set_checkpointing(checkpoint_time = 5)
 
-	#domain_name = 'checkpoint_P{}_{}'.format(numprocs,myid)
-	#pickle_name = os.path.join('Checkpoints',domain_name)+'_'+str(time)+'.pickle'
-	#print pickle_name
-	
-	#import cPickle
-	#domain = cPickle.load(open(pickle_name, 'rb'))
-		
-	if myid == 0:
-		print 'domain time ', domain.get_time()
 
 
 #------------------------------------------------------------------------------
@@ -159,24 +148,10 @@ barrier()
 import time
 t0 = time.time()
 
-istep = 2
-inc = 0
+
 for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
 	if myid == 0: domain.write_time()
 	
-#	inc += 1
-	
-#	barrier()
-	
-#	 if (inc%istep == 0):
-#		 
-#		 pickle_name = os.path.join('Checkpoints',domain.get_name())+'_'+str(domain.get_time())+'.pickle'
-#	 
-#		 import cPickle 
-#		 cPickle.dump(domain, open(pickle_name, 'wb')) 
-	
-#	barrier()
-
 
 barrier()
 
@@ -196,7 +171,7 @@ for p in range(numprocs):
 #--------------------------------------------------
 # Merge the individual sww files into one file
 #--------------------------------------------------
-#domain.sww_merge(delete_old=True)
+domain.sww_merge()
 
 
 #domain.dump_triangulation()

@@ -9,7 +9,7 @@ Geoscience Australia, 2004-2010
 
 import numpy as num
 
-import anuga_parallel.parallel_abstraction as pypar
+import anuga.utilities.parallel_abstraction as pypar
 
 
 

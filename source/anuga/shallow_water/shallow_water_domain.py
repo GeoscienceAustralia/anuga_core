@@ -94,6 +94,7 @@ def profileit(name):
 import numpy as num
 import sys
 import os
+import time
 import cPickle
 
 from anuga.abstract_2d_finite_volumes.generic_domain \
@@ -105,6 +106,12 @@ from anuga.file.sww import SWW_file
             
 import anuga.utilities.log as log
 
+from anuga.utilities.parallel_abstraction import size, rank, get_processor_name
+from anuga.utilities.parallel_abstraction import finalize, send, receive
+from anuga.utilities.parallel_abstraction import pypar_available, barrier
+
+
+#from pypar import size, rank, send, receive, barrier
 
 class Domain(Generic_Domain):
     """ Class for a shallow water domain."""
@@ -735,7 +742,26 @@ class Domain(Generic_Domain):
         
         return self.store_centroids   
     
+    def set_checkpointing(self, checkpoint= True, checkpoint_dir = 'CHECKPOINTS', checkpoint_step=10, checkpoint_time = None):
         
+        if checkpoint:
+            # create checkpoint directory if necessary
+            if not os.path.exists(checkpoint_dir):
+                os.mkdir(checkpoint_dir)
+            
+            assert os.path.exists(checkpoint_dir)
+            self.checkpoint_dir = checkpoint_dir
+            if checkpoint_time is not None:
+                #import time
+                self.walltime_prev = time.time()
+                self.checkpoint_time = checkpoint_time
+                self.checkpoint_step = 0
+            else:
+                self.checkpoint_step = checkpoint_step
+            self.checkpoint = True
+            #print self.checkpoint_dir, self.checkpoint_step
+        else:
+            self.checkpoint = False
         
     def set_sloped_mannings_function(self, flag=True):
         """Set mannings friction function to use the sloped
@@ -2131,22 +2157,45 @@ class Domain(Generic_Domain):
 
         if self.store is True and self.get_time() == self.get_starttime():
             self.initialise_storage()
+            
+        if self.get_time() >= finaltime: yield
 
         # Call basic machinery from parent class
         for t in Generic_Domain.evolve(self, yieldstep=yieldstep,
                                        finaltime=finaltime, duration=duration,
                                        skip_initial_step=skip_initial_step):
 
+            self.yieldstep_id += 1
+            walltime = time.time()
+            
+            #print t , self.get_time()
             # Store model data, e.g. for subsequent visualisation
             if self.store is True:
                 self.store_timestep()
 
-            if self.checkpoint is True:
-                self.yieldstep_id += 1
-                if self.yieldstep_id%self.checkpoint_step == 0:
-                    pickle_name = os.path.join('Checkpoints',self.get_name())+'_'+str(self.get_time())+'.pickle'
-                                            
+            
+            if self.checkpoint:
+                save_checkpoint=False
+                if self.checkpoint_step == 0:
+                    if rank() == 0:
+                        if walltime - self.walltime_prev > self.checkpoint_time:
+                            
+                            save_checkpoint = True
+                        for cpu in range(size()):
+                            if cpu != rank():
+                                send(save_checkpoint, cpu)
+                    else:
+                        save_checkpoint = receive(0) 
+                        
+                elif self.yieldstep_id%self.checkpoint_step == 0:
+                        save_checkpoint = True
+                        
+                if save_checkpoint:   
+                    pickle_name = os.path.join(self.checkpoint_dir,self.get_name())+'_'+str(self.get_time())+'.pickle'
                     cPickle.dump(self, open(pickle_name, 'wb'))
+
+                    barrier()
+                    self.walltime_prev = time.time()
                     
                     #print 'Stored Checkpoint File '+pickle_name 
 

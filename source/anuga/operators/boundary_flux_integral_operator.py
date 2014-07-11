@@ -43,7 +43,7 @@ class boundary_flux_integral_operator(Operator):
 
     def __call__(self):
         """
-        Calculate max_stage at each timestep
+        Accumulate boundary flux for each timestep
         """
 
         dt=self.domain.timestep

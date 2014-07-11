@@ -53,7 +53,8 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
 
     def test_boundary_flux_operator_DE0(self):
         """
-            
+        A (the) boundary flux operator is instantiated when a domain is created.
+        This tests the calculation for euler timestepping 
         """
         
         domain=self.create_domain('DE0')
@@ -67,7 +68,8 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
     
     def test_boundary_flux_operator_DE1(self):
         """
-            
+        A (the) boundary flux operator is instantiated when a domain is created.
+        This tests the calculation for rk2 timestepping 
         """
         
         domain=self.create_domain('DE1')

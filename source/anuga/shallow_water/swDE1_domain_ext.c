@@ -688,7 +688,7 @@ double _compute_fluxes_central(int number_of_elements,
             // Force weir discharge to match weir theory
             if(edge_flux_type[ki]==1){
                 weir_height=max(riverwall_elevation[RiverWall_count-1]-min(zl,zr), 0.); // Reference weir height  
-                // If the weir height is zero, avoid the weir compuattion entirely
+                // If the weir height is zero, avoid the weir computation entirely
                 if(weir_height>0.){
                     // Get Qfactor index - multiply the idealised weir discharge by this constant factor
                     ii=riverwall_rowIndex[RiverWall_count-1]*ncol_riverwall_hydraulic_properties;
