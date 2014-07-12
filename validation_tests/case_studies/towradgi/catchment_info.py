@@ -2,7 +2,7 @@ def create_catchment_list(simulation):
 
     from os.path import join
     
-    channel_manning = simulation.args.channing_manning
+    channel_manning = simulation.args.channel_manning
     
     CatchmentList = [
         [join('Model', 'Bdy', 'Catchment.csv'), 100.0],
@@ -17,7 +17,7 @@ def create_manning_list(simulation):
 
     from os.path import join
     
-    channel_manning = simulation.args.channing_manning
+    channel_manning = simulation.args.channel_manning
     
     ## IMPORTANT -- The ORDER in ManningList matters: When there is overlap,
     ##              priority regions at BOTTOM

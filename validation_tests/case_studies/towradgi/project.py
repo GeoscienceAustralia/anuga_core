@@ -7,7 +7,7 @@ checkpoint_dir = 'CHECKPOINTS'
 checkpoint_time = 30
 checkpoint = True
 
-finaltime = 620.0
+finaltime = 400.0
 yieldstep = 10.0
 
 basename = join('DEM_bridges', 'towradgi')

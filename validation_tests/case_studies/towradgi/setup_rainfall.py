@@ -8,6 +8,17 @@ from anuga import Rate_operator
 rain_polygon_dir = join('Forcing', 'Rainfall', 'Gauge')
 rain_rate_dir  = join('Forcing', 'Rainfall', 'Hort')
 
+
+
+def new_setup_rainfall(simulation):
+
+    domain  = simulation.domain
+
+    rate = 0.0002
+
+    return Rate_operator(domain, rate=rate, factor=1.0e-3)
+
+
 def setup_rainfall(simulation):
     """
     Setup all the rain operators 

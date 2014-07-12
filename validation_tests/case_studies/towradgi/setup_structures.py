@@ -367,6 +367,7 @@ def setup_structures(simulation):
                                 label=join('Runs', '22H'), # this puts the culvert hydraulics output into the same dir as the sww's
                                 verbose=False)                                      
     """                                   
+
     
     
     smoothTS=30. # Smoothing timescale for bridges
