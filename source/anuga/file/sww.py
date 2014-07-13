@@ -64,7 +64,7 @@ class SWW_file(Data_format):
     """
 
     def __init__(self, domain, 
-                 mode=netcdf_mode_w, max_size=2000000000, recursion=False):
+                 mode=netcdf_mode_w, max_size=200000000000, recursion=False):
 
         self.precision = netcdf_float32 # Use single precision for quantities
         self.recursion = recursion
