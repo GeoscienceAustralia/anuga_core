@@ -28,7 +28,7 @@
 
 \usepackage{graphicx}
 \usepackage{hyperref}
-\usepackage[english]{babel}
+\usepackage[australian]{babel}
 \usepackage{datetime}
 \usepackage[hang,small,bf]{caption}
 \usepackage{amsbsy,enumerate}
@@ -245,7 +245,8 @@ number of limitations that any potential user needs to be aware of. They are:
   %flow under ceilings or in pipes
   \item All spatial coordinates are assumed to be UTM (meters). As such,
   \anuga is unsuitable for modelling flows in areas larger than one UTM zone
-  (6 degrees wide).
+  (6 degrees wide), though we have run over 2 zones by projecting onto one zone and 
+  living with the distortion.
   \item Fluid is assumed to be inviscid -- i.e.\ no kinematic viscosity included.
   \item The finite volume is a very robust and flexible numerical technique,
   but it is not the fastest method around. If the geometry is sufficiently
@@ -274,7 +275,8 @@ the second is a more realistic example.
 \subsection{Overview}
 
 What follows is a discussion of the structure and operation of a
-script called \file{runup.py}.
+script called \file{runup.py} (which is available in the \file{demos} directory 
+of \file{anuga_core}.
 
 This example carries out the solution of the shallow-water wave
 equation in the simple case of a configuration comprising a flat
@@ -330,17 +332,25 @@ For reference we include below the complete code listing for
 significance.
 
 \label{ref:runup_py_code}
-\verbatiminput{demos/runup.py}
+\verbatiminput{../../demos/runup.py}
+
 
 \subsection{Establishing the Domain}\index{domain, establishing}
 
-The first task is to set up the triangular mesh to be used for the
+The very first thing to do is import the various modules, of which the 
+\anuga{} module is the most important. 
+%
+\begin{verbatim}
+import anuga
+\end{verbatim}
+%
+Then we need to set up the triangular mesh to be used for the
 scenario. This is carried out through the statement:
 
 \begin{verbatim}
 domain = anuga.rectangular_cross_domain(10, 5, len1=10.0, len2=5.0) 
 \end{verbatim}
-
+%
 The above assignment sets up a $10 \times
 5$ rectangular mesh, triangulated in a regular way with boundary tags \code{'left'}, \code{'right'},
          \code{'top'} or \code{'bottom'}. 
@@ -349,7 +359,6 @@ It is also possible to set up a domain from ``first principles'' using \code{poi
 \begin{verbatim}
 domain = anuga.Domain(points, vertices, boundary)
 \end{verbatim}
-%
 where
 \begin{itemize}
    \item a list \code{points} giving the coordinates of each mesh point,
@@ -908,7 +917,7 @@ out by the program can be organised according to this outline:
 
 Here is the code for \file{runcairns.py}:
 
-\verbatiminput{demos/cairns/runcairns.py}
+\verbatiminput{../../demos/cairns/runcairns.py}
 
 In discussing the details of this example, we follow the outline
 given above, discussing each major step of the code in turn.
@@ -969,7 +978,7 @@ In practice, the details of the polygons used are read from a
 separate file \file{project.py}. Here is a complete listing of
 \file{project.py}:
 
-\verbatiminput{demos/cairns/project.py}
+\verbatiminput{../../demos/cairns/project.py}
 
 Figure \ref{fig:cairns3d} illustrates the landscape of the region
 for the Cairns example. Understanding the landscape is important in
@@ -1325,6 +1334,104 @@ Airport in Figure \ref{fig:airportboth}.
   \label{fig:airportboth}
 \end{figure}
 
+
+\section{A Parallel Simulation}
+
+The previous examples were run just using one processor. \anuga also has the option of running in parallel using \mpi.
+
+Such jobs are run using the command
+
+\begin{verbatim}
+mpirun -np n python runParallelCairns.py
+\end{verbatim}
+where \code{n} is the total number of processors being used for the parallel run. 
+
+Essentially we can expect speedups comparable to the number of cores available. This is measured via scalablity. We can expect scalability of 70\% when using up to the number of processors so that the local partitioned domains contain around 2000 triangles. 
+
+\subsection{The Code}
+
+Here is the code for \file{runParallelCairns.py}:
+
+\verbatiminput{../../demos/cairns/runParallelCairns.py}
+
+\subsection{Structure of the Code}
+
+The code is very similar to the sequential code. The same procedures are used to setup the domain, setup the inital conditions, boundary conditions and evolve. 
+
+
+We first import a few procedures  need forthe parallel code.
+\begin{verbatim}
+from anuga import distribute, myid, numprocs, finalize, barrier
+\end{verbatim}
+
+\code{myid} returns the id of the current processor running the code. 
+
+\code{numprocs} returns the total number of processors involved in this parallel jobs (the \code{n} in the original \code{mpirun} command. 
+
+\code{finalize} is called at the end of a script to close down the parallel job.
+
+\code{distribute} is used to partition and setup the parallel domains.
+
+\code{barrier} is a command for processors to wait as all the other processor to catchup to this point.
+
+
+
+
+The creation of the \code{domain} is only done on processor 0. Hence we have the structure:
+
+\begin{verbatim}
+#-------------------------------------
+# Do the domain creation on processor 0
+#-------------------------------------
+if myid == 0: 
+	....
+	domain = ...
+	
+else:
+	domain = None
+\end{verbatim}
+
+We only need to create the original domain on one processor, otherwise we will have multiple copies of the full domain (which will easily eat up our memory). 
+
+Once we have our code{domain} setup we partition it and send the partitions to each of the other processors, via the command
+
+\begin{verbatim}
+#-------------------------------------
+# Now produce paralle domain
+#-------------------------------------
+domain = distribute(domain)
+\end{verbatim}
+
+This takes the \code{domain} on processor 0 and distributes that domain to each of the processors, (it overwrites the full domain on processor 0).  From this point of the code, there is a different domain on each processor, with each domain comunicating with the other domains to ensure required transfer of inforation to allow flow over the combined domains. 
+
+It is important to apply the boundary conditions after the \code{distribute}
+
+
+
+As the partitoined domain evolve, they will store their data to individual sww files, named as \code{domain_name_Pn_m.sww}, where \code{n} is the total number of processors being used and \code{m} is the specific processor id. 
+
+We have a procedure to merge these individual sww files via the command 
+
+\begin{verbatim}
+domain.sww_merge()
+\end{verbatim}
+
+And we close down the parallel job by issuing the command 
+
+\begin{verbatim}
+finalize()
+\end{verbatim}
+
+
+
+\section{Validation Tests}
+
+We have an extensive suite of validation tests, ranging from simple analytical tests to large scale case studies. These can be found in the \file{validation_tests} directory in the \file{anuga_core} directory. 
+
+All these tests can be run in parallel or in sequential mode, and they also provide the mechanism to produce a report detailing the results of the test. (pdfLatex needs to be available to produce the reports). 
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{\anuga Public Interface}
@@ -1395,9 +1502,9 @@ than using pathnames, whose syntax depends on the operating system,
 we use the format adopted for importing the function or class for
 use in Python code. For example, suppose we wish to specify that the
 function \function{create\_mesh\_from\_regions} is in a module called
-\module{mesh\_interface} in a subfolder of \module{inundation} called
+\module{mesh\_interface} in a subfolder of \module{anuga} called
 \code{pmesh}. In Linux or Unix syntax, the pathname of the file
-containing the function, relative to \file{inundation}, would be:
+containing the function, relative to \file{anuga}, would be:
 
 \begin{verbatim}
 pmesh/mesh_interface.py
@@ -4216,7 +4323,7 @@ These experiments were conducted on a Fujitsu PRIMERGY cluster consisting of 36 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%555
 %\begin{center}
 %\pgfplotstableset{% could be used in preamble
-%empty cells with={--}, % replace empty cells with ’--’
+%empty cells with={--}, % replace empty cells with ï¿½--ï¿½
 %every head row/.style={%
 %   before row={%
 %       \toprule

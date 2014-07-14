@@ -63,23 +63,26 @@ try:
                       ['depth','velocity','depthIntegratedVelocity','elevation'],'max',
                       CellSize=CellSize,EPSG_CODE=32756,output_dir=tif_outdir)
     print 'Made tifs'
-    # Plot depth raster with discrepency between model and data
-    depthFile=tif_outdir+'/Towradgi_historic_flood_depth_max_max.tif'
-    myDepth=scipy.misc.imread(depthFile)
-    X=scipy.arange(p.xllcorner, p.xllcorner+myDepth.shape[1]*CellSize, CellSize)
-    Y=scipy.arange(p.yllcorner, p.yllcorner+myDepth.shape[0]*CellSize, CellSize)
-    X,Y=scipy.meshgrid(X,Y)
-    pyplot.clf()
-    pyplot.figure(figsize=(12,6))
-    pyplot.plot([X.min(),X.max()],[Y.min(),Y.max()],' ')
-    pyplot.imshow(scipy.flipud(myDepth),extent=[X.min(),X.max(),Y.min(),Y.max()],origin='lower',cmap=pyplot.get_cmap('Greys'))
-    pyplot.gca().set_aspect('equal')
-    pyplot.colorbar(orientation='horizontal').set_label('Peak Depth in model (m)')
-    er1=floodLevels[:,3]-modelled_level
-    pyplot.scatter(floodLevels[:,0], floodLevels[:,1], c=er1,s=20,cmap=pyplot.get_cmap('spectral'))
-    pyplot.colorbar().set_label(label='Field observation - Modelled Peak Stage (m)')
-    pyplot.xlim([p.x.min()+p.xllcorner,p.x.max()+p.xllcorner])
-    pyplot.ylim([p.y.min()+p.yllcorner,p.y.max()+p.yllcorner])
-    pyplot.savefig('Spatial_Depth_and_Error.png')
 except:
     print 'Cannot make GIS plot -- perhaps GDAL etc are not installed?'
+
+    
+# Plot depth raster with discrepency between model and data
+depthFile=tif_outdir+'/Towradgi_historic_flood_depth_max.tif'
+myDepth=scipy.misc.imread(depthFile)
+X=scipy.arange(p.xllcorner, p.xllcorner+myDepth.shape[1]*CellSize, CellSize)
+Y=scipy.arange(p.yllcorner, p.yllcorner+myDepth.shape[0]*CellSize, CellSize)
+X,Y=scipy.meshgrid(X,Y)
+pyplot.clf()
+pyplot.figure(figsize=(12,6))
+pyplot.plot([X.min(),X.max()],[Y.min(),Y.max()],' ')
+pyplot.imshow(scipy.flipud(myDepth),extent=[X.min(),X.max(),Y.min(),Y.max()],origin='lower',cmap=pyplot.get_cmap('Greys'))
+pyplot.gca().set_aspect('equal')
+pyplot.colorbar(orientation='horizontal').set_label('Peak Depth in model (m)')
+er1=floodLevels[:,3]-modelled_level
+pyplot.scatter(floodLevels[:,0], floodLevels[:,1], c=er1,s=20,cmap=pyplot.get_cmap('spectral'))
+pyplot.colorbar().set_label(label='Field observation - Modelled Peak Stage (m)')
+pyplot.xlim([p.x.min()+p.xllcorner,p.x.max()+p.xllcorner])
+pyplot.ylim([p.y.min()+p.yllcorner,p.y.max()+p.yllcorner])
+pyplot.savefig('Spatial_Depth_and_Error.png')
+
