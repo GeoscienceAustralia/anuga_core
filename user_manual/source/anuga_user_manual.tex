@@ -1465,6 +1465,98 @@ When the domain is originally created, we need to setup checkpointing via the co
 Here we are setting the wall time between saving of checkpoint files to 5 sec (this is just for testing). Normally we would set the checkpointing to something large, say 15 minutes for a run of multiple hours. 
 
 
+%==========================================================
+\chapter{\anuga Validation Tests}
+
+
+\section{Overview}
+
+We have a large suite of validation tests (available from the \module{validation_tests} directory). From the individual directories, the tests can be run and a report produced, by running the \code{produce_results.py} script. These scripts take command line options. For instance 
+
+\code{python produce_results.py -v -np 6}
+
+will run the tests in verbose mode (produces output) and in parallel using 6 processors (if parallel version of anuga has been setup). 
+
+A subset of these validation tests can be run using \code{run_auto_validatoin_tests.py} from the \module{anuga_core} directory. 
+
+
+The validation tests are organised into a number of directories as follows:
+
+\begin{itemize}
+\item \textbf{analytical\_exact}: Extensive suite of tests against analytical solutions of the shallow water wave equations. 
+
+\item \textbf{behaviour\_only}: Tests against expected ``engineering'' results.
+
+\item \textbf{case\_studies}: Generally long running simulations which can be tested against measured data.
+
+\item \textbf{experimental\_data}: Simulations of experimental setups. Usually tested against measured data.
+
+\item \textbf{other\_references}: Simulations tested against other simulations. 
+\end{itemize}
+
+
+\section{Analytical\_exact}
+
+As an example, the code in the 
+directory \module{validation_tests/analytical_exact} consider the code in the directory \code{dam_break_dry}. This code tests \anuga against the standard analytical solution of the 
+dam break problem. For instance Figure~\ref{fig:dam_break_stage} shows the stage obtained at various times when running this validation test (using the \code{DE0} algorithm). 
+
+\begin{figure}[htp]
+  \centerline{\includegraphics[width=75mm, height=75mm]
+    {graphics/dambreakdrystageplot.png}}
+  \caption{Comparison of analytical and computed stage for the dam break dry validation test}
+  \label{fig:dam_break_stage}
+\end{figure}
+
+
+\section{Behaviour\_only}
+
+Many of the tests in this directory compare the \anuga results against the hydrological model HECRAS. For instance the test \code{bridge_hecras} compares the stage next to a bridge modelled by HECRAS and \anuga, which is shown in Figure~\ref{fig:hecras:anuga} .
+
+\begin{figure}[htp]
+  \centerline{\includegraphics[width=75mm, height=75mm]
+    {graphics/CENTRAL-CHANNEL.png}}
+  \caption{Comparison of stage near a  bridge modelled by HECRAS and \anuga}
+  \label{fig:hecras:anuga}
+\end{figure}
+
+
+\section{Case\_studies}
+
+These are generlly very long running simulations but are typical of real world case studies. The case studies \code{okushiri} and \code{patong} consider tsunami case studies, where as \code{merewether} and {towradgi} look at flood models. \code{okushiri} and \code{merewether} are shorter simulations, where as \code{patong} and essestially \code{towradgi} wil take many 10s of hours to run (consider running in parallel). 
+
+Figure\ref{fig:towradgi:pioneer} showing comparison of observed flood height and \anuga modelled flood height, near the Pioneer bridge. 
+
+\begin{figure}[htp]
+  \centerline{\includegraphics[width=75mm, height=75mm]
+    {graphics/pioneer-bridge.png}}
+  \caption{Comparison of observed  and modelled stage near a  bridge in the towradgi simulation}
+  \label{fig:towradgi:pioneer}
+\end{figure}
+
+
+\section{Experimental\_data}
+
+Figure\ref{fig:yeh:petroff:force} showing comparison of experimentally measuered and modelled force on a column  in a simulated dam break situation as modelled in directory \code{experimental_data/dam_break_yeh_petroff}
+
+\begin{figure}[htp]
+  \centerline{\includegraphics[width=75mm, height=75mm]
+    {graphics/force.png}}
+  \caption{Comparison of experimentally measuered and modelled force on a column  in a simulated dam break situation}
+  \label{fig:yeh:petroff:force}
+\end{figure}
+
+\section{Other\_references}
+
+Here we are collecting situations where we can compare with other published results. For instance in the directory we present comparison of a 2d \anuga simulation of a circular dam break against a 1d shallow water simulation. Figure~\ref{fig:circular:dam} 
+
+
+\begin{figure}[htp]
+  \centerline{\includegraphics[width=75mm, height=75mm]
+    {graphics/circular-dam-wet-stage-plot.png}}
+  \caption{Comparison of \anuga 2d simulation and a 1d shallow water simulation of a circular dam break}
+  \label{fig:circular:dam}
+\end{figure}
 
 
 
@@ -5695,7 +5787,7 @@ may be found in the module \module{utilities.numerical\_tools}:
 
 %The function ????
 %
-more to come very soon
+%more to come very soon
 
 %?% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %?% 
@@ -5806,98 +5898,6 @@ more to come very soon
 %?% \label{mod:shallowwater}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\chapter{\anuga Validation Tests}
-
-
-\section{Overview}
-
-We have a large suite of validation tests (available from the \module{validation_tests} directory. From the individual directories, the tests can be run and a report produced, by running the \code{produce_results.py} script. These scripts take command line options. For instance 
-
-\code{python produce_results.py -v -np 6}
-
-will run the tests in verbose mode (produces output) and in parallel using 6 processors (if parallel version of anuga has been setup). 
-
-A subset of these validation tests can be run using \code{run_auto_validatoin_tests.py} from the \module{anuga_core} directory. 
-
-
-The validation tests are organised into a number of directories as follows:
-
-\begin{itemize}
-\item \textbf{analytical\_exact}: Extensive suite of tests against analytical solutions of the shallow water wave equations. 
-
-\item \textbf{behaviour\_only}: Tests against expected ``engineering'' results.
-
-\item \textbf{case\_studies}: Generally long running simulations which can be tested against measured data.
-
-\item \textbf{experimental\_data}: Simulations of experimental setups. Usually tested against measured data.
-
-\item \textbf{other\_references}: Simulations tested against other simulations. 
-\end{itemize}
-
-
-\section{Analytical\_exact}
-
-As an example, the code in the 
-directory \module{validation_tests/analytical_exact} consider the code in the directory \code{dam_break_dry}. This code tests \anuga against the standard analytical solution of the 
-dam break problem. For instance Figure~\ref{fig:dam_break_stage} shows the stage obtained at various times when running this validation test (using the \code{DE0} algorithm). 
-
-\begin{figure}[htp]
-  \centerline{\includegraphics[width=75mm, height=75mm]
-    {graphics/dambreakdrystageplot.png}}
-  \caption{Comparison of analytical and computed stage for the dam break dry validation test}
-  \label{fig:dam_break_stage}
-\end{figure}
-
-
-\section{Behaviour\_only}
-
-Many of the tests in this directory compare the \anuga results against the hydrological model HECRAS. For instance the test \code{bridge_hecras} compares the stage next to a bridge modelled by HECRAS and \anuga, which is shown in Figure~\ref{fig:hecras:anuga} .
-
-\begin{figure}[htp]
-  \centerline{\includegraphics[width=75mm, height=75mm]
-    {graphics/CENTRAL-CHANNEL.png}}
-  \caption{Comparison of stage near a  bridge modelled by HECRAS and \anuga}
-  \label{fig:hecras:anuga}
-\end{figure}
-
-
-\section{Case\_studies}
-
-These are generlly very long running simulations but are typical of real world case studies. The case studies \code{okushiri} and \code{patong} consider tsunami case studies, where as \code{merewether} and {towradgi} look at flood models. \code{okushiri} and \code{merewether} are shorter simulations, where as \code{patong} and essestially \code{towradgi} wil take many 10s of hours to run (consider running in parallel). 
-
-Figure\ref{fig:towradgi:pioneer} showing comparison of observed flood height and \anuga modelled flood height, near the Pioneer bridge. 
-
-\begin{figure}[htp]
-  \centerline{\includegraphics[width=75mm, height=75mm]
-    {graphics/pioneer-bridge.png}}
-  \caption{Comparison of observed  and modelled stage near a  bridge in the towradgi simulation}
-  \label{fig:towradgi:pioneer}
-\end{figure}
-
-
-\section{Experimental\_data}
-
-Figure\ref{fig:yeh:petroff:force} showing comparison of experimentally measuered and modelled force on a column  in a simulated dam break situation as modelled in directory \code{experimental_data/dam_break_yeh_petroff}
-
-\begin{figure}[htp]
-  \centerline{\includegraphics[width=75mm, height=75mm]
-    {graphics/force.png}}
-  \caption{Comparison of experimentally measuered and modelled force on a column  in a simulated dam break situation}
-  \label{fig:yeh:petroff:force}
-\end{figure}
-
-\section{Other\_references}
-
-Here we are collecting situations where we can compare with other published results. For instance in the directory we present comparison of a 2d \anuga simulation of a circular dam break against a 1d shallow water simulation. Figure~\ref{fig:circular:dam} 
-
-
-\begin{figure}[htp]
-  \centerline{\includegraphics[width=75mm, height=75mm]
-    {graphics/circular-dam-wet-stage-plot.png}}
-  \caption{Comparison of \anuga 2d simulation and a 1d shallow water simulation of a circular dam break}
-  \label{fig:circular:dam}
-\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
