@@ -18,15 +18,9 @@ import numpy as num
 #------------------------
 # ANUGA Modules
 #------------------------
-	
-from anuga import Domain
 from anuga import Reflective_boundary
-from anuga import Dirichlet_boundary
-from anuga import Time_boundary
-from anuga import Transmissive_boundary
 from anuga import Transmissive_n_momentum_zero_t_momentum_set_stage_boundary
 
-from anuga import rectangular_cross
 from anuga import create_domain_from_file
 
 from anuga import distribute, myid, numprocs, finalize, barrier
@@ -42,11 +36,8 @@ checkpoint_dir = 'CHECKPOINTS'
 finaltime = 1000.0
 useCheckpointing = True
 
-#mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 10; finaltime = 100
-mesh_filename = "merimbula_17156.tsh"   ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 50 #; finaltime = 500
-#mesh_filename = "merimbula_43200_1.tsh"   ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 50; finaltime = 500
-#mesh_filename = "test-100.tsh" ; x0 = 200.0 ; x1 = 300.0; yieldstep = 1; finaltime = 10
-#mesh_filename = "test-20.tsh" ; x0 = 250.0 ; x1 = 350.0; yieldstep = 1; finaltime = 50
+
+mesh_filename = "merimbula_17156.tsh"   ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 50
 
 
 
@@ -80,11 +71,15 @@ class Set_Elevation:
 	
 def wave(t):
 	from math import sin
-	return 10*sin(t/60)   
-	
+	return 10*sin(t/60) 
+
+#------------------------------------------------------------------------------ 
+# Try to read in previous checkpoint file and if not possible 
+# just go ahead as normal and produce domain as usual 
+#------------------------------------------------------------------------------ 
 try:
 		
-	from checkpoint import load_checkpoint_file
+	from anuga import load_checkpoint_file
 	
 	domain = load_checkpoint_file(domain_name = domain_name, checkpoint_dir = checkpoint_dir)
 
@@ -134,6 +129,11 @@ except:
 	
 	domain.set_boundary({'outflow' :Br, 'inflow' :Br, 'inner' :Br, 'exterior' :Br, 'open' :Bts})
 	
+	
+	#-----------------------------------------------------------------------------
+	# Turn on checkpointing every 5 sec (just for testing, more reasonable to 
+	# set to 15 minutes = 15*60 sec
+	#-----------------------------------------------------------------------------
 	if useCheckpointing:
 		domain.set_checkpointing(checkpoint_time = 5)
 

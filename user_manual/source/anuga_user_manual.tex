@@ -40,6 +40,7 @@
 \usetikzlibrary{decorations.pathmorphing,shadows,calc}
 
 \input{definitions}
+%\input{epydoc_api}
 
 %%%%%
 % Set penalties for widows, etc, very high
@@ -1334,7 +1335,7 @@ Airport in Figure \ref{fig:airportboth}.
   \label{fig:airportboth}
 \end{figure}
 
-
+%=================================
 \section{A Parallel Simulation}
 
 The previous examples were run just using one processor. \anuga also has the option of running in parallel using \mpi.
@@ -1384,11 +1385,11 @@ The creation of the \code{domain} is only done on processor 0. Hence we have the
 # Do the domain creation on processor 0
 #-------------------------------------
 if myid == 0: 
-	....
-	domain = ...
+    ....
+    domain = ...
 	
 else:
-	domain = None
+    domain = None
 \end{verbatim}
 
 We only need to create the original domain on one processor, otherwise we will have multiple copies of the full domain (which will easily eat up our memory). 
@@ -1397,7 +1398,7 @@ Once we have our code{domain} setup we partition it and send the partitions to e
 
 \begin{verbatim}
 #-------------------------------------
-# Now produce paralle domain
+# Now produce parallel domain
 #-------------------------------------
 domain = distribute(domain)
 \end{verbatim}
@@ -1424,15 +1425,50 @@ finalize()
 
 
 
-\section{Validation Tests}
+\section{Checkpointing}
 
-We have an extensive suite of validation tests, ranging from simple analytical tests to large scale case studies. These can be found in the \file{validation_tests} directory in the \file{anuga_core} directory. 
+When running large and long running simulations, it is useful to provide a mechanism to allow the simulation to restarted if it is interupted mid simulation. Maybe there is a power cut, or when using batch queues there may be a time restriction on the length of any one running job. Then the use of checkpointing becomes useful. 
 
-All these tests can be run in parallel or in sequential mode, and they also provide the mechanism to produce a report detailing the results of the test. (pdfLatex needs to be available to produce the reports). 
+The idea is that at regular intervals the system makes a copy of the current state of the computation. Then if there is an interruption the computation can be started from the last checkpoint time and not orginal start time. 
+
+\subsection{The Code}
+
+Here is the code for \file{runCheckpoint.py}:
+
+\verbatiminput{../../demos/checkpointing/runCheckpoint.py}
+
+\subsection{Structure of the Code}
+
+As usual the code needs to import the required modules, and setup parameters and in this case procedures for setting up the stage and elevation. 
+
+Then we use a \code{try: except:} statement, where we try to open any appropriate checkpoint files, and if not successful, create and distribute a domain as usual. In the creation of the domain, we setup checkpointing just before we start the evolve loop. 
+
+
+\begin{verbatim}
+try:	
+    from anuga import load_checkpoint_file
+	
+    domain = load_checkpoint_file(domain_name = domain_name, checkpoint_dir = checkpoint_dir)
+
+except:
+    # create the domain as usual
+\end{verbatim}
+
+The \code{load\_checkpoint\_file} needs to know where to look for the checkpoint files (by default the current directory) and the domain name (default ``domain'').
+
+When the domain is originally created, we need to setup checkpointing via the command:
+\begin{verbatim}
+    if useCheckpointing:
+        domain.set_checkpointing(checkpoint_time = 5)
+\end{verbatim}
+
+Here we are setting the wall time between saving of checkpoint files to 5 sec (this is just for testing). Normally we would set the checkpointing to something large, say 15 minutes for a run of multiple hours. 
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{\anuga Public Interface}
 \label{ch:interface}
@@ -1447,7 +1483,7 @@ described in Chapter \ref{ch:getstarted}:
 %    \item Specifying the Quantities: Section \ref{sec:quantities}
     \item Initial Conditions: Section \ref{sec:initial conditions}
     \item Boundary Conditions: Section \ref{sec:boundary conditions}
-    \item Forcing Terms: Section \ref{sec:forcing terms}
+    \item Operators: Section \ref{sec:operators}
     \item Evolution: Section \ref{sec:evolution}
 \end{itemize}
 
@@ -1465,7 +1501,7 @@ Python has a handy tool that lets you easily navigate this documentation,
 called \code{pydoc}. In Linux, it runs as a server, which serves the
 documentation up to your web browser:
 
-1. Open a terminal at your \code{anuga_source/anuga} folder
+1. Open a terminal at your \code{anuga} folder
 2. Start the python documentation server with \code{pydoc -p 6767}
 3. Open a browser and type in \code{http://localhost:6767/}
 
@@ -1476,7 +1512,7 @@ look nicer and have graphs, etc, but pydoc works straight out of the box.
 \section{Public vs Private Interface}\index{public vs private interface}
 
 To simplify the process of writing scripts, \anuga has a public API which packages
-up all the commonly-used functionality of \anuga in the one place. To use it, simply
+up the commonly-used functionality of \anuga in the one place. To use it, simply
 import the anuga module like so:
 
 \begin{verbatim}
@@ -1537,7 +1573,7 @@ and are omitted from the descriptions given below:
   \emph{verbose}    & If \code{True}, provides detailed terminal output to the user\\
 \end{tabular}
 
-
+%=======================================================================
 \section{Mesh Generation}\index{Mesh!generation}
 \label{sec:establishing the mesh}
 Before discussing the part of the interface relating to mesh
@@ -1549,7 +1585,7 @@ very simple mesh comprising just 11 points and 10 triangles.
 
 \begin{figure}[htp]
   \begin{center}
-    \includegraphics[width=90mm, height=90mm]{graphics/triangularmesh.jpg}
+    \includegraphics[width=0.5\textwidth]{graphics/triangularmesh.jpg}
   \end{center}
   \caption{A simple mesh}
   \label{fig:simplemesh}
@@ -1620,6 +1656,9 @@ and $(3,0,1)$.
 Finally, the variable \code{boundary} identifies the boundary
 triangles and associates a tag with each.
 
+
+%===========================================
+\subsection{High Level Mesh Generation Functions}
 % \refmodindex[pmesh.meshinterface]{pmesh.mesh\_interface}
 \label{sec:meshgeneration}
 
@@ -1947,7 +1986,7 @@ polygon etc.
 This function can be used to import building footprints.
 \end{methoddesc}
 
-
+%==============================================
 \section{Initialising the Domain}\index{Initialising the Domain}
 \label{sec:initialising the domain}
 
@@ -1980,8 +2019,7 @@ mesh.
 \subsection{Key Methods of Domain}
 
 \begin{methoddesc}{\emph{<domain>}.set_name}{name}
-Module: \refmodule{abstract_2d_finite_volumes.domain},
-page \pageref{mod:domain}
+Module: \refmodule{abstract_2d_finite_volumes.domain}
 
 \code{name} is used to name the domain.  The \code{name} is also used to identify the output SWW file.
 If no name is assigned to a domain, the assumed name is \code{'domain'}.
@@ -2917,11 +2955,15 @@ for examples of how to implement boundary conditions.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Operators}\index{operators}
+\label{sec:operators}
 
 A way to effect the evolution is via fractional step \code{operators}.  The idea is that at each inner timestep we can use 
 an \code{operator} to change the centroid values of quantities such as the stage and the xmomentum and the ymomentum. T
 
-The elevation can also be changed but more care needs to be applied as the \code{elevation} quantity needs to remain continuous. The moral, play with \code{elevation} at your peril. 
+If you are using one of theolder flow argorithms then the elevation can also be changed but more care needs to be applied as the \code{elevation} quantity needs to remain continuous. 
+The moral, play with \code{elevation} at your peril if using the old algorithms. 
+
+The newer algorithms (check that you are using discontinuous elevation with the domain member function \code{<domain>.get_using_discontinuous_elevation()}
 
 Currently predefined operators:
 
@@ -3569,9 +3611,9 @@ refer to 'SWW files' or 'PRJ files', not 'sww files' or '.prj files'.
 
 \bigskip
 
-A typical dataflow can be described as follows:
-
-SOMETHING MISSING HERE!?
+%A typical dataflow can be described as follows:
+%
+%SOMETHING MISSING HERE!?
 
 \subsection{Manually Created Files}
 
@@ -4539,29 +4581,29 @@ $w$ the absolute water level (stage) and
 $z$ the bed elevation. The latter are assumed to be relative to the
 same height datum.
 The conserved quantities tracked by \anuga are momentum in the
-$x$-direction ($\mu = uh$), momentum in the $y$-direction ($\nu = vh$)
+$x$-direction ($uh$), momentum in the $y$-direction ($vh$)
 and depth ($h = w-z$).
 
 The flux calculation requires access to the velocity vector $(u, v)$
-where each component is obtained as $u = \mu/h$ and $v = \nu/h$ respectively.
+where each component is obtained as $u = uh/h$ and $v = vh/h$ respectively.
 In the presence of very small water depths, these calculations become
 numerically unreliable and will typically cause unphysical speeds.
 
 We have employed a flux limiter which replaces the calculations above with
 the limited approximations.
 \begin{equation}
-  \hat{u} = \frac{\mu h}{h^2 + h_0}, \bigskip \hat{v} = \frac{\nu h}{h^2 + h_0},
+  \hat{u} = \frac{uh\ h}{h^2 + h_0}, \bigskip \hat{v} = \frac{vh\ h}{h^2 + h_0},
 \end{equation}
 where $h_0$ is a regularisation parameter that controls the minimal
 magnitude of the denominator. Taking the limits we have for $\hat{u}$
 \[
   \lim_{h \rightarrow 0} \hat{u} =
-  \lim_{h \rightarrow 0} \frac{\mu h}{h^2 + h_0} = 0
+  \lim_{h \rightarrow 0} \frac{uh\ h}{h^2 + h_0} = 0
 \]
 and
 \[
   \lim_{h \rightarrow \infty} \hat{u} =
-  \lim_{h \rightarrow \infty} \frac{\mu h}{h^2 + h_0} = \frac{\mu}{h} = u
+  \lim_{h \rightarrow \infty} \frac{uh\ h}{h^2 + h_0} = \frac{\mu}{h} = u
 \]
 with similar results for $\hat{v}$.
 
@@ -5195,10 +5237,12 @@ input polygons, i.e.\ \code{[$x_{min}$, $x_{max}$, $y_{min}$, $y_{max}$]}.
 \end{funcdesc}
 
 
-\pagebreak
-\section{coordinate_transforms}
+%===========================================
+%\pagebreak
+%\section{coordinate_transforms}
 
 
+%===========================================
 \pagebreak
 \section{geospatial_data}
 \label{sec:geospatial}
@@ -5647,9 +5691,10 @@ may be found in the module \module{utilities.numerical\_tools}:
 \end{tabular}
 
 
-\section{Finding the Optimal Alpha Value}
+%\section{Finding the Optimal Alpha Value}
 
-The function ????
+%The function ????
+%
 more to come very soon
 
 %?% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -5762,39 +5807,97 @@ more to come very soon
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{\anuga Full-scale Validations}
+\chapter{\anuga Validation Tests}
 
 
 \section{Overview}
 
-There are some long-running validations that are not included in the small-scale
-validations that run when you execute the \module{validate_all.py}
-script in the \module{anuga_validation/automated_validation_test} directory.
-These validations are not run automatically since they can take a large amount
-of time and require an internet connection and user input.
+We have a large suite of validation tests (available from the \module{validation_tests} directory. From the individual directories, the tests can be run and a report produced, by running the \code{produce_results.py} script. These scripts take command line options. For instance 
+
+\code{python produce_results.py -v -np 6}
+
+will run the tests in verbose mode (produces output) and in parallel using 6 processors (if parallel version of anuga has been setup). 
+
+A subset of these validation tests can be run using \code{run_auto_validatoin_tests.py} from the \module{anuga_core} directory. 
 
 
-\section{Patong Beach}
+The validation tests are organised into a number of directories as follows:
 
-The Patong Beach validation is run from the \module{automated_validation_tests/patong_beach_validation}
-directory.  Just execute the \module{validate_patong.py} script in that directory.
-This will run a Patong Beach simulation and compare the generated SWW file with a
-known good copy of that file.
+\begin{itemize}
+\item \textbf{analytical\_exact}: Extensive suite of tests against analytical solutions of the shallow water wave equations. 
 
-The script attempts to refresh the validation data files from master copies held
-on the Sourceforge project site.  If you don't have an internet connection you
-may still run the validation, as long as you have the required files.
+\item \textbf{behaviour\_only}: Tests against expected ``engineering'' results.
 
-You may download the validation data files by hand and then run the validation.
-Just go to the \anuga Sourceforge project download page at
-\module{http://sourceforge.net/project/showfiles.php?group_id=172848} and select
-the \module{validation_data} package, \module{patong-1.0} release.  You need the
-\module{data.tgz} file and one or more of the \module{patong.sww.\{BASIC|TRIAL|FINAL\}.tgz}
-files.
+\item \textbf{case\_studies}: Generally long running simulations which can be tested against measured data.
 
-The BASIC validation is the quickest and the FINAL validation is the slowest.
-The \module{validate.py} script will use whatever files you have, BASIC first and
-FINAL last.
+\item \textbf{experimental\_data}: Simulations of experimental setups. Usually tested against measured data.
+
+\item \textbf{other\_references}: Simulations tested against other simulations. 
+\end{itemize}
+
+
+\section{Analytical\_exact}
+
+As an example, the code in the 
+directory \module{validation_tests/analytical_exact} consider the code in the directory \code{dam_break_dry}. This code tests \anuga against the standard analytical solution of the 
+dam break problem. For instance Figure~\ref{fig:dam_break_stage} shows the stage obtained at various times when running this validation test (using the \code{DE0} algorithm). 
+
+\begin{figure}[htp]
+  \centerline{\includegraphics[width=75mm, height=75mm]
+    {graphics/dambreakdrystageplot.png}}
+  \caption{Comparison of analytical and computed stage for the dam break dry validation test}
+  \label{fig:dam_break_stage}
+\end{figure}
+
+
+\section{Behaviour\_only}
+
+Many of the tests in this directory compare the \anuga results against the hydrological model HECRAS. For instance the test \code{bridge_hecras} compares the stage next to a bridge modelled by HECRAS and \anuga, which is shown in Figure~\ref{fig:hecras:anuga} .
+
+\begin{figure}[htp]
+  \centerline{\includegraphics[width=75mm, height=75mm]
+    {graphics/CENTRAL-CHANNEL.png}}
+  \caption{Comparison of stage near a  bridge modelled by HECRAS and \anuga}
+  \label{fig:hecras:anuga}
+\end{figure}
+
+
+\section{Case\_studies}
+
+These are generlly very long running simulations but are typical of real world case studies. The case studies \code{okushiri} and \code{patong} consider tsunami case studies, where as \code{merewether} and {towradgi} look at flood models. \code{okushiri} and \code{merewether} are shorter simulations, where as \code{patong} and essestially \code{towradgi} wil take many 10s of hours to run (consider running in parallel). 
+
+Figure\ref{fig:towradgi:pioneer} showing comparison of observed flood height and \anuga modelled flood height, near the Pioneer bridge. 
+
+\begin{figure}[htp]
+  \centerline{\includegraphics[width=75mm, height=75mm]
+    {graphics/pioneer-bridge.png}}
+  \caption{Comparison of observed  and modelled stage near a  bridge in the towradgi simulation}
+  \label{fig:towradgi:pioneer}
+\end{figure}
+
+
+\section{Experimental\_data}
+
+Figure\ref{fig:yeh:petroff:force} showing comparison of experimentally measuered and modelled force on a column  in a simulated dam break situation as modelled in directory \code{experimental_data/dam_break_yeh_petroff}
+
+\begin{figure}[htp]
+  \centerline{\includegraphics[width=75mm, height=75mm]
+    {graphics/force.png}}
+  \caption{Comparison of experimentally measuered and modelled force on a column  in a simulated dam break situation}
+  \label{fig:yeh:petroff:force}
+\end{figure}
+
+\section{Other\_references}
+
+Here we are collecting situations where we can compare with other published results. For instance in the directory we present comparison of a 2d \anuga simulation of a circular dam break against a 1d shallow water simulation. Figure~\ref{fig:circular:dam} 
+
+
+\begin{figure}[htp]
+  \centerline{\includegraphics[width=75mm, height=75mm]
+    {graphics/circular-dam-wet-stage-plot.png}}
+  \caption{Comparison of \anuga 2d simulation and a 1d shallow water simulation of a circular dam break}
+  \label{fig:circular:dam}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

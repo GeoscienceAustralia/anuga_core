@@ -113,9 +113,10 @@ for texfile in texfiles:
 #system('/bin/rm version.tex')
 system('svn update') # Restore version file
 
+system('mv *.pdf ../')
 
 print 'Cleanup aux tex files'
-system('rm *.aux *.bbl *.blg *.idx *.ilg *.ind *.log *.out *.toc *.syn ')
+system('rm *.aux *.bbl *.blg *.idx *.ilg *.ind *.log *.out *.toc *.syn *.synctex.gz ')
 
 
 # Print

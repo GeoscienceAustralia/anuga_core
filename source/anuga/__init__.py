@@ -39,6 +39,11 @@ from anuga.abstract_2d_finite_volumes.region import Region
 from anuga.operators.base_operator import Operator
 from anuga.structures.structure_operator import Structure_operator
 
+from anuga.abstract_2d_finite_volumes.generic_domain import Generic_Domain
+from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
+#------------------------------------------------------------------------------ 
+# Miscellaneous
+#------------------------------------------------------------------------------ 
 from anuga.abstract_2d_finite_volumes.util import file_function, \
                                         sww2timeseries, sww2csv_gauges, \
                                         csv2timeseries_graphs
@@ -53,8 +58,10 @@ from anuga.file.sts import create_sts_boundary
 
 from anuga.file.ungenerate import load_ungenerate
 
-from anuga.geometry.polygon import read_polygon, plot_polygons, polygon_area, \
-                                   inside_polygon, polygon_area
+from anuga.geometry.polygon import read_polygon
+from anuga.geometry.polygon import plot_polygons
+from anuga.geometry.polygon import inside_polygon
+from anuga.geometry.polygon import polygon_area
 from anuga.geometry.polygon_function import Polygon_function
 
 from anuga.abstract_2d_finite_volumes.pmesh2domain import \
@@ -65,7 +72,7 @@ from anuga.utilities.sww_merge import sww_merge_parallel as sww_merge
 from anuga.utilities.file_utils import copy_code_files
 from anuga.utilities.numerical_tools import safe_acos as acos
 
-from anuga.geometry.polygon import read_polygon
+
 from anuga.caching import cache
 from os.path import join
 from anuga.config import indent
@@ -81,6 +88,13 @@ from anuga_parallel.parallel_api import send, receive
 from anuga_parallel.parallel_api import pypar_available, barrier, finalize
 from anuga_parallel.parallel_api import sequential_distribute_dump
 from anuga_parallel.parallel_api import sequential_distribute_load
+
+
+#-----------------------------
+# Checkpointing
+#-----------------------------
+from anuga.shallow_water.checkpoint import load_checkpoint_file
+
 
 #-----------------------------
 # SwW Standard Boundaries
@@ -207,10 +221,11 @@ if pypar_available:
     from anuga_parallel.parallel_operator_factory import Boyd_pipe_operator
     from anuga_parallel.parallel_operator_factory import Weir_orifice_trapezoid_operator
 else:
+    from anuga.structures.inlet_operator import Inlet_operator
     from anuga.structures.boyd_box_operator import Boyd_box_operator
     from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator
     from anuga.structures.weir_orifice_trapezoid_operator import Weir_orifice_trapezoid_operator
-    from anuga.structures.inlet_operator import Inlet_operator
+
 
 #----------------------------
 # Parallel distribute

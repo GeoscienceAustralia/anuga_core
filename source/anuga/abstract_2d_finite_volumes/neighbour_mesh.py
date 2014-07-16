@@ -74,9 +74,10 @@ class Mesh(General_mesh):
                  use_inscribed_circle=False,
                  verbose=False):
         """
-        Build triangles from x,y coordinates (sequence of 2-tuples or
-        Mx2 numeric array of floats) and triangles (sequence of 3-tuples
-        or Nx3 numeric array of non-negative integers).
+        Build Mesh
+
+            Input x,y coordinates (sequence of 2-tuples or Mx2 numeric array of floats)
+            triangles (sequence of 3-tuples or Nx3 numeric array of non-negative integers).
         """
 
 

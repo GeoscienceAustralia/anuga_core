@@ -12,8 +12,8 @@ Author: Ole Nielsen, Ole.Nielsen@ga.gov.au
 CreationDate: 2004
 
 Description:
-    This module contains a specialisation of class Domain from
-    module domain.py consisting of methods specific to the
+    This module contains a specialisation of class Generic_Domain from
+    module generic_domain.py consisting of methods specific to the
     Shallow Water Wave Equation
 
     U_t + E_x + G_y = S
@@ -114,7 +114,44 @@ from anuga.utilities.parallel_abstraction import pypar_available, barrier
 #from pypar import size, rank, send, receive, barrier
 
 class Domain(Generic_Domain):
-    """ Class for a shallow water domain."""
+    """
+    This class is a specialization of class Generic_Domain from
+    module generic_domain.py consisting of methods specific to the
+    Shallow Water Wave Equation
+    
+    U_t + E_x + G_y = S
+    
+    where
+
+    U = [w, uh, vh]
+    E = [uh, u^2h + gh^2/2, uvh]
+    G = [vh, uvh, v^2h + gh^2/2]
+    
+    S represents source terms forcing the system
+    (e.g. gravity, friction, wind stress, ...)
+
+    and _t, _x, _y denote the derivative with respect to t, x and y
+    respectively.
+
+    The quantities are
+
+    symbol    variable name    explanation
+        x         x                horizontal distance from origin [m]
+        y         y                vertical distance from origin [m]
+        z         elevation        elevation of bed on which flow is modelled [m]
+        h         height           water height above z [m]
+        w         stage            absolute water level, w = z+h [m]
+        u                          speed in the x direction [m/s]
+        v                          speed in the y direction [m/s]
+        uh        xmomentum        momentum in the x direction [m^2/s]
+        vh        ymomentum        momentum in the y direction [m^2/s]
+
+        eta                        mannings friction coefficient [to appear]
+        nu                         wind stress coefficient [to appear]
+
+    The conserved quantities are w, uh, vh
+    """
+    
     def __init__(self,
                  coordinates=None,
                  vertices=None,
@@ -137,24 +174,13 @@ class Domain(Generic_Domain):
                  number_of_full_triangles=None,
                  ghost_layer_width=2,
                  **kwargs):
+
         """
-            Instantiate a shallow water domain.
-            coordinates - vertex locations for the mesh
-            vertices - vertex indices for the mesh
-            boundary - boundaries of the mesh
-            tagged_elements
-            geo_reference
-            use_inscribed_circle
-            mesh_filename
-            use_cache
-            verbose
-            evolved_quantities
-            full_send_dict
-            ghost_recv_dict
-            processor
-            numproc
-            number_of_full_nodes
-            number_of_full_triangles
+        Instantiate a shallow water domain.
+                 
+        @param coordinates: vertex locations for the mesh
+        @param vertices: vertex indices for the mesh
+        @param boundary: boundaries of the mesh
         """
 
         # Define quantities for the shallow_water domain
@@ -194,7 +220,7 @@ class Domain(Generic_Domain):
                             number_of_full_triangles=number_of_full_triangles,
                             ghost_layer_width=ghost_layer_width)
 
-        self.set_defaults()
+        self._set_defaults()
 
 
         #-------------------------------
@@ -272,7 +298,7 @@ class Domain(Generic_Domain):
         self.x_centroid_work=num.zeros(len(self.edge_coordinates[:,0])/3)
         self.y_centroid_work=num.zeros(len(self.edge_coordinates[:,0])/3)
 
-    def set_defaults(self):
+    def _set_defaults(self):
         """Set the default values in this routine. That way we can inherit class
         and just redefine the defaults for the new class
         """
@@ -323,7 +349,8 @@ class Domain(Generic_Domain):
 
 
     def get_algorithm_parameters(self):
-        """Get the standard parameter that are currently set (as a dictionary)
+        """
+        Get the standard parameter that are currently set (as a dictionary)
         """
 
         parameters = {}
@@ -351,7 +378,8 @@ class Domain(Generic_Domain):
         return parameters
 
     def print_algorithm_parameters(self):
-        """Print the standard parameters that are curently set (as a dictionary)
+        """
+        Print the standard parameters that are curently set (as a dictionary)
         """
 
         print '#============================'
@@ -363,7 +391,7 @@ class Domain(Generic_Domain):
         print '#----------------------------'
 
 
-    def set_tsunami_defaults(self):
+    def _set_tsunami_defaults(self):
         """Set up the defaults for running the flow_algorithm "tsunami"
         """
 
@@ -453,7 +481,7 @@ class Domain(Generic_Domain):
             print '#'
             print '##########################################################################'
 
-    def set_DE1_defaults(self):
+    def _set_DE1_defaults(self):
         """Set up the defaults for running the flow_algorithm "DE1"
            A 'discontinuous elevation' method
         """
@@ -512,7 +540,7 @@ class Domain(Generic_Domain):
             print '#'
             print '##########################################################################'
 
-    def set_DE0_defaults(self):
+    def _set_DE0_defaults(self):
         """Set up the defaults for running the flow_algorithm "DE0"
            A 'discontinuous elevation' method
         """
@@ -571,7 +599,7 @@ class Domain(Generic_Domain):
             print '##########################################################################'
 
 
-    def set_DE2_defaults(self):
+    def _set_DE2_defaults(self):
         """Set up the defaults for running the flow_algorithm "DE2"
            A 'discontinuous elevation' method
         """
@@ -630,10 +658,11 @@ class Domain(Generic_Domain):
             print '##########################################################################'
 
 
-    def set_DE3_defaults(self):
+    def _set_DE3_defaults(self):
         """Set up the defaults for running the flow_algorithm "DE3"
            A 'discontinuous elevation' method
         """
+        
         self.set_CFL(0.9)
         self.set_use_kinematic_viscosity(False)
         #self.timestepping_method='rk2'#'rk3'#'euler'#'rk2' 
@@ -646,7 +675,7 @@ class Domain(Generic_Domain):
         # Don't place any restriction on the minimum storable height
         self.minimum_storable_height=-99999999999.0 
         self.minimum_allowed_height=1.0e-12
-
+        
         self.use_edge_limiter=True
         self.set_default_order(2)
         self.set_extrapolate_velocity()
@@ -743,6 +772,17 @@ class Domain(Generic_Domain):
         return self.store_centroids   
     
     def set_checkpointing(self, checkpoint= True, checkpoint_dir = 'CHECKPOINTS', checkpoint_step=10, checkpoint_time = None):
+        """
+        Set up checkpointing.
+        
+        @param checkpoint: Default = True. Set to False will tur off checkpointing
+        @param checkpoint_dir: Where to store checkpointing files
+        @param checkpoint_step: Save checkpoint files after this many yieldsteps
+        @param checkpoint_time: If set, over-rides checkpoint_step. save checkpoint files
+                        after this amount of walltime
+        """
+        
+        
         
         if checkpoint:
             # create checkpoint directory if necessary
@@ -766,6 +806,7 @@ class Domain(Generic_Domain):
     def set_sloped_mannings_function(self, flag=True):
         """Set mannings friction function to use the sloped
         wetted area.
+        
         The flag is tested in the python wrapper
         mannings_friction_implicit
         """
@@ -841,13 +882,17 @@ class Domain(Generic_Domain):
 
     def set_using_discontinuous_elevation(self, flag=False):
         """Set flag to show whether compute flux algorithm
-        is allowing diconinuous elevation.
-        default is false
+        is allowing discontinuous elevation.
+        
+        default is False
         """
 
         self.using_discontinuous_elevation = flag
 
     def get_using_discontinuous_elevation(self):
+        """
+        Return boolean indicating whether algorithm is using dicontinuous elevation
+        """
 
         return self.using_discontinuous_elevation
 
@@ -953,14 +998,14 @@ class Domain(Generic_Domain):
 
 
         if self.flow_algorithm == 'tsunami':
-            self.set_tsunami_defaults()
+            self._set_tsunami_defaults()
 
 
         if self.flow_algorithm == 'yusuke':
             # To speed up calculation we also turn off
             # the update of other quantities
             
-            self.set_tsunami_defaults()
+            self._set_tsunami_defaults()
 
 
             
@@ -981,22 +1026,22 @@ class Domain(Generic_Domain):
 
 
         if self.flow_algorithm == 'DE0':
-            self.set_DE0_defaults()
+            self._set_DE0_defaults()
             
         if self.flow_algorithm == 'DE1':
-            self.set_DE1_defaults()          
+            self._set_DE1_defaults()          
           
         if self.flow_algorithm == 'DE2':
-            self.set_DE2_defaults()
+            self._set_DE2_defaults()
             
         if self.flow_algorithm == 'DE3':
-            self.set_DE3_defaults()
+            self._set_DE3_defaults()
 
     def get_flow_algorithm(self):
-        """Get method used for timestepping and spatial discretisation
+        """
+        Get method used for timestepping and spatial discretisation
 
-        Currently
-           1_0, 1_5, 1_75 2_0, 2_5, tsunami, DE0, DE1, DE2, DE3
+        Currently  1_0, 1_5, 1_75 2_0, 2_5, tsunami, DE0, DE1, DE2, DE3
         """
 
         return self.flow_algorithm
@@ -1897,6 +1942,7 @@ class Domain(Generic_Domain):
         """Compute linear combination between stage as computed by
         gradient-limiters limiting using w, and stage computed by
         gradient-limiters limiting using h (h-limiter).
+        
         The former takes precedence when heights are large compared to the
         bed slope while the latter takes precedence when heights are
         relatively small.  Anything in between is computed as a balanced
@@ -2175,6 +2221,8 @@ class Domain(Generic_Domain):
 
             
             if self.checkpoint:
+                
+                
                 save_checkpoint=False
                 if self.checkpoint_step == 0:
                     if rank() == 0:
@@ -2378,12 +2426,12 @@ class Domain(Generic_Domain):
 
         See get_boundary_flux_integral for an exact computation
         """
-		
+
         # Run through boundary array and compute for each segment
         # the normal momentum ((uh, vh) dot normal) times segment length.
         # Based on sign accumulate this into boundary_inflow and
         # boundary_outflow.
-			
+
         # Compute flows along boundary
         
         uh = self.get_quantity('xmomentum').get_values(location='edges')
@@ -2428,11 +2476,11 @@ class Domain(Generic_Domain):
         
 
     def compute_forcing_flows(self):
-        """Compute flows in and out of domain due to forcing terms.
+        """
+        Compute flows in and out of domain due to forcing terms.
 			
         Quantities computed are:
 		
-        
            Total inflow through forcing terms
            Total outflow through forcing terms
            Current total volume in domain        
@@ -2443,20 +2491,15 @@ class Domain(Generic_Domain):
         # due to the normal flux calculations and what is due to forcing terms.
         
         pass
-			
+    
         
     def compute_total_volume(self):
-        """Compute total volume (m^3) of water in entire domain
         """
+        Compute total volume (m^3) of water in entire domain
         
-        area = self.mesh.get_areas()
-        
-        stage = self.get_quantity('stage').get_values(location='centroids')
-        elevation = \
-            self.get_quantity('elevation').get_values(location='centroids')
-        depth = stage-elevation
-        
-        return num.sum(depth*area)
+        """
+
+        return self.get_water_volume()
         
         
     def volumetric_balance_statistics(self):                
