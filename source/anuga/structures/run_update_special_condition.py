@@ -149,20 +149,6 @@ Br = anuga.Reflective_boundary(domain)              # Solid reflective wall
 domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 
-#--------------------------------------------------------------------------
-# Turn on the visualisation
-#--------------------------------------------------------------------------
-visualise = True
-if visualise:
-    from anuga.visualiser import RealtimeVisualiser
-    vis = RealtimeVisualiser(domain)
-    vis.render_quantity_height("elevation", offset=0.001, dynamic=False)
-    vis.render_quantity_height("stage", dynamic=True)
-    vis.colour_height_quantity('stage', (0.2, 0.2, 0.8))
-    vis.start()
-    import time
-    time.sleep(2.0)
-
 
 
 ##-----------------------------------------------------------------------
@@ -185,14 +171,8 @@ for t in domain.evolve(yieldstep = 1.0, finaltime = 30):
 
     #print domain.volumetric_balance_statistics()
 
-    if visualise:
-        vis.update()
-
-    pass
 
 
-
-if visualise: vis.evolveFinished()
 
 
 ## Check that extreme values in rating curve have been exceeded
