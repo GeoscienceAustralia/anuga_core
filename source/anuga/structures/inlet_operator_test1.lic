@@ -4,13 +4,13 @@
     <author>Stephen Roberts</author>
   </metadata>
   <datafile>
-    <filename>complex_polygon.csv</filename>
-    <checksum>2282859544</checksum>
+    <filename>inlet_operator_test1.tms</filename>
+    <checksum>2626649089</checksum>
     <publishable>Yes</publishable>
     <accountable>Stephen Roberts</accountable>
     <source>Australian National University</source>
     <IP_owner>Australian National University</IP_owner>
-    <IP_info>A very simple polygon that I made up to test read_polygon
+    <IP_info>A very simple time series I made up to test inlet_operator
     </IP_info>
   </datafile>
 

@@ -4,13 +4,13 @@
     <author>Stephen Roberts</author>
   </metadata>
   <datafile>
-    <filename>complex_polygon.csv</filename>
-    <checksum>2282859544</checksum>
+    <filename>non_complex_polygon.csv</filename>
+    <checksum>3643740350</checksum>
     <publishable>Yes</publishable>
     <accountable>Stephen Roberts</accountable>
     <source>Australian National University</source>
     <IP_owner>Australian National University</IP_owner>
-    <IP_info>A very simple polygon that I made up to test read_polygon
+    <IP_info>A very simple nonconvex polygon that I made up to test read_polygon
     </IP_info>
   </datafile>
 

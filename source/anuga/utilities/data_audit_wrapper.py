@@ -13,13 +13,13 @@ These will generally be specific to each software project.
 from data_audit import IP_verified as IP_engine
 
 # Ignore source code files
-extensions_to_ignore = ['.py','.c', '.h', '.cpp', '.f', '.bat', '.m','.sh','.awk']
+extensions_to_ignore = ['.py','.c', '.h', '.cpp', '.f', '.bat', '.m','.sh','.awk', '.a']
 
 # Ignore LaTeX documents
-extensions_to_ignore += ['.tex', '.sty', '.cls', '.bib', '.def']
+extensions_to_ignore += ['.tex', '.sty', '.cls', '.bib', '.def', '.fig']
 
 # Ignore pdf and doc documents
-extensions_to_ignore += ['.pdf', '.doc']
+extensions_to_ignore += ['.pdf', '.doc', '.eps', '.ps']
 
 # Ignore generated stuff 
 extensions_to_ignore += ['.pyc', '.o', '.so', '~']
@@ -32,10 +32,11 @@ extensions_to_ignore += ['.lic']
 
 # Ignore certain other files,
 files_to_ignore = ['README.txt', 'LICENSE.txt', 'Makefile',
+                   'README', 'LICENCE', 'CHANGES', 'VERSION',
                    '.temp', 'SConstruct', 'SConscript', 'log.ini']
 
 # Ignore directories
-directories_to_ignore = ['.svn', 'misc', '.metadata']
+directories_to_ignore = ['.svn', 'misc', '.metadata', 'pymetis']
 directories_to_ignore += ['old_pyvolution_documentation']
 
 
