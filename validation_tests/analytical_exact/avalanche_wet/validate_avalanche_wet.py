@@ -25,7 +25,7 @@ class Test_results(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_simulation(self):
+    def test_avalanche_wet(self):
     
 
         if verbose:
@@ -83,11 +83,10 @@ class Test_results(unittest.TestCase):
         eh40 = numpy.sum(numpy.abs(w40_n-w40))/numpy.sum(numpy.abs(w40))
 
 
-        if verbose:
-            print indent+'Errors in stage: ',eh20, eh40
+        print 
+        print indent+'Errors in stage: ',eh20, eh40
 
-        assert eh20 < 0.01,  'L^1 error %g greater than 1 percent'% eh20
-        assert eh40 < 0.01,  'L^1 error %g greater than 1 percent'% eh40
+
 
 
         #Test xmomenta
@@ -96,23 +95,21 @@ class Test_results(unittest.TestCase):
         euh40 = numpy.sum(numpy.abs(uh40_n-u40*h40))/numpy.sum(numpy.abs(u40*h40))
 
 
-        if verbose:
-            print indent+'Errors in xmomentum: ',euh20, euh40
-
-
-        assert euh20 < 0.025,  'L^1 error %g greater than 2.5 percent'% euh20
-        assert euh40 < 0.025,  'L^1 error %g greater than 2.5 percent'% euh40
-
-
+        print indent+'Errors in xmomentum: ',euh20, euh40
 
         #Test xvelocity
         # Calculate L^1 error at times corrsponding to slices 20, 40
         eu20 = numpy.sum(numpy.abs(u20_n-u20))/numpy.sum(numpy.abs(u20))
         eu40 = numpy.sum(numpy.abs(u40_n-u40))/numpy.sum(numpy.abs(u40))
 
-        if verbose:
-            print indent+'Errors in xvelocity: ', eu20, eu40
+        print indent+'Errors in xvelocity: ', eu20, eu40
 
+        assert eh20 < 0.01,  'L^1 error %g greater than 1 percent'% eh20
+        assert eh40 < 0.01,  'L^1 error %g greater than 1 percent'% eh40
+        
+        assert euh20 < 0.025,  'L^1 error %g greater than 2.5 percent'% euh20
+        assert euh40 < 0.025,  'L^1 error %g greater than 2.5 percent'% euh40
+       
         assert eu20 < 0.02,  'L^1 error %g greater than 2 percent'% eu20
         assert eu40 < 0.01,  'L^1 error %g greater than 2 percent'% eu40
 

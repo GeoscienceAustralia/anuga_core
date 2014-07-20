@@ -25,7 +25,7 @@ class Test_results(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_simulation(self):
+    def test_avalanche_dry(self):
     
 
         if verbose:
@@ -86,35 +86,34 @@ class Test_results(unittest.TestCase):
         eh30 = numpy.sum(numpy.abs(w30_n-w30))/numpy.sum(numpy.abs(w30))
 
 
-        if verbose:
-            print indent+'Errors in stage: ',eh10, eh30
+        print 
+        print indent+'Errors in stage: ',eh10, eh30
 
-        assert eh10 < 0.01,  'L^1 error %g greater than 1 percent'% eh10
-        assert eh30 < 0.01,  'L^1 error %g greater than 1 percent'% eh30
 
 
         #Test xmomenta
         # Calculate L^1 error at times corrsponding to slices 10, 50 and 100
         euh10 = numpy.sum(numpy.abs(uh10_n-u10*h10))/numpy.sum(numpy.abs(u10*h10))
         euh30 = numpy.sum(numpy.abs(uh30_n-u30*h30))/numpy.sum(numpy.abs(u30*h30))
-        
+    
 
-        if verbose:
-            print indent+'Errors in xmomentum: ',euh10, euh30
-
-
-        assert euh10 < 0.025,  'L^1 error %g greater than 2.5 percent'% euh10
-        assert euh30 < 0.025,  'L^1 error %g greater than 2.5 percent'% euh30
-
-
+        print indent+'Errors in xmomentum: ',euh10, euh30
 
         #Test xvelocity
         # Calculate L^1 error at times corrsponding to slices 10, 50 and 100
         eu10 = numpy.sum(numpy.abs(u10_n-u10))/numpy.sum(numpy.abs(u10))
         eu30 = numpy.sum(numpy.abs(u30_n-u30))/numpy.sum(numpy.abs(u30))
 
-        if verbose:
-            print indent+'Errors in xvelocity: ', eu10, eu30
+
+        print indent+'Errors in xvelocity: ', eu10, eu30
+
+
+        assert eh10 < 0.01,  'L^1 error %g greater than 1 percent'% eh10
+        assert eh30 < 0.01,  'L^1 error %g greater than 1 percent'% eh30
+
+        assert euh10 < 0.025,  'L^1 error %g greater than 2.5 percent'% euh10
+        assert euh30 < 0.025,  'L^1 error %g greater than 2.5 percent'% euh30
+
 
         assert eu10 < 0.2,  'L^1 error %g greater than 20 percent'% eu10
         assert eu30 < 0.2,  'L^1 error %g greater than 20 percent'% eu30

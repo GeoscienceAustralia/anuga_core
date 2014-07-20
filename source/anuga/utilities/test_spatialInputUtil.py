@@ -14,9 +14,11 @@ from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.utilities import plot_utils as util
 from anuga.config import g
 from anuga.utilities import spatialInputUtil as su
-        
+
+# this confuses nose        
 # pull -v argument from command line
-verbose = anuga.get_args().verbose
+#verbose = anuga.get_args().verbose
+verbose = False
 
 class Test_spatialInputUtil(unittest.TestCase):
     """

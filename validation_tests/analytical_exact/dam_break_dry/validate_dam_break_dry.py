@@ -27,7 +27,7 @@ class Test_results(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_simulation(self):
+    def test_dam_break_dry(self):
     
 
         if verbose:
@@ -69,12 +69,8 @@ class Test_results(unittest.TestCase):
         eh50 = numpy.sum(numpy.abs(p2_st.stage[50,v2]-h50))/numpy.sum(numpy.abs(h50))
         eh100 = numpy.sum(numpy.abs(p2_st.stage[100,v2]-h100))/numpy.sum(numpy.abs(h100))
 
-        if verbose:
-            print indent+'Errors in stage: ',eh10, eh50, eh100
-
-        assert eh10 < 0.1,  'Relative L^1 error %g greater than 0.1'% eh10
-        assert eh50 < 0.1,  'Relative L^1 error %g greater than 0.1'% eh50
-        assert eh100 < 0.15, 'Relative L^1 error %g greater than 0.15'% eh100
+        print 
+        print indent+'Errors in stage: ',eh10, eh50, eh100
 
 
         #Test xmomenta
@@ -83,14 +79,7 @@ class Test_results(unittest.TestCase):
         euh50 = numpy.sum(numpy.abs(p2_st.xmom[50,v2]-u50*h50))/numpy.sum(numpy.abs(u50*h50))
         euh100 = numpy.sum(numpy.abs(p2_st.xmom[100,v2]-u100*h100))/numpy.sum(numpy.abs(u100*h100))
 
-        if verbose:
-            print indent+'Errors in xmomentum: ',euh10, euh50, euh100
-
-
-        assert euh10 < 0.25,  'Relative L^1 error %g greater than 0.25'% euh10
-        assert euh50 < 0.25,  'Relative L^1 error %g greater than 0.25'% euh50
-        assert euh100 < 0.25, 'Relative L^1 error %g greater than 0.25'% euh100
-
+        print indent+'Errors in xmomentum: ',euh10, euh50, euh100
 
         #Test xvelocity
         # Calculate L^1 error at times corrsponding to slices 10, 50 and 100
@@ -98,8 +87,16 @@ class Test_results(unittest.TestCase):
         eu50 = numpy.sum(numpy.abs(p2_st.xvel[50,v2]-u50))/numpy.sum(numpy.abs(u50))
         eu100 = numpy.sum(numpy.abs(p2_st.xvel[100,v2]-u100))/numpy.sum(numpy.abs(u100))
 
-        if verbose:
-            print indent+'Errors in xvelocity: ', eu10, eu50, eu100
+        print indent+'Errors in xvelocity: ', eu10, eu50, eu100
+
+
+        assert eh10 < 0.1,  'Relative L^1 error %g greater than 0.1'% eh10
+        assert eh50 < 0.1,  'Relative L^1 error %g greater than 0.1'% eh50
+        assert eh100 < 0.15, 'Relative L^1 error %g greater than 0.15'% eh100
+
+        assert euh10 < 0.25,  'Relative L^1 error %g greater than 0.25'% euh10
+        assert euh50 < 0.25,  'Relative L^1 error %g greater than 0.25'% euh50
+        assert euh100 < 0.25, 'Relative L^1 error %g greater than 0.25'% euh100
 
         assert eu10 < 2.0,  'Relative L^1 error %g greater than 2.0'% eu10
         assert eu50 < 2.0,  'Relative L^1 error %g greater than 2.0'% eu50

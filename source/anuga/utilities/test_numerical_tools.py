@@ -10,9 +10,6 @@ from anuga.config import epsilon
 from numerical_tools import *
 
 
-def test_function(x, y):
-    return x+y
-
 class Test_Numerical_Tools(unittest.TestCase):
     def setUp(self):
         pass

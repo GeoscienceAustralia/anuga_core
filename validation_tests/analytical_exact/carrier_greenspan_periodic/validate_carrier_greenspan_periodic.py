@@ -25,7 +25,7 @@ class Test_results(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_simulation(self):
+    def test_carrier_greenspan_periodic(self):
     
 
         if verbose:
@@ -88,12 +88,9 @@ class Test_results(unittest.TestCase):
         for i, id in enumerate(ids):
             ew[i] = numpy.sum(numpy.abs(W_n[i]-W[i]))/numpy.sum(numpy.abs(W[i]))
  
-        if verbose:
-            print indent+'L^1 Errors in stage: ', ew
 
-        for i, id in enumerate(ids):
-            assert ew[i] < 0.01,  'L^1 error %g greater than 1 percent'% ew[i]
-
+        print 
+        print indent+'L^1 Errors in stage: ', ew
 
         #Test xmomenta
         # Calculate L^1 error at times
@@ -105,13 +102,7 @@ class Test_results(unittest.TestCase):
                 euh[i] = numpy.sum(numpy.abs(UH_n[i]-U[i]*H[i]))/numpy.sum(numpy.abs(UH_n[i]))
 
         
-
-        if verbose:
-            print indent+'L^1 Errors in xmomentum: ',euh
-
-        for i, id in enumerate(ids):
-            assert euh[i] < 0.02,  'L^1 error %g greater than 2 percent'% euh[i]
-            
+        print indent+'L^1 Errors in xmomentum: ',euh   
 
         #Test xvelocity
         # Calculate L^1 error at times
@@ -123,9 +114,14 @@ class Test_results(unittest.TestCase):
             else:
                 eu[i] = numpy.sum(numpy.abs(U_n[i]-U[i]))/numpy.sum(numpy.abs(U[i]))
 
-        if verbose:
-            print indent+'L^1 Errors in xvelocity: ', eu
+        print indent+'L^1 Errors in xvelocity: ', eu
 
+        for i, id in enumerate(ids):
+            assert ew[i] < 0.01,  'L^1 error %g greater than 1 percent'% ew[i]
+
+        for i, id in enumerate(ids):
+            assert euh[i] < 0.02,  'L^1 error %g greater than 2 percent'% euh[i]
+ 
         for i, id in enumerate(ids):
             assert eu[i] < 0.1,  'L^1 error %g greater than 10 percent'% eu[i]
 

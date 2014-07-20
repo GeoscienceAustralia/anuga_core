@@ -67,7 +67,18 @@ for path, filename in validation_dirs_and_files:
     # print 'filename path', path, filename
 
     os.chdir(path)
-    anuga.run_anuga_script(filename, args = args)
+    #anuga.run_anuga_script(filename, args = args)
+    #print filename
+    if args.verbose:
+        cmd = 'python {0} -alg {1} -np {2} -v'.format(filename, args.alg, args.np)
+    else:
+        cmd = 'python {0} -alg {1} -np {2} '.format(filename, args.alg, args.np)
+
+    print 
+    print 80*'='
+    print cmd
+    print 80*'='
+    os.system(cmd)
     
     # Back to parent directory
     os.chdir(parentdir)

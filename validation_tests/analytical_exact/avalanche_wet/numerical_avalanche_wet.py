@@ -6,13 +6,13 @@ Ref: Mungkasi and Roberts, Pure and Applied Geophysics 2012
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
-import sys
 import anuga
-from anuga import Domain as Domain
-from math import cos
+from anuga import Domain
+from anuga import Operator
+
 from numpy import zeros
-from time import localtime, strftime, gmtime
-from numpy import sin, cos, tan, arctan
+from time import localtime, strftime
+from numpy import cos, arctan
 from anuga import myid, finalize, distribute
 
 #-------------------------------------------------------------------------------
@@ -44,9 +44,12 @@ args=anuga.get_args()
 alg = args.alg
 verbose = args.verbose
 
-class Coulomb_friction:
+
+
+
+class Coulomb_friction(object):
     
-    def __init__(self,
+    def __init__(self,                 
                  friction_slope=0.05,
                  bed_slope=0.1):
         
@@ -56,22 +59,47 @@ class Coulomb_friction:
         thet = arctan(bed_slope)
         self.F = g*cos(thet)*cos(thet)*friction_slope
         self.m = -1.0*g*bed_slope + self.F
+    
+
+class Friction_operator(Operator):
+    
+    def __init__(self,
+                 domain,
+                 friction=None,
+                 description = None,
+                 label = None,
+                 logging = False,
+                 verbose = False):
+
+        Operator.__init__(self, domain, description, label, logging, verbose)
+
         
-    def __call__(self, domain):        
+        self.friction = friction
+        self.F = self.friction.F
+        self.m = self.friction.m
+        
+    def __call__(self):        
 
-        w = domain.quantities['stage'].centroid_values
-        z = domain.quantities['elevation'].centroid_values
-        h = w-z
+        timestep = self.domain.get_timestep()
+        
+        h = self.stage_c - self.elev_c
 
-        xmom_update = domain.quantities['xmomentum'].explicit_update
-        #ymom_update = domain.quantities['ymomentum'].explicit_update
+        self.xmom_c[:] = self.xmom_c + timestep* self.F*h
 
-        xmom_update[:] = xmom_update + self.F*h
+    def parallel_safe(self):
+        """Operator is applied independently on each cell and
+        so is parallel safe.
+        """
+        return True
+
+
+
 
 
 bed_slope = 0.1
 friction_slope = 0.05
-Coulomb_forcing_term = Coulomb_friction(friction_slope, bed_slope)
+coulomb_friction = Coulomb_friction(friction_slope, bed_slope)
+#coulomb_forcing_term = Coulomb_friction(friction_slope, bed_slope)
 
 def stage(X,Y):
     N = len(X)
@@ -94,7 +122,7 @@ def f_right(t):
     z_r = bed_slope*(0.5*L)
     h_r = h_0 #+ bed_slope*cell_len
     w_r = z_r + h_r
-    u_r = Coulomb_forcing_term.m*t
+    u_r = coulomb_friction.m*t
     #['stage', 'xmomentum', 'ymomentum']
     return [w_r,  u_r*h_r,  0.0]
 
@@ -102,7 +130,7 @@ def f_left(t):
     z_l = bed_slope*(-0.5*L)
     h_l = h_1 #+ bed_slope*cell_len
     w_l = z_l + h_l
-    u_l = Coulomb_forcing_term.m*t
+    u_l = coulomb_friction.m*t
     #['stage', 'xmomentum', 'ymomentum']
     return [w_l,  u_l*h_l,  0.0]
 
@@ -131,7 +159,6 @@ if myid == 0:
     # No Mannings friction, but we introduce Coulomb friction below.
     domain.set_quantity('friction', 0.0)
     
-    domain.forcing_terms.append(Coulomb_forcing_term)
     
     domain.set_quantity('stage', stage)
     
@@ -145,6 +172,12 @@ else:
 # Create parallel domain
 #===============================================================================
 domain = distribute(domain)
+
+
+#------------------------------------------------------------------------------ 
+# Setup Operators
+#------------------------------------------------------------------------------ 
+Friction_operator(domain, friction=coulomb_friction)
 
 #-----------------------------------------------------------------------------
 # Setup boundary conditions
