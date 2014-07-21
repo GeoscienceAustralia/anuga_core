@@ -132,6 +132,7 @@ water model for two-dimensional dam-break type. Journal of Computational Physics
   // Workspace (allocate once, use many)
   static double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
 
+
   // Copy conserved quantities to protect from modification
   q_left_rotated[0] = q_left[0];
   q_right_rotated[0] = q_right[0];
@@ -307,6 +308,13 @@ int _flux_function_central(double *q_left, double *q_right,
   // Workspace (allocate once, use many)
   static double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
 
+  if(h_left==0. && h_right==0.){
+    // Quick exit
+    memset(edgeflux, 0, 3*sizeof(double));
+    *max_speed = 0.0;
+    *pressure_flux = 0.;
+    return 0;
+  }
   // Copy conserved quantities to protect from modification
   q_left_rotated[0] = q_left[0];
   q_right_rotated[0] = q_right[0];
@@ -728,7 +736,6 @@ double _compute_fluxes_central(int number_of_elements,
             edgeflux[1] *= length;
             edgeflux[2] *= length;
 
-
             //// Don't allow an outward advective flux if the cell centroid
             ////   stage is < the edge value. Is this important (??). Seems not
             ////   to be with DE algorithms
@@ -1074,7 +1081,7 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
   double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq0, dq1, dq2, area2, inv_area2, dpth,momnorm;
   double dqv[3], qmin, qmax, hmin, hmax, bedmax,bedmin, stagemin;
   double hc, h0, h1, h2, beta_tmp, hfactor, xtmp, ytmp, weight, tmp;
-  double dk, dv0, dv1, dv2, de[3], demin, dcmax, r0scale, vel_norm, l1, l2, a_tmp, b_tmp, c_tmp,d_tmp;
+  double dk, dk_inv,dv0, dv1, dv2, de[3], demin, dcmax, r0scale, vel_norm, l1, l2, a_tmp, b_tmp, c_tmp,d_tmp;
   
 
   memset((char*) x_centroid_work, 0, number_of_elements * sizeof (double));
@@ -1091,11 +1098,12 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
 
           dk = height_centroid_values[k]; 
           if(dk>minimum_allowed_height){
+              dk_inv=1.0/dk;
               x_centroid_work[k] = xmom_centroid_values[k];
-              xmom_centroid_values[k] = xmom_centroid_values[k]/dk;
+              xmom_centroid_values[k] = xmom_centroid_values[k]*dk_inv;
 
               y_centroid_work[k] = ymom_centroid_values[k];
-              ymom_centroid_values[k] = ymom_centroid_values[k]/dk;
+              ymom_centroid_values[k] = ymom_centroid_values[k]*dk_inv;
           }else{
               x_centroid_work[k] = 0.;
               xmom_centroid_values[k] = 0.;
@@ -1126,6 +1134,16 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
               ymom_centroid_values[k] = 0.;
 
       }
+
+      //if((elevation_centroid_values[k0] > stage_centroid_values[k] | k0==k) &
+      //   (elevation_centroid_values[k1] > stage_centroid_values[k] | k1==k) &
+      //   (elevation_centroid_values[k2] > stage_centroid_values[k] | k2==k)){
+      //        x_centroid_work[k] = 0.;
+      //        xmom_centroid_values[k] = 0.;
+      //        y_centroid_work[k] = 0.;
+      //        ymom_centroid_values[k] = 0.;
+
+      //}
   }
 
   // Begin extrapolation routine
@@ -1299,167 +1317,197 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       // avoids some 'chatter' for very shallow flows 
       hfactor=min( 1.2*max(hmin-minimum_allowed_height,0.)/(max(hmin,0.)+1.*minimum_allowed_height), hfactor);
 
+      inv_area2 = 1.0/area2; 
       //-----------------------------------
       // stage
       //-----------------------------------      
       
-      // Calculate the difference between vertex 0 of the auxiliary 
-      // triangle and the centroid of triangle k
-      dq0 = stage_centroid_values[k0] - stage_centroid_values[k];
-      
-      // Calculate differentials between the vertices 
-      // of the auxiliary triangle (centroids of neighbouring triangles)
-      dq1 = stage_centroid_values[k1] - stage_centroid_values[k0];
-      dq2 = stage_centroid_values[k2] - stage_centroid_values[k0];
-     
-      inv_area2 = 1.0/area2;
-      // Calculate the gradient of stage on the auxiliary triangle
-      a = dy2*dq1 - dy1*dq2;
-      a *= inv_area2;
-      b = dx1*dq2 - dx2*dq1;
-      b *= inv_area2;
-      // Calculate provisional jumps in stage from the centroid 
-      // of triangle k to its vertices, to be limited
-      dqv[0] = a*dxv0 + b*dyv0;
-      dqv[1] = a*dxv1 + b*dyv1;
-      dqv[2] = a*dxv2 + b*dyv2;
-    
-      // Now we want to find min and max of the centroid and the 
-      // vertices of the auxiliary triangle and compute jumps 
-      // from the centroid to the min and max
-      find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
-    
       beta_tmp = beta_w_dry + (beta_w - beta_w_dry) * hfactor;
-      
-      // Limit the gradient
-      limit_gradient(dqv, qmin, qmax, beta_tmp);
+     
+      if(beta_tmp>0.){ 
+          // Calculate the difference between vertex 0 of the auxiliary 
+          // triangle and the centroid of triangle k
+          dq0 = stage_centroid_values[k0] - stage_centroid_values[k];
+          
+          // Calculate differentials between the vertices 
+          // of the auxiliary triangle (centroids of neighbouring triangles)
+          dq1 = stage_centroid_values[k1] - stage_centroid_values[k0];
+          dq2 = stage_centroid_values[k2] - stage_centroid_values[k0];
+         
+          // Calculate the gradient of stage on the auxiliary triangle
+          a = dy2*dq1 - dy1*dq2;
+          a *= inv_area2;
+          b = dx1*dq2 - dx2*dq1;
+          b *= inv_area2;
+          // Calculate provisional jumps in stage from the centroid 
+          // of triangle k to its vertices, to be limited
+          dqv[0] = a*dxv0 + b*dyv0;
+          dqv[1] = a*dxv1 + b*dyv1;
+          dqv[2] = a*dxv2 + b*dyv2;
+        
+          // Now we want to find min and max of the centroid and the 
+          // vertices of the auxiliary triangle and compute jumps 
+          // from the centroid to the min and max
+          find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
+          
+          // Limit the gradient
+          limit_gradient(dqv, qmin, qmax, beta_tmp);
 
-      stage_edge_values[k3+0] = stage_centroid_values[k] + dqv[0];
-      stage_edge_values[k3+1] = stage_centroid_values[k] + dqv[1];
-      stage_edge_values[k3+2] = stage_centroid_values[k] + dqv[2];
+          stage_edge_values[k3+0] = stage_centroid_values[k] + dqv[0];
+          stage_edge_values[k3+1] = stage_centroid_values[k] + dqv[1];
+          stage_edge_values[k3+2] = stage_centroid_values[k] + dqv[2];
+      }else{
+          // Fast alternative when beta_tmp==0
+          stage_edge_values[k3+0] = stage_centroid_values[k];
+          stage_edge_values[k3+1] = stage_centroid_values[k];
+          stage_edge_values[k3+2] = stage_centroid_values[k];
+      }
 
 
       //-----------------------------------
       // height
       //-----------------------------------
-       
-      // Calculate the difference between vertex 0 of the auxiliary 
-      // triangle and the centroid of triangle k
-      dq0 = height_centroid_values[k0] - height_centroid_values[k];
       
-      // Calculate differentials between the vertices 
-      // of the auxiliary triangle (centroids of neighbouring triangles)
-      dq1 = height_centroid_values[k1] - height_centroid_values[k0];
-      dq2 = height_centroid_values[k2] - height_centroid_values[k0];
-     
-      inv_area2 = 1.0/area2;
-      // Calculate the gradient of height on the auxiliary triangle
-      a = dy2*dq1 - dy1*dq2;
-      a *= inv_area2;
-      b = dx1*dq2 - dx2*dq1;
-      b *= inv_area2;
-      // Calculate provisional jumps in height from the centroid 
-      // of triangle k to its vertices, to be limited
-      dqv[0] = a*dxv0 + b*dyv0;
-      dqv[1] = a*dxv1 + b*dyv1;
-      dqv[2] = a*dxv2 + b*dyv2;
-    
-      // Now we want to find min and max of the centroid and the 
-      // vertices of the auxiliary triangle and compute jumps 
-      // from the centroid to the min and max
-      find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
-   
-      // Limit the gradient
-      // Same beta_tmp as for stage
-      //beta_tmp = beta_uh_dry + (beta_uh - beta_uh_dry) * hfactor;
-      limit_gradient(dqv, qmin, qmax, beta_tmp);
+      if(beta_tmp>0.){ 
+          // Calculate the difference between vertex 0 of the auxiliary 
+          // triangle and the centroid of triangle k
+          dq0 = height_centroid_values[k0] - height_centroid_values[k];
+          
+          // Calculate differentials between the vertices 
+          // of the auxiliary triangle (centroids of neighbouring triangles)
+          dq1 = height_centroid_values[k1] - height_centroid_values[k0];
+          dq2 = height_centroid_values[k2] - height_centroid_values[k0];
+         
+          // Calculate the gradient of height on the auxiliary triangle
+          a = dy2*dq1 - dy1*dq2;
+          a *= inv_area2;
+          b = dx1*dq2 - dx2*dq1;
+          b *= inv_area2;
+          // Calculate provisional jumps in height from the centroid 
+          // of triangle k to its vertices, to be limited
+          dqv[0] = a*dxv0 + b*dyv0;
+          dqv[1] = a*dxv1 + b*dyv1;
+          dqv[2] = a*dxv2 + b*dyv2;
+        
+          // Now we want to find min and max of the centroid and the 
+          // vertices of the auxiliary triangle and compute jumps 
+          // from the centroid to the min and max
+          find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
+       
+          // Limit the gradient
+          // Same beta_tmp as for stage
+          //beta_tmp = beta_uh_dry + (beta_uh - beta_uh_dry) * hfactor;
+          limit_gradient(dqv, qmin, qmax, beta_tmp);
 
-      //beta_tmp = 0. + (beta_w - 0.) * hfactor;
+          //beta_tmp = 0. + (beta_w - 0.) * hfactor;
 
-      height_edge_values[k3+0] = height_centroid_values[k] + dqv[0];
-      height_edge_values[k3+1] = height_centroid_values[k] + dqv[1];
-      height_edge_values[k3+2] = height_centroid_values[k] + dqv[2];
-
+          height_edge_values[k3+0] = height_centroid_values[k] + dqv[0];
+          height_edge_values[k3+1] = height_centroid_values[k] + dqv[1];
+          height_edge_values[k3+2] = height_centroid_values[k] + dqv[2];
+      }else{
+          // Fast alternative when beta_tmp==0
+          height_edge_values[k3+0] = height_centroid_values[k];
+          height_edge_values[k3+1] = height_centroid_values[k];
+          height_edge_values[k3+2] = height_centroid_values[k];
+      }
       //-----------------------------------
       // xmomentum
       //-----------------------------------            
 
-      // Calculate the difference between vertex 0 of the auxiliary 
-      // triangle and the centroid of triangle k      
-      dq0 = xmom_centroid_values[k0] - xmom_centroid_values[k];
-      
-      // Calculate differentials between the vertices 
-      // of the auxiliary triangle
-      dq1 = xmom_centroid_values[k1] - xmom_centroid_values[k0];
-      dq2 = xmom_centroid_values[k2] - xmom_centroid_values[k0];
-      
-      // Calculate the gradient of xmom on the auxiliary triangle
-      a = dy2*dq1 - dy1*dq2;
-      a *= inv_area2;
-      b = dx1*dq2 - dx2*dq1;
-      b *= inv_area2;
-      
-      // Calculate provisional jumps in stage from the centroid 
-      // of triangle k to its vertices, to be limited      
-      dqv[0] = a*dxv0+b*dyv0;
-      dqv[1] = a*dxv1+b*dyv1;
-      dqv[2] = a*dxv2+b*dyv2;
-      
-      // Now we want to find min and max of the centroid and the 
-      // vertices of the auxiliary triangle and compute jumps 
-      // from the centroid to the min and max
-      //
-      find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
-
       beta_tmp = beta_uh_dry + (beta_uh - beta_uh_dry) * hfactor;
+      if(beta_tmp>0.){
+          // Calculate the difference between vertex 0 of the auxiliary 
+          // triangle and the centroid of triangle k      
+          dq0 = xmom_centroid_values[k0] - xmom_centroid_values[k];
+          
+          // Calculate differentials between the vertices 
+          // of the auxiliary triangle
+          dq1 = xmom_centroid_values[k1] - xmom_centroid_values[k0];
+          dq2 = xmom_centroid_values[k2] - xmom_centroid_values[k0];
+          
+          // Calculate the gradient of xmom on the auxiliary triangle
+          a = dy2*dq1 - dy1*dq2;
+          a *= inv_area2;
+          b = dx1*dq2 - dx2*dq1;
+          b *= inv_area2;
+          
+          // Calculate provisional jumps in stage from the centroid 
+          // of triangle k to its vertices, to be limited      
+          dqv[0] = a*dxv0+b*dyv0;
+          dqv[1] = a*dxv1+b*dyv1;
+          dqv[2] = a*dxv2+b*dyv2;
+          
+          // Now we want to find min and max of the centroid and the 
+          // vertices of the auxiliary triangle and compute jumps 
+          // from the centroid to the min and max
+          //
+          find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
 
-      // Limit the gradient
-      limit_gradient(dqv, qmin, qmax, beta_tmp);
 
-      for (i=0; i < 3; i++)
-      {
-        xmom_edge_values[k3+i] = xmom_centroid_values[k] + dqv[i];
+          // Limit the gradient
+          limit_gradient(dqv, qmin, qmax, beta_tmp);
+
+          for (i=0; i < 3; i++)
+          {
+            xmom_edge_values[k3+i] = xmom_centroid_values[k] + dqv[i];
+          }
+      }else{
+          // Fast alternative when beta_tmp==0
+          for (i=0; i < 3; i++)
+          {
+            xmom_edge_values[k3+i] = xmom_centroid_values[k];
+          }
       }
       
       //-----------------------------------
       // ymomentum
       //-----------------------------------                  
-
-      // Calculate the difference between vertex 0 of the auxiliary 
-      // triangle and the centroid of triangle k
-      dq0 = ymom_centroid_values[k0] - ymom_centroid_values[k];
-      
-      // Calculate differentials between the vertices 
-      // of the auxiliary triangle
-      dq1 = ymom_centroid_values[k1] - ymom_centroid_values[k0];
-      dq2 = ymom_centroid_values[k2] - ymom_centroid_values[k0];
-      
-      // Calculate the gradient of xmom on the auxiliary triangle
-      a = dy2*dq1 - dy1*dq2;
-      a *= inv_area2;
-      b = dx1*dq2 - dx2*dq1;
-      b *= inv_area2;
-      
-      // Calculate provisional jumps in stage from the centroid 
-      // of triangle k to its vertices, to be limited
-      dqv[0] = a*dxv0 + b*dyv0;
-      dqv[1] = a*dxv1 + b*dyv1;
-      dqv[2] = a*dxv2 + b*dyv2;
-      
-      // Now we want to find min and max of the centroid and the 
-      // vertices of the auxiliary triangle and compute jumps 
-      // from the centroid to the min and max
-      //
-      find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
       
       beta_tmp = beta_vh_dry + (beta_vh - beta_vh_dry) * hfactor;   
 
-      // Limit the gradient
-      limit_gradient(dqv, qmin, qmax, beta_tmp);
-      
-      for (i=0;i<3;i++)
-      {
-        ymom_edge_values[k3 + i] = ymom_centroid_values[k] + dqv[i];
+      if(beta_tmp>0.){
+          // Calculate the difference between vertex 0 of the auxiliary 
+          // triangle and the centroid of triangle k
+          dq0 = ymom_centroid_values[k0] - ymom_centroid_values[k];
+          
+          // Calculate differentials between the vertices 
+          // of the auxiliary triangle
+          dq1 = ymom_centroid_values[k1] - ymom_centroid_values[k0];
+          dq2 = ymom_centroid_values[k2] - ymom_centroid_values[k0];
+          
+          // Calculate the gradient of xmom on the auxiliary triangle
+          a = dy2*dq1 - dy1*dq2;
+          a *= inv_area2;
+          b = dx1*dq2 - dx2*dq1;
+          b *= inv_area2;
+          
+          // Calculate provisional jumps in stage from the centroid 
+          // of triangle k to its vertices, to be limited
+          dqv[0] = a*dxv0 + b*dyv0;
+          dqv[1] = a*dxv1 + b*dyv1;
+          dqv[2] = a*dxv2 + b*dyv2;
+          
+          // Now we want to find min and max of the centroid and the 
+          // vertices of the auxiliary triangle and compute jumps 
+          // from the centroid to the min and max
+          //
+          find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
+          
+
+          // Limit the gradient
+          limit_gradient(dqv, qmin, qmax, beta_tmp);
+          
+          for (i=0;i<3;i++)
+          {
+            ymom_edge_values[k3 + i] = ymom_centroid_values[k] + dqv[i];
+          }
+      }else{
+          // Fast alternative when beta_tmp==0
+          for (i=0;i<3;i++)
+          {
+            ymom_edge_values[k3 + i] = ymom_centroid_values[k];
+          }
+
       }
       
     } // End number_of_boundaries <=1 
@@ -1687,11 +1735,7 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       
           // Re-compute momenta at edges
           for (i=0; i<3; i++){
-              //if(hfactor>=0.8){
               dk= height_edge_values[k3+i]; 
-              //}else{
-              //   de[i] = height_centroid_values[k]; 
-              //}
               xmom_edge_values[k3+i]=xmom_edge_values[k3+i]*dk;
               ymom_edge_values[k3+i]=ymom_edge_values[k3+i]*dk;
           }
@@ -1703,8 +1747,6 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       ymom_vertex_values[k3] = ymom_edge_values[k3+1] + ymom_edge_values[k3+2] -ymom_edge_values[k3] ; 
       ymom_vertex_values[k3+1] =  ymom_edge_values[k3] + ymom_edge_values[k3+2]-ymom_edge_values[k3+1]; 
       ymom_vertex_values[k3+2] =  ymom_edge_values[k3] + ymom_edge_values[k3+1]-ymom_edge_values[k3+2]; 
-
-      
 
       // Compute new bed elevation
       elevation_edge_values[k3]=stage_edge_values[k3]-height_edge_values[k3];
