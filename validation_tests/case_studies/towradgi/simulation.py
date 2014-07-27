@@ -48,7 +48,7 @@ class Simulation(object):
         
         if self.checkpoint:
             # try to read in from checkpoint file
-            from anuga_parallel.checkpoint import load_checkpoint_file
+            from anuga import load_checkpoint_file
             try:
                 self.domain = load_checkpoint_file(domain_name = self.outname, checkpoint_dir = self.checkpoint_dir)
                 if myid == 0 and self.verbose:
