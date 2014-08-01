@@ -4,7 +4,7 @@ from os.path import join
 model_output_dir='MODEL_OUTPUTS'
 partition_dir = 'PARTITIONS'
 checkpoint_dir = 'CHECKPOINTS'
-checkpoint_time = 30
+checkpoint_time = 30*60 # 30 minutes
 checkpoint = True
 
 finaltime = 400.0

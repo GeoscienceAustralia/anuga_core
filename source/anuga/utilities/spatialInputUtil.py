@@ -31,6 +31,10 @@ Key routines:
 
     readListOfBreakLines -- takes a list of shapefile names, each containing a single line geometry, and reads
                             it in as a dictionary of breaklines. 
+    
+    readListOfRiverWalls -- takes a list of csv names, each containing a xyz polylines defining riverwalls, with
+                            an optional first line defining the non-default riverwall par, and returns a dictionary
+                            of the riverwalls and the riverwall_Par
 
     polygon_from_matching_breaklines -- given a pattern (string) matching exactly 2 breaklines in a directory,
                                         convert them to a single polygon. This is useful to e.g. make
@@ -920,7 +924,7 @@ if gdal_available:
         """
             Take a list with the names of riverwall input files [should be comma-separated x,y,elevation files]
 
-            The input file can optionally have a first line defining some hydraulic parameters. A valid example 
+            The input file can OPTIONALLY have a first line defining some hydraulic parameters. A valid example 
             is
 
             Qfactor: 1.5, s1: 0.94 
@@ -960,6 +964,17 @@ if gdal_available:
                     allRiverWallPar[rwfile][keyNameValue[0]]=float(keyNameValue[1])
         
         return allRiverWalls, allRiverWallPar
+
+    ############################################################################
+
+    def combine_breakLines_and_riverWalls_for_mesh(breakLines, riverWalls):
+        """
+        Combine breaklines and riverwalls for input in mesh generation, ensuring both have 2 coordinates only
+        """
+        mesh_breakLines=riverWalls.values()+breakLines.values()
+        for i in range(len(mesh_breakLines)):
+            mesh_breakLines[i] = [mesh_breakLines[i][j][0:2] for j in range(len(mesh_breakLines[i]))]
+        return mesh_breakLines
     
     ############################################################################
     def polygon_from_matching_breaklines(pattern,breakLinesIn, reverse2nd=None):
@@ -1010,6 +1025,11 @@ if gdal_available:
             breakLines[bk[matchers[1]]].reverse()
         polyOut=breakLines[bk[matchers[0]]] +  breakLines[bk[matchers[1]]]
         #polyOut=polyOut+[polyOut[0]]
+
+        # If the breakLines values have > 2 entries (i.e. like for riverwalls), remove the third
+        if(len(polyOut[0])>2):
+            polyOut=[polyOut[i][0:2] for i in range(len(polyOut))]
+
         return polyOut
     ###################
     
