@@ -690,7 +690,7 @@ class RiverWall:
                 pass
             # Make output files with empty contents
             for i, riverWallFile in enumerate(self.names):
-                newFile=open(output_dir+'/'+riverWallFile+'.txt','w')
+                newFile=open(output_dir+'/'+os.path.splitext(os.path.basename(riverWallFile))[0]+'.txt','w')
                 # Write hydraulic variable information
                 hydraulicVars=self.hydraulic_properties[i,:]
                 newFile.write('## Hydraulic Variable values below ## \n')
@@ -725,7 +725,7 @@ class RiverWall:
                     myElev=self.riverwall_elevation[riverWallInds]
                
                     # Open file for appending data 
-                    theFile=open(output_dir+'/'+riverWallname+'.txt','a')
+                    theFile=open(output_dir+'/'+os.path.splitext(os.path.basename(riverWallname))[0]+'.txt','a')
                     for k in range(len(myElev)):
                         theFile.write(str(myXCoords[k])+','+str(myYCoords[k])+','+str(myElev[k])+'\n')
                     theFile.close()
