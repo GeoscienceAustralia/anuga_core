@@ -86,7 +86,7 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
-        assert num.allclose(domain.fractional_step_volume_influx, factor*domain.timestep*(rate*domain.areas[indices]).sum())
+        assert num.allclose(domain.fractional_step_volume_integral, factor*domain.timestep*(rate*domain.areas[indices]).sum())
 
  
     def test_rate_operator_negative_rate(self):
@@ -148,7 +148,7 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
-        assert num.allclose(domain.fractional_step_volume_influx, factor*domain.timestep*(rate*domain.areas[indices]).sum())
+        assert num.allclose(domain.fractional_step_volume_integral, factor*domain.timestep*(rate*domain.areas[indices]).sum())
 
 
     def test_rate_operator_rate_from_file(self):
@@ -270,7 +270,7 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex0)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
-        assert num.allclose(domain.fractional_step_volume_influx, ((d-1.)*domain.areas[indices]).sum())
+        assert num.allclose(domain.fractional_step_volume_integral, ((d-1.)*domain.areas[indices]).sum())
 
 
         domain.set_starttime(-10.0)
@@ -300,7 +300,7 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex1)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
-        assert num.allclose(domain.fractional_step_volume_influx, (d*domain.areas[indices]).sum())
+        assert num.allclose(domain.fractional_step_volume_integral, (d*domain.areas[indices]).sum())
 
 
     def test_rate_operator_functions_rate_default_rate(self):
@@ -372,7 +372,7 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
-        assert num.allclose(domain.fractional_step_volume_influx, ((d-1.)*domain.areas[indices]).sum())
+        assert num.allclose(domain.fractional_step_volume_integral, ((d-1.)*domain.areas[indices]).sum())
 
         domain.set_starttime(30.0)
         domain.timestep = 1.0
@@ -559,7 +559,7 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
         assert num.allclose(Q_ex_all, Q_all)
         assert num.allclose(Q_ex_full, Q_full)
-        assert num.allclose(domain.fractional_step_volume_influx, ((d-1.)*domain.areas).sum())
+        assert num.allclose(domain.fractional_step_volume_integral, ((d-1.)*domain.areas*domain.tri_full_flag).sum())
 
     def test_rate_operator_functions_spatial_indices(self):
         from anuga.config import rho_a, rho_w, eta_w
@@ -638,7 +638,7 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
         assert num.allclose(Q_ex, Q)
-        assert num.allclose(domain.fractional_step_volume_influx, ((d-1.)*domain.areas[indices]).sum())
+        assert num.allclose(domain.fractional_step_volume_integral, ((d-1.)*domain.areas[indices]).sum())
 
 
     def test_rate_operator_rate_quantity(self):
@@ -718,7 +718,7 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
         assert num.allclose(Q_ex, Q)
-        assert num.allclose(domain.fractional_step_volume_influx, ((d-1.)*domain.areas[indices]).sum())
+        assert num.allclose(domain.fractional_step_volume_integral, ((d-1.)*domain.areas[indices]).sum())
 
 
     def test_rate_operator_functions_empty_indices(self):
@@ -799,7 +799,7 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
         assert num.allclose(Q_ex, Q)
-        assert num.allclose(domain.fractional_step_volume_influx, ((d-1.)*domain.areas[indices]).sum())
+        assert num.allclose(domain.fractional_step_volume_integral, ((d-1.)*domain.areas[indices]).sum())
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_rate_operators, 'test')

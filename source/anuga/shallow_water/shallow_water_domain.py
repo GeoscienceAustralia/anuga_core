@@ -1417,6 +1417,35 @@ class Domain(Generic_Domain):
             flux_integral = receive(0)
         
         return flux_integral 
+    
+    def get_fractional_step_volume_integral(self):
+        """
+            Compute the integrated flows from fractional steps
+            This requires that the fractional step operators
+              update the fractional_step_volume_integral
+            Should work in parallel
+        """
+    
+        from anuga import myid, numprocs, send, receive, barrier
+
+        flux_integral = self.fractional_step_volume_integral
+            
+        if myid == 0:
+            for i in range(1,numprocs):
+                remote_flux_integral = receive(i)
+                flux_integral = flux_integral + remote_flux_integral
+        else:
+            send(flux_integral,0)
+        
+        barrier()
+    
+        if myid == 0:
+            for i in range(1,numprocs):
+                send(flux_integral,i)
+        else:
+            flux_integral = receive(0)
+        
+        return flux_integral 
 
     def get_flow_through_cross_section(self, polyline, verbose=False):
         """Get the total flow through an arbitrary poly line.

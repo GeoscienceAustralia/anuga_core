@@ -138,6 +138,7 @@ class Parallel_Inlet_operator(Inlet_operator):
         # just pull water off to have a uniform depth.
         if volume >= 0.0 :
             self.inlet.set_stages_evenly(volume)
+            self.domain.fractional_step_volume_integral+=volume
             if self.velocity is not None:
                 # This is done locally without communication
                 depths = self.inlet.get_depths()
@@ -147,9 +148,11 @@ class Parallel_Inlet_operator(Inlet_operator):
         elif current_volume + volume >= 0.0 :
             depth = (current_volume + volume)/total_area
             self.inlet.set_depths(depth)
+            self.domain.fractional_step_volume_integral+=volume
         else: #extracting too much water!
             self.inlet.set_depths(0.0)
             self.applied_Q = current_volume/timestep
+            self.domain.fractional_step_volume_integral-=current_volume
 
 
 
