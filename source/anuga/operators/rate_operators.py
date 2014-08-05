@@ -116,28 +116,36 @@ class Rate_operator(Operator,Region):
 
         if self.verbose is True:
             log.critical('Rate of %s at time = %.2f = %f'
-                         % (self.quantity_name, domain.get_time(), rate))
+                         % (self.quantity_name, self.domain.get_time(), rate))
 
         fid = self.full_indices
         if num.all(rate >= 0.0):
             # Record the local flux for mass conservation tracking
             if indices is None:
-                self.local_influx=factor*timestep*(rate*self.areas)[fid].sum()
-                self.stage_c[:] = self.stage_c[:]  \
-                       + factor*rate*timestep
+                local_rates=factor*timestep*rate
+                self.local_influx = (local_rates*self.areas)[fid].sum()
+                self.stage_c[:] = self.stage_c[:] + local_rates
             else:
-                self.local_influx=factor*timestep*(rate*self.areas)[fid].sum()
+                local_rates = factor*timestep*rate
+                self.local_influx=(local_rates*self.areas[fid]).sum()
                 self.stage_c[indices] = self.stage_c[indices] \
-                       + factor*rate*timestep
+                       + local_rates
         else: # Be more careful if rate < 0
             if indices is None:
-                self.local_influx=(num.minimum(factor*timestep*rate, self.stage_c[:]-self.elev_c[:])*self.areas)[fid].sum()
-                self.stage_c[:] = num.maximum(self.stage_c  \
-                       + factor*rate*timestep, self.elev_c )
+                #self.local_influx=(num.minimum(factor*timestep*rate, self.stage_c[:]-self.elev_c[:])*self.areas)[fid].sum()
+                #self.stage_c[:] = num.maximum(self.stage_c  \
+                #       + factor*rate*timestep, self.elev_c )
+                local_rates = num.maximum(factor*timestep*rate, self.elev_c[:]-self.stage_c[:])
+                self.local_influx = (local_rates*self.areas)[fid].sum()
+                self.stage_c[:] = self.stage_c + local_rates 
             else:
-                self.local_influx=(num.minimum(factor*timestep*rate, self.stage_c[indices]-self.elev_c[indices])*self.areas)[fid].sum()
-                self.stage_c[indices] = num.maximum(self.stage_c[indices] \
-                       + factor*rate*timestep, self.elev_c[indices])
+                #self.local_influx=(num.minimum(factor*timestep*rate, self.stage_c[indices]-self.elev_c[indices])*self.areas)[fid].sum()
+                #self.stage_c[indices] = num.maximum(self.stage_c[indices] \
+                #       + factor*rate*timestep, self.elev_c[indices])
+                
+                local_rates = num.maximum(factor*timestep*rate, self.elev_c[indices]-self.stage_c[indices])
+                self.local_influx=(local_rates*self.areas)[fid].sum()
+                self.stage_c[indices] = self.stage_c[indices] + local_rates 
         # Update mass inflows from fractional steps
         self.domain.fractional_step_volume_integral+=self.local_influx
 

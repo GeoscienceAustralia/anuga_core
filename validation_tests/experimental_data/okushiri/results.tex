@@ -1,0 +1,66 @@
+
+\section{Okushiri Benchmark}
+
+We set up the Okushiri Island benchmark as published by the
+\begin{verbatim}
+The Third International Workshop on Long-Wave Runup Models
+June 17-18 2004
+Wrigley Marine Science Center
+Catalina Island, California
+\end{verbatim}
+\url{http://isec.nacse.org/workshop/2004_cornell/}
+
+
+The validation data was downloaded and made available in this directory
+for convenience but the original data is available at
+\url{http://isec.nacse.org/workshop/2004_cornell/bmark2.html}
+where a detailed description of the problem is also available.
+
+
+Run \verb|create_okushiri.py| to process the boundary condition and build the
+mesh before running the script \verb|run_okushiri.py|.
+
+\subsection{Results}
+
+\anuga{} should produce results that match the stage values at a number of gauge locations
+
+
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.9\textwidth]{Boundary.png}
+\end{center}
+\caption{Stage at boundary gauge}
+\label{okushiri:boundary}
+\end{figure}
+
+
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.9\textwidth]{ch5.png}
+\end{center}
+\caption{Stage at gauge station 5}
+\label{okushiri:ch:five}
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.9\textwidth]{ch7.png}
+\end{center}
+\caption{Stage at at gauge station 7}
+\label{okushiri:ch_seven}
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.9\textwidth]{ch9.png}
+\end{center}
+\caption{Stage at at gauge station 9}
+\label{okushiri:ch_nine}
+\end{figure}
+
+
+
+
+\endinput

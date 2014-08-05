@@ -121,13 +121,16 @@ We provide explanations on how to add new tests in the Appendix.
 \chapter{Tests against reference data or solutions} \label{ch:ref}
 %%======================
 \inputresults{../experimental_data/dam_break_yeh_petroff}
+\inputresults{../experimental_data/okushiri}
+
 \inputresults{../behaviour_only/lid_driven_cavity}
 \inputresults{../behaviour_only/weir_1}
+\inputresults{../behaviour_only/bridge_hecras}
+\inputresults{../behaviour_only/lateral_weir_hecras}
+\inputresults{../behaviour_only/tides_hecras}
 
 \inputresults{../other_references/radial_dam_break_dry}
 \inputresults{../other_references/radial_dam_break_wet}
-
-\inputresults{../case_studies/okushiri}
 
 
 %======================
@@ -138,15 +141,15 @@ We provide explanations on how to add new tests in the Appendix.
 %======================
 
 
-To setup a new validation test, create a test directory under the
-\textsc{Tests} directory. In that directory there should be the test code, a
+To setup a new validation test, create a test directory under one of 
+the validation directories. In that directory there should be the test code, a
 \TeX{} file \texttt{results.tex} and a python script
 \texttt{produce\_results.py}, which runs the simulation and produces the
-outputs. Copy the format from the other test directory. 
+outputs. Copy the format from one of the other test directories. 
 
 In this \TeX{} file, \texttt{report.tex}, add a line
 \begin{verbatim}
-\inputresults{Tests/Directory/Name}
+\inputresults{../Directory/Name}
 \end{verbatim}
 
 
@@ -174,26 +177,13 @@ The \texttt{produce\_results.py} files in the test directories should have the
 following general form
 
 \begin{verbatim}
-from anuga.validation_utilities.fabricate import *
-from anuga.validation_utilities import run_validation_script
+import anuga
+from anuga.validation_utilities import produce_report
 
-# Setup the python scripts which produce the output for this
-# validation test
-def build():
-    run_validation_script('run_problem.py')
-    run_validation_script('plot_problem.py')
-    run('python','typeset_report.py')
-    pass
+args = anuga.get_args()
 
-def clean():
-    autoclean()
-
-main()
+produce_report('run_simulation.py', args=args)
 \end{verbatim}
-This script uses \texttt{fabricate} which automatically determines dependences
-and only runs the command if the parameters alg and cfl have changed,
-or input/output or source files have changed. (\texttt{fabricate} is a replacement for
-standard \texttt{make})
 
 
 %======================

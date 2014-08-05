@@ -28,7 +28,6 @@ from os.path import join
 #from project import *
 
 
-
 class Simulation(object):
     
     def __init__(self,argument_adder=None, from_commandline=True, **kwargs):

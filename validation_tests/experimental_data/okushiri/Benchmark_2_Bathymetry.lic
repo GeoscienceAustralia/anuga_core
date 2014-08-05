@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='iso-8859-1'?>
+<ga_license_file>
+  <metadata>
+    <author>Ole Nielsen</author>
+  </metadata>
+  
+  <datafile>
+    <filename>Benchmark_2_Bathymetry.pts</filename>
+    <checksum>204947807</checksum>
+    <publishable>Yes</publishable>
+    <accountable>Ole Nielsen</accountable>
+    <source>http://www.cee.cornell.edu/longwave</source>
+    <IP_owner>Central Research Institute for Electric Power Industry (CRIEPI) in Abiko, Japan</IP_owner>
+    <IP_info>This dataset was published as part of THE THIRD INTERNATIONAL WORKSHOP ON LONG-WAVE RUNUP MODELS held June 17-18 2004 at Wrigley Marine Science Center, Catalina Island, California. See Benchmark #2 on the website. This file has been converted from the bathymetry published on the website.
+    </IP_info>
+  </datafile>
+
+</ga_license_file>

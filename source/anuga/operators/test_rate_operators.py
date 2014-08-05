@@ -24,6 +24,8 @@ import warnings
 import time
 
 
+warnings.simplefilter("ignore")
+
 
 class Test_rate_operators(unittest.TestCase):
     def setUp(self):
@@ -139,18 +141,88 @@ class Test_rate_operators(unittest.TestCase):
         operator()
 
         stage_ex = [ 0.,  0.,   1.,  0.]
+        step_integral = -6.0
+
+        #print domain.quantities['elevation'].centroid_values
+        #print domain.quantities['stage'].centroid_values
+        #print domain.quantities['xmomentum'].centroid_values
+        #print domain.quantities['ymomentum'].centroid_values
+        #print domain.fractional_step_volume_integral
+        #print factor*domain.timestep*(rate*domain.areas[indices]).sum()
+        
+        #increment = factor*domain.timestep*rate*domain.areas
+        
+        
+
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.fractional_step_volume_integral, step_integral)
+
+    def test_rate_operator_negative_rate_full(self):
+        from anuga.config import rho_a, rho_w, eta_w
+        from math import pi, cos, sin
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        #Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 10.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
 
 #        print domain.quantities['elevation'].centroid_values
 #        print domain.quantities['stage'].centroid_values
 #        print domain.quantities['xmomentum'].centroid_values
 #        print domain.quantities['ymomentum'].centroid_values
 
+        # Apply operator to these triangles
+        indices = [0,1,3]
+
+
+
+        #Catchment_Rain_Polygon = read_polygon(join('CatchmentBdy.csv'))
+        #rainfall = file_function(join('1y120m.tms'), quantities=['rainfall'])
+        rate = -1.0
+        factor = 10.0
+        default_rate= 0.0
+
+        operator = Rate_operator(domain, rate=rate, factor=factor, \
+                      indices=None, default_rate = default_rate)
+
+
+        # Apply Operator
+        domain.timestep = 2.0
+        operator()
+
+        stage_ex = [ 0.,  0.,   0.,  0.]
+        step_integral = -80.0
+
+        #print domain.quantities['elevation'].centroid_values
+        #print domain.quantities['stage'].centroid_values
+        #print domain.quantities['xmomentum'].centroid_values
+        #print domain.quantities['ymomentum'].centroid_values
+        #print domain.fractional_step_volume_integral
+
+
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
-        assert num.allclose(domain.fractional_step_volume_integral, factor*domain.timestep*(rate*domain.areas[indices]).sum())
-
-
+        assert num.allclose(domain.fractional_step_volume_integral, step_integral)
+        
     def test_rate_operator_rate_from_file(self):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
