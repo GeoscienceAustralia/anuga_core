@@ -292,6 +292,9 @@ class Domain(Generic_Domain):
         # Make an integer counting how many times we call compute_fluxes_central -- so we know which substep we are on
         self.call=1 
 
+        # List to store the volumes we computed before
+        self.volume_history=[] 
+        
         # Work arrays [avoid allocate statements in compute_fluxes or extrapolate_second_order]
         self.edge_flux_work=num.zeros(len(self.edge_coordinates[:,0])*3)
         self.pressuregrad_work=num.zeros(len(self.edge_coordinates[:,0]))
@@ -1383,7 +1386,8 @@ class Domain(Generic_Domain):
                 send(water_volume,i)
         else:
             water_volume = receive(0)
-        
+       
+        self.volume_history.append(water_volume) 
         return water_volume
 
     def get_boundary_flux_integral(self):
@@ -2571,6 +2575,11 @@ class Domain(Generic_Domain):
         If returnStats, return a list with the volume statistics
         """
         from anuga import myid
+
+        if(self.flow_algorithm=='tsunami'):
+            print ' '
+            print 'Warning: Volume computations do not account for changing porosity in tsunami algorithm'
+
         # Compute the volume
         Vol=self.get_water_volume()
         # Compute the boundary flux integral
@@ -2578,10 +2587,12 @@ class Domain(Generic_Domain):
         fracIntegral=self.get_fractional_step_volume_integral()
         
         if(verbose and myid==0):
-            print '    Volume is:', Vol
-            print '    Boundary Flux integral: ', fluxIntegral
-            print '    (rate + inlet) Fractional Step volume integral : ', fracIntegral
-            print '    Volume - (boundary and fractional step inflows):',  Vol- fluxIntegral -fracIntegral
+            print ' '
+            print '    Volume V is:', Vol
+            print '    Boundary Flux integral BF: ', fluxIntegral
+            print '    (rate + inlet) Fractional Step volume integral FS: ', fracIntegral
+            print '    V - BF - FS - InitialVolume :',  Vol- fluxIntegral -fracIntegral - self.volume_history[0]
+            print ' '
 
         if(returnStats):
             return [Vol, fluxIntegral, fracIntegral]
