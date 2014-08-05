@@ -75,6 +75,10 @@ class Rate_operator(Operator,Region):
 
         self.set_areas()
         self.set_full_indices()
+        
+        # Mass tracking
+        self.local_rate=0.
+        self.rate_integral=0. 
 
     def __call__(self):
         """
@@ -116,20 +120,26 @@ class Rate_operator(Operator,Region):
                          % (self.quantity_name, domain.get_time(), rate))
 
         if num.all(rate >= 0.0):
+            # Record the local flux for mass conservation tracking
             if indices is None:
+                self.local_rate=factor*timestep*(rate*self.domain.areas[:]).sum()
                 self.stage_c[:] = self.stage_c[:]  \
                        + factor*rate*timestep
             else:
+                self.local_rate=factor*timestep*(rate*self.domain.areas[indices]).sum()
                 self.stage_c[indices] = self.stage_c[indices] \
                        + factor*rate*timestep
         else: # Be more careful if rate < 0
             if indices is None:
-                self.stage_c[:] = num.maximun(self.stage_c  \
+                self.local_rate=(num.minimum(factor*timestep*rate, self.stage_c[:]-self.elev_c[:])*self.domain.areas[:]).sum()
+                self.stage_c[:] = num.maximum(self.stage_c  \
                        + factor*rate*timestep, self.elev_c )
             else:
+                self.local_rate=(num.minimum(factor*timestep*rate, self.stage_c[indices]-self.elev_c[indices])*self.domain.areas[indices]).sum()
                 self.stage_c[indices] = num.maximum(self.stage_c[indices] \
                        + factor*rate*timestep, self.elev_c[indices])
 
+        self.rate_integral=self.rate_integral+self.local_rate
 
     def get_non_spatial_rate(self, t=None):
         """Provide a rate to calculate added volume
