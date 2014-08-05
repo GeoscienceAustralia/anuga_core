@@ -183,7 +183,7 @@ class Generic_Domain:
 
         # Create an empty list for fractional step operators
         self.fractional_step_operators = []
-
+        self.fractional_step_volume_influx=0.
 
 
         # by default domain is not parallel

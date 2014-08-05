@@ -125,6 +125,7 @@ class Test_inlet_operator(unittest.TestCase):
         vol1 = domain.compute_total_volume()
 
         assert numpy.allclose((Q1+Q2)*finaltime, vol1-vol0, rtol=1.0e-8) 
+        assert numpy.allclose((Q1+Q2)*finaltime, domain.fractional_step_volume_influx, rtol=1.0e-8) 
 
 
 
@@ -171,6 +172,7 @@ class Test_inlet_operator(unittest.TestCase):
         vol1 = domain.compute_total_volume()
 
         assert numpy.allclose((Q1)*finaltime, vol1-vol0, rtol=1.0e-8)
+        assert numpy.allclose((Q1)*finaltime, domain.fractional_step_volume_influx, rtol=1.0e-8) 
 
 
 
@@ -234,6 +236,7 @@ class Test_inlet_operator(unittest.TestCase):
         #print vol1-vol0
         
         assert numpy.allclose(13.5, vol1-vol0, rtol=1.0e-8) 
+        assert numpy.allclose(vol1-vol0, domain.fractional_step_volume_influx, rtol=1.0e-8) 
                 
     def test_inlet_variable_Q_default(self):
         """test_inlet_Q
@@ -295,6 +298,7 @@ class Test_inlet_operator(unittest.TestCase):
         #print vol1-vol0
 
         assert numpy.allclose(31.5, vol1-vol0, rtol=1.0e-8)
+        assert numpy.allclose(vol1-vol0, domain.fractional_step_volume_influx, rtol=1.0e-8) 
 
 # =========================================================================
 if __name__ == "__main__":

@@ -78,7 +78,7 @@ class Rate_operator(Operator,Region):
         
         # Mass tracking
         self.local_rate=0.
-        self.rate_integral=0. 
+        #self.volume_added=self.domain.fractional_step_volume_influx
 
     def __call__(self):
         """
@@ -138,8 +138,8 @@ class Rate_operator(Operator,Region):
                 self.local_rate=(num.minimum(factor*timestep*rate, self.stage_c[indices]-self.elev_c[indices])*self.domain.areas[indices]).sum()
                 self.stage_c[indices] = num.maximum(self.stage_c[indices] \
                        + factor*rate*timestep, self.elev_c[indices])
-
-        self.rate_integral=self.rate_integral+self.local_rate
+        # Update mass inflows from fractional steps
+        self.domain.fractional_step_volume_influx+=self.local_rate
 
     def get_non_spatial_rate(self, t=None):
         """Provide a rate to calculate added volume

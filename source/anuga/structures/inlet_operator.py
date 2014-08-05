@@ -81,16 +81,18 @@ class Inlet_operator(anuga.Operator):
         # just pull water off to have a uniform depth.
         if volume >= 0.0 :
             self.inlet.set_stages_evenly(volume)
+            self.domain.fractional_step_volume_influx+=volume
             if self.velocity is not None:
                 depths = self.inlet.get_depths()
                 self.inlet.set_xmoms(self.inlet.get_xmoms()+depths*self.velocity[0])
                 self.inlet.set_ymoms(self.inlet.get_ymoms()+depths*self.velocity[1])
-                
         elif current_volume + volume >= 0.0 :
             depth = (current_volume + volume)/total_area
             self.inlet.set_depths(depth)
+            self.domain.fractional_step_volume_influx+=volume
         else: #extracting too much water!
             self.inlet.set_depths(0.0)
+            self.domain.fractional_step_volume_influx-=current_volume
             self.applied_Q = current_volume/timestep
 
             #msg =  'Requesting too much water to be removed from an inlet! \n'
