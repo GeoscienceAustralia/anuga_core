@@ -2576,9 +2576,10 @@ class Domain(Generic_Domain):
         """
         from anuga import myid
 
-        if(self.flow_algorithm=='tsunami'):
-            print ' '
-            print 'Warning: Volume computations do not account for changing porosity in tsunami algorithm'
+        if(self.compute_fluxes_method is not 'DE'):
+            if(myid==0):
+                print 'Water_volume_statistics only supported for DE algorithm '
+            return
 
         # Compute the volume
         Vol=self.get_water_volume()
