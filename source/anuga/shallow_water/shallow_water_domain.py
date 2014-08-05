@@ -2563,7 +2563,30 @@ class Domain(Generic_Domain):
         
         return message        
           
+    def report_water_volume_statistics(self, verbose=True, returnStats=False):
+        """
+        Compute the volume, boundary flux integral, fractional step volume integral, and their difference
+        
+        If verbose, print a summary
+        If returnStats, return a list with the volume statistics
+        """
+        from anuga import myid
+        # Compute the volume
+        Vol=self.get_water_volume()
+        # Compute the boundary flux integral
+        fluxIntegral=self.get_boundary_flux_integral()
+        fracIntegral=self.get_fractional_step_volume_integral()
+        
+        if(verbose and myid==0):
+            print '    Volume is:', Vol
+            print '    Boundary Flux integral: ', fluxIntegral
+            print '    (rate + inlet) Fractional Step volume integral : ', fracIntegral
+            print '    Volume - (boundary and fractional step inflows):',  Vol- fluxIntegral -fracIntegral
 
+        if(returnStats):
+            return [Vol, fluxIntegral, fracIntegral]
+        else:
+            return
 
 ################################################################################
 # End of class Shallow Water Domain
