@@ -300,7 +300,7 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex1)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
-        assert num.allclose(domain.fractional_step_volume_integral, (d*domain.areas[indices]).sum())
+        assert num.allclose(domain.fractional_step_volume_integral, ((d-1.)*domain.areas[indices]).sum())
 
 
     def test_rate_operator_functions_rate_default_rate(self):
