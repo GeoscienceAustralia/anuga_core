@@ -294,11 +294,12 @@ def read_output(filename, minimum_allowed_height, timeSlices):
     ymom=getInds(ymomAll, timeSlices=inds, absMax=True)
 
     # velocity requires some intermediate calculation in general
-    tmp = xmomAll/(heightAll+1.0e-12)*(heightAll>minimum_allowed_height)
+    hInv=1./(heightAll+1.0e-12)
+    tmp = xmomAll*hInv*(heightAll>minimum_allowed_height)
     xvel=getInds(tmp,timeSlices=inds, absMax=True)
-    tmp = ymomAll/(heightAll+1.0e-12)*(heightAll>minimum_allowed_height)
+    tmp = ymomAll*hInv*(heightAll>minimum_allowed_height)
     yvel=getInds(tmp,timeSlices=inds, absMax=True)
-    tmp = (xmomAll**2+ymomAll**2)**0.5/(heightAll+1.0e-12)*(heightAll>minimum_allowed_height)
+    tmp = (xmomAll**2+ymomAll**2)**0.5*hInv*(heightAll>minimum_allowed_height)
     vel=getInds(tmp, timeSlices=inds) # Vel is always >= 0.
 
     fid.close()
@@ -493,14 +494,15 @@ def get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
             hC = getCentVar('stage_c', timeSlices=range(nts))
             for i in range(hC.shape[0]):
                 hC[i,:]=hC[i,:]-elev_cent
-            
+        
+        hInv=1.0/(hC+1.0e-06)
         xmom_cent = getInds(xmomC*(hC>minimum_allowed_height), timeSlices=inds,absMax=True)
-        xvel_cent = getInds(xmomC/(hC+1.0e-06)*(hC>minimum_allowed_height), timeSlices=inds, absMax=True)
+        xvel_cent = getInds(xmomC*hInv*(hC>minimum_allowed_height), timeSlices=inds, absMax=True)
 
         ymom_cent = getInds(ymomC*(hC>minimum_allowed_height), timeSlices=inds,absMax=True)
-        yvel_cent = getInds(ymomC/(hC+1.0e-06)*(hC>minimum_allowed_height), timeSlices=inds, absMax=True)
+        yvel_cent = getInds(ymomC*hInv*(hC>minimum_allowed_height), timeSlices=inds, absMax=True)
 
-        tmp = (xmomC**2 + ymomC**2)**0.5/(hC+1.0e-06)*(hC>minimum_allowed_height)
+        tmp = (xmomC**2 + ymomC**2)**0.5*hInv*(hC>minimum_allowed_height)
         vel_cent=getInds(tmp, timeSlices=inds)
         
     else:
@@ -528,13 +530,14 @@ def get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
         if velocity_extrapolation:
             # Compute velocity from vertex velocities, then back-compute
             # momentum from that
-            tmp = xmomAll/(heightAll+1.0-06)*(heightAll>minimum_allowed_height)
+            hInv=1.0/(heightAll+1.0-06)
+            tmp = xmomAll*hInv*(heightAll>minimum_allowed_height)
             xvel=(tmp[:,vols0]+tmp[:,vols1]+tmp[:,vols2])/3.0
             htc = (heightAll[:,vols0] + heightAll[:,vols1] + heightAll[:,vols2])/3.0
             xvel_cent=getInds(xvel, timeSlices=inds, absMax=True)
             xmom_cent=getInds(xvel*htc, timeSlices=inds, absMax=True)
 
-            tmp = ymomAll/(heightAll+1.0-06)*(heightAll>minimum_allowed_height)
+            tmp = ymomAll*hInv*(heightAll>minimum_allowed_height)
             yvel=(tmp[:,vols0]+tmp[:,vols1]+tmp[:,vols2])/3.0
             yvel_cent=getInds(yvel, timeSlices=inds, absMax=True)
             ymom_cent=getInds(yvel*htc, timeSlices=inds, absMax=True)
@@ -545,15 +548,16 @@ def get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
             # Compute momenta from vertex momenta, then back compute velocity from that
             tmp=xmomAll*(heightAll>minimum_allowed_height)
             htc = (heightAll[:,vols0] + heightAll[:,vols1] + heightAll[:,vols2])/3.0
+            hInv=1./(htc+1.0e-06)
             xmom=(tmp[:,vols0]+tmp[:,vols1]+tmp[:,vols2])/3.0
             xmom_cent=getInds(xmom,  timeSlices=inds, absMax=True)
-            xvel_cent=getInds(xmom/(htc+1.0e-06), timeSlices=inds, absMax=True)
+            xvel_cent=getInds(xmom*hInv, timeSlices=inds, absMax=True)
 
             tmp=ymomAll*(heightAll>minimum_allowed_height)
             ymom=(tmp[:,vols0]+tmp[:,vols1]+tmp[:,vols2])/3.0
             ymom_cent=getInds(ymom,  timeSlices=inds, absMax=True)
-            yvel_cent=getInds(ymom/(htc+1.0e-06), timeSlices=inds, absMax=True)
-            vel_cent = getInds( (xmom**2+ymom**2)**0.5/(htc+1.0e-06), timeSlices=inds)
+            yvel_cent=getInds(ymom*hInv, timeSlices=inds, absMax=True)
+            vel_cent = getInds( (xmom**2+ymom**2)**0.5*hInv, timeSlices=inds)
 
     fid.close()
     

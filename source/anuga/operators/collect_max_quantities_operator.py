@@ -14,6 +14,7 @@ from anuga.geometry.polygon import inside_polygon
 from anuga.operators.base_operator import Operator
 from anuga import Quantity
 from anuga_parallel import myid
+from anuga.config import velocity_protection
 
 
 class collect_max_quantities_operator(Operator):
@@ -81,10 +82,11 @@ class collect_max_quantities_operator(Operator):
                 momNorm = (self.xmom.centroid_values**2 + self.ymom.centroid_values**2)**0.5
                 self.max_speedDepth=num.maximum(self.max_speedDepth, momNorm)
                 
-                localDepth=num.maximum(self.stage.centroid_values-self.elev.centroid_values, 1.0e-06) 
+                localDepth=num.maximum(self.stage.centroid_values-self.elev.centroid_values, self.domain.minimum_allowed_height) 
                 self.max_depth = num.maximum(self.max_depth,localDepth)
 
-                velMax=momNorm/localDepth
+                #velMax=(momNorm/(localDepth+velocity_protection/localDepth))*(localDepth>self.domain.minimum_allowed_height)
+                velMax=(momNorm/localDepth)*(localDepth>self.domain.minimum_allowed_height)
                 self.max_speed = num.maximum(self.max_speed, velMax)
 
                 self.counter=0

@@ -2574,7 +2574,7 @@ class Domain(Generic_Domain):
         If verbose, print a summary
         If returnStats, return a list with the volume statistics
         """
-        from anuga import myid
+        from anuga_parallel import myid
 
         if(self.compute_fluxes_method is not 'DE'):
             if(myid==0):
@@ -2599,6 +2599,46 @@ class Domain(Generic_Domain):
             return [Vol, fluxIntegral, fracIntegral]
         else:
             return
+
+    def report_cells_with_small_local_timestep(self, threshold_depth=None):
+        """ 
+        Convenience function to print the locations of cells
+        with a small local timestep. 
+
+        Computations are at cell centroids
+
+        Useful in models
+        with complex meshes, to find ways to speed up the model
+        """
+        from anuga_parallel import myid, numprocs
+        from anuga.config import g, epsilon
+
+        if(threshold_depth is None):
+            threshold_depth=self.minimum_allowed_height
+
+        uh = self.quantities['xmomentum'].centroid_values
+        vh = self.quantities['ymomentum'].centroid_values
+        d =  self.quantities['stage'].centroid_values - self.quantities['elevation'].centroid_values 
+        d = num.maximum(d, threshold_depth)
+        v = ( (uh)**2 + (vh)**2)**0.5/d
+        v = v*(d>threshold_depth)
+        
+        for i in range(numprocs):
+            if(myid==i):
+                print '    Processor ', myid
+                gravSpeed=(g*d)**0.5
+                waveSpeed = abs(v)+gravSpeed
+                localTS=self.radii/num.maximum(waveSpeed, epsilon)
+                controlling_pt_ind=localTS.argmin()
+                print '    * Smallest LocalTS is: ', localTS[controlling_pt_ind]
+                print '     -- Location: ', round(self.centroid_coordinates[controlling_pt_ind,0]+self.geo_reference.xllcorner,2),\
+                                        round(self.centroid_coordinates[controlling_pt_ind,1]+self.geo_reference.yllcorner,2)
+                print '     -+ Speed: ', v[controlling_pt_ind]
+                print '     -* Gravity_wave_speed', gravSpeed[controlling_pt_ind]
+                print ' '
+
+            barrier()
+        return
 
 ################################################################################
 # End of class Shallow Water Domain
