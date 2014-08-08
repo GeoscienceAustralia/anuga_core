@@ -43,7 +43,7 @@ os.chdir(buildroot)
 print 'Changing to', os.getcwd()        
 
 #--------------------------------------------------
-# Compiling anuga_parallel code
+# Compiling partition code
 #--------------------------------------------------
 
 try:
@@ -51,7 +51,7 @@ try:
     print 'Attempting to compile Metis for parallel ANUGA!'
     print '-----------------------------------------------'
 
-    import pypar
+
 
     # Attempt to compile Metis for use with anuga_parallel
     os.chdir('source')
@@ -82,13 +82,28 @@ try:
         msg = 'Compiled Metis succesfully. Output from Make is available in %s'\
             % make_logfile
         print msg
+        
+except:
+    print 'pymetis could not compile'
 
+
+os.chdir(buildroot)
+print 'Changing to', os.getcwd() 
+
+#--------------------------------------------------
+# Compiling anuga_parallel code
+#--------------------------------------------------
+
+try:
     print 
     print '-----------------------------------------------'
     print 'Attempting to compile pypar_extras'
     print '-----------------------------------------------'
 
-    os.chdir('..')
+    import pypar
+    
+    os.chdir('source')
+    os.chdir('anuga_parallel')
     os.chdir('pypar_extras')
 
     cmd = 'python anuga_setup.py'

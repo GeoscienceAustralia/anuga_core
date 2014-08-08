@@ -14,6 +14,8 @@
 // Ole Nielsen, GA 2004
 // Gareth Davies, GA 2011
 
+
+
 #include "Python.h"
 #include "numpy/arrayobject.h"
 #include "math.h"
@@ -1128,6 +1130,7 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       if((height_centroid_values[k0] < minimum_allowed_height | k0==k) &
          (height_centroid_values[k1] < minimum_allowed_height | k1==k) &
          (height_centroid_values[k2] < minimum_allowed_height | k2==k)){
+    	  	  //printf("Surrounded by dry cells\n");
               x_centroid_work[k] = 0.;
               xmom_centroid_values[k] = 0.;
               y_centroid_work[k] = 0.;
@@ -1135,15 +1138,7 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
 
       }
 
-      //if((elevation_centroid_values[k0] > stage_centroid_values[k] | k0==k) &
-      //   (elevation_centroid_values[k1] > stage_centroid_values[k] | k1==k) &
-      //   (elevation_centroid_values[k2] > stage_centroid_values[k] | k2==k)){
-      //        x_centroid_work[k] = 0.;
-      //        xmom_centroid_values[k] = 0.;
-      //        y_centroid_work[k] = 0.;
-      //        ymom_centroid_values[k] = 0.;
 
-      //}
   }
 
   // Begin extrapolation routine
@@ -1755,8 +1750,6 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       elevation_vertex_values[k3] = elevation_edge_values[k3+1] + elevation_edge_values[k3+2] -elevation_edge_values[k3] ; 
       elevation_vertex_values[k3+1] =  elevation_edge_values[k3] + elevation_edge_values[k3+2]-elevation_edge_values[k3+1]; 
       elevation_vertex_values[k3+2] =  elevation_edge_values[k3] + elevation_edge_values[k3+1]-elevation_edge_values[k3+2]; 
-
-   
   } 
 
   return 0;

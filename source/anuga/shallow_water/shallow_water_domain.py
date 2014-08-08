@@ -563,13 +563,13 @@ class Domain(Generic_Domain):
         self.use_edge_limiter=True
         self.set_default_order(2)
         self.set_extrapolate_velocity()
-
+        
         self.beta_w=0.5
-        self.beta_w_dry=0.2
+        self.beta_w_dry=0.0
         self.beta_uh=0.5
-        self.beta_uh_dry=0.2
+        self.beta_uh_dry=0.0
         self.beta_vh=0.5
-        self.beta_vh_dry=0.2
+        self.beta_vh_dry=0.0
         
 
         #self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
@@ -1362,7 +1362,19 @@ class Domain(Generic_Domain):
     
         from anuga import myid, numprocs, send, receive, barrier
 
-        if self.get_using_discontinuous_elevation():    
+        print self.evolved_called
+        
+        if not self.evolved_called:
+            Stage = self.quantities['stage']
+            Elev =  self.quantities['elevation']
+            h_c = Stage.centroid_values - Elev.centroid_values
+            print h_c
+            from anuga import Quantity
+            Height = Quantity(self)
+            Height.set_values(h_c, location='centroids')
+            print Height.centroid_values
+            volume = Height.get_integral()
+        elif self.get_using_discontinuous_elevation():    
             Height = self.quantities['height']
             volume = Height.get_integral()
         else:
