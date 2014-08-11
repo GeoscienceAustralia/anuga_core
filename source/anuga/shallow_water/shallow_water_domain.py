@@ -1362,17 +1362,17 @@ class Domain(Generic_Domain):
     
         from anuga import myid, numprocs, send, receive, barrier
 
-        print self.evolved_called
+        #print self.evolved_called
         
         if not self.evolved_called:
             Stage = self.quantities['stage']
             Elev =  self.quantities['elevation']
             h_c = Stage.centroid_values - Elev.centroid_values
-            print h_c
+            #print h_c
             from anuga import Quantity
             Height = Quantity(self)
             Height.set_values(h_c, location='centroids')
-            print Height.centroid_values
+            #print Height.centroid_values
             volume = Height.get_integral()
         elif self.get_using_discontinuous_elevation():    
             Height = self.quantities['height']

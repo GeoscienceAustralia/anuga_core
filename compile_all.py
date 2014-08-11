@@ -48,7 +48,7 @@ print 'Changing to', os.getcwd()
 
 try:
     print '-----------------------------------------------'
-    print 'Attempting to compile Metis for parallel ANUGA!'
+    print 'Attempting to compile Metis'
     print '-----------------------------------------------'
 
 

@@ -41,5 +41,5 @@ execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 os.chdir(BUILDROOT)    
 #execfile('test_all.py')
     
-if sys.platform == 'win32':
-    raw_input('Press the RETURN key')
+#if sys.platform == 'win32':
+#    raw_input('Press the RETURN key')
