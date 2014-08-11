@@ -126,7 +126,7 @@ try:
 except ImportError:
     print "***************************************************"
     print "         Metis is probably not compiled."
-    print "         Read \anuga_core\source\pymetis\README"
+    print "         Read anuga_parallel\pymetis\README"
     print "***************************************************"
     raise ImportError
 
