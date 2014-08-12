@@ -25,7 +25,7 @@ Key routines:
                             [gridPointsInPolygon could in future be linked with this to get raster values in a region,
                              if we develop a version of ANUGA with sub-grid topography]
 
-    readRegionPtAreas -- read a shapefile containin regionPtAreas -- xy coordinates + 1 attribute, which is
+    readRegionPtAreas -- read a shapefile containing regionPtAreas -- xy coordinates + 1 attribute, which is
                          the mesh triangle side length (or area) limit. Can be passed as regionPtAreas in
                          the mesh generation stage.
 

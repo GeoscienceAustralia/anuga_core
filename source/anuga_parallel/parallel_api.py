@@ -10,8 +10,8 @@ from anuga.utilities.parallel_abstraction import size, rank, get_processor_name
 from anuga.utilities.parallel_abstraction import finalize, send, receive
 from anuga.utilities.parallel_abstraction import pypar_available, barrier
 
-from anuga_parallel.sequential_distribute import sequential_distribute_dump
-from anuga_parallel.sequential_distribute import sequential_distribute_load
+#from anuga_parallel.sequential_distribute import sequential_distribute_dump
+#from anuga_parallel.sequential_distribute import sequential_distribute_load
 
 
 
