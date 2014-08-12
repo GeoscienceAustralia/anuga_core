@@ -1621,6 +1621,7 @@ class Generic_Domain:
             self.update_extrema()            
 
             self.number_of_steps += 1
+
             if self._order_ == 1:
                 self.number_of_first_order_steps += 1
 
@@ -1677,6 +1678,10 @@ class Generic_Domain:
 
         # Update timestep to fit yieldstep and finaltime
         self.update_timestep(yieldstep, finaltime)
+
+        if self.max_flux_update_frequency is not 1:
+            # Update flux_update_frequency using the new timestep
+            self.compute_flux_update_frequency()
 
         # Update conserved quantities
         self.update_conserved_quantities()

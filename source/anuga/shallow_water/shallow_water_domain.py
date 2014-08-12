@@ -290,16 +290,41 @@ class Domain(Generic_Domain):
         from anuga.operators.boundary_flux_integral_operator import boundary_flux_integral_operator
         self.boundary_flux_integral=boundary_flux_integral_operator(self)
         # Make an integer counting how many times we call compute_fluxes_central -- so we know which substep we are on
-        self.call=1 
+        #self.call=1 
 
         # List to store the volumes we computed before
         self.volume_history=[] 
         
         # Work arrays [avoid allocate statements in compute_fluxes or extrapolate_second_order]
-        self.edge_flux_work=num.zeros(len(self.edge_coordinates[:,0])*3)
-        self.pressuregrad_work=num.zeros(len(self.edge_coordinates[:,0]))
-        self.x_centroid_work=num.zeros(len(self.edge_coordinates[:,0])/3)
+        self.edge_flux_work=num.zeros(len(self.edge_coordinates[:,0])*3) # Advective fluxes
+        self.pressuregrad_work=num.zeros(len(self.edge_coordinates[:,0])) # Gravity related terms
+        self.x_centroid_work=num.zeros(len(self.edge_coordinates[:,0])/3) 
         self.y_centroid_work=num.zeros(len(self.edge_coordinates[:,0])/3)
+
+        ############################################################################
+        ## Local-timestepping information
+        #
+        # Fluxes can be updated every 1, 2, 4, 8, .. max_flux_update_frequency timesteps
+        # The global timestep is not allowed to increase except when
+        # number_of_timesteps%max_flux_update_frequency==0 
+        self.max_flux_update_frequency=2**0 # Must be a power of 2. 
+        
+        # flux_update_frequency. The edge flux terms are re-computed only when
+        #    number_of_timesteps%flux_update_frequency[myEdge]==0
+        self.flux_update_frequency=num.zeros(len(self.edge_coordinates[:,0])).astype(int)+1
+        # Flag: should we update the flux on the next compute fluxes call?
+        self.update_next_flux=num.zeros(len(self.edge_coordinates[:,0])).astype(int)+1
+        # Flag: should we update the extrapolation on the next extrapolation call?
+        # (Only do this if one or more of the fluxes on that triangle will be computed on
+        # the next timestep, assuming only the flux computation uses edge/vertex values)
+        self.update_extrapolation=num.zeros(len(self.edge_coordinates[:,0])/3).astype(int)+1
+
+        # edge_timestep [wavespeed/radius] -- not updated every timestep
+        self.edge_timestep=num.zeros(len(self.edge_coordinates[:,0]))+1.0e+100
+      
+        # Do we allow the timestep to increase (not every time if local
+        # extrapolation/flux updating is used) 
+        self.allow_timestep_increase=num.zeros(1).astype(int)+1
 
     def _set_defaults(self):
         """Set the default values in this routine. That way we can inherit class
@@ -840,7 +865,27 @@ class Domain(Generic_Domain):
             raise Exception(msg)
 
 
+    def set_local_extrapolation_and_flux_updating(self,nlevels=8):
+        """
+            Use local flux and extrapolation updating
 
+            nlevels == number of flux_update_frequency levels > 1
+
+                   For example, to allow flux updating every 1,2,4,8
+                   timesteps, do:
+
+                    domain.set_local_extrapolation_and_flux_updating(nlevels=3)
+
+                   (since 2**3==8)
+        """
+
+        self.max_flux_update_frequency=2**nlevels
+
+        if(self.max_flux_update_frequency is not 1):
+            if self.timestepping_method is not 'euler':
+                raise Exception, 'Local extrapolation and flux updating only supported with euler timestepping'
+            if self.compute_fluxes_method is not 'DE':
+                raise Exception, 'Local extrapolation and flux updating only supported for discontinuous flow algorithms'
 
 
     def get_compute_fluxes_method(self):
@@ -1667,11 +1712,8 @@ class Domain(Generic_Domain):
             Bed = self.quantities['elevation']
             height = self.quantities['height']
 
-            timestep = float(sys.maxint)
+            timestep = self.evolve_max_timestep 
 
-            # Keep track of number of calls to compute_fluxes_ext
-            # Note that in ANUGA, all sub-steps within an rk2/rk3 timestep have the same timestep
-            self.call+=1
             flux_timestep = compute_fluxes_ext(timestep,
                                                self.epsilon,
                                                self.minimum_allowed_height,
@@ -1705,14 +1747,16 @@ class Domain(Generic_Domain):
                                                Ymom.centroid_values,
                                                Bed.centroid_values, 
                                                height.centroid_values,
-                                               #Bed.vertex_values,
                                                self.edge_flux_type,
                                                self.riverwallData.riverwall_elevation,
                                                self.riverwallData.hydraulic_properties_rowIndex,
                                                int(self.riverwallData.ncol_hydraulic_properties),
                                                self.riverwallData.hydraulic_properties,
                                                self.edge_flux_work,
-                                               self.pressuregrad_work)
+                                               self.pressuregrad_work,
+                                               self.edge_timestep,
+                                               self.update_next_flux,
+                                               self.allow_timestep_increase)
 
             self.flux_timestep = flux_timestep
 
@@ -1820,7 +1864,8 @@ class Domain(Generic_Domain):
                       int(self.optimise_dry_cells),
                       int(self.extrapolate_velocity_second_order),
                       self.x_centroid_work,
-                      self.y_centroid_work)
+                      self.y_centroid_work,
+                      self.update_extrapolation)
         else:
             # Code for original method
             if self.use_edge_limiter:
@@ -2579,6 +2624,26 @@ class Domain(Generic_Domain):
         
         return message        
           
+    def compute_flux_update_frequency(self):
+        """
+            Update the 'flux_update_frequency' and 'update_extrapolate' variables 
+            Used to control updating of fluxes / extrapolation for 'local-time-stepping'
+        """
+        from swDE1_domain_ext import compute_flux_update_frequency \
+                                  as compute_flux_update_frequency_ext
+
+        compute_flux_update_frequency_ext(
+                self.timestep,
+                self.neighbours,
+                self.neighbour_edges,
+                self.already_computed_flux,
+                self.edge_timestep,
+                self.flux_update_frequency,
+                self.update_extrapolation,
+                self.max_flux_update_frequency,
+                self.update_next_flux,
+                self.allow_timestep_increase)
+        
     def report_water_volume_statistics(self, verbose=True, returnStats=False):
         """
         Compute the volume, boundary flux integral, fractional step volume integral, and their difference

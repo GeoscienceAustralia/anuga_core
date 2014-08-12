@@ -28,6 +28,13 @@
 
 const double pi = 3.14159265358979;
 
+// Trick to compute n modulo 2 when d is a power of 2
+unsigned int Mod_of_power_2(unsigned int n, unsigned int d)
+{
+  return ( n & (d-1) );
+} 
+
+
 // Computational function for rotation
 int _rotate(double *q, double n1, double n2) {
   /*Rotate the last  2 coordinates of q (q[1], q[2])
@@ -110,7 +117,7 @@ int _flux_function_toro(double *q_left, double *q_right,
                            double g,
                            double *edgeflux, double *max_speed,
                            double *pressure_flux, double hc,
-                           double hc_n, double speed_max_last)
+                           double hc_n)
 {
 
   /*Compute fluxes between volumes for the shallow water wave equation
@@ -284,7 +291,7 @@ int _flux_function_central(double *q_left, double *q_right,
                            double g,
                            double *edgeflux, double *max_speed, 
                            double *pressure_flux, double hc, 
-                           double hc_n, double speed_max_last) 
+                           double hc_n) 
 {
 
   /*Compute fluxes between volumes for the shallow water wave equation
@@ -441,6 +448,177 @@ int _flux_function_central(double *q_left, double *q_right,
   return 0;
 }
 
+////////////////////////////////////////////////////////////////
+
+int _compute_flux_update_frequency(int number_of_elements, 
+                                  long *neighbours, long *neighbour_edges,
+                                  long *already_computed_flux,
+                                  int max_flux_update_frequency, double *edge_timestep,
+                                  double timestep, double notSoFast,
+                                  long *flux_update_frequency,
+                                  long *update_extrapolation, 
+                                  long *update_next_flux,
+                                  long *allow_timestep_increase){
+    // Compute the 'flux_update_frequency' for each edge.
+    //
+    // This determines how regularly we need
+    // to update the flux computation (not every timestep)
+    //
+    // Allowed values are 1,2,4,8,... max_flux_update_frequency.
+    //
+    // For example, an edge with flux_update_frequency = 4 would
+    // only have the flux updated every 4 timesteps
+    //
+    //
+    // Local variables
+    int k, i, k3, ki, m, n, nm, ii, j, ii2;
+    long fuf;
+    static int cyclic_number_of_steps=-1;
+
+    // QUICK EXIT
+    if(max_flux_update_frequency==1){
+        return 0;
+    }
+    
+    // Count the steps
+    cyclic_number_of_steps++;
+    if(cyclic_number_of_steps==max_flux_update_frequency){
+        // The flux was just updated in every cell
+        cyclic_number_of_steps=0;
+    }
+
+
+    // PART 1: ONLY OCCURS FOLLOWING FLUX UPDATE
+
+    for ( k = 0; k < number_of_elements; k++){
+        for ( i = 0; i < 3; i++){
+            ki = k*3 + i;
+            if((Mod_of_power_2(cyclic_number_of_steps, flux_update_frequency[ki])==0)){
+                // The flux was just updated, along with the edge_timestep
+                // So we better recompute the flux_update_frequency
+                n=neighbours[ki];
+                if(n>=0){
+                    m = neighbour_edges[ki];
+                    nm = n * 3 + m; // Linear index (triangle n, edge m)
+                }
+
+                // Check if we have already done this edge
+                // (Multiply already_computed_flux by -1 on the first update,
+                // and again on the 2nd)
+                if(already_computed_flux[ki] > 0 ){
+                    // We have not fixed this flux value yet
+                    already_computed_flux[ki] *=-1;
+                    if(n>=0){
+                        already_computed_flux[nm] *=-1;
+                    }
+                }else{
+                    // We have fixed this flux value already 
+                    already_computed_flux[ki] *=-1;
+                    if(n>=0){
+                        already_computed_flux[nm] *=-1;
+                    }
+                    continue;
+                }
+
+                // Basically int( edge_ki_timestep/timestep ) with upper limit + tweaks
+                // notSoFast is ideally = 1.0, but in practice values < 1.0 can enhance stability
+                // NOTE: edge_timestep[ki]/timestep can be very large [so int overflows].
+                //       Do not pull the (int) inside the min term
+                fuf = (int)min((edge_timestep[ki]/timestep)*notSoFast,max_flux_update_frequency*1.);
+                // Account for neighbour
+                if(n>=0){
+                    fuf = min( (int)min(edge_timestep[nm]/timestep*notSoFast, max_flux_update_frequency*1.), fuf);
+                }
+
+                // Deal with notSoFast<1.0
+                if(fuf<1){
+                    fuf=1;
+                }
+                // Deal with large fuf 
+                if(fuf>max_flux_update_frequency){
+                    fuf = max_flux_update_frequency;
+                }
+                //// Deal with intermediate cases
+                ii=2;
+                while(ii<max_flux_update_frequency){
+                    // Set it to 1,2,4, 8, ...
+                    ii2=2*ii;
+                    if((fuf>ii) && (fuf<ii2)){
+                        fuf = ii;
+                        continue;
+                    }
+                    ii=ii2;
+                }
+
+                // Set the values
+                flux_update_frequency[ki]=fuf;
+                if(n>=0){
+                    flux_update_frequency[nm]= fuf;
+                }
+                
+            }
+        }
+    } 
+
+    //// PART 2 -- occcurs every timestep
+
+    // At this point, both edges have the same flux_update_frequency.
+    // Next, ensure that flux_update_frequency varies within a constant over each triangle
+    // Experiences suggests this is numerically important
+    // (But, it can result in the same edge having different flux_update_freq)
+    for( k=0; k<number_of_elements; k++){
+        k3=3*k;
+        ii = 1*min(flux_update_frequency[k3],
+                 min(flux_update_frequency[k3+1],
+                     flux_update_frequency[k3+2]));
+        
+        flux_update_frequency[k3]=min(ii, flux_update_frequency[k3]);
+        flux_update_frequency[k3+1]=min(ii, flux_update_frequency[k3+1]);
+        flux_update_frequency[k3+2]=min(ii,flux_update_frequency[k3+2]);
+            
+    }
+            
+    // Now enforce the same flux_update_frequency on each edge
+    // (Could have been broken above when we limited the variation on each triangle)
+    // This seems to have nice behaviour. Notice how an edge
+    // with a large flux_update_frequency, near an edge with a small flux_update_frequency,
+    // will have its flux_update_frequency updated after a few timesteps (i.e. before max_flux_update_frequency timesteps)
+    // OTOH, could this cause oscillations in flux_update_frequency?
+    for( k = 0; k < number_of_elements; k++){
+        update_extrapolation[k]=0;
+        for( i = 0; i< 3; i++){
+            ki=3*k+i;
+            // Account for neighbour
+            n=neighbours[ki];
+            if(n>=0){
+                m = neighbour_edges[ki];
+                nm = n * 3 + m; // Linear index (triangle n, edge m)
+                flux_update_frequency[ki]=min(flux_update_frequency[ki], flux_update_frequency[nm]);
+            }
+            // Do we need to update the extrapolation?
+            // (We do if the next flux computation will actually compute a flux!)
+            if(Mod_of_power_2((cyclic_number_of_steps+1),flux_update_frequency[ki])==0){
+                update_next_flux[ki]=1;
+                update_extrapolation[k]=1;
+            }else{
+                update_next_flux[ki]=0;
+            }
+        }
+    }
+
+    // Check whether the timestep can be increased in the next compute_fluxes call
+    if(cyclic_number_of_steps+1==max_flux_update_frequency){
+        // All fluxes will be updated on the next timestep
+        // We also allow the timestep to increase then
+        allow_timestep_increase[0]=1;
+    }else{
+        allow_timestep_increase[0]=0;
+    }
+
+    return 0;
+}
+
+
 double adjust_edgeflux_with_weir(double* edgeflux,
                                  double h_left, double h_right, 
                                  double g, double weir_height,
@@ -573,7 +751,10 @@ double _compute_fluxes_central(int number_of_elements,
         int ncol_riverwall_hydraulic_properties,
         double* riverwall_hydraulic_properties,
         double* edge_flux_work,
-        double* pressuregrad_work) {
+        double* pressuregrad_work,
+        double* edge_timestep,
+        long* update_next_flux,
+        long* allow_timestep_increase) {
     // Local variables
     double max_speed, length, inv_area, zl, zr;
     double h_left, h_right, z_half ;  // For andusse scheme
@@ -581,18 +762,19 @@ double _compute_fluxes_central(int number_of_elements,
     double limiting_threshold = 10*H0;
     //
     int k, i, m, n,j, ii;
-    int ki, nm = 0, ki2,ki3, nm3; // Index shorthands
+    int ki,k3, nm = 0, ki2,ki3, nm3; // Index shorthands
     // Workspace (making them static actually made function slightly slower (Ole))
     double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
     double stage_edges[3];//Work array
-    double bedslope_work, local_timestep;
+    double bedslope_work;
+    static double local_timestep;
     int neighbours_wet[3];//Work array
-    int RiverWall_count, substep_count;
+    long RiverWall_count, substep_count;
     double hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2; 
-    double stage_edge_lim, outgoing_mass_edges, bedtop, bedbot, pressure_flux, hc, hc_n, tmp, tmp2;
+    double stage_edge_lim, outgoing_mass_edges, pressure_flux, hc, hc_n, tmp, tmp2;
     double h_left_tmp, h_right_tmp;
     static long call = 1; // Static local variable flagging already computed flux
-    double speed_max_last, vol, smooth, local_speed, weir_height;
+    double speed_max_last, vol, weir_height;
 
     call++; // Flag 'id' of flux calculation for this timestep
 
@@ -601,24 +783,32 @@ double _compute_fluxes_central(int number_of_elements,
     memset((char*) stage_explicit_update, 0, number_of_elements * sizeof (double));
     memset((char*) xmom_explicit_update, 0, number_of_elements * sizeof (double));
     memset((char*) ymom_explicit_update, 0, number_of_elements * sizeof (double));
-    memset((char*) edge_flux_work, 0, 9*number_of_elements * sizeof (double));
-    memset((char*) pressuregrad_work, 0, 3*number_of_elements * sizeof (double));
 
-    local_timestep=timestep;
+
+    // Counter for riverwall edges
     RiverWall_count=0;
+    // Which substep of the timestepping method are we on?
     substep_count=(call-2)%timestep_fluxcalls;
-
+    
+    // Fluxes are not updated every timestep,
+    // but all fluxes ARE updated when the following condition holds
+    if(allow_timestep_increase[0]==1){
+        // We can only increase the timestep if all fluxes are allowed to be updated
+        // If this is not done the timestep can't increase (since local_timestep is static)
+        local_timestep=1.0e+100;
+    }
 
     // For all triangles
     for (k = 0; k < number_of_elements; k++) {
         speed_max_last=0.0;
+
         // Loop through neighbours and compute edge flux for each
         for (i = 0; i < 3; i++) {
             ki = k * 3 + i; // Linear index to edge i of triangle k
             ki2 = 2 * ki; //k*6 + i*2
             ki3 = 3*ki; 
 
-            if (already_computed_flux[ki] == call) {
+            if ((already_computed_flux[ki] == call) || (update_next_flux[ki]!=1)) {
                 // We've already computed the flux across this edge
                 // Check if it is a riverwall
                 if(edge_flux_type[ki]==1){
@@ -692,14 +882,24 @@ double _compute_fluxes_central(int number_of_elements,
                     hle, hre,
                     normals[ki2], normals[ki2 + 1],
                     epsilon, z_half, limiting_threshold, g,
-                    edgeflux, &max_speed, &pressure_flux, hc, hc_n, 
-                    speed_max_last);
+                    edgeflux, &max_speed, &pressure_flux, hc, hc_n);
 
             // Force weir discharge to match weir theory
             if(edge_flux_type[ki]==1){
                 weir_height=max(riverwall_elevation[RiverWall_count-1]-min(zl,zr), 0.); // Reference weir height  
                 // If the weir height is zero, avoid the weir computation entirely
                 if(weir_height>0.){
+                    ////////////////////////////////////////////////////////////////////////////////////
+                    // Use first-order h's for weir -- as the 'upstream/downstream' heads are
+                    //  measured away from the weir itself
+                    h_left_tmp= max(stage_centroid_values[k]-z_half,0.);
+                    if(n>=0){
+                        h_right_tmp= max(stage_centroid_values[n]-z_half,0.);
+                    }else{
+                        h_right_tmp= max(hc_n+zr-z_half,0.);
+                    }
+
+                    //////////////////////////////////////////////////////////////////////////////////
                     // Get Qfactor index - multiply the idealised weir discharge by this constant factor
                     ii=riverwall_rowIndex[RiverWall_count-1]*ncol_riverwall_hydraulic_properties;
                     Qfactor=riverwall_hydraulic_properties[ii];
@@ -716,15 +916,7 @@ double _compute_fluxes_central(int number_of_elements,
                     ii+=1;
                     h2=riverwall_hydraulic_properties[ii];
                     
-                    // Use first-order h's for weir -- as the 'upstream/downstream' heads are
-                    //  measured away from the weir itself
-                    h_left_tmp= max(stage_centroid_values[k]-z_half,0.);
-                    if(n>=0){
-                        h_right_tmp= max(stage_centroid_values[n]-z_half,0.);
-                    }else{
-                        h_right_tmp= max(hc_n+zr-z_half,0.);
-                    }
-
+                    // Weir flux adjustment 
                     adjust_edgeflux_with_weir(edgeflux, h_left_tmp, h_right_tmp, g, 
                                               weir_height, Qfactor, 
                                               s1, s2, h1, h2);
@@ -781,34 +973,42 @@ double _compute_fluxes_central(int number_of_elements,
             }
 
             // Update timestep based on edge i and possibly neighbour n
-            // NOTE: We should only change the timestep between rk2 or rk3
-            // steps, NOT within them (since a constant timestep is used within
-            // each rk2/rk3 sub-step)
-            if ((tri_full_flag[k] == 1) & (substep_count==0)) {
+            // NOTE: We should only change the timestep on the 'first substep'
+            //  of the timestepping method [substep_count==0]
+            if(substep_count==0){
 
-                speed_max_last=max(speed_max_last, max_speed);
+                // Compute the 'edge-timesteps' (useful for setting flux_update_frequency)
+                edge_timestep[ki] = radii[k] / max(max_speed, epsilon);
+                if (n >= 0) {
+                    edge_timestep[nm] = radii[n] / max(max_speed, epsilon);
+                }
 
-                if (max_speed > epsilon) {
-                    // Apply CFL condition for triangles joining this edge (triangle k and triangle n)
+                // Update the timestep
+                if ((tri_full_flag[k] == 1)) {
 
-                    // CFL for triangle k
-                    local_timestep = min(local_timestep, radii[k] / max_speed);
+                    speed_max_last=max(speed_max_last, max_speed);
 
-                    if (n >= 0) {
-                        // Apply CFL condition for neigbour n (which is on the ith edge of triangle k)
-                        local_timestep = min(local_timestep, radii[n] / max_speed);
+                    if (max_speed > epsilon) {
+                        // Apply CFL condition for triangles joining this edge (triangle k and triangle n)
+
+                        // CFL for triangle k
+                        local_timestep = min(local_timestep, edge_timestep[ki]);
+
+                        if (n >= 0) {
+                            // Apply CFL condition for neigbour n (which is on the ith edge of triangle k)
+                            local_timestep = min(local_timestep, edge_timestep[nm]);
+                        }
                     }
-
                 }
             }
-        
+
         } // End edge i (and neighbour n)
         // Keep track of maximal speeds
         if(substep_count==0) max_speed_array[k] = speed_max_last; //max_speed;
 
 
     } // End triangle k
- 
+
     //// Limit edgefluxes, for mass conservation near wet/dry cells
     //// This doesn't seem to be needed anymore
     //for(k=0; k< number_of_elements; k++){
@@ -866,11 +1066,9 @@ double _compute_fluxes_central(int number_of_elements,
     // Now add up stage, xmom, ymom explicit updates
     for(k=0; k<number_of_elements; k++){
         hc = max(stage_centroid_values[k] - bed_centroid_values[k],0.);
-        stage_explicit_update[k]=0.;
-        xmom_explicit_update[k]=0.;
-        ymom_explicit_update[k]=0.;
 
         for(i=0;i<3;i++){
+            // FIXME: Make use of neighbours to efficiently set things
             ki=3*k+i;   
             ki2=ki*2;
             ki3 = ki*3;
@@ -905,6 +1103,7 @@ double _compute_fluxes_central(int number_of_elements,
             //    xmom_explicit_update[k] *= 0.;
             //    ymom_explicit_update[k] *= 0.;
             //}
+            
 
         } // end edge i
 
@@ -919,7 +1118,7 @@ double _compute_fluxes_central(int number_of_elements,
 
     // Ensure we only update the timestep on the first call within each rk2/rk3 step
     if(substep_count==0) timestep=local_timestep; 
-            
+         
     return timestep;
 }
 
@@ -1074,7 +1273,8 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
                                  int optimise_dry_cells, 
                                  int extrapolate_velocity_second_order,
                                  double* x_centroid_work,
-                                 double* y_centroid_work) {
+                                 double* y_centroid_work,
+                                 long* update_extrapolation) {
                   
   // Local variables
   double a, b; // Gradient vector used to calculate edge values from centroids
@@ -1121,7 +1321,7 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
   // of water being trapped and unable to lose momentum, which can occur in
   // some situations
   for (k=0; k<number_of_elements;k++){
-
+      
       k3=k*3;
       k0 = surrogate_neighbours[k3];
       k1 = surrogate_neighbours[k3 + 1];
@@ -1144,6 +1344,13 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
   // Begin extrapolation routine
   for (k = 0; k < number_of_elements; k++) 
   {
+
+    // Don't update the extrapolation if the flux will not be computed on the
+    // next timestep
+    if(update_extrapolation[k]==0){
+       continue;
+    }
+
 
     // Useful indices
     k3=k*3;
@@ -1222,6 +1429,7 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       k1 = surrogate_neighbours[k3 + 1];
       k2 = surrogate_neighbours[k3 + 2];
 
+
       // Get the auxiliary triangle's vertex coordinates 
       // (really the centroids of neighbouring triangles)
       coord_index = 2*k0;
@@ -1263,18 +1471,6 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
           height_edge_values[k3+1] = dk;
           height_edge_values[k3+2] = dk;
           
-          //stage_edge_values[k3]   = elevation_centroid_values[k]+dk;
-          //stage_edge_values[k3+1] = elevation_centroid_values[k]+dk;
-          //stage_edge_values[k3+2] = elevation_centroid_values[k]+dk;
-          //stage_edge_values[k3] = elevation_edge_values[k3]+dk;
-          //stage_edge_values[k3+1] = elevation_edge_values[k3+1]+dk;
-          //stage_edge_values[k3+2] = elevation_edge_values[k3+2]+dk;
-
-          //xmom_centroid_values[k]=0.;
-          //ymom_centroid_values[k]=0.;
-          //x_centroid_work[k] = 0.;
-          //y_centroid_work[k] = 0.;
-
           xmom_edge_values[k3]    = xmom_centroid_values[k];
           xmom_edge_values[k3+1]  = xmom_centroid_values[k];
           xmom_edge_values[k3+2]  = xmom_centroid_values[k];
@@ -1710,8 +1906,19 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
 
   // Compute vertex values of quantities
   for (k=0; k<number_of_elements; k++){
-      k3=3*k;
+      if(extrapolate_velocity_second_order==1){
+          //Convert velocity back to momenta at centroids
+          xmom_centroid_values[k] = x_centroid_work[k];
+          ymom_centroid_values[k] = y_centroid_work[k];
+      }
+     
+      // Don't proceed if we didn't update the edge/vertex values
+      if(update_extrapolation[k]==0){
+         continue;
+      }
 
+      k3=3*k;
+      
       // Compute stage vertex values 
       stage_vertex_values[k3] = stage_edge_values[k3+1] + stage_edge_values[k3+2] -stage_edge_values[k3] ; 
       stage_vertex_values[k3+1] =  stage_edge_values[k3] + stage_edge_values[k3+2]-stage_edge_values[k3+1]; 
@@ -1724,10 +1931,6 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
 
       // If needed, convert from velocity to momenta
       if(extrapolate_velocity_second_order==1){
-          //Convert velocity back to momenta at centroids
-          xmom_centroid_values[k] = x_centroid_work[k];
-          ymom_centroid_values[k] = y_centroid_work[k];
-      
           // Re-compute momenta at edges
           for (i=0; i<3; i++){
               dk= height_edge_values[k3+i]; 
@@ -1846,13 +2049,17 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
     *riverwall_rowIndex,
     *riverwall_hydraulic_properties,
     *edge_flux_work,
-    *pressuregrad_work;
+    *pressuregrad_work,
+    *edge_timestep,
+    *update_next_flux,
+    *allow_timestep_increase;
     
   double timestep, epsilon, H0, g;
   int optimise_dry_cells, timestep_fluxcalls, ncol_riverwall_hydraulic_properties;
+  
     
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "ddddOOOOOOOOOOOOOOOOOOOOOOiiOOOOOOOOiOOO",
+  if (!PyArg_ParseTuple(args, "ddddOOOOOOOOOOOOOOOOOOOOOOiiOOOOOOOOiOOOOOO",
             &timestep,
             &epsilon,
             &H0,
@@ -1891,7 +2098,10 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
             &ncol_riverwall_hydraulic_properties,
             &riverwall_hydraulic_properties,
             &edge_flux_work,
-            &pressuregrad_work
+            &pressuregrad_work,
+            &edge_timestep,
+            &update_next_flux,
+            &allow_timestep_increase
             )) {
     report_python_error(AT, "could not parse input arguments");
     return NULL;
@@ -1931,6 +2141,9 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
   CHECK_C_CONTIG(riverwall_hydraulic_properties);
   CHECK_C_CONTIG(edge_flux_work);
   CHECK_C_CONTIG(pressuregrad_work);
+  CHECK_C_CONTIG(edge_timestep);
+  CHECK_C_CONTIG(update_next_flux);
+  CHECK_C_CONTIG(allow_timestep_increase);
 
   int number_of_elements = stage_edge_values -> dimensions[0];
 
@@ -1977,7 +2190,11 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
                      ncol_riverwall_hydraulic_properties,
                      (double*) riverwall_hydraulic_properties ->data, 
                      (double*) edge_flux_work-> data,
-                     (double*) pressuregrad_work->data);
+                     (double*) pressuregrad_work->data,
+                     (double*) edge_timestep->data,
+                     (long*) update_next_flux->data,
+                     (long*) allow_timestep_increase->data
+                     );
   // Return updated flux timestep
   return Py_BuildValue("d", timestep);
 }
@@ -2028,7 +2245,6 @@ PyObject *flux_function_central(PyObject *self, PyObject *args) {
 			 &max_speed,
              &pressure_flux,
 			 ((double*) normal -> data)[0],
-			 ((double*) normal -> data)[1], 
 			 ((double*) normal -> data)[1]
              );
   
@@ -2106,6 +2322,90 @@ PyObject *gravity(PyObject *self, PyObject *args) {
   return Py_BuildValue("");
 }
 
+PyObject *compute_flux_update_frequency(PyObject *self, PyObject *args) {
+  /*Compute how often we should update fluxes and extrapolations (not every timestep)
+
+    python_call
+        compute_flux_update_frequency_ext(
+                self.timestep,
+                self.neighbours,
+                self.neighbour_edges,
+                self.already_computed_flux,
+                self.edge_timestep,
+                self.flux_update_frequency,
+                self.update_extrapolation,
+                self.max_flux_update_frequency,
+                self.update_next_flux)
+
+
+
+  */
+
+
+  PyArrayObject *neighbours, *neighbour_edges,
+    *already_computed_flux, //Tracks whether the flux across an edge has already been computed
+    *edge_timestep,
+    *flux_update_frequency,
+    *update_extrapolation,
+    *update_next_flux,
+    *allow_timestep_increase;
+    
+  double timestep;
+  int max_flux_update_frequency;
+  
+    
+  // Convert Python arguments to C
+  if (!PyArg_ParseTuple(args, "dOOOOOOiOO",
+            &timestep,
+            &neighbours,
+            &neighbour_edges,
+            &already_computed_flux,
+            &edge_timestep,
+            &flux_update_frequency,
+            &update_extrapolation,
+            &max_flux_update_frequency,
+            &update_next_flux,
+            &allow_timestep_increase
+            )) {
+    report_python_error(AT, "could not parse input arguments");
+    return NULL;
+  }
+
+  // check that numpy array objects arrays are C contiguous memory
+  CHECK_C_CONTIG(neighbours);
+  CHECK_C_CONTIG(neighbour_edges);
+  CHECK_C_CONTIG(already_computed_flux);
+  CHECK_C_CONTIG(edge_timestep);
+  CHECK_C_CONTIG(flux_update_frequency);
+  CHECK_C_CONTIG(update_extrapolation);
+  CHECK_C_CONTIG(update_next_flux);
+  CHECK_C_CONTIG(allow_timestep_increase);
+
+  int number_of_elements = update_extrapolation -> dimensions[0];
+  // flux_update_frequency determined by rounding edge_timestep/timestep*notSoFast
+  // So notSoFast<1 might increase the number of flux calls a cell has to do, but
+  // can be useful for increasing numerical stability
+  double notSoFast=1.00;
+
+  // Call underlying flux computation routine and update 
+  // the explicit update arrays 
+  _compute_flux_update_frequency(number_of_elements,
+                                 (long*) neighbours->data,
+                                 (long*) neighbour_edges->data,
+                                 (long*) already_computed_flux->data,
+                                 max_flux_update_frequency,
+                                 (double*) edge_timestep->data,
+                                 timestep,
+                                 notSoFast,
+                                 (long*) flux_update_frequency->data,
+                                 (long*) update_extrapolation->data,
+                                 (long*) update_next_flux->data,
+                                 (long*) allow_timestep_increase->data
+                                 );
+  // Return 
+  return Py_BuildValue("");
+}
+
 
 PyObject *extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
   /*Compute the edge values based on a linear reconstruction 
@@ -2150,7 +2450,8 @@ PyObject *extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
     *elevation_vertex_values,
     *height_vertex_values,
     *x_centroid_work,
-    *y_centroid_work;
+    *y_centroid_work,
+    *update_extrapolation;
   
   PyObject *domain;
 
@@ -2160,7 +2461,7 @@ PyObject *extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
   int optimise_dry_cells, number_of_elements, extrapolate_velocity_second_order, e, e2;
   
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOOOOOOOOOiiOO",
+  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOOOOOOOOOiiOOO",
             &domain,
             &surrogate_neighbours,
             &neighbour_edges,
@@ -2185,7 +2486,8 @@ PyObject *extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
             &optimise_dry_cells,
             &extrapolate_velocity_second_order,
             &x_centroid_work,
-            &y_centroid_work)) {         
+            &y_centroid_work,
+            &update_extrapolation)) {         
 
     report_python_error(AT, "could not parse input arguments");
     return NULL;
@@ -2214,6 +2516,7 @@ PyObject *extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
   CHECK_C_CONTIG(height_vertex_values);
   CHECK_C_CONTIG(x_centroid_work);
   CHECK_C_CONTIG(y_centroid_work);
+  CHECK_C_CONTIG(update_extrapolation);
   
   // Get the safety factor beta_w, set in the config.py file. 
   // This is used in the limiting process
@@ -2266,7 +2569,8 @@ PyObject *extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
                    optimise_dry_cells, 
                    extrapolate_velocity_second_order,
                    (double*) x_centroid_work -> data,
-                   (double*) y_centroid_work -> data);
+                   (double*) y_centroid_work -> data,
+                   (long*) update_extrapolation -> data);
 
   if (e == -1) {
     // Use error string set inside computational routine
@@ -2345,6 +2649,7 @@ static struct PyMethodDef MethodTable[] = {
   {"gravity_c",        gravity,            METH_VARARGS, "Print out"},
   {"flux_function_central", flux_function_central, METH_VARARGS, "Print out"},  
   {"extrapolate_second_order_edge_sw", extrapolate_second_order_edge_sw, METH_VARARGS, "Print out"},
+  {"compute_flux_update_frequency", compute_flux_update_frequency, METH_VARARGS, "Print out"},
   {"protect",          protect, METH_VARARGS | METH_KEYWORDS, "Print out"},
   {NULL, NULL, 0, NULL}
 };

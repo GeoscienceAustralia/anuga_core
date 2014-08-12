@@ -79,6 +79,7 @@ class Advection_Domain(Generic_Domain):
         self.set_beta(1.0)
         
         self.smooth = True
+        self.max_flux_update_frequency=1
 
     def check_integrity(self):
         Generic_Domain.check_integrity(self)
