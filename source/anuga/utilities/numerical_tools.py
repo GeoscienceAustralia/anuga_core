@@ -261,11 +261,11 @@ def ensure_numeric(A, typecode=None):
 
     if typecode is None:
         if isinstance(A, num.ndarray):
-            return A
+            return num.ascontiguousarray(A)
         else:
-            return num.array(A)
+            return num.ascontiguousarray(num.array(A))
     else:
-        return num.array(A, dtype=typecode, copy=False)
+        return num.ascontiguousarray(num.array(A, dtype=typecode, copy=False))
 
 
 def histogram(a, bins, relative=False):
