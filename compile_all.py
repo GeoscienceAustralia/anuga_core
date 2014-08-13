@@ -28,15 +28,15 @@ os.chdir(buildroot)
 
 #--------------------------------------------------
 # Compiling anuga_1d code
+# excluded for the time being
 #--------------------------------------------------
-os.chdir('source')
-os.chdir('anuga_1d')
+#os.chdir('anuga_1d')
 
 
-t0 = time.time()
+#t0 = time.time()
 
 # Attempt to compile all ANUGA_1D extensions
-execfile('compile_all.py')
+#execfile('compile_all.py')
 
 
 os.chdir(buildroot)
@@ -51,7 +51,7 @@ try:
     print 'Attempting to compile Metis'
     print '-----------------------------------------------'
 
-
+    import pypar
 
     # Attempt to compile Metis for use with anuga_parallel
     os.chdir('source')
@@ -84,14 +84,14 @@ try:
         print msg
         
 except:
-    print 'pymetis could not compile'
+    print 'pymetis could not compile as pypar not installed'
 
 
 os.chdir(buildroot)
 print 'Changing to', os.getcwd() 
 
 #--------------------------------------------------
-# Compiling anuga_parallel code
+# Compiling pypar_extras
 #--------------------------------------------------
 
 try:
@@ -116,7 +116,7 @@ try:
         msg += 'if you want to run ANUGA in parallel.'
         raise Exception, msg
     else:
-        msg = 'Compiled pypar_extras succesfully.'
+        msg = 'Compiled pypar_extras successfully.'
         print msg
 except:
     print 'anuga_parallel code not compiled as pypar not installed'

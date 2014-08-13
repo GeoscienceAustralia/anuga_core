@@ -64,4 +64,4 @@ else:
     sys.stdout = NullStream()
     from pypar import *
     sys.stdout = sys.__stdout__ 
-    pypar_available = True    
+    pypar_available = True 

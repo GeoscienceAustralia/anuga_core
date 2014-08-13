@@ -10,13 +10,13 @@ from anuga.utilities.parallel_abstraction import size, rank, get_processor_name
 from anuga.utilities.parallel_abstraction import finalize, send, receive
 from anuga.utilities.parallel_abstraction import pypar_available, barrier
 
-from anuga_parallel.sequential_distribute import sequential_distribute_dump
-from anuga_parallel.sequential_distribute import sequential_distribute_load
-
 
 
 # ANUGA parallel engine (only load if pypar can)
 if pypar_available:
+    from anuga_parallel.sequential_distribute import sequential_distribute_dump
+    from anuga_parallel.sequential_distribute import sequential_distribute_load
+    
     from anuga_parallel.distribute_mesh  import send_submesh
     from anuga_parallel.distribute_mesh  import rec_submesh
     from anuga_parallel.distribute_mesh  import extract_submesh
