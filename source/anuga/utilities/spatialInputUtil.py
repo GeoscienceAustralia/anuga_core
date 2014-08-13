@@ -47,7 +47,8 @@ import os
 import copy
 import struct
 import numpy
-from matplotlib import path
+#from matplotlib import path
+from anuga.geometry.polygon import inside_polygon
 
 try:
     import gdal
@@ -626,7 +627,7 @@ if gdal_available:
                       Then we find those points which are actually inside the polygon.
     
                       The x/y point spacing on the trial-grid will be close to
-                      approx_grid_spacing, but we ensure there are at least 3x3 points on the trial grid.
+                      approx_grid_spacing, but we ensure there are at least 4x4 points on the trial grid.
                       Also, we reduce the spacing so that the min_x+R and max_x-R
                         are both similarly close to the polygon extents [see definition of R below]
     
@@ -654,24 +655,28 @@ if gdal_available:
         poly_ymax=polygonArr[:,1].max()
     
         # Make a 'grid' of points which covers the polygon
-        xGridCount=max( numpy.ceil( (poly_xmax-poly_xmin)/approx_grid_spacing[0]+1. ).astype(int), 3)
+        xGridCount=max( numpy.ceil( (poly_xmax-poly_xmin)/approx_grid_spacing[0]+1. ).astype(int), 4)
         R=(poly_xmax-poly_xmin)*eps
         Xvals=numpy.linspace(poly_xmin+R,poly_xmax-R, xGridCount)
-        yGridCount=max( numpy.ceil( (poly_ymax-poly_ymin)/approx_grid_spacing[1]+1. ).astype(int), 3)
+        yGridCount=max( numpy.ceil( (poly_ymax-poly_ymin)/approx_grid_spacing[1]+1. ).astype(int), 4)
         R=(poly_ymax-poly_ymin)*eps
         Yvals=numpy.linspace(poly_ymin+R,poly_ymax-R, yGridCount)
     
         xGrid,yGrid=numpy.meshgrid(Xvals,Yvals)
         Grid=numpy.vstack([xGrid.flatten(),yGrid.flatten()]).transpose()
     
-        # Now find the xy values which are actually inside the polygon
-        polpath=path.Path(polygonArr)
-        keepers=[]
-        for i in range(len(Grid[:,0])):
-           if(polpath.contains_point(Grid[i,:])):
-                keepers=keepers+[i]
-        #import pdb
-        #pdb.set_trace()
+        keepers = inside_polygon(Grid, polygon)
+        if(len(keepers)==0):
+            import pdb
+            pdb.set_trace()
+        ## Now find the xy values which are actually inside the polygon
+        #polpath=path.Path(polygonArr)
+        #keepers=[]
+        #for i in range(len(Grid[:,0])):
+        #   if(polpath.contains_point(Grid[i,:])):
+        #        keepers=keepers+[i]
+        ##import pdb
+        ##pdb.set_trace()
         xyInside=Grid[keepers,:]
     
         return(xyInside)

@@ -152,7 +152,7 @@ class Test_quantity_setting_functions(unittest.TestCase):
 
         allDat=numpy.vstack([xs,ys,elev]).transpose()
         util.Make_Geotif(allDat, output_quantities=['ElevTest'], EPSG_CODE=32756, 
-                        output_dir='.', CellSize=1.)
+                        output_dir='.', CellSize=1.,k_nearest_neighbours=1)
 
         # Make a polygon-point pair which we use to set elevation in a 'channel'
         trenchPoly=[[minX+40., minY], [minX+40., minY+100.], [minX+60., minY+100.], [minX+60., minY]]
@@ -231,7 +231,7 @@ class Test_quantity_setting_functions(unittest.TestCase):
 
         allDat=numpy.vstack([xs,ys,elev]).transpose()
         util.Make_Geotif(allDat, output_quantities=['ElevTest'], EPSG_CODE=32756, 
-                        output_dir='.', CellSize=1.)
+                        output_dir='.', CellSize=1.,k_nearest_neighbours=1)
 
         # Make a polygon-point pair which we use to set elevation in a 'channel'
         trenchPoly=[[minX+40., minY], [minX+40., minY+100.], [minX+60., minY+100.], [minX+60., minY]]

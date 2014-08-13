@@ -827,7 +827,8 @@ def Make_Geotif(swwFile=None,
              min_allowed_height=1.0e-05,
              output_dir='TIFS',
              bounding_polygon=None,
-             verbose=False):
+             verbose=False,
+             k_nearest_neighbours=3):
     """
         Make a georeferenced tif by nearest-neighbour interpolation of sww file outputs (or a 3-column array with xyz Points)
 
@@ -851,6 +852,7 @@ def Make_Geotif(swwFile=None,
                 min_allowed_height -- Minimum allowed height from ANUGA
                 output_dir -- Write outputs to this directory
                 bounding_polygon -- polygon (e.g. from read_polygon) If present, only set values of raster cells inside the bounding_polygon
+                k_nearest_neighbours -- how many neighbours to use in interpolation. If k>1, inverse-distance-weighted interpolation is used
                 
     """
 
@@ -859,6 +861,7 @@ def Make_Geotif(swwFile=None,
 
     import scipy.io
     import scipy.interpolate
+    import scipy.spatial
     import anuga
     from anuga.utilities import plot_utils as util
     import os
@@ -955,20 +958,34 @@ def Make_Geotif(swwFile=None,
     if(verbose):
         print 'Making interpolation functions...'
     swwXY=scipy.array([swwX[:],swwY[:]]).transpose()
-    # Get index of nearest point
-    index_qFun=scipy.interpolate.NearestNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int64').transpose())
-    #index_qFun=scipy.interpolate.LinearNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int64').transpose())
 
-    #print 'index_qFun', index_qFun
-    
+    # Get function to interpolate quantity onto gridXY_array
     gridXY_array=scipy.array([scipy.concatenate(gridX),scipy.concatenate(gridY)]).transpose()
-    #gridXY_array=scipy.concatenate((gridX,gridY)).transpose()
-    
     gridXY_array=scipy.ascontiguousarray(gridXY_array)
-    #print gridXY_array.flags['C_CONTIGUOUS']
-    #print 'GRIDXY_ARRAY', gridXY_array.shape
 
-    gridqInd=index_qFun(gridXY_array)
+    # Create Interpolation function
+    #basic_nearest_neighbour=False
+    if(k_nearest_neighbours==1):
+        index_qFun=scipy.interpolate.NearestNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int64').transpose())
+        gridqInd=index_qFun(gridXY_array)
+        # Function to do the interpolation
+        def myInterpFun(quantity):
+            return quantity[gridqInd]
+    else:
+        # Combined nearest neighbours and inverse-distance interpolation
+        index_qFun=scipy.spatial.cKDTree(swwXY)
+        NNInfo=index_qFun.query(gridXY_array,k=3)
+        # Weights for interpolation
+        nn_wts=1./(NNInfo[0]+1.0e-100)
+        nn_inds=NNInfo[1]
+        def myInterpFun(quantity):
+            denom=nn_wts[:,0]+nn_wts[:,1]+nn_wts[:,2]
+            num = quantity[nn_inds[:,0]]*nn_wts[:,0]+\
+                  quantity[nn_inds[:,1]]*nn_wts[:,1]+\
+                  quantity[nn_inds[:,2]]*nn_wts[:,2]
+            return (num/denom)
+
+
 
     if(bounding_polygon is not None):
         # Find points to exclude (i.e. outside the bounding polygon)
@@ -994,26 +1011,26 @@ def Make_Geotif(swwFile=None,
 
             if(type(myTS)==int):
                 if(output_quantity=='stage'):
-                    gridq=p2.stage[myTS,:][gridqInd]
+                    gridq=myInterpFun(p2.stage[myTS,:])
                 if(output_quantity=='depth'):
-                    gridq=p2.height[myTS,:][gridqInd]
+                    gridq=myInterpFun(p2.height[myTS,:])
                     gridq=gridq*(gridq>=0.) # Force positive depth (tsunami alg)
                 if(output_quantity=='velocity'):
-                    gridq=p2.vel[myTS,:][gridqInd]
+                    gridq=myInterpFun(p2.vel[myTS,:])
                 if(output_quantity=='friction'):
-                    gridq=p2.friction[gridqInd]
+                    gridq=myInterpFun(p2.friction)
                 if(output_quantity=='depthIntegratedVelocity'):
                     swwDIVel=(p2.xmom[myTS,:]**2+p2.ymom[myTS,:]**2)**0.5
-                    gridq=swwDIVel[gridqInd]
+                    gridq=myInterpFun(swwDIVel)
                 if(output_quantity=='elevation'):
-                    gridq=p2.elev[gridqInd]
+                    gridq=myInterpFun(p2.elev)
     
                 if(myTSi is 'max'):
                     timestepString='max'
                 else:
                     timestepString=str(round(p2.time[myTS]))
             elif(myTS=='pointData'):
-                gridq=xyzPoints[:,2][gridqInd]
+                gridq=myInterpFun(xyzPoints[:,2])
 
 
             if(bounding_polygon is not None):

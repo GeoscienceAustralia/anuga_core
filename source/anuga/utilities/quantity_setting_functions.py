@@ -115,7 +115,8 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
     """
     import os
     import numpy
-    from matplotlib import path
+    #from matplotlib import path
+    from anuga.geometry.polygon import inside_polygon
 
     def F(x,y):
         """
@@ -150,28 +151,22 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
             if(pi is None):
                 continue
 
-            # Get a 'true/false' flag for whether the point is in pi, and not set
+            # Get indices fInds of points in pi which are not set
             if(pi is 'All'):
                 fInside=(1-isSet)
+                fInds=(fInside==1).nonzero()[0]
             else:
                 if(pi is 'Extent' and type(fi) is str and os.path.exists(fi)):
                     # Here fi MUST be a gdal-compatible raster
                     # Then we get the extent from the raster itself
                     import anuga.utilities.spatialInputUtil as su
-                    newpi=su.getRasterExtent(fi,asPolygon=True)
-                    pi_path=path.Path(numpy.array(newpi))
+                    pi_path=su.getRasterExtent(fi,asPolygon=True)
                 else:
-                    # Try matplotlib -- make the path a matplotlib path object
-                    pi_path=path.Path(numpy.array(pi))
-
-                fInside=xy_array_trans[:,0]*0.
-                for j in range(len(fInside)):
-                    fInside[j] = pi_path.contains_point(xy_array_trans[j,:])
-                
-                fInside=fInside*(1-isSet)
-            #
-            # Find indices of points we need to adjust 
-            fInds=(fInside==1.).nonzero()[0]
+                    pi_path=pi
+                notSet=(isSet==0.).nonzero()[0]
+                fInds = inside_polygon(xy_array_trans[notSet,:], pi_path)
+                fInds = notSet[fInds]
+             
             if(len(fInds)>0):
                 if(hasattr(fi,'__call__')):
                     # fi is a function
