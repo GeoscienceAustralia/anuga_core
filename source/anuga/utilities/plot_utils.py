@@ -1013,8 +1013,8 @@ def Make_Geotif(swwFile=None,
                 if(output_quantity=='stage'):
                     gridq=myInterpFun(p2.stage[myTS,:])
                 if(output_quantity=='depth'):
-                    gridq=myInterpFun(p2.height[myTS,:])
-                    gridq=gridq*(gridq>=0.) # Force positive depth (tsunami alg)
+                    gridq=p2.height[myTS,:]*(p2.height[myTS,:]>0.)# Force positive depth (tsunami alg)
+                    gridq=myInterpFun(gridq)
                 if(output_quantity=='velocity'):
                     gridq=myInterpFun(p2.vel[myTS,:])
                 if(output_quantity=='friction'):
