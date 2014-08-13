@@ -974,15 +974,16 @@ def Make_Geotif(swwFile=None,
     else:
         # Combined nearest neighbours and inverse-distance interpolation
         index_qFun=scipy.spatial.cKDTree(swwXY)
-        NNInfo=index_qFun.query(gridXY_array,k=3)
+        NNInfo=index_qFun.query(gridXY_array,k=k_nearest_neighbours)
         # Weights for interpolation
         nn_wts=1./(NNInfo[0]+1.0e-100)
         nn_inds=NNInfo[1]
         def myInterpFun(quantity):
-            denom=nn_wts[:,0]+nn_wts[:,1]+nn_wts[:,2]
-            num = quantity[nn_inds[:,0]]*nn_wts[:,0]+\
-                  quantity[nn_inds[:,1]]*nn_wts[:,1]+\
-                  quantity[nn_inds[:,2]]*nn_wts[:,2]
+            denom=0.
+            num=0.
+            for i in range(k_nearest_neighbours):
+                denom+=nn_wts[:,i]
+                num+= quantity[nn_inds[:,i]]*nn_wts[:,i]
             return (num/denom)
 
 
