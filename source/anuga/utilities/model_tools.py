@@ -109,7 +109,7 @@ def get_polygon_from_single_file(Rfile):
             polygon =[]
         else:
             polygon.append([float(fields[0]), float(fields[1])])
-        polylist.append(polygon)
+    polylist.append(polygon)
     return polylist
 # ---------------------------------------------------------------------------------------------------------
 
