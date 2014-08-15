@@ -24,6 +24,7 @@
 
 // Shared code snippets
 #include "util_ext.h"
+#include "sw_domain.h"
 
 
 const double pi = 3.14159265358979;
@@ -450,15 +451,7 @@ int _flux_function_central(double *q_left, double *q_right,
 
 ////////////////////////////////////////////////////////////////
 
-int _compute_flux_update_frequency(int number_of_elements, 
-                                  long *neighbours, long *neighbour_edges,
-                                  long *already_computed_flux,
-                                  int max_flux_update_frequency, double *edge_timestep,
-                                  double timestep, double notSoFast,
-                                  long *flux_update_frequency,
-                                  long *update_extrapolation, 
-                                  long *update_next_flux,
-                                  long *allow_timestep_increase){
+int _compute_flux_update_frequency(struct domain *D, double timestep){
     // Compute the 'flux_update_frequency' for each edge.
     //
     // This determines how regularly we need
@@ -473,16 +466,17 @@ int _compute_flux_update_frequency(int number_of_elements,
     // Local variables
     int k, i, k3, ki, m, n, nm, ii, j, ii2;
     long fuf;
+    double notSoFast=1.0;
     static int cyclic_number_of_steps=-1;
 
     // QUICK EXIT
-    if(max_flux_update_frequency==1){
+    if(D->max_flux_update_frequency==1){
         return 0;
     }
     
     // Count the steps
     cyclic_number_of_steps++;
-    if(cyclic_number_of_steps==max_flux_update_frequency){
+    if(cyclic_number_of_steps==D->max_flux_update_frequency){
         // The flux was just updated in every cell
         cyclic_number_of_steps=0;
     }
@@ -490,32 +484,32 @@ int _compute_flux_update_frequency(int number_of_elements,
 
     // PART 1: ONLY OCCURS FOLLOWING FLUX UPDATE
 
-    for ( k = 0; k < number_of_elements; k++){
+    for ( k = 0; k < D->number_of_elements; k++){
         for ( i = 0; i < 3; i++){
             ki = k*3 + i;
-            if((Mod_of_power_2(cyclic_number_of_steps, flux_update_frequency[ki])==0)){
+            if((Mod_of_power_2(cyclic_number_of_steps, D->flux_update_frequency[ki])==0)){
                 // The flux was just updated, along with the edge_timestep
                 // So we better recompute the flux_update_frequency
-                n=neighbours[ki];
+                n=D->neighbours[ki];
                 if(n>=0){
-                    m = neighbour_edges[ki];
+                    m = D->neighbour_edges[ki];
                     nm = n * 3 + m; // Linear index (triangle n, edge m)
                 }
 
                 // Check if we have already done this edge
                 // (Multiply already_computed_flux by -1 on the first update,
                 // and again on the 2nd)
-                if(already_computed_flux[ki] > 0 ){
+                if(D->already_computed_flux[ki] > 0 ){
                     // We have not fixed this flux value yet
-                    already_computed_flux[ki] *=-1;
+                    D->already_computed_flux[ki] *=-1;
                     if(n>=0){
-                        already_computed_flux[nm] *=-1;
+                        D->already_computed_flux[nm] *=-1;
                     }
                 }else{
                     // We have fixed this flux value already 
-                    already_computed_flux[ki] *=-1;
+                    D->already_computed_flux[ki] *=-1;
                     if(n>=0){
-                        already_computed_flux[nm] *=-1;
+                        D->already_computed_flux[nm] *=-1;
                     }
                     continue;
                 }
@@ -524,10 +518,10 @@ int _compute_flux_update_frequency(int number_of_elements,
                 // notSoFast is ideally = 1.0, but in practice values < 1.0 can enhance stability
                 // NOTE: edge_timestep[ki]/timestep can be very large [so int overflows].
                 //       Do not pull the (int) inside the min term
-                fuf = (int)min((edge_timestep[ki]/timestep)*notSoFast,max_flux_update_frequency*1.);
+                fuf = (int)min((D->edge_timestep[ki]/timestep)*notSoFast,D->max_flux_update_frequency*1.);
                 // Account for neighbour
                 if(n>=0){
-                    fuf = min( (int)min(edge_timestep[nm]/timestep*notSoFast, max_flux_update_frequency*1.), fuf);
+                    fuf = min( (int)min(D->edge_timestep[nm]/timestep*notSoFast, D->max_flux_update_frequency*1.), fuf);
                 }
 
                 // Deal with notSoFast<1.0
@@ -535,12 +529,12 @@ int _compute_flux_update_frequency(int number_of_elements,
                     fuf=1;
                 }
                 // Deal with large fuf 
-                if(fuf>max_flux_update_frequency){
-                    fuf = max_flux_update_frequency;
+                if(fuf> D->max_flux_update_frequency){
+                    fuf = D->max_flux_update_frequency;
                 }
                 //// Deal with intermediate cases
                 ii=2;
-                while(ii<max_flux_update_frequency){
+                while(ii< D->max_flux_update_frequency){
                     // Set it to 1,2,4, 8, ...
                     ii2=2*ii;
                     if((fuf>ii) && (fuf<ii2)){
@@ -551,9 +545,9 @@ int _compute_flux_update_frequency(int number_of_elements,
                 }
 
                 // Set the values
-                flux_update_frequency[ki]=fuf;
+                D->flux_update_frequency[ki]=fuf;
                 if(n>=0){
-                    flux_update_frequency[nm]= fuf;
+                    D->flux_update_frequency[nm]= fuf;
                 }
                 
             }
@@ -566,15 +560,15 @@ int _compute_flux_update_frequency(int number_of_elements,
     // Next, ensure that flux_update_frequency varies within a constant over each triangle
     // Experiences suggests this is numerically important
     // (But, it can result in the same edge having different flux_update_freq)
-    for( k=0; k<number_of_elements; k++){
+    for( k=0; k< D->number_of_elements; k++){
         k3=3*k;
-        ii = 1*min(flux_update_frequency[k3],
-                 min(flux_update_frequency[k3+1],
-                     flux_update_frequency[k3+2]));
+        ii = 1*min(D->flux_update_frequency[k3],
+                 min(D->flux_update_frequency[k3+1],
+                     D->flux_update_frequency[k3+2]));
         
-        flux_update_frequency[k3]=min(ii, flux_update_frequency[k3]);
-        flux_update_frequency[k3+1]=min(ii, flux_update_frequency[k3+1]);
-        flux_update_frequency[k3+2]=min(ii,flux_update_frequency[k3+2]);
+        D->flux_update_frequency[k3]=min(ii, D->flux_update_frequency[k3]);
+        D->flux_update_frequency[k3+1]=min(ii, D->flux_update_frequency[k3+1]);
+        D->flux_update_frequency[k3+2]=min(ii,D->flux_update_frequency[k3+2]);
             
     }
             
@@ -584,35 +578,35 @@ int _compute_flux_update_frequency(int number_of_elements,
     // with a large flux_update_frequency, near an edge with a small flux_update_frequency,
     // will have its flux_update_frequency updated after a few timesteps (i.e. before max_flux_update_frequency timesteps)
     // OTOH, could this cause oscillations in flux_update_frequency?
-    for( k = 0; k < number_of_elements; k++){
-        update_extrapolation[k]=0;
+    for( k = 0; k < D->number_of_elements; k++){
+        D->update_extrapolation[k]=0;
         for( i = 0; i< 3; i++){
             ki=3*k+i;
             // Account for neighbour
-            n=neighbours[ki];
+            n=D->neighbours[ki];
             if(n>=0){
-                m = neighbour_edges[ki];
+                m = D->neighbour_edges[ki];
                 nm = n * 3 + m; // Linear index (triangle n, edge m)
-                flux_update_frequency[ki]=min(flux_update_frequency[ki], flux_update_frequency[nm]);
+                D->flux_update_frequency[ki]=min(D->flux_update_frequency[ki], D->flux_update_frequency[nm]);
             }
             // Do we need to update the extrapolation?
             // (We do if the next flux computation will actually compute a flux!)
-            if(Mod_of_power_2((cyclic_number_of_steps+1),flux_update_frequency[ki])==0){
-                update_next_flux[ki]=1;
-                update_extrapolation[k]=1;
+            if(Mod_of_power_2((cyclic_number_of_steps+1),D->flux_update_frequency[ki])==0){
+                D->update_next_flux[ki]=1;
+                D->update_extrapolation[k]=1;
             }else{
-                update_next_flux[ki]=0;
+                D->update_next_flux[ki]=0;
             }
         }
     }
 
     // Check whether the timestep can be increased in the next compute_fluxes call
-    if(cyclic_number_of_steps+1==max_flux_update_frequency){
+    if(cyclic_number_of_steps+1==D->max_flux_update_frequency){
         // All fluxes will be updated on the next timestep
         // We also allow the timestep to increase then
-        allow_timestep_increase[0]=1;
+        D->allow_timestep_increase[0]=1;
     }else{
-        allow_timestep_increase[0]=0;
+        D->allow_timestep_increase[0]=0;
     }
 
     return 0;
@@ -711,55 +705,13 @@ double adjust_edgeflux_with_weir(double* edgeflux,
 }
 
 // Computational function for flux computation
-double _compute_fluxes_central(int number_of_elements,
-        double timestep,
-        double epsilon,
-        double H0,
-        double g,
-        double* boundary_flux_sum,
-        long* neighbours,
-        long* neighbour_edges,
-        double* normals,
-        double* edgelengths,
-        double* radii,
-        double* areas,
-        long* tri_full_flag,
-        double* stage_edge_values,
-        double* xmom_edge_values,
-        double* ymom_edge_values,
-        double* bed_edge_values,
-        double* height_edge_values,
-        double* stage_boundary_values,
-        double* xmom_boundary_values,
-        double* ymom_boundary_values,
-        long*   boundary_flux_type,
-        double* stage_explicit_update,
-        double* xmom_explicit_update,
-        double* ymom_explicit_update,
-        long* already_computed_flux,
-        double* max_speed_array,
-        int optimise_dry_cells, 
-        int timestep_fluxcalls,
-        double* stage_centroid_values,
-        double* xmom_centroid_values,
-        double* ymom_centroid_values,
-        double* bed_centroid_values,
-        double* height_centroid_values,
-        long* edge_flux_type,
-        double* riverwall_elevation,
-        long* riverwall_rowIndex,
-        int ncol_riverwall_hydraulic_properties,
-        double* riverwall_hydraulic_properties,
-        double* edge_flux_work,
-        double* pressuregrad_work,
-        double* edge_timestep,
-        long* update_next_flux,
-        long* allow_timestep_increase) {
+double _compute_fluxes_central(struct domain *D, double timestep){
+
     // Local variables
-    double max_speed, length, inv_area, zl, zr;
+    double max_speed_local, length, inv_area, zl, zr;
     double h_left, h_right, z_half ;  // For andusse scheme
     // FIXME: limiting_threshold is not used for DE1
-    double limiting_threshold = 10*H0;
+    double limiting_threshold = 10*D->H0;
     //
     int k, i, m, n,j, ii;
     int ki,k3, nm = 0, ki2,ki3, nm3; // Index shorthands
@@ -780,26 +732,26 @@ double _compute_fluxes_central(int number_of_elements,
 
     // Set explicit_update to zero for all conserved_quantities.
     // This assumes compute_fluxes called before forcing terms
-    memset((char*) stage_explicit_update, 0, number_of_elements * sizeof (double));
-    memset((char*) xmom_explicit_update, 0, number_of_elements * sizeof (double));
-    memset((char*) ymom_explicit_update, 0, number_of_elements * sizeof (double));
+    memset((char*) D->stage_explicit_update, 0, D->number_of_elements * sizeof (double));
+    memset((char*) D->xmom_explicit_update, 0, D->number_of_elements * sizeof (double));
+    memset((char*) D->ymom_explicit_update, 0, D->number_of_elements * sizeof (double));
 
 
     // Counter for riverwall edges
     RiverWall_count=0;
     // Which substep of the timestepping method are we on?
-    substep_count=(call-2)%timestep_fluxcalls;
+    substep_count=(call-2)%D->timestep_fluxcalls;
     
     // Fluxes are not updated every timestep,
     // but all fluxes ARE updated when the following condition holds
-    if(allow_timestep_increase[0]==1){
+    if(D->allow_timestep_increase[0]==1){
         // We can only increase the timestep if all fluxes are allowed to be updated
         // If this is not done the timestep can't increase (since local_timestep is static)
         local_timestep=1.0e+100;
     }
 
     // For all triangles
-    for (k = 0; k < number_of_elements; k++) {
+    for (k = 0; k < D->number_of_elements; k++) {
         speed_max_last=0.0;
 
         // Loop through neighbours and compute edge flux for each
@@ -808,10 +760,10 @@ double _compute_fluxes_central(int number_of_elements,
             ki2 = 2 * ki; //k*6 + i*2
             ki3 = 3*ki; 
 
-            if ((already_computed_flux[ki] == call) || (update_next_flux[ki]!=1)) {
+            if ((D->already_computed_flux[ki] == call) || (D->update_next_flux[ki]!=1)) {
                 // We've already computed the flux across this edge
                 // Check if it is a riverwall
-                if(edge_flux_type[ki]==1){
+                if(D->edge_flux_type[ki]==1){
                     // Update counter of riverwall edges == index of
                     // riverwall_elevation + riverwall_rowIndex
                     RiverWall_count+=1;
@@ -820,54 +772,54 @@ double _compute_fluxes_central(int number_of_elements,
             }
 
             // Get left hand side values from triangle k, edge i
-            ql[0] = stage_edge_values[ki];
-            ql[1] = xmom_edge_values[ki];
-            ql[2] = ymom_edge_values[ki];
-            zl = bed_edge_values[ki];
-            hc = height_centroid_values[k];
-            zc = bed_centroid_values[k];
-            hle= height_edge_values[ki];
+            ql[0] = D->stage_edge_values[ki];
+            ql[1] = D->xmom_edge_values[ki];
+            ql[2] = D->ymom_edge_values[ki];
+            zl = D->bed_edge_values[ki];
+            hc = D->height_centroid_values[k];
+            zc = D->bed_centroid_values[k];
+            hle= D->height_edge_values[ki];
 
             // Get right hand side values either from neighbouring triangle
             // or from boundary array (Quantities at neighbour on nearest face).
-            n = neighbours[ki];
+            n = D->neighbours[ki];
             hc_n = hc;
-            zc_n = bed_centroid_values[k];
+            zc_n = D->bed_centroid_values[k];
             if (n < 0) {
                 // Neighbour is a boundary condition
                 m = -n - 1; // Convert negative flag to boundary index
 
-                qr[0] = stage_boundary_values[m];
-                qr[1] = xmom_boundary_values[m];
-                qr[2] = ymom_boundary_values[m];
+                qr[0] = D->stage_boundary_values[m];
+                qr[1] = D->xmom_boundary_values[m];
+                qr[2] = D->ymom_boundary_values[m];
                 zr = zl; // Extend bed elevation to boundary
                 hre= max(qr[0]-zr,0.);//hle; 
             } else {
                 // Neighbour is a real triangle
-                hc_n = height_centroid_values[n];
-                zc_n = bed_centroid_values[n];
-                m = neighbour_edges[ki];
+                hc_n = D->height_centroid_values[n];
+                zc_n = D->bed_centroid_values[n];
+                m = D->neighbour_edges[ki];
                 nm = n * 3 + m; // Linear index (triangle n, edge m)
                 nm3 = nm*3;
 
-                qr[0] = stage_edge_values[nm];
-                qr[1] = xmom_edge_values[nm];
-                qr[2] = ymom_edge_values[nm];
-                zr = bed_edge_values[nm];
-                hre = height_edge_values[nm];
+                qr[0] = D->stage_edge_values[nm];
+                qr[1] = D->xmom_edge_values[nm];
+                qr[2] = D->ymom_edge_values[nm];
+                zr = D->bed_edge_values[nm];
+                hre = D->height_edge_values[nm];
             }
           
             // Audusse magic 
             z_half=max(zl,zr);
 
             //// Account for riverwalls
-            if(edge_flux_type[ki]==1){
+            if(D->edge_flux_type[ki]==1){
                 // Update counter of riverwall edges == index of
                 // riverwall_elevation + riverwall_rowIndex
                 RiverWall_count+=1;
                 
                 // Set central bed to riverwall elevation
-                z_half=max(riverwall_elevation[RiverWall_count-1], z_half) ;
+                z_half=max(D->riverwall_elevation[RiverWall_count-1], z_half) ;
 
             }
 
@@ -880,44 +832,44 @@ double _compute_fluxes_central(int number_of_elements,
             //_flux_function_toro(ql, qr,
                     h_left, h_right,
                     hle, hre,
-                    normals[ki2], normals[ki2 + 1],
-                    epsilon, z_half, limiting_threshold, g,
-                    edgeflux, &max_speed, &pressure_flux, hc, hc_n);
+                    D->normals[ki2],D->normals[ki2 + 1],
+                    D->epsilon, z_half, limiting_threshold, D->g,
+                    edgeflux, &max_speed_local, &pressure_flux, hc, hc_n);
 
             // Force weir discharge to match weir theory
-            if(edge_flux_type[ki]==1){
-                weir_height=max(riverwall_elevation[RiverWall_count-1]-min(zl,zr), 0.); // Reference weir height  
+            if(D->edge_flux_type[ki]==1){
+                weir_height=max(D->riverwall_elevation[RiverWall_count-1]-min(zl,zr), 0.); // Reference weir height  
                 // If the weir height is zero, avoid the weir computation entirely
                 if(weir_height>0.){
                     ////////////////////////////////////////////////////////////////////////////////////
                     // Use first-order h's for weir -- as the 'upstream/downstream' heads are
                     //  measured away from the weir itself
-                    h_left_tmp= max(stage_centroid_values[k]-z_half,0.);
+                    h_left_tmp= max(D->stage_centroid_values[k]-z_half,0.);
                     if(n>=0){
-                        h_right_tmp= max(stage_centroid_values[n]-z_half,0.);
+                        h_right_tmp= max(D->stage_centroid_values[n]-z_half,0.);
                     }else{
                         h_right_tmp= max(hc_n+zr-z_half,0.);
                     }
 
                     //////////////////////////////////////////////////////////////////////////////////
                     // Get Qfactor index - multiply the idealised weir discharge by this constant factor
-                    ii=riverwall_rowIndex[RiverWall_count-1]*ncol_riverwall_hydraulic_properties;
-                    Qfactor=riverwall_hydraulic_properties[ii];
+                    ii = D->riverwall_rowIndex[RiverWall_count-1] * D->ncol_riverwall_hydraulic_properties;
+                    Qfactor = D->riverwall_hydraulic_properties[ii];
                     // Get s1, submergence ratio at which we start blending with the shallow water solution 
                     ii+=1;
-                    s1=riverwall_hydraulic_properties[ii];
+                    s1= D->riverwall_hydraulic_properties[ii];
                     // Get s2, submergence ratio at which we entirely use the shallow water solution 
                     ii+=1;
-                    s2=riverwall_hydraulic_properties[ii];
+                    s2= D->riverwall_hydraulic_properties[ii];
                     // Get h1, tailwater head / weir height at which we start blending with the shallow water solution 
                     ii+=1;
-                    h1=riverwall_hydraulic_properties[ii];
+                    h1= D->riverwall_hydraulic_properties[ii];
                     // Get h2, tailwater head / weir height at which we entirely use the shallow water solution 
                     ii+=1;
-                    h2=riverwall_hydraulic_properties[ii];
+                    h2= D->riverwall_hydraulic_properties[ii];
                     
                     // Weir flux adjustment 
-                    adjust_edgeflux_with_weir(edgeflux, h_left_tmp, h_right_tmp, g, 
+                    adjust_edgeflux_with_weir(edgeflux, h_left_tmp, h_right_tmp, D->g, 
                                               weir_height, Qfactor, 
                                               s1, s2, h1, h2);
                     // NOTE: Should perhaps also adjust the wave-speed here?? Small chance of instability??
@@ -925,7 +877,7 @@ double _compute_fluxes_central(int number_of_elements,
             }
             
             // Multiply edgeflux by edgelength
-            length = edgelengths[ki];
+            length = D->edgelengths[ki];
             edgeflux[0] *= length;
             edgeflux[1] *= length;
             edgeflux[2] *= length;
@@ -937,7 +889,7 @@ double _compute_fluxes_central(int number_of_elements,
             //    edgeflux[0] = 0.;
             //    edgeflux[1] = 0.;
             //    edgeflux[2] = 0.;
-            //    //max_speed=0.;
+            //    //max_speed_local=0.;
             //    //pressure_flux=0.;
             //}
             ////
@@ -945,31 +897,31 @@ double _compute_fluxes_central(int number_of_elements,
             //    edgeflux[0] = 0.;
             //    edgeflux[1] = 0.;
             //    edgeflux[2] = 0.;
-            //    //max_speed=0.;
+            //    //max_speed_local=0.;
             //    //pressure_flux=0.;
             //}
 
-            edge_flux_work[ki3 + 0 ] = -edgeflux[0];
-            edge_flux_work[ki3 + 1 ] = -edgeflux[1];
-            edge_flux_work[ki3 + 2 ] = -edgeflux[2];
+            D->edge_flux_work[ki3 + 0 ] = -edgeflux[0];
+            D->edge_flux_work[ki3 + 1 ] = -edgeflux[1];
+            D->edge_flux_work[ki3 + 2 ] = -edgeflux[2];
 
             // bedslope_work contains all gravity related terms
-            bedslope_work=length*(-g*0.5*(h_left*h_left - hle*hle -(hle+hc)*(zl-zc))+pressure_flux);
+            bedslope_work=length*(- D->g *0.5*(h_left*h_left - hle*hle -(hle+hc)*(zl-zc))+pressure_flux);
 
-            pressuregrad_work[ki]=bedslope_work;
+            D->pressuregrad_work[ki]=bedslope_work;
             
-            already_computed_flux[ki] = call; // #k Done
+            D->already_computed_flux[ki] = call; // #k Done
 
             // Update neighbour n with same flux but reversed sign
             if (n >= 0) {
 
-                edge_flux_work[nm3 + 0 ] = edgeflux[0];
-                edge_flux_work[nm3 + 1 ] = edgeflux[1];
-                edge_flux_work[nm3 + 2 ] = edgeflux[2];
-                bedslope_work=length*(-g*0.5*(h_right*h_right-hre*hre-(hre+hc_n)*(zr-zc_n))+pressure_flux);
-                pressuregrad_work[nm]=bedslope_work;
+                D->edge_flux_work[nm3 + 0 ] = edgeflux[0];
+                D->edge_flux_work[nm3 + 1 ] = edgeflux[1];
+                D->edge_flux_work[nm3 + 2 ] = edgeflux[2];
+                bedslope_work=length*(- D->g *0.5*(h_right*h_right-hre*hre-(hre+hc_n)*(zr-zc_n))+pressure_flux);
+                D->pressuregrad_work[nm]=bedslope_work;
 
-                already_computed_flux[nm] = call; // #n Done
+                D->already_computed_flux[nm] = call; // #n Done
             }
 
             // Update timestep based on edge i and possibly neighbour n
@@ -978,25 +930,25 @@ double _compute_fluxes_central(int number_of_elements,
             if(substep_count==0){
 
                 // Compute the 'edge-timesteps' (useful for setting flux_update_frequency)
-                edge_timestep[ki] = radii[k] / max(max_speed, epsilon);
+                D->edge_timestep[ki] = D->radii[k] / max(max_speed_local, D->epsilon);
                 if (n >= 0) {
-                    edge_timestep[nm] = radii[n] / max(max_speed, epsilon);
+                    D->edge_timestep[nm] = D->radii[n] / max(max_speed_local, D->epsilon);
                 }
 
                 // Update the timestep
-                if ((tri_full_flag[k] == 1)) {
+                if ((D->tri_full_flag[k] == 1)) {
 
-                    speed_max_last=max(speed_max_last, max_speed);
+                    speed_max_last=max(speed_max_last, max_speed_local);
 
-                    if (max_speed > epsilon) {
+                    if (max_speed_local > D->epsilon) {
                         // Apply CFL condition for triangles joining this edge (triangle k and triangle n)
 
                         // CFL for triangle k
-                        local_timestep = min(local_timestep, edge_timestep[ki]);
+                        local_timestep = min(local_timestep, D->edge_timestep[ki]);
 
                         if (n >= 0) {
                             // Apply CFL condition for neigbour n (which is on the ith edge of triangle k)
-                            local_timestep = min(local_timestep, edge_timestep[nm]);
+                            local_timestep = min(local_timestep, D->edge_timestep[nm]);
                         }
                     }
                 }
@@ -1004,7 +956,7 @@ double _compute_fluxes_central(int number_of_elements,
 
         } // End edge i (and neighbour n)
         // Keep track of maximal speeds
-        if(substep_count==0) max_speed_array[k] = speed_max_last; //max_speed;
+        if(substep_count==0) D->max_speed[k] = speed_max_last; //max_speed;
 
 
     } // End triangle k
@@ -1064,22 +1016,22 @@ double _compute_fluxes_central(int number_of_elements,
     // }
 
     // Now add up stage, xmom, ymom explicit updates
-    for(k=0; k<number_of_elements; k++){
-        hc = max(stage_centroid_values[k] - bed_centroid_values[k],0.);
+    for(k=0; k<D->number_of_elements; k++){
+        hc = max(D->stage_centroid_values[k] - D->bed_centroid_values[k],0.);
 
         for(i=0;i<3;i++){
             // FIXME: Make use of neighbours to efficiently set things
             ki=3*k+i;   
             ki2=ki*2;
             ki3 = ki*3;
-            n=neighbours[ki];
+            n=D->neighbours[ki];
 
             // GD HACK
             // Option to limit advective fluxes
             //if(hc > H0){
-                stage_explicit_update[k] += edge_flux_work[ki3+0];
-                xmom_explicit_update[k] += edge_flux_work[ki3+1];
-                ymom_explicit_update[k] += edge_flux_work[ki3+2];
+                D->stage_explicit_update[k] += D->edge_flux_work[ki3+0];
+                D->xmom_explicit_update[k] += D->edge_flux_work[ki3+1];
+                D->ymom_explicit_update[k] += D->edge_flux_work[ki3+2];
             //}else{
             //    stage_explicit_update[k] += edge_flux_work[ki3+0];
             //}
@@ -1088,17 +1040,17 @@ double _compute_fluxes_central(int number_of_elements,
             // If this cell is not a ghost, and the neighbour is a boundary
             // condition OR a ghost cell, then add the flux to the
             // boundary_flux_integral
-            if( (n<0 & tri_full_flag[k]==1) | ( n>=0 && (tri_full_flag[k]==1 & tri_full_flag[n]==0)) ){ 
+            if( (n<0 & D->tri_full_flag[k]==1) | ( n>=0 && (D->tri_full_flag[k]==1 & D->tri_full_flag[n]==0)) ){ 
                 // boundary_flux_sum is an array with length = timestep_fluxcalls
                 // For each sub-step, we put the boundary flux sum in.
-                boundary_flux_sum[substep_count] += edge_flux_work[ki3];
+                D->boundary_flux_sum[substep_count] += D->edge_flux_work[ki3];
             }
     
             // GD HACK
             // Compute bed slope term
             //if(hc > H0){
-                xmom_explicit_update[k] -= normals[ki2]*pressuregrad_work[ki];
-                ymom_explicit_update[k] -= normals[ki2+1]*pressuregrad_work[ki];
+                D->xmom_explicit_update[k] -= D->normals[ki2]*D->pressuregrad_work[ki];
+                D->ymom_explicit_update[k] -= D->normals[ki2+1]*D->pressuregrad_work[ki];
             //}else{
             //    xmom_explicit_update[k] *= 0.;
             //    ymom_explicit_update[k] *= 0.;
@@ -1109,10 +1061,10 @@ double _compute_fluxes_central(int number_of_elements,
 
         // Normalise triangle k by area and store for when all conserved
         // quantities get updated
-        inv_area = 1.0 / areas[k];
-        stage_explicit_update[k] *= inv_area;
-        xmom_explicit_update[k] *= inv_area;
-        ymom_explicit_update[k] *= inv_area;
+        inv_area = 1.0 / D->areas[k];
+        D->stage_explicit_update[k] *= inv_area;
+        D->xmom_explicit_update[k] *= inv_area;
+        D->ymom_explicit_update[k] *= inv_area;
    
     }  // end cell k
 
@@ -1241,40 +1193,41 @@ int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
 }
 
 // Computational routine
-int _extrapolate_second_order_edge_sw(int number_of_elements,
-                                 double epsilon,
-                                 double minimum_allowed_height,
-                                 double beta_w,
-                                 double beta_w_dry,
-                                 double beta_uh,
-                                 double beta_uh_dry,
-                                 double beta_vh,
-                                 double beta_vh_dry,
-                                 long* surrogate_neighbours,
-                                 long* neighbour_edges,
-                                 long* number_of_boundaries,
-                                 double* centroid_coordinates,
-                                 double* stage_centroid_values,
-                                 double* xmom_centroid_values,
-                                 double* ymom_centroid_values,
-                                 double* elevation_centroid_values,
-                                 double* height_centroid_values,
-                                 double* edge_coordinates,
-                                 double* stage_edge_values,
-                                 double* xmom_edge_values,
-                                 double* ymom_edge_values,
-                                 double* elevation_edge_values,
-                                 double* height_edge_values,
-                                 double* stage_vertex_values,
-                                 double* xmom_vertex_values,
-                                 double* ymom_vertex_values,
-                                 double* elevation_vertex_values,
-                                 double* height_vertex_values,
-                                 int optimise_dry_cells, 
-                                 int extrapolate_velocity_second_order,
-                                 double* x_centroid_work,
-                                 double* y_centroid_work,
-                                 long* update_extrapolation) {
+//int _extrapolate_second_order_edge_sw(int number_of_elements,
+//                                 double epsilon,
+//                                 double minimum_allowed_height,
+//                                 double beta_w,
+//                                 double beta_w_dry,
+//                                 double beta_uh,
+//                                 double beta_uh_dry,
+//                                 double beta_vh,
+//                                 double beta_vh_dry,
+//                                 long* surrogate_neighbours,
+//                                 long* neighbour_edges,
+//                                 long* number_of_boundaries,
+//                                 double* centroid_coordinates,
+//                                 double* stage_centroid_values,
+//                                 double* xmom_centroid_values,
+//                                 double* ymom_centroid_values,
+//                                 double* bed_centroid_values,
+//                                 double* height_centroid_values,
+//                                 double* edge_coordinates,
+//                                 double* stage_edge_values,
+//                                 double* xmom_edge_values,
+//                                 double* ymom_edge_values,
+//                                 double* bed_edge_values,
+//                                 double* height_edge_values,
+//                                 double* stage_vertex_values,
+//                                 double* xmom_vertex_values,
+//                                 double* ymom_vertex_values,
+//                                 double* bed_vertex_values,
+//                                 double* height_vertex_values,
+//                                 int optimise_dry_cells, 
+//                                 int extrapolate_velocity_second_order,
+//                                 double* x_centroid_work,
+//                                 double* y_centroid_work,
+//                                 long* update_extrapolation) {
+int _extrapolate_second_order_edge_sw(struct domain *D){
                   
   // Local variables
   double a, b; // Gradient vector used to calculate edge values from centroids
@@ -1286,31 +1239,31 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
   double dk, dk_inv,dv0, dv1, dv2, de[3], demin, dcmax, r0scale, vel_norm, l1, l2, a_tmp, b_tmp, c_tmp,d_tmp;
   
 
-  memset((char*) x_centroid_work, 0, number_of_elements * sizeof (double));
-  memset((char*) y_centroid_work, 0, number_of_elements * sizeof (double));
+  memset((char*) D->x_centroid_work, 0, D->number_of_elements * sizeof (double));
+  memset((char*) D->y_centroid_work, 0, D->number_of_elements * sizeof (double));
   
   
-  if(extrapolate_velocity_second_order==1){
+  if(D->extrapolate_velocity_second_order==1){
 
       // Replace momentum centroid with velocity centroid to allow velocity
       // extrapolation This will be changed back at the end of the routine
-      for (k=0; k<number_of_elements; k++){
+      for (k=0; k< D->number_of_elements; k++){
           
-          height_centroid_values[k] = max(stage_centroid_values[k] - elevation_centroid_values[k], 0.);
+          D->height_centroid_values[k] = max(D->stage_centroid_values[k] - D->bed_centroid_values[k], 0.);
 
-          dk = height_centroid_values[k]; 
-          if(dk>minimum_allowed_height){
+          dk = D->height_centroid_values[k]; 
+          if(dk> D->minimum_allowed_height){
               dk_inv=1.0/dk;
-              x_centroid_work[k] = xmom_centroid_values[k];
-              xmom_centroid_values[k] = xmom_centroid_values[k]*dk_inv;
+              D->x_centroid_work[k] = D->xmom_centroid_values[k];
+              D->xmom_centroid_values[k] = D->xmom_centroid_values[k]*dk_inv;
 
-              y_centroid_work[k] = ymom_centroid_values[k];
-              ymom_centroid_values[k] = ymom_centroid_values[k]*dk_inv;
+              D->y_centroid_work[k] = D->ymom_centroid_values[k];
+              D->ymom_centroid_values[k] = D->ymom_centroid_values[k]*dk_inv;
           }else{
-              x_centroid_work[k] = 0.;
-              xmom_centroid_values[k] = 0.;
-              y_centroid_work[k] = 0.;
-              ymom_centroid_values[k] = 0.;
+              D->x_centroid_work[k] = 0.;
+              D->xmom_centroid_values[k] = 0.;
+              D->y_centroid_work[k] = 0.;
+              D->ymom_centroid_values[k] = 0.;
 
          }
       }
@@ -1320,21 +1273,21 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
   // condition) set its momentum to zero too. This prevents 'pits' of
   // of water being trapped and unable to lose momentum, which can occur in
   // some situations
-  for (k=0; k<number_of_elements;k++){
+  for (k=0; k< D->number_of_elements;k++){
       
       k3=k*3;
-      k0 = surrogate_neighbours[k3];
-      k1 = surrogate_neighbours[k3 + 1];
-      k2 = surrogate_neighbours[k3 + 2];
+      k0 = D->surrogate_neighbours[k3];
+      k1 = D->surrogate_neighbours[k3 + 1];
+      k2 = D->surrogate_neighbours[k3 + 2];
 
-      if((height_centroid_values[k0] < minimum_allowed_height | k0==k) &
-         (height_centroid_values[k1] < minimum_allowed_height | k1==k) &
-         (height_centroid_values[k2] < minimum_allowed_height | k2==k)){
+      if((D->height_centroid_values[k0] < D->minimum_allowed_height | k0==k) &
+         (D->height_centroid_values[k1] < D->minimum_allowed_height | k1==k) &
+         (D->height_centroid_values[k2] < D->minimum_allowed_height | k2==k)){
     	  	  //printf("Surrounded by dry cells\n");
-              x_centroid_work[k] = 0.;
-              xmom_centroid_values[k] = 0.;
-              y_centroid_work[k] = 0.;
-              ymom_centroid_values[k] = 0.;
+              D->x_centroid_work[k] = 0.;
+              D->xmom_centroid_values[k] = 0.;
+              D->y_centroid_work[k] = 0.;
+              D->ymom_centroid_values[k] = 0.;
 
       }
 
@@ -1342,12 +1295,12 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
   }
 
   // Begin extrapolation routine
-  for (k = 0; k < number_of_elements; k++) 
+  for (k = 0; k < D->number_of_elements; k++) 
   {
 
     // Don't update the extrapolation if the flux will not be computed on the
     // next timestep
-    if(update_extrapolation[k]==0){
+    if(D->update_extrapolation[k]==0){
        continue;
     }
 
@@ -1356,28 +1309,28 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
     k3=k*3;
     k6=k*6;
 
-    if (number_of_boundaries[k]==3)
+    if (D->number_of_boundaries[k]==3)
     {
       // No neighbours, set gradient on the triangle to zero
       
-      stage_edge_values[k3]   = stage_centroid_values[k];
-      stage_edge_values[k3+1] = stage_centroid_values[k];
-      stage_edge_values[k3+2] = stage_centroid_values[k];
+      D->stage_edge_values[k3]   = D->stage_centroid_values[k];
+      D->stage_edge_values[k3+1] = D->stage_centroid_values[k];
+      D->stage_edge_values[k3+2] = D->stage_centroid_values[k];
 
       //xmom_centroid_values[k] = 0.;
       //ymom_centroid_values[k] = 0.;
       
-      xmom_edge_values[k3]    = xmom_centroid_values[k];
-      xmom_edge_values[k3+1]  = xmom_centroid_values[k];
-      xmom_edge_values[k3+2]  = xmom_centroid_values[k];
-      ymom_edge_values[k3]    = ymom_centroid_values[k];
-      ymom_edge_values[k3+1]  = ymom_centroid_values[k];
-      ymom_edge_values[k3+2]  = ymom_centroid_values[k];
+      D->xmom_edge_values[k3]    = D->xmom_centroid_values[k];
+      D->xmom_edge_values[k3+1]  = D->xmom_centroid_values[k];
+      D->xmom_edge_values[k3+2]  = D->xmom_centroid_values[k];
+      D->ymom_edge_values[k3]    = D->ymom_centroid_values[k];
+      D->ymom_edge_values[k3+1]  = D->ymom_centroid_values[k];
+      D->ymom_edge_values[k3+2]  = D->ymom_centroid_values[k];
 
-      dk = height_centroid_values[k];
-      height_edge_values[k3] = dk;
-      height_edge_values[k3+1] = dk;
-      height_edge_values[k3+2] = dk;
+      dk = D->height_centroid_values[k];
+      D->height_edge_values[k3] = dk;
+      D->height_edge_values[k3+1] = dk;
+      D->height_edge_values[k3+2] = dk;
       
       continue;
     }
@@ -1387,17 +1340,17 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       // Get centroid and edge coordinates of the triangle
       
       // Get the edge coordinates
-      xv0 = edge_coordinates[k6];   
-      yv0 = edge_coordinates[k6+1];
-      xv1 = edge_coordinates[k6+2]; 
-      yv1 = edge_coordinates[k6+3];
-      xv2 = edge_coordinates[k6+4]; 
-      yv2 = edge_coordinates[k6+5];
+      xv0 = D->edge_coordinates[k6];   
+      yv0 = D->edge_coordinates[k6+1];
+      xv1 = D->edge_coordinates[k6+2]; 
+      yv1 = D->edge_coordinates[k6+3];
+      xv2 = D->edge_coordinates[k6+4]; 
+      yv2 = D->edge_coordinates[k6+5];
       
       // Get the centroid coordinates
       coord_index = 2*k;
-      x = centroid_coordinates[coord_index];
-      y = centroid_coordinates[coord_index+1];
+      x = D->centroid_coordinates[coord_index];
+      y = D->centroid_coordinates[coord_index+1];
       
       // Store x- and y- differentials for the edges of 
       // triangle k relative to the centroid
@@ -1412,7 +1365,7 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
 
 
             
-    if (number_of_boundaries[k]<=1)
+    if (D->number_of_boundaries[k]<=1)
     {
       //==============================================
       // Number of boundaries <= 1
@@ -1425,24 +1378,24 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       // If one boundary, auxiliary triangle is formed 
       // from this centroid and its two neighbours
       
-      k0 = surrogate_neighbours[k3];
-      k1 = surrogate_neighbours[k3 + 1];
-      k2 = surrogate_neighbours[k3 + 2];
+      k0 = D->surrogate_neighbours[k3];
+      k1 = D->surrogate_neighbours[k3 + 1];
+      k2 = D->surrogate_neighbours[k3 + 2];
 
 
       // Get the auxiliary triangle's vertex coordinates 
       // (really the centroids of neighbouring triangles)
       coord_index = 2*k0;
-      x0 = centroid_coordinates[coord_index];
-      y0 = centroid_coordinates[coord_index+1];
+      x0 = D->centroid_coordinates[coord_index];
+      y0 = D->centroid_coordinates[coord_index+1];
       
       coord_index = 2*k1;
-      x1 = centroid_coordinates[coord_index];
-      y1 = centroid_coordinates[coord_index+1];
+      x1 = D->centroid_coordinates[coord_index];
+      y1 = D->centroid_coordinates[coord_index+1];
       
       coord_index = 2*k2;
-      x2 = centroid_coordinates[coord_index];
-      y2 = centroid_coordinates[coord_index+1];
+      x2 = D->centroid_coordinates[coord_index];
+      y2 = D->centroid_coordinates[coord_index+1];
 
       // Store x- and y- differentials for the vertices 
       // of the auxiliary triangle
@@ -1462,30 +1415,30 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
 
 
           // Isolated wet cell -- constant stage/depth extrapolation 
-          stage_edge_values[k3]   = stage_centroid_values[k];
-          stage_edge_values[k3+1] = stage_centroid_values[k];
-          stage_edge_values[k3+2] = stage_centroid_values[k];
+          D->stage_edge_values[k3]   = D->stage_centroid_values[k];
+          D->stage_edge_values[k3+1] = D->stage_centroid_values[k];
+          D->stage_edge_values[k3+2] = D->stage_centroid_values[k];
 
-          dk=height_centroid_values[k]; //max(stage_centroid_values[k]-elevation_centroid_values[k],0.);
-          height_edge_values[k3] = dk;
-          height_edge_values[k3+1] = dk;
-          height_edge_values[k3+2] = dk;
+          dk= D->height_centroid_values[k]; //max(stage_centroid_values[k]-bed_centroid_values[k],0.);
+          D->height_edge_values[k3] = dk;
+          D->height_edge_values[k3+1] = dk;
+          D->height_edge_values[k3+2] = dk;
           
-          xmom_edge_values[k3]    = xmom_centroid_values[k];
-          xmom_edge_values[k3+1]  = xmom_centroid_values[k];
-          xmom_edge_values[k3+2]  = xmom_centroid_values[k];
-          ymom_edge_values[k3]    = ymom_centroid_values[k];
-          ymom_edge_values[k3+1]  = ymom_centroid_values[k];
-          ymom_edge_values[k3+2]  = ymom_centroid_values[k];
+          D->xmom_edge_values[k3]    = D->xmom_centroid_values[k];
+          D->xmom_edge_values[k3+1]  = D->xmom_centroid_values[k];
+          D->xmom_edge_values[k3+2]  = D->xmom_centroid_values[k];
+          D->ymom_edge_values[k3]    = D->ymom_centroid_values[k];
+          D->ymom_edge_values[k3+1]  = D->ymom_centroid_values[k];
+          D->ymom_edge_values[k3+2]  = D->ymom_centroid_values[k];
 
           continue;
       }  
       
       // Calculate heights of neighbouring cells
-      hc = height_centroid_values[k];
-      h0 = height_centroid_values[k0];
-      h1 = height_centroid_values[k1];
-      h2 = height_centroid_values[k2];
+      hc = D->height_centroid_values[k];
+      h0 = D->height_centroid_values[k0];
+      h1 = D->height_centroid_values[k1];
+      h2 = D->height_centroid_values[k2];
       
       hmin = min(min(h0, min(h1, h2)), hc);
       hmax = max(max(h0, max(h1, h2)), hc);
@@ -1506,24 +1459,24 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
                   );
       // Set hfactor to zero smothly as hmin--> minimum_allowed_height. This
       // avoids some 'chatter' for very shallow flows 
-      hfactor=min( 1.2*max(hmin-minimum_allowed_height,0.)/(max(hmin,0.)+1.*minimum_allowed_height), hfactor);
+      hfactor=min( 1.2*max(hmin- D->minimum_allowed_height,0.)/(max(hmin,0.)+1.* D->minimum_allowed_height), hfactor);
 
       inv_area2 = 1.0/area2; 
       //-----------------------------------
       // stage
       //-----------------------------------      
       
-      beta_tmp = beta_w_dry + (beta_w - beta_w_dry) * hfactor;
+      beta_tmp = D->beta_w_dry + (D->beta_w - D->beta_w_dry) * hfactor;
      
       if(beta_tmp>0.){ 
           // Calculate the difference between vertex 0 of the auxiliary 
           // triangle and the centroid of triangle k
-          dq0 = stage_centroid_values[k0] - stage_centroid_values[k];
+          dq0 = D->stage_centroid_values[k0] - D->stage_centroid_values[k];
           
           // Calculate differentials between the vertices 
           // of the auxiliary triangle (centroids of neighbouring triangles)
-          dq1 = stage_centroid_values[k1] - stage_centroid_values[k0];
-          dq2 = stage_centroid_values[k2] - stage_centroid_values[k0];
+          dq1 = D->stage_centroid_values[k1] - D->stage_centroid_values[k0];
+          dq2 = D->stage_centroid_values[k2] - D->stage_centroid_values[k0];
          
           // Calculate the gradient of stage on the auxiliary triangle
           a = dy2*dq1 - dy1*dq2;
@@ -1544,14 +1497,14 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
           // Limit the gradient
           limit_gradient(dqv, qmin, qmax, beta_tmp);
 
-          stage_edge_values[k3+0] = stage_centroid_values[k] + dqv[0];
-          stage_edge_values[k3+1] = stage_centroid_values[k] + dqv[1];
-          stage_edge_values[k3+2] = stage_centroid_values[k] + dqv[2];
+          D->stage_edge_values[k3+0] = D->stage_centroid_values[k] + dqv[0];
+          D->stage_edge_values[k3+1] = D->stage_centroid_values[k] + dqv[1];
+          D->stage_edge_values[k3+2] = D->stage_centroid_values[k] + dqv[2];
       }else{
           // Fast alternative when beta_tmp==0
-          stage_edge_values[k3+0] = stage_centroid_values[k];
-          stage_edge_values[k3+1] = stage_centroid_values[k];
-          stage_edge_values[k3+2] = stage_centroid_values[k];
+          D->stage_edge_values[k3+0] = D->stage_centroid_values[k];
+          D->stage_edge_values[k3+1] = D->stage_centroid_values[k];
+          D->stage_edge_values[k3+2] = D->stage_centroid_values[k];
       }
 
 
@@ -1562,12 +1515,12 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       if(beta_tmp>0.){ 
           // Calculate the difference between vertex 0 of the auxiliary 
           // triangle and the centroid of triangle k
-          dq0 = height_centroid_values[k0] - height_centroid_values[k];
+          dq0 = D->height_centroid_values[k0] - D->height_centroid_values[k];
           
           // Calculate differentials between the vertices 
           // of the auxiliary triangle (centroids of neighbouring triangles)
-          dq1 = height_centroid_values[k1] - height_centroid_values[k0];
-          dq2 = height_centroid_values[k2] - height_centroid_values[k0];
+          dq1 = D->height_centroid_values[k1] - D->height_centroid_values[k0];
+          dq2 = D->height_centroid_values[k2] - D->height_centroid_values[k0];
          
           // Calculate the gradient of height on the auxiliary triangle
           a = dy2*dq1 - dy1*dq2;
@@ -1592,29 +1545,29 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
 
           //beta_tmp = 0. + (beta_w - 0.) * hfactor;
 
-          height_edge_values[k3+0] = height_centroid_values[k] + dqv[0];
-          height_edge_values[k3+1] = height_centroid_values[k] + dqv[1];
-          height_edge_values[k3+2] = height_centroid_values[k] + dqv[2];
+          D->height_edge_values[k3+0] = D->height_centroid_values[k] + dqv[0];
+          D->height_edge_values[k3+1] = D->height_centroid_values[k] + dqv[1];
+          D->height_edge_values[k3+2] = D->height_centroid_values[k] + dqv[2];
       }else{
           // Fast alternative when beta_tmp==0
-          height_edge_values[k3+0] = height_centroid_values[k];
-          height_edge_values[k3+1] = height_centroid_values[k];
-          height_edge_values[k3+2] = height_centroid_values[k];
+          D->height_edge_values[k3+0] = D->height_centroid_values[k];
+          D->height_edge_values[k3+1] = D->height_centroid_values[k];
+          D->height_edge_values[k3+2] = D->height_centroid_values[k];
       }
       //-----------------------------------
       // xmomentum
       //-----------------------------------            
 
-      beta_tmp = beta_uh_dry + (beta_uh - beta_uh_dry) * hfactor;
+      beta_tmp = D->beta_uh_dry + (D->beta_uh - D->beta_uh_dry) * hfactor;
       if(beta_tmp>0.){
           // Calculate the difference between vertex 0 of the auxiliary 
           // triangle and the centroid of triangle k      
-          dq0 = xmom_centroid_values[k0] - xmom_centroid_values[k];
+          dq0 = D->xmom_centroid_values[k0] - D->xmom_centroid_values[k];
           
           // Calculate differentials between the vertices 
           // of the auxiliary triangle
-          dq1 = xmom_centroid_values[k1] - xmom_centroid_values[k0];
-          dq2 = xmom_centroid_values[k2] - xmom_centroid_values[k0];
+          dq1 = D->xmom_centroid_values[k1] - D->xmom_centroid_values[k0];
+          dq2 = D->xmom_centroid_values[k2] - D->xmom_centroid_values[k0];
           
           // Calculate the gradient of xmom on the auxiliary triangle
           a = dy2*dq1 - dy1*dq2;
@@ -1640,13 +1593,13 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
 
           for (i=0; i < 3; i++)
           {
-            xmom_edge_values[k3+i] = xmom_centroid_values[k] + dqv[i];
+            D->xmom_edge_values[k3+i] = D->xmom_centroid_values[k] + dqv[i];
           }
       }else{
           // Fast alternative when beta_tmp==0
           for (i=0; i < 3; i++)
           {
-            xmom_edge_values[k3+i] = xmom_centroid_values[k];
+            D->xmom_edge_values[k3+i] = D->xmom_centroid_values[k];
           }
       }
       
@@ -1654,17 +1607,17 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       // ymomentum
       //-----------------------------------                  
       
-      beta_tmp = beta_vh_dry + (beta_vh - beta_vh_dry) * hfactor;   
+      beta_tmp = D->beta_vh_dry + (D->beta_vh - D->beta_vh_dry) * hfactor;   
 
       if(beta_tmp>0.){
           // Calculate the difference between vertex 0 of the auxiliary 
           // triangle and the centroid of triangle k
-          dq0 = ymom_centroid_values[k0] - ymom_centroid_values[k];
+          dq0 = D->ymom_centroid_values[k0] - D->ymom_centroid_values[k];
           
           // Calculate differentials between the vertices 
           // of the auxiliary triangle
-          dq1 = ymom_centroid_values[k1] - ymom_centroid_values[k0];
-          dq2 = ymom_centroid_values[k2] - ymom_centroid_values[k0];
+          dq1 = D->ymom_centroid_values[k1] - D->ymom_centroid_values[k0];
+          dq2 = D->ymom_centroid_values[k2] - D->ymom_centroid_values[k0];
           
           // Calculate the gradient of xmom on the auxiliary triangle
           a = dy2*dq1 - dy1*dq2;
@@ -1690,13 +1643,13 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
           
           for (i=0;i<3;i++)
           {
-            ymom_edge_values[k3 + i] = ymom_centroid_values[k] + dqv[i];
+            D->ymom_edge_values[k3 + i] = D->ymom_centroid_values[k] + dqv[i];
           }
       }else{
           // Fast alternative when beta_tmp==0
           for (i=0;i<3;i++)
           {
-            ymom_edge_values[k3 + i] = ymom_centroid_values[k];
+            D->ymom_edge_values[k3 + i] = D->ymom_centroid_values[k];
           }
 
       }
@@ -1717,7 +1670,7 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       // Find internal neighbour of triangle k      
       // k2 indexes the edges of triangle k   
       
-          if (surrogate_neighbours[k2] != k)
+          if (D->surrogate_neighbours[k2] != k)
           {
              break;
           }
@@ -1730,13 +1683,13 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
         return -1;
       }
       
-      k1 = surrogate_neighbours[k2];
+      k1 = D->surrogate_neighbours[k2];
       
       // The coordinates of the triangle are already (x,y). 
       // Get centroid of the neighbour (x1,y1)
       coord_index = 2*k1;
-      x1 = centroid_coordinates[coord_index];
-      y1 = centroid_coordinates[coord_index + 1];
+      x1 = D->centroid_coordinates[coord_index];
+      y1 = D->centroid_coordinates[coord_index + 1];
       
       // Compute x- and y- distances between the centroid of 
       // triangle k and that of its neighbour
@@ -1760,7 +1713,7 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       //-----------------------------------            
 
       // Compute differentials
-      dq1 = stage_centroid_values[k1] - stage_centroid_values[k];
+      dq1 = D->stage_centroid_values[k1] - D->stage_centroid_values[k];
       
       // Calculate the gradient between the centroid of triangle k 
       // and that of its neighbour
@@ -1785,18 +1738,18 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       }
       
       // Limit the gradient
-      limit_gradient(dqv, qmin, qmax, beta_w);
+      limit_gradient(dqv, qmin, qmax, D->beta_w);
       
-      stage_edge_values[k3] = stage_centroid_values[k] + dqv[0];
-      stage_edge_values[k3 + 1] = stage_centroid_values[k] + dqv[1];
-      stage_edge_values[k3 + 2] = stage_centroid_values[k] + dqv[2];
+      D->stage_edge_values[k3] = D->stage_centroid_values[k] + dqv[0];
+      D->stage_edge_values[k3 + 1] = D->stage_centroid_values[k] + dqv[1];
+      D->stage_edge_values[k3 + 2] = D->stage_centroid_values[k] + dqv[2];
 
       //-----------------------------------
       // height
       //-----------------------------------
       
       // Compute differentials
-      dq1 = height_centroid_values[k1] - height_centroid_values[k];
+      dq1 = D->height_centroid_values[k1] - D->height_centroid_values[k];
       
       // Calculate the gradient between the centroid of triangle k 
       // and that of its neighbour
@@ -1821,18 +1774,18 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       }
       
       // Limit the gradient
-      limit_gradient(dqv, qmin, qmax, beta_w);
+      limit_gradient(dqv, qmin, qmax, D->beta_w);
       
-      height_edge_values[k3] = height_centroid_values[k] + dqv[0];
-      height_edge_values[k3 + 1] = height_centroid_values[k] + dqv[1];
-      height_edge_values[k3 + 2] = height_centroid_values[k] + dqv[2];
+      D->height_edge_values[k3] = D->height_centroid_values[k] + dqv[0];
+      D->height_edge_values[k3 + 1] = D->height_centroid_values[k] + dqv[1];
+      D->height_edge_values[k3 + 2] = D->height_centroid_values[k] + dqv[2];
 
       //-----------------------------------
       // xmomentum
       //-----------------------------------                        
       
       // Compute differentials
-      dq1 = xmom_centroid_values[k1] - xmom_centroid_values[k];
+      dq1 = D->xmom_centroid_values[k1] - D->xmom_centroid_values[k];
       
       // Calculate the gradient between the centroid of triangle k 
       // and that of its neighbour
@@ -1857,11 +1810,11 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       }
       
       // Limit the gradient      
-      limit_gradient(dqv, qmin, qmax, beta_w);
+      limit_gradient(dqv, qmin, qmax, D->beta_w);
       
       for (i = 0; i < 3;i++)
       {
-          xmom_edge_values[k3 + i] = xmom_centroid_values[k] + dqv[i];
+          D->xmom_edge_values[k3 + i] = D->xmom_centroid_values[k] + dqv[i];
       }
       
       //-----------------------------------
@@ -1869,7 +1822,7 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       //-----------------------------------                        
 
       // Compute differentials
-      dq1 = ymom_centroid_values[k1] - ymom_centroid_values[k];
+      dq1 = D->ymom_centroid_values[k1] - D->ymom_centroid_values[k];
       
       // Calculate the gradient between the centroid of triangle k 
       // and that of its neighbour
@@ -1894,65 +1847,65 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
       }
       
       // Limit the gradient
-      limit_gradient(dqv, qmin, qmax, beta_w);
+      limit_gradient(dqv, qmin, qmax, D->beta_w);
       
       for (i=0;i<3;i++)
               {
-              ymom_edge_values[k3 + i] = ymom_centroid_values[k] + dqv[i];
+              D->ymom_edge_values[k3 + i] = D->ymom_centroid_values[k] + dqv[i];
               }
     } // else [number_of_boundaries==2]
   } // for k=0 to number_of_elements-1
 
 
   // Compute vertex values of quantities
-  for (k=0; k<number_of_elements; k++){
-      if(extrapolate_velocity_second_order==1){
+  for (k=0; k< D->number_of_elements; k++){
+      if(D->extrapolate_velocity_second_order==1){
           //Convert velocity back to momenta at centroids
-          xmom_centroid_values[k] = x_centroid_work[k];
-          ymom_centroid_values[k] = y_centroid_work[k];
+          D->xmom_centroid_values[k] = D->x_centroid_work[k];
+          D->ymom_centroid_values[k] = D->y_centroid_work[k];
       }
      
       // Don't proceed if we didn't update the edge/vertex values
-      if(update_extrapolation[k]==0){
+      if(D->update_extrapolation[k]==0){
          continue;
       }
 
       k3=3*k;
       
       // Compute stage vertex values 
-      stage_vertex_values[k3] = stage_edge_values[k3+1] + stage_edge_values[k3+2] -stage_edge_values[k3] ; 
-      stage_vertex_values[k3+1] =  stage_edge_values[k3] + stage_edge_values[k3+2]-stage_edge_values[k3+1]; 
-      stage_vertex_values[k3+2] =  stage_edge_values[k3] + stage_edge_values[k3+1]-stage_edge_values[k3+2]; 
+      D->stage_vertex_values[k3] = D->stage_edge_values[k3+1] + D->stage_edge_values[k3+2] - D->stage_edge_values[k3] ; 
+      D->stage_vertex_values[k3+1] =  D->stage_edge_values[k3] + D->stage_edge_values[k3+2]- D->stage_edge_values[k3+1]; 
+      D->stage_vertex_values[k3+2] =  D->stage_edge_values[k3] + D->stage_edge_values[k3+1]- D->stage_edge_values[k3+2]; 
       
       // Compute height vertex values 
-      height_vertex_values[k3] = height_edge_values[k3+1] + height_edge_values[k3+2] -height_edge_values[k3] ; 
-      height_vertex_values[k3+1] =  height_edge_values[k3] + height_edge_values[k3+2]-height_edge_values[k3+1]; 
-      height_vertex_values[k3+2] =  height_edge_values[k3] + height_edge_values[k3+1]-height_edge_values[k3+2]; 
+      D->height_vertex_values[k3] = D->height_edge_values[k3+1] + D->height_edge_values[k3+2] - D->height_edge_values[k3] ; 
+      D->height_vertex_values[k3+1] =  D->height_edge_values[k3] + D->height_edge_values[k3+2]- D->height_edge_values[k3+1]; 
+      D->height_vertex_values[k3+2] =  D->height_edge_values[k3] + D->height_edge_values[k3+1]- D->height_edge_values[k3+2]; 
 
       // If needed, convert from velocity to momenta
-      if(extrapolate_velocity_second_order==1){
+      if(D->extrapolate_velocity_second_order==1){
           // Re-compute momenta at edges
           for (i=0; i<3; i++){
-              dk= height_edge_values[k3+i]; 
-              xmom_edge_values[k3+i]=xmom_edge_values[k3+i]*dk;
-              ymom_edge_values[k3+i]=ymom_edge_values[k3+i]*dk;
+              dk= D->height_edge_values[k3+i]; 
+              D->xmom_edge_values[k3+i] = D->xmom_edge_values[k3+i]*dk;
+              D->ymom_edge_values[k3+i] = D->ymom_edge_values[k3+i]*dk;
           }
       }
       // Compute momenta at vertices
-      xmom_vertex_values[k3] = xmom_edge_values[k3+1] + xmom_edge_values[k3+2] -xmom_edge_values[k3] ; 
-      xmom_vertex_values[k3+1] =  xmom_edge_values[k3] + xmom_edge_values[k3+2]-xmom_edge_values[k3+1]; 
-      xmom_vertex_values[k3+2] =  xmom_edge_values[k3] + xmom_edge_values[k3+1]-xmom_edge_values[k3+2]; 
-      ymom_vertex_values[k3] = ymom_edge_values[k3+1] + ymom_edge_values[k3+2] -ymom_edge_values[k3] ; 
-      ymom_vertex_values[k3+1] =  ymom_edge_values[k3] + ymom_edge_values[k3+2]-ymom_edge_values[k3+1]; 
-      ymom_vertex_values[k3+2] =  ymom_edge_values[k3] + ymom_edge_values[k3+1]-ymom_edge_values[k3+2]; 
+      D->xmom_vertex_values[k3]   =  D->xmom_edge_values[k3+1] + D->xmom_edge_values[k3+2] - D->xmom_edge_values[k3] ; 
+      D->xmom_vertex_values[k3+1] =  D->xmom_edge_values[k3] + D->xmom_edge_values[k3+2]- D->xmom_edge_values[k3+1]; 
+      D->xmom_vertex_values[k3+2] =  D->xmom_edge_values[k3] + D->xmom_edge_values[k3+1]- D->xmom_edge_values[k3+2]; 
+      D->ymom_vertex_values[k3]   =  D->ymom_edge_values[k3+1] + D->ymom_edge_values[k3+2] - D->ymom_edge_values[k3] ; 
+      D->ymom_vertex_values[k3+1] =  D->ymom_edge_values[k3] + D->ymom_edge_values[k3+2]- D->ymom_edge_values[k3+1]; 
+      D->ymom_vertex_values[k3+2] =  D->ymom_edge_values[k3] + D->ymom_edge_values[k3+1]- D->ymom_edge_values[k3+2]; 
 
       // Compute new bed elevation
-      elevation_edge_values[k3]=stage_edge_values[k3]-height_edge_values[k3];
-      elevation_edge_values[k3+1]=stage_edge_values[k3+1]-height_edge_values[k3+1];
-      elevation_edge_values[k3+2]=stage_edge_values[k3+2]-height_edge_values[k3+2];
-      elevation_vertex_values[k3] = elevation_edge_values[k3+1] + elevation_edge_values[k3+2] -elevation_edge_values[k3] ; 
-      elevation_vertex_values[k3+1] =  elevation_edge_values[k3] + elevation_edge_values[k3+2]-elevation_edge_values[k3+1]; 
-      elevation_vertex_values[k3+2] =  elevation_edge_values[k3] + elevation_edge_values[k3+1]-elevation_edge_values[k3+2]; 
+      D->bed_edge_values[k3]= D->stage_edge_values[k3]- D->height_edge_values[k3];
+      D->bed_edge_values[k3+1]= D->stage_edge_values[k3+1]- D->height_edge_values[k3+1];
+      D->bed_edge_values[k3+2]= D->stage_edge_values[k3+2]- D->height_edge_values[k3+2];
+      D->bed_vertex_values[k3] = D->bed_edge_values[k3+1] + D->bed_edge_values[k3+2] - D->bed_edge_values[k3] ; 
+      D->bed_vertex_values[k3+1] =  D->bed_edge_values[k3] + D->bed_edge_values[k3+2] - D->bed_edge_values[k3+1]; 
+      D->bed_vertex_values[k3+2] =  D->bed_edge_values[k3] + D->bed_edge_values[k3+1] - D->bed_edge_values[k3+2]; 
   } 
 
   return 0;
@@ -1983,218 +1936,22 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
     The maximal allowable speed computed by the flux_function for each volume
     is converted to a timestep that must not be exceeded. The minimum of
     those is computed as the next overall timestep.
-
-    Python call:
-    domain.timestep = compute_fluxes(timestep,
-                                     domain.epsilon,
-                                     domain.H0,
-                                     domain.g,
-                                     domain.neighbours,
-                                     domain.neighbour_edges,
-                                     domain.normals,
-                                     domain.edgelengths,
-                                     domain.radii,
-                                     domain.areas,
-                                     tri_full_flag,
-                                     Stage.edge_values,
-                                     Xmom.edge_values,
-                                     Ymom.edge_values,
-                                     Bed.edge_values,
-                                     Stage.boundary_values,
-                                     Xmom.boundary_values,
-                                     Ymom.boundary_values,
-                                     Stage.explicit_update,
-                                     Xmom.explicit_update,
-                                     Ymom.explicit_update,
-                                     already_computed_flux,
-                                     optimise_dry_cells,
-                                     stage.centroid_values,
-                                     bed.centroid_values,
-                                     domain.riverwall_elevation)
-
-
-    Post conditions:
-      domain.explicit_update is reset to computed flux values
-      domain.timestep is set to the largest step satisfying all volumes.
-
-
   */
+  struct domain D;
+  PyObject *domain;
 
-
-  PyArrayObject *boundary_flux_sum, *neighbours, *neighbour_edges,
-    *normals, *edgelengths, *radii, *areas,
-    *tri_full_flag,
-    *stage_edge_values,
-    *xmom_edge_values,
-    *ymom_edge_values,
-    *bed_edge_values,
-    *height_edge_values,
-    *stage_boundary_values,
-    *xmom_boundary_values,
-    *ymom_boundary_values,
-    *boundary_flux_type,
-    *stage_explicit_update,
-    *xmom_explicit_update,
-    *ymom_explicit_update,
-    *already_computed_flux, //Tracks whether the flux across an edge has already been computed
-    *max_speed_array, //Keeps track of max speeds for each triangle
-    *stage_centroid_values,
-    *xmom_centroid_values,
-    *ymom_centroid_values,
-    *bed_centroid_values,
-    *height_centroid_values,
-    *bed_vertex_values,
-    *edge_flux_type,
-    *riverwall_elevation,
-    *riverwall_rowIndex,
-    *riverwall_hydraulic_properties,
-    *edge_flux_work,
-    *pressuregrad_work,
-    *edge_timestep,
-    *update_next_flux,
-    *allow_timestep_increase;
-    
-  double timestep, epsilon, H0, g;
-  int optimise_dry_cells, timestep_fluxcalls, ncol_riverwall_hydraulic_properties;
+   
+  double timestep;
   
-    
-  // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "ddddOOOOOOOOOOOOOOOOOOOOOOiiOOOOOOOOiOOOOOO",
-            &timestep,
-            &epsilon,
-            &H0,
-            &g,
-            &boundary_flux_sum,
-            &neighbours,
-            &neighbour_edges,
-            &normals,
-            &edgelengths, &radii, &areas,
-            &tri_full_flag,
-            &stage_edge_values,
-            &xmom_edge_values,
-            &ymom_edge_values,
-            &bed_edge_values,
-            &height_edge_values,
-            &stage_boundary_values,
-            &xmom_boundary_values,
-            &ymom_boundary_values,
-            &boundary_flux_type,
-            &stage_explicit_update,
-            &xmom_explicit_update,
-            &ymom_explicit_update,
-            &already_computed_flux,
-            &max_speed_array,
-            &optimise_dry_cells,
-            &timestep_fluxcalls,
-            &stage_centroid_values,
-            &xmom_centroid_values,
-            &ymom_centroid_values,
-            &bed_centroid_values,
-            &height_centroid_values,
-            //&bed_vertex_values,
-            &edge_flux_type,
-            &riverwall_elevation,
-            &riverwall_rowIndex,
-            &ncol_riverwall_hydraulic_properties,
-            &riverwall_hydraulic_properties,
-            &edge_flux_work,
-            &pressuregrad_work,
-            &edge_timestep,
-            &update_next_flux,
-            &allow_timestep_increase
-            )) {
-    report_python_error(AT, "could not parse input arguments");
-    return NULL;
+  if (!PyArg_ParseTuple(args, "Od", &domain, &timestep)) {
+      report_python_error(AT, "could not parse input arguments");
+      return NULL;
   }
+    
+  get_python_domain(&D,domain);
 
-  // check that numpy array objects arrays are C contiguous memory
-  CHECK_C_CONTIG(neighbours);
-  CHECK_C_CONTIG(neighbour_edges);
-  CHECK_C_CONTIG(normals);
-  CHECK_C_CONTIG(edgelengths);
-  CHECK_C_CONTIG(radii);
-  CHECK_C_CONTIG(areas);
-  CHECK_C_CONTIG(tri_full_flag);
-  CHECK_C_CONTIG(stage_edge_values);
-  CHECK_C_CONTIG(xmom_edge_values);
-  CHECK_C_CONTIG(ymom_edge_values);
-  CHECK_C_CONTIG(bed_edge_values);
-  CHECK_C_CONTIG(height_edge_values);
-  CHECK_C_CONTIG(stage_boundary_values);
-  CHECK_C_CONTIG(xmom_boundary_values);
-  CHECK_C_CONTIG(ymom_boundary_values);
-  CHECK_C_CONTIG(boundary_flux_type);
-  CHECK_C_CONTIG(stage_explicit_update);
-  CHECK_C_CONTIG(xmom_explicit_update);
-  CHECK_C_CONTIG(ymom_explicit_update);
-  CHECK_C_CONTIG(already_computed_flux);
-  CHECK_C_CONTIG(max_speed_array);
-  CHECK_C_CONTIG(stage_centroid_values);
-  CHECK_C_CONTIG(xmom_centroid_values);
-  CHECK_C_CONTIG(ymom_centroid_values);
-  CHECK_C_CONTIG(bed_centroid_values);
-  CHECK_C_CONTIG(height_centroid_values);
-  //CHECK_C_CONTIG(bed_vertex_values);
-  CHECK_C_CONTIG(edge_flux_type);
-  CHECK_C_CONTIG(riverwall_elevation);
-  CHECK_C_CONTIG(riverwall_rowIndex);
-  CHECK_C_CONTIG(riverwall_hydraulic_properties);
-  CHECK_C_CONTIG(edge_flux_work);
-  CHECK_C_CONTIG(pressuregrad_work);
-  CHECK_C_CONTIG(edge_timestep);
-  CHECK_C_CONTIG(update_next_flux);
-  CHECK_C_CONTIG(allow_timestep_increase);
+  timestep=_compute_fluxes_central(&D,timestep);
 
-  int number_of_elements = stage_edge_values -> dimensions[0];
-
-  // Call underlying flux computation routine and update 
-  // the explicit update arrays 
-  timestep = _compute_fluxes_central(number_of_elements,
-                     timestep,
-                     epsilon,
-                     H0,
-                     g,
-                     (double*) boundary_flux_sum -> data,
-                     (long*) neighbours -> data,
-                     (long*) neighbour_edges -> data,
-                     (double*) normals -> data,
-                     (double*) edgelengths -> data, 
-                     (double*) radii -> data, 
-                     (double*) areas -> data,
-                     (long*) tri_full_flag -> data,
-                     (double*) stage_edge_values -> data,
-                     (double*) xmom_edge_values -> data,
-                     (double*) ymom_edge_values -> data,
-                     (double*) bed_edge_values -> data,
-                     (double*) height_edge_values -> data,
-                     (double*) stage_boundary_values -> data,
-                     (double*) xmom_boundary_values -> data,
-                     (double*) ymom_boundary_values -> data,
-                     (long*)   boundary_flux_type -> data,
-                     (double*) stage_explicit_update -> data,
-                     (double*) xmom_explicit_update -> data,
-                     (double*) ymom_explicit_update -> data,
-                     (long*) already_computed_flux -> data,
-                     (double*) max_speed_array -> data,
-                     optimise_dry_cells, 
-                     timestep_fluxcalls,
-                     (double*) stage_centroid_values -> data, 
-                     (double*) xmom_centroid_values -> data, 
-                     (double*) ymom_centroid_values -> data, 
-                     (double*) bed_centroid_values -> data,
-                     (double*) height_centroid_values -> data,
-                     //(double*) bed_vertex_values -> data,
-                     (long*)   edge_flux_type-> data,
-                     (double*) riverwall_elevation-> data,
-                     (long*)   riverwall_rowIndex-> data,
-                     ncol_riverwall_hydraulic_properties,
-                     (double*) riverwall_hydraulic_properties ->data, 
-                     (double*) edge_flux_work-> data,
-                     (double*) pressuregrad_work->data,
-                     (double*) edge_timestep->data,
-                     (long*) update_next_flux->data,
-                     (long*) allow_timestep_increase->data
-                     );
   // Return updated flux timestep
   return Py_BuildValue("d", timestep);
 }
@@ -2323,85 +2080,28 @@ PyObject *gravity(PyObject *self, PyObject *args) {
 }
 
 PyObject *compute_flux_update_frequency(PyObject *self, PyObject *args) {
-  /*Compute how often we should update fluxes and extrapolations (not every timestep)
-
-    python_call
-        compute_flux_update_frequency_ext(
-                self.timestep,
-                self.neighbours,
-                self.neighbour_edges,
-                self.already_computed_flux,
-                self.edge_timestep,
-                self.flux_update_frequency,
-                self.update_extrapolation,
-                self.max_flux_update_frequency,
-                self.update_next_flux)
-
-
+  /*
+    
+    Compute how often we should update fluxes and extrapolations (perhaps not every timestep)
 
   */
 
-
-  PyArrayObject *neighbours, *neighbour_edges,
-    *already_computed_flux, //Tracks whether the flux across an edge has already been computed
-    *edge_timestep,
-    *flux_update_frequency,
-    *update_extrapolation,
-    *update_next_flux,
-    *allow_timestep_increase;
+  struct domain D;
+  PyObject *domain;
+  
     
   double timestep;
   int max_flux_update_frequency;
   
-    
-  // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "dOOOOOOiOO",
-            &timestep,
-            &neighbours,
-            &neighbour_edges,
-            &already_computed_flux,
-            &edge_timestep,
-            &flux_update_frequency,
-            &update_extrapolation,
-            &max_flux_update_frequency,
-            &update_next_flux,
-            &allow_timestep_increase
-            )) {
-    report_python_error(AT, "could not parse input arguments");
-    return NULL;
+  if (!PyArg_ParseTuple(args, "Od", &domain, &timestep)) {
+      report_python_error(AT, "could not parse input arguments");
+      return NULL;
   }
+    
+  get_python_domain(&D,domain);
 
-  // check that numpy array objects arrays are C contiguous memory
-  CHECK_C_CONTIG(neighbours);
-  CHECK_C_CONTIG(neighbour_edges);
-  CHECK_C_CONTIG(already_computed_flux);
-  CHECK_C_CONTIG(edge_timestep);
-  CHECK_C_CONTIG(flux_update_frequency);
-  CHECK_C_CONTIG(update_extrapolation);
-  CHECK_C_CONTIG(update_next_flux);
-  CHECK_C_CONTIG(allow_timestep_increase);
+  _compute_flux_update_frequency(&D, timestep);
 
-  int number_of_elements = update_extrapolation -> dimensions[0];
-  // flux_update_frequency determined by rounding edge_timestep/timestep*notSoFast
-  // So notSoFast<1 might increase the number of flux calls a cell has to do, but
-  // can be useful for increasing numerical stability
-  double notSoFast=1.00;
-
-  // Call underlying flux computation routine and update 
-  // the explicit update arrays 
-  _compute_flux_update_frequency(number_of_elements,
-                                 (long*) neighbours->data,
-                                 (long*) neighbour_edges->data,
-                                 (long*) already_computed_flux->data,
-                                 max_flux_update_frequency,
-                                 (double*) edge_timestep->data,
-                                 timestep,
-                                 notSoFast,
-                                 (long*) flux_update_frequency->data,
-                                 (long*) update_extrapolation->data,
-                                 (long*) update_next_flux->data,
-                                 (long*) allow_timestep_increase->data
-                                 );
   // Return 
   return Py_BuildValue("");
 }
@@ -2411,166 +2111,28 @@ PyObject *extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
   /*Compute the edge values based on a linear reconstruction 
     on each triangle
     
-    Python call:
-    extrapolate_second_order_sw(domain.surrogate_neighbours,
-                                domain.number_of_boundaries
-                                domain.centroid_coordinates,
-                                Stage.centroid_values
-                                Xmom.centroid_values
-                                Ymom.centroid_values
-                                domain.edge_coordinates,
-                                Stage.edge_values,
-                                Xmom.edge_values,
-                                Ymom.edge_values)
-
     Post conditions:
         The edges of each triangle have values from a 
         limited linear reconstruction
         based on centroid values
 
   */
-  PyArrayObject *surrogate_neighbours,
-    *neighbour_edges,
-    *number_of_boundaries,
-    *centroid_coordinates,
-    *stage_centroid_values,
-    *xmom_centroid_values,
-    *ymom_centroid_values,
-    *elevation_centroid_values,
-    *height_centroid_values,
-    *edge_coordinates,
-    *stage_edge_values,
-    *xmom_edge_values,
-    *ymom_edge_values,
-    *elevation_edge_values,
-    *height_edge_values,
-    *stage_vertex_values,
-    *xmom_vertex_values,
-    *ymom_vertex_values,
-    *elevation_vertex_values,
-    *height_vertex_values,
-    *x_centroid_work,
-    *y_centroid_work,
-    *update_extrapolation;
-  
+ 
+  struct domain D; 
   PyObject *domain;
 
+  int e;
   
-  double beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry;    
-  double minimum_allowed_height, epsilon;
-  int optimise_dry_cells, number_of_elements, extrapolate_velocity_second_order, e, e2;
-  
-  // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOOOOOOOOOiiOOO",
-            &domain,
-            &surrogate_neighbours,
-            &neighbour_edges,
-            &number_of_boundaries,
-            &centroid_coordinates,
-            &stage_centroid_values,
-            &xmom_centroid_values,
-            &ymom_centroid_values,
-            &elevation_centroid_values,
-            &height_centroid_values,
-            &edge_coordinates,
-            &stage_edge_values,
-            &xmom_edge_values,
-            &ymom_edge_values,
-            &elevation_edge_values,
-            &height_edge_values,
-            &stage_vertex_values,
-            &xmom_vertex_values,
-            &ymom_vertex_values,
-            &elevation_vertex_values,
-            &height_vertex_values,
-            &optimise_dry_cells,
-            &extrapolate_velocity_second_order,
-            &x_centroid_work,
-            &y_centroid_work,
-            &update_extrapolation)) {         
-
-    report_python_error(AT, "could not parse input arguments");
-    return NULL;
+  if (!PyArg_ParseTuple(args, "O", &domain)) {
+      report_python_error(AT, "could not parse input arguments");
+      return NULL;
   }
-
-  // check that numpy array objects arrays are C contiguous memory
-  CHECK_C_CONTIG(surrogate_neighbours);
-  CHECK_C_CONTIG(neighbour_edges);
-  CHECK_C_CONTIG(number_of_boundaries);
-  CHECK_C_CONTIG(centroid_coordinates);
-  CHECK_C_CONTIG(stage_centroid_values);
-  CHECK_C_CONTIG(xmom_centroid_values);
-  CHECK_C_CONTIG(ymom_centroid_values);
-  CHECK_C_CONTIG(elevation_centroid_values);
-  CHECK_C_CONTIG(height_centroid_values);
-  CHECK_C_CONTIG(edge_coordinates);
-  CHECK_C_CONTIG(stage_edge_values);
-  CHECK_C_CONTIG(xmom_edge_values);
-  CHECK_C_CONTIG(ymom_edge_values);
-  CHECK_C_CONTIG(elevation_edge_values);
-  CHECK_C_CONTIG(height_edge_values);
-  CHECK_C_CONTIG(stage_vertex_values);
-  CHECK_C_CONTIG(xmom_vertex_values);
-  CHECK_C_CONTIG(ymom_vertex_values);
-  CHECK_C_CONTIG(elevation_vertex_values);
-  CHECK_C_CONTIG(height_vertex_values);
-  CHECK_C_CONTIG(x_centroid_work);
-  CHECK_C_CONTIG(y_centroid_work);
-  CHECK_C_CONTIG(update_extrapolation);
   
-  // Get the safety factor beta_w, set in the config.py file. 
-  // This is used in the limiting process
-  
+  get_python_domain(&D, domain);
 
-  beta_w                 = get_python_double(domain,"beta_w");
-  beta_w_dry             = get_python_double(domain,"beta_w_dry");
-  beta_uh                = get_python_double(domain,"beta_uh");
-  beta_uh_dry            = get_python_double(domain,"beta_uh_dry");
-  beta_vh                = get_python_double(domain,"beta_vh");
-  beta_vh_dry            = get_python_double(domain,"beta_vh_dry");  
-
-  minimum_allowed_height = get_python_double(domain,"minimum_allowed_height");
-  epsilon                = get_python_double(domain,"epsilon");
-
-  number_of_elements = stage_centroid_values -> dimensions[0];  
-
-  //printf("In C before Extrapolate");
-  //e=1;
-  // Call underlying computational routine
-  e = _extrapolate_second_order_edge_sw(number_of_elements,
-                   epsilon,
-                   minimum_allowed_height,
-                   beta_w,
-                   beta_w_dry,
-                   beta_uh,
-                   beta_uh_dry,
-                   beta_vh,
-                   beta_vh_dry,
-                   (long*) surrogate_neighbours -> data,
-                   (long*) neighbour_edges -> data,
-                   (long*) number_of_boundaries -> data,
-                   (double*) centroid_coordinates -> data,
-                   (double*) stage_centroid_values -> data,
-                   (double*) xmom_centroid_values -> data,
-                   (double*) ymom_centroid_values -> data,
-                   (double*) elevation_centroid_values -> data,
-                   (double*) height_centroid_values -> data,
-                   (double*) edge_coordinates -> data,
-                   (double*) stage_edge_values -> data,
-                   (double*) xmom_edge_values -> data,
-                   (double*) ymom_edge_values -> data,
-                   (double*) elevation_edge_values -> data,
-                   (double*) height_edge_values -> data,
-                   (double*) stage_vertex_values -> data,
-                   (double*) xmom_vertex_values -> data,
-                   (double*) ymom_vertex_values -> data,
-                   (double*) elevation_vertex_values -> data,
-                   (double*) height_vertex_values -> data,
-                   optimise_dry_cells, 
-                   extrapolate_velocity_second_order,
-                   (double*) x_centroid_work -> data,
-                   (double*) y_centroid_work -> data,
-                   (long*) update_extrapolation -> data);
+  // Call underlying flux computation routine and update
+  // the explicit update arrays
+  e = _extrapolate_second_order_edge_sw(&D);
 
   if (e == -1) {
     // Use error string set inside computational routine
@@ -2581,6 +2143,7 @@ PyObject *extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
   return Py_BuildValue("");
   
 }// extrapolate_second-order_edge_sw
+
 //========================================================================
 // Protect -- to prevent the water level from falling below the minimum 
 // bed_edge_value

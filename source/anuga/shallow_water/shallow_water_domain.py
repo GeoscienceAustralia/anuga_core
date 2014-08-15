@@ -1696,67 +1696,13 @@ class Domain(Generic_Domain):
             # Using Gareth Davies discontinuous elevation scheme
             # Flux calculation and gravity incorporated in same
             # procedure
-            # Also, fluxes are limited to prevent cells exporting more water
-            # than they contain
 
-            # FIXME SR: This needs cleaning up, should just be passing through
-            # the domain as in other compute flux calls
             from swDE1_domain_ext import compute_fluxes_ext_central \
                                       as compute_fluxes_ext
-            #if self.timestepping_method=='euler':
-            #    raise Exception, "DE1 doesn't seems to work with euler at present \
-            #                     (boundary conditions?), and is mostly designed for rk2"
-            Stage = self.quantities['stage']
-            Xmom = self.quantities['xmomentum']
-            Ymom = self.quantities['ymomentum']
-            Bed = self.quantities['elevation']
-            height = self.quantities['height']
 
             timestep = self.evolve_max_timestep 
 
-            flux_timestep = compute_fluxes_ext(timestep,
-                                               self.epsilon,
-                                               self.minimum_allowed_height,
-                                               self.g,
-                                               self.boundary_flux_sum,
-                                               self.neighbours,
-                                               self.neighbour_edges,
-                                               self.normals,
-                                               self.edgelengths,
-                                               self.radii,
-                                               self.areas,
-                                               self.tri_full_flag,
-                                               Stage.edge_values,
-                                               Xmom.edge_values,
-                                               Ymom.edge_values,
-                                               Bed.edge_values,
-                                               height.edge_values,
-                                               Stage.boundary_values,
-                                               Xmom.boundary_values,
-                                               Ymom.boundary_values,
-                                               self.boundary_flux_type,
-                                               Stage.explicit_update,
-                                               Xmom.explicit_update,
-                                               Ymom.explicit_update,
-                                               self.already_computed_flux,
-                                               self.max_speed,
-                                               int(self.optimise_dry_cells),
-                                               self.timestep_fluxcalls,
-                                               Stage.centroid_values,
-                                               Xmom.centroid_values,
-                                               Ymom.centroid_values,
-                                               Bed.centroid_values, 
-                                               height.centroid_values,
-                                               self.edge_flux_type,
-                                               self.riverwallData.riverwall_elevation,
-                                               self.riverwallData.hydraulic_properties_rowIndex,
-                                               int(self.riverwallData.ncol_hydraulic_properties),
-                                               self.riverwallData.hydraulic_properties,
-                                               self.edge_flux_work,
-                                               self.pressuregrad_work,
-                                               self.edge_timestep,
-                                               self.update_next_flux,
-                                               self.allow_timestep_increase)
+            flux_timestep = compute_fluxes_ext(self, timestep)
 
             self.flux_timestep = flux_timestep
 
@@ -1833,39 +1779,8 @@ class Domain(Generic_Domain):
             self.protect_against_infinitesimal_and_negative_heights()
             # Do extrapolation step
             from swDE1_domain_ext import extrapolate_second_order_edge_sw as extrapol2
+            extrapol2(self)
 
-            Stage = self.quantities['stage']
-            Xmom = self.quantities['xmomentum']
-            Ymom = self.quantities['ymomentum']
-            Elevation = self.quantities['elevation']
-            height=self.quantities['height']
-
-            extrapol2(self,
-                      self.surrogate_neighbours,
-                      self.neighbour_edges,
-                      self.number_of_boundaries,
-                      self.centroid_coordinates,
-                      Stage.centroid_values,
-                      Xmom.centroid_values,
-                      Ymom.centroid_values,
-                      Elevation.centroid_values,
-                      height.centroid_values,
-                      self.edge_coordinates,
-                      Stage.edge_values,
-                      Xmom.edge_values,
-                      Ymom.edge_values,
-                      Elevation.edge_values,
-                      height.edge_values,
-                      Stage.vertex_values,
-                      Xmom.vertex_values,
-                      Ymom.vertex_values,
-                      Elevation.vertex_values,
-                      height.vertex_values,
-                      int(self.optimise_dry_cells),
-                      int(self.extrapolate_velocity_second_order),
-                      self.x_centroid_work,
-                      self.y_centroid_work,
-                      self.update_extrapolation)
         else:
             # Code for original method
             if self.use_edge_limiter:
@@ -2632,17 +2547,7 @@ class Domain(Generic_Domain):
         from swDE1_domain_ext import compute_flux_update_frequency \
                                   as compute_flux_update_frequency_ext
 
-        compute_flux_update_frequency_ext(
-                self.timestep,
-                self.neighbours,
-                self.neighbour_edges,
-                self.already_computed_flux,
-                self.edge_timestep,
-                self.flux_update_frequency,
-                self.update_extrapolation,
-                self.max_flux_update_frequency,
-                self.update_next_flux,
-                self.allow_timestep_increase)
+        compute_flux_update_frequency_ext(self, self.timestep)
         
     def report_water_volume_statistics(self, verbose=True, returnStats=False):
         """

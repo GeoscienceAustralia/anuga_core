@@ -20,6 +20,8 @@ struct domain {
     long    extrapolate_velocity_second_order;
     double  minimum_allowed_height;
 
+    long timestep_fluxcalls;
+
     double beta_w;
     double beta_w_dry;
     double beta_uh;
@@ -27,6 +29,8 @@ struct domain {
     double beta_vh;
     double beta_vh_dry;
 
+    long max_flux_update_frequency;
+    long ncol_riverwall_hydraulic_properties;
 
     // Changing values in these arrays will change the values in the python object
     long*   neighbours;
@@ -37,7 +41,7 @@ struct domain {
     double* radii;
     double* areas;
 
-
+    long* edge_flux_type;
 
     long*   tri_full_flag;
     long*   already_computed_flux;
@@ -52,16 +56,19 @@ struct domain {
     double* xmom_edge_values;
     double* ymom_edge_values;
     double* bed_edge_values;
+    double* height_edge_values;
 
     double* stage_centroid_values;
     double* xmom_centroid_values;
     double* ymom_centroid_values;
     double* bed_centroid_values;
+    double* height_centroid_values;
 
     double* stage_vertex_values;
     double* xmom_vertex_values;
     double* ymom_vertex_values;
     double* bed_vertex_values;
+    double* height_vertex_values;
 
 
     double* stage_boundary_values;
@@ -72,6 +79,22 @@ struct domain {
     double* stage_explicit_update;
     double* xmom_explicit_update;
     double* ymom_explicit_update;
+
+    long* flux_update_frequency;    
+    long* update_next_flux;
+    long* update_extrapolation;
+    double* edge_timestep;
+    double* edge_flux_work;
+    double* pressuregrad_work;
+    double* x_centroid_work;
+    double* y_centroid_work;
+    double* boundary_flux_sum;
+
+    long* allow_timestep_increase;
+
+    double* riverwall_elevation;
+    long* riverwall_rowIndex;
+    double* riverwall_hydraulic_properties;
 };
 
 
@@ -151,6 +174,7 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
             *edgelengths,
             *radii,
             *areas,
+            *edge_flux_type,
             *tri_full_flag,
             *already_computed_flux,
             *vertex_coordinates,
@@ -158,9 +182,23 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
             *centroid_coordinates,
             *number_of_boundaries,
             *surrogate_neighbours,
-            *max_speed;
+            *max_speed,
+            *flux_update_frequency,
+            *update_next_flux,
+            *update_extrapolation,
+            *allow_timestep_increase,
+            *edge_timestep,
+            *edge_flux_work,
+            *pressuregrad_work,
+            *x_centroid_work,
+            *y_centroid_work,
+            *boundary_flux_sum,
+            *riverwall_elevation,
+            *riverwall_rowIndex,
+            *riverwall_hydraulic_properties;
 
     PyObject *quantities;
+    PyObject *riverwallData;
 
     D->number_of_elements   = get_python_integer(domain, "number_of_elements");
     D->epsilon              = get_python_double(domain, "epsilon");
@@ -169,6 +207,8 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     D->optimise_dry_cells   = get_python_integer(domain, "optimise_dry_cells");
     D->evolve_max_timestep  = get_python_double(domain, "evolve_max_timestep");
     D->minimum_allowed_height = get_python_double(domain, "minimum_allowed_height");
+    D->timestep_fluxcalls = get_python_integer(domain,"timestep_fluxcalls");
+    
 
     D->extrapolate_velocity_second_order  = get_python_integer(domain, "extrapolate_velocity_second_order");
 
@@ -179,7 +219,7 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     D->beta_vh     = get_python_double(domain, "beta_vh");
     D->beta_vh_dry = get_python_double(domain, "beta_vh_dry");
 
-
+    D->max_flux_update_frequency = get_python_integer(domain,"max_flux_update_frequency");
     
     neighbours = get_consecutive_array(domain, "neighbours");
     D->neighbours = (long *) neighbours->data;
@@ -201,6 +241,10 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
 
     areas = get_consecutive_array(domain, "areas");
     D->areas = (double *) areas->data;
+
+    edge_flux_type = get_consecutive_array(domain, "edge_flux_type");
+    D->edge_flux_type = (long *) edge_flux_type->data;
+
 
     tri_full_flag = get_consecutive_array(domain, "tri_full_flag");
     D->tri_full_flag = (long *) tri_full_flag->data;
@@ -224,7 +268,35 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     number_of_boundaries = get_consecutive_array(domain, "number_of_boundaries");
     D->number_of_boundaries = (long *) number_of_boundaries->data;
 
+    flux_update_frequency = get_consecutive_array(domain, "flux_update_frequency");
+    D->flux_update_frequency = (long*) flux_update_frequency->data;
+    
+    update_next_flux = get_consecutive_array(domain, "update_next_flux");
+    D->update_next_flux = (long*) update_next_flux->data;
+    
+    update_extrapolation = get_consecutive_array(domain, "update_extrapolation");
+    D->update_extrapolation = (long*) update_extrapolation->data;
+    
+    allow_timestep_increase = get_consecutive_array(domain, "allow_timestep_increase");
+    D->allow_timestep_increase = (long*) allow_timestep_increase->data;
 
+    edge_timestep = get_consecutive_array(domain, "edge_timestep");
+    D->edge_timestep = (double*) edge_timestep->data;
+    
+    edge_flux_work = get_consecutive_array(domain, "edge_flux_work");
+    D->edge_flux_work = (double*) edge_flux_work->data;
+    
+    pressuregrad_work = get_consecutive_array(domain, "pressuregrad_work");
+    D->pressuregrad_work = (double*) pressuregrad_work->data;
+    
+    x_centroid_work = get_consecutive_array(domain, "x_centroid_work");
+    D->x_centroid_work = (double*) x_centroid_work->data;
+
+    y_centroid_work = get_consecutive_array(domain, "y_centroid_work");
+    D->y_centroid_work = (double*) y_centroid_work->data;
+    
+    boundary_flux_sum = get_consecutive_array(domain, "boundary_flux_sum");
+    D->boundary_flux_sum = (double*) boundary_flux_sum->data;
 
     quantities = get_python_object(domain, "quantities");
 
@@ -232,16 +304,19 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     D->xmom_edge_values      = get_python_array_data_from_dict(quantities, "xmomentum", "edge_values");
     D->ymom_edge_values      = get_python_array_data_from_dict(quantities, "ymomentum", "edge_values");
     D->bed_edge_values       = get_python_array_data_from_dict(quantities, "elevation", "edge_values");
+    D->height_edge_values    = get_python_array_data_from_dict(quantities, "height", "edge_values");
 
     D->stage_centroid_values     = get_python_array_data_from_dict(quantities, "stage",     "centroid_values");
     D->xmom_centroid_values      = get_python_array_data_from_dict(quantities, "xmomentum", "centroid_values");
     D->ymom_centroid_values      = get_python_array_data_from_dict(quantities, "ymomentum", "centroid_values");
     D->bed_centroid_values       = get_python_array_data_from_dict(quantities, "elevation", "centroid_values");
+    D->height_centroid_values    = get_python_array_data_from_dict(quantities, "height", "centroid_values");
 
     D->stage_vertex_values     = get_python_array_data_from_dict(quantities, "stage",     "vertex_values");
     D->xmom_vertex_values      = get_python_array_data_from_dict(quantities, "xmomentum", "vertex_values");
     D->ymom_vertex_values      = get_python_array_data_from_dict(quantities, "ymomentum", "vertex_values");
     D->bed_vertex_values       = get_python_array_data_from_dict(quantities, "elevation", "vertex_values");
+    D->height_vertex_values       = get_python_array_data_from_dict(quantities, "height", "vertex_values");
 
     D->stage_boundary_values = get_python_array_data_from_dict(quantities, "stage",     "boundary_values");
     D->xmom_boundary_values  = get_python_array_data_from_dict(quantities, "xmomentum", "boundary_values");
@@ -253,7 +328,21 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     D->ymom_explicit_update  = get_python_array_data_from_dict(quantities, "ymomentum", "explicit_update");
 
 
+    riverwallData = get_python_object(domain,"riverwallData");
+
+    riverwall_elevation = get_consecutive_array(riverwallData, "riverwall_elevation");
+    D->riverwall_elevation = (double*) riverwall_elevation->data;
+    
+    riverwall_rowIndex = get_consecutive_array(riverwallData, "hydraulic_properties_rowIndex");
+    D->riverwall_rowIndex = (long*) riverwall_rowIndex->data;
+
+    D->ncol_riverwall_hydraulic_properties = get_python_integer(riverwallData, "ncol_hydraulic_properties");
+
+    riverwall_hydraulic_properties = get_consecutive_array(riverwallData, "hydraulic_properties");
+    D->riverwall_hydraulic_properties = (double*) riverwall_hydraulic_properties->data;
+
     Py_DECREF(quantities);
+    Py_DECREF(riverwallData);
 
     Py_DECREF(neighbours);
     Py_DECREF(surrogate_neighbours);
@@ -262,6 +351,7 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     Py_DECREF(edgelengths);
     Py_DECREF(radii);
     Py_DECREF(areas);
+    Py_DECREF(edge_flux_type);
     Py_DECREF(tri_full_flag);
     Py_DECREF(already_computed_flux);
     Py_DECREF(vertex_coordinates);
@@ -269,6 +359,16 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     Py_DECREF(centroid_coordinates);
     Py_DECREF(max_speed);
     Py_DECREF(number_of_boundaries);
+    Py_DECREF(flux_update_frequency);
+    Py_DECREF(update_next_flux);
+    Py_DECREF(update_extrapolation);
+    Py_DECREF(edge_timestep);
+    Py_DECREF(edge_flux_work);
+    Py_DECREF(pressuregrad_work);
+    Py_DECREF(x_centroid_work);
+    Py_DECREF(y_centroid_work);
+    Py_DECREF(boundary_flux_sum);
+    Py_DECREF(allow_timestep_increase);
 
     return D;
 }
@@ -321,6 +421,7 @@ int print_domain_struct(struct domain *D) {
     printf("D->xmom_vertex_values     %p \n", D->xmom_vertex_values);
     printf("D->ymom_vertex_values     %p \n", D->ymom_vertex_values);
     printf("D->bed_vertex_values      %p \n", D->bed_vertex_values);
+    printf("D->height_vertex_values      %p \n", D->height_vertex_values);
     printf("D->stage_boundary_values  %p \n", D->stage_boundary_values);
     printf("D->xmom_boundary_values   %p \n", D->xmom_boundary_values);
     printf("D->ymom_boundary_values   %p \n", D->ymom_boundary_values);
