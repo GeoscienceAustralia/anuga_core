@@ -23,15 +23,17 @@ class collect_max_quantities_operator(Operator):
 
     Maxima are updated every update_frequency timesteps [any integer >=1 is
     ok], after t exceeds collection_start_time.
+   
+    In theory this might save time (??), since computing e.g. velocity/momentum etc in python might be expensive
     
-
-    This can save time, since computing e.g. velocity/momentum etc in python might be expensive
+    Optionally velocities can be zeroed below velocity_zero_height (defaults to minimum_allowed_height if not required) 
     """
 
     def __init__(self,
                  domain,
                  update_frequency=1,
                  collection_start_time=0.,
+                 velocity_zero_height=None,
                  description = None,
                  label = None,
                  logging = False,
@@ -67,6 +69,18 @@ class collect_max_quantities_operator(Operator):
         self.update_frequency=update_frequency
         self.collection_start_time = collection_start_time
 
+        #------------------------------------------
+        # Can (rarely) get high velocities being recorded
+        # (e.g. in 3 cells out of 170000 for a 48 hour simulation,
+        #  which are not persistent -- probably just spikes from nearly dry cells)
+        # Try to remove this by zeroing velocity in very shallow cells
+        #------------------------------------------
+        if velocity_zero_height is not None:
+            self.velocity_zero_height=velocity_zero_height
+        else:
+            self.velocity_zero_height=domain.minimum_allowed_height
+
+
     def __call__(self):
         """
         Calculate max_quantities at every 'update_frequency' timesteps once time > collection_start_time
@@ -86,7 +100,7 @@ class collect_max_quantities_operator(Operator):
                 self.max_depth = num.maximum(self.max_depth,localDepth)
 
                 #velMax=(momNorm/(localDepth+velocity_protection/localDepth))*(localDepth>self.domain.minimum_allowed_height)
-                velMax=(momNorm/localDepth)*(localDepth>self.domain.minimum_allowed_height)
+                velMax=(momNorm/localDepth)*(localDepth>self.velocity_zero_height)
                 self.max_speed = num.maximum(self.max_speed, velMax)
 
                 self.counter=0
