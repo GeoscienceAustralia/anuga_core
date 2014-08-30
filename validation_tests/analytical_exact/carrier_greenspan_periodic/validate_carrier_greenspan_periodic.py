@@ -120,7 +120,7 @@ class Test_results(unittest.TestCase):
             assert ew[i] < 0.01,  'L^1 error %g greater than 1 percent'% ew[i]
 
         for i, id in enumerate(ids):
-            assert euh[i] < 0.02,  'L^1 error %g greater than 2 percent'% euh[i]
+            assert euh[i] < 0.025,  'L^1 error %g greater than 2.5 percent'% euh[i]
  
         for i, id in enumerate(ids):
             assert eu[i] < 0.1,  'L^1 error %g greater than 10 percent'% eu[i]
