@@ -71,6 +71,7 @@ from anuga.utilities.system_tools import file_length
 from anuga.utilities.sww_merge import sww_merge_parallel as sww_merge
 from anuga.utilities.file_utils import copy_code_files
 from anuga.utilities.numerical_tools import safe_acos as acos
+import anuga.utilities.plot_utils as plot_utils
 
 
 from anuga.caching import cache

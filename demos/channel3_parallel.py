@@ -8,7 +8,7 @@ Water flowing down a channel with more complex topography
 #------------------------------------------------------------------------------
 import anuga
 
-import anuga_parallel
+#import anuga_parallel
 
 
 #------------------------------------------------------------------------------
@@ -45,11 +45,12 @@ width = 5.
 dx = dy = .1           # Resolution: Length of subdivisions on both axes
 
 
-if anuga_parallel.myid == 0:
+if anuga.myid == 0:
     points, vertices, boundary = anuga.rectangular_cross(int(length/dx),
                                          int(width/dy), len1=length, len2=width)
     domain = anuga.Domain(points, vertices, boundary)
     domain.set_name('channel3')                  # Output name
+    domain.set_flow_algorithm('DE0')
     print domain.statistics()
 
 
@@ -63,8 +64,8 @@ else:
 #------------------------------------------------------------------------------
 # Distribute domain on processor 0 to to other processors
 #------------------------------------------------------------------------------
-parameters = dict(ghost_layer_width=3)
-domain = anuga_parallel.distribute(domain, verbose= True, parameters=parameters)
+#parameters = dict(ghost_layer_width=3)
+domain = anuga.distribute(domain, verbose= True)
 
 
 #------------------------------------------------------------------------------
@@ -80,7 +81,7 @@ domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 # Evolve system through time
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep=0.1, finaltime=16.0):
-    if anuga_parallel.myid == 0:
+    if anuga.myid == 0:
         print domain.timestepping_statistics()
 
 
@@ -92,5 +93,5 @@ for t in domain.evolve(yieldstep=0.1, finaltime=16.0):
 
 domain.sww_merge(verbose=True)
 
-anuga_parallel.finalize()
+anuga.finalize()
         

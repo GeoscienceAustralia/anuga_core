@@ -41,8 +41,9 @@ from exposure import Exposure
 from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.geospatial_data.geospatial_data import ensure_absolute
 from anuga.utilities.numerical_tools import NAN
+from anuga.config import epsilon
 import anuga.utilities.log as log
-from config import epsilon
+
 depth_epsilon = epsilon
 
 # Change these if the ouput from nexix changes

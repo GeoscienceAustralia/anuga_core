@@ -3,13 +3,13 @@
 
     Functionality of note:
 
-    util.get_outputs -- read the data from a single sww file
+    plot_utils.get_outputs -- read the data from a single sww file
     into a single object
     
-    util.combine_outputs -- read the data from a list of sww
+    plot_utils.combine_outputs -- read the data from a list of sww
     files into a single object
     
-    util.near_transect -- for finding the indices of points
+    plot_utils.near_transect -- for finding the indices of points
                           'near' to a given line, and
                           assigning these points a
                           coordinate along that line.
@@ -17,27 +17,27 @@
     This is useful for plotting outputs which are 'almost' along a
     transect (e.g. a channel cross-section) -- see example below
 
-    util.sort_sww_filenames -- match sww filenames by a wildcard, and order
+    plot_utils.sort_sww_filenames -- match sww filenames by a wildcard, and order
                                them according to their 'time'. This means that
                                they can be stuck together using
                                'combine_outputs' correctly
 
-    util.triangle_areas -- compute the areas of every triangle
+    plot_utils.triangle_areas -- compute the areas of every triangle
                            in a get_outputs object [ must be vertex-based]
 
-    util.water_volume -- compute the water volume at every
+    plot_utils.water_volume -- compute the water volume at every
                          time step in an sww file (needs both
                          vertex and centroid value input). 
 
-    util.Make_Geotiff -- convert sww centroids to a georeferenced tiff
+    plot_utils.Make_Geotif -- convert sww centroids to a georeferenced tiff
  
     Here is an example ipython session which uses some of these functions:
 
-    > import util
+    > from anuga import plot_utils
     > from matplotlib import pyplot as pyplot
-    > p=util.get_output('myfile.sww',minimum_allowed_height=0.01)
-    > p2=util.get_centroids(p,velocity_extrapolation=True)
-    > xxx=util.near_transect(p,[95., 85.], [120.,68.],tol=2.) # Could equally well use p2
+    > p=plot_utils.get_output('myfile.sww',minimum_allowed_height=0.01)
+    > p2=plot_utils.get_centroids(p,velocity_extrapolation=True)
+    > xxx=plot_utils.near_transect(p,[95., 85.], [120.,68.],tol=2.) # Could equally well use p2
     > pyplot.ion() # Interactive plotting
     > pyplot.scatter(xxx[1],p.vel[140,xxx[0]],color='red') # Plot along the transect
 
@@ -142,7 +142,7 @@ def sort_sww_filenames(sww_wildcard):
 class get_output:
     """Read in data from an .sww file in a convenient form
        e.g. 
-        p = util.get_output('channel3.sww', minimum_allowed_height=0.01)
+        p = plot_utils.get_output('channel3.sww', minimum_allowed_height=0.01)
         
        p then contains most relevant information as e.g., p.stage, p.elev, p.xmom, etc 
     """
@@ -152,7 +152,7 @@ class get_output:
                 self.height, self.elev, self.friction, self.xmom, self.ymom, \
                 self.xvel, self.yvel, self.vel, self.minimum_allowed_height,\
                 self.xllcorner, self.yllcorner, self.timeSlices = \
-                read_output(filename, minimum_allowed_height,copy.copy(timeSlices))
+                _read_output(filename, minimum_allowed_height,copy.copy(timeSlices))
         self.filename = filename
         self.verbose = verbose
 
@@ -196,7 +196,7 @@ def getInds(varIn, timeSlices, absMax=False):
 
 ############################################################################
 
-def read_output(filename, minimum_allowed_height, timeSlices):
+def _read_output(filename, minimum_allowed_height, timeSlices):
     """
      Purpose: To read the sww file, and output a number of variables as arrays that 
               we can then e.g. plot, interrogate 
@@ -313,15 +313,15 @@ class get_centroids:
     """
     Extract centroid values from the output of get_output, OR from a
         filename  
-    See read_output or get_centroid_values for further explanation of
+    See _read_output or _get_centroid_values for further explanation of
         arguments
     e.g.
         # Case 1 -- get vertex values first, then centroids
-        p = util.get_output('my_sww.sww', minimum_allowed_height=0.01) 
+        p = plot_utils.get_output('my_sww.sww', minimum_allowed_height=0.01) 
         pc=util.get_centroids(p, velocity_extrapolation=True) 
 
         # Case 2 -- get centroids directly
-        pc=util.get_centroids('my_sww.sww', velocity_extrapolation=True) 
+        pc=plot_utils.get_centroids('my_sww.sww', velocity_extrapolation=True) 
 
     NOTE: elevation is only stored once in the output, even if it was
           stored every timestep.
@@ -336,13 +336,13 @@ class get_centroids:
         self.time, self.x, self.y, self.stage, self.xmom,\
              self.ymom, self.height, self.elev, self.friction, self.xvel,\
              self.yvel, self.vel, self.xllcorner, self.yllcorner, self.timeSlices= \
-             get_centroid_values(p, velocity_extrapolation,\
+             _get_centroid_values(p, velocity_extrapolation,\
                          timeSlices=copy.copy(timeSlices),\
                          minimum_allowed_height=minimum_allowed_height,\
                          verbose=verbose)
                                  
 
-def get_centroid_values(p, velocity_extrapolation, verbose, timeSlices, 
+def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices, 
                         minimum_allowed_height):
     """
     Function to get centroid information -- main interface is through 
@@ -362,9 +362,9 @@ def get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
             and centroid velocities from centroid momenta
     
            timeSlices = list of integer indices when we want output for, or
-                        'all' or 'last' or 'max'. See read_output
+                        'all' or 'last' or 'max'. See _read_output
     
-           minimum_allowed_height = height at which velocities are zeroed. See read_output
+           minimum_allowed_height = height at which velocities are zeroed. See _read_output
     
      Output: Values of x, y, Stage, xmom, ymom, elev, xvel, yvel, vel etc at centroids
     """
@@ -819,7 +819,7 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None):
 
 def Make_Geotif(swwFile=None, 
              output_quantities=['depth'],
-             myTimeStep=0, CellSize=5.0, 
+             myTimeStep=0, CellSize=100.0, 
              lower_left=None, upper_right=None,
              EPSG_CODE=None, 
              proj4string=None,
