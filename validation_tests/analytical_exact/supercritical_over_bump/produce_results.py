@@ -3,6 +3,6 @@ from anuga.validation_utilities import produce_report
 
 args = anuga.get_args()
 
-produce_report('numerical_subcritical.py', args=args)
+produce_report('numerical_supercritical.py', args=args)
 
 

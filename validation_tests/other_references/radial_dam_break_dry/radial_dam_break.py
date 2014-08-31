@@ -11,52 +11,14 @@ import sys
 import anuga
 from math import cos
 from numpy import zeros, float
-from time import localtime, strftime, gmtime
-from anuga.geometry.polygon import inside_polygon, is_inside_triangle
-
-
-#-------------------------------------------------------------------------------
-# Copy scripts to time stamped output directory and capture screen
-# output to file
-#-------------------------------------------------------------------------------
-time = strftime('%Y%m%d_%H%M%S',localtime())
-
-output_dir = '.'#'radial_dam_break_'+time
-output_file = 'radial_dam_break'
-
-#anuga.copy_code_files(output_dir,__file__)
-#start_screen_catcher(output_dir+'_')
-
 
 #------------------------------------------------------------------------------
-# Setup domain
+# Setup parameters and utilitiy functions
 #------------------------------------------------------------------------------
 dx = 1.
 dy = dx
 L = 200.
 W = L
-
-# structured mesh
-points, vertices, boundary = anuga.rectangular_cross(int(L/dx), int(W/dy), L, W, (-L/2.0, -W/2.0))
-domain = anuga.Domain(points, vertices, boundary)
-domain.set_name(output_file)                
-domain.set_datadir(output_dir)  
-
-#------------------------------------------------------------------------------
-# Setup Algorithm, either using command line arguments
-# or override manually yourself
-#------------------------------------------------------------------------------
-from anuga.utilities.argparsing import parse_standard_args
-alg, cfl = parse_standard_args()
-domain.set_flow_algorithm(alg)
-#domain.set_CFL(cfl)
-#domain.set_minimum_allowed_height(0.002)
-
-#------------------------------------------------------------------------------
-# Setup initial conditions
-#------------------------------------------------------------------------------
-domain.set_quantity('elevation',0.0)
-domain.set_quantity('friction', 0.0)
 
 h0 = 10.0
 h1 = 0.0
@@ -74,7 +36,35 @@ def height(x,y):
             z[i] = h1
     return z
 
-domain.set_quantity('stage', height)
+#-------------------------------------------------------------------------
+# setup sequential domain
+#-------------------------------------------------------------------------
+if anuga.myid == 0:
+    
+    points, vertices, boundary = anuga.rectangular_cross(int(L/dx), int(W/dy), L, W, (-L/2.0, -W/2.0))
+    domain = anuga.Domain(points, vertices, boundary)
+    domain.set_name('radial_dam_break')                
+
+
+    #-------------------------------------------------------------------------
+    # Setup Algorithm, either using command line arguments
+    # or override manually yourself
+    #--------------------------------------------------------------------------
+    args = anuga.get_args()
+    alg = args.alg
+    verbose = args.verbose
+    domain.set_flow_algorithm(alg)
+
+    #-------------------------------------------------------------------------
+    # Setup initial conditions
+    #-------------------------------------------------------------------------
+    domain.set_quantity('elevation',0.0)
+    domain.set_quantity('friction', 0.0)
+    domain.set_quantity('stage', height)
+else:
+    domain = None
+
+domain = anuga.distribute(domain)
 
 #-----------------------------------------------------------------------------
 # Setup boundary conditions
@@ -84,46 +74,19 @@ Br = anuga.Reflective_boundary(domain)      # Solid reflective wall
 # Associate boundary tags with boundary objects
 domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
-
-#===============================================================================
-##from anuga.visualiser import RealtimeVisualiser
-##vis = RealtimeVisualiser(domain)
-##vis.render_quantity_height("stage", zScale =h0, dynamic=True)
-##vis.colour_height_quantity('stage', (0.0, 0.5, 1.0))
-##vis.start()
-#===============================================================================
-
-#---------------------------------------------
-# Find triangle that contains the point Point
-# and print to file
-#---------------------------------------------
-##Point = (0.0, 0.0)
-##for n in range(len(domain.triangles)):
-##    tri = domain.get_vertex_coordinates(n)
-##    if is_inside_triangle(Point,tri):
-##        #print 'Point is within triangle with vertices '+'%s'%tri
-##        n_point = n
-##        break
-##print 'The triangle ID containing the point of origin is = ',n_point
-
-
-#------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 # Produce a documentation of parameters
-#------------------------------------------------------------------------------
-parameter_file=open('parameters.tex', 'w')
-parameter_file.write('\\begin{verbatim}\n')
-from pprint import pprint
-pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
-parameter_file.write('\\end{verbatim}\n')
-parameter_file.close()
+#-------------------------------------------------------------------------
+from anuga.validation_utilities import save_parameters_tex
+save_parameters_tex(domain)
 
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep = 0.1, finaltime = 2.0):
-    #print domain.timestepping_statistics(track_speeds=True)
-    print domain.timestepping_statistics()
-    #vis.update()
-##test against know data   
-##vis.evolveFinished()
+     if anuga.myid == 0 and verbose:
+         print domain.timestepping_statistics()
 
+domain.sww_merge(delete_old=True)
+
+anuga.finalize()

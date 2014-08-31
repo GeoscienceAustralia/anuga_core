@@ -72,7 +72,6 @@ if myid == 0:
     # or override manually yourself
     #------------------------------------------------------------------------------
     domain.set_flow_algorithm(alg)
-    #domain.set_CFL(cfl)
 
     #------------------------------------------------------------------------------
     # Setup initial conditions
@@ -99,27 +98,11 @@ Bd = anuga.Dirichlet_boundary([1,0.,0.]) # Constant boundary values
 domain.set_boundary({'left': Bt, 'right': Bt, 'top': Br, 'bottom': Br})
 
 
-#===============================================================================
-##from anuga.visualiser import RealtimeVisualiser
-##vis = RealtimeVisualiser(domain)
-##vis.render_quantity_height("stage", zScale =h0*500, dynamic=True)
-##vis.colour_height_quantity('stage', (0.0, 0.5, 1.0))
-##vis.start()
-#===============================================================================
-
-
-
-if myid == 0:
-    #------------------------------------------------------------------------------
-    # Produce a documentation of parameters
-    #------------------------------------------------------------------------------
-    parameter_file=open('parameters.tex', 'w')
-    parameter_file.write('\\begin{verbatim}\n')
-    from pprint import pprint
-    pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
-    parameter_file.write('\\end{verbatim}\n')
-    parameter_file.close()
-    
+#-------------------------------------------------------------------------
+# Produce a documentation of parameters
+#-------------------------------------------------------------------------
+from anuga.validation_utilities import save_parameters_tex
+save_parameters_tex(domain)
 
 #===================================================================================
 # Evolve system through time

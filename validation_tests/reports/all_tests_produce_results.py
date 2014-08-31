@@ -66,7 +66,10 @@ try:
 except ValueError:
     pass
 
-
+try:
+    Upper_dirs.remove('case_studies')
+except ValueError:
+    pass
 
 #print Upper_dirs
 #os.chdir('./Tests')
@@ -128,18 +131,11 @@ print 'That took ' + str(time_total) + ' secs'
 print 72*'='
 
 
-
 # go back to reports directory to typeset report
 os.chdir('reports')
 
-from anuga.validation_utilities.fabricate import *
 
-os.system('python all_test_typeset_report.py')
-
-#cmd = 'pdflatex -shell-escape -interaction=batchmode report.tex'
-#print cmd
-#import subprocess
-#subprocess.call([cmd], shell=True)
+os.system('python all_tests_typeset_report.py')
 
 import subprocess
 cmd = 'mv all_tests_report.pdf all_tests_report_cfl_%s_alg_%s.pdf' % (str(cfl), str(alg))

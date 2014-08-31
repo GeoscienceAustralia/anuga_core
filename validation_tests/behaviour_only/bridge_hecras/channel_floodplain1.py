@@ -7,14 +7,10 @@ Water flowing down a channel with a floodplain and a bridge
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
-# Import standard shallow water domain and standard boundaries.
 import anuga
 import numpy
-#from anuga_parallel.parallel_operator_factory import Inlet_operator, Boyd_box_operator
-from anuga_parallel.parallel_operator_factory import Inlet_operator, Boyd_box_operator
-from anuga_parallel import distribute, myid, numprocs, finalize, barrier
-
-from anuga import myid, finalize, distribute, barrier
+from anuga import Inlet_operator, Boyd_box_operator
+from anuga import distribute, myid, numprocs, finalize, barrier
 
 args = anuga.get_args()
 alg = args.alg
@@ -225,33 +221,18 @@ domain.set_boundary({'left': Br,
 #------------------------------------------------------------------------------
 # Produce a documentation of parameters
 #------------------------------------------------------------------------------
-if myid == 0:
-    parameter_file=open('parameters.tex', 'w')
-    parameter_file.write('\\begin{verbatim}\n')
-    from pprint import pprint
-    pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
-    parameter_file.write('\\end{verbatim}\n')
-    parameter_file.close()
+from anuga.validation_utilities import save_parameters_tex
+save_parameters_tex(domain)
 
 #------------------------------------------------------------------------------
 #
 # Evolve system through time
 #
 #------------------------------------------------------------------------------
-
-barrier()
-
 for t in domain.evolve(yieldstep=10.0, finaltime=dtQdata*(len(Qdata)-2)):
     if(myid==0 & verbose):
         print domain.timestepping_statistics()
 
-barrier()
+doamin.sww_merge(delete_old=True)
 
-# Run sww merge
-if( (myid==0) & (numprocs>1)):
-    print 'Merging sww files: ', numprocs, myid
-    #os.chdir(project.output_run)
-    anuga.utilities.sww_merge.sww_merge_parallel('channel_floodplain1',np=numprocs,verbose=True,delete_old=True)
-
-barrier()
 finalize()

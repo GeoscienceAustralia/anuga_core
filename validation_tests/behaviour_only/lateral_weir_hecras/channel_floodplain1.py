@@ -8,11 +8,8 @@
 # Import standard shallow water domain and standard boundaries.
 import anuga
 import numpy
-#from anuga_parallel.parallel_operator_factory import Inlet_operator, Boyd_box_operator
-from anuga_parallel.parallel_operator_factory import Inlet_operator, Boyd_box_operator
-from anuga_parallel import distribute, myid, numprocs, finalize, barrier
-
-from anuga import myid, finalize, distribute, barrier
+from anuga import Inlet_operator, Boyd_box_operator
+from anuga import distribute, myid, numprocs, finalize, barrier
 
 args = anuga.get_args()
 alg = args.alg
@@ -193,7 +190,7 @@ def outflow_stage_boundary(t):
     return -floodplain_length*floodplain_slope \
             + chan_initial_depth - chan_bankfull_depth+0.2
 
-Bout_tmss = anuga.shallow_water.boundaries.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, function = outflow_stage_boundary) 
+Bout_tmss = anuga.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, function = outflow_stage_boundary) 
 
 domain.set_boundary({'left': Br, 
                      'right': Br, 
@@ -207,13 +204,8 @@ domain.set_boundary({'left': Br,
 #------------------------------------------------------------------------------
 # Produce a documentation of parameters
 #------------------------------------------------------------------------------
-if myid == 0:
-    parameter_file=open('parameters.tex', 'w')
-    parameter_file.write('\\begin{verbatim}\n')
-    from pprint import pprint
-    pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
-    parameter_file.write('\\end{verbatim}\n')
-    parameter_file.close()
+from anuga.validation_utilities import save_parameters_tex
+save_parameters_tex(domain)
 
 #------------------------------------------------------------------------------
 #
@@ -226,19 +218,13 @@ barrier()
 for t in domain.evolve(yieldstep=60.0, finaltime=dtQdata*(len(Qdata)-2)):
     if(myid==0 & verbose):
         print domain.timestepping_statistics()
-        xx=domain.quantities['ymomentum'].centroid_values
-        dd=(domain.quantities['stage'].centroid_values - domain.quantities['elevation'].centroid_values)
-        dd=dd*(dd>0.)
-        tmp = xx/(dd+1.0e-06)*(dd>0.0)
-        print tmp.max(), tmp.argmax(), tmp.min(),  tmp.argmin()
-        print domain.max_speed.max(), domain.max_speed.argmax()
+        #xx=domain.quantities['ymomentum'].centroid_values
+        #dd=(domain.quantities['stage'].centroid_values - domain.quantities['elevation'].centroid_values)
+        #dd=dd*(dd>0.)
+        #tmp = xx/(dd+1.0e-06)*(dd>0.0)
+        #print tmp.max(), tmp.argmax(), tmp.min(),  tmp.argmin()
+        #print domain.max_speed.max(), domain.max_speed.argmax()
 
-barrier()
+domain.sww_merge(delete_old=True)
 
-# Run sww merge
-if( (myid==0) & (numprocs>1)):
-    print 'Merging sww files: ', numprocs, myid
-    anuga.utilities.sww_merge.sww_merge_parallel('channel_floodplain1',np=numprocs,verbose=True,delete_old=True)
-
-barrier()
 finalize()
