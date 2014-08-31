@@ -26,6 +26,7 @@ from os import sep
 #--------------------------------
 args = anuga.get_args()
 alg = args.alg
+verbose = args.verbose
 
 #-------------------------------------------------------------------------------
 # Copy scripts to time stamped output directory and capture screen
@@ -62,11 +63,7 @@ if myid == 0:
     # Setup Algorithm, either using command line arguments
     # or override manually yourself
     #------------------------------------------------------------------------------
-    from anuga.utilities.argparsing import parse_standard_args
-    alg, cfl = parse_standard_args()
     domain.set_flow_algorithm(alg)
-    #domain.set_CFL(cfl)
-    
     
     #------------------------------------------------------------------------------
     # Setup initial conditions
