@@ -12,7 +12,7 @@ from anuga import Domain as Domain
 from math import cos
 from numpy import zeros, ones, float
 from time import localtime, strftime, gmtime
-from anuga.operators.set_w_uh_vh_operators import Polygonal_set_w_uh_vh_operator
+from anuga.operators.set_w_uh_vh_operator import Polygonal_set_w_uh_vh_operator
 from anuga import myid, finalize, distribute
 
 #-------------------------------------------------------------------------------
