@@ -216,7 +216,7 @@ save_parameters_tex(domain)
 barrier()
 
 for t in domain.evolve(yieldstep=60.0, finaltime=dtQdata*(len(Qdata)-2)):
-    if(myid==0 & verbose):
+    if(myid==0 and verbose):
         print domain.timestepping_statistics()
         #xx=domain.quantities['ymomentum'].centroid_values
         #dd=(domain.quantities['stage'].centroid_values - domain.quantities['elevation'].centroid_values)

@@ -8,8 +8,14 @@ import time
 
 import anuga
 from anuga import indent
-from anuga.validation_utilities.parameters import alg
-from anuga.validation_utilities.parameters import cfl
+#from anuga.validation_utilities.parameters import alg
+#from anuga.validation_utilities.parameters import cfl
+
+
+args = anuga.get_args()
+alg = args.alg
+np = args.np
+verbose = args.verbose
 
 #---------------------------------
 # Get the current svn revision
@@ -38,7 +44,7 @@ except:
 #----------------------------------
 
 f = open('saved_parameters.tex', 'w')
-f.write('\\newcommand{\\cfl}{\\UScore{%s}}\n' % str(cfl))
+#f.write('\\newcommand{\\cfl}{\\UScore{%s}}\n' % str(cfl))
 f.write('\\newcommand{\\alg}{\\UScore{%s}}\n' % str(alg))
 f.write('\\newcommand{\\majorR}{\\UScore{%s}}\n' % str(major_revision))
 f.write('\\newcommand{\\minorR}{\\UScore{%s}}\n' % str(minor_revision))
@@ -108,7 +114,10 @@ for dir in Upper_dirs:
         print 60*'='
         try:
             t0 = time.time()
-            cmd = 'python produce_results.py'
+            if verbose:
+                cmd = 'python produce_results.py -alg %s -np %s -v '% (str(alg),str(np))
+            else:
+                cmd = 'python produce_results.py -alg %s -np %s '% (str(alg),str(np))
             print 2 * indent + 'Running: ' + cmd
             os.system(cmd)
             t1 = time.time() - t0
