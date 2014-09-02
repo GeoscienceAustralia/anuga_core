@@ -29,7 +29,7 @@
 
 const double pi = 3.14159265358979;
 
-// Trick to compute n modulo 2 when d is a power of 2
+// Trick to compute n modulo d (n%d in python) when d is a power of 2
 unsigned int Mod_of_power_2(unsigned int n, unsigned int d)
 {
   return ( n & (d-1) );
