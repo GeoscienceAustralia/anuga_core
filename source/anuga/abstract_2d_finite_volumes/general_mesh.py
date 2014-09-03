@@ -168,8 +168,8 @@ class General_mesh:
 
         #assert num.allclose(self.areas, areas)
         
-        id = num.where(self.areas <= 0.0)
-        msg = 'Degenerate Triangle(s) '+str(id[0])
+        ind = num.where(self.areas <= 0.0)
+        msg = 'Degenerate Triangle(s) '+str(ind[0])
         assert num.all(self.areas > 0.0), msg
 
 

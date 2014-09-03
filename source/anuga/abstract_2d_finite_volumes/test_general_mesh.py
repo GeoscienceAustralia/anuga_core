@@ -346,6 +346,55 @@ class Test_General_Mesh(unittest.TestCase):
         domain = General_mesh(points, vertices)        
 
         assert domain.get_area() == 1.0
+        
+        
+        
+    def test_one_degenerate_triangles(self):
+
+        
+        a = num.array([1.0, 1.0])
+        b = num.array([0.0, 2.0])
+        c = num.array([2.0, 0.0])
+        d = num.array([0.0, 4.0])
+        e = num.array([2.0, 2.0])
+        f = num.array([4.0, 0.0])
+        nodes = num.array([a, b, c, d, e, f])
+
+        
+        #                        bac,     bce,     ecf,     dbe
+        triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], num.int)
+
+        try:
+            domain = General_mesh(nodes, triangles)
+        except AssertionError:
+            #print 'excepted assertion error'
+            pass
+            
+            
+
+    def test_two_degenerate_triangles(self):
+
+        
+        a = num.array([1.0, 1.0])
+        b = num.array([0.0, 2.0])
+        c = num.array([2.0, 0.0])
+        d = num.array([1.0, 2.0])
+        e = num.array([2.0, 2.0])
+        f = num.array([4.0, 0.0])
+        nodes = num.array([a, b, c, d, e, f])
+
+        
+        #                        bac,     bce,     ecf,     dbe
+        triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], num.int)
+
+        
+        try:
+            domain = General_mesh(nodes, triangles)
+        except AssertionError:
+            #print 'excepted assertion error'
+            pass
+
+
 
 
     def test_get_unique_vertex_values(self):

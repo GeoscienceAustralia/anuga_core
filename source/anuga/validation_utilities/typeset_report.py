@@ -1,7 +1,5 @@
 #! /usr/bin/python
 
-# To change this template, choose Tools | Templates
-# and open the template in the editor.
 
 __author__="steve"
 __date__ ="$13/03/2013 4:24:51 PM$"
@@ -9,19 +7,30 @@ __date__ ="$13/03/2013 4:24:51 PM$"
 
 
 
-def typeset_report(report_name='report', verbose=False):
+def typeset_report(report_name='report', verbose=True):
     
     import os
+    import subprocess
 
     if verbose: 
         print 50*'='
         print 'Running typeset_report'
         print 50*'='
 
-    os.system('pdflatex -shell-escape  -interaction=batchmode %s.tex' % report_name)
-    os.system('bibtex %s' % report_name)
-    os.system('pdflatex -shell-escape  -interaction=batchmode %s.tex' % report_name)
-    os.system('pdflatex -shell-escape  -interaction=batchmode %s.tex' % report_name)   
+    cmd = 'pdflatex -shell-escape  -interaction=batchmode %s.tex' % report_name
+
+    try:
+        out = subprocess.check_output(cmd, shell=True)
+        out = subprocess.check_output('bibtex %s' % report_name)
+        out = subprocess.check_output(cmd, shell=True)
+        out = subprocess.check_output(cmd, shell=True)
+    except:
+        pass
+            
+    #os.system('pdflatex -shell-escape  -interaction=batchmode %s.tex' % report_name)
+    #os.system('bibtex %s' % report_name)
+    #os.system('pdflatex -shell-escape  -interaction=batchmode %s.tex' % report_name)
+    #os.system('pdflatex -shell-escape  -interaction=batchmode %s.tex' % report_name)   
 
 
 
