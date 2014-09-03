@@ -5,6 +5,7 @@ Routines to ease the import of spatial data to ANUGA
 Key routines:
     readShp_1PolyGeo, readShp_1LineGeo -- read SIMPLE shapefile geometries into ANUGA as a list of points.
                                           The supported geometries are quite restricted, see help
+    read_polygon -- Reads either a polygon or line shapefile or a csv as a polygon
     readShpPointsAndAttributes -- read a multi-point shapefile with its attributes into ANUGA
 
     ListPts2Wkb -- (Probably for internal use) Convert a list of points to a
@@ -44,10 +45,12 @@ Key routines:
 """
 import sys
 import os
+import os.path
 import copy
 import struct
 import numpy
 #from matplotlib import path
+import anuga
 from anuga.geometry.polygon import inside_polygon
 
 try:
@@ -81,7 +84,13 @@ if gdal_available:
         dataSrc=driver.Open(shapefile, 0)
         #dataSrc=ogr.Open(shapefile)
         layer=dataSrc.GetLayer()
-       
+
+        # Check it is a polygon
+        layerType=ogr.GeometryTypeToName(layer.GetGeomType())
+        if not layerType=='Polygon':
+            msg= shapefile +' is not a polygon shapefile'
+            raise Exception, msg
+
         # Need a single polygon 
         try:
             assert(len(layer)==1)
@@ -117,10 +126,16 @@ if gdal_available:
         dataSrc=driver.Open(shapefile, 0)
         #dataSrc=ogr.Open(shapefile)
         layer=dataSrc.GetLayer()
-       
+     
+        # Check it is a line
+        layerType=ogr.GeometryTypeToName(layer.GetGeomType())
+        if not layerType=='Line String':
+            msg= shapefile +' is not a line shapefile'
+            raise Exception, msg 
+
         # Need a single line 
         try:
-            assert(len(layer)==1)
+            assert len(layer)==1
         except:
             print shapefile
         
@@ -133,7 +148,44 @@ if gdal_available:
         return line_all
            
     ####################
-    
+    def read_polygon(filename):
+        """
+
+        Read a shapefile (polygon or line) or an anuga_polygon csv file as an anuga polygon
+
+        Try to automatically do the correct thing based on the filename
+
+        """ 
+        # Check the file exists
+        msg= 'Could not read '+ filename
+        assert os.path.isfile(filename), msg 
+
+        # Get the file extension type
+        fileNameNoExtension , fileExtension = os.path.splitext(filename)
+
+        if fileExtension == '.shp':
+            # Read as either a polygon or line shapefile
+            try:
+                outPol=readShp_1PolyGeo(filename)
+                assert len(outPol)>1
+            except:
+                try:
+                    outPol= readShp_1LineGeo(filename)
+                    assert len(outPol)>1
+                except:
+                    msg= 'Could not read '+ filename +' as either polygon or line shapefile'
+        else:
+            try:
+                # Read as an anuga polygon file
+                outPol=anuga.read_polygon(filename)
+            except:
+                msg = 'Failed reading polygon '+ filename + ' with anuga.utilities.spatialInputUtils.read_polygon'
+                raise Exception, msg
+
+        return outPol 
+
+    #################### 
+
     def readShpPtsAndAttributes(shapefile):
         """
             Read a point shapefile with an attribute table into a list
@@ -160,6 +212,47 @@ if gdal_available:
             attribute.extend(att)
     
         return [pts, attribute, attributeNames]
+
+    ########################################
+    def readShpPts(shapefile):
+        """
+            Wrapper around readShpPtsAndAttributes
+            Only get the points
+        """
+
+        out=readShpPtsAndAttributes(shapefile)[0]
+        return out
+
+    ########################################
+    def read_points(filename):
+        """
+            Reads x,y geometries from a point shapefile or csv file (anuga polygon type format),
+            and returns as a list of lists
+        """
+        # Check the file exists
+        msg= 'Could not read '+ filename
+        assert os.path.isfile(filename), msg 
+
+        # Get the file extension type
+        fileNameNoExtension , fileExtension = os.path.splitext(filename)
+
+        if fileExtension=='.shp':
+            try:
+                points = readShpPts(filename)
+            except:
+                msg = 'Could not read points from ' + filename 
+                raise Exception, msg
+        else:
+            # Assume txt format
+            try:
+                #points=numpy.genfromtxt(filename,delimiter=',',skip_header=1)
+                #points=points[:,0:2].tolist()
+                points=anuga.read_polygon(filename)
+            except:
+                msg = 'Could not read points from ' + filename +\
+                      '. Make sure it has a single header row, with comma separator, and the first 2 columns are x,y'
+                raise Exception, msg
+        return points
     
     ########################################
     def ListPts2Wkb( ptsIn, geometry_type='line', appendFirstOnEnd=None):
@@ -728,7 +821,11 @@ if gdal_available:
         bounding_polygon=copy.copy(bounding_polygonIn)
         breakLines=copy.copy(breakLinesIn)
         riverWalls=copy.copy(riverWallsIn)
-    
+  
+        # Quick exit 
+        if (breakLines == {}) and (riverWalls == {}): 
+            return [bounding_polygon, breakLines, riverWalls]
+ 
         # Clean intersections of breakLines with itself
         if(verbose): 
             print 'Cleaning breakline intersections'
@@ -904,23 +1001,23 @@ if gdal_available:
         return outData
     
     #########################################
-    def readListOfBreakLines(shapefileList):
+    def readListOfBreakLines(fileList):
         """
-            Take a list with the names of shapefiles
+            Take a list with the names of shapefiles or anuga_polygon csv files
         
             They are assumed to be '2D breaklines', so we just read their
                 coordinates into a dict with their names
     
             Read them in
             
-            INPUT: shapefileList -- a list of shapefile names [e.g. from glob.glob('GIS/Breaklines/*.shp')]
+            INPUT: fileList -- a list of shapefile and/or anuga_polygon csv filenames [e.g. from glob.glob('GIS/Breaklines/*.shp')]
     
             OUTPUT: dictionary with breaklines [filenames are keys]
         """
     
         allBreakLines={}
-        for shapefile in shapefileList:
-            allBreakLines[shapefile]=readShp_1LineGeo(shapefile)
+        for shapefile in fileList:
+            allBreakLines[shapefile]=read_polygon(shapefile) #readShp_1LineGeo(shapefile)
         
         return allBreakLines
     

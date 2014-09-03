@@ -4,6 +4,8 @@ Function which can be useful when setting quantities
 
 """
 import copy
+import os
+import anuga.utilities.spatialInputUtil as su
 
 def make_nearestNeighbour_quantity_function(quantity_xyValueIn, domain, threshold_distance = 9.0e+100, background_value = 9.0e+100):
     """
@@ -78,8 +80,15 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
         Make a 'composite function' to set quantities -- applies different functions inside different polygon regions.
              
         poly_fun_pairs = [ [p0, f0], [p1, f1], ...] 
-                    where fi is a function, or a constant, or the name of a gdal-compatible rasterFile; 
-                    and pi is a polygon, or None, or 'All' (or it can be 'Extent' in the case that fi is a rasterFile name)
+
+                    Where:
+
+                      fi is a function, or a constant, or the name of a
+                        gdal-compatible rasterFile, or a numpy array with 3 columns; 
+
+                      pi is a polygon, or a polygon filename (shapefile or a csv format that anuga.read_polygon will read),
+                        or None, or 'All' (or it can be 'Extent' in the case that fi is a
+                        rasterFile name)
               
         IMPORTANT: When polygons overlap, the first elements of the list are given priority. 
                    The approach is:
@@ -100,6 +109,7 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
 
                   pi are polygons where we want to use fi inside
                   SPECIAL pi CASES: 
+                  If pi is a filename ending in .shp or a csv format that anuga.read_polygon can read, we assume it contains a polygon we have to read
                   If any pi = 'All', then we assume that ALL unset points are set
                      using the function. This CAN ONLY happen in the last [fi,pi] pair where pi is
                      not None (since fi will be applied to all remaining points -- so anything else is probably an input mistake)
@@ -159,10 +169,14 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
                 if(pi is 'Extent' and type(fi) is str and os.path.exists(fi)):
                     # Here fi MUST be a gdal-compatible raster
                     # Then we get the extent from the raster itself
-                    import anuga.utilities.spatialInputUtil as su
                     pi_path=su.getRasterExtent(fi,asPolygon=True)
+                elif( type(pi)==str and os.path.isfile(pi) ): 
+                    # pi is a file
+                    pi_path=su.read_polygon(pi)
                 else:
+                    # pi is the actual polygon data
                     pi_path=pi
+
                 notSet=(isSet==0.).nonzero()[0]
                 fInds = inside_polygon(xy_array_trans[notSet,:], pi_path)
                 fInds = notSet[fInds]

@@ -2091,7 +2091,6 @@ PyObject *compute_flux_update_frequency(PyObject *self, PyObject *args) {
   
     
   double timestep;
-  int max_flux_update_frequency;
   
   if (!PyArg_ParseTuple(args, "Od", &domain, &timestep)) {
       report_python_error(AT, "could not parse input arguments");
