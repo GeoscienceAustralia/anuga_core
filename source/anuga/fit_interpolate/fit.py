@@ -526,7 +526,7 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
     
     """
 
-    from load_mesh.loadASCII import import_mesh_file, \
+    from anuga.load_mesh.loadASCII import import_mesh_file, \
          export_mesh_file, concatinate_attributelist
 
     try:

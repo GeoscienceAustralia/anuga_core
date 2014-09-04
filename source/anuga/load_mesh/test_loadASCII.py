@@ -36,6 +36,29 @@ class loadASCIITestCase(unittest.TestCase):
         self.dict['segment_tags'] = ['50', '40', '30', '20', '40']
         self.dict['vertex_attribute_titles'] = ['bed elevation', 'height']
         self.dict['geo_reference'] = Geo_reference(56, 1.9, 1.9)
+        
+        
+        self.dict_1 = {}
+        self.dict_1['outline_segments'] = [(0, 1), (1, 2), (0, 2), (0, 3)]
+        self.dict_1['outline_segment_tags'] = ['50', '40', '30', '20']
+        self.dict_1['holes'] = [(0.2, 0.6)]
+        self.dict_1['point_attributes'] = [[5], [4], [3], [2]]
+        self.dict_1['regions'] = [(0.3, 0.3), (0.3, 0.4)]
+        self.dict_1['region_tags'] = ['1.3', 'yeah']
+        self.dict_1['region_max_areas'] = [36.0, -7.1]
+        self.dict_1['points'] = [(0.0, 0.0), (0.0, 4.0), (4.0, 0.0), (1.0, 1.0)]
+        self.dict_1['vertices'] = [(0.0, 0.0), (0.0, 4.0), (4.0, 0.0),
+                                 (1.0, 1.0), (2.0, 2.0)]
+        self.dict_1['triangles'] = [(3, 2, 4), (1, 0, 3), (3, 4,1), (2, 3, 0)]
+        self.dict_1['segments'] = [(0, 1), (1, 4), (2, 0), (0, 3), (4, 2)]
+        self.dict_1['triangle_tags'] = ['1.3', '1.3', '1.3', '1.3']
+        self.dict_1['vertex_attributes'] = [[1.2], [1.2], [1.2],
+                                         [1.2], [1.2]]
+        self.dict_1['triangle_neighbors'] = [[-1, 2, 3], [3, 2, -1],
+                                           [-1, 1, 0], [1, -1, 0]]
+        self.dict_1['segment_tags'] = ['50', '40', '30', '20', '40']
+        self.dict_1['vertex_attribute_titles'] = ['height']
+        self.dict_1['geo_reference'] = Geo_reference(56, 1.9, 1.9)        
 
         self.sparse_dict = {}
         self.sparse_dict['outline_segments'] = []
@@ -200,6 +223,46 @@ class loadASCIITestCase(unittest.TestCase):
                         'test_export_mesh_file failed. Test 9')
 
         os.remove(fileName)
+        
+        
+    def test_export_mesh_1_file(self):
+        meshDict = self.dict_1
+        fileName = tempfile.mktemp('.tsh')
+        export_mesh_file(fileName, meshDict)
+        loadedDict = import_mesh_file(fileName)
+        
+
+        self.failUnless(num.alltrue(num.array(meshDict['vertices']) ==
+                                    num.array(loadedDict['vertices'])),
+                        'test_export_mesh_file failed. Test 1')
+        self.failUnless(num.alltrue(num.array(meshDict['triangles']) ==
+                                    num.array(loadedDict['triangles'])),
+                        'test_export_mesh_file failed. Test 2')
+        self.failUnless(num.alltrue(num.array(meshDict['segments']) ==
+                                    num.array(loadedDict['segments'])),
+                        'test_export_mesh_file failed. Test 3')
+        self.failUnless(num.alltrue(num.array(meshDict['triangle_tags']) ==
+                                    num.array(loadedDict['triangle_tags'])),
+                        'test_export_mesh_file failed. Test 4')
+
+        self.failUnless(meshDict['vertex_attributes'] ==
+                        loadedDict['vertex_attributes'],
+                        'test_export_mesh_file failed. Test 5')
+        self.failUnless(num.alltrue(num.array(meshDict['triangle_neighbors']) ==
+                                    num.array(loadedDict['triangle_neighbors'])),
+                        'test_export_mesh_file failed. Test 6')
+        self.failUnless(num.alltrue(num.array(meshDict['segment_tags']) ==
+                                    num.array(loadedDict['segment_tags'])),
+                        'test_export_mesh_file failed. Test 7')
+        self.failUnless(num.alltrue(num.array(meshDict['vertex_attribute_titles']) ==
+                                    num.array(loadedDict['vertex_attribute_titles'])),
+                        'test_export_mesh_file failed. Test 8')
+        self.failUnless(num.alltrue(num.array(meshDict['geo_reference']) ==
+                                    num.array(loadedDict['geo_reference'])),
+                        'test_export_mesh_file failed. Test 9')
+
+
+        #os.remove(fileName)        
 
     def test_read_write_tsh_file(self):
         dict = self.dict.copy()

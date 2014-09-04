@@ -69,6 +69,7 @@ from anuga.utilities.system_tools import *
 import anuga.utilities.log as log
 
 from anuga.file.netcdf import NetCDFFile
+from anuga.utilities.numerical_tools import ensure_numeric
 
 import numpy as num
 
@@ -95,8 +96,9 @@ def import_mesh_file(ofile):
             raise IOError, msg
     #FIXME No test for ValueError
     except (TitleError, SyntaxError, IndexError, ValueError):
-        msg = 'File could not be opened'
+        msg = 'File %s could not be opened' % ofile
         raise IOError, msg
+    
     return dict
 
 
@@ -349,7 +351,7 @@ def _read_outline(fd):
                 regionmaxareas.append(None)
             else:
                 regionmaxareas.append(float(fragments[0]))
-        except IndexError, e:
+        except (ValueError, IndexError), e:
             regionmaxareas.append(None)
 
     try:
@@ -375,14 +377,16 @@ def _read_outline(fd):
 def _write_ASCII_triangulation(fd, gen_dict):
     vertices = gen_dict['vertices']
     vertices_attributes = gen_dict['vertex_attributes']
+
     try:
         vertices_attribute_titles = gen_dict['vertex_attribute_titles']
     except KeyError, e:
         #FIXME is this the best way?
         if vertices_attributes == [] or vertices_attributes[0] == []:
-             vertices_attribute_titles = []
+            vertices_attribute_titles = []
         else:
             raise KeyError, e
+        
 
     triangles = gen_dict['triangles']
     triangles_attributes = gen_dict['triangle_tags']
@@ -399,7 +403,14 @@ def _write_ASCII_triangulation(fd, gen_dict):
         len(vertices_attributes) == 0):
         numVertAttrib = "0"
     else:
-        numVertAttrib = str(len(vertices_attributes[0]))
+        #numVertAttrib = str(len(vertices_attributes[0]))
+        try:
+            numVertAttrib = str(len(vertices_attributes[0]))
+        except TypeError:
+            vertices_attributes = [ [entry] for entry in vertices_attributes]
+            numVertAttrib = str(len(vertices_attributes[0]))
+        
+
 
     fd.write(numVert + " " + numVertAttrib + 
              " # <# of verts> <# of vert attributes>, next lines <vertex #> "

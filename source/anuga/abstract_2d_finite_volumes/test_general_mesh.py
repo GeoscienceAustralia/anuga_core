@@ -383,7 +383,6 @@ class Test_General_Mesh(unittest.TestCase):
         f = num.array([4.0, 0.0])
         nodes = num.array([a, b, c, d, e, f])
 
-        
         #                        bac,     bce,     ecf,     dbe
         triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], num.int)
 
