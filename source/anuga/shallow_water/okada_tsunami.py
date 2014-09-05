@@ -42,6 +42,7 @@ def earthquake_source(
              lon_lat_degrees=False,
              lon_before_lat=True,
              utm_zone=None,
+             proj4string=None,
              dmax=-1.,
              verbose=False):
     """ Return a function representing the water surface displacement caused by
@@ -92,6 +93,10 @@ def earthquake_source(
                    Use integers, with negative to represent south. 
                    e.g. UTM zone 55S is represented with utm_zone=-55. 
                         UTM zone 55N would be utm_zone=55
+
+        proj4string = Alternative to utm_zone (more flexible). If proj4string is not None and lon_lat_degrees=True,
+                    then the coordinates are projected to the projection defined by this proj4string.
+                    Only one of utm_zone OR proj4string may be specified.  
 
         OUTPUT:
             A callable function(x,y), which outputs the sea floor deformation 
@@ -178,7 +183,11 @@ def earthquake_source(
  
     # Convert from lon_lat coordinates if needed
     if(lon_lat_degrees==True):
-        if (utm_zone is not None):
+        if (utm_zone is not None) or (proj4string is not None):
+
+            if (utm_zone is not None) and (proj4string is not None):
+                raise Exception, 'Only one of utm_zone or proj4string can not be None'
+
             # Add a few sanity checks
             lat_abs_max = max(abs(source[:,1]))
             long_abs_max = max(abs(source[:,0]))
@@ -187,10 +196,13 @@ def earthquake_source(
             if(lat_abs_max > 90):
                 raise Exception, 'Latitude absolute values > 90: Check your inputs'
 
-            
-            # Set up function to reproject coordinates
-            if verbose: print 'project utm_zone = ', utm_zone
-            p = Proj(proj='utm',south=utm_zone<0,zone=abs(utm_zone),ellps='WGS84')
+            if(utm_zone is not None): 
+                # Set up function to reproject coordinates
+                if verbose: print 'project utm_zone = ', utm_zone
+                p = Proj(proj='utm',south=utm_zone<0,zone=abs(utm_zone),ellps='WGS84')
+            else:
+                if verbose: print 'proj4string = ',proj4string 
+                p = Proj(proj4string)
 
             # Store lon/lat for later printing
             lon_store=copy.copy(source[:,0])

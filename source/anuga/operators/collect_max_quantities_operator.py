@@ -130,10 +130,11 @@ class collect_max_quantities_operator(Operator):
         Export max-quantities to a csv 
 
         """
-        outArray=num.vstack([self.xy[:,0]+self.domain.geo_reference.xllcorner, 
-                             self.xy[:,1]+self.domain.geo_reference.yllcorner, 
-                             self.max_stage, self.max_depth, 
-                             self.max_speed, self.max_speedDepth]).transpose()
+        fullInds=self.domain.tri_full_flag.nonzero()[0]
+        outArray=num.vstack([self.xy[fullInds,0]+self.domain.geo_reference.xllcorner, 
+                             self.xy[fullInds,1]+self.domain.geo_reference.yllcorner, 
+                             self.max_stage[fullInds], self.max_depth[fullInds], 
+                             self.max_speed[fullInds], self.max_speedDepth[fullInds]]).transpose()
 
         outname=filename_start+'P'+str(myid)+'_X_Y_Stage_Depth_Speed_UH_MAX.csv'
         num.savetxt(outname, outArray,delimiter=',')
