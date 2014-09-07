@@ -618,7 +618,8 @@ double adjust_edgeflux_with_weir(double* edgeflux,
                                  double g, double weir_height,
                                  double weirScale, 
                                  double s1, double s2, 
-                                 double h1, double h2
+                                 double h1, double h2,
+                                 double *max_speed_local
                                 ){
     // Adjust the edgeflux to agree with a weir relation [including
     // subergence], but smoothly vary to shallow water solution when
@@ -700,6 +701,9 @@ double adjust_edgeflux_with_weir(double* edgeflux,
             edgeflux[2]*=0.;
         }
     }
+
+    // Adjust the max speed
+    *max_speed_local = sqrt(g*maxhd) + abs(edgeflux[0])/(maxhd+1.0e-100);
 
     return 0;
 }
@@ -871,8 +875,7 @@ double _compute_fluxes_central(struct domain *D, double timestep){
                     // Weir flux adjustment 
                     adjust_edgeflux_with_weir(edgeflux, h_left_tmp, h_right_tmp, D->g, 
                                               weir_height, Qfactor, 
-                                              s1, s2, h1, h2);
-                    // NOTE: Should perhaps also adjust the wave-speed here?? Small chance of instability??
+                                              s1, s2, h1, h2, &max_speed_local);
                 }
             }
             
