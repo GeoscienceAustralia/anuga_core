@@ -677,11 +677,24 @@ double adjust_edgeflux_with_weir(double* edgeflux,
        
         if(fabs(edgeflux[0])>1.0e-100){ 
             scaleFlux=newFlux/edgeflux[0];
+        }else{
+            scaleFlux = 0.;
+        }
 
+        if(scaleFlux>0.){
+            //if(fabs(scaleFlux) > 10.){
+            //    printf("Very large scaleFlux %e, %e \n", scaleFlux, edgeflux[0]);
+            //}
             // FINAL ADJUSTED FLUX
             edgeflux[0]*=scaleFlux;
-            edgeflux[1]*=scaleFlux;
-            edgeflux[2]*=scaleFlux;
+
+            // FIXME: Do this in a cleaner way
+            // IDEA: Compute momentum flux implied by weir relations, and use
+            //       those in a weighted average (rather than the rescaling trick here)
+            // If we allow the scaling to momentum to be unbounded,
+            // velocity spikes can arise for very-shallow-flooded walls
+            edgeflux[1]*=min(scaleFlux,10.);
+            edgeflux[2]*=min(scaleFlux,10.);
         }else{
             // Can't divide by edgeflux, so enforce 'newFlux' directly
             //
@@ -703,7 +716,8 @@ double adjust_edgeflux_with_weir(double* edgeflux,
     }
 
     // Adjust the max speed
-    *max_speed_local = sqrt(g*maxhd) + abs(edgeflux[0])/(maxhd+1.0e-100);
+    //*max_speed_local = sqrt(g*(maxhd)) + abs(edgeflux[0])/(maxhd+1.0e-100);
+    *max_speed_local = sqrt(g*(maxhd+weir_height)) + abs(edgeflux[0])/(maxhd+1.0e-100);
 
     return 0;
 }
@@ -855,27 +869,30 @@ double _compute_fluxes_central(struct domain *D, double timestep){
                         h_right_tmp= max(hc_n+zr-z_half,0.);
                     }
 
-                    //////////////////////////////////////////////////////////////////////////////////
-                    // Get Qfactor index - multiply the idealised weir discharge by this constant factor
-                    ii = D->riverwall_rowIndex[RiverWall_count-1] * D->ncol_riverwall_hydraulic_properties;
-                    Qfactor = D->riverwall_hydraulic_properties[ii];
-                    // Get s1, submergence ratio at which we start blending with the shallow water solution 
-                    ii+=1;
-                    s1= D->riverwall_hydraulic_properties[ii];
-                    // Get s2, submergence ratio at which we entirely use the shallow water solution 
-                    ii+=1;
-                    s2= D->riverwall_hydraulic_properties[ii];
-                    // Get h1, tailwater head / weir height at which we start blending with the shallow water solution 
-                    ii+=1;
-                    h1= D->riverwall_hydraulic_properties[ii];
-                    // Get h2, tailwater head / weir height at which we entirely use the shallow water solution 
-                    ii+=1;
-                    h2= D->riverwall_hydraulic_properties[ii];
-                    
-                    // Weir flux adjustment 
-                    adjust_edgeflux_with_weir(edgeflux, h_left_tmp, h_right_tmp, D->g, 
-                                              weir_height, Qfactor, 
-                                              s1, s2, h1, h2, &max_speed_local);
+                    if(h_left_tmp > 0. || h_right_tmp > 0.){
+
+                        //////////////////////////////////////////////////////////////////////////////////
+                        // Get Qfactor index - multiply the idealised weir discharge by this constant factor
+                        ii = D->riverwall_rowIndex[RiverWall_count-1] * D->ncol_riverwall_hydraulic_properties;
+                        Qfactor = D->riverwall_hydraulic_properties[ii];
+                        // Get s1, submergence ratio at which we start blending with the shallow water solution 
+                        ii+=1;
+                        s1= D->riverwall_hydraulic_properties[ii];
+                        // Get s2, submergence ratio at which we entirely use the shallow water solution 
+                        ii+=1;
+                        s2= D->riverwall_hydraulic_properties[ii];
+                        // Get h1, tailwater head / weir height at which we start blending with the shallow water solution 
+                        ii+=1;
+                        h1= D->riverwall_hydraulic_properties[ii];
+                        // Get h2, tailwater head / weir height at which we entirely use the shallow water solution 
+                        ii+=1;
+                        h2= D->riverwall_hydraulic_properties[ii];
+                        
+                        // Weir flux adjustment 
+                        adjust_edgeflux_with_weir(edgeflux, h_left_tmp, h_right_tmp, D->g, 
+                                                  weir_height, Qfactor, 
+                                                  s1, s2, h1, h2, &max_speed_local);
+                    }
                 }
             }
             
