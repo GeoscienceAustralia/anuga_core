@@ -85,8 +85,13 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
     # Copy in quantity data
     #------------------------------------------------------------------------
     for q in quantities:
-        parallel_domain.set_quantity(q, quantities[q])
-
+        try:
+            parallel_domain.set_quantity(q, quantities[q])
+        except KeyError:
+            #print 'Try to create quantity %s'% q
+            from anuga import Quantity
+            Q = Quantity(parallel_domain, name=q, register=True)
+            parallel_domain.set_quantity(q, quantities[q])
 
     #------------------------------------------------------------------------
     # Transfer boundary conditions to each subdomain
