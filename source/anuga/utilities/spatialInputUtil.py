@@ -1147,7 +1147,13 @@ else: # gdal_available == False
     def readShp_1LineGeo(shapefile):
         raise ImportError, msg
     
+    def read_polygon(filename):
+        raise ImportError, msg
+    
     def readShpPtsAndAttributes(shapefile):
+        raise ImportError, msg
+    
+    def read_points(filename):
         raise ImportError, msg
     
     def ListPts2Wkb( ptsIn, geometry_type='line', appendFirstOnEnd=None):
@@ -1174,7 +1180,9 @@ else: # gdal_available == False
     def addIntersectionPtsToLines(L1,L2, point_movement_threshold=0.0, buf=1.0e-06, tol2 = 100,
                                   verbose=True, nameFlag=''):
         raise ImportError, msg
-    
+   
+    def getRasterExtent(rasterFile, asPolygon=False): 
+        raise ImportError, msg
 
     def rasterValuesAtPoints(xy, rasterFile, band=1):
         raise ImportError, msg
@@ -1198,6 +1206,9 @@ else: # gdal_available == False
         raise ImportError, msg
     
     def readListOfBreakLines(shapefileList):
+        raise ImportError, msg
+
+    def combine_breakLines_and_riverwalls_for_mesh(breakLines, riverWalls):
         raise ImportError, msg
     
     def polygon_from_matching_breaklines(pattern,breakLinesIn, reverse2nd=None):
