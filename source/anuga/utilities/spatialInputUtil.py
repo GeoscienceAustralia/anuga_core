@@ -685,8 +685,10 @@ if gdal_available:
             CtypeName='f'
         elif (rasterBandType == 'Byte'):
             CtypeName='B'
+        elif (rasterBandType == 'Int32'):
+            CtypeName='i'
         else:
-            print 'unrecognized DataType:', gdal.GetDataTypeName(band.DataType)
+            print 'unrecognized DataType:', rasterBandType
             print 'You might need to edit this code to read the data type'
             raise Exception, 'Stopping'
   
