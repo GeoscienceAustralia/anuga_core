@@ -30,6 +30,7 @@ from anuga import Domain
 #from anuga import Rainfall, Inflow
 from anuga import Inlet_operator
 #from anuga.utilities import sww_merge
+from project import *
 
 #------------------------------------------------------------------------------
 # PARALLEL INTERFACE
