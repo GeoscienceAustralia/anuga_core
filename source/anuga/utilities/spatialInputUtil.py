@@ -250,7 +250,8 @@ if gdal_available:
                 points=anuga.read_polygon(filename)
             except:
                 msg = 'Could not read points from ' + filename +\
-                      '. Make sure it has a single header row, with comma separator, and the first 2 columns are x,y'
+                      '. Make sure it has a single header row, ' +\
+                      'with comma separator, and the first 2 columns are x,y'
                 raise Exception, msg
         return points
     
@@ -407,7 +408,8 @@ if gdal_available:
                              A list of points, consecutive points are interpreted
                              as joined and so defining line segments
             
-            OUTPUT: The squared distance, and the index i of the segment [x_i,y_i],[x_i+1,y_i+1] in segments which is closest to pt
+            OUTPUT: The squared distance, and the index i of the segment
+                    [x_i,y_i],[x_i+1,y_i+1] in segments which is closest to pt
         """
         ll=len(segments)
         if(ll<=1):
@@ -424,13 +426,15 @@ if gdal_available:
     
     def shift_point_on_line(pt, lineIn, nearest_segment_index):
         """
-            Support pt is a point, which is near to the 'nearest_segment_index' segment of the line 'lineIn'
+            Support pt is a point, which is near to the 'nearest_segment_index'
+                segment of the line 'lineIn'
     
             This routine moves the nearest end point of that segment on line to pt.
     
             INPUTS: pt -- [x,y] point
                     lineIn -- [ [x0, y0], [x1, y1], ..., [xN,yN]] 
-                    nearest_segment_index = index where the distance of pt to the line from [x_i,y_i] to [x_i+1,y_i+1] is minimum
+                    nearest_segment_index = index where the distance of pt to
+                        the line from [x_i,y_i] to [x_i+1,y_i+1] is minimum
     
             OUTPUT: The new line
         """
@@ -472,7 +476,8 @@ if gdal_available:
         # intersection point. Based on this we decide to add or move the point
         p0 = L1_pts[tmp[1]]
         p1 = L1_pts[tmp[1]+1]
-        endPt_Dist_Sq=min( ( (p0[0]-iP[0])**2 + (p0[1]-iP[1])**2), ( (p1[0]-iP[0])**2 + (p1[1]-iP[1])**2))
+        endPt_Dist_Sq=min( ( (p0[0]-iP[0])**2 + (p0[1]-iP[1])**2), 
+                           ( (p1[0]-iP[0])**2 + (p1[1]-iP[1])**2))
         #
         if(endPt_Dist_Sq>point_movement_threshold**2):
             # Insert the intersection point. We do this in a tricky way to
@@ -559,15 +564,16 @@ if gdal_available:
     
                      tol2 = [see check_polygon_is_small] Probably doesn't need to change
     
-                     nameFlag = This will be printed if intersection occurs. Convenient way to display intersecting filenames
+                     nameFlag = This will be printed if intersection occurs.
+                            Convenient way to display intersecting filenames
             
             OUTPUTS: L1,L2 with intersection points added in the right places
         """
     
         if(L1.Intersects(L2)):
             # Get points on the lines 
-            L1_pts=Wkb2ListPts(L1) #L1.GetPoints()
-            L2_pts=Wkb2ListPts(L2) #L2.GetPoints()
+            L1_pts=Wkb2ListPts(L1) 
+            L2_pts=Wkb2ListPts(L2) 
             
             # Buffer lines by a small amount
             L1_buf=L1.Buffer(buf)
@@ -577,8 +583,9 @@ if gdal_available:
             L1_L2_intersect=L1_buf.Intersection(L2_buf)
             if(L1_L2_intersect.GetGeometryCount()==1):
                 if(not check_polygon_is_small(L1_L2_intersect, buf, tol2)):
-                    #print L1_L2_intersect.GetEnvelope()
-                    raise Exception, 'line intersection is not allowed. Envelope %s '% str(L1_L2_intersect.GetEnvelope())
+                    msg = 'line intersection is not allowed. ' + \
+                          'Envelope %s '% str(L1_L2_intersect.GetEnvelope())
+                    raise Exception(msg)
                 # Seems to need special treatment with only 1 intersection point
                 intersectionPts=[L1_L2_intersect.Centroid().GetPoint()]
             else:
@@ -596,8 +603,10 @@ if gdal_available:
     
             # Insert the points into the line segments
             for i in range(len(intersectionPts)):
-                L1_pts = insert_intersection_point(intersectionPts[i], L1_pts, point_movement_threshold, verbose=verbose)
-                L2_pts = insert_intersection_point(intersectionPts[i], L2_pts, point_movement_threshold, verbose=verbose)
+                L1_pts = insert_intersection_point(intersectionPts[i], L1_pts, 
+                            point_movement_threshold, verbose=verbose)
+                L2_pts = insert_intersection_point(intersectionPts[i], L2_pts, 
+                            point_movement_threshold, verbose=verbose)
                 
             # Convert to the input format
             L1_pts=ListPts2Wkb(L1_pts,geometry_type='line')
@@ -715,7 +724,8 @@ if gdal_available:
             Get a 'grid' of points inside a polygon. Could be used with rasterValuesAtPoints to 
                get a range of raster values inside a polygon
     
-            Approach: A 'trial-grid' of points is created which is 'almost' covering the range of the polygon (xmin-xmax,ymin-ymax). 
+            Approach: A 'trial-grid' of points is created which is 'almost'
+                      covering the range of the polygon (xmin-xmax,ymin-ymax). 
     
                       (Actually it is just inside this region, to avoid polygon-boundary issues, see below)
     
@@ -762,16 +772,7 @@ if gdal_available:
     
         keepers = inside_polygon(Grid, polygon)
         if(len(keepers)==0):
-            import pdb
-            pdb.set_trace()
-        ## Now find the xy values which are actually inside the polygon
-        #polpath=path.Path(polygonArr)
-        #keepers=[]
-        #for i in range(len(Grid[:,0])):
-        #   if(polpath.contains_point(Grid[i,:])):
-        #        keepers=keepers+[i]
-        ##import pdb
-        ##pdb.set_trace()
+            raise Exception('No points extracted from polygon')
         xyInside=Grid[keepers,:]
     
         return(xyInside)
@@ -957,7 +958,8 @@ if gdal_available:
                     if(len(isOut)>0):
                         msg='Breakline/riverwall point '+str(blCat[n1][j][0:2]) +' on '+ n1+\
                             ' is outside the bounding polygon.\n'+\
-                            'Check that it exceeds the bounding polygon by a distance < point_movement_threshold \n'+\
+                            'Check that it exceeds the bounding polygon'+\
+                            ' by a distance < point_movement_threshold \n'+\
                             ' so it can be moved back onto the polygon'
                         print 'Polygon\n '
                         print bounding_polygon
@@ -1012,7 +1014,8 @@ if gdal_available:
     
             Read them in
             
-            INPUT: fileList -- a list of shapefile and/or anuga_polygon csv filenames [e.g. from glob.glob('GIS/Breaklines/*.shp')]
+            INPUT: fileList -- a list of shapefile and/or anuga_polygon csv filenames 
+                               [e.g. from glob.glob('GIS/Breaklines/*.shp')]
     
             OUTPUT: dictionary with breaklines [filenames are keys]
         """
@@ -1026,10 +1029,11 @@ if gdal_available:
     #########################################
     def readListOfRiverWalls(rwfileList):
         """
-            Take a list with the names of riverwall input files [should be comma-separated x,y,elevation files]
+            Take a list with the names of riverwall input files 
+            [should be comma-separated x,y,elevation files]
 
-            The input file can OPTIONALLY have a first line defining some hydraulic parameters. A valid example 
-            is
+            The input file can OPTIONALLY have a first line defining some
+            hydraulic parameters. A valid example is
 
             Qfactor: 1.5, s1: 0.94 
             200., 300., 0.5
@@ -1038,7 +1042,8 @@ if gdal_available:
         
             Read their coordinates into a dict with their names, read for use by ANUGA
     
-            INPUT: rwfileList -- a list of riverwall filenames [e.g. from glob.glob('GIS/RiverWalls/*.csv')]
+            INPUT: rwfileList -- a list of riverwall filenames 
+                        [e.g. from glob.glob('GIS/RiverWalls/*.csv')]
     
             OUTPUT: 
                 dictionary with riverwalls [filenames are keys] AND
@@ -1073,11 +1078,13 @@ if gdal_available:
 
     def combine_breakLines_and_riverWalls_for_mesh(breakLines, riverWalls):
         """
-        Combine breaklines and riverwalls for input in mesh generation, ensuring both have 2 coordinates only
+        Combine breaklines and riverwalls for input in mesh generation,
+            ensuring both have 2 coordinates only
         """
         mesh_breakLines=riverWalls.values()+breakLines.values()
         for i in range(len(mesh_breakLines)):
-            mesh_breakLines[i] = [mesh_breakLines[i][j][0:2] for j in range(len(mesh_breakLines[i]))]
+            mesh_breakLines[i] =\
+             [mesh_breakLines[i][j][0:2] for j in range(len(mesh_breakLines[i]))]
         return mesh_breakLines
     
     ############################################################################
@@ -1088,14 +1095,18 @@ if gdal_available:
     
             Can do this with the current function
     
-            INPUTS: pattern == character string containing pattern which is inside exactly 2 keys in breaklines
+            INPUTS: pattern == character string containing pattern which 
+                        is inside exactly 2 keys in breaklines
         
                     breakLines = the breakLinesIn dictionary
                     
-                    reverse2nd = True/False or None. Reverse the order of the 2nd set of edges before making the polygon.
+                    reverse2nd = True/False or None. Reverse the order of the 
+                                 2nd set of edges before making the polygon.
                                  If None, then we compute the distance between the
-                                 first point on breakline1 and the first/last points on breakline2, and reverse2nd if
-                                 the 'distance from the first point' < 'distance from the last point'
+                                  first point on breakline1 and the first/last
+                                  points on breakline2, and reverse2nd if
+                                 the 'distance from the first point' <
+                                      'distance from the last point'
         
             OUTPUT: Polygon made with the 2 breaklines
         """
@@ -1128,9 +1139,9 @@ if gdal_available:
         if(reverse2nd):
             breakLines[bk[matchers[1]]].reverse()
         polyOut=breakLines[bk[matchers[0]]] +  breakLines[bk[matchers[1]]]
-        #polyOut=polyOut+[polyOut[0]]
 
-        # If the breakLines values have > 2 entries (i.e. like for riverwalls), remove the third
+        # If the breakLines values have > 2 entries (i.e. like for riverwalls),
+        # remove the third
         if(len(polyOut[0])>2):
             polyOut=[polyOut[i][0:2] for i in range(len(polyOut))]
 

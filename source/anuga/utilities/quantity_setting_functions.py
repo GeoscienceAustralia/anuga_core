@@ -7,25 +7,33 @@ import copy
 import os
 import anuga.utilities.spatialInputUtil as su
 
-def make_nearestNeighbour_quantity_function(quantity_xyValueIn, domain, threshold_distance = 9.0e+100, background_value = 9.0e+100):
+def make_nearestNeighbour_quantity_function(
+        quantity_xyValueIn, 
+        domain, 
+        threshold_distance = 9.0e+100, 
+        background_value = 9.0e+100):
     """
     Function which makes another function, which can be used in set_quantity 
 
     Idea: For every point x,y in the domain, we want to set a quantity based on
           the 'nearest-neighbours' from quantity_xyValue (a 3 column array with
-          x,y,quantity-value), UNLESS the distance from x,y to the nearest-neighbour is > threshold_distance.
-          In the latter case, we want to set the quantity value to 'background_value'
+          x,y,quantity-value), 
+          UNLESS the distance from x,y to the nearest-neighbour is >
+            threshold_distance.
+          In the latter case, we want to set the quantity value to
+            'background_value'
             
           We need a function f(x,y) to do that. This routine makes the
-          function, with the desired quantity_xyValue points, threshold_distance, and
-          background_value
+          function, with the desired quantity_xyValue points, 
+          threshold_distance, and background_value
 
     INPUTS:
         quantity_xyValueIn -- A 3 column array with:
                               x,y, Value 
                             defining the points used to set the new quantity values
         domain -- The ANUGA domain
-        threshold_distance -- Points greater than this distance from their nearest quantity_xyValue point are set to background_value
+        threshold_distance -- Points greater than this distance from their 
+            nearest quantity_xyValue point are set to background_value
         background_value -- see 'threshold_distance'
 
     OUTPUTS: 
@@ -41,7 +49,9 @@ def make_nearestNeighbour_quantity_function(quantity_xyValueIn, domain, threshol
         # Treat the single-point case
         quantity_xyValue=copy.copy(quantity_xyValueIn.reshape((1,3)))
     # Make a function which gives us the ROW-INDEX of the nearest xy point in quantity_xyValue
-    quantity_xy_interpolator=scipy.interpolate.NearestNDInterpolator(quantity_xyValue[:,0:2], scipy.arange(len(quantity_xyValue[:,2])))
+    quantity_xy_interpolator=scipy.interpolate.NearestNDInterpolator(
+                                quantity_xyValue[:,0:2], 
+                                scipy.arange(len(quantity_xyValue[:,2])))
 
     #
     # Make a function of x,y which we can pass to domain.set_quantity
@@ -66,7 +76,9 @@ def make_nearestNeighbour_quantity_function(quantity_xyValueIn, domain, threshol
         # Compute the index of the nearest-neighbour in quantity_xyValue
         q_index=quantity_xy_interpolator(z)
         # Next find indices with distance < threshold_distance
-        dist_lt_thresh=( (z[:,0]-quantity_xyValue[q_index,0])**2 + (z[:,1]-quantity_xyValue[q_index,1])**2 < threshold_distance**2)
+        dist_lt_thresh=( (z[:,0]-quantity_xyValue[q_index,0])**2 + \
+                         (z[:,1]-quantity_xyValue[q_index,1])**2 < \
+                        threshold_distance**2)
         dist_lt_thresh=dist_lt_thresh.nonzero()[0]
         quantity_output[dist_lt_thresh] = quantity_xyValue[q_index[dist_lt_thresh],2] 
         return quantity_output
@@ -77,47 +89,69 @@ def make_nearestNeighbour_quantity_function(quantity_xyValueIn, domain, threshol
 
 def composite_quantity_setting_function(poly_fun_pairs, domain):
     """
-        Make a 'composite function' to set quantities -- applies different functions inside different polygon regions.
+        Make a 'composite function' to set quantities -- applies different 
+        functions inside different polygon regions.
              
         poly_fun_pairs = [ [p0, f0], [p1, f1], ...] 
 
                     Where:
 
-                      fi is a function, or a constant, or the name of a
-                        gdal-compatible rasterFile, or a numpy array with 3 columns; 
+                      fi is a function, 
+                         or a constant, 
+                         or a '.txt' or '.csv' file with comma separated xyz data 
+                            and a single header row, 
+                         or the name of a gdal-compatible rasterFile 
+                            (not ending in .txt or .csv), 
+                         or a numpy array with 3 columns; 
 
-                      pi is a polygon, or a polygon filename (shapefile or a csv format that anuga.read_polygon will read),
-                        or None, or 'All' (or it can be 'Extent' in the case that fi is a
-                        rasterFile name)
+                      pi is a polygon, 
+                        or a polygon filename (shapefile or a csv format that 
+                                                anuga.read_polygon will read),
+                        or None ( equivalent to a polygon with zero area),
+                        or 'All' (equivalent to a polygon covering everything)
+                        or 'Extent' in the case that fi is a rasterFile name 
+                            (equivalent to a polygon with the same extent as the raster)
               
-        IMPORTANT: When polygons overlap, the first elements of the list are given priority. 
+        IMPORTANT: When polygons overlap, the first elements of the list are 
+                   given priority. 
                    The approach is:
-                       First f0 is applied to all points in p0, and we record that these points have been 'set'
-                       Next f1 is applied to all points in p1 which have not been 'set', and then we record those points as being 'set'
-                       Next f2 is applied to all points in p2 which have not been 'set', and then we record those points as being 'set'
+                       First f0 is applied to all points in p0, and we record
+                         that these points have been 'set'
+                       Next f1 is applied to all points in p1 which have not 
+                         been 'set', and then we record those points as being 'set'
+                       Next f2 is applied to all points in p2 which have not 
+                         been 'set', and then we record those points as being 'set'
                        ... etc
 
         INPUT: 
-              poly_fun_pairs = [ [p0, f0], [p1, f1], ...]
+          poly_fun_pairs = [ [p0, f0], [p1, f1], ...]
 
-                  where fi(x,y) is a function returning quantity values at points, or any of the special cases below
-                  SPECIAL fi CASES:
-                  fi = a constant in which case points in the polygon are set to that value, 
-                  fi = a string rasterFile name which can be passed to quantityRasterFun to make a function,
-                  fi = a numpy array with 3 columns (x,y,Value) in which case nearest-neighbour interpolation is used on the points
-                
+              where fi(x,y) is a function returning quantity values at points, 
+                or any of the special cases below
+              SPECIAL fi CASES:
+              fi = a constant in which case points in the polygon are 
+                   set to that value, 
+              fi = a .txt or .csv file name containing x, y, z data,
+                     with comma separators and a single header row
+              fi = a string rasterFile name (not ending in .txt or .csv)
+                    which can be passed to quantityRasterFun to make a function,
+              fi = a numpy array with 3 columns (x,y,Value) in which case 
+                   nearest-neighbour interpolation is used on the points
+            
 
-                  pi are polygons where we want to use fi inside
-                  SPECIAL pi CASES: 
-                  If pi is a filename ending in .shp or a csv format that anuga.read_polygon can read, we assume it contains a polygon we have to read
-                  If any pi = 'All', then we assume that ALL unset points are set
-                     using the function. This CAN ONLY happen in the last [fi,pi] pair where pi is
-                     not None (since fi will be applied to all remaining points -- so anything else is probably an input mistake)
-                  If any pi = None, then that [fi,pi] pair is skipped
-                  If pi = 'Extent' and fi is the name of a raster file, then the
-                    extent of the raster file is used to define the polygon
+              pi are polygons where we want to use fi inside
+              SPECIAL pi CASES: 
+              If pi is a filename ending in .shp or a csv format that 
+                anuga.read_polygon can read, we assume it contains a polygon we have to read
+              If any pi = 'All', then we assume that ALL unset points are set
+                 using the function. This CAN ONLY happen in the last [fi,pi] pair where pi is
+                 not None (since fi will be applied to all remaining points 
+                 -- so anything else is probably an input mistake)
+              If any pi = None, then that [fi,pi] pair is skipped
+              If pi = 'Extent' and fi is the name of a raster file, then the
+                extent of the raster file is used to define the polygon
 
-              domain = ANUGA domain object
+          domain = ANUGA domain object
 
 
         OUTPUT: A function F(x,y) which can be used e.g. to set the quantity
@@ -148,7 +182,8 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
         for i in range(lfp-1):
             if (poly_fun_pairs[i][0]=='All'):
                 # This is only ok if all the othe poly_fun_pairs are None
-                remaining_poly_fun_pairs_are_None=[ poly_fun_pairs[j][0] is None for j in range(i+1,lfp)]
+                remaining_poly_fun_pairs_are_None = \
+                    [ poly_fun_pairs[j][0] is None for j in range(i+1,lfp)]
                 if(not all(remaining_poly_fun_pairs_are_None)):
                     raise Exception, 'Can only have the last polygon = All'
 
@@ -190,9 +225,19 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
                     quantityVal[fInds]=fi*1.0
                 elif ( type(fi) is str and os.path.exists(fi)):
                     # fi is a file which is assumed to be 
-                    # a gdal-compatible raster
-                    newfi = quantityRasterFun(domain, fi)
-                    quantityVal[fInds] = newfi(x[fInds], y[fInds])
+                    # a gdal-compatible raster OR an x,y,z elevation file
+                    if os.path.splitext(fi)[1] in ['.txt', '.csv']:
+                        # Treating input file ' + fi + ' as xyz array with 1 header row
+                        fi_array = numpy.genfromtxt(fi, delimiter=",", skip_header=1)
+                        if fi_array.shape[1] is not 3:
+                            print 'Treated input file ' + fi + ' as xyz array with 1 header row'
+                            raise Exception, 'Array should have 3 columns -- x,y,value'
+                        newfi = make_nearestNeighbour_quantity_function(fi_array, domain)
+                        quantityVal[fInds] = newfi(x[fInds], y[fInds])
+                    else:
+                        # Treating input file as a raster
+                        newfi = quantityRasterFun(domain, fi)
+                        quantityVal[fInds] = newfi(x[fInds], y[fInds])
                 elif(type(fi) is numpy.ndarray):
                     if fi.shape[1] is not 3:
                         raise Exception, 'Array should have 3 columns -- x,y,value'
