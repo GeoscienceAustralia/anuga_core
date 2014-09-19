@@ -197,11 +197,11 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
                 continue
 
             # Get indices fInds of points in pi which are not set
-            if(pi is 'All'):
+            if(pi == 'All'):
                 fInside=(1-isSet)
                 fInds=(fInside==1).nonzero()[0]
             else:
-                if(pi is 'Extent' and type(fi) is str and os.path.exists(fi)):
+                if(pi == 'Extent' and type(fi) is str and os.path.exists(fi)):
                     # Here fi MUST be a gdal-compatible raster
                     # Then we get the extent from the raster itself
                     pi_path=su.getRasterExtent(fi,asPolygon=True)
@@ -249,7 +249,7 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
                 
                 isSet[fInds]=1
 
-        if(not min(isSet)==1):
+        if( min(isSet) != 1):
             raise Exception, 'Some points were not inside any polygon'
 
         return quantityVal
