@@ -11,6 +11,8 @@ import time
 import anuga
 import numpy
 import scipy
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as pyplot
 from anuga.utilities import plot_utils as util
 #--------------

@@ -3,6 +3,8 @@
 
 """
 import anuga.utilities.plot_utils as util
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as pyplot
 from analytical_carrier_greenspan import *
 

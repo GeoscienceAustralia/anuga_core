@@ -5,6 +5,8 @@
 import numpy
 from numpy import zeros
 import anuga.utilities.plot_utils as util
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as pyplot
 from math import sqrt, pi, cos, sin
 from analytical_parabolic_basin import analytic_cannal

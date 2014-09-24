@@ -6,6 +6,8 @@
 import anuga
 import numpy
 import scipy
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as pyplot
 #import util # Routines to read in and work with ANUGA output
 #from bal_and import plot_utils as util

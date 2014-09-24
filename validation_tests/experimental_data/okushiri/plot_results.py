@@ -18,6 +18,8 @@ from anuga.utilities.numerical_tools import cov
 #from anuga.utilities.numerical_tools import get_machine_precision
 from anuga.shallow_water.sww_interrogate import get_maximum_inundation_elevation
 from anuga.shallow_water.sww_interrogate import get_maximum_inundation_location
+import matplotlib
+matplotlib.use('Agg')
 
 ##if sys.platform == 'win32':
 ##    # Windows has a problem when this module is run through
@@ -34,8 +36,9 @@ args = anuga.get_args()
 verbose = args.verbose
 
 try:
-    from pylab import ion, hold, plot, title, legend
-    from pylab import xlabel, ylabel, savefig
+    from matplotlib import pyplot
+    from pyplot import ion, hold, plot, title, legend
+    from pyplot import xlabel, ylabel, savefig
     hold(False)  # Check if this command can be issued
 except:
     print 'Could not import pylab'

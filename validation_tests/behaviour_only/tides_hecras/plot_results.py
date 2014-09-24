@@ -1,5 +1,7 @@
 import numpy
 from anuga.utilities import plot_utils as util
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as pyplot
 
 ######################################################

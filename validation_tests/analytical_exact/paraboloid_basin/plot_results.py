@@ -4,6 +4,8 @@
 
 """
 import anuga.utilities.plot_utils as util
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as pyplot
 #from math import sqrt, pi,sin,cos
 from numpy import sqrt, sin, cos, pi

@@ -1,4 +1,6 @@
 from anuga.utilities import plot_utils as util
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as pyplot
 
 p2=util.get_output('data_wave.sww',0.001)
