@@ -151,7 +151,10 @@ if gdal_available:
     def read_polygon(filename):
         """
 
-        Read a shapefile (polygon or line) or an anuga_polygon csv file as an anuga polygon
+        Read a shapefile (polygon or line) or a csv file as an anuga polygon
+
+        In the case of a csv file, we permit either 1 or 0 header rows, and
+        the file can have > 2 columns [but only the first 2 are used]
 
         Try to automatically do the correct thing based on the filename
 
@@ -177,7 +180,16 @@ if gdal_available:
         else:
             try:
                 # Read as an anuga polygon file
-                outPol=anuga.read_polygon(filename)
+                #outPol=anuga.read_polygon(filename)
+                #
+                # This method checks for headers and is correct for 0 or 1 header lines
+                f=open(filename)
+                firstLine=f.readline()
+                f.close()
+                hasLetters=any(c.isalpha() for c in firstLine)
+                outPol = numpy.genfromtxt(filename, delimiter=',',skip_header=int(hasLetters))
+                # Only take the first 2 columns
+                outPol = outPol[:,0:2].tolist()
             except:
                 msg = 'Failed reading polygon '+ filename + ' with anuga.utilities.spatialInputUtils.read_polygon'
                 raise Exception, msg
@@ -1056,6 +1068,7 @@ if gdal_available:
         for rwfile in rwfileList:
             f=open(rwfile)
             firstLine=f.readline()
+            f.close()
             # If the top line has any letters, assume it is a hydraulic variables line
             hasLetters=any(c.isalpha() for c in firstLine)
             if(not hasLetters):
@@ -1098,7 +1111,7 @@ if gdal_available:
             INPUTS: pattern == character string containing pattern which 
                         is inside exactly 2 keys in breaklines
         
-                    breakLines = the breakLinesIn dictionary
+                    breakLinesIn = the breakLines dictionary
                     
                     reverse2nd = True/False or None. Reverse the order of the 
                                  2nd set of edges before making the polygon.
@@ -1116,7 +1129,7 @@ if gdal_available:
         matchers=matchInds(pattern, bk)
     
         if(len(matchers)==0):
-            msg = 'Cannot match ' + pattern + 'in breaklines file names'
+            msg = 'Cannot match ' + pattern + ' in breaklines file names'
             raise Exception, msg
     
         if(len(matchers)!=2):

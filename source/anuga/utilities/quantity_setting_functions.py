@@ -100,7 +100,7 @@ def composite_quantity_setting_function(poly_fun_pairs, domain,
                       fi is a function, 
                          or a constant, 
                          or a '.txt' or '.csv' file with comma separated xyz data 
-                            and a single header row, 
+                            and an optional header row which contains letters, 
                          or the name of a gdal-compatible rasterFile 
                             (not ending in .txt or .csv), 
                          or a numpy array with 3 columns; 
@@ -133,7 +133,7 @@ def composite_quantity_setting_function(poly_fun_pairs, domain,
               fi = a constant in which case points in the polygon are 
                    set to that value, 
               fi = a .txt or .csv file name containing x, y, z data,
-                     with comma separators and a single header row
+                     with comma separators and an optional header row containing letters
               fi = a string rasterFile name (not ending in .txt or .csv)
                     which can be passed to quantityRasterFun to make a function,
               fi = a numpy array with 3 columns (x,y,Value) in which case 
@@ -244,10 +244,16 @@ def composite_quantity_setting_function(poly_fun_pairs, domain,
                     # fi is a file which is assumed to be 
                     # a gdal-compatible raster OR an x,y,z elevation file
                     if os.path.splitext(fi)[1] in ['.txt', '.csv']:
-                        # Treating input file ' + fi + ' as xyz array with 1 header row
-                        fi_array = numpy.genfromtxt(fi, delimiter=",", skip_header=1)
+                        # Treating input file ' + fi + ' as xyz array with possibly 1 header row
+                        f=open(fi)
+                        firstLine=f.readline()
+                        f.close()
+                        hasLetters=any(c.isalpha() for c in firstLine)
+                        fi_array = numpy.genfromtxt(fi, delimiter=",", skip_header=int(hasLetters))
+                        # Check the results
                         if fi_array.shape[1] is not 3:
-                            print 'Treated input file ' + fi + ' as xyz array with 1 header row'
+                            print 'Treated input file ' + fi + ' as xyz array with '+ \
+                                  str(int(hasLetters)) + ' header row'
                             raise Exception('Array should have 3 columns -- x,y,value')
                         newfi = make_nearestNeighbour_quantity_function(fi_array, domain)
                         quantityVal[fInds] = newfi(x[fInds], y[fInds])

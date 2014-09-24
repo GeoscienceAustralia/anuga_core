@@ -752,7 +752,8 @@ def get_extent(p):
 
 
 
-def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None):
+def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None, 
+               creation_options=[]):
     """
         Convert data,lats,lons to a georeferenced raster tif
         INPUT: data -- array with desired raster cell values
@@ -761,6 +762,7 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None):
                fileName -- name of file to write to
                EPSG_CODE -- Integer code with projection information in EPSG format 
                proj4string -- proj4string with projection information
+               creation_options -- list of tif creation options for gdal (e.g. ["COMPRESS=DEFLATE"])
 
         NOTE: proj4string is used in preference to EPSG_CODE if available
     """
@@ -787,7 +789,8 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None):
 
     # GDAL magic to make the tif
     driver = gdal.GetDriverByName('GTiff')
-    ds = driver.Create(fileName, xsize, ysize, 1, gdal.GDT_Float32)
+    ds = driver.Create(fileName, xsize, ysize, 1, gdal.GDT_Float32, 
+                       creation_options)
 
     srs = osr.SpatialReference()
     if(proj4string is not None):
@@ -828,7 +831,8 @@ def Make_Geotif(swwFile=None,
              output_dir='TIFS',
              bounding_polygon=None,
              verbose=False,
-             k_nearest_neighbours=3):
+             k_nearest_neighbours=3,
+             creation_options=[]):
     """
         Make a georeferenced tif by nearest-neighbour interpolation of sww file outputs (or a 3-column array with xyz Points)
 
@@ -853,7 +857,7 @@ def Make_Geotif(swwFile=None,
                 output_dir -- Write outputs to this directory
                 bounding_polygon -- polygon (e.g. from read_polygon) If present, only set values of raster cells inside the bounding_polygon
                 k_nearest_neighbours -- how many neighbours to use in interpolation. If k>1, inverse-distance-weighted interpolation is used
-                
+                creation_options -- list of tif creation options for gdal, e.g. ['COMPRESS=DEFLATE']
     """
 
     #import pdb
@@ -1050,7 +1054,8 @@ def Make_Geotif(swwFile=None,
             if(verbose):
                 print 'Making raster ...'
             gridq.shape=(len(desiredY),len(desiredX))
-            make_grid(scipy.flipud(gridq),desiredY,desiredX, output_name,EPSG_CODE=EPSG_CODE, proj4string=proj4string)
+            make_grid(scipy.flipud(gridq),desiredY,desiredX, output_name,EPSG_CODE=EPSG_CODE, 
+                      proj4string=proj4string, creation_options=creation_options)
 
     return
 
