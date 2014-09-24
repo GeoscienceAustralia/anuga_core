@@ -2,6 +2,8 @@
     Quick plot of the dam break outputs
 """
 import anuga.utilities.plot_utils as util
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as pyplot
 import csv, pprint
 from numpy import zeros
