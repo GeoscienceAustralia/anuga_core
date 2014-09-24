@@ -177,6 +177,27 @@ class Test_quantity_setting_functions(unittest.TestCase):
         nearest_x=domain.centroid_coordinates[nearest,0]
         assert(numpy.allclose(fitted[1],-nearest_x/150.))
 
+        #################################################################
+ 
+        # This example uses a constant, and a raster, to set the quantity, and applies the min/max bound           
+        F=qs.composite_quantity_setting_function([[trenchPoly, -1000.], ['Extent', 'PointData_ElevTest.tif']],\
+                                                domain,
+                                                clip_range = [[-500., 1.0e+100], [-1.0e+100, 1.0e+100]]) 
+
+        # Points where we test the function
+        testPts_X=numpy.array([50., 3.])
+        testPts_Y=numpy.array([1., 20.])
+        fitted=F(testPts_X,testPts_Y)
+
+        # The fitted value in the trench should be -500, because of clipping
+        assert(fitted[0]==-500.)
+
+        # Find the nearest domain point to the second test point
+        # This will have been used in constructing the elevation raster
+        nearest=((domain.centroid_coordinates[:,0]-3.)**2 + (domain.centroid_coordinates[:,1]-20.)**2).argmin()
+        nearest_x=domain.centroid_coordinates[nearest,0]
+        assert(numpy.allclose(fitted[1],-nearest_x/150.))
+
         #########################################################################
 
         # This example uses a function, and a raster, to set the quantity           
@@ -204,12 +225,22 @@ class Test_quantity_setting_functions(unittest.TestCase):
 
         ###########################################################################
         # This example should fail
-        try:
+        def should_fail():
             F=qs.composite_quantity_setting_function([['All', f0], ['All', 'PointData_ElevTest.tif']],\
                                                     domain) 
-            raise Exception, 'The last command should fail' 
-        except:
-            assert True
+            # Need to call it to get the error
+            F(numpy.array([3.]), numpy.array([3.]))
+            return
+        self.assertRaises(Exception, lambda: should_fail())
+
+        ###########################################################################
+        # This example should fail (since the clip_range minimum >= maximum)
+        def should_fail():
+            F=qs.composite_quantity_setting_function([[trenchPoly, f0], ['All', 'PointData_ElevTest.tif']],\
+                                                    domain,
+                                                    clip_range = [[ -500., -1000.], [-1.0e+100, 1.0e+100]]) 
+            return
+        self.assertRaises(Exception, lambda: should_fail())
 
         return
 

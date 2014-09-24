@@ -87,11 +87,12 @@ def make_nearestNeighbour_quantity_function(
 
 ###################################################################################################
 
-def composite_quantity_setting_function(poly_fun_pairs, domain):
+def composite_quantity_setting_function(poly_fun_pairs, domain,
+                                        clip_range = None):
     """
         Make a 'composite function' to set quantities -- applies different 
-        functions inside different polygon regions.
-             
+        functions inside different polygon regions. 
+        
         poly_fun_pairs = [ [p0, f0], [p1, f1], ...] 
 
                     Where:
@@ -153,6 +154,10 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
 
           domain = ANUGA domain object
 
+          clip_range = List with the same length as poly_fun_pairs, of the form
+                    [ [min0, max0], [min1, max1], ...]
+                    After f0 is applied in p0, its values will be 'clipped' to the range
+                    [min0, max0], and similarly for the other fi
 
         OUTPUT: A function F(x,y) which can be used e.g. to set the quantity
                 domain.set_quantity('elevation', F)
@@ -162,6 +167,18 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
     #from matplotlib import path
     from anuga.geometry.polygon import inside_polygon
 
+
+    # Check that clip_range has the right form
+    if clip_range is not None:
+        if len(clip_range) != len(poly_fun_pairs):
+            msg = ' clip_range must be the same ' +\
+                  'length as poly_fun_pairs, or None'
+            raise ValueError(msg)
+        # Check that min < = max
+        for i in range(len(clip_range)):
+            if clip_range[i][0] > clip_range[i][1]:
+                raise Exception('clip_range minima must be less than maxima') 
+
     def F(x,y):
         """
             This is the function we return
@@ -170,7 +187,7 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
         quantityVal=x*0 # F value
         lfp=len(poly_fun_pairs)
         if(lfp<=0):
-            raise Exception, 'Must have at least 1 fun-poly-pair'
+            raise Exception('Must have at least 1 fun-poly-pair')
 
         # Make an array of 'transformed' spatial coordinates, for checking
         # polygon inclusion
@@ -185,7 +202,7 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
                 remaining_poly_fun_pairs_are_None = \
                     [ poly_fun_pairs[j][0] is None for j in range(i+1,lfp)]
                 if(not all(remaining_poly_fun_pairs_are_None)):
-                    raise Exception, 'Can only have the last polygon = All'
+                    raise Exception('Can only have the last polygon = All')
 
         # Apply the fi inside the pi
         for i in range(lfp):
@@ -231,7 +248,7 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
                         fi_array = numpy.genfromtxt(fi, delimiter=",", skip_header=1)
                         if fi_array.shape[1] is not 3:
                             print 'Treated input file ' + fi + ' as xyz array with 1 header row'
-                            raise Exception, 'Array should have 3 columns -- x,y,value'
+                            raise Exception('Array should have 3 columns -- x,y,value')
                         newfi = make_nearestNeighbour_quantity_function(fi_array, domain)
                         quantityVal[fInds] = newfi(x[fInds], y[fInds])
                     else:
@@ -240,17 +257,23 @@ def composite_quantity_setting_function(poly_fun_pairs, domain):
                         quantityVal[fInds] = newfi(x[fInds], y[fInds])
                 elif(type(fi) is numpy.ndarray):
                     if fi.shape[1] is not 3:
-                        raise Exception, 'Array should have 3 columns -- x,y,value'
+                        raise Exception('Array should have 3 columns -- x,y,value')
                     newfi = make_nearestNeighbour_quantity_function(fi, domain)
                     quantityVal[fInds] = newfi(x[fInds], y[fInds])
                 else:
                     msg='Cannot make function from type '+str(type(fi))
                     raise Exception, msg 
-                
+
                 isSet[fInds]=1
+                # Enforce clip_range
+                if clip_range is not None:
+                    lower_bound = clip_range[i][0]
+                    upper_bound = clip_range[i][1]
+                    quantityVal[fInds] = numpy.maximum(quantityVal[fInds], lower_bound)
+                    quantityVal[fInds] = numpy.minimum(quantityVal[fInds], upper_bound)
 
         if( min(isSet) != 1):
-            raise Exception, 'Some points were not inside any polygon'
+            raise Exception('Some points were not inside any polygon')
 
         return quantityVal
 

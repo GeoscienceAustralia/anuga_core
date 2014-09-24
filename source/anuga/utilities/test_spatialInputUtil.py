@@ -93,11 +93,10 @@ class Test_spatialInputUtil(unittest.TestCase):
         # Should fail because seg has 2 points which are identical 
         pt=[0., -3.]
         seg=[ [0., 0.], [0., 0.]]
-        try:
+        def should_fail():
             dist_sq=su.compute_squared_distance_to_segment(pt,seg)
-            assert False
-        except:
-            assert True
+            return
+        self.assertRaises(Exception, lambda: should_fail())
       
         # This one actually uses the perpendicular distance feature 
         pt=[1.0, 1.0]
@@ -354,14 +353,13 @@ class Test_spatialInputUtil(unittest.TestCase):
         riverWalls={ 'rw1': [[-0.01, 8., 2.],[10.01, 4., 3.]],
                      'rw2': [[5., -0.01, 1.], [5., 10.01, 2.]] }
 
-        try:
+        def should_fail():
             # Should fail
             newBP, newBL, newRW=su.add_intersections_to_domain_features(bounding_polygon,\
                                     breakLines, riverWalls, point_movement_threshold=0.02,\
                                     verbose=verbose)
-            assert False
-        except:
-            assert True
+            return
+        self.assertRaises(Exception, lambda: should_fail())
 
         #################################################################
         # Fix the riverwall, and it should work
