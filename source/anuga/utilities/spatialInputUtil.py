@@ -177,6 +177,7 @@ if gdal_available:
                     assert len(outPol)>1
                 except:
                     msg= 'Could not read '+ filename +' as either polygon or line shapefile'
+                    raise Exception(msg)
         else:
             try:
                 # Read as an anuga polygon file
@@ -192,7 +193,7 @@ if gdal_available:
                 outPol = outPol[:,0:2].tolist()
             except:
                 msg = 'Failed reading polygon '+ filename + ' with anuga.utilities.spatialInputUtils.read_polygon'
-                raise Exception, msg
+                raise Exception(msg)
 
         return outPol 
 

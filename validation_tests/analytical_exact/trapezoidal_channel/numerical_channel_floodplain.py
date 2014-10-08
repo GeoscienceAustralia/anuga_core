@@ -27,7 +27,7 @@ from project import \
           chan_initial_depth, chan_bankfull_depth, chan_width, bankwidth, \
           man_n, l0
 
-l0 = 2.0
+l0 = 1.0
 
 assert chan_width < floodplain_width, \
         'ERROR: Channel width is greater than floodplain width'

@@ -5,9 +5,9 @@
 # Import Modules
 #---------------
 import numpy
-from matplotlib import pyplot as pyplot
 import matplotlib
 matplotlib.use('Agg')
+from matplotlib import pyplot as pyplot
 from anuga.utilities import plot_utils as util
 from numpy import sqrt, sin, cos, pi
 import csv, pprint

@@ -217,18 +217,18 @@ class RiverWall:
 
         """
 
-        if(verbose and myid==0):        
-            print ' '
-            print 'WARNING: Riverwall is an experimental feature'
-            print '         At each riverwall edge, we place a thin "wall" between'
-            print '         the 2 edges -- so each sees its neighbour edge as having'
-            print '         bed elevation = max(levee height, neighbour bed elevation)'
-            print '         We also force the discharge with a weir relation, blended with'
-            print '         the shallow water flux solution as the ratio (min_head)/(weir_height) becomes '
-            print '         large, or the ratio (downstream_head)/(upstream_head) becomes large'
-            print ' '
-            print '  It works in parallel, but you must use domain.riverwallData.create_riverwall AFTER distributing the mesh'
-            print ' '
+        #if(verbose and myid==0):        
+        #    print ' '
+        #    print 'WARNING: Riverwall is an experimental feature'
+        #    print '         At each riverwall edge, we place a thin "wall" between'
+        #    print '         the 2 edges -- so each sees its neighbour edge as having'
+        #    print '         bed elevation = max(levee height, neighbour bed elevation)'
+        #    print '         We also force the discharge with a weir relation, blended with'
+        #    print '         the shallow water flux solution as the ratio (min_head)/(weir_height) becomes '
+        #    print '         large, or the ratio (downstream_head)/(upstream_head) becomes large'
+        #    print ' '
+        #    print '  It works in parallel, but you must use domain.riverwallData.create_riverwall AFTER distributing the mesh'
+        #    print ' '
 
         # NOTE: domain.riverwallData is initialised in shallow_water_domain.py for DE algorithms
         domain=self.domain
