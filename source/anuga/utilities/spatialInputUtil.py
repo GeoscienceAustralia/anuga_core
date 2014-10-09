@@ -11,7 +11,7 @@ Key routines:
     ListPts2Wkb -- (Probably for internal use) Convert a list of points to a
                     Wkb geometry, allowing us to use GDALs geometry tools
     Wbk2ListPts -- reverse of ListPts2Wkb
-    
+
     addIntersectionPtsToLines -- (Probably for internal use, see add_intersections_to_domain_features) 
                                  Given 2 intersecting lines, add their intersection points to them, or
                                  move existing points if they are within a given distance of the intersection.
@@ -146,8 +146,30 @@ if gdal_available:
             line_all.extend(line)
     
         return line_all
+
+    ###########################################################################
+    def read_csv_optional_header(filename):
+        """Read a csv file of numbers, which optionally has a single header 
+            row containing alphabetical characters (which is ignored if it 
+            exists)
            
-    ####################
+            INPUT:
+            @param filename -- name of appropriate file with ',' delimiter
+            
+            OUTPUT:
+            A numpy array with the numeric data
+        """
+           
+        f=open(filename)
+        firstLine=f.readline()
+        f.close()
+        hasLetters=any(c.isalpha() for c in firstLine)
+        outPol = numpy.genfromtxt(
+            filename, delimiter=',',skip_header=int(hasLetters))
+
+        return outPol
+           
+    ###########################################################################
     def read_polygon(filename):
         """
 
@@ -176,23 +198,17 @@ if gdal_available:
                     outPol= readShp_1LineGeo(filename)
                     assert len(outPol)>1
                 except:
-                    msg= 'Could not read '+ filename +' as either polygon or line shapefile'
+                    msg= 'Could not read '+ filename +\
+                         ' as either polygon or line shapefile'
                     raise Exception(msg)
         else:
             try:
-                # Read as an anuga polygon file
-                #outPol=anuga.read_polygon(filename)
-                #
-                # This method checks for headers and is correct for 0 or 1 header lines
-                f=open(filename)
-                firstLine=f.readline()
-                f.close()
-                hasLetters=any(c.isalpha() for c in firstLine)
-                outPol = numpy.genfromtxt(filename, delimiter=',',skip_header=int(hasLetters))
+                read_csv_optional_header(filename)
                 # Only take the first 2 columns
                 outPol = outPol[:,0:2].tolist()
             except:
-                msg = 'Failed reading polygon '+ filename + ' with anuga.utilities.spatialInputUtils.read_polygon'
+                msg = 'Failed reading polygon '+ filename +\
+                      ' with anuga.utilities.spatialInputUtils.read_polygon'
                 raise Exception(msg)
 
         return outPol 
@@ -205,7 +221,8 @@ if gdal_available:
     
             INPUT: shapefile -- name of shapefile to read
             
-            OUTPUT: List with [ list_of_points, list_of_attributes, names_of_attributes]
+            OUTPUT: List with 
+            [ list_of_points, list_of_attributes, names_of_attributes]
         """
         
         driver=ogr.GetDriverByName("ESRI Shapefile")
@@ -728,6 +745,12 @@ if gdal_available:
             yC=int(py[i])
             structval=rasterBand.ReadRaster(xC,yC,1,1,buf_type=rasterBand.DataType)
             elev[i] = struct.unpack(CtypeName, structval)[0]
+
+        # Deal with nodata
+        nodataval = rasterBand.GetNoDataValue()
+        missing = (elev == nodataval).nonzero()[0]
+        if len(missing) > 0:
+            elev[missing] = numpy.nan
     
         return elev
     
@@ -1172,6 +1195,9 @@ else: # gdal_available == False
         raise ImportError, msg
     
     def readShp_1LineGeo(shapefile):
+        raise ImportError, msg
+
+    def read_csv_optional_header(filename):
         raise ImportError, msg
     
     def read_polygon(filename):
