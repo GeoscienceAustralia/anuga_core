@@ -36,6 +36,7 @@ from anuga.__metadata__ import __version__, __date__, __author__
 from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.abstract_2d_finite_volumes.quantity import Quantity
 from anuga.abstract_2d_finite_volumes.region import Region
+from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.operators.base_operator import Operator
 from anuga.structures.structure_operator import Structure_operator
 
