@@ -88,8 +88,10 @@ def make_nearestNeighbour_quantity_function(
 
 ###############################################################################
 
-def composite_quantity_setting_function(poly_fun_pairs, domain,
-                                        clip_range = None):
+def composite_quantity_setting_function(poly_fun_pairs, 
+                                        domain,
+                                        clip_range = None,
+                                        nan_treatment = 'exception'):
     """ Make a 'composite function' to set quantities -- applies different
         functions inside different polygon regions.
 
@@ -165,6 +167,11 @@ def composite_quantity_setting_function(poly_fun_pairs, domain,
                     [min0, max0]
                  , and similarly for the other fi
 
+          @param nan_treatment = 'exception' or 'fall_through' -- string determining
+                what to do if F(x,y) is nan. The default 'exception' raises an exception.
+                The value 'fall_through' allows the function to try lower-priority 
+                poly,fun pairs (in sequence) to set the value.
+
         OUTPUT: A function F(x,y) which can be used e.g. to set the quantity
                 domain.set_quantity('elevation', F)
     """
@@ -218,7 +225,10 @@ def composite_quantity_setting_function(poly_fun_pairs, domain,
             if(pi is None):
                 continue
 
-            # Get indices fInds of points in pi which are not set
+            ###################################################################
+            # Get indices fInds of points in polygon pi which are not already
+            # set
+            ###################################################################
             if(pi == 'All'):
                 # Get all unset points
                 fInside=(1-isSet)
@@ -254,59 +264,107 @@ def composite_quantity_setting_function(poly_fun_pairs, domain,
                 fInds = inside_polygon(xy_array_trans[notSet,:], pi_path)
                 fInds = notSet[fInds]
 
-            # Now call the function on the fInds points
-            if(len(fInds)>0):
-                # We use various tricks to infer whether fi is a function,
-                # a constant, a file (raster or csv), or an array
-                if(hasattr(fi,'__call__')):
-                    # fi is a function
-                    quantityVal[fInds] = fi(x[fInds], y[fInds])
+            if len(fInds) == 0:
+                # No points found, move on
+                continue
 
-                elif isinstance(fi, (int, long, float)):
-                    # fi is a numerical constant
-                    quantityVal[fInds]=fi*1.0
+            ###################################################################
+            # Evaluate fi at the points inside pi
+            ###################################################################
 
-                elif ( type(fi) is str and os.path.exists(fi)):
-                    # fi is a file which is assumed to be 
-                    # a gdal-compatible raster OR an x,y,z elevation file
-                    if os.path.splitext(fi)[1] in ['.txt', '.csv']:
-                        fi_array = su.read_csv_optional_header(fi)
-                        # Check the results
-                        if fi_array.shape[1] is not 3:
-                            print 'Treated input file ' + fi +\
-                                  ' as xyz array with '+ \
-                                  str(int(hasLetters)) + ' header row'
-                            msg = 'Array should have 3 columns -- x,y,value'
-                            raise Exception(msg)
-                        newfi = make_nearestNeighbour_quantity_function(
-                            fi_array, domain)
-                        quantityVal[fInds] = newfi(x[fInds], y[fInds])
-                    else:
-                        # Treating input file as a raster
-                        newfi = quantityRasterFun(domain, fi)
-                        quantityVal[fInds] = newfi(x[fInds], y[fInds])
+            # We use various tricks to infer whether fi is a function,
+            # a constant, a file (raster or csv), or an array
+            if(hasattr(fi,'__call__')):
+                # fi is a function
+                quantityVal[fInds] = fi(x[fInds], y[fInds])
 
-                elif(type(fi) is numpy.ndarray):
-                    if fi.shape[1] is not 3:
+            elif isinstance(fi, (int, long, float)):
+                # fi is a numerical constant
+                quantityVal[fInds]=fi*1.0
+
+            elif ( type(fi) is str and os.path.exists(fi)):
+                # fi is a file which is assumed to be 
+                # a gdal-compatible raster OR an x,y,z elevation file
+                if os.path.splitext(fi)[1] in ['.txt', '.csv']:
+                    fi_array = su.read_csv_optional_header(fi)
+                    # Check the results
+                    if fi_array.shape[1] is not 3:
+                        print 'Treated input file ' + fi +\
+                              ' as xyz array with '+ \
+                              str(int(hasLetters)) + ' header row'
                         msg = 'Array should have 3 columns -- x,y,value'
                         raise Exception(msg)
-                    newfi = make_nearestNeighbour_quantity_function(fi, domain)
+
+                    newfi = make_nearestNeighbour_quantity_function(
+                        fi_array, domain)
                     quantityVal[fInds] = newfi(x[fInds], y[fInds])
 
                 else:
+                    # Treating input file as a raster
+                    newfi = quantityRasterFun(domain, fi)
+                    quantityVal[fInds] = newfi(x[fInds], y[fInds])
 
-                    msg='Cannot make function from type '+str(type(fi))
-                    raise Exception, msg 
+            elif(type(fi) is numpy.ndarray):
+                if fi.shape[1] is not 3:
+                    msg = 'Array should have 3 columns -- x,y,value'
+                    raise Exception(msg)
+                newfi = make_nearestNeighbour_quantity_function(fi, domain)
+                quantityVal[fInds] = newfi(x[fInds], y[fInds])
 
-                isSet[fInds]=1
-                # Enforce clip_range
-                if clip_range is not None:
-                    lower_bound = clip_range[i][0]
-                    upper_bound = clip_range[i][1]
-                    quantityVal[fInds] = numpy.maximum(
-                        quantityVal[fInds], lower_bound)
-                    quantityVal[fInds] = numpy.minimum(
-                        quantityVal[fInds], upper_bound)
+            else:
+                msg='Cannot make function from type '+str(type(fi))
+                raise Exception, msg 
+
+            ###################################################################
+            # Check for nan values
+            ###################################################################
+
+            nan_flag = quantityVal[fInds] != quantityVal[fInds]
+            nan_inds = nan_flag.nonzero()[0]
+            if len(nan_inds)>0:
+                if nan_treatment == 'exception':
+                    msg = 'nan values generated by the poly_fun_pair at '\
+                          'index ' + str(i) + ' '\
+                          'in composite_quantity_setting_function. ' + \
+                          'To allow these values to be set by later ' + \
+                          'poly_fun pairs, pass the argument ' + \
+                          'nan_treatment="fall_through" ' + \
+                          'to composite_quantity_setting_function' 
+                    raise Exception(msg)
+
+                elif nan_treatment == 'fall_through':
+                    msg = 'WARNING: nan values generated by the ' + \
+                          'poly_fun_pair at index ' + str(i) + ' '\
+                          'in composite_quantity_setting_function. ' + \
+                          'They will be passed to later poly_fun_pairs'
+                    print msg
+                    not_nan_inds = (1-nan_flag).nonzero()[0]
+
+                    if len(not_nan_inds)>0:
+                        fInds = fInds[not_nan_inds]
+                    else:
+                        # All values are nan
+                        msg = '( Actually all the values were nan - ' + \
+                              'Are you sure they should be? Possible error?)'
+                        print msg
+                        continue
+                else:
+                    msg = 'Found nan values in ' + \
+                          'composite_quantity_setting_function but ' + \
+                          'nan_treatment is not a recognized value'
+                    raise Exception(msg)
+
+            # Record that the points have been set
+            isSet[fInds]=1
+
+            # Enforce clip_range
+            if clip_range is not None:
+                lower_bound = clip_range[i][0]
+                upper_bound = clip_range[i][1]
+                quantityVal[fInds] = numpy.maximum(
+                    quantityVal[fInds], lower_bound)
+                quantityVal[fInds] = numpy.minimum(
+                    quantityVal[fInds], upper_bound)
 
         if( min(isSet) != 1):
             raise Exception('Some points were not inside any polygon')
@@ -339,7 +397,7 @@ def quantityRasterFun(domain, rasterFile):
         yll=domain.geo_reference.yllcorner
         inDat=scipy.vstack([x+xll,y+yll]).transpose()
         return rasterValuesAtPoints(xy=inDat,rasterFile=rasterFile)
-    #
+
     return QFun
 
 #################################################################################

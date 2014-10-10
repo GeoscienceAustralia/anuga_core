@@ -203,7 +203,7 @@ if gdal_available:
                     raise Exception(msg)
         else:
             try:
-                read_csv_optional_header(filename)
+                outPol = read_csv_optional_header(filename)
                 # Only take the first 2 columns
                 outPol = outPol[:,0:2].tolist()
             except:
@@ -684,15 +684,26 @@ if gdal_available:
 
  
     ###########################################################
-    def rasterValuesAtPoints(xy, rasterFile, band=1):
+    def rasterValuesAtPoints(
+        xy, 
+        rasterFile, 
+        band=1, 
+        nodata_rel_tol = 1.0e-08):
         """
             Get raster values at point locations.
             Can be used to e.g. set quantity values
        
             INPUT: 
-            xy = numpy array with point locations
-            rasterFile = Filename of the gdal-compatible raster
-            band = band of the raster to get
+            @param xy = numpy array with point locations
+
+            @param rasterFile = Filename of the gdal-compatible raster
+
+            @param band = band of the raster to get
+
+            @param nodata_rel_tol = Values are treated as nodata if
+                ( abs(elev - nodataval) < nodata_rel_tol*abs(nodataval) )
+                This allows for truncation errors in nodata values which seem
+                to be introduced by some file-type conversions
     
             OUTPUT:
             1d numpy array with raster values at xy
@@ -737,7 +748,8 @@ if gdal_available:
         if(px.max()<xMax and px.min()>=0 and py.max()<yMax and py.min()>=0):
             pass
         else:
-            raise Exception, 'Trying to extract point values that exceed the raster extent'
+            msg = 'Trying to extract point values that exceed the raster extent'
+            raise Exception, msg
 
         # Get values -- seems we have to loop, but it is efficient enough
         for i in range(len(px)):
@@ -748,7 +760,9 @@ if gdal_available:
 
         # Deal with nodata
         nodataval = rasterBand.GetNoDataValue()
-        missing = (elev == nodataval).nonzero()[0]
+        rel_tol = ( abs(elev - nodataval) < nodata_rel_tol*abs(nodataval) )
+        missing = (rel_tol).nonzero()[0] 
+
         if len(missing) > 0:
             elev[missing] = numpy.nan
     
@@ -837,56 +851,60 @@ if gdal_available:
     ############################################################################
     
     
-    def add_intersections_to_domain_features(bounding_polygonIn,
-                breakLinesIn={ }, riverWallsIn={ }, point_movement_threshold=0.,
-                verbose=True):
+    def add_intersections_to_domain_features(
+        bounding_polygonIn,
+        breakLinesIn={ }, 
+        riverWallsIn={ }, 
+        point_movement_threshold=0.,
+        verbose=True):
         """
-            If bounding polygon / breaklines /riverwalls intersect with each other, then
-            add intersection points.
-    
+            If bounding polygon / breaklines /riverwalls intersect with each 
+            other, then add intersection points.
+
             INPUTS:
                 bounding_polygonIn -- the bounding polygon in ANUGA format
                 breakLinesIn -- the breaklines dictionary
                 riverWallsIn -- the riverWalls dictionary
-    
-                point_movement_threshold -- if points on lines are < this distance
-                        from intersection points, then they are replaced with the intersection point.
-                        This can prevent overly close points from breaking the mesh generation
-    
+                point_movement_threshold -- if points on lines 
+                    are < this distance from intersection points, then they are
+                    replaced with the intersection point. This can prevent
+                    overly close points from breaking the mesh generation
+
             OUTPUT:
                 List with bounding_polygon,breakLines,riverwalls
         """
-    
-        bounding_polygon=copy.copy(bounding_polygonIn)
-        breakLines=copy.copy(breakLinesIn)
-        riverWalls=copy.copy(riverWallsIn)
-  
+
+        bounding_polygon = copy.copy(bounding_polygonIn)
+        breakLines = copy.copy(breakLinesIn)
+        riverWalls = copy.copy(riverWallsIn)
+
         # Quick exit 
         if (breakLines == {}) and (riverWalls == {}): 
             return [bounding_polygon, breakLines, riverWalls]
- 
+
         # Clean intersections of breakLines with itself
         if(verbose): 
             print 'Cleaning breakline intersections'
         if(len(breakLines)>0):
-            kbl=breakLines.keys()
+            kbl = breakLines.keys()
             for i in range(len(kbl)):
-                n1=kbl[i]
+                n1 = kbl[i]
                 for j in range(len(kbl)):
-                    if(i>=j):
+                    if(i >= j):
                         continue
-                    n2=kbl[j]
+                    n2 = kbl[j]
                     # Convert breaklines to wkb format
-                    bl1=ListPts2Wkb(breakLines[n1],geometry_type='line')
-                    bl2=ListPts2Wkb(breakLines[n2],geometry_type='line')
+                    bl1 = ListPts2Wkb(breakLines[n1],geometry_type='line')
+                    bl2 = ListPts2Wkb(breakLines[n2],geometry_type='line')
                     # Add intersection points
-                    bl1, bl2 =addIntersectionPtsToLines(bl1, bl2,\
-                                    point_movement_threshold=point_movement_threshold,
-                                    verbose=verbose, nameFlag=n1+' intersects '+ n2)
-                    breakLines[n1]=Wkb2ListPts(bl1)
-                    breakLines[n2]=Wkb2ListPts(bl2)
-                    
-    
+                    bl1, bl2 = addIntersectionPtsToLines(
+                        bl1, bl2,
+                        point_movement_threshold=point_movement_threshold,
+                        verbose=verbose, nameFlag=n1+' intersects '+ n2)
+                    breakLines[n1] = Wkb2ListPts(bl1)
+                    breakLines[n2] = Wkb2ListPts(bl2)
+
+
         # Clean intersections of riverWalls with itself
         if(verbose): 
             print 'Cleaning riverWall intersections'
@@ -1002,33 +1020,33 @@ if gdal_available:
                         print 'Line \n'
                         print blCat[n1]
                         raise Exception, msg
-     
+
         return [bounding_polygon, breakLines, riverWalls]
-    
+
     ###################################################################
-    
+
     def readRegionPtAreas(shapefile, convert_length_to_area=False):
         """
             Read a point shapefile to define the ANUGA mesh resoutions. 
-    
+
             MUST HAVE A SINGLE ATTRIBUTE REPRESENTING THE LENGTHS OF TRIANGLES IN
              REGIONS
-    
+
             INPUT: shapefile -- name of the input shapefile
                    convert_length_to_area -- if True, res values are assumed to
                           represent triangle side lengths, and are converted to areas with 0.5*res0*res0
                           Note that this might not ensure that the max triangle side length really is res0, but
                           it will be of similar magnitude
                           If False, attribute values are assumed to represent triangle areas
-    
+
             OUTPUT: list of the form  [ [x0,y0,res0], [x1, y1, res1], ...]
         """
-    
+
         ptData=readShpPtsAndAttributes(shapefile)
-    
+
         # Must have only 1 attribute
         assert len(ptData[2])==1
-    
+
         numPts=len(ptData[0])
         outData=[]
         for i in range(numPts):
@@ -1037,31 +1055,31 @@ if gdal_available:
             else:
                 newDat=[ptData[0][i][0], ptData[0][i][1], float(ptData[1][i])]
             outData.append(newDat)
-    
+
         return outData
-    
+
     #########################################
     def readListOfBreakLines(fileList):
         """
             Take a list with the names of shapefiles or anuga_polygon csv files
-        
+
             They are assumed to be '2D breaklines', so we just read their
                 coordinates into a dict with their names
-    
+
             Read them in
-            
+
             INPUT: fileList -- a list of shapefile and/or anuga_polygon csv filenames 
                                [e.g. from glob.glob('GIS/Breaklines/*.shp')]
-    
+
             OUTPUT: dictionary with breaklines [filenames are keys]
         """
-    
-        allBreakLines={}
+
+        allBreakLines = {}
         for shapefile in fileList:
-            allBreakLines[shapefile]=read_polygon(shapefile) #readShp_1LineGeo(shapefile)
-        
+            allBreakLines[shapefile] = read_polygon(shapefile)
+
         return allBreakLines
-    
+
     #########################################
     def readListOfRiverWalls(rwfileList):
         """
@@ -1075,39 +1093,43 @@ if gdal_available:
             200., 300., 0.5
             300., 400., 0.7
             ....and so on..
-        
+
             Read their coordinates into a dict with their names, read for use by ANUGA
-    
+
             INPUT: rwfileList -- a list of riverwall filenames 
                         [e.g. from glob.glob('GIS/RiverWalls/*.csv')]
-    
+
             OUTPUT: 
                 dictionary with riverwalls [filenames are keys] AND
                 dictionary with hydraulic parameters [filenames are keys]
         """
         import numpy
-    
-        allRiverWalls={}
-        allRiverWallPar={}
+
+        allRiverWalls = {}
+        allRiverWallPar = {}
         for rwfile in rwfileList:
-            f=open(rwfile)
-            firstLine=f.readline()
+            f = open(rwfile)
+            firstLine = f.readline()
             f.close()
-            # If the top line has any letters, assume it is a hydraulic variables line
-            hasLetters=any(c.isalpha() for c in firstLine)
+            # If the top line has any letters, assume it is a hydraulic
+            # variables line
+            hasLetters = any(c.isalpha() for c in firstLine)
             if(not hasLetters):
-                allRiverWalls[rwfile]=numpy.genfromtxt(rwfile,delimiter=",").tolist()
-                allRiverWallPar[rwfile]={}
+                allRiverWalls[rwfile] = \
+                    numpy.genfromtxt(rwfile,delimiter=",").tolist()
+                allRiverWallPar[rwfile] = {}
             else:
                 # Get the wall geometry
-                allRiverWalls[rwfile]=numpy.genfromtxt(rwfile,delimiter=",",skip_header=1).tolist()
+                allRiverWalls[rwfile] = \
+                    numpy.genfromtxt(rwfile,delimiter=",",skip_header=1).tolist()
                 # Get the hydraulic par
-                firstLine=firstLine.replace(' ', '') # No whitespace
-                wallPar=firstLine.split(',')
-                allRiverWallPar[rwfile]={}
+                firstLine = firstLine.replace(' ', '') # No whitespace
+                wallPar = firstLine.split(',')
+                allRiverWallPar[rwfile] = {}
                 for wp in wallPar:
-                    keyNameValue=wp.split(':')
-                    allRiverWallPar[rwfile][keyNameValue[0]]=float(keyNameValue[1])
+                    keyNameValue = wp.split(':')
+                    allRiverWallPar[rwfile][keyNameValue[0]] = \
+                        float(keyNameValue[1])
         
         return allRiverWalls, allRiverWallPar
 
@@ -1126,41 +1148,40 @@ if gdal_available:
     
     ############################################################################
     def polygon_from_matching_breaklines(pattern,breakLinesIn, reverse2nd=None):
-        """
-            We sometimes have breaklines defining 2 edges of a channel,
+        """ We sometimes have breaklines defining 2 edges of a channel,
             and wish to make a polygon from them
-    
+
             Can do this with the current function
-    
+
             INPUTS: pattern == character string containing pattern which 
                         is inside exactly 2 keys in breaklines
-        
+
                     breakLinesIn = the breakLines dictionary
-                    
+
                     reverse2nd = True/False or None. Reverse the order of the 
-                                 2nd set of edges before making the polygon.
-                                 If None, then we compute the distance between the
-                                  first point on breakline1 and the first/last
-                                  points on breakline2, and reverse2nd if
-                                 the 'distance from the first point' <
-                                      'distance from the last point'
-        
+                       2nd set of edges before making the polygon.
+                       If None, then we compute the distance between the
+                       first point on breakline1 and the first/last
+                       points on breakline2, and reverse2nd if the
+                           'distance from the first point' <
+                           'distance from the last point'
+
             OUTPUT: Polygon made with the 2 breaklines
         """
-    
+
         breakLines=copy.copy(breakLinesIn)
         bk=breakLines.keys()
         matchers=matchInds(pattern, bk)
-    
+
         if(len(matchers)==0):
             msg = 'Cannot match ' + pattern + ' in breaklines file names'
             raise Exception, msg
-    
+
         if(len(matchers)!=2):
             print 'Need exactly 2 matches, but pattern matched these', bk[matchers]
-    
+
         # There are 2 matches
-       
+
         if(reverse2nd is None):
             # Automatically compute whether we should reverse the 2nd breakline
             bl1_0=breakLines[bk[matchers[0]]][0]
@@ -1172,7 +1193,7 @@ if gdal_available:
                 reverse2nd = True
             else:
                 reverse2nd = False
-    
+
         if(reverse2nd):
             breakLines[bk[matchers[1]]].reverse()
         polyOut=breakLines[bk[matchers[0]]] +  breakLines[bk[matchers[1]]]
@@ -1184,13 +1205,13 @@ if gdal_available:
 
         return polyOut
     ###################
-    
+
 else: # gdal_available == False
     msg='Failed to import gdal/ogr modules --'\
         + 'perhaps gdal python interface is not installed.'
 
 
-    
+
     def readShp_1PolyGeo(shapefile, dropLast=True):
         raise ImportError, msg
     
@@ -1224,13 +1245,15 @@ else: # gdal_available == False
     def shift_point_on_line(pt, lineIn, nearest_segment_index):
         raise ImportError, msg
     
-    def insert_intersection_point(intersectionPt, line_pts, point_movement_threshold,verbose=False):
+    def insert_intersection_point(intersectionPt, line_pts, 
+                                  point_movement_threshold,verbose=False):
         raise ImportError, msg
 
     def check_polygon_is_small(intersection, buf, tol2=100.):
         raise ImportError, msg
     
-    def addIntersectionPtsToLines(L1,L2, point_movement_threshold=0.0, buf=1.0e-06, tol2 = 100,
+    def addIntersectionPtsToLines(L1,L2, point_movement_threshold=0.0, 
+                                  buf=1.0e-06, tol2 = 100,
                                   verbose=True, nameFlag=''):
         raise ImportError, msg
    
