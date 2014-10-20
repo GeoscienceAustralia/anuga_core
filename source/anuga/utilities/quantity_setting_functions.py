@@ -312,6 +312,8 @@ def composite_quantity_setting_function(poly_fun_pairs,
                 quantityVal[fInds] = newfi(x[fInds], y[fInds])
 
             else:
+                print 'Error with function from'
+                print fi
                 msg='Cannot make function from type '+str(type(fi))
                 raise Exception, msg 
 

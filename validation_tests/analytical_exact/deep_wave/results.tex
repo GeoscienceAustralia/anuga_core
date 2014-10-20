@@ -1,20 +1,18 @@
 \section{Deep Water Wave Propagation}
-This simulates the free propagation of a sinusoidal wave in deep water. Analytically, the wave should travel through the domain without deformation. However, in early versions of \anuga{}, some config settings would lead to the wave dampening out too strongly. This sort of behaviour can have practical implications e.g. for tsunami propagation problems.  
-
-This example can also illustrate difficulties with boundary conditions, as it is difficult to accurately treat the boundary where the wave exits the domain (of course, for this problem, we could do that by exploiting the analytical solution - but this is not possible for general wave propagation problems). 
-
-
-The initial condition is still water in a ``large'' box with uniform depth. The wave is generated from the left boundary and propagates to the right. The depth on the right boundary is set as time dependent function
+This simulates the free propagation of a sinusoidal wave in deep water. The initial condition is still water in a ``large'' box with uniform depth. The wave is generated from the left boundary and propagates to the right. The depth on the right boundary is set as time dependent function
 \begin{equation}
 h(t) = A\sin{\frac{2\pi t}{\lambda}}
 \end{equation}
 with $u=v=0$. Here $A$ is the amplitude of the generating wave, $t$ is time variable, and $\lambda$ is the wave length as well as the period of the generating wave.
-The right boundary is transmissive.
+
+Analytically, the wave should travel through the domain without deformation. Lower-order-accuracy algorithms may result in undue wave dampening with the mesh size used in the current problem. This can have practical implications e.g. for tsunami propagation problems, and is usually dealt with by using second-order accurate methods. Alternatively you can refine the mesh until the dampening becomes insignificant, but this may be computationally expensive in realistic problems. 
+
+This example can also illustrate difficulties with radiation-type boundary conditions where the wave exits the domain (of course, for this problem, we could do that by exploiting the analytical solution - but this is not possible for general wave propagation problems). This will most obviously affect the right edge of the domain, but its effects will ultimately be felt throughout. 
 
 
 \subsection{Results}
 In this test, we consider $A=1$ and $\lambda=300$.
-Figure~\ref{fig:stagewave} shows the time-evolution of the water elevation at three points in the domain. These time series should show the wave propagating without deformation or attenuation (i.e. the wave has the same shape, amplitude, period, mean water level etc. at each point).  
+Figure~\ref{fig:stagewave} shows the time-evolution of the water elevation at three points in the domain. Ideally these time series should show the wave propagating without deformation or attenuation (i.e. the wave has the same shape, amplitude, period, mean water level etc. at each point).  
 \begin{figure}
 \begin{center}
 \includegraphics[width=0.9\textwidth]{wave_atten.png}

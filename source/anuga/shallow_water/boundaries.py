@@ -514,9 +514,9 @@ class Characteristic_stage_boundary(Boundary):
         self.function = function
         self.default_stage = default_stage
 
-        self.Elev  = domain.quantitis['elevation']
-        self.Stage = domain.quantitis['stage']
-        self.Height = domain.quantitis['height']
+        self.Elev  = domain.quantities['elevation']
+        self.Stage = domain.quantities['stage']
+        self.Height = domain.quantities['height']
 
     def __repr__(self):
         """ Return a representation of this instance. """
@@ -877,3 +877,150 @@ class Field_boundary(Boundary):
 
 
 
+class Flather_external_stage_zero_velocity_boundary(Boundary):
+    """
+
+    Boundary condition based on a Flather type approach 
+    (setting the external stage with a function, and a zero external velocity),
+    
+
+    The idea is similar (but not identical) to that described on page 239 of
+    the following article:
+
+    Article{blayo05,
+      Title                    = {Revisiting open boundary conditions from the point of view of characteristic variables},
+      Author                   = {Blayo, E. and Debreu, L.},
+      Journal                  = {Ocean Modelling},
+      Year                     = {2005},
+      Pages                    = {231-252},
+      Volume                   = {9},
+    }
+
+    Approach
+    1) The external (outside boundary) stage is set with a function, the
+       external velocity is zero, the internal stage and velocity are taken from the
+       domain values.
+    2) Some 'characteristic like' variables are computed, depending on whether
+       the flow is incoming or outgoing. See Blayo and Debreu (2005)
+    3) The boundary conserved quantities are computed from these characteristic
+       like variables
+
+    This has been useful as a 'weakly reflecting' boundary when the stage should
+    be approximately specified but allowed to adapt to outgoing waves.
+
+
+    Example:
+
+    def waveform(t):
+        return sea_level + normalized_amplitude/cosh(t-25)**2
+
+    Bf = Flather_external_stage_zero_velocity_boundary(domain, waveform)
+
+    Underlying domain must be specified when boundary is instantiated
+
+
+    
+    """
+
+    def __init__(self, domain=None, function=None):
+        """ Instantiate a
+            Nudge_boundary.
+            domain is the domain containing the boundary
+            function is the function to apply
+        """
+
+        Boundary.__init__(self)
+
+        if domain is None:
+            msg = 'Domain must be specified for this type boundary'
+            raise Exception, msg
+
+        if function is None:
+            msg = 'Function must be specified for this type boundary'
+            raise Exception, msg
+
+        self.domain = domain
+        self.function = function
+
+
+    def __repr__(self):
+        """ Return a representation of this instance. """
+        msg = 'Nudge_boundary'
+        msg += '(%s)' % self.domain
+        return msg
+
+
+    def evaluate(self, vol_id, edge_id):
+        """
+        """
+
+        q = self.domain.get_conserved_quantities(vol_id, edge = edge_id)
+        bed = self.domain.quantities['elevation'].centroid_values[vol_id]
+        depth_inside=max(q[0]-bed,0.0)
+        dt=self.domain.timestep
+
+        normal = self.domain.get_normal(vol_id, edge_id)
+
+
+        t = self.domain.get_time()
+
+        value = self.function(t)
+        try:
+            stage_outside = float(value)
+        except:
+            stage_outside = float(value[0])
+
+        if(depth_inside==0.):
+            q[0] = stage_outside
+            q[1] = 0. 
+            q[2] = 0. 
+
+        else:
+
+            # Asssume sub-critical flow. Set the values of the characteristics as
+            # appropriate, depending on whether we have inflow or outflow
+
+            # These calculations are based on the paper cited above
+            sqrt_g_on_depth_inside = (9.8/depth_inside)**0.5
+            ndotq_inside = (normal[0]*q[1] + normal[1]*q[2]) # momentum perpendicular to the boundary
+            if(ndotq_inside>0.):
+                # Outflow (assumed subcritical)
+                # Compute characteristics using a particular extrapolation
+                #
+                # Theory: 2 characteristics coming from inside domain, only
+                # need to impose one characteristic from outside
+                # 
+
+                # w1 =  u - sqrt(g/depth)*(Stage_outside)  -- uses 'outside' info
+                w1 = 0. - sqrt_g_on_depth_inside*stage_outside
+
+                # w2 = v [velocity parallel to boundary] -- uses 'inside' info
+                w2 = (+normal[1]*q[1] -normal[0]*q[2])/depth_inside
+
+                # w3 = u + sqrt(g/depth)*(Stage_inside) -- uses 'inside info'
+                w3 = ndotq_inside/depth_inside + sqrt_g_on_depth_inside*q[0]
+                
+            else:
+                # Inflow (assumed subcritical)
+                # Need to set 2 characteristics from outside information
+                
+                # w1 =  u - sqrt(g/depth)*(Stage_outside)  -- uses 'outside' info
+                w1 = 0. - sqrt_g_on_depth_inside*stage_outside
+
+                # w2 = v [velocity parallel to boundary] -- uses 'outside' info
+                w2 = 0.
+
+                # w3 = u + sqrt(g/depth)*(Stage_inside) -- uses 'inside info'
+                w3 = ndotq_inside/depth_inside + sqrt_g_on_depth_inside*q[0]
+
+
+            q[0] = (w3-w1)/(2*sqrt_g_on_depth_inside)
+            qperp= (w3+w1)/2.*depth_inside
+            qpar=  w2*depth_inside
+
+            # So q[1], q[2] = qperp*(normal[0], normal[1]) + qpar*(-normal[1], normal[0])
+
+            q[1] = qperp*normal[0] + qpar*normal[1]
+            q[2] = qperp*normal[1] -qpar*normal[0]
+
+        return q
