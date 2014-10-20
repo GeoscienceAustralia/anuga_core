@@ -19,7 +19,7 @@ The initial condition is set by taking $t=0$ in the analytical solution.
 
 \subsection{Results}
 For our test, we consider $D_0=1000$, $L=2500$, and $R_0=2000$.
-After running the simulation for some time, we have Figures~\ref{fig:cs_stage}--\ref{fig:cs_xvel} showing the stage, $x$-momentum, and $x$-velocity respectively. There should be a good agreement between numerical and analytical solutions.
+After running the simulation for some time, we have Figures~\ref{fig:cs_stage}--\ref{fig:cs_xvel} showing the stage, $x$-momentum, and $x$-velocity respectively. There should be a good agreement between numerical and analytical solutions, although wet-dry artefacts may appear in the 'nearly-dry' areas, where the numerical method can cause the water to drain too slowly (similar to that reported in \cite{KESSERWANIA14} using a finite volume scheme with similarities to discontinuous elevation algorithms in \anuga{}).
 
 As time goes on, some small deviations may appear. These are shown in Figures~\ref{fig:w_centre}--\ref{fig:u_centre}, which illustrate the stage, $x$-momentum, and $x$-velocity at the centroid of the domain.
 

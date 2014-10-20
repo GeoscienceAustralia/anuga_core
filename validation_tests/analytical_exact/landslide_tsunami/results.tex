@@ -12,18 +12,12 @@ Figures~\ref{fig:stage}-\ref{fig:vel} compare the modelled and analytical stage
 and velocity at various instances in time, while Figure~\ref{fig:shore} shows
 the time-evolution of the shoreline position and velocity at the shoreline. For
 the numerical model, the shoreline position and velocity are defined based on
-two depth thresholds (see figure titles), we \anuga{} does not explicitly track
+two depth thresholds (see figure titles), as \anuga{} does not explicitly track
 the wet-dry interface. We expect to see good agreement between the analytical
 and numerical solutions for both stage and velocity over most of the domain.  A
 discrepency near the shoreline can occur in some \anuga{} algorithms,
 particularly in the velocity.
 
-At the time of writing (17/05/2013), the `tsunami' algorithm has a small
-phase-lag during the runup stage. This is attributed to the extra mass storage
-in each numerical cell associated with that algorithm, which slightly reduces
-the rate of inundation. It can be further reduced with mesh refinement.
-Regardless, the solution quality is quite comparable with results using
-other solvers on similar sized meshes~\cite{CCM2013,P2012}. 
 
 \begin{figure}
 \begin{center}
@@ -54,5 +48,22 @@ other solvers on similar sized meshes~\cite{CCM2013,P2012}.
 \end{center}
 \end{figure}
 
+\subsection{Comment on algorithm-specific performance}
+At the time of writing (17/05/2013), the `tsunami' algorithm has a small
+phase-lag during the runup stage. This is attributed to the extra mass storage
+in each numerical cell associated with that algorithm, which slightly reduces
+the rate of inundation. It can be further reduced with mesh refinement.
+Regardless, the solution quality is quite comparable with results using
+other solvers on similar sized meshes~\cite{CCM2013,P2012}. 
+
+The discontinuous elevation algorithms show different artefacts, related to
+their tendency to have slow drainage in nearly-dry areas (so a very shallow
+layer of water keeps flowing down-slope even when analytically, the slope
+should have dried). This will be manifest most obviously in in velocity
+aftefacts over the nearly-dry slope following draw-down. The amount of water
+retained on the slope is small, so this is issue is not obvious in the stage
+plots. However, it does complicate the definition of the wet-dry interface,
+leading to potentially large discrepencies in the computed velocity at the
+shoreline and the shoreline location.
 
 \endinput

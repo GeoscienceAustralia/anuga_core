@@ -51,7 +51,7 @@ domain = distribute(domain)
 #--------------------------
 Br=anuga.Reflective_boundary(domain)            # Solid reflective wall
 Bt=anuga.Transmissive_boundary(domain)          # Continue all values of boundary -- not used in this example
-Bd=anuga.Dirichlet_boundary([-0.4, 0., 0.])     # Constant boundary values
+Bd=anuga.Dirichlet_boundary([-0.1, 0., 0.])     # Constant boundary values
 
 #----------------------------------------------
 # Associate boundary tags with boundary objects

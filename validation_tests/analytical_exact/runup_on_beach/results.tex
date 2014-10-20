@@ -9,7 +9,7 @@ z(x) = -\frac{x}{2}
 \end{equation}
 with the stage at wet region is $w=-0.45$. The boundary condition on the rightend of the domain is Dirichlet with stage $w=-0.4$ and discharges in $x$ and $y$ directions are zero.
 
-At an early runup, representatives of the results are as follows. Figure~\ref{fig:stage_1s} shows the water surface at time $t=1$ (in the cross-shore direction). It is not constant as the water runup at this time. Figure~\ref{fig:xvel_1s} shows the corresponding $x$-velocity during the wave runup. The velocities should be free from major spikes.
+At an early runup, representatives of the results are as follows. Figure~\ref{fig:stage_1s} shows the water surface at time $t=1$ (in the cross-shore direction). It is not constant as the water is flowing up the beach at this time. Figure~\ref{fig:xvel_1s} shows the corresponding $x$-velocity during the wave runup. The velocities should be free from major spikes.
 \begin{figure}
 \begin{center}
 \includegraphics[width=0.9\textwidth]{stage_1s.png}
@@ -25,8 +25,6 @@ At an early runup, representatives of the results are as follows. Figure~\ref{fi
 \label{fig:xvel_1s}
 \end{center}
 \end{figure}
-
-
 
 After a much longer time, representatives of the results are as follows. Figure~\ref{fig:stage_30s} shows the water surface at time 30s (in the cross-shore direction). It should be nearly constant (= -0.1m) in the wet portions of the domain. Figure~\ref{fig:xvel_30s} shows the corresponding velocity at time 30s. It should be nearly zero (e.g. $<<$ 1 mm/s). This case has been used to illustrate wet-dry artefacts in some versions of \anuga.
 \begin{figure}
@@ -45,13 +43,13 @@ After a much longer time, representatives of the results are as follows. Figure~
 \end{center}
 \end{figure}
 
-The following comments apply only to those \anuga{} algorithms with wet-dry artefacts, which manifest as a high velocity at the wet/dry interface. This large velocity may results in wetting the whole dry region on the left. Water may go up to the left when we run the code for a relatively long time and if the code does not handle the wet/dry interface correctly. The wetting and drying process is indeed a chalenging task in solving the shallow water equations numerically. If the process is handled correctly in \anuga{}, water should not ``creep-up`` to the left for a long distance. See the corresponding \textbf{sww} file for the water motion. 
+\subsection{Comment on wet-dry artefacts}
+Earlier \anuga{} algorithms showed some wet-dry artefacts in this scenario, which manifest as a high velocity at the wet/dry interface, and water creeping up the slope (this was a feature of earlier \anuga{} algorithms). If the process is handled correctly in \anuga{}, water should not ``creep-up`` to the left for a long distance (the discontinuous elevation + tsunami algorithms should have no problem with this).
 
-For one of the solvers with these artefacts, setting the minimum allowed height and the minimum storable height in an appropriate way is important. If the minimum allowed height is different from the minimum storable height, water may ``creep-up.`` That can be demonstrated by taking, for example, the minimum allowed height is $10^{-3}$ and the minimum allowed height is $10^{-5}$. However if we take those two parameters to be $10^{-4}$, water is still after we run the code for a relatively long time. The following lines can be implemented in the code:
-\begin{verbatim}
-domain.set_minimum_allowed_height(0.0001)
-domain.set_minimum_storable_height(0.0001)
-\end{verbatim}
-However, it should be noted that this is a `cosmetic' fix only, since internally the solver is still computing the artificial velocities.
+%For one of the solvers with these artefacts, setting the minimum allowed height and the minimum storable height in an appropriate way is important. If the minimum allowed height is different from the minimum storable height, water may ``creep-up.`` That can be demonstrated by taking, for example, the minimum allowed height is $10^{-3}$ and the minimum allowed height is $10^{-5}$. However if we take those two parameters to be $10^{-4}$, water is still after we run the code for a relatively long time. The following lines can be implemented in the code:
+%\begin{verbatim}
+%domain.set_minimum_allowed_height(0.0001)
+%domain.set_minimum_storable_height(0.0001)
+%\end{verbatim}
 
 \endinput

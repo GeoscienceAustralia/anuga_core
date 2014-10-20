@@ -26,7 +26,7 @@ The analytical solution is the lake at rest, that is, $w=4.5$ and $u=v=0$.
 \subsection{Results}
 
 
-Current version of \anuga{} might not handle a discontinuous island perfectly. The following three figures show the stage, $x$-momentum, and $x$-velocity respectively, after we run the simulation for some time. We should see excellent agreement between the analytical and numerical solutions if the method is well-balanced and if the wet/dry interface has been correctly treated.
+Older versions of \anuga{} might not handle a discontinuous island well, but newer versions should be exact to numerical precision (including the discontinuous-elevation and tsunami algorithms). The following three figures show the stage, $x$-momentum, and $x$-velocity respectively, after we run the simulation for some time. We should see excellent agreement between the analytical and numerical solutions if the method is well-balanced and if the wet/dry interface has been correctly treated. Note the figure scales - momenta will probably be plotted on a scale varying only a tiny range, since the result is zero to numerical precision.
 
 \begin{figure}
 \begin{center}

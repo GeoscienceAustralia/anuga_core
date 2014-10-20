@@ -70,16 +70,20 @@ domain = distribute(domain)
 #------------------------------------------------------------------------------
 # Setup boundary conditions
 #------------------------------------------------------------------------------
-Bt = anuga.Transmissive_boundary(domain)
+#
+# This one can have outflow boundary issues -- a good approach is just to use a reflective
+# boundary, and allow water to 'pool' at the bottom of the domain.
+#
+#Bt = anuga.Transmissive_boundary(domain)
 #Bts = anuga.Transmissive_momentum_set_stage_boundary(domain, dana-160.0)
-Bts = anuga.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, lambda t: dana-160.0)
-#BdIN = anuga.Dirichlet_boundary([dana, fluxin, 0.0])
-BdOUT = anuga.Dirichlet_boundary([dana-40., dana*uana, 0.0])
+#Bts = anuga.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, lambda t: dana-40.0)
+##BdIN = anuga.Dirichlet_boundary([dana, fluxin, 0.0])
+#BdOUT = anuga.Dirichlet_boundary([dana-40., dana*uana, 0.0])
 
 print dana-40.
 
 Br = anuga.Reflective_boundary(domain) # Solid reflective wall
-domain.set_boundary({'left': Br, 'right': BdOUT, 'top': Br, 'bottom': Br})
+domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 
 line1=[ [0.0, 0.], [0.0, 100.] ]

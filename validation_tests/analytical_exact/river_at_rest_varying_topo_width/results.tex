@@ -49,12 +49,16 @@ The analytical solution is the river at rest, that is, $w=12.0$ and $u=v=0$.
 \subsection{Results}
 
 
-Current version of \anuga{} might not treat the wet/dry interface appropriately. 
-The following figures show the stage, $x$-momentum, and $x$-velocity respectively, 
-after we run the simulation for some time. The first three show a slice in the x direction (down the river) and 
-the last three figures show a cross section across the river. We should see excellent agreement between 
-the analytical and numerical solutions if the method is well-balanced and if the wet/dry 
-interface has been correctly treated.
+Old versions of \anuga{} might not treat the wet/dry interface appropriately,
+but the discontinuous-elevation and tsunami algorithms should do this
+correctly. The following figures show the stage, $x$-momentum, and $x$-velocity
+respectively, after we run the simulation for some time. The first three show a
+slice in the x direction (down the river) and the last three figures show a
+cross section across the river. We should see excellent agreement between the
+analytical and numerical solutions if the method is well-balanced and if the
+wet/dry interface has been correctly treated. Note the scale of the figures
+(since in cases that are accurate to numerical precision, the figure scale will
+only vary over a tiny range).
 
 \begin{figure}
 \begin{center}
