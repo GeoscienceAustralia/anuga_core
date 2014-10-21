@@ -23,7 +23,7 @@ for i in range(len(nearest_points)):
     nearest_points[i] = n
 
 f = open('Stage_point_comparison.csv','w')
-f.writelines( 'Field Observation, ANUGA, TUFLOW, ANUGA minus Field Observation, ANUGA minus TUFLOW \n' )
+f.writelines( 'Field, ANUGA, TUFLOW, ANUGA minus Field, ANUGA minus TUFLOW \n' )
 for i in range(len(nearest_points)):
     po = point_observations[i,-2]
     tu = point_observations[i,-1]
@@ -84,16 +84,31 @@ pyplot.quiver(p2.x[k],p2.y[k],p2.xvel[tindex,k], p2.yvel[tindex,k],
               color='black',scale=1.0)
 pyplot.savefig('velocity_stationary.png',dpi=100, bbox_inches='tight')
 
+## Froude number plot
 
 pyplot.clf()
-pyplot.figure(figsize=(16,22))
+pyplot.figure(figsize=(6,8))
 froude_number = p2.vel[tindex]/(numpy.maximum(p2.height[tindex], 1.0e-03)*9.8)**0.5
 froude_category = (froude_number>1.).astype(float) + (froude_number > 0.).astype(float)
 pyplot.scatter(p2.x,p2.y,edgecolors='none', s=0.2)
+
+## Fake additions to plot to hack matplotlib legend
+pyplot.scatter(0.,0., color='FireBrick',label='>1', marker='s')
+pyplot.scatter(0.,0., color='PaleGreen',label='0-1', marker='s')
+pyplot.scatter(0.,0., color='blue',label='0',marker='s')
+
 pyplot.gca().set_aspect('equal')
 util.plot_triangles(p, values = froude_category, color='none')
 pyplot.xlim((p.x.min(), p.x.max()))
 pyplot.ylim((p.y.min(), p.y.max()))
 pyplot.title("Froude Number zones: 0, (0,1], or >1")
+
+import matplotlib.patches as mpatches
+
+#red_patch = mpatches.Patch(color='red', label='>1')
+#green_patch = mpatches.Patch(color='green', label='(0-1]')
+#blue_patch = mpatches.Patch(color='blue', label='0.')
+#pyplot.legend(handles=[red_patch, green_patch, blue_patch], labels=['>1', '(0-1]', '0.'], loc='best')
+pyplot.legend(loc='upper left')
 pyplot.savefig('froudeNumber.png',dpi=100,bbox_inches='tight')
 
