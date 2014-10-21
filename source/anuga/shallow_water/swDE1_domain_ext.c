@@ -616,7 +616,7 @@ int _compute_flux_update_frequency(struct domain *D, double timestep){
 double adjust_edgeflux_with_weir(double* edgeflux,
                                  double h_left, double h_right, 
                                  double g, double weir_height,
-                                 double weirScale, 
+                                 double Qfactor, 
                                  double s1, double s2, 
                                  double h1, double h2,
                                  double *max_speed_local
@@ -638,10 +638,10 @@ double adjust_edgeflux_with_weir(double* edgeflux,
 
     minhd=min(h_left, h_right);
     maxhd=max(h_left, h_right);
-    // 'Raw' weir discharge = weirScale*2/3*H*(2/3*g*H)**0.5
-    rw=weirScale*2./3.*maxhd*sqrt(2./3.*g*maxhd);
+    // 'Raw' weir discharge = Qfactor*2/3*H*(2/3*g*H)**0.5
+    rw=Qfactor*2./3.*maxhd*sqrt(2./3.*g*maxhd);
     // Factor for villemonte correction
-    rw2=weirScale*2./3.*minhd*sqrt(2./3.*g*minhd);
+    rw2=Qfactor*2./3.*minhd*sqrt(2./3.*g*minhd);
     // Useful ratios
     rwRat=rw2/max(rw, 1.0e-100);
     hdRat=minhd/max(maxhd,1.0e-100);
@@ -674,7 +674,14 @@ double adjust_edgeflux_with_weir(double* edgeflux,
         w2=min( max(hdWrRat-h1,0.)/(h2-h1), 1.0);
 
         newFlux=(rw*(1.0-w1)+w1*edgeflux[0])*(1.0-w2) + w2*edgeflux[0];
-       
+     
+        //if( (w1 != 0.) || (w2 != 0.)){
+        //    printf("\n");
+        //    printf("W1: %e, W2: %e \n", w1, w2);
+        //}else{
+        //    printf(".");
+        //}
+ 
         if(fabs(edgeflux[0])>1.0e-100){ 
             scaleFlux=newFlux/edgeflux[0];
         }else{

@@ -26,7 +26,8 @@ chan_initial_depth = 0.001 # Initial depth of water in the channel
 chan_bankfull_depth = 0.0 # Bankfull depth of the channel
 chan_width = 20.0 # Half- width of the central channel -- width of all others
 bankwidth = 0.0 # Width of the bank regions -- note that these protrude into the channel
-man_n=0.03 # Manning's n
+anuga2ras_friction_conversion = (0.5)**(2./3.)/( ( 0.5*10./(2.*0.5+10.) )**(2./3.))
+man_n=0.03*anuga2ras_friction_conversion # Manning's n adjusted to be like hecras ( 
 l0 = 10.000 # Length scale associated with triangle side length in channel (min_triangle area = 0.5*l0^2)
 
 assert chan_width < floodplain_width, \

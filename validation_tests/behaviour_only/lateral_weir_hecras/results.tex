@@ -19,7 +19,7 @@ lengths of 1000m, bed-slope $3/1000$, manning's n of 0.03, while their widths we
 nearly-flat (three-points with bank elevations 1cm above the central bed
 elevation), and for all reaches the most upstream cross-section (1000) had an
 elevation of 0m. These three channels were connected with broad-crested lateral
-weirs (using HecRAS's default lateral weir drag coefficient of 1.1 in metric
+weirs (using HECRAS's default lateral weir drag coefficient of 1.1 in metric
 units). The `right' and `middle' channels were connected with a 198m long weir
 with an elevation 0.5m above the bed, from stations 799 to 601. The `left' and
 'middle' channels were connected with a 198m long weir with an elevation 0.5m
@@ -41,39 +41,50 @@ than the `left' channel because it has the most upstream connection to the
 significant part of its discharge, so it flows less deeply and there is less flux over
 the more downstream riverwall.
 
-An analagous ANUGA model was set up with riverwalls connecting 3 channels.
-The Qfactor for both riverwalls was set to (1.1/1.7$\simeq$0.65) to make the ANUGA
-riverwall drag coefficient equivalent to the default HECRAS drag coefficient. The
-same discharge timeseries, elevations, and manning's n values were used. The
-initial conditions in each model are slightly different but this is only
-important in the first hour of simulation.
+An analogous ANUGA model was set up with riverwalls connecting 3 channels. The
+`Qfactor' for both riverwalls was set to (1.1/1.7$\simeq$0.65) to make the
+ANUGA riverwall drag coefficient equivalent to the default HECRAS drag
+coefficient (the default Qfactor in ANUGA is 1). The same discharge timeseries
+and elevations were used. The manning's n values were slightly increased to
+account for the fact that HECRAS uses side-wall friction in the channels,
+whereas ANUGA doesn't. The correction was derived by equating the ANUGA and
+HECRAS friction slope terms assuming a final flow depth of $d \simeq 0.5m$, and
+channel width of $ w \simeq 10$m. Denoting $n_{A}$ as ANUGA's manning's n and
+$n_{H}$ as HECRAS's value (0.03), we have:
+\begin{equation}
+n_{A} \simeq n_{H}\frac{d^{2/3}}{( \frac{dw}{2d + w} )^{2/3}} \simeq 0.032
+\end{equation}
+where the denominator on the right hand side is the hydraulic radius. This
+correction is not exact since the depths and widths actually vary, but despite
+those second order effects it does improve the agreement between the 2 models.
+
+The initial conditions in each model are slightly different but this is only
+important in the first hour of simulation. HECRAS needs 'well-behaved' initial
+conditions to maintain stability. 
 
 \subsection{Results}
 
 Figures~\ref{midReach}-\ref{leftReach} show stage timeseries at various
 stations downstream in each channel. The results are qualitatively similar,
-with stages typically differing by a few cm. The main exception is in areas
-just upstream of the weir (800 on the right channel, 700 on the left), where
-HECRAS predicts a greater a backwater effect in the receiving channel than
-ANUGA. This may be because of differences in the transport of momentum over the
-riverwall. HECRAS apparently only transfers mass (??), whereas ANUGA transfers
-both mass and momentum. This could cause more stagnation at the upstream parts
-of the riverwall overflow in HECRAS, since the water is transferred to the side
-channels without a downstream component of momentum.
+with stages typically differing by a few cm. In the downstream parts of the
+left/right channels, the stage is completely determined by the mass flux over
+the upstream weirs, and so the agreement between HECRAS and ANUGA here shows
+that both models are predicting a similar mass flux.
 
-We do not expect exact similarity because ANUGA's model is different to the
-HECRAS [e.g. in the transfer of momentum over riverwalls, riverwall submergence
-correction, different numerics, 1D vs 2D]. Also, there are some limitations in
-the numerics of this HECRAS model that should be explored and fixed. For
-example, uniform flow sections in the upstream parts of each HECRAS reach do
-not seem to exactly get the correct uniform flow solution based on Manning's
-equation, although they are close. We expect these limitations are with our
-HECRAS model setup (we didn't adjust the solver's default numerical options)
-rather than being intrinsic to the software. 
+The main difference between the 2 models is in areas just upstream of the weir
+(800 on the right channel, 700 on the left), where HECRAS predicts a greater a
+backwater effect in the receiving channel than ANUGA. Further investigation has
+shown this is because of differences in the transport of momentum over the
+riverwall. HECRAS apparently only transfers mass over the weir, whereas ANUGA
+transfers both mass and momentum. This causes more stagnation at the upstream
+parts of the riverwall overflow in HECRAS, since the water is transferred to
+the side channels without a downstream component of momentum. We have done
+other ANUGA runs where the momentum flux over the weir was forced to zero (by
+modifying ANUGA's source code), and in that instance the models agree well in
+the aforementioned areas as well.
 
-Irrespective, the main point of this comparison is that both ANUGA and HecRAS
-are giving similar results for this case study, even though their underlying
-models are different.
+Irrespective, the main point of this comparison is that both ANUGA and HECRAS
+are giving similar results for this case study. 
 
 
 \begin{figure}
