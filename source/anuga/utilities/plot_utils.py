@@ -1038,7 +1038,7 @@ def Make_Geotif(swwFile=None,
                 gridq=myInterpFun(xyzPoints[:,2])
 
 
-            if(bounding_polygon is not None):
+            if ( (bounding_polygon is not None) and (len(cut_points)>0)):
                 # Cut the points outside the bounding polygon
                 gridq[cut_points]= numpy.nan
 
@@ -1059,24 +1059,50 @@ def Make_Geotif(swwFile=None,
 
     return
 
-def plot_triangles(p, adjustLowerLeft=False):
+def plot_triangles(p, adjustLowerLeft=False, values=None, color='k'):
     """ Add mesh triangles to a pyplot plot
+        
+       @param p = object holding sww vertex information (from util.get_output)
+       @param adjustLowerLeft = if TRUE, use spatial coordinates, otherwise use ANUGA internal coordinates     
+       @param values = list or array of length(p.x), or None. All triangles are assigned this value (for face plotting colors).
+       @param color = edge color for polygons (using matplotlib.colors notation)
     """
+    import matplotlib
     from matplotlib import pyplot as pyplot
+    from matplotlib.collections import PolyCollection
     #
     x0=p.xllcorner
     x1=p.yllcorner 
-    #
+
+    # Get current figure information
+    #ax = pyplot.axes()
+
+    ##
+    vertices = []
     for i in range(len(p.vols)):
         k1=p.vols[i][0]
         k2=p.vols[i][1]
         k3=p.vols[i][2]
-        if(not adjustLowerLeft):
-            pyplot.plot([p.x[k1], p.x[k2], p.x[k3], p.x[k1]], [p.y[k1], p.y[k2], p.y[k3], p.y[k1]],'-',color='black')
+        if not adjustLowerLeft:
+            vertices.append([ [p.x[k1], p.y[k1]], [p.x[k2], p.y[k2]], [p.x[k3], p.y[k3]] ])
         else:
-            pyplot.plot([p.x[k1]+x0, p.x[k2]+x0, p.x[k3]+x0, p.x[k1]+x0], [p.y[k1]+x1, p.y[k2]+x1, p.y[k3]+x1, p.y[k1]+x1],'-',color='black')
-        #pyplot.plot([p.x[k3], p.x[k2]], [p.y[k3], p.y[k2]],'-',color='black')
-        #pyplot.plot([p.x[k3], p.x[k1]], [p.y[k3], p.y[k1]],'-',color='black')
+            vertices.append([ [p.x[k1]+x0, p.y[k1]+y0], [p.x[k2]+x0, p.y[k2]+y0], [p.x[k3]+x0, p.y[k3]+y0] ])
+      
+    if values is None: 
+        all_poly = PolyCollection( vertices, array = numpy.zeros(len(p.vols)), 
+            edgecolors=color)
+        all_poly.set_facecolor('none')
+    else:
+        assert len(values)==len(p.vols), 'len(values) must either be 1, or the same as len(p.vols)'
+        all_poly = PolyCollection( vertices, array = values, cmap = matplotlib.cm.jet, edgecolors=color)
+
+    pyplot.gca().add_collection(all_poly)
+    #    if(not adjustLowerLeft):
+    #        pyplot.plot([p.x[k1], p.x[k2], p.x[k3], p.x[k1]], [p.y[k1], p.y[k2], p.y[k3], p.y[k1]],'-',color=color)
+    #    else:
+    #        pyplot.plot([p.x[k1]+x0, p.x[k2]+x0, p.x[k3]+x0, p.x[k1]+x0], [p.y[k1]+x1, p.y[k2]+x1, p.y[k3]+x1, p.y[k1]+x1],'-',color=color)
+    #    #pyplot.plot([p.x[k3], p.x[k2]], [p.y[k3], p.y[k2]],'-',color='black')
+    #    #pyplot.plot([p.x[k3], p.x[k1]], [p.y[k3], p.y[k1]],'-',color='black')
 
 def find_neighbours(p,ind):
     """ 

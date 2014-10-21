@@ -18,7 +18,7 @@ use_cache = True
 
 # bounding polygon for study area
 bounding_polygon = anuga.read_polygon('extent.csv')
-print 'Area of bounding polygon', anuga.polygon_area(bounding_polygon)/1000000.0
+print 'Area of bounding polygon (km^2)', anuga.polygon_area(bounding_polygon)/1.0e+06
 
 
 

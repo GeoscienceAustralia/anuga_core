@@ -1,0 +1,78 @@
+\documentclass{article}
+\usepackage{datatool}
+\usepackage{graphicx}
+\usepackage{datatool}
+
+\begin{document}
+
+\title{ANUGA applied to the ARR Project 15 Urban Flood Modelling test case}
+
+\maketitle
+
+\section{Introduction}
+This is a model of the Pasha Bulker flood (June 2007) in part of Merewether,
+Newcastle, Australia. It was developed by the UNSW Water Reseach Laboratory (WRL),
+and various information on the event is reported in `ARR Project 15: Two
+dimensional simulations in urban areas, Representation of buildings in 2D
+numerical flood models'. This chapter should be consulted for details on this
+test case, and reports on the performance of other models. 
+
+The ANUGA model was initially developed by WRL (who gave us permission to
+include it here) and further refined by ANUGA developers to include variable
+friction (with roads having a manning's n of 0.02, and everywhere else having
+0.04), an inlet operator, and options for either using buildings as topography, or
+buildings cut out of the mesh.
+
+\section{Results}
+Table~\ref{tab:comparison} compares the observed peak stage during the flood to
+ANUGA, and also values for a TUFLOW model which are reported in the ARR Project
+15 report. The ANUGA values should be similar to the field observations, and
+even more-so to the TUFLOW numerical model values. This suggests both models
+are giving a similar solution, with the main source of errors being related to
+the input data and the shallow water assumptions, rather than the numerical
+scheme.
+
+\DTLloaddb{comparison}{Stage_point_comparison.csv}
+\begin{table}
+\caption{Comparison of peak stage field observations, the ANUGA model, and a
+TUFLOW model (developed by WRL). See the ARR project 15 report for more
+information}
+\label{tab:comparison}
+\DTLdisplaydb{comparison}
+\end{table}
+
+Figure~\ref{fig:stationary_vel} shows a vector plot of the velocities around some buildings. It should
+show a similar pattern to Figure 30 in the ARR Project 15 report.
+\begin{figure}
+\includegraphics[width=\textwidth]{velocity_stationary.png}
+\caption{Velocity vectors around some buildngs at the end of the simulation
+(where it should have reached stationary state). Compare with Figure 30 in the ARR Project 15 report (the results should be similar)}
+\label{fig:stationary_vel}
+\end{figure}
+
+Figure~\ref{fig:transect1} shows a transect of velocity and depth between 2 buildings (Transect
+1 in the ARR Report).  It should show a similar pattern to the TUFLOW and
+MIKE21 models described in the ARR Report (their Figures 27 and 28).  In this
+site the numerical models show some differences to the physical model data,
+which may reflect the limitations both of the physical model, and of the
+shallow water assumptions (see ARR Report for further discussion).
+\begin{figure}
+\includegraphics[width=\textwidth]{Transect1.png}
+\caption{Velocity and depth along Transect 1. Compare with Figures 27 and 28 
+in the ARR Project 15 report (the results should be similar to TUFLOW and
+MIKE21)}
+\label{fig:transect1}
+\end{figure}
+
+Figure~\ref{fig:froude} shows the froude number (as either 0, $(0-1]$ or $>1$).  It
+should show a similar pattern to Figure 29 in the ARR report, although the
+colors are different. (FIXME: At the moment the zones can only be determined by
+looking at the ARR Report -- the plot needs a legend etc).
+\begin{figure}
+\center
+\includegraphics[width=0.7\textwidth]{froudeNumber.png}
+\caption{Froude number (0, $(0-1]$, or $>1$). The largest category area is zero, the smallest category area is $>1$. Compare with Figure 29 in ARR report (FIXME: FIX THE PLOT)}
+\label{fig:froude}
+\end{figure}
+
+\end{document}

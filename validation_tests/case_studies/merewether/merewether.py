@@ -6,6 +6,8 @@ DSR 17/02/2012
 WRL2012003.01
 
 Water Research Laboratory, UNSW
+
+Edits by Steve Roberts & Gareth Davies, 2014
 """
 
 #------------------------------------------------------------------------------
@@ -21,14 +23,16 @@ import numpy as num
 
 # Related major packages
 import anuga
-from anuga_parallel import myid, distribute, finalize
+from anuga_parallel import myid, distribute, finalize, barrier
 
 from anuga_parallel.parallel_operator_factory import Inlet_operator
+from anuga.utilities import quantity_setting_functions as qs
+from anuga import plot_utils as util
 
 # Application specific imports
 import project                 # Definition of file names and polygons
 
-verbose = project.verbose
+#verbose = project.verbose
 use_cache = project.use_cache
 
 #------------------------------------------------------------------------------
@@ -40,6 +44,10 @@ use_cache = project.use_cache
 asc_name = 'topography1.asc' 
 meshname = 'merewether.msh'
 dem_name = 'topography1.dem'
+
+args = anuga.get_args()
+alg = args.alg
+verbose = args.verbose
 
 if myid == 0:
     # Create DEM from asc data
@@ -59,30 +67,81 @@ houses_res = 1.0
 merewether_res = 1.0
 holes_res = 1.0
 interior_regions = [[project.poly_merewether, merewether_res]]
-holes = project.holes
+
+# Either use houses as holes, or as part of the mesh (with breaklines)
+houses_as_holes = False
+if houses_as_holes:
+    holes = project.holes
+    breaklines = []
+else:
+    # Houses as elevation
+    house_height = 3.0
+    holes = []
+    breaklines = project.holes
+    house_addition_poly_fun_pairs = []
+    for i in range(len(breaklines)):
+        breaklines[i] = breaklines[i] + [breaklines[i][0]]
+        house_addition_poly_fun_pairs.append( 
+            [ breaklines[i], house_height])
+    house_addition_poly_fun_pairs.append(['All', 0.])
+
+#------------------------------------------------------------------------------
+# Make domain
+#------------------------------------------------------------------------------
 
 if myid == 0:
-    domain = anuga.create_domain_from_regions(project.bounding_polygon,
-   		boundary_tags={'bottom': [0],
-   			       'right': [1],
-                 	       'top': [2],
-                 	       'left': [3]},
-  				maximum_triangle_area=remainder_res,
-				interior_holes=holes,
-				mesh_filename=meshname,
-   				interior_regions=interior_regions,
-   				use_cache=use_cache,
-   				verbose=verbose)
+    mesh = anuga.create_mesh_from_regions(
+            project.bounding_polygon,
+            boundary_tags={'bottom': [0],
+                           'right': [1],
+                           'top': [2],
+                           'left': [3]},
+            maximum_triangle_area=remainder_res,
+            interior_holes=holes,
+            breaklines=breaklines,
+            filename=meshname,
+            interior_regions=interior_regions,
+            use_cache=use_cache,
+            verbose=verbose)
+
+    domain = anuga.create_domain_from_file(meshname)
+    
+    domain.set_flow_algorithm(alg)
 
     #------------------------------------------------------------------------------
     # Setup initial conditions
     #------------------------------------------------------------------------------
     domain.set_quantity('stage', 0.0)
-    domain.set_quantity('friction', 0.02)
-    domain.set_quantity('elevation', filename='topography1.pts',
-			   	          use_cache=use_cache,
-	              			  verbose=verbose)
 
+    # Friction -- 2 options
+    variable_friction = True
+    if not variable_friction:
+        # Constant friction
+        domain.set_quantity('friction', 0.02)
+
+    else:
+        # Set friction to 0.02 on roads, 0.04 elsewhere
+        road_polygon = anuga.read_polygon('Road/RoadPolygon.csv')
+        friction_function = qs.composite_quantity_setting_function(
+            [ [road_polygon, 0.02], ['All', 0.04] ], 
+            domain)
+        domain.set_quantity('friction', friction_function)
+
+    # Elevation
+    if houses_as_holes:
+        domain.set_quantity('elevation', filename='topography1.pts',
+                              use_cache=use_cache,
+                                  verbose=verbose)
+
+    else:
+        domain.set_quantity('elevation', filename='topography1.pts',
+                              use_cache=use_cache,
+                              verbose=verbose, location='vertices')
+        # Add house_height inside houses    
+        house_addition_function = qs.composite_quantity_setting_function(
+            house_addition_poly_fun_pairs, domain)
+        domain.add_quantity('elevation', house_addition_function, 
+                            location='centroids')
 else:
     domain = None
 
@@ -92,12 +151,14 @@ else:
 #------------------------------------------------------------------------------
 domain = distribute(domain)
 
+domain.set_store_vertices_uniquely()
+
 #------------------------------------------------------------------------------
 # Setup computational domain
 #------------------------------------------------------------------------------
 domain.set_name('merewether_1m') # Name of sww file
 domain.set_datadir('.') # Store sww output here
-domain.set_minimum_storable_height(0.001) # Store only depth > 1cm
+#domain.set_minimum_storable_height(0.001) # Store only depth > 1cm
 
 
 
@@ -111,7 +172,7 @@ Br = anuga.Reflective_boundary(domain)
 Bt = anuga.Transmissive_boundary(domain)
 
 domain.set_boundary({'interior': Br,
-		     'bottom':   Br,
+                     'bottom':   Br,
                      'right':    Bt, # outflow
                      'top':      Bt, # outflow
                      'left':     Br})
@@ -120,9 +181,9 @@ line0 = [[382300.0,6354280.], [382300.0,6354300.]]
 fixed_inflow = Inlet_operator(domain, line0, 19.7, verbose = False)
 
 #fixed_inflow = anuga.Inflow(domain,
-#			center=(382300.0,6354290.0),
-#			radius=15.00,
-#			rate=19.7)
+#           center=(382300.0,6354290.0),
+#           radius=15.00,
+#           rate=19.7)
 #domain.forcing_terms.append(fixed_inflow)
 #hydrograph = anuga.Inflow(center=(382300.0,6354290.0),radius=30.0,rate=anuga.file_function('test_hydrograph2.tms', quantities=['hydrograph']) 
 #domain.forcing_terms.append(hydrograph)
@@ -131,11 +192,25 @@ fixed_inflow = Inlet_operator(domain, line0, 19.7, verbose = False)
 # Evolve system through time
 #------------------------------------------------------------------------------
 
-for t in domain.evolve(yieldstep=10,finaltime=2000):
-	if myid == 0: print domain.timestepping_statistics()
+for t in domain.evolve(yieldstep=10,finaltime=1000):
+    if myid == 0: print domain.timestepping_statistics()
 
 
 domain.sww_merge()
 
+#------------------------------------------------------------------------------
+# Make geotif output
+#------------------------------------------------------------------------------
+
+barrier()
+if myid==0:
+    util.Make_Geotif('merewether_1m.sww', 
+                     output_quantities=['depth', 'velocity', 
+                                        'friction', 'elevation'],
+                     myTimeStep='last',
+                     CellSize=1.0,
+                     EPSG_CODE=32756,
+                     bounding_polygon=project.bounding_polygon,
+                     k_nearest_neighbours=1)
 
 finalize()
