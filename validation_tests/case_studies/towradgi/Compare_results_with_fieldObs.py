@@ -4,8 +4,11 @@ Compare the Towradgi model runs with various field observations
 
 """
 import scipy
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as pyplot
 from anuga.utilities import plot_utils as util
+import gdal
 
 
 swwdir='MODEL_OUTPUTS/'
@@ -60,7 +63,7 @@ try:
     CellSize=5.0
     print 'Making tifs'
     util.Make_Geotif(swwdir+swwname,
-                      ['depth','velocity','depthIntegratedVelocity','elevation'],'max',
+                      ['depth','velocity','depthIntegratedVelocity','elevation', 'friction'],'max',
                       CellSize=CellSize,EPSG_CODE=32756,output_dir=tif_outdir)
     print 'Made tifs'
 except:
@@ -69,7 +72,11 @@ except:
     
 # Plot depth raster with discrepency between model and data
 depthFile=tif_outdir+'/Towradgi_historic_flood_depth_max.tif'
-myDepth=scipy.misc.imread(depthFile)
+#myDepth=scipy.misc.imread(depthFile)
+raster = gdal.Open(depthFile)
+myDepth = scipy.array(raster.ReadAsArray())
+
+
 X=scipy.arange(p.xllcorner, p.xllcorner+myDepth.shape[1]*CellSize, CellSize)
 Y=scipy.arange(p.yllcorner, p.yllcorner+myDepth.shape[0]*CellSize, CellSize)
 X,Y=scipy.meshgrid(X,Y)

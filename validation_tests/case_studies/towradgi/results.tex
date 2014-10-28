@@ -1,0 +1,61 @@
+\documentclass{article}
+\usepackage{datatool}
+\usepackage{graphicx}
+\usepackage{datatool}
+
+\begin{document}
+
+\title{ANUGA applied to flooding in Towradgi}
+
+\maketitle
+
+\section{Introduction}
+This model simulates the Towradgi Creek 17 August 1998 flood. It was largely
+developed by Petar Milevsky, with some edits by Gareth Davies and Steve
+Roberts. Other flood studies which model this event can be found online from
+2003 (Mike 11) and 2014 (TUFLOW) -- google `Towradgi Creek Flood Study' for
+more information and to compare results across models. 
+
+The current model (10/2014) only includes a few flow structures (four culverts
+on the main channel), and ignores culvert blockage, which previous studies
+found to be quite important. Therefore we consider it is in a draft state at
+present, and could be refined by adding such features. Regardless it simulates
+the main flow observations reasonably well.
+
+\section{Results}
+
+Figure~\ref{fig:spatial} shows the modelled peak flood depth, and compares it with flood
+observations. Figure~\ref{fig:hist} shows a histogram of the model errors. The main area
+with systematic discrepancy is just downstream of the Railway Bridge, and we
+note that previous studies also had challenges in accurately modelling this
+region in their calibration or validation events. 
+
+\begin{figure}
+\center
+\includegraphics[width=\textwidth]{Spatial_Depth_and_Error.png}
+\caption{Modelled peak depth, and the difference between the model and peak depth observations.}
+\label{fig:spatial}
+\end{figure}
+
+\begin{figure}
+\center
+\includegraphics[width=\textwidth]{Error_peakstage.png}
+\caption{Histogram of the difference between the model and the peak depth observations.}
+\label{fig:hist}
+\end{figure}
+
+Figure~\ref{fig:pioneer} shows the modelled and measured stage at the Pioneer
+River gauging station. The model gives good predictions of the timing of the
+flows, but underpredicts the peak magnitude. This is likely to be related to
+the lack of culvert blockage in the model. However we note that the 2014 study
+also underpredicted the peak flow at this site, even when including culvert
+blockage, and it also showed a greater delay in the timing of the peak. 
+
+\begin{figure}
+\center
+\includegraphics[width=\textwidth]{Pioneer_Bridge_Stage.png}
+\caption{Comparison of the model and the gauged stage at Pioneer bridge}
+\label{fig:pioneer}
+\end{figure}
+
+\end{document}

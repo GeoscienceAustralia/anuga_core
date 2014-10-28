@@ -120,7 +120,7 @@ if myid == 0:
 # Evolve system through time
 #------------------------------------------------------------------------------
 
-for t in domain.evolve(yieldstep = 1e1, finaltime = 2e4):
+for t in domain.evolve(yieldstep = 10, finaltime = 2e4):
     domain.write_time()
     if interactive_visualisation:
         vis.update()

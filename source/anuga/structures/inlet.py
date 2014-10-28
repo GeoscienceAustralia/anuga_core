@@ -253,6 +253,8 @@ class Inlet:
         inlet exchange region so that stage is level
         """
 
+        assert volume >= 0.0
+
         areas = self.get_areas()
         stages = self.get_stages()
         depths = self.get_depths()
@@ -265,10 +267,6 @@ class Inlet:
         # accumulate the volume need to fill cells
         summed_volume = num.zeros_like(areas)       
         summed_volume[1:] = num.cumsum(summed_areas[:-1]*num.diff(stages[stages_order]))
-
-
-        assert volume >= 0.0
-
 
         index = num.nonzero(summed_volume<=volume)[0][-1]
 
