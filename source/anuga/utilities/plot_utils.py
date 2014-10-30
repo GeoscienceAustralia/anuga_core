@@ -465,7 +465,7 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
     stage_cent=getCentVar('stage_c', timeSlices=inds)
     elev_cent=getCentVar('elevation_c', timeSlices=inds)
 
-    if(len(elev_cent)==2):
+    if(len(elev_cent.shape)==2):
         # Coerce to 1D array, since lots of our code assumes it is
         elev_cent=elev_cent[0,:]
 
