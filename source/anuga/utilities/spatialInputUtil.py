@@ -1171,7 +1171,13 @@ if gdal_available:
 
         breakLines=copy.copy(breakLinesIn)
         bk=breakLines.keys()
-        matchers=matchInds(pattern, bk)
+
+        # They can be pathnames from glob, and sometimes / and \\ get mixed up
+        # Fix that here
+        pattern_norm = os.path.normpath(pattern)
+        bk_norm = [ os.path.normpath(bk_i) for bk_i in bk ]
+
+        matchers=matchInds(pattern_norm, bk_norm)
 
         if(len(matchers)==0):
             msg = 'Cannot match ' + pattern + ' in breaklines file names'
