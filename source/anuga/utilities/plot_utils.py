@@ -49,6 +49,7 @@
 from anuga.file.netcdf import NetCDFFile
 import numpy
 import copy
+import matplotlib.cm
 
 class combine_outputs:
     """
@@ -1059,25 +1060,23 @@ def Make_Geotif(swwFile=None,
 
     return
 
-def plot_triangles(p, adjustLowerLeft=False, values=None, color='k'):
+def plot_triangles(p, adjustLowerLeft=False, values=None, values_cmap=matplotlib.cm.jet, edgecolors='k'):
     """ Add mesh triangles to a pyplot plot
         
        @param p = object holding sww vertex information (from util.get_output)
        @param adjustLowerLeft = if TRUE, use spatial coordinates, otherwise use ANUGA internal coordinates     
        @param values = list or array of length(p.x), or None. All triangles are assigned this value (for face plotting colors).
-       @param color = edge color for polygons (using matplotlib.colors notation)
+       @param values_cmap = colormap for faces [e.g. values_cmap = matplotlib.cm.get_cmap('spectral')]
+       @param edgecolors = edge color for polygons (using matplotlib.colors notation). Use 'none' for no color
     """
     import matplotlib
     from matplotlib import pyplot as pyplot
     from matplotlib.collections import PolyCollection
-    #
+
     x0=p.xllcorner
     x1=p.yllcorner 
 
-    # Get current figure information
-    #ax = pyplot.axes()
-
-    ##
+    # Make vertices for PolyCollection Object
     vertices = []
     for i in range(len(p.vols)):
         k1=p.vols[i][0]
@@ -1087,22 +1086,20 @@ def plot_triangles(p, adjustLowerLeft=False, values=None, color='k'):
             vertices.append([ [p.x[k1], p.y[k1]], [p.x[k2], p.y[k2]], [p.x[k3], p.y[k3]] ])
         else:
             vertices.append([ [p.x[k1]+x0, p.y[k1]+y0], [p.x[k2]+x0, p.y[k2]+y0], [p.x[k3]+x0, p.y[k3]+y0] ])
-      
+     
+    # Make PolyCollection 
     if values is None: 
         all_poly = PolyCollection( vertices, array = numpy.zeros(len(p.vols)), 
-            edgecolors=color)
+            edgecolors=edgecolors)
         all_poly.set_facecolor('none')
     else:
         assert len(values)==len(p.vols), 'len(values) must either be 1, or the same as len(p.vols)'
-        all_poly = PolyCollection( vertices, array = values, cmap = matplotlib.cm.jet, edgecolors=color)
+        all_poly = PolyCollection( vertices, array = values, cmap = values_cmap, edgecolors=edgecolors)
 
+    # Add to plot
+    # FIXME: To see the triangles, this might require that the user does
+    # something else to the plot?
     pyplot.gca().add_collection(all_poly)
-    #    if(not adjustLowerLeft):
-    #        pyplot.plot([p.x[k1], p.x[k2], p.x[k3], p.x[k1]], [p.y[k1], p.y[k2], p.y[k3], p.y[k1]],'-',color=color)
-    #    else:
-    #        pyplot.plot([p.x[k1]+x0, p.x[k2]+x0, p.x[k3]+x0, p.x[k1]+x0], [p.y[k1]+x1, p.y[k2]+x1, p.y[k3]+x1, p.y[k1]+x1],'-',color=color)
-    #    #pyplot.plot([p.x[k3], p.x[k2]], [p.y[k3], p.y[k2]],'-',color='black')
-    #    #pyplot.plot([p.x[k3], p.x[k1]], [p.y[k3], p.y[k1]],'-',color='black')
 
 def find_neighbours(p,ind):
     """ 
