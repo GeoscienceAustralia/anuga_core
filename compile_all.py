@@ -7,7 +7,7 @@ buildroot = os.getcwd()
 
 
 #--------------------------------------------------
-# Compiling anuga code
+# Compiling anuga code 
 #--------------------------------------------------
 os.chdir('source')
 os.chdir('anuga')
