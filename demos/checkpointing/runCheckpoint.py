@@ -74,8 +74,12 @@ def wave(t):
     return 10*sin(t/60) 
 
 #------------------------------------------------------------------------------ 
-# Try to read in previous checkpoint file and if not possible 
-# just go ahead as normal and produce domain as usual 
+# Use a try statement to read in previous checkpoint file and if not possible 
+# just go ahead as normal and produce domain as usual.
+#
+# Though in the part of the code where you create the domain as normal, 
+# remember to turn on checkpointing via domain.set_checkpointing(checkpoint_time = 5)
+# (see code below) 
 #------------------------------------------------------------------------------ 
 try:
         
@@ -85,7 +89,7 @@ try:
 
 except:
     #--------------------------------------------------------------------------
-    # Setup Domain only on processor 0
+    # Normal Setup of Domain on processor 0
     #--------------------------------------------------------------------------
     if myid == 0:
         domain = create_domain_from_file(mesh_filename)
@@ -170,10 +174,9 @@ for p in range(numprocs):
 
 #--------------------------------------------------
 # Merge the individual sww files into one file
+# But don't delete the sub domain sww files
 #--------------------------------------------------
 domain.sww_merge()
 
-
-#domain.dump_triangulation()
 
 finalize()
