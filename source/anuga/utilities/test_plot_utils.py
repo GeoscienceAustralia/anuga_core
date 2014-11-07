@@ -7,7 +7,7 @@ import anuga.utilities.plot_utils as util
 import numpy as np
 
 flow_algorithms = ['DE0', 'DE1', '1_5', '2_0', 'tsunami']
-verbose=False
+verbose = False
 
 class Test_plot_utils(unittest.TestCase):
 
@@ -141,7 +141,6 @@ class Test_plot_utils(unittest.TestCase):
 
             Is called by a test function for various flow algorithms
         """
-
         p=util.get_output('test_plot_utils.sww')
         p2=util.get_centroids(p,velocity_extrapolation=ve) 
        
@@ -205,7 +204,7 @@ class Test_plot_utils(unittest.TestCase):
         # Check that we can get the 'max' time
         p_m=util.get_output('test_plot_utils.sww', timeSlices='max')
         pc_m=util.get_centroids(p_m,velocity_extrapolation=ve)
-
+        
         assert(p_m.time==p.time.max())
         assert(pc_m.time==p2.time.max())
         assert(p_m.timeSlices=='max')

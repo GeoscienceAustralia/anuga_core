@@ -171,27 +171,28 @@ def getInds(varIn, timeSlices, absMax=False):
      OUTPUT:
            
     """
-    var=copy.copy(varIn) # avoid python pointer issues
+
     if (len(varIn.shape)==2):
-        # Get particular time-slices, unless the variable is constant
-        # (e.g. elevation is often constant)
+        # There are multiple time-slices
         if timeSlices is 'max':
             # Extract the maxima over time, assuming there are multiple
             # time-slices, and ensure the var is still a 2D array
             if( not absMax):
-                var=var.max(axis=0)
+                var = (varIn[:]).max(axis=0, keepdims=True)
             else:
                 # For variables xmom,ymom,xvel,yvel we want the 'maximum-absolute-value'
-                # We could do this everywhere, but I assume the loop is a bit slower
-                varInds=abs(var).argmax(axis=0)
-                varNew=varInds*0.
+                varInds = abs(varIn[:]).argmax(axis=0)
+                varNew = varInds*0.
                 for i in range(len(varInds)):
-                    varNew[i] = var[varInds[i],i]
-                #var=[var[varInds[i],i] for i in varInds]
-                var=varNew
-            var=var.reshape((1,len(var)))
+                    varNew[i] = varIn[varInds[i],i]
+                var = varNew
+                var=var.reshape((1,len(var)))
         else:
-            var=var[timeSlices,:]
+            var=varIn[timeSlices,:]
+            var.reshape((len(timeSlices), varIn.shape[1]))
+    else:
+        # There is 1 time slice only
+        var = varIn[:]
     
     return var
 
@@ -218,10 +219,6 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
              elevation may be stored at one or multiple times
              everything else is stored every time step for vertices
     """
-
-    # Import modules
-
-
 
     # Open ncdf connection
     fid=NetCDFFile(filename)
@@ -257,51 +254,55 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
     x=fid.variables['x'][:]
     y=fid.variables['y'][:]
 
-    stage=getInds(fid.variables['stage'][:], timeSlices=inds)
-    elev=getInds(fid.variables['elevation'][:], timeSlices=inds)
+    stage=getInds(fid.variables['stage'], timeSlices=inds)
+    elev=getInds(fid.variables['elevation'], timeSlices=inds)
 
     # Simple approach for volumes
     vols=fid.variables['volumes'][:]
 
     # Friction if it exists
     if(fid.variables.has_key('friction')):
-        friction=getInds(fid.variables['friction'][:],timeSlices=inds) 
+        friction=getInds(fid.variables['friction'],timeSlices=inds) 
     else:
         # Set friction to nan if it is not stored
-        friction=elev*0.+numpy.nan
-    
-    #@ Here we get 'all' of height / xmom /ymom
-    #@ This could be done using less memory/computation in 
-    #@  the case of multiple time-slices
+        friction = elev*0.+numpy.nan
 
+    # Trick to treat the case where inds == 'max'
+    inds2 = copy.copy(inds)
+    if inds == 'max':
+        inds2 = range(len(fid.variables['time']))
+    
+    # Get height
     if(fid.variables.has_key('height')):
-        heightAll=fid.variables['height'][:]
+        height = fid.variables['height'][inds2]
     else:
         # Back calculate height if it is not stored
-        heightAll=fid.variables['stage'][:]
-        if(len(heightAll.shape)==len(elev.shape)):
-            heightAll=heightAll-elev
+        height = fid.variables['stage'][inds2]+0.
+        if(len(elev.shape)==2):
+            height = height-elev
         else:
-            for i in range(heightAll.shape[0]):
-                heightAll[i,:]=heightAll[i,:]-elev
-    heightAll=heightAll*(heightAll>0.) # Height could be negative for tsunami algorithm
-    # Need xmom,ymom for all timesteps
-    xmomAll=fid.variables['xmomentum'][:]
-    ymomAll=fid.variables['ymomentum'][:]
+            for i in range(height.shape[0]):
+                height[i,:] = height[i,:]-elev
+    height = height*(height>0.)
 
-    height=getInds(heightAll, timeSlices=inds) 
-    # For momenta, we want maximum-absolute-value events
-    xmom=getInds(xmomAll, timeSlices=inds, absMax=True)
-    ymom=getInds(ymomAll, timeSlices=inds, absMax=True)
+    # Get xmom
+    xmom = fid.variables['xmomentum'][inds2]
+    ymom = fid.variables['ymomentum'][inds2]
 
-    # velocity requires some intermediate calculation in general
-    hInv=1./(heightAll+1.0e-12)
-    tmp = xmomAll*hInv*(heightAll>minimum_allowed_height)
-    xvel=getInds(tmp,timeSlices=inds, absMax=True)
-    tmp = ymomAll*hInv*(heightAll>minimum_allowed_height)
-    yvel=getInds(tmp,timeSlices=inds, absMax=True)
-    tmp = (xmomAll**2+ymomAll**2)**0.5*hInv*(heightAll>minimum_allowed_height)
-    vel=getInds(tmp, timeSlices=inds) # Vel is always >= 0.
+    # Get vel
+    h_inv = 1.0/(height+1.0e-12)
+    hWet = (height > minimum_allowed_height)
+    xvel = xmom*h_inv*hWet
+    yvel = ymom*h_inv*hWet
+    vel = (xmom**2 + ymom**2)**0.5*h_inv*hWet
+
+    if inds == 'max':
+        height = height.max(axis=0, keepdims=True)
+        vel = vel.max(axis=0, keepdims=True)
+        xvel = getInds(xvel, timeSlices=inds,absMax=True)
+        yvel = getInds(yvel, timeSlices=inds,absMax=True)
+        xmom = getInds(xmom, timeSlices=inds,absMax=True)
+        ymom = getInds(ymom, timeSlices=inds,absMax=True)
 
     fid.close()
 
@@ -341,6 +342,53 @@ class get_centroids:
                          timeSlices=copy.copy(timeSlices),\
                          minimum_allowed_height=minimum_allowed_height,\
                          verbose=verbose)
+
+def _getCentVar(fid, varkey_c, inds, absMax=False,  vols = None):
+    """
+        Convenience function used to get centroid variables from netCDF
+        file connection fid
+
+        The default arguments fid, vols0, vols1, vols2 exist in the
+        _get_centroid_values function where this is used
+
+    """
+    vols0 = vols[:,0]
+    vols1 = vols[:,1]
+    vols2 = vols[:,2]
+
+    if(fid.variables.has_key(varkey_c)==False):
+        # It looks like centroid values are not stored
+        # In this case, compute centroid values from vertex values
+
+        newkey=varkey_c.replace('_c','')
+        if inds is not 'max':
+            # Relatively efficient treatment is possible
+            var_cent = fid.variables[newkey]
+            if (len(var_cent.shape)>1):
+                # array contain time slices
+                var_cent = fid.variables[newkey][inds]
+                var_cent = (var_cent[:,vols0]+var_cent[:,vols1]+var_cent[:,vols2])/3.0
+            else:
+                var_cent = fid.variables[newkey][:]
+                var_cent = (var_cent[vols0]+var_cent[vols1]+var_cent[vols2])/3.0
+        else:
+            # Requires reading all the data
+            tmp = fid.variables[newkey][:]
+            try: # array contain time slices
+                tmp=(tmp[:,vols0]+tmp[:,vols1]+tmp[:,vols2])/3.0
+            except:
+                tmp=(tmp[vols0]+tmp[vols1]+tmp[vols2])/3.0
+            var_cent=getInds(tmp, timeSlices=inds, absMax=absMax)
+    else:
+        if inds is not 'max':
+            if(len(fid.variables[varkey_c].shape)>1):
+                var_cent = fid.variables[varkey_c][inds]
+            else:
+                var_cent = fid.variables[varkey_c][:]
+        else:
+            var_cent=getInds(fid.variables[varkey_c][:], timeSlices=inds, absMax=absMax)
+    return var_cent
+
                                  
 
 def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices, 
@@ -443,122 +491,105 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
     x_cent=(x[vols0]+x[vols1]+x[vols2])/3.0
     y_cent=(y[vols0]+y[vols1]+y[vols2])/3.0
 
-    def getCentVar(varkey_c, timeSlices=inds, absMax=False):
-        """
-            Convenience function, assumes knowedge of 'timeSlices' and vols0,1,2
-        """
-        if(fid.variables.has_key(varkey_c)==False):
-            # It looks like centroid values are not stored
-            # In this case, compute centroid values from vertex values
-            
-            newkey=varkey_c.replace('_c','')
-            tmp = fid.variables[newkey][:]
-            try: # array contain time slides
-                tmp=(tmp[:,vols0]+tmp[:,vols1]+tmp[:,vols2])/3.0
-            except:
-                tmp=(tmp[vols0]+tmp[vols1]+tmp[vols2])/3.0
-            var_cent=getInds(tmp, timeSlices=timeSlices, absMax=absMax)
-        else:
-            var_cent=getInds(fid.variables[varkey_c][:], timeSlices=timeSlices, absMax=absMax)
-        return var_cent
-
     # Stage and height and elevation
-    stage_cent=getCentVar('stage_c', timeSlices=inds)
-    elev_cent=getCentVar('elevation_c', timeSlices=inds)
+    stage_cent = _getCentVar(fid, 'stage_c', inds=inds, vols=vols)
+    elev_cent = _getCentVar(fid, 'elevation_c', inds=inds, vols=vols)
 
     if(len(elev_cent.shape)==2):
         # Coerce to 1D array, since lots of our code assumes it is
         elev_cent=elev_cent[0,:]
 
-    height_cent=stage_cent*0.
-    for i in range(stage_cent.shape[0]):
-        height_cent[i,:]=stage_cent[i,:]-elev_cent
-
     # Friction might not be stored at all
     try:
-        friction_cent=getCentVar('friction_c')
+        friction_cent = _getCentVar(fid, 'friction_c', inds=inds, vols=vols)
     except:
         friction_cent=elev_cent*0.+numpy.nan
+    
+    # Trick to treat the case where inds == 'max'
+    inds2 = copy.copy(inds)
+    if inds == 'max':
+        inds2 = range(len(fid.variables['time']))
+   
+    # height
+    height_cent= stage_cent + 0.
+    for i in range(stage_cent.shape[0]):
+        height_cent[i,:] = stage_cent[i,:] - elev_cent
 
-    if(fid.variables.has_key('xmomentum_c')):
-        # Assume that both xmomentum,ymomentum are stored at centroids
-        # Because velocity is back computed, and we might want maxima, 
-        # we get all data for convenience
-        xmomC=getCentVar('xmomentum_c', timeSlices=range(nts))
-        ymomC=getCentVar('ymomentum_c', timeSlices=range(nts))
+    if fid.variables.has_key('xmomentum_c'):
+        # Momenta
+        xmom_cent = fid.variables['xmomentum_c'][inds2]
+        ymom_cent = fid.variables['ymomentum_c'][inds2]
 
-        # height might not be stored
-        try:
-            hC = getCentVar('height_c', timeSlices=range(nts))
-        except:
-            # Compute from stage
-            hC = getCentVar('stage_c', timeSlices=range(nts))
-            for i in range(hC.shape[0]):
-                hC[i,:]=hC[i,:]-elev_cent
-        
-        hInv=1.0/(hC+1.0e-06)
-        xmom_cent = getInds(xmomC*(hC>minimum_allowed_height), timeSlices=inds,absMax=True)
-        xvel_cent = getInds(xmomC*hInv*(hC>minimum_allowed_height), timeSlices=inds, absMax=True)
+        # Height -- need to do this again incase inds == 'max'
+        if fid.variables.has_key('height_c'):
+            height_c_tmp = fid.variables['height_c'][inds2]
+        else:
+            height_c_tmp = fid.variables['stage_c'][inds2]+0.
+            for i in range(height_c_tmp.shape[0]):
+                height_c_tmp[i,:] = height_c_tmp[i,:] - elev_cent
+        # Vel
+        hInv = 1.0/(height_c_tmp + 1.0e-12)
+        hWet = (height_c_tmp > minimum_allowed_height)
+        xvel_cent = xmom_cent*hInv*hWet
+        yvel_cent = ymom_cent*hInv*hWet
 
-        ymom_cent = getInds(ymomC*(hC>minimum_allowed_height), timeSlices=inds,absMax=True)
-        yvel_cent = getInds(ymomC*hInv*(hC>minimum_allowed_height), timeSlices=inds, absMax=True)
-
-        tmp = (xmomC**2 + ymomC**2)**0.5*hInv*(hC>minimum_allowed_height)
-        vel_cent=getInds(tmp, timeSlices=inds)
-        
     else:
-        #@ COMPUTE CENTROIDS FROM VERTEX VALUES
-        #@
-        #@ Here we get 'all' of height / xmom /ymom
-        #@ This could be done using less memory/computation in 
-        #@  the case of multiple time-slices
-        if(fid.variables.has_key('height')):
-            heightAll=fid.variables['height'][:]
+        # Get important vertex variables
+        xmom_v = fid.variables['xmomentum'][inds2]
+        ymom_v = fid.variables['ymomentum'][inds2]
+        stage_v = fid.variables['stage'][inds2]
+        elev_v = fid.variables['elevation']
+        # Fix elevation + get height at vertices
+        if (len(elev_v.shape)>1):
+            elev_v = elev_v[inds2]
+            height_v = stage_v - elev_v
         else:
-            # Back calculate height if it is not stored
-            heightAll=fid.variables['stage'][:]
-            elev = fid.variables['elevation'][:]
-            if(len(heightAll.shape)==len(elev.shape)):
-                heightAll=heightAll-elev
-            else:
-                for i in range(heightAll.shape[0]):
-                    heightAll[i,:]=heightAll[i,:]-elev
-        heightAll=heightAll*(heightAll>0.) # Height could be negative for tsunami algorithm
-        # Need xmom,ymom for all timesteps
-        xmomAll=fid.variables['xmomentum'][:]
-        ymomAll=fid.variables['ymomentum'][:]
-        
+            elev_v = elev_v[:]
+            height_v = stage_v + 0.
+            for i in range(stage_v.shape[0]):
+                height_v[i,:] = stage_v[i,:] - elev_v
+
+        # Height at centroids        
+        height_c_tmp = (height_v[:, vols0] + height_v[:,vols1] + height_v[:,vols2])/3.0
+       
+        # Compute xmom/xvel/ymom/yvel
         if velocity_extrapolation:
-            # Compute velocity from vertex velocities, then back-compute
-            # momentum from that
-            hInv=1.0/(heightAll+1.0-06)
-            tmp = xmomAll*hInv*(heightAll>minimum_allowed_height)
-            xvel=(tmp[:,vols0]+tmp[:,vols1]+tmp[:,vols2])/3.0
-            htc = (heightAll[:,vols0] + heightAll[:,vols1] + heightAll[:,vols2])/3.0
-            xvel_cent=getInds(xvel, timeSlices=inds, absMax=True)
-            xmom_cent=getInds(xvel*htc, timeSlices=inds, absMax=True)
 
-            tmp = ymomAll*hInv*(heightAll>minimum_allowed_height)
-            yvel=(tmp[:,vols0]+tmp[:,vols1]+tmp[:,vols2])/3.0
-            yvel_cent=getInds(yvel, timeSlices=inds, absMax=True)
-            ymom_cent=getInds(yvel*htc, timeSlices=inds, absMax=True)
-           
-            vel_cent=getInds( (xvel**2+yvel**2)**0.5, timeSlices=inds)
-            
+            xvel_v = xmom_v*0.
+            yvel_v = ymom_v*0.
+
+            hInv = 1.0/(height_v+1.0e-12)
+            hWet = (height_v > minimum_allowed_height)
+
+            xvel_v = xmom_v*hInv*hWet
+            yvel_v = ymom_v*hInv*hWet
+
+            # Final xmom/ymom centroid values
+            xvel_cent = (xvel_v[:, vols0] + xvel_v[:,vols1] + xvel_v[:,vols2])/3.0
+            xmom_cent = xvel_cent*height_c_tmp
+            yvel_cent = (yvel_v[:, vols0] + yvel_v[:,vols1] + yvel_v[:,vols2])/3.0
+            ymom_cent = yvel_cent*height_c_tmp
+
         else:
-            # Compute momenta from vertex momenta, then back compute velocity from that
-            tmp=xmomAll*(heightAll>minimum_allowed_height)
-            htc = (heightAll[:,vols0] + heightAll[:,vols1] + heightAll[:,vols2])/3.0
-            hInv=1./(htc+1.0e-06)
-            xmom=(tmp[:,vols0]+tmp[:,vols1]+tmp[:,vols2])/3.0
-            xmom_cent=getInds(xmom,  timeSlices=inds, absMax=True)
-            xvel_cent=getInds(xmom*hInv, timeSlices=inds, absMax=True)
+            hInv = 1.0/(height_c_tmp + 1.0e-12)
+            hWet = (height_c_tmp > minimum_allowed_height)
+            xmom_v =  fid.variables['xmomentum'][inds2]
+            xmom_cent = (xmom_v[:,vols0] + xmom_v[:,vols1] + xmom_v[:,vols2])/3.0
+            xvel_cent = xmom_cent*hInv*hWet
+            ymom_v =  fid.variables['ymomentum'][inds2]
+            ymom_cent = (ymom_v[:,vols0] + ymom_v[:,vols1] + ymom_v[:,vols2])/3.0
+            yvel_cent = ymom_cent*hInv*hWet
 
-            tmp=ymomAll*(heightAll>minimum_allowed_height)
-            ymom=(tmp[:,vols0]+tmp[:,vols1]+tmp[:,vols2])/3.0
-            ymom_cent=getInds(ymom,  timeSlices=inds, absMax=True)
-            yvel_cent=getInds(ymom*hInv, timeSlices=inds, absMax=True)
-            vel_cent = getInds( (xmom**2+ymom**2)**0.5*hInv, timeSlices=inds)
+    # Velocity
+    vel_cent = (xvel_cent**2 + yvel_cent**2)**0.5
+
+    if inds == 'max':
+        vel_cent = vel_cent.max(axis=0,keepdims=True)
+        #vel_cent = getInds(vel_cent, timeSlices=inds)
+        xmom_cent = getInds(xmom_cent, timeSlices=inds,absMax=True)
+        ymom_cent = getInds(ymom_cent, timeSlices=inds,absMax=True)
+        xvel_cent = getInds(xvel_cent, timeSlices=inds,absMax=True)
+        yvel_cent = getInds(yvel_cent, timeSlices=inds,absMax=True)
 
     fid.close()
     
@@ -567,10 +598,14 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
              xvel_cent, yvel_cent, vel_cent, xllcorner, yllcorner, inds
 
 
-def animate_1D(time, var, x, ylab=' '): #, x=range(var.shape[1]), vmin=var.min(), vmax=var.max()):
-    # Input: time = one-dimensional time vector;
-    #        var =  array with first dimension = len(time) ;
-    #        x = (optional) vector width dimension equal to var.shape[1];
+def animate_1D(time, var, x, ylab=' '): 
+    """Animate a 2d array with a sequence of 1d plots
+
+     Input: time = one-dimensional time vector;
+            var =  array with first dimension = len(time) ;
+            x = (optional) vector width dimension equal to var.shape[1];
+            ylab = ylabel for plot
+    """
     
     import pylab
     import numpy
@@ -920,6 +955,7 @@ def Make_Geotif(swwFile=None,
         #    # This is [0]!
         #    myTimeStep=[len(p2.time)-1]
 
+        myTimeStep_Orig = myTimeStep
         # Now, myTimeStep just holds indices we want to plot in p2
         if(myTimeStep!='max'):
             myTimeStep=range(len(p2.time))
@@ -1002,7 +1038,7 @@ def Make_Geotif(swwFile=None,
         #cut_points=(nxutils.points_inside_poly(gridXY_array, bounding_polygon)==False).nonzero()[0]
        
     # Loop over all output quantities and produce the output
-    for myTSi in myTimeStep:
+    for myTSindex, myTSi in enumerate(myTimeStep):
         if(verbose):
             print 'Reduction = ', myTSi
         for output_quantity in output_quantities:
@@ -1034,7 +1070,7 @@ def Make_Geotif(swwFile=None,
                 if(myTSi is 'max'):
                     timestepString='max'
                 else:
-                    timestepString=str(round(p2.time[myTS]))
+                    timestepString=str(myTimeStep_Orig[myTSindex])+'_Time_'+str(round(p2.time[myTS]))
             elif(myTS=='pointData'):
                 gridq=myInterpFun(xyzPoints[:,2])
 
@@ -1074,7 +1110,7 @@ def plot_triangles(p, adjustLowerLeft=False, values=None, values_cmap=matplotlib
     from matplotlib.collections import PolyCollection
 
     x0=p.xllcorner
-    x1=p.yllcorner 
+    y0=p.yllcorner 
 
     # Make vertices for PolyCollection Object
     vertices = []

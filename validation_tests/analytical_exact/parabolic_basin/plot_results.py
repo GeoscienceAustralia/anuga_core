@@ -13,7 +13,7 @@ from analytical_parabolic_basin import analytic_cannal
 
 # Get the sww file
 p_st = util.get_output('parabola.sww')
-p2_st=util.get_centroids(p_st) #(p_st, velocity_extrapolation=True)
+p2_st=util.get_centroids(p_st, velocity_extrapolation=True) #(p_st, velocity_extrapolation=True)
 
 index_origin = 3978
 v = p2_st.y[index_origin]
