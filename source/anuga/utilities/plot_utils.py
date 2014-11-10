@@ -343,30 +343,30 @@ class get_centroids:
                          minimum_allowed_height=minimum_allowed_height,\
                          verbose=verbose)
 
-def _getCentVar(fid, varkey_c, inds, absMax=False,  vols = None):
+def _getCentVar(fid, varkey_c, time_indices, absMax=False,  vols = None, space_indices=None):
     """
         Convenience function used to get centroid variables from netCDF
         file connection fid
 
-        The default arguments fid, vols0, vols1, vols2 exist in the
-        _get_centroid_values function where this is used
-
     """
-    vols0 = vols[:,0]
-    vols1 = vols[:,1]
-    vols2 = vols[:,2]
+
+    if vols is not None:
+        vols0 = vols[:,0]
+        vols1 = vols[:,1]
+        vols2 = vols[:,2]
 
     if(fid.variables.has_key(varkey_c)==False):
         # It looks like centroid values are not stored
         # In this case, compute centroid values from vertex values
+        assert (vols is not None), "Must specify vols since centroid quantity is not stored"
 
         newkey=varkey_c.replace('_c','')
-        if inds is not 'max':
+        if time_indices is not 'max':
             # Relatively efficient treatment is possible
             var_cent = fid.variables[newkey]
             if (len(var_cent.shape)>1):
                 # array contain time slices
-                var_cent = fid.variables[newkey][inds]
+                var_cent = fid.variables[newkey][time_indices]
                 var_cent = (var_cent[:,vols0]+var_cent[:,vols1]+var_cent[:,vols2])/3.0
             else:
                 var_cent = fid.variables[newkey][:]
@@ -378,19 +378,28 @@ def _getCentVar(fid, varkey_c, inds, absMax=False,  vols = None):
                 tmp=(tmp[:,vols0]+tmp[:,vols1]+tmp[:,vols2])/3.0
             except:
                 tmp=(tmp[vols0]+tmp[vols1]+tmp[vols2])/3.0
-            var_cent=getInds(tmp, timeSlices=inds, absMax=absMax)
+            var_cent=getInds(tmp, timeSlices=time_indices, absMax=absMax)
     else:
-        if inds is not 'max':
+        if time_indices is not 'max':
             if(len(fid.variables[varkey_c].shape)>1):
-                var_cent = fid.variables[varkey_c][inds]
+                var_cent = fid.variables[varkey_c][time_indices]
             else:
                 var_cent = fid.variables[varkey_c][:]
         else:
-            var_cent=getInds(fid.variables[varkey_c][:], timeSlices=inds, absMax=absMax)
+            var_cent=getInds(fid.variables[varkey_c][:], timeSlices=time_indices, absMax=absMax)
+
+    if space_indices is not None:
+        # Maybe only return particular space indices. Could do this more
+        # efficiently by only reading those indices initially, if that proves
+        # important
+        if (len(var_cent.shape)>1):
+            var_cent = var_cent[:,space_indices]
+        else:
+            var_cent = var_cent[space_indices]
+
     return var_cent
 
                                  
-
 def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices, 
                         minimum_allowed_height):
     """
@@ -492,8 +501,8 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
     y_cent=(y[vols0]+y[vols1]+y[vols2])/3.0
 
     # Stage and height and elevation
-    stage_cent = _getCentVar(fid, 'stage_c', inds=inds, vols=vols)
-    elev_cent = _getCentVar(fid, 'elevation_c', inds=inds, vols=vols)
+    stage_cent = _getCentVar(fid, 'stage_c', time_indices=inds, vols=vols)
+    elev_cent = _getCentVar(fid, 'elevation_c', time_indices=inds, vols=vols)
 
     if(len(elev_cent.shape)==2):
         # Coerce to 1D array, since lots of our code assumes it is
@@ -501,7 +510,7 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
 
     # Friction might not be stored at all
     try:
-        friction_cent = _getCentVar(fid, 'friction_c', inds=inds, vols=vols)
+        friction_cent = _getCentVar(fid, 'friction_c', time_indices=inds, vols=vols)
     except:
         friction_cent=elev_cent*0.+numpy.nan
     
