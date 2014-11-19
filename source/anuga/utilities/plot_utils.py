@@ -171,6 +171,8 @@ def getInds(varIn, timeSlices, absMax=False):
      OUTPUT:
            
     """
+    #import pdb
+    #pdb.set_trace()
 
     if (len(varIn.shape)==2):
         # There are multiple time-slices
@@ -188,7 +190,9 @@ def getInds(varIn, timeSlices, absMax=False):
                 var = varNew
                 var=var.reshape((1,len(var)))
         else:
-            var=varIn[timeSlices,:]
+            var = numpy.zeros((len(timeSlices), varIn.shape[1]), dtype='float32')
+            for i in range(len(timeSlices)):
+                var[i,:]=varIn[timeSlices[i]]
             var.reshape((len(timeSlices), varIn.shape[1]))
     else:
         # There is 1 time slice only
@@ -277,7 +281,11 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
         height = fid.variables['height'][inds2]
     else:
         # Back calculate height if it is not stored
-        height = fid.variables['stage'][inds2]+0.
+        #height = fid.variables['stage'][inds2]+0.
+        height = numpy.zeros((len(inds2), stage.shape[1]), dtype='float32')
+        for i in range(len(inds2)):
+            height[i,:] = fid.variables['stage'][inds2[i]]
+
         if(len(elev.shape)==2):
             height = height-elev
         else:
@@ -286,9 +294,14 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
     height = height*(height>0.)
 
     # Get xmom
-    xmom = fid.variables['xmomentum'][inds2]
-    ymom = fid.variables['ymomentum'][inds2]
-
+    #xmom = fid.variables['xmomentum'][inds2]
+    #ymom = fid.variables['ymomentum'][inds2]
+    xmom = numpy.zeros((len(inds2), stage.shape[1]), dtype='float32')
+    ymom = numpy.zeros((len(inds2), stage.shape[1]), dtype='float32')
+    for i in range(len(inds2)):
+        xmom[i,:] = fid.variables['xmomentum'][inds2[i]]
+        ymom[i,:] = fid.variables['ymomentum'][inds2[i]]
+    
     # Get vel
     h_inv = 1.0/(height+1.0e-12)
     hWet = (height > minimum_allowed_height)
@@ -366,7 +379,9 @@ def _getCentVar(fid, varkey_c, time_indices, absMax=False,  vols = None, space_i
             var_cent = fid.variables[newkey]
             if (len(var_cent.shape)>1):
                 # array contain time slices
-                var_cent = fid.variables[newkey][time_indices]
+                var_cent = numpy.zeros((len(time_indices), fid.variables[newkey].shape[1]), dtype='float32')
+                for i in range(len(time_indices)):
+                    var_cent[i,:] = fid.variables[newkey][time_indices[i]]
                 var_cent = (var_cent[:,vols0]+var_cent[:,vols1]+var_cent[:,vols2])/3.0
             else:
                 var_cent = fid.variables[newkey][:]
@@ -382,7 +397,9 @@ def _getCentVar(fid, varkey_c, time_indices, absMax=False,  vols = None, space_i
     else:
         if time_indices is not 'max':
             if(len(fid.variables[varkey_c].shape)>1):
-                var_cent = fid.variables[varkey_c][time_indices]
+                var_cent = numpy.zeros((len(time_indices), fid.variables[varkey_c].shape[1]), dtype='float32')
+                for i in range(len(time_indices)):
+                    var_cent[i,:] = fid.variables[varkey_c][time_indices[i]]
             else:
                 var_cent = fid.variables[varkey_c][:]
         else:
@@ -525,17 +542,21 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
         height_cent[i,:] = stage_cent[i,:] - elev_cent
 
     if fid.variables.has_key('xmomentum_c'):
-        # Momenta
-        xmom_cent = fid.variables['xmomentum_c'][inds2]
-        ymom_cent = fid.variables['ymomentum_c'][inds2]
+        # The following commented out lines seem to only work on
+        # some numpy/netcdf versions. So we loop
+        #xmom_cent = fid.variables['xmomentum_c'][inds2]
+        #ymom_cent = fid.variables['ymomentum_c'][inds2]
+        xmom_cent = numpy.zeros((len(inds2), fid.variables['xmomentum_c'].shape[1]), dtype='float32')
+        ymom_cent = numpy.zeros((len(inds2), fid.variables['ymomentum_c'].shape[1]), dtype='float32')
+        height_c_tmp = numpy.zeros((len(inds2), fid.variables['stage_c'].shape[1]), dtype='float32')
+        for i in range(len(inds2)):
+            xmom_cent[i,:] = fid.variables['xmomentum_c'][inds2[i]]
+            ymom_cent[i,:] = fid.variables['ymomentum_c'][inds2[i]]
+            if fid.variables.has_key('height_c'):
+                height_c_tmp[i,:] = fid.variables['height_c'][inds2[i]]
+            else:
+                height_c_tmp[i,:] = fid.variables['stage_c'][inds2[i]] - elev_cent
 
-        # Height -- need to do this again incase inds == 'max'
-        if fid.variables.has_key('height_c'):
-            height_c_tmp = fid.variables['height_c'][inds2]
-        else:
-            height_c_tmp = fid.variables['stage_c'][inds2]+0.
-            for i in range(height_c_tmp.shape[0]):
-                height_c_tmp[i,:] = height_c_tmp[i,:] - elev_cent
         # Vel
         hInv = 1.0/(height_c_tmp + 1.0e-12)
         hWet = (height_c_tmp > minimum_allowed_height)
@@ -544,13 +565,20 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
 
     else:
         # Get important vertex variables
-        xmom_v = fid.variables['xmomentum'][inds2]
-        ymom_v = fid.variables['ymomentum'][inds2]
-        stage_v = fid.variables['stage'][inds2]
+        xmom_v = numpy.zeros((len(inds2), fid.variables['xmomentum'].shape[1]), dtype='float32')
+        ymom_v = numpy.zeros((len(inds2), fid.variables['ymomentum'].shape[1]), dtype='float32')
+        stage_v = numpy.zeros((len(inds2), fid.variables['stage'].shape[1]), dtype='float32')
+        for i in range(len(inds2)):
+            xmom_v[i,:] = fid.variables['xmomentum'][inds2[i]]
+            ymom_v[i,:] = fid.variables['ymomentum'][inds2[i]]
+            stage_v[i,:] = fid.variables['stage'][inds2[i]]
+
         elev_v = fid.variables['elevation']
         # Fix elevation + get height at vertices
         if (len(elev_v.shape)>1):
-            elev_v = elev_v[inds2]
+            elev_v = numpy.zeros(elev_v.shape, dtype='float32')
+            for i in range(len(elev_v.shape[0])):
+                elev_v[i,:] = fid.variables['elevation'][inds2[i]]
             height_v = stage_v - elev_v
         else:
             elev_v = elev_v[:]
@@ -582,10 +610,15 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
         else:
             hInv = 1.0/(height_c_tmp + 1.0e-12)
             hWet = (height_c_tmp > minimum_allowed_height)
-            xmom_v =  fid.variables['xmomentum'][inds2]
+
+            xmom_v = numpy.zeros((len(inds2), fid.variables['xmomentum'].shape[1]), dtype='float32')
+            ymom_v = numpy.zeros((len(inds2), fid.variables['ymomentum'].shape[1]), dtype='float32')
+            for i in range(len(inds2)):
+                xmom_v[i,:] = fid.variables['xmomentum'][inds2[i]]
+                ymom_v[i,:] = fid.variables['ymomentum'][inds2[i]]
+
             xmom_cent = (xmom_v[:,vols0] + xmom_v[:,vols1] + xmom_v[:,vols2])/3.0
             xvel_cent = xmom_cent*hInv*hWet
-            ymom_v =  fid.variables['ymomentum'][inds2]
             ymom_cent = (ymom_v[:,vols0] + ymom_v[:,vols1] + ymom_v[:,vols2])/3.0
             yvel_cent = ymom_cent*hInv*hWet
 
@@ -593,12 +626,12 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
     vel_cent = (xvel_cent**2 + yvel_cent**2)**0.5
 
     if inds == 'max':
-        vel_cent = vel_cent.max(axis=0,keepdims=True)
+        vel_cent = vel_cent.max(axis=0, keepdims=True)
         #vel_cent = getInds(vel_cent, timeSlices=inds)
-        xmom_cent = getInds(xmom_cent, timeSlices=inds,absMax=True)
-        ymom_cent = getInds(ymom_cent, timeSlices=inds,absMax=True)
-        xvel_cent = getInds(xvel_cent, timeSlices=inds,absMax=True)
-        yvel_cent = getInds(yvel_cent, timeSlices=inds,absMax=True)
+        xmom_cent = getInds(xmom_cent, timeSlices=inds, absMax=True)
+        ymom_cent = getInds(ymom_cent, timeSlices=inds, absMax=True)
+        xvel_cent = getInds(xvel_cent, timeSlices=inds, absMax=True)
+        yvel_cent = getInds(yvel_cent, timeSlices=inds, absMax=True)
 
     fid.close()
     

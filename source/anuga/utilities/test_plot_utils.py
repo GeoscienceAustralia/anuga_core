@@ -102,6 +102,7 @@ class Test_plot_utils(unittest.TestCase):
             if we extract centroids by passing the file name
             we get the same result as if we pass the get_output object
         """
+
         p=util.get_output('test_plot_utils.sww')
        
         # Check that dimesions are ok
