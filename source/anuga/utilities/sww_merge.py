@@ -665,9 +665,6 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
         node_l2g = fid.variables['node_l2g'][:]
         tri_full_flag = fid.variables['tri_full_flag'][:]
 
-
-
-
         f_ids = num.argwhere(tri_full_flag==1).reshape(-1,)
         f_gids = tri_l2g[f_ids]
 
@@ -693,7 +690,7 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
         g_points[g_vids,1] = g_y[g_vids]
 
 
-        # Read in static quantities
+        ## Read in static quantities
         for quantity in static_quantities:
             #out_s_quantities[quantity][node_l2g] = \
             #             num.array(fid.variables[quantity],dtype=num.float32)
@@ -702,16 +699,6 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
             out_s_quantities[quantity][g_vids] = \
                          num.array(q,dtype=num.float32)[l_vids]
 
-
-        #Collate all dynamic quantities according to their timestep
-        for quantity in dynamic_quantities:
-            q = fid.variables[quantity]
-            #print q.shape
-            for i in range(n_steps):
-                #out_d_quantities[quantity][i][node_l2g] = \
-                #           num.array(q[i],dtype=num.float32)
-                out_d_quantities[quantity][i][g_vids] = \
-                           num.array(q[i],dtype=num.float32)[l_vids]
 
         # Read in static c quantities
         for quantity in static_c_quantities:
@@ -722,14 +709,6 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
                          num.array(q,dtype=num.float32)[f_ids]
 
         
-        #Collate all dynamic c quantities according to their timestep
-        for quantity in dynamic_c_quantities:
-            q = fid.variables[quantity]
-            #print q.shape
-            for i in range(n_steps):
-                out_d_c_quantities[quantity][i][f_gids] = \
-                           num.array(q[i],dtype=num.float32)[f_ids]
-
         fid.close()
 
     #---------------------------
@@ -770,25 +749,57 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
     for i in range(n_steps):
         fido.variables['time'][i] = times[i]
 
-    for q in dynamic_quantities:
-        q_values = out_d_quantities[q]
+    for q in (dynamic_quantities + dynamic_c_quantities):
+
+        # Make alias for the quantity values
+        if q in dynamic_quantities:    
+            q_values = out_d_quantities[q]
+        elif q in dynamic_c_quantities:
+            q_values = out_d_c_quantities[q]
+
+        # Read the quantities one at a time, to reduce memory usage
+        for filename in swwfiles:
+            fid = NetCDFFile(filename, netcdf_mode_r)
+
+            # Index information
+            tri_l2g  = fid.variables['tri_l2g'][:]
+            node_l2g = fid.variables['node_l2g'][:]
+            tri_full_flag = fid.variables['tri_full_flag'][:]
+            f_ids = num.argwhere(tri_full_flag==1).reshape(-1,)
+            f_gids = tri_l2g[f_ids]
+            g_vids = (3*f_gids.reshape(-1,1) + num.array([0,1,2])).reshape(-1,)
+            l_vids = (3*f_ids.reshape(-1,1) + num.array([0,1,2])).reshape(-1,)
+            for i in range(n_steps):
+                # Different indices for vertex and centroid quantities
+                if q in dynamic_quantities:
+                    q_values[i][g_vids] = \
+                    num.array(fid.variables[q][i], dtype=num.float32)[l_vids]
+                elif q in dynamic_c_quantities:
+                    q_values[i][f_gids] = \
+                    num.array(fid.variables[q][i], dtype=num.float32)[f_ids]
+
+            fid.close()
+
+        # Write to the file
         for i in range(n_steps):
             fido.variables[q][i] = q_values[i]
 
-        # This updates the _range values
-        q_range = fido.variables[q + Write_sww.RANGE][:]
-        q_values_min = num.min(q_values)
-        if q_values_min < q_range[0]:
-            fido.variables[q + Write_sww.RANGE][0] = q_values_min
-        q_values_max = num.max(q_values)
-        if q_values_max > q_range[1]:
-            fido.variables[q + Write_sww.RANGE][1] = q_values_max
+        if q in dynamic_quantities:
+            # This updates the _range values
+            q_range = fido.variables[q + Write_sww.RANGE][:]
+            q_values_min = num.min(q_values)
+            if q_values_min < q_range[0]:
+                fido.variables[q + Write_sww.RANGE][0] = q_values_min
+            q_values_max = num.max(q_values)
+            if q_values_max > q_range[1]:
+                fido.variables[q + Write_sww.RANGE][1] = q_values_max
 
-    for q in dynamic_c_quantities:
-        q_values = out_d_c_quantities[q]
-        for i in range(n_steps):
-            fido.variables[q][i] = q_values[i]
-
+        # Remove the memory
+        if q in dynamic_quantities:    
+            out_d_quantities[q] = [ ]
+        elif q in dynamic_c_quantities:
+            out_d_c_quantities[q] = []
+        q_values = [ ]
 
     fido.close()
 
