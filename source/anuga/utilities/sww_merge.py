@@ -526,6 +526,7 @@ def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=Fals
                 print 'Deleting file ', filename, ':'
             os.remove(filename)
 
+
 def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=False):
     """
         Merge a list of sww files into a single file.
@@ -622,9 +623,14 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
                 out_s_quantities[quantity] = num.zeros((3*number_of_global_triangles,),num.float32)
 
             # Quantities are stored as a 2D array of timesteps x data.
-            for quantity in dynamic_quantities:
-                out_d_quantities[quantity] = \
-                      num.zeros((n_steps,3*number_of_global_triangles),num.float32)
+            # 2014/11 -- we won't store them all at once though because the
+            # memory demands might be too great
+            #for quantity in dynamic_quantities:
+            #    out_d_quantities[quantity] = \
+            #          num.zeros((n_steps,3*number_of_global_triangles),num.float32)
+            # Now just use this to initialise later quantities
+            out_d_quantities = \
+                num.zeros((n_steps,3*number_of_global_triangles),num.float32)
 
 
             #=======================================
@@ -650,9 +656,14 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
                 out_s_c_quantities[quantity] = num.zeros((number_of_global_triangles,),num.float32)
 
             # Quantities are stored as a 2D array of timesteps x data.
-            for quantity in dynamic_c_quantities:
-                out_d_c_quantities[quantity] = \
-                      num.zeros((n_steps,number_of_global_triangles),num.float32)
+            # 2014/11 -- we won't store them all at once though because the
+            # memory demands might be too great
+            #for quantity in dynamic_c_quantities:
+            #    out_d_c_quantities[quantity] = \
+            #          num.zeros((n_steps,number_of_global_triangles),num.float32)
+            # Now just use this to initialise later quantities
+            out_d_c_quantities = \
+                num.zeros((n_steps,number_of_global_triangles),num.float32)
 
             
             description = 'merged:' + getattr(fid, 'description')
@@ -751,11 +762,11 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
 
     for q in (dynamic_quantities + dynamic_c_quantities):
 
-        # Make alias for the quantity values
-        if q in dynamic_quantities:    
-            q_values = out_d_quantities[q]
+        # Initialise q_values with zeros
+        if q in dynamic_quantities:
+            q_values = 0.*out_d_quantities
         elif q in dynamic_c_quantities:
-            q_values = out_d_c_quantities[q]
+            q_values = 0.*out_d_c_quantities
 
         # Read the quantities one at a time, to reduce memory usage
         for filename in swwfiles:
@@ -795,10 +806,6 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
                 fido.variables[q + Write_sww.RANGE][1] = q_values_max
 
         # Remove the memory
-        if q in dynamic_quantities:    
-            out_d_quantities[q] = [ ]
-        elif q in dynamic_c_quantities:
-            out_d_c_quantities[q] = []
         q_values = [ ]
 
     fido.close()
