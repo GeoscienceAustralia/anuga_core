@@ -765,14 +765,13 @@ if gdal_available:
         if nodataval is not None:
             if numpy.isfinite(nodataval):
                 rel_tol = ( abs(elev - nodataval) < nodata_rel_tol*abs(nodataval) )
-                missing = (rel_tol).nonzero()[0] 
-
+                missing = (rel_tol).nonzero()[0]
                 if len(missing) > 0:
                     elev[missing] = numpy.nan
-    
+
         return elev
-    
-    
+
+
     def gridPointsInPolygon(polygon, approx_grid_spacing=[1.,1.], eps=1.0e-06):
         """
             Get a 'grid' of points inside a polygon. Could be used with rasterValuesAtPoints to 
