@@ -733,6 +733,8 @@ if gdal_available:
             CtypeName='h'
         elif (rasterBandType == 'Float32'):
             CtypeName='f'
+        elif (rasterBandType == 'Float64'):
+            CtypeName='d'
         elif (rasterBandType == 'Byte'):
             CtypeName='B'
         elif (rasterBandType == 'Int32'):
@@ -760,11 +762,13 @@ if gdal_available:
 
         # Deal with nodata
         nodataval = rasterBand.GetNoDataValue()
-        rel_tol = ( abs(elev - nodataval) < nodata_rel_tol*abs(nodataval) )
-        missing = (rel_tol).nonzero()[0] 
+        if nodataval is not None:
+            if numpy.isfinite(nodataval):
+                rel_tol = ( abs(elev - nodataval) < nodata_rel_tol*abs(nodataval) )
+                missing = (rel_tol).nonzero()[0] 
 
-        if len(missing) > 0:
-            elev[missing] = numpy.nan
+                if len(missing) > 0:
+                    elev[missing] = numpy.nan
     
         return elev
     
