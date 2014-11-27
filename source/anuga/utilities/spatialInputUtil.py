@@ -392,32 +392,39 @@ if gdal_available:
         p1 = line[1]
         #
         # Get unit vector along segment
-        seg_unitVec_x=float(p1[0]-p0[0])
-        seg_unitVec_y=float(p1[1]-p0[1])
-        segLen=(seg_unitVec_x**2+seg_unitVec_y**2)**0.5
-        if(segLen==0.):
-            #print line
-            #print 'Pt'
-            #print pt
+        seg_unitVec_x = float(p1[0]-p0[0])
+        seg_unitVec_y = float(p1[1]-p0[1])
+        segLen = (seg_unitVec_x**2+seg_unitVec_y**2)**0.5
+        if(segLen == 0.):
             raise Exception, 'Line has repeated points: Line %s Pt %s' % (str(line),str(pt))
-        seg_unitVec_x=seg_unitVec_x/segLen
-        seg_unitVec_y=seg_unitVec_y/segLen
-        #
+
+        seg_unitVec_x = seg_unitVec_x/segLen
+        seg_unitVec_y = seg_unitVec_y/segLen
+
         # Get vector from pt to p0 
-        pt_p0_vec_x=float(pt[0]-p0[0])
-        pt_p0_vec_y=float(pt[1]-p0[1])
-        pt_p0_vec_len_squared=(pt_p0_vec_x**2 + pt_p0_vec_y**2)
+        pt_p0_vec_x = float(pt[0]-p0[0])
+        pt_p0_vec_y = float(pt[1]-p0[1])
+        pt_p0_vec_len_squared = (pt_p0_vec_x**2 + pt_p0_vec_y**2)
+
         # Get dot product of above vector with unit vector
-        pt_dot_segUnitVec=(pt_p0_vec_x)*seg_unitVec_x+(pt_p0_vec_y)*seg_unitVec_y
-        #
-        if( (pt_dot_segUnitVec<segLen) and (pt_dot_segUnitVec > 0.)):
+        pt_dot_segUnitVec = (pt_p0_vec_x)*seg_unitVec_x + (pt_p0_vec_y)*seg_unitVec_y
+
+        if( (pt_dot_segUnitVec < segLen) and (pt_dot_segUnitVec > 0.)):
             # The nearest point on the line is actually between p0 and p1, so we have a 'real' candidate
             # Get distance^2
             output = pt_p0_vec_len_squared - pt_dot_segUnitVec**2.
         else:
             # Distance is the min distance from p0 and p1. 
             output = min( pt_p0_vec_len_squared,  (float(pt[0]-p1[0])**2+float(pt[1]-p1[1])**2))
+
         if(output < -1.0e-06):
+            print 'Diagnostic numbers follow: '
+            print output
+            print pt_p0_vec_len_squared
+            print pt_dot_segUnitVec
+            print pt
+            print p1
+            print p0
             raise Exception, 'round-off in compute_squared_distance_to_segment'
         if(output < 0.):
             output=0.
