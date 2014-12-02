@@ -7,6 +7,7 @@ Title: ANUGA boundaries with dependencies on shallow_water_domain
 Author: Ole Nielsen, Ole.Nielsen@ga.gov.au
         Stephen Roberts, Stephen.Roberts@anu.edu.au
         Duncan Gray, Duncan.Gray@ga.gov.au
+        Gareth Davies, gareth.davies.ga.code@gmail.com
 
 CreationDate: 2010
 
@@ -29,6 +30,7 @@ import numpy as num
 import anuga.utilities.log as log
 from anuga.fit_interpolate.interpolate import Modeltime_too_late
 from anuga.fit_interpolate.interpolate import Modeltime_too_early
+from anuga.config import g as gravity
      
 from shallow_water_ext import rotate
 
@@ -981,7 +983,7 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
             # appropriate, depending on whether we have inflow or outflow
 
             # These calculations are based on the paper cited above
-            sqrt_g_on_depth_inside = (9.8/depth_inside)**0.5
+            sqrt_g_on_depth_inside = (gravity/depth_inside)**0.5
             ndotq_inside = (normal[0]*q[1] + normal[1]*q[2]) # momentum perpendicular to the boundary
             if(ndotq_inside>0.):
                 # Outflow (assumed subcritical)

@@ -622,17 +622,6 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
             for quantity in static_quantities:
                 out_s_quantities[quantity] = num.zeros((3*number_of_global_triangles,),num.float32)
 
-            # Quantities are stored as a 2D array of timesteps x data.
-            # 2014/11 -- we won't store them all at once though because the
-            # memory demands might be too great
-            #for quantity in dynamic_quantities:
-            #    out_d_quantities[quantity] = \
-            #          num.zeros((n_steps,3*number_of_global_triangles),num.float32)
-            # Now just use this to initialise later quantities
-            out_d_quantities = \
-                num.zeros((n_steps,3*number_of_global_triangles),num.float32)
-
-
             #=======================================
             # Deal with the centroid based variables
             #=======================================
@@ -655,17 +644,6 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
             for quantity in static_c_quantities:
                 out_s_c_quantities[quantity] = num.zeros((number_of_global_triangles,),num.float32)
 
-            # Quantities are stored as a 2D array of timesteps x data.
-            # 2014/11 -- we won't store them all at once though because the
-            # memory demands might be too great
-            #for quantity in dynamic_c_quantities:
-            #    out_d_c_quantities[quantity] = \
-            #          num.zeros((n_steps,number_of_global_triangles),num.float32)
-            # Now just use this to initialise later quantities
-            out_d_c_quantities = \
-                num.zeros((n_steps,number_of_global_triangles),num.float32)
-
-            
             description = 'merged:' + getattr(fid, 'description')
             first_file = False
 
@@ -678,13 +656,6 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
 
         f_ids = num.argwhere(tri_full_flag==1).reshape(-1,)
         f_gids = tri_l2g[f_ids]
-
-        # Just pick out the full triangles
-        #ftri_ids = num.where(tri_full_flag>0)
-        #ftri_l2g = num.compress(tri_full_flag, tri_l2g)
-
-        #assert num.allclose(f_ids, ftri_ids)
-        #assert num.allclose(ftri_l2g, f_gids)
 
         g_vids = (3*f_gids.reshape(-1,1) + num.array([0,1,2])).reshape(-1,)
         l_vids = (3*f_ids.reshape(-1,1) + num.array([0,1,2])).reshape(-1,)
@@ -703,18 +674,13 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
 
         ## Read in static quantities
         for quantity in static_quantities:
-            #out_s_quantities[quantity][node_l2g] = \
-            #             num.array(fid.variables[quantity],dtype=num.float32)
             q = fid.variables[quantity]
-            #print quantity, q.shape
             out_s_quantities[quantity][g_vids] = \
                          num.array(q,dtype=num.float32)[l_vids]
 
 
         # Read in static c quantities
         for quantity in static_c_quantities:
-            #out_s_quantities[quantity][node_l2g] = \
-            #             num.array(fid.variables[quantity],dtype=num.float32)
             q = fid.variables[quantity]
             out_s_c_quantities[quantity][f_gids] = \
                          num.array(q,dtype=num.float32)[f_ids]
@@ -764,9 +730,10 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
 
         # Initialise q_values with zeros
         if q in dynamic_quantities:
-            q_values = 0.*out_d_quantities
+            q_values = num.zeros((n_steps, 3*number_of_global_triangles), num.float32)
         elif q in dynamic_c_quantities:
-            q_values = 0.*out_d_c_quantities
+            q_values = num.zeros((n_steps, number_of_global_triangles), num.float32)
+
 
         # Read the quantities one at a time, to reduce memory usage
         for filename in swwfiles:
@@ -804,9 +771,6 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
             q_values_max = num.max(q_values)
             if q_values_max > q_range[1]:
                 fido.variables[q + Write_sww.RANGE][1] = q_values_max
-
-        # Remove the memory
-        q_values = [ ]
 
     fido.close()
 
