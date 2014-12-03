@@ -381,8 +381,8 @@ def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=Fals
         #g_x[node_l2g] = fid.variables['x']
         #g_y[node_l2g] = fid.variables['y']
 
-        g_points[node_l2g,0] = fid.variables['x']
-        g_points[node_l2g,1] = fid.variables['y']
+        g_points[node_l2g,0] = fid.variables['x'][:]
+        g_points[node_l2g,1] = fid.variables['y'][:]
         
 
         #print number_of_timesteps
@@ -409,7 +409,7 @@ def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=Fals
             q = fid.variables[quantity]
             #print quantity, q.shape
             out_s_quantities[quantity][f_node_l2g] = \
-                         num.array(q,dtype=num.float32)[fl_nodes]
+                         num.array(q[:],dtype=num.float32)[fl_nodes]
 
         
         #Collate all dynamic quantities according to their timestep
