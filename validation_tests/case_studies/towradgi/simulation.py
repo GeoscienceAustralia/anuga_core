@@ -30,7 +30,12 @@ from os.path import join
 
 class Simulation(object):
     
-    def __init__(self,argument_adder=None, from_commandline=True, **kwargs):
+    def __init__(self,argument_adder=None, from_commandline=True, 
+                 setup_boundaries=None,
+                 setup_domain=None, 
+                 setup_rainfall=None,
+                 setup_structures=None,
+                 **kwargs):
         
         args = parse_args_and_parameters(argument_adder, from_commandline, **kwargs)
         
@@ -44,6 +49,11 @@ class Simulation(object):
         self.args = args
         self.checkpoint = args.checkpoint
         self.checkpoint_time = args.checkpoint_time
+        
+        self.setup_boundaries = setup_boundaries
+        self.setup_domain = setup_domain
+        self.setup_rainfall = setup_rainfall
+        self.setup_structures = setup_structures
         
         if self.checkpoint:
             # try to read in from checkpoint file
@@ -136,8 +146,7 @@ class Simulation(object):
             if os.path.exists(pickle_name):
                 if verbose: print 'Saved domain seems to already exist'
             else:
-                from setup_domain import setup_domain
-                domain = setup_domain(self)
+                domain = self.setup_domain(self)
                 
                 if verbose: print 'Saving Domain'
                 sequential_distribute_dump(domain, 1, partition_dir=partition_dir, verbose=verbose)    
@@ -174,9 +183,11 @@ class Simulation(object):
         """
         
         if myid == 0 and self.verbose: print 'CREATING RAINFALL FUNCTIONS'
-        from setup_rainfall import setup_rainfall
         
-        setup_rainfall(self) 
+        if self.setup_rainfall is None:
+            pass
+        else:
+            self.setup_rainfall(self) 
 
     def setup_structures(self):
         """
@@ -184,9 +195,11 @@ class Simulation(object):
         """
         
         if myid == 0 and self.verbose: print 'CREATING STRUCTURES'
-        from setup_structures import setup_structures
         
-        setup_structures(self)
+        if self.setup_structures is None:
+            pass
+        else:
+            self.setup_structures(self)
    
     def setup_boundaries(self):
         """
@@ -194,9 +207,11 @@ class Simulation(object):
         """
         
         if myid == 0 and self.verbose: print 'SETUP BOUNDARY CONDITIONS'
-        from setup_boundaries import setup_boundaries
-        
-        setup_boundaries(self)
+
+        if self.setup_boundaries is None:
+            pass
+        else:
+            self.setup_boundaries(self)
         
 
 
