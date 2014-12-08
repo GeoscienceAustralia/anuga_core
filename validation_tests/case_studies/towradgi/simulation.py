@@ -1,7 +1,4 @@
-""" 
-Towradgi Creek 17 August 1998 Storm Event Calibration
-By Petar Milevski, some revisions by Gareth Davies
-
+"""
 Setting up a simulation class
 """
 
@@ -25,8 +22,6 @@ from anuga import sequential_distribute_dump
 from anuga_parallel.sequential_distribute import sequential_distribute_load_pickle_file
 from os.path import join
 
-#from project import *
-
 
 class Simulation(object):
     
@@ -38,8 +33,6 @@ class Simulation(object):
                  **kwargs):
         
         args = parse_args_and_parameters(argument_adder, from_commandline, **kwargs)
-        
-        #print args
         
         self.verbose = args.verbose
         self.outname = args.outname
@@ -59,6 +52,8 @@ class Simulation(object):
             # try to read in from checkpoint file
             from anuga import load_checkpoint_file
             try:
+                if myid == 0 and self.verbose:
+                    print 'TRYING TO OPEN CHECKPOINT FILES'
                 self.domain = load_checkpoint_file(domain_name = self.outname, checkpoint_dir = self.checkpoint_dir)
                 if myid == 0 and self.verbose:
                     print 'OPENNED CHECKPOINT FILE at time = {}'.format(self.domain.get_time())
@@ -71,6 +66,9 @@ class Simulation(object):
          
          
     def initialize_simulation(self):
+
+        if myid == 0 and self.verbose:
+            print 'INITIALIZE SIMULATION'
                         
         self.setup_original_domain()
         self.setup_structures()
@@ -296,10 +294,3 @@ def parse_args_and_parameters(argument_adder=None, from_commandline=False, **kwa
     
     
     
-def wrap(fun):
-    
-    def wrapped_fun(t):
-        return [fun(t), 0.0, 0.0]
-    
-    return wrapped_fun
-

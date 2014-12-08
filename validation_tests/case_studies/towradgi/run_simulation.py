@@ -1,3 +1,7 @@
+"""
+Towradgi Creek 17 August 1998 Storm Event Calibration
+By Petar Milevski, some revisions by Gareth Davies
+"""
 
 from simulation import Simulation
 import anuga

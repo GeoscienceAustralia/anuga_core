@@ -24,12 +24,6 @@ from anuga import create_mesh_from_regions
 from anuga import Domain
 
 
-
-
-#from project import *
-
-
-
 def read_polygon_list(poly_list):
     # Alternative to read_polygon_dir -- allows us to control order of polygons
     from anuga import read_polygon
