@@ -33,15 +33,18 @@ class Set_elevation(Set_quantity):
                  indices=None,
                  polygon=None,
                  center=None,
-                 radius=None):
-
+                 radius=None,
+                 line=None,
+                 verbose = False):
 
         Set_quantity.__init__(self, domain, 'elevation',
-                              value = elevation,
+                              value=elevation,
                               indices=indices,
                               polygon=polygon,
                               center=center,
                               radius=radius,
+                              line=line,
+                              verbose=verbose,
                               test_elevation=False)
 
 

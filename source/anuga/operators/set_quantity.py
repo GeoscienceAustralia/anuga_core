@@ -34,7 +34,8 @@ class Set_quantity(Region):
                  radius=None,
                  line=None,
                  verbose = False,
-                 test_elevation=True):
+                 test_elevation=True,
+                 test_stage=True):
 
 
         Region.__init__(self, domain,
@@ -57,7 +58,11 @@ class Set_quantity(Region):
 
         if test_elevation:
             msg ='Use Set_elevation to maintain continuity'
-            assert quantity is not 'elevation'
+            assert quantity is not 'elevation', msg
+            
+        if test_stage:
+            msg ='Use Set_stage to maintain non-negative water depth'
+            assert quantity is not 'stage', msg
         
         #-------------------------------------------
         # Useful quantity alias
@@ -93,7 +98,7 @@ class Set_quantity(Region):
         if self.indices is None:
 
             #--------------------------------------
-            # Update all three vertices for each cell
+            # Update centroid values
             #--------------------------------------
             try:
                 value = self.get_value(x=self.coord_c[:,0], y=self.coord_c[:,1])
@@ -105,7 +110,7 @@ class Set_quantity(Region):
         else:
 
             #--------------------------------------
-            # Update all three vertices for each cell
+            # Update centroid values
             #--------------------------------------
             ids = self.indices
             x = self.coord_c[ids,0]
