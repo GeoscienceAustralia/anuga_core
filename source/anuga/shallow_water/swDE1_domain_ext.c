@@ -1949,7 +1949,7 @@ int _extrapolate_second_order_edge_sw(struct domain *D){
 
 // Modified central flux function
 
-PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
+PyObject *swde1_compute_fluxes_ext_central(PyObject *self, PyObject *args) {
   /*Compute all fluxes and the timestep suitable for all volumes
     in domain.
 
@@ -1984,7 +1984,7 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
 }
 
 
-PyObject *flux_function_central(PyObject *self, PyObject *args) {
+PyObject *swde1_flux_function_central(PyObject *self, PyObject *args) {
   //
   // Gateway to innermost flux function.
   // This is only used by the unit tests as the c implementation is
@@ -2039,7 +2039,7 @@ PyObject *flux_function_central(PyObject *self, PyObject *args) {
 // Gravity
 //========================================================================
 
-PyObject *gravity(PyObject *self, PyObject *args) {
+PyObject *swde1_gravity(PyObject *self, PyObject *args) {
   //
   //  gravity(g, h, v, x, xmom, ymom)
   //
@@ -2106,7 +2106,7 @@ PyObject *gravity(PyObject *self, PyObject *args) {
   return Py_BuildValue("");
 }
 
-PyObject *compute_flux_update_frequency(PyObject *self, PyObject *args) {
+PyObject *swde1_compute_flux_update_frequency(PyObject *self, PyObject *args) {
   /*
     
     Compute how often we should update fluxes and extrapolations (perhaps not every timestep)
@@ -2133,7 +2133,7 @@ PyObject *compute_flux_update_frequency(PyObject *self, PyObject *args) {
 }
 
 
-PyObject *extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
+PyObject *swde1_extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
   /*Compute the edge values based on a linear reconstruction 
     on each triangle
     
@@ -2175,7 +2175,7 @@ PyObject *extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
 // bed_edge_value
 //========================================================================
 
-PyObject *protect(PyObject *self, PyObject *args) {
+PyObject *swde1_protect(PyObject *self, PyObject *args) {
   //
   //    protect(minimum_allowed_height, maximum_allowed_speed, wc, zc, xmomc, ymomc)
 
@@ -2234,12 +2234,12 @@ static struct PyMethodDef MethodTable[] = {
    * three.
    */
   //{"rotate", (PyCFunction)rotate, METH_VARARGS | METH_KEYWORDS, "Print out"},
-  {"compute_fluxes_ext_central", compute_fluxes_ext_central, METH_VARARGS, "Print out"},
-  {"gravity_c",        gravity,            METH_VARARGS, "Print out"},
-  {"flux_function_central", flux_function_central, METH_VARARGS, "Print out"},  
-  {"extrapolate_second_order_edge_sw", extrapolate_second_order_edge_sw, METH_VARARGS, "Print out"},
-  {"compute_flux_update_frequency", compute_flux_update_frequency, METH_VARARGS, "Print out"},
-  {"protect",          protect, METH_VARARGS | METH_KEYWORDS, "Print out"},
+  {"compute_fluxes_ext_central", swde1_compute_fluxes_ext_central, METH_VARARGS, "Print out"},
+  {"gravity_c",        swde1_gravity,            METH_VARARGS, "Print out"},
+  {"flux_function_central", swde1_flux_function_central, METH_VARARGS, "Print out"},
+  {"extrapolate_second_order_edge_sw", swde1_extrapolate_second_order_edge_sw, METH_VARARGS, "Print out"},
+  {"compute_flux_update_frequency", swde1_compute_flux_update_frequency, METH_VARARGS, "Print out"},
+  {"protect",          swde1_protect, METH_VARARGS | METH_KEYWORDS, "Print out"},
   {NULL, NULL, 0, NULL}
 };
 

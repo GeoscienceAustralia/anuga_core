@@ -1892,7 +1892,7 @@ class Domain(Generic_Domain):
 
         if self.flow_algorithm == 'tsunami':
 
-            from swb2_domain_ext import protect as protect_swb2
+            from swb2_domain_ext import protect
 
             # shortcuts
             wc = self.quantities['stage'].centroid_values
@@ -1903,7 +1903,7 @@ class Domain(Generic_Domain):
             ymomc = self.quantities['ymomentum'].centroid_values
             areas = self.areas
 
-            mass_error = protect_swb2(self.minimum_allowed_height, self.maximum_allowed_speed,
+            mass_error = protect(self.minimum_allowed_height, self.maximum_allowed_speed,
                 self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas)
 
             if mass_error > 0.0 and self.verbose :
@@ -1911,7 +1911,7 @@ class Domain(Generic_Domain):
 
         elif self.flow_algorithm.startswith('DE'):
 
-            from swDE1_domain_ext import protect as protect_de
+            from swDE1_domain_ext import protect
 
             # shortcuts
             wc = self.quantities['stage'].centroid_values
@@ -1924,7 +1924,7 @@ class Domain(Generic_Domain):
             xc = self.centroid_coordinates[:,0]
             yc = self.centroid_coordinates[:,1] 
 
-            mass_error = protect_de(self.minimum_allowed_height, self.maximum_allowed_speed,
+            mass_error = protect(self.minimum_allowed_height, self.maximum_allowed_speed,
                     self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas, xc, yc)
             
             if mass_error > 0.0 and self.verbose :

@@ -47,11 +47,6 @@ class Set_stage(Set_quantity):
                               verbose=verbose,
                               test_stage=False)
 
-
-
-
-
-
         #------------------------------------------
         # Extra aliases for changing stage
         #------------------------------------------

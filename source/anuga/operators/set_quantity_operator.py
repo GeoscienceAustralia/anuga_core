@@ -45,7 +45,9 @@ class Set_quantity_operator(Operator, Set_quantity):
                  description = None,
                  label = None,
                  logging = False,
-                 verbose = False):
+                 verbose = False,
+                 test_stage=True,
+                 test_elevation=True):
 
 
  
@@ -58,7 +60,9 @@ class Set_quantity_operator(Operator, Set_quantity):
                               polygon=polygon, 
                               center=center, 
                               radius=radius, 
-                              line=line)
+                              line=line,
+                              test_stage=test_stage,
+                              test_elevation=test_elevation)
 
         Operator.__init__(self, domain, description, label, logging, verbose)
 

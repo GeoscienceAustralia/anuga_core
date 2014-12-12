@@ -54,7 +54,8 @@ class Set_stage_operator(Set_quantity_operator):
                                        description = description,
                                        label = label,
                                        logging = logging,
-                                       verbose = verbose)
+                                       verbose = verbose,
+                                       test_stage=False)
 
 
 
