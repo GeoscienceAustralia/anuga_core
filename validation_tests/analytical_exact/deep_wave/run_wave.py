@@ -100,7 +100,7 @@ Bw2 = anuga.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, w
 def zero_fun(t):
     return 0.0                    
 
-Bw5 = anuga.shallow_water.boundaries.Flather_external_stage_zero_velocity_boundary(domain, zero_fun)
+Bw5 = anuga.Flather_external_stage_zero_velocity_boundary(domain, zero_fun)
 
 # Associate boundary tags with boundary objects
 domain.set_boundary({'left': Bw2, 'right': Bw5, 'top': Br, 'bottom': Br})

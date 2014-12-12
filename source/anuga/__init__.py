@@ -40,6 +40,7 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.operators.base_operator import Operator
 from anuga.structures.structure_operator import Structure_operator
 
+
 from anuga.abstract_2d_finite_volumes.generic_domain import Generic_Domain
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 #------------------------------------------------------------------------------ 
@@ -114,6 +115,8 @@ from anuga.shallow_water.boundaries import \
                     Transmissive_momentum_set_stage_boundary
 from anuga.shallow_water.boundaries import \
                     Transmissive_n_momentum_zero_t_momentum_set_stage_boundary
+from anuga.shallow_water.boundaries import \
+                    Flather_external_stage_zero_velocity_boundary
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import \
                     Compute_fluxes_boundary
         

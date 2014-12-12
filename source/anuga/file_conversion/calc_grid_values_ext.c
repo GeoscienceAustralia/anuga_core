@@ -2,7 +2,7 @@
 #include "numpy/arrayobject.h"
 #include <stdio.h>
 #include <math.h>
-#include <malloc.h>
+//#include <malloc.h>
 
 #define DDATA(p) ((double*)(((PyArrayObject *)p)->data))
 #define IDATA(p) ((long*)(((PyArrayObject *)p)->data))

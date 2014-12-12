@@ -46,7 +46,7 @@ pyplot.subplot(121)
 pyplot.scatter(p2.x, p2.y, c=p2.elev,edgecolors='none')
 # Add nice elevation data
 colVals = numpy.maximum(numpy.minimum(p2.elev, 25.), 19.)
-util.plot_triangles(p, values = colVals, color='none')
+util.plot_triangles(p, values = colVals, edgecolors='none')
 
 pyplot.gca().set_aspect('equal')
 pyplot.scatter(p2.x[xx2],p2.y[xx2],color='green')
@@ -75,7 +75,7 @@ pyplot.xlim((100,180))
 pyplot.ylim((100,210))
 #k=range(0,len(p2.x),2) # Thin out the vectors for easier viewing
 colVals = numpy.maximum(numpy.minimum(p2.elev, 25.), 19.)
-util.plot_triangles(p, values = colVals, color='white')
+util.plot_triangles(p, values = colVals, edgecolors='white')
 k = range(len(p2.x))
 # Thin out the triangles
 #k = (((10.*(p2.x - p2.x.round())).round()%2 == 0.0)*((10.*(p2.y - p2.y.round())).round()%2 == 0.0)).nonzero()[0]
@@ -98,7 +98,7 @@ pyplot.scatter(0.,0., color='PaleGreen',label='0-1', marker='s')
 pyplot.scatter(0.,0., color='blue',label='0',marker='s')
 
 pyplot.gca().set_aspect('equal')
-util.plot_triangles(p, values = froude_category, color='none')
+util.plot_triangles(p, values = froude_category, edgecolors='none')
 pyplot.xlim((p.x.min(), p.x.max()))
 pyplot.ylim((p.y.min(), p.y.max()))
 pyplot.title("Froude Number zones: 0, (0,1], or >1")
