@@ -262,7 +262,7 @@ class Test_sww(unittest.TestCase):
         width = 5
         length = 50
         t_end = 10
-        points, vertices, boundary = rectangular(length, width, 50, 5)
+        points, vertices, boundary = rectangular(10, 1, length, width)
 
         # Create shallow water domain
         domain = Domain(points, vertices, boundary,
@@ -293,17 +293,37 @@ class Test_sww(unittest.TestCase):
                                               verbose=False)
         mesh, quantities, time = X
         
+        
+        
 
+        #print quantities
+        #print time
+
+        dhash = domain.get_nodes()[:,0]*10+domain.get_nodes()[:,1]
+        mhash = mesh.nodes[:,0]*10+mesh.nodes[:,1]        
+
+
+        #print 'd_nodes',len(dhash)
+        #print 'm_nodes',len(mhash)
+        di = num.argsort(dhash)
+        mi = num.argsort(mhash)
+        minv = num.argsort(mi)
+        dinv = num.argsort(di)
+
+        #print 'd_tri',len(domain.get_triangles())
+        #print 'm_tri',len(mesh.triangles)
+        
         # Check that mesh has been recovered
-        assert num.alltrue(mesh.triangles == domain.get_triangles())
-        assert num.allclose(mesh.nodes, domain.get_nodes())
+        # triangle order should be ok
+        assert num.allclose(mesh.nodes[mi,:],domain.get_nodes()[di,:])
+        assert num.alltrue(minv[mesh.triangles] == dinv[domain.get_triangles()])
+
 
         # Check that time has been recovered
         assert num.allclose(time, range(t_end+1))
 
-        # Check that quantities have been recovered
-        # (sww files use single precision)
         z=domain.get_quantity('elevation').get_values(location='unique vertices')
+        
         assert num.allclose(quantities['elevation'], z)
 
         for q in ['stage', 'xmomentum', 'ymomentum']:
@@ -312,9 +332,9 @@ class Test_sww(unittest.TestCase):
 
             #print q,quantities[q]
             q_sww=quantities[q][-1,:]
-
+            
             msg = 'Quantity %s failed to be recovered' %q
-            assert num.allclose(q_ref, q_sww, atol=1.0e-6), msg
+            assert num.allclose(q_ref[di], q_sww[mi], atol=1.0e-6), msg
             
         # Cleanup
         #os.remove(swwfile)

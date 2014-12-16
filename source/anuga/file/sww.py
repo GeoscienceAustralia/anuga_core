@@ -1367,11 +1367,51 @@ def get_mesh_and_quantities_from_file(filename,
         msg = 'Domain could not be created: %s. "' % e
         raise DataDomainError, msg
 
+    def gather(quantity):
+            
+        shape = quantity.shape
+        
+        if len(shape) == 2:
+            # time array
+            if shape[1] == len(mesh.nodes):
+                return quantity
+            # need to calculate unique vertex values
+            n_time = shape[0]
+            n_nodes = len(mesh.nodes)
+            
+            mesh_ids = mesh.triangles.ravel()
+            temp_uv = num.zeros((n_time,n_nodes))
+        
+            count_uv = num.zeros(len(mesh.nodes))
+            num.add.at(count_uv, mesh_ids, 1)
+   
+            for i in range(n_time):
+                num.add.at(temp_uv[i,:], mesh_ids, quantity[i,:] )
+                temp_uv[i,:] = temp_uv[i,:]/count_uv
+   
+        elif len(shape) == 1:
+            # non time array
+            if shape[0] == len(mesh.nodes):
+                return quantity
+            
+            mesh_ids = mesh.triangles.ravel()
+            temp_uv = num.zeros(len(mesh.nodes))
+
+            count_uv = num.zeros(len(mesh.nodes))
+            num.add.at(count_uv, mesh_ids, 1)
+            num.add.at(temp_uv, mesh_ids, quantity )
+            
+        else:
+            raise Exception
+        
+        return temp_uv
+
+        
     quantities = {}
-    quantities['elevation'] = elevation
-    quantities['stage'] = stage
-    quantities['xmomentum'] = xmomentum
-    quantities['ymomentum'] = ymomentum
+    quantities['elevation'] = gather(elevation)
+    quantities['stage'] = gather(stage)
+    quantities['xmomentum'] = gather(xmomentum)
+    quantities['ymomentum'] = gather(ymomentum)
 
     fid.close()
 

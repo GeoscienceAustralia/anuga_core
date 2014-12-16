@@ -320,6 +320,131 @@ class Test_sww_Interrogate(unittest.TestCase):
         
 
 
+    def test_get_flow_through_cross_section_stored_uniquely(self):
+        """test_get_flow_through_cross_section_stored_uniquely(self):
+
+        Test that the total flow through a cross section can be
+        correctly obtained from an sww file.
+        
+        This test creates a flat bed with a known flow through it and tests
+        that the function correctly returns the expected flow.
+
+        The specifics are
+        u = 2 m/s
+        h = 1 m
+        w = 3 m (width of channel)
+
+        q = u*h*w = 6 m^3/s
+       
+        
+        """
+
+        import time, os
+        from anuga.file.netcdf import NetCDFFile
+
+        # Setup
+        from mesh_factory import rectangular
+
+        # Create basic mesh (20m x 3m)
+        width = 3
+        length = 20
+        t_end = 3
+        points, vertices, boundary = rectangular(length, width,
+                                                 length, width)
+
+        # Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.default_order = 2
+        domain.set_minimum_storable_height(0.01)
+
+        domain.set_name('flowtest_uniquely')
+        swwfile = domain.get_name() + '.sww'
+
+        domain.set_store_vertices_uniquely()
+        
+        domain.set_datadir('.')
+        domain.format = 'sww'
+        domain.smooth = True
+
+        h = 1.0
+        u = 2.0
+        uh = u*h
+
+        Br = Reflective_boundary(domain)     # Side walls
+        Bd = Dirichlet_boundary([h, uh, 0])  # 2 m/s across the 3 m inlet: 
+
+
+        
+        domain.set_quantity('elevation', 0.0)
+        domain.set_quantity('stage', h)
+        domain.set_quantity('xmomentum', uh)
+        domain.set_boundary( {'left': Bd, 'right': Bd, 'top': Br, 'bottom': Br})
+
+        for t in domain.evolve(yieldstep=1, finaltime = t_end):
+            pass
+
+        # Check that momentum is as it should be in the interior
+
+        I = [[0, width/2.],
+             [length/2., width/2.],
+             [length, width/2.]]
+        
+        f = file_function(swwfile,
+                          quantities=['stage', 'xmomentum', 'ymomentum'],
+                          interpolation_points=I,
+                          verbose=False)
+        for t in range(t_end+1):
+            for i in range(3):
+                assert num.allclose(f(t, i), [1, 2, 0], atol=1.0e-6)
+            
+
+        # Check flows through the middle
+        for i in range(5):
+            x = length/2. + i*0.23674563 # Arbitrary
+            cross_section = [[x, 0], [x, width]]
+            time, Q = get_flow_through_cross_section(swwfile,
+                                                     cross_section,
+                                                     verbose=False)
+
+            assert num.allclose(Q, uh*width)
+
+
+       
+        # Try the same with partial lines
+        x = length/2.
+        for i in range(5):
+            start_point = [length/2., i*width/5.]
+            #print start_point
+                            
+            cross_section = [start_point, [length/2., width]]
+            time, Q = get_flow_through_cross_section(swwfile,
+                                                     cross_section,
+                                                     verbose=False)
+
+            #print i, Q, (width-start_point[1])
+            assert num.allclose(Q, uh*(width-start_point[1]))
+
+
+        # Verify no flow when line is parallel to flow
+        cross_section = [[length/2.-10, width/2.], [length/2.+10, width/2.]]
+        time, Q = get_flow_through_cross_section(swwfile,
+                                                 cross_section,
+                                                 verbose=False)
+
+        #print i, Q
+        assert num.allclose(Q, 0, atol=1.0e-5)        
+
+
+        # Try with lines on an angle (all flow still runs through here)
+        cross_section = [[length/2., 0], [length/2.+width, width]]
+        time, Q = get_flow_through_cross_section(swwfile,
+                                                 cross_section,
+                                                 verbose=False)
+
+        assert num.allclose(Q, uh*width)        
+        
+
+
                                       
     def test_get_flow_through_cross_section_with_geo(self):
         """test_get_flow_through_cross_section(self):
@@ -528,194 +653,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
 
 
-    def test_get_maximum_inundation_from_sww(self):
-        """test_get_maximum_inundation_from_sww(self)
 
-        Test of get_maximum_inundation_elevation()
-        and get_maximum_inundation_location() from data_manager.py
-
-        This is based on test_get_maximum_inundation_3(self) but works with the
-        stored results instead of with the internal data structure.
-
-        This test uses the underlying get_maximum_inundation_data for tests
-        """
-
-
-        initial_runup_height = -0.4
-        final_runup_height = -0.3
-
-        filename = 'runup_test_1'
-
-        #--------------------------------------------------------------
-        # Setup computational domain
-        #--------------------------------------------------------------
-        N = 10
-        points, vertices, boundary = rectangular_cross(N, N)
-        domain = Domain(points, vertices, boundary)
-        domain.set_name(filename)
-        domain.set_maximum_allowed_speed(1.0)
-
-        # FIXME: This works better with old limiters so far
-        domain.tight_slope_limiters = 0
-
-        #--------------------------------------------------------------
-        # Setup initial conditions
-        #--------------------------------------------------------------
-        def topography(x, y):
-            return -x/2                             # linear bed slope
-
-        # Use function for elevation
-        domain.set_quantity('elevation', topography)
-        domain.set_quantity('friction', 0.)                # Zero friction
-        # Constant negative initial stage
-        domain.set_quantity('stage', initial_runup_height)
-
-        #--------------------------------------------------------------
-        # Setup boundary conditions
-        #--------------------------------------------------------------
-        Br = Reflective_boundary(domain)                       # Reflective wall
-        Bd = Dirichlet_boundary([final_runup_height, 0, 0])    # Constant inflow
-
-        # All reflective to begin with (still water)
-        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
-
-        #--------------------------------------------------------------
-        # Test initial inundation height
-        #--------------------------------------------------------------
-        indices = domain.get_wet_elements()
-        z = domain.get_quantity('elevation').\
-                get_values(location='centroids', indices=indices)
-        assert num.alltrue(z < initial_runup_height)
-
-        q_ref = domain.get_maximum_inundation_elevation()
-        # First order accuracy
-        assert num.allclose(q_ref, initial_runup_height, rtol=1.0/N)
-
-        #--------------------------------------------------------------
-        # Let triangles adjust
-        #--------------------------------------------------------------
-        for t in domain.evolve(yieldstep = 0.1, finaltime = 1.0):
-            pass
-
-        #--------------------------------------------------------------
-        # Test inundation height again
-        #--------------------------------------------------------------
-        q_ref = domain.get_maximum_inundation_elevation()
-        q = get_maximum_inundation_elevation(filename+'.sww')
-        msg = 'We got %f, should have been %f' % (q, q_ref)
-        assert num.allclose(q, q_ref, rtol=1.0/N), msg
-
-        q = get_maximum_inundation_elevation(filename+'.sww')
-        msg = 'We got %f, should have been %f' % (q, initial_runup_height)
-        assert num.allclose(q, initial_runup_height, rtol = 1.0/N), msg
-
-        # Test error condition if time interval is out
-        try:
-            q = get_maximum_inundation_elevation(filename+'.sww',
-                                                 time_interval=[2.0, 3.0])
-        except ValueError:
-            pass
-        else:
-            msg = 'should have caught wrong time interval'
-            raise Exception, msg
-
-        # Check correct time interval
-        q, loc = get_maximum_inundation_data(filename+'.sww',
-                                             time_interval=[0.0, 3.0])
-        msg = 'We got %f, should have been %f' % (q, initial_runup_height)
-        assert num.allclose(q, initial_runup_height, rtol = 1.0/N), msg
-        assert num.allclose(-loc[0]/2, q)    # From topography formula
-
-        #--------------------------------------------------------------
-        # Update boundary to allow inflow
-        #--------------------------------------------------------------
-        domain.set_boundary({'right': Bd})
-
-        #--------------------------------------------------------------
-        # Evolve system through time
-        #--------------------------------------------------------------
-        q_max = None
-        for t in domain.evolve(yieldstep = 0.1, finaltime = 3.0,
-                               skip_initial_step = True):
-            q = domain.get_maximum_inundation_elevation()
-            if q > q_max:
-                q_max = q
-
-        #--------------------------------------------------------------
-        # Test inundation height again
-        #--------------------------------------------------------------
-        indices = domain.get_wet_elements()
-        z = domain.get_quantity('elevation').\
-                get_values(location='centroids', indices=indices)
-
-        assert num.alltrue(z < final_runup_height)
-
-        q = domain.get_maximum_inundation_elevation()
-        # First order accuracy
-        assert num.allclose(q, final_runup_height, rtol=1.0/N)
-
-        q, loc = get_maximum_inundation_data(filename+'.sww',
-                                             time_interval=[3.0, 3.0])
-        msg = 'We got %f, should have been %f' % (q, final_runup_height)
-        assert num.allclose(q, final_runup_height, rtol=1.0/N), msg
-        assert num.allclose(-loc[0]/2, q)    # From topography formula
-
-        q = get_maximum_inundation_elevation(filename+'.sww')
-        loc = get_maximum_inundation_location(filename+'.sww')
-        msg = 'We got %f, should have been %f' % (q, q_max)
-        assert num.allclose(q, q_max, rtol=1.0/N), msg
-        assert num.allclose(-loc[0]/2, q)    # From topography formula
-
-        q = get_maximum_inundation_elevation(filename+'.sww',
-                                             time_interval=[0, 3])
-        msg = 'We got %f, should have been %f' % (q, q_max)
-        assert num.allclose(q, q_max, rtol=1.0/N), msg
-
-        # Check polygon mode
-        # Runup region
-        polygon = [[0.3, 0.0], [0.9, 0.0], [0.9, 1.0], [0.3, 1.0]]
-        q = get_maximum_inundation_elevation(filename+'.sww',
-                                             polygon = polygon,
-                                             time_interval=[0, 3])
-        msg = 'We got %f, should have been %f' % (q, q_max)
-        assert num.allclose(q, q_max, rtol=1.0/N), msg
-
-        # Offshore region
-        polygon = [[0.9, 0.0], [1.0, 0.0], [1.0, 1.0], [0.9, 1.0]]
-        q, loc = get_maximum_inundation_data(filename+'.sww',
-                                             polygon = polygon,
-                                             time_interval=[0, 3])
-        msg = 'We got %f, should have been %f' % (q, -0.475)
-        assert num.allclose(q, -0.475, rtol=1.0/N), msg
-        assert is_inside_polygon(loc, polygon)
-        assert num.allclose(-loc[0]/2, q)    # From topography formula
-
-        # Dry region
-        polygon = [[0.0, 0.0], [0.4, 0.0], [0.4, 1.0], [0.0, 1.0]]
-        q, loc = get_maximum_inundation_data(filename+'.sww',
-                                             polygon = polygon,
-                                             time_interval=[0, 3])
-        msg = 'We got %s, should have been None' % (q)
-        assert q is None, msg
-        msg = 'We got %s, should have been None' % (loc)
-        assert loc is None, msg
-
-        # Check what happens if no time point is within interval
-        try:
-            q = get_maximum_inundation_elevation(filename+'.sww',
-                                                 time_interval=[2.75, 2.75])
-        except AssertionError:
-            pass
-        else:
-            msg = 'Time interval should have raised an exception'
-            raise Exception, msg
-
-        # Cleanup
-        try:
-            os.remove(domain.get_name() + '.sww')
-        except:
-            pass
-            #FIXME(Ole): Windows won't allow removal of this
 
 
     def test_get_maximum_inundation_from_sww(self):
