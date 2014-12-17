@@ -1371,6 +1371,24 @@ def get_mesh_and_quantities_from_file(filename,
             
         shape = quantity.shape
         
+        def my_num_add_at(a,indices,b):
+            """ 
+            Use the numpy add.at opperation if it is available, (numpy version >1.8)
+            otherwise just use a quick and dirty implementation via a python loop
+            """
+            
+            try:
+                num.add.at(a, indices, b)
+            except:
+                n_ids = len(indices)
+                b_array = num.zeros_like(indices,dtype=num.float)
+                b_array[:] = b
+             
+                for n in xrange(n_ids):
+                    a[indices[n]] = a[indices[n]] + b_array[n]
+                    
+        
+        
         if len(shape) == 2:
             # time array
             if shape[1] == len(mesh.nodes):
@@ -1383,10 +1401,10 @@ def get_mesh_and_quantities_from_file(filename,
             temp_uv = num.zeros((n_time,n_nodes))
         
             count_uv = num.zeros(len(mesh.nodes))
-            num.add.at(count_uv, mesh_ids, 1)
+            my_num_add_at(count_uv, mesh_ids, 1)
    
             for i in range(n_time):
-                num.add.at(temp_uv[i,:], mesh_ids, quantity[i,:] )
+                my_num_add_at(temp_uv[i,:], mesh_ids, quantity[i,:] )
                 temp_uv[i,:] = temp_uv[i,:]/count_uv
    
         elif len(shape) == 1:
@@ -1398,8 +1416,8 @@ def get_mesh_and_quantities_from_file(filename,
             temp_uv = num.zeros(len(mesh.nodes))
 
             count_uv = num.zeros(len(mesh.nodes))
-            num.add.at(count_uv, mesh_ids, 1)
-            num.add.at(temp_uv, mesh_ids, quantity )
+            my_num_add_at(count_uv, mesh_ids, 1)
+            my_num_add_at(temp_uv, mesh_ids, quantity )
             
         else:
             raise Exception
