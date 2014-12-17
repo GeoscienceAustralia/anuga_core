@@ -23,9 +23,9 @@ import numpy as num
 
 # Related major packages
 import anuga
-from anuga_parallel import myid, distribute, finalize, barrier
+from anuga import myid, distribute, finalize, barrier
 
-from anuga_parallel.parallel_operator_factory import Inlet_operator
+from anuga import Inlet_operator
 from anuga.utilities import quantity_setting_functions as qs
 from anuga import plot_utils as util
 
@@ -107,6 +107,7 @@ if myid == 0:
     domain = anuga.create_domain_from_file(meshname)
     
     domain.set_flow_algorithm(alg)
+    if verbose: print domain.get_extent(absolute=True)
 
     #------------------------------------------------------------------------------
     # Setup initial conditions
@@ -120,10 +121,10 @@ if myid == 0:
         domain.set_quantity('friction', 0.02)
 
     else:
-        # Set friction to 0.02 on roads, 0.04 elsewhere
+        # Set friction to 0.03 on roads, 0.04 elsewhere
         road_polygon = anuga.read_polygon('Road/RoadPolygon.csv')
         friction_function = qs.composite_quantity_setting_function(
-            [ [road_polygon, 0.02], ['All', 0.04] ], 
+            [ [road_polygon, 0.03], ['All', 0.04] ], 
             domain)
         domain.set_quantity('friction', friction_function)
 
@@ -162,6 +163,7 @@ domain.set_datadir('.') # Store sww output here
 
 
 
+
 #------------------------------------------------------------------------------
 # Setup boundary conditions
 #------------------------------------------------------------------------------
@@ -177,7 +179,8 @@ domain.set_boundary({'interior': Br,
                      'top':      Bt, # outflow
                      'left':     Br})
 
-line0 = [[382300.0,6354280.], [382300.0,6354300.]]
+#line0 = [[382300.0,6354280.], [382300.0,6354300.]]
+line0 = [[382275.0,6354270.], [382255.0,6354290.]]
 import math
 velocity = [3.5/math.sqrt(2.0), 3.5/math.sqrt(2.0)]
 fixed_inflow = Inlet_operator(domain, line0, 19.7, velocity = velocity, verbose = False)
@@ -194,7 +197,7 @@ fixed_inflow = Inlet_operator(domain, line0, 19.7, velocity = velocity, verbose 
 # Evolve system through time
 #------------------------------------------------------------------------------
 
-for t in domain.evolve(yieldstep=10,finaltime=1000):
+for t in domain.evolve(yieldstep=10,finaltime=1000):#1000
     if myid == 0: print domain.timestepping_statistics()
 
 

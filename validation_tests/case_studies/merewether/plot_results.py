@@ -2,10 +2,18 @@ from anuga.utilities import plot_utils as util
 from matplotlib import pyplot as pyplot
 import numpy
 
-p=util.get_output('merewether_1m.sww')
+
+swwfile = 'merewether_1m.sww'
+p=util.get_output(swwfile)
 p2=util.get_centroids(p)
 # Time index at last time
 tindex = len(p2.time)-1
+
+
+xy =    [ 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0, 27.0, 30.0, 33.0]
+vel =   [ 0.0, 0.0, 1.1, 3.2,  3.4, 2.4,  3.2,  3.2,  3.7,  3.1,  0.4,  0.0]
+depth = [ 0.0, 0.0, 0.1, 0.5,  0.45, 0.4, 0.55, 0.1, 0.1,  0.05,  0.04, 0.0]
+
 
 # Get nearest wet points to 'point observations'
 point_observations = numpy.genfromtxt(
@@ -55,12 +63,14 @@ pyplot.ylim( (0.,140.))
 pyplot.title('Transect points in green')
 
 pyplot.subplot(222)
-pyplot.scatter(xx[1],p2.vel[tindex,xx[0]])
+pyplot.scatter(xx[1],p2.vel[tindex,xx[0]],color='green')
+pyplot.scatter(xy,vel,color='blue')
 #pyplot.xlim(0,25)
 pyplot.title('Final flow speed along the transect')
 
 pyplot.subplot(224)
-pyplot.scatter(xx[1],p2.stage[tindex,xx[0]]-p2.elev[xx[0]])
+pyplot.scatter(xx[1],p2.stage[tindex,xx[0]]-p2.elev[xx[0]],color='green')
+pyplot.scatter(xy,depth,color='blue')
 #pyplot.xlim(0,25)
 pyplot.title('Final depth along the transect')
 pyplot.savefig('Transect1.png', bbox_inches='tight')
@@ -111,4 +121,24 @@ import matplotlib.patches as mpatches
 #pyplot.legend(handles=[red_patch, green_patch, blue_patch], labels=['>1', '(0-1]', '0.'], loc='best')
 pyplot.legend(loc='upper left')
 pyplot.savefig('froudeNumber.png',dpi=100,bbox_inches='tight')
+
+
+pyplot.clf()
+pyplot.figure(figsize=(6,8))
+
+cross_section = [[103, 100.], [130.,80.]]
+from anuga import get_flow_through_cross_section
+time, Q = get_flow_through_cross_section(swwfile,
+                                         cross_section,
+                                         verbose=True)
+
+pyplot.plot(time,Q)
+
+pyplot.gca().set_aspect('equal')
+pyplot.title("Flow through transect 1")
+
+pyplot.legend(loc='upper left')
+pyplot.savefig('flowrate.png',dpi=100,bbox_inches='tight')
+
+
 
