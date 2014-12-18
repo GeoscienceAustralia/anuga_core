@@ -121,10 +121,10 @@ if myid == 0:
         domain.set_quantity('friction', 0.02)
 
     else:
-        # Set friction to 0.03 on roads, 0.04 elsewhere
+        # Set friction to 0.02 on roads, 0.04 elsewhere
         road_polygon = anuga.read_polygon('Road/RoadPolygon.csv')
         friction_function = qs.composite_quantity_setting_function(
-            [ [road_polygon, 0.03], ['All', 0.04] ], 
+            [ [road_polygon, 0.02], ['All', 0.04] ], 
             domain)
         domain.set_quantity('friction', friction_function)
 
@@ -182,8 +182,8 @@ domain.set_boundary({'interior': Br,
 #line0 = [[382300.0,6354280.], [382300.0,6354300.]]
 line0 = [[382275.0,6354270.], [382255.0,6354290.]]
 import math
-velocity = [3.5/math.sqrt(2.0), 3.5/math.sqrt(2.0)]
-fixed_inflow = Inlet_operator(domain, line0, 19.7, velocity = velocity, verbose = False)
+#velocity = [3.5/math.sqrt(2.0), 3.5/math.sqrt(2.0)]
+fixed_inflow = Inlet_operator(domain, line0, 19.7, verbose = False)
 
 #fixed_inflow = anuga.Inflow(domain,
 #           center=(382300.0,6354290.0),
