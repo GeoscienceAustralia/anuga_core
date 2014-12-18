@@ -791,19 +791,25 @@ def water_volume(p, p2, per_unit_area=False, subset=None):
     return volume
 
 
-def get_triangle_containing_point(p,point):
+def get_triangle_containing_point(p,point, search_order=None):
 
     V = p.vols
 
     x = p.x
     y = p.y
 
-    l = len(x)
-
     from anuga.geometry.polygon import is_outside_polygon,is_inside_polygon
 
-    # FIXME: Horrible brute force
-    for i in xrange(l):
+    if search_order is None:
+        # Estimate a good search order by finding the distance to the first
+        # vertex of every triangle, and doing the search ordered by that
+        # distance.
+        point_distance2 = (x[V[:,0]] - point[0])**2 + (y[V[:,0]]-point[1])**2
+        point_distance_order = point_distance2.argsort().tolist()
+    else:
+        point_distance_order = search_order
+
+    for i in point_distance_order:
         i0 = V[i,0]
         i1 = V[i,1]
         i2 = V[i,2]
