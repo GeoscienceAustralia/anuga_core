@@ -36,8 +36,10 @@ checkpoint_dir = 'CHECKPOINTS'
 finaltime = 1000.0
 useCheckpointing = True
 
-
-mesh_filename = "merimbula_17156.tsh"   ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 50
+mesh_filename = "merimbula_10785.tsh"
+x0 = 756000.0
+x1 = 756500.0
+yieldstep = 50
 
 
 
