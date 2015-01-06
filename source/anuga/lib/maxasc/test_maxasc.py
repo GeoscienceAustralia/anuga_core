@@ -120,29 +120,6 @@ class Test_MaxAsc(unittest.TestCase):
         MaxAsc('test1.out.asc', [in_file])
         self.failUnless(FilesEqual('test1.out.asc', in_file))
 
-    def test_same_input_equals_bigA(self):
-        test_path = aust.get_pathname_from_package('anuga.lib.maxasc')
-        in_file = os.path.join(test_path, 'perthAll_stage_250m.asc')
-        MaxAsc('perth.out.asc', [in_file])
-        self.failUnless(FilesEqual('perth.out.asc', in_file))
-
-    def test_same_input_equals_bigB(self):
-        test_path = aust.get_pathname_from_package('anuga.lib.maxasc')
-        in_file = os.path.join(test_path, 'perthAll_stage_250m_all.asc')
-        MaxAsc('perth.out.asc', [in_file])
-        self.failUnless(FilesEqual('perth.out.asc', in_file))
-
-    def test_same_input_equals_bigC(self):
-        test_path = aust.get_pathname_from_package('anuga.lib.maxasc')
-        in_file = os.path.join(test_path, 'perthAll_stage_original.asc')
-        MaxAsc('perth.out.asc', [in_file])
-        self.failUnless(FilesEqual('perth.out.asc', in_file))
-
-    def test_same_input_equals_big3(self):
-        test_path = aust.get_pathname_from_package('anuga.lib.maxasc')
-        in_file = os.path.join(test_path, 'perthAll_stage_250m.asc')
-        MaxAsc('perth.out.asc', [in_file, in_file, in_file])
-        self.failUnless(FilesEqual('perth.out.asc', in_file))
 
     def test_same_input_equals_outputN(self):
         test_path = aust.get_pathname_from_package('anuga.lib.maxasc')
