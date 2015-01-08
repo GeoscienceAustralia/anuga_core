@@ -240,8 +240,11 @@ class Region(object):
 
         
         if not self.domain.parallel:
-            msg = 'No centroids found for polygon %s '% str(self.polygon)
-            if len(indices) is 0: raise Exception(msg)
+            # only warn if not parallel as we should get lots of subdomains without indices
+            if len(indices) is 0:
+                msg = 'No centroids found for polygon %s '% str(self.polygon)
+                import warnings
+                warnings.warn(msg)
 
             
             

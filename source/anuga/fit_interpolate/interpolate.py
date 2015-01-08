@@ -913,7 +913,8 @@ class Interpolation_function:
 
             for i, t in enumerate(self.time):
                 # Interpolate quantities at this timestep
-                if verbose and i%((p+10)/10) == 0:
+                #if verbose and i%((p+10)/10) == 0:
+                if verbose:
                     log.critical('  time step %d of %d' % (i, p))
 
                 for name in quantity_names:
@@ -922,7 +923,8 @@ class Interpolation_function:
                     else:
                         Q = quantities[name][:]   # No time dependency
 
-                    if verbose and i%((p+10)/10) == 0:
+                    #if verbose and i%((p+10)/10) == 0:
+                    if verbose:
                         log.critical('    quantity %s, size=%d' % (name, len(Q)))
 
                     # Interpolate

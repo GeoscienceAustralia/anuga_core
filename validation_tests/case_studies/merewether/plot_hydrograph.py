@@ -99,17 +99,6 @@ def get_flow_through_cross_section(filename, polyline, verbose=False):
     return time, Q
 
 
-def get_interpolated_quantities_at_polyline_midpoints(filename,
-                                                      quantity_names=None,
-                                                      polyline=None,
-                                                      verbose=False):
-
-
-
-
-    return segments, I
-
-
 #===================================================================================
 
 swwfile = 'merewether_1m.sww'
