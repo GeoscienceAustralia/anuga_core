@@ -41,6 +41,7 @@ use_cache = project.use_cache
 #------------------------------------------------------------------------------
 
 # Filenames
+zip_name = 'topography1.zip' 
 asc_name = 'topography1.asc' 
 meshname = 'merewether.msh'
 dem_name = 'topography1.dem'
@@ -50,6 +51,11 @@ alg = args.alg
 verbose = args.verbose
 
 if myid == 0:
+    # Unzip asc from zip file
+    import zipfile as zf
+    if verbose: print 'Reading ASC from ' + zip_name
+    zf.ZipFile(zip_name).extract(asc_name)
+    
     # Create DEM from asc data
     anuga.asc2dem(asc_name, verbose=verbose, use_cache=use_cache)
 
