@@ -8,7 +8,7 @@ import anuga.utilities
 from os.path import join
 
 verbose = True
-use_cache = True
+use_cache = False
 
 
 ###############################
