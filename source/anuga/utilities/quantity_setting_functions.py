@@ -374,11 +374,11 @@ def composite_quantity_setting_function(poly_fun_pairs,
             print 'Some points were not inside any polygon, ',\
                   'or evalute to nan over all datasets'
             unset_inds = (isSet!=1).nonzero()[0]
-            lui = min(5, length(unset_inds)) 
-            print 'There are ', length(unset_inds), ' such points'
+            lui = min(5, len(unset_inds)) 
+            print 'There are ', len(unset_inds), ' such points'
             print 'Here are a few:'
             for i in range(lui):
-                print x[i]+xll, y[i]+yll
+                print x[unset_inds[i]]+xll, y[unset_inds[i]]+yll
             raise Exception('It seems the input data needs to be fixed')
 
         return quantityVal
