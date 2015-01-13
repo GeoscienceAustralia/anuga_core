@@ -158,7 +158,9 @@ def create_mesh(elevation_in_mesh=False, verbose=False):
     # Prepare time boundary
     prepare_timeboundary(project.boundary_filename, verbose)
 
+    
 
+    
 
     meshname = project.mesh_filename + '.msh'
     m = create_mesh_from_regions(bounding_polygon,
@@ -174,6 +176,16 @@ def create_mesh(elevation_in_mesh=False, verbose=False):
     
     if elevation_in_mesh is True:
         from anuga.fit_interpolate.fit import fit_to_mesh_file
+
+
+        if verbose: print 'Reading xya from zip'
+        import zipfile as zf
+        zf.ZipFile(project.bathymetry_filename_stem+'.zip').\
+          extract(project.bathymetry_filename_stem+'.xya')
+
+        if verbose: print 'Reading pts from xya'
+        anuga.xya2pts(project.bathymetry_filename_stem+'.pts', verbose = verbose)
+        
         fit_to_mesh_file(project.mesh_filename, project.bathymetry_filename,
                          project.mesh_filename, verbose = verbose)
 

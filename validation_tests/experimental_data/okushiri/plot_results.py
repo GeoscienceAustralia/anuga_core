@@ -36,9 +36,9 @@ args = anuga.get_args()
 verbose = args.verbose
 
 try:
-    from matplotlib import pyplot
-    from pyplot import ion, hold, plot, title, legend
-    from pyplot import xlabel, ylabel, savefig
+    import matplotlib
+    from matplotlib.pyplot import ion, hold, plot, title, legend
+    from matplotlib.pyplot import xlabel, ylabel, savefig
     hold(False)  # Check if this command can be issued
 except:
     print 'Could not import pylab'
