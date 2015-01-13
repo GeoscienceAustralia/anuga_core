@@ -36,7 +36,7 @@ checkpoint_dir = 'CHECKPOINTS'
 finaltime = 1000.0
 useCheckpointing = True
 
-mesh_filename = "merimbula_10785.tsh"
+mesh_filename = "merimbula_10785_1.tsh"
 x0 = 756000.0
 x1 = 756500.0
 yieldstep = 50
@@ -73,7 +73,7 @@ class Set_Elevation:
     
 def wave(t):
     from math import sin
-    return 10*sin(t/60) 
+    return sin(t/200) 
 
 #------------------------------------------------------------------------------ 
 # Use a try statement to read in previous checkpoint file and if not possible 
