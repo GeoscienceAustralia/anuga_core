@@ -70,10 +70,10 @@ class Simulation(object):
         if myid == 0 and self.verbose:
             print 'INITIALIZE SIMULATION'
                         
-        self.setup_original_domain()
-        self.setup_structures()
-        self.setup_rainfall()
-        self.setup_boundaries()
+        self._setup_original_domain()
+        self._setup_structures()
+        self._setup_rainfall()
+        self._setup_boundaries()
         
         
     def run(self, yieldstep = None, finaltime =None):
@@ -120,7 +120,7 @@ class Simulation(object):
     
         finalize()
         
-    def setup_original_domain(self, np=None):
+    def _setup_original_domain(self, np=None):
         """
         Create sequential domain and partition
         
@@ -175,7 +175,7 @@ class Simulation(object):
         #print self.domain.get_name()
         
         
-    def setup_rainfall(self):
+    def _setup_rainfall(self):
         """
         Create rainfall functions associated with polygons
         """
@@ -187,7 +187,7 @@ class Simulation(object):
         else:
             self.setup_rainfall(self) 
 
-    def setup_structures(self):
+    def _setup_structures(self):
         """
         Create structures such as culverts and bridges
         """
@@ -199,7 +199,7 @@ class Simulation(object):
         else:
             self.setup_structures(self)
    
-    def setup_boundaries(self):
+    def _setup_boundaries(self):
         """
         Setup Boundary Conditions
         """
