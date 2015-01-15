@@ -161,7 +161,8 @@ from anuga.file_conversion.urs2sts import urs2sts
 from anuga.file_conversion.dem2pts import dem2pts                    
 from anuga.file_conversion.esri2sww import esri2sww   
 from anuga.file_conversion.sww2dem import sww2dem, sww2dem_batch 
-from anuga.file_conversion.asc2dem import asc2dem     
+from anuga.file_conversion.asc2dem import asc2dem
+from anuga.file_conversion.xya2pts import xya2pts     
 from anuga.file_conversion.ferret2sww import ferret2sww     
 from anuga.file_conversion.dem2dem import dem2dem
 from anuga.file_conversion.sww2array import sww2array

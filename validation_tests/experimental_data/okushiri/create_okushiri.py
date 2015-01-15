@@ -184,7 +184,8 @@ def create_mesh(elevation_in_mesh=False, verbose=False):
           extract(project.bathymetry_filename_stem+'.xya')
 
         if verbose: print 'Reading pts from xya'
-        anuga.xya2pts(project.bathymetry_filename_stem+'.pts', verbose = verbose)
+        anuga.xya2pts(project.bathymetry_filename_stem+'.xya',\
+                      verbose = verbose)
         
         fit_to_mesh_file(project.mesh_filename, project.bathymetry_filename,
                          project.mesh_filename, verbose = verbose)

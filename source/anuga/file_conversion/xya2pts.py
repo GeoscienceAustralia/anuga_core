@@ -1,21 +1,25 @@
 
 
-def xya2pts(filename, verbose=False):
+def xya2pts(name_in, name_out=None, verbose=False):
     """Convert a file with xy and elevation data to NetCDF pts file.
     """
     
     from anuga.geospatial_data import Geospatial_data
+
+    root = name_in[:-4]
+
+    if name_out is None: name_out = root + '.pts'
     
-    if verbose: print 'Creating', filename
+    if verbose: print 'Creating', name_out
     
     # Read the ascii (.xya) version of this file,
     # make it comma separated and invert the bathymetry
     # (Below mean sea level should be negative)
-    infile = open(filename[:-4] + '.xya')
-    out_filename = filename[:-4] + '.pts'
+    infile = open(name_in)
 
     points = []
     attribute = []
+
     for line in infile.readlines()[1:]: #Skip first line (the header)
         fields = line.strip().split(',')
 
@@ -30,6 +34,6 @@ def xya2pts(filename, verbose=False):
     # Convert to geospatial data and store as NetCDF
     G = Geospatial_data(data_points=points,
                         attributes=attribute)
-    G.export_points_file(out_filename)
+    G.export_points_file(name_out)
     
     
