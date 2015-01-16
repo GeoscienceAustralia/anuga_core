@@ -218,6 +218,18 @@ def sequential_distribute_dump(domain, numprocs=1, verbose=False, partition_dir=
 
     partition.distribute(numprocs)
 
+    # Make sure the partition_dir exists
+    if partition_dir == '.' :
+        pass
+    else:
+        import os
+        import errno
+        try:
+            os.makedirs(partition_dir)
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise
+
     
     for p in range(0, numprocs):
 

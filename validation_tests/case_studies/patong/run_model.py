@@ -174,6 +174,15 @@ if(myid==0):
 
 
     domain.set_quantity('friction', project.friction) 
+    
+    import zipfile
+    import os
+    zipfile.ZipFile(project.combined_elevation+'.zip'). \
+        extract(os.path.basename(project.combined_elevation+'.txt'))
+
+    if verbose: print 'Reading pts from txt'
+    anuga.xya2pts(project.combined_elevation+'.txt', verbose = verbose)
+
     domain.set_quantity('elevation', 
                         filename=project.combined_elevation+'.pts',
                         use_cache=True,
