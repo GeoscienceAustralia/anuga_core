@@ -30,7 +30,7 @@ from anuga import Domain
 #from anuga import Rainfall, Inflow
 from anuga import Inlet_operator
 #from anuga.utilities import sww_merge
-from project import *
+
 
 #------------------------------------------------------------------------------
 # PARALLEL INTERFACE
@@ -40,6 +40,21 @@ from anuga import distribute, myid, numprocs, finalize,barrier
 from anuga_parallel.parallel_operator_factory import Inlet_operator, Boyd_box_operator
 from anuga import Rate_operator
 
+
+if myid == 0 and not os.path.isdir('DEM'):
+    msg = """
+################################################################################
+#
+# Could not the find data directories
+#
+# You can download these directories using the data_download.py script.
+# This will download over 120 MB of data!
+#
+################################################################################
+"""
+    raise Exception(msg) 
+
+from project import *
 
 
 args = anuga.get_args()
