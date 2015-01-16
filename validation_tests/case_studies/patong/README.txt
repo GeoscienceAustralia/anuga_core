@@ -1,7 +1,5 @@
-# TO RUN THIS CASE STUDY (7/6/2013):
-> python download_data_for_patong_scenario.py
-> python build_elevation.py
-> python build_urs_boundary.py
+# TO RUN THIS CASE STUDY (16/01/2015):
+> python data_download.py
 > mpirun -np XX python run_model.py > outfile.log & ## Here XX = number of processors
 
 This runs a Patong simulation to produce an SWW file. It is based on code from 'automated validation tests'
@@ -28,3 +26,7 @@ This runs a Patong simulation to produce an SWW file. It is based on code from '
 -- Debugged it, and got rid of 'setup_model.py' to simplify the code
 
 -- Got it running in parallel
+
+## 16/01/2015 SR modifications
+
+-- Now the data lives in an svn repository which you download via the script data_download.py

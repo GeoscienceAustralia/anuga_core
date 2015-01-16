@@ -25,11 +25,29 @@ from anuga.file.netcdf import NetCDFFile
 
 import anuga
 
-import project
+
+
+
 import anuga.utilities.log as log
 
 # Parallel routines
 from anuga import distribute, myid, numprocs, finalize, barrier
+
+if myid == 0 and not os.path.isdir('topographies'):
+    msg = """
+################################################################################
+#
+# Could not the find data directories
+#
+# You can download these directories using the data_download.py script.
+# This will download over 300 MB of data!
+#
+################################################################################
+"""
+    raise Exception(msg)    
+    
+    
+import project  
 
 # Application specific imports
 import build_urs_boundary as bub
@@ -56,6 +74,7 @@ if myid == 0 and verbose and numprocs == 1:
     print '# Consider running in parallel'
     print '#'
     print 80*'#'
+
 
 #-------------------------------------------------------------------------------
 # Copy scripts to time stamped output directory and capture screen
@@ -177,8 +196,8 @@ if(myid==0):
     
     import zipfile
     import os
-    zipfile.ZipFile(project.combined_elevation+'.zip'). \
-        extract(os.path.basename(project.combined_elevation+'.txt'))
+    txt_filename =  os.path.basename(project.combined_elevation+'.txt')
+    zipfile.ZipFile(project.combined_elevation+'.zip').extract(txt_filename,'topographies')
 
     if verbose: print 'Reading pts from txt'
     anuga.xya2pts(project.combined_elevation+'.txt', verbose = verbose)
