@@ -79,7 +79,7 @@ filename=os.path.join(path, 'example_rating_curve.csv')
 line0 = [[10.0, 10.0], [30.0, 10.0]]
 #line0 = [[29.0, 10.0], [30.0, 10.0]]
 line1 = [[0.0, 10.0], [0.0, 15.0]]
-Q0 = file_function('test_hydrograph.tms', quantities=['hydrograph'])
+Q0 = file_function('../examples/data/test_hydrograph.tms', quantities=['hydrograph'])
 Q1 = 5.0
 
 samples = 50

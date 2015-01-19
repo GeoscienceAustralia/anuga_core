@@ -105,7 +105,7 @@ def evolution_test(parallel=False, verbose=False):
         setup_and_evolve(domain, verbose=verbose)
     
 
-    if myid == 0:
+    if myid == 0 and verbose:
         parameter_file=open('odomain.txt', 'w')
         from pprint import pprint
         pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
@@ -271,7 +271,7 @@ def setup_and_evolve(domain, verbose=False):
         #if myid == 0 and verbose : print domain.quantities['stage'].get_maximum_value()
 
 
-    domain.sww_merge()
+    domain.sww_merge(delete_old=True)
     
 
 # Test an nprocs-way run of the shallow water equations
@@ -300,7 +300,7 @@ if __name__=="__main__":
 
         
         #------------------------------------------
-        # Run the code code and compare sequential
+        # Run the codel and compare sequential
         # results at 4 gauge stations
         #------------------------------------------
         if myid ==0 and verbose: print 'PARALLEL START'

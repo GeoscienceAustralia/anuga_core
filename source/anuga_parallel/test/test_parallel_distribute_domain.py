@@ -54,7 +54,7 @@ from anuga_parallel import distribute, myid, numprocs, finalize
 # Setup parameters
 #--------------------------------------------------------------------------
 
-mesh_filename = "merimbula_10785_1.tsh"
+mesh_filename = "../examples/data/merimbula_10785_1.tsh"
 #mesh_filename = "test-100.tsh"
 yieldstep = 1
 finaltime = 20

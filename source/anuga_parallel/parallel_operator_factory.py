@@ -683,6 +683,7 @@ def allocate_inlet_procs(domain, poly, enquiry_point = None, master_proc = 0, pr
         
     myid = pypar.rank()
     vertex_coordinates = domain.get_full_vertex_coordinates(absolute=True)
+    domain_centroids = domain.centroid_coordinates
     size = 0
     has_enq_point = False
     numprocs = pypar.size()
