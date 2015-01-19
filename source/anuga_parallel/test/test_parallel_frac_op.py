@@ -90,7 +90,7 @@ def topography(x, y):
 line0 = [[10.0, 10.0], [30.0, 10.0]]
 #line0 = [[29.0, 10.0], [30.0, 10.0]]
 line1 = [[0.0, 10.0], [0.0, 15.0]]
-Q0 = file_function('../examples/data/test_hydrograph.tms', quantities=['hydrograph'])
+Q0 = file_function(os.path.join('..','data','test_hydrograph.tms'), quantities=['hydrograph'])
 Q1 = 5.0
 
 samples = 50
@@ -108,7 +108,8 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
                                                    len2=width)
 
     domain = anuga.Domain(points, vertices, boundary)   
-    domain.set_name('output_parallel_frac_op')                 # Output name
+    #domain.set_name('output_parallel_frac_op')                 # Output name
+    domain.set_store(False)
     domain.set_default_order(2)
 
 ##-----------------------------------------------------------------------
@@ -164,8 +165,8 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     inlet1 = None
     boyd_box0 = None
     
-    inlet0 = Inlet_operator(domain, line0, Q0, logging=True, description='inlet0', verbose = False)
-    inlet1 = Inlet_operator(domain, line1, Q1, logging=True, description='inlet1', verbose = False)
+    inlet0 = Inlet_operator(domain, line0, Q0, logging=False, description='inlet0', verbose = False)
+    inlet1 = Inlet_operator(domain, line1, Q1, logging=False, description='inlet1', verbose = False)
     
     # Enquiry point [ 19.    2.5] is contained in two domains in 4 proc case
     
@@ -177,7 +178,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
                                   use_momentum_jet=True,
                                   use_velocity_head=False,
                                   manning=0.013,
-                                  logging=True,
+                                  logging=False,
                                   description='boyd_box_0',
                                   verbose=False)
         

@@ -32,6 +32,7 @@ if pypar_available:
     os.chdir(buildroot)
     os.chdir('source')
     os.chdir('anuga_parallel')
+    os.chdir('test')
     print
     print '===================== anuga_parallel tests =========================='
     print 'Changing to', os.getcwd()

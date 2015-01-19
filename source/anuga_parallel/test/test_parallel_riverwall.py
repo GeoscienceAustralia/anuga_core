@@ -173,8 +173,13 @@ def evolution_test(parallel=False, verbose=False):
         
         assert num.allclose(sdomain_v.x,pdomain_v.x)
         assert num.allclose(sdomain_v.y,pdomain_v.y)
-                  
- 
+        
+        
+        import os
+        os.remove('s_riverwall.sww')
+        os.remove('p_riverwall.sww')
+        os.remove('runup.msh')
+        
         
         
 def setup_and_evolve(domain, verbose=False):

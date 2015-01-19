@@ -240,6 +240,16 @@ def evolution_test(parallel=False, verbose=False):
         assert num.allclose(pdomain_v.ymom[-1],sdomain_v.ymom[-1])
         assert num.allclose(pdomain_v.xvel[-1],sdomain_v.xvel[-1])
         assert num.allclose(pdomain_v.yvel[-1],sdomain_v.yvel[-1])   
+        
+        
+        import os
+        os.remove('odomain.sww')
+        os.remove('pdomain.sww')
+        os.remove('sdomain.sww')
+        os.remove('odomain_P4_0.pickle')
+        os.remove('odomain_P4_1.pickle')
+        os.remove('odomain_P4_2.pickle')
+        os.remove('odomain_P4_3.pickle')
             
 
         

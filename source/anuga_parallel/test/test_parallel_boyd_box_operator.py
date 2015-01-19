@@ -95,7 +95,7 @@ def topography(x, y):
 line0 = [[10.0, 10.0], [30.0, 10.0]]
 #line0 = [[29.0, 10.0], [30.0, 10.0]]
 line1 = [[0.0, 10.0], [0.0, 15.0]]
-Q0 = file_function('../examples/data/test_hydrograph.tms', quantities=['hydrograph'])
+Q0 = file_function(os.path.join('..','data','test_hydrograph.tms'), quantities=['hydrograph'])
 Q1 = 5.0
 
 samples = 50
@@ -113,7 +113,8 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
                                                    len2=width)
 
     domain = anuga.Domain(points, vertices, boundary)   
-    domain.set_name('output_parallel_frac_op')                 # Output name
+    domain.set_store(False)
+    #domain.set_name('output_parallel_frac_op')                 # Output name
     domain.set_default_order(2)
 
 ##-----------------------------------------------------------------------
@@ -249,6 +250,8 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
         sys.stdout.flush()
  
         pass
+    
+    domain.sww_merge(delete_old=True)
 
     success = True
 

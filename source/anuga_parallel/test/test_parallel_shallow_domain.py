@@ -56,8 +56,8 @@ from anuga_parallel import distribute, myid, numprocs, finalize
 # Setup parameters
 #--------------------------------------------------------------------------
 
-mesh_filename = "../examples/data/merimbula_10785_1.tsh"
-#mesh_filename = "test-100.tsh"
+mesh_filename = os.path.join('..','data','merimbula_10785_1.tsh')
+#mesh_filename = os.path.join('..','data','test-100.tsh')
 yieldstep = 1
 finaltime = 1
 quantity = 'stage'
@@ -116,7 +116,7 @@ def evolution_test(parallel=False):
     for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
         pass
 
-    domain.dump_triangulation()
+    #domain.dump_triangulation()
 
 # Test an nprocs-way run of the shallow water equations
 # against the sequential code.

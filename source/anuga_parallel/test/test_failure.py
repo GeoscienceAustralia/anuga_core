@@ -32,7 +32,7 @@ import random
 This test exercises the culvert and checks values outside rating curve
 are dealt with       
 """
-verbose = True
+verbose = False
 path = get_pathname_from_package('anuga.culvert_flows')    
 
 length = 40.
@@ -79,7 +79,7 @@ filename=os.path.join(path, 'example_rating_curve.csv')
 line0 = [[10.0, 10.0], [30.0, 10.0]]
 #line0 = [[29.0, 10.0], [30.0, 10.0]]
 line1 = [[0.0, 10.0], [0.0, 15.0]]
-Q0 = file_function('../examples/data/test_hydrograph.tms', quantities=['hydrograph'])
+Q0 = file_function(os.path.join('..','data','test_hydrograph.tms'), quantities=['hydrograph'])
 Q1 = 5.0
 
 samples = 50
@@ -97,7 +97,8 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
                                                    len2=width)
 
     domain = anuga.Domain(points, vertices, boundary)   
-    domain.set_name('Test_Parallel_Frac_Op')                 # Output name
+    domain.set_store(False)
+    #domain.set_name('output_parallel_failure')                 # Output name
     domain.set_default_order(2)
 
 ##-----------------------------------------------------------------------
@@ -213,7 +214,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     ##-----------------------------------------------------------------------
 
     for t in domain.evolve(yieldstep = 1.0, finaltime = 4):
-        domain.write_time()
+        if verbose: domain.write_time()
 
         #print domain.volumetric_balance_statistics()
     
@@ -228,7 +229,8 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
         pass
 
  
-
+    domain.sww_merge(delete_old=True)
+    
     success = True
 
 ##-----------------------------------------------------------------------
