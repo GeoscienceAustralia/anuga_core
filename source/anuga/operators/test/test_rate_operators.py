@@ -22,6 +22,7 @@ from rate_operators import *
 import numpy as num
 import warnings
 import time
+import os
 
 
 warnings.simplefilter("ignore")
@@ -32,7 +33,15 @@ class Test_rate_operators(unittest.TestCase):
         pass
 
     def tearDown(self):
-        pass
+        try:
+            os.remove('test_file_function.txt')
+        except:
+            pass
+
+        try:
+            os.remove('test_file_function.tms')
+        except:
+            pass
 
 
     def test_rate_operator_simple(self):

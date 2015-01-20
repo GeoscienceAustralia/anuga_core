@@ -7,6 +7,7 @@ from kinematic_viscosity_operator import Kinematic_viscosity_operator
 import numpy as num
 from math import sqrt
 import unittest
+import os
 
 class Test_kinematic_viscosity(unittest.TestCase):
     
@@ -14,8 +15,16 @@ class Test_kinematic_viscosity(unittest.TestCase):
         pass
 
     def tearDown(self):
-        pass
-    
+        try:
+            os.remove('domain.sww')
+        except:
+            pass
+
+        try:
+            os.remove('anuga.log')
+        except:
+            pass
+        
     #First test operator class (1 triangle)
     def operator1(self):
         points = num.array([[0.0,0.0],[1.0,0.0],[0.0,1.0]])

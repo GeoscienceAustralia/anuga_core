@@ -1,6 +1,7 @@
 import unittest
 import anuga
 import numpy
+import os
 
 boundaryPolygon=[ [0., 0.], [0., 100.], [100.0, 100.0], [100.0, 0.0]]
 
@@ -11,7 +12,16 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
         pass
 
     def tearDown(self):
-        pass
+        try:
+            os.remove('test_boundaryfluxintegral.msh')
+        except:
+            pass
+
+
+        try:
+            os.remove('test_boundaryfluxintegral.sww')
+        except:
+            pass
 
     def create_domain(self, flowalg):
         # Riverwall = list of lists, each with a set of x,y,z (and optional QFactor) values
