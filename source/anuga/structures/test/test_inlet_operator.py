@@ -11,6 +11,7 @@ import anuga
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.abstract_2d_finite_volumes.util import file_function
+from anuga.utilities.system_tools import get_pathname_from_package
 
 from anuga.structures.inlet_operator import Inlet_operator
 
@@ -23,7 +24,11 @@ class Test_inlet_operator(unittest.TestCase):
         pass
 
     def tearDown(self):
-        pass
+        try:
+            os.remove('Test_Outlet_Inlet.sww')
+        except:
+            pass
+        
     
     
     def _create_domain(self,d_length,
@@ -209,16 +214,20 @@ class Test_inlet_operator(unittest.TestCase):
         import os
         baseDir = os.getcwd()
 
-        try:
-            os.chdir('structures')
-        except:
-            pass
+#         try:
+#             os.chdir('structures')
+#         except:
+#             pass
+        
+        path = get_pathname_from_package('anuga.structures')
+        filename1 = os.path.join(path, 'data', 'inlet_operator_test1.tms')
+        filename2 = os.path.join(path, 'data', 'inlet_operator_test2.tms')
 
         line1 = [[95.0, 10.0], [105.0, 10.0]]
-        Q1 = file_function(filename='inlet_operator_test1.tms', quantities=['hydrograph'])
+        Q1 = file_function(filename=filename1, quantities=['hydrograph'])
         
         line2 = [[10.0, 90.0], [20.0, 90.0]]
-        Q2 = file_function(filename='inlet_operator_test2.tms', quantities=['hydrograph'])
+        Q2 = file_function(filename=filename2, quantities=['hydrograph'])
 
         os.chdir(baseDir)
         
@@ -271,16 +280,15 @@ class Test_inlet_operator(unittest.TestCase):
         import os
         baseDir = os.getcwd()
 
-        try:
-            os.chdir('structures')
-        except:
-            pass
+        path = get_pathname_from_package('anuga.structures')
+        filename1 = os.path.join(path, 'data', 'inlet_operator_test1.tms')
+        filename2 = os.path.join(path, 'data', 'inlet_operator_test2.tms')
 
         line1 = [[95.0, 10.0], [105.0, 10.0]]
-        Q1 = file_function(filename='inlet_operator_test1.tms', quantities=['hydrograph'])
+        Q1 = file_function(filename=filename1, quantities=['hydrograph'])
 
         line2 = [[10.0, 90.0], [20.0, 90.0]]
-        Q2 = file_function(filename='inlet_operator_test2.tms', quantities=['hydrograph'])
+        Q2 = file_function(filename=filename2, quantities=['hydrograph'])
 
         os.chdir(baseDir)
 
