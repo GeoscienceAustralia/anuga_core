@@ -2,7 +2,7 @@
 
 
 import unittest
-
+import os
 
 #from anuga.structures.riverwall import Boyd_box_operator
 #from anuga.structures.riverwall import boyd_box_function
@@ -34,7 +34,15 @@ class Test_riverwall_structure(unittest.TestCase):
         pass
 
     def tearDown(self):
-        pass
+        try:
+            os.remove('test_riverwall.sww')
+        except:
+            pass
+
+        try:
+            os.remove('testRiverwall.msh')
+        except:
+            pass
     
     def create_domain_DE0(self, wallHeight, InitialOceanStage, InitialLandStage, riverWall=None, riverWall_Par=None):
         # Riverwall = list of lists, each with a set of x,y,z (and optional QFactor) values

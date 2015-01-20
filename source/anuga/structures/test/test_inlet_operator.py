@@ -118,7 +118,7 @@ class Test_inlet_operator(unittest.TestCase):
         line2 = [[10.0, 90.0], [20.0, 90.0]]
         Q2 = 10.0
         
-        Inlet_operator(domain, line1, Q1, logging=True)
+        Inlet_operator(domain, line1, Q1, logging=False)
         Inlet_operator(domain, line2, Q2)
 
         for t in domain.evolve(yieldstep = 1.0, finaltime = finaltime):
@@ -165,7 +165,7 @@ class Test_inlet_operator(unittest.TestCase):
         Q1 = 5.00
 
 
-        Inlet_operator(domain, poly1, Q1, logging=True)
+        Inlet_operator(domain, poly1, Q1, logging=False)
 
 
         for t in domain.evolve(yieldstep = 1.0, finaltime = finaltime):
@@ -212,12 +212,6 @@ class Test_inlet_operator(unittest.TestCase):
         #Make sure we are inthe right directory to find the
         #time series data for the inlets
         import os
-        baseDir = os.getcwd()
-
-#         try:
-#             os.chdir('structures')
-#         except:
-#             pass
         
         path = get_pathname_from_package('anuga.structures')
         filename1 = os.path.join(path, 'data', 'inlet_operator_test1.tms')
@@ -229,7 +223,6 @@ class Test_inlet_operator(unittest.TestCase):
         line2 = [[10.0, 90.0], [20.0, 90.0]]
         Q2 = file_function(filename=filename2, quantities=['hydrograph'])
 
-        os.chdir(baseDir)
         
         Inlet_operator(domain, line1, Q1)
         Inlet_operator(domain, line2, Q2)
