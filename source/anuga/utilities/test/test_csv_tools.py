@@ -5,7 +5,7 @@ import unittest
 import tempfile
 import csv
 
-import csv_tools
+import anuga.utilities.csv_tools as csv_tools
 
 
 # this dictionary sets the column header string for

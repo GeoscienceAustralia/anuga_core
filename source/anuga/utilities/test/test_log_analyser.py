@@ -74,6 +74,8 @@ class logTestCase(unittest.TestCase):
         os.rmdir(dir1)
         os.rmdir(dir2)
         os.rmdir(root_dir)
+        os.remove(output_file)
+        #os.remove(log_file_name)
 
 
 

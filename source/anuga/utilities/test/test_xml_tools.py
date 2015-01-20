@@ -6,7 +6,7 @@ from tempfile import mkstemp, mktemp
 
 import os
 
-from xml_tools import *
+from anuga.utilities.xml_tools import *
 
 class Test_xml_tools(unittest.TestCase):
 

@@ -3,7 +3,7 @@
 import unittest
 from math import sqrt
 
-from sparse import *
+from anuga.utilities.sparse import *
 import numpy as num
 
 

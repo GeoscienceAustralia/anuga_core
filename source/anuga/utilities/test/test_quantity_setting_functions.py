@@ -55,6 +55,8 @@ class Test_quantity_setting_functions(unittest.TestCase):
                                    verbose=False)
 
         domain=anuga.create_domain_from_file('test_quantity_setting_functions.msh')
+        
+        os.remove('test_quantity_setting_functions.msh')
 
         domain.set_flow_algorithm(flowAlg)
         domain.set_name('test_quantity_setting_functions')
@@ -235,12 +237,12 @@ class Test_quantity_setting_functions(unittest.TestCase):
 
         ###########################################################################
         # This example should fail (since the clip_range minimum >= maximum)
-        def should_fail():
+        def should_fail_1():
             F=qs.composite_quantity_setting_function([[trenchPoly, f0], ['All', 'PointData_ElevTest.tif']],\
                                                     domain,
                                                     clip_range = [[ -500., -1000.], [-1.0e+100, 1.0e+100]]) 
             return
-        self.assertRaises(Exception, lambda: should_fail())
+        self.assertRaises(Exception, lambda: should_fail_1())
 
         return
 

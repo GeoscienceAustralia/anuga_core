@@ -4,7 +4,7 @@ import unittest
 from tempfile import mkstemp
 import os
 
-from data_audit import *
+from anuga.utilities.data_audit import *
 
 
 class Test_data_audit(unittest.TestCase):

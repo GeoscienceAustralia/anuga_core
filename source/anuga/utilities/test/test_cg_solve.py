@@ -4,6 +4,8 @@ import exceptions
 class TestError(exceptions.Exception): pass
 import unittest
 
+import os
+
 import numpy as num
 from anuga.utilities.cg_solve import *
 from anuga.utilities.cg_solve import _conjugate_gradient
@@ -11,6 +13,12 @@ from anuga.utilities.sparse import Sparse, Sparse_CSR
 
 
 class Test_CG_Solve(unittest.TestCase):
+    
+    def tearDown(self):
+        try:
+            os.remove('anuga.log')
+        except:
+            pass
 
     def test_sparse_solve(self):
         """Solve Small Sparse Matrix"""

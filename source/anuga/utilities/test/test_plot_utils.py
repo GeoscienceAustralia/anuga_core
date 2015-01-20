@@ -35,6 +35,8 @@ class Test_plot_utils(unittest.TestCase):
                                    verbose=False)
 
         domain=anuga.create_domain_from_file('test_plot_utils.msh')
+        
+        os.remove('test_plot_utils.msh')
 
         # 05/05/2014 -- riverwalls only work with DE0 and DE1
         domain.set_flow_algorithm(flowAlg)
@@ -250,6 +252,9 @@ class Test_plot_utils(unittest.TestCase):
             self.create_domain(InitialOceanStage=1., InitialLandStage=0., flowAlg=flowAlg, verbose=verbose)
             self.basic_tests()
 
+        os.remove('test_plot_utils.sww')
+        
+
     def test_timeslices(self):
         """
             Check that outputs from timeslice-subsets agree with bulk outputs
@@ -261,6 +266,8 @@ class Test_plot_utils(unittest.TestCase):
             # Test time-slices with velocity_extrapolation=True
             self.velExtrap_timeSlices_test(ve=True)
             self.velExtrap_timeSlices_test(ve=False)
+            
+        os.remove('test_plot_utils.sww')
 
     def test_quantity_consistency(self):
         """
@@ -274,6 +281,8 @@ class Test_plot_utils(unittest.TestCase):
             pc=util.get_centroids('test_plot_utils.sww')
             l=len(pc.time)-1
             self.quantity_consistency_check(pc,l)
+            
+        os.remove('test_plot_utils.sww')
       
 
     def test_near_points(self):
@@ -318,6 +327,8 @@ class Test_plot_utils(unittest.TestCase):
         ll=(1.**2+0.5**2)**0.5
         dt_Prd=( (pc.x[nt[0]]-25.)/ll + (pc.y[nt[0]]-10.)*0.5/ll)
         assert(np.allclose(dt_Prd , nt[1]))
+        
+        os.remove('test_plot_utils.sww')
 
     def test_triangle_areas(self):
         """
@@ -347,6 +358,8 @@ class Test_plot_utils(unittest.TestCase):
         vec_01_perp=np.array([vec_01[1], -vec_01[0]])
         len_b = (x2-x0)*vec_01_perp[0] + (y2-y0)*vec_01_perp[1]
         assert(np.allclose(abs(0.5*len_a*len_b),ta[0]))
+        
+        os.remove('test_plot_utils.sww')
 
     def test_water_volume(self):
         """ Check that water volume is right
@@ -364,6 +377,8 @@ class Test_plot_utils(unittest.TestCase):
 
         wv=util.water_volume(p,pc)
         assert(np.allclose(wVol_2, wv[2]))
+        
+        os.remove('test_plot_utils.sww')
 
     def test_Make_Geotif(self):
         # VERY BASIC TEST

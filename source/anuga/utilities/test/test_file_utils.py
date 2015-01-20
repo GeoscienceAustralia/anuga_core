@@ -6,7 +6,7 @@ import sys
 
 from anuga.utilities.file_utils import copy_code_files, get_all_swwfiles
 from anuga.utilities.file_utils import del_dir
-from sww_merge import sww_merge, _sww_merge
+from anuga.utilities.sww_merge import sww_merge, _sww_merge
 
 
 class Test_FileUtils(unittest.TestCase):

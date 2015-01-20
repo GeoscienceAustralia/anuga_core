@@ -128,7 +128,7 @@ class Test_system_tools(unittest.TestCase):
         if path == '':
             path = '.' + sep
 
-        filename = path + sep +  'crc_test_file.png'
+        filename = path + sep + '..' + sep + 'data' + sep + 'crc_test_file.png'
 
         ref_crc = 1203293305 # Computed on Windows box
         checksum = compute_checksum(filename)
