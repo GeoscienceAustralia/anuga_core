@@ -3,7 +3,7 @@
 import unittest
 
 
-import ermapper_grids
+import anuga.abstract_2d_finite_volumes.ermapper_grids as ermapper_grids
 from os import remove
 
 import numpy as num

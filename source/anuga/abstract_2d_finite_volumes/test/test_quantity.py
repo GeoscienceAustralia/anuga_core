@@ -4,7 +4,7 @@ import unittest
 from math import sqrt, pi
 import tempfile
 
-from quantity import *
+from anuga.abstract_2d_finite_volumes.quantity import *
 from anuga.config import epsilon
 
 from anuga.fit_interpolate.fit import fit_to_mesh
@@ -1614,7 +1614,7 @@ class Test_Quantity(unittest.TestCase):
         assert num.allclose(quantity.centroid_values, answer)
         #Cleanup
         #import os
-        #os.remove(txt_file)        
+        os.remove(txt_file)        
         
 
 

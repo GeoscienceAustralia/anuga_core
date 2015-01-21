@@ -9,9 +9,10 @@
 import unittest
 from math import sqrt
 
-from neighbour_mesh import *
-from mesh_factory import rectangular
-from mesh_factory import rectangular_periodic
+
+from anuga.abstract_2d_finite_volumes.neighbour_mesh import *
+from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
+from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_periodic
 from anuga.config import epsilon
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference

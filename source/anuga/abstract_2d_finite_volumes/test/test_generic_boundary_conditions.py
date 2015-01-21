@@ -12,7 +12,7 @@
 import unittest
 from math import sqrt, pi
 
-from generic_boundary_conditions import *
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import *
 from anuga.abstract_2d_finite_volumes.generic_domain import Generic_Domain
 from anuga.config import epsilon
 

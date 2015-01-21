@@ -3,10 +3,10 @@
 import unittest
 from math import sqrt
 
-from mesh_factory import rectangular
+from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.shallow_water.shallow_water_domain import Domain
-from generic_domain import Generic_Domain
-from region import *
+from anuga.abstract_2d_finite_volumes.generic_domain import Generic_Domain
+from anuga.abstract_2d_finite_volumes.region import *
 #from anuga.config import epsilon
 
 import numpy as num

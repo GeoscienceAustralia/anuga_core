@@ -3,7 +3,7 @@
 
 import unittest
 
-from pmesh2domain import *
+from anuga.abstract_2d_finite_volumes.pmesh2domain import *
 
 from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
