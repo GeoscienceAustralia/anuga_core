@@ -138,7 +138,8 @@ class Test_Culvert(unittest.TestCase):
         are dealt with       
         """
 
-        path = get_pathname_from_package('anuga.culvert_flows')    
+        path = get_pathname_from_package('anuga.culvert_flows') 
+        path = os.path.join(path, 'test', 'data')   
         
         length = 40.
         width = 5.
@@ -254,7 +255,9 @@ class Test_Culvert(unittest.TestCase):
         This one is using the rating curve variant
         """
 
-        path = get_pathname_from_package('anuga.culvert_flows')    
+        path = get_pathname_from_package('anuga.culvert_flows') 
+        path = os.path.join(path, 'test', 'data')   
+        
         
         length = 40.
         width = 5.

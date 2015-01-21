@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from culvert_polygons import *
+from anuga.culvert_flows.culvert_polygons import *
 
 import unittest
 import os.path
