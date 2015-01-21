@@ -276,7 +276,7 @@ class triangTestCase(unittest.TestCase):
                         'testregion_with_maxarea 4: # of tris is wrong!')
 
 
-    def FIXME_testbad_hole(self):
+    def FIXME_bad_hole(self):
 
         holelist = [(9.0)]
         regionlist = []
