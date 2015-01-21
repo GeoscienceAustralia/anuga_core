@@ -16,7 +16,7 @@ from anuga.config import netcdf_float, netcdf_char, netcdf_int
 # Please, don't add anuga.utilities to these imports.
 # I'm trying to keep this file general, so it works for EQRM and ANUGA
 # EQRM also uses this file, but has a different directory structure
-from system_tools import *
+from anuga.utilities.system_tools import *
 
 class Test_system_tools(unittest.TestCase):
     def setUp(self):
@@ -122,13 +122,13 @@ class Test_system_tools(unittest.TestCase):
         Check that checksums on a png file is OK
         """
 
-        # Get path where this test is run
-        # I'm trying to keep this file general, so it works for EQRM and ANUGA
-        path, tail = split(__file__)
-        if path == '':
-            path = '.' + sep
 
-        filename = path + sep + '..' + sep + 'data' + sep + 'crc_test_file.png'
+            
+        path = get_pathname_from_package('anuga.utilities')        
+                
+        filename = os.path.join(path, 'test', 'data', 'crc_test_file.png') 
+
+
 
         ref_crc = 1203293305 # Computed on Windows box
         checksum = compute_checksum(filename)
