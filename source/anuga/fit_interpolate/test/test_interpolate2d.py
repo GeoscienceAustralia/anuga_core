@@ -13,7 +13,7 @@ __copyright__ += 'Disaster Reduction'
 import unittest
 import numpy
 
-from interpolate2d import interpolate2d
+from anuga.fit_interpolate.interpolate2d import interpolate2d
 
 
 # Auxiliary functions for testing
@@ -465,5 +465,5 @@ class Test_interpolate(unittest.TestCase):
 
 if __name__ == '__main__':
     suite = unittest.makeSuite(Test_interpolate, 'test')
-    runner = unittest.TextTestRunner(verbosity=2)
+    runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

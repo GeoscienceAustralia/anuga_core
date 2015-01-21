@@ -12,7 +12,7 @@ from math import sqrt
 import tempfile
 import os
 
-from fit import *
+from anuga.fit_interpolate.fit import *
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.utilities.sparse import Sparse, Sparse_CSR
 from anuga.coordinate_transforms.geo_reference import Geo_reference
@@ -285,46 +285,6 @@ class Test_Fit(unittest.TestCase):
         # Delete file!
         os.remove(txt_file)
         
-    def cache_test_fit_to_mesh_pts(self):
-        a = [-1.0, 0.0]
-        b = [3.0, 4.0]
-        c = [4.0,1.0]
-        d = [-3.0, 2.0] #3
-        e = [-1.0,-2.0]
-        f = [1.0, -2.0] #5
-
-        vertices = [a, b, c, d,e,f]
-        triangles = [[0,1,3], [1,0,2], [0,4,5], [0,5,2]] #abd bac aef afc
-
-
-        fileName = tempfile.mktemp(".txt")
-        file = open(fileName,"w")
-        file.write(" x, y, elevation \n\
--2.0, 2.0, 0.\n\
--1.0, 1.0, 0.\n\
-0.0, 2.0 , 2.\n\
-1.0, 1.0 , 2.\n\
- 2.0,  1.0 ,3. \n\
- 0.0,  0.0 , 0.\n\
- 1.0,  0.0 , 1.\n\
- 0.0,  -1.0, -1.\n\
- -0.2, -0.5, -0.7\n\
- -0.9, -1.5, -2.4\n\
- 0.5,  -1.9, -1.4\n\
- 3.0,  1.0 , 4.\n")
-        file.close()
-        geo = Geospatial_data(fileName)
-        fileName_pts = tempfile.mktemp(".pts")
-        points = geo.get_data_points(absolute=True)
-        atts = geo.get_attributes()
-        f = fit_to_mesh(points,atts, vertices, triangles,
-                                alpha=0.0, max_read_lines=2,
-                        use_cache=True, verbose=True)
-        answer = linear_function(vertices)
-        #print "f\n",f
-        #print "answer\n",answer
-        assert num.allclose(f, answer)
-        os.remove(fileName)
        
     def test_fit_to_mesh_pts(self):
         a = [-1.0, 0.0]
@@ -1181,43 +1141,6 @@ class Test_Fit(unittest.TestCase):
         os.remove(mesh_file)
         os.remove(point_file)
   
-    def Not_yet_test_smooth_att_to_mesh_with_excess_verts(self):
-
-        a = [0.0, 0.0]
-        b = [0.0, 5.0]
-        c = [5.0, 0.0]
-        d = [1.0, 1.0]
-        e = [18.0, 1000.0]
-        
-        points = [a, b, c, d, e]
-        triangles = [ [1,0,2] ]   #bac
-
-        d1 = [1.0, 1.0]
-        d2 = [1.0, 2.0]
-        d3 = [3.0,1.0]
-        d4 = [2.0,3.0]
-        d5 = [2.0,2.0]
-        d6 = [1.0,3.0]
-        data_coords = [d1, d2, d3, d4, d5, d6]
-        z = linear_function(data_coords)
-        #print "z",z 
-
-        interp = Fit(points, triangles, alpha=0.0)
-        
-        try:
-            f = interp.fit(data_coords, z)
-        except VertsWithNoTrianglesError:
-            pass
-        else:
-            raise Exception('Verts with no triangles did not raise error!')
-        
-        #f = interp.fit(data_coords, z)
-        #answer = linear_function(points)
-
-        #  Removing the bad verts that we don't care about
-        #f = f[0:3]
-        #answer = answer[0:3]
-        #assert allclose(f, answer)
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
