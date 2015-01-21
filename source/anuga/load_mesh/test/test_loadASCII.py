@@ -10,7 +10,7 @@ import numpy as num
 
 from anuga.load_mesh.loadASCII import *
 from anuga.coordinate_transforms.geo_reference import Geo_reference
-import loadASCII
+import anuga.load_mesh.loadASCII as loadASCII
 
 
 class loadASCIITestCase(unittest.TestCase):
