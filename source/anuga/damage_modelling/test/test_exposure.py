@@ -5,7 +5,7 @@ import numpy as num
 import sys
 
 
-from exposure import Exposure
+from anuga.damage_modelling.exposure import Exposure
 
 from anuga.anuga_exceptions import TitleValueError, \
                                     DataMissingValuesError
