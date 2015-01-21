@@ -1,7 +1,7 @@
 import unittest
 import numpy as num
 from anuga.file.netcdf import NetCDFFile
-import most2nc
+from  anuga.shallow_water.most2nc import most2nc
 import os
 
 FN = 'small___.txt'
@@ -29,7 +29,7 @@ class Test_most2nc(unittest.TestCase):
         os.remove(FN)
 
     def test_small_nxn(self):
-        most2nc.most2nc(input_file=FN,output_file='test.nc'\
+        most2nc(input_file=FN,output_file='test.nc'\
                         ,inverted_bathymetry = False,verbose = False)
 
         fid = NetCDFFile('test.nc')

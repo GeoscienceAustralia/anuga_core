@@ -23,7 +23,11 @@ class Test_swb2_domain(unittest.TestCase):
         pass
 
     def tearDown(self):
-        pass
+        for file in ['runup_sinusoid_v2.sww']:
+            try:
+                os.remove(file)
+            except:
+                pass 
 
 
     def test_runup_sinusoid(self):

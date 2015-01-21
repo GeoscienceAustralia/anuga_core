@@ -1,6 +1,7 @@
 import unittest
+import os
 import numpy as num
-from tsunami_okada import earthquake_tsunami,Okada_func
+from anuga.tsunami_source.tsunami_okada import earthquake_tsunami,Okada_func
 from anuga.shallow_water.shallow_water_domain import Domain
 
 class Test_eq(unittest.TestCase):
@@ -25,7 +26,7 @@ class Test_eq(unittest.TestCase):
         rectangular sources
         """
         # Get path where this test is run
-        path = get_pathname_from_package('anuga.shallow_water')
+        path = get_pathname_from_package('anuga.tsunami_source')
         
         # Choose what test to proceed
         T = 1
@@ -33,7 +34,7 @@ class Test_eq(unittest.TestCase):
 
         if T==0:
             # Fortran output file            
-            filename = path+sep+'fullokada_SP.txt'
+            filename = path+sep+'test'+sep+'data'+sep+'fullokada_SP.txt'
             
             # Initial condition of earthquake for multiple source
             x0 = 7000.0
@@ -49,7 +50,7 @@ class Test_eq(unittest.TestCase):
             NSMAX=1
         elif T==1:
             # Fortran output file        
-            filename = path+sep+'fullokada_SS.txt'
+            filename = path+sep+'test'+sep+'data'+sep+'fullokada_SS.txt'
             
             # Initial condition of earthquake for multiple source
             x0 = 7000.0
@@ -67,7 +68,7 @@ class Test_eq(unittest.TestCase):
         elif T==2:
 
             # Fortran output file
-            filename = path+sep+'fullokada_MS.txt'
+            filename = path+sep+'test'+sep+'data'+sep+'fullokada_MS.txt'
             
             # Initial condition of earthquake for multiple source
             x0 = [7000.0,10000.0]
@@ -164,14 +165,14 @@ class Test_eq(unittest.TestCase):
         """
 
         # Get path where this test is run
-        path= get_pathname_from_package('anuga.shallow_water')
+        path= get_pathname_from_package('anuga.tsunami_source')
         
         # Choose what test to proceed
         T=1
 
         if T==0:
             # Fortran output file
-            filename = path+sep+'fullokada_SP.txt'
+            filename = path+sep+'test'+sep+'data'+sep+'fullokada_SP.txt'
             
             # Initial condition of earthquake for multiple source
             x0 = 7000.0
@@ -187,7 +188,7 @@ class Test_eq(unittest.TestCase):
             NSMAX=1
         elif T==1:
             # Fortran output file
-            filename = path+sep+'fullokada_SS.txt'
+            filename = path+sep+'test'+sep+'data'+sep+'fullokada_SS.txt'
             
             # Initial condition of earthquake for multiple source
             x0 = 7000.0
@@ -205,7 +206,7 @@ class Test_eq(unittest.TestCase):
         elif T==2:
 
             # Fortran output file
-            filename = path+sep+'fullokada_MS.txt'
+            filename = path+sep+'test'+sep+'data'+sep+'fullokada_MS.txt'
             
             # Initial condition of earthquake for multiple source
             x0 = [7000.0,10000.0]

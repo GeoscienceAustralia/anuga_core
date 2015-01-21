@@ -1,6 +1,6 @@
 import unittest
 import numpy as num
-from eqf import earthquake_tsunami, Okada_func
+from anuga.tsunami_source.eqf import earthquake_tsunami, Okada_func
 
 
 class Test_eq(unittest.TestCase):

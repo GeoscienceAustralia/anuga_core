@@ -28,10 +28,10 @@ from anuga.shallow_water.forcing import Rainfall, Wind_stress
 from anuga.shallow_water.forcing import Inflow, Cross_section
 from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
 
-from shallow_water_domain import Domain
+from anuga.shallow_water.shallow_water_domain import Domain
 
 # boundary functions
-from boundaries import Reflective_boundary, \
+from anuga.shallow_water.boundaries import Reflective_boundary, \
             Field_boundary, Transmissive_momentum_set_stage_boundary, \
             Transmissive_stage_zero_momentum_boundary
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
@@ -42,8 +42,8 @@ import numpy as num
 from anuga.config import g
 
 # Get gateway to C implementation of flux function for direct testing
-from shallow_water_ext import flux_function_central as flux_function
-from shallow_water_ext import rotate
+from anuga.shallow_water.shallow_water_ext import flux_function_central as flux_function
+from anuga.shallow_water.shallow_water_ext import rotate
 
 
 def set_bottom_friction(tag, elements, domain):
@@ -7053,7 +7053,7 @@ friction  \n \
         hole_polygon = [[W+border, S+border], [E-border, S+border], \
                         [E-border, N-border], [W+border, N-border]]        
 
-        meshname = os.path.join(path, 'offending_mesh.msh')
+        meshname = 'offending_mesh.msh'
         create_mesh_from_regions(bounding_polygon,
                                  boundary_tags={'south': [0], 'east': [1],
                                                 'north': [2], 'west': [3]},
@@ -7069,7 +7069,7 @@ friction  \n \
         # Fit data point inside hole to mesh
         #----------------------------------------------------------------------
 
-        points_file = os.path.join(path, 'offending_point.pts')
+        points_file = 'offending_point.pts'
 
         # Offending point
         G = Geospatial_data(data_points=[[(E+W)/2, (N+S)/2]],
@@ -7150,7 +7150,7 @@ friction  \n \
         for polygon in offending_regions:
             interior_regions.append( [polygon, 100] ) 
 
-        meshname = os.path.join(path, 'offending_mesh.msh')
+        meshname = 'offending_mesh.msh'
         create_mesh_from_regions(bounding_polygon,
                                  boundary_tags={'south': [0], 'east': [1],
                                                 'north': [2], 'west': [3]},
@@ -7216,7 +7216,8 @@ friction  \n \
         # Get path where this test is run
         path = get_pathname_from_package('anuga.shallow_water')        
 
-        meshname = os.path.join(path, 'test_mesh.msh')
+        meshname = 'test_mesh.msh'
+        
         W = 304180
         S = 6185270
         E = 307650
@@ -7238,7 +7239,7 @@ friction  \n \
         domain = Domain(meshname, use_cache=True, verbose=verbose)
         
         # Large test set revealed one problem
-        points_file = os.path.join(path, 'test_points_large.csv')
+        points_file = os.path.join(path, 'test', 'data', 'test_points_large.csv')
 
         domain.set_quantity('elevation', filename=points_file,
                                 use_cache=False, verbose=verbose)
@@ -7252,7 +7253,7 @@ friction  \n \
             os.remove(meshname)
 
         # Small test set revealed another problem
-        points_file = os.path.join(path, 'test_points_small.csv')
+        points_file = os.path.join(path, 'test', 'data', 'test_points_small.csv')
         try:    
             domain.set_quantity('elevation', filename=points_file,
                                 use_cache=False, verbose=verbose)                            

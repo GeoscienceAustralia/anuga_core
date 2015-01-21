@@ -43,7 +43,7 @@ from anuga.file.sww import Write_sww
 
 
 # import all the boundaries - some are generic, some are shallow water
-from boundaries import Reflective_boundary, \
+from anuga.shallow_water.boundaries import Reflective_boundary, \
             Field_boundary, Transmissive_momentum_set_stage_boundary, \
             Transmissive_stage_zero_momentum_boundary
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
@@ -57,7 +57,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      DEFAULT_ZONE
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 
-from shallow_water_domain import Domain
+from anuga.shallow_water.shallow_water_domain import Domain
 
 # use helper methods from other unit test
 from anuga.file.test_mux import Test_Mux
@@ -197,7 +197,16 @@ class Test_Data_Manager(Test_Mux):
         import os
         for ext in ['_ha.nc', '_ua.nc', '_va.nc', '_e.nc']:
             #print 'Trying to remove', self.test_MOST_file + ext
-            os.remove(self.test_MOST_file + ext)
+            try:
+                os.remove(self.test_MOST_file + ext)
+            except:
+                pass
+            
+        for file in ['domain.sww', 'outline_meshed.tsh', 'outline.tsh']:
+            try:
+                os.remove(file)
+            except:
+                pass
 
     def test_sww_constant(self):
         """Test that constant sww information can be written correctly

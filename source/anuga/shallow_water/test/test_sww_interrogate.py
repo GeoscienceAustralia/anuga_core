@@ -9,7 +9,7 @@ from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.config import g
 
-from boundaries import Reflective_boundary, \
+from anuga.shallow_water.boundaries import Reflective_boundary, \
             Field_boundary, Transmissive_momentum_set_stage_boundary, \
             Transmissive_stage_zero_momentum_boundary
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
@@ -18,11 +18,12 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
 
 from anuga.file.sww import get_mesh_and_quantities_from_file
             
-from shallow_water_domain import Domain
+from anuga.shallow_water.shallow_water_domain import Domain
 
 from anuga.abstract_2d_finite_volumes.mesh_factory \
-        import rectangular_cross
-from sww_interrogate import get_maximum_inundation_elevation, \
+        import rectangular_cross, rectangular
+        
+from anuga.shallow_water.sww_interrogate import get_maximum_inundation_elevation, \
             get_maximum_inundation_location, get_maximum_inundation_data, \
             get_flow_through_cross_section, get_energy_through_cross_section
             
@@ -30,6 +31,18 @@ from sww_interrogate import get_maximum_inundation_elevation, \
                 
 
 class Test_sww_Interrogate(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        for file in ['flowtest.sww', 'flowtest_uniquely.sww', 'runup_test_2.sww']:
+            try:
+                os.remove(file)
+            except:
+                pass     
+    
+    
     def test_get_maximum_inundation(self):
         """Test that sww information can be converted correctly to maximum
         runup elevation and location (without and with georeferencing)
@@ -43,7 +56,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         #Setup
 
-        from mesh_factory import rectangular
+        #from mesh_factory import rectangular
 
         # Create basic mesh (100m x 100m)
         points, vertices, boundary = rectangular(20, 5, 100, 50)
@@ -220,7 +233,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         from anuga.file.netcdf import NetCDFFile
 
         # Setup
-        from mesh_factory import rectangular
+        #from mesh_factory import rectangular
 
         # Create basic mesh (20m x 3m)
         width = 3
@@ -343,7 +356,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         from anuga.file.netcdf import NetCDFFile
 
         # Setup
-        from mesh_factory import rectangular
+        #from mesh_factory import rectangular
 
         # Create basic mesh (20m x 3m)
         width = 3
@@ -471,7 +484,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         from anuga.file.netcdf import NetCDFFile
 
         # Setup
-        from mesh_factory import rectangular
+        #from mesh_factory import rectangular
 
         # Create basic mesh (20m x 3m)
         width = 3
@@ -573,7 +586,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         from anuga.file.netcdf import NetCDFFile
 
         # Setup
-        from mesh_factory import rectangular
+        #from mesh_factory import rectangular
 
         # Create basic mesh (20m x 3m)
         width = 3

@@ -139,7 +139,8 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
 # Shallow Water Tsunamis
 #-----------------------------
 
-from anuga.shallow_water.smf import slide_tsunami, slump_tsunami
+from anuga.tsunami_source.smf import slide_tsunami, slump_tsunami
+
 
 
 #-----------------------------

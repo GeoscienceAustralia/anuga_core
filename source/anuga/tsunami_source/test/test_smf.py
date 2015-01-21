@@ -1,14 +1,18 @@
 import unittest
+import os
 import numpy as num
-from smf import slide_tsunami, slump_tsunami, Double_gaussian
-from shallow_water_domain import Domain
+from anuga.tsunami_source.smf import slide_tsunami, slump_tsunami, Double_gaussian
+from anuga import Domain
 
 class Test_smf(unittest.TestCase):
     def setUp(self):
         pass
 
     def tearDown(self):
-        pass
+        try:
+            os.remove('test.msh')
+        except:
+            pass
 
 
     def test_Double_gaussian(self):

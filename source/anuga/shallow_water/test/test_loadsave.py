@@ -31,7 +31,7 @@ from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
 from shallow_water_domain import Domain
 
 # boundary functions
-from boundaries import Reflective_boundary, \
+from anuga.shallow_water.boundaries import Reflective_boundary, \
             Field_boundary, Transmissive_momentum_set_stage_boundary, \
             Transmissive_stage_zero_momentum_boundary
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
@@ -42,8 +42,8 @@ import numpy as num
 from anuga.config import g
 
 # Get gateway to C implementation of flux function for direct testing
-from shallow_water_ext import flux_function_central as flux_function
-from shallow_water_ext import rotate
+from anuga.shallow_water.shallow_water_ext import flux_function_central as flux_function
+from anuga.shallow_water.shallow_water_ext import rotate
 
 
 def set_bottom_friction(tag, elements, domain):
@@ -84,7 +84,11 @@ class Test_LoadSave(unittest.TestCase):
         pass
 
     def tearDown(self):
-        pass
+        for file in ['domain.sww', 'domain_pickle.pickle']:
+            try:
+                os.remove(file)
+            except:
+                pass
         
     def test_get_flow_through_cross_section_with_geo(self):
         """test_get_flow_through_cross_section(self):

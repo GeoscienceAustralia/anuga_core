@@ -228,7 +228,7 @@ class Test_Urs2Sts(Test_Mux):
         # Get path where this test is run
         path = get_pathname_from_package('anuga.shallow_water')        
         
-        testdir = os.path.join(path, 'urs_test_data')
+        testdir = os.path.join(path, 'test',  'urs_test_data')
         ordering_filename=os.path.join(testdir, 'thinned_bound_order_test.txt')
         
         sources = ['1-z.grd','2-z.grd','3-z.grd']
@@ -397,7 +397,7 @@ class Test_Urs2Sts(Test_Mux):
         
         path = get_pathname_from_package('anuga.shallow_water')        
                 
-        testdir = os.path.join(path, 'urs_test_data')        
+        testdir = os.path.join(path, 'test', 'urs_test_data')        
         ordering_filename=os.path.join(testdir, 'thinned_bound_order_test.txt')
 
         urs_filenames = [os.path.join(testdir,'1-z.grd'),

@@ -215,7 +215,11 @@ class Test_Forcing(unittest.TestCase):
         pass
 
     def tearDown(self):
-        pass
+        for file in ['domain.sww']:
+            try:
+                os.remove(file)
+            except:
+                pass
         
     def write_wind_pressure_field_sts(self,
                                       field_sts_filename,
