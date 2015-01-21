@@ -5,7 +5,7 @@ import unittest
 import tempfile
 import os
 
-from geo_reference import *
+from anuga.coordinate_transforms.geo_reference import *
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
 import numpy as num

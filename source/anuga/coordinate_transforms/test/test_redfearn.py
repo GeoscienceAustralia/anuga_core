@@ -7,7 +7,7 @@
 
 import unittest
 
-from redfearn import *
+from anuga.coordinate_transforms.redfearn import *
 from anuga.anuga_exceptions import ANUGAError
 
 from anuga.utilities.system_tools import get_pathname_from_package
@@ -19,7 +19,7 @@ import numpy as num
 
 class TestCase(unittest.TestCase):
 
-    def test_decimal_degrees_conversion(Self):
+    def test_decimal_degrees_conversion(self):
         lat = degminsec2decimal_degrees(-37,39,10.15610)
         lon = degminsec2decimal_degrees(143,55,35.38390) 
         assert num.allclose(lat, -37.65282114)
@@ -291,7 +291,7 @@ class TestCase(unittest.TestCase):
         
         for forced_zone in [53, 54]:
         
-            datafile = join(path, 'projection_test_points_z%d.csv' % forced_zone)
+            datafile = join(path, 'test', 'data', 'projection_test_points_z%d.csv' % forced_zone)
             fid = open(datafile)
 
             for line in fid.readlines()[1:]:
@@ -327,7 +327,7 @@ class TestCase(unittest.TestCase):
         # in the middle of zones 53 and 54).
 
         path = get_pathname_from_package('anuga.coordinate_transforms')
-        datafile = join(path, 'projection_test_points.csv')
+        datafile = join(path, 'test', 'data', 'projection_test_points.csv')
         fid = open(datafile)
 
         for line in fid.readlines()[1:]:

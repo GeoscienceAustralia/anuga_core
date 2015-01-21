@@ -1,6 +1,6 @@
 
 import unittest
-from point import Point
+from anuga.coordinate_transforms.point import Point
 from math import fabs
 
 #-------------------------------------------------------------
