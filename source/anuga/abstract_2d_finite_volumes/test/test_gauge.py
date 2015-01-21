@@ -27,8 +27,8 @@ import string
 import numpy as num
 
 
-def test_function(x, y):
-    return x+y
+# def simple_function(x, y):
+#     return x+y
 
 class Test_Gauge(unittest.TestCase):
     def setUp(self):

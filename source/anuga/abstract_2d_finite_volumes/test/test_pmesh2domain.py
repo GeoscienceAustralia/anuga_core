@@ -209,48 +209,7 @@ friction  \n \
          self.failUnless(domain.geo_reference.xllcorner  == 140.0,
                           "bad geo_referece")
          
-    #***********
-    def old_test_tags_to_boundaries (self):
-         meshDict = {}
-         p0 = [0.0, 0.0]
-         p1 = [1.0, 0.0]
-         p2 = [0.0, 1.0]
-         p3 = [0.646446609407, 0.353553390593]
-         meshDict['vertices'] = [p0,p1,p2,p3]
-         meshDict['vertex_attributes'] = [[0.0, 0.0,7.0],[10.0, 0.0,7.0],[0.0, 10.0,7.0],[6.46446609407, 3.53553390593,7.0]]
-         meshDict['triangles'] = [[0,3,2],[0,1,3]]
-         meshDict['triangle_tags'] = [6.6,6.6]
-         meshDict['triangle_neighbors'] = [[-1,-1,1],[-1,0,-1]]
-         meshDict['segments'] = [[1,0],[0,2],[2,3],[3,1]]
-         meshDict['segment_tags'] = [2,3,1,1]
 
-         domain = Domain.pmesh_dictionary_to_domain(meshDict)
-
-         #domain.set_tag_dict(tag_dict)
-         #Boundary tests
-         b1 =  Dirichlet_boundary(conserved_quantities = num.array([0.0]))
-         b2 =  Dirichlet_boundary(conserved_quantities = num.array([1.0]))
-         b3 =  Dirichlet_boundary(conserved_quantities = num.array([1.0]))
-         #test adding a boundary
-         tags = {}
-         tags[1] = b1
-         tags[2] = b2
-         tags[3] = b3
-         domain.set_boundary(tags)
-         inverted_id = Volume.instances[0].neighbours[0]
-         id = -(inverted_id+1)
-         boundary_value = Boundary_value.instances[id]
-         boundary_obj = boundary_value.boundary_object
-
-         self.failUnless( boundary_obj  == b1,
-                          "test_tags_to_boundaries  failed. Single boundary wasn't added.")
-
-         inverted_id = Volume.instances[0].neighbours[1]
-         id = -(inverted_id+1)
-         boundary_value = Boundary_value.instances[id]
-         boundary_obj = boundary_value.boundary_object
-         self.failUnless( boundary_obj  == b3,
-                          "test_tags_to_boundaries  failed. Single boundary wasn't added.")
 
 #-------------------------------------------------------------
 
