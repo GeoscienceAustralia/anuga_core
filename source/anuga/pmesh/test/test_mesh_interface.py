@@ -564,7 +564,7 @@ class TestCase(unittest.TestCase):
             msg += 'cause an Exception to be raised'
             raise Exception, msg
 
-    def FIXME_test_create_mesh_with_multiply_tagged_segments(self):
+    def FIXMEtest_create_mesh_with_multiply_tagged_segments(self):
         '''Test that create_mesh_from_regions fails when
         segments are listed repeatedly in boundary_tags.
         '''

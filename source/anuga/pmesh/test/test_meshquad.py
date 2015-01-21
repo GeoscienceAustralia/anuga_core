@@ -2,8 +2,8 @@ import unittest
 import numpy as num
 
 from anuga.geometry.aabb import AABB
-from quad import Cell
-from mesh_quadtree import MeshQuadtree
+from anuga.geometry.quad import Cell
+from anuga.pmesh.mesh_quadtree import MeshQuadtree
 from anuga.abstract_2d_finite_volumes.general_mesh import General_mesh as Mesh
 
 import sys

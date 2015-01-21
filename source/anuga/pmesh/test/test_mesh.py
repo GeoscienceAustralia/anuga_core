@@ -9,7 +9,7 @@ from anuga.pmesh.mesh import *
 #    from mesh import *
 
 
-from load_mesh.loadASCII import *
+from anuga.load_mesh.loadASCII import *
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.geometry.polygon import  is_inside_polygon ### inside_polygon
@@ -1041,7 +1041,7 @@ class meshTestCase(unittest.TestCase):
                         ,
                         'exported Ascii csv file is wrong')
      
-    def to_be_test_lone_vert_in_mesh_gen_c_layer(self):
+    def to_be_lone_vert_in_mesh_gen_c_layer(self):
         # currently just a copy of the above test
         a = Vertex (0,0)
         b = Vertex (0,3)
@@ -1102,7 +1102,7 @@ class meshTestCase(unittest.TestCase):
                         ,
                         'exported Ascii csv file is wrong')
         
-    def NOT_test_exportPointsFilefile2(self):
+    def NOTtest_exportPointsFilefile2(self):
         #geospatial needs at least one point
         m = Mesh()
         
