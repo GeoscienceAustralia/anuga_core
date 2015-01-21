@@ -15,8 +15,8 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      write_NetCDF_georeference
 from anuga.coordinate_transforms.redfearn import redfearn     
 
-from urs2sww import urs2sww, urs_ungridded2sww
-import urs
+from anuga.file_conversion.urs2sww import urs2sww, urs_ungridded2sww
+import anuga.file.urs as urs
 
 from anuga.file.mux import WAVEHEIGHT_MUX_LABEL, EAST_VELOCITY_LABEL, \
                             NORTH_VELOCITY_LABEL
@@ -434,50 +434,6 @@ class Test_Dem2Pts(Test_Mux):
         self.delete_mux(files)
         os.remove( base_name + '.sww')
     
-    def cache_test_URS_points_needed_and_urs_ungridded2sww(self):
-        
-        ll_lat = -21.5
-        ll_long = 114.5
-        grid_spacing = 1./60.
-        lat_amount = 30
-        long_amount = 30
-        time_step_count = 2
-        time_step = 400
-        tide = -200000
-        zone = 50
-
-        boundary_polygon = [[250000,7660000],[270000,7650000],
-                             [280000,7630000],[250000,7630000]]
-        geo=URS_points_needed(boundary_polygon, zone,
-                              ll_lat, ll_long, grid_spacing, 
-                              lat_amount, long_amount, use_cache=True,
-                              verbose=True)
-        
-    def visual_test_URS_points_needed_and_urs_ungridded2sww(self):
-        
-        ll_lat = -21.5
-        ll_long = 114.5
-        grid_spacing = 1./60.
-        lat_amount = 30
-        long_amount = 30
-        time_step_count = 2
-        time_step = 400
-        tide = -200000
-        zone = 50
-
-        boundary_polygon = [[250000,7660000],[270000,7650000],
-                             [280000,7630000],[250000,7630000]]
-        geo=URS_points_needed(boundary_polygon, zone,
-                              ll_lat, ll_long, grid_spacing, 
-                              lat_amount, long_amount)
-        lat_long = geo.get_data_points(as_lat_long=True)
-        base_name, files = self.write_mux(lat_long,
-                                          time_step_count, time_step)
-        urs2sww(base_name, mean_stage=tide)
-        self.delete_mux(files)
-        os.remove( base_name + '.sww')
-        # extend this so it interpolates onto the boundary.
-        # have it fail if there is NaN
 
 
   
