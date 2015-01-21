@@ -4,13 +4,16 @@ import sys
 import unittest
 import numpy as num
 from anuga.file.netcdf import NetCDFFile
+from anuga.utilities.system_tools import get_pathname_from_package
+
+
 
 # ANUGA modules
 from anuga.config import netcdf_float32, netcdf_float64
 from anuga.file.csv_file import load_csv_as_dict
 
 # Local modules
-from csv2sts import csv2sts
+from anuga.file_conversion.csv2sts import csv2sts
 
 # some test file we want to generate
 testfile_csv = 'small___.csv'
@@ -79,8 +82,10 @@ class Test_csv2sts(unittest.TestCase):
 
         # Look for script in same dir as this unit test.
         path = os.path.dirname( os.path.realpath( __file__ ) )
+
+        path = get_pathname_from_package( 'anuga.file_conversion' )
         
-        cmd = 'python ' + path + os.sep +'csv2sts.py --latitude ' 
+        cmd = 'python ' + os.path.join( path, 'csv2sts.py') + ' --latitude ' 
         cmd += '%s --lon %s %s %s' % (str(lat), str(lon), testfile_csv, sts_out)
         
         os.system(cmd)

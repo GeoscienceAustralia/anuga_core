@@ -5,7 +5,7 @@ import numpy as num
 
 
             
-from grd2array import grd2array
+from anuga.file_conversion.grd2array import grd2array
                 
 
 #Aux for fit_interpolate.fit example

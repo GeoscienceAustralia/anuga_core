@@ -19,7 +19,14 @@ class Test_Dem2Pts(unittest.TestCase):
         and checking that its headers and some of its contents
         are correct.
     """ 
- 
+
+    def tearDown(self):
+        for file in ['demtest2.pts']:
+            try:
+                os.remove(file)
+            except:
+                pass 
+     
     def test_dem2pts_bounding_box_v2(self):
         """Test conversion from dem in ascii format to native NetCDF format
         """

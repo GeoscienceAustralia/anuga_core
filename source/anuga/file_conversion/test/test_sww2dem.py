@@ -20,7 +20,7 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
             Time_boundary, File_boundary, AWI_boundary
 
 # local modules
-from sww2dem import sww2dem, sww2dem_batch
+from anuga.file_conversion.sww2dem import sww2dem, sww2dem_batch
 
 class Test_Sww2Dem(unittest.TestCase):
     def setUp(self):
@@ -1878,5 +1878,5 @@ class Test_Sww2Dem(unittest.TestCase):
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_rainfall_forcing_with_evolve')
     suite = unittest.makeSuite(Test_Sww2Dem, 'test_')
-    runner = unittest.TextTestRunner(verbosity=2)
+    runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

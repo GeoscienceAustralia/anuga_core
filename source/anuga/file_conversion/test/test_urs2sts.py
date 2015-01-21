@@ -25,7 +25,7 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
 
 from anuga.pmesh.mesh_interface import create_mesh_from_regions
 
-from urs2sts import urs2sts
+from anuga.file_conversion.urs2sts import urs2sts
 
 # Allow us to use helper methods from this test.
 from anuga.file.test_mux import Test_Mux
@@ -37,6 +37,14 @@ class Test_Urs2Sts(Test_Mux):
         are correct.
     """ 
 
+
+    def tearDown(self):
+        for file in ['domain.sww', 'urs_test_mesh.tsh' ]:
+            try:
+                os.remove(file)
+            except:
+                pass
+                
     def test_urs2sts0(self):
         """
         Test single source
