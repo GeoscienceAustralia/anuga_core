@@ -3,6 +3,7 @@
 """ Test suite to test polygon functionality. """
 
 import unittest
+import os
 import numpy as num
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.system_tools import get_pathname_from_package
@@ -71,7 +72,7 @@ class Test_Polygon(unittest.TestCase):
         path = get_pathname_from_package('anuga.utilities')
 
         # Form absolute filename and read
-        filename = path + sep + 'data' + sep + 'mainland_only.csv'
+        filename = os.path.join( path, 'test', 'data', 'mainland_only.csv')
         p1 = read_polygon(filename)
 
         f = Polygon_function([(p1, 10.0)])
@@ -86,7 +87,7 @@ class Test_Polygon(unittest.TestCase):
         path = get_pathname_from_package('anuga.utilities')
 
         # Form absolute filename and read
-        filename = path + sep + 'data' + sep +  'complex_polygon.csv'
+        filename = os.path.join( path, 'test', 'data', 'complex_polygon.csv')
         # Should cause an Exception
         try:
             p1 = read_polygon(filename)
@@ -104,7 +105,7 @@ class Test_Polygon(unittest.TestCase):
         path = get_pathname_from_package('anuga.utilities')
 
         # Form absolute filename and read
-        filename = path + sep + 'data' + sep +  'non_complex_polygon.csv'
+        filename = os.path.join( path, 'test', 'data',  'non_complex_polygon.csv')
         # Should cause an Exception
         try:
             p1 = read_polygon(filename)
@@ -119,7 +120,7 @@ class Test_Polygon(unittest.TestCase):
         path = get_pathname_from_package('anuga.utilities')
 
         # Form absolute filename and read
-        filename = path + sep + 'data' + sep +  'complex_polygon.csv'
+        filename = os.path.join( path, 'test', 'data',  'complex_polygon.csv')
         # Should not cause an Exception
         p1 = read_polygon(filename, closed=False)
 

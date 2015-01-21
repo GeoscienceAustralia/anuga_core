@@ -5,8 +5,8 @@
 
 import unittest
 
-from aabb import AABB
-from quad import Cell
+from anuga.geometry.aabb import AABB
+from anuga.geometry.quad import Cell
 
 #-------------------------------------------------------------
 
