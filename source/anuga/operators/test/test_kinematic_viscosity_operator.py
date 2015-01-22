@@ -2,7 +2,7 @@ import operator
 from anuga import Domain
 from anuga import Quantity
 from anuga import Dirichlet_boundary
-from kinematic_viscosity_operator import Kinematic_viscosity_operator
+from anuga.operators.kinematic_viscosity_operator import Kinematic_viscosity_operator
 
 import numpy as num
 from math import sqrt

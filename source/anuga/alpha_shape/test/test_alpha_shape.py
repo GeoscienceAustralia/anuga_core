@@ -168,7 +168,7 @@ class TestCase(unittest.TestCase):
 ## FIXME?  Running from the Comand line isn't in vogue these days
 #  The test was breaking when test_all at the inundation level was running
 # was running it. issue - not running the test in this directory
-    def Bad_test_alpha_stand_alone(self):
+    def FIXtest_alpha_stand_alone(self):
         #print "test_alpha_stand_alone"
         import os
         import tempfile
