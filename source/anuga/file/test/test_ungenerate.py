@@ -6,14 +6,18 @@ import unittest
 import tempfile
 
 from anuga.pmesh.mesh import Vertex, Segment, Mesh
-from ungenerate import load_ungenerate
+from anuga.file.ungenerate import load_ungenerate
 
 class ungenerateTestCase(unittest.TestCase):
     def setUp(self):
         pass
     
     def tearDown(self):
-        pass
+        for filename in ['swamp.tsh']:
+            try:
+                os.remove(filename)
+            except:
+                pass
         
     def test_ungenerateFileLoading(self):
         

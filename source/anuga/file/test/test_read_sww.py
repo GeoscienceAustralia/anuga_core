@@ -10,7 +10,7 @@ import os
 import numpy as num
 
 
-import sww
+import anuga.file.sww as sww
                 
 
 class Test_read_sww(unittest.TestCase):
@@ -24,7 +24,11 @@ class Test_read_sww(unittest.TestCase):
         pass
 
     def tearDown(self):
-        pass
+        for filename in ['read_sww_test0.sww', 'read_sww_test_c0.sww']:
+            try:
+                os.remove(filename)
+            except:
+                pass
 
     def test_read_sww(self):
         """
@@ -38,7 +42,7 @@ class Test_read_sww(unittest.TestCase):
         from anuga.abstract_2d_finite_volumes.mesh_factory import \
             rectangular_cross
         from anuga.shallow_water.shallow_water_domain import Domain
-        from boundaries import Reflective_boundary
+        from anuga import Reflective_boundary
         from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
                             import Dirichlet_boundary, Time_boundary
 

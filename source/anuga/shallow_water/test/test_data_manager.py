@@ -20,6 +20,7 @@ from struct import pack, unpack
 from anuga.file.netcdf import NetCDFFile
 
 
+from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.anuga_exceptions import ANUGAError
 from anuga.file.sww import SWW_file
 from anuga.coordinate_transforms.geo_reference import Geo_reference                        
@@ -60,7 +61,7 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.shallow_water.shallow_water_domain import Domain
 
 # use helper methods from other unit test
-from anuga.file.test_mux import Test_Mux
+from anuga.file.test.test_mux import Test_Mux
 
 
 class Test_Data_Manager(Test_Mux):
@@ -72,7 +73,7 @@ class Test_Data_Manager(Test_Mux):
         
     def setUp(self):
         import time
-        from mesh_factory import rectangular
+        #from mesh_factory import rectangular
         
         self.verbose = Test_Data_Manager.verbose
         # Create basic mesh

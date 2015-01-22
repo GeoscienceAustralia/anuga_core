@@ -25,7 +25,7 @@ from anuga.geospatial_data.geospatial_data import ensure_absolute
 from anuga.utilities.numerical_tools import ensure_numeric  
 
 # use helper methods from other unit test
-from anuga.file.test_mux import Test_Mux
+from anuga.file.test.test_mux import Test_Mux
 
 
 

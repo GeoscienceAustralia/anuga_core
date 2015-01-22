@@ -1,7 +1,8 @@
 import unittest
 import numpy as num
+import os
 
-from urs import calculate_boundary_points, save_boundary_as_urs
+from anuga.file.urs import calculate_boundary_points, save_boundary_as_urs
 from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 
@@ -11,7 +12,11 @@ class Test_Urs(unittest.TestCase):
         pass
 
     def tearDown(self):
-        pass
+        for filename in ['swamp.tsh']:
+            try:
+                os.remove(filename)
+            except:
+                pass
         
     def test_URS_points_needed(self):
         

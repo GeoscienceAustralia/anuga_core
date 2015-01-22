@@ -109,7 +109,11 @@ def regressionTest(test_verbose=False):
     path = os.getcwd()
     print
     print 'Testing path: %s' % path
-
+    
+    common_dir = os.path.dirname(path)
+    common_dir_length = len(common_dir)
+    #print common_dir, common_dir_length
+    
     # get the terminal width
     term_width = terminal_width()
 
@@ -121,14 +125,19 @@ def regressionTest(test_verbose=False):
 
     # get all test_*.py and enclosing directories
     test_files, path_files = get_test_files(path)
+    #print path_files
     path_files.sort()
 
     files = [x for x in test_files if not x == 'test_all.py']
     files.sort()        # Ensure same order on all platforms
 
+    def my_filter(pathname):
+        
+        return pathname[common_dir_length+1:]
+    
     print
     print 'Paths searched:'
-    list_names(path_files, os.path.basename, page_width=term_width)
+    list_names(path_files, my_filter, page_width=term_width)
 
     print    
     print 'Files tested:'

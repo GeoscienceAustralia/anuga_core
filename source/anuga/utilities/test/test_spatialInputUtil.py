@@ -10,6 +10,7 @@ FIXME: Need to extend coverage to reading shapefiles + some other operations
 import unittest
 import anuga
 import numpy
+import os
 from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.utilities import plot_utils as util
 from anuga.config import g
@@ -29,7 +30,11 @@ class Test_spatialInputUtil(unittest.TestCase):
         pass
 
     def tearDown(self):
-        pass
+        for file in ['PointData_TestData.tif']:
+            try:
+                os.remove(file)
+            except:
+                pass        
 
     def make_me_a_tif(self):
         # We need to make a .tif to test some functions 

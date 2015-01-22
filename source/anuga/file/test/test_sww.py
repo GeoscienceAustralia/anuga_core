@@ -4,10 +4,10 @@ import tempfile
 import numpy as num
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
-from csv_file import load_csv_as_array, load_csv_as_dict
+from anuga.file.csv_file import load_csv_as_array, load_csv_as_dict
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.shallow_water.shallow_water_domain import Domain
-from sww import load_sww_as_domain, weed, get_mesh_and_quantities_from_file, \
+from anuga.file.sww import load_sww_as_domain, weed, get_mesh_and_quantities_from_file, \
                 Write_sww
 from anuga.file.netcdf import NetCDFFile
 
@@ -28,13 +28,18 @@ class Test_sww(unittest.TestCase):
         pass
 
     def tearDown(self):
-        pass
+        for filename in ['test_get_mesh_and_quantities_from_unique_vertices_sww_file.sww', \
+                         'test_get_mesh_and_quantities_from_sww_file.sww']:
+            try:
+                os.remove(filename)
+            except:
+                pass
         
     def test_sww2domain1(self):
         ################################################
         #Create a test domain, and evolve and save it.
         ################################################
-        from mesh_factory import rectangular
+        #from mesh_factory import rectangular
 
         #Create basic mesh
 
@@ -185,7 +190,7 @@ class Test_sww(unittest.TestCase):
         import time, os
 
         # Setup
-        from mesh_factory import rectangular
+        #from mesh_factory import rectangular
 
         # Create basic mesh (100m x 5m)
         width = 5
@@ -256,7 +261,7 @@ class Test_sww(unittest.TestCase):
         import time, os
 
         # Setup
-        from mesh_factory import rectangular
+        #from mesh_factory import rectangular
 
         # Create basic mesh (100m x 5m)
         width = 5
@@ -551,5 +556,5 @@ class Test_sww(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_sww, 'test')
-    runner = unittest.TextTestRunner(verbosity=2)
+    runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

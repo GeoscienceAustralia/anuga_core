@@ -28,7 +28,7 @@ from anuga.pmesh.mesh_interface import create_mesh_from_regions
 from anuga.file_conversion.urs2sts import urs2sts
 
 # Allow us to use helper methods from this test.
-from anuga.file.test_mux import Test_Mux
+from anuga.file.test.test_mux import Test_Mux
 
 class Test_Urs2Sts(Test_Mux):
     """ A suite of tests to test urs2sts file conversion functions.
