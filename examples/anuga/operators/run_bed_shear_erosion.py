@@ -69,8 +69,8 @@ dx = dy = 0.2 #.1           # Resolution: Length of subdivisions on both axes
 points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
 domain = Domain(points, vertices, boundary)
-domain.set_flow_algorithm('2_0')
-domain.set_name('bed_shear_erosion') # Output name
+domain.set_flow_algorithm('DE0')
+domain.set_name() # Output name
 domain.set_store_vertices_uniquely(True)
 
 print domain.statistics()
@@ -100,7 +100,7 @@ domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 #------------------------------------------------------------------------------
 print 'Set up Erosion Area to test...'
 
-from rudy_erosion import Bed_shear_erosion_operator
+from anuga import Bed_shear_erosion_operator
 polygon1 = [ [10.6, 1.0], [13.7, 1.0], [13.7, 4.0], [10.6, 4.0] ]
 
 

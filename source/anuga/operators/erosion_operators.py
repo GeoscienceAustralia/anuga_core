@@ -605,7 +605,7 @@ class Bed_shear_erosion_operator(Erosion_operator):
             #de = bsbs/100000.0*dt  # Works OK...  Bed Slope
 
 
-            if self.domain.get_discontinuous_elavation():
+            if self.domain.get_using_discontinuous_elevation():
                 height = self.stage_c[ind] - self.elev_c[ind]
                 
                 limiting = v 
