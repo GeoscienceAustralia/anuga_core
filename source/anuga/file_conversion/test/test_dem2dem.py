@@ -20,16 +20,17 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
 
 from anuga.file.sww import get_mesh_and_quantities_from_file
             
-from shallow_water_domain import Domain
+from anuga.shallow_water.shallow_water_domain import Domain
 
 from anuga.abstract_2d_finite_volumes.mesh_factory \
         import rectangular_cross
-from sww_interrogate import get_maximum_inundation_elevation, \
+from anuga.shallow_water.sww_interrogate import \
+            get_maximum_inundation_elevation, \
             get_maximum_inundation_location, get_maximum_inundation_data, \
             get_flow_through_cross_section, get_energy_through_cross_section
             
             
-from dem2dem import dem2dem
+from anuga.file_conversion.dem2dem import dem2dem
                 
 
 class Test_Dem2Dem(unittest.TestCase):

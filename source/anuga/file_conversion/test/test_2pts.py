@@ -15,8 +15,8 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 
 # local modules
-from sdf2pts import sdf2pts
-from sww2pts import sww2pts
+from anuga.file_conversion.sdf2pts import sdf2pts
+from anuga.file_conversion.sww2pts import sww2pts
 
 
 class Test_2Pts(unittest.TestCase):

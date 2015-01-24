@@ -10,8 +10,8 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \
 
 from anuga.file.netcdf import NetCDFFile
 
-from dem2array import dem2array
-from asc2dem import asc2dem
+from anuga.file_conversion.dem2array import dem2array
+from anuga.file_conversion.asc2dem import asc2dem
 
 
 class Test_dem2array(unittest.TestCase):
