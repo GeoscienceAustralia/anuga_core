@@ -6,7 +6,7 @@ import unittest
 import logging
 import anuga.utilities.log as log
 
-LOGFILE_NAME = 'test.log'
+LOGFILE_NAME = 'myout.log'
 STDOUT_LOG_NAME = 'stdout.log'
 
 
@@ -60,6 +60,8 @@ test at level INFO'''
         sys.stderr = save_stderr
         sys.stdout = save_stdout
 
+        print os.listdir()
+  
         # check logfile is as expected
         fd = open(LOGFILE_NAME, 'r')
         lines = fd.readlines()
