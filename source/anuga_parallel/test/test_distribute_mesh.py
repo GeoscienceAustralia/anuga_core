@@ -8,10 +8,10 @@ from math import sqrt
 from anuga import Domain
 from anuga import rectangular_cross
 
-from anuga_parallel.distribute_mesh import pmesh_divide_metis
-from anuga_parallel.distribute_mesh import build_submesh
-from anuga_parallel.distribute_mesh import submesh_full, submesh_ghost, submesh_quantities
-from anuga_parallel.distribute_mesh import extract_submesh, rec_submesh, send_submesh
+from anuga.parallel.distribute_mesh import pmesh_divide_metis
+from anuga.parallel.distribute_mesh import build_submesh
+from anuga.parallel.distribute_mesh import submesh_full, submesh_ghost, submesh_quantities
+from anuga.parallel.distribute_mesh import extract_submesh, rec_submesh, send_submesh
 
 import numpy as num
 

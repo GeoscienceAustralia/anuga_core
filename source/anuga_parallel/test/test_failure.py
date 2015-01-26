@@ -19,7 +19,7 @@ from math import pi, pow, sqrt
 
 import numpy as num
 #from parallel_inlet_operator import Parallel_Inlet_operator
-from anuga_parallel import distribute, myid, numprocs, finalize
+from anuga.parallel import distribute, myid, numprocs, finalize
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 
 #from parallel_operator_factory import Inlet_operator, Boyd_box_operator

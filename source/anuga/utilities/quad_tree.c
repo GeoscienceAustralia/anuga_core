@@ -339,8 +339,8 @@ void delete_quad_tree(quad_tree * quadtree)
 
 void quad_tree_make_children(quad_tree *node){
 
-  double xmid = (node->xmin+node->xmax)/2;
-  double ymid = (node->ymin+node->ymax)/2;
+  //double xmid = (node->xmin+node->xmax)/2;
+  //double ymid = (node->ymin+node->ymax)/2;
   double width = (node->xmax-node->xmin);
   double height = (node->ymax-node->ymin);
   // add quads 1-4

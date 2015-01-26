@@ -31,7 +31,7 @@ from anuga import indent
 try:
     import local_config as config
 except:
-    import anuga_parallel.config as config
+    import config as config
 
 
 verbose = False

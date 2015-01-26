@@ -85,14 +85,23 @@ from anuga.config import indent
 #----------------------------
 # Parallel api 
 #----------------------------
-from anuga_parallel.parallel_api import distribute
-from anuga_parallel.parallel_api import myid, numprocs, get_processor_name
-from anuga_parallel.parallel_api import send, receive
-from anuga_parallel.parallel_api import pypar_available, barrier, finalize
+## from anuga_parallel.parallel_api import distribute
+## from anuga_parallel.parallel_api import myid, numprocs, get_processor_name
+## from anuga_parallel.parallel_api import send, receive
+## from anuga_parallel.parallel_api import pypar_available, barrier, finalize
+
+## if pypar_available:
+##     from anuga_parallel.parallel_api import sequential_distribute_dump
+##     from anuga_parallel.parallel_api import sequential_distribute_load
+
+from anuga.parallel.parallel_api import distribute
+from anuga.parallel.parallel_api import myid, numprocs, get_processor_name
+from anuga.parallel.parallel_api import send, receive
+from anuga.parallel.parallel_api import pypar_available, barrier, finalize
 
 if pypar_available:
-    from anuga_parallel.parallel_api import sequential_distribute_dump
-    from anuga_parallel.parallel_api import sequential_distribute_load
+    from anuga.parallel.parallel_api import sequential_distribute_dump
+    from anuga.parallel.parallel_api import sequential_distribute_load
 
 
 #-----------------------------
@@ -225,10 +234,10 @@ from anuga.operators.erosion_operators import Flat_fill_slice_erosion_operator
 
 
 if pypar_available:
-    from anuga_parallel.parallel_operator_factory import Inlet_operator
-    from anuga_parallel.parallel_operator_factory import Boyd_box_operator
-    from anuga_parallel.parallel_operator_factory import Boyd_pipe_operator
-    from anuga_parallel.parallel_operator_factory import Weir_orifice_trapezoid_operator
+    from anuga.parallel.parallel_operator_factory import Inlet_operator
+    from anuga.parallel.parallel_operator_factory import Boyd_box_operator
+    from anuga.parallel.parallel_operator_factory import Boyd_pipe_operator
+    from anuga.parallel.parallel_operator_factory import Weir_orifice_trapezoid_operator
 else:
     from anuga.structures.inlet_operator import Inlet_operator
     from anuga.structures.boyd_box_operator import Boyd_box_operator

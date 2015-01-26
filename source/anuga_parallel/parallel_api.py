@@ -14,18 +14,18 @@ from anuga.utilities.parallel_abstraction import pypar_available, barrier
 
 # ANUGA parallel engine (only load if pypar can)
 if pypar_available:
-    from anuga_parallel.sequential_distribute import sequential_distribute_dump
-    from anuga_parallel.sequential_distribute import sequential_distribute_load
+    from anuga.parallel.sequential_distribute import sequential_distribute_dump
+    from anuga.parallel.sequential_distribute import sequential_distribute_load
     
-    from anuga_parallel.distribute_mesh  import send_submesh
-    from anuga_parallel.distribute_mesh  import rec_submesh
-    from anuga_parallel.distribute_mesh  import extract_submesh
+    from anuga.parallel.distribute_mesh  import send_submesh
+    from anuga.parallel.distribute_mesh  import rec_submesh
+    from anuga.parallel.distribute_mesh  import extract_submesh
 
     # Mesh partitioning using Metis
-    from anuga_parallel.distribute_mesh import build_submesh
-    from anuga_parallel.distribute_mesh import pmesh_divide_metis_with_map
+    from anuga.parallel.distribute_mesh import build_submesh
+    from anuga.parallel.distribute_mesh import pmesh_divide_metis_with_map
 
-    from anuga_parallel.parallel_shallow_water import Parallel_domain
+    from anuga.parallel.parallel_shallow_water import Parallel_domain
     
     
 

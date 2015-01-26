@@ -18,7 +18,7 @@ from parallel_boyd_box_operator import Parallel_Boyd_box_operator
 from parallel_boyd_pipe_operator import Parallel_Boyd_pipe_operator
 from parallel_weir_orifice_trapezoid_operator import Parallel_Weir_orifice_trapezoid_operator#added by PM 22/10/2013
 
-from anuga_parallel import distribute, myid, numprocs, finalize
+from . import distribute, myid, numprocs, finalize
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 
 import anuga.structures.boyd_box_operator
@@ -28,7 +28,7 @@ import anuga.structures.inlet_operator
 import anuga.structures.weir_orifice_trapezoid_operator #added by PM 22/10/2013
 
 from anuga.utilities.numerical_tools import ensure_numeric
-from anuga_parallel.parallel_shallow_water import Parallel_domain
+from anuga.parallel.parallel_shallow_water import Parallel_domain
 
 import math
 

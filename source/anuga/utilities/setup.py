@@ -15,7 +15,7 @@ def configuration(parent_package='',top_path=None):
                          sources='sparse_ext.c')
 
     config.add_extension('sparse_matrix_ext',
-                         sources='sparse_matrix_ext.c')
+                         sources=['sparse_matrix_ext.c', 'sparse_dok.c'])
 
 
     config.add_extension('util_ext',
@@ -23,7 +23,8 @@ def configuration(parent_package='',top_path=None):
 
     config.add_extension('cg_ext',
                          sources='cg_ext.c',
-                         extra_compile_args=['-fopenmp'])
+                         extra_compile_args=['-fopenmp'],
+                         extra_link_args=['-fopenmp'])
 
     config.add_extension('quad_tree_ext',
                          sources=['quad_tree_ext.c', 'quad_tree.c'])
