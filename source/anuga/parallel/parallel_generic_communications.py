@@ -39,7 +39,7 @@ def communicate_flux_timestep(domain, yieldstep, finaltime):
     t0 = time.time()
 
 
-    import anuga_parallel.pypar_extras as par_exts
+    import anuga.parallel.pypar_extras as par_exts
 
     par_exts.allreduce(domain.local_timestep, pypar.MIN,
                       buffer=domain.global_timestep,
@@ -175,7 +175,7 @@ def communicate_ghosts_asynchronous(domain):
 
     # Do all the comuunication using isend/irecv via the buffers in the
     # full_send_dict and ghost_recv_dict
-    from anuga_parallel.pypar_extras import mpiextras
+    from anuga.parallel.pypar_extras import mpiextras
 
     mpiextras.send_recv_via_dicts(domain.full_send_dict,domain.ghost_recv_dict)
 

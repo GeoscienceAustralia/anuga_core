@@ -28,10 +28,10 @@ from anuga import Transmissive_boundary
 from anuga import rectangular_cross_domain
 
 
-from anuga_parallel import distribute, myid, numprocs, send, receive, barrier, finalize
+from anuga import distribute, myid, numprocs, send, receive, barrier, finalize
 
-from anuga_parallel.sequential_distribute import sequential_distribute_dump
-from anuga_parallel.sequential_distribute import sequential_distribute_load
+from anuga.parallel.sequential_distribute import sequential_distribute_dump
+from anuga.parallel.sequential_distribute import sequential_distribute_load
 
 import anuga.utilities.plot_utils as util
 

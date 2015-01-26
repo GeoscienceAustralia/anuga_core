@@ -1,5 +1,5 @@
 import os
-from anuga_parallel import barrier, numprocs, myid
+from anuga import barrier, numprocs, myid
 import numpy
 
 class RiverWall:

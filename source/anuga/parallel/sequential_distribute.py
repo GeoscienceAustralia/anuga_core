@@ -247,7 +247,7 @@ def sequential_distribute_dump(domain, numprocs=1, verbose=False, partition_dir=
 def sequential_distribute_load(filename = 'domain', partition_dir = '.', verbose = False):
 
 
-    from anuga_parallel import myid, numprocs
+    from anuga import myid, numprocs
 
     from os.path import join
 

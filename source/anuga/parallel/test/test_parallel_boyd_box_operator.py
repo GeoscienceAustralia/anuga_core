@@ -10,6 +10,15 @@ from anuga.abstract_2d_finite_volumes.util import file_function
 
 import anuga
 
+import warnings
+warnings.simplefilter("ignore")
+
+#from anuga.structures.boyd_box_operator import Boyd_box_operator
+#from anuga.structures.inlet_operator import Inlet_operator
+                            
+#from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
+
+
 #------------------------------------------
 # Import pypar without the initial output
 #------------------------------------------
@@ -24,14 +33,11 @@ sys.stdout = sys.__stdout__
 from math import pi, pow, sqrt
 
 import numpy as num
-
-#from parallel_inlet_operator import Parallel_Inlet_operator
-
-from anuga_parallel import distribute, myid, numprocs, finalize
+from anuga.parallel.parallel_inlet_operator import Parallel_Inlet_operator
+from anuga.parallel import distribute, myid, numprocs, finalize
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 
-from anuga_parallel.parallel_operator_factory import Inlet_operator
-from anuga_parallel.parallel_operator_factory import Boyd_pipe_operator
+from anuga.parallel.parallel_operator_factory import Inlet_operator, Boyd_box_operator
 
 import random
 import unittest
@@ -48,7 +54,7 @@ nprocs = 3
 length = 40.
 width = 16.
 
-dx = dy = 2           # Resolution: Length of subdivisions on both axes
+dx = dy = 4           # Resolution: Length of subdivisions on both axes
 
 #----------------------------------------------------------------------
 # Setup initial conditions
@@ -86,10 +92,12 @@ def topography(x, y):
 
 #filename=os.path.join(path, 'example_rating_curve.csv')
 
+mod_path = get_pathname_from_package('anuga.parallel')
+
 line0 = [[10.0, 10.0], [30.0, 10.0]]
 #line0 = [[29.0, 10.0], [30.0, 10.0]]
 line1 = [[0.0, 10.0], [0.0, 15.0]]
-Q0 = file_function(os.path.join('..','data','test_hydrograph.tms'), quantities=['hydrograph'])
+Q0 = file_function(os.path.join(mod_path,'data','test_hydrograph.tms'), quantities=['hydrograph'])
 Q1 = 5.0
 
 samples = 50
@@ -107,8 +115,8 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
                                                    len2=width)
 
     domain = anuga.Domain(points, vertices, boundary)   
-    #domain.set_name('output_parallel_boyd_pipe_op')                 # Output name
     domain.set_store(False)
+    #domain.set_name('output_parallel_frac_op')                 # Output name
     domain.set_default_order(2)
 
 ##-----------------------------------------------------------------------
@@ -117,7 +125,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
 
     if parallel:
         domain = distribute(domain)
-        #domain.dump_triangulation("boyd_pipe_domain.png")
+        #domain.dump_triangulation("frac_op_domain.png")
     
 
 ##-----------------------------------------------------------------------
@@ -162,26 +170,30 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
 
     inlet0 = None
     inlet1 = None
-    boyd_pipe0 = None
+    boyd_box0 = None
     
-    inlet0 = Inlet_operator(domain, line0, Q0, verbose = False)
-    inlet1 = Inlet_operator(domain, line1, Q1, verbose = False)
+    inlet0 = Inlet_operator(domain, line0, Q0, verbose = False, label = 'Inlet_0')
+    inlet1 = Inlet_operator(domain, line1, Q1, verbose = False, label = 'Inlet_1')
     
     # Enquiry point [ 19.    2.5] is contained in two domains in 4 proc case
     
-    boyd_pipe0 = Boyd_pipe_operator(domain,
+    boyd_box0 = Boyd_box_operator(domain,
                                   end_points=[[9.0, 2.5],[19.0, 2.5]],
                                   losses=1.5,
-                                  diameter=5.0,
-                                  apron=5.0,
+                                  width=5.0,
+                                  #apron=5.,
                                   use_momentum_jet=True,
                                   use_velocity_head=False,
                                   manning=0.013,
+                                  label='Boyd_Box_0',
                                   verbose=False)
         
-    if inlet0 is not None and verbose: inlet0.print_statistics()
-    if inlet1 is not None and verbose: inlet1.print_statistics()
-    if boyd_pipe0 is not None and verbose: boyd_pipe0.print_statistics()
+    #if inlet0 is not None and verbose: inlet0.print_statistics()
+    #if inlet1 is not None and verbose: inlet1.print_statistics()
+    
+    if boyd_box0 is not None and verbose:
+        print "++++", myid
+        boyd_box0.print_statistics()
 
 #    if parallel:
 #        factory = Parallel_operator_factory(domain, verbose = True)
@@ -228,7 +240,10 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
         stage = domain.get_quantity('stage')
 
 
-        if boyd_pipe0 is not None and verbose : boyd_pipe0.print_timestepping_statistics()
+        if boyd_box0 is not None and verbose :
+            if myid == boyd_box0.master_proc:
+                print 'master_proc ',myid
+                boyd_box0.print_timestepping_statistics()
  
         #for i in range(samples):
         #    if tri_ids[i] >= 0:                
@@ -237,6 +252,8 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
         sys.stdout.flush()
  
         pass
+    
+    domain.sww_merge(delete_old=True)
 
     success = True
 
@@ -293,19 +310,16 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
 
         assert(success)
 
-    if parallel:
-        finalize()
-
     return control_data
 
 
 # Test an nprocs-way run of the shallow water equations
 # against the sequential code.
 
-class Test_parallel_boyd_pipe_op(unittest.TestCase):
+class Test_parallel_boyd_box_operator(unittest.TestCase):
     def test_parallel_operator(self):
         #print "Expect this test to fail if not run from the parallel directory."
-        result = os.system("mpirun -np %d python test_parallel_boyd_pipe_operator.py" % nprocs)
+        result = os.system("mpirun -np %d python test_parallel_boyd_box_operator.py" % nprocs)
         assert_(result == 0)
 
 
@@ -319,7 +333,7 @@ def assert_(condition, msg="Assertion Failed"):
 if __name__=="__main__":
     if numprocs == 1:
         runner = unittest.TextTestRunner()
-        suite = unittest.makeSuite(Test_parallel_boyd_pipe_op, 'test')
+        suite = unittest.makeSuite(Test_parallel_boyd_box_operator, 'test')
         #print "Running for numproc = 1"
         runner.run(suite)
     else:
@@ -353,5 +367,6 @@ if __name__=="__main__":
         run_test(parallel=True, control_data = control_data, test_points = test_points, verbose = verbose)
 
 
+    finalize()
     
 

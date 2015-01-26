@@ -55,9 +55,9 @@ from anuga import rectangular_cross_domain
 from anuga.pmesh.mesh_interface import create_mesh_from_regions
 from anuga import create_domain_from_file
 
-from anuga_parallel import distribute, myid, numprocs, send, receive, barrier, finalize
+from anuga.parallel import distribute, myid, numprocs, send, receive, barrier, finalize
 
-from anuga.file.test_mux import Test_Mux
+from anuga.file.test.test_mux import Test_Mux
 
 verbose = False
 

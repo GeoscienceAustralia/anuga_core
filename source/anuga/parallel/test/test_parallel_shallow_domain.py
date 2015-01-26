@@ -38,6 +38,7 @@ sys.stdout = sys.__stdout__
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.util_ext        import double_precision
 from anuga.utilities.norms           import l1_norm, l2_norm, linf_norm
+from anuga.utilities.system_tools    import get_pathname_from_package
 
 from anuga import Domain
 from anuga import Reflective_boundary
@@ -49,12 +50,14 @@ from anuga import rectangular_cross
 from anuga import create_domain_from_file
 
 
-from anuga_parallel import distribute, myid, numprocs, finalize
+from anuga import distribute, myid, numprocs, finalize
 
 
 #--------------------------------------------------------------------------
 # Setup parameters
 #--------------------------------------------------------------------------
+
+mod_path = get_pathname_from_package('anuga.parallel')
 
 mesh_filename = os.path.join('..','data','merimbula_10785_1.tsh')
 #mesh_filename = os.path.join('..','data','test-100.tsh')

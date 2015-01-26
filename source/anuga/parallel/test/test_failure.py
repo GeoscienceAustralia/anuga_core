@@ -10,45 +10,35 @@ from anuga.abstract_2d_finite_volumes.util import file_function
 
 import anuga
 
-import warnings
-warnings.simplefilter("ignore")
-
-#------------------------------------------
-# Import pypar without the initial output
-#------------------------------------------
-class NullStream:
-    def write(self,text):
-        pass
-sys.stdout = NullStream()
-import pypar
-sys.stdout = sys.__stdout__
-
-
+from anuga.structures.boyd_box_operator import Boyd_box_operator
+from anuga.structures.inlet_operator import Inlet_operator
+                            
+#from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
+     
 from math import pi, pow, sqrt
 
 import numpy as num
-from anuga_parallel.parallel_inlet_operator import Parallel_Inlet_operator
-from anuga_parallel import distribute, myid, numprocs, finalize
+#from parallel_inlet_operator import Parallel_Inlet_operator
+from anuga.parallel import distribute, myid, numprocs, finalize
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 
-from anuga_parallel.parallel_operator_factory import Inlet_operator, Boyd_box_operator
-
+#from parallel_operator_factory import Inlet_operator, Boyd_box_operator
+import pypar
 import random
-import unittest
 
 
-"""
+"""test_that_culvert_runs_rating
 
-This test exercises the parallel culvert and checks values
+This test exercises the culvert and checks values outside rating curve
+are dealt with       
 """
 verbose = False
-nprocs = 3
-    
+path = get_pathname_from_package('anuga.culvert_flows')    
 
 length = 40.
-width = 16.
+width = 15.
 
-dx = dy = 4           # Resolution: Length of subdivisions on both axes
+dx = dy = 0.5          # Resolution: Length of subdivisions on both axes
 
 #----------------------------------------------------------------------
 # Setup initial conditions
@@ -84,12 +74,15 @@ def topography(x, y):
         
     return z
 
-#filename=os.path.join(path, 'example_rating_curve.csv')
+filename=os.path.join(path, 'example_rating_curve.csv')
+
+
+mod_path = get_pathname_from_package('anuga.parallel')
 
 line0 = [[10.0, 10.0], [30.0, 10.0]]
 #line0 = [[29.0, 10.0], [30.0, 10.0]]
 line1 = [[0.0, 10.0], [0.0, 15.0]]
-Q0 = file_function(os.path.join('..','data','test_hydrograph.tms'), quantities=['hydrograph'])
+Q0 = file_function(os.path.join(mod_path,'data','test_hydrograph.tms'), quantities=['hydrograph'])
 Q1 = 5.0
 
 samples = 50
@@ -107,17 +100,15 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
                                                    len2=width)
 
     domain = anuga.Domain(points, vertices, boundary)   
-    #domain.set_name()                 # Output name
     domain.set_store(False)
+    #domain.set_name('output_parallel_failure')                 # Output name
     domain.set_default_order(2)
 
 ##-----------------------------------------------------------------------
 ## Distribute domain
 ##-----------------------------------------------------------------------
 
-    if parallel:
-        domain = distribute(domain)
-        #domain.dump_triangulation("frac_op_domain.png")
+    if parallel: domain = distribute(domain)
     
 
 ##-----------------------------------------------------------------------
@@ -132,7 +123,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     
     Bi = anuga.Dirichlet_boundary([5.0, 0.0, 0.0])
     Br = anuga.Reflective_boundary(domain)              # Solid reflective wall
-    domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+    domain.set_boundary({'left': Bi, 'right': Br, 'top': Br, 'bottom': Br})
 
 
 ##-----------------------------------------------------------------------
@@ -164,31 +155,33 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     inlet1 = None
     boyd_box0 = None
     
-    inlet0 = Inlet_operator(domain, line0, Q0, verbose = False, label = 'Inlet_0')
-    inlet1 = Inlet_operator(domain, line1, Q1, verbose = False, label = 'Inlet_1')
+    #inlet0 = Inlet_operator(domain, line0, Q0, debug = True)
+    #inlet1 = Inlet_operator(domain, line1, Q1, debug = True)
     
-    # Enquiry point [ 19.    2.5] is contained in two domains in 4 proc case
-    
-    boyd_box0 = Boyd_box_operator(domain,
-                                  end_points=[[9.0, 2.5],[19.0, 2.5]],
-                                  losses=1.5,
-                                  width=5.0,
-                                  apron=5.0,
-                                  use_momentum_jet=True,
-                                  use_velocity_head=False,
-                                  manning=0.013,
-                                  label='Boyd_Box_0',
-                                  verbose=False)
-        
-    #if inlet0 is not None and verbose: inlet0.print_statistics()
-    #if inlet1 is not None and verbose: inlet1.print_statistics()
-    
-    if boyd_box0 is not None and verbose:
-        print "++++", myid
-        boyd_box0.print_statistics()
+    ## # Enquiry point [ 19.    2.5] is contained in two domains in 4 proc case
+    ## if myid == 5 and parallel:
+    ##     boyd_box0 = Boyd_box_operator(domain,
+    ##                                   end_points=[[9.0, 2.5],[13.0, 2.5]],
+    ##                                   losses=1.5,
+    ##                                   width=1.0,
+    ##                                   apron=0.5,
+    ##                                   use_momentum_jet=True,
+    ##                                   use_velocity_head=False,
+    ##                                   manning=0.013,
+    ##                                   verbose=False)
+    ## elif not parallel:
+    ##     boyd_box0 = Boyd_box_operator(domain,
+    ##                                   end_points=[[9.0, 2.5],[13.0, 2.5]],
+    ##                                   losses=1.5,
+    ##                                   width=1.0,
+    ##                                   apron=0.5,
+    ##                                   use_momentum_jet=True,
+    ##                                   use_velocity_head=False,
+    ##                                   manning=0.013,
+    ##                                   verbose=False)
 
 #    if parallel:
-#        factory = Parallel_operator_factory(domain, verbose = True)
+#        factory = Parallel_operator_factory(domain, debug = True)
 #
 #        inlet0 = factory.inlet_operator_factory(line0, Q0)
 #        inlet1 = factory.inlet_operator_factory(line1, Q1)
@@ -223,20 +216,13 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
     ## Evolve system through time
     ##-----------------------------------------------------------------------
 
-    for t in domain.evolve(yieldstep = 2.0, finaltime = 20.0):
-        if myid == 0 and verbose:
-            domain.write_time()
+    for t in domain.evolve(yieldstep = 1.0, finaltime = 4):
+        if verbose: domain.write_time()
 
         #print domain.volumetric_balance_statistics()
     
         stage = domain.get_quantity('stage')
 
-
-        if boyd_box0 is not None and verbose :
-            if myid == boyd_box0.master_proc:
-                print 'master_proc ',myid
-                boyd_box0.print_timestepping_statistics()
- 
         #for i in range(samples):
         #    if tri_ids[i] >= 0:                
         #        if verbose: print 'P%d tri %d, value = %s' %(myid, i, stage.centroid_values[tri_ids[i]])
@@ -245,6 +231,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
  
         pass
 
+ 
     domain.sww_merge(delete_old=True)
     
     success = True
@@ -259,7 +246,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
         for i in range(samples):
             assert(tri_ids[i] >= 0)
             control_data.append(stage.centroid_values[tri_ids[i]])
-        
+
         if inlet0 is not None:
             control_data.append(inlet0.inlet.get_average_stage())
             control_data.append(inlet0.inlet.get_average_xmom())
@@ -275,8 +262,10 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
             if tri_ids[i] >= 0:
                 local_success = num.allclose(control_data[i], stage.centroid_values[tri_ids[i]])
                 success = success and local_success
-                if verbose: 
-                    print 'P%d tri %d, control = %s, actual = %s, Success = %s' %(myid, i, control_data[i], stage.centroid_values[tri_ids[i]], local_success) 
+                if verbose and not local_success: 
+                    print 'P%d tri %d, control = %s, actual = %s, Success = %s' %(myid, i, control_data[i], stage.centroid_values[tri_ids[i]], local_success)
+                    sys.stdout.flush()
+                    
                 
                 
         if inlet0 is not None:
@@ -300,69 +289,41 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
                     print 'P%d average depth, control = %s, actual = %s' %(myid, control_data[samples+4], average_depth)
 
 
-        assert(success)
+        #assert(success)
 
     return control_data
 
 
-# Test an nprocs-way run of the shallow water equations
-# against the sequential code.
-
-
-
-class Test_parallel_boyd_box_apron(unittest.TestCase):
-    def test_parallel_operator(self):
-        
-
-        #print "Expect this test to fail if not run from the parallel directory."
-        result = os.system("mpirun -np %d python test_parallel_boyd_box_op_apron.py" % nprocs)
-        assert_(result == 0)
-
-
-# Because we are doing assertions outside of the TestCase class
-# the PyUnit defined assert_ function can't be used.
-def assert_(condition, msg="Assertion Failed"):
-    if condition == False:
-        #pypar.finalize()
-        raise AssertionError, msg
-
 if __name__=="__main__":
-    if numprocs == 1:
-        runner = unittest.TextTestRunner()
-        suite = unittest.makeSuite(Test_parallel_boyd_box_apron, 'test')
-        #print "Running for numproc = 1"
-        runner.run(suite)
-    else:
-        #print "Running for numproc > 1"
-        pypar.barrier()
-        test_points = []
-
-        if myid == 0:
-            if verbose: print 'PARALLEL START'
-            for i in range(samples):
-                x = random.randrange(0,1000)/1000.0 * length
-                y = random.randrange(0,1000)/1000.0 * width
-                point = [x, y]
-                test_points.append(point)
-
-            for i in range(1,numprocs):
-                pypar.send(test_points, i)
-        else:
-            test_points = pypar.receive(0)
-
-        if myid == 0:
-            control_data = run_test(parallel=False, test_points = test_points, verbose = verbose)
-
-            for proc in range(1,numprocs):
-                pypar.send(control_data, proc)
-        else:
-            control_data = pypar.receive(0)
-
-
-        pypar.barrier()
-        run_test(parallel=True, control_data = control_data, test_points = test_points, verbose = verbose)
-
-
-    finalize()
     
+    test_points = []
 
+    if myid == 0:
+
+        for i in range(samples):
+            x = random.randrange(0,1000)/1000.0 * length
+            y = random.randrange(0,1000)/1000.0 * width
+            point = [x, y]
+            test_points.append(point)
+        
+        for i in range(1,numprocs):
+            pypar.send(test_points, i)
+    else:
+        test_points = pypar.receive(0)
+
+    print "Test Points::"
+    print test_points
+
+    if myid == 0:
+        control_data = run_test(parallel=False, test_points = test_points, verbose = True)
+        
+        for proc in range(1,numprocs):
+            pypar.send(control_data, proc)
+    else:
+        control_data = pypar.receive(0)
+
+    pypar.barrier()
+    run_test(parallel=True, control_data = control_data, test_points = test_points, verbose = True)
+
+
+finalize()

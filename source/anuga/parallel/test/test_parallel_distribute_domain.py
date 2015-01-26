@@ -14,7 +14,7 @@ import unittest
 import os
 import sys
 
-
+from anuga.utilities.system_tools import get_pathname_from_package
 
 import numpy as num
 
@@ -47,15 +47,17 @@ from anuga import rectangular_cross
 from anuga import create_domain_from_file
 
 
-from anuga_parallel import distribute, myid, numprocs, finalize
+from anuga.parallel import distribute, myid, numprocs, finalize
 
 
 #--------------------------------------------------------------------------
 # Setup parameters
 #--------------------------------------------------------------------------
 
-mesh_filename = os.path.join('..','data','merimbula_10785_1.tsh')
-#mesh_filename = os.path.join('..','data','test-100.tsh')
+mod_path = get_pathname_from_package('anuga.parallel')
+
+mesh_filename = os.path.join(mod_path,'data','merimbula_10785_1.tsh')
+#mesh_filename = os.path.join(mod_path,'data','test-100.tsh')
 yieldstep = 1
 finaltime = 20
 quantity = 'stage'

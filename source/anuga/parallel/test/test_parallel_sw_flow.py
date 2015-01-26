@@ -24,11 +24,9 @@ from anuga import Reflective_boundary
 from anuga import Dirichlet_boundary
 from anuga import Time_boundary
 from anuga import Transmissive_boundary
-
 from anuga import rectangular_cross_domain
 
-
-from anuga_parallel import distribute, myid, numprocs, send, receive, barrier, finalize
+from anuga import distribute, myid, numprocs, send, receive, barrier, finalize
 
 #--------------------------------------------------------------------------
 # Setup parameters
