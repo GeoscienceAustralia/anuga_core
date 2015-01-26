@@ -195,37 +195,6 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
         print "++++", myid
         boyd_box0.print_statistics()
 
-#    if parallel:
-#        factory = Parallel_operator_factory(domain, verbose = True)
-#
-#        inlet0 = factory.inlet_operator_factory(line0, Q0)
-#        inlet1 = factory.inlet_operator_factory(line1, Q1)
-#        
-#        boyd_box0 = factory.boyd_box_operator_factory(end_points=[[9.0, 2.5],[19.0, 2.5]],
-#                                          losses=1.5,
-#                                          width=1.5,
-#                                          apron=5.0,
-#                                          use_momentum_jet=True,
-#                                          use_velocity_head=False,
-#                                          manning=0.013,
-#                                          verbose=False)
-#
-#    else:
-#        inlet0 = Inlet_operator(domain, line0, Q0)
-#        inlet1 = Inlet_operator(domain, line1, Q1)
-#
-#        # Enquiry point [ 19.    2.5] is contained in two domains in 4 proc case
-#        boyd_box0 = Boyd_box_operator(domain,
-#                          end_points=[[9.0, 2.5],[19.0, 2.5]],
-#                          losses=1.5,
-#                          width=1.5,
-#                          apron=5.0,
-#                          use_momentum_jet=True,
-#                          use_velocity_head=False,
-#                          manning=0.013,
-#                          verbose=False)
-    
-    #######################################################################
 
     ##-----------------------------------------------------------------------
     ## Evolve system through time
@@ -245,9 +214,6 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
                 print 'master_proc ',myid
                 boyd_box0.print_timestepping_statistics()
  
-        #for i in range(samples):
-        #    if tri_ids[i] >= 0:                
-        #        if verbose: print 'P%d tri %d, value = %s' %(myid, i, stage.centroid_values[tri_ids[i]])
                     
         sys.stdout.flush()
  
@@ -310,6 +276,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
 
         assert(success)
 
+        
     return control_data
 
 

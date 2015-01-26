@@ -15,14 +15,6 @@ print 'Changing to', os.getcwd() # This is now different from buildroot
 execfile('test_all.py')
 
 
-#os.chdir(buildroot)
-#os.chdir('source')
-#os.chdir('anuga_1d')
-#print
-#print '======================= anuga_1d tests ================================='    
-#print 'Changing to', os.getcwd() # This is now different from buildroot   
-#xecfile('test_all.py')
-
 
 
 # Try to run parallel tests if pypar is installed
@@ -31,14 +23,15 @@ from anuga import pypar_available
 if pypar_available:
     os.chdir(buildroot)
     os.chdir('source')
-    os.chdir('anuga_parallel')
+    os.chdir('anuga')
+    os.chdir('parallel')
     os.chdir('test')
     print
-    print '===================== anuga_parallel tests =========================='
+    print '===================== anuga parallel tests =========================='
     print 'Changing to', os.getcwd()
     execfile('test_all.py')
 else:
-    print 'anuga_parallel tests not run as pypar not installed'
+    print 'anuga.parallel tests not run as pypar not installed'
 
 
 
@@ -46,8 +39,8 @@ else:
 
 # FIXME SR 20130327: Just commenting out this comment to run the validation tests.
 # We are currently undating the automated validation tests, so at present this point to
-# something which most people do get as part of the download. We will update and
-# point them to the new anuga_validation_tests in future.
+# something which most people do not get as part of the download. We will update and
+# point them to the new validation_tests in future.
 """
 print
 print '************************** NOTE *************************************'

@@ -40,6 +40,7 @@ os.chdir(buildroot)
 
 
 os.chdir(buildroot)
+print
 print 'Changing to', os.getcwd()        
 
 #--------------------------------------------------
@@ -47,6 +48,7 @@ print 'Changing to', os.getcwd()
 #--------------------------------------------------
 
 try:
+    print
     print '-----------------------------------------------'
     print 'Attempting to compile Metis'
     print '-----------------------------------------------'
@@ -55,7 +57,8 @@ try:
 
     # Attempt to compile Metis for use with anuga_parallel
     os.chdir('source')
-    os.chdir('anuga_parallel')
+    os.chdir('anuga')
+    os.chdir('parallel')
     os.chdir('pymetis')
 
     print 'Changing to', os.getcwd()        
@@ -84,6 +87,7 @@ try:
         print msg
         
 except:
+    print 
     print 'pymetis could not compile as pypar not installed'
 
 
@@ -103,7 +107,8 @@ try:
     import pypar
     
     os.chdir('source')
-    os.chdir('anuga_parallel')
+    os.chdir('anuga')
+    os.chdir('parallel')
     os.chdir('pypar_extras')
 
     cmd = 'python anuga_setup.py'
@@ -119,7 +124,7 @@ try:
         msg = 'Compiled pypar_extras successfully.'
         print msg
 except:
-    print 'anuga_parallel code not compiled as pypar not installed'
+    print 'anuga.parallel code not compiled as pypar not installed'
 
 
 
