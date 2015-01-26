@@ -104,11 +104,13 @@ Parameters
                
         #assert num.allclose(x,)
 
-
-        os.remove(root + '.dem')
-        os.remove(root + '.asc')
-        os.remove(root + '.prj')
-
+        try:
+            os.remove(root + '.dem')
+            os.remove(root + '.asc')
+            os.remove(root + '.prj')
+        except:
+            # Expect error on windows
+            pass
 
 
 #-------------------------------------------------------------
