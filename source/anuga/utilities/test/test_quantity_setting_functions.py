@@ -293,9 +293,6 @@ class Test_quantity_setting_functions(unittest.TestCase):
         testPts_Y = numpy.array([1., 20.])
         fitted = F(testPts_X,testPts_Y)
 
-        import pdb
-        pdb.set_trace()
-    
         # The fitted value in the trench should be -1000.
         assert(numpy.allclose(fitted[0],-1000.))
 
