@@ -429,7 +429,7 @@ def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=Fals
             #             num.array(fid.variables[quantity],dtype=num.float32)
             q = fid.variables[quantity]
             out_s_c_quantities[quantity][ftri_l2g] = \
-                         num.array(q,dtype=num.float32)[ftri_ids]
+                         num.array(q).astype(num.float32)[ftri_ids]
 
         
         #Collate all dynamic c quantities according to their timestep
@@ -438,7 +438,7 @@ def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=Fals
             #print q.shape
             for i in range(n_steps):
                 out_d_c_quantities[quantity][i][ftri_l2g] = \
-                           num.array(q[i],dtype=num.float32)[ftri_ids]
+                           num.array(q[i]).astype(num.float32)[ftri_ids]
 
 
         fid.close()
@@ -676,14 +676,16 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
         for quantity in static_quantities:
             q = fid.variables[quantity]
             out_s_quantities[quantity][g_vids] = \
-                         num.array(q,dtype=num.float32)[l_vids]
+                         num.array(q).astype(num.float32)[l_vids]
+                         #num.array(q,dtype=num.float32)[l_vids]
 
 
         # Read in static c quantities
         for quantity in static_c_quantities:
             q = fid.variables[quantity]
             out_s_c_quantities[quantity][f_gids] = \
-                         num.array(q,dtype=num.float32)[f_ids]
+                         num.array(q).astype(num.float32)[f_ids]
+                         #num.array(q,dtype=num.float32)[f_ids]
 
         
         fid.close()

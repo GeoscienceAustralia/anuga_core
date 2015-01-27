@@ -242,7 +242,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
             control_data.append(inlet0.inlet.get_average_depth())
 
         if verbose: print 'P%d control_data = %s' %(myid, control_data)
-    else:
+    else:  # parallel
         stage = domain.get_quantity('stage')
         
         for i in range(samples):
@@ -264,15 +264,10 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
             if myid == inlet_master_proc:
                 if verbose: 
                     print 'P%d average stage, control = %s, actual = %s' %(myid, control_data[samples], average_stage)
-
                     print 'P%d average xmom, control = %s, actual = %s' %(myid, control_data[samples+1], average_xmom)
-
                     print 'P%d average ymom, control = %s, actual = %s' %(myid, control_data[samples+2], average_ymom)
-
                     print 'P%d average volume, control = %s, actual = %s' %(myid, control_data[samples+3], average_volume)
-
                     print 'P%d average depth, control = %s, actual = %s' %(myid, control_data[samples+4], average_depth)
-
 
         assert(success)
 
@@ -285,7 +280,7 @@ def run_test(parallel = False, control_data = None, test_points = None, verbose 
 
 class Test_parallel_boyd_box_operator(unittest.TestCase):
     def test_parallel_operator(self):
-        #print "Expect this test to fail if not run from the parallel directory."
+        #print "Expect this test to fail if not run from the parallel/test directory."
         result = os.system("mpirun -np %d python test_parallel_boyd_box_operator.py" % nprocs)
         assert_(result == 0)
 

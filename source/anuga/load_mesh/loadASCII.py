@@ -662,7 +662,7 @@ def _write_msh_file(file_name, mesh):
 
         #print 'mesh vertex attributes', mesh['vertex_attributes'].shape
         
-        if (mesh['vertex_attributes'] != None and
+        if (mesh['vertex_attributes'] is not None and
             (mesh['vertex_attributes'].shape[0] > 0 and
              mesh['vertex_attributes'].shape[1] > 0)):
             outfile.createDimension('num_of_vertex_attributes',
@@ -706,7 +706,7 @@ def _write_msh_file(file_name, mesh):
                                ('num_of_triangles', 'num_of_triangle_faces'))
         outfile.variables['triangles'][:] = mesh['triangles']
         outfile.variables['triangle_neighbors'][:] = mesh['triangle_neighbors']
-        if (mesh['triangle_tags'] != None and
+        if (mesh['triangle_tags'] is not None and
             (mesh['triangle_tags'].shape[1] > 0)):
             outfile.createDimension('num_of_triangle_tag_chars',
                                     mesh['triangle_tags'].shape[1])

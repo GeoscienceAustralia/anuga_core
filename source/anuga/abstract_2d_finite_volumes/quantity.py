@@ -1,3 +1,4 @@
+
 """Class Quantity - Implements values at each triangular element
 
 To create:
@@ -843,7 +844,13 @@ class Quantity:
         L = [numeric, quantity, function, geospatial_data, filename]
         msg = ('Exactly one of the arguments numeric, quantity, function, '
                'geospatial_data, or filename must be present.')
-        assert L.count(None) == len(L)-1, msg
+
+        count = 0
+        for entry in L:
+            if entry is None:
+                count = count + 1
+                
+        assert count == len(L)-1, msg
 
         if location == 'edges':
             msg = 'edges has been deprecated as valid location'
