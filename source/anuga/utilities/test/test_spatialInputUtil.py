@@ -339,11 +339,24 @@ class Test_spatialInputUtil(unittest.TestCase):
         yA=numpy.array([0., 20.1, 75.1, 100.])+tifRange[2]+0.5
         z_predicted=numpy.round(xA)+numpy.round(yA)-tifRange[0]-tifRange[2]-1.0
         InDat=numpy.vstack([xA,yA]).transpose()
+
         z_fitted=su.rasterValuesAtPoints(InDat, rasterFile='PointData_TestData.tif')
         try:
             assert(numpy.allclose(z_fitted,z_predicted)) 
         except:
             raise Exception, 'Error could be in rasterValuesAtPoints or in Make_Geotif'
+
+
+        # Try with bilinear interpolation
+        z_fitted=su.rasterValuesAtPoints(InDat, rasterFile='PointData_TestData.tif', 
+            interpolation='bilinear')
+        z_predicted = xA + yA - tifRange[0] - tifRange[2] - 1.0
+        try:
+            assert(numpy.allclose(z_fitted,z_predicted)) 
+        except:
+            raise Exception, 'Error could be in rasterValuesAtPoints or in Make_Geotif'
+
+
         return
 
     def test_add_intersections_to_domain_features(self):

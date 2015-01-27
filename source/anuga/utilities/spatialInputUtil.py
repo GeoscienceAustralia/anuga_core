@@ -695,7 +695,8 @@ if gdal_available:
         xy, 
         rasterFile, 
         band=1, 
-        nodata_rel_tol = 1.0e-08):
+        nodata_rel_tol = 1.0e-08,
+        interpolation = 'pixel'):
         """
             Get raster values at point locations.
             Can be used to e.g. set quantity values
@@ -711,6 +712,9 @@ if gdal_available:
                 ( abs(elev - nodataval) < nodata_rel_tol*abs(nodataval) )
                 This allows for truncation errors in nodata values which seem
                 to be introduced by some file-type conversions
+
+            @param interpolation 'pixel' or 'bilinear' determines how the
+                    raster cell values are used to set the point value
     
             OUTPUT:
             1d numpy array with raster values at xy
@@ -729,11 +733,11 @@ if gdal_available:
         pixelHeight = transform[5] # Negative
         
         # Get coordinates in pixel values
-        px = ((xy[:,0] - xOrigin) / pixelWidth).astype(int) #x 
-        py = ((xy[:,1] - yOrigin) / pixelHeight).astype(int) #y 
+        px = (xy[:,0] - xOrigin) / pixelWidth
+        py = (xy[:,1] - yOrigin) / pixelHeight
       
         # Hold elevation 
-        elev=px*0. 
+        elev = px*0. 
     
         # Get the right character for struct.unpack
         if (rasterBandType == 'Int16'):
@@ -752,8 +756,8 @@ if gdal_available:
             raise Exception, 'Stopping'
   
         # Upper bounds for pixel values, so we can fail gracefully
-        xMax=raster.RasterXSize
-        yMax=raster.RasterYSize
+        xMax = raster.RasterXSize
+        yMax = raster.RasterYSize
         if(px.max()<xMax and px.min()>=0 and py.max()<yMax and py.min()>=0):
             pass
         else:
@@ -762,10 +766,70 @@ if gdal_available:
 
         # Get values -- seems we have to loop, but it is efficient enough
         for i in range(len(px)):
-            xC=int(px[i])
-            yC=int(py[i])
-            structval=rasterBand.ReadRaster(xC,yC,1,1,buf_type=rasterBand.DataType)
-            elev[i] = struct.unpack(CtypeName, structval)[0]
+
+            if(interpolation=='pixel'):
+                # Pixel coordinates
+                xC=int(numpy.floor(px[i]))
+                yC=int(numpy.floor(py[i]))
+
+                structval = rasterBand.ReadRaster(xC,yC,1,1,
+                    buf_type=rasterBand.DataType)
+                elev[i] = struct.unpack(CtypeName, structval)[0]
+
+            elif(interpolation=='bilinear'):
+                # Pixel coordinates
+                xl = int(numpy.floor(px[i]))
+                yl = int(numpy.floor(py[i]))
+
+                # Find neighbours required for bilinear interpolation
+                # l = lower, u = upper
+                if(px[i] - xl > 0.5):
+                    xu = min(xl + 1, xMax - 1)
+                else:
+                    # Swap xl for xu
+                    xu = xl
+                    xl = max(xu - 1, 0)
+
+                if(py[i] - yl > 0.5):
+                    yu = min(yl + 1, yMax - 1)
+                else:
+                    yu = yl
+                    yl = max(yu - 1, 0)
+
+                # Map x,y to unit square
+                x = px[i] - (xl + 0.5)
+                y = py[i] - (yl + 0.5)
+
+                if not ( (x>=0.) & (x<=1.)):
+                    print x, xl, xu, px[i]
+                    raise Exception('x out of bounds')
+
+                if not ( (y>=0.) & (y<=1.)):
+                    print y, yl, yu, py[i]
+                    raise Exception('y out of bounds')
+
+                # Lower-left
+                structval = rasterBand.ReadRaster(xl,yl,1,1,
+                    buf_type=rasterBand.DataType)
+                r00 = struct.unpack(CtypeName, structval)[0]
+                # Upper left
+                structval = rasterBand.ReadRaster(xl,yu,1,1,
+                    buf_type=rasterBand.DataType)
+                r01 = struct.unpack(CtypeName, structval)[0]
+                # Lower-right
+                structval = rasterBand.ReadRaster(xu,yl,1,1,
+                    buf_type=rasterBand.DataType)
+                r10 = struct.unpack(CtypeName, structval)[0]
+                # Upper right
+                structval = rasterBand.ReadRaster(xu,yu,1,1,
+                    buf_type=rasterBand.DataType)
+                r11 = struct.unpack(CtypeName, structval)[0]
+
+                # Bilinear interpolation
+                elev[i] = r00*(1-x)*(1-y) + r01*(1-x)*y +\
+                          r10*x*(1-y) + r11*x*y
+            else:
+                raise Exception('Unknown value of "interpolation"')            
 
         # Deal with nodata
         nodataval = rasterBand.GetNoDataValue()

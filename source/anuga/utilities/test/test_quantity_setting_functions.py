@@ -108,11 +108,35 @@ class Test_quantity_setting_functions(unittest.TestCase):
                 threshold_distance = 9.0e+100, background_value = 9.0e+100)
 
         # Test that F evaluated in 'ANUGA coordinates' [lower-left = 0,0] is correct
+        xGet=numpy.array([0., 10., 10., 0., 100.]) + 0.1
+        yGet=numpy.array([0., 0., 20.,90., 100. ]) + 0.1
+        expected=numpy.floor(xGet+yGet)
+        output=F(xGet,yGet)
+        assert(numpy.allclose(output,expected))
+
+
+        # Test with 3 nearest neighbours at points which are exactly on data points
+        F = qs.make_nearestNeighbour_quantity_function(inPts, domain, 
+                threshold_distance = 9.0e+100, background_value = 9.0e+100,
+                k_nearest_neighbours = 3)
+
         xGet=numpy.array([0., 10., 10., 0., 100.])
         yGet=numpy.array([0., 0., 20.,90., 100. ])
         expected=xGet+yGet
         output=F(xGet,yGet)
         assert(numpy.allclose(output,expected))
+
+        # Test with 4 nearest neighbours, at points which are not exactly on data points  
+        F = qs.make_nearestNeighbour_quantity_function(inPts, domain, 
+                threshold_distance = 9.0e+100, background_value = 9.0e+100,
+                k_nearest_neighbours = 4)
+        # Test at non-trivial location
+        xGet=numpy.array([0., 10., 10., 0., 99.]) + 0.5
+        yGet=numpy.array([0., 0., 20.,90., 99. ]) + 0.5
+        expected=xGet+yGet
+        output=F(xGet,yGet)
+        assert(numpy.allclose(output,expected))
+
         
         #################################################################################
         # Test that background_value / threshold_distance work ok
@@ -257,6 +281,37 @@ class Test_quantity_setting_functions(unittest.TestCase):
                 clip_range = [[ -500., -1000.], [-1.0e+100, 1.0e+100]]) 
             return
         self.assertRaises(Exception, lambda: should_fail_1())
+
+        ###########################################################################
+        # This example features a function with some nan return values, and uses
+        # the nan_interpolation_region_polygon to try to fix it
+        def f0(x,y):
+            output = x/10.
+            output[0] = numpy.nan
+            return output 
+
+        F = qs.composite_quantity_setting_function(
+            [[trenchPoly, f0], ['Extent', 'PointData_ElevTest.tif']],
+            domain,
+            nan_treatment = 'fall_through',
+            nan_interpolation_region_polygon = [trenchPoly],
+            default_k_nearest_neighbours = 3,
+            default_raster_interpolation = 'bilinear',
+            verbose=False) 
+
+        # Points where we test the function. We deliberately use many points with x=50,
+        # which happens to ensure that the nan value is replaced with the same
+        # value it would have had anyway
+        testPts_X = numpy.array([50.,50.00, 50., 50., 97., 51., 3.])
+        testPts_Y = numpy.array([1.,    2., 3. , 4  , 20., 30., 60.])
+        fitted = F(testPts_X,testPts_Y)
+       
+        # We should have no nan values
+        assert(sum(fitted!=fitted) == 0)
+
+        # Now the fitted value in the trench should be determined by f0 because
+        # the re-interpolation of nan values was designed to ensure it
+        assert(numpy.allclose(fitted[0],50./10.))
 
         return
 
