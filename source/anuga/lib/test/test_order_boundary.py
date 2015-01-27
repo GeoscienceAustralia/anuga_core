@@ -2,7 +2,7 @@ import unittest
 import os
 import csv
 
-import order_boundary as ob
+import anuga.lib.order_boundary as ob
 
 
 class Test_order_boundary(unittest.TestCase):
