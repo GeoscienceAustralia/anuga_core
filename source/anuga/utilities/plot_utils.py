@@ -735,8 +735,7 @@ def near_transect(p, point1, point2, tol=1.):
     
     return near_points[keepers], local_coord[keepers]
 
-########################
-# TRIANGLE AREAS, WATER VOLUME
+
 def triangle_areas(p, subset=None):
     # Compute areas of triangles in p -- assumes p contains vertex information
     # subset = vector of centroid indices to include in the computation. 
@@ -763,7 +762,6 @@ def triangle_areas(p, subset=None):
     area=abs(area)
     return area
 
-###
 
 def water_volume(p, p2, per_unit_area=False, subset=None):
     # Compute the water volume from p(vertex values) and p2(centroid values)
@@ -778,8 +776,8 @@ def water_volume(p, p2, per_unit_area=False, subset=None):
     volume=p2.time*0.
    
     # This accounts for how volume is measured in ANUGA 
-    # Compute in 2 steps to reduce precision error (important sometimes)
-    # Is this really needed?
+    # Compute in 2 steps to reduce precision error from limited SWW precision
+    # FIXME: Is this really needed?
     for i in range(l):
         #volume[i]=((p2.stage[i,subset]-p2.elev[subset])*(p2.stage[i,subset]>p2.elev[subset])*area).sum()
         volume[i]=((p2.stage[i,subset])*(p2.stage[i,subset]>p2.elev[subset])*area).sum()
@@ -1049,33 +1047,34 @@ def Make_Geotif(swwFile=None,
     swwXY=scipy.array([swwX[:],swwY[:]]).transpose()
 
     # Get function to interpolate quantity onto gridXY_array
-    gridXY_array=scipy.array([scipy.concatenate(gridX),scipy.concatenate(gridY)]).transpose()
+    gridXY_array=scipy.array([scipy.concatenate(gridX),
+                              scipy.concatenate(gridY)]).transpose()
     gridXY_array=scipy.ascontiguousarray(gridXY_array)
 
     # Create Interpolation function
     #basic_nearest_neighbour=False
     if(k_nearest_neighbours==1):
-        index_qFun=scipy.interpolate.NearestNDInterpolator(swwXY,scipy.arange(len(swwX),dtype='int64').transpose())
-        gridqInd=index_qFun(gridXY_array)
+        index_qFun = scipy.interpolate.NearestNDInterpolator(
+            swwXY,
+            scipy.arange(len(swwX),dtype='int64').transpose())
+        gridqInd = index_qFun(gridXY_array)
         # Function to do the interpolation
         def myInterpFun(quantity):
             return quantity[gridqInd]
     else:
         # Combined nearest neighbours and inverse-distance interpolation
-        index_qFun=scipy.spatial.cKDTree(swwXY)
-        NNInfo=index_qFun.query(gridXY_array,k=k_nearest_neighbours)
+        index_qFun = scipy.spatial.cKDTree(swwXY)
+        NNInfo = index_qFun.query(gridXY_array, k=k_nearest_neighbours)
         # Weights for interpolation
-        nn_wts=1./(NNInfo[0]+1.0e-100)
-        nn_inds=NNInfo[1]
+        nn_wts = 1./(NNInfo[0]+1.0e-100)
+        nn_inds = NNInfo[1]
         def myInterpFun(quantity):
-            denom=0.
-            num=0.
+            denom = 0.
+            num = 0.
             for i in range(k_nearest_neighbours):
-                denom+=nn_wts[:,i]
-                num+= quantity[nn_inds[:,i]]*nn_wts[:,i]
+                denom += nn_wts[:,i]
+                num += quantity[nn_inds[:,i]]*nn_wts[:,i]
             return (num/denom)
-
-
 
     if(bounding_polygon is not None):
         # Find points to exclude (i.e. outside the bounding polygon)

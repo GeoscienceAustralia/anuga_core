@@ -42,17 +42,19 @@ class Test_quantity_setting_functions(unittest.TestCase):
          that we can use for testing
         """
 
-        boundaryPolygon=[ [minX, minY], [minX, minY+100.], [minX+100., minY+100.], [minX+100., minY]]
-        anuga.create_mesh_from_regions(boundaryPolygon, 
-                                   boundary_tags={'left': [0],
-                                                'top': [1],
-                                                'right': [2],
-                                                'bottom': [3]},
-                                   maximum_triangle_area = 1.,
-                                   minimum_triangle_angle = 28.0,
-                                   filename = 'test_quantity_setting_functions.msh',
-                                   interior_regions =[ ],
-                                   verbose=False)
+        boundaryPolygon=[ [minX, minY], [minX, minY+100.], 
+            [minX+100., minY+100.], [minX+100., minY]]
+        anuga.create_mesh_from_regions(
+            boundaryPolygon, 
+            boundary_tags={'left': [0],
+                         'top': [1],
+                         'right': [2],
+                         'bottom': [3]},
+            maximum_triangle_area = 1.,
+            minimum_triangle_angle = 28.0,
+            filename = 'test_quantity_setting_functions.msh',
+            interior_regions =[ ],
+            verbose=False)
 
         domain=anuga.create_domain_from_file('test_quantity_setting_functions.msh')
         
@@ -102,8 +104,8 @@ class Test_quantity_setting_functions(unittest.TestCase):
         zR=xR+yR-minX-minY
         inPts=numpy.vstack([xR,yR,zR]).transpose()
 
-        F=qs.make_nearestNeighbour_quantity_function(inPts, domain, 
-                            threshold_distance = 9.0e+100, background_value = 9.0e+100)
+        F = qs.make_nearestNeighbour_quantity_function(inPts, domain, 
+                threshold_distance = 9.0e+100, background_value = 9.0e+100)
 
         # Test that F evaluated in 'ANUGA coordinates' [lower-left = 0,0] is correct
         xGet=numpy.array([0., 10., 10., 0., 100.])
@@ -124,8 +126,8 @@ class Test_quantity_setting_functions(unittest.TestCase):
         zR=xR+yR-minX-minY
         inPts=numpy.vstack([xR,yR,zR]).transpose()
 
-        F=qs.make_nearestNeighbour_quantity_function(inPts, domain, 
-                            threshold_distance = 6., background_value = 9.0e+100)
+        F = qs.make_nearestNeighbour_quantity_function(inPts, domain, 
+                threshold_distance = 6., background_value = 9.0e+100)
 
         # Test that F evaluated in 'ANUGA coordinates' [lower-left = 0,0] is correct
         #
@@ -157,13 +159,15 @@ class Test_quantity_setting_functions(unittest.TestCase):
                         output_dir='.', CellSize=1.,k_nearest_neighbours=1)
 
         # Make a polygon-point pair which we use to set elevation in a 'channel'
-        trenchPoly=[[minX+40., minY], [minX+40., minY+100.], [minX+60., minY+100.], [minX+60., minY]]
+        trenchPoly = [[minX+40., minY], [minX+40., minY+100.], 
+            [minX+60., minY+100.], [minX+60., minY]]
 
         #################################################################
  
         # This example uses a constant, and a raster, to set the quantity           
-        F=qs.composite_quantity_setting_function([[trenchPoly, -1000.], ['Extent', 'PointData_ElevTest.tif']],\
-                                                domain) 
+        F=qs.composite_quantity_setting_function(
+            [[trenchPoly, -1000.], ['Extent', 'PointData_ElevTest.tif']],
+            domain)
 
         # Points where we test the function
         testPts_X=numpy.array([50., 3.])
@@ -175,16 +179,19 @@ class Test_quantity_setting_functions(unittest.TestCase):
 
         # Find the nearest domain point to the second test point
         # This will have been used in constructing the elevation raster
-        nearest=((domain.centroid_coordinates[:,0]-3.)**2 + (domain.centroid_coordinates[:,1]-20.)**2).argmin()
+        nearest=((domain.centroid_coordinates[:,0]-3.)**2 + 
+                 (domain.centroid_coordinates[:,1]-20.)**2).argmin()
         nearest_x=domain.centroid_coordinates[nearest,0]
         assert(numpy.allclose(fitted[1],-nearest_x/150.))
 
         #################################################################
  
-        # This example uses a constant, and a raster, to set the quantity, and applies the min/max bound           
-        F=qs.composite_quantity_setting_function([[trenchPoly, -1000.], ['Extent', 'PointData_ElevTest.tif']],\
-                                                domain,
-                                                clip_range = [[-500., 1.0e+100], [-1.0e+100, 1.0e+100]]) 
+        # This example uses a constant, and a raster, to set the quantity, and
+        # applies the min/max bound           
+        F=qs.composite_quantity_setting_function(
+            [[trenchPoly, -1000.], ['Extent', 'PointData_ElevTest.tif']],
+            domain,
+            clip_range = [[-500., 1.0e+100], [-1.0e+100, 1.0e+100]]) 
 
         # Points where we test the function
         testPts_X=numpy.array([50., 3.])
@@ -196,8 +203,10 @@ class Test_quantity_setting_functions(unittest.TestCase):
 
         # Find the nearest domain point to the second test point
         # This will have been used in constructing the elevation raster
-        nearest=((domain.centroid_coordinates[:,0]-3.)**2 + (domain.centroid_coordinates[:,1]-20.)**2).argmin()
-        nearest_x=domain.centroid_coordinates[nearest,0]
+        nearest = ((domain.centroid_coordinates[:,0]-3.)**2 + 
+                   (domain.centroid_coordinates[:,1]-20.)**2).argmin()
+        nearest_x = domain.centroid_coordinates[nearest,0]
+
         assert(numpy.allclose(fitted[1],-nearest_x/150.))
 
         #########################################################################
@@ -205,21 +214,24 @@ class Test_quantity_setting_functions(unittest.TestCase):
         # This example uses a function, and a raster, to set the quantity           
         def f0(x,y):
             return x/10.
-        F=qs.composite_quantity_setting_function([[trenchPoly, f0], ['Extent', 'PointData_ElevTest.tif']],\
-                                                domain) 
-        fitted=F(testPts_X,testPts_Y)
+        F = qs.composite_quantity_setting_function(
+            [[trenchPoly, f0], ['Extent', 'PointData_ElevTest.tif']],
+            domain) 
+        fitted = F(testPts_X,testPts_Y)
         # Now the fitted value in the trench should be determined by f0
         assert(numpy.allclose(fitted[0],50./10.))
         # The second test point should be as before
-        nearest=((domain.centroid_coordinates[:,0]-3.)**2 + (domain.centroid_coordinates[:,1]-20.)**2).argmin()
-        nearest_x=domain.centroid_coordinates[nearest,0]
+        nearest = ((domain.centroid_coordinates[:,0]-3.)**2 + 
+                   (domain.centroid_coordinates[:,1]-20.)**2).argmin()
+        nearest_x = domain.centroid_coordinates[nearest,0]
         assert(numpy.allclose(fitted[1],-nearest_x/150.))
 
         ##########################################################################
 
         # This example uses 'All' as a polygon
-        F=qs.composite_quantity_setting_function([['All', f0 ], [None, 'PointData_ElevTest.tif']],\
-                                                domain) 
+        F = qs.composite_quantity_setting_function(
+            [['All', f0 ], [None, 'PointData_ElevTest.tif']],
+            domain) 
         fitted=F(testPts_X,testPts_Y)
         # Now the fitted value in the trench should be determined by f0
         assert(numpy.allclose(fitted[0],50./10.))
@@ -228,8 +240,9 @@ class Test_quantity_setting_functions(unittest.TestCase):
         ###########################################################################
         # This example should fail
         def should_fail():
-            F=qs.composite_quantity_setting_function([['All', f0], ['All', 'PointData_ElevTest.tif']],\
-                                                    domain) 
+            F=qs.composite_quantity_setting_function(
+                [['All', f0], ['All', 'PointData_ElevTest.tif']],
+                domain)
             # Need to call it to get the error
             F(numpy.array([3.]), numpy.array([3.]))
             return
@@ -238,9 +251,10 @@ class Test_quantity_setting_functions(unittest.TestCase):
         ###########################################################################
         # This example should fail (since the clip_range minimum >= maximum)
         def should_fail_1():
-            F=qs.composite_quantity_setting_function([[trenchPoly, f0], ['All', 'PointData_ElevTest.tif']],\
-                                                    domain,
-                                                    clip_range = [[ -500., -1000.], [-1.0e+100, 1.0e+100]]) 
+            F=qs.composite_quantity_setting_function(
+                [[trenchPoly, f0], ['All', 'PointData_ElevTest.tif']],
+                domain,
+                clip_range = [[ -500., -1000.], [-1.0e+100, 1.0e+100]]) 
             return
         self.assertRaises(Exception, lambda: should_fail_1())
 
@@ -250,7 +264,7 @@ class Test_quantity_setting_functions(unittest.TestCase):
         # 
         # 
         #
-        domain=self.create_domain(1.0, 0.0)
+        domain = self.create_domain(1.0, 0.0)
 
         # Evolve the model
         #for t in domain.evolve(yieldstep=0.2, finaltime=1.0):
@@ -258,32 +272,38 @@ class Test_quantity_setting_functions(unittest.TestCase):
 
         # Make a raster from the elevation data
         from anuga.utilities import plot_utils as util
-        xs=domain.centroid_coordinates[:,0]+domain.geo_reference.xllcorner
-        ys=domain.centroid_coordinates[:,1]+domain.geo_reference.yllcorner
-        elev=domain.quantities['elevation'].centroid_values
+        xs = domain.centroid_coordinates[:,0]+domain.geo_reference.xllcorner
+        ys = domain.centroid_coordinates[:,1]+domain.geo_reference.yllcorner
+        elev = domain.quantities['elevation'].centroid_values
 
-        allDat=numpy.vstack([xs,ys,elev]).transpose()
-        util.Make_Geotif(allDat, output_quantities=['ElevTest'], EPSG_CODE=32756, 
-                        output_dir='.', CellSize=1.,k_nearest_neighbours=1)
+        allDat = numpy.vstack([xs,ys,elev]).transpose()
+        util.Make_Geotif(allDat, output_quantities=['ElevTest'], 
+            EPSG_CODE=32756, output_dir='.', CellSize=1.,k_nearest_neighbours=1)
 
         # Make a polygon-point pair which we use to set elevation in a 'channel'
-        trenchPoly=[[minX+40., minY], [minX+40., minY+100.], [minX+60., minY+100.], [minX+60., minY]]
-        trenchPts=numpy.array([minX+50., minY+50., -1000.])
+        trenchPoly = [[minX+40., minY], [minX+40., minY+100.], 
+            [minX+60., minY+100.], [minX+60., minY]]
+        trenchPts = numpy.array([minX+50., minY+50., -1000.])
         #
-        PtPolData=[[trenchPoly, trenchPts]]
-        F=qs.quantity_from_Pt_Pol_Data_and_Raster(PtPolData, 'PointData_ElevTest.tif', domain) 
+        PtPolData = [[trenchPoly, trenchPts]]
+        F = qs.quantity_from_Pt_Pol_Data_and_Raster(PtPolData, 
+            'PointData_ElevTest.tif', domain) 
 
-        testPts_X=numpy.array([50., 3.])
-        testPts_Y=numpy.array([1., 20.])
-        fitted=F(testPts_X,testPts_Y)
+        testPts_X = numpy.array([50., 3.])
+        testPts_Y = numpy.array([1., 20.])
+        fitted = F(testPts_X,testPts_Y)
+
+        import pdb
+        pdb.set_trace()
     
         # The fitted value in the trench should be -1000.
-        assert(fitted[0]==-1000.)
+        assert(numpy.allclose(fitted[0],-1000.))
 
         # Find the nearest domain point to the second test point
         # This will have been used in constructing the elevation raster
-        nearest=((domain.centroid_coordinates[:,0]-3.)**2 + (domain.centroid_coordinates[:,1]-20.)**2).argmin()
-        nearest_x=domain.centroid_coordinates[nearest,0]
+        nearest = ((domain.centroid_coordinates[:,0]-3.)**2 +\
+                   (domain.centroid_coordinates[:,1]-20.)**2).argmin()
+        nearest_x = domain.centroid_coordinates[nearest,0]
         assert(numpy.allclose(fitted[1],-nearest_x/150.))
 
         # Clean up file

@@ -11,7 +11,9 @@ def make_nearestNeighbour_quantity_function(
         quantity_xyValueIn, 
         domain, 
         threshold_distance = 9.0e+100, 
-        background_value = 9.0e+100):
+        background_value = 9.0e+100,
+        k_nearest_neighbours = 1,
+    ):
     """
     Function which makes another function, which can be used in set_quantity 
 
@@ -31,58 +33,95 @@ def make_nearestNeighbour_quantity_function(
         @param quantity_xyValueIn -- A 3 column array with 'x,y, Value' 
             defining the points used to set the new quantity values
         @param domain -- The ANUGA domain
+        @param k_nearest_neighbors If > 1, then an inverse-distance-weighted average
+               of the k nearest neighbours is used
         @param threshold_distance -- Points greater than this distance from 
             their nearest quantity_xyValue point are set to background_value
         @param background_value -- see 'threshold_distance'
 
     OUTPUTS: 
         A function f which can be passed to domain.set_quantity('myQuantity', f)
+
     """
+
     import scipy
     import scipy.interpolate
+    import scipy.spatial
 
-
-    if(len(quantity_xyValueIn.shape)>1):
-        quantity_xyValue=copy.copy(quantity_xyValueIn) # Pointer, no copy
+    if(len(quantity_xyValueIn.shape) > 1):
+        quantity_xyValue = quantity_xyValueIn
     else:
         # Treat the single-point case
-        quantity_xyValue=copy.copy(quantity_xyValueIn.reshape((1,3)))
+        quantity_xyValue = quantity_xyValueIn.reshape((1,3))
+
     # Make a function which gives us the ROW-INDEX of the nearest xy point in
     # quantity_xyValue
-    quantity_xy_interpolator=scipy.interpolate.NearestNDInterpolator(
-                                quantity_xyValue[:,0:2], 
-                                scipy.arange(len(quantity_xyValue[:,2])))
+    #quantity_xy_interpolator = scipy.interpolate.NearestNDInterpolator(
+    #    quantity_xyValue[:,0:2], 
+    #    scipy.arange(len(quantity_xyValue[:,2])))
 
-    #
+    # Make a function which returns k-nearest-neighbour indices + distances
+    quantity_xy_interpolator = scipy.spatial.cKDTree(quantity_xyValue[:,0:2])
+
     # Make a function of x,y which we can pass to domain.set_quantity
     def quant_NN_fun(x,y):
         """
         Function to assign quantity from the nearest point in quantity_xyValue,
-        UNLESS the point is more than 'threshold_distance' away from the nearest point,
-        in which case the background friction value is used
-       
+        UNLESS the point is more than 'threshold_distance' away from the
+        nearest point, in which case the background value is used
+
         """
+
         import scipy
         import scipy.interpolate
+        import scipy.spatial
+
         # Since ANUGA stores x,y internally in non-georeferenced coordinates,
         # we adjust them here
-        xll=domain.geo_reference.xllcorner
-        yll=domain.geo_reference.yllcorner
-        z=scipy.zeros(shape=(len(x), 2))
-        z[:,0]=x+xll
-        z[:,1]=y+yll
+        xll = domain.geo_reference.xllcorner
+        yll = domain.geo_reference.yllcorner
+        z = scipy.zeros(shape=(len(x), 2))
+        z[:,0] = x+xll
+        z[:,1] = y+yll
+
         # This will hold the quantity values
-        quantity_output=x*0. +background_value
+        quantity_output = x*0. + background_value
         # Compute the index of the nearest-neighbour in quantity_xyValue
-        q_index=quantity_xy_interpolator(z)
+        neighbour_data = quantity_xy_interpolator.query(z, 
+            k=k_nearest_neighbours)
+
         # Next find indices with distance < threshold_distance
-        dist_lt_thresh=( (z[:,0]-quantity_xyValue[q_index,0])**2 + \
-                         (z[:,1]-quantity_xyValue[q_index,1])**2 < \
-                        threshold_distance**2)
-        dist_lt_thresh=dist_lt_thresh.nonzero()[0]
-        quantity_output[dist_lt_thresh] =\
-            quantity_xyValue[q_index[dist_lt_thresh],2]
+        if(k_nearest_neighbours==1):
+            dist_lt_thresh = neighbour_data[0] < threshold_distance
+        else:
+            dist_lt_thresh = neighbour_data[0][:,0] < threshold_distance
+
+        dist_lt_thresh = dist_lt_thresh.nonzero()[0]
+
+        # Initialise output
+        quantity_output = x*0 + background_value
+
+        # Interpolate
+        if len(dist_lt_thresh)>0:
+            numerator = 0
+            denominator = 0
+            for i in range(k_nearest_neighbours):
+                if(k_nearest_neighbours==1):
+                    distances = neighbour_data[0][dist_lt_thresh]
+                    indices = neighbour_data[1][dist_lt_thresh]
+                else:
+                    distances = neighbour_data[0][dist_lt_thresh,i]
+                    indices = neighbour_data[1][dist_lt_thresh,i]
+                
+                inverse_distance = 1.0/(distances+1.0e-100)
+                values = quantity_xyValue[indices,2]
+                numerator += values*inverse_distance
+                denominator += inverse_distance
+           
+            quantity_output[dist_lt_thresh] = numerator/denominator
+
         return quantity_output
+
     # Return the quantity function
     return quant_NN_fun
 
