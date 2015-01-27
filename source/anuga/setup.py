@@ -18,7 +18,6 @@ def configuration(parent_package='',top_path=None):
     config.add_subpackage('file')
     config.add_subpackage('file_conversion')
     config.add_subpackage('fit_interpolate')
-    """
     config.add_subpackage('geometry')
     config.add_subpackage('geospatial_data')
     config.add_subpackage('lib')
@@ -33,7 +32,6 @@ def configuration(parent_package='',top_path=None):
     config.add_subpackage('utilities')
     config.add_subpackage('validation_utilities')
     config.add_subpackage('visualiser')
-    """
       
     config.make_config_py()
     

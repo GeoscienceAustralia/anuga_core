@@ -13,10 +13,8 @@ def configuration(parent_package='',top_path=None):
     config = Configuration('pmesh', parent_package, top_path)
 
     config.add_data_dir('test')
-    config.add_data_dir('icon')    
+    config.add_data_dir('icons')    
 
-    util_dir = os.path.abspath('../utilities')
-    
     return config
     
 if __name__ == '__main__':

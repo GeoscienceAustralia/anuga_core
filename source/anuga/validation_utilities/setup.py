@@ -12,10 +12,8 @@ def configuration(parent_package='',top_path=None):
     
     config = Configuration('validation_utilities', parent_package, top_path)
 
-    config.add_data_dir('test')
-    config.add_data_dir(join('test','data'))
-    
-    util_dir = os.path.abspath('../utilities')
+    #config.add_data_dir('test')
+    #config.add_data_dir(join('test','data'))
     
     return config
     

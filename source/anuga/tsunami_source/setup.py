@@ -15,7 +15,6 @@ def configuration(parent_package='',top_path=None):
     config.add_data_dir('test')
     config.add_data_dir(join('test','data'))
 
-    util_dir = os.path.abspath('../utilities')
     
     return config
     

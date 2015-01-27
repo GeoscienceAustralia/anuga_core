@@ -14,8 +14,6 @@ def configuration(parent_package='',top_path=None):
 
     config.add_data_dir('test')
 
-    util_dir = os.path.abspath('../utilities')
-    
     return config
     
 if __name__ == '__main__':
