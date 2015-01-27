@@ -14,7 +14,14 @@ def configuration(parent_package='',top_path=None):
 
     config.add_data_dir('test')
 
-    util_dir = os.path.abspath('../utilities')
+    if parent_package is '':
+        anuga_dir = '..'
+    else:
+        anuga_dir = '.'
+
+    util_dir = join(anuga_dir,'utilities')
+
+
     util_srcs = [join(util_dir,'quad_tree.c'),
                  join(util_dir,'sparse_dok.c'),
                  join(util_dir,'sparse_csr.c')]
@@ -26,9 +33,6 @@ def configuration(parent_package='',top_path=None):
                          extra_compile_args=['-fopenmp'],
                          extra_link_args=['-fopenmp'])
 
-    #config.add_extension('quad_tree_ext',
-    #                     sources=['quad_tree_ext.c', 'quad_tree.c'])
-    
 
     return config
 

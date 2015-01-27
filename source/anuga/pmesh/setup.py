@@ -10,9 +10,10 @@ def configuration(parent_package='',top_path=None):
     from numpy.distutils.misc_util import Configuration
     from numpy.distutils.system_info import get_info
     
-    config = Configuration('alpha_shape', parent_package, top_path)
+    config = Configuration('pmesh', parent_package, top_path)
 
     config.add_data_dir('test')
+    config.add_data_dir('icon')    
 
     util_dir = os.path.abspath('../utilities')
     

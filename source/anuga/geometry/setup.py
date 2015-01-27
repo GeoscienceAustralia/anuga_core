@@ -14,7 +14,12 @@ def configuration(parent_package='',top_path=None):
 
     config.add_data_dir('test')
 
-    util_dir = os.path.abspath('../utilities')
+    if parent_package is '':
+        anuga_dir = '..'
+    else:
+        anuga_dir = '.'
+
+    util_dir = join(anuga_dir,'utilities')
     
     config.add_extension('polygon_ext',
                          sources=['polygon_ext.c'],
