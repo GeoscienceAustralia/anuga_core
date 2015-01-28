@@ -8,7 +8,7 @@ import unittest
 
 # path.append('..' + sep + 'pymetis')
 
-import anuga.parallel.pymetis.metis  as metis
+import anuga.pymetis.metis as metis
 
 class TestMetis(unittest.TestCase):
     def setUp(self):

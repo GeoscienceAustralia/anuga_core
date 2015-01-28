@@ -4,9 +4,9 @@ import os;
 
 metis = Extension('metis',
                   sources = ['metis.c', 'metis_bridge.c'],
-                  include_dirs = ['..' + os.sep + os.environ['METIS_DIR'] + os.sep + 'Lib' ] + get_numpy_include_dirs(),
+                  include_dirs = [os.environ['METIS_DIR'] + os.sep + 'Lib' ] + get_numpy_include_dirs(),
                   libraries = ['metis', 'm'],
-                  library_dirs = ['..' + os.sep + os.environ['METIS_DIR']]);
+                  library_dirs = [os.environ['METIS_DIR']]);
 
 setup(name = 'PyMetis',
       version = '1.0',

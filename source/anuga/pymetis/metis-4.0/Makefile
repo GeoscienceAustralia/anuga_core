@@ -2,6 +2,9 @@
 
 default:
 	(cd Lib ; make ) 
+
+full:
+	(cd Lib ; make ) 
 	(cd Programs ; make ) 
 	(cd Test ; make ) 
 

@@ -19,7 +19,7 @@ metis:
 	make -C $(METIS_DIR)
 
 pymetis_module:
-	(cd pymetis; METIS_DIR=$(METIS_DIR) python setup.py build; python get_module.py)
+	(METIS_DIR=$(METIS_DIR) python setup.py build_ext --inplace)
 
 for_win32: metis_win32 pymetis_module_win32
 
@@ -30,7 +30,7 @@ metis_win32:
 	make -C $(METIS_DIR)/Test
 
 pymetis_module_win32:
-	(cd pymetis; METIS_DIR=$(METIS_DIR) python setup.py build --compiler=mingw32; python get_module.py)
+	(METIS_DIR=$(METIS_DIR) python setup.py build_ext --compiler=mingw32 --inplace)
 
 ###
 # Clean
@@ -39,8 +39,7 @@ pymetis_module_win32:
 clean:
 	make -C $(METIS_DIR) clean
 	make -C win32 clean
-	-(cd pymetis; rm -rf build)
-	-(cd pymetis; rm *~)
+	-(rm -rf build)
 	-rm *~
 
 realclean: clean
