@@ -1,0 +1,17 @@
+import glob
+import sys
+
+Import('env')
+env2 = env.Copy()
+files = glob.glob(('%s/Lib/*.c' % env2['METIS_DIR']))
+if sys.platform == 'win32':
+    files += ['win32/random.c']
+env2.Append(CPPPATH=[('%s/Lib' % env2['METIS_DIR'])])
+env3 = env2.Copy()
+env2.Append(CPPFLAGS='-fPIC')
+env2.StaticLibrary(('%s/metis' % env2['METIS_DIR']), files)
+
+env3.Append(CPPPATH=['pymetis'])
+env3.Append(LIBPATH=[env2['METIS_DIR']])
+env3.Append(LIBS=['metis'])
+env3.SharedLibrary('metis', glob.glob('pymetis/*.c'))
