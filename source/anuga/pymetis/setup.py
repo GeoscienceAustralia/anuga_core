@@ -1,14 +1,55 @@
-from distutils.core import setup, Extension;
-from numpy.distutils.misc_util import get_numpy_include_dirs;
-import os;
+from __future__ import division, print_function
 
-metis = Extension('metis',
-                  sources = ['metis.c', 'metis_bridge.c'],
-                  include_dirs = [os.environ['METIS_DIR'] + os.sep + 'Lib' ] + get_numpy_include_dirs(),
-                  libraries = ['metis', 'm'],
-                  library_dirs = [os.environ['METIS_DIR']]);
+import os
+import sys
 
-setup(name = 'PyMetis',
-      version = '1.0',
-      description = 'Python interface to metis',
-      ext_modules = [metis]);
+from os.path import join
+
+def configuration(parent_package='',top_path=None):
+    
+    from numpy.distutils.misc_util import Configuration
+    from numpy.distutils.system_info import get_info
+    
+    config = Configuration('pymetis', parent_package, top_path)
+
+    config.add_data_dir('test')
+
+    if parent_package is '':
+        anuga_dir = '..'
+    else:
+        anuga_dir = '.'
+        
+    METIS_DIR = 'metis-4.0'
+    
+    metis_src = [join(METIS_DIR,'Lib','*.c')]
+    metis_headers = [join(METIS_DIR,'Lib','*.h')]
+    include_dir = join(METIS_DIR,'Lib') 
+    
+    print(metis_headers)
+    print(metis_src)
+    print(include_dir)
+    
+    config.add_include_dirs([include_dir])
+    
+    config.add_library('metis', sources=metis_src)
+    
+    
+    src_files = ['metis_ext.c', 'metis_bridge.c']
+    if sys.platform == 'win32':
+        src_files = src_files + ['random.c']
+        
+    
+
+    config.add_extension('metis_ext',
+                         sources=src_files,
+                         include_dirs = [include_dir],
+                         depends=(metis_src + metis_headers),
+                         extra_compile_args=['-I'+include_dir],
+                         libraries = ['metis', 'm'])
+                         #library_dirs = [METIS_DIR])
+
+    return config
+    
+if __name__ == '__main__':
+    from numpy.distutils.core import setup
+    setup(configuration=configuration)
