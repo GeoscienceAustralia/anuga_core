@@ -12,8 +12,6 @@ from math import sqrt
 import tempfile
 import csv
 
-from anuga.file.netcdf import NetCDFFile
-
 import numpy as num
 
 
@@ -24,9 +22,10 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.utilities.numerical_tools import mean, NAN
 from anuga.file.sww import SWW_file
 from anuga.shallow_water.shallow_water_domain import Domain
-from abstract_2d_finite_volumes.quantity import Quantity
+from anuga.abstract_2d_finite_volumes.quantity import Quantity
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.pmesh.mesh import Mesh
+from anuga.file.netcdf import NetCDFFile
 
 def distance(x, y):
     return sqrt(num.sum((num.array(x)-num.array(y))**2))
