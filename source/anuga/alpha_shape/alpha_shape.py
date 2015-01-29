@@ -21,7 +21,7 @@ Author: Vanessa Robins, ANU
 import exceptions
 import random
 
-from load_mesh.loadASCII import export_boundary_file
+from anuga.load_mesh.loadASCII import export_boundary_file
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 
 import numpy as num
