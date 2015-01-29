@@ -13,8 +13,8 @@ static PyMethodDef methods[] = {
   {NULL, NULL, 0, NULL}
 };
 
-PyMODINIT_FUNC initmetis(void){
-  (void) Py_InitModule("metis", methods);
+PyMODINIT_FUNC initmetis_ext(void){
+  (void) Py_InitModule("metis_ext", methods);
 
   import_array();
 }
