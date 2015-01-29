@@ -724,6 +724,7 @@ if gdal_available:
         raster = gdal.Open(rasterFile)
         rasterBand=raster.GetRasterBand(band)
         rasterBandType=gdal.GetDataTypeName(rasterBand.DataType)
+        nodataval = rasterBand.GetNoDataValue()
     
         # Projection info
         transform=raster.GetGeoTransform()
@@ -787,25 +788,32 @@ if gdal_available:
                     xu = min(xl + 1, xMax - 1)
                 else:
                     # Swap xl for xu
-                    xu = xl
+                    xu = xl + 0
                     xl = max(xu - 1, 0)
 
                 if(py[i] - yl > 0.5):
                     yu = min(yl + 1, yMax - 1)
                 else:
-                    yu = yl
+                    yu = yl + 0
                     yl = max(yu - 1, 0)
 
                 # Map x,y to unit square
-                x = px[i] - (xl + 0.5)
-                y = py[i] - (yl + 0.5)
+                if(xu > xl):
+                    x = px[i] - (xl + 0.5)
+                else:
+                    x = 0.
+
+                if(yu > yl):
+                    y = py[i] - (yl + 0.5)
+                else:
+                    y = 0.
 
                 if not ( (x>=0.) & (x<=1.)):
-                    print x, xl, xu, px[i]
+                    print 'x-values error: ', x, xl, xu, px[i], xMax
                     raise Exception('x out of bounds')
 
                 if not ( (y>=0.) & (y<=1.)):
-                    print y, yl, yu, py[i]
+                    print 'y-values error: ', y, yl, yu, py[i]
                     raise Exception('y out of bounds')
 
                 # Lower-left
@@ -826,19 +834,30 @@ if gdal_available:
                 r11 = struct.unpack(CtypeName, structval)[0]
 
                 # Bilinear interpolation
-                elev[i] = r00*(1-x)*(1-y) + r01*(1-x)*y +\
-                          r10*x*(1-y) + r11*x*y
+                elev[i] = r00*(1.-x)*(1.-y) + r01*(1.-x)*y +\
+                          r10*x*(1.-y) + r11*x*y
+
+                # Deal with nodata. This needs to be in the loop
+                # Just check if any of the pixels are nodata
+                if nodataval is not None:
+                    if numpy.isfinite(nodataval):
+                        rij = numpy.array([r00, r01, r10, r11])
+                        rel_tol = ( abs(rij - nodataval) < nodata_rel_tol*abs(nodataval) )
+                        missing = (rel_tol).nonzero()[0]
+                        if len(missing) > 0:
+                            elev[i] = numpy.nan
             else:
                 raise Exception('Unknown value of "interpolation"')            
 
-        # Deal with nodata
-        nodataval = rasterBand.GetNoDataValue()
-        if nodataval is not None:
-            if numpy.isfinite(nodataval):
-                rel_tol = ( abs(elev - nodataval) < nodata_rel_tol*abs(nodataval) )
-                missing = (rel_tol).nonzero()[0]
-                if len(missing) > 0:
-                    elev[missing] = numpy.nan
+        # Deal with nodata for pixel based interpolation [efficient treatment
+        # outside of loop]
+        if (interpolation == 'pixel'):
+            if nodataval is not None:
+                if numpy.isfinite(nodataval):
+                    rel_tol = ( abs(elev - nodataval) < nodata_rel_tol*abs(nodataval) )
+                    missing = (rel_tol).nonzero()[0]
+                    if len(missing) > 0:
+                        elev[missing] = numpy.nan
 
         return elev
 
