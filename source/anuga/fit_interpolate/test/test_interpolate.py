@@ -40,7 +40,7 @@ class Test_Interpolate(unittest.TestCase):
     def setUp(self):
 
         import time
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
 
         #Create basic mesh
@@ -138,7 +138,7 @@ class Test_Interpolate(unittest.TestCase):
 
     def test_simple_interpolation_example(self):
         
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -189,7 +189,7 @@ class Test_Interpolate(unittest.TestCase):
 
     def test_simple_interpolation_example_using_direct_interface(self):
         
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -239,7 +239,7 @@ class Test_Interpolate(unittest.TestCase):
         
     def test_simple_interpolation_example_using_direct_interface_and_caching(self):
         
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         points, vertices, boundary = rectangular(1, 3)

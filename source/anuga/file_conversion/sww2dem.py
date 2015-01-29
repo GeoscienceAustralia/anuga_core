@@ -404,7 +404,7 @@ def sww2dem(name_in, name_out,
         if verbose:
             log.critical('Writing %s' % name_out)
 
-        import ermapper_grids
+        import anuga.abstract_2d_finite_volumes.ermapper_grids as ermapper_grids
 
         # convert grid_values to ers ordering
         reordered_grid_values = grid_values[::-1,:]

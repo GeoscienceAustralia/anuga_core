@@ -164,7 +164,7 @@ END CROSS-SECTIONS:
         NODATA_value = 1758323
 
         # Setup
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create shallow water domain
         domain = Domain(*rectangular(2, 2))

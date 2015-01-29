@@ -822,7 +822,7 @@ class Test_Domain(unittest.TestCase):
                              
     def test_rectangular_periodic_and_ghosts(self):
 
-        from mesh_factory import rectangular_periodic
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_periodic
         
 
         M=5

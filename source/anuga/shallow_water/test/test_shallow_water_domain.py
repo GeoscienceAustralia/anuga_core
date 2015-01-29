@@ -1824,7 +1824,7 @@ class Test_Shallow_Water(unittest.TestCase):
         """
 
         import time, os
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh (20m x 3m)
         width = 3
@@ -1914,7 +1914,7 @@ class Test_Shallow_Water(unittest.TestCase):
         """
 
         import time, os
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh (20m x 3m)
         width = 3
@@ -4464,7 +4464,7 @@ class Test_Shallow_Water(unittest.TestCase):
         initial condition
         """
 
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -4511,7 +4511,7 @@ class Test_Shallow_Water(unittest.TestCase):
         initial condition
         """
 
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -4557,7 +4557,7 @@ class Test_Shallow_Water(unittest.TestCase):
         and a suitable initial condition
         """
 
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         points, vertices, boundary = rectangular(2, 1)
@@ -4623,7 +4623,7 @@ class Test_Shallow_Water(unittest.TestCase):
         and a suitable initial condition
         """
 
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -4690,7 +4690,7 @@ class Test_Shallow_Water(unittest.TestCase):
         This one uses a slopy bed, dirichlet and reflective bdries
         """
 
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -4749,7 +4749,7 @@ class Test_Shallow_Water(unittest.TestCase):
         import sys
         import os.path
         sys.path.append(os.path.join('..', 'abstract_2d_finite_volumes'))
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         yieldstep = 0.01
         finaltime = 0.05
@@ -4794,7 +4794,7 @@ class Test_Shallow_Water(unittest.TestCase):
         os.remove(domain.get_name() + '.sww')
 
     def test_second_order_flat_bed_onestep(self):
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -4867,7 +4867,7 @@ class Test_Shallow_Water(unittest.TestCase):
         os.remove(domain.get_name() + '.sww')
 
     def test_second_order_flat_bed_moresteps(self):
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -4896,7 +4896,7 @@ class Test_Shallow_Water(unittest.TestCase):
         os.remove(domain.get_name() + '.sww')
 
     def test_flatbed_first_order(self):
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         N = 8
@@ -4935,7 +4935,7 @@ class Test_Shallow_Water(unittest.TestCase):
         os.remove(domain.get_name() + '.sww')
 
     def test_flatbed_second_order(self):
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         N = 8
@@ -5000,7 +5000,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
     def test_flatbed_second_order_vmax_0(self):
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         N = 8
@@ -5049,7 +5049,7 @@ class Test_Shallow_Water(unittest.TestCase):
         #Use real data from anuga.abstract_2d_finite_volumes 2
         #painfully setup and extracted.
 
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         N = 8
@@ -5185,7 +5185,7 @@ class Test_Shallow_Water(unittest.TestCase):
         os.remove(domain.get_name() + '.sww')
 
     def test_bedslope_problem_first_order(self):
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -5221,7 +5221,7 @@ class Test_Shallow_Water(unittest.TestCase):
         os.remove(domain.get_name() + '.sww')
 
     def test_bedslope_problem_first_order_moresteps(self):
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -5306,7 +5306,7 @@ class Test_Shallow_Water(unittest.TestCase):
         os.remove(domain.get_name() + '.sww')
 
     def test_bedslope_problem_second_order_one_step(self):
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -5394,7 +5394,7 @@ class Test_Shallow_Water(unittest.TestCase):
         os.remove(domain.get_name() + '.sww')
 
     def test_bedslope_problem_second_order_two_steps(self):
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -5512,7 +5512,7 @@ class Test_Shallow_Water(unittest.TestCase):
         os.remove(domain.get_name() + '.sww')
 
     def test_bedslope_problem_second_order_two_yieldsteps(self):
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -5626,7 +5626,7 @@ class Test_Shallow_Water(unittest.TestCase):
         os.remove(domain.get_name() + '.sww')
 
     def test_bedslope_problem_second_order_more_steps(self):
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -5825,7 +5825,7 @@ class Test_Shallow_Water(unittest.TestCase):
         feb 2007 rather than backward compatibility ad infinitum
         """
 
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -5940,7 +5940,7 @@ class Test_Shallow_Water(unittest.TestCase):
         os.remove(domain.get_name() + '.sww')
 
     def test_temp_play(self):
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         points, vertices, boundary = rectangular(5, 5)
@@ -6006,7 +6006,7 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_complex_bed(self):
         # No friction is tested here
 
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         N = 12
         points, vertices, boundary = rectangular(N, N/2, len1=1.2, len2=0.6,
@@ -6087,7 +6087,7 @@ class Test_Shallow_Water(unittest.TestCase):
         # through rectangular domain
 
         import time
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
         points, vertices, boundary = rectangular(3, 3)
@@ -6188,7 +6188,7 @@ class Test_Shallow_Water(unittest.TestCase):
         """
 
         import time
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create sww file of simple propagation from left to right
         # through rectangular domain
@@ -6364,7 +6364,7 @@ class Test_Shallow_Water(unittest.TestCase):
         #through rectangular domain
 
         import time
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         mean_stage = 5.2    # Adjust stage by this amount in boundary
 
@@ -6533,7 +6533,7 @@ class Test_Shallow_Water(unittest.TestCase):
         """
 
         import time
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create sww file of simple propagation from left to right
         # through rectangular domain
@@ -8258,7 +8258,7 @@ friction  \n \
         """
         get values based on triangle lists.
         """
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -8273,7 +8273,7 @@ friction  \n \
         """
         get values based on triangle lists.
         """
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -8312,7 +8312,7 @@ friction  \n \
         """
         get values based on triangle lists.
         """
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -8371,7 +8371,7 @@ friction  \n \
 
     def test_vertex_values_no_smoothing(self):
 
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
         from anuga.utilities.numerical_tools import mean
 
 
@@ -8439,7 +8439,7 @@ friction  \n \
     #Test smoothing
     def test_smoothing(self):
 
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
         from anuga.utilities.numerical_tools import mean
 
         #Create basic mesh
@@ -8528,7 +8528,7 @@ friction  \n \
     # useful for kinematic viscosity calc
     def test_update_centroids_of_velocities_and_height(self):
 
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
         from anuga.utilities.numerical_tools import mean
 
         #Create basic mesh

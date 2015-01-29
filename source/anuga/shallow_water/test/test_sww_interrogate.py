@@ -56,7 +56,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         #Setup
 
-        #from mesh_factory import rectangular
+        #from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh (100m x 100m)
         points, vertices, boundary = rectangular(20, 5, 100, 50)
@@ -233,7 +233,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         from anuga.file.netcdf import NetCDFFile
 
         # Setup
-        #from mesh_factory import rectangular
+        #from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh (20m x 3m)
         width = 3
@@ -356,7 +356,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         from anuga.file.netcdf import NetCDFFile
 
         # Setup
-        #from mesh_factory import rectangular
+        #from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh (20m x 3m)
         width = 3
@@ -484,7 +484,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         from anuga.file.netcdf import NetCDFFile
 
         # Setup
-        #from mesh_factory import rectangular
+        #from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh (20m x 3m)
         width = 3
@@ -586,7 +586,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         from anuga.file.netcdf import NetCDFFile
 
         # Setup
-        #from mesh_factory import rectangular
+        #from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh (20m x 3m)
         width = 3

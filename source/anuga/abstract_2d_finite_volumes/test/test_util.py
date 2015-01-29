@@ -2,8 +2,16 @@
 
 
 import unittest
+import time
+import tempfile
+import os
+import string
+
+import numpy as num
+
+from csv import reader,writer
 from math import sqrt, pi
-import tempfile, os
+from sys import platform 
 from os import access, F_OK,sep, removedirs,remove,mkdir,getcwd
 
 from anuga.abstract_2d_finite_volumes.util import *
@@ -13,22 +21,14 @@ from anuga.file_conversion.file_conversion import timefile2netcdf
 from anuga.utilities.file_utils import del_dir
 
 from anuga.utilities.numerical_tools import NAN
-
-from sys import platform 
-
 from anuga.pmesh.mesh import Mesh
-import time
-from mesh_factory import rectangular
+
+from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.shallow_water.shallow_water_domain import Domain
-from generic_boundary_conditions import \
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import \
                                 Transmissive_boundary, Dirichlet_boundary
 from anuga.file.sww import SWW_file
-from csv import reader,writer
-import time
-import string
-
-import numpy as num
 
 
 def simple_function(x, y):
@@ -604,7 +604,7 @@ class Test_Util(unittest.TestCase):
 
         import os, time
         from anuga.config import time_format
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
         from anuga.shallow_water.shallow_water_domain import Domain
 
         finaltime = 1200
@@ -762,7 +762,7 @@ class Test_Util(unittest.TestCase):
 
         import os, time
         from anuga.config import time_format
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
         from shallow_water import Domain
         import anuga.shallow_water.data_manager 
         from anuga.pmesh.mesh_interface import create_mesh_from_regions

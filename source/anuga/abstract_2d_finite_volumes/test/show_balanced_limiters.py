@@ -17,7 +17,7 @@ from anuga.shallow_water import Domain,\
 from anuga.shallow_water.shallow_water_domain import Weir_simple as Weir
 import anuga.utilities.log as log
 
-from mesh_factory import rectangular
+from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
 
 ######################

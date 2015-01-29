@@ -25,7 +25,7 @@ from anuga.file_conversion.sww2dem import sww2dem, sww2dem_batch
 class Test_Sww2Dem(unittest.TestCase):
     def setUp(self):
         import time
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
         
         # Create basic mesh
         points, vertices, boundary = rectangular(2, 2)
@@ -467,7 +467,7 @@ class Test_Sww2Dem(unittest.TestCase):
 
         #Setup
 
-        from mesh_factory import rectangular_cross
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 
         #Create basic mesh (100m x 100m)
         points, vertices, boundary = rectangular_cross(20, 1, 20.0, 1.0)
@@ -660,7 +660,7 @@ class Test_Sww2Dem(unittest.TestCase):
 
         #Setup
 
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh (100m x 100m)
         points, vertices, boundary = rectangular(2, 2, 100, 100)
@@ -1340,7 +1340,7 @@ class Test_Sww2Dem(unittest.TestCase):
                 verbose = self.verbose)
 
         #Check header data
-        from ermapper_grids import read_ermapper_header, read_ermapper_data
+        from anuga.abstract_2d_finite_volumes.ermapper_grids import read_ermapper_header, read_ermapper_data
 
         header = read_ermapper_header(outname)
 

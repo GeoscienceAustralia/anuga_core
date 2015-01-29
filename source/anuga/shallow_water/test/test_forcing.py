@@ -4,14 +4,14 @@
 import unittest, os
 import anuga
 from anuga.shallow_water.shallow_water_domain import Domain
-from boundaries import Reflective_boundary
+from anuga.shallow_water.boundaries import Reflective_boundary
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.file_conversion.file_conversion import timefile2netcdf
-from forcing import *
-from mesh_factory import rectangular
-#from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
+from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
+
+from anuga.shallow_water.forcing import *
 
 import numpy as num
 import warnings

@@ -73,7 +73,7 @@ class Test_Data_Manager(Test_Mux):
         
     def setUp(self):
         import time
-        #from mesh_factory import rectangular
+        #from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
         
         self.verbose = Test_Data_Manager.verbose
         # Create basic mesh

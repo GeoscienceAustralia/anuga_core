@@ -706,7 +706,7 @@ class Test_Mesh(unittest.TestCase):
         """
         get values based on triangle lists.
         """
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -723,7 +723,7 @@ class Test_Mesh(unittest.TestCase):
 
 
     def test_boundary_polygon(self):
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
         #from mesh import Mesh
 
         #Create basic mesh
@@ -865,7 +865,7 @@ class Test_Mesh(unittest.TestCase):
         from test_util.py that looked as if it produced the wrong boundary
         """
 
-        from mesh_factory import rectangular        
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular        
 
         #Create a domain to hold test grid
         #(0:15, -20:10)

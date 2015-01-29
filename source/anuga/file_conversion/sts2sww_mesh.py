@@ -4,7 +4,7 @@ from anuga.file.netcdf import NetCDFFile
 import pylab as P
 
 import anuga
-from mesh_factory import rectangular
+from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.shallow_water.shallow_water_domain import Domain
 from boundaries import Reflective_boundary
 from anuga.coordinate_transforms.geo_reference import Geo_reference

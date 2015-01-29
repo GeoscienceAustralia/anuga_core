@@ -39,7 +39,7 @@ class Test_sww(unittest.TestCase):
         ################################################
         #Create a test domain, and evolve and save it.
         ################################################
-        #from mesh_factory import rectangular
+        #from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh
 
@@ -190,7 +190,7 @@ class Test_sww(unittest.TestCase):
         import time, os
 
         # Setup
-        #from mesh_factory import rectangular
+        #from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh (100m x 5m)
         width = 5
@@ -261,7 +261,7 @@ class Test_sww(unittest.TestCase):
         import time, os
 
         # Setup
-        #from mesh_factory import rectangular
+        #from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh (100m x 5m)
         width = 5

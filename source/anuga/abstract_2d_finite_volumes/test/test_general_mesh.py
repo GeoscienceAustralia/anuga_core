@@ -6,9 +6,9 @@ from math import sqrt, pi
 
 
 from anuga.config import epsilon
-from general_mesh import General_mesh
+from anuga.abstract_2d_finite_volumes.general_mesh import General_mesh
 from anuga.coordinate_transforms.geo_reference import Geo_reference
-from mesh_factory import rectangular
+from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.shallow_water.shallow_water_domain import Domain
 
 import numpy as num
@@ -23,7 +23,7 @@ class Test_General_Mesh(unittest.TestCase):
 
 
     def test_get_vertex_coordinates(self):
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh
         nodes, triangles, _ = rectangular(1, 3)
@@ -100,7 +100,7 @@ class Test_General_Mesh(unittest.TestCase):
         """test_get_vertex_coordinates_triangle_id
         Test that vertices for one triangle can be returned.
         """
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh
         nodes, triangles, _ = rectangular(1, 3)
@@ -122,7 +122,7 @@ class Test_General_Mesh(unittest.TestCase):
 
 
     def test_get_edge_midpoint_coordinates(self):
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh
         nodes, triangles, _ = rectangular(1, 3)
@@ -187,7 +187,7 @@ class Test_General_Mesh(unittest.TestCase):
         """test_get_vertex_coordinates_triangle_id
         Test that vertices for one triangle can be returned.
         """
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh
         nodes, triangles, _ = rectangular(1, 3)
@@ -228,7 +228,7 @@ class Test_General_Mesh(unittest.TestCase):
     def test_get_vertex_values(self):
         """Get connectivity based on triangle lists.
         """
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh
         nodes, triangles, _ = rectangular(1, 3)
@@ -249,7 +249,7 @@ class Test_General_Mesh(unittest.TestCase):
     def test_vertex_value_indices(self):
         """Check that structures are correct.
         """
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]

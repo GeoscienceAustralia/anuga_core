@@ -2268,7 +2268,7 @@ class Test_Quantity(unittest.TestCase):
 
     def set_array_values_by_index(self):
 
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 1)
@@ -2296,7 +2296,7 @@ class Test_Quantity(unittest.TestCase):
         """
         set values based on triangle lists.
         """
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -2381,7 +2381,7 @@ class Test_Quantity(unittest.TestCase):
         """
         set values based on unique_vertex lists.
         """
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -2406,7 +2406,7 @@ class Test_Quantity(unittest.TestCase):
         """
         get values based on triangle lists.
         """
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -2507,7 +2507,7 @@ class Test_Quantity(unittest.TestCase):
 
     def test_get_interpolated_values(self):
 
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -2642,7 +2642,7 @@ class Test_Quantity(unittest.TestCase):
         """
         get values based on triangle lists.
         """
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -2698,7 +2698,7 @@ class Test_Quantity(unittest.TestCase):
         """
         get values based on triangle lists.
         """
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
       #  from anuga.shallow_water.shallow_water_domain import Domain
 
         #Create basic mesh

@@ -41,7 +41,7 @@ See doc strings of individual functions for detailed documentation.
 """
 
 from numpy import zeros, reshape, product
-from __metadata__ import __version__, __date__, __author__
+#from __metadata__ import __version__, __date__, __author__
 
 
 # Constants
