@@ -130,14 +130,7 @@ def interpolate(vertex_coordinates,
               'verbose': verbose}
 
     if use_cache is True:
-        if sys.platform != 'win32':
-            I = cache(Interpolate, args, kwargs, verbose=verbose)
-        else:
-            # Messy wrapping of Interpolate to deal with win32 error
-            def wrap_Interpolate(args,kwargs):
-                I = apply(Interpolate, args, kwargs)
-                return I
-            I = cache(wrap_Interpolate, (args, kwargs), {}, verbose=verbose)
+		I = cache(Interpolate, args, kwargs, verbose=verbose)
     else:
         I = apply(Interpolate, args, kwargs)    
 

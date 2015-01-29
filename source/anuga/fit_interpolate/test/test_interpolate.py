@@ -8,16 +8,20 @@
 import sys
 import os
 import unittest
-from math import sqrt
 import tempfile
 import csv
+import time
 
 import numpy as num
-
+from math import sqrt
 
 # ANUGA code imports
 import anuga
-from anuga.fit_interpolate.interpolate import *
+from anuga.fit_interpolate.interpolate import Interpolate
+from anuga.fit_interpolate.interpolate import Interpolation_function
+from anuga.fit_interpolate.interpolate import interpolate
+from anuga.fit_interpolate.interpolate import interpolate_sww2csv
+
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.utilities.numerical_tools import mean, NAN
 from anuga.file.sww import SWW_file
