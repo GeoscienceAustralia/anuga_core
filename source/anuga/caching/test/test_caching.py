@@ -11,59 +11,55 @@ import numpy as num
 
 # Define a test function to be cached
 #
-def f(a,b,c,N,x=0,y='abcdefg'):
-  """f(a,b,c,N)
-     Do something time consuming and produce a complex result.
-  """
+def f(a, b, c, N, x=0, y='abcdefg'):
+    """f(a,b,c,N)
+    Do something time consuming and produce a complex result.
+    """
 
-  import string
-
-  B = []
-  for n in range(N):
-    s = str(n+2.0/(n + 4.0))+'.a'*10
-    B.append((a,b,c,s,n,x,y))
-  return(B)
+    import string
+    
+    B = []
+    for n in range(N):
+        s = str(n + 2.0 / (n + 4.0)) + '.a' * 10
+    B.append((a, b, c, s, n, x, y))
+    return(B)
   
 def f_numeric(A, B):
-  """Operation on numeric arrays
-  """
+    """Operation on numeric arrays
+    """
   
-  return 3.1*A + B + 1
+    return 3.1 * A + B + 1
   
   
 def f_object(A, B):
-  """Operation of objecs of class Dummy
-  """
+    """Operation of objects of class Dummy
+    """
   
-  return A.value+B.value, A.another+B.another 
+    return A.value + B.value, A.another + B.another 
   
 
 def f_generic(A):
-  return A 
+    return A 
   
 def clear_and_create_cache(Dummy, verbose=False):
-
-  a = cache(Dummy, 'clear', verbose=verbose)
-  a = cache(Dummy, args=(9,10),
+    
+    a = cache(Dummy, 'clear', verbose=verbose)
+    a = cache(Dummy, args=(9, 10),
             verbose=verbose)
       
 
 def retrieve_cache(Dummy, verbose=False):
-  if verbose: print('Check that cache is there')
+    if verbose: print('Check that cache is there')
   
-  X = cache(Dummy, args=(9,10), test=1,
-            verbose=verbose)      
-            
-  msg = 'Cached value was not found'
-  assert X is not None, msg
-
-      
-
+    X = cache(Dummy, args=(9, 10), test=1,
+            verbose=verbose)
     
-
+    msg = 'Cached value was not found'
+    assert X is not None, msg
+    
 class Test_Caching(unittest.TestCase):
     def setUp(self):
-        set_option('verbose', 0)  #Why
+        set_option('verbose', 0)  # Why
 
         pass
 
@@ -82,14 +78,14 @@ class Test_Caching(unittest.TestCase):
 
     def test_basic_caching(self):
 
-        verbose=False
+        verbose = False
         # Make some test input arguments
         #
-        N = 5000  #Make N fairly small here
+        N = 5000  # Make N fairly small here
 
-        a = [1,2]
-        b = ('Thou shalt count the number three',4)
-        c = {'Five is right out': 6, (7,8): 9}
+        a = [1, 2]
+        b = ('Thou shalt count the number three', 4)
+        c = {'Five is right out': 6, (7, 8): 9}
         x = 3
         y = 'holy hand granate'
 
@@ -102,16 +98,16 @@ class Test_Caching(unittest.TestCase):
   
             # Evaluate and store
             #
-            T1 = cache(f, (a,b,c,N), {'x':x, 'y':y}, evaluate=1, \
+            T1 = cache(f, (a, b, c, N), {'x':x, 'y':y}, evaluate=1, \
                        compression=comp, verbose=verbose)
 
             # Retrieve
             #                           
-            T2 = cache(f, (a,b,c,N), {'x':x, 'y':y}, compression=comp) 
+            T2 = cache(f, (a, b, c, N), {'x':x, 'y':y}, compression=comp) 
 
             # Reference result
             #   
-            T3 = f(a,b,c,N,x=x,y=y)  # Compute without caching
+            T3 = f(a, b, c, N, x=x, y=y)  # Compute without caching
 
 
             assert T1 == T2, 'Cached result does not match computed result'
@@ -148,7 +144,7 @@ class Test_Caching(unittest.TestCase):
                        compression=comp, verbose=verbose)
 
             # Retrieve
-            T2 = cache(f_numeric, (A1, B1), 
+            T2 = cache(f_numeric, (A1, B1),
                        compression=comp, test=1, verbose=verbose) 
                        
             # Check for presence of cached result 
@@ -156,7 +152,7 @@ class Test_Caching(unittest.TestCase):
             assert T2 is not None, msg
 
             # Reference result
-            T3 = f_numeric(A0, B0) # Compute without caching
+            T3 = f_numeric(A0, B0)  # Compute without caching
 
 
             assert num.alltrue(T1 == T2), 'Cached result does not match computed result'
@@ -169,7 +165,7 @@ class Test_Caching(unittest.TestCase):
         verbose = False
         
         # Make test input arguments
-        A0 = num.arange(5)*1.0
+        A0 = num.arange(5) * 1.0
         B = ('x', 15)
         
         # Create different A that hashes to the same address (having the same average)
@@ -196,7 +192,7 @@ class Test_Caching(unittest.TestCase):
             
             # Check that A1 doesn't trigger retrieval of the previous result 
             # even though it hashes to the same address
-            T2 = cache(f_numeric, (A1, A1), 
+            T2 = cache(f_numeric, (A1, A1),
                        compression=comp, verbose=verbose) 
            
             T1_ref = f_numeric(A0, A0)
@@ -216,22 +212,22 @@ class Test_Caching(unittest.TestCase):
         """
     
 
-        verbose = False #True
+        verbose = False  # True
         
-        D = {'point_attributes': None, 
-             'use_cache': True, 
-             'vertex_coordinates': None, 
-             'verbose': True, 
-             'max_read_lines': 500, 
-             'acceptable_overshoot': 1.01, 
-             'mesh': None, 
-             'data_origin': None, 
-             'alpha': 0.02, 
-             'mesh_origin': None, 
-             'attribute_name': None, 
+        D = {'point_attributes': None,
+             'use_cache': True,
+             'vertex_coordinates': None,
+             'verbose': True,
+             'max_read_lines': 500,
+             'acceptable_overshoot': 1.01,
+             'mesh': None,
+             'data_origin': None,
+             'alpha': 0.02,
+             'mesh_origin': None,
+             'attribute_name': None,
              'triangles': None}         
         
-        DD = deepcopy(D) # Mangles the dictionary ordering 
+        DD = deepcopy(D)  # Mangles the dictionary ordering 
         
         assert myhash(DD) == myhash(D)
 
@@ -244,7 +240,7 @@ class Test_Caching(unittest.TestCase):
                        compression=comp, verbose=verbose)
 
             # Retrieve using copy (DD)
-            T2 = cache(f_generic, DD, 
+            T2 = cache(f_generic, DD,
                        compression=comp, test=1, verbose=verbose) 
                        
             # Check for presence of cached result 
@@ -252,7 +248,7 @@ class Test_Caching(unittest.TestCase):
             assert T2 is not None, msg
 
             # Reference result
-            T3 = f_generic(D) # Compute without caching
+            T3 = f_generic(D)  # Compute without caching
 
             
             msg = 'Cached result does not match computed result' 
@@ -300,9 +296,9 @@ class Test_Caching(unittest.TestCase):
                        compression=comp, verbose=verbose)
 
             # Retrieve
-            T2 = cache(f_object, (A1, B1), 
-                       compression=comp, 
-                       test=1, 
+            T2 = cache(f_object, (A1, B1),
+                       compression=comp,
+                       test=1,
                        verbose=verbose) 
                        
             # Check for presence of cached result 
@@ -310,7 +306,7 @@ class Test_Caching(unittest.TestCase):
             assert T2 is not None, msg
 
             # Reference result
-            T3 = f_object(A0, B0) # Compute without caching
+            T3 = f_object(A0, B0)  # Compute without caching
 
 
             assert T1 == T2, 'Cached result does not match computed result'
@@ -330,8 +326,8 @@ class Test_Caching(unittest.TestCase):
         A = Dummy(5, 7)
         B = {'x': 10, 'A': A}
         C = [B, 15]
-        A.value = C # Make it circular
-        A.x = [1,2,C,5,A] # More circular and self referential
+        A.value = C  # Make it circular
+        A.x = [1, 2, C, 5, A]  # More circular and self referential
         
         AA = deepcopy(A)
 
@@ -340,13 +336,13 @@ class Test_Caching(unittest.TestCase):
         for comp in range(comprange):
   
             # Evaluate and store
-            T1 = cache(f_generic, A, 
+            T1 = cache(f_generic, A,
                        evaluate=1,
                        compression=comp, verbose=verbose)
 
             # Retrieve
-            T2 = cache(f_generic, AA, 
-                       compression=comp, 
+            T2 = cache(f_generic, AA,
+                       compression=comp,
                        test=1, verbose=verbose) 
                        
             # Check for presence of cached result 
@@ -354,7 +350,7 @@ class Test_Caching(unittest.TestCase):
             assert T2 is not None, msg
 
             # Reference result
-            T3 = f_generic(A) # Compute without caching
+            T3 = f_generic(A)  # Compute without caching
 
             
             msg = 'Cached result does not match computed result' 
@@ -379,7 +375,7 @@ class Test_Caching(unittest.TestCase):
             self.b = b
             
           def __call__(self, x):
-            return self.a*x + self.b
+            return self.a * x + self.b
 
             
         f1 = call(2, 3)
@@ -394,8 +390,8 @@ class Test_Caching(unittest.TestCase):
           f2hash = -6995306676314913340
 
           # Prior to cluster upgrades Feb 2009
-          #f1hash = 1914027059797211698 
-          #f2hash = 1914027059807087171
+          # f1hash = 1914027059797211698 
+          # f2hash = 1914027059807087171
         else:
           # 32 bit hash values
           f1hash = -758136387
@@ -460,14 +456,14 @@ class Test_Caching(unittest.TestCase):
         A = Dummy(5, 7)
         B = {'x': 10, 'A': A}
         C = [B, num.array([1.2, 3, 5, 0.1])]
-        A.value = C # Make it circular
+        A.value = C  # Make it circular
 
         # Create identical but separate object    
         AA = Dummy(None, None)
         BB = {'A': AA, 'x': 10}
-        CC = [BB, num.array([1.200, 3.000, 5.00, 1.0/10])]
-        AA.value = CC # Make it circular
-        AA.another = 3+4        
+        CC = [BB, num.array([1.200, 3.000, 5.00, 1.0 / 10])]
+        AA.value = CC  # Make it circular
+        AA.another = 3 + 4        
         
         
         assert myhash(A) == myhash(AA)     
@@ -483,7 +479,7 @@ class Test_Caching(unittest.TestCase):
                        compression=comp, verbose=verbose)
 
             # Retrieve using copy (AA)
-            T2 = cache(f_generic, AA, 
+            T2 = cache(f_generic, AA,
                        compression=comp, test=1, verbose=verbose) 
                        
             # Check for presence of cached result 
@@ -491,7 +487,7 @@ class Test_Caching(unittest.TestCase):
             assert T2 is not None, msg
 
             # Reference result
-            T3 = f_generic(A) # Compute without caching
+            T3 = f_generic(A)  # Compute without caching
 
             
             msg = 'Cached result does not match computed result' 
@@ -507,12 +503,12 @@ class Test_Caching(unittest.TestCase):
         circular or self-referencing structures
         """
         
-        verbose = False #True
+        verbose = False  # True
         
         # Create input argument
         A = {'x': 10, 'B': None}
         B = [A, 15]
-        A['B'] = B # Make it circular
+        A['B'] = B  # Make it circular
         
         # Test caching
         comprange = 2
@@ -524,7 +520,7 @@ class Test_Caching(unittest.TestCase):
                        
 
             # Retrieve
-            T2 = cache(f_generic, A, 
+            T2 = cache(f_generic, A,
                        compression=comp, test=1, verbose=verbose) 
                        
             # Check for presence of cached result 
@@ -532,7 +528,7 @@ class Test_Caching(unittest.TestCase):
             assert T2 is not None, msg
 
             # Reference result
-            T3 = f_generic(A) # Compute without caching
+            T3 = f_generic(A)  # Compute without caching
 
 
             msg = 'Cached result does not match computed result'
@@ -544,17 +540,17 @@ class Test_Caching(unittest.TestCase):
     def test_cachefiles(self):
         """Test existence of cachefiles
         """        
-        N = 5000  #Make N fairly small here
+        N = 5000  # Make N fairly small here
 
-        a = [1,2]
-        b = ('Thou shalt count the number three',4)
-        c = {'Five is right out': 6, (7,8): 9}
+        a = [1, 2]
+        b = ('Thou shalt count the number three', 4)
+        c = {'Five is right out': 6, (7, 8): 9}
         x = 3
         y = 'holy hand granate'
 
         
-        FN = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=0, \
-                  return_filename = 1)
+        FN = cache(f, (a, b, c, N), {'x':x, 'y':y}, verbose=0, \
+                  return_filename=1)
 
 
         assert FN[:2] == 'f['
@@ -562,9 +558,9 @@ class Test_Caching(unittest.TestCase):
         CD = checkdir(cachedir)
         compression = 1
 
-        (datafile,compressed0) = myopen(CD+FN+'_'+file_types[0],"rb",compression)
-        (argsfile,compressed1) = myopen(CD+FN+'_'+file_types[1],"rb",compression)
-        (admfile,compressed2) =  myopen(CD+FN+'_'+file_types[2],"rb",compression)
+        (datafile, compressed0) = myopen(CD + FN + '_' + file_types[0], "rb", compression)
+        (argsfile, compressed1) = myopen(CD + FN + '_' + file_types[1], "rb", compression)
+        (admfile, compressed2) = myopen(CD + FN + '_' + file_types[2], "rb", compression)
 
         datafile.close()
         argsfile.close()
@@ -578,18 +574,18 @@ class Test_Caching(unittest.TestCase):
         
         N = 5  
 
-        a = [1,2]
-        b = ('Thou shalt count the number three',4)
-        c = {'Five is right out': 6, (7,8): 9}
+        a = [1, 2]
+        b = ('Thou shalt count the number three', 4)
+        c = {'Five is right out': 6, (7, 8): 9}
         x = 3
         y = 'holy hand granate'
         
 
-        T1 = cache(f, (a,b,c,N), {'x':x, 'y':y}, 
-                   evaluate=1, 
+        T1 = cache(f, (a, b, c, N), {'x':x, 'y':y},
+                   evaluate=1,
                    verbose=verbose)
         
-        T2 = cache(f, (a,b,c,N), {'x':x, 'y':y}, 
+        T2 = cache(f, (a, b, c, N), {'x':x, 'y':y},
                    test=1,
                    verbose=verbose)
                    
@@ -605,25 +601,25 @@ class Test_Caching(unittest.TestCase):
         """Test that 'clear' works
         """
 
-        N = 5000  #Make N fairly small here
+        N = 5000  # Make N fairly small here
 
-        a = [1,2]
-        b = ('Thou shalt count the number three',4)
-        c = {'Five is right out': 6, (7,8): 9}
+        a = [1, 2]
+        b = ('Thou shalt count the number three', 4)
+        c = {'Five is right out': 6, (7, 8): 9}
         x = 3
         y = 'holy hand granate'
         
 
-        T1 = cache(f,(a,b,c,N), {'x':x, 'y':y}, evaluate = 1)
+        T1 = cache(f, (a, b, c, N), {'x':x, 'y':y}, evaluate=1)
         
         
-        cache(f, (a,b,c,N), {'x':x, 'y':y}, clear = 1)    
+        cache(f, (a, b, c, N), {'x':x, 'y':y}, clear=1)    
 
   
         # Test 'test' function when cache is absent
         
         
-        T4 = cache(f, (a,b,c,N), {'x':x, 'y':y}, test=1)
+        T4 = cache(f, (a, b, c, N), {'x':x, 'y':y}, test=1)
         assert T4 is None, "Option 'test' when cache absent failed"
 
 
@@ -634,7 +630,7 @@ class Test_Caching(unittest.TestCase):
 
         DepFN = CD + 'testfile.tmp'
         DepFN_wildcard = CD + 'test*.tmp'
-        Depfile = open(DepFN,'w')
+        Depfile = open(DepFN, 'w')
         Depfile.write('We are the knights who say NI!')
         Depfile.close()
 
@@ -642,22 +638,22 @@ class Test_Caching(unittest.TestCase):
         # Test 
         #
 
-        N = 5000  #Make N fairly small here
+        N = 5000  # Make N fairly small here
 
-        a = [1,2]
-        b = ('Thou shalt count the number three',4)
-        c = {'Five is right out': 6, (7,8): 9}
+        a = [1, 2]
+        b = ('Thou shalt count the number three', 4)
+        c = {'Five is right out': 6, (7, 8): 9}
         x = 3
         y = 'holy hand granate'
         
-        T1 = cache(f,(a,b,c,N), {'x':x, 'y':y}, dependencies=DepFN)  
-        T2 = cache(f,(a,b,c,N), {'x':x, 'y':y}, dependencies=DepFN)                     
+        T1 = cache(f, (a, b, c, N), {'x':x, 'y':y}, dependencies=DepFN)  
+        T2 = cache(f, (a, b, c, N), {'x':x, 'y':y}, dependencies=DepFN)                     
                        
         assert T1 == T2, 'Dependencies do not work'
 
 
         # Test basic wildcard dependency
-        T3 = cache(f,(a,b,c,N), {'x':x, 'y':y}, dependencies=DepFN_wildcard)                     
+        T3 = cache(f, (a, b, c, N), {'x':x, 'y':y}, dependencies=DepFN_wildcard)                     
     
         assert T1 == T3, 'Dependencies with wildcards do not work'
 
@@ -665,20 +661,20 @@ class Test_Caching(unittest.TestCase):
         # Test that changed timestamp in dependencies triggers recomputation
   
         # Modify dependency file
-        Depfile = open(DepFN,'a')
+        Depfile = open(DepFN, 'a')
         Depfile.write('You must cut down the mightiest tree in the forest with a Herring')
         Depfile.close()
   
-        T3 = cache(f,(a,b,c,N), {'x':x, 'y':y}, dependencies=DepFN, test = 1)
+        T3 = cache(f, (a, b, c, N), {'x':x, 'y':y}, dependencies=DepFN, test=1)
         
         assert T3 is None, 'Changed dependencies not recognised'
   
         # Test recomputation when dependencies have changed
         #
-        T3 = cache(f,(a,b,c,N), {'x':x, 'y':y}, dependencies=DepFN)                       
+        T3 = cache(f, (a, b, c, N), {'x':x, 'y':y}, dependencies=DepFN)                       
         assert T1 == T3, 'Recomputed value with changed dependencies failed'
 
-    #def test_performance(self):        
+    # def test_performance(self):        
     #    """Performance test (with statistics)
     #    Don't really rely on this as it will depend on specific computer. 
     #    """
@@ -712,15 +708,15 @@ class Test_Caching(unittest.TestCase):
         """Test presence of statistics file
         """
         import os, string
-        statsfile  = '.cache_stat'  # Basefilename for cached statistics.
+        statsfile = '.cache_stat'  # Basefilename for cached statistics.
         
         CD = checkdir(cachedir)                
         DIRLIST = os.listdir(CD)
         SF = []
         for FN in DIRLIST:
-            if string.find(FN,statsfile) >= 0:
+            if string.find(FN, statsfile) >= 0:
                 try:
-                    fid = open(CD+FN,'r')
+                    fid = open(CD + FN, 'r')
                     fid.close()
                 except:
                     raise Exception('Statistics files cannot be opened')
@@ -784,21 +780,21 @@ class Test_Caching(unittest.TestCase):
 
       
       verbose = True
-      #verbose = False
+      # verbose = False
 
       for i in range(2):
         if verbose: print "clear cache"
         a = cache(Dummy, 'clear')
         
         if verbose: print "cache for first time"
-        a = cache(Dummy, args=(9,10), verbose=verbose)
+        a = cache(Dummy, args=(9, 10), verbose=verbose)
         hash_value = myhash(a)
         
-        #print "hash_value",hash_value 
+        # print "hash_value",hash_value 
         if verbose: print "cache for second time"
-        a = cache(Dummy, args=(9,10), verbose=verbose)
+        a = cache(Dummy, args=(9, 10), verbose=verbose)
         
-        #print "myhash(a)",myhash(a) 
+        # print "myhash(a)",myhash(a) 
         assert hash_value == myhash(a)
 
 
@@ -831,64 +827,64 @@ class Test_Caching(unittest.TestCase):
           a = cache(Dummy, 'clear')
         
           if verbose: print 'cache for first time'
-          a_ref = cache(Dummy, args=(9,10),
+          a_ref = cache(Dummy, args=(9, 10),
                         compression=compression_store,
                         verbose=verbose)
           
           if verbose: print 'Check that cache is there'
-          assert cache(Dummy, args=(9,10), test=1,
+          assert cache(Dummy, args=(9, 10), test=1,
                        compression=compression_retrieve,
                        verbose=verbose)
                        
           if verbose: print 'Check cached result'
-          a = cache(Dummy, args=(9,10),
+          a = cache(Dummy, args=(9, 10),
                     compression=compression_store,
                     verbose=verbose)                       
           assert a.__dict__ == a_ref.__dict__
 
 
 
-    # NOTE (Ole): This test has been commented out because, 
-    #             although the test will pass (not anymore!)
-    #             inside the caching dir and also at the anuga_core level,
-    #             it won't pass at the anuga_core/source/anuga level.
-    # It may have to do with the comments above.
-    #
-    # But this is a very nice test to run occasionally within the caching
-    # area
-    def Xtest_objects_are_created_memory(self):
-      """
-      
-      This test shows how instances can be created from cache
-      as long as input arguments are unchanged - even if the class
-      lives in different memory locations.
-
-      This is using cache created in the main program below
-      """
-
-      verbose = True #False
-
-      # Redefine class Dummy_memorytest
-      class Dummy_memorytest:
-        def __init__(self, value, another):
-          self.value = value      
-
-      # Make sure that class has been redefined to another address
-      print
-      print 'Initial_addr  ', initial_addr
-      print 'Redefined addr', repr(Dummy_memorytest)
-      msg = 'Redefined class ended up at same memory location as '
-      msg += 'original class making this test irrelevant. Try to run '
-      msg += 'it again and see if this error goes away.'
-      msg += 'If it persists contact Ole.Nielsen@ga.gov.au'
-      assert initial_addr != repr(Dummy_memorytest), msg   
-
-      
-      retrieve_cache(Dummy_memorytest, verbose=verbose)      
-          
-# Cache created for use with 'test_objects_are_created_memory'
-#initial_addr = `Dummy_memorytest`
-#clear_and_create_cache(Dummy_memorytest, verbose=False)
+#     # NOTE (Ole): This test has been commented out because, 
+#     #             although the test will pass (not anymore!)
+#     #             inside the caching dir and also at the anuga_core level,
+#     #             it won't pass at the anuga_core/source/anuga level.
+#     # It may have to do with the comments above.
+#     #
+#     # But this is a very nice test to run occasionally within the caching
+#     # area
+#     def Xtest_objects_are_created_memory(self):
+#       """
+#       
+#       This test shows how instances can be created from cache
+#       as long as input arguments are unchanged - even if the class
+#       lives in different memory locations.
+# 
+#       This is using cache created in the main program below
+#       """
+# 
+#       verbose = True  # False
+# 
+#       # Redefine class Dummy_memorytest
+#       class Dummy_memorytest:
+#         def __init__(self, value, another):
+#           self.value = value      
+# 
+#       # Make sure that class has been redefined to another address
+#       print
+#       print 'Initial_addr  ', initial_addr
+#       print 'Redefined addr', repr(Dummy_memorytest)
+#       msg = 'Redefined class ended up at same memory location as '
+#       msg += 'original class making this test irrelevant. Try to run '
+#       msg += 'it again and see if this error goes away.'
+#       msg += 'If it persists contact Ole.Nielsen@ga.gov.au'
+#       assert initial_addr != repr(Dummy_memorytest), msg   
+# 
+#       
+#       retrieve_cache(Dummy_memorytest, verbose=verbose)      
+#           
+# # Cache created for use with 'test_objects_are_created_memory'
+# # initial_addr = `Dummy_memorytest`
+# # clear_and_create_cache(Dummy_memorytest, verbose=False)
   
 
 

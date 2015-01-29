@@ -12,7 +12,7 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.file_conversion.file_conversion import timefile2netcdf
 from anuga.config import time_format
 
-from set_w_uh_vh_operator import *
+from anuga.operators.set_w_uh_vh_operator import *
 
 import numpy as num
 import warnings

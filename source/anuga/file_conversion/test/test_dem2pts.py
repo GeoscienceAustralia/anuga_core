@@ -10,8 +10,8 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \
 
 from anuga.file.netcdf import NetCDFFile
 
-from dem2pts import dem2pts
-from asc2dem import asc2dem
+from anuga.file_conversion.dem2pts import dem2pts
+from anuga.file_conversion.asc2dem import asc2dem
 
 class Test_Dem2Pts(unittest.TestCase):
     """ A suite of tests to test file conversion functions.

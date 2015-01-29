@@ -9,7 +9,7 @@ import random
 # Import standard shallow water domain and standard boundaries.
 import anuga
 
-from mem_time_equation import *
+from anuga.utilities.mem_time_equation import *
 
 class Test_mem_time_equation(unittest.TestCase):
     def setUp(self):

@@ -198,7 +198,7 @@ class Test_read_sww(unittest.TestCase):
         from anuga.abstract_2d_finite_volumes.mesh_factory import \
             rectangular_cross
         from anuga.shallow_water.shallow_water_domain import Domain
-        from boundaries import Reflective_boundary
+        from anuga.shallow_water.boundaries import Reflective_boundary
         from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
                             import Dirichlet_boundary, Time_boundary
 

@@ -17,7 +17,7 @@ from anuga.config import time_format
 from anuga.fit_interpolate.interpolate import Modeltime_too_early
 from anuga.fit_interpolate.interpolate import Modeltime_too_late
 
-from rate_operators import *
+from anuga.operators.rate_operators import *
 
 import numpy as num
 import warnings

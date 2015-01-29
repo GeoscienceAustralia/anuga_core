@@ -4,6 +4,8 @@ from anuga.file.netcdf import NetCDFFile
 
 from anuga.file.urs import Read_urs
 
+import anuga.utilities.log as log
+
 from anuga.file_conversion.urs2nc import urs2nc
 from anuga.file_conversion.ferret2sww import ferret2sww
 
@@ -13,7 +15,7 @@ from anuga.coordinate_transforms.redfearn import redfearn, \
 from anuga.geospatial_data.geospatial_data import ensure_absolute, \
                                                     Geospatial_data
 
-from mux import WAVEHEIGHT_MUX_LABEL, EAST_VELOCITY_LABEL, \
+from anuga.file.mux import WAVEHEIGHT_MUX_LABEL, EAST_VELOCITY_LABEL, \
                             NORTH_VELOCITY_LABEL
                             
 from anuga.utilities.numerical_tools import ensure_numeric                            

@@ -830,7 +830,7 @@ class Test_Shallow_Water(unittest.TestCase):
         assert num.allclose(e0*edgeflux0 + e1*edgeflux1 + e2*edgeflux2, 0.)
 
 
-        from shallow_water_ext import compute_fluxes_ext_central_structure as compute_fluxes
+        from anuga.shallow_water.shallow_water_ext import compute_fluxes_ext_central_structure as compute_fluxes
         # Now check that compute_flux yields zeros as well
         compute_fluxes(domain)
 
@@ -926,7 +926,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
 
-        from shallow_water_ext import compute_fluxes_ext_central_structure as compute_fluxes
+        from anuga.shallow_water.shallow_water_ext import compute_fluxes_ext_central_structure as compute_fluxes
         # Now check that compute_flux yields zeros as well
         compute_fluxes(domain)
 
@@ -1014,7 +1014,7 @@ class Test_Shallow_Water(unittest.TestCase):
                        e2*edgeflux2) / domain.areas[1]
 
 
-        from shallow_water_ext import compute_fluxes_ext_central_structure as compute_fluxes
+        from anuga.shallow_water.shallow_water_ext import compute_fluxes_ext_central_structure as compute_fluxes
         # Now check that compute_flux yields zeros as well
         compute_fluxes(domain)
 
@@ -1096,7 +1096,7 @@ class Test_Shallow_Water(unittest.TestCase):
                        e2*edgeflux2) / domain.areas[1]
 
 
-        from shallow_water_ext import compute_fluxes_ext_central_structure as compute_fluxes
+        from anuga.shallow_water.shallow_water_ext import compute_fluxes_ext_central_structure as compute_fluxes
         # Now check that compute_flux yields zeros as well
         flux_timestep = compute_fluxes(domain)
 
@@ -2656,7 +2656,7 @@ class Test_Shallow_Water(unittest.TestCase):
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
         #domain.compute_forcing_terms()
-        from shallow_water_ext import gravity
+        from anuga.shallow_water.shallow_water_ext import gravity
         gravity(domain)
 
         #print domain.quantities['xmomentum'].explicit_update
@@ -2703,7 +2703,7 @@ class Test_Shallow_Water(unittest.TestCase):
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
         #domain.compute_forcing_terms()
-        from shallow_water_ext import gravity
+        from anuga.shallow_water.shallow_water_ext import gravity
         gravity(domain)
 
         #print domain.quantities['xmomentum'].explicit_update
@@ -2861,7 +2861,7 @@ class Test_Shallow_Water(unittest.TestCase):
             assert num.allclose(domain.quantities[name].explicit_update, 0)
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
-        from shallow_water_ext import gravity_wb
+        from anuga.shallow_water.shallow_water_ext import gravity_wb
         gravity_wb(domain)
 
 
@@ -2908,7 +2908,7 @@ class Test_Shallow_Water(unittest.TestCase):
             assert num.allclose(domain.quantities[name].explicit_update, 0)
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
-        from shallow_water_ext import gravity_wb
+        from anuga.shallow_water.shallow_water_ext import gravity_wb
         gravity_wb(domain)
 
 
@@ -7178,7 +7178,7 @@ friction  \n \
                                 use_cache=False, verbose=verbose, alpha=0.01)
         except RuntimeError, e:
             msg = 'Test failed: %s' % str(e)
-            raise Exception,(sg)
+            raise Exception(msg)
             # clean up in case raise fails
             os.remove(meshname)
             os.remove(points_file)
@@ -7630,8 +7630,8 @@ friction  \n \
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
         from anuga.shallow_water.shallow_water_domain import Domain
         from anuga.shallow_water.boundaries import Reflective_boundary
-        from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
-        from anuga.shallow_water.shallow_water_domain import Rainfall
+        from anuga import Dirichlet_boundary
+        from anuga.shallow_water.forcing import Rainfall
         from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
 
         #----------------------------------------------------------------------
@@ -8045,6 +8045,7 @@ friction  \n \
                     print 'Slope:', slope, 'Mannings n:', mannings_n
                     
                 
+                from anuga.shallow_water.boundaries import Inflow_boundary
                 
                 Bi = Inflow_boundary(domain, rate=ref_flow)
 
@@ -8120,11 +8121,10 @@ friction  \n \
         from anuga.abstract_2d_finite_volumes.mesh_factory \
                 import rectangular_cross
         from anuga.shallow_water.shallow_water_domain import Domain
-        from anuga.shallow_water.shallow_water_domain import Reflective_boundary
-        from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
+        from anuga.shallow_water.boundaries import Reflective_boundary
+        from anuga import Dirichlet_boundary
         from anuga.shallow_water.forcing import Inflow
-        from anuga.shallow_water.data_manager \
-                import get_flow_through_cross_section
+
         from anuga.abstract_2d_finite_volumes.util \
                 import sww2csv_gauges, csv2timeseries_graphs
 

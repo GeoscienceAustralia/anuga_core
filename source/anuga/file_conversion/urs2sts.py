@@ -1,5 +1,6 @@
 import numpy as num
-import log
+
+import anuga.utilities.log as log
 
 # ANUGA modules
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \
@@ -159,6 +160,12 @@ def urs2sts(basename_in, basename_out=None,
     if (verbose): log.critical('reading mux2 file')
 
     mux={}
+    times_old = 0.0
+    latitudes_old = 0.0
+    longitudes_old = 0.0
+    elevation_old = 0.0
+    starttime_old = 0.0
+    
     for i, quantity in enumerate(quantities):
         # For each quantity read the associated list of source mux2 file with
         # extention associated with that quantity
@@ -243,6 +250,8 @@ def urs2sts(basename_in, basename_out=None,
         refzone = zone
 
     old_zone = refzone
+    old_easting = 0.0
+    old_northing = 0.0
 
     for i in range(number_of_points):
         computed_zone, easting, northing = redfearn(latitudes[i], longitudes[i],

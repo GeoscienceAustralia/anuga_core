@@ -43,6 +43,7 @@ See doc strings of individual functions for detailed documentation.
 #
 from os import getenv
 import types
+import time
 
 import os
 if os.name in ['nt', 'dos', 'win32', 'what else?']:
@@ -1107,14 +1108,15 @@ def save_results_to_cache(T, CD, FN, my_F, deps, comptime, funcname,
   """
 
   import time, os, sys
+  verbose = False
 
   # PADARN NOTE 17/12/12: Adding a special case to handle the existence of a 
   # FitInterpolate object. C Structures are serialised so they can be pickled.
   #---------------------------------------------------------------------------
   from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
   
-  import quad_tree_ext
-  import sparse_matrix_ext
+  import anuga.utilities.quad_tree_ext as quad_tree_ext
+  import anuga.utilities.sparse_matrix_ext as sparse_matrix_ext
   from anuga.geometry.aabb import AABB
 
   if isinstance(T, FitInterpolate):

@@ -9,13 +9,13 @@ from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.redfearn import redfearn
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 
-from mux import WAVEHEIGHT_MUX_LABEL, EAST_VELOCITY_LABEL, \
+from anuga.file.mux import WAVEHEIGHT_MUX_LABEL, EAST_VELOCITY_LABEL, \
                             NORTH_VELOCITY_LABEL
 
-from mux import WAVEHEIGHT_MUX2_LABEL, EAST_VELOCITY_MUX2_LABEL, \
+from anuga.file.mux import WAVEHEIGHT_MUX2_LABEL, EAST_VELOCITY_MUX2_LABEL, \
                 NORTH_VELOCITY_MUX2_LABEL
                 
-from mux import read_mux2_py
+from anuga.file.mux import read_mux2_py
 from anuga.file_conversion.urs2sts import urs2sts
 from anuga.file.urs import Read_urs
 
@@ -455,7 +455,7 @@ class Test_Mux(unittest.TestCase):
         does not
         """
         
-        from urs_ext import read_mux2 
+        from anuga.file.urs_ext import read_mux2 
         
         verbose = False
                 
@@ -560,7 +560,7 @@ class Test_Mux(unittest.TestCase):
         does
         """
         
-        from urs_ext import read_mux2 
+        from anuga.file.urs_ext import read_mux2 
         
         from anuga.config import single_precision as epsilon        
         
@@ -823,7 +823,7 @@ class Test_Mux(unittest.TestCase):
         # wrong values Win32
 
         
-        from urs_ext import read_mux2 
+        from anuga.file.urs_ext import read_mux2 
         
         from anuga.config import single_precision as epsilon        
         

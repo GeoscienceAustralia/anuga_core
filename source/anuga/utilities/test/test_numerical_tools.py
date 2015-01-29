@@ -7,7 +7,7 @@ from numpy.random import uniform, seed
 
 from math import sqrt, pi
 from anuga.config import epsilon
-from numerical_tools import *
+from anuga.utilities.numerical_tools import *
 
 
 class Test_Numerical_Tools(unittest.TestCase):
@@ -262,20 +262,20 @@ class Test_Numerical_Tools(unittest.TestCase):
     def test_that_C_extension_compiles(self):
         FN = 'util_ext.c'
         try:
-            import util_ext
+            import anuga.utilities.util_ext as util_ext
         except:
-            from compile import compile
+            from anuga.utilities.compile import compile
 
             try:
                 compile(FN)
             except:
                 raise Exception('Could not compile %s' % FN)
             else:
-                import util_ext
+                import anuga.utilities.util_ext as util_ext
 
 
     def test_gradient_C_extension(self):
-        from util_ext import gradient as gradient_c
+        from anuga.utilities.util_ext import gradient as gradient_c
 
         x0 = 2.0/3; y0 = 2.0/3
         x1=  8.0/3; y1 = 2.0/3
@@ -293,7 +293,7 @@ class Test_Numerical_Tools(unittest.TestCase):
 
 
     def test_gradient_C_extension3(self):
-        from util_ext import gradient as gradient_c
+        from anuga.utilities.util_ext import gradient as gradient_c
 
         seed((17, 53))
 

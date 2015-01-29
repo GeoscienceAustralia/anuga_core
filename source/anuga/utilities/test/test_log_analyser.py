@@ -7,7 +7,7 @@ import os
 import unittest
 import tempfile
 from anuga.utilities.log import TimingDelimiter
-from log_analyser import analyse_log
+from anuga.utilities.log_analyser import analyse_log
 
 class logTestCase(unittest.TestCase):
 

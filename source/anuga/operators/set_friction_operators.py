@@ -125,7 +125,7 @@ class Circular_depth_friction_operator(Depth_friction_operator):
 
 
 
-        Dpth_friction_operator.__init__(self,
+        Depth_friction_operator.__init__(self,
                                     domain,
                                     friction=friction,
                                     center=center,

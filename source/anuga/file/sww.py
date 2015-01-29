@@ -17,12 +17,14 @@ from anuga.utilities.numerical_tools import ensure_numeric
 import anuga.utilities.log as log
 from anuga.file.netcdf import NetCDFFile
 
+from anuga.config import minimum_storable_height as default_minimum_storable_height
+
 from sts import Write_sts
 
 from anuga.coordinate_transforms.geo_reference import \
         ensure_geo_reference
 
-from file_utils import create_filename
+from anuga.utilities.file_utils import create_filename
 import numpy as num
 
 class Data_format:

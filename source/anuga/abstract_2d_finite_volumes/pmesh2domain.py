@@ -25,7 +25,7 @@ def pmesh_to_domain_instance(source, DomainClass, use_cache=False,
     """
 
     if use_cache is True:
-        from caching import cache
+        from anuga.caching import cache
         result = cache(_pmesh_to_domain_instance, (source, DomainClass),
                        dependencies=[source], verbose=verbose)
     else:
@@ -210,7 +210,7 @@ def pmesh_dict_to_tag_dict(mesh_dict):
     #print segments
     #print segment_tags
 
-    from pmesh2domain_ext import build_boundary_dictionary
+    from anuga.abstract_2d_finite_volumes.pmesh2domain_ext import build_boundary_dictionary
 
     tag_dict = build_boundary_dictionary(triangles, segments, segment_tags, tag_dict)
     
@@ -276,8 +276,8 @@ def calc_sides_c(triangles):
 
     #print ntriangles
 
-    from pmesh2domain_ext import sides_dictionary_construct
-    sides = sides_dictionary_construct(triangles, sides)
+    from anuga.abstract_2d_finite_volumes.pmesh2domain_ext import build_sides_dictionary
+    sides = build_sides_dictionary(triangles, sides)
 
 
 #    old_sides = {}

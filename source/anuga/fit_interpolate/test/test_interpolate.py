@@ -17,7 +17,7 @@ import numpy as num
 
 # ANUGA code imports
 import anuga
-from interpolate import *
+from anuga.fit_interpolate.interpolate import *
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.utilities.numerical_tools import mean, NAN
 from anuga.file.sww import SWW_file
@@ -912,7 +912,7 @@ class Test_Interpolate(unittest.TestCase):
         #print "f",f
         for blocking_max in range(14):
         #if True:
-         #   blocking_max = 5
+        #   blocking_max = 5
             z = interp.interpolate(f, point_coords,
                                    start_blocking_len=blocking_max)
             answer = [linear_function(point_coords.get_data_points( \
@@ -930,7 +930,7 @@ class Test_Interpolate(unittest.TestCase):
         #print "f",f
         for blocking_max in range(14):
         #if True:
-         #   blocking_max = 5
+        #   blocking_max = 5
             z = interp.interpolate(f, point_coords,
                                    start_blocking_len=blocking_max)
             answer = num.array([linear_function(point_coords.get_data_points( \
@@ -944,13 +944,13 @@ class Test_Interpolate(unittest.TestCase):
             #print "answer",answer
             assert num.allclose(z, answer)
 
-        z = interp.interpolate(f, point_coords, start_blocking_len = 2)
+        #z = interp.interpolate(f, point_coords, start_blocking_len = 2)
 
         #print "z",z 
         #print "answer",answer 
-        assert num.allclose(z, answer)
+        #assert num.allclose(z, answer)
         
-    def test_interpolate_geo_spatial(self):
+    def test_interpolate_geo_spatial_2(self):
         a = [-1.0, 0.0]
         b = [3.0, 4.0]
         c = [4.0, 1.0]

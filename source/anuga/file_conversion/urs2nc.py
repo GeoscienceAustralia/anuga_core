@@ -3,13 +3,14 @@ from struct import pack, unpack
 import array as p_array
 import numpy as num
 
+from anuga.anuga_exceptions import ANUGAError
 from anuga.utilities.numerical_tools import ensure_numeric   
 from anuga.caching.caching import myhash
 
 from anuga.file.netcdf import Write_nc, write_elevation_nc
 
-
-from mux import WAVEHEIGHT_MUX_LABEL, EAST_VELOCITY_LABEL, \
+import anuga.utilities.log as log
+from anuga.file.mux import WAVEHEIGHT_MUX_LABEL, EAST_VELOCITY_LABEL, \
                             NORTH_VELOCITY_LABEL
 
 

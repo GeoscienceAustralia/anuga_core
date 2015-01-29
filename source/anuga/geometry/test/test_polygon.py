@@ -8,7 +8,7 @@ import numpy as num
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.system_tools import get_pathname_from_package
 
-from polygon import _poly_xy, separate_points_by_polygon, \
+from anuga.geometry.polygon import _poly_xy, separate_points_by_polygon, \
                     populate_polygon, polygon_area, is_inside_polygon, \
                     read_polygon, point_on_line, point_in_polygon, \
                     plot_polygons, outside_polygon, is_outside_polygon, \
@@ -17,7 +17,7 @@ from polygon import _poly_xy, separate_points_by_polygon, \
                     is_inside_triangle, interpolate_polyline, inside_polygon, \
                     in_and_outside_polygon
                     
-from polygon_function import Polygon_function
+from anuga.geometry.polygon_function import Polygon_function
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 
@@ -36,16 +36,16 @@ class Test_Polygon(unittest.TestCase):
     def test_that_C_extension_compiles(self):
         FN = 'polygon_ext.c'
         try:
-            import polygon_ext
+            import anuga.geometry.polygon_ext as polygon_ext
         except:
-            from compile import compile
+            from anuga.utilities.compile import compile
 
             try:
                 compile(FN)
             except:
                 raise Exception, 'Could not compile %s' %FN
             else:
-                import polygon_ext
+                import anuga.geometry.polygon_ext as polygon_ext
 
     # Polygon stuff
     def test_polygon_function_constants(self):
@@ -1817,7 +1817,7 @@ class Test_Polygon(unittest.TestCase):
         assert is_inside_polygon(points_absolute, polygon_absolute)
 
     def test_decimate_polygon(self):
-        from polygon import decimate_polygon
+        from anuga.geometry.polygon import decimate_polygon
         polygon = [[0,0], [10,10], [15,5], [20, 10],
                    [25,0], [30,10], [40,-10], [35, -5]]
 

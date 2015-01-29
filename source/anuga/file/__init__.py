@@ -48,6 +48,5 @@ TSH -> SWW:  Conversion of TSH to sww viewable using Swollen
 TSH + Boundary SWW -> SWW: Simluation using abstract_2d_finite_volumes    
 """
 
-# Add path of package to PYTHONPATH to allow C-extensions to be loaded
-import sys
-sys.path += __path__
+pass
+

@@ -12,8 +12,8 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.file_conversion.file_conversion import timefile2netcdf
 from anuga.config import time_format
 
-from set_quantity import *
-from set_stage import *
+from anuga.operators.set_quantity import *
+from anuga.operators.set_stage import *
 
 import numpy as num
 from pprint import pprint

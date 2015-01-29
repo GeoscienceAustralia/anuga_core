@@ -28,7 +28,7 @@ from anuga.shallow_water.forcing import Rainfall, Wind_stress
 from anuga.shallow_water.forcing import Inflow, Cross_section
 from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
 
-from shallow_water_domain import Domain
+from anuga.shallow_water.shallow_water_domain import Domain
 
 # boundary functions
 from anuga.shallow_water.boundaries import Reflective_boundary, \

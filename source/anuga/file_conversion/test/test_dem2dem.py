@@ -11,7 +11,7 @@ from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.config import g
 
-from boundaries import Reflective_boundary, \
+from anuga.shallow_water.boundaries import Reflective_boundary, \
             Field_boundary, Transmissive_momentum_set_stage_boundary, \
             Transmissive_stage_zero_momentum_boundary
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\

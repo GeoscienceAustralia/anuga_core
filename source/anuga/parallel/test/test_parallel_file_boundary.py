@@ -40,9 +40,9 @@ from anuga import Time_boundary
 from anuga import Transmissive_boundary
 from anuga import File_boundary
 
-from mux import WAVEHEIGHT_MUX2_LABEL, EAST_VELOCITY_MUX2_LABEL, \
+from anuga.file.mux import WAVEHEIGHT_MUX2_LABEL, EAST_VELOCITY_MUX2_LABEL, \
                 NORTH_VELOCITY_MUX2_LABEL
-from mux import read_mux2_py
+from anuga.file.mux import read_mux2_py
 from anuga.file_conversion.urs2sts import urs2sts
 from anuga.file.urs import Read_urs
 from anuga.file.sts import create_sts_boundary

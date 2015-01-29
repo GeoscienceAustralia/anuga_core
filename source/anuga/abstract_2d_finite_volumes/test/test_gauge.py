@@ -2,29 +2,19 @@
 
 
 import unittest
-from math import sqrt, pi
-import tempfile, os
-from os import access, F_OK,sep, removedirs,remove,mkdir,getcwd
+import tempfile
+import os
+from csv import reader
+import time
+import numpy as num
 
 import anuga
-#from anuga.abstract_2d_finite_volumes.util import *
+
 from anuga.abstract_2d_finite_volumes.gauge import sww2csv_gauges
-from anuga.config import epsilon
-
-from anuga.utilities.numerical_tools import NAN,mean
-
-from sys import platform 
-
+from anuga.utilities.numerical_tools import mean
 from anuga.pmesh.mesh import Mesh
-
 from anuga.file.sww import SWW_file
-from anuga.file_conversion.file_conversion import timefile2netcdf
-from anuga.utilities.file_utils import del_dir
-from csv import reader, writer
-import time
-import string
 
-import numpy as num
 
 
 # def simple_function(x, y):

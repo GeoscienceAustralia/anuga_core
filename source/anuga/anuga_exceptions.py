@@ -15,7 +15,7 @@ class ShapeError(exceptions.IOError):
     """ Pathological shape in data. """
     pass
 
-class ANUGAError(Exception):
+class ANUGAError(exceptions.Exception):
     """ Generic ANUGA error. """
     #def __init__(self, args=None):
     #self.args = args

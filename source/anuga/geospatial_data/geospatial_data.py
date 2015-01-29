@@ -11,6 +11,8 @@ from string import lower
 from copy import deepcopy
 import copy
 
+from exceptions import Exception
+
 from anuga.file.netcdf import NetCDFFile
 import numpy as num
 from numpy.random import randint, seed
@@ -240,7 +242,7 @@ class Geospatial_data:
             # if geo_reference is None. Is that the intent Duncan?
             msg = ('Argument geo_reference must be a valid Geo_reference '
                    'object or None.')
-            raise Expection(msg)
+            raise (msg)
 
         # If a geo_reference already exists, change the point data according to
         # the new geo reference
@@ -1385,7 +1387,7 @@ def find_optimal_smoothing_parameter(data_file,
 
         if no_boundary is True:
             msg = 'All boundaries must be defined'
-            raise Expection(msg)
+            raise Exception(msg)
 
         poly_topo = [[east_boundary, south_boundary],
                      [east_boundary, north_boundary],
@@ -1558,7 +1560,7 @@ def old_find_optimal_smoothing_parameter(data_file,
           boundary_polygon or the north_boundary...west_boundary
     """
 
-    from anuga.shallow_water import Domain
+    from anuga.shallow_water.shallow_water_domain import Domain
     from anuga.geospatial_data.geospatial_data import Geospatial_data
     from anuga.pmesh.mesh_interface import create_mesh_from_regions
     from anuga.utilities.numerical_tools import cov
@@ -1578,7 +1580,7 @@ def old_find_optimal_smoothing_parameter(data_file,
 
         if no_boundary is True:
             msg = 'All boundaries must be defined'
-            raise Expection(msg)
+            raise Exception(msg)
 
         poly_topo = [[east_boundary, south_boundary],
                      [east_boundary, north_boundary],

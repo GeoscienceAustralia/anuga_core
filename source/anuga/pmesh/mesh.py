@@ -2254,7 +2254,7 @@ def region_strings2ints(region_list):
         else:
             log.critical("The region list has a bad size")
             # raise an error ..
-            raise Error
+            raise Exception
 
     #remove "" from the region_list
     region_list.pop(0)
