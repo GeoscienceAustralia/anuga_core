@@ -143,14 +143,19 @@ def configuration(parent_package='',top_path=None):
     config.add_data_dir('test')
     config.add_data_dir('data')
 
+    try:
+        import pypar
     
-    config.add_extension('mpiextras',
+        config.add_extension('mpiextras',
                          sources=['mpiextras.c'],
                          include_dirs=mpi_flags['inc_dirs'],
                          library_dirs=mpi_flags['lib_dirs'],
                          libraries=mpi_flags['libs'],
                          define_macros=mpi_flags['def_macros'],
                          undef_macros=mpi_flags['undef_macros'])
+    except:
+        #No parallel support
+        pass
 
     
     return config
