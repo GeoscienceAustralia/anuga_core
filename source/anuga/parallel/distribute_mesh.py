@@ -122,11 +122,11 @@ def reorder_new(quantities, epart_order, proc_sum):
 #path.append('..' + sep + 'pymetis')
 
 try:
-    from anuga.parallel.pymetis.metis import partMeshNodal
+    from anuga.pymetis.metis_ext import partMeshNodal
 except ImportError:
     print "***************************************************"
     print "         Metis is probably not compiled."
-    print "         Read anuga_parallel\pymetis\README"
+    print "         Read anuga.pymetis README"
     print "***************************************************"
     raise ImportError
 

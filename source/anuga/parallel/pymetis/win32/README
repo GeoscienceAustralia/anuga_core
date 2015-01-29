@@ -1,4 +1,0 @@
-This directory contains (at the moment):
-
-A small wrapper around rand() and srand() to make them
-behave enough like rand48() and srand48().
