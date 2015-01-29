@@ -19,14 +19,16 @@
 pass
 
 #Add path of package to PYTHONPATH to allow C-extensions to be loaded
-import sys
-sys.path += __path__
+#import sys
+#sys.path += __path__
 
 
 #-----------------------------------------------------
 # Make selected classes available directly
 #-----------------------------------------------------
 
+from numpy.testing import Tester
+test = Tester().test
 
 from anuga.__metadata__ import __version__, __date__, __author__
 
