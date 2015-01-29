@@ -93,7 +93,7 @@ def pmesh_to_domain(file_name=None, mesh_instance=None, use_cache=False,
     if verbose: log.critical('Pmesh_to_Domain: Initialising')
     
     if use_cache is True:
-        from caching import cache
+        from anuga.caching import cache
         result = cache(_pmesh_to_domain, (file_name, mesh_instance),
                        dependencies=[file_name], verbose=verbose)
 
@@ -111,7 +111,7 @@ def _pmesh_to_domain(file_name=None, mesh_instance=None, use_cache=False,
     that can be used to instantiate a domain object.
     """
 
-    from load_mesh.loadASCII import import_mesh_file
+    from anuga.load_mesh.loadASCII import import_mesh_file
 
     # get data from mesh instance or file
     if file_name is None:
