@@ -58,33 +58,49 @@ try:
     # Attempt to compile Metis for use with anuga_parallel
     os.chdir('source')
     os.chdir('anuga')
-    os.chdir('parallel')
+    #os.chdir('parallel')
     os.chdir('pymetis')
 
     print 'Changing to', os.getcwd()        
 
-    make_logfile = os.path.join(buildroot, 'make_metis.log')
-    options = ''
-    if sys.platform == 'win32':
-        options = 'for_win32'
-    else:
-        if os.name == 'posix':
-            if os.uname()[4] in ['x86_64', 'ia64']:
-                options = ' '
-
-    make_command = 'make %s > %s' % (options, make_logfile)
-    print make_command
-    err = os.system(make_command)
+    cmd = 'python setup.py build_ext --inplace -f '
+    print cmd
+    err = os.system(cmd)
     if err != 0:
-        msg = 'Could not compile Metis '
+        msg = 'Could not compile pymetis '
         msg += 'on platform %s, %s\n' % (sys.platform, os.name)
-        msg += 'You need to compile Metis manually '
+        msg += 'You need to compile metis manually '
         msg += 'if you want to run ANUGA in parallel.'
         raise Exception, msg
     else:
-        msg = 'Compiled Metis succesfully. Output from Make is available in %s'\
-            % make_logfile
+        msg = 'Compiled pymetis successfully.'
         print msg
+
+
+
+    
+    ## make_logfile = os.path.join(buildroot, 'make_metis.log')
+    ## options = ''
+    ## if sys.platform == 'win32':
+    ##     options = 'for_win32'
+    ## else:
+    ##     if os.name == 'posix':
+    ##         if os.uname()[4] in ['x86_64', 'ia64']:
+    ##             options = ' '
+
+    ## make_command = 'make %s > %s' % (options, make_logfile)
+    ## print make_command
+    ## err = os.system(make_command)
+    ## if err != 0:
+    ##     msg = 'Could not compile Metis '
+    ##     msg += 'on platform %s, %s\n' % (sys.platform, os.name)
+    ##     msg += 'You need to compile Metis manually '
+    ##     msg += 'if you want to run ANUGA in parallel.'
+    ##     raise Exception, msg
+    ## else:
+    ##     msg = 'Compiled Metis succesfully. Output from Make is available in %s'\
+    ##         % make_logfile
+    ##     print msg
         
 except:
     print 
@@ -101,7 +117,7 @@ print 'Changing to', os.getcwd()
 try:
     print 
     print '-----------------------------------------------'
-    print 'Attempting to compile pypar_extras'
+    print 'Attempting to compile mpiextras'
     print '-----------------------------------------------'
 
     import pypar
@@ -109,19 +125,19 @@ try:
     os.chdir('source')
     os.chdir('anuga')
     os.chdir('parallel')
-    os.chdir('pypar_extras')
+    #os.chdir('pypar_extras')
 
-    cmd = 'python anuga_setup.py'
+    cmd = 'python setup.py build_ext --inplace -f '
     print cmd
     err = os.system(cmd)
     if err != 0:
-        msg = 'Could not compile pypar_extras '
+        msg = 'Could not compile mpiextras '
         msg += 'on platform %s, %s\n' % (sys.platform, os.name)
-        msg += 'You need to compile pypar_extras manually '
+        msg += 'You need to compile mpiextras manually '
         msg += 'if you want to run ANUGA in parallel.'
         raise Exception, msg
     else:
-        msg = 'Compiled pypar_extras successfully.'
+        msg = 'Compiled mpiextras successfully.'
         print msg
 except:
     print 'anuga.parallel code not compiled as pypar not installed'
