@@ -8,6 +8,9 @@ ModifiedBy:
     $Date: 2010-05-18 14:54:05 +1000 (Tue, 18 May 2010) $
 """
 
+from warnings import warn
+import numpy as num
+from copy import copy
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import segment_midpoints
 from anuga.utilities.numerical_tools import ensure_numeric
@@ -16,12 +19,9 @@ from anuga.fit_interpolate.interpolate import Modeltime_too_early, \
 from anuga.geometry.polygon import is_inside_polygon, inside_polygon, \
                                     polygon_area
 from anuga.geospatial_data.geospatial_data import ensure_geospatial
-
-from warnings import warn
-import numpy as num
 from anuga.file.netcdf import NetCDFFile
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
-from copy import copy
+
 
 def check_forcefield(f):
     """Check that force object is as expected.
@@ -937,7 +937,7 @@ def assign_pressure_field_values(height, pressure, x, triangles,
     """Python version of assigning pressure field to update vectors.
     """
 
-    from utilities.numerical_tools import gradient
+    from anuga.utilities.numerical_tools import gradient
     from anuga.config import rho_a, rho_w, eta_w
 
     N = len(height)

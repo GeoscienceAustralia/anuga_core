@@ -858,7 +858,7 @@ class Test_Fit(unittest.TestCase):
 
 
     def test_fit_to_mesh_file2domain(self):
-        from load_mesh.loadASCII import import_mesh_file, \
+        from anuga.load_mesh.loadASCII import import_mesh_file, \
              export_mesh_file
         import tempfile
         import os
@@ -916,7 +916,7 @@ class Test_Fit(unittest.TestCase):
         os.remove(mesh_output_file)
 
     def test_fit_to_mesh_file3(self):
-        from load_mesh.loadASCII import import_mesh_file, \
+        from anuga.load_mesh.loadASCII import import_mesh_file, \
              export_mesh_file
         import tempfile
         import os
@@ -971,7 +971,7 @@ class Test_Fit(unittest.TestCase):
         os.remove(mesh_output_file)
 
     def test_fit_to_mesh_fileII(self):
-        from load_mesh.loadASCII import import_mesh_file, \
+        from anuga.load_mesh.loadASCII import import_mesh_file, \
              export_mesh_file
         import tempfile
         import os
@@ -1025,7 +1025,7 @@ class Test_Fit(unittest.TestCase):
         os.remove(point_file)
 
     def test_fit_to_mesh_file_errors(self):
-        from load_mesh.loadASCII import import_mesh_file, export_mesh_file
+        from anuga.load_mesh.loadASCII import import_mesh_file, export_mesh_file
         import tempfile
         import os
 
@@ -1066,7 +1066,7 @@ class Test_Fit(unittest.TestCase):
         os.remove(point_file)
 
     def test_fit_to_mesh_file_errorsII(self):
-        from load_mesh.loadASCII import import_mesh_file, export_mesh_file
+        from anuga.load_mesh.loadASCII import import_mesh_file, export_mesh_file
         import tempfile
         import os
 
@@ -1099,7 +1099,7 @@ class Test_Fit(unittest.TestCase):
         os.remove(point_file)
 
     def test_fit_to_mesh_file_errorsIII(self):
-        from load_mesh.loadASCII import import_mesh_file, export_mesh_file
+        from anuga.load_mesh.loadASCII import import_mesh_file, export_mesh_file
         import tempfile
         import os
 

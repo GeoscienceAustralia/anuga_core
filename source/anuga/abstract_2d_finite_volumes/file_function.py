@@ -122,7 +122,7 @@ def file_function(filename,
     # Call underlying engine with or without caching
     if use_cache is True:
         try:
-            from caching import cache
+            from anuga.caching import cache
         except:
             msg = 'Caching was requested, but caching module'+\
                   'could not be imported'

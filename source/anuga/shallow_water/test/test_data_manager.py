@@ -562,7 +562,7 @@ class Test_Data_Manager(Test_Mux):
         """test_sync - Test info stored at each timestep is as expected (incl initial condition)
         """
 
-        import time, os, config
+        import time, os
 
         self.domain.set_name('synctest')
         self.domain.format = 'sww'
