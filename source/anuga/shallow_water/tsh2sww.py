@@ -9,8 +9,8 @@ import sys
 from os import sep, path
 sys.path.append('..'+sep+'pyvolution')
 
-from shallow_water import Domain
-from anuga.pyvolution.pmesh2domain import pmesh_to_domain_instance
+from anuga import Domain
+from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain_instance
 import time, os 
 from anuga.file.sww import SWW_file
 from anuga.utilities.numerical_tools import mean
@@ -45,9 +45,8 @@ def tsh2sww(infilename, sww_file_name = None, verbose = False):
     domain.set_datadir(file_path)
 
     if verbose == True:
-        log.critical("Output written to %s%s%s.%s"
-                     % (domain.get_datadir(), sep, domain.get_name(),
-                        domain.format)
+        log.critical("Output written to %s%s%s.%s" % (domain.get_datadir(), sep, domain.get_name(), domain.format))
+    
     sww = SWW_file(domain)
     sww.store_connectivity()
     sww.store_timestep('stage')
