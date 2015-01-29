@@ -10,7 +10,7 @@ import sys
 import re
 
 # if user does 'from ... import *' only give her/him MaxAsc
-#__all__ = ['MaxAsc']
+__all__ = ['MaxAsc']
 
 HEADER_SIZE = 6
 
