@@ -1,7 +1,12 @@
 
 
 [run]
-omit = */test/* *__init__*
+omit = */test/* 
+     *__init__*
+     */setup.py
+     *test_all*
+     */Pmw*
+     */parallel/*
 
 
 
