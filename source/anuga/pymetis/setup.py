@@ -21,13 +21,13 @@ def configuration(parent_package='',top_path=None):
         
     METIS_DIR = 'metis-4.0'
     
-    metis_src = [join(METIS_DIR,'Lib','*.c')]
-    metis_headers = [join(METIS_DIR,'Lib','*.h')]
-    include_dir = join(METIS_DIR,'Lib') 
+    metis_src = [join(METIS_DIR,'*.c')]
+    metis_headers = [join(METIS_DIR,'*.h')]
+    include_dir = METIS_DIR 
     
-    print(metis_headers)
-    print(metis_src)
-    print(include_dir)
+    #print(metis_headers)
+    #print(metis_src)
+    #print(include_dir)
     
     config.add_include_dirs([include_dir])
     
@@ -46,7 +46,6 @@ def configuration(parent_package='',top_path=None):
                          depends=(metis_src + metis_headers),
                          extra_compile_args=['-I'+include_dir],
                          libraries = ['metis', 'm'])
-                         #library_dirs = [METIS_DIR])
 
     return config
     
