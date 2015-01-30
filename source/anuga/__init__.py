@@ -23,7 +23,10 @@
 from numpy.testing import Tester
 test = Tester().test
 
-from anuga.__metadata__ import __version__, __date__, __author__
+#from anuga.__metadata__ import  __date__, __author__
+
+from .version import git_revision as __git_revision__
+from .version import version as __version__
 
 #--------------------------------
 # Important basic classes

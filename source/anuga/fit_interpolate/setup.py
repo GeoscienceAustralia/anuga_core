@@ -14,14 +14,10 @@ def configuration(parent_package='',top_path=None):
 
     config.add_data_dir('test')
 
-    if parent_package is '':
-        anuga_dir = '..'
-    else:
-        anuga_dir = '.'
 
-    util_dir = join(anuga_dir,'utilities')
+    util_dir = os.path.abspath(join(os.path.dirname(__file__),'..','utilities'))
 
-
+    
     util_srcs = [join(util_dir,'quad_tree.c'),
                  join(util_dir,'sparse_dok.c'),
                  join(util_dir,'sparse_csr.c')]

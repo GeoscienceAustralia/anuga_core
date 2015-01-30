@@ -18,24 +18,7 @@ def configuration(parent_package='',top_path=None):
 
     config.add_data_dir('test')
 
-    
-    if parent_package is '':
-        anuga_dir = '..'
-    else:
-        anuga_dir = '.'
-
-    util_dir = join(anuga_dir,'utilities')
-
-    print ('************************')
-    print (__file__)
-    print (parent_package)
-    print (top_path)
-    print (anuga_dir)
-    print (util_dir)
-    print ('************************')
-
-
-
+    util_dir = os.path.abspath(join(os.path.dirname(__file__),'..','utilities'))    
     
     config.add_extension('neighbour_mesh_ext',
                          sources=['neighbour_mesh_ext.c'],

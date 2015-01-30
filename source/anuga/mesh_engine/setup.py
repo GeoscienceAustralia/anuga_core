@@ -14,14 +14,8 @@ def configuration(parent_package='',top_path=None):
 
     config.add_data_dir('test')
 
-    if parent_package is '':
-        anuga_dir = '..'
-    else:
-        anuga_dir = '.'
-
-    util_dir = join(anuga_dir,'utilities')
-
-
+    util_dir = os.path.abspath(join(os.path.dirname(__file__),'..','utilities'))
+    
     config.add_extension('mesh_engine_c_layer',
                          sources=['mesh_engine_c_layer.c', 'triangle.c'],
                          include_dirs=[util_dir],
