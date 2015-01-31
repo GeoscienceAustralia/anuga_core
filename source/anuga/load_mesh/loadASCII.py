@@ -448,7 +448,7 @@ def _write_ASCII_triangulation(fd, gen_dict):
     for index in range(n):
         neighbors = ""
         tri = triangles[index]
-        if triangle_neighbors == []:
+        if len(triangle_neighbors) == 0:
             neighbors = "-1 -1 -1 "
         else:
             for neighbor in triangle_neighbors[index]:
