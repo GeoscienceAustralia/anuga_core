@@ -191,6 +191,22 @@ def generate_cython():
     if p != 0:
         raise RuntimeError("Running cythonize failed!")
 
+from distutils.core import Command
+
+class PyTest(Command):
+    user_options = []
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        import sys,subprocess
+        errno = subprocess.call([sys.executable, 'runtests.py'])
+        raise SystemExit(errno)
+
+    
 def setup_package():
     src_path = os.path.dirname(os.path.abspath(sys.argv[0]))
     old_path = os.getcwd()
@@ -212,8 +228,7 @@ def setup_package():
         license = 'GPL',
         classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
         platforms = ["Windows", "Linux", "Mac OS-X", "Unix"],
-        test_suite='nose.collector',
-        cmdclass={"sdist": sdist_checked},
+        cmdclass={"sdist": sdist_checked, "test": PyTest},
     )
 
     # Run build
