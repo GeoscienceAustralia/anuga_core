@@ -12,7 +12,7 @@ def configuration(parent_package='',top_path=None):
     
     config = Configuration('fit_interpolate', parent_package, top_path)
 
-    config.add_data_dir('test')
+    config.add_data_dir('tests')
 
 
     util_dir = os.path.abspath(join(os.path.dirname(__file__),'..','utilities'))
