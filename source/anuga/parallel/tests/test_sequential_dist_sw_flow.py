@@ -290,7 +290,11 @@ def setup_and_evolve(domain, verbose=False):
 class Test_parallel_sw_flow(unittest.TestCase):
     def test_parallel_sw_flow(self):
         if verbose : print "Expect this test to fail if not run from the parallel directory."
-        result = os.system("mpirun -np %d python test_sequential_dist_sw_flow.py" % nprocs)
+
+        abs_script_name = os.path.abspath(__file__)
+        cmd = "mpirun -np %d python %s" % (nprocs, abs_script_name)
+        result = os.system(cmd)
+        
         assert_(result == 0)
 
 # Because we are doing assertions outside of the TestCase class

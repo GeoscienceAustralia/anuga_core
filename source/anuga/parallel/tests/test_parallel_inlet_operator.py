@@ -269,7 +269,11 @@ def run_simulation(parallel = False, control_data = None, test_points = None, ve
 class Test_parallel_frac_op(unittest.TestCase):
     def test_parallel_frac_op(self):
         #print "Expect this test to fail if not run from the parallel directory."
-        result = os.system("mpirun -np %d python test_parallel_inlet_operator.py" % nprocs)
+
+        abs_script_name = os.path.abspath(__file__)
+        cmd = "mpirun -np %d python %s" % (nprocs, abs_script_name)
+        result = os.system(cmd)
+        
         assert_(result == 0)
 
 

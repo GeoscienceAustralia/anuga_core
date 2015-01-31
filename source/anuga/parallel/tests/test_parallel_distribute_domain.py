@@ -179,7 +179,11 @@ def run_simulation(parallel=False):
 class Test_parallel_distribute_domain(unittest.TestCase):
     def test_parallel_distribute_domain(self):
         #print "Expect this test to fail if not run from the parallel directory."
-        result = os.system("mpirun -np %d python test_parallel_distribute_domain.py" % nprocs)
+
+        abs_script_name = os.path.abspath(__file__)
+        cmd = "mpirun -np %d python %s" % (nprocs, abs_script_name)
+        result = os.system(cmd)
+
         assert_(result == 0)
 
 
