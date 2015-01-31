@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Auxiliary numerical tools
-
 """
+from __future__ import division, print_function
 
 from math import acos, pi, sqrt
 from warnings import warn
