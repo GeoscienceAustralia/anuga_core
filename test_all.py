@@ -25,7 +25,7 @@ if pypar_available:
     os.chdir('source')
     os.chdir('anuga')
     os.chdir('parallel')
-    os.chdir('test')
+    os.chdir('tests')
     print
     print '===================== anuga parallel tests =========================='
     print 'Changing to', os.getcwd()
