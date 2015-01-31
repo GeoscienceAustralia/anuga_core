@@ -74,7 +74,7 @@ def list_names(names, func=None, col_width=None, page_width=None):
         print
 
 
-def get_test_files(path):
+def get_unittestfiles(path):
     """ Get 'test_*.py' files and paths to directories.
     param path Path to directory to start walk in.
     @return A tuple (<files>, <dirs>).
@@ -124,7 +124,7 @@ def regressionTest(test_verbose=False):
     list_names(exclude_dirs, page_width=term_width)
 
     # get all test_*.py and enclosing directories
-    test_files, path_files = get_test_files(path)
+    test_files, path_files = get_unittestfiles(path)
     #print path_files
     path_files.sort()
 
