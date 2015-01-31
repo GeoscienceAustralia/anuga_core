@@ -72,7 +72,7 @@ class Test_Polygon(unittest.TestCase):
         path = get_pathname_from_package('anuga.utilities')
 
         # Form absolute filename and read
-        filename = os.path.join( path, 'test', 'data', 'mainland_only.csv')
+        filename = os.path.join( path, 'tests', 'data', 'mainland_only.csv')
         p1 = read_polygon(filename)
 
         f = Polygon_function([(p1, 10.0)])
@@ -87,7 +87,7 @@ class Test_Polygon(unittest.TestCase):
         path = get_pathname_from_package('anuga.utilities')
 
         # Form absolute filename and read
-        filename = os.path.join( path, 'test', 'data', 'complex_polygon.csv')
+        filename = os.path.join( path, 'tests', 'data', 'complex_polygon.csv')
         # Should cause an Exception
         try:
             p1 = read_polygon(filename)
@@ -105,7 +105,7 @@ class Test_Polygon(unittest.TestCase):
         path = get_pathname_from_package('anuga.utilities')
 
         # Form absolute filename and read
-        filename = os.path.join( path, 'test', 'data',  'non_complex_polygon.csv')
+        filename = os.path.join( path, 'tests', 'data',  'non_complex_polygon.csv')
         # Should cause an Exception
         try:
             p1 = read_polygon(filename)
@@ -120,7 +120,7 @@ class Test_Polygon(unittest.TestCase):
         path = get_pathname_from_package('anuga.utilities')
 
         # Form absolute filename and read
-        filename = os.path.join( path, 'test', 'data',  'complex_polygon.csv')
+        filename = os.path.join( path, 'tests', 'data',  'complex_polygon.csv')
         # Should not cause an Exception
         p1 = read_polygon(filename, closed=False)
 

@@ -102,7 +102,7 @@ Q1 = 5.0
 
 samples = 50
 
-def run_test(parallel = False, control_data = None, test_points = None, verbose = False):
+def run_simulation(parallel = False, control_data = None, test_points = None, verbose = False):
     success = True
 
 ##-----------------------------------------------------------------------
@@ -317,7 +317,7 @@ if __name__=="__main__":
             test_points = pypar.receive(0)
 
         if myid == 0:
-            control_data = run_test(parallel=False, test_points = test_points, verbose = verbose)
+            control_data = run_simulation(parallel=False, test_points = test_points, verbose = verbose)
 
             for proc in range(1,numprocs):
                 pypar.send(control_data, proc)
@@ -326,7 +326,7 @@ if __name__=="__main__":
 
 
         pypar.barrier()
-        run_test(parallel=True, control_data = control_data, test_points = test_points, verbose = verbose)
+        run_simulation(parallel=True, control_data = control_data, test_points = test_points, verbose = verbose)
 
 
     finalize()

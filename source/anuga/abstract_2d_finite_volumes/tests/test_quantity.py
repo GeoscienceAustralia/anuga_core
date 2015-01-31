@@ -1025,7 +1025,7 @@ class Test_Quantity(unittest.TestCase):
         # Get indices for vertex coordinates in polygon
         indices = inside_polygon(quantity.domain.get_vertex_coordinates(), 
                                  polygon)
-        points = take(quantity.domain.get_vertex_coordinates(), indices)
+        points = num.take(quantity.domain.get_vertex_coordinates(), indices)
         
         answer = linear_function(points)
 
@@ -1033,13 +1033,13 @@ class Test_Quantity(unittest.TestCase):
         #print answer
 
         # Check vertices in polygon have been set
-        assert num.allclose(take(quantity.vertex_values.flat, indices),
+        assert num.allclose(num.take(quantity.vertex_values.flat, indices),
                             answer)
 
         # Check vertices outside polygon are zero
         indices = outside_polygon(quantity.domain.get_vertex_coordinates(), 
                                   polygon)        
-        assert num.allclose(take(quantity.vertex_values.flat, indices),
+        assert num.allclose(num.take(quantity.vertex_values.flat, indices),
                             0.0)        
 
         #Cleanup
@@ -1161,7 +1161,7 @@ class Test_Quantity(unittest.TestCase):
         import os
         os.remove(txt_file)
          
-    def test_set_values_from_lat_long(self):
+    def test_set_values_from_lat_long_2(self):
         quantity = Quantity(self.mesh_onslow)
 
         #Get (enough) datapoints

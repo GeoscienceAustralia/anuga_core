@@ -59,7 +59,7 @@ from anuga import distribute, myid, numprocs, finalize
 
 mod_path = get_pathname_from_package('anuga.parallel')
 
-mesh_filename = os.path.join('..','data','merimbula_10785_1.tsh')
+mesh_filename = os.path.join(mod_path,'data','merimbula_10785_1.tsh')
 #mesh_filename = os.path.join('..','data','test-100.tsh')
 yieldstep = 1
 finaltime = 1
@@ -85,7 +85,7 @@ class Set_Stage:
 #--------------------------------------------------------------------------
 # Setup test
 #--------------------------------------------------------------------------
-def evolution_test(parallel=False):
+def run_simulation(parallel=False):
 
 
     domain = create_domain_from_file(mesh_filename)
@@ -149,7 +149,7 @@ if __name__=="__main__":
         if myid ==0:
             if verbose: print 'PARALLEL START'
 
-        evolution_test(parallel=True)
+        run_simulation(parallel=True)
         
         if myid == 0:     
             if verbose: print 'Parallel test OK'

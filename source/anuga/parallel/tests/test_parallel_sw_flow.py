@@ -47,7 +47,7 @@ def topography(x,y):
 ###########################################################################
 # Setup Test
 ##########################################################################
-def evolution_test(parallel=False, G = None, seq_interpolation_points=None, verbose=False):
+def run_simulation(parallel=False, G = None, seq_interpolation_points=None, verbose=False):
 
     #--------------------------------------------------------------------------
     # Setup computational domain and quantities
@@ -198,7 +198,7 @@ if __name__=="__main__":
         barrier()
         if myid == 0 and verbose: print 'SEQUENTIAL START'
 
-        G , interpolation_points = evolution_test(parallel=False,verbose=verbose)
+        G , interpolation_points = run_simulation(parallel=False,verbose=verbose)
         G = num.array(G,num.float)
 
         barrier()
@@ -209,7 +209,7 @@ if __name__=="__main__":
         #------------------------------------------
         if myid ==0 and verbose: print 'PARALLEL START'
 
-        evolution_test(parallel=True, G=G, seq_interpolation_points = interpolation_points, verbose= verbose)
+        run_simulation(parallel=True, G=G, seq_interpolation_points = interpolation_points, verbose= verbose)
         
         finalize()
 

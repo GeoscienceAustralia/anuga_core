@@ -61,7 +61,7 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.shallow_water.shallow_water_domain import Domain
 
 # use helper methods from other unit test
-from anuga.file.test.test_mux import Test_Mux
+from anuga.file.tests.test_mux import Test_Mux
 
 
 class Test_Data_Manager(Test_Mux):

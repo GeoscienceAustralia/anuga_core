@@ -73,7 +73,7 @@ class Test_Urs(unittest.TestCase):
                 assert False
         
     
-    def dave_test_URS_points_needed(self):
+    def in_development_URS_points_needed(self):
         ll_lat = -21.51667
         ll_long = 114.51667
         grid_spacing = 2./60.
@@ -88,21 +88,6 @@ class Test_Urs(unittest.TestCase):
                                   lat_amount, long_amount,
                                   verbose=self.verbose)
         
-    def X_test_URS_points_neededII(self):
-        ll_lat = -21.5
-        ll_long = 114.5
-        grid_spacing = 1./60.
-        lat_amount = 30
-        long_amount = 30
-
-        # change this so lats and longs are inputed, then converted
-        
-        #boundary_polygon = [[7660000,250000],[7660000,280000],
-        #                     [7630000,280000],[7630000,250000]]
-        calculate_boundary_points(boundary_polygon, ll_lat, ll_long,
-                          grid_spacing, 
-                          lat_amount, long_amount,
-                          verbose=self.verbose)
         
     def test_URS_points_northern_hemisphere(self):
 
@@ -166,7 +151,7 @@ class Test_Urs(unittest.TestCase):
             if not found:
                 assert False
 
-    def covered_in_other_tests_test_URS_points_needed_poly1(self):
+    def in_development_URS_points_needed_poly1(self):
         # Values used for FESA 2007 results
         # domain in southern hemisphere zone 51        
         LL_LAT = -50.0
@@ -193,7 +178,7 @@ class Test_Urs(unittest.TestCase):
         
 
 
-    def covered_in_other_tests_test_URS_points_needed_poly2(self):
+    def in_development_URS_points_needed_poly2(self):
         # Values used for 2004 validation work
         # domain in northern hemisphere zone 47        
         LL_LAT = 0.0

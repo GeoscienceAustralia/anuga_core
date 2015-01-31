@@ -291,7 +291,7 @@ class TestCase(unittest.TestCase):
         
         for forced_zone in [53, 54]:
         
-            datafile = join(path, 'test', 'data', 'projection_test_points_z%d.csv' % forced_zone)
+            datafile = join(path, 'tests', 'data', 'projection_test_points_z%d.csv' % forced_zone)
             fid = open(datafile)
 
             for line in fid.readlines()[1:]:
@@ -327,7 +327,7 @@ class TestCase(unittest.TestCase):
         # in the middle of zones 53 and 54).
 
         path = get_pathname_from_package('anuga.coordinate_transforms')
-        datafile = join(path, 'test', 'data', 'projection_test_points.csv')
+        datafile = join(path, 'tests', 'data', 'projection_test_points.csv')
         fid = open(datafile)
 
         for line in fid.readlines()[1:]:

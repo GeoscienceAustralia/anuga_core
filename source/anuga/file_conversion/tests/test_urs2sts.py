@@ -28,7 +28,7 @@ from anuga.pmesh.mesh_interface import create_mesh_from_regions
 from anuga.file_conversion.urs2sts import urs2sts
 
 # Allow us to use helper methods from this test.
-from anuga.file.test.test_mux import Test_Mux
+from anuga.file.tests.test_mux import Test_Mux
 
 class Test_Urs2Sts(Test_Mux):
     """ A suite of tests to test urs2sts file conversion functions.
@@ -236,7 +236,7 @@ class Test_Urs2Sts(Test_Mux):
         # Get path where this test is run
         path = get_pathname_from_package('anuga.shallow_water')        
         
-        testdir = os.path.join(path, 'test',  'urs_test_data')
+        testdir = os.path.join(path, 'tests',  'urs_test_data')
         ordering_filename=os.path.join(testdir, 'thinned_bound_order_test.txt')
         
         sources = ['1-z.grd','2-z.grd','3-z.grd']
@@ -405,7 +405,7 @@ class Test_Urs2Sts(Test_Mux):
         
         path = get_pathname_from_package('anuga.shallow_water')        
                 
-        testdir = os.path.join(path, 'test', 'urs_test_data')        
+        testdir = os.path.join(path, 'tests', 'urs_test_data')        
         ordering_filename=os.path.join(testdir, 'thinned_bound_order_test.txt')
 
         urs_filenames = [os.path.join(testdir,'1-z.grd'),

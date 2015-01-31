@@ -217,7 +217,7 @@ class Test_Caching(unittest.TestCase):
         D = {'point_attributes': None,
              'use_cache': True,
              'vertex_coordinates': None,
-             'verbose': True,
+             'verbose': False,
              'max_read_lines': 500,
              'acceptable_overshoot': 1.01,
              'mesh': None,
@@ -766,7 +766,7 @@ class Test_Caching(unittest.TestCase):
               
 
 
-    def Will_fail_test_objects(self):
+    def Will_fail_objects(self):
       """
       This test shows how instances can't be effectively cached.
       myhash uses hash which uses id which uses the memory address. 

@@ -34,7 +34,7 @@ class Test_eq(unittest.TestCase):
 
         if T==0:
             # Fortran output file            
-            filename = path+sep+'test'+sep+'data'+sep+'fullokada_SP.txt'
+            filename = path+sep+'tests'+sep+'data'+sep+'fullokada_SP.txt'
             
             # Initial condition of earthquake for multiple source
             x0 = 7000.0
@@ -50,7 +50,7 @@ class Test_eq(unittest.TestCase):
             NSMAX=1
         elif T==1:
             # Fortran output file        
-            filename = path+sep+'test'+sep+'data'+sep+'fullokada_SS.txt'
+            filename = path+sep+'tests'+sep+'data'+sep+'fullokada_SS.txt'
             
             # Initial condition of earthquake for multiple source
             x0 = 7000.0
@@ -68,7 +68,7 @@ class Test_eq(unittest.TestCase):
         elif T==2:
 
             # Fortran output file
-            filename = path+sep+'test'+sep+'data'+sep+'fullokada_MS.txt'
+            filename = path+sep+'tests'+sep+'data'+sep+'fullokada_MS.txt'
             
             # Initial condition of earthquake for multiple source
             x0 = [7000.0,10000.0]
@@ -172,7 +172,7 @@ class Test_eq(unittest.TestCase):
 
         if T==0:
             # Fortran output file
-            filename = path+sep+'test'+sep+'data'+sep+'fullokada_SP.txt'
+            filename = path+sep+'tests'+sep+'data'+sep+'fullokada_SP.txt'
             
             # Initial condition of earthquake for multiple source
             x0 = 7000.0
@@ -188,7 +188,7 @@ class Test_eq(unittest.TestCase):
             NSMAX=1
         elif T==1:
             # Fortran output file
-            filename = path+sep+'test'+sep+'data'+sep+'fullokada_SS.txt'
+            filename = path+sep+'tests'+sep+'data'+sep+'fullokada_SS.txt'
             
             # Initial condition of earthquake for multiple source
             x0 = 7000.0
@@ -206,7 +206,7 @@ class Test_eq(unittest.TestCase):
         elif T==2:
 
             # Fortran output file
-            filename = path+sep+'test'+sep+'data'+sep+'fullokada_MS.txt'
+            filename = path+sep+'tests'+sep+'data'+sep+'fullokada_MS.txt'
             
             # Initial condition of earthquake for multiple source
             x0 = [7000.0,10000.0]

@@ -61,7 +61,7 @@ regionPtAreas=[ [99., 99., 10.0*10.0*0.5],
 ###########################################################################
 # Setup Test
 ##########################################################################
-def evolution_test(parallel=False, verbose=False):
+def run_simulation(parallel=False, verbose=False):
 
     #--------------------------------------------------------------------------
     # Setup computational domain and quantities
@@ -247,7 +247,7 @@ if __name__=="__main__":
         # and parallel values
         #------------------------------------------
         if myid ==0 and verbose: print 'PARALLEL START'
-        evolution_test(parallel=True, verbose=verbose)
+        run_simulation(parallel=True, verbose=verbose)
         finalize()
 
 

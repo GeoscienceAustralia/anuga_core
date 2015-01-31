@@ -388,7 +388,7 @@ def is_num_int(obj):
 #-----------------
 #Initialise module
 
-#from .util_ext import gradient, gradient2
+from .util_ext import gradient, gradient2
 
 
 if __name__ == '__main__':

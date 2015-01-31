@@ -57,7 +57,7 @@ from anuga import create_domain_from_file
 
 from anuga.parallel import distribute, myid, numprocs, send, receive, barrier, finalize
 
-from anuga.file.test.test_mux import Test_Mux
+from anuga.file.tests.test_mux import Test_Mux
 
 verbose = False
 
@@ -69,7 +69,7 @@ class Test_urs2sts_parallel(Test_Mux):
         are correct.
     """ 
 
-    def sequential_test_time_varying_file_boundary_sts(self):
+    def sequential_time_varying_file_boundary_sts(self):
         """sequential_ltest_time_varying_file_boundary_sts_sequential(self):
         Read correct points from ordering file and apply sts to boundary. The boundary is time varying. FIXME add to test_urs2sts.
         """
@@ -228,7 +228,7 @@ class Test_urs2sts_parallel(Test_Mux):
         
         if myid==0: os.remove(meshname)
 
-    def parallel_test_time_varying_file_boundary_sts(self):
+    def parallel_time_varying_file_boundary_sts(self):
         """ parallel_test_time_varying_file_boundary_sts_sequential(self):
             Read correct points from ordering file and apply sts to boundary. 
             The boundary is time varying. Compares sequential result with 

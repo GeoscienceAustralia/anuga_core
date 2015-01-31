@@ -59,7 +59,7 @@ def topography(x,y):
 ###########################################################################
 # Setup Test
 ##########################################################################
-def evolution_test(parallel=False, verbose=False):
+def run_simulation(parallel=False, verbose=False):
 
     #--------------------------------------------------------------------------
     # Setup computational domain and quantities
@@ -315,7 +315,7 @@ if __name__=="__main__":
         #------------------------------------------
         if myid ==0 and verbose: print 'PARALLEL START'
 
-        evolution_test(parallel=True, verbose=verbose)
+        run_simulation(parallel=True, verbose=verbose)
         
         finalize()
 

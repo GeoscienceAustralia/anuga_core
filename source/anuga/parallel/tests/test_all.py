@@ -75,7 +75,7 @@ def list_names(names, func=None, col_width=None, page_width=None):
 # @param path Path to directory to start walk in.
 # @return A tuple (<files>, <dirs>).
 # @note Don't include any files in and below forbidden directories.
-def get_test_files(path):
+def get_unittestfiles(path):
     walk = os.walk(path)
 
     test_files = []
@@ -115,7 +115,7 @@ def regressionTest(test_verbose=False):
     list_names(exclude_dirs, page_width=term_width)
 
     # get all test_*.py and enclosing directories
-    test_files, path_files = get_test_files(path)
+    test_files, path_files = get_unittestfiles(path)
     path_files.sort()
 
     files = [x for x in test_files if not x == 'test_all.py']

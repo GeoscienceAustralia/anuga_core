@@ -82,7 +82,7 @@ class Set_Stage:
 #--------------------------------------------------------------------------
 # Setup test
 #--------------------------------------------------------------------------
-def evolution_test(parallel=False):
+def run_simulation(parallel=False):
 
 
     domain = create_domain_from_file(mesh_filename)
@@ -200,13 +200,13 @@ if __name__=="__main__":
         pypar.barrier()
         if myid == 0:
             if verbose: print 'SEQUENTIAL START'
-            l1norm_seq, l2norm_seq, linfnorm_seq = evolution_test(parallel=False)
+            l1norm_seq, l2norm_seq, linfnorm_seq = run_simulation(parallel=False)
 
         pypar.barrier()
         if myid ==0:
             if verbose: print 'PARALLEL START'
         
-        l1norm_par, l2norm_par, linfnorm_par = evolution_test(parallel=True)
+        l1norm_par, l2norm_par, linfnorm_par = run_simulation(parallel=True)
         
         if myid == 0:
             assert_(len(l1norm_seq) == len(l1norm_par))

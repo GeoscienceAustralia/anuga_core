@@ -126,7 +126,7 @@ class Test_system_tools(unittest.TestCase):
             
         path = get_pathname_from_package('anuga.utilities')        
                 
-        filename = os.path.join(path, 'test', 'data', 'crc_test_file.png') 
+        filename = os.path.join(path, 'tests', 'data', 'crc_test_file.png') 
 
 
 
@@ -208,7 +208,7 @@ class Test_system_tools(unittest.TestCase):
         x = string_to_char(str_list)
         new_str_list = char_to_string(x)
 
-        self.assertTrueEqual(new_str_list, str_list)
+        self.failUnlessEqual(new_str_list, str_list)
 
     # special test - input list is ['']
     def test_string_to_char2(self):
@@ -218,7 +218,7 @@ class Test_system_tools(unittest.TestCase):
         x = string_to_char(str_list)
         new_str_list = char_to_string(x)
 
-        self.assertTrueEqual(new_str_list, str_list)
+        self.failUnlessEqual(new_str_list, str_list)
 
 
 ################################################################################
@@ -281,7 +281,7 @@ class Test_system_tools(unittest.TestCase):
         self.helper_write_msh_file(FILENAME, str_list)
         new_str_list = self.helper_read_msh_file(FILENAME)
 
-        self.assertTrueEqual(new_str_list, str_list)
+        self.failUnlessEqual(new_str_list, str_list)
         os.remove(FILENAME)
 
     # special test - list [''] to a NetCDF file
@@ -294,7 +294,7 @@ class Test_system_tools(unittest.TestCase):
         self.helper_write_msh_file(FILENAME, str_list)
         new_str_list = self.helper_read_msh_file(FILENAME)
 
-        self.assertTrueEqual(new_str_list, str_list)
+        self.failUnlessEqual(new_str_list, str_list)
         os.remove(FILENAME)
 
 
@@ -307,7 +307,7 @@ class Test_system_tools(unittest.TestCase):
             expected.sort()
             msg = ("Source: '%s'\nResult: %s\nExpected: %s"
                    % (source, str(result), str(expected)))
-            self.assertTrueEqual(result, expected, msg)
+            self.failUnlessEqual(result, expected, msg)
                 
         source = 'fred'
         expected = ['fred']

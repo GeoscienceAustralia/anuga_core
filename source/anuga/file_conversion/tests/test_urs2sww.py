@@ -25,7 +25,7 @@ from anuga.geospatial_data.geospatial_data import ensure_absolute
 from anuga.utilities.numerical_tools import ensure_numeric  
 
 # use helper methods from other unit test
-from anuga.file.test.test_mux import Test_Mux
+from anuga.file.tests.test_mux import Test_Mux
 
 
 
@@ -273,7 +273,7 @@ class Test_Dem2Pts(Test_Mux):
         assert num.allclose(ensure_numeric(times),
                             ensure_numeric(times_actual))
         
-               #Check first value
+        #Check first value
         stage = fid.variables['stage'][:]
         xmomentum = fid.variables['xmomentum'][:]
         ymomentum = fid.variables['ymomentum'][:]

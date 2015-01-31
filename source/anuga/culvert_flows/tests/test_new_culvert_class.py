@@ -139,7 +139,7 @@ class Test_Culvert(unittest.TestCase):
         """
 
         path = get_pathname_from_package('anuga.culvert_flows') 
-        path = os.path.join(path, 'test', 'data')   
+        path = os.path.join(path, 'tests', 'data')   
         
         length = 40.
         width = 5.
@@ -256,7 +256,7 @@ class Test_Culvert(unittest.TestCase):
         """
 
         path = get_pathname_from_package('anuga.culvert_flows') 
-        path = os.path.join(path, 'test', 'data')   
+        path = os.path.join(path, 'tests', 'data')   
         
         
         length = 40.

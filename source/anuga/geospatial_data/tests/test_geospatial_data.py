@@ -917,7 +917,7 @@ class Test_Geospatial_data(unittest.TestCase):
         os.remove(fileName)
         os.remove(pts_file)
 
-    def verbose_test_load_pts_blocking(self):
+    def test_load_pts_blocking_2(self):
         fileName = tempfile.mktemp('.txt')
         file = open(fileName, 'w')
         file.write(' x,y, elevation ,  speed \n\
@@ -973,7 +973,7 @@ class Test_Geospatial_data(unittest.TestCase):
         pts_file = tempfile.mktemp('.pts')
         convert = Geospatial_data(fileName)
         convert.export_points_file(pts_file)
-        results = Geospatial_data(pts_file, max_read_lines=2, verbose=True)
+        results = Geospatial_data(pts_file, max_read_lines=2, verbose=False)
 
         # Blocking
         geo_list = []

@@ -7239,7 +7239,7 @@ friction  \n \
         domain = Domain(meshname, use_cache=True, verbose=verbose)
         
         # Large test set revealed one problem
-        points_file = os.path.join(path, 'test', 'data', 'test_points_large.csv')
+        points_file = os.path.join(path, 'tests', 'data', 'test_points_large.csv')
 
         domain.set_quantity('elevation', filename=points_file,
                                 use_cache=False, verbose=verbose)
@@ -7253,7 +7253,7 @@ friction  \n \
             os.remove(meshname)
 
         # Small test set revealed another problem
-        points_file = os.path.join(path, 'test', 'data', 'test_points_small.csv')
+        points_file = os.path.join(path, 'tests', 'data', 'test_points_small.csv')
         try:    
             domain.set_quantity('elevation', filename=points_file,
                                 use_cache=False, verbose=verbose)                            

@@ -217,8 +217,8 @@ class Test_inlet_operator(unittest.TestCase):
         import os
         
         path = get_pathname_from_package('anuga.structures')
-        filename1 = os.path.join(path, 'test', 'data', 'inlet_operator_test1.tms')
-        filename2 = os.path.join(path, 'test', 'data', 'inlet_operator_test2.tms')
+        filename1 = os.path.join(path, 'tests', 'data', 'inlet_operator_test1.tms')
+        filename2 = os.path.join(path, 'tests', 'data', 'inlet_operator_test2.tms')
 
         line1 = [[95.0, 10.0], [105.0, 10.0]]
         Q1 = file_function(filename=filename1, quantities=['hydrograph'])
@@ -277,8 +277,8 @@ class Test_inlet_operator(unittest.TestCase):
         baseDir = os.getcwd()
 
         path = get_pathname_from_package('anuga.structures')
-        filename1 = os.path.join(path, 'test', 'data', 'inlet_operator_test1.tms')
-        filename2 = os.path.join(path, 'test', 'data', 'inlet_operator_test2.tms')
+        filename1 = os.path.join(path, 'tests', 'data', 'inlet_operator_test1.tms')
+        filename2 = os.path.join(path, 'tests', 'data', 'inlet_operator_test2.tms')
 
         line1 = [[95.0, 10.0], [105.0, 10.0]]
         Q1 = file_function(filename=filename1, quantities=['hydrograph'])

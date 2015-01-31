@@ -463,7 +463,7 @@ def test(cachedir=None, verbose=False, compression=None):
     try:
       set_option('compression', compression)
     except:
-      log_test_error('Set option failed')      
+      logtesterror('Set option failed')      
 
   try:
     import zlib
@@ -505,9 +505,9 @@ def test(cachedir=None, verbose=False, compression=None):
     Depfile = open(DepFN,'w')
     Depfile.write('We are the knights who say NI!')
     Depfile.close()
-    log_test_OK('Wrote file %s' %DepFN)
+    logtestOK('Wrote file %s' %DepFN)
   except:
-    log_test_error('Could not open file %s for writing - check your environment' \
+    logtesterror('Could not open file %s for writing - check your environment' \
                % DepFN)
 
   # Check set_option (and switch stats off
@@ -515,9 +515,9 @@ def test(cachedir=None, verbose=False, compression=None):
   try:
     set_option('savestat',0)
     assert(options['savestat'] == 0)
-    log_test_OK('Set option')
+    logtestOK('Set option')
   except:
-    log_test_error('Set option failed')    
+    logtesterror('Set option failed')    
     
   # Make some test input arguments
   #
@@ -544,14 +544,14 @@ def test(cachedir=None, verbose=False, compression=None):
       T1 = cache(f,(a,b,c,N), {'x':x, 'y':y}, evaluate=1, \
                    verbose=verbose, compression=comp)
       if comp:                   
-        log_test_OK('Caching evaluation with compression')
+        logtestOK('Caching evaluation with compression')
       else:     
-        log_test_OK('Caching evaluation without compression')      
+        logtestOK('Caching evaluation without compression')      
     except:
       if comp:
-        log_test_error('Caching evaluation with compression failed - try caching.test(compression=0)')
+        logtesterror('Caching evaluation with compression failed - try caching.test(compression=0)')
       else:
-        log_test_error('Caching evaluation failed - try caching.test(verbose=1)')
+        logtesterror('Caching evaluation failed - try caching.test(verbose=1)')
 
     # Retrieve
     #                           
@@ -560,14 +560,14 @@ def test(cachedir=None, verbose=False, compression=None):
                    compression=comp) 
 
       if comp:                   
-        log_test_OK('Caching retrieval with compression')
+        logtestOK('Caching retrieval with compression')
       else:     
-        log_test_OK('Caching retrieval without compression')      
+        logtestOK('Caching retrieval without compression')      
     except:
       if comp:
-        log_test_error('Caching retrieval with compression failed - try caching.test(compression=0)')
+        logtesterror('Caching retrieval with compression failed - try caching.test(compression=0)')
       else:                                      
-        log_test_error('Caching retrieval failed - try caching.test(verbose=1)')
+        logtesterror('Caching retrieval failed - try caching.test(verbose=1)')
 
     # Reference result
     #   
@@ -575,11 +575,11 @@ def test(cachedir=None, verbose=False, compression=None):
     
     if T1 == T2 and T2 == T3:
       if comp:
-        log_test_OK('Basic caching functionality (with compression)')
+        logtestOK('Basic caching functionality (with compression)')
       else:
-        log_test_OK('Basic caching functionality (without compression)')
+        logtestOK('Basic caching functionality (without compression)')
     else:
-      log_test_error('Cached result does not match computed result')
+      logtesterror('Cached result does not match computed result')
 
 
   # Test return_filename
@@ -588,9 +588,9 @@ def test(cachedir=None, verbose=False, compression=None):
     FN = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
                  return_filename=1)    
     assert(FN[:2] == 'f[')
-    log_test_OK('Return of cache filename')
+    logtestOK('Return of cache filename')
   except:
-    log_test_error('Return of cache filename failed')
+    logtesterror('Return of cache filename failed')
 
   # Test existence of cachefiles
   #  
@@ -598,12 +598,12 @@ def test(cachedir=None, verbose=False, compression=None):
     (datafile,compressed0) = myopen(CD+FN+'_'+file_types[0],"rb",compression)
     (argsfile,compressed1) = myopen(CD+FN+'_'+file_types[1],"rb",compression)
     (admfile,compressed2) =  myopen(CD+FN+'_'+file_types[2],"rb",compression)
-    log_test_OK('Presence of cache files')
+    logtestOK('Presence of cache files')
     datafile.close()
     argsfile.close()
     admfile.close()
   except:
-    log_test_error('Expected cache files did not exist') 
+    logtesterror('Expected cache files did not exist') 
               
   # Test 'test' function when cache is present
   #      
@@ -613,22 +613,22 @@ def test(cachedir=None, verbose=False, compression=None):
     T4 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, test=1)
     assert(T1 == T4)
 
-    log_test_OK("Option 'test' when cache file present")
+    logtestOK("Option 'test' when cache file present")
   except:
-    log_test_error("Option 'test' when cache file present failed")      
+    logtesterror("Option 'test' when cache file present failed")      
 
   # Test that 'clear' works
   #
   #try:
   #  cache(f,'clear',verbose=verbose)
-  #  log_test_OK('Clearing of cache files')
+  #  logtestOK('Clearing of cache files')
   #except:
-  #  log_test_error('Clear does not work')
+  #  logtesterror('Clear does not work')
   try:
     cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, clear=1)    
-    log_test_OK('Clearing of cache files')
+    logtestOK('Clearing of cache files')
   except:
-    log_test_error('Clear does not work')  
+    logtesterror('Clear does not work')  
 
   
 
@@ -637,9 +637,9 @@ def test(cachedir=None, verbose=False, compression=None):
   try:
     T4 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, test=1)
     assert(T4 is None)
-    log_test_OK("Option 'test' when cache absent")
+    logtestOK("Option 'test' when cache absent")
   except:
-    log_test_error("Option 'test' when cache absent failed")      
+    logtesterror("Option 'test' when cache absent failed")      
           
   # Test dependencies
   #
@@ -649,9 +649,9 @@ def test(cachedir=None, verbose=False, compression=None):
                dependencies=DepFN)                     
                        
   if T1 == T2:
-    log_test_OK('Basic dependencies functionality')
+    logtestOK('Basic dependencies functionality')
   else:
-    log_test_error('Dependencies do not work')
+    logtesterror('Dependencies do not work')
 
   # Test basic wildcard dependency
   #
@@ -659,9 +659,9 @@ def test(cachedir=None, verbose=False, compression=None):
                dependencies=DepFN_wildcard)                     
     
   if T1 == T3:
-    log_test_OK('Basic dependencies with wildcard functionality')
+    logtestOK('Basic dependencies with wildcard functionality')
   else:
-    log_test_error('Dependencies with wildcards do not work')
+    logtesterror('Dependencies with wildcards do not work')
 
 
   # Test that changed timestamp in dependencies triggers recomputation
@@ -675,18 +675,18 @@ def test(cachedir=None, verbose=False, compression=None):
                dependencies=DepFN, test = 1)                     
   
   if T3 is None:
-    log_test_OK('Changed dependencies recognised')
+    logtestOK('Changed dependencies recognised')
   else:
-    log_test_error('Changed dependencies not recognised')    
+    logtesterror('Changed dependencies not recognised')    
   
   # Test recomputation when dependencies have changed
   #
   T3 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
                dependencies=DepFN)                       
   if T1 == T3:
-    log_test_OK('Recomputed value with changed dependencies')
+    logtestOK('Recomputed value with changed dependencies')
   else:
-    log_test_error('Recomputed value with changed dependencies failed')
+    logtesterror('Recomputed value with changed dependencies failed')
 
   # Performance test (with statistics)
   # Don't really rely on this as it will depend on specific computer. 
@@ -705,10 +705,10 @@ def test(cachedir=None, verbose=False, compression=None):
   
   if T1 == T2:
     if t1 > t2:
-      log_test_OK('Performance test: relative time saved = %s pct' \
+      logtestOK('Performance test: relative time saved = %s pct' \
               %str(round((t1-t2)*100/t1,2)))
   else:       
-    log_test_error('Basic caching failed for new problem')
+    logtesterror('Basic caching failed for new problem')
             
   # Test presence of statistics file
   #
@@ -719,9 +719,9 @@ def test(cachedir=None, verbose=False, compression=None):
       if string.find(FN,statsfile) >= 0:
         fid = open(CD+FN,'r')
         fid.close()
-    log_test_OK('Statistics files present') 
+    logtestOK('Statistics files present') 
   except:
-    log_test_OK('Statistics files cannot be opened')          
+    logtestOK('Statistics files cannot be opened')          
       
   print_header_box('Show sample output of the caching function:')
   
@@ -741,7 +741,7 @@ def test(cachedir=None, verbose=False, compression=None):
       log.critical('cachestat() does not work here, because it relies on '
                    'time.strptime() which is unavailable in Windows')
       
-  log_test_OK('Caching self test completed')    
+  logtestOK('Caching self test completed')    
       
             
   # Test setoption (not yet implemented)
@@ -767,7 +767,7 @@ textwidth1 = 16             # Text width of key fields in report forms.
 textwidth2 = 300            # Maximal width of textual representation of
                             # arguments.
 textwidth3 = 16             # Initial width of separation lines. Is modified.
-textwidth4 = 50             # Text width in log_test_OK()
+textwidth4 = 50             # Text width in logtestOK()
 statsfile  = '.cache_stat'  # Basefilename for cached statistics.
                             # It will reside in the chosen cache directory.
 
@@ -2496,11 +2496,11 @@ def mkargstr(args, textwidth, argstr = '', level=0):
 
 # -----------------------------------------------------------------------------
 
-def log_test_OK(msg):
+def logtestOK(msg):
   """Print OK msg if test is OK.
   
   USAGE
-    log_test_OK(message)
+    logtestOK(message)
   """
 
   import string
@@ -2511,11 +2511,11 @@ def log_test_OK(msg):
   
 # -----------------------------------------------------------------------------
 
-def log_test_error(msg):
+def logtesterror(msg):
   """Print error if test fails.
   
   USAGE
-    log_test_error(message)
+    logtesterror(message)
   """
   
   log.critical('ERROR (caching.test): %s' % msg)

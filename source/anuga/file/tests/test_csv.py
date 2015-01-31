@@ -228,7 +228,7 @@ class Test_csv(unittest.TestCase):
         """
         
         path = get_pathname_from_package('anuga.shallow_water')                
-        testfile = os.path.join(path, 'test', 'data', 'polygon_values_example.csv')                
+        testfile = os.path.join(path, 'tests', 'data', 'polygon_values_example.csv')                
 
         polygons, values = load_csv_as_polygons(testfile, 
                                         value_name='floors')
@@ -305,7 +305,7 @@ class Test_csv(unittest.TestCase):
         #FIXME(Ole): Not Done!!
         
         path = get_pathname_from_package('anuga.shallow_water')                
-        testfile = os.path.join(path, 'test', 'data', 'polygon_values_example.csv')                
+        testfile = os.path.join(path, 'tests', 'data', 'polygon_values_example.csv')                
 
         polygons, values = load_csv_as_polygons(testfile, 
                                         value_name='floors',
@@ -385,7 +385,7 @@ class Test_csv(unittest.TestCase):
         """
         
         path = get_pathname_from_package('anuga.shallow_water')                
-        testfile = os.path.join(path, 'test', 'data', 'polygon_values_example.csv')                
+        testfile = os.path.join(path, 'tests', 'data', 'polygon_values_example.csv')                
 
         polygons, values = load_csv_as_building_polygons(testfile, 
                                                  floor_height=3)
