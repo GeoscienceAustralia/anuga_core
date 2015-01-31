@@ -816,7 +816,7 @@ class Test_Domain(unittest.TestCase):
         domain.build_tagged_elements_dictionary({'mound':[0,1]})
         domain.set_tag_region([add_to_verts])
 
-        self.failUnless(domain.test == "Mound",
+        self.assertTrue(domain.test == "Mound",
                         'set region failed')
 
                              

@@ -43,17 +43,17 @@ class triangTestCase(unittest.TestCase):
                               pointattlist,segattlist, mode, points)
 
         correct = num.array([(1, 0, 2), (2, 3, 1)])
-        self.failUnless(num.alltrue(data['generatedtrianglelist'].flat == \
+        self.assertTrue(num.alltrue(data['generatedtrianglelist'].flat == \
                                     correct.flat),
                         'trianglelist is wrong!')
         correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)])
-        self.failUnless(num.alltrue(data['generatedsegmentlist'].flat == \
+        self.assertTrue(num.alltrue(data['generatedsegmentlist'].flat == \
                                     correct.flat),
                         'segmentlist is wrong!')
 
         correct = num.array([(0.0, 0.0), (0.0, 10.0),
                              (3.0, 0.0), (3.0, 10.0)])
-        self.failUnless(num.allclose(data['generatedpointlist'].flat, \
+        self.assertTrue(num.allclose(data['generatedpointlist'].flat, \
                                      correct.flat),
                         'Failed')
      
@@ -74,17 +74,17 @@ class triangTestCase(unittest.TestCase):
         data = generate_mesh(points,seglist,holelist,regionlist,
                               pointattlist,segattlist, mode, points)
         correct = num.array([(1, 0, 2), (2, 3, 1)])
-        self.failUnless(num.alltrue(data['generatedtrianglelist'].flat == \
+        self.assertTrue(num.alltrue(data['generatedtrianglelist'].flat == \
                                     correct.flat),
                         'trianglelist is wrong!')
         correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)])
-        self.failUnless(num.alltrue(data['generatedsegmentlist'].flat == \
+        self.assertTrue(num.alltrue(data['generatedsegmentlist'].flat == \
                                     correct.flat),
                         'segmentlist is wrong!')
 
         correct = num.array([(0.0, 0.0), (0.0, 10.0),
                              (3.0, 0.0), (3.0, 10.0)])
-        self.failUnless(num.allclose(data['generatedpointlist'].flat, \
+        self.assertTrue(num.allclose(data['generatedpointlist'].flat, \
                                      correct.flat),
                         'Failed')
 
@@ -110,7 +110,7 @@ class triangTestCase(unittest.TestCase):
         except ANUGAError:
             pass
         else:
-            self.failUnless(0 ==1,
+            self.assertTrue(0 ==1,
                         'bad list did not raise error!')
             
         
@@ -135,7 +135,7 @@ class triangTestCase(unittest.TestCase):
         except ANUGAError:
             pass
         else:
-            self.failUnless(0 ==1,
+            self.assertTrue(0 ==1,
                         'bad list did not raise error!')
             
     def testsegmarker(self):
@@ -154,21 +154,21 @@ class triangTestCase(unittest.TestCase):
                               pointattlist,segattlist, mode, points)
 
         correct = num.array([(1, 0, 2), (2, 3, 1)])
-        self.failUnless(num.alltrue(data['generatedtrianglelist'].flat == \
+        self.assertTrue(num.alltrue(data['generatedtrianglelist'].flat == \
                                     correct.flat),
                         'trianglelist is wrong!')
         correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)])
-        self.failUnless(num.alltrue(data['generatedsegmentlist'].flat == \
+        self.assertTrue(num.alltrue(data['generatedsegmentlist'].flat == \
                                     correct.flat),
                         'segmentlist is wrong!')
 
         correct = num.array([(0.0, 0.0), (0.0, 10.0),
                              (3.0, 0.0), (3.0, 10.0)])
-        self.failUnless(num.allclose(data['generatedpointlist'].flat, \
+        self.assertTrue(num.allclose(data['generatedpointlist'].flat, \
                                      correct.flat),
                         'Failed')
         
-        self.failUnless(num.alltrue(data['generatedsegmentmarkerlist'] == \
+        self.assertTrue(num.alltrue(data['generatedsegmentmarkerlist'] == \
                                     num.array([1,2,3,4])),
                         'Failed!')
         
@@ -192,7 +192,7 @@ class triangTestCase(unittest.TestCase):
         except ANUGAError:
             pass
         else:
-            self.failUnless(0 ==1,
+            self.assertTrue(0 ==1,
                         'bad region list did not raise error!')
 
     def testbad_regionII(self):
@@ -215,7 +215,7 @@ class triangTestCase(unittest.TestCase):
         except ANUGAError:
             pass
         else:
-            self.failUnless(0==1,
+            self.assertTrue(0==1,
                         'bad region list did not raise error!')
 
     def testregion_with_maxarea(self):
@@ -234,7 +234,7 @@ class triangTestCase(unittest.TestCase):
         data = generate_mesh(points,seglist,holelist,regionlist,
                               pointattlist,segattlist,  mode, points)
 
-        self.failUnless(len(data['generatedtrianglelist']) == 2,
+        self.assertTrue(len(data['generatedtrianglelist']) == 2,
                         'testregion_with_maxarea 1: # of tris is wrong!')
         ## Another test case
         regionlist = [(3,1,1.0),(1,3,1.0,8.0)]
@@ -250,7 +250,7 @@ class triangTestCase(unittest.TestCase):
         # causing the different results, and we are treating
         # triangle as a back box.
 
-        self.failUnless(len(data['generatedtrianglelist']) >= 6,
+        self.assertTrue(len(data['generatedtrianglelist']) >= 6,
                         'testregion_with_maxarea 2: # of tris is wrong!')
         ## Another test case
         regionlist = [(3,1,1.0,8.0),(1,3,1.0,8.0)]
@@ -260,7 +260,7 @@ class triangTestCase(unittest.TestCase):
         #print "len(data['generatedtrianglelist']",len(data['generatedtrianglelist'])
         # On unix this returns a 10 triangle result.
         # Windows returns a 8 triangle result.
-        self.failUnless(len(data['generatedtrianglelist']) >= 8,
+        self.assertTrue(len(data['generatedtrianglelist']) >= 8,
                         'testregion_with_maxarea 3: # of tris is wrong!')
 
         ## Another test case
@@ -272,7 +272,7 @@ class triangTestCase(unittest.TestCase):
         # On unix this returns a 10 triangle result.
         # Windows returns a 8 triangle result.
 
-        self.failUnless(len(data['generatedtrianglelist']) >= 8,
+        self.assertTrue(len(data['generatedtrianglelist']) >= 8,
                         'testregion_with_maxarea 4: # of tris is wrong!')
 
 
@@ -294,7 +294,7 @@ class triangTestCase(unittest.TestCase):
         except TypeError:
             pass
         else:
-            self.failUnless(0 ==1,
+            self.assertTrue(0 ==1,
                         'bad hole list did not raise error!')
 
 
@@ -315,7 +315,7 @@ class triangTestCase(unittest.TestCase):
         except ANUGAError:
             pass
         else:
-            self.failUnless(0 ==1,
+            self.assertTrue(0 ==1,
                         'bad segment attribute list did not raise error!')
 
     def testrectangle_regions(self):
@@ -338,7 +338,7 @@ class triangTestCase(unittest.TestCase):
                               pointattlist,segattlist, mode, points)
 
         correct = num.array([[77.0], [77.0], [77.0], [77.0]])
-        self.failUnless(num.allclose(data['generatedtriangleattributelist'].flat, 
+        self.assertTrue(num.allclose(data['generatedtriangleattributelist'].flat, 
                                      correct.flat),
                         'Failed')
         
@@ -362,7 +362,7 @@ class triangTestCase(unittest.TestCase):
                               pointattlist,segattlist, mode, points)
 
         correct = num.array([[77.0], [77.0], [77.0], [77.0]])
-        self.failUnless(num.allclose(data['generatedtriangleattributelist'].flat, 
+        self.assertTrue(num.allclose(data['generatedtriangleattributelist'].flat, 
                                      correct.flat),
                         'Failed')
 
@@ -388,37 +388,37 @@ class triangTestCase(unittest.TestCase):
 
      
         correct = num.array([(1, 0, 2), (2, 3, 1)])
-        self.failUnless(num.alltrue(data['generatedtrianglelist'].flat == \
+        self.assertTrue(num.alltrue(data['generatedtrianglelist'].flat == \
                                     correct.flat),
                         'trianglelist is wrong!')
         correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)])
-        self.failUnless(num.alltrue(data['generatedsegmentlist'].flat == \
+        self.assertTrue(num.alltrue(data['generatedsegmentlist'].flat == \
                                     correct.flat),
                         'segmentlist is wrong!')
 
         correct = num.array([(0.0, 0.0), (0.0, 10.0),
                              (3.0, 0.0), (3.0, 10.0)])
-        self.failUnless(num.allclose(data['generatedpointlist'].flat, \
+        self.assertTrue(num.allclose(data['generatedpointlist'].flat, \
                                      correct.flat),
                         'Failed')
         
         correct = num.array([[tri_tag], [tri_tag]])
-        self.failUnless(num.allclose(data['generatedtriangleattributelist'].flat, \
+        self.assertTrue(num.allclose(data['generatedtriangleattributelist'].flat, \
                                      correct.flat),
                         'Failed')
         correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)])
-        self.failUnless(num.alltrue(data['generatedsegmentlist'].flat == \
+        self.assertTrue(num.alltrue(data['generatedsegmentlist'].flat == \
                                     correct.flat),
                         'Failed!')
         
         correct = num.array(segattlist, num.int)
-        self.failUnless(num.allclose(data['generatedsegmentmarkerlist'].flat, 
+        self.assertTrue(num.allclose(data['generatedsegmentmarkerlist'].flat, 
                                      correct.flat),
                         'Failed')
         
         # I copied these answers from the output, so bad test..
         correct = num.array([(-1, 1, -1), (-1, 0, -1)])
-        self.failUnless(num.alltrue(data['generatedtriangleneighborlist'].flat == \
+        self.assertTrue(num.alltrue(data['generatedtriangleneighborlist'].flat == \
                                     correct.flat),
                         'Failed!')
         
@@ -440,7 +440,7 @@ class triangTestCase(unittest.TestCase):
                               pointattlist,segattlist, mode, points)
 
         correct = num.array([[0.0],[0.0],[10],[10]])
-        self.failUnless(num.allclose(data['generatedpointattributelist'].flat, \
+        self.assertTrue(num.allclose(data['generatedpointattributelist'].flat, \
                                      correct.flat),
                         'Failed')
         
@@ -449,7 +449,7 @@ class triangTestCase(unittest.TestCase):
         data = generate_mesh(points,seglist,holelist,regionlist,
                               pointattlist,segattlist, mode, points)
         correct = num.array([[0.0],[0.0],[10],[10]])
-        self.failUnless(num.allclose(data['generatedpointattributelist'].flat, \
+        self.assertTrue(num.allclose(data['generatedpointattributelist'].flat, \
                                      correct.flat),
                         'Failed')
         
@@ -459,7 +459,7 @@ class triangTestCase(unittest.TestCase):
                               pointattlist,segattlist, mode, points)
         #print "data", data
         correct = num.array(pointattlist)
-        self.failUnless(num.allclose(data['generatedpointattributelist'].flat, \
+        self.assertTrue(num.allclose(data['generatedpointattributelist'].flat, \
                                      correct.flat),
                         'Failed')
     

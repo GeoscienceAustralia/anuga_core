@@ -145,7 +145,7 @@ class Test_system_tools(unittest.TestCase):
     # helper routine to test clean_line()
     def clean_line_test(self, instr, delim, expected):
         result = clean_line(instr, delim)
-        self.failUnless(result == expected,
+        self.assertTrue(result == expected,
                         "clean_line('%s', '%s'), expected %s, got %s"
                         % (str(instr), str(delim), str(expected), str(result)))
 
@@ -208,7 +208,7 @@ class Test_system_tools(unittest.TestCase):
         x = string_to_char(str_list)
         new_str_list = char_to_string(x)
 
-        self.failUnlessEqual(new_str_list, str_list)
+        self.assertTrueEqual(new_str_list, str_list)
 
     # special test - input list is ['']
     def test_string_to_char2(self):
@@ -218,7 +218,7 @@ class Test_system_tools(unittest.TestCase):
         x = string_to_char(str_list)
         new_str_list = char_to_string(x)
 
-        self.failUnlessEqual(new_str_list, str_list)
+        self.assertTrueEqual(new_str_list, str_list)
 
 
 ################################################################################
@@ -281,7 +281,7 @@ class Test_system_tools(unittest.TestCase):
         self.helper_write_msh_file(FILENAME, str_list)
         new_str_list = self.helper_read_msh_file(FILENAME)
 
-        self.failUnlessEqual(new_str_list, str_list)
+        self.assertTrueEqual(new_str_list, str_list)
         os.remove(FILENAME)
 
     # special test - list [''] to a NetCDF file
@@ -294,7 +294,7 @@ class Test_system_tools(unittest.TestCase):
         self.helper_write_msh_file(FILENAME, str_list)
         new_str_list = self.helper_read_msh_file(FILENAME)
 
-        self.failUnlessEqual(new_str_list, str_list)
+        self.assertTrueEqual(new_str_list, str_list)
         os.remove(FILENAME)
 
 
@@ -307,7 +307,7 @@ class Test_system_tools(unittest.TestCase):
             expected.sort()
             msg = ("Source: '%s'\nResult: %s\nExpected: %s"
                    % (source, str(result), str(expected)))
-            self.failUnlessEqual(result, expected, msg)
+            self.assertTrueEqual(result, expected, msg)
                 
         source = 'fred'
         expected = ['fred']
@@ -364,7 +364,7 @@ class Test_system_tools(unittest.TestCase):
             fd.close()
 
             msg = "Original file %s isn't the same as untarred copy?" % file
-            self.failUnless(orig == copy, msg)
+            self.assertTrue(orig == copy, msg)
 
         # clean up
         for file in files:
@@ -403,7 +403,7 @@ class Test_system_tools(unittest.TestCase):
         # check that digest is as expected, string
         msg = ("Digest string wrong, got '%s', expected '%s'"
                % (digest, expected_digest))
-        self.failUnless(expected_digest == digest, msg)
+        self.assertTrue(expected_digest == digest, msg)
 
         # check that digest is as expected, file
         msg = ("Digest file wrong, got '%s', expected '%s'"
@@ -411,7 +411,7 @@ class Test_system_tools(unittest.TestCase):
         fd = open(digest_file, 'r')
         digest = fd.readline()
         fd.close()
-        self.failUnless(expected_digest == digest, msg)
+        self.assertTrue(expected_digest == digest, msg)
 
 
     def test_file_length_function(self):
@@ -442,16 +442,16 @@ class Test_system_tools(unittest.TestCase):
         # use file_length() to get and check lengths
         size1 = file_length(test_file1)
         msg = 'Expected file_length() to return 0, but got %d' % size1
-        self.failUnless(size1 == 0, msg)
+        self.assertTrue(size1 == 0, msg)
         size2 = file_length(test_file2)
         msg = 'Expected file_length() to return 5, but got %d' % size2
-        self.failUnless(size2 == 5, msg)
+        self.assertTrue(size2 == 5, msg)
         size3 = file_length(test_file3)
         msg = 'Expected file_length() to return 1, but got %d' % size3
-        self.failUnless(size3 == 1, msg)
+        self.assertTrue(size3 == 1, msg)
         size4 = file_length(test_file4)
         msg = 'Expected file_length() to return 1000, but got %d' % size4
-        self.failUnless(size4 == 1000, msg)
+        self.assertTrue(size4 == 1000, msg)
         
         
         

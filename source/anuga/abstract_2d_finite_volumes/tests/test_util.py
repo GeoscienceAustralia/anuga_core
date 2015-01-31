@@ -48,14 +48,14 @@ class Test_Util(unittest.TestCase):
     #def test_distance(self):
     #    from anuga.abstract_2d_finite_volumes.util import distance#
     #
-    #    self.failUnless( distance([4,2],[7,6]) == 5.0,
+    #    self.assertTrue( distance([4,2],[7,6]) == 5.0,
     #                     'Distance is wrong!')
-    #    self.failUnless( allclose(distance([7,6],[9,8]), 2.82842712475),
+    #    self.assertTrue( allclose(distance([7,6],[9,8]), 2.82842712475),
     #                    'distance is wrong!')
-    #    self.failUnless( allclose(distance([9,8],[4,2]), 7.81024967591),
+    #    self.assertTrue( allclose(distance([9,8],[4,2]), 7.81024967591),
     #                    'distance is wrong!')
     #
-    #    self.failUnless( distance([9,8],[4,2]) == distance([4,2],[9,8]),
+    #    self.assertTrue( distance([9,8],[4,2]) == distance([4,2],[9,8]),
     #                    'distance is wrong!')
 
 
@@ -702,7 +702,7 @@ class Test_Util(unittest.TestCase):
                 #print "actual", actual
                 #print
                 if num.alltrue(q0 == NAN):
-                     self.failUnless(num.alltrue(q == actual), 'Fail!')
+                     self.assertTrue(num.alltrue(q == actual), 'Fail!')
                 else:
                     assert num.allclose(q, actual)
 
@@ -872,7 +872,7 @@ class Test_Util(unittest.TestCase):
                 #print "actual", actual
                 #print
                 if q0 == NAN:
-                     self.failUnless( q == actual, 'Fail!')
+                     self.assertTrue( q == actual, 'Fail!')
                 else:
                     assert num.allclose(q, actual)
 
@@ -918,7 +918,7 @@ class Test_Util(unittest.TestCase):
                 print "actual", actual
                 #print
                 if q0 == NAN:
-                     self.failUnless( q == actual, 'Fail!')
+                     self.assertTrue( q == actual, 'Fail!')
                 else:
                     assert num.allclose(q, actual)
 
@@ -1405,43 +1405,43 @@ class Test_Util(unittest.TestCase):
         verts = [[0,0],[1,0],[0,1]]
         tris = [[0,1,2]]
         new_verts, new_tris = remove_lone_verts(verts, tris)
-        self.failUnless(new_verts.tolist() == verts)
-        self.failUnless(new_tris.tolist() == tris)
+        self.assertTrue(new_verts.tolist() == verts)
+        self.assertTrue(new_tris.tolist() == tris)
 
     def test_remove_lone_verts_b(self):
         verts = [[0,0],[1,0],[0,1],[99,99]]
         tris = [[0,1,2]]
         new_verts, new_tris = remove_lone_verts(verts, tris)
-        self.failUnless(new_verts.tolist() == verts[0:3])
-        self.failUnless(new_tris.tolist() == tris)
+        self.assertTrue(new_verts.tolist() == verts[0:3])
+        self.assertTrue(new_tris.tolist() == tris)
         
     def test_remove_lone_verts_c(self):
         verts = [[99,99],[0,0],[1,0],[99,99],[0,1],[99,99]]
         tris = [[1,2,4]]
         new_verts, new_tris = remove_lone_verts(verts, tris)
-        self.failUnless(new_verts.tolist() == [[0,0],[1,0],[0,1]])
-        self.failUnless(new_tris.tolist() == [[0,1,2]])
+        self.assertTrue(new_verts.tolist() == [[0,0],[1,0],[0,1]])
+        self.assertTrue(new_tris.tolist() == [[0,1,2]])
      
     def test_remove_lone_verts_d(self):
         verts = [[0,0],[1,0],[99,99],[0,1]]
         tris = [[0,1,3]]
         new_verts, new_tris = remove_lone_verts(verts, tris)
-        self.failUnless(new_verts.tolist() == [[0,0],[1,0],[0,1]])
-        self.failUnless(new_tris.tolist() == [[0,1,2]])
+        self.assertTrue(new_verts.tolist() == [[0,0],[1,0],[0,1]])
+        self.assertTrue(new_tris.tolist() == [[0,1,2]])
         
     def test_remove_lone_verts_e(self):
         verts = [[0,0],[1,0],[0,1],[99,99],[99,99],[99,99]]
         tris = [[0,1,2]]
         new_verts, new_tris = remove_lone_verts(verts, tris)
-        self.failUnless(new_verts.tolist() == verts[0:3])
-        self.failUnless(new_tris.tolist() == tris)
+        self.assertTrue(new_verts.tolist() == verts[0:3])
+        self.assertTrue(new_tris.tolist() == tris)
      
     def test_remove_lone_verts_f(self):
         verts = [[0,0],[1,0],[99,99],[0,1],[99,99],[1,1],[99,99]]
         tris = [[0,1,3],[0,1,5]]
         new_verts, new_tris = remove_lone_verts(verts, tris)
-        self.failUnless(new_verts.tolist() == [[0,0],[1,0],[0,1],[1,1]])
-        self.failUnless(new_tris.tolist() == [[0,1,2],[0,1,3]])
+        self.assertTrue(new_verts.tolist() == [[0,0],[1,0],[0,1],[1,1]])
+        self.assertTrue(new_tris.tolist() == [[0,1,2],[0,1,3]])
         
 ######
 # 

@@ -46,11 +46,11 @@ class Test_FileUtils(unittest.TestCase):
         copy_code_files(dst_dir, (filename4, filename5, filename3))
 
         # test that files were actually copied
-        self.failUnless(os.access(os.path.join(dst_dir, f1), os.F_OK))
-        self.failUnless(os.access(os.path.join(dst_dir, f2), os.F_OK))
-        self.failUnless(os.access(os.path.join(dst_dir, f3), os.F_OK))
-        self.failUnless(os.access(os.path.join(dst_dir, f4), os.F_OK))
-        self.failUnless(os.access(os.path.join(dst_dir, f5), os.F_OK))
+        self.assertTrue(os.access(os.path.join(dst_dir, f1), os.F_OK))
+        self.assertTrue(os.access(os.path.join(dst_dir, f2), os.F_OK))
+        self.assertTrue(os.access(os.path.join(dst_dir, f3), os.F_OK))
+        self.assertTrue(os.access(os.path.join(dst_dir, f4), os.F_OK))
+        self.assertTrue(os.access(os.path.join(dst_dir, f5), os.F_OK))
 
         # clean up
         shutil.rmtree(work_dir)
@@ -139,7 +139,7 @@ class Test_FileUtils(unittest.TestCase):
                 
         outfile = 'test_out.sww'
         _sww_merge(['test1.sww', 'test2.sww'], outfile)
-        self.failUnless(os.access(outfile, os.F_OK))  
+        self.assertTrue(os.access(outfile, os.F_OK))  
         
         # remove temp files
         if not sys.platform == 'win32':		

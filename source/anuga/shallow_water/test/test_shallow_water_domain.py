@@ -6885,16 +6885,16 @@ friction  \n \
          assert num.allclose(tagged_elements['ole nielsen'][0], 1)
 
          msg = "test_tags_to_boundaries failed. Single boundary wasn't added."
-         self.failUnless( domain.boundary[(1, 0)]  == '1', msg)
-         self.failUnless( domain.boundary[(1, 2)]  == '2', msg)
-         self.failUnless( domain.boundary[(0, 1)]  == '3', msg)
-         self.failUnless( domain.boundary[(0, 0)]  == 'exterior', msg)
+         self.assertTrue( domain.boundary[(1, 0)]  == '1', msg)
+         self.assertTrue( domain.boundary[(1, 2)]  == '2', msg)
+         self.assertTrue( domain.boundary[(0, 1)]  == '3', msg)
+         self.assertTrue( domain.boundary[(0, 0)]  == 'exterior', msg)
          msg = "test_pmesh2Domain Too many boundaries"
-         self.failUnless( len(domain.boundary)  == 4, msg)
+         self.assertTrue( len(domain.boundary)  == 4, msg)
 
          # FIXME change to use get_xllcorner
          msg = 'Bad geo-reference'
-         self.failUnless(domain.geo_reference.xllcorner  == 140.0, msg)
+         self.assertTrue(domain.geo_reference.xllcorner  == 140.0, msg)
 
          domain = Domain(fileName)
 
@@ -6918,16 +6918,16 @@ friction  \n \
          assert num.allclose(tagged_elements['ole nielsen'][0], 1)
 
          msg = "test_tags_to_boundaries failed. Single boundary wasn't added."
-         self.failUnless(domain.boundary[(1, 0)]  == '1', msg)
-         self.failUnless(domain.boundary[(1, 2)]  == '2', msg)
-         self.failUnless(domain.boundary[(0, 1)]  == '3', msg)
-         self.failUnless(domain.boundary[(0, 0)]  == 'exterior', msg)
+         self.assertTrue(domain.boundary[(1, 0)]  == '1', msg)
+         self.assertTrue(domain.boundary[(1, 2)]  == '2', msg)
+         self.assertTrue(domain.boundary[(0, 1)]  == '3', msg)
+         self.assertTrue(domain.boundary[(0, 0)]  == 'exterior', msg)
          msg = "test_pmesh2Domain Too many boundaries"
-         self.failUnless(len(domain.boundary)  == 4, msg)
+         self.assertTrue(len(domain.boundary)  == 4, msg)
 
          # FIXME change to use get_xllcorner
          msg = 'Bad geo_reference'
-         self.failUnless(domain.geo_reference.xllcorner  == 140.0, msg)
+         self.assertTrue(domain.geo_reference.xllcorner  == 140.0, msg)
 
          os.remove(fileName)
 

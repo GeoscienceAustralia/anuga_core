@@ -94,7 +94,7 @@ class Test_CSV_utils(unittest.TestCase):
                '%s'
                '--------------------\n'
                % (expected, got))
-        self.failUnless(self.str_cmp(got, expected), msg)
+        self.assertTrue(self.str_cmp(got, expected), msg)
 
 
     def test_merge_two_files(self):
@@ -129,7 +129,7 @@ class Test_CSV_utils(unittest.TestCase):
                '%s'
                '--------------------\n'
                % (expected, got))
-        self.failUnless(self.str_cmp(got, expected), msg)
+        self.assertTrue(self.str_cmp(got, expected), msg)
 
 
     def test_merge_two_files2(self):
@@ -164,7 +164,7 @@ class Test_CSV_utils(unittest.TestCase):
                '%s'
                '--------------------\n'
                % (expected, got))
-        self.failUnless(self.str_cmp(got, expected), msg)
+        self.assertTrue(self.str_cmp(got, expected), msg)
 
 
     def test_merge_four_files(self):
@@ -201,7 +201,7 @@ class Test_CSV_utils(unittest.TestCase):
                '%s'
                '--------------------\n'
                % (expected, got))
-        self.failUnless(self.str_cmp(got, expected), msg)
+        self.assertTrue(self.str_cmp(got, expected), msg)
 
 
     def test_merge_ten_files(self):
@@ -244,7 +244,7 @@ class Test_CSV_utils(unittest.TestCase):
                '%s'
                '--------------------\n'
                % (expected, got))
-        self.failUnless(self.str_cmp(got, expected), msg)
+        self.assertTrue(self.str_cmp(got, expected), msg)
 
 
     def test_no_key_column(self):
@@ -252,7 +252,7 @@ class Test_CSV_utils(unittest.TestCase):
 
         file_title_list = [(self.filenames[0], 'test0'),
                            (self.filenames[2], 'test2')]
-        self.failUnlessRaises(Exception,
+        self.assertRaises(Exception,
                               csv_tools.merge_csv_key_values,
                               file_title_list,
                               self.OUTPUT_FILE,
@@ -265,7 +265,7 @@ class Test_CSV_utils(unittest.TestCase):
         """Test merging *zero* CSV files!"""
 
         file_title_list = []
-        self.failUnlessRaises(Exception,
+        self.assertRaises(Exception,
                               csv_tools.merge_csv_key_values,
                               file_title_list,
                               self.OUTPUT_FILE,
@@ -279,7 +279,7 @@ class Test_CSV_utils(unittest.TestCase):
 
         file_title_list = [(self.filenames[0], 'test0'),
                            (self.filenames[2], 'test2')]
-        self.failUnlessRaises(Exception,
+        self.assertRaises(Exception,
                               csv_tools.merge_csv_key_values,
                               file_title_list,
                               self.OUTPUT_FILE,
@@ -304,7 +304,7 @@ class Test_CSV_utils(unittest.TestCase):
 
         file_title_list = [(self.filenames[0], 'test0'),
                            (test_filename, 'test2')]
-        self.failUnlessRaises(Exception,
+        self.assertRaises(Exception,
                               csv_tools.merge_csv_key_values,
                               file_title_list,
                               self.OUTPUT_FILE,
@@ -335,7 +335,7 @@ class Test_CSV_utils(unittest.TestCase):
 
         file_title_list = [(self.filenames[0], 'test0'),
                            (test_filename, 'test2')]
-        self.failUnlessRaises(Exception,
+        self.assertRaises(Exception,
                               csv_tools.merge_csv_key_values,
                               file_title_list,
                               self.OUTPUT_FILE,
@@ -398,7 +398,7 @@ class Test_CSV_utils(unittest.TestCase):
                '%s'
                '--------------------\n'
                % (expected, got))
-        self.failUnless(self.str_cmp(got, expected), msg)
+        self.assertTrue(self.str_cmp(got, expected), msg)
 
         try:
             os.remove('alpha.csv')

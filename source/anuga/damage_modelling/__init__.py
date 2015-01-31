@@ -1,7 +1,8 @@
 """Make directory available as a Python package
 """
 
-pass
+from numpy.testing import Tester
+test = Tester().test
 
 
 

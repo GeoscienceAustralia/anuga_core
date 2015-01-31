@@ -5,8 +5,10 @@ Ideally, all tools needed to run parallel simulations should be
 imported from this module
 """
 
-# Lets import the standard anuga interface
-#from anuga import *
+
+
+from numpy.testing import Tester
+test = Tester().test
 
 
 from parallel_api import distribute

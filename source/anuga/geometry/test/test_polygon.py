@@ -875,7 +875,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=3, 'Expected status 3, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(value is None, 'Expected value of None, got %s' %
+        self.assertTrue(value is None, 'Expected value of None, got %s' %
                                        str(value))
 
         # lines in same direction, no overlap
@@ -886,7 +886,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=3, 'Expected status 3, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(value is None, 'Expected value of None, got %s' %
+        self.assertTrue(value is None, 'Expected value of None, got %s' %
                                        str(value))
 
         # lines in opposite direction, no overlap
@@ -897,7 +897,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=3, 'Expected status 3, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(value is None, 'Expected value of None, got %s' %
+        self.assertTrue(value is None, 'Expected value of None, got %s' %
                                        str(value))
 
         # lines in opposite direction, no overlap
@@ -908,7 +908,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=3, 'Expected status 3, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(value is None, 'Expected value of None, got %s' %
+        self.assertTrue(value is None, 'Expected value of None, got %s' %
                                        str(value))
 
         # ----------------------------------------------------------------------
@@ -923,7 +923,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line0))
+        self.assertTrue(num.allclose(value, line0))
 
         # line0 fully within line1, same direction
         # 0:         ----<----
@@ -935,7 +935,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line0))
+        self.assertTrue(num.allclose(value, line0))
 
         # line0 fully within line1, opposite direction
         # 0:         ----<----
@@ -947,7 +947,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line0))
+        self.assertTrue(num.allclose(value, line0))
 
         # line0 fully within line1, opposite direction
         # 0:         ---->----
@@ -959,7 +959,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line0))
+        self.assertTrue(num.allclose(value, line0))
 
         # ----------------------------------------------------------------------
 
@@ -973,7 +973,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line1))
+        self.assertTrue(num.allclose(value, line1))
 
         # line1 fully within line0, same direction
         # 0:    ---------<-----------
@@ -985,7 +985,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line1))
+        self.assertTrue(num.allclose(value, line1))
 
         # line1 fully within line0, opposite direction
         # 0:    ---------<-----------
@@ -997,7 +997,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line1))
+        self.assertTrue(num.allclose(value, line1))
 
         # line1 fully within line0, opposite direction
         # 0:    --------->-----------
@@ -1009,7 +1009,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line1))
+        self.assertTrue(num.allclose(value, line1))
 
         # ----------------------------------------------------------------------
 
@@ -1023,7 +1023,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, [line1[0],line0[1]]))
+        self.assertTrue(num.allclose(value, [line1[0],line0[1]]))
 
         # line in same direction, partial overlap
         # 0:    -----<-----
@@ -1035,7 +1035,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, [line0[0],line1[1]]))
+        self.assertTrue(num.allclose(value, [line0[0],line1[1]]))
 
         # line in opposite direction, partial overlap
         # 0:    -----<-----
@@ -1047,7 +1047,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, [line0[0],line1[0]]))
+        self.assertTrue(num.allclose(value, [line0[0],line1[0]]))
 
         # line in opposite direction, partial overlap
         # 0:    ----->-----
@@ -1059,7 +1059,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, [line1[1],line0[1]]))
+        self.assertTrue(num.allclose(value, [line1[1],line0[1]]))
 
         # ----------------------------------------------------------------------
 
@@ -1073,7 +1073,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, [line0[0],line1[1]]))
+        self.assertTrue(num.allclose(value, [line0[0],line1[1]]))
 
         # line in same direction, partial overlap
         # 0:       ------<------
@@ -1085,7 +1085,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, [line1[0],line0[1]]))
+        self.assertTrue(num.allclose(value, [line1[0],line0[1]]))
 
         # line in opposite direction, partial overlap
         # 0:       ------<------
@@ -1097,7 +1097,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, [line1[1],line0[1]]))
+        self.assertTrue(num.allclose(value, [line1[1],line0[1]]))
 
         # line in opposite direction, partial overlap
         # 0:       ------>------
@@ -1109,7 +1109,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, [line0[0],line1[0]]))
+        self.assertTrue(num.allclose(value, [line0[0],line1[0]]))
 
         # ----------------------------------------------------------------------
 
@@ -1123,7 +1123,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line0))
+        self.assertTrue(num.allclose(value, line0))
 
         # line in same direction, same left point, line1 longer
         # 0:    -----<------
@@ -1135,7 +1135,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line0))
+        self.assertTrue(num.allclose(value, line0))
 
         # line in opposite direction, same left point, line1 longer
         # 0:    ----->------
@@ -1147,7 +1147,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line0))
+        self.assertTrue(num.allclose(value, line0))
 
         # line in opposite direction, same start point, line1 longer
         # 0:    -----<------
@@ -1159,7 +1159,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line0))
+        self.assertTrue(num.allclose(value, line0))
 
         # ----------------------------------------------------------------------
 
@@ -1173,7 +1173,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line0))
+        self.assertTrue(num.allclose(value, line0))
 
         # line in same direction, same left point, same right point
         # 0:    -------<--------
@@ -1185,7 +1185,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line0))
+        self.assertTrue(num.allclose(value, line0))
 
         # line in opposite direction, same left point, same right point
         # 0:    ------->--------
@@ -1197,7 +1197,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line0))
+        self.assertTrue(num.allclose(value, line0))
 
         # line in opposite direction, same left point, same right point
         # 0:    -------<--------
@@ -1209,7 +1209,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line0))
+        self.assertTrue(num.allclose(value, line0))
 
         # ----------------------------------------------------------------------
 
@@ -1223,7 +1223,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line0))
+        self.assertTrue(num.allclose(value, line0))
 
         # line in same direction, same right point, line1 longer
         # 0:        -----<------
@@ -1235,7 +1235,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line0))
+        self.assertTrue(num.allclose(value, line0))
 
         # line in opposite direction, same right point, line1 longer
         # 0:        ----->------
@@ -1247,7 +1247,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line0))
+        self.assertTrue(num.allclose(value, line0))
 
         # line in opposite direction, same right point, line1 longer
         # 0:        -----<------
@@ -1259,7 +1259,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line0))
+        self.assertTrue(num.allclose(value, line0))
 
         # ----------------------------------------------------------------------
 
@@ -1273,7 +1273,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line1))
+        self.assertTrue(num.allclose(value, line1))
 
         # line in same direction, same left point, line0 longer
         # 0:    -------<--------
@@ -1285,7 +1285,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line1))
+        self.assertTrue(num.allclose(value, line1))
 
         # line in opposite direction, same left point, line0 longer
         # 0:    ------->--------
@@ -1297,7 +1297,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line1))
+        self.assertTrue(num.allclose(value, line1))
 
         # line in opposite direction, same left point, line0 longer
         # 0:    -------<--------
@@ -1309,7 +1309,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line1))
+        self.assertTrue(num.allclose(value, line1))
 
         # ----------------------------------------------------------------------
 
@@ -1323,7 +1323,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line1))
+        self.assertTrue(num.allclose(value, line1))
 
         # line in same direction, same right point, line0 longer
         # 0:    -------<--------
@@ -1335,7 +1335,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line1))
+        self.assertTrue(num.allclose(value, line1))
 
         # line in opposite direction, same right point, line0 longer
         # 0:    ------->--------
@@ -1347,7 +1347,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line1))
+        self.assertTrue(num.allclose(value, line1))
 
         # line in opposite direction, same right point, line0 longer
         # 0:    -------<--------
@@ -1359,7 +1359,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(num.allclose(value, line1))
+        self.assertTrue(num.allclose(value, line1))
 
 
     def test_intersection_bug_20081110_TR(self):

@@ -32,14 +32,14 @@ def safe_acos(x):
     eps = get_machine_precision() # Machine precision 
     if x < -1.0:
         if x < -1.0 - eps:
-            raise ValueError, errmsg
+            raise ValueError, error_msg
         else:
             warn(warning_msg)
             x = -1.0
 
     if x > 1.0:
         if x > 1.0 + eps:
-            raise ValueError, errmsg
+            raise ValueError, error_msg
         else:
             log.critical('NOTE: changing argument to acos from %.18f to 1.0' %x)
             x = 1.0
@@ -388,7 +388,7 @@ def is_num_int(obj):
 #-----------------
 #Initialise module
 
-from util_ext import gradient, gradient2
+#from .util_ext import gradient, gradient2
 
 
 if __name__ == '__main__':

@@ -111,7 +111,7 @@ class Test_Geospatial_data(unittest.TestCase):
         V = G.get_attributes('a2') #Get by name
         assert num.allclose(V, [79.4, -7])
 
-		# FIXME: use failUnlessRaises()
+		# FIXME: use assertRaises()
         try:
             V = G.get_attributes('hdnoatedu') #Invalid
         except AssertionError:
@@ -1100,7 +1100,7 @@ class Test_Geospatial_data(unittest.TestCase):
                             [10.0, 0.0, 10.4])
         answer = [10.0, 0.0, 10.4]
         assert num.allclose(results.get_attributes('brightness'), answer)
-        self.failUnless(geo_reference == geo_reference,
+        self.assertTrue(geo_reference == geo_reference,
                         'test_writepts failed. Test geo_reference')
 
     def test_write_csv_attributes(self):
@@ -1164,7 +1164,7 @@ class Test_Geospatial_data(unittest.TestCase):
 
         assert num.allclose(results.get_data_points(False),
                             [[1.0, 0.0], [0.0, 1.0], [1.0, 0.0]])
-        self.failUnless(geo_reference == geo_reference,
+        self.assertTrue(geo_reference == geo_reference,
                         'test_writepts failed. Test geo_reference')
 
     def test_write_csv_no_attributes(self):
@@ -1328,7 +1328,7 @@ class Test_Geospatial_data(unittest.TestCase):
         answer = [10.0, 0.0, 10.4, 14.0, 1.0, -12.4]
         assert num.allclose(G.get_attributes(attribute_name='brightness'),
                             answer)
-        self.failUnless(G.get_geo_reference() == geo_reference1,
+        self.assertTrue(G.get_geo_reference() == geo_reference1,
                         'test_writepts failed. Test geo_reference')
 
         os.remove(fileName1)
@@ -1527,10 +1527,10 @@ class Test_Geospatial_data(unittest.TestCase):
         assert num.allclose(points[0][1], 6180432.601)
         assert num.allclose(points[1][0], 222908.705)
         assert num.allclose(points[1][1], 6233785.284)
-        self.failUnless(gsd.get_geo_reference().get_zone() == 56,
+        self.assertTrue(gsd.get_geo_reference().get_zone() == 56,
                         'Bad zone error!')
 
-        # use self.failUnlessRaises(ValueError, Geospatial_data(latitudes=lats))
+        # use self.assertRaises(ValueError, Geospatial_data(latitudes=lats))
         try:
             results = Geospatial_data(latitudes=lats)
         except ValueError:
@@ -1581,7 +1581,7 @@ class Test_Geospatial_data(unittest.TestCase):
         assert num.allclose(points[0][1], 6180432.601)
         assert num.allclose(points[1][0], 222908.705)
         assert num.allclose(points[1][1], 6233785.284)
-        self.failUnless(gsd.get_geo_reference().get_zone() == 56,
+        self.assertTrue(gsd.get_geo_reference().get_zone() == 56,
                         'Bad zone error!')
 
         try:
@@ -1639,7 +1639,7 @@ class Test_Geospatial_data(unittest.TestCase):
             assert num.allclose(points[1][0], 222908.705)
             assert num.allclose(points[1][1], 6233785.284)
 
-        self.failUnless(gsd.get_geo_reference().get_zone() == 56,
+        self.assertTrue(gsd.get_geo_reference().get_zone() == 56,
                         'Bad zone error!')
         points = gsd.get_data_points(as_lat_long=True)
         try:
@@ -1652,15 +1652,15 @@ class Test_Geospatial_data(unittest.TestCase):
     def test_len(self):
         points = [[1.0, 2.1], [3.0, 5.3]]
         G = Geospatial_data(points)
-        self.failUnless(2 == len(G), 'Len error!')
+        self.assertTrue(2 == len(G), 'Len error!')
 
         points = [[1.0, 2.1]]
         G = Geospatial_data(points)
-        self.failUnless(1 == len(G), 'Len error!')
+        self.assertTrue(1 == len(G), 'Len error!')
 
         points = [[1.0, 2.1], [3.0, 5.3], [3.0, 5.3], [3.0, 5.3]]
         G = Geospatial_data(points)
-        self.failUnless(4 == len(G), 'Len error!')
+        self.assertTrue(4 == len(G), 'Len error!')
 
     def test_split(self):
         """test if the results from spilt are disjoin sets"""

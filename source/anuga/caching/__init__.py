@@ -10,3 +10,9 @@
 from caching import *
 
 
+from numpy.testing import Tester
+test = Tester().test
+
+
+
+

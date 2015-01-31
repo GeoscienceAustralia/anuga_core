@@ -61,15 +61,15 @@ END\n")
         # have to reset this , since it's a class attribute
         Segment.set_default_tag("")
             
-        self.failUnless(len(m.userSegments) ==11,
+        self.assertTrue(len(m.userSegments) ==11,
                         'Wrong segment list length.')
-        self.failUnless(len(m.userVertices) == 11,
+        self.assertTrue(len(m.userVertices) == 11,
                         'Wrong vertex list length.')
-        self.failUnless(m.userSegments[10].vertices[0] == m.userVertices[10],
+        self.assertTrue(m.userSegments[10].vertices[0] == m.userVertices[10],
                         'bad vertex on segment.')
-        self.failUnless(m.userSegments[10].vertices[1] == m.userVertices[8],
+        self.assertTrue(m.userSegments[10].vertices[1] == m.userVertices[8],
                         'Bad segment.')
-        self.failUnless(m.userSegments[10].tag == tag,
+        self.assertTrue(m.userSegments[10].tag == tag,
                         'wrong tag.')
 
         ## let's test the method
@@ -92,22 +92,22 @@ END\n")
 
         os.remove(fileName)
 
-        self.failUnless(Segment.get_default_tag() == initial_tag,
+        self.assertTrue(Segment.get_default_tag() == initial_tag,
                         'Wrong segment list length.')
         
 
         # have to reset this , since it's a class attribute
         Segment.set_default_tag("")
             
-        self.failUnless(len(m.userSegments) ==11,
+        self.assertTrue(len(m.userSegments) ==11,
                         'Wrong segment list length.')
-        self.failUnless(len(m.userVertices) == 11,
+        self.assertTrue(len(m.userVertices) == 11,
                         'Wrong vertex list length.')
-        self.failUnless(m.userSegments[10].vertices[0] == m.userVertices[10],
+        self.assertTrue(m.userSegments[10].vertices[0] == m.userVertices[10],
                         'bad vertex on segment.')
-        self.failUnless(m.userSegments[10].vertices[1] == m.userVertices[8],
+        self.assertTrue(m.userSegments[10].vertices[1] == m.userVertices[8],
                         'Bad segment.')
-        self.failUnless(m.userSegments[10].tag == tag,
+        self.assertTrue(m.userSegments[10].tag == tag,
                         'wrong tag.')
         
     def test_import_ungenerate_file(self):
@@ -148,9 +148,9 @@ END\n")
         Segment.set_default_tag(tag)
         m.addVertsSegs(dict)
 
-        self.failUnless(len(m.userSegments) ==11,
+        self.assertTrue(len(m.userSegments) ==11,
                         'Wrong segment list length.')
-        self.failUnless(len(m.userVertices) == 11,
+        self.assertTrue(len(m.userVertices) == 11,
                         'Wrong vertex list length.')
 
         # Test the method
@@ -172,19 +172,19 @@ END\n")
 
         os.remove(fileName)
 
-        self.failUnless(Segment.get_default_tag() == initial_tag,
+        self.assertTrue(Segment.get_default_tag() == initial_tag,
                         'Wrong segment list length.')
         m.export_mesh_file("swamp.tsh")
         #print "m.userSegments",m.userSegments
-        self.failUnless(len(m.userSegments) ==11,
+        self.assertTrue(len(m.userSegments) ==11,
                         'Wrong segment list length.')
-        self.failUnless(len(m.userVertices) == 11,
+        self.assertTrue(len(m.userVertices) == 11,
                         'Wrong vertex list length.')
-        self.failUnless(len(m.regions) == 2,
+        self.assertTrue(len(m.regions) == 2,
                         'Wrong regions list length.')
-        self.failUnless(m.regions[0].getTag() == "swamp",
+        self.assertTrue(m.regions[0].getTag() == "swamp",
                         'Wrong regions tag.')
-        self.failUnless(m.regions[1].getTag() == "swamp",
+        self.assertTrue(m.regions[1].getTag() == "swamp",
                         'Wrong regions 1 tag.')
         
         # have to reset this , since it's a class attribute
@@ -229,9 +229,9 @@ END\n")
         Segment.set_default_tag(tag)
         m.addVertsSegs(dict)
 
-        self.failUnless(len(m.userSegments) ==11,
+        self.assertTrue(len(m.userSegments) ==11,
                         'Wrong segment list length.')
-        self.failUnless(len(m.userVertices) == 11,
+        self.assertTrue(len(m.userVertices) == 11,
                         'Wrong vertex list length.')
 
         # Test the method
@@ -253,19 +253,19 @@ END\n")
 
         os.remove(fileName)
 
-        self.failUnless(Segment.get_default_tag() == initial_tag,
+        self.assertTrue(Segment.get_default_tag() == initial_tag,
                         'Wrong segment list length.')
         m.export_mesh_file("swamp.tsh")
         #print "m.userSegments",m.userSegments
-        self.failUnless(len(m.userSegments) ==11,
+        self.assertTrue(len(m.userSegments) ==11,
                         'Wrong segment list length.')
-        self.failUnless(len(m.userVertices) == 11,
+        self.assertTrue(len(m.userVertices) == 11,
                         'Wrong vertex list length.')
-        self.failUnless(len(m.regions) == 2,
+        self.assertTrue(len(m.regions) == 2,
                         'Wrong regions list length.')
-        self.failUnless(m.regions[0].getTag() == "swamp",
+        self.assertTrue(m.regions[0].getTag() == "swamp",
                         'Wrong regions tag.')
-        self.failUnless(m.regions[1].getTag() == "coastalp",
+        self.assertTrue(m.regions[1].getTag() == "coastalp",
                         'Wrong regions 1 tag.')
         
         

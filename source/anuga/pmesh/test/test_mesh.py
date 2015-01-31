@@ -27,14 +27,14 @@ class meshTestCase(unittest.TestCase):
         a = Point(0.0, 0.0)
         b = Point(0.0, 10.0)
         
-        self.failUnless( a.DistanceToPoint(b) == 10.0,
+        self.assertTrue( a.DistanceToPoint(b) == 10.0,
                         'Point DistanceToPoint is wrong!')
     
     def testVertexDistance(self):
         a = Vertex (0.0, 0.0)
         b = Vertex (0.0, 10.0)
         
-        self.failUnless( a.DistanceToPoint(b) == 10.0,
+        self.assertTrue( a.DistanceToPoint(b) == 10.0,
                         'Point DistanceToPoint is wrong!')
         
         
@@ -43,10 +43,10 @@ class meshTestCase(unittest.TestCase):
         b = Vertex (0.0, 10.0)
         s = Segment(a,b, tag = 20)     
         
-        self.failUnless( s.vertices[0].DistanceToPoint(s.vertices[1]) == 10.0,
+        self.assertTrue( s.vertices[0].DistanceToPoint(s.vertices[1]) == 10.0,
                         'vertices in a segment are wrong')
         
-        self.failUnless( s.tag == 20.0,
+        self.assertTrue( s.tag == 20.0,
                         'tag in a segment are wrong')
 
     def testdeleteUserVertex(self):
@@ -62,11 +62,11 @@ class meshTestCase(unittest.TestCase):
         s3 = mesh.addUserSegment(c,b)
 
         mesh.deleteMeshObject (a) 
-        self.failUnless(mesh.userSegments[0] == s3,
+        self.assertTrue(mesh.userSegments[0] == s3,
                         'Bad segment. ')        
-        self.failUnless(len(mesh.userSegments) == 1,
+        self.assertTrue(len(mesh.userSegments) == 1,
                         'Segments not deleted.')
-        self.failUnless(len(mesh.userVertices) == 2,
+        self.assertTrue(len(mesh.userVertices) == 2,
                         'Vertex not deleted.')
        
   
@@ -95,11 +95,11 @@ class meshTestCase(unittest.TestCase):
         tri = m.getTriangulation()
         verts = m.getMeshVertices()
         x = verts[tri[1][0]][0]
-        #self.failUnless((m.meshTriangles[1].vertices[0].x < result + delta) or
+        #self.assertTrue((m.meshTriangles[1].vertices[0].x < result + delta) or
          #               (m.meshTriangles[1].vertices[0].x > result - delta),
           #              'generated mesh is wrong!')
 
-        self.failUnless((x < result + delta) or
+        self.assertTrue((x < result + delta) or
                         (x > result - delta),
                         'generated mesh is wrong!')
         
@@ -124,7 +124,7 @@ class meshTestCase(unittest.TestCase):
         #m.plotMeshTriangle()
         #print "len(m.meshTriangles)",len(m.meshTriangles)
 
-        self.failUnless(len(m.getTriangulation()) == 2, 
+        self.assertTrue(len(m.getTriangulation()) == 2, 
                         'test_regionalMaxArea 1:generated mesh is wrong!')
         
         ## Another test case
@@ -134,7 +134,7 @@ class meshTestCase(unittest.TestCase):
                  regions=[r1,r2] )
         m.generateMesh("Q", maxArea = 36 )
         
-        self.failUnless(len(m.getTriangulation()) >= 6,
+        self.assertTrue(len(m.getTriangulation()) >= 6,
                         'testregion_with_maxarea 2: # of tris is wrong!')    
        
                
@@ -146,7 +146,7 @@ class meshTestCase(unittest.TestCase):
         m.generateMesh("Q", maxArea = 36 )  
         #print "len(m.meshTriangles)",len(m.meshTriangles)
         
-        self.failUnless(len(m.getTriangulation()) >= 8,
+        self.assertTrue(len(m.getTriangulation()) >= 8,
                         'testregion_with_maxarea 3: # of tris is wrong!')
                 
                 
@@ -156,7 +156,7 @@ class meshTestCase(unittest.TestCase):
         m = Mesh(userVertices=[v0,v1,v2,v3], userSegments=[s1,s2,s3,s4,s5],
                  regions=[r1,r2] )
         m.generateMesh("Q", maxArea = 8 ) 
-        self.failUnless(len(m.getTriangulation()) >= 8,
+        self.assertTrue(len(m.getTriangulation()) >= 8,
                         'testregion_with_maxarea 4: # of tris is wrong!')    
 
         
@@ -166,7 +166,7 @@ class meshTestCase(unittest.TestCase):
         m = Mesh(userVertices=[v0,v1,v2,v3], userSegments=[s1,s2,s3,s4,s5],
                  regions=[r1,r2] )
         m.generateMesh("Q", maxArea = 36,isRegionalMaxAreas = False )      
-        self.failUnless(len(m.getTriangulation()) == 2, 
+        self.assertTrue(len(m.getTriangulation()) == 2, 
                         'test_regionalMaxArea 5:generated mesh is wrong!')
         
         ## Another test case
@@ -175,7 +175,7 @@ class meshTestCase(unittest.TestCase):
         m = Mesh(userVertices=[v0,v1,v2,v3], userSegments=[s1,s2,s3,s4,s5],
                  regions=[r1,r2] )
         m.generateMesh("Q",isRegionalMaxAreas = False )
-        self.failUnless(len(m.getTriangulation()) == 2, 
+        self.assertTrue(len(m.getTriangulation()) == 2, 
                         'test_regionalMaxArea 5:generated mesh is wrong!')
         
     def test_generate_mesh(self):
@@ -197,7 +197,7 @@ class meshTestCase(unittest.TestCase):
         
         m.generate_mesh(maximum_triangle_area=36,verbose=False)         
 
-        self.failUnless(len(m.getTriangulation()) == 2, 
+        self.assertTrue(len(m.getTriangulation()) == 2, 
                         'test_regionalMaxArea 1:generated mesh is wrong!')
         
         ## Another test case
@@ -207,7 +207,7 @@ class meshTestCase(unittest.TestCase):
                  regions=[r1,r2] )
         m.generate_mesh(maximum_triangle_area=36,verbose=False)  
         
-        self.failUnless(len(m.getTriangulation()) >= 6,
+        self.assertTrue(len(m.getTriangulation()) >= 6,
                         'testregion_with_maxarea 2: # of tris is wrong!')    
                
         ## Another test case
@@ -218,7 +218,7 @@ class meshTestCase(unittest.TestCase):
         m.generate_mesh(maximum_triangle_area=36,verbose=False)         
         #print "len(m.getTriangulation())",len(m.getTriangulation())
         
-        self.failUnless(len(m.getTriangulation()) >= 8,
+        self.assertTrue(len(m.getTriangulation()) >= 8,
                         'testregion_with_maxarea 3: # of tris is wrong!')
                          
         ## Another test case
@@ -227,7 +227,7 @@ class meshTestCase(unittest.TestCase):
         m = Mesh(userVertices=[v0,v1,v2,v3], userSegments=[s1,s2,s3,s4,s5],
                  regions=[r1,r2] )
         m.generate_mesh(maximum_triangle_area=8,verbose=False)    
-        self.failUnless(len(m.getTriangulation()) >= 8,
+        self.assertTrue(len(m.getTriangulation()) >= 8,
                         'testregion_with_maxarea 4: # of tris is wrong!')    
 
         ## Another test case r1 = Region(3, 1,tag = 1.3, maxArea = 8)
@@ -236,7 +236,7 @@ class meshTestCase(unittest.TestCase):
         userSegments=[s1,s2,s3,s4,s5], regions=[r1,r2] )
         m.generate_mesh(verbose=False)
         #print "en(m.getTriangulation())", len(m.getTriangulation())
-        self.failUnless(len(m.getTriangulation()) >= 8,
+        self.assertTrue(len(m.getTriangulation()) >= 8,
         'You have issues!')
         
     def testdeleteUserVertex(self):
@@ -252,11 +252,11 @@ class meshTestCase(unittest.TestCase):
         mesh.deleteMeshObject (s2)
         
         #print ",s2 in mesh.userSegments" ,s2 in mesh.userSegments
-        self.failUnless(not(s2 in mesh.userSegments),
+        self.assertTrue(not(s2 in mesh.userSegments),
                         'Bad segment. ')        
-        self.failUnless(len(mesh.userSegments) ==2,
+        self.assertTrue(len(mesh.userSegments) ==2,
                         'Segments not deleted.')
-        self.failUnless(len(mesh.userVertices) == 3,
+        self.assertTrue(len(mesh.userVertices) == 3,
                         'Vertex deleted, instead of segment.')
 
     def testisUserSegmentNew (self):
@@ -270,9 +270,9 @@ class meshTestCase(unittest.TestCase):
         s2 = mesh.addUserSegment(a,c)
         s3 = mesh.addUserSegment(c,b)
 
-        self.failUnless(mesh.isUserSegmentNew(a,d) ,
+        self.assertTrue(mesh.isUserSegmentNew(a,d) ,
                         'Segment should be new. ')
-        self.failUnless(not(mesh.isUserSegmentNew(a,b)) ,
+        self.assertTrue(not(mesh.isUserSegmentNew(a,b)) ,
                         'Segment should not be new. ')
 
 
@@ -287,9 +287,9 @@ class meshTestCase(unittest.TestCase):
         s2 = mesh.addUserSegment(a,c)
         s3 = mesh.addUserSegment(c,b)
 
-        self.failUnless(mesh.representedUserSegment(a,d) == None,
+        self.assertTrue(mesh.representedUserSegment(a,d) == None,
                         'Segment should be new. ')
-        self.failUnless(mesh.representedUserSegment(a,b) == s1 ,
+        self.assertTrue(mesh.representedUserSegment(a,b) == s1 ,
                         'Segment should not be new. ')
         
     def testauto_segment(self):
@@ -304,11 +304,11 @@ class meshTestCase(unittest.TestCase):
         m.auto_segment()
         
         #print 'Len', len(m.userSegments)
-        self.failUnless(len(m.getUserSegments()) == 4 ,
+        self.assertTrue(len(m.getUserSegments()) == 4 ,
                         'userSegments is wrong!')
      
         m.auto_segment()
-        self.failUnless(len(m.getUserSegments()) == 4 ,
+        self.assertTrue(len(m.getUserSegments()) == 4 ,
                         'userSegments is wrong!')
      
     def testauto_segmentII(self):
@@ -329,12 +329,12 @@ class meshTestCase(unittest.TestCase):
         m.auto_segment()
         
         s3 = m.representedAlphaUserSegment(p3,p0)
-        self.failUnless(not (s3 == None) ,
+        self.assertTrue(not (s3 == None) ,
                         'userSegments is wrong!')
 
         
         s6 = m.representedAlphaUserSegment(p1,p4)       
-        self.failUnless(not (s6 == None) ,
+        self.assertTrue(not (s6 == None) ,
                         'userSegments is wrong!')
         
         # remove a segment, add a point, auto_segment
@@ -345,23 +345,23 @@ class meshTestCase(unittest.TestCase):
         m.auto_segment()
         
         s1_now = m.representedUserSegment(p3,p2)
-        self.failUnless(s1_now == s1 ,
+        self.assertTrue(s1_now == s1 ,
                         'userSegments is wrong!')
         
         s2_now = m.representedUserSegment(p5,p4)       
-        self.failUnless(s2_now == s2 ,
+        self.assertTrue(s2_now == s2 ,
                         'userSegments is wrong!')
         
         s3 = m.representedAlphaUserSegment(p3,p6)       
-        self.failUnless(not (s3 == None) ,
+        self.assertTrue(not (s3 == None) ,
                         'userSegments is wrong!')
         
         s4 = m.representedAlphaUserSegment(p3,p6)       
-        self.failUnless(not (s4 == None) ,
+        self.assertTrue(not (s4 == None) ,
                         'userSegments is wrong!')
         
         s5 = m.representedAlphaUserSegment(p4,p6)       
-        self.failUnless(s5 == None ,
+        self.assertTrue(s5 == None ,
                         'userSegments is wrong!')
         #print m
         
@@ -402,7 +402,7 @@ class meshTestCase(unittest.TestCase):
         #print Triangulation[3].attribute 
         #print Triangulation[4].attribute
        
-        self.failUnless(Triangulation[0] == "" and
+        self.assertTrue(Triangulation[0] == "" and
                         Triangulation[1] == "22" and
                         Triangulation[2] == "" and
                         Triangulation[3] == "11" and
@@ -427,7 +427,7 @@ class meshTestCase(unittest.TestCase):
 
         vert = m.getMeshVerticeAttributes()
         
-        self.failUnless(num.all(vert[0] == [12.0, 2.0]) and
+        self.assertTrue(num.all(vert[0] == [12.0, 2.0]) and
                         num.all(vert[1] == [9.0, 7.0]) and
                         num.all(vert[2] == [14.0,3.0]) and
                         num.all(vert[3] == [12.232233047033631,
@@ -455,7 +455,7 @@ class meshTestCase(unittest.TestCase):
 
         vert = m.getMeshVerticeAttributes()
         #print "vert", vert
-        self.failUnless(vert == [],
+        self.assertTrue(vert == [],
                         'vertex attributes are wrong!')
 
     def test_segtag(self):
@@ -479,7 +479,7 @@ class meshTestCase(unittest.TestCase):
         #print seg[0].tag
         #print "seg[0].tag"
         
-        self.failUnless(seg[0] == 5 and
+        self.assertTrue(seg[0] == 5 and
                         seg[1] == 7 and
                         seg[2] == 9 and
                         seg[3] == 7 and
@@ -504,7 +504,7 @@ class meshTestCase(unittest.TestCase):
         m.generateMesh("Q", maxArea = 2.1)
 
         seg = m.getMeshSegmentTags()
-        self.failUnless(seg[0] == "exterior" and
+        self.assertTrue(seg[0] == "exterior" and
                         seg[1] == "exterior" and
                         seg[2] == "exterior" and
                         seg[3] == "" and
@@ -541,9 +541,9 @@ class meshTestCase(unittest.TestCase):
         #print "@^@^"
 
         # no need to check the title again
-        #self.failUnless(lFile[0] == "5 0 # <vertex #> <x> <y> [attributes] ...Triangulation Vertices..."
+        #self.assertTrue(lFile[0] == "5 0 # <vertex #> <x> <y> [attributes] ...Triangulation Vertices..."
           #              ,'Ascii file is wrong, vertex title')
-        self.failUnless(lFile[1] == "0 0.0 0.0 " and #1.1 " and
+        self.assertTrue(lFile[1] == "0 0.0 0.0 " and #1.1 " and
                         lFile[2] == "1 0.0 4.0 " and #1.2 " and
                         lFile[3] == "2 4.0 0.0 " and #1.3 " and
                         lFile[4] == "3 1.0 1.0 " and #1.4 " and
@@ -551,33 +551,33 @@ class meshTestCase(unittest.TestCase):
                         ,
                         'Ascii file is wrong, vertex')
         
-        #self.failUnless(lFile[6] == "# attribute column titles ...Triangulation Vertex Titles..."
+        #self.assertTrue(lFile[6] == "# attribute column titles ...Triangulation Vertex Titles..."
           #              ,'Ascii file is wrong, attribute column title')
-        self.failUnless(lFile[8] == "0 3 2 4 -1 2 3  " and
+        self.assertTrue(lFile[8] == "0 3 2 4 -1 2 3  " and
                         lFile[9] == "1 1 0 3 3 2 -1  " and
                         lFile[10] == "2 3 4 1 -1 1 0  " and
                         lFile[11] == "3 2 3 0 1 -1 0  "
                         ,
                         'Ascii file is wrong, triangle') 
 
-        self.failUnless( lFile[13] == "0 0 1 exterior" and
+        self.assertTrue( lFile[13] == "0 0 1 exterior" and
                         lFile[14] == "1 1 4 exterior" and
                         lFile[15] == "2 2 0 exterior" and
                         lFile[16] == "3 0 3 " and
                         lFile[17] == "4 4 2 exterior" ,
                         'Ascii file is wrong, segment')
         
-       # self.failUnless(lFile[18] == '4 0 # <vertex #> <x> <y> [attributes] ...Mesh Vertices...',
+       # self.assertTrue(lFile[18] == '4 0 # <vertex #> <x> <y> [attributes] ...Mesh Vertices...',
         #                'Ascii file is wrong, Mesh Vertices Title')
         
-        self.failUnless(lFile[19] == '0 0.0 0.0 ' and #1.1 ' and
+        self.assertTrue(lFile[19] == '0 0.0 0.0 ' and #1.1 ' and
                         lFile[20] == '1 0.0 4.0 ' and #1.2 ' and
                         lFile[21] == '2 4.0 0.0 ' and #1.3 ' and
                         lFile[22] == '3 1.0 1.0 ' #1.4 '
                         ,
                         'Ascii file is wrong, Mesh Vertices II')
         
-        self.failUnless(lFile[24] == '0 0 1 ' and
+        self.assertTrue(lFile[24] == '0 0 1 ' and
                         lFile[25] == '1 1 2 ' and
                         lFile[26] == '2 0 2 ' and
                         lFile[27] == '3 0 3 '
@@ -613,10 +613,10 @@ class meshTestCase(unittest.TestCase):
         #for l in lFile:
         #    print l,"<"
         #print "@^@^"
-        self.failUnless(lFile[0] == "5 0 # <# of verts> <# of vert attributes>, next lines <vertex #> <x> <y> [attributes] ...Triangulation Vertices..."
+        self.assertTrue(lFile[0] == "5 0 # <# of verts> <# of vert attributes>, next lines <vertex #> <x> <y> [attributes] ...Triangulation Vertices..."
                         ,
                         'Ascii file is wrong, vertex title')
-        self.failUnless(lFile[1] == "0 0.0 0.0 " and #1.1 " and
+        self.assertTrue(lFile[1] == "0 0.0 0.0 " and #1.1 " and
                         lFile[2] == "1 0.0 4.0 " and #1.2 " and
                         lFile[3] == "2 4.0 0.0 " and #1.3 " and
                         lFile[4] == "3 1.0 1.0 " and #1.4 " and
@@ -624,10 +624,10 @@ class meshTestCase(unittest.TestCase):
                         ,
                         'Ascii file is wrong, vertex')
         
-        self.failUnless(lFile[6] == "# attribute column titles ...Triangulation Vertex Titles..."
+        self.assertTrue(lFile[6] == "# attribute column titles ...Triangulation Vertex Titles..."
                         ,
                         'Ascii file is wrong, attribute column title')
-        self.failUnless(lFile[7] == "4 # <# of triangles>, next lines <triangle #> [<vertex #>] [<neigbouring triangle #>] [attribute of region] ...Triangulation Triangles..." and
+        self.assertTrue(lFile[7] == "4 # <# of triangles>, next lines <triangle #> [<vertex #>] [<neigbouring triangle #>] [attribute of region] ...Triangulation Triangles..." and
                         lFile[8] == "0 3 2 4 -1 2 3  " and
                         lFile[9] == "1 1 0 3 3 2 -1  " and
                         lFile[10] == "2 3 4 1 -1 1 0  " and
@@ -635,7 +635,7 @@ class meshTestCase(unittest.TestCase):
                         ,
                         'Ascii file is wrong, triangle') 
 
-        self.failUnless(lFile[12] == "5 # <# of segments>, next lines <segment #> <vertex #>  <vertex #> [boundary tag] ...Triangulation Segments..." and
+        self.assertTrue(lFile[12] == "5 # <# of segments>, next lines <segment #> <vertex #>  <vertex #> [boundary tag] ...Triangulation Segments..." and
                         lFile[13] == "0 0 1 exterior" and
                         lFile[14] == "1 1 4 exterior" and
                         lFile[15] == "2 2 0 exterior" and
@@ -643,17 +643,17 @@ class meshTestCase(unittest.TestCase):
                         lFile[17] == "4 4 2 exterior" ,
                         'Ascii file is wrong, segment')
         
-        self.failUnless(lFile[18] == '4 0 # <# of verts> <# of vert attributes>, next lines <vertex #> <x> <y> [attributes] ...Mesh Vertices...',
+        self.assertTrue(lFile[18] == '4 0 # <# of verts> <# of vert attributes>, next lines <vertex #> <x> <y> [attributes] ...Mesh Vertices...',
                         'Ascii file is wrong, Mesh Vertices Title')
         
-        self.failUnless(lFile[19] == '0 0.0 0.0 ' and #1.1 ' and
+        self.assertTrue(lFile[19] == '0 0.0 0.0 ' and #1.1 ' and
                         lFile[20] == '1 0.0 4.0 ' and #1.2 ' and
                         lFile[21] == '2 4.0 0.0 ' and #1.3 ' and
                         lFile[22] == '3 1.0 1.0 ' #1.4 '
                         ,
                         'Ascii file is wrong, Mesh Vertices II')
         
-        self.failUnless(lFile[23] == '4 # <# of segments>, next lines <segment #> <vertex #>  <vertex #> [boundary tag] ...Mesh Segments...' and
+        self.assertTrue(lFile[23] == '4 # <# of segments>, next lines <segment #> <vertex #>  <vertex #> [boundary tag] ...Mesh Segments...' and
                         lFile[24] == '0 0 1 ' and
                         lFile[25] == '1 1 2 ' and
                         lFile[26] == '2 0 2 ' and
@@ -678,23 +678,23 @@ class meshTestCase(unittest.TestCase):
         m = Mesh(userVertices = [v1,v2,v3,v4,v5,v6,v7,v8,v9])
         m.thinoutVertices(10)
          
-        self.failUnless(v1 in m.userVertices,
+        self.assertTrue(v1 in m.userVertices,
                         'test_thinoutVertices, test 1 failed')
-        self.failUnless(v3 in m.userVertices,
+        self.assertTrue(v3 in m.userVertices,
                         'test_thinoutVertices, test 2 failed')
-        self.failUnless(v4 in m.userVertices,
+        self.assertTrue(v4 in m.userVertices,
                         'test_thinoutVertices, test 3 failed')
-        self.failUnless(v6 in m.userVertices,
+        self.assertTrue(v6 in m.userVertices,
                         'test_thinoutVertices, test 4 failed')
-        self.failUnless(v7 in m.userVertices,
+        self.assertTrue(v7 in m.userVertices,
                         'test_thinoutVertices, test 5 failed')
-        self.failUnless(v9 in m.userVertices,
+        self.assertTrue(v9 in m.userVertices,
                         'test_thinoutVertices, test 6 failed')
-        self.failUnless(v5 not in m.userVertices,
+        self.assertTrue(v5 not in m.userVertices,
                         'test_thinoutVertices, test 7 failed')
-        self.failUnless(v2 not in m.userVertices,
+        self.assertTrue(v2 not in m.userVertices,
                         'test_thinoutVertices, test 8 failed')
-        self.failUnless(v8 not in m.userVertices,
+        self.assertTrue(v8 not in m.userVertices,
                         'test_thinoutVertices, test 9 failed')
 
     def test_same_x_y(self):
@@ -702,10 +702,10 @@ class meshTestCase(unittest.TestCase):
         f = Point(7,8)
         f.same_x_y(v)
 
-        self.failUnless(f.same_x_y(v),
+        self.assertTrue(f.same_x_y(v),
                         'same_x_y True failed')
         e = Point(7,9)
-        self.failUnless(not f.same_x_y(e),
+        self.assertTrue(not f.same_x_y(e),
                         'same_x_y False failed')
 
     def test_import_tsh(self):
@@ -745,10 +745,10 @@ class meshTestCase(unittest.TestCase):
         #print "******************"
         #print "****************** fileName", fileName
         os.remove(fileName)
-        self.failUnless(0 == m.__cmp__(m_returned),
+        self.assertTrue(0 == m.__cmp__(m_returned),
                         'loading and saving of a mesh failed')
         # do this when .msh supports geo_refs
-        #self.failUnless(m.geo_reference == m_returned.geo_reference,
+        #self.assertTrue(m.geo_reference == m_returned.geo_reference,
         #                'loading and saving of a mesh geo refs failed')
 
     def test_import_mesh(self):
@@ -790,9 +790,9 @@ class meshTestCase(unittest.TestCase):
         os.remove(fileName)
         #print "m.geo_reference",m.geo_reference
         #print "m_returned.geo_reference,",m_returned.geo_reference
-        self.failUnless(0 == m.__cmp__(m_returned),
+        self.assertTrue(0 == m.__cmp__(m_returned),
                         'loading and saving of a mesh failed')
-        self.failUnless(m.geo_reference == m_returned.geo_reference,
+        self.assertTrue(m.geo_reference == m_returned.geo_reference,
                         'loading and saving of a mesh geo refs failed')
 
     def DONTtest_normaliseMesh(self):
@@ -819,16 +819,16 @@ class meshTestCase(unittest.TestCase):
         m.normaliseMesh(1,0,1)
         [xmin, ymin, xmax, ymax] = m.boxsize()
         [attmin, attmax] = m.maxMinVertAtt(0)
-        self.failUnless(attmin == 0.0 and attmax == 1.0,
+        self.assertTrue(attmin == 0.0 and attmax == 1.0,
                         'normalise failed')
-        self.failUnless(xmin == 0.0 and ymin == 0.0 and xmax == 0.5 and ymax == 1.0,
+        self.assertTrue(xmin == 0.0 and ymin == 0.0 and xmax == 0.5 and ymax == 1.0,
                         'normalise failed')
         m.normaliseMesh(200,-100,5)
         [xmin, ymin, xmax, ymax] = m.boxsize()
         [attmin, attmax] = m.maxMinVertAtt(0)
-        self.failUnless(attmin == 0.0 and attmax == 5.0,
+        self.assertTrue(attmin == 0.0 and attmax == 5.0,
                         'normalise failed')
-        self.failUnless(xmin == -100.0 and ymin == -100.0 and xmax == 0.0 and ymax == 100.0,
+        self.assertTrue(xmin == -100.0 and ymin == -100.0 and xmax == 0.0 and ymax == 100.0,
                         'normalise failed')
         
     def test_exportASCIIsegmentoutlinefile(self):
@@ -868,29 +868,29 @@ class meshTestCase(unittest.TestCase):
         m.userVertices=[a,b,c]
         #print "mesh ***************dsg*", m
         #print "(m.__cmp__(m_returned)", m.__cmp__(m_returned) 
-        self.failUnless(0 == m.__cmp__(m),
+        self.assertTrue(0 == m.__cmp__(m),
                         'test_exportASCIIsegmentoutlinefile:loading and saving of a mesh failed')
         # Having problems with this on linux.
         #The ordering of the dictionary values wasn't the same as the windows
         #returned value (verts.values())
-        #self.failUnless(0 == m.__cmp__(m_returned),
+        #self.assertTrue(0 == m.__cmp__(m_returned),
         #                'test_exportASCIIsegmentoutlinefile:loading and saving of a mesh failed')
         
-        self.failUnless(3 == len(m_returned.userVertices),
+        self.assertTrue(3 == len(m_returned.userVertices),
                         'segmentoutlinefile:IO of a mesh failed')
-        self.failUnless(len(m.userSegments) == len(m_returned.userSegments),
+        self.assertTrue(len(m.userSegments) == len(m_returned.userSegments),
                         'segmentoutlinefile:IO of a mesh failed')
         for i in range(len(m.userSegments)):
-            self.failUnless(m.userSegments[i].vertices[0].x ==
+            self.assertTrue(m.userSegments[i].vertices[0].x ==
                             m_returned.userSegments[i].vertices[0].x,
                         'loading and saving of a mesh outline fialed')
-            self.failUnless(m.userSegments[i].vertices[0].y ==
+            self.assertTrue(m.userSegments[i].vertices[0].y ==
                             m_returned.userSegments[i].vertices[0].y,
                         'loading and saving of a mesh outline fialed')
-            self.failUnless(m.userSegments[i].vertices[1].x ==
+            self.assertTrue(m.userSegments[i].vertices[1].x ==
                             m_returned.userSegments[i].vertices[1].x,
                         'loading and saving of a mesh outline fialed')
-            self.failUnless(m.userSegments[i].vertices[1].y ==
+            self.assertTrue(m.userSegments[i].vertices[1].y ==
                             m_returned.userSegments[i].vertices[1].y,
                         'loading and saving of a mesh outline fialed')
 
@@ -929,24 +929,24 @@ class meshTestCase(unittest.TestCase):
         m.userVertices=[a,e,d,b,c]
         #print "mesh ***************dsg*", m
         #print "(m.__cmp__(m_returned)", m.__cmp__(m_returned) 
-        self.failUnless(0 == m.__cmp__(m),
+        self.assertTrue(0 == m.__cmp__(m),
                         'loading and saving of a mesh failed')
 
-        self.failUnless(5 == len(m_returned.userVertices),
+        self.assertTrue(5 == len(m_returned.userVertices),
                         'segmentoutlinefile:IO of a mesh failed')
-        self.failUnless(len(m.userSegments) == len(m_returned.userSegments),
+        self.assertTrue(len(m.userSegments) == len(m_returned.userSegments),
                         'segmentoutlinefile:IO of a mesh failed')
         for i in range(len(m.userSegments)):
-            self.failUnless(m.userSegments[i].vertices[0].x ==
+            self.assertTrue(m.userSegments[i].vertices[0].x ==
                             m_returned.userSegments[i].vertices[0].x,
                         'loading and saving of a mesh outline fialed')
-            self.failUnless(m.userSegments[i].vertices[0].y ==
+            self.assertTrue(m.userSegments[i].vertices[0].y ==
                             m_returned.userSegments[i].vertices[0].y,
                         'loading and saving of a mesh outline fialed')
-            self.failUnless(m.userSegments[i].vertices[1].x ==
+            self.assertTrue(m.userSegments[i].vertices[1].x ==
                             m_returned.userSegments[i].vertices[1].x,
                         'loading and saving of a mesh outline fialed')
-            self.failUnless(m.userSegments[i].vertices[1].y ==
+            self.assertTrue(m.userSegments[i].vertices[1].y ==
                             m_returned.userSegments[i].vertices[1].y,
                         'loading and saving of a mesh outline fialed')
 
@@ -969,17 +969,17 @@ class meshTestCase(unittest.TestCase):
         #print fileName
         m = importMeshFromFile(fileName)
         os.remove(fileName)
-        self.failUnless(m.userVertices[0].x == 1.0,
+        self.assertTrue(m.userVertices[0].x == 1.0,
                         'loadxy, test 1 failed')
-        self.failUnless(m.userVertices[0].y == 0.0,
+        self.assertTrue(m.userVertices[0].y == 0.0,
                         'loadxy, test 2 failed')
-        #self.failUnless(m.userVertices[0].attributes == [10.0,0.0],
+        #self.assertTrue(m.userVertices[0].attributes == [10.0,0.0],
         #                'loadxy, test 2.2 failed')
-        self.failUnless(m.userVertices[1].x == 0.0,
+        self.assertTrue(m.userVertices[1].x == 0.0,
                         'loadxy, test 3 failed')
-        self.failUnless(m.userVertices[1].y == 1.0,
+        self.assertTrue(m.userVertices[1].y == 1.0,
                         'loadxy, test 4 failed')
-        #self.failUnless(m.userVertices[1].attributes == [0.0,10.0],
+        #self.assertTrue(m.userVertices[1].attributes == [0.0,10.0],
         #                'loadxy, test 5 failed')
         
     def test_exportPointsFile(self):
@@ -1010,13 +1010,13 @@ class meshTestCase(unittest.TestCase):
         lFile = file.read().split('\n')
         file.close()
         os.remove(fileName)
-        self.failUnless(lFile[0] == "x,y," and
+        self.assertTrue(lFile[0] == "x,y," and
                         lFile[1] == "0.0,0.0" and
                         lFile[2] == "0.0,3.0" and
                         lFile[3] == "3.0,3.0" 
                         ,
                         'exported Ascii csv file is wrong')
-        self.failUnless(lFile[4] == "1.0,2.0" and
+        self.assertTrue(lFile[4] == "1.0,2.0" and
                         lFile[5] == "3.0,1.0" 
                         ,
                         'exported Ascii csv file is wrong')
@@ -1033,7 +1033,7 @@ class meshTestCase(unittest.TestCase):
         file.close()
         os.remove(fileName)
         
-        self.failUnless(lFile[0] == "x,y," and
+        self.assertTrue(lFile[0] == "x,y," and
                         lFile[1] == "0.0,0.0" and
                         lFile[2] == "0.0,3.0" and
                         lFile[3] == "3.0,3.0" and
@@ -1071,13 +1071,13 @@ class meshTestCase(unittest.TestCase):
         file.close()
 
         os.remove(fileName)
-        self.failUnless(lFile[0] == "x,y" and
+        self.assertTrue(lFile[0] == "x,y" and
                         lFile[1] == "0,0" and
                         lFile[2] == "0,3" and
                         lFile[3] == "3,3" 
                         ,
                         'exported Ascii csv file is wrong')
-        self.failUnless(lFile[4] == "1,2" and
+        self.assertTrue(lFile[4] == "1,2" and
                         lFile[5] == "3,1" 
                         ,
                         'exported Ascii csv file is wrong')
@@ -1094,7 +1094,7 @@ class meshTestCase(unittest.TestCase):
         file.close()
         os.remove(fileName)
         
-        self.failUnless(lFile[0] == "x,y" and
+        self.assertTrue(lFile[0] == "x,y" and
                         lFile[1] == "0.0,0.0" and
                         lFile[2] == "0.0,3.0" and
                         lFile[3] == "3.0,3.0" and
@@ -1116,7 +1116,7 @@ class meshTestCase(unittest.TestCase):
         #print "************* test_mesh exportPointsFilefile"
         #print "lFile",lFile 
         #print "************* test_mesh exportPointsFilefile"
-        self.failUnless(lFile[0] == "" 
+        self.assertTrue(lFile[0] == "" 
                         ,
                         'exported Ascii csv file is wrong')
         
@@ -1124,10 +1124,10 @@ class meshTestCase(unittest.TestCase):
         list = ["sea","river inlet","","sea","","moat"]
         preset = ["moat", "internal boundary"]
         [intlist, converter] = segment_strings2ints(list,preset )
-        self.failUnless(intlist == [2,3 ,0 ,2 ,0 ,0 ]
+        self.assertTrue(intlist == [2,3 ,0 ,2 ,0 ,0 ]
                         ,
                         'test_strings2ints produces bad intlist')
-        self.failUnless(converter == ['moat', 'internal boundary',
+        self.assertTrue(converter == ['moat', 'internal boundary',
                                       'sea', 'river inlet']
                         ,
                         'test_strings2ints produces bad converter')
@@ -1140,10 +1140,10 @@ class meshTestCase(unittest.TestCase):
         preset = ["moat", "internal boundary"]
         [intlist, converter] = segment_strings2ints(list,preset )
         newlist = segment_ints2strings(intlist, converter)
-        self.failUnless(outlist == newlist
+        self.assertTrue(outlist == newlist
                         ,
                         'test_strings2ints produces bad intlist')
-        self.failUnless(converter == ['moat', 'internal boundary',
+        self.assertTrue(converter == ['moat', 'internal boundary',
                                       'sea', 'river inlet']
                         ,
                         'test_strings2ints produces bad converter')
@@ -1154,10 +1154,10 @@ class meshTestCase(unittest.TestCase):
         [intlist, converter] = segment_strings2ints(list,preset )
         newlist = segment_ints2strings(intlist, converter)
         outlist = ['moat', 'moat', 'moat']
-        self.failUnless(outlist == newlist
+        self.assertTrue(outlist == newlist
                         ,
                         'test_strings2ints produces bad intlist')
-        self.failUnless(converter == ['moat', 'internal boundary']
+        self.assertTrue(converter == ['moat', 'internal boundary']
                         ,
                         'test_strings2ints produces bad converter')
 
@@ -1184,12 +1184,12 @@ class meshTestCase(unittest.TestCase):
         UserVerts = m.getUserVertices()
         
          
-        self.failUnless(UserVerts == inputVerts_noDups,
+        self.assertTrue(UserVerts == inputVerts_noDups,
                             'duplicate verts not removed')
         #for userVert, inputVert in map(None, UserVerts, inputVerts_noDups): 
-        #    self.failUnless(userVert.x == inputVert.x,
+        #    self.assertTrue(userVert.x == inputVert.x,
         #                    'x duplicate verts not removed')
-        #    self.failUnless(userVert.y == inputVert.y,
+        #    self.assertTrue(userVert.y == inputVert.y,
         #                    'y duplicate verts not removed')
 
         
@@ -1205,13 +1205,13 @@ class meshTestCase(unittest.TestCase):
         Segment.set_default_tag("")
 
         
-        self.failUnless(len(m.userSegments) ==2,
+        self.assertTrue(len(m.userSegments) ==2,
                         'Wrong segment list length.')
-        self.failUnless(len(m.userVertices) == 3,
+        self.assertTrue(len(m.userVertices) == 3,
                         'Wrong vertex list length.')
-        self.failUnless(m.userSegments[0].tag =='food',
+        self.assertTrue(m.userSegments[0].tag =='food',
                         'Wrong segment tag length.')
-        self.failUnless(m.userSegments[1].tag =='do-op',
+        self.assertTrue(m.userSegments[1].tag =='do-op',
                         'Wrong segment tag.')
         
     def test_addVertsSegs2(self):
@@ -1238,9 +1238,9 @@ class meshTestCase(unittest.TestCase):
         m.addVertsSegs(dict)
 
         
-        self.failUnless(m.userSegments[5].vertices[0].y == 3,
+        self.assertTrue(m.userSegments[5].vertices[0].y == 3,
                         'Wrong vertex connected.')
-        self.failUnless(m.userSegments[5].vertices[1].y == 1,
+        self.assertTrue(m.userSegments[5].vertices[1].y == 1,
                         'Wrong vertex connected.')
             
     def test_add_points_and_segments(self):
@@ -1256,13 +1256,13 @@ class meshTestCase(unittest.TestCase):
         Segment.set_default_tag("")
 
         
-        self.failUnless(len(m.userSegments) ==2,
+        self.assertTrue(len(m.userSegments) ==2,
                         'Wrong segment list length.')
-        self.failUnless(len(m.userVertices) == 3,
+        self.assertTrue(len(m.userVertices) == 3,
                         'Wrong vertex list length.')
-        self.failUnless(m.userSegments[0].tag =='food',
+        self.assertTrue(m.userSegments[0].tag =='food',
                         'Wrong segment tag length.')
-        self.failUnless(m.userSegments[1].tag =='hair',
+        self.assertTrue(m.userSegments[1].tag =='hair',
                         'Wrong segment tag.')
         
     def test_add_points_and_segmentsII(self):
@@ -1278,13 +1278,13 @@ class meshTestCase(unittest.TestCase):
         Segment.set_default_tag("")
 
         
-        self.failUnless(len(m.userSegments) ==2,
+        self.assertTrue(len(m.userSegments) ==2,
                         'Wrong segment list length.')
-        self.failUnless(len(m.userVertices) == 3,
+        self.assertTrue(len(m.userVertices) == 3,
                         'Wrong vertex list length.')
-        self.failUnless(m.userSegments[0].tag =='food',
+        self.assertTrue(m.userSegments[0].tag =='food',
                         'Wrong segment tag length.')
-        self.failUnless(m.userSegments[1].tag =='hair',
+        self.assertTrue(m.userSegments[1].tag =='hair',
                         'Wrong segment tag.')
         
     def test_exportASCIImeshfile(self):
@@ -1331,7 +1331,7 @@ class meshTestCase(unittest.TestCase):
         #print "m",m 
         #print '**@@@@@******'
         
-        self.failUnless( new_m == m,
+        self.assertTrue( new_m == m,
                          'loadASCIITestCase failed. test new 1')
             
     def test_Mesh2MeshList(self):
@@ -1396,34 +1396,34 @@ class meshTestCase(unittest.TestCase):
         dict = m.Mesh2IOTriangulationDict()
         #print "dict",dict 
         
-        self.failUnless( dict['vertex_attribute_titles'] == titles,
+        self.assertTrue( dict['vertex_attribute_titles'] == titles,
                          'test_Mesh2IOTriangulationDict failed. test 1')
         answer = [a_xy,[0.0, 4.0],[4.0,0.0], [1.0,1.0], [2.0,2.0]]
         #print "answer",answer
         #print "dict['vertices']",dict['vertices']
         
-        self.failUnless(num.alltrue(dict['vertices'] == answer),
+        self.assertTrue(num.alltrue(dict['vertices'] == answer),
                         'test_Mesh2IOTriangulationDict failed. test 2')
 
-        self.failUnless(num.alltrue(dict['vertices'].flatten() ==
+        self.assertTrue(num.alltrue(dict['vertices'].flatten() ==
                                     verts.flatten()),
                          'test_Mesh2IOTriangulationDict failed. test vert')
-        self.failUnless(num.alltrue(dict['vertex_attributes'].flatten() ==
+        self.assertTrue(num.alltrue(dict['vertex_attributes'].flatten() ==
                                     vert_as.flatten()),
                          'test_Mesh2IOTriangulationDict failed. test vert ats')
 
-        self.failUnless(num.alltrue(dict['segments'][0] == [0,1]),
+        self.assertTrue(num.alltrue(dict['segments'][0] == [0,1]),
                         'test_Mesh2IODict failed. test 3')
         
-        self.failUnless( dict['segment_tags'] == seg_tags,
+        self.assertTrue( dict['segment_tags'] == seg_tags,
                         'test_Mesh2IODict failed. test 3')
         #print " dict['triangles'][0]", dict['triangles'][0] 
-        self.failUnless(num.alltrue(dict['triangles'][0] == [3,2,4]),
+        self.assertTrue(num.alltrue(dict['triangles'][0] == [3,2,4]),
                         'test_Mesh2IODict failed. test 5')
-        self.failUnless(num.alltrue(dict['triangle_neighbors'][0] == [-1,2,3]),
+        self.assertTrue(num.alltrue(dict['triangle_neighbors'][0] == [-1,2,3]),
                         'test_Mesh2IODict failed. test 6')
         #print "dict['triangle_tags'][0]", dict['triangle_tags'][0]
-        self.failUnless( dict['triangle_tags'][0] == "1.3",
+        self.assertTrue( dict['triangle_tags'][0] == "1.3",
                          'test_Mesh2IODict failed. test 7')
 
   
@@ -1459,32 +1459,32 @@ class meshTestCase(unittest.TestCase):
         seg_tags = m.getMeshSegmentTags()
         #print "dict",dict 
         
-        self.failUnless( dict['vertex_attribute_titles'] == titles,
+        self.assertTrue( dict['vertex_attribute_titles'] == titles,
                          'test_Mesh2IOTriangulationDict failed. test 1')
         answer = [a_xy,[0.0, 4.0],[4.0,0.0], [1.0,1.0], [2.0,2.0]]
         #print "answer",answer
         #print "dict['vertices']",dict['vertices']
         
-        self.failUnless(num.alltrue(dict['vertices'] == answer),
+        self.assertTrue(num.alltrue(dict['vertices'] == answer),
                         'test_Mesh2IOTriangulationDict failed. test 2')
 
-        self.failUnless(num.alltrue(dict['vertices'] == verts),
+        self.assertTrue(num.alltrue(dict['vertices'] == verts),
                         'test_Mesh2IOTriangulationDict failed. test vert')
-        self.failUnless(num.alltrue(dict['vertex_attributes'] == vert_as),
+        self.assertTrue(num.alltrue(dict['vertex_attributes'] == vert_as),
                         'test_Mesh2IOTriangulationDict failed. test vert ats')
 
-        self.failUnless(num.alltrue(dict['segments'][0] == [0,1]),
+        self.assertTrue(num.alltrue(dict['segments'][0] == [0,1]),
                         'test_Mesh2IODict failed. test 3')
         
-        self.failUnless(dict['segment_tags'] == seg_tags,
+        self.assertTrue(dict['segment_tags'] == seg_tags,
                         'test_Mesh2IODict failed. test 3')
         #print " dict['triangles'][0]", dict['triangles'][0] 
-        self.failUnless(num.alltrue(dict['triangles'][0] == [3,2,4]),
+        self.assertTrue(num.alltrue(dict['triangles'][0] == [3,2,4]),
                         'test_Mesh2IODict failed. test 5')
-        self.failUnless(num.alltrue(dict['triangle_neighbors'][0] == [-1,2,3]),
+        self.assertTrue(num.alltrue(dict['triangle_neighbors'][0] == [-1,2,3]),
                         'test_Mesh2IODict failed. test 6')
         #print "dict['triangle_tags'][0]", dict['triangle_tags'][0]
-        self.failUnless(dict['triangle_tags'][0] == "1.3",
+        self.assertTrue(dict['triangle_tags'][0] == "1.3",
                         'test_Mesh2IODict failed. test 7')
 
         seg = m.getUserSegments()
@@ -1493,25 +1493,25 @@ class meshTestCase(unittest.TestCase):
         regions = m.getRegions()
         
         for pimport,pactual,pimpatt in map(None,dict['points'],points,dict['point_attributes']):
-            self.failUnless( pimport == [pactual.x,pactual.y],
+            self.assertTrue( pimport == [pactual.x,pactual.y],
                         'test_Mesh2IODict failed. test 1')
-            self.failUnless( pimpatt == pactual.attributes,
+            self.assertTrue( pimpatt == pactual.attributes,
                         'test_Mesh2IODict failed. test 1.1')
-        self.failUnless( dict['outline_segments'][0] == [0,1],
+        self.assertTrue( dict['outline_segments'][0] == [0,1],
                         'test_Mesh2IODict failed. test 3')
         for segimp,segactual in map(None,dict['outline_segment_tags'],seg):
-            self.failUnless( segimp == segactual.tag,
+            self.assertTrue( segimp == segactual.tag,
                         'test_Mesh2IODict failed. test 4')
         for holeimp,holeactual in map(None,dict['holes'],holes):
-            self.failUnless( holeimp == [holeactual.x,holeactual.y],
+            self.assertTrue( holeimp == [holeactual.x,holeactual.y],
                         'test_Mesh2IODict failed. test 5')
         
         for regimp,regactual,regattimp, regmaxarea in map(None,dict['regions'],regions, dict['region_tags'], dict['region_max_areas']):
-            self.failUnless( regimp == [regactual.x,regactual.y],
+            self.assertTrue( regimp == [regactual.x,regactual.y],
                         'loadASCIITestCase failed. test 6')
-            self.failUnless( regattimp == regactual.getTag(),
+            self.assertTrue( regattimp == regactual.getTag(),
                         'loadASCIITestCase failed. test 7')
-            self.failUnless( regmaxarea == regactual.getMaxArea(),
+            self.assertTrue( regmaxarea == regactual.getMaxArea(),
                         'loadASCIITestCase failed. test 7')
     
             
@@ -1551,33 +1551,33 @@ class meshTestCase(unittest.TestCase):
         regions = m.getRegions()
         
         for pimport,pactual,pimpatt in map(None,dict['points'],points,dict['point_attributes']):
-            self.failUnless( pimport == [pactual.x,pactual.y],
+            self.assertTrue( pimport == [pactual.x,pactual.y],
                         'loadASCIITestCase failed. test 1')
-            self.failUnless( pimpatt == pactual.attributes,
+            self.assertTrue( pimpatt == pactual.attributes,
                         'loadASCIITestCase failed. test 1.1')
-        self.failUnless( dict['outline_segments'][0] == [0,1],
+        self.assertTrue( dict['outline_segments'][0] == [0,1],
                         'loadASCIITestCase failed. test 3')
         for segimp,segactual in map(None,dict['outline_segment_tags'],seg):
-            self.failUnless( segimp == segactual.tag,
+            self.assertTrue( segimp == segactual.tag,
                         'loadASCIITestCase failed. test 4')
         for holeimp,holeactual in map(None,dict['holes'],holes):
-            self.failUnless( holeimp == [holeactual.x,holeactual.y],
+            self.assertTrue( holeimp == [holeactual.x,holeactual.y],
                         'loadASCIITestCase failed. test 5')
         #for regimp,regactual in map(None,dict['regions'],regions):
-         #   self.failUnless( [regimp[0],regimp[1]]==[regactual.x,regactual.y],
+         #   self.assertTrue( [regimp[0],regimp[1]]==[regactual.x,regactual.y],
           #              'loadASCIITestCase failed. test 6')
-           # self.failUnless( regimp[2] == regactual.getTag(),
+           # self.assertTrue( regimp[2] == regactual.getTag(),
             #            'loadASCIITestCase failed. test 7')
-            #self.failUnless( regimp[3] == regactual.getMaxArea(),
+            #self.assertTrue( regimp[3] == regactual.getMaxArea(),
              #           'loadASCIITestCase failed. test 7')
 
             
         for regimp,regactual,regattimp, regmaxarea in map(None,dict['regions'],regions, dict['region_tags'], dict['region_max_areas']):
-            self.failUnless( regimp == [regactual.x,regactual.y],
+            self.assertTrue( regimp == [regactual.x,regactual.y],
                         'loadASCIITestCase failed. test 6')
-            self.failUnless( regattimp == regactual.getTag(),
+            self.assertTrue( regattimp == regactual.getTag(),
                         'loadASCIITestCase failed. test 7')
-            self.failUnless( regmaxarea == regactual.getMaxArea(),
+            self.assertTrue( regmaxarea == regactual.getMaxArea(),
                         'loadASCIITestCase failed. test 7')
 
 
@@ -1586,15 +1586,15 @@ class meshTestCase(unittest.TestCase):
         region = m.add_region_from_polygon([[0,0],[1,0],[0,1]],
                                   max_triangle_area = 88,
                                            region_tag='cassady')
-        self.failUnless(len(m.regions)==1,
+        self.assertTrue(len(m.regions)==1,
                         'FAILED!')
-        self.failUnless(region.getMaxArea()==88,
+        self.assertTrue(region.getMaxArea()==88,
                         'FAILED!')
-        self.failUnless(len(m.getUserSegments())==3,
+        self.assertTrue(len(m.getUserSegments())==3,
                         'FAILED!')
-        self.failUnless(len(m.userVertices)==3,
+        self.assertTrue(len(m.userVertices)==3,
                         'FAILED!')
-        self.failUnless(region.getTag()=='cassady',
+        self.assertTrue(region.getTag()=='cassady',
                         'FAILED!')
        
     def test_add_region_from_polygon2(self):
@@ -1602,21 +1602,21 @@ class meshTestCase(unittest.TestCase):
         m.add_region_from_polygon([[0,0],[1,0],[1,1],[0,1]],
                                {'tagin':[0,1],'bom':[2]},
                                   max_triangle_area=10)
-        self.failUnless(len(m.regions)==1,
+        self.assertTrue(len(m.regions)==1,
                         'FAILED!')
         segs = m.getUserSegments()
-        self.failUnless(len(segs)==4,
+        self.assertTrue(len(segs)==4,
                         'FAILED!')
-        self.failUnless(len(m.userVertices)==4,
+        self.assertTrue(len(m.userVertices)==4,
                         'FAILED!') 
-        self.failUnless(segs[0].tag=='tagin',
+        self.assertTrue(segs[0].tag=='tagin',
                         'FAILED!')  
-        self.failUnless(segs[1].tag=='tagin',
+        self.assertTrue(segs[1].tag=='tagin',
                         'FAILED!') 
          
-        self.failUnless(segs[2].tag=='bom',
+        self.assertTrue(segs[2].tag=='bom',
                         'FAILED!')
-        self.failUnless(segs[3].tag=='',
+        self.assertTrue(segs[3].tag=='',
                         'FAILED!') 
        
     def test_add_region_from_polygon3(self):
@@ -1638,25 +1638,25 @@ class meshTestCase(unittest.TestCase):
                                                max_triangle_area=10)
         # poly_point values are relative to the mesh geo-ref
         # make them absolute
-        self.failUnless(is_inside_polygon([poly_point.x+x,poly_point.y+y],
+        self.assertTrue(is_inside_polygon([poly_point.x+x,poly_point.y+y],
                                        polygon_absolute, closed = False),
                         'FAILED!')
                
-        self.failUnless(len(m.regions)==1,
+        self.assertTrue(len(m.regions)==1,
                         'FAILED!')
         segs = m.getUserSegments()
-        self.failUnless(len(segs)==4,
+        self.assertTrue(len(segs)==4,
                         'FAILED!')
-        self.failUnless(len(m.userVertices)==4,
+        self.assertTrue(len(m.userVertices)==4,
                         'FAILED!') 
-        self.failUnless(segs[0].tag=='tagin',
+        self.assertTrue(segs[0].tag=='tagin',
                         'FAILED!')  
-        self.failUnless(segs[1].tag=='tagin',
+        self.assertTrue(segs[1].tag=='tagin',
                         'FAILED!') 
          
-        self.failUnless(segs[2].tag=='bom',
+        self.assertTrue(segs[2].tag=='bom',
                         'FAILED!') 
-        self.failUnless(segs[3].tag=='',
+        self.assertTrue(segs[3].tag=='',
                         'FAILED!')
         verts = m.getUserVertices()
         #print "User verts",verts
@@ -1672,8 +1672,8 @@ class meshTestCase(unittest.TestCase):
             #print "point_y",point_y
             #print "new_point_y",new_point_y 
             
-            self.failUnless(point_x == new_point_x, ' failed')
-            self.failUnless(point_y == new_point_y, ' failed')
+            self.assertTrue(point_x == new_point_x, ' failed')
+            self.assertTrue(point_y == new_point_y, ' failed')
             
          
     def test_add_region_from_polygon4(self):
@@ -1685,21 +1685,21 @@ class meshTestCase(unittest.TestCase):
         m.add_region_from_polygon(polygon,
                                {'tagin':[0,1],'bom':[2]},
                                   max_triangle_area=10)
-        self.failUnless(len(m.regions)==1,
+        self.assertTrue(len(m.regions)==1,
                         'FAILED!')
         segs = m.getUserSegments()
-        self.failUnless(len(segs)==4,
+        self.assertTrue(len(segs)==4,
                         'FAILED!')
-        self.failUnless(len(m.userVertices)==4,
+        self.assertTrue(len(m.userVertices)==4,
                         'FAILED!') 
-        self.failUnless(segs[0].tag=='tagin',
+        self.assertTrue(segs[0].tag=='tagin',
                         'FAILED!')  
-        self.failUnless(segs[1].tag=='tagin',
+        self.assertTrue(segs[1].tag=='tagin',
                         'FAILED!') 
          
-        self.failUnless(segs[2].tag=='bom',
+        self.assertTrue(segs[2].tag=='bom',
                         'FAILED!') 
-        self.failUnless(segs[3].tag=='',
+        self.assertTrue(segs[3].tag=='',
                         'FAILED!')
         verts = m.getUserVertices()
         #print "User verts",verts
@@ -1713,8 +1713,8 @@ class meshTestCase(unittest.TestCase):
             point_y = point[1] 
             new_point_y = new_point.y + m.geo_reference.get_yllcorner()
             
-            self.failUnless(point_x == new_point_x, ' failed')
-            self.failUnless(point_y == new_point_y, ' failed')
+            self.assertTrue(point_x == new_point_x, ' failed')
+            self.assertTrue(point_y == new_point_y, ' failed')
 
 
     def test_add_hole_from_polygon(self):
@@ -1738,25 +1738,25 @@ class meshTestCase(unittest.TestCase):
         #print "poly_point.x+x",poly_point.x+x
         #print "poly_point.y+y",poly_point.y+y
         #print "polygon_absolute", polygon_absolute 
-        self.failUnless(is_inside_polygon([poly_point.x+x,poly_point.y+y],
+        self.assertTrue(is_inside_polygon([poly_point.x+x,poly_point.y+y],
                                        polygon_absolute, closed = False),
                         'FAILED!')
                
-        self.failUnless(len(m.holes)==1,
+        self.assertTrue(len(m.holes)==1,
                         'FAILED!')
         segs = m.getUserSegments()
-        self.failUnless(len(segs)==4,
+        self.assertTrue(len(segs)==4,
                         'FAILED!')
-        self.failUnless(len(m.userVertices)==4,
+        self.assertTrue(len(m.userVertices)==4,
                         'FAILED!') 
-        self.failUnless(segs[0].tag=='tagin',
+        self.assertTrue(segs[0].tag=='tagin',
                         'FAILED!')  
-        self.failUnless(segs[1].tag=='tagin',
+        self.assertTrue(segs[1].tag=='tagin',
                         'FAILED!') 
          
-        self.failUnless(segs[2].tag=='bom',
+        self.assertTrue(segs[2].tag=='bom',
                         'FAILED!') 
-        self.failUnless(segs[3].tag=='interior',
+        self.assertTrue(segs[3].tag=='interior',
                         'FAILED!')
         verts = m.getUserVertices()
         #print "User verts",verts
@@ -1772,8 +1772,8 @@ class meshTestCase(unittest.TestCase):
             #print "point_y",point_y
             #print "new_point_y",new_point_y 
             
-            self.failUnless(point_x == new_point_x, ' failed')
-            self.failUnless(point_y == new_point_y, ' failed')
+            self.assertTrue(point_x == new_point_x, ' failed')
+            self.assertTrue(point_y == new_point_y, ' failed')
 
 
 
@@ -1799,26 +1799,26 @@ class meshTestCase(unittest.TestCase):
         #print "poly_point.x+x",poly_point.x+x
         #print "poly_point.y+y",poly_point.y+y
         #print "polygon_absolute", polygon_absolute 
-        self.failUnless(is_inside_polygon([poly_point.x+x,poly_point.y+y],
+        self.assertTrue(is_inside_polygon([poly_point.x+x,poly_point.y+y],
                                        polygon_absolute, closed = False),
                         'FAILED!')
                
-        self.failUnless(len(m.holes)==1,
+        self.assertTrue(len(m.holes)==1,
                         'FAILED!')
         segs = m.getUserSegments()
-        self.failUnless(len(segs)==4,
+        self.assertTrue(len(segs)==4,
                         'FAILED!')
-        self.failUnless(len(m.userVertices)==4,
+        self.assertTrue(len(m.userVertices)==4,
                         'FAILED!')
         
-        self.failUnless(segs[0].tag=='interior',
+        self.assertTrue(segs[0].tag=='interior',
                         'FAILED!')  
-        self.failUnless(segs[1].tag=='interior',
+        self.assertTrue(segs[1].tag=='interior',
                         'FAILED!') 
          
-        self.failUnless(segs[2].tag=='interior',
+        self.assertTrue(segs[2].tag=='interior',
                         'FAILED!') 
-        self.failUnless(segs[3].tag=='interior',
+        self.assertTrue(segs[3].tag=='interior',
                         'FAILED!')
         verts = m.getUserVertices()
         #print "User verts",verts
@@ -1834,8 +1834,8 @@ class meshTestCase(unittest.TestCase):
             #print "point_y",point_y
             #print "new_point_y",new_point_y 
             
-            self.failUnless(point_x == new_point_x, ' failed')
-            self.failUnless(point_y == new_point_y, ' failed')            
+            self.assertTrue(point_x == new_point_x, ' failed')
+            self.assertTrue(point_y == new_point_y, ' failed')            
 
     def test_add_circle(self):
         x=-500
@@ -1865,16 +1865,16 @@ class meshTestCase(unittest.TestCase):
         
         #m.export_mesh_file("aaat.msh")
         
-        self.failUnless(len(m.regions)==1,
+        self.assertTrue(len(m.regions)==1,
                         'FAILED!')
         segs = m.getUserSegments()
-        self.failUnless(len(segs)==segment_count,
+        self.assertTrue(len(segs)==segment_count,
                         'FAILED!')
-        self.failUnless(len(m.userVertices)==segment_count,
+        self.assertTrue(len(m.userVertices)==segment_count,
                         'FAILED!') 
-        self.failUnless(segs[0].tag==tag,
+        self.assertTrue(segs[0].tag==tag,
                         'FAILED!')  
-        self.failUnless(segs[1].tag==tag,
+        self.assertTrue(segs[1].tag==tag,
                         'FAILED!') 
          
         verts = m.getUserVertices()
@@ -1927,11 +1927,11 @@ class meshTestCase(unittest.TestCase):
 
         #m.export_mesh_file("from_test_mesh.tsh")
         seg = m.getMeshSegments()
-        self.failUnless(4==len(seg),
+        self.assertTrue(4==len(seg),
                         'FAILED!') 
 
         vert = m.getMeshVertices() 
-        self.failUnless(4==len(vert),
+        self.assertTrue(4==len(vert),
                         'FAILED!')
  
     def test_duplicat_verts_are_removedII(self):
@@ -1969,11 +1969,11 @@ class meshTestCase(unittest.TestCase):
 
         #m.export_mesh_file("from_test_mesh.tsh")
         seg = m.getMeshSegments()
-        self.failUnless(4==len(seg),
+        self.assertTrue(4==len(seg),
                         'FAILED!') 
 
         vert = m.getMeshVertices() 
-        self.failUnless(4==len(vert),
+        self.assertTrue(4==len(vert),
                         'FAILED!')
    
     def test_add_vertices(self):
@@ -1988,11 +1988,11 @@ class meshTestCase(unittest.TestCase):
 
         vert = m.getUserVertices()
         #print "vert",vert 
-        self.failUnless(4==len(vert),
+        self.assertTrue(4==len(vert),
                         'FAILED!')
         vert= m.get_user_vertices(absolute=True)
         
-        self.failUnless(num.allclose(vert, points_ab),
+        self.assertTrue(num.allclose(vert, points_ab),
                         'FAILED!')        
 
     
@@ -2005,11 +2005,11 @@ class meshTestCase(unittest.TestCase):
 
         vert = m.getUserVertices()
         #print "vert",vert 
-        self.failUnless(4==len(vert),
+        self.assertTrue(4==len(vert),
                         'FAILED!')
         vert = m.get_user_vertices(absolute=True)
         
-        self.failUnless(num.alltrue(vert.flatten() ==
+        self.assertTrue(num.alltrue(vert.flatten() ==
                                     num.array(points).flatten()),
                         'FAILED!')
     
@@ -2024,11 +2024,11 @@ class meshTestCase(unittest.TestCase):
 
         vert = m.getUserVertices()
         #print "vert",vert 
-        self.failUnless(4==len(vert),
+        self.assertTrue(4==len(vert),
                         'FAILED!')
         vert= m.get_user_vertices(absolute=True)
         
-        self.failUnless(num.allclose(vert, points_ab),
+        self.assertTrue(num.allclose(vert, points_ab),
                         'FAILED!')
 
         spat = Geospatial_data(data_points=points_lat_long,
@@ -2041,11 +2041,11 @@ class meshTestCase(unittest.TestCase):
 
         vert = m.getUserVertices()
         #print "vert",vert 
-        self.failUnless(4==len(vert),
+        self.assertTrue(4==len(vert),
                         'FAILED!')
         vert= m.get_user_vertices(absolute=True)
         
-        self.failUnless(num.allclose(vert, points_ab),
+        self.assertTrue(num.allclose(vert, points_ab),
                         'FAILED!')
 
         #geo =  Geo_reference(56,23,21)
@@ -2063,15 +2063,15 @@ class meshTestCase(unittest.TestCase):
 
         vert = m.getUserVertices()
         #print "vert",vert 
-        self.failUnless(4==len(vert),
+        self.assertTrue(4==len(vert),
                         'FAILED!')
         vert= m.get_user_vertices(absolute=True)
-        self.failUnless(num.allclose(vert, points_ab),
+        self.assertTrue(num.allclose(vert, points_ab),
                         'FAILED!')
         vert= m.get_user_vertices(absolute=False)
         points_new = m.geo_reference.get_absolute(vert)
         
-        self.failUnless(num.allclose(points_ab, points_new),
+        self.assertTrue(num.allclose(points_ab, points_new),
                         'FAILED!')
 
     def mode_string_float_problems(self):
@@ -2109,7 +2109,7 @@ class meshTestCase(unittest.TestCase):
         calc_mesh_area = m.tri_mesh.calc_mesh_area()
         #print "calc_mesh_area", calc_mesh_area
         delta  = 0.0000000001
-        self.failUnless((8.0 < calc_mesh_area + delta) or
+        self.assertTrue((8.0 < calc_mesh_area + delta) or
                         (8.0 > calc_mesh_area - delta),
                         'generated mesh is wrong!')
         

@@ -488,16 +488,16 @@ class Test_inundation_damage(unittest.TestCase):
                                 0.2:[9,10,11,12,13,14,15,16]} #2
         edm._calc_collapse_structures(collapse_probability, verbose_csv=True)
 
-        self.failUnless( edm.struct_damage[0]  == 0.0 and
+        self.assertTrue( edm.struct_damage[0]  == 0.0 and
                          edm.contents_damage[0]  == 0.0,
                         'Error!')
-        self.failUnless( edm.struct_damage[1]  == 1.0 and
+        self.assertTrue( edm.struct_damage[1]  == 1.0 and
                          edm.contents_damage[1]  == 1.0,
                         'Error!')
-        self.failUnless( edm.struct_damage[2]  == 1.0 and
+        self.assertTrue( edm.struct_damage[2]  == 1.0 and
                          edm.contents_damage[2]  == 1.0,
                         'Error!')
-        self.failUnless( edm.struct_damage[3]+ edm.struct_damage[4] == 1.0 and
+        self.assertTrue( edm.struct_damage[3]+ edm.struct_damage[4] == 1.0 and
                          edm.contents_damage[3] + edm.contents_damage[4] ==1.0,
                         'Error!')
         sum_struct = 0.0
@@ -506,14 +506,14 @@ class Test_inundation_damage(unittest.TestCase):
             sum_struct += edm.struct_damage[i]
             sum_contents += edm.contents_damage[i]
         print "", 
-        self.failUnless( sum_struct == 0.0 and sum_contents  == 0.0,
+        self.assertTrue( sum_struct == 0.0 and sum_contents  == 0.0,
                         'Error!')
         sum_struct = 0.0
         sum_contents = 0.0
         for i in [9,10,11,12,13,14,15,16]:
             sum_struct += edm.struct_damage[i]
             sum_contents += edm.contents_damage[i]
-        self.failUnless( sum_struct == 2.0 and sum_contents  == 2.0,
+        self.assertTrue( sum_struct == 2.0 and sum_contents  == 2.0,
                         'Error!')
         
     def test_calc_collapse_probability(self):
@@ -530,7 +530,7 @@ class Test_inundation_damage(unittest.TestCase):
         #print "struct_coll_prob",struct_coll_prob 
         #print "answer",answer 
 
-        self.failUnless( struct_coll_prob ==  answer,
+        self.assertTrue( struct_coll_prob ==  answer,
                         'Error!')
         
         

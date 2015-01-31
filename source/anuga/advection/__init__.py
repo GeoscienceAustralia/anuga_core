@@ -5,7 +5,8 @@
 
 from advection import Advection_Domain
 
-
+from numpy.testing import Tester
+test = Tester().test
 
 
 

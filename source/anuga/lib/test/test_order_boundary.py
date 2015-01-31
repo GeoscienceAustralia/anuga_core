@@ -96,7 +96,7 @@ class Test_order_boundary(unittest.TestCase):
         fd.close()
 
         # check same as Expected
-        self.failUnless(data_list == Expected)
+        self.assertTrue(data_list == Expected)
 
         # clean up
         try:
@@ -375,7 +375,7 @@ class Test_order_boundary(unittest.TestCase):
         fd.close()
 
         # check same as expected
-        self.failUnless(data_list == expected)
+        self.assertTrue(data_list == expected)
 
         # clean up
         try:

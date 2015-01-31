@@ -769,7 +769,7 @@ class Test_Interpolate(unittest.TestCase):
         # A warning message is printed, if verbose is on.
 
         for i in range(4):
-            self.failUnless( z[0,i] == answer[0,i], 'Fail!')
+            self.assertTrue( z[0,i] == answer[0,i], 'Fail!')
         
         z = interp.interpolate(f, point_coords, start_blocking_len = 2)
 
@@ -777,7 +777,7 @@ class Test_Interpolate(unittest.TestCase):
         #print "answer",answer
         
         for i in range(4):
-            self.failUnless( z[0,i] == answer[0,i], 'Fail!')
+            self.assertTrue( z[0,i] == answer[0,i], 'Fail!')
         
         
     def test_interpolate_attributes_to_pointsIV(self):
@@ -1429,7 +1429,7 @@ class Test_Interpolate(unittest.TestCase):
 
         msg = 'Interpolation failed'
         assert num.allclose(I.precomputed_values['Attribute'][1], [60, 60]), msg
-        #self.failUnless( I.precomputed_values['Attribute'][1] == 60.0,
+        #self.assertTrue( I.precomputed_values['Attribute'][1] == 60.0,
         #                ' failed')
         
     def test_interpolation_function_outside_point(self):
@@ -1496,7 +1496,7 @@ class Test_Interpolate(unittest.TestCase):
         # Now test the point outside the mesh
         t = time[0]
         for j in range(50): #t in [1, 6]
-            self.failUnless(I(t, 5) == NAN, 'Fail!')
+            self.assertTrue(I(t, 5) == NAN, 'Fail!')
             t += 0.1  
             
         try:    
@@ -1712,8 +1712,8 @@ class Test_Interpolate(unittest.TestCase):
         assert num.allclose(z[0:1], answer[0:1])
         assert num.allclose(z[4:10], answer[4:10])
         for i in [2,3,11]:
-            self.failUnless( z[i,1] == answer[11,1], 'Fail!')
-            self.failUnless( z[i,0] == answer[11,0], 'Fail!')
+            self.assertTrue( z[i,1] == answer[11,1], 'Fail!')
+            self.assertTrue( z[i,0] == answer[11,0], 'Fail!')
 
 
 
@@ -1774,8 +1774,8 @@ class Test_Interpolate(unittest.TestCase):
         assert num.allclose(z[0:1], answer[0:1])
         assert num.allclose(z[5:6], answer[5:6])
         for i in [2,3,4]:
-            self.failUnless( z[i,1] == answer[2,1], 'Fail!')
-            self.failUnless( z[i,0] == answer[2,0], 'Fail!')
+            self.assertTrue( z[i,1] == answer[2,1], 'Fail!')
+            self.assertTrue( z[i,0] == answer[2,0], 'Fail!')
 
 
     def test_interpolate_sww2csv(self):
@@ -1933,7 +1933,7 @@ class Test_Interpolate(unittest.TestCase):
         try:
             interp = Interpolate(vertices, triangles)
         except RuntimeError:
-            self.failUnless(0 ==1,  'quad fails with 14 verts at the same \
+            self.assertTrue(0 ==1,  'quad fails with 14 verts at the same \
             position. Should be able to handle any number.')
         f = linear_function(vertices)
         z = interp.interpolate(f, point_coords)

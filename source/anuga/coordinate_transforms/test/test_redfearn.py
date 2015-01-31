@@ -380,7 +380,7 @@ class TestCase(unittest.TestCase):
         assert num.allclose(points[0][1], 6180432.601)
         assert num.allclose(points[1][0],  222908.705)
         assert num.allclose(points[1][1], 6233785.284)
-        self.failUnless(zone == 56,
+        self.assertTrue(zone == 56,
                         'Bad zone error!')
         
     def test_convert_lats_longs2(self):
@@ -405,7 +405,7 @@ class TestCase(unittest.TestCase):
         except ANUGAError:
             pass
         else:
-            self.failUnless(False,
+            self.assertTrue(False,
                             'Error not thrown error!')
             
     def test_convert_lats_longs3(self):
@@ -428,7 +428,7 @@ class TestCase(unittest.TestCase):
         except ANUGAError:
             pass
         else:
-            self.failUnless(False,
+            self.assertTrue(False,
                             'Error not thrown error!')
 
     def test_convert_latlon_to_UTM1(self):
@@ -451,7 +451,7 @@ class TestCase(unittest.TestCase):
         assert num.allclose(points[0][1], 6180432.601)
         assert num.allclose(points[1][0],  222908.705)
         assert num.allclose(points[1][1], 6233785.284)
-        self.failUnless(zone == 56,
+        self.assertTrue(zone == 56,
                         'Bad zone error!')
 
     def test_convert_latlon_to_UTM2(self):       

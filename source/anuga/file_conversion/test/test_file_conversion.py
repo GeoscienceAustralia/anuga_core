@@ -842,7 +842,7 @@ class Test_File_Conversion(unittest.TestCase):
         except AssertionError:
             pass
         else:
-            self.failUnless(0 ==1,  'Bad input did not throw exception error!')
+            self.assertTrue(0 ==1,  'Bad input did not throw exception error!')
 
     def test_sww_extent(self):
         """Not a test, rather a look at the sww format

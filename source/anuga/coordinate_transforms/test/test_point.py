@@ -27,7 +27,7 @@ class TestCase(unittest.TestCase):
         p3 = Point(0.0,1.0)
 
         # Assert that bearing is correct within double precision
-        self.failUnless((fabs(p1.BearingTo(p2)-0) < eps),\
+        self.assertTrue((fabs(p1.BearingTo(p2)-0) < eps),\
                         'Computed northward bearing: %d, Should have been: %d'\
                          %(p1.BearingTo(p2), 0))
 
@@ -41,7 +41,7 @@ class TestCase(unittest.TestCase):
         p3 = Point(0.0,1.0)
 
         # Assert that bearing is correct within double precision
-        self.failUnless((fabs(p2.BearingTo(p1)-180) < eps),\
+        self.assertTrue((fabs(p2.BearingTo(p1)-180) < eps),\
                         'Computed southhward bearing: %d, Should have been: %d'\
                          %(p2.BearingTo(p1), 180))
 
@@ -55,7 +55,7 @@ class TestCase(unittest.TestCase):
         p3 = Point(0.0,1.0)
 
         # Assert that bearing is correct within double precision
-        self.failUnless((fabs(p3.BearingTo(p1)-270) < eps),\
+        self.assertTrue((fabs(p3.BearingTo(p1)-270) < eps),\
                         'Computed westward bearing: %d, Should have been: %d'\
                          %(p3.BearingTo(p1), 270))
         
@@ -68,7 +68,7 @@ class TestCase(unittest.TestCase):
         p3 = Point(0.0,1.0)
 
         # Assert that bearing is correct within double precision
-        self.failUnless((fabs(p1.BearingTo(p3)-90) < eps),\
+        self.assertTrue((fabs(p1.BearingTo(p3)-90) < eps),\
                         'Computed eastward bearing: %d, Should have been: %d'\
                          %(p1.BearingTo(p3), 90))
         
@@ -77,9 +77,9 @@ class TestCase(unittest.TestCase):
     def testRSISE2Home(self):
         D = 2068   # True Distance to Home
         B = 11     # True Bearing to Home
-        self.failUnless((fabs(self.RSISE.DistanceTo(self.Home) - D)/D < self.eps),\
+        self.assertTrue((fabs(self.RSISE.DistanceTo(self.Home) - D)/D < self.eps),\
                         'Dist to Home failed')
-        self.failUnless((self.RSISE.BearingTo(self.Home) - B == 0),\
+        self.assertTrue((self.RSISE.BearingTo(self.Home) - B == 0),\
                         'Computed bearing to Home: %d, Should have been: %d'\
                          %(self.RSISE.BearingTo(self.Home), B))
 
@@ -88,9 +88,9 @@ class TestCase(unittest.TestCase):
     def testRSISE2Sydney(self):
         D = 239.5 * 1000   # True Distance to Sydney Airport
         B = 52             # True Bearing to Sydney Airport        
-        self.failUnless((fabs(self.RSISE.DistanceTo(self.Syd) - D)/D < self.eps),\
+        self.assertTrue((fabs(self.RSISE.DistanceTo(self.Syd) - D)/D < self.eps),\
                         'Dist to Sydney failed')
-        self.failUnless((self.RSISE.BearingTo(self.Syd) - B == 0),\
+        self.assertTrue((self.RSISE.BearingTo(self.Syd) - B == 0),\
                         'Computed bearing to Sydney: %d, Should have been: %d'\
                          %(self.RSISE.BearingTo(self.Syd), B))
 
@@ -98,10 +98,10 @@ class TestCase(unittest.TestCase):
     def testRSISE2Nadi(self):
         D = 3406.1 * 1000   # True Distance to Nadi Airport
         B = 63              # True Bearing to Nadi Airport        
-        self.failUnless((fabs(self.RSISE.DistanceTo(self.Nadi) - D)/D < self.eps),\
+        self.assertTrue((fabs(self.RSISE.DistanceTo(self.Nadi) - D)/D < self.eps),\
                         'Dist to Nadi failed')
         
-        self.failUnless((self.RSISE.BearingTo(self.Nadi) - B == 0),\
+        self.assertTrue((self.RSISE.BearingTo(self.Nadi) - B == 0),\
                         'Computed bearing to Nadi: %d, Should have been: %d'\
                          %(self.RSISE.BearingTo(self.Nadi), B))
 
@@ -109,10 +109,10 @@ class TestCase(unittest.TestCase):
     def testRSISE2Kobenhavn(self):        
         D = 16025 * 1000   # True Distance to Kobenhavn
         B = 319            # True Bearing to Kobenhavn        
-        self.failUnless((fabs(self.RSISE.DistanceTo(self.Kobenhavn) - D)/D < self.eps),\
+        self.assertTrue((fabs(self.RSISE.DistanceTo(self.Kobenhavn) - D)/D < self.eps),\
                         'Computed Distance to Kobenhavn: %d, Should have been: %d' \
                         %(self.RSISE.DistanceTo(self.Kobenhavn), D))
-        self.failUnless((self.RSISE.BearingTo(self.Kobenhavn) - B == 0),\
+        self.assertTrue((self.RSISE.BearingTo(self.Kobenhavn) - B == 0),\
                         'Computed Bearing to Kobenhavn: %d, Should have been: %d' \
                         %(self.RSISE.BearingTo(self.Kobenhavn), B))
 

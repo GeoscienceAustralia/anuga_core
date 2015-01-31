@@ -24,9 +24,9 @@ class geo_referenceTestCase(unittest.TestCase):
         g = Geo_reference(56,1.9,1.9)
         (z,x,y) = g.get_origin()
 
-        self.failUnless(z == g.get_zone(), ' failed')
-        self.failUnless(x == g.get_xllcorner(), ' failed')
-        self.failUnless(y == g.get_yllcorner(), ' failed') 
+        self.assertTrue(z == g.get_zone(), ' failed')
+        self.assertTrue(x == g.get_xllcorner(), ' failed')
+        self.assertTrue(y == g.get_yllcorner(), ' failed') 
         
     def test_read_write_NetCDF(self):
         from anuga.file.netcdf import NetCDFFile
@@ -42,7 +42,7 @@ class geo_referenceTestCase(unittest.TestCase):
         in_file.close()
         os.remove(file_name)
 
-        self.failUnless(g == new_g, 'test_read_write_NetCDF failed')  
+        self.assertTrue(g == new_g, 'test_read_write_NetCDF failed')  
         
     def test_read_NetCDFI(self):
         # test if read_NetCDF
@@ -61,7 +61,7 @@ class geo_referenceTestCase(unittest.TestCase):
         in_file.close()
         os.remove(file_name)
 
-        self.failUnless(g == new_g, ' failed')
+        self.assertTrue(g == new_g, ' failed')
         
     def test_read_write_ASCII(self):
         from anuga.file.netcdf import NetCDFFile
@@ -76,7 +76,7 @@ class geo_referenceTestCase(unittest.TestCase):
         fd.close()
         os.remove(file_name)
 
-        self.failUnless(g == new_g, 'test_read_write_ASCII failed')  
+        self.assertTrue(g == new_g, 'test_read_write_ASCII failed')  
     
     def test_read_write_ASCII2(self):
         from anuga.file.netcdf import NetCDFFile
@@ -91,7 +91,7 @@ class geo_referenceTestCase(unittest.TestCase):
         fd.close()
         os.remove(file_name)
 
-        self.failUnless(g == new_g, 'test_read_write_ASCII failed')
+        self.assertTrue(g == new_g, 'test_read_write_ASCII failed')
         
     def test_read_write_ASCII3(self):
         from anuga.file.netcdf import NetCDFFile
@@ -111,7 +111,7 @@ class geo_referenceTestCase(unittest.TestCase):
             fd.close()
             os.remove(file_name)
         else:
-            self.failUnless(0 ==1,
+            self.assertTrue(0 ==1,
                         'bad text file did not raise error!')
             
     def test_change_points_geo_ref(self):
@@ -121,11 +121,11 @@ class geo_referenceTestCase(unittest.TestCase):
         lofl = [[3.0,311.0], [677.0,6.0]]
         new_lofl = g.change_points_geo_ref(lofl)
 
-        self.failUnless(isinstance(new_lofl, list), ' failed')
-        self.failUnless(type(new_lofl) == type(lofl), ' failed')
+        self.assertTrue(isinstance(new_lofl, list), ' failed')
+        self.assertTrue(type(new_lofl) == type(lofl), ' failed')
         for point,new_point in map(None,lofl,new_lofl):
-            self.failUnless(point[0]-x==new_point[0], ' failed')
-            self.failUnless(point[1]-y==new_point[1], ' failed')
+            self.assertTrue(point[0]-x==new_point[0], ' failed')
+            self.assertTrue(point[1]-y==new_point[1], ' failed')
          
         
     def test_change_points_geo_ref2(self):
@@ -135,11 +135,11 @@ class geo_referenceTestCase(unittest.TestCase):
         lofl = [[3.0,388.0]]
         new_lofl = g.change_points_geo_ref(lofl)
 
-        self.failUnless(isinstance(new_lofl, list), ' failed')
-        self.failUnless(type(new_lofl) == type(lofl), ' failed')
+        self.assertTrue(isinstance(new_lofl, list), ' failed')
+        self.assertTrue(type(new_lofl) == type(lofl), ' failed')
         for point,new_point in map(None,lofl,new_lofl):
-            self.failUnless(point[0]-x==new_point[0], ' failed')
-            self.failUnless(point[1]-y==new_point[1], ' failed')
+            self.assertTrue(point[0]-x==new_point[0], ' failed')
+            self.assertTrue(point[1]-y==new_point[1], ' failed')
         
     def test_change_points_geo_ref3(self):
         x = 3.0
@@ -148,11 +148,11 @@ class geo_referenceTestCase(unittest.TestCase):
         lofl = [3.0,345.0]
         new_lofl = g.change_points_geo_ref(lofl)
 
-        self.failUnless(isinstance(new_lofl, list), ' failed')
-        self.failUnless(type(new_lofl) == type(lofl), ' failed')
+        self.assertTrue(isinstance(new_lofl, list), ' failed')
+        self.assertTrue(type(new_lofl) == type(lofl), ' failed')
         for point,new_point in map(None,[lofl],new_lofl):
-            self.failUnless(point[0]-x==new_point[0], ' failed')
-            self.failUnless(point[1]-y==new_point[1], ' failed')
+            self.assertTrue(point[0]-x==new_point[0], ' failed')
+            self.assertTrue(point[1]-y==new_point[1], ' failed')
         
     
     def test_change_points_geo_ref4(self):
@@ -162,8 +162,8 @@ class geo_referenceTestCase(unittest.TestCase):
         lofl = num.array([[3.0,323.0], [6.0,645.0]])
         new_lofl = g.change_points_geo_ref(lofl)
 
-        self.failUnless(isinstance(new_lofl, num.ndarray), ' failed')
-        self.failUnless(type(new_lofl) == type(lofl), ' failed')
+        self.assertTrue(isinstance(new_lofl, num.ndarray), ' failed')
+        self.assertTrue(type(new_lofl) == type(lofl), ' failed')
         lofl[:,0] -= x
         lofl[:,1] -= y
         assert num.allclose(lofl,new_lofl)
@@ -176,13 +176,13 @@ class geo_referenceTestCase(unittest.TestCase):
 
         new_lofl = g.change_points_geo_ref(lofl.copy())
 
-        self.failUnless(isinstance(new_lofl, num.ndarray), ' failed')
-        self.failUnless(type(new_lofl) == type(lofl), ' failed')
+        self.assertTrue(isinstance(new_lofl, num.ndarray), ' failed')
+        self.assertTrue(type(new_lofl) == type(lofl), ' failed')
 
 
         for point,new_point in map(None,lofl,new_lofl):
-            self.failUnless(point[0]-x==new_point[0], ' failed')
-            self.failUnless(point[1]-y==new_point[1], ' failed')
+            self.assertTrue(point[0]-x==new_point[0], ' failed')
+            self.assertTrue(point[1]-y==new_point[1], ' failed')
         
     def test_change_points_geo_ref6(self):
         x = 53.0
@@ -191,11 +191,11 @@ class geo_referenceTestCase(unittest.TestCase):
         lofl = num.array([355.0,3.0])
         new_lofl = g.change_points_geo_ref(lofl.copy())        
 
-        self.failUnless(isinstance(new_lofl, num.ndarray), ' failed')
-        self.failUnless(type(new_lofl) == type(lofl), ' failed')
+        self.assertTrue(isinstance(new_lofl, num.ndarray), ' failed')
+        self.assertTrue(type(new_lofl) == type(lofl), ' failed')
         for point,new_point in map(None,[lofl],new_lofl):
-            self.failUnless(point[0]-x==new_point[0], ' failed')
-            self.failUnless(point[1]-y==new_point[1], ' failed')
+            self.assertTrue(point[0]-x==new_point[0], ' failed')
+            self.assertTrue(point[1]-y==new_point[1], ' failed')
      
     def test_change_points_geo_ref7(self):
         x = 23.0
@@ -207,11 +207,11 @@ class geo_referenceTestCase(unittest.TestCase):
         lofl = [[3.0,30.0], [67.0,6.0]]
         new_lofl = g.change_points_geo_ref(lofl,points_geo_ref=points_geo_ref)
 
-        self.failUnless(isinstance(new_lofl, list), ' failed')
-        self.failUnless(type(new_lofl) == type(lofl), ' failed')
+        self.assertTrue(isinstance(new_lofl, list), ' failed')
+        self.assertTrue(type(new_lofl) == type(lofl), ' failed')
         for point,new_point in map(None,lofl,new_lofl):
-            self.failUnless(point[0]+point_x-x==new_point[0], ' failed')
-            self.failUnless(point[1]+point_y-y==new_point[1], ' failed')
+            self.assertTrue(point[0]+point_x-x==new_point[0], ' failed')
+            self.assertTrue(point[1]+point_y-y==new_point[1], ' failed')
 
     def test_get_absolute_list(self):
         # test with supplied offsets
@@ -222,22 +222,22 @@ class geo_referenceTestCase(unittest.TestCase):
         points = [[3.0,34.0], [64.0,6.0]]
         new_points = g.get_absolute(points)
 
-        self.failUnless(isinstance(new_points, list), 'failed')
-        self.failUnless(type(new_points) == type(points), 'failed')
+        self.assertTrue(isinstance(new_points, list), 'failed')
+        self.assertTrue(type(new_points) == type(points), 'failed')
         for point, new_point in map(None, points, new_points):
-            self.failUnless(point[0]+x == new_point[0], 'failed')
-            self.failUnless(point[1]+y == new_point[1], 'failed')
+            self.assertTrue(point[0]+x == new_point[0], 'failed')
+            self.assertTrue(point[1]+y == new_point[1], 'failed')
 
         # test with no supplied offsets
         g = Geo_reference()
         points = [[3.0,34.0], [64.0,6.0]]
         new_points = g.get_absolute(points)
 
-        self.failUnless(isinstance(new_points, list), 'failed')
-        self.failUnless(type(new_points) == type(points), 'failed')
+        self.assertTrue(isinstance(new_points, list), 'failed')
+        self.assertTrue(type(new_points) == type(points), 'failed')
         for point, new_point in map(None, points, new_points):
-            self.failUnless(point[0] == new_point[0], 'failed')
-            self.failUnless(point[1] == new_point[1], 'failed')
+            self.assertTrue(point[0] == new_point[0], 'failed')
+            self.assertTrue(point[1] == new_point[1], 'failed')
             
         # test that calling get_absolute twice does the right thing
         # first call
@@ -248,17 +248,17 @@ class geo_referenceTestCase(unittest.TestCase):
         expected_new_points = [[3.0+dx,34.0+dy], [64.0+dx,6.0+dy]]
         new_points = g.get_absolute(points)
 
-        self.failUnless(isinstance(new_points, list), 'failed')
-        self.failUnless(type(new_points) == type(points), 'failed')
-        self.failUnless(new_points == expected_new_points, 'failed')
+        self.assertTrue(isinstance(new_points, list), 'failed')
+        self.assertTrue(type(new_points) == type(points), 'failed')
+        self.assertTrue(new_points == expected_new_points, 'failed')
 
         # and repeat from 'new_points = g.get_absolute(points)' above
         # to see if second call with same input gives same results.
         new_points = g.get_absolute(points)
 
-        self.failUnless(isinstance(new_points, list), 'failed')
-        self.failUnless(type(new_points) == type(points), 'failed')
-        self.failUnless(new_points == expected_new_points, 'failed')
+        self.assertTrue(isinstance(new_points, list), 'failed')
+        self.assertTrue(type(new_points) == type(points), 'failed')
+        self.assertTrue(new_points == expected_new_points, 'failed')
 
     def test_get_absolute_array(self):
         '''Same test as test_get_absolute_list(), but with numeric arrays.'''
@@ -271,21 +271,21 @@ class geo_referenceTestCase(unittest.TestCase):
         points = num.array([[3.0,34.0], [64.0,6.0]])
         new_points = g.get_absolute(points)
 
-        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
-        self.failUnless(type(new_points) == type(points), 'failed')
+        self.assertTrue(isinstance(new_points, num.ndarray), 'failed')
+        self.assertTrue(type(new_points) == type(points), 'failed')
         msg = 'points=\n%s\nnew_points=\n%s' % (str(points), str(new_points))
         for point, new_point in map(None, points, new_points):
-            self.failUnless(point[0]+x == new_point[0], msg)
-            self.failUnless(point[1]+y == new_point[1], msg)
+            self.assertTrue(point[0]+x == new_point[0], msg)
+            self.assertTrue(point[1]+y == new_point[1], msg)
 
         # test with no supplied offsets
         g = Geo_reference()
         points = num.array([[3.0,34.0], [64.0,6.0]])
         new_points = g.get_absolute(points)
 
-        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
-        self.failUnless(type(new_points) == type(points), 'failed')
-        self.failUnless(num.alltrue(points == new_points), 'failed')
+        self.assertTrue(isinstance(new_points, num.ndarray), 'failed')
+        self.assertTrue(type(new_points) == type(points), 'failed')
+        self.assertTrue(num.alltrue(points == new_points), 'failed')
 
         # test that calling get_absolute twice does the right thing
         # first call
@@ -296,31 +296,31 @@ class geo_referenceTestCase(unittest.TestCase):
         expected_new_points = num.array([[3.0+dx,34.0+dy], [64.0+dx,6.0+dy]])
         new_points = g.get_absolute(points)
 
-        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
-        self.failUnless(type(new_points) == type(points), 'failed')
+        self.assertTrue(isinstance(new_points, num.ndarray), 'failed')
+        self.assertTrue(type(new_points) == type(points), 'failed')
         msg = ('First call of .get_absolute() returned %s\nexpected %s'
                % (str(new_points), str(expected_new_points)))
-        self.failUnless(num.alltrue(expected_new_points == new_points), msg)
+        self.assertTrue(num.alltrue(expected_new_points == new_points), msg)
 
         # and repeat from 'new_points = g.get_absolute(points)' above
         # to see if second call with same input gives same results.
         new_points = g.get_absolute(points)
 
-        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
-        self.failUnless(type(new_points) == type(points), 'failed')
+        self.assertTrue(isinstance(new_points, num.ndarray), 'failed')
+        self.assertTrue(type(new_points) == type(points), 'failed')
         msg = ('Second call of .get_absolute() returned\n%s\nexpected\n%s'
                % (str(new_points), str(expected_new_points)))
-        self.failUnless(num.alltrue(expected_new_points == new_points), msg)
+        self.assertTrue(num.alltrue(expected_new_points == new_points), msg)
 
         # and repeat again to see if *third* call with same input
         # gives same results.
         new_points = g.get_absolute(points)
 
-        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
-        self.failUnless(type(new_points) == type(points), 'failed')
+        self.assertTrue(isinstance(new_points, num.ndarray), 'failed')
+        self.assertTrue(type(new_points) == type(points), 'failed')
         msg = ('Third call of .get_absolute() returned %s\nexpected %s'
                % (str(new_points), str(expected_new_points)))
-        self.failUnless(num.alltrue(expected_new_points == new_points), msg)
+        self.assertTrue(num.alltrue(expected_new_points == new_points), msg)
 
     def test_get_relative_list(self):
         # test with supplied offsets
@@ -331,22 +331,22 @@ class geo_referenceTestCase(unittest.TestCase):
         points = [[3.0,34.0], [64.0,6.0]]
         new_points = g.get_relative(points)
 
-        self.failUnless(isinstance(new_points, list), 'failed')
-        self.failUnless(type(new_points) == type(points), 'failed')
+        self.assertTrue(isinstance(new_points, list), 'failed')
+        self.assertTrue(type(new_points) == type(points), 'failed')
         for point, new_point in map(None, points, new_points):
-            self.failUnless(point[0]-x == new_point[0], 'failed')
-            self.failUnless(point[1]-y == new_point[1], 'failed')
+            self.assertTrue(point[0]-x == new_point[0], 'failed')
+            self.assertTrue(point[1]-y == new_point[1], 'failed')
 
         # test with no supplied offsets
         g = Geo_reference()
         points = [[3.0,34.0], [64.0,6.0]]
         new_points = g.get_relative(points)
 
-        self.failUnless(isinstance(new_points, list), 'failed')
-        self.failUnless(type(new_points) == type(points), 'failed')
+        self.assertTrue(isinstance(new_points, list), 'failed')
+        self.assertTrue(type(new_points) == type(points), 'failed')
         for point, new_point in map(None, points, new_points):
-            self.failUnless(point[0] == new_point[0], 'failed')
-            self.failUnless(point[1] == new_point[1], 'failed')
+            self.assertTrue(point[0] == new_point[0], 'failed')
+            self.assertTrue(point[1] == new_point[1], 'failed')
             
         # test that calling get_absolute twice does the right thing
         # first call
@@ -357,17 +357,17 @@ class geo_referenceTestCase(unittest.TestCase):
         expected_new_points = [[3.0-dx,34.0-dy], [64.0-dx,6.0-dy]]
         new_points = g.get_relative(points)
 
-        self.failUnless(isinstance(new_points, list), 'failed')
-        self.failUnless(type(new_points) == type(points), 'failed')
-        self.failUnless(new_points == expected_new_points, 'failed')
+        self.assertTrue(isinstance(new_points, list), 'failed')
+        self.assertTrue(type(new_points) == type(points), 'failed')
+        self.assertTrue(new_points == expected_new_points, 'failed')
 
         # and repeat from 'new_points = g.get_absolute(points)' above
         # to see if second call with same input gives same results.
         new_points = g.get_relative(points)
 
-        self.failUnless(isinstance(new_points, list), 'failed')
-        self.failUnless(type(new_points) == type(points), 'failed')
-        self.failUnless(new_points == expected_new_points, 'failed')
+        self.assertTrue(isinstance(new_points, list), 'failed')
+        self.assertTrue(type(new_points) == type(points), 'failed')
+        self.assertTrue(new_points == expected_new_points, 'failed')
 
     def test_get_relative_array(self):
         '''Same test as test_get_relative_list(), but with numeric arrays.'''
@@ -380,21 +380,21 @@ class geo_referenceTestCase(unittest.TestCase):
         points = num.array([[3.0,34.0], [64.0,6.0]])
         new_points = g.get_relative(points)
 
-        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
-        self.failUnless(type(new_points) == type(points), 'failed')
+        self.assertTrue(isinstance(new_points, num.ndarray), 'failed')
+        self.assertTrue(type(new_points) == type(points), 'failed')
         msg = 'points=\n%s\nnew_points=\n%s' % (str(points), str(new_points))
         for point, new_point in map(None, points, new_points):
-            self.failUnless(point[0]-x == new_point[0], msg)
-            self.failUnless(point[1]-y == new_point[1], msg)
+            self.assertTrue(point[0]-x == new_point[0], msg)
+            self.assertTrue(point[1]-y == new_point[1], msg)
 
         # test with no supplied offsets
         g = Geo_reference()
         points = num.array([[3.0,34.0], [64.0,6.0]])
         new_points = g.get_relative(points)
 
-        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
-        self.failUnless(type(new_points) == type(points), 'failed')
-        self.failUnless(num.alltrue(points == new_points), 'failed')
+        self.assertTrue(isinstance(new_points, num.ndarray), 'failed')
+        self.assertTrue(type(new_points) == type(points), 'failed')
+        self.assertTrue(num.alltrue(points == new_points), 'failed')
 
         # test that calling get_relative twice does the right thing
         # first call
@@ -405,31 +405,31 @@ class geo_referenceTestCase(unittest.TestCase):
         expected_new_points = num.array([[3.0-dx,34.0-dy], [64.0-dx,6.0-dy]])
         new_points = g.get_relative(points)
 
-        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
-        self.failUnless(type(new_points) == type(points), 'failed')
+        self.assertTrue(isinstance(new_points, num.ndarray), 'failed')
+        self.assertTrue(type(new_points) == type(points), 'failed')
         msg = ('First call of .get_relative() returned %s\nexpected %s'
                % (str(new_points), str(expected_new_points)))
-        self.failUnless(num.alltrue(expected_new_points == new_points), msg)
+        self.assertTrue(num.alltrue(expected_new_points == new_points), msg)
 
         # and repeat from 'new_points = g.get_relative(points)' above
         # to see if second call with same input gives same results.
         new_points = g.get_relative(points)
 
-        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
-        self.failUnless(type(new_points) == type(points), 'failed')
+        self.assertTrue(isinstance(new_points, num.ndarray), 'failed')
+        self.assertTrue(type(new_points) == type(points), 'failed')
         msg = ('Second call of .get_relative() returned\n%s\nexpected\n%s'
                % (str(new_points), str(expected_new_points)))
-        self.failUnless(num.alltrue(expected_new_points == new_points), msg)
+        self.assertTrue(num.alltrue(expected_new_points == new_points), msg)
 
         # and repeat again to see if *third* call with same input
         # gives same results.
         new_points = g.get_relative(points)
 
-        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
-        self.failUnless(type(new_points) == type(points), 'failed')
+        self.assertTrue(isinstance(new_points, num.ndarray), 'failed')
+        self.assertTrue(type(new_points) == type(points), 'failed')
         msg = ('Third call of .get_relative() returned %s\nexpected %s'
                % (str(new_points), str(expected_new_points)))
-        self.failUnless(num.alltrue(expected_new_points == new_points), msg)
+        self.assertTrue(num.alltrue(expected_new_points == new_points), msg)
 
     def test_is_absolute(self):
         
@@ -446,7 +446,7 @@ class geo_referenceTestCase(unittest.TestCase):
         g = Geo_reference(56,1.9,1.9,)
         new_g = Geo_reference(56,1.9,1.9)
      
-        self.failUnless(g == new_g, 'test___cmp__ failed')   
+        self.assertTrue(g == new_g, 'test___cmp__ failed')   
 
 
     def test_reconcile(self):
@@ -492,7 +492,7 @@ class geo_referenceTestCase(unittest.TestCase):
             fd.close()
             os.remove(point_file)
         else:
-            self.failUnless(0 ==1,
+            self.assertTrue(0 ==1,
                         'bad text file did not raise error!')
             os.remove(point_file)
 
@@ -516,7 +516,7 @@ class geo_referenceTestCase(unittest.TestCase):
             fd.close()
             os.remove(file_name)
         else:
-            self.failUnless(0 ==1,
+            self.assertTrue(0 ==1,
                         'bad text file did not raise error!')
 
         # this tests a pass
@@ -533,7 +533,7 @@ class geo_referenceTestCase(unittest.TestCase):
         fd.close()
         os.remove(file_name)
 
-        self.failUnless(g == new_g, 'test_read_write_ASCII failed')
+        self.assertTrue(g == new_g, 'test_read_write_ASCII failed')
         
         # this tests a pass
         g = Geo_reference(56,1.9,1.9)
@@ -549,7 +549,7 @@ class geo_referenceTestCase(unittest.TestCase):
         fd.close()
         os.remove(file_name)
 
-        self.failUnless(g == new_g, 'test_read_write_ASCII failed')
+        self.assertTrue(g == new_g, 'test_read_write_ASCII failed')
         
     def test_good_title(self):      
  # create an .xxx file
@@ -569,7 +569,7 @@ class geo_referenceTestCase(unittest.TestCase):
             fd.close()
             os.remove(point_file)
         else:
-            self.failUnless(0 ==1,
+            self.assertTrue(0 ==1,
                         'bad text file did not raise error!')
             os.remove(point_file)
 
@@ -581,7 +581,7 @@ class geo_referenceTestCase(unittest.TestCase):
         except ShapeError:
             pass
         else:
-            self.failUnless(0 ==1,
+            self.assertTrue(0 ==1,
                         'bad shape did not raise error!')
             os.remove(point_file)
             
@@ -591,7 +591,7 @@ class geo_referenceTestCase(unittest.TestCase):
         except ShapeError:
             pass
         else:
-            self.failUnless(0 ==1,
+            self.assertTrue(0 ==1,
                         'bad shape did not raise error!')
             os.remove(point_file)
 
@@ -608,7 +608,7 @@ class geo_referenceTestCase(unittest.TestCase):
         new_points = abs_points.copy()
         new_points[:,0] -= x0
         new_points[:,1] -= y0
-        self.failUnless(num.alltrue(new_points == points))
+        self.assertTrue(num.alltrue(new_points == points))
 
         # points in num.array()
         points = num.array(((2,3), (3,1), (5,2)), num.float)
@@ -618,7 +618,7 @@ class geo_referenceTestCase(unittest.TestCase):
         new_points = abs_points.copy()
         new_points[:,0] -= x0
         new_points[:,1] -= y0
-        self.failUnless(num.alltrue(new_points == points))
+        self.assertTrue(num.alltrue(new_points == points))
 
     def test_georef_types(self):
         '''Ensure that attributes of a georeference are of correct type.
@@ -634,19 +634,19 @@ class geo_referenceTestCase(unittest.TestCase):
 
         # ensure that basic instance attributes are correct
         g = Geo_reference(56, 1.8, 1.8)
-        self.failUnless(isinstance(g.zone, int),
+        self.assertTrue(isinstance(g.zone, int),
                         "geo_ref .zone should be 'int' type, "
                         "was '%s' type" % type(g.zone))  
-        self.failUnless(isinstance(g.false_easting, int),
+        self.assertTrue(isinstance(g.false_easting, int),
                         "geo_ref .false_easting should be int type, "
                         "was '%s' type" % type(g.false_easting))  
-        self.failUnless(isinstance(g.false_northing, int),
+        self.assertTrue(isinstance(g.false_northing, int),
                         "geo_ref .false_northing should be int type, "
                         "was '%s' type" % type(g.false_northing))
-        self.failUnless(isinstance(g.xllcorner, float),
+        self.assertTrue(isinstance(g.xllcorner, float),
                         "geo_ref .xllcorner should be float type, "
                         "was '%s' type" % type(g.xllcorner))
-        self.failUnless(isinstance(g.yllcorner, float),
+        self.assertTrue(isinstance(g.yllcorner, float),
                         "geo_ref .yllcorner should be float type, "
                         "was '%s' type" % type(g.yllcorner))
 
@@ -662,19 +662,19 @@ class geo_referenceTestCase(unittest.TestCase):
         in_file.close()
         os.remove(file_name)
 
-        self.failUnless(isinstance(new_g.zone, int),
+        self.assertTrue(isinstance(new_g.zone, int),
                         "geo_ref .zone should be 'int' type, "
                         "was '%s' type" % type(new_g.zone))  
-        self.failUnless(isinstance(new_g.false_easting, int),
+        self.assertTrue(isinstance(new_g.false_easting, int),
                         "geo_ref .false_easting should be int type, "
                         "was '%s' type" % type(new_g.false_easting))  
-        self.failUnless(isinstance(new_g.false_northing, int),
+        self.assertTrue(isinstance(new_g.false_northing, int),
                         "geo_ref .false_northing should be int type, "
                         "was '%s' type" % type(new_g.false_northing))
-        self.failUnless(isinstance(new_g.xllcorner, float),
+        self.assertTrue(isinstance(new_g.xllcorner, float),
                         "geo_ref .xllcorner should be float type, "
                         "was '%s' type" % type(new_g.xllcorner))
-        self.failUnless(isinstance(new_g.yllcorner, float),
+        self.assertTrue(isinstance(new_g.yllcorner, float),
                         "geo_ref .yllcorner should be float type, "
                         "was '%s' type" % type(new_g.yllcorner))
         
@@ -690,19 +690,19 @@ class geo_referenceTestCase(unittest.TestCase):
 
         # now provide wrong types but coerceable
         g = Geo_reference(56.0, '1.8', '1.8')
-        self.failUnless(isinstance(g.zone, int),
+        self.assertTrue(isinstance(g.zone, int),
                         "geo_ref .zone should be 'int' type, "
                         "was '%s' type" % type(g.zone))  
-        self.failUnless(isinstance(g.false_easting, int),
+        self.assertTrue(isinstance(g.false_easting, int),
                         "geo_ref .false_easting should be int type, "
                         "was '%s' type" % type(g.false_easting))  
-        self.failUnless(isinstance(g.false_northing, int),
+        self.assertTrue(isinstance(g.false_northing, int),
                         "geo_ref .false_northing should be int type, "
                         "was '%s' type" % type(g.false_northing))
-        self.failUnless(isinstance(g.xllcorner, float),
+        self.assertTrue(isinstance(g.xllcorner, float),
                         "geo_ref .xllcorner should be float type, "
                         "was '%s' type" % type(g.xllcorner))
-        self.failUnless(isinstance(g.yllcorner, float),
+        self.assertTrue(isinstance(g.yllcorner, float),
                         "geo_ref .yllcorner should be float type, "
                         "was '%s' type" % type(g.yllcorner))
 

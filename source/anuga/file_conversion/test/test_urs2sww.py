@@ -380,7 +380,7 @@ class Test_Dem2Pts(Test_Mux):
         except: 
             pass
         else:
-            self.failUnless(0 ==1, 'Bad input did not throw exception error!')
+            self.assertTrue(0 ==1, 'Bad input did not throw exception error!')
 
         self.delete_mux(files)
         
@@ -402,7 +402,7 @@ class Test_Dem2Pts(Test_Mux):
         except: 
             pass
         else:
-            self.failUnless(0 ==1, 'Bad input did not throw exception error!')
+            self.assertTrue(0 ==1, 'Bad input did not throw exception error!')
 
         self.delete_mux(files)
 

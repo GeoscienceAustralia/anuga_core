@@ -98,20 +98,20 @@ friction  \n \
          assert num.allclose(tagged_elements['dsg'][0],0)
          assert num.allclose(tagged_elements['ole nielsen'][0],1)
 
-         self.failUnless( domain.boundary[(1, 0)]  == '1',
+         self.assertTrue( domain.boundary[(1, 0)]  == '1',
                           "test_tags_to_boundaries  failed. Single boundary wasn't added.")
-         self.failUnless( domain.boundary[(1, 2)]  == '2',
+         self.assertTrue( domain.boundary[(1, 2)]  == '2',
                           "test_tags_to_boundaries  failed. Single boundary wasn't added.")
-         self.failUnless( domain.boundary[(0, 1)]  == '3',
+         self.assertTrue( domain.boundary[(0, 1)]  == '3',
                           "test_tags_to_boundaries  failed. Single boundary wasn't added.")
-         self.failUnless( domain.boundary[(0, 0)]  == 'exterior',
+         self.assertTrue( domain.boundary[(0, 0)]  == 'exterior',
                           "test_tags_to_boundaries  failed. Single boundary wasn't added.")
          #print "domain.boundary",domain.boundary
-         self.failUnless( len(domain.boundary)  == 4,
+         self.assertTrue( len(domain.boundary)  == 4,
                           "test_pmesh2Domain Too many boundaries")
          #FIXME change to use get_xllcorner
          #print "d.geo_reference.xllcorner",domain.geo_reference.xllcorner 
-         self.failUnless(domain.geo_reference.xllcorner  == 140.0,
+         self.assertTrue(domain.geo_reference.xllcorner  == 140.0,
                           "bad geo_referece")
     #************
     
@@ -193,20 +193,20 @@ friction  \n \
          assert num.allclose(tagged_elements['dsg'][0],0)
          assert num.allclose(tagged_elements['ole nielsen'][0],1)
 
-         self.failUnless( domain.boundary[(1, 0)]  == '1',
+         self.assertTrue( domain.boundary[(1, 0)]  == '1',
                           "test_tags_to_boundaries  failed. Single boundary wasn't added.")
-         self.failUnless( domain.boundary[(1, 2)]  == '2',
+         self.assertTrue( domain.boundary[(1, 2)]  == '2',
                           "test_tags_to_boundaries  failed. Single boundary wasn't added.")
-         self.failUnless( domain.boundary[(0, 1)]  == '3',
+         self.assertTrue( domain.boundary[(0, 1)]  == '3',
                           "test_tags_to_boundaries  failed. Single boundary wasn't added.")
-         self.failUnless( domain.boundary[(0, 0)]  == 'exterior',
+         self.assertTrue( domain.boundary[(0, 0)]  == 'exterior',
                           "test_tags_to_boundaries  failed. Single boundary wasn't added.")
          #print "domain.boundary",domain.boundary
-         self.failUnless( len(domain.boundary)  == 4,
+         self.assertTrue( len(domain.boundary)  == 4,
                           "test_pmesh2Domain Too many boundaries")
          #FIXME change to use get_xllcorner
          #print "d.geo_reference.xllcorner",domain.geo_reference.xllcorner 
-         self.failUnless(domain.geo_reference.xllcorner  == 140.0,
+         self.assertTrue(domain.geo_reference.xllcorner  == 140.0,
                           "bad geo_referece")
          
 

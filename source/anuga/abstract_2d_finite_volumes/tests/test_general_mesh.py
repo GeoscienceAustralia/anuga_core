@@ -66,7 +66,7 @@ class Test_General_Mesh(unittest.TestCase):
         verts = domain.get_vertex_coordinates(triangle_id=0)    # bac
         msg = ("num.array([b,a,c])=\n%s\nshould be close to 'verts'=\n%s"
                % (str(num.array([b,a,c])), str(verts)))
-        self.failUnless(num.allclose(num.array([b,a,c]), verts), msg)
+        self.assertTrue(num.allclose(num.array([b,a,c]), verts), msg)
 
         verts = domain.get_vertex_coordinates(triangle_id=0)       
         msg = ("num.array([b,a,c])=\n%s\nshould be close to 'verts'=\n%s"
@@ -169,7 +169,7 @@ class Test_General_Mesh(unittest.TestCase):
         verts = domain.get_edge_midpoint_coordinates(triangle_id=0)    # bac
         msg = ("num.array(1/2[a+c,b+c,a+b])=\n%s\nshould be close to 'verts'=\n%s"
                % (str(num.array([0.5*(a+c),0.5*(b+c),0.5*(a+b)])), str(verts)))
-        self.failUnless(num.allclose(num.array([0.5*(a+c),0.5*(b+c),0.5*(a+b)]), verts), msg)
+        self.assertTrue(num.allclose(num.array([0.5*(a+c),0.5*(b+c),0.5*(a+b)]), verts), msg)
 
 
         verts = domain.get_edge_midpoint_coordinates(triangle_id=0, absolute=True)
@@ -443,23 +443,23 @@ class Test_General_Mesh(unittest.TestCase):
         domain = General_mesh(nodes, triangles, geo_reference = geo)
         node = domain.get_node(2)        
         msg = ('\nc=%s\nnode=%s' % (str(c), str(node)))
-        self.failUnless(num.alltrue(c == node), msg)
+        self.assertTrue(num.alltrue(c == node), msg)
 
         # repeat get_node(), see if result same
         node = domain.get_node(2)        
         msg = ('\nc=%s\nnode=%s' % (str(c), str(node)))
-        self.failUnless(num.alltrue(c == node), msg)
+        self.assertTrue(num.alltrue(c == node), msg)
         
         node = domain.get_node(2, absolute=True)     
         msg = ('\nnodes_absolute[2]=%s\nnode=%s'
                % (str(nodes_absolute[2]), str(node)))
-        self.failUnless(num.alltrue(nodes_absolute[2] == node), msg)
+        self.assertTrue(num.alltrue(nodes_absolute[2] == node), msg)
        
         # repeat get_node(2, absolute=True), see if result same
         node = domain.get_node(2, absolute=True)     
         msg = ('\nnodes_absolute[2]=%s\nnode=%s'
                % (str(nodes_absolute[2]), str(node)))
-        self.failUnless(num.alltrue(nodes_absolute[2] == node), msg)
+        self.assertTrue(num.alltrue(nodes_absolute[2] == node), msg)
         
 
     def test_assert_index_in_nodes(self):
@@ -491,20 +491,20 @@ class Test_General_Mesh(unittest.TestCase):
         
         # should fail with negative area
         triangles = num.array([[0,1,2], [1,2,4], [4,2,5], [3,1,4]])
-        self.failUnlessRaises(AssertionError, General_mesh, 
+        self.assertRaises(AssertionError, General_mesh, 
                               nodes, triangles, geo_reference=geo)
 
         
         # max index is 5, use 6, expect assert failure
         triangles = num.array([[1,6,2], [1,2,4], [4,2,5], [3,1,4]])
-        self.failUnlessRaises(AssertionError, General_mesh,
+        self.assertRaises(AssertionError, General_mesh,
                               nodes, triangles, geo_reference=geo)
         
 
         
         # max index is 5, use 10, expect assert failure
         triangles = num.array([[1,10,2], [1,2,4], [4,2,5], [3,1,4]])
-        self.failUnlessRaises(AssertionError, General_mesh,
+        self.assertRaises(AssertionError, General_mesh,
                               nodes, triangles, geo_reference=geo)
 
 ################################################################################

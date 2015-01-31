@@ -193,32 +193,32 @@ class loadASCIITestCase(unittest.TestCase):
         export_mesh_file(fileName, meshDict)
         loadedDict = import_mesh_file(fileName)
 
-        self.failUnless(num.alltrue(num.array(meshDict['vertices']) ==
+        self.assertTrue(num.alltrue(num.array(meshDict['vertices']) ==
                                     num.array(loadedDict['vertices'])),
                         'test_export_mesh_file failed. Test 1')
-        self.failUnless(num.alltrue(num.array(meshDict['triangles']) ==
+        self.assertTrue(num.alltrue(num.array(meshDict['triangles']) ==
                                     num.array(loadedDict['triangles'])),
                         'test_export_mesh_file failed. Test 2')
-        self.failUnless(num.alltrue(num.array(meshDict['segments']) ==
+        self.assertTrue(num.alltrue(num.array(meshDict['segments']) ==
                                     num.array(loadedDict['segments'])),
                         'test_export_mesh_file failed. Test 3')
-        self.failUnless(num.alltrue(num.array(meshDict['triangle_tags']) ==
+        self.assertTrue(num.alltrue(num.array(meshDict['triangle_tags']) ==
                                     num.array(loadedDict['triangle_tags'])),
                         'test_export_mesh_file failed. Test 4')
 
-        self.failUnless(meshDict['vertex_attributes'] ==
+        self.assertTrue(meshDict['vertex_attributes'] ==
                         loadedDict['vertex_attributes'],
                         'test_export_mesh_file failed. Test 5')
-        self.failUnless(num.alltrue(num.array(meshDict['triangle_neighbors']) ==
+        self.assertTrue(num.alltrue(num.array(meshDict['triangle_neighbors']) ==
                                     num.array(loadedDict['triangle_neighbors'])),
                         'test_export_mesh_file failed. Test 6')
-        self.failUnless(num.alltrue(num.array(meshDict['segment_tags']) ==
+        self.assertTrue(num.alltrue(num.array(meshDict['segment_tags']) ==
                                     num.array(loadedDict['segment_tags'])),
                         'test_export_mesh_file failed. Test 7')
-        self.failUnless(num.alltrue(num.array(meshDict['vertex_attribute_titles']) ==
+        self.assertTrue(num.alltrue(num.array(meshDict['vertex_attribute_titles']) ==
                                     num.array(loadedDict['vertex_attribute_titles'])),
                         'test_export_mesh_file failed. Test 8')
-        self.failUnless(num.alltrue(num.array(meshDict['geo_reference']) ==
+        self.assertTrue(num.alltrue(num.array(meshDict['geo_reference']) ==
                                     num.array(loadedDict['geo_reference'])),
                         'test_export_mesh_file failed. Test 9')
 
@@ -232,32 +232,32 @@ class loadASCIITestCase(unittest.TestCase):
         loadedDict = import_mesh_file(fileName)
         
 
-        self.failUnless(num.alltrue(num.array(meshDict['vertices']) ==
+        self.assertTrue(num.alltrue(num.array(meshDict['vertices']) ==
                                     num.array(loadedDict['vertices'])),
                         'test_export_mesh_file failed. Test 1')
-        self.failUnless(num.alltrue(num.array(meshDict['triangles']) ==
+        self.assertTrue(num.alltrue(num.array(meshDict['triangles']) ==
                                     num.array(loadedDict['triangles'])),
                         'test_export_mesh_file failed. Test 2')
-        self.failUnless(num.alltrue(num.array(meshDict['segments']) ==
+        self.assertTrue(num.alltrue(num.array(meshDict['segments']) ==
                                     num.array(loadedDict['segments'])),
                         'test_export_mesh_file failed. Test 3')
-        self.failUnless(num.alltrue(num.array(meshDict['triangle_tags']) ==
+        self.assertTrue(num.alltrue(num.array(meshDict['triangle_tags']) ==
                                     num.array(loadedDict['triangle_tags'])),
                         'test_export_mesh_file failed. Test 4')
 
-        self.failUnless(meshDict['vertex_attributes'] ==
+        self.assertTrue(meshDict['vertex_attributes'] ==
                         loadedDict['vertex_attributes'],
                         'test_export_mesh_file failed. Test 5')
-        self.failUnless(num.alltrue(num.array(meshDict['triangle_neighbors']) ==
+        self.assertTrue(num.alltrue(num.array(meshDict['triangle_neighbors']) ==
                                     num.array(loadedDict['triangle_neighbors'])),
                         'test_export_mesh_file failed. Test 6')
-        self.failUnless(num.alltrue(num.array(meshDict['segment_tags']) ==
+        self.assertTrue(num.alltrue(num.array(meshDict['segment_tags']) ==
                                     num.array(loadedDict['segment_tags'])),
                         'test_export_mesh_file failed. Test 7')
-        self.failUnless(num.alltrue(num.array(meshDict['vertex_attribute_titles']) ==
+        self.assertTrue(num.alltrue(num.array(meshDict['vertex_attribute_titles']) ==
                                     num.array(loadedDict['vertex_attribute_titles'])),
                         'test_export_mesh_file failed. Test 8')
-        self.failUnless(num.alltrue(num.array(meshDict['geo_reference']) ==
+        self.assertTrue(num.alltrue(num.array(meshDict['geo_reference']) ==
                                     num.array(loadedDict['geo_reference'])),
                         'test_export_mesh_file failed. Test 9')
 
@@ -328,7 +328,7 @@ class loadASCIITestCase(unittest.TestCase):
         except IOError:
             pass
         else:
-            self.failUnless(0 == 1, 'imaginary file did not raise error!')
+            self.assertTrue(0 == 1, 'imaginary file did not raise error!')
 
     def test_read_write_tsh_file_bad(self):
         dict = self.tri_dict.copy()
@@ -338,7 +338,7 @@ class loadASCIITestCase(unittest.TestCase):
         except IOError:
             pass
         else:
-            self.failUnless(0 == 1, 'bad tsh file did not raise error!')
+            self.assertTrue(0 == 1, 'bad tsh file did not raise error!')
 
     def test_import_tsh_bad(self):
         fileName = tempfile.mktemp('.tsh')
@@ -437,14 +437,14 @@ showme1.0 0.0 10.0 \n\
         assert num.allclose(num.array(loaded_dict['outline_segments']),
                             num.array(dict['outline_segments']))
 
-        self.failUnless(loaded_dict['outline_segment_tags'] ==
+        self.assertTrue(loaded_dict['outline_segment_tags'] ==
                         dict['outline_segment_tags'],
                         fail_string + ' failed!! Test 4')
 
         assert num.allclose(num.array(loaded_dict['regions']),
                             num.array(dict['regions']))
 
-        self.failUnless(loaded_dict['region_tags'] == dict['region_tags'],
+        self.assertTrue(loaded_dict['region_tags'] == dict['region_tags'],
                         fail_string + ' failed!! Test 5')
 
         assert num.allclose(num.array(loaded_dict['region_max_areas']),
@@ -464,11 +464,11 @@ showme1.0 0.0 10.0 \n\
         for ob, ldob in map(None, dict['triangle_tags'],
                             loaded_dict['triangle_tags']):
             msg = ('ob=\n%s\nshould be same as ldob=\n%s' % (str(ob), str(ldob)))
-            self.failUnless(ob == ldob,
+            self.assertTrue(ob == ldob,
                             fail_string + ' failed\n' + msg)
 
         # A bit hacky
-        self.failUnless(num.alltrue(loaded_dict['vertex_attributes'] ==
+        self.assertTrue(num.alltrue(loaded_dict['vertex_attributes'] ==
                                     dict['vertex_attributes']) or
                                     (loaded_dict['vertex_attributes'] ==
                                     None and
@@ -482,13 +482,13 @@ showme1.0 0.0 10.0 \n\
                               loaded_dict['segment_tags']):
             msg = ('seg=\n"%s"\nshould be same as ldseg=\n"%s"'
                    % (str(seg), str(ldseg)))
-            self.failUnless(seg == ldseg, fail_string + ' failed\n' + msg)
+            self.assertTrue(seg == ldseg, fail_string + ' failed\n' + msg)
 
         try:
             assert num.alltrue(num.array(dict['vertex_attribute_titles'])==
                                 num.array(loaded_dict['vertex_attribute_titles']))
         except IndexError:
-            self.failUnless(num.alltrue(num.array(loaded_dict['vertex_attribute_titles'])
+            self.assertTrue(num.alltrue(num.array(loaded_dict['vertex_attribute_titles'])
                             == num.array(dict['vertex_attribute_titles'])),
                             fail_string + ' failed!! Test 8')
 
@@ -497,13 +497,13 @@ showme1.0 0.0 10.0 \n\
                    "should be same as dict['geo_reference']=%s"
                   % (str(loaded_dict['geo_reference']),
                      str(dict['geo_reference'])))
-            self.failUnless(loaded_dict['geo_reference'] ==
+            self.assertTrue(loaded_dict['geo_reference'] ==
                             dict['geo_reference'],
                             fail_string + ' failed\n' + msg)
         except KeyError:        #??# 2 lines below??
             msg = ("'dict' has no key 'geo_reference' "
                    "but loaded_dict['geo_reference'] isn't None")
-            self.failUnless(not dict.has_key('geo_reference') and
+            self.assertTrue(not dict.has_key('geo_reference') and
                                 loaded_dict['geo_reference'] == None,
                             fail_string + ' failed\n' + msg)
 

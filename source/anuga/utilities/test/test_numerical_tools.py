@@ -124,9 +124,9 @@ class Test_Numerical_Tools(unittest.TestCase):
 #            assert array_data_points.shape[1] == 2
 
         # strings input should raise exception
-        self.failUnlessRaises(Exception, ensure_numeric(['abc',]))
-        self.failUnlessRaises(Exception, ensure_numeric(('abc',)))
-        self.failUnlessRaises(Exception, ensure_numeric(num.array(('abc',))))
+        self.assertRaises(Exception, ensure_numeric(['abc',]))
+        self.assertRaises(Exception, ensure_numeric(('abc',)))
+        self.assertRaises(Exception, ensure_numeric(num.array(('abc',))))
 
     def NO_test_ensure_numeric_char(self):
         '''numpy can't handle this'''
@@ -481,11 +481,11 @@ class Test_Numerical_Tools(unittest.TestCase):
         points_new_id = id(points_new)
 
         msg = 'ensure_numeric() should return a copy of a list'
-        self.failUnless(points_new_id != points_id, msg)
+        self.assertTrue(points_new_id != points_id, msg)
 
         # should never change it's input parameter
         msg = "ensure_numeric() changed it's input parameter"
-        self.failUnless(points_id == id(points), msg)
+        self.assertTrue(points_id == id(points), msg)
 
         #####
         # Make 'points' a _tuple_ of coordinates.
@@ -498,11 +498,11 @@ class Test_Numerical_Tools(unittest.TestCase):
         points_new_id = id(points_new)
 
         msg = 'ensure_numeric() should return a copy of a list'
-        self.failUnless(points_new_id != points_id, msg)
+        self.assertTrue(points_new_id != points_id, msg)
 
         # should never change it's input parameter
         msg = "ensure_numeric() changed it's input parameter"
-        self.failUnless(points_id == id(points), msg)
+        self.assertTrue(points_id == id(points), msg)
 
         #####
         # Make 'points' a numeric array of float coordinates.
@@ -515,11 +515,11 @@ class Test_Numerical_Tools(unittest.TestCase):
         points_new_id = id(points_new)
 
         msg = 'ensure_numeric() should return the original input'
-        self.failUnless(points_new_id == points_id, msg)
+        self.assertTrue(points_new_id == points_id, msg)
 
         # should never change it's input parameter
         msg = "ensure_numeric() changed it's input parameter"
-        self.failUnless(points_id == id(points), msg)
+        self.assertTrue(points_id == id(points), msg)
 
         #####
         # Make 'points' a numeric array of int coordinates.
@@ -532,11 +532,11 @@ class Test_Numerical_Tools(unittest.TestCase):
         points_new_id = id(points_new)
 
         msg = 'ensure_numeric() should return a copy of the input'
-        self.failUnless(points_new_id != points_id, msg)
+        self.assertTrue(points_new_id != points_id, msg)
 
         # should never change it's input parameter
         msg = "ensure_numeric() changed it's input parameter"
-        self.failUnless(points_id == id(points), msg)
+        self.assertTrue(points_id == id(points), msg)
 
         #####
         # Make 'points' a numeric array of int coordinates.
@@ -549,11 +549,11 @@ class Test_Numerical_Tools(unittest.TestCase):
         points_new_id = id(points_new)
 
         msg = 'ensure_numeric() should return the original input'
-        self.failUnless(points_new_id == points_id, msg)
+        self.assertTrue(points_new_id == points_id, msg)
 
         # should never change it's input parameter
         msg = "ensure_numeric() changed it's input parameter"
-        self.failUnless(points_id == id(points), msg)
+        self.assertTrue(points_id == id(points), msg)
 
         #####
         # Make 'points' a numeric array of float32 coordinates.
@@ -566,11 +566,11 @@ class Test_Numerical_Tools(unittest.TestCase):
         points_new_id = id(points_new)
 
         msg = 'ensure_numeric() should return the original input'
-        self.failUnless(points_new_id == points_id, msg)
+        self.assertTrue(points_new_id == points_id, msg)
 
         # should never change it's input parameter
         msg = "ensure_numeric() changed it's input parameter"
-        self.failUnless(points_id == id(points), msg)
+        self.assertTrue(points_id == id(points), msg)
 
         #####
         # Make 'points' a numeric array of float32 coordinates.
@@ -583,11 +583,11 @@ class Test_Numerical_Tools(unittest.TestCase):
         points_new_id = id(points_new)
 
         msg = 'ensure_numeric() should return a copy of the input'
-        self.failUnless(points_new_id != points_id, msg)
+        self.assertTrue(points_new_id != points_id, msg)
 
         # should never change it's input parameter
         msg = "ensure_numeric() changed it's input parameter"
-        self.failUnless(points_id == id(points), msg)
+        self.assertTrue(points_id == id(points), msg)
 
         #####
         # Make 'points' a numeric array of float coordinates.
@@ -600,13 +600,13 @@ class Test_Numerical_Tools(unittest.TestCase):
         points_new_id = id(points_new)
 
         msg = 'ensure_numeric() should return the original input'
-        self.failUnless(points_new_id == points_id, msg)
+        self.assertTrue(points_new_id == points_id, msg)
         #msg = 'ensure_numeric() should return a copy of the input'
-        #self.failUnless(points_new_id != points_id, msg)
+        #self.assertTrue(points_new_id != points_id, msg)
 
         # should never change it's input parameter
         msg = "ensure_numeric() changed it's input parameter"
-        self.failUnless(points_id == id(points), msg)
+        self.assertTrue(points_id == id(points), msg)
 
 ################################################################################
 

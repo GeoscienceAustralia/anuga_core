@@ -5,6 +5,8 @@
     extra boundary classes to do with this specific domain.
 """
 
-pass
+from numpy.testing import Tester
+test = Tester().test
+
 
  

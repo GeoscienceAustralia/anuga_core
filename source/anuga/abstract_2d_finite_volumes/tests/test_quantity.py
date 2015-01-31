@@ -1260,7 +1260,7 @@ class Test_Quantity(unittest.TestCase):
         os.remove(txt_file)
         os.remove(pts_file)
         
-    def verbose_test_set_values_from_UTM_pts(self):
+    def test_set_values_from_UTM_pts_verbose(self):
         quantity = Quantity(self.mesh_onslow)
 
         #Get (enough) datapoints
@@ -1317,7 +1317,7 @@ class Test_Quantity(unittest.TestCase):
 
         #Check that values can be set from file
         quantity.set_values_from_file(pts_file, att, 0,
-                                      'vertices', None, verbose = True,
+                                      'vertices', None, verbose = False,
                                       max_read_lines=2)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
         #print "quantity.vertex_values.flat", quantity.vertex_values.flat

@@ -22,9 +22,9 @@ class Test_Exposure(unittest.TestCase):
         exposure = Exposure(file_name, title_check_list = ['speed','sound'])
         exposure.get_column("sound")
        
-        self.failUnless(exposure._attribute_dic['sound'][2]==' bang',
+        self.assertTrue(exposure._attribute_dic['sound'][2]==' bang',
                         'FAILED!')
-        self.failUnless(exposure._attribute_dic['speed'][2]==' 40.0',
+        self.assertTrue(exposure._attribute_dic['speed'][2]==' 40.0',
                         'FAILED!')
         
         os.remove(file_name)
@@ -42,9 +42,9 @@ class Test_Exposure(unittest.TestCase):
         exposure = Exposure(file_name)
         exposure.get_column("sound")
        
-        self.failUnless(exposure._attribute_dic['sound'][2]==' bang',
+        self.assertTrue(exposure._attribute_dic['sound'][2]==' bang',
                         'FAILED!')
-        self.failUnless(exposure._attribute_dic['speed'][2]==' 40.0',
+        self.assertTrue(exposure._attribute_dic['speed'][2]==' 40.0',
                         'FAILED!')
         
         os.remove(file_name)
@@ -69,7 +69,7 @@ class Test_Exposure(unittest.TestCase):
         except IOError:
             pass
         else:
-            self.failUnless(0 ==1,  'Assertion not thrown error!')
+            self.assertTrue(0 ==1,  'Assertion not thrown error!')
             
         if not sys.platform == 'win32':
             os.remove(file_name)
@@ -87,10 +87,10 @@ class Test_Exposure(unittest.TestCase):
         e2 = Exposure(file_name)
         os.remove(file_name)
 
-        self.failUnless(cmp(e1,e2)==0,
+        self.assertTrue(cmp(e1,e2)==0,
                         'FAILED!')
         
-        self.failUnless(cmp(e1,"hey")==1,
+        self.assertTrue(cmp(e1,"hey")==1,
                         'FAILED!')
         
         file_name = tempfile.mktemp(".csv")
@@ -105,7 +105,7 @@ class Test_Exposure(unittest.TestCase):
         e3 = Exposure(file_name)
         os.remove(file_name)
 
-        self.failUnless(cmp(e3,e2)==0,
+        self.assertTrue(cmp(e3,e2)==0,
                         'FAILED!')
         
         file_name = tempfile.mktemp(".csv")
@@ -120,7 +120,7 @@ class Test_Exposure(unittest.TestCase):
         os.remove(file_name)
         #print "e4",e4._attribute_dic 
         #print "e2",e2._attribute_dic 
-        self.failUnless(cmp(e4,e2)<>0,
+        self.assertTrue(cmp(e4,e2)<>0,
                         'FAILED!')
         
         file_name = tempfile.mktemp(".csv")
@@ -134,7 +134,7 @@ class Test_Exposure(unittest.TestCase):
         e5 = Exposure(file_name)
         os.remove(file_name)
 
-        self.failUnless(cmp(e3,e5)<>0,
+        self.assertTrue(cmp(e3,e5)<>0,
                         'FAILED!')
         
     def test_exposure_csv_saving(self):
@@ -153,7 +153,7 @@ class Test_Exposure(unittest.TestCase):
         e1.save(file_name = file_name2)
         e2 = Exposure(file_name2)
        
-        self.failUnless(cmp(e1,e2)==0,
+        self.assertTrue(cmp(e1,e2)==0,
                         'FAILED!')
         os.remove(file_name)
         os.remove(file_name2)
@@ -175,7 +175,7 @@ class Test_Exposure(unittest.TestCase):
         assert num.allclose(points[0][1], 6180432.601)
         assert num.allclose(points[1][0],  222908.705)
         assert num.allclose(points[1][1], 6233785.284)
-        self.failUnless(gsd.get_geo_reference().get_zone() == 56,
+        self.assertTrue(gsd.get_geo_reference().get_zone() == 56,
                         'Bad zone error!')
 
         os.remove(file_name)
@@ -194,14 +194,14 @@ class Test_Exposure(unittest.TestCase):
         new_values = ["chicken","soup"]
         e1.set_column(new_title, new_values)
         returned_values = e1.get_column(new_title)
-        self.failUnless(returned_values == new_values,
+        self.assertTrue(returned_values == new_values,
                         ' Error!')
         
         file_name2 = tempfile.mktemp(".csv")
         e1.save(file_name = file_name2)
         e2 = Exposure(file_name2)
         returned_values = e2.get_column(new_title)
-        self.failUnless(returned_values == new_values,
+        self.assertTrue(returned_values == new_values,
                         ' Error!')       
         os.remove(file_name2)
 
@@ -222,11 +222,11 @@ class Test_Exposure(unittest.TestCase):
         except TitleValueError:
             pass
         else:
-            self.failUnless(0 ==1,  'Error not thrown error!')
+            self.assertTrue(0 ==1,  'Error not thrown error!')
             
         e1.set_column(new_title, new_values, overwrite=True)
         returned_values = e1.get_column(new_title)
-        self.failUnless(returned_values == new_values,
+        self.assertTrue(returned_values == new_values,
                         ' Error!')       
         
         new2_title = "short list"
@@ -236,7 +236,7 @@ class Test_Exposure(unittest.TestCase):
         except DataMissingValuesError:
             pass
         else:
-            self.failUnless(0 ==1,  'Error not thrown error!')
+            self.assertTrue(0 ==1,  'Error not thrown error!')
             
         new2_title = "long list"
         new2_values = [12.5, 7,8]
@@ -245,14 +245,14 @@ class Test_Exposure(unittest.TestCase):
         except DataMissingValuesError:
             pass
         else:
-            self.failUnless(0 ==1,  'Error not thrown error!')
+            self.assertTrue(0 ==1,  'Error not thrown error!')
         file_name2 = tempfile.mktemp(".csv")
         e1.save(file_name = file_name2)
         e2 = Exposure(file_name2)
         returned_values = e2.get_column(new_title)
         for returned, new in map(None, returned_values, new_values):
-            self.failUnless(returned == str(new), ' Error!')
-        #self.failUnless(returned_values == new_values, ' Error!')       
+            self.assertTrue(returned == str(new), ' Error!')
+        #self.assertTrue(returned_values == new_values, ' Error!')       
         os.remove(file_name2)
         
         try:
@@ -260,7 +260,7 @@ class Test_Exposure(unittest.TestCase):
         except TitleValueError:
             pass
         else:
-            self.failUnless(0 ==1,  'Error not thrown error!')
+            self.assertTrue(0 ==1,  'Error not thrown error!')
             
     def test_exposure_csv_loading_x_y(self):
         
@@ -283,7 +283,7 @@ class Test_Exposure(unittest.TestCase):
         assert num.allclose(points[1][1], 8)
         assert num.allclose(points[2][0], 114.5)
         assert num.allclose(points[2][1], 9)
-        self.failUnless(gsd.get_geo_reference().get_zone() == -1,
+        self.assertTrue(gsd.get_geo_reference().get_zone() == -1,
                         'Bad zone error!')
 
         os.remove(file_name)
@@ -310,7 +310,7 @@ class Test_Exposure(unittest.TestCase):
         assert num.allclose(points[1][1], 1.0)
         assert num.allclose(points[2][0], 4.5)
         assert num.allclose(points[2][1], 1.5)
-        self.failUnless(gsd.get_geo_reference().get_zone() == -1,
+        self.assertTrue(gsd.get_geo_reference().get_zone() == -1,
                         'Bad zone error!')
 
         os.remove(csv_file)

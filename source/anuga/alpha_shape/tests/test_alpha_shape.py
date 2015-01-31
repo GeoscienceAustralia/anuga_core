@@ -45,7 +45,7 @@ class TestCase(unittest.TestCase):
         except PointError:
             pass
         else:
-            self.failUnless(0==1, \
+            self.assertTrue(0==1, \
                         'point list with 2 points did not raise an error!')
 
 
@@ -162,7 +162,7 @@ class TestCase(unittest.TestCase):
         except PointError:
             pass
         else:
-            self.failUnless(0==1,
+            self.assertTrue(0==1,
                         'point list with 2 points did not raise an error!')
 
 ## FIXME?  Running from the Comand line isn't in vogue these days
@@ -196,7 +196,7 @@ class TestCase(unittest.TestCase):
         lFile = file.read().split('\n')
         file.close()
         os.remove(output_file_name)
-        self.failUnless(lFile[1] == "5,0" and
+        self.assertTrue(lFile[1] == "5,0" and
                         lFile[2] == "0,1" and 
                         lFile[3] == "4,5" and 
                         lFile[4] == "2,3" and 

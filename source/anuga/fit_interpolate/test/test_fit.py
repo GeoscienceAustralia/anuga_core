@@ -902,7 +902,7 @@ class Test_Fit(unittest.TestCase):
               [5.0,10.0]]
         assert num.allclose(mesh_dic['vertex_attributes'],ans)
 
-        self.failUnless(mesh_dic['vertex_attribute_titles']  ==
+        self.assertTrue(mesh_dic['vertex_attribute_titles']  ==
                         ['elevation','stage'],
                         'test_fit_to_mesh_file failed')
         domain = Domain(mesh_output_file, use_cache=True, verbose=False)
@@ -961,7 +961,7 @@ class Test_Fit(unittest.TestCase):
               [5.0,10.0]]
         assert num.allclose(mesh_dic['vertex_attributes'],ans)
 
-        self.failUnless(mesh_dic['vertex_attribute_titles']  ==
+        self.assertTrue(mesh_dic['vertex_attribute_titles']  ==
                         ['elevation','stage'],
                         'test_fit_to_mesh_file failed')
 
@@ -1015,7 +1015,7 @@ class Test_Fit(unittest.TestCase):
                              [1.0, 2.0,5.0, 10.0],
                              [1.0, 2.0,5.0,10.0]])
 
-        self.failUnless(mesh_dic['vertex_attribute_titles']  ==
+        self.assertTrue(mesh_dic['vertex_attribute_titles']  ==
                         ['density', 'temp','elevation','stage'],
                         'test_fit_to_mesh_file failed')
 
@@ -1058,7 +1058,7 @@ class Test_Fit(unittest.TestCase):
         except SyntaxError:
             pass
         else:
-            #self.failUnless(0 ==1,  'Bad file did not raise error!')
+            #self.assertTrue(0 ==1,  'Bad file did not raise error!')
             raise Exception('Bad file did not raise error!')
             
         #clean up

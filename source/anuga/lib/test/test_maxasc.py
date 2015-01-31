@@ -94,7 +94,7 @@ class Test_MaxAsc(unittest.TestCase):
         test_path = aust.get_pathname_from_package('anuga.lib.test')
         in_file = os.path.join(test_path, 'test1.asc')
         expected_file = os.path.join(test_path, 'test1_bad_num_lines.asc')
-        self.failUnlessRaises(RuntimeError, MaxAsc,
+        self.assertRaises(RuntimeError, MaxAsc,
                               'test.out.asc',
                               [in_file, expected_file])
 
@@ -102,7 +102,7 @@ class Test_MaxAsc(unittest.TestCase):
         test_path = aust.get_pathname_from_package('anuga.lib.test')
         in_file = os.path.join(test_path, 'test1.asc')
         expected_file = os.path.join(test_path, 'test1_bad_num_lines.asc')
-        self.failUnlessRaises(RuntimeError, MaxAsc,
+        self.assertRaises(RuntimeError, MaxAsc,
                               'test.out.asc',
                               [in_file, expected_file])
 
@@ -110,7 +110,7 @@ class Test_MaxAsc(unittest.TestCase):
         test_path = aust.get_pathname_from_package('anuga.lib.test')
         in_file = os.path.join(test_path, 'test1.asc')
         expected_file = os.path.join(test_path, 'test1_wrong_num_columns.asc')
-        self.failUnlessRaises(RuntimeError, MaxAsc,
+        self.assertRaises(RuntimeError, MaxAsc,
                               'test.out.asc',
                               [in_file, expected_file])
 
@@ -118,14 +118,14 @@ class Test_MaxAsc(unittest.TestCase):
         test_path = aust.get_pathname_from_package('anuga.lib.test')
         in_file = os.path.join(test_path, 'test1.asc')
         MaxAsc('test1.out.asc', [in_file])
-        self.failUnless(FilesEqual('test1.out.asc', in_file))
+        self.assertTrue(FilesEqual('test1.out.asc', in_file))
 
 
     def test_same_input_equals_outputN(self):
         test_path = aust.get_pathname_from_package('anuga.lib.test')
         in_file = os.path.join(test_path, 'test1.asc')
         MaxAsc('test1.out.asc', [in_file] * 30)
-        self.failUnless(FilesEqual('test1.out.asc', in_file))
+        self.assertTrue(FilesEqual('test1.out.asc', in_file))
 
     def test_different_input2(self):
         test_path = aust.get_pathname_from_package('anuga.lib.test')
@@ -133,7 +133,7 @@ class Test_MaxAsc(unittest.TestCase):
         in_file2 = os.path.join(test_path, 'test2.asc')
         expected_file = os.path.join(test_path, 'test2.expected.asc')
         MaxAsc('test2.out.asc', [in_file, in_file2])
-        self.failUnless(FilesEqual('test2.out.asc', expected_file))
+        self.assertTrue(FilesEqual('test2.out.asc', expected_file))
 
     def test_different_input3(self):
         test_path = aust.get_pathname_from_package('anuga.lib.test')
@@ -142,7 +142,7 @@ class Test_MaxAsc(unittest.TestCase):
         in_file3 = os.path.join(test_path, 'test3.asc')
         expected_file = os.path.join(test_path, 'test3.expected.asc')
         MaxAsc('test3.out.asc', [in_file, in_file2, in_file3])
-        self.failUnless(FilesEqual('test3.out.asc', expected_file))
+        self.assertTrue(FilesEqual('test3.out.asc', expected_file))
 
 if __name__ == '__main__':
     suite = unittest.makeSuite(Test_MaxAsc,'test')

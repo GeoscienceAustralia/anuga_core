@@ -117,7 +117,7 @@ class Test_Quad(unittest.TestCase):
         except RuntimeError:
             pass
         else:
-            self.failUnless(0 ==1,  'many verts at the same position no  \
+            self.assertTrue(0 ==1,  'many verts at the same position no  \
             longer causes as error')
     
     def test_retrieve_triangles(self):

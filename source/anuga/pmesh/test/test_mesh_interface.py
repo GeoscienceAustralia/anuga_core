@@ -52,14 +52,14 @@ class TestCase(unittest.TestCase):
                                      mesh_geo_reference=mesh_geo)
 
         # Test the mesh instance
-        self.failUnless(len(m.regions)==3, 'FAILED!')
+        self.assertTrue(len(m.regions)==3, 'FAILED!')
         segs = m.getUserSegments()
-        self.failUnless(len(segs)==12, 'FAILED!')
-        self.failUnless(len(m.userVertices)==12, 'FAILED!')
-        self.failUnless(segs[0].tag=='walls', 'FAILED!')
-        self.failUnless(segs[1].tag=='walls', 'FAILED!')
-        self.failUnless(segs[2].tag=='bom', 'FAILED!')
-        self.failUnless(segs[3].tag=='bom', 'FAILED!')
+        self.assertTrue(len(segs)==12, 'FAILED!')
+        self.assertTrue(len(m.userVertices)==12, 'FAILED!')
+        self.assertTrue(segs[0].tag=='walls', 'FAILED!')
+        self.assertTrue(segs[1].tag=='walls', 'FAILED!')
+        self.assertTrue(segs[2].tag=='bom', 'FAILED!')
+        self.assertTrue(segs[3].tag=='bom', 'FAILED!')
 
         # Assuming the order of the region points is known.
         # (This isn't true, if you consider create_mesh_from_regions
@@ -71,7 +71,7 @@ class TestCase(unittest.TestCase):
         msg = ('Expected point (%s,%s) to be inside polygon %s'
                % (str(poly_point.x+x), str(poly_point.y+y),
                   str(polygon_absolute)))
-        self.failUnless(is_inside_polygon([poly_point.x+x, poly_point.y+y],
+        self.assertTrue(is_inside_polygon([poly_point.x+x, poly_point.y+y],
                                           polygon_absolute, closed=False),
                         msg)
 
@@ -82,7 +82,7 @@ class TestCase(unittest.TestCase):
 
         # poly_point values are relative to the mesh geo-ref
         # make them absolute
-        self.failUnless(is_inside_polygon([poly_point.x+x, poly_point.y+y],
+        self.assertTrue(is_inside_polygon([poly_point.x+x, poly_point.y+y],
                                           inner1_polygon_absolute,
                                           closed=False),
                         'FAILED!')
@@ -94,7 +94,7 @@ class TestCase(unittest.TestCase):
 
         # poly_point values are relative to the mesh geo-ref
         # make them absolute
-        self.failUnless(is_inside_polygon([poly_point.x+x, poly_point.y+y],
+        self.assertTrue(is_inside_polygon([poly_point.x+x, poly_point.y+y],
                                           inner2_polygon_absolute,
                                           closed=False),
                         'FAILED!')
@@ -152,14 +152,14 @@ class TestCase(unittest.TestCase):
 
 
         # Test the mesh instance
-        self.failUnless(len(m.regions)==3, 'FAILED!')
+        self.assertTrue(len(m.regions)==3, 'FAILED!')
         segs = m.getUserSegments()
-        self.failUnless(len(segs)==12, 'FAILED!')
-        self.failUnless(len(m.userVertices)==12, 'FAILED!')
-        self.failUnless(segs[0].tag=='walls', 'FAILED!')
-        self.failUnless(segs[1].tag=='walls', 'FAILED!')
-        self.failUnless(segs[2].tag=='bom', 'FAILED!')
-        self.failUnless(segs[3].tag=='bom', 'FAILED!')
+        self.assertTrue(len(segs)==12, 'FAILED!')
+        self.assertTrue(len(m.userVertices)==12, 'FAILED!')
+        self.assertTrue(segs[0].tag=='walls', 'FAILED!')
+        self.assertTrue(segs[1].tag=='walls', 'FAILED!')
+        self.assertTrue(segs[2].tag=='bom', 'FAILED!')
+        self.assertTrue(segs[3].tag=='bom', 'FAILED!')
 
         # Assuming the order of the region points is known.
         # (This isn't true, if you consider create_mesh_from_regions
@@ -168,7 +168,7 @@ class TestCase(unittest.TestCase):
 
         # poly_point values are relative to the mesh geo-ref
         # make them absolute
-        self.failUnless(is_inside_polygon([poly_point.x+x, poly_point.y+y],
+        self.assertTrue(is_inside_polygon([poly_point.x+x, poly_point.y+y],
                                           polygon_absolute,
                                           closed=False),
                         'FAILED!')
@@ -180,7 +180,7 @@ class TestCase(unittest.TestCase):
 
         # poly_point values are relative to the mesh geo-ref
         # make them absolute
-        self.failUnless(is_inside_polygon([poly_point.x+x, poly_point.y+y],
+        self.assertTrue(is_inside_polygon([poly_point.x+x, poly_point.y+y],
                                           inner1_polygon_absolute,
                                           closed=False),
                         'FAILED!')
@@ -192,7 +192,7 @@ class TestCase(unittest.TestCase):
 
         # poly_point values are relative to the mesh geo-ref
         # make them absolute
-        self.failUnless(is_inside_polygon([poly_point.x+x, poly_point.y+y],
+        self.assertTrue(is_inside_polygon([poly_point.x+x, poly_point.y+y],
                                           inner2_polygon_absolute,
                                           closed=False),
                         'FAILED!')
@@ -237,17 +237,17 @@ class TestCase(unittest.TestCase):
                                      poly_geo_reference=geo_ref_poly)
 
         # Test the mesh instance
-        self.failUnless(len(m.regions)==3, 'FAILED!')
+        self.assertTrue(len(m.regions)==3, 'FAILED!')
         segs = m.getUserSegments()
-        self.failUnless(len(segs)==12, 'FAILED!')
-        self.failUnless(len(m.userVertices)==12, 'FAILED!')
-        self.failUnless(segs[0].tag=='walls', 'FAILED!')
-        self.failUnless(segs[1].tag=='walls', 'FAILED!')
-        self.failUnless(segs[2].tag=='bom', 'FAILED!')
-        self.failUnless(segs[3].tag=='bom', 'FAILED!')
-        self.failUnless(m.geo_reference.get_zone()==zone, 'FAILED!')
-        self.failUnless(m.geo_reference.get_xllcorner()==min_x, 'FAILED!')
-        self.failUnless(m.geo_reference.get_yllcorner()==min_y, 'FAILED!')		
+        self.assertTrue(len(segs)==12, 'FAILED!')
+        self.assertTrue(len(m.userVertices)==12, 'FAILED!')
+        self.assertTrue(segs[0].tag=='walls', 'FAILED!')
+        self.assertTrue(segs[1].tag=='walls', 'FAILED!')
+        self.assertTrue(segs[2].tag=='bom', 'FAILED!')
+        self.assertTrue(segs[3].tag=='bom', 'FAILED!')
+        self.assertTrue(m.geo_reference.get_zone()==zone, 'FAILED!')
+        self.assertTrue(m.geo_reference.get_xllcorner()==min_x, 'FAILED!')
+        self.assertTrue(m.geo_reference.get_yllcorner()==min_y, 'FAILED!')		
 		
     def test_create_mesh_from_regions3(self):
         # These are the absolute values
@@ -277,17 +277,17 @@ class TestCase(unittest.TestCase):
                                      interior_regions=interior_regions)
 
         # Test the mesh instance
-        self.failUnless(len(m.regions) == 3, 'FAILED!')
+        self.assertTrue(len(m.regions) == 3, 'FAILED!')
         segs = m.getUserSegments()
-        self.failUnless(len(segs) == 12, 'FAILED!')
-        self.failUnless(len(m.userVertices) == 12, 'FAILED!')
-        self.failUnless(segs[0].tag == 'walls', 'FAILED!')
-        self.failUnless(segs[1].tag == 'walls', 'FAILED!')
-        self.failUnless(segs[2].tag == 'bom', 'FAILED!')
-        self.failUnless(segs[3].tag == 'bom', 'FAILED!')
-        self.failUnless(m.geo_reference.get_zone() == DEFAULT_ZONE, 'FAILED!')
-        self.failUnless(m.geo_reference.get_xllcorner() == min_x, 'FAILED!')
-        self.failUnless(m.geo_reference.get_yllcorner() == min_y, 'FAILED!')
+        self.assertTrue(len(segs) == 12, 'FAILED!')
+        self.assertTrue(len(m.userVertices) == 12, 'FAILED!')
+        self.assertTrue(segs[0].tag == 'walls', 'FAILED!')
+        self.assertTrue(segs[1].tag == 'walls', 'FAILED!')
+        self.assertTrue(segs[2].tag == 'bom', 'FAILED!')
+        self.assertTrue(segs[3].tag == 'bom', 'FAILED!')
+        self.assertTrue(m.geo_reference.get_zone() == DEFAULT_ZONE, 'FAILED!')
+        self.assertTrue(m.geo_reference.get_xllcorner() == min_x, 'FAILED!')
+        self.assertTrue(m.geo_reference.get_yllcorner() == min_y, 'FAILED!')
 
     def test_create_mesh_from_regions4(self):
         file_name = tempfile.mktemp('.tsh')
@@ -317,9 +317,9 @@ class TestCase(unittest.TestCase):
 
         m = importMeshFromFile(file_name)
 
-        self.failUnless(len(m.getTriangulation()) <= 900,
+        self.assertTrue(len(m.getTriangulation()) <= 900,
                         'Test mesh interface failed!')
-        self.failUnless(len(m.getTriangulation()) >= 200,
+        self.assertTrue(len(m.getTriangulation()) >= 200,
                         'Test mesh interface failed!')
 
         create_mesh_from_regions(polygon_outer,
@@ -330,7 +330,7 @@ class TestCase(unittest.TestCase):
 
         m = importMeshFromFile(file_name)
 
-        self.failUnless(len(m.getTriangulation()) <= 100,
+        self.assertTrue(len(m.getTriangulation()) <= 100,
                         'Test mesh interface failed!')
 
         os.remove(file_name)
@@ -363,9 +363,9 @@ class TestCase(unittest.TestCase):
                                  verbose=False)
 
         m = importMeshFromFile(file_name)
-        self.failUnless(len(m.getTriangulation()) <= 2000,
+        self.assertTrue(len(m.getTriangulation()) <= 2000,
                         'Test mesh interface failed!')
-        self.failUnless(len(m.getTriangulation()) >= 900,
+        self.assertTrue(len(m.getTriangulation()) >= 900,
                         'Test mesh interface failed!')
 
         os.remove(file_name)
@@ -405,9 +405,9 @@ class TestCase(unittest.TestCase):
                                  verbose=False)
 
         m = importMeshFromFile(file_name)
-        self.failUnless(len(m.getTriangulation()) <= 2000,
+        self.assertTrue(len(m.getTriangulation()) <= 2000,
                         'Test mesh interface failed!')
-        self.failUnless(len(m.getTriangulation()) >= 900,
+        self.assertTrue(len(m.getTriangulation()) >= 900,
                         'Test mesh interface failed!')
 
         os.remove(file_name)
@@ -450,9 +450,9 @@ class TestCase(unittest.TestCase):
                                  verbose=False)
 
         m = importMeshFromFile(file_name)
-        self.failUnless(len(m.getTriangulation()) <= 3000,
+        self.assertTrue(len(m.getTriangulation()) <= 3000,
                         'Test mesh interface failed!')
-        self.failUnless(len(m.getTriangulation()) >= 2000,
+        self.assertTrue(len(m.getTriangulation()) >= 2000,
                         'Test mesh interface failed!')
 
         os.remove(file_name)
@@ -645,10 +645,10 @@ class TestCase(unittest.TestCase):
                                      10000000,
                                      breaklines=[[[50,50],[2000,2000]]])
 									 
-        self.failUnless(len(m.regions) == 1, 'FAILED!')
+        self.assertTrue(len(m.regions) == 1, 'FAILED!')
         segs = m.getUserSegments()
-        self.failUnless(len(segs) == 5, 'FAILED!')
-        self.failUnless(len(m.userVertices) == 6, 'FAILED!')
+        self.assertTrue(len(segs) == 5, 'FAILED!')
+        self.assertTrue(len(m.userVertices) == 6, 'FAILED!')
 
 
     def test_create_mesh_with_interior_holes(self):
@@ -667,8 +667,8 @@ class TestCase(unittest.TestCase):
                                      10000000,
                                      interior_holes=[interior_poly1])
 
-        self.failUnless(len(m.getUserSegments()) == 7, 'FAILED!')
-        self.failUnless(len(m.userVertices) == 7, 'FAILED!')
+        self.assertTrue(len(m.getUserSegments()) == 7, 'FAILED!')
+        self.assertTrue(len(m.userVertices) == 7, 'FAILED!')
 
 
         # This should work with two holes
@@ -679,8 +679,8 @@ class TestCase(unittest.TestCase):
         #print len(m.getUserSegments())
         #print len(m.userVertices)
         
-        self.failUnless(len(m.getUserSegments()) == 10, 'FAILED!')
-        self.failUnless(len(m.userVertices) == 10, 'FAILED!')
+        self.assertTrue(len(m.getUserSegments()) == 10, 'FAILED!')
+        self.assertTrue(len(m.userVertices) == 10, 'FAILED!')
 
         #-------------------------------------
         # Error testing

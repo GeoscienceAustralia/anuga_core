@@ -1156,7 +1156,7 @@ class Test_Mesh(unittest.TestCase):
         loners = mesh.get_lone_vertices()
 
         #print loners
-        self.failUnless(loners==[2,4],
+        self.assertTrue(loners==[2,4],
                         'FAILED!')
 
         
@@ -1171,7 +1171,7 @@ class Test_Mesh(unittest.TestCase):
         mesh = Mesh(points, vertices)
         mesh.check_integrity()
         loners = mesh.get_lone_vertices()
-        self.failUnless(loners==[0],
+        self.assertTrue(loners==[0],
                         'FAILED!') 
 
     def test_mesh_get_boundary_polygon_with_georeferencing(self):
