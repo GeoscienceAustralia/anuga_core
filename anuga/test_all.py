@@ -32,7 +32,7 @@ import anuga.utilities.system_tools as aust
 exclude_files = []
 
 # Directories that should not be searched for test files.
-exclude_dirs = ['shallow_water_balanced' , 'parallel', # Special requirements
+exclude_dirs = ['shallow_water_balanced' , # Special requirements
                 '.svn',          # subversion
                 'props', 'wcprops', 'prop-base', 'text-base', 'tmp']
 

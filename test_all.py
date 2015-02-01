@@ -1,6 +1,3 @@
-from anuga.utilities.data_audit_wrapper import IP_verified
-from tempfile import mktemp
-
 import os
 
 buildroot = os.getcwd()
@@ -11,27 +8,12 @@ os.chdir('source')
 os.chdir('anuga')
 print
 print '======================= anuga tests ================================='    
-print 'Changing to', os.getcwd() # This is now different from buildroot   
-execfile('test_all.py')
+print 'Changing to', os.getcwd() # This is now different from buildroot
 
+os.system('python test_all.py')
 
+os.chdir(buildroot)
 
-
-# Try to run parallel tests if pypar is installed
-from anuga import pypar_available
-   
-if pypar_available:
-    os.chdir(buildroot)
-    os.chdir('source')
-    os.chdir('anuga')
-    os.chdir('parallel')
-    os.chdir('tests')
-    print
-    print '===================== anuga parallel tests =========================='
-    print 'Changing to', os.getcwd()
-    execfile('test_all.py')
-else:
-    print 'anuga.parallel tests not run as pypar not installed'
 
 
 
