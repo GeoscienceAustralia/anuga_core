@@ -62,18 +62,22 @@ def configuration(parent_package='',top_path=None):
     from numpy.distutils.misc_util import Configuration
     from numpy.distutils.system_info import get_info
     
-    mpi_flags = parse_command(getoutput_mpicc())
+  
     
     #print(mpi_flags)
     
     config = Configuration('parallel', parent_package, top_path)
 
-    config.add_data_dir('tests')
-    config.add_data_dir('data')
-
     try:
+        # Use this import to check if we are in a parallel environment
         import pypar
-    
+
+        #We are parallel!
+        mpi_flags = parse_command(getoutput_mpicc())
+
+        config.add_data_dir('tests')
+        config.add_data_dir('data')
+         
         config.add_extension('mpiextras',
                          sources=['mpiextras.c'],
                          include_dirs=mpi_flags['inc_dirs'],
@@ -82,7 +86,7 @@ def configuration(parent_package='',top_path=None):
                          define_macros=mpi_flags['def_macros'],
                          undef_macros=mpi_flags['undef_macros'])
     except:
-        #No parallel support
+        #No parallel support, so just copy over the py files
         pass
 
     
