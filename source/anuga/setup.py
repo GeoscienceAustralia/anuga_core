@@ -33,7 +33,12 @@ def configuration(parent_package='',top_path=None):
     config.add_subpackage('utilities')
     config.add_subpackage('validation_utilities')
 
-      
+    try:
+        import vtk
+        config.add_subpackage('visualiser')
+    except:
+        pass
+        
     config.make_config_py()
     
     return config

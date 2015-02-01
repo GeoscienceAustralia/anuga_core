@@ -309,7 +309,9 @@ else:
     #import logging as log
     from anuga.utilities import log
 
-## from anuga.config import use_psyco, g, velocity_protection
+    from anuga.config import g
+    from anuga.config import velocity_protection
+    
 ## if use_psyco:
 ##     # try using psyco if available
 ##     try:
