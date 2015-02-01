@@ -60,7 +60,7 @@ VERSION             = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 # Return the git revision as a string
 def git_version():
 
-    return "Unknown"
+    #return "Unknown"
 
     def _minimal_ext_cmd(cmd):
         # construct minimal environment
@@ -87,6 +87,12 @@ def git_version():
 # BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
 # update it when the contents of directories change.
 if os.path.exists('MANIFEST'): os.remove('MANIFEST')
+
+
+# This is the numpy/scipy hack: Set a global variable so that the main
+# anuga __init__ can detect if it is being loaded by the setup routine, to
+# avoid attempting to load components that aren't built yet.
+builtins.__ANUGA_SETUP__ = True
 
 
 def get_version_info():
