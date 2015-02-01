@@ -461,15 +461,18 @@ class Test_system_tools(unittest.TestCase):
         Test that a revision number is returned.
         This should work both from a sandpit with access to Subversion
         and also in distributions where revision number has been stored
-        explicitly in anuga.stored_version_info.version_info
+        explicitly in version.py
         """
 
         x = get_revision_number()
-        x = x.split('.')
 
-        assert int(x[0])
-        assert int(x[1])
-        assert int(x[2])
+        try:
+            y = x.split('.')
+            assert int(y[0])
+            assert int(y[1])
+            assert int(y[2])
+        except:
+            assert int(x)
 
 ################################################################################
 
