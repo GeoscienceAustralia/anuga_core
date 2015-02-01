@@ -1,5 +1,9 @@
 
 from anuga.shallow_water.shallow_water_domain import Domain
+from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross, \
+                                                        rectangular
+
+from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain_instance
 
 
 
