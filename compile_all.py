@@ -13,7 +13,10 @@ t0 = time.time()
 
 #print 'Changing to', os.getcwd()        
 
-cmd = 'python setup.py install --install-lib=source '
+if sys.platform == 'win32':
+    cmd = 'python setup.py build --compiler=mingw32  install --install-lib=source '
+else:
+    cmd = 'python setup.py install --install-lib=source '
 print cmd
 err = os.system(cmd)
 if err != 0:
