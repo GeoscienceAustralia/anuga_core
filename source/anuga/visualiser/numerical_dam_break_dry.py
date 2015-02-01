@@ -52,9 +52,9 @@ domain.set_datadir(output_dir)
 # or override manually yourself
 #------------------------------------------------------------------------------
 from anuga.utilities.argparsing import parse_standard_args
-alg, cfl = parse_standard_args()
+alg = parse_standard_args()
 domain.set_flow_algorithm(alg)
-domain.set_CFL(cfl)
+
 
 #------------------------------------------------------------------------------
 # Setup initial conditions

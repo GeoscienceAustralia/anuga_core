@@ -54,13 +54,13 @@ def parse_standard_args():
     
     args = parser.parse_args()
 
-    cfl = args.cfl
+    #cfl = args.cfl
     alg = args.alg
-    verbose= args.v
+    verbose= args.verbose
     np = args.np
 
 
-    return alg, cfl
+    return alg
 
 
 
