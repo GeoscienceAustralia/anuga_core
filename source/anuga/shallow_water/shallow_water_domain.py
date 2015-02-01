@@ -1405,7 +1405,7 @@ class Domain(Generic_Domain):
 
     def get_water_volume(self):
     
-        from anuga import myid, numprocs, send, receive, barrier
+        from anuga import numprocs
 
         #print self.evolved_called
         
@@ -1427,6 +1427,13 @@ class Domain(Generic_Domain):
             Elev =  self.quantities['elevation']
             Height = Stage-Elev
             volume = Height.get_integral()
+
+        if numprocs ==1:
+            self.volume_history.append(volume) 
+            return volume
+
+        # isolated parallel code
+        from anuga import myid, send, receive, barrier
             
         if myid == 0:
             water_volume = volume
@@ -1453,7 +1460,7 @@ class Domain(Generic_Domain):
             Should work in parallel
         """
     
-        from anuga import myid, numprocs, send, receive, barrier
+        from anuga import numprocs
 
         if not self.compute_fluxes_method=='DE':
             msg='Boundary flux integral only supported for DE fluxes '+\
@@ -1461,7 +1468,13 @@ class Domain(Generic_Domain):
             raise Exception, msg
             
         flux_integral = self.boundary_flux_integral.boundary_flux_integral
-            
+
+        if numprocs == 1:
+            return flux_integral
+
+        # isolate parallel code
+        from anuga import myid, send, receive, barrier
+        
         if myid == 0:
             for i in range(1,numprocs):
                 remote_flux_integral = receive(i)
@@ -1487,10 +1500,16 @@ class Domain(Generic_Domain):
             Should work in parallel
         """
     
-        from anuga import myid, numprocs, send, receive, barrier
+        from anuga import numprocs
 
         flux_integral = self.fractional_step_volume_integral
-            
+
+        if numprocs == 1:
+            return flux_integral
+
+        # isolate parallel code
+        from anuga import myid, send, receive, barrier
+                
         if myid == 0:
             for i in range(1,numprocs):
                 remote_flux_integral = receive(i)

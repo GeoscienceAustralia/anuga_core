@@ -143,46 +143,46 @@ class Test_system_tools(unittest.TestCase):
 ################################################################################
 
     # helper routine to test clean_line()
-    def clean_line_test(self, instr, delim, expected):
+    def clean_line_helper(self, instr, delim, expected):
         result = clean_line(instr, delim)
         self.assertTrue(result == expected,
                         "clean_line('%s', '%s'), expected %s, got %s"
                         % (str(instr), str(delim), str(expected), str(result)))
 
     def test_clean_line_01(self):
-        self.clean_line_test('abc, ,,xyz,123', ',', ['abc', '', 'xyz', '123'])
+        self.clean_line_helper('abc, ,,xyz,123', ',', ['abc', '', 'xyz', '123'])
 
     def test_clean_line_02(self):
-        self.clean_line_test(' abc , ,, xyz  , 123  ', ',',
+        self.clean_line_helper(' abc , ,, xyz  , 123  ', ',',
                              ['abc', '', 'xyz', '123'])
 
     def test_clean_line_03(self):
-        self.clean_line_test('1||||2', '|', ['1', '2'])
+        self.clean_line_helper('1||||2', '|', ['1', '2'])
 
     def test_clean_line_04(self):
-        self.clean_line_test('abc, ,,xyz,123, ', ',',
+        self.clean_line_helper('abc, ,,xyz,123, ', ',',
                              ['abc', '', 'xyz', '123']) 
 
     def test_clean_line_05(self):
-        self.clean_line_test('abc, ,,xyz,123, ,    ', ',',
+        self.clean_line_helper('abc, ,,xyz,123, ,    ', ',',
                              ['abc', '', 'xyz', '123', ''])
 
     def test_clean_line_06(self):
-        self.clean_line_test(',,abc, ,,xyz,123, ,    ', ',',
+        self.clean_line_helper(',,abc, ,,xyz,123, ,    ', ',',
                              ['abc', '', 'xyz', '123', ''])
 
     def test_clean_line_07(self):
-        self.clean_line_test('|1||||2', '|', ['1', '2'])
+        self.clean_line_helper('|1||||2', '|', ['1', '2'])
 
     def test_clean_line_08(self):
-        self.clean_line_test(' ,a,, , ,b,c , ,, , ', ',',
+        self.clean_line_helper(' ,a,, , ,b,c , ,, , ', ',',
                              ['a', '', '', 'b', 'c', '', ''])
 
     def test_clean_line_09(self):
-        self.clean_line_test('a:b:c', ':', ['a', 'b', 'c'])
+        self.clean_line_helper('a:b:c', ':', ['a', 'b', 'c'])
 
     def test_clean_line_10(self):
-        self.clean_line_test('a:b:c:', ':', ['a', 'b', 'c'])
+        self.clean_line_helper('a:b:c:', ':', ['a', 'b', 'c'])
 
 ################################################################################
 # Test the string_to_char() and char_to_string() utility functions.
@@ -465,7 +465,11 @@ class Test_system_tools(unittest.TestCase):
         """
 
         x = get_revision_number()
-        assert int(x)
+        x = x.split('.')
+
+        assert int(x[0])
+        assert int(x[1])
+        assert int(x[2])
 
 ################################################################################
 

@@ -604,7 +604,7 @@ class geo_referenceTestCase(unittest.TestCase):
         points = ((2,3), (3,1), (5,2))
         abs_points = geo.get_absolute(points)
         # check we haven't changed 'points' itself
-        self.failIf(num.alltrue(abs_points == points))
+        self.assertFalse(num.alltrue(abs_points == points))
         new_points = abs_points.copy()
         new_points[:,0] -= x0
         new_points[:,1] -= y0
@@ -614,7 +614,7 @@ class geo_referenceTestCase(unittest.TestCase):
         points = num.array(((2,3), (3,1), (5,2)), num.float)
         abs_points = geo.get_absolute(points)
         # check we haven't changed 'points' itself
-        self.failIf(num.alltrue(abs_points == points))
+        self.assertFalse(num.alltrue(abs_points == points))
         new_points = abs_points.copy()
         new_points[:,0] -= x0
         new_points[:,1] -= y0

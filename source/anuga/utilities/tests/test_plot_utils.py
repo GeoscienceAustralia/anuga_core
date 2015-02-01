@@ -98,7 +98,7 @@ class Test_plot_utils(unittest.TestCase):
         assert((p1.time[slice1]==p2.time[slice2]))
         return 
 
-    def basic_tests(self):
+    def basic_checks(self):
         """
             Check that dimensions are as required, and that
             if we extract centroids by passing the file name
@@ -137,7 +137,7 @@ class Test_plot_utils(unittest.TestCase):
         self.everything_equal(p3, 2, p2, 2)
         self.everything_equal(p3, 4, p2, 4)
 
-    def velExtrap_timeSlices_test(self, ve):
+    def velExtrap_timeSlices_check(self, ve):
         """
 
             Check that time-slices are behaving as expected. Assumes sww has been made
@@ -250,7 +250,7 @@ class Test_plot_utils(unittest.TestCase):
             if(verbose):
                 print flowAlg
             self.create_domain(InitialOceanStage=1., InitialLandStage=0., flowAlg=flowAlg, verbose=verbose)
-            self.basic_tests()
+            self.basic_checks()
 
         os.remove('test_plot_utils.sww')
         
@@ -264,8 +264,8 @@ class Test_plot_utils(unittest.TestCase):
                 print flowAlg
             self.create_domain(InitialOceanStage=1., InitialLandStage=0., flowAlg=flowAlg, verbose=verbose)
             # Test time-slices with velocity_extrapolation=True
-            self.velExtrap_timeSlices_test(ve=True)
-            self.velExtrap_timeSlices_test(ve=False)
+            self.velExtrap_timeSlices_check(ve=True)
+            self.velExtrap_timeSlices_check(ve=False)
             
         os.remove('test_plot_utils.sww')
 

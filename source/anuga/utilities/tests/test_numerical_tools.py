@@ -128,7 +128,7 @@ class Test_Numerical_Tools(unittest.TestCase):
         self.assertRaises(Exception, ensure_numeric(('abc',)))
         self.assertRaises(Exception, ensure_numeric(num.array(('abc',))))
 
-    def NO_test_ensure_numeric_char(self):
+    def NO_ensure_numeric_char(self):
         '''numpy can't handle this'''
 
         # Error situation

@@ -32,7 +32,7 @@ def configuration(parent_package='',top_path=None):
     config.add_subpackage('tsunami_source')
     config.add_subpackage('utilities')
     config.add_subpackage('validation_utilities')
-    config.add_subpackage('visualiser')
+
       
     config.make_config_py()
     

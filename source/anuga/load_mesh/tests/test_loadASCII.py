@@ -518,7 +518,7 @@ showme1.0 0.0 10.0 \n\
         else:
             self.fail('imaginary file did not raise error!')
 
-    def throws_error_2_screen_test_import_mesh_bad(self):
+    def throws_error_2_screen_import_mesh_bad(self):
         fileName = tempfile.mktemp('.msh')
         file = open(fileName, 'w')
         # this is  a bad tsh file
