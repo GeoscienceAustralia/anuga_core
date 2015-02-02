@@ -61,7 +61,7 @@ VERSION             = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 # Return the svn revision as a string
 def svn_revision():
 
-    return filter(str.isdigit, "$Revision: 9587 $")
+    return filter(str.isdigit, "$Revision$")
 
 
 
