@@ -64,8 +64,6 @@ def svn_revision():
     return filter(str.isdigit, "$Revision$")
 
 
-
-
 # Return the git revision as a string
 def git_revision():
 
@@ -172,60 +170,7 @@ def configuration(parent_package='',top_path=None):
 
     return config
 
-def check_submodules():
-    """ verify that the submodules are checked out and clean
-        use `git submodule update --init`; on failure
-    """
-    if not os.path.exists('.git'):
-        return
-    with open('.gitmodules') as f:
-        for l in f:
-            if 'path' in l:
-                p = l.split('=')[-1].strip()
-                if not os.path.exists(p):
-                    raise ValueError('Submodule %s missing' % p)
 
-
-    proc = subprocess.Popen(['git', 'submodule', 'status'],
-                            stdout=subprocess.PIPE)
-    status, _ = proc.communicate()
-    status = status.decode("ascii", "replace")
-    for line in status.splitlines():
-        if line.startswith('-') or line.startswith('+'):
-            raise ValueError('Submodule not clean: %s' % line)
-
-from distutils.command.sdist import sdist
-
-class sdist_checked(sdist):
-    """ check submodules on sdist to prevent incomplete tarballs """
-    def run(self):
-        check_submodules()
-        sdist.run(self)
-
-def generate_cython():
-    cwd = os.path.abspath(os.path.dirname(__file__))
-    print("Cythonizing sources")
-    p = subprocess.call([sys.executable,
-                          os.path.join(cwd, 'tools', 'cythonize.py'),
-                          'numpy/random'],
-                         cwd=cwd)
-    if p != 0:
-        raise RuntimeError("Running cythonize failed!")
-
-from distutils.core import Command
-
-class PyTest(Command):
-    user_options = []
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        import sys,subprocess
-        errno = subprocess.call([sys.executable, 'runtests.py'])
-        raise SystemExit(errno)
 
     
 def setup_package():
@@ -248,8 +193,7 @@ def setup_package():
         download_url = "http://sourceforge.net/projects/anuga/",
         license = 'GPL',
         classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
-        platforms = ["Windows", "Linux", "Mac OS-X", "Unix"],
-        cmdclass={"sdist": sdist_checked, "test": PyTest},
+        platforms = ["Windows", "Linux", "Mac OS-X", "Unix"]
     )
 
     # Run build

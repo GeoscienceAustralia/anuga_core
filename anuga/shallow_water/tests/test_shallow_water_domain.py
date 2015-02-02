@@ -7101,7 +7101,7 @@ friction  \n \
         from anuga.geospatial_data.geospatial_data import Geospatial_data
 
         
-        # Get path where this test is run
+        # Get path where thie data file are
         path = get_pathname_from_package('anuga.shallow_water')        
         
         
@@ -7150,7 +7150,7 @@ friction  \n \
         for polygon in offending_regions:
             interior_regions.append( [polygon, 100] ) 
 
-        meshname = 'offending_mesh.msh'
+        meshname = 'offending_mesh_1.msh'
         create_mesh_from_regions(bounding_polygon,
                                  boundary_tags={'south': [0], 'east': [1],
                                                 'north': [2], 'west': [3]},
@@ -7166,7 +7166,7 @@ friction  \n \
         # Fit data point to mesh
         #----------------------------------------------------------------------
 
-        points_file = os.path.join(path, 'offending_point.pts')
+        points_file = 'offending_point_1.pts'
 
         # Offending point
         G = Geospatial_data(data_points=[[306953.344, 6194461.5]],
@@ -7216,7 +7216,7 @@ friction  \n \
         # Get path where this test is run
         path = get_pathname_from_package('anuga.shallow_water')        
 
-        meshname = 'test_mesh.msh'
+        meshname = 'test_mesh_2.msh'
         
         W = 304180
         S = 6185270

@@ -26,12 +26,11 @@ test = Tester().test
 #from anuga.__metadata__ import  __date__, __author__
 
 from .version import git_revision as __git_revision__
+from .version import svn_revision as __svn_revision__
 from .version import version as __version__
 
 
-
-
-# We first need to detect if we're being called as part of the numpy setup
+# We first need to detect if we're being called as part of the anuga setup
 # procedure itself in a reliable manner.
 try:
     __ANUGA_SETUP__

@@ -50,7 +50,7 @@ def sts2sww_mesh(basename_in, basename_out=None,
     infile.close()
 
     number_of_points = nrows*ncols
-    points_utm = num.empty((number_of_points,2),float)
+    points_utm = num.zeros((number_of_points,2),num.float)
     points_utm[:,0]=x+x_origin
     points_utm[:,1]=y+y_origin
 
