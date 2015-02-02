@@ -29,10 +29,11 @@ import subprocess
 if sys.version_info[:2] < (2, 6) or (3, 0) <= sys.version_info[0:2] :
     raise RuntimeError("Python version 2.6, 2.7. ")
 
-if sys.version_info[0] >= 3:
-    import builtins
-else:
-    import __builtin__ as builtins
+# if sys.version_info[0] >= 3:
+#     import builtins
+# else:
+#     import __builtin__ as builtins
+import __builtin__ as builtins
 
 
 CLASSIFIERS = """\
@@ -57,8 +58,16 @@ ISRELEASED          = False
 VERSION             = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 
+# Return the svn revision as a string
+def svn_revision():
+
+    return filter(str.isdigit, "$Revision: 9587 $")
+
+
+
+
 # Return the git revision as a string
-def git_version():
+def git_revision():
 
     #return "Unknown"
 
@@ -99,8 +108,10 @@ def get_version_info():
     # Adding the git rev number needs to be done inside write_version_py(),
     # otherwise the import of anuga.version messes up the build under Python 3.
     FULLVERSION = VERSION
+    SVN_REVISION = svn_revision()
+    
     if os.path.exists('.git'):
-        GIT_REVISION = git_version()
+        GIT_REVISION = git_revision()
     elif os.path.exists('anuga/version.py'):
         # must be a source distribution, use existing version file
         try:
@@ -113,9 +124,11 @@ def get_version_info():
         GIT_REVISION = "Unknown"
 
     if not ISRELEASED:
-        FULLVERSION += '.dev+' + GIT_REVISION[:7]
+        FULLVERSION += '.dev+' + SVN_REVISION
+        #FULLVERSION += '.dev+' + GIT_REVISION[:7]
+         
 
-    return FULLVERSION, GIT_REVISION
+    return FULLVERSION, GIT_REVISION, SVN_REVISION
 
 
 def write_version_py(filename='anuga/version.py'):
@@ -125,18 +138,20 @@ short_version = '%(version)s'
 version = '%(version)s'
 full_version = '%(full_version)s'
 git_revision = '%(git_revision)s'
+svn_revision = '%(svn_revision)s'
 release = %(isrelease)s
 
 if not release:
     version = full_version
 """
-    FULLVERSION, GIT_REVISION = get_version_info()
+    FULLVERSION, GIT_REVISION, SVN_REVISION = get_version_info()
 
     a = open(filename, 'w')
     try:
         a.write(cnt % {'version': VERSION,
                        'full_version' : FULLVERSION,
                        'git_revision' : GIT_REVISION,
+                       'svn_revision' : SVN_REVISION,
                        'isrelease': str(ISRELEASED)})
     finally:
         a.close()
