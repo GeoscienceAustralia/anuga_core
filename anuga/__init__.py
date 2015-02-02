@@ -27,6 +27,7 @@ test = Tester().test
 
 from .version import git_revision as __git_revision__
 from .version import version as __version__
+__svn_version__ = filter(str.isdigit, "$SVNRevision: 13 $")
 
 
 # We first need to detect if we're being called as part of the numpy setup
