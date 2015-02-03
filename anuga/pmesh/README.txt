@@ -1,5 +1,5 @@
 SYSTEM REQUIREMENTS
- Pmesh requires many bits adn peices from the rest of the ANUGA code.
+ Pmesh requires many bits and pieces from the rest of the ANUGA code.
  
  It's system requirements are the same as ANUGA
 

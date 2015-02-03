@@ -1,23 +1,101 @@
-This is the root-Subversion directory for the ANUGA Inundation 
-Software Development project conducted by
-
-Stephen Roberts (ANU)
-Ole Nielsen (GA)
-Duncan Gray (GA)
-Jane Sexton (GA)
-Nick Bartzis (GA)
-Jack Kelly (ANU)
-John Jakeman (ANU)
 
 
-This is the top directory for the inundation project source code
-developed at the Risk Assessment Methods Project at Geoscience
+=====
+AnuGA
+=====
+
+.. contents::
+
+What is AnuGA?
+--------------
+
+AnuGA (pronounced "an uu ga") is open-source software for the simulation of
+the shallow water equation, in particular it can be used to model tsunamis
+and floods.
+
+Developed at the Risk Assessment Methods Project at Geoscience
 Australia and Mathematical Sciences Institute at the Australian
 National University.
 
 
-Copyright 2004, 2005, 2006  
+Copyright 2004, 2005, 2006, 2015 
 Ole Nielsen, Stephen Roberts, Duncan Gray, Jane Sexton
+
+
+Installation
+------------
+
+For installation instructions, see ``INSTALL.txt``.
+
+
+Documentation
+-------------
+
+AnuGA documentation is available in the user_manual folder or online
+
+    http://anuga.anu.edu.au
+
+How to generate the HTML documentation, see ``doc/README.txt``.
+
+
+Web sites
+---------
+
+The user's site is:
+
+    http://anuga.anu.edu.au/
+
+
+Mailing Lists
+-------------
+
+Please see anuga user mailing list here:
+
+    anuga-user@lists.sourceforge.net
+
+
+Latest source code
+------------------
+
+The latest development version of AnuGA's sources are always available at:
+
+    https://github.com/stoiver/anuga_core
+
+They can be downloaded as a zip file or using the Git client.
+
+
+Bug reports
+-----------
+
+To search for bugs or report them, please use the AnuGA's Bug Tracker at:
+
+    https://github.com/stoiver/anuga_core/issues
+
+
+Developer information
+---------------------
+
+If you would like to take part in AnuGA development, take a look
+at ``HACKING.rst.txt``.
+
+
+License information
+-------------------
+
+See the file ``LICENSE.txt`` for information on the history of this
+software, terms & conditions for usage, and a DISCLAIMER OF ALL
+WARRANTIES.
+
+
+
+
+
+This is the root-Subversion directory for the ANUGA Inundation 
+Software Development project conducted by
+
+
+
+
 
 
 PREREQUISITES
