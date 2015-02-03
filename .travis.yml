@@ -31,4 +31,4 @@ install:
 
 script:
   # Your test script goes here
-  - python -c "import anuga ; anuga.test()"
+  - python runtests.py

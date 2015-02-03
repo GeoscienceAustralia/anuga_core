@@ -6,7 +6,6 @@ omit = */test/*
      */setup.py
      *test_all*
      */Pmw*
-     */parallel/*
 
 
 
