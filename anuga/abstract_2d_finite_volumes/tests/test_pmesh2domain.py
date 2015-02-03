@@ -24,12 +24,12 @@ class Test_pmesh2domain(unittest.TestCase):
         pass
 
     def test_pmesh2Domain(self):
-         import os
-         import tempfile
+        import os
+        import tempfile
 
-         fileName = tempfile.mktemp(".tsh")
-         file = open(fileName,"w")
-         file.write("4 3 # <vertex #> <x> <y> [attributes]\n \
+        fileName = tempfile.mktemp(".tsh")
+        fid = open(fileName, "w")
+        fid.write("4 3 # <vertex #> <x> <y> [attributes]\n \
 0 0.0 0.0 0.0 0.0 0.01 \n \
 1 1.0 0.0 10.0 10.0 0.02  \n \
 2 0.0 1.0 0.0 10.0 0.03  \n \
@@ -61,67 +61,67 @@ friction  \n \
 56 \n \
 140 \n \
 120 \n")
-         file.close()
+        fid.close()
 
-         tags = {}
-         b1 =  Dirichlet_boundary(dirichlet_values = num.array([0.0]))
-         b2 =  Dirichlet_boundary(dirichlet_values = num.array([1.0]))
-         b3 =  Dirichlet_boundary(dirichlet_values = num.array([2.0]))
-         tags["1"] = b1
-         tags["2"] = b2
-         tags["3"] = b3
+        tags = {}
+        b1 = Dirichlet_boundary(dirichlet_values=num.array([0.0]))
+        b2 = Dirichlet_boundary(dirichlet_values=num.array([1.0]))
+        b3 = Dirichlet_boundary(dirichlet_values=num.array([2.0]))
+        tags["1"] = b1
+        tags["2"] = b2
+        tags["3"] = b3
 
-         domain = pmesh_to_domain_instance(fileName, Domain)
-         os.remove(fileName)
-         #print "domain.tagged_elements", domain.tagged_elements
-         ## check the quantities
-         #print domain.quantities['elevation'].vertex_values
-         answer = [[0., 8., 0.],
-                   [0., 10., 8.]]
-         assert num.allclose(domain.quantities['elevation'].vertex_values,
-                             answer)
+        domain = pmesh_to_domain_instance(fileName, Domain)
+        os.remove(fileName)
+        # print "domain.tagged_elements", domain.tagged_elements
+        # # check the quantities
+        # print domain.quantities['elevation'].vertex_values
+        answer = [[0., 8., 0.],
+               [0., 10., 8.]]
+        assert num.allclose(domain.quantities['elevation'].vertex_values,
+                         answer)
 
-         #print domain.quantities['stage'].vertex_values
-         answer = [[0., 12., 10.],
-                   [0., 10., 12.]]
-         assert num.allclose(domain.quantities['stage'].vertex_values,
-                             answer)
+        # print domain.quantities['stage'].vertex_values
+        answer = [[0., 12., 10.],
+               [0., 10., 12.]]
+        assert num.allclose(domain.quantities['stage'].vertex_values,
+                         answer)
 
-         #print domain.quantities['friction'].vertex_values
-         answer = [[0.01, 0.04, 0.03],
-                   [0.01, 0.02, 0.04]]
-         assert num.allclose(domain.quantities['friction'].vertex_values,
-                             answer)
+        # print domain.quantities['friction'].vertex_values
+        answer = [[0.01, 0.04, 0.03],
+               [0.01, 0.02, 0.04]]
+        assert num.allclose(domain.quantities['friction'].vertex_values,
+                         answer)
 
-         #print domain.quantities['friction'].vertex_values
-         tagged_elements = domain.get_tagged_elements()
-         assert num.allclose(tagged_elements['dsg'][0],0)
-         assert num.allclose(tagged_elements['ole nielsen'][0],1)
+        # print domain.quantities['friction'].vertex_values
+        tagged_elements = domain.get_tagged_elements()
+        assert num.allclose(tagged_elements['dsg'][0], 0)
+        assert num.allclose(tagged_elements['ole nielsen'][0], 1)
 
-         self.assertTrue( domain.boundary[(1, 0)]  == '1',
-                          "test_tags_to_boundaries  failed. Single boundary wasn't added.")
-         self.assertTrue( domain.boundary[(1, 2)]  == '2',
-                          "test_tags_to_boundaries  failed. Single boundary wasn't added.")
-         self.assertTrue( domain.boundary[(0, 1)]  == '3',
-                          "test_tags_to_boundaries  failed. Single boundary wasn't added.")
-         self.assertTrue( domain.boundary[(0, 0)]  == 'exterior',
-                          "test_tags_to_boundaries  failed. Single boundary wasn't added.")
-         #print "domain.boundary",domain.boundary
-         self.assertTrue( len(domain.boundary)  == 4,
-                          "test_pmesh2Domain Too many boundaries")
-         #FIXME change to use get_xllcorner
-         #print "d.geo_reference.xllcorner",domain.geo_reference.xllcorner 
-         self.assertTrue(domain.geo_reference.xllcorner  == 140.0,
-                          "bad geo_referece")
+        self.assertTrue(domain.boundary[(1, 0)] == '1',
+                      "test_tags_to_boundaries  failed. Single boundary wasn't added.")
+        self.assertTrue(domain.boundary[(1, 2)] == '2',
+                      "test_tags_to_boundaries  failed. Single boundary wasn't added.")
+        self.assertTrue(domain.boundary[(0, 1)] == '3',
+                      "test_tags_to_boundaries  failed. Single boundary wasn't added.")
+        self.assertTrue(domain.boundary[(0, 0)] == 'exterior',
+                      "test_tags_to_boundaries  failed. Single boundary wasn't added.")
+        # print "domain.boundary",domain.boundary
+        self.assertTrue(len(domain.boundary) == 4,
+                      "test_pmesh2Domain Too many boundaries")
+        # FIXME change to use get_xllcorner
+        # print "d.geo_reference.xllcorner",domain.geo_reference.xllcorner 
+        self.assertTrue(domain.geo_reference.xllcorner == 140.0,
+                      "bad geo_referece")
     #************
     
     def test_pmesh2Domain_instance(self):
-         import os
-         import tempfile
+        import os
+        import tempfile
 
-         fileName = tempfile.mktemp(".tsh")
-         file = open(fileName,"w")
-         file.write("4 3 # <vertex #> <x> <y> [attributes]\n \
+        fileName = tempfile.mktemp(".tsh")
+        fid = open(fileName, "w")
+        fid.write("4 3 # <vertex #> <x> <y> [attributes]\n \
 0 0.0 0.0 0.0 0.0 0.01 \n \
 1 1.0 0.0 10.0 10.0 0.02  \n \
 2 0.0 1.0 0.0 10.0 0.03  \n \
@@ -153,62 +153,62 @@ friction  \n \
 56 \n \
 140 \n \
 120 \n")
-         file.close()
+        fid.close()
 
-         mesh_instance = importMeshFromFile(fileName)
-        
-         tags = {}
-         b1 =  Dirichlet_boundary(dirichlet_values = num.array([0.0]))
-         b2 =  Dirichlet_boundary(dirichlet_values = num.array([1.0]))
-         b3 =  Dirichlet_boundary(dirichlet_values = num.array([2.0]))
-         tags["1"] = b1
-         tags["2"] = b2
-         tags["3"] = b3
+        mesh_instance = importMeshFromFile(fileName)
 
-         domain = pmesh_to_domain_instance(mesh_instance, Domain)
+        tags = {}
+        b1 = Dirichlet_boundary(dirichlet_values=num.array([0.0]))
+        b2 = Dirichlet_boundary(dirichlet_values=num.array([1.0]))
+        b3 = Dirichlet_boundary(dirichlet_values=num.array([2.0]))
+        tags["1"] = b1
+        tags["2"] = b2
+        tags["3"] = b3
 
-         os.remove(fileName)
-         #print "domain.tagged_elements", domain.tagged_elements
-         ## check the quantities
-         #print domain.quantities['elevation'].vertex_values
-         answer = [[0., 8., 0.],
-                   [0., 10., 8.]]
-         assert num.allclose(domain.quantities['elevation'].vertex_values,
-                             answer)
+        domain = pmesh_to_domain_instance(mesh_instance, Domain)
 
-         #print domain.quantities['stage'].vertex_values
-         answer = [[0., 12., 10.],
-                   [0., 10., 12.]]
-         assert num.allclose(domain.quantities['stage'].vertex_values,
-                             answer)
+        os.remove(fileName)
+        # print "domain.tagged_elements", domain.tagged_elements
+        # # check the quantities
+        # print domain.quantities['elevation'].vertex_values
+        answer = [[0., 8., 0.],
+               [0., 10., 8.]]
+        assert num.allclose(domain.quantities['elevation'].vertex_values,
+                         answer)
 
-         #print domain.quantities['friction'].vertex_values
-         answer = [[0.01, 0.04, 0.03],
-                   [0.01, 0.02, 0.04]]
-         assert num.allclose(domain.quantities['friction'].vertex_values,
-                             answer)
+        # print domain.quantities['stage'].vertex_values
+        answer = [[0., 12., 10.],
+               [0., 10., 12.]]
+        assert num.allclose(domain.quantities['stage'].vertex_values,
+                         answer)
 
-         #print domain.quantities['friction'].vertex_values
-         tagged_elements = domain.get_tagged_elements()         
-         assert num.allclose(tagged_elements['dsg'][0],0)
-         assert num.allclose(tagged_elements['ole nielsen'][0],1)
+        # print domain.quantities['friction'].vertex_values
+        answer = [[0.01, 0.04, 0.03],
+               [0.01, 0.02, 0.04]]
+        assert num.allclose(domain.quantities['friction'].vertex_values,
+                         answer)
 
-         self.assertTrue( domain.boundary[(1, 0)]  == '1',
-                          "test_tags_to_boundaries  failed. Single boundary wasn't added.")
-         self.assertTrue( domain.boundary[(1, 2)]  == '2',
-                          "test_tags_to_boundaries  failed. Single boundary wasn't added.")
-         self.assertTrue( domain.boundary[(0, 1)]  == '3',
-                          "test_tags_to_boundaries  failed. Single boundary wasn't added.")
-         self.assertTrue( domain.boundary[(0, 0)]  == 'exterior',
-                          "test_tags_to_boundaries  failed. Single boundary wasn't added.")
-         #print "domain.boundary",domain.boundary
-         self.assertTrue( len(domain.boundary)  == 4,
-                          "test_pmesh2Domain Too many boundaries")
-         #FIXME change to use get_xllcorner
-         #print "d.geo_reference.xllcorner",domain.geo_reference.xllcorner 
-         self.assertTrue(domain.geo_reference.xllcorner  == 140.0,
-                          "bad geo_referece")
-         
+        # print domain.quantities['friction'].vertex_values
+        tagged_elements = domain.get_tagged_elements()         
+        assert num.allclose(tagged_elements['dsg'][0], 0)
+        assert num.allclose(tagged_elements['ole nielsen'][0], 1)
+
+        self.assertTrue(domain.boundary[(1, 0)] == '1',
+                      "test_tags_to_boundaries  failed. Single boundary wasn't added.")
+        self.assertTrue(domain.boundary[(1, 2)] == '2',
+                      "test_tags_to_boundaries  failed. Single boundary wasn't added.")
+        self.assertTrue(domain.boundary[(0, 1)] == '3',
+                      "test_tags_to_boundaries  failed. Single boundary wasn't added.")
+        self.assertTrue(domain.boundary[(0, 0)] == 'exterior',
+                      "test_tags_to_boundaries  failed. Single boundary wasn't added.")
+        # print "domain.boundary",domain.boundary
+        self.assertTrue(len(domain.boundary) == 4,
+                      "test_pmesh2Domain Too many boundaries")
+        # FIXME change to use get_xllcorner
+        # print "d.geo_reference.xllcorner",domain.geo_reference.xllcorner 
+        self.assertTrue(domain.geo_reference.xllcorner == 140.0,
+                      "bad geo_referece")
+
 
 
 #-------------------------------------------------------------

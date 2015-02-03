@@ -39,11 +39,11 @@ def rectangular_cross_domain(*args, **kwargs):
 #----------------------------
 # Create domain from file
 #----------------------------
-def create_domain_from_file(file, DomainClass=Domain):
+def create_domain_from_file(filename, DomainClass=Domain):
     """
     Create a domain from a file
     """
-    return pmesh_to_domain_instance(file,DomainClass=DomainClass)
+    return pmesh_to_domain_instance(filename,DomainClass=DomainClass)
 
 #---------------------------
 # Create domain from regions
@@ -84,7 +84,7 @@ def create_domain_from_regions(bounding_polygon,
     NOTE: If a interior_region is outside the bounding_polygon it should 
     throw an error
     
-    interior_holes is a list of ploygons for each hole. These polygons do not
+    interior_holes is a list of polygons for each hole. These polygons do not
     need to be closed, but their points must be specified in a counter-clockwise
     order.
 

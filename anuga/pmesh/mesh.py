@@ -802,7 +802,7 @@ class Mesh:
         cuts = []
         factor = 2* math.pi/segment_count
         for cut in range(segment_count):
-             cuts.append(cut*factor)
+            cuts.append(cut*factor)
 
         polygon = []
         for cut in cuts:
@@ -970,7 +970,7 @@ class Mesh:
         self.userSegments = []
         self.alphaUserSegments = []
 
-       #FIXME see where this is used. return an array instead
+    #FIXME see where this is used. return an array instead
     def getTriangulation(self):
         #return self.meshTriangles
         return self.tri_mesh.triangles.tolist()

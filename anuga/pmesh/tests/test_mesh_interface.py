@@ -635,7 +635,7 @@ class TestCase(unittest.TestCase):
             raise Exception, msg
             
     def test_create_mesh_with_breaklines(self):
-         # These are the absolute values
+        # These are the absolute values
         polygon = [[100,100], [1000,100], [1000,1000], [100,1000]]
 
         boundary_tags = {'walls': [0,1], 'bom': [2,3]}
@@ -644,7 +644,7 @@ class TestCase(unittest.TestCase):
                                      boundary_tags,
                                      10000000,
                                      breaklines=[[[50,50],[2000,2000]]])
-									 
+
         self.assertTrue(len(m.regions) == 1, 'FAILED!')
         segs = m.getUserSegments()
         self.assertTrue(len(segs) == 5, 'FAILED!')
@@ -652,7 +652,7 @@ class TestCase(unittest.TestCase):
 
 
     def test_create_mesh_with_interior_holes(self):
-         # These are the absolute values
+        # These are the absolute values
         polygon = [[100,100], [1000,100], [1000,1000], [100,1000]]
         
         interior_poly1 = [[101,101],[200,200], [101,200]]
@@ -713,8 +713,37 @@ class TestCase(unittest.TestCase):
         else:
             msg = 'Passing a single polygon should have raised an error '
             raise Exception, msg
+        
+        
+    def test_create_mesh_with_interior_holes_and_tags(self):
+        # These are the absolute values
+        polygon = [[100,100], [1000,100], [1000,1000], [100,1000]]
+        
+        interior_poly1 = [[101,101],[200,200], [101,200]]
+        interior_poly2 = [[300,300],[500,500], [400,200]]
 
-		
+        boundary_tags = {'walls': [0,1], 'bom': [2,3]}
+
+
+        # This should work with one hole
+        m = create_mesh_from_regions(polygon,
+                                     boundary_tags,
+                                     10000000,
+                                     interior_holes=[interior_poly1],
+                                     hole_tags=[{'edge0' : [0], 'edge1': [1], 'edge2': [2]}])
+
+        self.assertTrue(len(m.getUserSegments()) == 7, 'FAILED!')
+        self.assertTrue(len(m.userVertices) == 7, 'FAILED!')
+
+        m.generate_mesh()
+        
+        tags_list = m.getMeshSegmentTags()
+        
+        assert len([x for x in tags_list if x == 'edge0']) == 7
+        assert len([x for x in tags_list if x == 'edge1']) == 6
+        assert len([x for x in tags_list if x == 'edge2']) == 54              
+
+
     def test_create_mesh_from_regions_with_duplicate_verts(self):
         # These are the absolute values
         polygon_absolute = [[0.0, 0.0],
@@ -798,8 +827,7 @@ END\n')
         m.export_mesh_file('b_test_mesh_iknterface.tsh')
 
     def concept_ungenerateII(self):
-        from anuga.shallow_water import Domain, Reflective_boundary, \
-                            Dirichlet_boundary
+        from anuga import Domain, Reflective_boundary, Dirichlet_boundary
 
         x=0
         y=0
@@ -868,7 +896,7 @@ END\n')
             domain.write_time()
 
     def concept_ungenerateIII(self):
-        from anuga.shallow_water import Domain, Reflective_boundary, \
+        from anuga import Domain, Reflective_boundary, \
                             Dirichlet_boundary
         from anuga.pmesh.mesh_interface import create_mesh_from_regions
 
