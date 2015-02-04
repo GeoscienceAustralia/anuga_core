@@ -44,6 +44,7 @@ class RiverWall:
     #   w1 = min( max(s-s1, 0.)/(s2-s1), 1.0) # Factor describing relative submergence
     #   w1' = min( max(h-h1,0.)/(h2-h1), 1.0) # Factor describing absolute submergence
     #  flux_over_weir = (w1*SW + (1-w1)*ID)*( 1-w1') + (w1')*SW 
+    # where s1, s2, h1, h2 are user defined parameters
     #
     # The key idea is that if s<s1, h<h1, then the ideal weir solution is
     # used. Otherwise, we linearly blend with the SW solution,

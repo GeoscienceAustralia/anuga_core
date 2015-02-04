@@ -204,100 +204,73 @@ class Structure_operator(anuga.Operator):
         old_inflow_xmom = self.inflow.get_average_xmom()
         old_inflow_ymom = self.inflow.get_average_ymom()
 
-        semi_implicit = True
-        if semi_implicit:   
-            # Implement the update of flow over a timestep by
-            # using a semi-implict update. This ensures that
-            # the update does not create a negative depth
-            if old_inflow_depth > 0.0 :
-                    Q_star = Q/old_inflow_depth
-            else:
-                    Q_star = 0.0
-    
-            factor = 1.0/(1.0 + Q_star*timestep/self.inflow.get_area())
-  
-            # The update is: 
-            #    new_inflow_depth*inflow_area = 
-            #    old_inflow_depth*inflow_area - 
-            #    timestep*Q*(new_inflow_depth/old_inflow_depth)
-            # Note the last term in () is a wet-dry improvement trick
-            new_inflow_depth = old_inflow_depth*factor
+        #semi_implicit = True
+        #if semi_implicit:   
 
-            # For the momentum balance, we note that Q also advects the
-            # momentum, and we keep using the (new_inflow_depth/old_inflow_depth):
-            # factor for consistency with above
-            #     new_inflow_xmom*inflow_area = 
-            #     old_inflow_xmom*inflow_area - 
-            #     timestep*Q*(new_inflow_depth/old_inflow_depth)*new_inflow_xmom
-            # and:
-            #     new_inflow_ymom*inflow_area = 
-            #     old_inflow_ymom*inflow_area - 
-            #     timestep*Q*(new_inflow_depth/old_inflow_depth)*new_inflow_ymom
-            # Here the choice of new_inflow_mom in the final term at the end
-            # could presumably be replaced with old_inflow_mom
-            #
-            factor2 = 1.0/(1.0 + Q_star*timestep*new_inflow_depth/self.inflow.get_area())
-            new_inflow_xmom = old_inflow_xmom*factor2
-            new_inflow_ymom = old_inflow_ymom*factor2
-            
-            self.inflow.set_depths(new_inflow_depth)
-    
-            #inflow.set_xmoms(Q/inflow.get_area())
-            #inflow.set_ymoms(0.0)
-    
-            self.inflow.set_xmoms(new_inflow_xmom)
-            self.inflow.set_ymoms(new_inflow_ymom)
-    
-            loss = (old_inflow_depth - new_inflow_depth)*self.inflow.get_area()
-            xmom_loss = (old_inflow_xmom - new_inflow_xmom)*self.inflow.get_area()
-            ymom_loss = (old_inflow_ymom - new_inflow_ymom)*self.inflow.get_area()
-    
-            # set outflow
-            if old_inflow_depth > 0.0 :
-                timestep_star = timestep*new_inflow_depth/old_inflow_depth
-            else:
-                timestep_star = 0.0
-    
-            outflow_extra_depth = Q*timestep_star/self.outflow.get_area()
-            outflow_direction = - self.outflow.outward_culvert_vector
-            #outflow_extra_momentum = outflow_extra_depth*barrel_speed*outflow_direction
-                
-            gain = outflow_extra_depth*self.outflow.get_area()
-            
-            #print gain, loss
-            assert num.allclose(gain-loss, 0.0)
-                
-            #print Q, Q*timestep, barrel_speed, outlet_depth, Qstar, factor, timestep_star
-            #print '  ', loss, gain
+        # Implement the update of flow over a timestep by
+        # using a semi-implict update. This ensures that
+        # the update does not create a negative depth
+        if old_inflow_depth > 0.0 :
+                dt_Q_on_d = dt*Q/old_inflow_depth
         else:
+                dt_Q_on_d = 0.0
 
-    
-            factor = Q*timestep/self.inflow.get_area()
-    
-            new_inflow_depth = old_inflow_depth - factor
-            new_inflow_xmom = old_inflow_xmom/old_inflow_depth*new_inflow_depth 
-            new_inflow_ymom = old_inflow_ymom/old_inflow_depth*new_inflow_depth
-            self.inflow.set_depths(new_inflow_depth)    
-            self.inflow.set_xmoms(new_inflow_xmom)
-            self.inflow.set_ymoms(new_inflow_ymom)
-    
-    
-            loss = (old_inflow_depth - new_inflow_depth)*self.inflow.get_area()
-    
+        # The depth update is: 
+        #    new_inflow_depth*inflow_area = 
+        #    old_inflow_depth*inflow_area - 
+        #    timestep*Q*(new_inflow_depth/old_inflow_depth)
+        # Note the last term in () is a wet-dry improvement trick
+        #
+        factor = 1.0/(1.0 + dt_Q_on_d/self.inflow.get_area())
+        new_inflow_depth = old_inflow_depth*factor
 
-    
-            outflow_extra_depth = Q*timestep/self.outflow.get_area()
-            outflow_direction = - self.outflow.outward_culvert_vector
-            #outflow_extra_momentum = outflow_extra_depth*barrel_speed*outflow_direction
-                
-            gain = outflow_extra_depth*self.outflow.get_area()
+        # For the momentum balance, note that Q also advects the momentum,
+        # which has an average value of new_inflow_mom (or old_inflow_mom). For
+        # consistency we keep using the (new_inflow_depth/old_inflow_depth)
+        # factor for discharge:
+        #
+        #     new_inflow_xmom*inflow_area = 
+        #     old_inflow_xmom*inflow_area - 
+        #     timestep*Q*(new_inflow_depth/old_inflow_depth)*new_inflow_xmom
+        # and:
+        #     new_inflow_ymom*inflow_area = 
+        #     old_inflow_ymom*inflow_area - 
+        #     timestep*Q*(new_inflow_depth/old_inflow_depth)*new_inflow_ymom
+        #
+        # The choice of new_inflow_mom in the final term at the end might be
+        # replaced with old_inflow_mom
+        #
+        factor2 = 1.0/(1.0 + dt_Q_on_d*new_inflow_depth/self.inflow.get_area())
+        new_inflow_xmom = old_inflow_xmom*factor2
+        new_inflow_ymom = old_inflow_ymom*factor2
+        
+        self.inflow.set_depths(new_inflow_depth)
+
+        #inflow.set_xmoms(Q/inflow.get_area())
+        #inflow.set_ymoms(0.0)
+
+        self.inflow.set_xmoms(new_inflow_xmom)
+        self.inflow.set_ymoms(new_inflow_ymom)
+
+        loss = (old_inflow_depth - new_inflow_depth)*self.inflow.get_area()
+        xmom_loss = (old_inflow_xmom - new_inflow_xmom)*self.inflow.get_area()
+        ymom_loss = (old_inflow_ymom - new_inflow_ymom)*self.inflow.get_area()
+
+        # set outflow
+        if old_inflow_depth > 0.0 :
+            timestep_star = timestep*new_inflow_depth/old_inflow_depth
+        else:
+            timestep_star = 0.0
+
+        outflow_extra_depth = Q*timestep_star/self.outflow.get_area()
+        outflow_direction = - self.outflow.outward_culvert_vector
+        #outflow_extra_momentum = outflow_extra_depth*barrel_speed*outflow_direction
             
-            assert num.allclose(gain-loss, 0.0)
-                
-            #print Q, Q*timestep, barrel_speed, outlet_depth, Qstar, factor, timestep_star
-            #print '  ', loss, gain
-
-    
+        gain = outflow_extra_depth*self.outflow.get_area()
+        
+        #print gain, loss
+        assert num.allclose(gain-loss, 0.0)
+            
         # Stats
         
         self.accumulated_flow += gain
