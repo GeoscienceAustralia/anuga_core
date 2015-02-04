@@ -577,90 +577,90 @@ class RiverWall:
 
         """
 
-        domain=self.domain
+        domain = self.domain
 
         # Preliminary definitions
-        isConnected=True 
-        printInfo='' 
+        isConnected = True 
+        printInfo = '' 
 
         if(len(self.names)==0):
             if(verbose):
-                printInfo=printInfo+'  There are no riverwalls (P'+str(myid)+')\n'
+                printInfo = printInfo+'  There are no riverwalls (P'+str(myid)+')\n'
             return [printInfo, isConnected]
 
         # Shorthand notation
-        rwd=self
+        rwd = self
 
         for i, name in enumerate(rwd.names):
             # Get indices of edges on this riverwall
-            riverwalledgeInds=rwd.riverwall_edges[(rwd.hydraulic_properties_rowIndex==i).nonzero()[0]]
+            riverwalledgeInds = rwd.riverwall_edges[(rwd.hydraulic_properties_rowIndex==i).nonzero()[0]]
 
             if(len(riverwalledgeInds)==0):
-                printInfo=printInfo+'Riverwall '+name+' was not found on this mesh (if this is wrong, adjust tol in create_riverwalls)\n'
+                printInfo = printInfo+'Riverwall '+name+' was not found on this mesh (if this is wrong, adjust tol in create_riverwalls)\n'
                 continue
             # Get their corresponding vertices
             riverwallV1Inds, riverwallV2Inds = rwd.get_vertices_corresponding_to_edgeInds(riverwalledgeInds)
 
             # Flag telling us if vertex points are on the boundary of the model
             # Used to help detect disconnected riverwalls (due to round-off)
-            v1_on_boundary=rwd.is_vertex_on_boundary(riverwallV1Inds)
-            v2_on_boundary=rwd.is_vertex_on_boundary(riverwallV2Inds)
+            v1_on_boundary = rwd.is_vertex_on_boundary(riverwallV1Inds)
+            v2_on_boundary = rwd.is_vertex_on_boundary(riverwallV2Inds)
 
             # With discontinuous triangles, we expect edges to occur twice
             # Let's remove duplicates to simplify the analysis
-            repeat=riverwalledgeInds*0
-            lre=len(riverwalledgeInds)
+            repeat = riverwalledgeInds*0
+            lre = len(riverwalledgeInds)
             # edge coordinates as a complex number, for easy equality checking
-            complex_edge_coordinates=domain.edge_coordinates[riverwalledgeInds,0]+\
-                                     1j*domain.edge_coordinates[riverwalledgeInds,1]
+            complex_edge_coordinates = domain.edge_coordinates[riverwalledgeInds,0]+\
+                                       1j*domain.edge_coordinates[riverwalledgeInds,1]
             for j in range(lre-1):
                 # Ignore if already checked
                 if(repeat[j]==1):
                     continue 
                 # Check for a dupulicate  
-                dups=(complex_edge_coordinates[(j+1):lre]==complex_edge_coordinates[j]).nonzero()[0]
+                dups = (complex_edge_coordinates[(j+1):lre]==complex_edge_coordinates[j]).nonzero()[0]
                 if(len(dups)>0):
-                    repeat[dups+j+1]=1
+                    repeat[dups+j+1] = 1
             
-            unique_riverwall_edge_indices=(repeat==0).nonzero()[0]
+            unique_riverwall_edge_indices = (repeat==0).nonzero()[0]
 
             # Finally, get 'unqiue' edges in the riverwall
-            uEdges=riverwalledgeInds[unique_riverwall_edge_indices]
-            uV1=riverwallV1Inds[unique_riverwall_edge_indices]
-            uV2=riverwallV2Inds[unique_riverwall_edge_indices]
-            uV1_boundary=v1_on_boundary[unique_riverwall_edge_indices]
-            uV2_boundary=v2_on_boundary[unique_riverwall_edge_indices]
+            uEdges = riverwalledgeInds[unique_riverwall_edge_indices]
+            uV1 = riverwallV1Inds[unique_riverwall_edge_indices]
+            uV2 = riverwallV2Inds[unique_riverwall_edge_indices]
+            uV1_boundary = v1_on_boundary[unique_riverwall_edge_indices]
+            uV2_boundary = v2_on_boundary[unique_riverwall_edge_indices]
 
             # Next, count how many times each vertex value occurs. 
             # For a 'connected' riverwall, we only want 2 edges where a vertex occurs only once,
             #   unless the vertex is on the boundary of the domain
-            lure=len(uEdges)
-            complex_v1_coordinates=domain.vertex_coordinates[uV1,0]+\
-                                   1j*domain.vertex_coordinates[uV1,1]
-            complex_v2_coordinates=domain.vertex_coordinates[uV2,0]+\
-                                   1j*domain.vertex_coordinates[uV2,1]
-            v1Counter=uEdges*0
-            v2Counter=uEdges*0
+            lure = len(uEdges)
+            complex_v1_coordinates = domain.vertex_coordinates[uV1,0]+\
+                                     1j*domain.vertex_coordinates[uV1,1]
+            complex_v2_coordinates = domain.vertex_coordinates[uV2,0]+\
+                                     1j*domain.vertex_coordinates[uV2,1]
+            v1Counter = uEdges*0
+            v2Counter = uEdges*0
             for j in range(lure):
-                v1Counter[j]=(complex_v1_coordinates==complex_v1_coordinates[j]).sum()+\
-                             (complex_v2_coordinates==complex_v1_coordinates[j]).sum()
-                v2Counter[j]=(complex_v1_coordinates==complex_v2_coordinates[j]).sum()+\
-                             (complex_v2_coordinates==complex_v2_coordinates[j]).sum()
+                v1Counter[j] = (complex_v1_coordinates==complex_v1_coordinates[j]).sum()+\
+                               (complex_v2_coordinates==complex_v1_coordinates[j]).sum()
+                v2Counter[j] = (complex_v1_coordinates==complex_v2_coordinates[j]).sum()+\
+                               (complex_v2_coordinates==complex_v2_coordinates[j]).sum()
 
-            num_disconnected_edges=((v1Counter==1)*(1-uV1_boundary)).sum()+\
-                                   ((v2Counter==1)*(1-uV2_boundary)).sum()
+            num_disconnected_edges = ((v1Counter==1)*(1-uV1_boundary)).sum()+\
+                                     ((v2Counter==1)*(1-uV2_boundary)).sum()
           
             if(verbose):    
-                printInfo=printInfo+ '  On riverwall '+ str(name) +' there are '+ str(num_disconnected_edges)+\
+                printInfo = printInfo+ '  On riverwall '+ str(name) +' there are '+ str(num_disconnected_edges)+\
                          ' endpoints inside the domain [ignoring points on the boundary polygon] (P'+str(myid)+')\n'
 
-            if(num_disconnected_edges<=2):
+            if(num_disconnected_edges <= 2):
                 if(verbose):
                     pass
                     #printInfo=printInfo+ "  This is consistent with a continuous wall \n"
             else:
-                isConnected=False
-                printInfo=printInfo+'  Riverwall ' + name +' appears to be discontinuous. (P'+str(myid)+')\n'+\
+                isConnected = False
+                printInfo = printInfo + '  Riverwall ' + name +' appears to be discontinuous. (P'+str(myid)+')\n'+\
                     '  This suggests there is a gap in the wall, which should not occur\n'
         
         return [printInfo, isConnected]
@@ -682,7 +682,7 @@ class RiverWall:
         if(output_dir is None):
             return
     
-        if(myid==0):
+        if(myid == 0):
             # Make output directory
             try: 
                 os.mkdir(output_dir)
@@ -690,12 +690,12 @@ class RiverWall:
                 pass
             # Make output files with empty contents
             for i, riverWallFile in enumerate(self.names):
-                newFile=open(output_dir+'/'+os.path.splitext(os.path.basename(riverWallFile))[0]+'.txt','w')
+                newFile=open(output_dir + '/' + os.path.splitext(os.path.basename(riverWallFile))[0] + '.txt','w')
                 # Write hydraulic variable information
                 hydraulicVars=self.hydraulic_properties[i,:]
                 newFile.write('## Hydraulic Variable values below ## \n')
-                newFile.write(str(self.hydraulic_variable_names)+'\n')
-                newFile.write(str(hydraulicVars)+'\n')
+                newFile.write(str(self.hydraulic_variable_names) + '\n')
+                newFile.write(str(hydraulicVars) + '\n')
                 newFile.write('\n')
                 newFile.write('## xyElevation at edges below. Order may be erratic for parallel runs ##\n')
                 newFile.close()
@@ -715,19 +715,19 @@ class RiverWall:
         # Now dump the required info to the files
         for i in range(numprocs):
             # Write 1 processor at a time
-            if(myid==i):
+            if(myid == i):
                 for j, riverWallname in enumerate(self.names):
                     # Get xyz data for riverwall j
-                    riverWallInds=(self.hydraulic_properties_rowIndex==j).nonzero()[0].tolist()
-                    riverWallDomainInds=self.riverwall_edges[riverWallInds].tolist()
-                    myXCoords=domain.edge_coordinates[riverWallDomainInds,0]+domain.geo_reference.xllcorner
-                    myYCoords=domain.edge_coordinates[riverWallDomainInds,1]+domain.geo_reference.yllcorner
-                    myElev=self.riverwall_elevation[riverWallInds]
+                    riverWallInds = (self.hydraulic_properties_rowIndex==j).nonzero()[0].tolist()
+                    riverWallDomainInds = self.riverwall_edges[riverWallInds].tolist()
+                    myXCoords = domain.edge_coordinates[riverWallDomainInds,0] + domain.geo_reference.xllcorner
+                    myYCoords = domain.edge_coordinates[riverWallDomainInds,1] + domain.geo_reference.yllcorner
+                    myElev = self.riverwall_elevation[riverWallInds]
                
                     # Open file for appending data 
-                    theFile=open(output_dir+'/'+os.path.splitext(os.path.basename(riverWallname))[0]+'.txt','a')
+                    theFile = open(output_dir + '/' + os.path.splitext(os.path.basename(riverWallname))[0] + '.txt','a')
                     for k in range(len(myElev)):
-                        theFile.write(str(myXCoords[k])+','+str(myYCoords[k])+','+str(myElev[k])+'\n')
+                        theFile.write(str(myXCoords[k]) + ',' + str(myYCoords[k]) + ',' + str(myElev[k]) + '\n')
                     theFile.close()
                         
             else:

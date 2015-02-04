@@ -35,6 +35,8 @@ class Structure_operator(anuga.Operator):
                  apron=None,
                  manning=None,
                  enquiry_gap=None,
+                 use_momentum_jet=False,
+                 zero_outflow_momentum=True,
                  description=None,
                  label=None,
                  structure_type=None,
@@ -83,6 +85,12 @@ class Structure_operator(anuga.Operator):
         self.apron  = apron
         self.manning = manning
         self.enquiry_gap = enquiry_gap
+        self.use_momentum_jet = use_momentum_jet
+        self.zero_outflow_momentum = zero_outflow_momentum
+
+        if use_momentum_jet and zero_outflow_momentum:
+            msg = "Can't have use_momentum_jet and zero_outflow_momentum both True"
+            raise Exception(msg)
 
         if description == None:
             self.description = ' '
@@ -221,6 +229,8 @@ class Structure_operator(anuga.Operator):
             self.inflow.set_ymoms(new_inflow_ymom)
     
             loss = (old_inflow_depth - new_inflow_depth)*self.inflow.get_area()
+            xmom_loss = (old_inflow_xmom - new_inflow_xmom)*self.inflow.get_area()
+            ymom_loss = (old_inflow_ymom - new_inflow_ymom)*self.inflow.get_area()
     
             # set outflow
             if old_inflow_depth > 0.0 :
@@ -228,12 +238,9 @@ class Structure_operator(anuga.Operator):
             else:
                 timestep_star = 0.0
     
-    
-    
-    
             outflow_extra_depth = Q*timestep_star/self.outflow.get_area()
             outflow_direction = - self.outflow.outward_culvert_vector
-            outflow_extra_momentum = outflow_extra_depth*barrel_speed*outflow_direction
+            #outflow_extra_momentum = outflow_extra_depth*barrel_speed*outflow_direction
                 
             gain = outflow_extra_depth*self.outflow.get_area()
             
@@ -261,7 +268,7 @@ class Structure_operator(anuga.Operator):
     
             outflow_extra_depth = Q*timestep/self.outflow.get_area()
             outflow_direction = - self.outflow.outward_culvert_vector
-            outflow_extra_momentum = outflow_extra_depth*barrel_speed*outflow_direction
+            #outflow_extra_momentum = outflow_extra_depth*barrel_speed*outflow_direction
                 
             gain = outflow_extra_depth*self.outflow.get_area()
             
@@ -274,27 +281,39 @@ class Structure_operator(anuga.Operator):
         # Stats
         
         self.accumulated_flow += gain
-        self.discharge  = outflow_extra_depth*self.outflow.get_area()/timestep #Q
+        self.discharge  = Q*timestep_star/timestep # outflow_extra_depth*self.outflow.get_area()/timestep #Q
         self.velocity =   barrel_speed # self.discharge/outlet_depth/self.width 
         self.outlet_depth = outlet_depth
 
         new_outflow_depth = self.outflow.get_average_depth() + outflow_extra_depth
 
-        if self.use_momentum_jet :
+        self.outflow.set_depths(new_outflow_depth)
+
+        if self.use_momentum_jet:
             # FIXME (SR) Review momentum to account for possible hydraulic jumps at outlet
+            # FIXME (GD) Depending on barrel speed I think this will be either
+            # a source or sink of momentum (considering the momentum losses
+            # above). Might not always be reasonable.
             #new_outflow_xmom = self.outflow.get_average_xmom() + outflow_extra_momentum[0]
             #new_outflow_ymom = self.outflow.get_average_ymom() + outflow_extra_momentum[1]
             new_outflow_xmom = barrel_speed*new_outflow_depth*outflow_direction[0]
             new_outflow_ymom = barrel_speed*new_outflow_depth*outflow_direction[1]
-
-        else:
+            
+        elif self.zero_outflow_momentum:
+            # Default case (FIXME: Should this be default? We lose all the
+            # momentum, often not physically reasonable)
+            new_outflow_xmom = 0.0
+            new_outflow_ymom = 0.0
             #new_outflow_xmom = outflow.get_average_xmom()
             #new_outflow_ymom = outflow.get_average_ymom()
 
-            new_outflow_xmom = 0.0
-            new_outflow_ymom = 0.0
+        else:
+            # Add the momentum lost from the inflow to the outflow. For
+            # structures where barrel_speed is unknown + direction doesn't
+            # change from inflow to outflow
+            new_outflow_xmom = self.outflow.get_average_xmom() + xmom_loss/self.outflow.get_area()
+            new_outflow_ymom = self.outflow.get_average_ymom() + ymom_loss/self.outflow.get_area()
 
-        self.outflow.set_depths(new_outflow_depth)
         self.outflow.set_xmoms(new_outflow_xmom)
         self.outflow.set_ymoms(new_outflow_ymom)
 
@@ -513,7 +532,7 @@ class Structure_operator(anuga.Operator):
         if self.logging:
             self.log_filename = self.label + '.log'
             log_to_file(self.log_filename, self.statistics(), mode='w')
-            log_to_file(self.log_filename, 'time,discharge,velocity,driving_energy,delta_total_energy')
+            log_to_file(self.log_filename, 'time, discharge, velocity, accumulated_flow, driving_energy, delta_total_energy')
 
             #log_to_file(self.log_filename, self.culvert_type)
 
