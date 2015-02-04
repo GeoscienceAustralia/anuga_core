@@ -272,10 +272,9 @@ class Structure_operator(anuga.Operator):
         assert num.allclose(gain-loss, 0.0)
             
         # Stats
-        
         self.accumulated_flow += gain
-        self.discharge  = Q*timestep_star/timestep # outflow_extra_depth*self.outflow.get_area()/timestep #Q
-        self.velocity =   barrel_speed # self.discharge/outlet_depth/self.width 
+        self.discharge  = Q*timestep_star/timestep 
+        self.velocity =   barrel_speed
         self.outlet_depth = outlet_depth
 
         new_outflow_depth = self.outflow.get_average_depth() + outflow_extra_depth
