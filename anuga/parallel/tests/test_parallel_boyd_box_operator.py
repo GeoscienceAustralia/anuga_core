@@ -283,11 +283,29 @@ class Test_parallel_boyd_box_operator(unittest.TestCase):
         #print "Expect this test to fail if not run from the parallel/test directory."
 
         abs_script_name = os.path.abspath(__file__)
-        cmd = "mpirun -np %d python %s" % (nprocs, abs_script_name)
-        result = os.system(cmd)
+        exitstatus = mpi_cmd(nprocs, abs_script_name)
 
-        assert_(result == 0)
+        assert_(exitstatus == 0)
 
+
+def mpi_cmd(nprocs, script_name):
+
+    import os
+    import commands
+
+    (exitstatus, outtext) = commands.getstatusoutput('mpirun -q pwd')
+
+    if exitstatus == 0: # openmpi:
+        PYTHONPATH = os.getenv('PYTHONPATH')
+        cmd = "mpirun -np %d -q -x PYTHONPATH=%s python %s" % (nprocs, PYTHONPATH, script_name)
+    else:               # mpich
+        cmd = "mpirun -np %d python %s" % (nprocs, script_name)
+
+    print cmd
+    (exitstatus, outtext) = commands.getstatusoutput(cmd)
+
+    return exitstatus
+      
 
 # Because we are doing assertions outside of the TestCase class
 # the PyUnit defined assert_ function can't be used.
