@@ -211,7 +211,7 @@ class Structure_operator(anuga.Operator):
         # using a semi-implict update. This ensures that
         # the update does not create a negative depth
         if old_inflow_depth > 0.0 :
-                dt_Q_on_d = dt*Q/old_inflow_depth
+                dt_Q_on_d = timestep*Q/old_inflow_depth
         else:
                 dt_Q_on_d = 0.0
 
