@@ -304,6 +304,11 @@ def mpi_cmd(nprocs, script_name):
     print cmd
     (exitstatus, outtext) = commands.getstatusoutput(cmd)
 
+    print exitstatus
+    print outtext
+
+    
+
     return exitstatus
       
 
