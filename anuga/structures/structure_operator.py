@@ -300,8 +300,6 @@ class Structure_operator(anuga.Operator):
             new_outflow_ymom = barrel_speed*new_outflow_depth*outflow_direction[1]
             
         elif self.zero_outflow_momentum:
-            # Default case (FIXME: Should this be default? We lose all the
-            # momentum, often not physically reasonable)
             new_outflow_xmom = 0.0
             new_outflow_ymom = 0.0
             #new_outflow_xmom = outflow.get_average_xmom()
