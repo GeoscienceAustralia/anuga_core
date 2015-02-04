@@ -238,7 +238,8 @@ def composite_quantity_setting_function(poly_fun_pairs,
                     topography above MSL, and the other defining the topography
                     below MSL). There might be small nan gaps between them,
                     which you would like to fill with interpolation. That
-                    can be done with this option. 
+                    can be done with this option, by including the nan regions
+                    in one of the elevation-dataset-polygons pi.
                 
           @param default_k_nearest_neighbours = integer >=1 . The value of 
                 k_nearest_neighbours passed to
