@@ -37,6 +37,7 @@ class Structure_operator(anuga.Operator):
                  enquiry_gap=None,
                  use_momentum_jet=False,
                  zero_outflow_momentum=True,
+                 use_old_momentum_method=True,
                  description=None,
                  label=None,
                  structure_type=None,
@@ -90,6 +91,7 @@ class Structure_operator(anuga.Operator):
         if use_momentum_jet and zero_outflow_momentum:
             msg = "Can't have use_momentum_jet and zero_outflow_momentum both True"
             raise Exception(msg)
+        self.use_old_momentum_method = use_old_momentum_method
 
 
         if description == None:
@@ -224,25 +226,32 @@ class Structure_operator(anuga.Operator):
         factor = 1.0/(1.0 + dt_Q_on_d/self.inflow.get_area())
         new_inflow_depth = old_inflow_depth*factor
 
-        # For the momentum balance, note that Q also advects the momentum,
-        # which has an average value of new_inflow_mom (or old_inflow_mom). For
-        # consistency we keep using the (new_inflow_depth/old_inflow_depth)
-        # factor for discharge:
-        #
-        #     new_inflow_xmom*inflow_area = 
-        #     old_inflow_xmom*inflow_area - 
-        #     timestep*Q*(new_inflow_depth/old_inflow_depth)*new_inflow_xmom
-        # and:
-        #     new_inflow_ymom*inflow_area = 
-        #     old_inflow_ymom*inflow_area - 
-        #     timestep*Q*(new_inflow_depth/old_inflow_depth)*new_inflow_ymom
-        #
-        # The choice of new_inflow_mom in the final term at the end might be
-        # replaced with old_inflow_mom
-        #
-        factor2 = 1.0/(1.0 + dt_Q_on_d*new_inflow_depth/self.inflow.get_area())
-        new_inflow_xmom = old_inflow_xmom*factor2
-        new_inflow_ymom = old_inflow_ymom*factor2
+        if(self.use_old_momentum_method):
+            # This method is here for consistency with the old version of the
+            # routine
+            new_inflow_xmom = old_inflow_xmom*factor
+            new_inflow_ymom = old_inflow_ymom*factor
+
+        else:
+            # For the momentum balance, note that Q also advects the momentum,
+            # which has an average value of new_inflow_mom (or old_inflow_mom). For
+            # consistency we keep using the (new_inflow_depth/old_inflow_depth)
+            # factor for discharge:
+            #
+            #     new_inflow_xmom*inflow_area = 
+            #     old_inflow_xmom*inflow_area - 
+            #     timestep*Q*(new_inflow_depth/old_inflow_depth)*new_inflow_xmom
+            # and:
+            #     new_inflow_ymom*inflow_area = 
+            #     old_inflow_ymom*inflow_area - 
+            #     timestep*Q*(new_inflow_depth/old_inflow_depth)*new_inflow_ymom
+            #
+            # The choice of new_inflow_mom in the final term at the end might be
+            # replaced with old_inflow_mom
+            #
+            factor2 = 1.0/(1.0 + dt_Q_on_d*new_inflow_depth/self.inflow.get_area())
+            new_inflow_xmom = old_inflow_xmom*factor2
+            new_inflow_ymom = old_inflow_ymom*factor2
         
         self.inflow.set_depths(new_inflow_depth)
 
