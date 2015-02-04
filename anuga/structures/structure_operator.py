@@ -87,10 +87,10 @@ class Structure_operator(anuga.Operator):
         self.enquiry_gap = enquiry_gap
         self.use_momentum_jet = use_momentum_jet
         self.zero_outflow_momentum = zero_outflow_momentum
-
         if use_momentum_jet and zero_outflow_momentum:
             msg = "Can't have use_momentum_jet and zero_outflow_momentum both True"
             raise Exception(msg)
+
 
         if description == None:
             self.description = ' '

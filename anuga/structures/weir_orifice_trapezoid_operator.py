@@ -73,6 +73,9 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
             self.sum_loss = losses
         
         self.use_momentum_jet = use_momentum_jet
+        # Preserves the old default behaviour of zeroing momentum
+        self.zero_outflow_momentum = not self.use_momentum_jet
+
         self.use_velocity_head = use_velocity_head
         
         self.culvert_length = self.get_culvert_length()
