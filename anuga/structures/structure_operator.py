@@ -215,10 +215,30 @@ class Structure_operator(anuga.Operator):
                     Q_star = 0.0
     
             factor = 1.0/(1.0 + Q_star*timestep/self.inflow.get_area())
-    
+  
+            # The update is: 
+            #    new_inflow_depth*inflow_area = 
+            #    old_inflow_depth*inflow_area - 
+            #    timestep*Q*(new_inflow_depth/old_inflow_depth)
+            # Note the last term in () is a wet-dry improvement trick
             new_inflow_depth = old_inflow_depth*factor
-            new_inflow_xmom = old_inflow_xmom*factor
-            new_inflow_ymom = old_inflow_ymom*factor
+
+            # For the momentum balance, we note that Q also advects the
+            # momentum, and we keep using the (new_inflow_depth/old_inflow_depth):
+            # factor for consistency with above
+            #     new_inflow_xmom*inflow_area = 
+            #     old_inflow_xmom*inflow_area - 
+            #     timestep*Q*(new_inflow_depth/old_inflow_depth)*new_inflow_xmom
+            # and:
+            #     new_inflow_ymom*inflow_area = 
+            #     old_inflow_ymom*inflow_area - 
+            #     timestep*Q*(new_inflow_depth/old_inflow_depth)*new_inflow_ymom
+            # Here the choice of new_inflow_mom in the final term at the end
+            # could presumably be replaced with old_inflow_mom
+            #
+            factor2 = 1.0/(1.0 + Q_star*timestep*new_inflow_depth/self.inflow.get_area())
+            new_inflow_xmom = old_inflow_xmom*factor2
+            new_inflow_ymom = old_inflow_ymom*factor2
             
             self.inflow.set_depths(new_inflow_depth)
     
