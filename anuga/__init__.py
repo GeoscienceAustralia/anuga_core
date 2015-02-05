@@ -260,11 +260,13 @@ else:
         from anuga.parallel.parallel_operator_factory import Boyd_box_operator
         from anuga.parallel.parallel_operator_factory import Boyd_pipe_operator
         from anuga.parallel.parallel_operator_factory import Weir_orifice_trapezoid_operator
+        from anuga.parallel.parallel_operator_factory import Internal_boundary_operator
     else:
         from anuga.structures.inlet_operator import Inlet_operator
         from anuga.structures.boyd_box_operator import Boyd_box_operator
         from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator
         from anuga.structures.weir_orifice_trapezoid_operator import Weir_orifice_trapezoid_operator
+        from anuga.structures.internal_boundary_operator import Internal_boundary_operator
 
 
     #----------------------------
