@@ -273,11 +273,11 @@ class Parallel_Structure_operator(anuga.Operator):
             #else:
             #    Q_star = 0.0
             if old_inflow_depth > 0.0 :
-                    dt_Q_on_d = timestep*Q/old_inflow_depth
+                dt_Q_on_d = timestep*Q/old_inflow_depth
             else:
-                    dt_Q_on_d = 0.0
+                dt_Q_on_d = 0.0
 
-            factor = 1.0/(1.0 + Q_star*timestep/inflow_area)
+            factor = 1.0/(1.0 + dt_Q_on_d/self.inflow.get_area())
             new_inflow_depth = old_inflow_depth*factor
 
             #new_inflow_xmom = old_inflow_xmom*factor
