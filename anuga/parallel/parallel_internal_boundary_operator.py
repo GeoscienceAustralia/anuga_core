@@ -112,7 +112,6 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
         # If the structure has been closed, then no water gets through
         if self.height <= 0.0:
             if self.myid == self.master_proc:
-                print 'debug_A'
                 Q = 0.0
                 barrel_velocity = 0.0
                 outlet_culvert_depth = 0.0
@@ -125,7 +124,6 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
 
         #Send attributes of both enquiry points to the master proc
         if self.myid == self.master_proc:
-            print 'debug_B'
 
             if self.myid == self.enquiry_proc[0]:
                 enq_total_energy0 = self.inlets[0].get_enquiry_total_energy()
@@ -154,7 +152,6 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
 
         # Determine the direction of the flow
         if self.myid == self.master_proc:
-            print 'debug_C'
             if self.use_velocity_head:
                 self.delta_total_energy = enq_total_energy0 - enq_total_energy1
                 self.driving_energy = max(enq_total_energy0, enq_total_energy1)
@@ -194,7 +191,6 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
         self.outflow_index = 1
         # master proc orders reversal if applicable
         if self.myid == self.master_proc:
-            print 'debug_D'
 
             # Reverse the inflow and outflow direction?
             if self.smooth_Q < 0.:
@@ -218,7 +214,6 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
 
         # Master proc computes return values
         if self.myid == self.master_proc:
-            print 'debug_E'
             return Q, barrel_velocity, outlet_culvert_depth
         else:
             return None, None, None

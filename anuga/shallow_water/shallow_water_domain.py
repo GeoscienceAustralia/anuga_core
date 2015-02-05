@@ -1428,7 +1428,7 @@ class Domain(Generic_Domain):
             Height = Stage-Elev
             volume = Height.get_integral()
 
-        if numprocs ==1:
+        if numprocs == 1:
             self.volume_history.append(volume) 
             return volume
 
@@ -2243,7 +2243,6 @@ class Domain(Generic_Domain):
             if self.store is True:
                 self.store_timestep()
 
-            
             if self.checkpoint:
                 
                 
@@ -2575,7 +2574,7 @@ class Domain(Generic_Domain):
         If verbose, print a summary
         If returnStats, return a list with the volume statistics
         """
-        from anuga_parallel import myid
+        from anuga import myid
 
         if(self.compute_fluxes_method is not 'DE'):
             if(myid==0):
