@@ -59,11 +59,12 @@ class hecras_internal_boundary_function:
 
         """
 
-        print '########################################'
-        print 'HECRAS INTERNAL BOUNDARY FUNCTION'
-        print 'THIS IS EXPERIMENTAL'
-        print 'SUBJECT TO CHANGE WITHOUT NOTICE'
-        print '########################################'
+        if verbose:
+            print '########################################'
+            print 'HECRAS INTERNAL BOUNDARY FUNCTION'
+            print 'THIS IS EXPERIMENTAL'
+            print 'SUBJECT TO CHANGE WITHOUT NOTICE'
+            print '########################################'
 
 
         internal_boundary_curves = numpy.genfromtxt(
@@ -388,18 +389,20 @@ class pumping_station_function:
         headwater to tailwater. 
     """
 
-    def __init__(self, pump_capacity, hw_to_start_pumping):
+    def __init__(self, pump_capacity, hw_to_start_pumping, verbose=True):
         """
             @param pump_capacity m^3/s
 
         """
         self.pump_capacity = pump_capacity
         self.hw_to_start_pumping = hw_to_start_pumping
-        print '########################################'
-        print 'PUMPING STATION FUNCTION'
-        print 'THIS IS EXPERIMENTAL'
-        print 'SUBJECT TO CHANGE WITHOUT NOTICE'
-        print '########################################'
+
+        if verbose:
+            print '########################################'
+            print 'PUMPING STATION FUNCTION'
+            print 'THIS IS EXPERIMENTAL'
+            print 'SUBJECT TO CHANGE WITHOUT NOTICE'
+            print '########################################'
 
 
     def __call__(self, hw_in, tw_in):

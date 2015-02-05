@@ -45,13 +45,14 @@ class Internal_boundary_operator(anuga.Structure_operator):
                  label=None,
                  structure_type='internal_boundary',
                  logging=False,
-                 verbose=False):
+                 verbose=True):
 
-        print '########################################'
-        print 'INTERNAL BOUNDARY OPERATOR'
-        print 'THIS IS EXPERIMENTAL'
-        print 'SUBJECT TO CHANGE WITHOUT NOTICE'
-        print '########################################'
+        if verbose:
+            print '########################################'
+            print 'INTERNAL BOUNDARY OPERATOR'
+            print 'THIS IS EXPERIMENTAL'
+            print 'SUBJECT TO CHANGE WITHOUT NOTICE'
+            print '########################################'
 
         if invert_elevation is None:
             raise Exception('Must provide a single invert elevation')

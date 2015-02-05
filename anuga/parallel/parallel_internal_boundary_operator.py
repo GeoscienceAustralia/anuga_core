@@ -30,18 +30,19 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
                  label=None,
                  structure_type='internal_boundary',
                  logging=False,
-                 verbose=False,
+                 verbose=True,
                  master_proc = 0,
                  procs = None,
                  inlet_master_proc = [0,0],
                  inlet_procs = None,
                  enquiry_proc = [0,0]):
 
-        print '########################################'
-        print 'PARALLEL INTERNAL BOUNDARY OPERATOR'
-        print 'THIS IS EXPERIMENTAL'
-        print 'SUBJECT TO CHANGE WITHOUT NOTICE'
-        print '########################################'
+        if verbose:
+            print '########################################'
+            print 'PARALLEL INTERNAL BOUNDARY OPERATOR'
+            print 'THIS IS EXPERIMENTAL'
+            print 'SUBJECT TO CHANGE WITHOUT NOTICE'
+            print '########################################'
 
         # Since no barrel_velocity is computed we cannot use_momentum_jet
         use_momentum_jet = False
