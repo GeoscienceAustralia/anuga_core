@@ -440,13 +440,21 @@ def csv2timeseries_graphs(directories_dic={},
               <output_dir><base_name><plot_number><extra_plot_name>.png
     """
 
-    try: 
-        import pylab
-    except ImportError:
-        msg='csv2timeseries_graphs needs pylab to be installed correctly'
-        raise Exception(msg)
-            #ANUGA don't need pylab to work so the system doesn't 
-            #rely on pylab being installed 
+#     try: 
+#         import pylab
+#     except ImportError:
+#         msg='csv2timeseries_graphs needs pylab to be installed correctly'
+#         raise Exception(msg)
+#             #ANUGA don't need pylab to work so the system doesn't 
+#             #rely on pylab being installed 
+#         return
+    
+    try:
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as pylab
+    except:
+        #print "Couldn't import module from matplotlib, probably you need to update matplotlib"
         return
 
     from os import sep
@@ -543,7 +551,7 @@ def csv2timeseries_graphs(directories_dic={},
 
                 #add tide to stage if provided
                 if quantity == 'stage':
-                     quantity_value[quantity] = num.array(quantity_value[quantity],
+                    quantity_value[quantity] = num.array(quantity_value[quantity],
                                                           num.float) + directory_add_tide
 
                 #condition to find max and mins for all the plots

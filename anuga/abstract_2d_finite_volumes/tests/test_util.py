@@ -1478,68 +1478,76 @@ class Test_Util(unittest.TestCase):
         
     def test_make_plots_from_csv_files(self):
         
-        #if sys.platform == 'win32':  #Windows
-            try: 
-                import pylab
-            except ImportError:
-                #ANUGA don't need pylab to work so the system doesn't 
-                #rely on pylab being installed 
-                return
-            
+#         #if sys.platform == 'win32':  #Windows
+#         try: 
+#             import pylab
+#         except ImportError:
+#             #ANUGA don't need pylab to work so the system doesn't 
+#             #rely on pylab being installed 
+#             return
         
-            current_dir=getcwd()+sep+'abstract_2d_finite_volumes'
-            temp_dir = tempfile.mkdtemp('','figures')
-    #        print 'temp_dir',temp_dir
-            fileName = temp_dir+sep+'time_series_3.csv'
-            file = open(fileName,"w")
-            file.write("time,stage,speed,momentum,elevation\n\
+        try:
+            import matplotlib
+            matplotlib.use('Agg')
+            import matplotlib.pyplot as plt
+        except:
+            #print "Couldn't import module from matplotlib, probably you need to update matplotlib"
+            return
+        
+    
+        current_dir=getcwd()+sep+'abstract_2d_finite_volumes'
+        temp_dir = tempfile.mkdtemp('','tmp_figures')
+#        print 'temp_dir',temp_dir
+        fileName = temp_dir+sep+'time_series_3.csv'
+        fid = open(fileName,"w")
+        fid.write("time,stage,speed,momentum,elevation\n\
 1.0, 0, 0, 0, 10 \n\
 2.0, 5, 2, 4, 10 \n\
 3.0, 3, 3, 5, 10 \n")
-            file.close()
-    
-            fileName1 = temp_dir+sep+'time_series_4.csv'
-            file1 = open(fileName1,"w")
-            file1.write("time,stage,speed,momentum,elevation\n\
+        fid.close()
+
+        fileName1 = temp_dir+sep+'time_series_4.csv'
+        fid1 = open(fileName1,"w")
+        fid1.write("time,stage,speed,momentum,elevation\n\
 1.0, 0, 0, 0, 5 \n\
 2.0, -5, -2, -4, 5 \n\
 3.0, -4, -3, -5, 5 \n")
-            file1.close()
-    
-            fileName2 = temp_dir+sep+'time_series_5.csv'
-            file2 = open(fileName2,"w")
-            file2.write("time,stage,speed,momentum,elevation\n\
+        fid1.close()
+
+        fileName2 = temp_dir+sep+'time_series_5.csv'
+        fid2 = open(fileName2,"w")
+        fid2.write("time,stage,speed,momentum,elevation\n\
 1.0, 0, 0, 0, 7 \n\
 2.0, 4, -0.45, 57, 7 \n\
 3.0, 6, -0.5, 56, 7 \n")
-            file2.close()
-            
-            dir, name=os.path.split(fileName)
-            csv2timeseries_graphs(directories_dic={dir:['gauge', 0, 0]},
-                                  output_dir=temp_dir,
-                                  base_name='time_series_',
-                                  plot_numbers=['3-5'],
-                                  quantities=['speed','stage','momentum'],
-                                  assess_all_csv_files=True,
-                                  extra_plot_name='test')
-            
-            #print dir+sep+name[:-4]+'_stage_test.png'
-            assert(access(dir+sep+name[:-4]+'_stage_test.png',F_OK)==True)
-            assert(access(dir+sep+name[:-4]+'_speed_test.png',F_OK)==True)
-            assert(access(dir+sep+name[:-4]+'_momentum_test.png',F_OK)==True)
-    
-            dir1, name1=os.path.split(fileName1)
-            assert(access(dir+sep+name1[:-4]+'_stage_test.png',F_OK)==True)
-            assert(access(dir+sep+name1[:-4]+'_speed_test.png',F_OK)==True)
-            assert(access(dir+sep+name1[:-4]+'_momentum_test.png',F_OK)==True)
-    
-    
-            dir2, name2=os.path.split(fileName2)
-            assert(access(dir+sep+name2[:-4]+'_stage_test.png',F_OK)==True)
-            assert(access(dir+sep+name2[:-4]+'_speed_test.png',F_OK)==True)
-            assert(access(dir+sep+name2[:-4]+'_momentum_test.png',F_OK)==True)
-    
-            del_dir(temp_dir)
+        fid2.close()
+        
+        dir, name=os.path.split(fileName)
+        csv2timeseries_graphs(directories_dic={dir:['gauge', 0, 0]},
+                              output_dir=temp_dir,
+                              base_name='time_series_',
+                              plot_numbers=['3-5'],
+                              quantities=['speed','stage','momentum'],
+                              assess_all_csv_files=True,
+                              extra_plot_name='test')
+        
+        #print dir+sep+name[:-4]+'_stage_test.png'
+        assert(access(dir+sep+name[:-4]+'_stage_test.png',F_OK)==True)
+        assert(access(dir+sep+name[:-4]+'_speed_test.png',F_OK)==True)
+        assert(access(dir+sep+name[:-4]+'_momentum_test.png',F_OK)==True)
+
+        dir1, name1=os.path.split(fileName1)
+        assert(access(dir+sep+name1[:-4]+'_stage_test.png',F_OK)==True)
+        assert(access(dir+sep+name1[:-4]+'_speed_test.png',F_OK)==True)
+        assert(access(dir+sep+name1[:-4]+'_momentum_test.png',F_OK)==True)
+
+
+        dir2, name2=os.path.split(fileName2)
+        assert(access(dir+sep+name2[:-4]+'_stage_test.png',F_OK)==True)
+        assert(access(dir+sep+name2[:-4]+'_speed_test.png',F_OK)==True)
+        assert(access(dir+sep+name2[:-4]+'_momentum_test.png',F_OK)==True)
+
+        del_dir(temp_dir)
         
 
 

@@ -1,8 +1,10 @@
 language: python
+virtualenv:
+  system_site_packages: true
 env:
-matrix:
-- PYTHON_VERSION="2.7"
-- PYTHON_VERSION="2.6"
+  matrix:
+    - PYTHON_VERSION="2.7"
+    - PYTHON_VERSION="2.6"
 install:
   - sudo apt-get update
   # You may want to periodically update this, although the conda update
@@ -18,14 +20,15 @@ install:
   - conda update -q conda
   # Useful for debugging any issues with conda
   - conda info -a
+  # More debugging
+  - printenv
 
   # Conda dependencies
-  - conda create -q -n test-environment python="$PYTHON_VERSION" scipy gdal netcdf4 nose matplotlib
+  - conda create -n test-environment --yes python=$PYTHON_VERSION numpy scipy gdal geos netcdf4 nose matplotlib
   - source activate test-environment
+  - conda install -c https://conda.binstar.org/pingucarsti gdal-data
   # python 2.6 doesn't have argparse by default
-  - if [[ "$PYTHON_VERSION" == "2.6" ]]; then
-      conda install argparse
-    fi
+  - if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install argparse; fi
   - python setup.py install
 
 script:

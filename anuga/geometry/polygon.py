@@ -723,8 +723,14 @@ def plot_polygons(polygons_points,
     """
        
 
-    from matplotlib.pyplot import hold, plot, savefig, xlabel, \
+
+    try:
+        import matplotlib
+        matplotlib.use('Agg')
+        from matplotlib.pyplot import hold, plot, savefig, xlabel, \
                     ylabel, title, close, title, fill
+    except:
+        return
 
     assert type(polygons_points) == list, \
                 'input must be a list of polygons and/or points'
@@ -779,6 +785,7 @@ def plot_polygons(polygons_points,
 
     #ioff()
     hold(False)
+    
     close('all')
 
 

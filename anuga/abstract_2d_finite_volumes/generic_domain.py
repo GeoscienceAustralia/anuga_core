@@ -538,7 +538,7 @@ class Generic_Domain:
             self.CFL = cfl
             msg = 'Setting CFL > 2.0'
             #warnings.warn(msg)
-            log.warn()
+            log.warning(msg)
 
         assert cfl > 0.0
         self.CFL = cfl
@@ -1448,7 +1448,7 @@ class Generic_Domain:
         if n > 0:
             triang = num.array(range(0,3*n))
             triang.shape = (n, 3)
-            plt.triplot(gx, g, triang, 'b--')
+            plt.triplot(gx, gy, triang, 'b--')
 
         # Save triangulation to location pointed by filename
         plt.savefig(filename)
