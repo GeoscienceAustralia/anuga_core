@@ -7,28 +7,37 @@ env:
     - PYTHON_VERSION="2.6"
 install:
   - sudo apt-get update
-  # You may want to periodically update this, although the conda update
-  # conda line below will keep everything up-to-date.  We do this
-  # conditionally because it saves us some downloading if the version is
-  # the same.
+  - sudo apt-get install gfortran
+
+  # Deactivate the travis-provided virtual environment and setup a
+  # conda-based environment instead
   - deactivate
-  - wget http://repo.continuum.io/miniconda/Miniconda-3.4.2-Linux-x86_64.sh -O miniconda.sh;
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
+  - wget http://repo.continuum.io/miniconda/Miniconda-3.8.3-Linux-x86_64.sh \
+       -O miniconda.sh
+  - chmod +x miniconda.sh && ./miniconda.sh -b
+  - export PATH=/home/travis/miniconda/bin:$PATH
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
+
   # Useful for debugging any issues with conda
   - conda info -a
   # More debugging
   - printenv
 
   # Conda dependencies
-  - conda create -n test-environment --yes python=$PYTHON_VERSION numpy scipy gdal geos netcdf4 nose matplotlib
-  - source activate test-environment
-  - conda install -c https://conda.binstar.org/pingucarsti gdal-data
+  - conda create -n testenv --yes python=$PYTHON_VERSION \
+        numpy scipy netcdf4 nose matplotlib
+  - source activate testenv
+
+  - python --version
+  # Get GDAL from the PinguCarsti binstar channel.
+  - conda install -c pingucarsti gdal geos gdal-data
+  - export GDAL_DATA=`gdal-config --datadir`
+
   # python 2.6 doesn't have argparse by default
   - if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install argparse; fi
+
+
   - python setup.py install
 
 script:
