@@ -333,6 +333,8 @@ class Parallel_Structure_operator(anuga.Operator):
             outflow_area = self.inlets[self.outflow_index].get_global_area()
             outflow_average_depth = self.inlets[self.outflow_index].get_global_average_depth()
             outflow_outward_culvert_vector = self.inlets[self.outflow_index].outward_culvert_vector
+            outflow_average_xmom = self.inlets[self.outflow_index].get_global_average_xmom()
+            outflow_average_ymom = self.inlets[self.outflow_index].get_global_average_ymom()
 
         # Master proc of outflow inlet sends attribute to master proc of structure
         if self.myid == self.master_proc:
@@ -340,10 +342,14 @@ class Parallel_Structure_operator(anuga.Operator):
                 outflow_area = pypar.receive(self.inlet_master_proc[self.outflow_index])
                 outflow_average_depth = pypar.receive(self.inlet_master_proc[self.outflow_index])
                 outflow_outward_culvert_vector = pypar.receive(self.inlet_master_proc[self.outflow_index])
+                outflow_average_xmom = pypar.receive(self.inlet_master_proc[self.outflow_index])
+                outflow_average_ymom = pypar.receive(self.inlet_master_proc[self.outflow_index])
         elif self.myid == self.inlet_master_proc[self.outflow_index]:
             pypar.send(outflow_area, self.master_proc)
             pypar.send(outflow_average_depth, self.master_proc)
             pypar.send(outflow_outward_culvert_vector, self.master_proc)
+            pypar.send(outflow_average_xmom, self.master_proc)
+            pypar.send(outflow_average_ymom, self.master_proc)
 
         # Master proc of structure computes new outflow attributes
         if self.myid == self.master_proc:
@@ -403,8 +409,8 @@ class Parallel_Structure_operator(anuga.Operator):
                 # Add the momentum lost from the inflow to the outflow. For
                 # structures where barrel_speed is unknown + direction doesn't
                 # change from inflow to outflow
-                new_outflow_xmom = self.outflow.get_average_xmom() + xmom_loss/outflow_area
-                new_outflow_ymom = self.outflow.get_average_ymom() + ymom_loss/outflow_area
+                new_outflow_xmom = outflow_average_xmom + xmom_loss/outflow_area
+                new_outflow_ymom = outflow_average_ymom + ymom_loss/outflow_area
 
             # master proc of structure sends outflow attributes to all outflow procs
             for i in self.inlet_procs[self.outflow_index]:
