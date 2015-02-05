@@ -85,18 +85,19 @@ class Test_Domain(unittest.TestCase):
             raise Exception, msg
 
 
-        domain.set_CFL(3.0)
+        #
 
-        import sys
-        # Drop this test if python version < 2.7
-        if sys.version_info[0] > 1 and sys.version_info[1]>6:
-            try:
-                domain.set_CFL(3.0)
-            except:
-                pass
-            else:
-                msg = 'Should have warned of cfl>2.0'
-                raise Exception, msg
+        # Make CFL > 2 warning an error
+        import warnings
+        warnings.simplefilter("error")
+
+        try:
+            domain.set_CFL(3.0)
+        except:
+            pass
+        else:
+            msg = 'Should have warned of cfl>2.0'
+            raise Exception, msg
 
         assert domain.CFL == 3.0
         

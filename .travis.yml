@@ -12,8 +12,7 @@ install:
   # Deactivate the travis-provided virtual environment and setup a
   # conda-based environment instead
   - deactivate
-  - wget http://repo.continuum.io/miniconda/Miniconda-3.8.3-Linux-x86_64.sh \
-       -O miniconda.sh
+  - wget http://repo.continuum.io/miniconda/Miniconda-3.8.3-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh && ./miniconda.sh -b
   - export PATH=/home/travis/miniconda/bin:$PATH
   - conda config --set always_yes yes --set changeps1 no
@@ -25,8 +24,7 @@ install:
   - printenv
 
   # Conda dependencies
-  - conda create -n testenv --yes python=$PYTHON_VERSION \
-        numpy scipy netcdf4 nose matplotlib
+  - conda create -n testenv --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 nose matplotlib
   - source activate testenv
 
   - python --version
@@ -34,9 +32,11 @@ install:
   - conda install -c pingucarsti gdal geos gdal-data
   - export GDAL_DATA=`gdal-config --datadir`
 
+  # Install more software to deal with geographical projections
+  - pip install pyproj
+
   # python 2.6 doesn't have argparse by default
   - if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install argparse; fi
-
 
   - python setup.py install
 

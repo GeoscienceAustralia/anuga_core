@@ -12,7 +12,7 @@ def configuration(parent_package='',top_path=None):
     
     config = Configuration('alpha_shape', parent_package, top_path)
 
-    config.add_data_dir('test')
+    config.add_data_dir('tests')
 
     return config
     

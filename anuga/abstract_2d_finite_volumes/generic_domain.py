@@ -537,8 +537,9 @@ class Generic_Domain:
         if cfl > 2.0:
             self.CFL = cfl
             msg = 'Setting CFL > 2.0'
-            #warnings.warn(msg)
-            log.warning(msg)
+            import warnings
+            warnings.warn(msg)
+            #log.warning(msg)
 
         assert cfl > 0.0
         self.CFL = cfl

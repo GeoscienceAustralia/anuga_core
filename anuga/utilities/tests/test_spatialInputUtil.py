@@ -11,6 +11,7 @@ import unittest
 import anuga
 import numpy
 import os
+import sys
 from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.utilities import plot_utils as util
 from anuga.config import g
@@ -157,6 +158,9 @@ class Test_spatialInputUtil(unittest.TestCase):
     def test_ListPts2Wbk_conversion(self):
         # Test conversion to-from Wkb
 
+        # Only run test if python >= 2.7
+        if sys.hexversion < 0x02070000: return
+
         seg=[ [0., -2., 1.], [100., -100., 2.], [10., 8., 3.], [0., -2., 1.]] 
         seg_Wkb=su.ListPts2Wkb(seg,geometry_type='line')    
         seg_Wkb_List=su.Wkb2ListPts(seg_Wkb)
@@ -227,6 +231,11 @@ class Test_spatialInputUtil(unittest.TestCase):
     def test_addIntersectionPtsToLines(self):
         #
         # Make an intersection, check it works
+
+        # Only run if python >= 2.7
+        if sys.hexversion < 0x02070000: return
+        
+        
         seg1=[ [-10., 0.], [10., 0.]]
         seg2=[ [0., -10.], [0., 10.]]
         
@@ -360,6 +369,9 @@ class Test_spatialInputUtil(unittest.TestCase):
         return
 
     def test_add_intersections_to_domain_features(self):
+
+        # Only run test if python >= 2.7
+        if sys.hexversion < 0x02070000: return
 
         bounding_polygon=[ [0., 0.], [0., 10.], [10., 10.], [10., 0.]]
 
