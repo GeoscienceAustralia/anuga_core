@@ -277,7 +277,7 @@ class Parallel_Structure_operator(anuga.Operator):
             else:
                 dt_Q_on_d = 0.0
 
-            factor = 1.0/(1.0 + dt_Q_on_d/self.inflow.get_area())
+            factor = 1.0/(1.0 + dt_Q_on_d/inflow_area)
             new_inflow_depth = old_inflow_depth*factor
 
             #new_inflow_xmom = old_inflow_xmom*factor
@@ -305,7 +305,7 @@ class Parallel_Structure_operator(anuga.Operator):
                 # The choice of new_inflow_mom in the final term at the end might be
                 # replaced with old_inflow_mom
                 #
-                factor2 = 1.0/(1.0 + dt_Q_on_d*new_inflow_depth/self.inflow.get_area())
+                factor2 = 1.0/(1.0 + dt_Q_on_d*new_inflow_depth/inflow_area)
                 new_inflow_xmom = old_inflow_xmom*factor2
                 new_inflow_ymom = old_inflow_ymom*factor2
 
@@ -348,8 +348,8 @@ class Parallel_Structure_operator(anuga.Operator):
         # Master proc of structure computes new outflow attributes
         if self.myid == self.master_proc:
             loss = (old_inflow_depth - new_inflow_depth)*inflow_area
-            xmom_loss = (old_inflow_xmom - new_inflow_xmom)*self.inflow.get_area()
-            ymom_loss = (old_inflow_ymom - new_inflow_ymom)*self.inflow.get_area()
+            xmom_loss = (old_inflow_xmom - new_inflow_xmom)*inflow_area
+            ymom_loss = (old_inflow_ymom - new_inflow_ymom)*inflow_area
 
             # set outflow
             if old_inflow_depth > 0.0 :
@@ -403,8 +403,8 @@ class Parallel_Structure_operator(anuga.Operator):
                 # Add the momentum lost from the inflow to the outflow. For
                 # structures where barrel_speed is unknown + direction doesn't
                 # change from inflow to outflow
-                new_outflow_xmom = self.outflow.get_average_xmom() + xmom_loss/self.outflow.get_area()
-                new_outflow_ymom = self.outflow.get_average_ymom() + ymom_loss/self.outflow.get_area()
+                new_outflow_xmom = self.outflow.get_average_xmom() + xmom_loss/outflow_area
+                new_outflow_ymom = self.outflow.get_average_ymom() + ymom_loss/outflow_area
 
             # master proc of structure sends outflow attributes to all outflow procs
             for i in self.inlet_procs[self.outflow_index]:
