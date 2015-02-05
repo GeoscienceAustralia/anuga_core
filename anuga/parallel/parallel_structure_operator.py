@@ -48,6 +48,9 @@ class Parallel_Structure_operator(anuga.Operator):
                  apron,
                  manning,
                  enquiry_gap,
+                 use_momentum_jet,
+                 zero_outflow_momentum,
+                 use_old_momentum_method,
                  description,
                  label,
                  structure_type,
@@ -116,6 +119,12 @@ class Parallel_Structure_operator(anuga.Operator):
         self.apron  = apron
         self.manning = manning
         self.enquiry_gap = enquiry_gap
+        self.use_momentum_jet = use_momentum_jet
+        self.zero_outflow_momentum = zero_outflow_momentum
+        if use_momentum_jet and zero_outflow_momentum:
+            msg = "Can't have use_momentum_jet and zero_outflow_momentum both True"
+            raise Exception(msg)
+        self.use_old_momentum_method = use_old_momentum_method
 
         if description == None:
             self.description = ' '
@@ -259,16 +268,46 @@ class Parallel_Structure_operator(anuga.Operator):
         
         # Master proc of structure only
         if self.myid == self.master_proc:
+            #if old_inflow_depth > 0.0 :
+            #    Q_star = Q/old_inflow_depth
+            #else:
+            #    Q_star = 0.0
             if old_inflow_depth > 0.0 :
-                Q_star = Q/old_inflow_depth
+                    dt_Q_on_d = timestep*Q/old_inflow_depth
             else:
-                Q_star = 0.0
+                    dt_Q_on_d = 0.0
 
             factor = 1.0/(1.0 + Q_star*timestep/inflow_area)
-
             new_inflow_depth = old_inflow_depth*factor
-            new_inflow_xmom = old_inflow_xmom*factor
-            new_inflow_ymom = old_inflow_ymom*factor
+
+            #new_inflow_xmom = old_inflow_xmom*factor
+            #new_inflow_ymom = old_inflow_ymom*factor
+            if(self.use_old_momentum_method):
+                # This method is here for consistency with the old version of the
+                # routine
+                new_inflow_xmom = old_inflow_xmom*factor
+                new_inflow_ymom = old_inflow_ymom*factor
+
+            else:
+                # For the momentum balance, note that Q also advects the momentum,
+                # which has an average value of new_inflow_mom (or old_inflow_mom). For
+                # consistency we keep using the (new_inflow_depth/old_inflow_depth)
+                # factor for discharge:
+                #
+                #     new_inflow_xmom*inflow_area = 
+                #     old_inflow_xmom*inflow_area - 
+                #     timestep*Q*(new_inflow_depth/old_inflow_depth)*new_inflow_xmom
+                # and:
+                #     new_inflow_ymom*inflow_area = 
+                #     old_inflow_ymom*inflow_area - 
+                #     timestep*Q*(new_inflow_depth/old_inflow_depth)*new_inflow_ymom
+                #
+                # The choice of new_inflow_mom in the final term at the end might be
+                # replaced with old_inflow_mom
+                #
+                factor2 = 1.0/(1.0 + dt_Q_on_d*new_inflow_depth/self.inflow.get_area())
+                new_inflow_xmom = old_inflow_xmom*factor2
+                new_inflow_ymom = old_inflow_ymom*factor2
 
         # Master proc of structure sends new inflow attributes to all inflow inlet processors
 
@@ -309,6 +348,8 @@ class Parallel_Structure_operator(anuga.Operator):
         # Master proc of structure computes new outflow attributes
         if self.myid == self.master_proc:
             loss = (old_inflow_depth - new_inflow_depth)*inflow_area
+            xmom_loss = (old_inflow_xmom - new_inflow_xmom)*self.inflow.get_area()
+            ymom_loss = (old_inflow_ymom - new_inflow_ymom)*self.inflow.get_area()
 
             # set outflow
             if old_inflow_depth > 0.0 :
@@ -318,7 +359,7 @@ class Parallel_Structure_operator(anuga.Operator):
 
             outflow_extra_depth = Q*timestep_star/outflow_area
             outflow_direction = - outflow_outward_culvert_vector
-            outflow_extra_momentum = outflow_extra_depth*barrel_speed*outflow_direction
+            #outflow_extra_momentum = outflow_extra_depth*barrel_speed*outflow_direction
             
             gain = outflow_extra_depth*outflow_area
 
@@ -328,20 +369,42 @@ class Parallel_Structure_operator(anuga.Operator):
 
             new_outflow_depth = outflow_average_depth + outflow_extra_depth
 
-            if self.use_momentum_jet :
-                # FIXME (SR) Review momentum to account for possible hydraulic jumps at outlet
-                #new_outflow_xmom = outflow.get_average_xmom() + outflow_extra_momentum[0]
-                #new_outflow_ymom = outflow.get_average_ymom() + outflow_extra_momentum[1]
+            #if self.use_momentum_jet :
+            #    # FIXME (SR) Review momentum to account for possible hydraulic jumps at outlet
+            #    #new_outflow_xmom = outflow.get_average_xmom() + outflow_extra_momentum[0]
+            #    #new_outflow_ymom = outflow.get_average_ymom() + outflow_extra_momentum[1]
 
+            #    new_outflow_xmom = barrel_speed*new_outflow_depth*outflow_direction[0]
+            #    new_outflow_ymom = barrel_speed*new_outflow_depth*outflow_direction[1]
+
+            #else:
+            #    #new_outflow_xmom = outflow.get_average_xmom()
+            #    #new_outflow_ymom = outflow.get_average_ymom()
+
+            #    new_outflow_xmom = 0.0
+            #    new_outflow_ymom = 0.0
+            if self.use_momentum_jet:
+                # FIXME (SR) Review momentum to account for possible hydraulic jumps at outlet
+                # FIXME (GD) Depending on barrel speed I think this will be either
+                # a source or sink of momentum (considering the momentum losses
+                # above). Might not always be reasonable.
+                #new_outflow_xmom = self.outflow.get_average_xmom() + outflow_extra_momentum[0]
+                #new_outflow_ymom = self.outflow.get_average_ymom() + outflow_extra_momentum[1]
                 new_outflow_xmom = barrel_speed*new_outflow_depth*outflow_direction[0]
                 new_outflow_ymom = barrel_speed*new_outflow_depth*outflow_direction[1]
-
-            else:
+                
+            elif self.zero_outflow_momentum:
+                new_outflow_xmom = 0.0
+                new_outflow_ymom = 0.0
                 #new_outflow_xmom = outflow.get_average_xmom()
                 #new_outflow_ymom = outflow.get_average_ymom()
 
-                new_outflow_xmom = 0.0
-                new_outflow_ymom = 0.0
+            else:
+                # Add the momentum lost from the inflow to the outflow. For
+                # structures where barrel_speed is unknown + direction doesn't
+                # change from inflow to outflow
+                new_outflow_xmom = self.outflow.get_average_xmom() + xmom_loss/self.outflow.get_area()
+                new_outflow_ymom = self.outflow.get_average_ymom() + ymom_loss/self.outflow.get_area()
 
             # master proc of structure sends outflow attributes to all outflow procs
             for i in self.inlet_procs[self.outflow_index]:

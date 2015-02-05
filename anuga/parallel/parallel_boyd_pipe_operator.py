@@ -57,6 +57,9 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                                           apron=apron,
                                           manning=manning,
                                           enquiry_gap=enquiry_gap,
+                                          use_momentum_jet=use_momentum_jet,
+                                          zero_outflow_momentum=(not use_momentum_jet),
+                                          use_old_momentum_method=True,
                                           description=description,
                                           label=label,
                                           structure_type=structure_type,
@@ -76,6 +79,8 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
             self.sum_loss = losses
         
         self.use_momentum_jet = use_momentum_jet
+        self.zero_outflow_momentum = (not use_momentum_jet)
+        self.use_old_momentum_method = True
         self.use_velocity_head = use_velocity_head
         
         self.culvert_length = self.get_culvert_length()
