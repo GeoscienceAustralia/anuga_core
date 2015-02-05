@@ -9,7 +9,7 @@ import warnings
 from os import sep
 
 import anuga
-import okada_tsunami
+import anuga.tsunami_source.okada_tsunami as okada_tsunami
 import numpy
 from anuga.utilities.system_tools import get_pathname_from_package
 
@@ -377,7 +377,7 @@ class Test_okada_tsunami(unittest.TestCase):
         
         ## Now read the same event from an octave code, which is completely
         ## independent of this one (i.e. they don't call okada's fortran)
-        path=get_pathname_from_package('anuga.shallow_water')
+        path=get_pathname_from_package('anuga.tsunami_source')
         octave=numpy.genfromtxt(path+sep+'okada_tsunami_octave_95.txt')
         octave_asvec=numpy.transpose(octave).reshape((1,101*101))
 
