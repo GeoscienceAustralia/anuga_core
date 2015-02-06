@@ -228,6 +228,12 @@ domain.set_boundary({'left': Br,
                      'chan_out': Bout_tmss, 
                      'chan_in': Br})
 
+#------------------------------------------------------------------------------
+# Produce a documentation of parameters
+#------------------------------------------------------------------------------
+from anuga.validation_utilities import save_parameters_tex
+save_parameters_tex(domain)
+
 
 #------------------------------------------------------------------------------
 #

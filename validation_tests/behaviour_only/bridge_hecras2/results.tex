@@ -1,20 +1,22 @@
-\section{Bridges in HECRAS and \anuga{} (using internal boundary operators)}
+\section{Bridges in HECRAS and \anuga{} using an internal boundary operator}
 This test compares a prismatic channel flow with a bridge in HECRAS and ANUGA.
 A 10m wide, 1000m long channel (slope of 1/200, bankfull depth of 1m,
 rectangular cross-section) flows through a floodplain (10m wide on either side
 of the channel) (Figure~\ref{schematic}). 500m downstream there is a bridge
 with a 1.3m high rectangular opening over the channel, and a deck elevation of
--1m. In HECRAS the bridge is modelled using the enegy method, see the
+-1m. In HECRAS the bridge is modelled using the energy method, see the
 associated HECRAS files for details. In ANUGA the bridge is modelled by
 inserting the bridge deck (upper chord) into the topography, with an internal
-boundary operator to describe the bridge underflow. The rating curves were
-derived from HECRAS by raising the upper chord of the bridge (far about the
-flow) and computing internal boundary tables.  The bridge overflow in ANUGA is
-modelled with the shallow water equations (although riverwalls could also be
-used to apply weir type equations instead). Both models have a uniform
-Manning's n of 0.045, which prevents too much supercritical flow in HECRAS (and
-the associated numerical supression of the inertial terms that HECRAS uses to
-retain stability).
+boundary operator to describe the bridge underflow. The rating curves for the
+bridge underflow (used to compute the bridge discharge from the upstream and
+downstream stage) were derived for ANUGA from HECRAS by raising the upper chord
+of the bridge in HECRAS (far about the flow) and computing internal boundary
+tables, which were then copied into a csv file for use by ANUGA. The bridge
+overflow in ANUGA is modelled with the shallow water equations (although
+riverwalls could also be used to apply weir type equations instead). Both
+models have a uniform Manning's n of 0.045, which prevents too much
+supercritical flow in HECRAS (and the associated numerical supression of the
+inertial terms that HECRAS uses to retain stability).
 
 \begin{figure}
 \begin{center}
@@ -37,7 +39,13 @@ model. The ANUGA and HECRAS results are qualitatively similar, but differ in
 detail. In early stages of the simulation when discharges are lower, ANUGA
 shows stages slightly below HECRAS. This reflects the fact that HECRAS models
 side-wall friction while ANUGA does not, so there is more drag in the HECRAS
-model. As the discharge increases, the models show more deviation around the
+model. Another relevant factor may be that the models flux the momentum under
+the bridge in different ways. ANUGA's method is to compute the average momentum
+in each direction along the upstream bridge inflow, and assume that this is
+advected by the discharge (as computed from the internal boundary rating
+curves). HECRAS's method is based on the energy equation.
+
+As the discharge increases, the models show more deviation around the
 bridge and upstream, and ultimately approach different steady states. The main
 reason for this is that they use different methods to model the bridge
 overflow, which begins when station 525 exceeds -1m. Another cause of
