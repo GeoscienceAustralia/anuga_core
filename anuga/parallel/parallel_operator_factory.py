@@ -615,8 +615,8 @@ return an instance of Parallel Internal_boundary_operator
 
 def Internal_boundary_operator(domain,
                                internal_boundary_function,
-                               width=0.,
-                               height=0.,
+                               width=1.,
+                               height=1.,
                                end_points=None,
                                exchange_lines=None,
                                enquiry_points=None,
