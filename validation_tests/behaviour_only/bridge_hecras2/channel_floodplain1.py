@@ -189,11 +189,7 @@ hecras_discharge_function = hecras_internal_boundary_function(
 bridge = Internal_boundary_operator(
     domain,
     hecras_discharge_function,
-    width=chan_width,
-    height=1.3,
-    end_points=None,
     exchange_lines=[bridge_in, bridge_out],
-    invert_elevation=-3.5,
     enquiry_gap=0.01,
     use_velocity_head=False,
     smoothing_timescale=30.0,

@@ -53,9 +53,6 @@ class Internal_boundary_operator(anuga.Structure_operator):
             print 'SUBJECT TO CHANGE WITHOUT NOTICE'
             print '########################################'
 
-        if invert_elevation is None:
-            raise Exception('Must provide a single invert elevation')
-
         # Since no barrel_velocity is computed we cannot use_momentum_jet
         use_momentum_jet = False
 
