@@ -9,9 +9,7 @@ import numpy
 
 
 class Internal_boundary_operator(anuga.Structure_operator):
-    """Use internal boundary curves to set the discharge through the structure,
-       based on the upstream/downstream water elevations
-
+    """
        The internal_boundary_function must accept 2 input arguments (hw, tw). It 
        returns Q:
        - hw will always be the stage (or energy) at the enquiry_point[0]
@@ -22,6 +20,7 @@ class Internal_boundary_operator(anuga.Structure_operator):
        def internal_boundary_function(hw, tw):
            # Compute Q here from headwater hw and tailwater hw
            return(Q)
+
        smoothing_timescale>0. can be used to make Q vary more slowly
 
     """
