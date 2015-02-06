@@ -209,6 +209,14 @@ class Structure_operator(anuga.Operator):
         #semi_implicit = True
         #if semi_implicit:   
 
+        # FIXME: This update replaces Q with Q*new_inflow_depth/old_inflow_depth
+        # This has good wetting and drying properties but means that
+        # discharge != Q.
+        # We should be able to check if old_inflow_depth*old_inflow_area > Q*dt,
+        # and in that case we don't need this implicit trick, and could
+        # have the discharge = Q (whereas in the nearly-dry case we want
+        # the trick).
+
         # Implement the update of flow over a timestep by
         # using a semi-implict update. This ensures that
         # the update does not create a negative depth
