@@ -10,11 +10,13 @@ AnuGA
 What is AnuGA?
 --------------
 
-AnuGA (pronounced "AN uu GA") is open-source software for the simulation of
+AnuGA (pronounced "AHNooGAH") is open-source software for the simulation of
 the shallow water equation, in particular it can be used to model tsunamis
 and floods.
 
-AnuGA is a python package with some C extensions (and an optional fortran extension). At present AnuGA has not been ported to python 3. We recommend using python 2.7  
+AnuGA is a python package with some C extensions (and an optional 
+fortran extension). At present AnuGA has not been ported to python 3. 
+We recommend using python 2.7  
 
 Developed at the Risk Assessment Methods Project at Geoscience
 Australia and Mathematical Sciences Institute at the Australian

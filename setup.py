@@ -4,17 +4,18 @@
     terrain. Boundary conditions are specified for the domain, such as inflow
     and outflow, and then the simulation is run.
 
-    This is the public API to ANUGA. It provides a toolkit of often-used
-    modules, which can be used directly by including the following line in
-    the user's code:
+    AnuGA is a python package with some C extensions
+    (and an optional fortran extension). At present AnuGA has not been
+     ported to python 3. We recommend using python 2.7  
 
-    import anuga
-        
-    This usage pattern abstracts away the internal heirarchy of the ANUGA
-    system, allowing the user to concentrate on writing simulations without
-    searching through the ANUGA source tree for the functions that they need.
-    
-    Also, it isolates the user from "under-the-hood" refactorings.
+    Developed at the Risk Assessment Methods Project at Geoscience
+    Australia and Mathematical Sciences Institute at the Australian
+    National University.
+
+
+Copyright 2004, 2005, 2006, 2015 
+Ole Nielsen, Stephen Roberts, Duncan Gray, Jane Sexton, Gareth Davies
+
 """
 
 from __future__ import division, print_function
@@ -182,12 +183,16 @@ def setup_package():
     # Rewrite the version file everytime
     write_version_py()
 
+
+    with open('README.rst') as file:
+        long_description = file.read()
+    
     metadata = dict(
         name = 'anuga',
         maintainer = "Anuga Developers",
         maintainer_email = "anuga-user@lists.sourceforge.net",
         description = DOCLINES[0],
-        long_description = "\n".join(DOCLINES[2:]),
+        long_description = long_description,
         url = "http://anuga.anu.edu.au",
         author = "Stephen Roberts, Ole Nielsen et al.",
         download_url = "http://sourceforge.net/projects/anuga/",
