@@ -1,0 +1,9 @@
+Projection    UTM
+Zone          55
+Datum         WGS84
+Zunits        NO
+Units         METERS
+Spheroid      WGS84
+Xshift        500000
+Yshift        10000000
+Parameters
