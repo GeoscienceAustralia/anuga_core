@@ -38,7 +38,7 @@ import __builtin__ as builtins
 
 
 CLASSIFIERS = """\
-Development Status :: 2 - Development
+Development Status :: 5 - Production/Stable
 Intended Audience :: Science/Research
 Intended Audience :: Developers
 License :: OSI Approved
@@ -55,7 +55,7 @@ Operating System :: MacOS
 MAJOR               = 1
 MINOR               = 3
 MICRO               = 1
-ISRELEASED          = False
+ISRELEASED          = True
 VERSION             = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 

@@ -1,7 +1,12 @@
 include *.rst
-recursive-include doc *
+include runtests.py
+include run_validations.py
+include LICENCE.txt
+recursive-include tools *
+recursive-include user_manual *
 recursive-include examples *
-recursive-include anuga *.c *.h *.pyx *.pxd *.pxi
-recursive-include anuga *.csv *.csv.gz *.rst *.jpg *.txt
-include README.rst
+recursive-include anuga *
+recursive-include validation_tests *
+
+
 

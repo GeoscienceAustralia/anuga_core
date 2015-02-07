@@ -301,11 +301,11 @@ def mpi_cmd(nprocs, script_name):
     else:               # mpich
         cmd = "mpirun -np %d python %s" % (nprocs, script_name)
 
-    print cmd
+    #print cmd
     (exitstatus, outtext) = commands.getstatusoutput(cmd)
 
-    print exitstatus
-    print outtext
+    #print exitstatus
+    #print outtext
 
     
 
