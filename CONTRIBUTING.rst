@@ -2,20 +2,11 @@
 Contributing code
 =================
 
-**Note: This document is just to get started, visit [**Contributing
-page**](http://scikit-learn.org/stable/developers/index.html)
-for the full contributor's guide. Please be sure to read it carefully to make
-the code review process go as smoothly as possible and maximize the
-likelihood of your contribution being merged.**
-
-How to contribute
------------------
-
 The preferred way to contribute to scikit-learn is to fork the 
-[main repository](http://github.com/scikit-learn/scikit-learn/) on
+[main repository](http://github.com/stoiver/anuga_core/) on
 GitHub:
 
-1. Fork the [project repository](http://github.com/scikit-learn/scikit-learn):
+1. Fork the [project repository](http://github.com/stoiver/anuga_core):
    click on the 'Fork' button near the top of the page. This creates
    a copy of the code under your account on the GitHub server.
 
@@ -105,7 +96,7 @@ Easy Issues
 -----------
 
 A great way to start contributing to scikit-learn is to pick an item
-from the list of [Easy issues](https://github.com/scikit-learn/scikit-learn/issues?labels=Easy)
+from the list of [Easy issues](https://github.com/stoiver/anuga_core/issues?labels=Easy)
 in the issue tracker. Resolving these issues allow you to start
 contributing to the project without much prior knowledge. Your
 assistance in this area will be greatly appreciated by the more
@@ -139,9 +130,3 @@ start with a small paragraph with a hand-waving explanation of what the
 method does to the data and a figure (coming from an example)
 illustrating it.
 
-Further Information
--------------------
-
-Visit the [Contributing Code](http://scikit-learn.org/stable/developers/index.html#coding-guidelines)
-section of the website for more information including conforming to the 
-API spec and profiling contributed code.

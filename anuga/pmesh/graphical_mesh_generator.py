@@ -14,7 +14,7 @@ import types
 import visualmesh
 import os, sys
 import profile
-import load_mesh.loadASCII
+import anuga.load_mesh.loadASCII
 from anuga.alpha_shape.alpha_shape import AlphaError
 import anuga.utilities.log as log
 
