@@ -2,7 +2,7 @@
 Contributing code
 =================
 
-The preferred way to contribute to scikit-learn is to fork the 
+The preferred way to contribute to anuga is to fork the 
 [main repository](http://github.com/stoiver/anuga_core/) on
 GitHub:
 
@@ -12,8 +12,8 @@ GitHub:
 
 2. Clone this copy to your local disk:
 
-          $ git clone git@github.com:YourLogin/scikit-learn.git
-          $ cd scikit-learn
+          $ git clone git@github.com:YourLogin/anuga_core.git
+          $ cd anuga_core
 
 3. Create a branch to hold your changes:
 
