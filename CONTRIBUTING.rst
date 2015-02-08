@@ -31,7 +31,7 @@ GitHub:
 
           $ git push -u origin my-feature
 
-Finally, go to the web page of the your fork of the scikit-learn repo,
+Finally, go to the web page of the your fork of the anuga_core repo,
 and click 'Pull request' to send your changes to the maintainers for
 review. request. This will send an email to the committers.
 
@@ -52,18 +52,11 @@ following rules before submitting a pull request:
 -  When adding additional functionality, provide at least one
    example script in the ``examples/`` folder. Have a look at other
    examples for reference. Examples should demonstrate why the new
-   functionality is useful in practice and, if possible, compare it
-   to other methods available in scikit-learn.
+   functionality is useful in practice.
 
 -  At least one paragraph of narrative documentation with links to
-````   references in the literature (with PDF links when possible) and
-   the example.
-
-The documentation should also include expected time and space
-complexity of the algorithm and scalability, e.g. "this algorithm
-can scale to a large number of samples > 100000, but does not
-scale in dimensionality: n_features is expected to be lower than
-100".
+   references in the literature (with PDF links when possible) and
+   an example.
 
 You can also check for common programming errors with the following
 tools:
@@ -95,9 +88,10 @@ list or on the GitHub issue).
 Easy Issues
 -----------
 
-A great way to start contributing to scikit-learn is to pick an item
+A great way to start contributing to anuga is to pick an item
 from the list of [Easy issues](https://github.com/stoiver/anuga_core/issues?labels=Easy)
-in the issue tracker. Resolving these issues allow you to start
+in the issue tracker. (Well there are none there yet, but we will be 
+putting some up soon!) Resolving these issues allow you to start
 contributing to the project without much prior knowledge. Your
 assistance in this area will be greatly appreciated by the more
 experienced developers as it helps free up their time to concentrate on
@@ -106,22 +100,15 @@ other issues.
 Documentation
 -------------
 
+We are in the process of creating sphinx based documentation for anuga. 
+Any help in setting this up will be gratefully accepted!
+
+At present you will find the user_manual in the doc folder. 
+
 We are glad to accept any sort of documentation: function docstrings,
 reStructuredText documents (like this one), tutorials, etc.
 reStructuredText documents live in the source code repository under the
 doc/ directory.
-
-You can edit the documentation using any text editor and then generate
-the HTML output by typing ``make html`` from the doc/ directory.
-Alternatively, ``make`` can be used to quickly generate the
-documentation without the example gallery. The resulting HTML files will
-be placed in _build/html/ and are viewable in a web browser. See the
-README file in the doc/ directory for more information.
-
-For building the documentation, you will need
-[sphinx](http://sphinx.pocoo.org/),
-[matplotlib](http://matplotlib.sourceforge.net/), and
-[pillow](http://pillow.readthedocs.org/en/latest/).
 
 When you are writing documentation, it is important to keep a good
 compromise between mathematical and algorithmic details, and give

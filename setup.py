@@ -1,100 +1,24 @@
-#!/usr/bin/env python
-""" ANUGA models the effect of tsunamis and flooding upon a terrain mesh.
-    In typical usage, a Domain class is created for a particular piece of
-    terrain. Boundary conditions are specified for the domain, such as inflow
-    and outflow, and then the simulation is run.
-
-    AnuGA is a python package with some C extensions
-    (and an optional fortran extension). At present AnuGA has not been
-     ported to python 3. We recommend using python 2.7  
-
-    Developed at the Risk Assessment Methods Project at Geoscience
-    Australia and Mathematical Sciences Institute at the Australian
-    National University.
+#! /usr/bin/env python
+#
+# Copyright (C) 2007-2009 Cournapeau David <cournape@gmail.com>
+#               2010 Fabian Pedregosa <fabian.pedregosa@inria.fr>
+# License: 3-clause BSD
+#
+# Setup.py taken from scikit learn
 
 
-Copyright 2004, 2005, 2006, 2015 
-Ole Nielsen, Stephen Roberts, Duncan Gray, Jane Sexton, Gareth Davies
+descr = """A set of python modules for modelling the effect of tsunamis and flooding"""
 
-"""
-
-from __future__ import division, print_function
-
-DOCLINES = __doc__.split("\n")
-
-import os
 import sys
-import subprocess
+import os
+import shutil
+from distutils.command.clean import clean as Clean
 
 
-if sys.version_info[:2] < (2, 6) or (3, 0) <= sys.version_info[0:2] :
-    raise RuntimeError("Python version 2.6, 2.7. ")
-
-# if sys.version_info[0] >= 3:
-#     import builtins
-# else:
-#     import __builtin__ as builtins
-import __builtin__ as builtins
-
-
-CLASSIFIERS = """\
-Development Status :: 5 - Production/Stable
-Intended Audience :: Science/Research
-Intended Audience :: Developers
-License :: OSI Approved
-Programming Language :: C
-Programming Language :: Python
-Topic :: Software Development
-Topic :: Scientific/Engineering
-Operating System :: Microsoft :: Windows
-Operating System :: POSIX
-Operating System :: Unix
-Operating System :: MacOS
-"""
-
-MAJOR               = 1
-MINOR               = 3
-MICRO               = 1
-ISRELEASED          = True
-VERSION             = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
-
-
-# Return the svn revision as a string
-def svn_revision():
-
-    return filter(str.isdigit, "$Revision$")
-
-
-# Return the git revision as a string
-def git_revision():
-
-    #return "Unknown"
-
-    def _minimal_ext_cmd(cmd):
-        # construct minimal environment
-        env = {}
-        for k in ['SYSTEMROOT', 'PATH']:
-            v = os.environ.get(k)
-            if v is not None:
-                env[k] = v
-        # LANGUAGE is used on win32
-        env['LANGUAGE'] = 'C'
-        env['LANG'] = 'C'
-        env['LC_ALL'] = 'C'
-        out = subprocess.Popen(cmd, stdout = subprocess.PIPE, env=env).communicate()[0]
-        return out
-
-    try:
-        out = _minimal_ext_cmd(['git', 'rev-parse', 'HEAD'])
-        GIT_REVISION = out.strip().decode('ascii')
-    except OSError:
-        GIT_REVISION = "Unknown"
-
-    return GIT_REVISION
-
-# BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
-# update it when the contents of directories change.
-if os.path.exists('MANIFEST'): os.remove('MANIFEST')
+if sys.version_info[0] < 3:
+    import __builtin__ as builtins
+else:
+    import builtins
 
 
 # This is the numpy/scipy hack: Set a global variable so that the main
@@ -103,63 +27,81 @@ if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 builtins.__ANUGA_SETUP__ = True
 
 
-def get_version_info():
-    # Adding the git rev number needs to be done inside write_version_py(),
-    # otherwise the import of anuga.version messes up the build under Python 3.
-    FULLVERSION = VERSION
-    SVN_REVISION = svn_revision()
-    
-    if os.path.exists('.git'):
-        GIT_REVISION = git_revision()
-    elif os.path.exists('anuga/version.py'):
-        # must be a source distribution, use existing version file
-        try:
-            from anuga.version import git_revision as GIT_REVISION
-        except ImportError:
-            raise ImportError("Unable to import git_revision. Try removing " \
-                              "anuga/version.py and the build directory " \
-                              "before building.")
-    else:
-        GIT_REVISION = "Unknown"
+DISTNAME = 'anuga'
+DESCRIPTION = 'A set of python modules for tsunami and flood modelling'
+with open('README.rst') as f:
+    LONG_DESCRIPTION = f.read()
+MAINTAINER = 'Stephen Roberts'
+MAINTAINER_EMAIL = 'stephen.roberts@anu.edu.au'
+URL = "http://anuga.anu.edu.au"
+LICENSE = 'GPL'
+DOWNLOAD_URL = "http://sourceforge.net/projects/anuga/"
 
-    if not ISRELEASED:
-        FULLVERSION += '.dev+' + SVN_REVISION
-        #FULLVERSION += '.dev+' + GIT_REVISION[:7]
-         
+# We can actually import a restricted version of anuga that
+# does not need the compiled code
+import anuga
 
-    return FULLVERSION, GIT_REVISION, SVN_REVISION
+VERSION = anuga.__version__
 
+# Return the svn revision as a string
+def svn_revision():
 
-def write_version_py(filename='anuga/version.py'):
-    cnt = """
-# THIS FILE IS GENERATED FROM ANUGA SETUP.PY
-short_version = '%(version)s'
-version = '%(version)s'
-full_version = '%(full_version)s'
-git_revision = '%(git_revision)s'
-svn_revision = '%(svn_revision)s'
-release = %(isrelease)s
+    return filter(str.isdigit, "$Revision$")
 
-if not release:
-    version = full_version
-"""
-    FULLVERSION, GIT_REVISION, SVN_REVISION = get_version_info()
+###############################################################################
+# Optional setuptools features
+# We need to import setuptools early, if we want setuptools features,
+# as it monkey-patches the 'setup' function
 
-    a = open(filename, 'w')
-    try:
-        a.write(cnt % {'version': VERSION,
-                       'full_version' : FULLVERSION,
-                       'git_revision' : GIT_REVISION,
-                       'svn_revision' : SVN_REVISION,
-                       'isrelease': str(ISRELEASED)})
-    finally:
-        a.close()
+# For some commands, use setuptools
+SETUPTOOLS_COMMANDS = set([
+    'develop', 'release', 'bdist_egg', 'bdist_rpm',
+    'bdist_wininst', 'install_egg_info', 'build_sphinx',
+    'egg_info', 'easy_install', 'upload', 'bdist_wheel',
+    '--single-version-externally-managed',
+])
 
 
-def configuration(parent_package='',top_path=None):
+if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
+    import setuptools
+    extra_setuptools_args = dict(
+        zip_safe=False,  # the package can run out of an .egg file
+        include_package_data=True,
+    )
+else:
+    extra_setuptools_args = dict()
+
+###############################################################################
+
+
+class CleanCommand(Clean):
+    description = "Remove build artifacts from the source tree"
+
+    def run(self):
+        Clean.run(self)
+        if os.path.exists('build'):
+            shutil.rmtree('build')
+        for dirpath, dirnames, filenames in os.walk('anuga'):
+            for filename in filenames:
+                if (filename.endswith('.so') or filename.endswith('.pyd')
+                        or filename.endswith('.dll')
+                        or filename.endswith('.pyc')):
+                    os.unlink(os.path.join(dirpath, filename))
+            for dirname in dirnames:
+                if dirname == '__pycache__':
+                    shutil.rmtree(os.path.join(dirpath, dirname))
+
+
+###############################################################################
+def configuration(parent_package='', top_path=None):
+    if os.path.exists('MANIFEST'):
+        os.remove('MANIFEST')
+
     from numpy.distutils.misc_util import Configuration
-
     config = Configuration(None, parent_package, top_path)
+
+    # Avoid non-useful msg:
+    # "Ignoring attempt to set 'name' (from ... "
     config.set_options(ignore_setup_xxx_py=True,
                        assume_default_configuration=True,
                        delegate_options_to_subpackages=True,
@@ -167,73 +109,58 @@ def configuration(parent_package='',top_path=None):
 
     config.add_subpackage('anuga')
 
-    config.get_version('anuga/version.py') # sets config.version
-
     return config
 
 
-
-    
 def setup_package():
-    src_path = os.path.dirname(os.path.abspath(sys.argv[0]))
-    old_path = os.getcwd()
-    os.chdir(src_path)
-    sys.path.insert(0, src_path)
+    metadata = dict(name=DISTNAME,
+                    maintainer=MAINTAINER,
+                    maintainer_email=MAINTAINER_EMAIL,
+                    description=DESCRIPTION,
+                    license=LICENSE,
+                    url=URL,
+                    version=VERSION,
+                    download_url=DOWNLOAD_URL,
+                    long_description=LONG_DESCRIPTION,
+                    classifiers=['Intended Audience :: Science/Research',
+                                 'Intended Audience :: Developers',
+                                 'License :: OSI Approved',
+                                 'Programming Language :: C',
+                                 'Programming Language :: Python',
+                                 'Topic :: Software Development',
+                                 'Topic :: Scientific/Engineering',
+                                 'Operating System :: Microsoft :: Windows',
+                                 'Operating System :: POSIX',
+                                 'Operating System :: Unix',
+                                 'Operating System :: MacOS',
+                                 'Programming Language :: Python :: 2.6',
+                                 'Programming Language :: Python :: 2.7',
+                                 ],
+                    cmdclass={'clean': CleanCommand},
+                    **extra_setuptools_args)
 
-    # Rewrite the version file everytime
-    write_version_py()
+    if (len(sys.argv) >= 2
+            and ('--help' in sys.argv[1:] or sys.argv[1]
+                 in ('--help-commands', 'egg_info', '--version', 'clean'))):
 
-
-    with open('README.rst') as file:
-        long_description = file.read()
-    
-    metadata = dict(
-        name = 'anuga',
-        maintainer = "Anuga Developers",
-        maintainer_email = "anuga-user@lists.sourceforge.net",
-        description = DOCLINES[0],
-        long_description = long_description,
-        url = "http://anuga.anu.edu.au",
-        author = "Stephen Roberts, Ole Nielsen et al.",
-        download_url = "http://sourceforge.net/projects/anuga/",
-        license = 'GPL',
-        classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
-        platforms = ["Windows", "Linux", "Mac OS-X", "Unix"]
-    )
-
-    # Run build
-    if len(sys.argv) >= 2 and ('--help' in sys.argv[1:] or
-            sys.argv[1] in ('--help-commands', 'egg_info', '--version',
-                            'clean')):
-        # Use setuptools for these commands (they don't work well or at all
-        # with distutils).  For normal builds use distutils.
+        # For these actions, NumPy is not required.
+        #
+        # They are required to succeed without Numpy for example when
+        # pip is used to install anuga when Numpy is not yet present in
+        # the system.
         try:
             from setuptools import setup
         except ImportError:
             from distutils.core import setup
 
-        FULLVERSION, GIT_REVISION = get_version_info()
-        metadata['version'] = FULLVERSION
+        metadata['version'] = VERSION
     else:
-        if len(sys.argv) >= 2 and sys.argv[1] == 'bdist_wheel':
-            # bdist_wheel needs setuptools
-            import setuptools
         from numpy.distutils.core import setup
-        cwd = os.path.abspath(os.path.dirname(__file__))
-        print(cwd)
-        if not os.path.exists(os.path.join(cwd, 'PKG-INFO')):
-            # Generate Cython sources, unless building from source release
-            #generate_cython()
-            pass
+
         metadata['configuration'] = configuration
 
-    try:
-        setup(**metadata)
-    finally:
-        del sys.path[0]
-        os.chdir(old_path)
-    return
+    setup(**metadata)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     setup_package()
