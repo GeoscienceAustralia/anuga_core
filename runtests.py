@@ -31,7 +31,7 @@ Generate C code coverage listing under build/lcov/:
 #
 
 PROJECT_MODULE = "anuga"
-PROJECT_ROOT_FILES = ['anuga', 'LICENSE.txt', 'setup.py']
+PROJECT_ROOT_FILES = ['anuga', 'LICENCE.txt', 'setup.py']
 SAMPLE_TEST = "anuga/file/tests/test_basic.py:test_xlogy"
 SAMPLE_SUBMODULE = "file"
 
@@ -285,6 +285,8 @@ def build_project(args):
         cmd += ["build"]
 
     cmd += ['install', '--prefix=' + dst_dir]
+    
+    env['PYTHONPATH'] = os.path.join(dst_dir, 'lib','python2.7','site-packages')
 
     log_filename = os.path.join(ROOT_DIR, 'build.log')
 

@@ -250,10 +250,10 @@ void _combine_partial_AtA_Atz(sparse_dok * dok_AtA1,sparse_dok * dok_AtA2,
                              double* Atz1,
                              double* Atz2,
                              int n, int zdim){
+    int i;
 
     add_sparse_dok(dok_AtA1,1,dok_AtA2,1);
 
-    int i;
     for(i=0;i<n*zdim;i++){
         Atz1[i]+=Atz2[i];
     }
@@ -368,6 +368,7 @@ PyObject *build_quad_tree(PyObject *self, PyObject *args) {
     PyArrayObject *triangles;
     PyArrayObject *vertex_coordinates;
     PyArrayObject *extents;
+    int n;
 
 
     // Convert Python arguments to C
@@ -385,7 +386,7 @@ PyObject *build_quad_tree(PyObject *self, PyObject *args) {
     CHECK_C_CONTIG(vertex_coordinates);
     CHECK_C_CONTIG(extents);
 
-    int n = triangles->dimensions[0];
+    n = triangles->dimensions[0];
 
     #ifdef PYVERSION273
     
@@ -415,7 +416,9 @@ PyObject *build_smoothing_matrix(PyObject *self, PyObject *args) {
     PyArrayObject *triangles;
     PyArrayObject *areas;
     PyArrayObject *vertex_coordinates;
+    sparse_dok * smoothing_mat; // Should be an input argument?
     int err;
+    int n;
 
     // Convert Python arguments to C
     if (!PyArg_ParseTuple(args, "OOO" ,
@@ -432,10 +435,8 @@ PyObject *build_smoothing_matrix(PyObject *self, PyObject *args) {
     CHECK_C_CONTIG(areas);
     CHECK_C_CONTIG(vertex_coordinates);
 
-    int n = triangles->dimensions[0];
+    n = triangles->dimensions[0];
 
-
-    sparse_dok * smoothing_mat; // Should be an input argument?
     smoothing_mat = make_dok();
 
     err = _build_smoothing_matrix(n,
@@ -476,11 +477,15 @@ PyObject *build_matrix_AtA_Atz_points(PyObject *self, PyObject *args) {
     PyArrayObject *triangles;
     PyArrayObject *point_coordinates;
     PyArrayObject *z;
+    sparse_dok * dok_AtA; // Should be an input argument?
     int N; // Number of triangles
     int err;
     int npts;
     int zdims;
+    int i;
     PyObject *tree;
+    quad_tree *quadtree;
+    double ** Atz;
 
     // Convert Python arguments to C
     if (!PyArg_ParseTuple(args, "OiOOOii",&tree, &N,
@@ -501,15 +506,14 @@ PyObject *build_matrix_AtA_Atz_points(PyObject *self, PyObject *args) {
     CHECK_C_CONTIG(z);
 
     #ifdef PYVERSION273
-    quad_tree * quadtree = (quad_tree*) PyCapsule_GetPointer(tree,"quad tree");
+    quadtree = (quad_tree*) PyCapsule_GetPointer(tree,"quad tree");
     #else
-    quad_tree * quadtree = (quad_tree*) PyCObject_AsVoidPtr(tree);
+    quadtree = (quad_tree*) PyCObject_AsVoidPtr(tree);
     #endif
 
-    sparse_dok * dok_AtA; // Should be an input argument?
+
     dok_AtA = make_dok();
-    double ** Atz = malloc(sizeof(double*)*zdims);
-    int i;
+    Atz = malloc(sizeof(double*)*zdims);
     for(i=0;i<zdims;i++){
         Atz[i] = malloc(sizeof(double)*N);
     }
@@ -561,6 +565,18 @@ PyObject *individual_tree_search(PyObject *self, PyObject *args) {
     // Setting up variables to parse input
     PyObject *tree;
     PyArrayObject *point;
+    quad_tree *quadtree;
+    double xp,yp;
+    int *ipointd;
+    double *pointd;
+    triangle *T;
+    PyObject *sigmalist;
+    long found;
+    long index;
+    double *sigma;
+    double ssigma[3];
+    PyObject *retlist;
+
 
     // Convert Python arguments to C
     if (!PyArg_ParseTuple(args, "OO",&tree, &point
@@ -573,42 +589,41 @@ PyObject *individual_tree_search(PyObject *self, PyObject *args) {
     CHECK_C_CONTIG(point);
 
     #ifdef PYVERSION273
-    quad_tree * quadtree = (quad_tree*) PyCapsule_GetPointer(tree,"quad tree");
+    quadtree = (quad_tree*) PyCapsule_GetPointer(tree,"quad tree");
     #else
-    quad_tree * quadtree = (quad_tree*) PyCObject_AsVoidPtr(tree);
+    quadtree = (quad_tree*) PyCObject_AsVoidPtr(tree);
     #endif
 
-    double xp,yp;
+
     if(PyArray_TYPE(point)==7){
-        int *pointd = (int*)point->data;
-        xp = (double)(pointd[0]);
-        yp = (double)(pointd[1]);
+        ipointd = (int*)point->data;
+        xp = (double)(ipointd[0]);
+        yp = (double)(ipointd[1]);
     }
     else{
-        double *pointd = (double*)point->data;
+        pointd = (double*)point->data;
         xp = pointd[0];
         yp = pointd[1];
     }
 
-    triangle * T = search(quadtree,xp,yp);
-    PyObject * sigmalist = PyList_New(3);
-    long found;
-    long index;
+    T = search(quadtree,xp,yp);
+    sigmalist = PyList_New(3);
+
     
     if(T!=NULL){
-            double * sigma = calculate_sigma(T,xp,yp);
+            sigma = calculate_sigma(T,xp,yp);
             sigmalist = c_double_array_to_list(sigma,3);
             free(sigma);
             found = 1;
             index = (long)T->index;
     }else{
-            double sigma[3];
-            sigma[0]=sigma[1]=sigma[2]=-1;
-            sigmalist = c_double_array_to_list(sigma,3);
+
+            ssigma[0]=ssigma[1]=ssigma[2]=-1;
+            sigmalist = c_double_array_to_list(ssigma,3);
             index = -10;
             found = 0;
     }
-    PyObject * retlist = PyList_New(3);
+    retlist = PyList_New(3);
     PyList_SET_ITEM(retlist,0,PyInt_FromLong(found));
     PyList_SET_ITEM(retlist,1,sigmalist);
     PyList_SET_ITEM(retlist,2,PyInt_FromLong(index));
@@ -625,6 +640,7 @@ PyObject *items_in_tree(PyObject *self, PyObject *args) {
 
     // Setting up variables to parse input
     PyObject *tree; // capsule to hold quad_tree pointer
+    quad_tree *quadtree;
 
     // Convert Python arguments to C
     if (!PyArg_ParseTuple(args, "O",&tree
@@ -636,9 +652,9 @@ PyObject *items_in_tree(PyObject *self, PyObject *args) {
 
     // Extract quad_tree pointer from capsule
     #ifdef PYVERSION273
-    quad_tree * quadtree = (quad_tree*) PyCapsule_GetPointer(tree,"quad tree");
+    quadtree = (quad_tree*) PyCapsule_GetPointer(tree,"quad tree");
     #else
-    quad_tree * quadtree = (quad_tree*) PyCObject_AsVoidPtr(tree);
+    quadtree = (quad_tree*) PyCObject_AsVoidPtr(tree);
     #endif
     
     // Return the number of elements in the tree (stored in struct)
@@ -652,6 +668,7 @@ PyObject *nodes_in_tree(PyObject *self, PyObject *args) {
 
     // Setting up variables to parse input
     PyObject *tree; // capsule to hold quad_tree pointer
+    quad_tree *quadtree;
 
     // Convert Python arguments to C
     if (!PyArg_ParseTuple(args, "O",&tree
@@ -663,9 +680,9 @@ PyObject *nodes_in_tree(PyObject *self, PyObject *args) {
 
     // Extract quad_tree pointer from capsule
     #ifdef PYVERSION273
-    quad_tree * quadtree = (quad_tree*) PyCapsule_GetPointer(tree,"quad tree");
+    quadtree = (quad_tree*) PyCapsule_GetPointer(tree,"quad tree");
     #else
-    quad_tree * quadtree = (quad_tree*) PyCObject_AsVoidPtr(tree);
+    quadtree = (quad_tree*) PyCObject_AsVoidPtr(tree);
     #endif
     
     // Return the number of elements in the tree (stored in struct)
@@ -689,6 +706,8 @@ PyObject *combine_partial_AtA_Atz(PyObject *self, PyObject *args) {
     PyObject *AtA_cap1, *AtA_cap2;
     PyArrayObject *Atz1, *Atz2;
     int n,zdim; // number of nodes
+    sparse_dok *dok_AtA1;
+    sparse_dok *dok_AtA2;
 
     // Convert Python arguments to C
     if (!PyArg_ParseTuple(args, "OOOOii",&AtA_cap1, &AtA_cap2,
@@ -701,11 +720,11 @@ PyObject *combine_partial_AtA_Atz(PyObject *self, PyObject *args) {
 
     // Get pointers to sparse_dok objects from capsules
     #ifdef PYVERSION273
-    sparse_dok * dok_AtA1 = (sparse_dok*) PyCapsule_GetPointer(AtA_cap1,"sparse dok");
-    sparse_dok * dok_AtA2 = (sparse_dok*) PyCapsule_GetPointer(AtA_cap2,"sparse dok");
+    dok_AtA1 = (sparse_dok*) PyCapsule_GetPointer(AtA_cap1,"sparse dok");
+    dok_AtA2 = (sparse_dok*) PyCapsule_GetPointer(AtA_cap2,"sparse dok");
     #else
-    sparse_dok * dok_AtA1 = (sparse_dok*) PyCObject_AsVoidPtr(AtA_cap1);
-    sparse_dok * dok_AtA2 = (sparse_dok*) PyCObject_AsVoidPtr(AtA_cap2);
+    dok_AtA1 = (sparse_dok*) PyCObject_AsVoidPtr(AtA_cap1);
+    dok_AtA2 = (sparse_dok*) PyCObject_AsVoidPtr(AtA_cap2);
     #endif
 
     // Combine the partial AtA and Atz
@@ -730,6 +749,11 @@ PyObject *return_full_D(PyObject *self, PyObject *args) {
     // Setting up variables to parse input
     PyObject *D_cap; // capsule object holding sparse_dok pointer
     int n; // number of matrix columns/rows
+    sparse_dok * D_mat;
+    PyObject *ret_D;
+    int i,j;
+    edge_key_t key;
+    edge_t *s;
 
     // Convert Python arguments to C
     if (!PyArg_ParseTuple(args, "Oi",&D_cap, &n
@@ -741,9 +765,9 @@ PyObject *return_full_D(PyObject *self, PyObject *args) {
 
     // Get pointer to spars_dok struct
     #ifdef PYVERSION273
-    sparse_dok * D_mat = (sparse_dok*) PyCapsule_GetPointer(D_cap,"sparse dok");
+    D_mat = (sparse_dok*) PyCapsule_GetPointer(D_cap,"sparse dok");
     #else
-    sparse_dok * D_mat = (sparse_dok*) PyCObject_AsVoidPtr(D_cap);
+    D_mat = (sparse_dok*) PyCObject_AsVoidPtr(D_cap);
     #endif
 
     // Check to make sure that the specified size of the matrix is at least as big
@@ -755,10 +779,8 @@ PyObject *return_full_D(PyObject *self, PyObject *args) {
     }
 
     // Build new python list containing the full matrix to return
-    PyObject *ret_D = PyList_New(n);
-    int i,j;
-    edge_key_t key;
-    edge_t *s;
+    ret_D = PyList_New(n);
+
     for(i=0;i<n;i++)
     {
         PyObject *temp = PyList_New(n);
@@ -793,6 +815,13 @@ PyObject *build_matrix_B(PyObject *self, PyObject *args) {
     double alpha; // Regularization coefficient
     PyObject *smoothing_mat_cap; // Capsule storing D pointer (sparse_dok struct)
     PyObject *AtA_cap; // Capsule storing AtA pointer (sparse_dok struct)
+    sparse_dok *smoothing_mat;
+    sparse_dok *dok_AtA;
+    sparse_csr *B;
+    PyObject *data;
+    PyObject *colind;
+    PyObject *row_ptr;
+    PyObject *lst;
 
     // Convert Python arguments to C
     if (!PyArg_ParseTuple(args, "OOd",&smoothing_mat_cap, &AtA_cap, &alpha
@@ -804,31 +833,30 @@ PyObject *build_matrix_B(PyObject *self, PyObject *args) {
 
     // Extract pointers to c structs from capsules
     #ifdef PYVERSION273
-    sparse_dok * smoothing_mat = (sparse_dok*) PyCapsule_GetPointer(smoothing_mat_cap,"sparse dok");
-    sparse_dok * dok_AtA = (sparse_dok*) PyCapsule_GetPointer(AtA_cap,"sparse dok");
+    smoothing_mat = (sparse_dok*) PyCapsule_GetPointer(smoothing_mat_cap,"sparse dok");
+    dok_AtA = (sparse_dok*) PyCapsule_GetPointer(AtA_cap,"sparse dok");
     #else
-    sparse_dok * smoothing_mat = (sparse_dok*) PyCObject_AsVoidPtr(smoothing_mat_cap);
-    sparse_dok * dok_AtA = (sparse_dok*) PyCObject_AsVoidPtr(AtA_cap);
+    smoothing_mat = (sparse_dok*) PyCObject_AsVoidPtr(smoothing_mat_cap);
+    dok_AtA = (sparse_dok*) PyCObject_AsVoidPtr(AtA_cap);
     #endif
 
     // Add two sparse_dok matrices
     add_sparse_dok(smoothing_mat,alpha,dok_AtA,1);
     
     // Create sparse_csr matrix and convert result to this format
-    sparse_csr * B;
     B = make_csr();
     convert_to_csr_ptr(B,smoothing_mat);
     
     // Extract the sparse_csr data to be returned as python lists
-    PyObject *data = c_double_array_to_list(B->data,
+    data = c_double_array_to_list(B->data,
                                 B->num_entries);
-    PyObject *colind = c_int_array_to_list(B->colind,
+    colind = c_int_array_to_list(B->colind,
                                 B->num_entries);
-    PyObject *row_ptr = c_int_array_to_list(B->row_ptr,
+    row_ptr = c_int_array_to_list(B->row_ptr,
                                 B->num_rows);
 
     // Build python list for return
-    PyObject *lst = PyList_New(3);
+    lst = PyList_New(3);
     PyList_SET_ITEM(lst, 0, data);
     PyList_SET_ITEM(lst, 1, colind);
     PyList_SET_ITEM(lst, 2, row_ptr);
