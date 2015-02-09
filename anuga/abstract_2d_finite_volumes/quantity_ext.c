@@ -1048,6 +1048,7 @@ PyObject *set_vertex_values_c(PyObject *self, PyObject *args) {
   PyArrayObject *number_of_triangles_per_node, *vertex_value_indices;
 
   int N,err;
+  int num_verts;
 
 
   // Convert Python arguments to C
@@ -1078,13 +1079,11 @@ PyObject *set_vertex_values_c(PyObject *self, PyObject *args) {
 
   CHECK_C_CONTIG(vertices);
 
-
-
   CHECK_C_CONTIG(A);
 
   //N = centroid_values -> dimensions[0];
 
-  int num_verts = vertices->dimensions[0];
+  num_verts = vertices->dimensions[0];
   
   err = _set_vertex_values_c(num_verts,
                           (long*) vertices->data,
