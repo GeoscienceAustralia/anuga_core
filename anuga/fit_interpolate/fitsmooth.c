@@ -151,6 +151,7 @@ quad_tree * _build_quad_tree(int n,
     
     int k,k6;
     double x0,y0,x1,y1,x2,y2;
+    triangle *T;
 
     // set up quad tree and allocate memory
     quad_tree * tree = new_quad_tree(extents[0],extents[1],extents[2],extents[3]);
@@ -166,7 +167,7 @@ quad_tree * _build_quad_tree(int n,
         y1 = vertex_coordinates[k6 + 3];
         x2 = vertex_coordinates[k6 + 4];
         y2 = vertex_coordinates[k6 + 5];
-        triangle * T = new_triangle(k,x0,y0,x1,y1,x2,y2);
+        T = new_triangle(k,x0,y0,x1,y1,x2,y2);
         quad_tree_insert_triangle(tree,T);
     }
   
