@@ -194,6 +194,7 @@ int _build_matrix_AtA_Atz_points(int N, long * triangles,
     double y;
     triangle * T;
     double * sigma;
+    int js[3];
 
 
     for(w=0;w<zdims;w++){
@@ -213,7 +214,7 @@ int _build_matrix_AtA_Atz_points(int N, long * triangles,
 
         if(T!=NULL){
             sigma = calculate_sigma(T,x,y);
-            int js[3];
+
             for(i=0;i<3;i++){
                 js[i]=triangles[3*(T->index)+i];
             }
