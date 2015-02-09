@@ -1077,6 +1077,9 @@ PyObject *set_vertex_values_c(PyObject *self, PyObject *args) {
   vertex_value_indices = get_consecutive_array(mesh,"vertex_value_indices");
 
   CHECK_C_CONTIG(vertices);
+
+
+
   CHECK_C_CONTIG(A);
 
   //N = centroid_values -> dimensions[0];

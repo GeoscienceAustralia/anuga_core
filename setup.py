@@ -163,4 +163,8 @@ def setup_package():
 
 
 if __name__ == "__main__":
+
+    # monkey patch distutils to use Microsoft VC++ for Python
+    import setuptools
+
     setup_package()
