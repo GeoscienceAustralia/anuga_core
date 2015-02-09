@@ -286,7 +286,10 @@ def build_project(args):
 
     cmd += ['install', '--prefix=' + dst_dir]
     
-    env['PYTHONPATH'] = os.path.join(dst_dir, 'lib','python2.7','site-packages')
+#     local_site_packages_dir = os.path.join(dst_dir, 'lib','python2.7','site-packages')
+#     env['PYTHONPATH'] = local_site_packages_dir
+#     import os
+#     os.system('mkdir -p %s' % local_site_packages_dir)
 
     log_filename = os.path.join(ROOT_DIR, 'build.log')
 
