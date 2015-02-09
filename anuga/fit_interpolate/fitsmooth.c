@@ -193,7 +193,7 @@ int _build_matrix_AtA_Atz_points(int N, long * triangles,
     double x;
     double y;
     triangle * T;
-    double * sigma
+    double * sigma;
 
 
     for(w=0;w<zdims;w++){
