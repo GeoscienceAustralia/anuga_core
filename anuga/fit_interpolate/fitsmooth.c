@@ -187,34 +187,32 @@ int _build_matrix_AtA_Atz_points(int N, long * triangles,
                       double ** Atz,quad_tree * quadtree)
               {
 
-
-
     int k;
-
-
-
     int i,w;
+    edge_key_t key;
+    double x;
+    double y;
+    triangle * T;
+    double * sigma
+
+
     for(w=0;w<zdims;w++){
         for(i=0;i<N;i++){
             Atz[w][i]=0;
         } 
     }
 
-    edge_key_t key;
-
-
-
 
     #pragma omp parallel for private(k,i,key,w)
     for(k=0;k<npts;k++){
 
 
-        double x = point_coordinates[2*k];
-        double y = point_coordinates[2*k+1];
-        triangle * T = search(quadtree,x,y);
+        x = point_coordinates[2*k];
+        y = point_coordinates[2*k+1];
+        T = search(quadtree,x,y);
 
         if(T!=NULL){
-            double * sigma = calculate_sigma(T,x,y);
+            sigma = calculate_sigma(T,x,y);
             int js[3];
             for(i=0;i<3;i++){
                 js[i]=triangles[3*(T->index)+i];

@@ -82,6 +82,8 @@ void delete_triangle_list(triangle * T)
 double * calculate_sigma(triangle * T,double x,double y)
 {
 
+
+	// FIXME SR: Should remove this malloc and just pass a pointer to array
 	double  * ret_sigma = malloc(3 * sizeof(double));
 	ret_sigma[0] = dot_points(x - T->x2, y - T->y2, T->nx1, T->ny1)/
 					dot_points(T->x1 - T->x2, T->y1 - T->y2, T->nx1, T->ny1);
