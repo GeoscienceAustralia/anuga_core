@@ -622,7 +622,7 @@ class Parallel_Structure_operator(anuga.Operator):
 
         # If flag is true open file with mode = "w" to form a clean file for logging
         if self.logging and self.myid == self.master_proc:
-            self.log_filename = self.label + '.log'
+            self.log_filename = self.domain.get_datadir() + '/' + self.label + '.log'
             log_to_file(self.log_filename, stats, mode='w')
             log_to_file(self.log_filename, 'time,discharge,velocity,driving_energy,delta_total_energy')
 
