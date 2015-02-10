@@ -90,7 +90,7 @@ class hecras_internal_boundary_function:
             internal_boundary_curves[:, 1],
             internal_boundary_curves[:, 0])
         self.free_flow_curve = interp1d(
-            free_flow_data[:, 0], free_flow_data[:, 1])
+            free_flow_data[:, 0], free_flow_data[:, 1], kind='linear')
         self.free_flow_data = free_flow_data
 
         self.free_flow_hw_range = numpy.array(
@@ -151,7 +151,7 @@ class hecras_internal_boundary_function:
             self.nonfree_flow_data.append(curve_data)
 
             self.nonfree_flow_curves.append(
-                interp1d(curve_data[:, 0], curve_data[:, 1]))
+                interp1d(curve_data[:, 0], curve_data[:, 1], kind='linear'))
             curve_counter += 1
 
         self.internal_boundary_curves = internal_boundary_curves
@@ -308,6 +308,8 @@ class hecras_internal_boundary_function:
                 upper_curve_Q = self.free_flow_curve(hw)
 
             Q = (w0 * upper_curve_Q + w1 * lower_curve_Q) / (w0 + w1)
+
+        print 'Q: ', Q , ' HW: ', hw, ' TW:', tw
 
         return(Q*sign_multiplier)
 

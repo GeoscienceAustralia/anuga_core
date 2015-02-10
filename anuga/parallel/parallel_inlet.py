@@ -547,12 +547,20 @@ class Parallel_Inlet(Inlet):
             message += '=====================================\n'
 
             for proc in self.procs:
-                message += '======> inlet triangle indices and centres at P%d\n' %(proc)
+                message += '======> inlet triangle indices and centres and elevation at P%d\n' %(proc)
                 message += '%s' % tri_indices[proc]
                 message += '\n'
                 
                 message += '%s' % self.domain.get_centroid_coordinates()[tri_indices[proc]]
                 message += '\n'
+
+                elev = self.domain.quantities['elevation'].centroid_values[tri_indices[proc]]
+                message += '%s' % elev
+                message += '\n'
+
+                if elev.min() != elev.max():
+                    message += 'Warning: Non-constant inlet elevation can lead to well-balancing problems'
+
                 
             message += 'line\n'
             message += '%s' % self.line

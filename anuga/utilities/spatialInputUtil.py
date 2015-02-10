@@ -170,7 +170,7 @@ if gdal_available:
         return outPol
            
     ###########################################################################
-    def read_polygon(filename):
+    def read_polygon(filename, close_polygon_shapefiles=False):
         """
 
         Read a shapefile (polygon or line) or a csv file as an anuga polygon
@@ -191,7 +191,7 @@ if gdal_available:
         if fileExtension == '.shp':
             # Read as either a polygon or line shapefile
             try:
-                outPol=readShp_1PolyGeo(filename)
+                outPol=readShp_1PolyGeo(filename, dropLast = (not close_polygon_shapefiles))
                 assert len(outPol)>1
             except:
                 try:
@@ -1169,7 +1169,8 @@ if gdal_available:
 
         allBreakLines = {}
         for shapefile in fileList:
-            allBreakLines[shapefile] = read_polygon(shapefile)
+            allBreakLines[shapefile] = read_polygon(shapefile, 
+                close_polygon_shapefiles=True)
 
         return allBreakLines
 

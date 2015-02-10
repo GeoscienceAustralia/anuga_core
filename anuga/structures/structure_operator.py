@@ -470,12 +470,19 @@ class Structure_operator(anuga.Operator):
             message +=  'Inlet %i\n' % i
             message += '-------------------------------------\n'
 
-            message += 'inlet triangle indices and centres\n'
+            message += 'inlet triangle indices and centres and elevations\n'
             message += '%s' % inlet.triangle_indices
             message += '\n'
             
             message += '%s' % self.domain.get_centroid_coordinates()[inlet.triangle_indices]
             message += '\n'
+
+            elev = self.domain.quantities['elevation'].centroid_values[inlet.triangle_indices]
+            message += '%s' % elev
+            message += '\n'
+            
+            if elev.min() != elev.max():
+                message += 'Warning: non-constant inlet elevation can cause well-balancing problems'
 
             message += 'region\n'
             message += '%s' % inlet.region
