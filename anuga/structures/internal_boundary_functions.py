@@ -29,7 +29,8 @@ class hecras_internal_boundary_function:
     """
 
     def __init__(self, internal_boundary_curves_file, skip_header_rows=4,
-                 skip_columns=1, allow_sign_reversal=False, verbose=True):
+                 skip_columns=1, allow_sign_reversal=False, verbose=True, 
+                 vertical_datum_offset = 0.):
         """ Use a csv file containing the htab-curves from hecras to create an
             interpolation function for the structure. 
 
@@ -76,6 +77,11 @@ class hecras_internal_boundary_function:
         # Do we use the table for flows from upstream to downstream, and the reverse?
         # If so, then reverse flow has a negative sign
         self.allow_sign_reversal = allow_sign_reversal
+
+        # Adjust HW/TW curves by vertical datum offset
+        for i in range(1, internal_boundary_curves.shape[1], 2):
+            internal_boundary_curves[:,i] = internal_boundary_curves[:,i] +\
+                 vertical_datum_offset
 
         # The first 2 columns consist of the free overflow curve (Q, HW). This
         # is apparently used when, for a given tail-water, the head-water is
@@ -188,7 +194,7 @@ class hecras_internal_boundary_function:
         """
 
         # Usually hw >= tw. If not, see if we should reverse the sign of Q
-        if((hw_in < tw_in) and self.allow_sign_reversal):
+        if ((hw_in < tw_in) and self.allow_sign_reversal):
             tw = 1.0*hw_in
             hw = 1.0*tw_in
             sign_multiplier = -1.0
@@ -199,12 +205,15 @@ class hecras_internal_boundary_function:
 
         # Logical checks
 
-        if(hw < tw):
+        if hw < tw:
             msg = 'HW: ' + str(hw) + ' < TW: ' + str(tw) + ' in ' + self.name
             raise Exception(msg)
 
-        if((hw > self.free_flow_hw_range[1]) |
-                (hw < self.free_flow_hw_range[0])):
+        # Quick exit
+        if hw < self.free_flow_hw_range[0]:
+            return 0.0
+
+        if hw > self.free_flow_hw_range[1]:
             msg = 'HW: ' + str(hw) + ' is outside free_flow_hw_range ' +\
                 str(self.free_flow_hw_range) + ' in ' + self.name
             raise Exception(msg)
@@ -215,7 +224,7 @@ class hecras_internal_boundary_function:
             raise Exception(msg)
 
         # Compute discharge
-        if((tw < self.nonfree_flow_tw[0])):
+        if tw < self.nonfree_flow_tw[0]:
             # Use free flow curve
             # This could induce a discontinuity in the flow as
             # tw crosses the minimum
@@ -233,7 +242,7 @@ class hecras_internal_boundary_function:
             # Interpolation weight
             w0 = tw - lower_tw
 
-            if(tw_lower_index < max_allowed_tw_index):
+            if tw_lower_index < max_allowed_tw_index:
                 # Get upper curve variables
                 tw_upper_index = tw_lower_index + 1
                 upper_tw = self.nonfree_flow_tw[tw_upper_index]
@@ -255,7 +264,7 @@ class hecras_internal_boundary_function:
             max_possible_lower_hw = \
                 max(self.hw_max_given_tw[tw_lower_index],
                     self.free_flow_hw_range[1])
-            if(lower_hw > max_possible_lower_hw):
+            if lower_hw > max_possible_lower_hw:
                 msg = 'lower_hw ' + str(lower_hw) + \
                     ' < max_possible_lower_hw: ' +\
                     str(max_possible_lower_hw) + \
@@ -283,7 +292,7 @@ class hecras_internal_boundary_function:
             # NOTE: This could introduce a (probably small) discontinuity
             # in the interpolation if the tabulated curves do not exactly agree
             # (which seems to be the case for hecras output)
-            if (lower_hw <= self.hw_max_given_tw[tw_lower_index]):
+            if lower_hw <= self.hw_max_given_tw[tw_lower_index]:
                 lower_curve_Q = self.nonfree_flow_curves[
                     tw_lower_index](lower_hw)
             else:
@@ -291,7 +300,7 @@ class hecras_internal_boundary_function:
                 lower_curve_Q = self.free_flow_curve(hw)
 
             # Get upper curve value
-            if(upper_hw < self.hw_max_given_tw[tw_upper_index]):
+            if upper_hw < self.hw_max_given_tw[tw_upper_index]:
                 upper_curve_Q = self.nonfree_flow_curves[
                     tw_upper_index](upper_hw)
             else:

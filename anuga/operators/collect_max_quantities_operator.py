@@ -13,7 +13,7 @@ import numpy as num
 from anuga.geometry.polygon import inside_polygon
 from anuga.operators.base_operator import Operator
 from anuga import Quantity
-from anuga_parallel import myid
+from anuga.parallel import myid
 from anuga.config import velocity_protection
 
 

@@ -2610,7 +2610,7 @@ class Domain(Generic_Domain):
         Useful in models
         with complex meshes, to find ways to speed up the model
         """
-        from anuga_parallel import myid, numprocs
+        from anuga.parallel import myid, numprocs
         from anuga.config import g, epsilon
 
         if(threshold_depth is None):
