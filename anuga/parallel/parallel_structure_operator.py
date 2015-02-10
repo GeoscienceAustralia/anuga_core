@@ -370,11 +370,12 @@ class Parallel_Structure_operator(anuga.Operator):
             gain = outflow_extra_depth*outflow_area
 
             # Update Stats
-            self.discharge  = Q#outflow_extra_depth*self.outflow.get_area()/timestep
-            self.velocity = barrel_speed#self.discharge/outlet_depth/self.width
+            self.discharge  = Q*timestep_star/timestep #outflow_extra_depth*self.outflow.get_area()/timestep
+            self.velocity = barrel_speed #self.discharge/outlet_depth/self.width
 
             new_outflow_depth = outflow_average_depth + outflow_extra_depth
 
+            self.outlet_depth = new_outflow_depth
             #if self.use_momentum_jet :
             #    # FIXME (SR) Review momentum to account for possible hydraulic jumps at outlet
             #    #new_outflow_xmom = outflow.get_average_xmom() + outflow_extra_momentum[0]
