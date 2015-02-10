@@ -194,6 +194,34 @@ class Parallel_Inlet(Inlet):
         else:
             return 0.0
 
+    def get_global_average_elevation(self):
+        # GLOBAL: Master processor gathers elevations from all child processors, and returns average
+
+        # WARNING: requires synchronization, must be called by all procs associated
+        # with this inlet
+
+        import pypar
+        local_elevation = num.sum(self.get_elevations()*self.get_areas())
+        global_area = self.get_global_area()
+
+
+
+        global_elevation = local_elevation
+
+        if self.myid == self.master_proc:
+            for i in self.procs:
+                if i == self.master_proc: continue
+
+                val = pypar.receive(i)
+                global_elevation = global_elevation + val
+        else:
+            pypar.send(local_elevation, self.master_proc)
+
+
+        if global_area > 0.0:
+            return global_elevation/global_area
+        else:
+            return 0.0
 
     def get_xmoms(self):
         # LOCAL

@@ -106,8 +106,6 @@ class Parallel_Structure_operator(anuga.Operator):
         if height is None:
             height = width
 
-
-
         if apron is None:
             apron = width
 
@@ -193,6 +191,11 @@ class Parallel_Structure_operator(anuga.Operator):
                                procs = self.inlet_procs[0],
                                enquiry_proc = self.enquiry_proc[0],
                                verbose = self.verbose))
+         
+            # Try to enforce a constant inlet elevation 
+            inlet_global_elevation = self.inlets[-1].get_global_average_elevation() 
+            self.inlets[-1].set_elevations(inlet_global_elevation)
+            
         else:
             self.inlets.append(None)
 

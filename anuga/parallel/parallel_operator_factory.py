@@ -856,8 +856,6 @@ def allocate_inlet_procs(domain, poly, enquiry_point = None, master_proc = 0, pr
     inlet_master_proc = -1
     inlet_enq_proc = -1
 
-
-
     # Calculate the number of points of the line inside full polygon
 
     #tri_id = line_intersect(vertex_coordinates, poly)
