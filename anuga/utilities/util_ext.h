@@ -20,16 +20,11 @@
 #define ANUGA_UTIL_EXT_H
 
 
-
-
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 #define AT __FILE__ ":" TOSTRING(__LINE__)
 #define P_ERROR_BUFFER_SIZE 65
 
-#ifdef _WIN32
-#define __func__ __FUNCTION__
-#endif
 
 // check that numpy array objects are C contiguous memory
 #define CHECK_C_CONTIG(varname)	if (!PyArray_ISCONTIGUOUS(varname)) { \
@@ -41,10 +36,6 @@
 				    PyErr_SetString(PyExc_RuntimeError, msg); \
 				    return NULL; \
 				}
-
-
-
-
 
 
 
@@ -60,9 +51,7 @@ void report_python_error(const char *location, const char *msg)
 
 
 
-#ifdef _WIN32
 
-#else
 double max(double x, double y) {  
   //Return maximum of two doubles
   
@@ -77,7 +66,7 @@ double min(double x, double y) {
   if (x < y) return x;
   else return y;
 }
-#endif
+
 
 double sign(double x) {
   //Return sign of a double
