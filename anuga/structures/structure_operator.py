@@ -229,7 +229,9 @@ class Structure_operator(anuga.Operator):
         #    new_inflow_depth*inflow_area = 
         #    old_inflow_depth*inflow_area - 
         #    timestep*Q*(new_inflow_depth/old_inflow_depth)
-        # Note the last term in () is a wet-dry improvement trick
+        # The last term in () is a wet-dry improvement trick
+        # Note inflow_area is the area of all triangles in the inflow
+        # region -- so this is a volumetric balance equation
         #
         factor = 1.0/(1.0 + dt_Q_on_d/self.inflow.get_area())
         new_inflow_depth = old_inflow_depth*factor
@@ -242,17 +244,18 @@ class Structure_operator(anuga.Operator):
 
         else:
             # For the momentum balance, note that Q also advects the momentum,
-            # which has an average value of new_inflow_mom (or old_inflow_mom). For
-            # consistency we keep using the (new_inflow_depth/old_inflow_depth)
-            # factor for discharge:
+            # The volumetric momentum flux should be Q*momentum, where
+            # momentum has an average value of new_inflow_mom (or
+            # old_inflow_mom). For consistency we keep using the
+            # (new_inflow_depth/old_inflow_depth) factor for discharge:
             #
             #     new_inflow_xmom*inflow_area = 
             #     old_inflow_xmom*inflow_area - 
-            #     timestep*Q*(new_inflow_depth/old_inflow_depth)*new_inflow_xmom
+            #     [timestep*Q*(new_inflow_depth/old_inflow_depth)]*new_inflow_xmom
             # and:
             #     new_inflow_ymom*inflow_area = 
             #     old_inflow_ymom*inflow_area - 
-            #     timestep*Q*(new_inflow_depth/old_inflow_depth)*new_inflow_ymom
+            #     [timestep*Q*(new_inflow_depth/old_inflow_depth)]*new_inflow_ymom
             #
             # The choice of new_inflow_mom in the final term at the end might be
             # replaced with old_inflow_mom
