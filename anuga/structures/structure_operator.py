@@ -38,6 +38,7 @@ class Structure_operator(anuga.Operator):
                  use_momentum_jet=False,
                  zero_outflow_momentum=True,
                  use_old_momentum_method=True,
+                 force_constant_inlet_elevations=False,
                  description=None,
                  label=None,
                  structure_type=None,
@@ -155,6 +156,12 @@ class Structure_operator(anuga.Operator):
                            invert_elevation = invert_elevation0,
                            outward_culvert_vector = self.outward_vector_0,
                            verbose = self.verbose))
+
+        if force_constant_inlet_elevations:
+            # Try to enforce a constant inlet elevation 
+            inlet_global_elevation = self.inlets[-1].get_average_elevation() 
+            self.inlets[-1].set_elevations(inlet_global_elevation)
+        
 
         tris_0 = self.inlets[0].triangle_indices
         #print tris_0
@@ -480,8 +487,9 @@ class Structure_operator(anuga.Operator):
             elev = self.domain.quantities['elevation'].centroid_values[inlet.triangle_indices]
             message += '%s' % elev
             message += '\n'
-            
-            if elev.min() != elev.max():
+           
+            elevation_range = elev.max() - elev.min() 
+            if not num.allclose(elevation_range, 0.):
                 message += 'Warning: non-constant inlet elevation can cause well-balancing problems'
 
             message += 'region\n'

@@ -63,6 +63,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                                           use_momentum_jet=use_momentum_jet,
                                           zero_outflow_momentum=(not use_momentum_jet),
                                           use_old_momentum_method=True,
+                                          force_constant_inlet_elevations=False,
                                           description=description,
                                           label=label,
                                           structure_type=structure_type,

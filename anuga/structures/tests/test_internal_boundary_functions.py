@@ -54,6 +54,9 @@ class Test_internal_boundary_functions(unittest.TestCase):
         # Value on least-extreme nonfree flow curve
         assert numpy.allclose(self.hb(-3.26, -3.266), 0.27)
 
+        # Value with hw below all curves
+        assert numpy.allclose(self.hb(-4., -4.1), 0.)
+
         # Value below least-extreme nonfree flow curve, but hw still valid on
         # free flow curve
         assert numpy.allclose(self.hb(-2.747, -3.4), 9.736)
@@ -74,12 +77,8 @@ class Test_internal_boundary_functions(unittest.TestCase):
         def hw_too_big():
             return self.hb(10.00, 0.)
 
-        def hw_too_small():
-            return self.hb(-4.0, -4.)
-
         self.assertRaises(Exception, lambda: tw_too_big())
         self.assertRaises(Exception, lambda: hw_too_big())
-        self.assertRaises(Exception, lambda: hw_too_small())
 
 
         # Check case where sign reversal is allowed

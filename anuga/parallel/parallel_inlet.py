@@ -585,8 +585,10 @@ class Parallel_Inlet(Inlet):
                 elev = self.domain.quantities['elevation'].centroid_values[tri_indices[proc]]
                 message += '%s' % elev
                 message += '\n'
-
-                if elev.min() != elev.max():
+                
+                elevation_difference = elev.max() - elev.min()
+                if not num.allclose(elevation_difference, 0.):
+                    message += 'Elevation range of ' + str(elevation_difference) 
                     message += 'Warning: Non-constant inlet elevation can lead to well-balancing problems'
 
                 

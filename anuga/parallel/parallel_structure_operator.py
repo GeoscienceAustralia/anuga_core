@@ -51,6 +51,7 @@ class Parallel_Structure_operator(anuga.Operator):
                  use_momentum_jet,
                  zero_outflow_momentum,
                  use_old_momentum_method,
+                 force_constant_inlet_elevations,
                  description,
                  label,
                  structure_type,
@@ -191,10 +192,11 @@ class Parallel_Structure_operator(anuga.Operator):
                                procs = self.inlet_procs[0],
                                enquiry_proc = self.enquiry_proc[0],
                                verbose = self.verbose))
-         
-            # Try to enforce a constant inlet elevation 
-            inlet_global_elevation = self.inlets[-1].get_global_average_elevation() 
-            self.inlets[-1].set_elevations(inlet_global_elevation)
+       
+            if force_constant_inlet_elevations: 
+                # Try to enforce a constant inlet elevation 
+                inlet_global_elevation = self.inlets[-1].get_global_average_elevation() 
+                self.inlets[-1].set_elevations(inlet_global_elevation)
             
         else:
             self.inlets.append(None)

@@ -309,7 +309,7 @@ class hecras_internal_boundary_function:
 
             Q = (w0 * upper_curve_Q + w1 * lower_curve_Q) / (w0 + w1)
 
-        print 'Q: ', Q , ' HW: ', hw, ' TW:', tw
+        #print 'Q: ', Q , ' HW: ', hw, ' TW:', tw
 
         return(Q*sign_multiplier)
 
