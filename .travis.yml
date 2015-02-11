@@ -30,6 +30,7 @@ install:
   - python --version
   # Get GDAL from the PinguCarsti binstar channel.
   - conda install -c pingucarsti gdal geos gdal-data
+  # On Windows Get GDAl from jjhelmus binstar channel
   - export GDAL_DATA=`gdal-config --datadir`
 
   # Install more software to deal with geographical projections

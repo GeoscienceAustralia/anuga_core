@@ -72,25 +72,24 @@ else:
     # without a compiler by packaging the mingw
     # runtime libraries
     #-----------------------------------------
-    MinGW = False
-    GCC = False
-    import subprocess
-    try:
-        output = subprocess.check_output('gcc -dumpmachine', shell=True)
-        GCC = True
-        MinGW = 'mingw' in output
-    except Exception as e:
-        print 'Error running gcc'
-        pass
+
     
     # At runtime, If mingw not installed add mingw dlls folder to path
     import sys
     import os
     if sys.platform == 'win32':
+		MinGW = False
+		import subprocess
+		try:
+			output = subprocess.check_output('gcc -dumpmachine', shell=True)
+			MinGW = 'mingw' in output
+		except Exception as e:
+			pass		
+		
         if not MinGW:
             (folder, tail) = os.path.split(__file__)
-            runtime_dir = os.path.join(os.path.abspath(folder), 'runtime_dir')
-            sys.path = runtime_dir + sys.path
+            runtime_dir = os.path.join(os.path.abspath(folder), 'runtime_libs')
+            os.environ['PATH'] = runtime_dir + ';' + os.environ['PATH']
     
     
     #---------------------------------

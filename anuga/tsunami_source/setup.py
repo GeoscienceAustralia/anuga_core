@@ -14,9 +14,9 @@ def configuration(parent_package='',top_path=None):
 
     config.add_data_dir('tests')
     config.add_data_dir(join('tests','data'))
-
+    
     if sys.platform != 'win32':
-        config.add_extension('okada_tsunami_fortran',
+		config.add_extension('okada_tsunami_fortran',
                             sources=['okada_tsunami_fortran.f'])
 
     

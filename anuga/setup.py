@@ -32,7 +32,9 @@ def configuration(parent_package='',top_path=None):
     config.add_subpackage('tsunami_source')
     config.add_subpackage('utilities')
     config.add_subpackage('validation_utilities')
-
+    
+    config.add_data_dir('runtime_libs')
+    
     try:
         import vtk
         config.add_subpackage('visualiser')

@@ -166,6 +166,7 @@ if __name__ == "__main__":
 
     # monkey patch distutils to use Microsoft VC++ for Python on win32
     if sys.platform == 'win32':
-        import setuptools
+		print('win32')
+		import setuptools
 
     setup_package()
