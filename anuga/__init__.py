@@ -78,14 +78,14 @@ else:
     import sys
     import os
     if sys.platform == 'win32':
-		MinGW = False
-		import subprocess
-		try:
-			output = subprocess.check_output('gcc -dumpmachine', shell=True)
-			MinGW = 'mingw' in output
-		except Exception as e:
-			pass		
-		
+        MinGW = False
+        import subprocess
+        try:
+            output = subprocess.check_output('gcc -dumpmachine', shell=True)
+            MinGW = 'mingw' in output
+        except Exception as e:
+            pass
+        
         if not MinGW:
             (folder, tail) = os.path.split(__file__)
             runtime_dir = os.path.join(os.path.abspath(folder), 'runtime_libs')
