@@ -8,16 +8,11 @@ from os.path import join
 def configuration(parent_package='',top_path=None):
     
     from numpy.distutils.misc_util import Configuration
-    from numpy.distutils.system_info import get_info
     
     config = Configuration('pymetis', parent_package, top_path)
 
     config.add_data_dir('tests')
 
-    if parent_package is '':
-        anuga_dir = '..'
-    else:
-        anuga_dir = '.'
         
     METIS_DIR = 'metis-4.0'
     

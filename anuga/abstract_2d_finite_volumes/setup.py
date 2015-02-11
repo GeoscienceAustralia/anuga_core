@@ -12,13 +12,14 @@ def local_fun():
 def configuration(parent_package='',top_path=None):
     
     from numpy.distutils.misc_util import Configuration
-    from numpy.distutils.system_info import get_info
+
     
     config = Configuration('abstract_2d_finite_volumes', parent_package, top_path)
 
     config.add_data_dir('tests')
 
-    util_dir = os.path.abspath(join(os.path.dirname(__file__),'..','utilities'))    
+    util_dir = os.path.abspath(join(os.path.dirname(__file__),'..','utilities'))
+    runtime_dir = os.path.abspath(join(os.path.dirname(__file__),'..','runtime_libs')) 
     
     config.add_extension('neighbour_mesh_ext',
                          sources=['neighbour_mesh_ext.c'],
