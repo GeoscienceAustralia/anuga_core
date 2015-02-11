@@ -20,8 +20,7 @@
 # Make selected classes available directly
 #-----------------------------------------------------
 
-from numpy.testing import Tester
-test = Tester().test
+
 
 
 # PEP0440 compatible formatted version, see:
@@ -42,13 +41,6 @@ test = Tester().test
 __version__ = '1.3.5'
 
 __svn_revision__ = filter(str.isdigit, "$Revision$")
-
-#from anuga.__metadata__ import  __date__, __author__
-
-#from .version import git_revision as __git_revision__
-#from .version import svn_revision as __svn_revision__
-
-
 
 
 
@@ -74,6 +66,39 @@ else:
         your python interpreter from there."""
         raise ImportError(msg)
        
+       
+    #------------------------------------------
+    # Hacky Code to allow binary install on windows
+    # without a compiler by packaging the mingw
+    # runtime libraries
+    #-----------------------------------------
+    MinGW = False
+    GCC = False
+    import subprocess
+    try:
+        output = subprocess.check_output('gcc -dumpmachine', shell=True)
+        GCC = True
+        MinGW = 'mingw' in output
+    except Exception as e:
+        print 'Error running gcc'
+        pass
+    
+    # At runtime, If mingw not installed add mingw dlls folder to path
+    import sys
+    import os
+    if sys.platform == 'win32':
+        if not MinGW:
+            (folder, tail) = os.path.split(__file__)
+            runtime_dir = os.path.join(os.path.abspath(folder), 'runtime_dir')
+            sys.path = runtime_dir + sys.path
+    
+    
+    #---------------------------------
+    # Setup the nose tester from numpy
+    #---------------------------------
+    from numpy.testing import Tester
+    test = Tester().test
+    
     #--------------------------------
     # Important basic classes
     #--------------------------------
