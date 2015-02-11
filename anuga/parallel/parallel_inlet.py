@@ -591,6 +591,19 @@ class Parallel_Inlet(Inlet):
                     message += 'Elevation range of ' + str(elevation_difference) 
                     message += 'Warning: Non-constant inlet elevation can lead to well-balancing problems'
 
+                try:
+                    # If the inlet does not have an enquiry point this will
+                    # fail gracefully
+                    message += '\n'
+                    message += 'Enquiry point:'
+                    message += '%s' % self.domain.get_centroid_coordinates()[self.enquiry_index]
+                    message += '\n'
+                    message += 'Enquiry Index:'
+                    message += '%s' % self.enquiry_index
+                    message += '\n'
+                except:
+                    pass
+
                 
             message += 'line\n'
             message += '%s' % self.line

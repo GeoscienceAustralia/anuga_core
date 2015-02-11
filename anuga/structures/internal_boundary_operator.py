@@ -100,13 +100,13 @@ class Internal_boundary_operator(anuga.Structure_operator):
         self.smoothing_timescale = 0.
         self.smooth_Q = 0.
         self.smooth_delta_total_energy = 0.
+
         # Set them based on a call to the discharge routine with smoothing_timescale=0.
         # [values of self.smooth_* are required in discharge_routine, hence dummy values above]
         Qvd = self.discharge_routine()
         self.smooth_Q = Qvd[0]
         # Finally, set the smoothing timescale we actually want
         self.smoothing_timescale = smoothing_timescale
-        self.smooth_delta_total_energy = self.delta_total_energy
     
     ###########################################################################
     def discharge_routine(self):
@@ -145,31 +145,27 @@ class Internal_boundary_operator(anuga.Structure_operator):
         case = ''
 
         # ts is used for smoothing discharge and delta_total_energy
-        if self.domain.timestep > 0.:
+        if self.domain.timestep > 0.0:
             ts = self.domain.timestep/max(self.domain.timestep, self.smoothing_timescale, 1.0e-30)
         else:
             ts = 1.0
 
-        # Compute a 'smoothed' delta_total_energy
-        self.smooth_delta_total_energy = self.smooth_delta_total_energy +\
-            ts*(self.delta_total_energy - self.smooth_delta_total_energy)
+        # Compute 'smoothed' versions of key variables
+        self.smooth_delta_total_energy += ts*(self.delta_total_energy - self.smooth_delta_total_energy)
 
         if numpy.sign(self.smooth_delta_total_energy) != numpy.sign(self.delta_total_energy):
             self.smooth_delta_total_energy = 0.
 
-        # Compute the 'tailwater' energy from the 'headwater' energy and the smooth_delta_total_energy
-        # Note if ts = 1 (no smoothing), then the raw inlet energies are used
+        # Compute the 'tailwater' energy from the 'headwater' energy and
+        # the smooth_delta_total_energy. This will ensure the hw = tw when
+        # sign(smooth_delta_total_energy) != sign(delta_total_energy)
         if self.inlet0_energy >= self.inlet1_energy:
             inlet0_energy = 1.0*self.inlet0_energy
             inlet1_energy = inlet0_energy - self.smooth_delta_total_energy
-
-            # Compute discharge
             Q = self.internal_boundary_function(inlet0_energy, inlet1_energy)
         else:
             inlet1_energy = 1.0*self.inlet1_energy
             inlet0_energy = inlet1_energy + self.smooth_delta_total_energy
-
-            # Compute discharge
             Q = self.internal_boundary_function(inlet0_energy, inlet1_energy)
 
         # Use time-smoothed discharge

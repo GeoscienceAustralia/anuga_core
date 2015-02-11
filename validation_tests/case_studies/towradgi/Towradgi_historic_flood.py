@@ -37,7 +37,7 @@ from anuga import Inlet_operator
 #------------------------------------------------------------------------------
 
 from anuga import distribute, myid, numprocs, finalize,barrier
-from anuga_parallel.parallel_operator_factory import Inlet_operator, Boyd_box_operator
+from anuga.parallel.parallel_operator_factory import Inlet_operator, Boyd_box_operator
 from anuga import Rate_operator
 
 
