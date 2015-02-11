@@ -99,12 +99,14 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
         # Allow 'smoothing ' of  discharge
         self.smoothing_timescale = 0.
         self.smooth_Q = 0.
+        self.smooth_delta_total_energy = 0.
         # Set them based on a call to the discharge routine with smoothing_timescale=0.
         # [values of self.smooth_* are required in discharge_routine, hence dummy values above]
         Qvd = self.discharge_routine()
         self.smooth_Q = Qvd[0]
         # Finally, set the smoothing timescale we actually want
         self.smoothing_timescale = smoothing_timescale
+        self.smooth_delta_total_energy = self.delta_total_energy
 
     def parallel_safe(self):
 
@@ -161,27 +163,50 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
 
         # Determine the direction of the flow
         if self.myid == self.master_proc:
-            if self.use_velocity_head:
-                self.delta_total_energy = enq_total_energy0 - enq_total_energy1
-                self.driving_energy = max(enq_total_energy0, enq_total_energy1)
-                # Compute discharge
-                Q = self.internal_boundary_function(enq_total_energy0, enq_total_energy1)
-            else:
-                self.delta_total_energy = enq_stage0 - enq_stage1
-                self.driving_energy = max(enq_stage0, enq_stage1)
-                # Compute discharge
-                Q = self.internal_boundary_function(enq_stage0, enq_stage1)
-
-            # Other variables required by anuga's structure operator are not used
+            # Variables required by anuga's structure operator which are not
+            # used
             barrel_velocity = numpy.nan
             outlet_culvert_depth = numpy.nan
             flow_area = numpy.nan
             case = ''
 
-            # Use time-smoothed discharge
+            # 'Timescale' for smoothed discharge and energy
             ts = self.domain.timestep/max(self.domain.timestep, self.smoothing_timescale, 1.0e-30)
+
+            # Energy or stage as head
+            if self.use_velocity_head:
+                E0 = enq_total_energy0
+                E1 = enq_total_energy1
+            else:
+                E0 = enq_stage0
+                E1 = enq_stage1
+
+            self.delta_total_energy = E0 - E1
+            self.driving_energy = max(E0, E1)
+
+            # Compute a 'smoothed' delta_total_energy for improved numerical
+            # stability
+            self.smooth_delta_total_energy = self.smooth_delta_total_energy +\
+                ts*(self.delta_total_energy - self.smooth_delta_total_energy)
+
+            if numpy.sign(self.smooth_delta_total_energy) != numpy.sign(self.delta_total_energy):
+                self.smooth_delta_total_energy = 0.
+
+            # Compute the 'tailwater' energy from the 'headwater' energy
+            # and the smooth_delta_total_energy Note if ts = 1 (no
+            # smoothing), then the raw inlet energies are used
+            if E0 >= E1:
+                inlet0_energy = 1.0*E0
+                inlet1_energy = inlet0_energy - self.smooth_delta_total_energy
+
+            else:
+                inlet1_energy = 1.0*E1
+                inlet0_energy = inlet1_energy + self.smooth_delta_total_energy
+
+            # Compute discharge
+            Q = self.internal_boundary_function(inlet0_energy, inlet1_energy)
             self.smooth_Q = self.smooth_Q + ts*(Q - self.smooth_Q)
-            
+
             if numpy.sign(self.smooth_Q) != numpy.sign(Q):
                 # The flow direction of the 'instantaneous Q' based on the
                 # 'smoothed delta_total_energy' is not the same as the

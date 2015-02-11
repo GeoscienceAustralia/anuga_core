@@ -1443,7 +1443,7 @@ class Domain(Generic_Domain):
         else:
             send(volume,0)
         
-        barrier()
+        #barrier()
     
         if myid == 0:
             for i in range(1,numprocs):
@@ -1482,7 +1482,7 @@ class Domain(Generic_Domain):
         else:
             send(flux_integral,0)
         
-        barrier()
+        #barrier()
     
         if myid == 0:
             for i in range(1,numprocs):
@@ -1517,7 +1517,7 @@ class Domain(Generic_Domain):
         else:
             send(flux_integral,0)
         
-        barrier()
+        #barrier()
     
         if myid == 0:
             for i in range(1,numprocs):
