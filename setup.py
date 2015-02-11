@@ -136,6 +136,13 @@ def setup_package():
                                  'Programming Language :: Python :: 2.6',
                                  'Programming Language :: Python :: 2.7',
                                  ],
+                    install_requires=['numpy', 
+                                      'scipy', 
+                                      'netcdf4', 
+                                      'nose', 
+                                      'matplotlib',
+                                      'gdal',
+                                      'geos'],
                     cmdclass={'clean': CleanCommand},
                     **extra_setuptools_args)
 
@@ -165,8 +172,9 @@ def setup_package():
 if __name__ == "__main__":
 
     # monkey patch distutils to use Microsoft VC++ for Python on win32
-    if sys.platform == 'win32':
-        print('win32')
-        import setuptools
+    #if sys.platform == 'win32':
+    #    print('win32')
+    #    import setuptools
 
     setup_package()
+    

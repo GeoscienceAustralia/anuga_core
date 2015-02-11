@@ -10,7 +10,7 @@ AnuGA
 What is AnuGA?
 --------------
 
-AnuGA (pronounced "AHNooGAH") is open-source software for the simulation of
+AnuGA (pronounced "AHnooGAH") is open-source software for the simulation of
 the shallow water equation, in particular it can be used to model tsunamis
 and floods.
 
@@ -30,13 +30,13 @@ Ole Nielsen, Stephen Roberts, Duncan Gray, Jane Sexton, Gareth Davies
 Installation
 ------------
 
-For installation instructions, see ``INSTALL.rst``.
+For installation instructions, see `INSTALL.rst <https://github.com/stoiver/anuga_core/blob/master/INSTALL.rst>`_
 
 
 Documentation
 -------------
 
-AnuGA documentation is available in the user_manual folder or online
+AnuGA documentation is available in the doc folder or online
 
     http://anuga.anu.edu.au
 
@@ -79,15 +79,15 @@ Developer information
 ---------------------
 
 If you would like to take part in AnuGA development, take a look
-at ``HACKING.rst``.
+at `CONTRIBUTING.rst <https://github.com/stoiver/anuga_core/blob/master/CONTRIBUTING.rst>`_.
 
 
 License information
 -------------------
 
-See the file ``LICENSE.txt`` for information on the history of this
-software, terms & conditions for usage, and a DISCLAIMER OF ALL
-WARRANTIES.
+See the file `LICENSE.txt <https://github.com/stoiver/anuga_core/blob/master/LICENCE.txt>`_ 
+for information on the history of this software, terms & conditions for usage, 
+and a DISCLAIMER OF ALL WARRANTIES.
 
 
 

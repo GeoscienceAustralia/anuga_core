@@ -23,7 +23,6 @@ tags
 *.a
 *.com
 *.class
-*.dll
 *.exe
 *.l[ao]
 *.o
