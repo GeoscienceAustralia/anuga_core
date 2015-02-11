@@ -577,7 +577,7 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
         # Fix elevation + get height at vertices
         if (len(elev_v.shape)>1):
             elev_v = numpy.zeros(elev_v.shape, dtype='float32')
-            for i in range(len(elev_v.shape[0])):
+            for i in range(elev_v.shape[0]):
                 elev_v[i,:] = fid.variables['elevation'][inds2[i]]
             height_v = stage_v - elev_v
         else:
