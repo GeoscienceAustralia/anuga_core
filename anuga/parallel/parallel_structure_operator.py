@@ -192,12 +192,12 @@ class Parallel_Structure_operator(anuga.Operator):
                                procs = self.inlet_procs[0],
                                enquiry_proc = self.enquiry_proc[0],
                                verbose = self.verbose))
-       
+
             if force_constant_inlet_elevations: 
                 # Try to enforce a constant inlet elevation 
                 inlet_global_elevation = self.inlets[-1].get_global_average_elevation() 
                 self.inlets[-1].set_elevations(inlet_global_elevation)
-            
+       
         else:
             self.inlets.append(None)
 
@@ -229,6 +229,12 @@ class Parallel_Structure_operator(anuga.Operator):
                                procs = self.inlet_procs[1],
                                enquiry_proc = self.enquiry_proc[1],
                                verbose = self.verbose))
+
+            if force_constant_inlet_elevations: 
+                # Try to enforce a constant inlet elevation 
+                inlet_global_elevation = self.inlets[-1].get_global_average_elevation() 
+                self.inlets[-1].set_elevations(inlet_global_elevation)
+            
 
         else:
             self.inlets.append(None)

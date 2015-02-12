@@ -1,6 +1,7 @@
 import anuga
 import math
 import numpy
+from numpy.linalg import solve
 
 #from anuga.structures.boyd_box_operator import boyd_box_function 
 
@@ -108,13 +109,27 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
         # Finally, set the smoothing timescale we actually want
         self.smoothing_timescale = smoothing_timescale
 
+    #def __call__(self):
+    #    """
+    #        Update for n sub-timesteps 
+    #    """
+
+    #    number_of_substeps = 20
+    #    original_timestep = self.domain.get_timestep()
+    #    self.domain.timestep = original_timestep/(1.0*number_of_substeps)
+    #    
+    #    for i in range(number_of_substeps): 
+    #        anuga.parallel.parallel_structure_operator.Parallel_Structure_operator.__call__(self)
+
+    #    self.domain.timestep = original_timestep
+
     def parallel_safe(self):
 
         return True
 
 
 
-    def discharge_routine(self):
+    def discharge_routine_old(self):
 
         import pypar
 
@@ -251,3 +266,186 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
             return None, None, None
         
         
+    def discharge_routine(self):
+        """
+            Uses semi-implicit discharge estimation:
+              Discharge = 0.5*(Q(H0, T0) + Q(H0 + delta_H, T0+delta_T))
+            where H0 = headwater stage, T0 = tailwater stage, delta_H = change in
+            headwater stage over a timestep, delta_T = change in tailwater stage over a
+            timestep.
+
+            We can estimate delta_H, delta_T by solving the following system (based on mass conservation):
+              A0*delta_H = -dt/2*( Q(H0, T0) + Q(H0 + delta_H, T0 + delta_T))
+              A1*delta_T =  dt/2*( Q(H0, T0) + Q(H0 + delta_H, T0 + delta_T))
+            where A0, A1 are the inlet areas, and dt is the timestep
+
+            We linearise the system with the approximation:
+              Q(H0 + delta_H, T0 + delta_T) ~= Q(H0, T0) + delQ/delH * delta_H + delQ/delT*delta_T
+            where delQ/delH and delQ/delT are evaluated with numerical finite differences 
+
+
+        """
+
+        import pypar
+
+        local_debug = False
+        
+        # If the structure has been closed, then no water gets through
+        if self.height <= 0.0:
+            if self.myid == self.master_proc:
+                Q = 0.0
+                barrel_velocity = 0.0
+                outlet_culvert_depth = 0.0
+                self.case = "Structure is blocked"
+                self.inflow = self.inlets[0]
+                self.outflow = self.inlets[1]
+                return Q, barrel_velocity, outlet_culvert_depth
+            else:
+                return None, None, None
+
+        #Send attributes of both enquiry points to the master proc
+        if self.myid == self.master_proc:
+
+            if self.myid == self.enquiry_proc[0]:
+                enq_total_energy0 = self.inlets[0].get_enquiry_total_energy()
+                enq_stage0 = self.inlets[0].get_enquiry_stage()
+            else:
+                enq_total_energy0 = pypar.receive(self.enquiry_proc[0])
+                enq_stage0 = pypar.receive(self.enquiry_proc[0])
+
+
+            if self.myid == self.enquiry_proc[1]:
+                enq_total_energy1 = self.inlets[1].get_enquiry_total_energy()
+                enq_stage1 = self.inlets[1].get_enquiry_stage()
+            else:
+                enq_total_energy1 = pypar.receive(self.enquiry_proc[1])
+                enq_stage1 = pypar.receive(self.enquiry_proc[1])
+
+        else:
+            if self.myid == self.enquiry_proc[0]:
+                pypar.send(self.inlets[0].get_enquiry_total_energy(), self.master_proc)
+                pypar.send(self.inlets[0].get_enquiry_stage(), self.master_proc)
+
+            if self.myid == self.enquiry_proc[1]:
+                pypar.send(self.inlets[1].get_enquiry_total_energy(), self.master_proc)
+                pypar.send(self.inlets[1].get_enquiry_stage(), self.master_proc)
+
+        # Send inlet areas to the master proc. FIXME: Inlet areas don't change
+        # -- perhaps we could just do this once?
+
+        # area0
+        if self.myid in self.inlet_procs[0]:
+            area0 = self.inlets[0].get_global_area()
+
+        if self.myid == self.master_proc:
+            if self.myid != self.inlet_master_proc[0]:
+                area0 = pypar.receive(self.inlet_master_proc[0])
+        elif self.myid == self.inlet_master_proc[0]:
+            pypar.send(area0, self.master_proc)
+        
+        # area1
+        if self.myid in self.inlet_procs[1]:
+            area1 = self.inlets[1].get_global_area()
+
+        if self.myid == self.master_proc:
+            if self.myid != self.inlet_master_proc[1]:
+                area1 = pypar.receive(self.inlet_master_proc[1])
+        elif self.myid == self.inlet_master_proc[1]:
+            pypar.send(area1, self.master_proc)
+
+        # Compute discharge
+        if self.myid == self.master_proc:
+
+            # Energy or stage as head
+            if self.use_velocity_head:
+                E0 = enq_total_energy0
+                E1 = enq_total_energy1
+            else:
+                E0 = enq_stage0
+                E1 = enq_stage1
+
+            # Variables for anuga's structure operator
+            self.delta_total_energy = E0 - E1
+            self.driving_energy = max(E0, E1)
+
+
+            Q0 = self.internal_boundary_function(E0, E1)
+            dt = self.domain.get_timestep()
+            if dt > 0.:
+                # Numerical derivatives of Discharge function
+                dE0 = 0.01
+                dE1 = 0.01
+                dQ_dE0 = (self.internal_boundary_function(E0+dE0, E1) - self.internal_boundary_function(E0-dE0, E1))/(2*dE0)
+                dQ_dE1 = (self.internal_boundary_function(E0, E1+dE1) - self.internal_boundary_function(E0, E1-dE1))/(2*dE1)
+
+                # Assemble and solve matrix
+                hdt = 0.5*dt
+
+                M11 = area0 + dQ_dE0*hdt
+                M12 = dQ_dE1*hdt
+                M21 = -dQ_dE0*hdt
+                M22 = area1 - dQ_dE1*hdt
+
+                lhs = numpy.array([ [M11, M12], [M21, M22]])
+                rhs = numpy.array([ -Q0*dt, Q0*dt])
+                # sol contains delta_E0, delta_E1
+                sol = solve(lhs, rhs)
+                
+                Q = 0.5*(Q0 + ( Q0 + sol[0]*dQ_dE0 + sol[1]*dQ_dE1))
+            else:
+                Q = Q0
+
+            # Smooth discharge
+            if dt > 0.:
+                ts = dt/max(dt, self.smoothing_timescale, 1.0e-30)
+            else:
+                # No smoothing
+                ts = 1.0
+
+            self.smooth_Q = self.smooth_Q + ts*(Q - self.smooth_Q)
+
+        else:
+            self.delta_total_energy=numpy.nan
+            self.driving_energy=numpy.nan
+
+
+        self.inflow_index = 0
+        self.outflow_index = 1
+        # master proc orders reversal if applicable
+        if self.myid == self.master_proc:
+
+            # Reverse the inflow and outflow direction?
+            if Q < 0.:
+                self.inflow_index = 1
+                self.outflow_index = 0
+
+                for i in self.procs:
+                    if i == self.master_proc: continue
+                    pypar.send(True, i)
+            else:
+                for i in self.procs:
+                    if i == self.master_proc: continue
+                    pypar.send(False, i)
+
+        else:
+            reverse = pypar.receive(self.master_proc)
+
+            if reverse:
+                self.inflow_index = 1
+                self.outflow_index = 0
+
+        # Master proc computes return values
+        if self.myid == self.master_proc:
+            # Zero Q if sign's of smooth_Q and Q differ
+            if numpy.sign(self.smooth_Q) != numpy.sign(Q):
+                Q = 0.
+            else:
+                # Make Q positive (for anuga's structure operator)
+                Q = min( abs(self.smooth_Q), abs(Q) )
+            # Variables required by anuga's structure operator which are
+            # not used
+            barrel_velocity = numpy.nan
+            outlet_culvert_depth = numpy.nan
+            return Q, barrel_velocity, outlet_culvert_depth
+        else:
+            return None, None, None

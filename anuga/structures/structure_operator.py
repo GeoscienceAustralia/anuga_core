@@ -129,8 +129,8 @@ class Structure_operator(anuga.Operator):
             self.__process_non_skew_culvert()
         else:
             raise Exception, 'Define either exchange_lines or end_points'
-
         
+
         self.inlets = []
         line0 = self.exchange_lines[0] #self.inlet_lines[0]
         if self.apron is None:
@@ -161,7 +161,6 @@ class Structure_operator(anuga.Operator):
             # Try to enforce a constant inlet elevation 
             inlet_global_elevation = self.inlets[-1].get_average_elevation() 
             self.inlets[-1].set_elevations(inlet_global_elevation)
-        
 
         tris_0 = self.inlets[0].triangle_indices
         #print tris_0
@@ -199,6 +198,11 @@ class Structure_operator(anuga.Operator):
         
         self.set_logging(logging)
 
+        if force_constant_inlet_elevations:
+            # Try to enforce a constant inlet elevation 
+            inlet_global_elevation = self.inlets[-1].get_average_elevation() 
+            self.inlets[-1].set_elevations(inlet_global_elevation)
+        
 
 
 

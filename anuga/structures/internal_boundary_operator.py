@@ -1,6 +1,7 @@
 import anuga
 import math
 import numpy
+from numpy.linalg import solve
 
 
 #=====================================================================
@@ -107,9 +108,22 @@ class Internal_boundary_operator(anuga.Structure_operator):
         self.smooth_Q = Qvd[0]
         # Finally, set the smoothing timescale we actually want
         self.smoothing_timescale = smoothing_timescale
+
+    #def __call__(self):
+    #    """
+    #        Update for n sub-timesteps
+    #    """
+
+    #    number_of_substeps = 1 
+    #    original_timestep = self.domain.get_timestep()
+    #    self.domain.timestep = original_timestep/(1.0*number_of_substeps)
+    #    
+    #    for i in range(number_of_substeps): 
+    #        anuga.Structure_operator.__call__(self)
+
+    #    self.domain.timestep = original_timestep
     
-    ###########################################################################
-    def discharge_routine(self):
+    def discharge_routine_old(self):
         """Procedure to determine the inflow and outflow inlets.
         Then use self.internal_boundary_function to do the actual calculation
         """
@@ -190,3 +204,98 @@ class Internal_boundary_operator(anuga.Structure_operator):
             Q = min( abs(self.smooth_Q), abs(Q) )
 
         return Q, barrel_velocity, outlet_culvert_depth
+
+
+    def discharge_routine(self):
+        """Uses semi-implicit discharge estimation:
+          Discharge = 0.5*(Q(H0, T0) + Q(H0 + delta_H, T0+delta_T))
+        where H0 = headwater stage, T0 = tailwater stage, delta_H = change in
+        headwater stage over a timestep, delta_T = change in tailwater stage over a
+        timestep, and Q is the discharge function
+
+        We can estimate delta_H, delta_T by solving the following system (based on mass conservation):
+          A0*delta_H = -dt/2*( Q(H0, T0) + Q(H0 + delta_H, T0 + delta_T))
+          A1*delta_T =  dt/2*( Q(H0, T0) + Q(H0 + delta_H, T0 + delta_T))
+        where A0, A1 are the inlet areas, and dt is the timestep
+
+        We linearise the system with the approximation:
+          Q(H0 + delta_H, T0 + delta_T) ~= Q(H0, T0) + delQ/delH * delta_H + delQ/delT*delta_T
+        where delQ/delH and delQ/delT are evaluated with numerical finite differences 
+
+
+        """
+
+        # Compute energy head or stage at inlets 0 and 1
+        if self.use_velocity_head:
+            self.inlet0_energy = self.inlets[0].get_enquiry_total_energy()
+            self.inlet1_energy = self.inlets[1].get_enquiry_total_energy()
+        else:
+            self.inlet0_energy = self.inlets[0].get_enquiry_stage()
+            self.inlet1_energy = self.inlets[1].get_enquiry_stage()
+        
+        # Store these variables for anuga's structure output
+        self.driving_energy = max(self.inlet0_energy, self.inlet1_energy)
+        self.delta_total_energy = self.inlet0_energy - self.inlet1_energy
+
+        Q0 = self.internal_boundary_function(self.inlet0_energy, self.inlet1_energy)
+        dt = self.domain.get_timestep()
+
+
+        if dt > 0.:
+            E0 = self.inlet0_energy
+            E1 = self.inlet1_energy
+
+            # Numerical derivatives
+            dE0 = 0.01
+            dE1 = 0.01
+            dQ_dE0 = (self.internal_boundary_function(E0+dE0, E1) - self.internal_boundary_function(E0-dE0, E1))/(2*dE0)
+            dQ_dE1 = (self.internal_boundary_function(E0, E1+dE1) - self.internal_boundary_function(E0, E1-dE1))/(2*dE1)
+
+            # Assemble and solve matrix
+            A0 = self.inlets[0].area
+            A1 = self.inlets[1].area
+            hdt = 0.5*dt
+
+            M11 = A0 + dQ_dE0*hdt
+            M12 = dQ_dE1*hdt
+            M21 = -dQ_dE0*hdt
+            M22 = A1 - dQ_dE1*hdt
+
+            lhs = numpy.array([ [M11, M12], [M21, M22]])
+            rhs = numpy.array([ -Q0*dt, Q0*dt])
+            # sol contains delta_E0, delta_E1
+            sol = solve(lhs, rhs)
+            
+            Q = 0.5*(Q0 + ( Q0 + sol[0]*dQ_dE0 + sol[1]*dQ_dE1))
+        else:
+            Q = Q0
+
+
+        # Use time-smoothed discharge if smoothing_timescale > 0.
+        if dt > 0.0:
+            ts = dt/max(dt, self.smoothing_timescale, 1.0e-30)
+        else:
+            # No smoothing
+            ts = 1.0
+
+        self.smooth_Q = self.smooth_Q + ts*(Q - self.smooth_Q)
+
+        # Define 'inflow' and 'outflow' for anuga's structure operator
+        if Q >= 0.:
+            self.inflow  = self.inlets[0]
+            self.outflow = self.inlets[1]
+        else:
+            self.inflow  = self.inlets[1]
+            self.outflow = self.inlets[0]
+
+        # Zero discharge if the sign's of Q and smooth_Q are not the same
+        if numpy.sign(self.smooth_Q) != numpy.sign(Q):
+            Q = 0.
+        else:
+            # Make Q positive (for anuga's structure operator)
+            Q = min( abs(self.smooth_Q), abs(Q) )
+
+        barrel_velocity = numpy.nan
+        outlet_culvert_depth = numpy.nan
+
+        return Q, barrel_velocity, outlet_culvert_depth 
