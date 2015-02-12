@@ -26,7 +26,7 @@ else:
 # avoid attempting to load components that aren't built yet.
 builtins.__ANUGA_SETUP__ = True
 
-
+#==============================================================================
 DISTNAME = 'anuga'
 DESCRIPTION = 'A set of python modules for tsunami and flood modelling'
 with open('README.rst') as f:
@@ -36,12 +36,16 @@ MAINTAINER_EMAIL = 'stephen.roberts@anu.edu.au'
 URL = "http://anuga.anu.edu.au"
 LICENSE = 'GPL'
 DOWNLOAD_URL = "http://sourceforge.net/projects/anuga/"
+#===============================================================================
+
 
 # We can actually import a restricted version of anuga that
 # does not need the compiled code
 import anuga
 
 VERSION = anuga.__version__
+
+
 
 # Return the svn revision as a string
 def svn_revision():
@@ -170,11 +174,6 @@ def setup_package():
 
 
 if __name__ == "__main__":
-
-    # monkey patch distutils to use Microsoft VC++ for Python on win32
-    #if sys.platform == 'win32':
-    #    print('win32')
-    #    import setuptools
 
     setup_package()
     
