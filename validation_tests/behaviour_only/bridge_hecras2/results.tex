@@ -60,11 +60,13 @@ models show differences once the flow goes overbank (above -2.4m at station
 525). Because the ANUGA model here has a fairly coarse mesh, numerical
 diffusion causes additional drag for overbank flows. 
 
-Several additional factors will contribute to deviations between the models. ANUGA
-models cross-channel variations in the water surface elevation, which is
+Several additional factors will contribute to deviations between the models.
+ANUGA models cross-channel variations in the water surface elevation, which is
 assumed constant in HECRAS. The under-bridge flux in ANUGA is based on the
 water elevations in the central channel up-and-down stream of the bridge, thus
-the 2D representation will have an effect on the under-bridge flow. The models
+the 2D representation will have an effect on the under-bridge flow. Further,
+since the ANUGA model here is fairly coarsely resolved, the flow details near
+the bridge are noticably affected by the choice of flow algorithm. The models
 also flux the momentum under the bridge in different ways. ANUGA's method is to
 compute the average momentum in each direction along the upstream bridge
 inflow, and assume that this is advected by the discharge (as computed from the

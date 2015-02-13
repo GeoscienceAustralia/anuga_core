@@ -400,13 +400,44 @@ class pumping_station_function:
         headwater to tailwater. 
     """
 
-    def __init__(self, pump_capacity, hw_to_start_pumping, verbose=True):
+    def __init__(self, domain, pump_capacity, hw_to_start_pumping, hw_to_stop_pumping,
+                 initial_pump_rate=0., pump_rate_of_increase = 1.0e+100, 
+                 pump_rate_of_decrease = 1.0e+100, verbose=True):
         """
-            @param pump_capacity m^3/s
+            @param domain ANUGA domain
+            @param pump_capacity (m^3/s)
+            @param hw_to_start_pumping Turn pumps on if hw exceeds this (m)
+            @param hw_to_stop_pumping Turn pumps off if hw below this (m)
+            @param initial_pump_rate rate of pumps at start of simulation  (m^3/s)
+            @param pump_rate_of_increase Accelleration of pump rate when turning on (m^3/s/s)
+            @param pump_rate_of_decrease Decelleration of pump rate when turning off (m^3/s/s)
+            @param verbose 
+        """
 
-        """
         self.pump_capacity = pump_capacity
         self.hw_to_start_pumping = hw_to_start_pumping
+        self.hw_to_stop_pumping = hw_to_stop_pumping
+
+        self.pump_rate_of_increase = pump_rate_of_increase
+        self.pump_rate_of_decrease = pump_rate_of_decrease
+
+        self.domain=domain
+        self.last_time_called = domain.get_time()
+        self.time = domain.get_time()
+
+        if hw_to_start_pumping < hw_to_stop_pumping:
+            raise Exception('hw_to_start_pumping should be >= hw_to_stop_pumping')
+
+        if initial_pump_rate > pump_capacity:
+            raise Exception('Initial pump rate is > pump capacity')
+        
+        if ((self.pump_rate_of_increase < 0.) | (self.pump_rate_of_decrease < 0.)):
+            raise Exception('Pump rates of increase / decrease MUST be non-negative')
+
+        if ( (pump_capacity < 0.) | (initial_pump_rate < 0.) ):
+            raise Exception('Pump rates cannot be negative')
+
+        self.pump_rate = initial_pump_rate
 
         if verbose:
             print '########################################'
@@ -418,14 +449,28 @@ class pumping_station_function:
 
     def __call__(self, hw_in, tw_in):
         """
-            @param hw_in The stage (or energy) at the headwater site
-            @param tw_in The stage (or energy) at the tailwater site
+            @param hw_in The stage (or energy) at the headwater site (m)
+            @param tw_in The stage (or energy) at the tailwater site (m)
         """
 
-        if(hw_in > self.hw_to_start_pumping):
-            Q = self.pump_capacity
+        # Compute the time since last called, so we can increase / decrease the pump rate if needed
+        self.time = self.domain.get_time()
+        if self.time > self.last_time_called:
+            dt = self.time - self.last_time_called
+            self.last_time_called = self.time
         else:
-            Q = 0.
+            dt = 0.
+            if self.time != self.last_time_called:
+                print self.time
+                print self.last_time_called
+                print self.time - self.last_time_called
+                raise Exception('Impossible timestepping, ask Gareth')
+          
+        # Increase / decrease the pump rate if needed 
+        if hw_in < self.hw_to_stop_pumping:
+            self.pump_rate = max(0., self.pump_rate - dt*self.pump_rate_of_decrease)
+        elif hw_in > self.hw_to_start_pumping:
+            self.pump_rate = min(self.pump_capacity, self.pump_rate + dt*self.pump_rate_of_increase)
 
-        return Q
+        return self.pump_rate
 
