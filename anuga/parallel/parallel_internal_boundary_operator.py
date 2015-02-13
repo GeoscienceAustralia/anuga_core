@@ -28,6 +28,7 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
                  zero_outflow_momentum=False,
                  force_constant_inlet_elevations=True,
                  smoothing_timescale=0.0,
+                 compute_discharge_implicitly=True,
                  description=None,
                  label=None,
                  structure_type='internal_boundary',
@@ -83,6 +84,8 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
         self.use_momentum_jet = use_momentum_jet
         self.use_velocity_head = use_velocity_head
         self.zero_outflow_momentum = zero_outflow_momentum
+
+        self.compute_discharge_implicitly = compute_discharge_implicitly
         
         #FIXME SR: Why is this hard coded!
         self.max_velocity = 99999999999.0
@@ -128,8 +131,23 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
         return True
 
 
+    def discharge_routine(self):
+        """Both implicit and explicit methods available
+        The former seems more stable and more accurate (in at least some
+        cases). The latter will have less communication in parallel, and
+        for some simple internal_boundary_functions there is no benefit to
+        the implicit approach
+            
+        """
 
-    def discharge_routine_old(self):
+        if self.compute_discharge_implicitly:
+            Q, barrel_velocity, outlet_culvert_depth = self.discharge_routine_implicit()
+        else:
+            Q, barrel_velocity, outlet_culvert_depth = self.discharge_routine_explicit()
+
+        return Q, barrel_velocity, outlet_culvert_depth
+
+    def discharge_routine_explicit(self):
 
         import pypar
 
@@ -266,7 +284,7 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
             return None, None, None
         
         
-    def discharge_routine(self):
+    def discharge_routine_implicit(self):
         """
             Uses semi-implicit discharge estimation:
               Discharge = 0.5*(Q(H0, T0) + Q(H0 + delta_H, T0+delta_T))
@@ -391,7 +409,9 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
                 # sol contains delta_E0, delta_E1
                 sol = solve(lhs, rhs)
                 
-                Q = 0.5*(Q0 + ( Q0 + sol[0]*dQ_dE0 + sol[1]*dQ_dE1))
+                #Q = 0.5*(Q0 + ( Q0 + sol[0]*dQ_dE0 + sol[1]*dQ_dE1))
+                Q1 = self.internal_boundary_function(E0 + sol[0], E1 + sol[1])
+                Q = 0.5*(Q0 + Q1)
             else:
                 Q = Q0
 

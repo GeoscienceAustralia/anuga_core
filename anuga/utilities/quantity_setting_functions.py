@@ -327,7 +327,7 @@ def composite_quantity_setting_function(poly_fun_pairs,
 
                 if(pi == 'Extent'):
                     # Here fi MUST be a gdal-compatible raster
-                    if(not (type(fi)==str)):
+                    if(not (type(fi) == str)):
                         msg = ' pi = "Extent" can only be used when fi is a' +\
                               ' raster file name'
                         raise Exception(msg)
@@ -340,7 +340,7 @@ def composite_quantity_setting_function(poly_fun_pairs,
                     # Then we get the extent from the raster itself
                     pi_path = su.getRasterExtent(fi,asPolygon=True)
 
-                elif(type(pi)==str and os.path.isfile(pi) ): 
+                elif( (type(pi) == str) and os.path.isfile(pi) ): 
                     # pi is a file
                     pi_path = su.read_polygon(pi)
 

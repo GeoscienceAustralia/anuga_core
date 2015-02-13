@@ -36,30 +36,7 @@ directory.
 
 Figure~\ref{Reach} show stage timeseries at various stations downstream in each
 model. The ANUGA and HECRAS results are qualitatively similar, but differ in
-detail. In early stages of the simulation when discharges are lower, ANUGA
-shows stages slightly below HECRAS. This reflects the fact that HECRAS models
-side-wall friction while ANUGA does not, so there is more drag in the HECRAS
-model. Another relevant factor may be that the models flux the momentum under
-the bridge in different ways. ANUGA's method is to compute the average momentum
-in each direction along the upstream bridge inflow, and assume that this is
-advected by the discharge (as computed from the internal boundary rating
-curves). HECRAS's method is based on the energy equation.
-
-As the discharge increases, the models show more deviation around the
-bridge and upstream, and ultimately approach different steady states. The main
-reason for this is that they use different methods to model the bridge
-overflow, which begins when station 525 exceeds -1m. Another cause of
-differences is that in HECRAS, stage over all cross-sections is constant,
-including just upstream and downstream of the bridge. On the other hand in
-these locations ANUGA predicts some cross-channel variations in channel and
-floodplain stage. This is caused by the flux of water under the centre of the
-bridge. Just upstream of the bridge, ANUGA predicts the stage in the channel is
-slightly lower than on the floodplains, whereas the reverse is true just
-downstream, as would be expected from the bridge underflow. Combined with the
-fact that ANUGA's enquiry points for the bridge underflow rating curves occur
-in the centre of the channel, we cannot expect exact agreement with HECRAS.
-HECRAS includes several other bridge models, and these would also give
-different results particularly when the bridge deck is inundated. 
+detail. 
 
 \begin{figure}
 \begin{center}
@@ -68,4 +45,30 @@ different results particularly when the bridge deck is inundated.
 \caption{Stage at various points downstream in the channel}
 \label{Reach}
 \end{figure}
+
+In early stages of the simulation when discharges are lower, ANUGA shows stages
+slightly below HECRAS (particularly away from the bridge). This reflects the
+fact that HECRAS models side-wall friction while ANUGA does not, so there is
+more drag in the HECRAS model. 
+
+As the discharge increases, the models show more deviation around the bridge
+and upstream, and ultimately approach different steady states. At high flows,
+the main reason for this is that they use different methods to model the bridge
+overflow, which begins when station 525 exceeds -1m. ANUGA uses the shallow
+water equations, while HECRAS uses an energy method. Even before this, the
+models show differences once the flow goes overbank (above -2.4m at station
+525). Because the ANUGA model here has a fairly coarse mesh, numerical
+diffusion causes additional drag for overbank flows. 
+
+Several additional factors will contribute to deviations between the models. ANUGA
+models cross-channel variations in the water surface elevation, which is
+assumed constant in HECRAS. The under-bridge flux in ANUGA is based on the
+water elevations in the central channel up-and-down stream of the bridge, thus
+the 2D representation will have an effect on the under-bridge flow. The models
+also flux the momentum under the bridge in different ways. ANUGA's method is to
+compute the average momentum in each direction along the upstream bridge
+inflow, and assume that this is advected by the discharge (as computed from the
+internal boundary rating curves). HECRAS's method is based on the energy
+equation. 
+
 
