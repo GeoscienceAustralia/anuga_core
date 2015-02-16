@@ -38,7 +38,7 @@
 #
 # Dev branch marker is: 'X.Y.dev' or 'X.Y.devN' where N is an integer.
 #
-__version__ = '1.3.6'
+__version__ = '1.3.7'
 
 __svn_revision__ = filter(str.isdigit, "$Revision$")
 
@@ -81,7 +81,7 @@ else:
         MinGW = False
         import subprocess
         try:
-            output = subprocess.check_output('gcc -dumpmachine', shell=True)
+            output = subprocess.check_output('gcc -dumpmachine', shell=True, stderr=subprocess.STDOUT)
             MinGW = 'mingw' in output
         except Exception as e:
             pass

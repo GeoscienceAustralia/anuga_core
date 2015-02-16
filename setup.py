@@ -71,6 +71,12 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
     extra_setuptools_args = dict(
         zip_safe=False,  # the package can run out of an .egg file
         include_package_data=True,
+		install_requires=['numpy', 
+                          'scipy', 
+                          'netcdf4', 
+                          'nose', 
+                          'matplotlib',
+                          'gdal']
     )
 else:
     extra_setuptools_args = dict()
@@ -88,7 +94,6 @@ class CleanCommand(Clean):
         for dirpath, dirnames, filenames in os.walk('anuga'):
             for filename in filenames:
                 if (filename.endswith('.so') or filename.endswith('.pyd')
-                        or filename.endswith('.dll')
                         or filename.endswith('.pyc')):
                     os.unlink(os.path.join(dirpath, filename))
             for dirname in dirnames:
@@ -140,13 +145,6 @@ def setup_package():
                                  'Programming Language :: Python :: 2.6',
                                  'Programming Language :: Python :: 2.7',
                                  ],
-                    install_requires=['numpy', 
-                                      'scipy', 
-                                      'netcdf4', 
-                                      'nose', 
-                                      'matplotlib',
-                                      'gdal',
-                                      'geos'],
                     cmdclass={'clean': CleanCommand},
                     **extra_setuptools_args)
 
@@ -174,6 +172,7 @@ def setup_package():
 
 
 if __name__ == "__main__":
+
 
     setup_package()
     
