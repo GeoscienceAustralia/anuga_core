@@ -80,14 +80,15 @@ def wave(t):
 # just go ahead as normal and produce domain as usual.
 #
 # Though in the part of the code where you create the domain as normal, 
-# remember to turn on checkpointing via domain.set_checkpointing(checkpoint_time = 5)
-# (see code below) 
+# remember to turn on checkpointing via 
+# domain.set_checkpointing(checkpoint_time = 5) (see code below) 
 #------------------------------------------------------------------------------ 
 try:
         
     from anuga import load_checkpoint_file
     
-    domain = load_checkpoint_file(domain_name = domain_name, checkpoint_dir = checkpoint_dir)
+    domain = load_checkpoint_file(domain_name = domain_name, 
+                                  checkpoint_dir = checkpoint_dir)
 
 except:
     #--------------------------------------------------------------------------
@@ -133,7 +134,8 @@ except:
     
     Bts = Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, wave)
     
-    domain.set_boundary({'outflow' :Br, 'inflow' :Br, 'inner' :Br, 'exterior' :Br, 'open' :Bts})
+    domain.set_boundary({'outflow' :Br, 'inflow' :Br, 'inner' :Br, 
+                         'exterior' :Br, 'open' :Bts})
     
     
     #-----------------------------------------------------------------------------
@@ -166,7 +168,8 @@ for p in range(numprocs):
         print 'Processor %g ' %myid
         print 'That took %.2f seconds' %(time.time()-t0)
         print 'Communication time %.2f seconds'%domain.communication_time
-        print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
+        print 'Reduction Communication time %.2f seconds' \
+               %domain.communication_reduce_time
         print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
     else:
         pass

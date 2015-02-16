@@ -1,0 +1,42 @@
+netcdf channel1 {
+dimensions:
+	number_of_volumes = 200 ;
+	number_of_triangle_vertices = 116 ;
+	number_of_vertices = 3 ;
+	numbers_in_range = 2 ;
+	number_of_points = 116 ;
+	number_of_timesteps = UNLIMITED ; // (201 currently)
+variables:
+	float x(number_of_points) ;
+	float y(number_of_points) ;
+	int volumes(number_of_volumes, number_of_vertices) ;
+	float elevation(number_of_points) ;
+	float elevation_range(numbers_in_range) ;
+	float friction(number_of_points) ;
+	float friction_range(numbers_in_range) ;
+	float xmomentum(number_of_timesteps, number_of_points) ;
+	float xmomentum_range(numbers_in_range) ;
+	float ymomentum(number_of_timesteps, number_of_points) ;
+	float ymomentum_range(numbers_in_range) ;
+	float stage(number_of_timesteps, number_of_points) ;
+	float stage_range(numbers_in_range) ;
+	double time(number_of_timesteps) ;
+
+// global attributes:
+		:institution = "Geoscience Australia" ;
+		:description = "Output from anuga.file.sww suitable for plotting" ;
+		:smoothing = "Yes" ;
+		:vertices_are_stored_uniquely = "False" ;
+		:order = 2 ;
+		:revision_number = "9674" ;
+		:starttime = 0 ;
+		:xllcorner = 0. ;
+		:yllcorner = 0. ;
+		:zone = -1 ;
+		:false_easting = 500000 ;
+		:false_northing = 10000000 ;
+		:datum = "wgs84" ;
+		:projection = "UTM" ;
+		:units = "m" ;
+
+
