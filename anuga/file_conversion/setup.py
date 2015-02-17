@@ -13,7 +13,6 @@ def configuration(parent_package='',top_path=None):
     config = Configuration('file_conversion', parent_package, top_path)
 
     config.add_data_dir('tests')
-    config.add_data_dir(join('tests','data'))
 
     util_dir = os.path.abspath(join(os.path.dirname(__file__),'..','utilities'))
     

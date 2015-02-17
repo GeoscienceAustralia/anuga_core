@@ -193,27 +193,12 @@ def __get_revision_from_svn_client__():
     
     
 def get_revision_number():
-    """Get the version number of this repository copy.
-
-    Try getting data from stored_version_info.py first, otherwise
-    try using SubWCRev.exe (Windows) or svnversion (linux), otherwise
-    try reading file .svn/entries for version information, otherwise
-    throw an exception.
-
-    NOTE: This requires that the command svn is on the system PATH
-    (simply aliasing svn to the binary will not work)
+    """Get the (svn) revision number of this repository copy.
     """
 
-    # try to get revision information from stored_version_info.py
-    try:
-        return __get_revision_from_svn_client__()
-    except:
-        try:
-            from anuga.stored_version_info import version_info
-            return process_version_info(version_info)
-        except:
-            from anuga.version import version
-            return version
+    from anuga import __svn_revision__ as revision
+    return revision
+            
 
 def process_version_info(version_info):
 

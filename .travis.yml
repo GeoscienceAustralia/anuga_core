@@ -3,11 +3,17 @@ virtualenv:
   system_site_packages: true
 env:
   matrix:
-    - PYTHON_VERSION="2.7"
-    - PYTHON_VERSION="2.6"
+    - PYTHON_VERSION="2.7"  PARALLEL="mpich2"
+    - PYTHON_VERSION="2.7"  PARALLEL="false"
+    - PYTHON_VERSION="2.6"  PARALLEL="false"
 install:
   - sudo apt-get update
   - sudo apt-get install gfortran
+
+  - if [[ "$PARALLEL" == "mpich2" ]]; then
+       sudo apt-get install mpich2;
+       mpirun -np 4 pwd;
+    fi
 
   # Deactivate the travis-provided virtual environment and setup a
   # conda-based environment instead
@@ -20,25 +26,40 @@ install:
 
   # Useful for debugging any issues with conda
   - conda info -a
-  # More debugging
-  - printenv
 
   # Conda dependencies
   - conda create -n testenv --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 nose matplotlib
   - source activate testenv
 
   - python --version
-  # Get GDAL from the PinguCarsti binstar channel.
-  # On Windows Get GDAL from jjhelmus binstar channel 
-  - conda install -c pingucarsti gdal geos gdal-data
- 
-  - export GDAL_DATA=`gdal-config --datadir`
+
+  # Get GDAL from the PinguCarsti binstar channel for python 2.7 
+  # On osx get GDAL from jjhelmus binstar channel
+  - if [[ "$PYTHON_VERSION" == "2.7" ]]; then
+       conda install -c pingucarsti gdal-data;
+       export GDAL_DATA=`gdal-config --datadir`;
+    fi
+
+  - if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install gdal; fi
 
   # Install more software to deal with geographical projections
   - pip install pyproj
 
   # python 2.6 doesn't have argparse by default
   - if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install argparse; fi
+
+
+  # Install pypar if parallel
+  - if [[ "$PARALLEL" == "mpich2" ]]; then
+       svn checkout http://pypar.googlecode.com/svn/ pypar;
+       cd pypar/source;
+       python setup.py install;
+       cd ../..;
+    fi
+
+  # More debugging
+  - printenv
+  - conda list
 
   - python setup.py install
 

@@ -16,6 +16,7 @@
 .sw[nop]
 *.tmp
 *.vim
+*.sww
 tags
 
 # Compiled source #
