@@ -303,7 +303,42 @@ class Test_quantity_setting_functions(unittest.TestCase):
         # which happens to ensure that the nan value is replaced with the same
         # value it would have had anyway
         testPts_X = numpy.array([50.,50.00, 50., 50., 97., 51., 3.])
-        testPts_Y = numpy.array([1.,    2., 3. , 4  , 20., 30., 60.])
+        testPts_Y = numpy.array([1.,    2., 3. , 4  , 20., 50., 60.])
+        fitted = F(testPts_X,testPts_Y)
+       
+        # We should have no nan values
+        assert(sum(fitted!=fitted) == 0)
+
+        # Now the fitted value in the trench should be determined by f0 because
+        # the re-interpolation of nan values was designed to ensure it
+        assert(numpy.allclose(fitted[0],50./10.))
+
+        ###########################################################################
+        # This example features a function with some nan return values, and uses
+        # the nan_interpolation_region_polygon to try to fix it
+
+        # Make a polygon-point pair which we use to set elevation in a 'channel'
+        innerTrenchPoly = [[minX+45., minY+45.], [minX+45., minY+55.], 
+            [minX+55., minY+55.], [minX+55., minY+45.]]
+
+        def f_nan(x,y):
+            output = x*0 + numpy.nan
+            return(output)
+
+        F = qs.composite_quantity_setting_function(
+            [[innerTrenchPoly, f_nan], [trenchPoly, f0], ['Extent', 'PointData_ElevTest.tif']],
+            domain,
+            nan_treatment = 'fall_through',
+            nan_interpolation_region_polygon = [trenchPoly],
+            default_k_nearest_neighbours = 3,
+            default_raster_interpolation = 'bilinear',
+            verbose=False) 
+
+        # Points where we test the function. We deliberately use many points with x=50,
+        # which happens to ensure that the nan value is replaced with the same
+        # value it would have had anyway
+        testPts_X = numpy.array([50.,50.00, 50., 50., 97., 51., 3.])
+        testPts_Y = numpy.array([1.,    2., 3. , 4  , 20., 50., 60.])
         fitted = F(testPts_X,testPts_Y)
        
         # We should have no nan values

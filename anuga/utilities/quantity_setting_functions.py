@@ -262,6 +262,7 @@ def composite_quantity_setting_function(poly_fun_pairs,
     import numpy
     from anuga.geometry.polygon import inside_polygon
 
+
     # Check that clip_range has the right form
     if clip_range is not None:
         if len(clip_range) != len(poly_fun_pairs):
@@ -493,7 +494,8 @@ def composite_quantity_setting_function(poly_fun_pairs,
                     if len(points_in_nan_pi)>0: 
                         points_to_reinterpolate = numpy.hstack(
                             [points_to_reinterpolate,
-                             points_in_nan_pi])
+                             possible_points_to_reint[points_in_nan_pi]])
+
 
             if verbose: 
                 print 'Re-interpolating ', len(points_to_reinterpolate),\
