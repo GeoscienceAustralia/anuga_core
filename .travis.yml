@@ -36,7 +36,7 @@ install:
   # Get GDAL from the PinguCarsti binstar channel for python 2.7 
   # On osx get GDAL from jjhelmus binstar channel
   - if [[ "$PYTHON_VERSION" == "2.7" ]]; then
-       conda install -c pingucarsti gdal-data;
+       conda install -c pingucarsti gdal;
        export GDAL_DATA=`gdal-config --datadir`;
     fi
 

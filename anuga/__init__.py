@@ -38,7 +38,7 @@
 #
 # Dev branch marker is: 'X.Y.dev' or 'X.Y.devN' where N is an integer.
 #
-__version__ = '1.3.7'
+__version__ = '1.3.8'
 
 __svn_revision__ = filter(str.isdigit, "$Revision$")
 
