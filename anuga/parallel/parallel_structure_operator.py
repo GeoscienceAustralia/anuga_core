@@ -51,6 +51,7 @@ class Parallel_Structure_operator(anuga.Operator):
                  use_momentum_jet,
                  zero_outflow_momentum,
                  use_old_momentum_method,
+                 always_use_Q_wetdry_adjustment,
                  force_constant_inlet_elevations,
                  description,
                  label,
@@ -124,6 +125,7 @@ class Parallel_Structure_operator(anuga.Operator):
             msg = "Can't have use_momentum_jet and zero_outflow_momentum both True"
             raise Exception(msg)
         self.use_old_momentum_method = use_old_momentum_method
+        self.always_use_Q_wetdry_adjustment = always_use_Q_wetdry_adjustment
 
         if description == None:
             self.description = ' '
@@ -149,6 +151,7 @@ class Parallel_Structure_operator(anuga.Operator):
         # Slots for recording current statistics
         self.accumulated_flow = 0.0
         self.discharge = 0.0
+        self.discharge_function_value = 0.0
         self.velocity = 0.0
         self.outlet_depth = 0.0
         self.delta_total_energy = 0.0
@@ -279,17 +282,29 @@ class Parallel_Structure_operator(anuga.Operator):
         
         # Master proc of structure only
         if self.myid == self.master_proc:
-            #if old_inflow_depth > 0.0 :
-            #    Q_star = Q/old_inflow_depth
-            #else:
-            #    Q_star = 0.0
             if old_inflow_depth > 0.0 :
                 dt_Q_on_d = timestep*Q/old_inflow_depth
             else:
                 dt_Q_on_d = 0.0
 
+            # Check whether we should use the wet-dry Q adjustment (where Q is
+            # multiplied by new_inflow_depth/old_inflow_depth)
+            always_use_Q_wetdry_adjustment = self.always_use_Q_wetdry_adjustment
+            # Always use it if we are near wet-dry
+            use_Q_wetdry_adjustment = ((always_use_Q_wetdry_adjustment) |\
+                (old_inflow_depth*inflow_area <= Q*timestep))
+
             factor = 1.0/(1.0 + dt_Q_on_d/inflow_area)
-            new_inflow_depth = old_inflow_depth*factor
+        
+            if use_Q_wetdry_adjustment:
+                new_inflow_depth = old_inflow_depth*factor
+                if old_inflow_depth > 0.:
+                    timestep_star = timestep*new_inflow_depth/old_inflow_depth
+                else:
+                    timestep_star = 0.
+            else:
+                new_inflow_depth = old_inflow_depth - timestep*Q/inflow_area
+                timestep_star = timestep
 
             #new_inflow_xmom = old_inflow_xmom*factor
             #new_inflow_ymom = old_inflow_ymom*factor
@@ -300,23 +315,30 @@ class Parallel_Structure_operator(anuga.Operator):
                 new_inflow_ymom = old_inflow_ymom*factor
 
             else:
-                # For the momentum balance, note that Q also advects the momentum,
-                # which has an average value of new_inflow_mom (or old_inflow_mom). For
-                # consistency we keep using the (new_inflow_depth/old_inflow_depth)
-                # factor for discharge:
+                # For the momentum balance, note that Q also transports the velocity,
+                # which has an average value of new_inflow_mom/depth (or old_inflow_mom/depth). 
                 #
                 #     new_inflow_xmom*inflow_area = 
                 #     old_inflow_xmom*inflow_area - 
-                #     timestep*Q*(new_inflow_depth/old_inflow_depth)*new_inflow_xmom
+                #     timestep*Q*(new_inflow_xmom/old_inflow_depth)
                 # and:
                 #     new_inflow_ymom*inflow_area = 
                 #     old_inflow_ymom*inflow_area - 
-                #     timestep*Q*(new_inflow_depth/old_inflow_depth)*new_inflow_ymom
+                #     timestep*Q*(new_inflow_ymom/old_inflow_depth)
                 #
-                # The choice of new_inflow_mom in the final term at the end might be
-                # replaced with old_inflow_mom
+                # The choice of new_inflow_mom in the final term might be
+                # replaced with old_inflow_mom.
                 #
-                factor2 = 1.0/(1.0 + dt_Q_on_d*new_inflow_depth/inflow_area)
+                # The units balance: (m^2/s)*(m^2) = (m^2/s)*(m^2) - s*(m^3/s)*(m^2/s)*(m^(-1))
+                #
+                if old_inflow_depth > 0.:
+                    if use_Q_wetdry_adjustment:
+                        factor2 = 1.0/(1.0 + dt_Q_on_d*new_inflow_depth/(old_inflow_depth*inflow_area))
+                    else:
+                        factor2 = 1.0/(1.0 + timestep*Q/(old_inflow_depth*inflow_area))
+                else:
+                    factor2 = 0.
+
                 new_inflow_xmom = old_inflow_xmom*factor2
                 new_inflow_ymom = old_inflow_ymom*factor2
 
@@ -369,11 +391,6 @@ class Parallel_Structure_operator(anuga.Operator):
             ymom_loss = (old_inflow_ymom - new_inflow_ymom)*inflow_area
 
             # set outflow
-            if old_inflow_depth > 0.0 :
-                timestep_star = timestep*new_inflow_depth/old_inflow_depth
-            else:
-                timestep_star = 0.0
-
             outflow_extra_depth = Q*timestep_star/outflow_area
             outflow_direction = - outflow_outward_culvert_vector
             #outflow_extra_momentum = outflow_extra_depth*barrel_speed*outflow_direction
@@ -382,6 +399,7 @@ class Parallel_Structure_operator(anuga.Operator):
 
             # Update Stats
             self.discharge  = Q*timestep_star/timestep #outflow_extra_depth*self.outflow.get_area()/timestep
+            self.discharge_function_value = Q
             self.velocity = barrel_speed #self.discharge/outlet_depth/self.width
 
             new_outflow_depth = outflow_average_depth + outflow_extra_depth
@@ -611,6 +629,7 @@ class Parallel_Structure_operator(anuga.Operator):
             message += '-------------------------------------------------\n'
             message += 'Type: %s\n' % self.structure_type
             message += 'Discharge [m^3/s]: %.2f\n' % self.discharge
+            message += 'Discharge function value [m^3/s]: %.2f\n' % self.discharge_function_value
             message += 'Velocity  [m/s]: %.2f\n' % self.velocity
             message += 'Inlet Driving Energy %.2f\n' % self.driving_energy
             message += 'Delta Total Energy %.2f\n' % self.delta_total_energy
@@ -630,7 +649,7 @@ class Parallel_Structure_operator(anuga.Operator):
         if self.logging and self.myid == self.master_proc:
             self.log_filename = self.domain.get_datadir() + '/' + self.label + '.log'
             log_to_file(self.log_filename, stats, mode='w')
-            log_to_file(self.log_filename, 'time,discharge,velocity,driving_energy,delta_total_energy')
+            log_to_file(self.log_filename, 'time,discharge,discharge_function_value,velocity,driving_energy,delta_total_energy')
 
             #log_to_file(self.log_filename, self.culvert_type)
 
@@ -654,6 +673,7 @@ class Parallel_Structure_operator(anuga.Operator):
 
         message  = '%.5f, ' % self.domain.get_time()
         message += '%.5f, ' % self.discharge
+        message += '%.5f, ' % self.discharge_function_value
         message += '%.5f, ' % self.velocity
         message += '%.5f, ' % self.driving_energy
         message += '%.5f' % self.delta_total_energy

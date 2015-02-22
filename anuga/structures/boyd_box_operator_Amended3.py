@@ -31,7 +31,8 @@ class Boyd_box_operator(anuga.Structure_operator):
                  logging=False,
                  verbose=False):
 
-                     
+        raise Exception('(Feb 2015) This code seems broken -- the structure operator call is incorrect -- retire?')
+
         anuga.Structure_operator.__init__(self,
                                           domain,
                                           end_point0, 

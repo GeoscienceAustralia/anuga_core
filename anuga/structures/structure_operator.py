@@ -38,6 +38,7 @@ class Structure_operator(anuga.Operator):
                  use_momentum_jet=False,
                  zero_outflow_momentum=True,
                  use_old_momentum_method=True,
+                 always_use_Q_wetdry_adjustment=True,
                  force_constant_inlet_elevations=False,
                  description=None,
                  label=None,
@@ -93,6 +94,7 @@ class Structure_operator(anuga.Operator):
             msg = "Can't have use_momentum_jet and zero_outflow_momentum both True"
             raise Exception(msg)
         self.use_old_momentum_method = use_old_momentum_method
+        self.always_use_Q_wetdry_adjustment = always_use_Q_wetdry_adjustment
 
 
         if description == None:
@@ -118,6 +120,7 @@ class Structure_operator(anuga.Operator):
         # Slots for recording current statistics
         self.accumulated_flow = 0.0
         self.discharge = 0.0
+        self.discharge_function_value = 0.0
         self.velocity = 0.0
         self.outlet_depth = 0.0
         self.delta_total_energy = 0.0
@@ -217,17 +220,6 @@ class Structure_operator(anuga.Operator):
         old_inflow_xmom = self.inflow.get_average_xmom()
         old_inflow_ymom = self.inflow.get_average_ymom()
 
-        #semi_implicit = True
-        #if semi_implicit:   
-
-        # FIXME: This update replaces Q with Q*new_inflow_depth/old_inflow_depth
-        # This has good wetting and drying properties but means that
-        # discharge != Q.
-        # We should be able to check if old_inflow_depth*old_inflow_area > Q*dt,
-        # and in that case we don't need this implicit trick, and could
-        # have the discharge = Q (whereas in the nearly-dry case we want
-        # the trick).
-
         # Implement the update of flow over a timestep by
         # using a semi-implict update. This ensures that
         # the update does not create a negative depth
@@ -236,16 +228,36 @@ class Structure_operator(anuga.Operator):
         else:
             dt_Q_on_d = 0.0
 
-        # The depth update is: 
+        always_use_Q_wetdry_adjustment = self.always_use_Q_wetdry_adjustment
+        use_Q_wetdry_adjustment = ((always_use_Q_wetdry_adjustment) |\
+            (old_inflow_depth*self.inflow.get_area() <= Q*timestep))
+        # If we use the 'Q_adjustment', then the discharge is rescaled so that
+        # the depth update is: 
         #    new_inflow_depth*inflow_area = 
         #    old_inflow_depth*inflow_area - 
         #    timestep*Q*(new_inflow_depth/old_inflow_depth)
-        # The last term in () is a wet-dry improvement trick
-        # Note inflow_area is the area of all triangles in the inflow
-        # region -- so this is a volumetric balance equation
+        # The last term in () is a wet-dry improvement trick (which rescales Q)
+        #
+        # Before Feb 2015 this rescaling was always done (even if the flow was
+        # not near wet-dry). Now if use_old_Q_adjustment=False, the rescaling
+        # is only done if required to avoid drying
+        #
         #
         factor = 1.0/(1.0 + dt_Q_on_d/self.inflow.get_area())
-        new_inflow_depth = old_inflow_depth*factor
+
+
+        if use_Q_wetdry_adjustment:
+            # FIXME:
+            new_inflow_depth = old_inflow_depth*factor
+
+            if(old_inflow_depth>0.):
+                timestep_star = timestep*new_inflow_depth/old_inflow_depth
+            else:
+                timestep_star = 0.
+
+        else:
+            new_inflow_depth = old_inflow_depth - timestep*Q/self.inflow.get_area()
+            timestep_star = timestep
 
         if(self.use_old_momentum_method):
             # This method is here for consistency with the old version of the
@@ -255,23 +267,29 @@ class Structure_operator(anuga.Operator):
 
         else:
             # For the momentum balance, note that Q also advects the momentum,
-            # The volumetric momentum flux should be Q*momentum, where
+            # The volumetric momentum flux should be Q*momentum/depth, where
             # momentum has an average value of new_inflow_mom (or
-            # old_inflow_mom). For consistency we keep using the
-            # (new_inflow_depth/old_inflow_depth) factor for discharge:
+            # old_inflow_mom).  We use old_inflow_depth for depth
             #
             #     new_inflow_xmom*inflow_area = 
             #     old_inflow_xmom*inflow_area - 
-            #     [timestep*Q*(new_inflow_depth/old_inflow_depth)]*new_inflow_xmom
+            #     [timestep*Q]*new_inflow_xmom/old_inflow_depth
             # and:
             #     new_inflow_ymom*inflow_area = 
             #     old_inflow_ymom*inflow_area - 
-            #     [timestep*Q*(new_inflow_depth/old_inflow_depth)]*new_inflow_ymom
+            #     [timestep*Q]*new_inflow_ymom/old_inflow_depth
             #
-            # The choice of new_inflow_mom in the final term at the end might be
-            # replaced with old_inflow_mom
+            # The units balance: m^2/s*m^2 = m^2/s*m^2 - s*m^3/s*m^2/s *m^(-1)
             #
-            factor2 = 1.0/(1.0 + dt_Q_on_d*new_inflow_depth/self.inflow.get_area())
+            if old_inflow_depth > 0.:
+                if use_Q_wetdry_adjustment:
+                    # Replace dt*Q with dt*Q*new_inflow_depth/old_inflow_depth = dt_Q_on_d*new_inflow_depth
+                    factor2 = 1.0/(1.0 + dt_Q_on_d*new_inflow_depth/(old_inflow_depth*self.inflow.get_area()))
+                else:
+                    factor2 = 1.0/(1.0 + timestep*Q/(old_inflow_depth*self.inflow.get_area()))
+            else:
+                factor2 = 0.
+
             new_inflow_xmom = old_inflow_xmom*factor2
             new_inflow_ymom = old_inflow_ymom*factor2
         
@@ -288,11 +306,6 @@ class Structure_operator(anuga.Operator):
         ymom_loss = (old_inflow_ymom - new_inflow_ymom)*self.inflow.get_area()
 
         # set outflow
-        if old_inflow_depth > 0.0 :
-            timestep_star = timestep*new_inflow_depth/old_inflow_depth
-        else:
-            timestep_star = 0.0
-
         outflow_extra_depth = Q*timestep_star/self.outflow.get_area()
         outflow_direction = - self.outflow.outward_culvert_vector
         #outflow_extra_momentum = outflow_extra_depth*barrel_speed*outflow_direction
@@ -305,6 +318,7 @@ class Structure_operator(anuga.Operator):
         # Stats
         self.accumulated_flow += gain
         self.discharge  = Q*timestep_star/timestep 
+        self.discharge_function_value = Q
         self.velocity =   barrel_speed
         self.outlet_depth = outlet_depth
 
@@ -540,6 +554,7 @@ class Structure_operator(anuga.Operator):
 
         
         message += 'Discharge [m^3/s]: %.2f\n' % self.discharge
+        message += 'Discharge_function_value [m^3/s]: %.2f\n' % self.discharge_function_value
         message += 'Velocity  [m/s]: %.2f\n' % self.velocity
         message += 'Outlet Depth  [m]: %.2f\n' % self.outlet_depth
         message += 'Accumulated Flow [m^3]: %.2f\n' % self.accumulated_flow
@@ -561,7 +576,7 @@ class Structure_operator(anuga.Operator):
         if self.logging:
             self.log_filename = self.domain.get_datadir() + '/' + self.label + '.log'
             log_to_file(self.log_filename, self.statistics(), mode='w')
-            log_to_file(self.log_filename, 'time, discharge, velocity, accumulated_flow, driving_energy, delta_total_energy')
+            log_to_file(self.log_filename, 'time, discharge, discharge_function_value, velocity, accumulated_flow, driving_energy, delta_total_energy')
 
             #log_to_file(self.log_filename, self.culvert_type)
 
@@ -570,6 +585,7 @@ class Structure_operator(anuga.Operator):
 
         message  = '%.5f, ' % self.domain.get_time()
         message += '%.5f, ' % self.discharge
+        message += '%.5f, ' % self.discharge_function_value
         message += '%.5f, ' % self.velocity
         message += '%.5f, ' % self.accumulated_flow
         message += '%.5f, ' % self.driving_energy

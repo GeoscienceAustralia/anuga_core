@@ -2,6 +2,8 @@ import anuga
 import math
 import numpy
 from numpy.linalg import solve
+import scipy
+import scipy.optimize as sco
 
 
 #=====================================================================
@@ -74,6 +76,7 @@ class Internal_boundary_operator(anuga.Structure_operator):
                                           use_momentum_jet=use_momentum_jet,
                                           zero_outflow_momentum=zero_outflow_momentum,
                                           use_old_momentum_method=False,
+                                          always_use_Q_wetdry_adjustment=False,
                                           force_constant_inlet_elevations=force_constant_inlet_elevations,
                                           description=description,
                                           label=label,
@@ -226,20 +229,18 @@ class Internal_boundary_operator(anuga.Structure_operator):
 
     def discharge_routine_implicit(self):
         """Uses semi-implicit discharge estimation:
-          Discharge = 0.5*(Q(H0, T0) + Q(H0 + delta_H, T0+delta_T))
+          Discharge = (1-theta)*Q(H0, T0) + theta*Q(H0 + delta_H, T0+delta_T))
         where H0 = headwater stage, T0 = tailwater stage, delta_H = change in
         headwater stage over a timestep, delta_T = change in tailwater stage over a
-        timestep, and Q is the discharge function
+        timestep, and Q is the discharge function, and theta is a constant in
+        [0,1] determining the degree of implicitness (currently hard-coded).
 
-        We can estimate delta_H, delta_T by solving the following system (based on mass conservation):
-          A0*delta_H = -dt/2*( Q(H0, T0) + Q(H0 + delta_H, T0 + delta_T))
-          A1*delta_T =  dt/2*( Q(H0, T0) + Q(H0 + delta_H, T0 + delta_T))
-        where A0, A1 are the inlet areas, and dt is the timestep
-
-        We linearise the system with the approximation:
-          Q(H0 + delta_H, T0 + delta_T) ~= Q(H0, T0) + delQ/delH * delta_H + delQ/delT*delta_T
-        where delQ/delH and delQ/delT are evaluated with numerical finite differences 
-
+        Note this is effectively assuming:
+        1) Q is a function of stage, not energy (so we can relate mass change directly to delta_H, delta_T). We
+           could generalise it to the energy case ok.
+        2) The stage is computed on the exchange line (or the change in
+            stage at the enquiry point is effectively the same as that on the exchange
+            line)
 
         """
 
@@ -262,31 +263,24 @@ class Internal_boundary_operator(anuga.Structure_operator):
         if dt > 0.:
             E0 = self.inlet0_energy
             E1 = self.inlet1_energy
-
-            # Numerical derivatives
-            dE0 = 0.01
-            dE1 = 0.01
-            dQ_dE0 = (self.internal_boundary_function(E0+dE0, E1) - self.internal_boundary_function(E0-dE0, E1))/(2*dE0)
-            dQ_dE1 = (self.internal_boundary_function(E0, E1+dE1) - self.internal_boundary_function(E0, E1-dE1))/(2*dE1)
-
-            # Assemble and solve matrix
             A0 = self.inlets[0].area
             A1 = self.inlets[1].area
-            hdt = 0.5*dt
+            theta = 1.0
 
-            M11 = A0 + dQ_dE0*hdt
-            M12 = dQ_dE1*hdt
-            M21 = -dQ_dE0*hdt
-            M22 = A1 - dQ_dE1*hdt
+            sol = numpy.array([0., 0.]) # estimate of (delta_H, delta_T)
+            areas = numpy.array([A0, A1])
 
-            lhs = numpy.array([ [M11, M12], [M21, M22]])
-            rhs = numpy.array([ -Q0*dt, Q0*dt])
-            # sol contains delta_E0, delta_E1
-            sol = solve(lhs, rhs)
-           
-            #Q = 0.5*(Q0 + ( Q0 + sol[0]*dQ_dE0 + sol[1]*dQ_dE1))
-            Q1 =  self.internal_boundary_function(E0 + sol[0], E1 + sol[1])
-            Q = 0.5*(Q0 + Q1)
+            # Use scipy root finding
+            def F_to_solve(sol):
+                Q1 =  self.internal_boundary_function(E0 + sol[0], E1 + sol[1])
+                discharge = (1.0-theta)*Q0 + theta*Q1
+                output = sol*areas - discharge*dt*numpy.array([-1., 1.])
+                return(output) 
+
+            final_sol = sco.root(F_to_solve, sol, method='lm').x
+            Q1 =  self.internal_boundary_function(E0 + final_sol[0], E1 + final_sol[1])
+            Q = (1.0-theta)*Q0 + theta*Q1
+
         else:
             Q = Q0
 
