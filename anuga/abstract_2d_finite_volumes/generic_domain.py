@@ -1523,6 +1523,9 @@ class Generic_Domain:
         else:
             yieldstep = float(yieldstep)
 
+        # Can be useful to access yieldstep from inside domain
+        self.yieldstep = yieldstep
+
         self._order_ = self.default_order
 
 

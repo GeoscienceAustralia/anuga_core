@@ -144,6 +144,7 @@ class Internal_boundary_operator(anuga.Structure_operator):
 
         return Q, barrel_velocity, outlet_culvert_depth
 
+
     def discharge_routine_explicit(self):
         """Procedure to determine the inflow and outflow inlets.
         Then use self.internal_boundary_function to do the actual calculation
@@ -223,6 +224,7 @@ class Internal_boundary_operator(anuga.Structure_operator):
         else:
             # Make Q positive (for anuga's structure operator)
             Q = min( abs(self.smooth_Q), abs(Q) )
+            #Q = abs(self.smooth_Q)
 
         return Q, barrel_velocity, outlet_culvert_depth
 
@@ -259,7 +261,6 @@ class Internal_boundary_operator(anuga.Structure_operator):
         Q0 = self.internal_boundary_function(self.inlet0_energy, self.inlet1_energy)
         dt = self.domain.get_timestep()
 
-
         if dt > 0.:
             E0 = self.inlet0_energy
             E1 = self.inlet1_energy
@@ -274,16 +275,15 @@ class Internal_boundary_operator(anuga.Structure_operator):
             def F_to_solve(sol):
                 Q1 =  self.internal_boundary_function(E0 + sol[0], E1 + sol[1])
                 discharge = (1.0-theta)*Q0 + theta*Q1
+                # We need to find 'sol' such that 'output' is [0., 0.]
                 output = sol*areas - discharge*dt*numpy.array([-1., 1.])
                 return(output) 
 
             final_sol = sco.root(F_to_solve, sol, method='lm').x
             Q1 =  self.internal_boundary_function(E0 + final_sol[0], E1 + final_sol[1])
             Q = (1.0-theta)*Q0 + theta*Q1
-
         else:
             Q = Q0
-
 
         # Use time-smoothed discharge if smoothing_timescale > 0.
         if dt > 0.0:
@@ -305,9 +305,13 @@ class Internal_boundary_operator(anuga.Structure_operator):
         # Zero discharge if the sign's of Q and smooth_Q are not the same
         if numpy.sign(self.smooth_Q) != numpy.sign(Q):
             Q = 0.
+            self.smooth_Q = 0.
         else:
             # Make Q positive (for anuga's structure operator)
             Q = min( abs(self.smooth_Q), abs(Q) )
+            #Q = abs(self.smooth_Q)
+            # FIXME: Debugging
+            #Q = abs(self.smooth_Q)
 
         barrel_velocity = numpy.nan
         outlet_culvert_depth = numpy.nan

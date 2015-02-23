@@ -455,6 +455,7 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
             # Zero Q if sign's of smooth_Q and Q differ
             if numpy.sign(self.smooth_Q) != numpy.sign(Q):
                 Q = 0.
+                self.smooth_Q = 0.
             else:
                 # Make Q positive (for anuga's structure operator)
                 Q = min( abs(self.smooth_Q), abs(Q) )

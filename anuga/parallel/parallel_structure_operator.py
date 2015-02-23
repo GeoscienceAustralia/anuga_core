@@ -151,7 +151,7 @@ class Parallel_Structure_operator(anuga.Operator):
         # Slots for recording current statistics
         self.accumulated_flow = 0.0
         self.discharge = 0.0
-        self.discharge_function_value = 0.0
+        self.discharge_abs_timemean = 0.0
         self.velocity = 0.0
         self.outlet_depth = 0.0
         self.delta_total_energy = 0.0
@@ -399,7 +399,7 @@ class Parallel_Structure_operator(anuga.Operator):
 
             # Update Stats
             self.discharge  = Q*timestep_star/timestep #outflow_extra_depth*self.outflow.get_area()/timestep
-            self.discharge_function_value = Q
+            self.discharge_abs_timemean += Q*timestep_star/self.domain.yieldstep
             self.velocity = barrel_speed #self.discharge/outlet_depth/self.width
 
             new_outflow_depth = outflow_average_depth + outflow_extra_depth
@@ -629,7 +629,7 @@ class Parallel_Structure_operator(anuga.Operator):
             message += '-------------------------------------------------\n'
             message += 'Type: %s\n' % self.structure_type
             message += 'Discharge [m^3/s]: %.2f\n' % self.discharge
-            message += 'Discharge function value [m^3/s]: %.2f\n' % self.discharge_function_value
+            message += 'Discharge function value [m^3/s]: %.2f\n' % self.discharge_abs_timemean
             message += 'Velocity  [m/s]: %.2f\n' % self.velocity
             message += 'Inlet Driving Energy %.2f\n' % self.driving_energy
             message += 'Delta Total Energy %.2f\n' % self.delta_total_energy
@@ -649,7 +649,7 @@ class Parallel_Structure_operator(anuga.Operator):
         if self.logging and self.myid == self.master_proc:
             self.log_filename = self.domain.get_datadir() + '/' + self.label + '.log'
             log_to_file(self.log_filename, stats, mode='w')
-            log_to_file(self.log_filename, 'time,discharge,discharge_function_value,velocity,driving_energy,delta_total_energy')
+            log_to_file(self.log_filename, 'time,discharge_instantaneous,discharge_abs_timemean,velocity_instantaneous,driving_energy_instantaneous,delta_total_energy_instantaneous')
 
             #log_to_file(self.log_filename, self.culvert_type)
 
@@ -673,10 +673,14 @@ class Parallel_Structure_operator(anuga.Operator):
 
         message  = '%.5f, ' % self.domain.get_time()
         message += '%.5f, ' % self.discharge
-        message += '%.5f, ' % self.discharge_function_value
+        message += '%.5f, ' % self.discharge_abs_timemean
         message += '%.5f, ' % self.velocity
         message += '%.5f, ' % self.driving_energy
         message += '%.5f' % self.delta_total_energy
+
+        # Reset discharge_abs_timemean each time there is reporting (FIXME:
+        # This assumes this function is only called after each yieldstep)
+        self.discharge_abs_timemean = 0.
 
         return message
 

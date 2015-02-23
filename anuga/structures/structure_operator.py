@@ -120,7 +120,7 @@ class Structure_operator(anuga.Operator):
         # Slots for recording current statistics
         self.accumulated_flow = 0.0
         self.discharge = 0.0
-        self.discharge_function_value = 0.0
+        self.discharge_abs_timemean = 0.0
         self.velocity = 0.0
         self.outlet_depth = 0.0
         self.delta_total_energy = 0.0
@@ -185,7 +185,6 @@ class Structure_operator(anuga.Operator):
             invert_elevation1 = self.invert_elevations[1]
         enquiry_point1 = self.enquiry_points[1]
 
-        #outward_vector1  = - self.culvert_vector
         self.inlets.append(inlet_enquiry.Inlet_enquiry(
                            self.domain,
                            poly1,
@@ -194,17 +193,15 @@ class Structure_operator(anuga.Operator):
                            outward_culvert_vector = self.outward_vector_1,
                            verbose = self.verbose))
 
-
-        tris_1 = self.inlets[1].triangle_indices
-        #print tris_1
-        #print self.domain.centroid_coordinates[tris_1]        
-        
-        self.set_logging(logging)
-
         if force_constant_inlet_elevations:
             # Try to enforce a constant inlet elevation 
             inlet_global_elevation = self.inlets[-1].get_average_elevation() 
             self.inlets[-1].set_elevations(inlet_global_elevation)
+
+        tris_1 = self.inlets[1].triangle_indices
+        
+        self.set_logging(logging)
+
         
 
 
@@ -318,7 +315,7 @@ class Structure_operator(anuga.Operator):
         # Stats
         self.accumulated_flow += gain
         self.discharge  = Q*timestep_star/timestep 
-        self.discharge_function_value = Q
+        self.discharge_abs_timemean += gain/self.domain.yieldstep
         self.velocity =   barrel_speed
         self.outlet_depth = outlet_depth
 
@@ -554,7 +551,7 @@ class Structure_operator(anuga.Operator):
 
         
         message += 'Discharge [m^3/s]: %.2f\n' % self.discharge
-        message += 'Discharge_function_value [m^3/s]: %.2f\n' % self.discharge_function_value
+        message += 'Discharge_function_value [m^3/s]: %.2f\n' % self.discharge_abs_timemean
         message += 'Velocity  [m/s]: %.2f\n' % self.velocity
         message += 'Outlet Depth  [m]: %.2f\n' % self.outlet_depth
         message += 'Accumulated Flow [m^3]: %.2f\n' % self.accumulated_flow
@@ -576,7 +573,7 @@ class Structure_operator(anuga.Operator):
         if self.logging:
             self.log_filename = self.domain.get_datadir() + '/' + self.label + '.log'
             log_to_file(self.log_filename, self.statistics(), mode='w')
-            log_to_file(self.log_filename, 'time, discharge, discharge_function_value, velocity, accumulated_flow, driving_energy, delta_total_energy')
+            log_to_file(self.log_filename, 'time, discharge_instantaneous, discharge_abs_timemean, velocity, accumulated_flow, driving_energy_instantaneous, delta_total_energy_instantaneous')
 
             #log_to_file(self.log_filename, self.culvert_type)
 
@@ -585,13 +582,16 @@ class Structure_operator(anuga.Operator):
 
         message  = '%.5f, ' % self.domain.get_time()
         message += '%.5f, ' % self.discharge
-        message += '%.5f, ' % self.discharge_function_value
+        message += '%.5f, ' % self.discharge_abs_timemean
         message += '%.5f, ' % self.velocity
         message += '%.5f, ' % self.accumulated_flow
         message += '%.5f, ' % self.driving_energy
         message += '%.5f' % self.delta_total_energy
-        
-
+       
+        # Reset discharge_abs_timemean since last time this function was called
+        # (FIXME: This assumes that the function is called only just after a
+        # yield step)
+        self.discharge_abs_timemean = 0.
 
         return message
 
