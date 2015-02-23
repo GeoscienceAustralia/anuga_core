@@ -8,7 +8,7 @@ env:
     - PYTHON_VERSION="2.6"  PARALLEL="false"   DISTRIB="conda"
 
 install: 
-    - source tools/install.sh
+    - source tools/install_packages.sh
     - python setup.py install
 
 script: 
