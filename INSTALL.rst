@@ -13,7 +13,7 @@ extension). At present AnuGA has only been run and tested using python 2.x.
 We recommend python 2.7.  
 
 If you have a python 2.7 environment with gcc and gfortran support, 
-then you can use easy_install to install the latest release 
+then you can use pip to install the latest release 
 version of AnuGA. 
 
 
@@ -36,8 +36,6 @@ Miniconda_ allows you to create multiple python environments and is particularly
 useful if you want to keep multiple versions of AnuGA.
 It does not require administrative rights to your computer and doesn't
 interfere with the Python installed in your system.
-For Windows users Anaconda_ even comes with MinGW_ so you don't have to worry about
-the many, many, many issues of compiling under Windows.
 
 
 Anaconda
@@ -53,7 +51,8 @@ and setup GDAL_DATA environment variable:
 
     export GDAL_DATA=`gdal-config --datadir` 
     
-    
+(You should add this command to your .bashrc file.)    
+
 Miniconda
 +++++++++
 
@@ -71,7 +70,7 @@ and setup GDAL_DATA environment variable:
 
     export GDAL_DATA=`gdal-config --datadir` 
     
-
+(You should add this to your .bashrc file.)
 
 Extra dependencies for Windows users
 ++++++++++++++++++++++++++++++++++++
