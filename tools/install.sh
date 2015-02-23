@@ -9,28 +9,30 @@
 
 set -e
 
+
+[ -z "$PYTHON_VERSION" ] && PYTHON_VERSION="2.7"
+[ -z "$DISTRIB" ] && DISTRIB="conda"
+[ -z "$PARALLEL" ] && PARALLEL="mpich2"
+
 sudo apt-get update -qq
 sudo apt-get install gfortran
 
 if [[ "$PARALLEL" == "mpich2" ]]; then
     sudo apt-get install mpich2;
-    mpirun -np 4 pwd;
 fi
 
 if [[ "$DISTRIB" == "conda" ]]; then
     # Deactivate the travis-provided virtual environment and setup a
     # conda-based environment instead
-    deactivate
+    deactivate || echo "deactivate failed"
 
     # Use the miniconda installer for faster download 
     # install of conda itself
     wget http://repo.continuum.io/miniconda/Miniconda-3.8.3-Linux-x86_64.sh \
 	-O miniconda.sh
     chmod +x miniconda.sh && ./miniconda.sh -b
-    export PATH=/home/travis/miniconda/bin:$PATH
-
-    # Let conda install run with waiting for y/n reply
-    conda config --set always_yes yes --set changeps1 no
+    
+    export PATH=$HOME/miniconda/bin:$PATH
     conda update --yes conda
 
     # Useful for debugging any issues with conda
@@ -38,16 +40,15 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
     # Configure the conda environment and put it in the path using the
     # provided versions
-    conda create -n testenv --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 \
+    conda create -n anuga_env --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 \
 	nose matplotlib
-    source activate testenv
+    source activate anuga_env
 
     if [[ "$PYTHON_VERSION" == "2.7" ]]; then
-	conda install -c pingucarsti gdal;
-	#conda install -c anaconda gdal;
+	conda install --yes -c pingucarsti gdal;
     fi
 
-    if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install gdal; fi
+    if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install --yes gdal; fi
 
     export GDAL_DATA=`gdal-config --datadir`;
 
@@ -55,7 +56,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
     pip install pyproj
 
     # python 2.6 doesn't have argparse by default
-    if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install argparse; fi
+    if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install --yes argparse; fi
 
 elif [[ "$DISTRIB" == "ubuntu" ]]; then
     # Use standard ubuntu packages in their default version
@@ -67,8 +68,8 @@ fi
 
 # Install pypar if parallel
 if [[ "$PARALLEL" == "mpich2" ]]; then
-    svn checkout http://pypar.googlecode.com/svn/ pypar;
-    pushd pypar/source;
+    git clone https://github.com/daleroberts/pypar;
+    pushd pypar;
     python setup.py install;
     popd;
 fi
@@ -78,4 +79,3 @@ if [[ "$COVERAGE" == "true" ]]; then
     pip install coverage coveralls
 fi
 
-python setup.py install
