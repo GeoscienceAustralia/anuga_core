@@ -44,9 +44,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
     source activate anuga_env
 
     if [[ "$PYTHON_VERSION" == "2.7" ]]; then
-		#conda install --yes -c pingucarsti gdal;
-		#conda install --yes gdal geos;
-		pip install --upgrade gdal
+        conda install --yes -c pingucarsti gdal
     fi
 
     export GDAL_DATA=`gdal-config --datadir`;
@@ -63,8 +61,10 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
 elif [[ "$DISTRIB" == "ubuntu" ]]; then
     # Use standard ubuntu packages in their default version
-    sudo apt-get install -qq python-dev python-numpy python-scipy python-matplotlib \
-                             netcdf-bin libnetcdf-dev libhdf5-serial-dev python-gdal
+    sudo apt-get install -qq python-dev python-numpy python-scipy \
+                             python-matplotlib netcdf-bin \
+                             libnetcdf-dev libhdf5-serial-dev \
+                             python-gdal python-pip 
 
     pip install nose netCDF4 pyproj
 fi
