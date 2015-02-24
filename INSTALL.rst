@@ -110,7 +110,7 @@ some extension modules in AnuGA (those that have multi-threaded parallel code).
 
 We suggest that you download and install the version of MinGW_ provided by TDM-GCC_
 **after** you've installed Anaconda and **before** you install AnuGA.
-Don't forget to mark the ``openmp`` option in the "Choose Components" part of
+Don't forget to mark the ``openmp`` and ``gfortran`` options in the "Choose Components" part of
 the installation. See this `excellent documentation for Windows users`_
 (they even have screenshots!). The same applies if you are using Miniconda_.
 

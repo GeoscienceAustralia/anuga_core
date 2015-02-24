@@ -11,7 +11,7 @@ set -e
 
 
 [ -z "$PYTHON_VERSION" ] && PYTHON_VERSION="2.7"
-[ -z "$DISTRIB" ] && DISTRIB="conda"
+[ -z "$DISTRIB" ] && DISTRIB="ubuntu"
 [ -z "$PARALLEL" ] && PARALLEL="mpich2"
 
 sudo apt-get update -qq
@@ -35,20 +35,19 @@ if [[ "$DISTRIB" == "conda" ]]; then
     export PATH=$HOME/miniconda/bin:$PATH
     conda update --yes conda
 
-    # Useful for debugging any issues with conda
-    conda info -a
+
 
     # Configure the conda environment and put it in the path using the
     # provided versions
     conda create -n anuga_env --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 \
-	nose matplotlib
+	nose matplotlib gdal geos
     source activate anuga_env
 
     if [[ "$PYTHON_VERSION" == "2.7" ]]; then
-	conda install --yes -c pingucarsti gdal;
+		#conda install --yes -c pingucarsti gdal;
+		#conda install --yes gdal geos;
+		pip install --upgrade gdal
     fi
-
-    if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install --yes gdal; fi
 
     export GDAL_DATA=`gdal-config --datadir`;
 
@@ -57,16 +56,21 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
     # python 2.6 doesn't have argparse by default
     if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install --yes argparse; fi
+    
+    
+    # Useful for debugging any issues with conda
+    conda info -a
 
 elif [[ "$DISTRIB" == "ubuntu" ]]; then
     # Use standard ubuntu packages in their default version
-    sudo apt-get install -qq python-scipy
+    sudo apt-get install -qq python-dev python-numpy python-scipy python-matplotlib \
+                             netcdf-bin libnetcdf-dev libhdf5-serial-dev python-gdal
 
-    pip install nose
+    pip install nose netCDF4 pyproj
 fi
 
 
-# Install pypar if parallel
+# Install pypar if parallel set
 if [[ "$PARALLEL" == "mpich2" ]]; then
     git clone https://github.com/daleroberts/pypar;
     pushd pypar;
@@ -75,7 +79,7 @@ if [[ "$PARALLEL" == "mpich2" ]]; then
 fi
 
 
-if [[ "$COVERAGE" == "true" ]]; then
+if [[ "$COVERAGE" == "--coverage" ]]; then
     pip install coverage coveralls
 fi
 
