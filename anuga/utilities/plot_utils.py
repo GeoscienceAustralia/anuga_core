@@ -1179,8 +1179,14 @@ def plot_triangles(p, adjustLowerLeft=False, values=None, values_cmap=matplotlib
             edgecolors=edgecolors)
         all_poly.set_facecolor('none')
     else:
-        msg = 'len(values) must either be 1, or the same as len(p.vols)'
-        assert len(values)==len(p.vols), msg
+        try:
+            lv = len(values)
+        except:
+            values = numpy.array(len(p.vols)*[values])
+            lv = len(values)
+
+        msg = 'len(values) must be the same as len(p.vols) (or values can be a constant)'
+        assert lv==len(p.vols), msg
         all_poly = PolyCollection( vertices, array = values, cmap = values_cmap, 
             edgecolors=edgecolors)
 
