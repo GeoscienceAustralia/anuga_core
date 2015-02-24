@@ -1165,19 +1165,24 @@ def plot_triangles(p, adjustLowerLeft=False, values=None, values_cmap=matplotlib
         k1=p.vols[i][0]
         k2=p.vols[i][1]
         k3=p.vols[i][2]
-        if not adjustLowerLeft:
-            vertices.append([ [p.x[k1], p.y[k1]], [p.x[k2], p.y[k2]], [p.x[k3], p.y[k3]] ])
-        else:
-            vertices.append([ [p.x[k1]+x0, p.y[k1]+y0], [p.x[k2]+x0, p.y[k2]+y0], [p.x[k3]+x0, p.y[k3]+y0] ])
+
+        tri_coords = numpy.array([ [p.x[k1], p.y[k1]], [p.x[k2], p.y[k2]], [p.x[k3], p.y[k3]] ])
+        if adjustLowerLeft:
+            tri_coords[:,0] = tri_coords[:,0] + x0
+            tri_coords[:,1] = tri_coords[:,1] + y0
+
+        vertices.append(tri_coords)
      
     # Make PolyCollection 
     if values is None: 
-        all_poly = PolyCollection( vertices, array = numpy.zeros(len(p.vols)), 
+        all_poly = PolyCollection( vertices, array = numpy.zeros(len(vertices)), 
             edgecolors=edgecolors)
         all_poly.set_facecolor('none')
     else:
-        assert len(values)==len(p.vols), 'len(values) must either be 1, or the same as len(p.vols)'
-        all_poly = PolyCollection( vertices, array = values, cmap = values_cmap, edgecolors=edgecolors)
+        msg = 'len(values) must either be 1, or the same as len(p.vols)'
+        assert len(values)==len(p.vols), msg
+        all_poly = PolyCollection( vertices, array = values, cmap = values_cmap, 
+            edgecolors=edgecolors)
 
     # Add to plot
     # FIXME: To see the triangles, this might require that the user does
