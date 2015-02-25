@@ -20,24 +20,6 @@
 # Make selected classes available directly
 #-----------------------------------------------------
 
-
-
-
-# PEP0440 compatible formatted version, see:
-# https://www.python.org/dev/peps/pep-0440/
-#
-# Generic release markers:
-# X.Y
-# X.Y.Z # For bugfix releases
-#
-# Admissible pre-release markers:
-# X.YaN # Alpha release
-# X.YbN # Beta release
-# X.YrcN # Release Candidate
-# X.Y # Final release
-#
-# Dev branch marker is: 'X.Y.dev' or 'X.Y.devN' where N is an integer.
-#
 __version__ = '1.3.8'
 
 __svn_revision__ = filter(str.isdigit, "$Revision$")
@@ -215,7 +197,6 @@ else:
     #-----------------------------
     # Shallow Water Tsunamis
     #-----------------------------
-
     from anuga.tsunami_source.smf import slide_tsunami, slump_tsunami
 
 
@@ -227,12 +208,12 @@ else:
     from anuga.shallow_water.forcing import Inflow, Rainfall, Wind_stress
 
 
-
     #-----------------------------
     # File conversion utilities
     #-----------------------------
-    from anuga.file_conversion.file_conversion import sww2obj, \
-                        timefile2netcdf, tsh2sww
+    from anuga.file_conversion.file_conversion import sww2obj
+    from anuga.file_conversion.file_conversion import timefile2netcdf
+    from anuga.file_conversion.file_conversion import tsh2sww
     from anuga.file_conversion.urs2nc import urs2nc
     from anuga.file_conversion.urs2sww import urs2sww  
     from anuga.file_conversion.urs2sts import urs2sts

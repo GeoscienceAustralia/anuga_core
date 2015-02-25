@@ -101,6 +101,8 @@ class Test_Domain(unittest.TestCase):
 
         assert domain.CFL == 3.0
         
+        warnings.simplefilter("default")
+        
 
     def test_conserved_quantities(self):
 

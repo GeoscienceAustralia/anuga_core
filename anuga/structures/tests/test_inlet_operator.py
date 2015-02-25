@@ -15,8 +15,7 @@ from anuga.utilities.system_tools import get_pathname_from_package
 
 from anuga.structures.inlet_operator import Inlet_operator
 
-import warnings
-warnings.simplefilter("ignore")
+
 
 class Test_inlet_operator(unittest.TestCase):
     """
@@ -288,6 +287,9 @@ class Test_inlet_operator(unittest.TestCase):
 
         os.chdir(baseDir)
 
+        import warnings
+        warnings.simplefilter("ignore")
+        
         Inlet_operator(domain, line1, Q1, default=6)
         Inlet_operator(domain, line2, Q2, default=3)
 
@@ -297,6 +299,7 @@ class Test_inlet_operator(unittest.TestCase):
             pass
 
 
+        warnings.simplefilter("default")
         vol1 = domain.compute_total_volume()
 
         #print vol1-vol0

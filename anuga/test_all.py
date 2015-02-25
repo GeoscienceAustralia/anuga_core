@@ -25,6 +25,7 @@ import time
 import anuga.config as config
 from anuga.utilities.terminal_width import terminal_width
 import anuga.utilities.system_tools as aust
+from anuga import __version__
 
 
 #List files that should be excluded from the testing process.
@@ -32,7 +33,7 @@ import anuga.utilities.system_tools as aust
 exclude_files = []
 
 # Directories that should not be searched for test files.
-exclude_dirs = ['shallow_water_balanced' , # Special requirements
+exclude_dirs = ['shallow_water_balanced' ,
                 '.svn',          # subversion
                 'props', 'wcprops', 'prop-base', 'text-base', 'tmp']
 
@@ -252,7 +253,7 @@ if __name__ == '__main__':
 
     # timestamp at the end
     timestamp = time.asctime()
-    major_revision = config.major_revision
+    major_revision = __version__
     minor_revision = aust.get_revision_number()
     print '\nFinished at %s, version %s %s' % (timestamp, major_revision, minor_revision)
 

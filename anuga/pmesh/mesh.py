@@ -1869,7 +1869,7 @@ class Mesh:
         #point_dict['attributelist'] = {} #this will need to be expanded..
                                          # if attributes are brought back in. 
         #point_dict['geo_reference'] = self.geo_reference
-        if mesh_dict['vertices'] == []:
+        if len(mesh_dict['vertices']) == 0:
             #point_dict['pointlist'] = mesh_dict['points']
             geo = Geospatial_data(mesh_dict['points'],
                                   geo_reference=self.geo_reference)

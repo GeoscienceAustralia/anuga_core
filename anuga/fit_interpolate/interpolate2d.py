@@ -147,7 +147,7 @@ def interpolate2d(x, y, Z, points, mode='linear', bounds_error=False):
     numpy.seterr(**oldset)  # Restore warnings
     
     # Restrict interpolation points to those that are inside the grid
-    inside = -outside  # Invert boolean array to find elements inside
+    inside = numpy.logical_not(outside)  # Invert boolean array to find elements inside
     xi = xi[inside]
     eta = eta[inside]
 
@@ -184,9 +184,9 @@ def interpolate2d(x, y, Z, points, mode='linear', bounds_error=False):
 
         # Set up masks for the quadrants
         left = alpha < 0.5
-        right = -left
+        right = numpy.logical_not(left)
         lower = beta < 0.5
-        upper = -lower
+        upper = numpy.logical_not(lower)
 
         lower_left = lower * left
         lower_right = lower * right

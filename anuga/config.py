@@ -25,7 +25,7 @@ velocity_protection = 1.0e-6         # Used to compute velocity from momentum
 ################################################################################
 
 pmesh_filename = '.\\pmesh'
-version_filename = 'stored_version_info.py'
+#version_filename = 'stored_version_info.py'
 default_datadir = '.'
 time_format = '%d/%m/%y %H:%M:%S'    # Used with timefile2netcdf
 umask = 002  # Controls file and directory permission created by anuga (UNIX)
@@ -33,7 +33,7 @@ default_boundary_tag = 'exterior'
 
 # Major revision number for use with create_distribution
 # and update_anuga_user_guide
-major_revision = '1.3.1'
+#major_revision = '1.3.1'
 
 ################################################################################
 # Physical constants

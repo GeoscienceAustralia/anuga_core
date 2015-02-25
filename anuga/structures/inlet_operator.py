@@ -2,7 +2,7 @@ import anuga
 import numpy
 import inlet
 
-from warnings import warn
+import warnings
 
 class Inlet_operator(anuga.Operator):
     """Inlet Operator - add water to an inlet.
@@ -173,6 +173,7 @@ class Inlet_operator(anuga.Operator):
             try:
                 default(0.0)
             except:
+                msg = "could not call default"
                 raise Exception(msg)
 
         self.default = default
@@ -203,7 +204,8 @@ class Inlet_operator(anuga.Operator):
                        'Instead I will use the default rate: %s\n'
                        'Note: Further warnings will be supressed'
                        % (str(err_msg), str(self.default(t))))
-                warn(msg)
+                
+                warnings.warn(msg)
 
                 # FIXME (Ole): Replace this crude flag with
                 # Python's ability to print warnings only once.

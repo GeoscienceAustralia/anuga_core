@@ -297,6 +297,7 @@ if __name__=="__main__":
 
         if myid == 0:
             if verbose: print 'PARALLEL START'
+            random.seed(1001)
             for i in range(samples):
                 x = random.randrange(0,1000)/1000.0 * length
                 y = random.randrange(0,1000)/1000.0 * width

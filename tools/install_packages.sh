@@ -17,11 +17,20 @@ set -e
 sudo apt-get update -qq
 sudo apt-get install gfortran
 
+##########################################################
+# Setup various versions of MPI
 if [[ "$PARALLEL" == "mpich2" ]]; then
     sudo apt-get install mpich2;
 fi
 
+if [[ "$PARALLEL" == "openmpi" ]]; then
+    sudo apt-get install -y libopenmpi-dev openmpi-bin;
+fi
+
+
+##########################################################
 if [[ "$DISTRIB" == "conda" ]]; then
+
     # Deactivate the travis-provided virtual environment and setup a
     # conda-based environment instead
     deactivate || echo "deactivate failed"
@@ -34,8 +43,6 @@ if [[ "$DISTRIB" == "conda" ]]; then
     
     export PATH=$HOME/miniconda/bin:$PATH
     conda update --yes conda
-
-
 
     # Configure the conda environment and put it in the path using the
     # provided versions
@@ -56,29 +63,39 @@ if [[ "$DISTRIB" == "conda" ]]; then
     if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install --yes argparse; fi
     
     
+    # Install pypar if parallel set
+	if [[ "$PARALLEL" == "mpich2" || "$PARALLEL" == "openmpi" ]]; then
+    	git clone https://github.com/daleroberts/pypar;
+    	pushd pypar;
+    	python setup.py install;
+    	popd;
+	fi
+	
     # Useful for debugging any issues with conda
     conda info -a
 
+########################################################
 elif [[ "$DISTRIB" == "ubuntu" ]]; then
     # Use standard ubuntu packages in their default version
+    
     sudo apt-get install -qq python-dev python-numpy python-scipy \
                              python-matplotlib netcdf-bin \
                              libnetcdf-dev libhdf5-serial-dev \
                              python-gdal python-pip 
 
-    pip install nose netCDF4 pyproj
+    sudo pip install nose netCDF4 pyproj
+    
+    # Install pypar if parallel set
+	if [[ "$PARALLEL" == "mpich2" || "$PARALLEL" == "openmpi" ]]; then
+    	git clone https://github.com/daleroberts/pypar;
+    	pushd pypar;
+    	python setup.py install;
+    	popd;
+    fi
 fi
 
 
-# Install pypar if parallel set
-if [[ "$PARALLEL" == "mpich2" ]]; then
-    git clone https://github.com/daleroberts/pypar;
-    pushd pypar;
-    python setup.py install;
-    popd;
-fi
-
-
+########################################################
 if [[ "$COVERAGE" == "--coverage" ]]; then
     pip install coverage coveralls
 fi

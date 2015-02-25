@@ -43,8 +43,8 @@ def nanallclose(x, y, rtol=1.0e-5, atol=1.0e-8):
 
     # Filter NaN's out
     if numpy.any(xn):
-        x = x[-xn]
-        y = y[-yn]
+        x = x[numpy.logical_not(xn)]
+        y = y[numpy.logical_not(yn)]
 
     # Compare non NaN's and return
     return numpy.allclose(x, y, rtol=rtol, atol=atol)
