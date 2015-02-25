@@ -295,17 +295,20 @@ def mpi_cmd(nprocs, script_name):
 
     (exitstatus, outtext) = commands.getstatusoutput('mpirun -q pwd')
 
+    print exitstatus
+    print outtext
+    
     if exitstatus == 0: # openmpi:
-        PYTHONPATH = os.getenv('PYTHONPATH')
-        cmd = "mpirun -np %d -q -x PYTHONPATH=%s python %s" % (nprocs, PYTHONPATH, script_name)
+        #PYTHONPATH = os.getenv('PYTHONPATH')
+        cmd = "mpirun -np %d -q -x PYTHONPATH python %s" % (nprocs, script_name)
     else:               # mpich
         cmd = "mpirun -np %d python %s" % (nprocs, script_name)
 
     #print cmd
     (exitstatus, outtext) = commands.getstatusoutput(cmd)
 
-    #print exitstatus
-    #print outtext
+    print exitstatus
+    print outtext
 
     
 
