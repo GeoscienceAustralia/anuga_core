@@ -850,8 +850,8 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None,
     """
 
     try:
-        import gdal
-        import osr
+        import osgeo.gdal as gdal
+        import osgeo.osr as osr
     except ImportError, e:
         msg='Failed to import gdal/ogr modules --'\
         + 'perhaps gdal python interface is not installed.'
@@ -953,8 +953,8 @@ def Make_Geotif(swwFile=None,
     import os
     
     try:
-        import gdal
-        import osr
+        import osgeo.gdal as gdal
+        import osgeo.osr as osr
     except ImportError, e:
         msg='Failed to import gdal/ogr modules --'\
         + 'perhaps gdal python interface is not installed.'

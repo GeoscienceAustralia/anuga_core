@@ -54,8 +54,8 @@ import anuga
 from anuga.geometry.polygon import inside_polygon
 
 try:
-    import gdal
-    import ogr
+    import osgeo.gdal as gdal
+    import osgeo.ogr as ogr
     gdal_available = True
     #import osr # Not needed here but important in general
 except ImportError, err:

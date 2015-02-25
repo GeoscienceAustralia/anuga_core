@@ -402,7 +402,7 @@ class Test_plot_utils(unittest.TestCase):
 
        
         # Use gdal to check that at least the data extent is ok
-        import gdal
+        import osgeo.gdal as gdal
         raster=gdal.Open('PointData_TestData.tif')
         rasterGeoTrans=raster.GetGeoTransform()
         assert(np.allclose(x.min()-myCellSize/2.0, rasterGeoTrans[0]))
@@ -435,7 +435,7 @@ class Test_plot_utils(unittest.TestCase):
 
        
         # Use gdal to check that at least the data extent is ok
-        import gdal
+        import osgeo.gdal as gdal
         raster=gdal.Open('PointData_TestData.tif')
         rasterGeoTrans=raster.GetGeoTransform()
         assert(np.allclose(x.min()-myCellSize/2.0, rasterGeoTrans[0]))

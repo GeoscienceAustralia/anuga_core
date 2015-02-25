@@ -13,10 +13,8 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.config import netcdf_float, netcdf_char, netcdf_int
 
 
-# Please, don't add anuga.utilities to these imports.
-# I'm trying to keep this file general, so it works for EQRM and ANUGA
-# EQRM also uses this file, but has a different directory structure
 from anuga.utilities.system_tools import *
+
 
 class Test_system_tools(unittest.TestCase):
     def setUp(self):
@@ -208,7 +206,7 @@ class Test_system_tools(unittest.TestCase):
         x = string_to_char(str_list)
         new_str_list = char_to_string(x)
 
-        self.failUnlessEqual(new_str_list, str_list)
+        self.assertEqual(new_str_list, str_list)
 
     # special test - input list is ['']
     def test_string_to_char2(self):
@@ -218,7 +216,7 @@ class Test_system_tools(unittest.TestCase):
         x = string_to_char(str_list)
         new_str_list = char_to_string(x)
 
-        self.failUnlessEqual(new_str_list, str_list)
+        self.assertEqual(new_str_list, str_list)
 
 
 ################################################################################
@@ -281,7 +279,7 @@ class Test_system_tools(unittest.TestCase):
         self.helper_write_msh_file(FILENAME, str_list)
         new_str_list = self.helper_read_msh_file(FILENAME)
 
-        self.failUnlessEqual(new_str_list, str_list)
+        self.assertEqual(new_str_list, str_list)
         os.remove(FILENAME)
 
     # special test - list [''] to a NetCDF file
@@ -294,12 +292,15 @@ class Test_system_tools(unittest.TestCase):
         self.helper_write_msh_file(FILENAME, str_list)
         new_str_list = self.helper_read_msh_file(FILENAME)
 
-        self.failUnlessEqual(new_str_list, str_list)
+        self.assertEqual(new_str_list, str_list)
         os.remove(FILENAME)
 
 
     def test_get_vars_in_expression(self):
         '''Test the 'get vars from expression' code.'''
+
+        import warnings
+        warnings.simplefilter('ignore', DeprecationWarning)
 
         def test_it(source, expected):
             result = get_vars_in_expression(source)
@@ -307,7 +308,7 @@ class Test_system_tools(unittest.TestCase):
             expected.sort()
             msg = ("Source: '%s'\nResult: %s\nExpected: %s"
                    % (source, str(result), str(expected)))
-            self.failUnlessEqual(result, expected, msg)
+            self.assertEqual(result, expected, msg)
                 
         source = 'fred'
         expected = ['fred']
@@ -325,6 +326,7 @@ class Test_system_tools(unittest.TestCase):
         expected = ['tom', 'dick', 'harry']
         test_it(source, expected)
 
+        warnings.simplefilter('default', DeprecationWarning)
 
     def test_tar_untar_files(self):
         '''Test that tarring & untarring files is OK.'''
