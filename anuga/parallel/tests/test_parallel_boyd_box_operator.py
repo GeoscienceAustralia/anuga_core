@@ -70,22 +70,22 @@ def topography(x, y):
     
     N = len(x)
     for i in range(N):
-
-       # Sloping Embankment Across Channel
+        
+        # Sloping Embankment Across Channel
         if 5.0 < x[i] < 10.1:
             # Cut Out Segment for Culvert face                
             if  1.0+(x[i]-5.0)/5.0 <  y[i]  < 4.0 - (x[i]-5.0)/5.0: 
-               z[i]=z[i]
+                z[i]=z[i]
             else:
-               z[i] +=  0.5*(x[i] -5.0)    # Sloping Segment  U/S Face
+                z[i] +=  0.5*(x[i] -5.0)    # Sloping Segment  U/S Face
         if 10.0 < x[i] < 12.1:
-           z[i] +=  2.5                    # Flat Crest of Embankment
+            z[i] +=  2.5                    # Flat Crest of Embankment
         if 12.0 < x[i] < 14.5:
             # Cut Out Segment for Culvert face                
             if  2.0-(x[i]-12.0)/2.5 <  y[i]  < 3.0 + (x[i]-12.0)/2.5:
-               z[i]=z[i]
+                z[i]=z[i]
             else:
-               z[i] +=  2.5-1.0*(x[i] -12.0) # Sloping D/S Face
+                z[i] +=  2.5-1.0*(x[i] -12.0) # Sloping D/S Face
                    
         
     return z
@@ -290,27 +290,21 @@ class Test_parallel_boyd_box_operator(unittest.TestCase):
 
 def mpi_cmd(nprocs, script_name):
 
-    import os
-    import commands
+    import subprocess
 
-    (exitstatus, outtext) = commands.getstatusoutput('mpirun -q pwd')
+    cmd = "mpirun -v -np %d python %s" % (nprocs, script_name)
 
-    print exitstatus
-    print outtext
-    
-    if exitstatus == 0: # openmpi:
-        #PYTHONPATH = os.getenv('PYTHONPATH')
-        cmd = "mpirun -np %d -q -x PYTHONPATH python %s" % (nprocs, script_name)
-    else:               # mpich
-        cmd = "mpirun -np %d python %s" % (nprocs, script_name)
+    exitstatus = 0
+    try:
+        outtext = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        exitstatus=e.returncode
+        outtext = e.output
 
-    #print cmd
-    (exitstatus, outtext) = commands.getstatusoutput(cmd)
+    if verbose:
+        print exitstatus
+        print outtext
 
-    print exitstatus
-    print outtext
-
-    
 
     return exitstatus
       

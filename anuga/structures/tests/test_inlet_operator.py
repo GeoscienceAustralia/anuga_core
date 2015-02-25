@@ -290,6 +290,7 @@ class Test_inlet_operator(unittest.TestCase):
         import warnings
         warnings.simplefilter("ignore")
         
+        
         Inlet_operator(domain, line1, Q1, default=6)
         Inlet_operator(domain, line2, Q2, default=3)
 
