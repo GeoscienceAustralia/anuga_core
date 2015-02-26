@@ -21,7 +21,7 @@ from math import sqrt, atan, degrees
 # FIXME (Ole): Temporary short cuts -
 # FIXME (Ole): remove and update scripts where they are used
 from anuga.utilities.system_tools import get_revision_number
-from anuga.utilities.system_tools import store_version_info
+from anuga.utilities.system_tools import store_revision_info
 
 import anuga.utilities.log as log
 

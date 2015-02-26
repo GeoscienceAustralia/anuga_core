@@ -18,8 +18,6 @@ try:
 except ImportError:
     import md5 as hashlib
 
-import anuga.utilities.log as log
-
 
 def log_to_file(filename, s, verbose=False, mode='a'):
     """Log string to file name
@@ -95,8 +93,8 @@ Good luck!
         # svn 1.7 no longer has a .svn folder in all folders
         # so will need a better way to get revision number
         
-        from anuga.utilities.stored_version_info import version_info
-        return process_version_info(version_info)
+        from anuga.revision import revision_info
+        return process_revision_info(revision_info)
 
     line = fd.readlines()[3]
     fd.close()
@@ -195,20 +193,19 @@ def __get_revision_from_svn_client__():
 def get_revision_number():
     """Get the (svn) revision number of this repository copy.
     """
+    from  anuga.revision import revision_info
+    return process_revision_info(revision_info)
 
-    from anuga import __svn_revision__ as revision
-    return revision
-            
 
-def process_version_info(version_info):
+def process_revision_info(revision_info):
 
     # split revision number from data
-    for line in version_info.split('\n'):
+    for line in revision_info.split('\n'):
         if line.startswith('Revision:'):
             break
 
     fields = line.split(':')
-    msg = 'Keyword "Revision" was not found anywhere in text: %s' % version_info
+    msg = 'Keyword "Revision" was not found anywhere in text: %s' % revision_info
     assert fields[0].startswith('Revision'), msg
 
     try:
@@ -221,8 +218,8 @@ def process_version_info(version_info):
 
     return revision_number
 
-def store_version_info(destination_path='.', verbose=False):
-    """Obtain current version from Subversion and store it.
+def store_revision_info(destination_path='.', verbose=False):
+    """Obtain current revision from Subversion and store it.
     
     Title: store_version_info()
 
@@ -255,8 +252,7 @@ def store_version_info(destination_path='.', verbose=False):
         #FIXME SR: This works for python 2.6
         txt = subprocess.Popen('svn info', shell=True, stdout=subprocess.PIPE).communicate()[0]
     except:
-        msg = 'Command "svn" is not recognised on the system PATH'
-        raise Exception(msg)
+        txt = 'Revision: 0'
     else:    
         #txt = fid.read()
         #fid.close()
@@ -268,23 +264,23 @@ def store_version_info(destination_path='.', verbose=False):
         if destination_path[-1] != os.sep:
             destination_path += os.sep
             
-        filename = destination_path + config.version_filename
+        filename = destination_path + config.revision_filename
 
         fid = open(filename, 'w')
 
-        docstring = 'Stored version info.\n\n'
+        docstring = 'Stored revision info.\n\n'
         docstring += 'This file provides the version for distributions '
         docstring += 'that are not accessing Subversion directly.\n'
         docstring += 'The file is automatically generated and should not '
         docstring += 'be modified manually.\n'
         fid.write('"""%s"""\n\n' %docstring)
         
-        fid.write('version_info = """\n%s"""' %txt)
+        fid.write('revision_info = """\n%s"""' %txt)
         fid.close()
 
 
         if verbose is True:
-            log.critical('Version info stored to %s' % filename)
+            print 'Revision info stored to %s' % filename
 
 
 def safe_crc(string):

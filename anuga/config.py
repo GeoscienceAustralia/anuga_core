@@ -9,15 +9,15 @@ import sys
 # Numerical constants
 ################################################################################
 
-epsilon = 1.0e-12                    # Smallest number - used for safe division
-max_float = 1.0e36                   # Largest number - used to initialise 
-                                     # (max, min) ranges
-default_smoothing_parameter = 0.001  # Default alpha for penalised
-                                     # least squares fitting
-single_precision = 1.0e-6            # Smallest single precision number
-velocity_protection = 1.0e-6         # Used to compute velocity from momentum
-                                     # See section 7.4 on Flux limiting 
-                                     # in the user manual
+epsilon = 1.0e-12                   # Smallest number - used for safe division
+max_float = 1.0e36                  # Largest number - used to initialise
+                                    # (max, min) ranges
+default_smoothing_parameter = 0.001 # Default alpha for penalised
+                                    # least squares fitting
+single_precision = 1.0e-6           # Smallest single precision number
+velocity_protection = 1.0e-6        # Used to compute velocity from momentum
+                                    # See section 7.4 on Flux limiting 
+                                    # in the user manual
                             
 
 ################################################################################
@@ -25,7 +25,7 @@ velocity_protection = 1.0e-6         # Used to compute velocity from momentum
 ################################################################################
 
 pmesh_filename = '.\\pmesh'
-#version_filename = 'stored_version_info.py'
+revision_filename = 'revision.py'
 default_datadir = '.'
 time_format = '%d/%m/%y %H:%M:%S'    # Used with timefile2netcdf
 umask = 002  # Controls file and directory permission created by anuga (UNIX)

@@ -123,6 +123,11 @@ def configuration(parent_package='', top_path=None):
 
 
 def setup_package():
+    
+    from anuga.utilities.system_tools import store_revision_info
+    
+    store_revision_info(destination_path='anuga')
+    
     metadata = dict(name=DISTNAME,
                     maintainer=MAINTAINER,
                     maintainer_email=MAINTAINER_EMAIL,
@@ -149,26 +154,6 @@ def setup_package():
                     cmdclass={'clean': CleanCommand},
                     **extra_setuptools_args)
 
-#     if (len(sys.argv) >= 2
-#             and ('--help' in sys.argv[1:] or sys.argv[1]
-#                  in ('--help-commands', 'egg_info', '--version', 'clean'))):
-# 
-#         # For these actions, NumPy is not required.
-#         #
-#         # They are required to succeed without Numpy for example when
-#         # pip is used to install anuga when Numpy is not yet present in
-#         # the system.
-#         try:
-#             from setuptools import setup
-#         except ImportError:
-#             from distutils.core import setup
-# 
-#         metadata['version'] = VERSION
-#     else:
-#         from numpy.distutils.core import setup
-# 
-#         metadata['configuration'] = configuration
-        
 
 
     metadata['version'] = VERSION
