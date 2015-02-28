@@ -467,14 +467,8 @@ class Test_system_tools(unittest.TestCase):
         """
 
         x = get_revision_number()
-
-        try:
-            y = x.split('.')
-            assert int(y[0])
-            assert int(y[1])
-            assert int(y[2])
-        except:
-            assert int(x)
+        
+        assert int(x) >= 0
 
 ################################################################################
 

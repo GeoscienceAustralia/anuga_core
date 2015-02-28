@@ -949,7 +949,7 @@ def Make_Geotif(swwFile=None,
     import scipy.interpolate
     import scipy.spatial
     import anuga
-    from anuga.utilities import plot_utils as util
+    #from anuga.utilities import plot_utils as util
     import os
     
     try:
@@ -990,7 +990,7 @@ def Make_Geotif(swwFile=None,
             
         if(verbose):
             print 'Reading sww File ...'
-        p2=util.get_centroids(swwFile, velocity_extrapolation, timeSlices=myTimeStep,
+        p2=get_centroids(swwFile, velocity_extrapolation, timeSlices=myTimeStep,
                               minimum_allowed_height=min_allowed_height)
         xllcorner=p2.xllcorner
         yllcorner=p2.yllcorner

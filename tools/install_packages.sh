@@ -47,29 +47,32 @@ if [[ "$DISTRIB" == "conda" ]]; then
     # Configure the conda environment and put it in the path using the
     # provided versions
     conda create -n anuga_env --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 \
-	nose matplotlib gdal geos
+	nose matplotlib
     source activate anuga_env
+
+    # python 2.6 doesn't have argparse by default
+    if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install --yes argparse; fi
 
     if [[ "$PYTHON_VERSION" == "2.7" ]]; then
         conda install --yes -c pingucarsti gdal
+    fi
+
+    if [[ "$PYTHON_VERSION" == "2.6" ]]; then
+        conda install --yes  gdal geos
     fi
 
     export GDAL_DATA=`gdal-config --datadir`;
 
     # Install more software to deal with geographical projections
     pip install pyproj
-
-    # python 2.6 doesn't have argparse by default
-    if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install --yes argparse; fi
-    
     
     # Install pypar if parallel set
-	if [[ "$PARALLEL" == "mpich2" || "$PARALLEL" == "openmpi" ]]; then
+    if [[ "$PARALLEL" == "mpich2" || "$PARALLEL" == "openmpi" ]]; then
     	git clone https://github.com/daleroberts/pypar;
     	pushd pypar;
     	python setup.py install;
     	popd;
-	fi
+    fi
 	
     # Useful for debugging any issues with conda
     conda info -a

@@ -31,7 +31,7 @@ Make_Geotif(swwFile=name+'.sww',
 
 Make_Geotif(swwFile=name+'.sww', 
              output_quantities=['stage'],
-             myTimeStep=0,
+             myTimeStep=[0],
              CellSize=1000.0, 
              lower_left=None, upper_right=None,
              EPSG_CODE=32355, 

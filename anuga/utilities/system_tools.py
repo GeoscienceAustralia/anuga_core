@@ -192,11 +192,15 @@ def __get_revision_from_svn_client__():
     
 def get_revision_number():
     """Get the (svn) revision number of this repository copy.
+    If svn not available just return 0
     """
-    from  anuga.revision import revision_info
-    return process_revision_info(revision_info)
-
-
+    try:
+        from  anuga.revision import revision_info
+        return process_revision_info(revision_info)
+    except:
+        return 0
+    
+    
 def process_revision_info(revision_info):
 
     # split revision number from data

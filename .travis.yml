@@ -3,6 +3,8 @@ virtualenv:
   system_site_packages: true
 env:
   matrix:
+    - PYTHON_VERSION="2.7"  PARALLEL="openmpi"  DISTRIB="conda"
+    - PYTHON_VERSION="2.7"  PARALLEL="openmpi"  DISTRIB="ubuntu"
     - PYTHON_VERSION="2.7"  PARALLEL="mpich2"  DISTRIB="conda"
     - PYTHON_VERSION="2.7"  PARALLEL="mpich2"  DISTRIB="ubuntu" COVERAGE="--coverage"
     #- PYTHON_VERSION="2.7"  PARALLEL="false"   DISTRIB="conda"
