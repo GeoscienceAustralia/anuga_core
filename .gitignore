@@ -17,6 +17,13 @@
 *.tmp
 *.vim
 *.sww
+*.tif
+*.xml
+*.pts
+*.msh
+*.dem
+*.asc
+*.qgs
 tags
 
 # Compiled source #
@@ -50,6 +57,7 @@ _configtest.c
 
 # Python files #
 ################
+revision.py
 # setup.py working directory
 build
 # sphinx build directory

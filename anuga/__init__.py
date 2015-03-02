@@ -119,6 +119,9 @@ else:
     from anuga.abstract_2d_finite_volumes.pmesh2domain import \
                                                 pmesh_to_domain_instance
 
+    from anuga.fit_interpolate.fit import fit_to_mesh_file
+    from anuga.fit_interpolate.fit import fit_to_mesh
+        
     from anuga.utilities.system_tools import file_length
     from anuga.utilities.sww_merge import sww_merge_parallel as sww_merge
     from anuga.utilities.file_utils import copy_code_files
