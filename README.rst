@@ -1,5 +1,11 @@
 .. image:: https://travis-ci.org/stoiver/anuga_core.svg?branch=master
     :target: https://travis-ci.org/stoiver/anuga_core
+    
+
+.. image:: https://coveralls.io/repos/stoiver/anuga_core/badge.svg?branch=master
+  :target: https://coveralls.io/r/stoiver/anuga_core?branch=master
+
+
 
 =====
 AnuGA
@@ -30,7 +36,8 @@ Ole Nielsen, Stephen Roberts, Duncan Gray, Jane Sexton, Gareth Davies
 Installation
 ------------
 
-For installation instructions, see `INSTALL.rst <https://github.com/stoiver/anuga_core/blob/master/INSTALL.rst>`_
+For installation instructions, see 
+`INSTALL.rst <https://github.com/stoiver/anuga_core/blob/master/INSTALL.rst>`_
 
 
 Documentation

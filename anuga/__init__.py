@@ -133,8 +133,6 @@ else:
     from os.path import join
     from anuga.config import indent
 
-
-
     #----------------------------
     # Parallel api 
     #----------------------------
