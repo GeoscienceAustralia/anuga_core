@@ -41,7 +41,7 @@ class Rate_operator(Operator,Region):
                  polygon=None,
                  center=None,
                  radius=None,
-                 default_rate=None,
+                 default_rate=0.0,
                  description = None,
                  label = None,
                  logging = False,
