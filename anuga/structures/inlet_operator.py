@@ -20,7 +20,7 @@ class Inlet_operator(anuga.Operator):
                  region,
                  Q = 0.0,
                  velocity = None,
-                 default = None,
+                 default = 0.0,
                  description = None,
                  label = None,
                  logging = False,
@@ -108,7 +108,7 @@ class Inlet_operator(anuga.Operator):
             try:
                 Q = self.Q(t)
             except Modeltime_too_early, e:
-                raise Modeltime_too_early(e)
+                Q = self.get_default(t,err_msg=e)
             except Modeltime_too_late, e:
                 Q = self.get_default(t,err_msg=e)
         else:
@@ -186,31 +186,23 @@ class Inlet_operator(anuga.Operator):
         Modeltime_too_late(msg) has been raised
         """
 
-        from anuga.fit_interpolate.interpolate import Modeltime_too_early, Modeltime_too_late
 
+        # Pass control to default rate function
+        value = self.default(t)
 
-        if self.default is None:
-            msg = '%s: ANUGA is trying to run longer than specified data.\n' %str(err_msg)
-            msg += 'You can specify keyword argument default in the '
-            msg += 'operator to tell it what to do in the absence of time data.'
-            raise Modeltime_too_late(msg)
-        else:
-            # Pass control to default rate function
-            value = self.default(t)
+        if self.default_invoked is False:
+            # Issue warning the first time
+            msg = ('%s\n'
+                   'Instead I will use the default rate: %s\n'
+                   'Note: Further warnings will be suppressed'
+                   % (str(err_msg), str(self.default(t))))
+            
+            warnings.warn(msg)
 
-            if self.default_invoked is False:
-                # Issue warning the first time
-                msg = ('%s\n'
-                       'Instead I will use the default rate: %s\n'
-                       'Note: Further warnings will be supressed'
-                       % (str(err_msg), str(self.default(t))))
-                
-                warnings.warn(msg)
-
-                # FIXME (Ole): Replace this crude flag with
-                # Python's ability to print warnings only once.
-                # See http://docs.python.org/lib/warning-filter.html
-                self.default_invoked = True
+            # FIXME (Ole): Replace this crude flag with
+            # Python's ability to print warnings only once.
+            # See http://docs.python.org/lib/warning-filter.html
+            self.default_invoked = True
 
         return value
 

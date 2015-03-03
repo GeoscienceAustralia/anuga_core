@@ -35,7 +35,7 @@ class Parallel_Inlet_operator(Inlet_operator):
                  poly,
                  Q = 0.0,
                  velocity = None,
-                 default = None,
+                 default = 0.0,
                  description = None,
                  label = None,
                  logging = False,
@@ -168,7 +168,7 @@ class Parallel_Inlet_operator(Inlet_operator):
             try:
                 Q = self.Q(t)
             except Modeltime_too_early, e:
-                raise Modeltime_too_early(e)
+                Q = self.get_default(t)
             except Modeltime_too_late, e:
                 Q = self.get_default(t)
         else:
@@ -237,10 +237,6 @@ class Parallel_Inlet_operator(Inlet_operator):
 
             #log_to_file(self.log_filename, self.culvert_type)
 
-    def log_timestepping_statistics(self):
-
-        if self.logging and self.myid == self.master_proc:
-            log_to_file(self.log_filename, self.timestepping_statistics())
 
     def timestepping_statistics(self):
 
