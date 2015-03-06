@@ -38,7 +38,7 @@ Br = anuga.Reflective_boundary(domain)      # Solid reflective wall
 Bt = anuga.Transmissive_boundary(domain)    # Continue all values on boundary 
 Bd = anuga.Dirichlet_boundary([-0.2,0.,0.]) # Constant boundary values
 Bw = anuga.Time_boundary(domain=domain,     # Time dependent boundary  
-                   f=lambda t: [(0.1*sin(t*2*pi)-0.3)*exp(-t), 0.0, 0.0])
+                   function=lambda t: [(0.1*sin(t*2*pi)-0.3)*exp(-t), 0.0, 0.0])
 
 # Associate boundary tags with boundary objects
 domain.set_boundary({'left': Br, 'right': Bw, 'top': Br, 'bottom': Br})

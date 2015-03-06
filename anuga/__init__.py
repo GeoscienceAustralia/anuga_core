@@ -32,7 +32,7 @@ try:
     __ANUGA_SETUP__
 except NameError:
     __ANUGA_SETUP__ = False
-
+    
     
 if __ANUGA_SETUP__:
     import sys as _sys

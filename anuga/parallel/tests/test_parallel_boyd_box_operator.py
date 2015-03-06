@@ -269,10 +269,10 @@ def run_simulation(parallel = False, control_data = None, test_points = None, ve
                     print 'P%d average volume, control = %s, actual = %s' %(myid, control_data[samples+3], average_volume)
                     print 'P%d average depth, control = %s, actual = %s' %(myid, control_data[samples+4], average_depth)
 
-        assert(success)
+        #assert(success)
 
         
-    return control_data
+    return control_data, success
 
 
 # Test an nprocs-way run of the shallow water equations
@@ -283,30 +283,32 @@ class Test_parallel_boyd_box_operator(unittest.TestCase):
         #print "Expect this test to fail if not run from the parallel/test directory."
 
         abs_script_name = os.path.abspath(__file__)
-        exitstatus = mpi_cmd(nprocs, abs_script_name)
+        cmd = "mpirun -np %d python %s" % (nprocs, abs_script_name)
+        exitstatus = os.system(cmd)
+        #exitstatus = mpi_cmd(nprocs, abs_script_name)
 
         assert_(exitstatus == 0)
 
 
-def mpi_cmd(nprocs, script_name):
-
-    import subprocess
-
-    cmd = "mpirun -v -np %d python %s" % (nprocs, script_name)
-
-    exitstatus = 0
-    try:
-        outtext = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-        exitstatus=e.returncode
-        outtext = e.output
-
-    if verbose:
-        print exitstatus
-        print outtext
-
-
-    return exitstatus
+# def mpi_cmd(nprocs, script_name):
+# 
+#     import subprocess
+# 
+#     cmd = "mpirun -v -np %d python %s" % (nprocs, script_name)
+# 
+#     exitstatus = 0
+#     try:
+#         outtext = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+#     except subprocess.CalledProcessError as e:
+#         exitstatus=e.returncode
+#         outtext = e.output
+# 
+#     if verbose:
+#         print exitstatus
+#         print outtext
+# 
+# 
+#     return exitstatus
       
 
 # Because we are doing assertions outside of the TestCase class
@@ -342,7 +344,7 @@ if __name__=="__main__":
             test_points = pypar.receive(0)
 
         if myid == 0:
-            control_data = run_simulation(parallel=False, test_points = test_points, verbose = verbose)
+            control_data, success = run_simulation(parallel=False, test_points = test_points, verbose = verbose)
 
             for proc in range(1,numprocs):
                 pypar.send(control_data, proc)
@@ -351,9 +353,34 @@ if __name__=="__main__":
 
 
         pypar.barrier()
-        run_simulation(parallel=True, control_data = control_data, test_points = test_points, verbose = verbose)
+        _, success = run_simulation(parallel=True, control_data = control_data, test_points = test_points, verbose = verbose)
 
 
+        #assert(success)
+        all_success = True
+        if myid == 0:
+            all_success = success
+            for i in range(1,numprocs):
+                all_success = all_success and pypar.receive(i)
+        else:
+            pypar.send(success, 0)
+            
+        if myid == 0:
+            for i in range(1,numprocs):
+                pypar.send(all_success,i)
+        else:
+            all_success= pypar.receive(0)
+            
+        print 'myid ',myid, 'all_success ',all_success
+                      
+        
         finalize()
+        
+        import sys
+        if all_success:
+            sys.exit(0)
+        else:
+            sys.exit(1)
+            
     
 

@@ -92,7 +92,8 @@ elif [[ "$DISTRIB" == "ubuntu" ]]; then
 	if [[ "$PARALLEL" == "mpich2" || "$PARALLEL" == "openmpi" ]]; then
     	git clone https://github.com/daleroberts/pypar;
     	pushd pypar;
-    	python setup.py install;
+    	python setup.py build;
+    	sudo python setup.py install;
     	popd;
     fi
 fi
