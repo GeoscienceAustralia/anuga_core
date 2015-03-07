@@ -47,7 +47,7 @@ import unittest
 
 This test exercises the parallel culvert and checks values
 """
-verbose = False
+verbose = True
 nprocs = 3
     
 
