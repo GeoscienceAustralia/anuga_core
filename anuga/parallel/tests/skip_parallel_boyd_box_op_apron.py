@@ -379,16 +379,14 @@ if __name__=="__main__":
         else:
             all_success= pypar.receive(0)
             
-        print 'myid ',myid, 'all_success ',all_success
+        if verbose: print 'myid ',myid, 'all_success ',all_success
                       
         
+        if myid == 0:    
+            if not all_success: 
+                raise Exception
+            
         finalize()
-        
-        import sys
-        if all_success:
-            sys.exit(0)
-        else:
-            sys.exit(1)
 
     
 

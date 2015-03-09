@@ -285,7 +285,6 @@ class Test_parallel_boyd_box_operator(unittest.TestCase):
         abs_script_name = os.path.abspath(__file__)
         cmd = "mpirun -np %d python %s" % (nprocs, abs_script_name)
         exitstatus = os.system(cmd)
-        #exitstatus = mpi_cmd(nprocs, abs_script_name)
 
         assert_(exitstatus == 0)
 
@@ -376,11 +375,14 @@ if __name__=="__main__":
         
         finalize()
         
-        import sys
-        if all_success:
-            sys.exit(0)
-        else:
-            sys.exit(1)
+#         import sys
+#         if all_success:
+#             sys.exit(0)
+#         else:
+#             sys.exit(1)
+        if myid == 0:    
+            if all_success: 
+                raise Exception
             
     
 
