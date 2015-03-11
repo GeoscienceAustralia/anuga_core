@@ -11,7 +11,6 @@ set -e
 
 
 [ -z "$PYTHON_VERSION" ] && PYTHON_VERSION="2.7"
-[ -z "$DISTRIB" ] && DISTRIB="conda"
 [ -z "$PARALLEL" ] && PARALLEL="mpich2"
 
 sudo apt-get update -q
