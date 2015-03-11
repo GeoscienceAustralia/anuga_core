@@ -14,12 +14,12 @@ set -e
 [ -z "$DISTRIB" ] && DISTRIB="ubuntu"
 [ -z "$PARALLEL" ] && PARALLEL="mpich2"
 
-sudo apt-get update -qq
+sudo apt-get update -q
 
 ##########################################################
 # Use standard ubuntu packages in their default version
     
-sudo apt-get install -qq -y gfortran python-dev python-numpy python-scipy \
+sudo apt-get install -q -y gfortran python-dev python-numpy python-scipy \
                              python-matplotlib netcdf-bin \
                              libnetcdf-dev libhdf5-serial-dev \
                              python-gdal python-pip 
@@ -39,7 +39,7 @@ fi
 ########################################################
 # Install pypar if parallel set
 if [[ "$PARALLEL" == "mpich2" || "$PARALLEL" == "openmpi" ]]; then
-     svn checkout https://github.com/daleroberts/pypar;
+     svn checkout https://github.com/daleroberts/pypar/trunk pypar;
      pushd pypar;
      python setup.py build;
      sudo python setup.py install;

@@ -14,13 +14,13 @@ set -e
 [ -z "$DISTRIB" ] && DISTRIB="conda"
 [ -z "$PARALLEL" ] && PARALLEL="mpich2"
 
-sudo apt-get update -qq
+sudo apt-get update -q
 sudo apt-get install gfortran
 
 ##########################################################
 # Setup various versions of MPI
 if [[ "$PARALLEL" == "mpich2" ]]; then
-    sudo apt-get install mpich2;
+    sudo apt-get -y install mpich2;
 fi
 
 if [[ "$PARALLEL" == "openmpi" ]]; then
@@ -67,7 +67,7 @@ pip install pyproj
 
 # Install pypar if parallel set
 if [[ "$PARALLEL" == "mpich2" || "$PARALLEL" == "openmpi" ]]; then
-    git clone https://github.com/daleroberts/pypar;
+    git clone https://github.com/daleroberts/pypar.git;
     pushd pypar;
     python setup.py install;
     popd;
