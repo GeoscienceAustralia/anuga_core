@@ -335,6 +335,9 @@ if __name__=="__main__":
         runner.run(suite)
     else:
         #print "Running for numproc > 1"
+        import atexit
+        atexit.register(finalize)
+        
         pypar.barrier()
         test_points = []
 

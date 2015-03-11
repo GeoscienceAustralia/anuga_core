@@ -287,6 +287,9 @@ class Test_parallel_boyd_box_operator(unittest.TestCase):
         exitstatus = os.system(cmd)
 
         assert_(exitstatus == 0)
+        
+        
+        
 
 
 # def mpi_cmd(nprocs, script_name):
@@ -325,6 +328,10 @@ if __name__=="__main__":
         runner.run(suite)
     else:
         #print "Running for numproc > 1"
+        
+        import atexit
+        atexit.register(finalize)
+        
         pypar.barrier()
         test_points = []
 
@@ -373,16 +380,14 @@ if __name__=="__main__":
         if verbose: print 'myid ',myid, 'all_success ',all_success
                       
         
-        finalize()
+        #finalize()
         
-#         import sys
-#         if all_success:
-#             sys.exit(0)
-#         else:
-#             sys.exit(1)
-        if myid == 0:    
-            if all_success: 
-                raise Exception
+        import sys
+        if all_success:
+            sys.exit(0)
+        else:
+            sys.exit(1)
+
             
     
 

@@ -8,7 +8,7 @@ import math
 
 import numpy as num
 from anuga.structures.inlet import Inlet
-
+import warnings
 
 class Parallel_Inlet(Inlet):
     """Contains information associated with each inlet
@@ -586,7 +586,11 @@ class Parallel_Inlet(Inlet):
                 message += '%s' % elev
                 message += '\n'
                 
-                elevation_difference = elev.max() - elev.min()
+                try:
+                    elevation_difference = elev.max() - elev.min()
+                except ValueError:
+                    elevation_difference = 0.0
+                    
                 if not num.allclose(elevation_difference, 0.):
                     message += 'Elevation range of ' + str(elevation_difference) 
                     message += 'Warning: Non-constant inlet elevation can lead to well-balancing problems'
