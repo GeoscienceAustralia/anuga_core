@@ -1,12 +1,17 @@
 .. image:: https://travis-ci.org/stoiver/anuga_core.svg?branch=master
     :target: https://travis-ci.org/stoiver/anuga_core
     
-
 .. image:: https://coveralls.io/repos/stoiver/anuga_core/badge.svg?branch=master
   :target: https://coveralls.io/r/stoiver/anuga_core?branch=master
 
-
-
+.. image:: https://pypip.in/version/anuga/badge.svg?style=flat
+    :target: https://pypi.python.org/pypi/anuga/
+    :alt: Latest Version
+    
+.. image:: https://pypip.in/download/anuga/badge.svg?style=flat
+    :target: https://pypi.python.org/pypi/anuga/
+    :alt: Downloads
+    
 =====
 AnuGA
 =====
@@ -43,7 +48,10 @@ For installation instructions, see
 Documentation
 -------------
 
-AnuGA documentation is available in the doc folder or online
+AnuGA documentation is available in the doc folder. In particular the 
+`user_manual <https://github.com/stoiver/anuga_core/raw/master/doc/anuga_user_manual.pdf>`_
+
+Also helpful information is available noline at
 
     http://anuga.anu.edu.au
 
