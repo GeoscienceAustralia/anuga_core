@@ -11,18 +11,18 @@ set -e
 
 
 [ -z "$PYTHON_VERSION" ] && PYTHON_VERSION="2.7"
-[ -z "$PARALLEL" ] && PARALLEL="mpich2"
+
 
 sudo apt-get update -q
 sudo apt-get install gfortran
 
 ##########################################################
 # Setup various versions of MPI
-if [[ "$PARALLEL" == "mpich2" ]]; then
+if [[ "$ANUGA_PARALLEL" == "mpich2" ]]; then
     sudo apt-get -y install mpich2;
 fi
 
-if [[ "$PARALLEL" == "openmpi" ]]; then
+if [[ "$ANUGA_PARALLEL" == "openmpi" ]]; then
     sudo apt-get install -y libopenmpi-dev openmpi-bin;
 fi
 
@@ -65,7 +65,7 @@ export GDAL_DATA=`gdal-config --datadir`;
 pip install pyproj
 
 # Install pypar if parallel set
-if [[ "$PARALLEL" == "mpich2" || "$PARALLEL" == "openmpi" ]]; then
+if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
     git clone https://github.com/daleroberts/pypar.git;
     pushd pypar;
     python setup.py install;

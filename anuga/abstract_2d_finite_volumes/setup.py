@@ -18,9 +18,11 @@ def configuration(parent_package='',top_path=None):
 
     config.add_data_dir('tests')
 
-    util_dir = os.path.abspath(join(os.path.dirname(__file__),'..','utilities'))
-    runtime_dir = os.path.abspath(join(os.path.dirname(__file__),'..','runtime_libs')) 
-    
+    #util_dir = os.path.abspath(join(os.path.dirname(__file__),'..','utilities'))
+    #runtime_dir = os.path.abspath(join(os.path.dirname(__file__),'..','runtime_libs')) 
+   
+    util_dir = join('..','utilities') 
+ 
     config.add_extension('neighbour_mesh_ext',
                          sources=['neighbour_mesh_ext.c'],
                          include_dirs=[util_dir])

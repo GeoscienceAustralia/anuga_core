@@ -14,7 +14,8 @@ def configuration(parent_package='',top_path=None):
 
     config.add_data_dir('tests')
 
-    util_dir = os.path.abspath(join(os.path.dirname(__file__),'..','utilities'))
+    #util_dir = os.path.abspath(join(os.path.dirname(__file__),'..','utilities'))
+    util_dir = join('..','utilities') 
     
     config.add_extension('mesh_engine_c_layer',
                          sources=['mesh_engine_c_layer.c', 'triangle.c'],

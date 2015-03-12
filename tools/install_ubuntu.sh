@@ -11,7 +11,6 @@ set -e
 
 
 [ -z "$PYTHON_VERSION" ] && PYTHON_VERSION="2.7"
-[ -z "$PARALLEL" ] && PARALLEL="mpich2"
 
 sudo apt-get update -q
 
@@ -27,17 +26,16 @@ sudo pip install nose netCDF4 pyproj
     
 ##########################################################
 # Setup for various versions of MPI
-if [[ "$PARALLEL" == "mpich2" ]]; then
+if [[ "$ANUGA_PARALLEL" == "mpich2" ]]; then
     sudo apt-get install -y mpich2;
 fi
 
-if [[ "$PARALLEL" == "openmpi" ]]; then
+if [[ "$ANUGA_PARALLEL" == "openmpi" ]]; then
     sudo apt-get install -y libopenmpi-dev openmpi-bin;
 fi
 
-########################################################
 # Install pypar if parallel set
-if [[ "$PARALLEL" == "mpich2" || "$PARALLEL" == "openmpi" ]]; then
+if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
      svn checkout https://github.com/daleroberts/pypar/trunk pypar;
      pushd pypar;
      python setup.py build;

@@ -23,6 +23,7 @@ import numpy as num
 #------------------------
 # ANUGA Modules
 #------------------------
+import anuga
 	
 from anuga import Domain
 from anuga import Reflective_boundary
@@ -35,18 +36,21 @@ from anuga import rectangular_cross
 from anuga import create_domain_from_file
 
 
-from anuga_parallel import distribute, myid, numprocs, finalize, barrier
+from anuga import distribute, myid, numprocs, finalize, barrier
 
+from anuga.utilities.system_tools import get_pathname_from_package
 
 #--------------------------------------------------------------------------
 # Setup parameters
 #--------------------------------------------------------------------------
 
-mesh_filename = "data/merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 10; finaltime = 100
-#mesh_filename = "data/merimbula_17156.tsh"   ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 50; finaltime = 500
-#mesh_filename = "data/merimbula_43200_1.tsh"   ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 50; finaltime = 500
-#mesh_filename = "data/test-100.tsh" ; x0 = 200.0 ; x1 = 300.0; yieldstep = 1; finaltime = 10
-#mesh_filename = "data/test-20.tsh" ; x0 = 250.0 ; x1 = 350.0; yieldstep = 1; finaltime = 50
+DATA_DIR = get_pathname_from_package('anuga.parallel')
+
+mesh_filename = anuga.join(DATA_DIR,"data/merimbula_10785_1.tsh") ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 10; finaltime = 100
+#mesh_filename = anuga.join(DATA_DIR,"data/merimbula_17156.tsh")   ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 50; finaltime = 500
+#mesh_filename = anuga.join(DATA_DIR,"data/merimbula_43200_1.tsh")   ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 50; finaltime = 500
+#mesh_filename = anuga.join(DATA_DIR,"data/test-100.tsh") ; x0 = 200.0 ; x1 = 300.0; yieldstep = 1; finaltime = 10
+#mesh_filename = anuga.join(DATA_DIR,"data/test-20.tsh") ; x0 = 250.0 ; x1 = 350.0; yieldstep = 1; finaltime = 50
 
 verbose = False
 

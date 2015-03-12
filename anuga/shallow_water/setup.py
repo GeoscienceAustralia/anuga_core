@@ -15,7 +15,8 @@ def configuration(parent_package='',top_path=None):
     config.add_data_dir('tests')
     config.add_data_dir(join('tests','data'))
 
-    util_dir = os.path.abspath(join(os.path.dirname(__file__),'..','utilities'))
+    #util_dir = os.path.abspath(join(os.path.dirname(__file__),'..','utilities'))
+    util_dir = join('..','utilities')
     
     config.add_extension('shallow_water_ext',
                          sources=['shallow_water_ext.c'],
