@@ -76,7 +76,6 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
                           'netcdf4',
                           'matplotlib',
                           'gdal',
-                          'pyproj',
                           'nose']
     )
 else:
