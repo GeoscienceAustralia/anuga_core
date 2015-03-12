@@ -1928,7 +1928,7 @@ class Domain(Generic_Domain):
             if mass_error > 0.0 and self.verbose :
                 print 'Cumulative mass protection: '+str(mass_error)+' m^3 '
 
-        elif self.flow_algorithm.startswith('DE'):
+        elif self.compute_fluxes_method == 'DE':
 
             from swDE1_domain_ext import protect
 
@@ -2031,8 +2031,12 @@ class Domain(Generic_Domain):
             negative_ids = num.where( num.logical_and((Stage.centroid_values - Elev.centroid_values) < 0.0 , tff > 0) )[0]
             
             if len(negative_ids)>0:
+                # FIXME: This only warns the first time -- maybe we should warn whenever loss occurs?
                 import warnings
-                warnings.warn('Negative cells being set to zero depth, possible loss of conservation')
+                msg = 'Negative cells being set to zero depth, possible loss of conservation. \n' +\
+                      'Consider using domain.report_water_volume_statistics() to check the extent of the problem'
+                warnings.warn(msg)
+
                 Stage.centroid_values[negative_ids] = Elev.centroid_values[negative_ids]
                 Xmom.centroid_values[negative_ids] = 0.0
                 Ymom.centroid_values[negative_ids] = 0.0          

@@ -118,16 +118,17 @@ class Rate_operator(Operator,Region):
             log.critical('Rate of %s at time = %.2f = %f'
                          % (self.quantity_name, self.domain.get_time(), rate))
 
+
         fid = self.full_indices
         if num.all(rate >= 0.0):
             # Record the local flux for mass conservation tracking
             if indices is None:
-                local_rates=factor*timestep*rate
+                local_rates = factor*timestep*rate
                 self.local_influx = (local_rates*self.areas)[fid].sum()
                 self.stage_c[:] = self.stage_c[:] + local_rates
             else:
                 local_rates = factor*timestep*rate
-                self.local_influx=(local_rates*self.areas[fid]).sum()
+                self.local_influx=(local_rates*self.areas)[fid].sum()
                 self.stage_c[indices] = self.stage_c[indices] \
                        + local_rates
         else: # Be more careful if rate < 0
@@ -144,7 +145,7 @@ class Rate_operator(Operator,Region):
                 #       + factor*rate*timestep, self.elev_c[indices])
                 
                 local_rates = num.maximum(factor*timestep*rate, self.elev_c[indices]-self.stage_c[indices])
-                self.local_influx=(local_rates*self.areas)[fid].sum()
+                self.local_influx = (local_rates*self.areas)[fid].sum()
                 self.stage_c[indices] = self.stage_c[indices] + local_rates 
         # Update mass inflows from fractional steps
         self.domain.fractional_step_volume_integral+=self.local_influx

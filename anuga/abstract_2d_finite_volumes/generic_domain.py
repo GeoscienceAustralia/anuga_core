@@ -2094,6 +2094,16 @@ class Generic_Domain:
             self.smallsteps = 0
             if self._order_ == 1 and self.default_order == 2:
                 self._order_ = 2
+        
+        # NOTE: Here the timestep is redefined. This can lead to a timestep
+        #       being smaller than the self.recorded_min_timestep, which
+        #       confused me (GD). 
+        #       The behaviour is good though, since then the
+        #       recorded_min_timestep reflects the mathematical constraints on
+        #       the timestep, EXCEPT the constraint that we yield at the
+        #       required time. Otherwise we would often have very small
+        #       recorded_min_timesteps simply because of we have to yield at a
+        #       given time
 
         # Ensure that final time is not exceeded
         if finaltime is not None and self.get_time() + timestep > finaltime :
@@ -2102,6 +2112,8 @@ class Generic_Domain:
         # Ensure that model time is aligned with yieldsteps
         if self.get_time() + timestep > self.yieldtime:
             timestep = self.yieldtime - self.get_time()
+
+
 
         self.timestep = timestep
 
