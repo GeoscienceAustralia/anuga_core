@@ -22,7 +22,10 @@ Installing from source
 ----------------------
 
 If you download a source distribution of AnuGA_ you will find a bash script 
-``install_packages.sh`` in the ``tools`` directory which will install Miniconda_ 
+``install_ubuntu.sh`` and ``install_conda.sh`` in the ``tools`` directory.
+
+
+which will install Miniconda_ 
 along with a Miniconda environment ``anuga_env`` with all the appropriate 
 packages installed. You will have to add 
 
@@ -145,13 +148,13 @@ Installing the latest development version
 If you want the very latest code and features,
 you can install AnuGA directly from Github_.
 We try to maintain the *master* branch stable and
-`passing all tests <https://travis-ci.org/stoiver/anuga_core/branches>`__,
+`passing all tests <https://travis-ci.org/GeoscienceAustralia/anuga_core/branches>`__,
 so it should be safe to use.
 
 First, you'll need to `install git`_.
 Then, open a terminal and run::
 
-    git clone --depth=50 --branch=master git://github.com/stoiver/anuga_core.git 
+    git clone git://github.com/GeoscienceAustralia/anuga_core.git 
 
 This will fetch the source code from Github_
 and place it in a folder called ``anuga_core`` in the directory where you ran the
