@@ -88,7 +88,7 @@ Easy Issues
 -----------
 
 A great way to start contributing to anuga is to pick an item
-from the list of [Easy issues](https://github.com/GeoscienceAustralia/anuga_core/issues?labels=Easy)
+from the list of `Easy issues <https://github.com/GeoscienceAustralia/anuga_core/issues?labels=Easy>`_
 in the issue tracker. (Well there are none there yet, but we will be 
 putting some up soon!) Resolving these issues allow you to start
 contributing to the project without much prior knowledge. Your
