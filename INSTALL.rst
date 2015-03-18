@@ -14,38 +14,13 @@ We recommend python 2.7.
 
 If you have a python 2.7 environment with gcc and gfortran support, 
 then you can use pip to install the latest release 
-version of AnuGA.
+version of AnuGA::
+
+	pip install anuga
 
 
-
-Installing from source
-----------------------
-
-If you download a source distribution of AnuGA_ you will find a bash script 
-``install_ubuntu.sh`` and ``install_conda.sh`` in the ``tools`` directory.
-
-
-which will install Miniconda_ 
-along with a Miniconda environment ``anuga_env`` with all the appropriate 
-packages installed. You will have to add 
-
-	export GDAL_DATA=`gdal-config --datadir` 
-    
-to your .bashrc file to avoid some annoying error messages.  
-
-From the ``anuga_core`` directory then run 
-
-	python setup.py install
-	
-And then 
-
-	python runtests.py 
-	
-to check the installation. 
-
-
-Manually installing the dependencies
-------------------------------------
+Dependencies
+------------
 
 AnuGA requires the following packages:
 
@@ -56,6 +31,9 @@ AnuGA requires the following packages:
 * `netcdf <http://www.unidata.ucar.edu/software/netcdf/>`_
 * `nose <http://nose.readthedocs.org/en/latest/>`_
 * A C compiler (preferably GCC or TDM-GCC_ MinGW_ on Windows)
+
+
+
 
 The easiest and **preferred** way to get all dependencies in the latest
 version is using the Anaconda_ or the Miniconda_ Python 
