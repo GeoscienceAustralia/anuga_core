@@ -14,7 +14,7 @@ set -e
 
 
 sudo apt-get update -q
-sudo apt-get install gfortran
+sudo apt-get install gfortran git
 
 ##########################################################
 # Setup various versions of MPI

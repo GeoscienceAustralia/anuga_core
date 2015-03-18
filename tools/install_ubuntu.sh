@@ -17,7 +17,8 @@ sudo apt-get update -q
 ##########################################################
 # Use standard ubuntu packages in their default version
     
-sudo apt-get install -q -y gfortran python-dev python-numpy python-scipy \
+sudo apt-get install -q -y git gfortran python-dev python-numpy \
+                             python-scipy \
                              python-matplotlib netcdf-bin \
                              libnetcdf-dev libhdf5-serial-dev \
                              python-gdal python-pip 
@@ -36,7 +37,7 @@ fi
 
 # Install pypar if parallel set
 if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
-     svn checkout https://github.com/daleroberts/pypar/trunk pypar;
+     git clone https://github.com/daleroberts/pypar.git;
      pushd pypar;
      python setup.py build;
      sudo python setup.py install;
