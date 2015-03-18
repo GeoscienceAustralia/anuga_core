@@ -6,7 +6,7 @@ The preferred way to contribute to anuga is to fork the
 [main repository](http://github.com/stoiver/anuga_core/) on
 GitHub:
 
-1. Fork the [http://github.com/GeoscienceAustralia/anuga_core project repository]:
+1. Fork the `project repository <http://github.com/GeoscienceAustralia/anuga_core>`_:
    click on the 'Fork' button near the top of the page. This creates
    a copy of the code under your account on the GitHub server.
 
