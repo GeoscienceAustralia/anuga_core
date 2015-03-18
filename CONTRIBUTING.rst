@@ -3,6 +3,8 @@
 Contributing code
 =================
 
+.. contents::
+
 The preferred way to contribute to anuga is to fork the 
 `main repository <http://github.com/stoiver/anuga_core>`_ on GitHub:
 
