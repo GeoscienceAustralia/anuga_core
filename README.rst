@@ -1,5 +1,5 @@
 .. image:: https://travis-ci.org/GeoscienceAustralia/anuga_core.svg?branch=master
-    :target: https://travis-ci.org/stoiver/anuga_core
+    :target: https://travis-ci.org/GeoscienceAustralia/anuga_core
     
 .. image:: https://coveralls.io/repos/GeoscienceAustralia/anuga_core/badge.svg?branch=master
   :target: https://coveralls.io/r/GeoscienceAustralia/anuga_core?branch=master
