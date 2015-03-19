@@ -23,8 +23,7 @@ sudo apt-get install -q -y git gfortran python-dev python-numpy \
                              libnetcdf-dev libhdf5-serial-dev \
                              python-gdal python-pip 
 
-# At present netCDF4==1.1.7 produces an error
-sudo pip install nose netCDF4==1.1.6 pyproj
+sudo pip install nose netCDF4 pyproj
     
 ##########################################################
 # Setup for various versions of MPI
