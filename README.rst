@@ -29,10 +29,8 @@ AnuGA is a python package with some C extensions (and an optional
 fortran extension). At present AnuGA has not been ported to python 3. 
 We recommend using python 2.7  
 
-Developed at the Risk Assessment Methods Project at Geoscience
-Australia and Mathematical Sciences Institute at the Australian
-National University.
-
+Developed at Geoscience Australia and Mathematical Sciences Institute at the
+Australian National University.
 
 Copyright 2004 - 2015 
 Ole Nielsen, Stephen Roberts, Duncan Gray, Jane Sexton, Gareth Davies
