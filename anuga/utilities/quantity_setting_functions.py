@@ -508,6 +508,17 @@ def composite_quantity_setting_function(poly_fun_pairs,
             ip[points_to_reinterpolate] = 0
             number_of_ip = ip.sum()
             ip = ip.nonzero()[0]
+
+            # Check that none of the ip points has an nan value
+            nan_ip = (quantityVal[ip] != quantityVal[ip]).nonzero()[0]
+
+            if len(nan_ip) > 0:
+                print len(nan_ip), ' points outside the nan_interpolation_region_polygon have nan values'
+                print 'This should not happen'
+                print 'The points have the following coordinates:'
+                print xy_array_trans[ip,:]
+                msg = "There are nan points outside of nan_interpolation_region_polygon, even after all fall-through's"
+                raise Exception(msg)
          
             if(number_of_ip < default_k_nearest_neighbours):
                 raise Exception('Too few non-nan points to interpolate from') 
@@ -530,12 +541,12 @@ def composite_quantity_setting_function(poly_fun_pairs,
         # Check there are no remaining nan values
         if( min(isSet) != 1):
             print 'Some points remain as nan, which is not allowed'
-            unset_inds = (isSet!=1).nonzero()[0]
+            unset_inds = (isSet != 1).nonzero()[0]
             lui = min(5, len(unset_inds)) 
             print 'There are ', len(unset_inds), ' such points'
             print 'Here are a few:'
             for i in range(lui):
-                print x[unset_inds[i]]+xll, y[unset_inds[i]]+yll
+                print x[unset_inds[i]] + xll, y[unset_inds[i]] + yll
             raise Exception('It seems the input data needs to be fixed')
 
         return quantityVal

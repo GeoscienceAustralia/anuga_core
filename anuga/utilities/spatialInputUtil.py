@@ -271,7 +271,7 @@ if gdal_available:
                 points = readShpPts(filename)
             except:
                 msg = 'Could not read points from ' + filename 
-                raise Exception, msg
+                raise Exception(msg)
         else:
             # Assume txt format
             try:
@@ -282,7 +282,7 @@ if gdal_available:
                 msg = 'Could not read points from ' + filename +\
                       '. Make sure it has a single header row, ' +\
                       'with comma separator, and the first 2 columns are x,y'
-                raise Exception, msg
+                raise Exception(msg)
         return points
     
     ########################################
@@ -329,7 +329,8 @@ if gdal_available:
         elif(geometry_type=='polygon'):
             data=ogr.Geometry(ogr.wkbLinearRing)
         else:
-            raise Exception, "Type must be either 'point' or 'line' or 'polygon'"
+            msg = "Type must be either 'point' or 'line' or 'polygon'"
+            raise Exception(msg)
          
         for i in range(len(pts)):
             if(len(pts[i])==2):
@@ -347,7 +348,7 @@ if gdal_available:
                 else:
                     data.AddPoint(pts[i][0], pts[i][1], pts[i][2])
             else:
-                raise Exception, 'Points must be either 2 or 3 dimensional'
+                raise Exception('Points must be either 2 or 3 dimensional')
     
         if(geometry_type=='polygon'):   
             poly = ogr.Geometry(ogr.wkbPolygon)
@@ -369,7 +370,7 @@ if gdal_available:
         elif(wkb_geo.GetGeometryName()=='LINESTRING'):
             new=[ list(wkb_geo.GetPoints()[i]) for i in range(len(wkb_geo.GetPoints())) ]
         else:
-            raise Exception, 'Geometry type not supported'
+            raise Exception('Geometry type not supported')
         
         if(removeLast):
             new=new[:-1]
@@ -671,12 +672,12 @@ if gdal_available:
         transform=raster.GetGeoTransform()
         xOrigin = transform[0]
         yOrigin = transform[3]
-        xPixels=raster.RasterXSize
-        yPixels=raster.RasterYSize
+        xPixels = raster.RasterXSize
+        yPixels = raster.RasterYSize
 
         # Compute the other extreme corner
-        x2=xOrigin + xPixels*transform[1]+yPixels*transform[2]
-        y2=yOrigin + xPixels*transform[4]+yPixels*transform[5]
+        x2 = xOrigin + xPixels * transform[1] + yPixels * transform[2]
+        y2 = yOrigin + xPixels * transform[4] + yPixels * transform[5]
         
         xmin=min(xOrigin,x2) 
         xmax=max(xOrigin,x2)
@@ -722,12 +723,12 @@ if gdal_available:
         """
         # Raster info
         raster = gdal.Open(rasterFile)
-        rasterBand=raster.GetRasterBand(band)
-        rasterBandType=gdal.GetDataTypeName(rasterBand.DataType)
+        rasterBand = raster.GetRasterBand(band)
+        rasterBandType = gdal.GetDataTypeName(rasterBand.DataType)
         nodataval = rasterBand.GetNoDataValue()
     
         # Projection info
-        transform=raster.GetGeoTransform()
+        transform = raster.GetGeoTransform()
         xOrigin = transform[0]
         yOrigin = transform[3]
         pixelWidth = transform[1]
@@ -759,7 +760,7 @@ if gdal_available:
         # Upper bounds for pixel values, so we can fail gracefully
         xMax = raster.RasterXSize
         yMax = raster.RasterYSize
-        if(px.max()<xMax and px.min()>=0 and py.max()<yMax and py.min()>=0):
+        if(px.max() < xMax and px.min() >= 0 and py.max() < yMax and py.min() >= 0):
             pass
         else:
             msg = 'Trying to extract point values that exceed the raster extent'
@@ -768,10 +769,10 @@ if gdal_available:
         # Get values -- seems we have to loop, but it is efficient enough
         for i in range(len(px)):
 
-            if(interpolation=='pixel'):
+            if(interpolation == 'pixel'):
                 # Pixel coordinates
-                xC=int(numpy.floor(px[i]))
-                yC=int(numpy.floor(py[i]))
+                xC = int(numpy.floor(px[i]))
+                yC = int(numpy.floor(py[i]))
 
                 structval = rasterBand.ReadRaster(xC,yC,1,1,
                     buf_type=rasterBand.DataType)
@@ -896,27 +897,27 @@ if gdal_available:
         """
     
         # Get polygon extent
-        polygonArr=numpy.array(polygon)
-        poly_xmin=polygonArr[:,0].min()
-        poly_xmax=polygonArr[:,0].max()
-        poly_ymin=polygonArr[:,1].min()
-        poly_ymax=polygonArr[:,1].max()
+        polygonArr = numpy.array(polygon)
+        poly_xmin = polygonArr[:,0].min()
+        poly_xmax = polygonArr[:,0].max()
+        poly_ymin = polygonArr[:,1].min()
+        poly_ymax = polygonArr[:,1].max()
     
         # Make a 'grid' of points which covers the polygon
-        xGridCount=max( numpy.ceil( (poly_xmax-poly_xmin)/approx_grid_spacing[0]+1. ).astype(int), 4)
-        R=(poly_xmax-poly_xmin)*eps
-        Xvals=numpy.linspace(poly_xmin+R,poly_xmax-R, xGridCount)
-        yGridCount=max( numpy.ceil( (poly_ymax-poly_ymin)/approx_grid_spacing[1]+1. ).astype(int), 4)
-        R=(poly_ymax-poly_ymin)*eps
-        Yvals=numpy.linspace(poly_ymin+R,poly_ymax-R, yGridCount)
+        xGridCount = max( numpy.ceil( (poly_xmax-poly_xmin)/approx_grid_spacing[0]+1. ).astype(int), 4)
+        R = (poly_xmax-poly_xmin)*eps
+        Xvals = numpy.linspace(poly_xmin+R,poly_xmax-R, xGridCount)
+        yGridCount = max( numpy.ceil( (poly_ymax-poly_ymin)/approx_grid_spacing[1]+1. ).astype(int), 4)
+        R = (poly_ymax-poly_ymin)*eps
+        Yvals = numpy.linspace(poly_ymin+R,poly_ymax-R, yGridCount)
     
-        xGrid,yGrid=numpy.meshgrid(Xvals,Yvals)
-        Grid=numpy.vstack([xGrid.flatten(),yGrid.flatten()]).transpose()
+        xGrid, yGrid = numpy.meshgrid(Xvals,Yvals)
+        Grid = numpy.vstack([xGrid.flatten(),yGrid.flatten()]).transpose()
     
         keepers = inside_polygon(Grid, polygon)
-        if(len(keepers)==0):
+        if(len(keepers) == 0):
             raise Exception('No points extracted from polygon')
-        xyInside=Grid[keepers,:]
+        xyInside = Grid[keepers,:]
     
         return(xyInside)
     
@@ -927,7 +928,7 @@ if gdal_available:
             Find indices in stringList which match pattern
         """
         #matches=[ (pattern in stringList[i]) for i in range(len(stringList))]
-        matches=[]
+        matches = []
         for i in range(len(stringList)):
             if pattern in stringList[i]:
                 matches.append(i)
@@ -1008,85 +1009,85 @@ if gdal_available:
                 for j in range(len(krw)):
                     if(i>=j):
                         continue 
-                    n2=krw[j]
+                    n2 = krw[j]
                     # Convert breaklines to wkb format
-                    rw1=ListPts2Wkb(riverWalls[n1],geometry_type='line')
-                    rw2=ListPts2Wkb(riverWalls[n2],geometry_type='line')
+                    rw1 = ListPts2Wkb(riverWalls[n1],geometry_type='line')
+                    rw2 = ListPts2Wkb(riverWalls[n2],geometry_type='line')
                     # Add intersection points
-                    rw1, rw2 =addIntersectionPtsToLines(rw1, rw2,\
+                    rw1, rw2 = addIntersectionPtsToLines(rw1, rw2,\
                                     point_movement_threshold=point_movement_threshold,\
                                     verbose=verbose, nameFlag=n1+' intersects '+ n2)
-                    riverWalls[n1]=Wkb2ListPts(rw1)
-                    riverWalls[n2]=Wkb2ListPts(rw2)
+                    riverWalls[n1] = Wkb2ListPts(rw1)
+                    riverWalls[n2] = Wkb2ListPts(rw2)
     
         # Clean intersections of breaklines with riverwalls
         if(verbose): 
             print 'Cleaning breakLine-riverWall intersections'
         if( (len(riverWalls)>0) and (len(breakLines)>0)):
-            krw=riverWalls.keys()
-            kbl=breakLines.keys()
+            krw = riverWalls.keys()
+            kbl = breakLines.keys()
             for i in range(len(krw)):
-                n1=krw[i]
+                n1 = krw[i]
                 for j in range(len(kbl)):
-                    n2=kbl[j]
+                    n2 = kbl[j]
                     # Convert breaklines to wkb format
-                    rw1=ListPts2Wkb(riverWalls[n1],geometry_type='line')
-                    bw2=ListPts2Wkb(breakLines[n2],geometry_type='line')
+                    rw1 = ListPts2Wkb(riverWalls[n1],geometry_type='line')
+                    bw2 = ListPts2Wkb(breakLines[n2],geometry_type='line')
                     # Add intersection points
-                    rw1, bw2 =addIntersectionPtsToLines(rw1, bw2,\
+                    rw1, bw2 = addIntersectionPtsToLines(rw1, bw2,\
                                     point_movement_threshold=point_movement_threshold,\
                                     verbose=verbose, nameFlag=n1+' intersects '+ n2)
-                    riverWalls[n1]=Wkb2ListPts(rw1)
-                    breakLines[n2]=Wkb2ListPts(bw2)
+                    riverWalls[n1] = Wkb2ListPts(rw1)
+                    breakLines[n2] = Wkb2ListPts(bw2)
                     
     
         # Clean intersections of bounding polygon and riverwalls
         if(verbose): 
             print 'Cleaning bounding_poly-riverWall intersections'
         if( (len(riverWalls)>0)):
-            krw=riverWalls.keys()
+            krw = riverWalls.keys()
             for i in range(len(krw)):
-                n1=krw[i]
+                n1 = krw[i]
                 # Convert breaklines to wkb format
-                rw1=ListPts2Wkb(riverWalls[n1],geometry_type='line')
-                bp2=ListPts2Wkb(bounding_polygon,geometry_type='line', appendFirstOnEnd=True)
+                rw1 = ListPts2Wkb(riverWalls[n1],geometry_type='line')
+                bp2 = ListPts2Wkb(bounding_polygon,geometry_type='line', appendFirstOnEnd=True)
                 # Add intersection points
-                rw1, bp2 =addIntersectionPtsToLines(rw1, bp2,\
+                rw1, bp2 = addIntersectionPtsToLines(rw1, bp2,\
                                 point_movement_threshold=point_movement_threshold,\
                                 verbose=verbose, nameFlag='Bounding Pol intersects '+ n1)
-                riverWalls[n1]=Wkb2ListPts(rw1)
+                riverWalls[n1] = Wkb2ListPts(rw1)
                 # Since the bounding polygon is a loop, the first/last points are the same
                 # If one of these was moved, the other should be moved too. Since we
                 # will drop the last bounding_polygon point, we only need to worry about the first
-                bounding_polygon=Wkb2ListPts(bp2,removeLast=False)
+                bounding_polygon = Wkb2ListPts(bp2,removeLast=False)
                 if(bounding_polygon[-1] is not bounding_polygon[0]):
-                    bounding_polygon[0]=bounding_polygon[-1]
+                    bounding_polygon[0] = bounding_polygon[-1]
                 # Drop the last point
-                bounding_polygon=bounding_polygon[:-1]
+                bounding_polygon = bounding_polygon[:-1]
     
         # Clean intersections of bounding polygon and breaklines
         if(verbose):
             print 'Cleaning bounding_poly-breaklines intersections'
         if( (len(breakLines)>0)):
-            kbl=breakLines.keys()
+            kbl = breakLines.keys()
             for i in range(len(kbl)):
-                n1=kbl[i]
+                n1 = kbl[i]
                 # Convert breaklines to wkb format
-                bl1=ListPts2Wkb(breakLines[n1],geometry_type='line')
-                bp2=ListPts2Wkb(bounding_polygon,geometry_type='line', appendFirstOnEnd=True)
+                bl1 = ListPts2Wkb(breakLines[n1],geometry_type='line')
+                bp2 = ListPts2Wkb(bounding_polygon,geometry_type='line', appendFirstOnEnd=True)
                 # Add intersection points
-                bl1, bp2 =addIntersectionPtsToLines(bl1, bp2,\
+                bl1, bp2 = addIntersectionPtsToLines(bl1, bp2,\
                                 point_movement_threshold=point_movement_threshold,
                                 verbose=verbose, nameFlag='Bounding Pol intersects '+n1)
-                breakLines[n1]=Wkb2ListPts(bl1)
+                breakLines[n1] = Wkb2ListPts(bl1)
                 # Since the bounding polygon is a loop, the first/last points are the same
                 # If one of these was moved, the other should be moved too. Since we
                 # will drop the last bp2 point, we only need to worry about the first
-                bounding_polygon=Wkb2ListPts(bp2,removeLast=False)
+                bounding_polygon = Wkb2ListPts(bp2,removeLast=False)
                 if(bounding_polygon[-1] is not bounding_polygon[0]):
-                    bounding_polygon[0]=bounding_polygon[-1]
+                    bounding_polygon[0] = bounding_polygon[-1]
                 # Drop the last point
-                bounding_polygon=bounding_polygon[:-1]
+                bounding_polygon = bounding_polygon[:-1]
 
         # Remove the extra 0.0 from bounding polygon [this cannot have 3 coordinates] 
         bounding_polygon = [ bounding_polygon[i][0:2] for i in range(len(bounding_polygon))]
@@ -1098,12 +1099,12 @@ if gdal_available:
         from anuga.geometry.polygon import outside_polygon
         for blCat in [riverWalls, breakLines]:
             for n1 in blCat.keys():
-                l=len(blCat[n1])
+                l = len(blCat[n1])
                 # Test every point -- means we can strip 3rd coordinate if needed
                 for j in range(l):
-                    isOut=outside_polygon(blCat[n1][j][0:2], bounding_polygon)
+                    isOut = outside_polygon(blCat[n1][j][0:2], bounding_polygon)
                     if(len(isOut)>0):
-                        msg='Breakline/riverwall point '+str(blCat[n1][j][0:2]) +' on '+ n1+\
+                        msg = 'Breakline/riverwall point '+str(blCat[n1][j][0:2]) +' on '+ n1+\
                             ' is outside the bounding polygon.\n'+\
                             'Check that it exceeds the bounding polygon'+\
                             ' by a distance < point_movement_threshold \n'+\
@@ -1135,18 +1136,21 @@ if gdal_available:
             OUTPUT: list of the form  [ [x0,y0,res0], [x1, y1, res1], ...]
         """
 
-        ptData=readShpPtsAndAttributes(shapefile)
+        ptData = readShpPtsAndAttributes(shapefile)
 
         # Must have only 1 attribute
-        assert len(ptData[2])==1
+        if not (len(ptData[2]) == 1):
+            msg = 'Shapefile ' + shapefile + ' does not contain exactly 1 ' +\
+                  'attribute, so cannot be read as a regionPointArea'
+            raise Exception(msg)
 
-        numPts=len(ptData[0])
-        outData=[]
+        numPts = len(ptData[0])
+        outData = []
         for i in range(numPts):
             if(convert_length_to_area):
-                newDat=[ptData[0][i][0], ptData[0][i][1], 0.5*float(ptData[1][i])**2]
+                newDat = [ptData[0][i][0], ptData[0][i][1], 0.5*float(ptData[1][i])**2]
             else:
-                newDat=[ptData[0][i][0], ptData[0][i][1], float(ptData[1][i])]
+                newDat = [ptData[0][i][0], ptData[0][i][1], float(ptData[1][i])]
             outData.append(newDat)
 
         return outData
