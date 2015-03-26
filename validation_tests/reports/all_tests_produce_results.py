@@ -21,7 +21,7 @@ verbose = args.verbose
 # Get the current svn revision
 #---------------------------------
 timestamp = time.asctime()
-major_revision = anuga.config.major_revision
+major_revision = anuga.__version__
 try:
     # This fails if using git for version control
     minor_revision = anuga.utilities.system_tools.get_revision_number()
