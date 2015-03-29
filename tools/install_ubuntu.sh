@@ -12,27 +12,27 @@ set -e
 
 [ -z "$PYTHON_VERSION" ] && PYTHON_VERSION="2.7"
 
-apt-get update -q
+sudo apt-get update -q
 
 ##########################################################
 # Use standard ubuntu packages in their default version
     
-apt-get install -q -y git gfortran python-dev python-numpy \
+sudo apt-get install -q -y git gfortran python-dev python-numpy \
                              python-scipy \
                              python-matplotlib netcdf-bin \
                              libnetcdf-dev libhdf5-serial-dev \
                              python-gdal python-pip 
 
-pip install nose netCDF4 pyproj
+sudo pip install nose netCDF4 pyproj
     
 ##########################################################
 # Setup for various versions of MPI
 if [[ "$ANUGA_PARALLEL" == "mpich2" ]]; then
-    apt-get install -y mpich2;
+    sudo apt-get install -y mpich2;
 fi
 
 if [[ "$ANUGA_PARALLEL" == "openmpi" ]]; then
-    apt-get install -y libopenmpi-dev openmpi-bin;
+    sudo apt-get install -y libopenmpi-dev openmpi-bin;
 fi
 
 # Install pypar if parallel set
@@ -40,19 +40,19 @@ if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
      git clone https://github.com/daleroberts/pypar.git;
      pushd pypar;
      python setup.py build;
-     python setup.py install;
+     sudo python setup.py install;
      popd;
 fi
 
 ########################################################
 if [[ "$COVERAGE" == "--coverage" ]]; then
-    pip install coverage coveralls
+    sudo pip install coverage coveralls
 fi
 
 ########################################################
 # build and install anuga
 
 python setup.py build
-python setup.py install
+sudo python setup.py install
 
 
