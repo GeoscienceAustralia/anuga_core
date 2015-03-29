@@ -13,17 +13,17 @@ set -e
 [ -z "$PYTHON_VERSION" ] && PYTHON_VERSION="2.7"
 
 
-sudo apt-get update -q
-sudo apt-get install gfortran git
+apt-get update -q
+apt-get install gfortran git
 
 ##########################################################
 # Setup various versions of MPI
 if [[ "$ANUGA_PARALLEL" == "mpich2" ]]; then
-    sudo apt-get -y install mpich2;
+    apt-get -y install mpich2;
 fi
 
 if [[ "$ANUGA_PARALLEL" == "openmpi" ]]; then
-    sudo apt-get install -y libopenmpi-dev openmpi-bin;
+    apt-get install -y libopenmpi-dev openmpi-bin;
 fi
 
 
