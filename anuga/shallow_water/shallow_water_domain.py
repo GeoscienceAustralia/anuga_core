@@ -8,6 +8,7 @@ Title: ANGUA shallow_water_domain - 2D triangular domains for finite-volume
 Author: Ole Nielsen, Ole.Nielsen@ga.gov.au
         Stephen Roberts, Stephen.Roberts@anu.edu.au
         Duncan Gray, Duncan.Gray@ga.gov.au
+        Gareth Davies, gareth.davies.ga.code@gmail.com
 
 CreationDate: 2004
 
