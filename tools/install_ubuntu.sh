@@ -46,7 +46,7 @@ fi
 
 ########################################################
 if [[ "$COVERAGE" == "--coverage" ]]; then
-    pip install coverage coveralls
+    sudo pip install coverage coveralls
 fi
 
 ########################################################

@@ -28,7 +28,8 @@ def configuration(parent_package='',top_path=None):
 
     config.add_extension('swDE1_domain_ext',
                          sources=['swDE1_domain_ext.c'],
-                         include_dirs=[util_dir])
+                         include_dirs=[util_dir],
+                         extra_compile_args=['-Ofast'])
 
 
     return config
