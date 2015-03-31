@@ -47,31 +47,6 @@ else:
         its source directory; please exit the anuga source tree, and relaunch
         your python interpreter from there."""
         raise ImportError(msg)
-       
-       
-    #------------------------------------------
-    # Hacky Code to allow binary install on windows
-    # without a compiler by packaging the mingw
-    # runtime libraries
-    #-----------------------------------------
-
-    
-    # At runtime, If mingw not installed add mingw dlls folder to path
-    import sys
-    import os
-    if sys.platform == 'win32':
-        MinGW = False
-        import subprocess
-        try:
-            output = subprocess.check_output('gcc -dumpmachine', shell=True, stderr=subprocess.STDOUT)
-            MinGW = 'mingw' in output
-        except Exception as e:
-            pass
-        
-        if not MinGW:
-            (folder, tail) = os.path.split(__file__)
-            runtime_dir = os.path.join(os.path.abspath(folder), 'runtime_libs')
-            os.environ['PATH'] = runtime_dir + ';' + os.environ['PATH']
     
     
     #---------------------------------
@@ -343,26 +318,7 @@ else:
     from anuga.config import g
     from anuga.config import velocity_protection
     
-## if use_psyco:
-##     # try using psyco if available
-##     try:
-##         import psyco
-##     except:
-##         import os
-##         import sys
-##         if os.name == 'posix' and os.uname()[4] in ['x86_64', 'ia64']:
-##             pass
-##             # Psyco isn't supported on 64 bit systems, but it doesn't matter
-##         elif sys.version[:3] == '2.7' :
-##             pass
-##             # Psyco isn't available for python 2.7 (16/05/2011)
-##         else:
-##             log.critical('WARNING: psyco (speedup) could not be imported, '
-##                          'you may want to consider installing it')
-##     else:
-##         psyco.full() # aggressively compile everything
-##         #psyco.background() # attempt to profile code - only compile most used
-        
+
 
 
 
