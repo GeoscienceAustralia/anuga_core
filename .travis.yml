@@ -16,7 +16,7 @@ install:
     - if [[ "$DISTRIB" == "ubuntu" ]]; then source tools/install_ubuntu.sh; fi
 
 script: 
-    - python runtests.py -vv $COVERAGE
+    - python runtests.py $COVERAGE
     - if [[ "$COVERAGE" == "--coverage" ]]; then cp build/test/.coverage .; fi
 
 after_success:
