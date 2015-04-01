@@ -10,8 +10,8 @@
 set -e
 
 
-[ -z "$PYTHON_VERSION" ] && PYTHON_VERSION="2.7"
-[ -z "$ANUGA_BITS" ] && ANUGA_BITS="64"
+PYTHON_VERSION=${PYTHON_VERSION:-"2.7"}
+ANUGA_BITS=${ANUGA_BITS:-"64"}
 
 
 sudo apt-get update -q
