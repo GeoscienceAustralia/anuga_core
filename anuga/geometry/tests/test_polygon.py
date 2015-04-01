@@ -873,7 +873,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P2]
         line1 = [P3, P4]
         status, value = intersection(line0, line1)
-        self.failIf(status!=3, 'Expected status 3, got status=%s, value=%s' %
+        self.assertFalse(status!=3, 'Expected status 3, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(value is None, 'Expected value of None, got %s' %
                                        str(value))
@@ -884,7 +884,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P2, P1]
         line1 = [P4, P3]
         status, value = intersection(line0, line1)
-        self.failIf(status!=3, 'Expected status 3, got status=%s, value=%s' %
+        self.assertFalse(status!=3, 'Expected status 3, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(value is None, 'Expected value of None, got %s' %
                                        str(value))
@@ -895,7 +895,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P2, P1]
         line1 = [P3, P4]
         status, value = intersection(line0, line1)
-        self.failIf(status!=3, 'Expected status 3, got status=%s, value=%s' %
+        self.assertFalse(status!=3, 'Expected status 3, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(value is None, 'Expected value of None, got %s' %
                                        str(value))
@@ -906,7 +906,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P2]
         line1 = [P4, P3]
         status, value = intersection(line0, line1)
-        self.failIf(status!=3, 'Expected status 3, got status=%s, value=%s' %
+        self.assertFalse(status!=3, 'Expected status 3, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(value is None, 'Expected value of None, got %s' %
                                        str(value))
@@ -921,7 +921,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P2, P3]
         line1 = [P1, P4]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
@@ -933,7 +933,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P3, P2]
         line1 = [P4, P1]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
@@ -945,7 +945,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P3, P2]
         line1 = [P1, P4]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
@@ -957,7 +957,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P2, P3]
         line1 = [P4, P1]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
@@ -971,7 +971,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P4]
         line1 = [P2, P3]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
@@ -983,7 +983,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P1]
         line1 = [P3, P2]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
@@ -995,7 +995,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P1]
         line1 = [P2, P3]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
@@ -1007,7 +1007,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P4]
         line1 = [P3, P2]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
@@ -1021,7 +1021,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P3]
         line1 = [P2, P4]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, [line1[0],line0[1]]))
 
@@ -1033,7 +1033,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P3, P1]
         line1 = [P4, P2]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, [line0[0],line1[1]]))
 
@@ -1045,7 +1045,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P3, P1]
         line1 = [P2, P4]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, [line0[0],line1[0]]))
 
@@ -1057,7 +1057,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P3]
         line1 = [P4, P2]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, [line1[1],line0[1]]))
 
@@ -1071,7 +1071,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P2, P4]
         line1 = [P1, P3]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, [line0[0],line1[1]]))
 
@@ -1083,7 +1083,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P2]
         line1 = [P3, P1]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, [line1[0],line0[1]]))
 
@@ -1095,7 +1095,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P2]
         line1 = [P1, P3]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, [line1[1],line0[1]]))
 
@@ -1107,7 +1107,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P2, P4]
         line1 = [P3, P1]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, [line0[0],line1[0]]))
 
@@ -1121,7 +1121,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P3]
         line1 = [P1, P4]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
@@ -1133,7 +1133,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P3, P1]
         line1 = [P4, P1]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
@@ -1145,7 +1145,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P3]
         line1 = [P4, P1]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
@@ -1157,7 +1157,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P3, P1]
         line1 = [P1, P4]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
@@ -1171,8 +1171,10 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P3]
         line1 = [P1, P3]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
+	print line0, line1, value
+	print type(line0), type(value)
         self.assertTrue(num.allclose(value, line0))
 
         # line in same direction, same left point, same right point
@@ -1183,7 +1185,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P3, P1]
         line1 = [P3, P1]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
@@ -1195,7 +1197,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P3]
         line1 = [P3, P1]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
@@ -1207,7 +1209,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P3, P1]
         line1 = [P1, P3]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
@@ -1221,7 +1223,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P2, P4]
         line1 = [P1, P4]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
@@ -1233,7 +1235,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P2]
         line1 = [P4, P1]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
@@ -1245,7 +1247,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P2, P4]
         line1 = [P4, P1]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
@@ -1257,7 +1259,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P2]
         line1 = [P1, P4]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
@@ -1271,7 +1273,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P4]
         line1 = [P1, P3]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
@@ -1283,7 +1285,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P1]
         line1 = [P3, P1]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
@@ -1295,7 +1297,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P4]
         line1 = [P3, P1]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
@@ -1307,7 +1309,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P1]
         line1 = [P1, P3]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
@@ -1321,7 +1323,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P4]
         line1 = [P2, P4]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
@@ -1333,7 +1335,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P1]
         line1 = [P4, P2]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
@@ -1345,7 +1347,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P4]
         line1 = [P4, P2]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
@@ -1357,7 +1359,7 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P1]
         line1 = [P2, P4]
         status, value = intersection(line0, line1)
-        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
@@ -1989,6 +1991,6 @@ class Test_Polygon(unittest.TestCase):
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Polygon,'test')
+    suite = unittest.makeSuite(Test_Polygon,'test_intersection_bug_20081110_TR_BL')
     runner = unittest.TextTestRunner()
     runner.run(suite)
