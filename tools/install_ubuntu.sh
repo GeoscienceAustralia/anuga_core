@@ -9,8 +9,7 @@
 
 set -e
 
-
-[ -z "$PYTHON_VERSION" ] && PYTHON_VERSION="2.7"
+PYTHON_VERSION=${PYTHON_VERSION:-"2.7"}
 
 sudo apt-get update -q
 
