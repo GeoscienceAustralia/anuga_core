@@ -36,10 +36,10 @@ deactivate || echo "deactivate failed"
 
 # Use the miniconda installer for faster download 
 # install of conda itself
-if [[ "$ANUGA_BITS" == "64"]]; then 
+if [[ "$ANUGA_BITS" == "64" ]]; then 
     wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh ;
 fi
-if [[ "$ANUGA_BITS" == "32"]]; then 
+if [[ "$ANUGA_BITS" == "32" ]]; then 
     wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86.sh -O miniconda.sh ;
 fi
 chmod +x miniconda.sh && ./miniconda.sh -b
