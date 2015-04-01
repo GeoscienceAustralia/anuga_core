@@ -11,6 +11,7 @@ set -e
 
 
 [ -z "$PYTHON_VERSION" ] && PYTHON_VERSION="2.7"
+[ -z "$ANUGA_BITS" ] && ANUGA_BITS="64"
 
 
 sudo apt-get update -q
@@ -35,8 +36,10 @@ deactivate || echo "deactivate failed"
 
 # Use the miniconda installer for faster download 
 # install of conda itself
-wget http://repo.continuum.io/miniconda/Miniconda-3.8.3-Linux-x86_64.sh \
-    -O miniconda.sh
+if [[ "$ANUGA_BITS" == "64"]]; then 
+    wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+if [[ "$ANUGA_BITS" == "32"]]; then 
+    wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86.sh -O miniconda.sh
 chmod +x miniconda.sh && ./miniconda.sh -b
 
 export PATH=$HOME/miniconda/bin:$PATH
