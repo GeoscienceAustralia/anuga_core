@@ -69,10 +69,6 @@ SeeAlso:
                 anuga/shallow_water/shallow_water_domain.py $
 
 Constraints: See GPL license in the user guide
-Version: 1.0 ($Revision$)
-ModifiedBy:
-    $Author$
-    $Date$
 """
 
 # Decorator added for profiling 
