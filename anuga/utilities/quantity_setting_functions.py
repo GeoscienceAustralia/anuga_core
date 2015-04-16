@@ -531,7 +531,7 @@ def composite_quantity_setting_function(poly_fun_pairs,
                       'nan_interpolation_region_polygon have nan values.'
                 print 'The user should ensure this does not happen.'
                 print 'The points have the following coordinates:'
-                print xy_array_trans[nan_ip,:]
+                print xy_array_trans[ip[nan_ip],:]
                 msg = "There are nan points outside of " +\
                       "nan_interpolation_region_polygon, even after all " +\
                       "fall-through's"
