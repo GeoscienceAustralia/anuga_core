@@ -191,7 +191,8 @@ class Test_quantity_setting_functions(unittest.TestCase):
         # This example uses a constant, and a raster, to set the quantity           
         F=qs.composite_quantity_setting_function(
             [[trenchPoly, -1000.], ['Extent', 'PointData_ElevTest.tif']],
-            domain)
+            domain,
+            verbose=False)
 
         # Points where we test the function
         testPts_X=numpy.array([50., 3.])
@@ -215,7 +216,8 @@ class Test_quantity_setting_functions(unittest.TestCase):
         F=qs.composite_quantity_setting_function(
             [[trenchPoly, -1000.], ['Extent', 'PointData_ElevTest.tif']],
             domain,
-            clip_range = [[-500., 1.0e+100], [-1.0e+100, 1.0e+100]]) 
+            clip_range = [[-500., 1.0e+100], [-1.0e+100, 1.0e+100]],
+            verbose=False) 
 
         # Points where we test the function
         testPts_X=numpy.array([50., 3.])
@@ -240,7 +242,8 @@ class Test_quantity_setting_functions(unittest.TestCase):
             return x/10.
         F = qs.composite_quantity_setting_function(
             [[trenchPoly, f0], ['Extent', 'PointData_ElevTest.tif']],
-            domain) 
+            domain,
+            verbose=False) 
         fitted = F(testPts_X,testPts_Y)
         # Now the fitted value in the trench should be determined by f0
         assert(numpy.allclose(fitted[0],50./10.))
@@ -255,7 +258,8 @@ class Test_quantity_setting_functions(unittest.TestCase):
         # This example uses 'All' as a polygon
         F = qs.composite_quantity_setting_function(
             [['All', f0 ], [None, 'PointData_ElevTest.tif']],
-            domain) 
+            domain,
+            verbose=False) 
         fitted=F(testPts_X,testPts_Y)
         # Now the fitted value in the trench should be determined by f0
         assert(numpy.allclose(fitted[0],50./10.))
@@ -266,7 +270,8 @@ class Test_quantity_setting_functions(unittest.TestCase):
         def should_fail():
             F=qs.composite_quantity_setting_function(
                 [['All', f0], ['All', 'PointData_ElevTest.tif']],
-                domain)
+                domain,
+                verbose=False)
             # Need to call it to get the error
             F(numpy.array([3.]), numpy.array([3.]))
             return
@@ -278,7 +283,8 @@ class Test_quantity_setting_functions(unittest.TestCase):
             F=qs.composite_quantity_setting_function(
                 [[trenchPoly, f0], ['All', 'PointData_ElevTest.tif']],
                 domain,
-                clip_range = [[ -500., -1000.], [-1.0e+100, 1.0e+100]]) 
+                clip_range = [[ -500., -1000.], [-1.0e+100, 1.0e+100]],
+                verbose=False) 
             return
         self.assertRaises(Exception, lambda: should_fail_1())
 

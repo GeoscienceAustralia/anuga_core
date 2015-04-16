@@ -341,6 +341,10 @@ def composite_quantity_setting_function(poly_fun_pairs,
                     # Then we get the extent from the raster itself
                     pi_path = su.getRasterExtent(fi,asPolygon=True)
 
+                    if verbose:
+                        print 'Extracting extent from raster: ', fi
+                        print 'Extent: ', pi_path
+
                 elif( (type(pi) == str) and os.path.isfile(pi) ): 
                     # pi is a file
                     pi_path = su.read_polygon(pi)
@@ -503,6 +507,16 @@ def composite_quantity_setting_function(poly_fun_pairs,
                       ' first-preference and are inside the',\
                       ' nan_interpolation_region_polygon'
 
+            if len(points_to_reinterpolate) > 0:
+                msg = 'WARNING: nan interpolation is being applied. This ',\
+                      'should be done in serial prior to distributing the ',\
+                      'domain, as there is no parallel communication ',\
+                      'implemented yet [so parallel results might depend on ',\
+                      'the number of processes]'
+                if verbose:
+                    print msg
+                    
+
             # Find the interpolation points = points not needing reinterpolation
             ip = x*0 + 1
             ip[points_to_reinterpolate] = 0
@@ -513,11 +527,14 @@ def composite_quantity_setting_function(poly_fun_pairs,
             nan_ip = (quantityVal[ip] != quantityVal[ip]).nonzero()[0]
 
             if len(nan_ip) > 0:
-                print len(nan_ip), ' points outside the nan_interpolation_region_polygon have nan values'
-                print 'This should not happen'
+                print 'There are ', len(nan_ip), ' points outside the ',\
+                      'nan_interpolation_region_polygon have nan values.'
+                print 'The user should ensure this does not happen.'
                 print 'The points have the following coordinates:'
-                print xy_array_trans[ip,:]
-                msg = "There are nan points outside of nan_interpolation_region_polygon, even after all fall-through's"
+                print xy_array_trans[nan_ip,:]
+                msg = "There are nan points outside of " +\
+                      "nan_interpolation_region_polygon, even after all " +\
+                      "fall-through's"
                 raise Exception(msg)
          
             if(number_of_ip < default_k_nearest_neighbours):
