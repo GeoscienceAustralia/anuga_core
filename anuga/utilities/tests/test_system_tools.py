@@ -462,13 +462,23 @@ class Test_system_tools(unittest.TestCase):
         
         Test that a revision number is returned.
         This should work both from a sandpit with access to Subversion
-        and also in distributions where revision number has been stored
-        explicitly in version.py
+        and also in distributions where revision number is returned as 0
         """
 
         x = get_revision_number()
         
         assert int(x) >= 0
+        
+    def test_get_revision_date(self):
+        """test_get_revision_date
+        
+        Test that a revision number is returned.
+        This should work both from a sandpit with access to Subversion
+        and also in distributions where revision date is returned as 0
+        """
+
+        x = get_revision_date()
+        
 
 ################################################################################
 

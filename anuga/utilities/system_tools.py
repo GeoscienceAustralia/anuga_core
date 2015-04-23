@@ -199,6 +199,16 @@ def get_revision_number():
         return process_revision_info(revision_info)
     except:
         return 0
+
+def get_revision_date():
+    """Get the (svn) revision date of this repository copy.
+    If svn not available just return 0
+    """
+    try:
+        from  anuga.revision import revision_info
+        return process_revision_date(revision_info)
+    except:
+        return 0    
     
     
 def process_revision_info(revision_info):
@@ -221,6 +231,22 @@ def process_revision_info(revision_info):
         raise Exception, msg
 
     return revision_number
+
+def process_revision_date(revision_info):
+
+    # split revision number from data
+    for line in revision_info.split('\n'):
+        if line.startswith('Last Changed Date:'):
+            break
+
+    fields = line.split(':')
+    msg = 'Keyword "Last Changed Date" was not found anywhere in text: %s' % revision_info
+    assert fields[0].startswith('Last Changed Date'), msg
+
+    revision_date = ''.join(fields[1:])
+
+
+    return revision_date
 
 def store_revision_info(destination_path='.', verbose=False):
     """Obtain current revision from Subversion and store it.

@@ -22,7 +22,7 @@
 
 __version__ = '1.3.10'
 
-__svn_revision__ = filter(str.isdigit, "$Revision: 9719 $")
+__svn_revision__ = filter(str.isdigit, "$Revision: 9720 $")
 
 
 
@@ -299,8 +299,10 @@ else:
     # User Access Functions
     #---------------------------
 
-    from anuga.utilities.system_tools import get_user_name, get_host_name, \
-        get_revision_number
+    from anuga.utilities.system_tools import get_user_name
+    from anuga.utilities.system_tools import get_host_name
+    from anuga.utilities.system_tools import get_revision_number
+    from anuga.utilities.system_tools import get_revision_date
     from anuga.utilities.mem_time_equation import estimate_time_mem
 
 
