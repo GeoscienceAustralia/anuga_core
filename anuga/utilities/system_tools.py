@@ -187,7 +187,13 @@ def __get_revision_from_svn_client__():
     return revision_number
 
     
-    
+def get_version():
+    """Get anuga version number as stored in anuga.__version__
+    """
+
+    import anuga
+    return anuga.__version__
+
     
     
 def get_revision_number():

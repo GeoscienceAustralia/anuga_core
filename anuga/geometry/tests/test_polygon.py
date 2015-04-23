@@ -1173,8 +1173,8 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-	print line0, line1, value
-	print type(line0), type(value)
+        #print line0, line1, value
+        #print type(line0), type(value)
         self.assertTrue(num.allclose(value, line0))
 
         # line in same direction, same left point, same right point
@@ -1991,6 +1991,6 @@ class Test_Polygon(unittest.TestCase):
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Polygon,'test_intersection_bug_20081110_TR_BL')
+    suite = unittest.makeSuite(Test_Polygon,'test') #_intersection_bug_20081110_TR_BL')
     runner = unittest.TextTestRunner()
     runner.run(suite)
