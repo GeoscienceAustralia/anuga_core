@@ -204,7 +204,9 @@ def get_revision_number():
         from  anuga.revision import revision_info
         return process_revision_info(revision_info)
     except:
-        return 0
+	from anuga import __svn_revision__ as revision
+        return revision
+
 
 def get_revision_date():
     """Get the (svn) revision date of this repository copy.
@@ -214,7 +216,8 @@ def get_revision_date():
         from  anuga.revision import revision_info
         return process_revision_date(revision_info)
     except:
-        return 0    
+	from anuga import __svn_revision_date__ as revision_date
+        return revision_date    
     
     
 def process_revision_info(revision_info):

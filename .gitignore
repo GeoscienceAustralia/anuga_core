@@ -25,6 +25,13 @@
 *.asc
 *.qgs
 tags
+parameters.tex
+ch5.png
+ch7.png
+ch9.png
+Boundary.png
+Benchmark_2_Bathymetry.xya
+Benchmark_2_input.tms
 
 # Compiled source #
 ###################
