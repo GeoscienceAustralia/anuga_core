@@ -20,11 +20,11 @@
 # Make selected classes available directly
 #-----------------------------------------------------
 
-__version__ = '1.3.10'
+__version__ = '1.3.11'
 
-__svn_revision__ = filter(str.isdigit, "$Revision: 9723 $")
+__svn_revision__ = filter(str.isdigit, "$Revision: 9726 $")
 
-__svn_revision_date__ = "$Date: 2015-04-23 20:40:40 +1000 (Thu, 23 Apr 2015) $"[7:-1]
+__svn_revision_date__ = "$Date: 2015-04-27 13:36:20 +1000 (Mon, 27 Apr 2015) $"[7:-1]
 
 
 # We first need to detect if we're being called as part of the anuga setup
