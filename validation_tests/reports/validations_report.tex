@@ -107,8 +107,11 @@ They can be found in \\
 
 The report is organised as follows. We collect a number of tests against
 analytical exact solutions in Chapter~\ref{ch:ana}. Tests against other
-reference data or solutions are given in Chapter~\ref{ch:ref}.
-We provide explanations on how to add new tests in the Appendix.
+reference data or solutions are given in Chapter~\ref{ch:ref}. Tests against
+realistic case studies are given in Chapter~\ref{ch:casestudy}, but at present
+these are not included in this document because they take too much time to run,
+although the code is provided the source. We provide explanations on how to add
+new tests in the Appendix.
 
 %======================
 \chapter{Tests against analytical exact solutions} \label{ch:ana}
@@ -150,12 +153,19 @@ We provide explanations on how to add new tests in the Appendix.
 \inputresults{../behaviour_only/lid_driven_cavity}
 \inputresults{../behaviour_only/weir_1}
 \inputresults{../behaviour_only/bridge_hecras}
+\inputresults{../behaviour_only/bridge_hecras2}
 \inputresults{../behaviour_only/lateral_weir_hecras}
 \inputresults{../behaviour_only/tides_hecras}
 
 \inputresults{../other_references/radial_dam_break_dry}
 \inputresults{../other_references/radial_dam_break_wet}
 
+%%======================
+\chapter{Realistic large-scale cases} \label{ch:casestudy}
+%%======================
+Code for a number of realistic applications is in the case\_studies directory,
+however they are not included here by default, because they take a long time to
+run.
 
 %======================
 \appendix
