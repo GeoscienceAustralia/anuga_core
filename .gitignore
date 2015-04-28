@@ -24,7 +24,15 @@
 *.dem
 *.asc
 *.qgs
+*.aux
+*.bbl
+*.blg
+*.out
+*.toc
 tags
+
+# validation temp files #
+#########################
 parameters.tex
 ch5.png
 ch7.png
@@ -32,6 +40,41 @@ ch9.png
 Boundary.png
 Benchmark_2_Bathymetry.xya
 Benchmark_2_input.tms
+report.pdf
+LEFT_REACH.png
+MIDDLE_REACH.png
+RIGHT_REACH.png
+riverwall_points
+vel_t1_centroid.png
+vel_t1_vertex.png
+vel_t2_centroid.png
+vel_t2_vertex.png
+xvelocity_at_y05.png
+rmom_plot.png
+rvel_plot.png
+stage_plot.png
+saved_parameters.tex
+CENTRAL_CHANNEL.png
+xmom*.png
+xvel*.png
+ymom*.png
+Xmom*.png
+Xvel*.png
+x_velocity.png
+y_velocity.png
+depth_y.png
+depth_x.png
+Shoreline_position.png
+Shoreline_velocity.png
+figure_*.png
+cross_section_*.png
+stage*.png
+Stage*.png
+force.png
+Fluxes.png
+fig*.png
+perturbation_at_origin.png
+wave_atten.png
 
 # Compiled source #
 ###################

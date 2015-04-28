@@ -233,6 +233,6 @@ for t in domain.evolve(yieldstep=10.0, finaltime=dtQdata*(len(Qdata)-2)):
     if(myid==0 & verbose):
         print domain.timestepping_statistics()
 
-doamin.sww_merge(delete_old=True)
+domain.sww_merge(delete_old=True)
 
 finalize()

@@ -88,17 +88,11 @@ Bd = anuga.Dirichlet_boundary([1,0.,0.]) # Constant boundary values
 # Associate boundary tags with boundary objects
 domain.set_boundary({'left': Bt, 'right': Bt, 'top': Br, 'bottom': Br})
 
-#------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 # Produce a documentation of parameters
-#------------------------------------------------------------------------------
-if myid == 0:
-    parameter_file=open('parameters.tex', 'w')
-    parameter_file.write('\\begin{verbatim}\n')
-    from pprint import pprint
-    pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
-    parameter_file.write('\\end{verbatim}\n')
-    parameter_file.close()
-
+#-------------------------------------------------------------------------
+from anuga.validation_utilities import save_parameters_tex
+save_parameters_tex(domain)
 
 #===================================================================================
 # Evolve system through time
