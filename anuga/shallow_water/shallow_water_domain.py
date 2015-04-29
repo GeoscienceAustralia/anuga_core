@@ -217,6 +217,17 @@ class Domain(Generic_Domain):
                             number_of_full_triangles=number_of_full_triangles,
                             ghost_layer_width=ghost_layer_width)
 
+        #-------------------------------
+        # Operator Data Structures
+        #-------------------------------
+        self.fractional_step_operators = []
+        self.kv_operator = None
+
+
+
+        #-------------------------------
+        # Set flow defaults
+        #-------------------------------
         self._set_defaults()
 
 
@@ -227,14 +238,6 @@ class Domain(Generic_Domain):
         # compute_fluxes routine
         #-------------------------------
         self.forcing_terms.append(manning_friction_implicit)
-
-
-        #-------------------------------
-        # Operators
-        #-------------------------------
-        self.fractional_step_operators = []
-        self.kv_operator = None
-
         
 
         #-------------------------------
@@ -368,10 +371,9 @@ class Domain(Generic_Domain):
 
         self.set_sloped_mannings_function(sloped_mannings_function)
         self.set_compute_fluxes_method(compute_fluxes_method)
-        self.set_flow_algorithm(flow_algorithm)
 
         self.set_distribute_to_vertices_and_edges_method(distribute_to_vertices_and_edges_method)
-
+        self.set_flow_algorithm(flow_algorithm)
 
     def get_algorithm_parameters(self):
         """
@@ -1738,6 +1740,7 @@ class Domain(Generic_Domain):
         """ Call correct module function """
 
 
+
         if self.compute_fluxes_method == 'tsunami':
 
 
@@ -1841,7 +1844,7 @@ class Domain(Generic_Domain):
 
         # Compute edge values by interpolation
         for name in self.conserved_quantities:
-            Q = domain.quantities[name]
+            Q = self.quantities[name]
             Q.interpolate_from_vertices_to_edges()
 
     def distribute_using_vertex_limiter(self):

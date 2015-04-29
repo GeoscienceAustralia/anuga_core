@@ -1937,6 +1937,7 @@ class Test_Forcing(unittest.TestCase):
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
         domain = Domain(points, vertices)
+        domain.set_flow_algorithm('1_5')
 
         B = Reflective_boundary(domain)
         domain.set_boundary( {'exterior': B})
