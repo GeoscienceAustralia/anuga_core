@@ -943,7 +943,7 @@ class Domain(Generic_Domain):
 
         return self.using_discontinuous_elevation
 
-    def set_flow_algorithm(self, flag=1.5):
+    def set_flow_algorithm(self, flag='DE0'):
         """Set combination of slope limiting and time stepping
 
         Currently
