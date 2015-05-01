@@ -6,7 +6,7 @@
 __author__="stephen"
 __date__ ="$20/08/2012 11:20:00 PM$"
 
-alg = 'DE0'
+alg = 'DE1'
 cfl = 1.0
 
 # If a file local_parameters.py exits in current directory

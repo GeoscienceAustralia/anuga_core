@@ -48,26 +48,28 @@ and time boundaries.
 
 The results in this report were produced by \anuga{} version \majorR{} from svn
 repository revision \minorR{} at time \timeR.
-The flow algorithm was \alg{}, unless otherwise stated explicitly. Based on this version, 
-26 tests are available in the subversion. To get an automated report, 
-we can run either an individual run of the available tests or the complete (whole) test.
+The flow algorithm used was \alg{}, unless otherwise stated explicitly. 
+
+To get an automated report, 
+we can run either run individual tests or the complete (whole) test.
 
 To do an individual test, we can run the python module \\
 \verb produce_results.py \\
 available in the corresponding test directory. The module will do the 
 numerical simulation of the given problem, plot the simulation 
-results in png files, and type-set the corresponding 
+results in png files, and typeset the corresponding 
 individual automated report. The individual automated report is in 
-pdf file and saved in the same directory.
+the pdf file \verb report.pdf  saved in the same directory.
 
 To do the complete test, we can just run the python module \\
-\verb all_tests_produce_results.py \\
+\verb validations_produce_results.py \\
 available in the directory \\
 \verb validation_tests/reports \\
 Similar to the module for an individual test, this python module 
 will do the numerical simulations of all the given problems, 
 plot results in png files and save them in its corresponding directory, 
-and finally type-set the complete report. The complete automated report is saved in this directory.
+and finally type-set the complete report. The complete automated report is saved in the
+\verb validation_tests/reports   directory.
 
 The simulation results can be analysed qualitatively and quantitatively. 
 Qualitative analysis can be done by investigating the plots of 

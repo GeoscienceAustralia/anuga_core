@@ -228,9 +228,9 @@ class Domain(Generic_Domain):
         #-------------------------------
         # Set flow defaults
         #-------------------------------
-        self._set_defaults()
-
-
+        self.set_flow_algorithm()
+        
+        
         #-------------------------------
         # Forcing Terms
         #
@@ -244,7 +244,7 @@ class Domain(Generic_Domain):
         # Stored output
         #-------------------------------
         self.set_store(True)
-        self.set_store_centroids(False)
+        self.set_store_centroids(True)
         self.set_store_vertices_uniquely(False)
         self.quantities_to_be_stored = {'elevation': 1, 
                                         'friction':1,
@@ -326,7 +326,7 @@ class Domain(Generic_Domain):
         # extrapolation/flux updating is used) 
         self.allow_timestep_increase=num.zeros(1).astype(int)+1
 
-    def _set_defaults(self):
+    def _set_config_defaults(self):
         """Set the default values in this routine. That way we can inherit class
         and just redefine the defaults for the new class
         """
@@ -344,8 +344,7 @@ class Domain(Generic_Domain):
         from anuga.config import compute_fluxes_method
         from anuga.config import distribute_to_vertices_and_edges_method
         from anuga.config import sloped_mannings_function
-        from anuga.config import flow_algorithm
-        
+       
 
         # Early algorithms need elevation to remain continuous
         self.set_using_discontinuous_elevation(False)
@@ -373,7 +372,9 @@ class Domain(Generic_Domain):
         self.set_compute_fluxes_method(compute_fluxes_method)
 
         self.set_distribute_to_vertices_and_edges_method(distribute_to_vertices_and_edges_method)
-        self.set_flow_algorithm(flow_algorithm)
+        
+        self.set_store_centroids(False)
+
 
     def get_algorithm_parameters(self):
         """
@@ -401,6 +402,8 @@ class Domain(Generic_Domain):
 
         parameters['optimised_gradient_limiter']        = self.optimised_gradient_limiter
         parameters['extrapolate_velocity_second_order'] = self.extrapolate_velocity_second_order
+
+        
         
         return parameters
 
@@ -422,6 +425,8 @@ class Domain(Generic_Domain):
         """Set up the defaults for running the flow_algorithm "tsunami"
         """
 
+        self._set_config_defaults()
+        
         self.set_CFL(1.0)
         #self.set_use_kinematic_viscosity(False)
 
@@ -508,69 +513,53 @@ class Domain(Generic_Domain):
             print '#'
             print '##########################################################################'
 
-    def _set_DE1_defaults(self):
-        """Set up the defaults for running the flow_algorithm "DE1"
-           A 'discontinuous elevation' method
-        """
-        self.set_CFL(1.0)
-        self.set_use_kinematic_viscosity(False)
-        #self.timestepping_method='rk2'#'rk3'#'euler'#'rk2' 
-        self.set_timestepping_method(2)
-        
-        self.set_using_discontinuous_elevation(True)
-        self.set_compute_fluxes_method('DE')
-        self.set_distribute_to_vertices_and_edges_method('DE')
-        
-        # Don't place any restriction on the minimum storable height
-        self.minimum_storable_height=-99999999999.0 
-        self.minimum_allowed_height=1.0e-5
+    def _set_1_5_defaults(self):
+        """Set up the defaults for running the flow_algorithm "1_5"
+           so that users can revert back to old default algorithm
+        """        
 
-        self.use_edge_limiter=True
+        self._set_config_defaults()
+        
+        self.set_timestepping_method(1)
         self.set_default_order(2)
+        beta_w      = 1.0
+        beta_w_dry  = 0.2
+        beta_uh     = 1.0
+        beta_uh_dry = 0.2
+        beta_vh     = 1.0
+        beta_vh_dry = 0.2
+        self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
+        self.set_CFL(1.0)
+        self.set_compute_fluxes_method('wb_2')
         self.set_extrapolate_velocity()
 
-        self.beta_w=1.0
-        self.beta_w_dry=0.0
-        self.beta_uh=1.0
-        self.beta_uh_dry=0.0
-        self.beta_vh=1.0
-        self.beta_vh_dry=0.0
+    def _set_2_0_defaults(self):
+        """Set up the defaults for running the flow_algorithm "2_0"
+           so that users can revert back to old default algorithm
+        """  
+              
+        self._set_config_defaults()        
         
-
-        #self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
-        #         'ymomentum': 2, 'elevation': 2, 'height':2})
-        #self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
-        #         'ymomentum': 2, 'elevation': 1})
-        self.set_store_centroids(True)
-
-        self.optimise_dry_cells=False 
-
-        # We need the edge_coordinates for the extrapolation
-        self.edge_coordinates=self.get_edge_midpoint_coordinates()
-
-        # By default vertex values are NOT stored uniquely
-        # for storage efficiency. We may override this (but not so important since
-        # centroids are stored anyway
-        # self.set_store_vertices_smoothly(False)
-
-        self.maximum_allowed_speed=0.0
-
-
-        if self.processor == 0 and self.verbose:
-            print '##########################################################################'
-            print '#'
-            print '# Using discontinuous elevation solver DE1 '
-            print '#'
-            print '# Mostly designed for rk2 timestepping'
-            print '#'
-            print '# Make sure you use centroid values when reporting on important output quantities'
-            print '#'
-            print '##########################################################################'
+        self.set_timestepping_method(2)
+        self.set_default_order(2)
+        beta_w      = 1.9
+        beta_w_dry  = 0.2
+        beta_uh     = 1.9
+        beta_uh_dry = 0.2
+        beta_vh     = 1.9
+        beta_vh_dry = 0.2
+        self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
+        self.set_CFL(1.0)
+        self.set_compute_fluxes_method('wb_2')
+        self.set_extrapolate_velocity()
 
     def _set_DE0_defaults(self):
         """Set up the defaults for running the flow_algorithm "DE0"
            A 'discontinuous elevation' method
         """
+
+        self._set_config_defaults()        
+        
         self.set_CFL(0.9)
         self.set_use_kinematic_viscosity(False)
         #self.timestepping_method='rk2'#'rk3'#'euler'#'rk2' 
@@ -626,10 +615,75 @@ class Domain(Generic_Domain):
             print '##########################################################################'
 
 
+    def _set_DE1_defaults(self):
+        """Set up the defaults for running the flow_algorithm "DE1"
+           A 'discontinuous elevation' method
+        """
+        
+        self._set_config_defaults()
+        
+        self.set_CFL(1.0)
+        self.set_use_kinematic_viscosity(False)
+        #self.timestepping_method='rk2'#'rk3'#'euler'#'rk2' 
+        self.set_timestepping_method(2)
+        
+        self.set_using_discontinuous_elevation(True)
+        self.set_compute_fluxes_method('DE')
+        self.set_distribute_to_vertices_and_edges_method('DE')
+        
+        # Don't place any restriction on the minimum storable height
+        self.minimum_storable_height=-99999999999.0 
+        self.minimum_allowed_height=1.0e-5
+
+        self.use_edge_limiter=True
+        self.set_default_order(2)
+        self.set_extrapolate_velocity()
+
+        self.beta_w=1.0
+        self.beta_w_dry=0.0
+        self.beta_uh=1.0
+        self.beta_uh_dry=0.0
+        self.beta_vh=1.0
+        self.beta_vh_dry=0.0
+        
+
+        #self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
+        #         'ymomentum': 2, 'elevation': 2, 'height':2})
+        #self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
+        #         'ymomentum': 2, 'elevation': 1})
+        self.set_store_centroids(True)
+
+        self.optimise_dry_cells=False 
+
+        # We need the edge_coordinates for the extrapolation
+        self.edge_coordinates=self.get_edge_midpoint_coordinates()
+
+        # By default vertex values are NOT stored uniquely
+        # for storage efficiency. We may override this (but not so important since
+        # centroids are stored anyway
+        # self.set_store_vertices_smoothly(False)
+
+        self.maximum_allowed_speed=0.0
+
+
+        if self.processor == 0 and self.verbose:
+            print '##########################################################################'
+            print '#'
+            print '# Using discontinuous elevation solver DE1 '
+            print '#'
+            print '# Mostly designed for rk2 timestepping'
+            print '#'
+            print '# Make sure you use centroid values when reporting on important output quantities'
+            print '#'
+            print '##########################################################################'
+
     def _set_DE2_defaults(self):
         """Set up the defaults for running the flow_algorithm "DE2"
            A 'discontinuous elevation' method
         """
+        
+        self._set_config_defaults()
+        
         self.set_CFL(1.0)
         self.set_use_kinematic_viscosity(False)
         #self.timestepping_method='rk2'#'rk3'#'euler'#'rk2' 
@@ -689,6 +743,8 @@ class Domain(Generic_Domain):
         """Set up the defaults for running the flow_algorithm "DE3"
            A 'discontinuous elevation' method
         """
+        
+        self._set_config_defaults()
         
         self.set_CFL(0.9)
         self.set_use_kinematic_viscosity(False)
@@ -977,27 +1033,20 @@ class Domain(Generic_Domain):
 
 
         if self.flow_algorithm == '1_0':
+            
+            self._set_config_defaults()
+            
             self.set_timestepping_method(1)
             self.set_default_order(1)
             self.set_CFL(1.0)
 
         if self.flow_algorithm == '1_5':
-            self.set_timestepping_method(1)
-            self.set_default_order(2)
-            beta_w      = 1.0
-            beta_w_dry  = 0.2
-            beta_uh     = 1.0
-            beta_uh_dry = 0.2
-            beta_vh     = 1.0
-            beta_vh_dry = 0.2
-            self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
-            self.set_CFL(1.0)
-            self.set_compute_fluxes_method('wb_2')
-            self.set_extrapolate_velocity()
-
-
+            self._set_1_5_defaults()
 
         if self.flow_algorithm == '1_75':
+            
+            self._set_config_defaults()
+            
             self.set_timestepping_method(1)
             self.set_default_order(2)
             beta_w      = 1.5
@@ -1013,6 +1062,8 @@ class Domain(Generic_Domain):
 
 
         if self.flow_algorithm == '2_0_limited':
+            self._set_config_defaults()
+            
             self.set_timestepping_method(2)
             self.set_default_order(2)
             beta_w      = 1.5
@@ -1030,18 +1081,7 @@ class Domain(Generic_Domain):
 
 
         if self.flow_algorithm == '2_0':
-            self.set_timestepping_method(2)
-            self.set_default_order(2)
-            beta_w      = 1.9
-            beta_w_dry  = 0.2
-            beta_uh     = 1.9
-            beta_uh_dry = 0.2
-            beta_vh     = 1.9
-            beta_vh_dry = 0.2
-            self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
-            self.set_CFL(1.0)
-            self.set_compute_fluxes_method('wb_2')
-            self.set_extrapolate_velocity()
+            self._set_2_0_defaults()
 
 
         if self.flow_algorithm == 'tsunami':
@@ -1055,9 +1095,10 @@ class Domain(Generic_Domain):
             self._set_tsunami_defaults()
 
 
-            
-
         if self.flow_algorithm == '2_5':
+            
+            self._set_config_defaults()
+            
             self.set_timestepping_method(3)
             self.set_default_order(2)
             beta_w      = 1.9

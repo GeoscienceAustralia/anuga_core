@@ -4805,19 +4805,22 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
         
-        W_EX =  [ 0.001     ,  0.05350388,  0.001     ,  0.05352525]
-        UH_EX = [ 0.00044246,  0.03684648,  0.0008209 ,  0.03686007]
-        VH_EX = [-0.00142112,  0.00061559, -0.00062362,  0.00061896]
+        #W_0 =  [ 0.001     ,  0.05350388,  0.001     ,  0.05352525]
+        #UH_0 = [ 0.00044246,  0.03684648,  0.0008209 ,  0.03686007]
+        #VH_0 = [-0.00142112,  0.00061559, -0.00062362,  0.00061896]
+        
+        W_0 =  [ 0.001     ,  0.05350737,  0.00106727,  0.0535293 ]
+        UH_0 = [ 0.00090262,  0.03684904,  0.00090267,  0.03686323]
+        VH_0 = [ -1.97310289e-04,   6.10268320e-04,  -6.59631326e-05, 6.14082609e-04]
 
 
 
-        assert num.allclose(domain.quantities['stage'].vertex_values[:4,0], W_EX)
-                            #[0.001, 0.05350407, 0.00106768, 0.05352525])
-        assert num.allclose(domain.quantities['xmomentum'].vertex_values[:4,0], UH_EX)
-                            #[0.0008628, 0.03684647, 0.00087764, 0.03686007])
+        assert num.allclose(domain.quantities['stage'].vertex_values[:4,0], W_0)
 
-        assert num.allclose(domain.quantities['ymomentum'].vertex_values[:4,0], VH_EX)
-                            #[-0.00142114, 0.00061557, -0.00062362, 0.00061896])
+        assert num.allclose(domain.quantities['xmomentum'].vertex_values[:4,0], UH_0)
+
+        assert num.allclose(domain.quantities['ymomentum'].vertex_values[:4,0], VH_0)
+
 
         os.remove(domain.get_name() + '.sww')
 
@@ -4862,11 +4865,11 @@ class Test_Shallow_Water(unittest.TestCase):
         #pprint(domain.quantities['xmomentum'].vertex_values[:4,0])
         #pprint(domain.quantities['ymomentum'].vertex_values[:4,0])
 
-        #UH_EX = [ 0.00090262,  0.03684904,  0.00090267,  0.03686323]
-        #VH_EX = [ -1.97310289e-04,   6.10268320e-04,  -6.59631326e-05,   6.14082609e-04]
+        UH_EX = [ 0.00090262,  0.03684904,  0.00090267,  0.03686323]
+        VH_EX = [ -1.97310289e-04,   6.10268320e-04,  -6.59631326e-05,   6.14082609e-04]
 
-        UH_EX = [ 0.00044246,  0.03684648,  0.0008209 ,  0.03686007]
-        VH_EX = [-0.00142112,  0.00061559, -0.00062362,  0.00061896]
+        #UH_EX = [ 0.00044246,  0.03684648,  0.0008209 ,  0.03686007]
+        #VH_EX = [-0.00142112,  0.00061559, -0.00062362,  0.00061896]
 
         assert num.allclose(domain.quantities['xmomentum'].vertex_values[:4,0], UH_EX)
         assert num.allclose(domain.quantities['ymomentum'].vertex_values[:4,0], VH_EX)
@@ -5004,8 +5007,6 @@ class Test_Shallow_Water(unittest.TestCase):
             #pprint(domain.quantities['xmomentum'].vertex_values[:4,0])
             #pprint(domain.quantities['ymomentum'].vertex_values[:4,0])
             
-            UH_EX = [ 0.00090262,  0.03684904,  0.00084577,  0.03686323]
-            VH_EX = [ -1.97310289e-04,   6.10268320e-04,  -6.18053986e-05, 6.14082609e-04]
             
             assert num.allclose(domain.quantities['xmomentum'].vertex_values[:4,0],
                     UH_EX)
@@ -7487,7 +7488,7 @@ friction  \n \
             ref_volume += ys * outflow            
 
 
-    def test_variable_elevation(self):            
+    def test_variable_elevation_de0(self):            
         """test_variable_elevation
 
         This will test that elevagtion van be stored in sww files
@@ -7520,6 +7521,7 @@ friction  \n \
         domain.set_quantities_to_be_stored({'elevation': 2,
                                             'stage': 2})
 
+        #pprint(domain.get_algorithm_parameters())
         #---------------------------------------------------------------------
         # Setup initial conditions
         #---------------------------------------------------------------------
@@ -7540,12 +7542,107 @@ friction  \n \
             
         domain.set_quantity('elevation', 0.0)    # Flat bed initially
         domain.set_quantity('friction', 0.01)    # Constant friction
-        domain.set_quantity('stage', 0.0)        # Dry initial condition
+        domain.set_quantity('stage', 10.0)        # Dry initial condition
 
         #------------------------------------------------------------------
         # Setup boundary conditions
         #------------------------------------------------------------------
-        Bi = Dirichlet_boundary([0.4, 0, 0])          # Inflow
+        Bi = Dirichlet_boundary([10.0, 0, 0])          # Inflow
+        Br = Reflective_boundary(domain)              # Solid reflective wall
+        Bo = Dirichlet_boundary([-5, 0, 0])           # Outflow
+
+        domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
+
+        #-------------------------------------------------------------------
+        # Evolve system through time
+        #-------------------------------------------------------------------
+
+        for t in domain.evolve(yieldstep=1, finaltime=3.0):
+            #print domain.timestepping_statistics()
+
+            domain.add_quantity('elevation', pole_increment, location='centroids')
+        
+            
+        # Check that quantities have been stored correctly    
+        sww_file = domain.get_name() + '.sww'
+        fid = NetCDFFile(sww_file)
+
+        stage = fid.variables['stage_c'][:]
+        elevation = fid.variables['elevation_c'][:]
+        fid.close()
+
+        os.remove(sww_file)
+        
+                   
+        assert len(stage.shape) == 2
+        assert len(elevation.shape) == 2        
+        
+        M, N = stage.shape
+                
+        for i in range(M): 
+            # For each timestep
+            assert num.allclose(max(elevation[i,:]), i * inc) 
+
+    def test_variable_elevation_1_5(self):            
+        """test_variable_elevation
+
+        This will test that elevagtion van be stored in sww files
+        as a time dependent quantity.
+        
+        It will also chck that storage of other quantities 
+        can be controlled this way.
+        """
+
+        #---------------------------------------------------------------------
+        # Import necessary modules
+        #---------------------------------------------------------------------
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+
+        #---------------------------------------------------------------------
+        # Setup computational domain
+        #---------------------------------------------------------------------
+        length = 8.
+        width = 6.
+        dx = dy = 1    # Resolution: Length of subdivisions on both axes
+        
+        inc = 0.05 # Elevation increment
+
+        points, vertices, boundary = rectangular_cross(int(length/dx), 
+                                                       int(width/dy),
+                                                       len1=length, 
+                                                       len2=width)
+        domain = Domain(points, vertices, boundary)
+        domain.set_flow_algorithm('1_5')
+        domain.set_name('channel_variable_test')  # Output name
+        domain.set_quantities_to_be_stored({'elevation': 2,
+                                            'stage': 2})
+
+        #---------------------------------------------------------------------
+        # Setup initial conditions
+        #---------------------------------------------------------------------
+
+        def pole_increment(x,y):
+            """This provides a small increment to a pole located mid stream
+            For use with variable elevation data
+            """
+            
+            z = 0.0*x
+
+            N = len(x)
+            for i in range(N):
+                # Pole
+                if (x[i] - 4)**2 + (y[i] - 2)**2 < 1.0**2:
+                    z[i] += inc
+            return z
+            
+        domain.set_quantity('elevation', 0.0)    # Flat bed initially
+        domain.set_quantity('friction', 0.01)    # Constant friction
+        domain.set_quantity('stage', 10.0)        # Dry initial condition
+
+        #------------------------------------------------------------------
+        # Setup boundary conditions
+        #------------------------------------------------------------------
+        Bi = Dirichlet_boundary([10.0, 0, 0])          # Inflow
         Br = Reflective_boundary(domain)              # Solid reflective wall
         Bo = Dirichlet_boundary([-5, 0, 0])           # Outflow
 
@@ -7581,8 +7678,9 @@ friction  \n \
                 
         for i in range(M): 
             # For each timestep
-            assert num.allclose(max(elevation[i,:]), i * inc) 
-        
+            assert num.allclose(max(elevation[i,:]), i * inc)  
+            
+                  
     def test_inflow_using_flowline(self):
         """test_inflow_using_flowline
 
@@ -8422,6 +8520,6 @@ friction  \n \
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_extrapolate_second_order_sw')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test_temp_play')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test_flatbed_second_order')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
