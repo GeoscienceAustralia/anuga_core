@@ -20,7 +20,7 @@
 # Make selected classes available directly
 #-----------------------------------------------------
 
-__version__ = '1.3.11'
+__version__ = '2.0'
 
 __svn_revision__ = filter(str.isdigit, "$Revision: 9726 $")
 
