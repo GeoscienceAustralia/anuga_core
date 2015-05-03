@@ -87,7 +87,7 @@ if(myid==0):
                                    interior_regions = [ ],
                                    breaklines=breakLines.values(),
                                    regionPtArea=regionPtAreas,
-                                   verbose=True)
+                                   verbose=verbose)
     domain=anuga.create_domain_from_file('channel_floodplain1.msh')
     domain.set_name('channel_floodplain1') # Output name
     domain.set_flow_algorithm(alg)

@@ -21,10 +21,10 @@ verbose = args.verbose
 # Get the current svn revision
 #---------------------------------
 timestamp = time.asctime()
-major_revision = anuga.__version__
+major_revision = anuga.get_version()
 try:
     # This fails if using git for version control
-    minor_revision = anuga.utilities.system_tools.get_revision_number()
+    minor_revision = anuga.get_revision_number()
 except:
     try:
         # This works when using git on unix
@@ -144,10 +144,10 @@ print 72*'='
 os.chdir('reports')
 
 
-os.system('python all_tests_typeset_report.py')
+os.system('python validations_typeset_report.py')
 
 import subprocess
-cmd = 'mv all_tests_report.pdf all_tests_report_cfl_%s_alg_%s.pdf' % (str(cfl), str(alg))
+cmd = 'mv validations_report.pdf validations_report_alg_%s.pdf' % (str(alg))
 print cmd
 subprocess.call([cmd], shell=True)
 

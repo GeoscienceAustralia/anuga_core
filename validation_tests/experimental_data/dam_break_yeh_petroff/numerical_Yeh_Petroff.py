@@ -13,7 +13,7 @@ from anuga import Domain as Domain
 from math import cos
 from numpy import zeros, float
 from time import localtime, strftime, gmtime
-#from balanced_dev import *
+
 from anuga.geometry.polygon import inside_polygon, is_inside_triangle
 
 from anuga import distribute, myid, numprocs, finalize, barrier
@@ -26,6 +26,8 @@ args = anuga.get_args()
 alg = args.alg
 verbose = args.verbose
 
+output_file = 'dam_break'
+output_dir = '.'
 
 time = strftime('%Y%m%d_%H%M%S',localtime())
 

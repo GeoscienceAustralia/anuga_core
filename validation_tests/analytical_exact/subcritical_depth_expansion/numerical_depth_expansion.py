@@ -15,8 +15,8 @@ from anuga import myid, finalize, distribute
 from math import cos
 from numpy import zeros, ones, float
 from time import localtime, strftime, gmtime
-from anuga.structures.inlet_operator import Inlet_operator
-#from balanced_dev import *
+from anuga import Inlet_operator
+
 
 
 #-------------------------------------------------------------------------------
