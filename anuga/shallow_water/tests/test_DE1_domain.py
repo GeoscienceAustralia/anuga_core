@@ -58,15 +58,16 @@ class Test_DE1_domain(unittest.TestCase):
             stge=-0.2*scale_me #+0.01*(x>0.9)
             return stge
 
-        domain.set_quantity('elevation',topography)     # Use function for elevation
-        domain.get_quantity('elevation').smooth_vertex_values()
-        domain.set_quantity('friction',0.03)            # Constant friction
+        # Use function for elevation
+        domain.set_quantity('elevation',topography, location='centroids') 
+        domain.set_quantity('friction',0.03)   # Constant friction
 
+        # Constant negative initial stage
+        domain.set_quantity('stage', stagefun, location='centroids') 
 
-        domain.set_quantity('stage', stagefun)             # Constant negative initial stage
-        domain.get_quantity('stage').smooth_vertex_values()
-
-
+        #print domain.statistics()
+        #domain.print_algorithm_parameters()
+        
         #--------------------------
         # Setup boundary conditions
         #--------------------------
@@ -82,6 +83,17 @@ class Test_DE1_domain(unittest.TestCase):
         #Evolve the system through time
         #------------------------------
 
+        dd = domain.quantities['stage'].centroid_values - \
+                domain.quantities['elevation'].centroid_values
+        xx = domain.quantities['xmomentum'].centroid_values
+        yy = domain.quantities['ymomentum'].centroid_values
+        
+        #pprint(dd)
+        #pprint(xx)
+        #pprint(yy)
+
+
+                
         for t in domain.evolve(yieldstep=7.0,finaltime=7.0):
             #print domain.timestepping_statistics()
             #xx = domain.quantities['xmomentum'].centroid_values
@@ -102,7 +114,7 @@ class Test_DE1_domain(unittest.TestCase):
         dd = (dd)*(dd>1.0e-03)+1.0e-03
         vv = ( (xx/dd)**2 + (yy/dd)**2)**0.5
 
-        pprint(vv)
+        #pprint(vv)
         assert num.all(vv<2.0e-02)
 
 
