@@ -57,25 +57,24 @@ class Test_DE1_domain(unittest.TestCase):
             stge=-0.2*scale_me #+0.01*(x>0.9)
             return stge
 
-        domain.set_quantity('elevation',topography)     # Use function for elevation
+        domain.set_quantity('elevation',topography) 
         domain.get_quantity('elevation').smooth_vertex_values()
-        domain.set_quantity('friction',0.03)            # Constant friction
+        domain.set_quantity('friction',0.03) 
 
 
-        domain.set_quantity('stage', stagefun)             # Constant negative initial stage
+        domain.set_quantity('stage', stagefun) 
         domain.get_quantity('stage').smooth_vertex_values()
 
 
         #--------------------------
         # Setup boundary conditions
         #--------------------------
-        Br=anuga.Reflective_boundary(domain)                 # Solid reflective wall
-        Bd=anuga.Dirichlet_boundary([-0.1*scale_me,0.,0.])   # Constant boundary values -- not used in this example
+        Br=anuga.Reflective_boundary(domain) # Solid reflective wall
 
         #----------------------------------------------
         # Associate boundary tags with boundary objects
         #----------------------------------------------
-        domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom':Br})
+        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom':Br})
 
         #------------------------------
         #Evolve the system through time

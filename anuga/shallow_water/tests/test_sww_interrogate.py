@@ -42,8 +42,8 @@ class Test_sww_Interrogate(unittest.TestCase):
             except:
                 pass     
     
-    
-    def test_get_maximum_inundation(self):
+
+    def test_get_maximum_inundation_de0(self):
         """Test that sww information can be converted correctly to maximum
         runup elevation and location (without and with georeferencing)
 
@@ -63,6 +63,162 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         # Create shallow water domain
         domain = Domain(points, vertices, boundary)
+        domain.default_order = 2
+        domain.set_minimum_storable_height(0.01)
+
+        filename = 'runup_test_3'
+        domain.set_name(filename)
+        swwfile = domain.get_name() + '.sww'
+
+        domain.set_datadir('.')
+        domain.format = 'sww'
+        domain.smooth = True
+
+        # FIXME (Ole): Backwards compatibility
+        # Look at sww file and see what happens when
+        # domain.tight_slope_limiters = 1
+        domain.tight_slope_limiters = 0
+        domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)        
+        
+        Br = Reflective_boundary(domain)
+        Bd = Dirichlet_boundary([1.0,0,0])
+
+
+        #---------- First run without geo referencing
+        
+        domain.set_quantity('elevation', lambda x,y: -0.2*x + 14) # Slope
+        domain.set_quantity('stage', -6)
+        domain.set_boundary( {'left': Br, 'right': Bd, 'top': Br, 'bottom': Br})
+
+        for t in domain.evolve(yieldstep=1, finaltime = 50):
+            pass
+
+
+        # Check maximal runup
+        runup = get_maximum_inundation_elevation(swwfile)
+        location = get_maximum_inundation_location(swwfile)
+        #print 'Runup, location', runup, location
+        assert num.allclose(runup, 4.66666666667)
+        assert num.allclose(location[0], 46.666668) 
+               
+        # Check final runup
+        runup = get_maximum_inundation_elevation(swwfile, time_interval=[45,50])
+        location = get_maximum_inundation_location(swwfile, time_interval=[45,50])
+        #print 'Runup, location:',runup, location
+
+        assert num.allclose(runup, 3.81481488546)
+        assert num.allclose(location[0], 51.666668)
+
+        # Check runup restricted to a polygon
+        p = [[50,1], [99,1], [99,49], [50,49]]
+        runup = get_maximum_inundation_elevation(swwfile, polygon=p)
+        location = get_maximum_inundation_location(swwfile, polygon=p)
+        #print runup, location
+
+        assert num.allclose(runup, 3.81481488546) 
+        assert num.allclose(location[0], 51.6666666)                
+
+        # Check that mimimum_storable_height works
+        fid = NetCDFFile(swwfile, netcdf_mode_r) # Open existing file
+        
+        stage = fid.variables['stage_c'][:]
+        z = fid.variables['elevation_c'][:]
+        xmomentum = fid.variables['xmomentum_c'][:]
+        ymomentum = fid.variables['ymomentum_c'][:]
+        
+        for i in range(stage.shape[0]):
+            h = stage[i]-z # depth vector at time step i
+            
+            # Check every node location
+            for j in range(stage.shape[1]):
+                # Depth being either exactly zero implies
+                # momentum being zero.
+                # Or else depth must be greater than or equal to
+                # the minimal storable height
+                if h[j] == 0.0:
+                    assert xmomentum[i,j] == 0.0
+                    assert ymomentum[i,j] == 0.0                
+                else:
+                    assert h[j] >= 0.0
+        
+        fid.close()
+
+        # Cleanup
+        os.remove(swwfile)
+        
+
+
+        #------------- Now the same with georeferencing
+
+        domain.time=0.0
+        E = 308500
+        N = 6189000
+        #E = N = 0
+        domain.geo_reference = Geo_reference(56, E, N)
+
+        domain.set_quantity('elevation', lambda x,y: -0.2*x + 14) # Slope
+        domain.set_quantity('stage', -6)
+        domain.set_boundary( {'left': Br, 'right': Bd, 'top': Br, 'bottom': Br})
+
+        for t in domain.evolve(yieldstep=1, finaltime = 50):
+            pass
+
+        # Check maximal runup
+        runup = get_maximum_inundation_elevation(swwfile)
+        location = get_maximum_inundation_location(swwfile)
+
+        #print runup, location
+
+        assert num.allclose(runup,4.66666666667)
+        assert num.allclose(location[0], 308546.66) 
+
+        # Check final runup
+        runup = get_maximum_inundation_elevation(swwfile, time_interval=[45,50])
+        location = get_maximum_inundation_location(swwfile, time_interval=[45,50])
+        
+        #print runup, location
+        #1.66666666667 [308561.66, 6189006.5]
+
+        assert num.allclose(runup, 3.81481488546)
+        assert num.allclose(location[0], 308551.66)
+
+        # Check runup restricted to a polygon
+        p = num.array([[50,1], [99,1], [99,49], [50,49]], num.int) + num.array([E, N], num.int)      #array default#
+
+        runup = get_maximum_inundation_elevation(swwfile, polygon=p)
+        location = get_maximum_inundation_location(swwfile, polygon=p)
+
+        #print runup, location
+
+        assert num.allclose(runup, 3.81481488546)
+        assert num.allclose(location[0], 308551.66)                
+
+
+        # Cleanup
+        os.remove(swwfile)
+
+
+    def test_get_maximum_inundation_1_5(self):
+        """Test that sww information can be converted correctly to maximum
+        runup elevation and location (without and with georeferencing)
+
+        This test creates a slope and a runup which is maximal (~11m) at around 10s
+        and levels out to the boundary condition (1m) at about 30s.
+        """
+
+        import time, os
+        from anuga.file.netcdf import NetCDFFile
+
+        #Setup
+
+        #from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
+
+        # Create basic mesh (100m x 100m)
+        points, vertices, boundary = rectangular(20, 5, 100, 50)
+
+        # Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.set_flow_algorithm('1_5')
         domain.default_order = 2
         domain.set_minimum_storable_height(0.01)
 
@@ -882,7 +1038,7 @@ class Test_sww_Interrogate(unittest.TestCase):
  
  
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_sww_Interrogate, 'test')#_get_maximum_inundation_from_sww')
+    suite = unittest.makeSuite(Test_sww_Interrogate, 'test_')#_get_maximum_inundation_from_sww')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
                

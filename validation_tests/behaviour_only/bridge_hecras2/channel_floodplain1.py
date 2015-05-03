@@ -12,6 +12,7 @@ import numpy
 from anuga.parallel.parallel_operator_factory import Inlet_operator, Boyd_box_operator, Internal_boundary_operator
 from anuga.parallel import distribute, myid, numprocs, finalize, barrier
 from anuga.structures.internal_boundary_functions import hecras_internal_boundary_function
+
 args = anuga.get_args()
 alg = args.alg
 verbose = args.verbose
@@ -193,7 +194,7 @@ bridge = Internal_boundary_operator(
     enquiry_gap=0.01,
     use_velocity_head=False,
     smoothing_timescale=30.0,
-    logging=True)
+    logging=verbose)
     
 #------------------------------------------------------------------------------
 #
@@ -240,7 +241,7 @@ save_parameters_tex(domain)
 barrier()
 
 for t in domain.evolve(yieldstep=10.0, finaltime=dtQdata*(len(Qdata)-2)):
-    if(myid==0):
+    if(myid==0 and verbose):
         print domain.timestepping_statistics()
 
     vol = domain.report_water_volume_statistics()

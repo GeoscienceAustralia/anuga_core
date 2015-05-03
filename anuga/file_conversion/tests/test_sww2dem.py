@@ -22,6 +22,8 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
 # local modules
 from anuga.file_conversion.sww2dem import sww2dem, sww2dem_batch
 
+from pprint import pprint
+
 class Test_Sww2Dem(unittest.TestCase):
     def setUp(self):
         import time
@@ -94,6 +96,7 @@ class Test_Sww2Dem(unittest.TestCase):
         swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
+        self.domain.set_flow_algorithm('1_5')
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x,y: -x-y)
@@ -273,8 +276,7 @@ class Test_Sww2Dem(unittest.TestCase):
         os.remove(swwfile)
 
 
-
-    def test_sww2dem_larger(self):
+    def test_sww2dem_larger_de0(self):
         """Test that sww information can be converted correctly to asc/prj
         format readable by e.g. ArcView. Here:
 
@@ -307,7 +309,184 @@ class Test_Sww2Dem(unittest.TestCase):
         domain = Domain(points, vertices, boundary)
         domain.default_order = 2
 
-        domain.set_name('datatest')
+        domain.set_name('datatest_de0')
+
+        prjfile = domain.get_name() + '_elevation.prj'
+        ascfile = domain.get_name() + '_elevation.asc'
+        swwfile = domain.get_name() + '.sww'
+
+        domain.set_datadir('.')
+        domain.format = 'sww'
+        domain.smooth = True
+        domain.geo_reference = Geo_reference(56, 308500, 6189000)
+
+
+        # FIXME: de0 algorithm doesn't recreate a linear function! 
+        domain.set_quantity('elevation', lambda x,y: -x-y)
+        domain.set_quantity('stage', 0)
+
+        B = Transmissive_boundary(domain)
+        domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
+
+        #
+        sww = SWW_file(domain)
+        sww.store_connectivity()
+        sww.store_timestep()
+        
+        domain.tight_slope_limiters = 1
+        domain.evolve_to_end(finaltime = 0.01)
+        sww.store_timestep()
+
+        cellsize = 10.0  #10m grid
+
+        
+        #Export to ascii/prj files
+        sww2dem(domain.get_name() + '.sww',
+                domain.get_name() + '_elevation.asc',
+                quantity = 'elevation',
+                cellsize = cellsize,
+                number_of_decimal_places = 3,
+                verbose = self.verbose,
+                block_size=2)
+
+
+        #Check prj (meta data)
+        prjid = open(prjfile)
+        lines = prjid.readlines()
+        prjid.close()
+
+        L = lines[0].strip().split()
+        assert L[0].strip().lower() == 'projection'
+        assert L[1].strip().lower() == 'utm'
+
+        L = lines[1].strip().split()
+        assert L[0].strip().lower() == 'zone'
+        assert L[1].strip().lower() == '56'
+
+        L = lines[2].strip().split()
+        assert L[0].strip().lower() == 'datum'
+        assert L[1].strip().lower() == 'wgs84'
+
+        L = lines[3].strip().split()
+        assert L[0].strip().lower() == 'zunits'
+        assert L[1].strip().lower() == 'no'
+
+        L = lines[4].strip().split()
+        assert L[0].strip().lower() == 'units'
+        assert L[1].strip().lower() == 'meters'
+
+        L = lines[5].strip().split()
+        assert L[0].strip().lower() == 'spheroid'
+        assert L[1].strip().lower() == 'wgs84'
+
+        L = lines[6].strip().split()
+        assert L[0].strip().lower() == 'xshift'
+        assert L[1].strip().lower() == '500000'
+
+        L = lines[7].strip().split()
+        assert L[0].strip().lower() == 'yshift'
+        assert L[1].strip().lower() == '10000000'
+
+        L = lines[8].strip().split()
+        assert L[0].strip().lower() == 'parameters'
+
+
+        #Check asc file
+        ascid = open(ascfile)
+        lines = ascid.readlines()
+        ascid.close()
+
+        L = lines[0].strip().split()
+        assert L[0].strip().lower() == 'ncols'
+        assert L[1].strip().lower() == '11'
+
+        L = lines[1].strip().split()
+        assert L[0].strip().lower() == 'nrows'
+        assert L[1].strip().lower() == '11'
+
+        L = lines[2].strip().split()
+        assert L[0].strip().lower() == 'xllcorner'
+        assert num.allclose(float(L[1].strip().lower()), 308500)
+
+        L = lines[3].strip().split()
+        assert L[0].strip().lower() == 'yllcorner'
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
+
+        L = lines[4].strip().split()
+        assert L[0].strip().lower() == 'cellsize'
+        assert num.allclose(float(L[1].strip().lower()), cellsize)
+
+        L = lines[5].strip().split()
+        assert L[0].strip() == 'NODATA_value'
+        assert L[1].strip().lower() == '-9999'
+
+        #Check grid values (FIXME: Use same strategy for other sww2dem tests)
+
+        V = [-1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02, -1.267e+02, -1.333e+02, -1.367e+02, -1.400e+02, -1.433e+02, -1.467e+02, -1.500e+02,
+             -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02, -1.267e+02, -1.300e+02, -1.333e+02, -1.367e+02, -1.400e+02, -1.467e+02,
+             -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02, -1.233e+02, -1.267e+02, -1.300e+02, -1.367e+02, -1.433e+02,
+             -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.167e+02, -1.200e+02, -1.267e+02, -1.333e+02, -1.400e+02,
+             -7.333e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.100e+02, -1.167e+02, -1.233e+02, -1.300e+02, -1.367e+02,
+             -6.667e+01, -7.333e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02, -1.267e+02, -1.333e+02,
+             -6.333e+01, -7.000e+01, -7.667e+01, -8.333e+01, -9.000e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02, -1.267e+02,
+             -6.000e+01, -6.667e+01, -7.333e+01, -8.000e+01, -8.333e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02,
+             -5.667e+01, -6.333e+01, -7.000e+01, -7.333e+01, -7.667e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02,
+             -5.333e+01, -6.000e+01, -6.333e+01, -6.667e+01, -7.000e+01, -7.333e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02,
+             -5.000e+01, -5.333e+01, -5.667e+01, -6.000e+01, -6.333e+01, -6.667e+01, -7.333e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02 ]    
+        
+        for i, line in enumerate(lines[6:]):
+            for j, value in enumerate( line.split() ):
+                assert num.allclose(float(value), V[i*11+j],
+                                    atol=1.0e-12, rtol=1.0e-12)
+
+                # Note: Equality can be obtained in this case,
+                # but it is better to use allclose.
+                #assert float(value) == -(10-i+j)*cellsize
+
+
+        #fid.close()
+
+        #Cleanup
+        #os.remove(prjfile)
+        #os.remove(ascfile)
+        #os.remove(swwfile)
+        
+
+    def test_sww2dem_larger_1_5(self):
+        """Test that sww information can be converted correctly to asc/prj
+        format readable by e.g. ArcView. Here:
+
+        ncols         11
+        nrows         11
+        xllcorner     308500
+        yllcorner     6189000
+        cellsize      10.000000
+        NODATA_value  -9999
+        -100 -110 -120 -130 -140 -150 -160 -170 -180 -190 -200
+         -90 -100 -110 -120 -130 -140 -150 -160 -170 -180 -190
+         -80  -90 -100 -110 -120 -130 -140 -150 -160 -170 -180
+         -70  -80  -90 -100 -110 -120 -130 -140 -150 -160 -170
+         -60  -70  -80  -90 -100 -110 -120 -130 -140 -150 -160
+         -50  -60  -70  -80  -90 -100 -110 -120 -130 -140 -150
+         -40  -50  -60  -70  -80  -90 -100 -110 -120 -130 -140
+         -30  -40  -50  -60  -70  -80  -90 -100 -110 -120 -130
+         -20  -30  -40  -50  -60  -70  -80  -90 -100 -110 -120
+         -10  -20  -30  -40  -50  -60  -70  -80  -90 -100 -110
+           0  -10  -20  -30  -40  -50  -60  -70  -80  -90 -100
+
+        """
+
+        import time, os
+
+        #Create basic mesh (100m x 100m)
+        points, vertices, boundary = rectangular(2, 2, 100, 100)
+
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.set_flow_algorithm('1_5')
+        domain.default_order = 2
+
+        domain.set_name('datatest_1_5')
 
         prjfile = domain.get_name() + '_elevation.prj'
         ascfile = domain.get_name() + '_elevation.asc'
@@ -337,18 +516,6 @@ class Test_Sww2Dem(unittest.TestCase):
 
         cellsize = 10  #10m grid
 
-
-        #Check contents
-        #Get NetCDF
-
-        fid = NetCDFFile(sww.filename, netcdf_mode_r)
-
-        # Get the variables
-        x = fid.variables['x'][:]
-        y = fid.variables['y'][:]
-        z = fid.variables['elevation'][:]
-        time = fid.variables['time'][:]
-        stage = fid.variables['stage'][:]
 
 
         #Export to ascii/prj files
@@ -442,12 +609,10 @@ class Test_Sww2Dem(unittest.TestCase):
                 #assert float(value) == -(10-i+j)*cellsize
 
 
-        fid.close()
-
         #Cleanup
-        os.remove(prjfile)
-        os.remove(ascfile)
-        os.remove(swwfile)
+        #os.remove(prjfile)
+        #os.remove(ascfile)
+        #os.remove(swwfile)
 
 
 
@@ -667,7 +832,7 @@ class Test_Sww2Dem(unittest.TestCase):
 
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
-        domain.default_order = 2
+        domain.set_flow_algorithm('1_5')
 
         domain.set_name('datatest')
 
@@ -1158,6 +1323,7 @@ class Test_Sww2Dem(unittest.TestCase):
 
         #Create shallow water domain
         domain = Domain(points, vertices)
+        domain.set_flow_algorithm('1_5')
         domain.default_order=2
 
 
@@ -1284,7 +1450,108 @@ class Test_Sww2Dem(unittest.TestCase):
 
 
 
-    def test_sww2ers_simple(self):
+    def test_sww2ers_simple_1_5(self):
+        """Test that sww information can be converted correctly to ers
+        format
+        """
+
+        import time, os
+
+
+        NODATA_value = 1758323
+
+        #Setup
+        self.domain.set_name('datatest')
+        self.domain.set_flow_algorithm('1_5')
+
+        headerfile = self.domain.get_name() + '.ers'
+        swwfile = self.domain.get_name() + '.sww'
+
+        self.domain.set_datadir('.')
+        self.domain.format = 'sww'
+        self.domain.smooth = True
+        self.domain.set_quantity('elevation', lambda x,y: -x-y)
+
+        self.domain.geo_reference = Geo_reference(56,308500,6189000)
+
+        sww = SWW_file(self.domain)
+        sww.store_connectivity()
+        sww.store_timestep()
+
+        #self.domain.tight_slope_limiters = 1
+        self.domain.evolve_to_end(finaltime = 0.01)
+        sww.store_timestep()
+
+        cellsize = 0.25
+        #Check contents
+        #Get NetCDF
+
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
+
+        # Get the variables
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        z = fid.variables['elevation'][:]
+        time = fid.variables['time'][:]
+        stage = fid.variables['stage'][:]
+
+
+        #Export to ers files
+        outname = self.domain.get_name() + '_elevation.ers'
+        sww2dem(self.domain.get_name() + '.sww',
+                outname,
+                quantity = 'elevation',
+                cellsize = cellsize,
+                number_of_decimal_places = 9,
+                NODATA_value = NODATA_value,
+                verbose = self.verbose)
+
+        #Check header data
+        from anuga.abstract_2d_finite_volumes.ermapper_grids import read_ermapper_header, read_ermapper_data
+
+        header = read_ermapper_header(outname)
+
+        assert header['projection'].lower() == '"utm-56"'
+        assert header['datum'].lower() == '"wgs84"'
+        assert header['units'].lower() == '"meters"'
+        assert header['value'].lower() == '"elevation"'
+        assert header['xdimension'] == '0.25'
+        assert header['ydimension'] == '0.25'
+        assert float(header['eastings']) == 308500.0   #xllcorner
+        assert float(header['northings']) == 6189000.0 #yllcorner
+        assert int(header['nroflines']) == 5
+        assert int(header['nrofcellsperline']) == 5
+        assert int(header['nullcellvalue']) == NODATA_value
+        #FIXME - there is more in the header
+
+
+        #Check grid data
+        grid = read_ermapper_data(self.domain.get_name() + '_elevation')
+
+
+
+        ref_grid = [-1,    -1.25, -1.5,  -1.75, -2.0,
+                    -0.75, -1.0,  -1.25, -1.5,  -1.75,
+                    -0.5,  -0.75, -1.0,  -1.25, -1.5,
+                    -0.25, -0.5,  -0.75, -1.0,  -1.25,
+                    -0.0,  -0.25, -0.5,  -0.75, -1.0]
+
+
+        
+        #pprint(grid)
+        assert num.allclose(grid, ref_grid)
+
+        fid.close()
+
+        #Cleanup
+        #FIXME the file clean-up doesn't work (eg Permission Denied Error)
+        #Done (Ole) - it was because sww2ers didn't close it's sww file
+        os.remove(sww.filename)
+        os.remove(self.domain.get_name() + '_elevation')
+        os.remove(self.domain.get_name() + '_elevation.ers')
+ 
+ 
+    def test_sww2ers_simple_de0(self):
         """Test that sww information can be converted correctly to ers
         format
         """
@@ -1362,14 +1629,15 @@ class Test_Sww2Dem(unittest.TestCase):
         grid = read_ermapper_data(self.domain.get_name() + '_elevation')
 
 
-        ref_grid = [-1,    -1.25, -1.5,  -1.75, -2.0,
-                    -0.75, -1.0,  -1.25, -1.5,  -1.75,
-                    -0.5,  -0.75, -1.0,  -1.25, -1.5,
-                    -0.25, -0.5,  -0.75, -1.0,  -1.25,
-                    -0.0,  -0.25, -0.5,  -0.75, -1.0]
+        ref_grid = [-1.        , -1.08333325, -1.16666663, -1.33333325, -1.5       ,
+                    -0.91666663, -1.        , -1.08333325, -1.25      , -1.33333325,
+                    -0.83333331, -0.91666663, -1.        , -1.08333325, -1.16666663,
+                    -0.66666663, -0.75      , -0.91666663, -1.        , -1.08333325,
+                    -0.5       , -0.66666663, -0.83333331, -0.91666663, -1.        ],
 
-
-        #print grid.reshape((5,5))
+        
+        #pprint(grid)
+        
         assert num.allclose(grid, ref_grid)
 
         fid.close()
@@ -1380,7 +1648,7 @@ class Test_Sww2Dem(unittest.TestCase):
         os.remove(sww.filename)
         os.remove(self.domain.get_name() + '_elevation')
         os.remove(self.domain.get_name() + '_elevation.ers')
-        
+       
     def test_export_grid_parallel(self):
         """Test that sww information can be converted correctly to asc/prj
         format readable by e.g. ArcView
@@ -1394,6 +1662,7 @@ class Test_Sww2Dem(unittest.TestCase):
         swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
+        self.domain.set_flow_algorithm('1_5')
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x,y: -x-y)
@@ -1531,6 +1800,7 @@ class Test_Sww2Dem(unittest.TestCase):
         swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
+        self.domain.set_flow_algorithm('1_5')
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x,y: -x-y)
         self.domain.set_quantity('stage', 1.0)
@@ -1612,6 +1882,7 @@ class Test_Sww2Dem(unittest.TestCase):
         swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
+        self.domain.set_flow_algorithm('1_5')
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x,y: -x-y)
         self.domain.set_quantity('stage', 1.0)
@@ -1748,6 +2019,7 @@ class Test_Sww2Dem(unittest.TestCase):
         swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
+        self.domain.set_flow_algorithm('1_5')
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x,y: -x-y)

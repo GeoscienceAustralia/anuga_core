@@ -18,6 +18,7 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.file_conversion.sdf2pts import sdf2pts
 from anuga.file_conversion.sww2pts import sww2pts
 
+from pprint import pprint
 
 class Test_2Pts(unittest.TestCase):
     """ Test files that convert to pts format. """
@@ -226,9 +227,10 @@ END CROSS-SECTIONS:
                 quantity = 'elevation',
                 data_points = points,
                 NODATA_value = NODATA_value)
-        ref_point_values = [-0.5, -0.5, -1, -1, -1, -1, -1.5, -1.5]   #At centroids
+        #ref_point_values = [-0.5, -0.5, -1, -1, -1, -1, -1.5, -1.5]   #At centroids
 
-        
+        ref_point_values = [-0.72222223, -0.72222223, -1.00000002, -1.00000002,
+                            -1.00000002, -1.00000002, -1.27777779, -1.27777779]
         point_values = Geospatial_data(ptsfile).get_attributes()
         #print 'P', point_values
         #print 'Ref', ref_point_values        
