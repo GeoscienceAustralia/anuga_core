@@ -31,6 +31,8 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.pmesh.mesh import Mesh
 from anuga.file.netcdf import NetCDFFile
 
+from pprint import pprint
+
 def distance(x, y):
     return sqrt(num.sum((num.array(x)-num.array(y))**2))
 
@@ -1794,6 +1796,7 @@ class Test_Interpolate(unittest.TestCase):
         
         # Create shallow water domain
         domain = Domain(mesh_file)
+        domain.set_flow_algorithm('1_5')
         os.remove(mesh_file)
         
         domain.default_order = 2

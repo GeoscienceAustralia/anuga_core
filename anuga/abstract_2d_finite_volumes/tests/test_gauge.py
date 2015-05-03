@@ -113,7 +113,8 @@ point2, 0.5, 2.0, 9.0\n")
                        use_cache=False)
 
 #        point1_answers_array = [[0.0,1.0,-5.0,3.0,4.0], [2.0,10.0,-5.0,3.0,4.0]]
-        point1_answers_array = [[0.0,0.0,1.0,6.0,-5.0,3.0,4.0], [2.0,2.0/3600.,10.0,15.0,-5.0,3.0,4.0]]
+#        point1_answers_array = [[0.0,0.0,1.0,6.0,-5.0,3.0,4.0], [2.0,2.0/3600.,10.0,15.0,-5.0,3.0,4.0]]
+        point1_answers_array = [[0.0, 0.0, 1.0, 4.0, -3.0, 3.0, 4.0],  [2.0, 0.0005555555555555556, 10.0, 13.0, -3.0, 3.0, 4.0]]
         point1_filename = 'gauge_point1.csv'
         point1_handle = open(point1_filename)
         point1_reader = reader(point1_handle)
@@ -127,7 +128,12 @@ point2, 0.5, 2.0, 9.0\n")
             #print 'assert line',line[i],'point1',point1_answers_array[i]
             assert num.allclose(line[i], point1_answers_array[i])
 
-        point2_answers_array = [[0.0,0.0,1.0,1.5,-0.5,3.0,4.0], [2.0,2.0/3600.,10.0,10.5,-0.5,3.0,4.0]]
+        #point2_answers_array = [[0.0,0.0,1.0,1.5,-0.5,3.0,4.0], [2.0,2.0/3600.,10.0,10.5,-0.5,3.0,4.0]]
+
+        point2_answers_array = [[0.0, 0.0, 1.0, 3.416666666666667, -2.416666666666667, 3.0, 4.0], [2.0, 0.0005555555555555556, 10.000000000000002, 12.416666666666668, -2.416666666666667, 3.0, 4.0] ]        
+
+
+
         point2_filename = 'gauge_point2.csv' 
         point2_handle = open(point2_filename)
         point2_reader = reader(point2_handle)
@@ -185,7 +191,7 @@ point2, 0.5, 2.0\n")
                             use_cache=False,
                             verbose=False)
 
-        point1_answers_array = [[0.0,1.0,-5.0], [2.0,10.0,-5.0]]
+        point1_answers_array = [[0.0, 1.0, -3.0], [2.0, 10.0, -3.0]]
         point1_filename = 'gauge_point1.csv'
         point1_handle = file(point1_filename)
         point1_reader = reader(point1_handle)
@@ -199,7 +205,7 @@ point2, 0.5, 2.0\n")
             #print 'line',line[i],'point1',point1_answers_array[i]
             assert num.allclose(line[i], point1_answers_array[i])
 
-        point2_answers_array = [[0.0,1.0,-0.5], [2.0,10.0,-0.5]]
+        point2_answers_array = [ [0.0, 1.0, -2.416666666666667], [2.0, 10.000000000000002, -2.416666666666667] ]
         point2_filename = 'gauge_point2.csv' 
         point2_handle = file(point2_filename)
         point2_reader = reader(point2_handle)
@@ -210,7 +216,7 @@ point2, 0.5, 2.0\n")
 #            print 'i',i,'row',row
             # note the 'hole' (element 1) below - skip the new 'hours' field
             line.append([float(row[0]),float(row[2]),float(row[3])])
-#            print 'line',line[i],'point1',point1_answers_array[i]
+            # print 'line',line[i],'point1',point1_answers_array[i]
             assert num.allclose(line[i], point2_answers_array[i])
                          
         # clean up
@@ -255,7 +261,7 @@ point2, 0.5, 2.0, 9.0\n")
                             use_cache=False)
 
 #        point1_answers_array = [[0.0,1.0,-5.0,3.0,4.0], [2.0,10.0,-5.0,3.0,4.0]]
-        point1_answers_array = [[2.0,2.0/3600.,1.0,6.0,-5.0,3.0,4.0], [3.0,3.0/3600.,10.0,15.0,-5.0,3.0,4.0]]
+        point1_answers_array = [[2.0, 0.0005555555555555556, 1.0, 4.0, -3.0, 3.0, 4.0], [3.0, 0.0008333333333333334, 10.0, 13.0, -3.0, 3.0, 4.0] ]
         point1_filename = 'gauge_point1.csv'
         point1_handle = file(point1_filename)
         point1_reader = reader(point1_handle)
@@ -269,7 +275,7 @@ point2, 0.5, 2.0, 9.0\n")
             #print 'assert line',line[i],'answer',point1_answers_array[i]
             assert num.allclose(line[i], point1_answers_array[i])
 
-        point2_answers_array = [[2.0,2.0/3600.,1.0,1.5,-0.5,3.0,4.0], [3.0,3.0/3600.,10.0,10.5,-0.5,3.0,4.0]]
+        point2_answers_array = [[2.0, 0.0005555555555555556, 1.0, 3.416666666666667, -2.416666666666667, 3.0, 4.0], [3.0, 0.0008333333333333334, 10.000000000000002, 12.416666666666668, -2.416666666666667, 3.0, 4.0]]
         point2_filename = 'gauge_point2.csv' 
         point2_handle = file(point2_filename)
         point2_reader = reader(point2_handle)
@@ -371,7 +377,8 @@ point2, 4.5, 4.0, 9.0\n")
                        use_cache=False,
                        output_centroids=True)
 
-        point1_answers_array = [[0.0,0.0,1.0,3.0,-2.0,3.0,4.0], [2.0,2.0/3600.,10.0,12.0,-2.0,3.0,4.0]]
+        #point1_answers_array = [[0.0,0.0,1.0,3.0,-2.0,3.0,4.0], [2.0,2.0/3600.,10.0,12.0,-2.0,3.0,4.0]]
+        point1_answers_array = [[0.0, 0.0, 1.0, 3.6666666666666665, -2.6666666666666665, 3.0, 4.0], [2.0, 0.0005555555555555556, 10.0, 12.666666666666666, -2.6666666666666665, 3.0, 4.0]]        
         point1_filename = 'gauge_point1.csv'
         point1_handle = open(point1_filename)
         point1_reader = reader(point1_handle)
@@ -381,10 +388,11 @@ point2, 4.5, 4.0, 9.0\n")
         for i,row in enumerate(point1_reader):
             line.append([float(row[0]),float(row[1]),float(row[2]),float(row[3]),
                          float(row[4]),float(row[5]),float(row[6])])
-#           print 'assert line',line[i],'point1',point1_answers_array[i]
+            #print 'assert line',line[i],'point1',point1_answers_array[i]
             assert num.allclose(line[i], point1_answers_array[i])
 
-        point2_answers_array = [[0.0,0.0,1.0,5.0,-4.0,3.0,4.0], [2.0,2.0/3600.,10.0,14.0,-4.0,3.0,4.0]]
+        #point2_answers_array = [[0.0,0.0,1.0,5.0,-4.0,3.0,4.0], [2.0,2.0/3600.,10.0,14.0,-4.0,3.0,4.0]]
+        point2_answers_array = [ [0.0, 0.0, 1.0, 4.333333333333333, -3.333333333333333, 3.0, 4.0], [2.0, 0.0005555555555555556, 10.0, 13.333333333333332, -3.333333333333333, 3.0, 4.0] ]        
         point2_filename = 'gauge_point2.csv' 
         point2_handle = open(point2_filename)
         point2_reader = reader(point2_handle)
@@ -394,7 +402,7 @@ point2, 4.5, 4.0, 9.0\n")
         for i,row in enumerate(point2_reader):
             line.append([float(row[0]),float(row[1]),float(row[2]),float(row[3]),
                          float(row[4]),float(row[5]),float(row[6])])
-#           print i, 'assert line',line[i],'point2',point2_answers_array[i]
+            #print i, 'assert line',line[i],'point2',point2_answers_array[i]
             assert num.allclose(line[i], point2_answers_array[i])
                          
         # clean up
@@ -491,6 +499,10 @@ point2, 0.5, 2.0\n")
 
         point1_answers_array = [[0.0,1.0,-5.0], [2.0,10.0,-5.0],[4.0,10.0,-5.0],
                                 [6.0,20.0,-5.0], [0.0,1.0,-5.0]]
+
+        point1_answers_array = [[0.0, 1.0, -3.0], [2.0, 10.0, -3.0],
+                               [4.0, 10.0, -3.0], [6.0, 20.0, -3.0]]
+
         point1_filename = 'gauge_point1.csv'
         point1_handle = file(point1_filename)
         point1_reader = reader(point1_handle)
@@ -505,8 +517,16 @@ point2, 0.5, 2.0\n")
             #print 'line',line[i],'point1',point1_answers_array[i]
             assert num.allclose(line[i], point1_answers_array[i])
 
-        point2_answers_array = [[0.0,1.0,-0.5], [2.0,10.0,-0.5],[4.0,10.0,-0.5],
-                                [6.0,20.0,-0.5], [0.0,1.0,-0.5]]
+        #point2_answers_array = [[0.0,1.0,-0.5], [2.0,10.0,-0.5],[4.0,10.0,-0.5],
+        #                        [6.0,20.0,-0.5], [0.0,1.0,-0.5]]
+        point2_answers_array = [[0.0, 1.0, -2.416666666666667],
+                                [2.0, 10.000000000000002, -2.416666666666667],
+                                [4.0, 10.000000000000002, -2.416666666666667],
+                                [6.0, 20.000000000000004, -2.416666666666667]]
+
+
+
+            
         point2_filename = 'gauge_point2.csv' 
         point2_handle = file(point2_filename)
         point2_reader = reader(point2_handle)
@@ -516,7 +536,7 @@ point2, 0.5, 2.0\n")
         for i,row in enumerate(point2_reader):
             # note the 'hole' (element 1) below - skip the new 'hours' field
             line.append([float(row[0]),float(row[2]),float(row[3])])
-            #print 'line',line[i],'point2',point2_answers_array[i]
+            #print 'line',line[i],'point2'#,point2_answers_array[i]
             assert num.allclose(line[i], point2_answers_array[i])
                          
         # clean up

@@ -10,8 +10,6 @@ from anuga import rectangular_cross_domain
 
 from anuga import Domain
 
-#from anuga_tsunami import Domain
-
 import numpy as num
 import warnings
 import time
@@ -39,7 +37,7 @@ class Test_DE1_domain(unittest.TestCase):
 
 
         domain=Domain(points,vertices,boundary)    # Create Domain
-        domain.set_flow_algorithm('DE1')
+        domain.set_flow_algorithm('1_5')
 
         domain.set_name('runup_sinusoid_de1')                         # Output to file runup.sww
         domain.set_datadir('.')                          # Use current folder
