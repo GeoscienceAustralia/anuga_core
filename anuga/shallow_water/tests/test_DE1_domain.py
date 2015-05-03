@@ -10,10 +10,11 @@ from anuga import rectangular_cross_domain
 
 from anuga import Domain
 
+#from anuga_tsunami import Domain
+
 import numpy as num
 import warnings
 import time
-from pprint import pprint
 
 
 
@@ -37,7 +38,7 @@ class Test_DE1_domain(unittest.TestCase):
 
 
         domain=Domain(points,vertices,boundary)    # Create Domain
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE1')
 
         domain.set_name('runup_sinusoid_de1')                         # Output to file runup.sww
         domain.set_datadir('.')                          # Use current folder
@@ -56,42 +57,29 @@ class Test_DE1_domain(unittest.TestCase):
             stge=-0.2*scale_me #+0.01*(x>0.9)
             return stge
 
-        # Use function for elevation
-        domain.set_quantity('elevation',topography, location='centroids') 
-        domain.set_quantity('friction',0.03)   # Constant friction
+        domain.set_quantity('elevation',topography) 
+        domain.get_quantity('elevation').smooth_vertex_values()
+        domain.set_quantity('friction',0.03) 
 
-        # Constant negative initial stage
-        domain.set_quantity('stage', stagefun, location='centroids') 
 
-        #print domain.statistics()
-        #domain.print_algorithm_parameters()
-        
+        domain.set_quantity('stage', stagefun) 
+        domain.get_quantity('stage').smooth_vertex_values()
+
+
         #--------------------------
         # Setup boundary conditions
         #--------------------------
-        Br=anuga.Reflective_boundary(domain)                 # Solid reflective wall
-        Bd=anuga.Dirichlet_boundary([-0.1*scale_me,0.,0.])   # Constant boundary values -- not used in this example
+        Br=anuga.Reflective_boundary(domain) # Solid reflective wall
 
         #----------------------------------------------
         # Associate boundary tags with boundary objects
         #----------------------------------------------
-        domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom':Br})
+        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom':Br})
 
         #------------------------------
         #Evolve the system through time
         #------------------------------
 
-        dd = domain.quantities['stage'].centroid_values - \
-                domain.quantities['elevation'].centroid_values
-        xx = domain.quantities['xmomentum'].centroid_values
-        yy = domain.quantities['ymomentum'].centroid_values
-        
-        #pprint(dd)
-        #pprint(xx)
-        #pprint(yy)
-
-
-                
         for t in domain.evolve(yieldstep=7.0,finaltime=7.0):
             #print domain.timestepping_statistics()
             #xx = domain.quantities['xmomentum'].centroid_values
@@ -112,7 +100,6 @@ class Test_DE1_domain(unittest.TestCase):
         dd = (dd)*(dd>1.0e-03)+1.0e-03
         vv = ( (xx/dd)**2 + (yy/dd)**2)**0.5
 
-        #pprint(vv)
         assert num.all(vv<2.0e-02)
 
 
