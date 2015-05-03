@@ -15,6 +15,7 @@ from anuga import Domain
 import numpy as num
 import warnings
 import time
+from pprint import pprint
 
 
 
@@ -101,6 +102,7 @@ class Test_DE1_domain(unittest.TestCase):
         dd = (dd)*(dd>1.0e-03)+1.0e-03
         vv = ( (xx/dd)**2 + (yy/dd)**2)**0.5
 
+        pprint(vv)
         assert num.all(vv<2.0e-02)
 
 
