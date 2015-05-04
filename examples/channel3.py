@@ -15,11 +15,11 @@ length = 40.
 width = 5.
 dx = dy = .1           # Resolution: Length of subdivisions on both axes
 
-points, vertices, boundary = anuga.rectangular_cross(int(length/dx),
-                                         int(width/dy), len1=length, len2=width)
-domain = anuga.Domain(points, vertices, boundary)
+domain = anuga.rectangular_cross_domain(int(length/dx), int(width/dy),
+                                        len1=length, len2=width)
+
 domain.set_name('channel3')                  # Output name
-domain.set_flow_algorithm('DE0')
+
 print domain.statistics()
 
 #------------------------------------------------------------------------------
