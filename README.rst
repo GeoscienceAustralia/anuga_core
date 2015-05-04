@@ -4,11 +4,11 @@
 .. image:: https://coveralls.io/repos/GeoscienceAustralia/anuga_core/badge.svg?branch=master
   :target: https://coveralls.io/r/GeoscienceAustralia/anuga_core?branch=master
 
-.. image:: https://pypip.in/version/anuga/badge.svg?style=flat
+.. image:: https://img.shields.io/pypi/v/anuga.svg
     :target: https://pypi.python.org/pypi/anuga/
     :alt: Latest Version
     
-.. image:: https://pypip.in/download/anuga/badge.svg?style=flat
+.. image:: https://img.shields.io/pypi/dm/anuga.svg
     :target: https://pypi.python.org/pypi/anuga/
     :alt: Downloads
     
