@@ -152,7 +152,7 @@ def _dem2pts(name_in, name_out=None, verbose=False,
     outfile.ncols = ncols
     outfile.nrows = nrows
 
-    dem_elevation_r = num.reshape(dem_elevation, (nrows, ncols))
+    #dem_elevation_r = num.reshape(dem_elevation, (nrows, ncols))
     totalnopoints = nrows*ncols
 
 
