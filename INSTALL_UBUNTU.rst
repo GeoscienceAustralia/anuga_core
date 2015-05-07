@@ -1,8 +1,8 @@
 ======================
-Installing current version of ANUGA research code on Ubuntu  14.04 
+Installing ANUGA on Ubuntu  14.04 
 ======================
 
-The current development version of {{{anuga}}} now resides on {{{github}}} at 
+The current development version of anuga now resides on {{{github}}} at 
 [https://github.com/GeoscienceAustralia/anuga_core anuga_core]
 
 
