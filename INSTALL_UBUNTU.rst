@@ -11,7 +11,7 @@ Install {{{git}}}
 
 We use {{{git}}} to install {{{anuga}}} (subversion can still be used)
 
-Use {{{apt-get}}} to install {{{git}}} via:
+Use {{{apt-get}}} to install {{{git}}} via::
 
   sudo apt-get install git
 
