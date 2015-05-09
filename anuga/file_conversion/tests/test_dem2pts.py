@@ -125,9 +125,9 @@ Parameters
                 xnew = x - 2002.0
                 ref_points.append ([xnew,ynew]) #Relative point values
 
-        assert num.allclose(points, ref_points)
+        assert num.allclose(points[:], ref_points)
 
-        assert num.allclose(elevation, ref_elevation)
+        assert num.allclose(elevation[:], ref_elevation)
 
         #Cleanup
         fid.close()
@@ -389,8 +389,8 @@ Parameters
         #print points[:],points[:].shape
         #print new_ref_points, len(new_ref_points)
 
-        assert num.allclose(elevation, ref_elevation)
-        assert num.allclose(points, new_ref_points)
+        assert num.allclose(elevation[:], ref_elevation)
+        assert num.allclose(points[:], new_ref_points)
 
 
         #Cleanup
