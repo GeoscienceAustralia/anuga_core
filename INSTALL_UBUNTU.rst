@@ -18,7 +18,7 @@ Use apt-get to install git via::
 Install anuga
 -------------------
 
-Now from your home directory, use subversion to download the anuga source via::
+Now from your home directory, use git to download the anuga source via::
 
 	git clone https://github.com/GeoscienceAustralia/anuga_core.git
 
