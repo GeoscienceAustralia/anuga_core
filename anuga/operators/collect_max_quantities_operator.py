@@ -15,7 +15,7 @@ from anuga.operators.base_operator import Operator
 from anuga import Quantity
 from anuga.parallel import myid
 from anuga.config import velocity_protection
-from anuga.config import huge
+from anuga.config import max_float
 
 
 class collect_max_quantities_operator(Operator):
@@ -48,7 +48,7 @@ class collect_max_quantities_operator(Operator):
         #------------------------------------------
         # Setup a quantity to store max_stage
         #------------------------------------------
-        self.max_stage = num.zeros(len(domain.centroid_coordinates[:,0])) - huge
+        self.max_stage = num.zeros(len(domain.centroid_coordinates[:,0])) - max_float
         self.max_depth = num.zeros(len(domain.centroid_coordinates[:,0]))
         self.max_speed = num.zeros(len(domain.centroid_coordinates[:,0]))
         self.max_speedDepth = num.zeros(len(domain.centroid_coordinates[:,0]))
