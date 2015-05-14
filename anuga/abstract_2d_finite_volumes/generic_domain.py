@@ -1552,25 +1552,15 @@ class Generic_Domain:
         self.number_of_steps = 0
         self.number_of_first_order_steps = 0
 
-        # Update centroid values of conserved quantites to satisfy
-        # special conditions
-        #self.update_special_conditions()
 
         # Update ghosts to ensure all centroid values are available
         self.update_ghosts()
 
 
-        # Initial update of vertex and edge values
-        self.distribute_to_vertices_and_edges()
-
-
-        # Initial update boundary values
-        self.update_boundary()
-
-
         # Update extrema if necessary (for reporting)
         self.update_extrema()
-
+        
+                
 
 
         # Or maybe restore from latest checkpoint
@@ -1578,12 +1568,25 @@ class Generic_Domain:
         #    self.goto_latest_checkpoint()
 
         if skip_initial_step is False:
+            
+            #==========================================
+            # Assuming centroid values ok, calculate edge and vertes values
+            #==========================================  
+            self.distribute_to_vertices_and_edges()
+            self.update_boundary()
+
             yield(self.get_time())      # Yield initial values
 
         while True:
 
             initial_time = self.get_time()
 
+            #==========================================
+            # Assuming centroid values ok, calculate edge and vertes values
+            #==========================================            
+            self.distribute_to_vertices_and_edges()
+            self.update_boundary()
+            
             #==========================================
             # Apply fluid flow fractional step
             #==========================================
@@ -1603,25 +1606,14 @@ class Generic_Domain:
 
             #==========================================
             # Centroid Values of variables should be ok,
-            # so now setup quantites etc for output
             #==========================================
 
             # Update time
             self.set_time(initial_time + self.timestep)
 
-            # Update ghosts
             self.update_ghosts()
 
-            # Update vertex and edge values
-            self.distribute_to_vertices_and_edges()
-
-            # Update boundary values
-            self.update_boundary()
-
-            # Update any other quantities that might be useful
-            # self.update_other_quantities()
-
-            # Update extrema if necessary (for reporting)
+            # Update extrema (only uses centroid values)
             self.update_extrema()            
 
             self.number_of_steps += 1
@@ -1629,7 +1621,6 @@ class Generic_Domain:
             if self._order_ == 1:
                 self.number_of_first_order_steps += 1
 
-            
 
             # Yield results
             if self.finaltime is not None and self.get_time() >= self.finaltime-epsilon:
@@ -1641,8 +1632,10 @@ class Generic_Domain:
                     msg = ('WARNING (domain.py): time overshot finaltime. ')
                     raise Exception(msg)
 
-                # Log and then Yield final time and stop
+                # Distribute to vertices, Log and then Yield final time and stop
                 self.set_time(self.finaltime)
+                self.distribute_to_vertices_and_edges()
+                self.update_boundary()
                 self.log_operator_timestepping_statistics()
                 yield(self.get_time())
                 break
@@ -1655,6 +1648,8 @@ class Generic_Domain:
                 #    self.delete_old_checkpoints()
 
                 # Log and then Pass control on to outer loop for more specific actions
+                self.distribute_to_vertices_and_edges()
+                self.update_boundary()
                 self.log_operator_timestepping_statistics()
                 yield(self.get_time())
 
@@ -1690,11 +1685,6 @@ class Generic_Domain:
         # Update conserved quantities
         self.update_conserved_quantities()
 
-        # Update special conditions
-        #self.update_special_conditions()
-
-        # Update ghosts
-        #self.update_ghosts()
 
 
 
