@@ -1580,12 +1580,6 @@ class Generic_Domain:
         while True:
 
             initial_time = self.get_time()
-
-            #==========================================
-            # Assuming centroid values ok, calculate edge and vertes values
-            #==========================================            
-            self.distribute_to_vertices_and_edges()
-            self.update_boundary()
             
             #==========================================
             # Apply fluid flow fractional step
@@ -1666,9 +1660,15 @@ class Generic_Domain:
         """One Euler Time Step
         Q^{n+1} = E(h) Q^n
 
-        Assumes that centroid values have been extrapolated to vertices and edges
+        Does not assume that centroid values have been extrapolated to vertices and edges
         """
 
+        # From centroid values calculate edge and vertex values
+        self.distribute_to_vertices_and_edges()
+            
+        # Apply boundary conditions
+        self.update_boundary()
+        
         # Compute fluxes across each element edge
         self.compute_fluxes()
 
@@ -1692,7 +1692,10 @@ class Generic_Domain:
     def evolve_one_rk2_step(self, yieldstep, finaltime):
         """One 2nd order RK timestep
         Q^{n+1} = 0.5 Q^n + 0.5 E(h)^2 Q^n
+        
+        Does not assume that centroid values have been extrapolated to vertices and edges
         """
+        
 
         # Save initial initial conserved quantities values
         self.backup_conserved_quantities()
@@ -1700,6 +1703,12 @@ class Generic_Domain:
         ######
         # First euler step
         ######
+        
+        # From centroid values calculate edge and vertex values
+        self.distribute_to_vertices_and_edges()
+            
+        # Apply boundary conditions
+        self.update_boundary()        
 
         # Compute fluxes across each element edge
         self.compute_fluxes()
@@ -1764,6 +1773,8 @@ class Generic_Domain:
         """One 3rd order RK timestep
         Q^(1) = 3/4 Q^n + 1/4 E(h)^2 Q^n  (at time t^n + h/2)
         Q^{n+1} = 1/3 Q^n + 2/3 E(h) Q^(1) (at time t^{n+1})
+        
+        Does not assume that centroid values have been extrapolated to vertices and edges
         """
 
         # Save initial initial conserved quantities values
@@ -1774,6 +1785,12 @@ class Generic_Domain:
         ######
         # First euler step
         ######
+
+        # From centroid values calculate edge and vertex values
+        self.distribute_to_vertices_and_edges()
+            
+        # Apply boundary conditions
+        self.update_boundary() 
 
         # Compute fluxes across each element edge
         self.compute_fluxes()
@@ -2177,6 +2194,16 @@ class Generic_Domain:
         """
 
         pass
+    
+    
+    def compute_flux_update_frequency(self):
+        """ Some flux calculations can be sped up by not recalculating
+        fluxes and interpolation for regions with low velocities and large 
+        triangles
+        """
+        
+        pass
+    
 
     def distribute_to_vertices_and_edges(self):
         """Extrapolate conserved quantities from centroid to
