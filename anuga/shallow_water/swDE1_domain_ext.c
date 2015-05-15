@@ -2200,6 +2200,75 @@ PyObject *swde1_protect(PyObject *self, PyObject *args) {
   return Py_BuildValue("d", mass_error);
 }
 
+
+//========================================================================
+// swde1_evolve_one_euler_step
+//========================================================================
+
+PyObject *swde1_evolve_one_euler_step(PyObject *self, PyObject *args) {
+  /*
+   * Implement one Euler step in C
+  */
+
+
+  PyObject* domain;
+  PyObject* arglist;
+  PyObject* result;
+
+  double yieldstep;
+  double finaltime;
+
+
+  if (!PyArg_ParseTuple(args, "Odd", &domain, &yieldstep, &finaltime)) {
+      report_python_error(AT, "could not parse input arguments");
+      return NULL;
+  }
+
+
+  printf("In C_evolve %f %f \n", yieldstep, finaltime);
+
+
+  // From centroid values calculate edge and vertex values
+  printf("distribute_to_vertices_and_edges\n");
+  result = PyObject_CallMethod(domain,"distribute_to_vertices_and_edges",NULL);
+  Py_DECREF(result);
+
+
+  // Apply boundary conditions
+  printf("update_boundary\n");
+  result = PyObject_CallMethod(domain,"update_boundary",NULL);
+  Py_DECREF(result);
+
+  //Compute fluxes across each element edge
+  printf("compute_fluxes\n");
+  result = PyObject_CallMethod(domain,"compute_fluxes",NULL);
+  Py_DECREF(result);
+
+  //Compute forcing terms
+  printf("compute_forcing_terms\n");
+  result = PyObject_CallMethod(domain,"compute_forcing_terms",NULL);
+  Py_DECREF(result);
+
+  //Update timestep to fit yieldstep and finaltime
+  printf("update_timestep\n");
+  arglist = Py_BuildValue("(d,d)", yieldstep, finaltime);
+  result = PyObject_CallMethod(domain,"update_timestep",arglist);
+  Py_DECREF(arglist);
+  Py_DECREF(result);
+
+  //if self.max_flux_update_frequency is not 1:
+  // Update flux_update_frequency using the new timestep
+  // self.compute_flux_update_frequency()
+
+  // Update conserved quantities
+  printf("update_conserved_quantities\n");
+  result = PyObject_CallMethod(domain,"update_conserved_quantities",NULL);
+  Py_DECREF(result);
+
+  Py_RETURN_NONE;
+
+}// swde1_evolve_one_euler_step
+
 //========================================================================
 // Method table for python module
 //========================================================================
@@ -2216,6 +2285,7 @@ static struct PyMethodDef MethodTable[] = {
   {"extrapolate_second_order_edge_sw", swde1_extrapolate_second_order_edge_sw, METH_VARARGS, "Print out"},
   {"compute_flux_update_frequency", swde1_compute_flux_update_frequency, METH_VARARGS, "Print out"},
   {"protect",          swde1_protect, METH_VARARGS | METH_KEYWORDS, "Print out"},
+  {"evolve_one_euler_step", swde1_evolve_one_euler_step, METH_VARARGS | METH_KEYWORDS, "Print out"},
   {NULL, NULL, 0, NULL}
 };
 

@@ -2326,28 +2326,34 @@ class Domain(Generic_Domain):
 
         Does not assume that centroid values have been extrapolated to vertices and edges
         """
-
-        # From centroid values calculate edge and vertex values
-        self.distribute_to_vertices_and_edges()
-            
-        # Apply boundary conditions
-        self.update_boundary()
         
-        # Compute fluxes across each element edge
-        self.compute_fluxes()
+        if self.get_flow_algorithm() == 'DE0':
 
-        # Compute forcing terms
-        self.compute_forcing_terms()
-
-        # Update timestep to fit yieldstep and finaltime
-        self.update_timestep(yieldstep, finaltime)
-
-        if self.max_flux_update_frequency is not 1:
-            # Update flux_update_frequency using the new timestep
-            self.compute_flux_update_frequency()
-
-        # Update conserved quantities
-        self.update_conserved_quantities()
+            from swDE1_domain_ext import evolve_one_euler_step
+            evolve_one_euler_step(self,yieldstep,finaltime)
+        
+        else:
+            # From centroid values calculate edge and vertex values
+            self.distribute_to_vertices_and_edges()
+                
+            # Apply boundary conditions
+            self.update_boundary()
+            
+            # Compute fluxes across each element edge
+            self.compute_fluxes()
+    
+            # Compute forcing terms
+            self.compute_forcing_terms()
+    
+            # Update timestep to fit yieldstep and finaltime
+            self.update_timestep(yieldstep, finaltime)
+    
+            if self.max_flux_update_frequency is not 1:
+                # Update flux_update_frequency using the new timestep
+                self.compute_flux_update_frequency()
+    
+            # Update conserved quantities
+            self.update_conserved_quantities()
         
         
         
