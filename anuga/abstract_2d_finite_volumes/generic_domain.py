@@ -1490,6 +1490,45 @@ class Generic_Domain:
 
         All times are given in seconds
         """
+        
+        for t in self._evolve_base(yieldstep=yieldstep,
+                                   finaltime=finaltime, duration=duration,
+                                   skip_initial_step=skip_initial_step):
+            
+            # Pass control on to outer loop for more specific actions
+            yield(t)
+        
+
+    def _evolve_base(self, yieldstep=None,
+                     finaltime=None,
+                     duration=None,
+                     skip_initial_step=False):
+        """Evolve model through time starting from self.starttime.
+
+        yieldstep: Interval between yields where results are stored,
+                   statistics written and domain inspected or
+                   possibly modified. If omitted the internal predefined
+                   max timestep is used.
+                   Internally, smaller timesteps may be taken.
+
+        duration: Duration of simulation
+
+        finaltime: Time where simulation should end. This is currently
+        relative time.  So it's the same as duration.
+
+        If both duration and finaltime are given an exception is thrown.
+
+        skip_initial_step: Boolean flag that decides whether the first
+        yield step is skipped or not. This is useful for example to avoid
+        duplicate steps when multiple evolve processes are dove tailed.
+
+        Evolve is implemented as a generator and is to be called as such, e.g.
+
+        for t in domain.evolve(yieldstep, finaltime):
+            <Do something with domain and t>
+
+        All times are given in seconds
+        """
 
         from anuga.config import epsilon
 
@@ -1560,7 +1599,6 @@ class Generic_Domain:
         # Update extrema if necessary (for reporting)
         self.update_extrema()
         
-                
 
 
         # Or maybe restore from latest checkpoint

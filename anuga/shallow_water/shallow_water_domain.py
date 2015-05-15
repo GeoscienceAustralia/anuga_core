@@ -2276,9 +2276,9 @@ class Domain(Generic_Domain):
         if self.get_time() >= finaltime: yield
 
         # Call basic machinery from parent class
-        for t in Generic_Domain.evolve(self, yieldstep=yieldstep,
-                                       finaltime=finaltime, duration=duration,
-                                       skip_initial_step=skip_initial_step):
+        for t in self._evolve_base(yieldstep=yieldstep,
+                                   finaltime=finaltime, duration=duration,
+                                   skip_initial_step=skip_initial_step):
 
             self.yieldstep_id += 1
             walltime = time.time()
@@ -2348,6 +2348,7 @@ class Domain(Generic_Domain):
 
         # Update conserved quantities
         self.update_conserved_quantities()
+        
         
         
         
