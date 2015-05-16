@@ -2225,35 +2225,35 @@ PyObject *swde1_evolve_one_euler_step(PyObject *self, PyObject *args) {
   }
 
 
-  printf("In C_evolve %f %f \n", yieldstep, finaltime);
+  //printf("In C_evolve %f %f \n", yieldstep, finaltime);
 
 
   // From centroid values calculate edge and vertex values
-  printf("distribute_to_vertices_and_edges\n");
+  //printf("distribute_to_vertices_and_edges\n");
   result = PyObject_CallMethod(domain,"distribute_to_vertices_and_edges",NULL);
   Py_DECREF(result);
 
 
   // Apply boundary conditions
-  printf("update_boundary\n");
+  //printf("update_boundary\n");
   result = PyObject_CallMethod(domain,"update_boundary",NULL);
   Py_DECREF(result);
 
   //Compute fluxes across each element edge
-  printf("compute_fluxes\n");
+  //printf("compute_fluxes\n");
   result = PyObject_CallMethod(domain,"compute_fluxes",NULL);
   Py_DECREF(result);
 
   //Compute forcing terms
-  printf("compute_forcing_terms\n");
+  //printf("compute_forcing_terms\n");
   result = PyObject_CallMethod(domain,"compute_forcing_terms",NULL);
   Py_DECREF(result);
 
   //Update timestep to fit yieldstep and finaltime
-  printf("update_timestep\n");
-  arglist = Py_BuildValue("(d,d)", yieldstep, finaltime);
-  result = PyObject_CallMethod(domain,"update_timestep",arglist);
-  Py_DECREF(arglist);
+  //printf("update_timestep\n");
+  //arglist = Py_BuildValue("(d,d)", yieldstep, finaltime);
+  result = PyObject_CallMethod(domain,"update_timestep","dd",yieldstep,finaltime);
+  //Py_DECREF(arglist);
   Py_DECREF(result);
 
   //if self.max_flux_update_frequency is not 1:
@@ -2261,7 +2261,7 @@ PyObject *swde1_evolve_one_euler_step(PyObject *self, PyObject *args) {
   // self.compute_flux_update_frequency()
 
   // Update conserved quantities
-  printf("update_conserved_quantities\n");
+  //printf("update_conserved_quantities\n");
   result = PyObject_CallMethod(domain,"update_conserved_quantities",NULL);
   Py_DECREF(result);
 
