@@ -1042,7 +1042,7 @@ class Test_Forcing(unittest.TestCase):
 
 
     def test_rainfall_forcing_with_evolve_1(self):
-        """test_rainfall_forcing_with_evolve
+        """test_rainfall_forcing_with_evolve_exception
 
         Test how forcing terms are called within evolve.
         This test checks that proper exception is thrown when no default_rate is set

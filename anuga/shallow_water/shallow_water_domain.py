@@ -1971,22 +1971,24 @@ class Domain(Generic_Domain):
 
         elif self.compute_fluxes_method == 'DE':
 
-            from swDE1_domain_ext import protect
-
-            # shortcuts
-            wc = self.quantities['stage'].centroid_values
-            wv = self.quantities['stage'].vertex_values
-            zc = self.quantities['elevation'].centroid_values
-            zv = self.quantities['elevation'].vertex_values
-            xmomc = self.quantities['xmomentum'].centroid_values
-            ymomc = self.quantities['ymomentum'].centroid_values
-            areas = self.areas
-            xc = self.centroid_coordinates[:,0]
-            yc = self.centroid_coordinates[:,1] 
-
-            mass_error = protect(self.minimum_allowed_height, self.maximum_allowed_speed,
-                    self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas, xc, yc)
+            from swDE1_domain_ext import protect_new
             
+            mass_error = protect_new(self)
+
+#             # shortcuts
+#             wc = self.quantities['stage'].centroid_values
+#             wv = self.quantities['stage'].vertex_values
+#             zc = self.quantities['elevation'].centroid_values
+#             zv = self.quantities['elevation'].vertex_values
+#             xmomc = self.quantities['xmomentum'].centroid_values
+#             ymomc = self.quantities['ymomentum'].centroid_values
+#             areas = self.areas
+#             xc = self.centroid_coordinates[:,0]
+#             yc = self.centroid_coordinates[:,1] 
+ 
+            #mass_error = protect(self.minimum_allowed_height, self.maximum_allowed_speed,
+            #       self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas, xc, yc)
+#             
             if mass_error > 0.0 and self.verbose :
                 print 'Cumulative mass protection: '+str(mass_error)+' m^3 '
             
