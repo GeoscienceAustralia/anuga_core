@@ -2322,8 +2322,14 @@ PyObject *swde1_evolve_one_euler_step(PyObject *self, PyObject *args) {
   PyObject* arglist;
   PyObject* result;
 
+  struct domain D;
+
   double yieldstep;
   double finaltime;
+  double flux_timestep;
+
+  int e;
+  double mass_error;
 
 
   if (!PyArg_ParseTuple(args, "Odd", &domain, &yieldstep, &finaltime)) {
@@ -2332,16 +2338,26 @@ PyObject *swde1_evolve_one_euler_step(PyObject *self, PyObject *args) {
   }
 
 
+  get_python_domain(&D, domain);
+
   //printf("In C_evolve %f %f \n", yieldstep, finaltime);
 
 
   // From centroid values calculate edge and vertex values
   //printf("distribute_to_vertices_and_edges\n");
-  result = PyObject_CallMethod(domain,"distribute_to_vertices_and_edges",NULL);
-  if (result == NULL) {
-     return NULL;
+//  result = PyObject_CallMethod(domain,"distribute_to_vertices_and_edges",NULL);
+//  if (result == NULL) {
+//     return NULL;
+//  }
+//  Py_DECREF(result);
+
+  mass_error = _protect_new(&D);
+
+  e = _extrapolate_second_order_edge_sw(&D);
+  if (e == -1) {
+    // Use error string set inside computational routine
+    return NULL;
   }
-  Py_DECREF(result);
 
 
   // Apply boundary conditions
@@ -2352,13 +2368,37 @@ PyObject *swde1_evolve_one_euler_step(PyObject *self, PyObject *args) {
   }
   Py_DECREF(result);
 
+
+
   //Compute fluxes across each element edge
   //printf("compute_fluxes\n");
-  result = PyObject_CallMethod(domain,"compute_fluxes",NULL);
+//  result = PyObject_CallMethod(domain,"compute_fluxes",NULL);
+//  if (result == NULL) {
+//     return NULL;
+//  }
+//  Py_DECREF(result);
+
+
+  flux_timestep =_compute_fluxes_central(&D, D.evolve_max_timestep);
+
+
+  result = PyFloat_FromDouble(flux_timestep);
   if (result == NULL) {
      return NULL;
   }
+  if (!PyFloat_Check(result)) {
+     return NULL;
+  }
+  e = PyObject_SetAttrString(domain, "flux_timestep", result);
+  if (e == -1) {
+    // Use error string set inside computational routine
+    return NULL;
+  }
   Py_DECREF(result);
+
+
+
+
 
   //Compute forcing terms
   //printf("compute_forcing_terms\n");
