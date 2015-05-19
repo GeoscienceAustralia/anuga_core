@@ -1655,7 +1655,7 @@ inline int _extrapolate_second_order_edge_sw(struct domain *D){
           b = dx1*dq2 - dx2*dq1;
           b *= inv_area2;
           
-          // Calculate provisional jumps in stage from the centroid 
+          // Calculate provisional jumps in xmom from the centroid
           // of triangle k to its vertices, to be limited      
           dqv[0] = a*dxv0+b*dyv0;
           dqv[1] = a*dxv1+b*dyv1;
@@ -1705,7 +1705,7 @@ inline int _extrapolate_second_order_edge_sw(struct domain *D){
           b = dx1*dq2 - dx2*dq1;
           b *= inv_area2;
           
-          // Calculate provisional jumps in stage from the centroid 
+          // Calculate provisional jumps in ymom from the centroid
           // of triangle k to its vertices, to be limited
           dqv[0] = a*dxv0 + b*dyv0;
           dqv[1] = a*dxv1 + b*dyv1;
