@@ -18,6 +18,9 @@ version of AnuGA::
 
 	pip install anuga
 
+You might want to install the dependencies via ubuntu ``apt-get`` or ``conda install`` 
+to download pre-compiled versions of the dependencies. See below. 
+
 
 Dependencies
 ------------
@@ -36,7 +39,7 @@ AnuGA requires the following packages:
 Ubuntu Install
 ++++++++++++++
 
-AnuGA is developed on Ubuntu. The preferred way t oinstall the dependencies is 
+AnuGA is developed on Ubuntu. The preferred way to install the dependencies is 
 to use the standard ubuntu ``apt-get`` method. 
 
 We have a script in the ``tools`` directory,
