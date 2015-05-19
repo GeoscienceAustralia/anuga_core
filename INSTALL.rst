@@ -41,7 +41,7 @@ to use the standard ubuntu ``apt-get`` method.
 
 We have a script in the ``tools`` directory,
 `install_ubuntu.sh <https://github.com/GeoscienceAustralia/anuga_core/blob/master/tools/install_ubuntu.sh>`_
-which you can run from the ``anuga_core`` directory which installs all the dependencies using ``apt-get``.
+which when run from the ``anuga_core`` directory will install AnuGA and all the dependencies using ``apt-get``.
 
 For extended instructions checkout the wiki page
 `install ANUGA on Ubuntu <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu>`_
@@ -127,7 +127,6 @@ Open a terminal (or ``cmd.exe`` on Windows) and run::
 
     pip install anuga
 
-and that's it!
 
 If you already have AnuGA installed and want to **upgrade** to a newer
 version, use::
