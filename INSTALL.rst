@@ -33,6 +33,9 @@ AnuGA requires the following packages:
 * A C compiler (preferably GCC or TDM-GCC_ MinGW_ on Windows)
 
 
+Ubuntu Install
+++++++++++++++
+
 AnuGA is developed on Ubuntu. The preferred way t oinstall the dependencies is 
 to use the standard ubuntu ``apt-get`` method. 
 
@@ -60,11 +63,20 @@ to your computer and do not interfere with the Python installed
 in your system.
 
 
-Anaconda
-~~~~~~~~
+Anaconda and Miniconda
+~~~~~~~~~~~~~~~~~~~~~~
 
-Once you have downloaded and installed Anaconda_,
-open a terminal (or ``cmd.exe`` on Windows) and run::
+Once you have downloaded and installed Anaconda_ or Miniconda_
+open a terminal (or ``cmd.exe`` on Windows).
+
+With  Miniconda_, you can create 
+a specific environment for AnuGA, by running::
+
+    conda create -n anuga_env python=2.7
+    source activate anuga_env
+    
+    
+With either Anaconda_ or Miniconda_ you can now install the dependencies by running::
 
     conda install pip nose numpy scipy matplotlib netcdf4
     conda install -c pingucarsti gdal 
@@ -74,25 +86,6 @@ and setup GDAL_DATA environment variable:
     export GDAL_DATA=`gdal-config --datadir` 
     
 (You should add this command to your .bashrc file.)    
-
-Miniconda
-~~~~~~~~~
-
-Once you have downloaded and installed Miniconda_, 
-open a terminal (or ``cmd.exe`` on Windows), create 
-a specific environment for AnuGA, by running::
-
-    conda create -n anuga_env python=2.7
-    source activate anuga_env
-    
-    conda install pip nose numpy scipy netcdf4 matplotlib 
-    conda install -c pingucarsti gdal 
-    
-and setup GDAL_DATA environment variable:
-
-    export GDAL_DATA=`gdal-config --datadir` 
-    
-(You should add this to your .bashrc file.)
 
 
 Windows Dependency Installation
