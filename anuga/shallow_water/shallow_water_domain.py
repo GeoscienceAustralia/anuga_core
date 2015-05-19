@@ -691,7 +691,7 @@ class Domain(Generic_Domain):
             print '#'
             print '# Using discontinuous elevation solver DE1 '
             print '#'
-            print '# Mostly designed for rk2 timestepping'
+            print '# Uses rk2 timestepping'
             print '#'
             print '# Make sure you use centroid values when reporting on important output quantities'
             print '#'
@@ -1093,7 +1093,8 @@ class Domain(Generic_Domain):
            DE0
            DE1
            DE2
-           DE3
+           DE0_7
+           DE1_7
         """
 
         if isinstance(flag, str) :
@@ -1102,7 +1103,8 @@ class Domain(Generic_Domain):
             flag = str(float(str(flag))).replace(".","_")
 
         flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', \
-                           'tsunami', 'yusuke', 'DE0', 'DE1', 'DE2', 'DE3']
+                           'tsunami', 'yusuke', 'DE0', 'DE1', 'DE2', \
+                           'DE0_7', "DE1_7"]
 
         if flag in flow_algorithms:
             self.flow_algorithm = flag
@@ -1215,7 +1217,6 @@ class Domain(Generic_Domain):
         """
         Get method used for timestepping and spatial discretisation
 
-        Currently  1_0, 1_5, 1_75 2_0, 2_5, tsunami, DE0, DE1, DE2, DE3
         """
 
         return self.flow_algorithm
