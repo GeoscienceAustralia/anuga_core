@@ -33,13 +33,25 @@ AnuGA requires the following packages:
 * A C compiler (preferably GCC or TDM-GCC_ MinGW_ on Windows)
 
 
+AnuGA is developed on Ubuntu. The preferred way t oinstall the dependencies is 
+to use the standard ubuntu ``apt-get`` method. 
+
+We have a script in the ``tools`` directory,
+`install_ubuntu.sh <https://github.com/GeoscienceAustralia/anuga_core/blob/master/tools/install_ubuntu.sh>`_
+which you can run from the ``anuga_core`` directory which installs all the dependencies using ``apt-get``.
+
+For extended instructions checkout the wiki page
+`install ANUGA on Ubuntu <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu>`_
 
 
-The easiest and **preferred** way to get all dependencies in the latest
-version is using the Anaconda_ or the Miniconda_ Python 
+
+Alternative Ubuntu Install
+++++++++++++++++++++++++++
+
+An alternative is to install the dependencies using the Anaconda_ or the Miniconda_ Python 
 distributions by `Continuum Analytics`_.
 
-Miniconda_ has the added advantage of allowing you to create multiple 
+Miniconda_ has the advantage of allowing you to create multiple 
 python environments and is particularly 
 useful if you want to keep multiple versions of AnuGA.
 
@@ -49,7 +61,7 @@ in your system.
 
 
 Anaconda
-++++++++
+~~~~~~~~
 
 Once you have downloaded and installed Anaconda_,
 open a terminal (or ``cmd.exe`` on Windows) and run::
@@ -64,7 +76,7 @@ and setup GDAL_DATA environment variable:
 (You should add this command to your .bashrc file.)    
 
 Miniconda
-+++++++++
+~~~~~~~~~
 
 Once you have downloaded and installed Miniconda_, 
 open a terminal (or ``cmd.exe`` on Windows), create 
@@ -82,7 +94,24 @@ and setup GDAL_DATA environment variable:
     
 (You should add this to your .bashrc file.)
 
-Extra dependencies for Windows users
+
+Windows Dependency Installation
++++++++++++++++++++++++++++++++
+
+We have successfully install AnuGA on windows using Gohlke Binaries and using Miniconda. 
+At present we recommend using the Gohlke Binaries. 
+
+Follow the instructions 
+`install ANUGA on Windows using the Gohlke Binaries
+<https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-using-Gohlke-Binaries>`_
+
+Alternatively if you want ot use Miniconda, follow the instructions 
+`install ANUGA on Windows using the Gohlke Binaries
+<https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-using-Miniconda>`_
+
+
+
+GCC dependency for Windows users
 ++++++++++++++++++++++++++++++++++++
 
 Unfortunately, the ``gcc`` compiler MinGW_ included in Anaconda or 
@@ -94,6 +123,7 @@ We suggest that you download and install the version of MinGW_ provided by TDM-G
 Don't forget to mark the ``openmp`` and ``gfortran`` options in the "Choose Components" part of
 the installation. See this `excellent documentation for Windows users`_
 (they even have screenshots!). The same applies if you are using Miniconda_.
+
 
 Installing AnuGA
 ----------------
