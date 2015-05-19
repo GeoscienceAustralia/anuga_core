@@ -1490,6 +1490,45 @@ class Generic_Domain:
 
         All times are given in seconds
         """
+        
+        for t in self._evolve_base(yieldstep=yieldstep,
+                                   finaltime=finaltime, duration=duration,
+                                   skip_initial_step=skip_initial_step):
+            
+            # Pass control on to outer loop for more specific actions
+            yield(t)
+        
+
+    def _evolve_base(self, yieldstep=None,
+                     finaltime=None,
+                     duration=None,
+                     skip_initial_step=False):
+        """Evolve model through time starting from self.starttime.
+
+        yieldstep: Interval between yields where results are stored,
+                   statistics written and domain inspected or
+                   possibly modified. If omitted the internal predefined
+                   max timestep is used.
+                   Internally, smaller timesteps may be taken.
+
+        duration: Duration of simulation
+
+        finaltime: Time where simulation should end. This is currently
+        relative time.  So it's the same as duration.
+
+        If both duration and finaltime are given an exception is thrown.
+
+        skip_initial_step: Boolean flag that decides whether the first
+        yield step is skipped or not. This is useful for example to avoid
+        duplicate steps when multiple evolve processes are dove tailed.
+
+        Evolve is implemented as a generator and is to be called as such, e.g.
+
+        for t in domain.evolve(yieldstep, finaltime):
+            <Do something with domain and t>
+
+        All times are given in seconds
+        """
 
         from anuga.config import epsilon
 
@@ -1552,25 +1591,14 @@ class Generic_Domain:
         self.number_of_steps = 0
         self.number_of_first_order_steps = 0
 
-        # Update centroid values of conserved quantites to satisfy
-        # special conditions
-        #self.update_special_conditions()
 
         # Update ghosts to ensure all centroid values are available
         self.update_ghosts()
 
 
-        # Initial update of vertex and edge values
-        self.distribute_to_vertices_and_edges()
-
-
-        # Initial update boundary values
-        self.update_boundary()
-
-
         # Update extrema if necessary (for reporting)
         self.update_extrema()
-
+        
 
 
         # Or maybe restore from latest checkpoint
@@ -1578,12 +1606,19 @@ class Generic_Domain:
         #    self.goto_latest_checkpoint()
 
         if skip_initial_step is False:
+            
+            #==========================================
+            # Assuming centroid values ok, calculate edge and vertes values
+            #==========================================  
+            self.distribute_to_vertices_and_edges()
+            self.update_boundary()
+
             yield(self.get_time())      # Yield initial values
 
         while True:
 
             initial_time = self.get_time()
-
+            
             #==========================================
             # Apply fluid flow fractional step
             #==========================================
@@ -1603,25 +1638,14 @@ class Generic_Domain:
 
             #==========================================
             # Centroid Values of variables should be ok,
-            # so now setup quantites etc for output
             #==========================================
 
             # Update time
             self.set_time(initial_time + self.timestep)
 
-            # Update ghosts
             self.update_ghosts()
 
-            # Update vertex and edge values
-            self.distribute_to_vertices_and_edges()
-
-            # Update boundary values
-            self.update_boundary()
-
-            # Update any other quantities that might be useful
-            # self.update_other_quantities()
-
-            # Update extrema if necessary (for reporting)
+            # Update extrema (only uses centroid values)
             self.update_extrema()            
 
             self.number_of_steps += 1
@@ -1629,7 +1653,6 @@ class Generic_Domain:
             if self._order_ == 1:
                 self.number_of_first_order_steps += 1
 
-            
 
             # Yield results
             if self.finaltime is not None and self.get_time() >= self.finaltime-epsilon:
@@ -1641,8 +1664,10 @@ class Generic_Domain:
                     msg = ('WARNING (domain.py): time overshot finaltime. ')
                     raise Exception(msg)
 
-                # Log and then Yield final time and stop
+                # Distribute to vertices, Log and then Yield final time and stop
                 self.set_time(self.finaltime)
+                self.distribute_to_vertices_and_edges()
+                self.update_boundary()
                 self.log_operator_timestepping_statistics()
                 yield(self.get_time())
                 break
@@ -1655,6 +1680,8 @@ class Generic_Domain:
                 #    self.delete_old_checkpoints()
 
                 # Log and then Pass control on to outer loop for more specific actions
+                self.distribute_to_vertices_and_edges()
+                self.update_boundary()
                 self.log_operator_timestepping_statistics()
                 yield(self.get_time())
 
@@ -1671,9 +1698,15 @@ class Generic_Domain:
         """One Euler Time Step
         Q^{n+1} = E(h) Q^n
 
-        Assumes that centroid values have been extrapolated to vertices and edges
+        Does not assume that centroid values have been extrapolated to vertices and edges
         """
 
+        # From centroid values calculate edge and vertex values
+        self.distribute_to_vertices_and_edges()
+            
+        # Apply boundary conditions
+        self.update_boundary()
+        
         # Compute fluxes across each element edge
         self.compute_fluxes()
 
@@ -1690,11 +1723,6 @@ class Generic_Domain:
         # Update conserved quantities
         self.update_conserved_quantities()
 
-        # Update special conditions
-        #self.update_special_conditions()
-
-        # Update ghosts
-        #self.update_ghosts()
 
 
 
@@ -1702,7 +1730,10 @@ class Generic_Domain:
     def evolve_one_rk2_step(self, yieldstep, finaltime):
         """One 2nd order RK timestep
         Q^{n+1} = 0.5 Q^n + 0.5 E(h)^2 Q^n
+        
+        Does not assume that centroid values have been extrapolated to vertices and edges
         """
+        
 
         # Save initial initial conserved quantities values
         self.backup_conserved_quantities()
@@ -1710,6 +1741,12 @@ class Generic_Domain:
         ######
         # First euler step
         ######
+        
+        # From centroid values calculate edge and vertex values
+        self.distribute_to_vertices_and_edges()
+            
+        # Apply boundary conditions
+        self.update_boundary()        
 
         # Compute fluxes across each element edge
         self.compute_fluxes()
@@ -1774,6 +1811,8 @@ class Generic_Domain:
         """One 3rd order RK timestep
         Q^(1) = 3/4 Q^n + 1/4 E(h)^2 Q^n  (at time t^n + h/2)
         Q^{n+1} = 1/3 Q^n + 2/3 E(h) Q^(1) (at time t^{n+1})
+        
+        Does not assume that centroid values have been extrapolated to vertices and edges
         """
 
         # Save initial initial conserved quantities values
@@ -1784,6 +1823,12 @@ class Generic_Domain:
         ######
         # First euler step
         ######
+
+        # From centroid values calculate edge and vertex values
+        self.distribute_to_vertices_and_edges()
+            
+        # Apply boundary conditions
+        self.update_boundary() 
 
         # Compute fluxes across each element edge
         self.compute_fluxes()
@@ -2187,6 +2232,16 @@ class Generic_Domain:
         """
 
         pass
+    
+    
+    def compute_flux_update_frequency(self):
+        """ Some flux calculations can be sped up by not recalculating
+        fluxes and interpolation for regions with low velocities and large 
+        triangles
+        """
+        
+        pass
+    
 
     def distribute_to_vertices_and_edges(self):
         """Extrapolate conserved quantities from centroid to

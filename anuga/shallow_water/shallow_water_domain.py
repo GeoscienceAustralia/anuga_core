@@ -552,6 +552,26 @@ class Domain(Generic_Domain):
         self.set_CFL(1.0)
         self.set_compute_fluxes_method('wb_2')
         self.set_extrapolate_velocity()
+        
+    def _set_2_5_defaults(self):
+        """Set up the defaults for running the flow_algorithm "2_0"
+           so that users can revert back to old default algorithm
+        """  
+              
+        self._set_config_defaults()
+        
+        self.set_timestepping_method(3)
+        self.set_default_order(2)
+        beta_w      = 1.9
+        beta_w_dry  = 0.2
+        beta_uh     = 1.9
+        beta_uh_dry = 0.2
+        beta_vh     = 1.9
+        beta_vh_dry = 0.2
+        self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
+        self.set_CFL(1.0)
+        self.set_compute_fluxes_method('wb_2')
+        self.set_extrapolate_velocity()
 
     def _set_DE0_defaults(self):
         """Set up the defaults for running the flow_algorithm "DE0"
@@ -671,14 +691,76 @@ class Domain(Generic_Domain):
             print '#'
             print '# Using discontinuous elevation solver DE1 '
             print '#'
-            print '# Mostly designed for rk2 timestepping'
+            print '# Uses rk2 timestepping'
+            print '#'
+            print '# Make sure you use centroid values when reporting on important output quantities'
+            print '#'
+            print '##########################################################################'
+            
+    def _set_DE2_defaults(self):
+        """Set up the defaults for running the flow_algorithm "DE2"
+           A 'discontinuous elevation' method
+        """
+        
+        self._set_config_defaults()
+        
+        self.set_CFL(1.0)
+        self.set_use_kinematic_viscosity(False)
+        #self.timestepping_method='rk2'#'rk3'#'euler'#'rk2' 
+        self.set_timestepping_method(3)
+        
+        self.set_using_discontinuous_elevation(True)
+        self.set_compute_fluxes_method('DE')
+        self.set_distribute_to_vertices_and_edges_method('DE')
+        
+        # Don't place any restriction on the minimum storable height
+        self.minimum_storable_height=-99999999999.0 
+        self.minimum_allowed_height=1.0e-5
+
+        self.use_edge_limiter=True
+        self.set_default_order(2)
+        self.set_extrapolate_velocity()
+
+        self.beta_w=1.0
+        self.beta_w_dry=0.0
+        self.beta_uh=1.0
+        self.beta_uh_dry=0.0
+        self.beta_vh=1.0
+        self.beta_vh_dry=0.0
+        
+
+        #self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
+        #         'ymomentum': 2, 'elevation': 2, 'height':2})
+        #self.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 
+        #         'ymomentum': 2, 'elevation': 1})
+        self.set_store_centroids(True)
+
+        self.optimise_dry_cells=False 
+
+        # We need the edge_coordinates for the extrapolation
+        self.edge_coordinates=self.get_edge_midpoint_coordinates()
+
+        # By default vertex values are NOT stored uniquely
+        # for storage efficiency. We may override this (but not so important since
+        # centroids are stored anyway
+        # self.set_store_vertices_smoothly(False)
+
+        self.maximum_allowed_speed=0.0
+
+
+        if self.processor == 0 and self.verbose:
+            print '##########################################################################'
+            print '#'
+            print '# Using discontinuous elevation solver DE3'
+            print '#'
+            print '# Using rk3 timestepping'
             print '#'
             print '# Make sure you use centroid values when reporting on important output quantities'
             print '#'
             print '##########################################################################'
 
-    def _set_DE2_defaults(self):
-        """Set up the defaults for running the flow_algorithm "DE2"
+    def _set_DE1_7_defaults(self):
+        """Set up the defaults for running the flow_algorithm "DE0_7"
            A 'discontinuous elevation' method
         """
         
@@ -730,7 +812,7 @@ class Domain(Generic_Domain):
         if self.processor == 0 and self.verbose:
             print '##########################################################################'
             print '#'
-            print '# Using discontinuous elevation solver DE2 '
+            print '# Using discontinuous elevation solver DE1_7 '
             print '#'
             print '# A slightly more diffusive version of DE1, does use rk2 timestepping'
             print '#'
@@ -739,7 +821,7 @@ class Domain(Generic_Domain):
             print '##########################################################################'
 
 
-    def _set_DE3_defaults(self):
+    def _set_DE0_7_defaults(self):
         """Set up the defaults for running the flow_algorithm "DE3"
            A 'discontinuous elevation' method
         """
@@ -792,7 +874,7 @@ class Domain(Generic_Domain):
         if self.processor == 0 and self.verbose:
             print '##########################################################################'
             print '#'
-            print '# Using discontinuous elevation solver DE3'
+            print '# Using discontinuous elevation solver DE0_7'
             print '#'
             print '# A slightly less diffusive version than DE0, uses euler timestepping'
             print '#'
@@ -1011,7 +1093,8 @@ class Domain(Generic_Domain):
            DE0
            DE1
            DE2
-           DE3
+           DE0_7
+           DE1_7
         """
 
         if isinstance(flag, str) :
@@ -1020,7 +1103,8 @@ class Domain(Generic_Domain):
             flag = str(float(str(flag))).replace(".","_")
 
         flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', \
-                           'tsunami', 'yusuke', 'DE0', 'DE1', 'DE2', 'DE3']
+                           'tsunami', 'yusuke', 'DE0', 'DE1', 'DE2', \
+                           'DE0_7', "DE1_7"]
 
         if flag in flow_algorithms:
             self.flow_algorithm = flag
@@ -1122,14 +1206,17 @@ class Domain(Generic_Domain):
         if self.flow_algorithm == 'DE2':
             self._set_DE2_defaults()
             
-        if self.flow_algorithm == 'DE3':
-            self._set_DE3_defaults()
+        if self.flow_algorithm == 'DE0_7':
+            self._set_DE0_7_defaults()
+            
+        if self.flow_algorithm == 'DE1_7':
+            self._set_DE1_7_defaults()
+
 
     def get_flow_algorithm(self):
         """
         Get method used for timestepping and spatial discretisation
 
-        Currently  1_0, 1_5, 1_75 2_0, 2_5, tsunami, DE0, DE1, DE2, DE3
         """
 
         return self.flow_algorithm
@@ -1971,22 +2058,24 @@ class Domain(Generic_Domain):
 
         elif self.compute_fluxes_method == 'DE':
 
-            from swDE1_domain_ext import protect
-
-            # shortcuts
-            wc = self.quantities['stage'].centroid_values
-            wv = self.quantities['stage'].vertex_values
-            zc = self.quantities['elevation'].centroid_values
-            zv = self.quantities['elevation'].vertex_values
-            xmomc = self.quantities['xmomentum'].centroid_values
-            ymomc = self.quantities['ymomentum'].centroid_values
-            areas = self.areas
-            xc = self.centroid_coordinates[:,0]
-            yc = self.centroid_coordinates[:,1] 
-
-            mass_error = protect(self.minimum_allowed_height, self.maximum_allowed_speed,
-                    self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas, xc, yc)
+            from swDE1_domain_ext import protect_new
             
+            mass_error = protect_new(self)
+
+#             # shortcuts
+#             wc = self.quantities['stage'].centroid_values
+#             wv = self.quantities['stage'].vertex_values
+#             zc = self.quantities['elevation'].centroid_values
+#             zv = self.quantities['elevation'].vertex_values
+#             xmomc = self.quantities['xmomentum'].centroid_values
+#             ymomc = self.quantities['ymomentum'].centroid_values
+#             areas = self.areas
+#             xc = self.centroid_coordinates[:,0]
+#             yc = self.centroid_coordinates[:,1] 
+ 
+            #mass_error = protect(self.minimum_allowed_height, self.maximum_allowed_speed,
+            #       self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas, xc, yc)
+#             
             if mass_error > 0.0 and self.verbose :
                 print 'Cumulative mass protection: '+str(mass_error)+' m^3 '
             
@@ -2276,9 +2365,9 @@ class Domain(Generic_Domain):
         if self.get_time() >= finaltime: yield
 
         # Call basic machinery from parent class
-        for t in Generic_Domain.evolve(self, yieldstep=yieldstep,
-                                       finaltime=finaltime, duration=duration,
-                                       skip_initial_step=skip_initial_step):
+        for t in self._evolve_base(yieldstep=yieldstep,
+                                   finaltime=finaltime, duration=duration,
+                                   skip_initial_step=skip_initial_step):
 
             self.yieldstep_id += 1
             walltime = time.time()
@@ -2318,6 +2407,47 @@ class Domain(Generic_Domain):
             # Pass control on to outer loop for more specific actions
             yield(t)
 
+
+
+    def evolve_one_euler_step(self, yieldstep, finaltime):
+        """One Euler Time Step
+        Q^{n+1} = E(h) Q^n
+
+        Does not assume that centroid values have been extrapolated to vertices and edges
+        """
+        
+#         if self.get_flow_algorithm() == 'DE0':
+# 
+#             from swDE1_domain_ext import evolve_one_euler_step
+#             evolve_one_euler_step(self,yieldstep,finaltime)
+#         
+#         else:
+            
+        # From centroid values calculate edge and vertex values
+        self.distribute_to_vertices_and_edges()
+            
+        # Apply boundary conditions
+        self.update_boundary()
+        
+        # Compute fluxes across each element edge
+        self.compute_fluxes()
+
+        # Compute forcing terms
+        self.compute_forcing_terms()
+
+        # Update timestep to fit yieldstep and finaltime
+        self.update_timestep(yieldstep, finaltime)
+
+        if self.max_flux_update_frequency is not 1:
+            # Update flux_update_frequency using the new timestep
+            self.compute_flux_update_frequency()
+
+        # Update conserved quantities
+        self.update_conserved_quantities()
+    
+        
+        
+        
 
     def initialise_storage(self):
         """Create and initialise self.writer object for storing data.

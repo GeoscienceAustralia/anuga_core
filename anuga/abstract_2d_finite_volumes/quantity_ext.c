@@ -813,8 +813,6 @@ int _update(int N,
 
 
 
-
-
 	// Reset semi_implicit_update here ready for next time step
 	memset(semi_implicit_update, 0, N*sizeof(double));
 
@@ -963,7 +961,7 @@ PyObject *update(PyObject *self, PyObject *args) {
 
 	if (err != 0) {
 	  PyErr_SetString(PyExc_RuntimeError,
-			  "quantity_ext.c: update, divsion by zero in semi implicit update - call Stephen :)");
+			  "quantity_ext.c: update, division by zero in semi implicit update - call Stephen :)");
 	  return NULL;
 	}
 

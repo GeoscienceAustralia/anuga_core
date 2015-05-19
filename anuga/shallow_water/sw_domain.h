@@ -19,6 +19,8 @@ struct domain {
     double  evolve_max_timestep;
     long    extrapolate_velocity_second_order;
     double  minimum_allowed_height;
+    double  maximum_allowed_speed;
+
 
     long timestep_fluxcalls;
 
@@ -207,6 +209,7 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     D->optimise_dry_cells   = get_python_integer(domain, "optimise_dry_cells");
     D->evolve_max_timestep  = get_python_double(domain, "evolve_max_timestep");
     D->minimum_allowed_height = get_python_double(domain, "minimum_allowed_height");
+    D->maximum_allowed_speed = get_python_double(domain, "maximum_allowed_speed");
     D->timestep_fluxcalls = get_python_integer(domain,"timestep_fluxcalls");
     
 
@@ -385,6 +388,7 @@ int print_domain_struct(struct domain *D) {
     printf("D->optimise_dry_cells     %ld \n", D->optimise_dry_cells);
     printf("D->evolve_max_timestep    %g \n", D->evolve_max_timestep);
     printf("D->minimum_allowed_height %g \n", D->minimum_allowed_height);
+    printf("D->maximum_allowed_speed  %g \n", D->maximum_allowed_speed);
     printf("D->extrapolate_velocity_second_order %ld \n", D->extrapolate_velocity_second_order);
     printf("D->beta_w                 %g \n", D->beta_w);
     printf("D->beta_w_dry             %g \n", D->beta_w_dry);

@@ -1139,83 +1139,6 @@ inline double  _protect(int N,
   return mass_error;
 }
 
-// Protect against the water elevation falling below the triangle bed
-inline double  _protect_new(struct domain *D) {
-
-  int k;
-  double hc, bmin, bmax;
-  double u, v, reduced_speed;
-  double mass_error = 0.;
-
-  double* wc;
-  double* zc;
-  double* wv;
-  double* xmomc;
-  double* ymomc;
-  double* areas;
-
-  double minimum_allowed_height;
-  double maximum_allowed_speed;
-  double epsilon;
-
-  minimum_allowed_height = D->minimum_allowed_height;
-  maximum_allowed_speed  = D->maximum_allowed_speed;
-  epsilon = D->epsilon;
-
-  wc = D->stage_centroid_values;
-  zc = D->bed_centroid_values;
-  wv = D->stage_vertex_values;
-  xmomc = D->xmom_centroid_values;
-  ymomc = D->ymom_centroid_values;
-  areas = D->areas;
-
-  // This acts like minimum_allowed height, but scales with the vertical
-  // distance between the bed_centroid_value and the max bed_edge_value of
-  // every triangle.
-  //double minimum_relative_height=0.05;
-  int mass_added = 0;
-
-  // Protect against inifintesimal and negative heights
-  //if (maximum_allowed_speed < epsilon) {
-    for (k=0; k<D->number_of_elements; k++) {
-      hc = wc[k] - zc[k];
-      if (hc < minimum_allowed_height*1.0 ){
-            // Set momentum to zero and ensure h is non negative
-            xmomc[k] = 0.;
-            ymomc[k] = 0.;
-        if (hc <= 0.0){
-             bmin = zc[k];
-             // Minimum allowed stage = bmin
-
-             // WARNING: ADDING MASS if wc[k]<bmin
-             if(wc[k] < bmin){
-                 mass_error += (bmin-wc[k])*areas[k];
-                 mass_added = 1; //Flag to warn of added mass
-
-                 wc[k] = bmin;
-
-                 // FIXME: Set vertex values as well. Seems that this shouldn't be
-                 // needed. However, from memory this is important at the first
-                 // time step, for 'dry' areas where the designated stage is
-                 // less than the bed centroid value
-                 wv[3*k] = min(bmin, wc[k]); //zv[3*k]-minimum_allowed_height);
-                 wv[3*k+1] = min(bmin, wc[k]); //zv[3*k+1]-minimum_allowed_height);
-                 wv[3*k+2] = min(bmin, wc[k]); //zv[3*k+2]-minimum_allowed_height);
-            }
-        }
-      }
-    }
-
-  //if(mass_added == 1){
-  //  printf("Cumulative mass protection: %f m^3 \n", mass_error);
-  //}
-
-  return mass_error;
-}
-
-
-
-
 inline int find_qmin_and_qmax(double dq0, double dq1, double dq2, 
                double *qmin, double *qmax){
   // Considering the centroid of an FV triangle and the vertices of its 
@@ -1655,7 +1578,7 @@ inline int _extrapolate_second_order_edge_sw(struct domain *D){
           b = dx1*dq2 - dx2*dq1;
           b *= inv_area2;
           
-          // Calculate provisional jumps in xmom from the centroid
+          // Calculate provisional jumps in stage from the centroid 
           // of triangle k to its vertices, to be limited      
           dqv[0] = a*dxv0+b*dyv0;
           dqv[1] = a*dxv1+b*dyv1;
@@ -1705,7 +1628,7 @@ inline int _extrapolate_second_order_edge_sw(struct domain *D){
           b = dx1*dq2 - dx2*dq1;
           b *= inv_area2;
           
-          // Calculate provisional jumps in ymom from the centroid
+          // Calculate provisional jumps in stage from the centroid 
           // of triangle k to its vertices, to be limited
           dqv[0] = a*dxv0 + b*dyv0;
           dqv[1] = a*dxv1 + b*dyv1;
@@ -2277,161 +2200,6 @@ PyObject *swde1_protect(PyObject *self, PyObject *args) {
   return Py_BuildValue("d", mass_error);
 }
 
-
-//========================================================================
-// Protect -- to prevent the water level from falling below the minimum
-// bed_edge_value
-//========================================================================
-
-PyObject *swde1_protect_new(PyObject *self, PyObject *args) {
-  //
-  //    protect(minimum_allowed_height, maximum_allowed_speed, wc, zc, xmomc, ymomc)
-
-	struct domain D;
-	PyObject *domain;
-
-	double mass_error;
-
-	// Convert Python arguments to C
-	if (!PyArg_ParseTuple(args, "O", &domain)) {
-		report_python_error(AT, "could not parse input arguments");
-		return NULL;
-	}
-
-	get_python_domain(&D, domain);
-
-	mass_error = _protect_new(&D);
-
-	return Py_BuildValue("d", mass_error);
-}
-
-
-
-
-//========================================================================
-// swde1_evolve_one_euler_step
-//========================================================================
-
-PyObject *swde1_evolve_one_euler_step(PyObject *self, PyObject *args) {
-  /*
-   * Implement one Euler step in C
-  */
-
-
-  PyObject* domain;
-  PyObject* arglist;
-  PyObject* result;
-
-  struct domain D;
-
-  double yieldstep;
-  double finaltime;
-  double flux_timestep;
-
-  int e;
-  double mass_error;
-
-
-  if (!PyArg_ParseTuple(args, "Odd", &domain, &yieldstep, &finaltime)) {
-      report_python_error(AT, "could not parse input arguments");
-      return NULL;
-  }
-
-
-  get_python_domain(&D, domain);
-
-  //printf("In C_evolve %f %f \n", yieldstep, finaltime);
-
-
-  // From centroid values calculate edge and vertex values
-  //printf("distribute_to_vertices_and_edges\n");
-//  result = PyObject_CallMethod(domain,"distribute_to_vertices_and_edges",NULL);
-//  if (result == NULL) {
-//     return NULL;
-//  }
-//  Py_DECREF(result);
-
-  mass_error = _protect_new(&D);
-
-  e = _extrapolate_second_order_edge_sw(&D);
-  if (e == -1) {
-    // Use error string set inside computational routine
-    return NULL;
-  }
-
-
-  // Apply boundary conditions
-  //printf("update_boundary\n");
-  result = PyObject_CallMethod(domain,"update_boundary",NULL);
-  if (result == NULL) {
-     return NULL;
-  }
-  Py_DECREF(result);
-
-
-
-  //Compute fluxes across each element edge
-  //printf("compute_fluxes\n");
-//  result = PyObject_CallMethod(domain,"compute_fluxes",NULL);
-//  if (result == NULL) {
-//     return NULL;
-//  }
-//  Py_DECREF(result);
-
-
-  flux_timestep =_compute_fluxes_central(&D, D.evolve_max_timestep);
-
-
-  result = PyFloat_FromDouble(flux_timestep);
-  if (result == NULL) {
-     return NULL;
-  }
-  if (!PyFloat_Check(result)) {
-     return NULL;
-  }
-  e = PyObject_SetAttrString(domain, "flux_timestep", result);
-  if (e == -1) {
-    // Use error string set inside computational routine
-    return NULL;
-  }
-  Py_DECREF(result);
-
-
-
-
-
-  //Compute forcing terms
-  //printf("compute_forcing_terms\n");
-  result = PyObject_CallMethod(domain,"compute_forcing_terms",NULL);
-  if (result == NULL) {
-     return NULL;
-  }
-  Py_DECREF(result);
-
-  //Update timestep to fit yieldstep and finaltime
-  //printf("update_timestep\n");
-  result = PyObject_CallMethod(domain,"update_timestep","dd",yieldstep,finaltime);
-  if (result == NULL) {
-     return NULL;
-  }
-  Py_DECREF(result);
-
-  //if self.max_flux_update_frequency is not 1:
-  // Update flux_update_frequency using the new timestep
-  // self.compute_flux_update_frequency()
-
-  // Update conserved quantities
-  //printf("update_conserved_quantities\n");
-  result = PyObject_CallMethod(domain,"update_conserved_quantities",NULL);
-  if (result == NULL) {
-     return NULL;
-  }
-  Py_DECREF(result);
-
-  Py_RETURN_NONE;
-
-}// swde1_evolve_one_euler_step
-
 //========================================================================
 // Method table for python module
 //========================================================================
@@ -2448,8 +2216,6 @@ static struct PyMethodDef MethodTable[] = {
   {"extrapolate_second_order_edge_sw", swde1_extrapolate_second_order_edge_sw, METH_VARARGS, "Print out"},
   {"compute_flux_update_frequency", swde1_compute_flux_update_frequency, METH_VARARGS, "Print out"},
   {"protect",          swde1_protect, METH_VARARGS | METH_KEYWORDS, "Print out"},
-  {"protect_new",      swde1_protect_new, METH_VARARGS | METH_KEYWORDS, "Print out"},
-  {"evolve_one_euler_step", swde1_evolve_one_euler_step, METH_VARARGS | METH_KEYWORDS, "Print out"},
   {NULL, NULL, 0, NULL}
 };
 
