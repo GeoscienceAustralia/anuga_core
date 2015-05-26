@@ -164,8 +164,11 @@ class Structure_operator(anuga.Operator):
             # Try to enforce a constant inlet elevation 
             inlet_global_elevation = self.inlets[-1].get_average_elevation() 
             self.inlets[-1].set_elevations(inlet_global_elevation)
+            
+        if invert_elevation0  is not None:
+            self.inlets[-1].set_elevations(invert_elevation0)
 
-        tris_0 = self.inlets[0].triangle_indices
+        #tris_0 = self.inlets[0].triangle_indices
         #print tris_0
         #print self.domain.centroid_coordinates[tris_0]
 
@@ -197,8 +200,11 @@ class Structure_operator(anuga.Operator):
             # Try to enforce a constant inlet elevation 
             inlet_global_elevation = self.inlets[-1].get_average_elevation() 
             self.inlets[-1].set_elevations(inlet_global_elevation)
+            
+        if invert_elevation1 is not None:
+            self.inlets[-1].set_elevations(invert_elevation1)
 
-        tris_1 = self.inlets[1].triangle_indices
+        #tris_1 = self.inlets[1].triangle_indices
         
         self.set_logging(logging)
 
