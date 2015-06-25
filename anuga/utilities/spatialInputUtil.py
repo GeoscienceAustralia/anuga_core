@@ -1126,7 +1126,7 @@ if gdal_available:
             MUST HAVE A SINGLE ATTRIBUTE REPRESENTING THE LENGTHS OF TRIANGLES IN
              REGIONS
 
-            INPUT: shapefile -- name of the input shapefile
+            INPUT: shapefile -- name of the input shapefile (or a 3 column csv file with x, y, res)
                    convert_length_to_area -- if True, res values are assumed to
                           represent triangle side lengths, and are converted to areas with 0.5*res0*res0
                           Note that this might not ensure that the max triangle side length really is res0, but
@@ -1136,14 +1136,30 @@ if gdal_available:
             OUTPUT: list of the form  [ [x0,y0,res0], [x1, y1, res1], ...]
         """
 
-        ptData = readShpPtsAndAttributes(shapefile)
+        if shapefile[-4:] == '.shp'
+            ptData = readShpPtsAndAttributes(shapefile)
 
-        # Must have only 1 attribute
-        if not (len(ptData[2]) == 1):
-            msg = 'Shapefile ' + shapefile + ' does not contain exactly 1 ' +\
-                  'attribute, so cannot be read as a regionPointArea'
-            raise Exception(msg)
+            # Must have only 1 attribute
+            if not (len(ptData[2]) == 1):
+                msg = 'Shapefile ' + shapefile + ' does not contain exactly 1 ' +\
+                      'attribute, so cannot be read as a regionPointArea'
+                raise Exception(msg)
 
+        else:
+            # Assume file is csv
+            f = open(shapefile)
+            firstLine = f.readline()
+            f.close()
+            # If the top line has any letters, assume it is a header
+            hasLetters = any(c.isalpha() for c in firstLine)
+            ptData = numpy.genfromtxt(shapefile, delimiter=",", skip_header=int(hasLetters))
+            if len(ptData[0,:]) != 3:
+                msg = 'Region point areas text file must have exactly 3 columns separated by commas'
+                raise Exception(msg)
+
+            ptData = [ptData[:,0:2].tolist(), ptData[:,2].tolist()]
+
+        # Convert to the required format
         numPts = len(ptData[0])
         outData = []
         for i in range(numPts):
