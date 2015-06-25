@@ -1136,7 +1136,7 @@ if gdal_available:
             OUTPUT: list of the form  [ [x0,y0,res0], [x1, y1, res1], ...]
         """
 
-        if shapefile[-4:] == '.shp'
+        if shapefile[-4:] == '.shp':
             ptData = readShpPtsAndAttributes(shapefile)
 
             # Must have only 1 attribute
