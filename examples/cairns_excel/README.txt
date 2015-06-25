@@ -38,3 +38,14 @@ There are also various post-processing scripts (see them for details):
     make_anugaviewer_movie.py
     points_export.py
     raster_export.py
+
+## NOTE ##
+This example is for illustrative purposes, to show how to set up a model with
+the excel interface. It is not a realistic case (obviously!). Also 'design'
+decisions about the mesh resolution and structure, placement of boundary
+conditions, friction, elevation data quality, etc have not been given high
+scrutiny or quality control.  In a 'real' study I would probably move the
+lateral boundaries further away from the region of interest, do convergence
+testing to check the influence of mesh size, potentially use a more carefully
+designed mesh, etc.  All those things could be done using this excel interface.
+
