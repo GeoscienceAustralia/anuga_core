@@ -1148,7 +1148,7 @@ def plot_triangles(p, adjustLowerLeft=False, values=None, values_cmap=matplotlib
         
        @param p = object holding sww vertex information (from util.get_output)
        @param adjustLowerLeft = if TRUE, use spatial coordinates, otherwise use ANUGA internal coordinates     
-       @param values = list or array of length(p.x), or None. All triangles are assigned this value (for face plotting colors).
+       @param values = list or array of length(p.vols), or None. All triangles are assigned this value (for face plotting colors).
        @param values_cmap = colormap for faces [e.g. values_cmap = matplotlib.cm.get_cmap('spectral')]
        @param edgecolors = edge color for polygons (using matplotlib.colors notation). Use 'none' for no color
     """
