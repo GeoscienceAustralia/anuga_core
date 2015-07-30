@@ -143,7 +143,13 @@ class PrepareData(ProjectData):
             print 'PROCESS_PROJECT_DATA'
             print '---------------------'
             print ''
-        barrier()
+            # Record the time and broadcast to other processers
+            time_number = time.time()
+            if numprocs > 1:
+                for i in range(1, numprocs):
+                    send(time_number, i)
+        else:
+            time_number = receive(0)
 
         # We can either use interior regions, or breaklines
 
@@ -201,19 +207,24 @@ class PrepareData(ProjectData):
 
         # Here we make a unique ID based on the all the mesh geometry inputs
         # This tells us if we need to regenerate partitions, or use old ones
+        mesh_dependency_information = [
+                self.bounding_polygon,
+                self.interior_regions,
+                self.riverwalls,
+                self.breaklines,
+                self.region_point_areas,
+                self.default_res,
+                self.boundary_tags
+            ]
 
-        self.mesh_id_hash = hashlib.md5(json.dumps([
-            self.bounding_polygon,
-            self.interior_regions,
-            self.riverwalls,
-            self.breaklines,
-            self.region_point_areas,
-            self.default_res,
-            self.boundary_tags,
-        ])).hexdigest()
+        if not self.use_existing_mesh_pickle:
+            # Append the time to the mesh dependency so we don't reuse old
+            # meshes
+            mesh_dependency_information.append([time_number])
+
+        self.mesh_id_hash = hashlib.md5(json.dumps(mesh_dependency_information)).hexdigest()
 
         # Fix the output tif bounding polygon
-
         if self.output_tif_bounding_polygon is None:
             self.output_tif_bounding_polygon = self.bounding_polygon
         else:

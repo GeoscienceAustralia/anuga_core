@@ -182,6 +182,9 @@ class ProjectData(object):
         #
         # #####################################################################
 
+        self.use_existing_mesh_pickle = data_source.get_var(
+            mesh_ws, 'use_existing_mesh_pickle', [0, 1], post_process=bool)
+
         self.bounding_polygon_and_tags_file = data_source.get_var(
             mesh_ws, 'bounding_polygon', [1, 1], post_process=str)
 
