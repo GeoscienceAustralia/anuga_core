@@ -26,6 +26,7 @@ import anuga.config as config
 from anuga.utilities.terminal_width import terminal_width
 import anuga.utilities.system_tools as aust
 from anuga import __version__
+from anuga import pypar_available
 
 
 #List files that should be excluded from the testing process.
@@ -33,9 +34,12 @@ from anuga import __version__
 exclude_files = []
 
 # Directories that should not be searched for test files.
-exclude_dirs = ['shallow_water_balanced' ,
-                '.svn',          # subversion
+exclude_dirs = ['shallow_water_balanced'     '.svn',          # subversion
                 'props', 'wcprops', 'prop-base', 'text-base', 'tmp']
+
+if not pypar_available:
+    exclude_dirs.append('parallel')
+
 
 # name of file to capture stdout in
 CaptureFilename = '.temp'
