@@ -735,7 +735,7 @@ class Quantity:
           fit_interpolate.fit fitting
 
         filename:
-          Name of a points file containing data points and attributes for
+          Name of a points file or dem file (.asc or .grd or .dem) containing data points and attributes for
           use with fit_interpolate.fit.
 
         attribute_name:
@@ -906,11 +906,20 @@ class Quantity:
                 max_read_lines = self.domain.points_file_block_line_size
             else:
                 max_read_lines = default_block_line_size
-            self.set_values_from_file(filename, attribute_name, alpha, location,
+	    filename_ext = filename.split('.')[1]
+	    # pts file in the format of .txt or .pts
+	    if filename_ext in ['txt', 'pts']:
+                self.set_values_from_file(filename, attribute_name, alpha, location,
                                       indices, verbose=verbose,
                                       max_read_lines=max_read_lines,
                                       use_cache=use_cache)
-        else:
+	    # dem file in the format of .asc, .grd or .dem 
+	    elif filename_ext in ['asc', 'grd', 'dem']:
+		self.set_values_from_utm_grid_file(filename, location,
+				      indices, verbose=verbose)
+	    else:
+	    	raise Exception("only pts (.txt; .pts) and dem files (.asc; .grd; .dem) are supported")
+	else:
             raise Exception("This can't happen :-)")
 
         # Update all locations in triangles
@@ -1280,7 +1289,7 @@ class Quantity:
                              indices=None,
                              verbose=False):
         
-        """Read Digital Elevation model from the following ASCII format (.asc or .grd)
+        """Read Digital Elevation model from the following ASCII format (.asc, .grd or .dem)
     
         Example:
         ncols         3121
@@ -1311,12 +1320,19 @@ class Quantity:
         
         
         from anuga.file_conversion.grd2array import grd2array
+        from anuga.file_conversion.dem2array import dem2array
+        file_ext = filename.split('.')[1]
         
-        x,y,Z = grd2array(filename)
-           
+	if file_ext in ['asc', 'grd']:
+            x,y,Z = grd2array(filename)
+        
+	elif file_ext == 'dem':
+	    x,y,Z = dem2array(filename)
+	    Z = num.fliplr(Z.T)
         
         if location == 'centroids':
             points = self.domain.centroid_coordinates
+        
         else:
             points = self.domain.vertex_coordinates
             
