@@ -158,7 +158,7 @@ else:
 #------------------------------------------------------------------------------
 domain = distribute(domain)
 
-domain.set_store_vertices_uniquely()
+#domain.set_store_vertices_uniquely()
 
 #------------------------------------------------------------------------------
 # Setup computational domain
@@ -207,7 +207,7 @@ for t in domain.evolve(yieldstep=10,finaltime=1000):#1000
     if myid == 0: print domain.timestepping_statistics()
 
 
-domain.sww_merge()
+domain.sww_merge(delete_old=True)
 
 #------------------------------------------------------------------------------
 # Make geotif output
