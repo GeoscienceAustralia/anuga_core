@@ -72,14 +72,18 @@ class Erosion_operator(Operator, Region):
         # Need to turn off this optimization as it
         # doesn't fixup the relationship between
         # bed and stage vertex values in dry region
+        # Not necessary for newer DE algorithms
         #------------------------------------------
-        self.domain.optimise_dry_cells = 0
+        if self.domain.get_using_discontinuous_elevation():
+            domain.self.domain.optimise_dry_cells = 0
 
         #-----------------------------------------
         # Extra structures to support maintaining
         # continuity of elevation
+        # Not necessary for newer DE algorithms
         #-----------------------------------------
-        self.setup_node_structures()
+        if self.domain.get_using_discontinuous_elevation():
+            self.setup_node_structures()
 
         #-----------------------------------------
         # Some extras for reporting
