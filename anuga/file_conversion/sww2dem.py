@@ -179,7 +179,7 @@ def sww2dem(name_in, name_out,
         if type(reduction) is not types.BuiltinFunctionType:
             log.critical('    Time: %f' % times)
         else:
-            log.critical('    Start time: %f' % fid.starttime[0])
+            log.critical('    Start time: %f' % fid.starttime)
         log.critical('  Extent:')
         log.critical('    x [m] in [%f, %f], len(x) == %d'
                      %(num.min(x), num.max(x), len(x.flat)))
