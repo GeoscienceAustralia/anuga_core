@@ -1,4 +1,4 @@
-import unittest, os
+import unittest, os, sys
 import numpy as num
 
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
@@ -70,7 +70,7 @@ class Test_Sww2Dem(unittest.TestCase):
         self.Y = C[:,1:6:2].copy()
 
         self.F = bed
-        self.verbose = False
+        self.verbose = False 
 
 
     def tearDown(self):
@@ -447,9 +447,9 @@ class Test_Sww2Dem(unittest.TestCase):
         #fid.close()
 
         #Cleanup
-        #os.remove(prjfile)
-        #os.remove(ascfile)
-        #os.remove(swwfile)
+        os.remove(prjfile)
+        os.remove(ascfile)
+        os.remove(swwfile)
         
 
     def test_sww2dem_larger_1_5(self):
@@ -610,9 +610,9 @@ class Test_Sww2Dem(unittest.TestCase):
 
 
         #Cleanup
-        #os.remove(prjfile)
-        #os.remove(ascfile)
-        #os.remove(swwfile)
+        os.remove(prjfile)
+        os.remove(ascfile)
+        os.remove(swwfile)
 
 
 
@@ -1245,7 +1245,6 @@ class Test_Sww2Dem(unittest.TestCase):
                 reduction = min,
                 verbose = self.verbose)
 
-
         #Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
@@ -1293,10 +1292,10 @@ class Test_Sww2Dem(unittest.TestCase):
 
         fid.close()
 
-        #Cleanup
-        os.remove(prjfile)
-        os.remove(ascfile)
-        os.remove(swwfile)
+        #Cleanup    
+	os.remove(prjfile)
+	os.remove(ascfile)
+	os.remove(swwfile)
 
 
 
@@ -1835,6 +1834,8 @@ class Test_Sww2Dem(unittest.TestCase):
                 verbose = self.verbose,
                 format = 'asc')
 
+	#check sww2dem output	
+	
         #Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
@@ -2144,7 +2145,89 @@ class Test_Sww2Dem(unittest.TestCase):
         else:
             self.assertTrue(0 ==1,  'Bad input did not throw exception error!')
         
+    def test_sww2dem_verbose_True(self):
+	'''test sww2dem when verbose is True
+		uses the example from function test_sww2dem_asc_elevation_depth'''
+        import time, os
 
+        # Setup
+        self.domain.set_name('datatest')
+
+        prjfile = self.domain.get_name() + '_elevation.prj'
+        ascfile = self.domain.get_name() + '_elevation.asc'
+        swwfile = self.domain.get_name() + '.sww'
+
+        self.domain.set_datadir('.')
+        self.domain.set_flow_algorithm('1_5')
+        self.domain.format = 'sww'
+        self.domain.smooth = True
+        self.domain.set_quantity('elevation', lambda x,y: -x-y)
+        self.domain.set_quantity('stage', 1.0)
+
+        self.domain.geo_reference = Geo_reference(56, 308500, 6189000)
+
+        sww = SWW_file(self.domain)
+        sww.store_connectivity()
+        sww.store_timestep()
+
+        self.domain.evolve_to_end(finaltime = 0.01)
+        sww.store_timestep()
+
+        cellsize = 0.25
+ 	#check sww2dem putout
+	sww2dem(swwfile, ascfile,
+                quantity = 'elevation',
+                cellsize = cellsize,
+                number_of_decimal_places = 9,
+                verbose = True)       
+
+	output_verbose_True = '''Reading from datatest.sww
+	Output directory is datatest_elevation.asc
+	------------------------------------------------
+	Statistics of SWW file:
+	  Name: datatest.sww
+	  Reference:
+	    Lower left corner: [308500.000000, 6189000.000000]
+	    Start time: 0.000000
+	  Extent:
+	    x [m] in [0.000000, 1.000000], len(x) == 9
+	    y [m] in [0.000000, 1.000000], len(y) == 9
+	    t [s] in [0.000000, 0.010000], len(t) == 2
+	  Quantities [SI units]:
+	    stage in [1.000000, 1.000000]
+	    xmomentum in [-0.000000, 0.000000]
+	    ymomentum in [-0.000000, 0.000000]
+	    elevation in [-2.000000, 0.000000]
+	Slicing sww file, num points: 9, block size: 10000
+	Processed values for elevation are in [-2.000000, 0.000000]
+	Creating grid
+	Interpolated values are in [-2.000000, 0.000000]
+	Writing datatest_elevation.prj
+	Writing datatest_elevation.asc
+	Doing row 0 of 5
+	Doing row 1 of 5
+	Doing row 2 of 5
+	Doing row 3 of 5
+	Doing row 4 of 5'''
+
+	output_verbose_True = output_verbose_True.split('\n\t')
+	
+	# extract the test results for this function
+        log_file = open('anuga.log')
+        log_content = log_file.read()
+	log_file.close()
+        
+	output = 'Reading'+ log_content.split('Reading')[-1]
+	output = output.split('\n')[:-1]
+
+	# check the output line by line
+	for output_verbose_True_line, line in zip(output_verbose_True, output):
+	    assert line.split("|")[-1] == output_verbose_True_line
+
+	#cleanup
+	os.remove(prjfile)
+        os.remove(ascfile)
+        os.remove(swwfile)
 #################################################################################
 
 if __name__ == "__main__":

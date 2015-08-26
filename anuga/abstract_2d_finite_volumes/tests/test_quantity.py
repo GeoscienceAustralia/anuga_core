@@ -5,6 +5,7 @@ from math import sqrt, pi
 import tempfile
 
 from anuga.abstract_2d_finite_volumes.quantity import *
+from anuga.file_conversion.asc2dem import asc2dem
 from anuga.config import epsilon
 
 from anuga.fit_interpolate.fit import fit_to_mesh
@@ -1577,11 +1578,10 @@ class Test_Quantity(unittest.TestCase):
 
         #print quantity.vertex_values
         #print quantity.centroid_values 
-
-        quantity.set_values_from_utm_grid_file(txt_file,
-                             location='vertices',
-                             indices=None,
-                             verbose=False)
+        quantity.set_values(filename = txt_file,
+                            location='vertices',
+                            indices=None,
+                            verbose=False)
 
         # check order of vertices
 
@@ -1600,10 +1600,10 @@ class Test_Quantity(unittest.TestCase):
         
         #print quantity.vertex_values
         #print quantity.centroid_values 
-        quantity.set_values_from_utm_grid_file(txt_file,
-                             location='centroids',
-                             indices=None,
-                             verbose=False)
+        quantity.set_values(filename = txt_file,
+                            location='centroids',
+                            indices=None,
+                            verbose=False)       
         
         #print quantity.vertex_values
         #print quantity.centroid_values      
@@ -1612,10 +1612,70 @@ class Test_Quantity(unittest.TestCase):
         answer = [ 2.66666667,  5.33333333,  4.66666667,  8.66666667]
         
         assert num.allclose(quantity.centroid_values, answer)
-        #Cleanup
-        #import os
-        os.remove(txt_file)        
         
+	# check dem file
+	# use the same reference solution used above for testing
+	# convert test_asc.asc file to .dem file
+	txt_file_prj = 'test_asc.prj' 
+	fid = open(txt_file_prj, 'w')
+	fid.write("""Projection UTM
+	Zone 56
+	Datum WGS84
+	Zunits NO
+	Units METERS
+	Spheroid WGS84
+	Xshift 0.0000000000
+	Yshift 10000000.0000000000
+	Parameters
+	""")
+	fid.close()
+	
+	txt_file_dem = 'test_asc.dem'
+	asc2dem(name_in=txt_file, name_out='test_asc',
+	        use_cache=False, verbose=False)
+
+        quantity.set_values(0.0)
+        quantity.set_values(filename = txt_file_dem,
+                            location='vertices',
+                            indices=None,
+                            verbose=False)
+
+        # check order of vertices
+
+        answer = [[  6.,   0.,   2.],
+                  [  6.,   2.,   8.],
+                  [  8.,  2.,   4.],
+                  [ 12.,   6.,   8.]]
+        #print quantity.vertex_values
+	#print quantity.vertex_values, 'vertex values'
+        assert num.allclose(quantity.vertex_values, answer)
+        
+        
+        #print quantity.vertex_values
+        #print quantity.centroid_values 
+        quantity.set_values(0.0)
+        
+        
+        #print quantity.vertex_values
+        #print quantity.centroid_values 
+        quantity.set_values(filename = txt_file_dem,
+                            location='centroids',
+                            indices=None,
+                            verbose=False)       
+	
+        #print quantity.vertex_values
+        #print quantity.centroid_values      , 'centroid values'
+        
+
+        answer = [ 2.66666667,  5.33333333,  4.66666667,  8.66666667]
+        
+        assert num.allclose(quantity.centroid_values, answer)
+
+       #Cleanup
+       #import os
+        os.remove(txt_file)   
+	os.remove(txt_file_prj)
+        os.remove(txt_file_dem)
 
 
     def test_set_values_from_quantity(self):
