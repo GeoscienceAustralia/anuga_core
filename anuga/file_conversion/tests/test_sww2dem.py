@@ -1,4 +1,4 @@
-import unittest, os
+import unittest, os, sys
 import numpy as num
 
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
@@ -24,6 +24,18 @@ from anuga.file_conversion.sww2dem import sww2dem, sww2dem_batch
 
 from pprint import pprint
 
+from cStringIO import StringIO
+import sys
+
+class Capturing(list):
+    def __enter__(self):
+        self._stdout = sys.stdout
+        sys.stdout = self._stringio = StringIO()
+        return self
+    def __exit__(self, *args):
+        self.extend(self._stringio.getvalue().splitlines())
+        sys.stdout = self._stdout
+
 class Test_Sww2Dem(unittest.TestCase):
     def setUp(self):
         import time
@@ -37,27 +49,27 @@ class Test_Sww2Dem(unittest.TestCase):
         domain.default_order = 2
 
         # Set some field values
-        domain.set_quantity('elevation', lambda x,y: -x)
+        domain.set_quantity('elevation', lambda x, y:-x)
         domain.set_quantity('friction', 0.03)
 
 
         ######################
         # Boundary conditions
         B = Transmissive_boundary(domain)
-        domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
+        domain.set_boundary({'left': B, 'right': B, 'top': B, 'bottom': B})
 
 
         ######################
-        #Initial condition - with jumps
+        # Initial condition - with jumps
         bed = domain.quantities['elevation'].vertex_values
         stage = num.zeros(bed.shape, num.float)
 
         h = 0.3
         for i in range(stage.shape[0]):
             if i % 2 == 0:
-                stage[i,:] = bed[i,:] + h
+                stage[i, :] = bed[i, :] + h
             else:
-                stage[i,:] = bed[i,:]
+                stage[i, :] = bed[i, :]
 
         domain.set_quantity('stage', stage)
 
@@ -66,12 +78,12 @@ class Test_Sww2Dem(unittest.TestCase):
         self.domain = domain
 
         C = domain.get_vertex_coordinates()
-        self.X = C[:,0:6:2].copy()
-        self.Y = C[:,1:6:2].copy()
+        self.X = C[:, 0:6:2].copy()
+        self.Y = C[:, 1:6:2].copy()
 
         self.F = bed
+#       self.verbose = False
         self.verbose = False
-
 
     def tearDown(self):
         pass
@@ -99,7 +111,7 @@ class Test_Sww2Dem(unittest.TestCase):
         self.domain.set_flow_algorithm('1_5')
         self.domain.format = 'sww'
         self.domain.smooth = True
-        self.domain.set_quantity('elevation', lambda x,y: -x-y)
+        self.domain.set_quantity('elevation', lambda x, y:-x - y)
         self.domain.set_quantity('stage', 1.0)
 
         self.domain.geo_reference = Geo_reference(56, 308500, 6189000)
@@ -109,12 +121,12 @@ class Test_Sww2Dem(unittest.TestCase):
         sww.store_timestep()
 
 
-        self.domain.evolve_to_end(finaltime = 0.01)
+        self.domain.evolve_to_end(finaltime=0.01)
         sww.store_timestep()
 
         cellsize = 0.25
-        #Check contents
-        #Get NetCDF
+        # Check contents
+        # Get NetCDF
 
         fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
@@ -133,15 +145,15 @@ class Test_Sww2Dem(unittest.TestCase):
 
         fid.close()
 
-        #Export to ascii/prj files
-        sww2dem(self.domain.get_name()+'.sww',
-                self.domain.get_name()+'_elevation.asc',
-                quantity = 'elevation',
-                cellsize = cellsize,
-                number_of_decimal_places = 9,
-                verbose = self.verbose)
+        # Export to ascii/prj files
+        sww2dem(self.domain.get_name() + '.sww',
+                self.domain.get_name() + '_elevation.asc',
+                quantity='elevation',
+                cellsize=cellsize,
+                number_of_decimal_places=9,
+                verbose=self.verbose)
 
-        #Check prj (meta data)
+        # Check prj (meta data)
         prjid = open(prjfile)
         lines = prjid.readlines()
         prjid.close()
@@ -182,7 +194,7 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[0].strip().lower() == 'parameters'
 
 
-        #Check asc file
+        # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
@@ -211,29 +223,29 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[0].strip() == 'NODATA_value'
         assert L[1].strip().lower() == '-9999'
 
-        #Check grid values
+        # Check grid values
         for j in range(5):
-            L = lines[6+j].strip().split()
-            y = (4-j) * cellsize
+            L = lines[6 + j].strip().split()
+            y = (4 - j) * cellsize
             for i in range(5):
-                assert num.allclose(float(L[i]), -i*cellsize - y)
+                assert num.allclose(float(L[i]), -i * cellsize - y)
                 
-        #Cleanup
+        # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
 
         ascfile = self.domain.get_name() + '_depth.asc'
         prjfile = self.domain.get_name() + '_depth.prj'
 
-        #Export to ascii/prj files
-        sww2dem(self.domain.get_name()+'.sww',
+        # Export to ascii/prj files
+        sww2dem(self.domain.get_name() + '.sww',
                 ascfile,
-                quantity = 'depth',
-                cellsize = cellsize,
-                number_of_decimal_places = 9,
-                verbose = self.verbose)
+                quantity='depth',
+                cellsize=cellsize,
+                number_of_decimal_places=9,
+                verbose=self.verbose)
         
-        #Check asc file
+        # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
@@ -262,15 +274,15 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[0].strip() == 'NODATA_value'
         assert L[1].strip().lower() == '-9999'
 
-        #Check grid values
+        # Check grid values
         for j in range(5):
-            L = lines[6+j].strip().split()
-            y = (4-j) * cellsize
+            L = lines[6 + j].strip().split()
+            y = (4 - j) * cellsize
             for i in range(5):
-                assert num.allclose(float(L[i]), 1 - (-i*cellsize - y))
+                assert num.allclose(float(L[i]), 1 - (-i * cellsize - y))
 
 
-        #Cleanup
+        # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
         os.remove(swwfile)
@@ -302,10 +314,10 @@ class Test_Sww2Dem(unittest.TestCase):
 
         import time, os
 
-        #Create basic mesh (100m x 100m)
+        # Create basic mesh (100m x 100m)
         points, vertices, boundary = rectangular(2, 2, 100, 100)
 
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Domain(points, vertices, boundary)
         domain.default_order = 2
 
@@ -322,11 +334,11 @@ class Test_Sww2Dem(unittest.TestCase):
 
 
         # FIXME: de0 algorithm doesn't recreate a linear function! 
-        domain.set_quantity('elevation', lambda x,y: -x-y)
+        domain.set_quantity('elevation', lambda x, y:-x - y)
         domain.set_quantity('stage', 0)
 
         B = Transmissive_boundary(domain)
-        domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
+        domain.set_boundary({'left': B, 'right': B, 'top': B, 'bottom': B})
 
         #
         sww = SWW_file(domain)
@@ -334,23 +346,23 @@ class Test_Sww2Dem(unittest.TestCase):
         sww.store_timestep()
         
         domain.tight_slope_limiters = 1
-        domain.evolve_to_end(finaltime = 0.01)
+        domain.evolve_to_end(finaltime=0.01)
         sww.store_timestep()
 
-        cellsize = 10.0  #10m grid
+        cellsize = 10.0  # 10m grid
 
         
-        #Export to ascii/prj files
+        # Export to ascii/prj files
         sww2dem(domain.get_name() + '.sww',
                 domain.get_name() + '_elevation.asc',
-                quantity = 'elevation',
-                cellsize = cellsize,
-                number_of_decimal_places = 3,
-                verbose = self.verbose,
+                quantity='elevation',
+                cellsize=cellsize,
+                number_of_decimal_places=3,
+                verbose=self.verbose,
                 block_size=2)
 
 
-        #Check prj (meta data)
+        # Check prj (meta data)
         prjid = open(prjfile)
         lines = prjid.readlines()
         prjid.close()
@@ -391,7 +403,7 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[0].strip().lower() == 'parameters'
 
 
-        #Check asc file
+        # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
@@ -420,36 +432,36 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[0].strip() == 'NODATA_value'
         assert L[1].strip().lower() == '-9999'
 
-        #Check grid values (FIXME: Use same strategy for other sww2dem tests)
+        # Check grid values (FIXME: Use same strategy for other sww2dem tests)
 
         V = [-1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02, -1.267e+02, -1.333e+02, -1.367e+02, -1.400e+02, -1.433e+02, -1.467e+02, -1.500e+02,
-             -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02, -1.267e+02, -1.300e+02, -1.333e+02, -1.367e+02, -1.400e+02, -1.467e+02,
-             -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02, -1.233e+02, -1.267e+02, -1.300e+02, -1.367e+02, -1.433e+02,
-             -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.167e+02, -1.200e+02, -1.267e+02, -1.333e+02, -1.400e+02,
-             -7.333e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.100e+02, -1.167e+02, -1.233e+02, -1.300e+02, -1.367e+02,
-             -6.667e+01, -7.333e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02, -1.267e+02, -1.333e+02,
-             -6.333e+01, -7.000e+01, -7.667e+01, -8.333e+01, -9.000e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02, -1.267e+02,
-             -6.000e+01, -6.667e+01, -7.333e+01, -8.000e+01, -8.333e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02,
-             -5.667e+01, -6.333e+01, -7.000e+01, -7.333e+01, -7.667e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02,
-             -5.333e+01, -6.000e+01, -6.333e+01, -6.667e+01, -7.000e+01, -7.333e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02,
-             -5.000e+01, -5.333e+01, -5.667e+01, -6.000e+01, -6.333e+01, -6.667e+01, -7.333e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02 ]    
+             - 9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02, -1.267e+02, -1.300e+02, -1.333e+02, -1.367e+02, -1.400e+02, -1.467e+02,
+             - 8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02, -1.233e+02, -1.267e+02, -1.300e+02, -1.367e+02, -1.433e+02,
+             - 8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.167e+02, -1.200e+02, -1.267e+02, -1.333e+02, -1.400e+02,
+             - 7.333e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.100e+02, -1.167e+02, -1.233e+02, -1.300e+02, -1.367e+02,
+             - 6.667e+01, -7.333e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02, -1.267e+02, -1.333e+02,
+             - 6.333e+01, -7.000e+01, -7.667e+01, -8.333e+01, -9.000e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02, -1.267e+02,
+             - 6.000e+01, -6.667e+01, -7.333e+01, -8.000e+01, -8.333e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02,
+             - 5.667e+01, -6.333e+01, -7.000e+01, -7.333e+01, -7.667e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02,
+             - 5.333e+01, -6.000e+01, -6.333e+01, -6.667e+01, -7.000e+01, -7.333e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02,
+             - 5.000e+01, -5.333e+01, -5.667e+01, -6.000e+01, -6.333e+01, -6.667e+01, -7.333e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02 ]    
         
         for i, line in enumerate(lines[6:]):
-            for j, value in enumerate( line.split() ):
-                assert num.allclose(float(value), V[i*11+j],
+            for j, value in enumerate(line.split()):
+                assert num.allclose(float(value), V[i * 11 + j],
                                     atol=1.0e-12, rtol=1.0e-12)
 
                 # Note: Equality can be obtained in this case,
                 # but it is better to use allclose.
-                #assert float(value) == -(10-i+j)*cellsize
+                # assert float(value) == -(10-i+j)*cellsize
 
 
-        #fid.close()
+        # fid.close()
 
-        #Cleanup
-        #os.remove(prjfile)
-        #os.remove(ascfile)
-        #os.remove(swwfile)
+        # Cleanup
+        os.remove(prjfile)
+        os.remove(ascfile)
+        os.remove(swwfile)
         
 
     def test_sww2dem_larger_1_5(self):
@@ -478,10 +490,10 @@ class Test_Sww2Dem(unittest.TestCase):
 
         import time, os
 
-        #Create basic mesh (100m x 100m)
+        # Create basic mesh (100m x 100m)
         points, vertices, boundary = rectangular(2, 2, 100, 100)
 
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Domain(points, vertices, boundary)
         domain.set_flow_algorithm('1_5')
         domain.default_order = 2
@@ -498,11 +510,11 @@ class Test_Sww2Dem(unittest.TestCase):
         domain.geo_reference = Geo_reference(56, 308500, 6189000)
 
         #
-        domain.set_quantity('elevation', lambda x,y: -x-y)
+        domain.set_quantity('elevation', lambda x, y:-x - y)
         domain.set_quantity('stage', 0)
 
         B = Transmissive_boundary(domain)
-        domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
+        domain.set_boundary({'left': B, 'right': B, 'top': B, 'bottom': B})
 
 
         #
@@ -511,24 +523,24 @@ class Test_Sww2Dem(unittest.TestCase):
         sww.store_timestep()
         
         domain.tight_slope_limiters = 1
-        domain.evolve_to_end(finaltime = 0.01)
+        domain.evolve_to_end(finaltime=0.01)
         sww.store_timestep()
 
-        cellsize = 10  #10m grid
+        cellsize = 10  # 10m grid
 
 
 
-        #Export to ascii/prj files
+        # Export to ascii/prj files
         sww2dem(domain.get_name() + '.sww',
                 domain.get_name() + '_elevation.asc',
-                quantity = 'elevation',
-                cellsize = cellsize,
-                number_of_decimal_places = 9,
-                verbose = self.verbose,
+                quantity='elevation',
+                cellsize=cellsize,
+                number_of_decimal_places=9,
+                verbose=self.verbose,
                 block_size=2)
 
 
-        #Check prj (meta data)
+        # Check prj (meta data)
         prjid = open(prjfile)
         lines = prjid.readlines()
         prjid.close()
@@ -569,7 +581,7 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[0].strip().lower() == 'parameters'
 
 
-        #Check asc file
+        # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
@@ -598,21 +610,21 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[0].strip() == 'NODATA_value'
         assert L[1].strip().lower() == '-9999'
 
-        #Check grid values (FIXME: Use same strategy for other sww2dem tests)
+        # Check grid values (FIXME: Use same strategy for other sww2dem tests)
         for i, line in enumerate(lines[6:]):
-            for j, value in enumerate( line.split() ):
-                assert num.allclose(float(value), -(10-i+j)*cellsize,
+            for j, value in enumerate(line.split()):
+                assert num.allclose(float(value), -(10 - i + j) * cellsize,
                                     atol=1.0e-12, rtol=1.0e-12)
 
                 # Note: Equality can be obtained in this case,
                 # but it is better to use allclose.
-                #assert float(value) == -(10-i+j)*cellsize
+                # assert float(value) == -(10-i+j)*cellsize
 
 
-        #Cleanup
-        #os.remove(prjfile)
-        #os.remove(ascfile)
-        #os.remove(swwfile)
+        # Cleanup
+        os.remove(prjfile)
+        os.remove(ascfile)
+        os.remove(swwfile)
 
 
 
@@ -630,14 +642,14 @@ class Test_Sww2Dem(unittest.TestCase):
 
         import time, os
 
-        #Setup
+        # Setup
 
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 
-        #Create basic mesh (100m x 100m)
+        # Create basic mesh (100m x 100m)
         points, vertices, boundary = rectangular_cross(20, 1, 20.0, 1.0)
 
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Domain(points, vertices, boundary)
         domain.default_order = 1
 
@@ -657,7 +669,7 @@ class Test_Sww2Dem(unittest.TestCase):
         domain.set_quantity('stage', 0)
 
         B = Transmissive_boundary(domain)
-        domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
+        domain.set_boundary({'left': B, 'right': B, 'top': B, 'bottom': B})
 
 
         #
@@ -666,14 +678,14 @@ class Test_Sww2Dem(unittest.TestCase):
         sww.store_timestep()
         
         domain.tight_slope_limiters = 1
-        domain.evolve_to_end(finaltime = 0.01)
+        domain.evolve_to_end(finaltime=0.01)
         sww.store_timestep()
 
-        cellsize = 1.0  #0.1 grid
+        cellsize = 1.0  # 0.1 grid
 
 
-        #Check contents
-        #Get NetCDF
+        # Check contents
+        # Get NetCDF
 
         fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
@@ -685,17 +697,17 @@ class Test_Sww2Dem(unittest.TestCase):
         stage = fid.variables['stage'][:]
 
 
-        #Export to ascii/prj files
-        sww2dem(domain.get_name()+'.sww',
+        # Export to ascii/prj files
+        sww2dem(domain.get_name() + '.sww',
                 domain.get_name() + '_elevation.asc',
-                quantity = 'elevation',
-                cellsize = cellsize,
-                number_of_decimal_places = 9,
-                verbose = self.verbose,
+                quantity='elevation',
+                cellsize=cellsize,
+                number_of_decimal_places=9,
+                verbose=self.verbose,
                 block_size=2)
 
 
-        #Check prj (meta data)
+        # Check prj (meta data)
         prjid = open(prjfile)
         lines = prjid.readlines()
         prjid.close()
@@ -737,7 +749,7 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[0].strip().lower() == 'parameters'
 
 
-        #Check asc file
+        # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
@@ -768,22 +780,22 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[0].strip() == 'NODATA_value'
         assert L[1].strip().lower() == '-9999'
 
-        #Check grid values (FIXME: Use same strategy for other sww2dem tests)
+        # Check grid values (FIXME: Use same strategy for other sww2dem tests)
         for i, line in enumerate(lines[6:]):
-            for j, value in enumerate( line.split() ):
-                #print value
+            for j, value in enumerate(line.split()):
+                # print value
                 assert num.allclose(float(value), 0.0,
                                     atol=1.0e-12, rtol=1.0e-12)
 
                 # Note: Equality can be obtained in this case,
                 # but it is better to use allclose.
-                #assert float(value) == -(10-i+j)*cellsize
+                # assert float(value) == -(10-i+j)*cellsize
 
 
         fid.close()
 
 
-        #Cleanup
+        # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
         os.remove(swwfile)
@@ -823,14 +835,14 @@ class Test_Sww2Dem(unittest.TestCase):
 
         import time, os
 
-        #Setup
+        # Setup
 
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
-        #Create basic mesh (100m x 100m)
+        # Create basic mesh (100m x 100m)
         points, vertices, boundary = rectangular(2, 2, 100, 100)
 
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Domain(points, vertices, boundary)
         domain.set_flow_algorithm('1_5')
 
@@ -846,11 +858,11 @@ class Test_Sww2Dem(unittest.TestCase):
         domain.geo_reference = Geo_reference(56, 308500, 6189000)
 
         #
-        domain.set_quantity('elevation', lambda x,y: -x-y)
+        domain.set_quantity('elevation', lambda x, y:-x - y)
         domain.set_quantity('stage', 0)
 
         B = Transmissive_boundary(domain)
-        domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
+        domain.set_boundary({'left': B, 'right': B, 'top': B, 'bottom': B})
 
 
         #
@@ -858,15 +870,15 @@ class Test_Sww2Dem(unittest.TestCase):
         sww.store_connectivity()
         sww.store_timestep()
 
-        #domain.tight_slope_limiters = 1
-        domain.evolve_to_end(finaltime = 0.01)
+        # domain.tight_slope_limiters = 1
+        domain.evolve_to_end(finaltime=0.01)
         sww.store_timestep()
 
-        cellsize = 10  #10m grid
+        cellsize = 10  # 10m grid
 
 
-        #Check contents
-        #Get NetCDF
+        # Check contents
+        # Get NetCDF
 
         fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
@@ -881,14 +893,14 @@ class Test_Sww2Dem(unittest.TestCase):
         # Export to ascii/prj files
         sww2dem(domain.get_name() + '.sww',
                 domain.get_name() + '_elevation.asc',
-                quantity = 'elevation',
-                cellsize = cellsize,
-                number_of_decimal_places = 9,
-                easting_min = 308530,
-                easting_max = 308570,
-                northing_min = 6189050,
-                northing_max = 6189100,
-                verbose = self.verbose)
+                quantity='elevation',
+                cellsize=cellsize,
+                number_of_decimal_places=9,
+                easting_min=308530,
+                easting_max=308570,
+                northing_min=6189050,
+                northing_max=6189100,
+                verbose=self.verbose)
 
         fid.close()
 
@@ -934,7 +946,7 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[0].strip().lower() == 'parameters'
 
 
-        #Check asc file
+        # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
@@ -963,15 +975,15 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[0].strip() == 'NODATA_value'
         assert L[1].strip().lower() == '-9999'
 
-        #Check grid values
+        # Check grid values
         for i, line in enumerate(lines[6:]):
-            for j, value in enumerate( line.split() ):
-                #assert float(value) == -(10-i+j)*cellsize
-                assert float(value) == -(10-i+j+3)*cellsize
+            for j, value in enumerate(line.split()):
+                # assert float(value) == -(10-i+j)*cellsize
+                assert float(value) == -(10 - i + j + 3) * cellsize
 
 
 
-        #Cleanup
+        # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
         os.remove(swwfile)
@@ -987,7 +999,7 @@ class Test_Sww2Dem(unittest.TestCase):
 
         import time, os
 
-        #Setup
+        # Setup
         self.domain.set_name('datatest')
 
         prjfile = self.domain.get_name() + '_stage.prj'
@@ -997,22 +1009,22 @@ class Test_Sww2Dem(unittest.TestCase):
         self.domain.set_datadir('.')
         self.domain.format = 'sww'
         self.domain.smooth = True
-        self.domain.set_quantity('elevation', lambda x,y: -x-y)
+        self.domain.set_quantity('elevation', lambda x, y:-x - y)
 
-        self.domain.geo_reference = Geo_reference(56,308500,6189000)
+        self.domain.geo_reference = Geo_reference(56, 308500, 6189000)
 
 
         sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
 
-        #self.domain.tight_slope_limiters = 1
-        self.domain.evolve_to_end(finaltime = 0.01)
+        # self.domain.tight_slope_limiters = 1
+        self.domain.evolve_to_end(finaltime=0.01)
         sww.store_timestep()
 
         cellsize = 0.25
-        #Check contents
-        #Get NetCDF
+        # Check contents
+        # Get NetCDF
 
         fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
@@ -1024,16 +1036,16 @@ class Test_Sww2Dem(unittest.TestCase):
         stage = fid.variables['stage'][:]
 
 
-        #Export to ascii/prj files
+        # Export to ascii/prj files
         sww2dem(self.domain.get_name() + '.sww',
                 self.domain.get_name() + '_stage.asc',
-                quantity = 'stage',
-                cellsize = cellsize,
-                number_of_decimal_places = 9,
-                reduction = min)
+                quantity='stage',
+                cellsize=cellsize,
+                number_of_decimal_places=9,
+                reduction=min)
 
 
-        #Check asc file
+        # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
@@ -1063,24 +1075,24 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[1].strip().lower() == '-9999'
 
 
-        #Check grid values (where applicable)
+        # Check grid values (where applicable)
         for j in range(5):
-            if j%2 == 0:
-                L = lines[6+j].strip().split()
-                jj = 4-j
+            if j % 2 == 0:
+                L = lines[6 + j].strip().split()
+                jj = 4 - j
                 for i in range(5):
-                    if i%2 == 0:
-                        index = jj/2 + i/2*3
-                        val0 = stage[0,index]
-                        val1 = stage[1,index]
+                    if i % 2 == 0:
+                        index = jj / 2 + i / 2 * 3
+                        val0 = stage[0, index]
+                        val1 = stage[1, index]
 
-                        #print i, j, index, ':', L[i], val0, val1
+                        # print i, j, index, ':', L[i], val0, val1
                         assert num.allclose(float(L[i]), min(val0, val1))
 
 
         fid.close()
 
-        #Cleanup
+        # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
         os.remove(swwfile)
@@ -1094,7 +1106,7 @@ class Test_Sww2Dem(unittest.TestCase):
 
         import time, os
 
-        #Setup
+        # Setup
         self.domain.set_name('datatest')
 
         prjfile = self.domain.get_name() + '_stage.prj'
@@ -1104,21 +1116,21 @@ class Test_Sww2Dem(unittest.TestCase):
         self.domain.set_datadir('.')
         self.domain.format = 'sww'
         self.domain.smooth = True
-        self.domain.set_quantity('elevation', lambda x,y: -x-y)
+        self.domain.set_quantity('elevation', lambda x, y:-x - y)
 
-        self.domain.geo_reference = Geo_reference(56,308500,6189000)
+        self.domain.geo_reference = Geo_reference(56, 308500, 6189000)
 
         sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
 
-        #self.domain.tight_slope_limiters = 1
-        self.domain.evolve_to_end(finaltime = 0.01)
+        # self.domain.tight_slope_limiters = 1
+        self.domain.evolve_to_end(finaltime=0.01)
         sww.store_timestep()
 
         cellsize = 0.25
-        #Check contents
-        #Get NetCDF
+        # Check contents
+        # Get NetCDF
 
         fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
@@ -1129,17 +1141,17 @@ class Test_Sww2Dem(unittest.TestCase):
         time = fid.variables['time'][:]
         stage = fid.variables['stage'][:]
 
-        #Export to ascii/prj files
+        # Export to ascii/prj files
         sww2dem(self.domain.get_name() + '.sww',
                 self.domain.get_name() + '_stage.asc',
-                quantity = 'stage',
-                cellsize = cellsize,
-                number_of_decimal_places = 9,
-                reduction = 1,
+                quantity='stage',
+                cellsize=cellsize,
+                number_of_decimal_places=9,
+                reduction=1,
                 verbose=self.verbose)
 
 
-        #Check asc file
+        # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
@@ -1168,22 +1180,22 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[0].strip() == 'NODATA_value'
         assert L[1].strip().lower() == '-9999'
 
-        #Check grid values (where applicable)
+        # Check grid values (where applicable)
         for j in range(5):
-            if j%2 == 0:
-                L = lines[6+j].strip().split()
-                jj = 4-j
+            if j % 2 == 0:
+                L = lines[6 + j].strip().split()
+                jj = 4 - j
                 for i in range(5):
-                    if i%2 == 0:
-                        index = jj/2 + i/2*3
+                    if i % 2 == 0:
+                        index = jj / 2 + i / 2 * 3
                         
-                        val = stage[1,index]
+                        val = stage[1, index]
                    
                         assert num.allclose(float(L[i]), val)
 
         fid.close()
 
-        #Cleanup
+        # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
         os.remove(swwfile)
@@ -1198,7 +1210,7 @@ class Test_Sww2Dem(unittest.TestCase):
 
         import time, os
 
-        #Setup
+        # Setup
         self.domain.set_name('datatest')
 
         prjfile = self.domain.get_name() + '_depth.prj'
@@ -1208,23 +1220,23 @@ class Test_Sww2Dem(unittest.TestCase):
         self.domain.set_datadir('.')
         self.domain.format = 'sww'
         self.domain.smooth = True
-        self.domain.set_quantity('elevation', lambda x,y: -x-y)
+        self.domain.set_quantity('elevation', lambda x, y:-x - y)
         self.domain.set_quantity('stage', 0.0)
 
-        self.domain.geo_reference = Geo_reference(56,308500,6189000)
+        self.domain.geo_reference = Geo_reference(56, 308500, 6189000)
 
 
         sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
 
-        #self.domain.tight_slope_limiters = 1
-        self.domain.evolve_to_end(finaltime = 0.01)
+        # self.domain.tight_slope_limiters = 1
+        self.domain.evolve_to_end(finaltime=0.01)
         sww.store_timestep()
 
         cellsize = 0.25
-        #Check contents
-        #Get NetCDF
+        # Check contents
+        # Get NetCDF
 
         fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
@@ -1236,17 +1248,17 @@ class Test_Sww2Dem(unittest.TestCase):
         stage = fid.variables['stage'][:]
 
 
-        #Export to ascii/prj files
-        sww2dem(self.domain.get_name()+'.sww',
-                name_out = 'datatest_depth.asc',
-                quantity = 'stage - elevation',
-                cellsize = cellsize,
-                number_of_decimal_places = 9,
-                reduction = min,
-                verbose = self.verbose)
+        # Export to ascii/prj files
+        sww2dem(self.domain.get_name() + '.sww',
+                name_out='datatest_depth.asc',
+                quantity='stage - elevation',
+                cellsize=cellsize,
+                number_of_decimal_places=9,
+                reduction=min,
+                verbose=self.verbose)
 
 
-        #Check asc file
+        # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
@@ -1276,24 +1288,24 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[1].strip().lower() == '-9999'
 
 
-        #Check grid values (where applicable)
+        # Check grid values (where applicable)
         for j in range(5):
-            if j%2 == 0:
-                L = lines[6+j].strip().split()
-                jj = 4-j
+            if j % 2 == 0:
+                L = lines[6 + j].strip().split()
+                jj = 4 - j
                 for i in range(5):
-                    if i%2 == 0:
-                        index = jj/2 + i/2*3
-                        val0 = stage[0,index] - z[index]
-                        val1 = stage[1,index] - z[index]
+                    if i % 2 == 0:
+                        index = jj / 2 + i / 2 * 3
+                        val0 = stage[0, index] - z[index]
+                        val1 = stage[1, index] - z[index]
 
-                        #print i, j, index, ':', L[i], val0, val1
+                        # print i, j, index, ':', L[i], val0, val1
                         assert num.allclose(float(L[i]), min(val0, val1))
 
 
         fid.close()
 
-        #Cleanup
+        # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
         os.remove(swwfile)
@@ -1311,35 +1323,35 @@ class Test_Sww2Dem(unittest.TestCase):
 
         import time, os
 
-        #Setup mesh not coinciding with rectangle.
-        #This will cause missing values to occur in gridded data
+        # Setup mesh not coinciding with rectangle.
+        # This will cause missing values to occur in gridded data
 
 
         points = [                        [1.0, 1.0],
                               [0.5, 0.5], [1.0, 0.5],
                   [0.0, 0.0], [0.5, 0.0], [1.0, 0.0]]
 
-        vertices = [ [4,1,3], [5,2,4], [1,4,2], [2,0,1]]
+        vertices = [ [4, 1, 3], [5, 2, 4], [1, 4, 2], [2, 0, 1]]
 
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Domain(points, vertices)
         domain.set_flow_algorithm('1_5')
-        domain.default_order=2
+        domain.default_order = 2
 
 
-        #Set some field values
-        domain.set_quantity('elevation', lambda x,y: -x-y)
+        # Set some field values
+        domain.set_quantity('elevation', lambda x, y:-x - y)
         domain.set_quantity('friction', 0.03)
 
 
         ######################
         # Boundary conditions
         B = Transmissive_boundary(domain)
-        domain.set_boundary( {'exterior': B} )
+        domain.set_boundary({'exterior': B})
 
 
         ######################
-        #Initial condition - with jumps
+        # Initial condition - with jumps
 
         bed = domain.quantities['elevation'].vertex_values
         stage = num.zeros(bed.shape, num.float)
@@ -1347,9 +1359,9 @@ class Test_Sww2Dem(unittest.TestCase):
         h = 0.3
         for i in range(stage.shape[0]):
             if i % 2 == 0:
-                stage[i,:] = bed[i,:] + h
+                stage[i, :] = bed[i, :] + h
             else:
-                stage[i,:] = bed[i,:]
+                stage[i, :] = bed[i, :]
 
         domain.set_quantity('stage', stage)
         domain.distribute_to_vertices_and_edges()
@@ -1364,15 +1376,15 @@ class Test_Sww2Dem(unittest.TestCase):
         domain.format = 'sww'
         domain.smooth = True
 
-        domain.geo_reference = Geo_reference(56,308500,6189000)
+        domain.geo_reference = Geo_reference(56, 308500, 6189000)
 
         sww = SWW_file(domain)
         sww.store_connectivity()
         sww.store_timestep()
 
         cellsize = 0.25
-        #Check contents
-        #Get NetCDF
+        # Check contents
+        # Get NetCDF
 
         fid = NetCDFFile(swwfile, netcdf_mode_r)
 
@@ -1385,18 +1397,18 @@ class Test_Sww2Dem(unittest.TestCase):
         try:
             geo_reference = Geo_reference(NetCDFObject=fid)
         except AttributeError, e:
-            geo_reference = Geo_reference(DEFAULT_ZONE,0,0)
+            geo_reference = Geo_reference(DEFAULT_ZONE, 0, 0)
 
-        #Export to ascii/prj files
-        sww2dem(domain.get_name()+'.sww',
-                domain.get_name()+'_elevation.asc',
-                quantity = 'elevation',
-                cellsize = cellsize,
-                number_of_decimal_places = 9,
-                verbose = self.verbose)
+        # Export to ascii/prj files
+        sww2dem(domain.get_name() + '.sww',
+                domain.get_name() + '_elevation.asc',
+                quantity='elevation',
+                cellsize=cellsize,
+                number_of_decimal_places=9,
+                verbose=self.verbose)
 
 
-        #Check asc file
+        # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
@@ -1425,25 +1437,25 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[0].strip() == 'NODATA_value'
         assert L[1].strip().lower() == '-9999'
 
-        #Check grid values
+        # Check grid values
         for j in range(5):
-            L = lines[6+j].strip().split()
+            L = lines[6 + j].strip().split()
             assert len(L) == 5
-            y = (4-j) * cellsize
+            y = (4 - j) * cellsize
 
             for i in range(5):
-                #print i
-                if i+j >= 4:
-                    assert num.allclose(float(L[i]), -i*cellsize - y)
+                # print i
+                if i + j >= 4:
+                    assert num.allclose(float(L[i]), -i * cellsize - y)
                 else:
-                    #Missing values
+                    # Missing values
                     assert num.allclose(float(L[i]), -9999)
 
 
 
         fid.close()
 
-        #Cleanup
+        # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
         os.remove(swwfile)
@@ -1460,7 +1472,7 @@ class Test_Sww2Dem(unittest.TestCase):
 
         NODATA_value = 1758323
 
-        #Setup
+        # Setup
         self.domain.set_name('datatest')
         self.domain.set_flow_algorithm('1_5')
 
@@ -1470,21 +1482,21 @@ class Test_Sww2Dem(unittest.TestCase):
         self.domain.set_datadir('.')
         self.domain.format = 'sww'
         self.domain.smooth = True
-        self.domain.set_quantity('elevation', lambda x,y: -x-y)
+        self.domain.set_quantity('elevation', lambda x, y:-x - y)
 
-        self.domain.geo_reference = Geo_reference(56,308500,6189000)
+        self.domain.geo_reference = Geo_reference(56, 308500, 6189000)
 
         sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
 
-        #self.domain.tight_slope_limiters = 1
-        self.domain.evolve_to_end(finaltime = 0.01)
+        # self.domain.tight_slope_limiters = 1
+        self.domain.evolve_to_end(finaltime=0.01)
         sww.store_timestep()
 
         cellsize = 0.25
-        #Check contents
-        #Get NetCDF
+        # Check contents
+        # Get NetCDF
 
         fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
@@ -1496,17 +1508,17 @@ class Test_Sww2Dem(unittest.TestCase):
         stage = fid.variables['stage'][:]
 
 
-        #Export to ers files
+        # Export to ers files
         outname = self.domain.get_name() + '_elevation.ers'
         sww2dem(self.domain.get_name() + '.sww',
                 outname,
-                quantity = 'elevation',
-                cellsize = cellsize,
-                number_of_decimal_places = 9,
-                NODATA_value = NODATA_value,
-                verbose = self.verbose)
+                quantity='elevation',
+                cellsize=cellsize,
+                number_of_decimal_places=9,
+                NODATA_value=NODATA_value,
+                verbose=self.verbose)
 
-        #Check header data
+        # Check header data
         from anuga.abstract_2d_finite_volumes.ermapper_grids import read_ermapper_header, read_ermapper_data
 
         header = read_ermapper_header(outname)
@@ -1517,35 +1529,35 @@ class Test_Sww2Dem(unittest.TestCase):
         assert header['value'].lower() == '"elevation"'
         assert header['xdimension'] == '0.25'
         assert header['ydimension'] == '0.25'
-        assert float(header['eastings']) == 308500.0   #xllcorner
-        assert float(header['northings']) == 6189000.0 #yllcorner
+        assert float(header['eastings']) == 308500.0  # xllcorner
+        assert float(header['northings']) == 6189000.0  # yllcorner
         assert int(header['nroflines']) == 5
         assert int(header['nrofcellsperline']) == 5
         assert int(header['nullcellvalue']) == NODATA_value
-        #FIXME - there is more in the header
+        # FIXME - there is more in the header
 
 
-        #Check grid data
+        # Check grid data
         grid = read_ermapper_data(self.domain.get_name() + '_elevation')
 
 
 
-        ref_grid = [-1,    -1.25, -1.5,  -1.75, -2.0,
-                    -0.75, -1.0,  -1.25, -1.5,  -1.75,
-                    -0.5,  -0.75, -1.0,  -1.25, -1.5,
-                    -0.25, -0.5,  -0.75, -1.0,  -1.25,
-                    -0.0,  -0.25, -0.5,  -0.75, -1.0]
+        ref_grid = [-1, -1.25, -1.5, -1.75, -2.0,
+                    - 0.75, -1.0, -1.25, -1.5, -1.75,
+                    - 0.5, -0.75, -1.0, -1.25, -1.5,
+                    - 0.25, -0.5, -0.75, -1.0, -1.25,
+                    - 0.0, -0.25, -0.5, -0.75, -1.0]
 
 
         
-        #pprint(grid)
+        # pprint(grid)
         assert num.allclose(grid, ref_grid)
 
         fid.close()
 
-        #Cleanup
-        #FIXME the file clean-up doesn't work (eg Permission Denied Error)
-        #Done (Ole) - it was because sww2ers didn't close it's sww file
+        # Cleanup
+        # FIXME the file clean-up doesn't work (eg Permission Denied Error)
+        # Done (Ole) - it was because sww2ers didn't close it's sww file
         os.remove(sww.filename)
         os.remove(self.domain.get_name() + '_elevation')
         os.remove(self.domain.get_name() + '_elevation.ers')
@@ -1561,7 +1573,7 @@ class Test_Sww2Dem(unittest.TestCase):
 
         NODATA_value = 1758323
 
-        #Setup
+        # Setup
         self.domain.set_name('datatest')
 
         headerfile = self.domain.get_name() + '.ers'
@@ -1570,21 +1582,21 @@ class Test_Sww2Dem(unittest.TestCase):
         self.domain.set_datadir('.')
         self.domain.format = 'sww'
         self.domain.smooth = True
-        self.domain.set_quantity('elevation', lambda x,y: -x-y)
+        self.domain.set_quantity('elevation', lambda x, y:-x - y)
 
-        self.domain.geo_reference = Geo_reference(56,308500,6189000)
+        self.domain.geo_reference = Geo_reference(56, 308500, 6189000)
 
         sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
 
-        #self.domain.tight_slope_limiters = 1
-        self.domain.evolve_to_end(finaltime = 0.01)
+        # self.domain.tight_slope_limiters = 1
+        self.domain.evolve_to_end(finaltime=0.01)
         sww.store_timestep()
 
         cellsize = 0.25
-        #Check contents
-        #Get NetCDF
+        # Check contents
+        # Get NetCDF
 
         fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
@@ -1596,17 +1608,17 @@ class Test_Sww2Dem(unittest.TestCase):
         stage = fid.variables['stage'][:]
 
 
-        #Export to ers files
+        # Export to ers files
         outname = self.domain.get_name() + '_elevation.ers'
         sww2dem(self.domain.get_name() + '.sww',
                 outname,
-                quantity = 'elevation',
-                cellsize = cellsize,
-                number_of_decimal_places = 9,
-                NODATA_value = NODATA_value,
-                verbose = self.verbose)
+                quantity='elevation',
+                cellsize=cellsize,
+                number_of_decimal_places=9,
+                NODATA_value=NODATA_value,
+                verbose=self.verbose)
 
-        #Check header data
+        # Check header data
         from anuga.abstract_2d_finite_volumes.ermapper_grids import read_ermapper_header, read_ermapper_data
 
         header = read_ermapper_header(outname)
@@ -1617,34 +1629,34 @@ class Test_Sww2Dem(unittest.TestCase):
         assert header['value'].lower() == '"elevation"'
         assert header['xdimension'] == '0.25'
         assert header['ydimension'] == '0.25'
-        assert float(header['eastings']) == 308500.0   #xllcorner
-        assert float(header['northings']) == 6189000.0 #yllcorner
+        assert float(header['eastings']) == 308500.0  # xllcorner
+        assert float(header['northings']) == 6189000.0  # yllcorner
         assert int(header['nroflines']) == 5
         assert int(header['nrofcellsperline']) == 5
         assert int(header['nullcellvalue']) == NODATA_value
-        #FIXME - there is more in the header
+        # FIXME - there is more in the header
 
 
-        #Check grid data
+        # Check grid data
         grid = read_ermapper_data(self.domain.get_name() + '_elevation')
 
 
         ref_grid = [-1.        , -1.08333325, -1.16666663, -1.33333325, -1.5       ,
-                    -0.91666663, -1.        , -1.08333325, -1.25      , -1.33333325,
-                    -0.83333331, -0.91666663, -1.        , -1.08333325, -1.16666663,
-                    -0.66666663, -0.75      , -0.91666663, -1.        , -1.08333325,
-                    -0.5       , -0.66666663, -0.83333331, -0.91666663, -1.        ],
+                    - 0.91666663, -1.        , -1.08333325, -1.25      , -1.33333325,
+                    - 0.83333331, -0.91666663, -1.        , -1.08333325, -1.16666663,
+                    - 0.66666663, -0.75      , -0.91666663, -1.        , -1.08333325,
+                    - 0.5       , -0.66666663, -0.83333331, -0.91666663, -1.        ],
 
         
-        #pprint(grid)
+        # pprint(grid)
         
         assert num.allclose(grid, ref_grid)
 
         fid.close()
 
-        #Cleanup
-        #FIXME the file clean-up doesn't work (eg Permission Denied Error)
-        #Done (Ole) - it was because sww2ers didn't close it's sww file
+        # Cleanup
+        # FIXME the file clean-up doesn't work (eg Permission Denied Error)
+        # Done (Ole) - it was because sww2ers didn't close it's sww file
         os.remove(sww.filename)
         os.remove(self.domain.get_name() + '_elevation')
         os.remove(self.domain.get_name() + '_elevation.ers')
@@ -1657,35 +1669,35 @@ class Test_Sww2Dem(unittest.TestCase):
         import time, os
 
         base_name = 'tegp'
-        #Setup
-        self.domain.set_name(base_name+'_P0_8')
+        # Setup
+        self.domain.set_name(base_name + '_P0_8')
         swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
         self.domain.set_flow_algorithm('1_5')
         self.domain.format = 'sww'
         self.domain.smooth = True
-        self.domain.set_quantity('elevation', lambda x,y: -x-y)
+        self.domain.set_quantity('elevation', lambda x, y:-x - y)
         self.domain.set_quantity('stage', 1.0)
 
-        self.domain.geo_reference = Geo_reference(56,308500,6189000)
+        self.domain.geo_reference = Geo_reference(56, 308500, 6189000)
 
         sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
-        self.domain.evolve_to_end(finaltime = 0.0001)
-        #Setup
-        self.domain.set_name(base_name+'_P1_8')
+        self.domain.evolve_to_end(finaltime=0.0001)
+        # Setup
+        self.domain.set_name(base_name + '_P1_8')
         swwfile2 = self.domain.get_name() + '.sww'
         sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
-        self.domain.evolve_to_end(finaltime = 0.0002)
+        self.domain.evolve_to_end(finaltime=0.0002)
         sww.store_timestep()
 
         cellsize = 0.25
-        #Check contents
-        #Get NetCDF
+        # Check contents
+        # Get NetCDF
 
         fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
@@ -1698,81 +1710,81 @@ class Test_Sww2Dem(unittest.TestCase):
 
         fid.close()
 
-        #Export to ascii/prj files
+        # Export to ascii/prj files
         extra_name_out = 'yeah'
         sww2dem_batch(base_name,
-                    quantities = ['elevation', 'depth'],
-                    extra_name_out = extra_name_out,
-                    cellsize = cellsize,
-                    verbose = self.verbose,
-                    format = 'asc')
+                    quantities=['elevation', 'depth'],
+                    extra_name_out=extra_name_out,
+                    cellsize=cellsize,
+                    verbose=self.verbose,
+                    format='asc')
 
         prjfile = base_name + '_P0_8_elevation_yeah.prj'
         ascfile = base_name + '_P0_8_elevation_yeah.asc'       
-        #Check asc file
+        # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
-        #Check grid values
+        # Check grid values
         for j in range(5):
-            L = lines[6+j].strip().split()
-            y = (4-j) * cellsize
+            L = lines[6 + j].strip().split()
+            y = (4 - j) * cellsize
             for i in range(5):
-                #print " -i*cellsize - y",  -i*cellsize - y
-                #print "float(L[i])", float(L[i])
-                assert num.allclose(float(L[i]), -i*cellsize - y)               
-        #Cleanup
+                # print " -i*cellsize - y",  -i*cellsize - y
+                # print "float(L[i])", float(L[i])
+                assert num.allclose(float(L[i]), -i * cellsize - y)               
+        # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
 
         prjfile = base_name + '_P1_8_elevation_yeah.prj'
         ascfile = base_name + '_P1_8_elevation_yeah.asc'       
-        #Check asc file
+        # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
-        #Check grid values
+        # Check grid values
         for j in range(5):
-            L = lines[6+j].strip().split()
-            y = (4-j) * cellsize
+            L = lines[6 + j].strip().split()
+            y = (4 - j) * cellsize
             for i in range(5):
-                #print " -i*cellsize - y",  -i*cellsize - y
-                #print "float(L[i])", float(L[i])
-                assert num.allclose(float(L[i]), -i*cellsize - y)               
-        #Cleanup
+                # print " -i*cellsize - y",  -i*cellsize - y
+                # print "float(L[i])", float(L[i])
+                assert num.allclose(float(L[i]), -i * cellsize - y)               
+        # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
         os.remove(swwfile)
 
-        #Check asc file
+        # Check asc file
         ascfile = base_name + '_P0_8_depth_yeah.asc'
         prjfile = base_name + '_P0_8_depth_yeah.prj'
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
-        #Check grid values
+        # Check grid values
         for j in range(5):
-            L = lines[6+j].strip().split()
-            y = (4-j) * cellsize
+            L = lines[6 + j].strip().split()
+            y = (4 - j) * cellsize
             for i in range(5):
-                assert num.allclose(float(L[i]), 1 - (-i*cellsize - y))
-        #Cleanup
+                assert num.allclose(float(L[i]), 1 - (-i * cellsize - y))
+        # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
 
-        #Check asc file
+        # Check asc file
         ascfile = base_name + '_P1_8_depth_yeah.asc'
         prjfile = base_name + '_P1_8_depth_yeah.prj'
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
-        #Check grid values
+        # Check grid values
         for j in range(5):
-            L = lines[6+j].strip().split()
-            y = (4-j) * cellsize
+            L = lines[6 + j].strip().split()
+            y = (4 - j) * cellsize
             for i in range(5):
-                assert num.allclose(float(L[i]), 1 - (-i*cellsize - y))
-        #Cleanup
+                assert num.allclose(float(L[i]), 1 - (-i * cellsize - y))
+        # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
         os.remove(swwfile2)
@@ -1792,7 +1804,7 @@ class Test_Sww2Dem(unittest.TestCase):
         except:
             pass
 
-        #Setup
+        # Setup
         self.domain.set_name('teg')
 
         prjfile = self.domain.get_name() + '_elevation.prj'
@@ -1802,20 +1814,20 @@ class Test_Sww2Dem(unittest.TestCase):
         self.domain.set_datadir('.')
         self.domain.set_flow_algorithm('1_5')
         self.domain.smooth = True
-        self.domain.set_quantity('elevation', lambda x,y: -x-y)
+        self.domain.set_quantity('elevation', lambda x, y:-x - y)
         self.domain.set_quantity('stage', 1.0)
 
-        self.domain.geo_reference = Geo_reference(56,308500,6189000)
+        self.domain.geo_reference = Geo_reference(56, 308500, 6189000)
 
         sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
-        self.domain.evolve_to_end(finaltime = 0.01)
+        self.domain.evolve_to_end(finaltime=0.01)
         sww.store_timestep()
 
         cellsize = 0.25
-        #Check contents
-        #Get NetCDF
+        # Check contents
+        # Get NetCDF
 
         fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
@@ -1828,14 +1840,14 @@ class Test_Sww2Dem(unittest.TestCase):
 
         fid.close()
 
-        #Export to ascii/prj files
+        # Export to ascii/prj files
         sww2dem_batch(self.domain.get_name(),
-                quantities = 'elevation',
-                cellsize = cellsize,
-                verbose = self.verbose,
-                format = 'asc')
+                quantities='elevation',
+                cellsize=cellsize,
+                verbose=self.verbose,
+                format='asc')
 
-        #Check asc file
+        # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
@@ -1848,16 +1860,16 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[0].strip().lower() == 'yllcorner'
         assert num.allclose(float(L[1].strip().lower()), 6189000)
 
-        #Check grid values
-        #print '==='
+        # Check grid values
+        # print '==='
         for j in range(5):
-            L = lines[6+j].strip().split()
-            y = (4-j) * cellsize
+            L = lines[6 + j].strip().split()
+            y = (4 - j) * cellsize
             for i in range(5):
-                #print float(L[i])
-                assert num.allclose(float(L[i]), -i*cellsize - y)
+                # print float(L[i])
+                assert num.allclose(float(L[i]), -i * cellsize - y)
                 
-        #Cleanup
+        # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
         os.remove(swwfile)
@@ -1876,7 +1888,7 @@ class Test_Sww2Dem(unittest.TestCase):
         except:
             pass
 
-        #Setup
+        # Setup
         self.domain.set_name('tegII')
 
         swwfile = self.domain.get_name() + '.sww'
@@ -1884,20 +1896,20 @@ class Test_Sww2Dem(unittest.TestCase):
         self.domain.set_datadir('.')
         self.domain.set_flow_algorithm('1_5')
         self.domain.smooth = True
-        self.domain.set_quantity('elevation', lambda x,y: -x-y)
+        self.domain.set_quantity('elevation', lambda x, y:-x - y)
         self.domain.set_quantity('stage', 1.0)
 
-        self.domain.geo_reference = Geo_reference(56,308500,6189000)
+        self.domain.geo_reference = Geo_reference(56, 308500, 6189000)
 
         sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
-        self.domain.evolve_to_end(finaltime = 0.01)
+        self.domain.evolve_to_end(finaltime=0.01)
         sww.store_timestep()
 
         cellsize = 0.25
-        #Check contents
-        #Get NetCDF
+        # Check contents
+        # Get NetCDF
 
         fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
@@ -1910,38 +1922,38 @@ class Test_Sww2Dem(unittest.TestCase):
         xmomentum = fid.variables['xmomentum'][:]
         ymomentum = fid.variables['ymomentum'][:]        
 
-        #print 'stage', stage
-        #print 'xmom', xmomentum
-        #print 'ymom', ymomentum        
+        # print 'stage', stage
+        # print 'xmom', xmomentum
+        # print 'ymom', ymomentum        
 
         fid.close()
 
-        #Export to ascii/prj files
+        # Export to ascii/prj files
         if True:
             sww2dem_batch(self.domain.get_name(),
-                        quantities = ['elevation', 'depth'],
-                        cellsize = cellsize,
-                        verbose = self.verbose,
-                        format = 'asc')
+                        quantities=['elevation', 'depth'],
+                        cellsize=cellsize,
+                        verbose=self.verbose,
+                        format='asc')
 
         else:
             sww2dem_batch(self.domain.get_name(),
-                quantities = ['depth'],
-                cellsize = cellsize,
-                verbose = self.verbose,
-                format = 'asc')
+                quantities=['depth'],
+                cellsize=cellsize,
+                verbose=self.verbose,
+                format='asc')
 
 
             export_grid(self.domain.get_name(),
-                quantities = ['elevation'],
-                cellsize = cellsize,
-                verbose = self.verbose,
-                format = 'asc')
+                quantities=['elevation'],
+                cellsize=cellsize,
+                verbose=self.verbose,
+                format='asc')
 
         prjfile = self.domain.get_name() + '_elevation.prj'
         ascfile = self.domain.get_name() + '_elevation.asc'
         
-        #Check asc file
+        # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
@@ -1954,21 +1966,21 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[0].strip().lower() == 'yllcorner'
         assert num.allclose(float(L[1].strip().lower()), 6189000)
 
-        #print "ascfile", ascfile
-        #Check grid values
+        # print "ascfile", ascfile
+        # Check grid values
         for j in range(5):
-            L = lines[6+j].strip().split()
-            y = (4-j) * cellsize
+            L = lines[6 + j].strip().split()
+            y = (4 - j) * cellsize
             for i in range(5):
-                #print " -i*cellsize - y",  -i*cellsize - y
-                #print "float(L[i])", float(L[i])
-                assert num.allclose(float(L[i]), -i*cellsize - y)
+                # print " -i*cellsize - y",  -i*cellsize - y
+                # print "float(L[i])", float(L[i])
+                assert num.allclose(float(L[i]), -i * cellsize - y)
 
-        #Cleanup
+        # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
         
-        #Check asc file
+        # Check asc file
         ascfile = self.domain.get_name() + '_depth.asc'
         prjfile = self.domain.get_name() + '_depth.prj'
         ascid = open(ascfile)
@@ -1983,16 +1995,16 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[0].strip().lower() == 'yllcorner'
         assert num.allclose(float(L[1].strip().lower()), 6189000)
 
-        #Check grid values
+        # Check grid values
         for j in range(5):
-            L = lines[6+j].strip().split()
-            y = (4-j) * cellsize
+            L = lines[6 + j].strip().split()
+            y = (4 - j) * cellsize
             for i in range(5):
-                #print " -i*cellsize - y",  -i*cellsize - y
-                #print "float(L[i])", float(L[i])                
-                assert num.allclose(float(L[i]), 1 - (-i*cellsize - y))
+                # print " -i*cellsize - y",  -i*cellsize - y
+                # print "float(L[i])", float(L[i])                
+                assert num.allclose(float(L[i]), 1 - (-i * cellsize - y))
 
-        #Cleanup
+        # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
         os.remove(swwfile)
@@ -2012,7 +2024,7 @@ class Test_Sww2Dem(unittest.TestCase):
         except:
             pass
 
-        #Setup
+        # Setup
         
         self.domain.set_name('tegIII')
 
@@ -2022,20 +2034,20 @@ class Test_Sww2Dem(unittest.TestCase):
         self.domain.set_flow_algorithm('1_5')
         self.domain.format = 'sww'
         self.domain.smooth = True
-        self.domain.set_quantity('elevation', lambda x,y: -x-y)
+        self.domain.set_quantity('elevation', lambda x, y:-x - y)
         self.domain.set_quantity('stage', 1.0)
 
-        self.domain.geo_reference = Geo_reference(56,308500,6189000)
+        self.domain.geo_reference = Geo_reference(56, 308500, 6189000)
         
         sww = SWW_file(self.domain)
         sww.store_connectivity()
-        sww.store_timestep() #'stage')
-        self.domain.evolve_to_end(finaltime = 0.01)
-        sww.store_timestep() #'stage')
+        sww.store_timestep()  # 'stage')
+        self.domain.evolve_to_end(finaltime=0.01)
+        sww.store_timestep()  # 'stage')
 
         cellsize = 0.25
-        #Check contents
-        #Get NetCDF
+        # Check contents
+        # Get NetCDF
 
         fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
@@ -2048,34 +2060,34 @@ class Test_Sww2Dem(unittest.TestCase):
 
         fid.close()
 
-        #Export to ascii/prj files
+        # Export to ascii/prj files
         extra_name_out = 'yeah'
         if True:
             sww2dem_batch(self.domain.get_name(),
-                        quantities = ['elevation', 'depth'],
-                        extra_name_out = extra_name_out,
-                        cellsize = cellsize,
-                        verbose = self.verbose,
-                        format = 'asc')
+                        quantities=['elevation', 'depth'],
+                        extra_name_out=extra_name_out,
+                        cellsize=cellsize,
+                        verbose=self.verbose,
+                        format='asc')
 
         else:
             sww2dem_batch(self.domain.get_name(),
-                quantities = ['depth'],
-                cellsize = cellsize,
-                verbose = self.verbose,
-                format = 'asc')
+                quantities=['depth'],
+                cellsize=cellsize,
+                verbose=self.verbose,
+                format='asc')
 
 
             sww2dem_batch(self.domain.get_name(),
-                quantities = ['elevation'],
-                cellsize = cellsize,
-                verbose = self.verbose,
-                format = 'asc')
+                quantities=['elevation'],
+                cellsize=cellsize,
+                verbose=self.verbose,
+                format='asc')
 
         prjfile = self.domain.get_name() + '_elevation_yeah.prj'
         ascfile = self.domain.get_name() + '_elevation_yeah.asc'
         
-        #Check asc file
+        # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
@@ -2088,21 +2100,21 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[0].strip().lower() == 'yllcorner'
         assert num.allclose(float(L[1].strip().lower()), 6189000)
 
-        #print "ascfile", ascfile
-        #Check grid values
+        # print "ascfile", ascfile
+        # Check grid values
         for j in range(5):
-            L = lines[6+j].strip().split()
-            y = (4-j) * cellsize
+            L = lines[6 + j].strip().split()
+            y = (4 - j) * cellsize
             for i in range(5):
-                #print " -i*cellsize - y",  -i*cellsize - y
-                #print "float(L[i])", float(L[i])
-                assert num.allclose(float(L[i]), -i*cellsize - y)
+                # print " -i*cellsize - y",  -i*cellsize - y
+                # print "float(L[i])", float(L[i])
+                assert num.allclose(float(L[i]), -i * cellsize - y)
                 
-        #Cleanup
+        # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
         
-        #Check asc file
+        # Check asc file
         ascfile = self.domain.get_name() + '_depth_yeah.asc'
         prjfile = self.domain.get_name() + '_depth_yeah.prj'
         ascid = open(ascfile)
@@ -2117,14 +2129,14 @@ class Test_Sww2Dem(unittest.TestCase):
         assert L[0].strip().lower() == 'yllcorner'
         assert num.allclose(float(L[1].strip().lower()), 6189000)
 
-        #Check grid values
+        # Check grid values
         for j in range(5):
-            L = lines[6+j].strip().split()
-            y = (4-j) * cellsize
+            L = lines[6 + j].strip().split()
+            y = (4 - j) * cellsize
             for i in range(5):
-                assert num.allclose(float(L[i]), 1 - (-i*cellsize - y))
+                assert num.allclose(float(L[i]), 1 - (-i * cellsize - y))
 
-        #Cleanup
+        # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
         os.remove(swwfile)
@@ -2135,20 +2147,122 @@ class Test_Sww2Dem(unittest.TestCase):
 
         try:
             sww2dem_batch('a_small_round-egg',
-                        quantities = ['elevation', 'depth'],
-                        cellsize = 99,
-                        verbose = self.verbose,
-                        format = 'asc')
+                        quantities=['elevation', 'depth'],
+                        cellsize=99,
+                        verbose=self.verbose,
+                        format='asc')
         except IOError:
             pass
         else:
-            self.assertTrue(0 ==1,  'Bad input did not throw exception error!')
+            self.assertTrue(0 == 1, 'Bad input did not throw exception error!')
+        
+    def test_sww2dem_verbose_True(self):
+        '''test sww2dem when verbose is True
+        uses the example from function test_sww2dem_asc_elevation_depth'''
+        import anuga.utilities.log as log
+        cwd = os.getcwd()
+        LOG_FILENAME = cwd + '/log_critical_message.log'
+        filehandler = log.logging.FileHandler(LOG_FILENAME)
+        filehandler.setLevel(log.logging.CRITICAL)
+        log.logging.getLogger('').addHandler(filehandler)
+        # Setup
+        self.domain.set_name('datatest')
+
+        prjfile = self.domain.get_name() + '_elevation.prj'
+        ascfile = self.domain.get_name() + '_elevation.asc'
+        swwfile = self.domain.get_name() + '.sww'
+
+        self.domain.set_datadir('.')
+        self.domain.set_flow_algorithm('1_5')
+        self.domain.format = 'sww'
+        self.domain.smooth = True
+        self.domain.set_quantity('elevation', lambda x, y:-x - y)
+        self.domain.set_quantity('stage', 1.0)
+
+        self.domain.geo_reference = Geo_reference(56, 308500, 6189000)
+
+        sww = SWW_file(self.domain)
+        sww.store_connectivity()
+        sww.store_timestep()
+
+        self.domain.evolve_to_end(finaltime=0.01)
+        sww.store_timestep()
+
+        cellsize = 0.25
+
+        with Capturing() as myout:
+            sww2dem(swwfile, ascfile,
+                   quantity='elevation',
+                   cellsize=cellsize,
+                   number_of_decimal_places=9,
+                   verbose=True)
+              
+        log_critical_msg = open(LOG_FILENAME)
+        output = log_critical_msg.read()
+        log_critical_msg.close()
+        output = output.split('\n')
+        #print output, 'log message output'
+    
+        output_verbose_True = '''Reading from datatest.sww
+Output directory is datatest_elevation.asc
+------------------------------------------------
+Statistics of SWW file:
+  Name: datatest.sww
+  Reference:
+    Lower left corner: [308500.000000, 6189000.000000]
+    Start time: 0.000000
+  Extent:
+    x [m] in [0.000000, 1.000000], len(x) == 9
+    y [m] in [0.000000, 1.000000], len(y) == 9
+    t [s] in [0.000000, 0.010000], len(t) == 2
+  Quantities [SI units]:
+    stage in [1.000000, 1.000000]
+    xmomentum in [-0.000000, 0.000000]
+    ymomentum in [-0.000000, 0.000000]
+    elevation in [-2.000000, 0.000000]
+Slicing sww file, num points: 9, block size: 10000
+Processed values for elevation are in [-2.000000, 0.000000]
+Creating grid
+Interpolated values are in [-2.000000, 0.000000]
+Writing datatest_elevation.prj
+Writing datatest_elevation.asc
+Doing row 0 of 5
+Doing row 1 of 5
+Doing row 2 of 5
+Doing row 3 of 5
+Doing row 4 of 5'''
+
+        output_verbose_True = output_verbose_True.split('\n')
+        
+        # check the output line by line
+        for output_verbose_True_line, line in zip(output_verbose_True, output):
+            assert line.lstrip() == output_verbose_True_line.lstrip()
+            # cleanup
+            try:
+                os.remove(prjfile)
+            except:
+                pass
+            try:
+                os.remove(ascfile)
+            except:
+                pass
+            try:
+                os.remove(swwfile)
+            except:
+                pass
+    #     os.remove(LOG_FILENAME)
+        log.logging.disable(log.logging.CRITICAL)
+    
+        os.remove(LOG_FILENAME)
+        
         
 
 #################################################################################
 
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_rainfall_forcing_with_evolve')
+    # suite = unittest.makeSuite(Test_Shallow_Water, 'test_rainfall_forcing_with_evolve')
+
+
     suite = unittest.makeSuite(Test_Sww2Dem, 'test_')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
