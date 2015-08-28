@@ -678,23 +678,20 @@ class Quantity:
         """Compute interpolated values at edges and centroid
         Pre-condition: vertex_values have been set
         """
-#        from quantity_ext import interpolate
-	from anuga.abstract_2d_finite_volumes.quantity_ext import interpolate
+        from quantity_ext import interpolate
         interpolate(self)
 
 
     def interpolate_from_vertices_to_edges(self):
         # Call correct module function (either from this module or C-extension)
 
-#        from quantity_ext import interpolate_from_vertices_to_edges
-	from anuga.abstract_2d_finite_volumes.quantity_ext import interpolate_from_vertices_to_edges
+        from quantity_ext import interpolate_from_vertices_to_edges
         interpolate_from_vertices_to_edges(self)
 
     def interpolate_from_edges_to_vertices(self):
         # Call correct module function (either from this module or C-extension)
 
-#        from quantity_ext import interpolate_from_edges_to_vertices
-	from anuga.abstract_2d_finite_volumes.quantity_ext import interpolate_from_edges_to_vertices
+        from quantity_ext import interpolate_from_edges_to_vertices
         interpolate_from_edges_to_vertices(self)
 
     #---------------------------------------------
@@ -1325,12 +1322,12 @@ class Quantity:
         
         from anuga.file_conversion.grd2array import grd2array
         from anuga.file_conversion.dem2array import dem2array
-        file_ext = filename.split('.')[1]
+        filename_ext = os.path.splitext(filename)[1]
         
-	if file_ext in ['asc', 'grd']:
+	if filename_ext in ['.asc', '.grd']:
             x,y,Z = grd2array(filename)
         
-	elif file_ext == 'dem':
+	elif filename_ext == '.dem':
 	    x,y,Z = dem2array(filename)
 	    Z = num.fliplr(Z.T)
         
@@ -2160,8 +2157,7 @@ class Conserved_quantity(Quantity):
 ######
 # Prepare the C extensions.
 ######
-#from quantity_ext import \
-from anuga.abstract_2d_finite_volumes.quantity_ext import \
+from quantity_ext import \
          average_vertex_values,\
          backup_centroid_values,\
          saxpy_centroid_values,\
