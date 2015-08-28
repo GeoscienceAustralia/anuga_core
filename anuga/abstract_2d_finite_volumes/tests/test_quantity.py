@@ -1671,11 +1671,11 @@ class Test_Quantity(unittest.TestCase):
         
         assert num.allclose(quantity.centroid_values, answer)
 
-       #Cleanup
-       #import os
-        os.remove(txt_file)   
+	#Cleanup
+	#import os
+	os.remove(txt_file)   
 	os.remove(txt_file_prj)
-        os.remove(txt_file_dem)
+	os.remove(txt_file_dem)
 
 
     def test_set_values_from_quantity(self):
