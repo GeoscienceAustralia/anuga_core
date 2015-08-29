@@ -905,7 +905,7 @@ class Quantity:
             if hasattr(self.domain, 'points_file_block_line_size'):
                 max_read_lines = self.domain.points_file_block_line_size
             else:
-                max_read_lines = default_blocik_line_size
+                max_read_lines = default_block_line_size
 
 	    filename_ext = os.path.splitext(filename)[1]
 	    # pts file in the format of .txt or .pts
