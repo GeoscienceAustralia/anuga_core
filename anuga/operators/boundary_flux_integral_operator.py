@@ -53,6 +53,8 @@ class boundary_flux_integral_operator(Operator):
             self.boundary_flux_integral = self.boundary_flux_integral + dt*self.domain.boundary_flux_sum[0]
         elif(ts_method=='rk2'):
             self.boundary_flux_integral = self.boundary_flux_integral + 0.5*dt*self.domain.boundary_flux_sum[0:2].sum()
+        elif(ts_method=='rk3'):
+            self.boundary_flux_integral = self.boundary_flux_integral + 1.0/6.0*dt*(self.domain.boundary_flux_sum[0] + self.domain.boundary_flux_sum[1] + 4.0*self.domain.boundary_flux_sum[2])
         else:
             raise Exception, 'Cannot compute boundary flux integral with this timestepping method'
      

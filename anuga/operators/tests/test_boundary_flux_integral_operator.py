@@ -91,6 +91,21 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
 
         assert(numpy.allclose(vol,boundaryFluxInt))
 
+    def test_boundary_flux_operator_DE2(self):
+        """
+        A (the) boundary flux operator is instantiated when a domain is created.
+        This tests the calculation for rk3 timestepping 
+        """
+        
+        domain=self.create_domain('DE2')
+        for t in domain.evolve(yieldstep=0.1,finaltime=1.0):
+            pass
+        # The domain was initially dry
+        vol=domain.get_water_volume()
+        boundaryFluxInt=domain.get_boundary_flux_integral()
+
+        assert(numpy.allclose(vol,boundaryFluxInt))        
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_boundary_flux_integral_operator, 'test')
     runner = unittest.TextTestRunner(verbosity=1)
