@@ -2415,13 +2415,6 @@ class Domain(Generic_Domain):
 
         Does not assume that centroid values have been extrapolated to vertices and edges
         """
-        
-#         if self.get_flow_algorithm() == 'DE0':
-# 
-#             from swDE1_domain_ext import evolve_one_euler_step
-#             evolve_one_euler_step(self,yieldstep,finaltime)
-#         
-#         else:
             
         # From centroid values calculate edge and vertex values
         self.distribute_to_vertices_and_edges()

@@ -476,7 +476,7 @@ class Structure_operator(anuga.Operator):
 
     def discharge_routine(self):
 
-        msg = 'Need to impelement '
+        msg = 'Need to implement '
         raise
             
 
