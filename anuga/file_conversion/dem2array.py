@@ -76,7 +76,8 @@ def dem2array(filename, variable_name='elevation',
     Z = infile.variables[variable_name][:]
     Z = Z.reshape(nrows,ncols)
     Z = num.where(Z == NODATA_value , num.nan, Z)
-
+    #changed the orientation of Z array to make it consistent with grd2array result
+    Z = num.fliplr(Z.T)
 
     #print ncols, nrows, xllcorner,yllcorner, cellsize, NODATA_value, zone
 

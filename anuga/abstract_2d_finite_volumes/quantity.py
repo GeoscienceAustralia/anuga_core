@@ -906,7 +906,6 @@ class Quantity:
                 max_read_lines = self.domain.points_file_block_line_size
             else:
                 max_read_lines = default_block_line_size
-
 	    filename_ext = os.path.splitext(filename)[1]
 	    # pts file in the format of .txt or .pts
 	    if filename_ext in ['.txt', '.pts', '.csv']:
@@ -919,7 +918,7 @@ class Quantity:
 		self.set_values_from_utm_grid_file(filename, location,
 				      indices, verbose=verbose)
 	    else:
-	    	raise Exception("Extension should be .pts, .dem, .csv, .txt, .asc or .grd")
+	    	raise Exception('Extension should be .pts .dem, .csv, .txt, .asc or .grd')
 	else:
             raise Exception("This can't happen :-)")
 
@@ -1322,14 +1321,13 @@ class Quantity:
         
         from anuga.file_conversion.grd2array import grd2array
         from anuga.file_conversion.dem2array import dem2array
-        filename_ext = os.path.splitext(filename)[1]
+	filename_ext = os.path.splitext(filename)[1]
         
 	if filename_ext in ['.asc', '.grd']:
             x,y,Z = grd2array(filename)
-        
+	
 	elif filename_ext == '.dem':
 	    x,y,Z = dem2array(filename)
-	    Z = num.fliplr(Z.T)
         
         if location == 'centroids':
             points = self.domain.centroid_coordinates
