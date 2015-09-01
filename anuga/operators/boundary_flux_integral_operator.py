@@ -59,7 +59,7 @@ class boundary_flux_integral_operator(Operator):
             raise Exception, 'Cannot compute boundary flux integral with this timestepping method'
      
         # Zero the boundary_flux_sum 
-        self.domain.boundary_flux_sum=self.domain.boundary_flux_sum*0.
+        self.domain.boundary_flux_sum[:]=0.
 
     def parallel_safe(self):
         """Operator is applied independently on each parallel domain

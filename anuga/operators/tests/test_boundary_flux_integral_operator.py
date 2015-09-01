@@ -32,7 +32,7 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
                                                 'top': [1],
                                                 'right': [2],
                                                 'bottom': [3]},
-                                   mesh_filename='test_boundaryfluxintegral.msh',
+                                   mesh_filename='test_boundaryfluxintegral%s.msh'%flowalg,
                                    maximum_triangle_area = 200.,
                                    minimum_triangle_angle = 28.0,
                                    use_cache=False,
@@ -55,7 +55,7 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
        
         # Boundary conditions
         Br=anuga.Reflective_boundary(domain)
-        Bd=anuga.Dirichlet_boundary([0., 0., 0.])
+        Bd=anuga.Dirichlet_boundary([10., 0., 0.])
         domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom':Br})
 
         return domain
@@ -69,7 +69,11 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
         flowalg = 'DE0'
         
         domain=self.create_domain(flowalg)
+
+        #domain.print_statistics()
         for t in domain.evolve(yieldstep=0.1,finaltime=1.0):
+            domain.print_timestepping_statistics()
+            print domain.get_water_volume()
             pass
         # The domain was initially dry
         vol=domain.get_water_volume()
@@ -88,8 +92,10 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
         flowalg = 'DE1'
                 
         domain=self.create_domain(flowalg)
+        #domain.print_statistics()
         for t in domain.evolve(yieldstep=0.1,finaltime=1.0):
             domain.print_timestepping_statistics()
+            print domain.get_water_volume()
             pass
         # The domain was initially dry
         vol=domain.get_water_volume()
@@ -98,8 +104,6 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
         print flowalg, vol, boundaryFluxInt
         assert(numpy.allclose(vol,boundaryFluxInt))
 
-        #os.remove('test_boundaryfluxintegral%s.msh'%flowalg)
-
     def test_boundary_flux_operator_DE2(self):
         """
         A (the) boundary flux operator is instantiated when a domain is created.
@@ -107,9 +111,12 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
         """
 
         flowalg = 'DE2'
+
         domain=self.create_domain(flowalg)
+        #domain.print_statistics()
         for t in domain.evolve(yieldstep=0.1,finaltime=1.0):
             domain.print_timestepping_statistics()
+            print domain.get_water_volume(), domain.get_boundary_flux_integral()
             pass
         # The domain was initially dry
         vol=domain.get_water_volume()
