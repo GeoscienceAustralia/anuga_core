@@ -27,18 +27,17 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
         # Riverwall = list of lists, each with a set of x,y,z (and optional QFactor) values
 
         # Make the domain
-        anuga.create_mesh_from_regions(boundaryPolygon, 
+        domain = anuga.create_domain_from_regions(boundaryPolygon, 
                                  boundary_tags={'left': [0],
                                                 'top': [1],
                                                 'right': [2],
                                                 'bottom': [3]},
+                                   mesh_filename='test_boundaryfluxintegral.msh',
                                    maximum_triangle_area = 200.,
                                    minimum_triangle_angle = 28.0,
-                                   filename = 'test_boundaryfluxintegral.msh',
                                    use_cache=False,
                                    verbose=verbose)
 
-        domain=anuga.create_domain_from_file('test_boundaryfluxintegral.msh')
 
         # 05/05/2014 -- riverwalls only work with DE0 and DE1
         domain.set_flow_algorithm(flowalg)
@@ -66,31 +65,68 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
         A (the) boundary flux operator is instantiated when a domain is created.
         This tests the calculation for euler timestepping 
         """
+
+        flowalg = 'DE0'
         
-        domain=self.create_domain('DE0')
-        for t in domain.evolve(yieldstep=0.1,finaltime=1.0):
+        domain=self.create_domain(flowalg)
+
+        #domain.print_statistics()
+        for t in domain.evolve(yieldstep=1.0,finaltime=5.0):
+            if verbose: domain.print_timestepping_statistics()
+            if verbose: print domain.get_water_volume()
             pass
         # The domain was initially dry
         vol=domain.get_water_volume()
         boundaryFluxInt=domain.get_boundary_flux_integral()
 
+        if verbose: print flowalg, vol, boundaryFluxInt        
         assert(numpy.allclose(vol,boundaryFluxInt))
-    
+
+        #os.remove('test_boundaryfluxintegral%s.msh'%flowalg)
+        
     def test_boundary_flux_operator_DE1(self):
         """
         A (the) boundary flux operator is instantiated when a domain is created.
         This tests the calculation for rk2 timestepping 
         """
+        flowalg = 'DE1'
+                
+        domain=self.create_domain(flowalg)
+        #domain.print_statistics()
+        for t in domain.evolve(yieldstep=1.0,finaltime=5.0):
+            if verbose: domain.print_timestepping_statistics()
+            if verbose: print domain.get_water_volume()
+            pass
+        # The domain was initially dry
+        vol=domain.get_water_volume()
+        boundaryFluxInt=domain.get_boundary_flux_integral()
         
-        domain=self.create_domain('DE1')
-        for t in domain.evolve(yieldstep=0.1,finaltime=1.0):
+        if verbose: print flowalg, vol, boundaryFluxInt
+        assert(numpy.allclose(vol,boundaryFluxInt))
+
+    def test_boundary_flux_operator_DE2(self):
+        """
+        A (the) boundary flux operator is instantiated when a domain is created.
+        This tests the calculation for rk3 timestepping 
+        """
+
+        flowalg = 'DE2'
+
+        domain=self.create_domain(flowalg)
+        #domain.print_statistics()
+        for t in domain.evolve(yieldstep=1.0,finaltime=5.0):
+            if verbose: domain.print_timestepping_statistics()
+            if verbose: print domain.get_water_volume(), domain.get_boundary_flux_integral()
             pass
         # The domain was initially dry
         vol=domain.get_water_volume()
         boundaryFluxInt=domain.get_boundary_flux_integral()
 
-        assert(numpy.allclose(vol,boundaryFluxInt))
+        if verbose: print flowalg, vol, boundaryFluxInt
+        assert(numpy.allclose(vol,boundaryFluxInt))        
 
+        #os.remove('test_boundaryfluxintegral%s.msh'%flowalg)
+        
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_boundary_flux_integral_operator, 'test')
     runner = unittest.TextTestRunner(verbosity=1)
