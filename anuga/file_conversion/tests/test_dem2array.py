@@ -65,8 +65,9 @@ NODATA_value  -9999
         #print 'sending elev', ref_elevation
         
         Z_ex = num.array(ref_elevation,num.float).reshape(12,11)
-
-        #Write prj file with metadata
+	Z_ex = num.fliplr(Z_ex.T)
+        
+	#Write prj file with metadata
         metafilename = root+'.prj'
         fid = open(metafilename, 'w')
 
@@ -90,13 +91,10 @@ Parameters
 
         x,y, Z = dem2array(root+'.dem')
         
-#         print Z
-#         print Z_ex
 #         print x
 #         print xvec
 #         print y
 #         print yvec        
-        
         assert num.allclose(Z,Z_ex)
         assert num.allclose(x,xvec)
         assert num.allclose(y,yvec)
