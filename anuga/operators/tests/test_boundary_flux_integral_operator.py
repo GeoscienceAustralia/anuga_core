@@ -55,7 +55,7 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
        
         # Boundary conditions
         Br=anuga.Reflective_boundary(domain)
-        Bd=anuga.Dirichlet_boundary([10., 0., 0.])
+        Bd=anuga.Dirichlet_boundary([0., 0., 0.])
         domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom':Br})
 
         return domain
@@ -71,15 +71,15 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
         domain=self.create_domain(flowalg)
 
         #domain.print_statistics()
-        for t in domain.evolve(yieldstep=0.1,finaltime=1.0):
-            domain.print_timestepping_statistics()
-            print domain.get_water_volume()
+        for t in domain.evolve(yieldstep=1.0,finaltime=5.0):
+            if verbose: domain.print_timestepping_statistics()
+            if verbose: print domain.get_water_volume()
             pass
         # The domain was initially dry
         vol=domain.get_water_volume()
         boundaryFluxInt=domain.get_boundary_flux_integral()
 
-        print flowalg, vol, boundaryFluxInt        
+        if verbose: print flowalg, vol, boundaryFluxInt        
         assert(numpy.allclose(vol,boundaryFluxInt))
 
         #os.remove('test_boundaryfluxintegral%s.msh'%flowalg)
@@ -93,15 +93,15 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
                 
         domain=self.create_domain(flowalg)
         #domain.print_statistics()
-        for t in domain.evolve(yieldstep=0.1,finaltime=1.0):
-            domain.print_timestepping_statistics()
-            print domain.get_water_volume()
+        for t in domain.evolve(yieldstep=1.0,finaltime=5.0):
+            if verbose: domain.print_timestepping_statistics()
+            if verbose: print domain.get_water_volume()
             pass
         # The domain was initially dry
         vol=domain.get_water_volume()
         boundaryFluxInt=domain.get_boundary_flux_integral()
         
-        print flowalg, vol, boundaryFluxInt
+        if verbose: print flowalg, vol, boundaryFluxInt
         assert(numpy.allclose(vol,boundaryFluxInt))
 
     def test_boundary_flux_operator_DE2(self):
@@ -114,15 +114,15 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
 
         domain=self.create_domain(flowalg)
         #domain.print_statistics()
-        for t in domain.evolve(yieldstep=0.1,finaltime=1.0):
-            domain.print_timestepping_statistics()
-            print domain.get_water_volume(), domain.get_boundary_flux_integral()
+        for t in domain.evolve(yieldstep=1.0,finaltime=5.0):
+            if verbose: domain.print_timestepping_statistics()
+            if verbose: print domain.get_water_volume(), domain.get_boundary_flux_integral()
             pass
         # The domain was initially dry
         vol=domain.get_water_volume()
         boundaryFluxInt=domain.get_boundary_flux_integral()
 
-        print flowalg, vol, boundaryFluxInt
+        if verbose: print flowalg, vol, boundaryFluxInt
         assert(numpy.allclose(vol,boundaryFluxInt))        
 
         #os.remove('test_boundaryfluxintegral%s.msh'%flowalg)
