@@ -32,7 +32,7 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
                                                 'top': [1],
                                                 'right': [2],
                                                 'bottom': [3]},
-                                   mesh_filename='test_boundaryfluxintegral%s.msh'%flowalg,
+                                   mesh_filename='test_boundaryfluxintegral.msh',
                                    maximum_triangle_area = 200.,
                                    minimum_triangle_angle = 28.0,
                                    use_cache=False,
@@ -41,7 +41,7 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
 
         # 05/05/2014 -- riverwalls only work with DE0 and DE1
         domain.set_flow_algorithm(flowalg)
-        domain.set_name('test_boundaryfluxintegral%s'%flowalg)
+        domain.set_name('test_boundaryfluxintegral')
 
         domain.set_store_vertices_uniquely()
        
