@@ -73,13 +73,15 @@ class Erosion_operator(Operator, Region):
         # doesn't fixup the relationship between
         # bed and stage vertex values in dry region
         #------------------------------------------
-        self.domain.optimise_dry_cells = 0
+        if not self.domain.get_using_discontinuous_elevation():
+            self.domain.optimise_dry_cells = 0
 
         #-----------------------------------------
         # Extra structures to support maintaining
         # continuity of elevation
         #-----------------------------------------
-        self.setup_node_structures()
+        if not self.domain.get_using_discontinuous_elevation():
+            self.setup_node_structures()
 
         #-----------------------------------------
         # Some extras for reporting

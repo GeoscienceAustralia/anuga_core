@@ -41,7 +41,7 @@ def dem2pts(name_in, name_out=None,
               'verbose': verbose}
 
     if use_cache is True:
-        from caching import cache
+        from anuga.caching import cache
         result = cache(_dem2pts, name_in, kwargs,
                        dependencies = [name_in],
                        verbose = verbose)
