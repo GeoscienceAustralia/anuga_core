@@ -444,7 +444,22 @@ class Test_plot_utils(unittest.TestCase):
         raster = None
         # Delete tif made with Make_Geotif
         os.remove('PointData_TestData.tif')
+
+    def test_triangle_containing_point(self):
+
+        self.create_domain(InitialOceanStage=1., InitialLandStage=0., flowAlg='DE0', verbose=verbose)
+
+        p = util.get_output('test_plot_utils.sww')
+        pc = util.get_centroids(p, velocity_extrapolation=True)
+
+        # Compare lookup using the 2 different function
+
+        point_index_1 = util.get_triangle_containing_point(p, [50., 50.])
+
+        tri_lookup = util.get_triangle_lookup_function(p)
+        assert( point_index_1 == tri_lookup(50., 50.) )
         
+ 
 
 ################################################################################
 
