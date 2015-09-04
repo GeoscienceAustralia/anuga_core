@@ -726,10 +726,17 @@ inline double _compute_fluxes_central(struct domain *D, double timestep){
     double hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2; 
     double stage_edge_lim, outgoing_mass_edges, pressure_flux, hc, hc_n, tmp, tmp2;
     double h_left_tmp, h_right_tmp;
-    static long call = 1; // Static local variable flagging already computed flux
+    static long call = 0; // Static local variable flagging already computed flux
+    static long timestep_fluxcalls=1;
+    static long base_call = 1;
     double speed_max_last, vol, weir_height;
 
     call++; // Flag 'id' of flux calculation for this timestep
+
+    if (D->timestep_fluxcalls != timestep_fluxcalls) {
+    	timestep_fluxcalls = D->timestep_fluxcalls;
+    	base_call = call;
+    }
 
     // Set explicit_update to zero for all conserved_quantities.
     // This assumes compute_fluxes called before forcing terms
@@ -741,8 +748,10 @@ inline double _compute_fluxes_central(struct domain *D, double timestep){
     // Counter for riverwall edges
     RiverWall_count=0;
     // Which substep of the timestepping method are we on?
-    substep_count=(call-2)%D->timestep_fluxcalls;
+    substep_count=(call-base_call)%D->timestep_fluxcalls;
     
+    //printf("call = %d substep_count = %d base_call = %d \n",call,substep_count, base_call);
+
     // Fluxes are not updated every timestep,
     // but all fluxes ARE updated when the following condition holds
     if(D->allow_timestep_increase[0]==1){
