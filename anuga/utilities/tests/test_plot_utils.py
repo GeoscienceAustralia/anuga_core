@@ -447,6 +447,12 @@ class Test_plot_utils(unittest.TestCase):
 
     def test_triangle_containing_point(self):
 
+        import matplotlib.tri as tri
+        
+        # older versions of matplotlib don't have this procedure
+        if not hasattr(tri.Triangulation,"get_trifinder"):
+            return
+        
         self.create_domain(InitialOceanStage=1., InitialLandStage=0., flowAlg='DE0', verbose=verbose)
 
         p = util.get_output('test_plot_utils.sww')
