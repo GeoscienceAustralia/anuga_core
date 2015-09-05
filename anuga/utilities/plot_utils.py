@@ -789,7 +789,20 @@ def water_volume(p, p2, per_unit_area=False, subset=None):
     return volume
 
 
-def get_triangle_containing_point(p,point, search_order=None):
+def get_triangle_containing_point(p, point, search_order=None):
+    """
+    Function to get the index of a triangle containing a point. 
+    It loops over all points in the mesh until it finds on that contains the point.
+    The search order (i.e. order in which triangles defined by p.vols are searched) can
+    be provided. If it is not, it is estimated by computing the distance
+    from the point to the first vertex of every triangle, and searching from smallest to largest.
+
+    @param p Object containing mesh vertex information (e.g. from plot_utils.get_output)
+    @param point A single point
+    @param search_order An optional integer array giving the order in which to search the mesh triangles
+
+    @return The index such that the triangle defined by p.vols[index,:] contains the point
+    """
 
     V = p.vols
 
@@ -818,6 +831,34 @@ def get_triangle_containing_point(p,point, search_order=None):
 
     msg = 'Point %s not found within a triangle' %str(point)
     raise Exception(msg)
+
+
+def get_triangle_lookup_function(pv):
+    """Return a function F(x,y) which gives the row index in pv.vols
+    corresponding to  the triangle containing x,y. This function
+    should be more efficient than get_triangle_containing_point
+    if many points need to be looked-up
+
+    @param pv object containing vertex information (e.g. from plot_utils.get_output)
+    @return function F(x,y) which gives the index (or indices) in pv.vols
+    corresponding to the triangle(s) containing x,y, where x,y can be numpy.arrays
+
+    """
+    import matplotlib.tri as tri
+
+    # Get unique vertices for triangle hunting
+    complex_verts, unique_inds = numpy.unique(pv.x + 1j*pv.y, return_inverse=True)
+
+    reduced_x = numpy.real(complex_verts)
+    reduced_y = numpy.imag(complex_verts)
+
+    # Here the ordering is the same as pv.vols
+    reduced_triangles = unique_inds[pv.vols]
+
+    new_triangulation = tri.Triangulation(reduced_x, reduced_y, reduced_triangles)
+    tri_lookup = new_triangulation.get_trifinder()
+
+    return(tri_lookup)
 
 
 def get_extent(p):
@@ -1148,7 +1189,7 @@ def plot_triangles(p, adjustLowerLeft=False, values=None, values_cmap=matplotlib
         
        @param p = object holding sww vertex information (from util.get_output)
        @param adjustLowerLeft = if TRUE, use spatial coordinates, otherwise use ANUGA internal coordinates     
-       @param values = list or array of length(p.x), or None. All triangles are assigned this value (for face plotting colors).
+       @param values = list or array of length(p.vols), or None. All triangles are assigned this value (for face plotting colors).
        @param values_cmap = colormap for faces [e.g. values_cmap = matplotlib.cm.get_cmap('spectral')]
        @param edgecolors = edge color for polygons (using matplotlib.colors notation). Use 'none' for no color
     """

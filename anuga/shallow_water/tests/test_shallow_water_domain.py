@@ -69,6 +69,58 @@ def linear_function(point):
     point = num.array(point)
     return point[:,0]+point[:,1]
 
+# for help creating asc and dem files
+def axes2points(x, y):
+    """Generate all combinations of grid point coordinates from x and y axes
+
+    Args:
+        * x: x coordinates (array)
+        * y: y coordinates (array)
+
+    Returns:
+        * P: Nx2 array consisting of coordinates for all
+             grid points defined by x and y axes. The x coordinate
+             will vary the fastest to match the way 2D numpy
+             arrays are laid out by default ('C' order). That way,
+             the x and y coordinates will match a corresponding
+             2D array A when flattened (A.flat[:] or A.reshape(-1))
+
+    Note:
+        Example
+
+        x = [1, 2, 3]
+        y = [10, 20]
+
+        P = [[1, 10],
+             [2, 10],
+             [3, 10],
+             [1, 20],
+             [2, 20],
+             [3, 20]]
+    """
+    import numpy 
+    
+    # Reverse y coordinates to have them start at bottom of array
+    y = numpy.flipud(y)
+
+    # Repeat x coordinates for each y (fastest varying)
+    X = numpy.kron(numpy.ones(len(y)), x)
+
+    # Repeat y coordinates for each x (slowest varying)
+    Y = numpy.kron(y, numpy.ones(len(x)))
+
+    # Check
+    N = len(X)
+    assert len(Y) == N
+
+    # Create Nx2 array of x and y coordinates
+    X = numpy.reshape(X, (N, 1))
+    Y = numpy.reshape(Y, (N, 1))
+    P = numpy.concatenate((X, Y), axis=1)
+
+    # Return
+    return P
+
 class Weir:
     """Set a bathymetry for weir with a hole and a downstream gutter
     x,y are assumed to be in the unit square
@@ -8457,6 +8509,199 @@ friction  \n \
         assert num.allclose(UHc, (2*Xc+3*Yc)*(Xc+Yc))
         assert num.allclose(VHc, (5*Xc+7*Yc)*(Xc+Yc))
 
+    def test_set_quantity_from_file(self):
+	'''test the new set_values for the set_quantity procedures. The results of setting quantity values by using set_quantities and set_values for pts, asc and dem files are tested here. They should be equal.'''
+
+	# settup
+        x0 = 0.0
+        y0 = 0.0
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+
+        #bac, bce, ecf, dbe
+        elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
+
+        # absolute going in ..
+        mesh4 = Domain(points, elements, geo_reference=Geo_reference(56, 0, 0))
+        mesh4.check_integrity()
+        quantity = Quantity(mesh4)
+
+        # Get (enough) datapoints (relative to georef)
+        data_points_rel = [[ 0.66666667, 0.66666667],
+                           [ 1.33333333, 1.33333333],
+                           [ 2.66666667, 0.66666667],
+                           [ 0.66666667, 2.66666667],
+                           [ 0.0,        1.0],
+                           [ 0.0,        3.0],
+                           [ 1.0,        0.0],
+                           [ 1.0,        1.0],
+                           [ 1.0,        2.0],
+                           [ 1.0,        3.0],
+                           [ 2.0,        1.0],
+                           [ 3.0,        0.0],
+                           [ 3.0,        1.0]]
+
+        data_geo_spatial = Geospatial_data(data_points_rel,
+                                           geo_reference=Geo_reference(56,
+                                                                       x0,
+                                                                       y0))
+        data_points_absolute = data_geo_spatial.get_data_points(absolute=True)
+        attributes = linear_function(data_points_absolute)
+        att = 'spam_and_eggs'
+
+        # Create .txt file
+        ptsfile = tempfile.mktemp(".txt")
+        file = open(ptsfile, "w")
+        file.write(" x,y," + att + " \n")
+        for data_point, attribute in map(None, data_points_absolute, attributes):
+            row = (str(data_point[0]) + ',' +
+                   str(data_point[1]) + ',' +
+                   str(attribute))
+            file.write(row + "\n")
+        file.close()
+
+	# exact answer (vertex locations)
+        answer_vertex_values = linear_function(quantity.domain.get_vertex_coordinates())
+
+        # Check that values can be set from pts file
+	# using set_values directly
+        quantity.set_values(filename = ptsfile, alpha = 0)
+        assert num.allclose(quantity.vertex_values.flat, answer_vertex_values)
+
+	# using set_quantity with quantity name stage
+	mesh4.set_quantity(name='stage', filename=ptsfile, alpha=0)
+	mesh4_stage = mesh4.get_quantity('stage')
+        assert num.allclose(mesh4_stage.vertex_values.flat, answer_vertex_values)
+
+	# check set quantity from asc file
+
+        """ Format of asc file 
+        ncols         11
+        nrows         12
+        xllcorner     240000
+        yllcorner     7620000
+        cellsize      6000
+        NODATA_value  -9999
+        """
+        ncols = 11  # Nx
+        nrows = 12  # Ny
+        xllcorner = x0
+        yllcorner = y0
+        cellsize  = 1.0
+        NODATA_value =  -9999
+
+	#Create .asc file
+        txt_file = 'test_asc.asc'
+        datafile = open(txt_file,"w")
+        datafile.write('ncols '+str(ncols)+"\n")
+        datafile.write('nrows '+str(nrows)+"\n")
+        datafile.write('xllcorner '+str(xllcorner)+"\n")
+        datafile.write('yllcorner '+str(yllcorner)+"\n")
+        datafile.write('cellsize '+str(cellsize)+"\n")
+        datafile.write('NODATA_value '+str(NODATA_value)+"\n")
+        
+        x = num.linspace(xllcorner, xllcorner+(ncols-1)*cellsize, ncols)
+        y = num.linspace(yllcorner, yllcorner+(nrows-1)*cellsize, nrows)
+        points = axes2points(x, y)
+        datavalues = linear_function(points)
+        
+        datavalues = datavalues.reshape(nrows,ncols)
+
+        for row in datavalues:
+            datafile.write(" ".join(str(elem) for elem in row) + "\n")         
+        datafile.close()
+
+	# check set_values from asc file
+	quantity.set_values(0.0)
+	quantity.set_values(filename = txt_file,
+                            location='vertices',
+                            indices=None,
+                            verbose=False)
+        assert num.allclose(quantity.vertex_values.flat, answer_vertex_values)       
+	
+	quantity.set_values(0.0)
+	quantity.set_values(filename = txt_file,
+                            location='centroids',
+                            indices=None,
+                            verbose=False)    
+
+	# exact answer for centroid locations
+	answer_centroid_values = [ 1.33333333,  2.66666667,  3.33333333,  3.33333333]
+        assert num.allclose(quantity.centroid_values, answer_centroid_values)      
+
+	# check set_quantity from asc file
+	mesh4.set_quantity(name='stage', filename = txt_file,
+                            location='vertices', indices=None, verbose=False)
+	mesh4_stage = mesh4.get_quantity('stage')
+        assert num.allclose(mesh4_stage.vertex_values.flat, answer_vertex_values)       
+	# reset mesh4 stage values
+	mesh4.set_quantity(name='stage', numeric=0.0)
+ 	mesh4.set_quantity(name='stage', filename = txt_file,
+                            location='centroids', indices=None, verbose=False)
+        assert num.allclose(mesh4_stage.centroid_values, answer_centroid_values)
+
+	# check set quantity values from dem file
+	from anuga.file_conversion.asc2dem import asc2dem
+	# use the same reference solution used above for testing
+	# convert test_asc.asc file to .dem file
+	txt_file_prj = 'test_asc.prj' 
+	fid = open(txt_file_prj, 'w')
+	fid.write("""Projection UTM
+	Zone 56
+	Datum WGS84
+	Zunits NO
+	Units METERS
+	Spheroid WGS84
+	Xshift 0.0000000000
+	Yshift 10000000.0000000000
+	Parameters
+	""")
+	fid.close()
+	
+	txt_file_dem = 'test_asc.dem'
+	asc2dem(name_in=txt_file, name_out='test_asc',
+	        use_cache=False, verbose=False)
+
+	# check set_values from dem file
+        quantity.set_values(0.0)
+        quantity.set_values(filename = txt_file_dem,
+                            location='vertices',
+                            indices=None,
+                            verbose=False)
+        assert num.allclose(quantity.vertex_values.flat, answer_vertex_values)       
+
+	quantity.set_values(0.0)
+        quantity.set_values(filename = txt_file_dem,
+                            location='centroids',
+                            indices=None,
+                            verbose=False)
+        assert num.allclose(quantity.centroid_values, answer_centroid_values)       
+
+	# check set_quantity from dem file
+	mesh4.set_quantity(name='stage', filename = txt_file_dem,
+                            location='vertices', indices=None, verbose=False)
+	mesh4_stage = mesh4.get_quantity('stage')
+        assert num.allclose(mesh4_stage.vertex_values.flat, answer_vertex_values)       
+	# reset mesh4 stage values
+	mesh4.set_quantity(name='stage', numeric=0.0)
+	mesh4.set_quantity(name='stage', filename = txt_file_dem,
+                            location='centroids')
+	mesh4_stage = mesh4.get_quantity('stage')
+        assert num.allclose(mesh4_stage.centroid_values, answer_centroid_values)   
+
+	# Cleanup
+        import os
+        os.remove(ptsfile)
+        os.remove(txt_file)   
+	os.remove(txt_file_prj)
+        os.remove(txt_file_dem)
 
     def test_that_mesh_methods_exist(self):
         """test_that_mesh_methods_exist

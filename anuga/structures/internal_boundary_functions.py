@@ -1,5 +1,4 @@
 import numpy
-from matplotlib import pyplot
 import scipy
 from scipy.interpolate import interp1d
 
@@ -320,6 +319,7 @@ class hecras_internal_boundary_function:
             Return a list with [HW_values, TW_values, Q].
 
         """
+        from matplotlib import pyplot
 
         HW_min = self.free_flow_hw_range[0]
         HW_max = self.free_flow_hw_range[1]
