@@ -18,13 +18,66 @@ from anuga.file_conversion.file_conversion import timefile2netcdf
 
 from anuga.file.mux import WAVEHEIGHT_MUX_LABEL, EAST_VELOCITY_LABEL, \
                             NORTH_VELOCITY_LABEL
-
 import sys
 import unittest
 import numpy as num
 import copy
 import os
 
+def axes2points(x, y):
+    """Generate all combinations of grid point coordinates from x and y axes
+
+    Args:
+        * x: x coordinates (array)
+        * y: y coordinates (array)
+
+    Returns:
+        * P: Nx2 array consisting of coordinates for all
+             grid points defined by x and y axes. The x coordinate
+             will vary the fastest to match the way 2D numpy
+             arrays are laid out by default ('C' order). That way,
+             the x and y coordinates will match a corresponding
+             2D array A when flattened (A.flat[:] or A.reshape(-1))
+
+    Note:
+        Example
+
+        x = [1, 2, 3]
+        y = [10, 20]
+
+        P = [[1, 10],
+             [2, 10],
+             [3, 10],
+             [1, 20],
+             [2, 20],
+             [3, 20]]
+    """
+    import numpy 
+    
+    # Reverse y coordinates to have them start at bottom of array
+    y = numpy.flipud(y)
+
+    # Repeat x coordinates for each y (fastest varying)
+    X = numpy.kron(numpy.ones(len(y)), x)
+
+    # Repeat y coordinates for each x (slowest varying)
+    Y = numpy.kron(y, numpy.ones(len(x)))
+
+    # Check
+    N = len(X)
+    assert len(Y) == N
+
+    # Create Nx2 array of x and y coordinates
+    X = numpy.reshape(X, (N, 1))
+    Y = numpy.reshape(Y, (N, 1))
+    P = numpy.concatenate((X, Y), axis=1)
+
+    # Return
+    return P
+
+def linear_function(point):
+    point = num.array(point)
+    return point[:,0]+3*point[:,1]
 
 class Test_File_Conversion(unittest.TestCase):
     """ A suite of tests to test file conversion functions.
@@ -944,6 +997,111 @@ class Test_File_Conversion(unittest.TestCase):
         #os.remove(root+'.tms')
         os.remove(root+'.txt')
 
+    
+    def test_grd2array_dem2array(self):
+        '''test the conversion result of grd to array and dem to array. The pts files should be the same'''
+	#ANUGA models
+	from anuga.file_conversion.grd2array import grd2array
+	from anuga.file_conversion.dem2array import dem2array
+	from anuga.file_conversion.asc2dem import asc2dem
+
+        #Create .asc file. Uses the example from test_grd2array.py
+        """ Format of asc file 
+        ncols         11
+        nrows         12
+        xllcorner     240000
+        yllcorner     7620000
+        cellsize      6000
+        NODATA_value  -9999
+        """
+        
+        x0 = 0.0
+        y0 = 0.0
+        
+        ncols = 11  # Nx
+        nrows = 12  # Ny
+        xllcorner = x0
+        yllcorner = y0
+        cellsize  = 1.0
+        NODATA_value =  -9999
+        
+        #Create .asc file
+        root = 'test_asc'
+        txt_file = root+'.asc'
+        datafile = open(txt_file,"w")
+        datafile.write('ncols '+str(ncols)+"\n")
+        datafile.write('nrows '+str(nrows)+"\n")
+        datafile.write('xllcorner '+str(xllcorner)+"\n")
+        datafile.write('yllcorner '+str(yllcorner)+"\n")
+        datafile.write('cellsize '+str(cellsize)+"\n")
+        datafile.write('NODATA_value '+str(NODATA_value)+"\n")
+        
+        x_ex = num.linspace(xllcorner, xllcorner+(ncols-1)*cellsize, ncols)
+        y_ex = num.linspace(yllcorner, yllcorner+(nrows-1)*cellsize, nrows)
+        Z_ex = [[  0.,  3.,  6.,  9., 12., 15., 18., 21., 24., 27., 30., 33.],
+                 [  1.,  4.,  7., 10., 13., 16., 19., 22., 25., 28., 31., 34.],
+                 [  2.,  5.,  8., 11., 14., 17., 20., 23., 26., 29., 32., 35.],
+                 [  3.,  6.,  9., 12., 15., 18., 21., 24., 27., 30., 33., 36.],
+                 [  4.,  7., 10., 13., 16., 19., 22., 25., 28., 31., 34., 37.],
+                 [  5.,  8., 11., 14., 17., 20., 23., 26., 29., 32., 35., 38.],
+                 [  6.,  9., 12., 15., 18., 21., 24., 27., 30., 33., 36., 39.],
+                 [  7., 10., 13., 16., 19., 22., 25., 28., 31., 34., 37., 40.],
+                 [  8., 11., 14., 17., 20., 23., 26., 29., 32., 35., 38., 41.],
+                 [  9., 12., 15., 18., 21., 24., 27., 30., 33., 36., 39., 42.],
+                 [ 10., 13., 16., 19., 22., 25., 28., 31., 34., 37., 40., 43.]]
+
+        points = axes2points(x_ex, y_ex)
+        
+        datavalues = linear_function(points)
+        datavalues = datavalues.reshape(nrows,ncols)
+
+        for row in datavalues:
+            #print row
+            datafile.write(" ".join(str(elem) for elem in row) + "\n")         
+        datafile.close()
+
+
+        #create dem file from asc file
+	txt_file_prj = root+'.prj' 
+	fid = open(txt_file_prj, 'w')
+	fid.write("""Projection UTM
+	Zone 56
+	Datum WGS84
+	Zunits NO
+	Units METERS
+	Spheroid WGS84
+	Xshift 0.0000000000
+	Yshift 10000000.0000000000
+	Parameters
+	""")
+	fid.close()
+	
+	txt_file_dem = root+'.dem'
+	asc2dem(name_in=txt_file, name_out=root,
+	        use_cache=False, verbose=False)
+
+	#convert grd to array
+        x_grd, y_grd, Z_grd = grd2array(txt_file)
+	#convert dem to array
+        x_dem, y_dem, Z_dem = dem2array(txt_file_dem)
+        
+	#check grd2array and dem2array results are equal
+	assert num.allclose(x_grd, x_dem)
+	assert num.allclose(y_grd, y_dem)
+	assert num.allclose(Z_grd, Z_dem)
+
+	#check grd2array (dem2array) results are correct
+	assert num.allclose(x_grd, x_ex)
+	assert num.allclose(y_grd, y_ex)
+	assert num.allclose(Z_grd, Z_ex)
+
+        try:
+            os.remove(root + '.dem')
+            os.remove(root + '.asc')
+            os.remove(root + '.prj')
+        except:
+            # Expect error on windows
+            pass
 #-------------------------------------------------------------
 
 if __name__ == "__main__":

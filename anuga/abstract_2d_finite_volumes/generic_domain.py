@@ -1756,6 +1756,7 @@ class Generic_Domain:
 
         # Update timestep to fit yieldstep and finaltime
         self.update_timestep(yieldstep, finaltime)
+        
 
         # Update centroid values of conserved quantities
         self.update_conserved_quantities()

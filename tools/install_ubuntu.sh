@@ -20,7 +20,7 @@ sudo apt-get install -q -y git gfortran python-dev python-numpy \
                              python-scipy \
                              python-matplotlib netcdf-bin \
                              libnetcdf-dev libhdf5-serial-dev \
-                             python-gdal python-pip 
+                             python-gdal gdal-bin python-pip 
 
 sudo pip install nose netCDF4 pyproj
     

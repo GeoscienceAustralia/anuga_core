@@ -751,7 +751,7 @@ class Domain(Generic_Domain):
         if self.processor == 0 and self.verbose:
             print '##########################################################################'
             print '#'
-            print '# Using discontinuous elevation solver DE3'
+            print '# Using discontinuous elevation solver DE2'
             print '#'
             print '# Using rk3 timestepping'
             print '#'
