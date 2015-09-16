@@ -18,6 +18,7 @@ from anuga.geometry.polygon import *
 
 import numpy as num
 
+from anuga.coordinate_transforms.lat_long_UTM_conversion import *
 
 #Aux for fit_interpolate.fit example
 def linear_function(point):
@@ -1671,12 +1672,248 @@ class Test_Quantity(unittest.TestCase):
         
         assert num.allclose(quantity.centroid_values, answer)
 
-	#Cleanup
-	#import os
-	os.remove(txt_file)   
+       #Cleanup
+       #import os
+        os.remove(txt_file)   
 	os.remove(txt_file_prj)
-	os.remove(txt_file_dem)
+        os.remove(txt_file_dem)
 
+    def test_set_values_from_lat_long_grid_file1(self):
+	''' test set values from latitude and longitude grid file. 
+	    Mesh points in utm coordinates. 
+	    Grid points in utm coordinates which will be converted to lat long coordinates
+	    '''
+        x0 = 240000
+        y0 = 7620000
+	zone = 56
+	cellsize = 6000.0
+	
+	# mesh points are in utm coordinates
+	# relative mesh points (relative to (x0, y0))
+	a = [0.0, 0.0]
+        b = [0.0, 2*6000.0]
+        c = [2*6000.0, 0.0]
+        d = [0.0, 4*6000.0]
+        e = [2*6000.0, 2*6000.0]
+        f = [4*6000.0, 0.0]
+
+#	# absolute points
+#	a = [x0+0.0, y0+0.0]
+#        b = [x0+0.0, y0+2*6000.0]
+#        c = [x0+2*6000.0, y0+0.0]
+#        d = [x0+0.0, y0+4*6000.0]
+#        e = [x0+2*6000.0, y0+2*6000.0]
+#        f = [x0+4*6000.0, y0+0.0]
+
+	points = [a, b, c, d, e, f]
+
+        #bac, bce, ecf, dbe
+        elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
+
+	# if use relative points 
+	mesh4 = Generic_Domain(points, elements, geo_reference = Geo_reference(56, x0, y0))
+
+#	# if use absolute points
+#        mesh4 = Generic_Domain(points, elements, geo_reference = Geo_reference(56, 0, 0))
+
+	mesh4.check_integrity()
+        quantity = Quantity(mesh4)
+
+	# creat lat long grid file
+        """ Format of ll file 
+        ncols          11
+        nrows          12
+        latcorner      45
+        longcorner     90
+        lat spacing    0.1
+	long spacing   0.1
+        NODATA_value  -9999
+        """
+        ncols = 11  # Nx
+        nrows = 12  # Ny
+	xllcorner = x0
+	yllcorner = y0
+        latcorner, longcorner = UTMtoLL(y0, x0, zone)
+        NODATA_value =  -9999
+
+	# create data values
+        x = num.linspace(xllcorner, xllcorner+(ncols-1)*cellsize, ncols)
+        y = num.linspace(yllcorner, yllcorner+(nrows-1)*cellsize, nrows)
+	points = axes2points(x, y)
+ 	datavalues = linear_function(points)
+        datavalues = datavalues.reshape(nrows,ncols)
+#        print datavalues, 'datavalues'
+        #print datavalues.shape
+
+	# construct latitude and longitude grid points from utm grid points
+	yll = num.array([list(UTMtoLL(yi, x[0], zone)) for yi in y])
+	lato = yll[:,0]
+	xll = num.array([list(UTMtoLL(y[0], xi, zone)) for xi in x])
+	longo = xll[:,1]
+	latinc = (max(lato)-min(lato))/(nrows-1)
+	longinc = (max(longo)-min(longo))/(ncols-1)
+	
+        #Create .ll file
+        #txt_file = tempfile.mktemp(".ll")
+        txt_file = 'test_ll1.ll'
+        datafile = open(txt_file,"w")
+        datafile.write('ncols '+str(ncols)+"\n")
+        datafile.write('nrows '+str(nrows)+"\n")
+        datafile.write('latcorner '+str(latcorner)+"\n")
+        datafile.write('longcorner '+str(longcorner)+"\n")
+        datafile.write('lat spacing '+str(latinc)+"\n")
+        datafile.write('long spacing '+str(longinc)+"\n")
+        datafile.write('NODATA_value '+str(NODATA_value)+"\n")
+        
+        for row in datavalues:
+            #print row
+            datafile.write(" ".join(str(elem) for elem in row) + "\n")         
+        datafile.close()       
+	
+	# set values
+	quantity.set_values(filename = txt_file,
+                            location='vertices',
+                            indices=None,
+                            verbose=False)
+
+#	print quantity.vertex_values, 'vertex values'
+	
+	answer = num.array([[ 23136000,  23100000,  23112000],
+	 		    [ 23136000,  23112000,  23148000],
+	  		    [ 23148000,  23112000,  23124000],
+		            [ 23172000,  23136000,  23148000]])
+	
+	assert num.allclose(quantity.vertex_values, answer)
+        
+        quantity.set_values(0.0)
+        quantity.set_values(filename = txt_file,
+                            location='centroids',
+                            indices=None,
+                            verbose=False)       
+        
+#        print quantity.centroid_values, 'centroid values'
+        
+        answer = num.array([ 23116000,  23132000,  23128000,  23152000])
+
+        assert num.allclose(quantity.centroid_values, answer)
+
+	os.remove(txt_file)
+
+    def test_set_values_from_lat_long_grid_file2(self):
+	''' test set values from latitude and longitude grid file. 
+	    Mesh and grid points are in lat long coordinates
+	    '''
+	# (grid and mesh) points are already in lat and long coordinates
+	lat0 = -21.5000043183
+	long0 = 150.500003998 
+	zone, x0, y0 = LLtoUTM(lat0, long0)
+	x0 = round(x0)
+	y0 = round(y0)
+	latinc = 0.0541609447423 
+	longinc = 0.0578849439903
+	zone = 56
+
+	# lat long mesh points (absolute)
+	a = [ -21.12088308,  150.84728306]
+        b = [ -21.12088308,  150.96306351]
+        c = [ -21.01255927,  151.07885344]
+        d = [ -21.01255927,  150.84728306]
+        e = [ -21.01255927,  150.96306351]
+        f = [ -20.90423393,  151.07885344]
+
+	points_ll = num.array([a, b, c, d, e, f])
+
+        #bac, bce, ecf, dbe
+        elements = [ [3,0,1], [3,1,4], [4,1,2], [4,2,5] ]
+	
+	# convert mesh points from lat long to utm coordinates
+	xp = num.array([list(LLtoUTM(lat0, plli[1])[1:]) for plli in points_ll])
+	xp = xp[:,0]
+	yp = num.array([list(LLtoUTM(plli[0], long0)[1:]) for plli in points_ll])
+	yp = yp[:,1]
+	pointsabs_UTM = num.round(num.array(zip(xp, yp)))
+#	print pointsabs_UTM, 'mesh points absolute in utm'
+	
+	# if use relative points 
+	points_UTM = pointsabs_UTM - num.array([x0, y0])
+	mesh4 = Generic_Domain(points_UTM, elements, geo_reference = Geo_reference(zone, x0, y0))
+
+#	# if use absolute points
+#        mesh4 = Generic_Domain(pointsabs_UTM, elements, geo_reference = Geo_reference(zone, 0, 0))
+
+	mesh4.check_integrity()
+        quantity = Quantity(mesh4)
+
+	# creat ll file
+        """ Format of ll file 
+        ncols          11
+        nrows          12
+        latcorner      45
+        longcorner     90
+        lat spacing    0.1
+	long spacing   0.1
+        NODATA_value  -9999
+        """
+        ncols = 11
+        nrows = 12
+        latcorner = lat0
+	longcorner = long0
+        NODATA_value =  -9999
+
+	# create data values (from lat long points)
+        lats = num.linspace(latcorner, latcorner+(nrows-1)*latinc, nrows)
+        longs = num.linspace(longcorner, longcorner+(ncols-1)*longinc, ncols)
+	points = axes2points(longs, lats)
+ 	datavalues = linear_function(points)
+        datavalues = datavalues.reshape(nrows,ncols)
+#        print datavalues, 'datavalues'
+        #print datavalues.shape
+	
+        #Create .ll file
+        #txt_file = tempfile.mktemp(".ll")
+        txt_file = 'test_ll2.ll'
+        datafile = open(txt_file,"w")
+        datafile.write('ncols '+str(ncols)+"\n")
+        datafile.write('nrows '+str(nrows)+"\n")
+        datafile.write('latcorner '+str(latcorner)+"\n")
+        datafile.write('longcorner '+str(longcorner)+"\n")
+        datafile.write('lat spacing '+str(latinc)+"\n")
+        datafile.write('long spacing '+str(longinc)+"\n")
+        datafile.write('NODATA_value '+str(NODATA_value)+"\n")
+        
+        for row in datavalues:
+            #print row
+            datafile.write(" ".join(str(elem) for elem in row) + "\n")         
+        datafile.close()       
+	
+	# set values
+	quantity.set_values(filename = txt_file,
+                            location='vertices',
+                            indices=None,
+                            verbose=False)
+
+#	print quantity.vertex_values, 'vertex values'
+	
+	answer = num.array([[ 87.8,  87.5,  87.6],
+	 		    [ 87.8,  87.6,  87.9],
+	  		    [ 87.9,  87.6,  88.0],
+	   		    [ 87.9,  88.0,  88.4]])
+	
+	assert num.allclose(num.round(quantity.vertex_values, decimals=1), answer)
+        
+        quantity.set_values(0.0)
+        quantity.set_values(filename = txt_file,
+                            location='centroids',
+                            indices=None,
+                            verbose=False)       
+        
+#        print quantity.centroid_values, 'centroid values'
+        
+        answer = num.array([ 87.6,  87.8,  87.9,  88.1])
+
+        assert num.allclose(num.round(quantity.centroid_values, decimals=1), answer)
+	
+	os.remove(txt_file)
 
     def test_set_values_from_quantity(self):
 
