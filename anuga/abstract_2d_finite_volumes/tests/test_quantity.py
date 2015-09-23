@@ -1673,9 +1673,13 @@ class Test_Quantity(unittest.TestCase):
 
 	#Cleanup
 	#import os
-	os.remove(txt_file)   
-	os.remove(txt_file_prj)
-	os.remove(txt_file_dem)
+
+        try:
+            os.remove(txt_file)
+            os.remove(txt_file_prj)
+            os.remove(txt_file_dem)
+        except:
+            pass
 
 
     def test_set_values_from_quantity(self):

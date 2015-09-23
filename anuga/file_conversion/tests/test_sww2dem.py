@@ -2252,8 +2252,11 @@ Doing row 4 of 5'''
                 pass
     #     os.remove(LOG_FILENAME)
         log.logging.disable(log.logging.CRITICAL)
-    
-        os.remove(LOG_FILENAME)
+
+        try:    
+            os.remove(LOG_FILENAME)
+        except:
+            pass
         
         
 
