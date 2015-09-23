@@ -8698,10 +8698,13 @@ friction  \n \
 
 	# Cleanup
         import os
-        os.remove(ptsfile)
-        os.remove(txt_file)   
-	os.remove(txt_file_prj)
-        os.remove(txt_file_dem)
+        try:
+            os.remove(ptsfile)
+            os.remove(txt_file)
+            os.remove(txt_file_prj)
+            os.remove(txt_file_dem)
+        except:
+            pass
 
     def test_that_mesh_methods_exist(self):
         """test_that_mesh_methods_exist
