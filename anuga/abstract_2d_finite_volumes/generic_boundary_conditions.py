@@ -349,7 +349,7 @@ class Time_boundary(Boundary):
         msg = 'Return value for function must be a list or an array of length %d' %d
         assert len(q) == d, msg
 
-        self.f = function
+        self.function = function
         self.domain = domain
 
     def __repr__(self):
