@@ -255,7 +255,7 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
     Underlying domain must be specified when boundary is instantiated
     """
 
-    def __init__(self, domain=None, function=None):
+    def __init__(self, domain=None, function=None, default_boundary=0.0):
         """ Instantiate a
             Transmissive_n_momentum_zero_t_momentum_set_stage_boundary.
             domain is the domain containing the boundary
@@ -274,6 +274,7 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
 
         self.domain = domain
         self.function = function
+        self.default_boundary = default_boundary
 
 
     def __repr__(self):
@@ -293,19 +294,25 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
         normal = self.domain.get_normal(vol_id, edge_id)
 
 
-        t = self.domain.get_time()
+        ## t = self.domain.get_time()
 
-        if hasattr(self.function, 'time'):
-            # Roll boundary over if time exceeds
-            while t > self.function.time[-1]:
-                msg = 'WARNING: domain time %.2f has exceeded' % t
-                msg += 'time provided in '
-                msg += 'transmissive_momentum_set_stage_boundary object.\n'
-                msg += 'I will continue, reusing the object from t==0'
-                log.critical(msg)
-                t -= self.function.time[-1]
+        ## if hasattr(self.function, 'time'):
+        ##     # Roll boundary over if time exceeds
+        ##     while t > self.function.time[-1]:
+        ##         msg = 'WARNING: domain time %.2f has exceeded' % t
+        ##         msg += 'time provided in '
+        ##         msg += 'transmissive_momentum_set_stage_boundary object.\n'
+        ##         msg += 'I will continue, reusing the object from t==0'
+        ##         log.critical(msg)
+        ##         t -= self.function.time[-1]
 
-        value = self.function(t)
+        ## value = self.function(t)
+        ## try:
+        ##     x = float(value)
+        ## except:
+        ##     x = float(value[0])
+
+        value = self.get_boundary_values()
         try:
             x = float(value)
         except:
@@ -409,9 +416,6 @@ class Time_stage_zero_momentum_boundary(Boundary):
     def __repr__(self):
         return 'Time_stage_zero_momemtum_boundary'
 
-    def get_time(self):
-
-        return self.domain.get_time()
 
     def evaluate(self, vol_id=None, edge_id=None):
 
@@ -440,44 +444,6 @@ class Time_stage_zero_momentum_boundary(Boundary):
         domain.quantities['ymomentum'].boundary_values[ids] = 0.0        
 
 
-    def get_boundary_values(self, t=None):
-
-        if t is None:
-            t = self.get_time()
-            
-        try:
-            res = self.f(t)
-        except Modeltime_too_early, e:
-            raise Modeltime_too_early(e)
-        except Modeltime_too_late, e:
-            if self.default_boundary is None:
-                raise Exception(e) # Reraise exception
-            else:
-                # Pass control to default boundary
-                res = self.default_boundary
-                
-                # Ensure that result cannot be manipulated
-                # This is a real danger in case the 
-                # default_boundary is a Dirichlet type 
-                # for instance. 
-                res = res.copy() 
-                
-                if self.default_boundary_invoked is False:
-                    if self.verbose:                
-                        # Issue warning the first time
-                        msg = '%s' %str(e)
-                        msg += 'Instead I will use the default boundary: %s\n'\
-                            %str(self.default_boundary) 
-                        msg += 'Note: Further warnings will be suppressed'
-                        log.critical(msg)
-               
-                    # FIXME (Ole): Replace this crude flag with
-                    # Python's ability to print warnings only once.
-                    # See http://docs.python.org/lib/warning-filter.html
-                    self.default_boundary_invoked = True
-
-        return res
-
 
 class Characteristic_stage_boundary(Boundary):
     """Sets the stage via a function and the momentum is determined 
@@ -502,6 +468,8 @@ class Characteristic_stage_boundary(Boundary):
             default_stage is the assumed stage pre the application of wave
         """
 
+        raise Exception, 'This boundary type is not implemented yet'
+    
         Boundary.__init__(self)
 
         if domain is None:
@@ -752,6 +720,8 @@ class Inflow_boundary(Boundary):
         #             h = (mu n/sqrt(S) )^{3/5} 
         
         slope = 0 # get gradient for this triangle dot normal
+        epsilon = 1.0e-12
+        import math
         
         # get manning coef from this triangle
         friction = self.domain.get_quantity('friction').get_values(\
@@ -1026,3 +996,7 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
             q[2] = qperp*normal[1] -qpar*normal[0]
 
         return q
+    
+    
+    
+    
