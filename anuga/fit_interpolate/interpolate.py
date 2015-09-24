@@ -983,8 +983,8 @@ class Interpolation_function:
                           'parameter point_id can be used'
                     raise Exception(msg)
 
-        msg = 'Time interval [%.16f:%.16f]' % (self.time[0], self.time[-1])
-        msg += ' does not match model time: %.16f\n' % t
+        msg = 'Model time %.16f' % t
+        msg += ' is not contained in function domain [%.16f:%.16f].\n' % (self.time[0], self.time[-1])
         if t < self.time[0]: raise Modeltime_too_early(msg)
         if t > self.time[-1]: raise Modeltime_too_late(msg)
 
