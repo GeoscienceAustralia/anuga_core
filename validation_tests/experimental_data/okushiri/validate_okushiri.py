@@ -42,7 +42,7 @@ class Test_results(unittest.TestCase):
         if verbose:
             print indent+'Running test script'
 
-        s = 'plot_results.py'
+        s = 'test_results.py'
         res = os.system('python %s' %s)
         # Test that script runs ok
         assert res == 0
