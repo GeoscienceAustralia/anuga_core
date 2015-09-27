@@ -23,7 +23,10 @@ class Boundary:
     """
 
     def __init__(self):
-        pass
+        self.verbose = True
+        self.default_boundary = None
+        self.default_boundary_invoked = False
+        
 
     def evaluate(self, vol_id=None, edge_id=None):
         msg = 'Generic class Boundary must be subclassed'
@@ -82,6 +85,52 @@ class Boundary:
             for j, name in enumerate(domain.evolved_quantities):
                 Q = domain.quantities[name]
                 Q.boundary_values[i] = q_evol[j]
+
+
+    def get_time(self):
+
+        return self.domain.get_time()
+
+        
+    def get_boundary_values(self, t=None):
+
+        if t is None:
+            t = self.get_time()
+
+        try:
+            res = self.function(t)
+        except Modeltime_too_early, e:
+            raise Modeltime_too_early(e)
+        except Modeltime_too_late, e:
+            if self.default_boundary is None:
+                raise Modeltime_too_late(e) # Reraise exception
+            else:
+                # Pass control to default boundary
+                res = self.default_boundary
+
+                # Ensure that result cannot be manipulated
+                # This is a real danger in case the 
+                # default_boundary is a Dirichlet type 
+                # for instance.
+                from copy import deepcopy 
+                res = deepcopy(res) 
+
+                if self.default_boundary_invoked is False:
+                    if self.verbose:                
+                        # Issue warning the first time
+                        msg = '%s' %str(e)
+                        msg += 'Instead I will use the default boundary value: %s\n'\
+                            %str(self.default_boundary) 
+                        msg += 'Note: Further warnings will be suppressed'
+                        log.critical(msg)
+
+                    # FIXME (Ole): Replace this crude flag with
+                    # Python's ability to print warnings only once.
+                    # See http://docs.python.org/lib/warning-filter.html
+                    self.default_boundary_invoked = True
+
+        return res
+
 
 
 class Transmissive_boundary(Boundary):
@@ -241,6 +290,7 @@ class Compute_fluxes_boundary(Boundary):
         return
 
 
+
 class Time_boundary(Boundary):
     """Time dependent boundary returns values for the
     conserved quantities as a function of time.
@@ -299,7 +349,7 @@ class Time_boundary(Boundary):
         msg = 'Return value for function must be a list or an array of length %d' %d
         assert len(q) == d, msg
 
-        self.f = function
+        self.function = function
         self.domain = domain
 
     def __repr__(self):
@@ -358,43 +408,6 @@ class Time_boundary(Boundary):
             Q.boundary_values[ids] = q_bdry[j]
             
 
-    def get_boundary_values(self, t=None):
-
-        if t is None:
-            t = self.get_time()
-            
-        try:
-            res = self.f(t)
-        except Modeltime_too_early, e:
-            raise Modeltime_too_early(e)
-        except Modeltime_too_late, e:
-            if self.default_boundary is None:
-                raise Exception(e) # Reraise exception
-            else:
-                # Pass control to default boundary
-                res = self.default_boundary
-                
-                # Ensure that result cannot be manipulated
-                # This is a real danger in case the 
-                # default_boundary is a Dirichlet type 
-                # for instance. 
-                res = res.copy() 
-                
-                if self.default_boundary_invoked is False:
-                    if self.verbose:                
-                        # Issue warning the first time
-                        msg = '%s' %str(e)
-                        msg += 'Instead I will use the default boundary: %s\n'\
-                            %str(self.default_boundary) 
-                        msg += 'Note: Further warnings will be supressed'
-                        log.critical(msg)
-               
-                    # FIXME (Ole): Replace this crude flag with
-                    # Python's ability to print warnings only once.
-                    # See http://docs.python.org/lib/warning-filter.html
-                    self.default_boundary_invoked = True
-
-        return res
 
 
 

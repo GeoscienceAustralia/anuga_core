@@ -416,8 +416,8 @@ def composite_quantity_setting_function(poly_fun_pairs,
             ###################################################################
             # Check for nan values
             ###################################################################
-
-            nan_flag = (quantityVal[fInds] != quantityVal[fInds])
+            #nan_flag = (quantityVal[fInds] != quantityVal[fInds])
+            nan_flag = 1*numpy.isnan(quantityVal[fInds])
             nan_inds = nan_flag.nonzero()[0]
             was_ever_nan[fInds[nan_inds]] = 1
 

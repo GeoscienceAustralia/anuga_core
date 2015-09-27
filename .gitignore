@@ -155,6 +155,7 @@ site.cfg
 ehthumbs.db
 Icon?
 Thumbs.db
+.ipynb_checkpoints
 
 # Documentation generated files #
 #################################

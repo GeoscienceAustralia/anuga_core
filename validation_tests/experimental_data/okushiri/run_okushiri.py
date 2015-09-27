@@ -77,20 +77,10 @@ if myid == 0:
     # Set simulation parameters
     #-------------------------
     domain.set_name(project.output_filename)  # Name of output sww file 
-    domain.set_minimum_storable_height(0.001) # Don't store w < 0.001m
+    domain.set_minimum_storable_height(0.01) # Don't store w < 0.01m
     #domain.set_quantities_to_be_monitored('stage')
 
     domain.set_flow_algorithm(alg)
-
-    #------------------------------------------------------------------------------
-    # Produce a documentation of parameters
-    #------------------------------------------------------------------------------
-    parameter_file=open('parameters.tex', 'w')
-    parameter_file.write('\\begin{verbatim}\n')
-    from pprint import pprint
-    pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
-    parameter_file.write('\\end{verbatim}\n')
-    parameter_file.close()
 
 else:
     
@@ -103,13 +93,19 @@ domain = distribute(domain)
 #-------------------------
 
 # Create boundary function from timeseries provided in file
-function = anuga.file_function(project.boundary_filename,
+wave_function = anuga.file_function(project.boundary_filename,
                          domain, verbose=verbose)
 
 # Create and assign boundary objects
-Bts = anuga.Transmissive_momentum_set_stage_boundary(domain, function)
+Bts = anuga.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, wave_function)
 Br = anuga.Reflective_boundary(domain)
 domain.set_boundary({'wave': Bts, 'wall': Br})
+
+#-------------------------------------------------------------------------
+# Produce a documentation of parameters
+#-------------------------------------------------------------------------
+from anuga.validation_utilities import save_parameters_tex
+save_parameters_tex(domain)
 
 
 #-------------------------
@@ -118,7 +114,7 @@ domain.set_boundary({'wave': Bts, 'wall': Br})
 import time
 t0 = time.time()
 
-for t in domain.evolve(yieldstep = 0.05, finaltime = 22.5):
+for t in domain.evolve(yieldstep = 0.05, finaltime = 25.0):
     if myid == 0 and verbose: domain.write_time()
 
 domain.sww_merge(delete_old=True)
