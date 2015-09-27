@@ -114,7 +114,7 @@ save_parameters_tex(domain)
 import time
 t0 = time.time()
 
-for t in domain.evolve(yieldstep = 0.05, finaltime = 22.5):
+for t in domain.evolve(yieldstep = 0.05, finaltime = 25.0):
     if myid == 0 and verbose: domain.write_time()
 
 domain.sww_merge(delete_old=True)

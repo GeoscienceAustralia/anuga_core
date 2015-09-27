@@ -18,42 +18,19 @@ from anuga.utilities.numerical_tools import cov
 #from anuga.utilities.numerical_tools import get_machine_precision
 from anuga.shallow_water.sww_interrogate import get_maximum_inundation_elevation
 from anuga.shallow_water.sww_interrogate import get_maximum_inundation_location
-import matplotlib
-matplotlib.use('Agg')
 
-##if sys.platform == 'win32':
-##    # Windows has a problem when this module is run through
-##    # os.system as done by validate_okushiri.
-##    # See https://datamining.anu.edu.au/anuga/ticket/235
-##
-##    # If you want to see the plots from this validation,
-##    # run this module by itself with this if clause removed.
-##    plotting = False
-##    
-##else:
 
 args = anuga.get_args()
 verbose = args.verbose
 
-try:
-    import matplotlib
-    from matplotlib.pyplot import ion, hold, plot, title, legend
-    from matplotlib.pyplot import xlabel, ylabel, savefig
-    hold(False)  # Check if this command can be issued
-except:
-    print 'Could not import pylab'
-    plotting = False
-else:
-    # Create plots as png files
-    plotting = True
 
-testing = False
+testing = True
 
 #-------------------------
 # Basic data
 #-------------------------
 
-finaltime = 25
+finaltime = 22.5
 timestep = 0.05
 
 gauge_locations = [[0.000, 1.696]] # Boundary gauge
@@ -236,22 +213,6 @@ for k, name in enumerate(gauge_names):
                           rtol, atol)        
 
 
-    if plotting is True:
-        #ion() # No plotting on screen
-        hold(False)
-    
-        plot(reference_time, validation_data[name], 'r-',
-             reference_time, model, 'k-')
-        title('Gauge %s' %name)
-        xlabel('time(s)')
-        ylabel('stage (m)')    
-        legend(('Observed', 'Modelled'), shadow=True, loc='upper left')
-        #savefig(name, dpi = 300)
-        savefig(name)
-
-
-
-
 # Check max runup
 
 q = get_maximum_inundation_elevation(sww_filename)
@@ -263,15 +224,3 @@ if verbose:
     print 'Max runup location:  ', loc
 
 
-#assert is_inside_polygon(loc, gulleys)
-
-# FIXME more asserts here
-
-
-
-#msg = 'We got %f, should have been %f' %(q, q_max)
-#assert allclose(q, q_max, rtol=1.0/N), msg
-##print 'loc', loc, q
-#assert allclose(-loc[0]/2, q) # From topography formula 
-
-#print 'OK'
