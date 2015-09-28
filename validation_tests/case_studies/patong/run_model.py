@@ -157,6 +157,9 @@ if(myid==0):
                         num_ocean_segments+num_land_points],
                'ocean': range(num_ocean_segments)}
 
+    print boundary_tags
+
+    
     # Build mesh and domain
     domain = anuga.create_domain_from_regions(bounding_polygon_sts,
                                     boundary_tags=boundary_tags,
