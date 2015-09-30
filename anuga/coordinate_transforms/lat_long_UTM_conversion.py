@@ -6,6 +6,7 @@
 #
 
 from math import pi, sin, cos, tan, sqrt
+import numpy as num
 
 #LatLong- UTM conversion..h
 #definitions for lat/long to UTM and UTM to lat/lng conversions
@@ -59,9 +60,59 @@ _ellipsoid = [
 #def LLtoUTM(int ReferenceEllipsoid, const double Lat, const double Long,
 #			 double &UTMNorthing, double &UTMEasting, char* UTMZone)
 
-def LLtoUTM( Lat, Long, ReferenceEllipsoid=23):
+def LLtoUTM(*latlong, **kwargs):
     """
-    converts lat/long to UTM coords.  Equations from USGS Bulletin 1532
+    Converts a single Lat Long point or an array of Lat Long points to utm coordinates
+    """
+    input_len = len(latlong)
+    msg1 = 'Input must be in the form of: for a single point: Lat, Long; (Lat, Long); [Lat, Long]; array([Lat, Long]) or for a list or array of Lat Long points: [[Lat1, Long1], ...]; [(Lat1, Long1), ...]; array([[Lat1, Long1], ...]). The optional argument ReferenceEllipsoid can be passed as: Lat, Long, ReferenceEllipsoid for a single point or if working with a list or array of Lat Long points, pass it as a keyword argument (e.g. [[Lat1, Long1], ...], ReferenceEllipsoid=23)'
+
+    # check keyword arguments
+    if kwargs.keys() == []:
+        #print 'no key word arugment'
+	argvalue=23
+    else:
+        msg2 = 'the only keyword argument allowed in LLtoUTM is ReferenceEllipsoid=23'
+	argname = kwargs.keys()
+	assert len(argname) == 1, msg2
+	assert argname[0] == 'ReferenceEllipsoid', msg2
+	argvalue = kwargs['ReferenceEllipsoid']
+
+    if input_len == 3:
+    	Lat, Long, ReferenceEllipsoid = latlong
+        # 1 Lat Long point in the form of: Lat, Long, ReferenceEllipsoid
+	zone, easting, northing = _LLtoUTM(Lat, Long, ReferenceEllipsoid=ReferenceEllipsoid)
+        result = (zone, easting, northing)
+
+    elif input_len == 2:
+    	Lat, Long = latlong
+        # 1 Lat Long point in the form of: Lat, Long
+	zone, easting, northing = _LLtoUTM(Lat, Long, ReferenceEllipsoid=argvalue)
+        result = (zone, easting, northing)
+	
+    elif input_len == 1:
+        if len(num.array(latlong[0]).shape) == 1:
+            # 1 Lat Long point in the form of (Lat, Long); [Lat, Long]; array([Lat, Long])
+       	    Lat, Long = latlong[0]
+	    zone, easting, northing = _LLtoUTM(Lat, Long, ReferenceEllipsoid=argvalue)
+	    result = (zone, easting, northing)
+        else:
+            # list or array of Lat Long points in the form of [[Lat1, Long1], ...]; [(Lat1, Long1), ...]; array([[Lat1, Long1], ...])
+            latlong_points = latlong[0]
+            utm_points_zone = num.array([list(_LLtoUTM(lli[0], lli[1], ReferenceEllipsoid=argvalue)) for lli in latlong_points])
+            zone_list = utm_points_zone[:,0]
+            xy_list = utm_points_zone[:,1:]
+	    result = (zone_list, xy_list)
+    else:
+        raise Exception(msg1)
+	result = None
+
+    return result
+
+
+def _LLtoUTM( Lat, Long, ReferenceEllipsoid=23):
+    """
+    converts a point (lat, long) to UTM coords.  Equations from USGS Bulletin 1532
     East Longitudes are positive, West longitudes are negative.
     North latitudes are positive, South latitudes are negative
     Lat and Long are in decimal degrees
@@ -159,7 +210,86 @@ def _UTMLetterDesignator(Lat):
 #void UTMtoLL(int ReferenceEllipsoid, const double UTMNorthing, const double UTMEasting, const char* UTMZone,
 #			  double& Lat,  double& Long )
 
-def UTMtoLL(northing, easting, zone, isSouthernHemisphere=True,
+def UTMtoLL(*utm, **kwargs):
+    """
+    Converts a single utm point or an array of utm points to Lat Long coordinates
+    """
+    input_len = len(utm)
+#    print input_len, 'number of inputs'
+    msg1 = 'Input must be in the form of: a single point: northing, easting, zone or a tuple, list or array: (northing, easting, zone); [northing, easting, zone]; array([northing, easting, zone]). For a list or array of utm points: [[northing1, easting1, zone1], ...]; [(northing1, easting1, zone1), ...]; array([[northing1, easting1, zone1], ...]) or a list or array of utm points (e.g. [[northing1, easting1], ...]) with a zone number or list of zone numbers (e.g. [56, ...]). Optional arguments (isSouthernHemisphere, ReferenceEllipsoid) can be passed as: northing, easting, zone, isSouthernHemisphere, ReferenceEllipsoid for a single point or if working with a list or array of utm points, pass them as keyword arguments (e.g. [[northing1, easting1], ...], zone, isSouthernHemisphere=True, ReferenceEllipsoid=23)'
+
+    # check keywiord arguments
+    default_kwargs = {'isSouthernHemisphere':True, 'ReferenceEllipsoid':23}
+    if kwargs.keys() == []:
+        #print 'no key word arugment'
+	argvalue1=default_kwargs['isSouthernHemisphere']
+	argvalue2=default_kwargs['ReferenceEllipsoid']
+    else:
+        msg2 = 'the only keyword arguments allowed in LLtoUTM are isSouthernHemisphere=True and ReferenceEllipsoid=23'
+	argname = kwargs.keys()
+	assert len(argname) <= 2, msg2
+	for argnamei in argname:
+	    assert argnamei in ['isSouthernHemisphere', 'ReferenceEllipsoid'], msg2
+	    default_kwargs[argnamei] = kwargs[argnamei]    
+	argvalue1=default_kwargs['isSouthernHemisphere']
+	argvalue2=default_kwargs['ReferenceEllipsoid']
+    
+    # conduct coordinate conversions
+    if input_len == 5:
+	# one utm point in the form of: northing, easting, zone, isSouthernHemisphere, ReferenceEllipsoid
+    	northing, easting, zone, isSouthernHemisphere, ReferenceEllipsoid = utm
+        Lat, Long = _UTMtoLL(northing, easting, zone, 
+			isSouthernHemisphere=isSouthernHemisphere,
+			ReferenceEllipsoid=ReferenceEllipsoid)
+        result = (Lat, Long)
+    elif input_len == 4:
+	# one utm point in the form of: northing, easting, zone, isSouthernHemisphere
+    	northing, easting, zone, isSouthernHemisphere = utm
+        Lat, Long = _UTMtoLL(northing, easting, zone, 
+			isSouthernHemisphere=isSouthernHemisphere,
+			ReferenceEllipsoid=argvalue2)
+        result = (Lat, Long)
+    elif input_len == 3:
+	# one utm point in the form of: northing, easting, zone
+    	northing, easting, zone = utm
+        Lat, Long = _UTMtoLL(northing, easting, zone, 
+			isSouthernHemisphere=argvalue1, ReferenceEllipsoid=argvalue2)
+        result = (Lat, Long)
+
+    elif input_len == 2:
+        # list or array of utm points (e.g. [[northing1, easting1], ...]) and their corresponding zone numbers (e.g. 56 or [56, 39, ...])
+	utm_list = utm[0]
+	zone_numbers = utm[1]
+	if type(zone_numbers) == int or type(zone_numbers) == float:
+	    # all utm points have the same zone number
+	    zone = zone_numbers
+	    latlongpoints = num.array([list(_UTMtoLL(utmi[0], utmi[1], zone, isSouthernHemisphere=argvalue1, ReferenceEllipsoid=argvalue2)) for utmi in utm_list])
+        else:
+ 	    assert len(zone_numbers) == len(utm_list), 'list or array of utm zone numbers and the list or array of utm points must have the same size'
+	    latlongpoints = num.array([list(_UTMtoLL(utm_list[i][0], utm_list[i][1], zone_numbers[i], isSouthernHemisphere=argvalue1, ReferenceEllipsoid=argvalue2)) for i in xrange(len(zone_numbers))])
+	result = latlongpoints
+
+    elif input_len == 1:
+        if len(num.array(utm[0]).shape) == 1:
+            # 1 utm point in the form of (northing, easting, zone); [northing, easting, zone]; array([northing, easting, zone])
+       	    northing, easting, zone = utm[0]
+	    Lat, Long = _UTMtoLL(northing, easting, zone, 
+			isSouthernHemisphere=argvalue1, ReferenceEllipsoid=argvalue2)
+	    result = (Lat, Long)
+
+        else:
+            # list or array of Lat Long points in the form of
+	    # [[northing1, easting1, zone1], ...]; [(northing1, easting1, zone1), , ...]; array([[northing1, easting1, zone1], ...])
+            utm_points = utm[0]
+            latlong_points = num.array([list(_UTMtoLL(utmi[0], utmi[1], utmi[2], isSouthernHemisphere=argvalue1, ReferenceEllipsoid=argvalue2)) for utmi in utm_points])
+	    result = latlong_points
+    else:
+        raise Exception(msg1)
+	result = None
+
+    return result
+
+def _UTMtoLL(northing, easting, zone, isSouthernHemisphere=True,
             ReferenceEllipsoid=23):
     """
     converts UTM coords to lat/long.  Equations from USGS Bulletin 1532
@@ -244,7 +374,7 @@ Therefore it is difficult to actually know what hemisphere you are in.
     return (Lat, Long)
 
 if __name__ == '__main__':
-    (z, e, n) = LLtoUTM(45.00, -75.00, 23)
+    (z, e, n) = LLtoUTM(-45.00, -75.00, 23)
     print z, e, n
     (lat, lon) = UTMtoLL(n, e, z, 23)
     print lat, lon
