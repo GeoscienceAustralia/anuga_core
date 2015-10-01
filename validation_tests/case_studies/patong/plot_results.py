@@ -8,6 +8,9 @@ python plot_results.py
 from anuga import file_function
 from anuga.utilities.numerical_tools import cov, get_machine_precision
 
+import project
+
+from os.path import join
 
 import pylab
 import numpy as num
@@ -99,12 +102,12 @@ def plot_timeseries(timevector,
 
 
 
-timevector, timeseries = get_timeseries('outputs/patong.sww', gauges )
+timevector, timeseries = get_timeseries(join('outputs','patong.sww'), gauges )
 
 print timevector.shape
 print timeseries.keys()
 
 for gauge, ts in timeseries.iteritems():
-    plot_timeseries(timevector, ts, name=gauge+'.png')
+    plot_timeseries(timevector, ts, name=join('outputs',gauge+'.png'))
 
 

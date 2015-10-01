@@ -9,15 +9,8 @@ from time import localtime, strftime, gmtime
 from os.path import join, exists
 from anuga.geometry.polygon import read_polygon
 
-#------------------------------------------------------------------------------
-# Directory setup
-#------------------------------------------------------------------------------
 
-# this section needs to be updated to reflect the modelled community.
-# Note, the user needs to set up the directory system accordingly
-state = 'thailand'
 scenario_name = 'patong'
-scenario_folder = 'patong_tsunami_scenario'
 
 #------------------------------------------------------------------------------
 # Initial Conditions
@@ -61,8 +54,6 @@ output_comment = [setup, tide, event_number, nameFlag]
 #------------------------------------------------------------------------------
 
 # ELEVATION DATA
-# Used in build_elevation.py
-# Format for ascii grids, as produced in ArcGIS + a projection file
 ascii_grid_filenames = []
 
 # Format for point is x,y,elevation (with header)
@@ -71,18 +62,12 @@ point_filenames = ['patong_10m_grid_msl_Project.txt',    # 10m main grid
                    'patong_bay_1s_grid_Project.txt',   # 1s grid
                    'andaman_3s_grid_Clip2_Project.txt'] #3s grid
 
-### Add csv header list to all files in point_filenames
-##headerlist = ['x', 'y', 'elevation'] 
-##for f in point_filenames:
-##    add_csv_header(join(topographies_folder, f), headerlist)
-
 extent_polygon_filenames = ['patong_10m.txt',
                             'saddle_10m.txt',
                             'patong_1s.txt']
 
 
 # BOUNDING POLYGON - for data clipping and estimate of triangles in mesh
-# Used in build_elevation.py
 # Format for points easting,northing (no header)
 bounding_polygon_filename = 'bounding_polygon_'+ model + '.csv'
 bounding_polygon_maxarea = 100000

@@ -50,8 +50,6 @@ if myid == 0 and not os.path.isdir('topographies'):
 import project  
 
 # Application specific imports
-import build_urs_boundary as bub
-
 from anuga.file.csv_file import load_csv_as_building_polygons
 
 import shutil
@@ -109,20 +107,14 @@ if(myid==0):
                     )
 
 
-    #-------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
     # Create the computational domain based on overall clipping polygon with
     # a tagged boundary and interior regions defined in project.py along with
     # resolutions (maximal area of per triangle) for each polygon
-    #-------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
 
     log.critical('Create computational domain')
 
-    # Create the STS file
-    # FIXME (Ole): This is deadly dangerous if buildcode changes (as was the case 24th March 2009)
-    # We need to use caching instead!
-    log.critical( 'project.mux_data_folder=%s' % project.mux_data_folder)
-    if not os.path.exists(project.event_sts + '.sts'):
-        bub.build_urs_boundary(project.mux_input_filename, project.event_sts)
 else:
     print 'Hello from processor ', myid
 
@@ -157,9 +149,6 @@ if(myid==0):
                         num_ocean_segments+num_land_points],
                'ocean': range(num_ocean_segments)}
 
-    print boundary_tags
-
-    
     # Build mesh and domain
     domain = anuga.create_domain_from_regions(bounding_polygon_sts,
                                     boundary_tags=boundary_tags,
@@ -197,13 +186,7 @@ if(myid==0):
 
     domain.set_quantity('friction', project.friction) 
     
-    #import zipfile
     import os
-    #txt_filename =  os.path.basename(project.combined_elevation+'.txt')
-    #zipfile.ZipFile(project.combined_elevation+'.zip').extract(txt_filename,'topographies')
-
-    #if verbose: print 'Reading pts from txt'
-    #anuga.xya2pts(project.combined_elevation+'.txt', verbose = verbose)
 
     domain.set_quantity('elevation', 
                         filename=project.combined_elevation+'.pts',
