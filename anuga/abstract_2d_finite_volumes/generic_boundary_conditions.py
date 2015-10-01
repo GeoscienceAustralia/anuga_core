@@ -631,7 +631,7 @@ class File_boundary(Boundary):
                 log.critical(msg)
             #raise Exception(msg)
 
-        # Test that file function can be calledself.midpoint_coordinates = num.zeros((len(domain.boundary), 2), num.float)
+        # Test that file function can be called
         q = self.F(0, point_id=0)
         d = len(domain.conserved_quantities)
         msg = 'Values specified in file %s must be ' %filename
