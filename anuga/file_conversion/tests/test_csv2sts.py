@@ -15,7 +15,7 @@ from anuga.file.csv_file import load_csv_as_dict
 # Local modules
 from anuga.file_conversion.csv2sts import csv2sts
 
-# some test file we want to generate
+# some test files we want to generate
 testfile_csv = 'small___.csv'
 sts_out = 'sts_out.sts'
 

@@ -523,7 +523,7 @@ class File_boundary(Boundary):
     for details about admissible file formats
 
     File boundary must read and interpolate from *smoothed* version
-    as stored in sww and cannot work with the discontinuos triangles.
+    as stored in sww and cannot work with the discontinuous triangles.
 
     Example:
     Bf = File_boundary('source_file.sww', domain)

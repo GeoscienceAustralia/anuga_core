@@ -33,6 +33,16 @@ tags
 
 # validation temp files #
 #########################
+validation_tests/case_studies/patong/boundaries
+validation_tests/case_studies/patong/gauges
+validation_tests/case_studies/patong/outputs
+validation_tests/case_studies/patong/polygons
+validation_tests/case_studies/patong/topographies
+validation_tests/case_studies/patong/*.png
+validation_tests/case_studies/patong/*.pdf
+
+validation_tests/case_studies/towradgi/*.pdf
+
 parameters.tex
 ch5.png
 ch7.png
