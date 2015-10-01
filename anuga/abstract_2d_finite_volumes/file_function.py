@@ -232,7 +232,7 @@ def get_netcdf_file_function(filename,
     
     All times are assumed to be in UTC
 
-    See Interpolation function for further documetation
+    See Interpolation function for further documentation
     """
 
     # FIXME: Check that model origin is the same as file's origin

@@ -523,7 +523,7 @@ class File_boundary(Boundary):
     for details about admissible file formats
 
     File boundary must read and interpolate from *smoothed* version
-    as stored in sww and cannot work with the discontinuos triangles.
+    as stored in sww and cannot work with the discontinuous triangles.
 
     Example:
     Bf = File_boundary('source_file.sww', domain)
@@ -631,7 +631,7 @@ class File_boundary(Boundary):
                 log.critical(msg)
             #raise Exception(msg)
 
-        # Test that file function can be called
+        # Test that file function can be calledself.midpoint_coordinates = num.zeros((len(domain.boundary), 2), num.float)
         q = self.F(0, point_id=0)
         d = len(domain.conserved_quantities)
         msg = 'Values specified in file %s must be ' %filename

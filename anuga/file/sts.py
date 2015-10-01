@@ -2,6 +2,8 @@ import numpy as num
 import anuga.utilities.log as log
 from anuga.file.netcdf import NetCDFFile
 
+import anuga
+
 from anuga.config import max_float
 from anuga.config import netcdf_float, netcdf_float32, netcdf_int
 from anuga.utilities.numerical_tools import ensure_numeric
@@ -24,7 +26,7 @@ class Write_sts:
                      times,
                      number_of_points,
                      description='Converted from URS mux2 format',
-                     sts_precision=netcdf_float32,
+                     sts_precision=netcdf_float,
                      verbose=False):
         """Write a header to the underlying data file.
 
@@ -42,7 +44,7 @@ class Write_sts:
         outfile.description = description
 
         try:
-            revision_number = get_revision_number()
+            revision_number = anuga.get_revision_number()
         except:
             revision_number = None
 
@@ -161,7 +163,7 @@ class Write_sts:
             log.critical('geo_ref: %s' % str(geo_ref))
             log.critical('------------------------------------------------')
 
-        z = resize(bath_grid,outfile.variables['elevation'][:].shape)
+        #z = resize(bath_grid,outfile.variables['elevation'][:].shape)
         outfile.variables['x'][:] = points[:,0] #- geo_ref.get_xllcorner()
         outfile.variables['y'][:] = points[:,1] #- geo_ref.get_yllcorner()
         #outfile.variables['z'][:] = elevation
@@ -172,7 +174,7 @@ class Write_sts:
         outfile.variables[q + Write_sts.RANGE][0] = min(elevation)
         outfile.variables[q + Write_sts.RANGE][1] = max(elevation)
 
-    def store_quantities(self, outfile, sts_precision=num.float32,
+    def store_quantities(self, outfile, sts_precision=num.float,
                          slice_index=None, time=None,
                          verbose=False, **quant):
         """Write the quantity info.
@@ -204,7 +206,7 @@ class Write_sts:
         for q in Write_sts.sts_quantities:
             if not quant.has_key(q):
                 msg = 'STS file can not write quantity %s' % q
-                raise NewQuantity, msg
+                raise Exception, msg
             else:
                 q_values = quant[q]
                 outfile.variables[q][slice_index] = \
@@ -222,7 +224,7 @@ class Write_sts:
 
 
     def write_dynamic_quantities(self, outfile, quantities,
-                    times, precis = netcdf_float32, verbose = False):   
+                    times, precis = netcdf_float, verbose = False):   
         """
             Write out given quantities to file.
         """

@@ -264,53 +264,53 @@ int __intersection(double x0, double y0,
 
 
 int __interpolate_polyline(int number_of_nodes,
-			   int number_of_points,
-			   double* data,
-			   double* polyline_nodes,
-			   long* gauge_neighbour_id,
-			   double* interpolation_points,			       
-			   double* interpolated_values,
-			   double rtol,
-			   double atol) {
-			   
-  int j, i, neighbour_id;
-  double x0, y0, x1, y1, x, y;
-  double segment_len, segment_delta, slope, alpha;
+		int number_of_points,
+		double* data,
+		double* polyline_nodes,
+		long* gauge_neighbour_id,
+		double* interpolation_points,
+		double* interpolated_values,
+		double rtol,
+		double atol) {
 
-  for (j=0; j<number_of_nodes; j++) {  
+	int j, i, neighbour_id;
+	double x0, y0, x1, y1, x, y;
+	double segment_len, segment_delta, slope, alpha;
 
-    neighbour_id = gauge_neighbour_id[j];
-        
-    // FIXME(Ole): I am convinced that gauge_neighbour_id can be discarded, but need to check with John J.
-    // Keep it for now (17 Jan 2009)
-    // When gone, we can simply interpolate between neighbouring nodes, i.e. neighbour_id = j+1.
-    // and the test below becomes something like: if j < number_of_nodes...  
-        
-    if (neighbour_id >= 0) {
-      x0 = polyline_nodes[2*j];
-      y0 = polyline_nodes[2*j+1];
-      
-      x1 = polyline_nodes[2*neighbour_id];
-      y1 = polyline_nodes[2*neighbour_id+1];      
-      
-            
-      segment_len = dist(x1-x0, y1-y0);
-      segment_delta = data[neighbour_id] - data[j];            
-      slope = segment_delta/segment_len;
-            
-      for (i=0; i<number_of_points; i++) {                
-	x = interpolation_points[2*i];
-	y = interpolation_points[2*i+1];	
-	
-	if (__point_on_line(x, y, x0, y0, x1, y1, rtol, atol)) {
-	  alpha = dist(x-x0, y-y0);
-	  interpolated_values[i] = slope*alpha + data[j];
+	for (j=0; j<number_of_nodes; j++) {
+
+		neighbour_id = gauge_neighbour_id[j];
+
+		// FIXME(Ole): I am convinced that gauge_neighbour_id can be discarded, but need to check with John J.
+		// Keep it for now (17 Jan 2009)
+		// When gone, we can simply interpolate between neighbouring nodes, i.e. neighbour_id = j+1.
+		// and the test below becomes something like: if j < number_of_nodes...
+
+		if (neighbour_id >= 0) {
+			x0 = polyline_nodes[2*j];
+			y0 = polyline_nodes[2*j+1];
+
+			x1 = polyline_nodes[2*neighbour_id];
+			y1 = polyline_nodes[2*neighbour_id+1];
+
+
+			segment_len = dist(x1-x0, y1-y0);
+			segment_delta = data[neighbour_id] - data[j];
+			slope = segment_delta/segment_len;
+
+			for (i=0; i<number_of_points; i++) {
+				x = interpolation_points[2*i];
+				y = interpolation_points[2*i+1];
+
+				if (__point_on_line(x, y, x0, y0, x1, y1, rtol, atol)) {
+					alpha = dist(x-x0, y-y0);
+					interpolated_values[i] = slope*alpha + data[j];
+				}
+			}
+		}
 	}
-      }
-    }
-  }
-			   
-  return 0;			     
+
+	return 0;
 }			       			       
 
 
