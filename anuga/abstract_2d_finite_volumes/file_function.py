@@ -381,7 +381,7 @@ def get_netcdf_file_function(filename,
             for i in range(len(boundary_polygon)):
                 for j in range(len(x)):
                     if num.allclose(vertex_coordinates[j],
-                                    boundary_polygon[i], 1e-4):
+                                    boundary_polygon[i], rtol=1e-4, atol=1e-4):
                         #FIXME:
                         #currently gauges lat and long is stored as float and
                         #then cast to double. This cuases slight repositioning
@@ -403,6 +403,7 @@ def get_netcdf_file_function(filename,
                 gauge_neighbour_id.append(-1)
             gauge_neighbour_id=ensure_numeric(gauge_neighbour_id)
 
+            
             if len(num.compress(gauge_neighbour_id>=0, gauge_neighbour_id)) \
                != len(temp)-1:
                 msg='incorrect number of segments'
