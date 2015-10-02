@@ -403,7 +403,6 @@ def get_netcdf_file_function(filename,
                 gauge_neighbour_id.append(-1)
             gauge_neighbour_id=ensure_numeric(gauge_neighbour_id)
 
-            import pdb; pdb.set_trace()
             
             if len(num.compress(gauge_neighbour_id>=0, gauge_neighbour_id)) \
                != len(temp)-1:
