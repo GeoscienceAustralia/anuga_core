@@ -748,6 +748,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
         h = domain.quantities['height']
 
         h.centroid_values[:] = num.where(h.centroid_values < 1.0e-12, 0.0, h.centroid_values)
+
         print 'h'
         print h.centroid_values
         print h.boundary_values
@@ -1485,6 +1486,6 @@ class Test_kinematic_viscosity(unittest.TestCase):
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_kinematic_viscosity, 'test_parabolic_solve_rectangular_cross_velocities_zero_h') 
+    suite = unittest.makeSuite(Test_kinematic_viscosity, 'test_parabolic_solve_rectangular_cross_velocities_zero_h') #test_')
     runner = unittest.TextTestRunner()
     runner.run(suite)
