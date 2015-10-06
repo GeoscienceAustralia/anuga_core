@@ -134,7 +134,7 @@ def intersection(line0, line1, rtol=1.0e-5, atol=1.0e-8):
                            point_on_line([x1, y1], line1, rtol=rtol, atol=atol),
                            point_on_line([x2, y2], line0, rtol=rtol, atol=atol),
                            point_on_line([x3, y3], line0, rtol=rtol, atol=atol))
-
+	    #print state_tuple
             return collinear_result[state_tuple]([x0, y0], [x1, y1],
                                                  [x2, y2], [x3, y3])
         else:

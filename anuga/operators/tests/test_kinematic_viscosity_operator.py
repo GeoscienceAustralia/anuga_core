@@ -22,7 +22,8 @@ class Test_kinematic_viscosity(unittest.TestCase):
             pass
 
         try:
-            os.remove('anuga.log')
+            pass
+            #os.remove('anuga.log')
         except:
             pass
         
@@ -716,7 +717,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
         #
         domain.set_quantity('elevation', expression='x')
         domain.set_quantity('friction', 0.03)
-        domain.set_quantity('stage',expression='elevation + 2*(x-0.5)')
+        domain.set_quantity('stage',expression='elevation + 2*(x-0.45)')
         domain.set_quantity('xmomentum', expression='2*x+3*y')
         domain.set_quantity('ymomentum', expression='5*x+7*y')
 
@@ -746,9 +747,10 @@ class Test_kinematic_viscosity(unittest.TestCase):
 
         h = domain.quantities['height']
 
-        #print 'h'
-        #print h.centroid_values
-        #print h.boundary_values
+        h.centroid_values[:] = num.where(h.centroid_values < 1.0e-12, 0.0, h.centroid_values)
+        print 'h'
+        print h.centroid_values
+        print h.boundary_values
         
         # Quantity to solve
         u = domain.quantities['xvelocity']
@@ -779,6 +781,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
 
         kv.parabolic_solve(v, v, h, u_out=v, update_matrix=False, iprint=1, use_dt_tol=False)
 
+        print u.centroid_values
         assert num.allclose(u.centroid_values, num.where(h.centroid_values > 0.0, 1.0, 0.0), rtol=1.0e-1)
         assert num.allclose(u.boundary_values, num.ones_like(u.boundary_values))
 
@@ -1482,6 +1485,6 @@ class Test_kinematic_viscosity(unittest.TestCase):
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_kinematic_viscosity, 'test_')
+    suite = unittest.makeSuite(Test_kinematic_viscosity, 'test_parabolic_solve_rectangular_cross_velocities_zero_h') 
     runner = unittest.TextTestRunner()
     runner.run(suite)
