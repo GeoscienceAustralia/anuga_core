@@ -1916,8 +1916,16 @@ class Generic_Domain:
         ######
 
         # Combine steps
-        self.saxpy_conserved_quantities(2.0/3.0, 1.0/3.0)
-
+        
+        # This causes a roundoff error that created negative water heights
+        #self.saxpy_conserved_quantities(2.0/3.0, 1.0/3.0)
+        
+        # So do this instead!
+        self.saxpy_conserved_quantities(2.0, 1.0)
+        for name in self.conserved_quantities:
+            Q = self.quantities[name]
+            Q.centroid_values[:] = Q.centroid_values/3.0
+            
 
         # Update special conditions
         #self.update_special_conditions()
