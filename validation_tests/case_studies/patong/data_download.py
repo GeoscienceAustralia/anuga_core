@@ -14,9 +14,16 @@ URL =  'https://sourceforge.net/projects/anuga/files/validation_data/patong-1.0/
 CMD = 'wget %s'% URL
 
 print CMD
-os.system(CMD)
 
-CMD = 'tar xf data.tgz'
+try:
+    import wget
+    wget.download(URL)
+except:
+    print 'wget failed. Perhaps need to install wget via "pip install wget"'
+    import sys
+    sys.exit()
+
+CMD = 'tar vzxf data.tgz'
 
 print CMD
 os.system(CMD)
