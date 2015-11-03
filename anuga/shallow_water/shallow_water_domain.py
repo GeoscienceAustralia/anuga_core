@@ -2360,7 +2360,7 @@ class Domain(Generic_Domain):
         # evolve loop but we do it here to ensure the values are ok for storage.
         self.distribute_to_vertices_and_edges()
 
-        if self.store is True and self.get_time() == self.get_starttime():
+        if self.store is True and self.get_time() == 0.0:
             self.initialise_storage()
             
         if self.get_time() >= finaltime: yield

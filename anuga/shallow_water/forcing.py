@@ -271,6 +271,7 @@ class General_forcing:
                  radius=None,
                  polygon=None,
                  default_rate=None,
+                 relative_time=True,
                  verbose=False):
 
         from math import pi, cos, sin
@@ -294,6 +295,7 @@ class General_forcing:
         self.radius = radius
         self.polygon = polygon
         self.verbose = verbose
+        self.relative_time = relative_time
         self.value = 0.0    # Can be used to remember value at
                             # previous timestep in order to obtain rate
 
@@ -407,7 +409,7 @@ class General_forcing:
         """Apply inflow function at time specified in domain, update stage"""
 
         # Call virtual method allowing local modifications
-        t = domain.get_time()
+        t = domain.get_time(relative=self.relative_time)
         try:
             rate = self.update_rate(t)
         except Modeltime_too_early, e:
@@ -553,6 +555,7 @@ class Rainfall(General_forcing):
                  radius=None,
                  polygon=None,
                  default_rate=None,
+                 relative_time=True,
                  verbose=False):
 
         # Converting mm/s to m/s to apply in ANUGA)
@@ -579,6 +582,7 @@ class Rainfall(General_forcing):
                                  radius=radius,
                                  polygon=polygon,
                                  default_rate=default_rain,
+                                 relative_time=relative_time,
                                  verbose=verbose)
 
 
@@ -637,6 +641,7 @@ class Inflow(General_forcing):
                  radius=None,
                  polygon=None,
                  default_rate=None,
+                 relative_time=True,
                  verbose=False):
         """Create an instance of the class
 
@@ -658,6 +663,7 @@ class Inflow(General_forcing):
                                  radius=radius,
                                  polygon=polygon,
                                  default_rate=default_rate,
+                                 relative_time=relative_time,
                                  verbose=verbose)
 
     def update_rate(self, t):
