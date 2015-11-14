@@ -10,27 +10,17 @@ print ' ABOUT to Start Simulation:- Importing Modules'
 
 import anuga
 import time
-#from pylab import figure, plot, axis, quiver, quiverkey, show, title, axhline
-#from pylab import cos, sin, pi
 import numpy
-#import csv
 import os
-import zipfile
 from os.path import join
-#import time
-#import sys
-#import os.path
-#import glob
+
 from anuga import file_function
 from anuga import Polygon_function
 from anuga import read_polygon
-#from anuga import Quantity
+
 from anuga import create_mesh_from_regions
 from anuga import Domain
-#from anuga import Rainfall, Inflow
 from anuga import Inlet_operator
-#from anuga.utilities import sww_merge
-
 
 #------------------------------------------------------------------------------
 # PARALLEL INTERFACE
@@ -41,7 +31,7 @@ from anuga import Inlet_operator, Boyd_box_operator
 from anuga import Rate_operator
 
 
-if myid == 0 and not os.path.isdir('DEM'):
+if myid == 0 and not os.path.isdir('DEM_bridges'):
     msg = """
 ################################################################################
 #
@@ -212,7 +202,7 @@ if myid == 0:
     #------------------------------------------------------------------------------
     
     bounding_polygon = [[W, S], [E, S], [E, N], [W, N]]
-    #interior_regions = read_polygon_dir(CatchmentDictionary, join('Model', 'Bdy'))
+
     interior_regions = read_polygon_list(CatchmentList)
 
     # FIXME: Have these in a shapefile / other file and read them in    
@@ -266,24 +256,28 @@ if myid == 0:
     #------------------------------------------------------------------------------
     # APPLY MANNING'S ROUGHNESSES
     #------------------------------------------------------------------------------
-    
+
+    print 'FITTING polygon_function for friction'    
     friction_list = read_polygon_list(ManningList)
+
     domain.set_quantity('friction', Polygon_function(friction_list, default=base_friction, geo_reference=domain.geo_reference))
     
     # Set a Initial Water Level over the Domain
     domain.set_quantity('stage', 0)
    
-    # Decompress the zip file to make a csv for reading 
-    zipfile.ZipFile('DEM_bridges/towradgi_cleaner.zip').extract('towradgi.csv',path='DEM_bridges/')
 
     from anuga.utilities.quantity_setting_functions import make_nearestNeighbour_quantity_function
+    print 'READING %s' % basename+'.csv'
     elev_xyz=numpy.genfromtxt(fname=basename+'.csv',delimiter=',')
 
-    # Use nearest-neighbour interpolation of elevation 
+    # Use nearest-neighbour interpolation of elevation
+    print 'CREATING nearest neighbour interpolator' 
     elev_fun_wrapper=make_nearestNeighbour_quantity_function(elev_xyz,domain)
+
+    print 'FITTING to domain'     
     domain.set_quantity('elevation', elev_fun_wrapper, location='centroids')
 
-    os.remove('DEM_bridges/towradgi.csv') # Clean up csv file
+    #os.remove('DEM_bridges/towradgi.csv') # Clean up csv file
 else:
     domain = None
 
