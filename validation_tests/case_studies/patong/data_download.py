@@ -5,14 +5,9 @@ location
 
 import os
 
-#URL = 'https://anuga.anu.edu.au/svn/anuga/trunk/anuga_case_studies_data/patong/boundaries'
-
-#CMD = 'wget -r  --cut-dirs=5 --no-parent --reject "index.html" -nH %s'% URL
-
 URL =  'https://sourceforge.net/projects/anuga/files/validation_data/patong-1.0/data.tgz'
 
 CMD = 'wget %s'% URL
-
 print CMD
 
 try:
@@ -23,17 +18,37 @@ except:
     import sys
     sys.exit()
 
-CMD = 'tar vzxf data.tgz'
 
+CMD = 'tar zxf data.tgz'
+print
 print CMD
-os.system(CMD)
+
+import tarfile
+tar = tarfile.open('data.tgz')
+tar.extractall()
+tar.close()
+
 
 CMD = 'mv data/thailand/patong_tsunami_scenario/anuga/* .'
-
 print CMD
-os.system(CMD)
+
+import shutil
+shutil.move('data/thailand/patong_tsunami_scenario/anuga/boundaries','.')
+shutil.move('data/thailand/patong_tsunami_scenario/anuga/gauges','.')
+shutil.move('data/thailand/patong_tsunami_scenario/anuga/meshes','.')
+shutil.move('data/thailand/patong_tsunami_scenario/anuga/outputs','.')
+shutil.move('data/thailand/patong_tsunami_scenario/anuga/polygons','.')
+shutil.move('data/thailand/patong_tsunami_scenario/anuga/topographies','.')
+
 
 CMD = 'rm -r data.tgz data'
-
 print CMD
-os.system(CMD)
+
+shutil.rmtree('data')
+os.remove('data.tgz')
+
+
+
+
+
+
