@@ -2060,6 +2060,7 @@ class Domain(Generic_Domain):
 
             from swDE1_domain_ext import protect_new
             
+            
             mass_error = protect_new(self)
 
 #             # shortcuts
@@ -2359,7 +2360,7 @@ class Domain(Generic_Domain):
         # evolve loop but we do it here to ensure the values are ok for storage.
         self.distribute_to_vertices_and_edges()
 
-        if self.store is True and self.get_time() == self.get_starttime():
+        if self.store is True and self.get_time() == 0.0:
             self.initialise_storage()
             
         if self.get_time() >= finaltime: yield
@@ -2406,41 +2407,7 @@ class Domain(Generic_Domain):
 
             # Pass control on to outer loop for more specific actions
             yield(t)
-
-
-
-    def evolve_one_euler_step(self, yieldstep, finaltime):
-        """One Euler Time Step
-        Q^{n+1} = E(h) Q^n
-
-        Does not assume that centroid values have been extrapolated to vertices and edges
-        """
-            
-        # From centroid values calculate edge and vertex values
-        self.distribute_to_vertices_and_edges()
-            
-        # Apply boundary conditions
-        self.update_boundary()
-        
-        # Compute fluxes across each element edge
-        self.compute_fluxes()
-
-        # Compute forcing terms
-        self.compute_forcing_terms()
-
-        # Update timestep to fit yieldstep and finaltime
-        self.update_timestep(yieldstep, finaltime)
-
-        if self.max_flux_update_frequency is not 1:
-            # Update flux_update_frequency using the new timestep
-            self.compute_flux_update_frequency()
-
-        # Update conserved quantities
-        self.update_conserved_quantities()
-    
-        
-        
-        
+     
 
     def initialise_storage(self):
         """Create and initialise self.writer object for storing data.

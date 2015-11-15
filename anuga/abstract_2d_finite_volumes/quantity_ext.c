@@ -874,17 +874,17 @@ int _set_vertex_values_c(int num_verts,
                         double * vertex_values,
                         double * A
                         ){
-  int i,j,num_triangles,vert,triangle;
+  int i,j,num_triangles,u_vert_id,vert_v_index;
 
   for(i=0;i<num_verts;i++){
   
-    vert=vertices[i];
-    num_triangles = number_of_triangles_per_node[vertices[i]];
+    u_vert_id=vertices[i];
+    num_triangles = number_of_triangles_per_node[u_vert_id];
   
     for(j=0;j<num_triangles;j++){
   
-      triangle = vertex_value_indices[node_index[vert]+j];   
-      vertex_values[triangle]=A[i];
+      vert_v_index = vertex_value_indices[node_index[u_vert_id]+j];
+      vertex_values[vert_v_index]=A[i];
     }
 
   } 
@@ -1059,14 +1059,14 @@ PyObject *set_vertex_values_c(PyObject *self, PyObject *args) {
   domain = PyObject_GetAttrString(quantity, "domain");
   if (!domain) {
     PyErr_SetString(PyExc_RuntimeError, 
-        "extrapolate_gradient could not obtain domain object from quantity"); 
+        "quantity_ext.c: set_vertex_values_c could not obtain domain object from quantity");
     return NULL;
   }
 
   mesh = PyObject_GetAttrString(domain, "mesh");
   if (!mesh) {
     PyErr_SetString(PyExc_RuntimeError, 
-        "extrapolate_gradient could not obtain mesh object from domain"); 
+        "quantity_ext.c: set_vertex_values_c could not obtain mesh object from domain");
     return NULL;
   }
 
