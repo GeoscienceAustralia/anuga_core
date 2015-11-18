@@ -25,30 +25,33 @@ import numpy as num
 def topography(x,y):
     """Complex topography defined by a function of vectors x and y."""
     print ' Create topography....'
-    z = -x/100
-
-    N = len(x)
-    for i in range(N):
-        # Step
-        if 2 < x[i] < 4:
-            z[i] += 0.4 - 0.05*y[i]
-
-        # Permanent pole
-        if (x[i] - 8)**2 + (y[i] - 2)**2 < 0.4**2:
-            z[i] += 1
-
-        # Dam
-        #if 12 < x[i] < 13:
-        #    z[i] += 1.4
-    # Sloping Embankment Across Channel
-        if 10.6 < x[i] < 12.1:
-            # Cut Out Segment for Culvert face                
-            z[i] +=  1.0*(x[i] -10.6)    # Sloping Segment  U/S Face
-        if 12.0 < x[i] < 13.0:
-           z[i] +=  1.4                    # Flat Crest of Embankment
-        if 12.9 < x[i] < 13.7:
-            z[i] +=  1.4-2.0*(x[i] -12.9) # Sloping D/S Face
-            
+    z = 10.-x/50
+    
+    z[y < 0.25] = 20.
+    z[y > width - 0.25] = 20.
+# 
+#     N = len(x)
+#     for i in range(N):
+#         # Step
+#         if 2 < x[i] < 4:
+#             z[i] += 0.4 - 0.05*y[i]
+# 
+#         # Permanent pole
+#         if (x[i] - 8)**2 + (y[i] - 2)**2 < 0.4**2:
+#             z[i] += 1
+# 
+#         # Dam
+#         #if 12 < x[i] < 13:
+#         #    z[i] += 1.4
+#     # Sloping Embankment Across Channel
+#         if 10.6 < x[i] < 12.1:
+#             # Cut Out Segment for Culvert face                
+#             z[i] +=  1.0*(x[i] -10.6)    # Sloping Segment  U/S Face
+#         if 12.0 < x[i] < 13.0:
+#            z[i] +=  1.4                    # Flat Crest of Embankment
+#         if 12.9 < x[i] < 13.7:
+#             z[i] +=  1.4-2.0*(x[i] -12.9) # Sloping D/S Face
+#             
     return z
 
 
@@ -62,8 +65,8 @@ def topography(x,y):
 # Setup computational domain
 #------------------------------------------------------------------------------
 print ' Set up Domain first...'
-length = 24.
-width = 5.
+length = 5.
+width = 3.
 dx = dy = 0.2 #.1           # Resolution: Length of subdivisions on both axes
 
 points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
@@ -73,7 +76,7 @@ evolved_quantities = ['stage', 'xmomentum', 'ymomentum', 'elevation', 'concentra
                                                
 domain = Domain(points, vertices, boundary, evolved_quantities=evolved_quantities)
 domain.set_flow_algorithm('DE0')
-domain.set_name() # Output name
+domain.set_name('new_domain_test2') # Output name
 domain.set_store_vertices_uniquely(True)
 
 print domain.statistics()
@@ -81,7 +84,8 @@ print domain.statistics()
 domain.set_quantities_to_be_stored({'elevation': 2,
                                     'stage': 2,
                                     'xmomentum': 2,
-                                    'ymomentum': 2})
+                                    'ymomentum': 2,
+                                    'concentration': 2})
 
 domain.set_quantity('concentration', 0.01)
 domain.set_quantity('elevation', topography)           # elevation is a function
@@ -91,9 +95,9 @@ domain.set_quantity('stage', expression='elevation')   # Dry initial condition
 #------------------------------------------------------------------------------
 # Setup boundary conditions
 #------------------------------------------------------------------------------
-Bi = Dirichlet_boundary([1.5, 0, 0])          # Inflow
+Bi = Dirichlet_boundary([11.5, 0, 0])          # Inflow
 Br = Reflective_boundary(domain)              # Solid reflective wall
-Bo = Dirichlet_boundary([-5, 0, 0])           # Outflow
+Bo = Dirichlet_boundary([0, 0, 0])           # Outflow
 
 domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 
