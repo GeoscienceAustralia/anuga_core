@@ -14,6 +14,6 @@ criticalshear_star = 0.3
 c1 = 18.
 c2 = 0.4
 mu = 1.0e-6
-rousecoeff = 1.
+rousecoeff = 0.5
 
 kappa = 0.4

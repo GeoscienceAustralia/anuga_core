@@ -10,6 +10,7 @@ from anuga import rectangular_cross
 from anuga import Domain
 from anuga import Reflective_boundary
 from anuga import Dirichlet_boundary
+from anuga import Transmissive_boundary
 from anuga import Time_boundary
 
 import numpy as num
@@ -97,7 +98,8 @@ domain.set_quantity('stage', expression='elevation')   # Dry initial condition
 #------------------------------------------------------------------------------
 Bi = Dirichlet_boundary([11.5, 0, 0])          # Inflow
 Br = Reflective_boundary(domain)              # Solid reflective wall
-Bo = Dirichlet_boundary([0, 0, 0])           # Outflow
+# Bo = Dirichlet_boundary([0, 0., 0.])           # Outflow
+Bo = Transmissive_boundary(domain)
 
 domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 
@@ -115,7 +117,7 @@ op1 = Sed_transport_operator(domain)
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
-for t in domain.evolve(yieldstep=0.1, finaltime=15.0):
+for t in domain.evolve(yieldstep=0.1, finaltime=10.):
     domain.print_timestepping_statistics()
     #domain.print_operator_timestepping_statistics()
 
