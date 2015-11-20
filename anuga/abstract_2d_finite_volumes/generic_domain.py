@@ -1563,12 +1563,14 @@ class Generic_Domain:
         self.evolved_called = True
 
         # We assume evolve has already been called so we should now
-        # set starttime to match actual time
+        # set evolve_starttime to match actual time
         
         if skip_initial_step:
             self.set_evolve_starttime(self.get_time())
 
-
+        #import pdb
+        #pdb.set_trace()
+        
         # This can happen on the first call to evolve
         if self.get_time() != self.get_evolve_starttime():
             self.set_time(self.get_evolve_starttime())
@@ -1628,8 +1630,10 @@ class Generic_Domain:
             #==========================================  
             self.distribute_to_vertices_and_edges()
             self.update_boundary()
-
+            
             yield(self.get_time())      # Yield initial values
+            
+            
 
         while True:
 
