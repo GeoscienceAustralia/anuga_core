@@ -13,7 +13,7 @@ from setup_rainfall import setup_rainfall
 from setup_structures import setup_structures
 
 
-if anuga.myid == 0 and not isdir('DEM'):
+if anuga.myid == 0 and not isdir('DEM_bridges'):
     msg = """
 ################################################################################
 #
