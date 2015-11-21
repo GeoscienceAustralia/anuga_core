@@ -67,7 +67,7 @@ def topography(x,y):
 # Setup computational domain
 #------------------------------------------------------------------------------
 print ' Set up Domain first...'
-length = 24.
+length = 20.
 width = 5.
 dx = dy = 0.2 #.1           # Resolution: Length of subdivisions on both axes
 
@@ -78,15 +78,15 @@ evolved_quantities = ['stage', 'xmomentum', 'ymomentum', 'elevation', 'concentra
                                                
 domain = Domain(points, vertices, boundary, evolved_quantities=evolved_quantities)
 domain.set_flow_algorithm('DE0')
-domain.set_name('new_domain_test2') # Output name
+domain.set_name('low_pole') # Output name
 # domain.set_store_vertices_uniquely(True)
 
 print domain.statistics()
 
 domain.set_quantities_to_be_stored({'elevation': 2,
                                     'stage': 2,# 
-#                                     'xmomentum': 2,
-#                                     'ymomentum': 2,
+                                    'xmomentum': 2,
+                                    'ymomentum': 2,
                                     'concentration': 2})
 
 domain.set_quantity('concentration', 0.01)
@@ -118,7 +118,7 @@ op1 = Sed_transport_operator(domain)
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
-for t in domain.evolve(yieldstep=0.1, finaltime=10.):
+for t in domain.evolve(yieldstep=0.5, finaltime=100.):
     domain.print_timestepping_statistics()
     #domain.print_operator_timestepping_statistics()
 
