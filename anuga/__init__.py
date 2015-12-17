@@ -251,6 +251,7 @@ else:
     from anuga.operators.set_elevation import Set_elevation
     from anuga.operators.set_quantity import Set_quantity
 
+    from anuga.operators.sanddune_erosion_operator import Sanddune_erosion_operator
     from anuga.operators.erosion_operators import Bed_shear_erosion_operator
     from anuga.operators.erosion_operators import Flat_slice_erosion_operator
     from anuga.operators.erosion_operators import Flat_fill_slice_erosion_operator
