@@ -132,8 +132,8 @@ nsbase_elev_c[poly2ind] = num.minimum(nsbase_elev_c[poly2ind], poly2nsbase)
 
 
 # setup and create operator within polys setting the scour base elevations for each poly
-op1 = anuga.Sanddune_erosion_operator(domain, base=nsbase_elev_c, polygon=polygon1)   # first notched dune
-op2 = anuga.Sanddune_erosion_operator(domain, base=nsbase_elev_c, polygon=polygon2)   # second plain dune
+#op1 = anuga.Sanddune_erosion_operator(domain, base=nsbase_elev_c, polygon=polygon1)   # first notched dune
+#op2 = anuga.Sanddune_erosion_operator(domain, base=nsbase_elev_c, polygon=polygon2)   # second plain dune
 
 
 
@@ -147,7 +147,7 @@ op2 = anuga.Sanddune_erosion_operator(domain, base=nsbase_elev_c, polygon=polygo
 #------------------------------------------------------------------------------
 # Evolve sanddune erosion simulation through time  
 #------------------------------------------------------------------------------
-for t in domain.evolve(yieldstep=1, duration=600.0):
+for t in domain.evolve(yieldstep=10, duration=600.0):
 
     if anuga.myid==0:
         domain.print_timestepping_statistics()
