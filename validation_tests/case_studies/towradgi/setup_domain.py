@@ -16,7 +16,7 @@ import anuga
 import time
 import numpy
 import os
-import zipfile
+
 
 
 from anuga import Polygon_function
@@ -55,12 +55,12 @@ def setup_domain(simulation):
     CatchmentList = create_catchment_list(simulation)
     ManningList = create_manning_list(simulation)
     
-    #------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # CREATING MESH
-    #------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     
     bounding_polygon = [[W, S], [E, S], [E, N], [W, N]]
-    #interior_regions = read_polygon_dir(CatchmentDictionary, join('Model', 'Bdy'))
+
     interior_regions = read_polygon_list(CatchmentList)
 
     # FIXME: Have these in a shapefile / other file and read them in    
@@ -91,9 +91,9 @@ def setup_domain(simulation):
         use_cache=False,
         verbose=True)
     
-    #------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # SETUP COMPUTATIONAL DOMAIN
-    #------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     
     domain = Domain(args.meshname, use_cache=False, verbose=True)
 
@@ -118,19 +118,19 @@ def setup_domain(simulation):
     # Set a Initial Water Level over the Domain
     domain.set_quantity('stage', 0)
    
-    # Decompress the zip file to make a csv for reading 
-    zipfile.ZipFile('DEM_bridges/towradgi_cleaner.zip').extract('towradgi.csv',path='DEM_bridges/')
-
     if verbose: print 'Setting up elevation interpolation function'
     from anuga.utilities.quantity_setting_functions import make_nearestNeighbour_quantity_function
+
+    if verbose: print 'READING %s' % args.basename+'.csv'
     elev_xyz=numpy.genfromtxt(fname=args.basename+'.csv',delimiter=',')
 
-    # Use nearest-neighbour interpolation of elevation 
+    # Use nearest-neighbour interpolation of elevation
+    if verbose: print 'CREATING nearest neighbour interpolator'  
     elev_fun_wrapper=make_nearestNeighbour_quantity_function(elev_xyz,domain)
+
     if verbose: print 'Applying elevation interpolation function'    
     domain.set_quantity('elevation', elev_fun_wrapper, location='centroids')
 
-    os.remove('DEM_bridges/towradgi.csv') # Clean up csv file
     
     return domain
 
