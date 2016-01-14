@@ -532,6 +532,17 @@ class Domain(Generic_Domain):
         self.set_CFL(1.0)
         self.set_compute_fluxes_method('wb_2')
         self.set_extrapolate_velocity()
+        
+        
+        if self.processor == 0 and self.verbose:
+            print '##########################################################################'
+            print '#'
+            print '# Using continuous elevation solver 1_5'
+            print '#'
+            print '# Uses diffusive second order spatial, first order timestepping'
+            print '#'
+            print '##########################################################################'
+
 
     def _set_2_0_defaults(self):
         """Set up the defaults for running the flow_algorithm "2_0"
@@ -553,6 +564,15 @@ class Domain(Generic_Domain):
         self.set_compute_fluxes_method('wb_2')
         self.set_extrapolate_velocity()
         
+        if self.processor == 0 and self.verbose:
+            print '##########################################################################'
+            print '#'
+            print '# Using continuous elevation solver 2_0'
+            print '#'
+            print '# Uses second order spatial, second order timestepping'
+            print '#'
+            print '##########################################################################'        
+        
     def _set_2_5_defaults(self):
         """Set up the defaults for running the flow_algorithm "2_0"
            so that users can revert back to old default algorithm
@@ -572,6 +592,16 @@ class Domain(Generic_Domain):
         self.set_CFL(1.0)
         self.set_compute_fluxes_method('wb_2')
         self.set_extrapolate_velocity()
+        
+        
+        if self.processor == 0 and self.verbose:
+            print '##########################################################################'
+            print '#'
+            print '# Using continuous elevation solver 2_5'
+            print '#'
+            print '# Uses second order spatial, third order timestepping'
+            print '#'
+            print '##########################################################################'   
 
     def _set_DE0_defaults(self):
         """Set up the defaults for running the flow_algorithm "DE0"
@@ -2360,10 +2390,9 @@ class Domain(Generic_Domain):
         # evolve loop but we do it here to ensure the values are ok for storage.
         self.distribute_to_vertices_and_edges()
 
-        if self.store is True and self.get_time() == self.get_starttime():
+        if self.store is True and self.get_time() == 0.0:
             self.initialise_storage()
             
-        if self.get_time() >= finaltime: yield
 
         # Call basic machinery from parent class
         for t in self._evolve_base(yieldstep=yieldstep,

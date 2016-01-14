@@ -322,8 +322,12 @@ class Test_rate_operators(unittest.TestCase):
         indices = [0,1,3]
 
 
-        rate = file_function('test_file_function.tms', quantities=['Attribute1'])
+        rate = file_function(filename + '.tms', quantities=['Attribute1'])
+        
 
+        # Make starttime of domain consistent with tms file starttime
+        domain.set_starttime(rate.starttime)
+                    
         factor = 1000.0
         default_rate= 17.7
 
@@ -332,10 +336,11 @@ class Test_rate_operators(unittest.TestCase):
 
 
         # Apply Operator
-        domain.set_starttime(360.0)
+        domain.set_time(360.0)
         domain.timestep = 1.0
 
         operator()
+
 
 
         d = domain.get_time()**2 * factor + 1.0
@@ -354,7 +359,7 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.fractional_step_volume_integral, ((d-1.)*domain.areas[indices]).sum())
 
 
-        domain.set_starttime(-10.0)
+        domain.set_time(-10.0)
         domain.timestep = 1.0
 
         try:
@@ -365,7 +370,7 @@ class Test_rate_operators(unittest.TestCase):
             raise Exception('Should have raised an exception, time too early')
 
 
-        domain.set_starttime(1300.0)
+        domain.set_time(1300.0)
         domain.timestep = 1.0
 
         operator()
@@ -382,6 +387,8 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
         assert num.allclose(domain.fractional_step_volume_integral, ((d-1.)*domain.areas[indices]).sum())
+
+
 
 
     def test_rate_operator_functions_rate_default_rate(self):

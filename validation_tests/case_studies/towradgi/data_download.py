@@ -5,12 +5,30 @@ location
 
 import os
 
-URL = 'https://anuga.anu.edu.au/svn/anuga/trunk/anuga_case_studies_data/towradgi/DEM'
+URL =  'https://sourceforge.net/projects/anuga/files/validation_data/towradgi-1.0/data.tgz'
 
-CMD = 'wget -r  --cut-dirs=5 --no-parent --reject "index.html" -nH %s'% URL
-
+CMD = 'wget %s'% URL
 print CMD
 
-os.system(CMD)
+try:
+    import wget
+    wget.download(URL)
+except:
+    print 'wget failed. Perhaps need to install wget via "pip install wget"'
+    import sys
+    sys.exit()
 
-#wget -r  --cut-dirs=5 --no-parent --reject "index.html" -nH https://anuga.anu.edu.au/svn/anuga/trunk/anuga_case_studies_data/towradgi/DEM
+
+CMD = 'tar zxf data.tgz'
+print
+print CMD
+
+import tarfile
+tar = tarfile.open('data.tgz')
+tar.extractall()
+tar.close()
+
+
+CMD = 'rm data.tgz'
+print CMD
+os.remove('data.tgz')

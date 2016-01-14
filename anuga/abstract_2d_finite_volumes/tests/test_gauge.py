@@ -79,7 +79,7 @@ class Test_Gauge(unittest.TestCase):
         self.sww.store_timestep()
         self.domain.set_quantity('stage', stage) # This is automatically limited
         # so it will not be less than the elevation
-        self.domain.set_time(self.domain.get_time()-self.domain.starttime+timestep)
+        self.domain.set_time(self.domain.get_time()+timestep)
         self.sww.store_timestep()
         
         
@@ -261,7 +261,7 @@ point2, 0.5, 2.0, 9.0\n")
                             use_cache=False)
 
 #        point1_answers_array = [[0.0,1.0,-5.0,3.0,4.0], [2.0,10.0,-5.0,3.0,4.0]]
-        point1_answers_array = [[2.0, 0.0005555555555555556, 1.0, 4.0, -3.0, 3.0, 4.0], [3.0, 0.0008333333333333334, 10.0, 13.0, -3.0, 3.0, 4.0] ]
+        point1_answers_array = [[1.0, 0.0002777777777777778, 1.0, 4.0, -3.0, 3.0, 4.0], [3.0, 0.0008333333333333334, 10.0, 13.0, -3.0, 3.0, 4.0] ]
         point1_filename = 'gauge_point1.csv'
         point1_handle = file(point1_filename)
         point1_reader = reader(point1_handle)
@@ -275,7 +275,7 @@ point2, 0.5, 2.0, 9.0\n")
             #print 'assert line',line[i],'answer',point1_answers_array[i]
             assert num.allclose(line[i], point1_answers_array[i])
 
-        point2_answers_array = [[2.0, 0.0005555555555555556, 1.0, 3.416666666666667, -2.416666666666667, 3.0, 4.0], [3.0, 0.0008333333333333334, 10.000000000000002, 12.416666666666668, -2.416666666666667, 3.0, 4.0]]
+        point2_answers_array = [[1.0, 0.0002777777777777778, 1.0, 3.416666666666667, -2.416666666666667, 3.0, 4.0], [3.0, 0.0008333333333333334, 10.000000000000002, 12.416666666666668, -2.416666666666667, 3.0, 4.0]]
         point2_filename = 'gauge_point2.csv' 
         point2_handle = file(point2_filename)
         point2_reader = reader(point2_handle)
@@ -542,9 +542,9 @@ point2, 0.5, 2.0\n")
         # clean up
         point1_handle.close()
         point2_handle.close() 
-        os.remove(points_file)
-        os.remove(point1_filename)
-        os.remove(point2_filename)       
+        #os.remove(points_file)
+        #os.remove(point1_filename)
+        #os.remove(point2_filename)       
 
         #remove second swwfile not removed by tearDown
         os.remove(basename+".sww")
@@ -553,7 +553,7 @@ point2, 0.5, 2.0\n")
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Gauge, 'test_')
+    suite = unittest.makeSuite(Test_Gauge, 'test')
 #    runner = unittest.TextTestRunner(verbosity=2)
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

@@ -315,7 +315,8 @@ class Generic_Domain:
         self.finaltime = None
         self.recorded_min_timestep = self.recorded_max_timestep = 0.0
         self.starttime = starttime # Physical starttime if any
-        self.time = self.starttime 
+        self.evolve_starttime = 0.0
+        self.time = self.evolve_starttime
         self.timestep = 0.0
         self.flux_timestep = 0.0
         self.evolved_called = False
@@ -547,18 +548,23 @@ class Generic_Domain:
     set_cfl = set_CFL
         
 
-    def set_time(self, time=0.0):
+    def set_time(self, time=0.0 , relative=True):
         """Set the model time (seconds)."""
 
-        # FIXME: this is setting the relative time
-        # Note that get_time and set_time are now not symmetric
 
-        self.time = time
+        if relative:
+            self.time = time
+        else:
+            self.time = time - self.starttime
+            
 
-    def get_time(self):
-        """Get the absolute model time (seconds)."""
+    def get_time(self, relative=True):
+        """Get the absolute or relative model time (seconds)."""
 
-        return self.time
+        if relative:
+            return self.time
+        else:
+            return self.starttime + self.time
 
     def get_timestep(self):
         """et current timestep (seconds)."""
@@ -1404,9 +1410,19 @@ class Generic_Domain:
         return self.starttime
 
     def set_starttime(self, time):
+        
+        if self.evolved_called: 
+            raise "Can't change simulation start time once evolve has been called"
+        
         self.starttime = float(time)
-        self.set_time(self.starttime)
-
+        self.set_time(0.0)
+        
+    def set_evolve_starttime(self, time):
+        self.evolve_starttime = float(time)
+        self.set_time(self.evolve_starttime)
+        
+    def get_evolve_starttime(self):
+        return self.evolve_starttime
 
 
     '''
@@ -1547,15 +1563,17 @@ class Generic_Domain:
         self.evolved_called = True
 
         # We assume evolve has already been called so we should now
-        # set starttime to match actual time
+        # set evolve_starttime to match actual time
         
         if skip_initial_step:
-            self.set_starttime(self.get_time())
+            self.set_evolve_starttime(self.get_time())
 
-
+        #import pdb
+        #pdb.set_trace()
+        
         # This can happen on the first call to evolve
-        if self.get_time() != self.get_starttime():
-            self.set_time(self.get_starttime())
+        if self.get_time() != self.get_evolve_starttime():
+            self.set_time(self.get_evolve_starttime())
         
         if yieldstep is None:
             yieldstep = self.evolve_max_timestep
@@ -1576,9 +1594,9 @@ class Generic_Domain:
             if finaltime is not None:
                 self.finaltime = float(finaltime)
             if duration is not None:
-                self.finaltime = self.starttime + float(duration)
+                self.finaltime = float(duration)
 
-        assert self.finaltime >= self.get_starttime(), 'finaltime is less than starttime!'
+        assert self.finaltime >= self.get_time(), 'finaltime %g is less than starttime %g!' % (self.finaltime,self.get_time())
 
         N = len(self)                             # Number of triangles
         self.yieldtime = self.get_time() + yieldstep    # set next yield time
@@ -1612,8 +1630,10 @@ class Generic_Domain:
             #==========================================  
             self.distribute_to_vertices_and_edges()
             self.update_boundary()
-
+            
             yield(self.get_time())      # Yield initial values
+            
+            
 
         while True:
 

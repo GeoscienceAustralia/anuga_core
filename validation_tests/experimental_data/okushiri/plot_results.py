@@ -53,7 +53,7 @@ testing = False
 # Basic data
 #-------------------------
 
-finaltime = 25
+finaltime = 22.5
 timestep = 0.05
 
 gauge_locations = [[0.000, 1.696]] # Boundary gauge

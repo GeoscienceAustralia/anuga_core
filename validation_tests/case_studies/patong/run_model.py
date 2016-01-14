@@ -277,12 +277,6 @@ domain.set_boundary({'back': Br,
 t0 = time.time()
 
 
-## Jump up to time 400 sec to cover missing boundary data before 302 sec
-for t in domain.evolve(yieldstep=400, finaltime=400):
-    log.critical(domain.timestepping_statistics())
-#    log.critical(domain.boundary_statistics(tags='ocean'))
-
-
 import time
 
 # Start detailed model

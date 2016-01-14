@@ -4325,6 +4325,75 @@ class Test_Shallow_Water(unittest.TestCase):
             print ('Fy'.ljust(qwidth), Fy.centroid_values[k],
                    Fy.vertex_values[k,:], Fy.edge_values[k,:])
 
+    def test_evolve_finaltime(self):
+        """Test evolve with finaltime set
+        """
+
+        from anuga import rectangular_cross_domain
+
+        # Create basic mesh
+        domain = rectangular_cross_domain(6, 6)
+        domain.set_name('evolve_finaltime')
+        
+        # IC
+        def x_slope(x, y):
+            return x/3
+
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('friction', 0)
+        domain.set_quantity('stage', x_slope)
+
+        # Boundary conditions (reflective everywhere)
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+
+        domain.check_integrity()
+
+        # Evolution 
+        # Test that t is a float
+        tt = 0.0
+        for t in domain.evolve(yieldstep=0.05, finaltime=5.0):
+            tt += t
+           
+        assert num.allclose(tt,252.5)
+
+
+        os.remove(domain.get_name() + '.sww')
+
+    def test_evolve_duration(self):
+        """Test evolve with finaltime set
+        """
+
+        from anuga import rectangular_cross_domain
+
+        # Create basic mesh
+        domain = rectangular_cross_domain(6, 6)
+        domain.set_name('evolve_duration')
+        
+        # IC
+        def x_slope(x, y):
+            return x/3
+
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('friction', 0)
+        domain.set_quantity('stage', x_slope)
+
+        # Boundary conditions (reflective everywhere)
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+
+        domain.check_integrity()
+
+        # Evolution
+        # Test that t is a float
+        tt = 0.0
+        for t in domain.evolve(yieldstep=0.05, duration=5.0):
+            tt += t
+        
+        assert num.allclose(tt,252.5)
+
+        os.remove(domain.get_name() + '.sww')
+
     def test_conservation_1(self):
         """Test that stage is conserved globally
 
