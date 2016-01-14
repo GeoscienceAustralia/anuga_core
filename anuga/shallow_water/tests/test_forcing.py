@@ -806,7 +806,7 @@ class Test_Forcing(unittest.TestCase):
         assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
         assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
 
-    def test_time_dependent_rainfall_using_starttime(self):
+    def test_relative_time_dependent_rainfall_using_starttime(self):
         rainfall_poly = ensure_numeric([[1,1], [2,1], [2,2], [1,2]], num.float)
 
         a = [0.0, 0.0]
@@ -848,13 +848,60 @@ class Test_Forcing(unittest.TestCase):
 
         assert num.allclose(domain.quantities['stage'].explicit_update[1],
                             (3*domain.get_time() + 7)/1000)
+
+
+        assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
+        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
+
+    def test_absolute_time_dependent_rainfall_using_starttime(self):
+        rainfall_poly = ensure_numeric([[1,1], [2,1], [2,2], [1,2]], num.float)
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        # Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        # Setup only one forcing term, time dependent rainfall
+        # restricted to a polygon enclosing triangle #1 (bce)
+        domain.forcing_terms = []
+        R = Rainfall(domain,
+                     rate=lambda t: 3*t + 7,
+                     polygon=rainfall_poly,
+                     relative_time=False)                     
+
+        assert num.allclose(R.exchange_area, 2)
+        
+        domain.forcing_terms.append(R)
+
+        # This will test that time is set to starttime in set_starttime
+        domain.set_starttime(5.0)
+
+        domain.compute_forcing_terms()
+
         assert num.allclose(domain.quantities['stage'].explicit_update[1],
                             (3*domain.get_starttime() + 7)/1000)
 
         assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
         assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
 
-    def test_time_dependent_rainfall_using_georef(self):
+
+    def test_relative_time_dependent_rainfall_using_georef(self):
         """test_time_dependent_rainfall_using_georef
 
         This will also test the General forcing term using georef
@@ -907,13 +954,72 @@ class Test_Forcing(unittest.TestCase):
 
         assert num.allclose(domain.quantities['stage'].explicit_update[1],
                             (3*domain.get_time() + 7)/1000)
-        assert num.allclose(domain.quantities['stage'].explicit_update[1],
-                            (3*domain.get_starttime() + 7)/1000)
+
 
         assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
         assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
 
-    def test_time_dependent_rainfall_restricted_by_polygon_with_default(self):
+    def test_absolute_time_dependent_rainfall_using_georef(self):
+        """test_time_dependent_rainfall_using_georef
+
+        This will also test the General forcing term using georef
+        """
+
+        # Mesh in zone 56 (absolute coords)
+        x0 = 314036.58727982
+        y0 = 6224951.2960092
+
+        rainfall_poly = ensure_numeric([[1,1], [2,1], [2,2], [1,2]], num.float)
+        rainfall_poly += [x0, y0]
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices,
+                        geo_reference=Geo_reference(56, x0, y0))
+
+        # Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        # Setup only one forcing term, time dependent rainfall
+        # restricted to a polygon enclosing triangle #1 (bce)
+        domain.forcing_terms = []
+        R = Rainfall(domain,
+                     rate=lambda t: 3*t + 7,
+                     polygon=rainfall_poly)
+
+        assert num.allclose(R.exchange_area, 2)
+        
+        domain.forcing_terms.append(R)
+
+        # This will test that time is set to starttime in set_starttime
+        domain.set_starttime(5.0)
+
+        domain.compute_forcing_terms()
+
+        assert num.allclose(domain.quantities['stage'].explicit_update[1],
+                            (3*domain.get_time() + 7)/1000)
+
+
+        assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
+        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
+
+
+
+    def test_absolute_time_dependent_rainfall_restricted_by_polygon_with_default(self):
         """
         Test that default rainfall can be used when given rate runs out of data.
         """
@@ -958,7 +1064,8 @@ class Test_Forcing(unittest.TestCase):
         R = Rainfall(domain,
                      rate=main_rate,
                      polygon = [[1,1], [2,1], [2,2], [1,2]],
-                     default_rate=5.0)
+                     default_rate=5.0,
+                     relative_time=False)
 
         assert num.allclose(R.exchange_area, 2)
         

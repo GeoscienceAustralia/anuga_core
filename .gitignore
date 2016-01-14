@@ -42,6 +42,15 @@ validation_tests/case_studies/patong/*.png
 validation_tests/case_studies/patong/*.pdf
 
 validation_tests/case_studies/towradgi/*.pdf
+validation_tests/case_studies/towradgi/*.png
+validation_tests/case_studies/towradgi/robots.txt
+validation_tests/case_studies/towradgi/timing-*.md
+validation_tests/case_studies/towradgi/DEM_bridges
+validation_tests/case_studies/towradgi/Forcing
+validation_tests/case_studies/towradgi/Model
+validation_tests/case_studies/towradgi/PARTITIONS
+validation_tests/case_studies/towradgi/Validation
+
 
 parameters.tex
 ch5.png
@@ -97,6 +106,13 @@ wave_atten.png
 *.py[ocd]
 *.so
 _configtest.c
+
+
+# Example tmp files #
+#####################
+
+examples/checkpointing/CHECKPOINTS
+
 
 # Packages #
 ############

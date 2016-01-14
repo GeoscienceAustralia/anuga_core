@@ -135,9 +135,164 @@ class Test_sww(unittest.TestCase):
             #domain.write_time()
             pass
 
-        #BUT since domain1 gets time hacked back to 0:
+        #BUT since domain2 gets time hacked back to 0:
         
-        final = final + (domain2.get_starttime() - domain.get_starttime())
+
+        # Load_sww_as_domain sets starttime for domain2 to the last time in the 
+        # sww file (which is the value of time+domain.starttime
+        final2 = final - domain2.get_starttime()
+
+        domain2.smooth = False
+        domain2.store = False
+        domain2.default_order=2
+        domain2.set_quantity('friction', 0.1)
+        #Bed-slope and friction
+        # Boundary conditions
+        Bd2=Dirichlet_boundary([0.2,0.,0.])
+        domain2.boundary = domain.boundary
+        #print 'domain2.boundary'
+        #print domain2.boundary
+        domain2.set_boundary({'exterior': Bd, 'left' : Bd,  'right': Bd, 'top': Bd, 'bottom': Bd})
+        #domain2.set_boundary({'exterior': Bd})
+
+        domain2.check_integrity()
+        
+
+        for t in domain2.evolve(yieldstep = yiel, finaltime = final2):
+            #domain2.write_time()
+            pass
+
+        ###################
+        ##NOW TEST IT!!!
+        ##################
+
+        bits = ['vertex_coordinates']
+
+        for quantity in ['elevation','stage', 'ymomentum','xmomentum']:
+            bits.append('get_quantity("%s").get_integral()' %quantity)
+            bits.append('get_quantity("%s").get_values()' %quantity)
+
+        #print bits
+        for bit in bits:
+            #print bit
+            #print eval('domain.'+bit)
+            #print eval('domain2.'+bit)
+            
+            #print eval('domain.'+bit+'-domain2.'+bit)
+            msg = 'Values in the two domains are different for ' + bit
+            assert num.allclose(eval('domain.'+bit),eval('domain2.'+bit),
+                                rtol=5.e-2, atol=5.e-2), msg
+
+
+    def test_sww2domain_starttime(self):
+        """
+        Crete a domain and set a starttime, store and read back in 
+        using load_sww_as_domain
+        """
+
+        yiel=0.01
+        points, vertices, boundary = rectangular(10,10)
+
+        #print "=============== boundary rect ======================="
+        #print boundary
+
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.geo_reference = Geo_reference(56,11,11)
+        domain.smooth = False
+        domain.store = True
+        domain.set_name('bedslope')
+        domain.default_order=2
+        
+        domain.set_starttime(200.0)
+        #Bed-slope and friction
+        domain.set_quantity('elevation', lambda x,y: -x/3)
+        domain.set_quantity('friction', 0.1)
+        # Boundary conditions
+        from math import sin, pi
+        Br = Reflective_boundary(domain)
+        Bt = Transmissive_boundary(domain)
+        Bd = Dirichlet_boundary([0.2,0.,0.])
+        Bw = Time_boundary(domain=domain,function=lambda t: [(0.1*sin(t*2*pi)), 0.0, 0.0])
+
+        #domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
+        domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
+
+        domain.quantities_to_be_stored['xmomentum'] = 2
+        domain.quantities_to_be_stored['ymomentum'] = 2
+        #Initial condition
+        h = 0.05
+        elevation = domain.quantities['elevation'].vertex_values
+        domain.set_quantity('stage', elevation + h)
+
+        domain.check_integrity()
+        #Evolution
+        #domain.tight_slope_limiters = 1
+
+        
+        for t in domain.evolve(yieldstep = yiel, finaltime = 0.05):
+            #domain.write_time()
+            pass
+
+        #print boundary
+
+
+        filename = domain.datadir + os.sep + domain.get_name() + '.sww'
+        domain2 = load_sww_as_domain(filename, None, fail_if_NaN=False,
+                                        verbose=self.verbose)
+
+        # Unfortunately we loss the boundaries top, bottom, left and right,
+        # they are now all lumped into "exterior"
+
+        #print "=============== boundary domain2 ======================="
+        #print domain2.boundary
+        
+
+        #print domain2.get_boundary_tags()
+        
+        #points, vertices, boundary = rectangular(15,15)
+        #domain2.boundary = boundary
+        ###################
+        ##NOW TEST IT!!!
+        ###################
+
+        os.remove(filename)
+
+        bits = ['vertex_coordinates']
+        for quantity in ['stage']:
+            bits.append('get_quantity("%s").get_integral()' % quantity)
+            bits.append('get_quantity("%s").get_values()' % quantity)
+
+        for bit in bits:
+            #print 'testing that domain.'+bit+' has been restored'
+            #print bit
+            #print 'done'
+            #print eval('domain.'+bit)
+            #print eval('domain2.'+bit)
+            assert num.allclose(eval('domain.'+bit),eval('domain2.'+bit))
+
+        ######################################
+        #Now evolve them both, just to be sure
+        ######################################x
+        from time import sleep
+
+        final = .1
+        domain.set_quantity('friction', 0.1)
+        domain.store = False
+        domain.set_boundary({'exterior': Bd, 'left' : Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
+
+
+        for t in domain.evolve(yieldstep = yiel, finaltime = final):
+            #domain.write_time()
+            pass
+
+        #BUT since domain2 gets time hacked back to 0:
+        
+
+        # Load_sww_as_domain sets starttime for domain2 to the last time in the 
+        # sww file (which is the value of time+domain.starttime
+        # finaltime 
+        final2 = final - 0.05
 
         domain2.smooth = False
         domain2.store = False
@@ -154,7 +309,7 @@ class Test_sww(unittest.TestCase):
 
         domain2.check_integrity()
 
-        for t in domain2.evolve(yieldstep = yiel, finaltime = final):
+        for t in domain2.evolve(yieldstep = yiel, finaltime = final2):
             #domain2.write_time()
             pass
 

@@ -152,7 +152,7 @@ class get_output:
         self.x, self.y, self.time, self.vols, self.stage, \
                 self.height, self.elev, self.friction, self.xmom, self.ymom, \
                 self.xvel, self.yvel, self.vel, self.minimum_allowed_height,\
-                self.xllcorner, self.yllcorner, self.timeSlices = \
+                self.xllcorner, self.yllcorner, self.timeSlices, self.starttime = \
                 _read_output(filename, minimum_allowed_height,copy.copy(timeSlices))
         self.filename = filename
         self.verbose = verbose
@@ -253,6 +253,7 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
     # Get lower-left
     xllcorner=fid.xllcorner
     yllcorner=fid.yllcorner
+    starttime=fid.starttime
 
     # Read variables
     x=fid.variables['x'][:]
@@ -320,7 +321,7 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
     fid.close()
 
     return x, y, time, vols, stage, height, elev, friction, xmom, ymom,\
-           xvel, yvel, vel, minimum_allowed_height, xllcorner,yllcorner, inds
+           xvel, yvel, vel, minimum_allowed_height, xllcorner,yllcorner, inds, starttime
 
 ######################################################################################
 
