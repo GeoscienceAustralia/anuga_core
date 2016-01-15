@@ -89,7 +89,7 @@ domain.set_quantities_to_be_stored({'elevation': 2,
 #                                     'ymomentum': 2,
                                     'concentration': 2})
 
-domain.set_quantity('concentration', 0.01)
+# domain.set_quantity('concentration', 0.01)
 domain.set_quantity('elevation', topography)           # elevation is a function
 domain.set_quantity('friction', 0.01)                  # Constant friction
 domain.set_quantity('stage', expression='elevation')   # Dry initial condition
@@ -118,7 +118,7 @@ op1 = Sed_transport_operator(domain)
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
-for t in domain.evolve(yieldstep=0.5, finaltime=20.):
+for t in domain.evolve(yieldstep=0.5, finaltime=2.):
     domain.print_timestepping_statistics()
     #domain.print_operator_timestepping_statistics()
 

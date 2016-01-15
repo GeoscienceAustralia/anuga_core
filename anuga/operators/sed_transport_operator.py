@@ -83,6 +83,7 @@ class Sed_transport_operator(Erosion_operator):
                             
         self.normals = self.domain.normals
         
+        
 
 
     @property
@@ -129,13 +130,20 @@ class Sed_transport_operator(Erosion_operator):
         if len(self.ind)>0:
         
             self.conc = self.domain.quantities['concentration'].centroid_values
+            self.x = self.domain.quantities['x'].centroid_values
+            self.y = self.domain.quantities['y'].centroid_values
+            
+            self.conc[1250] = 0.1
+            
+#             print 'conc', self.conc[1248:1253], self.conc[1328]
+#             print 'depth', self.depth[5:10]
+#             print 'z', self.elev_c[5:10]
             
             
             self.momentum = num.sqrt(self.xmom_c[self.ind]**2 + self.ymom_c[self.ind]**2)
         
             self.velocity = self.momentum / (self.depth[self.ind] + epsilon)
 
-            self.sediment_flux()
 
             edot = self.erosion()
             ddot = self.deposition()
@@ -145,7 +153,26 @@ class Sed_transport_operator(Erosion_operator):
         
             dChdt = (edot - ddot)
             
-            self.update_concentration(dChdt)
+#             self.update_concentration(dChdt)
+            
+#             print 'conc', self.conc[1248:1253], self.conc[1328]
+            
+#             print 'Edot', edot[5:10]
+#             print 'Ddot', ddot[5:10]
+#             print 'dChdt', dChdt[5:10]
+#             print 'dzdt', dzdt[5:10]
+#             print 'z', self.elev_c[5:10]
+            
+            self.sediment_flux()
+            
+#             print 'conc', self.conc[1248:1253], self.conc[1328]
+#             print 'x', self.x[1248:1253], self.x[1328]
+#             print 'y', self.y[1248:1253], self.y[1328]
+#             print self.conc.max()
+#             print self.depth[self.conc == self.conc.max()]
+#             print self.elev_c[self.conc == self.conc.max()]
+#             print (self.x[self.conc == self.conc.max()], self.y[self.conc == self.conc.max()])
+            print '-'*10
             
 
         updated = True
@@ -172,7 +199,8 @@ class Sed_transport_operator(Erosion_operator):
         
         self.domain.quantities['concentration'].\
                 set_values(new_conc, location = 'centroids')
-
+                
+#         print 'Newconc', new_conc[5:10]
 
 
 
@@ -237,12 +265,99 @@ class Sed_transport_operator(Erosion_operator):
 
         
 
+    def sediment_flux(self):
+    
+        self.depth = self.stage_c - self.elev_c
         
+        
+        N = len(self.domain)   
+        neighbours = self.domain.neighbours
+        
+        neighbour_edges = self.domain.neighbour_edges
+        normals = self.domain.normals   
+        
+        areas = self.domain.areas
+        edgelengths = self.domain.edgelengths
+
+        xvel = self.xmom_c / (self.depth + epsilon)
+        yvel = self.ymom_c / (self.depth + epsilon)
+        
+        sed_vol_in_cell = self.conc * self.depth * areas
+        new_conc = num.zeros_like(self.conc)
+        
+        stage_bdry = self.domain.quantities['stage'].boundary_values
+        elev_bdry = self.domain.quantities['elevation'].boundary_values
+        xmom_bdry = self.domain.quantities['xmomentum'].boundary_values
+        ymom_bdry = self.domain.quantities['ymomentum'].boundary_values
+        
+        depth_bdry = stage_bdry - elev_bdry
+        xvel_bdry = xmom_bdry / (depth_bdry + epsilon)
+        yvel_bdry = ymom_bdry / (depth_bdry + epsilon)
+        
+        conc_bdry = self.domain.quantities['concentration'].boundary_values
+        
+        sed_vol_in_cell = self.conc * self.depth * areas
+        sed_vol_in_cell_diff = num.zeros_like(sed_vol_in_cell)
+        print sed_vol_in_cell.max()
+        print sed_vol_in_cell[1250]
+        
+        for k in range(N):
+
+            depth_l = self.depth[k]
+            
+            flux_sed = 0.
+            
+            if depth_l > 0.1:
+            
+                xvel_l = xvel[k]
+                yvel_l = yvel[k]
+                conc_l = self.conc[k]
+
+                for i in range(3):
+
+                    n = neighbours[k,i]
+                    
+                    if n < 0:
+                    
+                        m = -n-1 #Convert neg flag to index
+                        depth_r = depth_bdry[m]
+                        xvel_r = xvel_bdry[m]
+                        yvel_r = yvel_bdry[m]
+                        conc_r = conc_bdry[m]
+                        
+                        
+                    else:
+                        depth_r = self.depth[n]
+                        xvel_r = xvel[n]
+                        yvel_r = yvel[n]
+                        conc_r = self.conc[n]
+                        
+
+
+                    depth_edge = (depth_l + depth_r) / 2
+                    xvel_edge = (xvel_l + xvel_r) / 2
+                    yvel_edge = (yvel_l + yvel_r) / 2
+                    conc_edge = (conc_l + conc_r) / 2
+                
+                
+                    normal = self.normals[k, 2*i:2*i+2]
+                    edge_vel = normal[0] * xvel_edge + normal[1] * yvel_edge
+                
+                    edge_area = edgelengths[k,i] * depth_edge
+                    edge_discharge = edge_vel * edge_area
+                    edge_volume_water = edge_discharge * self.dt
+                    
+                    print depth_l, depth_r
+                    print conc_l, conc_r
+                    print edge_volume_water, depth_l * areas[k]
+                    print '-' * 4
+        
+         
         
         
         
                 
-    def sediment_flux(self):
+    def sediment_flux_bad_2(self):
     
         self.depth = self.stage_c - self.elev_c
     
@@ -252,6 +367,7 @@ class Sed_transport_operator(Erosion_operator):
         
 
         neighbours = self.domain.neighbours
+        
         neighbour_edges = self.domain.neighbour_edges
         normals = self.domain.normals
         
@@ -274,14 +390,20 @@ class Sed_transport_operator(Erosion_operator):
         conc_bdry = self.domain.quantities['concentration'].boundary_values
         
         bdry_indices = self.domain.boundary_cells
-        conc_bdry[bdry_indices < 60] = 0.01
+        
+        
+        
+#         conc_bdry[bdry_indices < 100] = 0.01
 # #         conc_bdry[bdry_indices >= 60] = 0.0
+
+        if self.conc[1250]>0.0:
+            print self.conc[1250], self.depth[1250]
+
+
         
         sed_vol_in_cell = self.conc * self.depth * areas
         new_conc = num.zeros(N, num.float)
         
-
-        flux_sed = num.zeros(1, num.float)
 
         #Loop
         for k in range(N):
@@ -291,7 +413,7 @@ class Sed_transport_operator(Erosion_operator):
             yvel_l = yvel[k]
             conc_l = self.conc[k]
             
-            flux_sed[:] = 0.
+            flux_sed = 0.
             
             if depth_l > 0.1:
 
@@ -302,8 +424,8 @@ class Sed_transport_operator(Erosion_operator):
                     
                         m = -n-1 #Convert neg flag to index
                         depth_r = depth_bdry[m]
-                        xvel_r = xvel_l#xvel_bdry[m]
-                        yvel_r = yvel_l#yvel_bdry[m]
+                        xvel_r = xvel_bdry[m]
+                        yvel_r = yvel_bdry[m]
                         conc_r = conc_bdry[m]
                         
                         
@@ -312,48 +434,68 @@ class Sed_transport_operator(Erosion_operator):
                         xvel_r = xvel[n]
                         yvel_r = yvel[n]
                         conc_r = self.conc[n]
-                    
-                    
-                    depth_edge = (depth_l + depth_r) / 2
-                    xvel_edge = (xvel_l + xvel_r) / 2
-                    yvel_edge = (yvel_l + yvel_r) / 2
-                    conc_edge = (conc_l + conc_r) / 2
-                    
-                    
-                    normal = self.normals[k, 2*i:2*i+2]
-                    edge_vel = normal[0] * xvel_edge + normal[1] * yvel_edge
-                    
-                    
-                    
-                    edge_area = edgelengths[k,i] * depth_edge
-                    edge_discharge = edge_vel * edge_area
-                    
-                    edge_volume_water = edge_discharge * self.dt
-                    
-                    if edge_vel > 0:
-                    
-                        edge_volume_sed = edge_volume_water * conc_l
                         
-                    if edge_vel <= 0:
+                    if depth_r >= 0.1:
                     
-                        edge_volume_sed = edge_volume_water * conc_r
                     
+                        depth_edge = (depth_l + depth_r) / 2
+                        xvel_edge = (xvel_l + xvel_r) / 2
+                        yvel_edge = (yvel_l + yvel_r) / 2
+                        conc_edge = (conc_l + conc_r) / 2
+                    
+                    
+                        normal = self.normals[k, 2*i:2*i+2]
+                        edge_vel = normal[0] * xvel_edge + normal[1] * yvel_edge
+                    
+                    
+                    
+                        edge_area = edgelengths[k,i] * depth_edge
+                        edge_discharge = edge_vel * edge_area / 2
+                    
+                        edge_volume_water = edge_discharge * self.dt
+                    
+                        if edge_vel > 0:
+                    
+                            edge_volume_sed = edge_volume_water * conc_l
+                        
+                        if edge_vel <= 0:
+                    
+                            edge_volume_sed = edge_volume_water * conc_r
+                    
+                    
+                        if k == 1328:
+                    
+                            print depth_l, conc_l
+                            print n
+                            print depth_r, conc_r
+    #                         print depth_edge, conc_edge
+    #                         print edge_vel, edge_discharge
+                            print edge_volume_sed
                         
                         
-                        
-                    flux_sed -= edge_volume_sed
+                        flux_sed -= edge_volume_sed
 
                         
                 sed_vol_in_cell[k] += flux_sed
 
                 new_conc[k] = sed_vol_in_cell[k] / (depth_l * areas[k])
                 
+                if k == 1328:
+                    print '*'*5
+                    print flux_sed, sed_vol_in_cell[k]
+                    print new_conc[k]
+                
+                
+                
         new_conc[new_conc < 0.] = 0.
         
         self.domain.quantities['concentration'].\
                 set_values(new_conc, location = 'centroids')
-                
-            
+             
+#         conc_bdry = self.domain.quantities['concentration'].boundary_values  
+#         print 'Max conc_bdry', conc_bdry.max()
+
+        print self.conc[1250], self.conc[1328]
 
         
         
