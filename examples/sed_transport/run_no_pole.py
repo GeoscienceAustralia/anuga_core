@@ -27,36 +27,21 @@ def topography(x,y):
     """Complex topography defined by a function of vectors x and y."""
     print ' Create topography....'
     z = 10.-x/50
-
-
-    N = len(x)
-#     for i in range(N):
-#         # Step
-#         if 2 < x[i] < 4:
-#             z[i] += 0.4 - 0.05*y[i]
-# 
-#         # Permanent pole
-#         if (x[i] - 8)**2 + (y[i] - 2)**2 < 0.4**2:
-#             z[i] += 5
-# 
-#         # Dam
-#         #if 12 < x[i] < 13:
-#         #    z[i] += 1.4
-#     # Sloping Embankment Across Channel
-#         if 10.6 < x[i] < 12.1:
-#             # Cut Out Segment for Culvert face                
-#             z[i] +=  1.0*(x[i] -10.6)    # Sloping Segment  U/S Face
-#         if 12.0 < x[i] < 13.0:
-#            z[i] +=  1.4                    # Flat Crest of Embankment
-#         if 12.9 < x[i] < 13.7:
-#             z[i] +=  1.4-2.0*(x[i] -12.9) # Sloping D/S Face
-#  
+ 
     z[y < 0.2] = 20.
     z[y > width - 0.2] = 20.
             
     return z
 
-
+def depth(x,y):
+    """Complex topography defined by a function of vectors x and y."""
+    print ' Create topography....'
+    z = 10.-x/50
+ 
+    z[y < 0.2] = 20.
+    z[y > width - 0.2] = 20.
+            
+    return z + 0.5
 
 #===============================================================================
 # Setup and Run Model
@@ -81,6 +66,7 @@ domain.set_flow_algorithm('DE0')
 domain.set_name('no_pole') # Output name
 # domain.set_store_vertices_uniquely(True)
 
+
 print domain.statistics()
 
 domain.set_quantities_to_be_stored({'elevation': 2,
@@ -92,7 +78,7 @@ domain.set_quantities_to_be_stored({'elevation': 2,
 # domain.set_quantity('concentration', 0.01)
 domain.set_quantity('elevation', topography)           # elevation is a function
 domain.set_quantity('friction', 0.01)                  # Constant friction
-domain.set_quantity('stage', expression='elevation')   # Dry initial condition
+domain.set_quantity('stage', depth)   # Dry initial condition
 
 #------------------------------------------------------------------------------
 # Setup boundary conditions

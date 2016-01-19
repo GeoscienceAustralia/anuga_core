@@ -133,11 +133,16 @@ class Sed_transport_operator(Erosion_operator):
             self.x = self.domain.quantities['x'].centroid_values
             self.y = self.domain.quantities['y'].centroid_values
             
-            self.conc[1250] = 0.1
             
-#             print 'conc', self.conc[1248:1253], self.conc[1328]
-#             print 'depth', self.depth[5:10]
-#             print 'z', self.elev_c[5:10]
+            self.conc_v = self.domain.quantities['concentration'].vertex_values
+#             self.conc_v[1250] = [0.1, 0.2, 0.3]
+            
+            self.conc[1250] = 0.1
+            self.conc[1251] = 0.3
+            
+            self.domain.set_quantity('concentration', self.conc, location='centroids')
+#             Q = self.domain.quantities['concentration']
+# #             Q.extrapolate_second_order()
             
             
             self.momentum = num.sqrt(self.xmom_c[self.ind]**2 + self.ymom_c[self.ind]**2)
@@ -156,22 +161,9 @@ class Sed_transport_operator(Erosion_operator):
 #             self.update_concentration(dChdt)
             
 #             print 'conc', self.conc[1248:1253], self.conc[1328]
-            
-#             print 'Edot', edot[5:10]
-#             print 'Ddot', ddot[5:10]
-#             print 'dChdt', dChdt[5:10]
-#             print 'dzdt', dzdt[5:10]
-#             print 'z', self.elev_c[5:10]
-            
+     
             self.sediment_flux()
-            
-#             print 'conc', self.conc[1248:1253], self.conc[1328]
-#             print 'x', self.x[1248:1253], self.x[1328]
-#             print 'y', self.y[1248:1253], self.y[1328]
-#             print self.conc.max()
-#             print self.depth[self.conc == self.conc.max()]
-#             print self.elev_c[self.conc == self.conc.max()]
-#             print (self.x[self.conc == self.conc.max()], self.y[self.conc == self.conc.max()])
+
             print '-'*10
             
 
@@ -204,6 +196,110 @@ class Sed_transport_operator(Erosion_operator):
 
 
 
+        
+
+    def sediment_flux(self):
+    
+        self.depth = self.stage_c - self.elev_c
+        
+        stage_e = self.domain.quantities['stage'].edge_values
+        elev_e = self.domain.quantities['elevation'].edge_values
+        conc_e = self.domain.quantities['concentration'].edge_values
+        height_e = self.domain.quantities['height'].edge_values
+        
+        xmom_e = self.domain.quantities['xmomentum'].edge_values
+        ymom_e = self.domain.quantities['ymomentum'].edge_values
+        
+        
+        
+        N = len(self.domain)   
+        neighbours = self.domain.neighbours
+        neighbour_edges = self.domain.neighbour_edges
+        
+        areas = self.domain.areas
+        edgelengths = self.domain.edgelengths
+        
+        
+        normal_vels = (self.normals[:, 0::2] * xmom_e +
+                       self.normals[:, 1::2] * ymom_e) / height_e
+
+        edge_flux = height_e * edgelengths * normal_vels * self.dt
+        
+        # positive fluxes are inwards and must use the concentration of the neighbour
+        # negative fluxes are outwards and use the concentration of this cell
+        
+        neighbour_conc = self.conc[neighbours]
+        
+        sed_flux = edge_flux * self.conc[:,num.newaxis]    
+        sed_flux[edge_flux > 0] = (
+            edge_flux[edge_flux > 0] * neighbour_conc[edge_flux > 0])
+        
+        sed_vol_change = num.sum(sed_flux, axis=1)
+        
+        
+        sed_vol_in_cell = self.conc * self.depth * areas
+        new_sed_vol_in_cell = num.maximum(sed_vol_in_cell - sed_vol_change, 0)
+        
+        new_conc = new_sed_vol_in_cell / (self.depth * areas)
+        
+        print new_conc[1250:1252]
+
+        print '.'*10
+        
+#         for k in range(N):
+# 
+#             depth_l = self.depth[k]
+#             
+#             flux_sed = 0.
+#             
+#             if depth_l > 0.1:
+#             
+#                 xvel_l = xvel[k]
+#                 yvel_l = yvel[k]
+#                 conc_l = self.conc[k]
+# 
+#                 for i in range(3):
+# 
+#                     n = neighbours[k,i]
+#                     
+#                     if n < 0:
+#                     
+#                         m = -n-1 #Convert neg flag to index
+#                         depth_r = depth_bdry[m]
+#                         xvel_r = xvel_bdry[m]
+#                         yvel_r = yvel_bdry[m]
+#                         conc_r = conc_bdry[m]
+#                         
+#                         
+#                     else:
+#                         depth_r = self.depth[n]
+#                         xvel_r = xvel[n]
+#                         yvel_r = yvel[n]
+#                         conc_r = self.conc[n]
+#                         
+# 
+# 
+#                     depth_edge = (depth_l + depth_r) / 2
+#                     xvel_edge = (xvel_l + xvel_r) / 2
+#                     yvel_edge = (yvel_l + yvel_r) / 2
+#                     conc_edge = (conc_l + conc_r) / 2
+#                 
+#                 
+#                     normal = self.normals[k, 2*i:2*i+2]
+#                     edge_vel = normal[0] * xvel_edge + normal[1] * yvel_edge
+#                 
+#                     edge_area = edgelengths[k,i] * depth_edge
+#                     edge_discharge = edge_vel * edge_area
+#                     edge_volume_water = edge_discharge * self.dt
+                    
+#                     print depth_l, depth_r
+#                     print conc_l, conc_r
+#                     print edge_volume_water, depth_l * areas[k]
+#                     print '-' * 4
+        
+         
+        
+        
 
                 
     def sediment_flux_bad(self):
@@ -262,99 +358,6 @@ class Sed_transport_operator(Erosion_operator):
 
         self.domain.quantities['concentration'].\
                 set_values(new_conc, location = 'centroids')   
-
-        
-
-    def sediment_flux(self):
-    
-        self.depth = self.stage_c - self.elev_c
-        
-        
-        N = len(self.domain)   
-        neighbours = self.domain.neighbours
-        
-        neighbour_edges = self.domain.neighbour_edges
-        normals = self.domain.normals   
-        
-        areas = self.domain.areas
-        edgelengths = self.domain.edgelengths
-
-        xvel = self.xmom_c / (self.depth + epsilon)
-        yvel = self.ymom_c / (self.depth + epsilon)
-        
-        sed_vol_in_cell = self.conc * self.depth * areas
-        new_conc = num.zeros_like(self.conc)
-        
-        stage_bdry = self.domain.quantities['stage'].boundary_values
-        elev_bdry = self.domain.quantities['elevation'].boundary_values
-        xmom_bdry = self.domain.quantities['xmomentum'].boundary_values
-        ymom_bdry = self.domain.quantities['ymomentum'].boundary_values
-        
-        depth_bdry = stage_bdry - elev_bdry
-        xvel_bdry = xmom_bdry / (depth_bdry + epsilon)
-        yvel_bdry = ymom_bdry / (depth_bdry + epsilon)
-        
-        conc_bdry = self.domain.quantities['concentration'].boundary_values
-        
-        sed_vol_in_cell = self.conc * self.depth * areas
-        sed_vol_in_cell_diff = num.zeros_like(sed_vol_in_cell)
-        print sed_vol_in_cell.max()
-        print sed_vol_in_cell[1250]
-        
-        for k in range(N):
-
-            depth_l = self.depth[k]
-            
-            flux_sed = 0.
-            
-            if depth_l > 0.1:
-            
-                xvel_l = xvel[k]
-                yvel_l = yvel[k]
-                conc_l = self.conc[k]
-
-                for i in range(3):
-
-                    n = neighbours[k,i]
-                    
-                    if n < 0:
-                    
-                        m = -n-1 #Convert neg flag to index
-                        depth_r = depth_bdry[m]
-                        xvel_r = xvel_bdry[m]
-                        yvel_r = yvel_bdry[m]
-                        conc_r = conc_bdry[m]
-                        
-                        
-                    else:
-                        depth_r = self.depth[n]
-                        xvel_r = xvel[n]
-                        yvel_r = yvel[n]
-                        conc_r = self.conc[n]
-                        
-
-
-                    depth_edge = (depth_l + depth_r) / 2
-                    xvel_edge = (xvel_l + xvel_r) / 2
-                    yvel_edge = (yvel_l + yvel_r) / 2
-                    conc_edge = (conc_l + conc_r) / 2
-                
-                
-                    normal = self.normals[k, 2*i:2*i+2]
-                    edge_vel = normal[0] * xvel_edge + normal[1] * yvel_edge
-                
-                    edge_area = edgelengths[k,i] * depth_edge
-                    edge_discharge = edge_vel * edge_area
-                    edge_volume_water = edge_discharge * self.dt
-                    
-                    print depth_l, depth_r
-                    print conc_l, conc_r
-                    print edge_volume_water, depth_l * areas[k]
-                    print '-' * 4
-        
-         
-        
-        
         
                 
     def sediment_flux_bad_2(self):
@@ -396,8 +399,8 @@ class Sed_transport_operator(Erosion_operator):
 #         conc_bdry[bdry_indices < 100] = 0.01
 # #         conc_bdry[bdry_indices >= 60] = 0.0
 
-        if self.conc[1250]>0.0:
-            print self.conc[1250], self.depth[1250]
+#         if self.conc[1250]>0.0:
+#             print self.conc[1250], self.depth[1250]
 
 
         
