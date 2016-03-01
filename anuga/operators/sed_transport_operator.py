@@ -16,7 +16,7 @@ from anuga import Domain
 from anuga import Quantity
 from anuga.operators.base_operator import Operator
 
-from math import sqrt
+from math import sqrt, log
 
 import sed_transport_operator_config as st
 
@@ -45,7 +45,7 @@ class Sed_transport_operator(Operator):
         Operator.__init__(self, domain, description, label, logging, verbose)
         
          
-        self.D50 = st.D50
+#         self.D50 = st.D50
         self.porosity = st.porosity
 
         self.Ke_star = st.Ke_star
@@ -56,17 +56,18 @@ class Sed_transport_operator(Operator):
         self.c1 = st.c1
         self.c2 = st.c2
         self.mu = st.mu
-        self.rousecoeff = st.rousecoeff
         
         self.kappa = st.kappa
         
-        
-        self.Ke = self.Ke_star * self.D50 * sqrt(self.R * g * self.D50)
-        
-        self.settlingvelocity = ((self.R * g * self.D50**2) /
-                            ((self.c1 * self.mu) +
-                            (0.75 * self.c2 * (self.R * g * self.D50**3)**0.5)))
-                            
+        self.grain_size(st.D50)
+#         
+#         
+#         self.Ke = self.Ke_star * self.D50 * sqrt(self.R * g * self.D50)
+#         
+#         self.settlingvelocity = ((self.R * g * self.D50**2) /
+#                             ((self.c1 * self.mu) +
+#                             (0.75 * self.c2 * (self.R * g * self.D50**3)**0.5)))
+#                             
                             
         self.normals = self.domain.normals  
         self.neighbours = self.domain.neighbours
@@ -135,7 +136,7 @@ class Sed_transport_operator(Operator):
         if not self.bdry_indices:
             self.initialize_inflow_boundary()
 
-        self.ind = self.depth > 0.05 # 1 cm
+        self.ind = self.depth > 0.05 # 5 cm
         self.update_quantities()     
 
         
@@ -154,6 +155,9 @@ class Sed_transport_operator(Operator):
             
             self.momentum = num.sqrt(self.xmom_c[self.ind]**2 + self.ymom_c[self.ind]**2)
             self.velocity = self.momentum / (self.depth[self.ind] + epsilon)
+            
+            self.u_star = (self.velocity * self.kappa /
+                    num.log(self.depth[self.ind] / self.z_o))
 
             edot = self.erosion()
             ddot = self.deposition()
@@ -253,11 +257,8 @@ class Sed_transport_operator(Operator):
 
         
     def erosion(self):
-        
-        u_star = (self.velocity * self.kappa /
-                    num.log(self.depth[self.ind] / self.D50))
 
-        shear_stress_star = u_star**2 / (g * self.R * self.D50)
+        shear_stress_star = self.u_star**2 / (g * self.R * self.D50)
 
         edot = self.Ke * (shear_stress_star - self.criticalshear_star)
         edot[edot<0.0] = 0.0
@@ -266,14 +267,41 @@ class Sed_transport_operator(Operator):
         
 
     def deposition(self):
+    
+        d_star = self.calculate_d_star()
         
-        ddot = (self.rousecoeff * self.conc[self.ind] *
-                self.depth[self.ind] * self.settlingvelocity)
+        ddot = (d_star * self.conc[self.ind] * self.settlingvelocity)
         ddot[ddot<0.0] = 0.0
     
         return ddot        
 
 
+
+    def calculate_d_star(self):
+    
+        # common for all cells
+        H = 1. # generic depth - not sensitive
+    
+        a = 0.05 * H
+        z = num.arange(a, H+a, a)
+
+        d_dz_u = map(log, z / z_o)
+        integral_u = num.sum((d_dz_u[1:] + num.diff(d_dz_u)) * num.diff(z))
+
+        d_dz_rouse_partial = ((z - a) / (H - a)) * (a / z)
+        
+        # cell-wise
+        rouse_number = self.settlingvelocity / (self.kappa * self.u_star)
+        
+        d_dz_rouse = d_dz_rouse_partial ** rouse_number * d_dz_u
+        integral_rouse = num.sum((d_dz_rouse[1:] + num.diff(d_dz_rouse)) * num.diff(z))
+        
+        d_star = integral_u / integral_rouse
+        
+        return d_star
+        
+    
+        
 
     @property
     def grain_size(self):
@@ -298,6 +326,9 @@ class Sed_transport_operator(Operator):
         self.settlingvelocity = ((self.R * g * self.D50**2) /
                             ((self.c1 * self.mu) +
                             (0.75 * self.c2 * (self.R * g * self.D50**3)**0.5)))
+                            
+                            
+        self.z_o = self.D50 / 30
     
         
         
