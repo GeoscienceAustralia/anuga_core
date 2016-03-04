@@ -4,10 +4,6 @@ Erosion operators
 
 """
 
-__author__="steve"
-__date__ ="$09/03/2012 4:46:39 PM$"
-
-
 
 import numpy as num
 
@@ -28,7 +24,7 @@ from anuga import Dirichlet_boundary
 #===============================================================================
 # Specific Erosion operator trying to implement bed shear
 #===============================================================================
-class Sed_transport_operator(Operator):
+class Sed_transport_operator(Operator, object):
     """
     Sed transport operator based on Bed shear erosion operator
 
@@ -44,37 +40,17 @@ class Sed_transport_operator(Operator):
                 
         Operator.__init__(self, domain, description, label, logging, verbose)
         
-         
-#         self.D50 = st.D50
-        self.porosity = st.porosity
-
-        self.Ke_star = st.Ke_star
-        self.R = st.R
-
-        self.criticalshear_star = st.criticalshear_star
-
-        self.c1 = st.c1
-        self.c2 = st.c2
-        self.mu = st.mu
-        
-        self.kappa = st.kappa
-        
-        self.grain_size(st.D50)
-#         
-#         
-#         self.Ke = self.Ke_star * self.D50 * sqrt(self.R * g * self.D50)
-#         
-#         self.settlingvelocity = ((self.R * g * self.D50**2) /
-#                             ((self.c1 * self.mu) +
-#                             (0.75 * self.c2 * (self.R * g * self.D50**3)**0.5)))
-#                             
-                            
+                
         self.normals = self.domain.normals  
         self.neighbours = self.domain.neighbours
         self.edgelengths = self.domain.edgelengths
         
-        
-        self.conc = self.domain.quantities['concentration'].centroid_values
+        try:
+            self.conc = self.domain.quantities['concentration'].centroid_values
+        except:
+            print "The quantity 'concentration' must be created before running the model"
+            self.conc = None
+            
         self.depth = self.domain.quantities['height'].centroid_values
         
         self.depth_e = self.domain.quantities['height'].edge_values  
@@ -82,11 +58,82 @@ class Sed_transport_operator(Operator):
         self.ymom_e = self.domain.quantities['ymomentum'].edge_values
         
         
+        self.porosity = st.porosity
+        self.Ke_star = st.Ke_star
+        self.R = st.R
+        self.criticalshear_star = st.criticalshear_star
+        self.c1 = st.c1
+        self.c2 = st.c2
+        self.mu = st.mu
+        self.kappa = st.kappa
+        self.grain_size = st.D50
+        
         self.bdry_indices = None
         self.inflow_concentration = None
         if self.domain.boundary_map:
             self.initialize_inflow_boundary()
+
+
+
+
+
+    @property
+    def grain_size(self):
+        """Grain size in m"""
+        return self.D50
+
+
+    @grain_size.setter
+    def grain_size(self, new_D50):
+        """Set the grain size, update the quantities that use it.
+
+        Parameters
+        ----------
+        new_D50 : float
+            New grain size in m.
+        """
         
+        self.D50 = new_D50
+        
+        self.Ke = self.Ke_star * self.D50 * sqrt(self.R * g * self.D50)
+        
+        self.settlingvelocity = ((self.R * g * self.D50**2) /
+                            ((self.c1 * self.mu) +
+                            (0.75 * self.c2 * (self.R * g * self.D50**3)**0.5)))
+                            
+                            
+        self.z_o = self.D50 / 30
+        
+        self.prepare_d_star()
+        
+        
+        
+        
+    def prepare_d_star(self):
+        """
+        Calculates part of the values needed to obtain d* (for deposition)
+        following the formulation of Davy and Lague (2009). The equations are
+        not very sensitive to flow depth so we save time by calculating things once.
+        """
+        
+        self.d_star_counter = 0
+        
+        H = 1. # generic depth - not sensitive
+    
+        a = 0.05 * H
+        self.z = num.arange(a, H+a, a*2)
+        
+        self.diff_z = num.diff(self.z)
+
+        self.d_dz_u = map(log, self.z / self.z_o)
+        self.integral_u = (num.sum((self.d_dz_u[1:] + num.diff(self.d_dz_u)) *
+                        self.diff_z))
+
+        self.d_dz_rouse_partial = ((self.z - a) / (H - a)) * (a / self.z)
+        
+        self.d_star = num.zeros_like(self.depth)
+    
+    
         
             
     def set_inflow_concentration(self, bdry_conc):
@@ -137,7 +184,10 @@ class Sed_transport_operator(Operator):
             self.initialize_inflow_boundary()
 
         self.ind = self.depth > 0.05 # 5 cm
-        self.update_quantities()     
+        self.update_quantities()    
+        
+        if self.conc is None:
+             self.conc = self.domain.quantities['concentration'].centroid_values
 
         
 
@@ -204,11 +254,8 @@ class Sed_transport_operator(Operator):
                                     self.ymom_e[self.ind,:]) /
                                     self.depth_e[self.ind,:])
 
-
-        ######## LIMITING THE VELOCITY OF SEDIMENT TO AVOID HAVING TOO HIGH 
-        ######## CONCENTRATION AT THE WAVE FRONT!
         
-        edge_flux = (self.depth_e * self.edgelengths * normal_vels * self.dt) / 2
+        edge_flux = (self.depth_e * self.edgelengths * normal_vels * self.dt)
         
         # negative fluxes are inwards and must use the concentration of the neighbour
         # positive fluxes are outwards and use the concentration of this cell
@@ -257,6 +304,8 @@ class Sed_transport_operator(Operator):
 
         
     def erosion(self):
+    
+        print self.u_star.max()
 
         shear_stress_star = self.u_star**2 / (g * self.R * self.D50)
 
@@ -268,9 +317,9 @@ class Sed_transport_operator(Operator):
 
     def deposition(self):
     
-        d_star = self.calculate_d_star()
+        self.calculate_d_star()
         
-        ddot = (d_star * self.conc[self.ind] * self.settlingvelocity)
+        ddot = (self.d_star[self.ind] * self.conc[self.ind] * self.settlingvelocity)
         ddot[ddot<0.0] = 0.0
     
         return ddot        
@@ -278,57 +327,21 @@ class Sed_transport_operator(Operator):
 
 
     def calculate_d_star(self):
-    
-        # common for all cells
-        H = 1. # generic depth - not sensitive
-    
-        a = 0.05 * H
-        z = num.arange(a, H+a, a)
-
-        d_dz_u = map(log, z / z_o)
-        integral_u = num.sum((d_dz_u[1:] + num.diff(d_dz_u)) * num.diff(z))
-
-        d_dz_rouse_partial = ((z - a) / (H - a)) * (a / z)
         
-        # cell-wise
-        rouse_number = self.settlingvelocity / (self.kappa * self.u_star)
+        if self.d_star_counter % 100 == 0:
         
-        d_dz_rouse = d_dz_rouse_partial ** rouse_number * d_dz_u
-        integral_rouse = num.sum((d_dz_rouse[1:] + num.diff(d_dz_rouse)) * num.diff(z))
+            rouse_number = self.settlingvelocity / (self.kappa * self.u_star)
         
-        d_star = integral_u / integral_rouse
+            for i in range(len(rouse_number)):
         
-        return d_star
+                d_dz_rouse = self.d_dz_rouse_partial ** rouse_number[i] * self.d_dz_u
+                integral_rouse = (num.sum((d_dz_rouse[1:] + num.diff(d_dz_rouse)) *
+                            self.diff_z))
         
-    
+                self.d_star[self.ind[i]] = self.integral_u / integral_rouse
+                
+        self.d_star_counter += 1
         
-
-    @property
-    def grain_size(self):
-        """Grain size in m"""
-        
-        return self.D50
-
-
-    @grain_size.setter
-    def grain_size(self, new_D50):
-        """Set the grain size, update the quantities that use it.
-
-        Parameters
-        ----------
-        new_D50 : float
-            New grain size in m.
-        """
-        self.D50 = new_D50
-        
-        self.Ke = self.Ke_star * self.D50 * sqrt(self.R * g * self.D50)
-        
-        self.settlingvelocity = ((self.R * g * self.D50**2) /
-                            ((self.c1 * self.mu) +
-                            (0.75 * self.c2 * (self.R * g * self.D50**3)**0.5)))
-                            
-                            
-        self.z_o = self.D50 / 30
     
         
         
@@ -338,8 +351,8 @@ class Sed_transport_operator(Operator):
         """If Operator is applied independently on each cell and
         so is parallel safe.
         """
-        
         return False
+        
 
     def statistics(self):
 
