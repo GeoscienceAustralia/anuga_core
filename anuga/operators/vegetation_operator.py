@@ -34,17 +34,30 @@ class Vegetation_operator(Operator, object):
         Operator.__init__(self, domain, description, label, logging, verbose)
         
         try:
-            # the values in quantity 'vegetation' should be alpha, the ratio
-            # of stem diameters and the square of their spacing
-            self.veg = self.domain.quantities['vegetation'].centroid_values
+            # the value in quantity 'veg_diameter' should be the stem diameter in meters
+            self.veg_diameter = self.domain.quantities['veg_diameter'].centroid_values
         except:
-            self.veg = None
+            self.veg_diameter = None
+            
+        try:
+            # the value in quantity 'veg_spacing' should be the stem spacing in meters
+            self.veg_spacing = self.domain.quantities['veg_spacing'].centroid_values
+        except:
+            self.veg_spacing = None
             
         try:
             self.Cd = self.domain.quantities['drag_coefficient'].centroid_values
         except:
             self.Cd = 1.2 # drag coefficient of a cylinder
             print 'Drag coefficient set to default value Cd = 1.2'
+            
+            
+        try:
+            diff = self.domain.get_quantity('diffusivity')
+        except:
+            Quantity(domain, name='diffusivity', register=True)
+            
+        self.domain.set_use_kinematic_viscosity(True)
             
             
         self.xmom = self.domain.quantities['xmomentum'].centroid_values
@@ -63,10 +76,14 @@ class Vegetation_operator(Operator, object):
         
         self.dt = self.get_timestep()
         
-        if self.veg is None:
-            self.veg = self.domain.quantities['vegetation'].centroid_values
+        if self.veg_diameter is None:
+            self.veg_diameter = self.domain.quantities['veg_diameter'].centroid_values
             
+        if self.veg_spacing is None:
+            self.veg_spacing = self.domain.quantities['veg_spacing'].centroid_values
             
+        self.veg = self.veg_diameter / self.veg_spacing**2
+        self.veg[self.depth == 0] = 0
         
         xvel = self.xmom / (self.depth + epsilon)
         
@@ -86,7 +103,38 @@ class Vegetation_operator(Operator, object):
         yvel_v = yvel - Fd_y * self.dt        
         
         self.domain.quantities['ymomentum'].\
-                set_values(yvel_v * self.depth, location = 'centroids') 
+                set_values(yvel_v * self.depth, location = 'centroids')
+                
+            
+        self.calculate_diffusivity()
+        
+        
+        
+    def calculate_diffusivity(self):
+    
+        Cb = 0.001
+        Cd = 1.2
+    
+        self.momentum = num.sqrt(self.xmom**2 + self.ymom**2)
+        self.velocity = self.momentum / (self.depth + epsilon)
+        
+        ad = self.veg * self.veg_diameter
+    
+        # mixing length
+        mix_length = num.minimum(((self.veg_diameter - self.depth) / 0.01) * ad +
+                        self.depth, self.depth)
+        mix_length[ad >= 0.01] = self.veg_diameter[ad >= 0.01]
+                        
+        # turbulent kinetic energy
+        k = ((1 - ad) * Cb + (Cd * ad)**0.66) * self.velocity**2
+        
+        # total diffusivity
+        diffusivity = num.sqrt(k) * mix_length + ad * self.velocity * self.veg_diameter
+        
+        self.domain.quantities['diffusivity'].\
+                set_values(diffusivity, location = 'centroids')
+        
+        
 
 
 

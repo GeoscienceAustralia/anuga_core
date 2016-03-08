@@ -94,8 +94,11 @@ op1 = Vegetation_operator(domain)
 # op1.set_inflow_concentration(0.02)
 
 alpha = 0.4
-Quantity(domain, name='vegetation', register=True)
-domain.set_quantity('vegetation', 0.4)
+Quantity(domain, name='veg_diameter', register=True)
+domain.set_quantity('veg_diameter', 0.01)
+
+Quantity(domain, name='veg_spacing', register=True)
+domain.set_quantity('veg_spacing', 0.5)
 
 #------------------------------------------------------------------------------
 # Evolve system through time
