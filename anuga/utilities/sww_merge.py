@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 """
     Merge a list of .sww files together into a single file.
 """
