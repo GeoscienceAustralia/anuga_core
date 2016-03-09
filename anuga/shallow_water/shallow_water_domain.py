@@ -2507,7 +2507,8 @@ class Domain(Generic_Domain):
 
     def timestepping_statistics(self,
                                 track_speeds=False,
-                                triangle_id=None):
+                                triangle_id=None,
+                                time_relative=True):
         """Return string with time stepping statistics for printing or logging
 
         Optional boolean keyword track_speeds decides whether to report
@@ -2519,7 +2520,7 @@ class Domain(Generic_Domain):
 
         # Call basic machinery from parent class
         msg = Generic_Domain.timestepping_statistics(self, track_speeds,
-                                                     triangle_id)
+                                                     triangle_id, time_relative)
 
         if track_speeds is True:
             # qwidth determines the text field used for quantities
