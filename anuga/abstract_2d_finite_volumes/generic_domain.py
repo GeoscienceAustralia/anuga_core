@@ -1040,7 +1040,8 @@ class Generic_Domain:
         log.critical(self.timestepping_statistics(track_speeds))
 
     def timestepping_statistics(self, track_speeds=False,
-                                      triangle_id=None):
+                                      triangle_id=None,
+                                      time_relative=True):
         """Return string with time stepping statistics
 
         Optional boolean keyword track_speeds decides whether to report
@@ -1058,7 +1059,7 @@ class Generic_Domain:
 
         msg = ''
 
-        model_time = self.get_time()
+        model_time = self.get_time(relative=time_relative)
  
         if self.recorded_min_timestep == self.recorded_max_timestep:
             msg += 'Time = %.4f, delta t = %.8f, steps=%d' \
@@ -1167,10 +1168,8 @@ class Generic_Domain:
 
         return msg
 
-    def print_timestepping_statistics(self, track_speeds=False,
-                                      triangle_id=None):
-        print self.timestepping_statistics(track_speeds,
-                                      triangle_id)
+    def print_timestepping_statistics(self, *args, **kwargs):
+        print self.timestepping_statistics(self, *args, **kwargs)
 
 
         
