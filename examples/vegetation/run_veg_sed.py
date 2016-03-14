@@ -52,11 +52,11 @@ dx = dy = 0.25 #.1           # Resolution: Length of subdivisions on both axes
 points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
 
-evolved_quantities = ['stage', 'xmomentum', 'ymomentum', 'elevation']
+evolved_quantities = ['stage', 'xmomentum', 'ymomentum', 'elevation','concentration']
                                                
 domain = Domain(points, vertices, boundary, evolved_quantities=evolved_quantities)
 domain.set_flow_algorithm('DE0')
-domain.set_name('veg') # Output name
+domain.set_name('veg_sed') # Output name
 # domain.set_store_vertices_uniquely(True)
 
 # print domain.statistics()
@@ -64,7 +64,8 @@ domain.set_name('veg') # Output name
 domain.set_quantities_to_be_stored({'elevation': 2,
                                     'stage': 2, 
                                     'xmomentum': 2,
-                                    'ymomentum': 2})
+                                    'ymomentum': 2,
+                                    'concentration': 2})
 
 
 domain.set_quantity('elevation', topography)           # elevation is a function
@@ -93,12 +94,20 @@ from anuga.operators.vegetation_operator import Vegetation_operator
 op1 = Vegetation_operator(domain)
 # op1.set_inflow_concentration(0.02)
 
-alpha = 0.4
 Quantity(domain, name='veg_diameter', register=True)
 domain.set_quantity('veg_diameter', 0.00064)
 
 Quantity(domain, name='veg_spacing', register=True)
 domain.set_quantity('veg_spacing', 0.15)
+
+
+from anuga.operators.sed_transport_operator import Sed_transport_operator
+
+# create operator
+op1 = Sed_transport_operator(domain)
+
+# Quantity(domain, name='concentration', register=True)
+domain.set_quantity('concentration', 0.01)
 
 #------------------------------------------------------------------------------
 # Evolve system through time

@@ -48,7 +48,6 @@ class Sed_transport_operator(Operator, object):
         try:
             self.conc = self.domain.quantities['concentration'].centroid_values
         except:
-            print "The quantity 'concentration' must be created before running the model"
             self.conc = None
             
         self.depth = self.domain.quantities['height'].centroid_values
@@ -177,17 +176,18 @@ class Sed_transport_operator(Operator, object):
         otherwise apply for the specific indices
         """
         
+        if self.conc is None:
+             self.conc = self.domain.quantities['concentration'].centroid_values
+        
         if not self.inflow_concentration:
             self.inflow_concentration = self.conc.max()
         
         if not self.bdry_indices:
             self.initialize_inflow_boundary()
 
-        self.ind = self.depth > 0.05 # 5 cm
+        self.ind = (self.depth > 0.05) * (self.xmom_c > 0) # 5 cm (and moving)
         self.update_quantities()    
         
-        if self.conc is None:
-             self.conc = self.domain.quantities['concentration'].centroid_values
 
         
 
@@ -200,14 +200,14 @@ class Sed_transport_operator(Operator, object):
         self.dt = self.get_timestep()
         
         
-        
-        if len(self.ind[self.ind]) > 0:
+        if sum(self.ind) > 0:
             
             self.momentum = num.sqrt(self.xmom_c[self.ind]**2 + self.ymom_c[self.ind]**2)
             self.velocity = self.momentum / (self.depth[self.ind] + epsilon)
             
             self.u_star = (self.velocity * self.kappa /
                     num.log(self.depth[self.ind] / self.z_o))
+
 
             edot = self.erosion()
             ddot = self.deposition()
@@ -305,7 +305,6 @@ class Sed_transport_operator(Operator, object):
         
     def erosion(self):
     
-        print self.u_star.max()
 
         shear_stress_star = self.u_star**2 / (g * self.R * self.D50)
 

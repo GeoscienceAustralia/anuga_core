@@ -1,7 +1,6 @@
 """
 Erosion operators
 
-
 """
 
 
@@ -33,6 +32,9 @@ class Vegetation_operator(Operator, object):
                 
         Operator.__init__(self, domain, description, label, logging, verbose)
         
+        self.Cd = None
+        self.veg = None
+        
         try:
             # the value in quantity 'veg_diameter' should be the stem diameter in meters
             self.veg_diameter = self.domain.quantities['veg_diameter'].centroid_values
@@ -44,12 +46,6 @@ class Vegetation_operator(Operator, object):
             self.veg_spacing = self.domain.quantities['veg_spacing'].centroid_values
         except:
             self.veg_spacing = None
-            
-        try:
-            self.Cd = self.domain.quantities['drag_coefficient'].centroid_values
-        except:
-            self.Cd = 1.2 # drag coefficient of a cylinder
-            print 'Drag coefficient set to default value Cd = 1.2'
             
             
         try:
@@ -82,54 +78,85 @@ class Vegetation_operator(Operator, object):
         if self.veg_spacing is None:
             self.veg_spacing = self.domain.quantities['veg_spacing'].centroid_values
             
-        self.veg = self.veg_diameter / self.veg_spacing**2
-        self.veg[self.depth == 0] = 0
+        if self.veg is None:
         
-        xvel = self.xmom / (self.depth + epsilon)
+            self.veg = self.veg_diameter / self.veg_spacing**2
+            self.ad = self.veg * self.veg_diameter
+            
         
-        Fd_x = 0.5 * self.Cd * self.veg * xvel**2
-        
-        xvel_v = xvel - Fd_x * self.dt
-        
-        self.domain.quantities['xmomentum'].\
-                set_values(xvel_v * self.depth, location = 'centroids')
-           
-           
-                
-        yvel = self.ymom / (self.depth + epsilon)        
-        
-        Fd_y = 0.5 * self.Cd * self.veg * yvel**2        
-        
-        yvel_v = yvel - Fd_y * self.dt        
-        
-        self.domain.quantities['ymomentum'].\
-                set_values(yvel_v * self.depth, location = 'centroids')
-                
+            
+        if self.Cd is None:
+            self.calculate_drag_coefficient()
             
         self.calculate_diffusivity()
+            
+    
+        xvel = self.xmom / (self.depth + epsilon)
+        yvel = self.ymom / (self.depth + epsilon)  
+        
+        Fd_x = 0.5 * self.Cd * self.veg * xvel**2
+        Fd_y = 0.5 * self.Cd * self.veg * yvel**2 
+        
+        xvel_v = xvel - Fd_x * self.dt
+        yvel_v = yvel - Fd_y * self.dt 
+        
+        self.domain.quantities['xmomentum'].\
+            set_values(xvel_v * self.depth, location = 'centroids')
+            
+        self.domain.quantities['ymomentum'].\
+            set_values(yvel_v * self.depth, location = 'centroids')
+                
+            
+        
+        
+        
+    
+    def calculate_drag_coefficient(self):
+        '''
+        Calculate the drag coefficient Cd as a function of ad using
+        the curve fitted to Figure 6 in Nepf (1999)
+        '''
+        
+        self.Cd = (56.11 * self.ad**2
+                   - 15.28 * self.ad
+                   + 1.3
+                   - 0.0005465 / self.ad)
+        self.Cd[self.ad < 0.006] = 1.2
+        
+        
         
         
         
     def calculate_diffusivity(self):
-    
-        Cb = 0.001
-        Cd = 1.2
-    
+        
         self.momentum = num.sqrt(self.xmom**2 + self.ymom**2)
         self.velocity = self.momentum / (self.depth + epsilon)
-        
-        ad = self.veg * self.veg_diameter
     
         # mixing length
-        mix_length = num.minimum(((self.veg_diameter - self.depth) / 0.01) * ad +
-                        self.depth, self.depth)
-        mix_length[ad >= 0.01] = self.veg_diameter[ad >= 0.01]
+        mix_length = num.zeros_like(self.veg_diameter)
+        
+        # for all cells, the transition from mix_length = depth to a linear
+        # form happens at veg_spacing = depth, which is ad = diameter**2 / depth**2
+        
+        ad_deltaS = self.veg_diameter**2 / (self.depth + epsilon)**2
+        
+        mix_length_slope = (self.veg_diameter - self.depth) / (0.01 - ad_deltaS)
+        
+        mix_length = (mix_length_slope * self.ad +
+                    (self.depth - mix_length_slope * ad_deltaS))
+        
+        mix_length[self.veg_spacing > self.depth] = \
+                   self.depth[self.veg_spacing > self.depth]
+                   
+        mix_length[self.ad > 0.01] = self.veg_diameter[self.ad > 0.01]
                         
         # turbulent kinetic energy
-        k = ((1 - ad) * Cb + (Cd * ad)**0.66) * self.velocity**2
+        Cb = 0.001
+        k = ((1 - self.ad) * Cb + (self.Cd * self.ad)**0.66) * self.velocity**2
         
         # total diffusivity
-        diffusivity = num.sqrt(k) * mix_length + ad * self.velocity * self.veg_diameter
+        diffusivity = (num.sqrt(k)**0.5 * mix_length +
+                    self.ad * self.velocity * self.veg_diameter)
         
         self.domain.quantities['diffusivity'].\
                 set_values(diffusivity, location = 'centroids')
