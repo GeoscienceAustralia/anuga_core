@@ -56,6 +56,7 @@ class Sed_transport_operator(Operator, object):
         self.xmom_e = self.domain.quantities['xmomentum'].edge_values
         self.ymom_e = self.domain.quantities['ymomentum'].edge_values
         
+        quant = self.domain.quantities['elevation']
         
         self.porosity = st.porosity
         self.Ke_star = st.Ke_star
@@ -105,32 +106,6 @@ class Sed_transport_operator(Operator, object):
         
         self.prepare_d_star()
         
-        
-        
-        
-    def prepare_d_star(self):
-        """
-        Calculates part of the values needed to obtain d* (for deposition)
-        following the formulation of Davy and Lague (2009). The equations are
-        not very sensitive to flow depth so we save time by calculating things once.
-        """
-        
-        self.d_star_counter = 0
-        
-        H = 1. # generic depth - not sensitive
-    
-        a = 0.05 * H
-        self.z = num.arange(a, H+a, a*2)
-        
-        self.diff_z = num.diff(self.z)
-
-        self.d_dz_u = map(log, self.z / self.z_o)
-        self.integral_u = (num.sum((self.d_dz_u[1:] + num.diff(self.d_dz_u)) *
-                        self.diff_z))
-
-        self.d_dz_rouse_partial = ((self.z - a) / (H - a)) * (a / self.z)
-        
-        self.d_star = num.zeros_like(self.depth)
     
     
         
@@ -202,11 +177,22 @@ class Sed_transport_operator(Operator, object):
         
         if sum(self.ind) > 0:
             
-            self.momentum = num.sqrt(self.xmom_c[self.ind]**2 + self.ymom_c[self.ind]**2)
-            self.velocity = self.momentum / (self.depth[self.ind] + epsilon)
+#             self.velocity = (num.sqrt(self.xmom_c**2 + self.ymom_c**2)
+#                              / (self.depth + epsilon))
+                             
             
-            self.u_star = (self.velocity * self.kappa /
-                    num.log(self.depth[self.ind] / self.z_o))
+            quant = self.domain.quantities['elevation']
+            quant.compute_gradients()
+
+            S = num.maximum(num.abs(quant.x_gradient), num.abs(quant.y_gradient))
+            
+            self.u_star = num.zeros_like(self.depth)
+            
+            self.u_star[self.ind] = num.sqrt(g * S[self.ind] * self.depth[self.ind])
+            
+            
+#             self.u_star = (self.velocity * self.kappa /
+#                     (num.log(self.depth / self.z_o) - 1))
 
 
             edot = self.erosion()
@@ -306,7 +292,7 @@ class Sed_transport_operator(Operator, object):
     def erosion(self):
     
 
-        shear_stress_star = self.u_star**2 / (g * self.R * self.D50)
+        shear_stress_star = self.u_star[self.ind]**2 / (g * self.R * self.D50)
 
         edot = self.Ke * (shear_stress_star - self.criticalshear_star)
         edot[edot<0.0] = 0.0
@@ -322,22 +308,55 @@ class Sed_transport_operator(Operator, object):
         ddot[ddot<0.0] = 0.0
     
         return ddot        
+        
+        
 
+    def prepare_d_star(self):
+        """
+        Calculates part of the values needed to obtain d* (for deposition)
+        following the formulation of Davy and Lague (2009). The equations are
+        not very sensitive to flow depth so we save time by calculating things once.
+        """
+        
+        self.d_star_counter = 0
+        
+        H = 1. # generic depth - not sensitive
+    
+        a = 0.05 * H
+        self.z = num.arange(a, H+a, a)
+        
+        self.diff_z = num.diff(self.z)
 
+        self.d_dz_u = map(log, self.z / self.z_o)
+        self.integral_u = (num.sum((self.d_dz_u[1:] + num.diff(self.d_dz_u)) *
+                            self.diff_z)) # numerator of eq 13 in equations.pdf
+
+        self.d_dz_rouse_partial = ((self.z - a) / (H - a)) * (a / self.z)
+        
+        self.d_star = num.zeros_like(self.depth)
+        
+        
 
     def calculate_d_star(self):
         
-        if self.d_star_counter % 100 == 0:
+        if self.d_star_counter % 10 == 0:
         
-            rouse_number = self.settlingvelocity / (self.kappa * self.u_star)
+            wet = num.compress(self.ind, num.arange(len(self.depth)))
+            
+            for i in wet:
+            
+                rouse_number = self.settlingvelocity / (self.kappa * self.u_star[i])
         
-            for i in range(len(rouse_number)):
-        
-                d_dz_rouse = self.d_dz_rouse_partial ** rouse_number[i] * self.d_dz_u
+                d_dz_rouse = (self.d_dz_rouse_partial ** rouse_number) * self.d_dz_u
+                # interior of integral in denominator
+            
                 integral_rouse = (num.sum((d_dz_rouse[1:] + num.diff(d_dz_rouse)) *
-                            self.diff_z))
+                                self.diff_z))
         
-                self.d_star[self.ind[i]] = self.integral_u / integral_rouse
+                self.d_star[i] = self.integral_u / integral_rouse
+
+            
+
                 
         self.d_star_counter += 1
         
