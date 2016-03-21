@@ -66,7 +66,12 @@ class Sed_transport_operator(Operator, object):
         self.c2 = st.c2
         self.mu = st.mu
         self.kappa = st.kappa
+        self.rho_w = st.rho_w
+        self.rho_s = st.rho_s
+        
+        
         self.grain_size = st.D50
+        
         
         self.bdry_indices = None
         self.inflow_concentration = None
@@ -95,7 +100,12 @@ class Sed_transport_operator(Operator, object):
         
         self.D50 = new_D50
         
-        self.Ke = self.Ke_star * self.D50 * sqrt(self.R * g * self.D50)
+#         self.Ke = self.Ke_star * self.D50 * sqrt(self.R * g * self.D50)
+
+        self.criticalshear = (self.criticalshear_star * (self.rho_s - self.rho_w) *
+                                g * self.D50)
+
+        self.Ke = 0.2e-6 / self.criticalshear**0.5
         
         self.settlingvelocity = ((self.R * g * self.D50**2) /
                             ((self.c1 * self.mu) +
@@ -160,7 +170,7 @@ class Sed_transport_operator(Operator, object):
         if not self.bdry_indices:
             self.initialize_inflow_boundary()
 
-        self.ind = (self.depth > 0.05) * (self.xmom_c > 0) # 5 cm (and moving)
+        self.ind = (self.depth > 0.05) * (self.xmom_c != 0) # 5 cm (and moving)
         self.update_quantities()    
         
 
@@ -187,18 +197,28 @@ class Sed_transport_operator(Operator, object):
             S = num.maximum(num.abs(quant.x_gradient), num.abs(quant.y_gradient))
             
             self.u_star = num.zeros_like(self.depth)
+#             self.u_star_2 = num.zeros_like(self.depth)
             
             self.u_star[self.ind] = num.sqrt(g * S[self.ind] * self.depth[self.ind])
             
-            
-#             self.u_star = (self.velocity * self.kappa /
-#                     (num.log(self.depth / self.z_o) - 1))
+#             print self.u_star.max()
+#             
+#             self.velocity = (num.maximum(num.abs(self.xmom_c), num.abs(self.ymom_c)) /
+#                             (self.depth + epsilon))
+#             
+#             self.u_star_2[self.ind] = (self.velocity[self.ind] * self.kappa /
+#                     (num.log(self.depth[self.ind] / self.z_o) - 1))
+#                     
+#             print self.u_star_2.max()
+#             print '----'
 
 
             edot = self.erosion()
             ddot = self.deposition()
 
             dzdt = (ddot - edot) / (1 - self.porosity)
+            
+#             print edot.max(), ddot.max()
         
             dChdt = (edot - ddot)
             
@@ -291,10 +311,15 @@ class Sed_transport_operator(Operator, object):
         
     def erosion(self):
     
+    
+        shear_stress = self.rho_w * self.u_star[self.ind]**2
+        
+#         shear_stress_star = self.u_star[self.ind]**2 / (g * self.R * self.D50)
 
-        shear_stress_star = self.u_star[self.ind]**2 / (g * self.R * self.D50)
-
-        edot = self.Ke * (shear_stress_star - self.criticalshear_star)
+        # edot = self.Ke * (shear_stress_star - self.criticalshear_star)
+        
+        edot = self.Ke * (shear_stress - self.criticalshear)
+        
         edot[edot<0.0] = 0.0
         
         return edot        
@@ -355,9 +380,7 @@ class Sed_transport_operator(Operator, object):
         
                 self.d_star[i] = self.integral_u / integral_rouse
 
-            
-
-                
+        
         self.d_star_counter += 1
         
     
