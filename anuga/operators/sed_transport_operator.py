@@ -52,6 +52,8 @@ class Sed_transport_operator(Operator, object):
             
         self.depth = self.domain.quantities['height'].centroid_values
         
+        self.x = self.domain.quantities['x'].centroid_values
+        
         self.depth_e = self.domain.quantities['height'].edge_values  
         self.xmom_e = self.domain.quantities['xmomentum'].edge_values
         self.ymom_e = self.domain.quantities['ymomentum'].edge_values
@@ -113,6 +115,7 @@ class Sed_transport_operator(Operator, object):
                             
                             
         self.z_o = self.D50 / 30
+        
         
         self.prepare_d_star()
         
