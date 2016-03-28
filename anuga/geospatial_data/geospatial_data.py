@@ -132,9 +132,9 @@ class Geospatial_data:
         self.file_name = file_name
 
         if max_read_lines is None:
-            self.max_read_lines = MAX_READ_LINES
+            self.max_read_lines = int(MAX_READ_LINES)
         else:
-            self.max_read_lines = max_read_lines
+            self.max_read_lines = int(max_read_lines)
 
         if file_name is None:
             if (latitudes is not None or longitudes is not None
@@ -683,7 +683,7 @@ class Geospatial_data:
         # ... and shouldn't it be called block_size?
         #
         if self.max_read_lines is None:
-            self.max_read_lines = MAX_READ_LINES
+            self.max_read_lines = int(MAX_READ_LINES)
 
         if self.file_name[-4:] == ".pts":
             # See if the file is there.  Throw a QUIET IO error if it isn't
@@ -735,6 +735,7 @@ class Geospatial_data:
                 del self.blocking_keys
                 del self.fid
                 raise StopIteration
+            # Make sure we have an integer index
             fin_row = self.start_row + self.max_read_lines
             if fin_row > self.last_row:
                 fin_row = self.last_row
