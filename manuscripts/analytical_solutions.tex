@@ -65,6 +65,7 @@ The rate of change of bed elevation $\eta$ is given by
 
 \noindent where $\eta_o(x)$ is the initial profile of the bed.
 
+
 \begin{table}[]
 \centering
 \caption{Model constants}
@@ -75,11 +76,12 @@ g & 9.81 \\
 $\kappa$ & 0.408 \\
 $\rho_w$ & 1000 \\
 ${\tau_c}^*$ & 0.06 \\
-${\tau_c}$ & 0.126126
+${\tau_c}$ & 0.126126 \\
+$v_s$ & 0.013809968
 \end{tabular}
 \end{table}
 
-Table \ref{table:model_params} summarizes the constants used in these simulations. Values of $d^*$ were exported from the model runs and used for the analytical solution.
+Table \ref{table:model_params} summarizes the constants used in these simulations.
 
 
 
@@ -97,7 +99,7 @@ Initial topography   & $z = 10 - x/50$ &                       \\ \hline
 Initial stage        & topography      &                       \\ \hline
 Friction             & 0.0             &                       \\ \hline
 Inflow boundary      & {[}11,0,0{]}    & Dirichlet boundary    \\ \hline
-Side boundaries      &                 & Reflective boundary   \\ \hline
+Side boundaries      &                 & Transmissive boundary   \\ \hline
 Outflow boundary     &                 & Transmissive boundary \\ \hline
 Inflow concentration & 0.005           &                       \\ \hline
 Yieldstep            & 1               &                       \\ \hline
@@ -107,6 +109,8 @@ Finaltime            & 60              &                       \\ \hline
 
 
 We ran a simulation "plane1" with the parameters summarized in table \ref{table:plane1_params}. By the end of the simulation, the volume of sediment in the water column had reached steady state (defined as maximum and mean differences in sediment volume between two consecutive timesteps of less than 0.0001).
+
+It is necessary to use transmissive boundaries for all edges (except the inflow) to avoid reflecting flow and sediment on the edges. Reflective boundaries decrease the slope of the bed by increasing momentum near the inlet.
 
 
 

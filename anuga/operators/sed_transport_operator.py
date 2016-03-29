@@ -216,19 +216,19 @@ class Sed_transport_operator(Operator, object):
 #             print '----'
 
 
-            edot = self.erosion()
-            ddot = self.deposition()
+            self.edot = self.erosion()
+            self.ddot = self.deposition()
 
-            dzdt = (ddot - edot) / (1 - self.porosity)
+            self.dzdt = (self.ddot - self.edot) / (1 - self.porosity)
             
 #             print edot.max(), ddot.max()
         
-            dChdt = (edot - ddot)
+            self.dChdt = (self.edot - self.ddot)
             
-            self.update_concentration(dChdt)
+            self.update_concentration(self.dChdt)
             self.sediment_flux()
             
-            self.update_bed(dzdt)
+            self.update_bed(self.dzdt)
 
 
 
@@ -281,7 +281,7 @@ class Sed_transport_operator(Operator, object):
                 n = self.neighbours[k,i]
                 
                 if n < 0:
-                    sed_flux[k,i] = edge_flux[k,i] * self.inflow_concentration
+                    sed_flux[k,i] =  edge_flux[k,i] * self.inflow_concentration
         
         sed_vol_change = num.sum(-sed_flux, axis=1)
         

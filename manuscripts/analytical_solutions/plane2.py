@@ -51,8 +51,8 @@ def stage(x,y):
 #------------------------------------------------------------------------------
 print ' Set up Domain first...'
 length = 15.
-width = 10.
-dx = dy = 0.5 #.1           # Resolution: Length of subdivisions on both axes
+width = 2.
+dx = dy = 0.2 #.1           # Resolution: Length of subdivisions on both axes
 
 points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
@@ -61,7 +61,7 @@ evolved_quantities = ['stage', 'xmomentum', 'ymomentum', 'elevation', 'concentra
                                                
 domain = Domain(points, vertices, boundary, evolved_quantities=evolved_quantities)
 domain.set_flow_algorithm('DE0')
-domain.set_name('plane1_wide') # Output name
+domain.set_name('plane2') # Output name
 # domain.set_store_vertices_uniquely(True)
 
 print domain.statistics()
@@ -84,7 +84,7 @@ Br = Reflective_boundary(domain)              # Solid reflective wall
 # Bo = Dirichlet_boundary([10., 0., 0.])           # Outflow
 Bo = Transmissive_boundary(domain)
 
-domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
+domain.set_boundary({'left': Bi, 'right': Bo, 'top': Bo, 'bottom': Bo})
 
 #------------------------------------------------------------------------------
 # Setup erosion operator in the middle of dam
