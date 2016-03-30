@@ -160,13 +160,14 @@ water model for two-dimensional dam-break type. Journal of Computational Physics
   uh_left=q_left_rotated[1];
   vh_left=q_left_rotated[2];
   if(hle>0.0){
-    u_left = uh_left/hle ; //max(h_left, 1.0e-06);
-    uh_left=h_left*u_left;
-    vh_left=h_left/(hle)*vh_left;
+    tmp = 1.0 / hle;
+    u_left = uh_left * tmp ; 
+    uh_left = h_left * u_left;
+    vh_left = h_left* tmp * vh_left;
   }else{
-    u_left=0.;
-    uh_left=0.;
-    vh_left=0.;
+    u_left = 0.;
+    uh_left = 0.;
+    vh_left = 0.;
   }
 
   //u_left = _compute_speed(&uh_left, &hle,
@@ -176,13 +177,14 @@ water model for two-dimensional dam-break type. Journal of Computational Physics
   uh_right = q_right_rotated[1];
   vh_right = q_right_rotated[2];
   if(hre>0.0){
-    u_right = uh_right/hre;//max(h_right, 1.0e-06);
-    uh_right=h_right*u_right;
-    vh_right=h_right/hre*vh_right;
+    tmp = 1.0 / hre;
+    u_right = uh_right * tmp; //max(h_right, 1.0e-06);
+    uh_right = h_right * u_right;
+    vh_right = h_right * tmp * vh_right;
   }else{
-    u_right=0.;
-    uh_right=0.;
-    vh_right=0.;
+    u_right = 0.;
+    uh_right = 0.;
+    vh_right = 0.;
   }
   //u_right = _compute_speed(&uh_right, &hre,
   //              epsilon, h0, limiting_threshold);
@@ -342,13 +344,14 @@ inline int _flux_function_central(double *q_left, double *q_right,
   uh_left=q_left_rotated[1];
   vh_left=q_left_rotated[2];
   if(hle>0.0){
-    u_left = uh_left/hle ; //max(h_left, 1.0e-06);
-    uh_left=h_left*u_left;
-    vh_left=h_left/(hle)*vh_left;
+    tmp = 1.0/hle;
+    u_left = uh_left * tmp ; //max(h_left, 1.0e-06);
+    uh_left = h_left * u_left;
+    vh_left = h_left * tmp * vh_left;
   }else{
-    u_left=0.;
-    uh_left=0.;
-    vh_left=0.;
+    u_left = 0.;
+    uh_left = 0.;
+    vh_left = 0.;
   }
   
   //u_left = _compute_speed(&uh_left, &hle, 
@@ -358,9 +361,10 @@ inline int _flux_function_central(double *q_left, double *q_right,
   uh_right = q_right_rotated[1];
   vh_right = q_right_rotated[2];
   if(hre>0.0){
-    u_right = uh_right/hre;//max(h_right, 1.0e-06);
+    tmp = 1.0 / hre;
+    u_right = uh_right * tmp;//max(h_right, 1.0e-06);
     uh_right=h_right*u_right;
-    vh_right=h_right/hre*vh_right;
+    vh_right=h_right * tmp * vh_right;
   }else{
     u_right=0.;
     uh_right=0.;
@@ -955,9 +959,10 @@ inline double _compute_fluxes_central(struct domain *D, double timestep){
             if(substep_count==0){
 
                 // Compute the 'edge-timesteps' (useful for setting flux_update_frequency)
-                D->edge_timestep[ki] = D->radii[k] / max(max_speed_local, D->epsilon);
+                tmp = 1.0 / max(max_speed_local, D->epsilon)
+                D->edge_timestep[ki] = D->radii[k] * tmp ;
                 if (n >= 0) {
-                    D->edge_timestep[nm] = D->radii[n] / max(max_speed_local, D->epsilon);
+                    D->edge_timestep[nm] = D->radii[n] * tmp;
                 }
 
                 // Update the timestep
