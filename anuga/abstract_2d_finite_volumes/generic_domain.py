@@ -335,6 +335,9 @@ class Generic_Domain:
         self.datadir = default_datadir
         self.simulation_name = 'domain'
         self.checkpoint = False
+        
+        # Early algorithms need elevation to remain continuous
+        self.set_using_discontinuous_elevation(False)
 
         if verbose: log.critical('Domain: Set work arrays')
 
@@ -638,6 +641,24 @@ class Generic_Domain:
 
         self.default_order = n
         self._order_ = self.default_order
+        
+        
+        
+    def set_using_discontinuous_elevation(self, flag=False):
+        """Set flag to show whether compute flux algorithm
+        is allowing discontinuous elevation.
+        
+        default is False
+        """
+
+        self.using_discontinuous_elevation = flag
+
+    def get_using_discontinuous_elevation(self):
+        """
+        Return boolean indicating whether algorithm is using dicontinuous elevation
+        """
+
+        return self.using_discontinuous_elevation
 
     def set_quantity_vertices_dict(self, quantity_dict):
         """Set values for named quantities.

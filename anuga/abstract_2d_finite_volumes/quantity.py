@@ -1966,7 +1966,13 @@ class Quantity:
 
             if 1:
                 # Fast C version
-                average_vertex_values(ensure_numeric(self.domain.vertex_value_indices),
+                if self.domain.get_using_discontinuous_elevation():
+                    average_centroid_values(ensure_numeric(self.domain.vertex_value_indices),
+                                      ensure_numeric(self.domain.number_of_triangles_per_node),
+                                      ensure_numeric(self.centroid_values),
+                                      A)
+                else:
+                    average_vertex_values(ensure_numeric(self.domain.vertex_value_indices),
                                       ensure_numeric(self.domain.number_of_triangles_per_node),
                                       ensure_numeric(self.vertex_values),
                                       A)
@@ -2157,6 +2163,7 @@ class Conserved_quantity(Quantity):
 ######
 from quantity_ext import \
          average_vertex_values,\
+         average_centroid_values,\
          backup_centroid_values,\
          saxpy_centroid_values,\
          compute_gradients,\
