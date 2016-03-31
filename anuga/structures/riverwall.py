@@ -32,8 +32,8 @@ class RiverWall:
     # formula (including a submergence correction factor from Villemonte,
     # 1947), 
     #      Q1 = 2/3*headwater_head*sqrt(g*2/3*headwater_head)*Qfactor
-    #      Q2 = 2/3*tailwater_head*sqrt(g*2/3*headwater_head)*Qfactor
-    # ID = Q1*(1-Q2/Q1)**0.385
+    #      Q2 = 2/3*tailwater_head*sqrt(g*2/3*tailwater_head)*Qfactor
+    #      ID = Q1*(1-Q2/Q1)**0.385
     #
     # Denote SW as the 'shallow-water' weir flux, computed from the approximate
     # reimann solver, where the mid-edge-elevation is the weir crest elevation.
