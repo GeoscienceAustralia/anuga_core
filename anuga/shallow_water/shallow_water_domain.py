@@ -1183,21 +1183,7 @@ class Domain(Generic_Domain):
 
 
 
-    def set_using_discontinuous_elevation(self, flag=False):
-        """Set flag to show whether compute flux algorithm
-        is allowing discontinuous elevation.
-        
-        default is False
-        """
 
-        self.using_discontinuous_elevation = flag
-
-    def get_using_discontinuous_elevation(self):
-        """
-        Return boolean indicating whether algorithm is using dicontinuous elevation
-        """
-
-        return self.using_discontinuous_elevation
 
     def set_flow_algorithm(self, flag='DE0'):
         """Set combination of slope limiting and time stepping
