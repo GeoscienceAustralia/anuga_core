@@ -214,7 +214,45 @@ class Test_tag_region(unittest.TestCase):
                % (str(frict_points[1]), str(expected)))
         assert num.allclose(frict_points[1], expected), msg
   
-    def test_unique_vertices_average_loc_unique_vert(self):
+    def test_unique_vertices_average_loc_unique_vert_1_5(self):
+        """
+        get values based on triangle lists.
+        """
+
+        #Create basic mesh
+        points, vertices, boundary = rectangular(1, 3)
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.set_flow_algorithm('1_5')
+        domain.build_tagged_elements_dictionary({'bottom':[0,1],
+                                                 'top':[4,5],
+                                                 'not_bottom':[2,3,4,5]})
+
+        #Set friction
+        domain.set_quantity('friction', add_x_y)
+        av_bottom = 2.0/3.0
+        add = 60.0
+        calc_frict = av_bottom + add
+        domain.set_tag_region(Add_value_to_region('bottom', 'friction', add,
+                          initial_quantity='friction',
+                           location='unique vertices',
+                           average=True
+                          ))
+
+        #print domain.quantities['friction'].get_values()
+        frict_points = domain.quantities['friction'].get_values()
+        
+        
+        assert num.allclose(frict_points[0],\
+                            [ calc_frict, calc_frict, calc_frict])
+        assert num.allclose(frict_points[1],\
+                            [ calc_frict, calc_frict, calc_frict])
+        assert num.allclose(frict_points[2],\
+                            [ calc_frict, 1.0 + 2.0/3.0, calc_frict])
+        assert num.allclose(frict_points[3],\
+                            [ 2.0/3.0,calc_frict, 1.0 + 2.0/3.0])
+
+    def test_unique_vertices_average_loc_unique_vert_de0(self):
         """
         get values based on triangle lists.
         """
@@ -240,15 +278,17 @@ class Test_tag_region(unittest.TestCase):
 
         #print domain.quantities['friction'].get_values()
         frict_points = domain.quantities['friction'].get_values()
-        assert num.allclose(frict_points[0],\
-                            [ calc_frict, calc_frict, calc_frict])
-        assert num.allclose(frict_points[1],\
-                            [ calc_frict, calc_frict, calc_frict])
-        assert num.allclose(frict_points[2],\
-                            [ calc_frict, 1.0 + 2.0/3.0, calc_frict])
-        assert num.allclose(frict_points[3],\
-                            [ 2.0/3.0,calc_frict, 1.0 + 2.0/3.0])
-                                                
+        
+        
+        expected0 = [ 60.77777778,  60.77777778,  60.77777778]
+        expected1 = [ 60.77777778,  60.77777778,  60.77777778]
+        expected2 = [ 60.77777778,   1.66666667,  60.77777778]
+        expected3 = [  0.66666667,  60.77777778,   1.66666667]
+        
+        assert num.allclose(frict_points[0],expected0)
+        assert num.allclose(frict_points[1],expected1)
+        assert num.allclose(frict_points[2],expected2)
+        assert num.allclose(frict_points[3],expected3)                                              
                          
 #-------------------------------------------------------------
 

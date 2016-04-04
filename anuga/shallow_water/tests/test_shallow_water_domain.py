@@ -8397,7 +8397,7 @@ friction  \n \
 
 
     #Test smoothing
-    def test_smoothing(self):
+    def test_smoothing_1_5(self):
 
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
         from anuga.utilities.numerical_tools import mean
@@ -8407,7 +8407,7 @@ friction  \n \
 
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
-        domain.default_order=2
+        domain.set_flow_algorithm('1_5')
         domain.reduction = mean
 
 
@@ -8482,6 +8482,92 @@ friction  \n \
         assert num.allclose(X[7], 1.0)
         assert num.allclose(Y[7], 0.5)
 
+
+
+    def test_smoothing_de0(self):
+
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
+        from anuga.utilities.numerical_tools import mean
+
+        #Create basic mesh
+        points, vertices, boundary = rectangular(2, 2)
+
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.set_flow_algorithm('DE0')
+        domain.reduction = mean
+
+
+        #Set some field values
+        domain.set_quantity('elevation', lambda x,y: x)
+        domain.set_quantity('friction', 0.03)
+
+
+        ######################
+        # Boundary conditions
+        B = Transmissive_boundary(domain)
+        domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
+
+
+        ######################
+        #Initial condition - with jumps
+
+        bed = domain.quantities['elevation'].vertex_values
+        stage = num.zeros(bed.shape, num.float)
+
+        h = 0.03
+        for i in range(stage.shape[0]):
+            if i % 2 == 0:
+                stage[i,:] = bed[i,:] + h
+            else:
+                stage[i,:] = bed[i,:]
+
+        domain.set_quantity('stage', stage)
+
+        stage = domain.quantities['stage']
+
+        #Get smoothed stage
+        A, V = stage.get_vertex_values(xy=False, smooth=True)
+        Q = stage.centroid_values
+
+
+        assert A.shape[0] == 9
+        assert V.shape[0] == 8
+        assert V.shape[1] == 3
+
+        #First four points
+        assert num.allclose(A[0], (Q[0] + Q[1])/2)
+        assert num.allclose(A[1], (Q[1] + Q[3] + Q[2])/3)
+        assert num.allclose(A[2], Q[3])
+        assert num.allclose(A[3], (Q[0] + Q[5] + Q[4])/3)
+
+        #Center point
+        assert num.allclose(A[4], (Q[0] + Q[1] + Q[2] +\
+                                   Q[5] + Q[6] + Q[7])/6)
+
+
+        #Check V
+        assert num.allclose(V[0,:], [3,4,0])
+        assert num.allclose(V[1,:], [1,0,4])
+        assert num.allclose(V[2,:], [4,5,1])
+        assert num.allclose(V[3,:], [2,1,5])
+        assert num.allclose(V[4,:], [6,7,3])
+        assert num.allclose(V[5,:], [4,3,7])
+        assert num.allclose(V[6,:], [7,8,4])
+        assert num.allclose(V[7,:], [5,4,8])
+
+        #Get smoothed stage with XY
+        X, Y, A1, V1 = stage.get_vertex_values(xy=True, smooth=True)
+
+        assert num.allclose(A, A1)
+        assert num.allclose(V, V1)
+
+        #Check XY
+        assert num.allclose(X[4], 0.5)
+        assert num.allclose(Y[4], 0.5)
+
+        assert num.allclose(X[7], 1.0)
+        assert num.allclose(Y[7], 0.5)
 
 
     #Test calculating velocities and back to momenta
@@ -8594,8 +8680,8 @@ friction  \n \
 
         points = [a, b, c, d, e, f]
 
-        #bac, bce, ecf, dbe
-        elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
+        # bac, bce, ecf, dbe
+        elements = [ [1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4] ]
 
         # absolute going in ..
         mesh4 = Domain(points, elements, geo_reference=Geo_reference(56, 0, 0))
@@ -8607,15 +8693,15 @@ friction  \n \
                            [ 1.33333333, 1.33333333],
                            [ 2.66666667, 0.66666667],
                            [ 0.66666667, 2.66666667],
-                           [ 0.0,        1.0],
-                           [ 0.0,        3.0],
-                           [ 1.0,        0.0],
-                           [ 1.0,        1.0],
-                           [ 1.0,        2.0],
-                           [ 1.0,        3.0],
-                           [ 2.0,        1.0],
-                           [ 3.0,        0.0],
-                           [ 3.0,        1.0]]
+                           [ 0.0, 1.0],
+                           [ 0.0, 3.0],
+                           [ 1.0, 0.0],
+                           [ 1.0, 1.0],
+                           [ 1.0, 2.0],
+                           [ 1.0, 3.0],
+                           [ 2.0, 1.0],
+                           [ 3.0, 0.0],
+                           [ 3.0, 1.0]]
 
         data_geo_spatial = Geospatial_data(data_points_rel,
                                            geo_reference=Geo_reference(56,
@@ -8630,8 +8716,8 @@ friction  \n \
         file = open(ptsfile, "w")
         file.write(" x,y," + att + " \n")
         for data_point, attribute in map(None, data_points_absolute, attributes):
-            row = (str(data_point[0]) + ',' +
-                   str(data_point[1]) + ',' +
+            row = (str(data_point[0]) + ',' + 
+                   str(data_point[1]) + ',' + 
                    str(attribute))
             file.write(row + "\n")
         file.close()
@@ -8641,7 +8727,7 @@ friction  \n \
 
         # Check that values can be set from pts file
 	# using set_values directly
-        quantity.set_values(filename = ptsfile, alpha = 0)
+        quantity.set_values(filename=ptsfile, alpha=0)
         assert num.allclose(quantity.vertex_values.flat, answer_vertex_values)
 
 	# using set_quantity with quantity name stage
@@ -8663,25 +8749,25 @@ friction  \n \
         nrows = 12  # Ny
         xllcorner = x0
         yllcorner = y0
-        cellsize  = 1.0
-        NODATA_value =  -9999
+        cellsize = 1.0
+        NODATA_value = -9999
 
-	#Create .asc file
+	# Create .asc file
         txt_file = 'test_asc.asc'
-        datafile = open(txt_file,"w")
-        datafile.write('ncols '+str(ncols)+"\n")
-        datafile.write('nrows '+str(nrows)+"\n")
-        datafile.write('xllcorner '+str(xllcorner)+"\n")
-        datafile.write('yllcorner '+str(yllcorner)+"\n")
-        datafile.write('cellsize '+str(cellsize)+"\n")
-        datafile.write('NODATA_value '+str(NODATA_value)+"\n")
+        datafile = open(txt_file, "w")
+        datafile.write('ncols ' + str(ncols) + "\n")
+        datafile.write('nrows ' + str(nrows) + "\n")
+        datafile.write('xllcorner ' + str(xllcorner) + "\n")
+        datafile.write('yllcorner ' + str(yllcorner) + "\n")
+        datafile.write('cellsize ' + str(cellsize) + "\n")
+        datafile.write('NODATA_value ' + str(NODATA_value) + "\n")
         
-        x = num.linspace(xllcorner, xllcorner+(ncols-1)*cellsize, ncols)
-        y = num.linspace(yllcorner, yllcorner+(nrows-1)*cellsize, nrows)
+        x = num.linspace(xllcorner, xllcorner + (ncols - 1) * cellsize, ncols)
+        y = num.linspace(yllcorner, yllcorner + (nrows - 1) * cellsize, nrows)
         points = axes2points(x, y)
         datavalues = linear_function(points)
         
-        datavalues = datavalues.reshape(nrows,ncols)
+        datavalues = datavalues.reshape(nrows, ncols)
 
         for row in datavalues:
             datafile.write(" ".join(str(elem) for elem in row) + "\n")         
@@ -8689,30 +8775,30 @@ friction  \n \
 
 	# check set_values from asc file
 	quantity.set_values(0.0)
-	quantity.set_values(filename = txt_file,
+	quantity.set_values(filename=txt_file,
                             location='vertices',
                             indices=None,
                             verbose=False)
         assert num.allclose(quantity.vertex_values.flat, answer_vertex_values)       
 	
 	quantity.set_values(0.0)
-	quantity.set_values(filename = txt_file,
+	quantity.set_values(filename=txt_file,
                             location='centroids',
                             indices=None,
                             verbose=False)    
 
 	# exact answer for centroid locations
-	answer_centroid_values = [ 1.33333333,  2.66666667,  3.33333333,  3.33333333]
+	answer_centroid_values = [ 1.33333333, 2.66666667, 3.33333333, 3.33333333]
         assert num.allclose(quantity.centroid_values, answer_centroid_values)      
 
 	# check set_quantity from asc file
-	mesh4.set_quantity(name='stage', filename = txt_file,
+	mesh4.set_quantity(name='stage', filename=txt_file,
                             location='vertices', indices=None, verbose=False)
 	mesh4_stage = mesh4.get_quantity('stage')
         assert num.allclose(mesh4_stage.vertex_values.flat, answer_vertex_values)       
 	# reset mesh4 stage values
 	mesh4.set_quantity(name='stage', numeric=0.0)
- 	mesh4.set_quantity(name='stage', filename = txt_file,
+ 	mesh4.set_quantity(name='stage', filename=txt_file,
                             location='centroids', indices=None, verbose=False)
         assert num.allclose(mesh4_stage.centroid_values, answer_centroid_values)
 
@@ -8740,27 +8826,27 @@ friction  \n \
 
 	# check set_values from dem file
         quantity.set_values(0.0)
-        quantity.set_values(filename = txt_file_dem,
+        quantity.set_values(filename=txt_file_dem,
                             location='vertices',
                             indices=None,
                             verbose=False)
         assert num.allclose(quantity.vertex_values.flat, answer_vertex_values)       
 
 	quantity.set_values(0.0)
-        quantity.set_values(filename = txt_file_dem,
+        quantity.set_values(filename=txt_file_dem,
                             location='centroids',
                             indices=None,
                             verbose=False)
         assert num.allclose(quantity.centroid_values, answer_centroid_values)       
 
 	# check set_quantity from dem file
-	mesh4.set_quantity(name='stage', filename = txt_file_dem,
+	mesh4.set_quantity(name='stage', filename=txt_file_dem,
                             location='vertices', indices=None, verbose=False)
 	mesh4_stage = mesh4.get_quantity('stage')
         assert num.allclose(mesh4_stage.vertex_values.flat, answer_vertex_values)       
 	# reset mesh4 stage values
 	mesh4.set_quantity(name='stage', numeric=0.0)
-	mesh4.set_quantity(name='stage', filename = txt_file_dem,
+	mesh4.set_quantity(name='stage', filename=txt_file_dem,
                             location='centroids')
 	mesh4_stage = mesh4.get_quantity('stage')
         assert num.allclose(mesh4_stage.centroid_values, answer_centroid_values)   
