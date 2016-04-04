@@ -1835,9 +1835,14 @@ class Quantity:
                 # Average the values
                 # FIXME (Ole): Should we merge this with get_vertex_values
                 sum = 0
-                for triangle_id, vertex_id in triangles:
-                    sum += self.vertex_values[triangle_id, vertex_id]
+                if self.domain.get_using_discontinuous_elevation():
+                    for triangle_id, vertex_id in triangles:
+                        sum += self.centroid_values[triangle_id]
+                else:
+                    for triangle_id, vertex_id in triangles:
+                        sum += self.vertex_values[triangle_id, vertex_id]
                 vert_values.append(sum / len(triangles))
+                        
             return num.array(vert_values, num.float)
         else:
             if indices is None:
