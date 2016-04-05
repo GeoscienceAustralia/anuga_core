@@ -80,7 +80,7 @@ if myid == 0:
     # Set simulation parameters
     #-------------------------
     domain.set_name(project.output_filename)  # Name of output sww file 
-    domain.set_minimum_storable_height(0.01) # Don't store w < 0.01m
+    domain.set_minimum_storable_height(0.001) # Don't store w < 0.01m
     domain.set_store_vertices_smoothly(True)
     domain.set_flow_algorithm(alg)
 
