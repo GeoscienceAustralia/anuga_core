@@ -336,7 +336,7 @@ class Test_sww(unittest.TestCase):
 
 
 
-    def test_get_mesh_and_quantities_from_sww_file(self):
+    def test_get_mesh_and_quantities_from_1_5_sww_file(self):
         """test_get_mesh_and_quantities_from_sww_file(self):
         """     
         
@@ -360,6 +360,7 @@ class Test_sww(unittest.TestCase):
         domain.set_name('test_get_mesh_and_quantities_from_sww_file')
         swwfile = domain.get_name() + '.sww'
         domain.set_datadir('.')
+        domain.set_flow_algorithm('1_5')
 
         Br = Reflective_boundary(domain)    # Side walls
         Bd = Dirichlet_boundary([1, 0, 0])  # inflow
@@ -382,6 +383,7 @@ class Test_sww(unittest.TestCase):
         mesh, quantities, time = X
         
 
+        
         # Check that mesh has been recovered
         assert num.alltrue(mesh.triangles == domain.get_triangles())
         assert num.allclose(mesh.nodes, domain.get_nodes())
@@ -401,13 +403,87 @@ class Test_sww(unittest.TestCase):
             #print q,quantities[q]
             q_sww=quantities[q][-1,:]
 
+
             msg = 'Quantity %s failed to be recovered' %q
-            assert num.allclose(q_ref, q_sww, atol=1.0e-6), msg
+            assert num.allclose(q_ref, q_sww, atol=1.0e-10), msg
             
         # Cleanup
         #os.remove(swwfile)
         
-    def test_get_mesh_and_quantities_from_unique_vertices_sww_file(self):
+    def test_get_mesh_and_quantities_from_de0_sww_file(self):
+        """test_get_mesh_and_quantities_from_sww_file(self):
+        """     
+        
+        # Generate a test sww file with non trivial georeference
+        
+        import time, os
+
+        # Setup
+        #from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
+
+        # Create basic mesh (100m x 5m)
+        width = 5
+        length = 50
+        t_end = 10
+        points, vertices, boundary = rectangular(length, width, 50, 5)
+
+        # Create shallow water domain
+        domain = Domain(points, vertices, boundary,
+                        geo_reference = Geo_reference(56,308500,6189000))
+
+        domain.set_name('test_get_mesh_and_quantities_from_sww_file')
+        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir('.')
+        domain.set_flow_algorithm('DE0')
+
+        Br = Reflective_boundary(domain)    # Side walls
+        Bd = Dirichlet_boundary([1, 0, 0])  # inflow
+
+        domain.set_boundary( {'left': Bd, 'right': Bd, 'top': Br, 'bottom': Br})
+
+        for t in domain.evolve(yieldstep=1, finaltime = t_end):
+            pass
+
+        
+        # Read it
+
+        # Get mesh and quantities from sww file
+        X = get_mesh_and_quantities_from_file(swwfile,
+                                              quantities=['elevation',
+                                                          'stage',
+                                                          'xmomentum',
+                                                          'ymomentum'], 
+                                              verbose=False)
+        mesh, quantities, time = X
+        
+
+        
+        # Check that mesh has been recovered
+        assert num.alltrue(mesh.triangles == domain.get_triangles())
+        assert num.allclose(mesh.nodes, domain.get_nodes())
+
+        # Check that time has been recovered
+        assert num.allclose(time, range(t_end+1))
+
+        # Check that quantities have been recovered
+        # (sww files use single precision)
+        z=domain.get_quantity('elevation').get_values(location='unique vertices')
+        assert num.allclose(quantities['elevation'], z)
+
+        for q in ['stage', 'xmomentum', 'ymomentum']:
+            # Get quantity at last timestep
+            q_ref=domain.get_quantity(q).get_values(location='unique vertices')
+
+            #print q,quantities[q]
+            q_sww=quantities[q][-1,:]
+            
+            msg = 'Quantity %s failed to be recovered' %q
+            assert num.allclose(q_ref, q_sww, atol=1.0e-2), msg
+            
+        # Cleanup
+        #os.remove(swwfile)   
+    
+    def test_get_mesh_and_quantities_from_unique_vertices_1_5_sww_file(self):
         """test_get_mesh_and_quantities_from_unique_vertices_sww_file(self):
         """     
         
@@ -431,6 +507,7 @@ class Test_sww(unittest.TestCase):
         domain.set_name('test_get_mesh_and_quantities_from_unique_vertices_sww_file')
         swwfile = domain.get_name() + '.sww'
         domain.set_datadir('.')
+        domain.set_flow_algorithm('1_5')
         domain.set_store_vertices_uniquely()
 
         Br = Reflective_boundary(domain)    # Side walls
@@ -452,9 +529,7 @@ class Test_sww(unittest.TestCase):
                                                           'ymomentum'], 
                                               verbose=False)
         mesh, quantities, time = X
-        
-        
-        
+    
 
         #print quantities
         #print time
@@ -482,25 +557,118 @@ class Test_sww(unittest.TestCase):
         # Check that time has been recovered
         assert num.allclose(time, range(t_end+1))
 
-        z=domain.get_quantity('elevation').get_values(location='unique vertices')
+        z=domain.get_quantity('elevation').get_values(location='vertices').flatten()
         
+
         assert num.allclose(quantities['elevation'], z)
 
         for q in ['stage', 'xmomentum', 'ymomentum']:
             # Get quantity at last timestep
-            q_ref=domain.get_quantity(q).get_values(location='unique vertices')
+            q_ref=domain.get_quantity(q).get_values(location='vertices').flatten()
 
             #print q,quantities[q]
             q_sww=quantities[q][-1,:]
             
+            
             msg = 'Quantity %s failed to be recovered' %q
-            assert num.allclose(q_ref[di], q_sww[mi], atol=1.0e-6), msg
+            assert num.allclose(q_ref, q_sww, atol=1.0e-6), msg
             
         # Cleanup
         #os.remove(swwfile)
         
         
+    def test_get_mesh_and_quantities_from_unique_vertices_DE0_sww_file(self):
+        """test_get_mesh_and_quantities_from_unique_vertices_sww_file(self):
+        """     
+        
+        # Generate a test sww file with non trivial georeference
+        
+        import time, os
 
+        # Setup
+        #from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
+
+        # Create basic mesh (100m x 5m)
+        width = 5
+        length = 50
+        t_end = 10
+        points, vertices, boundary = rectangular(10, 1, length, width)
+
+        # Create shallow water domain
+        domain = Domain(points, vertices, boundary,
+                        geo_reference = Geo_reference(56,308500,6189000))
+
+        domain.set_name('test_get_mesh_and_quantities_from_unique_vertices_sww_file')
+        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir('.')
+        domain.set_flow_algorithm('DE0')
+        domain.set_store_vertices_uniquely()
+
+        Br = Reflective_boundary(domain)    # Side walls
+        Bd = Dirichlet_boundary([1, 0, 0])  # inflow
+
+        domain.set_boundary( {'left': Bd, 'right': Bd, 'top': Br, 'bottom': Br})
+
+        for t in domain.evolve(yieldstep=1, finaltime = t_end):
+            pass
+
+        
+        # Read it
+
+        # Get mesh and quantities from sww file
+        X = get_mesh_and_quantities_from_file(swwfile,
+                                              quantities=['elevation',
+                                                          'stage',
+                                                          'xmomentum',
+                                                          'ymomentum'], 
+                                              verbose=False)
+        mesh, quantities, time = X 
+
+        #print quantities
+        #print time
+
+        dhash = domain.get_nodes()[:,0]*10+domain.get_nodes()[:,1]
+        mhash = mesh.nodes[:,0]*10+mesh.nodes[:,1]        
+
+
+        #print 'd_nodes',len(dhash)
+        #print 'm_nodes',len(mhash)
+        di = num.argsort(dhash)
+        mi = num.argsort(mhash)
+        minv = num.argsort(mi)
+        dinv = num.argsort(di)
+
+        #print 'd_tri',len(domain.get_triangles())
+        #print 'm_tri',len(mesh.triangles)
+        
+        # Check that mesh has been recovered
+        # triangle order should be ok
+        assert num.allclose(mesh.nodes[mi,:],domain.get_nodes()[di,:])
+        assert num.alltrue(minv[mesh.triangles] == dinv[domain.get_triangles()])
+
+
+        # Check that time has been recovered
+        assert num.allclose(time, range(t_end+1))
+
+        z=domain.get_quantity('elevation').get_values(location='vertices').flatten()
+        
+
+        
+        assert num.allclose(quantities['elevation'], z)
+
+        for q in ['stage', 'xmomentum', 'ymomentum']:
+            # Get quantity at last timestep
+            q_ref=domain.get_quantity(q).get_values(location='vertices').flatten()
+
+            #print q,quantities[q]
+            q_sww=quantities[q][-1,:]
+            
+            msg = 'Quantity %s failed to be recovered' %q
+            assert num.allclose(q_ref, q_sww, atol=1.0e-6), msg
+            
+        # Cleanup
+        #os.remove(swwfile)
+        
     def test_weed(self):
         coordinates1 = [[0.,0.],[1.,0.],[1.,1.],[1.,0.],[2.,0.],[1.,1.]]
         volumes1 = [[0,1,2],[3,4,5]]
