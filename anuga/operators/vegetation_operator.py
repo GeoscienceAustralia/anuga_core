@@ -173,6 +173,6 @@ class Vegetation_operator(Operator, object):
     def timestepping_statistics(self):
         from anuga import indent
 
-        message  = indent + self.label + ': Sed_operator, time '
+        message  = indent + self.label + ': Veg_operator, time '
         message += str(self.get_time())
         return message
