@@ -1,18 +1,15 @@
 """
-Erosion operators
+Vegetation operators
 
 """
 
-
 import numpy as num
-
 
 from anuga import Domain
 from anuga import Quantity
 from anuga.operators.base_operator import Operator
 
 from math import sqrt, log
-
 from anuga.config import epsilon, g
 
 #===============================================================================
@@ -83,7 +80,6 @@ class Vegetation_operator(Operator, object):
             self.veg = self.veg_diameter / self.veg_spacing**2
             self.ad = self.veg * self.veg_diameter
             
-        
             
         if self.Cd is None:
             self.calculate_drag_coefficient()
@@ -106,10 +102,8 @@ class Vegetation_operator(Operator, object):
         self.domain.quantities['ymomentum'].\
             set_values(yvel_v * self.depth, location = 'centroids')
                 
-            
-        
-        
-        
+
+
     
     def calculate_drag_coefficient(self):
         '''
@@ -123,9 +117,7 @@ class Vegetation_operator(Operator, object):
                    - 0.0005465 / self.ad)
         self.Cd[self.ad < 0.006] = 1.2
         
-        
-        
-        
+
         
     def calculate_diffusivity(self):
         
@@ -161,12 +153,6 @@ class Vegetation_operator(Operator, object):
         self.domain.quantities['diffusivity'].\
                 set_values(diffusivity, location = 'centroids')
         
-        
-
-
-
-
-
 
 
 
