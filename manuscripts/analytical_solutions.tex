@@ -77,7 +77,7 @@ $\kappa$ & 0.408 \\
 $\rho_w$ & 1000 \\
 ${\tau_c}^*$ & 0.06 \\
 ${\tau_c}$ & 0.126126 \\
-$v_s$ & 0.013809968
+$v_s$ & 0.0138099680617
 \end{tabular}
 \end{table}
 
@@ -87,18 +87,18 @@ Table \ref{table:model_params} summarizes the constants used in these simulation
 
 \begin{table}[]
 \centering
-\caption{Simulation "plane1"}
-\label{table:plane1_params}
+\caption{Simulation "plane3"}
+\label{table:plane3_params}
 \begin{tabular}{|l|l|l|}
 \hline
 Flow algorithm       & DE0             &                       \\ \hline
 Length               & 15              &                       \\ \hline
-Width                & 2               &                       \\ \hline
-dx, dy               & 0.2             &                       \\ \hline
+Width                & 10               &                       \\ \hline
+dx, dy               & 0.5             &                       \\ \hline
 Initial topography   & $z = 10 - x/50$ &                       \\ \hline
-Initial stage        & topography      &                       \\ \hline
+Initial stage        & topography + 0.4      &                       \\ \hline
 Friction             & 0.0             &                       \\ \hline
-Inflow boundary      & {[}11,0,0{]}    & Dirichlet boundary    \\ \hline
+Inflow boundary      & {[}10.42,8,0{]}    & Dirichlet boundary    \\ \hline
 Side boundaries      &                 & Transmissive boundary   \\ \hline
 Outflow boundary     &                 & Transmissive boundary \\ \hline
 Inflow concentration & 0.005           &                       \\ \hline
@@ -108,9 +108,16 @@ Finaltime            & 60              &                       \\ \hline
 \end{table}
 
 
-We ran a simulation "plane1" with the parameters summarized in table \ref{table:plane1_params}. By the end of the simulation, the volume of sediment in the water column had reached steady state (defined as maximum and mean differences in sediment volume between two consecutive timesteps of less than 0.0001).
+We ran a simulation "plane3" with the parameters summarized in table \ref{table:plane3_params}. Soon after the start of the simulation, the volume of sediment in the water column had reached steady state (defined as maximum and mean differences in sediment volume between two consecutive timesteps of less than 0.0001).
 
-It is necessary to use transmissive boundaries for all edges (except the inflow) to avoid reflecting flow and sediment on the edges. Reflective boundaries decrease the slope of the bed by increasing momentum near the inlet.
+It is necessary to use transmissive boundaries for all edges (except the inflow) to avoid reflecting flow and sediment on the edges. Reflective boundaries decrease the slope of the bed by increasing momentum near the inlet. For all calculations, only values of the quantities in the range $4<y<6$ were included. Quantities were interpolated using the SciPy Savitzky?Golay filter with a window size of 7 and 3rd order polynomial to an array with 45 points evenly spaced between $x = 0.1$ and $x = 14$.
+
+The value of $d^*$ calculated by the model was exported at every timestep. The profile of $d^*$ strongly influences the profile of the steady state concentration in the analytical solution.
+
+The initial bed profile was the topography at timestep 0. The concentration at $x=0$ was calculated for every timestep as the maximum concentration at that timestep.
+
+
+
 
 
 
