@@ -1,21 +1,15 @@
 """
 Erosion operators
-
-
 """
 
 
 import numpy as num
-
 
 from anuga import Domain
 from anuga import Quantity
 from anuga.operators.base_operator import Operator
 
 from math import sqrt, log
-
-import sed_transport_operator_config as st
-
 from anuga.config import epsilon, g
 
 from anuga import Dirichlet_boundary
@@ -27,8 +21,6 @@ from anuga import Dirichlet_boundary
 class Sed_transport_operator(Operator, object):
     """
     Sed transport operator based on Bed shear erosion operator
-
-
     """
 
     def __init__(self, domain,
@@ -52,36 +44,31 @@ class Sed_transport_operator(Operator, object):
             
         self.depth = self.domain.quantities['height'].centroid_values
         
-        self.x = self.domain.quantities['x'].centroid_values
-        
         self.depth_e = self.domain.quantities['height'].edge_values  
         self.xmom_e = self.domain.quantities['xmomentum'].edge_values
         self.ymom_e = self.domain.quantities['ymomentum'].edge_values
+
+    
+        self.criticalshear_star = 0.06
+        # from Griffin et al 2010, from Wibert and Smith 1987
         
-        quant = self.domain.quantities['elevation']
+        self.porosity = 0.3
+        self.c1 = 18.
+        self.c2 = 0.4
+        self.mu = 1.0e-6
+        self.kappa = 0.408
+        self.rho_s = 2650.
+        self.rho_w = 1000.
         
-        self.porosity = st.porosity
-        self.Ke_star = st.Ke_star
-        self.R = st.R
-        self.criticalshear_star = st.criticalshear_star
-        self.c1 = st.c1
-        self.c2 = st.c2
-        self.mu = st.mu
-        self.kappa = st.kappa
-        self.rho_w = st.rho_w
-        self.rho_s = st.rho_s
+        self.R = (self.rho_s - self.rho_w) / self.rho_w
         
-        
-        self.grain_size = st.D50
+        self.grain_size = 0.00013 # from Griffin et al 2010
         
         
         self.bdry_indices = None
         self.inflow_concentration = None
         if self.domain.boundary_map:
             self.initialize_inflow_boundary()
-
-
-
 
 
     @property
@@ -101,26 +88,19 @@ class Sed_transport_operator(Operator, object):
         """
         
         self.D50 = new_D50
-        
-#         self.Ke = self.Ke_star * self.D50 * sqrt(self.R * g * self.D50)
 
         self.criticalshear = (self.criticalshear_star * (self.rho_s - self.rho_w) *
                                 g * self.D50)
-
-        self.Ke = 0.2e-6 / self.criticalshear**0.5
         
         self.settlingvelocity = ((self.R * g * self.D50**2) /
                             ((self.c1 * self.mu) +
                             (0.75 * self.c2 * (self.R * g * self.D50**3)**0.5)))
-                            
-                            
+          
+        self.Ke = 0.2e-6 / self.criticalshear**0.5
+                                
         self.z_o = self.D50 / 30
         
-        
         self.prepare_d_star()
-        
-    
-    
         
             
     def set_inflow_concentration(self, bdry_conc):
@@ -181,18 +161,15 @@ class Sed_transport_operator(Operator, object):
 
 
     def update_quantities(self):
-        """Update the vertex values of the quantities to model erosion
+        """
+        Calculates erosion and deposition, moves sediment, and updates the centroid values
+        of elevation and concentration to model topographic change
         """
 
         t = self.get_time()
         self.dt = self.get_timestep()
         
-        
-        if sum(self.ind) > 0:
-            
-#             self.velocity = (num.sqrt(self.xmom_c**2 + self.ymom_c**2)
-#                              / (self.depth + epsilon))
-                             
+        if sum(self.ind) > 0:                   
             
             quant = self.domain.quantities['elevation']
             quant.compute_gradients()
@@ -200,28 +177,13 @@ class Sed_transport_operator(Operator, object):
             S = num.maximum(num.abs(quant.x_gradient), num.abs(quant.y_gradient))
             
             self.u_star = num.zeros_like(self.depth)
-#             self.u_star_2 = num.zeros_like(self.depth)
             
             self.u_star[self.ind] = num.sqrt(g * S[self.ind] * self.depth[self.ind])
             
-#             print self.u_star.max()
-#             
-#             self.velocity = (num.maximum(num.abs(self.xmom_c), num.abs(self.ymom_c)) /
-#                             (self.depth + epsilon))
-#             
-#             self.u_star_2[self.ind] = (self.velocity[self.ind] * self.kappa /
-#                     (num.log(self.depth[self.ind] / self.z_o) - 1))
-#                     
-#             print self.u_star_2.max()
-#             print '----'
-
-
             self.edot = self.erosion()
             self.ddot = self.deposition()
 
             self.dzdt = (self.ddot - self.edot) / (1 - self.porosity)
-            
-#             print edot.max(), ddot.max()
         
             self.dChdt = (self.edot - self.ddot)
             
@@ -233,6 +195,10 @@ class Sed_transport_operator(Operator, object):
 
 
     def update_concentration(self, dChdt):
+        """
+        Updates the centroid values of concentration based on the volume of material
+        that was added or removed from the water column through erosion and deposition
+        """
     
         # sediment vol already in the water column
         sed_vol_in_cell = (self.conc[self.ind] *
@@ -254,6 +220,12 @@ class Sed_transport_operator(Operator, object):
         
 
     def sediment_flux(self):
+        """
+        Calculates the flux of sediment between cells based on the flux of water
+        to calculate the new concentration at centroids
+        
+        Assumes that sediment moves at the same speed as the flow
+        """
     
         normal_vels = num.zeros_like(self.depth_e)
         
@@ -301,6 +273,9 @@ class Sed_transport_operator(Operator, object):
   
         
     def update_bed(self, dzdt):
+        """
+        Updates the elevation of the bed at centroids based on erosion and deposition
+        """
     
         dz = num.zeros_like(self.elev_c)
         dz[self.ind] = dzdt * self.dt
@@ -313,13 +288,12 @@ class Sed_transport_operator(Operator, object):
 
         
     def erosion(self):
+        """
+        Calculates an erosion rate from an excess shear stress formulation
+        """
     
     
         shear_stress = self.rho_w * self.u_star[self.ind]**2
-        
-#         shear_stress_star = self.u_star[self.ind]**2 / (g * self.R * self.D50)
-
-        # edot = self.Ke * (shear_stress_star - self.criticalshear_star)
         
         edot = self.Ke * (shear_stress - self.criticalshear)
         
@@ -329,6 +303,10 @@ class Sed_transport_operator(Operator, object):
         
 
     def deposition(self):
+        """
+        Calculates a rate of deposition from the sediment concentration and the
+        settling velocity of the particles
+        """
     
         self.calculate_d_star()
         
@@ -366,6 +344,13 @@ class Sed_transport_operator(Operator, object):
         
 
     def calculate_d_star(self):
+        """
+        Calculates the values needed to obtain d* (for deposition)
+        following the formulation of Davy and Lague (2009). This term describes
+        the vertical distribution of sediment in the water column.
+        
+        This term is only calculated once every 10 dt for speed
+        """
         
         if self.d_star_counter % 10 == 0:
         
