@@ -63,7 +63,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         # Create shallow water domain
         domain = Domain(points, vertices, boundary)
-        domain.default_order = 2
+        domain.set_flow_algorithm('DE0')
         domain.set_minimum_storable_height(0.01)
 
         filename = 'runup_test_3'
@@ -106,8 +106,8 @@ class Test_sww_Interrogate(unittest.TestCase):
         location = get_maximum_inundation_location(swwfile, time_interval=[45,50])
         #print 'Runup, location:',runup, location
 
-        assert num.allclose(runup, 3.81481488546)
-        assert num.allclose(location[0], 51.666668)
+        assert num.allclose(runup, 1.81481484572)
+        assert num.allclose(location[0], 61.666668)
 
         # Check runup restricted to a polygon
         p = [[50,1], [99,1], [99,49], [50,49]]
@@ -179,8 +179,8 @@ class Test_sww_Interrogate(unittest.TestCase):
         #print runup, location
         #1.66666666667 [308561.66, 6189006.5]
 
-        assert num.allclose(runup, 3.81481488546)
-        assert num.allclose(location[0], 308551.66)
+        assert num.allclose(runup, 1.81481484572)
+        assert num.allclose(location[0], 308561.66)
 
         # Check runup restricted to a polygon
         p = num.array([[50,1], [99,1], [99,49], [50,49]], num.int) + num.array([E, N], num.int)      #array default#

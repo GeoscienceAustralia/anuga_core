@@ -708,7 +708,7 @@ class Domain(Generic_Domain):
         self.set_distribute_to_vertices_and_edges_method('DE')
         
         # Don't place any restriction on the minimum storable height
-        self.minimum_storable_height=-99999999999.0 
+        #self.minimum_storable_height=-99999999999.0 
         self.minimum_allowed_height=1.0e-12
 
         self.use_edge_limiter=True
@@ -770,7 +770,7 @@ class Domain(Generic_Domain):
         self.set_distribute_to_vertices_and_edges_method('DE')
         
         # Don't place any restriction on the minimum storable height
-        self.minimum_storable_height=-99999999999.0 
+        #self.minimum_storable_height=-99999999999.0 
         self.minimum_allowed_height=1.0e-5
 
         self.use_edge_limiter=True
@@ -832,7 +832,7 @@ class Domain(Generic_Domain):
         self.set_distribute_to_vertices_and_edges_method('DE')
         
         # Don't place any restriction on the minimum storable height
-        self.minimum_storable_height=-99999999999.0 
+        #self.minimum_storable_height=-99999999999.0 
         self.minimum_allowed_height=1.0e-5
 
         self.use_edge_limiter=True
@@ -894,7 +894,7 @@ class Domain(Generic_Domain):
         self.set_distribute_to_vertices_and_edges_method('DE')
         
         # Don't place any restriction on the minimum storable height
-        self.minimum_storable_height=-99999999999.0 
+        #self.minimum_storable_height=-99999999999.0 
         self.minimum_allowed_height=1.0e-12
 
         self.use_edge_limiter=True
@@ -956,7 +956,7 @@ class Domain(Generic_Domain):
         self.set_distribute_to_vertices_and_edges_method('DE')
         
         # Don't place any restriction on the minimum storable height
-        self.minimum_storable_height=-99999999999.0 
+        #self.minimum_storable_height=-99999999999.0 
         self.minimum_allowed_height=1.0e-12
         
         self.use_edge_limiter=True
@@ -1183,21 +1183,7 @@ class Domain(Generic_Domain):
 
 
 
-    def set_using_discontinuous_elevation(self, flag=False):
-        """Set flag to show whether compute flux algorithm
-        is allowing discontinuous elevation.
-        
-        default is False
-        """
 
-        self.using_discontinuous_elevation = flag
-
-    def get_using_discontinuous_elevation(self):
-        """
-        Return boolean indicating whether algorithm is using dicontinuous elevation
-        """
-
-        return self.using_discontinuous_elevation
 
     def set_flow_algorithm(self, flag='DE0'):
         """Set combination of slope limiting and time stepping
