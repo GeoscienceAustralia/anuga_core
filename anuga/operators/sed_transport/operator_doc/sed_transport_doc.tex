@@ -1,0 +1,413 @@
+\documentclass[10pt]{article}
+
+\usepackage[left=2cm,top=2cm,right=2cm,head=2cm,bottom=2cm,foot=1cm]{geometry}
+\usepackage[square]{natbib}
+\usepackage{amsmath, amsthm}
+\usepackage{url}
+
+\usepackage[utf8]{inputenc}
+ 
+\usepackage{listings}
+\usepackage{color}
+\usepackage{booktabs}
+\newcommand{\ra}[1]{\renewcommand{\arraystretch}{#1}}
+ 
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.95}
+ 
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    %numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=4,
+    showlines=true
+}
+ 
+ 
+\lstset{style=mystyle}
+
+
+\begin{document}
+
+
+\title{Using the Sediment Transport and Vegetation Operators in ANUGA-Sed}
+\author{Mariela Perignon}
+\date{\today}
+\maketitle
+
+This document describes the implementation of operators for sediment transport and vegetation drag in ANUGA-Sed, a derivative of the hydrodynamic model ANUGA. The sediment transport operator can currently only be used with a single processor. Making it parallel safe would require modifying, at minimum, the method used for sediment flux. The vegetation drag operator should be parallel safe but has not been tested.
+
+These operators use the equations presented in \citet{Simpson:2006aa} and \citet{davy2009fluvial} for calculating sediment transport and momentum sinks, and \citet{nepf1999drag} and \citet{kean2006form} for vegetation drag.
+
+\section{Files}
+
+The two operators are located in the directory \url{operators}, this documentation is in the directiory \url{doc}, and example files for using these two operators are in the directory \url{examples/operators/sed}.
+
+\section{Using the Sediment Transport Operator}
+
+\subsection{Creating the domain}\label{domain}
+
+To use the sedimene transport operator, the quantity \textit{concentration} must be defined as an evolved quantity when the domain is created. Exceptions are raised if this quantity does not exist when the operator is used.
+
+The existing function for creating a rectangular domain already accepts a list of evolved quantities as an argument:
+
+% Creating a rectangular domain %
+\begin{minipage}[c]{0.95\textwidth}
+\begin{lstlisting}[language=Python, title=Creating a rectangular domain]
+
+evolved_quantities = ['stage', 'xmomentum', 'ymomentum', 'concentration']
+			  
+points, vertices, boundary = rectangular_cross(int(length/dx),
+									    	   int(width/dy),
+									    	   len1=length,
+									    	   len2=width)
+                                                  	
+domain = Domain(points, vertices, boundary,
+				evolved_quantities = evolved_quantities)
+
+\end{lstlisting}
+\end{minipage}
+\ \\
+
+Creating a domain that uses a mesh as input for \textit{elevation} is usually done with the function \url{create_domain_from_regions}, which does not accept a list of evolved quantities. To accomplish the same functionality, use \url{create_mesh_from_regions} to generate the mesh and then create the domain:
+
+% Creating a domain from regions %
+\begin{minipage}[c]{0.95\textwidth}
+\begin{lstlisting}[language=Python, title=Creating a domain from a mesh file]
+
+from anuga.pmesh.mesh_interface import create_mesh_from_regions
+
+create_mesh_from_regions(bounding_polygon = bounding_polygon,
+                         boundary_tags = boundary_tags,
+                         maximum_triangle_area = 200,
+                         filename = 'topo.msh')
+
+evolved_quantities =  ['stage', 'xmomentum', 'ymomentum', 'concentration']
+
+domain = Domain(filename_root + '.msh', evolved_quantities = evolved_quantities)
+
+
+\end{lstlisting}
+\end{minipage}
+
+Because it updates the elevation of the bed, the sediment transport operator can only be used with one of ANUGA's Discontinuos Elevation ('DE') flow algorithms. Changes in the elevation of the bed and the distribution of sediment in transport during the simulation can be recorded in the SWW file by including \url{elevation} and \url{concentration} in \url{domain.set_quantities_to_be_stored} with a value of 2 (to save them at every yieldstep):
+
+% Recording output %
+\begin{minipage}[c]{0.95\textwidth}
+\begin{lstlisting}[language=Python, title=Setting the flow algorithm and recording the output]
+
+domain.set_flow_algorithm('DE0')
+
+domain.set_quantities_to_be_stored({'elevation': 2,
+                                    'stage': 2,
+                                    'xmomentum': 2,
+                                    'ymomentum': 2,
+                                    'concentration': 2})
+
+\end{lstlisting}
+\end{minipage}
+
+\subsection{Creating the operator}
+
+The Sediment Transport operator is initialized in the run file with:
+
+% Creating a sed transport operator %
+\begin{minipage}[c]{0.95\textwidth}
+\begin{lstlisting}[language=Python, title=Initializing the sediment transport operator]
+ 
+from anuga.operators.sed_transport_operator import Sed_transport_operator
+
+sed_op = Sed_transport_operator(domain)
+
+\end{lstlisting}
+\end{minipage}
+\ \\
+
+\begin{table}[h]
+\centering
+\ra{1.3}
+\begin{tabular}{@{}rcll@{}}
+\toprule
+Variable name & Default value & Units & Quantity  \\ \midrule
+\verb!rho_w! & 1000 & kg m$^{-3}$ & Density of fluid  \\
+\verb!rho_s! & 2650 & kg m$^{-3}$ & Density of sediment \\
+\verb!nu!         &  $1$x${10}^{-6}$    &   m$^2$ s$^{-1}$          &   Kinematic viscosity of water       \\
+\verb!porosity!         &   0.3   &     -        & Porosity of the bed  \\
+\verb!criticalshear_star!         &   0.06   &     -        & Dimensionless critical shear stress    \\
+\verb!grain_size!         &   0.00013   &     m        & Grain size       \\
+\bottomrule
+\end{tabular}
+\caption{Default values for equation parameters in Sediment transport operator}
+\label{table:sed_transport_parameters}
+\end{table}
+
+Table \ref{table:sed_transport_parameters} summarizes the default values that various equation parameters take when \url{Sed_transport_operator} is initialized. These values can be modified from the run file after the operator is initialized.
+
+The initial concentration of sediment in the flow within the domain (as a fraction of the volume of the water column) can be set at any point after the domain is created with \url{domain.set_quantity()}. The concentration of any flow entering the domain through a Dirichlet boundary can be set after initializing the operator (for all boundaries, only once before the start of the run) as the operator variable \url{inflow_concentration}. If not set, \url{inflow_concentration} takes the maximum value of the quantity \url{concentration} at the first timestep.
+
+% Creating a sed transport operator %
+\begin{minipage}[c]{0.95\textwidth}
+\begin{lstlisting}[language=Python, title=Modifying parameter values]
+ 
+domain.set_quantity('concentration', 0.01) # 1 percent
+
+sed_op.inflow_concentration = 0.02 # 2 percent
+ 
+sed_op.grain_size = 0.0002 # 0.2 mm grains
+sed_op.criticalshear_star = 0.03
+
+\end{lstlisting}
+\end{minipage}
+\ \\
+
+\subsection{Acting processes}
+
+The operators act only on vertices with a flow depth greater than a minimum depth (5 cm) and non-zero x-directed momentum. This avoids extremely high erosion rates due to abnormally high velocities at low flow depths and minimizes the likelihood aggradation that exceed the water depth.
+
+The rate of change of elevation of the bed is a mass balance equation written as:
+
+\begin{equation}
+\frac{\partial z}{\partial t} = \frac{\dot{D} - \dot{E}}{1 - \phi}
+\end{equation}
+
+\noindent where $z$ is the elevation of the bed above some datum, $\phi$ is the porosity of the bed material, and $\dot{D}$ and $\dot{E}$ are the rates of sediment deposition and entrainment. The entrainment rate is given by:
+
+\begin{equation}
+\dot{E} = K_e \: (\tau^* - {\tau_c}^*)
+\end{equation}
+
+\noindent where $K_e$ is an erosion coefficient and ${\tau_c}^*$ is the dimensionless critical shear stress. $\tau^*$ is the dimensionless shear stress that the flow applies on the bed:
+
+\begin{equation}
+\tau^* = u^* \: \frac{1}{R \: g \: d_g}
+\end{equation}
+
+\noindent where $u^* = \sqrt{f / 8}$ is the shear velocity, $f$ is the Darcy friction factor ($f = 0.05$), $d_g$ is the grain diameter, $R = (\rho_s - \rho_w) / \rho_w$ is the submerged specific gravity of sediment, $\rho_w$ and $\rho_s$ are the densities of water and sediment, and $g$ is the gravitational acceleration. $K_e$ is given by:
+ 
+\begin{equation}
+K_e = {K_e}^* \: d_g \: \sqrt{R \: g \: d_g}
+\end{equation}
+
+\noindent where ${K_e}^*$ is a dimensionless erosion coefficient (${K_e}^* = 12$).
+
+The rate of aggradation $\dot{D}$ can be written as:
+
+\begin{equation}
+\dot{D} = D^* \: C \: v_s
+\end{equation}
+
+\noindent where $D^*$ is a dimensionless number equal to 1 if the sediment flux is uniformly distributed throughout the depth of the flow, and $v_s$ is the settling velocity of grains in the fluid \citep{ferguson2004simple}:
+
+\begin{equation}
+v_s = \frac{R \: g \: {d_g}^2}{C_1 \, \nu + (0.75 \, C_2 \, R \, g \, {d_g}^3)^2}
+\end{equation}
+
+\noindent where $C_1$ and $C_2$ are 18 and 0.4 for smooth spheres, and $\nu$ is the kinematic viscosity of the fluid. 
+\ \\
+
+The time rate of change of concentration of sediment in the flow can be written as:
+
+\begin{equation}
+\frac{\partial C h}{\partial t} = \dot{E} -\dot{D} - \frac{\partial {q_s}_x}{\partial x} - \frac{\partial {q_s}_y}{\partial y}
+\end{equation}
+
+\noindent where ${q_s}_x$ and ${q_s}_y$ are sediment discharges per unit width in the $x$ and $y$ directions.
+
+\subsubsection{Sources and sinks of momentum}
+
+Four sources or sinks of momentum can be included by these operators into the equations for conservation of momentum: (1) friction loss, (2) loss due to spatial variations in sediment concentration, (3) loss of momentum due to the exchange of mass between the flow and the bed, and (4) loss due to fluid drag on vegetation. Changes to the momentum of the flow due to turbulence are calculated when the function argument \textit{turbulence} is True.
+
+\begin{enumerate}
+\item Loss due to friction is computed using the existing \url{manning_friction_implicit} function
+
+\item Loss due to spatial variations in concentration is given by the equation:
+
+\begin{equation}
+P_C = \frac{(\rho_s - \rho_w) g h^2}{2 (\rho_w (1 - C) + \rho_s C)} \nabla \cdot C
+\end{equation} 
+
+\item Loss due to the exchange of mass between the flow and the bed is given by:
+
+\begin{equation}
+P_e = \frac{\dot{D} - \dot{E}}{1 - \phi} \left(\frac{\rho_w \phi + \rho_s (1 - \phi)}{\rho_w (1 - C) + \rho_s C} -1 \right) \vec{v}
+\end{equation}
+
+\noindent where $\vec{v}$ is the flow velocity.
+
+\item Loss of momentum due to fluid drag on vegetation is given by:
+
+\begin{equation}
+P_d = - \vec{v} \vec{F_D} h
+\end{equation}
+
+\noindent where $\vec{F_D}$ is the drag force of vegetation on the flow. The quantities \textit{xmomentum} and \textit{ymomentum} are modified by this equation whenever the \url{Vegetation_operator} is used, regardless of the \url{mometum_sinks} argument.
+
+\end{enumerate}
+
+\subsubsection{Updating quantities}
+
+All operators listed in \url{fractional_step_operators} are called at every timestep by \url{domain.evolve} after the flow calculations have been performed and the conserved quantities updated.
+\ \\
+
+
+Both the \url{Sed_transport_operator} and \url{Vegetation_operator} directly modify the values of several quantities through functions in \url{sed_transport_mesh.py}.
+
+\begin{itemize}
+\item \textit{Momentum} is modified by using the \url{explicit_update} (re-set to zero) and \url{update} methods of the quantities \textit{xmomentum} and \textit{ymomentum}.
+
+\item The shape of the bed is altered by using the \url{set_values} function at the vertices for the quantity \textit{elevation}, followed by \url{smooth_vertex_values()} to eliminate discontinuities in the topography and distribute the updated elevations to the centroids and edges.
+
+\item The flux of sediment across the cell edges is computed by (1) obtaining the total volume of sediment in the flow within each cell from the values of the quantity \textit{concentration} at the centroids, (2) finding the normal component of the flow velocities at the edges of the cells, (3) calculating, from the values of \textit{concentration} at the edges, the volume of sediment that crosses each edge within the timestep, and (4) integrating the flux in and out of each cell across all edges to (5) change the volume of sediment present in the flow within each cell. This volume is then (6) converted back to a sediment concentration (of the form $C h$) at the centroid of each cell, and (7) the updated value at each vertex is calculated by averaging the value at the centroids around it. (8) The quantity \textit{concentration} is updated using the function \url{set_values} at the vertices.
+\end{itemize}
+
+\section{Utilities} \label{utilities}
+
+The file \url{sed_transport_utils.py} contains a set of functions, similar to existing ones, that are tailored to the needs of these specific operators.
+
+\begin{description}
+\item[\url{create_domain_from_regions_sed(...)}] \hfill \\
+This function is equivalent to \url{__init__.create_domain_from_regions} but accepts lists of quantities to be created within the domain. See example in section \ref{domain}.
+
+\item[\url{Reflective_boundary_Sed(domain)}] \hfill \\
+This boundary type is equivalent to \url{Reflective_bondary} but manages the boundary value for \textit{concentration}.
+
+\item[\url{Dirichlet_boundary_Sed([stage xmom ymom C])}] \hfill \\
+This boundary is equivalent to the existing \url{Dirichlet_boundary} but accepts a fourth entry for fractional concentration ($C$, not $C h$) at the boundary. This boundary type should only be used for inflow boundaries. Flow outlets should be declared using the regular Dirichlet boundary type, which will allow sediment to be carried across the boundary by the flow instead of fixing the concentration at the cell edges. An exception is raised if a \url{Dirichlet_boundary_Sed} is has a fixed stage that is lower than the lowest elevation in the domain.
+\end{description}
+
+\begin{lstlisting}[language=Python, caption=Using operator-specific boundary types]
+ 
+from anuga.operators.sed_transport.sed_transport_utils \
+	import Reflective_boundary_Sed, Dirichlet_boundary_Sed
+	
+Bd = Dirichlet_boundary_Sed([1527.3, 0., 0., 0.3])	# Inlet (30% sed)
+Bi = anuga.Dirichlet_boundary([1520, 0., 0.])			# Open outlet
+Br = Reflective_boundary_Sed(domain)				# Reflective wall
+
+domain.set_boundary({'bottom' : Bi,
+					'side1' : Br,
+					'side2' : Br,
+					'top' : Bd,
+					'side3' : Br,
+					'side4' : Br,
+					'exterior' : Br})
+\end{lstlisting}
+
+\begin{description}
+\item[\url{set_quantity_NNeigh(quantity_name, filename)}] \hfill \\
+Equivalent to the function \url{set_quantity}, it assigns values from the point file \textit{filename} to quantity \textit{quantity name}. In contrast to \url{set_quantity}, which interpolates between the values in the point file to obtain the value at the centroids, this function uses a Nearest Neighbour algorithm to assign each centroid the value of the nearest point in the file. This is necessary when assigning values from an ASCII file to the quantity \textit{vegetation}.
+\end{description}
+
+\noindent Two files in the directory \url{operators/sed_transport/file_conversion} can be used to transform ASCII files into point files that represent quantities other than \textit{elevation}.
+
+\begin{description}
+\item[\url{generic_asc2dem(name_in, quantity_name, ...)}] \hfill \\
+Equivalent to \url{anuga.asc2dem}, this function transforms an \url{.asc} file into a {.dem} file. While the original function assumes that the values in the files will be assigned to the quantity \textit{elevation} (and codes this into the files), this function allows the user to define the name of that quantity in the argument \textit{quantity name}.
+
+\item[\url{generic_dem2pts(name_in, quantity_name, ...)}] \hfill \\
+Equivalent to \url{anuga.dem2pts}, this function transforms a \url{.dem} file into a {.pts} file for future use with the quantity \textit{quantity name}. This function does not create that quantity or set its values.
+\end{description}
+
+\begin{lstlisting}[language=Python, caption=Using file conversion and set quantity utilities]
+ 
+from anuga.operators.sed_transport.file_conversion.generic_asc2dem
+	import generic_asc2dem 
+from anuga.operators.sed_transport.file_conversion.generic_dem2pts
+	import generic_dem2pts
+from anuga.operators.sed_transport.sed_transport_utils
+	import set_quantity_NNeigh
+
+generic_asc2dem('veg.asc',
+				quantity_name = 'vegetation',
+				use_cache = False,
+				verbose = True)
+				
+generic_dem2pts('veg.dem',
+				quantity_name = 'vegetation',
+				use_cache = False,
+				verbose = True)
+
+set_quantity_NNeigh(domain,
+					'vegetation', 
+					filename='veg.pts')
+    
+
+\end{lstlisting}
+
+\section{Tests}
+
+A suite of unit tests and analytical solutions will be added to the operator package in the immediate future.
+
+
+\subsubsection{Process-specific quantities}
+
+\begin{description}
+\item[\textit{concentration}] \hfill
+
+Following \citet{Simpson:2006aa}, \textit{concentration} is given by:
+
+\begin{equation}
+\mbox{Concentration } = \frac{Q_s}{Q} h = C h
+\end{equation}
+
+\noindent where $Q_s$ is the sediment discharge, $Q$ is the total discharge, $h$ is the flow depth, and $C$ is the fractional concentration of sediment (by volume) in the flow. The operators store $C h$ as the quantity \textit{concentration}. It is important to note that the sediment transport-specific Dirichlet boundary takes $C$, not $C h$, as the input value.
+
+\item[\textit{vegetation}] \hfill
+
+The values that are stored as the quantity \textit{vegetation} are numeric codes (positive integers) for different types of vegetation, each with corresponding values of stem diameter and stem spacing in a look-up table. The default value for \textit{vegetation} is zero, which is the code for no vegetation. The values of this quantity can be set using the existing functions in ANUGA or ones included in the directory \url{/file_conversion} and the file \url{sed_transport_utils.py} (see description in section \ref{utilities}).
+
+If any entry of \textit{vegetation} is greater than zero, the operators will attempt to import the csv file specified in the function argument \textit{vegfile} of \url{Vegetation_operator}.
+
+An exception is raised if the file is not found or if \textit{vegfile} is not specified. In the case of a domain with two different types of vegetation ($\mbox{\textit{vegetation}}>1$) as well as bare areas ($\mbox{\textit{vegetation}}=0$), this file would contain a column \textit{vegcode} with the corresponding code in the quantity \textit{vegetation}, and two columns for the values of \textit{stem diameter} and \textit{stem spacing} (in meters).
+
+\begin{lstlisting}[language=TeX, caption=Example of vegfile]
+vegcode, stem_diameter, stem_spacing
+1, 0.01, 0.1
+2, 0.01, 0.3
+\end{lstlisting} 
+
+\item[\textit{diffusivity}] \hfill
+
+The effects of turbulence on the momentum of the flow can be calculated using these operators by harnessing the existing kinematic viscosity operator (\url{domain.set_use_kinematic_viscosity}) and dynamically modifying the values of the quantity \textit{diffusivity} to reflect the conditions of the flow. An exception is raised by the operators if the argument \textit{turbulence} is True but the quantity \textit{diffusivity} does not exist. A message is then displayed and the run continues without calculating turbulence.
+
+The values for \textit{diffusivity} are calculated using the equation:
+
+\begin{equation}
+K_d = \sqrt{k_e} \: l + ad \: U_{ref} \: d_s
+\end{equation}
+
+\noindent where $l$ is the mixing length, $U_{ref}$ is the flow velocity felt by the stems, $d_s$ is the stem diameter, $ad = d_s^2 / \Delta S^2$ is the fractional volume of the flow domain occupied by plants, and $\Delta S$ is the mean stem spacing. The velocity scale $\sqrt{k_e}$ is given by:
+
+\begin{equation}
+k_e = C_b \: U_{ref} + (\overline{C_D} \: ad)^{2/3} \: {U_{ref}}^2
+\end{equation}
+
+\noindent where $C_b$ is the bed drag coefficient ($C_b = 0.001$) and $\overline{C_D}$ is the bulk drag coefficient for the vegetation array. If the stems are approximated as emergent cylinders, $\overline{C_D} = 1.2$. The mixing length $l$ is given by:
+
+\begin{equation}
+l = h \: -  \: \frac{h - h(ad - 0.005)}{0.005}
+\end{equation}
+
+\noindent where $h$ is the flow depth. The second term of all three equations is equal to zero when vegetation is not present ($ad = 0$). This equation is an approximation of the data shown in \citet{nepf1999drag}, figure 6.
+
+\end{description}
+
+
+\bibliography{/Users/mari/Dropbox/Papers/library}
+\bibliographystyle{agu08}
+
+\end{document}

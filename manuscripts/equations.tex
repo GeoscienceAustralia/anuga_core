@@ -5,14 +5,14 @@
 \usepackage{siunitx}
 \begin{document}
 
-\title{Governing equations for ANUGA sediment transport}
+\title{Governing equations for ANUGA-Sed}
 \maketitle
+
+ANUGA is a fluid flow model originally developed to simulate sudden releases of water such as tsunamis and dam breaks into urban environments. ANUGA-Sed is a derivative model that includes operators for sediment transport and vegetation drag. These new components will likely merge with the master branch of ANUGA in the future.
 
 \section{Hydrodynamics}
 
-ANUGA is a fluid flow model originally developed to simulate sudden releases of water such as tsunamis and dam breaks into urban environments.
-
-This hydrodynamic model primarily differs from the kinematic wave model in three ways: (a) it allows for rapidly varying flow depth and velocity ,instead of assuming steady, uniform flow, (b) it routes runoff across hillslopes using the same equations of flow as in the channels, instead of using empirical relationships and lumping the hillslope inflow parameters, and (c) it computes the two dimensional distribution of streamflow across the landscape, instead of treating the channel networks as a series of one dimensional channel segments.
+This hydrodynamic model differs from the kinematic wave model in three ways: (a) it allows for rapidly varying flow depth and velocity instead of assuming steady, uniform flow, (b) it routes runoff across hillslopes using the same equations of flow as in the channels instead of using empirical relationships and lumping hillslope inflow parameters, and (c) it computes the two dimensional distribution of streamflow across the landscape, instead of treating the channel networks as a series of one dimensional channel segments.
 
 ANUGA solves the conserved form of the 2-D, depth-averaged Shallow Water Wave equations, which describe the flow of a thin layer of fluid over a surface:
 
@@ -50,9 +50,9 @@ S_{fx} = \frac{un\sqrt{u^2 + v^2}}{h^{4/3}}
  S_{fy} = \frac{vn\sqrt{u^2 + v^2}}{h^{4/3}}
 \end{equation}
 
-ANUGA solves these equations using a Godunov-type finite-volume scheme with a first-order approximate Riemann solver \citep{toro1992riemann} and explicit Euler timestepping method with variable timesteps on an irregular triangular grid. Because it allows for discontinuities of the conserved quantities across the edges of the cells, it can resolve arbitrarily steep wave fronts as well as hydraulic shocks. Capturing flow discontinuities is necessary when simulating the dynamics of flash floods in ephemeral channels since these typically have a steep leading edge or 'bore' (Leopold and Miller, 1956) that must be modeled correctly in order to capture the peak flow stage and velocity (Benzvi et al., 1991; Pilgrim, 1976) and maintain mass balance (Garcia-Navarro et al., 1999; Mudd 2006).
+The model solves these equations using a Godunov-type finite-volume scheme with a first-order approximate Riemann solver \citep{toro1992riemann} and explicit Euler timestepping method with variable timesteps on an irregular triangular grid. Because it allows for discontinuities of the conserved quantities across the edges of the cells, it can resolve arbitrarily steep wave fronts as well as hydraulic shocks. Capturing flow discontinuities is necessary when simulating the dynamics of flash floods in ephemeral channels since these typically have a steep leading edge or 'bore' (Leopold and Miller, 1956) that must be modeled correctly in order to capture the peak flow stage and velocity (Benzvi et al., 1991; Pilgrim, 1976) and maintain mass balance (Garcia-Navarro et al., 1999; Mudd 2006).
 
-Anuga-Sed requires the use of one of Anuga's discontinuous elevation flow algorithms. The preferred algorithm is 'DE0', which uses first-order timestepping. This algorithm is the fastest of the DE algorithms implemented in the code. These algorithms introduce some error in the position of the surface because they allow for some movement of the bed surface during the flow calculation to preserve numerical stability. This topographic change does not represent "real" change and introduces some noise in the model result but it is generally negligible. We recomment running the model and recording elevation at every timestep without the sediment transport operator to assert that this error is small for your particular parameter space.
+ANUGA-Sed requires the use of one of ANUGA's discontinuous elevation flow algorithms. The preferred algorithm is 'DE0', which uses first-order timestepping. This algorithm is the fastest of the DE algorithms implemented in the code. These algorithms introduce some error in the position of the surface because they allow for some movement of the bed surface during the flow calculation to preserve numerical stability. This topographic change does not represent "real" change and introduces some noise in the model result but it is generally negligible. We recomment initially running the model without the sediment transport operator and recording the elevation at every timestep to assert that this error is small for your particular parameter space.
 
 \section{Sediment transport}
 
@@ -75,50 +75,6 @@ The elevation of the surface $z$ is given by
 \noindent where $\phi$ is the porosity of the bed material.
 
 \subsection{Entrainment}
-
-%The entrainment flux $\dot{E}$ is (e.g. Hanson, 1990):
-%
-%\begin{equation}
-%\dot{E} = K_e \: (\tau^* - {\tau_c}^*)
-%\end{equation}
-%
-%\noindent where $K_e$ is an erosion coefficient and ${\tau_c}^*$ is the dimensionless critical shear stress. The erosion coefficient $K_e$ is given by:
-% 
-%\begin{equation}
-%K_e = {K_e}^* \: D_{50} \: \sqrt{R \: g \: D_{50}}
-%\end{equation}
-%
-%\noindent where ${K_e}^*$ is a dimensionless erosion coefficient. $\tau^*$ is the dimensionless shear stress that the flow applies on the bed:
-%
-%\begin{equation}
-%\tau^* = \frac{{u_*}^2}{R \: g \: D_{50}}
-%\end{equation}
-%
-%\noindent where $u_*$ is the shear velocity, $D_{50}$ is the median grain diameter, $R = (\rho_s - \rho_w) / \rho_w$ is the submerged specific gravity of sediment, $\rho_w$ and $\rho_s$ are the densities of water and sediment, and $g$ is the gravitational acceleration.
-%
-%%The shear velocity $u_*$ is given by:
-%%
-%%\begin{equation}
-%%u_* = \frac{\langle u \rangle \kappa}{\log{(h / z_o)} - 1}
-%%\end{equation}
-%%
-%%\noindent where $\langle u \rangle$ is the depth-averaged flow velocity, $\kappa$ is Von Karman's constant ($\kappa = 0.4$) and $z_o = D_{50}/30$. The expression for $u_*$ is derived from the Law of the Wall equation for depth-averaged flow velocity:
-%%
-%%\begin{equation}
-%%\langle u \rangle = \frac{u_*}{\kappa} \bigg[ \ln{\bigg(\frac{h}{z_o}\bigg)} - 1 \bigg]
-%%\end{equation}
-%
-%The shear velocity $u_*$ is obtained from the relationship for bed shear stress under steady state conditions:
-%
-%\begin{equation}
-%\tau_b = \rho_w {u_*}^2
-%\end{equation}
-%
-%\noindent where $\tau_b$ is the shear stress of the flow on the bed, which can also be written as $\tau_b = \rho g h S$, where $S$ is the slope of the bed. Combining these expressions, we can write an equation for the shear velocity:
-%
-%\begin{equation}
-%u_* = \sqrt{g S h}
-%\end{equation}
 
 The entrainment flux $\dot{E}$ is (e.g. Hanson, 1990):
 
@@ -145,19 +101,6 @@ The shear velocity $u_*$ is obtained by acknowledging that $\tau_b = \rho g h S$
 \begin{equation}
 u_* = \sqrt{g S h}
 \end{equation}
-
-
-%The shear velocity $u_*$ is given by:
-%
-%\begin{equation}
-%u_* = \frac{\langle u \rangle \kappa}{\log{(h / z_o)} - 1}
-%\end{equation}
-%
-%\noindent where $\langle u \rangle$ is the depth-averaged flow velocity, $\kappa$ is Von Karman's constant ($\kappa = 0.408$) and $z_o = D_{50}/30$. The expression for $u_*$ is derived from the Law of the Wall equation for depth-averaged flow velocity:
-%
-%\begin{equation}
-%\langle u \rangle = \frac{u_*}{\kappa} \bigg[ \ln{\bigg(\frac{h}{z_o}\bigg)} - 1 \bigg]
-%\end{equation}
 
 \subsection{Deposition}
 
@@ -313,7 +256,7 @@ $C_B$         &   0.001   &     -        & Bed drag coefficient                 
 \end{tabular}
 \end{table}
 
-The default value of $D_{50} = 0.07 mm$ comes from Griffin et al., 2010.
+The default value of $D_{50} = 0.013 mm$ comes from Griffin et al., 2010.
 
 \end{document}
 

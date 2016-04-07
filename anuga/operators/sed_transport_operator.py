@@ -55,7 +55,7 @@ class Sed_transport_operator(Operator, object):
         self.porosity = 0.3
         self.c1 = 18.
         self.c2 = 0.4
-        self.mu = 1.0e-6
+        self.nu = 1.0e-6
         self.kappa = 0.408
         self.rho_s = 2650.
         self.rho_w = 1000.
@@ -93,7 +93,7 @@ class Sed_transport_operator(Operator, object):
                                 g * self.D50)
         
         self.settlingvelocity = ((self.R * g * self.D50**2) /
-                            ((self.c1 * self.mu) +
+                            ((self.c1 * self.nu) +
                             (0.75 * self.c2 * (self.R * g * self.D50**3)**0.5)))
           
         self.Ke = 0.2e-6 / self.criticalshear**0.5
