@@ -91,7 +91,7 @@ domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 
 from anuga.operators.vegetation_operator import Vegetation_operator
 
-op1 = Vegetation_operator(domain)
+veg_op = Vegetation_operator(domain)
 
 Quantity(domain, name='veg_diameter', register=True)
 domain.set_quantity('veg_diameter', 0.00064)
