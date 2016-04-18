@@ -44,14 +44,20 @@
 \begin{document}
 
 
-\title{Using the Sediment Transport and Vegetation Operators in ANUGA-Sed}
+\title{Using the Sediment Transport and Vegetation Operators in ANUGA}
 \author{Mariela Perignon}
 \date{\today}
 \maketitle
 
-This document describes the implementation of operators for sediment transport and vegetation drag in ANUGA-Sed, a derivative of the hydrodynamic model ANUGA. The sediment transport operator can currently only be used with a single processor. Making it parallel safe would require modifying, at minimum, the algorithm for calculating sediment flux. The vegetation drag operator should be parallel safe but has not been tested.
+This document describes the implementation and use of operators for sediment transport and vegetation drag. These operators are still preliminary and considered a test release.
 
-These operators use the equations presented in \citet{Simpson:2006aa} and \citet{davy2009fluvial} for calculating sediment transport and momentum sinks, and \citet{nepf1999drag} and \citet{kean2006form} for vegetation drag.
+The sediment transport operator can currently only be used with a single processor. Making it parallel safe would require modifying, at minimum, the algorithm for calculating sediment flux. The vegetation drag operator should be parallel safe but has not been tested with multiple processors.
+
+The mathematical framework behind these operattors is described in \citet{Simpson:2006aa} and \citet{davy2009fluvial} for calculating sediment transport and momentum sinks, and \citet{nepf1999drag} and \citet{kean2006form} for vegetation drag.
+
+\section{Installation}
+
+A script for installing these operators and the associated files is included in the download. Run the scripts to place the operator files in your existing installation of anuga.
 
 \section{Files}
 
