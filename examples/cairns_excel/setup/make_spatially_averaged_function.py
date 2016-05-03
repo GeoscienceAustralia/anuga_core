@@ -138,7 +138,8 @@ def make_spatially_averaged_function(q_function,
                         mesh_tri,
                         approx_grid_spacing=approx_grid_spacing)
                 else:
-                    pts = domain.centroid_coordinates[lb + j,:]
+                    # Careful to keep this a 2D array
+                    pts = domain.centroid_coordinates[lb + j,:, None].transpose()
 
                 px = scipy.hstack([px, pts[:, 0]])
 
