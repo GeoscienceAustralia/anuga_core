@@ -101,7 +101,7 @@ def make_spatially_averaged_function(q_function,
             for j in range(len(polygons_for_averaging)):
                 poly_j = polygons_for_averaging[j]
                 # poly_j can either be a polygon, or a filename
-                if type(x) is str
+                if type(x) is str:
                     poly_j = su.read_polygon(poly_j)
                 
                 points_in_poly_j = inside_polygon(domain.centroid_coordinates, poly_j)
