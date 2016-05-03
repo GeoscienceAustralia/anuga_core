@@ -178,7 +178,9 @@ From the source directory run ``python runtests.py``
     
 
 If you get an error message or weird result,
-please write to the `mailing list`_.
+please write to the `mailing list`_ or `create an issue on the github site 
+<https://github.com/GeoscienceAustralia/anuga_core/issues>`__.
+
 To make it easier for us to debug you problem, please include the following
 information:
 

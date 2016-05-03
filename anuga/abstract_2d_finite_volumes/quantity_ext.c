@@ -861,6 +861,48 @@ int _average_vertex_values(int N,
   return 0;
 }
 
+int _average_centroid_values(int N,
+			   long* vertex_value_indices,
+			   long* number_of_triangles_per_node,
+			   double* centroid_values,
+			   double* A) {
+  // Average centroid values to obtain one value per node
+
+  int i, index;
+  int volume_id;
+  int k = 0; //Track triangles touching each node
+  int current_node = 0;
+  double total = 0.0;
+
+  for (i=0; i<N; i++) {
+
+    // if (current_node == N) {
+    //   printf("Current node exceeding number of nodes (%d)", N);
+    //   return 1;
+    // }
+
+    index = vertex_value_indices[i];
+    k += 1;
+
+    volume_id = index / 3;
+    // vertex_id = index % 3;
+    // total += self.vertex_values[volume_id, vertex_id];
+    total += centroid_values[volume_id];
+
+    // printf("current_node=%d, index=%d, k=%d, total=%f\n", current_node, index, k, total);
+    if (number_of_triangles_per_node[current_node] == k) {
+      A[current_node] = total/k;
+
+      // Move on to next node
+      total = 0.0;
+      k = 0;
+      current_node += 1;
+    }
+  }
+
+  return 0;
+}
+
 // Note Padarn 27/11/12:
 // This function is used to set all the node values of a quantity
 // from a list of vertices and values at those vertices. Called in
@@ -1271,6 +1313,52 @@ PyObject *average_vertex_values(PyObject *self, PyObject *args) {
 	return Py_BuildValue("");
 }
 
+
+PyObject *average_centroid_values(PyObject *self, PyObject *args) {
+
+	PyArrayObject
+	  *vertex_value_indices,
+	  *number_of_triangles_per_node,
+	  *centroid_values,
+	  *A;
+
+
+	int N, err;
+
+	// Convert Python arguments to C
+	if (!PyArg_ParseTuple(args, "OOOO",
+			      &vertex_value_indices,
+			      &number_of_triangles_per_node,
+			      &centroid_values,
+			      &A)) {
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "quantity_ext.c: average_centroid_values could not parse input");
+	  return NULL;
+	}
+
+	// check that numpy array objects arrays are C contiguous memory
+	CHECK_C_CONTIG(vertex_value_indices);
+	CHECK_C_CONTIG(number_of_triangles_per_node);
+	CHECK_C_CONTIG(centroid_values);
+	CHECK_C_CONTIG(A);
+
+	N = vertex_value_indices -> dimensions[0];
+	// printf("Got parameters, N=%d\n", N);
+	err = _average_centroid_values(N,
+				     (long*) vertex_value_indices -> data,
+				     (long*) number_of_triangles_per_node -> data,
+				     (double*) centroid_values -> data,
+				     (double*) A -> data);
+
+	//printf("Error %d", err);
+	if (err != 0) {
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "average_centroid_values could not be computed");
+	  return NULL;
+	}
+
+	return Py_BuildValue("");
+}
 
 
 PyObject *extrapolate_from_gradient(PyObject *self, PyObject *args) {
@@ -2366,7 +2454,8 @@ static struct PyMethodDef MethodTable[] = {
 		interpolate_from_edges_to_vertices,
 		METH_VARARGS, "Print out"},
 	{"interpolate", interpolate, METH_VARARGS, "Print out"},
-	{"average_vertex_values", average_vertex_values, METH_VARARGS, "Print out"},		
+	{"average_vertex_values", average_vertex_values, METH_VARARGS, "Print out"},
+	{"average_centroid_values", average_centroid_values, METH_VARARGS, "Print out"},
 	{"set_vertex_values_c", set_vertex_values_c, METH_VARARGS, "Print out"},	
 {NULL, NULL, 0, NULL}   // sentinel
 };

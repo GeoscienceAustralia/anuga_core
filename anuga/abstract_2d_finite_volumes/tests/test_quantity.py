@@ -17,6 +17,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geometry.polygon import *
 
 import numpy as num
+import pprint
 
 
 #Aux for fit_interpolate.fit example
@@ -2507,7 +2508,6 @@ class Test_Quantity(unittest.TestCase):
 
 
 
-
     def test_get_values_2(self):
         """Different mesh (working with domain object) - also check centroids.
         """
@@ -2568,6 +2568,96 @@ class Test_Quantity(unittest.TestCase):
                             [0, 4, 2, 8, 6, 4]) 
 
 
+    def test_get_vertex_values(self):
+        """
+        get values based on triangle lists.
+        """
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
+
+        #Create basic mesh
+        points, vertices, boundary = rectangular(1, 3)
+
+        #print "points",points
+        #print "vertices",vertices
+        #print "boundary",boundary
+
+        #Create shallow water domain
+        domain = Generic_Domain(points, vertices, boundary)
+        #print "domain.number_of_elements ",domain.number_of_elements
+        quantity = Quantity(domain,[[0,0,0],[1,1,1],[2,2,2],[3,3,3],
+                                    [4,4,4],[5,5,5]])
+        
+
+
+
+        #======================================================
+        # Default: get_vertex_values just returns the individual 
+        # vertex values within each triangle
+        #======================================================
+        Q,V = quantity.get_vertex_values(xy=False)
+    
+
+        answer = [ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.,  3.,  3.,  3.,  4.,
+        4.,  4.,  5.,  5.,  5.]
+        
+        v_answer = num.array([[ 0,  1,  2],
+                              [ 3,  4,  5],
+                              [ 6,  7,  8],
+                              [ 9, 10, 11],
+                              [12, 13, 14],
+                              [15, 16, 17]])
+
+        
+        assert num.allclose(answer, Q)
+        assert num.allclose(v_answer, V)
+        
+
+        #======================================================
+        # Set output to be smooth, so get one unique value at
+        # each node. V now provides id to unique node id 
+        #======================================================
+        domain.smooth = True
+        
+        Q,V = quantity.get_vertex_values(xy=False)
+
+
+        answer = num.array([0.5,2,4,5,0,1,3,4.5])
+        
+        v_answer = num.array([[4, 5, 0],
+                              [1, 0, 5],
+                              [5, 6, 1],
+                              [2, 1, 6],
+                              [6, 7, 2],
+                              [3, 2, 7]])
+
+        assert num.allclose(answer, Q) 
+        assert num.allclose(v_answer, V)        
+        
+        
+        #======================================================
+        # Set output to be smooth, and if using discontinuous 
+        # algorithms, get one unique value at
+        # each node, based on centroid values.
+        # V now provides id to unique node id 
+        #======================================================       
+        domain.smooth = True
+        domain.using_discontinuous_elevation = True
+        
+        quantity.centroid_values[:] = num.array([100,101,102,103,104,105])
+        
+        Q,V = quantity.get_vertex_values(xy=False)
+
+        answer = answer + 100.0
+        
+        v_answer = num.array([[4, 5, 0],
+                              [1, 0, 5],
+                              [5, 6, 1],
+                              [2, 1, 6],
+                              [6, 7, 2],
+                              [3, 2, 7]])
+
+        assert num.allclose(answer, Q) 
+        assert num.allclose(v_answer, V)
 
     def test_get_interpolated_values(self):
 

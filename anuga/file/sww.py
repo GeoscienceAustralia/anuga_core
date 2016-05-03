@@ -1310,7 +1310,8 @@ def get_mesh_and_quantities_from_file(filename,
     Output:
         mesh - instance of class Interpolate
                (including mesh and interpolation functionality)
-        quantities - arrays with quantity values at each mesh node
+        quantities - arrays with quantity values at each mesh node or
+                    each triangle vertex. (depending on whethr stored as smooth or not)
         time - vector of stored timesteps
 
     This function is used by e.g.:
@@ -1360,7 +1361,9 @@ def get_mesh_and_quantities_from_file(filename,
     if fid.smoothing != 'Yes':
         nodes = nodes.tolist()
         triangles = triangles.tolist()
-        nodes, triangles, boundary = weed(nodes, triangles, boundary)
+        nodes, triangles, boundary = weed(nodes, triangles, boundary)        
+        
+        
 
     try:
         mesh = Mesh(nodes, triangles, boundary, geo_reference=geo_reference)
@@ -1368,6 +1371,8 @@ def get_mesh_and_quantities_from_file(filename,
         fid.close()
         msg = 'Domain could not be created: %s. "' % e
         raise DataDomainError, msg
+    
+    
 
     def gather(quantity):
             
@@ -1426,12 +1431,18 @@ def get_mesh_and_quantities_from_file(filename,
         
         return temp_uv
 
-        
     quantities = {}
-    quantities['elevation'] = gather(elevation)
-    quantities['stage'] = gather(stage)
-    quantities['xmomentum'] = gather(xmomentum)
-    quantities['ymomentum'] = gather(ymomentum)
+    
+    if fid.smoothing != 'Yes':
+        quantities['elevation'] = elevation[:]
+        quantities['stage'] = stage[:]
+        quantities['xmomentum'] = xmomentum[:]
+        quantities['ymomentum'] = ymomentum[:]           
+    else:
+        quantities['elevation'] = gather(elevation)
+        quantities['stage'] = gather(stage)
+        quantities['xmomentum'] = gather(xmomentum)
+        quantities['ymomentum'] = gather(ymomentum)
 
     fid.close()
 

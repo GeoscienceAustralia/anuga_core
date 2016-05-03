@@ -154,7 +154,98 @@ END CROSS-SECTIONS:
 
 
 
-    def test_sww2pts_centroids(self):
+    def test_sww2pts_centroids_1_5(self):
+        """Test that sww information can be converted correctly to pts data at specified coordinates
+        - in this case, the centroids.
+        """
+
+        import time, os
+        from anuga.file.netcdf import NetCDFFile
+        # Used for points that lie outside mesh
+        NODATA_value = 1758323
+
+        # Setup
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
+
+        # Create shallow water domain
+        domain = Domain(*rectangular(2, 2))
+        domain.set_flow_algorithm('1_5')
+
+        B = Transmissive_boundary(domain)
+        domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
+
+        domain.set_name('datatest_1_5')
+
+        ptsfile = domain.get_name() + '_elevation.pts'
+        swwfile = domain.get_name() + '.sww'
+
+        domain.set_datadir('.')
+        domain.format = 'sww'
+        domain.set_quantity('elevation', lambda x,y: -x-y)
+
+        domain.geo_reference = Geo_reference(56,308500,6189000)
+
+        sww = SWW_file(domain)
+        sww.store_connectivity()
+        sww.store_timestep()
+
+        #self.domain.tight_slope_limiters = 1
+        domain.evolve_to_end(finaltime = 0.01)
+        sww.store_timestep()
+
+        # Check contents in NetCDF
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
+
+        # Get the variables
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        elevation = fid.variables['elevation'][:]
+        time = fid.variables['time'][:]
+        stage = fid.variables['stage'][:]
+
+        volumes = fid.variables['volumes'][:]
+
+
+        # Invoke interpolation for vertex points       
+        points = num.concatenate( (x[:,num.newaxis],y[:,num.newaxis]), axis=1 )
+        points = num.ascontiguousarray(points)
+        sww2pts(domain.get_name() + '.sww',
+                quantity = 'elevation',
+                data_points = points,
+                NODATA_value = NODATA_value)
+        ref_point_values = elevation
+        point_values = Geospatial_data(ptsfile).get_attributes()
+        #print 'P', point_values
+        #print 'Ref', ref_point_values        
+        assert num.allclose(point_values, ref_point_values)        
+
+
+
+        # Invoke interpolation for centroids
+        points = domain.get_centroid_coordinates()
+        #print points
+        sww2pts(domain.get_name() + '.sww',
+                quantity = 'elevation',
+                data_points = points,
+                NODATA_value = NODATA_value)
+        
+        ref_point_values = [-0.5, -0.5, -1, -1, -1, -1, -1.5, -1.5]   #At centroids
+
+
+        point_values = Geospatial_data(ptsfile).get_attributes()
+        #print 'P', point_values
+        #print 'Ref', ref_point_values        
+        assert num.allclose(point_values, ref_point_values)        
+
+        fid.close()
+
+        #Cleanup
+        os.remove(sww.filename)
+        os.remove(ptsfile)
+
+
+
+    def test_sww2pts_centroids_de0(self):
         """Test that sww information can be converted correctly to pts data at specified coordinates
         - in this case, the centroids.
         """
@@ -173,7 +264,7 @@ END CROSS-SECTIONS:
         B = Transmissive_boundary(domain)
         domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
 
-        domain.set_name('datatest')
+        domain.set_name('datatest_de0')
 
         ptsfile = domain.get_name() + '_elevation.pts'
         swwfile = domain.get_name() + '.sww'
@@ -229,8 +320,8 @@ END CROSS-SECTIONS:
                 NODATA_value = NODATA_value)
         #ref_point_values = [-0.5, -0.5, -1, -1, -1, -1, -1.5, -1.5]   #At centroids
 
-        ref_point_values = [-0.72222223, -0.72222223, -1.00000002, -1.00000002,
-                            -1.00000002, -1.00000002, -1.27777779, -1.27777779]
+        ref_point_values = [-0.77777777, -0.77777777, -0.99999998, -0.99999998, 
+                             -0.99999998, -0.99999998, -1.22222221, -1.22222221]
         point_values = Geospatial_data(ptsfile).get_attributes()
         #print 'P', point_values
         #print 'Ref', ref_point_values        
@@ -242,10 +333,9 @@ END CROSS-SECTIONS:
         os.remove(sww.filename)
         os.remove(ptsfile)
 
-
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_2Pts, 'test_sww')
+    suite = unittest.makeSuite(Test_2Pts, 'test_')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)    
