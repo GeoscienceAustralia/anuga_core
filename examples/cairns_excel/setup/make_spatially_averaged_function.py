@@ -98,13 +98,20 @@ def make_spatially_averaged_function(q_function,
 
             averaging_flag = 0*xc
 
+            # Need georeferenced centroid coordinates to find which
+            # are in the polygon
+            xll = domain.geo_reference.xllcorner
+            yll = domain.geo_reference.yllcorner
+            centroid_coordinates_georef = numpy.vstack([xc, yc])
+
             for j in range(len(polygons_for_averaging)):
                 poly_j = polygons_for_averaging[j]
                 # poly_j can either be a polygon, or a filename
                 if type(poly_j) is str:
                     poly_j = su.read_polygon(poly_j)
                 
-                points_in_poly_j = inside_polygon(domain.centroid_coordinates, poly_j)
+                points_in_poly_j = inside_polygon(centroid_coordinates_georef, 
+                    poly_j)
                 
                 averaging_flag[points_in_poly_j] = 1
                 
