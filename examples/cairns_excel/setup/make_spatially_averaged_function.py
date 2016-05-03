@@ -102,7 +102,7 @@ def make_spatially_averaged_function(q_function,
             # are in the polygon
             xll = domain.geo_reference.xllcorner
             yll = domain.geo_reference.yllcorner
-            centroid_coordinates_georef = numpy.vstack([xc + xll, yc + yll])
+            centroid_coordinates_georef = numpy.vstack([xc + xll, yc + yll]).transpose()
 
             for j in range(len(polygons_for_averaging)):
                 poly_j = polygons_for_averaging[j]
