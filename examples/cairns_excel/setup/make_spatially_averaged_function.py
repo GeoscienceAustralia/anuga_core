@@ -136,7 +136,7 @@ def make_spatially_averaged_function(q_function,
                 # If we average this cell, then get a grid
                 # of points in it. Otherwise just get the centroid
                 # coordinates. 
-                if averaging_flag[lb + j] == 1:
+                if averaging_flag[j] == 1:
                     mesh_tri = \
                         domain.mesh.vertex_coordinates[
                             range(3 * j, 3 * j + 3), :].tolist()
