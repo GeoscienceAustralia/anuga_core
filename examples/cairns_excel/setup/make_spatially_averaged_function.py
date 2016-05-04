@@ -102,7 +102,7 @@ def make_spatially_averaged_function(q_function,
             # are in the polygon
             xll = domain.geo_reference.xllcorner
             yll = domain.geo_reference.yllcorner
-            centroid_coordinates_georef = numpy.vstack([xc + xll, yc + yll]).transpose()
+            centroid_coordinates_georef = scipy.vstack([xc + xll, yc + yll]).transpose()
 
             for j in range(len(polygons_for_averaging)):
                 poly_j = polygons_for_averaging[j]
@@ -176,3 +176,53 @@ def make_spatially_averaged_function(q_function,
         return(out)
 
     return elevation_setter
+
+# Quick test
+if __name__ == '__main__':
+    import anuga
+    
+    domain = anuga.rectangular_cross_domain(10, 5, len1=10.0, len2=5.0)
+   
+    # Define a topography function where the spatial scale of variation matches
+    # the scale of a mesh triangle
+    def topography(x, y):
+        return x%0.5
+
+    # Do 'averaging' where 2 <= y <= 3
+    polygon_for_averaging = [ [[0.0, 2.0], [0.0, 3.0], [10.0, 3.0], [10.0, 2.0]] ]
+
+    topography_smooth = make_spatially_averaged_function(topography, domain, 
+        approx_grid_spacing = [0.1, 0.1], averaging = 'min', 
+        polygons_for_averaging = polygon_for_averaging,
+        verbose=False)
+ 
+    domain.set_quantity('elevation', topography_smooth, location='centroids') # Use function for elevation
+
+    # Check that it worked
+
+    inpol = ((domain.centroid_coordinates[:,1] >= 2.0) * 
+         (domain.centroid_coordinates[:,1] <= 3.0)).nonzero()
+
+    outpol = ((domain.centroid_coordinates[:,1] <= 2.0) + 
+         (domain.centroid_coordinates[:,1] >= 3.0)).nonzero()
+
+    elv = domain.quantities['elevation'].centroid_values
+
+    # Check that the elevation in the 'averaging' band is very small
+    # (since we used 'min' averaging)
+    if elv[inpol].mean() < 1.0e-06:
+        print 'PASS'
+    else:
+        print 'FAIL'
+
+    # Check that no 'averaging' occurred outside the polygon
+    x = domain.centroid_coordinates[:,0]
+    if all(elv[outpol] - x[outpol]%0.5 == 0.0):
+        print 'PASS'
+    else:
+        print 'FAIL'
+
+    
+    
+
+    
