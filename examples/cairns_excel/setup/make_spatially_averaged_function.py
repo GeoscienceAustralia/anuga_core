@@ -146,7 +146,7 @@ def make_spatially_averaged_function(q_function,
                         approx_grid_spacing=approx_grid_spacing)
                 else:
                     # Careful to keep this a 2D array
-                    pts = domain.centroid_coordinates[lb + j,:, None].transpose()
+                    pts = domain.centroid_coordinates[j,:, None].transpose()
 
                 px = scipy.hstack([px, pts[:, 0]])
 
@@ -195,7 +195,7 @@ if __name__ == '__main__':
         approx_grid_spacing = [0.1, 0.1], averaging = 'min', 
         polygons_for_averaging = polygon_for_averaging,
         verbose=False)
- 
+    
     domain.set_quantity('elevation', topography_smooth, location='centroids') # Use function for elevation
 
     # Check that it worked
@@ -222,7 +222,27 @@ if __name__ == '__main__':
     else:
         print 'FAIL'
 
+    # Another test which can catch index errors   
+ 
+    topography_smooth2 = make_spatially_averaged_function(topography, domain, 
+        approx_grid_spacing = [0.1, 0.1], averaging = 'min', 
+        verbose=False)
     
+    domain.set_quantity('elevation', topography_smooth2, location='centroids')
+
+    # If we get to here, then the above function did not hit an index error.
+    print 'PASS' 
     
 
+    # Another test which can catch index errors   
+    # Make the polygon entirely outside of the domain!
+    polygon_for_averaging3 = [ [[0.0, -2.0], [0.0, -3.0], [10.0, -3.0], [10.0, -2.0]] ]
+    topography_smooth3 = make_spatially_averaged_function(topography, domain, 
+        approx_grid_spacing = [0.1, 0.1], averaging = 'min', 
+        verbose=False)
+    
+    domain.set_quantity('elevation', topography_smooth3, location='centroids')
+    
+    # If we get to here, then the above function did not hit an index error.
+    print 'PASS' 
     
