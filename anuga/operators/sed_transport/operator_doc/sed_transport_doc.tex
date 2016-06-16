@@ -49,19 +49,19 @@
 \date{\today}
 \maketitle
 
-This document describes the implementation and use of operators for sediment transport and vegetation drag. These operators are still preliminary and considered a test release.
+This document describes the implementation and use of operators for sediment transport and vegetation drag with ANUGA. Currently, the sediment transport operator can only be used with a single processor. Making it parallel safe would require modifying, at minimum, the algorithm for calculating sediment flux. The vegetation drag operator should be parallel safe but has not been tested with multiple processors.
 
-The sediment transport operator can currently only be used with a single processor. Making it parallel safe would require modifying, at minimum, the algorithm for calculating sediment flux. The vegetation drag operator should be parallel safe but has not been tested with multiple processors.
-
-The mathematical framework behind these operattors is described in \citet{Simpson:2006aa} and \citet{davy2009fluvial} for calculating sediment transport and momentum sinks, and \citet{nepf1999drag} and \citet{kean2006form} for vegetation drag.
+The mathematical framework behind the sediment transport operator is described in \citet{Simpson:2006aa} and \citet{davy2009fluvial}, and in \citet{nepf1999drag} and \citet{kean2006form} for vegetation drag.
 
 \section{Installation}
 
-A script for installing these operators and the associated files is included in the download. Run the scripts to place the operator files in your existing installation of anuga.
+Run the script \url{install.py} to copy the two operators into an existing installation of the ANUGA library. Python must be able to import the ANUGA library with the command \url{import anuga} for the install script to work.
 
+To keep the new operator scripts linked to their source GitHub repository, run \url{install.py} with the \url{--link} flag to create symbolic links within the ANUGA package to the files within the \url{anugaSed/operators} directory instead of creating stand-alone files. Any change to the operator scripts in the \url{anugaSed/operators} directory (either manually or from version control) will be visible to Python as if the files were in its packages directory.
+ 
 \section{Files}
 
-The two operators are located in the directory \url{operators}, this documentation is in the directiory \url{doc}, and example files for using these two operators are in the directory \url{examples/operators/sed}.
+The two operator scripts are located in the directory \url{operators}, this documentation is in the directory \url{docs}, and example files for using the two operators are in the directory \url{examples/operators/sed}.
 
 \section{Sediment Transport Operator}
 
@@ -204,7 +204,7 @@ The rate of change of elevation of the bed is a mass balance between material en
 
 \noindent where $z$ is the elevation of the bed above some datum, and $\phi$ is the porosity of the bed material.
 
-\subsubsection{Entrainment}:
+\subsubsection{Entrainment}
 
 The entrainment flux $\dot{E}$ is given by \citep[e.g.,][]{hanson1990surface}:
 
@@ -238,7 +238,7 @@ $\tau_b$ is the shear stress that the flow applies on the bed:
 u_* = \sqrt{g S h}
 \end{equation}
 
-\subsubsection{Aggradation}:
+\subsubsection{Aggradation}
 
 Following \citet{davy2009fluvial}, the rate of aggradation $\dot{D}$ can be written as:
 
@@ -256,7 +256,7 @@ v_s = \frac{R \: g \: {D_{50}}^2}{C_1 \, \nu + (0.75 \, C_2 \, R \, g \, {D_{50}
 
 \noindent where $C_1$ and $C_2$ are constants related to the shape and roughness of the particles and $\nu$ is the kinematic viscosity of water. 
 
-\paragraph{Selecting a value for $d^*$}
+\paragraph{Selecting a value for $d^*$:}
 
 Calculating $d^*$ for a natural river requires knowing both the velocity profile and sediment concentration profile in the flow. \citet{davy2009fluvial} derive an expression for $d^*$ from the Rouse-Vanoni profile and the assumption that the sediment discharge of the flow $q_s$ is the integral of the concentration and flow velocity with depth:
 
@@ -314,9 +314,9 @@ The argument \url{register=True} is required for the quantities to be available 
 
 \subsection{Mathematical Background and Assumptions}
 
-The drag that vegetation imparts on the flow can dramatically lower the flow velocity and reduce the boundary shear stress, limiting erosion of the surface and potentially causing particles in transport to settle from suspension (Li and Shen, 1973; Pasche and Rouve, 1985; L?opez and Garc??a, 1998; Jordanova and James, 2003). A frequently used method for modeling vegetation uses a modified Manning?s equation to account for the increased roughness seen by the flow (e.g. Guardo and Tomasello, 1995). This approach does not consider the drag imparted by vegetation on the body of the flow and the quantifiable differences between various vegetation types (e.g. Kadlec, 1990). To counter these problems, other approaches treat vegetation as objects, most often cylinders, that flow must go around (e.g. Burke and Stolzenbach, 1983; Nepf , 1999).
+The drag that vegetation imparts on the flow can dramatically lower the flow velocity and reduce the boundary shear stress, limiting erosion of the surface and potentially causing particles in transport to settle from suspension \citep{li1973effect,pasche1985overbank,lopez1998open,jordanova2003experimental}. A frequently used method for modeling vegetation uses a modified Manning's equation to account for the increased roughness seen by the flow \citep[e.g.,][]{guardo1995hydrodynamic}. This approach does not consider the drag imparted by vegetation on the body of the flow and the quantifiable differences between various vegetation types \citep[e.g.,][]{kadlec1990overland}. To counter these problems, other approaches treat vegetation as objects, most often cylinders, that flow must go around \citep[e.g.,][]{burke1982free,nepf1999drag}.
 
-We follow a similar approach by Kean and Smith (2004) to calculate the drag force FD that vegetation imparts on the flow:
+We follow a similar approach by \citet{kean2004flow} to calculate the drag force $F_D$ that vegetation imparts on the flow:
 
 \begin{equation}
 F_D = \frac{1}{2} \rho \overline{C_D} \alpha {U_{ref}}^2
@@ -334,13 +334,13 @@ U = U_{ref} - F_D \Delta t
 
 \subsection{Drag coefficient}
 
-Following Nepf (1999), we expand the cylinder-drag vegetation model by defining the effects of stem population density on drag coefficient. Nepf (1999) presents a force balance that is used to solve for the bulk drag coefficient $\overline{C_D}$:
+Following \citet{nepf1999drag}, we expand the cylinder-drag vegetation model by defining the effects of stem population density on drag coefficient. \citet{nepf1999drag} presents a force balance that is used to solve for the bulk drag coefficient $\overline{C_D}$:
 
 \begin{equation}
 (1 - a d) C_B U^2 + \frac{1}{2} \overline{C_D} a d \big(\frac{h}{d}\big) U^2 = g h \frac{\partial h}{\partial x}
 \end{equation}
 
-\noindent where $C_B$ is the bed drag coefficient [e.g. Munson et al., 1990, p. 673]. The term $\frac{\partial h}{\partial x}$ depends on $a d$. We selected the value of this term at multiple points in the range of valid values of $a d$ such that they matched the values of $\overline{C_D}$ in Figure 6 of Nepf (1999) and fit a cubic equation to this term. Solving the force balance above with this fit and quantities listed for Nepf (1999) experiments, we found a relationship between $\overline{C_D}$ and $a d$ that matches the curve in Figure 6 of Nepf (1999):
+\noindent where $C_B$ is the bed drag coefficient The term $\frac{\partial h}{\partial x}$ depends on $a d$. We selected the value of this term at multiple points in the range of valid values of $a d$ such that they matched the values of $\overline{C_D}$ in Figure 6 of \citet{nepf1999drag} and fit a cubic equation to this term. Solving the force balance above with this fit and quantities listed for \citet{nepf1999drag} experiments, we found a relationship between $\overline{C_D}$ and $a d$ that matches the curve in Figure 6 of \citet{nepf1999drag}:
 
 \[
  \overline{C_D} = 
@@ -356,7 +356,9 @@ The value of the drag coefficient $\overline{C_D}$ is calculated for every cell 
 
 By default, ANUGA assumed that fluid is inviscid and does not include kinematic viscosity. We incorporate kinematic viscosity only for vegetated systems using the formulations described here. We did not include this term for unvegetated channels with the assumption that the contribution was minimal.
 
-"In addition to affecting the mean velocity, vegetation also affects the turbulent intensity and the diffusion. The conversion of mean kinetic energy to turbulent kinetic energy wihin stem wakes augments the turbulence intensity, and because wake turbulence is generated at the stem scale, the dominant turbulent lengthscale is shifted downward relative to unvegetated, open-channel conditions [Nepf 1997]". The formulation of Nepf (1999) for turbulent diffusivity within vegetated flows also incorporates a term for mechanical diffusivity, caused by the routing of parcels of flow along different paths between stems. We start by calculating a turbulence intensity that is given by the balance of the work input for wake production and the viscous dissipation rate. The work input for wake production is given by:
+Vegetation drag simultaneously reduces the mean velocity of the flow and modifies the turbulent intensity and diffusivity in the water column, shifting the turbulent lengthscale relative to unvegetated flow conditions \citep{nepf1997model}. The formulation of \citet{nepf1997model} and \citet{nepf1999drag} for turbulent diffusivity within vegetated flows also accounts for mechanical diffusivity caused by the routing of parcels of flow along different paths between stems.
+
+We start by calculating a turbulence intensity that is given by the balance of the work input for wake production and the viscous dissipation rate. The work input for wake production is given by:
 
 \begin{equation}
 Pw = \frac{1}{2}\overline{C_D} \alpha U_{ref}^2
@@ -388,7 +390,9 @@ The total diffusivity $D$ for a vegetated channel, including both turbulent and 
 D \sim k^{1/2} \ell + [ad]Ud
 \end{equation}
 
-\noindent where $\ell$ is the mixing length scale. The mixing length scale is assumed to be equal to the flow depth in unvegetated channels ($ad = 0$). "If only sparse vegetation is present in the flow, that is, vegetation with spacing $\Delta S > h$, where $\Delta S$ is the stem spacing, the channel-scale eddies persist and continue to dminate the diffusive transport. Thus for sparse vegetation the dominant mixing length is still equal to the flow depth. For dense populations $\Delta S < h$, the stems break apart channel scale eddies, reducing the mixing-length scale, until at $ad > 0.01$, $\ell \sim d$ [Nepf et al., 1997]. This model assumes that $\ell$ varies linearly from $h$ to $d$ between these limits."
+\noindent where $\ell$ is the mixing length scale. The mixing length scale is assumed to be equal to the flow depth in unvegetated channels ($ad = 0$).
+
+The effects of vegetation on turbulence and diffusive transport are dependent on the density of vegetation on the path of the flow. When the stem spacing $\Delta S$ is greater than the flow depth $h$, the turbulent lengthscale is still equal to the flow depth and channel-scale eddies continue to dominate diffusive transport. When the stem spacing $\Delta S$ is smaller than the flow depth $h$, the dominant mixing length drops until it is equal to the stem diameter $d$ at $ad > 0.01$ \citep{nepf1997model}. This model assumes that $\ell$ varies linearly between $h$ to $d$.
 
 The model for mixing length looks like:
 
@@ -408,7 +412,7 @@ K_\ell = \frac{d-h}{0.01 - (d/h)^2}
 \end{equation}
 
 
-\bibliography{/Users/mari/Dropbox/Papers/library}
+\bibliography{/Users/mariela/Dropbox/Papers/library}
 \bibliographystyle{agu08}
 
 \end{document}
@@ -595,7 +599,7 @@ l = h \: -  \: \frac{h - h(ad - 0.005)}{0.005}
 \end{description}
 
 
-\bibliography{/Users/mari/Dropbox/Papers/library}
+\bibliography{/Users/mariela/Dropbox/Papers/library}
 \bibliographystyle{agu08}
 
 \end{document}
