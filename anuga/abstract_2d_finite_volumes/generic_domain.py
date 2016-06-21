@@ -2247,11 +2247,14 @@ class Generic_Domain:
             # Where is Q.semi_implicit_update reset?
             # It is reset in quantity_ext.c
 
-    def update_ghosts(self):
+    def update_ghosts(self, quantities=None):
         # We must send the information from the full cells and
         # receive the information for the ghost cells
         # We have a list with ghosts expecting updates
-
+        
+        if quantities is None:
+            quantities = self.conserved_quantities
+            
         #Update of ghost cells
         iproc = self.processor
         if self.full_send_dict.has_key(iproc):
@@ -2262,7 +2265,7 @@ class Generic_Domain:
             # now store ghost as local id, global id, value
             Idg = self.ghost_recv_dict[iproc][0]
 
-            for i, q in enumerate(self.conserved_quantities):
+            for i, q in enumerate(quantities):
                 Q_cv =  self.quantities[q].centroid_values
                 num.put(Q_cv, Idg, num.take(Q_cv, Idf, axis=0))
 
