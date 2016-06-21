@@ -71,12 +71,12 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
     extra_setuptools_args = dict(
         zip_safe=False,  # the package can run out of an .egg file
         include_package_data=True,
-		install_requires=['numpy', 
-                          'scipy', 
-                          'netcdf4',
-                          'matplotlib',
-                          'gdal',
-                          'nose']
+# 		install_requires=['numpy', 
+#                           'scipy', 
+#                           'netcdf4',
+#                           'matplotlib',
+#                           'gdal',
+#                           'nose']
     )
 else:
     extra_setuptools_args = dict()

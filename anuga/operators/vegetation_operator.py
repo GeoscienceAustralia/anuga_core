@@ -35,6 +35,10 @@ class Vegetation_operator(Operator, object):
         try:
             # the value in quantity 'veg_diameter' should be the stem diameter in meters
             self.veg_diameter = self.domain.quantities['veg_diameter'].centroid_values
+            self.veg_diameter = self.veg_diameter * 0.00104725
+            self.veg_diameter[self.veg_diameter < 0] = 0
+            self.domain.quantities['veg_diameter'].\
+            	set_values(self.veg_diameter, location = 'centroids')
         except:
             self.veg_diameter = None
             
@@ -65,12 +69,18 @@ class Vegetation_operator(Operator, object):
         indices == [], then don't apply anywhere
         indices == None, then apply everywhere
         otherwise apply for the specific indices
+        
+        
         """
         
         self.dt = self.get_timestep()
         
         if self.veg_diameter is None:
             self.veg_diameter = self.domain.quantities['veg_diameter'].centroid_values
+            self.veg_diameter = self.veg_diameter * 0.00104725
+            self.veg_diameter[self.veg_diameter < 0] = 0
+            self.domain.quantities['veg_diameter'].\
+            	set_values(self.veg_diameter, location = 'centroids')
             
         if self.veg_spacing is None:
             self.veg_spacing = self.domain.quantities['veg_spacing'].centroid_values
@@ -80,21 +90,24 @@ class Vegetation_operator(Operator, object):
             self.veg = self.veg_diameter / self.veg_spacing**2
             self.ad = self.veg * self.veg_diameter
             
-            
         if self.Cd is None:
             self.calculate_drag_coefficient()
             
         self.calculate_diffusivity()
+        
+        
+        dry_cells = self.depth < 0.05
             
     
         xvel = self.xmom / (self.depth + epsilon)
-        yvel = self.ymom / (self.depth + epsilon)  
+        yvel = self.ymom / (self.depth + epsilon)
         
         Fd_x = 0.5 * self.Cd * self.veg * xvel**2
         Fd_y = 0.5 * self.Cd * self.veg * yvel**2 
         
-        xvel_v = xvel - Fd_x * self.dt
-        yvel_v = yvel - Fd_y * self.dt 
+        xvel_v = xvel - num.sign(xvel) * Fd_x * self.dt
+        yvel_v = yvel - num.sign(yvel) * Fd_y * self.dt 
+
         
         self.domain.quantities['xmomentum'].\
             set_values(xvel_v * self.depth, location = 'centroids')
