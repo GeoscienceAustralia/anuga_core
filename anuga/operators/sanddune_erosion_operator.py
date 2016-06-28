@@ -78,11 +78,14 @@ Version       1.00 October 2015
 
 from anuga.operators.base_operator import Operator
 from anuga import Region
+
+import math
+import numpy as num
 import pdb
 
 
 
-class sanddune_erosion_operator(Operator, Region)  :
+class Sanddune_erosion_operator(Operator, Region)  :
     
     def __init__(self,
                  domain,
@@ -92,6 +95,7 @@ class sanddune_erosion_operator(Operator, Region)  :
                  polygon=None,
                  center=None,
                  radius=None,
+                 Ra = 34.0,
                  description = None,
                  label = None,
                  logging = False,
@@ -111,10 +115,41 @@ class sanddune_erosion_operator(Operator, Region)  :
                         radius=radius,
                         verbose=verbose)
 
+        #-------------------------------------------
+        # set some sand and water properties
+        #-------------------------------------------
+        self.Wd       = 1000       # water mass density kg/m3
+        self.Sd       = 1800       # sediment mass density kg/m3
+        self.G        = 9.8        # acceleration due to gravity m/sec/sec
+        self.n        = 0.030      # sand mannings n - mostly bare with undulations
+        self.Tau_crit = 2.1        # critical (detachment) bed shear stress Pa
+        self.Kd       = 0.025      # detachment factor Froelich Table 2 Kg/sec/m2/Pa
+        self.Ra       = Ra         # Repose angle in degrees for dry sand (note wet varies 30-45)
+        
+        
+
         #------------------------------------------
         # Local variables
         #------------------------------------------
         self.base = base
+
+        if self.indices is not []:
+
+            ind = self.indices
+            
+            neighbours = self.domain.surrogate_neighbours
+            
+            self.neighbourindices = neighbours[ind]           # get the neighbour Indices for each triangle in the erosion zone(s)
+                 
+            self.n0 = self.neighbourindices[:,0]              # separate into three lists
+            self.n1 = self.neighbourindices[:,1]
+            self.n2 = self.neighbourindices[:,2] 
+                
+            k = self.n0.shape[0]                              # Erosion poly lEN - num of triangles in poly  
+            
+            self.e = num.zeros((k,3))                         # create elev array k triangles, 3 neighbour elev
+
+            self.ident  = num.arange(k)                       # ident is array 0.. k-1, step 1      
 
        
     def __call__(self):
@@ -126,24 +161,20 @@ class sanddune_erosion_operator(Operator, Region)  :
         otherwise apply for the specific indices within the erosion area polygon
         """
         
-        import math
-        import numpy as num
-
         updated = True             # flag called OK
         
         if self.indices is not []:     # empty list no polygon - return
-        
-            #-------------------------------------------
-            # set some sand and water properties
-            #-------------------------------------------
-            Wd       = 1000       # water mass density kg/m3
-            Sd       = 1800       # sediment mass density kg/m3
-            G        = 9.8        # acceleration due to gravity m/sec/sec
-            n        = 0.030      # sand mannings n - mostly bare with undulations
-            Tau_crit = 2.1        # critical (detachment) bed shear stress Pa
-            Kd       = 0.025      # detachment factor Froelich Table 2 Kg/sec/m2/Pa
-            Ra       = 34.0       # Repose angle in degrees for dry sand (note wet varies 30-45)
-            Rs       = math.tan(Ra*math.pi/180)    # Repose slope mV/mH
+
+
+            Wd       = self.Wd
+            Sd       = self.Sd
+            G        = self.G
+            n        = self.n
+            Tau_crit = self.Tau_crit
+            Kd       = self.Kd
+            Ra       = self.Ra
+            Rs       = math.tan(self.Ra*math.pi/180)    # Repose slope mV/mH
+
     
             #-------------------------------------------
             # get some useful model parameters
@@ -158,42 +189,53 @@ class sanddune_erosion_operator(Operator, Region)  :
             #-----------------------------------------------------------------------------------------
             
                                                                               
-            ind = self.indices                                                   # indices of triangles in polygon
+            ind = self.indices             # indices of triangles in polygon
+
+            stage_c_ind = self.stage_c[ind]
+            elev_c_ind  = self.elev_c[ind]
+            xmom_c_ind  = self.xmom_c[ind]
+            ymom_c_ind  = self.ymom_c[ind]
+            base_ind    = self.base[ind]
                         
             # store previous timestep centroid heights(depths) for later use
-            h = self.stage_c[ind] - self.elev_c[ind]    
-            
-            m = num.sqrt(self.xmom_c[ind]**2 + self.ymom_c[ind]**2)              # abs Momentum m2/sec vector
-            d =(self.stage_c[ind]-self.elev_c[ind])                              # Depth meters vector
-                    
+            d = stage_c_ind - elev_c_ind    
+
+            m2 = xmom_c_ind**2 + ymom_c_ind**2              # abs Momentum m2/sec vector
+
             # compute bed shear stress Pa
-            Tau_bed  = Wd*G*(n**2)*(m**2)/((d**2.333)+ 0.000001)                 # refer Froelich 2002 vector
-            
+            Tau_bed  = (Wd*G*(n**2))*(m2)/((d**2.333) + 0.000001)                 # refer Froelich 2002 vector
+
             # compute de (m) elevation change increment due to scour during timestep
-            de = (Kd*(Tau_bed-Tau_crit)/Sd) *dt                                  # refer Froelich 2002 vector
-            
+            de = (Kd/Sd*dt)*(Tau_bed-Tau_crit)                                  # refer Froelich 2002 vector
+
             # no scour though if Tau_bed < Tau_crit ie if de is <= 0
             de = num.where(de > 0.0, de, 0.0)                                    # de=de whenever de>0 vector
-                            
+
             # Also ensure we don't erode below the base surface level  
-            self.elev_c[ind] = num.maximum(self.elev_c[ind] - de, num.minimum(self.elev_c[ind],self.base[ind]) )   
+            elev_c_ind = num.maximum(elev_c_ind - de, base_ind )   
             
             #-------------------------------------------------------------------------------------------
             # Reduce triangles elevations in any area where erosion has created unstable face slopes, so  
             # that the final face slope lies at or about the angle of repose. This only approximates the 
     		# collapse process as slopes are CG to CG and not specifically oriented to the dip angle.
             #--------------------------------------------------------------------------------------------
-            neighbours = self.domain.surrogate_neighbours
+            #neighbours = self.domain.surrogate_neighbours
             
-            neighbourindices = neighbours[ind]           # get the neighbour Indices for each triangle in the erosion zone(s)
+            #neighbourindices = neighbours[ind]           # get the neighbour Indices for each triangle in the erosion zone(s)
                  
-            n0 = neighbourindices[:,0]                   # separate into three lists
-            n1 = neighbourindices[:,1]
-            n2 = neighbourindices[:,2] 
+            #n0 = neighbourindices[:,0]                   # separate into three lists
+            #n1 = neighbourindices[:,1]
+            #n2 = neighbourindices[:,2] 
                 
-            k = n0.shape[0]                              # Erosion poly lEN - num of triangles in poly  
+            #k = n0.shape[0]                              # Erosion poly lEN - num of triangles in poly  
             
-            e = num.zeros((k,3))                         # create elev array k triangles, 3 neighbour elev
+            #e = num.zeros((k,3))                         # create elev array k triangles, 3 neighbour elev
+
+            n0 = self.n0
+            n1 = self.n1
+            n2 = self.n2
+
+            e = self.e
                 
             e[:,0] = self.elev_c[n0]                     # get the elev of each neighbours CG
             e[:,1] = self.elev_c[n1]
@@ -201,29 +243,29 @@ class sanddune_erosion_operator(Operator, Region)  :
                 
             minid0 = num.argmin(e, axis=1)               # get indices of min elev for each triangles neighbours
             
-            ident  = num.arange(k)                       # ident is array 0.. k-1, step 1
-                
-            n0ind = neighbourindices[ident,minid0]       # store the neighbour indices in order lowest elev first (n0)
+            n0ind = self.neighbourindices[self.ident,minid0]       # store the neighbour indices in order lowest elev first (n0)
             
         
             # compute the plan distance lxy from each triangles CG to the lowest neighbours CG 
             # Note when partitioned the neighbour indices can return the traget triangles index if on a ghost boundary so
-            # need to deal with lxy = 0 situations         
+            # need to deal with lxy = 0 situations
+                     
             lxy = num.sqrt((self.coord_c[ind][:,0]-self.coord_c[n0ind][:,0])**2 + (self.coord_c[ind][:,1]-self.coord_c[n0ind][:,1])**2 )
             
             # compute the slope between each triangle and its lowest neighbour (CG to CG) from neighbour to current triangle 
             # Note when partitioned the neighbour indices can return the current triangles index if on a ghost boundary so
             # need to deal with lxy = 0 situations
-            with num.errstate(divide='ignore', invalid='ignore'):            
-                s = num.where(lxy>0.0, (self.elev_c[ind]-self.elev_c[n0ind])/lxy, 0.0)   # positive if current is above lowest neighbour
-            # Lower the current triangle to be at the angle of repose from the lowest neighbour if s > repose but not below base
-            self.elev_c[ind] = num.where(s > Rs, num.maximum(self.elev_c[n0ind]+(Rs*lxy), self.base[ind]), self.elev_c[ind])       
+
+            elev_c_n0ind = self.elev_c[n0ind]
             
-    		
-                    
+            with num.errstate(divide='ignore', invalid='ignore'):            
+                s = num.where(lxy>0.0, (elev_c_ind- elev_c_n0ind)/lxy, 0.0)   # positive if current is above lowest neighbour
+            # Lower the current triangle to be at the angle of repose from the lowest neighbour if s > repose but not below base
+            elev_c_ind = num.where(s > Rs, num.maximum(elev_c_n0ind+(Rs*lxy), base_ind), elev_c_ind)       
+            
           
             # once all triangles processed for erosion and collapse add back height to maintain volumes correctly
-            self.stage_c[ind] = self.elev_c[ind] + h
+            self.stage_c[ind] = elev_c_ind + d
             
         self.domain.update_ghosts(['elevation', 'stage'])
               
