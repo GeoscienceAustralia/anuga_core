@@ -212,7 +212,7 @@ class Sanddune_erosion_operator(Operator, Region)  :
             de = num.where(de > 0.0, de, 0.0)                                    # de=de whenever de>0 vector
 
             # Also ensure we don't erode below the base surface level  
-            elev_c_ind = num.maximum(elev_c_ind - de, base_ind )   
+            self.elev_c[ind] = num.maximum(elev_c_ind - de, base_ind )   
             
             #-------------------------------------------------------------------------------------------
             # Reduce triangles elevations in any area where erosion has created unstable face slopes, so  
@@ -256,16 +256,18 @@ class Sanddune_erosion_operator(Operator, Region)  :
             # Note when partitioned the neighbour indices can return the current triangles index if on a ghost boundary so
             # need to deal with lxy = 0 situations
 
+            # aliases to avoid some lookups
             elev_c_n0ind = self.elev_c[n0ind]
+            elev_c_ind  = self.elev_c[ind]
             
             with num.errstate(divide='ignore', invalid='ignore'):            
                 s = num.where(lxy>0.0, (elev_c_ind- elev_c_n0ind)/lxy, 0.0)   # positive if current is above lowest neighbour
             # Lower the current triangle to be at the angle of repose from the lowest neighbour if s > repose but not below base
-            elev_c_ind = num.where(s > Rs, num.maximum(elev_c_n0ind+(Rs*lxy), base_ind), elev_c_ind)       
+            self.elev_c[ind] = num.where(s > Rs, num.maximum(elev_c_n0ind+(Rs*lxy), base_ind), elev_c_ind)       
             
           
             # once all triangles processed for erosion and collapse add back height to maintain volumes correctly
-            self.stage_c[ind] = elev_c_ind + d
+            self.stage_c[ind] = self.elev_c[ind] + d
             
         self.domain.update_ghosts(['elevation', 'stage'])
               

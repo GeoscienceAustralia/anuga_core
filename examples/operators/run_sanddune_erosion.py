@@ -144,14 +144,19 @@ if myid == 0:
     print '>>>>> Setting up Erosion Area(s) to test...'
 
 # power up the erosion operator
-from sanddune_erosion_operatorV2SR import sanddune_erosion_operator
+from anuga import Sanddune_erosion_operator
 
 # assign ns base elevations to partitioned domains
 nsbase_elev_c = domain.get_quantity('nsbase_elevation').get_values(location='centroids')
 
+poly1ind = (Region(domain, polygon=polygon1)).indices
+poly2ind = (Region(domain, polygon=polygon2)).indices
+indices_union = list(set(poly1ind) | set(poly2ind))
+
 # setup and create operator within polys setting the scour base elevations for each poly
-op1 = sanddune_erosion_operator(domain, base=nsbase_elev_c, polygon=polygon1)   # first notched dune
-op2 = sanddune_erosion_operator(domain, base=nsbase_elev_c, polygon=polygon2)   # second plain dune
+op0 = Sanddune_erosion_operator(domain, base=nsbase_elev_c, indices=indices_union, Ra=45)   # both dunes
+#op1 = sanddune_erosion_operator(domain, base=nsbase_elev_c, polygon=polygon1)   # first notched dune
+#op2 = sanddune_erosion_operator(domain, base=nsbase_elev_c, polygon=polygon2)   # second plain dune
 
 
 
