@@ -488,9 +488,13 @@ def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=Fals
 
     for i in range(n_steps):
         fido.variables['time'][i] = times[i]
+
         
     for q in dynamic_quantities:
         q_values = out_d_quantities[q]
+        if verbose:
+            print '  Writing quantity: ',q
+            
         for i in range(n_steps):
             fido.variables[q][i] = q_values[i]
         
@@ -504,6 +508,9 @@ def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=Fals
             fido.variables[q + Write_sww.RANGE][1] = q_values_max        
 
     for q in dynamic_c_quantities:
+        if verbose:
+            print '  Writing quantity: ',q
+            
         q_values = out_d_c_quantities[q]
         for i in range(n_steps):
             fido.variables[q][i] = q_values[i]
@@ -516,7 +523,7 @@ def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=Fals
     #print g_y
 
     #print g_volumes
-    
+
     fido.close()
     
     if delete_old:
@@ -731,6 +738,9 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
 
     for q in (dynamic_quantities + dynamic_c_quantities):
 
+        if verbose:
+            print '  Writing quantity: ',q
+                    
         # Initialise q_values with zeros
         if q in dynamic_quantities:
             q_values = num.zeros((n_steps, 3*number_of_global_triangles), num.float32)
