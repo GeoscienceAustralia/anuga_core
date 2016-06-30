@@ -1,16 +1,18 @@
-"""sand dune erosion test                          run_sanddune_erosion.py V2
+"""sand dune erosion test                          run_sanddune_erosion.py
 
 This tests the sanddune_erosion operator confirming that; 
     1. flow creates erosion when bed shear > critical and that erosion rates 
-  are higher in higher bed shear zones (typically higher velocity areas).
-  2. that erosion is augmented by collapse of the sand face whenever
-  erosion creates slopes > the angle of repose.  
-  this process leads to widening of the notch (laterally)and head like recession of 
-  the main scour zone  as scour acts to steepen the longitudinal 
-  bed, triggering collapse of the steep bed and reshaping back 
-  to the angle of repose).
-  3. that the operator can handle multiple erosion polygons with different base levels
-   
+	are higher in higher bed shear zones (typically higher velocity areas).
+	2. that erosion is augmented by collapse of the sand face whenever
+	erosion creates slopes > the angle of repose.  
+	this process leads to widening of the notch (laterally)and head
+    like recession of 
+	the main scour zone  as scour acts to steepen the longitudinal 
+	bed, triggering collapse of the steep bed and reshaping back 
+	to the angle of repose).
+	3. that the operator can handle multiple erosion polygons with
+    different base levels
+	 
 """
 
 #------------------------------------------------------------------------------
@@ -30,7 +32,7 @@ def topography(x,y):
     print ' Creating topography....'
     
     z = 0.0*(x)                             # horizontal plane 
-      
+
     N = len(x)
    
     for i in range(N):
@@ -41,8 +43,10 @@ def topography(x,y):
             z[i] +=  1.4                   # Crest of Embankment at +1.4
         if 13.0 <= x[i] < 14.4:
             z[i] +=  1.4-1.0*(x[i] -13.0)  # Sloping D/S Face at 1:1
-      # add notch in crest 1m wide by nom 300 deep
-      # note sides are near vertical so will collapse back to repose even without erosion
+
+        # add notch in crest 1m wide by nom 300 deep
+        # note sides are near vertical so will collapse back to repose even without erosion
+
         if 11.7 <= x[i] <= 13.3 and 2.0 <= y[i] <= 3.0:
             z[i] =  1.1                   # add 300 Notch in Embankment crest  
         # second lower plain sand dune across Channel
@@ -140,6 +144,7 @@ domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 #------------------------------------------------------------------------------
 # Setup sanddune erosion operator 
 #------------------------------------------------------------------------------
+
 if myid == 0:
     print '>>>>> Setting up Erosion Area(s) to test...'
 
@@ -157,7 +162,6 @@ indices_union = list(set(poly1ind) | set(poly2ind))
 op0 = Sanddune_erosion_operator(domain, base=nsbase_elev_c, indices=indices_union, Ra=45)   # both dunes
 #op1 = sanddune_erosion_operator(domain, base=nsbase_elev_c, polygon=polygon1)   # first notched dune
 #op2 = sanddune_erosion_operator(domain, base=nsbase_elev_c, polygon=polygon2)   # second plain dune
-
 
 
 #------------------------------------------------------------------------------

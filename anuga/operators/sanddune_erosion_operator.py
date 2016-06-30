@@ -1,4 +1,6 @@
+
 """ -----------------------------------------------sanddune_erosion_operator V2
+
 
 This script provides an Anuga operator that simulates the removal of sand
 associated with over-topping of a sand dune by a tsunami. It is provided to 
@@ -18,8 +20,10 @@ Mo-i-Rana Norway, 2002
 
 Erosional parameters of relevance extracted from the above are;
 
+
 Bed shear  Tau_bed = Wd*G*(n**2)* (m**2) / (d**2.333) Pa (m is absolute momentum)
 Where 
+
 Wd = water mass density,               (1000 kg/m3)
 Sd = sediment mass density             ( 1800 kg/m3)
 G = Accel due to gravity,              (9.8 m/sec/sec)
@@ -39,6 +43,7 @@ operator is specific to the erosion of a sand dune.
 The second process simulated by this operator is the collapse, fluidisation and 
 removal of sand from the dune system as a consequence of the above (vertically) 
 aligned erosion process creating face slopes that would be greater than the
+
 angle of repose.  This is applied as a separate check after the erosion computations 
 for a particular timestep have been completed and a new eroded surface computed. 
 In this second process, each triangle within the specified erosion zone is checked 
@@ -69,11 +74,13 @@ results should not be used where full simulation of the real world process is th
 
 
 
+
 Script Author E Rigby, ted.rigby@rienco.com.au 
 Version       1.00 October 2015
               2.00 June 2016 code modified  to lower triangle CG if lowest neighbour was 
 			                 below angle of repose rather than alter neighbour levels if
 							 highest was above angle of repose.
+=======
 """
 
 from anuga.operators.base_operator import Operator
@@ -81,6 +88,7 @@ from anuga import Region
 
 import math
 import numpy as num
+
 import pdb
 
 
@@ -126,7 +134,6 @@ class Sanddune_erosion_operator(Operator, Region)  :
         self.Kd       = 0.025      # detachment factor Froelich Table 2 Kg/sec/m2/Pa
         self.Ra       = Ra         # Repose angle in degrees for dry sand (note wet varies 30-45)
         
-        
 
         #------------------------------------------
         # Local variables
@@ -150,6 +157,7 @@ class Sanddune_erosion_operator(Operator, Region)  :
             self.e = num.zeros((k,3))                         # create elev array k triangles, 3 neighbour elev
 
             self.ident  = num.arange(k)                       # ident is array 0.. k-1, step 1      
+
 
        
     def __call__(self):
@@ -185,7 +193,7 @@ class Sanddune_erosion_operator(Operator, Region)  :
             #-----------------------------------------------------------------------------------------
             # Compute erosion depths during the timestep and update centroid elevations accordingly 
             # Don't allow erosion below the specified base level.
-    		# Note this operator is called for each seperate erosion polygon.
+			# Note this operator is called for each seperate erosion polygon.
             #-----------------------------------------------------------------------------------------
             
                                                                               
@@ -271,6 +279,7 @@ class Sanddune_erosion_operator(Operator, Region)  :
             
         self.domain.update_ghosts(['elevation', 'stage'])
               
+
         return (updated)
                 
     
