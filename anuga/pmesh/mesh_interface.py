@@ -28,12 +28,12 @@ def create_mesh_from_regions(bounding_polygon,
                              hole_tags=None,
                              poly_geo_reference=None,
                              mesh_geo_reference=None,
+                             breaklines=None,
+                             regionPtArea=None,
                              minimum_triangle_angle=28.0,
                              fail_if_polygons_outside=True,
-                             breaklines=None,
                              use_cache=False,
-                             verbose=True,
-                             regionPtArea=None):
+                             verbose=True):
     """Create mesh from bounding polygons, and resolutions.
 
     bounding_polygon is a list of points in Eastings and Northings,
@@ -73,7 +73,9 @@ def create_mesh_from_regions(bounding_polygon,
 
     breaklines is a list of polygons. These lines will be preserved by the
                triangulation algorithm - useful for coastlines, walls, etc.
-               The polygons are not closed.			   
+               The polygons are not closed.	
+               
+    regionPtArea is a list of user-specified point-based regions with max area		   
     
     Returns the mesh instance if no filename is given
 
