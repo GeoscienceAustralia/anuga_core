@@ -127,6 +127,7 @@ else:
     from anuga.parallel.parallel_api import myid, numprocs, get_processor_name
     from anuga.parallel.parallel_api import send, receive
     from anuga.parallel.parallel_api import pypar_available, barrier, finalize
+    from anuga.parallel.parallel_api import collect_value
 
     if pypar_available:
         from anuga.parallel.parallel_api import sequential_distribute_dump

@@ -6,6 +6,7 @@ Water flowing down a channel with a topography that varies with time
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
+import anuga
 from anuga import rectangular_cross
 from anuga import Domain
 from anuga import Reflective_boundary
@@ -20,13 +21,6 @@ from anuga import indent
 length = 24.
 width = 5.
 dx = dy = 0.2 #.1           # Resolution: Length of subdivisions on both axes
-
-points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
-                                               len1=length, len2=width)
-domain = Domain(points, vertices, boundary)
-domain.set_name() # Output name
-print domain.statistics()
-
 
 #------------------------------------------------------------------------------
 # Setup initial conditions
@@ -51,12 +45,26 @@ def topography(x,y):
 
     return z
 
+#----------------------------------------------------------------------------
+# Setup initial domain
+#----------------------------------------------------------------------------
+if anuga.myid == 0:
+    points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
+                                               len1=length, len2=width)
+    domain = Domain(points, vertices, boundary)
+    domain.set_name() # Output name
+    print domain.statistics()
 
 
-domain.set_quantity('elevation', topography)           # elevation is a function
-domain.set_quantity('friction', 0.01)                  # Constant friction
-domain.set_quantity('stage', expression='elevation')   # Dry initial condition
+    domain.set_quantity('elevation', topography)           # elevation is a function
+    domain.set_quantity('friction', 0.01)                  # Constant friction
+    domain.set_quantity('stage', expression='elevation')   # Dry initial condition
 
+else:
+    domain = None
+    
+domain = anuga.distribute(domain)
+        
 #------------------------------------------------------------------------------
 # Setup boundary conditions
 #------------------------------------------------------------------------------
@@ -69,7 +77,7 @@ domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 #------------------------------------------------------------------------------
 # Setup operators which are applied each inner step
 #------------------------------------------------------------------------------
-from anuga.operators.set_friction_operators import Depth_friction_operator
+from anuga import Depth_friction_operator
 from scipy import interpolate
 
 h = [0.0,     0.2,   0.4,   0.8,   2.0, 99.0]
@@ -84,8 +92,8 @@ op1 = Depth_friction_operator(domain,friction=friction)
 #                                  polygon=p1)
 
 # Setup region for integrating quantities
-p2 = [ [8.0, 2.5], [9.5, 2.5], [9.5, 4.0], [8.0, 4.0] ]
-reg = Region(domain, polygon=p2)
+#p2 = [ [8.0, 2.5], [9.5, 2.5], [9.5, 4.0], [8.0, 4.0] ]
+#reg = Region(domain, polygon=p2)
 
 # Some useful aliases
 stage = domain.quantities['stage']
@@ -95,15 +103,23 @@ elev = domain.quantities['elevation']
 # Evolve system through time
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep=0.1, finaltime=10.0):
-    domain.print_timestepping_statistics()
-    domain.print_operator_timestepping_statistics()
+    if anuga.myid == 0:
+        domain.print_timestepping_statistics()
+        domain.print_operator_timestepping_statistics()
 
     # let calculate the integral of height over a region
     height = stage-elev
-    print indent+'Int_p2(h) = '+str(height.get_integral(region=reg))
+    #vol = height.get_integral(region=reg)
+    vol = height.get_integral()
+    
+    print anuga.myid, vol
+    vol=anuga.collect_value(vol)
+    
+    if anuga.myid == 0: print indent+'Int_p2(h) = '+str(vol)
 
 
+domain.sww_merge()
 
-
+anuga.finalize()
 
 
