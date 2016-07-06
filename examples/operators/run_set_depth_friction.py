@@ -109,10 +109,8 @@ for t in domain.evolve(yieldstep=0.1, finaltime=10.0):
 
     # let calculate the integral of height over a region
     height = stage-elev
-    #vol = height.get_integral(region=reg)
     vol = height.get_integral()
     
-    print anuga.myid, vol
     vol=anuga.collect_value(vol)
     
     if anuga.myid == 0: print indent+'Int_p2(h) = '+str(vol)
