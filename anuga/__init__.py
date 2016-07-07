@@ -93,6 +93,8 @@ else:
     from anuga.geometry.polygon import inside_polygon
     from anuga.geometry.polygon import polygon_area
     from anuga.geometry.polygon_function import Polygon_function
+    
+    from anuga.coordinate_transforms.lat_long_UTM_conversion import LLtoUTM, UTMtoLL
 
     from anuga.abstract_2d_finite_volumes.pmesh2domain import \
                                                 pmesh_to_domain_instance

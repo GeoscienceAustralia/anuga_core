@@ -5,25 +5,32 @@ Basic helper routines
 
 """
 
+import anuga
 from anuga.fit_interpolate.interpolate2d import interpolate2d
 import pylab as pl
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+from os.path import join
+import fnmatch
+import gzip
+from anuga.file.netcdf import NetCDFFile
 
 
-Daily_plot_Vmax = 15
+
+Daily_plot_Vmax = 4
 
 # ----------------------------------------------------------------------------------------
 
 
-class Rain_radar(object):
+
+class Grid_rain_radar(object):
     
-    def __init__(self,x,y,UTM_x,UTM_y,precip):
+    def __init__(self,x=None,y=None,UTM_x=None,UTM_y=None,precip=None):
         
         self.precip = precip
-        self.UTM.x = UTM_x
-        self.UTM.y = UTM_y
+        self.UTM_x = UTM_x
+        self.UTM_y = UTM_y
         self.x = x
         self.y = y
         self.data = None
@@ -35,32 +42,177 @@ class Rain_radar(object):
         self.all_values = []
         self.precip_total = 0.0
         self.verbose = True
+        self.debug = False
+        
+        self.all_precip = []
+        self.all_times =[]
+        
+        self.pattern = '*.nc'
         
         # Plotting parameters
         self.plot_line = False
         
+ 
+    def process_calibrated_radar_data(self, radar_dir):
+        """
+        Given a radar_dir walk through all sub directories to find 
+        radar files
+        """
         
+        pattern = self.pattern
+        file_counter = 0
+        first = True
+        rain_max_in_period = 0.0
+        
+        precips = []
+        times = []
+        
+        for root, dirs, files in os.walk(radar_dir): 
+            
+            if self.debug :
+                print 'Number of Files = ',len(fnmatch.filter(files, pattern))
+            
+            for filename in fnmatch.filter(files, pattern): 
+                
+                if self.debug :
+                    print filename
+                    
+                key = filename[-16:-3]
+                
+
+                file_counter +=1
+                if file_counter == 1:
+                    self.radar_data_title = "RADAR_Data_"+filename[-20:-3]
+
+                if pattern == '*.gz':
+                    filename = gzip.open(filename, 'rb')
+                    data = NetCDFFile(os.path.join(root,filename), 'r') 
+                else:
+                    data = NetCDFFile(os.path.join(root, filename), 'r') 
+                
+                # RADAR NetCDF files have Dimensions, Attributes, Variables
+                if self.debug:
+                    print 'VARIABLES:'
+                    print 'Reference LAT, LONG = ',data.reference_longitude, data.reference_latitude
+
+                    
+                # Check Time for key 
+                year = int(key[0:4])
+                month = int(key[4:6])
+                day = int(key[6:8])
+                hour = int(key[9:11])
+                minute = int(key[11:13])
+                
+                if self.debug:
+                    print year, month, day, hour, minute
+                    print 'Convert to epoch'
+                    
+                import datetime
+                valid_time = int((datetime.datetime(year,month,day,hour,minute) - datetime.datetime(1970,1,1)).total_seconds())
+                
+                
+                file_start_time = data.variables['start_time'][0]
+                file_valid_time = data.variables['valid_time'][0]
+                
+                if self.debug:
+                    print 'VARIABLES:'
+                    print 'Reference times ', file_start_time, file_valid_time, valid_time
+                
+                times.append(valid_time)                
+        
+                    
+                # This handles format changes in the files from BOM !!!!
+                possible_precip_names = ['precipitation',  'precip', 'rain_amount'] 
+                
+                # Go through each of the possible names
+                for name in possible_precip_names:  # Check if name is a key in the variables dictionary
+                    if name in data.variables:
+                        precip_name = name
+                        if self.debug:
+                            print 'BOM Reference name tag in this file:'
+                            print precip_name
+
+                
+                if first:
+                    first = False
+                    
+                    self.base_filename = filename[:-20]
+                    
+                    precip = data.variables[precip_name][:]
+                    precip_total = precip.copy() # Put into new Accumulating ARRRAY
+                    
+                    if self.debug: print ' Accumulate rainfall here....'
+                    self.x = data.variables['x_loc'][:]
+                    self.y = data.variables['y_loc'][:]
+                    if self.y[0] < 0:
+                        pass  # Check if y[0] = -ve if not reverse...  arr[::-1]
+                    else:
+                        self.y = self.y[::-1]  # Check if y[0] = -ve if not reverse...  arr[::-1]
+                    
+                    
+                    self.reference_longitude = data.reference_longitude
+                    self.reference_latitude =  data.reference_latitude
+                    # Convert to UTM offsets
+                    
+                    self.zone, self.offset_x, self.offset_y = anuga.LLtoUTM(self.reference_latitude, self.reference_longitude)
+                    
+                    # Convert to UTM
+                    self.x = self.x*1000 + self.offset_x
+                    self.y = self.y*1000 + self.offset_y
+                    
+                    rain_max_in_period  = max(np.max(precip),rain_max_in_period)  
+                        
     
+                else:  # ---If NOT FIRST !!!
+                    precip = data.variables[precip_name][:]
+
+                    precip_total += precip
+                    if self.debug: print ' Keep accumulating rainfall....'
+
+                    rain_max_in_period  = max(np.max(precip),rain_max_in_period)
+
+                    
+                precips.append(precip)
+        
+        
+        self.rain_max_in_period = rain_max_in_period
+                  
+        times = np.array(times)
+        ids = np.argsort(times)
+        
+
+        self.times = times[ids]   
+        self.precips = np.array([ precips[id] for id in ids ])
+        
+        self.precip_total = precip_total 
+        
+        
+        # Test sorting
+        for i, id in enumerate(ids):
+            np.allclose(times[id], self.times[i])
+            np.allclose(precips[id], self.precips[i])
+            
+
+      
+
+
     def read_radar_UTM_offsets(self, Radar_UTM_LOC_file):
         """
-        CONVERT RADAR FROM LAT LONG TO UTM 
+        Read location of radar (in UTM coordinates)
         
-        PROCESS THE Lat Long to Produce UTM Grid of Radar ??
+        FIXME: Probably should have a geo reference!
         """
         
         fid = open(Radar_UTM_LOC_file)
         lines = fid.readlines()  # Read Entire Input File
         fid.close()  
                
-        for line in lines:
-            if self.verbose: print line
-            line=line.strip('\n')
-            fields = line.split(',')
-            offset_x = float(fields[0])
-            offset_y = float(fields[1])
-        if self.verbose: print offset_x,offset_y
-        #raw_input('Hold here... line 128')
-        
+        line=lines[0].strip('\n')
+        fields = line.split(',')
+        offset_x = float(fields[0])
+        offset_y = float(fields[1])
+
+
         self.offset_x = offset_x
         self.offset_y = offset_y
         
@@ -178,28 +330,38 @@ class Rain_radar(object):
         plt.savefig('RADAR RAINFALL'+self.filename[-20:-3]+'.jpg',format='jpg')
         return
 
-    def radar_plot_show_only(self):
-        # ONLY SHOW the PLOT DONT SAVE
+    def radar_plot_show_only(self, id):
+        """
+        Plot radar data at timestep id
+        """
+
     
-        precip = self.precip
-        filename = self.filename
+        precips = self.precips
+        base_filename = self.base_filename
+        times = self.times
         x = self.x
         y = self.y
         xl = self.xl
         yl = self.yl
+        plot_line = True
             
         plt.figure(1)
         plt.clf()
-        if self.plot_line : plt.plot( xl, yl,'--w')
-        plt.suptitle('RADAR RAINFALL'+filename[-20:-3], size=20)
-        s_title = 'Max Rainfall = %.1f mm / period' % (np.max(precip))
+        
+        from datetime import datetime
+        date = datetime.utcfromtimestamp(times[id])
+        
+        if plot_line : plt.plot( xl, yl,'--w')
+        plt.suptitle('RADAR RAINFALL '+date.strftime("%Y/%m/%d %H:%M"), size=20)
+        s_title = 'Max Rainfall = %.1f mm / period' % (np.max(precips[id]))
         plt.title(s_title , size=12)
-        plt.imshow(precip, origin='lower', interpolation='bicubic',
+        plt.imshow(precips[id], origin='lower', interpolation='bicubic',
                    extent=(x.min(), x.max(), y.min(), y.max()),vmin=0, vmax=Daily_plot_Vmax)
+
         plt.colorbar()            
-        plt.show()
+        plt.draw()
             
-        return()
+        return
 
     def plot_time_hist_radar_at_gauge_loc(self):
         """
@@ -240,7 +402,7 @@ class Rain_radar(object):
             plt.ylabel('rainfall (mm)')
             plt.show()
             gauge_count+=1
-    return()
+        return
 
 
     def plot_radar_accumulated(self):
@@ -288,3 +450,89 @@ class Rain_radar(object):
         plt.show()
         
         return
+    
+    
+    
+    
+if __name__ == "__main__":
+    
+    act_rain = Grid_rain_radar()
+    
+    BASE_DIR = "/home/steve/RAINFALL/RADAR/AUS_RADAR/Calibrated_Radar_Data/ACT_netcdf"
+    
+    RADAR_DIR          = join(BASE_DIR, 'RADAR_Rainfall/140/2012/03/' )
+    Radar_UTM_LOC_file = join(BASE_DIR, 'ACT_Bdy/Captains_Flat_RADAR_UTM_55.csv' )
+    Radar_LL_LOC_file  = join(BASE_DIR, 'ACT_Bdy/Captains_Flat_RADAR_lat_long.csv' )
+    Catchment_file     = join(BASE_DIR,'ACT_Bdy/ACT_Entire_Catchment_Poly_Simple_UTM_55.csv')
+    
+    #RainGauge_LOC_file = join(BASE_DIR, 'ACT_Bdy/Rain_Gauge_Station_Location_subset.csv' )
+    
+    print RADAR_DIR
+    
+    p0 = anuga.read_polygon(Radar_UTM_LOC_file)
+    print 'radar utm loc'
+    print Radar_UTM_LOC_file
+    print p0
+    
+    p1 = anuga.read_polygon(Radar_LL_LOC_file)
+    print 'radar ll loc'
+    print Radar_LL_LOC_file
+    print p1
+    
+    p2 = anuga.read_polygon(Catchment_file)
+    print 'radar ll loc'
+    print Catchment_file
+    print p2
+    
+    import csv 
+
+#     print 'raingauge loc'
+#     print RainGauge_LOC_file
+#     p2id = open(RainGauge_LOC_file)
+#     rows = csv.reader(p2id)
+#     for row in  rows:
+#         print row
+
+    act_rain.read_radar_UTM_offsets(Radar_UTM_LOC_file)
+    
+    print 'offsets'
+    print act_rain.offset_x
+    print act_rain.offset_y
+    
+    
+    act_rain.process_calibrated_radar_data(RADAR_DIR)
+    
+    print 'offsets'
+    print act_rain.offset_x
+    print act_rain.offset_y
+    
+    p2 = np.array(p2)
+    
+    
+        
+    act_rain.xl = p2[:,0]
+    act_rain.yl = p2[:,1]
+    
+    import pdb
+    pdb.set_trace()    
+    
+    #print act_rain.all_times
+    import time
+    
+    pl.ion()
+    for id in xrange(len(act_rain.times)):
+        act_rain.radar_plot_show_only(id)
+        time.sleep(0.05)
+    
+    pl.ioff()
+    pl.draw()
+    
+    
+    import pdb
+    pdb.set_trace()
+    
+    
+    
+    
+     
+
