@@ -20,9 +20,12 @@ This tests the sanddune_erosion operator confirming that;
 #------------------------------------------------------------------------------
 import anuga
 from anuga import  myid, distribute, barrier, finalize
-from anuga import Region
+from anuga import Region, Geo_reference
 import numpy as num
 
+x0 = 314036.58727982
+y0 = 6224951.2960092
+geo = Geo_reference(56, x0, y0)
 
 #------------------------------------------------------------------------------
 # Function to describe topography as function of X and y
@@ -37,35 +40,38 @@ def topography(x,y):
    
     for i in range(N):
         # First notched sand dune across Channel
-        if 10.6 < x[i] <= 12.0:
-            z[i] +=  1.0*(x[i] -10.6)      # Sloping U/S Face 1:1
-        if 12.0 < x[i] < 13.0 :
+        if 1010.6 < x[i] <= 1012.0:
+            z[i] +=  1.0*(x[i] -1010.6)      # Sloping U/S Face 1:1
+        if 1012.0 < x[i] < 1013.0 :
             z[i] +=  1.4                   # Crest of Embankment at +1.4
-        if 13.0 <= x[i] < 14.4:
-            z[i] +=  1.4-1.0*(x[i] -13.0)  # Sloping D/S Face at 1:1
+        if 1013.0 <= x[i] < 1014.4:
+            z[i] +=  1.4-1.0*(x[i] -1013.0)  # Sloping D/S Face at 1:1
 
         # add notch in crest 1m wide by nom 300 deep
         # note sides are near vertical so will collapse back to repose even without erosion
 
-        if 11.7 <= x[i] <= 13.3 and 2.0 <= y[i] <= 3.0:
+        if 1011.7 <= x[i] <= 1013.3 and 1002.0 <= y[i] <= 1003.0:
             z[i] =  1.1                   # add 300 Notch in Embankment crest  
         # second lower plain sand dune across Channel
-        if 23.0 < x[i] <= 24.0:
-            z[i] +=  1.0*(x[i] -23.0)      # Sloping U/S Face 1:1        
-        if 24.0 < x[i] < 25.0 :
+        if 1023.0 < x[i] <= 1024.0:
+            z[i] +=  1.0*(x[i] -1023.0)      # Sloping U/S Face 1:1        
+        if 1024.0 < x[i] < 1025.0 :
             z[i] +=  1.0                   # Crest of Embankment at +1.0
-        if 25.0 <= x[i] < 26.0:
-            z[i] +=  1.0-1.0*(x[i] -25.0)  # Sloping D/S Face at 1:1      
+        if 1025.0 <= x[i] < 1026.0:
+            z[i] +=  1.0-1.0*(x[i] -1025.0)  # Sloping D/S Face at 1:1      
     return z
 
 #------------------------------------------------------------------------------
 # build the check points and erosion polygons now so available to all processors
 #------------------------------------------------------------------------------
 
-polygon1    = [ [10.6, 0.0], [14.4, 0.0], [14.4, 5.0], [10.6, 5.0] ]
-polygon2    = [ [23.0, 0.0], [26.0, 0.0], [26.0, 5.0], [23.0, 5.0] ]
+polygon1    = num.array([ [1010.6, 1000.0], [1014.4, 1000.0], [1014.4, 1005.0], [1010.6, 1005.0] ])
+polygon2    = num.array([ [1023.0, 1000.0], [1026.0, 1000.0], [1026.0, 1005.0], [1023.0, 1005.0] ])
 poly1nsbase = 0.5  # set poly no scour base level in m
 poly2nsbase = 0.3
+
+polygon1 += num.array([x0,y0])
+polygon2 += num.array([x0,y0])
 
 #------------------------------------------------------------------------------
 # Setup computational domain
@@ -79,10 +85,16 @@ if myid == 0:
     dx = dy = 0.1            # Resolution: Length of subdivisions on both axes
     print '>>>>> Domain has L = %f, W = %f, dx=dy= %f' %(length,width,dx) 
     points, vertices, boundary = anuga.rectangular_cross(int(length/dx), int(width/dy), len1=length, len2=width)
+    points = points + 1000.0
     
-    domain = anuga.Domain(points, vertices, boundary)
+ 
+    domain = anuga.Domain(points, vertices, boundary, geo_reference = geo)
     domain.set_flow_algorithm('DE0')
     domain.set_name('sanddune_testV2SR') # Output name
+    
+    domain.set_store_vertices_uniquely(False)
+    domain.set_quantities_to_be_stored({'elevation': 2,'stage': 2,'xmomentum': 2,'ymomentum': 2})
+
     domain.set_quantity('elevation', topography)           # elevation is a function
     domain.set_quantity('friction', 0.01)                  # Constant friction
     domain.set_quantity('stage', expression='elevation')   # Dry initial condition
@@ -124,12 +136,7 @@ if myid == 0:
 #------------------------------------------------------------------------------
 # Distribute the domain onto the n partitions
 #------------------------------------------------------------------------------
-
-
 domain = distribute(domain)
-
-domain.set_store_vertices_uniquely(True)
-domain.set_quantities_to_be_stored({'elevation': 2,'stage': 2,'xmomentum': 2,'ymomentum': 2})
 
 
 #------------------------------------------------------------------------------
@@ -165,21 +172,21 @@ op0 = Sanddune_erosion_operator(domain, base=nsbase_elev_c, indices=indices_unio
 
 
 #------------------------------------------------------------------------------
-# Evolve sanddune erosion simulation through time  
+# Evolve simulation through time  
 #------------------------------------------------------------------------------
-for t in domain.evolve(yieldstep=1, duration=600.0):
+for t in domain.evolve(yieldstep=1, duration=6.0):
     if myid == 0: domain.print_timestepping_statistics()
     
 
 #  run completed - tidy up 
 barrier()  
 if myid == 0: 
-    print ' >>>>> Simulation completed succesfully '
+    print ' >>>>> Simulation completed successfully '
     print ' >>>>> Merging the individual cpu sww files and deleting the individual swws once merged'
 
 # Merge the individual parallel swws created by the n processors
 barrier()                         # wait foir all processors to complete
-domain.sww_merge(delete_old=False)
+domain.sww_merge(delete_old=True)
 
 if myid == 0: 
     print ' >>>>> Finalising the run -- all done'
