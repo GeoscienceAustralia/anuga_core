@@ -319,11 +319,50 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
             x = float(value[0])
 
         q[0] = x
+
         ndotq = (normal[0]*q[1] + normal[1]*q[2])
         q[1] = normal[0]*ndotq
         q[2] = normal[1]*ndotq
 
         return q
+
+
+    def evaluate_segment(self, domain, segment_edges): 
+        """Transmissive_n_momentum_zero_t_momentum_set_stage_boundary
+        applied in vectorized form for speed. Gareth Davies 14/07/2016
+        """
+        
+        Stage = domain.quantities['stage']
+        #Elev  = domain.quantities['elevation']
+        #Height= domain.quantities['height']
+        Xmom  = domain.quantities['xmomentum']
+        Ymom  = domain.quantities['ymomentum']
+
+        ids = segment_edges
+        vol_ids  = domain.boundary_cells[ids]
+        edge_ids = domain.boundary_edges[ids]
+        Normals = domain.normals
+
+        n1  = Normals[vol_ids,2*edge_ids]
+        n2  = Normals[vol_ids,2*edge_ids+1]
+       
+        # Call the boundary function which returns stage 
+        value = self.get_boundary_values()
+        try:
+            x = float(value)
+        except:
+            x = float(value[0])
+       
+        # Set stage 
+        Stage.boundary_values[ids]  = x
+       
+        # Compute flux normal to edge
+        q1 = Xmom.edge_values[vol_ids,edge_ids]
+        q2 = Ymom.edge_values[vol_ids,edge_ids]
+        ndotq = n1*q1 + n2*q2
+
+        Xmom.boundary_values[ids] = ndotq * n1
+        Ymom.boundary_values[ids] = ndotq * n2
 
 class Transmissive_stage_zero_momentum_boundary(Boundary):
     """Return same stage as those present in its neighbour volume.
