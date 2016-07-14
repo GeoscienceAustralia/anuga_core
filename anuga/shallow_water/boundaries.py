@@ -1032,6 +1032,7 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
             q[2] = qperp*normal[1] -qpar*normal[0]
 
         return q
+
     
     def evaluate_segment(self, domain, segment_edges): 
         """Applied in vectorized form for speed. Gareth Davies 14/07/2016
@@ -1065,13 +1066,14 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
         Ymom.boundary_values[ids]  = Ymom.edge_values[vol_ids,edge_ids]
         Elev.boundary_values[ids]  = Elev.edge_values[vol_ids,edge_ids]
 
-        depth_inside = num.maximum(Stage.boundary_values[ids]- Elev.boundary_values[ids],
-            0.0)
-       
+        bed = Elev.centroid_values[vol_ids]
+        depth_inside = num.maximum(Stage.boundary_values[ids]- bed, 0.0)
+        stage_outside = 0.0 * Stage.boundary_values[ids] + stage_outside 
+
         # Do vectorized operations here
         #
         # In dry cells, the values will be ....
-        q0_dry = 0.0 * Stage.boundary_values[ids] + stage_outside
+        q0_dry = stage_outside
         q1_dry = 0.0 * Xmom.boundary_values[ids]
         q2_dry = 0.0 * Ymom.boundary_values[ids]
         #
@@ -1079,11 +1081,13 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
         # (see 'evaluate' method above for more comments on theory,
         # in particular we assume subcritical flow and a zero outside velocity)
         #
+        # (note: When cells are dry, this calculation will throw invalid
+        # values, but such values will never be selected to be returned)
         sqrt_g_on_depth_inside = (gravity/depth_inside)**0.5
-        ndotq_inside = n1 * Xmom.boundary_values[ids] + \
-            n2 * Ymom.boundary_values[ids]
+        ndotq_inside = (n1 * Xmom.boundary_values[ids] + 
+            n2 * Ymom.boundary_values[ids])
         # w1 =  u - sqrt(g/depth)*(Stage_outside)  -- uses 'outside' info
-        w1 = 0.0 - sqrt_g_on_depth_inside * Stage.boundary_values[ids]
+        w1 = 0.0 - sqrt_g_on_depth_inside * stage_outside
         # w2 = v [velocity parallel to boundary] -- uses 'inside' or 'outside'
         # info as required
         w2 = num.where(ndotq_inside > 0.0,
@@ -1092,8 +1096,8 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
         # w3 = u + sqrt(g/depth)*(Stage_inside) -- uses 'inside info'
         w3 = ndotq_inside/depth_inside + sqrt_g_on_depth_inside*Stage.boundary_values[ids]
             
-        q0_wet = (w3 - w1)/(2 * sqrt_g_on_depth_inside)
-        qperp = (w3 + w1)/2 * depth_inside
+        q0_wet = (w3 - w1)/(2.0 * sqrt_g_on_depth_inside)
+        qperp = (w3 + w1)/2.0 * depth_inside
         qpar = w2 * depth_inside
 
         q1_wet = qperp * n1 + qpar * n2
