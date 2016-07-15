@@ -388,7 +388,7 @@ class Quantity:
 
 
 
-    def plot_quantity(self, filename=None, show=True):
+    def plot_quantity(self, filename=None, draw=True):
 
         X, Y, A, V = self.get_vertex_values(smooth=True)
 
@@ -404,8 +404,8 @@ class Quantity:
 
         plt.savefig(filename)
         
-        if show:
-            plt.show()
+        if draw:
+            plt.draw()
         
 
     def save_to_array(self,

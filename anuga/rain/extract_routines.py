@@ -68,6 +68,7 @@ class Calibrated_radar_rain(object):
         
         precips = []
         times = []
+        reversed = False
         
         self.radar_dir = radar_dir
         
@@ -143,15 +144,14 @@ class Calibrated_radar_rain(object):
                     
                     self.base_filename = filename[:-20]
                     
-                    precip = data.variables[precip_name][:]
-                    precip_total = precip.copy() # Put into new Accumulating ARRRAY
                     
                     if self.debug: print ' Accumulate rainfall here....'
                     self.x = data.variables['x_loc'][:]
                     self.y = data.variables['y_loc'][:]
                     if self.y[0] < 0:
-                        pass  # Check if y[0] = -ve if not reverse...  arr[::-1]
+                        pass # Check if y[0] = -ve if not reverse...  arr[::-1]
                     else:
+                        reversed = True
                         self.y = self.y[::-1]  # Check if y[0] = -ve if not reverse...  arr[::-1]
                     
                     
@@ -165,12 +165,23 @@ class Calibrated_radar_rain(object):
                     self.x = self.x*1000 + self.offset_x
                     self.y = self.y*1000 + self.offset_y
                     
+                    precip = data.variables[precip_name][:]
+                    
+                    if reversed:
+                        precip = np.flipud(precip)
+                    
+                    precip_total = precip.copy() # Put into new Accumulating ARRRAY
+
+                    
                     rain_max_in_period  = max(np.max(precip),rain_max_in_period)  
                         
     
                 else:  # ---If NOT FIRST !!!
                     precip = data.variables[precip_name][:]
 
+                    if reversed:
+                        precip = np.flipud(precip)
+                        
                     precip_total += precip
                     if self.debug: print ' Keep accumulating rainfall....'
 
@@ -187,20 +198,21 @@ class Calibrated_radar_rain(object):
         
 
         self.times = times[ids]   
-        self.precips = np.array([ precips[id] for id in ids ])
+        self.precips = np.array([ precips[tid] for tid in ids ])
         self.time_step = self.times[1]-self.times[0]
+        self.start_time = self.times[0]-self.time_step
         
         self.precip_total = precip_total 
         
         
         # Test sorting
-        for i, id in enumerate(ids):
-            np.allclose(times[id], self.times[i])
-            np.allclose(precips[id], self.precips[i])
+        for i, tid in enumerate(ids):
+            np.allclose(times[tid], self.times[i])
+            np.allclose(precips[tid], self.precips[i])
                 
         self.extent = (self.x.min(), self.x.max(), self.y.min(), self.y.max())
 
-    def extract_data_at_location(self, locations):
+    def extract_data_at_locations(self, locations):
         """
         
         EXTRACT RAINFALL FROM GRID AT locations  
@@ -218,7 +230,7 @@ class Calibrated_radar_rain(object):
         
         for precip in precips:
             # and then do the interpolation
-            values = interpolate2d(x,y,precip,locations)       
+            values = interpolate2d(x,y,precip.transpose(),locations)       
             all_values.append(values) 
 
 
@@ -226,10 +238,97 @@ class Calibrated_radar_rain(object):
 
 
 
-
-    def plot_grid(self, id, save=False, show=True, polygons=None):
+    def grid_indices_inside_polygon(self, polygon=None):
         """
-        Plot radar data at timestep id
+        flattened indices of grid point inside a polygon
+        
+        To get corresponding grid values of time slice tid use
+        
+        precip_inside = self.precips[tid].flat[indices]
+        """
+        
+        
+        dx = self.extent[1]-self.extent[0]
+        dy = self.extent[3]-self.extent[2]
+        x = self.x
+        y = self.y
+        nx = len(x)
+        ny = len(y)
+        ldx = dx/nx
+        ldy = dy/ny
+        
+        if not polygon is None:
+            X,Y = np.meshgrid(x,y)
+            points = np.empty((nx*ny,2), dtype="float")
+            points[:,0] = X.flatten()
+            points[:,1] = Y.flatten()
+            from anuga import inside_polygon
+            indices = inside_polygon(points,polygon)
+        else:
+            indices = None
+            
+        return indices
+    
+
+    def accumulate_grid(self, tid=None, polygon=None):
+        """
+        Accumulate precip over grid, either for a specified tid timeslice
+        or over all time slices.
+        
+        Can be restricted to a polygon 
+        """
+        
+        dx = self.extent[1]-self.extent[0]
+        dy = self.extent[3]-self.extent[2]
+        x = self.x
+        y = self.y
+        nx = len(x)
+        ny = len(y)
+        ldx = dx/nx
+        ldy = dy/ny
+        
+        time_step = self.time_step
+        
+        
+        if tid is None:
+            precip = self.precip_total
+            time_period = self.times[-1]-self.times[0]
+        else:
+            precip = self.precips[tid]
+            time = self.times[tid]
+            time_period = self.time_step
+            
+        
+        indices = self.grid_indices_inside_polygon(polygon)
+        
+        if indices is None:  
+            Rain_Max_in_period = np.max(precip) 
+            Total_Rain_Vol = np.sum(precip)/1000.0*ldx*ldy # cubic metres
+            Catchment_Area = len(precip.flat)*ldx*ldy
+        else:
+            pmask = precip.flat[indices]
+            Rain_Max_in_period = np.max(pmask)
+            Total_Rain_Vol = np.sum(pmask)/1000.0*ldx*ldy # cubic metres
+            Catchment_Area = len(pmask)*ldx*ldy
+
+        print indices
+        Peak_Intensity = Rain_Max_in_period/time_step # mm/sec     
+
+        
+        if self.verbose:
+            print 'Time period = ',time_period
+            print 'Time step = ',time_step
+            print 'Catchment Area = ', Catchment_Area
+            print 'Total rainfall volume in cubic metres (m^3) =', Total_Rain_Vol
+            print 'Peak rainfall/time_step in time period (mm) = ', Rain_Max_in_period
+            print 'Peak Intensity in time period (mm/sec) =', Peak_Intensity      
+        
+        return Total_Rain_Vol, Rain_Max_in_period, Peak_Intensity, Catchment_Area, time_period
+
+
+    def plot_grid(self, tid, save=False, show=True, polygons=None):
+        """
+        Plot radar data at timestep tid
         """
 
         # Aliases
@@ -237,11 +336,10 @@ class Calibrated_radar_rain(object):
         times = self.times
         x = self.x
         y = self.y
-
         
         # get time from filenane
         from datetime import datetime
-        date_time = datetime.utcfromtimestamp(times[id]).strftime("%Y/%m/%d %H:%M")
+        date_time = datetime.utcfromtimestamp(times[tid]).strftime("%Y/%m/%d %H:%M")
         
         if self.debug: print '--- Date/Time ', date_time
         
@@ -251,16 +349,21 @@ class Calibrated_radar_rain(object):
         
         if not polygons is None:
             for polygon in polygons:
-                polygon = np.array(polygon)
-                plt.plot( polygon[:,0], polygon[:,1],'--w')
+                if not polygon is None:
+                    polygon = np.array(polygon)
+                    plt.plot( polygon[:,0], polygon[:,1],'--w')
             
         plot_title = 'RADAR RAINFALL '+date_time
         plt.suptitle(plot_title, size=20)
-        s_title = 'Max Rainfall = %.1f mm / period' % (np.max(precips[id]))
+        s_title = 'Max Rainfall = %.1f mm / period' % (np.max(precips[tid]))
         plt.title(s_title , size=12)
-        plt.imshow(precips[id], origin='lower', interpolation='bicubic',
+        
+        plt.imshow(precips[tid], origin='lower', interpolation='bicubic',
                    extent=self.extent,vmin=0, vmax=Daily_plot_Vmax)
-
+        
+        #plt.contourf(precips[tid], origin='lower', interpolation='bicubic',
+        #           extent=self.extent, vmin=0, vmax=Daily_plot_Vmax)
+        
         plt.colorbar()            
         
         if show: plt.draw()
@@ -286,7 +389,9 @@ class Calibrated_radar_rain(object):
             print 'maximum rain =',np.max(precip_total)
             print 'mean rain =',np.mean(precip_total)
             
-        Total_Rain_Vol = np.mean(precip_total)/1000.0*256.0*256.0 # Volume in Million m3 over 128km x 128km area
+        dx = self.extent[1]-self.extent[0]
+        dy = self.extent[3]-self.extent[2]
+        Total_Rain_Vol = np.mean(precip_total)/1000.0*dx*dy/1e6 # Volume in Million m3 over 128km x 128km area
         Rain_Max_in_period = self.rain_max_in_period
         Peak_Intensity = Rain_Max_in_period/time_step
         extent = self.extent
@@ -312,11 +417,15 @@ class Calibrated_radar_rain(object):
         
         if not polygons is None:
             for polygon in polygons:
-                polygon = np.array(polygon)
-                plt.plot( polygon[:,0], polygon[:,1],'--w')
+                if not polygon is None:
+                    polygon = np.array(polygon)
+                    plt.plot( polygon[:,0], polygon[:,1],'--w')
                 
         plt.imshow(precip_total, origin='lower', interpolation='bicubic',
                    extent=(x.min(), x.max(), y.min(), y.max()))
+        
+        #plt.contourf(precip_total, origin='lower', interpolation='bicubic',
+        #           extent=(x.min(), x.max(), y.min(), y.max()))
         
         plt.colorbar()
         plt.draw()
@@ -330,13 +439,13 @@ class Calibrated_radar_rain(object):
         """
         
 
-        t = (self.times-self.time_step- self.times[0])/60.0
+        t = (self.times-self.times[0])/60.0 # minutes
         
         locations = np.array(locations)
 
         time_step = self.time_step
         
-        all_values = self.extract_data_at_location(locations)
+        all_values = self.extract_data_at_locations(locations)
 
         for lid, _ in enumerate(locations):
 
@@ -349,7 +458,7 @@ class Calibrated_radar_rain(object):
             #print len(t)
             #print len(bar_values)
             # Think about using...  zip(*lst)
-            plt.bar(t,bar_values,width=self.time_step/60)
+            plt.bar(t,bar_values,width=time_step/60,)
             plt.suptitle(' Data for Location %s:' % lid, fontsize=14, fontweight='bold')    
             plt.title(b_title)
     
@@ -364,56 +473,101 @@ class Calibrated_radar_rain(object):
 if __name__ == "__main__":
     
 
+    use_act_data = False
+    artifical = True
     
-    BASE_DIR = "/home/steve/RAINFALL/RADAR/AUS_RADAR/Calibrated_Radar_Data/ACT_netcdf"
-    RADAR_DIR          = join(BASE_DIR, 'RADAR_Rainfall/140/2012/03/01' )    
-    Catchment_file     = join(BASE_DIR,'ACT_Bdy/ACT_Entire_Catchment_Poly_Simple_UTM_55.csv')
-    State_boundary_file = join(BASE_DIR,'ACT_Bdy/ACT_State_Bdy_UTM_55.csv')
+    if use_act_data:
+        BASE_DIR = "/home/steve/RAINFALL/RADAR/AUS_RADAR/Calibrated_Radar_Data/ACT_netcdf"
+        RADAR_DIR          = join(BASE_DIR, 'RADAR_Rainfall/140/2012/03/01' )    
+        Catchment_file     = join(BASE_DIR,'ACT_Bdy/ACT_Entire_Catchment_Poly_Simple_UTM_55.csv')
+        State_boundary_file = join(BASE_DIR,'ACT_Bdy/ACT_State_Bdy_UTM_55.csv')
+        Daily_plot_Vmax = 4
+    else:
+        BASE_DIR = '/home/steve/RAINFALL/RADAR/AUS_RADAR/Gauge_Blend_Grantham/20081211-20110223.gz_y_loc_Inverted_30min/Merged/66/2011/01/'
+        RADAR_DIR          = join(BASE_DIR, '09' ) 
+        Daily_plot_Vmax = 50 
 
-    
-    #BASE_DIR = '/home/steve/RAINFALL/RADAR/AUS_RADAR/Gauge_Blend_Grantham/20081211-20110223.gz_y_loc_Inverted_30min/Merged/66/2011/01/'
-    #RADAR_DIR          = join(BASE_DIR, '15' )  
-    #RainGauge_LOC_file = join(BASE_DIR, 'ACT_Bdy/Rain_Gauge_Station_Location_subset.csv' )
     
     print RADAR_DIR
     
-#     
-    p2 = anuga.read_polygon(Catchment_file)
-    print 'Catchment File'
-    print Catchment_file
-    #print p2
+    try: 
+        p2 = anuga.read_polygon(Catchment_file)
+        print 'Catchment File'
+        print Catchment_file
+        #print p2
+    except:
+        p2 = None
+        pass
     
-    p3 = anuga.read_polygon(State_boundary_file)
-    print 'State_boundary_file'
-    print State_boundary_file
-    #print p3
+    try:
+        p3 = anuga.read_polygon(State_boundary_file)
+        print 'State_boundary_file'
+        print State_boundary_file
+        #print p3
+    except:
+        p3 = None
+        pass
      
     # Create object to read in and store radar data
-    act_rain = Calibrated_radar_rain(RADAR_DIR, verbose=True)
+    act_rain = Calibrated_radar_rain(RADAR_DIR, verbose=True, debug=True)
 
+    print act_rain.get_extent()
+    act_rain.accumulate_grid()
+    
     print 'time_step ',act_rain.time_step
     
+    if artifical:
+        nx = len(act_rain.x)
+        ny = len(act_rain.y)
+        act_rain.precip_total = np.ones((ny,nx),dtype="float")
+        act_rain.precips = [ i*np.ones((ny,nx),dtype="float") for i, time in enumerate(act_rain.times)]
+        for i,precip in enumerate(act_rain.precips):
+            precip[i:i+4,:] = 2
+            precip[:,2*i:2*i+4] = 3
+        
+        act_rain.precip_total = np.ones((ny,nx),dtype="float")
+        act_rain.precip_total[0:4,:] = 2
+        act_rain.precip_total[:,20:24] = 3
+        
+        
     import time
     pl.ion()
-    for rid in xrange(len(act_rain.times)):
-        act_rain.plot_grid(rid, save=False, show=True, polygons=[p2])
+    for tid in xrange(len(act_rain.times)):
+        act_rain.plot_grid(tid, save=False, show=True, polygons=[p2])
         time.sleep(0.05)
+        
+        
+ 
+        
     
     act_rain.plot_grid_accumulated(polygons=[p2])
     
     pl.ioff()
     pl.show()
     
-    print act_rain.get_extent()
 
+    import ipdb
+    ipdb.set_trace() 
+    
+    
+    if use_act_data:
+        # ACT locations   
+        l0 = [600000.0, 6000000.0]
+        l1 = [711971.0, 6157920.0]
+    else:
+        # Grantham locations 
+        l0 = [478762., 6979070.0]
+        l1 = [479827.0, 6884940.0]
         
-    l0 = [600000.0, 6000000.0]
-    l1 = [800000.0, 6100000.0]
     locations = [l0,l1]
     act_rain.plot_time_hist_locations(locations) 
     
-    import pdb
-    #pdb.set_trace()    
+    p_indices = act_rain.grid_indices_inside_polygon(polygon=p2)
+    
+    
+    
+    import ipdb
+    ipdb.set_trace()    
     
     
     
