@@ -168,7 +168,7 @@ class Calibrated_radar_rain(object):
                     precip = data.variables[precip_name][:]
                     
                     if reversed:
-                        precip = np.flipud(precip)
+                        precip = np.fliplr(precip)
                     
                     precip_total = precip.copy() # Put into new Accumulating ARRRAY
 
@@ -180,7 +180,7 @@ class Calibrated_radar_rain(object):
                     precip = data.variables[precip_name][:]
 
                     if reversed:
-                        precip = np.flipud(precip)
+                        precip = np.fliplr(precip)
                         
                     precip_total += precip
                     if self.debug: print ' Keep accumulating rainfall....'
@@ -230,7 +230,7 @@ class Calibrated_radar_rain(object):
         
         for precip in precips:
             # and then do the interpolation
-            values = interpolate2d(x,y,precip.transpose(),locations)       
+            values = interpolate2d(x,y,np.fliplr(precip),locations)       
             all_values.append(values) 
 
 
@@ -358,7 +358,7 @@ class Calibrated_radar_rain(object):
         s_title = 'Max Rainfall = %.1f mm / period' % (np.max(precips[tid]))
         plt.title(s_title , size=12)
         
-        plt.imshow(precips[tid], origin='lower', interpolation='bicubic',
+        plt.imshow(np.flipud(precips[tid].T), origin='lower', interpolation='bicubic',
                    extent=self.extent,vmin=0, vmax=Daily_plot_Vmax)
         
         #plt.contourf(precips[tid], origin='lower', interpolation='bicubic',
@@ -421,7 +421,7 @@ class Calibrated_radar_rain(object):
                     polygon = np.array(polygon)
                     plt.plot( polygon[:,0], polygon[:,1],'--w')
                 
-        plt.imshow(precip_total, origin='lower', interpolation='bicubic',
+        plt.imshow(np.flipud(precip_total.T), origin='lower', interpolation='bicubic',
                    extent=(x.min(), x.max(), y.min(), y.max()))
         
         #plt.contourf(precip_total, origin='lower', interpolation='bicubic',
@@ -472,19 +472,20 @@ class Calibrated_radar_rain(object):
     
 if __name__ == "__main__":
     
-
-    use_act_data = False
-    artifical = True
+    import ipdb
+    
+    use_act_data = True
+    artifical = False
     
     if use_act_data:
         BASE_DIR = "/home/steve/RAINFALL/RADAR/AUS_RADAR/Calibrated_Radar_Data/ACT_netcdf"
-        RADAR_DIR          = join(BASE_DIR, 'RADAR_Rainfall/140/2012/03/01' )    
+        RADAR_DIR          = join(BASE_DIR, 'RADAR_Rainfall/140/2012/02/' )    
         Catchment_file     = join(BASE_DIR,'ACT_Bdy/ACT_Entire_Catchment_Poly_Simple_UTM_55.csv')
         State_boundary_file = join(BASE_DIR,'ACT_Bdy/ACT_State_Bdy_UTM_55.csv')
         Daily_plot_Vmax = 4
     else:
         BASE_DIR = '/home/steve/RAINFALL/RADAR/AUS_RADAR/Gauge_Blend_Grantham/20081211-20110223.gz_y_loc_Inverted_30min/Merged/66/2011/01/'
-        RADAR_DIR          = join(BASE_DIR, '09' ) 
+        RADAR_DIR          = join(BASE_DIR, '11' ) 
         Daily_plot_Vmax = 50 
 
     
@@ -519,25 +520,25 @@ if __name__ == "__main__":
     if artifical:
         nx = len(act_rain.x)
         ny = len(act_rain.y)
-        act_rain.precip_total = np.ones((ny,nx),dtype="float")
+        act_rain.precip_total = np.arange(nx*ny,dtype="float").reshape(ny,nx)
         act_rain.precips = [ i*np.ones((ny,nx),dtype="float") for i, time in enumerate(act_rain.times)]
         for i,precip in enumerate(act_rain.precips):
             precip[i:i+4,:] = 2
             precip[:,2*i:2*i+4] = 3
         
-        act_rain.precip_total = np.ones((ny,nx),dtype="float")
-        act_rain.precip_total[0:4,:] = 2
+        act_rain.precip_total = np.arange(nx*ny,dtype="float").reshape(ny,nx)
+        act_rain.precip_total[100:104,:] = 2
         act_rain.precip_total[:,20:24] = 3
         
         
     import time
     pl.ion()
+    ipdb.set_trace() 
     for tid in xrange(len(act_rain.times)):
         act_rain.plot_grid(tid, save=False, show=True, polygons=[p2])
         time.sleep(0.05)
+        #ipdb.set_trace() 
         
-        
- 
         
     
     act_rain.plot_grid_accumulated(polygons=[p2])
@@ -547,7 +548,7 @@ if __name__ == "__main__":
     
 
     import ipdb
-    ipdb.set_trace() 
+    #ipdb.set_trace() 
     
     
     if use_act_data:
@@ -556,8 +557,8 @@ if __name__ == "__main__":
         l1 = [711971.0, 6157920.0]
     else:
         # Grantham locations 
-        l0 = [478762., 6979070.0]
-        l1 = [479827.0, 6884940.0]
+        l0 = [421517., 6974520.0]
+        l1 = [479412.0, 6832050.0]
         
     locations = [l0,l1]
     act_rain.plot_time_hist_locations(locations) 
@@ -566,7 +567,7 @@ if __name__ == "__main__":
     
     
     
-    import ipdb
+    
     ipdb.set_trace()    
     
     
