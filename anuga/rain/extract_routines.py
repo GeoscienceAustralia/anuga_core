@@ -26,8 +26,16 @@ Daily_plot_Vmax = 4
 
 class Calibrated_radar_rain(object):
     
-    def __init__(self, radar_dir = None, verbose=False, debug=False):
-        
+    def __init__(self, 
+                 radar_dir = None,
+                 start_time = None,
+                 final_time = None,
+                 verbose=False, 
+                 debug=False):
+        """
+        start_time: seconds since epoch  or string of form 20120229_1210
+        final_time: seconds since epoch  or string of form 20120229_1210
+        """
         self.radar_dir = radar_dir
         
         self.x = None
@@ -39,6 +47,9 @@ class Calibrated_radar_rain(object):
         
         self.verbose = verbose
         self.debug = debug
+        
+        self.start_time = self.parse_time(start_time)
+        self.final_time = self.parse_time(final_time)
         
 
         self.pattern = '*.nc'
@@ -53,7 +64,42 @@ class Calibrated_radar_rain(object):
     def get_extent(self):
         
         return self.extent
+    
+    def parse_time(self, time = None):
+        """
+        Time: seconds since epoch  or string of form 20120229_1210
+        """
+        
+        if time is None: return None
+        
+        try:
+            time = float(time)
+            return time
+        except ValueError:
+            pass
+        
+        try:
+            year = int(time[0:4])
+            month = int(time[4:6])
+            day = int(time[6:8])
+            dash = time[8:9]
+            hour = int(time[9:11])
+            minute = int(time[11:13])
+                
+            if self.debug:
+                print year, month, day, hour, minute
+                print 'Convert to epoch'
+        except ValueError:
+            pass  
+                
+                    
+        import datetime
+        time = int((datetime.datetime(year,month,day,hour,minute) - datetime.datetime(1970,1,1)).total_seconds())
  
+        if self.debug: print time
+        
+        return float(time)
+    
     def read_data_files(self, radar_dir):
         """
         Given a radar_dir walk through all sub directories to find 
@@ -68,7 +114,7 @@ class Calibrated_radar_rain(object):
         
         precips = []
         times = []
-        reversed = False
+        reverse = False
         
         self.radar_dir = radar_dir
         
@@ -80,12 +126,20 @@ class Calibrated_radar_rain(object):
             
             for filename in fnmatch.filter(files, pattern): 
                 
-                if self.debug :
-                    print filename
+
                     
                 key = filename[-16:-3]
                 
+                valid_time = self.parse_time(key)
+                
+                if not self.final_time is None:
+                    if valid_time > self.final_time: continue
+                if not self.start_time is None:                    
+                    if valid_time < self.start_time: continue
 
+                if self.debug :
+                    print filename
+                    
                 file_counter +=1
                 if file_counter == 1:
                     self.radar_data_title = "RADAR_Data_"+filename[-20:-3]
@@ -103,19 +157,8 @@ class Calibrated_radar_rain(object):
 
                     
                 # Check Time for key 
-                year = int(key[0:4])
-                month = int(key[4:6])
-                day = int(key[6:8])
-                hour = int(key[9:11])
-                minute = int(key[11:13])
-                
-                if self.debug:
-                    print year, month, day, hour, minute
-                    print 'Convert to epoch'
-                    
-                import datetime
-                valid_time = int((datetime.datetime(year,month,day,hour,minute) - datetime.datetime(1970,1,1)).total_seconds())
-                
+                valid_time = self.parse_time(key)
+             
                 
                 file_start_time = data.variables['start_time'][0]
                 file_valid_time = data.variables['valid_time'][0]
@@ -151,9 +194,7 @@ class Calibrated_radar_rain(object):
                     if self.y[0] < 0:
                         pass # Check if y[0] = -ve if not reverse...  arr[::-1]
                     else:
-                        reversed = True
                         self.y = self.y[::-1]  # Check if y[0] = -ve if not reverse...  arr[::-1]
-                    
                     
                     self.reference_longitude = data.reference_longitude
                     self.reference_latitude =  data.reference_latitude
@@ -167,9 +208,6 @@ class Calibrated_radar_rain(object):
                     
                     precip = data.variables[precip_name][:]
                     
-                    if reversed:
-                        precip = np.fliplr(precip)
-                    
                     precip_total = precip.copy() # Put into new Accumulating ARRRAY
 
                     
@@ -179,10 +217,8 @@ class Calibrated_radar_rain(object):
                 else:  # ---If NOT FIRST !!!
                     precip = data.variables[precip_name][:]
 
-                    if reversed:
-                        precip = np.fliplr(precip)
-                        
                     precip_total += precip
+                    
                     if self.debug: print ' Keep accumulating rainfall....'
 
                     rain_max_in_period  = max(np.max(precip),rain_max_in_period)
@@ -230,7 +266,7 @@ class Calibrated_radar_rain(object):
         
         for precip in precips:
             # and then do the interpolation
-            values = interpolate2d(x,y,np.fliplr(precip),locations)       
+            values = interpolate2d(x,y,precip,locations)       
             all_values.append(values) 
 
 
@@ -358,7 +394,7 @@ class Calibrated_radar_rain(object):
         s_title = 'Max Rainfall = %.1f mm / period' % (np.max(precips[tid]))
         plt.title(s_title , size=12)
         
-        plt.imshow(np.flipud(precips[tid].T), origin='lower', interpolation='bicubic',
+        plt.imshow(precips[tid].T, origin='lower', interpolation='bicubic',
                    extent=self.extent,vmin=0, vmax=Daily_plot_Vmax)
         
         #plt.contourf(precips[tid], origin='lower', interpolation='bicubic',
@@ -421,7 +457,7 @@ class Calibrated_radar_rain(object):
                     polygon = np.array(polygon)
                     plt.plot( polygon[:,0], polygon[:,1],'--w')
                 
-        plt.imshow(np.flipud(precip_total.T), origin='lower', interpolation='bicubic',
+        plt.imshow(precip_total.T, origin='lower', interpolation='bicubic',
                    extent=(x.min(), x.max(), y.min(), y.max()))
         
         #plt.contourf(precip_total, origin='lower', interpolation='bicubic',
@@ -453,6 +489,8 @@ class Calibrated_radar_rain(object):
             total_rain = sum(bar_values)
             Ave_rain = total_rain/(self.times[-1]-self.times[0])*3600
             max_Intensity = max(bar_values)/time_step*3600
+            
+            
             b_title = 'Tot rain = %.1f mm, Ave. rain = %.3f mm/hr, Max Int.= %.3f mm/hr' % (total_rain,Ave_rain,max_Intensity)
             #   Using list comprehension  b=[x[0] for x in a]
             #print len(t)
@@ -472,24 +510,82 @@ class Calibrated_radar_rain(object):
     
 if __name__ == "__main__":
     
-    import ipdb
+    try:
+        import ipdb as pdb
+    except:
+        import pdb
     
-    use_act_data = True
-    artifical = False
+
+    scenario = 'act'
+    #scenario = 'grantham'
+    #scenario = 'artificial'
     
-    if use_act_data:
+
+    
+    if scenario == 'act':
+        start_time = '20120301_0000'
+        final_time = '20120302_1200'
         BASE_DIR = "/home/steve/RAINFALL/RADAR/AUS_RADAR/Calibrated_Radar_Data/ACT_netcdf"
-        RADAR_DIR          = join(BASE_DIR, 'RADAR_Rainfall/140/2012/02/' )    
+        RADAR_DIR          = join(BASE_DIR, 'RADAR_Rainfall/140/2012' )    
         Catchment_file     = join(BASE_DIR,'ACT_Bdy/ACT_Entire_Catchment_Poly_Simple_UTM_55.csv')
         State_boundary_file = join(BASE_DIR,'ACT_Bdy/ACT_State_Bdy_UTM_55.csv')
         Daily_plot_Vmax = 4
-    else:
+        rain = Calibrated_radar_rain(RADAR_DIR, start_time=start_time, final_time=final_time, verbose=True, debug=True)
+        l0 = [670501.0, 6117750.0]
+        l1 = [702251.0, 6157920.0]
+        l2 = [748256., 5966120.]
+        l3 = [600000., 5966120.] 
+        locations = [l0,l1,l2,l3] 
+
+        
+         
+    elif scenario == 'grantham':
+        start_time = '20110110_0000'
+        final_time = '20110111_1200'
         BASE_DIR = '/home/steve/RAINFALL/RADAR/AUS_RADAR/Gauge_Blend_Grantham/20081211-20110223.gz_y_loc_Inverted_30min/Merged/66/2011/01/'
-        RADAR_DIR          = join(BASE_DIR, '11' ) 
-        Daily_plot_Vmax = 50 
+        RADAR_DIR          = join(BASE_DIR, '10' ) 
+        Daily_plot_Vmax = 50
+        rain = Calibrated_radar_rain(RADAR_DIR, start_time=start_time, final_time=final_time, verbose=True, debug=True)
+        l0 = [476160., 6889300.0]
+        l1 = [476160., 6978420.0]
+        l2 = [421517., 6974520.0]
+        l3 = [479412.0, 6832050.0]
+        locations = [l0,l1,l2,l3]
+
+        
+    elif scenario == 'artificial':
+        start_time = 4700
+        final_time = 5500
+        rrain = Calibrated_radar_rain(start_time=start_time, final_time=final_time, verbose=True, debug=True)
+        rain.x = np.arange(41)/40.0*4000.0 +3000.0
+        rain.y = np.arange(61)/60.0*4000.0 + 100000.0
+        rain.extent = (rain.x.min(), rain.x.max(), rain.y.min(), rain.y.max())
+        rain.times = np.arange(11)*600+4000
+        rain.time_step = 600
+        nx = len(rain.x)
+        ny = len(rain.y)
+        rain.precip_total = np.arange(nx*ny,dtype="float").reshape(nx,ny)
+        rain.precips = [ i*np.ones((nx,ny),dtype="float")+4 for i, time in enumerate(rain.times)]
+        for i,precip in enumerate(rain.precips):
+            precip[i:i+4,:] = 2
+            precip[:,2*i:2*i+4] = 3
+        
+        rain.precip_total = np.arange(nx*ny,dtype="float").reshape(nx,ny)
+        rain.precip_total[20:24,:] = 2
+        rain.precip_total[:,50:54] = 3
+        rain.rain_max_in_period = np.max(rain.precip_total)
+        rain.radar_dir = None
+        l0 = [5100.0, 100000.0]
+        l1 = [5100.0, 103900.0]
+        l2 = [3400., 103400.]
+        l3 = [6000., 103400.]
+        locations = [l0,l1,l2,l3] 
+
+    else:
+        pass
 
     
-    print RADAR_DIR
+    print rain.radar_dir
     
     try: 
         p2 = anuga.read_polygon(Catchment_file)
@@ -509,66 +605,35 @@ if __name__ == "__main__":
         p3 = None
         pass
      
-    # Create object to read in and store radar data
-    act_rain = Calibrated_radar_rain(RADAR_DIR, verbose=True, debug=True)
 
-    print act_rain.get_extent()
-    act_rain.accumulate_grid()
+    print rain.get_extent()
+    rain.accumulate_grid()
     
-    print 'time_step ',act_rain.time_step
-    
-    if artifical:
-        nx = len(act_rain.x)
-        ny = len(act_rain.y)
-        act_rain.precip_total = np.arange(nx*ny,dtype="float").reshape(ny,nx)
-        act_rain.precips = [ i*np.ones((ny,nx),dtype="float") for i, time in enumerate(act_rain.times)]
-        for i,precip in enumerate(act_rain.precips):
-            precip[i:i+4,:] = 2
-            precip[:,2*i:2*i+4] = 3
-        
-        act_rain.precip_total = np.arange(nx*ny,dtype="float").reshape(ny,nx)
-        act_rain.precip_total[100:104,:] = 2
-        act_rain.precip_total[:,20:24] = 3
-        
+    print 'time_step ',rain.time_step     
         
     import time
     pl.ion()
-    ipdb.set_trace() 
-    for tid in xrange(len(act_rain.times)):
-        act_rain.plot_grid(tid, save=False, show=True, polygons=[p2])
+    pdb.set_trace() 
+    for tid in xrange(len(rain.times)):
+        rain.plot_grid(tid, save=False, show=True, polygons=[p2])
         time.sleep(0.05)
         #ipdb.set_trace() 
         
         
     
-    act_rain.plot_grid_accumulated(polygons=[p2])
+    rain.plot_grid_accumulated(polygons=[p2])
     
     pl.ioff()
     pl.show()
-    
+     
 
-    import ipdb
-    #ipdb.set_trace() 
+    rain.plot_time_hist_locations(locations) 
     
-    
-    if use_act_data:
-        # ACT locations   
-        l0 = [600000.0, 6000000.0]
-        l1 = [711971.0, 6157920.0]
-    else:
-        # Grantham locations 
-        l0 = [421517., 6974520.0]
-        l1 = [479412.0, 6832050.0]
-        
-    locations = [l0,l1]
-    act_rain.plot_time_hist_locations(locations) 
-    
-    p_indices = act_rain.grid_indices_inside_polygon(polygon=p2)
+    p_indices = rain.grid_indices_inside_polygon(polygon=p2)
     
     
     
-    
-    ipdb.set_trace()    
+    pdb.set_trace()    
     
     
     
