@@ -319,11 +319,51 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
             x = float(value[0])
 
         q[0] = x
+
         ndotq = (normal[0]*q[1] + normal[1]*q[2])
         q[1] = normal[0]*ndotq
         q[2] = normal[1]*ndotq
 
         return q
+
+
+    def evaluate_segment(self, domain, segment_edges): 
+        """Transmissive_n_momentum_zero_t_momentum_set_stage_boundary
+        applied in vectorized form for speed. Gareth Davies 14/07/2016
+        """
+        
+        Stage = domain.quantities['stage']
+        #Elev  = domain.quantities['elevation']
+        #Height= domain.quantities['height']
+        Xmom  = domain.quantities['xmomentum']
+        Ymom  = domain.quantities['ymomentum']
+
+        ids = segment_edges
+        vol_ids  = domain.boundary_cells[ids]
+        edge_ids = domain.boundary_edges[ids]
+        Normals = domain.normals
+
+        n1  = Normals[vol_ids,2*edge_ids]
+        n2  = Normals[vol_ids,2*edge_ids+1]
+       
+        # Call the boundary function which returns stage 
+        value = self.get_boundary_values()
+        try:
+            x = float(value)
+        except:
+            x = float(value[0])
+       
+        # Set stage 
+        Stage.boundary_values[ids]  = x
+       
+        # Compute flux normal to edge
+        q1 = Xmom.edge_values[vol_ids,edge_ids]
+        q2 = Ymom.edge_values[vol_ids,edge_ids]
+        ndotq = n1*q1 + n2*q2
+
+        Xmom.boundary_values[ids] = ndotq * n1
+        Ymom.boundary_values[ids] = ndotq * n2
+
 
 class Transmissive_stage_zero_momentum_boundary(Boundary):
     """Return same stage as those present in its neighbour volume.
@@ -530,12 +570,8 @@ class Characteristic_stage_boundary(Boundary):
         return q
 
 
-
-
-
-
     def evaluate_segment(self, domain, segment_edges):
-        """Apply reflective BC on the boundary edges defined by
+        """Apply BC on the boundary edges defined by
         segment_edges
         """
 
@@ -996,7 +1032,92 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
             q[2] = qperp*normal[1] -qpar*normal[0]
 
         return q
+
     
-    
-    
-    
+    def evaluate_segment(self, domain, segment_edges): 
+        """Applied in vectorized form for speed. Gareth Davies 14/07/2016
+        """
+ 
+        Stage = domain.quantities['stage']
+        Elev  = domain.quantities['elevation']
+        #Height= domain.quantities['height']
+        Xmom  = domain.quantities['xmomentum']
+        Ymom  = domain.quantities['ymomentum']
+
+        ids = segment_edges
+        vol_ids  = domain.boundary_cells[ids]
+        edge_ids = domain.boundary_edges[ids]
+        Normals = domain.normals
+
+        n1  = Normals[vol_ids,2*edge_ids]
+        n2  = Normals[vol_ids,2*edge_ids+1]
+   
+        # Get stage value 
+        t = self.domain.get_time()
+        value = self.function(t)
+        try:
+            stage_outside = float(value)
+        except:
+            stage_outside = float(value[0])
+
+        # Transfer these quantities to the boundary array
+        Stage.boundary_values[ids] = Stage.edge_values[vol_ids,edge_ids]
+        Xmom.boundary_values[ids]  = Xmom.edge_values[vol_ids,edge_ids]
+        Ymom.boundary_values[ids]  = Ymom.edge_values[vol_ids,edge_ids]
+        Elev.boundary_values[ids]  = Elev.edge_values[vol_ids,edge_ids]
+
+        bed = Elev.centroid_values[vol_ids]
+        depth_inside = num.maximum(Stage.boundary_values[ids]- bed, 0.0)
+        stage_outside = 0.0 * Stage.boundary_values[ids] + stage_outside 
+
+        # Do vectorized operations here
+        #
+        # In dry cells, the values will be ....
+        q0_dry = stage_outside
+        q1_dry = 0.0 * Xmom.boundary_values[ids]
+        q2_dry = 0.0 * Ymom.boundary_values[ids]
+        #
+        # and in wet cells, the values will be ...
+        # (see 'evaluate' method above for more comments on theory,
+        # in particular we assume subcritical flow and a zero outside velocity)
+        #
+        # (note: When cells are dry, this calculation will throw invalid
+        # values, but such values will never be selected to be returned)
+        sqrt_g_on_depth_inside = (gravity/depth_inside)**0.5
+        ndotq_inside = (n1 * Xmom.boundary_values[ids] + 
+            n2 * Ymom.boundary_values[ids])
+        # w1 =  u - sqrt(g/depth)*(Stage_outside)  -- uses 'outside' info
+        w1 = 0.0 - sqrt_g_on_depth_inside * stage_outside
+        # w2 = v [velocity parallel to boundary] -- uses 'inside' or 'outside'
+        # info as required
+        w2 = num.where(ndotq_inside > 0.0,
+            (n2 * Xmom.boundary_values[ids] - n1 * Ymom.boundary_values[ids])/depth_inside, 
+            0.0 * ndotq_inside)
+        # w3 = u + sqrt(g/depth)*(Stage_inside) -- uses 'inside info'
+        w3 = ndotq_inside/depth_inside + sqrt_g_on_depth_inside*Stage.boundary_values[ids]
+            
+        q0_wet = (w3 - w1)/(2.0 * sqrt_g_on_depth_inside)
+        qperp = (w3 + w1)/2.0 * depth_inside
+        qpar = w2 * depth_inside
+
+        q1_wet = qperp * n1 + qpar * n2
+        q2_wet = qperp * n2 - qpar * n1
+
+
+        Stage.boundary_values[ids] = num.where(
+            depth_inside == 0.0,
+            q0_dry, 
+            q0_wet)
+
+        Xmom.boundary_values[ids] = num.where(
+            depth_inside == 0.0, 
+            q1_dry, 
+            q1_wet)
+
+        Ymom.boundary_values[ids] = num.where(
+            depth_inside == 0.0,
+            q2_dry,
+            q2_wet)
+
+
+        
