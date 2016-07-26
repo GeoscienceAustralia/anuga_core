@@ -22,9 +22,7 @@ sudo apt-get install -q -y git gfortran python-dev python-numpy \
                              libnetcdf-dev libhdf5-serial-dev \
                              python-gdal gdal-bin python-pip 
 
-# at present we get an error when installing netCDF4 as it also installs
-# numpy
-sudo pip install numpy==1.9
+
 sudo pip install nose netCDF4 pyproj
     
 ##########################################################
