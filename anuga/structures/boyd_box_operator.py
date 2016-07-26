@@ -238,8 +238,8 @@ class Boyd_box_operator(anuga.Structure_operator):
             barrel_velocity=Q/flow_area
 
         else:
-             Q = barrel_velocity = outlet_culvert_depth = 0.0
-             case = 'Inlet dry'
+            Q = barrel_velocity = outlet_culvert_depth = 0.0
+            case = 'Inlet dry'
 
 
         self.case = case
