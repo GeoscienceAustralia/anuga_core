@@ -6,7 +6,8 @@ Basic helper routines
 """
 
 import anuga
-from anuga.fit_interpolate.interpolate2d import interpolate2d
+#from anuga.fit_interpolate.interpolate2d import interpolate2d
+from anuga.fit_interpolate.interpolate2d import interpolate_raster
 import pylab as pl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -35,6 +36,11 @@ class Calibrated_radar_rain(object):
         """
         start_time: seconds since epoch  or string of form 20120229_1210
         final_time: seconds since epoch  or string of form 20120229_1210
+        
+        The BoM data is assumed to be stored as a raster, ie. columns  
+        in the x direction (eastings) and rows in the vertical y direction
+        (northings) from north to south. 
+        
         """
         self.radar_dir = radar_dir
         
@@ -53,7 +59,6 @@ class Calibrated_radar_rain(object):
         
 
         self.pattern = '*.nc'
-        #self.pattern = '*.gz'
 
 
         # process the radar files
@@ -67,30 +72,67 @@ class Calibrated_radar_rain(object):
     
     def parse_time(self, time = None):
         """
-        Time: seconds since epoch  or string of form 20120229_1210
+        Time: seconds since epoch  or 
+        string of form '20120229'  '20120229_1210' '20120229 1210' '201202291210'
         """
         
         if time is None: return None
         
-        try:
-            time = float(time)
-            return time
-        except ValueError:
-            pass
+        if not isinstance(time, basestring):
+            
+            try:
+                time = float(time)
+                return time
+            except ValueError:
+                pass
+        
+        year, month, day, hour, minute  = 1970, 1, 1, 0, 0
         
         try:
             year = int(time[0:4])
+        except:
+            year, month, day = 1970,1,1
+            
+            
+        #month = int(time[4:6])
+        
+        try:
             month = int(time[4:6])
+        except:
+            month = 1
+            
+        try:
             day = int(time[6:8])
-            dash = time[8:9]
-            hour = int(time[9:11])
-            minute = int(time[11:13])
+        except:
+            day = 1
                 
-            if self.debug:
-                print year, month, day, hour, minute
-                print 'Convert to epoch'
-        except ValueError:
-            pass  
+        try:
+            dash = time[8:9]
+            assert dash == '_' or dash == ':' or dash == '/' or dash == ' '
+        except:
+            dash = None
+
+                
+        try:
+            if dash is None:
+                hour = int(time[8:10])
+            else:
+                hour = int(time[9:11])
+        except:
+            hour = 0
+                
+        try:
+            if dash is None:
+                minute = int(time[10:12])
+            else:
+                minute = int(time[11:13])
+        except:
+            minute = 0
+                
+        if self.debug:
+            print year, month, day, hour, minute
+            print 'Convert to epoch'
+ 
                 
                     
         import datetime
@@ -125,8 +167,6 @@ class Calibrated_radar_rain(object):
                 print 'Number of Files = ',len(fnmatch.filter(files, pattern))
             
             for filename in fnmatch.filter(files, pattern): 
-                
-
                     
                 key = filename[-16:-3]
                 
@@ -232,6 +272,7 @@ class Calibrated_radar_rain(object):
         times = np.array(times)
         ids = np.argsort(times)
         
+        pdb.set_trace()
 
         self.times = times[ids]   
         self.precips = np.array([ precips[tid] for tid in ids ])
@@ -247,6 +288,35 @@ class Calibrated_radar_rain(object):
             np.allclose(precips[tid], self.precips[i])
                 
         self.extent = (self.x.min(), self.x.max(), self.y.min(), self.y.max())
+
+
+    def ungzip_data_files(self, radar_dir):
+        """
+        Given a radar_dir walk through all sub directories to find 
+        radar files
+        """
+        
+        pattern = '*.gz'
+        
+        self.radar_dir = radar_dir
+        
+        for root, dirs, files in os.walk(radar_dir): 
+            
+            if self.debug or self.verbose:
+                print 'Directory: ',dirs
+                print 'Root: ',root
+                print 'Number of Files = ',len(fnmatch.filter(files, pattern))
+            
+            if len(fnmatch.filter(files, pattern)) > 0:
+                os.chdir(root)
+                os.system('gzip -d *.gz')
+                
+            
+                
+                
+                    
+
+
 
     def extract_data_at_locations(self, locations):
         """
@@ -266,7 +336,8 @@ class Calibrated_radar_rain(object):
         
         for precip in precips:
             # and then do the interpolation
-            values = interpolate2d(x,y,precip,locations)       
+            #values = interpolate2d(x,y,np.fliplr(precip.T),locations) 
+            values = interpolate_raster(x,y,precip,locations)      
             all_values.append(values) 
 
 
@@ -394,7 +465,7 @@ class Calibrated_radar_rain(object):
         s_title = 'Max Rainfall = %.1f mm / period' % (np.max(precips[tid]))
         plt.title(s_title , size=12)
         
-        plt.imshow(precips[tid].T, origin='lower', interpolation='bicubic',
+        plt.imshow(precips[tid], origin='upper', interpolation='bicubic',
                    extent=self.extent,vmin=0, vmax=Daily_plot_Vmax)
         
         #plt.contourf(precips[tid], origin='lower', interpolation='bicubic',
@@ -457,7 +528,7 @@ class Calibrated_radar_rain(object):
                     polygon = np.array(polygon)
                     plt.plot( polygon[:,0], polygon[:,1],'--w')
                 
-        plt.imshow(precip_total.T, origin='lower', interpolation='bicubic',
+        plt.imshow(precip_total, origin='upper', interpolation='bicubic',
                    extent=(x.min(), x.max(), y.min(), y.max()))
         
         #plt.contourf(precip_total, origin='lower', interpolation='bicubic',
@@ -516,8 +587,8 @@ if __name__ == "__main__":
         import pdb
     
 
-    scenario = 'act'
-    #scenario = 'grantham'
+    #scenario = 'act'
+    scenario = 'grantham'
     #scenario = 'artificial'
     
 
@@ -540,23 +611,30 @@ if __name__ == "__main__":
         
          
     elif scenario == 'grantham':
-        start_time = '20110110_0000'
-        final_time = '20110111_1200'
-        BASE_DIR = '/home/steve/RAINFALL/RADAR/AUS_RADAR/Gauge_Blend_Grantham/20081211-20110223.gz_y_loc_Inverted_30min/Merged/66/2011/01/'
-        RADAR_DIR          = join(BASE_DIR, '10' ) 
+        start_time = '20110109_2300'
+        final_time = '20110110_2300'
+        
+        #start_time = '20110108_2300'
+        #final_time = '20110109_2300'
+        
+        #start_time = '20110105_2300'
+        #final_time = '20110106_2300'
+        
+        BASE_DIR = '/home/steve/RAINFALL/RADAR/AUS_RADAR/Gauge_Blend_Grantham/20081211-20110223.gz_y_loc_Inverted_30min/Merged/66/2011/'
+        RADAR_DIR          = join(BASE_DIR, '01' ) 
         Daily_plot_Vmax = 50
         rain = Calibrated_radar_rain(RADAR_DIR, start_time=start_time, final_time=final_time, verbose=True, debug=True)
         l0 = [476160., 6889300.0]
         l1 = [476160., 6978420.0]
         l2 = [421517., 6974520.0]
-        l3 = [479412.0, 6832050.0]
+        l3 = [479412.0, 6980370.0]
         locations = [l0,l1,l2,l3]
 
         
     elif scenario == 'artificial':
         start_time = 4700
         final_time = 5500
-        rrain = Calibrated_radar_rain(start_time=start_time, final_time=final_time, verbose=True, debug=True)
+        rain = Calibrated_radar_rain(start_time=start_time, final_time=final_time, verbose=True, debug=True)
         rain.x = np.arange(41)/40.0*4000.0 +3000.0
         rain.y = np.arange(61)/60.0*4000.0 + 100000.0
         rain.extent = (rain.x.min(), rain.x.max(), rain.y.min(), rain.y.max())
@@ -564,15 +642,16 @@ if __name__ == "__main__":
         rain.time_step = 600
         nx = len(rain.x)
         ny = len(rain.y)
-        rain.precip_total = np.arange(nx*ny,dtype="float").reshape(nx,ny)
-        rain.precips = [ i*np.ones((nx,ny),dtype="float")+4 for i, time in enumerate(rain.times)]
+        rain.precip_total = np.arange(nx*ny,dtype="float").reshape(ny,nx)
+        rain.precips = [ i*np.ones((ny,nx),dtype="float")+4 for i, time in enumerate(rain.times)]
         for i,precip in enumerate(rain.precips):
-            precip[i:i+4,:] = 2
-            precip[:,2*i:2*i+4] = 3
+            # Rows vertical, Columns horizontal. from top
+            precip[2*i:2*i+4,:] = 2
+            precip[:,i:i+4] = 3
         
-        rain.precip_total = np.arange(nx*ny,dtype="float").reshape(nx,ny)
-        rain.precip_total[20:24,:] = 2
-        rain.precip_total[:,50:54] = 3
+        rain.precip_total = np.arange(nx*ny,dtype="float").reshape(ny,nx)
+        rain.precip_total[50:54,:] = 2
+        rain.precip_total[:,20:24] = 3
         rain.rain_max_in_period = np.max(rain.precip_total)
         rain.radar_dir = None
         l0 = [5100.0, 100000.0]
