@@ -36,8 +36,8 @@ AnuGA requires the following packages:
 * A C compiler (preferably GCC or TDM-GCC_ MinGW_ on Windows)
 
 
-Installing the latest development version
------------------------------------------
+Installing the latest development version on Ubuntu
+---------------------------------------------------
 
 We suggest instaling the latest version of ANUGA_ from Github_.
 We try to maintain the *master* branch stable and
