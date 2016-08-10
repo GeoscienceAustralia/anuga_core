@@ -236,8 +236,6 @@ To uninstall simply run::
     pip uninstall anuga
 
 
-Note
-====
 
 .. note::
 
