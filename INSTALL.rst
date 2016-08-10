@@ -72,7 +72,7 @@ So just ``cd`` into the directory and run ::
 Testing the install
 +++++++++++++++++++
 
-From the ``anuga_core`` directory run ``python runtests.py``
+From the ``anuga_core`` directory run ``python runtests.py``::
 
     python runtests.py
     
@@ -132,7 +132,7 @@ With either Anaconda_ or Miniconda_ you can now install the dependencies by runn
     conda install pip nose numpy scipy matplotlib netcdf4
     conda install -c pingucarsti gdal 
     
-and setup GDAL_DATA environment variable:
+and setup GDAL_DATA environment variable::
 
     export GDAL_DATA=`gdal-config --datadir` 
     
@@ -197,7 +197,7 @@ Testing the install
 -------------------
 
 
-From the source directory run ``python runtests.py``
+From the source directory run ``python runtests.py``::
 
     python runtests.py
     
