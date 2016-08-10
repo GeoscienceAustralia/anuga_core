@@ -36,6 +36,53 @@ AnuGA requires the following packages:
 * A C compiler (preferably GCC or TDM-GCC_ MinGW_ on Windows)
 
 
+Installing the latest development version
+-----------------------------------------
+
+We suggest instaling the latest version of ANUGA_ from code from Github_.
+We try to maintain the *master* branch stable and
+`passing all tests <https://travis-ci.org/GeoscienceAustralia/anuga_core/branches>`__,
+so it should be safe to use.
+
+First, you'll need to `install git`_.
+Then, open a terminal and run::
+
+    git clone git://github.com/GeoscienceAustralia/anuga_core.git 
+
+This will fetch the source code from Github_
+and place it in a folder called ``anuga_core`` in the directory where you ran the
+command.
+Then, just ``cd`` into the directory and run ``pip``::
+
+    cd anuga_core
+    python setup.py install
+    
+
+Testing the install
+-------------------
+
+
+From the source directory run ``python runtests.py``
+
+    python runtests.py
+    
+
+If you get an error message or weird result,
+please write to the `mailing list`_ or `create an issue on the github site 
+<https://github.com/GeoscienceAustralia/anuga_core/issues>`__.
+
+To make it easier for us to debug you problem, please include the following
+information:
+
+* Operating system
+* Python distribution (Anaconda_, PythonXY_, `ETS/Canopy`_, own install)
+* Python version (2.6, 2.7 etc)
+* The script you ran (and gave you an error/weird result)
+* The error message (the part that says ``Traceback: ...``) or result (figure,
+  numbers, etc)
+
+
+
 Ubuntu Install
 ++++++++++++++
 
