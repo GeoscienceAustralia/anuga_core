@@ -124,32 +124,14 @@ the installation. See this `excellent documentation for Windows users`_
 Installing AnuGA
 ----------------
 
-After you've installed the dependencies you can proceed to install AnuGA
-using pip_.
-Open a terminal (or ``cmd.exe`` on Windows) and run::
+After you've installed the dependencies you can proceed to install AnuGA.
 
-    pip install anuga
-
-
-If you already have AnuGA installed and want to **upgrade** to a newer
-version, use::
-
-    pip install anuga --upgrade
-
-To uninstall simply run::
-
-    pip uninstall anuga
-
-
-.. note::
-
-    The Windows installer from older versions is no longer supported.
 
 Installing the latest development version
 -----------------------------------------
 
-If you want the very latest code and features,
-you can install AnuGA directly from Github_.
+We suggest instaling the latest code and features,
+by installing AnuGA directly from Github_.
 We try to maintain the *master* branch stable and
 `passing all tests <https://travis-ci.org/GeoscienceAustralia/anuga_core/branches>`__,
 so it should be safe to use.
@@ -191,6 +173,28 @@ information:
 * The error message (the part that says ``Traceback: ...``) or result (figure,
   numbers, etc)
     
+Using pip_ to install anuga
+---------------------------
+    
+using pip_.
+Open a terminal (or ``cmd.exe`` on Windows) and run::
+
+    pip install anuga
+
+
+If you already have AnuGA installed and want to **upgrade** to a newer
+version, use::
+
+    pip install anuga --upgrade
+
+To uninstall simply run::
+
+    pip uninstall anuga
+
+
+.. note::
+
+    The Windows installer from older versions is no longer supported.
 .. _AnuGA http://anuga.anu.edu.au/ 
 .. _install git: http://git-scm.com/
 .. _Github: https://github.com/stoiver/anuga_core/
