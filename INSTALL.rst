@@ -39,7 +39,7 @@ AnuGA requires the following packages:
 Installing the latest development version
 -----------------------------------------
 
-We suggest instaling the latest version of ANUGA_ from code from Github_.
+We suggest instaling the latest version of ANUGA_ from Github_.
 We try to maintain the *master* branch stable and
 `passing all tests <https://travis-ci.org/GeoscienceAustralia/anuga_core/branches>`__,
 so it should be safe to use.
@@ -52,17 +52,22 @@ Then, open a terminal and run::
 This will fetch the source code from Github_
 and place it in a folder called ``anuga_core`` in the directory where you ran the
 command.
-Then, just ``cd`` into the directory and run ``pip``::
+
+We have a script in the ``anuga_core/tools`` directory,
+`install_ubuntu.sh <https://github.com/GeoscienceAustralia/anuga_core/blob/master/tools/install_ubuntu.sh>`_
+which when run from the ``anuga_core`` directory will install AnuGA and all the dependencies using ``apt-get``.
+
+So just ``cd`` into the directory and run ::
 
     cd anuga_core
-    python setup.py install
+    sudo bash tool/install_ubuntu.sh
+
     
 
 Testing the install
 -------------------
 
-
-From the source directory run ``python runtests.py``
+From the ``anuga_core`` directory run ``python runtests.py``
 
     python runtests.py
     
