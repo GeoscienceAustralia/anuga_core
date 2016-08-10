@@ -18,6 +18,8 @@ version of AnuGA::
 
 	pip install anuga
 
+But we do recommend installing our development version of the code. See below. 
+
 You might want to install the dependencies via ubuntu ``apt-get`` or ``conda install`` 
 to download pre-compiled versions of the dependencies. See below. 
 
@@ -68,7 +70,7 @@ So just ``cd`` into the directory and run ::
     
 
 Testing the install
--------------------
++++++++++++++++++++
 
 From the ``anuga_core`` directory run ``python runtests.py``
 
@@ -92,7 +94,7 @@ information:
 
 
 Ubuntu Install
-++++++++++++++
+--------------
 
 For extended instructions on installing on Ubuntu checkout the wiki page
 `install ANUGA on Ubuntu <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu>`_
