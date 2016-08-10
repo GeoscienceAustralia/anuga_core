@@ -170,14 +170,8 @@ the installation. See this `excellent documentation for Windows users`_
 (they even have screenshots!). The same applies if you are using Miniconda_.
 
 
-Installing AnuGA
-----------------
-
-After you've installed the dependencies you can proceed to install AnuGA.
-
-
-Installing the latest development version
------------------------------------------
+Installing the latest development version of AnuGA
+--------------------------------------------------
 
 We suggest instaling the latest code and features,
 by installing AnuGA directly from Github_.
