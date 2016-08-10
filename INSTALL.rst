@@ -1,4 +1,6 @@
-Installation
+
+============
+Anuga Installation
 ============
 
 .. contents::
