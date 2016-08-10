@@ -236,6 +236,9 @@ To uninstall simply run::
     pip uninstall anuga
 
 
+Note
+====
+
 .. note::
 
     The Windows installer from older versions is no longer supported.
