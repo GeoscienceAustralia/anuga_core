@@ -16,8 +16,7 @@ from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.numerical_tools import cov
 #from anuga.utilities.numerical_tools import get_machine_precision
-from anuga.shallow_water.sww_interrogate import get_maximum_inundation_elevation
-from anuga.shallow_water.sww_interrogate import get_maximum_inundation_location
+from anuga.shallow_water.sww_interrogate import get_maximum_inundation_data
 import matplotlib
 matplotlib.use('Agg')
 
@@ -254,8 +253,7 @@ for k, name in enumerate(gauge_names):
 
 # Check max runup
 
-q = get_maximum_inundation_elevation(sww_filename)
-loc = get_maximum_inundation_location(sww_filename)
+q, loc = get_maximum_inundation_data(sww_filename)
 
 if verbose:
     print 'Max runup elevation: ', q
