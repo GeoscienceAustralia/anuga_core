@@ -155,6 +155,7 @@ Alternatively if you want ot use Miniconda, follow the instructions
 
 
 
+
 GCC dependency for Windows users
 ++++++++++++++++++++++++++++++++++++
 
