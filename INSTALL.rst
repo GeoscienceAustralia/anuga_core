@@ -39,6 +39,9 @@ AnuGA requires the following packages:
 Installing the latest development version on Ubuntu
 ---------------------------------------------------
 
+AnuGA is developed on Ubuntu. The preferred way to install the dependencies is 
+to use the standard ubuntu ``apt-get`` method. 
+
 We suggest instaling the latest version of ANUGA_ from Github_.
 We try to maintain the *master* branch stable and
 `passing all tests <https://travis-ci.org/GeoscienceAustralia/anuga_core/branches>`__,
@@ -91,14 +94,7 @@ information:
 Ubuntu Install
 ++++++++++++++
 
-AnuGA is developed on Ubuntu. The preferred way to install the dependencies is 
-to use the standard ubuntu ``apt-get`` method. 
-
-We have a script in the ``tools`` directory,
-`install_ubuntu.sh <https://github.com/GeoscienceAustralia/anuga_core/blob/master/tools/install_ubuntu.sh>`_
-which when run from the ``anuga_core`` directory will install AnuGA and all the dependencies using ``apt-get``.
-
-For extended instructions checkout the wiki page
+For extended instructions on installing on Ubuntu checkout the wiki page
 `install ANUGA on Ubuntu <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu>`_
 
 
