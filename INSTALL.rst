@@ -93,8 +93,6 @@ information:
 
 
 
-Ubuntu Install
---------------
 
 For extended instructions on installing on Ubuntu checkout the wiki page
 `install ANUGA on Ubuntu <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu>`_
@@ -102,7 +100,7 @@ For extended instructions on installing on Ubuntu checkout the wiki page
 
 
 Alternative Ubuntu Install
-++++++++++++++++++++++++++
+==========================
 
 An alternative is to install the dependencies using the Anaconda_ or the Miniconda_ Python 
 distributions by `Continuum Analytics`_.
