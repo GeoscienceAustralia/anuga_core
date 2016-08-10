@@ -100,7 +100,7 @@ For extended instructions on installing on Ubuntu checkout the wiki page
 
 
 Alternative Ubuntu Install
-==========================
+--------------------------
 
 An alternative is to install the dependencies using the Anaconda_ or the Miniconda_ Python 
 distributions by `Continuum Analytics`_.
@@ -115,7 +115,7 @@ in your system.
 
 
 Anaconda and Miniconda
-~~~~~~~~~~~~~~~~~~~~~~
+++++++++++++++++++++++
 
 Once you have downloaded and installed Anaconda_ or Miniconda_
 open a terminal (or ``cmd.exe`` on Windows).
