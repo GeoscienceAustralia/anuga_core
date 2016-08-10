@@ -10,6 +10,21 @@
 set -e
 
 PYTHON_VERSION=${PYTHON_VERSION:-"2.7"}
+ANUGA_PARALLEL=${ANUGA_PARALLEL:-"openmpi"}
+
+###########################################################
+# Check if openmpi has been installed
+if [ $(dpkg-query -W -f='${Status}' openmpi-bin 2>/dev/null | grep -c "ok installed") -eq 0 ];
+then
+  ANUGA_PARALLEL="openmpi"
+fi
+
+###########################################################
+# Check if mpich2 has been installed
+if [ $(dpkg-query -W -f='${Status}' mpich2 2>/dev/null | grep -c "ok installed") -eq 0 ];
+then
+  ANUGA_PARALLEL="openmpi"
+fi
 
 sudo apt-get update -q
 
