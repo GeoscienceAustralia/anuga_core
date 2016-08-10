@@ -176,14 +176,15 @@ information:
 Using pip_ to install anuga
 ---------------------------
     
-using pip_.
+You can alternatively use  pip_ to install the lateest released version of `anuga`
+
 Open a terminal (or ``cmd.exe`` on Windows) and run::
 
     pip install anuga
 
 
 If you already have AnuGA installed and want to **upgrade** to a newer
-version, use::
+released version, use::
 
     pip install anuga --upgrade
 
@@ -195,6 +196,8 @@ To uninstall simply run::
 .. note::
 
     The Windows installer from older versions is no longer supported.
+    
+    
 .. _AnuGA http://anuga.anu.edu.au/ 
 .. _install git: http://git-scm.com/
 .. _Github: https://github.com/stoiver/anuga_core/
