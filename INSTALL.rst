@@ -142,7 +142,7 @@ and setup GDAL_DATA environment variable:
 
 
 Windows Dependency Installation
-+++++++++++++++++++++++++++++++
+-------------------------------
 
 We have successfully install AnuGA on windows using Gohlke Binaries and using Miniconda. 
 At present we recommend using the Gohlke Binaries. 
