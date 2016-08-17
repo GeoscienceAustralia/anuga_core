@@ -396,7 +396,7 @@ def get_maximum_inundation_elevation(filename,
     See general function get_maximum_inundation_data for details.
     """
 
-    runup, _ = get_maximum_inundation_data(filename,
+    runup, locatoin = get_maximum_inundation_data(filename,
                                            polygon=polygon,
                                            time_interval=time_interval,
                                            verbose=verbose)
@@ -426,7 +426,7 @@ def get_maximum_inundation_location(filename,
     See general function get_maximum_inundation_data for details.
     """
 
-    _, max_loc = get_maximum_inundation_data(filename,
+    runup, max_loc = get_maximum_inundation_data(filename,
                                              polygon=polygon,
                                              time_interval=time_interval,
                                              verbose=verbose)
@@ -435,6 +435,7 @@ def get_maximum_inundation_location(filename,
 
 def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
                                 use_centroid_values=True,
+                                return_time= False,
                                 verbose=False):
     """Compute maximum run up height from sww file.
 
@@ -484,6 +485,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
 
     maximal_runup = None
     maximal_runup_location = None
+    maximal_time = None
 
 
     for _, swwfile in enumerate (iterate_over):
@@ -571,6 +573,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         if verbose:
             print time
         all_timeindices = num.arange(len(time))
+        
         if time_interval is not None:
             msg = 'time_interval must be a sequence of length 2.'
             assert len(time_interval) == 2, msg
@@ -597,6 +600,8 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         else:
             # Take them all
             timesteps = all_timeindices
+        
+        #print timesteps
 
         fid.close()
 
@@ -648,6 +653,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
 
             if runup > maximal_runup:
                 maximal_runup = runup      # works even if maximal_runup is None
+                maximal_time = time[i]
 
                 # Record location
                 wet_x = num.take(x, wet_nodes, axis=0)
@@ -657,5 +663,9 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
             if verbose:
                 print i, runup
 
-    return maximal_runup, maximal_runup_location
+    if return_time:
+        return maximal_runup, maximal_runup_location, maximal_time
+    else:
+        return maximal_runup, maximal_runup_location
+        
 
