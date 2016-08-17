@@ -69,7 +69,7 @@ points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
 domain = Domain(points, vertices, boundary)
 domain.set_flow_algorithm('DE1')
-domain.set_name('flat_fill_slice_erosion') # Output name
+domain.set_name() # Output name based on script name
 print domain.statistics()
 
 domain.set_quantities_to_be_stored({'elevation': 2,
