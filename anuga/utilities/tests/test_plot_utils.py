@@ -460,17 +460,18 @@ class Test_plot_utils(unittest.TestCase):
 
         # Compare lookup using the 2 different function
 
-        point_index_1 = util.get_triangle_containing_point(p, [50., 50.])
+        point_index_1 = util.get_triangle_containing_point(p, [49., 49.])
 
         tri_lookup = util.get_triangle_lookup_function(p)
-        assert( point_index_1 == tri_lookup(50., 50.) )
+
+        assert( point_index_1 == tri_lookup(49., 49.) )
         
  
 
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_plot_utils, 'test')
+    suite = unittest.makeSuite(Test_plot_utils, 'test') #_triangle_containing_point')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 
