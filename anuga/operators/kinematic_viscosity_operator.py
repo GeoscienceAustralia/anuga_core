@@ -522,10 +522,10 @@ class Kinematic_viscosity_operator(Operator):
 
 
         if use_dt_tol:
-            tol  = min(self.dt,0.001)
-            atol = min(self.dt,0.001)
+            tol  = min(self.dt,1.0e-5)
+            atol = min(self.dt,1.0e-5)
         else:
-            tol  =  1.0e-5
+            tol  = 1.0e-5
             atol = 1.0e-5
 
 

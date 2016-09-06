@@ -40,7 +40,7 @@ import anuga.utilities.plot_utils as util
 # Setup parameters
 #--------------------------------------------------------------------------
 yieldstep = 0.25
-finaltime = 3.0
+finaltime = 1.0
 nprocs = 4
 N = 29
 M = 29 
@@ -148,7 +148,7 @@ def run_simulation(parallel=False, verbose=False):
         
         if verbose:
             
-            order = 0
+            order = 2
             print 'PDOMAIN CENTROID VALUES'
             print num.linalg.norm(odomain_c.x-pdomain_c.x,ord=order)
             print num.linalg.norm(odomain_c.y-pdomain_c.y,ord=order)
