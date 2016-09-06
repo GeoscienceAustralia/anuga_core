@@ -13,7 +13,8 @@ env:
 
 install: 
     - if [[ "$DISTRIB" == "conda" ]]; then source tools/install_conda.sh; fi
-    - if [[ "$DISTRIB" == "ubuntu" ]]; then source tools/install_ubuntu.sh; fi
+    - if [[ "$DISTRIB" == "ubuntu" ]]; then source tools/install_ubuntu_dependencies.sh; fi
+    - if [[ "$DISTRIB" == "ubuntu" ]]; then python setup.py install fi
 
 script: 
     - python runtests.py $COVERAGE
