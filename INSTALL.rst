@@ -12,17 +12,6 @@ AnuGA_ is a python package with some C extensions (and an optional fortran
 extension). At present AnuGA has only been run and tested using python 2.x.
 We recommend python 2.7.  
 
-If you have a python 2.7 environment with gcc and gfortran support, 
-then you can use pip to install the latest release 
-version of AnuGA::
-
-	pip install anuga
-
-But we do recommend installing our development version of the code. See below. 
-
-You might want to install the dependencies via ubuntu ``apt-get`` or ``conda install`` 
-to download pre-compiled versions of the dependencies. See below. 
-
 
 Dependencies
 ------------
@@ -38,13 +27,13 @@ AnuGA requires the following packages:
 * A C compiler (preferably GCC or TDM-GCC_ MinGW_ on Windows)
 
 
-Installing the latest development version on Ubuntu
+Installing the latest DEVELOPMENT version on Ubuntu
 ---------------------------------------------------
 
 AnuGA is developed on Ubuntu. The preferred way to install the dependencies is 
 to use the standard ubuntu ``apt-get`` method. 
 
-We suggest instaling the latest version of ANUGA_ from Github_.
+We suggest installing the latest version of ANUGA_ from Github_.
 We try to maintain the *master* branch stable and
 `passing all tests <https://travis-ci.org/GeoscienceAustralia/anuga_core/branches>`__,
 so it should be safe to use.
