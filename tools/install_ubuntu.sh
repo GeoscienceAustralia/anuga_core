@@ -38,7 +38,7 @@ sudo apt-get install -q -y git gfortran python-dev python-numpy \
                              python-gdal gdal-bin python-pip 
 
 
-sudo pip install nose netCDF4 pyproj
+pip install nose netCDF4 pyproj
     
 ##########################################################
 # Setup for various versions of MPI
@@ -59,15 +59,11 @@ if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
      popd;
 fi
 
-########################################################
-if [[ "$COVERAGE" == "--coverage" ]]; then
-    sudo pip install coverage coveralls
-fi
-
-########################################################
-# build and install anuga
+#########################################################
+# Build and install anuga
 
 python setup.py build
-sudo python setup.py install
+sudo python setup.py install 
+
 
 

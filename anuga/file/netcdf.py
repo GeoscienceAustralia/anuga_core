@@ -44,11 +44,11 @@ def NetCDFFile(file_name, netcdf_mode=netcdf_mode_r):
     using_scientific = using_netcdf4 = False
     
     try:
-        from Scientific.IO.NetCDF import NetCDFFile
-        using_scientific = True
-    except: 
         from netCDF4 import Dataset
         using_netcdf4 = True
+    except: 
+        from Scientific.IO.NetCDF import NetCDFFile
+        using_scientific = True
 
     assert using_scientific or using_netcdf4
 

@@ -42,6 +42,23 @@ processor_name = get_processor_name()
 
 
 
+def collect_value(value):
+    
+    value = value
+
+    if myid == 0:
+        for i in range(numprocs):
+            if i == 0: continue
+            val = receive(i)
+            value = value + val
+    else:
+        send(value, 0)
+
+    return value   
+    
+
+
+
 def distribute(domain, verbose=False, debug=False, parameters = None):
     """ Distribute the domain to all processes
 

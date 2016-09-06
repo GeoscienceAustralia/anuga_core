@@ -93,6 +93,8 @@ else:
     from anuga.geometry.polygon import inside_polygon
     from anuga.geometry.polygon import polygon_area
     from anuga.geometry.polygon_function import Polygon_function
+    
+    from anuga.coordinate_transforms.lat_long_UTM_conversion import LLtoUTM, UTMtoLL
 
     from anuga.abstract_2d_finite_volumes.pmesh2domain import \
                                                 pmesh_to_domain_instance
@@ -127,6 +129,7 @@ else:
     from anuga.parallel.parallel_api import myid, numprocs, get_processor_name
     from anuga.parallel.parallel_api import send, receive
     from anuga.parallel.parallel_api import pypar_available, barrier, finalize
+    from anuga.parallel.parallel_api import collect_value
 
     if pypar_available:
         from anuga.parallel.parallel_api import sequential_distribute_dump
