@@ -44,5 +44,11 @@ if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
      popd;
 fi
 
+#########################################################
+# Build and install anuga
+
+python setup.py build
+sudo python setup.py install 
+
 
 

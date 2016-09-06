@@ -81,3 +81,8 @@ fi
 conda info -a
 
 
+#########################################################
+# Build and install anuga
+
+python setup.py build
+sudo python setup.py install 
