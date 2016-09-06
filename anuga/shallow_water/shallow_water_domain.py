@@ -513,6 +513,32 @@ class Domain(Generic_Domain):
             print '#'
             print '##########################################################################'
 
+
+
+    def _set_1_0_defaults(self):
+        """Set up the defaults for running the flow_algorithm "1_0"
+           so that users can revert back to old default algorithm
+        """        
+
+
+        self._set_config_defaults()
+            
+        self.set_timestepping_method(1)
+        self.set_default_order(1)
+        self.set_CFL(1.0)
+        
+        
+        if self.processor == 0 and self.verbose:
+            print '##########################################################################'
+            print '#'
+            print '# Using continuous elevation solver 1_0'
+            print '#'
+            print '# Uses diffusive first order spatial, first order timestepping'
+            print '#'
+            print '##########################################################################'
+
+
+
     def _set_1_5_defaults(self):
         """Set up the defaults for running the flow_algorithm "1_5"
            so that users can revert back to old default algorithm
@@ -544,6 +570,68 @@ class Domain(Generic_Domain):
             print '##########################################################################'
 
 
+    def _set_1_75_defaults(self):
+        """Set up the defaults for running the flow_algorithm "1_75"
+           so that users can revert back to old default algorithm
+        """        
+
+
+        self._set_config_defaults()
+        
+        self.set_timestepping_method(1)
+        self.set_default_order(2)
+        beta_w      = 1.5
+        beta_w_dry  = 0.2
+        beta_uh     = 1.5
+        beta_uh_dry = 0.2
+        beta_vh     = 1.5
+        beta_vh_dry = 0.2
+        self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
+        self.set_CFL(0.75)
+        self.set_compute_fluxes_method('wb_2')
+        self.set_extrapolate_velocity()
+        
+        
+        if self.processor == 0 and self.verbose:
+            print '##########################################################################'
+            print '#'
+            print '# Using continuous elevation solver 1_75'
+            print '#'
+            print '# Uses less diffusive second order spatial, first order timestepping'
+            print '#'
+            print '##########################################################################'
+
+    def _set_2_0_limited_defaults(self):
+        """Set up the defaults for running the flow_algorithm "2_limited"
+           so that users can revert back to old default algorithm
+        """        
+
+        self._set_config_defaults()
+        
+        self.set_timestepping_method(2)
+        self.set_default_order(2)
+        beta_w      = 1.5
+        beta_w_dry  = 0.2
+        beta_uh     = 1.5
+        beta_uh_dry = 0.2
+        beta_vh     = 1.5
+        beta_vh_dry = 0.2
+        self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
+        self.set_CFL(1.0)
+        self.set_compute_fluxes_method('wb_2')
+        self.set_extrapolate_velocity()
+        
+        
+        if self.processor == 0 and self.verbose:
+            print '##########################################################################'
+            print '#'
+            print '# Using continuous elevation solver 2_0_limited'
+            print '#'
+            print '# Uses diffusive second order spatial, second order timestepping'
+            print '#'
+            print '##########################################################################'
+            
+            
     def _set_2_0_defaults(self):
         """Set up the defaults for running the flow_algorithm "2_0"
            so that users can revert back to old default algorithm
@@ -576,8 +664,8 @@ class Domain(Generic_Domain):
     def _set_2_5_defaults(self):
         """Set up the defaults for running the flow_algorithm "2_0"
            so that users can revert back to old default algorithm
-        """  
-              
+        """             
+            
         self._set_config_defaults()
         
         self.set_timestepping_method(3)
@@ -620,7 +708,7 @@ class Domain(Generic_Domain):
         self.set_distribute_to_vertices_and_edges_method('DE')
         
         # Don't place any restriction on the minimum storable height
-        self.minimum_storable_height=-99999999999.0 
+        #self.minimum_storable_height=-99999999999.0 
         self.minimum_allowed_height=1.0e-12
 
         self.use_edge_limiter=True
@@ -682,7 +770,7 @@ class Domain(Generic_Domain):
         self.set_distribute_to_vertices_and_edges_method('DE')
         
         # Don't place any restriction on the minimum storable height
-        self.minimum_storable_height=-99999999999.0 
+        #self.minimum_storable_height=-99999999999.0 
         self.minimum_allowed_height=1.0e-5
 
         self.use_edge_limiter=True
@@ -744,7 +832,7 @@ class Domain(Generic_Domain):
         self.set_distribute_to_vertices_and_edges_method('DE')
         
         # Don't place any restriction on the minimum storable height
-        self.minimum_storable_height=-99999999999.0 
+        #self.minimum_storable_height=-99999999999.0 
         self.minimum_allowed_height=1.0e-5
 
         self.use_edge_limiter=True
@@ -806,7 +894,7 @@ class Domain(Generic_Domain):
         self.set_distribute_to_vertices_and_edges_method('DE')
         
         # Don't place any restriction on the minimum storable height
-        self.minimum_storable_height=-99999999999.0 
+        #self.minimum_storable_height=-99999999999.0 
         self.minimum_allowed_height=1.0e-12
 
         self.use_edge_limiter=True
@@ -868,7 +956,7 @@ class Domain(Generic_Domain):
         self.set_distribute_to_vertices_and_edges_method('DE')
         
         # Don't place any restriction on the minimum storable height
-        self.minimum_storable_height=-99999999999.0 
+        #self.minimum_storable_height=-99999999999.0 
         self.minimum_allowed_height=1.0e-12
         
         self.use_edge_limiter=True
@@ -1095,21 +1183,7 @@ class Domain(Generic_Domain):
 
 
 
-    def set_using_discontinuous_elevation(self, flag=False):
-        """Set flag to show whether compute flux algorithm
-        is allowing discontinuous elevation.
-        
-        default is False
-        """
 
-        self.using_discontinuous_elevation = flag
-
-    def get_using_discontinuous_elevation(self):
-        """
-        Return boolean indicating whether algorithm is using dicontinuous elevation
-        """
-
-        return self.using_discontinuous_elevation
 
     def set_flow_algorithm(self, flag='DE0'):
         """Set combination of slope limiting and time stepping
@@ -1147,55 +1221,24 @@ class Domain(Generic_Domain):
 
 
         if self.flow_algorithm == '1_0':
-            
-            self._set_config_defaults()
-            
-            self.set_timestepping_method(1)
-            self.set_default_order(1)
-            self.set_CFL(1.0)
+            self._set_1_0_defaults()
 
         if self.flow_algorithm == '1_5':
             self._set_1_5_defaults()
 
         if self.flow_algorithm == '1_75':
-            
-            self._set_config_defaults()
-            
-            self.set_timestepping_method(1)
-            self.set_default_order(2)
-            beta_w      = 1.5
-            beta_w_dry  = 0.2
-            beta_uh     = 1.5
-            beta_uh_dry = 0.2
-            beta_vh     = 1.5
-            beta_vh_dry = 0.2
-            self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
-            self.set_CFL(0.75)
-            self.set_compute_fluxes_method('wb_2')
-            self.set_extrapolate_velocity()
-
+            self._set_1_75_defaults()            
 
         if self.flow_algorithm == '2_0_limited':
-            self._set_config_defaults()
-            
-            self.set_timestepping_method(2)
-            self.set_default_order(2)
-            beta_w      = 1.5
-            beta_w_dry  = 0.2
-            beta_uh     = 1.5
-            beta_uh_dry = 0.2
-            beta_vh     = 1.5
-            beta_vh_dry = 0.2
-            self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
-            self.set_CFL(1.0)
-            self.set_compute_fluxes_method('wb_2')
-            self.set_extrapolate_velocity()
-
-
+            self._set_2_0_limited_defaults()            
 
 
         if self.flow_algorithm == '2_0':
             self._set_2_0_defaults()
+            
+            
+        if self.flow_algorithm == '2_5':
+            self._set_2_5_defaults()            
 
 
         if self.flow_algorithm == 'tsunami':
@@ -1209,22 +1252,6 @@ class Domain(Generic_Domain):
             self._set_tsunami_defaults()
 
 
-        if self.flow_algorithm == '2_5':
-            
-            self._set_config_defaults()
-            
-            self.set_timestepping_method(3)
-            self.set_default_order(2)
-            beta_w      = 1.9
-            beta_w_dry  = 0.2
-            beta_uh     = 1.9
-            beta_uh_dry = 0.2
-            beta_vh     = 1.9
-            beta_vh_dry = 0.2
-            self.set_betas(beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry)
-            self.set_CFL(1.0)
-            self.set_compute_fluxes_method('wb_2')
-            self.set_extrapolate_velocity()
 
 
         if self.flow_algorithm == 'DE0':
@@ -2466,7 +2493,8 @@ class Domain(Generic_Domain):
 
     def timestepping_statistics(self,
                                 track_speeds=False,
-                                triangle_id=None):
+                                triangle_id=None,
+                                time_relative=True):
         """Return string with time stepping statistics for printing or logging
 
         Optional boolean keyword track_speeds decides whether to report
@@ -2478,7 +2506,7 @@ class Domain(Generic_Domain):
 
         # Call basic machinery from parent class
         msg = Generic_Domain.timestepping_statistics(self, track_speeds,
-                                                     triangle_id)
+                                                     triangle_id, time_relative)
 
         if track_speeds is True:
             # qwidth determines the text field used for quantities

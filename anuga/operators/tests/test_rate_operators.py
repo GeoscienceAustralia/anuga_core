@@ -359,16 +359,6 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.fractional_step_volume_integral, ((d-1.)*domain.areas[indices]).sum())
 
 
-        domain.set_time(-10.0)
-        domain.timestep = 1.0
-
-        try:
-            operator()
-        except:
-            pass
-        else:
-            raise Exception('Should have raised an exception, time too early')
-
 
         domain.set_time(1300.0)
         domain.timestep = 1.0
@@ -378,16 +368,34 @@ class Test_rate_operators(unittest.TestCase):
         d = default_rate*factor + d
         stage_ex1 = [ d,  d,   1.,  d]
 
-#        print domain.quantities['elevation'].centroid_values
-#        print domain.quantities['stage'].centroid_values
-#        print domain.quantities['xmomentum'].centroid_values
-#        print domain.quantities['ymomentum'].centroid_values
+#         print domain.quantities['elevation'].centroid_values
+#         print domain.quantities['stage'].centroid_values
+#         print domain.quantities['xmomentum'].centroid_values
+#         print domain.quantities['ymomentum'].centroid_values
 
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex1)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
         assert num.allclose(domain.fractional_step_volume_integral, ((d-1.)*domain.areas[indices]).sum())
 
+
+        tmp = numpy.zeros_like(domain.quantities['stage'].centroid_values)
+        tmp[:] = domain.quantities['stage'].centroid_values
+        
+        d0 = domain.fractional_step_volume_integral
+        
+        domain.set_time(-10.0)
+        domain.timestep = 1.0
+        
+        operator() 
+        
+        d = default_rate*factor
+        stage_ex2 = numpy.array([ d,  d,   0.,  d]) + numpy.array(stage_ex1)
+    
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex2)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.fractional_step_volume_integral, d0+(d*domain.areas[indices]).sum())
 
 
 

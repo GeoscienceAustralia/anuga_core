@@ -96,7 +96,7 @@ class Test_swb2_domain(unittest.TestCase):
 
         #print vv.max()
 
-        assert num.all(vv<1.0e-02)
+        assert num.all(vv<1.01e-01)
 
 
             

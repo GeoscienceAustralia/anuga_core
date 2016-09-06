@@ -335,6 +335,9 @@ class Generic_Domain:
         self.datadir = default_datadir
         self.simulation_name = 'domain'
         self.checkpoint = False
+        
+        # Early algorithms need elevation to remain continuous
+        self.set_using_discontinuous_elevation(False)
 
         if verbose: log.critical('Domain: Set work arrays')
 
@@ -444,6 +447,7 @@ class Generic_Domain:
 
     def set_georeference(self, *args, **kwargs):
         self.mesh.set_georeference(*args, **kwargs)
+        self.geo_reference = self.mesh.geo_reference
 
     def build_tagged_elements_dictionary(self, *args, **kwargs):
         self.mesh.build_tagged_elements_dictionary(*args, **kwargs)
@@ -638,6 +642,24 @@ class Generic_Domain:
 
         self.default_order = n
         self._order_ = self.default_order
+        
+        
+        
+    def set_using_discontinuous_elevation(self, flag=False):
+        """Set flag to show whether compute flux algorithm
+        is allowing discontinuous elevation.
+        
+        default is False
+        """
+
+        self.using_discontinuous_elevation = flag
+
+    def get_using_discontinuous_elevation(self):
+        """
+        Return boolean indicating whether algorithm is using dicontinuous elevation
+        """
+
+        return self.using_discontinuous_elevation
 
     def set_quantity_vertices_dict(self, quantity_dict):
         """Set values for named quantities.
@@ -1040,7 +1062,8 @@ class Generic_Domain:
         log.critical(self.timestepping_statistics(track_speeds))
 
     def timestepping_statistics(self, track_speeds=False,
-                                      triangle_id=None):
+                                      triangle_id=None,
+                                      time_relative=True):
         """Return string with time stepping statistics
 
         Optional boolean keyword track_speeds decides whether to report
@@ -1058,7 +1081,7 @@ class Generic_Domain:
 
         msg = ''
 
-        model_time = self.get_time()
+        model_time = self.get_time(relative=time_relative)
  
         if self.recorded_min_timestep == self.recorded_max_timestep:
             msg += 'Time = %.4f, delta t = %.8f, steps=%d' \
@@ -1167,10 +1190,8 @@ class Generic_Domain:
 
         return msg
 
-    def print_timestepping_statistics(self, track_speeds=False,
-                                      triangle_id=None):
-        print self.timestepping_statistics(track_speeds,
-                                      triangle_id)
+    def print_timestepping_statistics(self, *args, **kwargs):
+        print self.timestepping_statistics(self, *args, **kwargs)
 
 
         
@@ -2227,11 +2248,14 @@ class Generic_Domain:
             # Where is Q.semi_implicit_update reset?
             # It is reset in quantity_ext.c
 
-    def update_ghosts(self):
+    def update_ghosts(self, quantities=None):
         # We must send the information from the full cells and
         # receive the information for the ghost cells
         # We have a list with ghosts expecting updates
-
+        
+        if quantities is None:
+            quantities = self.conserved_quantities
+            
         #Update of ghost cells
         iproc = self.processor
         if self.full_send_dict.has_key(iproc):
@@ -2242,7 +2266,7 @@ class Generic_Domain:
             # now store ghost as local id, global id, value
             Idg = self.ghost_recv_dict[iproc][0]
 
-            for i, q in enumerate(self.conserved_quantities):
+            for i, q in enumerate(quantities):
                 Q_cv =  self.quantities[q].centroid_values
                 num.put(Q_cv, Idg, num.take(Q_cv, Idf, axis=0))
 

@@ -41,6 +41,7 @@ class Rate_operator(Operator,Region):
                  polygon=None,
                  center=None,
                  radius=None,
+                 time_relative=True,
                  default_rate=0.0,
                  description = None,
                  label = None,
@@ -63,6 +64,7 @@ class Rate_operator(Operator,Region):
         # Local variables
         #------------------------------------------
         self.factor = factor
+        self.time_relative = time_relative
 
         self.rate_callable = False
         self.rate_spatial = False
@@ -91,7 +93,7 @@ class Rate_operator(Operator,Region):
         if self.indices is []:
             return
 
-        t = self.domain.get_time()
+        t = self.domain.get_time(relative=self.time_relative)
         timestep = self.domain.get_timestep()
         factor = self.factor
         indices = self.indices
@@ -163,7 +165,9 @@ class Rate_operator(Operator,Region):
         assert not self.rate_spatial
 
 
-        rate = evaluate_temporal_function(self.rate, t, default_right_value=self.default_rate)
+        rate = evaluate_temporal_function(self.rate, t, 
+                                          default_right_value=self.default_rate,
+                                          default_left_value=self.default_rate)
 
         if rate is None:
             msg = ('Attribute rate must be specified in '+self.__name__+

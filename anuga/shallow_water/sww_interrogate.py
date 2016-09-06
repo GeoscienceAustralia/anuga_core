@@ -396,7 +396,7 @@ def get_maximum_inundation_elevation(filename,
     See general function get_maximum_inundation_data for details.
     """
 
-    runup, _ = get_maximum_inundation_data(filename,
+    runup, locatoin = get_maximum_inundation_data(filename,
                                            polygon=polygon,
                                            time_interval=time_interval,
                                            verbose=verbose)
@@ -426,7 +426,7 @@ def get_maximum_inundation_location(filename,
     See general function get_maximum_inundation_data for details.
     """
 
-    _, max_loc = get_maximum_inundation_data(filename,
+    runup, max_loc = get_maximum_inundation_data(filename,
                                              polygon=polygon,
                                              time_interval=time_interval,
                                              verbose=verbose)
@@ -435,6 +435,7 @@ def get_maximum_inundation_location(filename,
 
 def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
                                 use_centroid_values=True,
+                                return_time= False,
                                 verbose=False):
     """Compute maximum run up height from sww file.
 
@@ -471,10 +472,10 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
     from anuga.config import minimum_allowed_height
     from anuga.file.netcdf import NetCDFFile
 
+    # Just find max inundation over one file
     dir, base = os.path.split(filename)
-
-    iterate_over = get_all_swwfiles(dir, base)
-
+    #iterate_over = get_all_swwfiles(dir, base)
+    iterate_over = [ filename[:-4] ]
     if verbose:
         print iterate_over
         
@@ -484,6 +485,8 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
 
     maximal_runup = None
     maximal_runup_location = None
+    maximal_time = None
+
 
     for _, swwfile in enumerate (iterate_over):
         # Read sww file
@@ -510,10 +513,17 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         y = fid.variables['y'][:] + yllcorner
 
         # Get the relevant quantities (Convert from single precison)
-        elevation = num.array(fid.variables['elevation'][:], num.float)
-        stage = num.array(fid.variables['stage'][:], num.float)
+        try:
+            elevation = num.array(fid.variables['elevation_c'][:], num.float)
+            stage     = num.array(fid.variables['stage_c'][:], num.float)
+            found_c_values = True
+        except:
+            elevation = num.array(fid.variables['elevation'][:], num.float)
+            stage     = num.array(fid.variables['stage'][:], num.float)
+            found_c_values = False
 
         if verbose:
+            print 'found c values ', found_c_values
             print 'stage.shape ',stage.shape
             print 'elevation.shape ',elevation.shape
             
@@ -524,12 +534,16 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
             vols0=volumes[:,0]
             vols1=volumes[:,1]
             vols2=volumes[:,2]
-            # Then use these to compute centroid averages 
+            # Then use these to compute centroid location 
             x=(x[vols0]+x[vols1]+x[vols2])/3.0
             y=(y[vols0]+y[vols1]+y[vols2])/3.0
 
-            elevation=(elevation[vols0]+elevation[vols1]+elevation[vols2])/3.0
-            stage=(stage[:,vols0]+stage[:,vols1]+stage[:,vols2])/3.0
+            if found_c_values:
+                # don't have to do anything as found in sww file
+                pass
+            else:
+                elevation=(elevation[vols0]+elevation[vols1]+elevation[vols2])/3.0
+                stage=(stage[:,vols0]+stage[:,vols1]+stage[:,vols2])/3.0
 
         # Spatial restriction
         if polygon is not None:
@@ -548,7 +562,6 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
 
             # Get info for location of maximal runup
             points_in_polygon = num.take(points, point_indices, axis=0)
-
             x = points_in_polygon[:,0]
             y = points_in_polygon[:,1]
         else:
@@ -560,6 +573,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         if verbose:
             print time
         all_timeindices = num.arange(len(time))
+        
         if time_interval is not None:
             msg = 'time_interval must be a sequence of length 2.'
             assert len(time_interval) == 2, msg
@@ -586,6 +600,8 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         else:
             # Take them all
             timesteps = all_timeindices
+        
+        #print timesteps
 
         fid.close()
 
@@ -596,8 +612,6 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         #maximal_runup_locations = [None]
 
 
-
-            
         for i in timesteps:
             ## if use_centroid_values is True:
             ##     stage_i  = stage[i,:]
@@ -639,6 +653,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
 
             if runup > maximal_runup:
                 maximal_runup = runup      # works even if maximal_runup is None
+                maximal_time = time[i]
 
                 # Record location
                 wet_x = num.take(x, wet_nodes, axis=0)
@@ -648,5 +663,9 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
             if verbose:
                 print i, runup
 
-    return maximal_runup, maximal_runup_location
+    if return_time:
+        return maximal_runup, maximal_runup_location, maximal_time
+    else:
+        return maximal_runup, maximal_runup_location
+        
 
