@@ -59,17 +59,19 @@ We support two versions of MPI, ``mpich2`` and ``openmpi``
 
 Just during the setup stage, you should create an environment variable  ``ANUGA_PARALLEL`` via::
 
-        export ANUGA_PARALLEL="openmpi"
+    export ANUGA_PARALLEL="openmpi"
 
 or::
 
-	    export ANUGA_PARALLEL="mpich2"
+    export ANUGA_PARALLEL="mpich2"
 
 then the install script will load the  ``mpich2`` or ``openmpi`` libraries and binaries respectively.
 
 If you don't want parallel support set the variable to something else, e.g::
 
-	export ANUGA_PARALLEL="false"
+    export ANUGA_PARALLEL="false"
+
+   
 
 Running the installation script
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
