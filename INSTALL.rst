@@ -52,7 +52,7 @@ command.
 We have a script in the ``anuga_core/tools`` directory,
 `install_ubuntu.sh <https://github.com/GeoscienceAustralia/anuga_core/blob/master/tools/install_ubuntu.sh>`_
 which when run from the ``anuga_core`` directory will install AnuGA and all the dependencies using ``apt-get`` 
-and ``pip` to install the dependencies.
+and ``pip`` to install the dependencies.
 
 
 Parallel Support
