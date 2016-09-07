@@ -23,7 +23,7 @@ sudo apt-get install -q -y git gfortran python-dev python-numpy \
                              python-gdal gdal-bin python-pip 
 
 
-pip install nose netCDF4 pyproj
+sudo pip install nose netCDF4 pyproj
     
 ##########################################################
 # Setup for various versions of MPI
