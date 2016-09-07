@@ -37,7 +37,7 @@ to use the standard ubuntu ``apt-get`` method.
 
 We suggest installing the latest version of ANUGA_ from Github_.
 We try to maintain the *master* branch stable and
-`passing all tests <https://travis-ci.org/GeoscienceAustralia/anuga_core/branches>`__,
+`passing all tests <https://travis-ci.org/GeoscienceAustralia/anuga_core/branches>`_,
 so it should be safe to use.
 
 First, you'll need to `install git`_.
@@ -54,7 +54,6 @@ We have a script in the ``anuga_core/tools`` directory,
 which when run from the ``anuga_core`` directory will install AnuGA and all the dependencies using ``apt-get`` 
 and ``pip`` to install the dependencies.
 
-
 Parallel Support
 ~~~~~~~~~~~~~~~~
 
@@ -63,19 +62,18 @@ We support two versions of MPI, ``mpich2`` and ``openmpi``
 
 Just during the setup stage, you should create an environment variable  ``ANUGA_PARALLEL`` via::
 
-    export ANUGA_PARALLEL="openmpi"
+    export ANUGA_PARALLEL=openmpi
 
 or::
 
-    export ANUGA_PARALLEL="mpich2"
+    export ANUGA_PARALLEL=mpich2
 
 then the install script will load the  ``mpich2`` or ``openmpi`` libraries and binaries respectively.
 
 If you don't want parallel support set the variable to something else, e.g::
 
-    export ANUGA_PARALLEL="false"
+    export ANUGA_PARALLEL=false
 
-   
 
 Running the installation script
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
