@@ -1,14 +1,14 @@
 
 
-==================
+******************
 Anuga Installation
-==================
+******************
 
 .. contents::
 
 
 Introduction
-------------
+============
 
 AnuGA_ is a python package with some C extensions (and an optional fortran 
 extension). At present AnuGA has only been run and tested using python 2.x.
@@ -16,7 +16,7 @@ We recommend python 2.7.
 
 
 Dependencies
-------------
+============
 
 AnuGA requires the following packages:
 
@@ -30,7 +30,7 @@ AnuGA requires the following packages:
 
 
 Installing the latest DEVELOPMENT version on Ubuntu
----------------------------------------------------
+===================================================
 
 AnuGA is developed on Ubuntu. The preferred way to install the dependencies is 
 to use the standard ubuntu ``apt-get`` method. 
@@ -55,7 +55,7 @@ which when run from the ``anuga_core`` directory will install AnuGA and all the 
 and ``pip`` to install the dependencies.
 
 Parallel Support
-~~~~~~~~~~~~~~~~
+----------------
 
 At this stage you can decide whether you want Parallel support or not. 
 We support two versions of MPI, ``mpich2`` and ``openmpi``
@@ -76,7 +76,7 @@ If you don't want parallel support set the variable to something else, e.g::
 
 
 Running the installation script
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------
 
 Change into the newly downloaded ``anuga_core`` directory and run the installation script 
 (this will take 5 to 10 minutes depending on your network connection)::
@@ -93,7 +93,7 @@ So just ``cd`` into the directory and run ::
 Some of the commands in this script use sudo, so you will have to provide a password to install into the system wide directories.  
 
 Testing the install
-+++++++++++++++++++
+-------------------
 
 From the ``anuga_core`` directory run ``python runtests.py``::
 
@@ -123,7 +123,7 @@ For extended instructions on installing on Ubuntu checkout the wiki page
 
 
 Alternative Ubuntu Install
---------------------------
+==========================
 
 An alternative is to install the dependencies using the Anaconda_ or the Miniconda_ Python 
 distributions by `Continuum Analytics`_.
@@ -138,7 +138,7 @@ in your system.
 
 
 Anaconda and Miniconda
-++++++++++++++++++++++
+----------------------
 
 Once you have downloaded and installed Anaconda_ or Miniconda_
 open a terminal (or ``cmd.exe`` on Windows).
@@ -163,7 +163,7 @@ and setup GDAL_DATA environment variable::
 
 
 Windows Dependency Installation
--------------------------------
+===============================
 
 We have successfully install AnuGA on windows using Gohlke Binaries and using Miniconda. 
 At present we recommend using the Gohlke Binaries. 
@@ -180,7 +180,7 @@ Alternatively if you want ot use Miniconda, follow the instructions
 
 
 GCC dependency for Windows users
-++++++++++++++++++++++++++++++++++++
+--------------------------------
 
 Unfortunately, the ``gcc`` compiler MinGW_ included in Anaconda or 
 installable via Miniconda_ doesn't have OpenMP_ support. This is required to compile
@@ -193,8 +193,8 @@ the installation. See this `excellent documentation for Windows users`_
 (they even have screenshots!). The same applies if you are using Miniconda_.
 
 
-Installing the latest development version of AnuGA
---------------------------------------------------
+Installing the latest development version of AnuGA om Windows
+=============================================================
 
 We suggest instaling the latest code and features,
 by installing AnuGA directly from Github_.
@@ -240,7 +240,7 @@ information:
   numbers, etc)
     
 Using pip_ to install anuga
----------------------------
+===========================
     
 You can alternatively use  pip_ to install the lateest released version of `anuga`
 
@@ -265,7 +265,7 @@ To uninstall simply run::
     The Windows installer from older versions is no longer supported.
     
     
-.. _AnuGA http://anuga.anu.edu.au/ 
+.. _AnuGA: http://anuga.anu.edu.au/ 
 .. _install git: http://git-scm.com/
 .. _Github: https://github.com/stoiver/anuga_core/
 .. _Python: http://www.python.org/
