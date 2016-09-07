@@ -362,7 +362,7 @@ class Calibrated_radar_rain(Raster_time_slice_data):
                  radar_dir = None,
                  start_time = None,
                  final_time = None,
-                 vergri bose=False, 
+                 verbose=False, 
                  debug=False):
         """
         start_time: seconds since epoch  or string of form 20120229_1210
