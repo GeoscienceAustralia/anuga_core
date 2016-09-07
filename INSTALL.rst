@@ -54,7 +54,7 @@ which when run from the ``anuga_core`` directory will install AnuGA and all the 
 So just ``cd`` into the directory and run ::
 
     cd anuga_core
-    bash tool/install_ubuntu.sh
+    bash tools/install_ubuntu.sh
 
 Some of the commands in this script use sudo, so you will have to provide a password to install into the system wide directories.  
 
