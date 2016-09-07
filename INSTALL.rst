@@ -51,6 +51,36 @@ We have a script in the ``anuga_core/tools`` directory,
 `install_ubuntu.sh <https://github.com/GeoscienceAustralia/anuga_core/blob/master/tools/install_ubuntu.sh>`_
 which when run from the ``anuga_core`` directory will install AnuGA and all the dependencies using ``apt-get``.
 
+Parallel Support
+~~~~~~~~~~~~~~~~
+
+At this stage you can decide whether you want Parallel support or not. 
+We support two versions of MPI, ``mpich2`` and ``openmpi``
+
+Just during the setup stage, you should create an environment variable  ``ANUGA_PARALLEL`` via::
+
+        export ANUGA_PARALLEL="openmpi"
+
+or::
+
+	    export ANUGA_PARALLEL="mpich2"
+
+then the install script will load the  ``mpich2`` or ``openmpi`` libraries and binaries respectively.
+
+If you don't want parallel support set the variable to something else, e.g::
+
+	export ANUGA_PARALLEL="false"
+
+Running the installation script
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Change into the newly downloaded ``anuga_core`` directory and run the installation script 
+(this will take 5 to 10 minutes depending on your network connection)::
+
+	cd anuga_core
+	bash tools/install_ubuntu.sh
+
+If all has been successful then anuga should be installed.
 So just ``cd`` into the directory and run ::
 
     cd anuga_core
