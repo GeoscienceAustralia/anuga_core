@@ -68,7 +68,7 @@ or::
 
     export ANUGA_PARALLEL=mpich2
 
-then the install script will load the  ``mpich2`` or ``openmpi`` libraries and binaries respectively.
+then the install script will load the  ``openmpi`` or ``mpich2`` libraries and binaries respectively.
 
 If you don't want parallel support set the variable to something else, e.g::
 
