@@ -10,6 +10,7 @@
 set -e
 
 PYTHON_VERSION=${PYTHON_VERSION:-"2.7"}
+#ANUGA_PARALLEL=${ANUGA_PARALLEL:-"openmpi"}
 
 sudo apt-get update -q
 
