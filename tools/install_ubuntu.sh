@@ -13,14 +13,14 @@ PYTHON_VERSION=${PYTHON_VERSION:-"2.7"}
 ANUGA_PARALLEL=${ANUGA_PARALLEL:-"false"}
 
 ###########################################################
-# Check if openmpi has been installed
-if [ $(dpkg-query -W -f='${Status}' openmpi-bin 2>/dev/null | grep -c "ok installed") -gt 0 ];
+# Check if mpich2 has been installed
+if [ $(dpkg-query -W -f='${Status}\n' mpich2 2>/dev/null | grep -c "ok installed") -gt 0 ];
 then
-  ANUGA_PARALLEL="openmpi"
+  ANUGA_PARALLEL="mpich2"
 fi
 
 ###########################################################
-# Check if mpich2 has been installed
+# Check if mpich has been installed
 if [ $(dpkg-query -W -f='${Status}' mpich 2>/dev/null | grep -c "ok installed") -gt 0 ];
 then
   ANUGA_PARALLEL="mpich"
@@ -28,11 +28,12 @@ fi
 
 
 ###########################################################
-# Check if mpich2 has been installed
-if [ $(dpkg-query -W -f='${Status}' mpich2  2>/dev/null | grep -c "ok installed") -gt 0 ];
+# Check if openmpi has been installed
+if [ $(dpkg-query -W -f='${Status}\n' openmpi-bin 2>/dev/null | grep -c "ok installed") -gt 0 ];
 then
-  ANUGA_PARALLEL="mpich2"
+  ANUGA_PARALLEL="openmpi"
 fi
+
 
 
 sudo apt-get update -q
@@ -101,8 +102,8 @@ if [[ "$ANUGA_PARALLEL" == "mpich" || "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_P
     fi
     pushd pypar;
     git pull
-    python setup.py -q build;
-    sudo python setup.py -q install;
+    python setup.py  build;
+    sudo python setup.py  install;
     popd;
 fi
 
