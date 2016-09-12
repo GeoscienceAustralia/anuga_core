@@ -55,14 +55,14 @@ if [[ "$ANUGA_PARALLEL" == "mpich2" ]]; then
     echo "+===============================================+"
     echo "|  Using apt-get to install mpich package       |"
     echo "+===============================================+"
-    sudo apt-get install -y mpich2;
+    sudo apt-get install -q -y mpich2;
 fi
 
 if [[ "$ANUGA_PARALLEL" == "openmpi" ]]; then
     echo "+===============================================+"
     echo "|  Using apt-get to install openmpi package       |"
     echo "+===============================================+"
-    sudo apt-get install -y libopenmpi-dev openmpi-bin;
+    sudo apt-get install -q -y libopenmpi-dev openmpi-bin;
 fi
 
 # Install pypar if parallel set
@@ -72,7 +72,7 @@ if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
     echo "+===============================================+"
     git clone https://github.com/daleroberts/pypar.git;
     pushd pypar;
-    python setup.py build;
+    python setup.py -q build;
     sudo python setup.py install;
     popd;
 fi
@@ -81,9 +81,13 @@ fi
 # Build and install anuga
 
 echo "+===============================================+"
-echo "|  Using setup.py to install anuga              |"
+echo "|  Build anuga                                  |"
 echo "+===============================================+"
 python build_all.py
+
+echo "+===============================================+"
+echo "|  Install anuga using setup.py                 |"
+echo "+===============================================+"
 sudo python setup.py install 
 
 
