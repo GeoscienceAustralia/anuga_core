@@ -49,12 +49,12 @@ echo "+===============================================+"
 sudo pip install -q nose
 
 echo "+===============================================+"
-echo "|  Using pip to install nose                    |"
+echo "|  Using pip to install netCDF4                 |"
 echo "+===============================================+"
 sudo pip install -q netCDF4
 
 echo "+===============================================+"
-echo "|  Using pip to install nose                    |"
+echo "|  Using pip to install pyproj                  |"
 echo "+===============================================+"
 sudo pip install -q pyproj
 
@@ -70,7 +70,7 @@ fi
 
 if [[ "$ANUGA_PARALLEL" == "openmpi" ]]; then
     echo "+===============================================+"
-    echo "|  Using apt-get to install openmpi package       |"
+    echo "|  Using apt-get to install openmpi packag      |"
     echo "+===============================================+"
     sudo apt-get install -q -y libopenmpi-dev openmpi-bin;
 fi
@@ -80,8 +80,11 @@ if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
     echo "+===============================================+"
     echo "|  Installing pypar from source                 |"
     echo "+===============================================+"
-    git clone https://github.com/daleroberts/pypar.git;
+    if [ ! -d "pypar" ]; then
+	git clone https://github.com/daleroberts/pypar.git;
+    fi
     pushd pypar;
+    git pull
     python setup.py -q build;
     sudo python setup.py -q install;
     popd;
