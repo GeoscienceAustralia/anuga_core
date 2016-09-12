@@ -47,7 +47,7 @@ echo "+===============================================+"
 echo "|  Using pip to install standard packages       |"
 echo "+===============================================+"
 
-sudo pip install nose netCDF4 pyproj
+sudo pip install -q nose netCDF4 pyproj
     
 ##########################################################
 # Setup for various versions of MPI
@@ -83,7 +83,7 @@ fi
 echo "+===============================================+"
 echo "|  Using setup.py to install anuga              |"
 echo "+===============================================+"
-python setup.py build
+python build_all.py
 sudo python setup.py install 
 
 
