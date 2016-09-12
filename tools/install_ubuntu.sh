@@ -44,10 +44,20 @@ sudo apt-get install -q -y git gfortran python-dev python-numpy \
 
 
 echo "+===============================================+"
-echo "|  Using pip to install standard packages       |"
+echo "|  Using pip to install nose                    |"
 echo "+===============================================+"
+sudo pip install -q nose
 
-sudo pip install -q nose netCDF4 pyproj
+echo "+===============================================+"
+echo "|  Using pip to install nose                    |"
+echo "+===============================================+"
+sudo pip install -q netCDF4
+
+echo "+===============================================+"
+echo "|  Using pip to install nose                    |"
+echo "+===============================================+"
+sudo pip install -q pyproj
+
     
 ##########################################################
 # Setup for various versions of MPI
@@ -73,7 +83,7 @@ if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
     git clone https://github.com/daleroberts/pypar.git;
     pushd pypar;
     python setup.py -q build;
-    sudo python setup.py install;
+    sudo python setup.py -q install;
     popd;
 fi
 
@@ -88,7 +98,7 @@ python build_all.py
 echo "+===============================================+"
 echo "|  Install anuga using setup.py                 |"
 echo "+===============================================+"
-sudo python setup.py install 
+sudo python setup.py -q install 
 
 
 
