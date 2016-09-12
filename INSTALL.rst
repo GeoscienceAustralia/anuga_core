@@ -68,7 +68,9 @@ or::
 
     export ANUGA_PARALLEL=mpich
 
-then the install script will load the  ``mpich`` or ``openmpi`` libraries and binaries respectively.
+
+then the install script will load the  ``openmpi`` or ``mpich`` libraries and binaries respectively.
+
 
 If you don't want parallel support set the variable to something else, e.g::
 
@@ -84,23 +86,25 @@ Change into the newly downloaded ``anuga_core`` directory and run the installati
 	cd anuga_core
 	bash tools/install_ubuntu.sh
 
+
+Some of the commands in this script use sudo, so you will have to provide 
+a password to install into the system wide directories. 
+
 If all has been successful then anuga should be installed.
-So just ``cd`` into the directory and run ::
-
-    cd anuga_core
-    bash tools/install_ubuntu.sh
-
-Some of the commands in this script use sudo, so you will have to provide a password to install into the system wide directories.  
 
 Testing the install
 -------------------
 
-From the ``anuga_core`` directory run ``python runtests.py``::
+To test the installation, from the ``anuga_core`` directory run ``python runtests.py``::
 
     python runtests.py
     
+If there are no errors then you have successfully installed aunga. 
 
-If you get an error message or weird result,
+Errors with runtests
+--------------------
+
+If you get an error message or a weird result when running ``runtests.py``, 
 please write to the `mailing list`_ or `create an issue on the github site 
 <https://github.com/GeoscienceAustralia/anuga_core/issues>`__.
 
