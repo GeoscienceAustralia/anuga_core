@@ -21,7 +21,15 @@ fi
 
 ###########################################################
 # Check if mpich2 has been installed
-if [ $(dpkg-query -W -f='${Status}' mpich2 2>/dev/null | grep -c "ok installed") -gt 0 ];
+if [ $(dpkg-query -W -f='${Status}' mpich 2>/dev/null | grep -c "ok installed") -gt 0 ];
+then
+  ANUGA_PARALLEL="mpich"
+fi
+
+
+###########################################################
+# Check if mpich2 has been installed
+if [ $(dpkg-query -W -f='${Status}' mpich2  2>/dev/null | grep -c "ok installed") -gt 0 ];
 then
   ANUGA_PARALLEL="mpich2"
 fi
@@ -61,22 +69,30 @@ sudo pip install -q pyproj
     
 ##########################################################
 # Setup for various versions of MPI
-if [[ "$ANUGA_PARALLEL" == "mpich2" ]]; then
+if [[ "$ANUGA_PARALLEL" == "mpich" ]]; then
     echo "+===============================================+"
     echo "|  Using apt-get to install mpich package       |"
+    echo "+===============================================+"
+    sudo apt-get install -q -y mpich;
+fi
+
+if [[ "$ANUGA_PARALLEL" == "mpich2" ]]; then
+    echo "+===============================================+"
+    echo "|  Using apt-get to install mpich2 package      |"
     echo "+===============================================+"
     sudo apt-get install -q -y mpich2;
 fi
 
 if [[ "$ANUGA_PARALLEL" == "openmpi" ]]; then
     echo "+===============================================+"
-    echo "|  Using apt-get to install openmpi packag      |"
+    echo "|  Using apt-get to install openmpi package     |"
     echo "+===============================================+"
     sudo apt-get install -q -y libopenmpi-dev openmpi-bin;
 fi
 
+
 # Install pypar if parallel set
-if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
+if [[ "$ANUGA_PARALLEL" == "mpich" || "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
     echo "+===============================================+"
     echo "|  Installing pypar from source                 |"
     echo "+===============================================+"
