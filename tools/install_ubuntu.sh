@@ -102,8 +102,8 @@ if [[ "$ANUGA_PARALLEL" == "mpich" || "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_P
     fi
     pushd pypar;
     git pull
-    python setup.py -q build;
-    sudo python setup.py -q install;
+    python setup.py  build;
+    sudo python setup.py  install;
     popd;
 fi
 
