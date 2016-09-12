@@ -289,7 +289,7 @@ def store_revision_info(destination_path='.', verbose=False):
     try:
         #fid = os.popen('svn info')
         #FIXME SR: This works for python 2.6
-        txt = subprocess.Popen('svn info', shell=True, stdout=subprocess.PIPE).communicate()[0]
+        txt = subprocess.Popen('svn info', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0]
     except:
         txt = 'Revision: 0'
     else:    
