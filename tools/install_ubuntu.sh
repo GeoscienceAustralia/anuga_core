@@ -70,11 +70,11 @@ if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
     echo "+===============================================+"
     echo "|  Installing pypar from source                 |"
     echo "+===============================================+"
-     git clone https://github.com/daleroberts/pypar.git;
-     pushd pypar;
-     python setup.py build;
-     sudo python setup.py install;
-     popd;
+    git clone https://github.com/daleroberts/pypar.git;
+    pushd pypar;
+    python setup.py build;
+    sudo python setup.py install;
+    popd;
 fi
 
 #########################################################
