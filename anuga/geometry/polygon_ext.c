@@ -44,8 +44,10 @@ int __point_on_line(double x, double y,
   */
 
   double a0, a1, a_normal0, a_normal1, b0, b1, len_a, len_b;
+  double a_dot_b, len_ba;
   double nominator, denominator;
   int is_parallel;
+
 
   a0 = x - x0;
   a1 = y - y0;
@@ -80,7 +82,13 @@ int __point_on_line(double x, double y,
     len_a = dist(a0, a1); //sqrt(a0*a0 + a1*a1);
     len_b = dist(b0, b1); //sqrt(b0*b0 + b1*b1);
 
-    if (a0*b0 + a1*b1 >= 0 && len_a <= len_b) {
+    a_dot_b = a0*b0 + a1*b1;
+    //len_ba  = len_b - len_a;
+
+    //printf("a0*b0 + a1*b1 = %20.10e \n",a_dot_b);
+    //printf("len_b - len_a = %20.10e \n",len_ba);
+
+    if (a_dot_b >= -1.0e-308 && -1.0e-15 <= len_b - len_a) {
       return 1;
     } else {
       return 0;

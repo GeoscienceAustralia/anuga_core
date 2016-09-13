@@ -16,8 +16,7 @@ from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.numerical_tools import cov
 #from anuga.utilities.numerical_tools import get_machine_precision
-from anuga.shallow_water.sww_interrogate import get_maximum_inundation_elevation
-from anuga.shallow_water.sww_interrogate import get_maximum_inundation_location
+from anuga.shallow_water.sww_interrogate import get_maximum_inundation_data
 import matplotlib
 matplotlib.use('Agg')
 
@@ -254,13 +253,19 @@ for k, name in enumerate(gauge_names):
 
 # Check max runup
 
-q = get_maximum_inundation_elevation(sww_filename)
-loc = get_maximum_inundation_location(sww_filename)
+q, loc, time = get_maximum_inundation_data(sww_filename, return_time=True)
 
 if verbose:
-    print 'Max runup elevation: ', q
-    print 'Max runup elevation (scaled by 400): ', q*400
+    print 'Observed results'
+    print 'Max runup elevation (m): 0.0875, 0.09, 0.08, 0.09, 0.1, 0.09, Average 0.09'
+    print 'Max runup elevation (scaled by 400) (m): Average 36'
+    print 'Max runup location:  [5.1575, 1.88]'
+    print 'Max runup time (s): 16.5'
+    print 'Model Results'
+    print 'Max runup elevation (m): ', q
+    print 'Max runup elevation (scaled by 400) (m): ', q*400
     print 'Max runup location:  ', loc
+    print 'Max runup time (s): ',time
 
 
 #assert is_inside_polygon(loc, gulleys)
