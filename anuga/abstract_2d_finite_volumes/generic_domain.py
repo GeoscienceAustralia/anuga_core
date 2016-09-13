@@ -1615,7 +1615,7 @@ class Generic_Domain:
             if finaltime is not None:
                 self.finaltime = float(finaltime)
             if duration is not None:
-                self.finaltime = float(duration)
+                self.finaltime = float(duration) + self.get_time()
 
         assert self.finaltime >= self.get_time(), 'finaltime %g is less than starttime %g!' % (self.finaltime,self.get_time())
 
