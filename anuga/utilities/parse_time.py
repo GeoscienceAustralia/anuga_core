@@ -3,6 +3,7 @@ def parse_time(time = None, verbose=False, debug=False):
     """
     Time: seconds since epoch  or 
     string of form '20120229'  '20120229_1210' '20120229 1210' '201202291210'
+    or '20120229_121000' '20120229 121000' '20120229121000'
     """
     
     if time is None: return None
@@ -15,7 +16,7 @@ def parse_time(time = None, verbose=False, debug=False):
         except ValueError:
             pass
     
-    year, month, day, hour, minute  = 1970, 1, 1, 0, 0
+    year, month, day, hour, minute, second  = 1970, 1, 1, 0, 0, 0
     
     try:
         year = int(time[0:4])
@@ -57,15 +58,23 @@ def parse_time(time = None, verbose=False, debug=False):
             minute = int(time[11:13])
     except:
         minute = 0
-            
+         
+    try:
+        if dash is None:
+            second = int(time[12:14])
+        else:
+            second = int(time[13:15])
+    except:
+        second = 0         
+       
     if debug:
-        print year, month, day, hour, minute
+        print year, month, day, hour, minute, second
         print 'Convert to epoch'
 
             
                 
     import datetime
-    time = int((datetime.datetime(year,month,day,hour,minute) - datetime.datetime(1970,1,1)).total_seconds())
+    time = int((datetime.datetime(year,month,day,hour,minute,second) - datetime.datetime(1970,1,1)).total_seconds())
 
     if debug: print time
     
