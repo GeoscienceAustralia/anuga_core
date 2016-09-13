@@ -490,7 +490,7 @@ class Calibrated_radar_rain(Raster_time_slice_data):
                     self.x = self.x*1000 + self.offset_x
                     self.y = self.y*1000 + self.offset_y
                     
-                    data_slice = data.variables[precip_name][:]/1000  # convert mm to m
+                    data_slice = data.variables[precip_name][:]/1000  # convert from mm to m
                     
                     data_accumulated = data_slice.copy() # Put into new Accumulating ARRRAY
 
@@ -499,7 +499,7 @@ class Calibrated_radar_rain(Raster_time_slice_data):
                         
     
                 else:  # ---If NOT FIRST !!!
-                    data_slice = data.variables[precip_name][:]/1000 # convert mm to m
+                    data_slice = data.variables[precip_name][:]/1000 # convert from mm to m
 
                     data_accumulated += data_slice
                     

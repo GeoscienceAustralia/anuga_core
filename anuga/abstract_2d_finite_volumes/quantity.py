@@ -703,6 +703,7 @@ class Quantity:
                          function=None,        # Callable object: f(x,y)
                          geospatial_data=None, # Arbitrary dataset
                          filename=None,
+                         raster=None,          # raster of form (x,y,Z)
                          attribute_name=None,  # Input from file
                          alpha=None,
                          location='vertices',
@@ -733,10 +734,14 @@ class Quantity:
           Arbitrary geo spatial dataset in the form of the class
           Geospatial_data. Mesh points are populated using
           fit_interpolate.fit fitting
+          
 
         filename:
           Name of a points file or dem file (.asc or .grd or .dem) containing data points and attributes for
           use with fit_interpolate.fit.
+          
+        raster:
+          A class or a tuple (x,y,Z)
 
         attribute_name:
           If specified, any array matching that name
@@ -841,9 +846,9 @@ class Quantity:
             return
 
         # General input checks
-        L = [numeric, quantity, function, geospatial_data, filename]
+        L = [numeric, quantity, function, geospatial_data, filename, raster]
         msg = ('Exactly one of the arguments numeric, quantity, function, '
-               'geospatial_data, or filename must be present.')
+               'geospatial_data, filename or raster must be present.')
 
         count = 0
         for entry in L:
@@ -906,20 +911,26 @@ class Quantity:
                 max_read_lines = self.domain.points_file_block_line_size
             else:
                 max_read_lines = default_block_line_size
-	    filename_ext = os.path.splitext(filename)[1]
-	    # pts file in the format of .txt or .pts
-	    if filename_ext in ['.txt', '.pts', '.csv']:
+            filename_ext = os.path.splitext(filename)[1]
+            # pts file in the format of .txt or .pts
+            if filename_ext in ['.txt', '.pts', '.csv']:
                 self.set_values_from_file(filename, attribute_name, alpha, location,
                                       indices, verbose=verbose,
                                       max_read_lines=max_read_lines,
                                       use_cache=use_cache)
-	    # dem file in the format of .asc, .grd or .dem 
-	    elif filename_ext in ['.asc', '.grd', '.dem']:
-		self.set_values_from_utm_grid_file(filename, location,
-				      indices, verbose=verbose)
-	    else:
-	    	raise Exception('Extension should be .pts .dem, .csv, .txt, .asc or .grd')
-	else:
+            # dem file in the format of .asc, .grd or .dem 
+            elif filename_ext in ['.asc', '.grd', '.dem']:
+                self.set_values_from_utm_grid_file(filename, location,
+                      indices, verbose=verbose)
+            else:
+                raise Exception('Extension should be .pts .dem, .csv, .txt, .asc or .grd')
+
+        elif raster is not None:
+            self.set_values_from_utm_raster(raster, 
+                                            location=location, 
+                                            indices=indices, 
+                                            verbose=verbose)
+        else:
             raise Exception("This can't happen :-)")
 
         # Update all locations in triangles
@@ -1321,13 +1332,13 @@ class Quantity:
         
         from anuga.file_conversion.grd2array import grd2array
         from anuga.file_conversion.dem2array import dem2array
-	filename_ext = os.path.splitext(filename)[1]
         
-	if filename_ext in ['.asc', '.grd']:
+        filename_ext = os.path.splitext(filename)[1]
+        
+        if filename_ext in ['.asc', '.grd']:
             x,y,Z = grd2array(filename)
-	
-	elif filename_ext == '.dem':
-	    x,y,Z = dem2array(filename)
+        elif filename_ext == '.dem':
+            x,y,Z = dem2array(filename)
         
         if location == 'centroids':
             points = self.domain.centroid_coordinates
@@ -1381,7 +1392,70 @@ class Quantity:
             self.interpolate()
             
             
+    def set_values_from_utm_raster(self,
+                             raster,
+                             location='vertices',
+                             indices=None,
+                             verbose=False):
+        
+
+        
+        x,y,Z = raster
+        
+        
+        if location == 'centroids':
+            points = self.domain.centroid_coordinates
+        
+        else:
+            points = self.domain.vertex_coordinates
             
+        from anuga.geospatial_data.geospatial_data import ensure_absolute
+        
+        points = ensure_absolute(points, geo_reference=self.domain.geo_reference)        
+        
+        from  anuga.fit_interpolate.interpolate2d import interpolate_raster
+        
+        #print points 
+        values = interpolate_raster(x, y, Z, points, mode='linear', bounds_error=False)
+        
+        #print values
+
+        # Call underlying method using array values
+        if verbose:
+            log.critical('Applying fitted data to quantity')
+            
+        
+        if location == 'centroids':
+            if indices is None:
+                msg = 'Number of values must match number of elements'
+                #assert values.shape[0] == N, msg
+
+                self.centroid_values[:] = values
+            else:
+                msg = 'Number of values must match number of indices'
+                assert values.shape[0] == indices.shape[0], msg
+
+                # Brute force
+                self.centroid_values[indices] = values
+        else:
+            if indices is None:
+                msg = 'Number of values must match number of elements'
+                #assert values.shape[0] == N, msg
+
+                #print values.shape
+                #print self.vertex_values.shape 
+                self.vertex_values[:] = values.reshape((-1,3))
+            else:
+                msg = 'Number of values must match number of indices'
+                assert values.shape[0] == indices.shape[0], msg
+
+                # Brute force
+                self.vertex_values[indices] = values.reshape((-1,3))
+            
+            # Cleanup centroid values
+            self.interpolate()
+            
+                        
             
     def set_values_from_lat_long_grid_file(self,
                              filename,
