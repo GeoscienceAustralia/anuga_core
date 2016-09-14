@@ -246,7 +246,7 @@ class Parallel_Weir_orifice_trapezoid_operator(Parallel_Structure_operator):
                     
             
                 Q, barrel_velocity, outlet_culvert_depth, flow_area, case = \
-                              weir_orifice_trapezoid_function(depth               =self.culvert_height,
+                              weir_orifice_trapezoid_function(depth =self.culvert_height,
                                                 width               =self.culvert_width,
                                                 z1                  =self.culvert_z1,
                                                 z2                  =self.culvert_z2,                                                

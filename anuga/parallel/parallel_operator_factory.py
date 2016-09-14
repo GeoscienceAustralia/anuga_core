@@ -117,8 +117,9 @@ return an instance of Parallel Boyd_box_operator
 
 def Boyd_box_operator(domain,
                        losses,
-                       width,
-                       height=None,
+                       width,                       
+                       height=None,                                           
+                       blockage=0.0, #added by DPM 24/7/2016 
                        z1=0.0,
                        z2=0.0,
                        end_points=None,
@@ -146,6 +147,7 @@ def Boyd_box_operator(domain,
                                                                     losses=losses,
                                                                     width=width,
                                                                     height=height,
+                                                                    blockage=blockage,#added by DPM 24/7/2016
                                                                     z1=0.0,
                                                                     z2=0.0,
                                                                     end_points=end_points,
@@ -252,6 +254,7 @@ def Boyd_box_operator(domain,
                                          losses=losses,
                                          width=width,
                                          height=height,
+                                         blockage=blockage, #added by DPM 24/7/2016
                                          end_points=end_points,
                                          exchange_lines=exchange_lines,
                                          enquiry_points=enquiry_points,
