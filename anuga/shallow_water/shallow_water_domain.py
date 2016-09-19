@@ -1430,7 +1430,7 @@ class Domain(Generic_Domain):
         """
 
         self.minimum_storable_height = minimum_storable_height
-
+        
 
     def get_minimum_storable_height(self):
 

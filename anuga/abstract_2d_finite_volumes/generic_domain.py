@@ -569,6 +569,22 @@ class Generic_Domain:
             return self.time
         else:
             return self.starttime + self.time
+ 
+    def set_zone(self,zone):  
+        """Set zone for domain."""
+        
+        self.geo_reference.zone = zone
+        
+        
+    def get_datetime(self):
+        """Return date time of current modeltime."""
+        
+        import datetime
+        
+        absolute_time = self.get_time(relative_time=False)
+        
+        return datetime.datetime.utcfromtimestamp(absolute_time).strftime('%c')
+    
 
     def get_timestep(self):
         """get current timestep (seconds)."""
@@ -1617,7 +1633,16 @@ class Generic_Domain:
             if duration is not None:
                 self.finaltime = float(duration) + self.get_time()
 
-        assert self.finaltime >= self.get_time(), 'finaltime %g is less than starttime %g!' % (self.finaltime,self.get_time())
+        if self.finaltime < self.get_time():
+            import warnings
+            msg =  '\n finaltime %g is less than current time %g! ' % (self.finaltime,self.get_time())
+            msg += 'finaltime set to current time'
+            self.finaltime = self.get_time()
+            warnings.warn(msg)
+            
+            # let's get out of here
+            return
+            
 
         N = len(self)                             # Number of triangles
         self.yieldtime = self.get_time() + yieldstep    # set next yield time

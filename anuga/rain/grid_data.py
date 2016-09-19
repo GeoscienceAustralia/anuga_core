@@ -143,6 +143,8 @@ class Raster_time_slice_data(object):
         
         if not polygon is None:
             X,Y = np.meshgrid(x,y)
+            Y = np.flipud(Y)
+            
             points = np.empty((nx*ny,2), dtype="float")
             points[:,0] = X.flatten()
             points[:,1] = Y.flatten()
@@ -154,7 +156,7 @@ class Raster_time_slice_data(object):
         return indices
     
 
-    def accumulate_data_stats(self, tid=None, polygon=None):
+    def accumulate_data_stats(self, tid=None, polygon=None, print_stats=False):
         """
         Accumulate stats of data over slices, either for a specified tid timeslice
         or over all time slices.
@@ -176,7 +178,7 @@ class Raster_time_slice_data(object):
         
         if tid is None:
             data = self.data_accumulated
-            time_period = self.times[-1]-self.times[0]
+            time_period = self.time_step*len(self.times)
         else:
             data = self.data_slices[tid]
             time = self.times[tid]
@@ -184,6 +186,7 @@ class Raster_time_slice_data(object):
             
         
         indices = self.grid_indices_inside_polygon(polygon)
+
         
         if indices is None:  
             data_max_in_period = np.max(data) 
@@ -195,11 +198,11 @@ class Raster_time_slice_data(object):
             total_data_volume = np.sum(pmask)*ldx*ldy 
             catchment_area = len(pmask)*ldx*ldy
 
-        print indices
+        #print indices
         peak_intensity = data_max_in_period/time_step      
 
         
-        if self.verbose:
+        if print_stats or self.verbose:
             print 'Time period = ',time_period
             print 'Time step = ',time_step
             print 'Catchment Area = ', catchment_area
@@ -407,9 +410,13 @@ class Calibrated_radar_rain(Raster_time_slice_data):
         
         self.radar_dir = radar_dir
         
+        if self.verbose:
+            import datetime
+            print "READING BoM calibrated rain grid data"
+        
         for root, dirs, files in os.walk(radar_dir): 
             
-            if self.debug or self.verbose:
+            if self.debug:
                 print 'Directory: ',dirs
                 print 'Number of Files = ',len(fnmatch.filter(files, pattern))
             
@@ -447,6 +454,8 @@ class Calibrated_radar_rain(Raster_time_slice_data):
                 file_start_time = data.variables['start_time'][0]
                 file_valid_time = data.variables['valid_time'][0]
                 
+                new_time_step = file_valid_time - file_start_time
+                
                 if self.debug:
                     print 'VARIABLES:'
                     print 'Reference times ', file_start_time, file_valid_time, valid_time
@@ -471,6 +480,7 @@ class Calibrated_radar_rain(Raster_time_slice_data):
                     
                     self.base_filename = filename[:-20]
                     
+                    self.time_step = file_valid_time - file_start_time
                     
                     if self.debug: print ' Accumulate rainfall here....'
                     self.x = data.variables['x_loc'][:]
@@ -493,7 +503,6 @@ class Calibrated_radar_rain(Raster_time_slice_data):
                     data_slice = data.variables[precip_name][:]/1000  # convert from mm to m
                     
                     data_accumulated = data_slice.copy() # Put into new Accumulating ARRRAY
-
                     
                     data_max_in_period  = max(np.max(data_slice),data_max_in_period)  
                         
@@ -506,6 +515,8 @@ class Calibrated_radar_rain(Raster_time_slice_data):
                     if self.debug: print ' Keep accumulating rainfall....'
 
                     data_max_in_period  = max(np.max(data_slice),data_max_in_period)
+                    
+                    assert np.allclose(self.time_step,new_time_step), "Timesteps not equal"
 
                     
                 data_slices.append(data_slice)
@@ -517,22 +528,29 @@ class Calibrated_radar_rain(Raster_time_slice_data):
         ids = np.argsort(times)
         
         #pdb.set_trace()
-
-        self.times = times[ids]   
-        self.data_slices = np.array([ data_slices[tid] for tid in ids ])
-        self.time_step = self.times[1]-self.times[0]
-        self.start_time = self.times[0]-self.time_step
-        self.data_accumulated = data_accumulated 
+        if len(times) > 0:
+            self.times = times[ids]   
+            self.data_slices = np.array([ data_slices[tid] for tid in ids ])
+            self.start_time = self.times[0]-self.time_step
+            self.data_accumulated = data_accumulated 
+            print "+++++", np.sum(data_accumulated)
+            # Test sorting
+            for i, tid in enumerate(ids):
+                np.allclose(times[tid], self.times[i])
+                np.allclose(data_slices[tid], self.data_slices[i])
+        else:
+            self.times = []  
+            self.data_slices = []
+            self.start_time = []
+            self.data_accumulated = []
         
-        
-        # Test sorting
-        for i, tid in enumerate(ids):
-            np.allclose(times[tid], self.times[i])
-            np.allclose(data_slices[tid], self.data_slices[i])
                 
         self.extent = (self.x.min(), self.x.max(), self.y.min(), self.y.max())
 
-
+        if self.verbose:
+            print "    From UTC time: %s"% datetime.datetime.utcfromtimestamp(self.start_time).strftime('%c')
+            print "    To UTC time:   %s"% datetime.datetime.utcfromtimestamp(self.final_time).strftime('%c')
+            print "    Read in %g time slices" % len(self.times)
 
     
     
@@ -544,8 +562,8 @@ if __name__ == "__main__":
         import pdb
     
 
-    #scenario = 'act'
-    scenario = 'grantham'
+    scenario = 'act'
+    #scenario = 'grantham'
     #scenario = 'artificial'
     
 
@@ -642,6 +660,7 @@ if __name__ == "__main__":
         p3 = None
         pass
      
+    p2 = [[689801.0, 6091501.0], [700200.0, 6091501.0], [700200.0, 6104600.0], [689801.0, 6104600.0], [689801.0, 6091501.0]]
 
     print rain.get_extent()
     rain.accumulate_data_stats()

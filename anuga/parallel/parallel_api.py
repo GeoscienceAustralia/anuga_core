@@ -53,6 +53,14 @@ def collect_value(value):
             value = value + val
     else:
         send(value, 0)
+        
+    
+    if myid == 0:
+        for i in range(1,numprocs):
+            send(value,i)
+    else:
+        value = receive(0)
+   
 
     return value   
     
@@ -124,13 +132,14 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
     #------------------------------------------------------------------------
     # Transfer other attributes to each subdomain
     #------------------------------------------------------------------------
+
+    parallel_domain.set_flow_algorithm(domain_flow_algorithm)
     parallel_domain.set_name(domain_name)
     parallel_domain.set_datadir(domain_dir)
     parallel_domain.set_store(domain_store)
     parallel_domain.set_store_centroids(domain_store_centroids)
-    parallel_domain.set_minimum_storable_height(domain_minimum_storable_height)
+    parallel_domain.set_minimum_storable_height(domain_minimum_storable_height) 
     parallel_domain.set_minimum_allowed_height(domain_minimum_allowed_height)
-    parallel_domain.set_flow_algorithm(domain_flow_algorithm)
     parallel_domain.geo_reference = domain_georef
     parallel_domain.set_quantities_to_be_stored(domain_quantities_to_be_stored)
     parallel_domain.smooth = domain_smooth
