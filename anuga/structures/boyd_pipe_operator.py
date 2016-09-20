@@ -25,6 +25,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                  domain,
                  losses,
                  diameter=None,
+                 blockage=0.0,  # added by DPM 24/7/2016 
                  z1=0.0,
                  z2=0.0,
                  end_points=None,
@@ -51,6 +52,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                                           width=None,
                                           height=None,
                                           diameter=diameter,
+                                          blockage=blockage,  # added by DPM 24/7/2016
                                           apron=apron,
                                           manning=manning,
                                           enquiry_gap=enquiry_gap,                                                       
@@ -76,7 +78,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
         
         self.culvert_length = self.get_culvert_length()
         self.culvert_diameter = self.get_culvert_diameter()
-
+        self.culvert_blockage = self.get_culvert_blockage()#added DPM 24/7/2016
         #print self.culvert_diameter
 
         self.max_velocity = 10.0
@@ -135,6 +137,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
             Q, barrel_velocity, outlet_culvert_depth, flow_area, case = \
                               boyd_pipe_function(depth               =self.inflow.get_enquiry_depth(),
                                                  diameter            =self.culvert_diameter,
+                                                 blockage            =self.culvert_blockage, #added DPM 24/7/2016
                                                  length              =self.culvert_length,
                                                  driving_energy      =self.driving_energy,
                                                  delta_total_energy  =self.delta_total_energy,
@@ -159,7 +162,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
 #=============================================================================
 # define separately so that can be imported in parallel code.
 #=============================================================================
-def boyd_pipe_function(depth, diameter, length, driving_energy, delta_total_energy, outlet_enquiry_depth, sum_loss, manning):
+def boyd_pipe_function(depth, diameter, blockage, length, driving_energy, delta_total_energy, outlet_enquiry_depth, sum_loss, manning):
 
 
     local_debug = False
@@ -173,10 +176,15 @@ def boyd_pipe_function(depth, diameter, length, driving_energy, delta_total_ener
 
     For these conditions we also would like to assess the pipe flow characteristics as it leaves the pipe
     """
+    # by DPM 28/7/2016 this reduces the pipe diamater down to an equivalent blocked diameter
+    if blockage == 1:		
+        bf = 0.000001
+    else:
+        bf = 1-0.4012316798*blockage-0.3768350138*(blockage**2) 
 
     # Calculate flows for inlet control for circular pipe
-    Q_inlet_unsubmerged = 0.421*anuga.g**0.5*diameter**0.87*driving_energy**1.63 # Inlet Ctrl Inlet Unsubmerged
-    Q_inlet_submerged = 0.530*anuga.g**0.5*diameter**1.87*driving_energy**0.63   # Inlet Ctrl Inlet Submerged
+    Q_inlet_unsubmerged = 0.421*anuga.g**0.5*((bf*diameter)**0.87)*driving_energy**1.63 # Inlet Ctrl Inlet Unsubmerged
+    Q_inlet_submerged = 0.530*anuga.g**0.5*((bf*diameter)**1.87)*driving_energy**0.63   # Inlet Ctrl Inlet Submerged
     # Note for to SUBMERGED TO OCCUR operator.inflow.get_average_specific_energy() should be > 1.2 x diameter.... Should Check !!!
 
 
@@ -184,31 +192,31 @@ def boyd_pipe_function(depth, diameter, length, driving_energy, delta_total_ener
 
     # THE LOWEST Value will Control Calcs From here
     # Calculate Critical Depth Based on the Adopted Flow as an Estimate
-    dcrit1 = diameter/1.26*(Q/anuga.g**0.5*diameter**2.5)**(1/3.75)
-    dcrit2 = diameter/0.95*(Q/anuga.g**0.5*diameter**2.5)**(1/1.95)
+    dcrit1 = (bf*diameter)/1.26*(Q/anuga.g**0.5*((bf*diameter)**2.5))**(1/3.75)
+    dcrit2 = (bf*diameter)/0.95*(Q/anuga.g**0.5*(bf*diameter)**2.5)**(1/1.95)
     # From Boyd Paper ESTIMATE of Dcrit has 2 criteria as
-    if dcrit1/diameter  > 0.85:
+    if dcrit1/(bf*diameter)  > 0.85:
         outlet_culvert_depth = dcrit2
     else:
         outlet_culvert_depth = dcrit1
     #outlet_culvert_depth = min(outlet_culvert_depth, diameter)
     # Now determine Hydraulic Radius Parameters Area & Wetted Perimeter
-    if outlet_culvert_depth >= diameter:
-        outlet_culvert_depth = diameter  # Once again the pipe is flowing full not partfull
-        flow_area = (diameter/2)**2 * math.pi  # Cross sectional area of flow in the culvert
-        perimeter = diameter * math.pi
-        flow_width= diameter
+    if outlet_culvert_depth >= (bf*diameter):
+        outlet_culvert_depth = (bf*diameter)  # Once again the pipe is flowing full not partfull
+        flow_area = (bf*diameter/2)**2 * math.pi  # Cross sectional area of flow in the culvert
+        perimeter = bf * diameter * math.pi
+        flow_width= bf * diameter
         case = 'Inlet CTRL Outlet submerged Circular PIPE FULL'
         if local_debug:
             anuga.log.critical('Inlet CTRL Outlet submerged Circular '
                          'PIPE FULL')
     else:
         #alpha = anuga.acos(1 - outlet_culvert_depth/diameter)    # Where did this Come From ????/
-        alpha = anuga.acos(1-2*outlet_culvert_depth/diameter)*2
+        alpha = anuga.acos(1-2*outlet_culvert_depth/(bf*diameter))*2
         #flow_area = diameter**2 * (alpha - sin(alpha)*cos(alpha))        # Pipe is Running Partly Full at the INLET   WHRE did this Come From ?????
-        flow_area = diameter**2/8*(alpha - math.sin(alpha))   # Equation from  GIECK 5th Ed. Pg. B3
-        flow_width= diameter*math.sin(alpha/2.0)
-        perimeter = alpha*diameter/2.0
+        flow_area = (bf*diameter)**2/8*(alpha - math.sin(alpha))   # Equation from  GIECK 5th Ed. Pg. B3
+        flow_width= bf*diameter*math.sin(alpha/2.0)
+        perimeter = alpha*bf*diameter/2.0
         case = 'INLET CTRL Culvert is open channel flow we will for now assume critical depth'
         if local_debug:
             anuga.log.critical('INLET CTRL Culvert is open channel flow '
@@ -220,35 +228,35 @@ def boyd_pipe_function(depth, diameter, length, driving_energy, delta_total_ener
         # Calculate flows for outlet control
 
         # Determine the depth at the outlet relative to the depth of flow in the Culvert
-        if outlet_enquiry_depth > diameter:       # Outlet is submerged Assume the end of the Pipe is flowing FULL
-            outlet_culvert_depth=diameter
-            flow_area = (diameter/2)**2 * math.pi  # Cross sectional area of flow in the culvert
-            perimeter = diameter * math.pi
-            flow_width= diameter
+        if outlet_enquiry_depth > bf*diameter:       # Outlet is submerged Assume the end of the Pipe is flowing FULL
+            outlet_culvert_depth=bf*diameter
+            flow_area = (bf*diameter/2)**2 * math.pi  # Cross sectional area of flow in the culvert
+            perimeter = bf*diameter * math.pi
+            flow_width= bf*diameter
             case = 'Outlet submerged'
             if local_debug:
                 anuga.log.critical('Outlet submerged')
         else:   # Culvert running PART FULL for PART OF ITS LENGTH   Here really should use the Culvert Slope to calculate Actual Culvert Depth & Velocity
             # IF  operator.outflow.get_average_depth() < diameter
-            dcrit1 = diameter/1.26*(Q/anuga.g**0.5*diameter**2.5)**(1/3.75)
-            dcrit2 = diameter/0.95*(Q/anuga.g**0.5*diameter**2.5)**(1/1.95)
-            if dcrit1/diameter >0.85:
+            dcrit1 = (bf*diameter)/1.26*(Q/anuga.g**0.5*((bf*diameter)**2.5))**(1/3.75)
+            dcrit2 = (bf*diameter)/0.95*(Q/anuga.g**0.5*((bf*diameter)**2.5))**(1/1.95)
+            if dcrit1/(bf*diameter) >0.85:
                 outlet_culvert_depth= dcrit2
             else:
                 outlet_culvert_depth = dcrit1
-            if outlet_culvert_depth > diameter:
-                outlet_culvert_depth = diameter  # Once again the pipe is flowing full not partfull
-                flow_area = (diameter/2)**2 * math.pi  # Cross sectional area of flow in the culvert
-                perimeter = diameter * math.pi
-                flow_width= diameter
+            if outlet_culvert_depth > bf*diameter:
+                outlet_culvert_depth = bf*diameter  # Once again the pipe is flowing full not partfull
+                flow_area = (bf*diameter/2)**2 * math.pi  # Cross sectional area of flow in the culvert
+                perimeter = bf*diameter * math.pi
+                flow_width= bf*diameter
                 case = 'Outlet unsubmerged PIPE FULL'
                 if local_debug:
                     anuga.log.critical('Outlet unsubmerged PIPE FULL')
             else:
-                alpha = anuga.acos(1-2*outlet_culvert_depth/diameter)*2
-                flow_area = diameter**2/8*(alpha - math.sin(alpha))   # Equation from  GIECK 5th Ed. Pg. B3
-                flow_width= diameter*math.sin(alpha/2.0)
-                perimeter = alpha*diameter/2.0
+                alpha = anuga.acos(1-2*outlet_culvert_depth/(bf*diameter))*2
+                flow_area = (bf*diameter)**2/8*(alpha - math.sin(alpha))   # Equation from  GIECK 5th Ed. Pg. B3
+                flow_width= bf*diameter*math.sin(alpha/2.0)
+                perimeter = alpha*bf*diameter/2.0
                 case = 'Outlet is open channel flow we will for now assume critical depth'
                 if local_debug:
                     anuga.log.critical('Q Outlet Depth and ALPHA = %s, %s, %s'
