@@ -179,6 +179,11 @@ def boyd_pipe_function(depth, diameter, blockage, length, driving_energy, delta_
     """
  		
     # Note this errors if blockage is set to 1.0 (ie 100% blockaage) and i have no idea how to fix it   
+    if blockage == 1.0:
+		Q = barrel_velocity = outlet_culvert_depth = 0.0
+		flow_area = 0.00001
+		case = '100 blocked culvert'
+		return Q, barrel_velocity, outlet_culvert_depth, flow_area, case
     if blockage > 0.9:
 		bf = 3.333-3.333*blockage     
     else:

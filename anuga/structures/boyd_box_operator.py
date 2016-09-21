@@ -274,7 +274,14 @@ def boyd_box_function(width,
     # but ensure the correct flow area and wetted perimeter are used
 
     local_debug = False
-           
+    
+    if blockage == 1.0:
+		Q = barrel_velocity = outlet_culvert_depth = 0.0
+		flow_area = 0.00001
+		case = '100 blocked culvert'
+		return Q, barrel_velocity, outlet_culvert_depth, flow_area, case
+	
+	else:		       
     Q_inlet_unsubmerged = 0.544*anuga.g**0.5*(1-blockage)*width*driving_energy**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged
     Q_inlet_submerged = 0.702*anuga.g**0.5*(1-blockage)**2*width*depth**0.89*driving_energy**0.61  # Flow based on Inlet Ctrl Inlet Submerged
     #print 'blockage ', blockage
