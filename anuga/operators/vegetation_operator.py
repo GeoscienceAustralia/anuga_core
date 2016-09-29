@@ -96,7 +96,7 @@ class Vegetation_operator(Operator, object):
         self.calculate_diffusivity()
         
         
-        dry_cells = self.depth < 0.05
+        dry_cells = self.depth < 0.1
             
     
         xvel = self.xmom / (self.depth + epsilon)
@@ -105,15 +105,18 @@ class Vegetation_operator(Operator, object):
         Fd_x = 0.5 * self.Cd * self.veg * xvel**2
         Fd_y = 0.5 * self.Cd * self.veg * yvel**2 
         
-        xvel_v = xvel - num.sign(xvel) * Fd_x * self.dt
-        yvel_v = yvel - num.sign(yvel) * Fd_y * self.dt 
+        xvel_v = (xvel - num.sign(xvel) * num.abs(Fd_x) * self.dt) * self.depth
+        yvel_v = (yvel - num.sign(yvel) * num.abs(Fd_y) * self.dt) * self.depth
 
+
+        xvel_v[dry_cells] = self.xmom[dry_cells]
+        yvel_v[dry_cells] = self.ymom[dry_cells]
         
         self.domain.quantities['xmomentum'].\
-            set_values(xvel_v * self.depth, location = 'centroids')
+            set_values(xvel_v, location = 'centroids')
             
         self.domain.quantities['ymomentum'].\
-            set_values(yvel_v * self.depth, location = 'centroids')
+            set_values(yvel_v, location = 'centroids')
                 
 
 
