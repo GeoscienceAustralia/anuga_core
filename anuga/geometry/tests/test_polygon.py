@@ -1173,8 +1173,7 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        #print line0, line1, value
-        #print type(line0), type(value)
+        line0 = num.array(line0)
         self.assertTrue(num.allclose(value, line0))
 
         # line in same direction, same left point, same right point

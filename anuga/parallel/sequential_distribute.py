@@ -59,6 +59,8 @@ class Sequential_distribute(object):
         self.domain_flow_algorithm = domain.get_flow_algorithm()
         self.domain_minimum_allowed_height = domain.get_minimum_allowed_height()
         self.domain_georef = domain.geo_reference
+        self.domain_quantities_to_be_stored = domain.quantities_to_be_stored
+        self.domain_smooth = domain.smooth
         self.number_of_global_triangles = domain.number_of_triangles
         self.number_of_global_nodes = domain.number_of_nodes
         self.boundary_map = domain.boundary_map
@@ -192,13 +194,15 @@ class Sequential_distribute(object):
         domain_minimum_allowed_height = self.domain_minimum_allowed_height
         domain_flow_algorithm = self.domain_flow_algorithm
         domain_georef = self.domain_georef
+        domain_quantities_to_be_stored = self.domain_quantities_to_be_stored
+        domain_smooth = self.domain_smooth
             
         tostore = (kwargs, points, vertices, boundary, quantities, \
                    boundary_map, \
                    domain_name, domain_dir, domain_store, domain_store_centroids, \
                    domain_minimum_storable_height, \
                    domain_minimum_allowed_height, domain_flow_algorithm, \
-                   domain_georef)
+                   domain_georef, domain_quantities_to_be_stored, domain_smooth)
 
 
         return tostore
@@ -268,7 +272,8 @@ def sequential_distribute_load_pickle_file(pickle_name, np=1, verbose = False):
     kwargs, points, vertices, boundary, quantities, boundary_map, \
                    domain_name, domain_dir, domain_store, domain_store_centroids, \
                    domain_minimum_storable_height, domain_minimum_allowed_height, \
-                   domain_flow_algorithm, georef = cPickle.load(f)
+                   domain_flow_algorithm, domain_georef, \
+                   domain_quantities_to_be_stored, domain_smooth = cPickle.load(f)
     f.close()
 
     #---------------------------------------------------------------------------
@@ -303,7 +308,8 @@ def sequential_distribute_load_pickle_file(pickle_name, np=1, verbose = False):
     domain.set_store_centroids(domain_store_centroids)
     domain.set_minimum_storable_height(domain_minimum_storable_height)
     domain.set_minimum_allowed_height(domain_minimum_allowed_height)
-    domain.geo_reference = georef
-
+    domain.geo_reference = domain_georef
+    domain.set_quantities_to_be_stored(domain_quantities_to_be_stored)
+    domain.smooth = domain_smooth
 
     return domain

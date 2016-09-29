@@ -1,29 +1,22 @@
 
 
-Installation
-============
+******************
+Anuga Installation
+******************
 
 .. contents::
 
+
 Introduction
-------------
+============
 
 AnuGA_ is a python package with some C extensions (and an optional fortran 
 extension). At present AnuGA has only been run and tested using python 2.x.
 We recommend python 2.7.  
 
-If you have a python 2.7 environment with gcc and gfortran support, 
-then you can use pip to install the latest release 
-version of AnuGA::
-
-	pip install anuga
-
-You might want to install the dependencies via ubuntu ``apt-get`` or ``conda install`` 
-to download pre-compiled versions of the dependencies. See below. 
-
 
 Dependencies
-------------
+============
 
 AnuGA requires the following packages:
 
@@ -36,23 +29,105 @@ AnuGA requires the following packages:
 * A C compiler (preferably GCC or TDM-GCC_ MinGW_ on Windows)
 
 
-Ubuntu Install
-++++++++++++++
+Installing the latest DEVELOPMENT version on Ubuntu
+===================================================
 
 AnuGA is developed on Ubuntu. The preferred way to install the dependencies is 
 to use the standard ubuntu ``apt-get`` method. 
 
-We have a script in the ``tools`` directory,
-`install_ubuntu.sh <https://github.com/GeoscienceAustralia/anuga_core/blob/master/tools/install_ubuntu.sh>`_
-which when run from the ``anuga_core`` directory will install AnuGA and all the dependencies using ``apt-get``.
+We suggest installing the latest version of ANUGA_ from Github_.
+We try to maintain the *master* branch stable and
+`passing all tests <https://travis-ci.org/GeoscienceAustralia/anuga_core/branches>`_,
+so it should be safe to use.
 
-For extended instructions checkout the wiki page
+First, you'll need to `install git`_.
+Then, open a terminal and run::
+
+    git clone git://github.com/GeoscienceAustralia/anuga_core.git 
+
+This will fetch the source code from Github_
+and place it in a folder called ``anuga_core`` in the directory where you ran the
+command.
+
+We have a script in the ``anuga_core/tools`` directory,
+`install_ubuntu.sh <https://github.com/GeoscienceAustralia/anuga_core/blob/master/tools/install_ubuntu.sh>`_
+which when run from the ``anuga_core`` directory will install AnuGA and all the dependencies using ``apt-get`` 
+and ``pip`` to install the dependencies.
+
+Parallel Support
+----------------
+
+At this stage you can decide whether you want Parallel support or not. 
+We support two versions of MPI, ``mpich`` and ``openmpi``
+
+Just during the setup stage, you should create an environment variable  ``ANUGA_PARALLEL`` via::
+
+    export ANUGA_PARALLEL=openmpi
+
+or::
+
+    export ANUGA_PARALLEL=mpich
+
+
+then the install script will load the  ``openmpi`` or ``mpich`` libraries and binaries respectively.
+
+
+If you don't want parallel support set the variable to something else, e.g::
+
+    export ANUGA_PARALLEL=false
+
+
+Running the installation script
+-------------------------------
+
+Change into the newly downloaded ``anuga_core`` directory and run the installation script 
+(this will take 5 to 10 minutes depending on your network connection)::
+
+	cd anuga_core
+	bash tools/install_ubuntu.sh
+
+
+Some of the commands in this script use sudo, so you will have to provide 
+a password to install into the system wide directories. 
+
+If all has been successful then anuga should be installed.
+
+Testing the install
+-------------------
+
+To test the installation, from the ``anuga_core`` directory run ``python runtests.py``::
+
+    python runtests.py
+    
+If there are no errors then you have successfully installed aunga. 
+
+Errors with runtests
+--------------------
+
+If you get an error message or a weird result when running ``runtests.py``, 
+please write to the `mailing list`_ or `create an issue on the github site 
+<https://github.com/GeoscienceAustralia/anuga_core/issues>`__.
+
+To make it easier for us to debug you problem, please include the following
+information:
+
+* Operating system
+* Python distribution (Anaconda_, PythonXY_, `ETS/Canopy`_, own install)
+* Python version (2.6, 2.7 etc)
+* The script you ran (and gave you an error/weird result)
+* The error message (the part that says ``Traceback: ...``) or result (figure,
+  numbers, etc)
+
+
+
+
+For extended instructions on installing on Ubuntu checkout the wiki page
 `install ANUGA on Ubuntu <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu>`_
 
 
 
 Alternative Ubuntu Install
-++++++++++++++++++++++++++
+==========================
 
 An alternative is to install the dependencies using the Anaconda_ or the Miniconda_ Python 
 distributions by `Continuum Analytics`_.
@@ -67,7 +142,7 @@ in your system.
 
 
 Anaconda and Miniconda
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 Once you have downloaded and installed Anaconda_ or Miniconda_
 open a terminal (or ``cmd.exe`` on Windows).
@@ -84,7 +159,7 @@ With either Anaconda_ or Miniconda_ you can now install the dependencies by runn
     conda install pip nose numpy scipy matplotlib netcdf4
     conda install -c pingucarsti gdal 
     
-and setup GDAL_DATA environment variable:
+and setup GDAL_DATA environment variable::
 
     export GDAL_DATA=`gdal-config --datadir` 
     
@@ -92,7 +167,7 @@ and setup GDAL_DATA environment variable:
 
 
 Windows Dependency Installation
-+++++++++++++++++++++++++++++++
+===============================
 
 We have successfully install AnuGA on windows using Gohlke Binaries and using Miniconda. 
 At present we recommend using the Gohlke Binaries. 
@@ -107,8 +182,9 @@ Alternatively if you want ot use Miniconda, follow the instructions
 
 
 
+
 GCC dependency for Windows users
-++++++++++++++++++++++++++++++++++++
+--------------------------------
 
 Unfortunately, the ``gcc`` compiler MinGW_ included in Anaconda or 
 installable via Miniconda_ doesn't have OpenMP_ support. This is required to compile
@@ -121,35 +197,11 @@ the installation. See this `excellent documentation for Windows users`_
 (they even have screenshots!). The same applies if you are using Miniconda_.
 
 
-Installing AnuGA
-----------------
+Installing the latest development version of AnuGA om Windows
+=============================================================
 
-After you've installed the dependencies you can proceed to install AnuGA
-using pip_.
-Open a terminal (or ``cmd.exe`` on Windows) and run::
-
-    pip install anuga
-
-
-If you already have AnuGA installed and want to **upgrade** to a newer
-version, use::
-
-    pip install anuga --upgrade
-
-To uninstall simply run::
-
-    pip uninstall anuga
-
-
-.. note::
-
-    The Windows installer from older versions is no longer supported.
-
-Installing the latest development version
------------------------------------------
-
-If you want the very latest code and features,
-you can install AnuGA directly from Github_.
+We suggest instaling the latest code and features,
+by installing AnuGA directly from Github_.
 We try to maintain the *master* branch stable and
 `passing all tests <https://travis-ci.org/GeoscienceAustralia/anuga_core/branches>`__,
 so it should be safe to use.
@@ -172,7 +224,7 @@ Testing the install
 -------------------
 
 
-From the source directory run ``python runtests.py``
+From the source directory run ``python runtests.py``::
 
     python runtests.py
     
@@ -191,7 +243,33 @@ information:
 * The error message (the part that says ``Traceback: ...``) or result (figure,
   numbers, etc)
     
-.. _AnuGA http://anuga.anu.edu.au/ 
+Using pip_ to install anuga
+===========================
+    
+You can alternatively use  pip_ to install the lateest released version of `anuga`
+
+Open a terminal (or ``cmd.exe`` on Windows) and run::
+
+    pip install anuga
+
+
+If you already have AnuGA installed and want to **upgrade** to a newer
+released version, use::
+
+    pip install anuga --upgrade
+
+To uninstall simply run::
+
+    pip uninstall anuga
+
+
+
+.. note::
+
+    The Windows installer from older versions is no longer supported.
+    
+    
+.. _AnuGA: http://anuga.anu.edu.au/ 
 .. _install git: http://git-scm.com/
 .. _Github: https://github.com/stoiver/anuga_core/
 .. _Python: http://www.python.org/
@@ -206,4 +284,3 @@ information:
 .. _OpenMP: http://openmp.org/
 .. _TDM-GCC: http://tdm-gcc.tdragon.net/
 .. _excellent documentation for Windows users: http://docs-windows.readthedocs.org/en/latest/devel.html#mingw-with-openmp-support
-

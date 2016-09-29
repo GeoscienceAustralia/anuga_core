@@ -80,13 +80,9 @@ fi
 # Useful for debugging any issues with conda
 conda info -a
 
-########################################################
-if [[ "$COVERAGE" == "--coverage" ]]; then
-    pip install coverage coveralls
-fi
 
-########################################################
-# build and install anuga
+#########################################################
+# Build and install anuga
 
 python setup.py build
-python setup.py install
+sudo python setup.py install 

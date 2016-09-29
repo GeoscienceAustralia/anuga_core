@@ -51,7 +51,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                                           invert_elevations=invert_elevations,
                                           width=width,
                                           height=height,
-                                          culvert_slope=culvert_slope,
+                                          #culvert_slope=culvert_slope,
                                           z1=z1,
                                           z2=z2,
                                           diameter=None,

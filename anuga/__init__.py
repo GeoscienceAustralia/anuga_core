@@ -64,6 +64,7 @@ else:
     from anuga.abstract_2d_finite_volumes.quantity import Quantity
     from anuga.abstract_2d_finite_volumes.region import Region
     from anuga.geospatial_data.geospatial_data import Geospatial_data
+    from anuga.coordinate_transforms.geo_reference import Geo_reference
     from anuga.operators.base_operator import Operator
     from anuga.structures.structure_operator import Structure_operator
 
@@ -92,6 +93,8 @@ else:
     from anuga.geometry.polygon import inside_polygon
     from anuga.geometry.polygon import polygon_area
     from anuga.geometry.polygon_function import Polygon_function
+    
+    from anuga.coordinate_transforms.lat_long_UTM_conversion import LLtoUTM, UTMtoLL
 
     from anuga.abstract_2d_finite_volumes.pmesh2domain import \
                                                 pmesh_to_domain_instance
@@ -126,6 +129,7 @@ else:
     from anuga.parallel.parallel_api import myid, numprocs, get_processor_name
     from anuga.parallel.parallel_api import send, receive
     from anuga.parallel.parallel_api import pypar_available, barrier, finalize
+    from anuga.parallel.parallel_api import collect_value
 
     if pypar_available:
         from anuga.parallel.parallel_api import sequential_distribute_dump
@@ -251,6 +255,7 @@ else:
     from anuga.operators.set_elevation import Set_elevation
     from anuga.operators.set_quantity import Set_quantity
 
+    from anuga.operators.sanddune_erosion_operator import Sanddune_erosion_operator
     from anuga.operators.erosion_operators import Bed_shear_erosion_operator
     from anuga.operators.erosion_operators import Flat_slice_erosion_operator
     from anuga.operators.erosion_operators import Flat_fill_slice_erosion_operator

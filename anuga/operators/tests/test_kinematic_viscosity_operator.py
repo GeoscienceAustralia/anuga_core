@@ -22,7 +22,8 @@ class Test_kinematic_viscosity(unittest.TestCase):
             pass
 
         try:
-            os.remove('anuga.log')
+            pass
+            #os.remove('anuga.log')
         except:
             pass
         
@@ -183,7 +184,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
         operator = self.operator1()
         operator.set_triangle_areas(False)
 
-        print operator.apply_triangle_areas
+        #print operator.apply_triangle_areas
 
         a = Quantity(operator.domain)
         a.set_values(1.0)
@@ -230,7 +231,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
         operator = self.operator1()
         operator.set_triangle_areas(False)
 
-        print operator.apply_triangle_areas
+        #print operator.apply_triangle_areas
         #n = operator.n
 
         q_in = Quantity(operator.domain)
@@ -716,7 +717,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
         #
         domain.set_quantity('elevation', expression='x')
         domain.set_quantity('friction', 0.03)
-        domain.set_quantity('stage',expression='elevation + 2*(x-0.5)')
+        domain.set_quantity('stage',expression='elevation + 2*(x-0.45)')
         domain.set_quantity('xmomentum', expression='2*x+3*y')
         domain.set_quantity('ymomentum', expression='5*x+7*y')
 
@@ -745,6 +746,8 @@ class Test_kinematic_viscosity(unittest.TestCase):
 
 
         h = domain.quantities['height']
+
+        h.centroid_values[:] = num.where(h.centroid_values < 1.0e-12, 0.0, h.centroid_values)
 
         #print 'h'
         #print h.centroid_values
@@ -779,10 +782,60 @@ class Test_kinematic_viscosity(unittest.TestCase):
 
         kv.parabolic_solve(v, v, h, u_out=v, update_matrix=False, iprint=1, use_dt_tol=False)
 
-        assert num.allclose(u.centroid_values, num.where(h.centroid_values > 0.0, 1.0, 0.0), rtol=1.0e-1)
-        assert num.allclose(u.boundary_values, num.ones_like(u.boundary_values))
 
-        assert num.allclose(v.centroid_values, num.where(h.centroid_values > 0.0, 2.0, 0.0), rtol=1.0e-1)
+        
+        u_expected = \
+        num.array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.88049303,  0.85774725,  0.63198513,  0.        ,
+        0.60127309,  0.74335638,  0.56726693,  0.        ,  0.5619257 ,
+        0.72367268,  0.56292098,  0.        ,  0.56846364,  0.74395284,
+        0.60155678,  0.        ,  0.63250083,  0.8583354 ,  0.88103078,
+        0.91424291,  0.98161599,  0.9681383 ,  0.92489827,  0.83150189,
+        0.90499771,  0.92610594,  0.88016105,  0.81330027,  0.87520116,
+        0.9137613 ,  0.87524587,  0.83194825,  0.88028462,  0.92624037,
+        0.90532118,  0.91457731,  0.92521631,  0.96831727,  0.98169171,
+        0.98017988,  0.99638864,  0.99691038,  0.98420946,  0.95322667,
+        0.97923645,  0.99234935,  0.97272033,  0.94496518,  0.97116962,
+        0.99081552,  0.97116479,  0.95330259,  0.97272909,  0.99236019,
+        0.979296  ,  0.9803074 ,  0.98428114,  0.99692939,  0.9964171 ])
+
+        
+        
+        assert num.allclose(u.centroid_values, u_expected, rtol=1.0e-4)
+        assert num.allclose(u.boundary_values, num.ones_like(u.boundary_values))
+        
+        
+        v_expected = \
+        num.array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  1.76107875,  1.71571872,  1.26450977,  0.        ,
+        1.20323049,  1.48723907,  1.13511687,  0.        ,  1.12443699,
+        1.44790348,  1.12678546,  0.        ,  1.1379396 ,  1.488628  ,
+        1.20388888,  0.        ,  1.26569807,  1.71709086,  1.76232374,
+        1.82867872,  1.96328928,  1.93637645,  1.84998653,  1.66337269,
+        1.81022916,  1.85243013,  1.76063685,  1.62705824,  1.75073279,
+        1.82775908,  1.75083189,  1.66440859,  1.76091792,  1.85274102,
+        1.81097589,  1.82944675,  1.85071618,  1.93678282,  1.96345914,
+        1.96043069,  1.99279212,  1.99383543,  1.96848768,  1.90661323,
+        1.95855951,  1.98473153,  1.94554555,  1.89009256,  1.9424436 ,
+        1.98166495,  1.94242902,  1.90678928,  1.94556252,  1.98475631,
+        1.95869882,  1.96072166,  1.96865435,  1.99387965,  1.99285742])
+        
+
+        assert num.allclose(v.centroid_values, v_expected, rtol=1.0e-4)
         assert num.allclose(v.boundary_values, 2.0*num.ones_like(v.boundary_values))
 
 
@@ -1482,6 +1535,6 @@ class Test_kinematic_viscosity(unittest.TestCase):
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_kinematic_viscosity, 'test_')
+    suite = unittest.makeSuite(Test_kinematic_viscosity, 'test_') #test_')
     runner = unittest.TextTestRunner()
     runner.run(suite)

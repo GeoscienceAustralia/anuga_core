@@ -95,28 +95,39 @@ class Test_sww_Interrogate(unittest.TestCase):
 
 
         # Check maximal runup
-        runup = get_maximum_inundation_elevation(swwfile)
-        location = get_maximum_inundation_location(swwfile)
-        #print 'Runup, location', runup, location
-        assert num.allclose(runup, 4.66666666667)
-        assert num.allclose(location[0], 46.666668) 
+        runup, location, max_time = get_maximum_inundation_data(swwfile, return_time=True)
+        #print 'Runup, location', runup, location, max_time
+        
+        assert num.allclose(runup, 3.33333325386)
+        assert num.allclose(location, [53.333332, 43.333332]) 
+        assert num.allclose(max_time, 10.0)
                
+        # Check runup in restricted time interval
+        runup, location, max_time = get_maximum_inundation_data(swwfile, time_interval=[0,9], return_time=True)
+        #print 'Runup, location:',runup, location, max_time
+        
+        assert num.allclose(runup, 2.66666674614)
+        assert num.allclose(location, [56.666668, 16.666666])
+        assert num.allclose(max_time, 9.0)
+        
         # Check final runup
-        runup = get_maximum_inundation_elevation(swwfile, time_interval=[45,50])
-        location = get_maximum_inundation_location(swwfile, time_interval=[45,50])
-        #print 'Runup, location:',runup, location
+        runup, location = get_maximum_inundation_data(swwfile, time_interval=[45,50])
+        #print 'Runup, location:',runup, location, max_time
 
-        assert num.allclose(runup, 1.81481484572)
-        assert num.allclose(location[0], 61.666668)
+        assert num.allclose(runup, 3.33333325386)
+        assert num.allclose(location, [53.333332, 33.333332])
+        #assert num.allclose(max_time, 45.0)
 
         # Check runup restricted to a polygon
-        p = [[50,1], [99,1], [99,49], [50,49]]
-        runup = get_maximum_inundation_elevation(swwfile, polygon=p)
-        location = get_maximum_inundation_location(swwfile, polygon=p)
-        #print runup, location
+        p = [[50,1], [99,1], [99,40], [50,40]]
+        runup, location = get_maximum_inundation_data(swwfile, polygon=p)
+        #runup = get_maximum_inundation_elevation(swwfile, polygon=p)
+        #location = get_maximum_inundation_location(swwfile, polygon=p)
+        #print runup, location, max_time
 
-        assert num.allclose(runup, 3.81481488546) 
-        assert num.allclose(location[0], 51.6666666)                
+        assert num.allclose(runup, 3.33333325386) 
+        assert num.allclose(location, [53.333332, 33.333332])  
+        #assert num.allclose(max_time, 11.0)                      
 
         # Check that mimimum_storable_height works
         fid = NetCDFFile(swwfile, netcdf_mode_r) # Open existing file
@@ -163,35 +174,39 @@ class Test_sww_Interrogate(unittest.TestCase):
         for t in domain.evolve(yieldstep=1, finaltime = 50):
             pass
 
-        # Check maximal runup
-        runup = get_maximum_inundation_elevation(swwfile)
-        location = get_maximum_inundation_location(swwfile)
-
-        #print runup, location
-
-        assert num.allclose(runup,4.66666666667)
-        assert num.allclose(location[0], 308546.66) 
+        # Check maximal runup        
+        runup, location = get_maximum_inundation_data(swwfile)
+        #print 'Runup, location', runup, location, max_time
+        
+        assert num.allclose(runup, 3.33333325386)
+        assert num.allclose(location, [53.333332+E, 43.333332+N]) 
+        #assert num.allclose(max_time, 10.0)
+               
+        # Check runup in restricted time interval
+        runup, location = get_maximum_inundation_data(swwfile, time_interval=[0,9])
+        #print 'Runup, location:',runup, location, max_time
+        
+        assert num.allclose(runup, 2.66666674614)
+        assert num.allclose(location, [56.666668+E, 16.666666+N])
+        #assert num.allclose(max_time, 9.0)
 
         # Check final runup
-        runup = get_maximum_inundation_elevation(swwfile, time_interval=[45,50])
-        location = get_maximum_inundation_location(swwfile, time_interval=[45,50])
+        runup, location = get_maximum_inundation_data(swwfile, time_interval=[45,50])
+        #print 'Runup, location:',runup, location, max_time
+
+        assert num.allclose(runup, 3.33333325386)
+        assert num.allclose(location, [53.333332+E, 33.333332+N])
+        #assert num.allclose(max_time, 45.0)
         
-        #print runup, location
-        #1.66666666667 [308561.66, 6189006.5]
-
-        assert num.allclose(runup, 1.81481484572)
-        assert num.allclose(location[0], 308561.66)
-
         # Check runup restricted to a polygon
-        p = num.array([[50,1], [99,1], [99,49], [50,49]], num.int) + num.array([E, N], num.int)      #array default#
+        p = num.array([[50,1], [99,1], [99,40], [50,40]], num.int) + num.array([E, N], num.int)
+        runup, location = get_maximum_inundation_data(swwfile, polygon=p)
+        #print runup, location, max_time
 
-        runup = get_maximum_inundation_elevation(swwfile, polygon=p)
-        location = get_maximum_inundation_location(swwfile, polygon=p)
-
-        #print runup, location
-
-        assert num.allclose(runup, 3.81481488546)
-        assert num.allclose(location[0], 308551.66)                
+        assert num.allclose(runup, 3.33333325386) 
+        assert num.allclose(location, [53.333332+E, 33.333332+N])  
+        #assert num.allclose(max_time, 11.0)     
+            
 
 
         # Cleanup
@@ -1038,7 +1053,7 @@ class Test_sww_Interrogate(unittest.TestCase):
  
  
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_sww_Interrogate, 'test_')#_get_maximum_inundation_from_sww')
+    suite = unittest.makeSuite(Test_sww_Interrogate, 'test')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
                

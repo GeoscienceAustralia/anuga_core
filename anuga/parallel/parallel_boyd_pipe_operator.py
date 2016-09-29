@@ -21,6 +21,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                  domain,
                  losses,
                  diameter,
+                 blockage=0.0, # added by DPM 24/7/2016
                  z1=0.0,
                  z2=0.0,
                  end_points=None,
@@ -52,6 +53,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                                           width=None,
                                           height=None,
                                           diameter=diameter,
+                                          blockage=0.0, #added DPM 24/7/2016
                                           z1=0.0,
                                           z2=0.0,
                                           apron=apron,
@@ -89,6 +91,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
         self.culvert_width = self.get_culvert_width()
         self.culvert_height = self.get_culvert_height()
         self.culvert_diameter = self.get_culvert_diameter()
+        self.culvert_blockage = self.get_culvert_blockage()#added PM 24/7/2016
 
         self.max_velocity = 10.0
 
@@ -255,6 +258,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                 Q, barrel_velocity, outlet_culvert_depth, flow_area, case = \
                               boyd_pipe_function(depth               =inflow_enq_depth,
                                                 diameter             =self.culvert_diameter,
+                                                blockage             =self.culvert_blockage, #added PM 24/7/2016
                                                 length               =self.culvert_length,
                                                 driving_energy       =self.driving_energy,
                                                 delta_total_energy   =self.delta_total_energy,
