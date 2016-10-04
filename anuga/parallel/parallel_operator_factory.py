@@ -292,6 +292,7 @@ return an instance of Parallel Boyd_pipe_operator
 def Boyd_pipe_operator(domain,
                        losses,
                        diameter,
+                       blockage, #added by DMP 28/7/2016
                        end_points=None,
                        exchange_lines=None,
                        enquiry_points=None,
@@ -315,6 +316,7 @@ def Boyd_pipe_operator(domain,
         return anuga.structures.boyd_pipe_operator.Boyd_pipe_operator(domain=domain,
                                                                     losses=losses,
                                                                     diameter=diameter,
+                                                                    blockage=blockage, #added by DMP 28/7/2016
                                                                     end_points=end_points,
                                                                     exchange_lines=exchange_lines,
                                                                     enquiry_points=enquiry_points,
@@ -411,6 +413,7 @@ def Boyd_pipe_operator(domain,
        return Parallel_Boyd_pipe_operator(domain=domain,
                                          losses=losses,
                                          diameter=diameter,
+                                         blockage=blockage, #added by DPM 24/7/2016
                                          end_points=end_points,
                                          exchange_lines=exchange_lines,
                                          enquiry_points=enquiry_points,
