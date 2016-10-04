@@ -250,7 +250,7 @@ def Boyd_box_operator(domain,
         print "========================================================"
 
     if alloc0 or alloc1:
-       return Parallel_Boyd_box_operator(domain=domain,
+        return Parallel_Boyd_box_operator(domain=domain,
                                          losses=losses,
                                          width=width,
                                          height=height,
@@ -292,6 +292,7 @@ return an instance of Parallel Boyd_pipe_operator
 def Boyd_pipe_operator(domain,
                        losses,
                        diameter,
+                       blockage=0.0,
                        end_points=None,
                        exchange_lines=None,
                        enquiry_points=None,
@@ -315,6 +316,7 @@ def Boyd_pipe_operator(domain,
         return anuga.structures.boyd_pipe_operator.Boyd_pipe_operator(domain=domain,
                                                                     losses=losses,
                                                                     diameter=diameter,
+                                                                    blockage=blockage,
                                                                     end_points=end_points,
                                                                     exchange_lines=exchange_lines,
                                                                     enquiry_points=enquiry_points,
@@ -411,6 +413,7 @@ def Boyd_pipe_operator(domain,
        return Parallel_Boyd_pipe_operator(domain=domain,
                                          losses=losses,
                                          diameter=diameter,
+                                         blockage=blockage,
                                          end_points=end_points,
                                          exchange_lines=exchange_lines,
                                          enquiry_points=enquiry_points,
@@ -578,7 +581,7 @@ def Weir_orifice_trapezoid_operator(domain,
         print "========================================================"
 
     if alloc0 or alloc1:
-       return Parallel_Weir_orifice_trapezoid_operator(domain=domain,
+        return Parallel_Weir_orifice_trapezoid_operator(domain=domain,
                                          losses=losses,
                                          width=width,
                                          height=height,
@@ -746,7 +749,7 @@ def Internal_boundary_operator(domain,
         print "========================================================"
 
     if alloc0 or alloc1:
-       return Parallel_Internal_boundary_operator(domain=domain,
+        return Parallel_Internal_boundary_operator(domain=domain,
                                          internal_boundary_function=internal_boundary_function,
                                          width=width,
                                          height=height,

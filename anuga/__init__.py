@@ -23,9 +23,9 @@
 
 __version__ = '2.0'
 
-__svn_revision__ = filter(str.isdigit, "$Revision: 9736 $")
+__svn_revision__ = filter(str.isdigit, "$Revision: 9737 $")
 
-__svn_revision_date__ = "$Date: 2015-09-05 16:11:27 +1000 (Sat, 05 Sep 2015) $"[7:-1]
+__svn_revision_date__ = "$Date: 2016-10-04 16:13:00 +1100 (Tue, 04 Oct 2016) $"[7:-1]
 
 
 # We first need to detect if we're being called as part of the anuga setup
