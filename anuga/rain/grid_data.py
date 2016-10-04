@@ -208,7 +208,7 @@ class Raster_time_slice_data(object):
             print 'Catchment Area = ', catchment_area
             print 'Total rainfall volume in cubic metres  =', total_data_volume
             print 'Peak data/time_step in time period  = ', data_max_in_period
-            print 'Peak Intensity in time period (mm/sec) =', peak_intensity      
+            print 'Peak Intensity in time period (m/sec) =', peak_intensity      
         
         return total_data_volume, data_max_in_period, peak_intensity, catchment_area, time_period
 
