@@ -27,7 +27,7 @@ class Boyd_box_operator(anuga.Structure_operator):
                  losses,
                  width,                                    
                  height=None,                        
-                 blockage=0.0,  # added by DPM 24/7/2016 
+                 blockage=0.0,
                  z1=0.0,
                  z2=0.0,                 
                  end_points=None,
@@ -54,7 +54,7 @@ class Boyd_box_operator(anuga.Structure_operator):
                                           invert_elevations=invert_elevations,
                                           width=width,
                                           height=height,
-                                          blockage=blockage,  # added by DPM 24/7/2016
+                                          blockage=blockage,
                                           diameter=None,                                         
                                           apron=apron,
                                           manning=manning,
@@ -82,7 +82,7 @@ class Boyd_box_operator(anuga.Structure_operator):
         self.culvert_length = self.get_culvert_length()
         self.culvert_width = self.get_culvert_width()
         self.culvert_height = self.get_culvert_height()
-        self.culvert_blockage = self.get_culvert_blockage()#added DPM 24/7/2016
+        self.culvert_blockage = self.get_culvert_blockage()
 
         #FIXME SR: Why is this hard coded!
         self.max_velocity = 10.0
@@ -195,7 +195,7 @@ class Boyd_box_operator(anuga.Structure_operator):
                 print 50*'='
                 print 'width ',self.culvert_width
                 print 'depth ',self.culvert_height
-                print 'culvert blockage ',self.culvert_blockage #added DPM 24/7/2016
+                print 'culvert blockage ',self.culvert_blockage
                 print 'flow_width ',self.culvert_width
                 print 'length ' ,self.culvert_length
                 print 'driving_energy ',self.driving_energy
@@ -274,10 +274,17 @@ def boyd_box_function(width,
     # but ensure the correct flow area and wetted perimeter are used
 
     local_debug = False
-           
-    Q_inlet_unsubmerged = 0.544*anuga.g**0.5*(1-blockage)*width*driving_energy**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged
-    Q_inlet_submerged = 0.702*anuga.g**0.5*(1-blockage)**2*width*depth**0.89*driving_energy**0.61  # Flow based on Inlet Ctrl Inlet Submerged
+    
+    if blockage >= 1.0:
+        Q = barrel_velocity = outlet_culvert_depth = 0.0
+        flow_area = 0.00001
+        case = '100 blocked culvert'
+        return Q, barrel_velocity, outlet_culvert_depth, flow_area, case
+    else:		       
+        Q_inlet_unsubmerged = 0.544*anuga.g**0.5*(1-blockage)*width*driving_energy**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged
+        Q_inlet_submerged = 0.702*anuga.g**0.5*(1-blockage)**2*width*depth**0.89*driving_energy**0.61  # Flow based on Inlet Ctrl Inlet Submerged
 
+    #print 'blockage ', blockage
     # FIXME(Ole): Are these functions really for inlet control?
     if Q_inlet_unsubmerged < Q_inlet_submerged:
         Q = Q_inlet_unsubmerged
