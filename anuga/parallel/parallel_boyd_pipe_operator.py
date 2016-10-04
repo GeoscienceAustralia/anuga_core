@@ -21,7 +21,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                  domain,
                  losses,
                  diameter,
-                 blockage=0.0, # added by DPM 24/7/2016
+                 blockage=0.0,
                  z1=0.0,
                  z2=0.0,
                  end_points=None,
@@ -53,7 +53,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                                           width=None,
                                           height=None,
                                           diameter=diameter,
-                                          blockage=0.0, #added DPM 24/7/2016
+                                          blockage=blockage,
                                           z1=0.0,
                                           z2=0.0,
                                           apron=apron,
@@ -91,7 +91,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
         self.culvert_width = self.get_culvert_width()
         self.culvert_height = self.get_culvert_height()
         self.culvert_diameter = self.get_culvert_diameter()
-        self.culvert_blockage = self.get_culvert_blockage()#added PM 24/7/2016
+        self.culvert_blockage = self.get_culvert_blockage()
 
         self.max_velocity = 10.0
 
@@ -215,6 +215,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
 
         # Get attribute from outflow enquiry point
         if self.myid == self.master_proc:
+            
             if self.myid == self.enquiry_proc[self.outflow_index]:
                 outflow_enq_depth = self.inlets[self.outflow_index].get_enquiry_depth()
             else:
@@ -241,7 +242,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                                  % (str(inflow_enq_specific_energy),
                                     str(self.delta_total_energy)))
 
-                    anuga.log.critical('culvert type = %s' % str(culvert_type))
+                    anuga.log.critical('culvert type = %s' % str(self.structure_type))
 
                 # Water has risen above inlet
 
@@ -258,8 +259,8 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                 Q, barrel_velocity, outlet_culvert_depth, flow_area, case = \
                               boyd_pipe_function(depth               =inflow_enq_depth,
                                                 diameter             =self.culvert_diameter,
-                                                blockage             =self.culvert_blockage, #added PM 24/7/2016
                                                 length               =self.culvert_length,
+                                                blockage             =self.culvert_blockage,
                                                 driving_energy       =self.driving_energy,
                                                 delta_total_energy   =self.delta_total_energy,
                                                 outlet_enquiry_depth =outflow_enq_depth,
