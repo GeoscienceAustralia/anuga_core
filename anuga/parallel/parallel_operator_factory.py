@@ -250,7 +250,7 @@ def Boyd_box_operator(domain,
         print "========================================================"
 
     if alloc0 or alloc1:
-       return Parallel_Boyd_box_operator(domain=domain,
+        return Parallel_Boyd_box_operator(domain=domain,
                                          losses=losses,
                                          width=width,
                                          height=height,
@@ -447,12 +447,13 @@ procs contains the potential list of processors to allocate the inlet to.
 Returns None for calling processors not associated with structure. Otherwise
 return an instance of Parallel Weir_orifice_trapezoid_operator
 
-This was addede by PM 22/10/2013
+This was added by PM 22/10/2013
 """
 
 def Weir_orifice_trapezoid_operator(domain,
                        losses,
                        width,
+                       blockage=0.0, #added by DPM 5/10/2016 
                        z1=None,
                        z2=None,
                        height=None,
@@ -480,6 +481,7 @@ def Weir_orifice_trapezoid_operator(domain,
                                                                     losses=losses,
                                                                     width=width,
                                                                     height=height,
+                                                                    blockage=blockage, #added by DPM 5/10/2016 
                                                                     z1=z1,
                                                                     z2=z2,
                                                                     end_points=end_points,
@@ -581,10 +583,11 @@ def Weir_orifice_trapezoid_operator(domain,
         print "========================================================"
 
     if alloc0 or alloc1:
-       return Parallel_Weir_orifice_trapezoid_operator(domain=domain,
+        return Parallel_Weir_orifice_trapezoid_operator(domain=domain,
                                          losses=losses,
                                          width=width,
                                          height=height,
+                                         blockage=blockage, #added by DPM 5/10/2016 
                                          z1=z1,
                                          z2=z2,
                                          end_points=end_points,
@@ -749,7 +752,7 @@ def Internal_boundary_operator(domain,
         print "========================================================"
 
     if alloc0 or alloc1:
-       return Parallel_Internal_boundary_operator(domain=domain,
+        return Parallel_Internal_boundary_operator(domain=domain,
                                          internal_boundary_function=internal_boundary_function,
                                          width=width,
                                          height=height,
