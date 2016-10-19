@@ -350,7 +350,7 @@ class get_centroids:
                  timeSlices=None, minimum_allowed_height=1.0e-03):
         
         self.time, self.x, self.y, self.stage, self.xmom,\
-             self.ymom, self.height, self.elev, self.friction, self.xvel,\
+             self.ymom, self.height, self.elev, self.elev_varying, self.friction, self.xvel,\
              self.yvel, self.vel, self.xllcorner, self.yllcorner, self.timeSlices= \
              _get_centroid_values(p, velocity_extrapolation,\
                          timeSlices=copy.copy(timeSlices),\
@@ -524,6 +524,7 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
 
     if(len(elev_cent.shape)==2):
         # Coerce to 1D array, since lots of our code assumes it is
+        elev_cent_orig = elev_cent
         elev_cent=elev_cent[0,:]
 
     # Friction might not be stored at all
@@ -637,7 +638,7 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
     fid.close()
     
     return time, x_cent, y_cent, stage_cent, xmom_cent,\
-             ymom_cent, height_cent, elev_cent, friction_cent,\
+             ymom_cent, height_cent, elev_cent, elev_cent_orig, friction_cent,\
              xvel_cent, yvel_cent, vel_cent, xllcorner, yllcorner, inds
 
 
