@@ -341,16 +341,16 @@ class get_centroids:
 
     NOTE: elevation is only stored once in the output, even if it was
           stored every timestep.
-           This is done because presently centroid elevations in ANUGA
-           do not change over time.  
-           Also lots of existing plotting code assumes elevation is a 1D
-           array
+           Lots of existing plotting code assumes elevation is a 1D
+           array. 
+           But as a hack for the time being the elevation from the file 
+           is available via elev_orig
     """
     def __init__(self,p, velocity_extrapolation=False, verbose=False,
                  timeSlices=None, minimum_allowed_height=1.0e-03):
         
         self.time, self.x, self.y, self.stage, self.xmom,\
-             self.ymom, self.height, self.elev, self.friction, self.xvel,\
+             self.ymom, self.height, self.elev, self.elev_orig, self.friction, self.xvel,\
              self.yvel, self.vel, self.xllcorner, self.yllcorner, self.timeSlices= \
              _get_centroid_values(p, velocity_extrapolation,\
                          timeSlices=copy.copy(timeSlices),\
@@ -522,6 +522,9 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
     stage_cent = _getCentVar(fid, 'stage_c', time_indices=inds, vols=vols)
     elev_cent = _getCentVar(fid, 'elevation_c', time_indices=inds, vols=vols)
 
+    # Hack to allow refernece to time varying elevation
+    elev_cent_orig = elev_cent
+    
     if(len(elev_cent.shape)==2):
         # Coerce to 1D array, since lots of our code assumes it is
         elev_cent=elev_cent[0,:]
@@ -637,7 +640,7 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
     fid.close()
     
     return time, x_cent, y_cent, stage_cent, xmom_cent,\
-             ymom_cent, height_cent, elev_cent, friction_cent,\
+             ymom_cent, height_cent, elev_cent, elev_cent_orig, friction_cent,\
              xvel_cent, yvel_cent, vel_cent, xllcorner, yllcorner, inds
 
 

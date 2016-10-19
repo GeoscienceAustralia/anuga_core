@@ -112,6 +112,8 @@ else:
     from anuga.caching import cache
     from os.path import join
     from anuga.config import indent
+    
+    from anuga.utilities.parse_time import parse_time
 
     #----------------------------
     # Parallel api 

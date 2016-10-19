@@ -1430,7 +1430,7 @@ class Domain(Generic_Domain):
         """
 
         self.minimum_storable_height = minimum_storable_height
-
+        
 
     def get_minimum_storable_height(self):
 
@@ -2494,7 +2494,7 @@ class Domain(Generic_Domain):
     def timestepping_statistics(self,
                                 track_speeds=False,
                                 triangle_id=None,
-                                time_relative=True):
+                                relative_time=True):
         """Return string with time stepping statistics for printing or logging
 
         Optional boolean keyword track_speeds decides whether to report
@@ -2506,7 +2506,7 @@ class Domain(Generic_Domain):
 
         # Call basic machinery from parent class
         msg = Generic_Domain.timestepping_statistics(self, track_speeds,
-                                                     triangle_id, time_relative)
+                                                     triangle_id, relative_time)
 
         if track_speeds is True:
             # qwidth determines the text field used for quantities

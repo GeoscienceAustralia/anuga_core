@@ -341,6 +341,8 @@ class SWW_file(Data_format):
                 z, _ = Q.get_vertex_values(xy=False)                
                 
                 storable_indices = num.array(w-z >= self.minimum_storable_height)
+                
+                #print numpy.sum(storable_indices), len(z), self.minimum_storable_height, numpy.min(w-z)
             else:
                 # Very unlikely branch
                 storable_indices = None # This means take all

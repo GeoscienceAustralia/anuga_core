@@ -562,16 +562,32 @@ class Generic_Domain:
             self.time = time - self.starttime
             
 
-    def get_time(self, relative=True):
+    def get_time(self, relative_time=True):
         """Get the absolute or relative model time (seconds)."""
 
-        if relative:
+        if relative_time:
             return self.time
         else:
             return self.starttime + self.time
+ 
+    def set_zone(self,zone):  
+        """Set zone for domain."""
+        
+        self.geo_reference.zone = zone
+        
+        
+    def get_datetime(self):
+        """Return date time of current modeltime."""
+        
+        import datetime
+        
+        absolute_time = self.get_time(relative_time=False)
+        
+        return datetime.datetime.utcfromtimestamp(absolute_time).strftime('%c')
+    
 
     def get_timestep(self):
-        """et current timestep (seconds)."""
+        """get current timestep (seconds)."""
 
         return self.timestep
 
@@ -1063,7 +1079,7 @@ class Generic_Domain:
 
     def timestepping_statistics(self, track_speeds=False,
                                       triangle_id=None,
-                                      time_relative=True):
+                                      relative_time=True):
         """Return string with time stepping statistics
 
         Optional boolean keyword track_speeds decides whether to report
@@ -1081,7 +1097,7 @@ class Generic_Domain:
 
         msg = ''
 
-        model_time = self.get_time(relative=time_relative)
+        model_time = self.get_time(relative_time=relative_time)
  
         if self.recorded_min_timestep == self.recorded_max_timestep:
             msg += 'Time = %.4f, delta t = %.8f, steps=%d' \
@@ -1615,9 +1631,18 @@ class Generic_Domain:
             if finaltime is not None:
                 self.finaltime = float(finaltime)
             if duration is not None:
-                self.finaltime = float(duration)
+                self.finaltime = float(duration) + self.get_time()
 
-        assert self.finaltime >= self.get_time(), 'finaltime %g is less than starttime %g!' % (self.finaltime,self.get_time())
+        if self.finaltime < self.get_time():
+            import warnings
+            msg =  '\n finaltime %g is less than current time %g! ' % (self.finaltime,self.get_time())
+            msg += 'finaltime set to current time'
+            self.finaltime = self.get_time()
+            warnings.warn(msg)
+            
+            # let's get out of here
+            return
+            
 
         N = len(self)                             # Number of triangles
         self.yieldtime = self.get_time() + yieldstep    # set next yield time
