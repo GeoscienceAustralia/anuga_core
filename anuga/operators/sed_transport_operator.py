@@ -55,10 +55,7 @@ class Sed_transport_operator(Operator, object):
                  'Smin' : 0.00001, 'Smax' : 0.0001, 'dS' : 0.00005}
         self.I_flag = True
 
-    
-        self.criticalshear_star = 0.06
-        # from Griffin et al 2010, from Wibert and Smith 1987
-        
+
         self.porosity = 0.3
         self.c1 = 18.
         self.c2 = 0.4
@@ -98,15 +95,13 @@ class Sed_transport_operator(Operator, object):
         """
         
         self.D50 = new_D50
-
-        self.criticalshear = (self.criticalshear_star * (self.rho_s - self.rho_w) *
-                                g * self.D50)
         
         self.settlingvelocity = ((self.R * g * self.D50**2) /
                             ((self.c1 * self.nu) +
                             (0.75 * self.c2 * (self.R * g * self.D50**3)**0.5)))
-          
-        self.Ke = 0.1e-6 / self.criticalshear**0.5
+        
+        self.A = 5.7e-7
+        self.Re = (sqrt(self.R * g * self.grain_size) * self.grain_size) / self.nu
         
         self.prepare_d_star()
         
@@ -192,13 +187,13 @@ class Sed_transport_operator(Operator, object):
             self.ddot = self.deposition()
 
             self.dzdt = (self.ddot - self.edot) / (1 - self.porosity)
-        
             self.dChdt = (self.edot - self.ddot)
             
             self.update_concentration(self.dChdt)
             self.sediment_flux()
             
             self.update_bed(self.dzdt)
+
 
 
     def update_bed(self, dzdt):
@@ -220,12 +215,20 @@ class Sed_transport_operator(Operator, object):
         """
         Calculates an erosion rate from an excess shear stress formulation
         """
-    
-    
-        shear_stress = self.rho_w * self.u_star[self.ind]**2
+
+        quant = self.domain.quantities['elevation']
+        quant.compute_gradients()
         
-        edot = self.Ke * (shear_stress - self.criticalshear)
+        dx = 2.
         
+        self.S = num.maximum(num.abs(quant.x_gradient[self.ind]), num.abs(quant.y_gradient[self.ind])) / dx
+        self.S[self.S <= 0.000001] = 0.000001
+        
+        self.calculate_d_star()
+        
+        Z5 = ((self.u_star[self.ind] / self.settlingvelocity) * self.Re**0.6 * self.S**0.07)**5.
+        
+        edot = self.d_star * self.settlingvelocity * (self.A * Z5 / (1 + (self.A / 0.3) * Z5))
         edot[edot<0.0] = 0.0
         
         return edot        
@@ -236,8 +239,6 @@ class Sed_transport_operator(Operator, object):
         Calculates a rate of deposition from the sediment concentration and the
         settling velocity of the particles
         """
-    
-        self.calculate_d_star()
         
         ddot = (self.d_star * self.conc[self.ind] * self.settlingvelocity)
         ddot[ddot<0.0] = 0.0
@@ -329,7 +330,8 @@ class Sed_transport_operator(Operator, object):
         db = 0.05
 
         u_star = num.sqrt(g * H * S)
-        Cz = 9. * (H / 0.00026) ** (1/6.)
+        Cz = U / u_star
+        
         Kc = 11. * H / num.exp(self.kappa * Cz)
         ln = num.log(30. * H * x / Kc)
 
@@ -421,14 +423,7 @@ class Sed_transport_operator(Operator, object):
     def calculate_d_star(self):
     
 
-        quant = self.domain.quantities['elevation']
-        quant.compute_gradients()
-        
-        dx = 2.
-        
-        S_pts = num.maximum(num.abs(quant.x_gradient[self.ind]), num.abs(quant.y_gradient[self.ind])) / dx
-        
-        S_pts[S_pts <= 0.000001] = 0.000001
+        S_pts = self.S
         
         U_pts = num.maximum(num.abs(self.xmom_c[self.ind]/self.depth[self.ind]), 
                           num.abs(self.ymom_c[self.ind]/self.depth[self.ind]))
@@ -447,18 +442,6 @@ class Sed_transport_operator(Operator, object):
                             
         self.d_star[self.d_star > 1] = 1.
                             
-        
-#         u_star = num.sqrt(g * H_pts * S_pts)
-# #         Cz = U_pts / u_star
-#         Cz = 9. * (H_pts / 0.00026) ** (1/6.)
-#         r_o = Cz * self.kappa / self.d_star
-#         
-# #         print self.d_star
-# #         print U_pts
-# #         print H_pts
-# #         print S_pts
-#         print 10*'-'
-
 
 
     def parallel_safe(self):
