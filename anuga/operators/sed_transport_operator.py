@@ -72,14 +72,16 @@ class Sed_transport_operator(Operator, object):
         
         self.grain_size = 0.00013 # from Griffin et al 2010
         
+        self.num_cells = len(self.depth)
         
         self.bdry_indices = None
         self.inflow_concentration = None
         if self.domain.boundary_map:
-            self.initialize_inflow_boundary()
-            
+            self.initialize_inflow_boundary()    
             
         self.dx, self.dy = self.get_dx()
+        
+        self.initialize_arrays()
         
         
         
@@ -88,8 +90,8 @@ class Sed_transport_operator(Operator, object):
         edges = self.domain.get_edge_midpoint_coordinates()
         centroids = self.domain.centroid_coordinates
         
-        dx = num.zeros_like(self.elev_c)
-        dy = num.zeros_like(self.elev_c)
+        dx = num.zeros((self.num_cells,))
+        dy = num.zeros((self.num_cells,))
         
         for j in range(len(centroids)):
         
@@ -98,6 +100,15 @@ class Sed_transport_operator(Operator, object):
             dy[j] = num.max((num.abs(edges_j[:,1] - centroids[j,1]))*2.)
         
         return dx, dy
+        
+        
+    def initialize_arrays(self):
+    
+        self.edot = num.zeros((self.num_cells,))
+        self.ddot = num.zeros((self.num_cells,))
+        self.u_star = num.zeros((self.num_cells,))
+        self.dzdt = num.zeros((self.num_cells,))
+        self.dChdt = num.zeros((self.num_cells,))
             
                          
                          
@@ -180,8 +191,14 @@ class Sed_transport_operator(Operator, object):
         
         if not self.bdry_indices:
             self.initialize_inflow_boundary()
+            
+        self.edot[:] = 0
+        self.ddot[:] = 0
+        self.u_star[:] = 0
+        self.dzdt[:] = 0
+        self.dChdt[:] = 0
 
-        self.ind = (self.depth > 0.05) * (self.xmom_c != 0) # 5 cm (and moving)
+        self.ind = (self.depth > 0.05) & ((self.xmom_c != 0) | (self.ymom_c != 0)) # 5 cm (and moving)
         self.update_quantities()    
         
         
@@ -212,12 +229,10 @@ class Sed_transport_operator(Operator, object):
         
             self.S = self.calculate_slope()                  
             
-            self.u_star = num.zeros_like(self.depth)
-            
             self.u_star[self.ind] = num.sqrt(g * self.S * self.depth[self.ind])
             
-            self.edot = self.erosion()
-            self.ddot = self.deposition()
+            self.edot[self.ind] = self.erosion()
+            self.ddot[self.ind] = self.deposition()
 
             self.dzdt = (self.ddot - self.edot) / (1 - self.porosity)
             self.dChdt = (self.edot - self.ddot)
@@ -233,13 +248,8 @@ class Sed_transport_operator(Operator, object):
         """
         Updates the elevation of the bed at centroids based on erosion and deposition
         """
-    
-        dz = num.zeros_like(self.elev_c)
-        dz[self.ind] = dzdt * self.dt
         
-        new_bed = self.elev_c + dz
-        
-        self.domain.set_quantity('elevation', new_bed, location='centroids')
+        self.domain.set_quantity('elevation', self.elev_c + dzdt * self.dt, location='centroids')
         
         
 
@@ -284,16 +294,16 @@ class Sed_transport_operator(Operator, object):
                            self.depth[self.ind] * self.areas[self.ind])
         
         # sediment vol added or removed from the water column
-        change_sed_vol = dChdt * self.areas[self.ind] * self.dt
+        change_sed_vol = dChdt[self.ind] * self.areas[self.ind] * self.dt
         
         # change in sed vol
         new_sed_vol = num.maximum(sed_vol_in_cell + change_sed_vol, 0)
         
-        new_conc = num.zeros_like(self.conc)
-        new_conc[self.ind] = new_sed_vol / (self.depth[self.ind] * self.areas[self.ind])
+#         new_conc = num.zeros_like(self.conc)
+        self.conc[self.ind] = new_sed_vol / (self.depth[self.ind] * self.areas[self.ind])
         
         self.domain.quantities['concentration'].\
-                set_values(new_conc, location = 'centroids') 
+                set_values(self.conc, location = 'centroids') 
                 
 
         
@@ -306,7 +316,7 @@ class Sed_transport_operator(Operator, object):
         Assumes that sediment moves at the same speed as the flow
         """
     
-        normal_vels = num.zeros_like(self.depth_e)
+        normal_vels = num.zeros((self.num_cells,3))
         
         normal_vels[self.ind,:] = ((self.normals[self.ind,0::2] *
                                     self.xmom_e[self.ind,:] +
@@ -339,13 +349,13 @@ class Sed_transport_operator(Operator, object):
         sed_vol_in_cell = self.conc * self.depth * self.areas
         new_sed_vol_in_cell = num.maximum(sed_vol_in_cell + sed_vol_change, 0)
         
-        new_conc = num.zeros_like(self.conc)
-        new_conc[self.ind] = (new_sed_vol_in_cell[self.ind] /
+#         new_conc = num.zeros_like(self.conc)
+        self.conc[self.ind] = (new_sed_vol_in_cell[self.ind] /
                              (self.depth[self.ind] * self.areas[self.ind]))
         
         
         self.domain.quantities['concentration'].\
-                set_values(new_conc, location = 'centroids') 
+                set_values(self.conc, location = 'centroids') 
      
 
 
