@@ -199,6 +199,9 @@ class Sed_transport_operator(Operator, object):
         self.dChdt[:] = 0
 
         self.ind = (self.depth > 0.05) & ((self.xmom_c != 0) | (self.ymom_c != 0)) # 5 cm (and moving)
+        
+        self.ind_s = (self.depth > 0.01) & ~self.ind
+        
         self.update_quantities()    
         
         
@@ -233,14 +236,18 @@ class Sed_transport_operator(Operator, object):
             
             self.edot[self.ind] = self.erosion()
             self.ddot[self.ind] = self.deposition()
+            
+        if sum(self.ind_s) > 0:
+        
+            self.ddot[self.ind_s] = self.settlingvelocity * self.conc[self.ind_s]
 
-            self.dzdt = (self.ddot - self.edot) / (1 - self.porosity)
-            self.dChdt = (self.edot - self.ddot)
-            
-            self.update_concentration(self.dChdt)
-            self.sediment_flux()
-            
-            self.update_bed(self.dzdt)
+        self.dzdt = (self.ddot - self.edot) / (1 - self.porosity)
+        self.dChdt = (self.edot - self.ddot)
+        
+        self.update_concentration(self.dChdt)
+        self.sediment_flux()
+        
+        self.update_bed(self.dzdt)
 
 
 
@@ -290,17 +297,18 @@ class Sed_transport_operator(Operator, object):
         """
     
         # sediment vol already in the water column
-        sed_vol_in_cell = (self.conc[self.ind] *
-                           self.depth[self.ind] * self.areas[self.ind])
+        sed_vol_in_cell = (self.conc *
+                           self.depth * self.areas)
         
         # sediment vol added or removed from the water column
-        change_sed_vol = dChdt[self.ind] * self.areas[self.ind] * self.dt
+        change_sed_vol = dChdt * self.areas * self.dt
         
         # change in sed vol
         new_sed_vol = num.maximum(sed_vol_in_cell + change_sed_vol, 0)
         
-#         new_conc = num.zeros_like(self.conc)
-        self.conc[self.ind] = new_sed_vol / (self.depth[self.ind] * self.areas[self.ind])
+        ind_ = self.depth > 0.01
+        self.conc[:] = 0.
+        self.conc[ind_] = new_sed_vol[ind_] / (self.depth[ind_] * self.areas[ind_])
         
         self.domain.quantities['concentration'].\
                 set_values(self.conc, location = 'centroids') 
