@@ -4,6 +4,8 @@ Erosion operators
 
 
 import numpy as num
+from scipy.integrate import quad
+from scipy import interpolate
 
 from anuga import Domain
 from anuga import Quantity
@@ -47,6 +49,11 @@ class Sed_transport_operator(Operator, object):
         self.depth_e = self.domain.quantities['height'].edge_values  
         self.xmom_e = self.domain.quantities['xmomentum'].edge_values
         self.ymom_e = self.domain.quantities['ymomentum'].edge_values
+        
+        self.I_bounds = {'Hmin' : 0.2, 'Hmax' : 2., 'dH' : 0.25,
+                 'Umin' : 0.1, 'Umax' : 2.5, 'dU' : 0.25,
+                 'Smin' : 0.00001, 'Smax' : 0.0001, 'dS' : 0.00005}
+        self.I_flag = True
 
     
         self.criticalshear_star = 0.06
@@ -69,6 +76,9 @@ class Sed_transport_operator(Operator, object):
         self.inflow_concentration = None
         if self.domain.boundary_map:
             self.initialize_inflow_boundary()
+            
+                         
+                         
 
 
     @property
@@ -96,9 +106,7 @@ class Sed_transport_operator(Operator, object):
                             ((self.c1 * self.nu) +
                             (0.75 * self.c2 * (self.R * g * self.D50**3)**0.5)))
           
-        self.Ke = 0.2e-6 / self.criticalshear**0.5
-                                
-        self.z_o = self.D50 / 30
+        self.Ke = 0.1e-6 / self.criticalshear**0.5
         
         self.prepare_d_star()
         
@@ -193,6 +201,51 @@ class Sed_transport_operator(Operator, object):
             self.update_bed(self.dzdt)
 
 
+    def update_bed(self, dzdt):
+        """
+        Updates the elevation of the bed at centroids based on erosion and deposition
+        """
+    
+        dz = num.zeros_like(self.elev_c)
+        dz[self.ind] = dzdt * self.dt
+        
+        new_bed = self.elev_c + dz
+        
+        self.domain.set_quantity('elevation', new_bed, location='centroids')
+        
+        
+
+        
+    def erosion(self):
+        """
+        Calculates an erosion rate from an excess shear stress formulation
+        """
+    
+    
+        shear_stress = self.rho_w * self.u_star[self.ind]**2
+        
+        edot = self.Ke * (shear_stress - self.criticalshear)
+        
+        edot[edot<0.0] = 0.0
+        
+        return edot        
+        
+
+    def deposition(self):
+        """
+        Calculates a rate of deposition from the sediment concentration and the
+        settling velocity of the particles
+        """
+    
+        self.calculate_d_star()
+        
+        ddot = (self.d_star * self.conc[self.ind] * self.settlingvelocity)
+        ddot[ddot<0.0] = 0.0
+    
+        return ddot   
+        
+        
+
 
     def update_concentration(self, dChdt):
         """
@@ -267,113 +320,145 @@ class Sed_transport_operator(Operator, object):
         
         self.domain.quantities['concentration'].\
                 set_values(new_conc, location = 'centroids') 
+     
 
-               
-  
-  
-        
-    def update_bed(self, dzdt):
-        """
-        Updates the elevation of the bed at centroids based on erosion and deposition
-        """
-    
-        dz = num.zeros_like(self.elev_c)
-        dz[self.ind] = dzdt * self.dt
-        
-        new_bed = self.elev_c + dz
-        
-        self.domain.set_quantity('elevation', new_bed, location='centroids')
-        
-        
 
-        
-    def erosion(self):
-        """
-        Calculates an erosion rate from an excess shear stress formulation
-        """
-    
-    
-        shear_stress = self.rho_w * self.u_star[self.ind]**2
-        
-        edot = self.Ke * (shear_stress - self.criticalshear)
-        
-        edot[edot<0.0] = 0.0
-        
-        return edot        
-        
 
-    def deposition(self):
-        """
-        Calculates a rate of deposition from the sediment concentration and the
-        settling velocity of the particles
-        """
+    def integrand(self, x, H, U, S):
     
-        self.calculate_d_star()
+        db = 0.05
+
+        u_star = num.sqrt(g * H * S)
+        Cz = 9. * (H / 0.00026) ** (1/6.)
+        Kc = 11. * H / num.exp(self.kappa * Cz)
+        ln = num.log(30. * H * x / Kc)
+
+        intv = self.settlingvelocity / (self.kappa * u_star)
         
-        ddot = (self.d_star[self.ind] * self.conc[self.ind] * self.settlingvelocity)
-        ddot[ddot<0.0] = 0.0
-    
-        return ddot        
-        
-        
+        integ = (((1 - x) / x)/((1 - db) / db))**intv * ln
+
+        return integ
+                                 
+                             
+
 
     def prepare_d_star(self):
-        """
-        Calculates part of the values needed to obtain d* (for deposition)
-        following the formulation of Davy and Lague (2009). The equations are
-        not very sensitive to flow depth so we save time by calculating things once.
-        """
-        
-        self.d_star_counter = 0
-        
-        H = 1. # generic depth - not sensitive
     
-        a = 0.05 * H
-        self.z = num.arange(a, H+a, a)
+        if self.I_flag:
         
-        self.diff_z = num.diff(self.z)
+            self._H = num.linspace(self.I_bounds['Hmin'],
+                                 self.I_bounds['Hmax'],
+                                 5)
+                                 
+            self._U = num.linspace(self.I_bounds['Umin'],
+                                 self.I_bounds['Umax'],
+                                 5)
+                                 
+            self._S = num.linspace(self.I_bounds['Smin'],
+                                 self.I_bounds['Smax'],
+                                 10)
+                                 
+            self.I_flag = False
+                                
+        
 
-        self.d_dz_u = map(log, self.z / self.z_o)
-        self.integral_u = (num.sum((self.d_dz_u[1:] + num.diff(self.d_dz_u)) *
-                            self.diff_z)) # numerator of eq 13 in equations.pdf
+        Ix = num.zeros((len(self._H),len(self._U),len(self._S)))
 
-        self.d_dz_rouse_partial = ((self.z - a) / (H - a)) * (a / self.z)
+        for nh, h in enumerate(self._H):
+            for nu, u in enumerate(self._U):
+                for ns, s in enumerate(self._S):
+
+                    I = quad(self.integrand, 0.05 , 0.95, args=(h,u,s))
+                    Ix[nh,nu,ns] = I[0]
+
+        Ix[Ix < 0] = 0
+        Ix[Ix > 1] = 1
         
-        self.d_star = num.zeros_like(self.depth)
+        Hx, Ux = num.meshgrid(self._H,self._U)
+        Hs = Hx.flatten()
+        Us = Ux.flatten()
+
+        self.ff = []
+
+        for i in range(len(self._S)):
+    
+            Is = Ix[:,:,i].flatten()
+            f = interpolate.SmoothBivariateSpline(Hs,Us,Is)
+    
+            self.ff.append(f)
+                
+
+
+    def check_d_star_bounds(self, H, U, S):
         
+        if (((H.min() < self.I_bounds['Hmin']) and
+                (self.I_bounds['Hmin'] != 0.1)) or
+           (H.max() >= self.I_bounds['Hmax']) or
+           ((U.min() < self.I_bounds['Umin']) and
+                (self.I_bounds['Umin'] != 0.05)) or
+           (U.max() >= self.I_bounds['Umax']) or
+           ((S.min() < self.I_bounds['Smin']) and
+                (self.I_bounds['Smin'] != 0.000001)) or
+           (S.max() > self.I_bounds['Smax'])):
+           
+            self.I_flag = True
+            
         
+        if self.I_flag:
+        
+            self.I_bounds['Hmin'] = max(0.1, H.min() - self.I_bounds['dH'])
+            self.I_bounds['Hmax'] = H.max() + 2. * self.I_bounds['dH']
+            self.I_bounds['Umin'] = max(0.05, U.min() - 2. * self.I_bounds['dU'])
+            self.I_bounds['Umax'] = U.max() + 2. * self.I_bounds['dU']
+            self.I_bounds['Smin'] = max(0.000001, S.min() - 3. * self.I_bounds['dS'])
+            self.I_bounds['Smax'] = S.max() + 3. * self.I_bounds['dS']
+        
+            self.prepare_d_star()
+            
+                
+                
 
     def calculate_d_star(self):
-        """
-        Calculates the values needed to obtain d* (for deposition)
-        following the formulation of Davy and Lague (2009). This term describes
-        the vertical distribution of sediment in the water column.
+    
+
+        quant = self.domain.quantities['elevation']
+        quant.compute_gradients()
         
-        This term is only calculated once every 10 dt for speed
-        """
+        dx = 2.
         
-        if self.d_star_counter % 10 == 0:
+        S_pts = num.maximum(num.abs(quant.x_gradient[self.ind]), num.abs(quant.y_gradient[self.ind])) / dx
         
-            wet = num.compress(self.ind, num.arange(len(self.depth)))
-            
-            for i in wet:
-            
-                rouse_number = self.settlingvelocity / (self.kappa * self.u_star[i])
+        S_pts[S_pts <= 0.000001] = 0.000001
         
-                d_dz_rouse = (self.d_dz_rouse_partial ** rouse_number) * self.d_dz_u
-                # interior of integral in denominator
-            
-                integral_rouse = (num.sum((d_dz_rouse[1:] + num.diff(d_dz_rouse)) *
-                                self.diff_z))
+        U_pts = num.maximum(num.abs(self.xmom_c[self.ind]/self.depth[self.ind]), 
+                          num.abs(self.ymom_c[self.ind]/self.depth[self.ind]))
         
-                self.d_star[i] = self.integral_u / integral_rouse
+        H_pts = self.depth[self.ind]
+        
+        
+        self.check_d_star_bounds(H_pts, U_pts, S_pts)
+        
+        slope_slice = map(lambda i: num.where(self._S <= i)[0][-1], S_pts.flatten())
 
         
-        self.d_star_counter += 1
+        self.d_star = num.array(
+                      map(lambda f,h,u: f(h,u)[0][0],
+                            map(lambda s: self.ff[s], slope_slice), H_pts, U_pts))
+                            
+        self.d_star[self.d_star > 1] = 1.
+                            
         
-    
-        
-        
+#         u_star = num.sqrt(g * H_pts * S_pts)
+# #         Cz = U_pts / u_star
+#         Cz = 9. * (H_pts / 0.00026) ** (1/6.)
+#         r_o = Cz * self.kappa / self.d_star
+#         
+# #         print self.d_star
+# #         print U_pts
+# #         print H_pts
+# #         print S_pts
+#         print 10*'-'
+
 
 
     def parallel_safe(self):
