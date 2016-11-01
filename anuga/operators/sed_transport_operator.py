@@ -16,6 +16,10 @@ from anuga.config import epsilon, g
 
 from anuga import Dirichlet_boundary
 
+import warnings
+
+warnings.filterwarnings('error')
+
 
 #===============================================================================
 # Specific Erosion operator trying to implement bed shear
@@ -73,6 +77,27 @@ class Sed_transport_operator(Operator, object):
         self.inflow_concentration = None
         if self.domain.boundary_map:
             self.initialize_inflow_boundary()
+            
+            
+        self.dx, self.dy = self.get_dx()
+        
+        
+        
+    def get_dx(self):
+    
+        edges = self.domain.get_edge_midpoint_coordinates()
+        centroids = self.domain.centroid_coordinates
+        
+        dx = num.zeros_like(self.elev_c)
+        dy = num.zeros_like(self.elev_c)
+        
+        for j in range(len(centroids)):
+        
+            edges_j = edges[3*j:3*j+3,:]
+            dx[j] = num.max((num.abs(edges_j[:,0] - centroids[j,0]))*2.)
+            dy[j] = num.max((num.abs(edges_j[:,1] - centroids[j,1]))*2.)
+        
+        return dx, dy
             
                          
                          
@@ -159,7 +184,18 @@ class Sed_transport_operator(Operator, object):
         self.ind = (self.depth > 0.05) * (self.xmom_c != 0) # 5 cm (and moving)
         self.update_quantities()    
         
+        
 
+    def calculate_slope(self):
+    
+        quant = self.domain.quantities['elevation']
+        quant.compute_gradients()
+        
+        S = num.maximum(num.abs(quant.x_gradient[self.ind]) / self.dx[self.ind],
+                 num.abs(quant.y_gradient[self.ind]) / self.dy[self.ind])
+        S[S <= 0.000001] = 0.000001
+        
+        return S
         
 
 
@@ -172,16 +208,13 @@ class Sed_transport_operator(Operator, object):
         t = self.get_time()
         self.dt = self.get_timestep()
         
-        if sum(self.ind) > 0:                   
-            
-            quant = self.domain.quantities['elevation']
-            quant.compute_gradients()
-
-            S = num.maximum(num.abs(quant.x_gradient), num.abs(quant.y_gradient))
+        if sum(self.ind) > 0: 
+        
+            self.S = self.calculate_slope()                  
             
             self.u_star = num.zeros_like(self.depth)
             
-            self.u_star[self.ind] = num.sqrt(g * S[self.ind] * self.depth[self.ind])
+            self.u_star[self.ind] = num.sqrt(g * self.S * self.depth[self.ind])
             
             self.edot = self.erosion()
             self.ddot = self.deposition()
@@ -215,14 +248,6 @@ class Sed_transport_operator(Operator, object):
         """
         Calculates an erosion rate from an excess shear stress formulation
         """
-
-        quant = self.domain.quantities['elevation']
-        quant.compute_gradients()
-        
-        dx = 2.
-        
-        self.S = num.maximum(num.abs(quant.x_gradient[self.ind]), num.abs(quant.y_gradient[self.ind])) / dx
-        self.S[self.S <= 0.000001] = 0.000001
         
         self.calculate_d_star()
         
@@ -330,9 +355,13 @@ class Sed_transport_operator(Operator, object):
         db = 0.05
 
         u_star = num.sqrt(g * H * S)
-        Cz = U / u_star
         
+        Cz = U / u_star
+        if Cz > 500:
+            Cz = 500.
+
         Kc = 11. * H / num.exp(self.kappa * Cz)
+            
         ln = num.log(30. * H * x / Kc)
 
         intv = self.settlingvelocity / (self.kappa * u_star)
@@ -361,8 +390,6 @@ class Sed_transport_operator(Operator, object):
                                  10)
                                  
             self.I_flag = False
-                                
-        
 
         Ix = num.zeros((len(self._H),len(self._U),len(self._S)))
 
@@ -412,8 +439,8 @@ class Sed_transport_operator(Operator, object):
             self.I_bounds['Hmax'] = H.max() + 2. * self.I_bounds['dH']
             self.I_bounds['Umin'] = max(0.05, U.min() - 2. * self.I_bounds['dU'])
             self.I_bounds['Umax'] = U.max() + 2. * self.I_bounds['dU']
-            self.I_bounds['Smin'] = max(0.000001, S.min() - 3. * self.I_bounds['dS'])
-            self.I_bounds['Smax'] = S.max() + 3. * self.I_bounds['dS']
+            self.I_bounds['Smin'] = max(0.000001, S.min() - 2. * self.I_bounds['dS'])
+            self.I_bounds['Smax'] = S.max() + 2. * self.I_bounds['dS']
         
             self.prepare_d_star()
             
