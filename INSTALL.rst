@@ -268,6 +268,25 @@ To uninstall simply run::
 
     The Windows installer from older versions is no longer supported.
     
+Alternative Windows 10 Install using 'Ubuntu on Windows'
+==========================
+Starting from Windows 10, it is possible to run an Ubuntu Bash console from Windows. This can greatly simplify the install for Windows users. You'll still need administrator access though. 
+
+First, enable "Ubuntu on Windows" using the following guide from  Microsoft:
+https://msdn.microsoft.com/en-us/commandline/wsl/install_guide
+
+Once you have a "Bash on Ubuntu on Windows" command prompt open, you can install ANUGA with these steps:
+
+1. Install git - ``sudo apt-get install git``
+2. Install wget for python - ``sudo pip install wget`` (optional but some examples need this)
+3. Clone the ANGUA repository - ``git clone https://github.com/GeoscienceAustralia/anuga_core.git``
+4. Move to the ANUGA directory - ``cd anuga_core``
+5. Install ANUGA - ``sudo bash tools/install_ubuntu.sh``
+6. Run the tests to check it is all working - ``sudo python runtests.py``
+
+Helpful hint 1: You should be able to access your windows ``C:\`` at ``/mnt/c`` in the bash shell. To check this type ``ls -al /mnt/c`` at the bash prompt. 
+
+Helpful hint 2: If you're going to use this Ubuntu environment for other tasks, you may want to install ANUGA into a virtual environment, to keep things clean. See https://virtualenv.pypa.io/en/stable/ for more details. 
     
 .. _AnuGA: http://anuga.anu.edu.au/ 
 .. _install git: http://git-scm.com/
