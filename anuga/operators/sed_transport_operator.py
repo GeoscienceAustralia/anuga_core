@@ -83,6 +83,9 @@ class Sed_transport_operator(Operator, object):
         
         self.initialize_arrays()
         
+        self.x = self.domain.quantities['x'].centroid_values
+        self.y = self.domain.quantities['y'].centroid_values
+        
         
         
     def get_dx(self):
@@ -184,7 +187,7 @@ class Sed_transport_operator(Operator, object):
         """
         
         if self.conc is None:
-             self.conc = self.domain.quantities['concentration'].centroid_values
+            self.conc = self.domain.quantities['concentration'].centroid_values
         
         if not self.inflow_concentration:
             self.inflow_concentration = self.conc.max()
@@ -197,10 +200,14 @@ class Sed_transport_operator(Operator, object):
         self.u_star[:] = 0
         self.dzdt[:] = 0
         self.dChdt[:] = 0
-
-        self.ind = (self.depth > 0.05) & ((self.xmom_c != 0) | (self.ymom_c != 0)) # 5 cm (and moving)
         
-        self.ind_s = (self.depth > 0.01) & ~self.ind
+        self.conc[self.depth <= 0.01] = 0.
+
+        self.ind = (self.depth > 0.1) & ((self.xmom_c != 0) | (self.ymom_c != 0)) # 5 cm (and moving)
+        self.ind_s = (self.depth > 0.05) & ~self.ind
+        self.ind_a = (self.depth > 0.05)
+        
+        self.ind_b = (self.x > 90) & (self.x < 95) & (self.y > 555) & (self.y < 560)
         
         self.update_quantities()    
         
@@ -227,10 +234,15 @@ class Sed_transport_operator(Operator, object):
 
         t = self.get_time()
         self.dt = self.get_timestep()
+#         
+#         print self.depth[self.ind_b]
+#         print self.conc[self.ind_b]
         
         if sum(self.ind) > 0: 
         
-            self.S = self.calculate_slope()                  
+            self.S = self.calculate_slope()    
+            self.U = num.maximum(num.abs(self.xmom_c[self.ind]/self.depth[self.ind]), 
+                     num.abs(self.ymom_c[self.ind]/self.depth[self.ind]))              
             
             self.u_star[self.ind] = num.sqrt(g * self.S * self.depth[self.ind])
             
@@ -244,11 +256,25 @@ class Sed_transport_operator(Operator, object):
         self.dzdt = (self.ddot - self.edot) / (1 - self.porosity)
         self.dChdt = (self.edot - self.ddot)
         
+        
         self.update_concentration(self.dChdt)
+        
+#         print self.conc[self.ind_b]
+#         print self.edot[self.ind_b]
+#         print self.ddot[self.ind_b]
+# #         
+        
         self.sediment_flux()
         
         self.update_bed(self.dzdt)
-
+        
+        
+#         print self.conc[self.ind_b]
+#         print self.depth[self.ind_b]
+#         print self.dzdt[self.ind_b]
+#         print self.dChdt[self.ind_b]
+#         print 10 * '-'
+        
 
 
     def update_bed(self, dzdt):
@@ -256,7 +282,14 @@ class Sed_transport_operator(Operator, object):
         Updates the elevation of the bed at centroids based on erosion and deposition
         """
         
-        self.domain.set_quantity('elevation', self.elev_c + dzdt * self.dt, location='centroids')
+        self.elev_c[:] = self.elev_c + dzdt * self.dt
+        self.domain.set_quantity('elevation', self.elev_c, location='centroids')
+        
+#         self.depth[:] = self.depth - dzdt * self.dt
+#         self.domain.set_quantity('height', self.depth, location='centroids')
+#         
+#         self.depth_e[:] = self.depth_e - dzdt[:,num.newaxis] * self.dt
+#         self.domain.set_quantity('height', self.depth_e, location='edges')
         
         
 
@@ -282,8 +315,14 @@ class Sed_transport_operator(Operator, object):
         settling velocity of the particles
         """
         
-        ddot = (self.d_star * self.conc[self.ind] * self.settlingvelocity)
+        
+                          
+        ddot = self.settlingvelocity * self.U * self.kappa * self.conc[self.ind] /  self.u_star[self.ind]
+        
+#         ddot = (self.d_star * self.conc[self.ind] * self.settlingvelocity)
         ddot[ddot<0.0] = 0.0
+        
+#         print d.max(), ddot.max()
     
         return ddot   
         
@@ -306,9 +345,8 @@ class Sed_transport_operator(Operator, object):
         # change in sed vol
         new_sed_vol = num.maximum(sed_vol_in_cell + change_sed_vol, 0)
         
-        ind_ = self.depth > 0.01
         self.conc[:] = 0.
-        self.conc[ind_] = new_sed_vol[ind_] / (self.depth[ind_] * self.areas[ind_])
+        self.conc[self.ind_a] = new_sed_vol[self.ind_a] / (self.depth[self.ind_a] * self.areas[self.ind_a])
         
         self.domain.quantities['concentration'].\
                 set_values(self.conc, location = 'centroids') 
@@ -354,12 +392,15 @@ class Sed_transport_operator(Operator, object):
         
         sed_vol_change = num.sum(-sed_flux, axis=1)
         
+       
         sed_vol_in_cell = self.conc * self.depth * self.areas
         new_sed_vol_in_cell = num.maximum(sed_vol_in_cell + sed_vol_change, 0)
         
-#         new_conc = num.zeros_like(self.conc)
+#         self.conc[:] = 0
         self.conc[self.ind] = (new_sed_vol_in_cell[self.ind] /
                              (self.depth[self.ind] * self.areas[self.ind]))
+                             
+        assert self.conc.max() < 0.5, 'Max concentration is %d' % self.conc.max()
         
         
         self.domain.quantities['concentration'].\
@@ -470,8 +511,10 @@ class Sed_transport_operator(Operator, object):
 
         S_pts = self.S
         
-        U_pts = num.maximum(num.abs(self.xmom_c[self.ind]/self.depth[self.ind]), 
-                          num.abs(self.ymom_c[self.ind]/self.depth[self.ind]))
+        U_pts = self.U
+        
+#         U_pts = num.maximum(num.abs(self.xmom_c[self.ind]/self.depth[self.ind]), 
+#                           num.abs(self.ymom_c[self.ind]/self.depth[self.ind]))
         
         H_pts = self.depth[self.ind]
         
