@@ -203,11 +203,11 @@ class Sed_transport_operator(Operator, object):
         
         self.conc[self.depth <= 0.01] = 0.
 
-        self.ind = (self.depth > 0.1) & ((self.xmom_c != 0) | (self.ymom_c != 0)) # 5 cm (and moving)
-        self.ind_s = (self.depth > 0.05) & ~self.ind
-        self.ind_a = (self.depth > 0.05)
+        self.ind = (self.depth > 0.10) & ((self.xmom_c != 0) | (self.ymom_c != 0)) # 5 cm (and moving)
+        self.ind_s = (self.depth > 0.01) & ~self.ind
+        self.ind_a = (self.depth > 0.01)
         
-        self.ind_b = (self.x > 90) & (self.x < 95) & (self.y > 555) & (self.y < 560)
+#         self.ind_b = (self.x > 90) & (self.x < 95) & (self.y > 555) & (self.y < 560)
         
         self.update_quantities()    
         
@@ -223,7 +223,21 @@ class Sed_transport_operator(Operator, object):
         S[S <= 0.000001] = 0.000001
         
         return S
+    
+    def calculate_velocity(self):
+        """
+        Calcultes the magnitude of the flow velocity using flux limiting, as described
+        in section 16.5 of the ANUGA docs
+        """
         
+        ho = 1e-6
+        
+        xvel = (self.xmom_c * self.depth) / (self.depth**2 + ho)
+        yvel = (self.ymom_c * self.depth) / (self.depth**2 + ho)
+        
+        U = num.sqrt(xvel**2. + yvel**2)
+        
+        return U
 
 
     def update_quantities(self):
@@ -234,20 +248,21 @@ class Sed_transport_operator(Operator, object):
 
         t = self.get_time()
         self.dt = self.get_timestep()
-#         
-#         print self.depth[self.ind_b]
-#         print self.conc[self.ind_b]
+
         
         if sum(self.ind) > 0: 
         
-            self.S = self.calculate_slope()    
-            self.U = num.maximum(num.abs(self.xmom_c[self.ind]/self.depth[self.ind]), 
-                     num.abs(self.ymom_c[self.ind]/self.depth[self.ind]))              
+            self.S = self.calculate_slope()
+            self.U = self.calculate_velocity()
             
             self.u_star[self.ind] = num.sqrt(g * self.S * self.depth[self.ind])
             
             self.edot[self.ind] = self.erosion()
             self.ddot[self.ind] = self.deposition()
+            
+#             print self.edot.max()
+#             print self.ddot.max()
+#             print '-' * 10
             
         if sum(self.ind_s) > 0:
         
@@ -258,23 +273,11 @@ class Sed_transport_operator(Operator, object):
         
         
         self.update_concentration(self.dChdt)
-        
-#         print self.conc[self.ind_b]
-#         print self.edot[self.ind_b]
-#         print self.ddot[self.ind_b]
-# #         
-        
+            
         self.sediment_flux()
         
         self.update_bed(self.dzdt)
-        
-        
-#         print self.conc[self.ind_b]
-#         print self.depth[self.ind_b]
-#         print self.dzdt[self.ind_b]
-#         print self.dChdt[self.ind_b]
-#         print 10 * '-'
-        
+
 
 
     def update_bed(self, dzdt):
@@ -284,14 +287,7 @@ class Sed_transport_operator(Operator, object):
         
         self.elev_c[:] = self.elev_c + dzdt * self.dt
         self.domain.set_quantity('elevation', self.elev_c, location='centroids')
-        
-#         self.depth[:] = self.depth - dzdt * self.dt
-#         self.domain.set_quantity('height', self.depth, location='centroids')
-#         
-#         self.depth_e[:] = self.depth_e - dzdt[:,num.newaxis] * self.dt
-#         self.domain.set_quantity('height', self.depth_e, location='edges')
-        
-        
+
 
         
     def erosion(self):
@@ -303,7 +299,7 @@ class Sed_transport_operator(Operator, object):
         
         Z5 = ((self.u_star[self.ind] / self.settlingvelocity) * self.Re**0.6 * self.S**0.07)**5.
         
-        edot = self.d_star * self.settlingvelocity * (self.A * Z5 / (1 + (self.A / 0.3) * Z5))
+        edot = self.settlingvelocity * (self.A * Z5 / (1 + (self.A / 0.3) * Z5))
         edot[edot<0.0] = 0.0
         
         return edot        
@@ -314,12 +310,10 @@ class Sed_transport_operator(Operator, object):
         Calculates a rate of deposition from the sediment concentration and the
         settling velocity of the particles
         """
+       
+        ddot = self.d_star * self.conc[self.ind]
         
         
-                          
-        ddot = self.settlingvelocity * self.U * self.kappa * self.conc[self.ind] /  self.u_star[self.ind]
-        
-#         ddot = (self.d_star * self.conc[self.ind] * self.settlingvelocity)
         ddot[ddot<0.0] = 0.0
         
 #         print d.max(), ddot.max()
@@ -388,7 +382,7 @@ class Sed_transport_operator(Operator, object):
                 n = self.neighbours[k,i]
                 
                 if n < 0:
-                    sed_flux[k,i] =  edge_flux[k,i] * self.inflow_concentration
+                    sed_flux[k,i] =  edge_flux[k,i] * self.inflow_concentration / 2.
         
         sed_vol_change = num.sum(-sed_flux, axis=1)
         
@@ -415,20 +409,34 @@ class Sed_transport_operator(Operator, object):
 
         u_star = num.sqrt(g * H * S)
         
-        Cz = U / u_star
-        if Cz > 500:
-            Cz = 500.
+#         Cz = U / u_star
+#         if Cz > 500:
+#             Cz = 500.
+# 
+#         Kc = 11. * H / num.exp(self.kappa * Cz)
 
-        Kc = 11. * H / num.exp(self.kappa * Cz)
+        zo = self.nu / (9. * u_star)
             
-        ln = num.log(30. * H * x / Kc)
+        ln = num.log(H * x / zo)
 
         intv = self.settlingvelocity / (self.kappa * u_star)
         
         integ = (((1 - x) / x)/((1 - db) / db))**intv * ln
 
         return integ
-                                 
+
+
+    def integrand_top(self, x, H, U, S):
+
+        u_star = num.sqrt(g * H * S)
+
+        zo = self.nu / (9. * u_star)
+            
+        ln = num.log(H * x / zo)
+        
+        integ = ln
+
+        return integ                                 
                              
 
 
@@ -456,8 +464,9 @@ class Sed_transport_operator(Operator, object):
             for nu, u in enumerate(self._U):
                 for ns, s in enumerate(self._S):
 
-                    I = quad(self.integrand, 0.05 , 0.95, args=(h,u,s))
-                    Ix[nh,nu,ns] = I[0]
+                    I_base = quad(self.integrand, 0.05 , 0.95, args=(h,u,s))
+                    I_top = quad(self.integrand_top, 0.05 , 0.95, args=(h,u,s))
+                    Ix[nh,nu,ns] = I_top[0] / I_base[0]
 
         Ix[Ix < 0] = 0
         Ix[Ix > 1] = 1
@@ -508,14 +517,8 @@ class Sed_transport_operator(Operator, object):
 
     def calculate_d_star(self):
     
-
         S_pts = self.S
-        
-        U_pts = self.U
-        
-#         U_pts = num.maximum(num.abs(self.xmom_c[self.ind]/self.depth[self.ind]), 
-#                           num.abs(self.ymom_c[self.ind]/self.depth[self.ind]))
-        
+        U_pts = self.U[self.ind]
         H_pts = self.depth[self.ind]
         
         
