@@ -21,6 +21,7 @@ class Parallel_Weir_orifice_trapezoid_operator(Parallel_Structure_operator):
                  domain,
                  losses,
                  width,
+                 blockage=0.0,
                  height=None,
                  z1=None,
                  z2=None,
@@ -52,6 +53,7 @@ class Parallel_Weir_orifice_trapezoid_operator(Parallel_Structure_operator):
                                           invert_elevations=invert_elevations,
                                           width=width,
                                           height=height,
+                                          blockage=blockage,
                                           z1=z1,
                                           z2=z2,
                                           diameter= None,
@@ -89,10 +91,8 @@ class Parallel_Weir_orifice_trapezoid_operator(Parallel_Structure_operator):
         self.culvert_length = self.get_culvert_length()
         self.culvert_width = self.get_culvert_width()
         self.culvert_height = self.get_culvert_height()
-        
-        self.culvert_z1 = self.get_culvert_z1()
-        self.culvert_z2 = self.get_culvert_z2()
-        
+        self.culvert_blockage = self.get_culvert_blockage()
+
         self.max_velocity = 10.0
 
         self.inlets = self.get_inlets()
@@ -252,6 +252,7 @@ class Parallel_Weir_orifice_trapezoid_operator(Parallel_Structure_operator):
                                                 z2                  =self.culvert_z2,                                                
                                                 flow_width          =self.culvert_width,
                                                 length              =self.culvert_length,
+                                                blockage            =self.culvert_blockage,
                                                 driving_energy      =self.driving_energy,
                                                 delta_total_energy  =self.delta_total_energy,
                                                 outlet_enquiry_depth=outflow_enq_depth,
