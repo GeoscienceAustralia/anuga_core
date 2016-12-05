@@ -126,10 +126,10 @@ class Vegetation_operator(Operator, object):
 #             print self.xmom.max(), self.xmom.min()
             
             dxv = num.sign(xvel) * num.abs(Fd_x) * self.dt
-            dxv[dxv > xvel] =  xvel[dxv > xvel]
+#             dxv[dxv > xvel] =  xvel[dxv > xvel]
             
             dyv = num.sign(yvel) * num.abs(Fd_y) * self.dt
-            dyv[dyv > yvel] =  yvel[dyv > yvel]
+#             dyv[dyv > yvel] =  yvel[dyv > yvel]
         
             xvel_v = (xvel - dxv) * self.depth_w
             yvel_v = (yvel - dyv) * self.depth_w
@@ -142,6 +142,8 @@ class Vegetation_operator(Operator, object):
 
     #         xvel_v[dry_cells] = self.xmom[dry_cells]
     #         yvel_v[dry_cells] = self.ymom[dry_cells]
+    
+#             print self.ymom[~self.wet_cells].min(), self.ymom[self.wet_cells].min()
         
             self.domain.quantities['xmomentum'].\
                 set_values(self.xmom, location = 'centroids')
