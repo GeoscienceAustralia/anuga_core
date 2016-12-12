@@ -635,9 +635,9 @@ class Test_File_Conversion(unittest.TestCase):
 
         first_amp = fid1.variables['HA'][:][0,0,0]
         third_amp = fid1.variables['HA'][:][0,0,2]
-        first_elevation = fid2.variables['ELEVATION'][0,0]
+        first_elevation = fid2.variables['ELEVATION'][:][0,0]
         third_elevation= fid2.variables['ELEVATION'][:][0,2]
-        first_speed = fid3.variables['VA'][0,0,0]
+        first_speed = fid3.variables['VA'][:][0,0,0]
         third_speed = fid3.variables['VA'][:][0,0,2]
 
         fid1.close()
@@ -798,9 +798,9 @@ class Test_File_Conversion(unittest.TestCase):
 
         first_amp = fid1.variables['HA'][:][0,0,0]
         third_amp = fid1.variables['HA'][:][0,0,2]
-        first_elevation = fid2.variables['ELEVATION'][0,0]
+        first_elevation = fid2.variables['ELEVATION'][:][0,0]
         third_elevation= fid2.variables['ELEVATION'][:][0,2]
-        first_speed = fid3.variables['VA'][0,0,0]
+        first_speed = fid3.variables['VA'][:][0,0,0]
         third_speed = fid3.variables['VA'][:][0,0,2]
 
         fid1.close()
