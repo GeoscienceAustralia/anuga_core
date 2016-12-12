@@ -162,7 +162,7 @@ class Sed_transport_operator(Operator, object):
         """
         
         self.bdry_indices = []
-    
+        
         for tag in self.domain.tag_boundary_cells:
             
             B = self.domain.boundary_map[tag]
@@ -192,6 +192,7 @@ class Sed_transport_operator(Operator, object):
         if not self.inflow_concentration:
             self.inflow_concentration = self.conc.max()
         
+        
         if not self.bdry_indices:
             self.initialize_inflow_boundary()
             
@@ -203,8 +204,8 @@ class Sed_transport_operator(Operator, object):
         
         self.conc[self.depth <= 0.01] = 0.
 
-        self.ind = (self.depth > 0.10) & ((self.xmom_c != 0) | (self.ymom_c != 0)) # 5 cm (and moving)
-        self.ind_s = (self.depth > 0.01) & ~self.ind
+        self.ind = (self.depth > 0.01) & ((self.xmom_c != 0) | (self.ymom_c != 0)) # 5 cm (and moving)
+#         self.ind_s = (self.depth > 0.01) & ~self.ind
         self.ind_a = (self.depth > 0.01)
         
 #         self.ind_b = (self.x > 90) & (self.x < 95) & (self.y > 555) & (self.y < 560)
@@ -260,16 +261,19 @@ class Sed_transport_operator(Operator, object):
             self.edot[self.ind] = self.erosion()
             self.ddot[self.ind] = self.deposition()
             
-#             print self.edot.max()
-#             print self.ddot.max()
-#             print '-' * 10
             
-        if sum(self.ind_s) > 0:
-        
-            self.ddot[self.ind_s] = self.settlingvelocity * self.conc[self.ind_s]
+#         if sum(self.ind_s) > 0:
+#         
+#             self.ddot[self.ind_s] = self.settlingvelocity * self.conc[self.ind_s]
 
         self.dzdt = (self.ddot - self.edot) / (1 - self.porosity)
+#         self.dzdt[self.bdry_indices] = 0
         self.dChdt = (self.edot - self.ddot)
+        
+#         if sum(self.ind) > 0: 
+#             print self.depth[self.bdry_indices]
+#             print self.dzdt[self.bdry_indices]
+#             print '-' * 10
         
         
         self.update_concentration(self.dChdt)
@@ -372,7 +376,8 @@ class Sed_transport_operator(Operator, object):
         
         neighbour_conc = self.conc[self.neighbours]
         
-        sed_flux = edge_flux * self.conc[:,num.newaxis]    
+        sed_flux = edge_flux * self.conc[:,num.newaxis]
+        
         sed_flux[edge_flux < 0] = (
             edge_flux[edge_flux < 0] * neighbour_conc[edge_flux < 0])
             
@@ -382,7 +387,9 @@ class Sed_transport_operator(Operator, object):
                 n = self.neighbours[k,i]
                 
                 if n < 0:
-                    sed_flux[k,i] =  edge_flux[k,i] * self.inflow_concentration / 2.
+                    sed_flux[k,i] =  -1. * num.abs(edge_flux[k,i] * self.inflow_concentration)
+#                     print sed_flux[k,:], self.neighbours[k,:], edge_flux[k,:], self.depth_e[k,:]
+                    #MP################ removed /2
         
         sed_vol_change = num.sum(-sed_flux, axis=1)
         
@@ -394,6 +401,7 @@ class Sed_transport_operator(Operator, object):
         self.conc[self.ind] = (new_sed_vol_in_cell[self.ind] /
                              (self.depth[self.ind] * self.areas[self.ind]))
                              
+                            
         assert self.conc.max() < 0.5, 'Max concentration is %d' % self.conc.max()
         
         

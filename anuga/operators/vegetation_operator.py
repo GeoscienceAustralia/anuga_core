@@ -87,6 +87,7 @@ class Vegetation_operator(Operator, object):
         if self.veg_diameter is None:
             self.veg_diameter = self.domain.quantities['veg_diameter'].centroid_values
             self.veg_diameter[self.veg_diameter < 0] = 0
+            self.veg_diameter *= 1
             
             self.domain.quantities['veg_diameter'].\
             	set_values(self.veg_diameter, location = 'centroids')
@@ -94,6 +95,7 @@ class Vegetation_operator(Operator, object):
         if self.veg_spacing is None:
             self.veg_spacing = self.domain.quantities['veg_spacing'].centroid_values
             self.veg_spacing[self.veg_spacing < 0] = 0
+            
          
             self.domain.quantities['veg_spacing'].\
             	set_values(self.veg_spacing, location = 'centroids')
@@ -123,14 +125,24 @@ class Vegetation_operator(Operator, object):
             Fd_x = self.Cd_veg[self.wet_cells] * xvel**2
             Fd_y = self.Cd_veg[self.wet_cells] * yvel**2
             
-#             print self.xmom.max(), self.xmom.min()
+            
             
             dxv = num.sign(xvel) * num.abs(Fd_x) * self.dt
 #             dxv[dxv > xvel] =  xvel[dxv > xvel]
             
             dyv = num.sign(yvel) * num.abs(Fd_y) * self.dt
 #             dyv[dyv > yvel] =  yvel[dyv > yvel]
-        
+
+#             print self.ymom[self.wet_cells]
+#             print yvel
+#             print Fd_y
+#             print dyv
+#             print self.depth_w
+#             print 10 * '-'
+
+#             dxv[num.sign(dxv) != num.sign(xvel)] = -1. * xvel[num.sign(dxv) != num.sign(xvel)]
+#             dyv[num.sign(dyv) != num.sign(yvel)] = -1. * yvel[num.sign(dyv) != num.sign(yvel)]
+#         
             xvel_v = (xvel - dxv) * self.depth_w
             yvel_v = (yvel - dyv) * self.depth_w
 
