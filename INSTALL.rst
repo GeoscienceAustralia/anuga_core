@@ -40,8 +40,11 @@ We try to maintain the *master* branch stable and
 `passing all tests <https://travis-ci.org/GeoscienceAustralia/anuga_core/branches>`_,
 so it should be safe to use.
 
-First, you'll need to `install git`_.
-Then, open a terminal and run::
+First, you'll need to `git`. Open a terminal and run::
+
+    sudo apt-get instal git
+    
+Then run::
 
     git clone git://github.com/GeoscienceAustralia/anuga_core.git 
 
@@ -166,17 +169,43 @@ and setup GDAL_DATA environment variable::
 (You should add this command to your .bashrc file.)    
 
 
-Windows Dependency Installation
+Windows 10 Install using 'Ubuntu on Windows'
+==========================
+
+Starting from Windows 10, it is possible to run an Ubuntu Bash console from Windows. This can greatly simplify the install for Windows users. You'll still need administrator access though. 
+
+First, enable "Ubuntu on Windows" using the following guide from  Microsoft:
+https://msdn.microsoft.com/en-us/commandline/wsl/install_guide
+
+Once you have a "Bash on Ubuntu on Windows" command prompt open, follow the instructions for installing the development version of ANUGA on Ubuntu. To paraphrase, you can install ANUGA with these steps:
+
+1. Install git - ``sudo apt-get install git``
+2. Install wget for python - ``sudo pip install wget`` (optional but some examples need this)
+3. Change to your Ubuntu home directory - ``cd``
+4. Clone the ANGUA repository - ``git clone https://github.com/GeoscienceAustralia/anuga_core.git``
+5. Move to the ANUGA directory - ``cd anuga_core``
+6. Set environment variable to install parallel code - ``export ANUGA_PARALLEL=openmpi``
+6. Install ANUGA - ``bash tools/install_ubuntu.sh``
+7. Run the tests to check it is all working - ``python runtests.py``
+
+Helpful hint 1: You should be able to access your windows ``C:\`` at ``/mnt/c`` in the bash shell. To check this type ``ls -al /mnt/c`` at the bash prompt. 
+
+Helpful hint 2: If you're going to use this Ubuntu environment for other tasks, you may want to install ANUGA into a virtual environment, to keep things clean. See https://virtualenv.pypa.io/en/stable/ for more details. 
+
+
+
+
+Native Windows Installation
 ===============================
 
-We have successfully install AnuGA on windows using Gohlke Binaries and using Miniconda. 
+We have successfully installed AnuGA 'natively' on windows using Gohlke Binaries and using Miniconda. 
 At present we recommend using the Gohlke Binaries. 
 
 Follow the instructions 
 `install ANUGA on Windows using the Gohlke Binaries
 <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-using-Gohlke-Binaries>`_
 
-Alternatively if you want ot use Miniconda, follow the instructions 
+Alternatively if you want to use Miniconda, follow the instructions 
 `install ANUGA on Windows using Miniconda
 <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-using-Miniconda>`_
 
@@ -197,7 +226,7 @@ the installation. See this `excellent documentation for Windows users`_
 (they even have screenshots!). The same applies if you are using Miniconda_.
 
 
-Installing the latest development version of AnuGA om Windows
+Installing the latest development version of AnuGA on Windows
 =============================================================
 
 We suggest instaling the latest code and features,
@@ -214,7 +243,7 @@ Then, open a terminal and run::
 This will fetch the source code from Github_
 and place it in a folder called ``anuga_core`` in the directory where you ran the
 command.
-Then, just ``cd`` into the directory and run ``pip``::
+Then, just ``cd`` into the directory and run::
 
     cd anuga_core
     pip install --upgrade .
@@ -243,24 +272,6 @@ information:
 * The error message (the part that says ``Traceback: ...``) or result (figure,
   numbers, etc)
     
-Using pip_ to install anuga
-===========================
-    
-You can alternatively use  pip_ to install the lateest released version of `anuga`
-
-Open a terminal (or ``cmd.exe`` on Windows) and run::
-
-    pip install anuga
-
-
-If you already have AnuGA installed and want to **upgrade** to a newer
-released version, use::
-
-    pip install anuga --upgrade
-
-To uninstall simply run::
-
-    pip uninstall anuga
 
 
 
@@ -268,27 +279,7 @@ To uninstall simply run::
 
     The Windows installer from older versions is no longer supported.
     
-Alternative Windows 10 Install using 'Ubuntu on Windows'
-==========================
 
-Starting from Windows 10, it is possible to run an Ubuntu Bash console from Windows. This can greatly simplify the install for Windows users. You'll still need administrator access though. 
-
-First, enable "Ubuntu on Windows" using the following guide from  Microsoft:
-https://msdn.microsoft.com/en-us/commandline/wsl/install_guide
-
-Once you have a "Bash on Ubuntu on Windows" command prompt open, you can install ANUGA with these steps:
-
-1. Install git - ``sudo apt-get install git``
-2. Install wget for python - ``sudo pip install wget`` (optional but some examples need this)
-3. Change to your Ubuntu home directory - ``cd``
-4. Clone the ANGUA repository - ``git clone https://github.com/GeoscienceAustralia/anuga_core.git``
-5. Move to the ANUGA directory - ``cd anuga_core``
-6. Install ANUGA - ``bash tools/install_ubuntu.sh``
-7. Run the tests to check it is all working - ``python runtests.py``
-
-Helpful hint 1: You should be able to access your windows ``C:\`` at ``/mnt/c`` in the bash shell. To check this type ``ls -al /mnt/c`` at the bash prompt. 
-
-Helpful hint 2: If you're going to use this Ubuntu environment for other tasks, you may want to install ANUGA into a virtual environment, to keep things clean. See https://virtualenv.pypa.io/en/stable/ for more details. 
     
 .. _AnuGA: http://anuga.anu.edu.au/ 
 .. _install git: http://git-scm.com/
