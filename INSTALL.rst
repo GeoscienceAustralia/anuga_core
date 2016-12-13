@@ -174,6 +174,12 @@ Windows 10 Install using 'Ubuntu on Windows'
 
 Starting from Windows 10, it is possible to run an Ubuntu Bash console from Windows. This can greatly simplify the install for Windows users. You'll still need administrator access though. 
 
+Follow the instruction 
+
+Follow the instructions 
+`Install ANUGA on Window 10 using Ubuntu for Windows
+<https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-10-using-'Ubuntu-on-Windows'>`_
+
 First, enable "Ubuntu on Windows" using the following guide from  Microsoft:
 https://msdn.microsoft.com/en-us/commandline/wsl/install_guide
 
