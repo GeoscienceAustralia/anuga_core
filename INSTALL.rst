@@ -227,7 +227,7 @@ the installation. See this `excellent documentation for Windows users`_
 
 
 Installing the latest development version of AnuGA on Windows
-=============================================================
+-------------------------------------------------------------
 
 We suggest instaling the latest code and features,
 by installing AnuGA directly from Github_.
