@@ -40,92 +40,9 @@ We try to maintain the *master* branch stable and
 `passing all tests <https://travis-ci.org/GeoscienceAustralia/anuga_core/branches>`_,
 so it should be safe to use.
 
-First, you'll need to `git`. Open a terminal and run::
-
-    sudo apt-get instal git
-    
-Then run::
-
-    git clone git://github.com/GeoscienceAustralia/anuga_core.git 
-
-This will fetch the source code from Github_
-and place it in a folder called ``anuga_core`` in the directory where you ran the
-command.
-
-We have a script in the ``anuga_core/tools`` directory,
-`install_ubuntu.sh <https://github.com/GeoscienceAustralia/anuga_core/blob/master/tools/install_ubuntu.sh>`_
-which when run from the ``anuga_core`` directory will install AnuGA and all the dependencies using ``apt-get`` 
-and ``pip`` to install the dependencies.
-
-Parallel Support
-----------------
-
-At this stage you can decide whether you want Parallel support or not. 
-We support two versions of MPI, ``mpich`` and ``openmpi``
-
-Just during the setup stage, you should create an environment variable  ``ANUGA_PARALLEL`` via::
-
-    export ANUGA_PARALLEL=openmpi
-
-or::
-
-    export ANUGA_PARALLEL=mpich
-
-
-then the install script will load the  ``openmpi`` or ``mpich`` libraries and binaries respectively.
-
-
-If you don't want parallel support set the variable to something else, e.g::
-
-    export ANUGA_PARALLEL=false
-
-
-Running the installation script
--------------------------------
-
-Change into the newly downloaded ``anuga_core`` directory and run the installation script 
-(this will take 5 to 10 minutes depending on your network connection)::
-
-	cd anuga_core
-	bash tools/install_ubuntu.sh
-
-
-Some of the commands in this script use sudo, so you will have to provide 
-a password to install into the system wide directories. 
-
-If all has been successful then anuga should be installed.
-
-Testing the install
--------------------
-
-To test the installation, from the ``anuga_core`` directory run ``python runtests.py``::
-
-    python runtests.py
-    
-If there are no errors then you have successfully installed aunga. 
-
-Errors with runtests
---------------------
-
-If you get an error message or a weird result when running ``runtests.py``, 
-please write to the `mailing list`_ or `create an issue on the github site 
-<https://github.com/GeoscienceAustralia/anuga_core/issues>`__.
-
-To make it easier for us to debug you problem, please include the following
-information:
-
-* Operating system
-* Python distribution (Anaconda_, PythonXY_, `ETS/Canopy`_, own install)
-* Python version (2.6, 2.7 etc)
-* The script you ran (and gave you an error/weird result)
-* The error message (the part that says ``Traceback: ...``) or result (figure,
-  numbers, etc)
-
-
-
-
-For extended instructions on installing on Ubuntu checkout the wiki page
-`install ANUGA on Ubuntu <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu>`_
+Follow these instructions to 
+`Install ANUGA on Ubuntu
+<https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu>`_
 
 
 
@@ -174,29 +91,9 @@ Windows 10 Install using 'Ubuntu on Windows'
 
 Starting from Windows 10, it is possible to run an Ubuntu Bash console from Windows. This can greatly simplify the install for Windows users. You'll still need administrator access though. 
 
-Follow the instruction 
-
 Follow the instructions 
 `Install ANUGA on Window 10 using Ubuntu for Windows
 <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-10-using-'Ubuntu-on-Windows'>`_
-
-First, enable "Ubuntu on Windows" using the following guide from  Microsoft:
-https://msdn.microsoft.com/en-us/commandline/wsl/install_guide
-
-Once you have a "Bash on Ubuntu on Windows" command prompt open, follow the instructions for installing the development version of ANUGA on Ubuntu. To paraphrase, you can install ANUGA with these steps:
-
-1. Install git - ``sudo apt-get install git``
-2. Install wget for python - ``sudo pip install wget`` (optional but some examples need this)
-3. Change to your Ubuntu home directory - ``cd``
-4. Clone the ANGUA repository - ``git clone https://github.com/GeoscienceAustralia/anuga_core.git``
-5. Move to the ANUGA directory - ``cd anuga_core``
-6. Set environment variable to install parallel code - ``export ANUGA_PARALLEL=openmpi``
-6. Install ANUGA - ``bash tools/install_ubuntu.sh``
-7. Run the tests to check it is all working - ``python runtests.py``
-
-Helpful hint 1: You should be able to access your windows ``C:\`` at ``/mnt/c`` in the bash shell. To check this type ``ls -al /mnt/c`` at the bash prompt. 
-
-Helpful hint 2: If you're going to use this Ubuntu environment for other tasks, you may want to install ANUGA into a virtual environment, to keep things clean. See https://virtualenv.pypa.io/en/stable/ for more details. 
 
 
 
@@ -232,52 +129,6 @@ the installation. See this `excellent documentation for Windows users`_
 (they even have screenshots!). The same applies if you are using Miniconda_.
 
 
-Installing the latest development version of AnuGA on Windows
--------------------------------------------------------------
-
-We suggest instaling the latest code and features,
-by installing AnuGA directly from Github_.
-We try to maintain the *master* branch stable and
-`passing all tests <https://travis-ci.org/GeoscienceAustralia/anuga_core/branches>`__,
-so it should be safe to use.
-
-First, you'll need to `install git`_.
-Then, open a terminal and run::
-
-    git clone git://github.com/GeoscienceAustralia/anuga_core.git 
-
-This will fetch the source code from Github_
-and place it in a folder called ``anuga_core`` in the directory where you ran the
-command.
-Then, just ``cd`` into the directory and run::
-
-    cd anuga_core
-    pip install --upgrade .
-    
-
-Testing the install
--------------------
-
-
-From the source directory run ``python runtests.py``::
-
-    python runtests.py
-    
-
-If you get an error message or weird result,
-please write to the `mailing list`_ or `create an issue on the github site 
-<https://github.com/GeoscienceAustralia/anuga_core/issues>`__.
-
-To make it easier for us to debug you problem, please include the following
-information:
-
-* Operating system
-* Python distribution (Anaconda_, PythonXY_, `ETS/Canopy`_, own install)
-* Python version (2.6, 2.7 etc)
-* The script you ran (and gave you an error/weird result)
-* The error message (the part that says ``Traceback: ...``) or result (figure,
-  numbers, etc)
-    
 
 
 
