@@ -1385,14 +1385,14 @@ class Generic_Domain:
         if name is None:
             frame = inspect.currentframe()
             script_name = inspect.getouterframes(frame)[1][1]
-            name = 'output_'+os.path.splitext(script_name)[0]
+            name = os.path.splitext(script_name)[0]
        
         # remove any '.sww' end
         if name.endswith('.sww'):
             name = name[:-4]
 
 
-        from time import localtime, strftime, gmtime
+        from time import localtime, strftime
         time = strftime('%Y%m%d_%H%M%S',localtime())
 
         if timestamp:
