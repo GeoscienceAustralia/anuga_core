@@ -9,7 +9,7 @@ import numpy
 
 
 class Boyd_box_operator(anuga.Structure_operator):
-    """Culvert flow - transfer water from one rectangular box to another.
+    """Culvert flow - transfer water from one rectangular region to another.
     Sets up the geometry of problem
     
     This is the base class for culverts. Inherit from this class (and overwrite

@@ -8,10 +8,8 @@ class Inlet_operator(anuga.Operator):
     """Inlet Operator - add water to an inlet.
     Sets up the geometry of problem
     
-    Inherit from this class (and overwrite
-    discharge_routine method for specific subclasses)
     
-    Input: domain, Two points
+    Input: domain, region
     """ 
 
 
