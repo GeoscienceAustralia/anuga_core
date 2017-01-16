@@ -140,12 +140,12 @@ class Wind_stress:
                 s = lambda t,i: vector_function(t,point_id=i)[0]
                 phi = lambda t,i: vector_function(t,point_id=i)[1]
         else:
-           # Assume info is in 2 keyword arguments
-           if len(kwargs) == 2:
-               s = kwargs['s']
-               phi = kwargs['phi']
-           else:
-               raise Exception('Assumes two keyword arguments: s=..., phi=....')
+            # Assume info is in 2 keyword arguments
+            if len(kwargs) == 2:
+                s = kwargs['s']
+                phi = kwargs['phi']
+            else:
+                raise Exception('Assumes two keyword arguments: s=..., phi=....')
 
         if ( self.use_coordinates ):
             self.speed = check_forcefield(s)
@@ -409,7 +409,7 @@ class General_forcing:
         """Apply inflow function at time specified in domain, update stage"""
 
         # Call virtual method allowing local modifications
-        t = domain.get_time(relative=self.relative_time)
+        t = domain.get_time(relative_time=self.relative_time)
         try:
             rate = self.update_rate(t)
         except Modeltime_too_early, e:
@@ -445,7 +445,7 @@ class General_forcing:
         # Now rate is a number
         if self.verbose is True:
             log.critical('Rate of %s at time = %.2f = %f'
-                         % (self.quantity_name, domain.get_time(), rate))
+                         % (self.quantity_name, domain.get_time(relative_time=self.relative_time), rate))
 
         if self.exchange_indices is None:
             self.update[:] += rate

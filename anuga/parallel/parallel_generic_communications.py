@@ -133,7 +133,7 @@ def communicate_ghosts_blocking(domain):
 
 
 
-def communicate_ghosts_asynchronous(domain):
+def communicate_ghosts_asynchronous(domain, quantities=None):
 
     # We must send the information from the full cells and
     # receive the information for the ghost cells
@@ -144,6 +144,9 @@ def communicate_ghosts_asynchronous(domain):
     import numpy as num
     import time
     t0 = time.time()
+    
+    if quantities is None:
+        quantities = domain.conserved_quantities
 
     # update of non-local ghost cells by copying full cell data into the
     # Xout buffer arrays
@@ -155,22 +158,14 @@ def communicate_ghosts_asynchronous(domain):
         Idf  = domain.full_send_dict[send_proc][0]
         Xout = domain.full_send_dict[send_proc][2]
 
-        for i, q in enumerate(domain.conserved_quantities):
+        for i, q in enumerate(quantities):
             #print 'Store send data',i,q
             Q_cv =  domain.quantities[q].centroid_values
             Xout[:,i] = num.take(Q_cv, Idf)
 
 
 
-#    from pprint import pprint
-#
-#    if pypar.rank() == 0:
-#        print 'Before commun 0'
-#        pprint(domain.full_send_dict)
-#
-#    if pypar.rank() == 1:
-#        print 'Before commun 1'
-#        pprint(domain.full_send_dict)
+
 
 
     # Do all the comuunication using isend/irecv via the buffers in the
@@ -196,7 +191,7 @@ def communicate_ghosts_asynchronous(domain):
         #print recv_proc
         #print X
 
-        for i, q in enumerate(domain.conserved_quantities):
+        for i, q in enumerate(quantities):
             #print 'Read receive data',i,q
             Q_cv =  domain.quantities[q].centroid_values
             num.put(Q_cv, Idg, X[:,i])

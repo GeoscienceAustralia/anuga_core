@@ -160,13 +160,14 @@ water model for two-dimensional dam-break type. Journal of Computational Physics
   uh_left=q_left_rotated[1];
   vh_left=q_left_rotated[2];
   if(hle>0.0){
-    u_left = uh_left/hle ; //max(h_left, 1.0e-06);
-    uh_left=h_left*u_left;
-    vh_left=h_left/(hle)*vh_left;
+    tmp = 1.0 / hle;
+    u_left = uh_left * tmp ; 
+    uh_left = h_left * u_left;
+    vh_left = h_left* tmp * vh_left;
   }else{
-    u_left=0.;
-    uh_left=0.;
-    vh_left=0.;
+    u_left = 0.;
+    uh_left = 0.;
+    vh_left = 0.;
   }
 
   //u_left = _compute_speed(&uh_left, &hle,
@@ -176,13 +177,14 @@ water model for two-dimensional dam-break type. Journal of Computational Physics
   uh_right = q_right_rotated[1];
   vh_right = q_right_rotated[2];
   if(hre>0.0){
-    u_right = uh_right/hre;//max(h_right, 1.0e-06);
-    uh_right=h_right*u_right;
-    vh_right=h_right/hre*vh_right;
+    tmp = 1.0 / hre;
+    u_right = uh_right * tmp; //max(h_right, 1.0e-06);
+    uh_right = h_right * u_right;
+    vh_right = h_right * tmp * vh_right;
   }else{
-    u_right=0.;
-    uh_right=0.;
-    vh_right=0.;
+    u_right = 0.;
+    uh_right = 0.;
+    vh_right = 0.;
   }
   //u_right = _compute_speed(&uh_right, &hre,
   //              epsilon, h0, limiting_threshold);
@@ -342,13 +344,14 @@ inline int _flux_function_central(double *q_left, double *q_right,
   uh_left=q_left_rotated[1];
   vh_left=q_left_rotated[2];
   if(hle>0.0){
-    u_left = uh_left/hle ; //max(h_left, 1.0e-06);
-    uh_left=h_left*u_left;
-    vh_left=h_left/(hle)*vh_left;
+    tmp = 1.0/hle;
+    u_left = uh_left * tmp ; //max(h_left, 1.0e-06);
+    uh_left = h_left * u_left;
+    vh_left = h_left * tmp * vh_left;
   }else{
-    u_left=0.;
-    uh_left=0.;
-    vh_left=0.;
+    u_left = 0.;
+    uh_left = 0.;
+    vh_left = 0.;
   }
   
   //u_left = _compute_speed(&uh_left, &hle, 
@@ -358,9 +361,10 @@ inline int _flux_function_central(double *q_left, double *q_right,
   uh_right = q_right_rotated[1];
   vh_right = q_right_rotated[2];
   if(hre>0.0){
-    u_right = uh_right/hre;//max(h_right, 1.0e-06);
+    tmp = 1.0 / hre;
+    u_right = uh_right * tmp;//max(h_right, 1.0e-06);
     uh_right=h_right*u_right;
-    vh_right=h_right/hre*vh_right;
+    vh_right=h_right * tmp * vh_right;
   }else{
     u_right=0.;
     uh_right=0.;
@@ -955,9 +959,10 @@ inline double _compute_fluxes_central(struct domain *D, double timestep){
             if(substep_count==0){
 
                 // Compute the 'edge-timesteps' (useful for setting flux_update_frequency)
-                D->edge_timestep[ki] = D->radii[k] / max(max_speed_local, D->epsilon);
+                tmp = 1.0 / max(max_speed_local, D->epsilon);
+                D->edge_timestep[ki] = D->radii[k] * tmp ;
                 if (n >= 0) {
-                    D->edge_timestep[nm] = D->radii[n] / max(max_speed_local, D->epsilon);
+                    D->edge_timestep[nm] = D->radii[n] * tmp;
                 }
 
                 // Update the timestep
@@ -1133,9 +1138,9 @@ inline double  _protect(int N,
                  // needed. However, from memory this is important at the first
                  // time step, for 'dry' areas where the designated stage is
                  // less than the bed centroid value
-                 wv[3*k] = min(bmin, wc[k]); //zv[3*k]-minimum_allowed_height);
-                 wv[3*k+1] = min(bmin, wc[k]); //zv[3*k+1]-minimum_allowed_height);
-                 wv[3*k+2] = min(bmin, wc[k]); //zv[3*k+2]-minimum_allowed_height);
+                 wv[3*k] = bmin; //min(bmin, wc[k]); //zv[3*k]-minimum_allowed_height);
+                 wv[3*k+1] = bmin; //min(bmin, wc[k]); //zv[3*k+1]-minimum_allowed_height);
+                 wv[3*k+2] = bmin; //min(bmin, wc[k]); //zv[3*k+2]-minimum_allowed_height);
             }
         }
       }
@@ -1207,9 +1212,9 @@ inline double  _protect_new(struct domain *D) {
                  // needed. However, from memory this is important at the first
                  // time step, for 'dry' areas where the designated stage is
                  // less than the bed centroid value
-                 wv[3*k] = min(bmin, wc[k]); //zv[3*k]-minimum_allowed_height);
-                 wv[3*k+1] = min(bmin, wc[k]); //zv[3*k+1]-minimum_allowed_height);
-                 wv[3*k+2] = min(bmin, wc[k]); //zv[3*k+2]-minimum_allowed_height);
+                 wv[3*k] = bmin; //min(bmin, wc[k]); //zv[3*k]-minimum_allowed_height);
+                 wv[3*k+1] = bmin; //min(bmin, wc[k]); //zv[3*k+1]-minimum_allowed_height);
+                 wv[3*k+2] = bmin; //min(bmin, wc[k]); //zv[3*k+2]-minimum_allowed_height);
             }
         }
       }
@@ -1263,10 +1268,10 @@ inline int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
   //return 0;
   
   for (i=0;i<3;i++){
-    if (dqv[i]<-TINY)
+    if (dqv[i] < -TINY)
       r0=qmin/dqv[i];
       
-    if (dqv[i]>TINY)
+    if (dqv[i] > TINY)
       r0=qmax/dqv[i];
       
     r=min(r0,r);
@@ -1330,7 +1335,13 @@ inline int _extrapolate_second_order_edge_sw(struct domain *D){
 
   memset((char*) D->x_centroid_work, 0, D->number_of_elements * sizeof (double));
   memset((char*) D->y_centroid_work, 0, D->number_of_elements * sizeof (double));
-  
+ 
+  // Parameters used to control how the limiter is forced to first-order near
+  // wet-dry regions 
+  a_tmp = 0.3; // Highest depth ratio with hfactor=1
+  b_tmp = 0.1; // Highest depth ratio with hfactor=0
+  c_tmp = 1.0/(a_tmp-b_tmp); 
+  d_tmp = 1.0-(c_tmp*a_tmp);
   
   if(D->extrapolate_velocity_second_order==1){
 
@@ -1538,10 +1549,6 @@ inline int _extrapolate_second_order_edge_sw(struct domain *D){
       //       the water tends to dry more rapidly (which is in agreement with analytical results),
       //       but is also more 'artefacty' in important cases (tendency for high velocities, etc).
       //       
-      a_tmp=0.3; // Highest depth ratio with hfactor=1
-      b_tmp=0.1; // Highest depth ratio with hfactor=0
-      c_tmp=1.0/(a_tmp-b_tmp); 
-      d_tmp= 1.0-(c_tmp*a_tmp);
       // So hfactor = depth_ratio*(c_tmp) + d_tmp, but is clipped between 0 and 1.
       hfactor= max(0., min(c_tmp*max(hmin,0.0)/max(hc,1.0e-06)+d_tmp, 
                            min(c_tmp*max(hc,0.)/max(hmax,1.0e-06)+d_tmp, 1.0))
@@ -1817,8 +1824,8 @@ inline int _extrapolate_second_order_edge_sw(struct domain *D){
       // Now limit the jumps
       if (dq1>=0.0)
       {
-        qmin=0.0;
-        qmax=dq1;
+        qmin = 0.0;
+        qmax = dq1;
       }
       else
       {

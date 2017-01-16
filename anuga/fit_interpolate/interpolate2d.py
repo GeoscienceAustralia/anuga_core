@@ -209,6 +209,49 @@ def interpolate2d(x, y, Z, points, mode='linear', bounds_error=False):
     # Return interpolated points
     return r
 
+def interpolate_raster(x, y, z, points, mode='linear', bounds_error=False):
+    """2D interpolation of raster data
+    It is assumed that data is organised in matrix z as latitudes from
+    bottom up along the first dimension and longitudes from west to east
+    along the second dimension.
+    Further it is assumed that x is the vector of longitudes and y the
+    vector of latitudes.
+    See interpolate2d for details of the interpolation routine
+    :param x: 1D array of x-coordinates of the mesh on which to interpolate
+    :type x: numpy.ndarray
+    :param y: 1D array of y-coordinates of the mesh on which to interpolate
+    :type y: numpy.ndarray
+    :param z: 2D array of values for each x, y pair
+    :type z: numpy.ndarry
+    :param points: Nx2 array of coordinates where interpolated values are
+        sought
+    :type points: numpy.narray
+    :param mode: Determines the interpolation order.
+        Options are:
+            * 'constant' - piecewise constant nearest neighbour interpolation
+            * 'linear' - bilinear interpolation using the four
+              nearest neighbours (default)
+    :type mode: str
+    :param bounds_error: If True (default) a BoundsError exception
+          will be raised when interpolated values are requested
+          outside the domain of the input data. If False, nan
+          is returned for those values
+    :type bounds_error: bool
+    :returns: 1D array with same length as points with interpolated values
+    :raises: Exception, BoundsError (see note about bounds_error)
+    """
+
+    # Flip matrix z up-down to interpret latitudes ordered from south to north
+    z = numpy.flipud(z)
+
+    # Transpose z to have y coordinates along the first axis and x coordinates
+    # along the second axis
+    # noinspection PyUnresolvedReferences
+    z = z.transpose()
+
+    # Call underlying interpolation routine and return
+    res = interpolate2d(x, y, z, points, mode=mode, bounds_error=bounds_error)
+    return res
 
 #------------------------
 # Auxiliary functionality

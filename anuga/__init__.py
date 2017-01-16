@@ -23,9 +23,9 @@
 
 __version__ = '2.0'
 
-__svn_revision__ = filter(str.isdigit, "$Revision: 9736 $")
+__svn_revision__ = filter(str.isdigit, "$Revision: 9737 $")
 
-__svn_revision_date__ = "$Date: 2015-09-05 16:11:27 +1000 (Sat, 05 Sep 2015) $"[7:-1]
+__svn_revision_date__ = "$Date: 2016-10-04 16:13:00 +1100 (Tue, 04 Oct 2016) $"[7:-1]
 
 
 # We first need to detect if we're being called as part of the anuga setup
@@ -93,6 +93,8 @@ else:
     from anuga.geometry.polygon import inside_polygon
     from anuga.geometry.polygon import polygon_area
     from anuga.geometry.polygon_function import Polygon_function
+    
+    from anuga.coordinate_transforms.lat_long_UTM_conversion import LLtoUTM, UTMtoLL
 
     from anuga.abstract_2d_finite_volumes.pmesh2domain import \
                                                 pmesh_to_domain_instance
@@ -110,6 +112,8 @@ else:
     from anuga.caching import cache
     from os.path import join
     from anuga.config import indent
+    
+    from anuga.utilities.parse_time import parse_time
 
     #----------------------------
     # Parallel api 
@@ -127,6 +131,7 @@ else:
     from anuga.parallel.parallel_api import myid, numprocs, get_processor_name
     from anuga.parallel.parallel_api import send, receive
     from anuga.parallel.parallel_api import pypar_available, barrier, finalize
+    from anuga.parallel.parallel_api import collect_value
 
     if pypar_available:
         from anuga.parallel.parallel_api import sequential_distribute_dump
@@ -252,6 +257,7 @@ else:
     from anuga.operators.set_elevation import Set_elevation
     from anuga.operators.set_quantity import Set_quantity
 
+    from anuga.operators.sanddune_erosion_operator import Sanddune_erosion_operator
     from anuga.operators.erosion_operators import Bed_shear_erosion_operator
     from anuga.operators.erosion_operators import Flat_slice_erosion_operator
     from anuga.operators.erosion_operators import Flat_fill_slice_erosion_operator

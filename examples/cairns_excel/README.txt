@@ -1,5 +1,10 @@
 NOTE: SIMPLE DATA PREPARATION IS REQUIRED TO RUN THIS EXAMPLE -- SEE BELOW
 
+NOTE: The code in example (in the current directory, and under 'setup') can
+optionally be under a BSD3 licence (see the LICENCE file). These 
+licences do not apply to the 'xlrd' library, which has its own BSD style licence
+conditions, see './xlrd/licences.py'. 
+
 This example illustrates an excel based interface to ANUGA, using the cairns example.
 
 The interface is generic, and allows access to a limited subset of ANUGA's

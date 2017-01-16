@@ -23,7 +23,7 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 #define AT __FILE__ ":" TOSTRING(__LINE__)
-#define P_ERROR_BUFFER_SIZE 65
+#define P_ERROR_BUFFER_SIZE 100
 
 
 // check that numpy array objects are C contiguous memory

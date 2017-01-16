@@ -1242,6 +1242,8 @@ void _manning_friction_flat(double g, double eps, int N,
 
     int k, k3;
     double S, h, z, z0, z1, z2;
+    const double one_third = 1.0/3.0; 
+    const double seven_thirds = 7.0/3.0;
 
     for (k = 0; k < N; k++) {
         if (eta[k] > eps) {
@@ -1250,11 +1252,11 @@ void _manning_friction_flat(double g, double eps, int N,
             z0 = zv[k3 + 0];
             z1 = zv[k3 + 1];
             z2 = zv[k3 + 2];
-            z = (z0 + z1 + z2) / 3.0;
+            z = (z0 + z1 + z2) * one_third;
             h = w[k] - z;
             if (h >= eps) {
                 S = -g * eta[k] * eta[k] * sqrt((uh[k] * uh[k] + vh[k] * vh[k]));
-                S /= pow(h, 7.0 / 3); //Expensive (on Ole's home computer)
+                S /= pow(h, seven_thirds); //Expensive (on Ole's home computer)
                 //S /= exp((7.0/3.0)*log(h));      //seems to save about 15% over manning_friction
                 //S /= h*h*(1 + h/3.0 - h*h/9.0); //FIXME: Could use a Taylor expansion
 
@@ -1275,6 +1277,8 @@ void _manning_friction_sloped(double g, double eps, int N,
     int k, k3, k6;
     double S, h, z, z0, z1, z2, zs, zx, zy;
     double x0, y0, x1, y1, x2, y2;
+    const double one_third = 1.0/3.0; 
+    const double seven_thirds = 7.0/3.0;
 
     for (k = 0; k < N; k++) {
         if (eta[k] > eps) {
@@ -1297,11 +1301,11 @@ void _manning_friction_sloped(double g, double eps, int N,
             _gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2, &zx, &zy);
 
             zs = sqrt(1.0 + zx * zx + zy * zy);
-            z = (z0 + z1 + z2) / 3.0;
+            z = (z0 + z1 + z2) * one_third;
             h = w[k] - z;
             if (h >= eps) {
                 S = -g * eta[k] * eta[k] * zs * sqrt((uh[k] * uh[k] + vh[k] * vh[k]));
-                S /= pow(h, 7.0 / 3); //Expensive (on Ole's home computer)
+                S /= pow(h, seven_thirds); //Expensive (on Ole's home computer)
                 //S /= exp((7.0/3.0)*log(h));      //seems to save about 15% over manning_friction
                 //S /= h*h*(1 + h/3.0 - h*h/9.0); //FIXME: Could use a Taylor expansion
 

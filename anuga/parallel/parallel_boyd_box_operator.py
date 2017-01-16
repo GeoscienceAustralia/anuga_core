@@ -22,9 +22,10 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                  domain,
                  losses,
                  width,
+                 blockage=0.0,
                  z1=0.0,
-                 z2=0.0,
-                 height=None,
+                 z2=0.0,                
+                 height=None,                
                  end_points=None,
                  exchange_lines=None,
                  enquiry_points=None,
@@ -54,9 +55,10 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                                           invert_elevations=invert_elevations,
                                           width=width,
                                           height=height,
+                                          blockage=blockage,
                                           z1=0.0,
                                           z2=0.0,
-                                          diameter= None,
+                                          diameter= None,                                         
                                           apron=apron,
                                           manning=manning,
                                           enquiry_gap=enquiry_gap,
@@ -91,6 +93,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
         self.culvert_length = self.get_culvert_length()
         self.culvert_width = self.get_culvert_width()
         self.culvert_height = self.get_culvert_height()
+        self.culvert_blockage = self.get_culvert_blockage()
 
         self.max_velocity = 10.0
 
@@ -282,6 +285,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                                                 width               =self.culvert_width,
                                                 flow_width          =self.culvert_width,
                                                 length              =self.culvert_length,
+                                                blockage            =self.culvert_blockage,
                                                 driving_energy      =self.driving_energy,
                                                 delta_total_energy  =self.delta_total_energy,
                                                 outlet_enquiry_depth=outflow_enq_depth,

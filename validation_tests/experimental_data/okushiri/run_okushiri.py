@@ -63,13 +63,13 @@ if myid == 0:
     #-------------------------
     # Initial Conditions
     #-------------------------
-    domain.set_quantity('friction', 0.0)
+    domain.set_quantity('friction', 0.0025)
     domain.set_quantity('stage', 0.0)
     if verbose: print 'set stage'
     if elevation_in_mesh is False:
         domain.set_quantity('elevation',
                         filename=project.bathymetry_filename,
-                        alpha=0.02,                    
+                        alpha=0.001,                    
                         verbose=verbose,
                         use_cache=False)
 
@@ -77,11 +77,10 @@ if myid == 0:
     # Set simulation parameters
     #-------------------------
     domain.set_name(project.output_filename)  # Name of output sww file 
-    domain.set_minimum_storable_height(0.01) # Don't store w < 0.01m
+    domain.set_minimum_storable_height(0.001) # Don't store w-z < 0.001m
     #domain.set_quantities_to_be_monitored('stage')
 
     domain.set_flow_algorithm(alg)
-
 else:
     
     domain = None
