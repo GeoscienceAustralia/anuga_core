@@ -76,6 +76,8 @@ class boundary_flux_integral_operator(Operator):
     def timestepping_statistics(self):
         from anuga import indent
 
-        message  = indent + self.label + ': Integrating the boundary flux'
+        message = 20*'-' + '\n'
+        message += self.label + ': Integrating the boundary flux\n'
+        message += 20*'-' + '\n'
         return message
 
