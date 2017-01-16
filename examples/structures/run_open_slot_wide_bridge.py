@@ -16,20 +16,8 @@ print 'Starting.... Importing Modules...'
 #------------------------------------------------------------------------------
 import anuga
 
-from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
-from anuga.shallow_water.shallow_water_domain import Domain
-from anuga.shallow_water.forcing import Rainfall, Inflow
-#from anuga.shallow_water.forcing import Reflective_boundary
-#from anuga.shallow_water.forcing import Dirichlet_boundary
-#from anuga.shallow_water.forcing import Transmissive_boundary, Time_boundary
-
-from anuga.culvert_flows.culvert_class import Culvert_flow
-from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
-#from anuga.culvert_flows.culvert_routines import weir_orifice_channel_culvert_model
-from math import pi,pow,sqrt
-
-import numpy as num
-
+from anuga import rectangular_cross
+from anuga import Domain
 
 #------------------------------------------------------------------------------
 # Setup computational domain
@@ -47,10 +35,8 @@ dx = dy = 2.5          # Resolution: Length of subdivisions on both axes
 points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
 domain = Domain(points, vertices, boundary)   
-domain.set_name('Test_Open_slot_WIDE_BRIDGE')                 # Output name
-domain.set_default_order(2)
-domain.H0 = 0.01
-domain.tight_slope_limiters = 1
+domain.set_name(timestamp=True)                 # Output name
+
 
 print 'Size', len(domain)
 
@@ -97,24 +83,24 @@ def topography(x, y):
     N = len(x)
     for i in range(N):
 
-       # Sloping Embankment Across Channel
+        # Sloping Embankment Across Channel
         if us_start_x < x[i] < us_end_x +0.1:   # For UPSLOPE on the Upstream FACE
         #if 5.0 < x[i] < 10.1: # For a Range of X, and over a Range of Y based on X adjust Z
             if us_toe_start_y +(x[i] - us_start_x)/us_apron_skew < y[i] < us_toe_end_y - (x[i] - us_start_x)/us_apron_skew:
-			#if  49.0+(x[i]-5.0)/5.0 <  y[i]  < 151.0 - (x[i]-5.0)/5.0: # Cut Out Base Segment for Culvert FACE
-               z[i]=z[i] # Flat Apron
+            #if  49.0+(x[i]-5.0)/5.0 <  y[i]  < 151.0 - (x[i]-5.0)/5.0: # Cut Out Base Segment for Culvert FACE
+                z[i]=z[i] # Flat Apron
             else:
-               z[i] += z[i] + (x[i] - us_start_x)/us_slope    # Set elevation for Sloping Segment  U/S Face
+                z[i] += z[i] + (x[i] - us_start_x)/us_slope    # Set elevation for Sloping Segment  U/S Face
         if us_end_x < x[i] < ds_start_x + 0.1: # FOR The TOP of BANK Segment
-           if top_start_y < y[i] < top_end_y:
-               z[i]=z[i] # Flat Apron
-           else:
-               z[i] +=  z[i]+bank_hgt        # Flat Crest of Embankment
+            if top_start_y < y[i] < top_end_y:
+                z[i]=z[i] # Flat Apron
+            else:
+                z[i] +=  z[i]+bank_hgt        # Flat Crest of Embankment
         if ds_start_x < x[i] < ds_end_x: # DOWN SDLOPE Segment on Downstream face
             if  top_start_y-(x[i]-ds_start_x)/ds_apron_skew <  y[i]  < top_end_y + (x[i]-ds_start_x)/ds_apron_skew: # Cut Out Segment for Culvert FACE
-               z[i]=z[i] # Flat Apron
+                z[i]=z[i] # Flat Apron
             else:
-               z[i] += z[i]+bank_hgt-(x[i] -ds_start_x)/ds_slope       # Sloping D/S Face
+                z[i] += z[i]+bank_hgt-(x[i] -ds_start_x)/ds_slope       # Sloping D/S Face
            
         
 
@@ -130,40 +116,13 @@ domain.set_quantity('stage',
 
 
 #------------------------------------------------------------------------------
-# Setup specialised forcing terms
-#------------------------------------------------------------------------------
-
-#------------------------------------------------------------------------------
 # Setup CULVERT INLETS and OUTLETS in Current Topography
 #------------------------------------------------------------------------------
 print 'DEFINING any Structures if Required'
 
 #  DEFINE CULVERT INLET AND OUTLETS
 
-"""
-culvert_rating = Culvert_flow(domain,
-                       culvert_description_filename='example_rating_curve.csv',
-                       end_point0=[40.0, 75.0], 
-                       end_point1=[50.0, 75.0],
-                       verbose=True)
 
-
-culvert_energy = Culvert_flow(domain,
-                       label='Culvert No. 1',
-                       description='This culvert is a test unit 1.2m Wide by 0.75m High',   
-                       end_point0=[40.0, 75.0], 
-                       end_point1=[50.0, 75.0],
-                       width=50.0,depth=5.0,
-                       culvert_routine=boyd_generalised_culvert_model,        
-                       number_of_barrels=1,
-                       #update_interval=0.25,
-                       log_file=True,
-                       discharge_hydrograph=True,
-                       use_velocity_head=False,
-                       verbose=True)
-
-domain.forcing_terms.append(culvert_energy)
-"""
 
 #------------------------------------------------------------------------------
 # Setup boundary conditions
@@ -175,8 +134,6 @@ Bi = anuga.Dirichlet_boundary([0.0, 0.0, 0.0])          # Inflow based on Flow D
 Bo = anuga.Dirichlet_boundary([-5.0, 0, 0])           # Outflow water at -5.0
 Bd = anuga.Dirichlet_boundary([0,0,0])                # Outflow water at 0.0
 
-#Btus = Time_boundary(domain, lambda t: [0.0+ 1.025*(1+num.sin(2*pi*(t-4)/10)), 0.0, 0.0])
-#Btds = Time_boundary(domain, lambda t: [0.0+ 0.0075*(1+num.sin(2*pi*(t-4)/20)), 0.0, 0.0])
 
 Btus = anuga.Dirichlet_boundary([18.0, 0, 0])           # Outflow water at 5.0
 Btds = anuga.Dirichlet_boundary([0.0, 0, 0])           # Outflow water at 1.0

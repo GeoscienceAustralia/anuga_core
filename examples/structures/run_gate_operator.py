@@ -1,34 +1,15 @@
 import os.path
-import sys
-
-from anuga.utilities.system_tools import get_pathname_from_package
-from anuga.geometry.polygon_function import Polygon_function
-        
-from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
-from anuga.abstract_2d_finite_volumes.quantity import Quantity
-
+   
+from anuga import rectangular_cross
 import anuga
 
-from anuga.structures.boyd_box_operator import Boyd_box_operator
-from anuga.structures.inlet_operator import Inlet_operator
+from anuga import Boyd_box_operator
+from anuga import Inlet_operator
                             
-#from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
-     
-from math import pi, pow, sqrt
 
 import numpy as num
 
-
-
-
-
-"""test_that_culvert_runs_rating
-
-This test exercises the culvert and checks values outside rating curve
-are dealt with       
-"""
-
-path = get_pathname_from_package('anuga.culvert_flows')    
+  
 
 length = 40.
 width = 15.
@@ -40,9 +21,8 @@ points, vertices, boundary = rectangular_cross(int(length/dx),
                                                len1=length, 
                                                len2=width)
 domain = anuga.Domain(points, vertices, boundary)   
-domain.set_name('run_gate_operator')                 # Output name
-domain.set_default_order(2)
-#domain.set_beta(1.5)
+domain.set_name()                 # Output name
+
 
 
 #----------------------------------------------------------------------
@@ -60,21 +40,21 @@ def topography(x, y):
     N = len(x)
     for i in range(N):
 
-       # Sloping Embankment Across Channel
+        # Sloping Embankment Across Channel
         if 5.0 < x[i] < 10.1:
             # Cut Out Segment for Culvert face                
             if  1.0+(x[i]-5.0)/5.0 <  y[i]  < 4.0 - (x[i]-5.0)/5.0: 
-               z[i]=z[i]
+                z[i]=z[i]
             else:
-               z[i] +=  0.5*(x[i] -5.0)    # Sloping Segment  U/S Face
+                z[i] +=  0.5*(x[i] -5.0)    # Sloping Segment  U/S Face
         if 10.0 < x[i] < 12.1:
-           z[i] +=  2.5                    # Flat Crest of Embankment
+            z[i] +=  2.5                    # Flat Crest of Embankment
         if 12.0 < x[i] < 14.5:
             # Cut Out Segment for Culvert face                
             if  2.0-(x[i]-12.0)/2.5 <  y[i]  < 3.0 + (x[i]-12.0)/2.5:
-               z[i]=z[i]
+                z[i]=z[i]
             else:
-               z[i] +=  2.5-1.0*(x[i] -12.0) # Sloping D/S Face
+                z[i] +=  2.5-1.0*(x[i] -12.0) # Sloping D/S Face
                    
         
     return z
@@ -85,7 +65,6 @@ domain.set_quantity('friction', 0.01)         # Constant friction
 domain.set_quantity('stage',
                     expression='elevation')   # Dry initial condition
 
-filename=os.path.join(path, 'example_rating_curve.csv')
 
 
 gate = Boyd_box_operator(domain,
