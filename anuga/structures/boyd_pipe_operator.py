@@ -35,6 +35,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                  apron=0.1,
                  manning=0.013,
                  enquiry_gap=0.2,
+                 smoothing_timescale=0.0,
                  use_momentum_jet=True,
                  use_velocity_head=True,
                  description=None,
@@ -86,6 +87,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
 
         self.inlets = self.get_inlets()
 
+
         # Stats
         
         self.discharge = 0.0
@@ -93,12 +95,45 @@ class Boyd_pipe_operator(anuga.Structure_operator):
         
         self.case = 'N/A'
         
+        # May/June 2014 -- allow 'smoothing ' of driving_energy, delta total energy, and outflow_enq_depth
+        self.smoothing_timescale=0.
+        self.smooth_delta_total_energy=0.
+        self.smooth_Q=0.
+        # Set them based on a call to the discharge routine with smoothing_timescale=0.
+        # [values of self.smooth_* are required in discharge_routine, hence dummy values above]
+        Qvd=self.discharge_routine()
+        self.smooth_delta_total_energy=1.0*self.delta_total_energy
+        self.smooth_Q=Qvd[0]
+        # Finally, set the smoothing timescale we actually want
+        self.smoothing_timescale=smoothing_timescale
+
+        
+        if verbose:
+            print self.get_culvert_slope()
+
 
 
     def discharge_routine(self):
+        """Procedure to determine the inflow and outflow inlets.
+        Then use boyd_pipe_function to do the actual calculation
+        """
 
         local_debug = False
 
+        # If the cuvert has been closed, then no water gets through
+        if self.culvert_diameter <= 0.0:
+            Q = 0.0
+            barrel_velocity = 0.0
+            outlet_culvert_depth = 0.0
+            self.case = "Culvert blocked"
+            self.inflow  = self.inlets[0]
+            self.outflow = self.inlets[1]
+            return Q, barrel_velocity, outlet_culvert_depth
+
+
+
+        #  delta_total_energy will determine which inlet is inflow
+        # Update 02/07/2014 -- now using smooth_delta_total_energy
         if self.use_velocity_head:
             self.delta_total_energy = \
                  self.inlets[0].get_enquiry_total_energy() - self.inlets[1].get_enquiry_total_energy()
@@ -106,15 +141,35 @@ class Boyd_pipe_operator(anuga.Structure_operator):
             self.delta_total_energy = \
                  self.inlets[0].get_enquiry_stage() - self.inlets[1].get_enquiry_stage()
 
-        self.inflow  = self.inlets[0]
-        self.outflow = self.inlets[1]
+        # Compute 'smoothed' total energy
+        forward_Euler_smooth=True
+        if(forward_Euler_smooth):
+            # To avoid 'overshoot' we ensure ts<1.
+            if(self.domain.timestep>0.):
+                ts=self.domain.timestep/max(self.domain.timestep, self.smoothing_timescale,1.0e-06)
+            else:
+                # Without this the unit tests with no smoothing fail [since they have domain.timestep=0.]
+                # Note though the discontinuous behaviour as domain.timestep-->0. from above
+                ts=1.0
+            self.smooth_delta_total_energy=self.smooth_delta_total_energy+\
+                                    ts*(self.delta_total_energy-self.smooth_delta_total_energy)
+        else:
+            # Use backward euler -- the 'sensible' ts limitation is different in this case
+            # ts --> Inf is reasonable and corresponds to the 'nosmoothing' case
+            ts=self.domain.timestep/max(self.smoothing_timescale, 1.0e-06)
+            self.smooth_delta_total_energy = (self.smooth_delta_total_energy+ts*(self.delta_total_energy))/(1.+ts)
 
-        if self.delta_total_energy < 0:
+        if self.smooth_delta_total_energy >= 0.:
+            self.inflow  = self.inlets[0]
+            self.outflow = self.inlets[1]
+            self.delta_total_energy=self.smooth_delta_total_energy
+        else:
             self.inflow  = self.inlets[1]
             self.outflow = self.inlets[0]
-            self.delta_total_energy = -self.delta_total_energy
-
-
+            self.delta_total_energy = -self.smooth_delta_total_energy
+            
+            
+        # Only calculate flow if there is some water at the inflow inlet.
         if self.inflow.get_enquiry_depth() > 0.01: #this value was 0.01:
 
             if local_debug:
@@ -146,8 +201,8 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                                                  sum_loss            =self.sum_loss,
                                                  manning             =self.manning)
         else:
-             Q = barrel_velocity = outlet_culvert_depth = 0.0
-             case = 'Inlet dry'
+            Q = barrel_velocity = outlet_culvert_depth = 0.0
+            case = 'Inlet dry'
 
 
         self.case = case
@@ -159,6 +214,9 @@ class Boyd_pipe_operator(anuga.Structure_operator):
             Q = flow_area * barrel_velocity
 
         return Q, barrel_velocity, outlet_culvert_depth
+
+
+        
 
 #=============================================================================
 # define separately so that can be imported in parallel code.
@@ -177,19 +235,21 @@ def boyd_pipe_function(depth, diameter, blockage, length, driving_energy, delta_
 
     For these conditions we also would like to assess the pipe flow characteristics as it leaves the pipe
     """
- 		
+
+
     # Note this errors if blockage is set to 1.0 (ie 100% blockaage) and i have no idea how to fix it   
-    if blockage == 1.0:
-		Q = barrel_velocity = outlet_culvert_depth = 0.0
-		flow_area = 0.00001
-		case = '100 blocked culvert'
-		return Q, barrel_velocity, outlet_culvert_depth, flow_area, case
+    if blockage >= 1.0:
+        Q = barrel_velocity = outlet_culvert_depth = 0.0
+        flow_area = 0.00001
+        case = '100 blocked culvert'
+        return Q, barrel_velocity, outlet_culvert_depth, flow_area, case
     if blockage > 0.9:
-		bf = 3.333-3.333*blockage     
+        bf = 3.333-3.333*blockage     
     else:
         bf = 1.0-0.4012316798*blockage-0.3768350138*(blockage**2) 
     #print 'blockage ', blockage
     #print '      bf ', bf
+
     # Calculate flows for inlet control for circular pipe
     Q_inlet_unsubmerged = 0.421*anuga.g**0.5*((bf*diameter)**0.87)*driving_energy**1.63 # Inlet Ctrl Inlet Unsubmerged
     Q_inlet_submerged = 0.530*anuga.g**0.5*((bf*diameter)**1.87)*driving_energy**0.63   # Inlet Ctrl Inlet Submerged
