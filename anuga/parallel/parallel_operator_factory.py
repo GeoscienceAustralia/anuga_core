@@ -300,6 +300,7 @@ def Boyd_pipe_operator(domain,
                        apron=0.1,
                        manning=0.013,
                        enquiry_gap=0.0,
+                       smoothing_timescale=0.0,
                        use_momentum_jet=True,
                        use_velocity_head=True,
                        description=None,
@@ -324,6 +325,7 @@ def Boyd_pipe_operator(domain,
                                                                     apron=apron,
                                                                     manning=manning,
                                                                     enquiry_gap=enquiry_gap,
+                                                                    smoothing_timescale=smoothing_timescale,
                                                                     use_momentum_jet=use_momentum_jet,
                                                                     use_velocity_head=use_velocity_head,
                                                                     description=description,
@@ -421,6 +423,7 @@ def Boyd_pipe_operator(domain,
                                          apron=apron,
                                          manning=manning,
                                          enquiry_gap=enquiry_gap,
+                                         smoothing_timescale=smoothing_timescale,
                                          use_momentum_jet=use_momentum_jet,
                                          use_velocity_head=use_velocity_head,
                                          description=description,
@@ -447,13 +450,12 @@ procs contains the potential list of processors to allocate the inlet to.
 Returns None for calling processors not associated with structure. Otherwise
 return an instance of Parallel Weir_orifice_trapezoid_operator
 
-This was added by PM 22/10/2013
+This was addede by PM 22/10/2013
 """
 
 def Weir_orifice_trapezoid_operator(domain,
                        losses,
                        width,
-                       blockage=0.0, #added by DPM 5/10/2016 
                        z1=None,
                        z2=None,
                        height=None,
@@ -481,7 +483,6 @@ def Weir_orifice_trapezoid_operator(domain,
                                                                     losses=losses,
                                                                     width=width,
                                                                     height=height,
-                                                                    blockage=blockage, #added by DPM 5/10/2016 
                                                                     z1=z1,
                                                                     z2=z2,
                                                                     end_points=end_points,
@@ -587,7 +588,6 @@ def Weir_orifice_trapezoid_operator(domain,
                                          losses=losses,
                                          width=width,
                                          height=height,
-                                         blockage=blockage, #added by DPM 5/10/2016 
                                          z1=z1,
                                          z2=z2,
                                          end_points=end_points,
