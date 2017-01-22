@@ -97,6 +97,10 @@ class Boundary:
         if t is None:
             t = self.get_time()
 
+        if isinstance(self.function, float):
+            res = self.function
+            return res
+            
         try:
             res = self.function(t)
         except Modeltime_too_early, e:
