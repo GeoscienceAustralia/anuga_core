@@ -278,51 +278,51 @@ def boyd_box_function(width,
     if blockage >= 1.0:
         Q = barrel_velocity = outlet_culvert_depth = 0.0
         flow_area = 0.00001
-        case = '100 blocked culvert'
+        case = '100% blocked culvert'
         return Q, barrel_velocity, outlet_culvert_depth, flow_area, case
     else:		       
-        Q_inlet_unsubmerged = 0.544*anuga.g**0.5*(1-blockage/2)*width*driving_energy**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged
-        Q_inlet_submerged = 0.702*anuga.g**0.5*(1-blockage/2)**2*width*depth**0.89*driving_energy**0.61  # Flow based on Inlet Ctrl Inlet Submerged
+        Q_inlet_unsubmerged = 0.544*anuga.g**0.5*(1-blockage)*width*driving_energy**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged
+        Q_inlet_submerged = 0.702*anuga.g**0.5*(1-blockage)**2*width*depth**0.89*driving_energy**0.61  # Flow based on Inlet Ctrl Inlet Submerged
 
     #print 'blockage ', blockage
     # FIXME(Ole): Are these functions really for inlet control?
     if Q_inlet_unsubmerged < Q_inlet_submerged:
         Q = Q_inlet_unsubmerged
-        dcrit = (Q**2/anuga.g/((1-blockage/2)*width)**2)**0.333333
+        dcrit = (Q**2/anuga.g/((1-blockage)*width)**2)**0.333333
         if dcrit > depth:
             dcrit = depth
-            flow_area = (1-blockage/2)*width*dcrit
-            perimeter= 2.0*(1-blockage/2)*(width+dcrit)
+            flow_area = (1-blockage)*width*dcrit
+            perimeter= 2.0*(1-blockage)*(width+dcrit)
         else: # dcrit < depth
-            flow_area = (1-blockage/2)*width*dcrit
+            flow_area = (1-blockage)*width*dcrit
             perimeter= 2.0*(1-blockage/2)*dcrit+(1-blockage/2)*width
         outlet_culvert_depth = dcrit
         case = 'Inlet unsubmerged Box Acts as Weir'
     else: # Inlet Submerged but check internal culvert flow depth
         Q = Q_inlet_submerged
-        dcrit = (Q**2/anuga.g/((1-blockage/2)*width)**2)**0.333333
+        dcrit = (Q**2/anuga.g/((1-blockage)*width)**2)**0.333333
         if dcrit > depth:
             dcrit = depth
-            flow_area = (1-blockage/2)*width*dcrit
-            perimeter= 2.0*(1-blockage/2)*(width+dcrit)
+            flow_area = (1-blockage)*width*dcrit
+            perimeter= 2.0*(1-blockage)*(width+dcrit)
         else: # dcrit < depth
-            flow_area = (1-blockage/2)*width*dcrit
-            perimeter= 2.0*(1-blockage/2)*dcrit+(1-blockage/2)*width
+            flow_area = (1-blockage)*width*dcrit
+            perimeter= 2.0*dcrit+(1-blockage)*width
         outlet_culvert_depth = dcrit
         case = 'Inlet submerged Box Acts as Orifice'
 
-    dcrit = (Q**2/anuga.g/((1-blockage/2)*width)**2)**0.333333
+    dcrit = (Q**2/anuga.g/((1-blockage)*width)**2)**0.333333
     
     # May not need this .... check if same is done above
     outlet_culvert_depth = dcrit
     
     if outlet_culvert_depth > depth:
         outlet_culvert_depth = depth  # Once again the pipe is flowing full not partfull
-        flow_area = (1-blockage/2)*width*depth  # Cross sectional area of flow in the culvert
-        perimeter = 2*(1-blockage/2)*(width+depth)
+        flow_area = (1-blockage)*width*depth  # Cross sectional area of flow in the culvert
+        perimeter = 2*(1-blockage)*(width+depth)
         case = 'Inlet CTRL Outlet unsubmerged PIPE PART FULL'
     else:
-        flow_area = (1-blockage/2)*width * outlet_culvert_depth
+        flow_area = (1-blockage)*width * outlet_culvert_depth
         perimeter = (1-blockage/2)*width+2*(1-blockage/2)*outlet_culvert_depth
         case = 'INLET CTRL Culvert is open channel flow we will for now assume critical depth'
     # Initial Estimate of Flow for Outlet Control using energy slope
@@ -341,19 +341,19 @@ def boyd_box_function(width,
         # Determine the depth at the outlet relative to the depth of flow in the Culvert
         if outlet_enquiry_depth > depth:        # The Outlet is Submerged
             outlet_culvert_depth=depth
-            flow_area=(1-blockage/2)*width*depth       # Cross sectional area of flow in the culvert
-            perimeter=2.0*(1-blockage/2)*(width+depth)
+            flow_area=(1-blockage)*width*depth       # Cross sectional area of flow in the culvert
+            perimeter=2.0*(1-blockage)*(width+depth)
             case = 'Outlet submerged'
         else:   # Here really should use the Culvert Slope to calculate Actual Culvert Depth & Velocity
-            dcrit = (Q**2/anuga.g/((1-blockage/2)*width)**2)**0.333333
+            dcrit = (Q**2/anuga.g/((1-blockage)*width)**2)**0.333333
             outlet_culvert_depth=dcrit   # For purpose of calculation assume the outlet depth = Critical Depth
             if outlet_culvert_depth > depth:
                 outlet_culvert_depth=depth
-                flow_area=(1-blockage/2)*width*depth
-                perimeter=2.0*(1-blockage/2)*(width+depth)
+                flow_area=(1-blockage)*width*depth
+                perimeter=2.0*(1-blockage)*(width+depth)
                 case = 'Outlet is Flowing Full'
             else:
-                flow_area=(1-blockage/2)*width*outlet_culvert_depth
+                flow_area=(1-blockage)*width*outlet_culvert_depth
                 perimeter=((1-blockage/2)*width+2.0*(1-blockage/2)*outlet_culvert_depth)
                 case = 'Outlet is open channel flow'
         
