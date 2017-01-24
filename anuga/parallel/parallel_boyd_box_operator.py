@@ -108,6 +108,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
         self.case = 'N/A'
 
         self.domain=domain
+        
         # May/June 2014 -- allow 'smoothing ' of driving_energy, delta total energy, and outflow_enq_depth
         self.smoothing_timescale=0.
         self.smooth_delta_total_energy=0.

@@ -31,6 +31,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                  apron=0.1,
                  manning=0.013,
                  enquiry_gap=0.0,
+                 smoothing_timescale=0.0,                 
                  use_momentum_jet=True,
                  use_velocity_head=True,
                  description=None,
@@ -108,6 +109,19 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
 
         print 80*'='
         print "DON'T USE BOYD PIPES AS ALGORITHM NOT VERIFIED YET"
+
+
+        # May/June 2014 -- allow 'smoothing ' of driving_energy, delta total energy, and outflow_enq_depth
+        self.smoothing_timescale=0.
+        self.smooth_delta_total_energy=0.
+        self.smooth_Q=0.
+        # Set them based on a call to the discharge routine with smoothing_timescale=0.
+        # [values of self.smooth_* are required in discharge_routine, hence dummy values above]
+        Qvd=self.discharge_routine()
+        self.smooth_delta_total_energy=1.0*self.delta_total_energy
+        self.smooth_Q=Qvd[0]
+        # Finally, set the smoothing timescale we actually want
+        self.smoothing_timescale=smoothing_timescale
 
 
         '''
