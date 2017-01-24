@@ -36,6 +36,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                  apron=0.1,
                  manning=0.013,
                  enquiry_gap=0.0,
+                 smoothing_timescale=0.0,
                  use_momentum_jet=True,
                  use_velocity_head=True,
                  description=None,
@@ -53,7 +54,6 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                                           width=width,
                                           height=height,
                                           blockage=blockage, #added by DPM 5/10/2016
-                                          #culvert_slope=culvert_slope,
                                           z1=z1,
                                           z2=z2,
                                           diameter=None,
@@ -100,6 +100,19 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
         self.velocity = 0.0
         
         self.case = 'N/A'
+        
+                # May/June 2014 -- allow 'smoothing ' of driving_energy, delta total energy, and outflow_enq_depth
+        self.smoothing_timescale=0.
+        self.smooth_delta_total_energy=0.
+        self.smooth_Q=0.
+        # Set them based on a call to the discharge routine with smoothing_timescale=0.
+        # [values of self.smooth_* are required in discharge_routine, hence dummy values above]
+        Qvd=self.discharge_routine()
+        self.smooth_delta_total_energy=1.0*self.delta_total_energy
+        self.smooth_Q=Qvd[0]
+        # Finally, set the smoothing timescale we actually want
+        self.smoothing_timescale=smoothing_timescale
+
 
 
 
@@ -146,7 +159,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                 anuga.log.critical('Specific E & Deltat Tot E = %s, %s'
                              % (str(self.inflow.get_enquiry_specific_energy()),
                                 str(self.delta_total_energy)))
-                anuga.log.critical('culvert type = %s' % str(culvert_type))
+                anuga.log.critical('culvert type = %s' % str(self.type))
             # Water has risen above inlet
 
 
@@ -183,10 +196,10 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                                                 depth               =self.culvert_height,
                                                 blockage            =self.culvert_blockage, #added by DPM 5/10/2016
                                                 z1                  =self.culvert_z1,
-                                                z2                  =self.culvert_z2, 
-                                                culvert_slope       =self.culvert_slope,                                                     
+                                                z2                  =self.culvert_z2,                                                      
                                                 flow_width          =self.culvert_width,
                                                 length              =self.culvert_length,
+                                                culvert_slope       =self.culvert_slope,
                                                 driving_energy      =self.driving_energy,
                                                 delta_total_energy  =self.delta_total_energy,
                                                 outlet_enquiry_depth=self.outflow.get_enquiry_depth(),
