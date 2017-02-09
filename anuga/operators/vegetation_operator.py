@@ -236,14 +236,14 @@ class Vegetation_operator(Operator, object):
 
 
 
-    def set_veg_quantity(self, name_in, quantity_name=None):
-    
-        print 'Converting asc files'
+    def set_veg_quantity(self, name_in, quantity_name=None, convert_file=True):
         
         Quantity(self.domain, name=quantity_name, register=True)
     
-        self.generic_asc2dem(name_in + '.asc', quantity_name=quantity_name)
-        self.generic_dem2pts(name_in + '.dem', quantity_name=quantity_name)
+        if convert_file:
+            print 'Converting asc files'
+            self.generic_asc2dem(name_in + '.asc', quantity_name=quantity_name)
+            self.generic_dem2pts(name_in + '.dem', quantity_name=quantity_name)
         
         
         self.set_quantity_NNeigh(quantity_name, name_in + '.pts')
