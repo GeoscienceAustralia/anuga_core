@@ -491,6 +491,21 @@ class Structure_operator(anuga.Operator):
 
         message += 'Description\n'
         message += '%s' % self.description
+        
+        #add the culvert dimensions, blockage factor here
+        if self.structure_type == 'boyd_pipe':
+            message += 'Culvert Diameter: %s\n'% self.diameter
+            message += 'Culvert Blockage: %s\n'% self.blockage
+        elif self.structure_type == 'boyd_box':
+            message += 'Culvert   Height: %s\n'% self.height
+            message += 'Culvert    Width: %s\n'% self.width
+            message += 'Culvert Blockage: %s\n'% self.blockage
+        else:
+            message += 'Culvert   Height: %s\n'% self.height
+            message += 'Culvert    Width: %s\n'% self.width
+            message += 'Batter Slope 1 %s\n'% self.z1
+            message += 'Batter Slope 2 %s\n'% self.z2
+            
         message += '\n'
         
         for i, inlet in enumerate(self.inlets):
