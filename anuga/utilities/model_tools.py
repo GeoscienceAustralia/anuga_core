@@ -461,7 +461,7 @@ def Create_culvert_bridge_Operator(domain,culvert_bridge_file):
 #-----------------------------------------------------------------------------------------
 #          FUNCTION FOR BLOCKAGE
 #-----------------------------------------------------------------------------------------
-def get_WCC_2016_Blockage_factor(Structure,Event,Scenario, long_result=False):
+def get_WCC_2016_Blockage_factor(Structure,Event,Scenario, long_result=False, verbose=True):
     """
     If the Structure has a single dimension it is assumed a Diameter (hence Pipe)
     Else it is a Box with w & h
@@ -578,16 +578,17 @@ def get_WCC_2016_Blockage_factor(Structure,Event,Scenario, long_result=False):
     elif Scenario == 'R':
         Scenario = 'RISKMAN'
         BF = BF_RMN[Ev_Row][cclass]
-        
-    print '       Importing Culverts'
-    print '   Culvert Size ([H,W] or [d]): ', Structure    
-    print '                    Event Size: ', Ev_mag
-    print '             Blockage Scenario: ', Scenario
-    print '               Blockage Factor: ', BF
-    print ''
-    
 
-	if long_result:
+    if verbose:
+        print '       Importing Culverts'
+        print '   Culvert Size ([H,W] or [d]): ', Structure
+        print '                    Event Size: ', Ev_mag
+        print '             Blockage Scenario: ', Scenario
+        print '               Blockage Factor: ', BF
+        print ''
+
+    if long_result:
         return(Scenario, Ev_mag,BF_clss,diag,BF)
     else:
         return(BF)
+
