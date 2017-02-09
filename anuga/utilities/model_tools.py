@@ -469,7 +469,66 @@ def get_WCC_2016_Blockage_factor(Structure,Event,Scenario, long_result=False):
     The Scenario can be a Design or Risk Management Outlook
     Based on these there are two arrays containng the Blockage Factor to be applied
     
+    
+    --------------------------------------------------------------------
+    2017 - 02 - 03
+    
+    Wollongong Blockage Factor Calculator
+    
+    Author: Rudy Van Drie
+    
+    --------------------------------------------------------------------
+    Class P1. 
+    Pipes 1.2 m internal diameter or smaller.  
+    
+    Class P2. 
+    Pipes  greater  than  1.2  m  internal  diameter.
+    
+    Class B1
+    Box culverts or bridges with a diagonal opening less than 1.5 m,  
+    and a width or height less than 0.9 m. 
+    
+    Class B2. 
+    Box  culverts  or  bridges  with a diagonal opening of more than or equal to 1.5 m, less than 3 m 
+    and minimum dimension of 0.9 m for both width and height. 
+    >= 0.9m w and h
+    Class 3. 
+    Box culverts or bridges with a diagonal opening of more than or equal 
+    to  3  m,  less  than  6  m,  
+    and  a  minimum  dimension  of  1.2  m  for  both  width and height.   
+    
+    Class 4. 
+    Box culverts or bridges with a diagonal opening greater than or equal 
+    to 6 m, and a minimum dimension of 2.5 m for both width and height.   
+    
+        CLASSP1   Diam =< 1.2m
+        CLASSP2   Diam > 1.2m
+    
+        CLASSB1:    diag < 1.5m and W or H < 0.9m 
+                    
+        CLASSB2:    diag >= 1.5m AND diag < 3.0m AND both W and H >= 0.9m
+                                    
+        CLASSB3:    diag >= 3.0m AND diag < 6.0m AND both W and H >= 1.2m 
+    
+        CLASSB4:    diag >= 6.0m AND W and H >= 2.5m 
+    
+    
+    DESIGN BLOCKAGE FACTORS
+                      CLP1,CLP2
+    event,            CLB1,CLB2,CLB3,CLB4
+    1,2,5,small,      0.35,0.25,0.15,0.00 
+    10,20,medium,     0.50,0.40,0.30,0.05 
+    50,100,pmp,large, 0.70,0.50,0.40,0.10 
+    
+    RISK MANAGEMENT BLOCKAGE FACTORS
+                      CLP1,CLP2
+    event,            CLB1,CLB2,CLB3,CLB4
+    1,2,5,small,      0.60,0.50,0.35,0.05 
+    10,20,medium,     0.75,0.65,0.50,0.10 
+    50,100,pmp,large, 0.95,0.75,0.60,0.15    
+    
     """
+    
     # REQUIRED DATA FOR small,medium,large and class 1,2,3,4 for two Scenarios
     BF_DES = [[0.35,0.25,0.15,0.00],[0.50,0.40,0.30,0.05],[0.70,0.50,0.40,0.10]]
     BF_RMN = [[0.60,0.50,0.35,0.05],[0.75,0.65,0.50,0.10],[0.95,0.75,0.60,0.15]]
@@ -494,7 +553,7 @@ def get_WCC_2016_Blockage_factor(Structure,Event,Scenario, long_result=False):
             cclass = 0
     else:   # ====== FOR PIPE ================
         d = float(Structure[0])
-        if d <= 1.2:
+        if d < 1.2:
             diag = d
             BF_clss =  'CLASS P1'
             cclass = 0
@@ -505,7 +564,7 @@ def get_WCC_2016_Blockage_factor(Structure,Event,Scenario, long_result=False):
             
     if Event in [1,2,5]: 
         Ev_Row = 0
-        Ev_mag = 'small'
+        Ev_mag = 'Small'
     elif Event in [10,20]: 
         Ev_Row = 1 
         Ev_mag = 'Medium'
@@ -519,9 +578,16 @@ def get_WCC_2016_Blockage_factor(Structure,Event,Scenario, long_result=False):
     elif Scenario == 'R':
         Scenario = 'RISKMAN'
         BF = BF_RMN[Ev_Row][cclass]
+        
+    print '       Importing Culverts'
+    print '   Culvert Size ([H,W] or [d]): ', Structure    
+    print '                    Event Size: ', Ev_mag
+    print '             Blockage Scenario: ', Scenario
+    print '               Blockage Factor: ', BF
+    print ''
+    
 
-    if long_result:
+	if long_result:
         return(Scenario, Ev_mag,BF_clss,diag,BF)
     else:
         return(BF)
-
