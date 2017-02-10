@@ -15,7 +15,7 @@ import inspect
 
 
 
-verbose = False
+verbose =  False
 
 
 class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
@@ -107,82 +107,7 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         
         return domain
     
-    #def test_weir_orifice_non_skew(self):
 
-        #stage_0 = 11.0
-        #stage_1 = 10.0
-        #elevation_0 = 10.0
-        #elevation_1 = 10.0
-
-        #domain_length = 200.0
-        #domain_width = 200.0
-
-        #culvert_length = 10.0
-        #culvert_width = 10.0
-        #culvert_height = 3.0
-        #culvert_slope=0.1
-        #culvert_z1 = 2
-        #culvert_z2 = 2
-        #culvert_losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
-        #culvert_mannings = 0.015
-        
-        #culvert_apron = 0.0
-        #enquiry_gap = 5.0
-
-        
-        #expected_Q = 0.52 
-        #expected_v = 1.04
-        #expected_d = 0.50
-                                    
-
-        #domain = self._create_domain(d_length=domain_length,
-                                     #d_width=domain_width,
-                                     #dx = 5.0,
-                                     #dy = 5.0,
-                                     #elevation_0 = elevation_0,
-                                     #elevation_1 = elevation_1,
-                                     #stage_0 = stage_0,
-                                     #stage_1 = stage_1)
- 
-
-        ##print 'Defining Structures'
-        
-        #ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
-        #ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
-        
-        
-        #culvert = Weir_orifice_trapezoid_operator(domain,
-                                    #losses=culvert_losses,
-                                    #width=culvert_width,
-                                    #end_points=[ep0, ep1],
-                                    #height=culvert_height,
-                                    #culvert_slope=culvert_slope,
-                                    #z1=culvert_z1,
-                                    #z2=culvert_z2,
-                                    #apron=culvert_apron,
-                                    #enquiry_gap=enquiry_gap,
-                                    #use_momentum_jet=False,
-                                    #use_velocity_head=False,
-                                    #manning=culvert_mannings,
-                                    #logging=False,
-                                    #label='10mwidex3mdeep 1V:2H trapezoid',
-                                    #verbose=False)
-
-        ##culvert.determine_inflow_outflow()
-        
-        #( Q, v, d ) = culvert.discharge_routine()
-        
-        #if verbose:
-            #print 50*'='
-            #print 'UNITTEST ',inspect.stack()[0][3]
-            #print 'Q v d: ', Q, v, d, ' expected_Q v d: ', expected_Q, expected_v, expected_d
-        
-
-        #assert numpy.allclose(Q, expected_Q, rtol=1.0e-1) #inflow
-        #assert numpy.allclose(v, expected_v, rtol=1.0e-1) #outflow velocity
-        #assert numpy.allclose(d, expected_d, rtol=1.0e-1) #depth at outlet used to calc v 
-        
-      
 
     def test_weir_orifice_1(self):
         """test_weir_orifice 1
@@ -205,6 +130,7 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         culvert_slope=0.1
         culvert_z1=2
         culvert_z2=2
+        culvert_blockage = 0.0
         
         culvert_type='trapezoid'
         manning=0.015
@@ -216,40 +142,52 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
         E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
+ 
+        # from Petars spreadsheet
+        #Q_expected = 8.791
+        #v_expected = 1.116
+        #d_expected = 0.692       
+
+        Q_expected = 1.51
+        v_expected = 1.01
+        d_expected = 0.15
         
 
-        Q_expected = 0.52 
-        v_expected = 1.04
-        d_expected = 0.05
         
         if verbose:
             print 50*'='
             print 'UNITTEST ',inspect.stack()[0][3]
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
+            print 'culvert_width ',culvert_width
+            print 'culvert_depth ',culvert_height
+            print 'culvert_blockage ',culvert_blockage
+            print 'culvert_length ' ,culvert_length
+            print 'inlet_depth ', inlet_depth
+            print 'inlet_velocity ', inlet_velocity
+            print 'outlet_depth ', outlet_depth
+            print 'outlet_velocity ', outlet_velocity
             print 'sum_loss ',sum_loss
             print 'manning ',manning
+            print ' '
+            print 'flow_width ',culvert_width
+            print 'driving_energy ',inlet_specific_energy
+            print 'delta_total_energy ',delta_total_energy
+            
         
-        Q, v, d, flow_area, case= weir_orifice_trapezoid_function(culvert_width, 
-                                                    culvert_height, 
-                                                    culvert_width,
-                                                    culvert_slope,
-                                                    culvert_z1,
-                                                    culvert_z2, 
-                                                    culvert_length, 
-                                                    inlet_specific_energy, 
-                                                    delta_total_energy, 
-                                                    outlet_depth, 
-                                                    sum_loss,
-                                                    manning)
+        Q, v, d, flow_area, case= weir_orifice_trapezoid_function(
+                                                    width      = culvert_width, 
+                                                    depth      = culvert_height,
+                                                    blockage   = culvert_blockage, 
+                                                    z1         = culvert_z1,
+                                                    z2         = culvert_z2, 
+                                                    flow_width = culvert_width,
+                                                    length     = culvert_length, 
+                                                    culvert_slope      = culvert_slope,
+                                                    driving_energy     = inlet_specific_energy, 
+                                                    delta_total_energy = delta_total_energy, 
+                                                    outlet_enquiry_depth = outlet_depth, 
+                                                    sum_loss   = sum_loss,
+                                                    manning    = manning)
         
-
-
 
 
         if verbose:
@@ -283,6 +221,7 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         culvert_slope=0.01
         culvert_z1=2
         culvert_z2=2
+        culvert_blockage = 0.0
         
         culvert_type='trapezoid'
         manning=0.015
@@ -295,36 +234,49 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
         
+        # from petars spreadsheet
+        #Q_expected = 8.245
+        #v_expected = 0.231
+        #d_expected = 2.410
+        
+        Q_expected = 0.57
+        v_expected = 0.21
+        d_expected = 0.25
+        
 
-        Q_expected = 0.09
-        v_expected = 0.20
-        d_expected = 0.04
         
         if verbose:
             print 50*'='
-            print 'UNITTEST ',inspect.stack()[0][3] 
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
+            print 'UNITTEST ',inspect.stack()[0][3]
+            print 'culvert_width ',culvert_width
+            print 'culvert_depth ',culvert_height
+            print 'culvert_blockage ',culvert_blockage
+            print 'culvert_length ' ,culvert_length
+            print 'inlet_depth ', inlet_depth
+            print 'inlet_velocity ', inlet_velocity
+            print 'outlet_depth ', outlet_depth
+            print 'outlet_velocity ', outlet_velocity
             print 'sum_loss ',sum_loss
             print 'manning ',manning
+            print ' '
+            print 'flow_width ',culvert_width
+            print 'driving_energy ',inlet_specific_energy
+            print 'delta_total_energy ',delta_total_energy
         
-        Q, v, d, flow_area, case= weir_orifice_trapezoid_function(culvert_width, 
-                                                    culvert_height, 
-                                                    culvert_width,
-                                                    culvert_slope,
-                                                    culvert_z1,
-                                                    culvert_z2, 
-                                                    culvert_length, 
-                                                    inlet_specific_energy, 
-                                                    delta_total_energy, 
-                                                    outlet_depth, 
-                                                    sum_loss,
-                                                    manning)
+        Q, v, d, flow_area, case= weir_orifice_trapezoid_function(
+                                                    width      = culvert_width, 
+                                                    depth      = culvert_height,
+                                                    blockage   = culvert_blockage, 
+                                                    z1         = culvert_z1,
+                                                    z2         = culvert_z2, 
+                                                    flow_width = culvert_width,
+                                                    length     = culvert_length, 
+                                                    culvert_slope      = culvert_slope,
+                                                    driving_energy     = inlet_specific_energy, 
+                                                    delta_total_energy = delta_total_energy, 
+                                                    outlet_enquiry_depth = outlet_depth, 
+                                                    sum_loss   = sum_loss,
+                                                    manning    = manning)
 
 
 
@@ -359,6 +311,7 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         culvert_height=3.0
         culvert_z1=2
         culvert_z2=2
+        culvert_blockage = 0.0
         
         culvert_type='trapezoid'
         manning=0.015
@@ -371,36 +324,48 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
         
-
-        Q_expected = 6.44
-        v_expected = 2.33
-        d_expected = 0.24
+        # from petars spreadsheet
+        #Q_expected = 113.323
+        #v_expected = 2.361
+        #d_expected = 3.0
+        
+        Q_expected = 8.29
+        v_expected = 2.24
+        d_expected = 0.35      
+        
         
         if verbose:
             print 50*'='
             print 'UNITTEST ',inspect.stack()[0][3]
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
+            print 'culvert_width ',culvert_width
+            print 'culvert_depth ',culvert_height
+            print 'culvert_blockage ',culvert_blockage
+            print 'culvert_length ' ,culvert_length
+            print 'inlet_depth ', inlet_depth
+            print 'inlet_velocity ', inlet_velocity
+            print 'outlet_depth ', outlet_depth
+            print 'outlet_velocity ', outlet_velocity
             print 'sum_loss ',sum_loss
             print 'manning ',manning
+            print ' '
+            print 'flow_width ',culvert_width
+            print 'driving_energy ',inlet_specific_energy
+            print 'delta_total_energy ',delta_total_energy
         
-        Q, v, d, flow_area, case= weir_orifice_trapezoid_function(culvert_width, 
-                                                    culvert_height, 
-                                                    culvert_width,
-                                                    culvert_slope,
-                                                    culvert_z1,
-                                                    culvert_z2, 
-                                                    culvert_length, 
-                                                    inlet_specific_energy, 
-                                                    delta_total_energy, 
-                                                    outlet_depth, 
-                                                    sum_loss,
-                                                    manning)
+        Q, v, d, flow_area, case= weir_orifice_trapezoid_function(
+                                                    width      = culvert_width, 
+                                                    depth      = culvert_height,
+                                                    blockage   = culvert_blockage, 
+                                                    z1         = culvert_z1,
+                                                    z2         = culvert_z2, 
+                                                    flow_width = culvert_width,
+                                                    length     = culvert_length, 
+                                                    culvert_slope      = culvert_slope,
+                                                    driving_energy     = inlet_specific_energy, 
+                                                    delta_total_energy = delta_total_energy, 
+                                                    outlet_enquiry_depth = outlet_depth, 
+                                                    sum_loss   = sum_loss,
+                                                    manning    = manning)
 
 
 
@@ -435,6 +400,7 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         culvert_height=3.0
         culvert_z1=2
         culvert_z2=2
+        culvert_blockage = 0.0
         
         culvert_type='trapezoid'
         manning=0.015
@@ -447,36 +413,48 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
         
+        # values from petars spreadsheet
+        #Q_expected = 225.023
+        #v_expected = 4.688
+        #d_expected = 3.00
 
-        Q_expected = 383.75
-        v_expected = 5.09
+        Q_expected = 231.74
+        v_expected = 4.83
         d_expected = 3.00
+        
         
         if verbose:
             print 50*'='
             print 'UNITTEST ',inspect.stack()[0][3]
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
+            print 'culvert_width ',culvert_width
+            print 'culvert_depth ',culvert_height
+            print 'culvert_blockage ',culvert_blockage
+            print 'culvert_length ' ,culvert_length
+            print 'inlet_depth ', inlet_depth
+            print 'inlet_velocity ', inlet_velocity
+            print 'outlet_depth ', outlet_depth
+            print 'outlet_velocity ', outlet_velocity
             print 'sum_loss ',sum_loss
             print 'manning ',manning
+            print ' '
+            print 'flow_width ',culvert_width
+            print 'driving_energy ',inlet_specific_energy
+            print 'delta_total_energy ',delta_total_energy
         
-        Q, v, d, flow_area, case= weir_orifice_trapezoid_function(culvert_width, 
-                                                    culvert_height, 
-                                                    culvert_width,
-                                                    culvert_slope,
-                                                    culvert_z1,
-                                                    culvert_z2, 
-                                                    culvert_length, 
-                                                    inlet_specific_energy, 
-                                                    delta_total_energy, 
-                                                    outlet_depth, 
-                                                    sum_loss,
-                                                    manning)
+        Q, v, d, flow_area, case= weir_orifice_trapezoid_function(
+                                                    width      = culvert_width, 
+                                                    depth      = culvert_height,
+                                                    blockage   = culvert_blockage, 
+                                                    z1         = culvert_z1,
+                                                    z2         = culvert_z2, 
+                                                    flow_width = culvert_width,
+                                                    length     = culvert_length, 
+                                                    culvert_slope      = culvert_slope,
+                                                    driving_energy     = inlet_specific_energy, 
+                                                    delta_total_energy = delta_total_energy, 
+                                                    outlet_enquiry_depth = outlet_depth, 
+                                                    sum_loss   = sum_loss,
+                                                    manning    = manning)
 
 
 
@@ -512,6 +490,7 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         culvert_height=3.0
         culvert_z1=2
         culvert_z2=2
+        culvert_blockage = 0.0
         
         culvert_type='trapezoid'
         manning=0.015
@@ -524,36 +503,49 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
         
-
-        Q_expected = 487.48
-        v_expected = 6.13
+        # values from petars spreadsheet
+        #Q_expected = 271.275
+        #v_expected = 5.652
+        #d_expected = 3.00
+        
+        Q_expected = 279.38
+        v_expected = 5.82
         d_expected = 3.00
+        
+
         
         if verbose:
             print 50*'='
             print 'UNITTEST ',inspect.stack()[0][3]
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
+            print 'culvert_width ',culvert_width
+            print 'culvert_depth ',culvert_height
+            print 'culvert_blockage ',culvert_blockage
+            print 'culvert_length ' ,culvert_length
+            print 'inlet_depth ', inlet_depth
+            print 'inlet_velocity ', inlet_velocity
+            print 'outlet_depth ', outlet_depth
+            print 'outlet_velocity ', outlet_velocity
             print 'sum_loss ',sum_loss
             print 'manning ',manning
+            print ' '
+            print 'flow_width ',culvert_width
+            print 'driving_energy ',inlet_specific_energy
+            print 'delta_total_energy ',delta_total_energy
         
-        Q, v, d, flow_area, case= weir_orifice_trapezoid_function(culvert_width, 
-                                                    culvert_height, 
-                                                    culvert_width,
-                                                    culvert_slope,
-                                                    culvert_z1,
-                                                    culvert_z2, 
-                                                    culvert_length, 
-                                                    inlet_specific_energy, 
-                                                    delta_total_energy, 
-                                                    outlet_depth, 
-                                                    sum_loss,
-                                                    manning)
+        Q, v, d, flow_area, case= weir_orifice_trapezoid_function(
+                                                    width      = culvert_width, 
+                                                    depth      = culvert_height,
+                                                    blockage   = culvert_blockage, 
+                                                    z1         = culvert_z1,
+                                                    z2         = culvert_z2, 
+                                                    flow_width = culvert_width,
+                                                    length     = culvert_length, 
+                                                    culvert_slope      = culvert_slope,
+                                                    driving_energy     = inlet_specific_energy, 
+                                                    delta_total_energy = delta_total_energy, 
+                                                    outlet_enquiry_depth = outlet_depth, 
+                                                    sum_loss   = sum_loss,
+                                                    manning    = manning)
 
 
 
@@ -588,6 +580,7 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         culvert_height=3.0
         culvert_z1=2
         culvert_z2=2
+        culvert_blockage = 0.0
         
         culvert_type='trapezoid'
         manning=0.015
@@ -601,35 +594,48 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         delta_total_energy = E_in-E_out
         
 
-        Q_expected = 1049.86
+        # Values from Petars spreadsheet
+        #Q_expected = 420.160
+        #v_expected = 11.470
+        #d_expected = 3.00
+ 
+        Q_expected = 419.95
         v_expected = 8.75
-        d_expected = 3.00
+        d_expected = 3.00       
+
         
         if verbose:
             print 50*'='
             print 'UNITTEST ',inspect.stack()[0][3]
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
+            print 'culvert_width ',culvert_width
+            print 'culvert_depth ',culvert_height
+            print 'culvert_blockage ',culvert_blockage
+            print 'culvert_length ' ,culvert_length
+            print 'inlet_depth ', inlet_depth
+            print 'inlet_velocity ', inlet_velocity
+            print 'outlet_depth ', outlet_depth
+            print 'outlet_velocity ', outlet_velocity
             print 'sum_loss ',sum_loss
             print 'manning ',manning
+            print ' '
+            print 'flow_width ',culvert_width
+            print 'driving_energy ',inlet_specific_energy
+            print 'delta_total_energy ',delta_total_energy
         
-        Q, v, d, flow_area, case= weir_orifice_trapezoid_function(culvert_width, 
-                                                    culvert_height, 
-                                                    culvert_width,
-                                                    culvert_slope,
-                                                    culvert_z1,
-                                                    culvert_z2, 
-                                                    culvert_length, 
-                                                    inlet_specific_energy, 
-                                                    delta_total_energy, 
-                                                    outlet_depth, 
-                                                    sum_loss,
-                                                    manning)
+        Q, v, d, flow_area, case= weir_orifice_trapezoid_function(
+                                                    width      = culvert_width, 
+                                                    depth      = culvert_height,
+                                                    blockage   = culvert_blockage, 
+                                                    z1         = culvert_z1,
+                                                    z2         = culvert_z2, 
+                                                    flow_width = culvert_width,
+                                                    length     = culvert_length, 
+                                                    culvert_slope      = culvert_slope,
+                                                    driving_energy     = inlet_specific_energy, 
+                                                    delta_total_energy = delta_total_energy, 
+                                                    outlet_enquiry_depth = outlet_depth, 
+                                                    sum_loss   = sum_loss,
+                                                    manning    = manning)
 
 
 
@@ -643,6 +649,7 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         assert numpy.allclose(Q, Q_expected, rtol=1.0e-1) #inflow
         assert numpy.allclose(v, v_expected, rtol=1.0e-1) #outflow velocity
         assert numpy.allclose(d, d_expected, rtol=1.0e-1) #depth at outlet used to calc v 
+
 # =========================================================================
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_weir_orifice_trapezoid_operator, 'test')

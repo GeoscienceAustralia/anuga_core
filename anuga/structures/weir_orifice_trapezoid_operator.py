@@ -27,6 +27,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                  width,
                  z1,
                  z2,
+                 blockage=0.0,  #added by DPM 5/10/2016
                  height=None,
                  end_points=None,
                  exchange_lines=None,
@@ -35,6 +36,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                  apron=0.1,
                  manning=0.013,
                  enquiry_gap=0.0,
+                 smoothing_timescale=0.0,
                  use_momentum_jet=True,
                  use_velocity_head=True,
                  description=None,
@@ -51,7 +53,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                                           invert_elevations=invert_elevations,
                                           width=width,
                                           height=height,
-                                          #culvert_slope=culvert_slope,
+                                          blockage=blockage, #added by DPM 5/10/2016
                                           z1=z1,
                                           z2=z2,
                                           diameter=None,
@@ -81,6 +83,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
         self.culvert_length = self.get_culvert_length()
         self.culvert_width = self.get_culvert_width()
         self.culvert_height = self.get_culvert_height()
+        self.culvert_blockage = self.get_culvert_blockage()
         self.culvert_slope = self.culvert_slope()
         self.culvert_z1 = self.get_culvert_z1()
         self.culvert_z2 = self.get_culvert_z2()
@@ -97,6 +100,19 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
         self.velocity = 0.0
         
         self.case = 'N/A'
+        
+                # May/June 2014 -- allow 'smoothing ' of driving_energy, delta total energy, and outflow_enq_depth
+        self.smoothing_timescale=0.
+        self.smooth_delta_total_energy=0.
+        self.smooth_Q=0.
+        # Set them based on a call to the discharge routine with smoothing_timescale=0.
+        # [values of self.smooth_* are required in discharge_routine, hence dummy values above]
+        Qvd=self.discharge_routine()
+        self.smooth_delta_total_energy=1.0*self.delta_total_energy
+        self.smooth_Q=Qvd[0]
+        # Finally, set the smoothing timescale we actually want
+        self.smoothing_timescale=smoothing_timescale
+
 
 
 
@@ -143,7 +159,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                 anuga.log.critical('Specific E & Deltat Tot E = %s, %s'
                              % (str(self.inflow.get_enquiry_specific_energy()),
                                 str(self.delta_total_energy)))
-                anuga.log.critical('culvert type = %s' % str(culvert_type))
+                anuga.log.critical('culvert type = %s' % str(self.type))
             # Water has risen above inlet
 
 
@@ -160,6 +176,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                 print 50*'='
                 print 'width ',self.culvert_width
                 print 'depth ',self.culvert_height
+                print 'culvert blockage ',self.culvert_blockage #added by DPM 5/10/2016
                 print 'left bank slope ',self.culvert_z1
                 print 'right bank slope ',self.culvert_z2                
                 print 'flow_width ',self.culvert_width
@@ -177,19 +194,20 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
             Q, barrel_velocity, outlet_culvert_depth, flow_area, case = \
                               weir_orifice_trapezoid_function(width =self.culvert_width,
                                                 depth               =self.culvert_height,
+                                                blockage            =self.culvert_blockage, #added by DPM 5/10/2016
                                                 z1                  =self.culvert_z1,
-                                                z2                  =self.culvert_z2, 
-                                                culvert_slope       =self.culvert_slope,                                                     
+                                                z2                  =self.culvert_z2,                                                      
                                                 flow_width          =self.culvert_width,
                                                 length              =self.culvert_length,
+                                                culvert_slope       =self.culvert_slope,
                                                 driving_energy      =self.driving_energy,
                                                 delta_total_energy  =self.delta_total_energy,
                                                 outlet_enquiry_depth=self.outflow.get_enquiry_depth(),
                                                 sum_loss            =self.sum_loss,
                                                 manning             =self.manning)
         else:
-             Q = barrel_velocity = outlet_culvert_depth = 0.0
-             case = 'Inlet dry'
+            Q = barrel_velocity = outlet_culvert_depth = 0.0
+            case = 'Inlet dry'
 
 
         self.case = case
@@ -210,6 +228,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
 #=============================================================================
 def weir_orifice_trapezoid_function(width, 
                         depth,
+                        blockage, #added by DPM 5/10/2016
                         z1,
                         z2, 
                         flow_width, 
@@ -226,21 +245,82 @@ def weir_orifice_trapezoid_function(width,
     # but ensure the correct flow area and wetted perimeter are used
 
     local_debug = False
-    
-    Q_inlet_unsubmerged = 1.7*((2*width+depth*(z1+z2))/2)*driving_energy**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged (weir flow equation)
-    Q_inlet_submerged = 0.8*anuga.g**0.5*(0.5*depth*(2*width+depth*(z1+z2)))*driving_energy**0.5  # Flow based on Inlet Ctrl Inlet Submerged (orifice equation)
 
-    # FIXME(Ole): Are these functions really for inlet control?
-    if Q_inlet_unsubmerged < Q_inlet_submerged:
-        Q = Q_inlet_unsubmerged
+    if blockage >= 1.0:
+        Q = barrel_velocity = outlet_culvert_depth = 0.0
+        flow_area = 0.00001
+        case = '100 blocked culvert'
+        return Q, barrel_velocity, outlet_culvert_depth, flow_area, case
+    else: 
+        b_depth = (1-blockage)*depth
+        b_width = (1-blockage)*width
+          
+        Q_inlet_unsubmerged = 1.7*((2*b_width+b_depth*(z1+z2))/2)*driving_energy**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged (weir flow equation)
+        Q_inlet_submerged = 0.8*anuga.g**0.5*(0.5*b_depth*(2*b_width+b_depth*(z1+z2)))*driving_energy**0.5  # Flow based on Inlet Ctrl Inlet Submerged (orifice equation)
+
+
+
+        # FIXME(Ole): Are these functions really for inlet control?
+        if Q_inlet_unsubmerged < Q_inlet_submerged:
+            Q = Q_inlet_unsubmerged
+            # Critical Depths Calculation
+            dcrit=0.00001
+            ic=0
+            dyc=0.001
+            while abs(dyc)>0.00001:
+                Tc=b_width+(z1+z2)*dcrit
+                Pc=b_width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
+                Ac=0.5*dcrit*(b_width+Tc)
+                Rc=Ac/Pc
+                fc=Ac**1.5*Tc**-0.5-Q/(9.81**0.5)
+                ffc=Ac**1.5*-0.5*Tc**-1.5*(z1+z2)+Tc**-0.5*1.5*Ac**0.5*Tc
+                dyc=-fc/ffc
+                dcrit=dcrit+dyc
+                ic=ic+1
+            dcrit = dcrit
+            if dcrit > depth:
+                dcrit = depth
+                flow_area = b_width*dcrit+0.5*(z1+z2)*dcrit**2
+                perimeter= 2.0*b_width+(z1+z2)*dcrit + (dcrit**2+(z1*dcrit)**2)**0.5 + (dcrit**2+(z2*dcrit)**2)**0.5
+            else: # dcrit < depth
+                flow_area = b_width*dcrit+0.5*(z1+z2)*dcrit**2
+                perimeter= b_width + (dcrit**2+(z1*dcrit)**2)**0.5 + (dcrit**2+(z2*dcrit)**2)**0.5
+            outlet_culvert_depth = dcrit
+            case = 'Inlet unsubmerged Box Acts as Weir'
+        else: # Inlet Submerged but check internal culvert flow depth
+            Q = Q_inlet_submerged
+            # Critical Depths Calculation
+            dcrit=0.00001
+            ic=0
+            dyc=0.001
+            while abs(dyc)>0.00001:
+                Tc=b_width+(z1+z2)*dcrit
+                Pc=b_width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
+                Ac=0.5*dcrit*(b_width+Tc)
+                Rc=Ac/Pc
+                fc=Ac**1.5*Tc**-0.5-Q/(9.81**0.5)
+                ffc=Ac**1.5*-0.5*Tc**-1.5*(z1+z2)+Tc**-0.5*1.5*Ac**0.5*Tc
+                dyc=-fc/ffc
+                dcrit=dcrit+dyc
+                ic=ic+1
+            dcrit = dcrit
+            if dcrit > depth:
+                dcrit = depth
+                flow_area = b_width*dcrit+0.5*(z1+z2)*dcrit**2
+                perimeter= 2.0*b_width+(z1+z2)*dcrit + (dcrit**2+(z1*dcrit)**2)**0.5 + (dcrit**2+(z2*dcrit)**2)**0.5
+            else: # dcrit < depth
+                flow_area = b_width*dcrit+0.5*(z1+z2)*dcrit**2
+                perimeter= b_width + (dcrit**2+(z1*dcrit)**2)**0.5 + (dcrit**2+(z2*dcrit)**2)**0.5
+            outlet_culvert_depth = dcrit
+            case = 'Inlet submerged Box Acts as Orifice'
         # Critical Depths Calculation
         dcrit=0.00001
         ic=0
         dyc=0.001
         while abs(dyc)>0.00001:
-            Tc=width+(z1+z2)*dcrit
-            Pc=width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
-            Ac=0.5*dcrit*(width+Tc)
+            Tc=b_width+(z1+z2)*dcrit
+            Pc=b_width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
+            Ac=0.5*dcrit*(b_width+Tc)
             Rc=Ac/Pc
             fc=Ac**1.5*Tc**-0.5-Q/(9.81**0.5)
             ffc=Ac**1.5*-0.5*Tc**-1.5*(z1+z2)+Tc**-0.5*1.5*Ac**0.5*Tc
@@ -248,140 +328,90 @@ def weir_orifice_trapezoid_function(width,
             dcrit=dcrit+dyc
             ic=ic+1
         dcrit = dcrit
-        if dcrit > depth:
-            dcrit = depth
-            flow_area = width*dcrit+0.5*(z1+z2)*dcrit**2
-            perimeter= 2.0*width+(z1+z2)*dcrit + (dcrit**2+(z1*dcrit)**2)**0.5 + (dcrit**2+(z2*dcrit)**2)**0.5
-        else: # dcrit < depth
-            flow_area = width*dcrit+0.5*(z1+z2)*dcrit**2
-            perimeter= width + (dcrit**2+(z1*dcrit)**2)**0.5 + (dcrit**2+(z2*dcrit)**2)**0.5
+        # May not need this .... check if same is done above
         outlet_culvert_depth = dcrit
-        case = 'Inlet unsubmerged Box Acts as Weir'
-    else: # Inlet Submerged but check internal culvert flow depth
-        Q = Q_inlet_submerged
-        # Critical Depths Calculation
-        dcrit=0.00001
-        ic=0
-        dyc=0.001
-        while abs(dyc)>0.00001:
-            Tc=width+(z1+z2)*dcrit
-            Pc=width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
-            Ac=0.5*dcrit*(width+Tc)
-            Rc=Ac/Pc
-            fc=Ac**1.5*Tc**-0.5-Q/(9.81**0.5)
-            ffc=Ac**1.5*-0.5*Tc**-1.5*(z1+z2)+Tc**-0.5*1.5*Ac**0.5*Tc
-            dyc=-fc/ffc
-            dcrit=dcrit+dyc
-            ic=ic+1
-        dcrit = dcrit
-        if dcrit > depth:
-            dcrit = depth
-            flow_area = width*dcrit+0.5*(z1+z2)*dcrit**2
-            perimeter= 2.0*width+(z1+z2)*dcrit + (dcrit**2+(z1*dcrit)**2)**0.5 + (dcrit**2+(z2*dcrit)**2)**0.5
-        else: # dcrit < depth
-            flow_area = width*dcrit+0.5*(z1+z2)*dcrit**2
-            perimeter= width + (dcrit**2+(z1*dcrit)**2)**0.5 + (dcrit**2+(z2*dcrit)**2)**0.5
-        outlet_culvert_depth = dcrit
-        case = 'Inlet submerged Box Acts as Orifice'
-    # Critical Depths Calculation
-    dcrit=0.00001
-    ic=0
-    dyc=0.001
-    while abs(dyc)>0.00001:
-        Tc=width+(z1+z2)*dcrit
-        Pc=width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
-        Ac=0.5*dcrit*(width+Tc)
-        Rc=Ac/Pc
-        fc=Ac**1.5*Tc**-0.5-Q/(9.81**0.5)
-        ffc=Ac**1.5*-0.5*Tc**-1.5*(z1+z2)+Tc**-0.5*1.5*Ac**0.5*Tc
-        dyc=-fc/ffc
-        dcrit=dcrit+dyc
-        ic=ic+1
-    dcrit = dcrit
-    # May not need this .... check if same is done above
-    outlet_culvert_depth = dcrit
-    if outlet_culvert_depth > depth:
-        outlet_culvert_depth = depth  # Once again the pipe is flowing full not partfull
-        flow_area = width*depth+0.5*(z1+z2)*depth**2  # Cross sectional area of flow in the culvert
-        perimeter = 2.0*width+(z1+z2)*depth + (depth**2+(z1*depth)**2)**0.5 + (depth**2+(z2*depth)**2)**0.5
-        case = 'Inlet CTRL Outlet unsubmerged PIPE PART FULL'
-    else:
-        flow_area = width*outlet_culvert_depth+0.5*(z1+z2)*outlet_culvert_depth**2
-        perimeter = 2.0*width+(z1+z2)*outlet_culvert_depth + (outlet_culvert_depth**2+(z1*outlet_culvert_depth)**2)**0.5 + (outlet_culvert_depth**2+(z2*outlet_culvert_depth)**2)**0.5
-        case = 'INLET CTRL Culvert is open channel flow we will for now assume critical depth'
-    # Initial Estimate of Flow for Outlet Control using energy slope
-    #( may need to include Culvert Bed Slope Comparison)
-    hyd_rad = flow_area/perimeter
-    culvert_velocity = math.sqrt(delta_total_energy/((sum_loss/2/anuga.g) \
-                                                          +(manning**2*length)/hyd_rad**1.33333))
-    Q_outlet_tailwater = flow_area * culvert_velocity
-
-
-    if delta_total_energy < driving_energy:
-        # Calculate flows for outlet control
-
-        # Determine the depth at the outlet relative to the depth of flow in the Culvert
-        if outlet_enquiry_depth > depth:        # The Outlet is Submerged
-            outlet_culvert_depth=depth
-            flow_area=width*depth+0.5*(z1+z2)*depth**2  # Cross sectional area of flow in the culvert
-            perimeter=width + (depth**2+(z1*depth)**2)**0.5 + (depth**2+(z2*depth)**2)**0.5
-            case = 'Outlet submerged'
-        else:   # Here we use the Culvert Slope to calculate Actual Culvert Depth & Velocity             
-            # Iterate to determine Normal Depth...........
-            
-            Q = min(Q, Q_outlet_tailwater)
-            dnorm=0.00001
-            idn=1
-            dyn=0.001
-            
-            while abs(dyn)>0.0001:
-                Tn=width+(z1+z2)*dnorm
-                An=0.5*dnorm*(width+Tn)
-                Pn=width+2*dnorm*((z1**2+z2**2)**0.5)
-                Rn=An/Pn
-                fn=((culvert_slope**0.5*An*Rn**0.67)/manning) - Q
-                ffn=((culvert_slope**0.5)/manning)*(((Rn**0.67)*Tn)+(Tn/Pn)-(2*dnorm*Rn/Pn))
-                dnorm=dnorm-fn/ffn        
-                dyn=-fn/ffn
-                idn=idn+1
-            outlet_culvert_depth = dnorm
-            if outlet_culvert_depth > depth:
-                outlet_culvert_depth=depth
-                flow_area=width*depth+0.5*(z1+z2)*depth**2
-                perimeter=width + (depth**2+(z1*depth)**2)**0.5 + (depth**2+(z2*depth)**2)**0.5
-                case = 'Outlet is Flowing Full'
-            else:
-                flow_area=width*outlet_culvert_depth+0.5*(z1+z2)*outlet_culvert_depth**2
-                perimeter=width + (outlet_culvert_depth**2+(z1*outlet_culvert_depth)**2)**0.5 + (outlet_culvert_depth**2+(z2*outlet_culvert_depth)**2)**0.5
-                case = 'Outlet is open channel flow'
-
+        if outlet_culvert_depth > depth:
+            outlet_culvert_depth = depth  # Once again the pipe is flowing full not partfull
+            flow_area = b_width*b_depth+0.5*(z1+z2)*(b_depth)**2  # Cross sectional area of flow in the culvert
+            perimeter = 2.0*b_width+(z1+z2)*b_depth + ((b_depth)**2+(z1*(b_depth))**2)**0.5 + ((b_depth)**2+(z2*(b_depth))**2)**0.5
+            case = 'Inlet CTRL Outlet unsubmerged PIPE PART FULL'
+        else:
+            flow_area = b_width*outlet_culvert_depth+0.5*(z1+z2)*outlet_culvert_depth**2
+            perimeter = 2.0*b_width+(z1+z2)*outlet_culvert_depth + (outlet_culvert_depth**2+(z1*outlet_culvert_depth)**2)**0.5 + (outlet_culvert_depth**2+(z2*outlet_culvert_depth)**2)**0.5
+            case = 'INLET CTRL Culvert is open channel flow we will for now assume critical depth'
+        # Initial Estimate of Flow for Outlet Control using energy slope
+        #( may need to include Culvert Bed Slope Comparison)
         hyd_rad = flow_area/perimeter
-
-        # Final Outlet control velocity using tail water
-        culvert_velocity = math.sqrt(delta_total_energy/((sum_loss/2/anuga.g)\
-                                                          +(manning**2*length)/hyd_rad**1.33333))
+        culvert_velocity = math.sqrt(delta_total_energy/((sum_loss/2/anuga.g) \
+                                                              +(manning**2*length)/hyd_rad**1.33333))
         Q_outlet_tailwater = flow_area * culvert_velocity
-
-        Q = min(Q, Q_outlet_tailwater)
-    else:
-
-        pass
-        #FIXME(Ole): What about inlet control?
-
-    if  flow_area <= 0.0 :
-        culv_froude = 0.0
-    else:
-        culv_froude=math.sqrt(Q**2*flow_width/(anuga.g*flow_area**3))
-        
-    if local_debug:
-        anuga.log.critical('FLOW AREA = %s' % str(flow_area))
-        anuga.log.critical('PERIMETER = %s' % str(perimeter))
-        anuga.log.critical('Q final = %s' % str(Q))
-        anuga.log.critical('FROUDE = %s' % str(culv_froude))
-
-    # Determine momentum at the outlet
-    barrel_velocity = Q/(flow_area + anuga.velocity_protection/flow_area)
-
-    # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow
-
-    return Q, barrel_velocity, outlet_culvert_depth, flow_area, case
+    
+    
+        if delta_total_energy < driving_energy:
+            # Calculate flows for outlet control
+    
+            # Determine the depth at the outlet relative to the depth of flow in the Culvert
+            if outlet_enquiry_depth > depth:        # The Outlet is Submerged
+                outlet_culvert_depth=depth
+                flow_area=b_width*b_depth+0.5*(z1+z2)*(b_depth)**2  # Cross sectional area of flow in the culvert
+                perimeter=b_width + ((b_depth)**2+(z1*(b_depth))**2)**0.5 + ((b_depth)**2+(z2*(b_depth))**2)**0.5
+                case = 'Outlet submerged'
+            else:   # Here we use the Culvert Slope to calculate Actual Culvert Depth & Velocity             
+                # Iterate to determine Normal Depth...........
+                
+                Q = min(Q, Q_outlet_tailwater)
+                dnorm=0.00001
+                idn=1
+                dyn=0.001
+                
+                while abs(dyn)>0.0001:
+                    Tn=b_width+(z1+z2)*dnorm
+                    An=0.5*dnorm*(b_width+Tn)
+                    Pn=b_width+2*dnorm*((z1**2+z2**2)**0.5)
+                    Rn=An/Pn
+                    fn=((culvert_slope**0.5*An*Rn**0.67)/manning) - Q
+                    ffn=((culvert_slope**0.5)/manning)*(((Rn**0.67)*Tn)+(Tn/Pn)-(2*dnorm*Rn/Pn))
+                    dnorm=dnorm-fn/ffn        
+                    dyn=-fn/ffn
+                    idn=idn+1
+                outlet_culvert_depth = dnorm
+                if outlet_culvert_depth > depth:
+                    outlet_culvert_depth=depth
+                    flow_area=b_width*b_depth+0.5*(z1+z2)*(b_depth)**2
+                    perimeter=b_width + ((b_depth)**2+(z1*(b_depth))**2)**0.5 + ((b_depth)**2+(z2*(b_depth))**2)**0.5
+                    case = 'Outlet is Flowing Full'
+                else:
+                    flow_area=b_width*outlet_culvert_depth+0.5*(z1+z2)*outlet_culvert_depth**2
+                    perimeter=b_width + (outlet_culvert_depth**2+(z1*outlet_culvert_depth)**2)**0.5 + (outlet_culvert_depth**2+(z2*outlet_culvert_depth)**2)**0.5
+                    case = 'Outlet is open channel flow'
+    
+            hyd_rad = flow_area/perimeter
+    
+            # Final Outlet control velocity using tail water
+            culvert_velocity = math.sqrt(delta_total_energy/((sum_loss/2/anuga.g)\
+                                                              +(manning**2*length)/hyd_rad**1.33333))
+            Q_outlet_tailwater = flow_area * culvert_velocity
+    
+            Q = min(Q, Q_outlet_tailwater)
+        else:
+    
+            pass
+            #FIXME(Ole): What about inlet control?
+    
+        if  flow_area <= 0.0 :
+            culv_froude = 0.0
+        else:
+            culv_froude=math.sqrt(Q**2*flow_width/(anuga.g*flow_area**3))
+            
+        if local_debug:
+            anuga.log.critical('FLOW AREA = %s' % str(flow_area))
+            anuga.log.critical('PERIMETER = %s' % str(perimeter))
+            anuga.log.critical('Q final = %s' % str(Q))
+            anuga.log.critical('FROUDE = %s' % str(culv_froude))
+    
+        # Determine momentum at the outlet
+        barrel_velocity = Q/(flow_area + anuga.velocity_protection/flow_area)
+    
+        # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow
+    
+        return Q, barrel_velocity, outlet_culvert_depth, flow_area, case

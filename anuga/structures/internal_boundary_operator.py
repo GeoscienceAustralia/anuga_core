@@ -115,19 +115,7 @@ class Internal_boundary_operator(anuga.Structure_operator):
         # Finally, set the smoothing timescale we actually want
         self.smoothing_timescale = smoothing_timescale
 
-    #def __call__(self):
-    #    """
-    #        Update for n sub-timesteps
-    #    """
 
-    #    number_of_substeps = 1 
-    #    original_timestep = self.domain.get_timestep()
-    #    self.domain.timestep = original_timestep/(1.0*number_of_substeps)
-    #    
-    #    for i in range(number_of_substeps): 
-    #        anuga.Structure_operator.__call__(self)
-
-    #    self.domain.timestep = original_timestep
 
     def discharge_routine(self):
         """Both implicit and explicit methods available
