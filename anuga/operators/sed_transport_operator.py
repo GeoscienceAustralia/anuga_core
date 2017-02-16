@@ -2,7 +2,6 @@
 Erosion operators
 """
 
-
 import numpy as num
 from scipy.integrate import quad
 from scipy import interpolate
@@ -22,11 +21,11 @@ from anuga import Dirichlet_boundary, Reflective_boundary
 
 
 #===============================================================================
-# Specific Erosion operator trying to implement bed shear
+# Erosion and sed transport operator
 #===============================================================================
 class Sed_transport_operator(Operator, object):
     """
-    Sed transport operator based on Bed shear erosion operator
+    Sed transport operator
     """
 
     def __init__(self, domain,
@@ -37,8 +36,7 @@ class Sed_transport_operator(Operator, object):
                  verbose = False):
                 
         Operator.__init__(self, domain, description, label, logging, verbose)
-        
-                
+
         self.normals = self.domain.normals  
         self.neighbours = self.domain.neighbours
         self.edgelengths = self.domain.edgelengths
@@ -48,7 +46,10 @@ class Sed_transport_operator(Operator, object):
         except:
             self.conc = None
             
+            
         self.depth = self.domain.quantities['height'].centroid_values
+        self.x = self.domain.quantities['x'].centroid_values
+        self.y = self.domain.quantities['y'].centroid_values
         
         self.depth_e = self.domain.quantities['height'].edge_values  
         self.xmom_e = self.domain.quantities['xmomentum'].edge_values
@@ -61,7 +62,6 @@ class Sed_transport_operator(Operator, object):
         self.kappa = 0.408
         self.rho_s = 2650.
         self.rho_w = 1000.
-        
         self.R = (self.rho_s - self.rho_w) / self.rho_w
         
         self.grain_size = 0.00013 # from Griffin et al 2010
@@ -70,17 +70,13 @@ class Sed_transport_operator(Operator, object):
         
         self.bdry_indices = None
         self.inflow_concentration = None
+        
         if self.domain.boundary_map:
             self.initialize_inflow_boundary()    
             
-        self.dx, self.dy = self.get_dx()
+        self.dx = self.get_dx()
         
         self.initialize_arrays()
-        
-        self.x = self.domain.quantities['x'].centroid_values
-        self.y = self.domain.quantities['y'].centroid_values
-        
-        Quantity(domain, name='energy', register=True)
         
         
         
@@ -98,17 +94,24 @@ class Sed_transport_operator(Operator, object):
             dx[j] = num.max((num.abs(edges_j[:,0] - centroids[j,0]))*2.)
             dy[j] = num.max((num.abs(edges_j[:,1] - centroids[j,1]))*2.)
         
-        return dx, dy
+        return (dx + dy).mean()
+        
         
         
     def initialize_arrays(self):
+        """
+        Initialize sed transport arrays and energy quantity
+        """
     
+        Quantity(self.domain, name='energy', register=True)
+        
         self.edot = num.zeros((self.num_cells,))
         self.ddot = num.zeros((self.num_cells,))
         self.u_star = num.zeros((self.num_cells,))
         self.dzdt = num.zeros((self.num_cells,))
         self.dChdt = num.zeros((self.num_cells,))
         self.S = num.zeros((self.num_cells,))
+
 
     @property
     def grain_size(self):
@@ -118,7 +121,8 @@ class Sed_transport_operator(Operator, object):
 
     @grain_size.setter
     def grain_size(self, new_D50):
-        """Set the grain size, update the quantities that use it.
+        """
+        Set the grain size, update the quantities that use it.
 
         Parameters
         ----------
@@ -136,8 +140,10 @@ class Sed_transport_operator(Operator, object):
         self.Re = (sqrt(self.R * g * self.grain_size) * self.grain_size) / self.nu
         
             
+            
     def set_inflow_concentration(self, bdry_conc):
-        """ Set the concentration of sediment in the flow
+        """
+        Set the concentration of sediment in the flow
         along Dirichlet boundaries.
         
         Default value for inflow_concentration is the maximum of the
@@ -149,7 +155,8 @@ class Sed_transport_operator(Operator, object):
         
         
     def initialize_inflow_boundary(self):
-        """Identify the Dirichlet boundaries indices
+        """
+        Identify the Dirichlet boundaries indices
         """
         
         self.bdry_indices = []
@@ -179,7 +186,6 @@ class Sed_transport_operator(Operator, object):
         if not self.inflow_concentration:
             self.inflow_concentration = self.conc.max()
         
-        
         if not self.bdry_indices:
             self.initialize_inflow_boundary()
             
@@ -188,15 +194,19 @@ class Sed_transport_operator(Operator, object):
         self.u_star[:] = 0
         self.dzdt[:] = 0
         self.dChdt[:] = 0
-        
         self.conc[self.depth <= 0.01] = 0.
 
         self.ind = (self.depth > 0.1)
         
         self.update_quantities()    
         
+        
 
     def calculate_energy_slope(self):
+        """
+        Calculate the energy slope of the flow and store
+        as quantity "energy"
+        """
     
         e = self.elev_c + self.depth + self.U**2 / (2. * g)
     
@@ -205,14 +215,11 @@ class Sed_transport_operator(Operator, object):
         quant = self.domain.quantities['energy']
         quant.compute_gradients()
 
-        S = (num.abs(quant.x_gradient) / self.dx +
-                 num.abs(quant.y_gradient) / self.dy) / 2
-        S[S <= 0.000001] = 0.000001
-    
-        S[self.depth < 0.05] = 0.000001
-    
-        self.S = S
-
+        self.S = num.sqrt(quant.x_gradient**2 + quant.y_gradient**2) / 10
+                 
+        self.S[self.S <= 0.000001] = 0.000001
+        self.S[self.depth < 0.01] = 0.000001
+        
         return self.S
     
     
@@ -254,6 +261,9 @@ class Sed_transport_operator(Operator, object):
             self.edot[self.ind] = self.erosion()
             self.ddot[self.ind] = self.deposition()
             
+            self.edot[self.edot > 0.001] = 0.001
+            self.ddot[self.ddot > 0.001] = 0.001
+            
         self.dChdt = (self.edot - self.ddot)
         self.dzdt = -1. * self.dChdt / (1 - self.porosity)
 
@@ -271,24 +281,32 @@ class Sed_transport_operator(Operator, object):
         
         self.elev_c[:] = self.elev_c + dzdt * self.dt
         self.domain.set_quantity('elevation', self.elev_c, location='centroids')
+        
+        self.depth[:] = self.depth - dzdt * self.dt
+        self.domain.set_quantity('height', self.depth, location='centroids')
+
+
 
     def erosion(self):
+        """
+        Calculates the erosion rate as an excess shear stress
+        """
 
         tau_crit = 0.103
-        self.Ke_star = 2
-        self.Ke = self.Ke_star * self.grain_size * sqrt(self.R * g * self.grain_size)
+        self.Ke = 0.2e-6 / tau_crit**(0.5) * 10.
         
-        shear_stress_star = self.u_star[self.ind]**2 / (g * self.R * self.grain_size)
+        shear_stress = self.rho_w * self.u_star[self.ind]**2
         
-        tau_crit_star = tau_crit / ((self.rho_s - self.rho_w) * g * self.grain_size)
-
-        edot = self.Ke * (shear_stress_star - tau_crit_star)
+        edot = self.Ke * (shear_stress - tau_crit)
         edot[edot<0.0] = 0.0
         
         return edot     
 
 
     def deposition(self):
+        """
+        Calculate the deposition rate following Davy and Lague (2004)
+        """
         
         Z = self.settlingvelocity / (self.kappa * self.u_star[self.ind])
         
@@ -297,10 +315,10 @@ class Sed_transport_operator(Operator, object):
         -2.97363091e+02,   3.78936399e+01,   5.46546143e-01])
         p = num.poly1d(z)
         
-        d_star = p(Z)
-        d_star[Z>4] = -20000 + 10000 * Z[Z > 4]
+        self.d_star = p(Z)
+        self.d_star[Z>4] = -20000 + 10000 * Z[Z > 4]
         
-        ddot = d_star * self.conc[self.ind] * self.settlingvelocity
+        ddot = self.d_star * self.conc[self.ind] * self.settlingvelocity
         ddot[ddot<0.0] = 0.0
     
         return ddot           
@@ -332,6 +350,9 @@ class Sed_transport_operator(Operator, object):
         to calculate the new concentration at centroids
         
         Assumes that sediment moves at the same speed as the flow
+        
+        Negative edge fluxes are inwards and must use the concentration of the neighbour
+        Positive edge fluxes are outwards and use the concentration of the cell
         """
     
         normal_vels = num.zeros((self.num_cells,3))
@@ -344,9 +365,6 @@ class Sed_transport_operator(Operator, object):
 
         
         edge_flux = (self.depth_e * self.edgelengths * normal_vels * self.dt)
-        
-        # negative fluxes are inwards and must use the concentration of the neighbour
-        # positive fluxes are outwards and use the concentration of this cell
         
         neighbour_conc = self.conc[self.neighbours]
         
@@ -364,6 +382,7 @@ class Sed_transport_operator(Operator, object):
                 if n < 0:
                     sed_flux[k,i] =  edge_flux[k,i] * self.inflow_concentration
         
+        
         sed_vol_change = num.sum(-sed_flux, axis=1)
         
         sed_vol_in_cell = self.conc * self.depth * self.areas
@@ -374,8 +393,6 @@ class Sed_transport_operator(Operator, object):
                              (self.depth[self.ind] * self.areas[self.ind]))
 
         self.conc[self.conc > 0.5] = 0.5
-                            
-#         assert self.conc.max() < 0.65, 'Max concentration is %f' % self.conc.max()
         
         self.domain.quantities['concentration'].\
                 set_values(self.conc, location = 'centroids') 
