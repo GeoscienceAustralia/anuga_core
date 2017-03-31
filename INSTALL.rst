@@ -140,7 +140,7 @@ the installation. See this `excellent documentation for Windows users`_
     
 .. _AnuGA: http://anuga.anu.edu.au/ 
 .. _install git: http://git-scm.com/
-.. _Github: https://github.com/stoiver/anuga_core/
+.. _Github: https://github.com/GeoscienceAustralia/anuga_core/
 .. _Python: http://www.python.org/
 .. _pip: http://www.pip-installer.org
 .. _MinGW: http://www.mingw.org/
