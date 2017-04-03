@@ -202,6 +202,9 @@ class Parallel_Structure_operator(anuga.Operator):
                 # Try to enforce a constant inlet elevation 
                 inlet_global_elevation = self.inlets[-1].get_global_average_elevation() 
                 self.inlets[-1].set_elevations(inlet_global_elevation)
+                
+            if invert_elevation0  is not None:
+                self.inlets[-1].set_elevations(invert_elevation0)
        
         else:
             self.inlets.append(None)
@@ -239,6 +242,9 @@ class Parallel_Structure_operator(anuga.Operator):
                 # Try to enforce a constant inlet elevation 
                 inlet_global_elevation = self.inlets[-1].get_global_average_elevation() 
                 self.inlets[-1].set_elevations(inlet_global_elevation)
+                
+            if invert_elevation1 is not None:
+                self.inlets[-1].set_elevations(invert_elevation1)
             
 
         else:
