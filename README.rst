@@ -8,9 +8,6 @@
     :target: https://pypi.python.org/pypi/anuga/
     :alt: Latest Version
     
-.. image:: https://img.shields.io/pypi/dm/anuga.svg
-    :target: https://pypi.python.org/pypi/anuga/
-    :alt: Downloads
     
 =====
 AnuGA
