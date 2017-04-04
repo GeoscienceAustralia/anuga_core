@@ -1,5 +1,6 @@
 import anuga
 import math
+import numpy
 
 from anuga.structures.boyd_pipe_operator import boyd_pipe_function
 
@@ -22,8 +23,10 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                  losses,
                  diameter,
                  blockage=0.0,
+                 barrels=1.0,
                  z1=0.0,
                  z2=0.0,
+                 #height=None,
                  end_points=None,
                  exchange_lines=None,
                  enquiry_points=None,
@@ -31,7 +34,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                  apron=0.1,
                  manning=0.013,
                  enquiry_gap=0.0,
-                 smoothing_timescale=0.0,                 
+                 smoothing_timescale=0.0,
                  use_momentum_jet=True,
                  use_velocity_head=True,
                  description=None,
@@ -55,6 +58,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                                           height=None,
                                           diameter=diameter,
                                           blockage=blockage,
+                                          barrels=barrels,
                                           z1=0.0,
                                           z2=0.0,
                                           apron=apron,
@@ -93,7 +97,8 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
         self.culvert_height = self.get_culvert_height()
         self.culvert_diameter = self.get_culvert_diameter()
         self.culvert_blockage = self.get_culvert_blockage()
-
+        self.culvert_barrels = self.get_culvert_barrels()
+        
         self.max_velocity = 10.0
 
         self.inlets = self.get_inlets()
@@ -139,7 +144,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
         return True
 
 
-    
+
     def discharge_routine(self):
         """
         Get info from inlets and then call sequential function
@@ -188,19 +193,39 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
         self.outflow_index = 1
         # master proc orders reversal if applicable
         if self.myid == self.master_proc:
-
+            # May/June 2014 -- change the driving forces gradually, with forward euler timestepping 
+            #
+            forward_Euler_smooth=True
+            if(forward_Euler_smooth):
+                # To avoid 'overshoot' we ensure ts<1.
+                if(self.domain.timestep>0.):
+                    ts=self.domain.timestep/max(self.domain.timestep, self.smoothing_timescale,1.0e-06)
+                else:
+                    # This case is included in the serial version, which ensures the unit tests pass
+                    # even when domain.timestep=0.0. 
+                    # Note though the discontinuous behaviour as domain.timestep-->0. from above
+                    ts=1.0
+                self.smooth_delta_total_energy=self.smooth_delta_total_energy+\
+                                        ts*(self.delta_total_energy-self.smooth_delta_total_energy)
+            else:
+                # Use backward euler -- the 'sensible' ts limitation is different in this case
+                # ts --> Inf is reasonable and corresponds to the 'nosmoothing' case
+                ts=self.domain.timestep/max(self.smoothing_timescale, 1.0e-06)
+                self.smooth_delta_total_energy = (self.smooth_delta_total_energy+ts*(self.delta_total_energy))/(1.+ts)
 
             # Reverse the inflow and outflow direction?
-            if self.delta_total_energy < 0:
+            if self.smooth_delta_total_energy < 0:
                 self.inflow_index = 1
                 self.outflow_index = 0
 
-                self.delta_total_energy = -self.delta_total_energy
+                #self.delta_total_energy = -self.delta_total_energy
+                self.delta_total_energy = -self.smooth_delta_total_energy
 
                 for i in self.procs:
                     if i == self.master_proc: continue
                     pypar.send(True, i)
             else:
+                self.delta_total_energy = self.smooth_delta_total_energy
                 for i in self.procs:
                     if i == self.master_proc: continue
                     pypar.send(False, i)
@@ -271,17 +296,39 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
 
 
                 Q, barrel_velocity, outlet_culvert_depth, flow_area, case = \
-                              boyd_pipe_function(depth               =inflow_enq_depth,
-                                                diameter             =self.culvert_diameter,
-                                                length               =self.culvert_length,
-                                                blockage             =self.culvert_blockage,
-                                                driving_energy       =self.driving_energy,
-                                                delta_total_energy   =self.delta_total_energy,
-                                                outlet_enquiry_depth =outflow_enq_depth,
-                                                sum_loss             =self.sum_loss,
-                                                manning              =self.manning)
+                              boyd_pipe_function(depth              =inflow_enq_depth,
+                                                diameter            =self.culvert_diameter,
+                                                length              =self.culvert_length,
+                                                blockage            =self.culvert_blockage,
+                                                barrels             =self.culvert_barrels,
+                                                driving_energy      =self.driving_energy,
+                                                delta_total_energy  =self.delta_total_energy,
+                                                outlet_enquiry_depth=outflow_enq_depth,
+                                                sum_loss            =self.sum_loss,
+                                                manning             =self.manning)
 
-
+                ################################################
+                # Smooth discharge. This can reduce oscillations
+                # 
+                # NOTE: The sign of smooth_Q assumes that
+                #   self.inflow_index=0 and self.outflow_index=1
+                #   , whereas the sign of Q is always positive
+                Qsign=(self.outflow_index-self.inflow_index) # To adjust sign of Q
+                if(forward_Euler_smooth):
+                    self.smooth_Q = self.smooth_Q +ts*(Q*Qsign-self.smooth_Q)
+                else: 
+                    # Try implicit euler method
+                    self.smooth_Q = (self.smooth_Q+ts*(Q*Qsign))/(1.+ts)
+                
+                if numpy.sign(self.smooth_Q)!=Qsign:
+                    # The flow direction of the 'instantaneous Q' based on the
+                    # 'smoothed delta_total_energy' is not the same as the
+                    # direction of smooth_Q. To prevent 'jumping around', let's
+                    # set Q to zero
+                    Q=0.
+                else:
+                    Q = min(abs(self.smooth_Q), Q) #abs(self.smooth_Q)
+                barrel_velocity=Q/flow_area
             # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow
 
             else: # self.inflow.get_enquiry_depth() < 0.01:
@@ -301,3 +348,5 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
             return Q, barrel_velocity, outlet_culvert_depth
         else:
             return None, None, None
+        
+        

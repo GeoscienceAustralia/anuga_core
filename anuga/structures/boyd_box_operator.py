@@ -7,7 +7,6 @@ import numpy
 # The class
 #=====================================================================
 
-
 class Boyd_box_operator(anuga.Structure_operator):
     """Culvert flow - transfer water from one rectangular box to another.
     Sets up the geometry of problem
@@ -25,11 +24,12 @@ class Boyd_box_operator(anuga.Structure_operator):
     def __init__(self,
                  domain,
                  losses,
-                 width,                                    
-                 height=None,                        
+                 width,
+                 height=None,
+                 barrels=1.0,
                  blockage=0.0,
                  z1=0.0,
-                 z2=0.0,                 
+                 z2=0.0,
                  end_points=None,
                  exchange_lines=None,
                  enquiry_points=None,
@@ -55,6 +55,7 @@ class Boyd_box_operator(anuga.Structure_operator):
                                           width=width,
                                           height=height,
                                           blockage=blockage,
+                                          barrels=barrels,
                                           diameter=None,                                         
                                           apron=apron,
                                           manning=manning,
@@ -83,7 +84,8 @@ class Boyd_box_operator(anuga.Structure_operator):
         self.culvert_width = self.get_culvert_width()
         self.culvert_height = self.get_culvert_height()
         self.culvert_blockage = self.get_culvert_blockage()
-
+        self.culvert_barrels = self.get_culvert_barrels()
+        
         #FIXME SR: Why is this hard coded!
         self.max_velocity = 10.0
 
@@ -196,6 +198,7 @@ class Boyd_box_operator(anuga.Structure_operator):
                 print 'width ',self.culvert_width
                 print 'depth ',self.culvert_height
                 print 'culvert blockage ',self.culvert_blockage
+                print 'number of culverts ',self.culvert_barrels
                 print 'flow_width ',self.culvert_width
                 print 'length ' ,self.culvert_length
                 print 'driving_energy ',self.driving_energy
@@ -210,14 +213,16 @@ class Boyd_box_operator(anuga.Structure_operator):
             Q, barrel_velocity, outlet_culvert_depth, flow_area, case = \
                               boyd_box_function(width               =self.culvert_width,
                                                 depth               =self.culvert_height,
-                                                blockage            =self.culvert_blockage,#added DPM 24/7/2016
+                                                blockage            =self.culvert_blockage,
+                                                barrels             =self.culvert_barrels,
                                                 flow_width          =self.culvert_width,
-                                                length              =self.culvert_length,                                                
+                                                length              =self.culvert_length,
                                                 driving_energy      =self.driving_energy,
                                                 delta_total_energy  =self.delta_total_energy,
                                                 outlet_enquiry_depth=self.outflow.get_enquiry_depth(),
                                                 sum_loss            =self.sum_loss,
                                                 manning             =self.manning)
+
             #
             # Update 02/07/2014 -- using time-smoothed discharge
             Qsign=numpy.sign(self.smooth_delta_total_energy) #(self.outflow_index-self.inflow_index) # To adjust sign of Q
@@ -260,9 +265,10 @@ class Boyd_box_operator(anuga.Structure_operator):
 #=============================================================================
 def boyd_box_function(width, 
                         depth, 
-                        blockage,  # added by DPM 24/7/2016
+                        blockage,
+                        barrels,
                         flow_width, 
-                        length,                         
+                        length,
                         driving_energy, 
                         delta_total_energy, 
                         outlet_enquiry_depth, 
@@ -280,7 +286,7 @@ def boyd_box_function(width,
         flow_area = 0.00001
         case = '100 blocked culvert'
         return Q, barrel_velocity, outlet_culvert_depth, flow_area, case
-    else:		       
+    else:				       
         Q_inlet_unsubmerged = 0.544*anuga.g**0.5*(1-blockage)*width*driving_energy**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged
         Q_inlet_submerged = 0.702*anuga.g**0.5*(1-blockage)**2*width*depth**0.89*driving_energy**0.61  # Flow based on Inlet Ctrl Inlet Submerged
 
@@ -386,4 +392,5 @@ def boyd_box_function(width,
 
     # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow
 
-    return Q, barrel_velocity, outlet_culvert_depth, flow_area, case
+    return barrels*Q, barrel_velocity, outlet_culvert_depth, flow_area, case
+

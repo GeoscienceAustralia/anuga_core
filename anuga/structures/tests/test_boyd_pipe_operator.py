@@ -120,8 +120,9 @@ class Test_boyd_pipe_operator(unittest.TestCase):
 
         culvert_length = 20.0
         culvert_width = 1.2
-        ##culvert_height = 3.66
+
         culvert_blockage = 0.0
+        #culvert_barrels = 1.0
         
         culvert_losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         culvert_mannings = 0.013
@@ -156,7 +157,7 @@ class Test_boyd_pipe_operator(unittest.TestCase):
                                     diameter=culvert_width,
                                     blockage=culvert_blockage,
                                     end_points=[ep0, ep1],
-                                    #height=culvert_height,
+                                    #barrels=culvert_barrels,
                                     apron=culvert_apron,
                                     enquiry_gap=enquiry_gap,
                                     use_momentum_jet=False,
@@ -197,8 +198,9 @@ class Test_boyd_pipe_operator(unittest.TestCase):
 
         culvert_length = 20.0
         culvert_width = 1.2
-        ##culvert_height = 3.66
+
         culvert_blockage = 0.0
+        #culvert_barrels = 1.0
                 
         culvert_losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         culvert_mannings = 0.013
@@ -233,7 +235,7 @@ class Test_boyd_pipe_operator(unittest.TestCase):
                                     diameter=culvert_width,
                                     blockage=culvert_blockage,
                                     end_points=[ep0, ep1],
-                                    #height=culvert_height,
+                                    #barrels=culvert_barrels,
                                     apron=culvert_apron,
                                     enquiry_gap=enquiry_gap,
                                     use_momentum_jet=False,
@@ -274,8 +276,9 @@ class Test_boyd_pipe_operator(unittest.TestCase):
 
         culvert_length = 20.0
         culvert_width = 1.2
-        ##culvert_height = 3.66
+
         culvert_blockage=0.0
+        #culvert_barrels = 1.0
         
         culvert_losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         culvert_mannings = 0.013
@@ -310,7 +313,7 @@ class Test_boyd_pipe_operator(unittest.TestCase):
                                     diameter=culvert_width,
                                     blockage=culvert_blockage,
                                     end_points=[ep0, ep1],
-                                    #height=culvert_height,
+                                    #barrels=culvert_barrels,
                                     apron=culvert_apron,
                                     enquiry_gap=enquiry_gap,
                                     use_momentum_jet=False,
@@ -352,8 +355,9 @@ class Test_boyd_pipe_operator(unittest.TestCase):
 
         culvert_length = 20.0
         culvert_width = 1.2
-        ##culvert_height = 3.66
+
         culvert_blockage = 0.0
+        #culvert_barrels = 1.0
         
         culvert_losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         culvert_mannings = 0.013
@@ -388,7 +392,7 @@ class Test_boyd_pipe_operator(unittest.TestCase):
                                     diameter=culvert_width,
                                     blockage=culvert_blockage,
                                     end_points=[ep0, ep1],
-                                    #height=culvert_height,
+                                    #barrels=culvert_barrels,
                                     apron=culvert_apron,
                                     enquiry_gap=enquiry_gap,
                                     use_momentum_jet=False,
@@ -430,8 +434,9 @@ class Test_boyd_pipe_operator(unittest.TestCase):
 
         culvert_length = 20.0
         culvert_width = 1.2
-        ##culvert_height = 3.66
+
         culvert_blockage = 0.0
+        #culvert_barrels = 1.0
         
         culvert_losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         culvert_mannings = 0.013
@@ -466,7 +471,7 @@ class Test_boyd_pipe_operator(unittest.TestCase):
                                     diameter=culvert_width,
                                     blockage=culvert_blockage,
                                     end_points=[ep0, ep1],
-                                    #height=culvert_height,
+                                    #barrels=culvert_barrels,
                                     apron=culvert_apron,
                                     enquiry_gap=enquiry_gap,
                                     use_momentum_jet=False,
@@ -509,8 +514,9 @@ class Test_boyd_pipe_operator(unittest.TestCase):
 
         culvert_length = 20.0
         culvert_width = 1.2
-        ##culvert_height = 3.66
+
         culvert_blockage = 0.50
+        #culvert_barrels = 1.0
         
         culvert_losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         culvert_mannings = 0.013
@@ -545,7 +551,7 @@ class Test_boyd_pipe_operator(unittest.TestCase):
                                     diameter=culvert_width,
                                     blockage=culvert_blockage,
                                     end_points=[ep0, ep1],
-                                    #height=culvert_height,
+                                    #barrels=culvert_barrels,
                                     apron=culvert_apron,
                                     enquiry_gap=enquiry_gap,
                                     use_momentum_jet=False,
@@ -588,8 +594,9 @@ class Test_boyd_pipe_operator(unittest.TestCase):
 
         culvert_length = 20.0
         culvert_width = 1.2
-        ##culvert_height = 3.66
+
         culvert_blockage = 1.0
+        #culvert_barrels = 1.0
         
         culvert_losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         culvert_mannings = 0.013
@@ -624,7 +631,7 @@ class Test_boyd_pipe_operator(unittest.TestCase):
                                     diameter=culvert_width,
                                     blockage=culvert_blockage,
                                     end_points=[ep0, ep1],
-                                    #height=culvert_height,
+                                    #barrels=culvert_barrels,
                                     apron=culvert_apron,
                                     enquiry_gap=enquiry_gap,
                                     use_momentum_jet=False,
