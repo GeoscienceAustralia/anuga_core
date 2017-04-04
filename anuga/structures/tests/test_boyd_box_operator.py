@@ -352,6 +352,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         culvert_width=3.6
         culvert_height=1.20
         culvert_blockage = 0.00
+        culvert_barrels = 1.0
         
         culvert_type='box'
         manning=0.013
@@ -382,7 +383,8 @@ class Test_boyd_box_operator(unittest.TestCase):
             
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
-                                                    culvert_blockage, 
+                                                    culvert_blockage,
+                                                    culvert_barrels, 
                                                     culvert_width, 
                                                     culvert_length, 
                                                     inlet_specific_energy, 
@@ -530,6 +532,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         culvert_width=3.60
         culvert_height=1.20
         culvert_blockage = 0.00
+        culvert_barrels = 1.0
                 
         culvert_type='box'
         manning=0.013
@@ -562,6 +565,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
                                                     culvert_blockage, 
+                                                    culvert_barrels, 
                                                     culvert_width, 
                                                     culvert_length, 
                                                     inlet_specific_energy, 
@@ -707,6 +711,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         culvert_width=3.60
         culvert_height=1.20
         culvert_blockage = 0.00
+        culvert_barrels = 1.0
                 
         culvert_type='box'
         manning=0.013
@@ -740,6 +745,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
                                                     culvert_blockage, 
+                                                    culvert_barrels, 
                                                     culvert_width, 
                                                     culvert_length, 
                                                     inlet_specific_energy, 
@@ -893,6 +899,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         culvert_width=3.60
         culvert_height=1.20
         culvert_blockage = 0.00
+        culvert_barrels = 1.0
                
         culvert_type='box'
         manning=0.013
@@ -928,6 +935,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
                                                     culvert_blockage, 
+                                                    culvert_barrels, 
                                                     culvert_width, 
                                                     culvert_length, 
                                                     inlet_specific_energy, 
@@ -965,7 +973,8 @@ class Test_boyd_box_operator(unittest.TestCase):
         culvert_length=10.0
         culvert_width=3.60
         culvert_height=1.20
-       
+        culvert_barrels = 1.0
+        
         culvert_type='box'
         manning=0.013
         sum_loss=1.5
@@ -1073,6 +1082,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         culvert_width=3.60
         culvert_height=1.20
         culvert_blockage = 0.00
+        culvert_barrels = 1.0
                 
         culvert_type='box'
         manning=0.013
@@ -1105,6 +1115,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
                                                     culvert_blockage, 
+                                                    culvert_barrels, 
                                                     culvert_width, 
                                                     culvert_length, 
                                                     inlet_specific_energy, 
@@ -1254,6 +1265,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         culvert_width=3.60
         culvert_height=1.20
         culvert_blockage = 0.00
+        culvert_barrels = 1.0
                 
         culvert_type='box'
         manning=0.013
@@ -1286,6 +1298,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
                                                     culvert_blockage, 
+                                                    culvert_barrels, 
                                                     culvert_width, 
                                                     culvert_length, 
                                                     inlet_specific_energy, 
@@ -1431,6 +1444,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         culvert_width=3.6
         culvert_height=1.20
         culvert_blockage = 0.00
+        culvert_barrels = 1.0
                 
         culvert_type='box'
         manning=0.013
@@ -1466,6 +1480,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
                                                     culvert_blockage, 
+                                                    culvert_barrels, 
                                                     culvert_width, 
                                                     culvert_length, 
                                                     inlet_specific_energy, 
@@ -1623,6 +1638,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         culvert_width=3.60
         culvert_height=1.20
         culvert_blockage = 0.00
+        culvert_barrels = 1.0
                 
         culvert_type='box'
         manning=0.013
@@ -1656,6 +1672,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
                                                     culvert_blockage, 
+                                                    culvert_barrels, 
                                                     culvert_width, 
                                                     culvert_length, 
                                                     inlet_specific_energy, 
@@ -1808,6 +1825,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         culvert_width=3.60
         culvert_height=1.20
         culvert_blockage = 0.00
+        culvert_barrels = 1.0
                 
         culvert_type='box'
         manning=0.013
@@ -1841,6 +1859,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
                                                     culvert_blockage, 
+                                                    culvert_barrels, 
                                                     culvert_width, 
                                                     culvert_length, 
                                                     inlet_specific_energy, 
@@ -1997,7 +2016,8 @@ class Test_boyd_box_operator(unittest.TestCase):
         culvert_width=3.60
         culvert_height=1.20
         culvert_blockage = 0.0
-       
+        culvert_barrels = 1.0
+        
         culvert_type='box'
         manning=0.013
         sum_loss=1.5
@@ -2031,6 +2051,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
                                                     culvert_blockage, 
+                                                    culvert_barrels, 
                                                     culvert_width, 
                                                     culvert_length, 
                                                     inlet_specific_energy, 
@@ -2187,6 +2208,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         culvert_width=3.60
         culvert_height=1.20
         culvert_blockage = 0.00
+        culvert_barrels = 1.0
         
         culvert_type='box'
         manning=0.013
@@ -2219,7 +2241,8 @@ class Test_boyd_box_operator(unittest.TestCase):
             
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
-                                                    culvert_blockage, 
+                                                    culvert_blockage,
+                                                    culvert_barrels,  
                                                     culvert_width, 
                                                     culvert_length, 
                                                     inlet_specific_energy, 
@@ -2376,6 +2399,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         culvert_width=3.60
         culvert_height=1.20
         culvert_blockage = 0.00
+        culvert_barrels = 1.0
         
         culvert_type='box'
         manning=0.013
@@ -2409,6 +2433,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
                                                     culvert_blockage, 
+                                                    culvert_barrels, 
                                                     culvert_width, 
                                                     culvert_length, 
                                                     inlet_specific_energy, 
@@ -2676,6 +2701,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         culvert_width=3.6
         culvert_height=1.20
         culvert_blockage = 0.50
+        culvert_barrels = 1.0
                 
         culvert_type='box'
         manning=0.013
@@ -2710,7 +2736,8 @@ class Test_boyd_box_operator(unittest.TestCase):
             
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
-                                                    culvert_blockage, 
+                                                    culvert_blockage,
+                                                    culvert_barrels,  
                                                     culvert_width, 
                                                     culvert_length, 
                                                     inlet_specific_energy, 
@@ -2867,6 +2894,7 @@ class Test_boyd_box_operator(unittest.TestCase):
         culvert_width=3.60
         culvert_height=1.20
         culvert_blockage = 0.50
+        culvert_barrels = 1.0
         
         culvert_type='box'
         manning=0.013
@@ -2899,7 +2927,8 @@ class Test_boyd_box_operator(unittest.TestCase):
             
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
-                                                    culvert_blockage, 
+                                                    culvert_blockage,
+                                                    culvert_barrels,  
                                                     culvert_width, 
                                                     culvert_length, 
                                                     inlet_specific_energy, 
@@ -3145,7 +3174,7 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         assert numpy.allclose(Q, Q_expected, rtol=2.0e-2) #inflow
         assert numpy.allclose(v, v_expected, rtol=2.0e-2) #outflow velocity
-        assert numpy.allclose(d, d_expected, rtol=2.0e-2) #depth at outlet used to calc v           
+        assert numpy.allclose(d, d_expected, rtol=2.0e-2) #depth at outlet used to calc v          
 # =========================================================================
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_boyd_box_operator, 'test')

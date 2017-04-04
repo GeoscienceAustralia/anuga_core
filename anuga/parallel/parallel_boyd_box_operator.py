@@ -23,9 +23,10 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                  losses,
                  width,
                  blockage=0.0,
+                 barrels=1.0,
                  z1=0.0,
-                 z2=0.0,                
-                 height=None,                
+                 z2=0.0,
+                 height=None,
                  end_points=None,
                  exchange_lines=None,
                  enquiry_points=None,
@@ -56,6 +57,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                                           width=width,
                                           height=height,
                                           blockage=blockage,
+                                          barrels=barrels,
                                           z1=0.0,
                                           z2=0.0,
                                           diameter= None,                                         
@@ -64,9 +66,9 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                                           enquiry_gap=enquiry_gap,
                                           use_momentum_jet=use_momentum_jet,
                                           zero_outflow_momentum=(not use_momentum_jet),
-                                          use_old_momentum_method=True, 
-                                          always_use_Q_wetdry_adjustment=True, 
-                                          force_constant_inlet_elevations=False, 
+                                          use_old_momentum_method=True,
+                                          always_use_Q_wetdry_adjustment=True,
+                                          force_constant_inlet_elevations=False,
                                           description=description,
                                           label=label,
                                           structure_type=structure_type,
@@ -94,7 +96,8 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
         self.culvert_width = self.get_culvert_width()
         self.culvert_height = self.get_culvert_height()
         self.culvert_blockage = self.get_culvert_blockage()
-
+        self.culvert_barrels = self.get_culvert_barrels()
+        
         self.max_velocity = 10.0
 
         self.inlets = self.get_inlets()
@@ -121,6 +124,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
         # Finally, set the smoothing timescale we actually want
         self.smoothing_timescale=smoothing_timescale
 
+
         '''
         print "ATTRIBUTES OF PARALLEL BOYD BOX::"
         for attr in dir(self):
@@ -129,12 +133,18 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
 
 
     def parallel_safe(self):
+        """
+        Set that operator is parallel safe
+        """
 
         return True
 
 
 
     def discharge_routine(self):
+        """
+        Get info from inlets and then call sequential function
+        """
 
         import pypar
 
@@ -279,14 +289,15 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                     self.driving_energy = inflow_enq_specific_energy
                 else:
                     self.driving_energy = inflow_enq_depth
-                    
-            
+
+
                 Q, barrel_velocity, outlet_culvert_depth, flow_area, case = \
                               boyd_box_function(depth               =self.culvert_height,
                                                 width               =self.culvert_width,
                                                 flow_width          =self.culvert_width,
                                                 length              =self.culvert_length,
                                                 blockage            =self.culvert_blockage,
+                                                barrels             =self.culvert_barrels,
                                                 driving_energy      =self.driving_energy,
                                                 delta_total_energy  =self.delta_total_energy,
                                                 outlet_enquiry_depth=outflow_enq_depth,
@@ -329,7 +340,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                 barrel_velocity = self.max_velocity
                 Q = flow_area * barrel_velocity
 
-            
+
 
             return Q, barrel_velocity, outlet_culvert_depth
         else:

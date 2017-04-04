@@ -43,9 +43,10 @@ class Parallel_Structure_operator(anuga.Operator):
                  width,
                  height,
                  diameter,
-                 z1,#added by PM 22/10/2013
-                 z2,#added by PM 22/10/2013
-                 blockage,#added by PM 24/7/2016  
+                 z1,
+                 z2,
+                 blockage,
+                 barrels,
                  apron,
                  manning,
                  enquiry_gap,
@@ -115,9 +116,10 @@ class Parallel_Structure_operator(anuga.Operator):
         self.width  = width
         self.height = height
         self.diameter = diameter
-        self.z1 = z1 #added by PM 22/10/2013
-        self.z2 = z2 #added by PM 22/10/2013
-        self.blockage = blockage #added by PM 24/7/2016  
+        self.z1 = z1
+        self.z2 = z2
+        self.blockage = blockage
+        self.barrels = barrels
         self.apron  = apron
         self.manning = manning
         self.enquiry_gap = enquiry_gap
@@ -588,15 +590,17 @@ class Parallel_Structure_operator(anuga.Operator):
             if self.structure_type == 'boyd_pipe':
                 message += 'Culvert Diameter: %s\n'% self.diameter
                 message += 'Culvert Blockage: %s\n'% self.blockage
+                message += 'No.  of  barrels: %s\n'% self.barrels
             elif self.structure_type == 'boyd_box':
                 message += 'Culvert   Height: %s\n'% self.height
                 message += 'Culvert    Width: %s\n'% self.width
                 message += 'Culvert Blockage: %s\n'% self.blockage
+                message += 'No.  of  barrels: %s\n'% self.barrels
             else:
-                message += 'Culvert   Height: %s\n'% self.height
-                message += 'Culvert    Width: %s\n'% self.width
-                message += 'Batter Slope 1 %s\n'% self.z1
-                message += 'Batter Slope 2 %s\n'% self.z2
+                message += 'Culvert Height: %s\n'% self.height
+                message += 'Culvert  Width: %s\n'% self.width
+                message += 'Batter Slope 1: %s\n'% self.z1
+                message += 'Batter Slope 2: %s\n'% self.z2
                 
         #print "Structure Myids ",self.myid, self.label
         
@@ -720,15 +724,18 @@ class Parallel_Structure_operator(anuga.Operator):
     def get_culvert_height(self):
         return self.height
 
-    def get_culvert_z1(self): #added by PM 22/10/2013
+    def get_culvert_z1(self):
         return self.z1
 
-    def get_culvert_z2(self): #added by PM 22/10/2013       
+    def get_culvert_z2(self):   
         return self.z2
 
-    def get_culvert_blockage(self): #added by PM 24/7/2016		
-        return self.blockage #added by PM 24/7/2016 
-                
+    def get_culvert_blockage(self):	
+        return self.blockage
+
+    def get_culvert_barrels(self):	
+        return self.barrels
+                        
     def get_culvert_apron(self):
         return self.apron
 
@@ -757,18 +764,23 @@ class Parallel_Structure_operator(anuga.Operator):
 
         self.culvert_width = width
 
-    def set_culvert_z1(self, z1):#added by PM 22/10/2013 
+    def set_culvert_z1(self, z1):
 
         self.culvet_z1 = z1        
 
-    def set_culvert_z2(self, z2):#added by PM 22/10/2013 
+    def set_culvert_z2(self, z2):
 
         self.culvert_z2 = z2  
 
-    def set_culvert_blockage(self, blockage): #added by PM 24/7/2016  
+    def set_culvert_blockage(self, blockage): 
 
-        self.culvert_blockage = blockage  #added by PM 24/7/2016 
-                
+        self.culvert_blockage = blockage 
+
+    def set_culvert_blockage(self, barrels): 
+
+        self.culvert_barrels = barrels 
+        
+                        
     def parallel_safe(self):
         return True
 

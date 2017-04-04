@@ -16,7 +16,7 @@ from parallel_inlet_operator import Parallel_Inlet_operator
 from parallel_structure_operator import Parallel_Structure_operator
 from parallel_boyd_box_operator import Parallel_Boyd_box_operator
 from parallel_boyd_pipe_operator import Parallel_Boyd_pipe_operator
-from parallel_weir_orifice_trapezoid_operator import Parallel_Weir_orifice_trapezoid_operator#added by PM 22/10/2013
+from parallel_weir_orifice_trapezoid_operator import Parallel_Weir_orifice_trapezoid_operator
 from parallel_internal_boundary_operator import Parallel_Internal_boundary_operator
 
 from . import distribute, myid, numprocs, finalize
@@ -27,7 +27,7 @@ import anuga.structures.boyd_pipe_operator
 import anuga.structures.inlet_operator
 import anuga.structures.internal_boundary_operator
 
-import anuga.structures.weir_orifice_trapezoid_operator #added by PM 22/10/2013
+import anuga.structures.weir_orifice_trapezoid_operator
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.parallel.parallel_shallow_water import Parallel_domain
@@ -119,7 +119,8 @@ def Boyd_box_operator(domain,
                        losses,
                        width,                       
                        height=None,                                           
-                       blockage=0.0, #added by DPM 24/7/2016 
+                       blockage=0.0,
+                       barrels=1.0,
                        z1=0.0,
                        z2=0.0,
                        end_points=None,
@@ -147,7 +148,8 @@ def Boyd_box_operator(domain,
                                                                     losses=losses,
                                                                     width=width,
                                                                     height=height,
-                                                                    blockage=blockage,#added by DPM 24/7/2016
+                                                                    blockage=blockage,
+                                                                    barrels=barrels,
                                                                     z1=0.0,
                                                                     z2=0.0,
                                                                     end_points=end_points,
@@ -254,7 +256,8 @@ def Boyd_box_operator(domain,
                                          losses=losses,
                                          width=width,
                                          height=height,
-                                         blockage=blockage, #added by DPM 24/7/2016
+                                         blockage=blockage,
+                                         barrels=barrels,
                                          end_points=end_points,
                                          exchange_lines=exchange_lines,
                                          enquiry_points=enquiry_points,
@@ -293,6 +296,7 @@ def Boyd_pipe_operator(domain,
                        losses,
                        diameter,
                        blockage=0.0,
+                       barrels=1.0,
                        end_points=None,
                        exchange_lines=None,
                        enquiry_points=None,
@@ -300,6 +304,7 @@ def Boyd_pipe_operator(domain,
                        apron=0.1,
                        manning=0.013,
                        enquiry_gap=0.0,
+                       smoothing_timescale=0.0,
                        use_momentum_jet=True,
                        use_velocity_head=True,
                        description=None,
@@ -317,6 +322,7 @@ def Boyd_pipe_operator(domain,
                                                                     losses=losses,
                                                                     diameter=diameter,
                                                                     blockage=blockage,
+                                                                    barrels=barrels,
                                                                     end_points=end_points,
                                                                     exchange_lines=exchange_lines,
                                                                     enquiry_points=enquiry_points,
@@ -324,6 +330,7 @@ def Boyd_pipe_operator(domain,
                                                                     apron=apron,
                                                                     manning=manning,
                                                                     enquiry_gap=enquiry_gap,
+                                                                    smoothing_timescale=smoothing_timescale,
                                                                     use_momentum_jet=use_momentum_jet,
                                                                     use_velocity_head=use_velocity_head,
                                                                     description=description,
@@ -414,6 +421,7 @@ def Boyd_pipe_operator(domain,
                                          losses=losses,
                                          diameter=diameter,
                                          blockage=blockage,
+                                         barrels=barrels,
                                          end_points=end_points,
                                          exchange_lines=exchange_lines,
                                          enquiry_points=enquiry_points,
@@ -421,6 +429,7 @@ def Boyd_pipe_operator(domain,
                                          apron=apron,
                                          manning=manning,
                                          enquiry_gap=enquiry_gap,
+                                         smoothing_timescale=smoothing_timescale,
                                          use_momentum_jet=use_momentum_jet,
                                          use_velocity_head=use_velocity_head,
                                          description=description,
