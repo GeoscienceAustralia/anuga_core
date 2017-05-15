@@ -35,7 +35,7 @@ then
 fi
 
 
-UBUNTU_VERSION = `lsb_release -r -s`
+UBUNTU_VERSION=`lsb_release -r -s`
 
 if [[ "$UBUNTU_VERSION" == "12.04" ]]; then
     echo "+===============================================+"
