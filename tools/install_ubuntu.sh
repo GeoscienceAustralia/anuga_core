@@ -35,8 +35,19 @@ then
 fi
 
 
+UBUNTU_VERSION = `lsb_release -r -s`
 
+if [[ "$UBUNTU_VERSION" == "12.04" ]]; then
+    echo "+===============================================+"
+    echo "|  Work around for installing gdal on 12.04     |"
+    echo "+===============================================+"
+    sudo mv /etc/apt/sources.list.d/pgdg-source.list* /tmp ;
+    sudo apt-get -qq remove postgis;
+    sudo add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable;
+fi    
+    
 sudo apt-get update -q
+
 
 ##########################################################
 # Use standard ubuntu packages in their default version
