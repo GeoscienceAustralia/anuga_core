@@ -54,10 +54,10 @@ Also helpful information is available noline at
 Web sites
 ---------
 
-The user's site is:
-
-    http://anuga.anu.edu.au/
-
+The user's site is: http://anuga.anu.edu.au/
+The WikiPedia for AnuGA is: https://en.wikipedia.org/wiki/ANUGA_Hydro
+The GitHub repository for AnuGA is: https://github.com/GeoscienceAustralia/anuga_core
+    
 
 Mailing Lists
 -------------
