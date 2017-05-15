@@ -74,8 +74,12 @@ The latest development version of AnuGA's sources are is available at:
 
     https://github.com/GeoscienceAustralia/anuga_core
 
-They can be downloaded as a zip file or using the Git client.
+They can be downloaded as a zip file or using the Git client as follows
 
+    git clone https://github.com/GeoscienceAustralia/anuga_core (for read only)
+    git clone git@github.com:GeoscienceAustralia/anuga_core.git (to contribute)
+
+For the latter option see e.g. https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/ for instructions on how to authenticate using ssh keys.
 
 Bug reports
 -----------
