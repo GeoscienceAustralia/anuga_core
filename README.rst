@@ -15,7 +15,7 @@ ANUGA
 
 .. contents::
 
-What is AnuGA?
+What is ANUGA?
 --------------
 
 ANUGA (pronounced "AHnooGAH") is open-source software for the simulation of
@@ -29,7 +29,7 @@ We recommend using python 2.7
 Developed at Geoscience Australia and Mathematical Sciences Institute at the
 Australian National University.
 
-Copyright 2004 - 2015 
+Copyright 2004 - 2017 
 Ole Nielsen, Stephen Roberts, Duncan Gray, Jane Sexton, Gareth Davies
 
 
@@ -57,6 +57,8 @@ Web sites
 The user's site is: http://anuga.anu.edu.au/
 The WikiPedia for ANUGA is: https://en.wikipedia.org/wiki/ANUGA_Hydro
 The GitHub repository for ANUGA is: https://github.com/GeoscienceAustralia/anuga_core
+
+A viewer is available for displaying the ANUGA sww output files. ANUGA viewer repository is: https://github.com/GeoscienceAustralia/anuga-viewer
     
 
 Mailing Lists
