@@ -10,26 +10,26 @@
     
     
 =====
-AnuGA
+ANUGA
 =====
 
 .. contents::
 
-What is AnuGA?
+What is ANUGA?
 --------------
 
-AnuGA (pronounced "AHnooGAH") is open-source software for the simulation of
+ANUGA (pronounced "AHnooGAH") is open-source software for the simulation of
 the shallow water equation, in particular it can be used to model tsunamis
 and floods.
 
-AnuGA is a python package with some C extensions (and an optional 
-fortran extension). At present AnuGA has not been ported to python 3. 
+ANUGA is a python package with some C extensions (and an optional 
+fortran extension). At present ANUGA has not been ported to python 3. 
 We recommend using python 2.7  
 
 Developed at Geoscience Australia and Mathematical Sciences Institute at the
 Australian National University.
 
-Copyright 2004 - 2015 
+Copyright 2004 - 2017 
 Ole Nielsen, Stephen Roberts, Duncan Gray, Jane Sexton, Gareth Davies
 
 
@@ -43,7 +43,7 @@ For installation instructions, see
 Documentation
 -------------
 
-AnuGA documentation is available in the doc folder. In particular the 
+ANUGA documentation is available in the doc folder. In particular the 
 `user_manual <https://github.com/GeoscienceAustralia/anuga_core/raw/master/doc/anuga_user_manual.pdf>`_
 
 Also helpful information is available noline at
@@ -54,10 +54,12 @@ Also helpful information is available noline at
 Web sites
 ---------
 
-The user's site is:
+The user's site is: http://anuga.anu.edu.au/
+The WikiPedia for ANUGA is: https://en.wikipedia.org/wiki/ANUGA_Hydro
+The GitHub repository for ANUGA is: https://github.com/GeoscienceAustralia/anuga_core
 
-    http://anuga.anu.edu.au/
-
+A viewer is available for displaying the ANUGA sww output files. ANUGA viewer repository is: https://github.com/GeoscienceAustralia/anuga-viewer
+    
 
 Mailing Lists
 -------------
@@ -70,17 +72,21 @@ Please see anuga user mailing list here:
 Latest source code
 ------------------
 
-The latest development version of AnuGA's sources are is available at:
+The latest development version of ANUGA's sources are is available at:
 
     https://github.com/GeoscienceAustralia/anuga_core
 
-They can be downloaded as a zip file or using the Git client.
+They can be downloaded as a zip file or using the Git client as follows
 
+    git clone https://github.com/GeoscienceAustralia/anuga_core (for read only)
+    git clone git@github.com:GeoscienceAustralia/anuga_core.git (to contribute)
+
+For the latter option see e.g. https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/ for instructions on how to authenticate using ssh keys.
 
 Bug reports
 -----------
 
-To search for bugs or report them, please use the AnuGA's Bug Tracker at:
+To search for bugs or report them, please use the ANUGA's Bug Tracker at:
 
     https://github.com/GeoscienceAustralia/anuga_core/issues
 
@@ -88,7 +94,7 @@ To search for bugs or report them, please use the AnuGA's Bug Tracker at:
 Developer information
 ---------------------
 
-If you would like to take part in AnuGA development, take a look
+If you would like to take part in ANUGA development, take a look
 at `CONTRIBUTING.rst <https://github.com/GeoscienceAustralia/anuga_core/blob/master/CONTRIBUTING.rst>`_.
 
 

@@ -33,10 +33,10 @@ if [ $(dpkg-query -W -f='${Status}\n' openmpi-bin 2>/dev/null | grep -c "ok inst
 then
   ANUGA_PARALLEL="openmpi"
 fi
-
-
-
+   
+    
 sudo apt-get update -q
+
 
 ##########################################################
 # Use standard ubuntu packages in their default version
