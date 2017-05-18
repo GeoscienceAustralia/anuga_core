@@ -21,7 +21,7 @@
 #-----------------------------------------------------
 
 
-__version__ = '2.0'
+__version__ = '2.0.1'
 
 __svn_revision__ = filter(str.isdigit, "$Revision: 9737 $")
 
