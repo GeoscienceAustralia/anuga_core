@@ -90,7 +90,7 @@ class Mesh(General_mesh):
 
         if verbose: log.critical('Mesh: Initialising')
 
-        N = len(self) #Number_of_triangles
+        N = self.__len__() #Number_of_triangles
 
         # Allocate arrays for neighbour data
 
