@@ -17,8 +17,6 @@ build_script:
   - ps: Start-FileDownload "https://repo.continuum.io/miniconda/Miniconda$env:PY_MAJOR_VER-latest-Windows-$env:PYTHON_ARCH.exe" C:\Miniconda.exe; echo "Finished downloading miniconda"
   - cmd: C:\Miniconda.exe /S /D=C:\Py
   - SET PATH=C:\Py;C:\Py\Scripts;C:\Py\Library\bin;%PATH%
-  - cmd: dir
-  - cmd: set
   - cmd: move pydistutils.cfg %HOMEPATH%
   - conda config --set always_yes yes
   - conda update conda
@@ -29,4 +27,4 @@ build_script:
   - python setup.py install
 
 test_script:
-  - python runtests.py -v -n
+  - python runtests.py 
