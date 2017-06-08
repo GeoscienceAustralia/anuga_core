@@ -2,7 +2,7 @@
     :target: https://travis-ci.org/GeoscienceAustralia/anuga_core
     :alt: travis ci status
 
-.. image:: https://ci.appveyor.com/api/projects/status/ws836mwk6j5brrye?svg=true)
+.. image:: https://ci.appveyor.com/api/projects/status/ws836mwk6j5brrye?svg=true
     :target: https://ci.appveyor.com/project/stoiver/anuga-core
     :alt: appveyor status
 
