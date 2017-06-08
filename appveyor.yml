@@ -21,7 +21,8 @@ build_script:
   - conda update conda
   - conda install python=2.7 pip nose numpy scipy netcdf4 matplotlib gdal 
   - pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
-  - pip install . -vvv
+  - python setup.py build_ext --compiler=mingw32
+  - python setup.py install
 
 test_script:
   - python runtests.py -v -n
