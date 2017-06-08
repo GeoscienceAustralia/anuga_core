@@ -19,8 +19,10 @@ build_script:
   - SET PATH=C:\Py;C:\Py\Scripts;C:\Py\Library\bin;%PATH%
   - conda config --set always_yes yes
   - conda update conda
-  - conda install python=2.7 pip nose numpy scipy netcdf4 matplotlib gdal mingw 
-  - python setup.py build_ext --compiler=mingw32
+  - conda install python=2.7
+  - pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
+  - conda install pip nose numpy scipy netcdf4 matplotlib gdal mingw 
+  - python setup.py build_ext 
   - python setup.py install
 
 test_script:
