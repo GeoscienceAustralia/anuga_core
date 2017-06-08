@@ -248,7 +248,7 @@ class Mesh(General_mesh):
         #Build dictionary mapping from segments (2-tuple of points)
         #to left hand side edge (facing neighbouring triangle)
 
-        N = len(self) #Number_of_triangles
+        N = self.__len__() #Number_of_triangles
         neighbourdict = {}
         for i in range(N):
 
@@ -333,7 +333,7 @@ class Mesh(General_mesh):
 
         """
 
-        N = len(self) #Number of triangles
+        N = self.__len__() #Number of triangles
 #        for i in xrange(N):
 #            #Find all neighbouring volumes that are not boundaries
 #            for k in xrange(3):
