@@ -7,6 +7,8 @@ environment:
   matrix:
     - PY_MAJOR_VER: 2
       PYTHON_ARCH: "x86"
+    - PY_MAJOR_VER: 2
+      PYTHON_ARCH: "x86_64"
 
 build_script:
 # If there's a newer build queued for the same PR, cancel this one
