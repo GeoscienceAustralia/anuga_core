@@ -6,7 +6,7 @@ os: Visual Studio 2015
 environment:
   matrix:
     - PY_MAJOR_VER: 2
-      PYTHON_ARCH: "x86_64"
+      PYTHON_ARCH: "x86"
 
 build_script:
 # If there's a newer build queued for the same PR, cancel this one
@@ -20,7 +20,6 @@ build_script:
   - cmd: move pydistutils.cfg %HOMEPATH%
   - conda config --set always_yes yes
   - conda update conda
-  - conda install python=2.7
   - pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
   - conda install pip nose numpy scipy netcdf4 matplotlib gdal 
   - python setup.py build_ext 
