@@ -21,7 +21,7 @@ build_script:
   - conda update conda
   - conda install python=2.7
   - pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
-  - conda install pip nose numpy scipy netcdf4 matplotlib gdal mingw 
+  - conda install pip nose numpy scipy netcdf4 matplotlib gdal 
   - python setup.py build_ext 
   - python setup.py install
 
