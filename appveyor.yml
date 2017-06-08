@@ -19,6 +19,7 @@ build_script:
   - SET PATH=C:\Py;C:\Py\Scripts;C:\Py\Library\bin;%PATH%
   - cmd: dir
   - cmd: set
+  - cmd: move pydistutils.cfg %HOMEPATH%
   - conda config --set always_yes yes
   - conda update conda
   - conda install python=2.7
