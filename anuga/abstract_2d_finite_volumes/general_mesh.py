@@ -94,7 +94,7 @@ class General_mesh:
         self.nodes = num.array(nodes, num.float)
 
         # Register number of elements and nodes
-        self.number_of_triangles = N = self.triangles.shape[0]
+        self.number_of_triangles = N = int(self.triangles.shape[0])
         self.number_of_nodes = self.nodes.shape[0]
 
 
