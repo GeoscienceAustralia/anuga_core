@@ -1,8 +1,14 @@
 .. image:: https://travis-ci.org/GeoscienceAustralia/anuga_core.svg?branch=master
     :target: https://travis-ci.org/GeoscienceAustralia/anuga_core
-    
+    :alt: travis ci status
+
+.. image:: https://ci.appveyor.com/api/projects/status/ws836mwk6j5brrye?svg=true
+    :target: https://ci.appveyor.com/project/stoiver/anuga-core
+    :alt: appveyor status
+
 .. image:: https://coveralls.io/repos/GeoscienceAustralia/anuga_core/badge.svg?branch=master
   :target: https://coveralls.io/r/GeoscienceAustralia/anuga_core?branch=master
+  :alt: coverage
 
 .. image:: https://img.shields.io/pypi/v/anuga.svg
     :target: https://pypi.python.org/pypi/anuga/
