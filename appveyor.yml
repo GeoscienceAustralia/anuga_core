@@ -23,7 +23,7 @@ build_script:
   - pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
   - conda install pip nose numpy scipy netcdf4 matplotlib gdal 
   - python setup.py build --compiler=mingw32
-  - python setup.py install --compiler=mingw32
+  - python setup.py install --skip-build 
 
 test_script:
   - python runtests.py 
