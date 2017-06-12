@@ -86,8 +86,8 @@ static PyObject *CheckIntegrity( PyObject *self, PyObject *args )
    
 	//char errorMsg[50];
 
-        double cumsum;
-
+        long cumsum;
+		
 	long *vertex_value_indices;
         long *triangles;
         long *node_index;
@@ -95,7 +95,7 @@ static PyObject *CheckIntegrity( PyObject *self, PyObject *args )
 
 
 	PyObject *pyobj_vertex_value_indices;
-        PyObject *pyobj_triangles;
+    PyObject *pyobj_triangles;
 	PyObject *pyobj_node_index;
 	PyObject *pyobj_number_of_triangles_per_node;
 
@@ -162,7 +162,7 @@ static PyObject *CheckIntegrity( PyObject *self, PyObject *args )
         k = 0; //Track triangles touching on node
         for (i=0; i<nt3 ; i++) {
             index = vertex_value_indices[i];
-
+			
             if (number_of_triangles_per_node[current_node] == 0) {
                 // Node is lone - i.e. not part of the mesh
                 continue;
@@ -182,9 +182,13 @@ static PyObject *CheckIntegrity( PyObject *self, PyObject *args )
             }
         }
 
-        cumsum = 0.0;
+ 		
+        cumsum = 0;
+
         for (i=0; i<n_node; i++) {
+			
             cumsum += number_of_triangles_per_node[i];
+
             if ( cumsum != node_index[i+1]) {
                 report_python_error(AT, "Inconsistency between node_index and number_of_triangles_per_node");
                 return NULL;

@@ -3008,6 +3008,6 @@ class Test_Quantity(unittest.TestCase):
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Quantity, 'test') #_set_values_from_asc')
+    suite = unittest.makeSuite(Test_Quantity, 'test_') #_set_values_from_asc')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
