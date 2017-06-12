@@ -90,7 +90,7 @@ class Mesh(General_mesh):
 
         if verbose: log.critical('Mesh: Initialising')
 
-        N = self.__len__() #Number_of_triangles
+        N = len(self) #Number_of_triangles
 
         # Allocate arrays for neighbour data
 
@@ -248,7 +248,7 @@ class Mesh(General_mesh):
         #Build dictionary mapping from segments (2-tuple of points)
         #to left hand side edge (facing neighbouring triangle)
 
-        N = self.__len__() #Number_of_triangles
+        N = len(self) #Number_of_triangles
         neighbourdict = {}
         for i in range(N):
 
@@ -333,7 +333,7 @@ class Mesh(General_mesh):
 
         """
 
-        N = self.__len__() #Number of triangles
+        N = len(self) #Number of triangles
 #        for i in xrange(N):
 #            #Find all neighbouring volumes that are not boundaries
 #            for k in xrange(3):
@@ -367,7 +367,7 @@ class Mesh(General_mesh):
             boundary = {}
 
         from neighbour_mesh_ext import boundary_dictionary_construct
-        boundary = boundary_dictionary_construct(self.__len__(), default_boundary_tag, self.neighbours, boundary)
+        boundary = boundary_dictionary_construct(len(self), default_boundary_tag, self.neighbours, boundary)
         
 
         self.boundary = boundary
@@ -389,7 +389,7 @@ class Mesh(General_mesh):
 
         if boundary is None:
             boundary = {}
-            for vol_id in xrange(self.__len__()):
+            for vol_id in xrange(len(self)):
                 for edge_id in xrange(0, 3):
                     if self.neighbours[vol_id, edge_id] < 0:
                         boundary[(vol_id, edge_id)] = default_boundary_tag
@@ -405,7 +405,7 @@ class Mesh(General_mesh):
                 #assert self.neighbours[vol_id, edge_id] < 0, msg
 
             #Check that all boundary segments are assigned a tag
-            for vol_id in xrange(self.__len__()):
+            for vol_id in xrange(len(self)):
                 for edge_id in xrange(0, 3):
                     if self.neighbours[vol_id, edge_id] < 0:
                         if not boundary.has_key( (vol_id, edge_id) ):
@@ -448,7 +448,7 @@ class Mesh(General_mesh):
                 tagged_elements[tag] = num.array(tagged_elements[tag], num.int)
 
                 msg = 'Not all elements exist. '
-                assert max(tagged_elements[tag]) < self.__len__(), msg
+                assert max(tagged_elements[tag]) < len(self), msg
         self.tagged_elements = tagged_elements
 
     def get_tagged_elements(self):
@@ -736,7 +736,7 @@ class Mesh(General_mesh):
         from anuga.config import epsilon
         from anuga.utilities.numerical_tools import anglediff
 
-        N = self.__len__()
+        N = len(self)
 
         # Get x,y coordinates for all vertices for all triangles
         V = self.get_vertex_coordinates()
@@ -975,6 +975,13 @@ class Mesh(General_mesh):
         #print self.node_index.shape
         #print self.number_of_triangles_per_node.shape
 
+
+        #print 'vertex_value_indices', self.vertex_value_indices.dtype
+        #print 'triangles',self.triangles.dtype
+        #print 'node_index',self.node_index.dtype
+        #print 'number_of_triangles_per_node',self.number_of_triangles_per_node.dtype
+
+		
         check_integrity_c(self.vertex_value_indices,
                           self.triangles,
                           self.node_index,
@@ -1060,7 +1067,7 @@ class Mesh(General_mesh):
 
         str =  '------------------------------------------------\n'
         str += 'Mesh statistics:\n'
-        str += '  Number of triangles = %d\n' %self.__len__()
+        str += '  Number of triangles = %d\n' %len(self)
         str += '  Extent [m]:\n'
         str += '    x in [%8.5e, %8.5e]\n' %(num.amin(x), num.amax(x))
         str += '    y in [%8.5e, %8.5e]\n' % (num.amin(y), num.amax(y))
@@ -1172,7 +1179,7 @@ class Mesh(General_mesh):
         """
 
         V = self.get_vertex_coordinates()
-        N = self.__len__()
+        N = len(self)
 
         # Adjust polyline to mesh spatial origin
         polyline = self.geo_reference.get_relative(polyline)
