@@ -242,6 +242,12 @@ class Sparse_CSR:
 
         """
 
+
+        if A is None:
+            m = int(m)
+            n = int(n)
+
+		
         if isinstance(A,Sparse):
 
             keys = A.Data.keys()

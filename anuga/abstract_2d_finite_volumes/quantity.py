@@ -107,7 +107,7 @@ class Quantity:
     ############################################################################
 
     def __len__(self):
-        return self.centroid_values.shape[0]
+        return int(self.centroid_values.shape[0])
 
     def __neg__(self):
         """Negate all values in this quantity giving meaning to the

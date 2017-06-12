@@ -137,6 +137,7 @@ class Fit(FitInterpolate):
         self.B = fitsmooth.build_matrix_B(self.D, \
                                           self.AtA, self.alpha)
 
+		
         # Convert self.B matrix to CSR format
         self.B = Sparse_CSR(data=num.array(self.B[0]),\
                                   Colind=num.array(self.B[1]),\
