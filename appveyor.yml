@@ -28,4 +28,5 @@ build_script:
   - python setup.py install --skip-build 
 
 test_script:
-  - python runtests.py 
+  - cd ..
+  - python -c "import anuga; anuga.test()"
