@@ -23,7 +23,7 @@ build_script:
   - conda config --set always_yes yes
   - conda update conda
   - conda install pip nose numpy scipy netcdf4 matplotlib gdal
-  - conda install -channel conda-forge mingw32
+  - conda install -channel conda-forge mingwpy
   - python setup.py build --compiler=mingw32
   - python setup.py install --skip-build 
 
