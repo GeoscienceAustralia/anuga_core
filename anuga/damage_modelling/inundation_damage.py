@@ -102,7 +102,7 @@ def inundation_damage(sww_base_name, exposure_files_in,
             csv.set_column(title, value, overwrite=overwrite)
     
         # Save info back to csv file
-        if exposure_file_out_marker == None:
+        if exposure_file_out_marker is None:
             exposure_file_out = exposure_file_in
         else:
             # split off extension, in such a way to deal with more than one '.' in the name of file

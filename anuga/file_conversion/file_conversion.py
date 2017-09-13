@@ -116,7 +116,7 @@ def timefile2netcdf(file_text, file_out = None, quantity_names=None, \
     if file_text[-4:] != '.txt':
         raise IOError('Input file %s should be of type .txt.' % file_text)
 
-    if file_out == None:
+    if file_out is None:
         file_out = file_text[:-4] + '.tms'
 
     fid = open(file_text)
@@ -293,28 +293,28 @@ def get_min_max_indices(latitudes_ref, longitudes_ref,
     largest_lat_index = len(latitudes)-1
 
     #Cut out a smaller extent.
-    if minlat == None:
+    if minlat is None:
         lat_min_index = 0
     else:
         lat_min_index = num.searchsorted(latitudes, minlat)-1
         if lat_min_index < 0:
             lat_min_index = 0
 
-    if maxlat == None:
+    if maxlat is None:
         lat_max_index = largest_lat_index #len(latitudes)
     else:
         lat_max_index = num.searchsorted(latitudes, maxlat)
         if lat_max_index > largest_lat_index:
             lat_max_index = largest_lat_index
 
-    if minlon == None:
+    if minlon is None:
         lon_min_index = 0
     else:
         lon_min_index = num.searchsorted(longitudes, minlon)-1
         if lon_min_index < 0:
             lon_min_index = 0
 
-    if maxlon == None:
+    if maxlon is None:
         lon_max_index = len(longitudes)
     else:
         lon_max_index = num.searchsorted(longitudes, maxlon)

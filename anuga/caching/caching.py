@@ -274,10 +274,10 @@ def cache(my_F,
   if not cachedir:
     cachedir = options['cachedir']
 
-  if verbose == None:  # Do NOT write 'if not verbose:', it could be zero.
+  if verbose is None:  # Do NOT write 'if not verbose:', it could be zero.
     verbose = options['verbose']
 
-  if compression == None:  # Do NOT write 'if not compression:',
+  if compression is None:  # Do NOT write 'if not compression:',
                            # it could be zero.
     compression = options['compression']
 
@@ -456,7 +456,7 @@ def test(cachedir=None, verbose=False, compression=None):
   if verbose is None:  # Do NOT write 'if not verbose:', it could be zero.
     verbose = options['verbose']
   
-  if compression == None:  # Do NOT write 'if not compression:',
+  if compression is None:  # Do NOT write 'if not compression:',
                            # it could be zero.
     compression = options['compression']
   else:
@@ -984,7 +984,7 @@ def clear_cache(CD, my_F=None, verbose=None):
 
   DESCRIPTION:
 
-    If my_F == None, clear everything,
+    If my_F is None, clear everything,
     otherwise clear only files pertaining to my_F.
   """
 
@@ -993,7 +993,7 @@ def clear_cache(CD, my_F=None, verbose=None):
   if CD[-1] != os.sep:
     CD = CD+os.sep
   
-  if verbose == None:
+  if verbose is None:
     verbose = options['verbose']
 
   # FIXME: Windows version needs to be tested
@@ -1043,7 +1043,7 @@ def DeleteOldFiles(CD,verbose=None):
     DeleteOldFiles(CD,verbose=None)
   """
 
-  if verbose == None:
+  if verbose is None:
     verbose = options['verbose']
 
   maxfiles = options['maxfiles']

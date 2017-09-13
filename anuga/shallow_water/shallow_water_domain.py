@@ -181,13 +181,13 @@ class Domain(Generic_Domain):
         """
 
         # Define quantities for the shallow_water domain
-        if conserved_quantities == None:
+        if conserved_quantities is None:
             conserved_quantities = ['stage', 'xmomentum', 'ymomentum']
 
-        if evolved_quantities == None:
+        if evolved_quantities is None:
             evolved_quantities =  ['stage', 'xmomentum', 'ymomentum']
             
-        if other_quantities == None:
+        if other_quantities is None:
             other_quantities = ['elevation', 'friction', 'height',
                                 'xvelocity', 'yvelocity', 'x', 'y']
 

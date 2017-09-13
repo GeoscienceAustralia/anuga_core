@@ -169,13 +169,13 @@ class Elliptic_operator(Operator):
 
         div ( a grad )
 
-        If a == None then we set a = quantity which is set to 1
+        If a is None then we set a = quantity which is set to 1
         """
 
         #Array self.operator_data is changed by this call, which should flow
         # through to the Sparse_CSR matrix.
 
-        if a == None:
+        if a is None:
             a = Quantity(self.domain)
             a.set_values(1.0)
             a.set_boundary_values(1.0)
@@ -413,7 +413,7 @@ class Elliptic_operator(Operator):
         Solution u is retruned in u_out
         """
 
-        if u_out == None:
+        if u_out is None:
             u_out = Quantity(self.domain)
 
         if update_matrix :
@@ -463,7 +463,7 @@ class Elliptic_operator(Operator):
 
         """
 
-        if u_out == None:
+        if u_out is None:
             u_out = Quantity(self.domain)
 
         if update_matrix :

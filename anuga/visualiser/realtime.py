@@ -70,17 +70,17 @@ class RealtimeVisualiser(Visualiser):
                                    self.vert_index[v][1],
                                    qty_index[v] * self.height_zScales[quantityName]
                                    + self.height_offset[quantityName])
-            if self.xmin == None or self.xmin > self.vert_index[v][0]:
+            if self.xmin is None or self.xmin > self.vert_index[v][0]:
                 self.xmin = self.vert_index[v][0]
-            if self.xmax == None or self.xmax < self.vert_index[v][0]:
+            if self.xmax is None or self.xmax < self.vert_index[v][0]:
                 self.xmax = self.vert_index[v][0]
-            if self.ymin == None or self.ymin > self.vert_index[v][1]:
+            if self.ymin is None or self.ymin > self.vert_index[v][1]:
                 self.ymin = self.vert_index[v][1]
-            if self.ymax == None or self.ymax < self.vert_index[v][1]:
+            if self.ymax is None or self.ymax < self.vert_index[v][1]:
                 self.ymax = self.vert_index[v][1]
-            if self.zmin == None or self.zmin > qty_index[v] * self.height_zScales[quantityName] + self.height_offset[quantityName]:
+            if self.zmin is None or self.zmin > qty_index[v] * self.height_zScales[quantityName] + self.height_offset[quantityName]:
                 self.zmin = qty_index[v] * self.height_zScales[quantityName] + self.height_offset[quantityName]
-            if self.zmax == None or self.zmax < qty_index[v] * self.height_zScales[quantityName] + self.height_offset[quantityName]:
+            if self.zmax is None or self.zmax < qty_index[v] * self.height_zScales[quantityName] + self.height_offset[quantityName]:
                 self.zmax = qty_index[v] * self.height_zScales[quantityName] + self.height_offset[quantityName]
 
         polydata = self.vtk_polyData[quantityName] = vtkPolyData()

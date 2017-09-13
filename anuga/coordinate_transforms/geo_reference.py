@@ -211,7 +211,7 @@ class Geo_reference:
         """
 
         try:
-            if read_title == None:
+            if read_title is None:
                 read_title = fd.readline()     # remove the title line
             if read_title[0:2].upper() != TITLE[0:2].upper():
                 msg = ('File error.  Expecting line: %s.  Got this line: %s'

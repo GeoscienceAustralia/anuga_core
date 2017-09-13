@@ -86,7 +86,7 @@ class Rate_operator(Operator,Region):
         Apply rate to those triangles defined in indices
 
         indices == [], then don't apply anywhere
-        indices == None, then apply everywhere
+        indices is None, then apply everywhere
         otherwise apply for the specific indices
         """
 

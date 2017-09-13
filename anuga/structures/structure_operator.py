@@ -66,7 +66,7 @@ class Structure_operator(anuga.Operator):
         self.enquiry_points = ensure_numeric(enquiry_points)
         self.invert_elevations = ensure_numeric(invert_elevations)
 
-        assert self.end_points == None or self.exchange_lines == None
+        assert self.end_points is None or self.exchange_lines is None
 
         
         if height is None:
@@ -101,17 +101,17 @@ class Structure_operator(anuga.Operator):
         self.always_use_Q_wetdry_adjustment = always_use_Q_wetdry_adjustment
 
 
-        if description == None:
+        if description is None:
             self.description = ' '
         else:
             self.description = description
         
-        if label == None:
+        if label is None:
             self.label = "structure_%g" % Structure_operator.counter
         else:
             self.label = label + '_%g' % Structure_operator.counter
 
-        if structure_type == None:
+        if structure_type is None:
             self.structure_type = 'generic structure'
         else:
             self.structure_type = structure_type

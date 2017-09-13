@@ -1038,7 +1038,7 @@ class Mesh:
         string.
         """
         #print "mode ",mode
-        if mode == None:
+        if mode is None:
             self.mode = ""
         else:
             self.mode = mode 
@@ -1473,7 +1473,7 @@ class Mesh:
 # Have attribute info added using least_squares in pyvolution
 #         index = 0
 #         for att in genDict['pointattributelist']:
-#             if att == None:
+#             if att is None:
 #                 self.userVertices[index].setAttributes([])
 #             else:
 #                 self.userVertices[index].setAttributes(att)
@@ -2125,7 +2125,7 @@ class Mesh:
 # Have attribute info added using least_squares in pyvolution
 #         index = 0
 #         for att in genDict['point_attributes']:
-#             if att == None:
+#             if att is None:
 #                 self.userVertices[index].setAttributes([])
 #             else:
 #                 self.userVertices[index].setAttributes(att)
@@ -2190,7 +2190,7 @@ def importMeshFromFile(ofile):
     else:
         raise RuntimeError
     
-    if dict.has_key('geo_reference') and not dict['geo_reference'] == None:
+    if dict.has_key('geo_reference') and not dict['geo_reference'] is None:
         newmesh.geo_reference = dict['geo_reference']
     return newmesh
 
