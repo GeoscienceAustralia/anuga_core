@@ -16,7 +16,7 @@ ANUGA_PARALLEL=openmpi
 
 
 brew update
-brew install openmpi
+brew install openmpi wget
 
 # Install pypar
 git clone https://github.com/daleroberts/pypar.git;
@@ -24,10 +24,10 @@ pushd pypar;
 python setup.py install;
 popd;
 
+# Install miniconda
+wget https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh -O miniconda.sh ;
 
-# Deactivate the travis-provided virtual environment and setup a
-# conda-based environment instead
-deactivate || echo "deactivate failed"
+chmod +x miniconda.sh && ./miniconda.sh -b
 
 
 conda update --yes conda
