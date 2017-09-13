@@ -53,7 +53,7 @@ def dem2dem(name_in, stencil, cellsize_new, name_out=None,
     dem_elevation = infile.variables['elevation']
 
     #Get output file name
-    if name_out == None:
+    if name_out is None:
         outname = name_in[:-4] + '_' + repr(cellsize_new) + '.dem'
     else:
         outname = name_out

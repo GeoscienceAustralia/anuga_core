@@ -222,12 +222,12 @@ def read_time_from_mux(mux_times, mint, maxt):
         Return start and finish times which lie within the passed time period.
     """
 
-    if mint == None:
+    if mint is None:
         mux_times_start_i = 0
     else:
         mux_times_start_i = num.searchsorted(mux_times, mint)
 
-    if maxt == None:
+    if maxt is None:
         mux_times_fin_i = len(mux_times)
     else:
         maxt += 0.5 # so if you specify a time where there is
@@ -280,7 +280,7 @@ def urs2sww(basename_in='o', basename_out=None, verbose=False,
     In URS C binary the latitudes and longitudes are in assending order.
     """
 
-    if basename_out == None:
+    if basename_out is None:
         basename_out = basename_in
 
     files_out = urs2nc(basename_in, basename_out)

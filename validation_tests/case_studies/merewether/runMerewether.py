@@ -188,9 +188,15 @@ domain.set_boundary({'interior': Br,
 #line0 = [[382300.0,6354280.], [382300.0,6354300.]]
 line0 = [[382275.0,6354270.], [382255.0,6354290.]]
 import math
-#velocity = [3.5/math.sqrt(2.0), 3.5/math.sqrt(2.0)]
-fixed_inflow = Inlet_operator(domain, line0, 19.7, verbose = False)
 
+
+#velocity = [3.5/math.sqrt(2.0), 3.5/math.sqrt(2.0)]
+#fixed_inflow = Inlet_operator(domain, line0, 19.7, verbose = False)
+
+center = (382265.0, 6354280.0)
+radius = 10.0
+region0 = anuga.Region(domain, center=center, radius=radius)
+fixed_inflow = Inlet_operator(domain, region0 , 19.7, verbose = True)
 #fixed_inflow = anuga.Inflow(domain,
 #           center=(382300.0,6354290.0),
 #           radius=15.00,

@@ -179,7 +179,7 @@ class BenchmarkLeastSquares:
         del points_dict
         if is_fit is True:
 
-            if use_file_type == None:
+            if use_file_type is None:
                 points = geospatial
                 filename = None
             else:
@@ -210,7 +210,7 @@ class BenchmarkLeastSquares:
             else:
                 domain.set_quantity('elevation',points,filename=filename,
                                     use_cache=False, verbose=verbose)
-            if not use_file_type == None:
+            if not use_file_type is None:
                 os.remove(fileName)
                     
         else:

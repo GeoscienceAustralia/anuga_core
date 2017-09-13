@@ -498,7 +498,7 @@ class Quantity:
         xrange = xmax-xmin
         yrange = ymax-ymin
         
-        if cellsize == None:
+        if cellsize is None:
             cellsize = max(xrange,yrange)/10.0
     
  

@@ -170,7 +170,7 @@ Only the SURFACE LINE data of the following form will be utilised
     assert j+1 == number_of_cross_sections, msg
 
     # Get output file, write PTS data
-    if name_out == None:
+    if name_out is None:
         ptsname = name_in[:-4] + '.pts'
     else:
         ptsname = name_out

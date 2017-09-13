@@ -48,7 +48,7 @@ def urs2nc(basename_in='o', basename_out='urs'):
         lonlatdep, lon, lat, depth = _binary_c2nc(file_in,
                                                   file_out,
                                                   quantity)
-        if hashed_elevation == None:
+        if hashed_elevation is None:
             elevation_file = basename_out + '_e.nc'
             write_elevation_nc(elevation_file,
                                lon,

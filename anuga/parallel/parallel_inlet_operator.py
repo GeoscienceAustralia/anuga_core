@@ -59,13 +59,13 @@ class Parallel_Inlet_operator(Inlet_operator):
         # should set this up to be a function of time and or space)
         self.Q = Q
 
-        if description == None:
+        if description is None:
             self.description = ' '
         else:
             self.description = description
 
 
-        if label == None:
+        if label is None:
             self.label = "inlet_%g" % Inlet_operator.counter + "_P" + str(self.myid)
         else:
             self.label = label + '_%g' % Inlet_operator.counter + "_P" + str(self.myid)

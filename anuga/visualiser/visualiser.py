@@ -147,7 +147,7 @@ class Visualiser(Thread):
 
     def store_height_quantity(self, quantityName, fileName=None):
 
-        if fileName == None:
+        if fileName is None:
             fileName = quantityName + '.vtk'
 
         quantity_polyData = self.vtk_polyData[quantityName]

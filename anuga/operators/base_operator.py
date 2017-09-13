@@ -34,7 +34,7 @@ class Operator:
             msg = 'Not implemented to run in parallel'
             assert self.parallel_safe(), msg
 
-        if description == None:
+        if description is None:
             self.description = ' '
         else:
             self.description = description
@@ -98,7 +98,7 @@ class Operator:
 
     def set_label(self, label=None):
 
-        if label == None:
+        if label is None:
             self.label = "operator_%g" % Operator.counter
         else:
             self.label = label + '_%g' % Operator.counter

@@ -131,17 +131,17 @@ class Parallel_Structure_operator(anuga.Operator):
         self.use_old_momentum_method = use_old_momentum_method
         self.always_use_Q_wetdry_adjustment = always_use_Q_wetdry_adjustment
 
-        if description == None:
+        if description is None:
             self.description = ' '
         else:
             self.description = description
         
-        if label == None:
+        if label is None:
             self.label = "structure_%g" % Parallel_Structure_operator.counter + "_P" + str(self.myid)
         else:
             self.label = label + '_%g' % Parallel_Structure_operator.counter + "_P" + str(self.myid)
 
-        if structure_type == None:
+        if structure_type is None:
             self.structure_type = 'generic structure'
         else:
             self.structure_type = structure_type

@@ -398,7 +398,7 @@ def _write_ASCII_triangulation(fd, gen_dict):
     numVert = str(len(vertices))
     # Don't understand why we have to do vertices_attributes[0] is None,
     # but it doesn't work otherwise...
-    if (vertices_attributes == None or
+    if (vertices_attributes is None or
         numVert == "0" or
         len(vertices_attributes) == 0):
         numVertAttrib = "0"
@@ -421,7 +421,7 @@ def _write_ASCII_triangulation(fd, gen_dict):
     for vert in vertices:
         attlist = ""
 
-        if vertices_attributes == None or vertices_attributes == []:
+        if vertices_attributes is None or vertices_attributes == []:
             attlist = ""
         else:
             for att in vertices_attributes[index]:
@@ -465,7 +465,7 @@ def _write_ASCII_triangulation(fd, gen_dict):
         # dict that's being passed around is also be used to communicate
         # with triangle, and it seems to have the option of returning
         # more than one value for triangle attributex
-        if (triangles_attributes == None or
+        if (triangles_attributes is None or
             triangles_attributes == [] or
             triangles_attributes[index] == ['']):
             att = ""
@@ -772,7 +772,7 @@ def _write_msh_file(file_name, mesh):
             outfile.variables['region_tags'][:] = mesh['region_tags']
 
     # geo_reference info
-    if mesh.has_key('geo_reference') and not mesh['geo_reference'] == None:
+    if mesh.has_key('geo_reference') and not mesh['geo_reference'] is None:
         mesh['geo_reference'].write_NetCDF(outfile)
 
     outfile.close()

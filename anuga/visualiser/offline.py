@@ -92,17 +92,17 @@ class OfflineVisualiser(Visualiser):
 
         for v in range(N_vert):
             points.InsertNextPoint(x[v], y[v], q[v])
-            if self.xmin == None or self.xmin > x[v]:
+            if self.xmin is None or self.xmin > x[v]:
                 self.xmin = x[v]
-            if self.xmax == None or self.xmax < x[v]:
+            if self.xmax is None or self.xmax < x[v]:
                 self.xmax = x[v]
-            if self.ymin == None or self.ymin > y[v]:
+            if self.ymin is None or self.ymin > y[v]:
                 self.ymin = y[v]
-            if self.ymax == None or self.ymax < y[v]:
+            if self.ymax is None or self.ymax < y[v]:
                 self.ymax = y[v]
-            if self.zmin == None or self.zmin > q[v]:
+            if self.zmin is None or self.zmin > q[v]:
                 self.zmin = q[v]
-            if self.zmax == None or self.zmax < q[v]:
+            if self.zmax is None or self.zmax < q[v]:
                 self.zmax = q[v]
         fin.close()
         return points

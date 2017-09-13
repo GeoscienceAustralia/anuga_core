@@ -734,7 +734,7 @@ def get_min_max_values(list=None):
     Returns the min and max of the list it was provided.
     """
 
-    if list == None: log.critical('List must be provided')
+    if list is None: log.critical('List must be provided')
         
     return min(list), max(list)
 

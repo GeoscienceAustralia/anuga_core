@@ -109,7 +109,7 @@ def _dem2pts(name_in, name_out=None, verbose=False,
     #print projection, datum, units
 
     # Get output file
-    if name_out == None:
+    if name_out is None:
         ptsname = root + '.pts'
     else:
         ptsname = name_out
