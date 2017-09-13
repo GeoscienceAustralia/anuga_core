@@ -29,14 +29,14 @@
 const double pi = 3.14159265358979;
 
 // Trick to compute n modulo d (n%d in python) when d is a power of 2
-inline unsigned int Mod_of_power_2(unsigned int n, unsigned int d)
+unsigned int Mod_of_power_2(unsigned int n, unsigned int d)
 {
   return ( n & (d-1) );
 } 
 
 
 // Computational function for rotation
-inline int _rotate(double *q, double n1, double n2) {
+int _rotate(double *q, double n1, double n2) {
   /*Rotate the last  2 coordinates of q (q[1], q[2])
     from x,y coordinates to coordinates based on normal vector (n1, n2).
 
@@ -63,7 +63,7 @@ inline int _rotate(double *q, double n1, double n2) {
 //// This is used by flux functions
 //// Input parameters uh and h may be modified by this function.
 //// Tried to inline, but no speedup was achieved 27th May 2009 (Ole)
-////static inline double _compute_speed(double *uh, 
+////static double _compute_speed(double *uh, 
 //double _compute_speed(double *uh, 
 //		      double *h, 
 //		      double epsilon, 
@@ -107,7 +107,7 @@ inline int _rotate(double *q, double n1, double n2) {
 
 
 // Innermost flux function (using stage w=z+h)
-inline int _flux_function_toro(double *q_left, double *q_right,
+int _flux_function_toro(double *q_left, double *q_right,
                            double h_left, double h_right,
                            double hle, double hre,
                            double n1, double n2,
@@ -283,7 +283,7 @@ water model for two-dimensional dam-break type. Journal of Computational Physics
 
 
 // Innermost flux function (using stage w=z+h)
-inline int _flux_function_central(double *q_left, double *q_right,
+int _flux_function_central(double *q_left, double *q_right,
                            double h_left, double h_right,
                            double hle, double hre,
                            double n1, double n2,
@@ -454,7 +454,7 @@ inline int _flux_function_central(double *q_left, double *q_right,
 
 ////////////////////////////////////////////////////////////////
 
-inline int _compute_flux_update_frequency(struct domain *D, double timestep){
+int _compute_flux_update_frequency(struct domain *D, double timestep){
     // Compute the 'flux_update_frequency' for each edge.
     //
     // This determines how regularly we need
@@ -616,7 +616,7 @@ inline int _compute_flux_update_frequency(struct domain *D, double timestep){
 }
 
 
-inline double adjust_edgeflux_with_weir(double *edgeflux,
+double adjust_edgeflux_with_weir(double *edgeflux,
                                  double h_left, double h_right, 
                                  double g, double weir_height,
                                  double Qfactor, 
@@ -710,7 +710,7 @@ inline double adjust_edgeflux_with_weir(double *edgeflux,
 }
 
 // Computational function for flux computation
-inline double _compute_fluxes_central(struct domain *D, double timestep){
+double _compute_fluxes_central(struct domain *D, double timestep){
 
     // Local variables
     double max_speed_local, length, inv_area, zl, zr;
@@ -1091,7 +1091,7 @@ inline double _compute_fluxes_central(struct domain *D, double timestep){
 }
 
 // Protect against the water elevation falling below the triangle bed
-inline double  _protect(int N,
+double  _protect(int N,
          double minimum_allowed_height,
          double maximum_allowed_speed,
          double epsilon,
@@ -1154,7 +1154,7 @@ inline double  _protect(int N,
 }
 
 // Protect against the water elevation falling below the triangle bed
-inline double  _protect_new(struct domain *D) {
+double  _protect_new(struct domain *D) {
 
   int k;
   double hc, bmin, bmax;
@@ -1230,7 +1230,7 @@ inline double  _protect_new(struct domain *D) {
 
 
 
-inline int find_qmin_and_qmax(double dq0, double dq1, double dq2, 
+int find_qmin_and_qmax(double dq0, double dq1, double dq2, 
                double *qmin, double *qmax){
   // Considering the centroid of an FV triangle and the vertices of its 
   // auxiliary triangle, find 
@@ -1250,7 +1250,7 @@ inline int find_qmin_and_qmax(double dq0, double dq1, double dq2,
   return 0;
 }
 
-inline int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
+int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
   // Given provisional jumps dqv from the FV triangle centroid to its
   // vertices/edges, and jumps qmin (qmax) between the centroid of the FV
   // triangle and the minimum (maximum) of the values at the auxiliary triangle
@@ -1321,7 +1321,7 @@ inline int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
 //                                 double* x_centroid_work,
 //                                 double* y_centroid_work,
 //                                 long* update_extrapolation) {
-inline int _extrapolate_second_order_edge_sw(struct domain *D){
+int _extrapolate_second_order_edge_sw(struct domain *D){
                   
   // Local variables
   double a, b; // Gradient vector used to calculate edge values from centroids
