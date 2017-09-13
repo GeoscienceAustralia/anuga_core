@@ -33,7 +33,12 @@ def ycoord(x,y):
 def distibute_three_processors():
     """
     Do a parallel test of distributing a rectangle onto 3 processors
+   
     """
+    
+    
+    if sys.platform == 'darwin':
+    	return
 
     import pypar
 

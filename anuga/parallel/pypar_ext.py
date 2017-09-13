@@ -515,8 +515,8 @@ else:
     # Work around bug in OpenMPI (December 2009):
     # https://bugs.launchpad.net/ubuntu/+source/petsc4py/+bug/232036
 
-    from ctypes import *
-    CDLL('libmpi.so', RTLD_GLOBAL)
+    #from ctypes import *
+    #CDLL('libmpi.so', RTLD_GLOBAL)
     # End work around
 
 
