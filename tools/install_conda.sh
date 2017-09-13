@@ -46,6 +46,11 @@ fi
 chmod +x miniconda.sh && ./miniconda.sh -b
 
 export PATH=$PREFIX/bin:$PATH
+
+ls
+
+echo $PATH
+
 conda update --yes conda
 
 # Configure the conda environment and put it in the path using the
