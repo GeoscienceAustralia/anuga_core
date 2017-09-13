@@ -57,8 +57,9 @@ conda update --yes conda
 
 # Configure the conda environment and put it in the path using the
 # provided versions
-conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 \
-    nose matplotlib gdal
+conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 nose matplotlib gdal
+ 
+
 source activate anuga_env
 
 # python 2.6 doesn't have argparse by default
@@ -85,4 +86,4 @@ conda info -a
 # Build and install anuga
 
 python setup.py build
-sudo python setup.py install 
+python setup.py install 
