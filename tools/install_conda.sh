@@ -14,6 +14,7 @@ PYTHON_VERSION=${PYTHON_VERSION:-"2.7"}
 ANUGA_BITS=${ANUGA_BITS:-"64"}
 
 
+
 sudo apt-get update -q
 sudo apt-get install gfortran git
 
@@ -44,30 +45,30 @@ if [[ "$ANUGA_BITS" == "32" ]]; then
 fi
 chmod +x miniconda.sh && ./miniconda.sh -b
 
-export PATH=$HOME/miniconda/bin:$PATH
+export PATH=/home/travis/miniconda2/bin:$PATH
+
+ls
+
+ls ..
+
+echo $PATH
+
 conda update --yes conda
 
 # Configure the conda environment and put it in the path using the
 # provided versions
-conda create -n anuga_env --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 \
-    nose matplotlib
+conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 nose matplotlib gdal
+ 
+
 source activate anuga_env
 
 # python 2.6 doesn't have argparse by default
 if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install --yes argparse; fi
 
-if [[ "$PYTHON_VERSION" == "2.7" ]]; then
-    conda install --yes -c pingucarsti gdal
-fi
-
-if [[ "$PYTHON_VERSION" == "2.6" ]]; then
-    conda install --yes  gdal geos
-fi
-
 export GDAL_DATA=`gdal-config --datadir`;
 
 # Install more software to deal with geographical projections
-pip install pyproj
+#pip install pyproj
 
 # Install pypar if parallel set
 if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
@@ -85,4 +86,4 @@ conda info -a
 # Build and install anuga
 
 python setup.py build
-sudo python setup.py install 
+python setup.py install 
