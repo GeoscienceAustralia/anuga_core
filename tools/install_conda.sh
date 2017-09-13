@@ -45,7 +45,7 @@ if [[ "$ANUGA_BITS" == "32" ]]; then
 fi
 chmod +x miniconda.sh && ./miniconda.sh -b
 
-export PATH=/home/travis/miniconda/bin:$PATH
+export PATH=/home/travis/miniconda2/bin:$PATH
 
 ls
 

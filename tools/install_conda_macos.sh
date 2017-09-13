@@ -29,11 +29,7 @@ wget https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh -O m
 
 chmod +x miniconda.sh && ./miniconda.sh -b
 
-ls
-
-export PATH=$PREFIX/bin:$PATH
-
-conda update --yes conda
+export PATH=/Users/travis/miniconda2/bin:$PATH
 
 
 conda update --yes conda
