@@ -21,9 +21,9 @@ build_script:
   - SET PATH=C:\Py;C:\Py\Scripts;C:\Py\Library\bin;%PATH%
   - CMD: SET
   - conda config --set always_yes yes
+  - conda config --add channels conda-forge
   - conda update conda
-  - pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
-  - conda install pip nose numpy scipy netcdf4 matplotlib gdal 
+  - conda install pip nose numpy scipy netcdf4 matplotlib gdal mingwpy
   - python setup.py build --compiler=mingw32
   - python setup.py install --skip-build 
 
