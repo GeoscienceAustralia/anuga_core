@@ -49,7 +49,7 @@ conda update --yes conda
 
 # Configure the conda environment and put it in the path using the
 # provided versions
-conda create -n anuga_env --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 \
+conda create -n anuga_env --yes python=$PYTHON_VERSION pip nomkl numpy scipy netcdf4 \
     nose matplotlib
 source activate anuga_env
 
