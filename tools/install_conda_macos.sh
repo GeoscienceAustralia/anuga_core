@@ -31,7 +31,7 @@ chmod +x miniconda.sh && ./miniconda.sh -b
 
 ls
 
-export PATH=$HOME/miniconda/bin:$PATH
+export PATH=$PREFIX/bin:$PATH
 
 conda update --yes conda
 

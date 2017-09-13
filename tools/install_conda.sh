@@ -45,7 +45,7 @@ if [[ "$ANUGA_BITS" == "32" ]]; then
 fi
 chmod +x miniconda.sh && ./miniconda.sh -b
 
-export PATH=$HOME/miniconda/bin:$PATH
+export PATH=$PREFIX/bin:$PATH
 conda update --yes conda
 
 # Configure the conda environment and put it in the path using the
