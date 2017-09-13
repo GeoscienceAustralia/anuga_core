@@ -8,7 +8,7 @@ matrix:
          sudo: false
          python: "2.7"
          env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="openmpi"  DISTRIB="conda_macos"
-	 
+
        - os: linux
          language: generic
          sudo: false
