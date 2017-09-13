@@ -24,7 +24,7 @@ def configuration(parent_package='',top_path=None):
                          sources='util_ext.c')
 
     if sys.platform == 'darwin':
-        extra_args = [' ']
+        extra_args = None
     else:
         extra_args = ['-fopenmp']
 
