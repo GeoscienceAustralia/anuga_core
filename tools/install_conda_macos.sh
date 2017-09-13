@@ -16,7 +16,7 @@ ANUGA_PARALLEL=openmpi
 
 
 brew update
-brew install openmpi wget
+brew install openmpi
 
 # Install pypar
 git clone https://github.com/daleroberts/pypar.git;
@@ -28,6 +28,12 @@ popd;
 wget https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh -O miniconda.sh ;
 
 chmod +x miniconda.sh && ./miniconda.sh -b
+
+ls
+
+export PATH=$HOME/miniconda/bin:$PATH
+
+conda update --yes conda
 
 
 conda update --yes conda
