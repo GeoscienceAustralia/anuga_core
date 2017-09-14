@@ -2908,9 +2908,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         delta_total_energy = E_in-E_out
 
 
-        Q_expected = 3.88
-        v_expected = 2.77
-        d_expected = 0.78
+        Q_expected = 6.7
+        v_expected = 3.1
+        d_expected = 1.2
         
         if verbose:
             print 50*'='

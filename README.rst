@@ -35,8 +35,7 @@ We recommend using python 2.7
 Developed at Geoscience Australia and Mathematical Sciences Institute at the
 Australian National University.
 
-Copyright 2004 - 2017 
-Ole Nielsen, Stephen Roberts, Duncan Gray, Jane Sexton, Gareth Davies
+Copyright Commonwealth of Australia (Geoscience Australia) and Australian National University 2017 
 
 
 Installation
