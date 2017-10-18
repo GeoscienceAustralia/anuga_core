@@ -9,6 +9,7 @@
 // This could be replaced with fast drop-inreplacements
 // that are around and open. like https://github.com/greg7mdp/sparsepp
 // TODO: But lets see if performance of unordered_map is any problem first.
+//#include "sparsepp/spp.h"
 #include <unordered_map> /* std::unordered_map */
 #include <functional> /* std::hash */
 
@@ -28,12 +29,24 @@ struct edge_key_t {
     }
 };
 
+// Bitmixer from MurmurHash3
+uint64_t bitmix( uint64_t key )
+{
+  key ^= (key >> 33);
+  key *= 0xff51afd7ed558ccd;
+  key ^= (key >> 33);
+  key *= 0xc4ceb9fe1a85ec53;
+  key ^= (key >> 33);
+
+  return key;
+}
+
 // custom hash function for the edge_keys
 // used by the unordered_map edgetable
 namespace std {
     template<> struct hash<edge_key_t> {
         std::size_t operator()(const edge_key_t & key) const {
-            return ((size_t)key.i >> (size_t)log2(1+sizeof(key.i))) ^ key.j;
+            return bitmix(key.i) ^ bitmix(key.j);
         }
     };
 }
@@ -61,6 +74,7 @@ int _build_neighbour_structure(keyint N, keyint M,
     edge_key_t key;
 
     std::unordered_map<edge_key_t,edge_t> edgetable;
+    //spp::sparse_hash_map<edge_key_t,edge_t> edgetable;
     
     // We know we'll have at least as many edges as triangles.
     edgetable.reserve(M);
