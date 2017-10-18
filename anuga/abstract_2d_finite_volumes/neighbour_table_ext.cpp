@@ -179,7 +179,7 @@ int _build_neighbour_structure(keyint N, keyint M,
         key.i = n2;
         key.j = n1;
         if (edgetable.count(key)) {
-            auto & s = edgetable[key];
+            edge_t & s = edgetable[key];
             neighbours[k3]      = s.vol_id;
             neighbour_edges[k3] = s.edge_id;
             number_of_boundaries[k] -= 1;
@@ -189,7 +189,7 @@ int _build_neighbour_structure(keyint N, keyint M,
         key.i = n0;
         key.j = n2;
         if (edgetable.count(key)) {
-            auto & s = edgetable[key];
+            edge_t & s = edgetable[key];
             neighbours[k3+1]      = s.vol_id;
             neighbour_edges[k3+1] = s.edge_id;
             number_of_boundaries[k] -= 1;
@@ -199,7 +199,7 @@ int _build_neighbour_structure(keyint N, keyint M,
         key.i = n1;
         key.j = n0;
         if (edgetable.count(key)) {
-            auto & s = edgetable[key];
+            edge_t & s = edgetable[key];
             neighbours[k3+2]      = s.vol_id;
             neighbour_edges[k3+2] = s.edge_id;
             number_of_boundaries[k] -= 1;
