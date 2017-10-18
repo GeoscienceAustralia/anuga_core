@@ -67,6 +67,11 @@ echo "|  Using pip to install pyproj                  |"
 echo "+===============================================+"
 sudo pip install -q pyproj
 
+echo "+===============================================+"
+echo "|  Using pip to install pymetis                 |"
+echo "+===============================================+"
+sudo pip install -q pymetis
+
     
 ##########################################################
 # Setup for various versions of MPI

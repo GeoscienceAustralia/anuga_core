@@ -38,7 +38,7 @@ conda update --yes conda
 # provided versions
 
 conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 \
-    nose matplotlib gdal
+    nose matplotlib gdal pymetis
 
 source activate anuga_env
 
