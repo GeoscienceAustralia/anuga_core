@@ -32,12 +32,9 @@ def configuration(parent_package='',top_path=None):
                          include_dirs=[util_dir])
 
     config.add_extension('neighbour_table_ext',
-    #                     sources=['neighbour_table_ext.c','judy-1.0.5/src/JudyHS/JudyHS.c'],
-    #                     extra_compile_args=["-DJU_64BIT","-O3"],
-    #                     language='c',
                          sources=['neighbour_table_ext.cpp'],
-                         extra_compile_args=["-O3","-std=c++14","-ggdb"],
-                         language='c++14',
+    #                     extra_compile_args=["-O3"],
+                         language='c++',
                          include_dirs=[util_dir])
 
     config.add_extension('pmesh2domain_ext',
