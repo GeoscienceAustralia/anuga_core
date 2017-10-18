@@ -244,10 +244,6 @@ def sequential_distribute_dump(domain, numprocs=1, verbose=False, partition_dir=
 
 	lst = list(tostore)
 	
-	# remove original tostore so the next step can truly delete arrays 
-	tostore = None
-	del tostore
-	
 	# Write points and triangles to their own files
 	num.save(pickle_name+".np1",tostore[1],allow_pickle=False) # this append .npy to filename
 	lst[1] = pickle_name+".np1.npy"
