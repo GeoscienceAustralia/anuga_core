@@ -4,7 +4,7 @@
 #include <cstdio>   /* gets */
 #include <cstdlib>  /* atoi, malloc */
 #include <cstring>  /* strcpy */
-#include <cmath>    /* math!!! */
+//#include <cmath>    /* math!!! */
 
 // This could be replaced with fast drop-inreplacements
 // that are around and open. like https://github.com/greg7mdp/sparsepp
