@@ -78,7 +78,7 @@ int _build_neighbour_structure(keyint N, keyint M,
     
     // We know we'll have at least as many edges as triangles.
     edgetable.reserve(M);
-    printf("Will now build edgetable for %u triangles.\n",M);
+
     //--------------------------------------------------------------------------
     // Step 1:
     // Populate hashtable. We use a key based on the node_ids of the
@@ -147,7 +147,6 @@ int _build_neighbour_structure(keyint N, keyint M,
 
     }
 
-    printf("Built edgetable.\n");
     //--------------------------------------------------------------------------
     // return with an error code if duplicate key found
     // Clean up hashtable
@@ -206,8 +205,6 @@ int _build_neighbour_structure(keyint N, keyint M,
         }
 
     }
-    
-    printf("Built neighbour table.\n");
     return err;
 }
 
