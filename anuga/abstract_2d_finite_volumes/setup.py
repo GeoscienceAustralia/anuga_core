@@ -32,7 +32,9 @@ def configuration(parent_package='',top_path=None):
                          include_dirs=[util_dir])
 
     config.add_extension('neighbour_table_ext',
-                         sources=['neighbour_table_ext.c'],
+                         sources=['neighbour_table_ext.cpp'],
+                         extra_compile_args=["-std=c++11"],
+                         language='c++',
                          include_dirs=[util_dir])
 
     config.add_extension('pmesh2domain_ext',
