@@ -30,6 +30,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                  blockage=0.0,
                  z1=0.0,
                  z2=0.0,
+                 #culvert_slope=None,
                  end_points=None,
                  exchange_lines=None,
                  enquiry_points=None,
@@ -56,6 +57,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                                           height=height,
                                           blockage=blockage,
                                           barrels=barrels,
+                                          #culvert_slope=culvert_slope,
                                           diameter=None,
                                           z1=z1,
                                           z2=z2,
@@ -208,7 +210,6 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                 print 'right bank slope ',self.culvert_z2
                 print 'flow_width ',self.culvert_width
                 print 'length ' ,self.culvert_length
-                #print 'culvert slope', self.culvert_slope
                 print 'driving_energy ',self.driving_energy
                 print 'delta_total_energy ',self.delta_total_energy
                 print 'outlet_enquiry_depth ',self.outflow.get_enquiry_depth()
@@ -227,7 +228,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                                                 z2                  =self.culvert_z2,                                                      
                                                 flow_width          =self.culvert_width,
                                                 length              =self.culvert_length,
-                                                culvert_slope       =self.culvert_slope,
+                                                #culvert_slope       =self.culvert_slope,
                                                 driving_energy      =self.driving_energy,
                                                 delta_total_energy  =self.delta_total_energy,
                                                 outlet_enquiry_depth=self.outflow.get_enquiry_depth(),
@@ -282,7 +283,7 @@ def weir_orifice_trapezoid_function(width,
                         z2,
                         flow_width, 
                         length,
-                        culvert_slope,
+                        #culvert_slope,
                         driving_energy, 
                         delta_total_energy, 
                         outlet_enquiry_depth, 
@@ -316,9 +317,9 @@ def weir_orifice_trapezoid_function(width,
         ic=0
         dyc=0.001
         while abs(dyc)>0.00001:
-            Tc=width+(z1+z2)*dcrit
-            Pc=width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
-            Ac=0.5*dcrit*(width+Tc)
+            Tc=bf*barrels*width+(z1+z2)*dcrit
+            Pc=bf*barrels*width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
+            Ac=0.5*dcrit*(bf*barrels*width+Tc)
             Rc=Ac/Pc
             fc=Ac**1.5*Tc**-0.5-Q/(9.81**0.5)
             ffc=Ac**1.5*-0.5*Tc**-1.5*(z1+z2)+Tc**-0.5*1.5*Ac**0.5*Tc
@@ -342,9 +343,9 @@ def weir_orifice_trapezoid_function(width,
         ic=0
         dyc=0.001
         while abs(dyc)>0.00001:
-            Tc=width+(z1+z2)*dcrit
-            Pc=width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
-            Ac=0.5*dcrit*(width+Tc)
+            Tc=bf*barrels*width+(z1+z2)*dcrit
+            Pc=bf*barrels*width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
+            Ac=0.5*dcrit*(bf*barrels*width+Tc)
             Rc=Ac/Pc
             fc=Ac**1.5*Tc**-0.5-Q/(9.81**0.5)
             ffc=Ac**1.5*-0.5*Tc**-1.5*(z1+z2)+Tc**-0.5*1.5*Ac**0.5*Tc
@@ -366,9 +367,9 @@ def weir_orifice_trapezoid_function(width,
     ic=0
     dyc=0.001
     while abs(dyc)>0.00001:
-        Tc=width+(z1+z2)*dcrit
-        Pc=width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
-        Ac=0.5*dcrit*(width+Tc)
+        Tc=bf*barrels*width+(z1+z2)*dcrit
+        Pc=bf*barrels*width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
+        Ac=0.5*dcrit*(bf*barrels*width+Tc)
         Rc=Ac/Pc
         fc=Ac**1.5*Tc**-0.5-Q/(9.81**0.5)
         ffc=Ac**1.5*-0.5*Tc**-1.5*(z1+z2)+Tc**-0.5*1.5*Ac**0.5*Tc
@@ -404,23 +405,40 @@ def weir_orifice_trapezoid_function(width,
             flow_area=bf*barrels*width*depth+0.5*(z1+z2)*(depth)**2  # Cross sectional area of flow in the culvert
             perimeter=bf*barrels*width + ((depth)**2+(z1*(depth))**2)**0.5 + ((depth)**2+(z2*(depth))**2)**0.5
             case = 'Outlet submerged'
-        else:                
+        else:              
             Q = min(Q, Q_outlet_tailwater)
-            dnorm=0.00001
-            idn=1
-            dyn=0.001
+            # Critical Depths Calculation
+            dcrit=0.00001
+            ic=0
+            dyc=0.001
+            while abs(dyc)>0.00001:
+                Tc=bf*barrels*width+(z1+z2)*dcrit
+                Pc=bf*barrels*width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
+                Ac=0.5*dcrit*(bf*barrels*width+Tc)
+                Rc=Ac/Pc
+                fc=Ac**1.5*Tc**-0.5-Q/(9.81**0.5)
+                ffc=Ac**1.5*-0.5*Tc**-1.5*(z1+z2)+Tc**-0.5*1.5*Ac**0.5*Tc
+                dyc=-fc/ffc
+                dcrit=dcrit+dyc
+                ic=ic+1
+            dcrit = dcrit            
+            outlet_culvert_depth = dcrit        
             
-            while abs(dyn)>0.0001:
-                Tn=width+(z1+z2)*dnorm
-                An=0.5*dnorm*(width+Tn)
-                Pn=width+2*dnorm*((z1**2+z2**2)**0.5)
-                Rn=An/Pn
-                fn=((culvert_slope**0.5*An*Rn**0.67)/manning) - Q
-                ffn=((culvert_slope**0.5)/manning)*(((Rn**0.67)*Tn)+(Tn/Pn)-(2*dnorm*Rn/Pn))
-                dnorm=dnorm-fn/ffn        
-                dyn=-fn/ffn
-                idn=idn+1
-            outlet_culvert_depth = dnorm
+##calculate normal depth based on culverts slope, i can't work out how to get culvert_slope, so for now just use critical depth instead as we do in boyd_box and boyd_pipe         
+            #dnorm=0.00001
+            #idn=1
+            #dyn=0.001
+            #while abs(dyn)>0.0001:
+                #Tn=width+(z1+z2)*dnorm
+                #An=0.5*dnorm*(width+Tn)
+                #Pn=width+2*dnorm*((z1**2+z2**2)**0.5)
+                #Rn=An/Pn
+                #fn=((culvert_slope**0.5*An*Rn**0.67)/manning) - Q
+                #ffn=((culvert_slope**0.5)/manning)*(((Rn**0.67)*Tn)+(Tn/Pn)-(2*dnorm*Rn/Pn))
+                #dnorm=dnorm-fn/ffn        
+                #dyn=-fn/ffn
+                #idn=idn+1
+            #outlet_culvert_depth = dnorm
             
             if outlet_culvert_depth > depth:
                 outlet_culvert_depth=depth

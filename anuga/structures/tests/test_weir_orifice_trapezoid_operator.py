@@ -15,7 +15,7 @@ import inspect
 
 
 
-verbose =  False
+verbose =  True
 
 
 class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
@@ -149,9 +149,9 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         #v_expected = 1.116
         #d_expected = 0.692       
 
-        Q_expected = 1.51
-        v_expected = 1.01
-        d_expected = 0.15
+        Q_expected = 4.95
+        v_expected = 1.14
+        d_expected = 0.40
         
 
         
@@ -183,7 +183,7 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
                                                     z2         = culvert_z2, 
                                                     flow_width = culvert_width,
                                                     length     = culvert_length, 
-                                                    culvert_slope      = culvert_slope,
+                                                    #culvert_slope      = culvert_slope,
                                                     driving_energy     = inlet_specific_energy, 
                                                     delta_total_energy = delta_total_energy, 
                                                     outlet_enquiry_depth = outlet_depth, 
@@ -242,9 +242,9 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         #v_expected = 0.231
         #d_expected = 2.410
         
-        Q_expected = 0.57
-        v_expected = 0.21
-        d_expected = 0.25
+        Q_expected = 0.82
+        v_expected = 0.22
+        d_expected = 0.35
         
 
         
@@ -275,7 +275,7 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
                                                     z2         = culvert_z2, 
                                                     flow_width = culvert_width,
                                                     length     = culvert_length, 
-                                                    culvert_slope      = culvert_slope,
+                                                    #culvert_slope     = culvert_slope,
                                                     driving_energy     = inlet_specific_energy, 
                                                     delta_total_energy = delta_total_energy, 
                                                     outlet_enquiry_depth = outlet_depth, 
@@ -334,9 +334,9 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         #v_expected = 2.361
         #d_expected = 3.0
         
-        Q_expected = 8.29
-        v_expected = 2.24
-        d_expected = 0.35      
+        Q_expected = 67.64
+        v_expected = 2.36
+        d_expected = 2.04     
         
         
         if verbose:
@@ -366,7 +366,7 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
                                                     z2         = culvert_z2, 
                                                     flow_width = culvert_width,
                                                     length     = culvert_length, 
-                                                    culvert_slope      = culvert_slope,
+                                                    #culvert_slope     = culvert_slope,
                                                     driving_energy     = inlet_specific_energy, 
                                                     delta_total_energy = delta_total_energy, 
                                                     outlet_enquiry_depth = outlet_depth, 
@@ -457,7 +457,7 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
                                                     z2         = culvert_z2, 
                                                     flow_width = culvert_width,
                                                     length     = culvert_length, 
-                                                    culvert_slope      = culvert_slope,
+                                                    #culvert_slope     = culvert_slope,
                                                     driving_energy     = inlet_specific_energy, 
                                                     delta_total_energy = delta_total_energy, 
                                                     outlet_enquiry_depth = outlet_depth, 
@@ -550,7 +550,7 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
                                                     z2         = culvert_z2, 
                                                     flow_width = culvert_width,
                                                     length     = culvert_length, 
-                                                    culvert_slope      = culvert_slope,
+                                                    #culvert_slope     = culvert_slope,
                                                     driving_energy     = inlet_specific_energy, 
                                                     delta_total_energy = delta_total_energy, 
                                                     outlet_enquiry_depth = outlet_depth, 
@@ -642,7 +642,7 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
                                                     z2         = culvert_z2, 
                                                     flow_width = culvert_width,
                                                     length     = culvert_length, 
-                                                    culvert_slope      = culvert_slope,
+                                                    #culvert_slope     = culvert_slope,
                                                     driving_energy     = inlet_specific_energy, 
                                                     delta_total_energy = delta_total_energy, 
                                                     outlet_enquiry_depth = outlet_depth, 
