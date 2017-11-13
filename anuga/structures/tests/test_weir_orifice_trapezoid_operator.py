@@ -15,7 +15,7 @@ import inspect
 
 
 
-verbose =  True
+verbose =  False
 
 
 class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
