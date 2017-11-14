@@ -110,5 +110,16 @@ See the file `LICENSE.txt <https://github.com/GeoscienceAustralia/anuga_core/blo
 for information on the history of this software, terms & conditions for usage, 
 and a DISCLAIMER OF ALL WARRANTIES.
 
+Contacts
+--------
+At the Australian National University:
 
+**Stephen Roberts**  
+*Lead Developer*  
+<stephen.roberts@anu.edu.au>
 
+At Geoscience Australia:
+
+**Gareth Davies**  
+*Developer*  
+<gareth.davies@ga.gov.au>
