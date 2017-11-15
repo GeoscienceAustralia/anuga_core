@@ -15,7 +15,7 @@ import inspect
 
 
 
-verbose =  False
+verbose =  True
 
 
 class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
@@ -131,7 +131,8 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         culvert_z1=2
         culvert_z2=2
         culvert_blockage = 0.0
-        
+        culvert_barrels = 1.0
+                
         culvert_type='trapezoid'
         manning=0.015
         sum_loss=1.5
@@ -177,6 +178,7 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
                                                     width      = culvert_width, 
                                                     depth      = culvert_height,
                                                     blockage   = culvert_blockage, 
+                                                    barrels    = culvert_barrels,
                                                     z1         = culvert_z1,
                                                     z2         = culvert_z2, 
                                                     flow_width = culvert_width,
@@ -222,7 +224,8 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         culvert_z1=2
         culvert_z2=2
         culvert_blockage = 0.0
-        
+        culvert_barrels = 1.0
+                
         culvert_type='trapezoid'
         manning=0.015
         sum_loss=1.5
@@ -266,7 +269,8 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         Q, v, d, flow_area, case= weir_orifice_trapezoid_function(
                                                     width      = culvert_width, 
                                                     depth      = culvert_height,
-                                                    blockage   = culvert_blockage, 
+                                                    blockage   = culvert_blockage,
+                                                    barrels    = culvert_barrels,
                                                     z1         = culvert_z1,
                                                     z2         = culvert_z2, 
                                                     flow_width = culvert_width,
@@ -312,7 +316,8 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         culvert_z1=2
         culvert_z2=2
         culvert_blockage = 0.0
-        
+        culvert_barrels = 1.0
+                
         culvert_type='trapezoid'
         manning=0.015
         sum_loss=1.5
@@ -355,7 +360,8 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         Q, v, d, flow_area, case= weir_orifice_trapezoid_function(
                                                     width      = culvert_width, 
                                                     depth      = culvert_height,
-                                                    blockage   = culvert_blockage, 
+                                                    blockage   = culvert_blockage,
+                                                    barrels    = culvert_barrels,
                                                     z1         = culvert_z1,
                                                     z2         = culvert_z2, 
                                                     flow_width = culvert_width,
@@ -401,7 +407,8 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         culvert_z1=2
         culvert_z2=2
         culvert_blockage = 0.0
-        
+        culvert_barrels = 1.0
+                
         culvert_type='trapezoid'
         manning=0.015
         sum_loss=1.5
@@ -445,6 +452,7 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
                                                     width      = culvert_width, 
                                                     depth      = culvert_height,
                                                     blockage   = culvert_blockage, 
+                                                    barrels    = culvert_barrels,
                                                     z1         = culvert_z1,
                                                     z2         = culvert_z2, 
                                                     flow_width = culvert_width,
@@ -491,7 +499,8 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         culvert_z1=2
         culvert_z2=2
         culvert_blockage = 0.0
-        
+        culvert_barrels = 1.0
+                
         culvert_type='trapezoid'
         manning=0.015
         sum_loss=1.5
@@ -536,6 +545,7 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
                                                     width      = culvert_width, 
                                                     depth      = culvert_height,
                                                     blockage   = culvert_blockage, 
+                                                    barrels    = culvert_barrels,
                                                     z1         = culvert_z1,
                                                     z2         = culvert_z2, 
                                                     flow_width = culvert_width,
@@ -581,7 +591,8 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         culvert_z1=2
         culvert_z2=2
         culvert_blockage = 0.0
-        
+        culvert_barrels = 1.0
+                
         culvert_type='trapezoid'
         manning=0.015
         sum_loss=1.5
@@ -626,6 +637,7 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
                                                     width      = culvert_width, 
                                                     depth      = culvert_height,
                                                     blockage   = culvert_blockage, 
+                                                    barrels    = culvert_barrels,
                                                     z1         = culvert_z1,
                                                     z2         = culvert_z2, 
                                                     flow_width = culvert_width,
