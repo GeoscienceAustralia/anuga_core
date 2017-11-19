@@ -208,12 +208,12 @@ def get_polygon_list_from_files(dir):
             continue
         if Rfile[-4:] == '.csv':
             #print 'CSV File'
-            polylist = get_polygon_from_single_file(Rfile)
+            polylist.extend(get_polygon_from_single_file(Rfile))
             #polylist.append(polys)
         if Rfile[-4:] == '.mif':
             #print 'MIF File ...'
             #polys = get_polygons_from_Mid_Mif(Rfile)
-            polylist=get_polygons_from_Mid_Mif(Rfile)
+            polylist.extend(get_polygons_from_Mid_Mif(Rfile))
         #print filename
         #print Rfile
         #raw_input('Hold check file...- line 211')
