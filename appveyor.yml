@@ -18,7 +18,7 @@ build_script:
         throw "There are newer queued builds for this pull request, failing early." }
   - ps: Start-FileDownload "https://repo.continuum.io/miniconda/Miniconda$env:PY_MAJOR_VER-latest-Windows-$env:PYTHON_ARCH.exe" C:\Miniconda.exe; echo "Finished downloading miniconda"
   - cmd: C:\Miniconda.exe /S /D=C:\Py
-  - SET PATH=C:\Py;C:\Py\Scripts;C:\Py\Library\bin;%PATH%
+  - cmd: C:\Py\Scripts\activate.bat
   - CMD: SET
   - conda config --set always_yes yes
   - conda config --add channels conda-forge
