@@ -12,7 +12,7 @@ set -e
 
 PYTHON_VERSION=${PYTHON_VERSION:-"2.7"}
 ANUGA_BITS=${ANUGA_BITS:-"64"}
-ANUGA_PARALLEL=openmpi
+ANUGA_PARALLEL=${ANUGA_PARALLEL:-"openmpi"}
 
 
 brew update
