@@ -28,4 +28,4 @@ build_script:
   - python setup.py install --skip-build 
 
 test_script:
-  - python test_all.py
+  - python runtests.py
