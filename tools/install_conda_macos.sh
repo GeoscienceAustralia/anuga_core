@@ -12,17 +12,12 @@ set -e
 
 PYTHON_VERSION=${PYTHON_VERSION:-"2.7"}
 ANUGA_BITS=${ANUGA_BITS:-"64"}
-ANUGA_PARALLEL=openmpi
+ANUGA_PARALLEL=${ANUGA_PARALLEL:-"openmpi"}
 
 
 brew update
 brew install openmpi
 
-# Install pypar
-git clone https://github.com/daleroberts/pypar.git;
-pushd pypar;
-python setup.py install;
-popd;
 
 # Install miniconda
 wget https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh -O miniconda.sh ;
@@ -41,6 +36,15 @@ conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy 
     nose matplotlib gdal
 
 source activate anuga_env
+
+# Install pypar if parallel set
+if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
+    git clone https://github.com/daleroberts/pypar.git;
+    pushd pypar;
+    python setup.py install;
+    popd;
+fi
+
 
 # python 2.6 doesn't have argparse by default
 if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install --yes argparse; fi
