@@ -11,6 +11,7 @@ import anuga
 
 from anuga.structures.boyd_box_operator import Boyd_box_operator
 from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator
+from anuga.structures.weir_orifice_trapezoid_operator import Weir_orifice_trapezoid_operator
 from anuga.structures.inlet_operator import Inlet_operator
                             
 #from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
@@ -40,8 +41,9 @@ points, vertices, boundary = rectangular_cross(int(length/dx),
                                                int(width/dy),
                                                len1=length, 
                                                len2=width)
-domain = anuga.Domain(points, vertices, boundary)   
-domain.set_name('run_culvert_inlet')                 # Output name
+domain = anuga.Domain(points, vertices, boundary) 
+outname = 'trap'#'box'  
+domain.set_name(outname)                 # Output name
 domain.set_default_order(2)
 #domain.set_beta(1.5)
 
@@ -89,19 +91,18 @@ domain.set_quantity('stage',
 filename=os.path.join(path, 'example_rating_curve.csv')
 
 
-
-Boyd_pipe_operator(domain, label = '1_5m_inletctl',
-                            end_points=[[9.0, 2.5],[13.0, 2.5]],
-                            losses=1.5,
-                            diameter=1.5,
-                            barrels=2.0,
-                            apron=5.0,
-                            use_momentum_jet=True,
-                            use_velocity_head=False,
-                            logging=True,
-                            manning=0.013,
-                            verbose=False)
-#Boyd_box_operator(domain, label = '1_5m_inletctl',
+#Boyd_pipe_operator(domain, label = '1_5m_inletctl',
+                            #end_points=[[9.0, 2.5],[13.0, 2.5]],
+                            #losses=1.5,
+                            #diameter=1.5,
+                            #barrels=2.0,
+                            #apron=5.0,
+                            #use_momentum_jet=True,
+                            #use_velocity_head=False,
+                            #logging=True,
+                            #manning=0.013,
+                            #verbose=False)
+#Boyd_box_operator(domain, label = outname,
                             #end_points=[[9.0, 2.5],[13.0, 2.5]],
                             #losses=1.5,
                             #width=1.5,
@@ -112,6 +113,19 @@ Boyd_pipe_operator(domain, label = '1_5m_inletctl',
                             #logging=True,
                             #manning=0.013,
                             #verbose=False)
+Weir_orifice_trapezoid_operator(domain, label = outname,
+                            end_points=[[9.0, 2.5],[13.0, 2.5]],
+                            losses=1.5,
+                            width=1.5,
+                            height=1.5,
+                            z1=10.0,
+                            z2=10.0,
+                            apron=5.0,
+                            use_momentum_jet=True,
+                            use_velocity_head=False,
+                            logging=True,
+                            manning=0.013,
+                            verbose=False)
 line = [[0.0, 5.0], [0.0, 10.0]]
 Q = 5.0
 Inlet_operator(domain, line, Q)

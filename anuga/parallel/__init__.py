@@ -21,7 +21,7 @@ if pypar_available:
     from parallel_shallow_water import Parallel_domain as Parallel_shallow_water_domain
     from parallel_advection     import Parallel_domain as Parallel_advection_domain
     from parallel_operator_factory import Inlet_operator, Boyd_box_operator, Boyd_pipe_operator
-    from parallel_operator_factory import Weir_orifice_trapezoid_operator #added by PM 22/10/2013
+    from parallel_operator_factory import Weir_orifice_trapezoid_operator
 else:
     from anuga import rectangular_cross as parallel_rectangle
     from anuga import Domain as Parallel_shallow_water_domain
