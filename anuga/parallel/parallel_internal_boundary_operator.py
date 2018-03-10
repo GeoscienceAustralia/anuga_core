@@ -65,6 +65,8 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
                                           diameter= None,
                                           apron=apron,
                                           manning=None,
+                                          blockage=None,#
+                                          barrels=None,#
                                           enquiry_gap=enquiry_gap,
                                           use_momentum_jet=use_momentum_jet,
                                           zero_outflow_momentum=zero_outflow_momentum,
