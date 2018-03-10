@@ -957,6 +957,7 @@ def Make_Geotif(swwFile=None,
              min_allowed_height=1.0e-05,
              output_dir='TIFS',
              bounding_polygon=None,
+             internal_holes=None,
              verbose=False,
              k_nearest_neighbours=3,
              creation_options=[]):
@@ -983,6 +984,7 @@ def Make_Geotif(swwFile=None,
                 min_allowed_height -- Minimum allowed height from ANUGA
                 output_dir -- Write outputs to this directory
                 bounding_polygon -- polygon (e.g. from read_polygon) If present, only set values of raster cells inside the bounding_polygon
+                internal_holes -- a list of polygons. If present, do not set values of raster cells inside these polygons.
                 k_nearest_neighbours -- how many neighbours to use in interpolation. If k>1, inverse-distance-weighted interpolation is used
                 creation_options -- list of tif creation options for gdal, e.g. ['COMPRESS=DEFLATE']
     """
@@ -1104,11 +1106,19 @@ def Make_Geotif(swwFile=None,
                 num += quantity[nn_inds[:,i]]*nn_wts[:,i]
             return (num/denom)
 
-    if(bounding_polygon is not None):
+    if bounding_polygon is not None:
         # Find points to exclude (i.e. outside the bounding polygon)
         from anuga.geometry.polygon import outside_polygon
         cut_points = outside_polygon(gridXY_array, bounding_polygon)
         
+    hole_points_list = []
+    if internal_holes is not None:
+        # Find points to exclude (i.e. inside the internal_holes)
+        from anuga.geometry.polygon import inside_polygon
+        for hole in internal_holes:
+            cut_holes = inside_polygon(gridXY_array, hole)
+            hole_points_list.append(cut_holes)
+
     # Loop over all output quantities and produce the output
     for myTSindex, myTSi in enumerate(myTimeStep):
         if(verbose):
@@ -1149,6 +1159,11 @@ def Make_Geotif(swwFile=None,
             if ( (bounding_polygon is not None) and (len(cut_points)>0)):
                 # Cut the points outside the bounding polygon
                 gridq[cut_points] = numpy.nan
+
+            if (internal_holes is not None) and (len(hole_points_list[0]) > 0):
+                # Cut the points inside the hole polygons
+                for hole_points in hole_points_list:
+                    gridq[hole_points] = numpy.nan
 
             # Make name for output file
             if(myTS != 'pointData'):
