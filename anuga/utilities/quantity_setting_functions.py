@@ -75,6 +75,7 @@ def make_nearestNeighbour_quantity_function(
         import scipy
         import scipy.interpolate
         import scipy.spatial
+        import numpy as np
         
         x = np.asarray(x).reshape(1, -1)[0,:]
         y = np.asarray(y).reshape(1, -1)[0,:]
