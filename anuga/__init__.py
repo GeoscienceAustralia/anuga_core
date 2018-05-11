@@ -50,6 +50,12 @@ else:
         your python interpreter from there."""
         raise ImportError(msg)
     
+    #---------------------------------
+    # NetCDF changes stdout to terminal\
+    # Causes trouble when using jupyter
+    #---------------------------------
+    import sys
+    _stdout = sys.stdout    
     
     #---------------------------------
     # Setup the nose tester from numpy
@@ -331,9 +337,15 @@ else:
 
     from anuga.config import g
     from anuga.config import velocity_protection
+        
+    #--------------------------------------
+    # NetCDF changes stdout to the terminal
+    # This resets it
+    #--------------------------------------
+    reload(sys)
+    sys.stdout = _stdout
     
-
-
+    
 
 
 
