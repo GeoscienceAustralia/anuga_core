@@ -63,7 +63,7 @@ def create_domain_from_regions(bounding_polygon,
                                minimum_triangle_angle=28.0,
                                fail_if_polygons_outside=True,
                                use_cache=False,
-                               verbose=True):
+                               verbose=False):
     
 
     """Create domain from bounding polygons and resolutions.
@@ -129,6 +129,11 @@ def create_domain_from_regions(bounding_polygon,
     # Build arguments and keyword arguments for use with caching or apply.
     args = (bounding_polygon,
             boundary_tags)
+    
+    if mesh_filename is None:
+        import tempfile
+        import time
+        mesh_filename = 'mesh_%d.msh'%int(time.time())
     
     kwargs = {'maximum_triangle_area': maximum_triangle_area,
               'mesh_filename': mesh_filename,
