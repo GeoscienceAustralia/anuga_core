@@ -26,7 +26,6 @@ build_script:
   - conda install pip nose numpy scipy netcdf4 matplotlib gdal mingwpy
   - python setup.py build --compiler=mingw32
   - python setup.py install --skip-build 
-  - python -c "import matplotlib; matplotlib.font_manager._rebuild()"
   
 test_script:
   - python runtests.py
