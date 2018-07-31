@@ -45,8 +45,8 @@ For installation instructions, see
 `INSTALL.rst <https://github.com/GeoscienceAustralia/anuga_core/blob/master/INSTALL.rst>`_
 
 
-Documentation
--------------
+Documentation and Help
+----------------------
 
 ANUGA documentation is available in the doc folder. In particular the 
 `user_manual <https://github.com/GeoscienceAustralia/anuga_core/raw/master/doc/anuga_user_manual.pdf>`_
@@ -55,6 +55,7 @@ Also helpful information is available noline at
 
     http://anuga.anu.edu.au
 
+A collection of online jupyter notebooks which can run under google's colab environment can be found at: https://github.com/stoiver/anuga-clinic-2018
 
 Web sites
 ---------
@@ -65,7 +66,7 @@ The GitHub repository for ANUGA is: https://github.com/GeoscienceAustralia/anuga
 
 A viewer is available for displaying the ANUGA sww output files. ANUGA viewer repository is: https://github.com/GeoscienceAustralia/anuga-viewer
 
-A collection of online jupyter notebooks which can run under google's colab environment can be found at: https://github.com/stoiver/anuga-clinic-2018
+
     
 
 Mailing Lists
