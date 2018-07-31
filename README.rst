@@ -55,7 +55,9 @@ Also helpful information is available noline at
 
     http://anuga.anu.edu.au
 
-A collection of online jupyter notebooks which can run under google's colab environment can be found at: https://github.com/stoiver/anuga-clinic-2018
+A collection of online jupyter notebooks which can run under google's colab environment can be found at: 
+
+    https://github.com/stoiver/anuga-clinic-2018
 
 Web sites
 ---------
