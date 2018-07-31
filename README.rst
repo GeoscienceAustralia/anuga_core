@@ -64,6 +64,8 @@ The WikiPedia for ANUGA is: https://en.wikipedia.org/wiki/ANUGA_Hydro
 The GitHub repository for ANUGA is: https://github.com/GeoscienceAustralia/anuga_core
 
 A viewer is available for displaying the ANUGA sww output files. ANUGA viewer repository is: https://github.com/GeoscienceAustralia/anuga-viewer
+
+A collection of online jupyter notebooks which can run under google's colab environment can be found at: https://github.com/stoiver/anuga-clinic-2018
     
 
 Mailing Lists
