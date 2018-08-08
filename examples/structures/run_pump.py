@@ -4,18 +4,37 @@ from anuga.structures import internal_boundary_functions
 from anuga.structures.internal_boundary_functions import pumping_station_function
 
 
+end_point0 = [49.0,50.0]
+end_point1 = [51.0,50.0]
+
+end_points = [end_point0, end_point1]
+
+inlet1_poly = [[[end_point0[0]-10, 45.0],[end_point0[0]-10,55],
+                [end_point0[0],55],[end_point0[0],45],[end_point0[0]-10, 45.0]]]
+              
+inlet2_poly = [[[end_point1[0], 45.0],[end_point1[0],55],
+                [end_point1[0]+10,55],[end_point1[0]+10,45],[end_point1[0], 45.0]]]
+              
+
+def tobreaklines(riverWall):
+    return [numpy.array(riverWall.values()[0])[:,0:2].tolist()]
+
+
 boundaryPolygon = [ [0., 0.], [0., 100.], [100.0, 100.0], [100.0, 0.0]]
 wallLoc = 50.
 # The boundary polygon + riverwall breaks the mesh into multiple regions
 # Must define the resolution in these areas with an xy point + maximum area
 # Otherwise triangle.c gets confused
-l = 5.0
-regionPtAreas = [ [99., 99., l*l*0.5],
-                  [1., 1., l*l*0.5] ]
+length = 2.0
+res = length*length*0.5
+regionPtAreas = [ [99., 99., res],
+                  [1., 1., res],
+                  [45, 50, res],
+                  [55, 50, res]]
 
 wallHeight=10.
-InitialOceanStage=6.
-InitialLandStage=2.
+InitialOceanStage=2.
+InitialLandStage=6.
 
 riverWall = { 'centralWall':
                            [ [wallLoc, 0.0, wallHeight],
@@ -33,13 +52,12 @@ domain = anuga.create_domain_from_regions(boundaryPolygon,
                            minimum_triangle_angle = 28.0,
                            interior_regions =[ ], #[ [higherResPolygon, 1.*1.*0.5],
                                                   #  [midResPolygon, 3.0*3.0*0.5]],
-                           breaklines=riverWall.values(),
+                           breaklines=tobreaklines(riverWall)+inlet1_poly+inlet2_poly,
+                           regionPtArea=regionPtAreas,
                            use_cache=False,
-                           verbose=False,
-                           regionPtArea=regionPtAreas)
+                           verbose=False)
 
 
-domain.set_flow_algorithm('DE0')
 domain.set_name('run_pump')
 domain.set_store_vertices_uniquely(True)
 
@@ -84,16 +102,19 @@ pump_function = anuga.pumping_station_function(
             pump_capacity=100.0,
             hw_to_start_pumping=0.0,
             hw_to_stop_pumping=-1.0,
-            initial_pump_rate=10.0, 
+            initial_pump_rate=100.0, 
             pump_rate_of_increase = 1.0, 
             pump_rate_of_decrease = 1.0, 
             verbose=True)
 
 
-end_points = [[45.0,50.0],[55.0,50.0]]
-pump = anuga.Internal_boundary_operator(domain, pump_function, 
-                                   end_points=end_points,
-                                   verbose=True)
+
+pump = anuga.Internal_boundary_operator(domain, pump_function,
+                                        width = 10.0,
+                                        height = 1.0,
+                                        apron = 10.0,
+                                        end_points=end_points,
+                                        verbose=True)
 
 
 #============================================
@@ -106,7 +127,7 @@ pump = anuga.Internal_boundary_operator(domain, pump_function,
 region1 = anuga.Region(domain, polygon=[[0.0,0.0], [50.0,0.0], [50.0, 100.0], [0.0,100.0]])
 region2 = anuga.Region(domain, polygon=[[50.0,0.0], [100.0,0.0], [100.0, 100.0], [50.0,100.0]])
 
-for t in domain.evolve(yieldstep=2, duration=60):
+for t in domain.evolve(yieldstep=1.0, duration=60):
     domain.print_timestepping_statistics()
     stage = domain.get_quantity('stage')
     elev  = domain.get_quantity('elevation')
