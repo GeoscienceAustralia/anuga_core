@@ -5,15 +5,10 @@ Setting up a simulation class
 #------------------------------------------------------------------------------
 # IMPORT NECESSARY MODULES
 #------------------------------------------------------------------------------
-
-
 import anuga
 import time
 import numpy
 import os
-
-
-
 
 
 from anuga import myid, barrier, finalize, numprocs
@@ -42,7 +37,7 @@ class Simulation(object):
         self.checkpoint_dir = args.checkpoint_dir
         self.alg = args.alg
         self.args = args
-        self.checkpoint = args.checkpoint
+        self.checkpointing = args.checkpointing
         self.checkpoint_time = args.checkpoint_time
 
         self.setup_boundaries = setup_boundaries
@@ -50,7 +45,7 @@ class Simulation(object):
         self.setup_rainfall = setup_rainfall
         self.setup_structures = setup_structures
 
-        if self.checkpoint:
+        if self.checkpointing:
             # try to read in from checkpoint file
             from anuga import load_checkpoint_file
             try:
