@@ -12,8 +12,8 @@ import os
 
 
 from anuga import myid, barrier, finalize, numprocs
-from anuga import sequential_distribute_load
-from anuga import sequential_distribute_dump
+from anuga.parallel.sequential_distribute import sequential_distribute_load
+from anuga.parallel.sequential_distribute import sequential_distribute_dump
 from anuga.parallel.sequential_distribute import sequential_distribute_load_pickle_file
 from os.path import join
 
