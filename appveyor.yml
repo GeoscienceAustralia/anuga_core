@@ -23,9 +23,9 @@ build_script:
   - conda config --set always_yes yes
   - conda config --add channels conda-forge
   - conda update conda
-  - conda install pip nose numpy scipy netcdf4 matplotlib gdal mingwpy
+  - conda install pip nose numpy scipy netcdf4 matplotlib gdal dill mingwpy
   - python setup.py build --compiler=mingw32
-  - python setup.py install --skip-build 
-  
+  - python setup.py install --skip-build
+
 test_script:
   - python runtests.py

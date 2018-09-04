@@ -35,12 +35,12 @@ fi
 # conda-based environment instead
 deactivate || echo "deactivate failed"
 
-# Use the miniconda installer for faster download 
+# Use the miniconda installer for faster download
 # install of conda itself
-if [[ "$ANUGA_BITS" == "64" ]]; then 
+if [[ "$ANUGA_BITS" == "64" ]]; then
     wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh ;
 fi
-if [[ "$ANUGA_BITS" == "32" ]]; then 
+if [[ "$ANUGA_BITS" == "32" ]]; then
     wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86.sh -O miniconda.sh ;
 fi
 chmod +x miniconda.sh && ./miniconda.sh -b
@@ -57,8 +57,8 @@ conda update --yes conda
 
 # Configure the conda environment and put it in the path using the
 # provided versions
-conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 nose matplotlib gdal
- 
+conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 nose matplotlib gdal dill
+
 
 source activate anuga_env
 
@@ -86,4 +86,4 @@ conda info -a
 # Build and install anuga
 
 python setup.py build
-python setup.py install 
+python setup.py install
