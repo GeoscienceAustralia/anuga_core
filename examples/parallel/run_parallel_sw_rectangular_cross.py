@@ -22,7 +22,7 @@ import sys
 #---------------------------
 from anuga import Transmissive_boundary, Reflective_boundary
 from anuga import rectangular_cross_domain
-from anuga import Set_quantity
+from anuga import Set_stage
 
 #----------------------------
 # Parallel interface
@@ -99,30 +99,9 @@ if myid == 0 : print 'after set_boundary'
 
 if myid == 0 : print 'after check_integrity'
 
-class Set_Stage:
-    """Set an initial condition with constant water height, for x<x0
-    """
-
-    def __init__(self, x0=0.25, x1=0.75, y0=0.0, y1=1.0, h=5.0, h0=0.0):
-        self.x0 = x0
-        self.x1 = x1
-        self.y0 = y0
-        self.y1 = y1
-        self.h  = h
-        self.h0 = h0
-
-    def __call__(self, x, y):
-        return self.h0 + self.h*((x>self.x0)&(x<self.x1)&(y>self.y0)&(y<self.y1))
-
-
-
-#domain.set_quantity('stage', Set_Stage(0.2, 0.4, 0.25, 0.75, 1.0, 0.00))
-
-Set_quantity(domain,'stage',center=(0.0,0.0), radius=0.5, value = 2.0)
+Set_stage(domain,center=(0.0,0.0), radius=0.5, value = 2.0)
 
 if myid == 0 : print 'after set quantity'
-
-
 
 yieldstep = 0.005
 finaltime = 0.05
