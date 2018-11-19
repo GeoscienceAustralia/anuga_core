@@ -27,7 +27,7 @@ from anuga import Set_quantity
 #----------------------------
 # Parallel interface
 #---------------------------
-from anuga_parallel import distribute, myid, numprocs, finalize, barrier
+from anuga import distribute, myid, numprocs, finalize, barrier
 
 
 t0 = time.time()
