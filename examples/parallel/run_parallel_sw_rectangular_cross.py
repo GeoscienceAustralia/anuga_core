@@ -1,13 +1,21 @@
 #########################################################
 #
-#  Main file for parallel mesh testing.
+#  Example of running a simple parallel model
 #
-#  This is a modification of the run_parallel_advection.py
-# file.
+#  Need mpi setup for your machine 
 #
+#  Run in parallel as follows (on 4 processors)
 #
-#  Authors: Linda Stals, Steve Roberts and Matthew Hardy,
-# June 2005
+#  mpirun -np 4 python run_parallel_sw_rectangular_cross.py
+#
+#  Note the use of "if myid == 0" to restrict some calculations 
+#  to just one processor, in particular the creation of a 
+#  full domain on processor 0 which is then distributed to the
+#  processors. 
+#
+#  Authors: 
+#  Linda Stals, Steve Roberts and Matthew Hardy - June 2005
+#  Steve Roberts - 2018
 #
 #
 #
@@ -133,9 +141,12 @@ for p in range(numprocs):
         sys.stdout.flush()
 
 
+
 if domain.number_of_global_triangles < 50000:
     if myid == 0 :
         print 'Create dump of triangulation for %g triangles' % domain.number_of_global_triangles
     domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)
+
+domain.sww_merge(delete_old=True)
 
 finalize()
