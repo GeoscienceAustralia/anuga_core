@@ -99,7 +99,7 @@ if myid == 0 : print 'after set_boundary'
 
 if myid == 0 : print 'after check_integrity'
 
-Set_stage(domain,center=(0.0,0.0), radius=0.5, value = 2.0)
+Set_stage(domain,center=(0.0,0.0), radius=0.5, stage = 2.0)
 
 if myid == 0 : print 'after set quantity'
 
