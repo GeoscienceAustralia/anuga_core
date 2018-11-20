@@ -59,6 +59,7 @@ if myid == 0:
     domain.set_quantity('elevation', lambda x,y : -1.0-x )
     domain.set_quantity('stage', 1.0)
     domain.set_flow_algorithm('DE0')
+    domain.set_name('sw_rectangle')
     domain.print_statistics()
 else:
     domain = None
@@ -86,10 +87,6 @@ if myid == 0 :
     print 'Distribute domain: Time ',t2-t1
     
 if myid == 0 : print 'after parallel domain'
-
-
-
-domain.set_name('sw_rectangle')
 
 #Boundaries
 T = Transmissive_boundary(domain)
