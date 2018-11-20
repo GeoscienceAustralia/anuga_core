@@ -101,13 +101,11 @@ domain.set_boundary( {'left': R, 'right': R, 'bottom': R, 'top': R, 'ghost': Non
 
 if myid == 0 : print 'after set_boundary'
 
+# Let's use a setter to set stage
+setter = Set_stage(domain,center=(0.0,0.0), radius=0.5, stage = 2.0)
 
-
-#domain.check_integrity()
-
-if myid == 0 : print 'after check_integrity'
-
-Set_stage(domain,center=(0.0,0.0), radius=0.5, stage = 2.0)
+# evaluate setter
+setter()
 
 if myid == 0 : print 'after set quantity'
 
