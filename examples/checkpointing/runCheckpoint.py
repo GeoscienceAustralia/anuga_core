@@ -143,7 +143,7 @@ except:
     # set to 15 minutes = 15*60 sec
     #-----------------------------------------------------------------------------
     if useCheckpointing:
-        domain.set_checkpointing(checkpoint_time = 5)
+        domain.set_checkpointing(checkpoint_time = 5, checkpoint_dir = checkpoint_dir)
 
 
 

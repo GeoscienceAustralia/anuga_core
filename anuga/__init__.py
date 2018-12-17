@@ -8,11 +8,11 @@
     the user's code:
 
     import anuga
-        
+
     This usage pattern abstracts away the internal heirarchy of the ANUGA
     system, allowing the user to concentrate on writing simulations without
     searching through the ANUGA source tree for the functions that they need.
-    
+
     Also, it isolates the user from "under-the-hood" refactorings.
 """
 
@@ -34,8 +34,8 @@ try:
     __ANUGA_SETUP__
 except NameError:
     __ANUGA_SETUP__ = False
-    
-    
+
+
 if __ANUGA_SETUP__:
     import sys as _sys
     _sys.stderr.write('Running from anuga source directory.\n')
@@ -49,14 +49,20 @@ else:
         its source directory; please exit the anuga source tree, and relaunch
         your python interpreter from there."""
         raise ImportError(msg)
-    
-    
+
+    #---------------------------------
+    # NetCDF changes stdout to terminal\
+    # Causes trouble when using jupyter
+    #---------------------------------
+    import sys
+    _stdout = sys.stdout
+
     #---------------------------------
     # Setup the nose tester from numpy
     #---------------------------------
     from numpy.testing import Tester
     test = Tester().test
-    
+
     #--------------------------------
     # Important basic classes
     #--------------------------------
@@ -71,9 +77,9 @@ else:
 
     from anuga.abstract_2d_finite_volumes.generic_domain import Generic_Domain
     from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
-    #------------------------------------------------------------------------------ 
+    #------------------------------------------------------------------------------
     # Miscellaneous
-    #------------------------------------------------------------------------------ 
+    #------------------------------------------------------------------------------
     from anuga.abstract_2d_finite_volumes.util import file_function, \
                                             sww2timeseries, sww2csv_gauges, \
                                             csv2timeseries_graphs
@@ -93,7 +99,7 @@ else:
     from anuga.geometry.polygon import inside_polygon
     from anuga.geometry.polygon import polygon_area
     from anuga.geometry.polygon_function import Polygon_function
-    
+
     from anuga.coordinate_transforms.lat_long_UTM_conversion import LLtoUTM, UTMtoLL
 
     from anuga.abstract_2d_finite_volumes.pmesh2domain import \
@@ -101,7 +107,7 @@ else:
 
     from anuga.fit_interpolate.fit import fit_to_mesh_file
     from anuga.fit_interpolate.fit import fit_to_mesh
-        
+
     from anuga.utilities.system_tools import file_length
     from anuga.utilities.sww_merge import sww_merge_parallel as sww_merge
     from anuga.utilities.file_utils import copy_code_files
@@ -112,11 +118,11 @@ else:
     from anuga.caching import cache
     from os.path import join
     from anuga.config import indent
-    
+
     from anuga.utilities.parse_time import parse_time
 
     #----------------------------
-    # Parallel api 
+    # Parallel api
     #----------------------------
     ## from anuga_parallel.parallel_api import distribute
     ## from anuga_parallel.parallel_api import myid, numprocs, get_processor_name
@@ -199,14 +205,14 @@ else:
     from anuga.file_conversion.file_conversion import timefile2netcdf
     from anuga.file_conversion.file_conversion import tsh2sww
     from anuga.file_conversion.urs2nc import urs2nc
-    from anuga.file_conversion.urs2sww import urs2sww  
+    from anuga.file_conversion.urs2sww import urs2sww
     from anuga.file_conversion.urs2sts import urs2sts
-    from anuga.file_conversion.dem2pts import dem2pts                    
-    from anuga.file_conversion.esri2sww import esri2sww   
-    from anuga.file_conversion.sww2dem import sww2dem, sww2dem_batch 
+    from anuga.file_conversion.dem2pts import dem2pts
+    from anuga.file_conversion.esri2sww import esri2sww
+    from anuga.file_conversion.sww2dem import sww2dem, sww2dem_batch
     from anuga.file_conversion.asc2dem import asc2dem
-    from anuga.file_conversion.xya2pts import xya2pts     
-    from anuga.file_conversion.ferret2sww import ferret2sww     
+    from anuga.file_conversion.xya2pts import xya2pts
+    from anuga.file_conversion.ferret2sww import ferret2sww
     from anuga.file_conversion.dem2dem import dem2dem
     from anuga.file_conversion.sww2array import sww2array
 
@@ -231,6 +237,10 @@ else:
     #-----------------------------
     from anuga.utilities.run_anuga_script import run_script as run_anuga_script
 
+    #---------------------------
+    # Simulation and Excel mesh_interface
+    #---------------------------
+    from anuga.simulation.simulation import Simulation
 
     #-----------------------------
     # Mesh API
@@ -248,19 +258,24 @@ else:
     from anuga.operators.kinematic_viscosity_operator import Kinematic_viscosity_operator
 
     from anuga.operators.rate_operators import Rate_operator
-    from anuga.operators.set_friction_operators import Depth_friction_operator 
+    from anuga.operators.set_friction_operators import Depth_friction_operator
 
     from anuga.operators.set_elevation_operator import Set_elevation_operator
     from anuga.operators.set_quantity_operator import Set_quantity_operator
     from anuga.operators.set_stage_operator import Set_stage_operator
 
+
     from anuga.operators.set_elevation import Set_elevation
     from anuga.operators.set_quantity import Set_quantity
+    from anuga.operators.set_stage import Set_stage
 
     from anuga.operators.sanddune_erosion_operator import Sanddune_erosion_operator
     from anuga.operators.erosion_operators import Bed_shear_erosion_operator
     from anuga.operators.erosion_operators import Flat_slice_erosion_operator
     from anuga.operators.erosion_operators import Flat_fill_slice_erosion_operator
+
+
+
 
     #---------------------------
     # Structure Operators
@@ -280,6 +295,7 @@ else:
         from anuga.structures.weir_orifice_trapezoid_operator import Weir_orifice_trapezoid_operator
         from anuga.structures.internal_boundary_operator import Internal_boundary_operator
 
+    from anuga.structures.internal_boundary_functions import pumping_station_function
 
     #----------------------------
     # Parallel distribute
@@ -287,7 +303,7 @@ else:
 
 
     #----------------------------
-    # 
+    #
     #Added by Petar Milevski 10/09/2013
     #import time, os
 
@@ -325,15 +341,16 @@ else:
     from anuga.extras import create_domain_from_file
     from anuga.extras import rectangular_cross_domain
 
-    
+
     #import logging as log
     from anuga.utilities import log
 
     from anuga.config import g
     from anuga.config import velocity_protection
-    
 
-
-
-
-
+    #--------------------------------------
+    # NetCDF changes stdout to the terminal
+    # This resets it
+    #--------------------------------------
+    reload(sys)
+    sys.stdout = _stdout

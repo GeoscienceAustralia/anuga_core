@@ -26,6 +26,7 @@ AnuGA requires the following packages:
 * `gdal <http://gdal.org/>`_
 * `netcdf <http://www.unidata.ucar.edu/software/netcdf/>`_
 * `nose <http://nose.readthedocs.org/en/latest/>`_
+* `dill <https://dill.readthedocs.io/>`_
 * A C compiler (preferably GCC or TDM-GCC_ MinGW_ on Windows)
 
 

@@ -1,13 +1,21 @@
 #########################################################
 #
-#  Main file for parallel mesh testing.
+#  Example of running a simple parallel model
 #
-#  This is a modification of the run_parallel_advection.py
-# file.
+#  Need mpi setup for your machine 
 #
+#  Run in parallel as follows (on 4 processors)
 #
-#  Authors: Linda Stals, Steve Roberts and Matthew Hardy,
-# June 2005
+#  mpirun -np 4 python run_parallel_sw_rectangular_cross.py
+#
+#  Note the use of "if myid == 0" to restrict some calculations 
+#  to just one processor, in particular the creation of a 
+#  full domain on processor 0 which is then distributed to the
+#  processors. 
+#
+#  Authors: 
+#  Linda Stals, Steve Roberts and Matthew Hardy - June 2005
+#  Steve Roberts - 2018
 #
 #
 #
@@ -22,12 +30,12 @@ import sys
 #---------------------------
 from anuga import Transmissive_boundary, Reflective_boundary
 from anuga import rectangular_cross_domain
-from anuga import Set_quantity
+from anuga import Set_stage
 
 #----------------------------
 # Parallel interface
 #---------------------------
-from anuga_parallel import distribute, myid, numprocs, finalize, barrier
+from anuga import distribute, myid, numprocs, finalize, barrier
 
 
 t0 = time.time()
@@ -51,6 +59,7 @@ if myid == 0:
     domain.set_quantity('elevation', lambda x,y : -1.0-x )
     domain.set_quantity('stage', 1.0)
     domain.set_flow_algorithm('DE0')
+    domain.set_name('sw_rectangle')
     domain.print_statistics()
 else:
     domain = None
@@ -79,10 +88,6 @@ if myid == 0 :
     
 if myid == 0 : print 'after parallel domain'
 
-
-
-domain.set_name('sw_rectangle')
-
 #Boundaries
 T = Transmissive_boundary(domain)
 R = Reflective_boundary(domain)
@@ -93,36 +98,13 @@ domain.set_boundary( {'left': R, 'right': R, 'bottom': R, 'top': R, 'ghost': Non
 
 if myid == 0 : print 'after set_boundary'
 
+# Let's use a setter to set stage
+setter = Set_stage(domain,center=(0.0,0.0), radius=0.5, stage = 2.0)
 
-
-#domain.check_integrity()
-
-if myid == 0 : print 'after check_integrity'
-
-class Set_Stage:
-    """Set an initial condition with constant water height, for x<x0
-    """
-
-    def __init__(self, x0=0.25, x1=0.75, y0=0.0, y1=1.0, h=5.0, h0=0.0):
-        self.x0 = x0
-        self.x1 = x1
-        self.y0 = y0
-        self.y1 = y1
-        self.h  = h
-        self.h0 = h0
-
-    def __call__(self, x, y):
-        return self.h0 + self.h*((x>self.x0)&(x<self.x1)&(y>self.y0)&(y<self.y1))
-
-
-
-#domain.set_quantity('stage', Set_Stage(0.2, 0.4, 0.25, 0.75, 1.0, 0.00))
-
-Set_quantity(domain,'stage',center=(0.0,0.0), radius=0.5, value = 2.0)
+# evaluate setter
+setter()
 
 if myid == 0 : print 'after set quantity'
-
-
 
 yieldstep = 0.005
 finaltime = 0.05
@@ -154,9 +136,12 @@ for p in range(numprocs):
         sys.stdout.flush()
 
 
+
 if domain.number_of_global_triangles < 50000:
     if myid == 0 :
         print 'Create dump of triangulation for %g triangles' % domain.number_of_global_triangles
     domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)
+
+domain.sww_merge(delete_old=True)
 
 finalize()

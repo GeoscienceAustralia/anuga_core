@@ -33,8 +33,8 @@ if [ $(dpkg-query -W -f='${Status}\n' openmpi-bin 2>/dev/null | grep -c "ok inst
 then
   ANUGA_PARALLEL="openmpi"
 fi
-   
-    
+
+
 sudo apt-get update -q
 
 
@@ -44,18 +44,23 @@ sudo apt-get update -q
 echo "+===============================================+"
 echo "|  Using apt-get to install standard packages   |"
 echo "+===============================================+"
-    
+
 sudo apt-get install -q -y git gfortran python-dev python-numpy \
                              python-scipy \
                              python-matplotlib netcdf-bin \
                              libnetcdf-dev libhdf5-serial-dev \
-                             python-gdal gdal-bin python-pip 
+                             python-gdal gdal-bin python-pip
 
 
 echo "+===============================================+"
 echo "|  Using pip to install nose                    |"
 echo "+===============================================+"
 sudo pip install -q nose
+
+echo "+===============================================+"
+echo "|  Using pip to install dill                    |"
+echo "+===============================================+"
+sudo pip install -q dill
 
 echo "+===============================================+"
 echo "|  Using pip to install netCDF4                 |"
@@ -67,7 +72,7 @@ echo "|  Using pip to install pyproj                  |"
 echo "+===============================================+"
 sudo pip install -q pyproj
 
-    
+
 ##########################################################
 # Setup for various versions of MPI
 if [[ "$ANUGA_PARALLEL" == "mpich" ]]; then
@@ -118,7 +123,4 @@ python build_all.py
 echo "+===============================================+"
 echo "|  Install anuga using setup.py                 |"
 echo "+===============================================+"
-sudo python setup.py -q install 
-
-
-
+sudo python setup.py -q install

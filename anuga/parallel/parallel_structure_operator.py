@@ -597,10 +597,12 @@ class Parallel_Structure_operator(anuga.Operator):
                 message += 'Culvert Blockage: %s\n'% self.blockage
                 message += 'No.  of  barrels: %s\n'% self.barrels
             else:
-                message += 'Culvert Height: %s\n'% self.height
-                message += 'Culvert  Width: %s\n'% self.width
-                message += 'Batter Slope 1: %s\n'% self.z1
-                message += 'Batter Slope 2: %s\n'% self.z2
+                message += 'Culvert Height  : %s\n'% self.height
+                message += 'Culvert  Width  : %s\n'% self.width
+                message += 'Batter Slope 1  : %s\n'% self.z1
+                message += 'Batter Slope 2  : %s\n'% self.z2
+                message += 'Culvert Blockage: %s\n'% self.blockage
+                message += 'No.  of  barrels: %s\n'% self.barrels
                 
         #print "Structure Myids ",self.myid, self.label
         

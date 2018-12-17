@@ -2,8 +2,8 @@
     :target: https://travis-ci.org/GeoscienceAustralia/anuga_core
     :alt: travis ci status
 
-.. image:: https://ci.appveyor.com/api/projects/status/ws836mwk6j5brrye?svg=true
-    :target: https://ci.appveyor.com/project/stoiver/anuga-core
+.. image:: https://ci.appveyor.com/api/projects/status/wme68pf0xdxhy9qp?svg=true
+    :target: https://ci.appveyor.com/project/stoiver/anuga-core-67ygx
     :alt: appveyor status
 
 .. image:: https://coveralls.io/repos/GeoscienceAustralia/anuga_core/badge.svg?branch=master
@@ -45,8 +45,8 @@ For installation instructions, see
 `INSTALL.rst <https://github.com/GeoscienceAustralia/anuga_core/blob/master/INSTALL.rst>`_
 
 
-Documentation
--------------
+Documentation and Help
+----------------------
 
 ANUGA documentation is available in the doc folder. In particular the 
 `user_manual <https://github.com/GeoscienceAustralia/anuga_core/raw/master/doc/anuga_user_manual.pdf>`_
@@ -55,6 +55,9 @@ Also helpful information is available noline at
 
     http://anuga.anu.edu.au
 
+A collection of online jupyter notebooks which can run under google's colab environment can be found at: 
+
+    https://github.com/stoiver/anuga-clinic-2018
 
 Web sites
 ---------
@@ -64,6 +67,8 @@ The WikiPedia for ANUGA is: https://en.wikipedia.org/wiki/ANUGA_Hydro
 The GitHub repository for ANUGA is: https://github.com/GeoscienceAustralia/anuga_core
 
 A viewer is available for displaying the ANUGA sww output files. ANUGA viewer repository is: https://github.com/GeoscienceAustralia/anuga-viewer
+
+
     
 
 Mailing Lists

@@ -16,7 +16,10 @@ ANUGA_PARALLEL=${ANUGA_PARALLEL:-"openmpi"}
 
 
 brew update
-brew install openmpi
+
+if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
+    brew install openmpi
+fi
 
 
 # Install miniconda
@@ -33,7 +36,7 @@ conda update --yes conda
 # provided versions
 
 conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 \
-    nose matplotlib gdal
+    nose matplotlib gdal dill
 
 source activate anuga_env
 
@@ -59,4 +62,4 @@ conda info -a
 # Build and install anuga
 
 python setup.py build
-python setup.py install 
+python setup.py install
