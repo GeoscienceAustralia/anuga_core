@@ -41,7 +41,7 @@ class Rate_operator(Operator,Region):
                  polygon=None,
                  center=None,
                  radius=None,
-                 time_relative=True,
+                 relative_time=True,
                  default_rate=0.0,
                  description = None,
                  label = None,
@@ -64,7 +64,7 @@ class Rate_operator(Operator,Region):
         # Local variables
         #------------------------------------------
         self.factor = factor
-        self.time_relative = time_relative
+        self.relative_time = relative_time
 
         self.rate_callable = False
         self.rate_spatial = False
@@ -86,14 +86,14 @@ class Rate_operator(Operator,Region):
         Apply rate to those triangles defined in indices
 
         indices == [], then don't apply anywhere
-        indices == None, then apply everywhere
+        indices is None, then apply everywhere
         otherwise apply for the specific indices
         """
 
         if self.indices is []:
             return
 
-        t = self.domain.get_time(relative=self.time_relative)
+        t = self.domain.get_time(relative_time=self.relative_time)
         timestep = self.domain.get_timestep()
         factor = self.factor
         indices = self.indices

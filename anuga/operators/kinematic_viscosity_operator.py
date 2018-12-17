@@ -227,13 +227,13 @@ class Kinematic_viscosity_operator(Operator):
 
         div ( a grad )
 
-        If a == None then we set a = quantity which is set to 1
+        If a is None then we set a = quantity which is set to 1
         """
 
         #Array self.operator_data is changed by this call, which should flow
         # through to the Sparse_CSR matrix.
 
-        if a == None:
+        if a is None:
             a = Quantity(self.domain)
             a.set_values(1.0)
             a.set_boundary_values(1.0)
@@ -471,7 +471,7 @@ class Kinematic_viscosity_operator(Operator):
         Solution u is retruned in u_out
         """
 
-        if u_out == None:
+        if u_out is None:
             u_out = Quantity(self.domain)
 
         if update_matrix :
@@ -522,16 +522,16 @@ class Kinematic_viscosity_operator(Operator):
 
 
         if use_dt_tol:
-            tol  = min(self.dt,0.001)
-            atol = min(self.dt,0.001)
+            tol  = min(self.dt,1.0e-5)
+            atol = min(self.dt,1.0e-5)
         else:
-            tol  =  1.0e-5
+            tol  = 1.0e-5
             atol = 1.0e-5
 
 
 
         
-        if u_out == None:
+        if u_out is None:
             u_out = Quantity(self.domain)
 
         if update_matrix :

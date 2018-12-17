@@ -10,51 +10,117 @@
 set -e
 
 PYTHON_VERSION=${PYTHON_VERSION:-"2.7"}
+ANUGA_PARALLEL=${ANUGA_PARALLEL:-"false"}
+
+###########################################################
+# Check if mpich2 has been installed
+if [ $(dpkg-query -W -f='${Status}\n' mpich2 2>/dev/null | grep -c "ok installed") -gt 0 ];
+then
+  ANUGA_PARALLEL="mpich2"
+fi
+
+###########################################################
+# Check if mpich has been installed
+if [ $(dpkg-query -W -f='${Status}' mpich 2>/dev/null | grep -c "ok installed") -gt 0 ];
+then
+  ANUGA_PARALLEL="mpich"
+fi
+
+
+###########################################################
+# Check if openmpi has been installed
+if [ $(dpkg-query -W -f='${Status}\n' openmpi-bin 2>/dev/null | grep -c "ok installed") -gt 0 ];
+then
+  ANUGA_PARALLEL="openmpi"
+fi
+
 
 sudo apt-get update -q
 
+
 ##########################################################
 # Use standard ubuntu packages in their default version
-    
+
+echo "+===============================================+"
+echo "|  Using apt-get to install standard packages   |"
+echo "+===============================================+"
+
 sudo apt-get install -q -y git gfortran python-dev python-numpy \
                              python-scipy \
                              python-matplotlib netcdf-bin \
                              libnetcdf-dev libhdf5-serial-dev \
-                             python-gdal gdal-bin python-pip 
+                             python-gdal gdal-bin python-pip
 
-# at present we get an error when installing netCDF4 as it also installs
-# numpy
-sudo pip install numpy==1.9
-sudo pip install nose netCDF4 pyproj
-    
+
+echo "+===============================================+"
+echo "|  Using pip to install nose                    |"
+echo "+===============================================+"
+sudo pip install -q nose
+
+echo "+===============================================+"
+echo "|  Using pip to install dill                    |"
+echo "+===============================================+"
+sudo pip install -q dill
+
+echo "+===============================================+"
+echo "|  Using pip to install netCDF4                 |"
+echo "+===============================================+"
+sudo pip install -q netCDF4
+
+echo "+===============================================+"
+echo "|  Using pip to install pyproj                  |"
+echo "+===============================================+"
+sudo pip install -q pyproj
+
+
 ##########################################################
 # Setup for various versions of MPI
+if [[ "$ANUGA_PARALLEL" == "mpich" ]]; then
+    echo "+===============================================+"
+    echo "|  Using apt-get to install mpich package       |"
+    echo "+===============================================+"
+    sudo apt-get install -q -y mpich;
+fi
+
 if [[ "$ANUGA_PARALLEL" == "mpich2" ]]; then
-    sudo apt-get install -y mpich2;
+    echo "+===============================================+"
+    echo "|  Using apt-get to install mpich2 package      |"
+    echo "+===============================================+"
+    sudo apt-get install -q -y mpich2;
 fi
 
 if [[ "$ANUGA_PARALLEL" == "openmpi" ]]; then
-    sudo apt-get install -y libopenmpi-dev openmpi-bin;
+    echo "+===============================================+"
+    echo "|  Using apt-get to install openmpi package     |"
+    echo "+===============================================+"
+    sudo apt-get install -q -y libopenmpi-dev openmpi-bin;
 fi
+
 
 # Install pypar if parallel set
-if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
-     git clone https://github.com/daleroberts/pypar.git;
-     pushd pypar;
-     python setup.py build;
-     sudo python setup.py install;
-     popd;
+if [[ "$ANUGA_PARALLEL" == "mpich" || "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
+    echo "+===============================================+"
+    echo "|  Installing pypar from source                 |"
+    echo "+===============================================+"
+    if [ ! -d "pypar" ]; then
+	git clone https://github.com/daleroberts/pypar.git;
+    fi
+    pushd pypar;
+    git pull
+    python setup.py  build;
+    sudo python setup.py  install;
+    popd;
 fi
 
-########################################################
-if [[ "$COVERAGE" == "--coverage" ]]; then
-    sudo pip install coverage coveralls
-fi
+#########################################################
+# Build and install anuga
 
-########################################################
-# build and install anuga
+echo "+===============================================+"
+echo "|  Build anuga                                  |"
+echo "+===============================================+"
+python build_all.py
 
-python setup.py build
-sudo python setup.py install
-
-
+echo "+===============================================+"
+echo "|  Install anuga using setup.py                 |"
+echo "+===============================================+"
+sudo python setup.py -q install

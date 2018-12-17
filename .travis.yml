@@ -1,19 +1,45 @@
 language: python
-sudo: required
-virtualenv:
-  system_site_packages: true
-env:
-  matrix:
-    #- PYTHON_VERSION="2.7"  ANUGA_PARALLEL="openmpi"  DISTRIB="conda"
-    - PYTHON_VERSION="2.7"  ANUGA_PARALLEL="openmpi"  DISTRIB="ubuntu"
-    #- PYTHON_VERSION="2.7"  ANUGA_PARALLEL="mpich2"  DISTRIB="conda"
-    - PYTHON_VERSION="2.7"  ANUGA_PARALLEL="mpich2"  DISTRIB="ubuntu" COVERAGE="--coverage"
-    - PYTHON_VERSION="2.7"  ANUGA_PARALLEL="false"   DISTRIB="ubuntu"
-    #- PYTHON_VERSION="2.6"  ANUGA_PARALLEL="false"   DISTRIB="conda"
+matrix:
 
-install: 
+   include:
+
+       - os: osx
+         language: generic
+         sudo: false
+         python: "2.7"
+         env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="false"  DISTRIB="conda_macos"
+
+       - os: linux
+         language: generic
+         sudo: required
+         python: "2.7"
+         env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="openmpi"  DISTRIB="conda"
+
+       - os: linux
+         dist: trusty
+         sudo: required
+         python: "2.7_with_system_site_packages"
+         env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="mpich"  DISTRIB="ubuntu"
+
+       - os: linux
+         dist: trusty
+         sudo: required
+         python: "2.7_with_system_site_packages"
+         env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="false"  DISTRIB="ubuntu"
+
+       - os: linux
+         dist: trusty
+         sudo: required
+         python: "2.7_with_system_site_packages"
+         env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="openmpi"  DISTRIB="ubuntu" COVERAGE="--coverage"
+
+
+install:
+    - if [[ "$DISTRIB" == "conda_macos" ]]; then source tools/install_conda_macos.sh; fi
     - if [[ "$DISTRIB" == "conda" ]]; then source tools/install_conda.sh; fi
     - if [[ "$DISTRIB" == "ubuntu" ]]; then source tools/install_ubuntu.sh; fi
+    - if [[ "$COVERAGE" == "--coverage" ]]; then pip install coverage coveralls; fi
+
 
 script: 
     - python runtests.py $COVERAGE

@@ -77,12 +77,19 @@ class TestMetis(unittest.TestCase):
         #print edgecut
         #print epart
         #print npart
+        #print sys.platform
         if sys.platform == 'win32':
             epart_expected = array([1, 1, 1, 1, 1, 1], 'i')
             npart_expected = array([1, 1, 1, 1, 1, 1, 1], 'i')
             self.assert_(edgecut == 0)
             assert allclose(epart, epart_expected)
             assert allclose(npart, npart_expected)  
+        elif sys.platform == 'darwin':  
+            epart_expected = array([1, 1, 1, 1, 1, 1], 'i')
+            npart_expected = array([1, 1, 1, 1, 1, 1, 1], 'i')
+            self.assert_(edgecut == 0)
+            assert allclose(epart, epart_expected)
+            assert allclose(npart, npart_expected)
         else:  
             epart_expected = array([1, 0, 0, 0, 1, 1], 'i')
             npart_expected = array([0, 1, 1, 0, 0, 0, 1], 'i')
@@ -110,10 +117,10 @@ class TestMetis(unittest.TestCase):
                                                      0, 5, 4,\
                                                      0, 6, 5,\
                                                      0, 1, 6,\
-													 3, 2, 7,\
-													 3, 7, 8,\
-													 3, 8, 9,\
-													 3, 9, 4],\
+                                                     3, 2, 7,\
+						     3, 7, 8,\
+						     3, 8, 9,\
+						     3, 9, 4],\
                                                     1,\
                                                     3,)
         #print edgecut
@@ -125,6 +132,12 @@ class TestMetis(unittest.TestCase):
             self.assert_(edgecut == 12)
             assert allclose(epart, epart_expected)
             assert allclose(npart, npart_expected)  
+        elif sys.platform == 'darwin':
+            epart_expected = array([0, 2, 2, 2, 1, 0, 0, 1, 1, 2], 'i')
+            npart_expected = array([2, 0, 0, 1, 2, 1, 2, 0, 1, 2], 'i')
+            self.assert_(edgecut == 13)
+            assert allclose(epart, epart_expected)
+            assert allclose(npart, npart_expected)
         else:  
             epart_expected = array([0, 0, 0, 1, 2, 2, 2, 2, 1, 1], 'i')
             npart_expected = array([0, 2, 0, 2, 1, 1, 2, 2, 0, 1], 'i')

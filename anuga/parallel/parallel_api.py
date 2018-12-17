@@ -42,6 +42,31 @@ processor_name = get_processor_name()
 
 
 
+def collect_value(value):
+    
+    value = value
+
+    if myid == 0:
+        for i in range(numprocs):
+            if i == 0: continue
+            val = receive(i)
+            value = value + val
+    else:
+        send(value, 0)
+        
+    
+    if myid == 0:
+        for i in range(1,numprocs):
+            send(value,i)
+    else:
+        value = receive(0)
+   
+
+    return value   
+    
+
+
+
 def distribute(domain, verbose=False, debug=False, parameters = None):
     """ Distribute the domain to all processes
 
@@ -60,7 +85,9 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
         kwargs, points, vertices, boundary, quantities, boundary_map, \
                 domain_name, domain_dir, domain_store, domain_store_centroids, \
                 domain_minimum_storable_height, domain_minimum_allowed_height, \
-                domain_flow_algorithm, georef = partition.extract_submesh(0)
+                domain_flow_algorithm, domain_georef, \
+                domain_quantities_to_be_stored, domain_smooth \
+                 = partition.extract_submesh(0)
         
         for p in range(1, numprocs):
 
@@ -71,9 +98,11 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
     else:
 
         kwargs, points, vertices, boundary, quantities, boundary_map, \
-                       domain_name, domain_dir, domain_store, domain_store_centroids, \
-                       domain_minimum_storable_height, domain_minimum_allowed_height, \
-                       domain_flow_algorithm, georef = receive(0)
+            domain_name, domain_dir, domain_store, domain_store_centroids, \
+            domain_minimum_storable_height, domain_minimum_allowed_height, \
+            domain_flow_algorithm, domain_georef, \
+            domain_quantities_to_be_stored, domain_smooth \
+             = receive(0)
 
     #---------------------------------------------------------------------------
     # Now Create parallel domain
@@ -103,15 +132,17 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
     #------------------------------------------------------------------------
     # Transfer other attributes to each subdomain
     #------------------------------------------------------------------------
+
+    parallel_domain.set_flow_algorithm(domain_flow_algorithm)
     parallel_domain.set_name(domain_name)
     parallel_domain.set_datadir(domain_dir)
     parallel_domain.set_store(domain_store)
     parallel_domain.set_store_centroids(domain_store_centroids)
-    parallel_domain.set_minimum_storable_height(domain_minimum_storable_height)
+    parallel_domain.set_minimum_storable_height(domain_minimum_storable_height) 
     parallel_domain.set_minimum_allowed_height(domain_minimum_allowed_height)
-    parallel_domain.set_flow_algorithm(domain_flow_algorithm)
-    parallel_domain.geo_reference = georef
-
+    parallel_domain.geo_reference = domain_georef
+    parallel_domain.set_quantities_to_be_stored(domain_quantities_to_be_stored)
+    parallel_domain.smooth = domain_smooth
 
     return parallel_domain
 
@@ -464,4 +495,3 @@ def distribute_mesh(domain, verbose=False, debug=False, parameters=None):
 ##     l2g[l_ids] = g_ids
 
 ##     return l2g
-

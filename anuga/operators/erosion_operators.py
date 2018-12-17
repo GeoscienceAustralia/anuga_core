@@ -121,14 +121,14 @@ class Erosion_operator(Operator, Region):
     
                 de = m*dt
                 height = self.stage_c[ind] - self.elev_c[ind]
-                self.elev_c[ind] = num.maximum(self.elev_v[ind] - de, self.base)
+                self.elev_c[ind] = num.amax(num.maximum(self.elev_v[ind] - de, self.base), axis=1)
                 self.stage_c[ind] = self.elev_c[ind] + height
             else:
                 m = num.vstack((m,m,m)).T  # Stack up m to apply to vertices
                 m = num.where(m>self.threshold, m, 0.0)
     
                 de = m*dt
-                self.elev_v[ind] = num.maximum(self.elev_v[ind] - de, self.base)
+                self.elev_v[ind] = num.amax(num.maximum(self.elev_v[ind] - de, self.base), axis=1)
 
             self.max_change = num.max(de)
 
@@ -142,7 +142,7 @@ class Erosion_operator(Operator, Region):
         Apply rate to those triangles defined in indices
 
         indices == [], then don't apply anywhere
-        indices == None, then apply everywhere
+        indices is None, then apply everywhere
         otherwise apply for the specific indices
         """
 

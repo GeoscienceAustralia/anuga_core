@@ -124,7 +124,7 @@ class Region(object):
                 self.setup_indices_line() 
         else:
             assert self.indices is None or self.indices is []
-
+        
         if self.indices is None:
             self.full_indices = num.where(self.domain.tri_full_flag ==1)[0]
         elif len(self.indices) == 0:

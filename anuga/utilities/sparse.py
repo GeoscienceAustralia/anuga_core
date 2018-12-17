@@ -118,8 +118,8 @@ class Sparse:
         # Assume numeric types from now on
 
         if len(B.shape) == 0:
-            # Scalar - use __rmul__ method
-            R = B*self
+            # Scalar - make sure we use __rmul__ method
+            R = self.__rmul__(B)
 
         elif len(B.shape) == 1:
             # Vector
@@ -242,6 +242,12 @@ class Sparse_CSR:
 
         """
 
+
+        if A is None:
+            m = int(m)
+            n = int(n)
+
+		
         if isinstance(A,Sparse):
 
             keys = A.Data.keys()

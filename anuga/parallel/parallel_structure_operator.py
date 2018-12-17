@@ -43,8 +43,10 @@ class Parallel_Structure_operator(anuga.Operator):
                  width,
                  height,
                  diameter,
-                 z1,#added by PM 22/10/2013
-                 z2,#added by PM 22/10/2013
+                 z1,
+                 z2,
+                 blockage,
+                 barrels,
                  apron,
                  manning,
                  enquiry_gap,
@@ -114,8 +116,10 @@ class Parallel_Structure_operator(anuga.Operator):
         self.width  = width
         self.height = height
         self.diameter = diameter
-        self.z1 = z1 #added by PM 22/10/2013
-        self.z2 = z2 #added by PM 22/10/2013
+        self.z1 = z1
+        self.z2 = z2
+        self.blockage = blockage
+        self.barrels = barrels
         self.apron  = apron
         self.manning = manning
         self.enquiry_gap = enquiry_gap
@@ -127,17 +131,17 @@ class Parallel_Structure_operator(anuga.Operator):
         self.use_old_momentum_method = use_old_momentum_method
         self.always_use_Q_wetdry_adjustment = always_use_Q_wetdry_adjustment
 
-        if description == None:
+        if description is None:
             self.description = ' '
         else:
             self.description = description
         
-        if label == None:
+        if label is None:
             self.label = "structure_%g" % Parallel_Structure_operator.counter + "_P" + str(self.myid)
         else:
             self.label = label + '_%g' % Parallel_Structure_operator.counter + "_P" + str(self.myid)
 
-        if structure_type == None:
+        if structure_type is None:
             self.structure_type = 'generic structure'
         else:
             self.structure_type = structure_type
@@ -582,6 +586,24 @@ class Parallel_Structure_operator(anuga.Operator):
             message += '%s' % self.description
             message += '\n'
 
+            #add the culvert dimensions, blockage factor here
+            if self.structure_type == 'boyd_pipe':
+                message += 'Culvert Diameter: %s\n'% self.diameter
+                message += 'Culvert Blockage: %s\n'% self.blockage
+                message += 'No.  of  barrels: %s\n'% self.barrels
+            elif self.structure_type == 'boyd_box':
+                message += 'Culvert   Height: %s\n'% self.height
+                message += 'Culvert    Width: %s\n'% self.width
+                message += 'Culvert Blockage: %s\n'% self.blockage
+                message += 'No.  of  barrels: %s\n'% self.barrels
+            else:
+                message += 'Culvert Height  : %s\n'% self.height
+                message += 'Culvert  Width  : %s\n'% self.width
+                message += 'Batter Slope 1  : %s\n'% self.z1
+                message += 'Batter Slope 2  : %s\n'% self.z2
+                message += 'Culvert Blockage: %s\n'% self.blockage
+                message += 'No.  of  barrels: %s\n'% self.barrels
+                
         #print "Structure Myids ",self.myid, self.label
         
         for i, inlet in enumerate(self.inlets):
@@ -704,12 +726,18 @@ class Parallel_Structure_operator(anuga.Operator):
     def get_culvert_height(self):
         return self.height
 
-    def get_culvert_z1(self): #added by PM 22/10/2013
+    def get_culvert_z1(self):
         return self.z1
 
-    def get_culvert_z2(self): #added by PM 22/10/2013       
+    def get_culvert_z2(self):   
         return self.z2
-        
+
+    def get_culvert_blockage(self):	
+        return self.blockage
+
+    def get_culvert_barrels(self):	
+        return self.barrels
+                        
     def get_culvert_apron(self):
         return self.apron
 
@@ -738,14 +766,23 @@ class Parallel_Structure_operator(anuga.Operator):
 
         self.culvert_width = width
 
-    def set_culvert_z1(self, z1):#added by PM 22/10/2013 
+    def set_culvert_z1(self, z1):
 
         self.culvet_z1 = z1        
 
-    def set_culvert_z2(self, z2):#added by PM 22/10/2013 
+    def set_culvert_z2(self, z2):
 
         self.culvert_z2 = z2  
+
+    def set_culvert_blockage(self, blockage): 
+
+        self.culvert_blockage = blockage 
+
+    def set_culvert_blockage(self, barrels): 
+
+        self.culvert_barrels = barrels 
         
+                        
     def parallel_safe(self):
         return True
 

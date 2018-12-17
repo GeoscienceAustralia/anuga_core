@@ -34,7 +34,7 @@ def tsh2sww(infilename, sww_file_name = None, verbose = False):
     file_path, filename = path.split(infilename)
     filename, ext = path.splitext(filename)
     
-    if not (sww_file_name == None):
+    if not (sww_file_name is None):
         file_path, filename = path.split(sww_file_name)
         filename, ext = path.splitext(filename)
     domain.set_name(filename)

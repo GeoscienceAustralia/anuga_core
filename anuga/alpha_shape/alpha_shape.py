@@ -23,6 +23,7 @@ import random
 
 from anuga.load_mesh.loadASCII import export_boundary_file
 from anuga.geospatial_data.geospatial_data import Geospatial_data
+from anuga.utilities import log 
 
 import numpy as num
 

@@ -341,16 +341,16 @@ class get_centroids:
 
     NOTE: elevation is only stored once in the output, even if it was
           stored every timestep.
-           This is done because presently centroid elevations in ANUGA
-           do not change over time.  
-           Also lots of existing plotting code assumes elevation is a 1D
-           array
+           Lots of existing plotting code assumes elevation is a 1D
+           array. 
+           But as a hack for the time being the elevation from the file 
+           is available via elev_orig
     """
     def __init__(self,p, velocity_extrapolation=False, verbose=False,
                  timeSlices=None, minimum_allowed_height=1.0e-03):
         
         self.time, self.x, self.y, self.stage, self.xmom,\
-             self.ymom, self.height, self.elev, self.friction, self.xvel,\
+             self.ymom, self.height, self.elev, self.elev_orig, self.friction, self.xvel,\
              self.yvel, self.vel, self.xllcorner, self.yllcorner, self.timeSlices= \
              _get_centroid_values(p, velocity_extrapolation,\
                          timeSlices=copy.copy(timeSlices),\
@@ -522,6 +522,9 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
     stage_cent = _getCentVar(fid, 'stage_c', time_indices=inds, vols=vols)
     elev_cent = _getCentVar(fid, 'elevation_c', time_indices=inds, vols=vols)
 
+    # Hack to allow refernece to time varying elevation
+    elev_cent_orig = elev_cent
+    
     if(len(elev_cent.shape)==2):
         # Coerce to 1D array, since lots of our code assumes it is
         elev_cent=elev_cent[0,:]
@@ -637,7 +640,7 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
     fid.close()
     
     return time, x_cent, y_cent, stage_cent, xmom_cent,\
-             ymom_cent, height_cent, elev_cent, friction_cent,\
+             ymom_cent, height_cent, elev_cent, elev_cent_orig, friction_cent,\
              xvel_cent, yvel_cent, vel_cent, xllcorner, yllcorner, inds
 
 
@@ -954,6 +957,7 @@ def Make_Geotif(swwFile=None,
              min_allowed_height=1.0e-05,
              output_dir='TIFS',
              bounding_polygon=None,
+             internal_holes=None,
              verbose=False,
              k_nearest_neighbours=3,
              creation_options=[]):
@@ -980,39 +984,31 @@ def Make_Geotif(swwFile=None,
                 min_allowed_height -- Minimum allowed height from ANUGA
                 output_dir -- Write outputs to this directory
                 bounding_polygon -- polygon (e.g. from read_polygon) If present, only set values of raster cells inside the bounding_polygon
+                internal_holes -- a list of polygons. If present, do not set values of raster cells inside these polygons.
                 k_nearest_neighbours -- how many neighbours to use in interpolation. If k>1, inverse-distance-weighted interpolation is used
                 creation_options -- list of tif creation options for gdal, e.g. ['COMPRESS=DEFLATE']
     """
-
-    #import pdb
-    #pdb.set_trace()
 
     import scipy.io
     import scipy.interpolate
     import scipy.spatial
     import anuga
-    #from anuga.utilities import plot_utils as util
     import os
     
     try:
         import osgeo.gdal as gdal
         import osgeo.osr as osr
     except ImportError, e:
-        msg='Failed to import gdal/ogr modules --'\
+        msg = 'Failed to import gdal/ogr modules --'\
         + 'perhaps gdal python interface is not installed.'
         raise ImportError, msg
 
-
-    
-
-
-
     # Check whether swwFile is an array, and if so, redefine various inputs to
     # make the code work
-    if(type(swwFile)==scipy.ndarray):
+    if(type(swwFile) == scipy.ndarray):
         import copy
-        xyzPoints=copy.copy(swwFile)
-        swwFile=None
+        xyzPoints = copy.copy(swwFile)
+        swwFile = None
 
     if(((EPSG_CODE is None) & (proj4string is None) )|
        ((EPSG_CODE is not None) & (proj4string is not None))):
@@ -1027,75 +1023,67 @@ def Make_Geotif(swwFile=None,
 
     if(swwFile is not None):
         # Read in ANUGA outputs
-        
-
             
         if(verbose):
             print 'Reading sww File ...'
-        p2=get_centroids(swwFile, velocity_extrapolation, timeSlices=myTimeStep,
-                              minimum_allowed_height=min_allowed_height)
-        xllcorner=p2.xllcorner
-        yllcorner=p2.yllcorner
-
-        #if(myTimeStep=='all'):
-        #    myTimeStep=range(len(p2.time))
-        #elif(myTimeStep=='last'):
-        #    # This is [0]!
-        #    myTimeStep=[len(p2.time)-1]
+        p2 = get_centroids(swwFile, velocity_extrapolation, timeSlices=myTimeStep,
+            minimum_allowed_height=min_allowed_height)
+        xllcorner = p2.xllcorner
+        yllcorner = p2.yllcorner
 
         myTimeStep_Orig = myTimeStep
         # Now, myTimeStep just holds indices we want to plot in p2
-        if(myTimeStep!='max'):
-            myTimeStep=range(len(p2.time))
+        if(myTimeStep != 'max'):
+            myTimeStep = range(len(p2.time))
 
         # Ensure myTimeStep is a list
-        if type(myTimeStep)!=list:
-            myTimeStep=[myTimeStep]
+        if type(myTimeStep) != list:
+            myTimeStep = [myTimeStep]
 
         if(verbose):
             print 'Extracting required data ...'
         # Get ANUGA points
-        swwX=p2.x+xllcorner
-        swwY=p2.y+yllcorner
+        swwX = p2.x + xllcorner
+        swwY = p2.y + yllcorner
     else:
         # Get the point data from the 3-column array
-        if(xyzPoints.shape[1]!=3):
+        if(xyzPoints.shape[1] != 3):
             raise Exception, 'If an array is passed, it must have exactly 3 columns'
-        if(len(output_quantities)!=1):
+        if(len(output_quantities) != 1):
             raise Exception, 'Can only have 1 output quantity when passing an array'
-        swwX=xyzPoints[:,0]
-        swwY=xyzPoints[:,1]
-        myTimeStep=['pointData']
+        swwX = xyzPoints[:,0]
+        swwY = xyzPoints[:,1]
+        myTimeStep = ['pointData']
 
     # Grid for meshing
     if(verbose):
         print 'Computing grid of output locations...'
     # Get points where we want raster cells
     if(lower_left is None):
-        lower_left=[swwX.min(),swwY.min()]
+        lower_left = [swwX.min(), swwY.min()]
     if(upper_right is None):
-        upper_right=[swwX.max(),swwY.max()]
-    nx=round((upper_right[0]-lower_left[0])*1.0/(1.0*CellSize)) + 1
-    xres=(upper_right[0]-lower_left[0])*1.0/(1.0*(nx-1))
-    desiredX=scipy.linspace(lower_left[0], upper_right[0],nx )
-    ny=round((upper_right[1]-lower_left[1])*1.0/(1.0*CellSize)) + 1
-    yres=(upper_right[1]-lower_left[1])*1.0/(1.0*(ny-1))
-    desiredY=scipy.linspace(lower_left[1], upper_right[1], ny)
+        upper_right = [swwX.max(), swwY.max()]
+    nx = int(round((upper_right[0]-lower_left[0])*1.0/(1.0*CellSize)) + 1)
+    xres = (upper_right[0]-lower_left[0])*1.0/(1.0*(nx-1))
+    desiredX = scipy.linspace(lower_left[0], upper_right[0],nx )
+    ny = int(round((upper_right[1]-lower_left[1])*1.0/(1.0*CellSize)) + 1)
+    yres = (upper_right[1]-lower_left[1])*1.0/(1.0*(ny-1))
+    desiredY = scipy.linspace(lower_left[1], upper_right[1], ny)
 
-    gridX, gridY=scipy.meshgrid(desiredX,desiredY)
+    gridX, gridY = scipy.meshgrid(desiredX, desiredY)
 
     if(verbose):
         print 'Making interpolation functions...'
-    swwXY=scipy.array([swwX[:],swwY[:]]).transpose()
+    swwXY = scipy.array([swwX[:],swwY[:]]).transpose()
 
     # Get function to interpolate quantity onto gridXY_array
-    gridXY_array=scipy.array([scipy.concatenate(gridX),
-                              scipy.concatenate(gridY)]).transpose()
-    gridXY_array=scipy.ascontiguousarray(gridXY_array)
+    gridXY_array = scipy.array([scipy.concatenate(gridX),
+        scipy.concatenate(gridY)]).transpose()
+    gridXY_array = scipy.ascontiguousarray(gridXY_array)
 
     # Create Interpolation function
     #basic_nearest_neighbour=False
-    if(k_nearest_neighbours==1):
+    if(k_nearest_neighbours == 1):
         index_qFun = scipy.interpolate.NearestNDInterpolator(
             swwXY,
             scipy.arange(len(swwX),dtype='int64').transpose())
@@ -1118,14 +1106,19 @@ def Make_Geotif(swwFile=None,
                 num += quantity[nn_inds[:,i]]*nn_wts[:,i]
             return (num/denom)
 
-    if(bounding_polygon is not None):
+    if bounding_polygon is not None:
         # Find points to exclude (i.e. outside the bounding polygon)
         from anuga.geometry.polygon import outside_polygon
         cut_points = outside_polygon(gridXY_array, bounding_polygon)
         
-        #print cut_points.shape
-        #cut_points=(nxutils.points_inside_poly(gridXY_array, bounding_polygon)==False).nonzero()[0]
-       
+    hole_points_list = []
+    if internal_holes is not None:
+        # Find points to exclude (i.e. inside the internal_holes)
+        from anuga.geometry.polygon import inside_polygon
+        for hole in internal_holes:
+            cut_holes = inside_polygon(gridXY_array, hole)
+            hole_points_list.append(cut_holes)
+
     # Loop over all output quantities and produce the output
     for myTSindex, myTSi in enumerate(myTimeStep):
         if(verbose):
@@ -1134,53 +1127,57 @@ def Make_Geotif(swwFile=None,
             if (verbose): print output_quantity
 
             if(myTSi is not 'max'):
-                myTS=myTSi
+                myTS = myTSi
             else:
                 # We have already extracted the max, and e.g.
                 # p2.stage is an array of dimension (1, number_of_pointS).
-                myTS=0
+                myTS = 0
 
-            if(type(myTS)==int):
-                if(output_quantity=='stage'):
-                    gridq=myInterpFun(p2.stage[myTS,:])
-                if(output_quantity=='depth'):
-                    gridq=p2.height[myTS,:]*(p2.height[myTS,:]>0.)# Force positive depth (tsunami alg)
-                    gridq=myInterpFun(gridq)
-                if(output_quantity=='velocity'):
-                    gridq=myInterpFun(p2.vel[myTS,:])
-                if(output_quantity=='friction'):
-                    gridq=myInterpFun(p2.friction)
-                if(output_quantity=='depthIntegratedVelocity'):
-                    swwDIVel=(p2.xmom[myTS,:]**2+p2.ymom[myTS,:]**2)**0.5
-                    gridq=myInterpFun(swwDIVel)
-                if(output_quantity=='elevation'):
-                    gridq=myInterpFun(p2.elev)
+            if(type(myTS) == int):
+                if(output_quantity == 'stage'):
+                    gridq = myInterpFun(p2.stage[myTS,:])
+                if(output_quantity == 'depth'):
+                    gridq = p2.height[myTS,:]*(p2.height[myTS,:]>0.)# Force positive depth (tsunami alg)
+                    gridq = myInterpFun(gridq)
+                if(output_quantity == 'velocity'):
+                    gridq = myInterpFun(p2.vel[myTS,:])
+                if(output_quantity == 'friction'):
+                    gridq = myInterpFun(p2.friction)
+                if(output_quantity == 'depthIntegratedVelocity'):
+                    swwDIVel = (p2.xmom[myTS,:]**2+p2.ymom[myTS,:]**2)**0.5
+                    gridq = myInterpFun(swwDIVel)
+                if(output_quantity == 'elevation'):
+                    gridq = myInterpFun(p2.elev)
     
                 if(myTSi is 'max'):
-                    timestepString='max'
+                    timestepString = 'max'
                 else:
-                    timestepString=str(myTimeStep_Orig[myTSindex])+'_Time_'+str(round(p2.time[myTS]))
-            elif(myTS=='pointData'):
-                gridq=myInterpFun(xyzPoints[:,2])
-
+                    timestepString = str(myTimeStep[myTSindex])+'_Time_'+str(round(p2.time[myTS]))
+            elif(myTS == 'pointData'):
+                gridq = myInterpFun(xyzPoints[:,2])
 
             if ( (bounding_polygon is not None) and (len(cut_points)>0)):
                 # Cut the points outside the bounding polygon
-                gridq[cut_points]= numpy.nan
+                gridq[cut_points] = numpy.nan
+
+            if (internal_holes is not None) and (len(hole_points_list[0]) > 0):
+                # Cut the points inside the hole polygons
+                for hole_points in hole_points_list:
+                    gridq[hole_points] = numpy.nan
 
             # Make name for output file
-            if(myTS!='pointData'):
-                output_name=output_dir+'/'+os.path.splitext(os.path.basename(swwFile))[0] + '_'+\
-                            output_quantity+'_'+timestepString+\
-                            '.tif'
+            if(myTS != 'pointData'):
+                output_name = output_dir + '/' +\
+                    os.path.splitext(os.path.basename(swwFile))[0] + '_' +\
+                    output_quantity + '_' + timestepString + '.tif'
                             #'_'+str(myTS)+'.tif'
             else:
-                output_name=output_dir+'/'+'PointData_'+output_quantity+'.tif'
+                output_name = output_dir+'/'+'PointData_'+output_quantity+'.tif'
 
             if(verbose):
                 print 'Making raster ...'
-            gridq.shape=(len(desiredY),len(desiredX))
-            make_grid(scipy.flipud(gridq),desiredY,desiredX, output_name,EPSG_CODE=EPSG_CODE, 
+            gridq.shape = (len(desiredY),len(desiredX))
+            make_grid(scipy.flipud(gridq), desiredY, desiredX, output_name, EPSG_CODE=EPSG_CODE, 
                       proj4string=proj4string, creation_options=creation_options)
 
     return

@@ -13,10 +13,10 @@ def make_nearestNeighbour_quantity_function(
         threshold_distance = 9.0e+100, 
         background_value = 9.0e+100,
         k_nearest_neighbours = 1,
+        method = 'average'
     ):
     """
     Function which makes another function, which can be used in set_quantity 
-
     Idea: For every point x,y in the domain, we want to set a quantity based on
           the 'nearest-neighbours' from quantity_xyValue (a 3 column array with
           x,y,quantity-value), 
@@ -28,21 +28,21 @@ def make_nearestNeighbour_quantity_function(
           We need a function f(x,y) to do that. This routine makes the
           function, with the desired quantity_xyValue points, 
           threshold_distance, and background_value
-
     INPUTS:
         @param quantity_xyValueIn -- A 3 column array with 'x,y, Value' 
             defining the points used to set the new quantity values in
             georeferenced coordinates
         @param domain -- The ANUGA domain
-        @param k_nearest_neighbors If > 1, then an inverse-distance-weighted average
-               of the k nearest neighbours is used
+        @param k_nearest_neighbors --- Number of nearest neighbours used in calculation 
         @param threshold_distance -- Points greater than this distance from 
             their nearest quantity_xyValue point are set to background_value
         @param background_value -- see 'threshold_distance'
-
+        @param method -- Three methods; 'average' uses an inverse-distance-weighted average
+               of the k nearest neighbours is used:
+               'min' the minimum of the k nearest neighbours is used:
+               'max' the maximum of the k nearest neighbours is used.
     OUTPUTS: 
         A function f which can be passed to domain.set_quantity('myQuantity', f)
-
     """
 
     import scipy
@@ -70,12 +70,15 @@ def make_nearestNeighbour_quantity_function(
         Function to assign quantity from the nearest point in quantity_xyValue,
         UNLESS the point is more than 'threshold_distance' away from the
         nearest point, in which case the background value is used
-
         """
 
         import scipy
         import scipy.interpolate
         import scipy.spatial
+        import numpy as np
+        
+        x = np.asarray(x).reshape(1, -1)[0,:]
+        y = np.asarray(y).reshape(1, -1)[0,:]
 
         # Since ANUGA stores x,y internally in non-georeferenced coordinates,
         # we adjust them here
@@ -104,6 +107,31 @@ def make_nearestNeighbour_quantity_function(
 
         # Interpolate
         if len(dist_lt_thresh)>0:
+          if method == 'min':
+            numerator = 9.0e+100
+            for i in range(k_nearest_neighbours):
+              if(k_nearest_neighbours==1):
+                distances = neighbour_data[0][dist_lt_thresh]
+                indices = neighbour_data[1][dist_lt_thresh]
+              else:
+                distances = neighbour_data[0][dist_lt_thresh,i]
+                indices = neighbour_data[1][dist_lt_thresh,i]
+                values = quantity_xyValue[indices,2]
+                numerator = np.minimum(numerator,values)
+            quantity_output[dist_lt_thresh] = numerator
+          elif method == 'max':
+            numerator = -9.0e+100
+            for i in range(k_nearest_neighbours):
+              if(k_nearest_neighbours==1):
+                distances = neighbour_data[0][dist_lt_thresh]
+                indices = neighbour_data[1][dist_lt_thresh]
+              else:
+                distances = neighbour_data[0][dist_lt_thresh,i]
+                indices = neighbour_data[1][dist_lt_thresh,i]
+                values = quantity_xyValue[indices,2]
+                numerator = np.maximum(numerator,values)
+            quantity_output[dist_lt_thresh] = numerator            
+          else:
             numerator = 0
             denominator = 0
             for i in range(k_nearest_neighbours):
@@ -125,6 +153,7 @@ def make_nearestNeighbour_quantity_function(
 
     # Return the quantity function
     return quant_NN_fun
+
 
 ###############################################################################
 

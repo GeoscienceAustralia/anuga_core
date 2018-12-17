@@ -16,12 +16,13 @@
 //Shared code snippets
 #include "util_ext.h"
 
+typedef long keyint;
 
 //-------------------------------------------
 // Low level routines (called from wrappers)
 //------------------------------------------
 
-int _compute_gradients(int N,
+int _compute_gradients(keyint N,
 			double* centroids,
 			double* centroid_values,
 			long* number_of_boundaries,
@@ -29,7 +30,7 @@ int _compute_gradients(int N,
 			double* a,
 			double* b){
 
-  int i, k, k0, k1, k2, index3;
+  keyint i, k, k0, k1, k2, index3;
   double x0, x1, x2, y0, y1, y2, q0, q1, q2; //, det;
 
 
@@ -93,13 +94,13 @@ int _compute_gradients(int N,
 }
 
 
-int _compute_local_gradients(int N,
+int _compute_local_gradients(keyint N,
 			       double* vertex_coordinates,
 			       double* vertex_values,
 			       double* a,
 			       double* b) {
 
-  int k, k2, k3, k6;
+  keyint k, k2, k3, k6;
   double x0, y0, x1, y1, x2, y2, v0, v1, v2;
   
   for (k=0; k<N; k++) {
@@ -128,7 +129,7 @@ int _compute_local_gradients(int N,
     return 0;
 }
 
-int _extrapolate_from_gradient(int N,
+int _extrapolate_from_gradient(keyint N,
 			       double* centroids,
 			       double* centroid_values,
 			       double* vertex_coordinates,
@@ -137,7 +138,7 @@ int _extrapolate_from_gradient(int N,
 			       double* a,
 			       double* b) {
 
-  int k, k2, k3, k6;
+  keyint k, k2, k3, k6;
   double x, y, x0, y0, x1, y1, x2, y2;
   
   for (k=0; k<N; k++){
@@ -172,7 +173,7 @@ int _extrapolate_from_gradient(int N,
 }
 
 
-int _extrapolate_and_limit_from_gradient(int N,double beta,
+int _extrapolate_and_limit_from_gradient(keyint N,double beta,
 					 double* centroids,
 					 long*   neighbours,
 					 double* centroid_values,
@@ -183,9 +184,9 @@ int _extrapolate_and_limit_from_gradient(int N,double beta,
 					 double* x_gradient,
 					 double* y_gradient) {
 
-  int i, k, k2, k3, k6;
+  keyint i, k, k2, k3, k6;
   double x, y, x0, y0, x1, y1, x2, y2;
-  long n;
+  keyint n;
   double qmin, qmax, qc;
   double qn[3];
   double dq, dqa[3], r;
@@ -296,7 +297,7 @@ int _extrapolate_and_limit_from_gradient(int N,double beta,
 
 
 
-int _limit_vertices_by_all_neighbours(int N, double beta,
+int _limit_vertices_by_all_neighbours(keyint N, double beta,
 				      double* centroid_values,
 				      double* vertex_values,
 				      double* edge_values,
@@ -305,8 +306,8 @@ int _limit_vertices_by_all_neighbours(int N, double beta,
 				      double* y_gradient) {
   
   
-  int i, k, k2, k3, k6;
-  long n;
+  keyint i, k, k2, k3, k6;
+  keyint n;
   double qmin, qmax, qn, qc;
   double dq, dqa[3], phi, r;
   
@@ -363,7 +364,7 @@ int _limit_vertices_by_all_neighbours(int N, double beta,
 
 
 
-int _limit_edges_by_all_neighbours(int N, double beta,
+int _limit_edges_by_all_neighbours(keyint N, double beta,
 				   double* centroid_values,
 				   double* vertex_values,
 				   double* edge_values,
@@ -371,8 +372,8 @@ int _limit_edges_by_all_neighbours(int N, double beta,
 				   double* x_gradient,
 				   double* y_gradient) {
 
-  int i, k, k2, k3, k6;
-  long n;
+  keyint i, k, k2, k3, k6;
+  keyint n;
   double qmin, qmax, qn, qc, sign;
   double dq, dqa[3], phi, r;
   
@@ -449,14 +450,14 @@ int _limit_edges_by_all_neighbours(int N, double beta,
 }
 
 
-int _limit_edges_by_neighbour(int N, double beta,
+int _limit_edges_by_neighbour(keyint N, double beta,
 		     double* centroid_values,
 		     double* vertex_values,
 		     double* edge_values,
 		     long*   neighbours) {
 
-	int i, k, k2, k3, k6;
-	long n;
+	keyint i, k, k2, k3, k6;
+	keyint n;
 	double qmin, qmax, qn, qc;
 	double dq, dqa[3], phi, r;
 
@@ -504,7 +505,7 @@ int _limit_edges_by_neighbour(int N, double beta,
 }
 
 
-int _limit_gradient_by_neighbour(int N, double beta,
+int _limit_gradient_by_neighbour(keyint N, double beta,
 		     double* centroid_values,
 		     double* vertex_values,
 		     double* edge_values,
@@ -512,8 +513,8 @@ int _limit_gradient_by_neighbour(int N, double beta,
 		     double* y_gradient,
 		     long*   neighbours) {
 
-	int i, k, k2, k3, k6;
-	long n;
+	keyint i, k, k2, k3, k6;
+	keyint n;
 	double qmin, qmax, qn, qc;
 	double dq, dqa[3], phi, r;
 
@@ -560,14 +561,14 @@ int _limit_gradient_by_neighbour(int N, double beta,
 	return 0;
 }
 
-int _bound_vertices_below_by_constant(int N, double bound,
+int _bound_vertices_below_by_constant(keyint N, double bound,
 		     double* centroid_values,
 		     double* vertex_values,
 		     double* edge_values,
 		     double* x_gradient,
 		     double* y_gradient) {
 
-	int i, k, k2, k3, k6;
+	keyint i, k, k2, k3, k6;
 	double qmin, qc;
 	double dq, dqa[3], phi, r;
 
@@ -611,7 +612,7 @@ int _bound_vertices_below_by_constant(int N, double bound,
 	return 0;
 }
 
-int _bound_vertices_below_by_quantity(int N,
+int _bound_vertices_below_by_quantity(keyint N,
 				      double* bound_vertex_values,
 				      double* centroid_values,
 				      double* vertex_values,
@@ -619,7 +620,7 @@ int _bound_vertices_below_by_quantity(int N,
 				      double* x_gradient,
 				      double* y_gradient) {
 
-	int i, k, k2, k3, k6;
+	keyint i, k, k2, k3, k6;
 	double qmin, qc;
 	double dq, dqa[3], phi, r;
 
@@ -662,12 +663,12 @@ int _bound_vertices_below_by_quantity(int N,
 	return 0;
 }
 
-int _interpolate(int N,
+int _interpolate(keyint N,
 		 double* vertex_values,
 		 double* edge_values,
                  double* centroid_values) {
 
-	int k, k3;
+	keyint k, k3;
 	double q0, q1, q2;
 
 
@@ -687,11 +688,11 @@ int _interpolate(int N,
 	return 0;
 }
 
-int _interpolate_from_vertices_to_edges(int N,
+int _interpolate_from_vertices_to_edges(keyint N,
 					double* vertex_values,
 					double* edge_values) {
 
-	int k, k3;
+	keyint k, k3;
 	double q0, q1, q2;
 
 
@@ -710,11 +711,11 @@ int _interpolate_from_vertices_to_edges(int N,
 }
 
 
-int _interpolate_from_edges_to_vertices(int N,
+int _interpolate_from_edges_to_vertices(keyint N,
 					double* vertex_values,
 					double* edge_values) {
 
-	int k, k3;
+	keyint k, k3;
 	double e0, e1, e2;
 
 
@@ -732,13 +733,13 @@ int _interpolate_from_edges_to_vertices(int N,
 	return 0;
 }
 
-int _backup_centroid_values(int N,
+int _backup_centroid_values(keyint N,
 			    double* centroid_values,
 			    double* centroid_backup_values) {
     // Backup centroid values
 
 
-    int k;
+    keyint k;
 
     for (k=0; k<N; k++) {
 	centroid_backup_values[k] = centroid_values[k];
@@ -749,7 +750,7 @@ int _backup_centroid_values(int N,
 }
 
 
-int _saxpy_centroid_values(int N,
+int _saxpy_centroid_values(keyint N,
 			   double a,
 			   double b,
 			   double* centroid_values,
@@ -757,7 +758,7 @@ int _saxpy_centroid_values(int N,
     // Saxby centroid values
 
 
-    int k;
+    keyint k;
 
 
     for (k=0; k<N; k++) {
@@ -769,7 +770,7 @@ int _saxpy_centroid_values(int N,
 }
 
 
-int _update(int N,
+int _update(keyint N,
 	    double timestep,
 	    double* centroid_values,
 	    double* explicit_update,
@@ -778,7 +779,7 @@ int _update(int N,
 	// explicit_update and semi_implicit_update as well as given timestep
 
 
-	int k;
+	keyint k;
 	double denominator, x;
 
 
@@ -820,16 +821,16 @@ int _update(int N,
 }
 
 
-int _average_vertex_values(int N,
+int _average_vertex_values(keyint N,
 			   long* vertex_value_indices,
 			   long* number_of_triangles_per_node,
 			   double* vertex_values, 
 			   double* A) {
   // Average vertex values to obtain one value per node
 
-  int i, index; 
-  int k = 0; //Track triangles touching each node
-  int current_node = 0;
+  keyint i, index; 
+  keyint k = 0; //Track triangles touching each node
+  keyint current_node = 0;
   double total = 0.0;
 
   for (i=0; i<N; i++) {
@@ -861,17 +862,17 @@ int _average_vertex_values(int N,
   return 0;
 }
 
-int _average_centroid_values(int N,
+int _average_centroid_values(keyint N,
 			   long* vertex_value_indices,
 			   long* number_of_triangles_per_node,
 			   double* centroid_values,
 			   double* A) {
   // Average centroid values to obtain one value per node
 
-  int i, index;
-  int volume_id;
-  int k = 0; //Track triangles touching each node
-  int current_node = 0;
+  keyint i, index;
+  keyint volume_id;
+  keyint k = 0; //Track triangles touching each node
+  keyint current_node = 0;
   double total = 0.0;
 
   for (i=0; i<N; i++) {
@@ -908,7 +909,7 @@ int _average_centroid_values(int N,
 // from a list of vertices and values at those vertices. Called in
 // quantity.py by _set_vertex_values.
 // Naming is a little confusing - but sticking with convention.
-int _set_vertex_values_c(int num_verts,
+int _set_vertex_values_c(keyint num_verts,
                         long * vertices,
                         long * node_index,
                         long * number_of_triangles_per_node,
@@ -916,7 +917,7 @@ int _set_vertex_values_c(int num_verts,
                         double * vertex_values,
                         double * A
                         ){
-  int i,j,num_triangles,u_vert_id,vert_v_index;
+  keyint i,j,num_triangles,u_vert_id,vert_v_index;
 
   for(i=0;i<num_verts;i++){
   
@@ -979,7 +980,8 @@ PyObject *update(PyObject *self, PyObject *args) {
 	PyArrayObject *centroid_values, *explicit_update, *semi_implicit_update;
 
 	double timestep;
-	int N, err;
+	keyint N;
+	int err;
 
 
 	// Convert Python arguments to C
@@ -1021,7 +1023,8 @@ PyObject *backup_centroid_values(PyObject *self, PyObject *args) {
 	PyObject *quantity;
 	PyArrayObject *centroid_values, *centroid_backup_values;
 
-	int N, err;
+	keyint N;
+	int err;
 
 
 	// Convert Python arguments to C
@@ -1054,7 +1057,8 @@ PyObject *saxpy_centroid_values(PyObject *self, PyObject *args) {
 	PyArrayObject *centroid_values, *centroid_backup_values;
 
 	double a,b;
-	int N, err;
+	keyint N;
+	int err;
 
 
 	// Convert Python arguments to C
@@ -1087,8 +1091,9 @@ PyObject *set_vertex_values_c(PyObject *self, PyObject *args) {
   PyArrayObject *vertex_values, *node_index, *A, *vertices;
   PyArrayObject *number_of_triangles_per_node, *vertex_value_indices;
 
-  int N,err;
-  int num_verts;
+  keyint N;
+  int err;
+  keyint num_verts;
 
 
   // Convert Python arguments to C
@@ -1151,7 +1156,7 @@ PyObject *interpolate(PyObject *self, PyObject *args) {
 	PyObject *quantity;
 	PyArrayObject *vertex_values, *edge_values, *centroid_values;
 
-	int N, err;
+	keyint N;int err;
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "O", &quantity)) {
@@ -1195,7 +1200,7 @@ PyObject *interpolate_from_vertices_to_edges(PyObject *self, PyObject *args) {
 	PyObject *quantity;
 	PyArrayObject *vertex_values, *edge_values;
 
-	int N, err;
+	keyint N;int err;
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "O", &quantity)) {
@@ -1235,7 +1240,7 @@ PyObject *interpolate_from_edges_to_vertices(PyObject *self, PyObject *args) {
 	PyObject *quantity;
 	PyArrayObject *vertex_values, *edge_values;
 
-	int N, err;
+	keyint N;int err;
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "O", &quantity)) {
@@ -1276,7 +1281,7 @@ PyObject *average_vertex_values(PyObject *self, PyObject *args) {
 	  *A;
 	
 
-	int N, err;
+	keyint N;int err;
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "OOOO",
@@ -1323,7 +1328,7 @@ PyObject *average_centroid_values(PyObject *self, PyObject *args) {
 	  *A;
 
 
-	int N, err;
+	keyint N;int err;
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "OOOO",
@@ -1375,9 +1380,9 @@ PyObject *extrapolate_from_gradient(PyObject *self, PyObject *args) {
 	    *x_gradient,           //x gradient
 	    *y_gradient;           //y gradient
 
-	//int N, err;
+	//keyint N;int err;
 	//int dimensions[1];
-	int N, err;
+	keyint N;int err;
 	//double *a, *b;  //Gradients
 
 	// Convert Python arguments to C
@@ -1453,9 +1458,9 @@ PyObject *compute_local_gradients(PyObject *self, PyObject *args) {
 	    *x_gradient,           //x gradient
 	    *y_gradient;           //y gradient
 
-	//int N, err;
+	//keyint N;int err;
 	//int dimensions[1];
-	int N, err;
+	keyint N;int err;
 	//double *a, *b;  //Gradients
 
 	// Convert Python arguments to C
@@ -1534,7 +1539,7 @@ PyObject *extrapolate_second_order_and_limit_by_edge(PyObject *self, PyObject *a
     
 
   // Local variables
-  int ntri;
+  keyint ntri;
   double beta;
   int err;
     
@@ -1661,7 +1666,7 @@ PyObject *extrapolate_second_order_and_limit_by_vertex(PyObject *self, PyObject 
     
 
   // Local variables
-  int ntri;
+  keyint ntri;
   double beta;
   int err;
     
@@ -1776,9 +1781,9 @@ PyObject *compute_gradients(PyObject *self, PyObject *args) {
 	    *x_gradient,           //x gradient
 	    *y_gradient;           //y gradient
 
-	//int N, err;
+	//keyint N;int err;
 	//int dimensions[1];
-	int N, err;
+	keyint N;int err;
 	//double *a, *b;  //Gradients
 
 	// Convert Python arguments to C
@@ -1862,7 +1867,7 @@ PyObject *limit_old(PyObject *self, PyObject *args) {
 	    *qc, //Conserved quantities at centroids
 	    *neighbours;
 
-	int k, i, n, N, k3;
+	keyint k, i, n, N, k3;
 	double beta_w; //Safety factor
 	double *qmin, *qmax, qn;
 
@@ -1959,7 +1964,7 @@ PyObject *limit_vertices_by_all_neighbours(PyObject *self, PyObject *args) {
 	    *y_gradient;
 
 	double beta_w; //Safety factor
-	int N, err;
+	keyint N;int err;
 
 
 	// Convert Python arguments to C
@@ -2055,7 +2060,7 @@ PyObject *limit_edges_by_all_neighbours(PyObject *self, PyObject *args) {
 	    *neighbours;
 
 	double beta_w; //Safety factor
-	int N, err;
+	keyint N;int err;
 
 
 	// Convert Python arguments to C
@@ -2126,7 +2131,7 @@ PyObject *bound_vertices_below_by_constant(PyObject *self, PyObject *args) {
 	    *y_gradient;
 
 	double bound; //Safety factor
-	int N, err;
+	keyint N;int err;
 
 
 	// Convert Python arguments to C
@@ -2194,7 +2199,7 @@ PyObject *bound_vertices_below_by_quantity(PyObject *self, PyObject *args) {
 	    *y_gradient,
 	    *bound_vertex_values;
 
-	int N, err;
+	keyint N;int err;
 
 
 	// Convert Python arguments to C
@@ -2270,7 +2275,7 @@ PyObject *limit_edges_by_neighbour(PyObject *self, PyObject *args) {
 	    *neighbours;
 
 	double beta_w; //Safety factor
-	int N, err;
+	keyint N;int err;
 
 
 	// Convert Python arguments to C
@@ -2357,7 +2362,7 @@ PyObject *limit_gradient_by_neighbour(PyObject *self, PyObject *args) {
 	    *neighbours;
 
 	double beta_w; //Safety factor
-	int N, err;
+	keyint N;int err;
 
 
 	// Convert Python arguments to C

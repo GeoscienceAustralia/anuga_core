@@ -58,10 +58,14 @@ def create_domain_from_regions(bounding_polygon,
                                hole_tags=None,
                                poly_geo_reference=None,
                                mesh_geo_reference=None,
+                               breaklines=None,
+                               regionPtArea=None,
                                minimum_triangle_angle=28.0,
                                fail_if_polygons_outside=True,
                                use_cache=False,
-                               verbose=True):
+                               verbose=False):
+    
+
     """Create domain from bounding polygons and resolutions.
 
     bounding_polygon is a list of points in Eastings and Northings,
@@ -103,6 +107,12 @@ def create_domain_from_regions(bounding_polygon,
     the lower left hand corner of  bounding_polygon (absolute)
     as the x and y values for the geo_ref.
     
+    breaklines is a list of polygons. These lines will be preserved by the
+               triangulation algorithm - useful for coastlines, walls, etc.
+               The polygons are not closed.    
+               
+    regionPtArea is a list of user-specified point-based regions with max area  
+    
     Returns the shallow water domain instance
 
     Note, interior regions should be fully nested, as overlaps may cause
@@ -120,6 +130,11 @@ def create_domain_from_regions(bounding_polygon,
     args = (bounding_polygon,
             boundary_tags)
     
+    if mesh_filename is None:
+        import tempfile
+        import time
+        mesh_filename = 'mesh_%d.msh'%int(time.time())
+    
     kwargs = {'maximum_triangle_area': maximum_triangle_area,
               'mesh_filename': mesh_filename,
               'interior_regions': interior_regions,
@@ -127,6 +142,8 @@ def create_domain_from_regions(bounding_polygon,
               'hole_tags': hole_tags,
               'poly_geo_reference': poly_geo_reference,
               'mesh_geo_reference': mesh_geo_reference,
+              'breaklines' : breaklines,
+              'regionPtArea' : regionPtArea,
               'minimum_triangle_angle': minimum_triangle_angle,
               'fail_if_polygons_outside': fail_if_polygons_outside,
               'verbose': verbose} #FIXME (Ole): See ticket:14
@@ -161,6 +178,8 @@ def _create_domain_from_regions(bounding_polygon,
                                 hole_tags=None,
                                 poly_geo_reference=None,
                                 mesh_geo_reference=None,
+                                breaklines=None,
+                                regionPtArea=None,
                                 minimum_triangle_angle=28.0,
                                 fail_if_polygons_outside=True,
                                 verbose=True):
@@ -181,6 +200,8 @@ def _create_domain_from_regions(bounding_polygon,
                              hole_tags=hole_tags,
                              poly_geo_reference=poly_geo_reference,
                              mesh_geo_reference=mesh_geo_reference,
+                             breaklines=breaklines,
+                             regionPtArea=regionPtArea,
                              minimum_triangle_angle=minimum_triangle_angle,
                              fail_if_polygons_outside=fail_if_polygons_outside,
                              use_cache=False,

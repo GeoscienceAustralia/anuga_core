@@ -96,7 +96,7 @@ class Inlet_enquiry(inlet.Inlet):
 
     def get_enquiry_invert_elevation(self):
 
-        if  self.invert_elevation == None:
+        if  self.invert_elevation is None:
             return self.get_enquiry_elevation()
         else:
             return self.invert_elevation

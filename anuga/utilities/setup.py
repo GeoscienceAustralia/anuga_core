@@ -23,10 +23,15 @@ def configuration(parent_package='',top_path=None):
     config.add_extension('util_ext',
                          sources='util_ext.c')
 
+    if sys.platform == 'darwin':
+        extra_args = None
+    else:
+        extra_args = ['-fopenmp']
+
     config.add_extension('cg_ext',
                          sources='cg_ext.c',
-                         extra_compile_args=['-fopenmp'],
-                         extra_link_args=['-fopenmp'])
+                         extra_compile_args=extra_args,
+                         extra_link_args=extra_args)
 
     config.add_extension('quad_tree_ext',
                          sources=['quad_tree_ext.c', 'quad_tree.c'])

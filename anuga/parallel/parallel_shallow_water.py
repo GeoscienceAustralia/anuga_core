@@ -135,12 +135,12 @@ class Parallel_domain(Domain):
 
 
 
-    def update_ghosts(self):
+    def update_ghosts(self, quantities=None):
         """We must send the information from the full cells and
         receive the information for the ghost cells
         """
             
-        generic_comms.communicate_ghosts_asynchronous(self)
+        generic_comms.communicate_ghosts_asynchronous(self, quantities)
         #generic_comms.communicate_ghosts_blocking(self)
 
     def apply_fractional_steps(self):

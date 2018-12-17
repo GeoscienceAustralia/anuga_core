@@ -120,7 +120,10 @@ class Test_boyd_pipe_operator(unittest.TestCase):
 
         culvert_length = 20.0
         culvert_width = 1.2
-        ##culvert_height = 3.66
+
+        culvert_blockage = 0.0
+        #culvert_barrels = 1.0
+        
         culvert_losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         culvert_mannings = 0.013
         
@@ -152,8 +155,9 @@ class Test_boyd_pipe_operator(unittest.TestCase):
         culvert = Boyd_pipe_operator(domain,
                                     losses=culvert_losses,
                                     diameter=culvert_width,
+                                    blockage=culvert_blockage,
                                     end_points=[ep0, ep1],
-                                    #height=culvert_height,
+                                    #barrels=culvert_barrels,
                                     apron=culvert_apron,
                                     enquiry_gap=enquiry_gap,
                                     use_momentum_jet=False,
@@ -194,7 +198,10 @@ class Test_boyd_pipe_operator(unittest.TestCase):
 
         culvert_length = 20.0
         culvert_width = 1.2
-        ##culvert_height = 3.66
+
+        culvert_blockage = 0.0
+        #culvert_barrels = 1.0
+                
         culvert_losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         culvert_mannings = 0.013
         
@@ -226,8 +233,9 @@ class Test_boyd_pipe_operator(unittest.TestCase):
         culvert = Boyd_pipe_operator(domain,
                                     losses=culvert_losses,
                                     diameter=culvert_width,
+                                    blockage=culvert_blockage,
                                     end_points=[ep0, ep1],
-                                    #height=culvert_height,
+                                    #barrels=culvert_barrels,
                                     apron=culvert_apron,
                                     enquiry_gap=enquiry_gap,
                                     use_momentum_jet=False,
@@ -268,7 +276,10 @@ class Test_boyd_pipe_operator(unittest.TestCase):
 
         culvert_length = 20.0
         culvert_width = 1.2
-        ##culvert_height = 3.66
+
+        culvert_blockage=0.0
+        #culvert_barrels = 1.0
+        
         culvert_losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         culvert_mannings = 0.013
         
@@ -300,8 +311,9 @@ class Test_boyd_pipe_operator(unittest.TestCase):
         culvert = Boyd_pipe_operator(domain,
                                     losses=culvert_losses,
                                     diameter=culvert_width,
+                                    blockage=culvert_blockage,
                                     end_points=[ep0, ep1],
-                                    #height=culvert_height,
+                                    #barrels=culvert_barrels,
                                     apron=culvert_apron,
                                     enquiry_gap=enquiry_gap,
                                     use_momentum_jet=False,
@@ -343,7 +355,10 @@ class Test_boyd_pipe_operator(unittest.TestCase):
 
         culvert_length = 20.0
         culvert_width = 1.2
-        ##culvert_height = 3.66
+
+        culvert_blockage = 0.0
+        #culvert_barrels = 1.0
+        
         culvert_losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         culvert_mannings = 0.013
         
@@ -375,8 +390,9 @@ class Test_boyd_pipe_operator(unittest.TestCase):
         culvert = Boyd_pipe_operator(domain,
                                     losses=culvert_losses,
                                     diameter=culvert_width,
+                                    blockage=culvert_blockage,
                                     end_points=[ep0, ep1],
-                                    #height=culvert_height,
+                                    #barrels=culvert_barrels,
                                     apron=culvert_apron,
                                     enquiry_gap=enquiry_gap,
                                     use_momentum_jet=False,
@@ -418,7 +434,10 @@ class Test_boyd_pipe_operator(unittest.TestCase):
 
         culvert_length = 20.0
         culvert_width = 1.2
-        ##culvert_height = 3.66
+
+        culvert_blockage = 0.0
+        #culvert_barrels = 1.0
+        
         culvert_losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         culvert_mannings = 0.013
         
@@ -450,8 +469,9 @@ class Test_boyd_pipe_operator(unittest.TestCase):
         culvert = Boyd_pipe_operator(domain,
                                     losses=culvert_losses,
                                     diameter=culvert_width,
+                                    blockage=culvert_blockage,
                                     end_points=[ep0, ep1],
-                                    #height=culvert_height,
+                                    #barrels=culvert_barrels,
                                     apron=culvert_apron,
                                     enquiry_gap=enquiry_gap,
                                     use_momentum_jet=False,
@@ -474,7 +494,168 @@ class Test_boyd_pipe_operator(unittest.TestCase):
 
         assert numpy.allclose(Q, expected_Q, rtol=1.0e-2) #inflow
         assert numpy.allclose(v, expected_v, rtol=1.0e-2) #outflow velocity
+        assert numpy.allclose(d, expected_d, rtol=1.0e-2) #depth at outlet used to calc v        
+        
+    def test_boyd_non_skew6(self):
+        """test_boyd_non_skew
+        
+        This tests the Boyd routine with data obtained from culvertw application 1.1 by IceMindserer  BD Parkinson, 
+        calculation code by MJ Boyd
+        This tests the blockage code 
+        """
+
+        stage_0 = 15.0 #change
+        stage_1 = 14.0 #change
+        elevation_0 = 11.0
+        elevation_1 = 10.0
+
+        domain_length = 200.0
+        domain_width = 200.0
+
+        culvert_length = 20.0
+        culvert_width = 1.2
+
+        culvert_blockage = 0.50
+        #culvert_barrels = 1.0
+        
+        culvert_losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
+        culvert_mannings = 0.013
+        
+        culvert_apron = 0.0
+        enquiry_gap = 5.0
+
+        
+        expected_Q = 1.75
+        expected_v = 3.11
+        expected_d = 0.85
+        
+
+        domain = self._create_domain(d_length=domain_length,
+                                     d_width=domain_width,
+                                     dx = 5.0,
+                                     dy = 5.0,
+                                     elevation_0 = elevation_0,
+                                     elevation_1 = elevation_1,
+                                     stage_0 = stage_0,
+                                     stage_1 = stage_1)
+ 
+
+        #print 'Defining Structures'
+        
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
+        
+        
+        culvert = Boyd_pipe_operator(domain,
+                                    losses=culvert_losses,
+                                    diameter=culvert_width,
+                                    blockage=culvert_blockage,
+                                    end_points=[ep0, ep1],
+                                    #barrels=culvert_barrels,
+                                    apron=culvert_apron,
+                                    enquiry_gap=enquiry_gap,
+                                    use_momentum_jet=False,
+                                    use_velocity_head=False,
+                                    manning=culvert_mannings,
+                                    logging=False,
+                                    label='1.2pipe',
+                                    verbose=False)
+
+        #culvert.determine_inflow_outflow()
+        
+        ( Q, v, d ) = culvert.discharge_routine()
+        
+        if verbose:
+            print 'test_boyd_non_skew6'
+            print 'Q: ', Q, 'expected_Q: ', expected_Q
+            print 'v: ', v, 'expected_v: ', expected_v
+            print 'd: ', d, 'expected_d: ', expected_d
+
+
+        assert numpy.allclose(Q, expected_Q, rtol=1.0e-2) #inflow
+        assert numpy.allclose(v, expected_v, rtol=1.0e-2) #outflow velocity
         assert numpy.allclose(d, expected_d, rtol=1.0e-2) #depth at outlet used to calc v  
+
+    def test_boyd_non_skew7(self):
+        """test_boyd_non_skew
+        
+        This tests the Boyd routine with data obtained from culvertw application 1.1 by IceMindserer  BD Parkinson, 
+        calculation code by MJ Boyd
+        This tests the blockage code 
+        """
+
+        stage_0 = 15.0 #change
+        stage_1 = 14.0 #change
+        elevation_0 = 11.0
+        elevation_1 = 10.0
+
+        domain_length = 200.0
+        domain_width = 200.0
+
+        culvert_length = 20.0
+        culvert_width = 1.2
+
+        culvert_blockage = 1.0
+        #culvert_barrels = 1.0
+        
+        culvert_losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
+        culvert_mannings = 0.013
+        
+        culvert_apron = 0.0
+        enquiry_gap = 5.0
+
+        
+        expected_Q = 0.0
+        expected_v = 0.0
+        expected_d = 0.0
+        
+
+        domain = self._create_domain(d_length=domain_length,
+                                     d_width=domain_width,
+                                     dx = 5.0,
+                                     dy = 5.0,
+                                     elevation_0 = elevation_0,
+                                     elevation_1 = elevation_1,
+                                     stage_0 = stage_0,
+                                     stage_1 = stage_1)
+ 
+
+        #print 'Defining Structures'
+        
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
+        
+        
+        culvert = Boyd_pipe_operator(domain,
+                                    losses=culvert_losses,
+                                    diameter=culvert_width,
+                                    blockage=culvert_blockage,
+                                    end_points=[ep0, ep1],
+                                    #barrels=culvert_barrels,
+                                    apron=culvert_apron,
+                                    enquiry_gap=enquiry_gap,
+                                    use_momentum_jet=False,
+                                    use_velocity_head=False,
+                                    manning=culvert_mannings,
+                                    logging=False,
+                                    label='1.2pipe',
+                                    verbose=False)
+
+        #culvert.determine_inflow_outflow()
+        
+        ( Q, v, d ) = culvert.discharge_routine()
+        
+        if verbose:
+            print 'test_boyd_non_skew7'
+            print 'Q: ', Q, 'expected_Q: ', expected_Q
+            print 'v: ', v, 'expected_v: ', expected_v
+            print 'd: ', d, 'expected_d: ', expected_d
+
+
+        assert numpy.allclose(Q, expected_Q, rtol=1.0e-2, atol=1.0e-5) #inflow
+        assert numpy.allclose(v, expected_v, rtol=1.0e-2, atol=1.0e-5) #outflow velocity
+        assert numpy.allclose(d, expected_d, rtol=1.0e-2, atol=1.0e-5) #depth at outlet used to calc v  
+
 # =========================================================================
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_boyd_pipe_operator, 'test')

@@ -975,6 +975,13 @@ class Mesh(General_mesh):
         #print self.node_index.shape
         #print self.number_of_triangles_per_node.shape
 
+
+        #print 'vertex_value_indices', self.vertex_value_indices.dtype
+        #print 'triangles',self.triangles.dtype
+        #print 'node_index',self.node_index.dtype
+        #print 'number_of_triangles_per_node',self.number_of_triangles_per_node.dtype
+
+		
         check_integrity_c(self.vertex_value_indices,
                           self.triangles,
                           self.node_index,

@@ -27,23 +27,22 @@ def configuration(parent_package='',top_path=None):
     config.add_subpackage('parallel')
     config.add_subpackage('pmesh')
     config.add_subpackage('pymetis')
+    config.add_subpackage('simulation')
     config.add_subpackage('shallow_water')
     config.add_subpackage('structures')
     config.add_subpackage('tsunami_source')
     config.add_subpackage('utilities')
     config.add_subpackage('validation_utilities')
-    
-    if sys.platform == 'win32':
-        config.add_data_dir('runtime_libs')
-    
+
+
     try:
         import vtk
         config.add_subpackage('visualiser')
     except:
         pass
-        
+
     config.make_config_py()
-    
+
     return config
 
 if __name__ == '__main__':

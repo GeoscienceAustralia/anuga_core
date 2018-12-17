@@ -20,7 +20,13 @@
 #include "numpy/arrayobject.h"
 #include "math.h"
 #include "stdio.h"
-#include "omp.h"
+
+#if defined(__APPLE__)
+   // clang doesn't have openmp
+#else
+   #include "omp.h"
+#endif
+
 
 
 // Dot product of two double vectors: a.b
@@ -28,7 +34,7 @@
 //        a: first vector of doubles
 //        b: second vector of double
 // @return: double result of a.b 
-double ddot( int N, double *a, double *b)
+double cg_ddot( int N, double *a, double *b)
 {
   double ret = 0;
   int i;
@@ -45,7 +51,7 @@ double ddot( int N, double *a, double *b)
 // @input N: int length of vector x
 //        a: double scalar to multiply by
 //        x: double vector to scale
-void dscal(int N, double a, double *x)
+void cg_dscal(int N, double a, double *x)
 {
   int i;
   #pragma omp parallel for private(i)
@@ -60,7 +66,7 @@ void dscal(int N, double a, double *x)
 // @input N: int length of vectors x and y
 //        x: double vector to make copy of
 //        y: double vector to copy into
-void dcopy( int N, double *x, double *y)
+void cg_dcopy( int N, double *x, double *y)
 {
   int i;
   #pragma omp parallel for private(i)
@@ -75,7 +81,7 @@ void dcopy( int N, double *x, double *y)
 //        a: double to multiply x by
 //        x: first double vector
 //        y: second double vector, stores result
-void daxpy(int N, double a, double *x, double *y)
+void cg_daxpy(int N, double a, double *x, double *y)
 {
   int i;
   #pragma omp parallel for private(i)
@@ -92,7 +98,7 @@ void daxpy(int N, double a, double *x, double *y)
 //        row_ptr: long vector giving index of rows for non-zero entires of A
 //        x: double vector to be multiplied
 //        M: length of vector x
-void zAx(double * z, double * data, long * colind, long * row_ptr, double * x, int M){
+void cg_zAx(double * z, double * data, long * colind, long * row_ptr, double * x, int M){
 
   
   
@@ -117,7 +123,7 @@ void zAx(double * z, double * data, long * colind, long * row_ptr, double * x, i
 //        D: double vector of diagonal matrix
 //        x: double vector to be multiplied
 //        M: length of vector x
-void zDx(double * z, double * D, double * x, int M){
+void cg_zDx(double * z, double * D, double * x, int M){
 
   
   long i, j, ckey;
@@ -135,7 +141,7 @@ void zDx(double * z, double * D, double * x, int M){
 //        D: double vector of diagonal matrix
 //        x: double vector to be multiplied
 //        M: length of vector x
-void zDinx(double * z, double * D, double * x, int M){
+void cg_zDinx(double * z, double * D, double * x, int M){
 
   
   long i, j, ckey;
@@ -159,7 +165,7 @@ void zDinx(double * z, double * D, double * x, int M){
 //        x: double vector to be multiplied
 //        y: double vector to add
 //        M: length of vector x
-void zaAxpy(double * z, double a, double * data, long * colind, long * row_ptr, double * x,
+void cg_zaAxpy(double * z, double a, double * data, long * colind, long * row_ptr, double * x,
       double * y,int M){
   long i, j, ckey;
   #pragma omp parallel for private(ckey,j,i)
@@ -242,27 +248,27 @@ int _cg_solve_c(double* data,
   double * q = malloc(sizeof(double)*M);
   double * xold = malloc(sizeof(double)*M);
 
-  zaAxpy(r,-1.0,data,colind,row_ptr,x,b,M);
-  dcopy(M,r,d);
+  cg_zaAxpy(r,-1.0,data,colind,row_ptr,x,b,M);
+  cg_dcopy(M,r,d);
 
-  rTr=ddot(M,r,r);
+  rTr=cg_ddot(M,r,r);
   rTr0 = rTr;
   
   while((i<imax) && (rTr>pow(tol,2)*rTr0) && (rTr > pow(a_tol,2))){
 
-    zAx(q,data,colind,row_ptr,d,M);
-    alpha = rTr/ddot(M,d,q);
-    dcopy(M,x,xold);
-    daxpy(M,alpha,d,x);
+    cg_zAx(q,data,colind,row_ptr,d,M);
+    alpha = rTr/cg_ddot(M,d,q);
+    cg_dcopy(M,x,xold);
+    cg_daxpy(M,alpha,d,x);
 
-    daxpy(M,-alpha,q,r);
+    cg_daxpy(M,-alpha,q,r);
     rTrOld = rTr;
-    rTr = ddot(M,r,r);
+    rTr = cg_ddot(M,r,r);
 
     bt= rTr/rTrOld;
 
-    dscal(M,bt,d);
-    daxpy(M,1.0,r,d);
+    cg_dscal(M,bt,d);
+    cg_daxpy(M,1.0,r,d);
 
     i=i+1;
 
@@ -316,29 +322,29 @@ int _cg_solve_c_precon(double* data,
   double * rhat = malloc(sizeof(double)*M);
   double * temp = malloc(sizeof(double)*M);
 
-  zaAxpy(r,-1.0,data,colind,row_ptr,x,b,M);
-  zDinx(rhat,precon,r,M);
-  dcopy(M,rhat,d);
+  cg_zaAxpy(r,-1.0,data,colind,row_ptr,x,b,M);
+  cg_zDinx(rhat,precon,r,M);
+  cg_dcopy(M,rhat,d);
 
-  rTr=ddot(M,r,rhat);
+  rTr=cg_ddot(M,r,rhat);
   rTr0 = rTr;
   
   while((i<imax) && (rTr>pow(tol,2)*rTr0) && (rTr > pow(a_tol,2))){
 
-    zAx(q,data,colind,row_ptr,d,M);
-    alpha = rTr/ddot(M,d,q);
-    dcopy(M,x,xold);
-    daxpy(M,alpha,d,x);
+    cg_zAx(q,data,colind,row_ptr,d,M);
+    alpha = rTr/cg_ddot(M,d,q);
+    cg_dcopy(M,x,xold);
+    cg_daxpy(M,alpha,d,x);
 
-    daxpy(M,-alpha,q,r);
-    zDinx(rhat,precon,r,M);
+    cg_daxpy(M,-alpha,q,r);
+    cg_zDinx(rhat,precon,r,M);
     rTrOld = rTr;
-    rTr = ddot(M,r,rhat);
+    rTr = cg_ddot(M,r,rhat);
 
     bt= rTr/rTrOld;
 
-    dscal(M,bt,d);
-    daxpy(M,1.0,rhat,d);
+    cg_dscal(M,bt,d);
+    cg_daxpy(M,1.0,rhat,d);
 
     i=i+1;
 

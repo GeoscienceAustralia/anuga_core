@@ -33,10 +33,12 @@ class Test_Geospatial_data(unittest.TestCase):
 
         # Check __repr__
         # FIXME (Ole): Is this really machine independent?
-        rep = `G`
+        rep = G.__repr__()
         ref = '[[ 1.   2.1]\n [ 3.   5.3]]'
-        msg = 'Representation %s is not equal to %s' % (rep, ref)
-        assert rep == ref, msg
+        # it seems the leading spaces are removed on some conda builds, so lets allow that too:
+        ref_conda = '[[1.  2.1]\n [3.  5.3]]'
+        msg = 'Representation %s is not equal to %s or %s' % (rep, ref, ref_conda)
+        assert ((rep == ref) or (rep == ref_conda)), msg
 
         #Check getter
         assert num.allclose(G.get_data_points(), [[1.0, 2.1], [3.0, 5.3]])

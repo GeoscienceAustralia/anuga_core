@@ -78,7 +78,7 @@ class Set_quantity(Region):
         Apply value to those triangles defined by indices
 
         indices == [], don't apply anywhere
-        indices == None, apply everywhere
+        indices is None, apply everywhere
         otherwise apply for the specific indices
         """
 

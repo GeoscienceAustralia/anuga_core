@@ -23,12 +23,16 @@ def configuration(parent_package='',top_path=None):
                  join(util_dir,'sparse_dok.c'),
                  join(util_dir,'sparse_csr.c')]
     
+    if sys.platform == 'darwin':
+        extra_args = None
+    else:
+        extra_args = ['-fopenmp']
 
     config.add_extension('fitsmooth',
                          sources=['fitsmooth.c']+util_srcs,
                          include_dirs=[util_dir],
-                         extra_compile_args=['-fopenmp'],
-                         extra_link_args=['-fopenmp'])
+                         extra_compile_args=extra_args,
+                         extra_link_args=extra_args)
 
 
     return config

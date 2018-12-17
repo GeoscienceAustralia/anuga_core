@@ -143,7 +143,7 @@ class EditRegionDialog(Dialog):
 
     
         maxAreaVar = StringVar()
-        if self.maxArea == None:
+        if self.maxArea is None:
           self.maxArea = ""  
         maxAreaVar.set(self.maxArea)
         self.maxAreastr   = Entry(master,

@@ -97,7 +97,7 @@ class Test_Geometry(unittest.TestCase):
         cell.insert([(AABB(1, 3, 1, 3), 111), (AABB(8, 9, 1, 2), 222)])
 
         assert len(cell.children) == 2
-        assert cell.parent == None
+        assert cell.parent is None
         assert cell.children[0].parent == cell
         assert cell.children[1].parent == cell
 

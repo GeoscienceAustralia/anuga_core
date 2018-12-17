@@ -10,7 +10,12 @@
 #include "util_ext.h" /* in utilities */
 #include "sparse_dok.h" /* in utilities */
 #include "quad_tree.h"  /* in utilities */
-#include "omp.h"
+
+#if defined(__APPLE__)
+   // clang doesn't have openmp
+#else
+   #include "omp.h"
+#endif
 
 // Errors defined for netcdf reading
 #define ERRCODE 2

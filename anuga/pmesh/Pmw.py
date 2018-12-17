@@ -1415,7 +1415,7 @@ def _addRootToToplevelBusyInfo():
     # the application.
 
     root = Tkinter._default_root
-    if root == None:
+    if root is None:
         root = Tkinter.Tk()
     if not _toplevelBusyInfo.has_key(root):
         _addToplevelBusyInfo(root)

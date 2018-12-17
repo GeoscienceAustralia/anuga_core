@@ -150,7 +150,7 @@ def _convert_dem_from_ascii2netcdf(name_in, name_out = None,
 
     assert len(lines) == nrows + 6
 
-    if name_out == None:
+    if name_out is None:
         netcdfname = name_in[:-4]+'.dem'
     else:
         netcdfname = name_out + '.dem'

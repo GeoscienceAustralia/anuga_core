@@ -94,7 +94,7 @@ class General_mesh:
         self.nodes = num.array(nodes, num.float)
 
         # Register number of elements and nodes
-        self.number_of_triangles = N = self.triangles.shape[0]
+        self.number_of_triangles = N = int(self.triangles.shape[0])
         self.number_of_nodes = self.nodes.shape[0]
 
 
@@ -376,6 +376,7 @@ class General_mesh:
         
 
     def __len__(self):
+
         return self.number_of_triangles
 
     def __repr__(self):
@@ -786,8 +787,8 @@ class General_mesh:
         # Need to pad number_of_triangles_per_node in case lone nodes at end of list
         #number_of_triangles_per_node = num.zeros(self.number_of_nodes, num.int)
 
-        number_of_triangles_per_node = num.bincount(self.triangles.flat)
 
+        number_of_triangles_per_node = num.bincount(self.triangles.flat).astype(num.int)
         number_of_lone_nodes = self.number_of_nodes - len(number_of_triangles_per_node)
 
         #print number_of_lone_nodes
@@ -808,7 +809,7 @@ class General_mesh:
         # order around each node. Use with number_of_triangles_per_node to
         # find vertices associated with a node.
         # ie There are  number_of_triangles_per_node[i] vertices
-        vertex_value_indices = num.argsort(self.triangles.flat)
+        vertex_value_indices = num.argsort(self.triangles.flat).astype(num.int)
         #vertex_value_indices = num.argsort(self.triangles.flatten())
 
 #        node_index = num.zeros((self.number_of_nodes)+1, dtype = num.int)

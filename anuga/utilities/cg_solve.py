@@ -160,7 +160,7 @@ def _conjugate_gradient(A, b, x0,
 
     stats.x0 = num.linalg.norm(x0)
 
-    if iprint == None or iprint == 0:
+    if iprint is None or iprint == 0:
         iprint = imax
 
     dx = 0.0
@@ -267,7 +267,7 @@ def _conjugate_gradient_preconditioned(A, b, x0, M,
 
     stats.x0 = num.linalg.norm(x0)
 
-    if iprint == None or iprint == 0:
+    if iprint is None or iprint == 0:
         iprint = imax
 
     dx = 0.0

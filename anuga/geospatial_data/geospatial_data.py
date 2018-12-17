@@ -1253,7 +1253,7 @@ def ensure_absolute(points, geo_reference=None):
     if isinstance(points, Geospatial_data):
         points = points.get_data_points(absolute=True)
         msg = 'Use a Geospatial_data object or a mesh origin, not both.'
-        assert geo_reference == None, msg
+        assert geo_reference is None, msg
     else:
         points = ensure_numeric(copy.copy(points), num.float)
 
@@ -1422,7 +1422,7 @@ def find_optimal_smoothing_parameter(data_file,
     if verbose: log.critical("Number of points in sample to compare: %d"
                              % len(points))
 
-    if alpha_list == None:
+    if alpha_list is None:
         alphas = [0.001,0.01,100]
         #alphas = [0.000001, 0.00001, 0.0001, 0.001, 0.01,
         #          0.1, 1.0, 10.0, 100.0,1000.0,10000.0]
@@ -1613,7 +1613,7 @@ def old_find_optimal_smoothing_parameter(data_file,
     if verbose: log.critical("Number of points in sample to compare: %d"
                              % len(points))
 
-    if alpha_list == None:
+    if alpha_list is None:
         alphas = [0.001,0.01,100]
         #alphas = [0.000001, 0.00001, 0.0001, 0.001, 0.01,
         #          0.1, 1.0, 10.0, 100.0,1000.0,10000.0]

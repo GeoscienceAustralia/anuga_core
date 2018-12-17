@@ -287,7 +287,7 @@ class meshTestCase(unittest.TestCase):
         s2 = mesh.addUserSegment(a,c)
         s3 = mesh.addUserSegment(c,b)
 
-        self.assertTrue(mesh.representedUserSegment(a,d) == None,
+        self.assertTrue(mesh.representedUserSegment(a,d) is None,
                         'Segment should be new. ')
         self.assertTrue(mesh.representedUserSegment(a,b) == s1 ,
                         'Segment should not be new. ')
@@ -329,12 +329,12 @@ class meshTestCase(unittest.TestCase):
         m.auto_segment()
         
         s3 = m.representedAlphaUserSegment(p3,p0)
-        self.assertTrue(not (s3 == None) ,
+        self.assertTrue(not (s3 is None) ,
                         'userSegments is wrong!')
 
         
         s6 = m.representedAlphaUserSegment(p1,p4)       
-        self.assertTrue(not (s6 == None) ,
+        self.assertTrue(not (s6 is None) ,
                         'userSegments is wrong!')
         
         # remove a segment, add a point, auto_segment
@@ -353,15 +353,15 @@ class meshTestCase(unittest.TestCase):
                         'userSegments is wrong!')
         
         s3 = m.representedAlphaUserSegment(p3,p6)       
-        self.assertTrue(not (s3 == None) ,
+        self.assertTrue(not (s3 is None) ,
                         'userSegments is wrong!')
         
         s4 = m.representedAlphaUserSegment(p3,p6)       
-        self.assertTrue(not (s4 == None) ,
+        self.assertTrue(not (s4 is None) ,
                         'userSegments is wrong!')
         
         s5 = m.representedAlphaUserSegment(p4,p6)       
-        self.assertTrue(s5 == None ,
+        self.assertTrue(s5 is None ,
                         'userSegments is wrong!')
         #print m
         
