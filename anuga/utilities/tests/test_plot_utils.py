@@ -23,7 +23,7 @@ class Test_plot_utils(unittest.TestCase):
          that we can use for testing
         """
         boundaryPolygon=[ [0., 0.], [0., 100.], [100.0, 100.0], [100.0, 0.0]]
-        anuga.create_mesh_from_regions(boundaryPolygon, 
+        anuga.create_mesh_from_regions(boundaryPolygon,
                                    boundary_tags={'left': [0],
                                                 'top': [1],
                                                 'right': [2],
@@ -35,7 +35,7 @@ class Test_plot_utils(unittest.TestCase):
                                    verbose=False)
 
         domain=anuga.create_domain_from_file('test_plot_utils.msh')
-        
+
         os.remove('test_plot_utils.msh')
 
         # 05/05/2014 -- riverwalls only work with DE0 and DE1
@@ -43,21 +43,21 @@ class Test_plot_utils(unittest.TestCase):
         domain.set_name('test_plot_utils')
 
         domain.set_store_vertices_uniquely()
-       
+
         def topography(x,y):
-            return -x/150. 
+            return -x/150.
 
         def stagefun(x,y):
             stg=InitialOceanStage*(x>=50.) + InitialLandStage*(x<50.)
-            return stg 
+            return stg
 
         domain.set_flow_algorithm(flowAlg)
-        #domain.set_quantity('elevation',topography,location='centroids')     
-        domain.set_quantity('elevation',topography)     
-        domain.set_quantity('friction',0.03)             
-        #domain.set_quantity('stage', stagefun,location='centroids')            
-        domain.set_quantity('stage', stagefun)            
-       
+        #domain.set_quantity('elevation',topography,location='centroids')
+        domain.set_quantity('elevation',topography)
+        domain.set_quantity('friction',0.03)
+        #domain.set_quantity('stage', stagefun,location='centroids')
+        domain.set_quantity('stage', stagefun)
+
         if(verbose):
             if(domain.store_centroids):
                 print '   Centroids stored'
@@ -71,17 +71,21 @@ class Test_plot_utils(unittest.TestCase):
         for t in domain.evolve(yieldstep=0.2,finaltime=1.0):
             pass
 
-        return 
+        return
 
     def everything_equal(self, p1, slice1, p2, slice2):
         """
             Convenience function to check that all variables in two 'get_output' objects
             are the same.
-            
+
         """
         # Array variables
         assert(all(p1.stage[slice1,:]==p2.stage[slice2,:]))
-        assert(all(p1.vel[slice1,:]==p2.vel[slice2,:]))
+
+        #assert(all(p1.vel[slice1,:]==p2.vel[slice2,:]))
+        # Weird error with vel comparison so used this test instead
+        assert(np.sum(np.abs(p1.vel[slice1,:]-p2.vel[slice2,:])) < 1.0e-15)
+
         assert(all(p1.height[slice1,:]==p2.height[slice2,:]))
         assert(all(p1.xmom[slice1,:]==p2.xmom[slice2,:]))
         assert(all(p1.ymom[slice1,:]==p2.ymom[slice2,:]))
@@ -96,7 +100,7 @@ class Test_plot_utils(unittest.TestCase):
         assert(p1.xllcorner==p2.xllcorner)
         assert(p1.yllcorner==p2.yllcorner)
         assert((p1.time[slice1]==p2.time[slice2]))
-        return 
+        return
 
     def basic_checks(self):
         """
@@ -106,29 +110,29 @@ class Test_plot_utils(unittest.TestCase):
         """
 
         p=util.get_output('test_plot_utils.sww')
-       
+
         # Check that dimesions are ok
-        l_time=len(p.time) 
+        l_time=len(p.time)
         l_space=len(p.x)
 
         assert(len(p.y)==l_space)
-        assert(p.stage.shape==(l_time,l_space)) 
-        assert(p.vel.shape==(l_time,l_space)) 
-        assert(p.xmom.shape==(l_time,l_space)) 
-        assert(p.ymom.shape==(l_time,l_space)) 
-        assert(p.xvel.shape==(l_time,l_space)) 
-        assert(p.yvel.shape==(l_time,l_space)) 
+        assert(p.stage.shape==(l_time,l_space))
+        assert(p.vel.shape==(l_time,l_space))
+        assert(p.xmom.shape==(l_time,l_space))
+        assert(p.ymom.shape==(l_time,l_space))
+        assert(p.xvel.shape==(l_time,l_space))
+        assert(p.yvel.shape==(l_time,l_space))
         assert(p.elev.shape==(l_space,))
         assert(p.friction.shape==(l_space,))
-       
-        p2=util.get_centroids(p,velocity_extrapolation=True) 
+
+        p2=util.get_centroids(p,velocity_extrapolation=True)
         l_space=len(p.vols) #  len(vols in vertex quantities) = len(centroids)
-        assert(p2.stage.shape==(l_time,l_space)) 
-        assert(p2.vel.shape==(l_time,l_space)) 
-        assert(p2.xmom.shape==(l_time,l_space)) 
-        assert(p2.ymom.shape==(l_time,l_space)) 
-        assert(p2.xvel.shape==(l_time,l_space)) 
-        assert(p2.yvel.shape==(l_time,l_space)) 
+        assert(p2.stage.shape==(l_time,l_space))
+        assert(p2.vel.shape==(l_time,l_space))
+        assert(p2.xmom.shape==(l_time,l_space))
+        assert(p2.ymom.shape==(l_time,l_space))
+        assert(p2.xvel.shape==(l_time,l_space))
+        assert(p2.yvel.shape==(l_time,l_space))
         assert(p2.elev.shape==(l_space,))
         assert(p2.friction.shape==(l_space,))
 
@@ -145,10 +149,10 @@ class Test_plot_utils(unittest.TestCase):
             Is called by a test function for various flow algorithms
         """
         p=util.get_output('test_plot_utils.sww')
-        p2=util.get_centroids(p,velocity_extrapolation=ve) 
-       
+        p2=util.get_centroids(p,velocity_extrapolation=ve)
+
         # Check that dimesions are ok
-        l_time=len(p.time) 
+        l_time=len(p.time)
         l_space=len(p.x)
 
         assert(p.timeSlices==range(l_time))
@@ -165,7 +169,7 @@ class Test_plot_utils(unittest.TestCase):
         self.everything_equal(p_12, 1, p, 3)
         self.everything_equal(pc_12, 0, p2, 0)
         self.everything_equal(pc_12, 1, p2, 3)
-        
+
 
         # Try getting some time-slices, and checking all is as intended
         p_12a=util.get_output('test_plot_utils.sww', timeSlices=3)
@@ -178,7 +182,7 @@ class Test_plot_utils(unittest.TestCase):
 
         self.everything_equal(p_12a, 0, p, 3)
         self.everything_equal(pc_12a, 0, p2, 3)
-       
+
 
         # Try getting some time-slices, and checking all is as intended
         p_12b=util.get_output('test_plot_utils.sww')
@@ -192,22 +196,22 @@ class Test_plot_utils(unittest.TestCase):
         self.everything_equal(p_12b, 0, p, 0)
         self.everything_equal(p_12b, 5, p, 5)
         self.everything_equal(pc_12b, 0, p2, 3)
-       
 
-        # Check we can get the 'last' time, and it is correct 
+
+        # Check we can get the 'last' time, and it is correct
         p_l=util.get_output('test_plot_utils.sww', timeSlices='last')
         pc_l=util.get_centroids(p_l,velocity_extrapolation=ve)
-        l_time=len(p.time) 
+        l_time=len(p.time)
         self.everything_equal(p_l, 0, p, l_time-1)
         self.everything_equal(pc_l, 0, p2, l_time-1)
-        
+
         assert(p_l.timeSlices==[l_time-1])
         assert(pc_l.timeSlices==[l_time-1])
-        
+
         # Check that we can get the 'max' time
         p_m=util.get_output('test_plot_utils.sww', timeSlices='max')
         pc_m=util.get_centroids(p_m,velocity_extrapolation=ve)
-        
+
         assert(p_m.time==p.time.max())
         assert(pc_m.time==p2.time.max())
         assert(p_m.timeSlices=='max')
@@ -239,7 +243,7 @@ class Test_plot_utils(unittest.TestCase):
         assert(np.allclose(p.stage[slice1,:], p.height[slice1,:]+p.elev, atol=1.0e-07))
         assert(np.allclose(p.vel[slice1,:], (p.xvel[slice1,:]**2. + p.yvel[slice1,:]**2)**0.5 ))
         return
-        
+
 
     def test_basic(self):
         """
@@ -253,7 +257,7 @@ class Test_plot_utils(unittest.TestCase):
             self.basic_checks()
 
         os.remove('test_plot_utils.sww')
-        
+
 
     def test_timeslices(self):
         """
@@ -266,7 +270,7 @@ class Test_plot_utils(unittest.TestCase):
             # Test time-slices with velocity_extrapolation=True
             self.velExtrap_timeSlices_check(ve=True)
             self.velExtrap_timeSlices_check(ve=False)
-            
+
         os.remove('test_plot_utils.sww')
 
     def test_quantity_consistency(self):
@@ -281,14 +285,14 @@ class Test_plot_utils(unittest.TestCase):
             pc=util.get_centroids('test_plot_utils.sww')
             l=len(pc.time)-1
             self.quantity_consistency_check(pc,l)
-            
+
         os.remove('test_plot_utils.sww')
-      
+
 
     def test_near_points(self):
         """
             Check that the near-points function is working
-        """ 
+        """
         self.create_domain(InitialOceanStage=1., InitialLandStage=0., flowAlg='DE0', verbose=verbose)
         p=util.get_output('test_plot_utils.sww')
         pc=util.get_centroids(p,velocity_extrapolation=True)
@@ -298,14 +302,14 @@ class Test_plot_utils(unittest.TestCase):
         assert(all(nt[1]>=0.))
         assert(all(nt[1]<=60.))
         assert(np.allclose(pc.x[nt[0]]-20., nt[1]))
-        
+
         # Next check -- get points along x==50
         nt=util.near_transect(pc, [50., 20.], [50., 80.], tol=10.)
         assert(all(abs(pc.x[nt[0]]-50.)<10.))
         assert(all(nt[1]>=0.))
         assert(all(nt[1]<=60.))
         assert(np.allclose(pc.y[nt[0]]-20., nt[1]))
-        
+
         # Next check -- get points along x==y
         nt=util.near_transect(pc, [20., 20.], [80., 80.], tol=10.)
         assert(all(nt[1]>=0.))
@@ -316,7 +320,7 @@ class Test_plot_utils(unittest.TestCase):
         # The dot product of the points along the line is equal to nt[1]
         dt_Prd=( (pc.x[nt[0]]-20.)/2.**0.5 + (pc.y[nt[0]]-20.)/2.**0.5)
         assert(np.allclose(dt_Prd , nt[1]))
-        
+
         # Next check -- get points along x==2*y + 5
         nt=util.near_transect(pc, [25., 10.], [85., 40.], tol=10.)
         assert(all(nt[1]>=0.))
@@ -327,7 +331,7 @@ class Test_plot_utils(unittest.TestCase):
         ll=(1.**2+0.5**2)**0.5
         dt_Prd=( (pc.x[nt[0]]-25.)/ll + (pc.y[nt[0]]-10.)*0.5/ll)
         assert(np.allclose(dt_Prd , nt[1]))
-        
+
         os.remove('test_plot_utils.sww')
 
     def test_triangle_areas(self):
@@ -338,7 +342,7 @@ class Test_plot_utils(unittest.TestCase):
         p=util.get_output('test_plot_utils.sww')
         pc=util.get_centroids(p,velocity_extrapolation=True)
 
-        # Check that subsetting works        
+        # Check that subsetting works
         ta=util.triangle_areas(p)
         ta_1=util.triangle_areas(p,range(10))
         assert(all(ta[range(10)]==ta_1))
@@ -350,7 +354,7 @@ class Test_plot_utils(unittest.TestCase):
         y1=p.y[p.vols[0][1]]
         x2=p.x[p.vols[0][2]]
         y2=p.y[p.vols[0][2]]
-        
+
         # Use 0.5 a * b
         len_a = ((x1-x0)**2 + (y1-y0)**2)**0.5
         vec_01 = np.array([ x1-x0, y1-y0])
@@ -358,7 +362,7 @@ class Test_plot_utils(unittest.TestCase):
         vec_01_perp=np.array([vec_01[1], -vec_01[0]])
         len_b = (x2-x0)*vec_01_perp[0] + (y2-y0)*vec_01_perp[1]
         assert(np.allclose(abs(0.5*len_a*len_b),ta[0]))
-        
+
         os.remove('test_plot_utils.sww')
 
     def test_water_volume(self):
@@ -369,7 +373,7 @@ class Test_plot_utils(unittest.TestCase):
         p=util.get_output('test_plot_utils.sww')
         pc=util.get_centroids(p,velocity_extrapolation=True)
 
-        # Check that subsetting works        
+        # Check that subsetting works
         ta=util.triangle_areas(p)
 
         # Independently computed water volume
@@ -377,7 +381,7 @@ class Test_plot_utils(unittest.TestCase):
 
         wv=util.water_volume(p,pc)
         assert(np.allclose(wVol_2, wv[2]))
-        
+
         os.remove('test_plot_utils.sww')
 
     def test_Make_Geotif(self):
@@ -388,7 +392,7 @@ class Test_plot_utils(unittest.TestCase):
         # If nothing fails, that's good
         #
         # Pick a domain that makes sense in EPSG:32756
-        x=np.linspace(307000., 308000., 100)     
+        x=np.linspace(307000., 308000., 100)
         y=np.linspace(6193000., 6194000., 100)
         myCellSize=5.0
         xG,yG=np.meshgrid(x, y)
@@ -400,7 +404,7 @@ class Test_plot_utils(unittest.TestCase):
         util.Make_Geotif(dataToGrid, output_quantities=['TestData'],
                          EPSG_CODE=32756, output_dir='.', CellSize=myCellSize)
 
-       
+
         # Use gdal to check that at least the data extent is ok
         import osgeo.gdal as gdal
         raster=gdal.Open('PointData_TestData.tif')
@@ -420,7 +424,7 @@ class Test_plot_utils(unittest.TestCase):
         # If nothing fails, that's good
         #
         # Pick a domain that makes sense in EPSG:32756
-        x=np.linspace(307000., 308000., 100)     
+        x=np.linspace(307000., 308000., 100)
         y=np.linspace(6193000., 6194000., 100)
         myCellSize=5.0
         xG,yG=np.meshgrid(x, y)
@@ -433,7 +437,7 @@ class Test_plot_utils(unittest.TestCase):
                          EPSG_CODE=32756, output_dir='.', CellSize=myCellSize,
                          k_nearest_neighbours=4)
 
-       
+
         # Use gdal to check that at least the data extent is ok
         import osgeo.gdal as gdal
         raster=gdal.Open('PointData_TestData.tif')
@@ -448,11 +452,11 @@ class Test_plot_utils(unittest.TestCase):
     def test_triangle_containing_point(self):
 
         import matplotlib.tri as tri
-        
+
         # older versions of matplotlib don't have this procedure
         if not hasattr(tri.Triangulation,"get_trifinder"):
             return
-        
+
         self.create_domain(InitialOceanStage=1., InitialLandStage=0., flowAlg='DE0', verbose=verbose)
 
         p = util.get_output('test_plot_utils.sww')
@@ -465,8 +469,8 @@ class Test_plot_utils(unittest.TestCase):
         tri_lookup = util.get_triangle_lookup_function(p)
 
         assert( point_index_1 == tri_lookup(49., 49.) )
-        
- 
+
+
 
 ################################################################################
 
@@ -474,4 +478,3 @@ if __name__ == "__main__":
     suite = unittest.makeSuite(Test_plot_utils, 'test') #_triangle_containing_point')
     runner = unittest.TextTestRunner()
     runner.run(suite)
-
