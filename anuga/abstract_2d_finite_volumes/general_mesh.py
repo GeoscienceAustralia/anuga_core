@@ -82,15 +82,17 @@ class General_mesh:
 
         """
 
+        self.verbose = verbose
+
         if verbose: log.critical('General_mesh: Building basic mesh structure')
 
         self.use_inscribed_circle = use_inscribed_circle
-         
+
         self.triangles = num.array(triangles, num.int)
 
-        if verbose: 
+        if verbose:
             log.timingInfo("numTriangles, " + str(self.triangles.shape[0]))
-       
+
         self.nodes = num.array(nodes, num.float)
 
         # Register number of elements and nodes
@@ -163,11 +165,11 @@ class General_mesh:
         y2 = V2[:,1]
 
         self.areas[:] = -((x1*y0-x0*y1) + (x2*y1-x1*y2) + (x0*y2-x2*y0))/2.0
-        
+
         #areas = -((x0-x1)*(y2-y1) - (y0-y1)*(x2-x1))/2.0
 
         #assert num.allclose(self.areas, areas)
-        
+
         ind = num.where(self.areas <= 0.0)
         msg = 'Degenerate Triangle(s) '+str(ind[0])
         assert num.all(self.areas > 0.0), msg
@@ -225,7 +227,7 @@ class General_mesh:
 
         self.normals[:,4] =  yn2
         self.normals[:,5] = -xn2
-        
+
         self.edgelengths[:,0] = l0
         self.edgelengths[:,1] = l1
         self.edgelengths[:,2] = l2
@@ -371,9 +373,9 @@ class General_mesh:
         # Build structure listing which triangles belong to which node.
         if verbose: log.critical('General Mesh: Building inverted triangle structure')
         self.build_inverted_triangle_structure()
-        
+
         if verbose: log.timingInfo("aoi, '%s'" % self.get_area())
-        
+
 
     def __len__(self):
 
@@ -399,18 +401,18 @@ class General_mesh:
         """
 
         return self.normals[i, 2*j:2*j+2]
-        
+
     def get_edgelength(self, i, j):
         """Return length of j'th edge of the i'th triangle.
         Return value is the numeric array slice [x, y]
         """
         return self.edgelengths[i, j]
-                
+
 
     def get_number_of_triangles(self):
         return self.number_of_triangles
 
-    
+
     def get_number_of_nodes(self):
         return self.number_of_nodes
 
@@ -444,7 +446,7 @@ class General_mesh:
         Default is False as many parts of ANUGA expects relative coordinates.
         (To see which, switch to default absolute=True and run tests).
 
-        Note: This method returns a modified _copy_ of the nodes slice if 
+        Note: This method returns a modified _copy_ of the nodes slice if
               absolute is True.  If absolute is False, just return the slice.
               This is related to the ensure_numeric() returning a copy problem.
         """
@@ -490,8 +492,8 @@ class General_mesh:
             if absolute is True and not self.geo_reference.is_absolute():
                 offset=num.array([self.geo_reference.get_xllcorner(),
                                   self.geo_reference.get_yllcorner()], num.float)
-                                  
-                return V[i3:i3+3,:] + offset                                  
+
+                return V[i3:i3+3,:] + offset
             else:
                 return V[i3:i3+3,:]
 
@@ -557,7 +559,7 @@ class General_mesh:
         """
 
         E = self.edge_midpoint_coordinates
-        
+
         if triangle_id is None:
             if absolute is True:
                 if not self.geo_reference.is_absolute():
@@ -574,7 +576,7 @@ class General_mesh:
                 offset=num.array([self.geo_reference.get_xllcorner(),
                                   self.geo_reference.get_yllcorner()], num.float)
 
-                return E[i3:i3+3,:] + offset                                  
+                return E[i3:i3+3,:] + offset
             else:
                 return E[i3:i3+3,:]
 
@@ -590,7 +592,7 @@ class General_mesh:
         E = self.get_edge_midpoint_coordinates(triangle_id=i, absolute=absolute)
         return E[j,:] # Return (x, y) for edge mid point
 
-    
+
     def compute_edge_midpoint_coordinates(self):
         """Return all edge midpoint coordinates for all triangles as a 3*M x 2 array
         where the jth edge midpoint of the ith triangle is located in row 3*i+j.
@@ -610,7 +612,7 @@ class General_mesh:
         V1 = V[1:3*M:3, :]
         V2 = V[2:3*M:3, :]
 
-        
+
         #print V.shape, V0.shape, V1.shape, V2.shape
 
         #print E.shape, E[0:3*M:3, :].shape, E[1:3*M:3, :].shape, E[2:3*M:3, :].shape
@@ -791,7 +793,14 @@ class General_mesh:
         number_of_triangles_per_node = num.bincount(self.triangles.flat).astype(num.int)
         number_of_lone_nodes = self.number_of_nodes - len(number_of_triangles_per_node)
 
-        #print number_of_lone_nodes
+
+        orphan_nodes = num.argwhere(number_of_triangles_per_node==0)
+        number_of_orphan_nodes = len(orphan_nodes)
+
+        if number_of_orphan_nodes > 0 and self.verbose:
+            msg = 'Node(s) %d not associated to a triangle.' % orphan_nodes[0]
+            print msg
+
         if number_of_lone_nodes > 0:
             number_of_triangles_per_node =  \
                num.append(number_of_triangles_per_node,num.zeros(number_of_lone_nodes,num.int))
@@ -802,7 +811,7 @@ class General_mesh:
         number_of_entries = num.sum(number_of_triangles_per_node)
 
         assert number_of_entries == 3*self.number_of_triangles
-        
+
         #vertex_value_indices = num.zeros(number_of_entries, num.int) #array default#
 
         # Array of vertex_indices (3*vol_id+vertex_id) sorted into contiguous
@@ -863,4 +872,3 @@ class General_mesh:
 
     def get_georeference(self):
         return self.geo_reference
-
