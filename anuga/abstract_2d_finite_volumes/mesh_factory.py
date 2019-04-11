@@ -150,6 +150,9 @@ def rectangular_cross(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     len1 = float(len1)
     len2 = float(len2)
 
+    m = int(m)
+    n = int(n)
+
     params = []
     params.append(m)
     params.append(n)
@@ -158,7 +161,8 @@ def rectangular_cross(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
 
     arrParams = num.array(params)
     arrOrigin = num.array(origin)
-    points = num.empty([(m+1)*(n+1)+m*n,2])
+    
+    points = num.empty([(m+1)*(n+1)+m*n,2], dtype=num.float)
     elements = num.empty([4*m*n,3], dtype=num.int)
 
     from mesh_factory_ext import rectangular_cross_construct
@@ -326,7 +330,7 @@ def rectangular_periodic(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)
     processor = 0
     numproc   = 1
 
-    
+
     n = n_g
     m_low  = -1
     m_high = m_g +1
@@ -414,7 +418,7 @@ def rectangular_periodic(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)
                     boundary[nt, 2] = 'right'
                 else:
                     boundary[nt, 2] = 'ghost'
-        
+
             if j == 0:
                 boundary[nt, 1] = 'bottom'
             elements[nt,:] = [i4,i3,i2]
@@ -447,7 +451,7 @@ def rectangular_periodic(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)
 
     Idfl = num.array(Idfl, num.int)
     Idgr = num.array(Idgr, num.int)
-    
+
     full_send_dict[processor]  = [Idfl, Idfl]
     ghost_recv_dict[processor] = [Idgr, Idgr]
 

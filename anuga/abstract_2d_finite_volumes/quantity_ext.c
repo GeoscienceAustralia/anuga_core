@@ -36,20 +36,20 @@ int _compute_gradients(keyint N,
 
   for (k=0; k<N; k++) {
     index3 = 3*k;
-    
+
     if (number_of_boundaries[k] < 2) {
       // Two or three true neighbours
-      
+
       // Get indices of neighbours (or self when used as surrogate)
       // k0, k1, k2 = surrogate_neighbours[k,:]
-      
+
       k0 = surrogate_neighbours[index3 + 0];
       k1 = surrogate_neighbours[index3 + 1];
       k2 = surrogate_neighbours[index3 + 2];
 
-      
+
       if (k0 == k1 || k1 == k2) return -1;
-      
+
       // Get data
       q0 = centroid_values[k0];
       q1 = centroid_values[k1];
@@ -72,19 +72,19 @@ int _compute_gradients(keyint N,
 	i++;
       }
       if (k0 == k) return -1;
-      
+
       k1 = k; //self
 
       // Get data
       q0 = centroid_values[k0];
       q1 = centroid_values[k1];
-      
+
       x0 = centroids[k0*2]; y0 = centroids[k0*2+1];
       x1 = centroids[k1*2]; y1 = centroids[k1*2+1];
-      
+
       // Two point gradient
       _gradient2(x0, y0, x1, y1, q0, q1, &a[k], &b[k]);
-      
+
     }
     //    else:
     //        #No true neighbours -
@@ -102,12 +102,12 @@ int _compute_local_gradients(keyint N,
 
   keyint k, k2, k3, k6;
   double x0, y0, x1, y1, x2, y2, v0, v1, v2;
-  
+
   for (k=0; k<N; k++) {
     k6 = 6*k;
     k3 = 3*k;
     k2 = 2*k;
-      
+
     // vertex coordinates
     // x0, y0, x1, y1, x2, y2 = X[k,:]
     x0 = vertex_coordinates[k6 + 0];
@@ -116,15 +116,15 @@ int _compute_local_gradients(keyint N,
     y1 = vertex_coordinates[k6 + 3];
     x2 = vertex_coordinates[k6 + 4];
     y2 = vertex_coordinates[k6 + 5];
-      
+
     v0 = vertex_values[k3+0];
     v1 = vertex_values[k3+1];
     v2 = vertex_values[k3+2];
-    
+
     // Gradient
     _gradient(x0, y0, x1, y1, x2, y2, v0, v1, v2, &a[k], &b[k]);
 
-    
+
     }
     return 0;
 }
@@ -140,15 +140,15 @@ int _extrapolate_from_gradient(keyint N,
 
   keyint k, k2, k3, k6;
   double x, y, x0, y0, x1, y1, x2, y2;
-  
+
   for (k=0; k<N; k++){
     k6 = 6*k;
     k3 = 3*k;
     k2 = 2*k;
-    
+
     // Centroid coordinates
     x = centroids[k2]; y = centroids[k2+1];
-    
+
     // vertex coordinates
     // x0, y0, x1, y1, x2, y2 = X[k,:]
     x0 = vertex_coordinates[k6 + 0];
@@ -157,17 +157,17 @@ int _extrapolate_from_gradient(keyint N,
     y1 = vertex_coordinates[k6 + 3];
     x2 = vertex_coordinates[k6 + 4];
     y2 = vertex_coordinates[k6 + 5];
-    
+
     // Extrapolate to Vertices
     vertex_values[k3+0] = centroid_values[k] + a[k]*(x0-x) + b[k]*(y0-y);
     vertex_values[k3+1] = centroid_values[k] + a[k]*(x1-x) + b[k]*(y1-y);
     vertex_values[k3+2] = centroid_values[k] + a[k]*(x2-x) + b[k]*(y2-y);
-    
+
     // Extrapolate to Edges (midpoints)
     edge_values[k3+0] = 0.5*(vertex_values[k3 + 1]+vertex_values[k3 + 2]);
     edge_values[k3+1] = 0.5*(vertex_values[k3 + 2]+vertex_values[k3 + 0]);
     edge_values[k3+2] = 0.5*(vertex_values[k3 + 0]+vertex_values[k3 + 1]);
-    
+
   }
   return 0;
 }
@@ -197,7 +197,7 @@ int _extrapolate_and_limit_from_gradient(keyint N,double beta,
     k2 = 2*k;
 
     // Centroid coordinates
-    x = centroids[k2+0]; 
+    x = centroids[k2+0];
     y = centroids[k2+1];
 
     // vertex coordinates
@@ -208,31 +208,31 @@ int _extrapolate_and_limit_from_gradient(keyint N,double beta,
     y1 = vertex_coordinates[k6 + 3];
     x2 = vertex_coordinates[k6 + 4];
     y2 = vertex_coordinates[k6 + 5];
-    
+
     // Extrapolate to Vertices
     vertex_values[k3+0] = centroid_values[k] + x_gradient[k]*(x0-x) + y_gradient[k]*(y0-y);
     vertex_values[k3+1] = centroid_values[k] + x_gradient[k]*(x1-x) + y_gradient[k]*(y1-y);
     vertex_values[k3+2] = centroid_values[k] + x_gradient[k]*(x2-x) + y_gradient[k]*(y2-y);
-    
+
     // Extrapolate to Edges (midpoints)
     edge_values[k3+0] = 0.5*(vertex_values[k3 + 1]+vertex_values[k3 + 2]);
     edge_values[k3+1] = 0.5*(vertex_values[k3 + 2]+vertex_values[k3 + 0]);
     edge_values[k3+2] = 0.5*(vertex_values[k3 + 0]+vertex_values[k3 + 1]);
   }
-  
-  
-  
+
+
+
   for (k=0; k<N; k++){
     k6 = 6*k;
     k3 = 3*k;
     k2 = 2*k;
-    
-    
+
+
     qc = centroid_values[k];
-    
+
     qmin = qc;
     qmax = qc;
-    
+
     for (i=0; i<3; i++) {
       n = neighbours[k3+i];
       if (n < 0) {
@@ -240,14 +240,14 @@ int _extrapolate_and_limit_from_gradient(keyint N,double beta,
       } else {
 	qn[i] = centroid_values[n];
       }
-      
+
       qmin = min(qmin, qn[i]);
       qmax = max(qmax, qn[i]);
     }
-    
+
     //qtmin = min(min(min(qn[0],qn[1]),qn[2]),qc);
     //qtmax = max(max(max(qn[0],qn[1]),qn[2]),qc);
-    
+
     /* 		for (i=0; i<3; i++) { */
     /* 		    n = neighbours[k3+i]; */
     /* 		    if (n < 0) { */
@@ -256,42 +256,42 @@ int _extrapolate_and_limit_from_gradient(keyint N,double beta,
     /* 			qmax[i] = qtmax; */
     /* 		    }  */
     /* 		} */
-    
+
     phi[k] = 1.0;
-    
+
     for (i=0; i<3; i++) {
       dq = edge_values[k3+i] - qc;      //Delta between edge and centroid values
       dqa[i] = dq;                      //Save dq for use in updating vertex values
-      
+
       r = 1.0;
-      
+
       if (dq > 0.0) r = (qmax - qc)/dq;
       if (dq < 0.0) r = (qmin - qc)/dq;
-      
+
       phi[k] = min( min(r*beta, 1.0), phi[k]);
-      
+
     }
-    
-    
-    
+
+
+
     //Update gradient, edge and vertex values using phi limiter
     x_gradient[k] = x_gradient[k]*phi[k];
     y_gradient[k] = y_gradient[k]*phi[k];
-    
+
     edge_values[k3+0] = qc + phi[k]*dqa[0];
     edge_values[k3+1] = qc + phi[k]*dqa[1];
     edge_values[k3+2] = qc + phi[k]*dqa[2];
-    
-    
+
+
     vertex_values[k3+0] = edge_values[k3+1] + edge_values[k3+2] - edge_values[k3+0];
     vertex_values[k3+1] = edge_values[k3+2] + edge_values[k3+0] - edge_values[k3+1];
     vertex_values[k3+2] = edge_values[k3+0] + edge_values[k3+1] - edge_values[k3+2];
-    
-    
+
+
   }
-  
+
   return 0;
-  
+
 }
 
 
@@ -304,60 +304,60 @@ int _limit_vertices_by_all_neighbours(keyint N, double beta,
 				      long*   neighbours,
 				      double* x_gradient,
 				      double* y_gradient) {
-  
-  
+
+
   keyint i, k, k2, k3, k6;
   keyint n;
   double qmin, qmax, qn, qc;
   double dq, dqa[3], phi, r;
-  
+
   for (k=0; k<N; k++){
     k6 = 6*k;
     k3 = 3*k;
     k2 = 2*k;
-    
+
     qc = centroid_values[k];
     qmin = qc;
     qmax = qc;
-    
+
     for (i=0; i<3; i++) {
       n = neighbours[k3+i];
       if (n >= 0) {
 	qn = centroid_values[n]; //Neighbour's centroid value
-	
+
 	qmin = min(qmin, qn);
 	qmax = max(qmax, qn);
       }
     }
-    
+
     phi = 1.0;
-    for (i=0; i<3; i++) {    
+    for (i=0; i<3; i++) {
       r = 1.0;
-      
+
       dq = vertex_values[k3+i] - qc;    //Delta between vertex and centroid values
       dqa[i] = dq;                      //Save dq for use in updating vertex values
-      
+
       if (dq > 0.0) r = (qmax - qc)/dq;
-      if (dq < 0.0) r = (qmin - qc)/dq;      
-      
-      
-      phi = min( min(r*beta, 1.0), phi);    
+      if (dq < 0.0) r = (qmin - qc)/dq;
+
+
+      phi = min( min(r*beta, 1.0), phi);
     }
-    
+
     //Update gradient, vertex and edge values using phi limiter
     x_gradient[k] = x_gradient[k]*phi;
     y_gradient[k] = y_gradient[k]*phi;
-    
+
     vertex_values[k3+0] = qc + phi*dqa[0];
     vertex_values[k3+1] = qc + phi*dqa[1];
     vertex_values[k3+2] = qc + phi*dqa[2];
-    
+
     edge_values[k3+0] = 0.5*(vertex_values[k3+1] + vertex_values[k3+2]);
     edge_values[k3+1] = 0.5*(vertex_values[k3+2] + vertex_values[k3+0]);
     edge_values[k3+2] = 0.5*(vertex_values[k3+0] + vertex_values[k3+1]);
-    
+
   }
-  
+
   return 0;
 }
 
@@ -376,26 +376,26 @@ int _limit_edges_by_all_neighbours(keyint N, double beta,
   keyint n;
   double qmin, qmax, qn, qc, sign;
   double dq, dqa[3], phi, r;
-  
+
   for (k=0; k<N; k++){
     k6 = 6*k;
     k3 = 3*k;
     k2 = 2*k;
-    
+
     qc = centroid_values[k];
     qmin = qc;
     qmax = qc;
-    
+
     for (i=0; i<3; i++) {
       n = neighbours[k3+i];
       if (n >= 0) {
 	qn = centroid_values[n]; //Neighbour's centroid value
-	
+
 	qmin = min(qmin, qn);
 	qmax = max(qmax, qn);
       }
     }
-    
+
     sign = 0.0;
     if (qmin > 0.0) {
       sign = 1.0;
@@ -404,48 +404,48 @@ int _limit_edges_by_all_neighbours(keyint N, double beta,
     }
 
     phi = 1.0;
-    for (i=0; i<3; i++) {  
+    for (i=0; i<3; i++) {
       dq = edge_values[k3+i] - qc;      //Delta between edge and centroid values
-      dqa[i] = dq;                      //Save dq for use in updating vertex values  
-      
+      dqa[i] = dq;                      //Save dq for use in updating vertex values
+
 
       // Just limit non boundary edges so that we can reconstruct a linear function
-      // FIXME Problem with stability on edges 
+      // FIXME Problem with stability on edges
       //if (neighbours[k3+i] >= 0) {
 	r = 1.0;
-      
+
 	if (dq > 0.0) r = (qmax - qc)/dq;
-	if (dq < 0.0) r = (qmin - qc)/dq;      
-            
+	if (dq < 0.0) r = (qmin - qc)/dq;
+
 	phi = min( min(r*beta, 1.0), phi);
 	//	}
 
       //
       /* if (neighbours[k3+i] < 0) { */
       /* 	r = 1.0; */
-      
+
       /* 	if (dq > 0.0 && (sign == -1.0 || sign == 0.0 )) r = (0.0 - qc)/dq; */
       /* 	if (dq < 0.0 && (sign ==  1.0 || sign == 0.0 )) r = (0.0 - qc)/dq; */
-            
+
       /* 	phi = min( min(r*beta, 1.0), phi); */
       /* 	} */
-    
+
     }
-    
+
     //Update gradient, vertex and edge values using phi limiter
     x_gradient[k] = x_gradient[k]*phi;
     y_gradient[k] = y_gradient[k]*phi;
-    
+
     edge_values[k3+0] = qc + phi*dqa[0];
     edge_values[k3+1] = qc + phi*dqa[1];
     edge_values[k3+2] = qc + phi*dqa[2];
-    
+
     vertex_values[k3+0] = edge_values[k3+1] + edge_values[k3+2] - edge_values[k3+0];
     vertex_values[k3+1] = edge_values[k3+2] + edge_values[k3+0] - edge_values[k3+1];
     vertex_values[k3+2] = edge_values[k3+0] + edge_values[k3+1] - edge_values[k3+2];
-    
+
   }
-  
+
   return 0;
 }
 
@@ -481,12 +481,12 @@ int _limit_edges_by_neighbour(keyint N, double beta,
 		    qmax = max(qc, qn);
 
 		    r = 1.0;
-      
+
 		    if (dq > 0.0) r = (qmax - qc)/dq;
-		    if (dq < 0.0) r = (qmin - qc)/dq;      
-		    
-		    phi = min( min(r*beta, 1.0), phi);    
-		   
+		    if (dq < 0.0) r = (qmin - qc)/dq;
+
+		    phi = min( min(r*beta, 1.0), phi);
+
 		}
 
 
@@ -494,7 +494,7 @@ int _limit_edges_by_neighbour(keyint N, double beta,
 		edge_values[k3+0] = qc + phi*dqa[0];
 		edge_values[k3+1] = qc + phi*dqa[1];
 		edge_values[k3+2] = qc + phi*dqa[2];
-		
+
 		vertex_values[k3+0] = edge_values[k3+1] + edge_values[k3+2] - edge_values[k3+0];
 		vertex_values[k3+1] = edge_values[k3+2] + edge_values[k3+0] - edge_values[k3+1];
 		vertex_values[k3+2] = edge_values[k3+0] + edge_values[k3+1] - edge_values[k3+2];
@@ -538,11 +538,11 @@ int _limit_gradient_by_neighbour(keyint N, double beta,
 			qmax = max(qc, qn);
 
 			r = 1.0;
-      
+
 			if (dq > 0.0) r = (qmax - qc)/dq;
-			if (dq < 0.0) r = (qmin - qc)/dq;      
-		    
-			phi = min( min(r*beta, 1.0), phi);    
+			if (dq < 0.0) r = (qmin - qc)/dq;
+
+			phi = min( min(r*beta, 1.0), phi);
 		    }
 		}
 
@@ -551,7 +551,7 @@ int _limit_gradient_by_neighbour(keyint N, double beta,
 		edge_values[k3+0] = qc + phi*dqa[0];
 		edge_values[k3+1] = qc + phi*dqa[1];
 		edge_values[k3+2] = qc + phi*dqa[2];
-		
+
 		vertex_values[k3+0] = edge_values[k3+1] + edge_values[k3+2] - edge_values[k3+0];
 		vertex_values[k3+1] = edge_values[k3+2] + edge_values[k3+0] - edge_values[k3+1];
 		vertex_values[k3+2] = edge_values[k3+0] + edge_values[k3+1] - edge_values[k3+2];
@@ -582,18 +582,18 @@ int _bound_vertices_below_by_constant(keyint N, double bound,
 
 
 		phi = 1.0;
-		for (i=0; i<3; i++) {    
+		for (i=0; i<3; i++) {
 		    r = 1.0;
-      
+
 		    dq = vertex_values[k3+i] - qc;    //Delta between vertex and centroid values
 		    dqa[i] = dq;                      //Save dq for use in updating vertex values
-      
-		    if (dq < 0.0) r = (qmin - qc)/dq;      
-  
-		    
-		    phi = min( min(r, 1.0), phi);    
+
+		    if (dq < 0.0) r = (qmin - qc)/dq;
+
+
+		    phi = min( min(r, 1.0), phi);
 		}
-    
+
 
 		//Update gradient, vertex and edge values using phi limiter
 		x_gradient[k] = x_gradient[k]*phi;
@@ -602,7 +602,7 @@ int _bound_vertices_below_by_constant(keyint N, double bound,
 		vertex_values[k3+0] = qc + phi*dqa[0];
 		vertex_values[k3+1] = qc + phi*dqa[1];
 		vertex_values[k3+2] = qc + phi*dqa[2];
-		
+
 		edge_values[k3+0] = 0.5*(vertex_values[k3+1] + vertex_values[k3+2]);
 		edge_values[k3+1] = 0.5*(vertex_values[k3+2] + vertex_values[k3+0]);
 		edge_values[k3+2] = 0.5*(vertex_values[k3+0] + vertex_values[k3+1]);
@@ -632,19 +632,19 @@ int _bound_vertices_below_by_quantity(keyint N,
 		qc = centroid_values[k];
 
 		phi = 1.0;
-		for (i=0; i<3; i++) {    
+		for (i=0; i<3; i++) {
 		    r = 1.0;
-      
+
 		    dq = vertex_values[k3+i] - qc;    //Delta between vertex and centroid values
 		    dqa[i] = dq;                      //Save dq for use in updating vertex values
-      
+
 		    qmin = bound_vertex_values[k3+i];
-		    if (dq < 0.0) r = (qmin - qc)/dq;      
-  
-		    
-		    phi = min( min(r, 1.0), phi);    
+		    if (dq < 0.0) r = (qmin - qc)/dq;
+
+
+		    phi = min( min(r, 1.0), phi);
 		}
-    
+
 
 		//Update gradient, vertex and edge values using phi limiter
 		x_gradient[k] = x_gradient[k]*phi;
@@ -653,7 +653,7 @@ int _bound_vertices_below_by_quantity(keyint N,
 		vertex_values[k3+0] = qc + phi*dqa[0];
 		vertex_values[k3+1] = qc + phi*dqa[1];
 		vertex_values[k3+2] = qc + phi*dqa[2];
-		
+
 		edge_values[k3+0] = 0.5*(vertex_values[k3+1] + vertex_values[k3+2]);
 		edge_values[k3+1] = 0.5*(vertex_values[k3+2] + vertex_values[k3+0]);
 		edge_values[k3+2] = 0.5*(vertex_values[k3+0] + vertex_values[k3+1]);
@@ -824,41 +824,49 @@ int _update(keyint N,
 int _average_vertex_values(keyint N,
 			   long* vertex_value_indices,
 			   long* number_of_triangles_per_node,
-			   double* vertex_values, 
+			   double* vertex_values,
 			   double* A) {
   // Average vertex values to obtain one value per node
 
-  keyint i, index; 
+  keyint i, index;
   keyint k = 0; //Track triangles touching each node
   keyint current_node = 0;
   double total = 0.0;
 
   for (i=0; i<N; i++) {
-  
+
     // if (current_node == N) {
-    //   printf("Current node exceeding number of nodes (%d)", N);    
+    //   printf("Current node exceeding number of nodes (%d)", N);
     //   return 1;
     // }
-    
-    index = vertex_value_indices[i];
-    k += 1;
-            
-    // volume_id = index / 3
-    // vertex_id = index % 3
-    // total += self.vertex_values[volume_id, vertex_id]
-    total += vertex_values[index];
-      
-    // printf("current_node=%d, index=%d, k=%d, total=%f\n", current_node, index, k, total);
-    if (number_of_triangles_per_node[current_node] == k) {
-      A[current_node] = total/k;
-                
-      // Move on to next node
-      total = 0.0;
-      k = 0;
-      current_node += 1;
-    }
+
+		if (number_of_triangles_per_node[current_node] == 0) {
+			  // Jump over orphaned node
+				total = 0.0;
+				k = 0;
+				current_node += 1;
+			}
+		else {
+	    index = vertex_value_indices[i];
+	    k += 1;
+
+	    // volume_id = index / 3
+	    // vertex_id = index % 3
+	    // total += self.vertex_values[volume_id, vertex_id]
+	    total += vertex_values[index];
+
+	    // printf("current_node=%d, index=%d, k=%d, total=%f\n", current_node, index, k, total);
+	    if (number_of_triangles_per_node[current_node] == k) {
+	      A[current_node] = total/k;
+
+	      // Move on to next node
+	      total = 0.0;
+	      k = 0;
+	      current_node += 1;
+	    }
+		}
   }
-			   
+
   return 0;
 }
 
@@ -877,27 +885,30 @@ int _average_centroid_values(keyint N,
 
   for (i=0; i<N; i++) {
 
-    // if (current_node == N) {
-    //   printf("Current node exceeding number of nodes (%d)", N);
-    //   return 1;
-    // }
+		if (number_of_triangles_per_node[current_node] == 0) {
+			  // Jump over orphaned node
+				total = 0.0;
+				k = 0;
+				current_node += 1;
+			}
+		else {
+	    index = vertex_value_indices[i];
+	    k += 1;
 
-    index = vertex_value_indices[i];
-    k += 1;
+	    volume_id = index / 3;
+	    // vertex_id = index % 3;
+	    // total += self.vertex_values[volume_id, vertex_id];
+	    total += centroid_values[volume_id];
 
-    volume_id = index / 3;
-    // vertex_id = index % 3;
-    // total += self.vertex_values[volume_id, vertex_id];
-    total += centroid_values[volume_id];
+	    // printf("current_node=%d, index=%d, k=%d, total=%f\n", current_node, index, k, total);
+	    if (number_of_triangles_per_node[current_node] == k) {
+	      A[current_node] = total/k;
 
-    // printf("current_node=%d, index=%d, k=%d, total=%f\n", current_node, index, k, total);
-    if (number_of_triangles_per_node[current_node] == k) {
-      A[current_node] = total/k;
-
-      // Move on to next node
-      total = 0.0;
-      k = 0;
-      current_node += 1;
+	      // Move on to next node
+	      total = 0.0;
+	      k = 0;
+	      current_node += 1;
+			}
     }
   }
 
@@ -920,24 +931,24 @@ int _set_vertex_values_c(keyint num_verts,
   keyint i,j,num_triangles,u_vert_id,vert_v_index;
 
   for(i=0;i<num_verts;i++){
-  
+
     u_vert_id=vertices[i];
     num_triangles = number_of_triangles_per_node[u_vert_id];
-  
+
     for(j=0;j<num_triangles;j++){
-  
+
       vert_v_index = vertex_value_indices[node_index[u_vert_id]+j];
       vertex_values[vert_v_index]=A[i];
     }
 
-  } 
+  }
 
   return 0;
 
 }
 
 //-----------------------------------------------------
-// Python method Wrappers 
+// Python method Wrappers
 //-----------------------------------------------------
 
 PyObject *update(PyObject *self, PyObject *args) {
@@ -986,7 +997,7 @@ PyObject *update(PyObject *self, PyObject *args) {
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "Od", &quantity, &timestep)) {
-	  PyErr_SetString(PyExc_RuntimeError, 
+	  PyErr_SetString(PyExc_RuntimeError,
 			  "quantity_ext.c: update could not parse input");
 	  return NULL;
 	}
@@ -1029,7 +1040,7 @@ PyObject *backup_centroid_values(PyObject *self, PyObject *args) {
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "O", &quantity)) {
-	  PyErr_SetString(PyExc_RuntimeError, 
+	  PyErr_SetString(PyExc_RuntimeError,
 			  "quantity_ext.c: backup_centroid_values could not parse input");
 	  return NULL;
 	}
@@ -1063,7 +1074,7 @@ PyObject *saxpy_centroid_values(PyObject *self, PyObject *args) {
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "Odd", &quantity, &a, &b)) {
-	  PyErr_SetString(PyExc_RuntimeError, 
+	  PyErr_SetString(PyExc_RuntimeError,
 			  "quantity_ext.c: saxpy_centroid_values could not parse input");
 	  return NULL;
 	}
@@ -1098,21 +1109,21 @@ PyObject *set_vertex_values_c(PyObject *self, PyObject *args) {
 
   // Convert Python arguments to C
   if (!PyArg_ParseTuple(args, "OOO", &quantity, &vertices, &A)) {
-    PyErr_SetString(PyExc_RuntimeError, 
+    PyErr_SetString(PyExc_RuntimeError,
         "quantity_ext.c: set_vertex_values_c could not parse input");
     return NULL;
   }
 
   domain = PyObject_GetAttrString(quantity, "domain");
   if (!domain) {
-    PyErr_SetString(PyExc_RuntimeError, 
+    PyErr_SetString(PyExc_RuntimeError,
         "quantity_ext.c: set_vertex_values_c could not obtain domain object from quantity");
     return NULL;
   }
 
   mesh = PyObject_GetAttrString(domain, "mesh");
   if (!mesh) {
-    PyErr_SetString(PyExc_RuntimeError, 
+    PyErr_SetString(PyExc_RuntimeError,
         "quantity_ext.c: set_vertex_values_c could not obtain mesh object from domain");
     return NULL;
   }
@@ -1129,7 +1140,7 @@ PyObject *set_vertex_values_c(PyObject *self, PyObject *args) {
   //N = centroid_values -> dimensions[0];
 
   num_verts = vertices->dimensions[0];
-  
+
   err = _set_vertex_values_c(num_verts,
                           (long*) vertices->data,
                           (long*) node_index->data,
@@ -1195,8 +1206,8 @@ PyObject *interpolate(PyObject *self, PyObject *args) {
 PyObject *interpolate_from_vertices_to_edges(PyObject *self, PyObject *args) {
         //
         //Compute edge values from vertex values using linear interpolation
-        // 
-	
+        //
+
 	PyObject *quantity;
 	PyArrayObject *vertex_values, *edge_values;
 
@@ -1204,11 +1215,11 @@ PyObject *interpolate_from_vertices_to_edges(PyObject *self, PyObject *args) {
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "O", &quantity)) {
-	  PyErr_SetString(PyExc_RuntimeError, 
+	  PyErr_SetString(PyExc_RuntimeError,
 			  "quantity_ext.c: interpolate_from_vertices_to_edges could not parse input");
 	  return NULL;
 	}
-	
+
 	vertex_values = get_consecutive_array(quantity, "vertex_values");
 	edge_values = get_consecutive_array(quantity, "edge_values");
 
@@ -1219,7 +1230,7 @@ PyObject *interpolate_from_vertices_to_edges(PyObject *self, PyObject *args) {
 			   (double*) edge_values -> data);
 
 	if (err != 0) {
-	  PyErr_SetString(PyExc_RuntimeError, 
+	  PyErr_SetString(PyExc_RuntimeError,
 			  "Interpolate could not be computed");
 	  return NULL;
 	}
@@ -1235,8 +1246,8 @@ PyObject *interpolate_from_vertices_to_edges(PyObject *self, PyObject *args) {
 PyObject *interpolate_from_edges_to_vertices(PyObject *self, PyObject *args) {
         //
         //Compute vertex values from edge values using linear interpolation
-        // 
-	
+        //
+
 	PyObject *quantity;
 	PyArrayObject *vertex_values, *edge_values;
 
@@ -1244,11 +1255,11 @@ PyObject *interpolate_from_edges_to_vertices(PyObject *self, PyObject *args) {
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "O", &quantity)) {
-	  PyErr_SetString(PyExc_RuntimeError, 
+	  PyErr_SetString(PyExc_RuntimeError,
 			  "quantity_ext.c: interpolate_from_edges_to_vertices could not parse input");
 	  return NULL;
 	}
-	
+
 	vertex_values = get_consecutive_array(quantity, "vertex_values");
 	edge_values = get_consecutive_array(quantity, "edge_values");
 
@@ -1259,7 +1270,7 @@ PyObject *interpolate_from_edges_to_vertices(PyObject *self, PyObject *args) {
 			   (double*) edge_values -> data);
 
 	if (err != 0) {
-	  PyErr_SetString(PyExc_RuntimeError, 
+	  PyErr_SetString(PyExc_RuntimeError,
 			  "Interpolate could not be computed");
 	  return NULL;
 	}
@@ -1274,26 +1285,26 @@ PyObject *interpolate_from_edges_to_vertices(PyObject *self, PyObject *args) {
 
 PyObject *average_vertex_values(PyObject *self, PyObject *args) {
 
-	PyArrayObject 
-	  *vertex_value_indices, 
+	PyArrayObject
+	  *vertex_value_indices,
 	  *number_of_triangles_per_node,
 	  *vertex_values,
 	  *A;
-	
+
 
 	keyint N;int err;
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "OOOO",
-			      &vertex_value_indices, 
+			      &vertex_value_indices,
 			      &number_of_triangles_per_node,
-			      &vertex_values, 
+			      &vertex_values,
 			      &A)) {
-	  PyErr_SetString(PyExc_RuntimeError, 
+	  PyErr_SetString(PyExc_RuntimeError,
 			  "quantity_ext.c: average_vertex_values could not parse input");
 	  return NULL;
 	}
-	
+
 	// check that numpy array objects arrays are C contiguous memory
 	CHECK_C_CONTIG(vertex_value_indices);
 	CHECK_C_CONTIG(number_of_triangles_per_node);
@@ -1305,12 +1316,12 @@ PyObject *average_vertex_values(PyObject *self, PyObject *args) {
 	err = _average_vertex_values(N,
 				     (long*) vertex_value_indices -> data,
 				     (long*) number_of_triangles_per_node -> data,
-				     (double*) vertex_values -> data, 
+				     (double*) vertex_values -> data,
 				     (double*) A -> data);
 
 	//printf("Error %d", err);
 	if (err != 0) {
-	  PyErr_SetString(PyExc_RuntimeError, 
+	  PyErr_SetString(PyExc_RuntimeError,
 			  "average_vertex_values could not be computed");
 	  return NULL;
 	}
@@ -1387,15 +1398,15 @@ PyObject *extrapolate_from_gradient(PyObject *self, PyObject *args) {
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "O", &quantity)) {
-	  PyErr_SetString(PyExc_RuntimeError, 
-			  "extrapolate_gradient could not parse input");	
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "extrapolate_gradient could not parse input");
 	  return NULL;
 	}
 
 	domain = PyObject_GetAttrString(quantity, "domain");
 	if (!domain) {
-	  PyErr_SetString(PyExc_RuntimeError, 
-			  "extrapolate_gradient could not obtain domain object from quantity");	
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "extrapolate_gradient could not obtain domain object from quantity");
 	  return NULL;
 	}
 
@@ -1465,15 +1476,15 @@ PyObject *compute_local_gradients(PyObject *self, PyObject *args) {
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "O", &quantity)) {
-	  PyErr_SetString(PyExc_RuntimeError, 
-			  "compute_local_gradient could not parse input");	
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "compute_local_gradient could not parse input");
 	  return NULL;
 	}
 
 	domain = PyObject_GetAttrString(quantity, "domain");
 	if (!domain) {
-	  PyErr_SetString(PyExc_RuntimeError, 
-			  "compute_local_gradient could not obtain domain object from quantity");	
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "compute_local_gradient could not obtain domain object from quantity");
 	  return NULL;
 	}
 
@@ -1514,15 +1525,15 @@ PyObject *compute_local_gradients(PyObject *self, PyObject *args) {
 
 
 PyObject *extrapolate_second_order_and_limit_by_edge(PyObject *self, PyObject *args) {
-    /* Compute edge values using second order approximation and limit values 
+    /* Compute edge values using second order approximation and limit values
        so that edge values are limited by the two corresponding centroid values
-       
+
        Python Call:
        extrapolate_second_order_and_limit(domain,quantity,beta)
     */
 
     PyObject *quantity, *domain;
-	
+
     PyArrayObject
 	*domain_centroids,              //Coordinates at centroids
 	*domain_vertex_coordinates,     //Coordinates at vertices
@@ -1530,34 +1541,34 @@ PyObject *extrapolate_second_order_and_limit_by_edge(PyObject *self, PyObject *a
 	*domain_surrogate_neighbours,   //True neighbours or - if one missing - self
 	*domain_neighbours,             //True neighbours, or if negative a link to boundary
 
-	*quantity_centroid_values,      //Values at centroids	
+	*quantity_centroid_values,      //Values at centroids
 	*quantity_vertex_values,        //Values at vertices
 	*quantity_edge_values,          //Values at edges
 	*quantity_phi,                  //limiter phi values
 	*quantity_x_gradient,           //x gradient
 	*quantity_y_gradient;           //y gradient
-    
+
 
   // Local variables
   keyint ntri;
   double beta;
   int err;
-    
+
   // Convert Python arguments to C
   if (!PyArg_ParseTuple(args, "O",&quantity)) {
-      PyErr_SetString(PyExc_RuntimeError, 
-		      "quantity_ext.c: extrapolate_second_order_and_limit_by_edge could not parse input");	
+      PyErr_SetString(PyExc_RuntimeError,
+		      "quantity_ext.c: extrapolate_second_order_and_limit_by_edge could not parse input");
       return NULL;
   }
 
   domain = PyObject_GetAttrString(quantity, "domain");
   if (!domain) {
-      PyErr_SetString(PyExc_RuntimeError, 
-		      "quantity_ext.c: extrapolate_second_order_and_limit_by_edge could not obtain domain object from quantity");	
+      PyErr_SetString(PyExc_RuntimeError,
+		      "quantity_ext.c: extrapolate_second_order_and_limit_by_edge could not obtain domain object from quantity");
       return NULL;
   }
 
-	
+
   // Get pertinent variables
   domain_centroids              = get_consecutive_array(domain,   "centroid_coordinates");
   domain_surrogate_neighbours   = get_consecutive_array(domain,   "surrogate_neighbours");
@@ -1591,7 +1602,7 @@ PyObject *extrapolate_second_order_and_limit_by_edge(PyObject *self, PyObject *a
   }
 
 
-  err = _extrapolate_from_gradient(ntri, 
+  err = _extrapolate_from_gradient(ntri,
 				   (double*) domain_centroids -> data,
 				   (double*) quantity_centroid_values -> data,
 				   (double*) domain_vertex_coordinates -> data,
@@ -1641,15 +1652,15 @@ PyObject *extrapolate_second_order_and_limit_by_edge(PyObject *self, PyObject *a
 
 
 PyObject *extrapolate_second_order_and_limit_by_vertex(PyObject *self, PyObject *args) {
-    /* Compute edge values using second order approximation and limit values 
+    /* Compute edge values using second order approximation and limit values
        so that edge values are limited by the two corresponding centroid values
-       
+
        Python Call:
        extrapolate_second_order_and_limit(domain,quantity,beta)
     */
 
     PyObject *quantity, *domain;
-	
+
     PyArrayObject
 	*domain_centroids,              //Coordinates at centroids
 	*domain_vertex_coordinates,     //Coordinates at vertices
@@ -1657,34 +1668,34 @@ PyObject *extrapolate_second_order_and_limit_by_vertex(PyObject *self, PyObject 
 	*domain_surrogate_neighbours,   //True neighbours or - if one missing - self
 	*domain_neighbours,             //True neighbours, or if negative a link to boundary
 
-	*quantity_centroid_values,      //Values at centroids	
+	*quantity_centroid_values,      //Values at centroids
 	*quantity_vertex_values,        //Values at vertices
 	*quantity_edge_values,          //Values at edges
 	*quantity_phi,                  //limiter phi values
 	*quantity_x_gradient,           //x gradient
 	*quantity_y_gradient;           //y gradient
-    
+
 
   // Local variables
   keyint ntri;
   double beta;
   int err;
-    
+
   // Convert Python arguments to C
   if (!PyArg_ParseTuple(args, "O",&quantity)) {
-      PyErr_SetString(PyExc_RuntimeError, 
-		      "quantity_ext.c: extrapolate_second_order_and_limit could not parse input");	
+      PyErr_SetString(PyExc_RuntimeError,
+		      "quantity_ext.c: extrapolate_second_order_and_limit could not parse input");
       return NULL;
   }
 
   domain = PyObject_GetAttrString(quantity, "domain");
   if (!domain) {
-      PyErr_SetString(PyExc_RuntimeError, 
-		      "quantity_ext.c: extrapolate_second_order_and_limit could not obtain domain object from quantity");	
+      PyErr_SetString(PyExc_RuntimeError,
+		      "quantity_ext.c: extrapolate_second_order_and_limit could not obtain domain object from quantity");
       return NULL;
   }
 
-	
+
   // Get pertinent variables
   domain_centroids              = get_consecutive_array(domain,   "centroid_coordinates");
   domain_surrogate_neighbours   = get_consecutive_array(domain,   "surrogate_neighbours");
@@ -1718,7 +1729,7 @@ PyObject *extrapolate_second_order_and_limit_by_vertex(PyObject *self, PyObject 
   }
 
 
-  err = _extrapolate_from_gradient(ntri, 
+  err = _extrapolate_from_gradient(ntri,
 				   (double*) domain_centroids -> data,
 				   (double*) quantity_centroid_values -> data,
 				   (double*) domain_vertex_coordinates -> data,
@@ -1788,15 +1799,15 @@ PyObject *compute_gradients(PyObject *self, PyObject *args) {
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "O", &quantity)) {
-	  PyErr_SetString(PyExc_RuntimeError, 
-			  "compute_gradients could not parse input");	
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "compute_gradients could not parse input");
 	  return NULL;
 	}
 
 	domain = PyObject_GetAttrString(quantity, "domain");
 	if (!domain) {
-	  PyErr_SetString(PyExc_RuntimeError, 
-			  "compute_gradients could not obtain domain object from quantity");	
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "compute_gradients could not obtain domain object from quantity");
 	  return NULL;
 	}
 
@@ -1873,16 +1884,16 @@ PyObject *limit_old(PyObject *self, PyObject *args) {
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "O", &quantity)) {
-	  PyErr_SetString(PyExc_RuntimeError, 
+	  PyErr_SetString(PyExc_RuntimeError,
 			  "quantity_ext.c: limit_old could not parse input");
 	  return NULL;
 	}
 
 	domain = PyObject_GetAttrString(quantity, "domain");
 	if (!domain) {
-	  PyErr_SetString(PyExc_RuntimeError, 
-			  "quantity_ext.c: limit_old could not obtain domain object from quantity");		  	
-	  
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "quantity_ext.c: limit_old could not obtain domain object from quantity");
+
 	  return NULL;
 	}
 
@@ -1892,11 +1903,11 @@ PyObject *limit_old(PyObject *self, PyObject *args) {
 	// Get safety factor beta_w
 	Tmp = PyObject_GetAttrString(domain, "beta_w");
 	if (!Tmp) {
-	  PyErr_SetString(PyExc_RuntimeError, 
-			  "quantity_ext.c: limit_old could not obtain beta_w object from domain");		  	
-	  
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "quantity_ext.c: limit_old could not obtain beta_w object from domain");
+
 	  return NULL;
-	}	
+	}
 
 	beta_w = PyFloat_AsDouble(Tmp);
 
@@ -1969,27 +1980,27 @@ PyObject *limit_vertices_by_all_neighbours(PyObject *self, PyObject *args) {
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "O", &quantity)) {
-	  PyErr_SetString(PyExc_RuntimeError, 
+	  PyErr_SetString(PyExc_RuntimeError,
 			  "quantity_ext.c: limit_by_vertex could not parse input");
 	  return NULL;
 	}
 
 	domain = PyObject_GetAttrString(quantity, "domain");
 	if (!domain) {
-	  PyErr_SetString(PyExc_RuntimeError, 
-			  "quantity_ext.c: limit_by_vertex could not obtain domain object from quantity");		  	
-	  
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "quantity_ext.c: limit_by_vertex could not obtain domain object from quantity");
+
 	  return NULL;
 	}
 
 	// Get safety factor beta_w
 	Tmp = PyObject_GetAttrString(domain, "beta_w");
 	if (!Tmp) {
-	  PyErr_SetString(PyExc_RuntimeError, 
-			  "quantity_ext.c: limit_by_vertex could not obtain beta_w object from domain");		  	
-	  
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "quantity_ext.c: limit_by_vertex could not obtain beta_w object from domain");
+
 	  return NULL;
-	}	
+	}
 
 
 	// Get pertinent variables
@@ -2014,12 +2025,12 @@ PyObject *limit_vertices_by_all_neighbours(PyObject *self, PyObject *args) {
 						(double*) y_gradient -> data);
 
 
-	
+
 	if (err != 0) {
 	  PyErr_SetString(PyExc_RuntimeError,
 			  "Internal function _limit_by_vertex failed");
 	  return NULL;
-	}	
+	}
 
 
 	// Release
@@ -2065,7 +2076,7 @@ PyObject *limit_edges_by_all_neighbours(PyObject *self, PyObject *args) {
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "O", &quantity)) {
-	  PyErr_SetString(PyExc_RuntimeError, 
+	  PyErr_SetString(PyExc_RuntimeError,
 			  "quantity_ext.c: limit_edges_by_all_neighbours could not parse input");
 	  return NULL;
 	}
@@ -2098,7 +2109,7 @@ PyObject *limit_edges_by_all_neighbours(PyObject *self, PyObject *args) {
 	  PyErr_SetString(PyExc_RuntimeError,
 			  "quantity_ect.c: limit_edges_by_all_neighbours internal function _limit_edges_by_all_neighbours failed");
 	  return NULL;
-	}	
+	}
 
 
 	// Release
@@ -2136,7 +2147,7 @@ PyObject *bound_vertices_below_by_constant(PyObject *self, PyObject *args) {
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "Od", &quantity, &bound)) {
-	  PyErr_SetString(PyExc_RuntimeError, 
+	  PyErr_SetString(PyExc_RuntimeError,
 			  "quantity_ext.c: bound_vertices_below_by_constant could not parse input");
 	  return NULL;
 	}
@@ -2166,7 +2177,7 @@ PyObject *bound_vertices_below_by_constant(PyObject *self, PyObject *args) {
 	  PyErr_SetString(PyExc_RuntimeError,
 			  "quantity_ect.c: bound_vertices_below_by_constant internal function _bound_vertices_below_by_constant failed");
 	  return NULL;
-	}	
+	}
 
 
 	// Release
@@ -2204,7 +2215,7 @@ PyObject *bound_vertices_below_by_quantity(PyObject *self, PyObject *args) {
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "OO", &quantity, &bounding_quantity)) {
-	  PyErr_SetString(PyExc_RuntimeError, 
+	  PyErr_SetString(PyExc_RuntimeError,
 			  "quantity_ext.c: bound_vertices_below_by_quantity could not parse input");
 	  return NULL;
 	}
@@ -2225,7 +2236,7 @@ PyObject *bound_vertices_below_by_quantity(PyObject *self, PyObject *args) {
 
 	N = centroid_values -> dimensions[0];
 
-	err = _bound_vertices_below_by_quantity(N, 
+	err = _bound_vertices_below_by_quantity(N,
 						(double*) bound_vertex_values -> data,
 						(double*) centroid_values -> data,
 						(double*) vertex_values -> data,
@@ -2237,7 +2248,7 @@ PyObject *bound_vertices_below_by_quantity(PyObject *self, PyObject *args) {
 	  PyErr_SetString(PyExc_RuntimeError,
 			  "quantity_ect.c: bound_vertices_below_by_quantity internal function _bound_vertices_below_by_quantity failed");
 	  return NULL;
-	}	
+	}
 
 
 	// Release
@@ -2280,27 +2291,27 @@ PyObject *limit_edges_by_neighbour(PyObject *self, PyObject *args) {
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "O", &quantity)) {
-	  PyErr_SetString(PyExc_RuntimeError, 
+	  PyErr_SetString(PyExc_RuntimeError,
 			  "quantity_ext.c: limit_edges_by_neighbour could not parse input");
 	  return NULL;
 	}
 
 	domain = PyObject_GetAttrString(quantity, "domain");
 	if (!domain) {
-	  PyErr_SetString(PyExc_RuntimeError, 
-			  "quantity_ext.c: limit_edges_by_neighbour could not obtain domain object from quantity");		  	
-	  
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "quantity_ext.c: limit_edges_by_neighbour could not obtain domain object from quantity");
+
 	  return NULL;
 	}
 
 	// Get safety factor beta_w
 	Tmp = PyObject_GetAttrString(domain, "beta_w");
 	if (!Tmp) {
-	  PyErr_SetString(PyExc_RuntimeError, 
-			  "quantity_ext.c: limit_by_vertex could not obtain beta_w object from domain");		  	
-	  
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "quantity_ext.c: limit_by_vertex could not obtain beta_w object from domain");
+
 	  return NULL;
-	}	
+	}
 
 
 	// Get pertinent variables
@@ -2318,12 +2329,12 @@ PyObject *limit_edges_by_neighbour(PyObject *self, PyObject *args) {
 					(double*) vertex_values -> data,
 					(double*) edge_values -> data,
 					(long*)   neighbours -> data);
-	
+
 	if (err != 0) {
 	  PyErr_SetString(PyExc_RuntimeError,
 			  "Internal function _limit_by_vertex failed");
 	  return NULL;
-	}	
+	}
 
 
 	// Release
@@ -2367,27 +2378,27 @@ PyObject *limit_gradient_by_neighbour(PyObject *self, PyObject *args) {
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "O", &quantity)) {
-	  PyErr_SetString(PyExc_RuntimeError, 
+	  PyErr_SetString(PyExc_RuntimeError,
 			  "quantity_ext.c: limit_gradient_by_neighbour could not parse input");
 	  return NULL;
 	}
 
 	domain = PyObject_GetAttrString(quantity, "domain");
 	if (!domain) {
-	  PyErr_SetString(PyExc_RuntimeError, 
-			  "quantity_ext.c: limit_gradient_by_neighbour could not obtain domain object from quantity");		  	
-	  
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "quantity_ext.c: limit_gradient_by_neighbour could not obtain domain object from quantity");
+
 	  return NULL;
 	}
 
 	// Get safety factor beta_w
 	Tmp = PyObject_GetAttrString(domain, "beta_w");
 	if (!Tmp) {
-	  PyErr_SetString(PyExc_RuntimeError, 
-			  "quantity_ext.c: limit_gradient_by_neighbour could not obtain beta_w object from domain");		  	
-	  
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "quantity_ext.c: limit_gradient_by_neighbour could not obtain beta_w object from domain");
+
 	  return NULL;
-	}	
+	}
 
 
 	// Get pertinent variables
@@ -2410,12 +2421,12 @@ PyObject *limit_gradient_by_neighbour(PyObject *self, PyObject *args) {
 					(double*) x_gradient -> data,
 					(double*) y_gradient -> data,
 					(long*)   neighbours -> data);
-	
+
 	if (err != 0) {
 	  PyErr_SetString(PyExc_RuntimeError,
 			  "Internal function _limit_gradient_by_neighbour failed");
 	  return NULL;
-	}	
+	}
 
 
 	// Release
@@ -2461,7 +2472,7 @@ static struct PyMethodDef MethodTable[] = {
 	{"interpolate", interpolate, METH_VARARGS, "Print out"},
 	{"average_vertex_values", average_vertex_values, METH_VARARGS, "Print out"},
 	{"average_centroid_values", average_centroid_values, METH_VARARGS, "Print out"},
-	{"set_vertex_values_c", set_vertex_values_c, METH_VARARGS, "Print out"},	
+	{"set_vertex_values_c", set_vertex_values_c, METH_VARARGS, "Print out"},
 {NULL, NULL, 0, NULL}   // sentinel
 };
 
