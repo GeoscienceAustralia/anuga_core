@@ -43,7 +43,8 @@ so it should be safe to use.
 
 Follow these instructions to 
 `Install ANUGA on Ubuntu
-<https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu>`_
+<https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu-(using-apt-get)`_
+
 
 
 
@@ -61,30 +62,10 @@ Both Anaconda_ and Miniconda_ do not require administrative rights
 to your computer and do not interfere with the Python installed 
 in your system.
 
+Follow these instructions to 
+`Install ANUGA on Ubuntu
+https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu-(using-Miniconda)`_
 
-Anaconda and Miniconda
-----------------------
-
-Once you have downloaded and installed Anaconda_ or Miniconda_
-open a terminal (or ``cmd.exe`` on Windows).
-
-With  Miniconda_, you can create 
-a specific environment for AnuGA, by running::
-
-    conda create -n anuga_env python=2.7
-    source activate anuga_env
-    
-    
-With either Anaconda_ or Miniconda_ you can now install the dependencies by running::
-
-    conda install pip nose numpy scipy matplotlib netcdf4
-    conda install -c pingucarsti gdal 
-    
-and setup GDAL_DATA environment variable::
-
-    export GDAL_DATA=`gdal-config --datadir` 
-    
-(You should add this command to your .bashrc file.)    
 
 
 Windows 10 Install using 'Ubuntu on Windows'
@@ -95,7 +76,6 @@ Starting from Windows 10, it is possible to run an Ubuntu Bash console from Wind
 Follow the instructions 
 `Install ANUGA on Window 10 using Ubuntu for Windows
 <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-10-using-'Ubuntu-on-Windows'>`_
-
 
 
 
