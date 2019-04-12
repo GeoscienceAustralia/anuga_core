@@ -41,9 +41,8 @@ We try to maintain the *master* branch stable and
 `passing all tests <https://travis-ci.org/GeoscienceAustralia/anuga_core/branches>`_,
 so it should be safe to use.
 
-Follow these instructions to 
-`Install ANUGA on Ubuntu
-<https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu-(using-apt-get)`_
+Follow these instructions to
+`Install ANUGA on Ubuntu <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu-(using-apt-get)>`_
 
 
 
@@ -63,8 +62,7 @@ to your computer and do not interfere with the Python installed
 in your system.
 
 Follow these instructions to 
-`Install ANUGA on Ubuntu
-https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu-(using-Miniconda)`_
+`Install ANUGA on Ubuntu <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu-(using-Miniconda)>`_
 
 
 
@@ -74,8 +72,7 @@ Windows 10 Install using 'Ubuntu on Windows'
 Starting from Windows 10, it is possible to run an Ubuntu Bash console from Windows. This can greatly simplify the install for Windows users. You'll still need administrator access though. 
 
 Follow the instructions 
-`Install ANUGA on Window 10 using Ubuntu for Windows
-<https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-10-using-'Ubuntu-on-Windows'>`_
+`Install ANUGA on Window 10 using Ubuntu for Windows <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-10-using-'Ubuntu-on-Windows'>`_
 
 
 
