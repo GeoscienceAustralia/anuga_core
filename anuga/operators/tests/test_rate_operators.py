@@ -83,7 +83,7 @@ class Test_rate_operators(unittest.TestCase):
 
         operator = Rate_operator(domain, rate=rate, factor=factor, \
                       indices=indices, default_rate = default_rate)
-        
+
         # Apply Operator
         domain.timestep = 2.0
         operator()
@@ -99,7 +99,16 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
         assert num.allclose(domain.fractional_step_volume_integral, factor*domain.timestep*(rate*domain.areas[indices]).sum())
 
- 
+
+        # test timestepping_statistics
+        stats = operator.timestepping_statistics()
+        import re
+        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        assert num.allclose (float(rr[1]), 1.0)
+        assert num.allclose (float(rr[2]), 60.0)
+
+
+
     def test_rate_operator_negative_rate(self):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
@@ -158,15 +167,22 @@ class Test_rate_operators(unittest.TestCase):
         #print domain.quantities['ymomentum'].centroid_values
         #print domain.fractional_step_volume_integral
         #print factor*domain.timestep*(rate*domain.areas[indices]).sum()
-        
+
         #increment = factor*domain.timestep*rate*domain.areas
-        
-        
+
+
 
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
         assert num.allclose(domain.fractional_step_volume_integral, step_integral)
+
+        # test timestepping_statistics
+        stats = operator.timestepping_statistics()
+        import re
+        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        assert num.allclose(float(rr[1]), -1.0)
+        assert num.allclose(float(rr[2]), -60.0)
 
     def test_rate_operator_negative_rate_full(self):
         from anuga.config import rho_a, rho_w, eta_w
@@ -231,7 +247,14 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
         assert num.allclose(domain.fractional_step_volume_integral, step_integral)
-        
+
+        # test timestepping_statistics
+        stats = operator.timestepping_statistics()
+        import re
+        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        assert num.allclose(float(rr[1]), -1.0)
+        assert num.allclose(float(rr[2]), -80.0)
+
     def test_rate_operator_rate_from_file(self):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
@@ -323,11 +346,11 @@ class Test_rate_operators(unittest.TestCase):
 
 
         rate = file_function(filename + '.tms', quantities=['Attribute1'])
-        
+
 
         # Make starttime of domain consistent with tms file starttime
         domain.set_starttime(rate.starttime)
-                    
+
         factor = 1000.0
         default_rate= 17.7
 
@@ -381,23 +404,28 @@ class Test_rate_operators(unittest.TestCase):
 
         tmp = numpy.zeros_like(domain.quantities['stage'].centroid_values)
         tmp[:] = domain.quantities['stage'].centroid_values
-        
+
         d0 = domain.fractional_step_volume_integral
-        
+
         domain.set_time(-10.0)
         domain.timestep = 1.0
-        
-        operator() 
-        
+
+        operator()
+
         d = default_rate*factor
         stage_ex2 = numpy.array([ d,  d,   0.,  d]) + numpy.array(stage_ex1)
-    
+
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex2)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
         assert num.allclose(domain.fractional_step_volume_integral, d0+(d*domain.areas[indices]).sum())
 
-
+        # test timestepping_statistics
+        stats = operator.timestepping_statistics()
+        import re
+        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        assert num.allclose(float(rr[1]), 17.7)
+        assert num.allclose(float(rr[2]), 106200.0)
 
     def test_rate_operator_functions_rate_default_rate(self):
         from anuga.config import rho_a, rho_w, eta_w
@@ -425,7 +453,7 @@ class Test_rate_operators(unittest.TestCase):
         domain.set_boundary({'exterior': Br})
 
         verbose = False
-        
+
         if verbose:
             print domain.quantities['elevation'].centroid_values
             print domain.quantities['stage'].centroid_values
@@ -487,6 +515,14 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+
+
+        # test timestepping_statistics
+        stats = operator.timestepping_statistics()
+        import re
+        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        assert num.allclose(float(rr[1]), 7.0)
+        assert num.allclose(float(rr[2]), 420.0)
 
 
     def test_rate_operator_functions_spatial(self):
@@ -570,6 +606,18 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
         assert num.allclose(Q_ex, Q)
 
+
+        # test timestepping_statistics
+        stats = operator.timestepping_statistics()
+        import re
+        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        assert num.allclose(float(rr[1]), 1.33333)
+        assert num.allclose(float(rr[2]), 3.33333)
+        assert num.allclose(float(rr[3]), 213.33333)
+
+#operator_5: Min rate = 1.33333 m/s, Max rate = 3.33333 m/s, Total Q = 213.333 m^3/s
+
+
     def test_rate_operator_functions_spatial_with_ghost(self):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
@@ -622,7 +670,7 @@ class Test_rate_operators(unittest.TestCase):
         operator = Rate_operator(domain, rate=main_spatial_rate, factor=factor, \
                       default_rate = default_rate)
 
-  
+
         # Apply Operator
         domain.timestep = 2.0
         operator()
@@ -656,6 +704,15 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(Q_ex_all, Q_all)
         assert num.allclose(Q_ex_full, Q_full)
         assert num.allclose(domain.fractional_step_volume_integral, ((d-1.)*domain.areas*domain.tri_full_flag).sum())
+
+        # test timestepping_statistics
+        stats = operator.timestepping_statistics()
+        import re
+        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+
+        assert num.allclose(float(rr[1]), 1.33333)
+        assert num.allclose(float(rr[2]), 3.33333)
+        assert num.allclose(float(rr[3]), 160.0)
 
     def test_rate_operator_functions_spatial_indices(self):
         from anuga.config import rho_a, rho_w, eta_w
@@ -737,6 +794,16 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.fractional_step_volume_integral, ((d-1.)*domain.areas[indices]).sum())
 
 
+        # test timestepping_statistics
+        stats = operator.timestepping_statistics()
+        import re
+        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+
+        assert num.allclose(float(rr[1]), 1.33333)
+        assert num.allclose(float(rr[2]), 3.33333)
+        assert num.allclose(float(rr[3]), 146.667)
+
+
     def test_rate_operator_rate_quantity(self):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
@@ -801,9 +868,9 @@ class Test_rate_operators(unittest.TestCase):
         #print Q
         stage_ex = num.array([ 1.0,  1.0,   1.0,  1.0])
         stage_ex[indices] = d
-        
+
         verbose = False
-        
+
         if verbose:
             print domain.quantities['elevation'].centroid_values
             print domain.quantities['stage'].centroid_values
@@ -816,6 +883,14 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(Q_ex, Q)
         assert num.allclose(domain.fractional_step_volume_integral, ((d-1.)*domain.areas[indices]).sum())
 
+        # test timestepping_statistics
+        stats = operator.timestepping_statistics()
+        import re
+        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+
+        assert num.allclose(float(rr[1]), 1.0)
+        assert num.allclose(float(rr[2]), 1.0)
+        assert num.allclose(float(rr[3]), 60.0)
 
     def test_rate_operator_functions_empty_indices(self):
         from anuga.config import rho_a, rho_w, eta_w
@@ -878,10 +953,10 @@ class Test_rate_operators(unittest.TestCase):
         Q_ex = num.sum(domain.areas[indices]*rate)
         d = operator.get_timestep()*rate + 1
 
-        #print Q_ex, Q
-        #print indices
-        #print "d"
-        #print d
+        # print Q_ex, Q
+        # print indices
+        # print "d"
+        # print d
         stage_ex = num.array([ 1.0,  1.0,   1.0,  1.0])
         stage_ex[indices] = d
 
@@ -896,6 +971,17 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
         assert num.allclose(Q_ex, Q)
         assert num.allclose(domain.fractional_step_volume_integral, ((d-1.)*domain.areas[indices]).sum())
+
+
+        # test timestepping_statistics
+        stats = operator.timestepping_statistics()
+        import re
+        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+
+        assert num.allclose(float(rr[1]), 0.0)
+        assert num.allclose(float(rr[2]), 0.0)
+        assert num.allclose(float(rr[3]), 0.0)
+
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_rate_operators, 'test')
