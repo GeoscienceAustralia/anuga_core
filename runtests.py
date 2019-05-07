@@ -284,7 +284,10 @@ def build_project(args):
             env['LDFLAGS'] = " ".join(cvars['LDSHARED'].split()[1:]) + ' --coverage'
         cmd += ["build"]
 
-    cmd += ['install', '--prefix=' + dst_dir]
+    if sys.platform == 'win32':
+        cmd += ['build','--compiler=mingw32','install', '--prefix=' + dst_dir,'--skip-build']
+    else:
+        cmd += ['install', '--prefix=' + dst_dir]
     
 #     local_site_packages_dir = os.path.join(dst_dir, 'lib','python2.7','site-packages')
 #     env['PYTHONPATH'] = local_site_packages_dir

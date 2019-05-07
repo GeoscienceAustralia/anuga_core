@@ -34,6 +34,7 @@ class Structure_operator(anuga.Operator):
                  z2=None,
                  blockage=None,
                  barrels=None,
+                 #culvert_slope=None,
                  apron=None,
                  manning=None,
                  enquiry_gap=None,
@@ -514,6 +515,8 @@ class Structure_operator(anuga.Operator):
             message += 'Culvert  Width: %s\n'% self.width
             message += 'Batter Slope 1: %s\n'% self.z1
             message += 'Batter Slope 2: %s\n'% self.z2
+            message += 'Culvert Blockage: %s\n'% self.blockage
+            message += 'No.  of  barrels: %s\n'% self.barrels
             
         message += '\n'
         
@@ -678,7 +681,7 @@ class Structure_operator(anuga.Operator):
     def get_culvert_barrels(self):
 		
         return self.barrels
-                
+                       
     def get_culvert_apron(self):
 
         return self.apron

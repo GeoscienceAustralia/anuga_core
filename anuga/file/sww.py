@@ -46,7 +46,7 @@ class Data_format:
         self.domain = domain
 
         # Probably should exclude ghosts in case this is a parallel domain
-        
+
         self.number_of_nodes   = domain.number_of_nodes
         self.number_of_volumes = domain.number_of_triangles
         #self.number_of_volumes = len(domain)
@@ -65,23 +65,23 @@ class SWW_file(Data_format):
     All data is assumed to reside at vertex locations.
     """
 
-    def __init__(self, domain, 
+    def __init__(self, domain,
                  mode=netcdf_mode_w, max_size=200000000000, recursion=False):
 
         self.precision = netcdf_float32 # Use single precision for quantities
         self.recursion = recursion
         self.mode = mode
-        
+
         if hasattr(domain, 'max_size'):
             self.max_size = domain.max_size # File size max is 2Gig
         else:
             self.max_size = max_size
-            
+
         if hasattr(domain, 'store_centroids'):
             self.store_centroids = domain.store_centroids
         else:
             self.store_centroids = False
-            
+
         if hasattr(domain, 'minimum_storable_height'):
             self.minimum_storable_height = domain.minimum_storable_height
         else:
@@ -95,35 +95,35 @@ class SWW_file(Data_format):
         dynamic_quantities = []
         static_c_quantities = []
         dynamic_c_quantities = []
-        
+
         for q in domain.quantities_to_be_stored:
             flag = domain.quantities_to_be_stored[q]
-        
+
             msg = 'Quantity %s is requested to be stored ' % q
             msg += 'but it does not exist in domain.quantities'
             assert q in domain.quantities, msg
-        
+
             assert flag in [1,2]
             if flag == 1:
                 static_quantities.append(q)
                 if self.store_centroids: static_c_quantities.append(q+'_c')
-                
+
             if flag == 2:
                 dynamic_quantities.append(q)
                 if self.store_centroids: dynamic_c_quantities.append(q+'_c')
-                       
-        
+
+
         # NetCDF file definition
         fid = NetCDFFile(self.filename, mode)
         if mode[0] == 'w':
             description = 'Output from anuga.file.sww ' \
                           'suitable for plotting'
-                          
+
             self.writer = Write_sww(static_quantities,
                                     dynamic_quantities,
                                     static_c_quantities,
                                     dynamic_c_quantities)
-            
+
             self.writer.store_header(fid,
                                      domain.starttime,
                                      self.number_of_volumes,
@@ -175,13 +175,13 @@ class SWW_file(Data_format):
         """Store information about nodes, triangles and static quantities
 
         Writes x,y coordinates of triangles and their connectivity.
-        
+
         Store also any quantity that has been identified as static.
         """
 
-        # FIXME: Change name to reflect the fact thta this function 
+        # FIXME: Change name to reflect the fact thta this function
         # stores both connectivity (triangulation) and static quantities
-        
+
 
         domain = self.domain
 
@@ -213,10 +213,10 @@ class SWW_file(Data_format):
         # Get names of static quantities
         static_quantities = {}
         static_quantities_centroid = {}
-        
+
         for name in self.writer.static_quantities:
             Q = domain.quantities[name]
-            A, _ = Q.get_vertex_values(xy=False, 
+            A, _ = Q.get_vertex_values(xy=False,
                                        precision=self.precision)
             static_quantities[name] = A
 
@@ -226,11 +226,11 @@ class SWW_file(Data_format):
         for name in self.writer.static_c_quantities:
             Q = domain.quantities[name[:-2]]  # rip off _c from name
             static_quantities_centroid[name] = Q.centroid_values
-        
-        # Store static quantities        
+
+        # Store static quantities
         self.writer.store_static_quantities(fid, **static_quantities)
-        self.writer.store_static_quantities_centroid(fid, **static_quantities_centroid) 
-                                        
+        self.writer.store_static_quantities_centroid(fid, **static_quantities_centroid)
+
         fid.close()
 
 
@@ -300,7 +300,7 @@ class SWW_file(Data_format):
             if not self.recursion:
                 log.critical('    file_size = %s' % file_size)
                 log.critical('    saving file to %s'
-                             % next_data_structure.filename) 
+                             % next_data_structure.filename)
 
             # Set up the new data_structure
             self.domain.writer = next_data_structure
@@ -321,10 +321,11 @@ class SWW_file(Data_format):
             # Get the variables
             time = fid.variables['time'][:]
             i = len(time)
-             
-            if 'stage' in self.writer.dynamic_quantities:            
-                # Select only those values for stage, 
-                # xmomentum and ymomentum (if stored) where 
+
+
+            if 'stage' in self.writer.dynamic_quantities:
+                # Select only those values for stage,
+                # xmomentum and ymomentum (if stored) where
                 # depth exceeds minimum_storable_height
                 #
                 # In this branch it is assumed that elevation
@@ -333,63 +334,63 @@ class SWW_file(Data_format):
 
                 # Smoothing for the get_vertex_values will be obtained
                 # from the smooth setting in domain
-            
+
                 Q = domain.quantities['stage']
                 w, _ = Q.get_vertex_values(xy=False)
-                
+
                 Q = domain.quantities['elevation']
-                z, _ = Q.get_vertex_values(xy=False)                
-                
+                z, _ = Q.get_vertex_values(xy=False)
+
                 storable_indices = num.array(w-z >= self.minimum_storable_height)
-                
+
                 #print numpy.sum(storable_indices), len(z), self.minimum_storable_height, numpy.min(w-z)
             else:
                 # Very unlikely branch
                 storable_indices = None # This means take all
-            
+
             # Now store dynamic quantities
             dynamic_quantities = {}
             dynamic_quantities_centroid = {}
-            
+
             for name in self.writer.dynamic_quantities:
                 #netcdf_array = fid.variables[name]
-                
+
                 Q = domain.quantities[name]
                 A, _ = Q.get_vertex_values(xy=False,
                                            precision=self.precision)
-                
+
                 if storable_indices is not None:
                     if name == 'stage':
                         A = num.choose(storable_indices, (z, A))
 
                     if name in ['xmomentum', 'ymomentum']:
-                        # Get xmomentum where depth exceeds 
+                        # Get xmomentum where depth exceeds
                         # minimum_storable_height
-                        
+
                         # Define a zero vector of same size and type as A
                         # for use with momenta
                         null = num.zeros(num.size(A), A.dtype.char)
                         A = num.choose(storable_indices, (null, A))
-                
+
                 dynamic_quantities[name] = A
-                
+
             for name in self.writer.dynamic_c_quantities:
                 Q = domain.quantities[name[:-2]]
                 dynamic_quantities_centroid[name] = Q.centroid_values
-                
-                                        
+
+
             # Store dynamic quantities
             slice_index = self.writer.store_quantities(fid,
                                          time=self.domain.time,
                                          sww_precision=self.precision,
                                          **dynamic_quantities)
-            
+
             # Store dynamic quantities
             if self.store_centroids:
                 self.writer.store_quantities_centroid(fid,
                                                       slice_index= slice_index,
                                                       sww_precision=self.precision,
-                                                      **dynamic_quantities_centroid)            
+                                                      **dynamic_quantities_centroid)
 
 
             # Update extrema if requested
@@ -431,7 +432,7 @@ class Read_sww:
         self.frames = num.arange(self.last_frame_number+1)
 
         fin.close()
-        
+
         self.read_mesh()
 
         self.quantities = {}
@@ -445,12 +446,12 @@ class Read_sww:
         fin = NetCDFFile(self.source, 'r')
 
         self.vertices = num.array(fin.variables['volumes'][:], num.int)
-        
+
         self.x = x = num.array(fin.variables['x'][:], num.float)
         self.y = y = num.array(fin.variables['y'][:], num.float)
 
         assert len(self.x) == len(self.y)
-        
+
         self.xmin = num.min(x)
         self.xmax = num.max(x)
         self.ymin = num.min(y)
@@ -458,7 +459,7 @@ class Read_sww:
 
 
         fin.close()
-        
+
     def read_quantities(self, frame_number=0):
         """
         Read the quantities contained in this file.
@@ -469,9 +470,9 @@ class Read_sww:
         self.frame_number = frame_number
 
         M = len(self.x)/3
-        
+
         fin = NetCDFFile(self.source, 'r')
-        
+
         for q in filter(lambda n:n != 'x' and n != 'y' and n != 'time' and n != 'volumes' and \
                         '_range' not in n and '_c' not in n , \
                         fin.variables.keys()):
@@ -505,7 +506,7 @@ class Read_sww:
 class Write_sww(Write_sts):
     """
         A class to write an SWW file.
-        
+
         It is domain agnostic, and requires all the data to be fed in
         manually.
     """
@@ -515,25 +516,25 @@ class Write_sww(Write_sts):
                  dynamic_quantities,
                  static_c_quantities = [],
                  dynamic_c_quantities = []):
-        
-        """Initialise Write_sww with two (or 4) list af quantity names: 
-        
-        static_quantities (e.g. elevation or friction): 
+
+        """Initialise Write_sww with two (or 4) list af quantity names:
+
+        static_quantities (e.g. elevation or friction):
             Stored once at the beginning of the simulation in a 1D array
-            of length number_of_points   
+            of length number_of_points
         dynamic_quantities (e.g stage):
-            Stored every timestep in a 2D array with 
+            Stored every timestep in a 2D array with
             dimensions number_of_points X number_of_timesteps
 
-        static_c_quantities (e.g. elevation_c or friction_c): 
+        static_c_quantities (e.g. elevation_c or friction_c):
             Stored once at the beginning of the simulation in a 1D array
-            of length number_of_triangles  
+            of length number_of_triangles
         dynamic_c_quantities (e.g stage_c):
-            Stored every timestep in a 2D array with 
-            dimensions number_of_triangles X number_of_timesteps 
-        
+            Stored every timestep in a 2D array with
+            dimensions number_of_triangles X number_of_timesteps
+
         """
-        self.static_quantities = static_quantities   
+        self.static_quantities = static_quantities
         self.dynamic_quantities = dynamic_quantities
         self.static_c_quantities = static_c_quantities
         self.dynamic_c_quantities = dynamic_c_quantities
@@ -564,8 +565,8 @@ class Write_sww(Write_sts):
         number_of_points - the number of vertices in the mesh
         """
 
-        from anuga.abstract_2d_finite_volumes.util \
-            import get_revision_number
+        from anuga import get_revision_number
+        from anuga import get_version
 
         outfile.institution = 'Geoscience Australia'
         outfile.description = description
@@ -589,6 +590,15 @@ class Write_sww(Write_sts):
             revision_number = None
         # Allow None to be stored as a string
         outfile.revision_number = str(revision_number)
+
+        try:
+            anuga_version = get_version()
+        except:
+            # This will be triggered if the system cannot get the
+            # version.
+            version = None
+        # Allow None to be stored as a string
+        outfile.anuga_version = str(anuga_version)
 
         # This is being used to seperate one number from a list.
         # what it is actually doing is sorting lists from numeric arrays.
@@ -633,13 +643,13 @@ class Write_sww(Write_sts):
 
 
         for q in self.static_quantities:
-            
+
             outfile.createVariable(q, sww_precision,
                                    ('number_of_points',))
-            
+
             outfile.createVariable(q + Write_sww.RANGE, sww_precision,
                                    ('numbers_in_range',))
-            
+
             # Initialise ranges with small and large sentinels.
             # If this was in pure Python we could have used None sensibly
             outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min
@@ -649,7 +659,7 @@ class Write_sww(Write_sts):
         for q in self.static_c_quantities:
             outfile.createVariable(q, sww_precision,
                                    ('number_of_volumes',))
-                                   
+
 
         self.write_dynamic_quantities(outfile, times, precis = sww_precision)
 
@@ -662,15 +672,15 @@ class Write_sww(Write_sts):
                             outfile,
                             points_utm,
                             volumes,
-                            zone=None, 
+                            zone=None,
                             new_origin=None,
-                            points_georeference=None, 
+                            points_georeference=None,
                             verbose=False):
         """
         Store triangulation data in the underlying file.
-        
+
         Stores the points and triangle indices in the sww file
-        
+
         outfile Open handle to underlying file.
 
         new_origin georeference that the points can be set to.
@@ -741,7 +751,7 @@ class Write_sww(Write_sts):
 
         #x = x.astype(netcdf_float32)
         #y = y.astype(netcdf_float32)
-        
+
 
         if verbose:
             log.critical('------------------------------------------------')
@@ -768,19 +778,19 @@ class Write_sww(Write_sts):
 
 
 
-    def write_dynamic_quantities(self, outfile, 
-                                 times, precis = netcdf_float32, verbose = False):   
+    def write_dynamic_quantities(self, outfile,
+                                 times, precis = netcdf_float32, verbose = False):
         """
             Write out given quantities to file.
         """
-        
+
 
         for q in self.dynamic_quantities:
             outfile.createVariable(q, precis, ('number_of_timesteps',
                                                'number_of_points'))
             outfile.createVariable(q + Write_sts.RANGE, precis,
                                    ('numbers_in_range',))
-            
+
             # Initialise ranges with small and large sentinels.
             # If this was in pure Python we could have used None sensibly
             outfile.variables[q+Write_sts.RANGE][0] = max_float  # Min
@@ -847,10 +857,10 @@ class Write_sww(Write_sts):
 
 
 
-    def store_static_quantities(self, 
-                                outfile, 
+    def store_static_quantities(self,
+                                outfile,
                                 sww_precision=num.float32,
-                                verbose=False, 
+                                verbose=False,
                                 **quant):
         """
         Write the static quantity info.
@@ -858,9 +868,9 @@ class Write_sww(Write_sts):
         **quant is extra keyword arguments passed in. These must be
           the numpy arrays to be stored in the sww file at each timestep.
 
-        The argument sww_precision allows for storing as either 
+        The argument sww_precision allows for storing as either
         * single precision (default): num.float32
-        * double precision: num.float64 or num.float 
+        * double precision: num.float64 or num.float
 
         Precondition:
             store_triangulation and
@@ -868,11 +878,11 @@ class Write_sww(Write_sts):
         """
 
         # The dictionary quant must contain numpy arrays for each name.
-        # These will typically be quantities from Domain such as friction 
+        # These will typically be quantities from Domain such as friction
         #
         # Arrays not listed in static_quantitiues will be ignored, silently.
         #
-        # This method will also write the ranges for each quantity, 
+        # This method will also write the ranges for each quantity,
         # e.g. stage_range, xmomentum_range and ymomentum_range
         for q in self.static_quantities:
             if not quant.has_key(q):
@@ -881,24 +891,24 @@ class Write_sww(Write_sts):
                 raise NewQuantity, msg
             else:
                 q_values = ensure_numeric(quant[q])
-                
+
                 x = q_values.astype(sww_precision)
                 outfile.variables[q][:] = x
-        
+
                 # This populates the _range values
                 outfile.variables[q + Write_sww.RANGE][0] = num.min(x)
                 outfile.variables[q + Write_sww.RANGE][1] = num.max(x)
-                    
+
         # FIXME: Hack for backwards compatibility with old viewer
         #if 'elevation' in self.static_quantities:
         #    outfile.variables['z'][:] = outfile.variables['elevation'][:]
 
-                    
 
-    def store_static_quantities_centroid(self, 
-                                            outfile, 
+
+    def store_static_quantities_centroid(self,
+                                            outfile,
                                             sww_precision=num.float32,
-                                            verbose=False, 
+                                            verbose=False,
                                             **quant):
         """
         Write the static centroid quantity info.
@@ -906,9 +916,9 @@ class Write_sww(Write_sts):
         **quant is extra keyword arguments passed in. These must be
           the numpy arrays to be stored in the sww file at each timestep.
 
-        The argument sww_precision allows for storing as either 
+        The argument sww_precision allows for storing as either
         * single precision (default): num.float32
-        * double precision: num.float64 or num.float 
+        * double precision: num.float64 or num.float
 
         Precondition:
             store_triangulation and
@@ -916,16 +926,16 @@ class Write_sww(Write_sts):
         """
 
         # The dictionary quant must contain numpy arrays for each name.
-        # These will typically be quantities from Domain such as friction 
+        # These will typically be quantities from Domain such as friction
         #
         # Arrays not listed in static_quantitiues will be ignored, silently.
         #
-        # This method will also write the ranges for each quantity, 
+        # This method will also write the ranges for each quantity,
         # e.g. stage_range, xmomentum_range and ymomentum_range
 
         #print outfile.variables.keys()
         #print self.static_c_quantities
-        
+
         for q in self.static_c_quantities:
             if not quant.has_key(q):
                 msg = 'Values for quantity %s was not specified in ' % q
@@ -933,20 +943,20 @@ class Write_sww(Write_sts):
                 raise NewQuantity, msg
             else:
                 q_values = ensure_numeric(quant[q])
-                
+
                 x = q_values.astype(sww_precision)
                 outfile.variables[q][:] = x
-        
 
-                    
-       
 
-    def store_quantities(self, 
-                         outfile, 
+
+
+
+    def store_quantities(self,
+                         outfile,
                          sww_precision=num.float32,
                          slice_index=None,
                          time=None,
-                         verbose=False, 
+                         verbose=False,
                          **quant):
         """
         Write the quantity info at each timestep.
@@ -961,10 +971,10 @@ class Write_sww(Write_sts):
 
         Maybe make this general, but the viewer assumes these quantities,
         so maybe we don't want it general - unless the viewer is general
-        
-        The argument sww_precision allows for storing as either 
+
+        The argument sww_precision allows for storing as either
         * single precision (default): num.float32
-        * double precision: num.float64 or num.float 
+        * double precision: num.float64 or num.float
 
         Precondition:
             store_triangulation and
@@ -981,16 +991,16 @@ class Write_sww(Write_sts):
                     slice_index = int(check[0][0])
             file_time[slice_index] = time
         else:
-            slice_index = int(slice_index) # Has to be cast in case it was numpy.int    
+            slice_index = int(slice_index) # Has to be cast in case it was numpy.int
 
         # Write the named dynamic quantities
         # The dictionary quant must contain numpy arrays for each name.
-        # These will typically be the conserved quantities from Domain 
+        # These will typically be the conserved quantities from Domain
         # (Typically stage,  xmomentum, ymomentum).
         #
         # Arrays not listed in dynamic_quantitiues will be ignored, silently.
         #
-        # This method will also write the ranges for each quantity, 
+        # This method will also write the ranges for each quantity,
         # e.g. stage_range, xmomentum_range and ymomentum_range
         for q in self.dynamic_quantities:
             if not quant.has_key(q):
@@ -999,10 +1009,10 @@ class Write_sww(Write_sts):
                 raise NewQuantity, msg
             else:
                 q_values = ensure_numeric(quant[q])
-                
+
                 q_retyped = q_values.astype(sww_precision)
                 outfile.variables[q][slice_index] = q_retyped
-                    
+
                 # This updates the _range values
                 q_range = outfile.variables[q + Write_sww.RANGE][:]
                 q_values_min = num.min(q_values)
@@ -1011,16 +1021,16 @@ class Write_sww(Write_sts):
                 q_values_max = num.max(q_values)
                 if q_values_max > q_range[1]:
                     outfile.variables[q + Write_sww.RANGE][1] = q_values_max
-                    
-        return slice_index
-                    
-                    
 
-    def store_quantities_centroid(self, 
-                                  outfile, 
+        return slice_index
+
+
+
+    def store_quantities_centroid(self,
+                                  outfile,
                                   sww_precision=num.float32,
                                   slice_index=None,
-                                  verbose=False, 
+                                  verbose=False,
                                   **quant):
         """
         Write the quantity centroid info at each timestep.
@@ -1035,10 +1045,10 @@ class Write_sww(Write_sts):
 
         Maybe make this general, but the viewer assumes these quantities,
         so maybe we don't want it general - unless the viewer is general
-        
-        The argument sww_precision allows for storing as either 
+
+        The argument sww_precision allows for storing as either
         * single precision (default): num.float32
-        * double precision: num.float64 or num.float 
+        * double precision: num.float64 or num.float
 
         Precondition:
             store_triangulation and
@@ -1046,18 +1056,18 @@ class Write_sww(Write_sts):
         """
 
         assert slice_index is not None, 'slice_index should be set in store_quantities'
-          
+
 
         # Write the named dynamic quantities
         # The dictionary quant must contain numpy arrays for each name.
-        # These will typically be the conserved quantities from Domain 
+        # These will typically be the conserved quantities from Domain
         # (Typically stage,  xmomentum, ymomentum).
         #
         # Arrays not listed in dynamic_quantitiues will be ignored, silently.
         #
-        # This method will also write the ranges for each quantity, 
+        # This method will also write the ranges for each quantity,
         # e.g. stage_range, xmomentum_range and ymomentum_range
-        
+
         #print 50*"="
         #print quant
         #print self.dynamic_c_quantities
@@ -1069,12 +1079,12 @@ class Write_sww(Write_sts):
                 raise NewQuantity, msg
             else:
                 q_values = ensure_numeric(quant[q])
-                
+
                 q_retyped = q_values.astype(sww_precision)
                 outfile.variables[q][slice_index] = q_retyped
 
 
-        
+
 
     def verbose_quantities(self, outfile):
         log.critical('------------------------------------------------')
@@ -1126,7 +1136,7 @@ def load_sww_as_domain(filename, boundary=None, t=None,
     the boundary file will not be compatable with the coordinates, and will
     give a different final boundary, or crash.
     """
-    
+
     from anuga.shallow_water.shallow_water_domain import Domain
 
     # initialise NaN.
@@ -1179,7 +1189,7 @@ def load_sww_as_domain(filename, boundary=None, t=None,
 
     #print static_quantities
     #print dynamic_quantities
-    
+
     try:
         dynamic_quantities.remove('stage_c')
         dynamic_quantities.remove('xmomentum_c')
@@ -1188,14 +1198,14 @@ def load_sww_as_domain(filename, boundary=None, t=None,
         dynamic_quantities.remove('friction_c')
     except:
         pass
-    
+
     try:
         static_quantities.remove('elevation_c')
         static_quantities.remove('friction_c')
     except:
         pass
-        
-    
+
+
     static_quantities.remove('x')
     static_quantities.remove('y')
     #other_quantities.remove('z')
@@ -1230,8 +1240,8 @@ def load_sww_as_domain(filename, boundary=None, t=None,
     if unique:
         coordinates, volumes, boundary = weed(coordinates, volumes, boundary)
 
-      
-    
+
+
     try:
         domain = Domain(coordinates, volumes, boundary, starttime=(float(starttime) + float(t)))
     except AssertionError, e:
@@ -1363,9 +1373,9 @@ def get_mesh_and_quantities_from_file(filename,
     if fid.smoothing != 'Yes':
         nodes = nodes.tolist()
         triangles = triangles.tolist()
-        nodes, triangles, boundary = weed(nodes, triangles, boundary)        
-        
-        
+        nodes, triangles, boundary = weed(nodes, triangles, boundary)
+
+
 
     try:
         mesh = Mesh(nodes, triangles, boundary, geo_reference=geo_reference)
@@ -1373,31 +1383,31 @@ def get_mesh_and_quantities_from_file(filename,
         fid.close()
         msg = 'Domain could not be created: %s. "' % e
         raise DataDomainError, msg
-    
-    
+
+
 
     def gather(quantity):
-            
+
         shape = quantity.shape
-        
+
         def my_num_add_at(a,indices,b):
-            """ 
+            """
             Use the numpy add.at opperation if it is available, (numpy version >1.8)
             otherwise just use a quick and dirty implementation via a python loop
             """
-            
+
             try:
                 num.add.at(a, indices, b)
             except:
                 n_ids = len(indices)
                 b_array = num.zeros_like(indices,dtype=num.float)
                 b_array[:] = b
-             
+
                 for n in xrange(n_ids):
                     a[indices[n]] = a[indices[n]] + b_array[n]
-                    
-        
-        
+
+
+
         if len(shape) == 2:
             # time array
             if shape[1] == len(mesh.nodes):
@@ -1405,41 +1415,41 @@ def get_mesh_and_quantities_from_file(filename,
             # need to calculate unique vertex values
             n_time = shape[0]
             n_nodes = len(mesh.nodes)
-            
+
             mesh_ids = mesh.triangles.ravel()
             temp_uv = num.zeros((n_time,n_nodes))
-        
+
             count_uv = num.zeros(len(mesh.nodes))
             my_num_add_at(count_uv, mesh_ids, 1)
-   
+
             for i in range(n_time):
                 my_num_add_at(temp_uv[i,:], mesh_ids, quantity[i,:] )
                 temp_uv[i,:] = temp_uv[i,:]/count_uv
-   
+
         elif len(shape) == 1:
             # non time array
             if shape[0] == len(mesh.nodes):
                 return quantity
-            
+
             mesh_ids = mesh.triangles.ravel()
             temp_uv = num.zeros(len(mesh.nodes))
 
             count_uv = num.zeros(len(mesh.nodes))
             my_num_add_at(count_uv, mesh_ids, 1)
             my_num_add_at(temp_uv, mesh_ids, quantity )
-            
+
         else:
             raise Exception
-        
+
         return temp_uv
 
     quantities = {}
-    
+
     if fid.smoothing != 'Yes':
         quantities['elevation'] = elevation[:]
         quantities['stage'] = stage[:]
         quantities['xmomentum'] = xmomentum[:]
-        quantities['ymomentum'] = ymomentum[:]           
+        quantities['ymomentum'] = ymomentum[:]
     else:
         quantities['elevation'] = gather(elevation)
         quantities['stage'] = gather(stage)
@@ -1560,6 +1570,3 @@ def weed(coordinates, volumes, boundary=None):
         boundary = new_boundary
 
     return coordinates, volumes, boundary
-
-
-
