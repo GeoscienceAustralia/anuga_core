@@ -8,7 +8,7 @@ celltype_map = {'IEEE4ByteReal': num.float32, 'IEEE8ByteReal': num.float64}
 def write_ermapper_grid(ofile, data, header = {}):
     """
     write_ermapper_grid(ofile, data, header = {}):
-    
+
     Function to write a 2D numeric array to an ERMapper grid.  There are a series of conventions adopted within
     this code, specifically:
     1)  The registration coordinate for the data is the SW (or lower-left) corner of the data
@@ -16,14 +16,14 @@ def write_ermapper_grid(ofile, data, header = {}):
     3)  The data is a 2D numeric array with the NW-most data in element (0,0) and the SE-most data in element (N,M)
         where N is the last line and M is the last column
     4)  There has been no testng of the use of a rotated grid.  Best to keep data in an NS orientation
-    
+
     Input Parameters:
     ofile:      string - filename for output (note the output will consist of two files
                 ofile and ofile.ers.  Either of these can be entered into this function
     data:       array - 2D array containing the data to be output to the grid
     header:     dictionary - contains spatial information about the grid, in particular:
                     header['datum'] datum for the data ('"GDA94"')
-                    header['projection'] - either '"GEOGRAPHIC"' or '"PROJECTED"' 
+                    header['projection'] - either '"GEOGRAPHIC"' or '"PROJECTED"'
                     header['coordinatetype'] - either 'EN' (for eastings/northings) or
                                                       'LL' (for lat/long)
                     header['rotation'] - rotation of grid ('0:0:0.0')
@@ -42,7 +42,7 @@ def write_ermapper_grid(ofile, data, header = {}):
                     header['nrofcellsperline'] - number of columns in data
                     header['registrationcelly'] == last line of data
 
-    Written by Trevor Dhu, Geoscience Australia 2005 
+    Written by Trevor Dhu, Geoscience Australia 2005
     """
     # extract filenames for header and data files from ofile
     ers_index = ofile.find('.ers')
@@ -57,7 +57,7 @@ def write_ermapper_grid(ofile, data, header = {}):
     # Check that the data is a 2 dimensional array
     data_size = num.shape(data)
     assert len(data_size) == 2
-    
+
     header['nroflines'] = str(data_size[0])
     header['nrofcellsperline'] = str(data_size[1])
 
@@ -66,7 +66,7 @@ def write_ermapper_grid(ofile, data, header = {}):
     write_ermapper_header(header_file, header)
     write_ermapper_data(data, data_file, data_format = header['celltype'])
 
-    
+
 def read_ermapper_grid(ifile):
     ers_index = ifile.find('.ers')
     if ers_index > 0:
@@ -75,7 +75,7 @@ def read_ermapper_grid(ifile):
     else:
         data_file = ifile
         header_file = ifile + '.ers'
-        
+
     header = read_ermapper_header(header_file)
 
     nroflines = int(header['nroflines'])
@@ -83,10 +83,10 @@ def read_ermapper_grid(ifile):
     data = read_ermapper_data(data_file)
     data = num.reshape(data,(nroflines,nrofcellsperlines))
     return data
-    
+
 
 def write_ermapper_header(ofile, header = {}):
-    
+
     header = create_default_header(header)
     # Determine if the dataset is in lats/longs or eastings/northings and set header parameters
     # accordingly
@@ -142,7 +142,7 @@ def write_ermapper_header(ofile, header = {}):
     fid.write('\t\tBandID End\n')
     fid.write('\tRasterInfo End\n')
     fid.write('DatasetHeader End\n')
-    
+
     fid.close
 
 def read_ermapper_header(ifile):
@@ -158,7 +158,7 @@ def read_ermapper_header(ifile):
             tmp_string = line.strip().split('=')
             header[tmp_string[0].strip().lower()]= tmp_string[1].strip()
 
-    return header                      
+    return header
 
 def write_ermapper_data(grid, ofile, data_format=num.float32):
 
@@ -167,7 +167,7 @@ def write_ermapper_data(grid, ofile, data_format=num.float32):
         data_format = celltype_map[data_format]
     except:
         pass
-    
+
 
     #if isinstance(data_format, basestring):
     #    #celltype_map is defined at top of code
@@ -176,8 +176,8 @@ def write_ermapper_data(grid, ofile, data_format=num.float32):
     #    else:
     #        msg = 'Format %s is not yet defined by celltype_map' %data_format
     #        raise Exception(msg)
-        
-    
+
+
     # Convert the array to data_format (default format is Float32)
     grid_as_float = grid.astype(data_format)
 
@@ -197,7 +197,7 @@ def read_ermapper_data(ifile, data_format = num.float32):
     fid.close()
 
     # convert input string to required format (Note default format is num.float32)
-    grid_as_float = num.fromstring(input_string,data_format)
+    grid_as_float = num.frombuffer(input_string,data_format)
     return grid_as_float
 
 def create_default_header(header = {}):
@@ -205,12 +205,12 @@ def create_default_header(header = {}):
     # input parameters:
     # header:   a dictionary containing fields that are not meant
     #           to be filled with default values
-    
- 
+
+
     if not header.has_key('datum'):
         header['datum'] = '"GDA94"'
     if not header.has_key('projection'):
-        header['projection'] = '"GEOGRAPHIC"'        
+        header['projection'] = '"GEOGRAPHIC"'
     if not header.has_key('coordinatetype'):
         header['coordinatetype'] = 'LL'
     if not header.has_key('rotation'):
@@ -226,11 +226,11 @@ def create_default_header(header = {}):
     if not header.has_key('latitude'):
         header['latitude'] = '0:0:0'
     if not header.has_key('longitude'):
-        header['longitude'] = '0:0:0'        
+        header['longitude'] = '0:0:0'
     if not header.has_key('ydimension'):
         header['ydimension'] = '100'
     if not header.has_key('nroflines'):
-        header['nroflines'] = '3'    
+        header['nroflines'] = '3'
     if not header.has_key('nrofcellsperline'):
         header['nrofcellsperline'] = '4'
     if not header.has_key('registrationcellx'):
@@ -243,9 +243,4 @@ def create_default_header(header = {}):
         header['value'] = '"Default_Band"'
 
 
-    return header    
-                          
-    
-
-
-    
+    return header

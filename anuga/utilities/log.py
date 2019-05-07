@@ -94,7 +94,7 @@ def log(msg, level=None):
     '''
 
     global _setup, log_logging_level
-    fname = '' # default to no frame name if it cannot be found
+    fname = ''  # default to no frame name if it cannot be found
     lnum = 0
 
     # have we been setup?
@@ -143,12 +143,17 @@ def log(msg, level=None):
     # get caller information - look back for first module != <this module name>
     frames = traceback.extract_stack()
     frames.reverse()
+
     try:
         (_, mod_name) = __name__.rsplit('.', 1)
     except ValueError:
         mod_name = __name__
+
     for (fpath, lnum, mname, _) in frames:
-        (fname, _) = os.path.basename(fpath).rsplit('.', 1)
+        try:
+            (fname, _) = os.path.basename(fpath).rsplit('.', 1)
+        except ValueError:
+            fname = __name__
         if fname != mod_name:
             break
 
@@ -172,7 +177,7 @@ def log_exception_hook(type, value, tb):
     msg = '\n' + ''.join(traceback.format_exception(type, value, tb))
     critical(msg)
 
-    
+
 ################################################################################
 # Shortcut routines to make for simpler user code.
 ################################################################################
@@ -220,7 +225,7 @@ def resource_usage(level=logging.INFO):
 
     if sys.platform != 'win32':
         _proc_status = '/proc/%d/status' % os.getpid()
-        
+
         def _VmB(VmKey):
             '''Get number of virtual bytes used.'''
 
@@ -308,7 +313,7 @@ def resource_usage_timing(level=logging.INFO, prefix =""):
 
     if sys.platform != 'win32':
         _proc_status = '/proc/%d/status' % os.getpid()
-        
+
         def _VmB(VmKey):
             '''Get number of virtual bytes used.'''
 
@@ -388,7 +393,7 @@ def resource_usage_timing(level=logging.INFO, prefix =""):
         timingInfo(prefix + 'total_memory, ' + str(memoryStatusEx.ullTotalPhys/_scale['MB']))
         timingInfo(prefix + 'free_memory, ' + str(memoryStatusEx.ullAvailPhys/_scale['MB']))
 
-    
+
 ################################################################################
 if __name__ == '__main__':
     critical('#' * 80)
@@ -406,7 +411,7 @@ if __name__ == '__main__':
             resource_usage()
 
     import numpy as num
-    
+
     a = num.zeros((1000,1000), num.float)
 
     info('sys.version_info=%s, _new_python=%s'
