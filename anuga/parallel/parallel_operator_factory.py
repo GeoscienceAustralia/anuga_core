@@ -35,19 +35,19 @@ from anuga.parallel.parallel_shallow_water import Parallel_domain
 import math
 
 """
-Factory method for Parallel Inlet_operator. All parameters are the same 
-as normal Inlet_Operators master_proc coordinates the allocation process, 
+Factory method for Parallel Inlet_operator. All parameters are the same
+as normal Inlet_Operators master_proc coordinates the allocation process,
 procs contains the potential list of processors to allocate the inlet to.
 
 Returns None for calling processors not associated with inlet. Otherwise
 return an instance of Parallel_Inlet_Operator
 """
 
-def Inlet_operator(domain, 
+def Inlet_operator(domain,
                    poly,
                    Q,
                    velocity = None,
-                   default = None,
+                   default = 0.0,
                    description = None,
                    label = None,
                    logging = False,
@@ -67,7 +67,7 @@ def Inlet_operator(domain,
                                                               label = label,
                                                               logging = logging,
                                                               verbose = verbose)
-    
+
     import pypar
     if procs is None:
         procs = range(0,pypar.size())
@@ -107,7 +107,7 @@ def Inlet_operator(domain,
         return None
 
 """
-Factory method for Parallel Boyd_box_operator. All parameters are the same 
+Factory method for Parallel Boyd_box_operator. All parameters are the same
 as normal Boyd_box_operator master_proc coordinates the allocation process,
 procs contains the potential list of processors to allocate the inlet to.
 
@@ -117,8 +117,8 @@ return an instance of Parallel Boyd_box_operator
 
 def Boyd_box_operator(domain,
                        losses,
-                       width,                       
-                       height=None,                                           
+                       width,
+                       height=None,
                        blockage=0.0,
                        barrels=1.0,
                        z1=0.0,
@@ -202,7 +202,7 @@ def Boyd_box_operator(domain,
                 pypar.send(enquiry_points_tmp, i)
 
         elif end_points is not None:
-            exchange_lines_tmp, enquiry_points_tmp = __process_non_skew_culvert(end_points, width, 
+            exchange_lines_tmp, enquiry_points_tmp = __process_non_skew_culvert(end_points, width,
                                                                                 enquiry_points, apron, enquiry_gap)
             for i in procs:
                 if i == master_proc: continue
@@ -210,7 +210,7 @@ def Boyd_box_operator(domain,
                 pypar.send(enquiry_points_tmp, i)
         else:
             raise Exception, 'Define either exchange_lines or end_points'
-        
+
     else:
         if exchange_lines is not None:
             exchange_lines_tmp = exchange_lines
@@ -220,7 +220,7 @@ def Boyd_box_operator(domain,
             enquiry_points_tmp = pypar.receive(master_proc)
 
     # Determine processors associated with first inlet
-    line0 = exchange_lines_tmp[0] 
+    line0 = exchange_lines_tmp[0]
     enquiry_point0 = enquiry_points_tmp[0]
 
     alloc0, inlet0_master_proc, inlet0_procs, enquiry0_proc = allocate_inlet_procs(domain, line0, enquiry_point =  enquiry_point0,
@@ -342,7 +342,7 @@ def Boyd_pipe_operator(domain,
     import pypar
     if procs is None:
         procs = range(0,pypar.size())
-        
+
     myid = pypar.rank()
 
     end_points = ensure_numeric(end_points)
@@ -449,7 +449,7 @@ def Boyd_pipe_operator(domain,
 
 
 """
-Factory method for Parallel Weir_orifice_trapezoid_operator. All parameters are the same 
+Factory method for Parallel Weir_orifice_trapezoid_operator. All parameters are the same
 as normal Weir_orifice_trapezoid_operator master_proc coordinates the allocation process,
 procs contains the potential list of processors to allocate the inlet to.
 
@@ -548,7 +548,7 @@ def Weir_orifice_trapezoid_operator(domain,
                 pypar.send(enquiry_points_tmp, i)
 
         elif end_points is not None:
-            exchange_lines_tmp, enquiry_points_tmp = __process_non_skew_culvert(end_points, width, 
+            exchange_lines_tmp, enquiry_points_tmp = __process_non_skew_culvert(end_points, width,
                                                                                 enquiry_points, apron, enquiry_gap)
             for i in procs:
                 if i == master_proc: continue
@@ -556,7 +556,7 @@ def Weir_orifice_trapezoid_operator(domain,
                 pypar.send(enquiry_points_tmp, i)
         else:
             raise Exception, 'Define either exchange_lines or end_points'
-        
+
     else:
         if exchange_lines is not None:
             exchange_lines_tmp = exchange_lines
@@ -566,7 +566,7 @@ def Weir_orifice_trapezoid_operator(domain,
             enquiry_points_tmp = pypar.receive(master_proc)
 
     # Determine processors associated with first inlet
-    line0 = exchange_lines_tmp[0] 
+    line0 = exchange_lines_tmp[0]
     enquiry_point0 = enquiry_points_tmp[0]
 
     alloc0, inlet0_master_proc, inlet0_procs, enquiry0_proc = allocate_inlet_procs(domain, line0, enquiry_point =  enquiry_point0,
@@ -632,7 +632,7 @@ def Weir_orifice_trapezoid_operator(domain,
 
 
 """
-Factory method for Parallel Internal_boundary_operator. All parameters are the same 
+Factory method for Parallel Internal_boundary_operator. All parameters are the same
 as normal Internal_boundary_operator. master_proc coordinates the allocation process,
 procs contains the potential list of processors to allocate the inlet to.
 
@@ -720,7 +720,7 @@ def Internal_boundary_operator(domain,
                 pypar.send(enquiry_points_tmp, i)
 
         elif end_points is not None:
-            exchange_lines_tmp, enquiry_points_tmp = __process_non_skew_culvert(end_points, width, 
+            exchange_lines_tmp, enquiry_points_tmp = __process_non_skew_culvert(end_points, width,
                                                                                 enquiry_points, apron, enquiry_gap)
             for i in procs:
                 if i == master_proc: continue
@@ -728,7 +728,7 @@ def Internal_boundary_operator(domain,
                 pypar.send(enquiry_points_tmp, i)
         else:
             raise Exception, 'Define either exchange_lines or end_points'
-        
+
     else:
         if exchange_lines is not None:
             exchange_lines_tmp = exchange_lines
@@ -738,7 +738,7 @@ def Internal_boundary_operator(domain,
             enquiry_points_tmp = pypar.receive(master_proc)
 
     # Determine processors associated with first inlet
-    line0 = exchange_lines_tmp[0] 
+    line0 = exchange_lines_tmp[0]
     enquiry_point0 = enquiry_points_tmp[0]
 
     alloc0, inlet0_master_proc, inlet0_procs, enquiry0_proc = allocate_inlet_procs(domain, line0, enquiry_point =  enquiry_point0,
@@ -868,7 +868,7 @@ def __process_skew_culvert(exchange_lines, end_points, enquiry_points, apron, en
         enquiry_points.append(centre_point1 + gap)
 
     return enquiry_points
-        
+
 
 def allocate_inlet_procs(domain, poly, enquiry_point = None, master_proc = 0, procs = None, verbose = False):
 
@@ -876,7 +876,7 @@ def allocate_inlet_procs(domain, poly, enquiry_point = None, master_proc = 0, pr
     import pypar
     if procs is None:
         procs = range(0, pypar.size())
-        
+
     myid = pypar.rank()
     vertex_coordinates = domain.get_full_vertex_coordinates(absolute=True)
     domain_centroids = domain.centroid_coordinates
@@ -901,7 +901,7 @@ def allocate_inlet_procs(domain, poly, enquiry_point = None, master_proc = 0, pr
         tris_0 = line_intersect(vertex_coordinates, [poly[0],poly[1]])
         tris_1 = inside_polygon(domain_centroids, poly)
         tri_id = num.union1d(tris_0, tris_1)
-        
+
 
     if verbose:
         print "P%d has %d triangles in poly %s" %(myid, len(tri_id), poly)
