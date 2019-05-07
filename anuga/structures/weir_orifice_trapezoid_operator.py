@@ -10,10 +10,10 @@ import numpy
 class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
     """Culvert flow - transfer water from one trapezoidal section to another.
     Sets up the geometry of problem
-    
+
     This is the base class for culverts. Inherit from this class (and overwrite
     compute_discharge method for specific subclasses)
-    
+
     Input: minimum arguments
          domain,
          losses (scalar, list or dictionary of losses),
@@ -30,6 +30,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                  blockage=0.0,
                  z1=0.0,
                  z2=0.0,
+                 #culvert_slope=None,
                  end_points=None,
                  exchange_lines=None,
                  enquiry_points=None,
@@ -45,7 +46,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                  structure_type='weir_orifice_trapezoid',
                  logging=False,
                  verbose=False):
-                     
+
         anuga.Structure_operator.__init__(self,
                                           domain,
                                           end_points=end_points,
@@ -56,6 +57,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                                           height=height,
                                           blockage=blockage,
                                           barrels=barrels,
+                                          #culvert_slope=culvert_slope,
                                           diameter=None,
                                           z1=z1,
                                           z2=z2,
@@ -68,20 +70,20 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                                           logging=logging,
                                           verbose=verbose)
 
-        
+
         if isinstance(losses, dict):
             self.sum_loss = sum(losses.values())
         elif isinstance(losses, list):
             self.sum_loss = sum(losses)
         else:
             self.sum_loss = losses
-        
+
         self.use_momentum_jet = use_momentum_jet
         # Preserves the old default behaviour of zeroing momentum
         self.zero_outflow_momentum = not self.use_momentum_jet
 
         self.use_velocity_head = use_velocity_head
-        
+
         self.culvert_length = self.get_culvert_length()
         self.culvert_width = self.get_culvert_width()
         self.culvert_height = self.get_culvert_height()
@@ -90,7 +92,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
         #self.culvert_slope = self.culvert_slope()
         self.culvert_z1 = self.get_culvert_z1()
         self.culvert_z2 = self.get_culvert_z2()
-                
+
         #FIXME SR: Why is this hard coded!
         self.max_velocity = 10.0
 
@@ -98,12 +100,12 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
 
 
         # Stats
-        
+
         self.discharge = 0.0
         self.velocity = 0.0
-        
+
         self.case = 'N/A'
-        
+
         # May/June 2014 -- allow 'smoothing ' of driving_energy, delta total energy, and outflow_enq_depth
         self.smoothing_timescale=0.
         self.smooth_delta_total_energy=0.
@@ -116,7 +118,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
         # Finally, set the smoothing timescale we actually want
         self.smoothing_timescale=smoothing_timescale
 
-        
+
         if verbose:
             print self.get_culvert_slope()
 
@@ -176,8 +178,8 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
             self.inflow  = self.inlets[1]
             self.outflow = self.inlets[0]
             self.delta_total_energy = -self.smooth_delta_total_energy
-            
-            
+
+
         # Only calculate flow if there is some water at the inflow inlet.
         if self.inflow.get_enquiry_depth() > 0.01: #this value was 0.01:
 
@@ -208,7 +210,6 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                 print 'right bank slope ',self.culvert_z2
                 print 'flow_width ',self.culvert_width
                 print 'length ' ,self.culvert_length
-                #print 'culvert slope', self.culvert_slope
                 print 'driving_energy ',self.driving_energy
                 print 'delta_total_energy ',self.delta_total_energy
                 print 'outlet_enquiry_depth ',self.outflow.get_enquiry_depth()
@@ -224,10 +225,10 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
                                                 blockage            =self.culvert_blockage,
                                                 barrels             =self.culvert_barrels,
                                                 z1                  =self.culvert_z1,
-                                                z2                  =self.culvert_z2,                                                      
+                                                z2                  =self.culvert_z2,
                                                 flow_width          =self.culvert_width,
                                                 length              =self.culvert_length,
-                                                culvert_slope       =self.culvert_slope,
+                                                #culvert_slope       =self.culvert_slope,
                                                 driving_energy      =self.driving_energy,
                                                 delta_total_energy  =self.delta_total_energy,
                                                 outlet_enquiry_depth=self.outflow.get_enquiry_depth(),
@@ -239,10 +240,10 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
             Qsign=numpy.sign(self.smooth_delta_total_energy) #(self.outflow_index-self.inflow_index) # To adjust sign of Q
             if(forward_Euler_smooth):
                 self.smooth_Q = self.smooth_Q +ts*(Q*Qsign-self.smooth_Q)
-            else: 
+            else:
                 # Try implicit euler method
                 self.smooth_Q = (self.smooth_Q+ts*(Q*Qsign))/(1.+ts)
-            
+
             if numpy.sign(self.smooth_Q)!=Qsign:
                 # The flow direction of the 'instantaneous Q' based on the
                 # 'smoothed delta_total_energy' is not the same as the
@@ -269,24 +270,24 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
         return Q, barrel_velocity, outlet_culvert_depth
 
 
-        
+
 
 #=============================================================================
 # define separately so that can be imported in parallel code.
 #=============================================================================
 def weir_orifice_trapezoid_function(
-                        width, 
-                        depth, 
+                        width,
+                        depth,
                         blockage,
                         barrels,
                         z1,
                         z2,
-                        flow_width, 
+                        flow_width,
                         length,
-                        culvert_slope,
-                        driving_energy, 
-                        delta_total_energy, 
-                        outlet_enquiry_depth, 
+                        #culvert_slope,
+                        driving_energy,
+                        delta_total_energy,
+                        outlet_enquiry_depth,
                         sum_loss,
                         manning):
 
@@ -295,17 +296,17 @@ def weir_orifice_trapezoid_function(
     # but ensure the correct flow area and wetted perimeter are used
 
     local_debug = False
-    
+
     bf = 1 - blockage
-    
+
     if blockage >= 1.0:
         Q = barrel_velocity = outlet_culvert_depth = 0.0
         flow_area = 0.00001
         case = '100% blocked culvert'
         return Q, barrel_velocity, outlet_culvert_depth, flow_area, case
-    
-    Q_inlet_unsubmerged = 1.7*bf*barrels*((2*width+depth*(z1+z2))/2)*driving_energy**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged (weir flow equation)
-    Q_inlet_submerged = 0.8*bf*barrels*anuga.g**0.5*(0.5*depth*(2*width+depth*(z1+z2)))*driving_energy**0.5  # Flow based on Inlet Ctrl Inlet Submerged (orifice equation)
+    else:
+        Q_inlet_unsubmerged = 1.7*bf*barrels*((2*width+depth*(z1+z2))/2)*driving_energy**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged (weir flow equation)
+        Q_inlet_submerged = 0.8*bf*barrels*anuga.g**0.5*(0.5*depth*(2*width+depth*(z1+z2)))*driving_energy**0.5  # Flow based on Inlet Ctrl Inlet Submerged (orifice equation)
 
 
 
@@ -317,9 +318,9 @@ def weir_orifice_trapezoid_function(
         ic=0
         dyc=0.001
         while abs(dyc)>0.00001:
-            Tc=width+(z1+z2)*dcrit
-            Pc=width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
-            Ac=0.5*dcrit*(width+Tc)
+            Tc=bf*barrels*width+(z1+z2)*dcrit
+            Pc=bf*barrels*width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
+            Ac=0.5*dcrit*(bf*barrels*width+Tc)
             Rc=Ac/Pc
             fc=Ac**1.5*Tc**-0.5-Q/(9.81**0.5)
             ffc=Ac**1.5*-0.5*Tc**-1.5*(z1+z2)+Tc**-0.5*1.5*Ac**0.5*Tc
@@ -343,9 +344,9 @@ def weir_orifice_trapezoid_function(
         ic=0
         dyc=0.001
         while abs(dyc)>0.00001:
-            Tc=width+(z1+z2)*dcrit
-            Pc=width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
-            Ac=0.5*dcrit*(width+Tc)
+            Tc=bf*barrels*width+(z1+z2)*dcrit
+            Pc=bf*barrels*width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
+            Ac=0.5*dcrit*(bf*barrels*width+Tc)
             Rc=Ac/Pc
             fc=Ac**1.5*Tc**-0.5-Q/(9.81**0.5)
             ffc=Ac**1.5*-0.5*Tc**-1.5*(z1+z2)+Tc**-0.5*1.5*Ac**0.5*Tc
@@ -367,9 +368,9 @@ def weir_orifice_trapezoid_function(
     ic=0
     dyc=0.001
     while abs(dyc)>0.00001:
-        Tc=width+(z1+z2)*dcrit
-        Pc=width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
-        Ac=0.5*dcrit*(width+Tc)
+        Tc=bf*barrels*width+(z1+z2)*dcrit
+        Pc=bf*barrels*width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
+        Ac=0.5*dcrit*(bf*barrels*width+Tc)
         Rc=Ac/Pc
         fc=Ac**1.5*Tc**-0.5-Q/(9.81**0.5)
         ffc=Ac**1.5*-0.5*Tc**-1.5*(z1+z2)+Tc**-0.5*1.5*Ac**0.5*Tc
@@ -405,24 +406,41 @@ def weir_orifice_trapezoid_function(
             flow_area=bf*barrels*width*depth+0.5*(z1+z2)*(depth)**2  # Cross sectional area of flow in the culvert
             perimeter=bf*barrels*width + ((depth)**2+(z1*(depth))**2)**0.5 + ((depth)**2+(z2*(depth))**2)**0.5
             case = 'Outlet submerged'
-        else:                
+        else:
             Q = min(Q, Q_outlet_tailwater)
-            dnorm=0.00001
-            idn=1
-            dyn=0.001
-            
-            while abs(dyn)>0.0001:
-                Tn=width+(z1+z2)*dnorm
-                An=0.5*dnorm*(width+Tn)
-                Pn=width+2*dnorm*((z1**2+z2**2)**0.5)
-                Rn=An/Pn
-                fn=((culvert_slope**0.5*An*Rn**0.67)/manning) - Q
-                ffn=((culvert_slope**0.5)/manning)*(((Rn**0.67)*Tn)+(Tn/Pn)-(2*dnorm*Rn/Pn))
-                dnorm=dnorm-fn/ffn        
-                dyn=-fn/ffn
-                idn=idn+1
-            outlet_culvert_depth = dnorm
-            
+            # Critical Depths Calculation
+            dcrit=0.00001
+            ic=0
+            dyc=0.001
+            while abs(dyc)>0.00001:
+                Tc=bf*barrels*width+(z1+z2)*dcrit
+                Pc=bf*barrels*width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
+                Ac=0.5*dcrit*(bf*barrels*width+Tc)
+                Rc=Ac/Pc
+                fc=Ac**1.5*Tc**-0.5-Q/(9.81**0.5)
+                ffc=Ac**1.5*-0.5*Tc**-1.5*(z1+z2)+Tc**-0.5*1.5*Ac**0.5*Tc
+                dyc=-fc/ffc
+                dcrit=dcrit+dyc
+                ic=ic+1
+            dcrit = dcrit
+            outlet_culvert_depth = dcrit
+
+##calculate normal depth based on culverts slope, i can't work out how to get culvert_slope, so for now just use critical depth instead as we do in boyd_box and boyd_pipe
+            #dnorm=0.00001
+            #idn=1
+            #dyn=0.001
+            #while abs(dyn)>0.0001:
+                #Tn=width+(z1+z2)*dnorm
+                #An=0.5*dnorm*(width+Tn)
+                #Pn=width+2*dnorm*((z1**2+z2**2)**0.5)
+                #Rn=An/Pn
+                #fn=((culvert_slope**0.5*An*Rn**0.67)/manning) - Q
+                #ffn=((culvert_slope**0.5)/manning)*(((Rn**0.67)*Tn)+(Tn/Pn)-(2*dnorm*Rn/Pn))
+                #dnorm=dnorm-fn/ffn
+                #dyn=-fn/ffn
+                #idn=idn+1
+            #outlet_culvert_depth = dnorm
+
             if outlet_culvert_depth > depth:
                 outlet_culvert_depth=depth
                 flow_area=bf*barrels*width*depth+0.5*(z1+z2)*(depth)**2
@@ -450,7 +468,7 @@ def weir_orifice_trapezoid_function(
         culv_froude = 0.0
     else:
         culv_froude=math.sqrt(Q**2*flow_width*barrels/(anuga.g*flow_area**3))
-        
+
     if local_debug:
         anuga.log.critical('FLOW AREA = %s' % str(flow_area))
         anuga.log.critical('PERIMETER = %s' % str(perimeter))

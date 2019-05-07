@@ -109,7 +109,8 @@ class Generic_Domain:
         if verbose: log.critical('Domain: Expose mesh attributes')
 
         # Expose Mesh attributes (FIXME: Maybe turn into methods)
-        self.triangles = self.mesh.triangles        
+        self.triangles = self.mesh.triangles
+        self.nodes = self.mesh.nodes
         self.centroid_coordinates = self.mesh.centroid_coordinates
         self.vertex_coordinates = self.mesh.vertex_coordinates
         self.edge_coordinates = self.mesh.edge_midpoint_coordinates
