@@ -22,6 +22,12 @@ if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
 fi
 
 
+# Install pymetis
+git clone https://github.com/inducer/pymetis.git;
+pushd pymetis;
+python setup.py install;
+popd;
+
 # Install miniconda
 wget https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh -O miniconda.sh ;
 
