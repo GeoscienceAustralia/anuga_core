@@ -36,7 +36,8 @@ point_observations = numpy.genfromtxt(
     'Observations/ObservationPoints.csv',
     delimiter=",",skip_header=1)
 
-nearest_points = point_observations[:,0]*0. - 1
+nearest_points = (point_observations[:,0]*0. - 1).astype(int)
+
 for i in range(len(nearest_points)):
     # Compute distance of ANUGA points to observation, and
     # if the ANUGA point is dry then add a large value
@@ -46,12 +47,14 @@ for i in range(len(nearest_points)):
           (p2.stage[tindex,:] <= p2.elev)*1.0e+06).argmin()
     nearest_points[i] = n
 
+#import pdb; pdb.set_trace()
+
 f = open('Stage_point_comparison.csv','w')
 f.writelines( 'Field, ANUGA, TUFLOW, ANUGA minus Field, ANUGA minus TUFLOW \n' )
 for i in range(len(nearest_points)):
     po = point_observations[i,-2]
     tu = point_observations[i,-1]
-    anuga_data = p2.stage[tindex, nearest_points.tolist()[i]]
+    anuga_data = p2.stage[tindex, nearest_points[i]]
     newline = str(round(po,2)) + ', ' + str(round(anuga_data,2)) + ', ' + str(tu) + ', ' + \
           str(round(anuga_data - po,2)) + ', ' + str(round(anuga_data - tu,2)) + '\n'
     f.writelines(newline)
@@ -64,7 +67,8 @@ if verbose: print 'Plot transect'
 ## Plot transect 1 [need to guess appropriate end points as these are not so
 ## clear from the report]
 xx=util.near_transect(p2,[103, 100.], [130.,80.],tol=0.5)
-xx2=xx[0]
+xx0 = numpy.array(xx[0])
+xx1 = numpy.array(xx[1])
 
 pyplot.clf()
 pyplot.figure(figsize=(16,10.5))
@@ -75,21 +79,22 @@ colVals = numpy.maximum(numpy.minimum(p2.elev, 25.), 19.)
 util.plot_triangles(p, values = colVals, edgecolors='none')
 
 pyplot.gca().set_aspect('equal')
-pyplot.scatter(p2.x[xx2],p2.y[xx2],color='green')
+pyplot.scatter(p2.x[xx0],p2.y[xx0],color='green')
 pyplot.xlim( (40., 160.))
 pyplot.ylim( (0.,140.))
 pyplot.title('Transect points in green')
 
+#import pdb; pdb.set_trace()
 pyplot.subplot(222)
-pyplot.scatter(xx[1],p2.vel[tindex,xx[0]],color='green',label='model')
-pyplot.scatter(xx[1],fvel(xx[1]),color='blue',label='data')
+pyplot.scatter(xx1,p2.vel[tindex,xx0],color='green',label='model')
+pyplot.scatter(xx1,fvel(xx1),color='blue',label='data')
 pyplot.legend(loc='upper left')
 #pyplot.xlim(0,25)
 pyplot.title('Final flow speed along the transect')
 
 pyplot.subplot(224)
-pyplot.scatter(xx[1],p2.stage[tindex,xx[0]]-p2.elev[xx[0]],color='green',label='model')
-pyplot.scatter(xx[1],fdepth(xx[1]),color='blue',label='data')
+pyplot.scatter(xx1,p2.stage[tindex,xx0]-p2.elev[xx0],color='green',label='model')
+pyplot.scatter(xx1,fdepth(xx1),color='blue',label='data')
 pyplot.legend(loc='upper left')
 #pyplot.xlim(0,25)
 pyplot.title('Final depth along the transect')
@@ -145,8 +150,3 @@ import matplotlib.patches as mpatches
 #pyplot.legend(handles=[red_patch, green_patch, blue_patch], labels=['>1', '(0-1]', '0.'], loc='best')
 pyplot.legend(loc='upper left')
 pyplot.savefig('froudeNumber.png',dpi=100,bbox_inches='tight')
-
-
-
-
-
