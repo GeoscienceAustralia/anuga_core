@@ -16,12 +16,12 @@
     Also, it isolates the user from "under-the-hood" refactorings.
 """
 
-#-----------------------------------------------------
+# -----------------------------------------------------
 # Make selected classes available directly
-#-----------------------------------------------------
+# -----------------------------------------------------
 
 
-__version__ = '2.0.2'
+__version__ = '2.0.3'
 
 __svn_revision__ = filter(str.isdigit, "$Revision: 9737 $")
 
@@ -50,22 +50,22 @@ else:
         your python interpreter from there."""
         raise ImportError(msg)
 
-    #---------------------------------
+    # ---------------------------------
     # NetCDF changes stdout to terminal\
     # Causes trouble when using jupyter
-    #---------------------------------
+    # ---------------------------------
     import sys
     _stdout = sys.stdout
 
-    #---------------------------------
+    # ---------------------------------
     # Setup the nose tester from numpy
-    #---------------------------------
+    # ---------------------------------
     from numpy.testing import Tester
     test = Tester().test
 
-    #--------------------------------
+    # --------------------------------
     # Important basic classes
-    #--------------------------------
+    # --------------------------------
     from anuga.shallow_water.shallow_water_domain import Domain
     from anuga.abstract_2d_finite_volumes.quantity import Quantity
     from anuga.abstract_2d_finite_volumes.region import Region
@@ -77,9 +77,10 @@ else:
 
     from anuga.abstract_2d_finite_volumes.generic_domain import Generic_Domain
     from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
-    #------------------------------------------------------------------------------
+
+    # ------------------------------------------------------------------------------
     # Miscellaneous
-    #------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
     from anuga.abstract_2d_finite_volumes.util import file_function, \
                                             sww2timeseries, sww2csv_gauges, \
                                             csv2timeseries_graphs
@@ -121,9 +122,9 @@ else:
 
     from anuga.utilities.parse_time import parse_time
 
-    #----------------------------
+    # ----------------------------
     # Parallel api
-    #----------------------------
+    # ----------------------------
     ## from anuga_parallel.parallel_api import distribute
     ## from anuga_parallel.parallel_api import myid, numprocs, get_processor_name
     ## from anuga_parallel.parallel_api import send, receive
@@ -143,16 +144,14 @@ else:
         from anuga.parallel.parallel_api import sequential_distribute_dump
         from anuga.parallel.parallel_api import sequential_distribute_load
 
-
-    #-----------------------------
+    # -----------------------------
     # Checkpointing
-    #-----------------------------
+    # -----------------------------
     from anuga.shallow_water.checkpoint import load_checkpoint_file
 
-
-    #-----------------------------
+    # -----------------------------
     # SwW Standard Boundaries
-    #-----------------------------
+    # -----------------------------
     from anuga.shallow_water.boundaries import File_boundary
     from anuga.shallow_water.boundaries import Reflective_boundary
     from anuga.shallow_water.boundaries import Field_boundary
@@ -169,10 +168,9 @@ else:
     from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import \
                         Compute_fluxes_boundary
 
-
-    #-----------------------------
+    # -----------------------------
     # General Boundaries
-    #-----------------------------
+    # -----------------------------
     from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
                                 import Dirichlet_boundary
     from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
@@ -182,25 +180,20 @@ else:
     from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
                                 import Transmissive_boundary
 
-
-
-    #-----------------------------
+    # -----------------------------
     # Shallow Water Tsunamis
-    #-----------------------------
+    # -----------------------------
     from anuga.tsunami_source.smf import slide_tsunami, slump_tsunami
 
-
-
-    #-----------------------------
+    # -----------------------------
     # Forcing
     # These are old, should use operators
-    #-----------------------------
+    # -----------------------------
     from anuga.shallow_water.forcing import Inflow, Rainfall, Wind_stress
 
-
-    #-----------------------------
+    # -----------------------------
     # File conversion utilities
-    #-----------------------------
+    # -----------------------------
     from anuga.file_conversion.file_conversion import sww2obj
     from anuga.file_conversion.file_conversion import timefile2netcdf
     from anuga.file_conversion.file_conversion import tsh2sww
@@ -216,9 +209,9 @@ else:
     from anuga.file_conversion.dem2dem import dem2dem
     from anuga.file_conversion.sww2array import sww2array
 
-    #-----------------------------
+    # -----------------------------
     # Parsing arguments
-    #-----------------------------
+    # -----------------------------
     from anuga.utilities.argparsing import create_standard_parser
     from anuga.utilities.argparsing import parse_standard_args
 
@@ -231,30 +224,29 @@ else:
         parser = create_standard_parser()
         return parser.parse_args()
 
-
-    #-----------------------------
+    # -----------------------------
     # Running Script
-    #-----------------------------
+    # -----------------------------
     from anuga.utilities.run_anuga_script import run_script as run_anuga_script
 
-    #---------------------------
+    # ---------------------------
     # Simulation and Excel mesh_interface
-    #---------------------------
+    # ---------------------------
     from anuga.simulation.simulation import Simulation
 
-    #-----------------------------
+    # -----------------------------
     # Mesh API
-    #-----------------------------
+    # -----------------------------
     from anuga.pmesh.mesh_interface import create_mesh_from_regions
 
-    #-----------------------------
+    # -----------------------------
     # SWW file access
-    #-----------------------------
+    # -----------------------------
     from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
 
-    #---------------------------
+    # ---------------------------
     # Operators
-    #---------------------------
+    # ---------------------------
     from anuga.operators.kinematic_viscosity_operator import Kinematic_viscosity_operator
 
     from anuga.operators.rate_operators import Rate_operator
@@ -274,13 +266,9 @@ else:
     from anuga.operators.erosion_operators import Flat_slice_erosion_operator
     from anuga.operators.erosion_operators import Flat_fill_slice_erosion_operator
 
-
-
-
-    #---------------------------
+    # ---------------------------
     # Structure Operators
-    #---------------------------
-
+    # ---------------------------
 
     if pypar_available:
         from anuga.parallel.parallel_operator_factory import Inlet_operator
@@ -297,15 +285,13 @@ else:
 
     from anuga.structures.internal_boundary_functions import pumping_station_function
 
-    #----------------------------
+    # ----------------------------
     # Parallel distribute
-    #----------------------------
+    # ----------------------------
 
-
-    #----------------------------
+    # ----------------------------
     #
-    #Added by Petar Milevski 10/09/2013
-    #import time, os
+    # Added by Petar Milevski 10/09/2013
 
     from anuga.utilities.model_tools import get_polygon_from_single_file
     from anuga.utilities.model_tools import get_polygons_from_Mid_Mif
@@ -321,10 +307,9 @@ else:
     from anuga.utilities.model_tools import get_WCC_2002_Blockage_factor
     from anuga.utilities.model_tools import get_WCC_2016_Blockage_factor
 
-
-    #---------------------------
+    # ---------------------------
     # User Access Functions
-    #---------------------------
+    # ---------------------------
 
     from anuga.utilities.system_tools import get_user_name
     from anuga.utilities.system_tools import get_host_name
@@ -333,24 +318,23 @@ else:
     from anuga.utilities.system_tools import get_revision_date
     from anuga.utilities.mem_time_equation import estimate_time_mem
 
-
-    #-------------------------
+    # -------------------------
     # create domain functions
-    #-------------------------
+    # -------------------------
     from anuga.extras import create_domain_from_regions
     from anuga.extras import create_domain_from_file
     from anuga.extras import rectangular_cross_domain
 
 
     #import logging as log
-    from anuga.utilities import log
+    from anuga.utilities import log as log
 
     from anuga.config import g
     from anuga.config import velocity_protection
 
-    #--------------------------------------
+    # --------------------------------------
     # NetCDF changes stdout to the terminal
     # This resets it
-    #--------------------------------------
+    # --------------------------------------
     reload(sys)
     sys.stdout = _stdout

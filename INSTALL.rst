@@ -41,9 +41,9 @@ We try to maintain the *master* branch stable and
 `passing all tests <https://travis-ci.org/GeoscienceAustralia/anuga_core/branches>`_,
 so it should be safe to use.
 
-Follow these instructions to 
-`Install ANUGA on Ubuntu
-<https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu>`_
+Follow these instructions to
+`Install ANUGA on Ubuntu (using apt-get) <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu-(using-apt-get)>`_
+
 
 
 
@@ -61,30 +61,9 @@ Both Anaconda_ and Miniconda_ do not require administrative rights
 to your computer and do not interfere with the Python installed 
 in your system.
 
+Follow these instructions to 
+`Install ANUGA on Ubuntu (using Miniconda) <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu-(using-Miniconda)>`_
 
-Anaconda and Miniconda
-----------------------
-
-Once you have downloaded and installed Anaconda_ or Miniconda_
-open a terminal (or ``cmd.exe`` on Windows).
-
-With  Miniconda_, you can create 
-a specific environment for AnuGA, by running::
-
-    conda create -n anuga_env python=2.7
-    source activate anuga_env
-    
-    
-With either Anaconda_ or Miniconda_ you can now install the dependencies by running::
-
-    conda install pip nose numpy scipy matplotlib netcdf4
-    conda install -c pingucarsti gdal 
-    
-and setup GDAL_DATA environment variable::
-
-    export GDAL_DATA=`gdal-config --datadir` 
-    
-(You should add this command to your .bashrc file.)    
 
 
 Windows 10 Install using 'Ubuntu on Windows'
@@ -93,9 +72,7 @@ Windows 10 Install using 'Ubuntu on Windows'
 Starting from Windows 10, it is possible to run an Ubuntu Bash console from Windows. This can greatly simplify the install for Windows users. You'll still need administrator access though. 
 
 Follow the instructions 
-`Install ANUGA on Window 10 using Ubuntu for Windows
-<https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-10-using-'Ubuntu-on-Windows'>`_
-
+`Install ANUGA on Window 10 using Ubuntu for Windows <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-10-using-Ubuntu-on-Windows'>`_
 
 
 
@@ -103,15 +80,17 @@ Native Windows Installation
 ===============================
 
 We have successfully installed AnuGA 'natively' on windows using Gohlke Binaries and using Miniconda. 
-At present we recommend using the Gohlke Binaries. 
+At present we recommend using the Miniconda. 
 
-Follow the instructions 
+Follow the instructions  
+`install ANUGA on Windows using Miniconda
+<https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-using-Miniconda>`_
+
+Alternatively follow the instructions 
 `install ANUGA on Windows using the Gohlke Binaries
 <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-using-Gohlke-Binaries>`_
 
-Alternatively if you want to use Miniconda, follow the instructions 
-`install ANUGA on Windows using Miniconda
-<https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-using-Miniconda>`_
+
 
 
 

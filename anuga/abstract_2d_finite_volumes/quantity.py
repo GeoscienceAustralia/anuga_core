@@ -13,14 +13,16 @@ To create:
    If vertex_values are None Create array of zeros compatible with domain.
    Otherwise check that it is compatible with dimensions of domain.
    Otherwise raise an exception
-   
+
    For Quantities that need to be saved during checkpointing, set register=True. Registered
-   Quantities can be found in the dictionary domain.quantities (note, other Quantities can 
-   exist). 
+   Quantities can be found in the dictionary domain.quantities (note, other Quantities can
+   exist).
 """
 
 import types
 import os.path
+
+from warnings import warn
 
 from anuga.utilities.numerical_tools import ensure_numeric, is_scalar
 from anuga.geometry.polygon import inside_polygon
@@ -45,7 +47,7 @@ class Quantity:
                             import Generic_Domain
 
         msg = ('First argument in Quantity.__init__() must be of class %s '
-               '(or a subclass thereof). I got %s.' 
+               '(or a subclass thereof). I got %s.'
                % (str(Generic_Domain.__name__),str(domain.__class__)))
         assert isinstance(domain, Generic_Domain), msg
 
@@ -97,7 +99,7 @@ class Quantity:
         Quantity.counter += 1
 
         self.set_name(name)
-        
+
         # Lets register the quantity with the quantity (useful for checkpointing)
         if register:
             self.domain.quantities[self.name] = self
@@ -266,7 +268,7 @@ class Quantity:
 
         return self
 
-        
+
 
 
     def minimum(self, other):
@@ -297,7 +299,7 @@ class Quantity:
     ############################################################################
     # Setters/Getters
     ############################################################################
-    
+
     def save_centroid_data_to_csv(self,filename=None):
 
 
@@ -403,10 +405,10 @@ class Quantity:
             filename = self.name+'.png'
 
         plt.savefig(filename)
-        
+
         if draw:
             plt.draw()
-        
+
 
     def save_to_array(self,
                 cellsize=None,
@@ -418,130 +420,130 @@ class Quantity:
                 northing_max=None,
                 origin=None,
                 verbose=False):
-        
+
         """Interpolate quantity to an array
         """
-    
+
 
         verbose = False
-        
-    
+
+
         #Get extent and reference
-        
+
         domain = self.domain
 
         volumes = domain.triangles
-        
+
         #smooth = True
 
         x,y,a,v= self.get_vertex_values(xy=True, smooth=smooth)
-        
-        
+
+
         false_easting = 500000
         false_northing = 10000000
-    
-    
-    
+
+
+
         geo_ref = self.domain.geo_reference
-        
+
         xllcorner = geo_ref.get_xllcorner()
         yllcorner = geo_ref.get_yllcorner()
-        
-        if verbose: 
-            print 
+
+        if verbose:
+            print
             print xllcorner
             print yllcorner
             print x
             print y
             print node_coordinates[:,0]
             print node_coordinates[:,1]
-            
-        
-        
+
+
+
         # Create grid and update xll/yll corner and x,y
         # Relative extent
         if easting_min is None:
             xmin = min(x)
         else:
             xmin = easting_min - xllcorner
-    
+
         if easting_max is None:
             xmax = max(x)
         else:
             xmax = easting_max - xllcorner
-    
+
         if northing_min is None:
             ymin = min(y)
         else:
             ymin = northing_min - yllcorner
-    
+
         if northing_max is None:
             ymax = max(y)
         else:
             ymax = northing_max - yllcorner
-    
+
         msg = 'Implementation of Quantity.save_to_array() is not completed'
         #raise Exception, msg
-    
-        
+
+
         msg = 'xmax must be greater than or equal to xmin.\n'
         msg += 'I got xmin = %f, xmax = %f' %(xmin, xmax)
         assert xmax >= xmin, msg
-    
+
         msg = 'ymax must be greater than or equal to xmin.\n'
         msg += 'I got ymin = %f, ymax = %f' %(ymin, ymax)
         assert ymax >= ymin, msg
-        
-        
+
+
         if verbose: log.critical('Creating grid')
-        
+
         xrange = xmax-xmin
         yrange = ymax-ymin
-        
+
         if cellsize is None:
             cellsize = max(xrange,yrange)/10.0
-    
- 
+
+
         ncols = int(xrange/cellsize) + 1
         nrows = int(yrange/cellsize) + 1
-    
+
         # New absolute reference and coordinates
         newxllcorner = xmin + xllcorner
         newyllcorner = ymin + yllcorner
-    
+
         x = x + xllcorner - newxllcorner
         y = y + yllcorner - newyllcorner
-    
-    
+
+
         grid_values = num.zeros( (nrows*ncols, ), num.float)
 
-    
+
         num_tri =  len(v)
         norms = num.zeros(6*num_tri, num.float)
 
-    
+
         #Use fast method to calc grid values
         from anuga.file_conversion.calc_grid_values_ext import calc_grid_values
-    
+
         calc_grid_values(nrows, ncols, cellsize, NODATA_value,
                          x,y, norms, v, a, grid_values)
-    
-    
+
+
         y_g = num.arange(nrows)*cellsize + yllcorner - newyllcorner
         x_g = num.arange(ncols)*cellsize + xllcorner - newxllcorner
         #print outside_indices
-    
+
         if verbose:
             log.critical('Interpolated values are in [%f, %f]'
                          % (num.min(grid_values), num.max(grid_values)))
-    
-    
+
+
         return x_g,y_g, grid_values.reshape(nrows,ncols)#[::-1,:]
 
 
 
     def set_name(self, name=None):
-        
+
         if name is not None:
             self.name = name
         else:
@@ -553,7 +555,7 @@ class Quantity:
 
         return self.name
 
-    
+
     def set_beta(self, beta):
         """Set default beta value for limiting """
 
@@ -636,7 +638,7 @@ class Quantity:
         """Set boundary values from array """
 
         assert len(array)  == len(self.domain.boundary_enumeration)
-        
+
         #for (vol_id, edge_id) , j in self.domain.boundary_enumeration.items():
         #[x,y] = self.domain.get_edge_midpoint_coordinates(vol_id)[edge_id]
         self.boundary_values[:] = array
@@ -734,12 +736,12 @@ class Quantity:
           Arbitrary geo spatial dataset in the form of the class
           Geospatial_data. Mesh points are populated using
           fit_interpolate.fit fitting
-          
+
 
         filename:
           Name of a points file or dem file (.asc or .grd or .dem) containing data points and attributes for
           use with fit_interpolate.fit.
-          
+
         raster:
           A class or a tuple (x,y,Z)
 
@@ -854,7 +856,7 @@ class Quantity:
         for entry in L:
             if entry is None:
                 count = count + 1
-                
+
         assert count == len(L)-1, msg
 
         if location == 'edges':
@@ -918,7 +920,7 @@ class Quantity:
                                       indices, verbose=verbose,
                                       max_read_lines=max_read_lines,
                                       use_cache=use_cache)
-            # dem file in the format of .asc, .grd or .dem 
+            # dem file in the format of .asc, .grd or .dem
             elif filename_ext in ['.asc', '.grd', '.dem']:
                 self.set_values_from_utm_grid_file(filename, location,
                       indices, verbose=verbose)
@@ -926,9 +928,9 @@ class Quantity:
                 raise Exception('Extension should be .pts .dem, .csv, .txt, .asc or .grd')
 
         elif raster is not None:
-            self.set_values_from_utm_raster(raster, 
-                                            location=location, 
-                                            indices=indices, 
+            self.set_values_from_utm_raster(raster,
+                                            location=location,
+                                            indices=indices,
                                             verbose=verbose)
         else:
             raise Exception("This can't happen :-)")
@@ -1134,7 +1136,7 @@ class Quantity:
             x = V[:,0];
             y = V[:,1]
             if use_cache is True:
-                values = cache(f, (x, y), verbose=verbose)                
+                values = cache(f, (x, y), verbose=verbose)
             else:
                 if verbose is True:
                     log.critical('Evaluating function in set_values')
@@ -1244,16 +1246,16 @@ class Quantity:
 
         msg = 'Filename must be a text string'
         assert isinstance(filename, basestring), msg
-        
+
         msg = 'Extension should be .pts .dem, .csv, or txt'
         assert os.path.splitext(filename)[1] in ['.pts', '.dem', '.csv', '.txt'], msg
-        
+
 
         if location != 'vertices':
             msg = "set_values_from_file is only defined for location='vertices'"
             raise Exception(msg)
 
-            
+
         if True:
             # Use mesh as defined by domain
             # This used to cause problems for caching due to quantities
@@ -1270,7 +1272,7 @@ class Quantity:
         else:
             # This variant will cause Mesh object to be recreated
             # in fit_to_mesh thus doubling up on the neighbour structure
-            # FIXME(Ole): This is now obsolete 19 Jan 2009 except for bug 
+            # FIXME(Ole): This is now obsolete 19 Jan 2009 except for bug
             # (ticket:314) which was fixed 18 March 2009.
             nodes = self.domain.get_nodes(absolute=True)
             triangles = self.domain.get_triangles()
@@ -1289,19 +1291,19 @@ class Quantity:
         self.set_values_from_array(vertex_attributes, location,
                                    indices, use_cache=use_cache,
                                    verbose=verbose)
-        
-        
-        
-        
-        
+
+
+
+
+
     def set_values_from_utm_grid_file(self,
                              filename,
                              location='vertices',
                              indices=None,
                              verbose=False):
-        
+
         """Read Digital Elevation model from the following ASCII format (.asc, .grd or .dem)
-    
+
         Example:
         ncols         3121
         nrows         1800
@@ -1310,13 +1312,13 @@ class Quantity:
         cellsize      25
         NODATA_value  -9999
         138.3698 137.4194 136.5062 135.5558 ..........
-    
-    
+
+
         An accompanying file with same basename but extension .prj must exist
         and is used to fix the UTM zone, datum, false northings and eastings.
-    
+
         The prj format is assumed to be as
-    
+
         Projection    UTM
         Zone          56
         Datum         WGS84
@@ -1327,41 +1329,41 @@ class Quantity:
         Yshift        10000000.0000000000
         Parameters
         """
-        
-        
-        
+
+
+
         from anuga.file_conversion.grd2array import grd2array
         from anuga.file_conversion.dem2array import dem2array
-        
+
         filename_ext = os.path.splitext(filename)[1]
-        
+
         if filename_ext in ['.asc', '.grd']:
             x,y,Z = grd2array(filename)
         elif filename_ext == '.dem':
             x,y,Z = dem2array(filename)
-        
+
         if location == 'centroids':
             points = self.domain.centroid_coordinates
-        
+
         else:
             points = self.domain.vertex_coordinates
-            
+
         from anuga.geospatial_data.geospatial_data import Geospatial_data,  ensure_absolute
-        
-        points = ensure_absolute(points, geo_reference=self.domain.geo_reference)        
-        
-        from  anuga.fit_interpolate.interpolate2d import interpolate2d 
-        
-        #print points 
+
+        points = ensure_absolute(points, geo_reference=self.domain.geo_reference)
+
+        from  anuga.fit_interpolate.interpolate2d import interpolate2d
+
+        #print points
         values = interpolate2d(x, y, Z, points, mode='linear', bounds_error=False)
-        
+
         #print values
 
         # Call underlying method using array values
         if verbose:
             log.critical('Applying fitted data to quantity')
-            
-        
+
+
         if location == 'centroids':
             if indices is None:
                 msg = 'Number of values must match number of elements'
@@ -1380,7 +1382,7 @@ class Quantity:
                 #assert values.shape[0] == N, msg
 
                 #print values.shape
-                #print self.vertex_values.shape 
+                #print self.vertex_values.shape
                 self.vertex_values[:] = values.reshape((-1,3))
             else:
                 msg = 'Number of values must match number of indices'
@@ -1390,41 +1392,41 @@ class Quantity:
                 self.vertex_values[indices] = values.reshape((-1,3))
             # Cleanup centroid values
             self.interpolate()
-            
-            
+
+
     def set_values_from_utm_raster(self,
                              raster,
                              location='vertices',
                              indices=None,
                              verbose=False):
-        
 
-        
+
+
         x,y,Z = raster
-        
-        
+
+
         if location == 'centroids':
             points = self.domain.centroid_coordinates
-        
+
         else:
             points = self.domain.vertex_coordinates
-            
+
         from anuga.geospatial_data.geospatial_data import ensure_absolute
-        
-        points = ensure_absolute(points, geo_reference=self.domain.geo_reference)        
-        
+
+        points = ensure_absolute(points, geo_reference=self.domain.geo_reference)
+
         from  anuga.fit_interpolate.interpolate2d import interpolate_raster
-        
-        #print points 
+
+        #print points
         values = interpolate_raster(x, y, Z, points, mode='linear', bounds_error=False)
-        
+
         #print values
 
         # Call underlying method using array values
         if verbose:
             log.critical('Applying fitted data to quantity')
-            
-        
+
+
         if location == 'centroids':
             if indices is None:
                 msg = 'Number of values must match number of elements'
@@ -1443,7 +1445,7 @@ class Quantity:
                 #assert values.shape[0] == N, msg
 
                 #print values.shape
-                #print self.vertex_values.shape 
+                #print self.vertex_values.shape
                 self.vertex_values[:] = values.reshape((-1,3))
             else:
                 msg = 'Number of values must match number of indices'
@@ -1451,20 +1453,20 @@ class Quantity:
 
                 # Brute force
                 self.vertex_values[indices] = values.reshape((-1,3))
-            
+
             # Cleanup centroid values
             self.interpolate()
-            
-                        
-            
+
+
+
     def set_values_from_lat_long_grid_file(self,
                              filename,
                              location='vertices',
                              indices=None,
                              verbose=False):
-        
+
         """Read Digital Elevation model from the following ASCII format (.asc or .grd)
-    
+
         Example:
         ncols         3121
         nrows         1800
@@ -1473,13 +1475,13 @@ class Quantity:
         cellsize      25
         NODATA_value  -9999
         138.3698 137.4194 136.5062 135.5558 ..........
-    
-    
+
+
         An accompanying file with same basename but extension .prj must exist
         and is used to fix the UTM zone, datum, false northings and eastings.
-    
+
         The prj format is assumed to be as
-    
+
         Projection    UTM
         Zone          56
         Datum         WGS84
@@ -1497,37 +1499,37 @@ class Quantity:
 
         msg = 'Filename must be a text string'
         assert isinstance(filename, basestring), msg
-        
+
         msg = 'Extension should be .grd or asc'
         assert os.path.splitext(filename)[1] in ['.grd', '.asc'], msg
-        
+
 
         msg = "set_values_from_grd_file is only defined for location='vertices' or 'centroids'"
         assert location in ['vertices', 'centroids'], msg
 
-    
+
         root = filename[:-4]
-    
-    
+
+
         #Read DEM data
         datafile = open(filename)
-    
+
         if verbose: log.critical('Reading data from %s' % (filename))
-        
+
         lines = datafile.readlines()
         datafile.close()
-    
-    
+
+
         if verbose: log.critical('Got %d lines' % len(lines))
-    
+
         # Parse the line data
         ncols = int(lines[0].split()[1].strip())
         nrows = int(lines[1].split()[1].strip())
 
-    
+
         # Do cellsize (line 4) before line 2 and 3
         cellsize = float(lines[4].split()[1].strip())
-    
+
         # Checks suggested by Joaquim Luis
         # Our internal representation of xllcorner
         # and yllcorner is non-standard.
@@ -1539,7 +1541,7 @@ class Quantity:
         else:
             msg = 'Unknown keyword: %s' % xref[0].strip()
             raise Exception, msg
-    
+
         yref = lines[3].split()
         if yref[0].strip() == 'yllcorner':
             yllcorner = float(yref[1].strip()) # + 0.5*cellsize # Correct offset
@@ -1548,69 +1550,69 @@ class Quantity:
         else:
             msg = 'Unknown keyword: %s' % yref[0].strip()
             raise Exception, msg
-    
+
         NODATA_value = int(float(lines[5].split()[1].strip()))
-    
+
         assert len(lines) == nrows + 6
-    
-  
+
+
         #Store data
         import numpy
-    
+
         datafile = open(filename)
         Z = numpy.loadtxt(datafile, skiprows=6)
         datafile.close()
-        
+
         #print Z.shape
         #print Z
-        
+
         # For raster data we need to a flip and transpose
         Z = numpy.flipud(Z)
 
         # Transpose z to have y coordinates along the first axis and x coordinates
         # along the second axis
         Z = Z.transpose()
-    
+
         x = num.linspace(xllcorner, xllcorner+cellsize*(ncols-1), ncols)
         y = num.linspace(yllcorner, yllcorner+cellsize*(nrows-1), nrows)
-        
-        
+
+
         if location == 'centroids':
             points = self.domain.centroid_coordinates
         else:
             points = self.domain.vertex_coordinates
-            
+
         from anuga.geospatial_data.geospatial_data import Geospatial_data,  ensure_absolute
         points = ensure_absolute(points, geo_reference=self.domain.geo_reference)
-            
+
 #         print numpy.max(points[:,0])
 #         print numpy.min(points[:,0])
 #         print numpy.max(points[:,1])
 #         print numpy.min(points[:,1])
-#         
+#
 #         print numpy.max(x)
 #         print numpy.min(x)
 #         print numpy.max(y)
 #         print numpy.min(y)
-        
-        
+
+
         #print x.shape, x
         #print y.shape, y
-        
-        
-        
-        from  anuga.fit_interpolate.interpolate2d import interpolate2d 
-        
-        #print points 
+
+
+
+        from  anuga.fit_interpolate.interpolate2d import interpolate2d
+
+        #print points
         values = interpolate2d(x, y, Z, points, mode='linear', bounds_error=False)
-        
+
         #print values
 
         # Call underlying method using array values
         if verbose:
             log.critical('Applying fitted data to quantity')
-            
-        
+
+
         if location == 'centroids':
             if indices is None:
                 msg = 'Number of values must match number of elements'
@@ -1629,7 +1631,7 @@ class Quantity:
                 #assert values.shape[0] == N, msg
 
                 #print values.shape
-                #print self.vertex_values.shape 
+                #print self.vertex_values.shape
                 self.vertex_values[:] = values.reshape((-1,3))
             else:
                 msg = 'Number of values must match number of indices'
@@ -1639,7 +1641,7 @@ class Quantity:
                 self.vertex_values[indices] = values.reshape((-1,3))
             # Cleanup centroid values
             self.interpolate()
-                            
+
     def get_extremum_index(self, mode=None, indices=None):
         """Return index for maximum or minimum value of quantity (on centroids)
 
@@ -1829,7 +1831,7 @@ class Quantity:
                      and unique vertices. Default is 'vertices'
 
 
-        The returned values will have the leading dimension equal to 
+        The returned values will have the leading dimension equal to
         length of the indices list or N (all values) if indices is None.
 
         In case of location == 'centroids' the dimension of returned
@@ -1845,8 +1847,8 @@ class Quantity:
 
         Indices is the set of element ids that the operation applies to.
         If indices is None (or omitted) all elements are returned as
-        a copy of the relevant array. If performance is critical, 
-        use arrays domain.centroid_values, domain.vertex_values and 
+        a copy of the relevant array. If performance is critical,
+        use arrays domain.centroid_values, domain.vertex_values and
         domain.edge_values directly.
 
         The values will be stored in elements following their
@@ -1869,7 +1871,7 @@ class Quantity:
         # elsewhere in ANUGA.
         # Edges have already been deprecated in set_values, see changeset:5521,
         # but *might* be useful in get_values. Any thoughts anyone?
-        # YES (Ole): Edge values are necessary for volumetric balance 
+        # YES (Ole): Edge values are necessary for volumetric balance
         # check and inflow boundary. Keep them!
 
         if location not in ['vertices', 'centroids',
@@ -1889,7 +1891,7 @@ class Quantity:
         elif location == 'edges':
             if indices is  None:
                 return self.edge_values.copy()
-            else:    
+            else:
                 return num.take(self.edge_values, indices, axis=0)
         elif location == 'unique vertices':
             if indices is None:
@@ -1916,12 +1918,12 @@ class Quantity:
                     for triangle_id, vertex_id in triangles:
                         sum += self.vertex_values[triangle_id, vertex_id]
                 vert_values.append(sum / len(triangles))
-                        
+
             return num.array(vert_values, num.float)
         else:
             if indices is None:
                 return self.vertex_values.copy()
-            else:    
+            else:
                 return num.take(self.vertex_values, indices, axis=0)
 
     def set_vertex_values(self,
@@ -2043,7 +2045,7 @@ class Quantity:
             A = num.zeros(N, num.float)
             points = self.domain.get_nodes()
 
-            if 1:
+            if True:
                 # Fast C version
                 if self.domain.get_using_discontinuous_elevation():
                     average_centroid_values(ensure_numeric(self.domain.vertex_value_indices),
@@ -2062,25 +2064,34 @@ class Quantity:
                 k = 0 # Track triangles touching on node
                 total = 0.0
                 for index in self.domain.vertex_value_indices:
-                    if current_node == N:
-                        msg = 'Current node exceeding number of nodes (%d) ' % N
-                        raise Exception(msg)
 
-                    k += 1
-
-                    volume_id = index / 3
-                    vertex_id = index % 3
-
-                    v = self.vertex_values[volume_id, vertex_id]
-                    total += v
-
-                    if self.domain.number_of_triangles_per_node[current_node] == k:
-                        A[current_node] = total/k
-
-                        # Move on to next node
+                    if self.domain.number_of_triangles_per_node[current_node] == 0:
                         total = 0.0
                         k = 0
                         current_node += 1
+                    else:
+
+                        if current_node == N:
+                            msg = 'Current node exceeding number of nodes (%d) ' % N
+                            raise Exception(msg)
+
+                        k += 1
+
+                        volume_id = index / 3
+                        vertex_id = index % 3
+
+                        v = self.vertex_values[volume_id, vertex_id]
+                        total += v
+
+                        if self.domain.number_of_triangles_per_node[current_node] == k:
+                            A[current_node] = total/k
+
+                            # Move on to next node
+                            total = 0.0
+                            k = 0
+                            current_node += 1
+
+
         else:
             # Return disconnected internal vertex values
             V = self.domain.get_disconnected_triangles()
@@ -2124,7 +2135,7 @@ class Quantity:
 
         assert region is None or indices is None
 
-        
+
         areas = self.domain.get_areas()
 
         if region is None and indices is None:

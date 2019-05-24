@@ -5,7 +5,6 @@
 
 import numpy as num
 
-
 from anuga import Domain
 
 from anuga.parallel.distribute_mesh  import send_submesh
@@ -217,7 +216,7 @@ def sequential_distribute_dump(domain, numprocs=1, verbose=False, partition_dir=
     """
 
     from os.path import join
-    
+
     partition = Sequential_distribute(domain, verbose, debug, parameters)
 
     partition.distribute(numprocs)
@@ -234,17 +233,29 @@ def sequential_distribute_dump(domain, numprocs=1, verbose=False, partition_dir=
             if exception.errno != errno.EEXIST:
                 raise
 
-    
+    import cPickle
     for p in range(0, numprocs):
 
         tostore = partition.extract_submesh(p) 
 
-        import cPickle
         pickle_name = partition.domain_name + '_P%g_%g.pickle'% (numprocs,p)
         pickle_name = join(partition_dir,pickle_name)
         f = file(pickle_name, 'wb')
-        cPickle.dump( tostore, f, protocol=cPickle.HIGHEST_PROTOCOL)
 
+	lst = list(tostore)
+	
+	# Write points and triangles to their own files
+	num.save(pickle_name+".np1",tostore[1],allow_pickle=False) # this append .npy to filename
+	lst[1] = pickle_name+".np1.npy"
+	num.save(pickle_name+".np2",tostore[2],allow_pickle=False)
+	lst[2] = pickle_name+".np2.npy"
+	
+	# Write each quantity to it's own file
+	for k in tostore[4]:
+		num.save(pickle_name+".np4."+k,num.array(tostore[4][k]),allow_pickle=False)
+		lst[4][k] = pickle_name+".np4."+k+".npy"
+	
+	cPickle.dump( tuple(lst), f, protocol=cPickle.HIGHEST_PROTOCOL)
     return
 
 
@@ -257,7 +268,7 @@ def sequential_distribute_load(filename = 'domain', partition_dir = '.', verbose
 
     pickle_name = filename+'_P%g_%g.pickle'% (numprocs,myid)
     pickle_name = join(partition_dir,pickle_name) 
-    
+
     return sequential_distribute_load_pickle_file(pickle_name, numprocs, verbose = verbose)
 
 
@@ -265,9 +276,9 @@ def sequential_distribute_load_pickle_file(pickle_name, np=1, verbose = False):
     """
     Open pickle files
     """
-    
-    import cPickle    
+
     f = file(pickle_name, 'rb')
+    import cPickle
 
     kwargs, points, vertices, boundary, quantities, boundary_map, \
                    domain_name, domain_dir, domain_store, domain_store_centroids, \
@@ -275,6 +286,11 @@ def sequential_distribute_load_pickle_file(pickle_name, np=1, verbose = False):
                    domain_flow_algorithm, domain_georef, \
                    domain_quantities_to_be_stored, domain_smooth = cPickle.load(f)
     f.close()
+
+    for k in quantities:
+	    quantities[k] = num.load(quantities[k])
+    points = num.load(points)
+    vertices = num.load(vertices)
 
     #---------------------------------------------------------------------------
     # Create domain (parallel if np>1)
