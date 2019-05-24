@@ -15,6 +15,7 @@ from anuga.file.netcdf import NetCDFFile
 from anuga.file_conversion.file_conversion import tsh2sww
 from anuga.file_conversion.file_conversion import timefile2netcdf
 
+from anuga.anuga_exceptions import *
 
 from anuga.file.mux import WAVEHEIGHT_MUX_LABEL, EAST_VELOCITY_LABEL, \
                             NORTH_VELOCITY_LABEL
@@ -52,8 +53,8 @@ def axes2points(x, y):
              [2, 20],
              [3, 20]]
     """
-    import numpy 
-    
+    import numpy
+
     # Reverse y coordinates to have them start at bottom of array
     y = numpy.flipud(y)
 
@@ -89,10 +90,10 @@ class Test_File_Conversion(unittest.TestCase):
 
     def set_verbose(self):
         Test_File_Conversion.verbose = True
-        
+
     def setUp(self):
         import time
-        
+
         self.verbose = Test_File_Conversion.verbose
         # Create basic mesh
         points, vertices, boundary = rectangular(2, 2)
@@ -127,7 +128,7 @@ class Test_File_Conversion(unittest.TestCase):
         domain.set_quantity('stage', stage)
 
 
-        domain.distribute_to_vertices_and_edges()               
+        domain.distribute_to_vertices_and_edges()
         self.initial_stage = copy.copy(domain.quantities['stage'].vertex_values)
 
 
@@ -222,7 +223,7 @@ class Test_File_Conversion(unittest.TestCase):
             try:
                 os.remove(file)
             except:
-                pass             
+                pass
 
     def test_ferret2sww1(self):
         """Test that georeferencing etc works when converting from
@@ -355,19 +356,19 @@ class Test_File_Conversion(unittest.TestCase):
 
 
         for i in range(stage_1.shape[0]):
-            for j in range(stage_1.shape[1]):            
+            for j in range(stage_1.shape[1]):
                 if depth_1[i,j] > epsilon:
 
                     scale = depth_5[i,j]/depth_1[i,j]
                     ref_xmomentum = xmomentum_1[i,j] * scale
                     ref_ymomentum = ymomentum_1[i,j] * scale
-                    
+
                     #print i, scale, xmomentum_1[i,j], xmomentum_5[i,j]
-                    
+
                     assert num.allclose(xmomentum_5[i,j], ref_xmomentum)
                     assert num.allclose(ymomentum_5[i,j], ref_ymomentum)
-                    
-        
+
+
 
         fid.close()
 
@@ -446,7 +447,7 @@ class Test_File_Conversion(unittest.TestCase):
         #The test file has
         # LON = 150.66667, 150.83334, 151, 151.16667
         # LAT = -34.5, -34.33333, -34.16667, -34 ;
-        
+
         #Read
         from anuga.coordinate_transforms.redfearn import redfearn
         fid = NetCDFFile(self.test_MOST_file + '_ha.nc')
@@ -487,7 +488,7 @@ class Test_File_Conversion(unittest.TestCase):
         #The test file has
         # LON = 150.66667, 150.83334, 151, 151.16667
         # LAT = -34.5, -34.33333, -34.16667, -34 ;
-        
+
         #Read
         from anuga.coordinate_transforms.redfearn import redfearn
         fid = NetCDFFile(self.test_MOST_file + '_ha.nc')
@@ -520,7 +521,7 @@ class Test_File_Conversion(unittest.TestCase):
         #Cleanup
         import os
         os.remove(self.test_MOST_file + '.sww')
-        
+
     def test_ferret2sww3(self):
         """Elevation included
         """
@@ -877,7 +878,7 @@ class Test_File_Conversion(unittest.TestCase):
         #The test file has
         # LON = 150.66667, 150.83334, 151, 151.16667
         # LAT = -34.5, -34.33333, -34.16667, -34 ;
-        
+
         #Read
         from anuga.coordinate_transforms.redfearn import redfearn
         fid = NetCDFFile(self.test_MOST_file + '_ha.nc')
@@ -909,7 +910,7 @@ class Test_File_Conversion(unittest.TestCase):
         self.domain.smooth = True
         self.domain.reduction = mean
         self.domain.set_datadir('.')
-        #self.domain.tight_slope_limiters = 1        
+        #self.domain.tight_slope_limiters = 1
 
 
         sww = SWW_file(self.domain)
@@ -965,10 +966,10 @@ class Test_File_Conversion(unittest.TestCase):
 
         # Should pass
         timefile2netcdf(file_text, time_as_seconds=True)
-        
+
         #os.remove(root+'.tms')
         os.remove(root+'.txt')
-        
+
 
     def test_timefile2netcdf(self):
 
@@ -988,8 +989,9 @@ class Test_File_Conversion(unittest.TestCase):
         # Expecting error to be raised
         try:
             timefile2netcdf(file_text,time_as_seconds=True)
-        except:
+        except DataTimeError:
             pass
+
 
         # Should pass
         timefile2netcdf(file_text)
@@ -997,7 +999,7 @@ class Test_File_Conversion(unittest.TestCase):
         #os.remove(root+'.tms')
         os.remove(root+'.txt')
 
-    
+
     def test_grd2array_dem2array(self):
         '''test the conversion result of grd to array and dem to array. The pts files should be the same'''
 	#ANUGA models
@@ -1006,7 +1008,7 @@ class Test_File_Conversion(unittest.TestCase):
 	from anuga.file_conversion.asc2dem import asc2dem
 
         #Create .asc file. Uses the example from test_grd2array.py
-        """ Format of asc file 
+        """ Format of asc file
         ncols         11
         nrows         12
         xllcorner     240000
@@ -1014,17 +1016,17 @@ class Test_File_Conversion(unittest.TestCase):
         cellsize      6000
         NODATA_value  -9999
         """
-        
+
         x0 = 0.0
         y0 = 0.0
-        
+
         ncols = 11  # Nx
         nrows = 12  # Ny
         xllcorner = x0
         yllcorner = y0
         cellsize  = 1.0
         NODATA_value =  -9999
-        
+
         #Create .asc file
         root = 'test_asc'
         txt_file = root+'.asc'
@@ -1035,7 +1037,7 @@ class Test_File_Conversion(unittest.TestCase):
         datafile.write('yllcorner '+str(yllcorner)+"\n")
         datafile.write('cellsize '+str(cellsize)+"\n")
         datafile.write('NODATA_value '+str(NODATA_value)+"\n")
-        
+
         x_ex = num.linspace(xllcorner, xllcorner+(ncols-1)*cellsize, ncols)
         y_ex = num.linspace(yllcorner, yllcorner+(nrows-1)*cellsize, nrows)
         Z_ex = [[  0.,  3.,  6.,  9., 12., 15., 18., 21., 24., 27., 30., 33.],
@@ -1051,18 +1053,18 @@ class Test_File_Conversion(unittest.TestCase):
                  [ 10., 13., 16., 19., 22., 25., 28., 31., 34., 37., 40., 43.]]
 
         points = axes2points(x_ex, y_ex)
-        
+
         datavalues = linear_function(points)
         datavalues = datavalues.reshape(nrows,ncols)
 
         for row in datavalues:
             #print row
-            datafile.write(" ".join(str(elem) for elem in row) + "\n")         
+            datafile.write(" ".join(str(elem) for elem in row) + "\n")
         datafile.close()
 
 
         #create dem file from asc file
-	txt_file_prj = root+'.prj' 
+	txt_file_prj = root+'.prj'
 	fid = open(txt_file_prj, 'w')
 	fid.write("""Projection UTM
 	Zone 56
@@ -1075,7 +1077,7 @@ class Test_File_Conversion(unittest.TestCase):
 	Parameters
 	""")
 	fid.close()
-	
+
 	txt_file_dem = root+'.dem'
 	asc2dem(name_in=txt_file, name_out=root,
 	        use_cache=False, verbose=False)
@@ -1084,7 +1086,7 @@ class Test_File_Conversion(unittest.TestCase):
         x_grd, y_grd, Z_grd = grd2array(txt_file)
 	#convert dem to array
         x_dem, y_dem, Z_dem = dem2array(txt_file_dem)
-        
+
 	#check grd2array and dem2array results are equal
 	assert num.allclose(x_grd, x_dem)
 	assert num.allclose(y_grd, y_dem)
@@ -1108,4 +1110,3 @@ if __name__ == "__main__":
     suite = unittest.makeSuite(Test_File_Conversion,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
-
