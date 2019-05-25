@@ -1,7 +1,6 @@
 \documentclass{article}
 \usepackage{datatool}
 \usepackage{graphicx}
-\usepackage{datatool}
 
 \begin{document}
 
@@ -10,45 +9,59 @@
 \maketitle
 
 \section{Introduction}
-This is a model of the Pasha Bulker flood (June 2007) in part of Merewether,
-Newcastle, Australia. It was developed by the UNSW Water Reseach Laboratory (WRL),
-and various information on the event is reported in `ARR Project 15: Two
+This is a model of the Pasha Bulker flood (June 2007) in suburb of Merewether,
+Newcastle, Australia. The study was developed by the UNSW Water Reseach Laboratory (WRL),
+and information on the event is reported in `ARR Project 15: Two
 dimensional simulations in urban areas, Representation of buildings in 2D
-numerical flood models'. This chapter should be consulted for details on this
+numerical flood models'. This reference should be consulted for details on this
 test case, and reports on the performance of other models. 
 
-The ANUGA model was initially developed by WRL (who gave us permission to
+The ANUGA model used here was initially developed by WRL (who gave us permission to
 include it here) and further refined by ANUGA developers to include variable
 friction (with roads having a manning's n of 0.02, and everywhere else having
 0.04), an inlet operator, and options for either using buildings as topography, or
 buildings cut out of the mesh.
 
 \section{Results}
-Table~\ref{tab:comparison} compares the observed peak stage during the flood to
-ANUGA, and also values for a TUFLOW model which are reported in the ARR Project
+
+\DTLloaddb{comparison}{Stage_point_comparison.csv}
+
+\begin{table}[h]
+\caption{Comparison of peak stage field observations, the ANUGA model, and a
+TUFLOW model (developed by WRL). See the ARR project 15 report for more
+information}
+\label{tab:comparison}
+\begin{center}
+\DTLdisplaydb{comparison}
+\end{center}
+\end{table}
+
+Table~\ref{tab:comparison} compares the observed peak stage during the flood with the
+ANUGA simulated results, and also the values for a TUFLOW model which are reported in the ARR Project
 15 report. The ANUGA values should be similar to the field observations, and
 even more-so to the TUFLOW numerical model values. This suggests both models
 are giving a similar solution, with the main source of errors being related to
 the input data and the shallow water assumptions, rather than the numerical
 scheme.
 
-\DTLloaddb{comparison}{Stage_point_comparison.csv}
-\begin{table}
-\caption{Comparison of peak stage field observations, the ANUGA model, and a
-TUFLOW model (developed by WRL). See the ARR project 15 report for more
-information}
-\label{tab:comparison}
-\DTLdisplaydb{comparison}
-\end{table}
-
 Figure~\ref{fig:stationary_vel} shows a vector plot of the velocities around some buildings. It should
 show a similar pattern to Figure 30 in the ARR Project 15 report.
-\begin{figure}
-\includegraphics[width=\textwidth]{velocity_stationary.png}
-\caption{Velocity vectors around some buildngs at the end of the simulation
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.8\textwidth]{velocity_stationary.png}
+\end{center}
+\caption{Velocity vectors around some buildings at the end of the simulation
 (where it should have reached stationary state). Compare with Figure 30 in the ARR Project 15 report (the results should be similar)}
 \label{fig:stationary_vel}
 \end{figure}
+
+
+
+
+
+
+
 
 Figure~\ref{fig:transect1} shows a transect of velocity and depth between 2 buildings (Transect
 1 in the ARR Report).  It should show a similar pattern to the TUFLOW and
