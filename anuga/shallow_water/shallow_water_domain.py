@@ -73,7 +73,6 @@ Constraints: See GPL license in the user guide
 
 # Decorator added for profiling
 #------------------------------
-import cProfile#
 
 def profileit(name):
     def inner(func):
