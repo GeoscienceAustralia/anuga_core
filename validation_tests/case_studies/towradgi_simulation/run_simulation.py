@@ -36,4 +36,7 @@ towradgi = anuga.Simulation(setup_domain=setup_domain,
                       setup_rainfall=setup_rainfall,
                       setup_structures=setup_structures)
 
+
+print('checkpoint_time', towradgi.checkpoint_time)
+
 towradgi.run()
