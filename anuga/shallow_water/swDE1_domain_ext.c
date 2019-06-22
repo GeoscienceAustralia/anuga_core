@@ -137,7 +137,7 @@ water model for two-dimensional dam-break type. Journal of Computational Physics
   double s_min, s_max, soundspeed_left, soundspeed_right;
   double u_m, h_m, soundspeed_m, s_m;
   double denom, inverse_denominator;
-  double uint, t1, t2, t3, min_speed, tmp;
+  double uint, t1, t2, t3, min_speed, tmp, local_fr2;
   // Workspace (allocate once, use many)
   static double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
 
@@ -315,7 +315,7 @@ int _flux_function_central(double *q_left, double *q_right,
   double w_right, uh_right, vh_right, u_right;
   double s_min, s_max, soundspeed_left, soundspeed_right;
   double denom, inverse_denominator;
-  double uint, t1, t2, t3, min_speed, tmp;
+  double uint, t1, t2, t3, min_speed, tmp, local_fr;
   // Workspace (allocate once, use many)
   static double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
 
@@ -379,7 +379,12 @@ int _flux_function_central(double *q_left, double *q_right,
   soundspeed_right = sqrt(g*h_right);  
   //soundspeed_left  = sqrt(g*hle);
   //soundspeed_right = sqrt(g*hre);  
-  
+
+  // Something that scales like the Froude number
+  local_fr = sqrt(max(0.001, min(1.0, 
+      (u_right*u_right + u_left*u_left)/(soundspeed_left*soundspeed_left + soundspeed_right*soundspeed_right + 1.0e-10))));
+  //printf("local_fr %e \n:", local_fr); 
+
   s_max = max(u_left + soundspeed_left, u_right + soundspeed_right);
   if (s_max < 0.0) 
   {
@@ -436,8 +441,8 @@ int _flux_function_central(double *q_left, double *q_right,
       // Smoothing by stage alone can cause high velocities / slow draining for nearly dry cells
       if(i==0) edgeflux[i] += (s_max*s_min)*(max(q_right_rotated[i],ze) - max(q_left_rotated[i],ze));
       //if(i==0) edgeflux[i] += (s_max*s_min)*(h_right - h_left);
-      if(i==1) edgeflux[i] += (s_max*s_min)*(uh_right - uh_left);
-      if(i==2) edgeflux[i] += (s_max*s_min)*(vh_right - vh_left);
+      if(i==1) edgeflux[i] += local_fr*(s_max*s_min)*(uh_right - uh_left);
+      if(i==2) edgeflux[i] += local_fr*(s_max*s_min)*(vh_right - vh_left);
 
       edgeflux[i] *= inverse_denominator;
     }
