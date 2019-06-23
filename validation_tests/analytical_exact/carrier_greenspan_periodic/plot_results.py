@@ -16,33 +16,41 @@ v2=(p2_st.y==v)
 
 x_n = p2_st.x[v2]
 
-W1, P1, Z1, H1, U1 = analytic_cg(x_n, p2_st.time[288], h0=5e2, L=5e4, a=1.0, Tp=900.0)
-W2, P2, Z2, H2, U2 = analytic_cg(x_n, p2_st.time[296], h0=5e2, L=5e4, a=1.0, Tp=900.0)
-W3, P3, Z3, H3, U3 = analytic_cg(x_n, p2_st.time[304], h0=5e2, L=5e4, a=1.0, Tp=900.0)
-W4, P4, Z4, H4, U4 = analytic_cg(x_n, p2_st.time[312], h0=5e2, L=5e4, a=1.0, Tp=900.0)
-W5, P5, Z5, H5, U5 = analytic_cg(x_n, p2_st.time[320], h0=5e2, L=5e4, a=1.0, Tp=900.0)
-W6, P6, Z6, H6, U6 = analytic_cg(x_n, p2_st.time[328], h0=5e2, L=5e4, a=1.0, Tp=900.0)
 
-W1_n = p2_st.stage[288,v2]
-W2_n = p2_st.stage[296,v2]
-W3_n = p2_st.stage[304,v2]
-W4_n = p2_st.stage[312,v2]
-W5_n = p2_st.stage[320,v2]
-W6_n = p2_st.stage[328,v2]
+n6 = -1
+n5 = n6-12
+n4 = n5-12
+n3 = n4-12
+n2 = n3-12
+n1 = n2-12
 
-UH1_n = p2_st.xmom[288,v2]
-UH2_n = p2_st.xmom[296,v2]
-UH3_n = p2_st.xmom[304,v2]
-UH4_n = p2_st.xmom[312,v2]
-UH5_n = p2_st.xmom[320,v2]
-UH6_n = p2_st.xmom[328,v2]
+W1, P1, Z1, H1, U1 = analytic_cg(x_n, p2_st.time[n1], h0=5e2, L=5e4, a=1.0, Tp=900.0)
+W2, P2, Z2, H2, U2 = analytic_cg(x_n, p2_st.time[n2], h0=5e2, L=5e4, a=1.0, Tp=900.0)
+W3, P3, Z3, H3, U3 = analytic_cg(x_n, p2_st.time[n3], h0=5e2, L=5e4, a=1.0, Tp=900.0)
+W4, P4, Z4, H4, U4 = analytic_cg(x_n, p2_st.time[n4], h0=5e2, L=5e4, a=1.0, Tp=900.0)
+W5, P5, Z5, H5, U5 = analytic_cg(x_n, p2_st.time[n5], h0=5e2, L=5e4, a=1.0, Tp=900.0)
+W6, P6, Z6, H6, U6 = analytic_cg(x_n, p2_st.time[n6], h0=5e2, L=5e4, a=1.0, Tp=900.0)
 
-U1_n = p2_st.xvel[288,v2]
-U2_n = p2_st.xvel[296,v2]
-U3_n = p2_st.xvel[304,v2]
-U4_n = p2_st.xvel[312,v2]
-U5_n = p2_st.xvel[320,v2]
-U6_n = p2_st.xvel[328,v2]
+W1_n = p2_st.stage[n1,v2]
+W2_n = p2_st.stage[n2,v2]
+W3_n = p2_st.stage[n3,v2]
+W4_n = p2_st.stage[n4,v2]
+W5_n = p2_st.stage[n5,v2]
+W6_n = p2_st.stage[n6,v2]
+
+UH1_n = p2_st.xmom[n1,v2]
+UH2_n = p2_st.xmom[n2,v2]
+UH3_n = p2_st.xmom[n3,v2]
+UH4_n = p2_st.xmom[n4,v2]
+UH5_n = p2_st.xmom[n5,v2]
+UH6_n = p2_st.xmom[n6,v2]
+
+U1_n = p2_st.xvel[n1,v2]
+U2_n = p2_st.xvel[n2,v2]
+U3_n = p2_st.xvel[n3,v2]
+U4_n = p2_st.xvel[n4,v2]
+U5_n = p2_st.xvel[n5,v2]
+U6_n = p2_st.xvel[n6,v2]
 
 #Plot the stages##############################################################
 pyplot.clf()
