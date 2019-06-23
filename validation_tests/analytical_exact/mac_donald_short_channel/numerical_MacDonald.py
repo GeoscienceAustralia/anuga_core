@@ -80,17 +80,12 @@ def bed(x,y):
 #------------------------------------------------------------------------------
 if myid == 0:
     # structured mesh
-    points, vertices, boundary = anuga.rectangular_cross(int(L/dx), int(W/dy), L, W, (0.0, 0.0))
-    
-    #domain = anuga.Domain(points, vertices, boundary) 
-    domain = Domain(points, vertices, boundary) 
+    domain = anuga.rectangular_cross_domain(int(L/dx), int(W/dy), L, W, (0.0, 0.0))
     
     domain.set_name(output_file)                
     domain.set_datadir(output_dir) 
-    
     domain.set_flow_algorithm(alg)
 
-    
     #------------------------------------------------------------------------------
     # Setup initial conditions
     #------------------------------------------------------------------------------
@@ -118,9 +113,6 @@ BdR = anuga.Dirichlet_boundary([2.87870797, q_s, 0.]) # Constant boundary values
 
 # Associate boundary tags with boundary objects
 domain.set_boundary({'left': BdL, 'right': BdR, 'top': Br, 'bottom': Br})
-
-
-
 
 #------------------------------------------------------------------------------
 # Produce a documentation of parameters
