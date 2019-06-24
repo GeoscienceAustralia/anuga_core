@@ -20,6 +20,7 @@ struct domain {
     long    extrapolate_velocity_second_order;
     double  minimum_allowed_height;
     double  maximum_allowed_speed;
+    long    low_froude;
 
 
     long timestep_fluxcalls;
@@ -82,7 +83,7 @@ struct domain {
     double* xmom_explicit_update;
     double* ymom_explicit_update;
 
-    long* flux_update_frequency;    
+    long* flux_update_frequency;
     long* update_next_flux;
     long* update_extrapolation;
     double* edge_timestep;
@@ -130,7 +131,7 @@ struct edge {
     double vh2;
     double u2;
     double v2;
-    
+
 };
 
 
@@ -209,9 +210,10 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     D->optimise_dry_cells   = get_python_integer(domain, "optimise_dry_cells");
     D->evolve_max_timestep  = get_python_double(domain, "evolve_max_timestep");
     D->minimum_allowed_height = get_python_double(domain, "minimum_allowed_height");
-    D->maximum_allowed_speed = get_python_double(domain, "maximum_allowed_speed");
-    D->timestep_fluxcalls = get_python_integer(domain,"timestep_fluxcalls");
-    
+    D->maximum_allowed_speed  = get_python_double(domain, "maximum_allowed_speed");
+    D->timestep_fluxcalls   = get_python_integer(domain,"timestep_fluxcalls");
+    D->low_froude           = get_python_integer(domain,"low_froude");
+
 
     D->extrapolate_velocity_second_order  = get_python_integer(domain, "extrapolate_velocity_second_order");
 
@@ -223,7 +225,7 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     D->beta_vh_dry = get_python_double(domain, "beta_vh_dry");
 
     D->max_flux_update_frequency = get_python_integer(domain,"max_flux_update_frequency");
-    
+
     neighbours = get_consecutive_array(domain, "neighbours");
     D->neighbours = (long *) neighbours->data;
 
@@ -264,7 +266,7 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
 
     centroid_coordinates = get_consecutive_array(domain, "centroid_coordinates");
     D->centroid_coordinates = (double *) centroid_coordinates->data;
-    
+
     max_speed = get_consecutive_array(domain, "max_speed");
     D->max_speed = (double *) max_speed->data;
 
@@ -273,31 +275,31 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
 
     flux_update_frequency = get_consecutive_array(domain, "flux_update_frequency");
     D->flux_update_frequency = (long*) flux_update_frequency->data;
-    
+
     update_next_flux = get_consecutive_array(domain, "update_next_flux");
     D->update_next_flux = (long*) update_next_flux->data;
-    
+
     update_extrapolation = get_consecutive_array(domain, "update_extrapolation");
     D->update_extrapolation = (long*) update_extrapolation->data;
-    
+
     allow_timestep_increase = get_consecutive_array(domain, "allow_timestep_increase");
     D->allow_timestep_increase = (long*) allow_timestep_increase->data;
 
     edge_timestep = get_consecutive_array(domain, "edge_timestep");
     D->edge_timestep = (double*) edge_timestep->data;
-    
+
     edge_flux_work = get_consecutive_array(domain, "edge_flux_work");
     D->edge_flux_work = (double*) edge_flux_work->data;
-    
+
     pressuregrad_work = get_consecutive_array(domain, "pressuregrad_work");
     D->pressuregrad_work = (double*) pressuregrad_work->data;
-    
+
     x_centroid_work = get_consecutive_array(domain, "x_centroid_work");
     D->x_centroid_work = (double*) x_centroid_work->data;
 
     y_centroid_work = get_consecutive_array(domain, "y_centroid_work");
     D->y_centroid_work = (double*) y_centroid_work->data;
-    
+
     boundary_flux_sum = get_consecutive_array(domain, "boundary_flux_sum");
     D->boundary_flux_sum = (double*) boundary_flux_sum->data;
 
@@ -335,7 +337,7 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
 
     riverwall_elevation = get_consecutive_array(riverwallData, "riverwall_elevation");
     D->riverwall_elevation = (double*) riverwall_elevation->data;
-    
+
     riverwall_rowIndex = get_consecutive_array(riverwallData, "hydraulic_properties_rowIndex");
     D->riverwall_rowIndex = (long*) riverwall_rowIndex->data;
 
@@ -389,6 +391,7 @@ int print_domain_struct(struct domain *D) {
     printf("D->evolve_max_timestep    %g \n", D->evolve_max_timestep);
     printf("D->minimum_allowed_height %g \n", D->minimum_allowed_height);
     printf("D->maximum_allowed_speed  %g \n", D->maximum_allowed_speed);
+    printf("D->low_froude             %ld \n", D->low_froude);
     printf("D->extrapolate_velocity_second_order %ld \n", D->extrapolate_velocity_second_order);
     printf("D->beta_w                 %g \n", D->beta_w);
     printf("D->beta_w_dry             %g \n", D->beta_w_dry);
@@ -437,4 +440,3 @@ int print_domain_struct(struct domain *D) {
 
     return 0;
 }
-
