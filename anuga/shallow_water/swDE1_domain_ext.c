@@ -394,16 +394,31 @@ int _flux_function_central(double *q_left, double *q_right,
   //        (soundspeed_left*soundspeed_left + soundspeed_right*soundspeed_right + 1.0e-10))));
   if (low_froude == 1)
   {
-    //local_fr = sqrt(sqrt((u_right*u_right + u_left*u_left + v_right*v_right + v_left*v_left)/
-    //      (soundspeed_left*soundspeed_left + soundspeed_right*soundspeed_right + 1.0e-10)));
+    //local_fr = sqrt(
+    //  max(0.001, min(1.0,
+    //      (u_right*u_right + u_left*u_left + v_right*v_right + v_left*v_left)/
+    //      (soundspeed_left*soundspeed_left + soundspeed_right*soundspeed_right + 1.0e-10))));
+
+    local_fr = sqrt((u_right*u_right + u_left*u_left + v_right*v_right + v_left*v_left)/
+          (soundspeed_left*soundspeed_left + soundspeed_right*soundspeed_right + 1.0e-10));
+    local_fr = sqrt(min(1.0, 0.01 + max(local_fr-0.01,0.0)));
+   
+    //local_fr = sqrt((u_right*u_right + u_left*u_left + v_right*v_right + v_left*v_left)/
+    //      (soundspeed_left*soundspeed_left + soundspeed_right*soundspeed_right + 1.0e-10));
+
+    //if ( local_fr < 0.4 )
+    //{
+    //  local_fr = 0.03;
+    //}
+    //else
+    //{
+    //  local_fr = min(0.03 + (local_fr - 0.4)/0.6, 1.0);
+    //}
     //local_fr = min(1.0, 0.03+local_fr);
-    local_fr = 1.5*sqrt(sqrt((u_right*u_right + u_left*u_left + v_right*v_right + v_left*v_left)/
-          (soundspeed_left*soundspeed_left + soundspeed_right*soundspeed_right + 1.0e-10)));
-    local_fr = min(1.0, 0.001+local_fr*local_fr*local_fr);
   }
   else
   {
-    local_fr = 1.0;
+  local_fr = 1.0;
   }
   //printf("local_fr %e \n:", local_fr);
 
