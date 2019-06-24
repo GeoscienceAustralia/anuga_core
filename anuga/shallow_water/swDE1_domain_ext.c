@@ -394,9 +394,12 @@ int _flux_function_central(double *q_left, double *q_right,
   //        (soundspeed_left*soundspeed_left + soundspeed_right*soundspeed_right + 1.0e-10))));
   if (low_froude == 1)
   {
-    local_fr = sqrt(sqrt((u_right*u_right + u_left*u_left + v_right*v_right + v_left*v_left)/
+    //local_fr = sqrt(sqrt((u_right*u_right + u_left*u_left + v_right*v_right + v_left*v_left)/
+    //      (soundspeed_left*soundspeed_left + soundspeed_right*soundspeed_right + 1.0e-10)));
+    //local_fr = min(1.0, 0.03+local_fr);
+    local_fr = 1.5*sqrt(sqrt((u_right*u_right + u_left*u_left + v_right*v_right + v_left*v_left)/
           (soundspeed_left*soundspeed_left + soundspeed_right*soundspeed_right + 1.0e-10)));
-    local_fr = min(1.0, 0.03+local_fr);   
+    local_fr = min(1.0, 0.001+local_fr*local_fr*local_fr);
   }
   else
   {
