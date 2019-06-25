@@ -347,7 +347,7 @@ class Domain(Generic_Domain):
         from anuga.config import compute_fluxes_method
         from anuga.config import distribute_to_vertices_and_edges_method
         from anuga.config import sloped_mannings_function
-        from anuga.config import use_low_froude
+        from anuga.config import low_froude
 
 
         # Early algorithms need elevation to remain continuous
@@ -364,7 +364,7 @@ class Domain(Generic_Domain):
         self.alpha_balance = alpha_balance
         self.tight_slope_limiters = tight_slope_limiters
 
-        self.set_use_low_froude(use_low_froude)
+        self.set_low_froude(low_froude)
 
         self.set_use_optimise_dry_cells(optimise_dry_cells)
         self.set_extrapolate_velocity(extrapolate_velocity_second_order)
@@ -395,7 +395,7 @@ class Domain(Generic_Domain):
         parameters['tight_slope_limiters']    = self.tight_slope_limiters
         parameters['optimise_dry_cells']      = self.optimise_dry_cells
         parameters['use_edge_limiter']        = self.use_edge_limiter
-        parameters['use_low_froude']          = self.use_low_froude
+        parameters['low_froude']              = self.low_froude
         parameters['use_centroid_velocities'] = self.use_centroid_velocities
         parameters['use_sloped_mannings']     = self.use_sloped_mannings
         parameters['compute_fluxes_method']   = self.get_compute_fluxes_method()
@@ -1323,19 +1323,15 @@ class Domain(Generic_Domain):
         elif flag is False:
             self.use_edge_limiter = False
 
-
-    def set_use_low_froude(self, flag=False):
+    def set_low_froude(self, low_froude=0):
         """ For low Froude problems the standard flux calculations
-        can lead to excessive damping. Set use_low_froude to minimize
-        damping in this case.
+        can lead to excessive damping. Set low_froude to 1 or 2 for
+        flux calculations which minimize the damping in this case.
         """
 
-        if flag is True:
-            self.use_low_froude = True
-            self.low_froude = 1
-        elif flag is False:
-            self.use_low_froude = False
-            self.low_froude = 0
+        assert low_froude in [0,1,2]
+
+        self.low_froude = low_froude
 
     def set_use_optimise_dry_cells(self, flag=True):
         """ Try to optimize calculations where region is dry
