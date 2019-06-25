@@ -48,7 +48,8 @@ class Test_system(unittest.TestCase):
         domain.set_name(boundary_name)                 
         domain.set_datadir(dir)          
         domain.set_starttime(boundary_starttime)
-        
+        domain.set_low_froude(0)
+ 
         # Setup initial conditions
         domain.set_quantity('elevation', 0.0) 
         domain.set_quantity('stage', tide)         
@@ -144,6 +145,7 @@ class Test_system(unittest.TestCase):
         mesh.generate_mesh(verbose=False)
         
         domain = pmesh_to_domain_instance(mesh, anuga.Domain) 
+        domain.set_low_froude(0)
         domain.set_name(senario_name)                 
         domain.set_datadir(dir)
         new_starttime = 0.
@@ -210,6 +212,7 @@ class Test_system(unittest.TestCase):
         domain.set_name(senario_name)                 
         domain.set_datadir(dir)
         domain.set_flow_algorithm('1_5')
+        domain.set_low_froude(0)
         new_starttime = 0.
         domain.set_starttime(new_starttime)
 

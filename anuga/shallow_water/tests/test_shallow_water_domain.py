@@ -98,8 +98,8 @@ def axes2points(x, y):
              [2, 20],
              [3, 20]]
     """
-    import numpy 
-    
+    import numpy
+
     # Reverse y coordinates to have them start at bottom of array
     y = numpy.flipud(y)
 
@@ -295,7 +295,7 @@ class Test_Shallow_Water(unittest.TestCase):
         edgeflux = num.zeros(3, num.float)
         zl = zr = 0.
         H0 = 1.0e-3 # As suggested in the manual
-        
+
         max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)
 
         assert num.allclose(edgeflux, [0,0,0])
@@ -312,7 +312,7 @@ class Test_Shallow_Water(unittest.TestCase):
         h = w - (zl+zr)/2
         H0 = 0.0
 
-        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)        
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)
         assert num.allclose(edgeflux, [0., 0.5*g*h**2, 0.])
         assert max_speed == num.sqrt(g*h)
 
@@ -572,7 +572,7 @@ class Test_Shallow_Water(unittest.TestCase):
         # Xmomentum
         #print domain.quantities['xmomentum'].boundary_values
         #print domain.quantities['ymomentum'].boundary_values
-        
+
         # Reflective
         assert domain.quantities['xmomentum'].boundary_values[0] == 1.0
         # Dirichlet
@@ -1271,7 +1271,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain = Domain(points, vertices)
         domain.set_flow_algorithm('1_5')
-        
+
         val0 = 2. + 2.0/3
         val1 = 4. + 4.0/3
         val2 = 8. + 2.0/3
@@ -1763,7 +1763,7 @@ class Test_Shallow_Water(unittest.TestCase):
         assert num.alltrue(z < final_runup_height)
 
         q = domain.get_maximum_inundation_elevation()
-        
+
         # First order accuracy
         assert num.allclose(q, final_runup_height, rtol=1.0/N)
 
@@ -1819,7 +1819,7 @@ class Test_Shallow_Water(unittest.TestCase):
         uh = u*h
 
         Br = Reflective_boundary(domain)     # Side walls
-        Bd = Dirichlet_boundary([w, uh, 0])  # 2 m/s across the 3 m inlet: 
+        Bd = Dirichlet_boundary([w, uh, 0])  # 2 m/s across the 3 m inlet:
 
 
         # Initial conditions
@@ -2021,11 +2021,11 @@ class Test_Shallow_Water(unittest.TestCase):
             polyline = [[x, 0], [x, width]]
 
             polyline = domain.geo_reference.get_absolute(polyline)
-        
+
             cross_sections.append(Cross_section(domain,polyline))
 
 
- 
+
         for t in domain.evolve(yieldstep=0.1, finaltime=t_end):
             # Check that quantities are they should be in the interior
             w_t = stage.get_values(interpolation_points)
@@ -2039,7 +2039,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
             # Check flows and energies through the middle
             for cross_section in cross_sections:
-                
+
                 Q = cross_section.get_flow_through_cross_section()
 
                 assert num.allclose(Q, uh*width)
@@ -2049,7 +2049,7 @@ class Test_Shallow_Water(unittest.TestCase):
                 assert num.allclose(Es, h + 0.5*u*u/g)
 
                 Et = cross_section.get_energy_through_cross_section(kind='total')
-                
+
                 assert num.allclose(Et, w + 0.5*u*u/g)
 
 
@@ -2073,6 +2073,7 @@ class Test_Shallow_Water(unittest.TestCase):
         #-----------------------------------------------------------------
         points, vertices, boundary = rectangular_cross(10, 10) # Basic mesh
         domain = Domain(points, vertices, boundary) # Create domain
+        domain.set_low_froude(0)
         domain.set_default_order(2)
         domain.set_quantities_to_be_stored(None)
         domain.H0 = 1.0e-3
@@ -2121,10 +2122,10 @@ class Test_Shallow_Water(unittest.TestCase):
 #         pprint.pprint(gauge_values[1])
 #         pprint.pprint(gauge_values[2])
 #         pprint.pprint(gauge_values[3])
-       
+
         # Steve Note: Had to recapture these values when changed to default
         # flow algorithm to DE0
-        
+
         G0 = [-0.19166666666666665,
              -0.19166666666666665,
              -0.19166666666666665,
@@ -2176,7 +2177,7 @@ class Test_Shallow_Water(unittest.TestCase):
              -0.1916625893478662,
              -0.1916629307243472,
              -0.19166323917681413]
-        
+
         G1 = [-0.29166666666666669,
              -0.29166666666666669,
              -0.29166666666666669,
@@ -2228,7 +2229,7 @@ class Test_Shallow_Water(unittest.TestCase):
              -0.20002510023168069,
              -0.20003044891380231,
              -0.20002952773077484]
-        
+
         G2 = [-0.42499999999999999,
              -0.40953908664730287,
              -0.33296103674588662,
@@ -2280,7 +2281,7 @@ class Test_Shallow_Water(unittest.TestCase):
              -0.19998467955016122,
              -0.20000213621634999,
              -0.20001413684386354]
-        
+
         G3 = [-0.44166666666666665,
              -0.36356820384297261,
              -0.32677493201134605,
@@ -2333,10 +2334,10 @@ class Test_Shallow_Water(unittest.TestCase):
              -0.19999415800173256,
              -0.20000875071328705]
 
-        
 
-        
-        
+
+
+
         assert num.allclose(gauge_values[0], G0)
         assert num.allclose(gauge_values[1], G1)
         assert num.allclose(gauge_values[2], G2)
@@ -2758,7 +2759,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         #print domain.quantities['xmomentum'].explicit_update
         #print domain.quantities['ymomentum'].explicit_update
-        
+
         assert num.allclose(domain.quantities['stage'].explicit_update, 0)
         assert num.allclose(domain.quantities['xmomentum'].explicit_update,
                             [-396.9, -308.7, -220.5, -396.9])
@@ -3031,7 +3032,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain = Domain(points, vertices)
 
         domain.set_sloped_mannings_function(False)
-        
+
         B = Reflective_boundary(domain)
         domain.set_boundary( {'exterior': B})
 
@@ -3199,7 +3200,7 @@ class Test_Shallow_Water(unittest.TestCase):
         # Use the sloped function which takes into account the extra
         # wetted area due to slope of bed
         domain.set_sloped_mannings_function(True)
-        
+
         #Set up for a gradient of (3,0) at mid triangle (bce)
         def slope(x, y):
             return 3*x
@@ -3258,9 +3259,9 @@ class Test_Shallow_Water(unittest.TestCase):
                             3*S)
         assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
                             4*S)
-        
 
-            
+
+
     def test_inflow_using_circle(self):
         from math import pi, cos, sin
 
@@ -3288,18 +3289,18 @@ class Test_Shallow_Water(unittest.TestCase):
         # Setup only one forcing term, constant inflow of 2 m^3/s
         # on a circle affecting triangles #0 and #1 (bac and bce)
         domain.forcing_terms = []
-        
+
         I = Inflow(domain, rate=2.0, center=(1,1), radius=1)
-        domain.forcing_terms.append(I)        
+        domain.forcing_terms.append(I)
         domain.compute_forcing_terms()
 
-        
+
         A = I.exchange_area
-        assert num.allclose(A, 4) # Two triangles        
-        
+        assert num.allclose(A, 4) # Two triangles
+
         assert num.allclose(domain.quantities['stage'].explicit_update[1], 2.0/A)
         assert num.allclose(domain.quantities['stage'].explicit_update[0], 2.0/A)
-        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)        
+        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
 
 
     def test_inflow_using_circle_function(self):
@@ -3331,16 +3332,16 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.forcing_terms = []
         I = Inflow(domain, rate=lambda t: 2., center=(1,1), radius=1)
         domain.forcing_terms.append(I)
-        
-        domain.compute_forcing_terms()        
+
+        domain.compute_forcing_terms()
 
         A = I.exchange_area
         assert num.allclose(A, 4) # Two triangles
-        
+
         assert num.allclose(domain.quantities['stage'].explicit_update[1], 2.0/A)
         assert num.allclose(domain.quantities['stage'].explicit_update[0], 2.0/A)
-        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)        
-        
+        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
+
 
 
 
@@ -3526,9 +3527,9 @@ class Test_Shallow_Water(unittest.TestCase):
         #Check that centroid values were distributed to vertices
         C = domain.quantities['stage'].centroid_values
         V = num.sum(domain.quantities['stage'].vertex_values, axis=1)/3.0
-        
+
         assert num.allclose(V,C)
-            
+
 
     def test_first_order_limiter_variable_z(self):
         '''Check that first order limiter follows bed_slope'''
@@ -3758,16 +3759,16 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.tight_slope_limiters = 1
 
         domain.distribute_to_vertices_and_edges()
-        
-        
+
+
         #print L[1]
         #print [0.298, 20.001, 20.001]
-      
+
         assert num.allclose(L[1], [  0.1,  20.1,  20.1])
 
-        
-        
-        
+
+
+
         for i in range(len(L)):
             assert num.allclose(volumes[i], num.sum(L[i])/3)
 
@@ -3784,7 +3785,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.distribute_to_vertices_and_edges()
         assert num.allclose(L[1], [0.1, 20.1, 20.1])
-        
+
         for i in range(len(L)):
             assert num.allclose(volumes[i], num.sum(L[i])/3)
 
@@ -3828,22 +3829,22 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.tight_slope_limiters = 0
         domain.distribute_to_vertices_and_edges()
-        assert num.allclose(L[1], [4.1, 16.1, 20.1])        
+        assert num.allclose(L[1], [4.1, 16.1, 20.1])
         for i in range(len(L)):
             assert num.allclose(volumes[i], num.sum(L[i])/3)
-        
-                
+
+
         domain.tight_slope_limiters = 1 # Allow triangle to be flatter (closer to bed)
         domain.distribute_to_vertices_and_edges()
         #print L[1]
         assert num.allclose(L[1], [  4.239986, 16.060004,  20.00001 ], rtol=1.0e-2)
         for i in range(len(L)):
-            assert num.allclose(volumes[i], num.sum(L[i])/3)    
-        
+            assert num.allclose(volumes[i], num.sum(L[i])/3)
+
 
         domain._order_ = 2
-        
-        domain.tight_slope_limiters = 0    
+
+        domain.tight_slope_limiters = 0
         domain.distribute_to_vertices_and_edges()
         assert num.allclose(L[1], [4.1, 16.1, 20.1])
         for i in range(len(L)):
@@ -3858,7 +3859,7 @@ class Test_Shallow_Water(unittest.TestCase):
                 num.allclose(L[1], [4.18944138, 16.10955862, 20.001]) or\
                 num.allclose(L[1], [4.19351461, 16.10548539, 20.001]) or\
                 num.allclose(L[1], [4.00001   , 16.15431247, 20.14567753])
-        
+
         for i in range(len(L)):
             assert num.allclose(volumes[i], num.sum(L[i])/3)
 
@@ -3921,21 +3922,21 @@ class Test_Shallow_Water(unittest.TestCase):
         L_EX = [-0.00825736, -0.00801881,  0.0272445 ]
         X_EX = [ 0.0170432 ,  0.01674667,  0.00654035]
         Y_EX = [ -1.56119371e-04,   1.10107449e-04,  -5.74034758e-05]
-        
+
         #pprint(L[1,:])
         #pprint(X[1,:])
         #pprint(Y[1,:])
-        
+
         L_EX1 = [-0.01434766, -0.01292565,  0.03824164]
         X_EX1 = [ 0.01631331,  0.01583494,  0.00596076]
         Y_EX1 = [-0.00036261,  0.00068027, -0.00048923]
 
         assert num.allclose(L[1,:], L_EX) or \
             num.allclose(L[1,:], L_EX1)
-        
+
         assert num.allclose(X[1,:], X_EX) or \
             num.allclose(X[1,:], X_EX1)
-            
+
         assert num.allclose(Y[1,:], Y_EX) or \
             num.allclose(Y[1,:], Y_EX1)
 
@@ -4011,7 +4012,7 @@ class Test_Shallow_Water(unittest.TestCase):
         X_EX = [ 0.01998251,  0.01948814,  0.00247195]
         Y_EX = [ -2.18223005e-04,   2.25636080e-04,  -5.36417393e-05]
 
-        
+
         #L_EX = [-0.00825736, -0.00801881,  0.0272445 ]
         #X_EX = [ 0.0170432 ,  0.01674667,  0.00654035]
         #Y_EX = [ -1.56119371e-04,   1.10107449e-04,  -5.74034758e-05]
@@ -4087,7 +4088,7 @@ class Test_Shallow_Water(unittest.TestCase):
                             [[ 2.        ,  2.        ,  2.        ],
                              [ 3.33333333,  3.33333333,  3.33333333],
                              [ 5.33333333,  5.33333333,  5.33333333],
-                             [ 5.33333333,  5.33333333,  5.33333333]]) 
+                             [ 5.33333333,  5.33333333,  5.33333333]])
 
     def test_balance_deep_and_shallow_tight_SL(self):
         """Test that balanced limiters preserve conserved quantites.
@@ -4334,7 +4335,7 @@ class Test_Shallow_Water(unittest.TestCase):
         # Create basic mesh
         domain = rectangular_cross_domain(6, 6)
         domain.set_name('evolve_finaltime')
-        
+
         # IC
         def x_slope(x, y):
             return x/3
@@ -4349,12 +4350,12 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.check_integrity()
 
-        # Evolution 
+        # Evolution
         # Test that t is a float
         tt = 0.0
         for t in domain.evolve(yieldstep=0.05, finaltime=5.0):
             tt += t
-           
+
         assert num.allclose(tt,252.5)
 
 
@@ -4369,7 +4370,7 @@ class Test_Shallow_Water(unittest.TestCase):
         # Create basic mesh
         domain = rectangular_cross_domain(6, 6)
         domain.set_name('evolve_duration')
-        
+
         # IC
         def x_slope(x, y):
             return x/3
@@ -4389,7 +4390,7 @@ class Test_Shallow_Water(unittest.TestCase):
         tt = 0.0
         for t in domain.evolve(yieldstep=0.05, duration=5.0):
             tt += t
-        
+
         assert num.allclose(tt,252.5)
 
         os.remove(domain.get_name() + '.sww')
@@ -4634,6 +4635,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Create shallow water domain
         domain = Domain(points, vertices, boundary)
+        domain.set_low_froude(0)
         domain.smooth = False
         domain.default_order = 2
 
@@ -4776,15 +4778,15 @@ class Test_Shallow_Water(unittest.TestCase):
 
         assert num.allclose(domain.quantities['stage'].vertex_values[:12,0],
                             [0.001, 0.02656103, 0.001, 0.02656103, 0.001, 0.02656103,
-                             0.001, 0.02656103, 0.001, 0.02656103, 0.001, 0.0272623])     
-                             
+                             0.001, 0.02656103, 0.001, 0.02656103, 0.001, 0.0272623])
+
         assert num.allclose(domain.quantities['stage'].vertex_values[:12,1],
                             [0.00237867, 0.02656103, 0.001, 0.02656103, 0.001,
-                             0.02656103, 0.001, 0.02656103, 0.001, 0.02656103, 
+                             0.02656103, 0.001, 0.02656103, 0.001, 0.02656103,
                              0.00110647, 0.0272623])
 
         assert num.allclose(domain.quantities['stage'].vertex_values[:12,2],
-                            [0.00176321, 0.02656103, 0.00524568, 
+                            [0.00176321, 0.02656103, 0.00524568,
                              0.02656103, 0.00524568, 0.02656103,
                              0.00524568, 0.02656103, 0.00524568,
                              0.02656103, 0.00513921, 0.0272623])
@@ -4925,11 +4927,11 @@ class Test_Shallow_Water(unittest.TestCase):
         #pprint(domain.quantities['ymomentum'].vertex_values[:4,0])
 
 
-        
+
         #W_0 =  [ 0.001     ,  0.05350388,  0.001     ,  0.05352525]
         #UH_0 = [ 0.00044246,  0.03684648,  0.0008209 ,  0.03686007]
         #VH_0 = [-0.00142112,  0.00061559, -0.00062362,  0.00061896]
-        
+
         W_0 =  [ 0.001     ,  0.05350737,  0.00106727,  0.0535293 ]
         UH_0 = [ 0.00090262,  0.03684904,  0.00090267,  0.03686323]
         VH_0 = [ -1.97310289e-04,   6.10268320e-04,  -6.59631326e-05, 6.14082609e-04]
@@ -5084,8 +5086,8 @@ class Test_Shallow_Water(unittest.TestCase):
 
             #print domain.quantities['stage'].centroid_values[:4]
             #print domain.quantities['xmomentum'].centroid_values[:4]
-            #print domain.quantities['ymomentum'].centroid_values[:4]                        
-                
+            #print domain.quantities['ymomentum'].centroid_values[:4]
+
             #Centroids were correct but not vertices.
             #Hence the check of distribute below.
 
@@ -5101,9 +5103,9 @@ class Test_Shallow_Water(unittest.TestCase):
                 assert num.allclose(domain.quantities['stage'].centroid_values[:4], W_EX)
                 assert num.allclose(domain.quantities['xmomentum'].centroid_values[:4], UH_EX)
                 assert num.allclose(domain.quantities['ymomentum'].centroid_values[:4], VH_EX)
-                                            
-            
-                assert num.allclose(domain.quantities['xmomentum'].centroid_values[17], 0.0, atol=1.0e-3)                
+
+
+                assert num.allclose(domain.quantities['xmomentum'].centroid_values[17], 0.0, atol=1.0e-3)
             else:
                 assert num.allclose(domain.quantities['xmomentum'].\
                                         centroid_values[17],
@@ -5127,8 +5129,8 @@ class Test_Shallow_Water(unittest.TestCase):
             #pprint(domain.quantities['stage'].vertex_values[:4,0])
             #pprint(domain.quantities['xmomentum'].vertex_values[:4,0])
             #pprint(domain.quantities['ymomentum'].vertex_values[:4,0])
-            
-            
+
+
             assert num.allclose(domain.quantities['xmomentum'].vertex_values[:4,0],
                     UH_EX)
 
@@ -5174,7 +5176,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         os.remove(domain.get_name() + '.sww')
 
-    def test_bedslope_problem_first_order_moresteps(self):
+    def test_bedslope_problem_first_order_moresteps_low_froude_0(self):
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh
@@ -5184,6 +5186,8 @@ class Test_Shallow_Water(unittest.TestCase):
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
         domain.default_order = 1
+
+        domain.set_low_froude(0)
 
         # FIXME (Ole): Need tests where these two are commented out
         domain.H0 = 0                         # Backwards compatibility (6/2/7)
@@ -5209,8 +5213,6 @@ class Test_Shallow_Water(unittest.TestCase):
             pass
 
 
-        
-        
         W_EX = num.array([-0.02933401, -0.01091747, -0.02782667, -0.01057726, -0.02746728,
        -0.01033124, -0.02724838, -0.01019733, -0.02684617, -0.00965007,
        -0.02495054, -0.00706089, -0.06890704, -0.06303447, -0.07568528,
@@ -5227,7 +5229,68 @@ class Test_Shallow_Water(unittest.TestCase):
        -0.14041639, -0.13594765, -0.13910709, -0.13533594, -0.1393996 ,
        -0.1328638 , -0.1363085 ])
 
-        
+
+        #Data from earlier version of abstract_2d_finite_volumes
+        assert num.allclose(domain.quantities['stage'].centroid_values, W_EX)
+
+
+        os.remove(domain.get_name() + '.sww')
+
+
+    def test_bedslope_problem_first_order_moresteps_low_froude_1(self):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
+
+        # Create basic mesh
+        points, vertices, boundary = rectangular(6, 6)
+
+        # Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.smooth = False
+        domain.default_order = 1
+
+        domain.set_low_froude(0)
+
+        # FIXME (Ole): Need tests where these two are commented out
+        domain.H0 = 0                         # Backwards compatibility (6/2/7)
+        domain.tight_slope_limiters = 0       # Backwards compatibility (14/4/7)
+        domain.use_centroid_velocities = 0    # Backwards compatibility (7/5/8)
+
+        # Bed-slope and friction
+        def x_slope(x, y):
+            return -x/3
+
+        domain.set_quantity('elevation', x_slope)
+
+        # Boundary conditions
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+
+        # Initial condition
+        domain.set_quantity('stage', expression='elevation+0.05')
+        domain.check_integrity()
+
+        # Evolution
+        for t in domain.evolve(yieldstep=0.05, finaltime=0.5):
+            pass
+
+
+        W_EX = num.array([-0.02933401, -0.01091747, -0.02782667, -0.01057726, -0.02746728,
+       -0.01033124, -0.02724838, -0.01019733, -0.02684617, -0.00965007,
+       -0.02495054, -0.00706089, -0.06890704, -0.06303447, -0.07568528,
+       -0.06161392, -0.07566147, -0.06125286, -0.07537564, -0.06094254,
+       -0.07488436, -0.06058909, -0.07465553, -0.06045194, -0.12205956,
+       -0.10701804, -0.12318423, -0.10795678, -0.12302672, -0.10763744,
+       -0.12279702, -0.10731376, -0.12214772, -0.1071946 , -0.12283814,
+       -0.10858945, -0.16389971, -0.15304369, -0.16428248, -0.15298725,
+       -0.16430596, -0.15254043, -0.16407102, -0.15236021, -0.16390702,
+       -0.15187689, -0.16460111, -0.15549742, -0.2083898 , -0.19912702,
+       -0.20845637, -0.19709535, -0.20648985, -0.19663999, -0.20525695,
+       -0.19631453, -0.20446298, -0.19578452, -0.20735693, -0.19565282,
+       -0.14022868, -0.14262659, -0.13774131, -0.14132395, -0.13707526,
+       -0.14041639, -0.13594765, -0.13910709, -0.13533594, -0.1393996 ,
+       -0.1328638 , -0.1363085 ])
+
+
         #Data from earlier version of abstract_2d_finite_volumes
         assert num.allclose(domain.quantities['stage'].centroid_values, W_EX)
 
@@ -5302,7 +5365,7 @@ class Test_Shallow_Water(unittest.TestCase):
             pass
 
 
-        
+
         W_EX = [ 0.01571282,  0.02678718,  0.01765727,  0.02678718,  0.01765727,
         0.02678718,  0.01765727,  0.02678718,  0.01765727,  0.02678718,
         0.01765727,  0.02873162, -0.04259259, -0.02407407, -0.04259259,
@@ -5318,7 +5381,7 @@ class Test_Shallow_Water(unittest.TestCase):
        -0.26206496, -0.2509906 , -0.26012051, -0.2509906 , -0.26012051,
        -0.2509906 , -0.26012051, -0.2509906 , -0.26012051, -0.2509906 ,
        -0.26012051, -0.24904616]
-        
+
 
         assert num.allclose(domain.quantities['stage'].centroid_values, W_EX)
 
@@ -5333,7 +5396,9 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Create shallow water domain
         domain = Domain(points, vertices, boundary)
-        
+
+        domain.set_low_froude(0) 
+
         domain.smooth = False
         domain.default_order = 2
         domain.beta_w = 0.9
@@ -5431,7 +5496,9 @@ class Test_Shallow_Water(unittest.TestCase):
         domain = Domain(points, vertices, boundary)
 
         #domain.set_compute_fluxes_method('original')
-        
+
+        domain.set_low_froude(0)
+
         domain.smooth = False
         domain.default_order = 2
         domain.beta_w = 0.9
@@ -5494,7 +5561,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
 
-    
+
         W_EX = [ 0.01308246,  0.02201217,  0.01358687,  0.023575  ,  0.01370201,
         0.0235574 ,  0.01370201,  0.02355753,  0.0136998 ,  0.02361447,
         0.01454146,  0.02507853, -0.04254524, -0.022535  , -0.04260359,
@@ -5537,6 +5604,8 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh = 0.9
         domain.beta_vh_dry = 0.9
 
+        domain.set_low_froude(0)
+
         # FIXME (Ole): Need tests where these two are commented out
         domain.H0 = 0                      # Backwards compatibility (6/2/7)
         domain.tight_slope_limiters = 0    # Backwards compatibility (14/4/7)
@@ -5555,9 +5624,9 @@ class Test_Shallow_Water(unittest.TestCase):
         # Initial condition
         domain.set_quantity('stage', expression='elevation+0.05')
         domain.check_integrity()
-        
 
-        
+
+
         W_EX = [ 0.01296296,  0.03148148,  0.01296296,  0.03148148,  0.01296296,
         0.03148148,  0.01296296,  0.03148148,  0.01296296,  0.03148148,
         0.01296296,  0.03148148, -0.04259259, -0.02407407, -0.04259259,
@@ -5583,11 +5652,11 @@ class Test_Shallow_Water(unittest.TestCase):
             #FIXME(Ole): One might check the contents of msg here.
 
 
-  
-        
-        
-             
-        
+
+
+
+
+
         W_EX = [-0.0301883 , -0.01127593, -0.02834861, -0.0108968 , -0.02806583,
        -0.01074475, -0.02788852, -0.01065176, -0.02753658, -0.01013457,
        -0.02602057, -0.00697983, -0.07333722, -0.06511481, -0.08002821,
@@ -5603,14 +5672,14 @@ class Test_Shallow_Water(unittest.TestCase):
        -0.14177628, -0.13867427, -0.138984  , -0.13970989, -0.13837738,
        -0.13785944, -0.13772734, -0.13619726, -0.13708211, -0.13865006,
        -0.13413676, -0.14008116]
-        
 
 
-                
+
+
         assert num.allclose(domain.quantities['stage'].centroid_values, W_EX)
 
 
-        
+
         UH_EX = [ 0.00439415,  0.00080998,  0.00359639,  0.00086799,  0.00369947,
         0.00089459,  0.00376748,  0.00091612,  0.00394185,  0.00100331,
         0.00423642,  0.00102681,  0.01866626,  0.00841126,  0.01265179,
@@ -5626,10 +5695,10 @@ class Test_Shallow_Water(unittest.TestCase):
         0.01997027,  0.07948531,  0.02703306,  0.08443647,  0.02694374,
         0.08404407,  0.02627307,  0.08400949,  0.02649757,  0.08397135,
         0.03080026,  0.09688469]
-        
-        
 
-        
+
+
+
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, UH_EX)
 
 
@@ -5660,10 +5729,10 @@ class Test_Shallow_Water(unittest.TestCase):
         -1.94716541e-03,  -2.28075505e-03,  -1.61494727e-03,
         -2.15457373e-03,  -1.48932625e-03,  -3.24804437e-03,
         -1.09719715e-03,   3.38706650e-03,  -8.98151209e-04]
-    
+
         #pprint(domain.quantities['ymomentum'].centroid_values)
 
-        
+
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, VH_EX)
 
         os.remove(domain.get_name() + '.sww')
@@ -5751,7 +5820,7 @@ class Test_Shallow_Water(unittest.TestCase):
           -0.13982382, -0.14166819, -0.14132775, -0.14528694, -0.14096905, -0.14351126,
           -0.13800356, -0.14027920, -0.13613538, -0.13936795, -0.13621902, -0.14204982])
 
-                      
+
         assert num.allclose(domain.quantities['xmomentum'].centroid_values,
       [0.00600290,  0.00175780,  0.00591905,  0.00190903,  0.00644462,  0.00203095,
        0.00684561,  0.00225089,  0.00708208,  0.00236235,  0.00649095,  0.00222343,
@@ -5811,7 +5880,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.tight_slope_limiters = False   # Backwards compatibility (14/4/7)
         domain.use_centroid_velocities = False # Backwards compatibility (7/5/8)
         domain.use_edge_limiter = False       # Backwards compatibility (9/5/8)
-
+        domain.low_froude = 0                 # Backwards compatibility (25/6/19)
 
         # Bed-slope and friction at vertices (and interpolated elsewhere)
         def x_slope(x, y):
@@ -5838,7 +5907,7 @@ class Test_Shallow_Water(unittest.TestCase):
         W = domain.quantities['stage'].centroid_values[:4]
         UH = domain.quantities['xmomentum'].centroid_values[:4]
         VH = domain.quantities['ymomentum'].centroid_values[:4]
-        
+
         W_0  = [ 0.001362,    0.01344294,  0.00308829, 0.01470289]
         UH_0 = [ 0.01300239,  0.00537933,  0.01214676,  0.00515825]
         VH_0 = [ -1.13165691e-03,  -6.55330189e-04, -6.62804076e-05,   5.26313051e-05]
@@ -5848,12 +5917,12 @@ class Test_Shallow_Water(unittest.TestCase):
         VH_1 = [  5.36531332e-04,  -6.77297008e-04,  -4.58560426e-05, 2.47714988e-05]
 
 
-        assert num.allclose(W,W_0) or num.allclose(W,W_1) 
+        assert num.allclose(W,W_0) or num.allclose(W,W_1)
         assert num.allclose(UH, UH_0) or num.allclose(UH, UH_1)
         assert num.allclose(VH, VH_0) or num.allclose(VH, VH_1)
-        
-        
-                            
+
+
+
 
         # old values pre revision 8402
 #        assert num.allclose(domain.quantities['stage'].centroid_values[:4],
@@ -5948,6 +6017,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Create sww file of simple propagation from left to right
         # through rectangular domain
+        verbose = False
 
         import time
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
@@ -5958,6 +6028,7 @@ class Test_Shallow_Water(unittest.TestCase):
         # Create shallow water domain
         domain1 = Domain(points, vertices, boundary)
 
+        domain1.set_low_froude(0)
         domain1.reduction = mean
         domain1.smooth = False    # Exact result
 
@@ -5983,7 +6054,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain1.set_quantity('stage', 0)
         domain1.check_integrity()
 
-        finaltime = 5
+        finaltime = 10
 
         # Evolution  (full domain - large steps)
         for t in domain1.evolve(yieldstep=0.671, finaltime=finaltime):
@@ -6009,6 +6080,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain2 = Domain(points, vertices, boundary)
 
+        domain2.low_froude = domain1.low_froude
         domain2.reduction = domain1.reduction
         domain2.smooth = False
         domain2.default_order = 2
@@ -6031,7 +6103,7 @@ class Test_Shallow_Water(unittest.TestCase):
         # Use output from domain1 as spatio-temporal boundary for domain2
         # and verify that results at right hand side are close.
         cv2 = domain2.quantities['stage'].centroid_values
-        
+
         assert num.allclose(num.take(cv1, (0,8,16), axis=0),
                             num.take(cv2, (0,3,8), axis=0), rtol=1.0e-4)      # Diag
         assert num.allclose(num.take(cv1, (0,6,12), axis=0),
@@ -6073,8 +6145,8 @@ class Test_Shallow_Water(unittest.TestCase):
         # FIXME: This is extremely important!
         # How can we test if they weren't stored?
         domain1.quantities_to_be_stored = {'elevation': 1,
-                                           'stage': 2, 
-                                           'xmomentum': 2, 
+                                           'stage': 2,
+                                           'xmomentum': 2,
                                            'ymomentum': 2}
 
         # Bed-slope and friction at vertices (and interpolated elsewhere)
@@ -6418,8 +6490,8 @@ class Test_Shallow_Water(unittest.TestCase):
         # FIXME: This is extremely important!
         # How can we test if they weren't stored?
         domain1.set_quantities_to_be_stored({'elevation': 1,
-                                             'stage': 2, 
-                                             'xmomentum': 2, 
+                                             'stage': 2,
+                                             'xmomentum': 2,
                                              'ymomentum': 2})
 
 
@@ -6891,19 +6963,19 @@ friction  \n \
         '''
             Make sure we can fit a mesh that has a hole in it.
             This is a regression test for ticket:234
-            
+
         '''
         verbose = False
-        
+
         from anuga.shallow_water.shallow_water_domain import Domain
         from anuga.pmesh.mesh_interface import create_mesh_from_regions
         from anuga.geospatial_data.geospatial_data import Geospatial_data
 
-        
+
         # Get path where this test is run
-        path = get_pathname_from_package('anuga.shallow_water')        
-        
-        
+        path = get_pathname_from_package('anuga.shallow_water')
+
+
         #----------------------------------------------------------------------
         # Create domain
         #--------------------------------------------------------------------
@@ -6914,7 +6986,7 @@ friction  \n \
         border = 2000
         bounding_polygon = [[W, S], [E, S], [E, N], [W, N]]
         hole_polygon = [[W+border, S+border], [E-border, S+border], \
-                        [E-border, N-border], [W+border, N-border]]        
+                        [E-border, N-border], [W+border, N-border]]
 
         meshname = 'offending_mesh.msh'
         create_mesh_from_regions(bounding_polygon,
@@ -6943,8 +7015,8 @@ friction  \n \
         domain.set_quantity('elevation', filename=points_file,
                             use_cache=False, verbose=verbose, alpha=0.01)
         os.remove(meshname)
-        os.remove(points_file)           
-        
+        os.remove(points_file)
+
 
     def test_fitting_example_that_crashed(self):
         """This unit test has been derived from a real world example
@@ -6963,11 +7035,11 @@ friction  \n \
         from anuga.pmesh.mesh_interface import create_mesh_from_regions
         from anuga.geospatial_data.geospatial_data import Geospatial_data
 
-        
+
         # Get path where thie data file are
-        path = get_pathname_from_package('anuga.shallow_water')        
-        
-        
+        path = get_pathname_from_package('anuga.shallow_water')
+
+
         #----------------------------------------------------------------------
         # Create domain
         #--------------------------------------------------------------------
@@ -7011,7 +7083,7 @@ friction  \n \
 
         interior_regions = []
         for polygon in offending_regions:
-            interior_regions.append( [polygon, 100] ) 
+            interior_regions.append( [polygon, 100] )
 
         meshname = 'offending_mesh_1.msh'
         create_mesh_from_regions(bounding_polygon,
@@ -7035,7 +7107,7 @@ friction  \n \
         G = Geospatial_data(data_points=[[306953.344, 6194461.5]],
                             attributes=[1])
         G.export_points_file(points_file)
-        
+
         try:
             domain.set_quantity('elevation', filename=points_file,
                                 use_cache=False, verbose=verbose, alpha=0.01)
@@ -7047,40 +7119,40 @@ friction  \n \
             os.remove(points_file)
         else:
             os.remove(meshname)
-            os.remove(points_file)            
-        
+            os.remove(points_file)
+
         #finally:
             # Cleanup regardless
-            #FIXME(Ole): Finally does not work like this in python2.4 
+            #FIXME(Ole): Finally does not work like this in python2.4
             #FIXME(Ole): Reinstate this when Python2.4 is out of the way
-            #FIXME(Ole): Python 2.6 apparently introduces something called 'with'            
+            #FIXME(Ole): Python 2.6 apparently introduces something called 'with'
             #os.remove(meshname)
             #os.remove(points_file)
 
 
     def test_fitting_example_that_crashed_2(self):
         """test_fitting_example_that_crashed_2
-        
-        This unit test has been derived from a real world example 
+
+        This unit test has been derived from a real world example
         (the JJKelly study, by Petar Milevski).
-        
+
         It shows a condition where set_quantity crashes due to AtA
         not being built properly
-        
+
         See ticket:314
         """
 
-        verbose = False        
+        verbose = False
 
         from anuga.shallow_water.shallow_water_domain import Domain
         from anuga.pmesh.mesh_interface import create_mesh_from_regions
         from anuga.geospatial_data import Geospatial_data
-        
+
         # Get path where this test is run
-        path = get_pathname_from_package('anuga.shallow_water')        
+        path = get_pathname_from_package('anuga.shallow_water')
 
         meshname = 'test_mesh_2.msh'
-        
+
         W = 304180
         S = 6185270
         E = 307650
@@ -7090,9 +7162,9 @@ friction  \n \
         bounding_polygon = [[W, S], [E, S], [E, N], [W, N]]
 
         create_mesh_from_regions(bounding_polygon,
-                                 boundary_tags={'south': [0], 
-                                                'east': [1], 
-                                                'north': [2], 
+                                 boundary_tags={'south': [0],
+                                                'east': [1],
+                                                'north': [2],
                                                 'west': [3]},
                                  maximum_triangle_area=maximum_triangle_area,
                                  filename=meshname,
@@ -7100,7 +7172,7 @@ friction  \n \
                                  verbose=verbose)
 
         domain = Domain(meshname, use_cache=True, verbose=verbose)
-        
+
         # Large test set revealed one problem
         points_file = os.path.join(path, 'tests', 'data', 'test_points_large.csv')
 
@@ -7117,9 +7189,9 @@ friction  \n \
 
         # Small test set revealed another problem
         points_file = os.path.join(path, 'tests', 'data', 'test_points_small.csv')
-        try:    
+        try:
             domain.set_quantity('elevation', filename=points_file,
-                                use_cache=False, verbose=verbose)                            
+                                use_cache=False, verbose=verbose)
         except AssertionError, e:
             msg = 'Test failed: %s' % str(e)
             raise Exception(msg)
@@ -7128,12 +7200,12 @@ friction  \n \
         else:
             os.remove(meshname)
 
-            
-    def test_total_volume(self):        
+
+    def test_total_volume(self):
         """test_total_volume
-        
+
         Test that total volume can be computed correctly
-        """            
+        """
 
         #----------------------------------------------------------------------
         # Import necessary modules
@@ -7149,12 +7221,12 @@ friction  \n \
         length = 100.
         width  = 20.
         dx = dy = 5       # Resolution: of grid on both axes
-        
+
         points, vertices, boundary = rectangular_cross(int(length/dx),
                                                        int(width/dy),
                                                        len1=length,
                                                        len2=width)
-        domain = Domain(points, vertices, boundary)   
+        domain = Domain(points, vertices, boundary)
 
         #----------------------------------------------------------------------
         # Simple flat bottom bathtub
@@ -7163,36 +7235,36 @@ friction  \n \
         d = 1.0
         domain.set_quantity('elevation', 0.0)
         domain.set_quantity('stage', d)
-        
+
         assert num.allclose(domain.compute_total_volume(), length*width*d)
 
         #----------------------------------------------------------------------
         # Slope
         #----------------------------------------------------------------------
-                
+
         slope = 1.0/10          # RHS drops to -10m
         def topography(x, y):
             return -x * slope
 
         domain.set_quantity('elevation', topography)
         domain.set_quantity('stage', 0.0)       # Domain full
-        
+
         V = domain.compute_total_volume()
         assert num.allclose(V, length*width*10/2)
 
         domain.set_quantity('stage', -5.0)      # Domain 'half' full
-        
+
         # IMPORTANT: Adjust stage to match elevation
         domain.distribute_to_vertices_and_edges()
-        
+
         V = domain.compute_total_volume()
         assert num.allclose(V, width*(length/2)*5.0/2)
 
 
     def test_volumetric_balance_computation(self):
         """test_volumetric_balance_computation
-        
-        Test that total in and out flows are computed correctly 
+
+        Test that total in and out flows are computed correctly
         in a steady state situation
         """
 
@@ -7216,12 +7288,12 @@ friction  \n \
         length = 300.
         width  = 20.
         dx = dy = 5       # Resolution: of grid on both axes
-        
+
         # Input parameters
         uh = 1.0
         vh = 0.0
         d = 1.0
-        
+
         # 20 m^3/s in the x direction across entire domain
         ref_flow = uh*d*width
 
@@ -7230,8 +7302,9 @@ friction  \n \
                                                        len1=length,
                                                        len2=width)
 
-        domain = Domain(points, vertices, boundary)   
+        domain = Domain(points, vertices, boundary)
         domain.set_name('Inflow_flowline_test')              # Output name
+        domain.set_low_froude(0)
 
         #----------------------------------------------------------------------
         # Setup initial conditions
@@ -7239,18 +7312,18 @@ friction  \n \
 
         domain.set_quantity('elevation', 0.0)  # Flat bed
         domain.set_quantity('friction', 0.0)   # Constant zero friction
-                
-        domain.set_quantity('stage', expression='elevation + %d' % d) 
+
+        domain.set_quantity('stage', expression='elevation + %d' % d)
 
         #----------------------------------------------------------------------
         # Setup boundary conditions
         #----------------------------------------------------------------------
 
         Br = Reflective_boundary(domain)      # Solid reflective wall
-                
+
         # Constant flow in and out of domain
-        # Depth = 1m, uh=1 m/s, i.e. a flow of 20 m^3/s 
-        Bi = Dirichlet_boundary([d, uh, vh]) 
+        # Depth = 1m, uh=1 m/s, i.e. a flow of 20 m^3/s
+        Bi = Dirichlet_boundary([d, uh, vh])
         Bo = Dirichlet_boundary([d, uh, vh])
 
         domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
@@ -7264,31 +7337,33 @@ friction  \n \
             if verbose :
                 print domain.timestepping_statistics()
                 print S
-                
-            if t > 300:
+
+            if t >= 400:
                 # Steady state reached
-                
+
                 # Square on flowline at 200m
-                q = domain.get_flow_through_cross_section([[200.0,  0.0],
-                                                           [200.0, 20.0]])
+                q = domain.get_flow_through_cross_section([[200.0,  0.0],  [200.0, 20.0]])
+
+                if verbose:
+                    print q, ref_flow
                 
                 assert num.allclose(q, ref_flow)
 
-        os.remove('Inflow_flowline_test.sww') 
+        os.remove('Inflow_flowline_test.sww')
 
     def test_volume_conservation_inflow(self):
         """test_volume_conservation
-        
+
         Test that total volume in domain is as expected, based on questions
         raised by Petar Milevski in May 2009.
-        
-        This test adds inflow at a known rate and verifies that the total 
+
+        This test adds inflow at a known rate and verifies that the total
         terminal volume is as expected.
-        
+
         """
 
         verbose = False
-        
+
 
         #---------------------------------------------------------------------
         # Import necessary modules
@@ -7304,16 +7379,16 @@ friction  \n \
         length = 300.
         width  = 20.
         dx = dy = 5       # Resolution: of grid on both axes
-        
 
-        points, vertices, boundary = rectangular_cross(int(length/dx), 
+
+        points, vertices, boundary = rectangular_cross(int(length/dx),
                                                        int(width/dy),
                                                        len1=length, len2=width)
 
 
-        domain = Domain(points, vertices, boundary)   
+        domain = Domain(points, vertices, boundary)
         domain.set_name('Inflow_volume_test')              # Output name
-                
+
 
         #----------------------------------------------------------------------
         # Setup initial conditions
@@ -7325,23 +7400,23 @@ friction  \n \
 
         domain.set_quantity('elevation', topography) # Use function for elevation
         domain.set_quantity('friction', 0.0)         # Constant friction
-                
+
         domain.set_quantity('stage',
                             expression='elevation')  # Dry initially
-                            
+
 
         #--------------------------------------------------------------
         # Setup Inflow
         #--------------------------------------------------------------
 
-        # Fixed Flowrate onto Area 
+        # Fixed Flowrate onto Area
         fixed_inflow = Inflow(domain,
                               center=(10.0, 10.0),
                               radius=5.00,
-                              rate=10.00)                               
-                            
-        domain.forcing_terms.append(fixed_inflow)                            
-        
+                              rate=10.00)
+
+        domain.forcing_terms.append(fixed_inflow)
+
         #----------------------------------------------------------------------
         # Setup boundary conditions
         #----------------------------------------------------------------------
@@ -7349,23 +7424,23 @@ friction  \n \
         Br = Reflective_boundary(domain) # Solid reflective wall
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
-        
+
         #----------------------------------------------------------------------
         # Evolve system through time
         #----------------------------------------------------------------------
         ref_volume = 0.0
         ys = 10.0  # Yieldstep
         for t in domain.evolve(yieldstep=ys, finaltime=finaltime):
-        
+
             # Check volume
             assert num.allclose(domain.compute_total_volume(), ref_volume)
-        
+
             if verbose :
                 print domain.timestepping_statistics()
                 print domain.volumetric_balance_statistics()
                 print 'reference volume', ref_volume
-            
-            
+
+
             # Update reference volume
             ref_volume += ys * fixed_inflow.rate
 
@@ -7373,20 +7448,20 @@ friction  \n \
         os.remove('Inflow_volume_test.sww')
 
 
-        
+
     def test_volume_conservation_rain(self):
         """test_volume_conservation
-        
+
         Test that total volume in domain is as expected, based on questions
         raised by Petar Milevski in May 2009.
-        
-        This test adds rain at a known rate and verifies that the total 
+
+        This test adds rain at a known rate and verifies that the total
         terminal volume is as expected.
-        
+
         """
 
         verbose = False
-        
+
 
         #----------------------------------------------------------------------
         # Setup computational domain
@@ -7396,16 +7471,16 @@ friction  \n \
         length = 300.
         width  = 20.
         dx = dy = 5       # Resolution: of grid on both axes
-        
 
-        points, vertices, boundary = rectangular_cross(int(length/dx), 
+
+        points, vertices, boundary = rectangular_cross(int(length/dx),
                                                        int(width/dy),
                                                        len1=length, len2=width)
 
 
-        domain = Domain(points, vertices, boundary)   
+        domain = Domain(points, vertices, boundary)
         domain.set_name('Rain_volume_test')              # Output name
-                
+
 
         #----------------------------------------------------------------------
         # Setup initial conditions
@@ -7417,23 +7492,23 @@ friction  \n \
 
         domain.set_quantity('elevation', topography) # Use function for elevation
         domain.set_quantity('friction', 0.0)         # Constant friction
-                
+
         domain.set_quantity('stage',
                             expression='elevation')  # Dry initially
-                            
+
 
         #--------------------------------------------------------------
         # Setup rain
         #--------------------------------------------------------------
 
-        # Fixed rain onto small circular area 
+        # Fixed rain onto small circular area
         fixed_rain = Rainfall(domain,
                               center=(10.0, 10.0),
                               radius=5.00,
-                              rate=10.00)   # 10 mm/s                            
-                            
-        domain.forcing_terms.append(fixed_rain)                            
-        
+                              rate=10.00)   # 10 mm/s
+
+        domain.forcing_terms.append(fixed_rain)
+
         #----------------------------------------------------------------------
         # Setup boundary conditions
         #----------------------------------------------------------------------
@@ -7441,31 +7516,31 @@ friction  \n \
         Br = Reflective_boundary(domain) # Solid reflective wall
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
-        
+
         #----------------------------------------------------------------------
         # Evolve system through time
         #----------------------------------------------------------------------
         ref_volume = 0.0
         ys = 10.0  # Yieldstep
         for t in domain.evolve(yieldstep=ys, finaltime=finaltime):
-        
+
             # Check volume
             V = domain.compute_total_volume()
             msg = 'V = %e, Ref = %e' % (V, ref_volume)
             assert num.allclose(V, ref_volume), msg
-        
+
             if verbose :
                 print domain.timestepping_statistics()
                 print domain.volumetric_balance_statistics()
                 print 'reference volume', ref_volume
                 print V
-            
-            
+
+
             # Update reference volume.
             # FIXME: Note that rate has now been redefined
             # as m/s internally. This is a little confusing
             # when it was specfied as mm/s.
-            
+
             delta_V = fixed_rain.rate*fixed_rain.exchange_area
             ref_volume += ys * delta_V
 
@@ -7473,19 +7548,19 @@ friction  \n \
 
     def Xtest_rain_conservation_and_runoff(self):
         """test_rain_conservation_and_runoff
-        
+
         Test that total volume in domain is as expected, based on questions
         raised by Petar Milevski in May 2009.
-        
-        This test adds rain at a known rate and verifies that the total 
+
+        This test adds rain at a known rate and verifies that the total
         volume and outflows are as expected.
-        
+
         """
 
         # FIXME (Ole): Does not work yet. Investigate boundary flows
-        
+
         verbose = True #False
-        
+
 
         #---------------------------------------------------------------------
         # Import necessary modules
@@ -7505,16 +7580,16 @@ friction  \n \
         length = 300.
         width  = 20.
         dx = dy = 5       # Resolution: of grid on both axes
-        
 
-        points, vertices, boundary = rectangular_cross(int(length/dx), 
+
+        points, vertices, boundary = rectangular_cross(int(length/dx),
                                                        int(width/dy),
                                                        len1=length, len2=width)
 
 
-        domain = Domain(points, vertices, boundary)   
+        domain = Domain(points, vertices, boundary)
         domain.set_name('Rain_volume_runoff_test')         # Output name
-                
+
 
         #----------------------------------------------------------------------
         # Setup initial conditions
@@ -7526,23 +7601,23 @@ friction  \n \
 
         domain.set_quantity('elevation', topography) # Use function for elevation
         domain.set_quantity('friction', 0.0)         # Constant friction
-                
+
         domain.set_quantity('stage',
                             expression='elevation')  # Dry initially
-                            
+
 
         #--------------------------------------------------------------
         # Setup rain
         #--------------------------------------------------------------
 
-        # Fixed rain onto small circular area 
+        # Fixed rain onto small circular area
         fixed_rain = Rainfall(domain,
                               center=(10.0, 10.0),
                               radius=5.00,
-                              rate=10.00)   # 10 mm/s                            
-                            
-        domain.forcing_terms.append(fixed_rain)                            
-        
+                              rate=10.00)   # 10 mm/s
+
+        domain.forcing_terms.append(fixed_rain)
+
         #----------------------------------------------------------------------
         # Setup boundary conditions
         #----------------------------------------------------------------------
@@ -7552,54 +7627,54 @@ friction  \n \
         Bd = Dirichlet_boundary([-10, 0, 0])
         domain.set_boundary({'left': Bt, 'right': Bd, 'top': Bt, 'bottom': Bt})
 
-        
+
         #----------------------------------------------------------------------
         # Evolve system through time
         #----------------------------------------------------------------------
         ref_volume = 0.0
         ys = 10.0  # Yieldstep
         for t in domain.evolve(yieldstep=ys, finaltime=finaltime):
-        
+
             # Check volume
             V = domain.compute_total_volume()
             msg = 'V = %e, Ref = %e' % (V, ref_volume)
             #assert num.allclose(V, ref_volume) or V < ref_volume, msg
-        
+
             if verbose:
                 print domain.timestepping_statistics()
                 print domain.volumetric_balance_statistics()
                 print 'reference volume', ref_volume
                 print V
-            
-            
+
+
             # Update reference volume.
             # FIXME: Note that rate has now been redefined
             # as m/s internally. This is a little confusing
             # when it was specfied as mm/s.
-            
+
             delta_V = fixed_rain.rate*fixed_rain.exchange_area
             ref_volume += ys * delta_V
-        
+
             # Compute outflow at right hand downstream boundary
             boundary_flows, inflow , outflow = domain.compute_boundary_flows()
             net_outflow = outflow - inflow
-        
+
             outflow = boundary_flows['right']
             if verbose:
                 print 'Outflow', outflow
                 print 'Net outflow', net_outflow
-        
+
             # Update reference volume
-            ref_volume += ys * outflow            
+            ref_volume += ys * outflow
 
 
-    def test_variable_elevation_de0(self):            
+    def test_variable_elevation_de0(self):
         """test_variable_elevation
 
         This will test that elevagtion van be stored in sww files
         as a time dependent quantity.
-        
-        It will also chck that storage of other quantities 
+
+        It will also chck that storage of other quantities
         can be controlled this way.
         """
 
@@ -7614,12 +7689,12 @@ friction  \n \
         length = 8.
         width = 6.
         dx = dy = 1    # Resolution: Length of subdivisions on both axes
-        
+
         inc = 0.05 # Elevation increment
 
-        points, vertices, boundary = rectangular_cross(int(length/dx), 
+        points, vertices, boundary = rectangular_cross(int(length/dx),
                                                        int(width/dy),
-                                                       len1=length, 
+                                                       len1=length,
                                                        len2=width)
         domain = Domain(points, vertices, boundary)
         domain.set_name('channel_variable_test')  # Output name
@@ -7635,7 +7710,7 @@ friction  \n \
             """This provides a small increment to a pole located mid stream
             For use with variable elevation data
             """
-            
+
             z = 0.0*x
 
             N = len(x)
@@ -7644,7 +7719,7 @@ friction  \n \
                 if (x[i] - 4)**2 + (y[i] - 2)**2 < 1.0**2:
                     z[i] += inc
             return z
-            
+
         domain.set_quantity('elevation', 0.0)    # Flat bed initially
         domain.set_quantity('friction', 0.01)    # Constant friction
         domain.set_quantity('stage', 10.0)        # Dry initial condition
@@ -7666,9 +7741,9 @@ friction  \n \
             #print domain.timestepping_statistics()
 
             domain.add_quantity('elevation', pole_increment, location='centroids')
-        
-            
-        # Check that quantities have been stored correctly    
+
+
+        # Check that quantities have been stored correctly
         sww_file = domain.get_name() + '.sww'
         fid = NetCDFFile(sww_file)
 
@@ -7677,24 +7752,24 @@ friction  \n \
         fid.close()
 
         os.remove(sww_file)
-        
-                   
-        assert len(stage.shape) == 2
-        assert len(elevation.shape) == 2        
-        
-        M, N = stage.shape
-                
-        for i in range(M): 
-            # For each timestep
-            assert num.allclose(max(elevation[i,:]), i * inc) 
 
-    def test_variable_elevation_1_5(self):            
+
+        assert len(stage.shape) == 2
+        assert len(elevation.shape) == 2
+
+        M, N = stage.shape
+
+        for i in range(M):
+            # For each timestep
+            assert num.allclose(max(elevation[i,:]), i * inc)
+
+    def test_variable_elevation_1_5(self):
         """test_variable_elevation
 
         This will test that elevagtion van be stored in sww files
         as a time dependent quantity.
-        
-        It will also chck that storage of other quantities 
+
+        It will also chck that storage of other quantities
         can be controlled this way.
         """
 
@@ -7709,12 +7784,12 @@ friction  \n \
         length = 8.
         width = 6.
         dx = dy = 1    # Resolution: Length of subdivisions on both axes
-        
+
         inc = 0.05 # Elevation increment
 
-        points, vertices, boundary = rectangular_cross(int(length/dx), 
+        points, vertices, boundary = rectangular_cross(int(length/dx),
                                                        int(width/dy),
-                                                       len1=length, 
+                                                       len1=length,
                                                        len2=width)
         domain = Domain(points, vertices, boundary)
         domain.set_flow_algorithm('1_5')
@@ -7730,7 +7805,7 @@ friction  \n \
             """This provides a small increment to a pole located mid stream
             For use with variable elevation data
             """
-            
+
             z = 0.0*x
 
             N = len(x)
@@ -7739,7 +7814,7 @@ friction  \n \
                 if (x[i] - 4)**2 + (y[i] - 2)**2 < 1.0**2:
                     z[i] += inc
             return z
-            
+
         domain.set_quantity('elevation', 0.0)    # Flat bed initially
         domain.set_quantity('friction', 0.01)    # Constant friction
         domain.set_quantity('stage', 10.0)        # Dry initial condition
@@ -7761,9 +7836,9 @@ friction  \n \
             #print domain.timestepping_statistics()
 
             domain.add_quantity('elevation', pole_increment)
-        
-            
-        # Check that quantities have been stored correctly    
+
+
+        # Check that quantities have been stored correctly
         sww_file = domain.get_name() + '.sww'
         fid = NetCDFFile(sww_file)
 
@@ -7774,18 +7849,18 @@ friction  \n \
         fid.close()
 
         os.remove(sww_file)
-        
-                   
+
+
         assert len(stage.shape) == 2
-        assert len(elevation.shape) == 2        
-        
+        assert len(elevation.shape) == 2
+
         M, N = stage.shape
-                
-        for i in range(M): 
+
+        for i in range(M):
             # For each timestep
-            assert num.allclose(max(elevation[i,:]), i * inc)  
-            
-                  
+            assert num.allclose(max(elevation[i,:]), i * inc)
+
+
     def test_inflow_using_flowline(self):
         """test_inflow_using_flowline
 
@@ -7801,14 +7876,14 @@ friction  \n \
         anuga_validation/automated_validation_tests/flow_tests.
         """
 
-        
+
         verbose = False
-        
+
         #----------------------------------------------------------------------
         # Setup computational domain
         #----------------------------------------------------------------------
         number_of_inflows = 2 # Number of inflows on top of each other
-        finaltime = 500 #700.0 # If this is too short, steady state will not be achieved
+        finaltime = 1000 #700.0 # If this is too short, steady state will not be achieved
 
         length = 250.
         width  = 20.
@@ -7818,16 +7893,15 @@ friction  \n \
                                                        int(width/dy),
                                                        len1=length,
                                                        len2=width)
-
         for mannings_n in [0.1, 0.01]:
-            # Loop over a range of roughnesses              
-            
+            # Loop over a range of roughnesses
+
             for slope in [1.0/300, 1.0/100]:
                 # Loop over a range of bedslopes representing
-                # sub to super critical flows 
+                # sub to super critical flows
 
 
-                domain = Domain(points, vertices, boundary)   
+                domain = Domain(points, vertices, boundary)
                 domain.set_name('inflow_flowline_test')     # Output name
 
                 #--------------------------------------------------------------
@@ -7840,7 +7914,7 @@ friction  \n \
 
                 # Use function for elevation
                 domain.set_quantity('elevation', topography)
-                # Constant friction of conc surface   
+                # Constant friction of conc surface
                 domain.set_quantity('friction', mannings_n)
                 # Dry initial condition
                 domain.set_quantity('stage', expression='elevation')
@@ -7849,16 +7923,16 @@ friction  \n \
                 # Setup Inflow
                 #--------------------------------------------------------------
 
-                # Fixed Flowrate onto Area 
+                # Fixed Flowrate onto Area
                 fixed_inflow = Inflow(domain,
                                       center=(10.0, 10.0),
                                       radius=5.00,
-                                      rate=10.00)   
+                                      rate=10.00)
 
                 # Stack this flow
                 for i in range(number_of_inflows):
                     domain.forcing_terms.append(fixed_inflow)
-                
+
                 ref_flow = fixed_inflow.rate*number_of_inflows
 
                 # Compute normal depth on plane using Mannings equation
@@ -7867,23 +7941,23 @@ friction  \n \
                 if verbose:
                     print
                     print 'Slope:', slope, 'Mannings n:', mannings_n
-                    
-                    
+
+
                 #--------------------------------------------------------------
                 # Setup boundary conditions
                 #--------------------------------------------------------------
 
                 Br = Reflective_boundary(domain)
-                
+
                 # Define downstream boundary based on predicted depth
                 def normal_depth_stage_downstream(t):
                     return (-slope*length) + normal_depth
-                
+
                 Bt = Transmissive_momentum_set_stage_boundary(domain=domain,
                                                               function=normal_depth_stage_downstream)
-                
 
-                
+
+
 
                 domain.set_boundary({'left': Br,
                                      'right': Bt,
@@ -7906,7 +7980,7 @@ friction  \n \
                 #--------------------------------------------------------------
                 # Compute flow thru flowlines ds of inflow
                 #--------------------------------------------------------------
-                    
+
                 # Square on flowline at 200m
                 q = domain.get_flow_through_cross_section([[200.0,  0.0],
                                                            [200.0, 20.0]])
@@ -7918,21 +7992,21 @@ friction  \n \
                        % (q, ref_flow))
                 assert num.allclose(q, ref_flow, rtol=5.0e-2), msg
 
-                           
+
                 # 45 degree flowline at 200m
                 q = domain.get_flow_through_cross_section([[200.0,  0.0],
                                                            [220.0, 20.0]])
                 if verbose:
                     print ('45 degree flowline: ANUGA = %f, Ref = %f'
                            % (q, ref_flow))
-                    
+
                 msg = ('Predicted flow was %f, should have been %f'
                        % (q, ref_flow))
                 assert num.allclose(q, ref_flow, rtol=5.0e-2), msg
 
         os.remove('inflow_flowline_test.sww')
 
-        
+
     def Xtest_inflow_boundary_using_flowline(self):
         """test_inflow_boundary_using_flowline
         Test the ability of a flowline to match inflow above the flowline by
@@ -7940,14 +8014,14 @@ friction  \n \
         wide by 300m long plane dipping at various slopes with a
         perpendicular flowline and gauge downstream of the inflow and
         a 45 degree flowlines at 200m downstream
-        
-        
+
+
         """
 
         # FIXME (Ole): Work in progress
-        
+
         verbose = False
-        
+
 
 
         #----------------------------------------------------------------------
@@ -7964,15 +8038,15 @@ friction  \n \
                                                        len1=length, len2=width)
 
         for mannings_n in [0.1, 0.01]:
-            # Loop over a range of roughnesses              
-            
+            # Loop over a range of roughnesses
+
             for slope in [1.0/300, 1.0/100]:
-                # Loop over a range of bedslopes representing sub to super critical flows 
+                # Loop over a range of bedslopes representing sub to super critical flows
 
 
-                domain = Domain(points, vertices, boundary)   
+                domain = Domain(points, vertices, boundary)
                 domain.set_name('inflow_boundary_flowline_test')
-                
+
 
                 #-------------------------------------------------------------
                 # Setup initial conditions
@@ -7988,11 +8062,11 @@ friction  \n \
                                     expression='elevation')
 
 
-                    
+
                 #--------------------------------------------------------------
                 # Setup boundary conditions
                 #--------------------------------------------------------------
-                
+
 
 
                 ref_flow = 10.00
@@ -8003,23 +8077,23 @@ friction  \n \
                 if verbose:
                     print
                     print 'Slope:', slope, 'Mannings n:', mannings_n
-                    
-                
+
+
                 from anuga.shallow_water.boundaries import Inflow_boundary
-                
+
                 Bi = Inflow_boundary(domain, rate=ref_flow)
 
                 Br = Reflective_boundary(domain)
-                
+
                 # Define downstream boundary based on predicted depth
                 def normal_depth_stage_downstream(t):
                     return (-slope*length) + normal_depth
-                
+
                 Bt = Transmissive_momentum_set_stage_boundary(domain=domain,
                                                               function=normal_depth_stage_downstream)
-                
 
-                
+
+
 
                 domain.set_boundary({'left': Bi,
                                      'right': Bt,
@@ -8038,37 +8112,37 @@ friction  \n \
                     #if verbose :
                     #    print domain.timestepping_statistics()
                     #    print domain.volumetric_balance_statistics()
-                                                        
+
 
 
                 #--------------------------------------------------------------
                 # Compute flow thru flowlines ds of inflow
                 #--------------------------------------------------------------
-                    
+
                 # Square on flowline at 200m
                 q=domain.get_flow_through_cross_section([[200.0,0.0],[200.0,20.0]])
                 msg = 'Predicted flow was %f, should have been %f' % (q, ref_flow)
                 if verbose:
                     print '90 degree flowline: ANUGA = %f, Ref = %f' % (q, ref_flow)
-                assert num.allclose(q, ref_flow, rtol=1.0e-2), msg         
+                assert num.allclose(q, ref_flow, rtol=1.0e-2), msg
 
-                           
+
                 # 45 degree flowline at 200m
                 q=domain.get_flow_through_cross_section([[200.0,0.0],[220.0,20.0]])
                 msg = 'Predicted flow was %f, should have been %f' % (q, ref_flow)
                 if verbose:
                     print '45 degree flowline: ANUGA = %f, Ref = %f' % (q, ref_flow)
-                    
-                assert num.allclose(q, ref_flow, rtol=1.0e-2), msg         
 
-        
-        
+                assert num.allclose(q, ref_flow, rtol=1.0e-2), msg
+
+
+
     def Xtest_friction_dependent_flow_using_flowline(self):
         """test_friction_dependent_flow_using_flowline
-        
+
         Test the internal flow (using flowline) as a function of
         different values of Mannings n and different slopes.
-        
+
         Flow is applied in the form of boundary conditions with fixed momentum.
         """
 
@@ -8098,12 +8172,12 @@ friction  \n \
         length = 300.
         width  = 20.
         dx = dy = 5       # Resolution: of grid on both axes
-        
+
         # Input parameters
         uh = 1.0
         vh = 0.0
         d = 1.0
-        
+
         ref_flow = uh*d*width # 20 m^3/s in the x direction across entire domain
 
         points, vertices, boundary = rectangular_cross(int(length/dx),
@@ -8114,11 +8188,11 @@ friction  \n \
         for mannings_n in [0.035]:          #[0.0, 0.012, 0.035]:
             for slope in [1.0/300]:         #[0.0, 1.0/300, 1.0/150]:
                 # Loop over a range of bedslopes representing
-                # sub to super critical flows 
+                # sub to super critical flows
                 if verbose:
                     print
                     print 'Slope:', slope, 'Mannings n:', mannings_n
-                domain = Domain(points, vertices, boundary)   
+                domain = Domain(points, vertices, boundary)
                 domain.set_name('Inflow_flowline_test')     # Output name
 
                 #--------------------------------------------------------------
@@ -8133,25 +8207,25 @@ friction  \n \
                 domain.set_quantity('elevation', topography)
                 # Constant friction
                 domain.set_quantity('friction', mannings_n)
-                
+
                 #domain.set_quantity('stage', expression='elevation')
-                     
+
                 # Set initial flow as depth=1m, uh=1.0 m/s, vh = 0.0
-                # making it 20 m^3/s across entire domain 
+                # making it 20 m^3/s across entire domain
                 domain.set_quantity('stage', expression='elevation + %f' % d)
                 domain.set_quantity('xmomentum', uh)
-                domain.set_quantity('ymomentum', vh)                
+                domain.set_quantity('ymomentum', vh)
 
                 #--------------------------------------------------------------
                 # Setup boundary conditions
                 #--------------------------------------------------------------
 
                 Br = Reflective_boundary(domain)      # Solid reflective wall
-                
+
                 # Constant flow in and out of domain
-                # Depth = 1m, uh=1 m/s, i.e. a flow of 20 m^3/s 
+                # Depth = 1m, uh=1 m/s, i.e. a flow of 20 m^3/s
                 # across boundaries
-                Bi = Dirichlet_boundary([d, uh, vh]) 
+                Bi = Dirichlet_boundary([d, uh, vh])
                 Bo = Dirichlet_boundary([-length*slope+d, uh, vh])
                 #Bo = Dirichlet_boundary([-100, 0, 0])
 
@@ -8187,7 +8261,7 @@ friction  \n \
 
                 # Stage recorder (gauge) in middle of plane at 200m
                 x = 200.0
-                y = 10.00                
+                y = 10.00
                 w = domain.get_quantity('stage').\
                         get_values(interpolation_points=[[x, y]])[0]
                 z = domain.get_quantity('elevation').\
@@ -8197,12 +8271,12 @@ friction  \n \
                 xmom = domain.get_quantity('xmomentum').\
                         get_values(interpolation_points=[[x, y]])[0]
                 ymom = domain.get_quantity('ymomentum').\
-                        get_values(interpolation_points=[[x, y]])[0]            
-                if verbose:                    
+                        get_values(interpolation_points=[[x, y]])[0]
+                if verbose:
                     print ('At interpolation point (h, uh, vh): ',
                            domain_depth, xmom, ymom)
                     print 'uh * d * width = ', xmom*domain_depth*width
-                                
+
                 if slope > 0.0:
                     # Compute normal depth at gauge location using Manning eqn
                     # v=1/n*(r^2/3)*(s^0.5) or r=(Q*n/(s^0.5*W))^0.6
@@ -8290,7 +8364,7 @@ friction  \n \
 
         domain.set_tag_region('top', 'friction', 1.0)
         domain.set_tag_region('bottom', 'friction', 0.09)
-        
+
         msg = ("domain.quantities['friction'].get_values()=\n%s\n"
                'should equal\n'
                '[[ 0.09,  0.09,  0.09],\n'
@@ -8307,7 +8381,7 @@ friction  \n \
                              [ 0.07,  0.07,  0.07],
                              [ 1.0,  1.0,  1.0],
                              [ 1.0,  1.0,  1.0]]), msg
-        
+
         domain.set_tag_region([set_bottom_friction, set_top_friction])
         assert num.allclose(domain.quantities['friction'].get_values(),
                             [[ 0.09,  0.09,  0.09],
@@ -8716,8 +8790,8 @@ friction  \n \
         file = open(ptsfile, "w")
         file.write(" x,y," + att + " \n")
         for data_point, attribute in map(None, data_points_absolute, attributes):
-            row = (str(data_point[0]) + ',' + 
-                   str(data_point[1]) + ',' + 
+            row = (str(data_point[0]) + ',' +
+                   str(data_point[1]) + ',' +
                    str(attribute))
             file.write(row + "\n")
         file.close()
@@ -8737,7 +8811,7 @@ friction  \n \
 
 	# check set quantity from asc file
 
-        """ Format of asc file 
+        """ Format of asc file
         ncols         11
         nrows         12
         xllcorner     240000
@@ -8761,16 +8835,16 @@ friction  \n \
         datafile.write('yllcorner ' + str(yllcorner) + "\n")
         datafile.write('cellsize ' + str(cellsize) + "\n")
         datafile.write('NODATA_value ' + str(NODATA_value) + "\n")
-        
+
         x = num.linspace(xllcorner, xllcorner + (ncols - 1) * cellsize, ncols)
         y = num.linspace(yllcorner, yllcorner + (nrows - 1) * cellsize, nrows)
         points = axes2points(x, y)
         datavalues = linear_function(points)
-        
+
         datavalues = datavalues.reshape(nrows, ncols)
 
         for row in datavalues:
-            datafile.write(" ".join(str(elem) for elem in row) + "\n")         
+            datafile.write(" ".join(str(elem) for elem in row) + "\n")
         datafile.close()
 
 	# check set_values from asc file
@@ -8779,23 +8853,23 @@ friction  \n \
                             location='vertices',
                             indices=None,
                             verbose=False)
-        assert num.allclose(quantity.vertex_values.flat, answer_vertex_values)       
-	
+        assert num.allclose(quantity.vertex_values.flat, answer_vertex_values)
+
 	quantity.set_values(0.0)
 	quantity.set_values(filename=txt_file,
                             location='centroids',
                             indices=None,
-                            verbose=False)    
+                            verbose=False)
 
 	# exact answer for centroid locations
 	answer_centroid_values = [ 1.33333333, 2.66666667, 3.33333333, 3.33333333]
-        assert num.allclose(quantity.centroid_values, answer_centroid_values)      
+        assert num.allclose(quantity.centroid_values, answer_centroid_values)
 
 	# check set_quantity from asc file
 	mesh4.set_quantity(name='stage', filename=txt_file,
                             location='vertices', indices=None, verbose=False)
 	mesh4_stage = mesh4.get_quantity('stage')
-        assert num.allclose(mesh4_stage.vertex_values.flat, answer_vertex_values)       
+        assert num.allclose(mesh4_stage.vertex_values.flat, answer_vertex_values)
 	# reset mesh4 stage values
 	mesh4.set_quantity(name='stage', numeric=0.0)
  	mesh4.set_quantity(name='stage', filename=txt_file,
@@ -8806,7 +8880,7 @@ friction  \n \
 	from anuga.file_conversion.asc2dem import asc2dem
 	# use the same reference solution used above for testing
 	# convert test_asc.asc file to .dem file
-	txt_file_prj = 'test_asc.prj' 
+	txt_file_prj = 'test_asc.prj'
 	fid = open(txt_file_prj, 'w')
 	fid.write("""Projection UTM
 	Zone 56
@@ -8819,7 +8893,7 @@ friction  \n \
 	Parameters
 	""")
 	fid.close()
-	
+
 	txt_file_dem = 'test_asc.dem'
 	asc2dem(name_in=txt_file, name_out='test_asc',
 	        use_cache=False, verbose=False)
@@ -8830,26 +8904,26 @@ friction  \n \
                             location='vertices',
                             indices=None,
                             verbose=False)
-        assert num.allclose(quantity.vertex_values.flat, answer_vertex_values)       
+        assert num.allclose(quantity.vertex_values.flat, answer_vertex_values)
 
 	quantity.set_values(0.0)
         quantity.set_values(filename=txt_file_dem,
                             location='centroids',
                             indices=None,
                             verbose=False)
-        assert num.allclose(quantity.centroid_values, answer_centroid_values)       
+        assert num.allclose(quantity.centroid_values, answer_centroid_values)
 
 	# check set_quantity from dem file
 	mesh4.set_quantity(name='stage', filename=txt_file_dem,
                             location='vertices', indices=None, verbose=False)
 	mesh4_stage = mesh4.get_quantity('stage')
-        assert num.allclose(mesh4_stage.vertex_values.flat, answer_vertex_values)       
+        assert num.allclose(mesh4_stage.vertex_values.flat, answer_vertex_values)
 	# reset mesh4 stage values
 	mesh4.set_quantity(name='stage', numeric=0.0)
 	mesh4.set_quantity(name='stage', filename=txt_file_dem,
                             location='centroids')
 	mesh4_stage = mesh4.get_quantity('stage')
-        assert num.allclose(mesh4_stage.centroid_values, answer_centroid_values)   
+        assert num.allclose(mesh4_stage.centroid_values, answer_centroid_values)
 
 	# Cleanup
         import os
@@ -8863,8 +8937,8 @@ friction  \n \
 
     def test_that_mesh_methods_exist(self):
         """test_that_mesh_methods_exist
-        
-        Test that relavent mesh methods are made available in 
+
+        Test that relavent mesh methods are made available in
         domain through composition
         """
 
@@ -8872,9 +8946,9 @@ friction  \n \
         points, vertices, boundary = rectangular(1, 3)
 
         # Create shallow water domain
-        domain = Domain(points, vertices, boundary)                             
-        
-        
+        domain = Domain(points, vertices, boundary)
+
+
         domain.get_centroid_coordinates()
         domain.get_radii()
         domain.get_areas()
