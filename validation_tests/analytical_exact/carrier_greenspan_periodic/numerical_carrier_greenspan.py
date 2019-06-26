@@ -47,7 +47,7 @@ dx  = 100.
 dy  = dx
 L   = 5e4         # Length of channel (m)
 W   = 5*dx        # Width of channel (m)       
-h0 = 5e2          # Height at origin when the water is still
+h0  = 5e2          # Height at origin when the water is still
 Tp  = 900.0       # Period of oscillation
 a   = 1.0         # Amplitude at origin
 g   = 9.81        # Gravity
@@ -139,21 +139,25 @@ def prescribe(x,t):
     q = fsolve(fun,q)    
     return q[0], q[1]            # dimensionless
 
-def f_CG(t): 
+def f_CG(t):
+    h0 = 5e2 
     timing = t*sqrt(g*h0)/L      # dimensionless
     w, u = prescribe(0.0,timing) # dimensionless
-    wO = w*h0                    # dimensional
-    uO = u*sqrt(g*h0)            # dimensional
-    zO = -h0                     # dimensional
-    hO = wO - zO                 # dimensional
-    pO = uO * hO                 # dimensional
+    w0 = w*h0                    # dimensional
+    u0 = u*sqrt(g*h0)            # dimensional
+    z0 = -h0                     # dimensional
+    h0 = w0 - z0                 # dimensional
+    p0 = u0 * h0                 # dimensional
     #[    'stage', 'Xmomentum', 'Ymomentum']    
-    return [wO,  pO, 0.0]        # dimensional
+    return [w0,  p0, 0.0]        # dimensional
+    #return w0
 
 Br = anuga.Reflective_boundary(domain)      # Solid reflective wall
 Bt = anuga.Transmissive_boundary(domain)    # Continue all values on boundary 
 #Bd = anuga.Dirichlet_boundary([1,0.,0.])    # Constant boundary values
+#BTime = anuga.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, f_CG)
 BTime = anuga.Time_boundary(domain,f_CG)
+
 # Associate boundary tags with boundary objects
 domain.set_boundary({'left': BTime, 'right': Bt, 'top': Br, 'bottom': Br})
 
@@ -171,7 +175,7 @@ if myid == 0:
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
-for t in domain.evolve(yieldstep = Tp/48., finaltime = 7000.):
+for t in domain.evolve(yieldstep = Tp/48., finaltime = 30*Tp):
     if myid == 0 and verbose: print domain.timestepping_statistics()
 
 

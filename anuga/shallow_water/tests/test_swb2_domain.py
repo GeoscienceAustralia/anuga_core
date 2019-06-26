@@ -40,6 +40,7 @@ class Test_swb2_domain(unittest.TestCase):
 
         domain=Domain(points,vertices,boundary)    # Create Domain
         domain.set_flow_algorithm('DE0')
+        domain.set_low_froude(0)
         
         domain.set_name('runup_sinusoid_v2')                         # Output to file runup.sww
         domain.set_datadir('.')                          # Use current folder

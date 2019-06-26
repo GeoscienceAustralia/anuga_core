@@ -53,7 +53,8 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         import time, os
         from anuga.file.netcdf import NetCDFFile
-
+        
+        verbose = False
         #Setup
 
         #from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
@@ -63,7 +64,9 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         # Create shallow water domain
         domain = Domain(points, vertices, boundary)
+
         domain.set_flow_algorithm('DE0')
+        domain.set_low_froude(0)
         domain.set_minimum_storable_height(0.01)
 
         filename = 'runup_test_3'
@@ -96,7 +99,8 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         # Check maximal runup
         runup, location, max_time = get_maximum_inundation_data(swwfile, return_time=True)
-        #print 'Runup, location', runup, location, max_time
+        if verbose:
+            print 'Runup, location', runup, location, max_time
         
         assert num.allclose(runup, 3.33333325386)
         assert num.allclose(location, [53.333332, 43.333332]) 
@@ -104,7 +108,8 @@ class Test_sww_Interrogate(unittest.TestCase):
                
         # Check runup in restricted time interval
         runup, location, max_time = get_maximum_inundation_data(swwfile, time_interval=[0,9], return_time=True)
-        #print 'Runup, location:',runup, location, max_time
+        if verbose:
+            print 'Runup, location:',runup, location, max_time
         
         assert num.allclose(runup, 2.66666674614)
         assert num.allclose(location, [56.666668, 16.666666])
@@ -112,7 +117,8 @@ class Test_sww_Interrogate(unittest.TestCase):
         
         # Check final runup
         runup, location = get_maximum_inundation_data(swwfile, time_interval=[45,50])
-        #print 'Runup, location:',runup, location, max_time
+        if verbose:
+            print 'Runup, location:',runup, location, max_time
 
         assert num.allclose(runup, 3.33333325386)
         assert num.allclose(location, [53.333332, 33.333332])
@@ -865,6 +871,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         N = 10
         points, vertices, boundary = rectangular_cross(N, N)
         domain = Domain(points, vertices, boundary)
+        domain.set_low_froude(0)
         domain.set_name(filename)
         domain.set_maximum_allowed_speed(1.0)
         #domain.set_minimum_storable_height(1.0e-5)

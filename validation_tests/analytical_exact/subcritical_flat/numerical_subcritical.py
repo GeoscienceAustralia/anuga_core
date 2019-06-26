@@ -57,7 +57,7 @@ if myid == 0:
     domain.set_quantity('elevation',0.0)
     domain.set_quantity('friction', 0.0)
 
-    domain.set_quantity('stage', 1.5)
+    domain.set_quantity('stage', 2.)
     domain.set_quantity('xmomentum', 0.0)
     domain.set_quantity('ymomentum', 0.0)
 else:
@@ -96,7 +96,7 @@ if myid == 0:
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
-for t in domain.evolve(yieldstep = 1.0, finaltime = 20.):
+for t in domain.evolve(yieldstep = 1.0, finaltime = 50.):
     #print domain.timestepping_statistics(track_speeds=True)
     if myid == 0 and verbose: print domain.timestepping_statistics()
 

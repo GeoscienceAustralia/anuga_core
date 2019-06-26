@@ -73,7 +73,6 @@ Constraints: See GPL license in the user guide
 
 # Decorator added for profiling
 #------------------------------
-import cProfile#
 
 def profileit(name):
     def inner(func):
@@ -348,6 +347,7 @@ class Domain(Generic_Domain):
         from anuga.config import compute_fluxes_method
         from anuga.config import distribute_to_vertices_and_edges_method
         from anuga.config import sloped_mannings_function
+        from anuga.config import low_froude
 
 
         # Early algorithms need elevation to remain continuous
@@ -364,9 +364,10 @@ class Domain(Generic_Domain):
         self.alpha_balance = alpha_balance
         self.tight_slope_limiters = tight_slope_limiters
 
+        self.set_low_froude(low_froude)
+
         self.set_use_optimise_dry_cells(optimise_dry_cells)
         self.set_extrapolate_velocity(extrapolate_velocity_second_order)
-
 
         self.set_use_edge_limiter(use_edge_limiter)
         self.optimised_gradient_limiter = optimised_gradient_limiter
@@ -378,7 +379,6 @@ class Domain(Generic_Domain):
         self.set_distribute_to_vertices_and_edges_method(distribute_to_vertices_and_edges_method)
 
         self.set_store_centroids(False)
-
 
     def get_algorithm_parameters(self):
         """
@@ -395,6 +395,7 @@ class Domain(Generic_Domain):
         parameters['tight_slope_limiters']    = self.tight_slope_limiters
         parameters['optimise_dry_cells']      = self.optimise_dry_cells
         parameters['use_edge_limiter']        = self.use_edge_limiter
+        parameters['low_froude']              = self.low_froude
         parameters['use_centroid_velocities'] = self.use_centroid_velocities
         parameters['use_sloped_mannings']     = self.use_sloped_mannings
         parameters['compute_fluxes_method']   = self.get_compute_fluxes_method()
@@ -1321,6 +1322,16 @@ class Domain(Generic_Domain):
             self.use_edge_limiter = True
         elif flag is False:
             self.use_edge_limiter = False
+
+    def set_low_froude(self, low_froude=0):
+        """ For low Froude problems the standard flux calculations
+        can lead to excessive damping. Set low_froude to 1 or 2 for
+        flux calculations which minimize the damping in this case.
+        """
+
+        assert low_froude in [0,1,2]
+
+        self.low_froude = low_froude
 
     def set_use_optimise_dry_cells(self, flag=True):
         """ Try to optimize calculations where region is dry
