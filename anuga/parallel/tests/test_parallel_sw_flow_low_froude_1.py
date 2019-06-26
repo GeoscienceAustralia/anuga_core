@@ -35,14 +35,14 @@ yieldstep = 0.25
 finaltime = 1.0
 nprocs = 4
 N = 29
-M = 29 
+M = 29
 verbose = False
 
 #---------------------------------
 # Setup Functions
 #---------------------------------
-def topography(x,y): 
-    return -x/2    
+def topography(x,y):
+    return -x/2
 
 ###########################################################################
 # Setup Test
@@ -53,9 +53,16 @@ def run_simulation(parallel=False, G = None, seq_interpolation_points=None, verb
     # Setup computational domain and quantities
     #--------------------------------------------------------------------------
     domain = rectangular_cross_domain(M, N)
+
+
     domain.set_quantity('elevation', topography) # Use function for elevation
-    domain.set_quantity('friction', 0.0)         # Constant friction 
+    domain.set_quantity('friction', 0.0)         # Constant friction
     domain.set_quantity('stage', expression='elevation') # Dry initial stage
+
+    domain.set_low_froude(1)
+
+    domain.set_name('runup')                    # Set sww filename
+    domain.set_datadir('.')                     # Set output dir
 
     #--------------------------------------------------------------------------
     # Create the parallel domain
@@ -67,10 +74,8 @@ def run_simulation(parallel=False, G = None, seq_interpolation_points=None, verb
     #--------------------------------------------------------------------------
     # Setup domain parameters
     #--------------------------------------------------------------------------
-    domain.set_name('runup')                    # Set sww filename
-    domain.set_datadir('.')                     # Set output dir
 
-    domain.set_flow_algorithm('2_0')
+
     domain.set_quantities_to_be_stored(None)
 
 
@@ -86,7 +91,7 @@ def run_simulation(parallel=False, G = None, seq_interpolation_points=None, verb
     domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom': Br})
 
     #------------------------------------------------------------------------------
-    # Find which sub_domain in which the interpolation points are located 
+    # Find which sub_domain in which the interpolation points are located
     #
     # Sometimes the interpolation points sit exactly
     # between two centroids, so in the parallel run we
@@ -108,12 +113,12 @@ def run_simulation(parallel=False, G = None, seq_interpolation_points=None, verb
             if domain.tri_full_flag[k] == 1:
                 tri_ids.append(k)
             else:
-                tri_ids.append(-1)            
+                tri_ids.append(-1)
         except:
             tri_ids.append(-2)
 
         #print "  tri_ids ",myid, i, tri_ids[-1]
-        
+
     if verbose: print 'P%d has points = %s' %(myid, tri_ids)
 
 
@@ -123,7 +128,7 @@ def run_simulation(parallel=False, G = None, seq_interpolation_points=None, verb
         if id<1:
             if verbose: print 'WARNING: Interpolation point not within the domain!'
         interpolation_points.append(c_coord[id,:])
-            
+
     #------------------------------------------------------------------------------
     # Evolve system through time
     #------------------------------------------------------------------------------
@@ -133,7 +138,7 @@ def run_simulation(parallel=False, G = None, seq_interpolation_points=None, verb
         if myid == 0 and verbose: print 'PARALLEL EVOLVE'
     else:
         if myid == 0 and verbose: print 'SEQUENTIAL EVOLVE'
-    
+
 
     for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
         if myid == 0 and verbose : domain.write_time()
@@ -164,7 +169,7 @@ def run_simulation(parallel=False, G = None, seq_interpolation_points=None, verb
             success = success and num.allclose(gauge_values[i], G[i])
 
     assert_(success)
-    
+
     return G, interpolation_points
 
 # Test an nprocs-way run of the shallow water equations
@@ -188,7 +193,7 @@ def assert_(condition, msg="Assertion Failed"):
         raise AssertionError, msg
 
 if __name__=="__main__":
-    if numprocs == 1: 
+    if numprocs == 1:
         runner = unittest.TextTestRunner()
         suite = unittest.makeSuite(Test_parallel_sw_flow, 'test')
         runner.run(suite)
@@ -206,7 +211,7 @@ if __name__=="__main__":
         G = num.array(G,num.float)
 
         barrier()
-        
+
         #------------------------------------------
         # Run the code code and compare sequential
         # results at 4 gauge stations
@@ -214,7 +219,5 @@ if __name__=="__main__":
         if myid ==0 and verbose: print 'PARALLEL START'
 
         run_simulation(parallel=True, G=G, seq_interpolation_points = interpolation_points, verbose= verbose)
-        
+
         finalize()
-
-

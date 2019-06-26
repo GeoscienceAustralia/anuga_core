@@ -25,7 +25,7 @@ class Sequential_distribute(object):
 
         if debug:
             verbose = True
-            
+
         self.domain = domain
         self.verbose = verbose
         self.debug = debug
@@ -35,7 +35,7 @@ class Sequential_distribute(object):
     def distribute(self, numprocs=1):
 
         self.numprocs = numprocs
-        
+
         domain = self.domain
         verbose = self.verbose
         debug = self.debug
@@ -60,6 +60,7 @@ class Sequential_distribute(object):
         self.domain_georef = domain.geo_reference
         self.domain_quantities_to_be_stored = domain.quantities_to_be_stored
         self.domain_smooth = domain.smooth
+        self.domain_low_froude = domain.low_froude
         self.number_of_global_triangles = domain.number_of_triangles
         self.number_of_global_nodes = domain.number_of_nodes
         self.boundary_map = domain.boundary_map
@@ -99,20 +100,20 @@ class Sequential_distribute(object):
         """
 
         submesh = self.submesh
-        triangles_per_proc = self.triangles_per_proc 
+        triangles_per_proc = self.triangles_per_proc
         p2s_map = self.p2s_map
         verbose = self.verbose
         debug = self.debug
 
         assert p>=0
         assert p<self.numprocs
-        
-        
+
+
         points, vertices, boundary, quantities, \
             ghost_recv_dict, full_send_dict, \
             tri_map, node_map, tri_l2g, node_l2g, ghost_layer_width =\
               extract_submesh(submesh, triangles_per_proc, p2s_map, p)
-              
+
 
         number_of_full_nodes = len(submesh['full_nodes'][p])
         number_of_full_triangles = len(submesh['full_triangles'][p])
@@ -123,21 +124,21 @@ class Sequential_distribute(object):
             print  50*"="
             print 'NODE_L2G'
             pprint.pprint(node_l2g)
-        
+
             pprint.pprint(node_l2g[vertices[:,0]])
-        
+
             print 'VERTICES'
             pprint.pprint(vertices[:,0])
             pprint.pprint(new_triangles[tri_l2g,0])
-        
-            assert num.allclose(node_l2g[vertices[:,0]], new_triangles[tri_l2g,0])        
-            assert num.allclose(node_l2g[vertices[:,1]], new_triangles[tri_l2g,1]) 
-            assert num.allclose(node_l2g[vertices[:,2]], new_triangles[tri_l2g,2]) 
-        
+
+            assert num.allclose(node_l2g[vertices[:,0]], new_triangles[tri_l2g,0])
+            assert num.allclose(node_l2g[vertices[:,1]], new_triangles[tri_l2g,1])
+            assert num.allclose(node_l2g[vertices[:,2]], new_triangles[tri_l2g,2])
+
 
             print 'POINTS'
             pprint.pprint(points)
-        
+
             assert num.allclose(points[:,0], new_nodes[node_l2g,0])
             assert num.allclose(points[:,1], new_nodes[node_l2g,1])
 
@@ -145,7 +146,7 @@ class Sequential_distribute(object):
             print 'TRI'
             pprint.pprint(tri_l2g)
             pprint.pprint(p2s_map[tri_l2g])
-        
+
 
             assert num.allclose(original_triangles[tri_l2orig,0],node_l2g[vertices[:,0]])
             assert num.allclose(original_triangles[tri_l2orig,1],node_l2g[vertices[:,1]])
@@ -153,10 +154,10 @@ class Sequential_distribute(object):
 
             print 'NODES'
             pprint.pprint(node_map)
-            pprint.pprint(node_l2g)      
-        
-        #tri_l2orig = p2s_map[tri_l2g]        
-        
+            pprint.pprint(node_l2g)
+
+        #tri_l2orig = p2s_map[tri_l2g]
+
         s2p_map = None
         p2s_map = None
 
@@ -183,7 +184,6 @@ class Sequential_distribute(object):
                 'node_l2g':  node_l2g,
                 'ghost_layer_width':  ghost_layer_width}
 
-
         boundary_map = self.boundary_map
         domain_name = self.domain_name
         domain_dir = self.domain_dir
@@ -195,22 +195,23 @@ class Sequential_distribute(object):
         domain_georef = self.domain_georef
         domain_quantities_to_be_stored = self.domain_quantities_to_be_stored
         domain_smooth = self.domain_smooth
-            
+        domain_low_froude = self.domain_low_froude
+
         tostore = (kwargs, points, vertices, boundary, quantities, \
                    boundary_map, \
                    domain_name, domain_dir, domain_store, domain_store_centroids, \
                    domain_minimum_storable_height, \
                    domain_minimum_allowed_height, domain_flow_algorithm, \
-                   domain_georef, domain_quantities_to_be_stored, domain_smooth)
-
+                   domain_georef, domain_quantities_to_be_stored, domain_smooth, \
+                   domain_low_froude)
 
         return tostore
 
 
 
-                       
 
-    
+
+
 def sequential_distribute_dump(domain, numprocs=1, verbose=False, partition_dir='.', debug=False, parameters = None):
     """ Distribute the domain, create parallel domain and pickle result
     """
@@ -236,25 +237,25 @@ def sequential_distribute_dump(domain, numprocs=1, verbose=False, partition_dir=
     import cPickle
     for p in range(0, numprocs):
 
-        tostore = partition.extract_submesh(p) 
+        tostore = partition.extract_submesh(p)
 
         pickle_name = partition.domain_name + '_P%g_%g.pickle'% (numprocs,p)
         pickle_name = join(partition_dir,pickle_name)
         f = file(pickle_name, 'wb')
 
 	lst = list(tostore)
-	
+
 	# Write points and triangles to their own files
 	num.save(pickle_name+".np1",tostore[1],allow_pickle=False) # this append .npy to filename
 	lst[1] = pickle_name+".np1.npy"
 	num.save(pickle_name+".np2",tostore[2],allow_pickle=False)
 	lst[2] = pickle_name+".np2.npy"
-	
+
 	# Write each quantity to it's own file
 	for k in tostore[4]:
 		num.save(pickle_name+".np4."+k,num.array(tostore[4][k]),allow_pickle=False)
 		lst[4][k] = pickle_name+".np4."+k+".npy"
-	
+
 	cPickle.dump( tuple(lst), f, protocol=cPickle.HIGHEST_PROTOCOL)
     return
 
@@ -267,7 +268,7 @@ def sequential_distribute_load(filename = 'domain', partition_dir = '.', verbose
     from os.path import join
 
     pickle_name = filename+'_P%g_%g.pickle'% (numprocs,myid)
-    pickle_name = join(partition_dir,pickle_name) 
+    pickle_name = join(partition_dir,pickle_name)
 
     return sequential_distribute_load_pickle_file(pickle_name, numprocs, verbose = verbose)
 
@@ -284,7 +285,8 @@ def sequential_distribute_load_pickle_file(pickle_name, np=1, verbose = False):
                    domain_name, domain_dir, domain_store, domain_store_centroids, \
                    domain_minimum_storable_height, domain_minimum_allowed_height, \
                    domain_flow_algorithm, domain_georef, \
-                   domain_quantities_to_be_stored, domain_smooth = cPickle.load(f)
+                   domain_quantities_to_be_stored, domain_smooth, \
+                   domain_low_froude = cPickle.load(f)
     f.close()
 
     for k in quantities:
@@ -320,6 +322,7 @@ def sequential_distribute_load_pickle_file(pickle_name, np=1, verbose = False):
     domain.set_name(domain_name)
     domain.set_datadir(domain_dir)
     domain.set_flow_algorithm(domain_flow_algorithm)
+    domain.set_low_froude(domain_low_froude)
     domain.set_store(domain_store)
     domain.set_store_centroids(domain_store_centroids)
     domain.set_minimum_storable_height(domain_minimum_storable_height)
