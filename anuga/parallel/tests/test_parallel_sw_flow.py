@@ -32,7 +32,7 @@ from anuga import distribute, myid, numprocs, send, receive, barrier, finalize
 # Setup parameters
 #--------------------------------------------------------------------------
 yieldstep = 0.25
-finaltime = 6.0
+finaltime = 1.0
 nprocs = 4
 N = 29
 M = 29 
