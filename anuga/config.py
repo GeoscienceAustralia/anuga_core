@@ -16,9 +16,9 @@ default_smoothing_parameter = 0.001 # Default alpha for penalised
                                     # least squares fitting
 single_precision = 1.0e-6           # Smallest single precision number
 velocity_protection = 1.0e-6        # Used to compute velocity from momentum
-                                    # See section 7.4 on Flux limiting 
+                                    # See section 7.4 on Flux limiting
                                     # in the user manual
-                            
+
 
 ################################################################################
 # Standard filenames, directories and system parameters used by ANUGA
@@ -29,7 +29,7 @@ revision_filename = 'revision.py'
 default_datadir = '.'
 time_format = '%d/%m/%y %H:%M:%S'    # Used with timefile2netcdf
 umask = 002  # Controls file and directory permission created by anuga (UNIX)
-default_boundary_tag = 'exterior' 
+default_boundary_tag = 'exterior'
 
 # Major revision number for use with create_distribution
 # and update_anuga_user_guide
@@ -51,7 +51,7 @@ rho_a = 1.2e-3 # Atmospheric density
 rho_w = 1023   # Fluid density [kg/m^3] (rho_w = 1023 for salt water)
 
 ################################################################################
-# Limiters - used with linear reconstruction of vertex 
+# Limiters - used with linear reconstruction of vertex
 # values from centroid values
 ################################################################################
 # Note the individual beta values are set in domain.set_flow_method which also sets
@@ -64,7 +64,7 @@ beta_w = 1.0
 # to the coastline.  This will minimise 'creep' but at the same time cause
 # smaller time steps
 # Range:
-alpha_balance = 2.0 
+alpha_balance = 2.0
 
 # Flag use of new limiters.
 # tight_slope_limiters = 0 means use old limiters (e.g. for some tests)
@@ -85,7 +85,7 @@ use_edge_limiter = False    # The edge limiter is better, but most runs have bee
 #
 # This option is good with tight_slope_limiters, especially for large domains.
 use_centroid_velocities = True
-        
+
 # FIXME (Ole) Maybe get rid of order altogether and use beta_w
 default_order = 2
 
@@ -101,6 +101,9 @@ compute_fluxes_method = 'wb_2'
 # Currently "original' and 'tsunami'
 distribute_to_vertices_and_edges_method = 'original'
 
+# Option to turn on low damping for low Froude flows
+low_froude = 0 
+
 ################################################################################
 # Friction Method
 ################################################################################
@@ -112,13 +115,13 @@ sloped_mannings_function = False
 ################################################################################
 
 CFL = 1.0  # CFL condition assigned to domain.CFL - controls timestep size
-      
+
 # Choose type of timestepping and spatial reconstruction method
 
 timestepping_method = 1
 
 # For shallow water we have a method that sets both timestepping and spatial reconstruction and
-# beta values. In this case the settings for timestepping_method will be overriden 
+# beta values. In this case the settings for timestepping_method will be overriden
 
 #flow_algorithm = '1_0'    # 1st order euler and conservative piecewise constant spatial reconstruction
 #flow_algorithm = '1_5'  # 1st order euler and conservative piecewise linear spatial reconstruction
@@ -179,7 +182,7 @@ max_smallsteps = 50   # Max number of degenerate steps allowed b4
 ################################################################################
 
 # Water depth below which it is considered to be 0 in the model
-minimum_allowed_height = 1.0e-05 
+minimum_allowed_height = 1.0e-05
 
 # Water depth below which it is *stored* as 0
 minimum_storable_height = 1.0e-03
@@ -256,17 +259,17 @@ if err != 0:
     # which means that large file support is
     # definitely not supported
     pass
-else:    
+else:
     # Try the import within this process
     try:
         exec(s)
     except IOError:
         # NetCDFFile does not segfault but it does not
-        # support large file support    
+        # support large file support
         pass
     else:
         # Set the default mode to large file support
-        #netcdf_mode_w = 'w4' # Future use of HDF5        
+        #netcdf_mode_w = 'w4' # Future use of HDF5
         netcdf_mode_w = 'wl' # Large NetCDF (new default 30/6/2009)
         #netcdf_mode_w = 'w'   # Old style NetCDF used by OSG viewer
 

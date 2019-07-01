@@ -49,7 +49,7 @@ for i in range(len(nearest_points)):
 f = open('Stage_point_comparison.csv','w')
 f.writelines( 'Field, ANUGA, TUFLOW, ANUGA minus Field, ANUGA minus TUFLOW \n' )
 
-print nearest_points.tolist()
+if verbose: print nearest_points.tolist()
 
 for i in range(len(nearest_points)):
     po = point_observations[i,-2]

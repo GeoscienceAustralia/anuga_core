@@ -1,7 +1,7 @@
 """ Conversion routines.
     ANUGA needs to deal with many different file formats, and this
     module provides routines for easily converting between them.
-    
+
     These routines are necessarily high level, sitting above the various
     ANUGA modules. They take a file as input, and output a file.
 """
@@ -139,7 +139,7 @@ def timefile2netcdf(file_text, file_out = None, quantity_names=None, \
     else:
         try:
             starttime = float(fields[0])
-        except Error:
+        except Exception:
             msg = "Bad time format"
             raise DataTimeError, msg
 
@@ -213,8 +213,8 @@ def timefile2netcdf(file_text, file_out = None, quantity_names=None, \
         fid.variables[name][:] = Q[:,i]
 
     fid.close()
-    
-    
+
+
 
 def tsh2sww(filename, verbose=False):
     """
@@ -364,4 +364,3 @@ def write_obj(filename, x, y, z):
         outfile.write("f %d %d %d\n" % (base+1, base+2, base+3))
 
     outfile.close()
-

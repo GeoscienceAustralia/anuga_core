@@ -82,7 +82,7 @@ if myid == 0:
 #------------------------------
 #Evolve the system through time
 #------------------------------
-for t in domain.evolve(yieldstep=1.0,finaltime=40.0):
+for t in domain.evolve(yieldstep=1.0,finaltime=200.0):
 	
 	if myid == 0 and verbose: print domain.timestepping_statistics()
 # 	xx = domain.quantities['xmomentum'].centroid_values
