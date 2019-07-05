@@ -62,15 +62,14 @@ A collection of online jupyter notebooks which can run under google's colab envi
 Mailing Lists
 -------------
 
-Please see anuga user mailing list here:
-
-    anuga-user@lists.sourceforge.net
-    
-subcription via
+You can subscribe to our mailing via:
 
     https://lists.sourceforge.net/lists/listinfo/anuga-user
 
+and send questions using the address
 
+    anuga-user@lists.sourceforge.net
+    
 
 Web sites
 ---------
