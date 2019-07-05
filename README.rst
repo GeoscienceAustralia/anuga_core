@@ -59,6 +59,19 @@ A collection of online jupyter notebooks which can run under google's colab envi
 
     https://github.com/stoiver/anuga-clinic-2018
 
+Mailing Lists
+-------------
+
+Please see anuga user mailing list here:
+
+    anuga-user@lists.sourceforge.net
+    
+subcription via
+
+    https://lists.sourceforge.net/lists/listinfo/anuga-user
+
+
+
 Web sites
 ---------
 
@@ -69,14 +82,6 @@ The GitHub repository for ANUGA is: https://github.com/GeoscienceAustralia/anuga
 A viewer is available for displaying the ANUGA sww output files. ANUGA viewer repository is: https://github.com/GeoscienceAustralia/anuga-viewer
 
 
-    
-
-Mailing Lists
--------------
-
-Please see anuga user mailing list here:
-
-    anuga-user@lists.sourceforge.net
 
 
 Latest source code
