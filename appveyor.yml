@@ -21,9 +21,11 @@ build_script:
   - cmd: C:\Py\Scripts\activate.bat
   - CMD: SET
   - conda config --set always_yes yes
-  - conda config --add channels conda-forge
   - conda update conda
-  - conda install python=2.7 git pip nose numpy scipy netcdf4 matplotlib dill gdal m2w64-toolchain libpython
+  - conda install python=2.7.13
+  - conda install git=2.2.2
+  - conda install nose numpy scipy netcdf4 matplotlib dill libpython
+  - conda install -c msys2 m2w64-toolchain 
   - python setup.py install
 
 test_script:
