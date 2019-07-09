@@ -23,7 +23,7 @@ build_script:
   - conda config --set always_yes yes
   - conda update conda
   - conda install python=2.7.13
-  - conda install git=2.2.2
+  - conda install gdal=2.2.2
   - conda install nose numpy scipy netcdf4 matplotlib dill libpython
   - conda install -c msys2 m2w64-toolchain 
   - python setup.py install
