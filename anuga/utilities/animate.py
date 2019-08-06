@@ -4,7 +4,6 @@ associated with an ANUGA domain and SWW file.
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 import os
 
 
@@ -14,12 +13,12 @@ class Domain_plotter:
     xmomentunm and ymomentum, and triangulation information.
     """
 
+
     def __init__(self, domain, plot_dir='_plot'):
 
         self.plot_dir = plot_dir
         self.make_plot_dir()
 
-        import matplotlib.tri as tri
         self.nodes = domain.nodes
         self.triangles = domain.triangles
         self.x = domain.nodes[:, 0]
@@ -32,6 +31,7 @@ class Domain_plotter:
         self.yllcorner = domain.geo_reference.yllcorner
         self.zone = domain.geo_reference.zone
 
+        import matplotlib.tri as tri
         self.triang = tri.Triangulation(self.x, self.y, self.triangles)
 
         self.elev = domain.quantities['elevation'].centroid_values
@@ -42,6 +42,8 @@ class Domain_plotter:
         self.domain = domain
 
     def _depth_frame(self, figsize, dpi, vmin, vmax):
+
+        import matplotlib.pyplot as plt
 
         name = self.domain.get_name()
         time = self.domain.get_time()
@@ -66,6 +68,8 @@ class Domain_plotter:
     def save_depth_frame(self, figsize=(10, 6), dpi=80,
                          vmin=0.0, vmax=20):
 
+        import matplotlib.pyplot as plt
+
         plot_dir = self.plot_dir
         name = self.domain.get_name()
         time = self.domain.get_time()
@@ -81,6 +85,8 @@ class Domain_plotter:
 
     def plot_depth_frame(self, figsize=(5, 3), dpi=80,
                          vmin=0.0, vmax=20.0):
+
+        import matplotlib.pyplot as plt
 
         self._depth_frame(figsize, dpi, vmin, vmax)
 
@@ -130,6 +136,8 @@ class Domain_plotter:
 
     def _stage_frame(self, figsize, dpi, vmin, vmax):
 
+        import matplotlib.pyplot as plt        
+
         name = self.domain.get_name()
         time = self.domain.get_time()
 
@@ -153,6 +161,8 @@ class Domain_plotter:
     def save_stage_frame(self, figsize=(10, 6), dpi=80,
                          vmin=-20.0, vmax=20.0):
 
+        import matplotlib.pyplot as plt
+
         plot_dir = self.plot_dir
         name = self.domain.get_name()
         time = self.domain.get_time()
@@ -168,6 +178,8 @@ class Domain_plotter:
 
     def plot_stage_frame(self, figsize=(5, 3), dpi=80,
                          vmin=-20.0, vmax=20.0):
+
+        import matplotlib.pyplot as plt
 
         self._stage_frame(figsize, dpi, vmin, vmax)
 
@@ -218,6 +230,8 @@ class Domain_plotter:
 
     def _speed_frame(self, figsize, dpi, vmin, vmax):
 
+        import matplotlib.pyplot as plt
+
         name = self.domain.get_name()
         time = self.domain.get_time()
 
@@ -241,6 +255,8 @@ class Domain_plotter:
     def save_speed_frame(self, figsize=(10, 6), dpi=80,
                          vmin=-20.0, vmax=20.0):
 
+        import matplotlib.pyplot as plt
+
         plot_dir = self.plot_dir
         name = self.domain.get_name()
         time = self.domain.get_time()
@@ -256,6 +272,8 @@ class Domain_plotter:
 
     def plot_speed_frame(self, figsize=(5, 3), dpi=80,
                          vmin=-20.0, vmax=20.0):
+
+        import matplotlib.pyplot as plt
 
         self._speed_frame(figsize, dpi, vmin, vmax)
 
@@ -388,6 +406,8 @@ class SWW_plotter:
 
     def _depth_frame(self, figsize, dpi, frame, vmin, vmax):
 
+        import matplotlib.pyplot as plt
+
         name = self.name
         time = self.time[frame]
         depth = self.depth[frame, :]
@@ -418,6 +438,8 @@ class SWW_plotter:
     def save_depth_frame(self, figsize=(10, 6), dpi=160, frame=-1,
                          vmin=0.0, vmax=20.0):
 
+        import matplotlib.pyplot as plt
+
         name = self.name
         time = self.time[frame]
         plot_dir = self.plot_dir
@@ -434,11 +456,15 @@ class SWW_plotter:
     def plot_depth_frame(self, figsize=(5, 3), dpi = 80, frame=-1,
                          vmin=0.0, vmax=20.0):
 
+        import matplotlib.pyplot as plt
+
         self._depth_frame(figsize, dpi, frame, vmin, vmax)
 
         plt.show()
 
     def _stage_frame(self, figsize, dpi, frame, vmin, vmax):
+
+        import matplotlib.pyplot as plt
 
         name = self.name
         time = self.time[frame]
@@ -471,6 +497,8 @@ class SWW_plotter:
     def save_stage_frame(self, figsize=(10, 6), dpi=160, frame=-1,
                          vmin=-20.0, vmax=20.0):
 
+        import matplotlib.pyplot as plt
+
         name = self.name
         time = self.time[frame]
         plot_dir = self.plot_dir
@@ -487,11 +515,15 @@ class SWW_plotter:
     def plot_stage_frame(self, figsize=(5, 3), dpi=80, frame=-1,
                          vmin=-20, vmax=20.0):
 
+        import matplotlib.pyplot as plt
+
         self._stage_frame(figsize, dpi, frame, vmin, vmax)
 
         plt.show()
 
     def _speed_frame(self, figsize, dpi, frame, vmin, vmax):
+
+        import matplotlib.pyplot as plt
 
         name = self.name
         time = self.time[frame]
@@ -524,6 +556,8 @@ class SWW_plotter:
     def save_speed_frame(self, figsize=(10, 6), dpi=160, frame=-1,
                          vmin=0.0, vmax=10.0):
 
+        import matplotlib.pyplot as plt
+
         name = self.name
         time = self.time[frame]
         plot_dir = self.plot_dir
@@ -539,6 +573,8 @@ class SWW_plotter:
 
     def plot_speed_frame(self, figsize=(5, 3), dpi=80, frame=-1,
                          vmin=0.0, vmax=10.0):
+
+        import matplotlib.pyplot as plt
 
         self._speed_frame(figsize, dpi, frame, vmin, vmax)
 
