@@ -74,8 +74,8 @@ else:
     from anuga.operators.base_operator import Operator
     from anuga.structures.structure_operator import Structure_operator
 
-    from anuga.animate import SWW_plotter
-    from anuga.animate import Domain_plotter
+    from anuga.utilities.animate import SWW_plotter
+    from anuga.utilities.animate import Domain_plotter
 
 
     from anuga.abstract_2d_finite_volumes.generic_domain import Generic_Domain
