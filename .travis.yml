@@ -22,9 +22,7 @@ matrix:
          env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="mpich"  DISTRIB="ubuntu"
 
        - os: linux
-         dist: xenial
-         services:
-           - xvf
+         dist: trusty
          sudo: required
          python: "2.7_with_system_site_packages"
          env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="false"  DISTRIB="ubuntu"
