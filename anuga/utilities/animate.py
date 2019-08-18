@@ -14,11 +14,13 @@ class Domain_plotter:
     """
 
 
-    def __init__(self, domain, plot_dir='_plot'):
+    def __init__(self, domain, plot_dir='_plot', min_depth=0.01):
 
         self.plot_dir = plot_dir
         self.make_plot_dir()
 
+        self.min_depth = min_depth
+        
         self.nodes = domain.nodes
         self.triangles = domain.triangles
         self.x = domain.nodes[:, 0]
@@ -47,17 +49,19 @@ class Domain_plotter:
 
         name = self.domain.get_name()
         time = self.domain.get_time()
+        
+        md = self.min_depth
 
         fig = plt.figure(figsize=figsize, dpi=dpi)
 
         plt.title('Depth: Time {0:0>4}'.format(time))
 
-        self.triang.set_mask(self.depth > 0.01)
+        self.triang.set_mask(self.depth > md)
         plt.tripcolor(self.triang,
                       facecolors=self.elev,
                       cmap='Greys_r')
 
-        self.triang.set_mask(self.depth < 0.01)
+        self.triang.set_mask(self.depth < md)
         plt.tripcolor(self.triang,
                       facecolors=self.depth,
                       cmap='viridis',
@@ -140,17 +144,19 @@ class Domain_plotter:
 
         name = self.domain.get_name()
         time = self.domain.get_time()
+        
+        md = self.min_depth
 
         fig = plt.figure(figsize=figsize, dpi=dpi)
 
         plt.title('Stage: Time {0:0>4}'.format(time))
 
-        self.triang.set_mask(self.depth > 0.01)
+        self.triang.set_mask(self.depth > md)
         plt.tripcolor(self.triang,
                       facecolors=self.elev,
                       cmap='Greys_r')
 
-        self.triang.set_mask(self.depth < 0.01)
+        self.triang.set_mask(self.depth < md)
         plt.tripcolor(self.triang,
                       facecolors=self.stage,
                       cmap='viridis',
@@ -234,17 +240,19 @@ class Domain_plotter:
 
         name = self.domain.get_name()
         time = self.domain.get_time()
+        
+        md = self.min_depth
 
         fig = plt.figure(figsize=figsize, dpi=dpi)
 
         plt.title('Speed: Time {0:0>4}'.format(time))
 
-        self.triang.set_mask(self.depth > 0.01)
+        self.triang.set_mask(self.depth > md)
         plt.tripcolor(self.triang,
                       facecolors=self.elev,
                       cmap='Greys_r')
 
-        self.triang.set_mask(self.depth < 0.01)
+        self.triang.set_mask(self.depth < md)
         plt.tripcolor(self.triang,
                       facecolors=self.speed,
                       cmap='viridis',
@@ -352,10 +360,13 @@ class SWW_plotter:
     """
 
     def __init__(self, swwfile='domain.sww', plot_dir='_plot',
-                minimum_allowed_depth=1.0e-03):
+                 min_depth = 0.01,
+                 minimum_allowed_depth=1.0e-03):
 
         self.plot_dir = plot_dir
         self.make_plot_dir()
+        
+        self.min_depth = min_depth
 
         import matplotlib.tri as tri
         import numpy as np
@@ -411,6 +422,9 @@ class SWW_plotter:
         name = self.name
         time = self.time[frame]
         depth = self.depth[frame, :]
+        
+        md = self.min_depth
+        
         try:
             elev = self.elev[frame, :]
         except:
@@ -422,12 +436,12 @@ class SWW_plotter:
 
         plt.title('Depth: Time {0:0>4}'.format(time))
 
-        self.triang.set_mask(depth > 0.01)
+        self.triang.set_mask(depth > md)
         plt.tripcolor(self.triang,
                       facecolors=elev,
                       cmap='Greys_r')
 
-        self.triang.set_mask(depth < 0.01)
+        self.triang.set_mask(depth < md)
         plt.tripcolor(self.triang,
                       facecolors=depth,
                       cmap='viridis',
@@ -470,6 +484,9 @@ class SWW_plotter:
         time = self.time[frame]
         stage = self.stage[frame, :]
         depth = self.depth[frame, :]
+        
+        md = self.min_depth
+        
         try:
             elev = self.elev[frame, :]
         except:
@@ -481,12 +498,12 @@ class SWW_plotter:
 
         plt.title('Stage: Time {0:0>4}'.format(time))
 
-        self.triang.set_mask(depth > 0.01)
+        self.triang.set_mask(depth > md)
         plt.tripcolor(self.triang,
                       facecolors=elev,
                       cmap='Greys_r')
 
-        self.triang.set_mask(depth < 0.01)
+        self.triang.set_mask(depth < md)
         plt.tripcolor(self.triang,
                       facecolors=stage,
                       cmap='viridis',
@@ -528,6 +545,9 @@ class SWW_plotter:
         name = self.name
         time = self.time[frame]
         depth = self.depth[frame, :]
+        
+        md = self.min_depth
+        
         try:
             elev = self.elev[frame, :]
         except:
@@ -540,12 +560,12 @@ class SWW_plotter:
 
         plt.title('Speed: Time {0:0>4}'.format(time))
 
-        self.triang.set_mask(depth > 0.01)
+        self.triang.set_mask(depth > md)
         plt.tripcolor(self.triang,
                       facecolors=elev,
                       cmap='Greys_r')
 
-        self.triang.set_mask(depth < 0.01)
+        self.triang.set_mask(depth < md)
         plt.tripcolor(self.triang,
                       facecolors=speed,
                       cmap='viridis',
