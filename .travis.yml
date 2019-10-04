@@ -41,15 +41,9 @@ install:
     - if [[ "$COVERAGE" == "--coverage" ]]; then pip install coverage coveralls; fi
 
 
-script: 
+script:
     - python runtests.py $COVERAGE
     - if [[ "$COVERAGE" == "--coverage" ]]; then cp build/test/.coverage .; fi
 
 after_success:
     - if [[ "$COVERAGE" == "--coverage" ]]; then coveralls || echo "failed"; fi
-
-
-
-
-
-
