@@ -246,14 +246,14 @@ def sequential_distribute_dump(domain, numprocs=1, verbose=False, partition_dir=
 	lst = list(tostore)
 
 	# Write points and triangles to their own files
-	num.save(pickle_name+".np1",tostore[1],allow_pickle=False) # this append .npy to filename
+	num.save(pickle_name+".np1",tostore[1]) # this append .npy to filename
 	lst[1] = pickle_name+".np1.npy"
-	num.save(pickle_name+".np2",tostore[2],allow_pickle=False)
+	num.save(pickle_name+".np2",tostore[2])
 	lst[2] = pickle_name+".np2.npy"
 
 	# Write each quantity to it's own file
 	for k in tostore[4]:
-		num.save(pickle_name+".np4."+k,num.array(tostore[4][k]),allow_pickle=False)
+		num.save(pickle_name+".np4."+k,num.array(tostore[4][k]))
 		lst[4][k] = pickle_name+".np4."+k+".npy"
 
 	cPickle.dump( tuple(lst), f, protocol=cPickle.HIGHEST_PROTOCOL)

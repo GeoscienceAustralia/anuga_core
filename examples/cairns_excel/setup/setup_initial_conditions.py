@@ -107,6 +107,9 @@ def setup_initial_conditions(domain, project):
                 quantity_function, domain, approx_grid_spacing=grid_spacing,
                 averaging=mean_type)
 
+        print quantity_name, quantity_data, domain, quantity_clip_range, quantity_mean, quantity_additions
+
+        print quantity_function(numpy.array([0.0]),numpy.array([0.0]))
         # Set the quantity
         domain.set_quantity(quantity_name, quantity_function,
                             location=location)
@@ -115,17 +118,17 @@ def setup_initial_conditions(domain, project):
         quantity_addition_function = \
             qs.composite_quantity_setting_function(
                 quantity_additions, domain, nan_treatment='fall_through')
-        domain.add_quantity(quantity_name, quantity_addition_function, 
+        domain.add_quantity(quantity_name, quantity_addition_function,
             location=location)
     ##########################################################################
 
     # Elevation
-    quick_set_quantity(quantity_name='elevation', 
-                       quantity_data=project.elevation_data, 
+    quick_set_quantity(quantity_name='elevation',
+                       quantity_data=project.elevation_data,
                        domain=domain,
-                       quantity_clip_range=project.elevation_clip_range, 
+                       quantity_clip_range=project.elevation_clip_range,
                        quantity_mean=project.elevation_mean,
-                       quantity_additions=project.elevation_additions, 
+                       quantity_additions=project.elevation_additions,
                        location='centroids',
                        mean_type='mean')
 
@@ -137,41 +140,41 @@ def setup_initial_conditions(domain, project):
     # Say Sf is fixed (by topography for steady uniform flow)
     # Say d^(2/3) is ~ 1.
     # Then mean(U) and mean(Ud) are preserved by taking n = 1/mean(1/n)
-    quick_set_quantity(quantity_name='friction', 
-                       quantity_data=project.friction_data, 
+    quick_set_quantity(quantity_name='friction',
+                       quantity_data=project.friction_data,
                        domain=domain,
-                       quantity_clip_range=project.friction_clip_range, 
+                       quantity_clip_range=project.friction_clip_range,
                        quantity_mean=project.friction_mean,
-                       quantity_additions=project.friction_additions, 
+                       quantity_additions=project.friction_additions,
                        location='centroids',
                        mean_type='harmonic_mean')
     # Stage
-    quick_set_quantity(quantity_name='stage', 
-                       quantity_data=project.stage_data, 
+    quick_set_quantity(quantity_name='stage',
+                       quantity_data=project.stage_data,
                        domain=domain,
-                       quantity_clip_range=project.stage_clip_range, 
+                       quantity_clip_range=project.stage_clip_range,
                        quantity_mean=project.stage_mean,
-                       quantity_additions=project.stage_additions, 
+                       quantity_additions=project.stage_additions,
                        location='centroids',
                        mean_type='mean')
 
     # xmomentum
-    quick_set_quantity(quantity_name='xmomentum', 
-                       quantity_data=project.xmomentum_data, 
+    quick_set_quantity(quantity_name='xmomentum',
+                       quantity_data=project.xmomentum_data,
                        domain=domain,
-                       quantity_clip_range=project.xmomentum_clip_range, 
+                       quantity_clip_range=project.xmomentum_clip_range,
                        quantity_mean=project.xmomentum_mean,
-                       quantity_additions=project.xmomentum_additions, 
+                       quantity_additions=project.xmomentum_additions,
                        location='centroids',
                        mean_type='mean')
 
     # ymomentum
-    quick_set_quantity(quantity_name='ymomentum', 
-                       quantity_data=project.ymomentum_data, 
+    quick_set_quantity(quantity_name='ymomentum',
+                       quantity_data=project.ymomentum_data,
                        domain=domain,
-                       quantity_clip_range=project.ymomentum_clip_range, 
+                       quantity_clip_range=project.ymomentum_clip_range,
                        quantity_mean=project.ymomentum_mean,
-                       quantity_additions=project.ymomentum_additions, 
+                       quantity_additions=project.ymomentum_additions,
                        location='centroids',
                        mean_type='mean')
 
