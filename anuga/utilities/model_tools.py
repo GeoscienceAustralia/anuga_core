@@ -187,7 +187,7 @@ def get_polygons_from_Mid_Mif(Rfile):
     return polylist          
 
 # ---------------------------------------------------------------------------------------------------------
-def get_polygon_list_from_files(dir):
+def get_polygon_list_from_files(dir, verbose = False):
     """Read all polygons found in specified dir and return them in a list
        Called by:
        get_polygon_dictionary
@@ -202,18 +202,21 @@ def get_polygon_list_from_files(dir):
     polylist = []
     for filename in os.listdir(dir):
         Rfile = dir +'/'+filename
-        #print Rfile
+        
         
         if Rfile[-4:] == '.svn':  # wHAT DOES THIS DO ??
             continue
         if Rfile[-4:] == '.csv':
             #print 'CSV File'
-            polylist.extend(get_polygon_from_single_file(Rfile))
-            #polylist.append(polys)
+            if verbose: print Rfile
+            polylistcsv = get_polygon_from_single_file(Rfile)
+            polylist = polylist+polylistcsv
         if Rfile[-4:] == '.mif':
+            if verbose: print Rfile
             #print 'MIF File ...'
             #polys = get_polygons_from_Mid_Mif(Rfile)
-            polylist.extend(get_polygons_from_Mid_Mif(Rfile))
+            polylistmif=get_polygons_from_Mid_Mif(Rfile)
+            polylist = polylist+polylistmif
         #print filename
         #print Rfile
         #raw_input('Hold check file...- line 211')

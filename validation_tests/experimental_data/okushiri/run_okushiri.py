@@ -32,7 +32,7 @@ alg = args.alg
 verbose = args.verbose
 
 if verbose: print 'create mesh'
-elevation_in_mesh = True
+elevation_in_mesh = False
 if myid == 0:
     create_okushiri.create_mesh(elevation_in_mesh=elevation_in_mesh, verbose=verbose)
 
@@ -67,19 +67,21 @@ if myid == 0:
     domain.set_quantity('stage', 0.0)
     if verbose: print 'set stage'
     if elevation_in_mesh is False:
+#         domain.set_quantity('elevation',
+#                         filename=project.bathymetry_filename_stem+'.pts', 
+#                         alpha=0.02,                    
+#                         verbose=verbose,
+#                         use_cache=False)
         domain.set_quantity('elevation',
-                        filename=project.bathymetry_filename,
-                        alpha=0.001,                    
-                        verbose=verbose,
-                        use_cache=False)
+                        filename=project.bathymetry_filename_stem+'.asc',                   
+                        verbose=verbose)
 
     #-------------------------
     # Set simulation parameters
     #-------------------------
     domain.set_name(project.output_filename)  # Name of output sww file 
-    domain.set_minimum_storable_height(0.001) # Don't store w-z < 0.001m
-    #domain.set_quantities_to_be_monitored('stage')
-
+    domain.set_minimum_storable_height(0.001) # Don't store w < 0.01m
+    domain.set_store_vertices_smoothly(True)
     domain.set_flow_algorithm(alg)
 else:
     

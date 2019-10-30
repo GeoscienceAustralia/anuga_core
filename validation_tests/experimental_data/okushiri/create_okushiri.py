@@ -30,9 +30,9 @@ log.log_filename = './create_okushiri.log'
 #base_resolution = 0.02 # 1,972,289 triangles
 #base_resolution = 0.04 # 989,669 triangles
 #base_resolution = 0.1 # 397,456 triangles
-#base_resolution = 0.6 # 68162 triangles
-base_resolution = 2.0 # 21214 triangles
-#base_resolution = 4.0 # 11069 triangles
+#base_resolution = 0.6 # 70703 triangles
+base_resolution = 2.0 # 21884 triangles
+#base_resolution = 4.0 # 11388 triangles
 
 #print base_resolution
 
@@ -41,6 +41,7 @@ xleft   = 0
 xright  = 5.448
 ybottom = 0
 ytop    = 3.402
+
 
 point_sw = [xleft, ybottom]
 point_se = [xright, ybottom]
@@ -166,7 +167,7 @@ def create_mesh(elevation_in_mesh=False, verbose=False):
     m = create_mesh_from_regions(bounding_polygon,
                                  boundary_tags={'wall': [0, 1, 3],
                                                 'wave': [2]},     
-                                 maximum_triangle_area=0.1*base_resolution,
+                                 maximum_triangle_area=0.01*base_resolution,
                                  interior_regions=interior_regions,
                                  filename=project.mesh_filename,
                                  use_cache=False,

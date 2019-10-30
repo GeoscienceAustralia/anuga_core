@@ -37,8 +37,8 @@ class Domain_plotter:
         self.triang = tri.Triangulation(self.x, self.y, self.triangles)
 
         self.elev = domain.quantities['elevation'].centroid_values
-        self.depth = domain.quantities['height'].centroid_values
         self.stage = domain.quantities['stage'].centroid_values
+        self.depth = self.stage - self.elev
         self.xmom = domain.quantities['xmomentum'].centroid_values
         self.ymom = domain.quantities['ymomentum'].centroid_values
         self.domain = domain
@@ -140,7 +140,7 @@ class Domain_plotter:
 
     def _stage_frame(self, figsize, dpi, vmin, vmax):
 
-        import matplotlib.pyplot as plt        
+        import matplotlib.pyplot as plt
 
         name = self.domain.get_name()
         time = self.domain.get_time()
