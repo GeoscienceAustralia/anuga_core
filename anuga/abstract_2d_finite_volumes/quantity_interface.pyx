@@ -36,6 +36,36 @@ cdef extern from "util_ext.h":
 
 
 def update(object quantity, double timestep):
+  """Update centroid values based on values stored in
+    explicit_update and semi_implicit_update as well as given timestep
+
+    Function implementing forcing terms must take on argument
+    which is the domain and they must update either explicit
+    or implicit updates, e,g,:
+
+    def gravity(domain):
+        ....
+        domain.quantities['xmomentum'].explicit_update = ...
+        domain.quantities['ymomentum'].explicit_update = ...
+
+
+
+    Explicit terms must have the form
+
+        G(q, t)
+
+    and explicit scheme is
+
+       q^{(n+1}) = q^{(n)} + delta_t G(q^{n}, n delta_t)
+
+
+    Semi implicit forcing terms are assumed to have the form
+
+       G(q, t) = H(q, t) q
+
+    and the semi implicit scheme will then be
+
+      q^{(n+1}) = q^{(n)} + delta_t H(q^{n}, n delta_t) q^{(n+1})"""
 
   cdef np.ndarray[double, ndim=1, mode="c"] centroid_values
   cdef np.ndarray[double, ndim=1, mode="c"] explicit_update
