@@ -1,6 +1,3 @@
-#include "Python.h"
-#include "numpy/arrayobject.h"
-
 #include <cstdio>   /* gets */
 #include <cstdlib>  /* atoi, malloc */
 #include <cstring>  /* strcpy */
