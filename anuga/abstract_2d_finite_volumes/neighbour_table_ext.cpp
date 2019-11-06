@@ -3,6 +3,9 @@
 #include <cstring>  /* strcpy */
 //#include <cmath>    /* math!!! */
 
+// Hack to avoid ::hypot error using mingw on windows
+#define CYTHON_CCOMPLEX 0
+
 // This could be replaced with fast drop-inreplacements
 // that are around and open. like https://github.com/greg7mdp/sparsepp
 // TODO: But lets see if performance of unordered_map is any problem first.
@@ -11,7 +14,7 @@
 #include <functional> /* std::hash */
 
 //Shared code snippets
-#include "util_ext.h" /* in utilities */
+//#include "util_ext.h" /* in utilities */
 
 // basic type used for keys and counters
 // should be the same type as triangle/coordinate ids
