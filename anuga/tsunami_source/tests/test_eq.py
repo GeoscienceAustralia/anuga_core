@@ -40,7 +40,7 @@ class Test_eq(unittest.TestCase):
 
         #print 'in test', z.test
         assert num.allclose(z.test, -2205.904774487)
-        
+
         #print 'hello finished okada'
 
     def test_earthquake_tsunami(self):
@@ -53,7 +53,7 @@ class Test_eq(unittest.TestCase):
         depth = 3500.
         slip = 10.0
         dip = 15.0
-        
+
         eq = earthquake_tsunami(length=length, width = width, depth=depth, \
                                 strike = strike, dip = dip, slip = slip, \
                                 x0 = x0, y0 = y0)
@@ -61,7 +61,6 @@ class Test_eq(unittest.TestCase):
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_eq,'test_Okada_func')
+    suite = unittest.makeSuite(Test_eq,'test_')
     runner = unittest.TextTestRunner()
     runner.run(suite)
-

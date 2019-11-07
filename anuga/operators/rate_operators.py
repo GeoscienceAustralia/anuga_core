@@ -46,7 +46,8 @@ class Rate_operator(Operator,Region):
                  description = None,
                  label = None,
                  logging = False,
-                 verbose = False):
+                 verbose = False,
+                 monitor = False):
 
 
         Operator.__init__(self, domain, description, label, logging, verbose)
@@ -63,6 +64,7 @@ class Rate_operator(Operator,Region):
         #------------------------------------------
         # Local variables
         #------------------------------------------
+        self.monitor = monitor
         self.factor = factor
         self.relative_time = relative_time
 
@@ -116,9 +118,6 @@ class Rate_operator(Operator,Region):
         else:
             rate = self.get_non_spatial_rate(t)
 
-        if self.verbose is True:
-            log.critical('Rate of %s at time = %.2f = %f'
-                         % (self.quantity_name, self.domain.get_time(), rate))
 
 
         fid = self.full_indices
@@ -151,6 +150,12 @@ class Rate_operator(Operator,Region):
                 self.stage_c[indices] = self.stage_c[indices] + local_rates
         # Update mass inflows from fractional steps
         self.domain.fractional_step_volume_integral+=self.local_influx
+        
+        if self.monitor:
+            log.critical('Local Flux at time %.2f = %f'
+                         % (self.domain.get_time(), self.local_influx))
+
+            
 
         return
 

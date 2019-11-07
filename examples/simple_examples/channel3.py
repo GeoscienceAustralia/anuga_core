@@ -13,7 +13,7 @@ import anuga
 #------------------------------------------------------------------------------
 length = 40.
 width = 5.
-dx = dy = .1           # Resolution: Length of subdivisions on both axes
+dx = dy = 0.1           # Resolution: Length of subdivisions on both axes
 
 domain = anuga.rectangular_cross_domain(int(length/dx), int(width/dy),
                                         len1=length, len2=width)
@@ -57,16 +57,20 @@ Bi = anuga.Dirichlet_boundary([0.4, 0, 0])          # Inflow
 Br = anuga.Reflective_boundary(domain)              # Solid reflective wall
 Bo = anuga.Dirichlet_boundary([-5, 0, 0])           # Outflow
 
-domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
+domain.set_boundary({'left': Bi, 'right': Br, 'top': Br, 'bottom': Br})
+
+outflow = False
 
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
-for t in domain.evolve(yieldstep=0.1, finaltime=16.0):
+for t in domain.evolve(yieldstep=0.1, finaltime=25.0):
     print domain.timestepping_statistics()
 
-    if domain.get_quantity('stage').\
-           get_values(interpolation_points=[[10, 2.5]]) > 0:
+    stage_pt = domain.get_quantity('stage').get_values(interpolation_points=[[37.0, 2.5]])
+
+    if stage_pt>-3.3 and not outflow:
+        outflow = True
         print 'Stage > 0: Changing to outflow boundary'
         domain.set_boundary({'right': Bo})
         
