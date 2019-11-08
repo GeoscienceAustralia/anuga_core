@@ -4,6 +4,7 @@ import os
 import sys
 
 from os.path import join
+from Cython.Build import cythonize
 
 def configuration(parent_package='',top_path=None):
     
@@ -27,8 +28,10 @@ def configuration(parent_package='',top_path=None):
                          include_dirs=[util_dir])
 
     config.add_extension('swDE1_domain_ext',
-                         sources=['swDE1_domain_ext.c'],
+                         sources=['swDE1_domain_interface.pyx'],
                          include_dirs=[util_dir])
+
+    config.ext_modules = cythonize(config.ext_modules)
 
 
     return config

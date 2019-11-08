@@ -1,10 +1,10 @@
-#include "Python.h"
-#include "numpy/arrayobject.h"
-
 #include <cstdio>   /* gets */
 #include <cstdlib>  /* atoi, malloc */
 #include <cstring>  /* strcpy */
 //#include <cmath>    /* math!!! */
+
+// Hack to avoid ::hypot error using mingw on windows
+#define CYTHON_CCOMPLEX 0
 
 // This could be replaced with fast drop-inreplacements
 // that are around and open. like https://github.com/greg7mdp/sparsepp
@@ -14,7 +14,7 @@
 #include <functional> /* std::hash */
 
 //Shared code snippets
-#include "util_ext.h" /* in utilities */
+//#include "util_ext.h" /* in utilities */
 
 // basic type used for keys and counters
 // should be the same type as triangle/coordinate ids
@@ -208,84 +208,3 @@ int _build_neighbour_structure(keyint N, keyint M,
     return err;
 }
 
-
-//==============================================================================
-// Python method Wrapper
-//==============================================================================
-
-PyObject *build_neighbour_structure(PyObject *self, PyObject *args) {
-
-  /*
-   * Update neighbours array using triangles array
-   *
-   * N is number of nodes (vertices)
-   * triangle nodes defining triangles
-   * neighbour across edge_id
-   * neighbour_edges edge_id of edge in neighbouring triangle
-   * number_of_boundaries
-  */
-
-	PyArrayObject *neighbours, *neighbour_edges, *number_of_boundaries;
-        PyArrayObject *triangles;
-
-	keyint N; // Number of nodes (read in)
-        keyint M; // Number of triangles (calculated from triangle array)
-        int err;
-
-
-	// Convert Python arguments to C
-	if (!PyArg_ParseTuple(args, "iOOOO", &N,
-                                            &triangles,
-                                            &neighbours,
-                                            &neighbour_edges,
-                                            &number_of_boundaries
-                                            )) {
-	  PyErr_SetString(PyExc_RuntimeError,
-			  "hashtable.c: create_neighbours could not parse input");
-	  return NULL;
-	}
-
-
-        CHECK_C_CONTIG(triangles);
-        CHECK_C_CONTIG(neighbours);
-        CHECK_C_CONTIG(neighbour_edges);
-        CHECK_C_CONTIG(number_of_boundaries);
-
-
-        M = triangles -> dimensions[0];
-
-
-	err = _build_neighbour_structure(N, M,
-                      (long*) triangles  -> data,
-		      (long*) neighbours -> data,
-                      (long*) neighbour_edges -> data,
-                      (long*) number_of_boundaries -> data);
-
-
-	if (err != 0) {
-	  PyErr_SetString(PyExc_RuntimeError,
-			  "Duplicate Edge");
-	  return NULL;
-	}
-
-
-	return Py_BuildValue("");
-}
-
-
-//==============================================================================
-// Structures to allow calling from python
-//==============================================================================
-extern "C" {
-// Method table for python module
-static struct PyMethodDef MethodTable[] = {
-	{"build_neighbour_structure", build_neighbour_structure, METH_VARARGS, "Print out"},
-	{NULL, NULL, 0, NULL}   // sentinel
-};
-
-// Module initialisation
-void initneighbour_table_ext(void){
-  Py_InitModule("neighbour_table_ext", MethodTable);
-  import_array(); // Necessary for handling of NumPY structures
-}
-};
