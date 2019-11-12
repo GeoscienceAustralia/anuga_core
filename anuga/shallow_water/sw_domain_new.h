@@ -5,7 +5,7 @@
 
 
 // Shared code snippets
-#include "util_ext.h"
+//#include "util_ext.h"
 
 
 // structures
@@ -216,7 +216,7 @@ int print_domain_struct(struct domain *D) {
     printf("D->xmom_vertex_values     %p \n", D->xmom_vertex_values);
     printf("D->ymom_vertex_values     %p \n", D->ymom_vertex_values);
     printf("D->bed_vertex_values      %p \n", D->bed_vertex_values);
-    printf("D->height_vertex_values      %p \n", D->height_vertex_values);
+    printf("D->height_vertex_values   %p \n", D->height_vertex_values);
     printf("D->stage_boundary_values  %p \n", D->stage_boundary_values);
     printf("D->xmom_boundary_values   %p \n", D->xmom_boundary_values);
     printf("D->ymom_boundary_values   %p \n", D->ymom_boundary_values);

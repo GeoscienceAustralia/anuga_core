@@ -20,7 +20,7 @@
 //#include "numpy_shim.h"
 
 // Shared code snippets
-#include "util_ext.h"
+//#include "util_ext.h"
 #include "sw_domain_new.h"
 
 
@@ -211,8 +211,8 @@ water model for two-dimensional dam-break type. Journal of Computational Physics
 	  //s_m = s_max;
   }
   else {
-	  s_max = max(u_right + soundspeed_right, u_m + soundspeed_right);
-	  s_min = min(u_left - soundspeed_left, u_m - soundspeed_m);
+	  s_max = fmax(u_right + soundspeed_right, u_m + soundspeed_right);
+	  s_min = fmin(u_left - soundspeed_left, u_m - soundspeed_m);
   }
 
   if (s_max < 0.0)
@@ -249,9 +249,9 @@ water model for two-dimensional dam-break type. Journal of Computational Physics
   else
   {
     // Maximal wavespeed
-    *max_speed = max(s_max, -s_min);
+    *max_speed = fmax(s_max, -s_min);
 
-    inverse_denominator = 1.0/max(denom,1.0e-100);
+    inverse_denominator = 1.0/fmax(denom,1.0e-100);
     for (i = 0; i < 3; i++)
     {
       edgeflux[i] = s_max*flux_left[i] - s_min*flux_right[i];
@@ -259,7 +259,7 @@ water model for two-dimensional dam-break type. Journal of Computational Physics
       // Standard smoothing term
       // edgeflux[i] += 1.0*(s_max*s_min)*(q_right_rotated[i] - q_left_rotated[i]);
       // Smoothing by stage alone can cause high velocities / slow draining for nearly dry cells
-      if(i==0) edgeflux[i] += (s_max*s_min)*(max(q_right_rotated[i],ze) - max(q_left_rotated[i],ze));
+      if(i==0) edgeflux[i] += (s_max*s_min)*(fmax(q_right_rotated[i],ze) - fmax(q_left_rotated[i],ze));
       if(i==1) edgeflux[i] += (s_max*s_min)*(uh_right - uh_left);
       if(i==2) edgeflux[i] += (s_max*s_min)*(vh_right - vh_left);
 
@@ -393,7 +393,7 @@ int _flux_function_central(double *q_left, double *q_right,
   if (low_froude == 1)
   {
     local_fr = sqrt(
-      max(0.001, min(1.0,
+      fmax(0.001, fmin(1.0,
           (u_right*u_right + u_left*u_left + v_right*v_right + v_left*v_left)/
           (soundspeed_left*soundspeed_left + soundspeed_right*soundspeed_right + 1.0e-10))));
   }
@@ -401,7 +401,7 @@ int _flux_function_central(double *q_left, double *q_right,
   {
     local_fr = sqrt((u_right*u_right + u_left*u_left + v_right*v_right + v_left*v_left)/
           (soundspeed_left*soundspeed_left + soundspeed_right*soundspeed_right + 1.0e-10));
-    local_fr = sqrt(min(1.0, 0.01 + max(local_fr-0.01,0.0)));
+    local_fr = sqrt(fmin(1.0, 0.01 + fmax(local_fr-0.01,0.0)));
   }
   else
   {
@@ -409,7 +409,7 @@ int _flux_function_central(double *q_left, double *q_right,
   }
   //printf("local_fr %e \n:", local_fr);
 
-  s_max = max(u_left + soundspeed_left, u_right + soundspeed_right);
+  s_max = fmax(u_left + soundspeed_left, u_right + soundspeed_right);
   if (s_max < 0.0)
   {
     s_max = 0.0;
@@ -420,7 +420,7 @@ int _flux_function_central(double *q_left, double *q_right,
   //}
 
 
-  s_min = min(u_left - soundspeed_left, u_right - soundspeed_right);
+  s_min = fmin(u_left - soundspeed_left, u_right - soundspeed_right);
   if (s_min > 0.0)
   {
     s_min = 0.0;
@@ -453,9 +453,9 @@ int _flux_function_central(double *q_left, double *q_right,
   else
   {
     // Maximal wavespeed
-    *max_speed = max(s_max, -s_min);
+    *max_speed = fmax(s_max, -s_min);
 
-    inverse_denominator = 1.0/max(denom,1.0e-100);
+    inverse_denominator = 1.0/fmax(denom,1.0e-100);
     for (i = 0; i < 3; i++)
     {
       edgeflux[i] = s_max*flux_left[i] - s_min*flux_right[i];
@@ -463,7 +463,7 @@ int _flux_function_central(double *q_left, double *q_right,
       // Standard smoothing term
       // edgeflux[i] += 1.0*(s_max*s_min)*(q_right_rotated[i] - q_left_rotated[i]);
       // Smoothing by stage alone can cause high velocities / slow draining for nearly dry cells
-      if(i==0) edgeflux[i] += (s_max*s_min)*(max(q_right_rotated[i],ze) - max(q_left_rotated[i],ze));
+      if(i==0) edgeflux[i] += (s_max*s_min)*(fmax(q_right_rotated[i],ze) - fmax(q_left_rotated[i],ze));
       //if(i==0) edgeflux[i] += (s_max*s_min)*(h_right - h_left);
       if(i==1) edgeflux[i] += local_fr*(s_max*s_min)*(uh_right - uh_left);
       if(i==2) edgeflux[i] += local_fr*(s_max*s_min)*(vh_right - vh_left);
@@ -550,10 +550,10 @@ int _compute_flux_update_frequency(struct domain *D, double timestep){
                 // notSoFast is ideally = 1.0, but in practice values < 1.0 can enhance stability
                 // NOTE: edge_timestep[ki]/timestep can be very large [so int overflows].
                 //       Do not pull the (int) inside the min term
-                fuf = (int)min((D->edge_timestep[ki]/timestep)*notSoFast,D->max_flux_update_frequency*1.);
+                fuf = (int)fmin((D->edge_timestep[ki]/timestep)*notSoFast,D->max_flux_update_frequency*1.);
                 // Account for neighbour
                 if(n>=0){
-                    fuf = min( (int)min(D->edge_timestep[nm]/timestep*notSoFast, D->max_flux_update_frequency*1.), fuf);
+                    fuf = fmin( (int)fmin(D->edge_timestep[nm]/timestep*notSoFast, D->max_flux_update_frequency*1.), fuf);
                 }
 
                 // Deal with notSoFast<1.0
@@ -594,13 +594,13 @@ int _compute_flux_update_frequency(struct domain *D, double timestep){
     // (But, it can result in the same edge having different flux_update_freq)
     for( k=0; k< D->number_of_elements; k++){
         k3=3*k;
-        ii = 1*min(D->flux_update_frequency[k3],
-                 min(D->flux_update_frequency[k3+1],
+        ii = 1*fmin(D->flux_update_frequency[k3],
+                 fmin(D->flux_update_frequency[k3+1],
                      D->flux_update_frequency[k3+2]));
 
-        D->flux_update_frequency[k3]=min(ii, D->flux_update_frequency[k3]);
-        D->flux_update_frequency[k3+1]=min(ii, D->flux_update_frequency[k3+1]);
-        D->flux_update_frequency[k3+2]=min(ii,D->flux_update_frequency[k3+2]);
+        D->flux_update_frequency[k3]=fmin(ii, D->flux_update_frequency[k3]);
+        D->flux_update_frequency[k3+1]=fmin(ii, D->flux_update_frequency[k3+1]);
+        D->flux_update_frequency[k3+2]=fmin(ii,D->flux_update_frequency[k3+2]);
 
     }
 
@@ -619,7 +619,7 @@ int _compute_flux_update_frequency(struct domain *D, double timestep){
             if(n>=0){
                 m = D->neighbour_edges[ki];
                 nm = n * 3 + m; // Linear index (triangle n, edge m)
-                D->flux_update_frequency[ki]=min(D->flux_update_frequency[ki], D->flux_update_frequency[nm]);
+                D->flux_update_frequency[ki]=fmin(D->flux_update_frequency[ki], D->flux_update_frequency[nm]);
             }
             // Do we need to update the extrapolation?
             // (We do if the next flux computation will actually compute a flux!)
@@ -669,18 +669,18 @@ double adjust_edgeflux_with_weir(double *edgeflux,
     //double h1=1.0; // At this (tailwater height above weir) / (weir height) ratio, begin blending with shallow water solution
     //double h2=1.5; // At this (tailwater height above weir) / (weir height) ratio, completely use the shallow water solution
 
-    minhd = min(h_left, h_right);
-    maxhd = max(h_left, h_right);
+    minhd = fmin(h_left, h_right);
+    maxhd = fmax(h_left, h_right);
     // 'Raw' weir discharge = Qfactor*2/3*H*(2/3*g*H)**0.5
     rw = Qfactor * twothirds * maxhd * sqrt(twothirds * g * maxhd);
     // Factor for villemonte correction
     rw2 = Qfactor * twothirds * minhd * sqrt(twothirds * g * minhd);
     // Useful ratios
-    rwRat = rw2 / max(rw, 1.0e-100);
-    hdRat = minhd / max(maxhd, 1.0e-100);
+    rwRat = rw2 / fmax(rw, 1.0e-100);
+    hdRat = minhd / fmax(maxhd, 1.0e-100);
 
     // (tailwater height above weir)/weir_height ratio
-    hdWrRat = minhd / max(weir_height, 1.0e-100);
+    hdWrRat = minhd / fmax(weir_height, 1.0e-100);
 
     // Villemonte (1947) corrected weir flow with submergence
     // Q = Q1*(1-Q2/Q1)**0.385
@@ -702,10 +702,10 @@ double adjust_edgeflux_with_weir(double *edgeflux,
         //
 
         // Weighted average constants to transition to shallow water eqn flow
-        w1 = min( max(hdRat-s1, 0.) / (s2-s1), 1.0);
+        w1 = fmin( fmax(hdRat-s1, 0.) / (s2-s1), 1.0);
 
         // Adjust again when the head is too deep relative to the weir height
-        w2 = min( max(hdWrRat-h1,0.) / (h2-h1), 1.0);
+        w2 = fmin( fmax(hdWrRat-h1,0.) / (h2-h1), 1.0);
 
         newFlux = (rw*(1.0-w1)+w1*edgeflux[0])*(1.0-w2) + w2*edgeflux[0];
 
@@ -715,7 +715,7 @@ double adjust_edgeflux_with_weir(double *edgeflux,
             scaleFlux = 0.;
         }
 
-        scaleFlux = max(scaleFlux, 0.);
+        scaleFlux = fmax(scaleFlux, 0.);
 
         edgeflux[0] = newFlux;
 
@@ -724,8 +724,8 @@ double adjust_edgeflux_with_weir(double *edgeflux,
         //       those in a weighted average (rather than the rescaling trick here)
         // If we allow the scaling to momentum to be unbounded,
         // velocity spikes can arise for very-shallow-flooded walls
-        edgeflux[1] *= min(scaleFlux, 10.);
-        edgeflux[2] *= min(scaleFlux, 10.);
+        edgeflux[1] *= fmin(scaleFlux, 10.);
+        edgeflux[2] *= fmin(scaleFlux, 10.);
     }
 
     // Adjust the max speed
@@ -835,7 +835,7 @@ double _compute_fluxes_central(struct domain *D, double timestep){
                 qr[1] = D->xmom_boundary_values[m];
                 qr[2] = D->ymom_boundary_values[m];
                 zr = zl; // Extend bed elevation to boundary
-                hre= max(qr[0]-zr,0.);//hle;
+                hre= fmax(qr[0]-zr,0.);//hle;
             } else {
                 // Neighbour is a real triangle
                 hc_n = D->height_centroid_values[n];
@@ -852,7 +852,7 @@ double _compute_fluxes_central(struct domain *D, double timestep){
             }
 
             // Audusse magic
-            z_half = max(zl, zr);
+            z_half = fmax(zl, zr);
 
             //// Account for riverwalls
             if(D->edge_flux_type[ki] == 1){
@@ -864,13 +864,13 @@ double _compute_fluxes_central(struct domain *D, double timestep){
                 RiverWall_count += 1;
 
                 // Set central bed to riverwall elevation
-                z_half = max(D->riverwall_elevation[RiverWall_count-1], z_half) ;
+                z_half = fmax(D->riverwall_elevation[RiverWall_count-1], z_half) ;
 
             }
 
             // Define h left/right for Audusse flux method
-            h_left = max(hle+zl-z_half,0.);
-            h_right = max(hre+zr-z_half,0.);
+            h_left = fmax(hle+zl-z_half,0.);
+            h_right = fmax(hre+zr-z_half,0.);
 
             // Edge flux computation (triangle k, edge i)
             _flux_function_central(ql, qr,
@@ -884,21 +884,21 @@ double _compute_fluxes_central(struct domain *D, double timestep){
             // Force weir discharge to match weir theory
             // FIXME: Switched off at the moment
             if(D->edge_flux_type[ki]==1){
-                weir_height = max(D->riverwall_elevation[RiverWall_count-1] - min(zl, zr), 0.); // Reference weir height
+                weir_height = fmax(D->riverwall_elevation[RiverWall_count-1] - fmin(zl, zr), 0.); // Reference weir height
 
                 // If the weir is not higher than both neighbouring cells, then
                 // do not try to match the weir equation. If we do, it seems we
                 // can get mass conservation issues (caused by large weir
                 // fluxes in such situations)
-                if(D->riverwall_elevation[RiverWall_count-1] > max(zc, zc_n)){
+                if(D->riverwall_elevation[RiverWall_count-1] > fmax(zc, zc_n)){
                     ////////////////////////////////////////////////////////////////////////////////////
                     // Use first-order h's for weir -- as the 'upstream/downstream' heads are
                     //  measured away from the weir itself
-                    h_left_tmp = max(D->stage_centroid_values[k] - z_half, 0.);
+                    h_left_tmp = fmax(D->stage_centroid_values[k] - z_half, 0.);
                     if(n >= 0){
-                        h_right_tmp = max(D->stage_centroid_values[n] - z_half, 0.);
+                        h_right_tmp = fmax(D->stage_centroid_values[n] - z_half, 0.);
                     }else{
-                        h_right_tmp = max(hc_n + zr - z_half, 0.);
+                        h_right_tmp = fmax(hc_n + zr - z_half, 0.);
                     }
 
                     if( (h_left_tmp > 0.) || (h_right_tmp > 0.)){
@@ -987,7 +987,7 @@ double _compute_fluxes_central(struct domain *D, double timestep){
             if(substep_count==0){
 
                 // Compute the 'edge-timesteps' (useful for setting flux_update_frequency)
-                tmp = 1.0 / max(max_speed_local, D->epsilon);
+                tmp = 1.0 / fmax(max_speed_local, D->epsilon);
                 D->edge_timestep[ki] = D->radii[k] * tmp ;
                 if (n >= 0) {
                     D->edge_timestep[nm] = D->radii[n] * tmp;
@@ -996,17 +996,17 @@ double _compute_fluxes_central(struct domain *D, double timestep){
                 // Update the timestep
                 if ((D->tri_full_flag[k] == 1)) {
 
-                    speed_max_last = max(speed_max_last, max_speed_local);
+                    speed_max_last = fmax(speed_max_last, max_speed_local);
 
                     if (max_speed_local > D->epsilon) {
                         // Apply CFL condition for triangles joining this edge (triangle k and triangle n)
 
                         // CFL for triangle k
-                        local_timestep = min(local_timestep, D->edge_timestep[ki]);
+                        local_timestep = fmin(local_timestep, D->edge_timestep[ki]);
 
                         if (n >= 0) {
                             // Apply CFL condition for neigbour n (which is on the ith edge of triangle k)
-                            local_timestep = min(local_timestep, D->edge_timestep[nm]);
+                            local_timestep = fmin(local_timestep, D->edge_timestep[nm]);
                         }
                     }
                 }
@@ -1075,7 +1075,7 @@ double _compute_fluxes_central(struct domain *D, double timestep){
 
     // Now add up stage, xmom, ymom explicit updates
     for(k=0; k < D->number_of_elements; k++){
-        hc = max(D->stage_centroid_values[k] - D->bed_centroid_values[k],0.);
+        hc = fmax(D->stage_centroid_values[k] - D->bed_centroid_values[k],0.);
 
         for(i=0;i<3;i++){
             // FIXME: Make use of neighbours to efficiently set things
@@ -1266,8 +1266,8 @@ int find_qmin_and_qmax(double dq0, double dq1, double dq2,
   // dq2=q(vertex2)-q(vertex0)
 
   // This is a simple implementation
-  *qmax = max(max(dq0, max(dq0+dq1, dq0+dq2)), 0.0) ;
-  *qmin = min(min(dq0, min(dq0+dq1, dq0+dq2)), 0.0) ;
+  *qmax = fmax(fmax(dq0, fmax(dq0+dq1, dq0+dq2)), 0.0) ;
+  *qmin = fmin(fmin(dq0, fmin(dq0+dq1, dq0+dq2)), 0.0) ;
 
   return 0;
 }
@@ -1296,10 +1296,10 @@ int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
     if (dqv[i] > TINY)
       r0=qmax/dqv[i];
 
-    r=min(r0,r);
+    r=fmin(r0,r);
   }
 
-  phi=min(r*beta_w,1.0);
+  phi=fmin(r*beta_w,1.0);
   //phi=1.;
   dqv[0]=dqv[0]*phi;
   dqv[1]=dqv[1]*phi;
@@ -1371,7 +1371,7 @@ int _extrapolate_second_order_edge_sw(struct domain *D){
       // extrapolation This will be changed back at the end of the routine
       for (k=0; k< D->number_of_elements; k++){
 
-          D->height_centroid_values[k] = max(D->stage_centroid_values[k] - D->bed_centroid_values[k], 0.);
+          D->height_centroid_values[k] = fmax(D->stage_centroid_values[k] - D->bed_centroid_values[k], 0.);
 
           dk = D->height_centroid_values[k];
           if(dk> D->minimum_allowed_height){
@@ -1561,8 +1561,8 @@ int _extrapolate_second_order_edge_sw(struct domain *D){
       h1 = D->height_centroid_values[k1];
       h2 = D->height_centroid_values[k2];
 
-      hmin = min(min(h0, min(h1, h2)), hc);
-      hmax = max(max(h0, max(h1, h2)), hc);
+      hmin = fmin(fmin(h0, fmin(h1, h2)), hc);
+      hmax = fmax(fmax(h0, fmax(h1, h2)), hc);
 
       // Look for strong changes in cell depth as an indicator of near-wet-dry
       // Reduce hfactor linearly from 1-0 between depth ratio (hmin/hc) of [a_tmp , b_tmp]
@@ -1571,12 +1571,12 @@ int _extrapolate_second_order_edge_sw(struct domain *D){
       //       but is also more 'artefacty' in important cases (tendency for high velocities, etc).
       //
       // So hfactor = depth_ratio*(c_tmp) + d_tmp, but is clipped between 0 and 1.
-      hfactor= max(0., min(c_tmp*max(hmin,0.0)/max(hc,1.0e-06)+d_tmp,
-                           min(c_tmp*max(hc,0.)/max(hmax,1.0e-06)+d_tmp, 1.0))
+      hfactor= fmax(0., fmin(c_tmp*fmax(hmin,0.0)/fmax(hc,1.0e-06)+d_tmp,
+                           fmin(c_tmp*fmax(hc,0.)/fmax(hmax,1.0e-06)+d_tmp, 1.0))
                   );
       // Set hfactor to zero smothly as hmin--> minimum_allowed_height. This
       // avoids some 'chatter' for very shallow flows
-      hfactor=min( 1.2*max(hmin- D->minimum_allowed_height,0.)/(max(hmin,0.)+1.* D->minimum_allowed_height), hfactor);
+      hfactor=fmin( 1.2*fmax(hmin- D->minimum_allowed_height,0.)/(fmax(hmin,0.)+1.* D->minimum_allowed_height), hfactor);
 
       inv_area2 = 1.0/area2;
       //-----------------------------------
@@ -1796,7 +1796,7 @@ int _extrapolate_second_order_edge_sw(struct domain *D){
       if ((k2 == k3 + 3))
       {
         // If we didn't find an internal neighbour
-        report_python_error(AT, "Internal neighbour not found");
+        //report_python_error(AT, "Internal neighbour not found");
         return -1;
       }
 
