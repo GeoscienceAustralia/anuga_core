@@ -130,12 +130,12 @@ water model for two-dimensional dam-break type. Journal of Computational Physics
 
   int i;
 
-  double w_left,  uh_left, vh_left, u_left;
-  double w_right, uh_right, vh_right, u_right;
+  double uh_left, vh_left, u_left;
+  double uh_right, vh_right, u_right;
   double s_min, s_max, soundspeed_left, soundspeed_right;
-  double u_m, h_m, soundspeed_m, s_m;
+  double u_m, h_m, soundspeed_m;
   double denom, inverse_denominator;
-  double uint, t1, t2, t3, min_speed, tmp, local_fr2;
+  double tmp;
   // Workspace (allocate once, use many)
   static double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
 
@@ -203,12 +203,12 @@ water model for two-dimensional dam-break type. Journal of Computational Physics
   if(h_left < 1.0e-10){
 	  s_min = u_right - 2.0*soundspeed_right;
 	  s_max = u_right + soundspeed_right;
-	  s_m   = s_min;
+	  //s_m   = s_min;
   }
   else if (h_right < 1.0e-10){
 	  s_min = u_left - soundspeed_left;
 	  s_max = u_left + 2.0*soundspeed_left;
-	  s_m = s_max;
+	  //s_m = s_max;
   }
   else {
 	  s_max = max(u_right + soundspeed_right, u_m + soundspeed_right);
@@ -310,11 +310,11 @@ int _flux_function_central(double *q_left, double *q_right,
 
   int i;
 
-  double w_left,  uh_left, vh_left, u_left;
-  double w_right, uh_right, vh_right, u_right;
+  double uh_left, vh_left, u_left;
+  double uh_right, vh_right, u_right;
   double s_min, s_max, soundspeed_left, soundspeed_right;
   double denom, inverse_denominator;
-  double uint, t1, t2, t3, min_speed, tmp, local_fr, v_right, v_left;
+  double tmp, local_fr, v_right, v_left;
   // Workspace (allocate once, use many)
   static double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
 
@@ -496,7 +496,7 @@ int _compute_flux_update_frequency(struct domain *D, double timestep){
     //
     //
     // Local variables
-    int k, i, k3, ki, m, n, nm, ii, j, ii2;
+    int k, i, k3, ki, m, n, nm, ii, ii2;
     long fuf;
     double notSoFast=1.0;
     static int cyclic_number_of_steps=-1;
@@ -658,7 +658,7 @@ double adjust_edgeflux_with_weir(double *edgeflux,
     // the flow over the weir is much deeper than the weir, or the
     // upstream/downstream water elevations are too similar
     double rw, rw2; // 'Raw' weir fluxes
-    double rwRat, hdRat,hdWrRat, scaleFlux, scaleFluxS, minhd, maxhd;
+    double rwRat, hdRat,hdWrRat, scaleFlux, minhd, maxhd;
     double w1,w2; // Weights for averaging
     double newFlux;
     double twothirds = (2.0/3.0);
@@ -748,22 +748,20 @@ double _compute_fluxes_central(struct domain *D, double timestep){
     double limiting_threshold = 10*D->H0;
     long low_froude = D->low_froude;
     //
-    int k, i, m, n,j, ii;
-    int ki,k3, nm = 0, ki2,ki3, nm3; // Index shorthands
+    int k, i, m, n, ii;
+    int ki, nm = 0, ki2,ki3, nm3; // Index shorthands
     // Workspace (making them static actually made function slightly slower (Ole))
     double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
-    double stage_edges[3];//Work array
     double bedslope_work;
     static double local_timestep;
-    int neighbours_wet[3];//Work array
     long RiverWall_count, substep_count;
     double hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2;
-    double stage_edge_lim, outgoing_mass_edges, pressure_flux, hc, hc_n, tmp, tmp2;
+    double pressure_flux, hc, hc_n, tmp;
     double h_left_tmp, h_right_tmp;
     static long call = 0; // Static local variable flagging already computed flux
     static long timestep_fluxcalls=1;
     static long base_call = 1;
-    double speed_max_last, vol, weir_height;
+    double speed_max_last, weir_height;
 
     call++; // Flag 'id' of flux calculation for this timestep
 
@@ -1093,7 +1091,7 @@ double _compute_fluxes_central(struct domain *D, double timestep){
             // If this cell is not a ghost, and the neighbour is a boundary
             // condition OR a ghost cell, then add the flux to the
             // boundary_flux_integral
-            if( (n<0 & D->tri_full_flag[k]==1) | ( n>=0 && (D->tri_full_flag[k]==1 & D->tri_full_flag[n]==0)) ){
+            if( ((n<0) & (D->tri_full_flag[k]==1)) | ( (n>=0) && ((D->tri_full_flag[k]==1) & (D->tri_full_flag[n]==0) )) ){
                 // boundary_flux_sum is an array with length = timestep_fluxcalls
                 // For each sub-step, we put the boundary flux sum in.
                 D->boundary_flux_sum[substep_count] += D->edge_flux_work[ki3];
@@ -1136,14 +1134,13 @@ double  _protect(int N,
          double* yc) {
 
   int k;
-  double hc, bmin, bmax;
-  double u, v, reduced_speed;
+  double hc, bmin;
   double mass_error = 0.;
   // This acts like minimum_allowed height, but scales with the vertical
   // distance between the bed_centroid_value and the max bed_edge_value of
   // every triangle.
   //double minimum_relative_height=0.05;
-  int mass_added = 0;
+  //int mass_added = 0;
 
   // Protect against inifintesimal and negative heights
   //if (maximum_allowed_speed < epsilon) {
@@ -1160,7 +1157,7 @@ double  _protect(int N,
              // WARNING: ADDING MASS if wc[k]<bmin
              if(wc[k] < bmin){
                  mass_error += (bmin-wc[k])*areas[k];
-                 mass_added = 1; //Flag to warn of added mass
+                 //mass_added = 1; //Flag to warn of added mass
 
                  wc[k] = bmin;
 
@@ -1187,8 +1184,7 @@ double  _protect(int N,
 double  _protect_new(struct domain *D) {
 
   int k;
-  double hc, bmin, bmax;
-  double u, v, reduced_speed;
+  double hc, bmin;
   double mass_error = 0.;
 
   double* wc;
@@ -1199,12 +1195,8 @@ double  _protect_new(struct domain *D) {
   double* areas;
 
   double minimum_allowed_height;
-  double maximum_allowed_speed;
-  double epsilon;
 
   minimum_allowed_height = D->minimum_allowed_height;
-  maximum_allowed_speed  = D->maximum_allowed_speed;
-  epsilon = D->epsilon;
 
   wc = D->stage_centroid_values;
   zc = D->bed_centroid_values;
@@ -1217,7 +1209,7 @@ double  _protect_new(struct domain *D) {
   // distance between the bed_centroid_value and the max bed_edge_value of
   // every triangle.
   //double minimum_relative_height=0.05;
-  int mass_added = 0;
+  //int mass_added = 0;
 
   // Protect against inifintesimal and negative heights
   //if (maximum_allowed_speed < epsilon) {
@@ -1234,7 +1226,7 @@ double  _protect_new(struct domain *D) {
              // WARNING: ADDING MASS if wc[k]<bmin
              if(wc[k] < bmin){
                  mass_error += (bmin-wc[k])*areas[k];
-                 mass_added = 1; //Flag to warn of added mass
+                 //mass_added = 1; //Flag to warn of added mass
 
                  wc[k] = bmin;
 
@@ -1355,12 +1347,12 @@ int _extrapolate_second_order_edge_sw(struct domain *D){
 
   // Local variables
   double a, b; // Gradient vector used to calculate edge values from centroids
-  int k, k0, k1, k2, k3, k6, coord_index, i, ii, ktmp, k_wetdry;
+  int k, k0, k1, k2, k3, k6, coord_index, i;
   double x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2; // Vertices of the auxiliary triangle
-  double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq0, dq1, dq2, area2, inv_area2, dpth,momnorm;
-  double dqv[3], qmin, qmax, hmin, hmax, bedmax,bedmin, stagemin;
-  double hc, h0, h1, h2, beta_tmp, hfactor, xtmp, ytmp, weight, tmp;
-  double dk, dk_inv,dv0, dv1, dv2, de[3], demin, dcmax, r0scale, vel_norm, l1, l2, a_tmp, b_tmp, c_tmp,d_tmp;
+  double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq0, dq1, dq2, area2, inv_area2;
+  double dqv[3], qmin, qmax, hmin, hmax;
+  double hc, h0, h1, h2, beta_tmp, hfactor;
+  double dk, dk_inv, a_tmp, b_tmp, c_tmp,d_tmp;
 
 
   memset((char*) D->x_centroid_work, 0, D->number_of_elements * sizeof (double));
@@ -1410,15 +1402,14 @@ int _extrapolate_second_order_edge_sw(struct domain *D){
       k1 = D->surrogate_neighbours[k3 + 1];
       k2 = D->surrogate_neighbours[k3 + 2];
 
-      if(( (D->height_centroid_values[k0] < D->minimum_allowed_height) | k0==k) &
-         ( (D->height_centroid_values[k1] < D->minimum_allowed_height) | k1==k) &
-         ( (D->height_centroid_values[k2] < D->minimum_allowed_height) | k2==k)){
+      if(( (D->height_centroid_values[k0] < D->minimum_allowed_height) | (k0==k) ) &
+         ( (D->height_centroid_values[k1] < D->minimum_allowed_height) | (k1==k) ) &
+         ( (D->height_centroid_values[k2] < D->minimum_allowed_height) | (k2==k) ) ) {
     	  	  //printf("Surrounded by dry cells\n");
               D->x_centroid_work[k] = 0.;
               D->xmom_centroid_values[k] = 0.;
               D->y_centroid_work[k] = 0.;
               D->ymom_centroid_values[k] = 0.;
-
       }
 
 
