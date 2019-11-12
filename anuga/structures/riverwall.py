@@ -114,7 +114,7 @@ class RiverWall:
         default_int=-9e+20
         self.riverwall_elevation=numpy.array([default_float])
 
-        self.hydraulic_properties_rowIndex=numpy.array([default_int])
+        self.hydraulic_properties_rowIndex=numpy.array([default_int]).astype(int)
 
         self.names=[ ]
 

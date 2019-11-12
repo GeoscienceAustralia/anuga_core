@@ -21,7 +21,7 @@
 
 // Shared code snippets
 #include "util_ext.h"
-#include "sw_domain.h"
+#include "sw_domain_new.h"
 
 
 const double pi = 3.14159265358979;
