@@ -20,7 +20,7 @@ def configuration(parent_package='',top_path=None):
     util_dir = join('..','utilities')
     
     config.add_extension('shallow_water_ext',
-                         sources=['shallow_water_ext.c'],
+                         sources=['shallow_water_interface.pyx'],
                          include_dirs=[util_dir])
     
     config.add_extension('swb2_domain_ext',
