@@ -1,7 +1,7 @@
 import numpy as np
 cimport numpy as np
 
-cdef extern from "swDE1_domain_ext.c":
+cdef extern from "shallow_water_ext.c":
 	struct domain:
 		long number_of_elements
 		double epsilon
@@ -74,18 +74,18 @@ cdef extern from "swDE1_domain_ext.c":
 		double* riverwall_hydraulic_properties
 	struct edge:
 		pass
-	unsigned int Mod_of_power_2(unsigned int n, unsigned int d)
-	int _rotate(double* q, double n1, double n2)
-	int _flux_function_toro(double* q_left, double* q_right, double h_left, double h_right, double hle, double hre, double n1, double n2, double epsilon, double ze, double limiting_threshold, double g, double* edge_flux, double* max_speed, double* pressure_flux, double hc, double hc_n)
-	int _flux_function_central(double* q_left, double* q_right, double h_left, double h_right, double hle, double hre, double n1, double n2, double epsilon, double ze, double limiting_threshold, double g, double* edgeflux, double* max_speed, double* pressure_flux, double hc, double hc_n, long low_froude)
-	int _compute_flux_update_frequency(domain* D, double timestep)
-	double adjust_edgeflux_with_weir(double* edgeflux, double h_left, double h_right, double g, double weir_height, double Qfactor, double s1, double s2, double h1, double h2, double* max_speed_local)
-	double _compute_fluxes_central(domain* D, double timestep)
-	double _protect(int N, double minimum_allowed_height, double maximum_allowed_speed, double epsilon, double* wc, double* wv, double* zc, double* zv, double* xmomc, double* ymomc, double* areas, double* xc, double* yc)
-	double _protect_new(domain* D)
-	int find_qmin_and_qmax(double dq0, double dq1, double dq2, double* qmin, double* qmax)
-	int limit_gradient(double* dqv, double qmin, double qmax, double beta_w)
-	int _extrapolate_second_order_edge_sw(domain* D)
+	int _rotate(double *q, double n1, double n2)
+	int _flux_function_central(double* q_left, double* q_right, double z_left, double z_right, double n1, double n2, double epsilon, double h0, double limiting_threshold, double g, double* edgeflux, double* max_speed)
+	int _extrapolate_second_order_sw(domain* D)
+	double _compute_fluxes_central_structure(domain* D)
+	int _gravity(domain* D)
+	int _gravity_wb(domain* D)
+	double _compute_fluxes_central_wb(domain* D)
+	double _compute_fluxes_central_wb_3(domain* D)
+	int _protect(int N, double minimum_allowed_height, double maximum_allowed_speed, double epsilon, double* wc, double* zc, double* xmomc, double* ymomc)
+	int _balance_deep_and_shallow(int N, double* wc, double* zc, double* wv, double* zv, double* hvbar, double* xmomc, double* ymomc, double* xmomv, double* ymomv, double H0, int tight_slope_limiters, int use_centroid_velocities, double alpha_balance)
+	void _manning_friction_flat(double g, double eps, int N, double* w, double* zv, double* uh, double* vh, double* eta, double* xmom, double* ymom)
+	void _manning_friction_sloped(double g, double eps, int N, double* x, double* w, double* zv, double* uh, double* vh, double* eta, double* xmom_update, double* ymom_update)
 
 cdef inline get_python_domain(domain* D, object domain_object):
 
