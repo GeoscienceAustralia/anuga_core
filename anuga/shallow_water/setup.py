@@ -28,7 +28,7 @@ def configuration(parent_package='',top_path=None):
                          include_dirs=[util_dir])
 
     config.add_extension('swDE1_domain_ext',
-                         depends=['sw_domain_new.h','swDE1_domain_ext.c'],
+                         depends=['sw_domain.h'],
                          sources=['swDE1_domain_interface.pyx'],
                          include_dirs=[util_dir])
 
