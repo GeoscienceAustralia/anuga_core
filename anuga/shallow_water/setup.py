@@ -24,7 +24,7 @@ def configuration(parent_package='',top_path=None):
                          include_dirs=[util_dir])
     
     config.add_extension('swb2_domain_ext',
-                         sources=['swb2_domain_ext.c'],
+                         sources=['swb2_domain_interface.pyx'],
                          include_dirs=[util_dir])
 
     config.add_extension('swDE1_domain_ext',

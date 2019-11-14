@@ -18,7 +18,7 @@
 
 // Shared code snippets
 #include "util_ext.h"
-#include "sw_domain_new.h"
+#include "sw_domain.h"
 
 
 
