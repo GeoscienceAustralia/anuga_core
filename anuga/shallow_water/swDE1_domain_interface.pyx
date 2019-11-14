@@ -7,7 +7,7 @@ import numpy as np
 cimport numpy as np
 
 # import header
-from sw_domain_header cimport *
+from swDE1_domain_header cimport *
 
 def compute_fluxes_ext_central(object domain_object, double timestep):
 
