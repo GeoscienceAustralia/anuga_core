@@ -1,7 +1,7 @@
 import numpy as np
 cimport numpy as np
 
-cdef extern from "swDE1_domain_ext.c":
+cdef extern from "swDE1_domain.c":
 	struct domain:
 		long number_of_elements
 		double epsilon
