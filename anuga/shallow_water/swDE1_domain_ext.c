@@ -17,12 +17,8 @@
 
 #include "math.h"
 #include <stdio.h>
-//#include "numpy_shim.h"
-
-// Shared code snippets
-//#include "util_ext.h"
+#include <string.h> 
 #include "sw_domain.h"
-
 
 const double pi = 3.14159265358979;
 
@@ -730,10 +726,10 @@ double adjust_edgeflux_with_weir(double *edgeflux,
 
     // Adjust the max speed
     if (fabs(edgeflux[0]) > 0.){
-        *max_speed_local = sqrt(g*(maxhd+weir_height)) + abs(edgeflux[0]/(maxhd + 1.0e-12));
+        *max_speed_local = sqrt(g*(maxhd+weir_height)) + fabs(edgeflux[0]/(maxhd + 1.0e-12));
     }
-    //*max_speed_local += abs(edgeflux[0])/(maxhd+1.0e-100);
-    //*max_speed_local *= max(scaleFlux, 1.0);
+    //*max_speed_local += fabs(edgeflux[0])/(maxhd+1.0e-100);
+    //*max_speed_local *= fmax(scaleFlux, 1.0);
 
     return 0;
 }

@@ -72,8 +72,10 @@ cdef extern from "swDE1_domain_ext.c":
 		double* riverwall_elevation
 		long* riverwall_rowIndex
 		double* riverwall_hydraulic_properties
+
 	struct edge:
 		pass
+
 	int _compute_flux_update_frequency(domain* D, double timestep)
 	double _compute_fluxes_central(domain* D, double timestep)
 	double _protect_new(domain* D)
