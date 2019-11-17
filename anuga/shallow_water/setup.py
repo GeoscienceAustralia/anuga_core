@@ -18,6 +18,8 @@ def configuration(parent_package='',top_path=None):
 
     #util_dir = os.path.abspath(join(os.path.dirname(__file__),'..','utilities'))
     util_dir = join('..','utilities')
+
+    
     
     config.add_extension('shallow_water_ext',
                          sources=['shallow_water_interface.pyx'],
@@ -26,10 +28,12 @@ def configuration(parent_package='',top_path=None):
     config.add_extension('swb2_domain_ext',
                          sources=['swb2_domain_interface.pyx'],
                          include_dirs=[util_dir])
+                       
 
     config.add_extension('swDE1_domain_ext',
-                         sources=['swDE1_domain_interface.pyx'],
+                         sources=['swDE1_domain_ext.pyx'],
                          include_dirs=[util_dir])
+
 
     config.ext_modules = cythonize(config.ext_modules)
 
