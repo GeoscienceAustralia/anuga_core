@@ -6,7 +6,7 @@ import cython
 import numpy as np
 cimport numpy as np
 
-cdef extern from "swDE1_domain.c":
+cdef extern from "swDE1_domain.c" nogil:
 	struct domain:
 		long number_of_elements
 		double epsilon
@@ -88,7 +88,7 @@ cdef extern from "swDE1_domain.c":
 
 cdef inline get_python_domain(domain* D, object domain_object):
 
-	
+	"""
 	cdef np.ndarray[long, ndim=2, mode="c"] neighbours
 	cdef np.ndarray[long, ndim=2, mode="c"] neighbour_edges
 	cdef np.ndarray[double, ndim=2, mode="c"] normals
@@ -125,7 +125,7 @@ cdef inline get_python_domain(domain* D, object domain_object):
 	cdef np.ndarray[double, ndim=1, mode="c"] explicit_update
 	
 	"""
-	
+
 	cdef long[:,::1]   neighbours
 	cdef long[:,::1]   neighbour_edges
 	cdef double[:,::1] normals
@@ -159,8 +159,6 @@ cdef inline get_python_domain(domain* D, object domain_object):
 	cdef double[:,::1] vertex_values
 	cdef double[::1]   boundary_values
 	cdef double[::1]   explicit_update
-	
-	"""
 	
 	cdef object quantities
 	cdef object riverwallData
@@ -348,10 +346,12 @@ cdef inline get_python_domain(domain* D, object domain_object):
 def compute_fluxes_ext_central(object domain_object, double timestep):
 
 	cdef domain D
+	cdef double timestep
 
 	get_python_domain(&D, domain_object)
 
-	timestep = _compute_fluxes_central(&D, timestep)
+	with nogil:
+		timestep = _compute_fluxes_central(&D, timestep)
 
 	return timestep
 
@@ -363,7 +363,8 @@ def extrapolate_second_order_edge_sw(object domain_object):
 
 	get_python_domain(&D, domain_object)
 
-	e = _extrapolate_second_order_edge_sw(&D)
+	with nogil:
+		e = _extrapolate_second_order_edge_sw(&D)
 
 	if e == -1:
 		return None
@@ -376,7 +377,8 @@ def protect_new(object domain_object):
 
 	get_python_domain(&D, domain_object)
 
-	mass_error = _protect_new(&D)
+	with nogil:
+		mass_error = _protect_new(&D)
 
 	return mass_error
 
@@ -386,6 +388,7 @@ def compute_flux_update_frequency(object domain_object, double timestep):
 
 	get_python_domain(&D, domain_object)
 
-	_compute_flux_update_frequency(&D, timestep)
+	with nogil:
+		_compute_flux_update_frequency(&D, timestep)
 
 
