@@ -6,6 +6,9 @@ import sys
 from os.path import join
 from Cython.Build import cythonize
 
+import Cython.Compiler.Options
+Cython.Compiler.Options.annotate = True
+
 def configuration(parent_package='',top_path=None):
     
     from numpy.distutils.misc_util import Configuration
@@ -35,7 +38,7 @@ def configuration(parent_package='',top_path=None):
                          include_dirs=[util_dir])
 
 
-    config.ext_modules = cythonize(config.ext_modules)
+    config.ext_modules = cythonize(config.ext_modules, annotate=True)
 
 
     return config
