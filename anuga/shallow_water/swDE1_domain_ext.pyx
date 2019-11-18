@@ -127,7 +127,7 @@ cdef inline get_python_domain(domain* D, object domain_object):
 	
 	"""
 
-	#cdef long[:,::1]   neighbours
+	cdef long[:,::1]   neighbours
 	cdef long[:,::1]   neighbour_edges
 	cdef double[:,::1] normals
 	cdef double[:,::1] edgelengths
