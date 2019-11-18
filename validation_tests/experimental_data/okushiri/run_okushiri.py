@@ -37,8 +37,9 @@ if hasattr(args, 'finaltime'):
 if hasattr(args, 'yieldstep'):
     yieldStep = args.yieldstep
 
-print finalTime
-print yieldStep
+if myid == 0 and verbose:
+    print finalTime
+    print yieldStep
 
 if verbose: print 'create mesh'
 elevation_in_mesh = False
@@ -129,7 +130,7 @@ for t in domain.evolve(yieldstep = yieldStep, finaltime = finalTime):
 
 domain.sww_merge(delete_old=True)
 
-if myid == 0 and verbose: print 'That took %.2f seconds' %(time.time()-t0)
+if myid == 0 and verbose : print 'That took %.2f seconds' %(time.time()-t0)
 
 finalize()
 
