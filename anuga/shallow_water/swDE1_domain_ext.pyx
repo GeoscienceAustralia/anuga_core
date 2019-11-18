@@ -125,6 +125,7 @@ cdef inline get_python_domain(domain* D, object domain_object):
 	cdef np.ndarray[double, ndim=1, mode="c"] explicit_update
 	
 	"""
+	
 	cdef long[:,::1]   neighbours
 	cdef long[:,::1]   neighbour_edges
 	cdef double[:,::1] normals
@@ -158,6 +159,7 @@ cdef inline get_python_domain(domain* D, object domain_object):
 	cdef double[:,::1] vertex_values
 	cdef double[::1]   boundary_values
 	cdef double[::1]   explicit_update
+	
 	"""
 	
 	cdef object quantities
