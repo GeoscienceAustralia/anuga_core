@@ -86,6 +86,7 @@ cdef extern from "swDE1_domain.c" nogil:
 	double _protect_new(domain* D)
 	int _extrapolate_second_order_edge_sw(domain* D)
 
+
 cdef inline get_python_domain(domain* D, object domain_object):
 
 	"""
@@ -346,7 +347,6 @@ cdef inline get_python_domain(domain* D, object domain_object):
 def compute_fluxes_ext_central(object domain_object, double timestep):
 
 	cdef domain D
-	cdef double timestep
 
 	get_python_domain(&D, domain_object)
 
@@ -358,7 +358,6 @@ def compute_fluxes_ext_central(object domain_object, double timestep):
 def extrapolate_second_order_edge_sw(object domain_object):
 
 	cdef domain D
-
 	cdef int e
 
 	get_python_domain(&D, domain_object)
