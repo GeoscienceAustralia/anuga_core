@@ -91,7 +91,7 @@ cdef inline get_python_domain(domain* D, object domain_object):
 
 	"""
 	cdef np.ndarray[long, ndim=2, mode="c"] neighbours
-	cdef np.ndarray[long, ndim=2, mode="c"] neighbour_edges
+        cdef np.ndarray[long, ndim=2, mode="c"] neighbour_edges
 	cdef np.ndarray[double, ndim=2, mode="c"] normals
 	cdef np.ndarray[double, ndim=2, mode="c"] edgelengths
 	cdef np.ndarray[double, ndim=1, mode="c"] radii
@@ -127,7 +127,7 @@ cdef inline get_python_domain(domain* D, object domain_object):
 	
 	"""
 
-	cdef long[:,::1]   neighbours
+	#cdef long[:,::1]   neighbours
 	cdef long[:,::1]   neighbour_edges
 	cdef double[:,::1] normals
 	cdef double[:,::1] edgelengths
@@ -185,7 +185,7 @@ cdef inline get_python_domain(domain* D, object domain_object):
 
 	neighbours = domain_object.neighbours
 	D.neighbours = &neighbours[0,0]
-
+	
 	surrogate_neighbours = domain_object.surrogate_neighbours
 	D.surrogate_neighbours = &surrogate_neighbours[0,0]
 
@@ -345,6 +345,7 @@ cdef inline get_python_domain(domain* D, object domain_object):
 #===============================================================================
 
 def compute_fluxes_ext_central(object domain_object, double timestep):
+
 
 	cdef domain D
 
