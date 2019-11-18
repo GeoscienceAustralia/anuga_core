@@ -1,5 +1,4 @@
-# cython: boundscheck=False
-# cython: wraparound=False
+#cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
 
 # import both numpy and the Cython declarations for numpy
@@ -9,7 +8,7 @@ cimport numpy as np
 ctypedef long keyint
 
 # declare the interface to the C code
-cdef extern from "neighbour_table_ext.cpp":
+cdef extern from "neighbour_table.cpp":
 	int _build_neighbour_structure(keyint N, keyint M, long* triangles, long* neighbours, long* neighbour_edges, long* number_of_boundaries)
 
 def build_neighbour_structure(keyint N,\
