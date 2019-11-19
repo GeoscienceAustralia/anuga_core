@@ -86,46 +86,34 @@ cdef extern from "swDE1_domain.c" nogil:
 	double _protect_new(domain* D)
 	int _extrapolate_second_order_edge_sw(domain* D)
 
+#cdef domain D
 
-cdef inline get_python_domain(domain* D, object domain_object):
+cdef int pointer_flag = 0
+cdef int parameter_flag = 0
 
-	"""
-	cdef np.ndarray[long, ndim=2, mode="c"] neighbours
-        cdef np.ndarray[long, ndim=2, mode="c"] neighbour_edges
-	cdef np.ndarray[double, ndim=2, mode="c"] normals
-	cdef np.ndarray[double, ndim=2, mode="c"] edgelengths
-	cdef np.ndarray[double, ndim=1, mode="c"] radii
-	cdef np.ndarray[double, ndim=1, mode="c"] areas
-	cdef np.ndarray[long, ndim=1, mode="c"] edge_flux_type
-	cdef np.ndarray[long, ndim=1, mode="c"] tri_full_flag
-	cdef np.ndarray[long, ndim=2, mode="c"] already_computed_flux
-	cdef np.ndarray[double, ndim=2, mode="c"] vertex_coordinates
-	cdef np.ndarray[double, ndim=2, mode="c"] edge_coordinates
-	cdef np.ndarray[double, ndim=2, mode="c"] centroid_coordinates
-	cdef np.ndarray[long, ndim=1, mode="c"] number_of_boundaries
-	cdef np.ndarray[long, ndim=2, mode="c"] surrogate_neighbours
-	cdef np.ndarray[double, ndim=1, mode="c"] max_speed
-	cdef np.ndarray[long, ndim=1, mode="c"] flux_update_frequency
-	cdef np.ndarray[long, ndim=1, mode="c"] update_next_flux
-	cdef np.ndarray[long, ndim=1, mode="c"] update_extrapolation
-	cdef np.ndarray[long, ndim=1, mode="c"] allow_timestep_increase
-	cdef np.ndarray[double, ndim=1, mode="c"] edge_timestep
-	cdef np.ndarray[double, ndim=1, mode="c"] edge_flux_work
-	cdef np.ndarray[double, ndim=1, mode="c"] pressuregrad_work
-	cdef np.ndarray[double, ndim=1, mode="c"] x_centroid_work
-	cdef np.ndarray[double, ndim=1, mode="c"] y_centroid_work
-	cdef np.ndarray[double, ndim=1, mode="c"] boundary_flux_sum
-	cdef np.ndarray[double, ndim=1, mode="c"] riverwall_elevation
-	cdef np.ndarray[long, ndim=1, mode="c"] riverwall_rowIndex
-	cdef np.ndarray[double, ndim=2, mode="c"] riverwall_hydraulic_properties
+cdef inline get_python_domain_parameters(domain *D, object domain_object):
 
-	cdef np.ndarray[double, ndim=2, mode="c"] edge_values
-	cdef np.ndarray[double, ndim=1, mode="c"] centroid_values
-	cdef np.ndarray[double, ndim=2, mode="c"] vertex_values
-	cdef np.ndarray[double, ndim=1, mode="c"] boundary_values
-	cdef np.ndarray[double, ndim=1, mode="c"] explicit_update
-	
-	"""
+	D.number_of_elements = domain_object.number_of_elements
+	D.epsilon = domain_object.epsilon
+	D.H0 = domain_object.H0
+	D.g = domain_object.g
+	D.optimise_dry_cells = domain_object.optimise_dry_cells
+	D.evolve_max_timestep = domain_object.evolve_max_timestep
+	D.minimum_allowed_height = domain_object.minimum_allowed_height
+	D.maximum_allowed_speed = domain_object.maximum_allowed_speed
+	D.timestep_fluxcalls = domain_object.timestep_fluxcalls
+	D.low_froude = domain_object.low_froude
+	D.extrapolate_velocity_second_order = domain_object.extrapolate_velocity_second_order
+	D.beta_w = domain_object.beta_w
+	D.beta_w_dry = domain_object.beta_w_dry
+	D.beta_uh = domain_object.beta_uh
+	D.beta_uh_dry = domain_object.beta_uh_dry
+	D.beta_vh = domain_object.beta_vh
+	D.beta_vh_dry = domain_object.beta_vh_dry
+	D.max_flux_update_frequency = domain_object.max_flux_update_frequency
+		
+
+cdef inline get_python_domain_pointers(domain *D, object domain_object):
 
 	cdef long[:,::1]   neighbours
 	cdef long[:,::1]   neighbour_edges
@@ -164,25 +152,9 @@ cdef inline get_python_domain(domain* D, object domain_object):
 	cdef object quantities
 	cdef object riverwallData
 
-	D.number_of_elements = domain_object.number_of_elements
-	D.epsilon = domain_object.epsilon
-	D.H0 = domain_object.H0
-	D.g = domain_object.g
-	D.optimise_dry_cells = domain_object.optimise_dry_cells
-	D.evolve_max_timestep = domain_object.evolve_max_timestep
-	D.minimum_allowed_height = domain_object.minimum_allowed_height
-	D.maximum_allowed_speed = domain_object.maximum_allowed_speed
-	D.timestep_fluxcalls = domain_object.timestep_fluxcalls
-	D.low_froude = domain_object.low_froude
-	D.extrapolate_velocity_second_order = domain_object.extrapolate_velocity_second_order
-	D.beta_w = domain_object.beta_w
-	D.beta_w_dry = domain_object.beta_w_dry
-	D.beta_uh = domain_object.beta_uh
-	D.beta_uh_dry = domain_object.beta_uh_dry
-	D.beta_vh = domain_object.beta_vh
-	D.beta_vh_dry = domain_object.beta_vh_dry
-	D.max_flux_update_frequency = domain_object.max_flux_update_frequency
-
+	#------------------------------------------------------
+	# Domain structures
+	#------------------------------------------------------
 	neighbours = domain_object.neighbours
 	D.neighbours = &neighbours[0,0]
 	
@@ -258,6 +230,9 @@ cdef inline get_python_domain(domain* D, object domain_object):
 	boundary_flux_sum = domain_object.boundary_flux_sum
 	D.boundary_flux_sum = &boundary_flux_sum[0]
 
+	#------------------------------------------------------
+	# Quantity structures
+	#------------------------------------------------------
 	quantities = domain_object.quantities
 
 	edge_values = quantities["stage"].edge_values
@@ -326,6 +301,9 @@ cdef inline get_python_domain(domain* D, object domain_object):
 	explicit_update = quantities["ymomentum"].explicit_update
 	D.ymom_explicit_update = &explicit_update[0]
 
+	#------------------------------------------------------
+	# Riverwall structures
+	#------------------------------------------------------
 	riverwallData = domain_object.riverwallData
 
 	riverwall_elevation = riverwallData.riverwall_elevation
@@ -339,17 +317,15 @@ cdef inline get_python_domain(domain* D, object domain_object):
 	riverwall_hydraulic_properties = riverwallData.hydraulic_properties
 	D.riverwall_hydraulic_properties = &riverwall_hydraulic_properties[0,0]
 
-# import header
-# from swDE1_domain_header cimport *
 
 #===============================================================================
 
 def compute_fluxes_ext_central(object domain_object, double timestep):
 
-
 	cdef domain D
 
-	get_python_domain(&D, domain_object)
+	get_python_domain_parameters(&D, domain_object)
+	get_python_domain_pointers(&D, domain_object)
 
 	with nogil:
 		timestep = _compute_fluxes_central(&D, timestep)
@@ -361,7 +337,8 @@ def extrapolate_second_order_edge_sw(object domain_object):
 	cdef domain D
 	cdef int e
 
-	get_python_domain(&D, domain_object)
+	get_python_domain_parameters(&D, domain_object)
+	get_python_domain_pointers(&D, domain_object)
 
 	with nogil:
 		e = _extrapolate_second_order_edge_sw(&D)
@@ -375,7 +352,8 @@ def protect_new(object domain_object):
 
 	cdef double mass_error
 
-	get_python_domain(&D, domain_object)
+	get_python_domain_parameters(&D, domain_object)
+	get_python_domain_pointers(&D, domain_object)
 
 	with nogil:
 		mass_error = _protect_new(&D)
@@ -386,7 +364,8 @@ def compute_flux_update_frequency(object domain_object, double timestep):
 
 	cdef domain D
 
-	get_python_domain(&D, domain_object)
+	get_python_domain_parameters(&D, domain_object)
+	get_python_domain_pointers(&D, domain_object)
 
 	with nogil:
 		_compute_flux_update_frequency(&D, timestep)
