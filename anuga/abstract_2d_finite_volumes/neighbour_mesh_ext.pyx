@@ -9,7 +9,7 @@ def boundary_dictionary_construct(int numTriangle, char* defaultTag,\
                                 np.ndarray[long, ndim=2, mode="c"] neighbours not None,\
                                 dict boundary):
 
-	cdef int a, b
+	cdef int a, b, vol_id, edge_id
 
 	a = neighbours.shape[0]
 	b = neighbours.shape[1]

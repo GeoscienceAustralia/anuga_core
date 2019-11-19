@@ -28,7 +28,7 @@ def configuration(parent_package='',top_path=None):
                       	include_dirs=[util_dir])
     
  	config.add_extension('mesh_factory_ext',
-                     	sources=['mesh_factory_ext.c'],
+                     	sources=['mesh_factory_ext.pyx'],
                      	include_dirs=[util_dir])
 
  	config.add_extension('neighbour_table_ext',
