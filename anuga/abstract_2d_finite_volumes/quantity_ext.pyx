@@ -1,5 +1,4 @@
-# cython: boundscheck=False
-# cython: wraparound=False
+#cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
 
 # import both numpy and the Cython declarations for numpy
@@ -9,7 +8,7 @@ cimport numpy as np
 ctypedef long keyint
 
 # declare the interface to the C code
-cdef extern from "quantity_ext.c":
+cdef extern from "quantity.c":
   int _compute_gradients(keyint N, double* centroids, double* centroid_values, long* number_of_boundaries, long* surrogate_neighbours, double* a, double* b)
   int _compute_local_gradients(keyint N, double* vertex_coordinates, double* vertex_values, double* a, double* b)
   int _extrapolate_from_gradient(keyint N, double* centroids, double* centroid_values, double* vertex_coordinates, double* vertex_values, double* edge_values, double* a, double* b)

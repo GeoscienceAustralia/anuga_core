@@ -1,13 +1,14 @@
-# cython: boundscheck=False
-# cython: wraparound=False
+#cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
 
 # import both numpy and the Cython declarations for numpy
 import numpy as np
 cimport numpy as np
 
-# import header
-from swb2_domain_header cimport *
+cdef extern from "swb2_domain.c":
+	double _compute_fluxes_central(int number_of_elements, double timestep, double epsilon, double H0, double g, long* neighbours, long* neighbour_edges, double* normals, double* edgelengths, double* radii, double* areas, long* tri_full_flag, double* stage_edge_values, double* xmom_edge_values, double* ymom_edge_values, double* bed_edge_values, double* stage_boundary_values, double* xmom_boundary_values, double* ymom_boundary_values, long* boundary_flux_type, double* stage_explicit_update, double* xmom_explicit_update, double* ymom_explicit_update, long* already_computed_flux, double* max_speed_array, int optimise_dry_cells, double* stage_centroid_values, double* bed_centroid_values, double* bed_vertex_values)
+	double _protect(int N, double minimum_allowed_height, double maximum_allowed_speed, double epsilon, double* wc, double* wv, double* zc, double* zv, double* xmomc, double* ymomc, double* areas)
+	int _extrapolate_second_order_edge_sw(int number_of_elements, double epsilon, double minimum_allowed_height, double beta_w, double beta_w_dry, double beta_uh, double beta_uh_dry, double beta_vh, double beta_vh_dry, long* surrogate_neighbours, long* number_of_boundaries, double* centroid_coordinates, double* stage_centroid_values, double* xmom_centroid_values, double* ymom_centroid_values, double* elevation_centroid_values, double* edge_coordinates, double* stage_edge_values, double* xmom_edge_values, double* ymom_edge_values, double* elevation_edge_values, double* stage_vertex_values, double* xmom_vertex_values, double* ymom_vertex_values, double* elevation_vertex_values, int optimise_dry_cells, int extrapolate_velocity_second_order)
 
 def compute_fluxes_ext_central(double timestep,\
 							double epsilon,\

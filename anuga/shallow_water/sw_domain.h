@@ -5,6 +5,7 @@
 
 
 #ifndef SW_DOMAIN_H
+#define SW_DOMAIN_H
 
 // structures
 struct domain {
@@ -227,5 +228,4 @@ int print_domain_struct(struct domain *D) {
     return 0;
 }
 
-#define SW_DOMAIN_H
 #endif

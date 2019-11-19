@@ -1,5 +1,4 @@
-# cython: boundscheck=False
-# cython: wraparound=False
+#cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
 
 # import both numpy and the Cython declarations for numpy
@@ -86,7 +85,6 @@ cdef extern from "swDE1_domain.c" nogil:
 	double _protect_new(domain* D)
 	int _extrapolate_second_order_edge_sw(domain* D)
 
-#cdef domain D
 
 cdef int pointer_flag = 0
 cdef int parameter_flag = 0
