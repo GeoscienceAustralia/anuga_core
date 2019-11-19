@@ -24,7 +24,7 @@ def configuration(parent_package='',top_path=None):
  	util_dir = join('..','utilities') 
  
  	config.add_extension('neighbour_mesh_ext',
-                    	sources=['neighbour_mesh_ext.c'],
+                    	sources=['neighbour_mesh_ext.pyx'],
                       	include_dirs=[util_dir])
     
  	config.add_extension('mesh_factory_ext',
