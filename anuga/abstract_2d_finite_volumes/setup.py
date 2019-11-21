@@ -38,7 +38,7 @@ def configuration(parent_package='',top_path=None):
                        	include_dirs=[util_dir])
 
  	config.add_extension('pmesh2domain_ext',
-                       	sources=['pmesh2domain_ext.c'],
+                       	sources=['pmesh2domain_ext.pyx'],
                        	include_dirs=[util_dir])
 
  	config.add_extension('quantity_ext',
