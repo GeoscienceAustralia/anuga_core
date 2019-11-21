@@ -35,14 +35,12 @@ def safe_acos(x):
         if x < -1.0 - eps:
             raise ValueError, error_msg
         else:
-            warn(warning_msg)
             x = -1.0
 
     if x > 1.0:
         if x > 1.0 + eps:
             raise ValueError, error_msg
         else:
-            anuga_log.critical('NOTE: changing argument to acos from %.18f to 1.0' %x)
             x = 1.0
 
     return acos(x)
