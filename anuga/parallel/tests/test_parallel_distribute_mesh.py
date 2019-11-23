@@ -54,7 +54,12 @@ def distibute_three_processors():
 
 	barrier()
 
-	metis_version = 4
+	try:
+		import pymetis
+		metis_version = 5
+	except:
+		metis_version = 4
+	
 
 	if myid == 0:
 
@@ -126,8 +131,6 @@ def distibute_three_processors():
 			value = submesh['full_commun']
 			msg = 'true_full_commun='+ pformat(value)
 			print msg
-
-		metis_version = 4
 
 		#============================================
 		if metis_version == 4:
@@ -319,6 +322,13 @@ def distibute_three_processors():
 				[7, 1],
 				[9, 1]])
 
+			true_tri_map = num.array(
+				[5, 6, 7, 8, -1, 9, 10, -1, -1, -1, -1, 0, 1, 2, 3, 4, -1])
+
+			true_full_commun=[{0: [1], 1: [], 2: [1, 2], 3: [1], 4: [2]}, 
+			{5: [0], 6: [0], 7: [0, 2], 8: [], 9: [2]},
+			{10: [0], 11: [0], 12: [0, 1], 13: [0, 1], 14: [1], 15: [1]}]
+
 
 	
 		#======================================================
@@ -414,6 +424,37 @@ def distibute_three_processors():
 			true_full_send_dict_1=[array([0, 1, 2, 4]), array([0, 1, 2, 4])]
 			true_full_send_dict_2=[array([0, 1, 2, 3]), array([0, 1, 2, 3])]
 
+		if metis_version == 5:
+			true_ghost_recv_dict_1=[array([5, 6, 7]), array([5, 6, 7])]
+			true_ghost_layer_width=2
+			true_ghost_recv_dict_2=[array([ 8,  9, 10, 11]), array([10, 11, 12, 13])]
+			true_vertices=array([[ 0,  4,  1],
+				[ 2,  4,  0],
+				[ 3,  4,  2],
+				[ 1,  4,  3],
+				[ 2,  5,  3],
+				[ 1, 10,  6],
+				[ 3, 10,  1],
+				[ 7, 10,  3],
+				[ 8,  5,  2],
+				[ 9,  5,  8],
+				[ 3,  5,  9],
+				[ 9, 11,  3]])
+			true_points=array([[ 0.  ,  0.  ],
+				[ 0.  ,  0.5 ],
+				[ 0.5 ,  0.  ],
+				[ 0.5 ,  0.5 ],
+				[ 0.25,  0.25],
+				[ 0.75,  0.25],
+				[ 0.  ,  1.  ],
+				[ 0.5 ,  1.  ],
+				[ 1.  ,  0.  ],
+				[ 1.  ,  0.5 ],
+				[ 0.25,  0.75],
+				[ 0.75,  0.75]])
+			true_full_send_dict_1=[array([0, 2, 3]), array([0, 2, 3])]
+			true_full_send_dict_2=[array([2, 4]), array([2, 4])]
+
 
 		assert_(num.allclose(ghost_layer_width,  true_ghost_layer_width))
 		assert_(num.allclose(points,   true_points))
@@ -487,6 +528,38 @@ def distibute_three_processors():
 				true_ghost_layer_width=2
 				true_tri_map=array([ 6,  7,  8, -1,  9,  0,  1,  2,  3,  4,  5, 10, 11])
 
+			if metis_version == 5:
+				true_vertices=array([[ 0,  4,  1],
+					[ 2,  4,  0],
+					[ 3,  4,  2],
+					[ 1,  4,  3],
+					[ 2,  5,  3],
+					[ 6, 10,  0],
+					[ 2, 10,  7],
+					[ 0, 10,  2],
+					[ 2, 11,  8],
+					[ 8,  5,  2],
+					[ 9,  5,  8],
+					[ 3,  5,  9]])
+				true_points=array([[ 0.  ,  0.5 ],
+					[ 0.  ,  1.  ],
+					[ 0.5 ,  0.5 ],
+					[ 0.5 ,  1.  ],
+					[ 0.25,  0.75],
+					[ 0.75,  0.75],
+					[ 0.  ,  0.  ],
+					[ 0.5 ,  0.  ],
+					[ 1.  ,  0.5 ],
+					[ 1.  ,  1.  ],
+					[ 0.25,  0.25],
+					[ 0.75,  0.25]])
+				true_full_send_dict_0=[array([0, 1, 2]), array([5, 6, 7])]
+				true_node_map=array([ 6,  0,  1,  7,  2,  3, -1,  8,  9, 10,  4, 11,  5])
+				true_full_send_dict_2=[array([2, 4]), array([7, 9])]
+				true_ghost_recv_dict_0=[array([5, 6, 7]), array([0, 2, 3])]
+				true_ghost_recv_dict_2=[array([ 8,  9, 10, 11]), array([12, 13, 14, 15])]
+				true_ghost_layer_width=2
+				true_tri_map=array([ 5, -1,  6,  7, -1,  0,  1,  2,  3,  4, -1, -1,  8,  9, 10, 11])
 
 
 			assert_(num.allclose(ghost_layer_width,  true_ghost_layer_width))
@@ -548,6 +621,35 @@ def distibute_three_processors():
 				true_ghost_recv_dict_0=[array([5, 6, 7, 8]), array([0, 1, 2, 3])]
 				true_ghost_layer_width=2
 				true_tri_map=array([ 5,  6,  7,  8, -1,  9, 10, -1, -1, -1, -1,  0,  1,  2,  3,  4, -1])
+
+			if metis_version == 5:
+				true_vertices=array([[3, 6, 0],
+					[4, 6, 3],
+					[1, 6, 4],
+					[4, 7, 1],
+					[5, 7, 4],
+					[2, 7, 5],
+					[1, 8, 0],
+					[0, 6, 1],
+					[2, 9, 1],
+					[1, 7, 2]])
+				true_points=array([[ 0.5 ,  0.  ],
+					[ 0.5 ,  0.5 ],
+					[ 0.5 ,  1.  ],
+					[ 1.  ,  0.  ],
+					[ 1.  ,  0.5 ],
+					[ 1.  ,  1.  ],
+					[ 0.75,  0.25],
+					[ 0.75,  0.75],
+					[ 0.25,  0.25],
+					[ 0.25,  0.75]])
+				true_full_send_dict_0=[array([0, 1, 2, 3]), array([10, 11, 12, 13])]
+				true_full_send_dict_1=[array([2, 3, 4, 5]), array([12, 13, 14, 15])]
+				true_node_map=array([-1, -1, -1,  0,  1,  2,  3,  4,  5,  8,  9,  6,  7])
+				true_ghost_recv_dict_1=[array([8, 9]), array([7, 9])]
+				true_ghost_recv_dict_0=[array([6, 7]), array([2, 4])]
+				true_ghost_layer_width=2
+				true_tri_map=array([-1, -1,  6, -1,  7, -1, -1,  8, -1,  9,  0,  1,  2,  3,  4,  5, -1])
 
 			assert_(num.allclose(ghost_layer_width,  true_ghost_layer_width))
 			assert_(num.allclose(tri_map,   true_tri_map))
