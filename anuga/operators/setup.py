@@ -21,7 +21,7 @@ def configuration(parent_package='',top_path=None):
     util_dir = join('..','utilities')
     
     config.add_extension('mannings_operator_ext',
-                         sources=['mannings_operator_ext.c'],
+                         sources=['mannings_operator_ext.pyx'],
                          include_dirs=[util_dir])
 
     config.add_extension('kinematic_viscosity_operator_ext',
