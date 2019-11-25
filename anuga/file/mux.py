@@ -51,7 +51,7 @@ def read_mux2_py(filenames,
         weights = num.ones(numSrc)
 
     if permutation is None:
-        permutation = ensure_numeric([], num.float)
+        permutation = ensure_numeric([], num.int)
 
     # Call underlying C implementation urs2sts_ext.c
     data = read_mux2(numSrc, filenames, weights, file_params,

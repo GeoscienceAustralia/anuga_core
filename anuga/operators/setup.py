@@ -4,6 +4,9 @@ import os
 import sys
 
 from os.path import join
+from Cython.Build import cythonize
+import Cython.Compiler.Options
+Cython.Compiler.Options.annotate = True
 
 def configuration(parent_package='',top_path=None):
     
@@ -18,14 +21,15 @@ def configuration(parent_package='',top_path=None):
     util_dir = join('..','utilities')
     
     config.add_extension('mannings_operator_ext',
-                         sources=['mannings_operator_ext.c'],
+                         sources=['mannings_operator_ext.pyx'],
                          include_dirs=[util_dir])
 
     config.add_extension('kinematic_viscosity_operator_ext',
-                         sources=['kinematic_viscosity_operator_ext.c'],
+                         sources=['kinematic_viscosity_operator_ext.pyx'],
                          include_dirs=[util_dir])
 
-    
+    config.ext_modules = cythonize(config.ext_modules, annotate=True)
+
     return config
     
 if __name__ == '__main__':
