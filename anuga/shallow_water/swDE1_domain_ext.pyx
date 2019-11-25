@@ -232,71 +232,76 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
 	# Quantity structures
 	#------------------------------------------------------
 	quantities = domain_object.quantities
+	stage = quantities["stage"]
+	xmomentum = quantities["xmomentum"]
+	ymomentum = quantities["ymomentum"]
+	elevation = quantities["elevation"]
+	height = quantities["height"]
 
-	edge_values = quantities["stage"].edge_values
+	edge_values = stage.edge_values
 	D.stage_edge_values = &edge_values[0,0]
 
-	edge_values = quantities["xmomentum"].edge_values
+	edge_values = xmomentum.edge_values
 	D.xmom_edge_values = &edge_values[0,0]
 
-	edge_values = quantities["ymomentum"].edge_values
+	edge_values = ymomentum.edge_values
 	D.ymom_edge_values = &edge_values[0,0]
 
-	edge_values = quantities["elevation"].edge_values
+	edge_values = elevation.edge_values
 	D.bed_edge_values = &edge_values[0,0]
 
-	edge_values = quantities["height"].edge_values
+	edge_values = height.edge_values
 	D.height_edge_values = &edge_values[0,0]
 
-	centroid_values = quantities["stage"].centroid_values
+	centroid_values = stage.centroid_values
 	D.stage_centroid_values = &centroid_values[0]
 
-	centroid_values = quantities["xmomentum"].centroid_values
+	centroid_values = xmomentum.centroid_values
 	D.xmom_centroid_values = &centroid_values[0]
 
-	centroid_values = quantities["ymomentum"].centroid_values
+	centroid_values = ymomentum.centroid_values
 	D.ymom_centroid_values = &centroid_values[0]
 
-	centroid_values = quantities["elevation"].centroid_values
+	centroid_values = elevation.centroid_values
 	D.bed_centroid_values = &centroid_values[0]
 
-	centroid_values = quantities["height"].centroid_values
+	centroid_values = height.centroid_values
 	D.height_centroid_values = &centroid_values[0]
 
-	vertex_values = quantities["stage"].vertex_values
+	vertex_values = stage.vertex_values
 	D.stage_vertex_values = &vertex_values[0,0]
 
-	vertex_values = quantities["xmomentum"].vertex_values
+	vertex_values = xmomentum.vertex_values
 	D.xmom_vertex_values = &vertex_values[0,0]
 
-	vertex_values = quantities["ymomentum"].vertex_values
+	vertex_values = ymomentum.vertex_values
 	D.ymom_vertex_values = &vertex_values[0,0]
 
-	vertex_values = quantities["elevation"].vertex_values
+	vertex_values = elevation.vertex_values
 	D.bed_vertex_values = &vertex_values[0,0]
 
-	vertex_values = quantities["height"].vertex_values
+	vertex_values = height.vertex_values
 	D.height_vertex_values = &vertex_values[0,0]
 
-	boundary_values = quantities["stage"].boundary_values
+	boundary_values = stage.boundary_values
 	D.stage_boundary_values = &boundary_values[0]
 
-	boundary_values = quantities["xmomentum"].boundary_values
+	boundary_values = xmomentum.boundary_values
 	D.xmom_boundary_values = &boundary_values[0]
 
-	boundary_values = quantities["ymomentum"].boundary_values
+	boundary_values = ymomentum.boundary_values
 	D.ymom_boundary_values = &boundary_values[0]
 
-	boundary_values = quantities["elevation"].boundary_values
+	boundary_values = elevation.boundary_values
 	D.bed_boundary_values = &boundary_values[0]
 
-	explicit_update = quantities["stage"].explicit_update
+	explicit_update = stage.explicit_update
 	D.stage_explicit_update = &explicit_update[0]
 
-	explicit_update = quantities["xmomentum"].explicit_update
+	explicit_update = xmomentum.explicit_update
 	D.xmom_explicit_update = &explicit_update[0]
 
-	explicit_update = quantities["ymomentum"].explicit_update
+	explicit_update = ymomentum.explicit_update
 	D.ymom_explicit_update = &explicit_update[0]
 
 	#------------------------------------------------------
