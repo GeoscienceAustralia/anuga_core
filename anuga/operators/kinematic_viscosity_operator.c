@@ -1,9 +1,6 @@
-#include "Python.h"
-#include "numpy/arrayobject.h"
 #include <math.h>
 #include <stdio.h>
 #include <unistd.h>
-#include "util_ext.h"
 
 //Rough quicksort implementation (for build_operator_matrix)
 // taken from http://cprogramminglanguage.net/quicksort-algorithm-c-source-code.aspx
@@ -43,7 +40,7 @@ void quicksort(int list[], int m, int n) {
     }
 }
 
-int build_geo_structure(int n,
+int _build_geo_structure(int n,
         int tot_len,
         double *centroids,
         long *neighbours,
@@ -88,7 +85,7 @@ int build_geo_structure(int n,
     return 0;
 }
 
-int build_elliptic_matrix_not_symmetric(int n,
+int _build_elliptic_matrix_not_symmetric(int n,
         int tot_len,
         long *geo_indices,
         double *geo_values,
@@ -141,7 +138,7 @@ int build_elliptic_matrix_not_symmetric(int n,
     return 0;
 }
 
-int build_elliptic_matrix(int n,
+int _build_elliptic_matrix(int n,
         int tot_len,
         long *geo_indices,
         double *geo_values,
@@ -194,7 +191,7 @@ int build_elliptic_matrix(int n,
     return 0;
 }
 
-int update_elliptic_matrix_not_symmetric(int n,
+int _update_elliptic_matrix_not_symmetric(int n,
         int tot_len,
         long *geo_indices,
         double *geo_values,
@@ -248,7 +245,7 @@ int update_elliptic_matrix_not_symmetric(int n,
     return 0;
 }
 
-int update_elliptic_matrix(int n,
+int _update_elliptic_matrix(int n,
         int tot_len,
         long *geo_indices,
         double *geo_values,
@@ -300,174 +297,4 @@ int update_elliptic_matrix(int n,
         }
     }
     return 0;
-}
-
-/**
- * Python wrapper methods
- */
-
-static PyObject *py_build_geo_structure(PyObject *self, PyObject *args) {
-    PyObject *kv_operator, *mesh;
-    int n, tot_len, err;
-    PyArrayObject
-            *centroid_coordinates,
-            *neighbours,
-            *edgelengths,
-            *edge_midpoint_coordinates,
-            *geo_indices,
-            *geo_values;
-
-    //Convert Python arguments to C
-    if (!PyArg_ParseTuple(args, "O", &kv_operator)) {
-        PyErr_SetString(PyExc_RuntimeError, "build_geo_structure could not parse input");
-        return NULL;
-    }
-    mesh = PyObject_GetAttrString(kv_operator, "mesh"); //kv_operator.mesh
-    if (!mesh) {
-        PyErr_SetString(PyExc_RuntimeError, "build_geo_structure could not obtain mesh object from kv_operator");
-        return NULL;
-    }
-
-    //Extract parameters
-    n = get_python_integer(kv_operator, "n");
-    tot_len = get_python_integer(kv_operator, "tot_len");
-
-    centroid_coordinates = get_consecutive_array(mesh, "centroid_coordinates");
-    neighbours = get_consecutive_array(mesh, "neighbours");
-    edgelengths = get_consecutive_array(mesh, "edgelengths");
-    edge_midpoint_coordinates = get_consecutive_array(mesh, "edge_midpoint_coordinates");
-    geo_indices = get_consecutive_array(kv_operator, "geo_structure_indices");
-    geo_values = get_consecutive_array(kv_operator, "geo_structure_values");
-
-    //Release
-    Py_DECREF(mesh);
-
-    err = build_geo_structure(n, tot_len,
-            (double *) centroid_coordinates -> data,
-            (long *) neighbours -> data,
-            (double *) edgelengths->data,
-            (double *) edge_midpoint_coordinates -> data,
-            (long *) geo_indices -> data,
-            (double *) geo_values -> data);
-    if (err != 0) {
-        PyErr_SetString(PyExc_RuntimeError, "Could not build geo structure");
-        return NULL;
-    }
-
-    //Release the arrays
-    Py_DECREF(centroid_coordinates);
-    Py_DECREF(neighbours);
-    Py_DECREF(edgelengths);
-    Py_DECREF(edge_midpoint_coordinates);
-    Py_DECREF(geo_indices);
-    Py_DECREF(geo_values);
-
-    return Py_BuildValue("");
-}
-
-static PyObject *py_build_elliptic_matrix(PyObject *self, PyObject *args) {
-    PyObject *kv_operator;
-    int n, tot_len, err;
-    PyArrayObject
-            *cell_data,
-            *bdry_data,
-            *geo_indices,
-            *geo_values,
-            *_data,
-            *colind;
-
-    //Convert Python arguments to C
-    if (!PyArg_ParseTuple(args, "OOO", &kv_operator, &cell_data, &bdry_data)) {
-        PyErr_SetString(PyExc_RuntimeError, "build_elliptic_matrix could not parse input");
-        return NULL;
-    }
-
-
-    n = get_python_integer(kv_operator, "n");
-    tot_len = get_python_integer(kv_operator, "tot_len");
-
-
-    geo_indices = get_consecutive_array(kv_operator, "geo_structure_indices");
-    geo_values = get_consecutive_array(kv_operator, "geo_structure_values");
-    _data = get_consecutive_array(kv_operator, "operator_data");
-    colind = get_consecutive_array(kv_operator, "operator_colind");
-
-    err = build_elliptic_matrix(n, tot_len,
-            (long *) geo_indices -> data,
-            (double *) geo_values -> data,
-            (double *) cell_data -> data,
-            (double *) bdry_data -> data,
-            (double *) _data -> data,
-            (long *) colind -> data);
-    if (err != 0) {
-        PyErr_SetString(PyExc_RuntimeError, "Could not get stage height interactions");
-        return NULL;
-    }
-
-    Py_DECREF(geo_indices);
-    Py_DECREF(geo_values);
-    Py_DECREF(_data);
-    Py_DECREF(colind);
-
-    return Py_BuildValue("");
-}
-
-static PyObject *py_update_elliptic_matrix(PyObject *self, PyObject *args) {
-    PyObject *kv_operator;
-    int n, tot_len, err;
-    PyArrayObject
-            *cell_data,
-            *bdry_data,
-            *geo_indices,
-            *geo_values,
-            *_data,
-            *colind;
-
-    //Convert Python arguments to C
-    if (!PyArg_ParseTuple(args, "OOO", &kv_operator, &cell_data, &bdry_data)) {
-        PyErr_SetString(PyExc_RuntimeError, "update_elliptic_matrix could not parse input");
-        return NULL;
-    }
-
-
-    n = get_python_integer(kv_operator, "n");
-    tot_len = get_python_integer(kv_operator, "tot_len");
-
-
-    geo_indices = get_consecutive_array(kv_operator, "geo_structure_indices");
-    geo_values = get_consecutive_array(kv_operator, "geo_structure_values");
-    _data = get_consecutive_array(kv_operator, "operator_data");
-    colind = get_consecutive_array(kv_operator, "operator_colind");
-
-    err = update_elliptic_matrix(n, tot_len,
-            (long *) geo_indices -> data,
-            (double *) geo_values -> data,
-            (double *) cell_data -> data,
-            (double *) bdry_data -> data,
-            (double *) _data -> data,
-            (long *) colind -> data);
-    if (err != 0) {
-        PyErr_SetString(PyExc_RuntimeError, "Could not get stage height interactions");
-        return NULL;
-    }
-
-    Py_DECREF(geo_indices);
-    Py_DECREF(geo_values);
-    Py_DECREF(_data);
-    Py_DECREF(colind);
-
-    return Py_BuildValue("");
-
-}
-
-static struct PyMethodDef MethodTable[] = {
-    {"build_geo_structure", py_build_geo_structure, METH_VARARGS, "Print out"},
-    {"build_elliptic_matrix", py_build_elliptic_matrix, METH_VARARGS, "Print out"},
-    {"update_elliptic_matrix", py_update_elliptic_matrix, METH_VARARGS, "Print out"},
-    {NULL, NULL, 0, NULL} // sentinel
-};
-
-void initkinematic_viscosity_operator_ext() {
-    (void) Py_InitModule("kinematic_viscosity_operator_ext", MethodTable);
-    import_array();
 }
