@@ -29,6 +29,7 @@
 *.blg
 *.out
 *.toc
+*.html
 tags
 
 # validation temp files #
