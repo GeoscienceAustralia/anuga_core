@@ -5,7 +5,6 @@
 
 //Shared code snippets
 
-#include "util_ext.h" /* in utilities */
 #include "uthash.h"     /* in utilities */
 
 //==============================================================================
@@ -51,7 +50,7 @@ void delete_segment(segment_t *segment) {
     free(segment);
 }
 
-void delete_segment_all(void) {
+void delete_segment_all(void) { /* note we need to use void here to suppress warning */
     segment_t *current_segment, *tmp;
 
     HASH_ITER(hh, segment_table, current_segment, tmp) {
