@@ -19,5 +19,10 @@ mesh_filename = 'Benchmark_2.msh'
 # Model output
 output_filename = 'okushiri_auto_validation.sww'
 
+# Evolve variables
+finalTime = 25.0
+yieldStep = 0.05
+
+
 
 

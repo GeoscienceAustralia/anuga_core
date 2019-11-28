@@ -193,4 +193,5 @@ doc/source/generated
 
 # Things specific to this project #
 ###################################
+anuga/__config__.py
 anuga/version.py

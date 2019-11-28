@@ -24,12 +24,22 @@ import anuga
 from anuga import distribute, myid, numprocs, finalize, barrier
 
 
-import project
+from project import *
 import create_okushiri
 
 args = anuga.get_args()
 alg = args.alg
 verbose = args.verbose
+
+if hasattr(args, 'finaltime'):
+    finalTime = args.finaltime
+
+if hasattr(args, 'yieldstep'):
+    yieldStep = args.yieldstep
+
+if myid == 0 and verbose:
+    print finalTime
+    print yieldStep
 
 if verbose: print 'create mesh'
 elevation_in_mesh = False
@@ -52,7 +62,7 @@ log.log_filename = './run_okushiri.log'
 #-------------------------
 if myid == 0:
     try:
-        domain = anuga.Domain(project.mesh_filename, use_cache=False, verbose=verbose)
+        domain = anuga.Domain(mesh_filename, use_cache=False, verbose=verbose)
     except:
         msg = 'ERROR reading in mesh file. Have you run create_okushiri.py?'
         raise Exception, msg
@@ -68,18 +78,18 @@ if myid == 0:
     if verbose: print 'set stage'
     if elevation_in_mesh is False:
 #         domain.set_quantity('elevation',
-#                         filename=project.bathymetry_filename_stem+'.pts', 
+#                         filename=bathymetry_filename_stem+'.pts', 
 #                         alpha=0.02,                    
 #                         verbose=verbose,
 #                         use_cache=False)
         domain.set_quantity('elevation',
-                        filename=project.bathymetry_filename_stem+'.asc',                   
+                        filename=bathymetry_filename_stem+'.asc',                   
                         verbose=verbose)
 
     #-------------------------
     # Set simulation parameters
     #-------------------------
-    domain.set_name(project.output_filename)  # Name of output sww file 
+    domain.set_name(output_filename)  # Name of output sww file 
     domain.set_minimum_storable_height(0.001) # Don't store w < 0.01m
     domain.set_store_vertices_smoothly(True)
     domain.set_flow_algorithm(alg)
@@ -94,7 +104,7 @@ domain = distribute(domain)
 #-------------------------
 
 # Create boundary function from timeseries provided in file
-wave_function = anuga.file_function(project.boundary_filename,
+wave_function = anuga.file_function(boundary_filename,
                          domain, verbose=verbose)
 
 # Create and assign boundary objects
@@ -115,12 +125,12 @@ save_parameters_tex(domain)
 import time
 t0 = time.time()
 
-for t in domain.evolve(yieldstep = 0.05, finaltime = 25.0):
+for t in domain.evolve(yieldstep = yieldStep, finaltime = finalTime):
     if myid == 0 and verbose: domain.write_time()
 
 domain.sww_merge(delete_old=True)
 
-if myid == 0 and verbose: print 'That took %.2f seconds' %(time.time()-t0)
+if myid == 0 and verbose : print 'That took %.2f seconds' %(time.time()-t0)
 
 finalize()
 
