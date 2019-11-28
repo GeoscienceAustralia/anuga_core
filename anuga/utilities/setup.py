@@ -4,6 +4,9 @@ import os
 import sys
 
 from os.path import join
+from Cython.Build import cythonize
+import Cython.Compiler.Options
+Cython.Compiler.Options.annotate = True
 
 def configuration(parent_package='',top_path=None):
     from numpy.distutils.misc_util import Configuration
@@ -21,7 +24,7 @@ def configuration(parent_package='',top_path=None):
 
 
     config.add_extension('util_ext',
-                         sources='util_ext.c')
+                         sources='util_ext_c.pyx')
 
     if sys.platform == 'darwin':
         extra_args = None
@@ -36,6 +39,7 @@ def configuration(parent_package='',top_path=None):
     config.add_extension('quad_tree_ext',
                          sources=['quad_tree_ext.c', 'quad_tree.c'])
     
+    config.ext_modules = cythonize(config.ext_modules,annotate=True)
 
     return config
 
