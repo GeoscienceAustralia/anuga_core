@@ -5,7 +5,7 @@ from libc.stdlib cimport malloc, free
 import numpy as np
 cimport numpy as np
 
-np.import_array()
+np.import_array() # avoid segmentation fault
 
 ctypedef double REAL
 
@@ -37,12 +37,12 @@ cdef extern from "triangle.c":
         int numberofedges
     void triangulate(char*, triangulateio*, triangulateio*, triangulateio*)
 
-def genMesh(np.ndarray pointlist,\
-            np.ndarray seglist,\
-            np.ndarray holelist,\
-            np.ndarray regionlist,\
-            np.ndarray pointattributelist,\
-            np.ndarray segmarkerlist,\
+def genMesh(np.ndarray pointlist not None,\
+            np.ndarray seglist not None,\
+            np.ndarray holelist not None,\
+            np.ndarray regionlist not None,\
+            np.ndarray pointattributelist not None,\
+            np.ndarray segmarkerlist not None,\
             char* mod):
 
     cdef triangulateio in_t, out_t
