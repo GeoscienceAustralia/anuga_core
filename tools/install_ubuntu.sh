@@ -68,11 +68,6 @@ echo "+===============================================+"
 sudo pip install -q netCDF4
 
 echo "+===============================================+"
-echo "|  Using pip to install Cython                  |"
-echo "+===============================================+"
-sudo pip install -q Cython
-
-echo "+===============================================+"
 echo "|  Using pip to install pyproj                  |"
 echo "+===============================================+"
 sudo pip install -q pyproj

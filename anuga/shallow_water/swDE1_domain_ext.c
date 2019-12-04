@@ -15,10 +15,16 @@
 // Gareth Davies, GA 2011
 
 
+#include "Python.h"
+#include "numpy/arrayobject.h"
 #include "math.h"
 #include <stdio.h>
-#include <string.h> 
+//#include "numpy_shim.h"
+
+// Shared code snippets
+#include "util_ext.h"
 #include "sw_domain.h"
+
 
 const double pi = 3.14159265358979;
 
@@ -126,12 +132,12 @@ water model for two-dimensional dam-break type. Journal of Computational Physics
 
   int i;
 
-  double uh_left, vh_left, u_left;
-  double uh_right, vh_right, u_right;
+  double w_left,  uh_left, vh_left, u_left;
+  double w_right, uh_right, vh_right, u_right;
   double s_min, s_max, soundspeed_left, soundspeed_right;
-  double u_m, h_m, soundspeed_m;
+  double u_m, h_m, soundspeed_m, s_m;
   double denom, inverse_denominator;
-  double tmp;
+  double uint, t1, t2, t3, min_speed, tmp, local_fr2;
   // Workspace (allocate once, use many)
   static double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
 
@@ -199,16 +205,16 @@ water model for two-dimensional dam-break type. Journal of Computational Physics
   if(h_left < 1.0e-10){
 	  s_min = u_right - 2.0*soundspeed_right;
 	  s_max = u_right + soundspeed_right;
-	  //s_m   = s_min;
+	  s_m   = s_min;
   }
   else if (h_right < 1.0e-10){
 	  s_min = u_left - soundspeed_left;
 	  s_max = u_left + 2.0*soundspeed_left;
-	  //s_m = s_max;
+	  s_m = s_max;
   }
   else {
-	  s_max = fmax(u_right + soundspeed_right, u_m + soundspeed_right);
-	  s_min = fmin(u_left - soundspeed_left, u_m - soundspeed_m);
+	  s_max = max(u_right + soundspeed_right, u_m + soundspeed_right);
+	  s_min = min(u_left - soundspeed_left, u_m - soundspeed_m);
   }
 
   if (s_max < 0.0)
@@ -245,9 +251,9 @@ water model for two-dimensional dam-break type. Journal of Computational Physics
   else
   {
     // Maximal wavespeed
-    *max_speed = fmax(s_max, -s_min);
+    *max_speed = max(s_max, -s_min);
 
-    inverse_denominator = 1.0/fmax(denom,1.0e-100);
+    inverse_denominator = 1.0/max(denom,1.0e-100);
     for (i = 0; i < 3; i++)
     {
       edgeflux[i] = s_max*flux_left[i] - s_min*flux_right[i];
@@ -255,7 +261,7 @@ water model for two-dimensional dam-break type. Journal of Computational Physics
       // Standard smoothing term
       // edgeflux[i] += 1.0*(s_max*s_min)*(q_right_rotated[i] - q_left_rotated[i]);
       // Smoothing by stage alone can cause high velocities / slow draining for nearly dry cells
-      if(i==0) edgeflux[i] += (s_max*s_min)*(fmax(q_right_rotated[i],ze) - fmax(q_left_rotated[i],ze));
+      if(i==0) edgeflux[i] += (s_max*s_min)*(max(q_right_rotated[i],ze) - max(q_left_rotated[i],ze));
       if(i==1) edgeflux[i] += (s_max*s_min)*(uh_right - uh_left);
       if(i==2) edgeflux[i] += (s_max*s_min)*(vh_right - vh_left);
 
@@ -306,11 +312,11 @@ int _flux_function_central(double *q_left, double *q_right,
 
   int i;
 
-  double uh_left, vh_left, u_left;
-  double uh_right, vh_right, u_right;
+  double w_left,  uh_left, vh_left, u_left;
+  double w_right, uh_right, vh_right, u_right;
   double s_min, s_max, soundspeed_left, soundspeed_right;
   double denom, inverse_denominator;
-  double tmp, local_fr, v_right, v_left;
+  double uint, t1, t2, t3, min_speed, tmp, local_fr, v_right, v_left;
   // Workspace (allocate once, use many)
   static double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
 
@@ -389,7 +395,7 @@ int _flux_function_central(double *q_left, double *q_right,
   if (low_froude == 1)
   {
     local_fr = sqrt(
-      fmax(0.001, fmin(1.0,
+      max(0.001, min(1.0,
           (u_right*u_right + u_left*u_left + v_right*v_right + v_left*v_left)/
           (soundspeed_left*soundspeed_left + soundspeed_right*soundspeed_right + 1.0e-10))));
   }
@@ -397,7 +403,7 @@ int _flux_function_central(double *q_left, double *q_right,
   {
     local_fr = sqrt((u_right*u_right + u_left*u_left + v_right*v_right + v_left*v_left)/
           (soundspeed_left*soundspeed_left + soundspeed_right*soundspeed_right + 1.0e-10));
-    local_fr = sqrt(fmin(1.0, 0.01 + fmax(local_fr-0.01,0.0)));
+    local_fr = sqrt(min(1.0, 0.01 + max(local_fr-0.01,0.0)));
   }
   else
   {
@@ -405,7 +411,7 @@ int _flux_function_central(double *q_left, double *q_right,
   }
   //printf("local_fr %e \n:", local_fr);
 
-  s_max = fmax(u_left + soundspeed_left, u_right + soundspeed_right);
+  s_max = max(u_left + soundspeed_left, u_right + soundspeed_right);
   if (s_max < 0.0)
   {
     s_max = 0.0;
@@ -416,7 +422,7 @@ int _flux_function_central(double *q_left, double *q_right,
   //}
 
 
-  s_min = fmin(u_left - soundspeed_left, u_right - soundspeed_right);
+  s_min = min(u_left - soundspeed_left, u_right - soundspeed_right);
   if (s_min > 0.0)
   {
     s_min = 0.0;
@@ -449,9 +455,9 @@ int _flux_function_central(double *q_left, double *q_right,
   else
   {
     // Maximal wavespeed
-    *max_speed = fmax(s_max, -s_min);
+    *max_speed = max(s_max, -s_min);
 
-    inverse_denominator = 1.0/fmax(denom,1.0e-100);
+    inverse_denominator = 1.0/max(denom,1.0e-100);
     for (i = 0; i < 3; i++)
     {
       edgeflux[i] = s_max*flux_left[i] - s_min*flux_right[i];
@@ -459,7 +465,7 @@ int _flux_function_central(double *q_left, double *q_right,
       // Standard smoothing term
       // edgeflux[i] += 1.0*(s_max*s_min)*(q_right_rotated[i] - q_left_rotated[i]);
       // Smoothing by stage alone can cause high velocities / slow draining for nearly dry cells
-      if(i==0) edgeflux[i] += (s_max*s_min)*(fmax(q_right_rotated[i],ze) - fmax(q_left_rotated[i],ze));
+      if(i==0) edgeflux[i] += (s_max*s_min)*(max(q_right_rotated[i],ze) - max(q_left_rotated[i],ze));
       //if(i==0) edgeflux[i] += (s_max*s_min)*(h_right - h_left);
       if(i==1) edgeflux[i] += local_fr*(s_max*s_min)*(uh_right - uh_left);
       if(i==2) edgeflux[i] += local_fr*(s_max*s_min)*(vh_right - vh_left);
@@ -492,7 +498,7 @@ int _compute_flux_update_frequency(struct domain *D, double timestep){
     //
     //
     // Local variables
-    int k, i, k3, ki, m, n, nm, ii, ii2;
+    int k, i, k3, ki, m, n, nm, ii, j, ii2;
     long fuf;
     double notSoFast=1.0;
     static int cyclic_number_of_steps=-1;
@@ -546,10 +552,10 @@ int _compute_flux_update_frequency(struct domain *D, double timestep){
                 // notSoFast is ideally = 1.0, but in practice values < 1.0 can enhance stability
                 // NOTE: edge_timestep[ki]/timestep can be very large [so int overflows].
                 //       Do not pull the (int) inside the min term
-                fuf = (int)fmin((D->edge_timestep[ki]/timestep)*notSoFast,D->max_flux_update_frequency*1.);
+                fuf = (int)min((D->edge_timestep[ki]/timestep)*notSoFast,D->max_flux_update_frequency*1.);
                 // Account for neighbour
                 if(n>=0){
-                    fuf = fmin( (int)fmin(D->edge_timestep[nm]/timestep*notSoFast, D->max_flux_update_frequency*1.), fuf);
+                    fuf = min( (int)min(D->edge_timestep[nm]/timestep*notSoFast, D->max_flux_update_frequency*1.), fuf);
                 }
 
                 // Deal with notSoFast<1.0
@@ -590,13 +596,13 @@ int _compute_flux_update_frequency(struct domain *D, double timestep){
     // (But, it can result in the same edge having different flux_update_freq)
     for( k=0; k< D->number_of_elements; k++){
         k3=3*k;
-        ii = 1*fmin(D->flux_update_frequency[k3],
-                 fmin(D->flux_update_frequency[k3+1],
+        ii = 1*min(D->flux_update_frequency[k3],
+                 min(D->flux_update_frequency[k3+1],
                      D->flux_update_frequency[k3+2]));
 
-        D->flux_update_frequency[k3]=fmin(ii, D->flux_update_frequency[k3]);
-        D->flux_update_frequency[k3+1]=fmin(ii, D->flux_update_frequency[k3+1]);
-        D->flux_update_frequency[k3+2]=fmin(ii,D->flux_update_frequency[k3+2]);
+        D->flux_update_frequency[k3]=min(ii, D->flux_update_frequency[k3]);
+        D->flux_update_frequency[k3+1]=min(ii, D->flux_update_frequency[k3+1]);
+        D->flux_update_frequency[k3+2]=min(ii,D->flux_update_frequency[k3+2]);
 
     }
 
@@ -615,7 +621,7 @@ int _compute_flux_update_frequency(struct domain *D, double timestep){
             if(n>=0){
                 m = D->neighbour_edges[ki];
                 nm = n * 3 + m; // Linear index (triangle n, edge m)
-                D->flux_update_frequency[ki]=fmin(D->flux_update_frequency[ki], D->flux_update_frequency[nm]);
+                D->flux_update_frequency[ki]=min(D->flux_update_frequency[ki], D->flux_update_frequency[nm]);
             }
             // Do we need to update the extrapolation?
             // (We do if the next flux computation will actually compute a flux!)
@@ -654,7 +660,7 @@ double adjust_edgeflux_with_weir(double *edgeflux,
     // the flow over the weir is much deeper than the weir, or the
     // upstream/downstream water elevations are too similar
     double rw, rw2; // 'Raw' weir fluxes
-    double rwRat, hdRat,hdWrRat, scaleFlux, minhd, maxhd;
+    double rwRat, hdRat,hdWrRat, scaleFlux, scaleFluxS, minhd, maxhd;
     double w1,w2; // Weights for averaging
     double newFlux;
     double twothirds = (2.0/3.0);
@@ -665,18 +671,18 @@ double adjust_edgeflux_with_weir(double *edgeflux,
     //double h1=1.0; // At this (tailwater height above weir) / (weir height) ratio, begin blending with shallow water solution
     //double h2=1.5; // At this (tailwater height above weir) / (weir height) ratio, completely use the shallow water solution
 
-    minhd = fmin(h_left, h_right);
-    maxhd = fmax(h_left, h_right);
+    minhd = min(h_left, h_right);
+    maxhd = max(h_left, h_right);
     // 'Raw' weir discharge = Qfactor*2/3*H*(2/3*g*H)**0.5
     rw = Qfactor * twothirds * maxhd * sqrt(twothirds * g * maxhd);
     // Factor for villemonte correction
     rw2 = Qfactor * twothirds * minhd * sqrt(twothirds * g * minhd);
     // Useful ratios
-    rwRat = rw2 / fmax(rw, 1.0e-100);
-    hdRat = minhd / fmax(maxhd, 1.0e-100);
+    rwRat = rw2 / max(rw, 1.0e-100);
+    hdRat = minhd / max(maxhd, 1.0e-100);
 
     // (tailwater height above weir)/weir_height ratio
-    hdWrRat = minhd / fmax(weir_height, 1.0e-100);
+    hdWrRat = minhd / max(weir_height, 1.0e-100);
 
     // Villemonte (1947) corrected weir flow with submergence
     // Q = Q1*(1-Q2/Q1)**0.385
@@ -698,10 +704,10 @@ double adjust_edgeflux_with_weir(double *edgeflux,
         //
 
         // Weighted average constants to transition to shallow water eqn flow
-        w1 = fmin( fmax(hdRat-s1, 0.) / (s2-s1), 1.0);
+        w1 = min( max(hdRat-s1, 0.) / (s2-s1), 1.0);
 
         // Adjust again when the head is too deep relative to the weir height
-        w2 = fmin( fmax(hdWrRat-h1,0.) / (h2-h1), 1.0);
+        w2 = min( max(hdWrRat-h1,0.) / (h2-h1), 1.0);
 
         newFlux = (rw*(1.0-w1)+w1*edgeflux[0])*(1.0-w2) + w2*edgeflux[0];
 
@@ -711,7 +717,7 @@ double adjust_edgeflux_with_weir(double *edgeflux,
             scaleFlux = 0.;
         }
 
-        scaleFlux = fmax(scaleFlux, 0.);
+        scaleFlux = max(scaleFlux, 0.);
 
         edgeflux[0] = newFlux;
 
@@ -720,16 +726,16 @@ double adjust_edgeflux_with_weir(double *edgeflux,
         //       those in a weighted average (rather than the rescaling trick here)
         // If we allow the scaling to momentum to be unbounded,
         // velocity spikes can arise for very-shallow-flooded walls
-        edgeflux[1] *= fmin(scaleFlux, 10.);
-        edgeflux[2] *= fmin(scaleFlux, 10.);
+        edgeflux[1] *= min(scaleFlux, 10.);
+        edgeflux[2] *= min(scaleFlux, 10.);
     }
 
     // Adjust the max speed
     if (fabs(edgeflux[0]) > 0.){
-        *max_speed_local = sqrt(g*(maxhd+weir_height)) + fabs(edgeflux[0]/(maxhd + 1.0e-12));
+        *max_speed_local = sqrt(g*(maxhd+weir_height)) + abs(edgeflux[0]/(maxhd + 1.0e-12));
     }
-    //*max_speed_local += fabs(edgeflux[0])/(maxhd+1.0e-100);
-    //*max_speed_local *= fmax(scaleFlux, 1.0);
+    //*max_speed_local += abs(edgeflux[0])/(maxhd+1.0e-100);
+    //*max_speed_local *= max(scaleFlux, 1.0);
 
     return 0;
 }
@@ -744,20 +750,22 @@ double _compute_fluxes_central(struct domain *D, double timestep){
     double limiting_threshold = 10*D->H0;
     long low_froude = D->low_froude;
     //
-    int k, i, m, n, ii;
-    int ki, nm = 0, ki2,ki3, nm3; // Index shorthands
+    int k, i, m, n,j, ii;
+    int ki,k3, nm = 0, ki2,ki3, nm3; // Index shorthands
     // Workspace (making them static actually made function slightly slower (Ole))
     double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
+    double stage_edges[3];//Work array
     double bedslope_work;
     static double local_timestep;
+    int neighbours_wet[3];//Work array
     long RiverWall_count, substep_count;
     double hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2;
-    double pressure_flux, hc, hc_n, tmp;
+    double stage_edge_lim, outgoing_mass_edges, pressure_flux, hc, hc_n, tmp, tmp2;
     double h_left_tmp, h_right_tmp;
     static long call = 0; // Static local variable flagging already computed flux
     static long timestep_fluxcalls=1;
     static long base_call = 1;
-    double speed_max_last, weir_height;
+    double speed_max_last, vol, weir_height;
 
     call++; // Flag 'id' of flux calculation for this timestep
 
@@ -831,7 +839,7 @@ double _compute_fluxes_central(struct domain *D, double timestep){
                 qr[1] = D->xmom_boundary_values[m];
                 qr[2] = D->ymom_boundary_values[m];
                 zr = zl; // Extend bed elevation to boundary
-                hre= fmax(qr[0]-zr,0.);//hle;
+                hre= max(qr[0]-zr,0.);//hle;
             } else {
                 // Neighbour is a real triangle
                 hc_n = D->height_centroid_values[n];
@@ -848,7 +856,7 @@ double _compute_fluxes_central(struct domain *D, double timestep){
             }
 
             // Audusse magic
-            z_half = fmax(zl, zr);
+            z_half = max(zl, zr);
 
             //// Account for riverwalls
             if(D->edge_flux_type[ki] == 1){
@@ -860,13 +868,13 @@ double _compute_fluxes_central(struct domain *D, double timestep){
                 RiverWall_count += 1;
 
                 // Set central bed to riverwall elevation
-                z_half = fmax(D->riverwall_elevation[RiverWall_count-1], z_half) ;
+                z_half = max(D->riverwall_elevation[RiverWall_count-1], z_half) ;
 
             }
 
             // Define h left/right for Audusse flux method
-            h_left = fmax(hle+zl-z_half,0.);
-            h_right = fmax(hre+zr-z_half,0.);
+            h_left = max(hle+zl-z_half,0.);
+            h_right = max(hre+zr-z_half,0.);
 
             // Edge flux computation (triangle k, edge i)
             _flux_function_central(ql, qr,
@@ -880,21 +888,21 @@ double _compute_fluxes_central(struct domain *D, double timestep){
             // Force weir discharge to match weir theory
             // FIXME: Switched off at the moment
             if(D->edge_flux_type[ki]==1){
-                weir_height = fmax(D->riverwall_elevation[RiverWall_count-1] - fmin(zl, zr), 0.); // Reference weir height
+                weir_height = max(D->riverwall_elevation[RiverWall_count-1] - min(zl, zr), 0.); // Reference weir height
 
                 // If the weir is not higher than both neighbouring cells, then
                 // do not try to match the weir equation. If we do, it seems we
                 // can get mass conservation issues (caused by large weir
                 // fluxes in such situations)
-                if(D->riverwall_elevation[RiverWall_count-1] > fmax(zc, zc_n)){
+                if(D->riverwall_elevation[RiverWall_count-1] > max(zc, zc_n)){
                     ////////////////////////////////////////////////////////////////////////////////////
                     // Use first-order h's for weir -- as the 'upstream/downstream' heads are
                     //  measured away from the weir itself
-                    h_left_tmp = fmax(D->stage_centroid_values[k] - z_half, 0.);
+                    h_left_tmp = max(D->stage_centroid_values[k] - z_half, 0.);
                     if(n >= 0){
-                        h_right_tmp = fmax(D->stage_centroid_values[n] - z_half, 0.);
+                        h_right_tmp = max(D->stage_centroid_values[n] - z_half, 0.);
                     }else{
-                        h_right_tmp = fmax(hc_n + zr - z_half, 0.);
+                        h_right_tmp = max(hc_n + zr - z_half, 0.);
                     }
 
                     if( (h_left_tmp > 0.) || (h_right_tmp > 0.)){
@@ -983,7 +991,7 @@ double _compute_fluxes_central(struct domain *D, double timestep){
             if(substep_count==0){
 
                 // Compute the 'edge-timesteps' (useful for setting flux_update_frequency)
-                tmp = 1.0 / fmax(max_speed_local, D->epsilon);
+                tmp = 1.0 / max(max_speed_local, D->epsilon);
                 D->edge_timestep[ki] = D->radii[k] * tmp ;
                 if (n >= 0) {
                     D->edge_timestep[nm] = D->radii[n] * tmp;
@@ -992,17 +1000,17 @@ double _compute_fluxes_central(struct domain *D, double timestep){
                 // Update the timestep
                 if ((D->tri_full_flag[k] == 1)) {
 
-                    speed_max_last = fmax(speed_max_last, max_speed_local);
+                    speed_max_last = max(speed_max_last, max_speed_local);
 
                     if (max_speed_local > D->epsilon) {
                         // Apply CFL condition for triangles joining this edge (triangle k and triangle n)
 
                         // CFL for triangle k
-                        local_timestep = fmin(local_timestep, D->edge_timestep[ki]);
+                        local_timestep = min(local_timestep, D->edge_timestep[ki]);
 
                         if (n >= 0) {
                             // Apply CFL condition for neigbour n (which is on the ith edge of triangle k)
-                            local_timestep = fmin(local_timestep, D->edge_timestep[nm]);
+                            local_timestep = min(local_timestep, D->edge_timestep[nm]);
                         }
                     }
                 }
@@ -1071,7 +1079,7 @@ double _compute_fluxes_central(struct domain *D, double timestep){
 
     // Now add up stage, xmom, ymom explicit updates
     for(k=0; k < D->number_of_elements; k++){
-        hc = fmax(D->stage_centroid_values[k] - D->bed_centroid_values[k],0.);
+        hc = max(D->stage_centroid_values[k] - D->bed_centroid_values[k],0.);
 
         for(i=0;i<3;i++){
             // FIXME: Make use of neighbours to efficiently set things
@@ -1087,7 +1095,7 @@ double _compute_fluxes_central(struct domain *D, double timestep){
             // If this cell is not a ghost, and the neighbour is a boundary
             // condition OR a ghost cell, then add the flux to the
             // boundary_flux_integral
-            if( ((n<0) & (D->tri_full_flag[k]==1)) | ( (n>=0) && ((D->tri_full_flag[k]==1) & (D->tri_full_flag[n]==0) )) ){
+            if( (n<0 & D->tri_full_flag[k]==1) | ( n>=0 && (D->tri_full_flag[k]==1 & D->tri_full_flag[n]==0)) ){
                 // boundary_flux_sum is an array with length = timestep_fluxcalls
                 // For each sub-step, we put the boundary flux sum in.
                 D->boundary_flux_sum[substep_count] += D->edge_flux_work[ki3];
@@ -1130,13 +1138,14 @@ double  _protect(int N,
          double* yc) {
 
   int k;
-  double hc, bmin;
+  double hc, bmin, bmax;
+  double u, v, reduced_speed;
   double mass_error = 0.;
   // This acts like minimum_allowed height, but scales with the vertical
   // distance between the bed_centroid_value and the max bed_edge_value of
   // every triangle.
   //double minimum_relative_height=0.05;
-  //int mass_added = 0;
+  int mass_added = 0;
 
   // Protect against inifintesimal and negative heights
   //if (maximum_allowed_speed < epsilon) {
@@ -1153,7 +1162,7 @@ double  _protect(int N,
              // WARNING: ADDING MASS if wc[k]<bmin
              if(wc[k] < bmin){
                  mass_error += (bmin-wc[k])*areas[k];
-                 //mass_added = 1; //Flag to warn of added mass
+                 mass_added = 1; //Flag to warn of added mass
 
                  wc[k] = bmin;
 
@@ -1180,7 +1189,8 @@ double  _protect(int N,
 double  _protect_new(struct domain *D) {
 
   int k;
-  double hc, bmin;
+  double hc, bmin, bmax;
+  double u, v, reduced_speed;
   double mass_error = 0.;
 
   double* wc;
@@ -1191,8 +1201,12 @@ double  _protect_new(struct domain *D) {
   double* areas;
 
   double minimum_allowed_height;
+  double maximum_allowed_speed;
+  double epsilon;
 
   minimum_allowed_height = D->minimum_allowed_height;
+  maximum_allowed_speed  = D->maximum_allowed_speed;
+  epsilon = D->epsilon;
 
   wc = D->stage_centroid_values;
   zc = D->bed_centroid_values;
@@ -1205,7 +1219,7 @@ double  _protect_new(struct domain *D) {
   // distance between the bed_centroid_value and the max bed_edge_value of
   // every triangle.
   //double minimum_relative_height=0.05;
-  //int mass_added = 0;
+  int mass_added = 0;
 
   // Protect against inifintesimal and negative heights
   //if (maximum_allowed_speed < epsilon) {
@@ -1222,7 +1236,7 @@ double  _protect_new(struct domain *D) {
              // WARNING: ADDING MASS if wc[k]<bmin
              if(wc[k] < bmin){
                  mass_error += (bmin-wc[k])*areas[k];
-                 //mass_added = 1; //Flag to warn of added mass
+                 mass_added = 1; //Flag to warn of added mass
 
                  wc[k] = bmin;
 
@@ -1262,8 +1276,8 @@ int find_qmin_and_qmax(double dq0, double dq1, double dq2,
   // dq2=q(vertex2)-q(vertex0)
 
   // This is a simple implementation
-  *qmax = fmax(fmax(dq0, fmax(dq0+dq1, dq0+dq2)), 0.0) ;
-  *qmin = fmin(fmin(dq0, fmin(dq0+dq1, dq0+dq2)), 0.0) ;
+  *qmax = max(max(dq0, max(dq0+dq1, dq0+dq2)), 0.0) ;
+  *qmin = min(min(dq0, min(dq0+dq1, dq0+dq2)), 0.0) ;
 
   return 0;
 }
@@ -1292,10 +1306,10 @@ int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
     if (dqv[i] > TINY)
       r0=qmax/dqv[i];
 
-    r=fmin(r0,r);
+    r=min(r0,r);
   }
 
-  phi=fmin(r*beta_w,1.0);
+  phi=min(r*beta_w,1.0);
   //phi=1.;
   dqv[0]=dqv[0]*phi;
   dqv[1]=dqv[1]*phi;
@@ -1343,12 +1357,12 @@ int _extrapolate_second_order_edge_sw(struct domain *D){
 
   // Local variables
   double a, b; // Gradient vector used to calculate edge values from centroids
-  int k, k0, k1, k2, k3, k6, coord_index, i;
+  int k, k0, k1, k2, k3, k6, coord_index, i, ii, ktmp, k_wetdry;
   double x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2; // Vertices of the auxiliary triangle
-  double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq0, dq1, dq2, area2, inv_area2;
-  double dqv[3], qmin, qmax, hmin, hmax;
-  double hc, h0, h1, h2, beta_tmp, hfactor;
-  double dk, dk_inv, a_tmp, b_tmp, c_tmp,d_tmp;
+  double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq0, dq1, dq2, area2, inv_area2, dpth,momnorm;
+  double dqv[3], qmin, qmax, hmin, hmax, bedmax,bedmin, stagemin;
+  double hc, h0, h1, h2, beta_tmp, hfactor, xtmp, ytmp, weight, tmp;
+  double dk, dk_inv,dv0, dv1, dv2, de[3], demin, dcmax, r0scale, vel_norm, l1, l2, a_tmp, b_tmp, c_tmp,d_tmp;
 
 
   memset((char*) D->x_centroid_work, 0, D->number_of_elements * sizeof (double));
@@ -1367,7 +1381,7 @@ int _extrapolate_second_order_edge_sw(struct domain *D){
       // extrapolation This will be changed back at the end of the routine
       for (k=0; k< D->number_of_elements; k++){
 
-          D->height_centroid_values[k] = fmax(D->stage_centroid_values[k] - D->bed_centroid_values[k], 0.);
+          D->height_centroid_values[k] = max(D->stage_centroid_values[k] - D->bed_centroid_values[k], 0.);
 
           dk = D->height_centroid_values[k];
           if(dk> D->minimum_allowed_height){
@@ -1398,14 +1412,15 @@ int _extrapolate_second_order_edge_sw(struct domain *D){
       k1 = D->surrogate_neighbours[k3 + 1];
       k2 = D->surrogate_neighbours[k3 + 2];
 
-      if(( (D->height_centroid_values[k0] < D->minimum_allowed_height) | (k0==k) ) &
-         ( (D->height_centroid_values[k1] < D->minimum_allowed_height) | (k1==k) ) &
-         ( (D->height_centroid_values[k2] < D->minimum_allowed_height) | (k2==k) ) ) {
+      if(( (D->height_centroid_values[k0] < D->minimum_allowed_height) | k0==k) &
+         ( (D->height_centroid_values[k1] < D->minimum_allowed_height) | k1==k) &
+         ( (D->height_centroid_values[k2] < D->minimum_allowed_height) | k2==k)){
     	  	  //printf("Surrounded by dry cells\n");
               D->x_centroid_work[k] = 0.;
               D->xmom_centroid_values[k] = 0.;
               D->y_centroid_work[k] = 0.;
               D->ymom_centroid_values[k] = 0.;
+
       }
 
 
@@ -1557,8 +1572,8 @@ int _extrapolate_second_order_edge_sw(struct domain *D){
       h1 = D->height_centroid_values[k1];
       h2 = D->height_centroid_values[k2];
 
-      hmin = fmin(fmin(h0, fmin(h1, h2)), hc);
-      hmax = fmax(fmax(h0, fmax(h1, h2)), hc);
+      hmin = min(min(h0, min(h1, h2)), hc);
+      hmax = max(max(h0, max(h1, h2)), hc);
 
       // Look for strong changes in cell depth as an indicator of near-wet-dry
       // Reduce hfactor linearly from 1-0 between depth ratio (hmin/hc) of [a_tmp , b_tmp]
@@ -1567,12 +1582,12 @@ int _extrapolate_second_order_edge_sw(struct domain *D){
       //       but is also more 'artefacty' in important cases (tendency for high velocities, etc).
       //
       // So hfactor = depth_ratio*(c_tmp) + d_tmp, but is clipped between 0 and 1.
-      hfactor= fmax(0., fmin(c_tmp*fmax(hmin,0.0)/fmax(hc,1.0e-06)+d_tmp,
-                           fmin(c_tmp*fmax(hc,0.)/fmax(hmax,1.0e-06)+d_tmp, 1.0))
+      hfactor= max(0., min(c_tmp*max(hmin,0.0)/max(hc,1.0e-06)+d_tmp,
+                           min(c_tmp*max(hc,0.)/max(hmax,1.0e-06)+d_tmp, 1.0))
                   );
       // Set hfactor to zero smothly as hmin--> minimum_allowed_height. This
       // avoids some 'chatter' for very shallow flows
-      hfactor=fmin( 1.2*fmax(hmin- D->minimum_allowed_height,0.)/(fmax(hmin,0.)+1.* D->minimum_allowed_height), hfactor);
+      hfactor=min( 1.2*max(hmin- D->minimum_allowed_height,0.)/(max(hmin,0.)+1.* D->minimum_allowed_height), hfactor);
 
       inv_area2 = 1.0/area2;
       //-----------------------------------
@@ -1792,7 +1807,7 @@ int _extrapolate_second_order_edge_sw(struct domain *D){
       if ((k2 == k3 + 3))
       {
         // If we didn't find an internal neighbour
-        //report_python_error(AT, "Internal neighbour not found");
+        report_python_error(AT, "Internal neighbour not found");
         return -1;
       }
 
@@ -2022,4 +2037,473 @@ int _extrapolate_second_order_edge_sw(struct domain *D){
   }
 
   return 0;
+}
+
+//=========================================================================
+// Python Glue
+//=========================================================================
+
+
+//========================================================================
+// Compute fluxes
+//========================================================================
+
+// Modified central flux function
+
+PyObject *swde1_compute_fluxes_ext_central(PyObject *self, PyObject *args) {
+  /*Compute all fluxes and the timestep suitable for all volumes
+    in domain.
+
+    Compute total flux for each conserved quantity using "flux_function_central"
+
+    Fluxes across each edge are scaled by edgelengths and summed up
+    Resulting flux is then scaled by area and stored in
+    explicit_update for each of the three conserved quantities
+    stage, xmomentum and ymomentum
+
+    The maximal allowable speed computed by the flux_function for each volume
+    is converted to a timestep that must not be exceeded. The minimum of
+    those is computed as the next overall timestep.
+  */
+  struct domain D;
+  PyObject *domain;
+
+
+  double timestep;
+
+  if (!PyArg_ParseTuple(args, "Od", &domain, &timestep)) {
+      report_python_error(AT, "could not parse input arguments");
+      return NULL;
+  }
+
+  get_python_domain(&D,domain);
+
+  timestep=_compute_fluxes_central(&D,timestep);
+
+  // Return updated flux timestep
+  return Py_BuildValue("d", timestep);
+}
+
+
+PyObject *swde1_flux_function_central(PyObject *self, PyObject *args) {
+  //
+  // Gateway to innermost flux function.
+  // This is only used by the unit tests as the c implementation is
+  // normally called by compute_fluxes in this module.
+
+
+  PyArrayObject *normal, *ql, *qr,  *edgeflux;
+  double g, epsilon, max_speed, H0, zl, zr;
+  double h0, limiting_threshold, pressure_flux, smooth;
+  double hle, hre;
+
+  if (!PyArg_ParseTuple(args, "OOOddOddd",
+            &normal, &ql, &qr, &zl, &zr, &edgeflux,
+            &epsilon, &g, &H0)) {
+      report_python_error(AT, "could not parse input arguments");
+      return NULL;
+  }
+
+  printf("Warning: This interface is broken -- do not use \n");
+
+  h0 = H0;
+  hle=1.0; // Fake values to force this to compile
+  hre=1.0; // Fake values to force this to compile
+  limiting_threshold = 10*H0; // Avoid applying limiter below this
+                              // threshold for performance reasons.
+                              // See ANUGA manual under flux limiting
+
+  pressure_flux = 0.0; // Store the water pressure related component of the flux
+  smooth = 1.0 ; // term to scale diffusion in riemann solver
+
+  _flux_function_central((double*) ql -> data,
+			 (double*) qr -> data,
+			 zl,
+			 zr,
+             hle,
+             hre,
+			 ((double*) normal -> data)[0],
+			 ((double*) normal -> data)[1],
+			 epsilon, h0, limiting_threshold,
+			 g,
+			 (double*) edgeflux -> data,
+			 &max_speed,
+             &pressure_flux,
+			 ((double*) normal -> data)[0],
+			 ((double*) normal -> data)[1],
+        0.0     );
+
+  return Py_BuildValue("d", max_speed);
+}
+
+//========================================================================
+// Gravity
+//========================================================================
+
+PyObject *swde1_gravity(PyObject *self, PyObject *args) {
+  //
+  //  gravity(g, h, v, x, xmom, ymom)
+  //
+
+
+  PyArrayObject *h, *v, *x, *xmom, *ymom;
+  int k, N, k3, k6;
+  double g, avg_h, zx, zy;
+  double x0, y0, x1, y1, x2, y2, z0, z1, z2;
+  //double epsilon;
+
+  if (!PyArg_ParseTuple(args, "dOOOOO",
+			&g, &h, &v, &x,
+			&xmom, &ymom)) {
+    //&epsilon)) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: gravity could not parse input arguments");
+    return NULL;
+  }
+
+  // check that numpy array objects arrays are C contiguous memory
+  CHECK_C_CONTIG(h);
+  CHECK_C_CONTIG(v);
+  CHECK_C_CONTIG(x);
+  CHECK_C_CONTIG(xmom);
+  CHECK_C_CONTIG(ymom);
+
+  N = h -> dimensions[0];
+  for (k=0; k<N; k++) {
+    k3 = 3*k;  // base index
+
+    // Get bathymetry
+    z0 = ((double*) v -> data)[k3 + 0];
+    z1 = ((double*) v -> data)[k3 + 1];
+    z2 = ((double*) v -> data)[k3 + 2];
+
+    // Optimise for flat bed
+    // Note (Ole): This didn't produce measurable speed up.
+    // Revisit later
+    //if (fabs(z0-z1)<epsilon && fabs(z1-z2)<epsilon) {
+    //  continue;
+    //}
+
+    // Get average depth from centroid values
+    avg_h = ((double *) h -> data)[k];
+
+    // Compute bed slope
+    k6 = 6*k;  // base index
+
+    x0 = ((double*) x -> data)[k6 + 0];
+    y0 = ((double*) x -> data)[k6 + 1];
+    x1 = ((double*) x -> data)[k6 + 2];
+    y1 = ((double*) x -> data)[k6 + 3];
+    x2 = ((double*) x -> data)[k6 + 4];
+    y2 = ((double*) x -> data)[k6 + 5];
+
+
+    _gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2, &zx, &zy);
+
+    // Update momentum
+    ((double*) xmom -> data)[k] += -g*zx*avg_h;
+    ((double*) ymom -> data)[k] += -g*zy*avg_h;
+  }
+
+  return Py_BuildValue("");
+}
+
+PyObject *swde1_compute_flux_update_frequency(PyObject *self, PyObject *args) {
+  /*
+
+    Compute how often we should update fluxes and extrapolations (perhaps not every timestep)
+
+  */
+
+  struct domain D;
+  PyObject *domain;
+
+
+  double timestep;
+
+  if (!PyArg_ParseTuple(args, "Od", &domain, &timestep)) {
+      report_python_error(AT, "could not parse input arguments");
+      return NULL;
+  }
+
+  get_python_domain(&D,domain);
+
+  _compute_flux_update_frequency(&D, timestep);
+
+  // Return
+  return Py_BuildValue("");
+}
+
+
+PyObject *swde1_extrapolate_second_order_edge_sw(PyObject *self, PyObject *args) {
+  /*Compute the edge values based on a linear reconstruction
+    on each triangle
+
+    Post conditions:
+        The edges of each triangle have values from a
+        limited linear reconstruction
+        based on centroid values
+
+  */
+
+  struct domain D;
+  PyObject *domain;
+
+  int e;
+
+  if (!PyArg_ParseTuple(args, "O", &domain)) {
+      report_python_error(AT, "could not parse input arguments");
+      return NULL;
+  }
+
+  get_python_domain(&D, domain);
+
+  // Call underlying flux computation routine and update
+  // the explicit update arrays
+  e = _extrapolate_second_order_edge_sw(&D);
+
+  if (e == -1) {
+    // Use error string set inside computational routine
+    return NULL;
+  }
+
+
+  return Py_BuildValue("");
+
+}// extrapolate_second-order_edge_sw
+
+//========================================================================
+// Protect -- to prevent the water level from falling below the minimum
+// bed_edge_value
+//========================================================================
+
+PyObject *swde1_protect(PyObject *self, PyObject *args) {
+  //
+  //    protect(minimum_allowed_height, maximum_allowed_speed, wc, zc, xmomc, ymomc)
+
+
+  PyArrayObject
+  *wc,            //Stage at centroids
+  *wv,            //Stage at vertices
+  *zc,            //Elevation at centroids
+  *zv,            //Elevation at vertices
+  *xmomc,         //Momentums at centroids
+  *ymomc,
+  *areas,         // Triangle areas
+  *xc,
+  *yc;
+
+  int N;
+  double mass_error;
+  double minimum_allowed_height, maximum_allowed_speed, epsilon;
+
+  // Convert Python arguments to C
+  if (!PyArg_ParseTuple(args, "dddOOOOOOOOO",
+            &minimum_allowed_height,
+            &maximum_allowed_speed,
+            &epsilon,
+            &wc, &wv, &zc, &zv, &xmomc, &ymomc, &areas, &xc, &yc)) {
+    report_python_error(AT, "could not parse input arguments");
+    return NULL;
+  }
+
+  N = wc -> dimensions[0];
+
+  mass_error = _protect(N,
+       minimum_allowed_height,
+       maximum_allowed_speed,
+       epsilon,
+       (double*) wc -> data,
+       (double*) wv -> data,
+       (double*) zc -> data,
+       (double*) zv -> data,
+       (double*) xmomc -> data,
+       (double*) ymomc -> data,
+       (double*) areas -> data,
+       (double*) xc -> data,
+       (double*) yc -> data );
+
+  return Py_BuildValue("d", mass_error);
+}
+
+
+//========================================================================
+// Protect -- to prevent the water level from falling below the minimum
+// bed_edge_value
+//========================================================================
+
+PyObject *swde1_protect_new(PyObject *self, PyObject *args) {
+  //
+  //    protect(minimum_allowed_height, maximum_allowed_speed, wc, zc, xmomc, ymomc)
+
+	struct domain D;
+	PyObject *domain;
+
+	double mass_error;
+
+	// Convert Python arguments to C
+	if (!PyArg_ParseTuple(args, "O", &domain)) {
+		report_python_error(AT, "could not parse input arguments");
+		return NULL;
+	}
+
+	get_python_domain(&D, domain);
+
+	mass_error = _protect_new(&D);
+
+	return Py_BuildValue("d", mass_error);
+}
+
+
+
+
+//========================================================================
+// swde1_evolve_one_euler_step
+//========================================================================
+
+PyObject *swde1_evolve_one_euler_step(PyObject *self, PyObject *args) {
+  /*
+   * Implement one Euler step in C
+  */
+
+
+  PyObject* domain;
+  PyObject* arglist;
+  PyObject* result;
+
+  struct domain D;
+
+  double yieldstep;
+  double finaltime;
+  double flux_timestep;
+
+  int e;
+  double mass_error;
+
+
+  if (!PyArg_ParseTuple(args, "Odd", &domain, &yieldstep, &finaltime)) {
+      report_python_error(AT, "could not parse input arguments");
+      return NULL;
+  }
+
+
+  get_python_domain(&D, domain);
+
+  //printf("In C_evolve %f %f \n", yieldstep, finaltime);
+
+
+  // From centroid values calculate edge and vertex values
+  //printf("distribute_to_vertices_and_edges\n");
+//  result = PyObject_CallMethod(domain,"distribute_to_vertices_and_edges",NULL);
+//  if (result == NULL) {
+//     return NULL;
+//  }
+//  Py_DECREF(result);
+
+  mass_error = _protect_new(&D);
+
+  e = _extrapolate_second_order_edge_sw(&D);
+  if (e == -1) {
+    // Use error string set inside computational routine
+    return NULL;
+  }
+
+
+  // Apply boundary conditions
+  //printf("update_boundary\n");
+  result = PyObject_CallMethod(domain,"update_boundary",NULL);
+  if (result == NULL) {
+     return NULL;
+  }
+  Py_DECREF(result);
+
+
+
+  //Compute fluxes across each element edge
+  //printf("compute_fluxes\n");
+//  result = PyObject_CallMethod(domain,"compute_fluxes",NULL);
+//  if (result == NULL) {
+//     return NULL;
+//  }
+//  Py_DECREF(result);
+
+
+  flux_timestep =_compute_fluxes_central(&D, D.evolve_max_timestep);
+
+
+  result = PyFloat_FromDouble(flux_timestep);
+  if (result == NULL) {
+     return NULL;
+  }
+  if (!PyFloat_Check(result)) {
+     return NULL;
+  }
+  e = PyObject_SetAttrString(domain, "flux_timestep", result);
+  if (e == -1) {
+    // Use error string set inside computational routine
+    return NULL;
+  }
+  Py_DECREF(result);
+
+
+
+
+
+  //Compute forcing terms
+  //printf("compute_forcing_terms\n");
+  result = PyObject_CallMethod(domain,"compute_forcing_terms",NULL);
+  if (result == NULL) {
+     return NULL;
+  }
+  Py_DECREF(result);
+
+  //Update timestep to fit yieldstep and finaltime
+  //printf("update_timestep\n");
+  result = PyObject_CallMethod(domain,"update_timestep","dd",yieldstep,finaltime);
+  if (result == NULL) {
+     return NULL;
+  }
+  Py_DECREF(result);
+
+  //if self.max_flux_update_frequency is not 1:
+  // Update flux_update_frequency using the new timestep
+  // self.compute_flux_update_frequency()
+
+  // Update conserved quantities
+  //printf("update_conserved_quantities\n");
+  result = PyObject_CallMethod(domain,"update_conserved_quantities",NULL);
+  if (result == NULL) {
+     return NULL;
+  }
+  Py_DECREF(result);
+
+  Py_RETURN_NONE;
+
+}// swde1_evolve_one_euler_step
+
+//========================================================================
+// Method table for python module
+//========================================================================
+
+static struct PyMethodDef MethodTable[] = {
+  /* The cast of the function is necessary since PyCFunction values
+   * only take two PyObject* parameters, and rotate() takes
+   * three.
+   */
+  //{"rotate", (PyCFunction)rotate, METH_VARARGS | METH_KEYWORDS, "Print out"},
+  {"compute_fluxes_ext_central", swde1_compute_fluxes_ext_central, METH_VARARGS, "Print out"},
+  {"gravity_c",        swde1_gravity,            METH_VARARGS, "Print out"},
+  {"flux_function_central", swde1_flux_function_central, METH_VARARGS, "Print out"},
+  {"extrapolate_second_order_edge_sw", swde1_extrapolate_second_order_edge_sw, METH_VARARGS, "Print out"},
+  {"compute_flux_update_frequency", swde1_compute_flux_update_frequency, METH_VARARGS, "Print out"},
+  {"protect",          swde1_protect, METH_VARARGS | METH_KEYWORDS, "Print out"},
+  {"protect_new",      swde1_protect_new, METH_VARARGS | METH_KEYWORDS, "Print out"},
+  {"evolve_one_euler_step", swde1_evolve_one_euler_step, METH_VARARGS | METH_KEYWORDS, "Print out"},
+  {NULL, NULL, 0, NULL}
+};
+
+// Module initialisation
+void initswDE1_domain_ext(void){
+  Py_InitModule("swDE1_domain_ext", MethodTable);
+
+  import_array(); // Necessary for handling of NumPY structures
 }

@@ -20,10 +20,10 @@ def create_standard_parser():
     #parser.add_argument('-cfl', type=float, default=default_cfl,
     #                   help='cfl condition')
 
-    parser.add_argument('-ft', '--finaltime', type=float, default=argparse.SUPPRESS,
+    parser.add_argument('-ft', '--finaltime', type=float, default=-1.0,
                        help='finaltime')
 
-    parser.add_argument('-ys', '--yieldstep', type=float, default=argparse.SUPPRESS,
+    parser.add_argument('-ys', '--yieldstep', type=float, default=-1.0,
                        help='yieldstep')
 
     parser.add_argument('-alg', type=str, default = default_alg,
@@ -58,6 +58,7 @@ def parse_standard_args():
     arguments. Returns values of
 
     alg
+    cfl
 
     """
 
