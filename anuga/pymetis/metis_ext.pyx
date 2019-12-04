@@ -5,6 +5,8 @@ from libc.stdlib cimport malloc, free
 import numpy as np
 cimport numpy as np
 
+np.import_array()
+
 ctypedef int idxtype
 
 cdef extern from 'metis_bridge.c':
@@ -19,6 +21,7 @@ def partMeshNodal(int ne, int nn, list elements, int etype, int nparts):
 	cdef np.ndarray elem_arr
 	cdef np.ndarray[int, ndim=1, mode="c"] epart_pyarr
 	cdef np.ndarray[int, ndim=1, mode="c"] npart_pyarr
+	cdef np.npy_intp* dims
 
 	cdef idxtype* elem_c_arr
 	cdef idxtype* epart
@@ -54,14 +57,18 @@ def partMeshNodal(int ne, int nn, list elements, int etype, int nparts):
 
 	bridge_partMeshNodal(&ne, &nn, elem_c_arr, &etype, &numflag, &nparts, &edgecut, epart, npart)
 
-	epart_pyarr = np.zeros(ne, dtype=np.int32)
-	epart_pyarr.data = <char* > epart
-	
-	npart_pyarr = np.zeros(nn, dtype=np.int32)
-	npart_pyarr.data = <char* > npart
+	dims = <np.npy_intp* > malloc(2 * sizeof(np.npy_intp))
+
+	dims[0] = ne
+	epart_pyarr = np.PyArray_SimpleNewFromData(1, dims, np.NPY_INT32, epart)
+
+	dims[0] = nn
+	npart_pyarr = np.PyArray_SimpleNewFromData(1, dims, np.NPY_INT32, npart)
 
 	if malloc_elem_c_arr:
 		free(elem_c_arr)
+
+	free(dims)
 
 	return edgecut, epart_pyarr, npart_pyarr
 
