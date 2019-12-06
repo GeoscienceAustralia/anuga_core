@@ -119,93 +119,6 @@ def build_smoothing_matrix(np.ndarray[long, ndim=2, mode="c"] triangles not None
 
 	return PyCapsule_New(<void* > smoothing_mat, "sparse dok", <PyCapsule_Destructor> delete_dok_cap)
 
-def build_matrix_AtA_Atz_points_one_dimension(object tree, int N,\
-							np.ndarray[long, ndim=2, mode="c"] triangles not None,\
-							np.ndarray[double, ndim=2, mode="c"] point_coordinates not None,\
-							np.ndarray[double, ndim=1, mode="c"] z not None,\
-							int zdims,\
-							int npts):
-
-	cdef quad_tree* quadtree
-	cdef sparse_dok* dok_AtA
-	cdef object AtA_cap
-	cdef double** Atz
-	cdef list Atz_ret
-	cdef int err
-	cdef int i
-
-	quadtree = <quad_tree* > PyCapsule_GetPointer(tree, "quad tree")
-
-	dok_AtA = make_dok()
-
-	Atz = <double** > malloc(zdims * sizeof(double*))
-	for i in xrange(zdims):
-		Atz[i] = <double* > malloc(N * sizeof(double))
-
-	err = _build_matrix_AtA_Atz_points(N, &triangles[0,0],\
-										&point_coordinates[0,0],\
-										&z[0],\
-										zdims,\
-										npts,\
-										dok_AtA,\
-										Atz,\
-										quadtree)
-
-	assert err == 0, "Unknown Error"
-
-	AtA_cap = PyCapsule_New(<void* > dok_AtA, "sparse dok", <PyCapsule_Destructor> delete_dok_cap)
-
-	Atz_ret = []
-	for i in xrange(zdims):
-		Atz_ret.append(c_double_array_to_list(Atz[i],N))
-		free(Atz[i])
-	free(Atz)
-
-	return [AtA_cap, Atz_ret]
-
-def build_matrix_AtA_Atz_points_two_dimension(object tree, int N,\
-							np.ndarray[long, ndim=2, mode="c"] triangles not None,\
-							np.ndarray[double, ndim=2, mode="c"] point_coordinates not None,\
-							np.ndarray[double, ndim=2, mode="c"] z not None,\
-							int zdims,\
-							int npts):
-
-	cdef quad_tree* quadtree
-	cdef sparse_dok* dok_AtA
-	cdef object AtA_cap
-	cdef double** Atz
-	cdef list Atz_ret
-	cdef int err
-	cdef int i
-
-	quadtree = <quad_tree* > PyCapsule_GetPointer(tree, "quad tree")
-
-	dok_AtA = make_dok()
-
-	Atz = <double** > malloc(zdims * sizeof(double*))
-	for i in xrange(zdims):
-		Atz[i] = <double* > malloc(N * sizeof(double))
-
-	err = _build_matrix_AtA_Atz_points(N, &triangles[0,0],\
-										&point_coordinates[0,0],\
-										&z[0,0],\
-										zdims,\
-										npts,\
-										dok_AtA,\
-										Atz,\
-										quadtree)
-
-	assert err == 0, "Unknown Error"
-
-	AtA_cap = PyCapsule_New(<void* > dok_AtA, "sparse dok", <PyCapsule_Destructor> delete_dok_cap)
-
-	Atz_ret = []
-	for i in xrange(zdims):
-		Atz_ret.append(c_double_array_to_list(Atz[i],N))
-		free(Atz[i])
-	free(Atz)
-
-	return [AtA_cap, Atz_ret]
 
 def build_matrix_AtA_Atz_points(object tree, int N,\
 							np.ndarray[long, ndim=2, mode="c"] triangles not None,\
@@ -214,12 +127,42 @@ def build_matrix_AtA_Atz_points(object tree, int N,\
 							int zdims,\
 							int npts):
 
-	if z.ndim == 1:
-		return build_matrix_AtA_Atz_points_one_dimension(tree, N, triangles, point_coordinates, z, zdims, npts)
-	elif z.ndim == 2:
-		return build_matrix_AtA_Atz_points_two_dimension(tree, N, triangles, point_coordinates, z, zdims, npts)
-	else:
-		raise ValueError('Cannot handle more than two dimensions')
+	cdef quad_tree* quadtree
+	cdef sparse_dok* dok_AtA
+	cdef object AtA_cap
+	cdef double** Atz
+	cdef list Atz_ret
+	cdef int err
+	cdef int i
+
+	quadtree = <quad_tree* > PyCapsule_GetPointer(tree, "quad tree")
+
+	dok_AtA = make_dok()
+
+	Atz = <double** > malloc(zdims * sizeof(double*))
+	for i in xrange(zdims):
+		Atz[i] = <double* > malloc(N * sizeof(double))
+
+	err = _build_matrix_AtA_Atz_points(N, &triangles[0,0],\
+										&point_coordinates[0,0],\
+										<double* > z.data,\
+										zdims,\
+										npts,\
+										dok_AtA,\
+										Atz,\
+										quadtree)
+
+	assert err == 0, "Unknown Error"
+
+	AtA_cap = PyCapsule_New(<void* > dok_AtA, "sparse dok", <PyCapsule_Destructor> delete_dok_cap)
+
+	Atz_ret = []
+	for i in xrange(zdims):
+		Atz_ret.append(c_double_array_to_list(Atz[i],N))
+		free(Atz[i])
+	free(Atz)
+
+	return [AtA_cap, Atz_ret]
 
 def combine_partial_AtA_Atz(object AtA_cap1, object AtA_cap2,\
 							np.ndarray[double, ndim=1, mode="c"] Atz1,\

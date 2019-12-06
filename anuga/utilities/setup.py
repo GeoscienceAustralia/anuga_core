@@ -32,7 +32,7 @@ def configuration(parent_package='',top_path=None):
         extra_args = ['-fopenmp']
 
     config.add_extension('cg_ext',
-                         sources='cg_ext.c',
+                         sources='cg_ext.pyx',
                          extra_compile_args=extra_args,
                          extra_link_args=extra_args)
 

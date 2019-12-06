@@ -5,6 +5,8 @@ from libc.stdlib cimport malloc, free
 import numpy as np
 cimport numpy as np
 
+np.import_array() # avoid segmentation fault
+
 ctypedef double REAL
 
 # declare the interface to the C code
@@ -35,32 +37,18 @@ cdef extern from "triangle.c":
         int numberofedges
     void triangulate(char*, triangulateio*, triangulateio*, triangulateio*)
 
-cdef c_int_array_to_numpy_array(int* c_array, int c_array_size, np.ndarray[int, ndim=1, mode="c"] dimensions):
-    cdef int j
-    np_arr = np.zeros(c_array_size, dtype=np.int32)
-    for j in xrange(c_array_size):
-        np_arr[j] = c_array[j]
-    return np.ascontiguousarray(np_arr.reshape(dimensions))
-
-cdef c_double_array_to_numpy_array(double* c_array, int c_array_size, np.ndarray[int, ndim=1, mode="c"] dimensions):
-    cdef int j
-    np_arr = np.zeros(c_array_size, dtype=np.float)
-    for j in xrange(c_array_size):
-        np_arr[j] = c_array[j]
-    return np.ascontiguousarray(np_arr.reshape(dimensions))
-
-def genMesh(np.ndarray pointlist,\
-            np.ndarray seglist,\
-            np.ndarray holelist,\
-            np.ndarray regionlist,\
-            np.ndarray pointattributelist,\
-            np.ndarray segmarkerlist,\
+def genMesh(np.ndarray pointlist not None,\
+            np.ndarray seglist not None,\
+            np.ndarray holelist not None,\
+            np.ndarray regionlist not None,\
+            np.ndarray pointattributelist not None,\
+            np.ndarray segmarkerlist not None,\
             char* mod):
 
     cdef triangulateio in_t, out_t
     cdef triangulateio in_test
 
-    cdef np.ndarray[int, ndim=1, mode="c"] dimensions
+    cdef np.npy_intp* dimensions
 
     cdef REAL Attr
     cdef int i, j, iatt, n, write_here, N
@@ -136,38 +124,38 @@ def genMesh(np.ndarray pointlist,\
 
     triangulate(mod, &in_t, &out_t, <triangulateio* >NULL)
 
-    dimensions = np.zeros(2,dtype=np.int32)
+    dimensions = <np.npy_intp* > malloc(2 * sizeof(np.npy_intp))
 
     dimensions[0] = out_t.numberoftriangles
     dimensions[1] = 3
-    gentrianglelist = c_int_array_to_numpy_array(out_t.trianglelist, dimensions[0]*dimensions[1], dimensions)
+    gentrianglelist = np.PyArray_SimpleNewFromData(2, dimensions, np.NPY_INT32, out_t.trianglelist)
 
     dimensions[0] = out_t.numberofpoints
     dimensions[1] = 2
-    genpointlist = c_double_array_to_numpy_array(out_t.pointlist, dimensions[0]*dimensions[1], dimensions)
+    genpointlist = np.PyArray_SimpleNewFromData(2, dimensions, np.NPY_DOUBLE, out_t.pointlist)
 
     dimensions[0] = out_t.numberofpoints
-    genpointmarkerlist = c_int_array_to_numpy_array(out_t.pointmarkerlist, dimensions[0], dimensions[0:1])
+    genpointmarkerlist = np.PyArray_SimpleNewFromData(1, dimensions, np.NPY_INT32, out_t.pointmarkerlist)
 
     dimensions[0] = out_t.numberofpoints
     dimensions[1] = out_t.numberofpointattributes
-    genpointattributelist = c_double_array_to_numpy_array(out_t.pointattributelist, dimensions[0]*dimensions[1], dimensions)
+    genpointattributelist = np.PyArray_SimpleNewFromData(2, dimensions, np.NPY_DOUBLE, out_t.pointattributelist)
 
     dimensions[0] = out_t.numberoftriangles
     dimensions[1] = out_t.numberoftriangleattributes
-    gentriangleattributelist = c_double_array_to_numpy_array(out_t.triangleattributelist, dimensions[0]*dimensions[1], dimensions)
+    gentriangleattributelist = np.PyArray_SimpleNewFromData(2, dimensions, np.NPY_DOUBLE, out_t.triangleattributelist)
 
     dimensions[0] = out_t.numberofsegments
     dimensions[1] = 2
-    gensegmentlist = c_int_array_to_numpy_array(out_t.segmentlist, dimensions[0]*dimensions[1], dimensions)
+    gensegmentlist = np.PyArray_SimpleNewFromData(2, dimensions, np.NPY_INT32, out_t.segmentlist)
 
     dimensions[0] = out_t.numberofsegments
-    gensegmentmarkerlist = c_int_array_to_numpy_array(out_t.segmentmarkerlist, dimensions[0], dimensions[0:1])
+    gensegmentmarkerlist = np.PyArray_SimpleNewFromData(1, dimensions, np.NPY_INT32, out_t.segmentmarkerlist)
 
     if out_t.neighborlist != NULL:
         dimensions[0] = out_t.numberoftriangles
         dimensions[1] = 3
-        genneighborlist = c_int_array_to_numpy_array(out_t.neighborlist, dimensions[0]*dimensions[1], dimensions)
+        genneighborlist = np.PyArray_SimpleNewFromData(2, dimensions, np.NPY_INT32, out_t.neighborlist)
     else:
         genneighborlist = np.zeros((0,0), dtype=np.int32)
 
@@ -190,5 +178,7 @@ def genMesh(np.ndarray pointlist,\
     if not(out_t.regionlist):
         free(out_t.regionlist)
         out_t.regionlist = NULL
+
+    free(dimensions)
 
     return gentrianglelist, genpointlist, genpointmarkerlist, genpointattributelist, gentriangleattributelist, gensegmentlist, gensegmentmarkerlist, genneighborlist
