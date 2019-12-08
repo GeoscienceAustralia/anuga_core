@@ -37,7 +37,7 @@ def configuration(parent_package='',top_path=None):
                          extra_link_args=extra_args)
 
     config.add_extension('quad_tree_ext',
-                         sources=['quad_tree_ext.c', 'quad_tree.c'])
+                         sources=['quad_tree_ext.pyx'])
     
     config.ext_modules = cythonize(config.ext_modules,annotate=True)
 
