@@ -61,11 +61,13 @@ cdef extern from "fitsmooth.c":
 
 cdef delete_quad_tree_cap(object cap):
 	kill = <quad_tree* > PyCapsule_GetPointer(cap, "quad tree")
-	delete_quad_tree(kill)
+	if kill != NULL:
+		delete_quad_tree(kill)
 
 cdef delete_dok_cap(object cap):
 	kill = <sparse_dok* > PyCapsule_GetPointer(cap, "sparse dok")
-	delete_dok_matrix(kill)
+	if kill != NULL:
+		delete_dok_matrix(kill)
 
 cdef c_double_array_to_list(double* mat, int cols):
 	cdef int j
