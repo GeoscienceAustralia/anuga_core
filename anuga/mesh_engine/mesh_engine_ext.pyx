@@ -139,25 +139,34 @@ def genMesh(np.ndarray pointlist not None,\
 
     dimensions[0] = out_t.numberofpoints
     dimensions[1] = out_t.numberofpointattributes
-    genpointattributelist = np.PyArray_SimpleNewFromData(2, dimensions, np.NPY_DOUBLE, out_t.pointattributelist)
+    if out_t.pointattributelist != NULL:
+        genpointattributelist = np.PyArray_SimpleNewFromData(2, dimensions, np.NPY_DOUBLE, out_t.pointattributelist)
+    else:
+        genpointattributelist = np.empty((dimensions[0],dimensions[1]), dtype=np.float)
 
     dimensions[0] = out_t.numberoftriangles
     dimensions[1] = out_t.numberoftriangleattributes
-    gentriangleattributelist = np.PyArray_SimpleNewFromData(2, dimensions, np.NPY_DOUBLE, out_t.triangleattributelist)
+    if out_t.triangleattributelist != NULL:
+        gentriangleattributelist = np.PyArray_SimpleNewFromData(2, dimensions, np.NPY_DOUBLE, out_t.triangleattributelist)
+    else:
+        gentriangleattributelist = np.empty((dimensions[0],dimensions[1]), dtype=np.float)    
 
     dimensions[0] = out_t.numberofsegments
     dimensions[1] = 2
-    gensegmentlist = np.PyArray_SimpleNewFromData(2, dimensions, np.NPY_INT32, out_t.segmentlist)
-
+    if out_t.segmentlist != NULL:
+        gensegmentlist = np.PyArray_SimpleNewFromData(2, dimensions, np.NPY_INT32, out_t.segmentlist)
+    else:
+        gensegmentlist = np.empty((dimensions[0],dimensions[1]), dtype=np.int32)
+    
     dimensions[0] = out_t.numberofsegments
     gensegmentmarkerlist = np.PyArray_SimpleNewFromData(1, dimensions, np.NPY_INT32, out_t.segmentmarkerlist)
 
+    dimensions[0] = out_t.numberoftriangles
+    dimensions[1] = 3
     if out_t.neighborlist != NULL:
-        dimensions[0] = out_t.numberoftriangles
-        dimensions[1] = 3
         genneighborlist = np.PyArray_SimpleNewFromData(2, dimensions, np.NPY_INT32, out_t.neighborlist)
     else:
-        genneighborlist = np.zeros((0,0), dtype=np.int32)
+        genneighborlist = np.empty((dimensions[0],dimensions[1]), dtype=np.int32)
 
     if not(out_t.trianglearealist):
         free(out_t.trianglearealist)
@@ -181,11 +190,11 @@ def genMesh(np.ndarray pointlist not None,\
 
     free(dimensions)
 
-    return np.ascontiguousarray(gentrianglelist),\
-            np.ascontiguousarray(genpointlist),\
-            np.ascontiguousarray(genpointmarkerlist),\
-            np.ascontiguousarray(genpointattributelist),\
-            np.ascontiguousarray(gentriangleattributelist),\
-            np.ascontiguousarray(gensegmentlist),\
-            np.ascontiguousarray(gensegmentmarkerlist),\
-            np.ascontiguousarray(genneighborlist)
+    return gentrianglelist,\
+            genpointlist,\
+            genpointmarkerlist,\
+            genpointattributelist,\
+            gentriangleattributelist,\
+            gensegmentlist,\
+            gensegmentmarkerlist,\
+            genneighborlist
