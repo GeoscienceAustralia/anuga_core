@@ -292,7 +292,8 @@ void _calc_grid_values( double *x, double *y, double *norms,
 	int x_min, x_max, y_min, y_max, point_index;
 	double x_dist, y_dist, x_base, y_base;
 	double sigma0, sigma1, sigma2;
-	double fraction, intpart;
+	double fraction;
+	double intpart;
 	double triangle[6], point[2];
 	double v1[2], v2[2], v3[2];
 	double n1[2], n2[2], n3[2];
@@ -300,7 +301,7 @@ void _calc_grid_values( double *x, double *y, double *norms,
 	EXTENT extent[1];
 
 	
-        x_dist = cell_size;
+    x_dist = cell_size;
 	y_dist = cell_size;
 
 	x_base = 0.0;
@@ -363,7 +364,7 @@ void _calc_grid_values( double *x, double *y, double *norms,
 				// iterate through points within a small region
 				point_index = j*ncol+k;
 
-                                //printf("point_index %d %d %d\n",point_index, j, k);
+                //printf("point_index %d %d %d\n",point_index, j, k);
 
 				point[0] = k*cell_size;
 				point[1] = j*cell_size;
@@ -372,19 +373,19 @@ void _calc_grid_values( double *x, double *y, double *norms,
 							  1, 1.0e-12, 1.0e-12 ) ) {
 					point_sub( point, v2, res);
 					val1 = point_dot( res, n1 );
-                                        point_sub( v1, v2 , res);
+                    point_sub( v1, v2 , res);
 					val2 = point_dot( res, n1 );
 					sigma0 = val2 ? val1/val2 : 0;	
 
-                                        point_sub( point, v3, res);
+                    point_sub( point, v3, res);
 					val1 = point_dot( res, n2 );
-                                        point_sub( v2, v3, res);
+                    point_sub( v2, v3, res);
 					val2 = point_dot( res, n2 );
 					sigma1 = val2 ? val1/val2 : 0;
 
-                                        point_sub( point, v1, res);
+                    point_sub( point, v1, res);
 					val1 = point_dot( res, n3 );
-                                        point_sub( v3, v1, res);
+                    point_sub( v3, v1, res);
 					val2 = point_dot( res, n3 );
 					sigma2 = val2 ? val1/val2 : 0;
 
