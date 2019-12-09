@@ -20,7 +20,7 @@ def configuration(parent_package='',top_path=None):
                          sources='sparse_ext.c')
 
     config.add_extension('sparse_matrix_ext',
-                         sources=['sparse_matrix_ext.c', 'sparse_dok.c'])
+                         sources=['sparse_matrix_ext.pyx'])
 
 
     config.add_extension('util_ext',
@@ -37,7 +37,7 @@ def configuration(parent_package='',top_path=None):
                          extra_link_args=extra_args)
 
     config.add_extension('quad_tree_ext',
-                         sources=['quad_tree_ext.c', 'quad_tree.c'])
+                         sources=['quad_tree_ext.pyx'])
     
     config.ext_modules = cythonize(config.ext_modules,annotate=True)
 
