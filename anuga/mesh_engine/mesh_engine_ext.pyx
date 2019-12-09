@@ -181,4 +181,11 @@ def genMesh(np.ndarray pointlist not None,\
 
     free(dimensions)
 
-    return gentrianglelist, genpointlist, genpointmarkerlist, genpointattributelist, gentriangleattributelist, gensegmentlist, gensegmentmarkerlist, genneighborlist
+    return np.ascontiguousarray(gentrianglelist),\
+            np.ascontiguousarray(genpointlist),\
+            np.ascontiguousarray(genpointmarkerlist),\
+            np.ascontiguousarray(genpointattributelist),\
+            np.ascontiguousarray(gentriangleattributelist),\
+            np.ascontiguousarray(gensegmentlist),\
+            np.ascontiguousarray(gensegmentmarkerlist),\
+            np.ascontiguousarray(genneighborlist)
