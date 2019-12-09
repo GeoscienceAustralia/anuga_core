@@ -20,7 +20,7 @@ def configuration(parent_package='',top_path=None):
                          sources='sparse_ext.c')
 
     config.add_extension('sparse_matrix_ext',
-                         sources=['sparse_matrix_ext.c', 'sparse_dok.c'])
+                         sources=['sparse_matrix_ext.pyx'])
 
 
     config.add_extension('util_ext',
