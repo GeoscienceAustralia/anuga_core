@@ -12,7 +12,7 @@ ctypedef int idxtype
 cdef extern from 'metis_bridge.c':
 	void bridge_partMeshNodal(int* ne, int* nn, idxtype* elmnts, int* etype, int* numflag, int* nparts, int* edgecut, idxtype* epart, idxtype* npart)
 
-def partMeshNodal(int ne, int nn, list elements, int etype, int nparts):
+def partMeshNodal(int ne, int nn, object elements, int etype, int nparts):
 
 	cdef int i
 	cdef int edgecut
@@ -26,6 +26,8 @@ def partMeshNodal(int ne, int nn, list elements, int etype, int nparts):
 	cdef idxtype* elem_c_arr
 	cdef idxtype* epart
 	cdef idxtype* npart
+
+	assert isinstance(elements,list) or isinstance(elements,np.ndarray), "elements must be a list or an array"
 
 	elem_arr =  np.ascontiguousarray(np.array(elements, dtype=np.int))
 
@@ -70,5 +72,5 @@ def partMeshNodal(int ne, int nn, list elements, int etype, int nparts):
 
 	free(dims)
 
-	return edgecut, epart_pyarr, npart_pyarr
+	return edgecut, np.ascontiguousarray(epart_pyarr), np.ascontiguousarray(npart_pyarr)
 
