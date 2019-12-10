@@ -67,6 +67,13 @@ def genMesh(np.ndarray pointlist not None,\
     cdef np.ndarray[int, ndim=1, mode="c"] gensegmentmarkerlist
     cdef np.ndarray[int, ndim=2, mode="c"] genneighborlist
 
+    pointlist = np.ascontiguousarray(pointlist)
+    seglist = np.ascontiguousarray(seglist)
+    holelist = np.ascontiguousarray(holelist)
+    regionlist = np.ascontiguousarray(regionlist)
+    pointattributelist = np.ascontiguousarray(pointattributelist)
+    segmarkerlist = np.ascontiguousarray(segmarkerlist)
+
     in_t.numberofpoints = pointlist.shape[0]
     in_t.pointlist = <double* > pointlist.data
     in_t.pointmarkerlist = <int* >NULL

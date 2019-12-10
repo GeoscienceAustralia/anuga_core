@@ -137,6 +137,8 @@ def build_matrix_AtA_Atz_points(object tree, int N,\
 	cdef int err
 	cdef int i
 
+	z = np.ascontiguousarray(z)
+
 	quadtree = <quad_tree* > PyCapsule_GetPointer(tree, "quad tree")
 
 	dok_AtA = make_dok()
