@@ -72,7 +72,7 @@ def generate_mesh(points=None,
     try:
         holes = ensure_numeric(holes, num.float)
     except ValueError:
-        msg = 'ERROR: Inconsistent holess array.'
+        msg = 'ERROR: Inconsistent holes array.'
         raise ANUGAError(msg)
 
    
