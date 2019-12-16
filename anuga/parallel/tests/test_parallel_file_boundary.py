@@ -18,7 +18,7 @@
 import os
 import sys
 import time
-import pypar
+from anuga.utilities import parallel_abstraction as pypar
 import numpy as num
 import unittest
 import tempfile

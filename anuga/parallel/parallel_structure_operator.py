@@ -2,7 +2,7 @@ import anuga
 import numpy as num
 import math
 import parallel_inlet_enquiry 
-import pypar
+from anuga.utilities import parallel_abstraction as pypar
 
 from anuga.utilities.system_tools import log_to_file
 from anuga.utilities.numerical_tools import ensure_numeric
