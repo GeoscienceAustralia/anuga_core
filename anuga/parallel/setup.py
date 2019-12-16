@@ -70,7 +70,7 @@ def configuration(parent_package='',top_path=None):
 
     try:
         # Use this import to check if we are in a parallel environment
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
 
         #We are parallel!
         mpi_flags = parse_command(getoutput_mpicc())

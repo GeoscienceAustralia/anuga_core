@@ -26,7 +26,7 @@
 
 """Module pypar_ext.py -Extension to pypar
 
-Need to import pypar first to init mpi.
+Need to first init mpi.
 
 Public functions:
 
@@ -229,7 +229,7 @@ def allreduce(x, op, buffer=None, vanilla=0, bypass=False):
 
 
     import types
-    from pypar import size
+    from anuga.utilities.parallel_abstraction import size
     numproc = size()         # Needed to determine buffer size
 
 

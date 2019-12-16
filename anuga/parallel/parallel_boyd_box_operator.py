@@ -146,7 +146,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
         Get info from inlets and then call sequential function
         """
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
 
         local_debug = False
 

@@ -18,7 +18,7 @@ from anuga import Domain
 
 import numpy as num
 
-import pypar
+from anuga.utilities import parallel_abstraction as pypar
 
 
 class Parallel_domain(Domain):

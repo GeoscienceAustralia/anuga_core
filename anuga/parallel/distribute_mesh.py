@@ -1282,7 +1282,7 @@ def build_local_mesh(submesh, lower_t, upper_t, nproc):
 
 def send_submesh(submesh, triangles_per_proc, p, verbose=True):
 
-    import pypar
+    from anuga.utilities import parallel_abstraction as pypar
     
     myid = pypar.rank()
     nprocs = pypar.size()
@@ -1417,7 +1417,7 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
 
 def rec_submesh_flat(p, verbose=True):
 
-    import pypar
+    from anuga.utilities import parallel_abstraction as pypar
     
     numprocs = pypar.size()
     myid = pypar.rank()
@@ -1561,7 +1561,7 @@ def rec_submesh_flat(p, verbose=True):
 
 def rec_submesh(p, verbose=True):
 
-    import pypar
+    from anuga.utilities import parallel_abstraction as pypar
     
     numproc = pypar.size()
     myid = pypar.rank()
