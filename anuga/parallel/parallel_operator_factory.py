@@ -68,7 +68,7 @@ def Inlet_operator(domain,
                                                               logging = logging,
                                                               verbose = verbose)
 
-    import pypar
+    from anuga.utilities import parallel_abstraction as pypar
     if procs is None:
         procs = range(0,pypar.size())
 
@@ -168,7 +168,7 @@ def Boyd_box_operator(domain,
                                                                     logging=logging,
                                                                     verbose=verbose)
 
-    import pypar
+    from anuga.utilities import parallel_abstraction as pypar
     if procs is None:
         procs = range(0,pypar.size())
 
@@ -339,7 +339,7 @@ def Boyd_pipe_operator(domain,
                                                                     logging=logging,
                                                                     verbose=verbose)
 
-    import pypar
+    from anuga.utilities import parallel_abstraction as pypar
     if procs is None:
         procs = range(0,pypar.size())
 
@@ -514,7 +514,7 @@ def Weir_orifice_trapezoid_operator(domain,
                                                                     logging=logging,
                                                                     verbose=verbose)
 
-    import pypar
+    from anuga.utilities import parallel_abstraction as pypar
     if procs is None:
         procs = range(0,pypar.size())
 
@@ -690,7 +690,7 @@ def Internal_boundary_operator(domain,
                                                                     logging=logging,
                                                                     verbose=verbose)
 
-    import pypar
+    from anuga.utilities import parallel_abstraction as pypar
     if procs is None:
         procs = range(0,pypar.size())
 
@@ -873,7 +873,7 @@ def __process_skew_culvert(exchange_lines, end_points, enquiry_points, apron, en
 def allocate_inlet_procs(domain, poly, enquiry_point = None, master_proc = 0, procs = None, verbose = False):
 
 
-    import pypar
+    from anuga.utilities import parallel_abstraction as pypar
     if procs is None:
         procs = range(0, pypar.size())
 

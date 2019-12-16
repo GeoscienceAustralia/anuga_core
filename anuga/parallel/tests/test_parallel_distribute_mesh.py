@@ -42,7 +42,7 @@ def distibute_three_processors():
 	if sys.platform == 'darwin':
 		return
 
-	import pypar
+	from anuga.utilities import parallel_abstraction as pypar
 
 	myid = pypar.rank()
 	numprocs = pypar.size()

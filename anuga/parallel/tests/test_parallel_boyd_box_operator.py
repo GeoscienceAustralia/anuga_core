@@ -26,7 +26,7 @@ class NullStream:
     def write(self,text):
         pass
 sys.stdout = NullStream()
-import pypar
+from anuga.utilities import parallel_abstraction as pypar
 sys.stdout = sys.__stdout__
 
 

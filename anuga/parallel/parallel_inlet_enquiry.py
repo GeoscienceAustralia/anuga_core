@@ -29,7 +29,7 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
         parallel_inlet.Parallel_Inlet.__init__(self, domain, polyline,
                                                 master_proc = master_proc, procs = procs, verbose=verbose)
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
 
         self.enquiry_pt = enquiry_pt
         self.invert_elevation = invert_elevation

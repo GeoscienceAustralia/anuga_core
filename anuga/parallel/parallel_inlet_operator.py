@@ -43,7 +43,7 @@ class Parallel_Inlet_operator(Inlet_operator):
                  procs = None,
                  verbose = False):
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
         self.domain = domain
         self.domain.set_fractional_step_operator(self)
         self.poly = numpy.array(poly, dtype='d')
@@ -101,7 +101,7 @@ class Parallel_Inlet_operator(Inlet_operator):
 
     def __call__(self):
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
         volume = 0
 
         # Need to run global command on all processors
