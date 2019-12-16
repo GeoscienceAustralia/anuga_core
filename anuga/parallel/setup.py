@@ -72,11 +72,12 @@ def configuration(parent_package='',top_path=None):
         # Use this import to check if we are in a parallel environment
         from anuga.utilities import parallel_abstraction as pypar
 
-        #We are parallel!
-        mpi_flags = parse_command(getoutput_mpicc())
+        if pypar.pypar_available:
+            #We are parallel!
+            mpi_flags = parse_command(getoutput_mpicc())
 
-        config.add_data_dir('tests')
-        config.add_data_dir('data')
+            config.add_data_dir('tests')
+            config.add_data_dir('data')
         """
         config.add_extension('mpiextras',
                          sources=['mpiextras.c'],
