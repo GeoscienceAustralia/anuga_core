@@ -13,6 +13,68 @@ import numpy as np
 # Roberto Vidmar, 20130415: the following imports mpi4py
 try:
   from mpi4py import MPI
+
+except:
+  print ('WARNING: Could not import mpi4py - '
+      'defining sequential interface')
+
+  def size():
+      return 1
+
+  def rank():
+      return 0
+
+  def get_processor_name():
+      try:
+          hostname = os.environ['HOST']
+      except:
+          try:
+              hostname = os.environ['HOSTNAME']
+          except:
+              hostname = 'Unknown'
+
+      return hostname
+
+  def abort():
+      sys.exit()
+
+  def finalize():
+      pass
+
+  def barrier():
+      pass
+
+  def time():
+      return time.time()
+
+  def send(*args, **kwargs):
+      pass
+
+  def print0(*args):
+    """ Print arguments
+    """
+    for a in args:
+      print a,
+    print
+
+  def receive(*args, **kwargs):
+      pass
+
+  def reduce(*args, **kwargs):
+      pass
+
+  def allreduce(*args, **kwargs):
+      pass
+
+  def send_recv_via_dicts(*args, **kwargs):
+      pass
+
+  MIN = None
+
+  pypar_available = False
+  mpiWrapper = None
+
+else:
   # Wrap pypar calls and constants
   pypar_available = True
   comm = MPI.COMM_WORLD
@@ -208,63 +270,3 @@ try:
   numprocs = size()
   myid = rank()
 
-
-except ImportError:
-  print ('WARNING: Could not import mpi4py - '
-      'defining sequential interface')
-
-  def size():
-      return 1
-
-  def rank():
-      return 0
-
-  def get_processor_name():
-      try:
-          hostname = os.environ['HOST']
-      except:
-          try:
-              hostname = os.environ['HOSTNAME']
-          except:
-              hostname = 'Unknown'
-
-      return hostname
-
-  def abort():
-      sys.exit()
-
-  def finalize():
-      pass
-
-  def barrier():
-      pass
-
-  def time():
-      return time.time()
-
-  def send(*args, **kwargs):
-      pass
-
-  def print0(*args):
-    """ Print arguments
-    """
-    for a in args:
-      print a,
-    print
-
-  def receive(*args, **kwargs):
-      pass
-
-  def reduce(*args, **kwargs):
-      pass
-
-  def allreduce(*args, **kwargs):
-      pass
-
-  def send_recv_via_dicts(*args, **kwargs):
-      pass
-
-  MIN = None
-
-  pypar_available = False
-  mpiWrapper = None
