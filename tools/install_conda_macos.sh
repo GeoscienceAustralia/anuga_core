@@ -17,9 +17,9 @@ ANUGA_PARALLEL=${ANUGA_PARALLEL:-"openmpi"}
 
 brew update
 
-if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
-    brew install openmpi
-fi
+# if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
+#     brew install openmpi
+# fi
 
 
 # Install miniconda
