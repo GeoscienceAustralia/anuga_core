@@ -12,7 +12,7 @@ set -e
 PYTHON_VERSION=${PYTHON_VERSION:-"2.7"}
 ANUGA_PARALLEL=${ANUGA_PARALLEL:-"false"}
 
-if [[ "$ANUGA_PARALLEL" == "false"]];
+if [[ "$ANUGA_PARALLEL" == "false" ]];
 then 
     PYPAR_AVAILABLE="false"
 else
@@ -123,13 +123,12 @@ if [[ "$PYPAR_AVAILABLE" == "pypar" ]]; then
     popd;
 fi
 
-if [[ "$PYPAR_AVAILABLE" == "mpi4py"]]; then 
+if [[ "$PYPAR_AVAILABLE" == "mpi4py" ]]; then 
     echo "+===============================================+"
     echo "|  Using pip to install mpi4py                  |"
     echo "+===============================================+"
     sudo pip install -q mpi4py
 fi  
-
 
 #########################################################
 # Build and install anuga
