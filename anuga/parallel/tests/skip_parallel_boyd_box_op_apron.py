@@ -313,7 +313,7 @@ class Test_parallel_boyd_box_apron(unittest.TestCase):
     def test_parallel_operator(self):
         
         abs_script_name = os.path.abspath(__file__)
-        cmd = "mpirun -np %d python %s" % (nprocs, abs_script_name)
+        cmd = "mpiexec -np %d python %s" % (nprocs, abs_script_name)
         exitstatus = os.system(cmd)
 
 
