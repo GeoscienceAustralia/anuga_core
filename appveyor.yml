@@ -24,6 +24,7 @@ build_script:
   - cmd: C:\Miniconda.exe /S /D=C:\Py
   - cmd: C:\Py\Scripts\activate.bat
   - CMD: SET
+  - set PATH=%PATH%;"C:\Program Files\Microsoft MPI\bin"
   - conda config --set always_yes yes
   - conda update conda
   - conda install python=2.7.13 gdal=2.2.2 nose numpy cython scipy netcdf4 matplotlib dill libpython msys2::m2w64-toolchain
@@ -31,5 +32,4 @@ build_script:
   - python setup.py install
 
 test_script:
-  - set PATH=C:\Program Files\Microsoft MPI\Bin;%PATH%
   - python runtests.py

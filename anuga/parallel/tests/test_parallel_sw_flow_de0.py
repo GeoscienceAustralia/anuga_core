@@ -18,7 +18,6 @@ import sys
 import numpy as num
 
 
-
 from anuga import Domain
 from anuga import Reflective_boundary
 from anuga import Dirichlet_boundary
