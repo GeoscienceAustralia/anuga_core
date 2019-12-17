@@ -31,5 +31,5 @@ build_script:
   - python setup.py install
 
 test_script:
-  - set PATH=%PATH%;%MSMPI_BIN%
+  - set PATH=C:\Program Files\Microsoft MPI\Bin;%PATH%
   - python runtests.py
