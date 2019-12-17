@@ -18,6 +18,8 @@ import anuga.utilities.plot_utils as util
 
 from math import exp
 
+if os.name == 'nt' and os.environ['MSMPI_BIN'] not in os.environ['PATH']:
+    os.environ['PATH'] += os.pathsep + os.environ['MSMPI_BIN']
 
 alg = 'DE0'
 verbose = False
