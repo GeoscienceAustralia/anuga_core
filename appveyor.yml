@@ -21,6 +21,7 @@ build_script:
   - ps: Start-FileDownload "https://download.microsoft.com/download/A/E/0/AE002626-9D9D-448D-8197-1EA510E297CE/msmpisdk.msi" C:\msmpisdk.msi; echo "Finished downloading msmpisdk"
   - ps: msiexec.exe /i "C:\msmpisdk.msi" /qn
   - ps: C:\msmpisetup.exe -unattend
+  - ps: set PATH=%PATH%;"C:\Program Files\Microsoft MPI\Bin"
   - cmd: C:\Miniconda.exe /S /D=C:\Py
   - cmd: C:\Py\Scripts\activate.bat
   - CMD: SET
