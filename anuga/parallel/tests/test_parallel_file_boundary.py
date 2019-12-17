@@ -26,9 +26,6 @@ from struct import pack, unpack
 from anuga.file.netcdf import NetCDFFile
 import copy
 
-if os.name == 'nt' and os.environ['MSMPI_BIN'] not in os.environ['PATH']:
-    os.environ['PATH'] += os.pathsep + os.environ['MSMPI_BIN']
-
 #------------------------
 # ANUGA Modules
 #------------------------

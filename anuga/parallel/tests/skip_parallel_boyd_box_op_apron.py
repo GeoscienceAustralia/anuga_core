@@ -13,9 +13,6 @@ import anuga
 import warnings
 warnings.simplefilter("ignore")
 
-if os.name == 'nt' and os.environ['MSMPI_BIN'] not in os.environ['PATH']:
-    os.environ['PATH'] += os.pathsep + os.environ['MSMPI_BIN']
-
 #------------------------------------------
 # Import pypar without the initial output
 #------------------------------------------

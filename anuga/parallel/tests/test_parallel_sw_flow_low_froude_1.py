@@ -28,9 +28,6 @@ from anuga import rectangular_cross_domain
 
 from anuga import distribute, myid, numprocs, send, receive, barrier, finalize
 
-if os.name == 'nt' and os.environ['MSMPI_BIN'] not in os.environ['PATH']:
-    os.environ['PATH'] += os.pathsep + os.environ['MSMPI_BIN']
-
 #--------------------------------------------------------------------------
 # Setup parameters
 #--------------------------------------------------------------------------

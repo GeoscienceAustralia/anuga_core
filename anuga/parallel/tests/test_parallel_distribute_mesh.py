@@ -19,8 +19,6 @@ from anuga.parallel import myid, numprocs, barrier, finalize
 import numpy as num
 from numpy import array
 
-if os.name == 'nt' and os.environ['MSMPI_BIN'] not in os.environ['PATH']:
-    os.environ['PATH'] += os.pathsep + os.environ['MSMPI_BIN']
 
 def topography(x, y):
 	return -x/2

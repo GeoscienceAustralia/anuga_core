@@ -17,8 +17,7 @@ import sys
 #import pypar
 import numpy as num
 
-if os.name == 'nt' and os.environ['MSMPI_BIN'] not in os.environ['PATH']:
-    os.environ['PATH'] += os.pathsep + os.environ['MSMPI_BIN']
+
 
 from anuga import Domain
 from anuga import Reflective_boundary
