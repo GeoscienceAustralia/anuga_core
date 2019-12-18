@@ -49,7 +49,7 @@ class Test_Domain(unittest.TestCase):
         domain.check_integrity()
 
         for name in conserved_quantities + other_quantities:
-            assert domain.quantities.has_key(name)
+            assert name in domain.quantities
 
 
         assert num.alltrue(domain.get_conserved_quantities(0, edge=1) == 0.)
@@ -82,7 +82,7 @@ class Test_Domain(unittest.TestCase):
             pass
         else:
             msg = 'Should have caught a negative cfl'
-            raise Exception, msg
+            raise Exception(msg)
 
 
         #
@@ -97,7 +97,7 @@ class Test_Domain(unittest.TestCase):
             pass
         else:
             msg = 'Should have warned of cfl>2.0'
-            raise Exception, msg
+            raise Exception(msg)
 
         assert domain.CFL == 3.0
         
@@ -254,8 +254,8 @@ class Test_Domain(unittest.TestCase):
         assert domain.quantities_to_be_monitored is None
         domain.set_quantities_to_be_monitored(['stage', 'stage-elevation'])
         assert len(domain.quantities_to_be_monitored) == 2
-        assert domain.quantities_to_be_monitored.has_key('stage')
-        assert domain.quantities_to_be_monitored.has_key('stage-elevation')
+        assert 'stage' in domain.quantities_to_be_monitored
+        assert 'stage-elevation' in domain.quantities_to_be_monitored
         for key in domain.quantities_to_be_monitored['stage'].keys():
             assert domain.quantities_to_be_monitored['stage'][key] is None
 
@@ -267,7 +267,7 @@ class Test_Domain(unittest.TestCase):
             pass
         else:
             msg = 'Should have caught illegal quantity'
-            raise Exception, msg
+            raise Exception(msg)
 
         try:
             domain.set_quantities_to_be_monitored(['stage-xx'])        
@@ -275,7 +275,7 @@ class Test_Domain(unittest.TestCase):
             pass
         else:
             msg = 'Should have caught illegal quantity'
-            raise Exception, msg
+            raise Exception(msg)
 
         try:
             domain.set_quantities_to_be_monitored('stage', 'stage-elevation')
@@ -283,7 +283,7 @@ class Test_Domain(unittest.TestCase):
             pass
         else:
             msg = 'Should have caught too many arguments'
-            raise Exception, msg
+            raise Exception(msg)
 
         try:
             domain.set_quantities_to_be_monitored('stage', 'blablabla')
@@ -291,7 +291,7 @@ class Test_Domain(unittest.TestCase):
             pass
         else:
             msg = 'Should have caught polygon as a string'
-            raise Exception, msg        
+            raise Exception(msg)        
 
 
 
@@ -458,7 +458,7 @@ class Test_Domain(unittest.TestCase):
             pass
         else:
             msg = 'Should have caught illegal method'
-            raise Exception, msg
+            raise Exception(msg)
 
 
         #Should have no trouble with euler, rk2 or rk3
@@ -584,7 +584,7 @@ class Test_Domain(unittest.TestCase):
             pass
         else:
             msg = 'Should have caught the evolved quantities not being in order'
-            raise Exception, msg            
+            raise Exception(msg)            
 
 
         domain = Generic_Domain(points, vertices, boundary,

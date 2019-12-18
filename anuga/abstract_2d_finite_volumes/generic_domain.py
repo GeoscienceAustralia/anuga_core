@@ -11,15 +11,17 @@
    Ole Nielsen, Stephen Roberts, Duncan Gray
    Geoscience Australia
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 from time import time as walltime
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
-from pmesh2domain import pmesh_to_domain
-from tag_region import Set_tag_region as region_set_tag_region
+from .pmesh2domain import pmesh_to_domain
+from .tag_region import Set_tag_region as region_set_tag_region
 from anuga.geometry.polygon import inside_polygon
 from anuga.abstract_2d_finite_volumes.util import get_textual_float
-from quantity import Quantity
+from .quantity import Quantity
 import anuga.utilities.log as log
 
 import numpy as num
@@ -457,7 +459,7 @@ class Generic_Domain:
         return self.mesh.statistics(*args, **kwargs)
 
     def print_statistics(self, *args, **kwargs):
-        print self.statistics(*args, **kwargs)
+        print(self.statistics(*args, **kwargs))
         
     def get_extent(self, *args, **kwargs):
         return self.mesh.get_extent(*args, **kwargs)    
@@ -707,7 +709,7 @@ class Generic_Domain:
         """
 
         # Do the expression stuff
-        if kwargs.has_key('expression'):
+        if 'expression' in kwargs:
             expression = kwargs['expression']
             del kwargs['expression']
 
@@ -727,7 +729,7 @@ class Generic_Domain:
         """
 
         # Do the expression stuff
-        if kwargs.has_key('expression'):
+        if 'expression' in kwargs:
             expression = kwargs['expression']
             Q2 = self.create_quantity_from_expression(expression)
         else:
@@ -751,7 +753,7 @@ class Generic_Domain:
         """
 
         # Do the expression stuff
-        if kwargs.has_key('expression'):
+        if 'expression' in kwargs:
             expression = kwargs['expression']
             Q2 = self.create_quantity_from_expression(expression)
         else:
@@ -775,7 +777,7 @@ class Generic_Domain:
         """
 
         # Do the expression stuff
-        if kwargs.has_key('expression'):
+        if 'expression' in kwargs:
             expression = kwargs['expression']
             Q2 = self.create_quantity_from_expression(expression)
         else:
@@ -898,7 +900,7 @@ class Generic_Domain:
         for k, (vol_id, edge_id) in enumerate(x):
             tag = self.boundary[(vol_id, edge_id)]
 
-            if self.boundary_map.has_key(tag):
+            if tag in self.boundary_map:
                 B = self.boundary_map[tag]  # Get callable boundary object
 
                 if B is not None:
@@ -1208,12 +1210,12 @@ class Generic_Domain:
         return msg
 
     def print_timestepping_statistics(self, *args, **kwargs):
-        print self.timestepping_statistics(self, *args, **kwargs)
+        print(self.timestepping_statistics(self, *args, **kwargs))
 
 
         
     def print_boundary_statistics(self, quantities=None, tags=None):
-        print self.boundary_statistics(quantities, tags)
+        print(self.boundary_statistics(quantities, tags))
 
     def write_boundary_statistics(self, quantities=None, tags=None):
         log.critical(self.boundary_statistics(quantities, tags))
@@ -1450,7 +1452,7 @@ class Generic_Domain:
     def set_starttime(self, time):
         
         if self.evolved_called: 
-            raise "Can't change simulation start time once evolve has been called"
+            raise Exception("Can't change simulation start time once evolve has been called")
         
         self.starttime = float(time)
         self.set_time(0.0)
@@ -1476,7 +1478,7 @@ class Generic_Domain:
             import matplotlib.pyplot as plt
             import matplotlib.tri as tri
         except:
-            print "Couldn't import module from matplotlib, probably you need to update matplotlib"
+            print("Couldn't import module from matplotlib, probably you need to update matplotlib")
             raise
 
         vertices = self.get_vertex_coordinates()
@@ -2284,7 +2286,7 @@ class Generic_Domain:
             
         #Update of ghost cells
         iproc = self.processor
-        if self.full_send_dict.has_key(iproc):
+        if iproc in self.full_send_dict:
 
             # now store full as local id, global id, value
             Idf  = self.full_send_dict[iproc][0]

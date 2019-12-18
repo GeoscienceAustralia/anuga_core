@@ -99,9 +99,9 @@ class Boundary:
 
         try:
             res = self.function(t)
-        except Modeltime_too_early, e:
+        except Modeltime_too_early as e:
             raise Modeltime_too_early(e)
-        except Modeltime_too_late, e:
+        except Modeltime_too_late as e:
             if self.default_boundary is None:
                 raise Modeltime_too_late(e) # Reraise exception
             else:
@@ -328,7 +328,7 @@ class Time_boundary(Boundary):
         
         try:
             q = function(0.0)
-        except Exception, e:
+        except Exception as e:
             msg = 'Function for time boundary could not be executed:\n%s' %e
             raise Exception(msg)
 
@@ -447,7 +447,7 @@ class Time_space_boundary(Boundary):
             
         try:
             q = function(0.0, 0.0, 0.0)
-        except Exception, e:
+        except Exception as e:
             msg = 'Function for time_space_boundary could not be executed:\n%s' %e
             raise Exception(msg)
 
@@ -481,9 +481,9 @@ class Time_space_boundary(Boundary):
 
         try:
             res = self.function(self.domain.get_time(), x, y)
-        except Modeltime_too_early, e:
+        except Modeltime_too_early as e:
             raise Modeltime_too_early(e)
-        except Modeltime_too_late, e:
+        except Modeltime_too_late as e:
             if self.default_boundary is None:
                 raise Exception(e) # Reraise exception
             else:
@@ -656,9 +656,9 @@ class File_boundary(Boundary):
             
             try:
                 res = self.F(t, point_id=i)
-            except Modeltime_too_early, e:
+            except Modeltime_too_early as e:
                 raise Modeltime_too_early(e)
-            except Modeltime_too_late, e:
+            except Modeltime_too_late as e:
                 if self.default_boundary is None:
                     raise Exception(e) # Reraise exception
                 else:

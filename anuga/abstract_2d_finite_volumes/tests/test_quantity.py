@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import unittest
 from math import sqrt, pi
 import tempfile
@@ -285,16 +286,16 @@ class Test_Quantity(unittest.TestCase):
 
             #z = z[::-1,:]
 
-            print z
-            print z.shape
-            print x
-            print y
+            print(z)
+            print(z.shape)
+            print(x)
+            print(y)
 
             nrows = z.shape[0]
             ncols = z.shape[1]
 
             ratio = float(nrows)/float(ncols)
-            print ratio
+            print(ratio)
 
             #y = numpy.arange(nrows)*cellsize
             #x = numpy.arange(ncols)*cellsize
@@ -340,7 +341,7 @@ class Test_Quantity(unittest.TestCase):
             ncols = z.shape[1]
 
             ratio = float(nrows)/float(ncols)
-            print ratio
+            print(ratio)
 
             #Setup fig size to correpond to array size
             fig = pylab.figure(figsize=(10, 10*ratio))
