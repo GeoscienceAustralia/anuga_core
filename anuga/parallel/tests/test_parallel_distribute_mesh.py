@@ -19,6 +19,7 @@ from anuga.parallel import myid, numprocs, barrier, finalize
 import numpy as num
 from numpy import array
 
+verbose = False
 
 def topography(x, y):
 	return -x/2
@@ -38,9 +39,15 @@ def distibute_three_processors():
 
 	"""
 
+
 	# FIXME: Need to update expected values on macos
 	if sys.platform == 'darwin':
 		return
+
+	# FIXME: Need to update expected values on macos
+	if sys.platform == 'win32':
+		return
+
 
 	from anuga.utilities import parallel_abstraction as pypar
 
@@ -58,9 +65,9 @@ def distibute_three_processors():
 
 	if myid == 0:
 
-		points, vertices, boundary = rectangular_cross(2, 2)
+		points_0, vertices_0, boundary_0 = rectangular_cross(2, 2)
 
-		domain = Domain(points, vertices, boundary)
+		domain = Domain(points_0, vertices_0, boundary_0)
 
 		domain.set_quantity('elevation', topography)  # Use function for elevation
 		domain.set_quantity('friction', 0.0)         # Constant friction
@@ -73,8 +80,6 @@ def distibute_three_processors():
 		#----------------------------------------------------------------------------------
 		nodes, triangles, boundary, triangles_per_proc, quantities = pmesh_divide_metis(
 			domain, numprocs)
-
-		assert_(num.allclose(nodes, points))
 
 		true_vertices = [[0, 9, 1], [3, 9, 0], [4, 9, 3], [1, 9, 4], [1, 10, 2],
                    [4, 10, 1], [5, 10, 4], [2, 10, 5], [3, 11, 4], [6, 11, 3],
@@ -94,11 +99,6 @@ def distibute_three_processors():
                       [4, 11,  7], [7, 12,  4], [8, 12,  7], [5, 12,  8]]
 			true_part = [5,5,6]
 
-		assert_(num.allclose(vertices, true_vertices))
-		assert_(num.allclose(triangles, true_triangles))
-
-		assert_(num.allclose(triangles_per_proc, true_part))
-
 		#----------------------------------------------------------------------------------
 		# Test build_submesh
 		#----------------------------------------------------------------------------------
@@ -106,11 +106,35 @@ def distibute_three_processors():
 		                        quantities, triangles_per_proc)
 
 
+		#----------------------------------------------------------------------------------
+		# Test extract_submesh
+		#----------------------------------------------------------------------------------
+		points, vertices, boundary, quantities, \
+                    ghost_recv_dict, full_send_dict, tri_map, node_map, tri_l2g, node_l2g, \
+                    ghost_layer_width =\
+                    extract_submesh(submesh, triangles_per_proc)
+
+
 		from pprint import pformat
 		from numpy import array
-		
-		if False:
-			submesh['full_commun']
+
+		if verbose:
+			from pprint import pformat
+			true_values = dict(
+			true_ghost_layer_width = ghost_layer_width,
+			true_points = points,
+			true_vertices = vertices,
+			true_ghost_recv_dict_1 = ghost_recv_dict[1],
+			true_ghost_recv_dict_2 = ghost_recv_dict[2],
+			true_full_send_dict_1 = full_send_dict[1],
+			true_full_send_dict_2 = full_send_dict[2])
+			for key,item in true_values.items():
+				msg = key + '=' + pformat(item)
+				print msg
+
+
+		if verbose:
+			#submesh['full_commun']
 			for i in [0,1,2]:
 				parms = [ 'full_nodes',			 
 				  'ghost_nodes',
@@ -319,9 +343,41 @@ def distibute_three_processors():
 				[7, 1],
 				[9, 1]])
 
+	barrier()
+	#--------------------------------
+	# Now do the comunnication part
+	#--------------------------------
 
-	
-		#======================================================
+	if myid == 0:
+		#----------------------------------------------------------------------------------
+		# Test send_submesh
+		#----------------------------------------------------------------------------------
+		for p in range(1, numprocs):
+			send_submesh(submesh, triangles_per_proc, p, verbose=False)
+	else:
+		#----------------------------------------------------------------------------------
+		# Test rec_submesh
+		#----------------------------------------------------------------------------------
+		points, vertices, boundary, quantities, \
+				ghost_recv_dict, full_send_dict, \
+				no_full_nodes, no_full_trigs, tri_map, node_map, tri_l2g, node_l2g, \
+				ghost_layer_width = \
+				rec_submesh(0, verbose=False)
+
+	barrier()
+	#--------------------------------
+	# Now do the test
+	#--------------------------------
+
+	if myid == 0:
+
+		assert_(num.allclose(nodes, points_0))
+
+		assert_(num.allclose(vertices_0, true_vertices))
+		assert_(num.allclose(triangles, true_triangles))
+
+		assert_(num.allclose(triangles_per_proc, true_part))
+
 		assert_(num.allclose(submesh['full_nodes'][0], true_full_nodes_0))
 		assert_(num.allclose(submesh['full_nodes'][1], true_full_nodes_1))
 		assert_(num.allclose(submesh['full_nodes'][2], true_full_nodes_2))
@@ -344,40 +400,7 @@ def distibute_three_processors():
 
 		assert_(true_full_commun == submesh['full_commun'])
 
-	barrier()
-	#--------------------------------
-	# Now do the comunnication part
-	#--------------------------------
 
-	if myid == 0:
-		#----------------------------------------------------------------------------------
-		# Test send_submesh
-		#----------------------------------------------------------------------------------
-		for p in range(1, numprocs):
-			send_submesh(submesh, triangles_per_proc, p, verbose=False)
-
-		#----------------------------------------------------------------------------------
-		# Test extract_submesh
-		#----------------------------------------------------------------------------------
-		points, vertices, boundary, quantities, \
-                    ghost_recv_dict, full_send_dict, tri_map, node_map, tri_l2g, node_l2g, \
-                    ghost_layer_width =\
-                    extract_submesh(submesh, triangles_per_proc)
-
-
-		if False:
-			from pprint import pformat
-			true_values = dict(
-			true_ghost_layer_width = ghost_layer_width,
-			true_points = points,
-			true_vertices = vertices,
-			true_ghost_recv_dict_1 = ghost_recv_dict[1],
-			true_ghost_recv_dict_2 = ghost_recv_dict[2],
-			true_full_send_dict_1 = full_send_dict[1],
-			true_full_send_dict_2 = full_send_dict[2])
-			for key,item in true_values.items():
-				msg = key + '=' + pformat(item)
-				print msg
 
 		if metis_version == 4:
 			true_ghost_layer_width=2
@@ -414,7 +437,112 @@ def distibute_three_processors():
 			true_full_send_dict_1=[array([0, 1, 2, 4]), array([0, 1, 2, 4])]
 			true_full_send_dict_2=[array([0, 1, 2, 3]), array([0, 1, 2, 3])]
 
+		#print triangles_per_proc
 
+
+	if myid == 1:
+		from numpy import array
+		if verbose:
+			from pprint import pformat
+			true_values = dict(
+			true_ghost_layer_width = ghost_layer_width,
+			true_tri_map = tri_map,
+			true_node_map = node_map,
+			true_points = points,
+			true_vertices = vertices,
+			true_ghost_recv_dict_0 = ghost_recv_dict[0],
+			true_ghost_recv_dict_2 = ghost_recv_dict[2],
+			true_full_send_dict_0 = full_send_dict[0],
+			true_full_send_dict_2 = full_send_dict[2])
+			for key,item in true_values.items():
+				msg = key + '=' + pformat(item)
+				print msg
+
+		if metis_version == 4:
+			true_vertices=array([[ 0,  5,  1],
+				[ 1,  5,  3],
+				[ 1,  6,  2],
+				[ 3,  6,  1],
+				[ 4,  6,  3],
+				[ 2,  6,  4],
+				[ 3,  5,  7],
+				[ 3, 11,  4],
+				[ 8, 11,  3],
+				[ 4, 11,  9],
+				[ 7,  5,  0],
+				[ 7, 10,  3]])
+			true_points=array([[ 0.  ,  0.  ],
+				[ 0.  ,  0.5 ],
+				[ 0.  ,  1.  ],
+				[ 0.5 ,  0.5 ],
+				[ 0.5 ,  1.  ],
+				[ 0.25,  0.25],
+				[ 0.25,  0.75],
+				[ 0.5 ,  0.  ],
+				[ 1.  ,  0.5 ],
+				[ 1.  ,  1.  ],
+				[ 0.75,  0.25],
+				[ 0.75,  0.75]])
+			true_full_send_dict_0=[array([0, 1, 3, 4, 5]), array([ 5,  6,  8,  9, 10])]
+			true_node_map=array([ 0,  1,  2,  7,  3,  4, -1,  8,  9,  5,  6, 10, 11])
+			true_full_send_dict_2=[array([0, 1]), array([5, 6])]
+			true_ghost_recv_dict_0=[array([6, 7, 8, 9]), array([0, 1, 2, 4])]
+			true_ghost_recv_dict_2=[array([10, 11]), array([11, 12])]
+			true_ghost_layer_width=2
+			true_tri_map=array([ 6,  7,  8, -1,  9,  0,  1,  2,  3,  4,  5, 10, 11])
+
+	if myid == 2:
+		from numpy import array
+		if verbose:
+			from pprint import pformat
+			true_values = dict(
+			true_ghost_layer_width = ghost_layer_width,
+			true_tri_map = tri_map,
+			true_node_map = node_map,
+			true_points = points,
+			true_vertices = vertices,
+			true_ghost_recv_dict_1 = ghost_recv_dict[1],
+			true_ghost_recv_dict_0 = ghost_recv_dict[0],
+			true_full_send_dict_1 = full_send_dict[1],
+			true_full_send_dict_0 = full_send_dict[0])
+			for key,item in true_values.items():
+				msg = key + '=' + pformat(item)
+				print msg	
+
+		if metis_version == 4:
+			true_vertices=array([[ 1,  5,  0],
+				[ 1,  6,  2],
+				[ 3,  6,  1],
+				[ 4,  6,  3],
+				[ 2,  6,  4],
+				[ 2,  5,  1],
+				[ 2, 10,  8],
+				[ 4, 10,  2],
+				[ 9, 10,  4],
+				[ 0,  5,  7],
+				[ 7,  5,  2]])
+			true_points=array([[ 0.  ,  0.  ],
+				[ 0.5 ,  0.  ],
+				[ 0.5 ,  0.5 ],
+				[ 1.  ,  0.  ],
+				[ 1.  ,  0.5 ],
+				[ 0.25,  0.25],
+				[ 0.75,  0.25],
+				[ 0.  ,  0.5 ],
+				[ 0.5 ,  1.  ],
+				[ 1.  ,  1.  ],
+				[ 0.75,  0.75]])
+			true_full_send_dict_0=[array([0, 1, 2, 3, 4]), array([11, 12, 13, 14, 15])]
+			true_full_send_dict_1=[array([0, 1]), array([11, 12])]
+			true_node_map=array([ 0,  7, -1,  1,  2,  8,  3,  4,  9,  5, -1,  6, 10])
+			true_ghost_recv_dict_1=[array([ 9, 10]), array([5, 6])]
+			true_ghost_recv_dict_0=[array([5, 6, 7, 8]), array([0, 1, 2, 3])]
+			true_ghost_layer_width=2
+			true_tri_map=array([ 5,  6,  7,  8, -1,  9, 10, -1, -1, -1, -1,  0,  1,  2,  3,  4, -1])
+
+	barrier()
+
+	if myid == 0:
 		assert_(num.allclose(ghost_layer_width,  true_ghost_layer_width))
 		assert_(num.allclose(points,   true_points))
 		assert_(num.allclose(vertices, true_vertices))
@@ -423,141 +551,28 @@ def distibute_three_processors():
 		assert_(num.allclose(full_send_dict[1], true_full_send_dict_1))
 		assert_(num.allclose(full_send_dict[2], true_full_send_dict_2))
 
-		#print triangles_per_proc
+	if myid == 1:
+		assert_(num.allclose(ghost_layer_width,  true_ghost_layer_width))
+		assert_(num.allclose(tri_map,   true_tri_map))
+		assert_(num.allclose(node_map,   true_node_map))
+		assert_(num.allclose(points,   true_points))
+		assert_(num.allclose(vertices, true_vertices))
+		assert_(num.allclose(ghost_recv_dict[0], true_ghost_recv_dict_0))
+		assert_(num.allclose(ghost_recv_dict[2], true_ghost_recv_dict_2))
+		assert_(num.allclose(full_send_dict[0], true_full_send_dict_0))
+		assert_(num.allclose(full_send_dict[2], true_full_send_dict_2))
 
-	else:
-		#----------------------------------------------------------------------------------
-		# Test rec_submesh
-		#----------------------------------------------------------------------------------
-		points, vertices, boundary, quantities, \
-				ghost_recv_dict, full_send_dict, \
-				no_full_nodes, no_full_trigs, tri_map, node_map, tri_l2g, node_l2g, \
-				ghost_layer_width = \
-				rec_submesh(0, verbose=False)
+	if myid == 2:
+		assert_(num.allclose(ghost_layer_width,  true_ghost_layer_width))
+		assert_(num.allclose(tri_map,   true_tri_map))
+		assert_(num.allclose(node_map,   true_node_map))
+		assert_(num.allclose(points,   true_points))
+		assert_(num.allclose(vertices, true_vertices))
+		assert_(num.allclose(ghost_recv_dict[0], true_ghost_recv_dict_0))
+		assert_(num.allclose(ghost_recv_dict[1], true_ghost_recv_dict_1))
+		assert_(num.allclose(full_send_dict[0], true_full_send_dict_0))
+		assert_(num.allclose(full_send_dict[1], true_full_send_dict_1))
 
-		if myid == 1:
-
-			from numpy import array
-			if False:
-				from pprint import pformat
-				true_values = dict(
-				true_ghost_layer_width = ghost_layer_width,
-				true_tri_map = tri_map,
-				true_node_map = node_map,
-				true_points = points,
-				true_vertices = vertices,
-				true_ghost_recv_dict_0 = ghost_recv_dict[0],
-				true_ghost_recv_dict_2 = ghost_recv_dict[2],
-				true_full_send_dict_0 = full_send_dict[0],
-				true_full_send_dict_2 = full_send_dict[2])
-				for key,item in true_values.items():
-					msg = key + '=' + pformat(item)
-					print msg
-
-			if metis_version == 4:
-				true_vertices=array([[ 0,  5,  1],
-					[ 1,  5,  3],
-					[ 1,  6,  2],
-					[ 3,  6,  1],
-					[ 4,  6,  3],
-					[ 2,  6,  4],
-					[ 3,  5,  7],
-					[ 3, 11,  4],
-					[ 8, 11,  3],
-					[ 4, 11,  9],
-					[ 7,  5,  0],
-					[ 7, 10,  3]])
-				true_points=array([[ 0.  ,  0.  ],
-					[ 0.  ,  0.5 ],
-					[ 0.  ,  1.  ],
-					[ 0.5 ,  0.5 ],
-					[ 0.5 ,  1.  ],
-					[ 0.25,  0.25],
-					[ 0.25,  0.75],
-					[ 0.5 ,  0.  ],
-					[ 1.  ,  0.5 ],
-					[ 1.  ,  1.  ],
-					[ 0.75,  0.25],
-					[ 0.75,  0.75]])
-				true_full_send_dict_0=[array([0, 1, 3, 4, 5]), array([ 5,  6,  8,  9, 10])]
-				true_node_map=array([ 0,  1,  2,  7,  3,  4, -1,  8,  9,  5,  6, 10, 11])
-				true_full_send_dict_2=[array([0, 1]), array([5, 6])]
-				true_ghost_recv_dict_0=[array([6, 7, 8, 9]), array([0, 1, 2, 4])]
-				true_ghost_recv_dict_2=[array([10, 11]), array([11, 12])]
-				true_ghost_layer_width=2
-				true_tri_map=array([ 6,  7,  8, -1,  9,  0,  1,  2,  3,  4,  5, 10, 11])
-
-
-
-			assert_(num.allclose(ghost_layer_width,  true_ghost_layer_width))
-			assert_(num.allclose(tri_map,   true_tri_map))
-			assert_(num.allclose(node_map,   true_node_map))
-			assert_(num.allclose(points,   true_points))
-			assert_(num.allclose(vertices, true_vertices))
-			assert_(num.allclose(ghost_recv_dict[0], true_ghost_recv_dict_0))
-			assert_(num.allclose(ghost_recv_dict[2], true_ghost_recv_dict_2))
-			assert_(num.allclose(full_send_dict[0], true_full_send_dict_0))
-			assert_(num.allclose(full_send_dict[2], true_full_send_dict_2))
-
-		if myid == 2:
-			
-			from numpy import array
-			if False:
-				from pprint import pformat
-				true_values = dict(
-				true_ghost_layer_width = ghost_layer_width,
-				true_tri_map = tri_map,
-				true_node_map = node_map,
-				true_points = points,
-				true_vertices = vertices,
-				true_ghost_recv_dict_1 = ghost_recv_dict[1],
-				true_ghost_recv_dict_0 = ghost_recv_dict[0],
-				true_full_send_dict_1 = full_send_dict[1],
-				true_full_send_dict_0 = full_send_dict[0])
-				for key,item in true_values.items():
-					msg = key + '=' + pformat(item)
-					print msg	
-
-			if metis_version == 4:
-				true_vertices=array([[ 1,  5,  0],
-					[ 1,  6,  2],
-					[ 3,  6,  1],
-					[ 4,  6,  3],
-					[ 2,  6,  4],
-					[ 2,  5,  1],
-					[ 2, 10,  8],
-					[ 4, 10,  2],
-					[ 9, 10,  4],
-					[ 0,  5,  7],
-					[ 7,  5,  2]])
-				true_points=array([[ 0.  ,  0.  ],
-					[ 0.5 ,  0.  ],
-					[ 0.5 ,  0.5 ],
-					[ 1.  ,  0.  ],
-					[ 1.  ,  0.5 ],
-					[ 0.25,  0.25],
-					[ 0.75,  0.25],
-					[ 0.  ,  0.5 ],
-					[ 0.5 ,  1.  ],
-					[ 1.  ,  1.  ],
-					[ 0.75,  0.75]])
-				true_full_send_dict_0=[array([0, 1, 2, 3, 4]), array([11, 12, 13, 14, 15])]
-				true_full_send_dict_1=[array([0, 1]), array([11, 12])]
-				true_node_map=array([ 0,  7, -1,  1,  2,  8,  3,  4,  9,  5, -1,  6, 10])
-				true_ghost_recv_dict_1=[array([ 9, 10]), array([5, 6])]
-				true_ghost_recv_dict_0=[array([5, 6, 7, 8]), array([0, 1, 2, 3])]
-				true_ghost_layer_width=2
-				true_tri_map=array([ 5,  6,  7,  8, -1,  9, 10, -1, -1, -1, -1,  0,  1,  2,  3,  4, -1])
-
-			assert_(num.allclose(ghost_layer_width,  true_ghost_layer_width))
-			assert_(num.allclose(tri_map,   true_tri_map))
-			assert_(num.allclose(node_map,   true_node_map))
-			assert_(num.allclose(points,   true_points))
-			assert_(num.allclose(vertices, true_vertices))
-			assert_(num.allclose(ghost_recv_dict[0], true_ghost_recv_dict_0))
-			assert_(num.allclose(ghost_recv_dict[1], true_ghost_recv_dict_1))
-			assert_(num.allclose(full_send_dict[0], true_full_send_dict_0))
-			assert_(num.allclose(full_send_dict[1], true_full_send_dict_1))
 
 
 ###############################################################
@@ -567,20 +582,30 @@ class Test_parallel_distribute_mesh(unittest.TestCase):
 	def test_distribute_three_processors(self):
 		# Expect this test to fail if not run from the parallel directory.
 
+		import os
 		abs_script_name = os.path.abspath(__file__)
-		cmd = "mpirun -np %d python %s" % (3, abs_script_name)
-		result = os.system(cmd)
+		cmd = "mpiexec -np %d python %s" % (3, abs_script_name)
 
-		assert_(result == 0)
+		status = os.system(cmd)
+
+		#import commands
+		#status, output = commands.getstatusoutput(cmd)
+
+
+		assert_(status == 0)
 
 
 # Because we are doing assertions outside of the TestCase class
 # the PyUnit defined assert_ function can't be used.
 def assert_(condition, msg="Assertion Failed"):
+
+
 	if condition == False:
 		#import pypar
-		#pypar.finalize()
+		#finalize()
 		raise AssertionError, msg
+		#print msg
+		#finalize()
 		#import sys
 		#sys.exit(1)
 
@@ -592,6 +617,7 @@ if __name__ == "__main__":
 		suite = unittest.makeSuite(Test_parallel_distribute_mesh, 'test')
 		runner.run(suite)
 	else:
+		#atexit.register(finalize)
 		distibute_three_processors()
 
 	finalize()

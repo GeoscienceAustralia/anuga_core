@@ -6,8 +6,9 @@
    Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
    Geoscience Australia, 2004
 """
+from __future__ import absolute_import
 
-from general_mesh import General_mesh
+from .general_mesh import General_mesh
 from anuga.caching import cache
 import anuga.utilities.log as log
 
@@ -257,13 +258,13 @@ class Mesh(General_mesh):
             a = self.triangles[i, 0]
             b = self.triangles[i, 1]
             c = self.triangles[i, 2]
-            if neighbourdict.has_key((a,b)):
+            if (a,b) in neighbourdict:
                     msg = "Edge 2 of triangle %d is duplicating edge %d of triangle %d.\n" %(i,neighbourdict[a,b][1],neighbourdict[a,b][0])
                     raise Exception(msg)
-            if neighbourdict.has_key((b,c)):
+            if (b,c) in neighbourdict:
                     msg = "Edge 0 of triangle %d is duplicating edge %d of triangle %d.\n" %(i,neighbourdict[b,c][1],neighbourdict[b,c][0])
                     raise Exception(msg)
-            if neighbourdict.has_key((c,a)):
+            if (c,a) in neighbourdict:
                     msg = "Edge 1 of triangle %d is duplicating edge %d of triangle %d.\n" %(i,neighbourdict[c,a][1],neighbourdict[c,a][0])
                     raise Exception(msg)
 
@@ -281,17 +282,17 @@ class Mesh(General_mesh):
             c = self.triangles[i, 2]
 
             self.number_of_boundaries[i] = 3
-            if neighbourdict.has_key((b,a)):
+            if (b,a) in neighbourdict:
                 self.neighbours[i, 2] = neighbourdict[b,a][0]
                 self.neighbour_edges[i, 2] = neighbourdict[b,a][1]
                 self.number_of_boundaries[i] -= 1
 
-            if neighbourdict.has_key((c,b)):
+            if (c,b) in neighbourdict:
                 self.neighbours[i, 0] = neighbourdict[c,b][0]
                 self.neighbour_edges[i, 0] = neighbourdict[c,b][1]
                 self.number_of_boundaries[i] -= 1
 
-            if neighbourdict.has_key((a,c)):
+            if (a,c) in neighbourdict:
                 self.neighbours[i, 1] = neighbourdict[a,c][0]
                 self.neighbour_edges[i, 1] = neighbourdict[a,c][1]
                 self.number_of_boundaries[i] -= 1
@@ -306,7 +307,7 @@ class Mesh(General_mesh):
           number_of_boundaries integer array is defined.
         """
 
-        import neighbour_table_ext
+        from . import neighbour_table_ext
         
         N = self.number_of_nodes
 
@@ -366,7 +367,7 @@ class Mesh(General_mesh):
         if boundary is None:
             boundary = {}
 
-        from neighbour_mesh_ext import boundary_dictionary_construct
+        from .neighbour_mesh_ext import boundary_dictionary_construct
         boundary = boundary_dictionary_construct(len(self), default_boundary_tag, self.neighbours, boundary)
         
 
@@ -408,7 +409,7 @@ class Mesh(General_mesh):
             for vol_id in xrange(len(self)):
                 for edge_id in xrange(0, 3):
                     if self.neighbours[vol_id, edge_id] < 0:
-                        if not boundary.has_key( (vol_id, edge_id) ):
+                        if (vol_id, edge_id) not in boundary:
                             msg = 'WARNING: Given boundary does not contain '
                             msg += 'tags for edge (%d, %d). '\
                                    %(vol_id, edge_id)
@@ -628,7 +629,7 @@ class Mesh(General_mesh):
                 raise Exception(msg)
 
             # Register potential paths from A to B
-            if not segments.has_key(tuple(A)):
+            if tuple(A) not in segments:
                 segments[tuple(A)] = []    # Empty list for candidate points
 
             segments[tuple(A)].append(B)
@@ -700,7 +701,7 @@ class Mesh(General_mesh):
             else:
                 p1 = candidate_list[0]
 
-            if point_registry.has_key(tuple(p1)):
+            if tuple(p1) in point_registry:
                 # We have reached a point already visited.
                 if num.allclose(p1, polygon[0]):
                     # If it is the initial point, the polygon is complete.
@@ -967,7 +968,7 @@ class Mesh(General_mesh):
         assert num.allclose(count, self.number_of_triangles_per_node[:ncount])
 
 
-        from neighbour_mesh_ext import check_integrity_c
+        from .neighbour_mesh_ext import check_integrity_c
 
 
         #print self.vertex_value_indices.shape
@@ -1417,7 +1418,7 @@ def _get_intersecting_segments(V, N, line,
 
 
             # Add segment unless it was done earlier
-            if not triangle_intersections.has_key(segment):
+            if segment not in triangle_intersections:
                 triangle_intersections[segment] = T
 
 

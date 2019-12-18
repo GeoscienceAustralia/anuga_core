@@ -1,6 +1,7 @@
 """Library of standard meshes and facilities for reading various
 mesh file formats
 """
+from __future__ import absolute_import
 
 import anuga.utilities.log as log
 import numpy as num
@@ -165,7 +166,7 @@ def rectangular_cross(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     points = num.empty([(m+1)*(n+1)+m*n,2], dtype=num.float)
     elements = num.empty([4*m*n,3], dtype=num.int)
 
-    from mesh_factory_ext import rectangular_cross_construct
+    from .mesh_factory_ext import rectangular_cross_construct
     boundary = rectangular_cross_construct(arrParams, arrOrigin, points, elements)
 
     #points = list(arrPoints)

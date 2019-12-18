@@ -3,6 +3,7 @@
 It is also a clearing house for functions that may later earn a module
 of their own.
 """
+from __future__ import absolute_import
 
 import anuga.geometry.polygon
 import sys
@@ -38,7 +39,7 @@ def file_function(filename,
                   use_cache=False,
                   boundary_polygon=None,
                   output_centroids=False):
-    from file_function import file_function as file_function_new
+    from .file_function import file_function as file_function_new
     return file_function_new(filename, domain, quantities, interpolation_points,
                       time_thinning, time_limit, verbose, use_cache,
                       boundary_polygon, output_centroids)
@@ -90,7 +91,7 @@ def apply_expression_to_dictionary(expression, dictionary):
     import re
 
     assert isinstance(expression, basestring)
-    assert type(dictionary) == types.DictType
+    assert type(dictionary) == dict
 
     #Convert dictionary values to textual representations suitable for eval
     D = {}
@@ -103,10 +104,10 @@ def apply_expression_to_dictionary(expression, dictionary):
     #Evaluate and return
     try:
         return eval(expression)
-    except NameError, e:
+    except NameError as e:
         msg = 'Expression "%s" could not be evaluated: %s' % (expression, e)
         raise NameError(msg)
-    except ValueError, e:
+    except ValueError as e:
         msg = 'Expression "%s" could not be evaluated: %s' % (expression, e)
         raise ValueError(msg)
 
@@ -842,7 +843,7 @@ def sww2csv_gauges(sww_file,
 
     This is really returning speed, not velocity.
     """
-    from gauge import sww2csv_gauges as sww2csv
+    from .gauge import sww2csv_gauges as sww2csv
     
     return sww2csv(sww_file, gauge_file, out_name, quantities, verbose, use_cache)
     
@@ -862,7 +863,7 @@ def sww2timeseries(swwfiles,
                    use_cache=False,
                    verbose=False,
                    output_centroids=False):
-    from gauge import sww2timeseries as sww2timeseries_new
+    from .gauge import sww2timeseries as sww2timeseries_new
     return sww2timeseries_new(swwfiles,
                    gauge_filename,
                    production_dirs,

@@ -29,7 +29,7 @@ def pmesh_to_domain_instance(source, DomainClass, use_cache=False,
         result = cache(_pmesh_to_domain_instance, (source, DomainClass),
                        dependencies=[source], verbose=verbose)
     else:
-        result = apply(_pmesh_to_domain_instance, (source, DomainClass))        
+        result = _pmesh_to_domain_instance(*(source, DomainClass))        
         
     return result
 
@@ -74,8 +74,8 @@ def _pmesh_to_domain_instance(source, DomainClass):
     # I think that's the way to go still
 
     # set the water stage to be the elevation
-    if (vertex_quantity_dict.has_key('elevation') and
-        not vertex_quantity_dict.has_key('stage')):
+    if ('elevation' in vertex_quantity_dict and
+        'stage' not in vertex_quantity_dict):
         vertex_quantity_dict['stage'] = vertex_quantity_dict['elevation']
     domain.set_quantity_vertices_dict(vertex_quantity_dict)
 
@@ -98,7 +98,7 @@ def pmesh_to_domain(file_name=None, mesh_instance=None, use_cache=False,
                        dependencies=[file_name], verbose=verbose)
 
     else:
-        result = apply(_pmesh_to_domain, (file_name, mesh_instance))        
+        result = _pmesh_to_domain(*(file_name, mesh_instance))        
 
     if verbose: log.critical('Pmesh_to_Domain: Done')
 
@@ -183,7 +183,7 @@ def pmesh_dict_to_tag_dict_old(mesh_dict):
         v1 = int(seg[0])
         v2 = int(seg[1])
         for key in [(v1,v2),(v2,v1)]:
-            if sides.has_key(key) and tag <> "":
+            if key in sides and tag != "":
                 #"" represents null.  Don't put these into the dictionary
                 #this creates a dict of lists of faces, indexed by tag
                 #tagged_edges.setdefault(tag,[]).append(sides[key])

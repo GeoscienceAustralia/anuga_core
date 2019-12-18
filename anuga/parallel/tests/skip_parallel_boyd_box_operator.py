@@ -283,7 +283,7 @@ class Test_parallel_boyd_box_operator(unittest.TestCase):
         #print "Expect this test to fail if not run from the parallel/test directory."
 
         abs_script_name = os.path.abspath(__file__)
-        cmd = "mpirun -np %d python %s" % (nprocs, abs_script_name)
+        cmd = "mpiexec -np %d python %s" % (nprocs, abs_script_name)
         exitstatus = os.system(cmd)
 
         assert_(exitstatus == 0)
@@ -296,7 +296,7 @@ class Test_parallel_boyd_box_operator(unittest.TestCase):
 # 
 #     import subprocess
 # 
-#     cmd = "mpirun -v -np %d python %s" % (nprocs, script_name)
+#     cmd = "mpiexec -v -np %d python %s" % (nprocs, script_name)
 # 
 #     exitstatus = 0
 #     try:

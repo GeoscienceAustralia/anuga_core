@@ -18,7 +18,6 @@ import sys
 import numpy as num
 
 
-
 from anuga import Domain
 from anuga import Reflective_boundary
 from anuga import Dirichlet_boundary
@@ -175,7 +174,7 @@ class Test_parallel_sw_flow(unittest.TestCase):
         if verbose : print "Expect this test to fail if not run from the parallel directory."
 
         abs_script_name = os.path.abspath(__file__)
-        cmd = "mpirun -np %d python %s" % (nprocs, abs_script_name)
+        cmd = "mpiexec -np %d python %s" % (nprocs, abs_script_name)
         result = os.system(cmd)
 
         assert_(result == 0)

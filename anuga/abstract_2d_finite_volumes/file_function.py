@@ -134,8 +134,7 @@ def file_function(filename,
                              compression=False,                  
                              verbose=verbose)
     else:
-        f, starttime = apply(_file_function,
-                             args, kwargs)
+        f, starttime = _file_function(*args, **kwargs)
 
     #FIXME (Ole): Pass cache arguments, such as compression, in some sort of
     #structure
@@ -268,7 +267,7 @@ def get_netcdf_file_function(filename,
     # are present in file 
     missing = []
     for quantity in ['time'] + quantity_names:
-        if not fid.variables.has_key(quantity):
+        if quantity not in fid.variables:
             missing.append(quantity)
 
     if len(missing) > 0:
@@ -280,7 +279,7 @@ def get_netcdf_file_function(filename,
     # Decide whether this data has a spatial dimension
     spatial = True
     for quantity in ['x', 'y']:
-        if not fid.variables.has_key(quantity):
+        if quantity not in fid.variables:
             spatial = False
 
     if filename[-3:] == 'tms' and spatial is True:

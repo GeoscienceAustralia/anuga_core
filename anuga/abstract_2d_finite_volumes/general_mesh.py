@@ -1,3 +1,4 @@
+from __future__ import print_function
 import copy
 import numpy as num
 
@@ -799,7 +800,7 @@ class General_mesh:
 
         if number_of_orphan_nodes > 0 and self.verbose:
             msg = 'Node(s) %d not associated to a triangle.' % orphan_nodes[0]
-            print msg
+            print(msg)
 
         if number_of_lone_nodes > 0:
             number_of_triangles_per_node =  \

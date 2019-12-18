@@ -27,9 +27,9 @@ def run_validation_script_old(script,np=1, cfl=None, alg=None, verbose=False):
     
     if np>1:
         if verbose:
-            cmd = 'mpirun -np %s python %s -cfl %s -alg %s -v ' % (str(np), script, str(cfl), str(alg))
+            cmd = 'mpiexec -np %s python %s -cfl %s -alg %s -v ' % (str(np), script, str(cfl), str(alg))
         else:
-            cmd = 'mpirun -np %s python %s -cfl %s -alg %s' % (str(np), script, str(cfl), str(alg))
+            cmd = 'mpiexec -np %s python %s -cfl %s -alg %s' % (str(np), script, str(cfl), str(alg))
         print 50*'='
         print 'Run '+cmd
         print 50*'='

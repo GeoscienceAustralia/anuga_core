@@ -18,6 +18,8 @@ To create:
    Quantities can be found in the dictionary domain.quantities (note, other Quantities can
    exist).
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 import types
 import os.path
@@ -450,13 +452,13 @@ class Quantity:
         yllcorner = geo_ref.get_yllcorner()
 
         if verbose:
-            print
-            print xllcorner
-            print yllcorner
-            print x
-            print y
-            print node_coordinates[:,0]
-            print node_coordinates[:,1]
+            print()
+            print(xllcorner)
+            print(yllcorner)
+            print(x)
+            print(y)
+            print(node_coordinates[:,0])
+            print(node_coordinates[:,1])
 
 
 
@@ -680,20 +682,20 @@ class Quantity:
         """Compute interpolated values at edges and centroid
         Pre-condition: vertex_values have been set
         """
-        from quantity_ext import interpolate
+        from .quantity_ext import interpolate
         interpolate(self)
 
 
     def interpolate_from_vertices_to_edges(self):
         # Call correct module function (either from this module or C-extension)
 
-        from quantity_ext import interpolate_from_vertices_to_edges
+        from .quantity_ext import interpolate_from_vertices_to_edges
         interpolate_from_vertices_to_edges(self)
 
     def interpolate_from_edges_to_vertices(self):
         # Call correct module function (either from this module or C-extension)
 
-        from quantity_ext import interpolate_from_edges_to_vertices
+        from .quantity_ext import interpolate_from_edges_to_vertices
         interpolate_from_edges_to_vertices(self)
 
     #---------------------------------------------
@@ -868,7 +870,7 @@ class Quantity:
             raise Exception(msg)
 
         msg = 'Indices must be a list, array or None'
-        assert isinstance(indices, (types.NoneType, list, num.ndarray)), msg
+        assert isinstance(indices, (type(None), list, num.ndarray)), msg
 
         # Determine which 'set_values_from_...' to use
         if numeric is not None:
@@ -1209,7 +1211,7 @@ class Quantity:
                   'alpha': alpha,
                   'verbose': verbose}
 
-        vertex_attributes = apply(fit_to_mesh, args, kwargs)
+        vertex_attributes = fit_to_mesh(*args, **kwargs)
 
         # Call underlying method using array values
         self.set_values_from_array(vertex_attributes, location, indices,
@@ -1495,7 +1497,7 @@ class Quantity:
 
 
         msg = "Function not implemented yet"
-        raise Exception, msg
+        raise Exception(msg)
 
         msg = 'Filename must be a text string'
         assert isinstance(filename, basestring), msg
@@ -1540,7 +1542,7 @@ class Quantity:
             xllcorner = float(xref[1].strip())
         else:
             msg = 'Unknown keyword: %s' % xref[0].strip()
-            raise Exception, msg
+            raise Exception(msg)
 
         yref = lines[3].split()
         if yref[0].strip() == 'yllcorner':
@@ -1549,7 +1551,7 @@ class Quantity:
             yllcorner = float(yref[1].strip())
         else:
             msg = 'Unknown keyword: %s' % yref[0].strip()
-            raise Exception, msg
+            raise Exception(msg)
 
         NODATA_value = int(float(lines[5].split()[1].strip()))
 
@@ -1881,7 +1883,7 @@ class Quantity:
 
 
         msg = '\'indices\' must be a list, array or None'
-        assert isinstance(indices, (types.NoneType, list, num.ndarray)), msg
+        assert isinstance(indices, (type(None), list, num.ndarray)), msg
 
         if location == 'centroids':
             if indices is None:
@@ -2251,7 +2253,7 @@ class Conserved_quantity(Quantity):
 ######
 # Prepare the C extensions.
 ######
-from quantity_ext import \
+from .quantity_ext import \
          average_vertex_values,\
          average_centroid_values,\
          backup_centroid_values,\
