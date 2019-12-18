@@ -145,7 +145,7 @@ def redfearn(lat, lon, false_easting=None, false_northing=None,
 
     if zone is not None and central_meridian is not None:
         msg = 'You specified both zone and central_meridian. Provide only one of them'
-        raise Exception, msg
+        raise Exception(msg)
     
     # Zone
     if zone is None:

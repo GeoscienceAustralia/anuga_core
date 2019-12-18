@@ -10,8 +10,9 @@ Similarly the Outflow has MOMENTUM Not just Up welling as in the Horizontal Styl
 abstraction
 
 """
+from __future__ import print_function
 
-print 'Starting.... Importing Modules...'
+print('Starting.... Importing Modules...')
 
 #------------------------------------------------------------------------------
 # Import necessary modules
@@ -33,7 +34,7 @@ import numpy as num
 #------------------------------------------------------------------------------
 # Setup computational domain
 #------------------------------------------------------------------------------
-print 'Setting up domain'
+print('Setting up domain')
 
 length = 40.
 width = 5.
@@ -51,7 +52,7 @@ domain.set_default_order(2)
 domain.H0 = 0.01
 domain.tight_slope_limiters = 1
 
-print 'Size', len(domain)
+print('Size', len(domain))
 
 #------------------------------------------------------------------------------
 # Setup initial conditions
@@ -87,7 +88,7 @@ def topography(x, y):
 		
     return z
 
-print 'Setting Quantities....'
+print('Setting Quantities....')
 domain.set_quantity('elevation', topography)  # Use function for elevation
 domain.set_quantity('friction', 0.01)         # Constant friction 
 domain.set_quantity('stage',
@@ -103,7 +104,7 @@ domain.set_quantity('stage',
 #------------------------------------------------------------------------------
 # Setup CULVERT INLETS and OUTLETS in Current Topography
 #------------------------------------------------------------------------------
-print 'DEFINING any Structures if Required'
+print('DEFINING any Structures if Required')
 
 #  DEFINE CULVERT INLET AND OUTLETS
 
@@ -133,7 +134,7 @@ domain.forcing_terms.append(culvert_energy)
 #------------------------------------------------------------------------------
 # Setup boundary conditions
 #------------------------------------------------------------------------------
-print 'Setting Boundary Conditions'
+print('Setting Boundary Conditions')
 Bi = Dirichlet_boundary([0.0, 0.0, 0.0])          # Inflow based on Flow Depth and Approaching Momentum !!!
 Br = Reflective_boundary(domain)              # Solid reflective wall
 Bo = Dirichlet_boundary([-5, 0, 0])           # Outflow
@@ -164,10 +165,10 @@ FN = 'profile.dat'
 
 profile.run(s, FN)
     
-print 'That took %.2f seconds' %(time.time()-t0)
+print('That took %.2f seconds' %(time.time()-t0))
 
 S = pstats.Stats(FN)
 #S.sort_stats('time').print_stats(20)
 s = S.sort_stats('cumulative').print_stats(30)
 
-print s
+print(s)

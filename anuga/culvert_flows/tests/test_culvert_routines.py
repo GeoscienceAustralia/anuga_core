@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 
+from __future__ import print_function
 import unittest
 import os.path
 import sys
@@ -161,7 +162,7 @@ class Test_culvert_routines(unittest.TestCase):
                                                  manning,
                                                  sum_loss)
         
-        print Q, v, d
+        print(Q, v, d)
         assert num.allclose(Q, 0.10, rtol=1.0e-2) #inflow
         assert num.allclose(v, 1.13, rtol=1.0e-2) #outflow velocity
         assert num.allclose(d, 0.15, rtol=1.0e-2) #depth at outlet used to calc v 
@@ -208,7 +209,7 @@ class Test_culvert_routines(unittest.TestCase):
                                                  manning,
                                                  sum_loss)
         
-        print Q, v, d
+        print(Q, v, d)
         assert num.allclose(Q, 1.00, rtol=1.0e-2) #inflow
         assert num.allclose(v, 2.59, rtol=1.0e-2) #outflow velocity
         assert num.allclose(d, 0.563, rtol=1.0e-2) #depth at outlet used to calc v  
@@ -253,7 +254,7 @@ class Test_culvert_routines(unittest.TestCase):
                                                  manning,
                                                  sum_loss)
         
-        print Q, v, d
+        print(Q, v, d)
         assert num.allclose(Q, 5.00, rtol=1.0e-2) #inflow
         assert num.allclose(v, 11.022, rtol=1.0e-2) #outflow velocity
         assert num.allclose(d, 0.72, rtol=1.0e-2) #depth at outlet used to calc v
@@ -298,7 +299,7 @@ class Test_culvert_routines(unittest.TestCase):
                                                  manning,
                                                  sum_loss)
         
-        print Q, v, d
+        print(Q, v, d)
         assert num.allclose(Q, 0.10, rtol=1.0e-2) #inflow
         assert num.allclose(v, 0.22, rtol=1.0e-2) #outflow velocity
         assert num.allclose(d, 0.76, rtol=1.0e-2) #depth at outlet used to calc v
@@ -343,7 +344,7 @@ class Test_culvert_routines(unittest.TestCase):
                                                  manning,
                                                  sum_loss)
         
-        print Q, v, d
+        print(Q, v, d)
         assert num.allclose(Q, 1.00, rtol=1.0e-2) #inflow
         assert num.allclose(v, 2.204, rtol=1.0e-2) #outflow velocity
         assert num.allclose(d, 0.76, rtol=1.0e-2) #depth at outlet used to calc v
@@ -389,7 +390,7 @@ class Test_culvert_routines(unittest.TestCase):
                                                  manning,
                                                  sum_loss)
         
-        print Q, v, d
+        print(Q, v, d)
         assert num.allclose(Q, 5.00, rtol=1.0e-2) #inflow
         assert num.allclose(v, 11.022, rtol=1.0e-2) #outflow velocity
         assert num.allclose(d, 0.76, rtol=1.0e-2) #depth at outlet used to calc v
@@ -435,7 +436,7 @@ class Test_culvert_routines(unittest.TestCase):
                                                  manning,
                                                  sum_loss)
         
-        print Q, v, d
+        print(Q, v, d)
         assert num.allclose(Q, 0.10, rtol=1.0e-2) #inflow
         assert num.allclose(v, 1.13, rtol=1.0e-2) #outflow velocity
         assert num.allclose(d, 0.19, rtol=1.0e-2) #depth at outlet used to calc v
@@ -481,7 +482,7 @@ class Test_culvert_routines(unittest.TestCase):
                                                  manning,
                                                  sum_loss)
         
-        print Q, v, d
+        print(Q, v, d)
         assert num.allclose(Q, 1.00, rtol=1.0e-2) #inflow
         assert num.allclose(v, 2.204, rtol=1.0e-2) #outflow velocity
         assert num.allclose(d, 0.76, rtol=1.0e-2) #depth at outlet used to calc v
@@ -526,7 +527,7 @@ class Test_culvert_routines(unittest.TestCase):
                                                  manning,
                                                  sum_loss)
         
-        print Q, v, d
+        print(Q, v, d)
         assert num.allclose(Q, 0.10, rtol=1.0e-2) #inflow
         assert num.allclose(v, 0.22, rtol=1.0e-2) #outflow velocity
         assert num.allclose(d, 0.76, rtol=1.0e-2) #depth at outlet used to calc v
@@ -572,7 +573,7 @@ class Test_culvert_routines(unittest.TestCase):
                                                  manning,
                                                  sum_loss)
         
-        print Q, v, d
+        print(Q, v, d)
         assert num.allclose(Q, 1.00, rtol=1.0e-2) #inflow
         assert num.allclose(v, 2.204, rtol=1.0e-2) #outflow velocity
         assert num.allclose(d, 0.76, rtol=1.0e-2) #depth at outlet used to calc v

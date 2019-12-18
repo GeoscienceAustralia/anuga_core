@@ -355,7 +355,7 @@ class TestCase(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise Exception, msg
+            raise Exception(msg)
 
             
     def test_convert_lats_longs(self):

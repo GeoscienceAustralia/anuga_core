@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 
+from __future__ import print_function
 import unittest
 import os.path
 import sys
@@ -228,7 +229,7 @@ class Test_Culvert(unittest.TestCase):
         # Evolve system through time
         #-----------------------------------------------------------------------
 
-        min_delta_w = sys.maxint 
+        min_delta_w = sys.maxsize 
         max_delta_w = -min_delta_w
         for t in domain.evolve(yieldstep = 1, finaltime = 25):
             delta_w = culvert.inlet.stage - culvert.outlet.stage
@@ -472,7 +473,7 @@ class Test_Culvert(unittest.TestCase):
         # Evolve system through time
         #-----------------------------------------------------------------------
 
-        print 'depth', 0.1
+        print('depth', 0.1)
         ref_volume = domain.get_quantity('stage').get_integral()
         for t in domain.evolve(yieldstep = 0.1, finaltime = 25):
             new_volume = domain.get_quantity('stage').get_integral()
@@ -485,7 +486,7 @@ class Test_Culvert(unittest.TestCase):
         return
         # Now try this again for a depth of 10 cm and for a range of other depths
         for depth in [0.1, 0.2, 0.5, 1.0]:
-            print 'depth', depth
+            print('depth', depth)
             domain.set_time(0.0)
             
             domain.set_quantity('elevation', topography) 

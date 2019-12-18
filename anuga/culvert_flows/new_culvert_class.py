@@ -383,7 +383,7 @@ class Culvert_flow_general:
 
             # Calculate indices in exchange area for this forcing term
             
-            triangle_id = min_dist = sys.maxint
+            triangle_id = min_dist = sys.maxsize
             for k in range(N):
                 x, y = points[k,:] # Centroid
 
@@ -394,7 +394,7 @@ class Culvert_flow_general:
                     triangle_id = k
 
                     
-            if triangle_id < sys.maxint:
+            if triangle_id < sys.maxsize:
                 msg = 'found triangle with centroid (%f, %f)'\
                     %tuple(points[triangle_id, :])
                 msg += ' for point (%f, %f)' %tuple(point)
@@ -678,7 +678,7 @@ class Culvert_flow_general:
                     Q = interpolate_linearly(driving_head, 
                                              self.rating_curve[:,0], 
                                              self.rating_curve[:,1]) 
-                except Below_interval, e:
+                except Below_interval as e:
                     Q = self.rating_curve[0,1]             
                     msg = '%.2fs: ' % time 
                     msg += 'Delta head smaller than rating curve minimum: '
@@ -689,7 +689,7 @@ class Culvert_flow_general:
                     
                     if hasattr(self, 'log_filename'):                    
                         log_to_file(self.log_filename, msg)
-                except Above_interval, e:
+                except Above_interval as e:
                     Q = self.rating_curve[-1,1]          
                     msg = '%.2fs: ' % time                 
                     msg += 'Delta head greater than rating curve maximum: '
@@ -905,7 +905,7 @@ class Culvert_flow_rating:
 
             # Calculate indices in exchange area for this forcing term
             
-            triangle_id = min_dist = sys.maxint
+            triangle_id = min_dist = sys.maxsize
             for k in range(N):
                 x, y = points[k,:] # Centroid
 
@@ -916,7 +916,7 @@ class Culvert_flow_rating:
                     triangle_id = k
 
                     
-            if triangle_id < sys.maxint:
+            if triangle_id < sys.maxsize:
                 msg = 'found triangle with centroid (%f, %f)'\
                     %tuple(points[triangle_id, :])
                 msg += ' for point (%f, %f)' %tuple(point)
@@ -1061,7 +1061,7 @@ class Culvert_flow_rating:
                 
                 try:
                     Q = interpolate_linearly(delta_w, self.rating_curve[:,0], self.rating_curve[:,1]) 
-                except Below_interval, e:
+                except Below_interval as e:
                     Q = self.rating_curve[0,1]             
                     msg = '%.2fs: Delta head smaller than rating curve minimum: ' %time
                     msg += str(e)
@@ -1069,7 +1069,7 @@ class Culvert_flow_rating:
                         %(Q, self.label)
                     if hasattr(self, 'log_filename'):                    
                         log_to_file(self.log_filename, msg)
-                except Above_interval, e:
+                except Above_interval as e:
                     Q = self.rating_curve[-1,1]          
                     msg = '%.2fs: Delta head greater than rating curve maximum: ' %time
                     msg += str(e)
@@ -1304,7 +1304,7 @@ class Culvert_flow_energy:
 
             # Calculate indices in exchange area for this forcing term
             
-            triangle_id = min_dist = sys.maxint
+            triangle_id = min_dist = sys.maxsize
             for k in range(N):
                 x, y = points[k,:] # Centroid
 
@@ -1315,7 +1315,7 @@ class Culvert_flow_energy:
                     triangle_id = k
 
                     
-            if triangle_id < sys.maxint:
+            if triangle_id < sys.maxsize:
                 msg = 'found triangle with centroid (%f, %f)'\
                     %tuple(points[triangle_id, :])
                 msg += ' for point (%f, %f)' %tuple(point)
