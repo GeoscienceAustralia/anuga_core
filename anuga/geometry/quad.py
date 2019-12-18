@@ -11,6 +11,7 @@ geometry intersections.
 As of June 2010 this module has a pylint quality rating of 10/10.
 
 """
+from __future__ import print_function
 
 import anuga.utilities.log as log
 
@@ -136,8 +137,8 @@ class Cell():
         """
         if depth == 0:
             log.critical() 
-        print '%s%s'  % ('  '*depth, self.name), self.extents, ' [', \
-            self.leaves, ']'
+        print('%s%s'  % ('  '*depth, self.name), self.extents, ' [', \
+            self.leaves, ']')
         if self.children:
             log.critical()
             for child in self.children:
