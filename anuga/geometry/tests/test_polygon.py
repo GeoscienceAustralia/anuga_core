@@ -2,6 +2,7 @@
 
 """ Test suite to test polygon functionality. """
 
+from future.utils import raise_
 import unittest
 import os
 import numpy as num
@@ -43,7 +44,7 @@ class Test_Polygon(unittest.TestCase):
             try:
                 compile(FN)
             except:
-                raise Exception, 'Could not compile %s' %FN
+                raise_(Exception, 'Could not compile %s' %FN)
             else:
                 import anuga.geometry.polygon_ext as polygon_ext
 
@@ -94,7 +95,7 @@ class Test_Polygon(unittest.TestCase):
         except Exception:
             pass
         else:
-            raise Exception, 'Closed polygon should have raised exception'
+            raise Exception('Closed polygon should have raised exception')
 
     def test_read_polygon_not_complex(self):
         from os import sep, getenv
@@ -110,7 +111,7 @@ class Test_Polygon(unittest.TestCase):
         try:
             p1 = read_polygon(filename)
         except Exception:
-            raise Exception, 'Non-complex polygon should not have raised exception'
+            raise Exception('Non-complex polygon should not have raised exception')
 
 
     def test_read_polygon_open_complex(self):
@@ -1889,7 +1890,7 @@ class Test_Polygon(unittest.TestCase):
         except Exception:
             pass
         else:
-            raise Exception, 'One point should have raised exception'
+            raise Exception('One point should have raised exception')
 
         # More polyline nodes
         data = num.array([1, 5, 13, 12, 6, 29])

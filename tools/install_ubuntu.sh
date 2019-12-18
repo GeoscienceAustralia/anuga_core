@@ -79,6 +79,11 @@ echo "+===============================================+"
 sudo pip install -q Cython
 
 echo "+===============================================+"
+echo "|  Using pip to install future                  |"
+echo "+===============================================+"
+sudo pip install -q future
+
+echo "+===============================================+"
 echo "|  Using pip to install pyproj                  |"
 echo "+===============================================+"
 sudo pip install -q pyproj
