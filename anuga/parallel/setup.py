@@ -78,15 +78,7 @@ def configuration(parent_package='',top_path=None):
 
             config.add_data_dir('tests')
             config.add_data_dir('data')
-        """
-        config.add_extension('mpiextras',
-                         sources=['mpiextras.c'],
-                         include_dirs=mpi_flags['inc_dirs'],
-                         library_dirs=mpi_flags['lib_dirs'],
-                         libraries=mpi_flags['libs'],
-                         define_macros=mpi_flags['def_macros'],
-                         undef_macros=mpi_flags['undef_macros'])
-        """
+
     except:
         #No parallel support, so just copy over the py files
         pass
