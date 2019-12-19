@@ -85,12 +85,12 @@ def distibute_three_processors():
 		vertices, triangles, boundary, triangles_per_proc, quantities = pmesh_divide_metis(
 			domain, numprocs)
 
-		if False: 
+		if True: 
 			print_seq_values(vertices, triangles, triangles_per_proc)
 
 		true_seq_values = get_true_seq_values()
 		
-		if False:
+		if True:
 			print "True Seq Values = \\"
 			pprint(true_seq_values)
 
