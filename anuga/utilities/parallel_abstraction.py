@@ -13,7 +13,7 @@ import numpy as np
 # Roberto Vidmar, 20130415: the following imports mpi4py
 try:
   from mpi4py import MPI
-
+  
 except:
   print ('WARNING: Could not import mpi4py - '
       'defining sequential interface')
