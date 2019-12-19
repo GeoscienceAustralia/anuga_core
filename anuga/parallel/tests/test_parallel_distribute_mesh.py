@@ -981,4 +981,3 @@ if __name__ == "__main__":
 		#atexit.register(finalize)
 		distibute_three_processors()
 
-	finalize()
