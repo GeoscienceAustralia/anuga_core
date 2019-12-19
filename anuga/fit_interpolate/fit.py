@@ -25,6 +25,8 @@
       be passed in. (I don't know if this is feasible). If could
       save time/memory.
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.caching import cache
@@ -48,7 +50,7 @@ import sys
 #----------------------------------------------
 # C code to build interpolation matrices
 #----------------------------------------------
-import fitsmooth
+from . import fitsmooth
 
 
 class Fit(FitInterpolate):
@@ -252,7 +254,7 @@ class Fit(FitInterpolate):
                num.array(point_coordinates), z, zdim, npts)
 
         if verbose and output == 'dot':
-            print '\b.',
+            print('\b.', end=' ')
             sys.stdout.flush()
         if zdim == 1:
             Atz = num.array(Atz[0])
@@ -294,7 +296,7 @@ class Fit(FitInterpolate):
         # handled by the Geospatial_data object
 
         if verbose:
-            print 'Fit.fit: Initializing'
+            print('Fit.fit: Initializing')
 
         # Use blocking to load in the point info
         if isinstance(point_coordinates_or_filename, basestring):
@@ -318,7 +320,7 @@ class Fit(FitInterpolate):
             point_coordinates = None
 
             if verbose:
-                print ''
+                print('')
         else:
             point_coordinates = point_coordinates_or_filename
 
@@ -420,8 +422,7 @@ def fit_to_mesh(point_coordinates,
                      compression=False,
                      dependencies=dep)
     else:
-        res = apply(_fit_to_mesh,
-                     args, kwargs)
+        res = _fit_to_mesh(*args, **kwargs)
         "print intep should go out of range"
         return res
 
@@ -532,7 +533,7 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
 
     try:
         mesh_dict = import_mesh_file(mesh_file)
-    except IOError, e:
+    except IOError as e:
         if display_errors:
             log.critical("Could not load bad file: %s" % str(e))
         raise IOError  #Could not load bad mesh file.
@@ -555,7 +556,7 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
     # load in the points file
     try:
         geo = Geospatial_data(point_file, verbose=verbose)
-    except IOError, e:
+    except IOError as e:
         if display_errors:
             log.critical("Could not load bad file: %s" % str(e))
         raise IOError  #Re-raise exception  
@@ -564,7 +565,7 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
     title_list, point_attributes = concatinate_attributelist( \
         geo.get_all_attributes())
 
-    if mesh_dict.has_key('geo_reference') and \
+    if 'geo_reference' in mesh_dict and \
            not mesh_dict['geo_reference'] is None:
         mesh_origin = mesh_dict['geo_reference'].get_origin()
     else:
@@ -606,7 +607,7 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
 
     try:
         export_mesh_file(mesh_output_file, mesh_dict)
-    except IOError, e:
+    except IOError as e:
         if display_errors:
             log.critical("Could not write file %s", str(e))
         raise IOError

@@ -41,7 +41,7 @@ def urs2txt(basename_in, location_index=None):
                   'Easting' + d + 'Northing' + '\n')
         fid.write(str(li) + d + str(latitudes[li]) + d +
                   str(longitudes[li]) + d + str(points_utm[li][0]) + d +
-                  str(points_utm[li][01]) + '\n')
+                  str(points_utm[li][0o1]) + '\n')
 
     # the non-time dependent stuff
     #Title
@@ -52,7 +52,7 @@ def urs2txt(basename_in, location_index=None):
                                            latitudes, longitudes):
 
         fid.write(str(i) + d + str(lat) + d + str(long) + d +
-                  str(point_utm[0]) + d + str(point_utm[01]) + d +
+                  str(point_utm[0]) + d + str(point_utm[0o1]) + d +
                   str(depth) + '\n')
         i += 1
 

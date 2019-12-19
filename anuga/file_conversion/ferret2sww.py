@@ -2,6 +2,7 @@
     Convert a ferret file to an SWW file.
 """
 # external modules
+from future.utils import raise_
 import numpy as num
 
 
@@ -189,7 +190,7 @@ def ferret2sww(basename_in, name_out=None,
         if fail_on_NaN:
             msg = 'NetCDFFile %s contains missing values' \
                   % basename_in + '_ha.nc'
-            raise DataMissingValuesError, msg
+            raise_(DataMissingValuesError, msg)
         else:
             amplitudes = amplitudes*(missing==0) + missing*NaN_filler
 
@@ -198,7 +199,7 @@ def ferret2sww(basename_in, name_out=None,
         if fail_on_NaN:
             msg = 'NetCDFFile %s contains missing values' \
                   % basename_in + '_ua.nc'
-            raise DataMissingValuesError, msg
+            raise_(DataMissingValuesError, msg)
         else:
             uspeed = uspeed*(missing==0) + missing*NaN_filler
 
@@ -207,7 +208,7 @@ def ferret2sww(basename_in, name_out=None,
         if fail_on_NaN:
             msg = 'NetCDFFile %s contains missing values' \
                   % basename_in + '_va.nc'
-            raise DataMissingValuesError, msg
+            raise_(DataMissingValuesError, msg)
         else:
             vspeed = vspeed*(missing==0) + missing*NaN_filler
 
@@ -216,7 +217,7 @@ def ferret2sww(basename_in, name_out=None,
         if fail_on_NaN:
             msg = 'NetCDFFile %s contains missing values' \
                   % basename_in + '_e.nc'
-            raise DataMissingValuesError, msg
+            raise_(DataMissingValuesError, msg)
         else:
             elevations = elevations*(missing==0) + missing*NaN_filler
 

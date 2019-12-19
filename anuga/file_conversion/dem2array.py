@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 # external modules
 import numpy as num
 
@@ -6,7 +7,7 @@ import anuga.utilities.log as log
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \
                             netcdf_float
 
-from asc2dem import asc2dem
+from .asc2dem import asc2dem
                             
 
 def dem2array(filename, variable_name='elevation',

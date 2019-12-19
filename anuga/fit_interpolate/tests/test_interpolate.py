@@ -5,6 +5,7 @@
 #import time, os
 
 
+from __future__ import print_function
 import sys
 import os
 import unittest
@@ -490,7 +491,7 @@ class Test_Interpolate(unittest.TestCase):
         for i in range(A.shape[0]):
             for j in range(A.shape[1]):
                 if not num.allclose(A[i,j], answer[i][j]):
-                    print i,j,':',A[i,j], answer[i][j]
+                    print(i,j,':',A[i,j], answer[i][j])
 
 
         #results = interp._build_interpolation_matrix_A(data).todense()
@@ -1850,10 +1851,10 @@ class Test_Interpolate(unittest.TestCase):
                                     [2.0, 4./15., 4./10.5]]
         depth_file_handle = file(depth_file)
         depth_reader = csv.reader(depth_file_handle)
-        depth_reader.next()
+        next(depth_reader)
         velocity_x_file_handle = file(velocity_x_file)
         velocity_x_reader = csv.reader(velocity_x_file_handle)
-        velocity_x_reader.next()
+        next(velocity_x_reader)
         for depths, velocitys, depth_answers, velocity_answers in map(None,
                                               depth_reader,
                                               velocity_x_reader,
@@ -1870,7 +1871,7 @@ class Test_Interpolate(unittest.TestCase):
 
         velocity_y_file_handle = file(velocity_y_file)
         velocity_y_reader = csv.reader(velocity_y_file_handle)
-        velocity_y_reader.next()
+        next(velocity_y_reader)
         for velocitys, velocity_answers in map(None,
                                               velocity_y_reader,
                                               velocity_y_answers_array):

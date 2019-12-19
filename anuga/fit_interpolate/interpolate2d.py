@@ -269,7 +269,7 @@ def check_inputs(x, y, Z, points, mode, bounds_error):
 
     try:
         y = numpy.array(y)
-    except Exception, e:
+    except Exception as e:
         msg = ('Input vector y could not be converted to numpy array: '
                '%s' % str(e))
         raise Exception(msg)
@@ -297,7 +297,7 @@ def check_inputs(x, y, Z, points, mode, bounds_error):
     try:
         Z = numpy.array(Z)
         m, n = Z.shape
-    except Exception, e:
+    except Exception as e:
         msg = 'Z must be a 2D numpy array: %s' % str(e)
         raise Exception(msg)
 
