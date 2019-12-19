@@ -273,7 +273,11 @@ class Test_parallel_frac_op(unittest.TestCase):
         #print "Expect this test to fail if not run from the parallel directory."
 
         abs_script_name = os.path.abspath(__file__)
-        cmd = "mpiexec -np %d python %s" % (nprocs, abs_script_name)
+        if sys.platform == 'win32':
+            mpi4py_command = "-m mpi4py"
+        else:
+            mpi4py_command = " "
+        cmd = "mpiexec -np %d python %s %s" % (3, mpi4py_command, abs_script_name)
         result = os.system(cmd)
 
         assert_(result == 0)
