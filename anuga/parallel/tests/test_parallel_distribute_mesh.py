@@ -695,7 +695,7 @@ def get_true_extract_submesh():
 
 	if metis_version == 4:
 		true_values = dict(
-		vertices=array([[ 0,  5,  1],
+		triangles=array([[ 0,  5,  1],
 			[ 1,  5,  3],
 			[ 1,  6,  2],
 			[ 3,  6,  1],
