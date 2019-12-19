@@ -680,7 +680,7 @@ class Test_sww(unittest.TestCase):
         assert len(points2)==len(coordinates2)
         for i in range(len(coordinates2)):
             coordinate = tuple(coordinates2[i])
-            assert points2.has_key(coordinate)
+            assert coordinate in points2
             points2[coordinate]=i
 
         for triangle in volumes1:
