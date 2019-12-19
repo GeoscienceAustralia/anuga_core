@@ -167,14 +167,14 @@ def distibute_three_processors():
 	#--------------------------------
 	if myid == 0:
 
-		if True: 
+		if False: 
 			print 'extract_values = \\'
 			print_extract_submesh(points, triangles, ghost_recv_dict, \
 				                  full_send_dict, tri_map, node_map, ghost_layer_width)
 
 		true_values  = get_true_extract_submesh()
 
-		if True:
+		if False:
 			print 'true_extract_values = \\'
 			pprint(true_values)
 
@@ -192,11 +192,17 @@ def distibute_three_processors():
 
 	if myid == 1:
 
-		if False: print_rec_submesh_1(points, triangles, ghost_recv_dict, full_send_dict, \
+		if True: 
+			print "rec_submesh_1 = \\"
+			print_rec_submesh_1(points, triangles, ghost_recv_dict, full_send_dict, \
 	                     tri_map, node_map, ghost_layer_width)
 
 		
 		true_values = get_true_rec_submesh_1()
+
+		if True:
+			print 'true_rec_values_1 = \\'
+			pprint(true_values)
 
 		assert_(num.allclose(points,   true_values['points']))
 		assert_(num.allclose(triangles, true_values['triangles']))
