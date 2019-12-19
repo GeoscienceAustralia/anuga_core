@@ -929,7 +929,7 @@ class Test_parallel_distribute_mesh(unittest.TestCase):
 
 		import os
 		abs_script_name = os.path.abspath(__file__)
-		cmd = "mpiexec -np %d python -m mpi4py %s" % (3, abs_script_name)
+		cmd = "mpiexec -np %d python %s" % (3, abs_script_name)
 
 		status = os.system(cmd)
 
