@@ -898,7 +898,7 @@ def get_true_rec_submesh_2():
 
 	if metis_version == 4:
 		true_values = dict(
-		vertices=array([[ 1,  5,  0],
+		triangles=array([[ 1,  5,  0],
 			[ 1,  6,  2],
 			[ 3,  6,  1],
 			[ 4,  6,  3],
