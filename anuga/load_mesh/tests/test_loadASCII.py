@@ -503,7 +503,7 @@ showme1.0 0.0 10.0 \n\
         except KeyError:        #??# 2 lines below??
             msg = ("'dict' has no key 'geo_reference' "
                    "but loaded_dict['geo_reference'] isn't None")
-            self.assertTrue(not dict.has_key('geo_reference') and
+            self.assertTrue('geo_reference' not in dict and
                                 loaded_dict['geo_reference'] is None,
                             fail_string + ' failed\n' + msg)
 

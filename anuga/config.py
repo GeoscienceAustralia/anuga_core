@@ -28,7 +28,7 @@ pmesh_filename = '.\\pmesh'
 revision_filename = 'revision.py'
 default_datadir = '.'
 time_format = '%d/%m/%y %H:%M:%S'    # Used with timefile2netcdf
-umask = 002  # Controls file and directory permission created by anuga (UNIX)
+umask = 0o02  # Controls file and directory permission created by anuga (UNIX)
 default_boundary_tag = 'exterior'
 
 # Major revision number for use with create_distribution
