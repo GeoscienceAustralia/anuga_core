@@ -695,42 +695,46 @@ def get_true_extract_submesh():
 
 
 
-	metis_version = 4
+	true_values = \
+			{'full_send_dict_1': [array([0, 1, 2, 4]), array([0, 1, 2, 4])],
+			'full_send_dict_2': [array([0, 1, 2, 3]), array([0, 1, 2, 3])],
+			'ghost_layer_width': 2,
+			'ghost_recv_dict_1': [array([5, 6, 7, 8, 9]), array([ 5,  6,  8,  9, 10])],
+			'ghost_recv_dict_2': [array([10, 11, 12, 13, 14]),
+								array([11, 12, 13, 14, 15])],
+			'node_map': array([ 7,  8,  9,  0,  1,  2, 10,  3,  4,  5, 11, 12,  6]),
+			'points': array([[ 0.5 ,  0.  ],
+				[ 0.5 ,  0.5 ],
+				[ 0.5 ,  1.  ],
+				[ 1.  ,  0.5 ],
+				[ 1.  ,  1.  ],
+				[ 0.25,  0.25],
+				[ 0.75,  0.75],
+				[ 0.  ,  0.  ],
+				[ 0.  ,  0.5 ],
+				[ 0.  ,  1.  ],
+				[ 1.  ,  0.  ],
+				[ 0.25,  0.75],
+				[ 0.75,  0.25]]),
+			'tri_map': array([ 0,  1,  2,  3,  4,  5,  6, -1,  7,  8,  9, 10, 11, 12, 13, 14]),
+			'triangles': array([[ 1,  5,  0],
+				[ 1,  6,  2],
+				[ 3,  6,  1],
+				[ 4,  6,  3],
+				[ 2,  6,  4],
+				[ 7,  5,  8],
+				[ 8,  5,  1],
+				[ 1, 11,  8],
+				[ 2, 11,  1],
+				[ 9, 11,  2],
+				[ 0,  5,  7],
+				[ 0, 12,  1],
+				[10, 12,  0],
+				[ 3, 12, 10],
+				[ 1, 12,  3]])}
 
-	if metis_version == 4:
-		true_values = dict(
-		triangles=array([[ 0,  5,  1],
-			[ 1,  5,  3],
-			[ 1,  6,  2],
-			[ 3,  6,  1],
-			[ 4,  6,  3],
-			[ 2,  6,  4],
-			[ 3,  5,  7],
-			[ 3, 11,  4],
-			[ 8, 11,  3],
-			[ 4, 11,  9],
-			[ 7,  5,  0],
-			[ 7, 10,  3]]),
-		points=array([[ 0.  ,  0.  ],
-			[ 0.  ,  0.5 ],
-			[ 0.  ,  1.  ],
-			[ 0.5 ,  0.5 ],
-			[ 0.5 ,  1.  ],
-			[ 0.25,  0.25],
-			[ 0.25,  0.75],
-			[ 0.5 ,  0.  ],
-			[ 1.  ,  0.5 ],
-			[ 1.  ,  1.  ],
-			[ 0.75,  0.25],
-			[ 0.75,  0.75]]),
-		full_send_dict_0=[array([0, 1, 3, 4, 5]), array([ 5,  6,  8,  9, 10])],
-		node_map=array([ 0,  1,  2,  7,  3,  4, -1,  8,  9,  5,  6, 10, 11]),
-		full_send_dict_2=[array([0, 1]), array([5, 6])],
-		ghost_recv_dict_0=[array([6, 7, 8, 9]), array([0, 1, 2, 4])],
-		ghost_recv_dict_2=[array([10, 11]), array([11, 12])],
-		ghost_layer_width=2,
-		tri_map=array([ 6,  7,  8, -1,  9,  0,  1,  2,  3,  4,  5, 10, 11]))
-		return true_values
+
+	return true_values
 
 def print_rec_submesh_1(points, triangles, ghost_recv_dict, full_send_dict, \
 	                     tri_map, node_map, ghost_layer_width):
