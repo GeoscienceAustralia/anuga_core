@@ -979,9 +979,11 @@ if __name__ == "__main__":
 		runner.run(suite)
 	else:
 		#atexit.register(finalize)
-        from anuga.utilities.parallel_abstraction import global_except_hook
-        import sys
-        sys.excepthook = global_except_hook
 
+		from anuga.utilities.parallel_abstraction import global_except_hook
+		import sys
+		sys.excepthook = global_except_hook
+		
 		distibute_three_processors()
+
 
