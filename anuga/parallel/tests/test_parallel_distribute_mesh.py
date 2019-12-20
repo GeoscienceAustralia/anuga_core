@@ -20,7 +20,7 @@ from pprint import pprint, pformat
 
 import numpy as num
 from numpy import array
-from numpy import int64
+from numpy import int
 
 verbose = False
 
@@ -265,7 +265,7 @@ def get_true_seq_values():
 				[ 3, 11,  4],
 				[ 4, 12,  5],
 				[ 5, 12,  8]]),
-			'triangles_per_proc': array([4, 6, 6], dtype=int64),
+			'triangles_per_proc': array([4, 6, 6]),
 			'vertices': array([[0.  , 0.  ],
 				[0.  , 0.5 ],
 				[0.  , 1.  ],
@@ -368,7 +368,7 @@ def get_true_submesh_values():
 				[10,  2],
 				[11,  2],
 				[12,  2],
-				[14,  2]], dtype=int64),
+				[14,  2]]),
 			full_nodes_1=array([[ 0.  ,  0.  ,  0.  ],
 				[ 3.  ,  0.5 ,  0.  ],
 				[ 4.  ,  0.5 ,  0.5 ],
@@ -400,7 +400,7 @@ def get_true_submesh_values():
 				[12,  2],
 				[13,  2],
 				[14,  2],
-				[15,  2]], dtype=int64),
+				[15,  2]]),
 			full_nodes_2=array([[ 1.  ,  0.  ,  0.5 ],
 				[ 3.  ,  0.5 ,  0.  ],
 				[ 4.  ,  0.5 ,  0.5 ],
@@ -439,7 +439,7 @@ def get_true_submesh_values():
 				[6, 1],
 				[7, 1],
 				[8, 1],
-				[9, 1]], dtype=int64),
+				[9, 1]]),
 			full_commun=[{0: [1, 2], 1: [2], 2: [2], 3: [2]},
 			{4: [0, 2], 5: [2], 6: [2], 7: [2], 8: [2], 9: [2]},
 			{10: [0, 1], 11: [0, 1], 12: [0, 1], 13: [1], 14: [0, 1], 15: [1]}] )
@@ -677,14 +677,14 @@ def get_true_extract_submesh():
 
 	if sys.platform == 'win32':
 		true_values = \
-			{'full_send_dict_1': [array([0], dtype=int64), array([0], dtype=int64)],
-			'full_send_dict_2': [array([0, 1, 2, 3], dtype=int64),
-								array([0, 1, 2, 3], dtype=int64)],
+			{'full_send_dict_1': [array([0]), array([0])],
+			'full_send_dict_2': [array([0, 1, 2, 3]),
+								array([0, 1, 2, 3])],
 			'ghost_layer_width': 2,
-			'ghost_recv_dict_1': [array([4], dtype=int64), array([4], dtype=int64)],
-			'ghost_recv_dict_2': [array([5, 6, 7, 8], dtype=int64),
-								array([10, 11, 12, 14], dtype=int64)],
-			'node_map': array([ 0,  1,  2,  7,  3,  4, -1, -1, -1,  5,  6, -1,  8], dtype=int64),
+			'ghost_recv_dict_1': [array([4]), array([4])],
+			'ghost_recv_dict_2': [array([5, 6, 7, 8]),
+								array([10, 11, 12, 14])],
+			'node_map': array([ 0,  1,  2,  7,  3,  4, -1, -1, -1,  5,  6, -1,  8]),
 			'points': array([[0.  , 0.  ],
 				[0.  , 0.5 ],
 				[0.  , 1.  ],
@@ -695,7 +695,7 @@ def get_true_extract_submesh():
 				[0.5 , 0.  ],
 				[0.75, 0.75]]),
 			'tri_map': array([ 0,  1,  2,  3,  4, -1, -1, -1, -1, -1,  5,  6,  7, -1,  8],
-				dtype=int64),
+				dtype=int),
 			'triangles': array([[0, 5, 1],
 				[1, 6, 2],
 				[3, 6, 1],
@@ -704,7 +704,7 @@ def get_true_extract_submesh():
 				[3, 5, 7],
 				[1, 5, 3],
 				[4, 6, 3],
-				[3, 8, 4]], dtype=int64)}			
+				[3, 8, 4]])}			
 
 		return true_values
 
@@ -772,14 +772,14 @@ def get_true_rec_submesh_1():
 
 	if sys.platform == 'win32':
 		true_values = \
-		{'full_send_dict_0': [array([0], dtype=int64), array([4], dtype=int64)],
-		'full_send_dict_2': [array([0, 1, 2, 3, 4, 5], dtype=int64),
-							array([4, 5, 6, 7, 8, 9], dtype=int64)],
+		{'full_send_dict_0': [array([0]), array([4])],
+		'full_send_dict_2': [array([0, 1, 2, 3, 4, 5]),
+							array([4, 5, 6, 7, 8, 9])],
 		'ghost_layer_width': 2,
-		'ghost_recv_dict_0': [array([6], dtype=int64), array([0], dtype=int64)],
-		'ghost_recv_dict_2': [array([ 7,  8,  9, 10, 11, 12], dtype=int64),
-							array([10, 11, 12, 13, 14, 15], dtype=int64)],
-		'node_map': array([ 0,  9, -1,  1,  2, 10,  3,  4,  5,  6, 11,  7,  8], dtype=int64),
+		'ghost_recv_dict_0': [array([6]), array([0])],
+		'ghost_recv_dict_2': [array([ 7,  8,  9, 10, 11, 12]),
+							array([10, 11, 12, 13, 14, 15])],
+		'node_map': array([ 0,  9, -1,  1,  2, 10,  3,  4,  5,  6, 11,  7,  8]),
 		'points': array([[0.  , 0.  ],
 			[0.5 , 0.  ],
 			[0.5 , 0.5 ],
@@ -793,7 +793,7 @@ def get_true_rec_submesh_1():
 			[0.5 , 1.  ],
 			[0.25, 0.75]]),
 		'tri_map': array([ 6, -1, -1, -1,  0,  1,  2,  3,  4,  5,  7,  8,  9, 10, 11, 12],
-			dtype=int64),
+			dtype=int),
 		'triangles': array([[ 1,  6,  0],
 			[ 3,  7,  1],
 			[ 4,  7,  3],
@@ -806,7 +806,7 @@ def get_true_rec_submesh_1():
 			[10, 11,  2],
 			[ 1,  7,  2],
 			[ 2,  8, 10],
-			[10,  8,  5]], dtype=int64)}			
+			[10,  8,  5]])}			
 
 		return true_values
 
@@ -867,16 +867,16 @@ def get_true_rec_submesh_2():
 
 	if sys.platform == 'win32':
 		true_values = \
-		{'full_send_dict_0': [array([0, 1, 2, 4], dtype=int64),
-							array([10, 11, 12, 14], dtype=int64)],
-		'full_send_dict_1': [array([0, 1, 2, 3, 4, 5], dtype=int64),
-							array([10, 11, 12, 13, 14, 15], dtype=int64)],
+		{'full_send_dict_0': [array([0, 1, 2, 4]),
+							array([10, 11, 12, 14])],
+		'full_send_dict_1': [array([0, 1, 2, 3, 4, 5]),
+							array([10, 11, 12, 13, 14, 15])],
 		'ghost_layer_width': 2,
-		'ghost_recv_dict_0': [array([6, 7, 8, 9], dtype=int64),
-							array([0, 1, 2, 3], dtype=int64)],
-		'ghost_recv_dict_1': [array([10, 11, 12, 13, 14, 15], dtype=int64),
-							array([4, 5, 6, 7, 8, 9], dtype=int64)],
-		'node_map': array([ 9,  0, 10,  1,  2,  3, 11, 12,  4,  5,  6,  7,  8], dtype=int64),
+		'ghost_recv_dict_0': [array([6, 7, 8, 9]),
+							array([0, 1, 2, 3])],
+		'ghost_recv_dict_1': [array([10, 11, 12, 13, 14, 15]),
+							array([4, 5, 6, 7, 8, 9])],
+		'node_map': array([ 9,  0, 10,  1,  2,  3, 11, 12,  4,  5,  6,  7,  8]),
 		'points': array([[0.  , 0.5 ],
 			[0.5 , 0.  ],
 			[0.5 , 0.5 ],
@@ -891,7 +891,7 @@ def get_true_rec_submesh_2():
 			[1.  , 0.  ],
 			[1.  , 0.5 ]]),
 		'tri_map': array([ 6,  7,  8,  9, 10, 11, 12, 13, 14, 15,  0,  1,  2,  3,  4,  5, -1],
-			dtype=int64),
+			dtype=int),
 		'triangles': array([[ 2,  5,  1],
 			[ 0,  5,  2],
 			[ 3,  6,  2],
@@ -907,7 +907,7 @@ def get_true_rec_submesh_2():
 			[12,  7, 11],
 			[ 2,  7, 12],
 			[12,  8,  2],
-			[ 4,  8, 12]], dtype=int64)}		
+			[ 4,  8, 12]])}		
 
 		return true_values
 
