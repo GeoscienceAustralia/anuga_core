@@ -1074,7 +1074,7 @@ def build_local_GA(nodes, triangles, boundaries, tri_map):
     node_map = -1*num.ones(int(NGlobal)+1, num.long)
 
     num.put(node_map, num.take(nodes, (0,), 1).astype(num.long), \
-        num.arange(Nnodes), dtype=num.long)
+        num.arange(Nnodes, dtype=num.long))
         
     # Change the global IDs in the triangles to the local IDs
 
