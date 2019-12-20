@@ -273,11 +273,7 @@ class Test_parallel_boyd_box_operator(unittest.TestCase):
         #print "Expect this test to fail if not run from the parallel/test directory."
 
         abs_script_name = os.path.abspath(__file__)
-        if sys.platform == 'win32':
-            mpi4py_command = "-m mpi4py"
-        else:
-            mpi4py_command = " "
-        cmd = "mpiexec -np %d python %s %s" % (3, mpi4py_command, abs_script_name)
+        cmd = "mpiexec -np %d python %s" % (3, abs_script_name)
         exitstatus = os.system(cmd)
         #exitstatus = mpi_cmd(nprocs, abs_script_name)
 
@@ -320,6 +316,11 @@ if __name__=="__main__":
         runner.run(suite)
     else:
         #print "Running for numproc > 1"
+
+        from anuga.utilities.parallel_abstraction import global_except_hook
+        import sys
+        sys.excepthook = global_except_hook
+
         pypar.barrier()
         test_points = []
 

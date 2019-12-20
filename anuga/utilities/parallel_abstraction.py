@@ -273,6 +273,8 @@ else:
 
 
 # Global error handler
+#
+# Taken from https://github.com/chainer/chainermn/issues/236
 def global_except_hook(exctype, value, traceback):
     import sys
     try:

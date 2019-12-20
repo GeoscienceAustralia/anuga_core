@@ -958,11 +958,7 @@ class Test_parallel_distribute_mesh(unittest.TestCase):
 
 		import os
 		abs_script_name = os.path.abspath(__file__)
-		if sys.platform ==  'win32':
-			mpi4py_command = "-m mpi4py"
-		else:
-			mpi4py_command = " "
-		cmd = "mpiexec -np %d python %s %s" % (3, mpi4py_command, abs_script_name)
+		cmd = "mpiexec -np %d python %s" % (3, abs_script_name)
 
 		status = os.system(cmd)
 
@@ -983,5 +979,9 @@ if __name__ == "__main__":
 		runner.run(suite)
 	else:
 		#atexit.register(finalize)
+        from anuga.utilities.parallel_abstraction import global_except_hook
+        import sys
+        sys.excepthook = global_except_hook
+
 		distibute_three_processors()
 

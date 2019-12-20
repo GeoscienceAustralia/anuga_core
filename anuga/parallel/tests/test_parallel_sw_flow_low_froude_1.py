@@ -180,11 +180,7 @@ class Test_parallel_sw_flow(unittest.TestCase):
         if verbose : print "Expect this test to fail if not run from the parallel directory."
 
         abs_script_name = os.path.abspath(__file__)
-        if sys.platform == 'win32':
-            mpi4py_command = "-m mpi4py"
-        else:
-            mpi4py_command = " "
-        cmd = "mpiexec -np %d python %s %s" % (3, mpi4py_command, abs_script_name)
+        cmd = "mpiexec -np %d python %s" % (3, abs_script_name)
         result = os.system(cmd)
 
         assert_(result == 0)
@@ -202,6 +198,10 @@ if __name__=="__main__":
         suite = unittest.makeSuite(Test_parallel_sw_flow, 'test')
         runner.run(suite)
     else:
+
+        from anuga.utilities.parallel_abstraction import global_except_hook
+        import sys
+        sys.excepthook = global_except_hook
 
         #------------------------------------------
         # Run the sequential code on each processor
