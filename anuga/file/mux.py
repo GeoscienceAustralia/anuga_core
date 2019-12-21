@@ -1,6 +1,7 @@
 """
     Read a mux2 file.
 """
+from __future__ import absolute_import
 
 from anuga.utilities.numerical_tools import ensure_numeric
 import numpy as num     
@@ -35,7 +36,7 @@ def read_mux2_py(filenames,
                         extracted
     """
 
-    from urs_ext import read_mux2
+    from .urs_ext import read_mux2
 
     numSrc = len(filenames)
 

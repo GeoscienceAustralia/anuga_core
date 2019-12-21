@@ -1,3 +1,4 @@
+from future.utils import raise_
 import csv
 
 from anuga.anuga_exceptions import TitleValueError, \
@@ -86,7 +87,7 @@ class Exposure:
             except KeyError:
                 # maybe a warning..
                 msg = "Could not find location information."
-                raise TitleValueError, msg
+                raise_(TitleValueError, msg)
             else:
                 self._geospatial = Geospatial_data(data_points=points)
 
@@ -105,18 +106,18 @@ class Exposure:
         #check that 'other' is an instance of this class
         if isinstance(self, type(other)):
             result = cmp(self._attribute_dic, other._attribute_dic)
-            if result <> 0:
+            if result != 0:
                 return result
 
             # The order of the columns is important. Therefore..
             result = cmp(self._title_index_dic, other._title_index_dic)
-            if result <> 0:
+            if result != 0:
                 return result
             for self_ls, other_ls in map(None, self._attribute_dic,
                                          other._attribute_dic):
                 result = cmp(self._attribute_dic[self_ls],
                              other._attribute_dic[other_ls])
-                if result <> 0:
+                if result != 0:
                     return result
             return 0
         else:
@@ -134,9 +135,9 @@ class Exposure:
         time = [float(x) for x in time]
         """
 
-        if not self._attribute_dic.has_key(column_name):
+        if column_name not in self._attribute_dic:
             msg = 'There is no column called %s!' % column_name
-            raise TitleValueError, msg
+            raise_(TitleValueError, msg)
 
         return self._attribute_dic[column_name]
 
@@ -178,15 +179,15 @@ class Exposure:
         # sanity checks
         value_row_count = \
                 len(self._attribute_dic[self._title_index_dic.keys()[0]])
-        if len(column_values) <> value_row_count:
+        if len(column_values) != value_row_count:
             msg = 'The number of column values must equal the number of rows.'
-            raise DataMissingValuesError, msg
+            raise_(DataMissingValuesError, msg)
 
         # check new column name isn't already used, and we aren't overwriting
-        if self._attribute_dic.has_key(column_name):
+        if column_name in self._attribute_dic:
             if not overwrite:
                 msg = 'Column name %s already in use!' % column_name
-                raise TitleValueError, msg
+                raise_(TitleValueError, msg)
         else:
             # New title.  Add it to the title index.
             self._title_index_dic[column_name] = len(self._title_index_dic)

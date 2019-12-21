@@ -428,7 +428,7 @@ class Test_interpolate(unittest.TestCase):
                                 vals = interpolate2d(x, y, A, points,
                                                      mode='linear',
                                                      bounds_error=True)
-                            except Exception, e:
+                            except Exception as e:
                                 pass
                             else:
                                 msg = 'Should have raise bounds error'

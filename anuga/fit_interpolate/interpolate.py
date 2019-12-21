@@ -132,7 +132,7 @@ def interpolate(vertex_coordinates,
     if use_cache is True:
 		I = cache(Interpolate, args, kwargs, verbose=verbose)
     else:
-        I = apply(Interpolate, args, kwargs)    
+        I = Interpolate(*args, **kwargs)    
 
     # Call interpolate method with interpolation points
     result = I.interpolate_block(vertex_values, interpolation_points,
@@ -327,7 +327,7 @@ class Interpolate (FitInterpolate):
 
                 reuse_A = False
 
-                if self.interpolation_matrices.has_key(key):
+                if key in self.interpolation_matrices:
                     X, stored_points = self.interpolation_matrices[key]
                     if num.alltrue(stored_points == point_coordinates):
                         reuse_A = True                # Reuse interpolation matrix

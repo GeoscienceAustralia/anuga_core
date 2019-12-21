@@ -3,6 +3,7 @@
 """
 
 # external modules
+from future.utils import raise_
 import os
 import numpy as num
 
@@ -115,7 +116,7 @@ def sww2dem(name_in, name_out,
     if reduction is None:
         reduction = max
 
-    if quantity_formula.has_key(quantity):
+    if quantity in quantity_formula:
         quantity = quantity_formula[quantity]
 
     if number_of_decimal_places is None:
@@ -151,7 +152,7 @@ def sww2dem(name_in, name_out,
         # sww files don't have to have a geo_ref
         try:
             geo_reference = Geo_reference(NetCDFObject=fid)
-        except AttributeError, e:
+        except AttributeError as e:
             geo_reference = Geo_reference() # Default georef object
 
         xllcorner = geo_reference.get_xllcorner()
@@ -213,7 +214,7 @@ def sww2dem(name_in, name_out,
     if missing_vars:
         msg = ("In expression '%s', variables %s are not in the SWW file '%s'"
                % (quantity, str(missing_vars), name_in))
-        raise Exception, msg
+        raise_(Exception, msg)
 
     # Create result array and start filling, block by block.
     result = num.zeros(number_of_points, num.float)

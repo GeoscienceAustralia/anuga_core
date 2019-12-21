@@ -57,6 +57,7 @@ The format for a Points dictionary is:
 #  Needs to be defined
 
 
+from future.utils import raise_
 from string import  find, rfind
 from os.path import splitext
 import exceptions
@@ -93,11 +94,11 @@ def import_mesh_file(ofile):
             dict = _read_msh_file(ofile)
         else:
             msg = 'Extension .%s is unknown' % ofile[-4:]
-            raise IOError, msg
+            raise_(IOError, msg)
     #FIXME No test for ValueError
     except (TitleError, SyntaxError, IndexError, ValueError):
         msg = 'File %s could not be opened' % ofile
-        raise IOError, msg
+        raise_(IOError, msg)
     
     return dict
 
@@ -135,7 +136,7 @@ def export_mesh_file(ofile, mesh_dict):
         _write_msh_file(ofile, mesh_dict)
     else:
         msg = 'Unknown file type %s ' % ofile
-        raise IOError, msg
+        raise_(IOError, msg)
 
 
 def _read_tsh_file(ofile):
@@ -351,7 +352,7 @@ def _read_outline(fd):
                 regionmaxareas.append(None)
             else:
                 regionmaxareas.append(float(fragments[0]))
-        except (ValueError, IndexError), e:
+        except (ValueError, IndexError) as e:
             regionmaxareas.append(None)
 
     try:
@@ -380,12 +381,12 @@ def _write_ASCII_triangulation(fd, gen_dict):
 
     try:
         vertices_attribute_titles = gen_dict['vertex_attribute_titles']
-    except KeyError, e:
+    except KeyError as e:
         #FIXME is this the best way?
         if vertices_attributes == [] or vertices_attributes[0] == []:
             vertices_attribute_titles = []
         else:
-            raise KeyError, e
+            raise_(KeyError, e)
         
 
     triangles = gen_dict['triangles']
@@ -567,7 +568,7 @@ def _write_ASCII_outline(fd, dict):
         fd.write(str(i) + ' ' + area + '\n')
 
     # geo_reference info
-    if dict.has_key('geo_reference') and not dict['geo_reference'] is None:
+    if 'geo_reference' in dict and not dict['geo_reference'] is None:
         dict['geo_reference'].write_ASCII(fd)
 
 
@@ -636,7 +637,7 @@ def _write_msh_file(file_name, mesh):
         outfile = NetCDFFile(file_name, netcdf_mode_w)
     except IOError:
         msg = 'File %s could not be created' % file_name
-        raise Exception, msg
+        raise_(Exception, msg)
 
     #Create new file
     outfile.institution = 'Geoscience Australia'
@@ -772,7 +773,7 @@ def _write_msh_file(file_name, mesh):
             outfile.variables['region_tags'][:] = mesh['region_tags']
 
     # geo_reference info
-    if mesh.has_key('geo_reference') and not mesh['geo_reference'] is None:
+    if 'geo_reference' in mesh and not mesh['geo_reference'] is None:
         mesh['geo_reference'].write_NetCDF(outfile)
 
     outfile.close()
@@ -889,7 +890,7 @@ def _read_msh_file(file_name):
     try:
         geo_reference = Geo_reference(NetCDFObject=fid)
         mesh['geo_reference'] = geo_reference
-    except AttributeError, e:
+    except AttributeError as e:
         #geo_ref not compulsory
         mesh['geo_reference'] = None
 

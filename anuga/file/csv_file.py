@@ -11,6 +11,7 @@
 """
 
 
+from future.utils import raise_
 import csv
 import numpy as num
 import anuga.utilities.log as log
@@ -47,7 +48,7 @@ def load_csv_as_dict(file_name, title_check_list=None, delimiter=',',
     reader = csv.reader(file(file_name), delimiter=delimiter)
 
     # Read in and manipulate the title info
-    titles = reader.next()
+    titles = next(reader)
     for i, title in enumerate(titles):
         header = title.strip()
         titles_stripped.append(header)
@@ -57,9 +58,9 @@ def load_csv_as_dict(file_name, title_check_list=None, delimiter=',',
     # Check required columns
     if title_check_list is not None:
         for title_check in title_check_list:
-            if not title_index_dic.has_key(title_check):
+            if title_check not in title_index_dic:
                 msg = 'Reading error. This row is not present %s' % title_check
-                raise IOError, msg
+                raise_(IOError, msg)
 
 
     # Create a dictionary of column values, indexed by column title
@@ -68,7 +69,7 @@ def load_csv_as_dict(file_name, title_check_list=None, delimiter=',',
         if n < title_count:
             msg = 'Entry in file %s had %d columns ' % (file_name, n)
             msg += 'although there were %d headers' % title_count
-            raise IOError, msg
+            raise_(IOError, msg)
         for i, val in enumerate(line[:title_count]):  # skip trailing data
             attribute_dic.setdefault(titles_stripped[i], []).append(d_type(val))
 
@@ -156,7 +157,7 @@ def store_parameters(verbose=False, **kwargs):
         raise TypeError
 
     # is 'completed' in kwargs?
-    completed = kwargs.has_key('completed')
+    completed = 'completed' in kwargs
 
     # get file name and removes from dict and assert that a file_name exists
     if completed:
@@ -208,7 +209,7 @@ def store_parameters(verbose=False, **kwargs):
             file_header=header
         except:
             msg = 'cannot create new file: %s' % file
-            raise Exception, msg
+            raise_(Exception, msg)
 
     # if header is same or this is a new file
     if file_header == str(header):
@@ -352,7 +353,7 @@ def load_csv_as_polygons(file_name,
         # Check for duplicate polygons
         if poly_id in past_ids:
             msg = 'Polygon %s was duplicated in line %d' % (id, i)
-            raise Exception, msg
+            raise_(Exception, msg)
         
         if poly_id not in polygons:
             # Start new polygon

@@ -1,5 +1,6 @@
 
 
+from future.utils import raise_
 def esri2sww(bath_dir,
                   elevation_dir,
                   ucur_dir,
@@ -254,7 +255,7 @@ def esri2sww(bath_dir,
             if fail_on_NaN:
                 msg = 'File %s contains missing values' \
                       % (elevation_files[j])
-                raise DataMissingValuesError, msg
+                raise_(DataMissingValuesError, msg)
             else:
                 elevation_grid = elevation_grid*(missing==0) \
                                  + missing*elevation_NaN_filler

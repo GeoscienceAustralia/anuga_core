@@ -247,7 +247,7 @@ Parameters
             for j in range(6):
                 x = x0 + xvec[j]
                 xnew = x - 2002.0
-                if j <> 2 and (i<>1 or j<>4):
+                if j != 2 and (i!=1 or j!=4):
                     ref_points.append([x,y])
                     new_ref_points.append ([xnew,ynew])
 
@@ -381,7 +381,7 @@ Parameters
             for j in range(6):
                 x = x0 + xvec[j]
                 xnew = x - 2002.0
-                if j <> 2 and (i<>1 or j<>4) and i<>3:
+                if j != 2 and (i!=1 or j!=4) and i!=3:
                     ref_points.append([x,y])
                     new_ref_points.append ([xnew,ynew])
 

@@ -36,7 +36,7 @@ class Test_Advection(unittest.TestCase):
         domain = Advection_Domain(points, vertices)
         domain.check_integrity()
 
-        assert domain.quantities.has_key('stage')
+        assert 'stage' in domain.quantities
 
         assert domain.get_conserved_quantities(0, edge=1) == 0.
 

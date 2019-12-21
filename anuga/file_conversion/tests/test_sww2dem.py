@@ -1410,7 +1410,7 @@ class Test_Sww2Dem(unittest.TestCase):
 
         try:
             geo_reference = Geo_reference(NetCDFObject=fid)
-        except AttributeError, e:
+        except AttributeError as e:
             geo_reference = Geo_reference(DEFAULT_ZONE, 0, 0)
 
         # Export to ascii/prj files

@@ -18,6 +18,7 @@ components such as visualisation.
 Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
 Geoscience Australia, 2004
 """
+from __future__ import absolute_import
 
 
 #import logging, logging.config
@@ -161,7 +162,7 @@ class Advection_Domain(Generic_Domain):
         from anuga.config import max_timestep
 
 
-        huge_timestep = float(sys.maxint)
+        huge_timestep = float(sys.maxsize)
         Stage = self.quantities['stage']
 
         """
@@ -182,7 +183,7 @@ class Advection_Domain(Generic_Domain):
         log.critical("velocity=%s" % str(self.velocity))
         """
 
-        import advection_ext		
+        from . import advection_ext		
         self.flux_timestep = advection_ext.compute_fluxes(self, Stage, huge_timestep, max_timestep)
 
 
@@ -256,7 +257,7 @@ class Advection_Domain(Generic_Domain):
 
         #Loop
         for k in range(N):
-            optimal_timestep = float(sys.maxint)
+            optimal_timestep = float(sys.maxsize)
 
             flux[:] = 0.  #Reset work array
             for i in range(3):
