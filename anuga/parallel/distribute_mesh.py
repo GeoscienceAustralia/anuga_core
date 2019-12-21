@@ -62,7 +62,7 @@ def reorder(quantities, tri_index, proc_sum):
 
     # Temporary storage area
 
-    index = num.zeros(N, num.long)
+    index = num.zeros(N, num.int)
     q_reord = {}
 
     # Find the new ordering of the triangles
@@ -176,7 +176,7 @@ def pmesh_divide_metis_helper(domain, n_procs):
         # Sometimes (usu. on x86_64), partMeshNodal returns an array of zero
         # dimensional arrays. Correct this.
         if type(epart[0]) == num.ndarray:
-            epart_new = num.zeros(len(epart), num.long)
+            epart_new = num.zeros(len(epart), num.int)
             epart_new[:] = epart[:][0]
 #            for i in xrange(len(epart)):
 #                epart_new[i] = epart[i][0]
@@ -190,7 +190,7 @@ def pmesh_divide_metis_helper(domain, n_procs):
         msg += "Try using a smaller number of mpi processes."
         assert num.all(triangles_per_proc>0), msg
 
-        proc_sum = num.zeros(n_procs+1,num.long)
+        proc_sum = num.zeros(n_procs+1,num.int)
         proc_sum[1:] = num.cumsum(triangles_per_proc)
 
 
@@ -198,8 +198,8 @@ def pmesh_divide_metis_helper(domain, n_procs):
         epart_order = num.argsort(epart, kind='mergesort')
         new_triangles = domain.triangles[epart_order]
 
-        #new_r_tri_index_flat = num.zeros((n_tri,3), num.long)
-        new_tri_index = num.zeros((n_tri,2), num.long)
+        #new_r_tri_index_flat = num.zeros((n_tri,3), num.int)
+        new_tri_index = num.zeros((n_tri,2), num.int)
         for i in xrange(n_procs):
             ids = num.arange(proc_sum[i],proc_sum[i+1])
             eids = epart_order[ids]
@@ -410,7 +410,7 @@ def ghost_layer_old(submesh, mesh, p, tupper, tlower, parameters = None):
         layer_width = parameters['ghost_layer_width']
 
 
-    trianglemap = num.zeros(ntriangles, num.long)
+    trianglemap = num.zeros(ntriangles, num.int)
 
     # Find the first layer of boundary triangles
     for t in xrange(tlower, tupper):
@@ -455,7 +455,7 @@ def ghost_layer_old(submesh, mesh, p, tupper, tlower, parameters = None):
     # Build the triangle list and make note of the vertices
 
 
-    nodemap = num.zeros(ncoord, num.long)
+    nodemap = num.zeros(ncoord, num.int)
     fullnodes = submesh["full_nodes"][p]
 
     subtriangles = []
@@ -542,7 +542,7 @@ def ghost_layer(submesh, mesh, p, tupper, tlower, parameters = None):
 
 
     fullnodes = submesh["full_nodes"][p]
-    full_nodes_ids = num.array(fullnodes[:,0],num.long)
+    full_nodes_ids = num.array(fullnodes[:,0],num.int)
 
     new_nodes = num.unique(mesh.triangles[new_trianglemap].flat)
     new_nodes = numset.setdiff1d(new_nodes,full_nodes_ids)
@@ -717,7 +717,7 @@ def ghost_commun_pattern_old(subtri, p, tri_per_proc):
 
     # Loop over the ghost triangles
 
-    ghost_commun = num.zeros((len(subtri), 2), num.long)
+    ghost_commun = num.zeros((len(subtri), 2), num.int)
 
     for i in xrange(len(subtri)):
         global_no = subtri[i][0]
@@ -745,7 +745,7 @@ def ghost_commun_pattern_old_2(subtri, p, tri_per_proc_range):
 
     # Loop over the ghost triangles
 
-    ghost_commun = num.zeros((len(subtri), 2), num.long)
+    ghost_commun = num.zeros((len(subtri), 2), num.int)
 
     #print tri_per_proc_range
     #print tri_per_proc
@@ -1071,14 +1071,14 @@ def build_local_GA(nodes, triangles, boundaries, tri_map):
         if nodes[i][0] > NGlobal:
             NGlobal = nodes[i][0]
 
-    node_map = -1*num.ones(int(NGlobal)+1, num.long)
+    node_map = -1*num.ones(int(NGlobal)+1, num.int)
 
-    num.put(node_map, num.take(nodes, (0,), 1).astype(num.long), \
-        num.arange(Nnodes, dtype=num.long))
+    num.put(node_map, num.take(nodes, (0,), 1).astype(num.int), \
+        num.arange(Nnodes, dtype=num.int))
         
     # Change the global IDs in the triangles to the local IDs
 
-    GAtriangles = num.zeros((Ntriangles, 3), num.long)
+    GAtriangles = num.zeros((Ntriangles, 3), num.int)
     GAtriangles[:,0] = num.take(node_map, triangles[:,0])
     GAtriangles[:,1] = num.take(node_map, triangles[:,1])
     GAtriangles[:,2] = num.take(node_map, triangles[:,2])
@@ -1208,8 +1208,8 @@ def build_local_mesh(submesh, lower_t, upper_t, nproc):
         id = submesh["ghost_triangles"][i][0]
         if id > NGlobal:
             NGlobal = id
-    #index = num.zeros(int(NGlobal)+1, num.long)
-    tri_map = -1*num.ones(int(NGlobal)+1, num.long)
+    #index = num.zeros(int(NGlobal)+1, num.int)
+    tri_map = -1*num.ones(int(NGlobal)+1, num.int)
     tri_map[lower_t:upper_t]=num.arange(upper_t-lower_t)
     for i in xrange(len(submesh["ghost_triangles"])):
         tri_map[submesh["ghost_triangles"][i][0]] = i+upper_t-lower_t
@@ -1320,7 +1320,7 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
 
     # send the array sizes so memory can be allocated
 
-    setup_array = num.zeros((9,),num.long)
+    setup_array = num.zeros((9,),num.int)
     setup_array[0] = len(submesh["full_nodes"][p])
     setup_array[1] = len(submesh["ghost_nodes"][p])
     setup_array[2] = len(submesh["full_triangles"][p])
@@ -1331,17 +1331,17 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
     setup_array[7] = len(flat_full_commun)
     setup_array[8] = len(submesh["full_quan"])
 
-    x = num.array(setup_array, num.long)
+    x = num.array(setup_array, num.int)
     pypar.send(x, p, bypass=True)
 
 
     # ghost layer width
-    x = num.array(submesh["ghost_layer_width"][p], num.long)
+    x = num.array(submesh["ghost_layer_width"][p], num.int)
     pypar.send(x, p, bypass=True)
 
 
     # send the number of triangles per processor
-    x = num.array(triangles_per_proc, num.long)
+    x = num.array(triangles_per_proc, num.int)
     pypar.send(x, p, bypass=True)
 
     # send the nodes
@@ -1352,11 +1352,11 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
     pypar.send(x, p, bypass=True)
 
     # send the triangles
-    x = num.array(submesh["full_triangles"][p], num.long)
+    x = num.array(submesh["full_triangles"][p], num.int)
     pypar.send(x, p, bypass=True)
 
     # send ghost triangles
-    x = num.array(submesh["ghost_triangles"][p], num.long)
+    x = num.array(submesh["ghost_triangles"][p], num.int)
     pypar.send(x, p, bypass=True)
 
 
@@ -1365,7 +1365,7 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
     for b in submesh["full_boundary"][p]:
         bc.append([b[0], b[1], tagmap[submesh["full_boundary"][p][b]]])
 
-    x = num.array(bc, num.long)
+    x = num.array(bc, num.int)
     pypar.send(x, p, bypass=True)
 
 
@@ -1373,17 +1373,17 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
     for b in submesh["ghost_boundary"][p]:
         bc.append([b[0], b[1], tagmap[submesh["ghost_boundary"][p][b]]])
 
-    x = num.array(bc, num.long)
+    x = num.array(bc, num.int)
     pypar.send(x, p, bypass=True)
 
 
 
     # send the communication pattern
-    x = num.array(submesh["ghost_commun"][p], num.long)
+    x = num.array(submesh["ghost_commun"][p], num.int)
     pypar.send(x, p, bypass=True)
 
 
-    x = num.array(flat_full_commun, num.long)
+    x = num.array(flat_full_commun, num.int)
     pypar.send(x, p, bypass=True)
 
 
@@ -1438,7 +1438,7 @@ def rec_submesh_flat(p, verbose=True):
     qkeys = pypar.receive(p)
 
     # recieve information about the array sizes
-    x = num.zeros((9,),num.long)
+    x = num.zeros((9,),num.int)
     pypar.receive(p, buffer=x,  bypass=True)
     setup_array = x
 
@@ -1454,13 +1454,13 @@ def rec_submesh_flat(p, verbose=True):
 
     
     # ghost layer width
-    x = num.zeros((1,),num.long)
+    x = num.zeros((1,),num.int)
     pypar.receive(p, buffer=x,  bypass=True)
     submesh_cell["ghost_layer_width"] = x[0]
 
 
     # receive the number of triangles per processor
-    x = num.zeros((numprocs,),num.long)
+    x = num.zeros((numprocs,),num.int)
     pypar.receive(p, buffer=x,  bypass=True)
     triangles_per_proc = x
 
@@ -1476,20 +1476,20 @@ def rec_submesh_flat(p, verbose=True):
     submesh_cell["ghost_nodes"] = x
     
     # receive the full triangles
-    x = num.zeros((no_full_triangles,3),num.long)
+    x = num.zeros((no_full_triangles,3),num.int)
     pypar.receive(p, buffer=x,  bypass=True)
     submesh_cell["full_triangles"] = x
 
     
     # receive the ghost triangles
-    x = num.zeros((no_ghost_triangles,4),num.long)
+    x = num.zeros((no_ghost_triangles,4),num.int)
     pypar.receive(p, buffer=x,  bypass=True)
     submesh_cell["ghost_triangles"] = x
 
 
 
     # receive the full boundary
-    x = num.zeros((no_full_boundary,3),num.long)
+    x = num.zeros((no_full_boundary,3),num.int)
     pypar.receive(p, buffer=x,  bypass=True)
     bnd_c = x
 
@@ -1499,7 +1499,7 @@ def rec_submesh_flat(p, verbose=True):
 
 
     # receive the ghost boundary
-    x = num.zeros((no_ghost_boundary,3),num.long)
+    x = num.zeros((no_ghost_boundary,3),num.int)
     pypar.receive(p, buffer=x,  bypass=True)
     bnd_c = x
 
@@ -1508,13 +1508,13 @@ def rec_submesh_flat(p, verbose=True):
         submesh_cell["ghost_boundary"][b[0],b[1]]=itagmap[b[2]]
 
     # receive the ghost communication pattern
-    x = num.zeros((no_ghost_commun,2),num.long)
+    x = num.zeros((no_ghost_commun,2),num.int)
 
     pypar.receive(p, buffer=x,  bypass=True)
     submesh_cell["ghost_commun"] = x
     
     # receive the full communication pattern
-    x = num.zeros((no_full_commun,2),num.long)
+    x = num.zeros((no_full_commun,2),num.int)
     pypar.receive(p, buffer=x,  bypass=True)
     full_commun = x
 
