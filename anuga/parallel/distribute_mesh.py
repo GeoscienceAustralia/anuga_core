@@ -1341,7 +1341,7 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
 
 
     # send the number of triangles per processor
-    x = num.array(triangles_per_proc)
+    x = num.array(triangles_per_proc, num.long)
     pypar.send(x, p, bypass=True)
 
     # send the nodes
@@ -1379,7 +1379,7 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
 
 
     # send the communication pattern
-    x = submesh["ghost_commun"][p]
+    x = num.array(submesh["ghost_commun"][p], num.long)
     pypar.send(x, p, bypass=True)
 
 
@@ -1509,6 +1509,7 @@ def rec_submesh_flat(p, verbose=True):
 
     # receive the ghost communication pattern
     x = num.zeros((no_ghost_commun,2),num.long)
+
     pypar.receive(p, buffer=x,  bypass=True)
     submesh_cell["ghost_commun"] = x
     
