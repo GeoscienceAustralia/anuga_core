@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import unittest
 
@@ -783,15 +784,15 @@ class Test_Caching(unittest.TestCase):
       # verbose = False
 
       for i in range(2):
-        if verbose: print "clear cache"
+        if verbose: print("clear cache")
         a = cache(Dummy, 'clear')
         
-        if verbose: print "cache for first time"
+        if verbose: print("cache for first time")
         a = cache(Dummy, args=(9, 10), verbose=verbose)
         hash_value = myhash(a)
         
         # print "hash_value",hash_value 
-        if verbose: print "cache for second time"
+        if verbose: print("cache for second time")
         a = cache(Dummy, args=(9, 10), verbose=verbose)
         
         # print "myhash(a)",myhash(a) 
@@ -823,20 +824,20 @@ class Test_Caching(unittest.TestCase):
       for compression_store in [False, True]:
         for compression_retrieve in [False, True]:        
         
-          if verbose: print 'clear cache'
+          if verbose: print('clear cache')
           a = cache(Dummy, 'clear')
         
-          if verbose: print 'cache for first time'
+          if verbose: print('cache for first time')
           a_ref = cache(Dummy, args=(9, 10),
                         compression=compression_store,
                         verbose=verbose)
           
-          if verbose: print 'Check that cache is there'
+          if verbose: print('Check that cache is there')
           assert cache(Dummy, args=(9, 10), test=1,
                        compression=compression_retrieve,
                        verbose=verbose)
                        
-          if verbose: print 'Check cached result'
+          if verbose: print('Check cached result')
           a = cache(Dummy, args=(9, 10),
                     compression=compression_store,
                     verbose=verbose)                       

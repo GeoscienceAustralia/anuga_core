@@ -17,7 +17,7 @@ class NullStream:
     def write(self,text):
         pass
 sys.stdout = NullStream()
-import pypar
+from anuga.utilities import parallel_abstraction as pypar
 sys.stdout = sys.__stdout__
 
 
@@ -307,7 +307,7 @@ def run_simulation(parallel = False, control_data = None, test_points = None, ve
 class Test_parallel_boyd_pipe_op(unittest.TestCase):
     def test_parallel_operator(self):
         #print "Expect this test to fail if not run from the parallel directory."
-        result = os.system("mpirun -np %d python test_parallel_boyd_pipe_operator.py" % nprocs)
+        result = os.system("mpiexec -np %d python test_parallel_boyd_pipe_operator.py" % nprocs)
         assert_(result == 0)
 
 

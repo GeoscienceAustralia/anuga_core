@@ -227,7 +227,7 @@ class Test_parallel_riverwall(unittest.TestCase):
         if verbose : print "Expect this test to fail if not run from the parallel directory."
 
         abs_script_name = os.path.abspath(__file__)
-        cmd = "mpirun -np %d python %s" % (nprocs, abs_script_name)
+        cmd = "mpiexec -np %d python %s" % (3, abs_script_name)
         result = os.system(cmd)
         assert_(result == 0)
 
@@ -250,6 +250,11 @@ if __name__=="__main__":
         # and parallel values
         #------------------------------------------
         if myid ==0 and verbose: print 'PARALLEL START'
+
+        from anuga.utilities.parallel_abstraction import global_except_hook
+        import sys
+        sys.excepthook = global_except_hook
+
         run_simulation(parallel=True, verbose=verbose)
         finalize()
 

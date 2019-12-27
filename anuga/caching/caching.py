@@ -317,7 +317,7 @@ def cache(my_F,
   funcname = get_funcname(my_F)
 
   # Create cache filename
-  FN = funcname+'['+`arghash`+']'  # The symbol '(' does not work under unix
+  FN = funcname+'['+repr(arghash)+']'  # The symbol '(' does not work under unix
 
   if return_filename:
     return(FN)
@@ -1060,8 +1060,8 @@ def DeleteOldFiles(CD,verbose=None):
     delfiles = numfiles-maxfiles+block
     if verbose:
       log.critical('Deleting %d expired files:' % delfiles)
-      os.system('ls -lur '+CD+'* | head -' + `delfiles`)            # List them
-    os.system('ls -ur '+CD+'* | head -' + `delfiles` + ' | xargs /bin/rm')
+      os.system('ls -lur '+CD+'* | head -' + repr(delfiles))            # List them
+    os.system('ls -ur '+CD+'* | head -' + repr(delfiles) + ' | xargs /bin/rm')
                                                                   # Delete them
     # FIXME: Replace this with os.listdir and os.remove
 
@@ -1572,7 +1572,7 @@ def get_funcname(my_F):
   import string
 
   if type(my_F) == types.FunctionType:
-    funcname = my_F.func_name
+    funcname = my_F.__name__
   elif type(my_F) == types.BuiltinFunctionType:
     funcname = my_F.__name__
   else:
@@ -1602,11 +1602,11 @@ def get_bytecode(my_F):
   if type(my_F) == types.FunctionType:
     return get_func_code_details(my_F)
   elif type(my_F) == types.MethodType:
-    return get_func_code_details(my_F.im_func)
+    return get_func_code_details(my_F.__func__)
   elif type(my_F) == types.InstanceType:    
     if hasattr(my_F, '__call__'):
       # Get bytecode from __call__ method
-      bytecode = get_func_code_details(my_F.__call__.im_func)
+      bytecode = get_func_code_details(my_F.__call__.__func__)
       
       # Add hash value of object to detect attribute changes
       return bytecode + (myhash(my_F),) 
@@ -1617,9 +1617,9 @@ def get_bytecode(my_F):
   elif type(my_F) in [types.BuiltinFunctionType, types.BuiltinMethodType]:      
     # Built-in functions are assumed not to change  
     return None, 0, 0, 0
-  elif type(my_F) == types.ClassType:
+  elif isinstance(my_F, object):
       # Get bytecode from __init__ method
-      bytecode = get_func_code_details(my_F.__init__.im_func)    
+      bytecode = get_func_code_details(my_F.__init__.__func__)    
       return bytecode      
   else:
     msg = 'Unknown function type: %s' % type(my_F)
@@ -1632,10 +1632,10 @@ def get_func_code_details(my_F):
   """Extract co_code, co_consts, co_argcount, func_defaults
   """
   
-  bytecode = my_F.func_code.co_code
-  consts = my_F.func_code.co_consts
-  argcount = my_F.func_code.co_argcount    
-  defaults = my_F.func_defaults       
+  bytecode = my_F.__code__.co_code
+  consts = my_F.__code__.co_consts
+  argcount = my_F.__code__.co_argcount    
+  defaults = my_F.__defaults__       
   
   return bytecode, consts, argcount, defaults  
 
@@ -1711,7 +1711,7 @@ def filestat(FN):
     log.critical('Hack to get os.stat when files are too large')
 
     if unix:
-      tmp = '/tmp/cach.tmp.'+`time.time()`+`os.getpid()`
+      tmp = '/tmp/cach.tmp.'+repr(time.time())+repr(os.getpid())
       # Unique filename, FIXME: Use random number
 
       # Get size and access time (atime)
@@ -1855,7 +1855,7 @@ def addstatsline(CD, funcname, FN, Retrieved, reason, comptime, loadtime,
     log.critical('Warning: Stat file could not be opened')
 
   try:
-    if os.environ.has_key('USER'):
+    if 'USER' in os.environ:
       user = os.environ['USER']
     else:
       user = 'Nobody'
@@ -2119,7 +2119,7 @@ def UpdateDict(Dict, key, info):
     UpdateDict(Dict,key,info)
   """
 
-  if Dict.has_key(key):
+  if key in Dict:
     dinfo = Dict[key]
     for n in range(len(dinfo)):
       dinfo[n] = info[n] + dinfo[n]
@@ -2524,7 +2524,7 @@ def logtesterror(msg):
   log.critical()
   log.critical()
   
-  raise StandardError
+  raise Exception
 
 #-------------------------------------------------------------
 if __name__ == "__main__":

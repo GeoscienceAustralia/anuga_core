@@ -2,7 +2,7 @@
 """Test a run of the sequential shallow water domain against
 a run of the parallel shallow water domain.
 
-WARNING: This assumes that the command to run jobs is mpirun.
+WARNING: This assumes that the command to run jobs is mpiexec.
 Tested with MPICH and LAM (Ole)
 """
 
@@ -18,18 +18,7 @@ import sys
 
 import numpy as num
 
-
-
-#------------------------------------------
-# Import pypar without the initial output
-#------------------------------------------
-class NullStream:
-    def write(self,text):
-        pass
-sys.stdout = NullStream()
-import pypar
-sys.stdout = sys.__stdout__
-
+from anuga.utilities import parallel_abstraction as pypar
 
 #------------------------------------------
 # anuga imports
@@ -129,7 +118,7 @@ class Test_parallel_shallow_domain(unittest.TestCase):
         #print "Expect this test to fail if not run from the parallel directory."
         
         abs_script_name = os.path.abspath(__file__)
-        cmd = "mpirun -np %d python %s" % (nprocs, abs_script_name)
+        cmd = "mpiexec -np %d python %s" % (3, abs_script_name)
         result = os.system(cmd)
         
         assert_(result == 0)
@@ -148,6 +137,10 @@ if __name__=="__main__":
         suite = unittest.makeSuite(Test_parallel_shallow_domain, 'test')
         runner.run(suite)
     else:
+
+        from anuga.utilities.parallel_abstraction import global_except_hook
+        import sys
+        sys.excepthook = global_except_hook
 
         pypar.barrier()
         if myid ==0:

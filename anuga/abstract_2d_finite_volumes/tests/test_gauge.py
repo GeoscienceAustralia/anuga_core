@@ -118,7 +118,7 @@ point2, 0.5, 2.0, 9.0\n")
         point1_filename = 'gauge_point1.csv'
         point1_handle = open(point1_filename)
         point1_reader = reader(point1_handle)
-        point1_reader.next()
+        next(point1_reader)
 
         line=[]
         for i,row in enumerate(point1_reader):
@@ -137,7 +137,7 @@ point2, 0.5, 2.0, 9.0\n")
         point2_filename = 'gauge_point2.csv' 
         point2_handle = open(point2_filename)
         point2_reader = reader(point2_handle)
-        point2_reader.next()
+        next(point2_reader)
                         
         line=[]
         for i,row in enumerate(point2_reader):
@@ -195,7 +195,7 @@ point2, 0.5, 2.0\n")
         point1_filename = 'gauge_point1.csv'
         point1_handle = file(point1_filename)
         point1_reader = reader(point1_handle)
-        point1_reader.next()
+        next(point1_reader)
 
         line=[]
         for i,row in enumerate(point1_reader):
@@ -209,7 +209,7 @@ point2, 0.5, 2.0\n")
         point2_filename = 'gauge_point2.csv' 
         point2_handle = file(point2_filename)
         point2_reader = reader(point2_handle)
-        point2_reader.next()
+        next(point2_reader)
                         
         line=[]
         for i,row in enumerate(point2_reader):
@@ -265,7 +265,7 @@ point2, 0.5, 2.0, 9.0\n")
         point1_filename = 'gauge_point1.csv'
         point1_handle = file(point1_filename)
         point1_reader = reader(point1_handle)
-        point1_reader.next()
+        next(point1_reader)
 
         line=[]
         for i,row in enumerate(point1_reader):
@@ -279,7 +279,7 @@ point2, 0.5, 2.0, 9.0\n")
         point2_filename = 'gauge_point2.csv' 
         point2_handle = file(point2_filename)
         point2_reader = reader(point2_handle)
-        point2_reader.next()
+        next(point2_reader)
                         
         line=[]
         for i,row in enumerate(point2_reader):
@@ -382,7 +382,7 @@ point2, 4.5, 4.0, 9.0\n")
         point1_filename = 'gauge_point1.csv'
         point1_handle = open(point1_filename)
         point1_reader = reader(point1_handle)
-        point1_reader.next()
+        next(point1_reader)
 
         line=[]
         for i,row in enumerate(point1_reader):
@@ -396,7 +396,7 @@ point2, 4.5, 4.0, 9.0\n")
         point2_filename = 'gauge_point2.csv' 
         point2_handle = open(point2_filename)
         point2_reader = reader(point2_handle)
-        point2_reader.next()
+        next(point2_reader)
                         
         line=[]
         for i,row in enumerate(point2_reader):
@@ -445,7 +445,7 @@ point1, 2.5, 4.25, 3.0\n")
         point1_filename = 'gauge_point1.csv'
         point1_handle = file(point1_filename)
         point1_reader = reader(point1_handle)
-        point1_reader.next()
+        next(point1_reader)
 
         line=[]
         for i,row in enumerate(point1_reader):
@@ -506,7 +506,7 @@ point2, 0.5, 2.0\n")
         point1_filename = 'gauge_point1.csv'
         point1_handle = file(point1_filename)
         point1_reader = reader(point1_handle)
-        point1_reader.next()
+        next(point1_reader)
 
         line=[]
         for i,row in enumerate(point1_reader):
@@ -530,7 +530,7 @@ point2, 0.5, 2.0\n")
         point2_filename = 'gauge_point2.csv' 
         point2_handle = file(point2_filename)
         point2_reader = reader(point2_handle)
-        point2_reader.next()
+        next(point2_reader)
                         
         line=[]
         for i,row in enumerate(point2_reader):

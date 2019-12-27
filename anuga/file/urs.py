@@ -178,7 +178,7 @@ def calculate_boundary_points(boundary_polygon, zone, ll_lat,
                     verbose=verbose,
                     compression=False)
     else:
-        geo = apply(_calculate_boundary_points, args, kwargs)
+        geo = _calculate_boundary_points(*args, **kwargs)
 
     return geo
 

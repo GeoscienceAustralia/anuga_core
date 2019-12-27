@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 
+from __future__ import print_function
 import unittest
 import time
 import tempfile
@@ -880,7 +881,7 @@ class Test_Util(unittest.TestCase):
         interpolation_points = [[0,-20], [1,0], [0,1], [1.1, 3.14]] #, [10,-12.5]] - this point doesn't work WHY?
         interpolation_points = [[10,-12.5]]
             
-        print "len(interpolation_points)",len(interpolation_points) 
+        print("len(interpolation_points)",len(interpolation_points)) 
         F = file_function(filename + '.sww', domain,
                           quantities = domain.conserved_quantities,
                           interpolation_points = interpolation_points)
@@ -909,13 +910,13 @@ class Test_Util(unittest.TestCase):
                 else:
                     actual = (k*q1 + (6-k)*q0)/6
                 q = F(t, point_id=id)
-                print "############"
-                print "id, x, y ", id, x, y #k, t, q
-                print "t", t
+                print("############")
+                print("id, x, y ", id, x, y) #k, t, q
+                print("t", t)
                 #print ' ', q0
                 #print ' ', q1
-                print "q",q
-                print "actual", actual
+                print("q",q)
+                print("actual", actual)
                 #print
                 if q0 == NAN:
                      self.assertTrue( q == actual, 'Fail!')
@@ -1305,7 +1306,7 @@ class Test_Util(unittest.TestCase):
 
         Test that revision number can be retrieved.
         """
-        if os.environ.has_key('USER') and os.environ['USER'] == 'dgray':
+        if 'USER' in os.environ and os.environ['USER'] == 'dgray':
             # I have a known snv incompatability issue,
             # so I'm skipping this test.
             # FIXME when SVN is upgraded on our clusters

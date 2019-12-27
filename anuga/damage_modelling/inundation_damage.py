@@ -3,6 +3,8 @@
    Duncan Gray, Ole Nielsen, Jane Sexton, Nick Bartzis
    Geoscience Australia, 2006
 """
+from __future__ import absolute_import
+from future.utils import raise_
 import os
 from math import sqrt
 
@@ -37,7 +39,7 @@ except ImportError:
     
 
 from anuga.utilities.numerical_tools import ensure_numeric
-from exposure import Exposure
+from .exposure import Exposure
 from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.geospatial_data.geospatial_data import ensure_absolute
 from anuga.utilities.numerical_tools import NAN
@@ -168,7 +170,7 @@ def calc_max_depth_and_momentum(sww_base_name, points,
     if len(interate_over) == 0:
         msg = 'No files of the base name %s.'\
               %(sww_base_name)
-        raise IOError, msg
+        raise_(IOError, msg)
     from os import sep
 
     for this_sww_file in interate_over:

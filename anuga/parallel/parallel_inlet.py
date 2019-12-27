@@ -42,7 +42,7 @@ class Parallel_Inlet(Inlet):
         else:
             self.procs = procs
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
         self.myid = pypar.rank()
 
         self.compute_triangle_indices()
@@ -118,7 +118,7 @@ class Parallel_Inlet(Inlet):
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
         local_area = self.area
         area = local_area
 
@@ -159,7 +159,7 @@ class Parallel_Inlet(Inlet):
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
         local_stage = num.sum(self.get_stages()*self.get_areas())
         global_area = self.get_global_area()
 
@@ -200,7 +200,7 @@ class Parallel_Inlet(Inlet):
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
         local_elevation = num.sum(self.get_elevations()*self.get_areas())
         global_area = self.get_global_area()
 
@@ -241,7 +241,7 @@ class Parallel_Inlet(Inlet):
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
         global_area = self.get_global_area()
         local_xmoms = num.sum(self.get_xmoms()*self.get_areas())
         global_xmoms = local_xmoms
@@ -276,7 +276,7 @@ class Parallel_Inlet(Inlet):
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
         global_area = self.get_global_area()
         local_ymoms = num.sum(self.get_ymoms()*self.get_areas())
         global_ymoms = local_ymoms
@@ -310,7 +310,7 @@ class Parallel_Inlet(Inlet):
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
         local_volume = num.sum(self.get_depths()*self.get_areas())
         volume = local_volume
 
@@ -428,7 +428,7 @@ class Parallel_Inlet(Inlet):
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
         centroid_coordinates = self.domain.get_full_centroid_coordinates(absolute=True)
         areas = self.get_areas()
         stages = self.get_stages()
@@ -551,7 +551,7 @@ class Parallel_Inlet(Inlet):
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
 
         message = ''
 

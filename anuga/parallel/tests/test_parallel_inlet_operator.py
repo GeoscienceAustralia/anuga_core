@@ -19,16 +19,7 @@ import anuga
 import warnings
 warnings.simplefilter('ignore')
 
-#------------------------------------------
-# Import pypar without the initial output
-#------------------------------------------
-class NullStream:
-    def write(self,text):
-        pass
-sys.stdout = NullStream()
-import pypar
-sys.stdout = sys.__stdout__
-
+from anuga.utilities import parallel_abstraction as pypar
 
 from math import pi, pow, sqrt
 
@@ -271,7 +262,7 @@ class Test_parallel_frac_op(unittest.TestCase):
         #print "Expect this test to fail if not run from the parallel directory."
 
         abs_script_name = os.path.abspath(__file__)
-        cmd = "mpirun -np %d python %s" % (nprocs, abs_script_name)
+        cmd = "mpiexec -np %d python %s" % (3, abs_script_name)
         result = os.system(cmd)
         
         assert_(result == 0)
@@ -292,6 +283,11 @@ if __name__=="__main__":
         runner.run(suite)
     else:
         #print "Running for numproc > 1"
+
+        from anuga.utilities.parallel_abstraction import global_except_hook
+        import sys
+        sys.excepthook = global_except_hook
+
         pypar.barrier()
         test_points = []
 

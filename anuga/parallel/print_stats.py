@@ -18,7 +18,7 @@
 
 import sys
 
-import pypar
+from anuga.utilities import parallel_abstraction as pypar
 
 from numpy import array, zeros, ones, take, nonzero, float
 from anuga.utilities.norms import l1_norm, l2_norm, linf_norm

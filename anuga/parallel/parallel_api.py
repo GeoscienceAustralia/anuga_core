@@ -261,7 +261,7 @@ def old_distribute(domain, verbose=False, debug=False, parameters = None):
 
         def protocol(x):
             vanilla=False
-            import pypar
+            from anuga.utilities import parallel_abstraction as pypar
             control_info, x = pypar.create_control_info(x, vanilla, return_object=True)
             print 'protocol', control_info[0]
 

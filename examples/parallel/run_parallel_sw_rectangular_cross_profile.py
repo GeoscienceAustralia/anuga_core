@@ -3,7 +3,7 @@
 
    run using command like:
 
-   mpirun -np m python run_parallel_sw_rectangular_cross.py
+   mpiexec -np m python run_parallel_sw_rectangular_cross.py
 
    where m is the number of processors to be used.
    

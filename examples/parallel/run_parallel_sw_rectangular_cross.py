@@ -6,7 +6,7 @@
 #
 #  Run in parallel as follows (on 4 processors)
 #
-#  mpirun -np 4 python run_parallel_sw_rectangular_cross.py
+#  mpiexec -np 4 python run_parallel_sw_rectangular_cross.py
 #
 #  Note the use of "if myid == 0" to restrict some calculations 
 #  to just one processor, in particular the creation of a 

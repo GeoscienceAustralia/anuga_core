@@ -7,12 +7,13 @@
    Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou, James Hudson
    Geoscience Australia
 """
+from __future__ import absolute_import
 
 import numpy as num
 
 from anuga.geospatial_data.geospatial_data import ensure_absolute
-from util import check_list, calc_bearing
-from file_function import file_function
+from .util import check_list, calc_bearing
+from .file_function import file_function
 
 import os
 
@@ -142,7 +143,7 @@ def sww2csv_gauges(sww_file,
     
     try:
         point_reader = reader(file(gauge_file))
-    except Exception, e:
+    except Exception as e:
         msg = 'File "%s" could not be opened: Error="%s"' % (gauge_file, e)
         raise Exception(msg)
 
@@ -411,7 +412,7 @@ def _sww2timeseries(swwfiles,
     
     try:
         fid = open(gauge_filename)
-    except Exception, e:
+    except Exception as e:
         msg = 'File "%s" could not be opened: Error="%s"' % (gauge_filename, e)
         raise Exception(msg)
 
@@ -449,7 +450,7 @@ def _sww2timeseries(swwfiles,
     for swwfile in swwfiles.keys():
         try:
             fid = open(swwfile)
-        except Exception, e:
+        except Exception as e:
             msg = 'File "%s" could not be opened: Error="%s"' % (swwfile, e)
             raise Exception(msg)
 
@@ -515,7 +516,7 @@ def _sww2timeseries(swwfiles,
     if verbose and len(gauge_index) > 0:
          log.critical('Inputs OK - going to generate figures')
 
-    if len(gauge_index) <> 0:
+    if len(gauge_index) != 0:
         texfile, elev_output = \
             _generate_figures(plot_quantity, file_loc, report, reportname,
                              surface, leg_label, f_list, gauges, locations,

@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
 """Polygon manipulations"""
+from __future__ import print_function
+from __future__ import absolute_import
 
+from future.utils import raise_
 import numpy as num
 import math
 
@@ -10,7 +13,7 @@ from anuga.geospatial_data.geospatial_data import ensure_absolute, \
                                                     Geospatial_data
 import anuga.utilities.log as log
 
-from aabb import AABB
+from .aabb import AABB
 
 def point_on_line(point, line, rtol=1.0e-5, atol=1.0e-8):
     """Determine whether a point is on a line segment
@@ -66,7 +69,7 @@ def lines_overlap_opposite_direction2(p0, p1, p2, p3):
 
 # this function called when an impossible state is found
 def lines_error(p1, p2, p3, p4):
-    raise RuntimeError, ('INTERNAL ERROR: p1=%s, p2=%s, p3=%s, p4=%s'
+    raise RuntimeError('INTERNAL ERROR: p1=%s, p2=%s, p3=%s, p4=%s'
                          % (str(p1), str(p2), str(p3), str(p4)))
 
 collinear_result = {
@@ -380,9 +383,9 @@ def is_complex(polygon, closed=True, verbose=False):
                 if type != 0 and type != 4 and type != 3 or (type == 2 and list(point[0]) !=\
                                                 list(point[1])):
                     if verbose:
-                        print 'Self-intersecting polygon found, type ', type
-                        print 'point', point,
-                        print 'vertices: ', leftmost, ' - ', l_x[cmp]  
+                        print('Self-intersecting polygon found, type ', type)
+                        print('point', point, end=' ')
+                        print('vertices: ', leftmost, ' - ', l_x[cmp])  
                     return True            
             cmp += 1
         
@@ -420,25 +423,25 @@ def inside_polygon(points, polygon, closed=True, verbose=False):
 
     try:
         points = ensure_absolute(points)
-    except NameError, err:
-        raise NameError, err
+    except NameError as err:
+        raise_(NameError, err)
     except:
         # If this fails it is going to be because the points can't be
         # converted to a numeric array.
-        msg = 'Points could not be converted to numeric array' 
-        raise Exception, msg
+        msg = 'Points could not be converted to numeric array'
+        raise_(Exception, msg)
 
 
     try:
         polygon = ensure_absolute(polygon)
-    except NameError, e:
-        raise NameError, e
+    except NameError as e:
+        raise_(NameError, e)
     except:
         # If this fails it is going to be because the points can't be
         # converted to a numeric array.
         msg = ('Polygon %s could not be converted to numeric array'
                % (str(polygon)))
-        raise Exception, msg
+        raise_(Exception, msg)
 
     if len(points.shape) == 1:
         # Only one point was passed in. Convert to array of points
@@ -466,7 +469,7 @@ def is_outside_polygon(point, polygon, closed=True, verbose=False,
         return False
     else:
         msg = 'is_outside_polygon must be invoked with one point only'
-        raise Exception, msg
+        raise_(Exception, msg)
 
 def outside_polygon(points, polygon, closed = True, verbose = False):
     """Determine points outside a polygon
@@ -480,19 +483,19 @@ def outside_polygon(points, polygon, closed = True, verbose = False):
 
     try:
         points = ensure_numeric(points, num.float)
-    except NameError, e:
-        raise NameError, e
+    except NameError as e:
+        raise_(NameError, e)
     except:
         msg = 'Points could not be converted to numeric array'
-        raise Exception, msg
+        raise_(Exception, msg)
 
     try:
         polygon = ensure_numeric(polygon, num.float)
-    except NameError, e:
-        raise NameError, e
+    except NameError as e:
+        raise_(NameError, e)
     except:
         msg = 'Polygon could not be converted to numeric array'
-        raise Exception, msg
+        raise_(Exception, msg)
 
     if len(points.shape) == 1:
         # Only one point was passed in. Convert to array of points
@@ -519,19 +522,19 @@ def in_and_outside_polygon(points, polygon, closed=True, verbose=False):
 
     try:
         points = ensure_numeric(points, num.float)
-    except NameError, e:
-        raise NameError, e
+    except NameError as e:
+        raise_(NameError, e)
     except:
         msg = 'Points could not be converted to numeric array'
-        raise Exception, msg
+        raise_(Exception, msg)
 
     try:
         polygon = ensure_numeric(polygon, num.float)
-    except NameError, e:
-        raise NameError, e
+    except NameError as e:
+        raise_(NameError, e)
     except:
         msg = 'Polygon could not be converted to numeric array'
-        raise Exception, msg
+        raise_(Exception, msg)
 
     if len(points.shape) == 1:
         # Only one point was passed in. Convert to array of points
@@ -604,15 +607,15 @@ def separate_points_by_polygon(points, polygon,
 
         try:
             points = ensure_numeric(points, num.float)
-        except NameError, e:
-            raise NameError, e
+        except NameError as e:
+            raise_(NameError, e)
         except:
             msg = 'Points could not be converted to numeric array'
             raise Exception(msg)
 
         try:
             polygon = ensure_numeric(polygon, num.float)
-        except NameError, e:
+        except NameError as e:
             raise NameError(e)
         except:
             msg = 'Polygon could not be converted to numeric array'
@@ -802,12 +805,12 @@ def _poly_xy(polygon):
 
     try:
         polygon = ensure_numeric(polygon, num.float)
-    except NameError, err:
-        raise NameError, err
+    except NameError as err:
+        raise_(NameError, err)
     except:
         msg = ('Polygon %s could not be converted to numeric array'
                % (str(polygon)))
-        raise Exception, msg
+        raise_(Exception, msg)
 
     pts_x = num.concatenate((polygon[:, 0], [polygon[0, 0]]), axis = 0)
     pts_y = num.concatenate((polygon[:, 1], [polygon[0, 1]]), axis = 0)
@@ -849,8 +852,8 @@ def read_polygon(filename, delimiter=',', closed=True, verbose=False):
         msg += filename +'. A complex polygon will not '
         msg += 'necessarily break the algorithms within ANUGA, but it'
         msg += 'usually signifies pathological data. Please fix this file.'
-        raise Exception, msg
-    
+        raise_(Exception, msg)
+
     return polygon
 
 
@@ -1090,7 +1093,7 @@ def interpolate_polyline(data,
     if num_nodes == 1:
         assert_msg = 'Polyline contained only one point. I need more. '
         assert_msg += str(data)
-        raise Exception, assert_msg
+        raise_(Exception, assert_msg)
     elif num_nodes > 1:
         _interpolate_polyline(data,
                               polyline_nodes,
@@ -1123,12 +1126,12 @@ def polylist2points_verts(polylist):
 # Initialise module
 ################################################################################
 
-from polygon_ext import _point_on_line
-from polygon_ext import _separate_points_by_polygon
-from polygon_ext import _interpolate_polyline    
-from polygon_ext import _polygon_overlap
-from polygon_ext import _line_intersect
-from polygon_ext import _is_inside_triangle        
+from .polygon_ext import _point_on_line
+from .polygon_ext import _separate_points_by_polygon
+from .polygon_ext import _interpolate_polyline    
+from .polygon_ext import _polygon_overlap
+from .polygon_ext import _line_intersect
+from .polygon_ext import _is_inside_triangle        
 #from polygon_ext import _intersection
 
 

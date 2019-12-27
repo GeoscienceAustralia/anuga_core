@@ -1,6 +1,8 @@
 """ Classes to read an SWW file.
 """
+from __future__ import absolute_import
 
+from future.utils import raise_
 import exceptions
 class DataFileNotOpenError(exceptions.Exception): pass
 class DataMissingValuesError(exceptions.Exception): pass
@@ -19,7 +21,7 @@ from anuga.file.netcdf import NetCDFFile
 
 from anuga.config import minimum_storable_height as default_minimum_storable_height
 
-from sts import Write_sts
+from .sts import Write_sts
 
 from anuga.coordinate_transforms.geo_reference import \
         ensure_geo_reference
@@ -264,7 +266,7 @@ class SWW_file(Data_format):
 
         if not file_open:
             msg = 'File %s could not be opened for append' % self.filename
-            raise DataFileNotOpenError, msg
+            raise_(DataFileNotOpenError, msg)
 
         # Check to see if the file is already too big:
         time = fid.variables['time'][:]
@@ -885,10 +887,10 @@ class Write_sww(Write_sts):
         # This method will also write the ranges for each quantity,
         # e.g. stage_range, xmomentum_range and ymomentum_range
         for q in self.static_quantities:
-            if not quant.has_key(q):
+            if q not in quant:
                 msg = 'Values for quantity %s was not specified in ' % q
                 msg += 'store_quantities so they cannot be stored.'
-                raise NewQuantity, msg
+                raise_(NewQuantity, msg)
             else:
                 q_values = ensure_numeric(quant[q])
 
@@ -937,10 +939,10 @@ class Write_sww(Write_sts):
         #print self.static_c_quantities
 
         for q in self.static_c_quantities:
-            if not quant.has_key(q):
+            if q not in quant:
                 msg = 'Values for quantity %s was not specified in ' % q
                 msg += 'store_quantities so they cannot be stored.'
-                raise NewQuantity, msg
+                raise_(NewQuantity, msg)
             else:
                 q_values = ensure_numeric(quant[q])
 
@@ -1003,10 +1005,10 @@ class Write_sww(Write_sts):
         # This method will also write the ranges for each quantity,
         # e.g. stage_range, xmomentum_range and ymomentum_range
         for q in self.dynamic_quantities:
-            if not quant.has_key(q):
+            if q not in quant:
                 msg = 'Values for quantity %s was not specified in ' % q
                 msg += 'store_quantities so they cannot be stored.'
-                raise NewQuantity, msg
+                raise_(NewQuantity, msg)
             else:
                 q_values = ensure_numeric(quant[q])
 
@@ -1073,10 +1075,10 @@ class Write_sww(Write_sts):
         #print self.dynamic_c_quantities
 
         for q in self.dynamic_c_quantities:
-            if not quant.has_key(q):
+            if q not in quant:
                 msg = 'Values for quantity %s was not specified in ' % q
                 msg += 'store_quantities so they cannot be stored.'
-                raise NewQuantity, msg
+                raise_(NewQuantity, msg)
             else:
                 q_values = ensure_numeric(quant[q])
 
@@ -1244,11 +1246,11 @@ def load_sww_as_domain(filename, boundary=None, t=None,
 
     try:
         domain = Domain(coordinates, volumes, boundary, starttime=(float(starttime) + float(t)))
-    except AssertionError, e:
+    except AssertionError as e:
         fid.close()
         msg = 'Domain could not be created: %s. ' \
               'Perhaps use "fail_if_NaN=False and NaN_filler = ..."' % e
-        raise DataDomainError, msg
+        raise_(DataDomainError, msg)
 
     if not boundary is None:
         domain.boundary = boundary
@@ -1272,7 +1274,7 @@ def load_sww_as_domain(filename, boundary=None, t=None,
         if max(X) == NaN or min(X) == NaN:
             if fail_if_NaN:
                 msg = 'quantity "%s" contains no_data entry' % quantity
-                raise DataMissingValuesError, msg
+                raise_(DataMissingValuesError, msg)
             else:
                 data = (X != NaN)
                 X = (X*data) + (data==0)*NaN_filler
@@ -1297,7 +1299,7 @@ def load_sww_as_domain(filename, boundary=None, t=None,
         if max(X) == NaN or min(X) == NaN:
             if fail_if_NaN:
                 msg = 'quantity "%s" contains no_data entry' % quantity
-                raise DataMissingValuesError, msg
+                raise_(DataMissingValuesError, msg)
             else:
                 data = (X != NaN)
                 X = (X*data) + (data==0)*NaN_filler
@@ -1379,10 +1381,10 @@ def get_mesh_and_quantities_from_file(filename,
 
     try:
         mesh = Mesh(nodes, triangles, boundary, geo_reference=geo_reference)
-    except AssertionError, e:
+    except AssertionError as e:
         fid.close()
         msg = 'Domain could not be created: %s. "' % e
-        raise DataDomainError, msg
+        raise_(DataDomainError, msg)
 
 
 
@@ -1478,8 +1480,8 @@ def get_time_interp(time, t=None):
         msg = 'Time interval derived from file %s [%s:%s]' \
               % ('FIXMEfilename', T[0], T[-1])
         msg += ' does not match model time: %s' % tau
-        if tau < time[0]: raise DataTimeError, msg
-        if tau > time[-1]: raise DataTimeError, msg
+        if tau < time[0]:raise_(DataTimeError, msg)
+        if tau > time[-1]:raise_(DataTimeError, msg)
         while tau > time[index]: index += 1
         while tau < time[index]: index -= 1
         if tau == time[index]:
@@ -1529,7 +1531,7 @@ def weed(coordinates, volumes, boundary=None):
     same_point = {}
     for i in range(len(coordinates)):
         point = tuple(coordinates[i])
-        if point_dict.has_key(point):
+        if point in point_dict:
             unique = True
             same_point[i] = point
             #to change all point i references to point j
@@ -1560,10 +1562,10 @@ def weed(coordinates, volumes, boundary=None):
             #FIXME should the bounday attributes be concaterated
             #('exterior, pond') or replaced ('pond')(peter row)
 
-            if new_boundary.has_key((point0, point1)):
+            if (point0, point1) in new_boundary:
                 new_boundary[(point0,point1)] = new_boundary[(point0, point1)]
 
-            elif new_boundary.has_key((point1, point0)):
+            elif (point1, point0) in new_boundary:
                 new_boundary[(point1,point0)] = new_boundary[(point1, point0)]
             else: new_boundary[(point0, point1)] = label
 

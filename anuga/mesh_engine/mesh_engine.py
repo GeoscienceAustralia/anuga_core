@@ -49,7 +49,7 @@ def generate_mesh(points=None,
     except ValueError:
         msg = 'ERROR: Inconsistent points array.'
         raise ANUGAError(msg)
-    if points.shape[1] <>2:
+    if points.shape[1] !=2:
         msg = 'ERROR: Bad shape points array.'
         raise ANUGAError(msg)
 
@@ -93,7 +93,7 @@ def generate_mesh(points=None,
         msg = 'ERROR: Inconsistent point attributes array.'
         raise ANUGAError(msg)
 
-    if pointatts.shape[0] <> points.shape[0]:
+    if pointatts.shape[0] != points.shape[0]:
         msg = """ERROR: Point attributes array not the same shape as
         point array."""
         raise ANUGAError(msg)
@@ -105,7 +105,7 @@ def generate_mesh(points=None,
     except ValueError:
         msg = 'ERROR: Inconsistent point attributes array.'
         raise ANUGAError(msg)
-    if segatts.shape[0] <> segments.shape[0]:
+    if segatts.shape[0] != segments.shape[0]:
         msg = """ERROR: Segment attributes array not the same shape as
         segment array."""
         raise ANUGAError(msg)

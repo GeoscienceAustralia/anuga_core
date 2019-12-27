@@ -17,6 +17,7 @@ we have an intuitive description of what is called the alpha-shape.
 
 Author: Vanessa Robins, ANU
 """
+from __future__ import print_function
 
 import exceptions
 import random
@@ -75,7 +76,7 @@ class Alpha_Shape:
           points: List of coordinate pairs [[x1, y1],[x2, y2]..] 
         """
         if len (points) <= 2:
-            raise PointError, "Too few points to find an alpha shape"
+            raise PointError("Too few points to find an alpha shape")
         if len(points)==3:
             #check not in a straight line
             # FIXME check points 1,2,3 if straingt, check if points 2,3,4, ect
@@ -85,7 +86,7 @@ class Alpha_Shape:
             y12 = points[1][1] - points[2][1]
             crossprod = x01*y12 - x12*y01
             if crossprod==0:
-                raise PointError, "Three points on a straight line"
+                raise PointError("Three points on a straight line")
         
         #Convert input to numeric arrays
         self.points = num.array(points, num.float)
@@ -486,7 +487,7 @@ class Alpha_Shape:
         # end edge loop
 
         if vptr.count(EMPTY):
-            raise FlagError, "We didn't hit all the vertices in the boundary"
+            raise FlagError("We didn't hit all the vertices in the boundary")
         
         # discard the edges in the little components
         # (i.e. those components with less than 'small' fraction of bdry points)
@@ -641,7 +642,7 @@ if __name__ == "__main__":
     import os, sys
     usage = "usage: %s point_file.csv boundary_file.bnd [alpha]"%os.path.basename(sys.argv[0])
     if len(sys.argv) < 3:
-        print usage
+        print(usage)
     else:
         point_file = sys.argv[1]
         boundary_file = sys.argv[2]

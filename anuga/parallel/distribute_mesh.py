@@ -1074,7 +1074,7 @@ def build_local_GA(nodes, triangles, boundaries, tri_map):
     node_map = -1*num.ones(int(NGlobal)+1, num.int)
 
     num.put(node_map, num.take(nodes, (0,), 1).astype(num.int), \
-        num.arange(Nnodes))
+        num.arange(Nnodes, dtype=num.int))
         
     # Change the global IDs in the triangles to the local IDs
 
@@ -1282,7 +1282,7 @@ def build_local_mesh(submesh, lower_t, upper_t, nproc):
 
 def send_submesh(submesh, triangles_per_proc, p, verbose=True):
 
-    import pypar
+    from anuga.utilities import parallel_abstraction as pypar
     
     myid = pypar.rank()
     nprocs = pypar.size()
@@ -1341,7 +1341,7 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
 
 
     # send the number of triangles per processor
-    x = num.array(triangles_per_proc)
+    x = num.array(triangles_per_proc, num.int)
     pypar.send(x, p, bypass=True)
 
     # send the nodes
@@ -1379,7 +1379,7 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
 
 
     # send the communication pattern
-    x = submesh["ghost_commun"][p]
+    x = num.array(submesh["ghost_commun"][p], num.int)
     pypar.send(x, p, bypass=True)
 
 
@@ -1417,7 +1417,7 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
 
 def rec_submesh_flat(p, verbose=True):
 
-    import pypar
+    from anuga.utilities import parallel_abstraction as pypar
     
     numprocs = pypar.size()
     myid = pypar.rank()
@@ -1509,6 +1509,7 @@ def rec_submesh_flat(p, verbose=True):
 
     # receive the ghost communication pattern
     x = num.zeros((no_ghost_commun,2),num.int)
+
     pypar.receive(p, buffer=x,  bypass=True)
     submesh_cell["ghost_commun"] = x
     
@@ -1561,7 +1562,7 @@ def rec_submesh_flat(p, verbose=True):
 
 def rec_submesh(p, verbose=True):
 
-    import pypar
+    from anuga.utilities import parallel_abstraction as pypar
     
     numproc = pypar.size()
     myid = pypar.rank()

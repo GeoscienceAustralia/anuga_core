@@ -30,9 +30,9 @@ def run_script(script, args=None, np=1, alg=None, verbose=False, allow_parallel=
     try:
         if np>1 and allow_parallel:
             if verbose:
-                cmd = 'mpirun -np %s python %s -alg %s -v ' % (str(np), script,  str(alg))
+                cmd = 'mpiexec -np %s python %s -alg %s -v ' % (str(np), script,  str(alg))
             else:
-                cmd = 'mpirun -np %s python %s -alg %s' % (str(np), script, str(alg))
+                cmd = 'mpiexec -np %s python %s -alg %s' % (str(np), script, str(alg))
                 
             if verbose:
                 print 50*'='

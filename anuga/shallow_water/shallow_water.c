@@ -340,8 +340,7 @@ int _flux_function_central(double *q_left, double *q_right,
 
 
     if (fabs(z_left - z_right) > 1.0e-10) {
-                report_python_error(AT, "Discontinuous Elevation");
-                return 0.0;
+                return -1; // Discontinuous Elevation
             }
     z = 0.5 * (z_left + z_right); // Average elevation values.
     // Even though this will nominally allow
@@ -481,12 +480,6 @@ int _flux_function_central_discontinuous(double *q_left, double *q_right,
     // Align x- and y-momentum with x-axis
     _rotate(q_left_rotated, n1, n2);
     _rotate(q_right_rotated, n1, n2);
-
-
-    //if (fabs(z_left - z_right) > 1.0e-10) {
-    //            report_python_error(AT, "Discontinuous Elevation");
-    //            return 0.0;
-    //        }
 
     z_star = max(z_left, z_right);
     // Audusse's discontinuous method
@@ -1879,7 +1872,6 @@ int _extrapolate_second_order_sw_old(int number_of_elements,
             // Default to zero gradient
             if (area2 <= 0) {
                 //printf("Error negative triangle area \n");
-                //report_python_error(AT, "Negative triangle area");
                 //return -1;
 
                 stage_vertex_values[k3] = stage_centroid_values[k];
@@ -2072,8 +2064,7 @@ int _extrapolate_second_order_sw_old(int number_of_elements,
 
             if ((k2 == k3 + 3)) {
                 // If we didn't find an internal neighbour
-                report_python_error(AT, "Internal neighbour not found");
-                return -1;
+                return -1; // Internal neighbour not found
             }
 
             k1 = surrogate_neighbours[k2];
@@ -2484,7 +2475,6 @@ int _extrapolate_second_order_sw(int number_of_elements,
             // Default to zero gradient
             if (area2 <= 0) {
                 //printf("Error negative triangle area \n");
-                //report_python_error(AT, "Negative triangle area");
                 //return -1;
 
                 stage_vertex_values[k3] = stage_centroid_values[k];
@@ -2677,7 +2667,6 @@ int _extrapolate_second_order_sw(int number_of_elements,
 
             if ((k2 == k3 + 3)) {
                 // If we didn't find an internal neighbour
-                report_python_error(AT, "Internal neighbour not found");
                 return -1;
             }
 
@@ -3108,7 +3097,6 @@ int _extrapolate_second_order_edge_sw(struct domain *D) {
       if (area2 <= 0)
       {
           //printf("Error negative triangle area \n");
-          //report_python_error(AT, "Negative triangle area");
           //return -1;
 
           stage_edge_values[k3]   = stage_centroid_values[k];
@@ -3308,7 +3296,6 @@ int _extrapolate_second_order_edge_sw(struct domain *D) {
       if ((k2 == k3 + 3))
       {
         // If we didn't find an internal neighbour
-        report_python_error(AT, "Internal neighbour not found");
         return -1;
       }
 
@@ -3622,8 +3609,7 @@ double _compute_fluxes_central(int number_of_elements,
 
 
             if (fabs(zl - zr) > 1.0e-10) {
-                report_python_error(AT, "Discontinuous Elevation");
-                return 0.0;
+                return -1; // Discontinuous Elevation
             }
 
             // Outward pointing normal vector (domain.normals[k, 2*i:2*i+2])
@@ -3795,12 +3781,7 @@ double _compute_fluxes_central_structure(struct domain *D) {
             }
 
 
-/*
-            if (fabs(zl - zr) > 1.0e-10) {
-                report_python_error(AT, "Discontinuous Elevation");
-                return 0.0;
-            }
-*/
+
 
             // Outward pointing normal vector (domain.normals[k, 2*i:2*i+2])
             ki2 = 2 * ki; //k*6 + i*2
@@ -4015,8 +3996,7 @@ double _compute_fluxes_central_wb(struct domain *D) {
 
 
             if (fabs(zl - zr) > 1.0e-10) {
-                report_python_error(AT, "Discontinuous Elevation");
-                return 0.0;
+                return -1; // Discontinuous Elevation
             }
 
             // Outward pointing normal vector (domain.normals[k, 2*i:2*i+2])
@@ -4233,8 +4213,7 @@ double _compute_fluxes_central_wb_3(struct domain *D) {
 
 
             if (fabs(E_left.z - E_right.z) > 1.0e-10) {
-                report_python_error(AT, "Discontinuous Elevation");
-                return 0.0;
+                return -1.0; // Discontinuous Elevation
             }
 
             // Outward pointing normal vector (domain.normals[k, 2*i:2*i+2])

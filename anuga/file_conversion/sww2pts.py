@@ -77,7 +77,7 @@ def sww2pts(name_in, name_out=None,
         # sww files don't have to have a geo_ref
         try:
             geo_reference = Geo_reference(NetCDFObject=fid)
-        except AttributeError, e:
+        except AttributeError as e:
             geo_reference = Geo_reference() # Default georef object
 
         xllcorner = geo_reference.get_xllcorner()

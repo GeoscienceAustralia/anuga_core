@@ -1,3 +1,5 @@
+from __future__ import print_function
+from future.utils import raise_
 import numpy as num
 import unittest
 import tempfile
@@ -311,7 +313,7 @@ class Test_Urs2Sts(Test_Mux):
                 for i in range(len(urs_stage)):
                     if urs_stage[i] == 0.0:
                         index_start_urs_z = i+1
-                    if int(urs_stage[i]) == 99 and count <> 1:
+                    if int(urs_stage[i]) == 99 and count != 1:
                         count +=1
                         index_end_urs_z = i
 
@@ -348,10 +350,10 @@ class Test_Urs2Sts(Test_Mux):
                 count = 0
                 sts_stage = quantities['stage'][:,j]
                 for i in range(len(sts_stage)):
-                    if sts_stage[i] <> 0.0 and count <> 1:
+                    if sts_stage[i] != 0.0 and count != 1:
                         count += 1
                         index_start_stage = i
-                    if int(sts_stage[i]) == 99 and count <> 1:
+                    if int(sts_stage[i]) == 99 and count != 1:
                         count += 1
                         index_end_stage = i
 
@@ -478,7 +480,7 @@ class Test_Urs2Sts(Test_Mux):
             for i in range(len(urs_stage)):
                 if urs_stage[i] == 0.0:
                     index_start_urs_z = i+1
-                if int(urs_stage[i]) == 99 and count <> 1:
+                if int(urs_stage[i]) == 99 and count != 1:
                     count +=1
                     index_end_urs_z = i
 
@@ -516,10 +518,10 @@ class Test_Urs2Sts(Test_Mux):
             count1 = 0
             sts_stage = quantities['stage'][:,j]
             for i in range(len(sts_stage)):
-                if sts_stage[i] <> 0.0 and count <> 1:
+                if sts_stage[i] != 0.0 and count != 1:
                     count += 1
                     index_start_stage = i
-                if int(urs_stage[i]) == 99 and count <> 1:
+                if int(urs_stage[i]) == 99 and count != 1:
                     count +=1
                     index_end_stage = i
                 
@@ -815,7 +817,7 @@ class Test_Urs2Sts(Test_Mux):
             pass
         else:
             msg = 'Should have caught wrong lat longs'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         
         self.delete_mux(filesI)
@@ -2113,11 +2115,11 @@ class Test_Urs2Sts(Test_Mux):
                                time_limit=-1+starttime,
                                boundary_polygon=boundary_polygon)            
             time_vec = Bf.F.get_time()    
-            print time_vec    
+            print(time_vec)    
         except AssertionError:
             pass
         else:
-            raise Exception, 'Should have raised Exception here'
+            raise Exception('Should have raised Exception here')
 
 #-------------------------------------------------------------
 

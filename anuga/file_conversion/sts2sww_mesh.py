@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import numpy as num
 from anuga.file.netcdf import NetCDFFile
@@ -21,7 +22,7 @@ def sts2sww_mesh(basename_in, basename_out=None,
     from anuga.mesh_engine.mesh_engine import NoTrianglesError
     from anuga.pmesh.mesh import Mesh
     if verbose:
-        print "Starting sts2sww_mesh"
+        print("Starting sts2sww_mesh")
     
     mean_stage=0.
     zscale=1.
@@ -31,7 +32,7 @@ def sts2sww_mesh(basename_in, basename_out=None,
     else: 
         stsname = basename_in + '.sts'
 
-    if verbose: print "Reading sts NetCDF file: %s" %stsname
+    if verbose: print("Reading sts NetCDF file: %s" %stsname)
     infile = NetCDFFile(stsname, netcdf_mode_r)
     cellsize = infile.cellsize
     ncols = infile.ncols
@@ -68,8 +69,8 @@ def sts2sww_mesh(basename_in, basename_out=None,
     wind_angle = num.empty((number_of_timesteps,number_of_points),dtype=float)
     barometric_pressure   = num.empty((number_of_timesteps,number_of_points),dtype=float)
     if verbose:
-        print "Total number of points: ", nrows*ncols
-        print "Number of thinned points: ", number_of_points
+        print("Total number of points: ", nrows*ncols)
+        print("Number of thinned points: ", number_of_points)
     for i in xrange(number_of_timesteps):
         wind_speed[i] = wind_speed_full[i,thinned_indices]
         wind_angle[i] = wind_angle_full[i,thinned_indices]
@@ -79,7 +80,7 @@ def sts2sww_mesh(basename_in, basename_out=None,
     #P.show()
 
     if verbose:
-        print "Generating sww triangulation of gems data"
+        print("Generating sww triangulation of gems data")
 
     mesh = Mesh()
     mesh.add_vertices(points_utm)
@@ -109,7 +110,7 @@ def sts2sww_mesh(basename_in, basename_out=None,
     if verbose: 'Output to %s' % swwname
 
     if verbose:
-        print "Writing sww wind and pressure field file"
+        print("Writing sww wind and pressure field file")
     outfile = NetCDFFile(swwname, netcdf_mode_w)
     sww = Write_sww([], ['wind_speed','wind_angle','barometric_pressure'])
     sww.store_header(outfile, times, len(volumes), len(points_utm),
@@ -122,7 +123,7 @@ def sts2sww_mesh(basename_in, basename_out=None,
                             verbose=verbose)
 
     if verbose: 
-        print 'Converting quantities'
+        print('Converting quantities')
     
     # Read in a time slice from the sts file and write it to the SWW file
 

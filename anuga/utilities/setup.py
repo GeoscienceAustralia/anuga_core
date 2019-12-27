@@ -17,7 +17,7 @@ def configuration(parent_package='',top_path=None):
     config.add_data_dir(join('tests','data'))
 
     config.add_extension('sparse_ext',
-                         sources='sparse_ext.c')
+                         sources='sparse_ext.pyx')
 
     config.add_extension('sparse_matrix_ext',
                          sources=['sparse_matrix_ext.pyx'])

@@ -23,7 +23,7 @@ from anuga.parallel import distribute, myid, numprocs, finalize
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 
 #from parallel_operator_factory import Inlet_operator, Boyd_box_operator
-import pypar
+from anuga.utilities import parallel_abstraction as pypar
 import random
 
 

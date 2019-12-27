@@ -154,7 +154,7 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
 
     def discharge_routine_explicit(self):
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
 
         local_debug = False
         
@@ -307,7 +307,7 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
 
         """
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
 
         local_debug = False
         

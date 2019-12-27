@@ -1,3 +1,4 @@
+from future.utils import raise_
 import numpy as num
 import anuga.utilities.log as log
 from anuga.file.netcdf import NetCDFFile
@@ -204,9 +205,9 @@ class Write_sts:
         # other quantities will be ignored, silently.
         # Also write the ranges: stage_range
         for q in Write_sts.sts_quantities:
-            if not quant.has_key(q):
+            if q not in quant:
                 msg = 'STS file can not write quantity %s' % q
-                raise Exception, msg
+                raise_(Exception, msg)
             else:
                 q_values = quant[q]
                 outfile.variables[q][slice_index] = \

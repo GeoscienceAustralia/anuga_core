@@ -2,8 +2,9 @@
 
 Manipulation of locations on the planet and associated attributes.
 """
+from __future__ import print_function
 
-from sys import maxint
+from sys import maxsize
 from os import access, F_OK, R_OK,remove
 from types import DictType
 from warnings import warn
@@ -384,7 +385,7 @@ class Geospatial_data:
             log.critical('Geospatial_data: Available attributes: %s' % (self.attributes.keys()))
 
         msg = 'Attribute name %s does not exist in data set' % attribute_name
-        assert self.attributes.has_key(attribute_name), msg
+        assert attribute_name in self.attributes, msg
 
         return self.attributes[attribute_name]
 
@@ -432,7 +433,7 @@ class Geospatial_data:
             else:
                 new_attributes = {}
                 for x in self.attributes.keys():
-                    if other.attributes.has_key(x):
+                    if x in other.attributes:
                         attrib1 = self.attributes[x]
                         attrib2 = other.attributes[x]
                         new_attributes[x] = num.concatenate((attrib1, attrib2),
@@ -477,19 +478,19 @@ class Geospatial_data:
             try:
                 data_points, attributes, geo_reference = \
                              _read_pts_file(file_name, verbose)
-            except IOError, e:
+            except IOError as e:
                 msg = 'Could not open file %s ' % file_name
                 raise IOError(msg)
         elif file_name[-4:] == ".txt" or file_name[-4:]== ".csv":
             try:
                 data_points, attributes, geo_reference = \
                              _read_csv_file(file_name, verbose)
-            except IOError, e:
+            except IOError as e:
                 # This should only be if a file is not found
                 msg = ('Could not open file %s. Check the file location.'
                        % file_name)
                 raise IOError(msg)
-            except SyntaxError, e:
+            except SyntaxError as e:
                 # This should only be if there is a format error
                 msg = ('Problem with format of file %s.\n%s'
                        % (file_name, Error_message['IOError']))
@@ -886,7 +887,7 @@ def _read_pts_file(file_name, verbose=False):
 
     try:
         keys.remove('points')
-    except IOError, e:
+    except IOError as e:
         fid.close()
         msg = "Expected keyword 'points' but could not find it"
         raise IOError(msg)
@@ -900,7 +901,7 @@ def _read_pts_file(file_name, verbose=False):
 
     try:
         geo_reference = Geo_reference(NetCDFObject=fid)
-    except AttributeError, e:
+    except AttributeError as e:
         geo_reference = None
 
     fid.close()
@@ -1040,7 +1041,7 @@ def _read_pts_file_header(fid, verbose=False):
     keys = fid.variables.keys()
     try:
         keys.remove('points')
-    except IOError, e:
+    except IOError as e:
         fid.close()
         msg = "Expected keyword 'points' but could not find it."
         raise IOError(msg)
@@ -1049,7 +1050,7 @@ def _read_pts_file_header(fid, verbose=False):
 
     try:
         geo_reference = Geo_reference(NetCDFObject=fid)
-    except AttributeError, e:
+    except AttributeError as e:
         geo_reference = None
 
     try: # netcdf4
@@ -1214,12 +1215,12 @@ def points_dictionary2geospatial_data(points_dictionary):
     """Convert points_dictionary to geospatial data object"""
 
     msg = "Points dictionary must have key 'pointlist'"
-    assert points_dictionary.has_key('pointlist'), msg
+    assert 'pointlist' in points_dictionary, msg
 
     msg = "Points dictionary must have key 'attributelist'"
-    assert points_dictionary.has_key('attributelist'), msg
+    assert 'attributelist' in points_dictionary, msg
 
-    if points_dictionary.has_key('geo_reference'):
+    if 'geo_reference' in points_dictionary:
         geo = points_dictionary['geo_reference']
     else:
         geo = None
@@ -1659,7 +1660,7 @@ def old_find_optimal_smoothing_parameter(data_file,
                      'and actual data')
 
     for i, alpha in enumerate(domains):
-        if verbose: print'Alpha =', alpha
+        if verbose: print('Alpha =', alpha)
 
         points_geo = domains[alpha].geo_reference.change_points_geo_ref(points)
         # returns the predicted elevation of the points that were "split" out

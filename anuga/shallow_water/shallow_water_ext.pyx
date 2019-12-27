@@ -336,11 +336,14 @@ def flux_function_central(np.ndarray[double, ndim=1, mode="c"] normal not None,\
 						double H0):
 
 	cdef double h0, limiting_threshold, max_speed
+	cdef int err
 
 	h0 = H0*H0
 	limiting_threshold = 10*H0
 
-	_flux_function_central(&ql[0], &qr[0], zl, zr, normal[0], normal[1], epsilon, h0, limiting_threshold, g, &edgeflux[0], &max_speed)
+	err = _flux_function_central(&ql[0], &qr[0], zl, zr, normal[0], normal[1], epsilon, h0, limiting_threshold, g, &edgeflux[0], &max_speed)
+
+	assert err >= 0, "Discontinuous Elevation"
 
 	return max_speed
 
@@ -353,8 +356,7 @@ def extrapolate_second_order_sw(object domain_object):
 
 	err = _extrapolate_second_order_sw(&D)
 
-	if err == -1:
-		return None
+	assert err == 0, "Internal neighbour not found"
 
 def compute_fluxes_ext_central_structure(object domain_object):
 
@@ -398,6 +400,8 @@ def compute_fluxes_ext_wb(object domain_object):
 
 	timestep = _compute_fluxes_central_wb(&D)
 
+	assert timestep >= 0, "Discontinuous Elevation"
+
 	return timestep
 
 def compute_fluxes_ext_wb_3(object domain_object):
@@ -408,6 +412,8 @@ def compute_fluxes_ext_wb_3(object domain_object):
 	get_python_domain(&D, domain_object)
 
 	timestep = _compute_fluxes_central_wb_3(&D)
+
+	assert timestep >= 0, "Discontinuous Elevation"
 
 	return timestep
 
