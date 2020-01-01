@@ -168,10 +168,6 @@ if __name__=="__main__":
         import sys
         sys.excepthook = global_except_hook
 
-        from anuga.utilities.parallel_abstraction import global_except_hook
-        import sys
-        sys.excepthook = global_except_hook
-
         run_simulation(parallel=True, verbose=verbose)
         
         finalize()

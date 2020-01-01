@@ -950,42 +950,6 @@ def get_true_rec_submesh_2():
 
 		return true_values
 
-	metis_version = 4
-
-	if metis_version == 4:
-		true_values = dict(
-		triangles=array([[ 1,  5,  0],
-			[ 1,  6,  2],
-			[ 3,  6,  1],
-			[ 4,  6,  3],
-			[ 2,  6,  4],
-			[ 2,  5,  1],
-			[ 2, 10,  8],
-			[ 4, 10,  2],
-			[ 9, 10,  4],
-			[ 0,  5,  7],
-			[ 7,  5,  2]]),
-		points=array([[ 0.  ,  0.  ],
-			[ 0.5 ,  0.  ],
-			[ 0.5 ,  0.5 ],
-			[ 1.  ,  0.  ],
-			[ 1.  ,  0.5 ],
-			[ 0.25,  0.25],
-			[ 0.75,  0.25],
-			[ 0.  ,  0.5 ],
-			[ 0.5 ,  1.  ],
-			[ 1.  ,  1.  ],
-			[ 0.75,  0.75]]),
-		full_send_dict_0=[array([0, 1, 2, 3, 4]), array([11, 12, 13, 14, 15])],
-		full_send_dict_1=[array([0, 1]), array([11, 12])],
-		node_map=array([ 0,  7, -1,  1,  2,  8,  3,  4,  9,  5, -1,  6, 10]),
-		ghost_recv_dict_1=[array([ 9, 10]), array([5, 6])],
-		ghost_recv_dict_0=[array([5, 6, 7, 8]), array([0, 1, 2, 3])],
-		ghost_layer_width=2,
-		tri_map=array([ 5,  6,  7,  8, -1,  9, 10, -1, -1, -1, -1,  0,  1,  2,  3,  4, -1]))
-
-		return true_values
-
 ###############################################################
 
 class Test_parallel_distribute_mesh(unittest.TestCase):
