@@ -1,3 +1,4 @@
+from __future__ import print_function
 # To change this template, choose Tools | Templates
 # and open the template in the editor.
 
@@ -79,7 +80,7 @@ class Parallel_Inlet(Inlet):
         if len(self.triangle_indices) == 0:
             region = 'Inlet line=%s' % (self.line)
             msg = 'No triangles have been identified in region '
-            print "WARNING: " + msg
+            print("WARNING: " + msg)
 
         self.area = 0.0
         for j in self.triangle_indices:
@@ -619,4 +620,4 @@ __author__="pete"
 __date__ ="$16/08/2011 6:49:42 PM$"
 
 if __name__ == "__main__":
-    print "Hello World"
+    print("Hello World")

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+from future.utils import raise_
 import unittest
 import sys
 import os
@@ -91,7 +93,7 @@ def distibute_three_processors():
 		true_seq_values = get_true_seq_values()
 		
 		if False:
-			print "True Seq Values = \\"
+			print("True Seq Values = \\")
 			pprint(true_seq_values)
 
 		assert_(num.allclose(vertices, true_seq_values['vertices'] ))
@@ -106,7 +108,7 @@ def distibute_three_processors():
 		                        quantities, triangles_per_proc)
 
 		if False: 
-			print 'submesh_values = \\'
+			print('submesh_values = \\')
 			print_submesh_values(submesh)
 
 		true_values = get_true_submesh_values()
@@ -168,14 +170,14 @@ def distibute_three_processors():
 	if myid == 0:
 
 		if False: 
-			print 'extract_values = \\'
+			print('extract_values = \\')
 			print_extract_submesh(points, triangles, ghost_recv_dict, \
 				                  full_send_dict, tri_map, node_map, ghost_layer_width)
 
 		true_values  = get_true_extract_submesh()
 
 		if False:
-			print 'true_extract_values = \\'
+			print('true_extract_values = \\')
 			pprint(true_values)
 
 		
@@ -193,7 +195,7 @@ def distibute_three_processors():
 	if myid == 1:
 
 		if False: 
-			print "rec_submesh_1 = \\"
+			print("rec_submesh_1 = \\")
 			print_rec_submesh_1(points, triangles, ghost_recv_dict, full_send_dict, \
 	                     tri_map, node_map, ghost_layer_width)
 
@@ -201,7 +203,7 @@ def distibute_three_processors():
 		true_values = get_true_rec_submesh_1()
 
 		if False:
-			print 'true_rec_values_1 = \\'
+			print('true_rec_values_1 = \\')
 			pprint(true_values)
 
 		assert_(num.allclose(points,   true_values['points']))
@@ -218,14 +220,14 @@ def distibute_three_processors():
 	if myid == 2:
 
 		if False: 
-			print "rec_submesh_2 = \\"
+			print("rec_submesh_2 = \\")
 			print_rec_submesh_2(points, triangles, ghost_recv_dict, full_send_dict, \
 	                     tri_map, node_map, ghost_layer_width)
 
 		true_values = get_true_rec_submesh_2()
 
 		if False:
-			print 'true_rec_values_2 = \\'
+			print('true_rec_values_2 = \\')
 			pprint(true_values)
 
 		assert_(num.allclose(points,   true_values['points']))
@@ -318,7 +320,7 @@ def get_true_seq_values():
 def print_seq_values(vertices, triangles, triangles_per_proc):
 
 	values = dict(vertices = vertices, triangles = triangles, triangles_per_proc = triangles_per_proc)
-	print "seq_values"
+	print("seq_values")
 	pprint(values)
 
 
@@ -335,10 +337,10 @@ def print_submesh_values(submesh):
 			name = "submesh['"+parm+"']["+str(i)+"]"
 			value = eval(name)
 			msg = parm + '_'+str(i)+'='+ pformat(value) + ','
-			print msg
+			print(msg)
 	value = submesh['full_commun']
 	msg = 'full_commun='+ pformat(value)
-	print msg
+	print(msg)
 
 def get_true_submesh_values():
 	metis_version = 4
@@ -969,7 +971,7 @@ class Test_parallel_distribute_mesh(unittest.TestCase):
 # the PyUnit defined assert_ function can't be used.
 def assert_(condition, msg="Assertion Failed"):
 	if condition == False:
-		raise AssertionError, msg
+		raise_(AssertionError, msg)
 
 #-------------------------------------------------------------
 if __name__ == "__main__":

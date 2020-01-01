@@ -1,7 +1,9 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import anuga
 import numpy as num
 import math
-import parallel_inlet_enquiry 
+from . import parallel_inlet_enquiry 
 from anuga.utilities import parallel_abstraction as pypar
 
 from anuga.utilities.system_tools import log_to_file
@@ -166,7 +168,7 @@ class Parallel_Structure_operator(anuga.Operator):
         elif end_points is not None:
             self.__process_non_skew_culvert()
         else:
-            raise Exception, 'Define either exchange_lines or end_points'
+            raise Exception('Define either exchange_lines or end_points')
         
         self.inlets = []
 
@@ -536,7 +538,7 @@ class Parallel_Structure_operator(anuga.Operator):
             self.culvert_vector = centre_point1 - centre_point0
 
         else:
-            raise Exception, 'n_exchange_0 != 2 or 4'
+            raise Exception('n_exchange_0 != 2 or 4')
 
         self.culvert_length = math.sqrt(num.sum(self.culvert_vector**2))
         assert self.culvert_length > 0.0, 'The length of culvert is less than 0'
@@ -636,7 +638,7 @@ class Parallel_Structure_operator(anuga.Operator):
         # Warning: requires synchronization, must be called by all procs associated
         # with this structure
 
-        print self.statistics()
+        print(self.statistics())
 
 
     def print_timestepping_statistics(self):
@@ -657,7 +659,7 @@ class Parallel_Structure_operator(anuga.Operator):
             message += 'Delta Total Energy %.2f\n' % self.delta_total_energy
             message += 'Control at this instant: %s\n' % self.case
 
-        print message
+        print(message)
 
 
     def set_parallel_logging(self, flag=True):

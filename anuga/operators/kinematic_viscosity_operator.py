@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from anuga import Domain
 from anuga import Quantity
 from anuga.utilities.sparse import Sparse, Sparse_CSR
@@ -5,7 +6,7 @@ from anuga.utilities.cg_solve import conjugate_gradient
 import anuga.abstract_2d_finite_volumes.neighbour_mesh as neighbour_mesh
 from anuga import Dirichlet_boundary
 import numpy as num
-import kinematic_viscosity_operator_ext
+from . import kinematic_viscosity_operator_ext
 import anuga.utilities.log as log
 
 from anuga.operators.base_operator import Operator

@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 # To change this template, choose Tools | Templates
 # and open the template in the editor.
 
@@ -8,7 +10,7 @@ import anuga.structures.inlet
 
 from anuga.utilities.system_tools import log_to_file
 from anuga.structures.inlet_operator import Inlet_operator
-import parallel_inlet
+from . import parallel_inlet
 
 
 class Parallel_Inlet_operator(Inlet_operator):
@@ -167,9 +169,9 @@ class Parallel_Inlet_operator(Inlet_operator):
         if callable(self.Q):
             try:
                 Q = self.Q(t)
-            except Modeltime_too_early, e:
+            except Modeltime_too_early as e:
                 Q = self.get_default(t)
-            except Modeltime_too_late, e:
+            except Modeltime_too_late as e:
                 Q = self.get_default(t)
         else:
             Q = self.Q
@@ -206,7 +208,7 @@ class Parallel_Inlet_operator(Inlet_operator):
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
         
-        print self.statistics()
+        print(self.statistics())
 
 
     def print_timestepping_statistics(self):
@@ -218,7 +220,7 @@ class Parallel_Inlet_operator(Inlet_operator):
             message += '--------------------------------------------\n'
             message += 'Q [m^3/s]: %.2f\n' % self.applied_Q
         
-            print message
+            print(message)
 
 
     def set_logging(self, flag=True):

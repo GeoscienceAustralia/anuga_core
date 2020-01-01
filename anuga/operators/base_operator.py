@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 from anuga.utilities.system_tools import log_to_file
 
@@ -83,11 +84,11 @@ class Operator:
 
     def print_statistics(self):
 
-        print self.statistics()
+        print(self.statistics())
 
     def print_timestepping_statistics(self):
 
-        print self.timestepping_statistics()
+        print(self.timestepping_statistics())
 
 
     def log_timestepping_statistics(self):

@@ -1,11 +1,12 @@
+from __future__ import absolute_import
 import anuga
 import math
 import numpy
 
 from anuga.structures.boyd_box_operator import boyd_box_function 
 
-from parallel_inlet_operator import Parallel_Inlet_operator
-from parallel_structure_operator import Parallel_Structure_operator
+from .parallel_inlet_operator import Parallel_Inlet_operator
+from .parallel_structure_operator import Parallel_Structure_operator
 
 class Parallel_Boyd_box_operator(Parallel_Structure_operator):
     """Culvert flow - transfer water from one rectangular box to another.

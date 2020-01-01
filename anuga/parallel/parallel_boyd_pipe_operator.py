@@ -1,11 +1,13 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import anuga
 import math
 import numpy
 
 from anuga.structures.boyd_pipe_operator import boyd_pipe_function
 
-from parallel_inlet_operator import Parallel_Inlet_operator
-from parallel_structure_operator import Parallel_Structure_operator
+from .parallel_inlet_operator import Parallel_Inlet_operator
+from .parallel_structure_operator import Parallel_Structure_operator
 
 class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
     """Culvert flow - transfer water from one rectangular box to another.
@@ -112,8 +114,8 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
         self.case = 'N/A'
 
 
-        print 80*'='
-        print "DON'T USE BOYD PIPES AS ALGORITHM NOT VERIFIED YET"
+        print(80*'=')
+        print("DON'T USE BOYD PIPES AS ALGORITHM NOT VERIFIED YET")
 
 
         # May/June 2014 -- allow 'smoothing ' of driving_energy, delta total energy, and outflow_enq_depth
