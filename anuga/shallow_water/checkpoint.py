@@ -38,7 +38,7 @@ def load_checkpoint_file(domain_name = 'domain', checkpoint_dir = '.', time = No
     else:
         times = [float(time)]
 
-    if len(times) == 0: raise Exception, "Unable to open checkpoint file"
+    if len(times) == 0: raise Exception("Unable to open checkpoint file")
 
     for time in reversed(times):
 
@@ -71,7 +71,7 @@ def load_checkpoint_file(domain_name = 'domain', checkpoint_dir = '.', time = No
 
         if overall: break
 
-    if not overall: raise Exception, "Unable to open checkpoint file"
+    if not overall: raise Exception("Unable to open checkpoint file")
 
     domain.last_walltime = walltime()
     domain.communication_time = 0.0

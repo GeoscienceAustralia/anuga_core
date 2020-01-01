@@ -284,7 +284,7 @@ class Test_Data_Manager(Test_Mux):
         dqs = self.domain.get_quantity('stage')
         dqx = self.domain.get_quantity('xmomentum')
         dqy = self.domain.get_quantity('ymomentum')        
-        xmom_min = ymom_min = stage_min = sys.maxint 
+        xmom_min = ymom_min = stage_min = sys.maxsize 
         xmom_max = ymom_max = stage_max = -stage_min        
         for t in self.domain.evolve(yieldstep = 1, finaltime = 1):
             wmax = max(dqs.get_values().flatten())
@@ -355,9 +355,9 @@ class Test_Data_Manager(Test_Mux):
         
         
         assert len(domain.quantities_to_be_monitored) == 3
-        assert domain.quantities_to_be_monitored.has_key('stage-elevation')
-        assert domain.quantities_to_be_monitored.has_key('xmomentum')                
-        assert domain.quantities_to_be_monitored.has_key('ymomentum')        
+        assert 'stage-elevation' in domain.quantities_to_be_monitored
+        assert 'xmomentum' in domain.quantities_to_be_monitored                
+        assert 'ymomentum' in domain.quantities_to_be_monitored        
 
         
         #domain.protect_against_isolated_degenerate_timesteps = True
