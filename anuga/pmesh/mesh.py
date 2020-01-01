@@ -905,7 +905,7 @@ class Mesh:
         Assume the values are in Eastings and Northings, with no reference
         point. eg absolute
         """
-        if not outlineDict.has_key('segment_tags'):
+        if 'segment_tags' not in outlineDict:
             outlineDict['segment_tags'] = []
             for i in range(len(outlineDict['segments'])):
                 outlineDict['segment_tags'].append('')
@@ -1590,12 +1590,12 @@ class Mesh:
             new_segs[(v1,v2)] = boundary_seg
 
         for user_seg in self.userSegments:
-            if new_segs.has_key((user_seg.vertices[0],
-                                user_seg.vertices[1])):
+            if (user_seg.vertices[0],
+                                user_seg.vertices[1]) in new_segs:
                 del new_segs[user_seg.vertices[0],
                                 user_seg.vertices[1]]
-            elif new_segs.has_key((user_seg.vertices[1],
-                                user_seg.vertices[0])):
+            elif (user_seg.vertices[1],
+                                user_seg.vertices[0]) in new_segs:
                 del new_segs[user_seg.vertices[1],
                                 user_seg.vertices[0]]
                 
@@ -2190,7 +2190,7 @@ def importMeshFromFile(ofile):
     else:
         raise RuntimeError
     
-    if dict.has_key('geo_reference') and not dict['geo_reference'] is None:
+    if 'geo_reference' in dict and not dict['geo_reference'] is None:
         newmesh.geo_reference = dict['geo_reference']
     return newmesh
 

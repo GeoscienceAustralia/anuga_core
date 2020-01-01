@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
 from anuga.geometry.polygon import  point_in_polygon ,populate_polygon
@@ -13,7 +14,7 @@ import datetime
 try:
     from anuga.pmesh.mesh import Mesh
 except ImportError:
-    from mesh import Mesh
+    from .mesh import Mesh
 
 import exceptions
 class PolygonError(exceptions.Exception): pass
@@ -127,8 +128,7 @@ def create_mesh_from_regions(bounding_polygon,
                   verbose=verbose,
                   compression=False)
     else:
-        m = apply(_create_mesh_from_regions,
-                  args, kwargs)
+        m = _create_mesh_from_regions(*args, **kwargs)
 
 
 
@@ -202,7 +202,7 @@ def _create_mesh_from_regions(bounding_polygon,
             indices = inside_polygon(interior_polygon, bounding_polygon,
                                      closed = True, verbose = False)
 
-            if len(indices) <> len(interior_polygon):
+            if len(indices) != len(interior_polygon):
                 msg = 'Interior polygon %s is not fully inside'\
                       %(str(interior_polygon))
                 msg += ' bounding polygon: %s.' %(str(bounding_polygon))
@@ -256,7 +256,7 @@ def _create_mesh_from_regions(bounding_polygon,
                                      closed = True, verbose = False)
 
 
-            if len(indices) <> len(interior_polygon):
+            if len(indices) != len(interior_polygon):
                 msg = 'Interior polygon %s is outside bounding polygon: %s'\
                       %(str(interior_polygon), str(bounding_polygon))
                 raise PolygonError(msg)

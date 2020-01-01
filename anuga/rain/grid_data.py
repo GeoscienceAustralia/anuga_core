@@ -4,6 +4,7 @@ Basic helper routines
 
 
 """
+from __future__ import print_function
 
 import anuga
 #from anuga.fit_interpolate.interpolate2d import interpolate2d
@@ -83,9 +84,9 @@ class Raster_time_slice_data(object):
         for root, dirs, files in os.walk(data_dir): 
             
             if self.debug or self.verbose:
-                print 'Directory: ',dirs
-                print 'Root: ',root
-                print 'Number of Files = ',len(fnmatch.filter(files, pattern))
+                print('Directory: ',dirs)
+                print('Root: ',root)
+                print('Number of Files = ',len(fnmatch.filter(files, pattern)))
             
             if len(fnmatch.filter(files, pattern)) > 0:
                 os.chdir(root)
@@ -101,7 +102,7 @@ class Raster_time_slice_data(object):
         Extract data from Rasters at locations  
         
         """
-        if self.verbose or self.debug: print 'Extract data at locations', locations
+        if self.verbose or self.debug: print('Extract data at locations', locations)
         
         locations = np.array(locations)
         all_values = []
@@ -109,7 +110,7 @@ class Raster_time_slice_data(object):
         y = self.y
         data_slices = self.data_slices
 
-        if self.debug: print locations
+        if self.debug: print(locations)
         
         for data in data_slices:
             # and then do the interpolation
@@ -203,12 +204,12 @@ class Raster_time_slice_data(object):
 
         
         if print_stats or self.verbose:
-            print 'Time period = ',time_period
-            print 'Time step = ',time_step
-            print 'Catchment Area = ', catchment_area
-            print 'Total rainfall volume in cubic metres  =', total_data_volume
-            print 'Peak data/time_step in time period  = ', data_max_in_period
-            print 'Peak Intensity in time period (m/sec) =', peak_intensity      
+            print('Time period = ',time_period)
+            print('Time step = ',time_step)
+            print('Catchment Area = ', catchment_area)
+            print('Total rainfall volume in cubic metres  =', total_data_volume)
+            print('Peak data/time_step in time period  = ', data_max_in_period)
+            print('Peak Intensity in time period (m/sec) =', peak_intensity)      
         
         return total_data_volume, data_max_in_period, peak_intensity, catchment_area, time_period
 
@@ -231,7 +232,7 @@ class Raster_time_slice_data(object):
         from datetime import datetime
         date_time = datetime.utcfromtimestamp(times[tid]).strftime("%Y/%m/%d %H:%M")
         
-        if self.debug: print '--- Date/Time ', date_time
+        if self.debug: print('--- Date/Time ', date_time)
         
         plt.figure(1)
         plt.clf()
@@ -273,9 +274,9 @@ class Raster_time_slice_data(object):
         
         
         if self.debug: 
-            print data_accumulated
-            print 'maximum rain =',np.max(data_accumulated)
-            print 'mean rain =',np.mean(data_accumulated)
+            print(data_accumulated)
+            print('maximum rain =',np.max(data_accumulated))
+            print('mean rain =',np.mean(data_accumulated))
             
         dx = self.extent[1]-self.extent[0]
         dy = self.extent[3]-self.extent[2]
@@ -285,12 +286,12 @@ class Raster_time_slice_data(object):
         extent = self.extent
         
         if self.verbose:
-            print 'Total data volume =',total_data_vol
-            print 'Peak data in 1 time step = ', data_max_in_period
-            print 'Peak Intensity in 1 timestep =', peak_intensity
-            print 'extent', extent
-            print 'size', extent[1]-extent[0], extent[3]-extent[2]
-            print time_step
+            print('Total data volume =',total_data_vol)
+            print('Peak data in 1 time step = ', data_max_in_period)
+            print('Peak Intensity in 1 timestep =', peak_intensity)
+            print('extent', extent)
+            print('size', extent[1]-extent[0], extent[3]-extent[2])
+            print(time_step)
 
 
         plt.figure(1)
@@ -412,13 +413,13 @@ class Calibrated_radar_rain(Raster_time_slice_data):
         
         if self.verbose:
             import datetime
-            print "READING BoM calibrated rain grid data"
+            print("READING BoM calibrated rain grid data")
         
         for root, dirs, files in os.walk(radar_dir): 
             
             if self.debug:
-                print 'Directory: ',dirs
-                print 'Number of Files = ',len(fnmatch.filter(files, pattern))
+                print('Directory: ',dirs)
+                print('Number of Files = ',len(fnmatch.filter(files, pattern)))
             
             for filename in fnmatch.filter(files, pattern): 
                     
@@ -432,7 +433,7 @@ class Calibrated_radar_rain(Raster_time_slice_data):
                     if valid_time < self.start_time: continue
 
                 if self.debug :
-                    print filename
+                    print(filename)
                     
                 file_counter +=1
                 if file_counter == 1:
@@ -443,8 +444,8 @@ class Calibrated_radar_rain(Raster_time_slice_data):
                 
                 # RADAR NetCDF files have Dimensions, Attributes, Variables
                 if self.debug:
-                    print 'VARIABLES:'
-                    print 'Reference LAT, LONG = ',data.reference_longitude, data.reference_latitude
+                    print('VARIABLES:')
+                    print('Reference LAT, LONG = ',data.reference_longitude, data.reference_latitude)
 
                     
                 # Check Time for key 
@@ -457,8 +458,8 @@ class Calibrated_radar_rain(Raster_time_slice_data):
                 new_time_step = file_valid_time - file_start_time
                 
                 if self.debug:
-                    print 'VARIABLES:'
-                    print 'Reference times ', file_start_time, file_valid_time, valid_time
+                    print('VARIABLES:')
+                    print('Reference times ', file_start_time, file_valid_time, valid_time)
                 
                 times.append(valid_time)                
         
@@ -471,8 +472,8 @@ class Calibrated_radar_rain(Raster_time_slice_data):
                     if name in data.variables:
                         precip_name = name
                         if self.debug:
-                            print 'BOM Reference name tag in this file:'
-                            print precip_name
+                            print('BOM Reference name tag in this file:')
+                            print(precip_name)
 
                 
                 if first:
@@ -482,7 +483,7 @@ class Calibrated_radar_rain(Raster_time_slice_data):
                     
                     self.time_step = file_valid_time - file_start_time
                     
-                    if self.debug: print ' Accumulate rainfall here....'
+                    if self.debug: print(' Accumulate rainfall here....')
                     self.x = data.variables['x_loc'][:]
                     self.y = data.variables['y_loc'][:]
                     if self.y[0] < 0:
@@ -512,7 +513,7 @@ class Calibrated_radar_rain(Raster_time_slice_data):
 
                     data_accumulated += data_slice
                     
-                    if self.debug: print ' Keep accumulating rainfall....'
+                    if self.debug: print(' Keep accumulating rainfall....')
 
                     data_max_in_period  = max(np.max(data_slice),data_max_in_period)
                     
@@ -533,7 +534,7 @@ class Calibrated_radar_rain(Raster_time_slice_data):
             self.data_slices = np.array([ data_slices[tid] for tid in ids ])
             self.start_time = self.times[0]-self.time_step
             self.data_accumulated = data_accumulated 
-            print "+++++", np.sum(data_accumulated)
+            print("+++++", np.sum(data_accumulated))
             # Test sorting
             for i, tid in enumerate(ids):
                 np.allclose(times[tid], self.times[i])
@@ -548,9 +549,9 @@ class Calibrated_radar_rain(Raster_time_slice_data):
         self.extent = (self.x.min(), self.x.max(), self.y.min(), self.y.max())
 
         if self.verbose:
-            print "    From UTC time: %s"% datetime.datetime.utcfromtimestamp(self.start_time).strftime('%c')
-            print "    To UTC time:   %s"% datetime.datetime.utcfromtimestamp(self.final_time).strftime('%c')
-            print "    Read in %g time slices" % len(self.times)
+            print("    From UTC time: %s"% datetime.datetime.utcfromtimestamp(self.start_time).strftime('%c'))
+            print("    To UTC time:   %s"% datetime.datetime.utcfromtimestamp(self.final_time).strftime('%c'))
+            print("    Read in %g time slices" % len(self.times))
 
     
     
@@ -640,12 +641,12 @@ if __name__ == "__main__":
         pass
 
     
-    print rain.radar_dir
+    print(rain.radar_dir)
     
     try: 
         p2 = anuga.read_polygon(Catchment_file)
-        print 'Catchment File'
-        print Catchment_file
+        print('Catchment File')
+        print(Catchment_file)
         #print p2
     except:
         p2 = None
@@ -653,8 +654,8 @@ if __name__ == "__main__":
     
     try:
         p3 = anuga.read_polygon(State_boundary_file)
-        print 'State_boundary_file'
-        print State_boundary_file
+        print('State_boundary_file')
+        print(State_boundary_file)
         #print p3
     except:
         p3 = None
@@ -662,17 +663,17 @@ if __name__ == "__main__":
      
     p2 = [[689801.0, 6091501.0], [700200.0, 6091501.0], [700200.0, 6104600.0], [689801.0, 6104600.0], [689801.0, 6091501.0]]
 
-    print rain.get_extent()
+    print(rain.get_extent())
     rain.accumulate_data_stats()
     
-    print 'time_step ',rain.time_step     
+    print('time_step ',rain.time_step)     
         
     import time
     pl.ion()
     #pdb.set_trace() 
 
     plot_vmax = np.max(rain.data_slices)
-    print 'plot_vmax', plot_vmax
+    print('plot_vmax', plot_vmax)
     for tid in xrange(len(rain.times)):
         rain.plot_data(tid, plot_vmax=plot_vmax, save=False, show=True, polygons=[p2,p3])
         time.sleep(0.05)

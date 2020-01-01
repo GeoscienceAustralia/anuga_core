@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from future.utils import raise_
 import tempfile
 import unittest
 import os
@@ -494,7 +495,7 @@ class TestCase(unittest.TestCase):
         else:
             msg = 'Interior polygon sticking outside bounding polygon should '
             msg += 'cause an Exception to be raised'
-            raise Exception, msg
+            raise_(Exception, msg)
 
     def test_create_mesh_from_regions_interior_regions1(self):
         '''Test that create_mesh_from_regions fails
@@ -561,7 +562,7 @@ class TestCase(unittest.TestCase):
         else:
             msg = 'Interior polygon sticking outside bounding polygon should '
             msg += 'cause an Exception to be raised'
-            raise Exception, msg
+            raise_(Exception, msg)
 
     def FIXMEtest_create_mesh_with_multiply_tagged_segments(self):
         '''Test that create_mesh_from_regions fails when
@@ -601,7 +602,7 @@ class TestCase(unittest.TestCase):
         else:
             msg = 'Tags are listed repeatedly, but create mesh from regions '
             msg += 'does not cause an Exception to be raised'
-            raise Exception, msg
+            raise_(Exception, msg)
 
             
     def test_create_mesh_with_segments_out_of_bounds(self):
@@ -632,7 +633,7 @@ class TestCase(unittest.TestCase):
         else:
             msg = 'Tags are listed repeatedly, but create mesh from regions '
             msg += 'does not cause an Exception to be raised'
-            raise Exception, msg
+            raise_(Exception, msg)
             
     def test_create_mesh_with_breaklines(self):
         # These are the absolute values
@@ -697,7 +698,7 @@ class TestCase(unittest.TestCase):
             pass
         else:
             msg = 'Passing a single polygon should have raised an error '
-            raise Exception, msg
+            raise_(Exception, msg)
 
 
 
@@ -712,7 +713,7 @@ class TestCase(unittest.TestCase):
             pass
         else:
             msg = 'Passing a single polygon should have raised an error '
-            raise Exception, msg
+            raise_(Exception, msg)
         
         
     def test_create_mesh_with_interior_holes_and_tags(self):
@@ -977,7 +978,7 @@ END\n')
             pass
         else:
             msg = 'Segment out of bounds not caught '
-            raise Exception, msg
+            raise_(Exception, msg)
 
 ################################################################################
 
