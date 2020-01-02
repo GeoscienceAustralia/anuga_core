@@ -1,3 +1,4 @@
+from __future__ import print_function
 import anuga
 import math
 import numpy
@@ -120,7 +121,7 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
 
 
         if verbose:
-            print self.get_culvert_slope()
+            print(self.get_culvert_slope())
 
 
 
@@ -201,23 +202,23 @@ class Weir_orifice_trapezoid_operator(anuga.Structure_operator):
 
             verbose = False
             if verbose:
-                print 50*'='
-                print 'width ',self.culvert_width
-                print 'depth ',self.culvert_height
-                print 'culvert blockage ',self.culvert_blockage
-                print 'number of culverts ',self.culvert_barrels
-                print 'left bank slope ',self.culvert_z1
-                print 'right bank slope ',self.culvert_z2
-                print 'flow_width ',self.culvert_width
-                print 'length ' ,self.culvert_length
-                print 'driving_energy ',self.driving_energy
-                print 'delta_total_energy ',self.delta_total_energy
-                print 'outlet_enquiry_depth ',self.outflow.get_enquiry_depth()
-                print 'inflow_enquiry_depth ',self.inflow.get_enquiry_depth()
-                print 'outlet_enquiry_speed ',self.outflow.get_enquiry_speed()
-                print 'inflow_enquiry_speed ',self.inflow.get_enquiry_speed()
-                print 'sum_loss ',self.sum_loss
-                print 'manning ',self.manning
+                print(50*'=')
+                print('width ',self.culvert_width)
+                print('depth ',self.culvert_height)
+                print('culvert blockage ',self.culvert_blockage)
+                print('number of culverts ',self.culvert_barrels)
+                print('left bank slope ',self.culvert_z1)
+                print('right bank slope ',self.culvert_z2)
+                print('flow_width ',self.culvert_width)
+                print('length ' ,self.culvert_length)
+                print('driving_energy ',self.driving_energy)
+                print('delta_total_energy ',self.delta_total_energy)
+                print('outlet_enquiry_depth ',self.outflow.get_enquiry_depth())
+                print('inflow_enquiry_depth ',self.inflow.get_enquiry_depth())
+                print('outlet_enquiry_speed ',self.outflow.get_enquiry_speed())
+                print('inflow_enquiry_speed ',self.inflow.get_enquiry_speed())
+                print('sum_loss ',self.sum_loss)
+                print('manning ',self.manning)
 
             Q, barrel_velocity, outlet_culvert_depth, flow_area, case = \
                 weir_orifice_trapezoid_function(width               =self.culvert_width,

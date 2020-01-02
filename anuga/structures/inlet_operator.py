@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 import anuga
 import numpy
-import inlet
+from . import inlet
 
 import warnings
 
@@ -107,9 +108,9 @@ class Inlet_operator(anuga.Operator):
         if callable(self.Q):
             try:
                 Q = self.Q(t)
-            except Modeltime_too_early, e:
+            except Modeltime_too_early as e:
                 Q = self.get_default(t,err_msg=e)
-            except Modeltime_too_late, e:
+            except Modeltime_too_late as e:
                 Q = self.get_default(t,err_msg=e)
         else:
             Q = self.Q

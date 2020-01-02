@@ -1,7 +1,9 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import anuga
 import numpy as num
 import math
-import inlet_enquiry
+from . import inlet_enquiry
 
 from anuga.utilities.system_tools import log_to_file
 from anuga.utilities.numerical_tools import ensure_numeric
@@ -136,7 +138,7 @@ class Structure_operator(anuga.Operator):
         elif end_points is not None:
             self.__process_non_skew_culvert()
         else:
-            raise Exception, 'Define either exchange_lines or end_points'
+            raise Exception('Define either exchange_lines or end_points')
         
 
         self.inlets = []
@@ -456,7 +458,7 @@ class Structure_operator(anuga.Operator):
             self.culvert_vector = centre_point1 - centre_point0
 
         else:
-            raise Exception, 'n_exchange_0 != 2 or 4'
+            raise Exception('n_exchange_0 != 2 or 4')
 
 
         self.culvert_length = math.sqrt(num.sum(self.culvert_vector**2))
@@ -551,7 +553,7 @@ class Structure_operator(anuga.Operator):
 
     def print_statistics(self):
 
-        print self.statistics()
+        print(self.statistics())
 
 
     def print_timestepping_statistics(self):
@@ -595,7 +597,7 @@ class Structure_operator(anuga.Operator):
 
 
 
-        print message
+        print(message)
 
 
     def set_logging(self, flag=True):

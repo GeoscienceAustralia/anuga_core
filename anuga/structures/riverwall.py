@@ -1,3 +1,5 @@
+from __future__ import print_function
+from future.utils import raise_
 import os
 from anuga import barrier, numprocs, myid
 import numpy
@@ -237,14 +239,14 @@ class RiverWall:
         
         # Check flow algorithm
         if(not domain.get_using_discontinuous_elevation()):
-            raise Exception, 'Riverwalls are currently only supported for discontinuous elevation flow algorithms'
+            raise Exception('Riverwalls are currently only supported for discontinuous elevation flow algorithms')
 
         if(len(self.names)>0):
             # Delete any existing riverwall data
             # The function cannot presently be used to partially edit riverwall data
             if(verbose):
-                print 'Warning: There seems to be existing riverwall data'
-                print 'It will be deleted and overwritten with this function call'
+                print('Warning: There seems to be existing riverwall data')
+                print('It will be deleted and overwritten with this function call')
             domain.riverwallData.__init__(domain)
 
         # Store input parameters
@@ -254,35 +256,35 @@ class RiverWall:
 
         # Update self.default_riverwallPar (defined in __init__)
         for i in self.default_riverwallPar.keys():
-            if(default_riverwallPar.has_key(i)):
+            if(i in default_riverwallPar):
                 self.default_riverwallPar[i]=default_riverwallPar[i]
 
         # Check that all the keys in default_riverwallPar are allowed
         for i in default_riverwallPar.keys():
-            if(not self.default_riverwallPar.has_key(i)):
+            if(i not in self.default_riverwallPar):
                 msg='Key ', i + ' in default_riverwallPar not recognized'
-                raise Exception, msg
+                raise_(Exception, msg)
         # Final default river-wall parameters
         default_riverwallPar=self.default_riverwallPar
         
         # Check that all named inputs in riverwallPar correspond to names in
         # riverwall
         for i in riverwallPar.keys():
-            if not riverwalls.has_key(i):
+            if i not in riverwalls:
                 msg= 'Key ', i, ' in riverwallPar has no corresponding key in riverwall'
-                raise Exception, msg
+                raise_(Exception, msg)
             #
             # Check that all hydraulic parameter names in riverwallPar correspond
             # to names in default_riverwallPar
             #
             for j in riverwallPar[i].keys():
-                if not default_riverwallPar.has_key(j):
+                if j not in default_riverwallPar:
                     msg = 'Hydraulic parameter named ', j ,\
                           ' not recognised in default_riverwallPar'
-                    raise Exception, msg
+                    raise_(Exception, msg)
         
         if(verbose):
-            print 'Setting riverwall elevations (P'+str(myid)+')...'
+            print('Setting riverwall elevations (P'+str(myid)+')...')
 
         # Set up geometry
         exy=domain.edge_coordinates
@@ -324,7 +326,7 @@ class RiverWall:
 
                 if(len(start)!=3 | len(end)!=3):
                     msg='Each riverwall coordinate must have at exactly 3 values [xyz]'
-                    raise Exception, msg
+                    raise_(Exception, msg)
 
                 # Find length
                 segLen=( (start[0]-end[0])**2+(start[1]-end[1])**2)**0.5
@@ -408,19 +410,19 @@ class RiverWall:
         hydraulicTmp=numpy.zeros((len(riverwalls), len(default_riverwallPar)))*numpy.nan
        
         if(verbose):
-            print ' ' 
+            print(' ') 
         # Loop over every riverwall / hydraulic parameter, and set its value
         for i in nw:
             # Get the riverwall's name and specified parameters
             name_riverwalli=nw_names[i]
-            if(riverwallPar.has_key(name_riverwalli)):
+            if(name_riverwalli in riverwallPar):
                 riverwalli_Par=riverwallPar[name_riverwalli]
             else:
                 riverwalli_Par=None
 
             # Set the ith riverwall's hydraulic properties 
             for j, hydraulicVar in enumerate(self.hydraulic_variable_names):    
-                if((riverwalli_Par is not None) and (riverwalli_Par.has_key(hydraulicVar))):
+                if((riverwalli_Par is not None) and (hydraulicVar in riverwalli_Par)):
                     if(verbose): 
                         printInfo=printInfo+ '  Using provided '+ str(hydraulicVar)+' '+\
                            str(riverwalli_Par[hydraulicVar])+ ' for riverwall '+ str(name_riverwalli)+'\n'
@@ -432,23 +434,23 @@ class RiverWall:
                     hydraulicTmp[i,j]=default_riverwallPar[hydraulicVar]
 
         if(verbose):
-            print ' '
+            print(' ')
 
         # Check that s1 < s2 
         for i in nw:
             if(hydraulicTmp[i,1]>= hydraulicTmp[i,2]):
                 msg = 's1 >= s2 on riverwall ' + nw_names[i] +'. This is not allowed' 
-                raise Exception, msg
+                raise_(Exception, msg)
             if( (hydraulicTmp[i,1]<0.) or (hydraulicTmp[i,2] < 0.)):
-                raise Exception, 's1 and s2 must be positive, with s1<s2'
+                raise Exception('s1 and s2 must be positive, with s1<s2')
 
         # Check that h1 < h2
         for i in nw:
             if(hydraulicTmp[i,3]>= hydraulicTmp[i,4]):
                 msg = 'h1 >= h2 on riverwall ' + nw_names[i] +'. This is not allowed' 
-                raise Exception, msg
+                raise_(Exception, msg)
             if((hydraulicTmp[i,3]<0.) or (hydraulicTmp[i,4] < 0.)):
-                raise Exception, 'h1 and h2 must be positive, with h1<h2'
+                raise Exception('h1 and h2 must be positive, with h1<h2')
        
         # Define the hydraulic properties 
         self.hydraulic_properties=hydraulicTmp
@@ -464,13 +466,13 @@ class RiverWall:
             if domain.parallel : barrier()
             for i in range(numprocs):
                 if(myid==i):
-                    print 'Processor '+str(myid)
-                    print printInfo
-                    print connectedness[0]
+                    print('Processor '+str(myid))
+                    print(printInfo)
+                    print(connectedness[0])
                     msg='Riverwall discontinuity -- possible round-off error in'+\
                          'finding edges on wall -- try increasing value of tol'
                     if(not connectedness[1]):
-                        raise Exception, msg
+                        raise_(Exception, msg)
                 if domain.parallel : barrier()
         return 
     
