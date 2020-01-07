@@ -5,11 +5,13 @@ a run of the parallel shallow water domain.
 WARNING: This assumes that the command to run jobs is mpiexec.
 Tested with MPICH and LAM (Ole)
 """
+from __future__ import print_function
 
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
 
+from future.utils import raise_
 import unittest
 import os
 import sys
@@ -84,7 +86,7 @@ def run_simulation(parallel=False):
     #--------------------------------------------------------------------------
 
     if parallel:
-        if myid == 0 and verbose: print 'DISTRIBUTING PARALLEL DOMAIN'
+        if myid == 0 and verbose: print('DISTRIBUTING PARALLEL DOMAIN')
         domain = distribute(domain)
 
     #------------------------------------------------------------------------------
@@ -111,9 +113,9 @@ def run_simulation(parallel=False):
     # Evolution
     #------------------------------------------------------------------------------
     if parallel:
-        if myid == 0 and verbose: print 'PARALLEL EVOLVE'
+        if myid == 0 and verbose: print('PARALLEL EVOLVE')
     else:
-        if verbose: print 'SEQUENTIAL EVOLVE'
+        if verbose: print('SEQUENTIAL EVOLVE')
         
     for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
         edges = domain.quantities[quantity].edge_values.take(num.flatnonzero(domain.tri_full_flag),axis=0)
@@ -183,7 +185,7 @@ class Test_parallel_distribute_domain(unittest.TestCase):
 def assert_(condition, msg="Assertion Failed"):
     if condition == False:
         #pypar.finalize()
-        raise AssertionError, msg
+        raise_(AssertionError, msg)
 
 if __name__=="__main__":
     if numprocs == 1: 
@@ -198,12 +200,12 @@ if __name__=="__main__":
 
         pypar.barrier()
         if myid == 0:
-            if verbose: print 'SEQUENTIAL START'
+            if verbose: print('SEQUENTIAL START')
             l1norm_seq, l2norm_seq, linfnorm_seq = run_simulation(parallel=False)
 
         pypar.barrier()
         if myid ==0:
-            if verbose: print 'PARALLEL START'
+            if verbose: print('PARALLEL START')
         
         l1norm_par, l2norm_par, linfnorm_par = run_simulation(parallel=True)
         
@@ -232,7 +234,7 @@ if __name__=="__main__":
                         assert_(abs(l2norm_par[x][y] - l2norm_par[x-1][y]) < tol)
                         assert_(abs(linfnorm_par[x][y] - linfnorm_par[x-1][y]) < tol)
                 
-            if verbose: print 'Parallel test OK'
+            if verbose: print('Parallel test OK')
 
 
 

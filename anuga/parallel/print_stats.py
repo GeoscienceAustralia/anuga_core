@@ -16,6 +16,7 @@
 #
 #########################################################
 
+from __future__ import print_function
 import sys
 
 from anuga.utilities import parallel_abstraction as pypar
@@ -85,7 +86,7 @@ def print_l1_stats(full_edge):
             tri_norm[0] = tri_norm[0]+recv_norm[0]
             tri_norm[1] = tri_norm[1]+recv_norm[1]
             tri_norm[2] = tri_norm[2]+recv_norm[2]
-        print 'l1_norm along each axis : [', tri_norm[0],', ', tri_norm[1], ', ', tri_norm[2], ']'
+        print('l1_norm along each axis : [', tri_norm[0],', ', tri_norm[1], ', ', tri_norm[2], ']')
 
     else:
         pypar.send(tri_norm, 0)
@@ -122,8 +123,8 @@ def print_l2_stats(full_edge):
             tri_norm[0] = tri_norm[0]+recv_norm[0]
             tri_norm[1] = tri_norm[1]+recv_norm[1]
             tri_norm[2] = tri_norm[2]+recv_norm[2]
-        print 'l2_norm along each axis : [', pow(tri_norm[0], 0.5),', ', pow(tri_norm[1], 0.5), \
-              ', ', pow(tri_norm[2], 0.5), ']'
+        print('l2_norm along each axis : [', pow(tri_norm[0], 0.5),', ', pow(tri_norm[1], 0.5), \
+              ', ', pow(tri_norm[2], 0.5), ']')
     else:
         pypar.send(tri_norm, 0)
 
@@ -161,7 +162,7 @@ def print_linf_stats(full_edge):
             tri_norm[0] = max(tri_norm[0], recv_norm[0])
             tri_norm[1] = max(tri_norm[1], recv_norm[1])
             tri_norm[2] = max(tri_norm[2], recv_norm[2])
-        print 'linf_norm along each axis : [', tri_norm[0],', ', tri_norm[1], ', ', tri_norm[2], ']'
+        print('linf_norm along each axis : [', tri_norm[0],', ', tri_norm[1], ', ', tri_norm[2], ']')
     else:
         pypar.send(tri_norm, 0)
 
@@ -197,7 +198,7 @@ def print_test_stats(domain, tri_full_flag):
     for k in domain.quantities.keys():
         TestStage = domain.quantities[k]
         if myid == 0:
-            print " ===== ", k, " ===== "
+            print(" ===== ", k, " ===== ")
         full_edge = take(TestStage.edge_values, nonzero(tri_full_flag))
         print_l1_stats(full_edge)
         print_l2_stats(full_edge)

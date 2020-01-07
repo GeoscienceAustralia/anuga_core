@@ -1,6 +1,7 @@
 """  Test environmental forcing - rain, wind, etc.
 """
 
+from future.utils import raise_
 import unittest, os
 import anuga
 from anuga.shallow_water.shallow_water_domain import Domain
@@ -259,9 +260,9 @@ class Test_Forcing(unittest.TestCase):
                 a = angle(1.0, x=x, y=y)
                 p = pressure(1.0, x=x, y=y)
                 use_function=True
-            except Exception, e:
+            except Exception as e:
                 msg = 'Function could not be executed.\n'
-                raise Exception, msg
+                raise_(Exception, msg)
         else:
             try :
                 speed=float(speed)
@@ -270,7 +271,7 @@ class Test_Forcing(unittest.TestCase):
                 use_function=False
             except:
                 msg = ('Force fields must be a scalar value coercible to float.')
-                raise Exception, msg
+                raise_(Exception, msg)
 
         for i,t in enumerate(time):
             if ( use_function ):
@@ -674,7 +675,7 @@ class Test_Forcing(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         try:
             domain.forcing_terms.append(Wind_stress(s=speed, phi=scalar_func))
@@ -682,7 +683,7 @@ class Test_Forcing(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         try:
             domain.forcing_terms.append(Wind_stress(s=speed, phi='xx'))
@@ -690,7 +691,7 @@ class Test_Forcing(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise Exception, msg
+            raise_(Exception, msg)
 
     def test_rainfall(self):
         from math import pi, cos, sin
@@ -1056,7 +1057,7 @@ class Test_Forcing(unittest.TestCase):
         def main_rate(t):
             if t > 20:
                 msg = 'Model time exceeded.'
-                raise Modeltime_too_late, msg
+                raise_(Modeltime_too_late, msg)
             else:
                 return 3*t + 7
 
@@ -1128,7 +1129,7 @@ class Test_Forcing(unittest.TestCase):
         def main_rate(t):
             if t > 20:
                 msg = 'Model time exceeded.'
-                raise Modeltime_too_late, msg
+                raise_(Modeltime_too_late, msg)
             else:
                 return 3*t + 7
 
@@ -1187,7 +1188,7 @@ class Test_Forcing(unittest.TestCase):
         def main_rate(t):
             if t > 20:
                 msg = 'Model time exceeded.'
-                raise Modeltime_too_late, msg
+                raise_(Modeltime_too_late, msg)
             else:
                 return 3*t + 7
 
@@ -1206,11 +1207,11 @@ class Test_Forcing(unittest.TestCase):
         try:
             for t in domain.evolve(yieldstep=1, finaltime=25):
                 pass
-        except Modeltime_too_late, e:
+        except Modeltime_too_late as e:
             # Test that error message is as expected
             assert 'can specify keyword argument default_rate in the forcing function' in str(e)
         else:
-            raise Exception, 'Should have raised exception'
+            raise Exception('Should have raised exception')
 
     def test_constant_wind_stress_from_file(self):
         from anuga.config import rho_a, rho_w, eta_w
@@ -2369,7 +2370,7 @@ class Test_Forcing(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise Exception, msg
+            raise_(Exception, msg)
 
 
             

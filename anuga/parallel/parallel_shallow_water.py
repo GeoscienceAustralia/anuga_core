@@ -10,10 +10,12 @@ Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
 Geoscience Australia, 2004-2005
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 from anuga import Domain
 
-import parallel_generic_communications as generic_comms
+from . import parallel_generic_communications as generic_comms
 
 import anuga.utilities.parallel_abstraction as pypar
 
@@ -223,7 +225,7 @@ class Parallel_domain(Domain):
             import matplotlib.pyplot as plt
             import matplotlib.tri as tri
         except:
-            print "Couldn't import module from matplotlib, probably you need to update matplotlib"
+            print("Couldn't import module from matplotlib, probably you need to update matplotlib")
             raise
 
         vertices = self.get_vertex_coordinates()

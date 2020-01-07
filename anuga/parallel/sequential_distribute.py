@@ -2,6 +2,7 @@
 
 
 """
+from __future__ import print_function
 
 import numpy as num
 
@@ -67,7 +68,7 @@ class Sequential_distribute(object):
 
 
         # Subdivide the mesh
-        if verbose: print 'sequential_distribute: Subdivide mesh'
+        if verbose: print('sequential_distribute: Subdivide mesh')
 
         new_nodes, new_triangles, new_boundary, triangles_per_proc, quantities, \
                s2p_map, p2s_map = \
@@ -76,8 +77,8 @@ class Sequential_distribute(object):
 
         # Build the mesh that should be assigned to each processor,
         # this includes ghost nodes and the communication pattern
-        if verbose: print 'sequential_distribute: Build submeshes'
-        if verbose: print 'sequential_distribute: parameters = ',parameters
+        if verbose: print('sequential_distribute: Build submeshes')
+        if verbose: print('sequential_distribute: parameters = ',parameters)
 
         submesh = build_submesh(new_nodes, new_triangles, new_boundary, \
                                 quantities, triangles_per_proc, parameters=parameters)
@@ -86,8 +87,8 @@ class Sequential_distribute(object):
             for p in range(numprocs):
                 N = len(submesh['ghost_nodes'][p])
                 M = len(submesh['ghost_triangles'][p])
-                print 'There are %d ghost nodes and %d ghost triangles on proc %d'\
-                      %(N, M, p)
+                print('There are %d ghost nodes and %d ghost triangles on proc %d'\
+                      %(N, M, p))
 
 
         self.submesh = submesh
@@ -121,13 +122,13 @@ class Sequential_distribute(object):
 
         if debug:
             import pprint
-            print  50*"="
-            print 'NODE_L2G'
+            print(50*"=")
+            print('NODE_L2G')
             pprint.pprint(node_l2g)
 
             pprint.pprint(node_l2g[vertices[:,0]])
 
-            print 'VERTICES'
+            print('VERTICES')
             pprint.pprint(vertices[:,0])
             pprint.pprint(new_triangles[tri_l2g,0])
 
@@ -136,14 +137,14 @@ class Sequential_distribute(object):
             assert num.allclose(node_l2g[vertices[:,2]], new_triangles[tri_l2g,2])
 
 
-            print 'POINTS'
+            print('POINTS')
             pprint.pprint(points)
 
             assert num.allclose(points[:,0], new_nodes[node_l2g,0])
             assert num.allclose(points[:,1], new_nodes[node_l2g,1])
 
 
-            print 'TRI'
+            print('TRI')
             pprint.pprint(tri_l2g)
             pprint.pprint(p2s_map[tri_l2g])
 
@@ -152,7 +153,7 @@ class Sequential_distribute(object):
             assert num.allclose(original_triangles[tri_l2orig,1],node_l2g[vertices[:,1]])
             assert num.allclose(original_triangles[tri_l2orig,2],node_l2g[vertices[:,2]])
 
-            print 'NODES'
+            print('NODES')
             pprint.pprint(node_map)
             pprint.pprint(node_l2g)
 
@@ -166,7 +167,7 @@ class Sequential_distribute(object):
         #------------------------------------------------------------------------
 
         if verbose:
-            print 'sequential_distribute: P%g, no_full_nodes = %g, no_full_triangles = %g' % (p, number_of_full_nodes, number_of_full_triangles)
+            print('sequential_distribute: P%g, no_full_nodes = %g, no_full_triangles = %g' % (p, number_of_full_nodes, number_of_full_triangles))
 
 
         kwargs = {'full_send_dict': full_send_dict,

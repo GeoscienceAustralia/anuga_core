@@ -1,11 +1,12 @@
+from __future__ import absolute_import
 import anuga
 import math
 import numpy
 
 from anuga.structures.weir_orifice_trapezoid_operator import weir_orifice_trapezoid_function 
 
-from parallel_inlet_operator import Parallel_Inlet_operator
-from parallel_structure_operator import Parallel_Structure_operator
+from .parallel_inlet_operator import Parallel_Inlet_operator
+from .parallel_structure_operator import Parallel_Structure_operator
 
 class Parallel_Weir_orifice_trapezoid_operator(Parallel_Structure_operator):
     """Culvert flow - transfer water from one trapezoid section to another.

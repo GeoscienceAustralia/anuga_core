@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 
+from __future__ import print_function
 import unittest
 
 
@@ -156,26 +157,26 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
 
 
         if verbose:
-            print 50*'='
-            print 'UNITTEST ',inspect.stack()[0][3]
-            print 'culvert_width ',culvert_width
-            print 'culvert_height ',culvert_height
-            print 'culvert_blockage ',culvert_blockage
-            print 'culvert_barrels ',culvert_barrels
-            print 'culvert_z1 ',culvert_z1
-            print 'culvert_z2 ',culvert_z2
-            print 'culvert_flow_width ',culvert_width
-            print 'culvert_length ' ,culvert_length
-            print 'culvert_slope ',culvert_slope
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_depth ', outlet_depth
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
-            print ' '
-            print 'inlet_depth ', inlet_depth
-            print 'inlet_velocity ', inlet_velocity
-            print 'outlet_velocity ', outlet_velocity
+            print(50*'=')
+            print('UNITTEST ',inspect.stack()[0][3])
+            print('culvert_width ',culvert_width)
+            print('culvert_height ',culvert_height)
+            print('culvert_blockage ',culvert_blockage)
+            print('culvert_barrels ',culvert_barrels)
+            print('culvert_z1 ',culvert_z1)
+            print('culvert_z2 ',culvert_z2)
+            print('culvert_flow_width ',culvert_width)
+            print('culvert_length ' ,culvert_length)
+            print('culvert_slope ',culvert_slope)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
+            print('outlet_depth ', outlet_depth)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
+            print(' ')
+            print('inlet_depth ', inlet_depth)
+            print('inlet_velocity ', inlet_velocity)
+            print('outlet_velocity ', outlet_velocity)
 
 
 
@@ -258,22 +259,22 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
 
 
         if verbose:
-            print 50*'='
-            print 'UNITTEST ',inspect.stack()[0][3]
-            print 'culvert_width ',culvert_width
-            print 'culvert_depth ',culvert_height
-            print 'culvert_blockage ',culvert_blockage
-            print 'culvert_length ' ,culvert_length
-            print 'inlet_depth ', inlet_depth
-            print 'inlet_velocity ', inlet_velocity
-            print 'outlet_depth ', outlet_depth
-            print 'outlet_velocity ', outlet_velocity
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
-            print ' '
-            print 'flow_width ',culvert_width
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
+            print(50*'=')
+            print('UNITTEST ',inspect.stack()[0][3])
+            print('culvert_width ',culvert_width)
+            print('culvert_depth ',culvert_height)
+            print('culvert_blockage ',culvert_blockage)
+            print('culvert_length ' ,culvert_length)
+            print('inlet_depth ', inlet_depth)
+            print('inlet_velocity ', inlet_velocity)
+            print('outlet_depth ', outlet_depth)
+            print('outlet_velocity ', outlet_velocity)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
+            print(' ')
+            print('flow_width ',culvert_width)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
 
         Q, v, d, flow_area, case= weir_orifice_trapezoid_function(
                                                     width      = culvert_width,
@@ -349,22 +350,22 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
 
 
         if verbose:
-            print 50*'='
-            print 'UNITTEST ',inspect.stack()[0][3]
-            print 'culvert_width ',culvert_width
-            print 'culvert_depth ',culvert_height
-            print 'culvert_blockage ',culvert_blockage
-            print 'culvert_length ' ,culvert_length
-            print 'inlet_depth ', inlet_depth
-            print 'inlet_velocity ', inlet_velocity
-            print 'outlet_depth ', outlet_depth
-            print 'outlet_velocity ', outlet_velocity
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
-            print ' '
-            print 'flow_width ',culvert_width
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
+            print(50*'=')
+            print('UNITTEST ',inspect.stack()[0][3])
+            print('culvert_width ',culvert_width)
+            print('culvert_depth ',culvert_height)
+            print('culvert_blockage ',culvert_blockage)
+            print('culvert_length ' ,culvert_length)
+            print('inlet_depth ', inlet_depth)
+            print('inlet_velocity ', inlet_velocity)
+            print('outlet_depth ', outlet_depth)
+            print('outlet_velocity ', outlet_velocity)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
+            print(' ')
+            print('flow_width ',culvert_width)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
 
         Q, v, d, flow_area, case= weir_orifice_trapezoid_function(
                                                     width      = culvert_width,
@@ -440,22 +441,22 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
 
 
         if verbose:
-            print 50*'='
-            print 'UNITTEST ',inspect.stack()[0][3]
-            print 'culvert_width ',culvert_width
-            print 'culvert_depth ',culvert_height
-            print 'culvert_blockage ',culvert_blockage
-            print 'culvert_length ' ,culvert_length
-            print 'inlet_depth ', inlet_depth
-            print 'inlet_velocity ', inlet_velocity
-            print 'outlet_depth ', outlet_depth
-            print 'outlet_velocity ', outlet_velocity
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
-            print ' '
-            print 'flow_width ',culvert_width
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
+            print(50*'=')
+            print('UNITTEST ',inspect.stack()[0][3])
+            print('culvert_width ',culvert_width)
+            print('culvert_depth ',culvert_height)
+            print('culvert_blockage ',culvert_blockage)
+            print('culvert_length ' ,culvert_length)
+            print('inlet_depth ', inlet_depth)
+            print('inlet_velocity ', inlet_velocity)
+            print('outlet_depth ', outlet_depth)
+            print('outlet_velocity ', outlet_velocity)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
+            print(' ')
+            print('flow_width ',culvert_width)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
 
         Q, v, d, flow_area, case= weir_orifice_trapezoid_function(
                                                     width      = culvert_width,
@@ -533,22 +534,22 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
 
 
         if verbose:
-            print 50*'='
-            print 'UNITTEST ',inspect.stack()[0][3]
-            print 'culvert_width ',culvert_width
-            print 'culvert_depth ',culvert_height
-            print 'culvert_blockage ',culvert_blockage
-            print 'culvert_length ' ,culvert_length
-            print 'inlet_depth ', inlet_depth
-            print 'inlet_velocity ', inlet_velocity
-            print 'outlet_depth ', outlet_depth
-            print 'outlet_velocity ', outlet_velocity
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
-            print ' '
-            print 'flow_width ',culvert_width
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
+            print(50*'=')
+            print('UNITTEST ',inspect.stack()[0][3])
+            print('culvert_width ',culvert_width)
+            print('culvert_depth ',culvert_height)
+            print('culvert_blockage ',culvert_blockage)
+            print('culvert_length ' ,culvert_length)
+            print('inlet_depth ', inlet_depth)
+            print('inlet_velocity ', inlet_velocity)
+            print('outlet_depth ', outlet_depth)
+            print('outlet_velocity ', outlet_velocity)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
+            print(' ')
+            print('flow_width ',culvert_width)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
 
         Q, v, d, flow_area, case= weir_orifice_trapezoid_function(
                                                     width      = culvert_width,
@@ -625,22 +626,22 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
 
 
         if verbose:
-            print 50*'='
-            print 'UNITTEST ',inspect.stack()[0][3]
-            print 'culvert_width ',culvert_width
-            print 'culvert_depth ',culvert_height
-            print 'culvert_blockage ',culvert_blockage
-            print 'culvert_length ' ,culvert_length
-            print 'inlet_depth ', inlet_depth
-            print 'inlet_velocity ', inlet_velocity
-            print 'outlet_depth ', outlet_depth
-            print 'outlet_velocity ', outlet_velocity
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
-            print ' '
-            print 'flow_width ',culvert_width
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
+            print(50*'=')
+            print('UNITTEST ',inspect.stack()[0][3])
+            print('culvert_width ',culvert_width)
+            print('culvert_depth ',culvert_height)
+            print('culvert_blockage ',culvert_blockage)
+            print('culvert_length ' ,culvert_length)
+            print('inlet_depth ', inlet_depth)
+            print('inlet_velocity ', inlet_velocity)
+            print('outlet_depth ', outlet_depth)
+            print('outlet_velocity ', outlet_velocity)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
+            print(' ')
+            print('flow_width ',culvert_width)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
 
         Q, v, d, flow_area, case= weir_orifice_trapezoid_function(
                                                     width      = culvert_width,

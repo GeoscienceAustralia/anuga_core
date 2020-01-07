@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 
+from __future__ import print_function
 import unittest
 
 
@@ -168,8 +169,8 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_non_skew'
-            print 'Q: ', Q, 'expected_Q: ', expected_Q
+            print('test_boyd_non_skew')
+            print('Q: ', Q, 'expected_Q: ', expected_Q)
         
 
         assert numpy.allclose(Q, expected_Q, rtol=1.0e-2) #inflow
@@ -245,8 +246,8 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_skew'
-            print 'Q: ', Q, 'expected_Q: ', expected_Q
+            print('test_boyd_skew')
+            print('Q: ', Q, 'expected_Q: ', expected_Q)
 
         assert numpy.allclose(Q, expected_Q, rtol=1.0e-2) #inflow
         assert numpy.allclose(v, expected_v, rtol=1.0e-2) #outflow velocity
@@ -323,10 +324,10 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_non_skew_enquiry_points'
-            print 'Q: ', Q, 'expected_Q: ', expected_Q
-            print 'v: ', v, 'expected_v: ', expected_v
-            print 'd: ', d, 'expected_d: ', expected_d
+            print('test_boyd_non_skew_enquiry_points')
+            print('Q: ', Q, 'expected_Q: ', expected_Q)
+            print('v: ', v, 'expected_v: ', expected_v)
+            print('d: ', d, 'expected_d: ', expected_d)
 
         assert numpy.allclose(Q, expected_Q, rtol=1.0e-2) #inflow
         assert numpy.allclose(v, expected_v, rtol=1.0e-2) #outflow velocity
@@ -369,17 +370,17 @@ class Test_boyd_box_operator(unittest.TestCase):
 
 
         if verbose:
-            print 50*'='
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'blockage',culvert_blockage
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
+            print(50*'=')
+            print('width ',culvert_width)
+            print('depth ',culvert_height)
+            print('blockage',culvert_blockage)
+            print('flow_width ',culvert_width)
+            print('length ' ,culvert_length)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
+            print('outlet_enquiry_depth ',outlet_depth)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
             
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
@@ -500,9 +501,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_operator_1'
-            print 'expected ',expected_Q,expected_v, expected_d
-            print 'calc ',Q,v,d
+            print('test_boyd_operator_1')
+            print('expected ',expected_Q,expected_v, expected_d)
+            print('calc ',Q,v,d)
         
 
         assert numpy.allclose(Q, expected_Q, rtol=5.0e-2) #inflow
@@ -550,17 +551,17 @@ class Test_boyd_box_operator(unittest.TestCase):
         d_expected = 0.367
         
         if verbose:
-            print 50*'='
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'blockage',culvert_blockage
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
+            print(50*'=')
+            print('width ',culvert_width)
+            print('depth ',culvert_height)
+            print('blockage',culvert_blockage)
+            print('flow_width ',culvert_width)
+            print('length ' ,culvert_length)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
+            print('outlet_enquiry_depth ',outlet_depth)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
             
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
@@ -678,9 +679,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_operator_2'
-            print 'expected ',Q_expected,v_expected, d_expected
-            print 'calc ',Q,v,d
+            print('test_boyd_operator_2')
+            print('expected ',Q_expected,v_expected, d_expected)
+            print('calc ',Q,v,d)
         
 
         assert numpy.allclose(Q, Q_expected, rtol=2.0e-2) #inflow
@@ -730,17 +731,17 @@ class Test_boyd_box_operator(unittest.TestCase):
         d_expected = 1.131
         
         if verbose:
-            print 50*'='
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'blockage',culvert_blockage
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
+            print(50*'=')
+            print('width ',culvert_width)
+            print('depth ',culvert_height)
+            print('blockage',culvert_blockage)
+            print('flow_width ',culvert_width)
+            print('length ' ,culvert_length)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
+            print('outlet_enquiry_depth ',outlet_depth)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
             
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
@@ -864,9 +865,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_operator_1'
-            print 'expected ',Q_expected,v_expected, d_expected
-            print 'calc ',Q,v,d
+            print('test_boyd_operator_1')
+            print('expected ',Q_expected,v_expected, d_expected)
+            print('calc ',Q,v,d)
         
 
         assert numpy.allclose(Q, Q_expected, rtol=2.0e-2) #inflow
@@ -920,17 +921,17 @@ class Test_boyd_box_operator(unittest.TestCase):
         
         
         if verbose:
-            print 50*'='
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'blockage',culvert_blockage
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
+            print(50*'=')
+            print('width ',culvert_width)
+            print('depth ',culvert_height)
+            print('blockage',culvert_blockage)
+            print('flow_width ',culvert_width)
+            print('length ' ,culvert_length)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
+            print('outlet_enquiry_depth ',outlet_depth)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
             
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
@@ -1053,9 +1054,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_operator_1'
-            print 'expected ',Q_expected,v_expected, d_expected
-            print 'calc ',Q,v,d
+            print('test_boyd_operator_1')
+            print('expected ',Q_expected,v_expected, d_expected)
+            print('calc ',Q,v,d)
         
 
         assert numpy.allclose(Q, Q_expected, rtol=2.0e-2) #inflow
@@ -1100,17 +1101,17 @@ class Test_boyd_box_operator(unittest.TestCase):
         d_expected = 1.20
         
         if verbose:
-            print 50*'='
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'blockage',culvert_blockage
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
+            print(50*'=')
+            print('width ',culvert_width)
+            print('depth ',culvert_height)
+            print('blockage',culvert_blockage)
+            print('flow_width ',culvert_width)
+            print('length ' ,culvert_length)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
+            print('outlet_enquiry_depth ',outlet_depth)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
             
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
@@ -1235,9 +1236,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_operator_1'
-            print 'expected ',Q_expected,v_expected, d_expected
-            print 'calc ',Q,v,d
+            print('test_boyd_operator_1')
+            print('expected ',Q_expected,v_expected, d_expected)
+            print('calc ',Q,v,d)
         
 
         assert numpy.allclose(Q, Q_expected, rtol=2.0e-2) #inflow
@@ -1283,17 +1284,17 @@ class Test_boyd_box_operator(unittest.TestCase):
         d_expected = 1.20
 
         if verbose:
-            print 50*'='
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'blockage',culvert_blockage
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
+            print(50*'=')
+            print('width ',culvert_width)
+            print('depth ',culvert_height)
+            print('blockage',culvert_blockage)
+            print('flow_width ',culvert_width)
+            print('length ' ,culvert_length)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
+            print('outlet_enquiry_depth ',outlet_depth)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
             
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
@@ -1416,9 +1417,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_operator_1'
-            print 'expected ',Q_expected,v_expected, d_expected
-            print 'calc ',Q,v,d
+            print('test_boyd_operator_1')
+            print('expected ',Q_expected,v_expected, d_expected)
+            print('calc ',Q,v,d)
         
 
         assert numpy.allclose(Q, Q_expected, rtol=2.0e-2) #inflow
@@ -1465,17 +1466,17 @@ class Test_boyd_box_operator(unittest.TestCase):
         d_expected = 0.1339
         
         if verbose:
-            print 50*'='
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'blockage',culvert_blockage
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
+            print(50*'=')
+            print('width ',culvert_width)
+            print('depth ',culvert_height)
+            print('blockage',culvert_blockage)
+            print('flow_width ',culvert_width)
+            print('length ' ,culvert_length)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
+            print('outlet_enquiry_depth ',outlet_depth)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
             
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
@@ -1608,9 +1609,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_operator_1'
-            print 'expected ',Q_expected,v_expected, d_expected
-            print 'calc ',Q,v,d
+            print('test_boyd_operator_1')
+            print('expected ',Q_expected,v_expected, d_expected)
+            print('calc ',Q,v,d)
         
 
         assert numpy.allclose(Q, Q_expected, rtol=2.0e-2) #inflow
@@ -1657,17 +1658,17 @@ class Test_boyd_box_operator(unittest.TestCase):
         d_expected = 0.409
 
         if verbose:
-            print 50*'='
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'blockage',culvert_blockage
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
+            print(50*'=')
+            print('width ',culvert_width)
+            print('depth ',culvert_height)
+            print('blockage',culvert_blockage)
+            print('flow_width ',culvert_width)
+            print('length ' ,culvert_length)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
+            print('outlet_enquiry_depth ',outlet_depth)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
             
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
@@ -1796,9 +1797,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_operator_1'
-            print 'expected ',Q_expected,v_expected, d_expected
-            print 'calc ',Q,v,d
+            print('test_boyd_operator_1')
+            print('expected ',Q_expected,v_expected, d_expected)
+            print('calc ',Q,v,d)
         
 
         assert numpy.allclose(Q, Q_expected, rtol=1.0e-1) #inflow
@@ -1844,17 +1845,17 @@ class Test_boyd_box_operator(unittest.TestCase):
         d_expected = 1.131
         
         if verbose:
-            print 50*'='
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'blockage',culvert_blockage
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
+            print(50*'=')
+            print('width ',culvert_width)
+            print('depth ',culvert_height)
+            print('blockage',culvert_blockage)
+            print('flow_width ',culvert_width)
+            print('length ' ,culvert_length)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
+            print('outlet_enquiry_depth ',outlet_depth)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
             
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
@@ -1988,9 +1989,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_operator_1'
-            print 'expected ',Q_expected,v_expected, d_expected
-            print 'calc ',Q,v,d
+            print('test_boyd_operator_1')
+            print('expected ',Q_expected,v_expected, d_expected)
+            print('calc ',Q,v,d)
         
 
         assert numpy.allclose(Q, Q_expected, rtol=2.0e-2) #inflow
@@ -2036,17 +2037,17 @@ class Test_boyd_box_operator(unittest.TestCase):
         d_expected = 0.70
         
         if verbose:
-            print 50*'='
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'blockage',culvert_blockage
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
+            print(50*'=')
+            print('width ',culvert_width)
+            print('depth ',culvert_height)
+            print('blockage',culvert_blockage)
+            print('flow_width ',culvert_width)
+            print('length ' ,culvert_length)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
+            print('outlet_enquiry_depth ',outlet_depth)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
             
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
@@ -2180,9 +2181,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_operator_1'
-            print 'expected ',Q_expected,v_expected, d_expected
-            print 'calc ',Q,v,d
+            print('test_boyd_operator_1')
+            print('expected ',Q_expected,v_expected, d_expected)
+            print('calc ',Q,v,d)
         
 
         assert numpy.allclose(Q, Q_expected, rtol=2.0e-2) #inflow
@@ -2227,17 +2228,17 @@ class Test_boyd_box_operator(unittest.TestCase):
         d_expected = 1.20
         
         if verbose:
-            print 50*'='
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'blockage',culvert_blockage
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
+            print(50*'=')
+            print('width ',culvert_width)
+            print('depth ',culvert_height)
+            print('blockage',culvert_blockage)
+            print('flow_width ',culvert_width)
+            print('length ' ,culvert_length)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
+            print('outlet_enquiry_depth ',outlet_depth)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
             
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
@@ -2370,9 +2371,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_operator_1'
-            print 'expected ',Q_expected,v_expected, d_expected
-            print 'calc ',Q,v,d
+            print('test_boyd_operator_1')
+            print('expected ',Q_expected,v_expected, d_expected)
+            print('calc ',Q,v,d)
         
 
         assert numpy.allclose(Q, Q_expected, rtol=2.0e-2) #inflow
@@ -2418,17 +2419,17 @@ class Test_boyd_box_operator(unittest.TestCase):
         d_expected = 1.20
         
         if verbose:
-            print 50*'='
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'blockage',culvert_blockage
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
+            print(50*'=')
+            print('width ',culvert_width)
+            print('depth ',culvert_height)
+            print('blockage',culvert_blockage)
+            print('flow_width ',culvert_width)
+            print('length ' ,culvert_length)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
+            print('outlet_enquiry_depth ',outlet_depth)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
             
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
@@ -2559,9 +2560,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_operator_1'
-            print 'expected ',Q_expected,v_expected, d_expected
-            print 'calc ',Q,v,d
+            print('test_boyd_operator_1')
+            print('expected ',Q_expected,v_expected, d_expected)
+            print('calc ',Q,v,d)
         
 
         assert numpy.allclose(Q, Q_expected, rtol=2.0e-2) #inflow
@@ -2672,9 +2673,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_operator_12_invert'
-            print 'expected ',Q_expected,v_expected, d_expected
-            print 'calc ',Q,v,d
+            print('test_boyd_operator_12_invert')
+            print('expected ',Q_expected,v_expected, d_expected)
+            print('calc ',Q,v,d)
         
 
         assert numpy.allclose(Q, Q_expected, rtol=2.0e-2) #inflow
@@ -2722,17 +2723,17 @@ class Test_boyd_box_operator(unittest.TestCase):
         d_expected = 0.13
 
         if verbose:
-            print 50*'='
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'blockage',culvert_blockage
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
+            print(50*'=')
+            print('width ',culvert_width)
+            print('depth ',culvert_height)
+            print('blockage',culvert_blockage)
+            print('flow_width ',culvert_width)
+            print('length ' ,culvert_length)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
+            print('outlet_enquiry_depth ',outlet_depth)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
             
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
@@ -2865,9 +2866,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_operator_1'
-            print 'expected ',Q_expected,v_expected, d_expected
-            print 'calc ',Q,v,d
+            print('test_boyd_operator_1')
+            print('expected ',Q_expected,v_expected, d_expected)
+            print('calc ',Q,v,d)
         
 
         assert numpy.allclose(Q, Q_expected, rtol=2.0e-2) #inflow
@@ -2913,17 +2914,17 @@ class Test_boyd_box_operator(unittest.TestCase):
         d_expected = 1.2
         
         if verbose:
-            print 50*'='
-            print 'width ',culvert_width
-            print 'depth ',culvert_height
-            print 'blockage',culvert_blockage
-            print 'flow_width ',culvert_width
-            print 'length ' ,culvert_length
-            print 'driving_energy ',inlet_specific_energy
-            print 'delta_total_energy ',delta_total_energy
-            print 'outlet_enquiry_depth ',outlet_depth
-            print 'sum_loss ',sum_loss
-            print 'manning ',manning
+            print(50*'=')
+            print('width ',culvert_width)
+            print('depth ',culvert_height)
+            print('blockage',culvert_blockage)
+            print('flow_width ',culvert_width)
+            print('length ' ,culvert_length)
+            print('driving_energy ',inlet_specific_energy)
+            print('delta_total_energy ',delta_total_energy)
+            print('outlet_enquiry_depth ',outlet_depth)
+            print('sum_loss ',sum_loss)
+            print('manning ',manning)
             
         Q, v, d, flow_area, case= boyd_box_function(culvert_width, 
                                                     culvert_height,
@@ -3054,9 +3055,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_operator_1'
-            print 'expected ',Q_expected,v_expected, d_expected
-            print 'calc ',Q,v,d
+            print('test_boyd_operator_1')
+            print('expected ',Q_expected,v_expected, d_expected)
+            print('calc ',Q,v,d)
         
 
         assert numpy.allclose(Q, Q_expected, rtol=2.0e-2) #inflow
@@ -3167,9 +3168,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_operator_12_invert'
-            print 'expected ',Q_expected,v_expected, d_expected
-            print 'calc ',Q,v,d
+            print('test_boyd_operator_12_invert')
+            print('expected ',Q_expected,v_expected, d_expected)
+            print('calc ',Q,v,d)
         
 
         assert numpy.allclose(Q, Q_expected, rtol=2.0e-2) #inflow

@@ -100,7 +100,7 @@ def communicate_ghosts_blocking(domain):
 
         else:
             #Receive data from the iproc processor
-            if  domain.ghost_recv_dict.has_key(iproc):
+            if  iproc in domain.ghost_recv_dict:
 
                 Idg = domain.ghost_recv_dict[iproc][0]
                 X   = domain.ghost_recv_dict[iproc][2]
@@ -114,7 +114,7 @@ def communicate_ghosts_blocking(domain):
 
     #local update of ghost cells
     iproc = domain.processor
-    if domain.full_send_dict.has_key(iproc):
+    if iproc in domain.full_send_dict:
 
         # LINDA:
         # now store full as local id, global id, value

@@ -1,3 +1,5 @@
+from __future__ import print_function
+from future.utils import raise_
 import unittest
 import copy
 import os
@@ -100,7 +102,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         # Check maximal runup
         runup, location, max_time = get_maximum_inundation_data(swwfile, return_time=True)
         if verbose:
-            print 'Runup, location', runup, location, max_time
+            print('Runup, location', runup, location, max_time)
         
         assert num.allclose(runup, 3.33333325386)
         assert num.allclose(location, [53.333332, 43.333332]) 
@@ -109,7 +111,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         # Check runup in restricted time interval
         runup, location, max_time = get_maximum_inundation_data(swwfile, time_interval=[0,9], return_time=True)
         if verbose:
-            print 'Runup, location:',runup, location, max_time
+            print('Runup, location:',runup, location, max_time)
         
         assert num.allclose(runup, 2.66666674614)
         assert num.allclose(location, [56.666668, 16.666666])
@@ -118,7 +120,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         # Check final runup
         runup, location = get_maximum_inundation_data(swwfile, time_interval=[45,50])
         if verbose:
-            print 'Runup, location:',runup, location, max_time
+            print('Runup, location:',runup, location, max_time)
 
         assert num.allclose(runup, 3.33333325386)
         assert num.allclose(location, [53.333332, 33.333332])
@@ -922,7 +924,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
             if verbose:
                 domain.write_time()
-                print q
+                print(q)
                 
             if q > q_max:
                 q_max = q
@@ -946,7 +948,7 @@ class Test_sww_Interrogate(unittest.TestCase):
             pass
         else:
             msg = 'should have caught wrong time interval'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         # Check correct time interval
         q, loc = get_maximum_inundation_data(filename+'.sww',
@@ -970,7 +972,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
             if verbose:
                 domain.write_time()
-                print q
+                print(q)
 
             if q > q_max:
                 q_max = q
@@ -1046,7 +1048,7 @@ class Test_sww_Interrogate(unittest.TestCase):
             pass
         else:
             msg = 'Time interval should have raised an exception'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         # Cleanup
         try:

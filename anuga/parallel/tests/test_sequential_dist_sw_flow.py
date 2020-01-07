@@ -6,11 +6,13 @@ similar to a beach environment
 
 This is a very simple test of the parallel algorithm using the simplified parallel API
 """
+from __future__ import print_function
 
 
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
+from future.utils import raise_
 import unittest
 import os
 import sys
@@ -78,7 +80,7 @@ def run_simulation(parallel=False, verbose=False):
     # Create pickled partition
     #--------------------------------------------------------------------------
     if myid == 0:
-        if verbose: print 'DUMPING PARTITION DATA'
+        if verbose: print('DUMPING PARTITION DATA')
         sequential_distribute_dump(domain, numprocs, verbose=verbose, parameters=new_parameters)    
 
     #--------------------------------------------------------------------------
@@ -86,22 +88,22 @@ def run_simulation(parallel=False, verbose=False):
     #--------------------------------------------------------------------------
     if parallel:
         
-        if myid == 0 and verbose : print 'DISTRIBUTING TO PARALLEL DOMAIN'
+        if myid == 0 and verbose : print('DISTRIBUTING TO PARALLEL DOMAIN')
         pdomain = distribute(domain, verbose=verbose, parameters=new_parameters)
         pdomain.set_name('pdomain')
         
-        if myid == 0 and verbose : print 'LOADING IN PARALLEL DOMAIN'
+        if myid == 0 and verbose : print('LOADING IN PARALLEL DOMAIN')
         sdomain = sequential_distribute_load(filename='odomain', verbose = verbose)
         sdomain.set_name('sdomain')
         
-    if myid == 0 and verbose: print 'EVOLVING pdomain'    
+    if myid == 0 and verbose: print('EVOLVING pdomain')    
     setup_and_evolve(pdomain, verbose=verbose)
  
-    if myid == 0 and verbose: print 'EVOLVING sdomain'   
+    if myid == 0 and verbose: print('EVOLVING sdomain')   
     setup_and_evolve(sdomain, verbose=verbose)
     
     if myid == 0:
-        if verbose: print 'EVOLVING odomain'   
+        if verbose: print('EVOLVING odomain')   
         setup_and_evolve(domain, verbose=verbose)
     
 
@@ -133,7 +135,7 @@ def run_simulation(parallel=False, verbose=False):
     # Now compare the merged sww files
     #---------------------------------
     if myid == 0:
-        if verbose: print 'COMPARING SWW FILES'
+        if verbose: print('COMPARING SWW FILES')
         
         odomain_v = util.get_output('odomain.sww')
         odomain_c = util.get_centroids(odomain_v)
@@ -149,38 +151,38 @@ def run_simulation(parallel=False, verbose=False):
         if verbose:
             
             order = 2
-            print 'PDOMAIN CENTROID VALUES'
-            print num.linalg.norm(odomain_c.x-pdomain_c.x,ord=order)
-            print num.linalg.norm(odomain_c.y-pdomain_c.y,ord=order)
-            print num.linalg.norm(odomain_c.stage[-1]-pdomain_c.stage[-1],ord=order)
-            print num.linalg.norm(odomain_c.xmom[-1]-pdomain_c.xmom[-1],ord=order)
-            print num.linalg.norm(odomain_c.ymom[-1]-pdomain_c.ymom[-1],ord=order)
-            print num.linalg.norm(odomain_c.xvel[-1]-pdomain_c.xvel[-1],ord=order)
-            print num.linalg.norm(odomain_c.yvel[-1]-pdomain_c.yvel[-1],ord=order)        
+            print('PDOMAIN CENTROID VALUES')
+            print(num.linalg.norm(odomain_c.x-pdomain_c.x,ord=order))
+            print(num.linalg.norm(odomain_c.y-pdomain_c.y,ord=order))
+            print(num.linalg.norm(odomain_c.stage[-1]-pdomain_c.stage[-1],ord=order))
+            print(num.linalg.norm(odomain_c.xmom[-1]-pdomain_c.xmom[-1],ord=order))
+            print(num.linalg.norm(odomain_c.ymom[-1]-pdomain_c.ymom[-1],ord=order))
+            print(num.linalg.norm(odomain_c.xvel[-1]-pdomain_c.xvel[-1],ord=order))
+            print(num.linalg.norm(odomain_c.yvel[-1]-pdomain_c.yvel[-1],ord=order))        
             
              
-            print 'SDOMAIN CENTROID VALUES'        
-            print num.linalg.norm(odomain_c.x-sdomain_c.x,ord=order)
-            print num.linalg.norm(odomain_c.y-sdomain_c.y,ord=order)
-            print num.linalg.norm(odomain_c.stage[-1]-sdomain_c.stage[-1],ord=order)
-            print num.linalg.norm(odomain_c.xmom[-1]-sdomain_c.xmom[-1],ord=order)
-            print num.linalg.norm(odomain_c.ymom[-1]-sdomain_c.ymom[-1],ord=order)
-            print num.linalg.norm(odomain_c.xvel[-1]-sdomain_c.xvel[-1],ord=order)
-            print num.linalg.norm(odomain_c.yvel[-1]-sdomain_c.yvel[-1],ord=order)
+            print('SDOMAIN CENTROID VALUES')        
+            print(num.linalg.norm(odomain_c.x-sdomain_c.x,ord=order))
+            print(num.linalg.norm(odomain_c.y-sdomain_c.y,ord=order))
+            print(num.linalg.norm(odomain_c.stage[-1]-sdomain_c.stage[-1],ord=order))
+            print(num.linalg.norm(odomain_c.xmom[-1]-sdomain_c.xmom[-1],ord=order))
+            print(num.linalg.norm(odomain_c.ymom[-1]-sdomain_c.ymom[-1],ord=order))
+            print(num.linalg.norm(odomain_c.xvel[-1]-sdomain_c.xvel[-1],ord=order))
+            print(num.linalg.norm(odomain_c.yvel[-1]-sdomain_c.yvel[-1],ord=order))
             
-            print 'PDOMAIN VERTEX VALUES'        
-            print num.linalg.norm(odomain_v.stage[-1]-pdomain_v.stage[-1],ord=order)
-            print num.linalg.norm(odomain_v.xmom[-1]-pdomain_v.xmom[-1],ord=order)
-            print num.linalg.norm(odomain_v.ymom[-1]-pdomain_v.ymom[-1],ord=order)
-            print num.linalg.norm(odomain_v.xvel[-1]-pdomain_v.xvel[-1],ord=order)
-            print num.linalg.norm(odomain_v.yvel[-1]-pdomain_v.yvel[-1],ord=order)
+            print('PDOMAIN VERTEX VALUES')        
+            print(num.linalg.norm(odomain_v.stage[-1]-pdomain_v.stage[-1],ord=order))
+            print(num.linalg.norm(odomain_v.xmom[-1]-pdomain_v.xmom[-1],ord=order))
+            print(num.linalg.norm(odomain_v.ymom[-1]-pdomain_v.ymom[-1],ord=order))
+            print(num.linalg.norm(odomain_v.xvel[-1]-pdomain_v.xvel[-1],ord=order))
+            print(num.linalg.norm(odomain_v.yvel[-1]-pdomain_v.yvel[-1],ord=order))
             
-            print 'SDOMAIN VERTEX VALUES'     
-            print num.linalg.norm(odomain_v.stage[-1]-sdomain_v.stage[-1],ord=order)
-            print num.linalg.norm(odomain_v.xmom[-1]-sdomain_v.xmom[-1],ord=order)
-            print num.linalg.norm(odomain_v.ymom[-1]-sdomain_v.ymom[-1],ord=order)
-            print num.linalg.norm(odomain_v.xvel[-1]-sdomain_v.xvel[-1],ord=order)
-            print num.linalg.norm(odomain_v.yvel[-1]-sdomain_v.yvel[-1],ord=order)
+            print('SDOMAIN VERTEX VALUES')     
+            print(num.linalg.norm(odomain_v.stage[-1]-sdomain_v.stage[-1],ord=order))
+            print(num.linalg.norm(odomain_v.xmom[-1]-sdomain_v.xmom[-1],ord=order))
+            print(num.linalg.norm(odomain_v.ymom[-1]-sdomain_v.ymom[-1],ord=order))
+            print(num.linalg.norm(odomain_v.xvel[-1]-sdomain_v.xvel[-1],ord=order))
+            print(num.linalg.norm(odomain_v.yvel[-1]-sdomain_v.yvel[-1],ord=order))
             
             
             
@@ -289,7 +291,7 @@ def setup_and_evolve(domain, verbose=False):
 
 class Test_parallel_sw_flow(unittest.TestCase):
     def test_parallel_sw_flow(self):
-        if verbose : print "Expect this test to fail if not run from the parallel directory."
+        if verbose : print("Expect this test to fail if not run from the parallel directory.")
 
         abs_script_name = os.path.abspath(__file__)
         cmd = "mpiexec -np %d python %s" % (3, abs_script_name)
@@ -302,7 +304,7 @@ class Test_parallel_sw_flow(unittest.TestCase):
 def assert_(condition, msg="Assertion Failed"):
     if condition == False:
         #pypar.finalize()
-        raise AssertionError, msg
+        raise_(AssertionError, msg)
 
 if __name__=="__main__":
     if numprocs == 1: 
@@ -319,7 +321,7 @@ if __name__=="__main__":
         # Run the codel and compare sequential
         # results at 4 gauge stations
         #------------------------------------------
-        if myid ==0 and verbose: print 'PARALLEL START'
+        if myid ==0 and verbose: print('PARALLEL START')
 
         run_simulation(parallel=True, verbose=verbose)
         

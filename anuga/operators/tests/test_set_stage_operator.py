@@ -1,5 +1,6 @@
 """  Test set operators - stage elevation erosion.
 """
+from __future__ import print_function
 
 import unittest, os
 import anuga
@@ -458,7 +459,7 @@ class Test_set_stage_operators(unittest.TestCase):
             
             
             ratio = float(nrows)/float(ncols)
-            print ratio
+            print(ratio)
             
             #y = numpy.arange(nrows)*cellsize
             #x = numpy.arange(ncols)*cellsize

@@ -4,13 +4,14 @@
      python compile.py <filename>
  
 """     
+from __future__ import print_function
 import os
 
 buildroot = os.getcwd()
 os.chdir('..')
 
 
-print 'Changing to', os.getcwd()        
+print('Changing to', os.getcwd())        
 
 #entries = listdir('.')
 

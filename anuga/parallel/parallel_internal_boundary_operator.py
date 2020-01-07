@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import anuga
 import math
 import numpy
@@ -7,8 +9,8 @@ import scipy.optimize as sco
 
 #from anuga.structures.boyd_box_operator import boyd_box_function 
 
-from parallel_inlet_operator import Parallel_Inlet_operator
-from parallel_structure_operator import Parallel_Structure_operator
+from .parallel_inlet_operator import Parallel_Inlet_operator
+from .parallel_structure_operator import Parallel_Structure_operator
 
 class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
     """
@@ -43,11 +45,11 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
                  enquiry_proc = [0,0]):
 
         if verbose:
-            print '########################################'
-            print 'PARALLEL INTERNAL BOUNDARY OPERATOR'
-            print 'THIS IS EXPERIMENTAL'
-            print 'SUBJECT TO CHANGE WITHOUT NOTICE'
-            print '########################################'
+            print('########################################')
+            print('PARALLEL INTERNAL BOUNDARY OPERATOR')
+            print('THIS IS EXPERIMENTAL')
+            print('SUBJECT TO CHANGE WITHOUT NOTICE')
+            print('########################################')
 
         # Since no barrel_velocity is computed we cannot use_momentum_jet
         use_momentum_jet = False

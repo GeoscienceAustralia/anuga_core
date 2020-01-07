@@ -21,8 +21,10 @@ ModifiedBy:
     $Author: hudson $
     $Date: 2010-05-18 14:54:05 +1000 (Tue, 18 May 2010) $
 """
+from __future__ import absolute_import
 
 
+from future.utils import raise_
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Boundary, File_boundary
 import numpy as num
@@ -32,7 +34,7 @@ from anuga.fit_interpolate.interpolate import Modeltime_too_late
 from anuga.fit_interpolate.interpolate import Modeltime_too_early
 from anuga.config import g as gravity
      
-from shallow_water_ext import rotate
+from .shallow_water_ext import rotate
 
 #from anuga.utilities import compile
 #if compile.can_use_C_extension('shallow_water_ext.c'):
@@ -59,7 +61,7 @@ class Reflective_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for reflective boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         # Handy shorthands
         self.stage = domain.quantities['stage'].edge_values
@@ -179,11 +181,11 @@ class Transmissive_momentum_set_stage_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for this type boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         if function is None:
             msg = 'Function must be specified for this type boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         self.domain = domain
 
@@ -266,11 +268,11 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for this type boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         if function is None:
             msg = 'Function must be specified for this type boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         self.domain = domain
         self.function = function
@@ -380,7 +382,7 @@ class Transmissive_stage_zero_momentum_boundary(Boundary):
         if domain is None:
             msg = ('Domain must be specified for '
                    'Transmissive_stage_zero_momentum boundary')
-            raise Exception, msg
+            raise_(Exception, msg)
 
         self.domain = domain
 
@@ -436,7 +438,7 @@ class Time_stage_zero_momentum_boundary(Boundary):
         
         try:
             q = function(0.0)
-        except Exception, e:
+        except Exception as e:
             msg = 'Function for time stage boundary could not be executed:\n%s' %e
             raise Exception(msg)
 
@@ -508,17 +510,17 @@ class Characteristic_stage_boundary(Boundary):
             default_stage is the assumed stage pre the application of wave
         """
 
-        raise Exception, 'This boundary type is not implemented yet'
+        raise Exception('This boundary type is not implemented yet')
     
         Boundary.__init__(self)
 
         if domain is None:
             msg = 'Domain must be specified for this type boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         if function is None:
             msg = 'Function must be specified for this type boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         self.domain = domain
         self.function = function
@@ -661,10 +663,10 @@ class Dirichlet_discharge_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for this type of boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         if stage0 is None:
-            raise Exception, 'Stage must be specified for this type of boundary'
+            raise Exception('Stage must be specified for this type of boundary')
 
         if wh0 is None:
             wh0 = 0.0
@@ -710,7 +712,7 @@ class Inflow_boundary(Boundary):
         if domain is None:
             msg = 'Domain must be specified for '
             msg += 'Inflow boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         self.domain = domain
         
@@ -941,11 +943,11 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for this type boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         if function is None:
             msg = 'Function must be specified for this type boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         self.domain = domain
         self.function = function

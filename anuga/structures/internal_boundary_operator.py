@@ -1,3 +1,4 @@
+from __future__ import print_function
 import anuga
 import math
 import numpy
@@ -52,11 +53,11 @@ class Internal_boundary_operator(anuga.Structure_operator):
                  verbose=True):
 
         if verbose:
-            print '########################################'
-            print 'INTERNAL BOUNDARY OPERATOR'
-            print 'THIS IS EXPERIMENTAL'
-            print 'SUBJECT TO CHANGE WITHOUT NOTICE'
-            print '########################################'
+            print('########################################')
+            print('INTERNAL BOUNDARY OPERATOR')
+            print('THIS IS EXPERIMENTAL')
+            print('SUBJECT TO CHANGE WITHOUT NOTICE')
+            print('########################################')
 
         # Since no barrel_velocity is computed we cannot use_momentum_jet
         use_momentum_jet = False

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import unittest
 import numpy as num
 
@@ -170,17 +171,17 @@ class Test_Quad(unittest.TestCase):
 
 
         results = Q.search_fast([5.5, 5.5])
-        print 'visits: ', Q.count_visits()
+        print('visits: ', Q.count_visits())
         
         Q.clear_visits()
         results = Q.search_fast([30, 10])
-        print 'visits: ', Q.count_visits()
+        print('visits: ', Q.count_visits())
         
-        print 'second time:'
+        print('second time:')
 
         Q.clear_visits()        
         results = Q.search_fast([5.5, 5.5])
-        print 'visits: ', Q.count_visits()
+        print('visits: ', Q.count_visits())
 ################################################################################
 
 if __name__ == "__main__":

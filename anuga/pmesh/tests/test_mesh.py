@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 #
+from __future__ import print_function
 import tempfile
 import unittest
 
@@ -2081,13 +2082,13 @@ class meshTestCase(unittest.TestCase):
         for n in numbers:
             mode = 'a' + str(n)
             #print " mode += 'a' + str(n)", mode
-            print "====================="
+            print("=====================")
             
             try:
                 mode = 'a' + '%20.20f' %n
             except TypeError:
                 mode = 'a' + str(n)
-            print "mode += 'a' + '%20.20f' %n", mode
+            print("mode += 'a' + '%20.20f' %n", mode)
         #print "", mode
         
   
