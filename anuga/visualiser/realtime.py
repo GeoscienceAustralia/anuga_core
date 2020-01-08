@@ -1,8 +1,9 @@
+from __future__ import absolute_import
 #from  import Float, zeros, shape
 import numpy as num
 from Tkinter import Button, E, Tk, W
 from threading import Event
-from visualiser import Visualiser
+from .visualiser import Visualiser
 from vtk import vtkCellArray, vtkPoints, vtkPolyData
 
 class RealtimeVisualiser(Visualiser):

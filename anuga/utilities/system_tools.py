@@ -2,7 +2,9 @@
 
 
 """
+from __future__ import print_function
 
+from future.utils import raise_
 import sys
 import os
 import string
@@ -12,6 +14,7 @@ import getpass
 import tarfile
 import warnings
 import pdb
+from functools import reduce
 
 try:
     import hashlib
@@ -24,7 +27,7 @@ def log_to_file(filename, s, verbose=False, mode='a'):
     """
 
     fid = open(filename, mode)
-    if verbose: print s
+    if verbose: print(s)
     fid.write(s + '\n')
     fid.close()
 
@@ -102,7 +105,7 @@ Good luck!
         revision_number = int(line)
     except:
         msg = ".svn/entries, line 4 was '%s'?" % line.strip()
-        raise Exception, msg
+        raise_(Exception, msg)
 
     return revision_number
 
@@ -149,7 +152,7 @@ def __get_revision_from_svn_client__():
         except:
             msg = ('Revision number must be an integer. I got "%s" from '
                    '"SubWCRev.exe".' % line)
-            raise Exception, msg
+            raise_(Exception, msg)
     else:                   # assume Linux
         try:
             fid = os.popen('svn info . 2>/dev/null')
@@ -182,7 +185,7 @@ def __get_revision_from_svn_client__():
         except:
             msg = ("Revision number must be an integer. I got '%s' from "
                    "'svn'." % fields[1])
-            raise Exception, msg
+            raise_(Exception, msg)
 
     return revision_number
 
@@ -242,7 +245,7 @@ def process_revision_info(revision_info):
         msg = ("Revision number must be an integer. I got '%s'.\n"
                'Check that the command svn is on the system path.'
                % fields[1])
-        raise Exception, msg
+        raise_(Exception, msg)
 
     return revision_number
 
@@ -301,7 +304,7 @@ def store_revision_info(destination_path='.', verbose=False):
         #txt = fid.read()
         #fid.close()
 
-        if verbose: print 'response ',txt
+        if verbose: print('response ',txt)
 
 
         # Determine absolute filename
@@ -324,7 +327,7 @@ def store_revision_info(destination_path='.', verbose=False):
 
 
         if verbose is True:
-            print 'Revision info stored to %s' % filename
+            print('Revision info stored to %s' % filename)
 
 
 def safe_crc(string):
@@ -495,14 +498,14 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
     try:
         urllib.urlretrieve(file_url, file_name)
         return (True, auth)     # no proxy, no auth required
-    except IOError, e:
+    except IOError as e:
         if e[1] == 407:     # proxy error
             pass
         elif e[1][0] == 113:  # no route to host
-            print 'No route to host for %s' % file_url
+            print('No route to host for %s' % file_url)
             return (False, auth)    # return False
         else:
-            print 'Unknown connection error to %s' % file_url
+            print('Unknown connection error to %s' % file_url)
             return (False, auth)
 
     # We get here if there was a proxy error, get file through the proxy
@@ -522,21 +525,21 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
 
     # Get auth info from user if still not supplied
     if httpproxy is None or proxyuser is None or proxypass is None:
-        print '-'*72
+        print('-'*72)
         print ('You need to supply proxy authentication information.')
         if httpproxy is None:
             httpproxy = raw_input('                    proxy server: ')
         else:
-            print '         HTTP proxy was supplied: %s' % httpproxy
+            print('         HTTP proxy was supplied: %s' % httpproxy)
         if proxyuser is None:
             proxyuser = raw_input('                  proxy username: ') 
         else:
-            print 'HTTP proxy username was supplied: %s' % proxyuser
+            print('HTTP proxy username was supplied: %s' % proxyuser)
         if proxypass is None:
             proxypass = getpass.getpass('                  proxy password: ')
         else:
-            print 'HTTP proxy password was supplied: %s' % '*'*len(proxyuser)
-        print '-'*72
+            print('HTTP proxy password was supplied: %s' % '*'*len(proxyuser))
+        print('-'*72)
 
     # the proxy URL cannot start with 'http://', we add that later
     httpproxy = httpproxy.lower()
@@ -552,9 +555,9 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
     urllib2.install_opener(opener)
     try:
         webget = urllib2.urlopen(file_url)
-    except urllib2.HTTPError, e:
-        print 'Error received from proxy:\n%s' % str(e)
-        print 'Possibly the user/password is wrong.'
+    except urllib2.HTTPError as e:
+        print('Error received from proxy:\n%s' % str(e))
+        print('Possibly the user/password is wrong.')
         return (False, (httpproxy, proxyuser, proxypass))
 
     # transfer file to local filesystem

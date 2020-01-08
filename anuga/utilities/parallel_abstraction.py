@@ -5,6 +5,7 @@
 
     mpi4py wrap added 20130503 by Roberto Vidmar rvidmar@inogs.it
 """
+from __future__ import print_function
 import sys
 import os
 import time
@@ -54,8 +55,8 @@ except:
     """ Print arguments
     """
     for a in args:
-      print a,
-    print
+      print(a, end=' ')
+    print()
 
   def receive(*args, **kwargs):
       pass
@@ -164,8 +165,8 @@ else:
     """
     if comm.rank == 0:
       for a in args:
-        print a,
-      print
+        print(a, end=' ')
+      print()
 
   def rank():
     return comm.rank
@@ -177,7 +178,7 @@ else:
     s = MPI.Status()
     if bypass:
       if not isinstance(buffer, np.ndarray):
-        print "receive: This should NEVER happen!"
+        print("receive: This should NEVER happen!")
       comm.Recv(buffer, source=source, tag=tag, status=s)
     else:
       if buffer is None:

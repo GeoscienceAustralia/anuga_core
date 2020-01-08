@@ -45,7 +45,7 @@ class SWWVisualiser(Visualiser):
         except KeyError:
             fin = NetCDFFile(self.vis_source, 'r')
             if dynamic:
-                if not self.quantityCache.has_key(quantityName):
+                if quantityName not in self.quantityCache:
                     self.quantityCache[quantityName] = {}
                 q = array(fin.variables[quantityName][self.vis_frame], Float)
                 self.quantityCache[quantityName][self.vis_frame] = q

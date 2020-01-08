@@ -1,6 +1,8 @@
 """
 Proof of concept sparse matrix code
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 import numpy as num
 
@@ -43,7 +45,7 @@ class Sparse:
 
 
     def __repr__(self):
-        return '%d X %d sparse matrix:\n' %(self.M, self.N) + `self.Data`
+        return '%d X %d sparse matrix:\n' %(self.M, self.N) + repr(self.Data)
 
     def __len__(self):
         """Return number of nonzeros of A
@@ -65,7 +67,7 @@ class Sparse:
         if x != 0:
             self.Data[key] = float(x)
         else:
-            if self.Data.has_key( key ):
+            if key in self.Data:
                 del self.Data[key]
 
     def __getitem__(self, key):
@@ -75,7 +77,7 @@ class Sparse:
         assert 0 <= i < self.M
         assert 0 <= j < self.N
 
-        if self.Data.has_key( key ):
+        if key in self.Data:
             return self.Data[ key ]
         else:
             return 0.0
@@ -97,7 +99,7 @@ class Sparse:
 
         for i in range(self.M):
             for j in range(self.N):
-                if self.Data.has_key( (i,j) ):
+                if (i,j) in self.Data:
                     D[i, j] = self.Data[ (i,j) ]
         return D
 
@@ -196,7 +198,7 @@ class Sparse:
         try:
             B = num.array(other)
         except:
-            print 'FIXME: Only numeric types implemented so far'
+            print('FIXME: Only numeric types implemented so far')
 
 
         #Assume numeric types from now on
@@ -296,8 +298,8 @@ class Sparse_CSR:
             raise ValueError('Sparse_CSR(A) expects A == Sparse Matrix *or* data==array,colind==array,rowptr==array,m==int,n==int')
 
     def __repr__(self):
-        return '%d X %d sparse matrix:\n' %(self.M, self.N) + 'data '+ `self.data` + '\ncolind ' + \
-            `self.colind` + '\nrow_ptr ' + `self.row_ptr`
+        return '%d X %d sparse matrix:\n' %(self.M, self.N) + 'data '+ repr(self.data) + '\ncolind ' + \
+            repr(self.colind) + '\nrow_ptr ' + repr(self.row_ptr)
 
     def __len__(self):
         """Return number of nonzeros of A
@@ -326,13 +328,13 @@ class Sparse_CSR:
         try:
             B = num.array(other)
         except:
-            print 'FIXME: Only numeric types implemented so far'
+            print('FIXME: Only numeric types implemented so far')
 
         return csr_mv(self,B)
 
 
 # Setup for C extensions
-from sparse_ext import csr_mv
+from .sparse_ext import csr_mv
 
 
 if __name__ == '__main__':
@@ -343,13 +345,13 @@ if __name__ == '__main__':
     A[1,1] = 4
 
 
-    print A
-    print A.todense()
+    print(A)
+    print(A.todense())
 
     A[1,1] = 0
 
-    print A
-    print A.todense()
+    print(A)
+    print(A.todense())
 
     A[1,2] = 0
 
@@ -359,19 +361,19 @@ if __name__ == '__main__':
     A[1,2] = 2
     A[2,2] = 1
 
-    print A
-    print A.todense()
+    print(A)
+    print(A.todense())
 
 
     #Right hand side vector
     v = [2,3,4]
 
     u = A*v
-    print u
+    print(u)
     assert num.allclose(u, [6,14,4])
 
     u = A.trans_mult(v)
-    print u
+    print(u)
     assert num.allclose(u, [6,6,10])
 
     #Right hand side column
@@ -382,23 +384,23 @@ if __name__ == '__main__':
 
     #u = A*v[:,1]
     #print u
-    print A.shape
+    print(A.shape)
 
     B = 3*A
-    print B.todense()
+    print(B.todense())
 
     B[1,0] = 2
 
     C = A+B
 
-    print C.todense()
+    print(C.todense())
 
     C = Sparse_CSR(C)
 
     y = C*[6,14,4]
 
-    print y
+    print(y)
 
     y2 = C*[[6,4],[4,28],[4,8]]
 
-    print y2
+    print(y2)

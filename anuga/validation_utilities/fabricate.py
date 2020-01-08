@@ -21,6 +21,7 @@ To get help on fabricate functions:
 """
 
 from __future__ import with_statement
+from __future__ import print_function
 
 # fabricate version number
 __version__ = '1.24'
@@ -103,7 +104,7 @@ except ImportError:
 
 def printerr(message):
     """ Print given message to stderr with a line feed. """
-    print >>sys.stderr, message
+    print(message, file=sys.stderr)
 
 class PathError(Exception):
     pass
@@ -176,7 +177,7 @@ def _shell(args, input=None, silent=True, shell=False, ignore_status=False, **kw
     try:
         proc = subprocess.Popen(command, stdin=stdin, stdout=stdout,
                                 stderr=subprocess.STDOUT, shell=shell, **kwargs)
-    except OSError, e:
+    except OSError as e:
         # Work around the problem that Windows Popen doesn't say what file it couldn't find
         if platform.system() == 'Windows' and e.errno == 2 and e.filename is None:
             e.filename = arglist[0]
@@ -366,7 +367,7 @@ class AtimesRunner(Runner):
         """ Call os.utime but ignore permission errors """
         try:
             os.utime(filename, (atime, mtime))
-        except OSError, e:
+        except OSError as e:
             # ignore permission errors -- we can't build with files
             # that we can't access anyway
             if e.errno != 1:
@@ -801,7 +802,7 @@ def _results_handler( builder, delay=0.01):
                     if r.results is None and r.async.ready():
                         try:
                             d, o = r.async.get()
-                        except Exception, e:
+                        except Exception as e:
                             r.results = e
                             _groups.set_ok(False)
                         else:
@@ -929,7 +930,7 @@ class Builder(object):
     def echo(self, message):
         """ Print message, but only if builder is not in quiet mode. """
         if not self.quiet:
-            print message
+            print(message)
 
     def echo_command(self, command, echo=None):
         """ Show a command being executed. Also passed run's "echo" arg
@@ -949,7 +950,7 @@ class Builder(object):
     def echo_debug(self, message):
         """ Print message, but only if builder is in debug mode. """
         if self.debug:
-            print 'DEBUG:', message
+            print('DEBUG:', message)
 
     def run(self, *args, **kwargs):
         """ Run command given in args with kwargs per shell(), but only if its
@@ -1043,7 +1044,7 @@ class Builder(object):
         try:
             self.run(args, **kwargs)
             return 0
-        except ExecutionError, exc:
+        except ExecutionError as exc:
             message, data, status = exc
             return status
 
@@ -1107,7 +1108,7 @@ class Builder(object):
         for output in outputs:
             try:
                 os.remove(output)
-            except OSError, e:
+            except OSError as e:
                 self.echo_delete(output, e)
             else:
                 self.echo_delete(output)
@@ -1377,7 +1378,7 @@ def main(globals_dict=None, build_dir=None, extra_options=None, builder=None,
                 build_dir = os.path.dirname(build_file)
     if build_dir:
         if not options.quiet and os.path.abspath(build_dir) != original_path:
-            print "Entering directory '%s'" % build_dir
+            print("Entering directory '%s'" % build_dir)
         os.chdir(build_dir)
     if _pool is None and jobs > 1:
         _pool = multiprocessing.Pool(jobs)
@@ -1406,13 +1407,13 @@ def main(globals_dict=None, build_dir=None, extra_options=None, builder=None,
                 printerr('%r command not defined!' % action)
                 sys.exit(1)
         after() # wait till the build commands are finished
-    except ExecutionError, exc:
+    except ExecutionError as exc:
         message, data, status = exc
         printerr('fabricate: ' + message)
     finally:
         _stop_results.set() # stop the results gatherer so I don't hang
         if not options.quiet and os.path.abspath(build_dir) != original_path:
-            print "Leaving directory '%s' back to '%s'" % (build_dir, original_path)
+            print("Leaving directory '%s' back to '%s'" % (build_dir, original_path))
         os.chdir(original_path)
     sys.exit(status)
 

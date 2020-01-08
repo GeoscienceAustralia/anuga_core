@@ -1,3 +1,4 @@
+from __future__ import print_function
 from os.path import splitext
 from Tkinter import Tk, Button, Frame, Label, Scale
 from Tkinter import N, E, S, W, HORIZONTAL, VERTICAL
@@ -219,7 +220,7 @@ class Visualiser(object):
         _, ext = splitext(self.vis_recordPattern)
         try: writer = extmap[ext.lower()]()
         except KeyError:
-            print 'ERROR: Can\'t handle %s extension. Recording disabled.' % ext
+            print('ERROR: Can\'t handle %s extension. Recording disabled.' % ext)
             self.vis_recordPattern = None
             return
 

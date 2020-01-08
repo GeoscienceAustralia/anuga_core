@@ -11,6 +11,7 @@ calls a routine which itself calls several other routines
 in quantity_setting_functions, so we can catch bugs there too
 
 """
+from __future__ import print_function
 
 import unittest
 import anuga
@@ -81,9 +82,9 @@ class Test_quantity_setting_functions(unittest.TestCase):
        
         if(verbose):
             if(domain.store_centroids):
-                print '   Centroids stored'
+                print('   Centroids stored')
             else:
-                print '    Centroids estimated from vertices'
+                print('    Centroids estimated from vertices')
 
         # Boundary conditions
         Br=anuga.Reflective_boundary(domain)

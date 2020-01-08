@@ -2,6 +2,7 @@
 """
 
 from math import fabs,sqrt
+from functools import reduce
 
 def l1_norm(vector):
     """L_1 norm of a vector"""

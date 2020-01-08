@@ -1,5 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import sys
-import system_tools
+from . import system_tools
 
 TEST_CON = 'test_constants'
 
@@ -43,8 +45,8 @@ def estimate_time_mem(domain, yieldstep, finaltime, halt=False,
                                   use_test_constants=use_test_constants)
     
     if log_results: #FIXME, not loging results yet
-        print "This program will run for: " + str(time) + " (s)"
-        print "This program will use: " + str(memory)   + " (MB)"  
+        print("This program will run for: " + str(time) + " (s)")
+        print("This program will use: " + str(memory)   + " (MB)")  
      
     if halt:
         sys.exit()
