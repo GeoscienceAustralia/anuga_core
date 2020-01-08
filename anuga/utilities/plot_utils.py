@@ -46,6 +46,8 @@
           filenames, and ensure that in each case, the output will be as desired.
 
 """
+from __future__ import print_function
+from future.utils import raise_
 from anuga.file.netcdf import NetCDFFile
 import numpy
 import copy
@@ -77,7 +79,7 @@ class combine_outputs:
         #
 
         for i, filename in enumerate(filename_list):
-            if verbose: print i, filename
+            if verbose: print(i, filename)
             # Store output from filename
             p_tmp = get_output(filename, minimum_allowed_height,verbose=verbose)
             if(i==0):
@@ -266,7 +268,7 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
     vols=fid.variables['volumes'][:]
 
     # Friction if it exists
-    if(fid.variables.has_key('friction')):
+    if('friction' in fid.variables):
         friction=getInds(fid.variables['friction'],timeSlices=inds) 
     else:
         # Set friction to nan if it is not stored
@@ -278,7 +280,7 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
         inds2 = range(len(fid.variables['time']))
     
     # Get height
-    if(fid.variables.has_key('height')):
+    if('height' in fid.variables):
         height = fid.variables['height'][inds2]
     else:
         # Back calculate height if it is not stored
@@ -369,7 +371,7 @@ def _getCentVar(fid, varkey_c, time_indices, absMax=False,  vols = None, space_i
         vols1 = vols[:,1]
         vols2 = vols[:,2]
 
-    if(fid.variables.has_key(varkey_c)==False):
+    if((varkey_c in fid.variables)==False):
         # It looks like centroid values are not stored
         # In this case, compute centroid values from vertex values
         assert (vols is not None), "Must specify vols since centroid quantity is not stored"
@@ -545,7 +547,7 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
     for i in range(stage_cent.shape[0]):
         height_cent[i,:] = stage_cent[i,:] - elev_cent
 
-    if fid.variables.has_key('xmomentum_c'):
+    if 'xmomentum_c' in fid.variables:
         # The following commented out lines seem to only work on
         # some numpy/netcdf versions. So we loop
         #xmom_cent = fid.variables['xmomentum_c'][inds2]
@@ -556,7 +558,7 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
         for i in range(len(inds2)):
             xmom_cent[i,:] = fid.variables['xmomentum_c'][inds2[i]]
             ymom_cent[i,:] = fid.variables['ymomentum_c'][inds2[i]]
-            if fid.variables.has_key('height_c'):
+            if 'height_c' in fid.variables:
                 height_c_tmp[i,:] = fid.variables['height_c'][inds2[i]]
             else:
                 height_c_tmp[i,:] = fid.variables['stage_c'][inds2[i]] - elev_cent
@@ -897,10 +899,10 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None,
     try:
         import osgeo.gdal as gdal
         import osgeo.osr as osr
-    except ImportError, e:
+    except ImportError as e:
         msg='Failed to import gdal/ogr modules --'\
         + 'perhaps gdal python interface is not installed.'
-        raise ImportError, msg
+        raise_(ImportError, msg)
     
 
 
@@ -925,7 +927,7 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None,
     elif(EPSG_CODE is not None):
         srs.ImportFromEPSG(EPSG_CODE)
     else:
-        raise Exception, 'No spatial reference information given'
+        raise Exception('No spatial reference information given')
 
 
     ds.SetProjection(srs.ExportToWkt())
@@ -998,10 +1000,10 @@ def Make_Geotif(swwFile=None,
     try:
         import osgeo.gdal as gdal
         import osgeo.osr as osr
-    except ImportError, e:
+    except ImportError as e:
         msg = 'Failed to import gdal/ogr modules --'\
         + 'perhaps gdal python interface is not installed.'
-        raise ImportError, msg
+        raise_(ImportError, msg)
 
     # Check whether swwFile is an array, and if so, redefine various inputs to
     # make the code work
@@ -1012,7 +1014,7 @@ def Make_Geotif(swwFile=None,
 
     if(((EPSG_CODE is None) & (proj4string is None) )|
        ((EPSG_CODE is not None) & (proj4string is not None))):
-        raise Exception, 'Must specify EITHER an integer EPSG_CODE describing the file projection, OR a proj4string'
+        raise Exception('Must specify EITHER an integer EPSG_CODE describing the file projection, OR a proj4string')
 
 
     # Make output_dir
@@ -1025,7 +1027,7 @@ def Make_Geotif(swwFile=None,
         # Read in ANUGA outputs
             
         if(verbose):
-            print 'Reading sww File ...'
+            print('Reading sww File ...')
         p2 = get_centroids(swwFile, velocity_extrapolation, timeSlices=myTimeStep,
             minimum_allowed_height=min_allowed_height)
         xllcorner = p2.xllcorner
@@ -1041,23 +1043,23 @@ def Make_Geotif(swwFile=None,
             myTimeStep = [myTimeStep]
 
         if(verbose):
-            print 'Extracting required data ...'
+            print('Extracting required data ...')
         # Get ANUGA points
         swwX = p2.x + xllcorner
         swwY = p2.y + yllcorner
     else:
         # Get the point data from the 3-column array
         if(xyzPoints.shape[1] != 3):
-            raise Exception, 'If an array is passed, it must have exactly 3 columns'
+            raise Exception('If an array is passed, it must have exactly 3 columns')
         if(len(output_quantities) != 1):
-            raise Exception, 'Can only have 1 output quantity when passing an array'
+            raise Exception('Can only have 1 output quantity when passing an array')
         swwX = xyzPoints[:,0]
         swwY = xyzPoints[:,1]
         myTimeStep = ['pointData']
 
     # Grid for meshing
     if(verbose):
-        print 'Computing grid of output locations...'
+        print('Computing grid of output locations...')
     # Get points where we want raster cells
     if(lower_left is None):
         lower_left = [swwX.min(), swwY.min()]
@@ -1073,7 +1075,7 @@ def Make_Geotif(swwFile=None,
     gridX, gridY = scipy.meshgrid(desiredX, desiredY)
 
     if(verbose):
-        print 'Making interpolation functions...'
+        print('Making interpolation functions...')
     swwXY = scipy.array([swwX[:],swwY[:]]).transpose()
 
     # Get function to interpolate quantity onto gridXY_array
@@ -1122,9 +1124,9 @@ def Make_Geotif(swwFile=None,
     # Loop over all output quantities and produce the output
     for myTSindex, myTSi in enumerate(myTimeStep):
         if(verbose):
-            print 'Reduction = ', myTSi
+            print('Reduction = ', myTSi)
         for output_quantity in output_quantities:
-            if (verbose): print output_quantity
+            if (verbose): print(output_quantity)
 
             if(myTSi is not 'max'):
                 myTS = myTSi
@@ -1175,7 +1177,7 @@ def Make_Geotif(swwFile=None,
                 output_name = output_dir+'/'+'PointData_'+output_quantity+'.tif'
 
             if(verbose):
-                print 'Making raster ...'
+                print('Making raster ...')
             gridq.shape = (len(desiredY),len(desiredX))
             make_grid(scipy.flipud(gridq), desiredY, desiredX, output_name, EPSG_CODE=EPSG_CODE, 
                       proj4string=proj4string, creation_options=creation_options)

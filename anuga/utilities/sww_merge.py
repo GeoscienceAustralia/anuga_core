@@ -2,6 +2,7 @@
 """
     Merge a list of .sww files together into a single file.
 """
+from __future__ import print_function
 
 import numpy as num
 from anuga.utilities.numerical_tools import ensure_numeric
@@ -59,7 +60,7 @@ def _sww_merge(swwfiles, output, verbose=False):
     """
 
     if verbose:
-        print "MERGING SWW Files"
+        print("MERGING SWW Files")
         
     static_quantities = ['elevation']
     dynamic_quantities = ['stage', 'xmomentum', 'ymomentum']
@@ -68,7 +69,7 @@ def _sww_merge(swwfiles, output, verbose=False):
     tri_offset = 0
     for filename in swwfiles:
         if verbose:
-            print 'Reading file ', filename, ':'    
+            print('Reading file ', filename, ':')    
     
         fid = NetCDFFile(filename, netcdf_mode_r)
 
@@ -125,7 +126,7 @@ def _sww_merge(swwfiles, output, verbose=False):
         tri_offset += num_pts
         
         if verbose:
-            print '  new triangle index offset is ', tri_offset
+            print('  new triangle index offset is ', tri_offset)
             
         x.extend(list(fid.variables['x'][:]))
         y.extend(list(fid.variables['y'][:]))
@@ -152,7 +153,7 @@ def _sww_merge(swwfiles, output, verbose=False):
     #---------------------------
 
     if verbose:
-        print 'Writing file ', output, ':'
+        print('Writing file ', output, ':')
     fido = NetCDFFile(output, netcdf_mode_w)
     sww = Write_sww(static_quantities, dynamic_quantities)
     sww.store_header(fido, times,
@@ -218,14 +219,14 @@ def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=Fals
     """
 
     if verbose:
-        print "MERGING SWW Files"
+        print("MERGING SWW Files")
         
     
     first_file = True
     tri_offset = 0
     for filename in swwfiles:
         if verbose:
-            print 'Reading file ', filename, ':'    
+            print('Reading file ', filename, ':')    
     
         fid = NetCDFFile(filename, netcdf_mode_r)
          
@@ -455,7 +456,7 @@ def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=Fals
 
 
     if verbose:
-            print 'Writing file ', output, ':'
+            print('Writing file ', output, ':')
     fido = NetCDFFile(output, netcdf_mode_w)
 
     sww = Write_sww(static_quantities, dynamic_quantities, static_c_quantities, dynamic_c_quantities)
@@ -493,7 +494,7 @@ def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=Fals
     for q in dynamic_quantities:
         q_values = out_d_quantities[q]
         if verbose:
-            print '  Writing quantity: ',q
+            print('  Writing quantity: ',q)
             
         for i in range(n_steps):
             fido.variables[q][i] = q_values[i]
@@ -509,7 +510,7 @@ def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=Fals
 
     for q in dynamic_c_quantities:
         if verbose:
-            print '  Writing quantity: ',q
+            print('  Writing quantity: ',q)
             
         q_values = out_d_c_quantities[q]
         for i in range(n_steps):
@@ -531,7 +532,7 @@ def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=Fals
         for filename in swwfiles:
 
             if verbose:
-                print 'Deleting file ', filename, ':'
+                print('Deleting file ', filename, ':')
             os.remove(filename)
 
 
@@ -555,14 +556,14 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
     """
 
     if verbose:
-        print "MERGING SWW Files"
+        print("MERGING SWW Files")
 
 
     first_file = True
     tri_offset = 0
     for filename in swwfiles:
         if verbose:
-            print 'Reading file ', filename, ':'
+            print('Reading file ', filename, ':')
 
         fid = NetCDFFile(filename, netcdf_mode_r)
 
@@ -703,7 +704,7 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
     #---------------------------
 
     if verbose:
-            print 'Writing file ', output, ':'
+            print('Writing file ', output, ':')
 
     fido = NetCDFFile(output, netcdf_mode_w)
     sww = Write_sww(static_quantities, dynamic_quantities, static_c_quantities, dynamic_c_quantities)
@@ -739,7 +740,7 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
     for q in (dynamic_quantities + dynamic_c_quantities):
 
         if verbose:
-            print '  Writing quantity: ',q
+            print('  Writing quantity: ',q)
                     
         # Initialise q_values with zeros
         if q in dynamic_quantities:
@@ -792,7 +793,7 @@ def _sww_merge_parallel_non_smooth(swwfiles, output,  verbose=False, delete_old=
         for filename in swwfiles:
 
             if verbose:
-                print 'Deleting file ', filename, ':'
+                print('Deleting file ', filename, ':')
             os.remove(filename)
 
 
@@ -827,5 +828,5 @@ if __name__ == "__main__":
         sww_merge_parallel(domain_global_name, np, verbose, delete_old)
     except:
         msg = 'ERROR: When merging sww files %s '% domain_global_name
-        print msg
+        print(msg)
         raise

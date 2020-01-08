@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import os
 import unittest
 import anuga
@@ -60,9 +61,9 @@ class Test_plot_utils(unittest.TestCase):
 
         if(verbose):
             if(domain.store_centroids):
-                print '   Centroids stored'
+                print('   Centroids stored')
             else:
-                print '    Centroids estimated from vertices'
+                print('    Centroids estimated from vertices')
 
         # Boundary conditions
         Br=anuga.Reflective_boundary(domain)
@@ -254,7 +255,7 @@ class Test_plot_utils(unittest.TestCase):
         # Run flowAlg_test_basic for a range of flow algorithms
         for flowAlg in flow_algorithms:
             if(verbose):
-                print flowAlg
+                print(flowAlg)
             self.create_domain(InitialOceanStage=1., InitialLandStage=0., flowAlg=flowAlg, verbose=verbose)
             self.basic_checks()
 
@@ -267,7 +268,7 @@ class Test_plot_utils(unittest.TestCase):
         """
         for flowAlg in flow_algorithms:
             if(verbose):
-                print flowAlg
+                print(flowAlg)
             self.create_domain(InitialOceanStage=1., InitialLandStage=0., flowAlg=flowAlg, verbose=verbose)
             # Test time-slices with velocity_extrapolation=True
             self.velExtrap_timeSlices_check(ve=True)
@@ -282,7 +283,7 @@ class Test_plot_utils(unittest.TestCase):
         """
         for flowAlg in flow_algorithms:
             if(verbose):
-                print flowAlg
+                print(flowAlg)
             self.create_domain(InitialOceanStage=1., InitialLandStage=0., flowAlg=flowAlg, verbose=verbose)
             pc=util.get_centroids('test_plot_utils.sww')
             l=len(pc.time)-1

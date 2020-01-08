@@ -1,6 +1,7 @@
 #! /usr/bin/python
 
 
+from __future__ import print_function
 __author__="stephen"
 __date__ ="$20/08/2012 11:20:00 PM$"
 
@@ -35,9 +36,9 @@ def run_script(script, args=None, np=1, alg=None, verbose=False, allow_parallel=
                 cmd = 'mpiexec -np %s python %s -alg %s' % (str(np), script, str(alg))
                 
             if verbose:
-                print 50*'='
-                print 'Run '+cmd
-                print 50*'='
+                print(50*'=')
+                print('Run '+cmd)
+                print(50*'=')
 
 
             os.system(cmd)
@@ -50,9 +51,9 @@ def run_script(script, args=None, np=1, alg=None, verbose=False, allow_parallel=
                 cmd = 'python %s -alg %s' % (script, str(alg))
             
             if verbose:
-                print 50*'='
-                print 'Run '+cmd
-                print 50*'='
+                print(50*'=')
+                print('Run '+cmd)
+                print(50*'=')
             
             os.system(cmd)
             #subprocess.call([cmd], shell=True)

@@ -1,6 +1,8 @@
 """Basic XML utilities based on minidom - the built in Document Object Model
 """
+from __future__ import print_function
 
+from future.utils import raise_
 import sys
 from xml.dom import minidom, Node
 #from xml.sax import make_parser, parse as validate, handler
@@ -11,10 +13,10 @@ def print_tree(n, indent=0):
         #if n.nodeType != Node.ELEMENT_NODE:
         #    break
 
-        print ' '*indent,\
+        print(' '*indent,\
               'Node name: "%s",' %n.nodeName,\
               'Node type: "%s",' %n.nodeType,\
-              'Node value: "%s"' %str(n.nodeValue).strip()
+              'Node value: "%s"' %str(n.nodeValue).strip())
               
         
         print_tree(n.firstChild, indent+4)
@@ -22,7 +24,7 @@ def print_tree(n, indent=0):
 
 
 def pretty_print_tree(n, indent=0):
-    print n
+    print(n)
 
 def parse(fid):
     """Parse XML file descriptor and return DOM object.
@@ -240,18 +242,18 @@ def xml2object(xml, verbose=False):
 
     try:
         dom = parse(fid)
-    except Exception, e:
+    except Exception as e:
         # Throw filename into dom exception
         msg = 'XML file "%s" could not be parsed.\n' %fid.name
         msg += 'Error message from parser: "%s"' %str(e)
-        raise Exception, msg
+        raise_(Exception, msg)
 
     try:
         xml_object = dom2object(dom)
-    except Exception, e:
+    except Exception as e:
         msg = 'Could not convert %s into XML object.\n' %fid.name
         msg += str(e)
-        raise Exception, msg
+        raise_(Exception, msg)
     
     return xml_object
 
@@ -289,7 +291,7 @@ def dom2object(node):
                 msg = 'A text node was followed by a non-text tag. This is not allowed.\n'
                 msg += 'Offending text node: "%s" ' %str(textnode_encountered)            
                 msg += 'was followed by node named: "<%s>"' %str(n.nodeName)
-                raise Exception, msg
+                raise_(Exception, msg)
             
 
             value.append(dom2object(n))

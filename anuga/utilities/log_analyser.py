@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import os
 import re
@@ -35,7 +36,7 @@ def build_log_info(path, log_file):
                         key = key_value_list[0].strip()
                         value =  key_value_list[1].strip()
                         if key in dictResults:
-                            print "WARNING. Multiple values ignored."
+                            print("WARNING. Multiple values ignored.")
                         dictResults[key] = value
                         #print "key", key 
                         #print "value", value
