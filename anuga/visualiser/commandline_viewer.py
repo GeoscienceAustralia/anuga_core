@@ -2,6 +2,7 @@
 
 python vtk_viewer swwfile.sww
 """
+from __future__ import print_function
 
 import sys, os
 from anuga.visualiser import OfflineVisualiser
@@ -12,8 +13,8 @@ def get_filename():
 
         root, ext = os.path.splitext(filename)
             
-        if ext <> '.sww':
-            print 'WARNING: I only view sww files.' %filename
+        if ext != '.sww':
+            print('WARNING: I only view sww files.' %filename)
       
         return filename
 
