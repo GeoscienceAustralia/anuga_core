@@ -6,7 +6,6 @@
 #
 # Setup.py taken from scikit learn
 
-
 from future import standard_library
 standard_library.install_aliases()
 from builtins import filter
@@ -17,9 +16,8 @@ import os
 import shutil
 from distutils.command.clean import clean as Clean
 
-
 if sys.version_info[0] < 3:
-    import builtins as builtins
+    import __builtin__ as builtins
 else:
     import builtins
 
@@ -74,8 +72,8 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
     extra_setuptools_args = dict(
         zip_safe=False,  # the package can run out of an .egg file
         include_package_data=True,
-		install_requires=['numpy', 
-                          'scipy', 
+		install_requires=['numpy',
+                          'scipy',
                           'netcdf4',
                           'matplotlib',
                           'gdal',
@@ -125,11 +123,11 @@ def configuration(parent_package='', top_path=None):
 
 
 def setup_package():
-    
+
     from anuga.utilities.system_tools import store_revision_info
-    
+
     store_revision_info(destination_path='anuga')
-    
+
     metadata = dict(name=DISTNAME,
                     maintainer=MAINTAINER,
                     maintainer_email=MAINTAINER_EMAIL,
@@ -162,7 +160,7 @@ def setup_package():
     metadata['configuration'] = configuration
 
     from numpy.distutils.core import setup
-    
+
     setup(**metadata)
 
 
@@ -170,4 +168,3 @@ if __name__ == "__main__":
 
 
     setup_package()
-    
