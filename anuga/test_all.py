@@ -14,10 +14,13 @@ where <options> is zero or more of:
 You may do things like "test_all.py -q -v -v".
 """
 from __future__ import print_function
+from __future__ import division
 
 # Author: Mark Pilgrim
 # Modified by Ole Nielsen
 
+from builtins import map
+from past.utils import old_div
 from future.utils import raise_
 import unittest
 import os
@@ -63,7 +66,7 @@ def list_names(names, func=None, col_width=None, page_width=None):
     c_width += 2                        # 2 column padding
 
     # calculate number of columns allowed
-    max_columns = int(p_width / c_width)
+    max_columns = int(old_div(p_width, c_width))
 
     # print columns
     column = 0
@@ -169,8 +172,8 @@ def regressionTest(test_verbose=False):
     # import all test_*.py files
     # NOTE: This implies that test_*.py files MUST HAVE UNIQUE NAMES!
     filenameToModuleName = lambda f: os.path.splitext(f)[0]
-    moduleNames = map(filenameToModuleName, files)
-    modules = map(__import__, moduleNames)
+    moduleNames = list(map(filenameToModuleName, files))
+    modules = list(map(__import__, moduleNames))
 
     # Fix up the system path
     for file in path_files:
@@ -178,7 +181,7 @@ def regressionTest(test_verbose=False):
 
     # bundle up all the tests
     load = unittest.defaultTestLoader.loadTestsFromModule
-    testCaseClasses = map(load, modules)
+    testCaseClasses = list(map(load, modules))
 
     if test_verbose is True:
         # Test the code by setting verbose to True.
