@@ -21,9 +21,10 @@
 # -----------------------------------------------------
 
 
+from builtins import filter
 __version__ = '2.0.3'
 
-__svn_revision__ = filter(str.isdigit, "$Revision: 9737 $")
+__svn_revision__ = ''.join(filter(str.isdigit, "$Revision: 9737 $"))
 
 __svn_revision_date__ = "$Date: 2016-10-04 16:13:00 +1100 (Tue, 04 Oct 2016) $"[7:-1]
 

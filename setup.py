@@ -7,6 +7,9 @@
 # Setup.py taken from scikit learn
 
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import filter
 descr = """A set of python modules for modelling the effect of tsunamis and flooding"""
 
 import sys
@@ -16,7 +19,7 @@ from distutils.command.clean import clean as Clean
 
 
 if sys.version_info[0] < 3:
-    import __builtin__ as builtins
+    import builtins as builtins
 else:
     import builtins
 
@@ -50,7 +53,7 @@ VERSION = anuga.__version__
 # Return the svn revision as a string
 def svn_revision():
 
-    return filter(str.isdigit, "$Revision$")
+    return ''.join(filter(str.isdigit, "$Revision$"))
 
 ###############################################################################
 # Optional setuptools features
