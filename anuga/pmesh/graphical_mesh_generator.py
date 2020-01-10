@@ -1,17 +1,18 @@
+from __future__ import absolute_import
 
 import  Pmw, AppShell, math, time, string, marshal
-from toolbarbutton import ToolBarButton
+from .toolbarbutton import ToolBarButton
 import tkFileDialog
 from   tkSimpleDialog import Dialog
-import mesh
-from mesh import SEG_COLOUR
+from . import mesh
+from .mesh import SEG_COLOUR
 from Tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, \
      Label,W, Entry, E, StringVar, END, Checkbutton, Radiobutton, IntVar, \
      DISABLED, NORMAL
 #from cursornames import TLC,TRC, BLC, BRC, TS, RS, LS, BS
 from tkMessageBox import showerror, _show, QUESTION,YESNOCANCEL
 import types
-import visualmesh
+from . import visualmesh
 import os, sys
 import profile
 import anuga.load_mesh.loadASCII
@@ -380,7 +381,7 @@ class Draw(AppShell.AppShell):
 
         # make a list of tags to delete
         guiIDs = [getattr(MeshObjects[i],'guiID') for i in xrange(len(MeshObjects))]
-        apply(self.canvas.delete, guiIDs)
+        self.canvas.delete(*guiIDs)
         for obj in MeshObjects:
             if self.selVertex == obj:
                 obj.draw(self.canvas,obj.guiID,  scale =self.SCALE ,colour= VERT_SELECT_ADDING_SEG_COLOR)

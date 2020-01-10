@@ -1,3 +1,4 @@
+from __future__ import print_function
 import unittest
 import anuga
 import numpy
@@ -73,13 +74,13 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
         #domain.print_statistics()
         for t in domain.evolve(yieldstep=1.0,finaltime=5.0):
             if verbose: domain.print_timestepping_statistics()
-            if verbose: print domain.get_water_volume()
+            if verbose: print(domain.get_water_volume())
             pass
         # The domain was initially dry
         vol=domain.get_water_volume()
         boundaryFluxInt=domain.get_boundary_flux_integral()
   
-        if verbose: print flowalg, vol, boundaryFluxInt        
+        if verbose: print(flowalg, vol, boundaryFluxInt)        
         assert(numpy.allclose(vol,boundaryFluxInt))
          
 
@@ -95,13 +96,13 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
         #domain.print_statistics()
         for t in domain.evolve(yieldstep=1.0,finaltime=5.0):
             if verbose: domain.print_timestepping_statistics()
-            if verbose: print domain.get_water_volume()
+            if verbose: print(domain.get_water_volume())
             pass
         # The domain was initially dry
         vol=domain.get_water_volume()
         boundaryFluxInt=domain.get_boundary_flux_integral()
          
-        if verbose: print flowalg, vol, boundaryFluxInt
+        if verbose: print(flowalg, vol, boundaryFluxInt)
         assert(numpy.allclose(vol,boundaryFluxInt))
         
         
@@ -118,13 +119,13 @@ class Test_boundary_flux_integral_operator(unittest.TestCase):
         #domain.print_statistics()
         for t in domain.evolve(yieldstep=1.0,finaltime=5.0):
             if verbose: domain.print_timestepping_statistics()
-            if verbose: print domain.get_water_volume(), domain.get_boundary_flux_integral()
+            if verbose: print(domain.get_water_volume(), domain.get_boundary_flux_integral())
             pass
         # The domain was initially dry
         vol=domain.get_water_volume()
         boundaryFluxInt=domain.get_boundary_flux_integral()
  
-        if verbose: print flowalg, vol, boundaryFluxInt
+        if verbose: print(flowalg, vol, boundaryFluxInt)
         assert(numpy.allclose(vol,boundaryFluxInt))        
          
         

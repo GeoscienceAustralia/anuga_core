@@ -1,4 +1,6 @@
-import mesh
+from __future__ import print_function
+from __future__ import absolute_import
+from . import mesh
 from   tkSimpleDialog import Dialog,askfloat, askinteger, askstring
 from Tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, Label,W, Entry, E, ACTIVE, NORMAL, StringVar
 from tkMessageBox import showerror
@@ -37,7 +39,7 @@ class vAbstract:
         """
         returns true if the key is in the canvas list
         """
-        if self.oncanvas.has_key(key):
+        if key in self.oncanvas:
             return True
         else:
             return False
@@ -52,11 +54,11 @@ class vAbstract:
         return self.oncanvas[key]
 
     def editWindow(self, canvas, selMeshObject,userMeshChanged):
-        print "Not implimented"
+        print("Not implimented")
         return userMeshChanged
 
     def defaultWindow(self, canvas):
-        print "Not implimented"
+        print("Not implimented")
 
     def draw (self):
         """
@@ -270,7 +272,7 @@ class vMesh(vAbstract):
         returns true if the key is in the canvas list
         """
         for MeshObjects in self.MeshObjectsList:
-            if MeshObjects.oncanvas.has_key(key):
+            if key in MeshObjects.oncanvas:
                 return True
         return False
 

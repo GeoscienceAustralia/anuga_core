@@ -10,11 +10,13 @@
    Will produce sww files with names domain_Pn_m.sww where m is number of processors and
    n in [0, m-1] refers to specific processor that owned this part of the partitioned mesh.
 """
+from __future__ import print_function
 
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
 
+from future.utils import raise_
 import os
 import sys
 import time
@@ -174,7 +176,7 @@ class Test_urs2sts_parallel(Test_Mux):
         domain_fbound = Domain(meshname)
         domain_fbound.set_quantities_to_be_stored(None)
         domain_fbound.set_quantity('stage', tide)
-        if verbose: print "Creating file boundary condition"
+        if verbose: print("Creating file boundary condition")
         Bf = File_boundary(sts_file+'.sts',
                            domain_fbound,
                            boundary_polygon=boundary_polygon)
@@ -183,7 +185,7 @@ class Test_urs2sts_parallel(Test_Mux):
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
 
         temp_fbound=num.zeros(int(finaltime/yieldstep)+1,num.float)
-        if verbose: print "Evolving domain with file boundary condition"
+        if verbose: print("Evolving domain with file boundary condition")
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
                                                    skip_initial_step = False)):
@@ -352,7 +354,7 @@ class Test_urs2sts_parallel(Test_Mux):
 
         barrier()
         if ( verbose and myid == 0 ): 
-            print 'DISTRIBUTING PARALLEL DOMAIN'
+            print('DISTRIBUTING PARALLEL DOMAIN')
         domain_fbound = distribute(domain_fbound)
 
         #--------------------------------------------------------------------
@@ -390,7 +392,7 @@ class Test_urs2sts_parallel(Test_Mux):
                 fbound_proc_tri_ids.append(-2)
 
 
-        if verbose: print 'P%d has points = %s' %(myid, fbound_proc_tri_ids)
+        if verbose: print('P%d has points = %s' %(myid, fbound_proc_tri_ids))
 
         #------------------------------------------------------------
         # Set boundary conditions
@@ -442,7 +444,7 @@ class Test_urs2sts_parallel(Test_Mux):
                 drchlt_proc_tri_ids.append(-2)
 
 
-        if verbose: print 'P%d has points = %s' %(myid, drchlt_proc_tri_ids)
+        if verbose: print('P%d has points = %s' %(myid, drchlt_proc_tri_ids))
 
         #------------------------------------------------------------
         # Evolve entire domain on each processor
@@ -481,7 +483,7 @@ class Test_urs2sts_parallel(Test_Mux):
 def assert_(condition, msg="Assertion Failed"):
     if condition == False:
         #pypar.finalize()
-        raise AssertionError, msg
+        raise_(AssertionError, msg)
 
 
 # Test an nprocs-way run of the shallow water equations
@@ -490,7 +492,7 @@ def assert_(condition, msg="Assertion Failed"):
 if __name__=="__main__":
     #verbose=False
     if myid ==0 and verbose: 
-        print 'PARALLEL START'
+        print('PARALLEL START')
     suite = unittest.makeSuite(Test_urs2sts_parallel,'parallel_test')
     #suite = unittest.makeSuite(Test_urs2sts_parallel,'sequential_test')
     runner = unittest.TextTestRunner()

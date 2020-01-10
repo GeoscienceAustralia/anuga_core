@@ -2,6 +2,8 @@
 
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 import numpy as num
 
@@ -77,7 +79,7 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
 
 
     if myid == 0:
-        from sequential_distribute import Sequential_distribute
+        from .sequential_distribute import Sequential_distribute
         partition = Sequential_distribute(domain, verbose, debug, parameters)
 
         partition.distribute(numprocs)
@@ -204,7 +206,7 @@ def old_distribute(domain, verbose=False, debug=False, parameters = None):
                   domain_minimum_allowed_height, georef, \
                   number_of_global_triangles, number_of_global_nodes), p)
     else:
-        if verbose: print 'P%d: Receiving domain attributes' %(myid)
+        if verbose: print('P%d: Receiving domain attributes' %(myid))
 
         domain_name, domain_dir, domain_store, \
                   domain_store_centroids, domain_smooth, domain_reduction, \
@@ -224,7 +226,7 @@ def old_distribute(domain, verbose=False, debug=False, parameters = None):
             # FIXME SR: Creates cPickle dump
             send(boundary_map, p)
     else:
-        if verbose: print 'P%d: Receiving boundary map' %(myid)
+        if verbose: print('P%d: Receiving boundary map' %(myid))
 
         boundary_map = receive(0)
 
@@ -250,20 +252,20 @@ def old_distribute(domain, verbose=False, debug=False, parameters = None):
         #tri_l2g = p2s_map[tri_l2g]
 
         if debug:
-            print 'P%d' %myid
-            print 'tri_map ',tri_map
-            print 'node_map',node_map
-            print 'tri_l2g', tri_l2g
-            print 'node_l2g', node_l2g
-            print 's2p_map', s2p_map
-            print 'p2s_map', p2s_map
+            print('P%d' %myid)
+            print('tri_map ',tri_map)
+            print('node_map',node_map)
+            print('tri_l2g', tri_l2g)
+            print('node_l2g', node_l2g)
+            print('s2p_map', s2p_map)
+            print('p2s_map', p2s_map)
 
 
         def protocol(x):
             vanilla=False
             from anuga.utilities import parallel_abstraction as pypar
             control_info, x = pypar.create_control_info(x, vanilla, return_object=True)
-            print 'protocol', control_info[0]
+            print('protocol', control_info[0])
 
         # Send serial to parallel (s2p) and parallel to serial (p2s) triangle mapping to proc 1 .. numprocs
 
@@ -287,16 +289,16 @@ def old_distribute(domain, verbose=False, debug=False, parameters = None):
                 #print p2s_map
                 send(p2s_map_flat, p)
         else:
-            if verbose: print 'Not sending s2p_map and p2s_map'
+            if verbose: print('Not sending s2p_map and p2s_map')
             s2p_map = None
             p2s_map = None
 
-        if verbose: print 'Communication done'
+        if verbose: print('Communication done')
 
     else:
         # Read in the mesh partition that belongs to this
         # processor
-        if verbose: print 'P%d: Receiving submeshes' %(myid)
+        if verbose: print('P%d: Receiving submeshes' %(myid))
         points, vertices, boundary, quantities,\
                 ghost_recv_dict, full_send_dict,\
                 number_of_full_nodes, number_of_full_triangles, \
@@ -327,7 +329,7 @@ def old_distribute(domain, verbose=False, debug=False, parameters = None):
     # Build the domain for this processor using partion structures
     #------------------------------------------------------------------------
 
-    if verbose: print 'myid = %g, no_full_nodes = %g, no_full_triangles = %g' % (myid, number_of_full_nodes, number_of_full_triangles)
+    if verbose: print('myid = %g, no_full_nodes = %g, no_full_triangles = %g' % (myid, number_of_full_nodes, number_of_full_triangles))
 
 
     domain = Parallel_domain(points, vertices, boundary,
@@ -396,7 +398,7 @@ def distribute_mesh(domain, verbose=False, debug=False, parameters=None):
 
 
     # Subdivide the mesh
-    if verbose: print 'Subdivide mesh'
+    if verbose: print('Subdivide mesh')
     new_nodes, new_triangles, new_boundary, triangles_per_proc, quantities, \
            s2p_map, p2s_map = \
            pmesh_divide_metis_with_map(domain, numprocs)
@@ -408,15 +410,15 @@ def distribute_mesh(domain, verbose=False, debug=False, parameters=None):
 
     # Build the mesh that should be assigned to each processor,
     # this includes ghost nodes and the communication pattern
-    if verbose: print 'Build submeshes'
+    if verbose: print('Build submeshes')
     submesh = build_submesh(new_nodes, new_triangles, new_boundary, quantities, triangles_per_proc, parameters)
 
     if verbose:
         for p in range(numprocs):
             N = len(submesh['ghost_nodes'][p])
             M = len(submesh['ghost_triangles'][p])
-            print 'There are %d ghost nodes and %d ghost triangles on proc %d'\
-                  %(N, M, p)
+            print('There are %d ghost nodes and %d ghost triangles on proc %d'\
+                  %(N, M, p))
 
     #if debug:
     #    from pprint import pprint
@@ -424,7 +426,7 @@ def distribute_mesh(domain, verbose=False, debug=False, parameters=None):
 
 
     # Send the mesh partition to the appropriate processor
-    if verbose: print 'Distribute submeshes'
+    if verbose: print('Distribute submeshes')
     for p in range(1, numprocs):
         send_submesh(submesh, triangles_per_proc, p2s_map, p, verbose)
 

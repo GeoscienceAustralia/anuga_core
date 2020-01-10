@@ -119,7 +119,7 @@ def where_close(x, y, rtol=1.e-5, atol=1.e-8):
         return N.equal(xN, yN)
 
     else:
-        raise ValueError, "where_close:  Inputs must be Float or Integer"
+        raise ValueError("where_close:  Inputs must be Float or Integer")
 
 
 

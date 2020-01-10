@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from future.utils import raise_
 import exceptions
 class TestError(exceptions.Exception): pass
 import unittest
@@ -58,7 +59,7 @@ class Test_CG_Solve(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise TestError, msg
+            raise_(TestError, msg)
 
 
     def test_solve_large(self):
@@ -190,7 +191,7 @@ class Test_CG_Solve(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise TestError, msg
+            raise_(TestError, msg)
 
 
     def test_sparse_solve_matrix(self):
@@ -250,7 +251,7 @@ class Test_CG_Solve(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise TestError, msg
+            raise_(TestError, msg)
 
 
     def test_solve_large_using_c_ext(self):
@@ -424,7 +425,7 @@ class Test_CG_Solve(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise TestError, msg
+            raise_(TestError, msg)
 
 
     def test_solve_large_using_c_ext_with_jacobi(self):

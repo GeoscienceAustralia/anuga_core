@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 #########################################################
 #
 #
@@ -31,7 +33,7 @@ from anuga import indent
 try:
     import local_config as config
 except:
-    import config as config
+    from . import config as config
 
 
 verbose = False
@@ -124,10 +126,10 @@ def reorder_new(quantities, epart_order, proc_sum):
 try:
     from anuga.pymetis.metis_ext import partMeshNodal
 except ImportError:
-    print "***************************************************"
-    print "         Metis is probably not compiled."
-    print "         Read anuga.pymetis README"
-    print "***************************************************"
+    print("***************************************************")
+    print("         Metis is probably not compiled.")
+    print("         Read anuga.pymetis README")
+    print("***************************************************")
     raise ImportError
 
 def pmesh_divide_metis(domain, n_procs):
@@ -213,9 +215,9 @@ def pmesh_divide_metis_helper(domain, n_procs):
 
         if verbose:
             from pprint import pprint
-            print 'epart'
+            print('epart')
             pprint(epart)
-            print 'new_tri_index'
+            print('new_tri_index')
             pprint(new_tri_index)
 
         #print 50*'='
@@ -611,7 +613,7 @@ def ghost_bnd_layer_old(ghosttri, tlower, tupper, mesh, p):
 
         n = mesh.neighbours[t[0], 0]
         if not is_in_processor(ghost_list, tlower, tupper, n):
-            if boundary.has_key( (t[0], 0) ):
+            if (t[0], 0) in boundary:
                 subboundary[t[0], 0] = boundary[t[0],0]
             else:
                 subboundary[t[0], 0] = 'ghost'
@@ -619,7 +621,7 @@ def ghost_bnd_layer_old(ghosttri, tlower, tupper, mesh, p):
 
         n = mesh.neighbours[t[0], 1]
         if not is_in_processor(ghost_list, tlower, tupper, n):
-            if boundary.has_key( (t[0], 1) ):
+            if (t[0], 1) in boundary:
                 subboundary[t[0], 1] = boundary[t[0],1]
             else:
                 subboundary[t[0], 1] = 'ghost'
@@ -627,7 +629,7 @@ def ghost_bnd_layer_old(ghosttri, tlower, tupper, mesh, p):
 
         n = mesh.neighbours[t[0], 2]
         if not is_in_processor(ghost_list, tlower, tupper, n):
-            if boundary.has_key( (t[0], 2) ):
+            if (t[0], 2) in boundary:
                 subboundary[t[0], 2] = boundary[t[0],2]
             else:
                 subboundary[t[0], 2] = 'ghost'
@@ -1144,7 +1146,7 @@ def build_local_commun(tri_map, ghostc, fullc, nproc):
     for global_id in fullc:
         for i in xrange(len(fullc[global_id])):
             neigh = fullc[global_id][i]
-            if not tmp_send.has_key(neigh):
+            if neigh not in tmp_send:
                 tmp_send[neigh] = []
             tmp_send[neigh].append([global_id, \
                                     tri_map[global_id]])
@@ -1287,7 +1289,7 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
     myid = pypar.rank()
     nprocs = pypar.size()
     
-    if verbose: print 'P%d: Sending submesh to P%d' %(myid, p)
+    if verbose: print('P%d: Sending submesh to P%d' %(myid, p))
     
     # build and send the tagmap for the boundary conditions
     
@@ -1295,12 +1297,12 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
     counter = 1
     for b in submesh["full_boundary"][p]:
         bkey = submesh["full_boundary"][p][b]
-        if not tagmap.has_key(bkey):
+        if bkey not in tagmap:
             tagmap[bkey] = counter
             counter = counter+1
     for b in submesh["ghost_boundary"][p]:
         bkey = submesh["ghost_boundary"][p][b]
-        if not tagmap.has_key(bkey):
+        if bkey not in tagmap:
             tagmap[bkey] = counter
             counter = counter+1
 
@@ -1424,7 +1426,7 @@ def rec_submesh_flat(p, verbose=True):
 
     submesh_cell = {}
     
-    if verbose: print indent+'P%d: Receiving submesh from P%d' %(myid, p)
+    if verbose: print(indent+'P%d: Receiving submesh from P%d' %(myid, p))
 
     # receive the tagmap for the boundary conditions
     

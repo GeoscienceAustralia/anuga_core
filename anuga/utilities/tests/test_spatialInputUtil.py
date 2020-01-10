@@ -353,7 +353,7 @@ class Test_spatialInputUtil(unittest.TestCase):
         try:
             assert(numpy.allclose(z_fitted,z_predicted)) 
         except:
-            raise Exception, 'Error could be in rasterValuesAtPoints or in Make_Geotif'
+            raise Exception('Error could be in rasterValuesAtPoints or in Make_Geotif')
 
 
         # Try with bilinear interpolation
@@ -363,7 +363,7 @@ class Test_spatialInputUtil(unittest.TestCase):
         try:
             assert(numpy.allclose(z_fitted,z_predicted)) 
         except:
-            raise Exception, 'Error could be in rasterValuesAtPoints or in Make_Geotif'
+            raise Exception('Error could be in rasterValuesAtPoints or in Make_Geotif')
 
 
         return

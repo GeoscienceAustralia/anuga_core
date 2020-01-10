@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 
+from __future__ import print_function
 import unittest
 import numpy as num
 from numpy.random import uniform, seed
@@ -50,12 +51,12 @@ class Test_Model_Tools(unittest.TestCase):
                         # PIPE TEST
                         for d in Dm:
                             Structure = [d]
-                            if verbose: print Structure
+                            if verbose: print(Structure)
                             Scenario, Ev_mag,BF_clss,diag,BF = \
                                  get_WCC_2016_Blockage_factor(Structure,E,S,long_result=True, verbose=verbose)
                             if verbose:
-                                print 'Scenario: %s  Event Magnitude: %s, Structure Class: %s, Diagonal: %7.3fm Blockage Factor: %7.3f' %( Scenario, Ev_mag,BF_clss,float(diag),float(BF) )
-                                print 'expected[%g] = %g '% (i, expected[i])
+                                print('Scenario: %s  Event Magnitude: %s, Structure Class: %s, Diagonal: %7.3fm Blockage Factor: %7.3f' %( Scenario, Ev_mag,BF_clss,float(diag),float(BF) ))
+                                print('expected[%g] = %g '% (i, expected[i]))
                             assert num.allclose(BF, expected[i])
 
                             i = i+1
@@ -65,12 +66,12 @@ class Test_Model_Tools(unittest.TestCase):
                         for w in Wm:
                             for h in Hm:
                                 Structure = [h,w]
-                                if verbose: print Structure,
+                                if verbose: print(Structure, end=' ')
                                 Scenario, Ev_mag,BF_clss,diag,BF = \
                                 get_WCC_2016_Blockage_factor(Structure,E,S, long_result=True, verbose=verbose)
                                 if verbose:
-                                    print 'Scenario: %s  Event Magnitude: %s, Structure Class: %s, Diagonal: %7.3fm Blockage Factor: %7.3f' %( Scenario, Ev_mag,BF_clss,float(diag),float(BF) )
-                                    print 'expected[%g] = %g '% (i, expected[i])
+                                    print('Scenario: %s  Event Magnitude: %s, Structure Class: %s, Diagonal: %7.3fm Blockage Factor: %7.3f' %( Scenario, Ev_mag,BF_clss,float(diag),float(BF) ))
+                                    print('expected[%g] = %g '% (i, expected[i]))
                                 
                                 assert num.allclose(BF, expected[i])
 

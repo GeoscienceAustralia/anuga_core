@@ -6,11 +6,13 @@ similar to a beach environment
 
 This is a very simple test of the parallel algorithm using the simplified parallel API
 """
+from __future__ import print_function
 
 
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
+from future.utils import raise_
 import unittest
 import os
 import sys
@@ -61,7 +63,7 @@ def run_simulation(parallel=False, G = None, seq_interpolation_points=None, verb
     # Create the parallel domain
     #--------------------------------------------------------------------------
     if parallel:
-        if myid == 0 and verbose : print 'DISTRIBUTING PARALLEL DOMAIN'
+        if myid == 0 and verbose : print('DISTRIBUTING PARALLEL DOMAIN')
         domain = distribute(domain, verbose=False)
 
     #--------------------------------------------------------------------------
@@ -114,14 +116,14 @@ def run_simulation(parallel=False, G = None, seq_interpolation_points=None, verb
 
         #print "  tri_ids ",myid, i, tri_ids[-1]
         
-    if verbose: print 'P%d has points = %s' %(myid, tri_ids)
+    if verbose: print('P%d has points = %s' %(myid, tri_ids))
 
 
     c_coord = domain.get_centroid_coordinates()
     interpolation_points = []
     for id in tri_ids:
         if id<1:
-            if verbose: print 'WARNING: Interpolation point not within the domain!'
+            if verbose: print('WARNING: Interpolation point not within the domain!')
         interpolation_points.append(c_coord[id,:])
             
     #------------------------------------------------------------------------------
@@ -130,9 +132,9 @@ def run_simulation(parallel=False, G = None, seq_interpolation_points=None, verb
     time = []
 
     if parallel:
-        if myid == 0 and verbose: print 'PARALLEL EVOLVE'
+        if myid == 0 and verbose: print('PARALLEL EVOLVE')
     else:
-        if myid == 0 and verbose: print 'SEQUENTIAL EVOLVE'
+        if myid == 0 and verbose: print('SEQUENTIAL EVOLVE')
     
 
     for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
@@ -172,7 +174,7 @@ def run_simulation(parallel=False, G = None, seq_interpolation_points=None, verb
 
 class Test_parallel_sw_flow(unittest.TestCase):
     def test_parallel_sw_flow(self):
-        if verbose : print "Expect this test to fail if not run from the parallel directory."
+        if verbose : print("Expect this test to fail if not run from the parallel directory.")
         abs_script_name = os.path.abspath(__file__)
         cmd = "mpiexec -np %d python %s" % (3, abs_script_name)
         result = os.system(cmd)
@@ -184,7 +186,7 @@ class Test_parallel_sw_flow(unittest.TestCase):
 def assert_(condition, msg="Assertion Failed"):
     if condition == False:
         #pypar.finalize()
-        raise AssertionError, msg
+        raise_(AssertionError, msg)
 
 if __name__=="__main__":
     if numprocs == 1: 
@@ -203,7 +205,7 @@ if __name__=="__main__":
         # array G
         #------------------------------------------
         barrier()
-        if myid == 0 and verbose: print 'SEQUENTIAL START'
+        if myid == 0 and verbose: print('SEQUENTIAL START')
 
         G , interpolation_points = run_simulation(parallel=False,verbose=verbose)
         G = num.array(G,num.float)
@@ -214,7 +216,7 @@ if __name__=="__main__":
         # Run the code code and compare sequential
         # results at 4 gauge stations
         #------------------------------------------
-        if myid ==0 and verbose: print 'PARALLEL START'
+        if myid ==0 and verbose: print('PARALLEL START')
 
         run_simulation(parallel=True, G=G, seq_interpolation_points = interpolation_points, verbose= verbose)
         

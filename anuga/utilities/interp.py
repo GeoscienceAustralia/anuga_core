@@ -6,6 +6,7 @@
 
    See function docstring for description.
 """
+from __future__ import absolute_import
 
 #-----------------------------------------------------------------------
 #                       Additional Documentation
@@ -139,17 +140,17 @@ def interp(y, x, xinterp, missing=1e+20):
     import arrayfns
     import numpy.ma as MA
     import numpy as N
-    from where_close import where_close
+    from .where_close import where_close
 
 
     #- Check inputs for possible errors:
 
     if (N.rank(y) != 1) or (N.rank(x) != 1):
-        raise ValueError, "interp:  Input(s) not a vector"
+        raise ValueError("interp:  Input(s) not a vector")
     if N.rank(xinterp) > 1:
-        raise ValueError, "interp:  xinterp not a vector or scalar"
+        raise ValueError("interp:  xinterp not a vector or scalar")
     if x[-1] <= x[0]:
-        raise ValueError, "interp:  x not monotonically increasing"
+        raise ValueError("interp:  x not monotonically increasing")
 
 
     #- Establish constants and define xint, a rank 1 version of

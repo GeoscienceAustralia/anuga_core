@@ -2,6 +2,7 @@
 A module to allow interactive plotting in a Jupyter notebook of quantities and mesh
 associated with an ANUGA domain and SWW file.
 """
+from __future__ import print_function
 
 import numpy as np
 import os
@@ -350,7 +351,7 @@ class Domain_plotter:
                         '*** Cannot clobber existing directory %s' % plot_dir)
             else:
                 os.system("mkdir %s" % plot_dir)
-            print "Figure files for each frame will be stored in " + plot_dir
+            print("Figure files for each frame will be stored in " + plot_dir)
 
 
 class SWW_plotter:
@@ -672,4 +673,4 @@ class SWW_plotter:
                       '*** Cannot clobber existing directory %s' % plot_dir)
             else:
                 os.system("mkdir %s" % plot_dir)
-            print "Figure files for each frame will be stored in " + plot_dir
+            print("Figure files for each frame will be stored in " + plot_dir)

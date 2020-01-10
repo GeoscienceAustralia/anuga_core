@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from future.utils import raise_
 import unittest
 from tempfile import mkstemp
 import os
@@ -80,7 +81,7 @@ class Test_data_audit(unittest.TestCase):
 	    pass
 	else:
 	    msg = 'Should have raised bad CRC exception' 
-	    raise Exception, msg    	
+	    raise_(Exception, msg)    	
 	    	
         # Clean up
 	#licfid.close()
@@ -158,7 +159,7 @@ class Test_data_audit(unittest.TestCase):
 	    pass
 	else:
 	    msg = 'Should have raised NotPublishable exception' 
-	    raise Exception, msg    	
+	    raise_(Exception, msg)    	
 	    	
         # Clean up
 	licfid.close()
@@ -238,7 +239,7 @@ class Test_data_audit(unittest.TestCase):
 	    pass
 	else:
 	    msg = 'Should have raised FilenameMismatch exception' 
-	    raise Exception, msg    	
+	    raise_(Exception, msg)    	
 	    	
         # Clean up
 	licfid.close()

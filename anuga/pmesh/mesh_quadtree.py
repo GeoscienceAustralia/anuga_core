@@ -52,7 +52,7 @@ class MeshQuadtree(Cell):
 
     def __getstate__(self):
         dic = self.__dict__
-        if (dic.has_key('root')):
+        if ('root' in dic):
             dic.pop('root')
         return dic
 

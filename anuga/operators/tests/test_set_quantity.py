@@ -1,5 +1,6 @@
 """  Test set_quantity
 """
+from __future__ import print_function
 
 import unittest, os
 import anuga
@@ -478,7 +479,7 @@ class Test_set_quantity(unittest.TestCase):
             
             
             ratio = float(nrows)/float(ncols)
-            print ratio
+            print(ratio)
             
             #y = numpy.arange(nrows)*cellsize
             #x = numpy.arange(ncols)*cellsize

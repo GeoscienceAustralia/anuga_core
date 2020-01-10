@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 
+from __future__ import print_function
 import unittest
 
 
@@ -172,10 +173,10 @@ class Test_boyd_pipe_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_non_skew'
-            print 'Q: ', Q, 'expected_Q: ', expected_Q
-            print 'v: ', v, 'expected_v: ', expected_v
-            print 'd: ', d, 'expected_d: ', expected_d
+            print('test_boyd_non_skew')
+            print('Q: ', Q, 'expected_Q: ', expected_Q)
+            print('v: ', v, 'expected_v: ', expected_v)
+            print('d: ', d, 'expected_d: ', expected_d)
 
         assert numpy.allclose(Q, expected_Q, rtol=1.0e-2) #inflow
         assert numpy.allclose(v, expected_v, rtol=1.0e-2) #outflow velocity
@@ -250,10 +251,10 @@ class Test_boyd_pipe_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_non_skew2'
-            print 'Q: ', Q, 'expected_Q: ', expected_Q
-            print 'v: ', v, 'expected_v: ', expected_v
-            print 'd: ', d, 'expected_d: ', expected_d
+            print('test_boyd_non_skew2')
+            print('Q: ', Q, 'expected_Q: ', expected_Q)
+            print('v: ', v, 'expected_v: ', expected_v)
+            print('d: ', d, 'expected_d: ', expected_d)
 
         assert numpy.allclose(Q, expected_Q, rtol=1.0e-2) #inflow
         assert numpy.allclose(v, expected_v, rtol=1.0e-2) #outflow velocity
@@ -328,10 +329,10 @@ class Test_boyd_pipe_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_non_skew3'
-            print 'Q: ', Q, 'expected_Q: ', expected_Q
-            print 'v: ', v, 'expected_v: ', expected_v
-            print 'd: ', d, 'expected_d: ', expected_d
+            print('test_boyd_non_skew3')
+            print('Q: ', Q, 'expected_Q: ', expected_Q)
+            print('v: ', v, 'expected_v: ', expected_v)
+            print('d: ', d, 'expected_d: ', expected_d)
 
  
         assert numpy.allclose(Q, expected_Q, rtol=1.0e-2) #inflow
@@ -407,10 +408,10 @@ class Test_boyd_pipe_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_non_skew4'
-            print 'Q: ', Q, 'expected_Q: ', expected_Q
-            print 'v: ', v, 'expected_v: ', expected_v
-            print 'd: ', d, 'expected_d: ', expected_d
+            print('test_boyd_non_skew4')
+            print('Q: ', Q, 'expected_Q: ', expected_Q)
+            print('v: ', v, 'expected_v: ', expected_v)
+            print('d: ', d, 'expected_d: ', expected_d)
 
 
         assert numpy.allclose(Q, expected_Q, rtol=1.0e-2) #inflow
@@ -486,10 +487,10 @@ class Test_boyd_pipe_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_non_skew5'
-            print 'Q: ', Q, 'expected_Q: ', expected_Q
-            print 'v: ', v, 'expected_v: ', expected_v
-            print 'd: ', d, 'expected_d: ', expected_d
+            print('test_boyd_non_skew5')
+            print('Q: ', Q, 'expected_Q: ', expected_Q)
+            print('v: ', v, 'expected_v: ', expected_v)
+            print('d: ', d, 'expected_d: ', expected_d)
 
 
         assert numpy.allclose(Q, expected_Q, rtol=1.0e-2) #inflow
@@ -566,10 +567,10 @@ class Test_boyd_pipe_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_non_skew6'
-            print 'Q: ', Q, 'expected_Q: ', expected_Q
-            print 'v: ', v, 'expected_v: ', expected_v
-            print 'd: ', d, 'expected_d: ', expected_d
+            print('test_boyd_non_skew6')
+            print('Q: ', Q, 'expected_Q: ', expected_Q)
+            print('v: ', v, 'expected_v: ', expected_v)
+            print('d: ', d, 'expected_d: ', expected_d)
 
 
         assert numpy.allclose(Q, expected_Q, rtol=1.0e-2) #inflow
@@ -646,10 +647,10 @@ class Test_boyd_pipe_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
         if verbose:
-            print 'test_boyd_non_skew7'
-            print 'Q: ', Q, 'expected_Q: ', expected_Q
-            print 'v: ', v, 'expected_v: ', expected_v
-            print 'd: ', d, 'expected_d: ', expected_d
+            print('test_boyd_non_skew7')
+            print('Q: ', Q, 'expected_Q: ', expected_Q)
+            print('v: ', v, 'expected_v: ', expected_v)
+            print('d: ', d, 'expected_d: ', expected_d)
 
 
         assert numpy.allclose(Q, expected_Q, rtol=1.0e-2, atol=1.0e-5) #inflow

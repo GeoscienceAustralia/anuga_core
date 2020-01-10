@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy
 import scipy
 from scipy.interpolate import interp1d
@@ -60,11 +61,11 @@ class hecras_internal_boundary_function:
         """
 
         if verbose:
-            print '########################################'
-            print 'HECRAS INTERNAL BOUNDARY FUNCTION'
-            print 'THIS IS EXPERIMENTAL'
-            print 'SUBJECT TO CHANGE WITHOUT NOTICE'
-            print '########################################'
+            print('########################################')
+            print('HECRAS INTERNAL BOUNDARY FUNCTION')
+            print('THIS IS EXPERIMENTAL')
+            print('SUBJECT TO CHANGE WITHOUT NOTICE')
+            print('########################################')
 
 
         internal_boundary_curves = numpy.genfromtxt(
@@ -135,14 +136,14 @@ class hecras_internal_boundary_function:
                 # Can happen for the extreme curve
                 if i == internal_boundary_curves.shape[1] - 2:
                     if verbose:
-                        print 'Skipping final rating curve with no HW range'
+                        print('Skipping final rating curve with no HW range')
 
                     self.nonfree_flow_tw = self.nonfree_flow_tw[0:-1]
                     self.nonfree_flow_tw_range[1] = self.nonfree_flow_tw[-1]
                     self.hw_max_given_tw = self.hw_max_given_tw[0:-1]
                     continue
                 else:
-                    print i, internal_boundary_curves.shape[1], HW_max
+                    print(i, internal_boundary_curves.shape[1], HW_max)
                     raise Exception('Rating curve with no HW range')
 
             curve_data = remove_repeated_curve_points(HW, Q)
@@ -440,11 +441,11 @@ class pumping_station_function:
         self.pump_rate = initial_pump_rate
 
         if verbose:
-            print '########################################'
-            print 'PUMPING STATION FUNCTION'
-            print 'THIS IS EXPERIMENTAL'
-            print 'SUBJECT TO CHANGE WITHOUT NOTICE'
-            print '########################################'
+            print('########################################')
+            print('PUMPING STATION FUNCTION')
+            print('THIS IS EXPERIMENTAL')
+            print('SUBJECT TO CHANGE WITHOUT NOTICE')
+            print('########################################')
 
 
     def __call__(self, hw_in, tw_in):
@@ -461,9 +462,9 @@ class pumping_station_function:
         else:
             dt = 0.
             if self.time != self.last_time_called:
-                print self.time
-                print self.last_time_called
-                print self.time - self.last_time_called
+                print(self.time)
+                print(self.last_time_called)
+                print(self.time - self.last_time_called)
                 raise Exception('Impossible timestepping, ask Gareth')
           
         # Increase / decrease the pump rate if needed 

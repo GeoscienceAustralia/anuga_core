@@ -1,8 +1,10 @@
+from __future__ import print_function
+from __future__ import absolute_import
 #from Numeric import array, Float, ravel, zeros
 import numpy as num
 from anuga.file.netcdf import NetCDFFile
 from Tkinter import Button, E, Tk, W, Label, StringVar, Scale, HORIZONTAL
-from visualiser import Visualiser
+from .visualiser import Visualiser
 from vtk import vtkCellArray, vtkPoints, vtkPolyData
 
 class OfflineVisualiser(Visualiser):
@@ -59,7 +61,7 @@ class OfflineVisualiser(Visualiser):
         polydata = self.vtk_polyData[quantityName] = vtkPolyData()
         if dynamic is True:
             #print ' - Frame',self.frameNumber,'of',self.maxFrameNumber
-            if not self.vtk_heightQuantityCache[self.frameNumber].has_key(quantityName):
+            if quantityName not in self.vtk_heightQuantityCache[self.frameNumber]:
                 self.vtk_heightQuantityCache[self.frameNumber][quantityName]\
                     = self.read_height_quantity(quantityName, True, self.frameNumber);
             polydata.SetPoints(self.vtk_heightQuantityCache[self.frameNumber][quantityName])
@@ -112,9 +114,9 @@ class OfflineVisualiser(Visualiser):
         beigns."""
         for q in self.height_quantities:
             if self.height_dynamic[q] is True:
-                print 'Precaching %s' % q
+                print('Precaching %s' % q)
                 for i in range(self.maxFrameNumber + 1): # maxFrameNumber is zero-indexed
-                    print ' - Frame %d of %d' % (i, self.maxFrameNumber)
+                    print(' - Frame %d of %d' % (i, self.maxFrameNumber))
                     self.vtk_heightQuantityCache[i][q]\
                         = self.read_height_quantity(q, True, i)
 

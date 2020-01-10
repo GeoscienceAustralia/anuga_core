@@ -1,5 +1,6 @@
 """Given a .tsh, print an sww
 """
+from __future__ import print_function
 
 ######################
 # Module imports 
@@ -54,7 +55,7 @@ def tsh2sww(infilename, sww_file_name = None, verbose = False):
 if __name__ == "__main__":
     usage = "usage:python %s pmesh_file_name [verbose|non_verbose]" %         path.basename(sys.argv[0])
     if len(sys.argv) < 2:
-        print usage
+        print(usage)
     else:
         filename = sys.argv[1]
         verbose = False

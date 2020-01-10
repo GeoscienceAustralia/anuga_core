@@ -8,6 +8,7 @@ ModifiedBy:
     $Date: 2010-05-18 14:54:05 +1000 (Tue, 18 May 2010) $
 """
 
+from future.utils import raise_
 from warnings import warn
 import numpy as num
 from copy import copy
@@ -39,7 +40,7 @@ def check_forcefield(f):
         y = num.ones(3, num.float)
         try:
             q = f(1.0, x=x, y=y)
-        except Exception, e:
+        except Exception as e:
             msg = 'Function %s could not be executed:\n%s' %(f, e)
             # FIXME: Reconsider this semantics
             raise Exception(msg)
@@ -54,8 +55,8 @@ def check_forcefield(f):
 
         # Is this really what we want?
         # info is "(func name, filename, defining line)"
-        func_info = (f.func_name, f.func_code.co_filename,
-                     f.func_code.co_firstlineno)
+        func_info = (f.__name__, f.__code__.co_filename,
+                     f.__code__.co_firstlineno)
         func_msg = 'Function %s (defined in %s, line %d)' % func_info
         try:
             result_len = len(q)
@@ -412,9 +413,9 @@ class General_forcing:
         t = domain.get_time(relative_time=self.relative_time)
         try:
             rate = self.update_rate(t)
-        except Modeltime_too_early, e:
+        except Modeltime_too_early as e:
             raise Modeltime_too_early(e)
-        except Modeltime_too_late, e:
+        except Modeltime_too_late as e:
             if self.default_rate is None:
                 msg = '%s: ANUGA is trying to run longer than specified data.\n' %str(e)
                 msg += 'You can specify keyword argument default_rate in the '
@@ -1074,7 +1075,7 @@ class Barometric_pressure_fast:
 
             msg = 'No pressure values exist for times greater than domain.starttime'
             if (self.file_time[-2]<domain.starttime and self.file_time[-1]>domain.starttime):
-                raise Exception, msg
+                raise_(Exception, msg)
 
             # FIXME(JJ): How do we check that evolve 
             # finaltime  < pressure_file.finaltime      

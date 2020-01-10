@@ -3,6 +3,7 @@ Erosion operators
 
 
 """
+from __future__ import print_function
 
 __author__="steve"
 __date__ ="$09/03/2012 4:46:39 PM$"
@@ -257,7 +258,7 @@ class Erosion_operator(Operator, Region):
             import matplotlib.pyplot as plt
             import matplotlib.tri as tri
         except:
-            print "Couldn't import module from matplotlib, probably you need to update matplotlib"
+            print("Couldn't import module from matplotlib, probably you need to update matplotlib")
             raise
 
         domain = self.domain
@@ -281,9 +282,9 @@ class Erosion_operator(Operator, Region):
         triang = domain.get_triangles()
         #triang.shape = (n, 3)
 
-        print triang.shape
-        print fx.shape
-        print Z.shape
+        print(triang.shape)
+        print(fx.shape)
+        print(Z.shape)
 
         #plt.tricontourf(fx, fy, triang, Z)
         plt.triplot(fx, fy, triang)
@@ -315,9 +316,9 @@ class Erosion_operator(Operator, Region):
         fx1 = fx[self.vols].flatten()
         fy1 = fy[self.vols].flatten()
 
-        print 'fx1', fx1.shape
+        print('fx1', fx1.shape)
 
-        print self.vols
+        print(self.vols)
         #gx = vertices[ghost_mask,0]
         #gy = vertices[ghost_mask,1]
 
@@ -326,7 +327,7 @@ class Erosion_operator(Operator, Region):
         n = int(len(fx1)/3)
         triang = num.array(range(0,3*n))
         triang.shape = (n, 3)
-        print triang
+        print(triang)
         plt.triplot(fx1, fy1, triang, 'go-')
 
 
@@ -340,9 +341,9 @@ class Erosion_operator(Operator, Region):
         fx0 = fx[self.indices].flatten()
         fy0 = fy[self.indices].flatten()
 
-        print 'fx0', fx0.shape
+        print('fx0', fx0.shape)
 
-        print self.indices
+        print(self.indices)
         #gx = vertices[ghost_mask,0]
         #gy = vertices[ghost_mask,1]
 
@@ -351,7 +352,7 @@ class Erosion_operator(Operator, Region):
         n = int(len(fx0)/3)
         triang = num.array(range(0,3*n))
         triang.shape = (n, 3)
-        print triang
+        print(triang)
         plt.triplot(fx0, fy0, triang, 'bo-')
 
 
@@ -361,9 +362,9 @@ class Erosion_operator(Operator, Region):
         fx0 = fx[self.indices].flatten()
         fy0 = fy[self.indices].flatten()
 
-        print 'fx0', fx0.shape
+        print('fx0', fx0.shape)
 
-        print self.indices
+        print(self.indices)
         #gx = vertices[ghost_mask,0]
         #gy = vertices[ghost_mask,1]
 
@@ -372,7 +373,7 @@ class Erosion_operator(Operator, Region):
         n = int(len(fx0)/3)
         triang = num.array(range(0,3*n))
         triang.shape = (n, 3)
-        print triang
+        print(triang)
         plt.triplot(fx0, fy0, triang, 'bo-')
 
 
@@ -381,7 +382,7 @@ class Erosion_operator(Operator, Region):
         fx2 = fx[self.vol_ids,self.vert_ids]
         fy2 = fy[self.vol_ids,self.vert_ids]
 
-        print 'fx2', fx2.shape
+        print('fx2', fx2.shape)
 
         plt.plot(fx2,fy2,'yo')
 
@@ -809,7 +810,7 @@ class Flat_fill_slice_erosion_operator(Erosion_operator):
             else:
                 try:
                     value = self.elevation(t)
-                    print value
+                    print(value)
                     if value > num.max(self.elev_v[ind]):
                         self.elev_v[ind] = num.where(self.elev_v[ind] <  value, value, self.elev_v[ind])    
                     else:
@@ -836,13 +837,13 @@ def lineno():
 
 
 def stage_elev_info(self):
-    print 80*"="
+    print(80*"=")
 
-    print 'In Evolve: line number ', lineno()
+    print('In Evolve: line number ', lineno())
     import inspect
-    print inspect.getfile(lineno)
+    print(inspect.getfile(lineno))
 
-    print 80*"="
+    print(80*"=")
     ind = num.array([ 976,  977,  978,  979,  980,  981,  982,  983, 1016, 1017, 1018,
              1019, 1020, 1021, 1022, 1023])
     elev_v = self.get_quantity('elevation').vertex_values
@@ -851,11 +852,11 @@ def stage_elev_info(self):
     stage_c = self.get_quantity('stage').centroid_values
 
     from pprint import pprint
-    print 'elev_v, elev_c, elev_avg \n'
+    print('elev_v, elev_c, elev_avg \n')
     pprint( num.concatenate( (elev_v[ind], (elev_c[ind]).reshape(16,1),
                                num.mean(elev_v[ind],axis=1).reshape(16,1)), axis = 1))
-    print 'stage_v, stage_c, stage_avg \n'
+    print('stage_v, stage_c, stage_avg \n')
     pprint( num.concatenate( (stage_v[ind], (stage_c[ind]).reshape(16,1),
                                num.mean(stage_v[ind],axis=1).reshape(16,1)), axis = 1))
 
-    print 80*"="
+    print(80*"=")

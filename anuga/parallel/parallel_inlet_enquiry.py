@@ -1,10 +1,11 @@
+from __future__ import absolute_import
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 from anuga.config import velocity_protection, g
 import math
 
 import numpy as num
 
-import parallel_inlet
+from . import parallel_inlet
 
 class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
     """Contains information associated with each inlet plus an enquiry point

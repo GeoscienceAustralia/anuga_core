@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import unittest, os, time
 import os.path
 from math import pi, sqrt
@@ -458,7 +459,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         for name in ['stage', 'xmomentum', 'ymomentum',
                      'elevation', 'friction']:
-            assert domain.quantities.has_key(name)
+            assert name in domain.quantities
 
         assert num.alltrue(domain.get_conserved_quantities(0, edge=1) == 0.)
 
@@ -486,7 +487,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         for name in ['stage', 'xmomentum', 'ymomentum',
                      'elevation', 'friction']:
-            assert domain.quantities.has_key(name)
+            assert name in domain.quantities
 
 
 
@@ -3469,7 +3470,7 @@ class Test_Shallow_Water(unittest.TestCase):
             dt = 0.05
             for t in domain.evolve(yieldstep=dt, finaltime=5.0):
                 volume = domain.quantities['stage'].get_integral()
-                print t, volume, predicted_volume
+                print(t, volume, predicted_volume)
                 assert num.allclose (volume, predicted_volume)
                 predicted_volume = predicted_volume - 2.0/pi/100/dt # Why 100?
 
@@ -4305,26 +4306,26 @@ class Test_Shallow_Water(unittest.TestCase):
 
         qwidth = 12
         for k in [1]:    # range(len(domain)):
-            print 'Triangle %d (C, V, E)' % k
+            print('Triangle %d (C, V, E)' % k)
 
-            print ('stage'.ljust(qwidth), stage.centroid_values[k],
-                   stage.vertex_values[k,:], stage.edge_values[k,:])
-            print ('elevation'.ljust(qwidth), elevation.centroid_values[k],
-                   elevation.vertex_values[k,:], elevation.edge_values[k,:])
-            print ('depth'.ljust(qwidth), depth.centroid_values[k],
-                   depth.vertex_values[k,:], depth.edge_values[k,:])
-            print ('xmomentum'.ljust(qwidth), xmomentum.centroid_values[k],
-                   xmomentum.vertex_values[k,:], xmomentum.edge_values[k,:])
-            print ('ymomentum'.ljust(qwidth), ymomentum.centroid_values[k],
-                   ymomentum.vertex_values[k,:], ymomentum.edge_values[k,:])
-            print ('u'.ljust(qwidth),u.centroid_values[k],
-                   u.vertex_values[k,:], u.edge_values[k,:])
-            print ('v'.ljust(qwidth), v.centroid_values[k],
-                   v.vertex_values[k,:], v.edge_values[k,:])
-            print ('Fx'.ljust(qwidth), Fx.centroid_values[k],
-                   Fx.vertex_values[k,:], Fx.edge_values[k,:])
-            print ('Fy'.ljust(qwidth), Fy.centroid_values[k],
-                   Fy.vertex_values[k,:], Fy.edge_values[k,:])
+            print(('stage'.ljust(qwidth), stage.centroid_values[k],
+                   stage.vertex_values[k,:], stage.edge_values[k,:]))
+            print(('elevation'.ljust(qwidth), elevation.centroid_values[k],
+                   elevation.vertex_values[k,:], elevation.edge_values[k,:]))
+            print(('depth'.ljust(qwidth), depth.centroid_values[k],
+                   depth.vertex_values[k,:], depth.edge_values[k,:]))
+            print(('xmomentum'.ljust(qwidth), xmomentum.centroid_values[k],
+                   xmomentum.vertex_values[k,:], xmomentum.edge_values[k,:]))
+            print(('ymomentum'.ljust(qwidth), ymomentum.centroid_values[k],
+                   ymomentum.vertex_values[k,:], ymomentum.edge_values[k,:]))
+            print(('u'.ljust(qwidth),u.centroid_values[k],
+                   u.vertex_values[k,:], u.edge_values[k,:]))
+            print(('v'.ljust(qwidth), v.centroid_values[k],
+                   v.vertex_values[k,:], v.edge_values[k,:]))
+            print(('Fx'.ljust(qwidth), Fx.centroid_values[k],
+                   Fx.vertex_values[k,:], Fx.edge_values[k,:]))
+            print(('Fy'.ljust(qwidth), Fy.centroid_values[k],
+                   Fy.vertex_values[k,:], Fy.edge_values[k,:]))
 
     def test_evolve_finaltime(self):
         """Test evolve with finaltime set
@@ -6615,8 +6616,8 @@ class Test_Shallow_Water(unittest.TestCase):
                                                        [1,1], [1,0]])
 
         assert len(domain.quantities_to_be_monitored) == 2
-        assert domain.quantities_to_be_monitored.has_key('stage')
-        assert domain.quantities_to_be_monitored.has_key('stage-elevation')
+        assert 'stage' in domain.quantities_to_be_monitored
+        assert 'stage-elevation' in domain.quantities_to_be_monitored
         for key in domain.quantities_to_be_monitored['stage'].keys():
             assert domain.quantities_to_be_monitored['stage'][key] is None
 
@@ -7111,7 +7112,7 @@ friction  \n \
         try:
             domain.set_quantity('elevation', filename=points_file,
                                 use_cache=False, verbose=verbose, alpha=0.01)
-        except RuntimeError, e:
+        except RuntimeError as e:
             msg = 'Test failed: %s' % str(e)
             raise Exception(msg)
             # clean up in case raise fails
@@ -7181,7 +7182,7 @@ friction  \n \
         try:
             domain.set_quantity('elevation', filename=points_file,
                                 use_cache=False, verbose=verbose)
-        except AssertionError, e:
+        except AssertionError as e:
             msg = 'Test failed: %s' % str(e)
             raise Exception(msg)
             # Cleanup in case this failed
@@ -7192,7 +7193,7 @@ friction  \n \
         try:
             domain.set_quantity('elevation', filename=points_file,
                                 use_cache=False, verbose=verbose)
-        except AssertionError, e:
+        except AssertionError as e:
             msg = 'Test failed: %s' % str(e)
             raise Exception(msg)
             # Cleanup in case this failed
@@ -7335,8 +7336,8 @@ friction  \n \
         for t in domain.evolve(yieldstep=50.0, finaltime=finaltime):
             S = domain.volumetric_balance_statistics()
             if verbose :
-                print domain.timestepping_statistics()
-                print S
+                print(domain.timestepping_statistics())
+                print(S)
 
             if t >= 400:
                 # Steady state reached
@@ -7345,7 +7346,7 @@ friction  \n \
                 q = domain.get_flow_through_cross_section([[200.0,  0.0],  [200.0, 20.0]])
 
                 if verbose:
-                    print q, ref_flow
+                    print(q, ref_flow)
                 
                 assert num.allclose(q, ref_flow)
 
@@ -7436,9 +7437,9 @@ friction  \n \
             assert num.allclose(domain.compute_total_volume(), ref_volume)
 
             if verbose :
-                print domain.timestepping_statistics()
-                print domain.volumetric_balance_statistics()
-                print 'reference volume', ref_volume
+                print(domain.timestepping_statistics())
+                print(domain.volumetric_balance_statistics())
+                print('reference volume', ref_volume)
 
 
             # Update reference volume
@@ -7530,10 +7531,10 @@ friction  \n \
             assert num.allclose(V, ref_volume), msg
 
             if verbose :
-                print domain.timestepping_statistics()
-                print domain.volumetric_balance_statistics()
-                print 'reference volume', ref_volume
-                print V
+                print(domain.timestepping_statistics())
+                print(domain.volumetric_balance_statistics())
+                print('reference volume', ref_volume)
+                print(V)
 
 
             # Update reference volume.
@@ -7641,10 +7642,10 @@ friction  \n \
             #assert num.allclose(V, ref_volume) or V < ref_volume, msg
 
             if verbose:
-                print domain.timestepping_statistics()
-                print domain.volumetric_balance_statistics()
-                print 'reference volume', ref_volume
-                print V
+                print(domain.timestepping_statistics())
+                print(domain.volumetric_balance_statistics())
+                print('reference volume', ref_volume)
+                print(V)
 
 
             # Update reference volume.
@@ -7661,8 +7662,8 @@ friction  \n \
 
             outflow = boundary_flows['right']
             if verbose:
-                print 'Outflow', outflow
-                print 'Net outflow', net_outflow
+                print('Outflow', outflow)
+                print('Net outflow', net_outflow)
 
             # Update reference volume
             ref_volume += ys * outflow
@@ -7939,8 +7940,8 @@ friction  \n \
                 # v=1/n*(r^2/3)*(s^0.5) or r=(Q*n/(s^0.5*W))^0.6
                 normal_depth=(ref_flow*mannings_n/(slope**0.5*width))**0.6
                 if verbose:
-                    print
-                    print 'Slope:', slope, 'Mannings n:', mannings_n
+                    print()
+                    print('Slope:', slope, 'Mannings n:', mannings_n)
 
 
                 #--------------------------------------------------------------
@@ -7973,8 +7974,8 @@ friction  \n \
                 for t in domain.evolve(yieldstep=10.0, finaltime=finaltime):
                     pass
                     if verbose :
-                        print domain.timestepping_statistics()
-                        print domain.volumetric_balance_statistics()
+                        print(domain.timestepping_statistics())
+                        print(domain.volumetric_balance_statistics())
 
 
                 #--------------------------------------------------------------
@@ -8075,8 +8076,8 @@ friction  \n \
                 # v=1/n*(r^2/3)*(s^0.5) or r=(Q*n/(s^0.5*W))^0.6
                 normal_depth=(ref_flow*mannings_n/(slope**0.5*width))**0.6
                 if verbose:
-                    print
-                    print 'Slope:', slope, 'Mannings n:', mannings_n
+                    print()
+                    print('Slope:', slope, 'Mannings n:', mannings_n)
 
 
                 from anuga.shallow_water.boundaries import Inflow_boundary
@@ -8123,7 +8124,7 @@ friction  \n \
                 q=domain.get_flow_through_cross_section([[200.0,0.0],[200.0,20.0]])
                 msg = 'Predicted flow was %f, should have been %f' % (q, ref_flow)
                 if verbose:
-                    print '90 degree flowline: ANUGA = %f, Ref = %f' % (q, ref_flow)
+                    print('90 degree flowline: ANUGA = %f, Ref = %f' % (q, ref_flow))
                 assert num.allclose(q, ref_flow, rtol=1.0e-2), msg
 
 
@@ -8131,7 +8132,7 @@ friction  \n \
                 q=domain.get_flow_through_cross_section([[200.0,0.0],[220.0,20.0]])
                 msg = 'Predicted flow was %f, should have been %f' % (q, ref_flow)
                 if verbose:
-                    print '45 degree flowline: ANUGA = %f, Ref = %f' % (q, ref_flow)
+                    print('45 degree flowline: ANUGA = %f, Ref = %f' % (q, ref_flow))
 
                 assert num.allclose(q, ref_flow, rtol=1.0e-2), msg
 
@@ -8190,8 +8191,8 @@ friction  \n \
                 # Loop over a range of bedslopes representing
                 # sub to super critical flows
                 if verbose:
-                    print
-                    print 'Slope:', slope, 'Mannings n:', mannings_n
+                    print()
+                    print('Slope:', slope, 'Mannings n:', mannings_n)
                 domain = Domain(points, vertices, boundary)
                 domain.set_name('Inflow_flowline_test')     # Output name
 
@@ -8238,8 +8239,8 @@ friction  \n \
 
                 for t in domain.evolve(yieldstep=100.0, finaltime=finaltime):
                     if verbose :
-                        print domain.timestepping_statistics()
-                        print domain.volumetric_balance_statistics()
+                        print(domain.timestepping_statistics())
+                        print(domain.volumetric_balance_statistics())
 
                 # 90 degree flowline at 200m
                 q = domain.get_flow_through_cross_section([[200.0,  0.0],
@@ -8273,9 +8274,9 @@ friction  \n \
                 ymom = domain.get_quantity('ymomentum').\
                         get_values(interpolation_points=[[x, y]])[0]
                 if verbose:
-                    print ('At interpolation point (h, uh, vh): ',
-                           domain_depth, xmom, ymom)
-                    print 'uh * d * width = ', xmom*domain_depth*width
+                    print(('At interpolation point (h, uh, vh): ',
+                           domain_depth, xmom, ymom))
+                    print('uh * d * width = ', xmom*domain_depth*width)
 
                 if slope > 0.0:
                     # Compute normal depth at gauge location using Manning eqn

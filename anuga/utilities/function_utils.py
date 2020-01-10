@@ -1,6 +1,7 @@
 """ Generic function utilities to test type of function
 """
 
+from future.utils import raise_
 import numpy as num
 from anuga.fit_interpolate.interpolate import Modeltime_too_early
 from anuga.fit_interpolate.interpolate import Modeltime_too_late
@@ -52,7 +53,7 @@ def determine_function_type(function):
                 except TypeError:
                     #print 'problem calling with one scalar argument'
                     msg = 'Input argument cannot be called as f(t), f(x,y) or f(x,y,t)'
-                    raise Exception, msg
+                    raise_(Exception, msg)
                 except ValueError:
                     #print 'problem calling out of range'
                     return 't'
@@ -79,7 +80,7 @@ def evaluate_temporal_function(function, t, default_left_value=None, default_rig
     if  callable(function):
         try:
             result = function(t)
-        except Modeltime_too_early, e:
+        except Modeltime_too_early as e:
 
             if default_left_value is None:
                 msg = '%s: Trying to evaluate function earlier than specified in the data set.\n' %str(e)
@@ -93,7 +94,7 @@ def evaluate_temporal_function(function, t, default_left_value=None, default_rig
                 else:
                     result = default_left_value
 
-        except Modeltime_too_late, e:
+        except Modeltime_too_late as e:
             if default_right_value is None:
                 msg = '%s: Trying to evaluate function later than specified in the data set.\n' %str(e)
                 raise Modeltime_too_late(msg)

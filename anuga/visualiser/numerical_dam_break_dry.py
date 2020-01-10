@@ -3,6 +3,7 @@
 Water driven up a linear slope and time varying boundary,
 similar to a beach environment
 """
+from __future__ import print_function
 
 #------------------------------------------------------------------------------
 # Import necessary modules
@@ -105,7 +106,7 @@ if vtk_visualiser:
 i = 0
 for t in domain.evolve(yieldstep = 0.01, finaltime = 0.25):
     #print domain.timestepping_statistics(track_speeds=True)
-    print domain.timestepping_statistics()
+    print(domain.timestepping_statistics())
     if vtk_visualiser: 
         vis.update()
         fileName = 'stage_%03d' % i + '.vtk'

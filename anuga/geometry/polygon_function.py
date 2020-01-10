@@ -5,12 +5,15 @@
 """
 from __future__ import absolute_import
 
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 from future.utils import raise_
 import anuga.utilities.log as log
 import numpy as num
 from .polygon import inside_polygon
 
-class Polygon_function:
+class Polygon_function(object):
     """Create callable object f: x,y -> z, where a,y,z are vectors and
     where f will return different values depending on whether x,y belongs
     to specified polygons.

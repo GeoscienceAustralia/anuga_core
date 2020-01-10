@@ -5,6 +5,7 @@ Some CSV file utility routines.
 '''
 
 
+from future.utils import raise_
 import csv
 
 
@@ -41,16 +42,16 @@ def merge_csv_key_values(file_title_list, output_file,
         csv_reader = csv.reader(fd)
 
         # open file, get header row, calculate required column indices
-        h = csv_reader.next()
+        h = next(csv_reader)
         header = [x.strip() for x in h]
         if key_col not in header:
             msg = ("Column '%s' not in file %s"
                    % (key_col, filename))
-            raise Exception, msg
+            raise_(Exception, msg)
         if data_col not in header:
             msg = ("Column '%s' not in file %s"
                    % (data_col, filename))
-            raise Exception, msg
+            raise_(Exception, msg)
 
         key_index = header.index(key_col)
         data_index = header.index(data_col)
@@ -70,7 +71,7 @@ def merge_csv_key_values(file_title_list, output_file,
     num_files = len(file_title_list)
     if num_files == 0:
         msg = "List 'file_title_list' is empty!?"
-        raise Exception, msg
+        raise_(Exception, msg)
 
     # read data from all files
     file_data = []
@@ -89,7 +90,7 @@ def merge_csv_key_values(file_title_list, output_file,
                 msg = ('File %s has different number of rows from %s, '
                        'expected %d columns, got %d'
                        % (fn, file_data[0][0], num_rows, len(d)))
-                raise Exception, msg
+                raise_(Exception, msg)
 
     # sanity check, check key values same in same rows
     first_key_values = [v[0] for v in file_data[0][2]]
@@ -98,7 +99,7 @@ def merge_csv_key_values(file_title_list, output_file,
         if key_values != first_key_values:
             msg = ('Key values differ between files %s and %s!?'
                    % (fn, file_data[0][0]))
-            raise Exception, msg
+            raise_(Exception, msg)
 
     # open output file
     out_fd = open(output_file, 'w')

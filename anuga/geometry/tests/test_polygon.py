@@ -2,6 +2,8 @@
 
 """ Test suite to test polygon functionality. """
 
+from builtins import str
+from builtins import range
 from future.utils import raise_
 import unittest
 import os

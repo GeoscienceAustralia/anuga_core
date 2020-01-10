@@ -11,6 +11,7 @@ Geoscience Australia, 2005
 Modified by Linda Stals, March 2006, to include ghost boundaries
 
 """
+from __future__ import absolute_import
 
 
 import sys
@@ -19,10 +20,10 @@ import numpy as num
 from anuga.config import epsilon
 
 
-from parallel_api import distribute
-from parallel_api import myid, numprocs, get_processor_name
-from parallel_api import send, receive
-from parallel_api import pypar_available, barrier, finalize
+from .parallel_api import distribute
+from .parallel_api import myid, numprocs, get_processor_name
+from .parallel_api import send, receive
+from .parallel_api import pypar_available, barrier, finalize
 
 
 

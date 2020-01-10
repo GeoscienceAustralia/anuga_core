@@ -4,6 +4,7 @@ Test the 'okada_tsunami' routine
 We first check
 
 """
+from future.utils import raise_
 import unittest, os
 import warnings
 from os import sep
@@ -327,7 +328,7 @@ class Test_okada_tsunami(unittest.TestCase):
 
                 mysource=numpy.concatenate((my_source, my_source2))
             else:
-                raise Exception, 'j is ' + str(j) + ', it should not take this value'
+                raise_(Exception, 'j is ' + str(j) + ', it should not take this value')
             
         # Tsunami function with     
         tsu_funct = okada_tsunami.earthquake_source(my_source, verbose=False)

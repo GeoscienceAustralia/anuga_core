@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from future.utils import raise_
 import exceptions
 class VectorShapeError(exceptions.Exception): pass
 class ConvergenceError(exceptions.Exception): pass
@@ -9,9 +11,9 @@ import anuga.utilities.log as log
 from anuga.utilities.sparse import Sparse, Sparse_CSR
 
 # Setup for C conjugate gradient solver
-from cg_ext import cg_solve_c
-from cg_ext import cg_solve_c_precon
-from cg_ext import jacobi_precon_c
+from .cg_ext import cg_solve_c
+from .cg_ext import cg_solve_c_precon
+from .cg_ext import jacobi_precon_c
 
 
 class Stats:
@@ -120,7 +122,7 @@ def conjugate_gradient(A, b, x0=None, imax=10000, tol=1.0e-8, atol=1.0e-14,
         
         log.warning('max number of iterations attained from c cg')
         msg = 'Conjugate gradient solver did not converge'
-        raise ConvergenceError, msg
+        raise_(ConvergenceError, msg)
 
     if output_stats:
         return x0, stats
@@ -151,7 +153,7 @@ def _conjugate_gradient(A, b, x0,
 
     b  = num.array(b, dtype=num.float)
     if len(b.shape) != 1:
-        raise VectorShapeError, 'input vector should consist of only one column'
+        raise VectorShapeError('input vector should consist of only one column')
 
     if x0 is None:
         x0 = num.zeros(b.shape, dtype=num.float)
@@ -209,7 +211,7 @@ def _conjugate_gradient(A, b, x0,
         if i == imax:
             log.warning('max number of iterations attained')
             msg = 'Conjugate gradient solver did not converge: rTr==%20.15e' % rTr
-            raise ConvergenceError, msg
+            raise_(ConvergenceError, msg)
 
     stats.x = num.linalg.norm(x)
     stats.iter = i
@@ -247,7 +249,7 @@ def _conjugate_gradient_preconditioned(A, b, x0, M,
     if not Type=='Jacobi':
         log.warning('Only the Jacobi Preconditioner is impletment cg_solve python')
         msg = 'Only the Jacobi Preconditioner is impletment in cg_solve python'
-        raise PreconditionerError, msg
+        raise_(PreconditionerError, msg)
     else:
         D=Sparse(A.M, A.M)
         for i in range(A.M):
@@ -258,7 +260,7 @@ def _conjugate_gradient_preconditioned(A, b, x0, M,
 
     b  = num.array(b, dtype=num.float)
     if len(b.shape) != 1:
-        raise VectorShapeError, 'input vector should consist of only one column'
+        raise VectorShapeError('input vector should consist of only one column')
 
     if x0 is None:
         x0 = num.zeros(b.shape, dtype=num.float)
@@ -317,7 +319,7 @@ def _conjugate_gradient_preconditioned(A, b, x0, M,
         if i == imax:
             log.warning('max number of iterations attained')
             msg = 'Conjugate gradient solver did not converge: rTr==%20.15e' % rTr
-            raise ConvergenceError, msg
+            raise_(ConvergenceError, msg)
 
     stats.x = num.linalg.norm(x)
     stats.iter = i
