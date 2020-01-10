@@ -31,6 +31,7 @@ __svn_revision_date__ = "$Date: 2016-10-04 16:13:00 +1100 (Tue, 04 Oct 2016) $"[
 
 # We first need to detect if we're being called as part of the anuga setup
 # procedure itself in a reliable manner.
+
 try:
     __ANUGA_SETUP__
 except NameError:
@@ -42,17 +43,8 @@ if __ANUGA_SETUP__:
     _sys.stderr.write('Running from anuga source directory.\n')
     del _sys
 else:
-
-    try:
-        from anuga.__config__ import show as show_config
-    except ImportError:
-        msg = """Error importing anuga: you should not try to import anuga from
-        its source directory; please exit the anuga source tree, and relaunch
-        your python interpreter from there."""
-        raise ImportError(msg)
-
-    # ---------------------------------
-    # NetCDF changes stdout to terminal\
+    # ----------------------------------
+    # NetCDF changes stdout to terminal
     # Causes trouble when using jupyter
     # ---------------------------------
     import sys
@@ -63,6 +55,8 @@ else:
     # ---------------------------------
     from numpy.testing import Tester
     test = Tester().test
+
+    from anuga.__config__ import show as show_config
 
     # --------------------------------
     # Important basic classes
