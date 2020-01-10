@@ -240,23 +240,4 @@ void  print_long_array(char* name, long* array, int n, int m){
     printf("]\n");
 }
 
-void print_numeric_array(PyArrayObject *x) {  
-  int i, j;
-  for (i=0; i<x->dimensions[0]; i++) {  
-    for (j=0; j<x->dimensions[1]; j++) {
-      printf("%f ", *(double*) (x->data + i*x->strides[0] + j*x->strides[1]));
-    }
-    printf("\n");  
-  }
-  printf("\n");    
-}
-
-void print_numeric_vector(PyArrayObject *x) {  
-  int i;
-  for (i=0; i<x->dimensions[0]; i++) {
-    printf("%f ", *(double*) (x->data + i*x->strides[0]));  
-  }
-  printf("\n");  
-}
-
 #endif /* ANUGA_UTIL_EXT_H */
