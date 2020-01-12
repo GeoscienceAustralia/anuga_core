@@ -1,7 +1,12 @@
 """
 Define region
 """
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 __author__="steve"
 __date__ ="$09/03/2012 4:46:39 PM$"
 
@@ -169,15 +174,15 @@ class Region(object):
 
 
         # Plot mesh
-        n = int(len(fx)/3)
-        triang = num.array(range(0,3*n))
+        n = int(old_div(len(fx),3))
+        triang = num.array(list(range(0,3*n)))
         triang.shape = (n, 3)
         plt.triplot(fx, fy, triang, 'b-')
 
         # Plot region
-        n = int(len(gx)/3)
+        n = int(old_div(len(gx),3))
         if n > 0:
-            triang = num.array(range(0,3*n))
+            triang = num.array(list(range(0,3*n)))
             triang.shape = (n, 3)
             plt.triplot(gx, gy, triang, 'r-')
 

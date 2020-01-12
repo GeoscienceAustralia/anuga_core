@@ -8,7 +8,11 @@
     The boundaries in this model can be applied universally across all
     domain models, without being tied to a particular implementation.
 """
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import unittest
 from math import sqrt, pi
 
@@ -313,7 +317,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
             t = start + i*dt
             t_string = time.strftime(time_format, time.gmtime(t))
 
-            fid.write('%s,%f %f\n' %(t_string, 1.0*i, sin(i*2*pi/10)))
+            fid.write('%s,%f %f\n' %(t_string, 1.0*i, sin(old_div(i*2*pi,10))))
         fid.close()
 
 
@@ -351,14 +355,14 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         from anuga.config import default_boundary_tag
         domain.set_boundary( {default_boundary_tag: F} )
 
-        domain.time = 5*30/2  #A quarter way through first step
+        domain.time = old_div(5*30,2)  #A quarter way through first step
         q = F.evaluate()
-        assert num.allclose(q, [1.0/4, sin(2*pi/10)/4])
+        assert num.allclose(q, [1.0/4, old_div(sin(old_div(2*pi,10)),4)])
 
 
         domain.time = 2.5*5*60  #Half way between steps 2 and 3
         q = F.evaluate()
-        assert num.allclose(q, [2.5, (sin(2*2*pi/10) + sin(3*2*pi/10))/2])
+        assert num.allclose(q, [2.5, old_div((sin(old_div(2*2*pi,10)) + sin(old_div(3*2*pi,10))),2)])
 
 
 
@@ -409,7 +413,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
             t = start + i*dt
             t_string = time.strftime(time_format, time.gmtime(t))
 
-            fid.write('%s,%f %f\n' %(t_string, 1.0*i, sin(i*2*pi/10)))
+            fid.write('%s,%f %f\n' %(t_string, 1.0*i, sin(old_div(i*2*pi,10))))
         fid.close()
 
 

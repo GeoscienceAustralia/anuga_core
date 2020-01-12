@@ -13,7 +13,13 @@
 """
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
+from past.utils import old_div
 from time import time as walltime
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
@@ -30,7 +36,7 @@ import numpy as num
 
 
 
-class Generic_Domain:
+class Generic_Domain(object):
     '''
     Generic computational Domain constructor.
     '''
@@ -239,7 +245,7 @@ class Generic_Domain:
         # =0 for ghost
         self.tri_full_flag = num.ones(N, num.int)
         
-        for i in self.ghost_recv_dict.keys():
+        for i in list(self.ghost_recv_dict.keys()):
             id = self.ghost_recv_dict[i][0]
             self.tri_full_flag[id] = 0
 
@@ -248,7 +254,7 @@ class Generic_Domain:
 
         # Identify full nodes as those that intersect a full triangle.
 
-        Vol_ids  = self.vertex_value_indices/3
+        Vol_ids  = old_div(self.vertex_value_indices,3)
 
         # want this
         # W = num.repeat(self.tri_full_flag, 3)
@@ -692,7 +698,7 @@ class Generic_Domain:
 
         # FIXME: Could we name this a bit more intuitively
         # E.g. set_quantities_from_dictionary
-        for key in quantity_dict.keys():
+        for key in list(quantity_dict.keys()):
             self.set_quantity(key, quantity_dict[key], location='vertices')
 
     def set_quantity(self, name,
@@ -796,7 +802,7 @@ class Generic_Domain:
         Any value in the result should be a valid input to get_quantity.
         """
 
-        return self.quantities.keys()
+        return list(self.quantities.keys())
 
     def get_quantity(self, name,
                            location='vertices',
@@ -887,11 +893,11 @@ class Generic_Domain:
         else:
             # This is a modification of an already existing map
             # Update map an proceed normally
-            for key in boundary_map.keys():
+            for key in list(boundary_map.keys()):
                 self.boundary_map[key] = boundary_map[key]
 
         # FIXME (Ole): Try to remove the sorting and fix test_mesh.py
-        x = self.boundary.keys()
+        x = list(self.boundary.keys())
         x.sort()
 
         # Loop through edges that lie on the boundary and associate them with
@@ -969,7 +975,7 @@ class Generic_Domain:
         # The order of functions in the list is used.
         tagged_elements = self.get_tagged_elements()
         for function in functions:
-            for tag in tagged_elements.keys():
+            for tag in list(tagged_elements.keys()):
                 function(tag, tagged_elements[tag], self)
 
     def set_quantities_to_be_monitored(self, q,
@@ -1151,7 +1157,7 @@ class Generic_Domain:
                 k = 0
                 lower = num.min(speed)
                 for i, a in enumerate(speed):
-                    if i % (N/10) == 0 and i != 0:
+                    if i % (old_div(N,10)) == 0 and i != 0:
                         # For every 10% of the sorted speeds
                         msg += '    %d speeds in [%f, %f]\n' % (i-k, lower, a)
                         lower = a
@@ -1182,7 +1188,7 @@ class Generic_Domain:
                 msg += 'had computed speed: %.6f m/s ' % (max_speed)
 
             if max_speed > 0.0:
-                msg += '(timestep=%.6f)\n' % (radius/max_speed)
+                msg += '(timestep=%.6f)\n' % (old_div(radius,max_speed))
             else:
                 msg += '(timestep=%.6f)\n' % (0)
 
@@ -1373,7 +1379,7 @@ class Generic_Domain:
         else:
             time_interval_start = 0.0
 
-        for quantity_name, info in self.quantities_to_be_monitored.items():
+        for quantity_name, info in list(self.quantities_to_be_monitored.items()):
             msg += '    %s:\n' % quantity_name
 
             msg += '      values since time = %.2f in [%s, %s]\n' \
@@ -1494,16 +1500,16 @@ class Generic_Domain:
 
 
         # Plot full triangles
-        n = int(len(fx)/3)
+        n = int(old_div(len(fx),3))
 
-        triang = num.array(range(0,3*n))
+        triang = num.array(list(range(0,3*n)))
         triang.shape = (n, 3)
         plt.triplot(fx, fy, triang, 'g-')
 
         # Plot ghost triangles
-        n = int(len(gx)/3)
+        n = int(old_div(len(gx),3))
         if n > 0:
-            triang = num.array(range(0,3*n))
+            triang = num.array(list(range(0,3*n)))
             triang.shape = (n, 3)
             plt.triplot(gx, gy, triang, 'b--')
 
