@@ -3,7 +3,13 @@
 Manipulation of locations on the planet and associated attributes.
 """
 from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
+from past.utils import old_div
 from sys import maxsize
 from os import access, F_OK, R_OK,remove
 from types import DictType
@@ -34,7 +40,7 @@ import anuga.utilities.log as log
 DEFAULT_ATTRIBUTE = 'elevation'
 
 
-class Geospatial_data:
+class Geospatial_data(object):
 
     def __init__(self,
                  data_points=None, # this can also be a points file name
@@ -214,7 +220,7 @@ class Geospatial_data:
             attributes = {DEFAULT_ATTRIBUTE: attributes}
 
         # Check input attributes
-        for key in attributes.keys():
+        for key in list(attributes.keys()):
             try:
                 attributes[key] = ensure_numeric(attributes[key])
             except:
@@ -377,12 +383,12 @@ class Geospatial_data:
             if self.default_attribute_name is not None:
                 attribute_name = self.default_attribute_name
             else:
-                attribute_name = self.attributes.keys()[0]
+                attribute_name = list(self.attributes.keys())[0]
                 # above line takes the first one from keys
 
         if self.verbose is True:
             log.critical('Geospatial_data: Using attribute %s' % attribute_name)
-            log.critical('Geospatial_data: Available attributes: %s' % (self.attributes.keys()))
+            log.critical('Geospatial_data: Available attributes: %s' % (list(self.attributes.keys())))
 
         msg = 'Attribute name %s does not exist in data set' % attribute_name
         assert attribute_name in self.attributes, msg
@@ -432,7 +438,7 @@ class Geospatial_data:
                 new_attributes = None
             else:
                 new_attributes = {}
-                for x in self.attributes.keys():
+                for x in list(self.attributes.keys()):
                     if x in other.attributes:
                         attrib1 = self.attributes[x]
                         attrib2 = other.attributes[x]
@@ -574,7 +580,7 @@ class Geospatial_data:
 
         sampled_attributes = {}
         if attributes is not None:
-            for key, att in attributes.items():
+            for key, att in list(attributes.items()):
                 sampled_attributes[key] = num.take(att, indices, axis=0)
 
         return Geospatial_data(sampled_points, sampled_attributes)
@@ -608,7 +614,7 @@ class Geospatial_data:
         if verbose: log.critical("make unique random number list "
                                  "and get indices")
 
-        total = num.array(range(self_size), num.int)    #array default#
+        total = num.array(list(range(self_size)), num.int)    #array default#
         total_list = total.tolist()
 
         if verbose: log.critical("total list len=%d" % len(total_list))
@@ -648,7 +654,7 @@ class Geospatial_data:
             random_list.append(remainder_list.pop(i))
             j += 1
             # prints progress
-            if verbose and round(random_num_len/10*k) == j:
+            if verbose and round(old_div(random_num_len,10)*k) == j:
                 log.critical('(%s/%s)' % (j, random_num_len))
                 k += 1
 
@@ -701,9 +707,9 @@ class Geospatial_data:
             self.start_row = 0
             self.last_row = self.number_of_points
             self.show_verbose = 0
-            self.verbose_block_size = (self.last_row + 10)/10
+            self.verbose_block_size = old_div((self.last_row + 10),10)
             self.block_number = 0
-            self.number_of_blocks = int(self.number_of_points/self.max_read_lines)
+            self.number_of_blocks = int(old_div(self.number_of_points,self.max_read_lines))
             # This computes the number of full blocks. The last block may be
             # smaller and won't be included in this estimate.
 
@@ -721,7 +727,7 @@ class Geospatial_data:
 
         return self
 
-    def next(self):
+    def __next__(self):
         """read a block, instanciate a new geospatial and return it"""
 
         if self.file_name[-4:] == ".pts":
@@ -881,7 +887,7 @@ def _read_pts_file(file_name, verbose=False):
     fid = NetCDFFile(file_name, netcdf_mode_r)
 
     pointlist = fid.variables['points'][:]
-    keys = fid.variables.keys()
+    keys = list(fid.variables.keys())
 
     if verbose: log.critical('Geospatial_data: Got %d variables: %s' % (len(keys), keys))
 
@@ -1010,7 +1016,7 @@ def _read_csv_file_blocking(file_pointer,
         raise StopIteration
 
     pointlist = num.array(points, num.float)
-    for key in att_dict.keys():
+    for key in list(att_dict.keys()):
         att_dict[key] = num.array(att_dict[key], num.float)
 
     # Do stuff here so the info is in lat's and longs
@@ -1038,7 +1044,7 @@ def _read_csv_file_blocking(file_pointer,
 def _read_pts_file_header(fid, verbose=False):
     '''Read the geo_reference and number_of_points from a .pts file'''
 
-    keys = fid.variables.keys()
+    keys = list(fid.variables.keys())
     try:
         keys.remove('points')
     except IOError as e:
@@ -1115,7 +1121,7 @@ def _write_pts_file(file_name,
     outfile.variables['points'][:] = write_data_points
 
     if write_attributes is not None:
-        for key in write_attributes.keys():
+        for key in list(write_attributes.keys()):
             outfile.createVariable(key, netcdf_float, ('number_of_points',))
             outfile.variables[key][:] = write_attributes[key]
 
@@ -1143,7 +1149,7 @@ def _write_csv_file(file_name,
         titlelist = "x" + delimiter + "y"  + delimiter
 
     if pointattributes is not None:
-        for title in pointattributes.keys():
+        for title in list(pointattributes.keys()):
             titlelist = titlelist + title + delimiter
         titlelist = titlelist[0:-len(delimiter)] # remove the last delimiter
 
@@ -1153,7 +1159,7 @@ def _write_csv_file(file_name,
     for i, vert in enumerate( points):
         if pointattributes is not None:
             attlist = ","
-            for att in pointattributes.keys():
+            for att in list(pointattributes.keys()):
                 attlist = attlist + str(pointattributes[att][i]) + delimiter
             attlist = attlist[0:-len(delimiter)] # remove the last delimiter
             attlist.strip()
@@ -1187,7 +1193,7 @@ def _write_urs_file(file_name, points, delimiter=' '):
 def _point_atts2array(point_atts):
     point_atts['pointlist'] = num.array(point_atts['pointlist'], num.float)
 
-    for key in point_atts['attributelist'].keys():
+    for key in list(point_atts['attributelist'].keys()):
         point_atts['attributelist'][key] = \
                 num.array(point_atts['attributelist'][key], num.float)
 
@@ -1202,7 +1208,7 @@ def geospatial_data2points_dictionary(geospatial_data):
 
     points_dictionary['attributelist'] = {}
 
-    for attribute_name in geospatial_data.attributes.keys():
+    for attribute_name in list(geospatial_data.attributes.keys()):
         val = geospatial_data.attributes[attribute_name]
         points_dictionary['attributelist'][attribute_name] = val
 
@@ -1477,7 +1483,7 @@ def find_optimal_smoothing_parameter(data_file,
 
         sample_cov = cov(elevation_sample)
         ele_cov = cov(elevation_sample - elevation_predicted)
-        normal_cov[i,:] = [alpha, ele_cov / sample_cov]
+        normal_cov[i,:] = [alpha, old_div(ele_cov, sample_cov)]
 
         if verbose:
             log.critical('Covariance for alpha %s=%s'
@@ -1674,7 +1680,7 @@ def old_find_optimal_smoothing_parameter(data_file,
 
         sample_cov = cov(elevation_sample)
         ele_cov = cov(elevation_sample - elevation_predicted)
-        normal_cov[i,:] = [alpha,ele_cov / sample_cov]
+        normal_cov[i,:] = [alpha,old_div(ele_cov, sample_cov)]
         log.critical('memory usage during compare: %s' % str(mem_usage()))
         if verbose: log.critical('cov %s = %s'
                                  % (normal_cov[i][0], normal_cov[i][1]))
