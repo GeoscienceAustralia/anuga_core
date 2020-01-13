@@ -1,3 +1,7 @@
+from past.builtins import cmp
+from builtins import zip
+from builtins import range
+from builtins import object
 from future.utils import raise_
 import csv
 
@@ -16,7 +20,7 @@ Y_TITLE = 'y'
 
 
 
-class Exposure:
+class Exposure(object):
     '''
     Class for National Exposure Database storage (NEXIS).
     Returns a csv file handle
@@ -83,7 +87,7 @@ class Exposure:
             try:
                 xs = self._attribute_dic[x_title]
                 ys = self._attribute_dic[y_title]
-                points = [[float(i),float(j)] for i,j in map(None,xs,ys)]
+                points = [[float(i),float(j)] for i,j in zip(xs,ys)]
             except KeyError:
                 # maybe a warning..
                 msg = "Could not find location information."
@@ -113,7 +117,7 @@ class Exposure:
             result = cmp(self._title_index_dic, other._title_index_dic)
             if result != 0:
                 return result
-            for self_ls, other_ls in map(None, self._attribute_dic,
+            for self_ls, other_ls in zip(self._attribute_dic,
                                          other._attribute_dic):
                 result = cmp(self._attribute_dic[self_ls],
                              other._attribute_dic[other_ls])
@@ -178,7 +182,7 @@ class Exposure:
 
         # sanity checks
         value_row_count = \
-                len(self._attribute_dic[self._title_index_dic.keys()[0]])
+                len(self._attribute_dic[list(self._title_index_dic.keys())[0]])
         if len(column_values) != value_row_count:
             msg = 'The number of column values must equal the number of rows.'
             raise_(DataMissingValuesError, msg)
@@ -208,16 +212,16 @@ class Exposure:
 
         #Write the title to a cvs file
         line = [None] * len(self._title_index_dic)
-        for title in self._title_index_dic.iterkeys():
+        for title in self._title_index_dic.keys():
             line[self._title_index_dic[title]] = title
         writer.writerow(line)
 
         # Write the values to a cvs file
         value_row_count = \
-                len(self._attribute_dic[self._title_index_dic.keys()[0]])
+                len(self._attribute_dic[list(self._title_index_dic.keys())[0]])
         for row_i in range(value_row_count):
             line = [None] * len(self._title_index_dic)
-            for title in self._title_index_dic.iterkeys():
+            for title in self._title_index_dic.keys():
                 line[self._title_index_dic[title]] = \
                      self._attribute_dic[title][row_i]
             writer.writerow(line)
