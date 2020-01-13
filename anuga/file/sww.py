@@ -1,7 +1,12 @@
 """ Classes to read an SWW file.
 """
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 from future.utils import raise_
 import exceptions
 class DataFileNotOpenError(exceptions.Exception): pass
@@ -29,7 +34,7 @@ from anuga.coordinate_transforms.geo_reference import \
 from anuga.utilities.file_utils import create_filename
 import numpy as num
 
-class Data_format:
+class Data_format(object):
     """Generic interface to data formats
     """
 
@@ -191,7 +196,7 @@ class SWW_file(Data_format):
         fid = NetCDFFile(self.filename, netcdf_mode_a)
 
         # Get X, Y from one (any) of the quantities
-        Q = domain.quantities.values()[0]
+        Q = list(domain.quantities.values())[0]
         X,Y,_,V = Q.get_vertex_values(xy=True, precision=self.precision)
 
         # store the connectivity data
@@ -273,7 +278,7 @@ class SWW_file(Data_format):
 
         i = len(time) + 1
         file_size = stat(self.filename)[6]
-        file_size_increase = file_size / i
+        file_size_increase = old_div(file_size, i)
         if file_size + file_size_increase > self.max_size * 2**self.recursion:
             # In order to get the file name and start time correct,
             # I change the domain.filename and domain.starttime.
@@ -398,7 +403,7 @@ class SWW_file(Data_format):
             # Update extrema if requested
             domain = self.domain
             if domain.quantities_to_be_monitored is not None:
-                for q, info in domain.quantities_to_be_monitored.items():
+                for q, info in list(domain.quantities_to_be_monitored.items()):
                     if info['min'] is not None:
                         fid.variables[q + '.extrema'][0] = info['min']
                         fid.variables[q + '.min_location'][:] = \
@@ -416,7 +421,7 @@ class SWW_file(Data_format):
             fid.close()
 
 
-class Read_sww:
+class Read_sww(object):
 
     def __init__(self, source):
         """The source parameter is assumed to be a NetCDF sww file.
@@ -471,13 +476,12 @@ class Read_sww:
 
         self.frame_number = frame_number
 
-        M = len(self.x)/3
+        M = old_div(len(self.x),3)
 
         fin = NetCDFFile(self.source, 'r')
 
-        for q in filter(lambda n:n != 'x' and n != 'y' and n != 'time' and n != 'volumes' and \
-                        '_range' not in n and '_c' not in n , \
-                        fin.variables.keys()):
+        for q in [n for n in list(fin.variables.keys()) if n != 'x' and n != 'y' and n != 'time' and n != 'volumes' and \
+                        '_range' not in n and '_c' not in n]:
             #print q
             if len(fin.variables[q].shape) == 1: # Not a time-varying quantity
                 self.quantities[q] = num.ravel(num.array(fin.variables[q][:], num.float)).reshape(M,3)
@@ -1180,7 +1184,7 @@ def load_sww_as_domain(filename, boundary=None, t=None,
 
     if verbose: log.critical('    getting quantities')
 
-    for quantity in fid.variables.keys():
+    for quantity in list(fid.variables.keys()):
         dimensions = fid.variables[quantity].dimensions
         if 'number_of_timesteps' in dimensions:
             dynamic_quantities.append(quantity)
@@ -1279,7 +1283,7 @@ def load_sww_as_domain(filename, boundary=None, t=None,
                 data = (X != NaN)
                 X = (X*data) + (data==0)*NaN_filler
         if unique:
-            X = num.resize(X, (len(X)/3, 3))
+            X = num.resize(X, (old_div(len(X),3), 3))
         domain.set_quantity(quantity, X)
     #
     for quantity in dynamic_quantities:
@@ -1304,7 +1308,7 @@ def load_sww_as_domain(filename, boundary=None, t=None,
                 data = (X != NaN)
                 X = (X*data) + (data==0)*NaN_filler
         if unique:
-            X = num.resize(X, (X.shape[0]/3, 3))
+            X = num.resize(X, (old_div(X.shape[0],3), 3))
         domain.set_quantity(quantity, X)
 
     fid.close()
@@ -1405,7 +1409,7 @@ def get_mesh_and_quantities_from_file(filename,
                 b_array = num.zeros_like(indices,dtype=num.float)
                 b_array[:] = b
 
-                for n in xrange(n_ids):
+                for n in range(n_ids):
                     a[indices[n]] = a[indices[n]] + b_array[n]
 
 
@@ -1426,7 +1430,7 @@ def get_mesh_and_quantities_from_file(filename,
 
             for i in range(n_time):
                 my_num_add_at(temp_uv[i,:], mesh_ids, quantity[i,:] )
-                temp_uv[i,:] = temp_uv[i,:]/count_uv
+                temp_uv[i,:] = old_div(temp_uv[i,:],count_uv)
 
         elif len(shape) == 1:
             # non time array
@@ -1490,7 +1494,7 @@ def get_time_interp(time, t=None):
             ratio = 0
         else:
             #t is now between index and index+1
-            ratio = (tau - time[index])/(time[index+1] - time[index])
+            ratio = old_div((tau - time[index]),(time[index+1] - time[index]))
 
     return (index, ratio)
 
@@ -1541,7 +1545,7 @@ def weed(coordinates, volumes, boundary=None):
 
     coordinates = []
     i = 0
-    for point in point_dict.keys():
+    for point in list(point_dict.keys()):
         point = tuple(point)
         coordinates.append(list(point))
         point_dict[point] = i
@@ -1555,7 +1559,7 @@ def weed(coordinates, volumes, boundary=None):
 
     new_boundary = {}
     if not boundary is None:
-        for segment in boundary.keys():
+        for segment in list(boundary.keys()):
             point0 = point_dict[same_point[segment[0]]]
             point1 = point_dict[same_point[segment[1]]]
             label = boundary[segment]
