@@ -1,7 +1,9 @@
 """Functions for geometries related to culvert flows
 """
+from __future__ import division
 
 # Import necessary modules
+from past.utils import old_div
 from math import sqrt
 from anuga.geometry.polygon import inside_polygon, polygon_area
 
@@ -64,7 +66,7 @@ def create_culvert_polygons(end_point0,
     
     # Unit direction vector and normal 
     vector /= length                 # Unit vector in culvert direction
-    normal = num.array([-dy, dx])/length # Normal vector
+    normal = old_div(num.array([-dy, dx]),length) # Normal vector
     
     culvert_polygons['vector'] = vector
     culvert_polygons['length'] = length

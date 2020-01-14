@@ -2,7 +2,11 @@
 """
 boundary.py - Classes for implementing boundary conditions
 """
+from __future__ import division
 
+from builtins import str
+from past.utils import old_div
+from builtins import object
 from warnings import warn
 
 from anuga.utilities.numerical_tools import NAN    
@@ -13,7 +17,7 @@ import anuga.utilities.log as log
 import numpy as num
 
 
-class Boundary:
+class Boundary(object):
     """Base class for boundary conditions.
        Specific boundary conditions must provide values for
        the conserved_quantities
@@ -567,7 +571,7 @@ class File_boundary(Boundary):
 
         if verbose: log.critical('Find midpoint coordinates of entire boundary')
         self.midpoint_coordinates = num.zeros((len(domain.boundary), 2), num.float)
-        boundary_keys = domain.boundary.keys()
+        boundary_keys = list(domain.boundary.keys())
 
         xllcorner = domain.geo_reference.get_xllcorner()
         yllcorner = domain.geo_reference.get_yllcorner()        
@@ -756,7 +760,7 @@ class AWI_boundary(Boundary):
 
         if verbose: log.critical('Find midpoint coordinates of entire boundary')
         self.midpoint_coordinates = num.zeros((len(domain.boundary), 2), num.float)
-        boundary_keys = domain.boundary.keys()
+        boundary_keys = list(domain.boundary.keys())
 
         xllcorner = domain.geo_reference.get_xllcorner()
         yllcorner = domain.geo_reference.get_yllcorner()        
@@ -773,9 +777,9 @@ class AWI_boundary(Boundary):
             x2, y2 = V[base_index+2, :]
             
             # Compute midpoints
-            if edge_id == 0: m = num.array([(x1 + x2)/2, (y1 + y2)/2])
-            if edge_id == 1: m = num.array([(x0 + x2)/2, (y0 + y2)/2])
-            if edge_id == 2: m = num.array([(x1 + x0)/2, (y1 + y0)/2])
+            if edge_id == 0: m = num.array([old_div((x1 + x2),2), old_div((y1 + y2),2)])
+            if edge_id == 1: m = num.array([old_div((x0 + x2),2), old_div((y0 + y2),2)])
+            if edge_id == 2: m = num.array([old_div((x1 + x0),2), old_div((y1 + y0),2)])
 
             # Convert to absolute UTM coordinates
             m[0] += xllcorner

@@ -81,7 +81,7 @@ def csv2sts(infile, outfile, latitude = None, longitude = None,
             log.critical('column ' + col + ':')
             log.critical(timeseries_data[col])        
 
-    data_len = len(timeseries_data.values()[0])
+    data_len = len(list(timeseries_data.values())[0])
     if verbose:
         log.critical('   data length = %d.' % data_len)
     

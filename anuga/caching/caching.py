@@ -35,12 +35,19 @@ test() --       Conducts a basic test of the caching functionality.
 
 See doc strings of individual functions for detailed documentation.
 """
+from __future__ import division
 
 # -----------------------------------------------------------------------------
 # Initialisation code
 
 # Determine platform
 #
+from builtins import zip
+from builtins import input
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from past.utils import old_div
 from os import getenv
 import types
 import time
@@ -706,7 +713,7 @@ def test(cachedir=None, verbose=False, compression=None):
   if T1 == T2:
     if t1 > t2:
       logtestOK('Performance test: relative time saved = %s pct' \
-              %str(round((t1-t2)*100/t1,2)))
+              %str(round(old_div((t1-t2)*100,t1),2)))
   else:       
     logtesterror('Basic caching failed for new problem')
             
@@ -755,8 +762,9 @@ def test(cachedir=None, verbose=False, compression=None):
 # Import pickler
 # cPickle is used by functions mysave, myload, and compare
 #
-import cPickle  # 10 to 100 times faster than pickle
-pickler = cPickle 
+#import cPickle  # 10 to 100 times faster than pickle
+import pickle as pickler
+#pickler = cPickle 
 
 # Local immutable constants
 #
@@ -843,7 +851,7 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
   (admfile,compressed2) =  myopen(CD+FN+'_'+file_types[2],"rb",compression)
 
   if verbose is True and deps is not None:
-    log.critical('Caching: Dependencies are %s' % deps.keys())
+    log.critical('Caching: Dependencies are %s' % list(deps.keys()))
 
   if not (argsfile and datafile and admfile) or \
      not (compressed0 == compressed1 and compressed0 == compressed2):
@@ -1021,7 +1029,7 @@ def clear_cache(CD, my_F=None, verbose=None):
         for file_name in file_names:
             log.critical('     ' + file_name)
 
-        A = raw_input('Delete (Y/N)[N] ?')
+        A = input('Delete (Y/N)[N] ?')
       else:
         A = 'Y' 
         
@@ -1435,7 +1443,7 @@ def myhash(T, ids=None):
       # Make dictionary ordering unique  
       
       # FIXME(Ole): Need new way of doing this in Python 3.0
-      I = T.items()
+      I = list(T.items())
       I.sort()    
       val = myhash(I, ids)
   elif isinstance(T, num.ndarray):
@@ -1501,8 +1509,8 @@ def compare(A, B, ids=None):
             identical = False
         else:                        
             # Make dictionary ordering unique 
-            a = A.items(); a.sort()    
-            b = B.items(); b.sort()
+            a = list(A.items()); a.sort()    
+            b = list(B.items()); b.sort()
             
             identical = compare(a, b, ids)
             
@@ -1738,7 +1746,7 @@ def filestat(FN):
       pass
       raise Exception  # FIXME: Windows case
 
-  return(long(size),atime,mtime,ctime)
+  return(int(size),atime,mtime,ctime)
 
 # -----------------------------------------------------------------------------
 
@@ -2017,7 +2025,7 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
             saving = cputime-loadtime
 
             if cputime != 0:
-              rel_saving = round(100.0*saving/cputime,2)
+              rel_saving = round(old_div(100.0*saving,cputime),2)
             else:
               #rel_saving = round(1.0*saving,2)
               rel_saving = 100.0 - round(1.0*saving,2)  # A bit of a hack
@@ -2063,11 +2071,11 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
 
   i = 0
   for Dict in Dictionaries:
-    for key in Dict.keys():
+    for key in list(Dict.keys()):
       rec = Dict[key]
       for n in range(len(rec)):
         if n > 0:
-          rec[n] = round(1.0*rec[n]/rec[0],2)
+          rec[n] = round(old_div(1.0*rec[n],rec[0]),2)
       Dict[key] = rec
 
     # Sort and output
@@ -2142,7 +2150,7 @@ def SortDict(Dict, sortidx=0):
   """
 
   sortlist  = []
-  keylist = Dict.keys()
+  keylist = list(Dict.keys())
   for key in keylist:
     rec = Dict[key]
     if not isinstance(rec, (list, tuple)):
@@ -2155,9 +2163,9 @@ def SortDict(Dict, sortidx=0):
     val = rec[sortidx]
     sortlist.append(val)
 
-  A = map(None,sortlist,keylist)
+  A = list(zip(sortlist,keylist))
   A.sort()
-  keylist = map(lambda x: x[1], A)  # keylist sorted by sortidx
+  keylist = [x[1] for x in A]  # keylist sorted by sortidx
 
   return(keylist)
 
@@ -2292,7 +2300,7 @@ def msg5(CD, FN, deps, compression):
   log.critical('|')
   if len(deps) > 0:
     log.critical('| Dependencies:  ')
-    dependencies  = deps.keys()
+    dependencies  = list(deps.keys())
     dlist = []; maxd = 0
     tlist = []; maxt = 0
     slist = []; maxs = 0
@@ -2456,7 +2464,7 @@ def mkargstr(args, textwidth, argstr = '', level=0):
   else:
     if isinstance(args, dict):
       argstr = argstr + "{"
-      for key in args.keys():
+      for key in list(args.keys()):
         argstr = argstr + mkargstr(key, textwidth, level=level+1) + ": " + \
                  mkargstr(args[key], textwidth, level=level+1) + ", "
         if len(argstr) > textwidth:

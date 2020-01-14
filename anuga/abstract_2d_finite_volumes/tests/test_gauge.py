@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 
+from builtins import next
+from builtins import str
 import unittest
 import tempfile
 import os

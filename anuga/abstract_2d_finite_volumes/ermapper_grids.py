@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from builtins import str
 import numpy as num
 
 celltype_map = {'IEEE4ByteReal': num.float32, 'IEEE8ByteReal': num.float64}

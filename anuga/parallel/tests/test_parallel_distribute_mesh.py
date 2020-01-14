@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 from future.utils import raise_
 import unittest
 import sys
@@ -28,7 +32,7 @@ verbose = False
 
 
 def topography(x, y):
-	return -x/2
+	return old_div(-x,2)
 
 
 def xcoord(x, y):

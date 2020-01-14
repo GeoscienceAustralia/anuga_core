@@ -1,3 +1,5 @@
+from __future__ import division
+from past.utils import old_div
 import sys
 from os import sep
 
@@ -64,7 +66,7 @@ class Test_Advection(unittest.TestCase):
 
         domain.compute_fluxes()
         U = -domain.quantities['stage'].explicit_update
-        R = -0.5/domain.areas[0]
+        R = old_div(-0.5,domain.areas[0])
 
         assert U==R, '%s %s' %(U, R)
 

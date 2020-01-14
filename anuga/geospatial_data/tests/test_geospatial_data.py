@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from builtins import str
+from builtins import range
 import unittest
 import os
 import tempfile
@@ -53,8 +55,8 @@ class Test_Geospatial_data(unittest.TestCase):
         points = [[1.0, 2.1], [3.0, 5.3]]
         attributes = [2, 4]
         G = Geospatial_data(points, attributes)
-        assert G.attributes.keys()[0] == DEFAULT_ATTRIBUTE
-        assert num.allclose(G.attributes.values()[0], [2, 4])
+        assert list(G.attributes.keys())[0] == DEFAULT_ATTRIBUTE
+        assert num.allclose(list(G.attributes.values())[0], [2, 4])
 
     def test_2(self):
         from anuga.coordinate_transforms.geo_reference import Geo_reference
@@ -304,7 +306,7 @@ class Test_Geospatial_data(unittest.TestCase):
         G = G1 + G2
 
         assert 'depth' in G.attributes
-        assert G.attributes.keys(), ['depth']
+        assert list(G.attributes.keys()), ['depth']
         assert num.allclose(G.attributes['depth'], [2, 4, 200, 400])
         assert num.allclose(G.get_data_points(), [[1.0, 2.1], [3.0, 5.3],
                                                   [5.0, 2.1], [3.0, 50.3]])

@@ -1,3 +1,6 @@
+from builtins import zip
+from builtins import map
+from builtins import range
 import unittest
 import tempfile
 import numpy as num
@@ -496,7 +499,7 @@ class Test_Mux(unittest.TestCase):
         # not recording
         for i in range(n):
              # For each point
-             for j in range(0, first_tstep[i]-1) + range(last_tstep[i], time_step_count):
+             for j in list(range(0, first_tstep[i]-1)) + list(range(last_tstep[i], time_step_count)):
                  # For timesteps before and after recording range
                  ha0[i][j] = ua0[i][j] = va0[i][j] = 0.0                                  
         
@@ -615,7 +618,7 @@ class Test_Mux(unittest.TestCase):
         # not recording
         for i in range(n):
              # For each point
-             for j in range(0, first_tstep[i]-1) + range(last_tstep[i], time_step_count):
+             for j in list(range(0, first_tstep[i]-1)) + list(range(last_tstep[i], time_step_count)):
                  # For timesteps before and after recording range
                  ha1[i][j] = ua1[i][j] = va1[i][j] = 0.0 
 
@@ -906,8 +909,8 @@ ValueError: matrices are not aligned for copy
         # not recording
         for i in range(stations):
              # For each point
-             for j in range(0, first_tstep[i]-1) + range(last_tstep[i],
-                                                         time_step_count):
+             for j in list(range(0, first_tstep[i]-1)) + list(range(last_tstep[i],
+                                                         time_step_count)):
                  # For timesteps before and after recording range
                  ha1[i][j] = ua1[i][j] = va1[i][j] = 0.0 
 
@@ -1156,7 +1159,7 @@ ValueError: matrices are not aligned for copy
         y = fid.variables['y'][:]
 
         geo_reference = Geo_reference(NetCDFObject=fid)
-        points = geo_reference.get_absolute(map(None, x, y))
+        points = geo_reference.get_absolute(list(zip(x, y)))
         points = ensure_numeric(points)
 
         x = points[:,0]
@@ -1233,7 +1236,7 @@ ValueError: matrices are not aligned for copy
         y = fid.variables['y'][:]
 
         geo_reference = Geo_reference(NetCDFObject=fid)
-        points = geo_reference.get_absolute(map(None, x, y))
+        points = geo_reference.get_absolute(list(zip(x, y)))
         points = ensure_numeric(points)
 
         x = points[:,0]
@@ -1360,7 +1363,7 @@ ValueError: matrices are not aligned for copy
         y = fid.variables['y'][:]
 
         geo_reference = Geo_reference(NetCDFObject=fid)
-        points = geo_reference.get_absolute(map(None, x, y))
+        points = geo_reference.get_absolute(list(zip(x, y)))
         points = ensure_numeric(points)
 
         x = points[:,0]
@@ -1477,7 +1480,7 @@ ValueError: matrices are not aligned for copy
         y = fid.variables['y'][:]
 
         geo_reference = Geo_reference(NetCDFObject=fid)
-        points = geo_reference.get_absolute(map(None, x, y))
+        points = geo_reference.get_absolute(list(zip(x, y)))
         points = ensure_numeric(points)
 
         x = points[:,0]
@@ -1505,7 +1508,7 @@ ValueError: matrices are not aligned for copy
             assert time_step_count == urs.time_step_count
             assert time_step == urs.time_step
 
-            for lat_lon, dep in map(None, lat_long_points, urs.lonlatdep):
+            for lat_lon, dep in zip(lat_long_points, urs.lonlatdep):
                     _ , e, n = redfearn(lat_lon[0], lat_lon[1])
                     assert num.allclose(n, dep[2])
                         
@@ -1513,7 +1516,7 @@ ValueError: matrices are not aligned for copy
             for slice in urs:
                 count += 1
                 #print slice
-                for lat_lon, quantity in map(None, lat_long_points, slice):
+                for lat_lon, quantity in zip(lat_long_points, slice):
                     _ , e, n = redfearn(lat_lon[0], lat_lon[1])
                     #print "quantity", quantity
                     #print "e", e

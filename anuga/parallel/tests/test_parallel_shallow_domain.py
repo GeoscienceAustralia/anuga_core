@@ -11,6 +11,7 @@ from __future__ import print_function
 # Import necessary modules
 #------------------------------------------------------------------------------
 
+from builtins import object
 from future.utils import raise_
 import unittest
 import os
@@ -61,7 +62,7 @@ verbose = False
 #--------------------------------------------------------------------------
 # Setup procedures
 #--------------------------------------------------------------------------
-class Set_Stage:
+class Set_Stage(object):
     """Set an initial condition with constant water height, for x<x0
     """
 

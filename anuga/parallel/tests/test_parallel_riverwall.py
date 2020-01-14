@@ -79,7 +79,7 @@ def run_simulation(parallel=False, verbose=False):
                                    filename = 'runup.msh',
                                    interior_regions = [ [higherResPolygon, 1.*1.*0.5],
                                                         [midResPolygon, 3.0*3.0*0.5]],
-                                   breaklines=riverWall.values(),
+                                   breaklines=list(riverWall.values()),
                                    use_cache=False,
                                    verbose=verbose,
                                    regionPtArea=regionPtAreas)

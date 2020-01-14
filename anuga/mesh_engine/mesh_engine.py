@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from builtins import range
 import sys
 
 from types import ListType, TupleType

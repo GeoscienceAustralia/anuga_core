@@ -28,6 +28,9 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+from builtins import str
+from builtins import range
+from past.builtins import basestring
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.caching import cache
 from anuga.geospatial_data.geospatial_data import Geospatial_data, \

@@ -2,6 +2,8 @@
 """
 
 
+from builtins import str
+from builtins import object
 class Dummy:
     def __init__(self, value, another):
         self.value = value

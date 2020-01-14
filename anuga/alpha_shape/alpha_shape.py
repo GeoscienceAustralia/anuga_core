@@ -19,6 +19,9 @@ Author: Vanessa Robins, ANU
 """
 from __future__ import print_function
 
+from builtins import filter
+from builtins import range
+from builtins import object
 import exceptions
 import random
 
@@ -54,7 +57,7 @@ def alpha_shape_via_files(point_file, boundary_file, alpha= None):
     AS.write_boundary(boundary_file)
     
 
-class Alpha_Shape:
+class Alpha_Shape(object):
 
     def __init__(self, points, alpha = None):
         """
@@ -367,7 +370,7 @@ class Alpha_Shape:
         def tri_rad_lta(k):
             return self.triradius[k]<=alpha
 
-        return filter(tri_rad_lta, range(len(self.triradius)))
+        return list(filter(tri_rad_lta, list(range(len(self.triradius)))))
 
     def get_regular_edges(self,alpha):
         """
@@ -378,7 +381,7 @@ class Alpha_Shape:
             return self.edgeinterval[k][1]<=alpha and \
                    self.edgeinterval[k][2]>alpha
 
-        return filter(reg_edge, range(len(self.edgeinterval)))
+        return list(filter(reg_edge, list(range(len(self.edgeinterval)))))
 
     def get_exposed_vertices(self,alpha):
         """
@@ -389,7 +392,7 @@ class Alpha_Shape:
             return self.vertexinterval[k][0]<=alpha and \
                    self.vertexinterval[k][1]>alpha
 
-        return filter(exp_vert, range(len(self.vertexinterval)))        
+        return list(filter(exp_vert, list(range(len(self.vertexinterval)))))        
 
     def _vertices_from_edges(self,elist):
         """
@@ -411,7 +414,7 @@ class Alpha_Shape:
         def tri_rad_gta(k):
             return self.triradius[k]>self.alpha
 
-        extrind = filter(tri_rad_gta, range(len(self.triradius)))
+        extrind = list(filter(tri_rad_gta, list(range(len(self.triradius)))))
 
         bv = self._vertices_from_edges(self.boundary)
         

@@ -1,3 +1,9 @@
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import unittest, os, sys
 import numpy as num
 
@@ -24,13 +30,13 @@ from anuga.file_conversion.sww2dem import sww2dem, sww2dem_batch
 
 from pprint import pprint
 
-from cStringIO import StringIO
+from io import BytesIO
 import sys
 
 class Capturing(list):
     def __enter__(self):
         self._stdout = sys.stdout
-        sys.stdout = self._stringio = StringIO()
+        sys.stdout = self._stringio = BytesIO()
         return self
     def __exit__(self, *args):
         self.extend(self._stringio.getvalue().splitlines())
@@ -1096,7 +1102,7 @@ class Test_Sww2Dem(unittest.TestCase):
                 jj = 4 - j
                 for i in range(5):
                     if i % 2 == 0:
-                        index = jj / 2 + i / 2 * 3
+                        index = old_div(jj, 2) + old_div(i, 2) * 3
                         val0 = stage[0, index]
                         val1 = stage[1, index]
 
@@ -1201,7 +1207,7 @@ class Test_Sww2Dem(unittest.TestCase):
                 jj = 4 - j
                 for i in range(5):
                     if i % 2 == 0:
-                        index = jj / 2 + i / 2 * 3
+                        index = old_div(jj, 2) + old_div(i, 2) * 3
                         
                         val = stage[1, index]
                    
@@ -1309,7 +1315,7 @@ class Test_Sww2Dem(unittest.TestCase):
                 jj = 4 - j
                 for i in range(5):
                     if i % 2 == 0:
-                        index = jj / 2 + i / 2 * 3
+                        index = old_div(jj, 2) + old_div(i, 2) * 3
                         val0 = stage[0, index] - z[index]
                         val1 = stage[1, index] - z[index]
 

@@ -1,5 +1,8 @@
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
 from feature import Feature
-from Tkinter import Button
+from tkinter import Button
 from vtk import vtkFloatArray, vtkPoints, vtkPolyData, vtkPolyDataMapper
 from time import time
 class HeightQuantity(Feature):
@@ -34,7 +37,7 @@ class HeightQuantity(Feature):
             nPoints = len(points)
             vtk_points.SetNumberOfPoints(nPoints)
             setPoint = vtkPoints.SetPoint
-            for i in xrange(nPoints):
+            for i in range(nPoints):
                 z = points[i] * self.zScale + self.offset
                 setPoint(vtk_points, i, self.visualiser.xPoints[i], self.visualiser.yPoints[i], z)
 
@@ -49,7 +52,7 @@ class HeightQuantity(Feature):
                 nScalars = len(scalars)
                 vtk_scalars = vtkFloatArray()
                 vtk_scalars.SetNumberOfValues(nScalars)
-                for i in xrange(nScalars):
+                for i in range(nScalars):
                     setValue(vtk_scalars, i, scalars[i])
                 polyData.GetPointData().SetScalars(vtk_scalars)
                 mapper.SetScalarRange(self.colour[1:3])
