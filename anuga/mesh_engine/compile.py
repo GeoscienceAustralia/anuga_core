@@ -5,5 +5,6 @@
 
 """
 
+from past.builtins import execfile
 import os
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
