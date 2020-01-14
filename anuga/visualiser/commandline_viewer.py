@@ -3,7 +3,9 @@
 python vtk_viewer swwfile.sww
 """
 from __future__ import print_function
+from __future__ import division
 
+from past.utils import old_div
 import sys, os
 from anuga.visualiser import OfflineVisualiser
 
@@ -49,8 +51,8 @@ if __name__ == '__main__':
         #                                         (q['ymomentum'] ** 2)),
         #                                          0, 10))
         o.colour_height_quantity('stage',
-                                  (lambda q: q['xmomentum']/
-                                             (q['stage'] - q['elevation']),
+                                  (lambda q: old_div(q['xmomentum'],
+                                             (q['stage'] - q['elevation'])),
                                               0, 5))
 
 

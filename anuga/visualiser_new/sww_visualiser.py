@@ -1,3 +1,4 @@
+from builtins import range
 from Numeric import array, Float
 from anuga.file.netcdf import NetCDFFile
 from visualiser import Visualiser
@@ -58,7 +59,7 @@ class SWWVisualiser(Visualiser):
     def getQuantityDict(self):
         quantities = {}
         fin = NetCDFFile(self.vis_source, 'r')
-        names = [ k for k in fin.variables.keys()
+        names = [ k for k in list(fin.variables.keys())
                   if k != 'x'
                   and k != 'y'
                   and k != 'z'
