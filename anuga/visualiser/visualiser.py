@@ -1,6 +1,9 @@
+from future import standard_library
+standard_library.install_aliases()
+from builtins import map
 from threading import Thread
-from Queue import Queue
-from Tkinter import Tk, Button, Frame, N, E, S, W
+from queue import Queue
+from tkinter import Tk, Button, Frame, N, E, S, W
 from types import FunctionType, TupleType
 from vtk import vtkActor, vtkCubeAxesActor2D, vtkDelaunay2D, vtkFloatArray, vtkPoints, vtkPolyData, vtkPolyDataMapper, vtkRenderer
 from vtk.tk.vtkTkRenderWidget import vtkTkRenderWidget
@@ -192,7 +195,7 @@ class Visualiser(Thread):
                     # range.
                     scalars = vtkFloatArray()
 
-                    map(scalars.InsertNextValue, colour[0](self.build_quantity_dict()))
+                    list(map(scalars.InsertNextValue, colour[0](self.build_quantity_dict())))
                     self.vtk_polyData[quantityName].GetPointData().SetScalars(scalars)
                     mapper.SetScalarRange(colour[1:])
                     mapper.Update()

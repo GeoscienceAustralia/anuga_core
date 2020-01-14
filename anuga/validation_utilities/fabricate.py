@@ -22,8 +22,15 @@ To get help on fabricate functions:
 
 from __future__ import with_statement
 from __future__ import print_function
+from __future__ import division
 
 # fabricate version number
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from past.builtins import basestring
+from past.utils import old_div
+from builtins import object
 __version__ = '1.24'
 
 # if version of .deps file has changed, we know to not use it
@@ -93,13 +100,13 @@ except ImportError:
     try:
         import simplejson as json
     except ImportError:
-        import cPickle
+        import pickle
         # needed to ignore the indent= argument for pickle's dump()
-        class PickleJson:
+        class PickleJson(object):
             def load(self, f):
-                return cPickle.load(f)
+                return pickle.load(f)
             def dump(self, obj, f, indent=None, sort_keys=None):
-                return cPickle.dump(obj, f)
+                return pickle.dump(obj, f)
         json = PickleJson()
 
 def printerr(message):
@@ -272,7 +279,7 @@ class AtimesRunner(Runner):
            initial.st_mtime-adjusted.st_mtime > FAT_mtime_resolution+NTFS_atime_resolution or \
            initial.st_atime==adjusted.st_atime or \
            initial.st_mtime==adjusted.st_mtime or \
-           not after.st_atime-FAT_atime_resolution/2 > adjusted.st_atime:
+           not after.st_atime-old_div(FAT_atime_resolution,2) > adjusted.st_atime:
             return 0
 
         os.utime(filename, (
@@ -379,7 +386,7 @@ class AtimesRunner(Runner):
             and return a new dict of filetimes with the ages adjusted. """
         adjusted = {}
         now = time.time()
-        for filename, entry in filetimes.iteritems():
+        for filename, entry in filetimes.items():
             if now-entry[0] < FAT_atime_resolution or now-entry[1] < FAT_mtime_resolution:
                 entry = entry[0] - FAT_atime_resolution, entry[1] - FAT_mtime_resolution
                 self._utime(filename, entry[0], entry[1])
@@ -418,10 +425,10 @@ class AtimesRunner(Runner):
                 #       So we make sure they're > by at least 1/2 the
                 #       resolution.  This will work for anything with a
                 #       resolution better than FAT.
-                if afters[name][1]-mtime_resolution/2 > befores[name][1]:
+                if afters[name][1]-old_div(mtime_resolution,2) > befores[name][1]:
                     if not self.ignore(name):
                         outputs.append(name)
-                elif afters[name][0]-atime_resolution/2 > befores[name][0]:
+                elif afters[name][0]-old_div(atime_resolution,2) > befores[name][0]:
                     # otherwise add to deps if atime changed
                     if not self.ignore(name):
                         deps.append(name)
@@ -617,7 +624,7 @@ class StraceRunner(Runner):
         # collect outputs and dependencies from all processes
         deps = set()
         outputs = set()
-        for pid, process in processes.items():
+        for pid, process in list(processes.items()):
             deps = deps.union(process.deps)
             outputs = outputs.union(process.outputs)
 
@@ -770,7 +777,7 @@ class _Groups(object):
             
     def ids(self):
         with self.lock:
-            return self.groups.keys()
+            return list(self.groups.keys())
 
 # pool of processes to run parallel jobs, must not be part of any object that
 # is pickled for transfer to these processes, ie it must be global
@@ -1060,7 +1067,7 @@ class Builder(object):
         """ Return True if given command line is out of date. """
         if command in self.deps:
             # command has been run before, see if deps have changed
-            for dep, oldhash in self.deps[command].items():
+            for dep, oldhash in list(self.deps[command].items()):
                 assert oldhash.startswith('input-') or \
                        oldhash.startswith('output-'), \
                     "%s file corrupt, do a clean!" % self.depsname
@@ -1100,8 +1107,8 @@ class Builder(object):
             file. """
         # first build a list of all the outputs from the .deps file
         outputs = []
-        for command, deps in self.deps.items():
-            outputs.extend(dep for dep, hashed in deps.items()
+        for command, deps in list(self.deps.items()):
+            outputs.extend(dep for dep, hashed in list(deps.items())
                            if hashed.startswith('output-'))
         outputs.append(self.depsname)
         self._deps = None
