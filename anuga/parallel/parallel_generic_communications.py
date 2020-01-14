@@ -7,6 +7,7 @@ Geoscience Australia, 2004-2010
 
 """
 
+from builtins import range
 import numpy as num
 
 import anuga.utilities.parallel_abstraction as pypar

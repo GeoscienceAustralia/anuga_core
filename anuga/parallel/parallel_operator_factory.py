@@ -5,6 +5,8 @@ from __future__ import absolute_import
 
 
 
+from builtins import str
+from builtins import range
 import os.path
 import sys
 
@@ -72,7 +74,7 @@ def Inlet_operator(domain,
 
     from anuga.utilities import parallel_abstraction as pypar
     if procs is None:
-        procs = range(0,pypar.size())
+        procs = list(range(0,pypar.size()))
 
     myid = pypar.rank()
 
@@ -172,7 +174,7 @@ def Boyd_box_operator(domain,
 
     from anuga.utilities import parallel_abstraction as pypar
     if procs is None:
-        procs = range(0,pypar.size())
+        procs = list(range(0,pypar.size()))
 
     myid = pypar.rank()
 
@@ -343,7 +345,7 @@ def Boyd_pipe_operator(domain,
 
     from anuga.utilities import parallel_abstraction as pypar
     if procs is None:
-        procs = range(0,pypar.size())
+        procs = list(range(0,pypar.size()))
 
     myid = pypar.rank()
 
@@ -518,7 +520,7 @@ def Weir_orifice_trapezoid_operator(domain,
 
     from anuga.utilities import parallel_abstraction as pypar
     if procs is None:
-        procs = range(0,pypar.size())
+        procs = list(range(0,pypar.size()))
 
     myid = pypar.rank()
 
@@ -694,7 +696,7 @@ def Internal_boundary_operator(domain,
 
     from anuga.utilities import parallel_abstraction as pypar
     if procs is None:
-        procs = range(0,pypar.size())
+        procs = list(range(0,pypar.size()))
 
     myid = pypar.rank()
 
@@ -877,7 +879,7 @@ def allocate_inlet_procs(domain, poly, enquiry_point = None, master_proc = 0, pr
 
     from anuga.utilities import parallel_abstraction as pypar
     if procs is None:
-        procs = range(0, pypar.size())
+        procs = list(range(0, pypar.size()))
 
     myid = pypar.rank()
     vertex_coordinates = domain.get_full_vertex_coordinates(absolute=True)

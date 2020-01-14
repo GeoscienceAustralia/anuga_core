@@ -4,6 +4,10 @@
 """
 from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
+from builtins import object
 import numpy as num
 
 from anuga import Domain
@@ -235,7 +239,7 @@ def sequential_distribute_dump(domain, numprocs=1, verbose=False, partition_dir=
             if exception.errno != errno.EEXIST:
                 raise
 
-    import cPickle
+    import pickle
     for p in range(0, numprocs):
 
         tostore = partition.extract_submesh(p)
@@ -257,7 +261,7 @@ def sequential_distribute_dump(domain, numprocs=1, verbose=False, partition_dir=
 		num.save(pickle_name+".np4."+k,num.array(tostore[4][k]))
 		lst[4][k] = pickle_name+".np4."+k+".npy"
 
-	cPickle.dump( tuple(lst), f, protocol=cPickle.HIGHEST_PROTOCOL)
+	pickle.dump( tuple(lst), f, protocol=pickle.HIGHEST_PROTOCOL)
     return
 
 
@@ -280,14 +284,14 @@ def sequential_distribute_load_pickle_file(pickle_name, np=1, verbose = False):
     """
 
     f = file(pickle_name, 'rb')
-    import cPickle
+    import pickle
 
     kwargs, points, vertices, boundary, quantities, boundary_map, \
                    domain_name, domain_dir, domain_store, domain_store_centroids, \
                    domain_minimum_storable_height, domain_minimum_allowed_height, \
                    domain_flow_algorithm, domain_georef, \
                    domain_quantities_to_be_stored, domain_smooth, \
-                   domain_low_froude = cPickle.load(f)
+                   domain_low_froude = pickle.load(f)
     f.close()
 
     for k in quantities:

@@ -1,8 +1,10 @@
 from __future__ import division, print_function
 
+from future import standard_library
+standard_library.install_aliases()
 import os
 import sys
-import commands
+import subprocess
 import shlex
 import string
 
@@ -16,14 +18,14 @@ def getoutput_mpicc():
     """Returns the output of the command used to compile using
     mpicc."""
     # LAM/OPENMPI/MPICH2
-    output = commands.getoutput('mpicc -show') + ' -fPIC'
+    output = subprocess.getoutput('mpicc -show') + ' -fPIC'
 
     if output:
         return output
 
     # MPICH
     # works with MPICH version 1.2.1 (on Debian)
-    output = commands.getoutput('mpicc -compile_info -link_info')
+    output = subprocess.getoutput('mpicc -compile_info -link_info')
     if output:
         return output
 

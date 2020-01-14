@@ -14,6 +14,8 @@ Modified by Linda Stals, March 2006, to include ghost boundaries
 from __future__ import absolute_import
 
 
+from builtins import range
+from builtins import object
 import sys
 import numpy as num
 
@@ -62,7 +64,7 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
     #Calculate number of points
     Np = (m+1)*(n+1)
 
-    class VIndex:
+    class VIndex(object):
 
         def __init__(self, n,m):
             self.n = n
@@ -71,7 +73,7 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
         def __call__(self, i,j):
             return j+i*(self.n+1)
 
-    class EIndex:
+    class EIndex(object):
 
         def __init__(self, n,m):
             self.n = n
@@ -227,7 +229,7 @@ def rectangular_periodic(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     #Calculate number of points
     Np = (m+1)*(n+1)
 
-    class VIndex:
+    class VIndex(object):
 
         def __init__(self, n,m):
             self.n = n
@@ -236,7 +238,7 @@ def rectangular_periodic(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
         def __call__(self, i,j):
             return j+i*(self.n+1)
 
-    class EIndex:
+    class EIndex(object):
 
         def __init__(self, n,m):
             self.n = n
@@ -364,7 +366,7 @@ def rectangular_periodic_lr(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     #Calculate number of points
     Np = (m+1)*(n+1)
 
-    class VIndex:
+    class VIndex(object):
 
         def __init__(self, n,m):
             self.n = n
@@ -373,7 +375,7 @@ def rectangular_periodic_lr(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
         def __call__(self, i,j):
             return j+i*(self.n+1)
 
-    class EIndex:
+    class EIndex(object):
 
         def __init__(self, n,m):
             self.n = n
