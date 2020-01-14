@@ -6,6 +6,8 @@
 #FIXME: Ensure that all attributes of a georef are treated everywhere
 #and unit test
 
+from builtins import str
+from builtins import object
 import sys
 import copy
 
@@ -28,7 +30,7 @@ DEFAULT_FALSE_EASTING = 500000
 DEFAULT_FALSE_NORTHING = 10000000    # Default for southern hemisphere
 
 
-class Geo_reference:
+class Geo_reference(object):
     """
     Attributes of the Geo_reference class:
         .zone           The UTM zone (default is -1)

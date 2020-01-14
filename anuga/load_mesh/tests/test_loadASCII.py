@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from builtins import zip
+from builtins import str
 import tempfile
 import unittest
 import os
@@ -461,7 +463,7 @@ showme1.0 0.0 10.0 \n\
 
         assert num.allclose(num.array(dict['segments']),
                             num.array(loaded_dict['segments']))
-        for ob, ldob in map(None, dict['triangle_tags'],
+        for ob, ldob in zip(dict['triangle_tags'],
                             loaded_dict['triangle_tags']):
             msg = ('ob=\n%s\nshould be same as ldob=\n%s' % (str(ob), str(ldob)))
             self.assertTrue(ob == ldob,
@@ -478,7 +480,7 @@ showme1.0 0.0 10.0 \n\
         assert num.allclose(num.array(dict['triangle_neighbors']),
                             num.array(loaded_dict['triangle_neighbors']))
 
-        for seg, ldseg in map(None, dict['segment_tags'],
+        for seg, ldseg in zip(dict['segment_tags'],
                               loaded_dict['segment_tags']):
             msg = ('seg=\n"%s"\nshould be same as ldseg=\n"%s"'
                    % (str(seg), str(ldseg)))

@@ -1,7 +1,10 @@
 from __future__ import print_function
+from __future__ import division
 # To change this template, choose Tools | Templates
 # and open the template in the editor.
 
+from builtins import str
+from past.utils import old_div
 import anuga.geometry.polygon
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 from anuga.config import velocity_protection, g
@@ -152,7 +155,7 @@ class Parallel_Inlet(Inlet):
     def get_average_stage(self):
         # LOCAL
 
-        return num.sum(self.get_stages()*self.get_areas())/self.area
+        return old_div(num.sum(self.get_stages()*self.get_areas()),self.area)
 
     def get_global_average_stage(self):
         # GLOBAL: Master processor gathers stages from all child processors, and returns average
@@ -179,7 +182,7 @@ class Parallel_Inlet(Inlet):
 
 
         if global_area > 0.0:
-            return global_stage/global_area
+            return old_div(global_stage,global_area)
         else:
             return 0.0
 
@@ -191,7 +194,7 @@ class Parallel_Inlet(Inlet):
         # LOCAL
 
         if self.area > 0:
-            return num.sum(self.get_elevations()*self.get_areas())/self.area
+            return old_div(num.sum(self.get_elevations()*self.get_areas()),self.area)
         else:
             return 0.0
 
@@ -220,7 +223,7 @@ class Parallel_Inlet(Inlet):
 
 
         if global_area > 0.0:
-            return global_elevation/global_area
+            return old_div(global_elevation,global_area)
         else:
             return 0.0
 
@@ -233,7 +236,7 @@ class Parallel_Inlet(Inlet):
         # LOCAL
 
         if self.area > 0:
-            return num.sum(self.get_xmoms()*self.get_areas())/self.area
+            return old_div(num.sum(self.get_xmoms()*self.get_areas()),self.area)
         else:
             return 0.0
 
@@ -258,7 +261,7 @@ class Parallel_Inlet(Inlet):
 
 
         if global_area > 0.0:
-            return global_xmoms/global_area
+            return old_div(global_xmoms,global_area)
         else:
             return 0.0
 
@@ -270,7 +273,7 @@ class Parallel_Inlet(Inlet):
 
     def get_average_ymom(self):
         # LOCAL
-        return num.sum(self.get_ymoms()*self.get_areas())/self.area
+        return old_div(num.sum(self.get_ymoms()*self.get_areas()),self.area)
 
     def get_global_average_ymom(self):
         # GLOBAL: master proc gathers all ymom values and returns average
@@ -293,7 +296,7 @@ class Parallel_Inlet(Inlet):
 
 
         if global_area > 0.0:
-            return global_ymoms/global_area
+            return old_div(global_ymoms,global_area)
         else:
             return 0.0
 
@@ -331,7 +334,7 @@ class Parallel_Inlet(Inlet):
         # LOCAL
 
         if self.area > 0.0:
-            return self.get_total_water_volume()/self.area
+            return old_div(self.get_total_water_volume(),self.area)
         else:
             return 0.0
 
@@ -345,7 +348,7 @@ class Parallel_Inlet(Inlet):
 
 
         if area > 0.0:
-            return total_water_volume / area
+            return old_div(total_water_volume, area)
         else:
             return 0.0
 
@@ -353,8 +356,8 @@ class Parallel_Inlet(Inlet):
     def get_velocities(self):
         #LOCAL
         depths = self.get_depths()
-        u = depths*self.get_xmoms()/(depths**2 + velocity_protection)
-        v = depths*self.get_ymoms()/(depths**2 + velocity_protection)
+        u = old_div(depths*self.get_xmoms(),(depths**2 + velocity_protection))
+        v = old_div(depths*self.get_ymoms(),(depths**2 + velocity_protection))
 
         return u, v
 
@@ -362,27 +365,27 @@ class Parallel_Inlet(Inlet):
     def get_xvelocities(self):
         #LOCAL
         depths = self.get_depths()
-        return depth*self.get_xmoms()/(depths**2 + velocity_protection)
+        return old_div(depth*self.get_xmoms(),(depths**2 + velocity_protection))
 
     def get_yvelocities(self):
         #LOCAL
         depths = self.get_depths()
-        return depths*self.get_ymoms()/(depths**2 + velocity_protection)
+        return old_div(depths*self.get_ymoms(),(depths**2 + velocity_protection))
 
 
     def get_average_speed(self):
         #LOCAL
         u, v = self.get_velocities()
 
-        average_u = num.sum(u*self.get_areas())/self.area
-        average_v = num.sum(v*self.get_areas())/self.area
+        average_u = old_div(num.sum(u*self.get_areas()),self.area)
+        average_v = old_div(num.sum(v*self.get_areas()),self.area)
 
         return math.sqrt(average_u**2 + average_v**2)
 
 
     def get_average_velocity_head(self):
         #LOCAL
-        return 0.5*self.get_average_speed()**2/g
+        return old_div(0.5*self.get_average_speed()**2,g)
 
 
     def get_average_total_energy(self):
@@ -514,7 +517,7 @@ class Parallel_Inlet(Inlet):
                 prev_stage = current_stage
 
             # Calculate new stage
-            new_stage = prev_stage + (volume - summed_volume) / summed_areas
+            new_stage = prev_stage + old_div((volume - summed_volume), summed_areas)
 
             # Send postion and new stage to all processors
             for i in self.procs:
@@ -538,7 +541,7 @@ class Parallel_Inlet(Inlet):
         """ Distribute volume over all exchange
         cells with equal depth of water
         """
-        new_depth = self.get_average_depth() + (volume/self.get_area())
+        new_depth = self.get_average_depth() + (old_div(volume,self.get_area()))
         self.set_depths(new_depth)
 
     def get_master_proc(self):

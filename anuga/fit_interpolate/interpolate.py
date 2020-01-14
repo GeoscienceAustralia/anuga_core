@@ -23,7 +23,12 @@ interpolate
 interpolate_block
 
 """
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import time
 import os
 import sys
@@ -450,7 +455,7 @@ class Interpolate (FitInterpolate):
 
         for d, i in enumerate(inside_boundary_indices):
             # For each data_coordinate point
-            if verbose and d%((n+10)/10)==0: log.critical('Doing %d of %d'
+            if verbose and d%(old_div((n+10),10))==0: log.critical('Doing %d of %d'
                                                           %(d, n))
 
             x = point_coordinates[i]
@@ -610,7 +615,7 @@ def interpolate_sww2csv(sww_file,
                 velocity_x = NAN
             else:
                 if depth > 1.e-30: # use epsilon
-                    velocity_x = momentum_x / depth  #Absolute velocity
+                    velocity_x = old_div(momentum_x, depth)  #Absolute velocity
                 else:
                     velocity_x = 0
 
@@ -618,7 +623,7 @@ def interpolate_sww2csv(sww_file,
                 velocity_y = NAN
             else:
                 if depth > 1.e-30: # use epsilon
-                    velocity_y = momentum_y / depth  #Absolute velocity
+                    velocity_y = old_div(momentum_y, depth)  #Absolute velocity
                 else:
                     velocity_y = 0
 
@@ -626,8 +631,8 @@ def interpolate_sww2csv(sww_file,
                 froude = NAN
             else:
 
-                froude = sqrt(velocity_x*velocity_x + velocity_y*velocity_y)/ \
-                         sqrt(depth * g) # gravity m/s/s
+                froude = old_div(sqrt(velocity_x*velocity_x + velocity_y*velocity_y), \
+                         sqrt(depth * g)) # gravity m/s/s
 
             depths.append(depth)
             velocity_xs.append(velocity_x)
@@ -648,7 +653,7 @@ def interpolate_sww2csv(sww_file,
             froude_writer.writerow(froudes)
 
 
-class Interpolation_function:
+class Interpolation_function(object):
     """Interpolation_interface - creates callable object f(t, id) or f(t,x,y)
     which is interpolated from time series defined at vertices of
     triangular mesh (such as those stored in sww files)
@@ -733,7 +738,7 @@ class Interpolation_function:
 
         # Use keys if no names are specified
         if quantity_names is None:
-            quantity_names = quantities.keys()
+            quantity_names = list(quantities.keys())
 
         # Check spatial info
         if vertex_coordinates is None:
@@ -1000,8 +1005,8 @@ class Interpolation_function:
             ratio = 0
         else:
             # t is now between index and index+1
-            ratio = ((t - self.time[self.index]) /
-                         (self.time[self.index+1] - self.time[self.index]))
+            ratio = (old_div((t - self.time[self.index]),
+                         (self.time[self.index+1] - self.time[self.index])))
 
         # Compute interpolated values
         q = num.zeros(len(self.quantity_names), num.float)

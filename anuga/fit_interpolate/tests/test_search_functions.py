@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 
+from builtins import range
 import unittest
 from anuga.pmesh.mesh_quadtree import MeshQuadtree
 
@@ -212,7 +213,7 @@ class Test_search_functions(unittest.TestCase):
         root = Cell(-3, 9, -3, 9,
                     max_points_per_cell = 4)
         #Insert indices of all vertices
-        root.insert( range(mesh.number_of_nodes) )
+        root.insert( list(range(mesh.number_of_nodes)) )
 
         #Build quad tree and return
         root.split()

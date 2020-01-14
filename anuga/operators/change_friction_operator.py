@@ -5,6 +5,8 @@ Erosion operators
 """
 from __future__ import print_function
 
+from builtins import str
+from builtins import range
 __author__="steve"
 __date__ ="$09/03/2012 4:46:39 PM$"
 

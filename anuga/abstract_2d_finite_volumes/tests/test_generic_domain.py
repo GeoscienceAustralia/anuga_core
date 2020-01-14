@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import unittest
 from math import sqrt
 
@@ -256,7 +259,7 @@ class Test_Domain(unittest.TestCase):
         assert len(domain.quantities_to_be_monitored) == 2
         assert 'stage' in domain.quantities_to_be_monitored
         assert 'stage-elevation' in domain.quantities_to_be_monitored
-        for key in domain.quantities_to_be_monitored['stage'].keys():
+        for key in list(domain.quantities_to_be_monitored['stage'].keys()):
             assert domain.quantities_to_be_monitored['stage'][key] is None
 
 
@@ -613,8 +616,8 @@ class Test_Domain(unittest.TestCase):
         def  conserved_values_to_evolved_values(q_cons, q_evol):
 
             q_evol[0:3] = q_cons
-            q_evol[3] = q_cons[1]/q_cons[0]
-            q_evol[4] = q_cons[2]/q_cons[0]
+            q_evol[3] = old_div(q_cons[1],q_cons[0])
+            q_evol[4] = old_div(q_cons[2],q_cons[0])
 
             return q_evol
 
@@ -632,31 +635,31 @@ class Test_Domain(unittest.TestCase):
         assert domain.quantities['stage'    ].boundary_values[2] == q_cons[0]
         assert domain.quantities['xmomentum'].boundary_values[2] == q_cons[1]
         assert domain.quantities['ymomentum'].boundary_values[2] == q_cons[2]
-        assert domain.quantities['xvelocity'].boundary_values[2] == q_cons[1]/q_cons[0]
-        assert domain.quantities['yvelocity'].boundary_values[2] == q_cons[2]/q_cons[0]
+        assert domain.quantities['xvelocity'].boundary_values[2] == old_div(q_cons[1],q_cons[0])
+        assert domain.quantities['yvelocity'].boundary_values[2] == old_div(q_cons[2],q_cons[0])
 
         q_cons = domain.get_conserved_quantities(2, edge=1) #Transmissive
         assert domain.quantities['stage'    ].boundary_values[3] == q_cons[0]
         assert domain.quantities['xmomentum'].boundary_values[3] == q_cons[1]
         assert domain.quantities['ymomentum'].boundary_values[3] == q_cons[2]
-        assert domain.quantities['xvelocity'].boundary_values[3] == q_cons[1]/q_cons[0]
-        assert domain.quantities['yvelocity'].boundary_values[3] == q_cons[2]/q_cons[0]        
+        assert domain.quantities['xvelocity'].boundary_values[3] == old_div(q_cons[1],q_cons[0])
+        assert domain.quantities['yvelocity'].boundary_values[3] == old_div(q_cons[2],q_cons[0])        
 
 
         q_cons = domain.get_conserved_quantities(3, edge=1) #Transmissive
         assert domain.quantities['stage'    ].boundary_values[4] == q_cons[0]
         assert domain.quantities['xmomentum'].boundary_values[4] == q_cons[1]
         assert domain.quantities['ymomentum'].boundary_values[4] == q_cons[2]
-        assert domain.quantities['xvelocity'].boundary_values[4] == q_cons[1]/q_cons[0]
-        assert domain.quantities['yvelocity'].boundary_values[4] == q_cons[2]/q_cons[0]               
+        assert domain.quantities['xvelocity'].boundary_values[4] == old_div(q_cons[1],q_cons[0])
+        assert domain.quantities['yvelocity'].boundary_values[4] == old_div(q_cons[2],q_cons[0])               
 
 
         q_cons = domain.get_conserved_quantities(3, edge=2) #Transmissive
         assert domain.quantities['stage'    ].boundary_values[5] == q_cons[0]
         assert domain.quantities['xmomentum'].boundary_values[5] == q_cons[1]
         assert domain.quantities['ymomentum'].boundary_values[5] == q_cons[2]
-        assert domain.quantities['xvelocity'].boundary_values[5] == q_cons[1]/q_cons[0]
-        assert domain.quantities['yvelocity'].boundary_values[5] == q_cons[2]/q_cons[0]
+        assert domain.quantities['xvelocity'].boundary_values[5] == old_div(q_cons[1],q_cons[0])
+        assert domain.quantities['yvelocity'].boundary_values[5] == old_div(q_cons[2],q_cons[0])
  
 
     def test_distribute_first_order(self):
@@ -756,7 +759,7 @@ class Test_Domain(unittest.TestCase):
         domain.timestep = 0.1
         domain.update_conserved_quantities()
 
-        sem = num.array([1.,1.,1.,1.])/num.array([1, 2, 3, 4])
+        sem = old_div(num.array([1.,1.,1.,1.]),num.array([1, 2, 3, 4]))
         denom = num.ones(4, num.float) - domain.timestep*sem
 
 #        x = array([1, 2, 3, 4]) + array( [.4,.3,.2,.1] )

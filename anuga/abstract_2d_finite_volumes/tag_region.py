@@ -7,10 +7,11 @@ operate.
 """
 # FIXME (DSG-DSG) add better comments
 
+from builtins import object
 import numpy as num
 
 
-class Tag_region:
+class Tag_region(object):
     """Base class for modifying quantities based on a region.
     """   
 

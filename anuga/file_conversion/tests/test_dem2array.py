@@ -1,3 +1,4 @@
+from builtins import range
 import sys
 import unittest
 import numpy as num

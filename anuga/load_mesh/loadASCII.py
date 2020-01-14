@@ -57,6 +57,8 @@ The format for a Points dictionary is:
 #  Needs to be defined
 
 
+from builtins import str
+from builtins import range
 from future.utils import raise_
 from string import  find, rfind
 from os.path import splitext
@@ -145,7 +147,7 @@ def _read_tsh_file(ofile):
     fd = open(ofile, 'r')
     dict = _read_triangulation(fd)
     dict_mesh = _read_outline(fd)
-    for element in dict_mesh.keys():
+    for element in list(dict_mesh.keys()):
         dict[element] = dict_mesh[element]
     fd.close()
 
@@ -1005,7 +1007,7 @@ def point_atts2array(point_atts):
     # convert attribute list to array of floats
     point_atts['pointlist'] = num.array(point_atts['pointlist'], num.float)
 
-    for key in point_atts['attributelist'].keys():
+    for key in list(point_atts['attributelist'].keys()):
         point_atts['attributelist'][key] = \
             num.array(point_atts['attributelist'][key], num.float)
 
@@ -1016,7 +1018,7 @@ def half_pts(point_atts):
     point_atts2array(point_atts)
     point_atts['pointlist'] = point_atts['pointlist'][::2]
 
-    for key in point_atts['attributelist'].keys():
+    for key in list(point_atts['attributelist'].keys()):
         point_atts['attributelist'][key] = point_atts['attributelist'][key][::2]
 
     return point_atts
@@ -1028,14 +1030,14 @@ def concatinate_attributelist(dic):
     """
 
     point_attributes = num.array([], num.float)
-    keys = dic.keys()
+    keys = list(dic.keys())
     key = keys.pop(0)
     point_attributes = num.reshape(dic[key], (dic[key].shape[0], 1))
     for key in keys:
         reshaped = num.reshape(dic[key], (dic[key].shape[0], 1))
         point_attributes = num.concatenate([point_attributes, reshaped], axis=1)
 
-    return dic.keys(), point_attributes
+    return list(dic.keys()), point_attributes
 
 
 def take_points(dict, indices_to_keep):
@@ -1043,7 +1045,7 @@ def take_points(dict, indices_to_keep):
     # FIXME maybe the points data structure should become a class?
     dict['pointlist'] = num.take(dict['pointlist'], indices_to_keep, axis=0)
 
-    for key in dict['attributelist'].keys():
+    for key in list(dict['attributelist'].keys()):
         dict['attributelist'][key] = num.take(dict['attributelist'][key],
                                               indices_to_keep, axis=0)
 
@@ -1061,7 +1063,7 @@ def add_point_dictionaries(dict1, dict2):
                                              dict1['pointlist']), axis=0)
 
     atts = {}
-    for key in dict2['attributelist'].keys():
+    for key in list(dict2['attributelist'].keys()):
         atts[key]= num.concatenate((dict2['attributelist'][key],
                                     dict1['attributelist'][key]), axis=0)
     combined['attributelist'] = atts

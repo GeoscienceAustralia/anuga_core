@@ -1,8 +1,11 @@
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
 # To change this template, choose Tools | Templates
 # and open the template in the editor.
 
+from builtins import str
+from past.utils import old_div
 import anuga
 import numpy
 import math
@@ -134,7 +137,7 @@ class Parallel_Inlet_operator(Inlet_operator):
 
         #print self.myid, volume, current_volume, total_area, timestep
 
-        self.applied_Q = volume/timestep
+        self.applied_Q = old_div(volume,timestep)
         
         # Distribute positive volume so as to obtain flat surface otherwise
         # just pull water off to have a uniform depth.
@@ -148,12 +151,12 @@ class Parallel_Inlet_operator(Inlet_operator):
                 self.inlet.set_ymoms(self.inlet.get_ymoms()+depths*self.velocity[1])
 
         elif current_volume + volume >= 0.0 :
-            depth = (current_volume + volume)/total_area
+            depth = old_div((current_volume + volume),total_area)
             self.inlet.set_depths(depth)
             self.domain.fractional_step_volume_integral+=volume
         else: #extracting too much water!
             self.inlet.set_depths(0.0)
-            self.applied_Q = current_volume/timestep
+            self.applied_Q = old_div(current_volume,timestep)
             self.domain.fractional_step_volume_integral-=current_volume
 
 

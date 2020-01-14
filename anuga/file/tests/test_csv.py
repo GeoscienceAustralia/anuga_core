@@ -1,3 +1,4 @@
+from builtins import str
 import os
 import unittest
 import tempfile
@@ -78,7 +79,7 @@ class Test_csv(unittest.TestCase):
         fid.close()
         
         
-        keys = kwargs.keys()
+        keys = list(kwargs.keys())
         keys.sort()
         line=''
         header=''
@@ -126,7 +127,7 @@ class Test_csv(unittest.TestCase):
         kwargs['how']=55
         kwargs['completed']=345
 
-        keys = kwargs.keys()
+        keys = list(kwargs.keys())
         keys.sort()
         line=''
         header=''
@@ -192,7 +193,7 @@ class Test_csv(unittest.TestCase):
         
         store_parameters(verbose=False,**kwargs)
         
-        keys = kwargs.keys()
+        keys = list(kwargs.keys())
         keys.sort()
         line=''
         header=''
@@ -291,8 +292,8 @@ class Test_csv(unittest.TestCase):
         
                 
         for id in ['1', '2', '3', '4', '5' ,'8' ,'9']:
-            assert id in polygons.keys()
-            assert id in values.keys()            
+            assert id in list(polygons.keys())
+            assert id in list(values.keys())            
 
             assert int(values[id]) == int(floors[id])
             assert len(polygons[id]) == len(known_polys[id])
@@ -369,8 +370,8 @@ class Test_csv(unittest.TestCase):
         
                 
         for id in ['1', '2', '3', '4', '5' ,'8' ,'9']:
-            assert id in polygons.keys()
-            assert id in values.keys()            
+            assert id in list(polygons.keys())
+            assert id in list(values.keys())            
 
             assert int(values[id]) == int(floors[id])
             assert len(polygons[id]) == len(known_polys[id])
@@ -398,8 +399,8 @@ class Test_csv(unittest.TestCase):
         
                 
         for id in ['1', '2', '3', '4', '5' ,'8' ,'9']:
-            assert id in polygons.keys()
-            assert id in values.keys()            
+            assert id in list(polygons.keys())
+            assert id in list(values.keys())            
 
             assert float(values[id]) == float(floors[id])
 

@@ -1,3 +1,5 @@
+from builtins import str
+from builtins import object
 from future.utils import raise_
 import numpy as num
 import anuga.utilities.log as log
@@ -12,7 +14,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      ensure_geo_reference
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
-class Write_sts:
+class Write_sts(object):
     """ A class to write STS files.
     """
     sts_quantities = ['stage', 'xmomentum', 'ymomentum']

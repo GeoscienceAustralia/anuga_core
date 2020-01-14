@@ -3,6 +3,7 @@
 '''Routine to add a header to a CSV file.
 '''
 
+from builtins import str
 from future.utils import raise_
 import os
 import tempfile

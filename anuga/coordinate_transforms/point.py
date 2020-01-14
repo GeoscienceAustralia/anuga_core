@@ -3,8 +3,12 @@
    See documentation of class Point for details.
    Ole Nielsen, ANU 2002
 """
+from __future__ import division
 
 
+from builtins import str
+from builtins import object
+from past.utils import old_div
 from math import cos, sin, pi
 
 def acos(c):
@@ -24,7 +28,7 @@ def acos(c):
 
 
 
-class Point:
+class Point(object):
     """Definition of a generic point on the sphere.
   
     Defines a point in terms of latitude and longitude
@@ -65,7 +69,7 @@ class Point:
     def BearingTo(self,P):
         """ Bearing (in degrees) to point P"""
         AZ = self.AZ(P)
-        return int(round(AZ/self.degrees2radians))
+        return int(round(old_div(AZ,self.degrees2radians)))
 
     
     def DistanceTo(self,P):
@@ -106,7 +110,7 @@ class Point:
         # Compute cosine(AZ), where AZ is the azimuth angle
         GCA = self.GCA(P)
         c = P.sinlat - self.sinlat*cos(GCA)
-        c = c/self.coslat/sin(GCA)
+        c = old_div(old_div(c,self.coslat),sin(GCA))
 
         AZ = acos(c)
 

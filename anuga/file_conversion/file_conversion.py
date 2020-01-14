@@ -7,6 +7,7 @@
 """
 
 #non ANUGA imports
+from builtins import range
 from future.utils import raise_
 from anuga.file.netcdf import NetCDFFile
 import numpy as num

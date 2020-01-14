@@ -3,7 +3,10 @@ Set elevation operators
 
 
 """
+from __future__ import division
 
+from builtins import range
+from past.utils import old_div
 __author__="steve"
 __date__ ="$09/03/2012 4:46:39 PM$"
 
@@ -153,7 +156,7 @@ class Set_elevation(Set_quantity):
                     vid = num.arange(self.node_index[nid], self.node_index[nid+1],dtype=num.int)
                     vidd = self.domain.vertex_value_indices[vid]
     
-                    self.elev_v[vidd/3,vidd%3] = num.sum(self.elev_v[vidd/3,vidd%3])/non
+                    self.elev_v[old_div(vidd,3),vidd%3] = old_div(num.sum(self.elev_v[old_div(vidd,3),vidd%3]),non)
     
                 #--------------------------------------
                 # clean up the centroid values and edge values
@@ -279,7 +282,7 @@ class Set_elevation(Set_quantity):
                 vertex_ids.append(vidd)
                 #print '   ',nid, vid, vidd, vidd/3, vidd%3
 
-        self.vol_ids  = num.array(vertex_ids,dtype=num.int)/3
+        self.vol_ids  = old_div(num.array(vertex_ids,dtype=num.int),3)
         self.vols = num.array(list(set(self.vol_ids)), dtype=num.int)
         self.vert_ids = num.array(vertex_ids,dtype=num.int)%3
 

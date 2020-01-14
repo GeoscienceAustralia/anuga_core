@@ -10,6 +10,7 @@ Usage:
    
 
 """
+from __future__ import division
 
 #NOTE:
 # Inlet control:  Delta_total_energy > inlet_specific_energy
@@ -18,6 +19,8 @@ Usage:
 # specific energy is (h + 0.5*v^2/g)
 
 
+from builtins import str
+from past.utils import old_div
 from math import pi, sqrt, sin, cos
 
 
@@ -124,10 +127,10 @@ def boyd_generalised_culvert_model(inlet_depth,
 
             # THE LOWEST Value will Control Calcs From here
             # Calculate Critical Depth Based on the Adopted Flow as an Estimate
-            dcrit1 = diameter/1.26*(Q/g**0.5*diameter**2.5)**(1/3.75)
-            dcrit2 = diameter/0.95*(Q/g**0.5*diameter**2.5)**(1/1.95)
+            dcrit1 = diameter/1.26*(old_div(Q,g**0.5)*diameter**2.5)**(1/3.75)
+            dcrit2 = diameter/0.95*(old_div(Q,g**0.5)*diameter**2.5)**(1/1.95)
             # From Boyd Paper ESTIMATE of Dcrit has 2 criteria as
-            if dcrit1/diameter  > 0.85:
+            if old_div(dcrit1,diameter)  > 0.85:
                 outlet_culvert_depth = dcrit2
             else:
                 outlet_culvert_depth = dcrit1
@@ -135,7 +138,7 @@ def boyd_generalised_culvert_model(inlet_depth,
             # Now determine Hydraulic Radius Parameters Area & Wetted Perimeter
             if outlet_culvert_depth >= diameter:
                 outlet_culvert_depth = diameter  # Once again the pipe is flowing full not partfull
-                flow_area = (diameter/2)**2 * pi  # Cross sectional area of flow in the culvert
+                flow_area = (old_div(diameter,2))**2 * pi  # Cross sectional area of flow in the culvert
                 perimeter = diameter * pi
                 flow_width= diameter
                 case = 'Inlet CTRL Outlet submerged Circular PIPE FULL'
@@ -144,9 +147,9 @@ def boyd_generalised_culvert_model(inlet_depth,
                                  'PIPE FULL')
             else:
                 #alpha = acos(1 - outlet_culvert_depth/diameter)    # Where did this Come From ????/
-                alpha = acos(1-2*outlet_culvert_depth/diameter)*2
+                alpha = acos(1-old_div(2*outlet_culvert_depth,diameter))*2
                 #flow_area = diameter**2 * (alpha - sin(alpha)*cos(alpha))        # Pipe is Running Partly Full at the INLET   WHRE did this Come From ?????
-                flow_area = diameter**2/8*(alpha - sin(alpha))   # Equation from  GIECK 5th Ed. Pg. B3
+                flow_area = old_div(diameter**2,8)*(alpha - sin(alpha))   # Equation from  GIECK 5th Ed. Pg. B3
                 flow_width= diameter*sin(alpha/2.0)
                 perimeter = alpha*diameter/2.0
                 case = 'INLET CTRL Culvert is open channel flow we will for now assume critical depth'
@@ -162,7 +165,7 @@ def boyd_generalised_culvert_model(inlet_depth,
                 # Determine the depth at the outlet relative to the depth of flow in the Culvert
                 if outlet_depth > diameter:       # Outlet is submerged Assume the end of the Pipe is flowing FULL
                     outlet_culvert_depth=diameter
-                    flow_area = (diameter/2)**2 * pi  # Cross sectional area of flow in the culvert
+                    flow_area = (old_div(diameter,2))**2 * pi  # Cross sectional area of flow in the culvert
                     perimeter = diameter * pi
                     flow_width= diameter
                     case = 'Outlet submerged'
@@ -170,23 +173,23 @@ def boyd_generalised_culvert_model(inlet_depth,
                         log.critical('Outlet submerged')
                 else:   # Culvert running PART FULL for PART OF ITS LENGTH   Here really should use the Culvert Slope to calculate Actual Culvert Depth & Velocity
                     # IF  outlet_depth < diameter
-                    dcrit1 = diameter/1.26*(Q/g**0.5*diameter**2.5)**(1/3.75)
-                    dcrit2 = diameter/0.95*(Q/g**0.5*diameter**2.5)**(1/1.95)
-                    if dcrit1/diameter >0.85:
+                    dcrit1 = diameter/1.26*(old_div(Q,g**0.5)*diameter**2.5)**(1/3.75)
+                    dcrit2 = diameter/0.95*(old_div(Q,g**0.5)*diameter**2.5)**(1/1.95)
+                    if old_div(dcrit1,diameter) >0.85:
                         outlet_culvert_depth= dcrit2
                     else:
                         outlet_culvert_depth = dcrit1
                     if outlet_culvert_depth > diameter:
                         outlet_culvert_depth = diameter  # Once again the pipe is flowing full not partfull
-                        flow_area = (diameter/2)**2 * pi  # Cross sectional area of flow in the culvert
+                        flow_area = (old_div(diameter,2))**2 * pi  # Cross sectional area of flow in the culvert
                         perimeter = diameter * pi
                         flow_width= diameter
                         case = 'Outlet unsubmerged PIPE FULL'
                         if local_debug =='true':
                             log.critical('Outlet unsubmerged PIPE FULL')
                     else:
-                        alpha = acos(1-2*outlet_culvert_depth/diameter)*2
-                        flow_area = diameter**2/8*(alpha - sin(alpha))   # Equation from  GIECK 5th Ed. Pg. B3
+                        alpha = acos(1-old_div(2*outlet_culvert_depth,diameter))*2
+                        flow_area = old_div(diameter**2,8)*(alpha - sin(alpha))   # Equation from  GIECK 5th Ed. Pg. B3
                         flow_width= diameter*sin(alpha/2.0)
                         perimeter = alpha*diameter/2.0
                         case = 'Outlet is open channel flow we will for now assume critical depth'
@@ -200,7 +203,7 @@ def boyd_generalised_culvert_model(inlet_depth,
                 log.critical('FLOW AREA = %s' % str(flow_area))
                 log.critical('PERIMETER = %s' % str(perimeter))
                 log.critical('Q Interim = %s' % str(Q))
-            hyd_rad = flow_area/perimeter
+            hyd_rad = old_div(flow_area,perimeter)
 
             if log_filename is not None:
                 s = 'hydraulic radius at outlet = %f' %hyd_rad
@@ -210,7 +213,7 @@ def boyd_generalised_culvert_model(inlet_depth,
             if local_debug =='true':
                 log.critical('GOT IT ALL CALCULATING Velocity')
                 log.critical('HydRad = %s' % str(hyd_rad))
-            culvert_velocity = sqrt(delta_total_energy/((sum_loss/2/g)+(manning**2*culvert_length)/hyd_rad**1.33333)) 
+            culvert_velocity = sqrt(old_div(delta_total_energy,((old_div(old_div(sum_loss,2),g))+old_div((manning**2*culvert_length),hyd_rad**1.33333)))) 
             Q_outlet_tailwater = flow_area * culvert_velocity
             if local_debug =='true':
                 log.critical('VELOCITY = %s' % str(culvert_velocity))
@@ -252,7 +255,7 @@ def boyd_generalised_culvert_model(inlet_depth,
             # FIXME(Ole): Are these functions really for inlet control?    
             if Q_inlet_unsubmerged < Q_inlet_submerged:
                 Q = Q_inlet_unsubmerged
-                dcrit = (Q**2/g/width**2)**0.333333
+                dcrit = (old_div(old_div(Q**2,g),width**2))**0.333333
                 if dcrit > height:
                     dcrit = height
                 flow_area = width*dcrit
@@ -264,7 +267,7 @@ def boyd_generalised_culvert_model(inlet_depth,
                 outlet_culvert_depth = height
                 case = 'Inlet submerged Box Acts as Orifice'                    
 
-            dcrit = (Q**2/g/width**2)**0.333333
+            dcrit = (old_div(old_div(Q**2,g),width**2))**0.333333
 
             outlet_culvert_depth = dcrit
             if outlet_culvert_depth > height:
@@ -287,7 +290,7 @@ def boyd_generalised_culvert_model(inlet_depth,
                     perimeter=2.0*(width+height)
                     case = 'Outlet submerged'
                 else:   # Here really should use the Culvert Slope to calculate Actual Culvert Depth & Velocity
-                    dcrit = (Q**2/g/width**2)**0.333333
+                    dcrit = (old_div(old_div(Q**2,g),width**2))**0.333333
                     outlet_culvert_depth=dcrit   # For purpose of calculation assume the outlet depth = Critical Depth
                     if outlet_culvert_depth > height:
                         outlet_culvert_depth=height
@@ -299,14 +302,14 @@ def boyd_generalised_culvert_model(inlet_depth,
                         perimeter=(width+2.0*outlet_culvert_depth)
                         case = 'Outlet is open channel flow'
 
-                hyd_rad = flow_area/perimeter
+                hyd_rad = old_div(flow_area,perimeter)
 
                 if log_filename is not None:                                
                     s = 'hydraulic radius at outlet = %f' % hyd_rad
                     log_to_file(log_filename, s)
 
                 # Outlet control velocity using tail water
-                culvert_velocity = sqrt(delta_total_energy/((sum_loss/2/g)+(manning**2*culvert_length)/hyd_rad**1.33333)) 
+                culvert_velocity = sqrt(old_div(delta_total_energy,((old_div(old_div(sum_loss,2),g))+old_div((manning**2*culvert_length),hyd_rad**1.33333)))) 
                 Q_outlet_tailwater = flow_area * culvert_velocity
 
                 if log_filename is not None:                            
@@ -327,7 +330,7 @@ def boyd_generalised_culvert_model(inlet_depth,
             s = 'Flow Rate Control = %f' % Q
             log_to_file(log_filename, s)
 
-        culv_froude=sqrt(Q**2*flow_width/(g*flow_area**3))
+        culv_froude=sqrt(old_div(Q**2*flow_width,(g*flow_area**3)))
         if local_debug =='true':
             log.critical('FLOW AREA = %s' % str(flow_area))
             log.critical('PERIMETER = %s' % str(perimeter))
@@ -338,7 +341,7 @@ def boyd_generalised_culvert_model(inlet_depth,
             log_to_file(log_filename, s)
 
         # Determine momentum at the outlet 
-        barrel_velocity = Q/(flow_area + velocity_protection/flow_area)
+        barrel_velocity = old_div(Q,(flow_area + old_div(velocity_protection,flow_area)))
 
     # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow  
 
