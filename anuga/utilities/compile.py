@@ -13,6 +13,7 @@ from __future__ import print_function
 
 
 
+from builtins import str
 import os, string, sys
 
 I_dirs = ''

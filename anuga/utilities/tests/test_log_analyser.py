@@ -43,7 +43,7 @@ class logTestCase(unittest.TestCase):
         #made_up = {'three':'3', 'five':'5', 'seven':'7'}
         made_up1 = {'numTriangles':'1', 'startMeshTime':'2', 'finishMeshTime':'3', \
                        'finishTime':'4', 'startMemory':'5', 'finishMemory':'6'}
-        for key, val in made_up1.iteritems():
+        for key, val in made_up1.items():
             handle.write(self.log_lines(key, val))
         handle.close()
         
@@ -55,7 +55,7 @@ class logTestCase(unittest.TestCase):
         #made_up = {'three':'3', 'five':'5', 'seven':'7'}
         made_up2 = {'another':'1', 'startMeshTime':'2', 'finishMeshTime':'3', \
                        'finishTime':'4', 'startMemory':'5', 'finishMemory':'6'}
-        for key, val in made_up2.iteritems():
+        for key, val in made_up2.items():
             handle.write(self.log_lines(key, val))
         handle.close()
 

@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+from past.builtins import basestring
 def parse_time(time = None, verbose=False, debug=False):
     """
     Time: seconds since epoch  or 

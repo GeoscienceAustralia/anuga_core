@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from builtins import zip
+from builtins import range
 import os
 import unittest
 import tempfile
@@ -42,7 +44,7 @@ class Test_CSV_utils(unittest.TestCase):
             csv_fd.writerow(columns)
 
             # write data rows
-            for j in xrange(self.NUM_LINES):
+            for j in range(self.NUM_LINES):
                 data = [j, j, '%d.%d' % (j, i)] + ['qwert']*(self.NUM_COLS-3)
                 csv_fd.writerow(data)
             fd.close()

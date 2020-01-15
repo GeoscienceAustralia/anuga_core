@@ -1,4 +1,9 @@
 from __future__ import absolute_import
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 from future.utils import raise_
 import exceptions
 class VectorShapeError(exceptions.Exception): pass
@@ -16,7 +21,7 @@ from .cg_ext import cg_solve_c_precon
 from .cg_ext import jacobi_precon_c
 
 
-class Stats:
+class Stats(object):
 
     def __init__(self):
 
@@ -179,7 +184,7 @@ def _conjugate_gradient(A, b, x0,
     #FIXME Let the iterations stop if starting with a small residual
     while (i < imax and rTr > tol ** 2 * rTr0 and rTr > atol ** 2):
         q = A * d
-        alpha = rTr / num.dot(d, q)
+        alpha = old_div(rTr, num.dot(d, q))
         xold = x
         x = x + alpha * d
 
@@ -200,7 +205,7 @@ def _conjugate_gradient(A, b, x0,
             r = r - alpha * q
         rTrOld = rTr
         rTr = num.dot(r, r)
-        bt = rTr / rTrOld
+        bt = old_div(rTr, rTrOld)
 
         d = r + bt * d
         i = i + 1
@@ -253,7 +258,7 @@ def _conjugate_gradient_preconditioned(A, b, x0, M,
     else:
         D=Sparse(A.M, A.M)
         for i in range(A.M):
-            D[i,i]=1/M[i]
+            D[i,i]=old_div(1,M[i])
         D=Sparse_CSR(D)
 
     stats = Stats()
@@ -287,7 +292,7 @@ def _conjugate_gradient_preconditioned(A, b, x0, M,
     #FIXME Let the iterations stop if starting with a small residual
     while (i < imax and rTr > tol ** 2 * rTr0 and rTr > atol ** 2):
         q = A * d
-        alpha = rTr / num.dot(d, q)
+        alpha = old_div(rTr, num.dot(d, q))
         xold = x
         x = x + alpha * d
 
@@ -309,7 +314,7 @@ def _conjugate_gradient_preconditioned(A, b, x0, M,
         rTrOld = rTr
         z = D * r
         rTr = num.dot(r, z)
-        bt = rTr / rTrOld
+        bt = old_div(rTr, rTrOld)
 
         d = z + bt * d
         i = i + 1

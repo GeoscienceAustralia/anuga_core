@@ -3,13 +3,21 @@
 
 """
 from __future__ import print_function
+from __future__ import division
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import input
+from builtins import map
+from past.builtins import basestring
+from past.utils import old_div
 from future.utils import raise_
 import sys
 import os
 import string
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 import getpass
 import tarfile
 import warnings
@@ -440,7 +448,7 @@ def string_to_char(l):
     if l == ['']:
         l = [' ']
 
-    maxlen = reduce(max, map(len, l))
+    maxlen = reduce(max, list(map(len, l)))
     ll = [x.ljust(maxlen) for x in l]
     result = []
     for s in ll:
@@ -451,7 +459,7 @@ def string_to_char(l):
 def char_to_string(ll):
     '''Convert 2-D list of chars to 1-D list of strings.'''
 
-    return map(string.rstrip, [''.join(x) for x in ll])
+    return list(map(string.rstrip, [''.join(x) for x in ll]))
 
 ################################################################################
 
@@ -496,7 +504,7 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
 
     # Simple fetch, if fails, check for proxy error
     try:
-        urllib.urlretrieve(file_url, file_name)
+        urllib.request.urlretrieve(file_url, file_name)
         return (True, auth)     # no proxy, no auth required
     except IOError as e:
         if e[1] == 407:     # proxy error
@@ -528,11 +536,11 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
         print('-'*72)
         print ('You need to supply proxy authentication information.')
         if httpproxy is None:
-            httpproxy = raw_input('                    proxy server: ')
+            httpproxy = input('                    proxy server: ')
         else:
             print('         HTTP proxy was supplied: %s' % httpproxy)
         if proxyuser is None:
-            proxyuser = raw_input('                  proxy username: ') 
+            proxyuser = input('                  proxy username: ') 
         else:
             print('HTTP proxy username was supplied: %s' % proxyuser)
         if proxypass is None:
@@ -547,15 +555,15 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
         httpproxy = httpproxy.replace('http://', '', 1)
 
     # open remote file
-    proxy = urllib2.ProxyHandler({'http': 'http://' + proxyuser
+    proxy = urllib.request.ProxyHandler({'http': 'http://' + proxyuser
                                               + ':' + proxypass
                                               + '@' + httpproxy})
-    authinfo = urllib2.HTTPBasicAuthHandler()
-    opener = urllib2.build_opener(proxy, authinfo, urllib2.HTTPHandler)
-    urllib2.install_opener(opener)
+    authinfo = urllib.request.HTTPBasicAuthHandler()
+    opener = urllib.request.build_opener(proxy, authinfo, urllib.request.HTTPHandler)
+    urllib.request.install_opener(opener)
     try:
-        webget = urllib2.urlopen(file_url)
-    except urllib2.HTTPError as e:
+        webget = urllib.request.urlopen(file_url)
+    except urllib.error.HTTPError as e:
         print('Error received from proxy:\n%s' % str(e))
         print('Possibly the user/password is wrong.')
         return (False, (httpproxy, proxyuser, proxypass))
@@ -656,7 +664,7 @@ def _VmB(VmKey):
     if len(v) < 3:
         return 0.0  # invalid format?
      # convert Vm value to MB
-    return (float(v[1]) * _scale[v[2]]) / (1024.0*1024.0)
+    return old_div((float(v[1]) * _scale[v[2]]), (1024.0*1024.0))
 
 
 def MemoryUpdate(print_msg=None,str_return=False):
