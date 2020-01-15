@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 #
 from __future__ import print_function
+from builtins import zip
+from builtins import map
+from builtins import str
+from builtins import range
 import tempfile
 import unittest
 
@@ -1493,21 +1497,21 @@ class meshTestCase(unittest.TestCase):
         holes = m.getHoles()
         regions = m.getRegions()
         
-        for pimport,pactual,pimpatt in map(None,dict['points'],points,dict['point_attributes']):
+        for pimport,pactual,pimpatt in zip(dict['points'],points,dict['point_attributes']):
             self.assertTrue( pimport == [pactual.x,pactual.y],
                         'test_Mesh2IODict failed. test 1')
             self.assertTrue( pimpatt == pactual.attributes,
                         'test_Mesh2IODict failed. test 1.1')
         self.assertTrue( dict['outline_segments'][0] == [0,1],
                         'test_Mesh2IODict failed. test 3')
-        for segimp,segactual in map(None,dict['outline_segment_tags'],seg):
+        for segimp,segactual in zip(dict['outline_segment_tags'],seg):
             self.assertTrue( segimp == segactual.tag,
                         'test_Mesh2IODict failed. test 4')
-        for holeimp,holeactual in map(None,dict['holes'],holes):
+        for holeimp,holeactual in zip(dict['holes'],holes):
             self.assertTrue( holeimp == [holeactual.x,holeactual.y],
                         'test_Mesh2IODict failed. test 5')
         
-        for regimp,regactual,regattimp, regmaxarea in map(None,dict['regions'],regions, dict['region_tags'], dict['region_max_areas']):
+        for regimp,regactual,regattimp, regmaxarea in zip(dict['regions'],regions, dict['region_tags'], dict['region_max_areas']):
             self.assertTrue( regimp == [regactual.x,regactual.y],
                         'loadASCIITestCase failed. test 6')
             self.assertTrue( regattimp == regactual.getTag(),
@@ -1551,17 +1555,17 @@ class meshTestCase(unittest.TestCase):
         holes = m.getHoles()
         regions = m.getRegions()
         
-        for pimport,pactual,pimpatt in map(None,dict['points'],points,dict['point_attributes']):
+        for pimport,pactual,pimpatt in zip(dict['points'],points,dict['point_attributes']):
             self.assertTrue( pimport == [pactual.x,pactual.y],
                         'loadASCIITestCase failed. test 1')
             self.assertTrue( pimpatt == pactual.attributes,
                         'loadASCIITestCase failed. test 1.1')
         self.assertTrue( dict['outline_segments'][0] == [0,1],
                         'loadASCIITestCase failed. test 3')
-        for segimp,segactual in map(None,dict['outline_segment_tags'],seg):
+        for segimp,segactual in zip(dict['outline_segment_tags'],seg):
             self.assertTrue( segimp == segactual.tag,
                         'loadASCIITestCase failed. test 4')
-        for holeimp,holeactual in map(None,dict['holes'],holes):
+        for holeimp,holeactual in zip(dict['holes'],holes):
             self.assertTrue( holeimp == [holeactual.x,holeactual.y],
                         'loadASCIITestCase failed. test 5')
         #for regimp,regactual in map(None,dict['regions'],regions):
@@ -1573,7 +1577,7 @@ class meshTestCase(unittest.TestCase):
              #           'loadASCIITestCase failed. test 7')
 
             
-        for regimp,regactual,regattimp, regmaxarea in map(None,dict['regions'],regions, dict['region_tags'], dict['region_max_areas']):
+        for regimp,regactual,regattimp, regmaxarea in zip(dict['regions'],regions, dict['region_tags'], dict['region_max_areas']):
             self.assertTrue( regimp == [regactual.x,regactual.y],
                         'loadASCIITestCase failed. test 6')
             self.assertTrue( regattimp == regactual.getTag(),
@@ -1663,7 +1667,7 @@ class meshTestCase(unittest.TestCase):
         #print "User verts",verts
         #print 'polygon',polygon
         #vert values are relative
-        for point,new_point in map(None,polygon,verts):
+        for point,new_point in zip(polygon,verts):
             point_x = point[0] + geo_ref_poly.get_xllcorner()
             new_point_x = new_point.x + m.geo_reference.get_xllcorner()
             point_y = point[1] + geo_ref_poly.get_yllcorner()
@@ -1706,7 +1710,7 @@ class meshTestCase(unittest.TestCase):
         #print "User verts",verts
         #print 'polygon',polygon
         #vert values are relative
-        for point,new_point in map(None,polygon,verts):
+        for point,new_point in zip(polygon,verts):
             point_x = point[0] 
             new_point_x = new_point.x + m.geo_reference.get_xllcorner()
             #print "point_x",point_x
@@ -1763,7 +1767,7 @@ class meshTestCase(unittest.TestCase):
         #print "User verts",verts
         #print 'polygon',polygon
         #vert values are relative
-        for point,new_point in map(None,polygon,verts):
+        for point,new_point in zip(polygon,verts):
             point_x = point[0] + geo_ref_poly.get_xllcorner()
             new_point_x = new_point.x + m.geo_reference.get_xllcorner()
             point_y = point[1] + geo_ref_poly.get_yllcorner()
@@ -1825,7 +1829,7 @@ class meshTestCase(unittest.TestCase):
         #print "User verts",verts
         #print 'polygon',polygon
         #vert values are relative
-        for point,new_point in map(None,polygon,verts):
+        for point,new_point in zip(polygon,verts):
             point_x = point[0] + geo_ref_poly.get_xllcorner()
             new_point_x = new_point.x + m.geo_reference.get_xllcorner()
             point_y = point[1] + geo_ref_poly.get_yllcorner()

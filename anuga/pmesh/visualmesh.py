@@ -1,11 +1,17 @@
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from past.utils import old_div
+from builtins import object
 from . import mesh
-from   tkSimpleDialog import Dialog,askfloat, askinteger, askstring
-from Tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, Label,W, Entry, E, ACTIVE, NORMAL, StringVar
-from tkMessageBox import showerror
+from   tkinter.simpledialog import Dialog,askfloat, askinteger, askstring
+from tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, Label,W, Entry, E, ACTIVE, NORMAL, StringVar
+from tkinter.messagebox import showerror
 
-class vAbstract:
+class vAbstract(object):
     """
     Define the visualisation of a mesh object
     """
@@ -83,7 +89,7 @@ class vPoints(vAbstract):
 
         event isn't used
         """
-        point = mesh.addUserPoint(self.association,x/scale,y/scale)
+        point = mesh.addUserPoint(self.association,old_div(x,scale),old_div(y,scale))
         self.visualise(point, uniqueID, canvas, scale)
         return point
  

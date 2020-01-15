@@ -1,16 +1,22 @@
 from __future__ import absolute_import
+from __future__ import division
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import  Pmw, AppShell, math, time, string, marshal
 from .toolbarbutton import ToolBarButton
-import tkFileDialog
-from   tkSimpleDialog import Dialog
+import tkinter.filedialog
+from   tkinter.simpledialog import Dialog
 from . import mesh
 from .mesh import SEG_COLOUR
-from Tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, \
+from tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, \
      Label,W, Entry, E, StringVar, END, Checkbutton, Radiobutton, IntVar, \
      DISABLED, NORMAL
 #from cursornames import TLC,TRC, BLC, BRC, TS, RS, LS, BS
-from tkMessageBox import showerror, _show, QUESTION,YESNOCANCEL
+from tkinter.messagebox import showerror, _show, QUESTION,YESNOCANCEL
 import types
 from . import visualmesh
 import os, sys
@@ -290,7 +296,7 @@ class Draw(AppShell.AppShell):
         pi = math.pi
         num_of_cuts = 100
         cuts = []
-        factor = 2* math.pi/num_of_cuts
+        factor = old_div(2* math.pi,num_of_cuts)
         for cut in range(num_of_cuts):
              cuts.append(cut*factor)
         
@@ -314,7 +320,7 @@ class Draw(AppShell.AppShell):
         pi = math.pi
         num_of_cuts = 100
         cuts = []
-        factor = 2* math.pi/num_of_cuts
+        factor = old_div(2* math.pi,num_of_cuts)
         for cut in range(num_of_cuts):
              cuts.append(cut*factor)
         
@@ -380,7 +386,7 @@ class Draw(AppShell.AppShell):
         MeshObjects  = vertices + holes + regions
 
         # make a list of tags to delete
-        guiIDs = [getattr(MeshObjects[i],'guiID') for i in xrange(len(MeshObjects))]
+        guiIDs = [getattr(MeshObjects[i],'guiID') for i in range(len(MeshObjects))]
         self.canvas.delete(*guiIDs)
         for obj in MeshObjects:
             if self.selVertex == obj:
@@ -390,14 +396,14 @@ class Draw(AppShell.AppShell):
             else:
                 obj.draw(self.canvas,obj.guiID,  scale =self.SCALE ) 
         top, bottom = self.scrolledcanvas.xview()
-        xcenter  = (top + bottom)/2
+        xcenter  = old_div((top + bottom),2)
         xdiff =  xcenter - top  
-        xcnew = xcenter - xdiff/fraction
+        xcnew = xcenter - old_div(xdiff,fraction)
         
         top, bottom = self.scrolledcanvas.yview()
-        ycenter = (top + bottom)/2
+        ycenter = old_div((top + bottom),2)
         ydiff = ycenter - top
-        ycnew = ycenter - ydiff/fraction
+        ycnew = ycenter - old_div(ydiff,fraction)
         
         self.scrolledcanvas.resizescrollregion()
         # update so the moveto calls will work...
@@ -625,7 +631,7 @@ class Draw(AppShell.AppShell):
             pass
         meshArea = 0
         meshArea = tempMesh.tri_mesh.calc_mesh_area()
-        maxArea = meshArea/numTriangles
+        maxArea = old_div(meshArea,numTriangles)
 
         
         return self.MeshGenAreaAngle (minAngle,
@@ -917,7 +923,7 @@ class Draw(AppShell.AppShell):
         fileType = "obj"
         fileTypeDesc = "obj mesh"
         
-        ofile = tkFileDialog.asksaveasfilename(filetypes=[(fileTypeDesc,
+        ofile = tkinter.filedialog.asksaveasfilename(filetypes=[(fileTypeDesc,
                                                            fileType),
                                                           ("All Files", "*")])
         if ofile:
@@ -937,7 +943,7 @@ class Draw(AppShell.AppShell):
     
 
     def ImportUngenerate(self):
-        ofile = tkFileDialog.askopenfilename(initialdir=self.currentPath,
+        ofile = tkinter.filedialog.askopenfilename(initialdir=self.currentPath,
                    filetypes=[ ("ungenerated polygon information", "txt"),
                                            ("All Files", "*")])
         if ofile == "":
@@ -968,7 +974,7 @@ class Draw(AppShell.AppShell):
         
     def exportASCIIsegmentoutlinefile(self):
         
-        ofile = tkFileDialog.asksaveasfilename(initialdir=self.currentPath,
+        ofile = tkinter.filedialog.asksaveasfilename(initialdir=self.currentPath,
                                                filetypes=[("mesh", "*.tsh *.msh"),
                                              ("All Files", "*")])
            
@@ -986,7 +992,7 @@ class Draw(AppShell.AppShell):
                                    'Can not write to file.')
 
     def exportPointsFile(self):
-        ofile = tkFileDialog.asksaveasfilename(initialdir=self.currentPath,
+        ofile = tkinter.filedialog.asksaveasfilename(initialdir=self.currentPath,
                                          filetypes=[("point files",
                                                      "*.csv *.txt *.pts"),
                                                 ("All Files", "*")])
@@ -1008,7 +1014,7 @@ class Draw(AppShell.AppShell):
         import mesh data from a variety of formats (currently 2!)
         """
         log.critical("self.currentPath %s" % str(self.currentPath))
-        ofile = tkFileDialog.askopenfilename(initialdir=self.currentPath,
+        ofile = tkinter.filedialog.askopenfilename(initialdir=self.currentPath,
                                              filetypes=[ ("text Mesh",
                                                           "*.tsh *.msh"),
                                                          ("points",
@@ -1095,7 +1101,7 @@ class Draw(AppShell.AppShell):
         """
         Save the current drawing, prompting for a file name
         """
-        ofile = tkFileDialog.asksaveasfilename(initialdir=self.currentPath,
+        ofile = tkinter.filedialog.asksaveasfilename(initialdir=self.currentPath,
                                                filetypes=[("mesh", "*.tsh *.msh"),
                                              ("All Files", "*")])
            
@@ -1163,7 +1169,7 @@ class Draw(AppShell.AppShell):
         """
         Print the canvas as a postscript file
         """
-        ofile = tkFileDialog.asksaveasfilename(initialdir=self.currentPath,
+        ofile = tkinter.filedialog.asksaveasfilename(initialdir=self.currentPath,
                                                filetypes=[("postscript", "ps"),
                                                           ("All Files", "*")]) 
         if ofile:

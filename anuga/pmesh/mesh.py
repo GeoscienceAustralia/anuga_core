@@ -12,7 +12,13 @@
    Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
    Geoscience Australia
 """
+from __future__ import division
 
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import sys
 import math
 import re
@@ -43,7 +49,7 @@ except ImportError:
     # Hand-built mockup of the things we need from the kinds package, since it
     # was recently removed from the standard numeric distro.  Some users may  
     # not have it by default.  
-    class _bunch:  
+    class _bunch(object):  
         pass  
          
     class _kinds(_bunch):  
@@ -60,7 +66,7 @@ initialconversions = ['', 'exterior', '']
 SEG_COLOUR = 'blue'
 
 
-class MeshObject:
+class MeshObject(object):
     """
     An abstract superclass for the basic mesh objects, eg vertex, segment,
     triangle.
@@ -147,7 +153,7 @@ class Vertex(Point):
              yoffset =0, ):
         x =  scale*(self.x + xoffset)
         y = -1*scale*(self.y + yoffset)  # - since for a canvas - is up
-        cornerOffset= self.VERTEXSQUARESIDELENGTH/2
+        cornerOffset= old_div(self.VERTEXSQUARESIDELENGTH,2)
 
         # A hack to see the vert tags
         # note: there will be many tags, since tags will not be removed
@@ -187,7 +193,7 @@ class Hole(Point):
              yoffset =0, ):
         x =  scale*(self.x + xoffset)
         y = -1*scale*(self.y + yoffset)  # - since for a canvas - is up
-        cornerOffset= self.HOLECORNERLENGTH/2
+        cornerOffset= old_div(self.HOLECORNERLENGTH,2)
         return canvas.create_oval(x-cornerOffset,
                                        y-cornerOffset,
                                        x+cornerOffset,
@@ -258,7 +264,7 @@ class Region(Point):
         """
         x =  scale*(self.x + xoffset)
         y = -1*scale*(self.y + yoffset) 
-        cornerOffset= self.CROSSLENGTH/2
+        cornerOffset= old_div(self.CROSSLENGTH,2)
         return canvas.create_polygon(x,
                                      y-cornerOffset,
                                      x,
@@ -335,7 +341,7 @@ class Segment(MeshObject):
 
 Segment.set_default_tag("")       
 
-class Rigid_triangulation:
+class Rigid_triangulation(object):
     """ 
     This is a triangulation that can't have triangles added or taken away.
 
@@ -436,10 +442,10 @@ class Rigid_triangulation:
             cx = vertices[2][0]
             cy = vertices[2][1]
             
-            area += abs((bx*ay-ax*by)+(cx*by-bx*cy)+(ax*cy-cx*ay))/2
+            area += old_div(abs((bx*ay-ax*by)+(cx*by-bx*cy)+(ax*cy-cx*ay)),2)
         return area            
         
-class Mesh:
+class Mesh(object):
     """
     Representation of a 2D triangular mesh.
     User attributes describe the mesh region/segments/vertices/attributes
@@ -519,17 +525,17 @@ class Mesh:
         # A dic for the initial m
         dic = self.Mesh2triangList()
         dic_mesh = self.Mesh2MeshList()
-        for element in dic_mesh.keys():
+        for element in list(dic_mesh.keys()):
             dic[element] = dic_mesh[element]
-        for element in dic.keys():
+        for element in list(dic.keys()):
             dic[element].sort()
             
         # A dic for the exported/imported m
         dic_other = other.Mesh2triangList()
         dic_mesh = other.Mesh2MeshList()
-        for element in dic_mesh.keys():
+        for element in list(dic_mesh.keys()):
             dic_other[element] = dic_mesh[element]
-        for element in dic.keys():
+        for element in list(dic.keys()):
             dic_other[element].sort()
 
         #print "dsg************************8"
@@ -800,7 +806,7 @@ class Mesh:
         """
         # convert center and radius to a polygon
         cuts = []
-        factor = 2* math.pi/segment_count
+        factor = old_div(2* math.pi,segment_count)
         for cut in range(segment_count):
             cuts.append(cut*factor)
 
@@ -811,7 +817,7 @@ class Mesh:
             y = center[1] + radius * math.sin(cut)
             polygon.append([x,y])
         # build the tags
-        tags = {tag:range(segment_count)}
+        tags = {tag:list(range(segment_count))}
         
         return self._add_area_from_polygon(polygon, segment_tags=tags,
                                            region=region, hole=hole,
@@ -921,7 +927,7 @@ class Mesh:
                      point[1]-self.geo_reference.yllcorner)
             self.userVertices.append(v)
             
-        for seg,seg_tag in map(None,outlineDict['segments'],
+        for seg,seg_tag in zip(outlineDict['segments'],
                        outlineDict['segment_tags']):
             segObject = Segment(self.userVertices[int(seg[0])+i_offset],
                            self.userVertices[int(seg[1])+i_offset] )
@@ -1201,11 +1207,11 @@ class Mesh:
         
         for v in self.userVertices :
             # tag is the center of the boxes
-            tag = (round(v.x/delta,0)*delta,round(v.y/delta,0)*delta)
+            tag = (round(old_div(v.x,delta),0)*delta,round(old_div(v.y,delta),0)*delta)
             #this creates a dict of lists of faces, indexed by tag
             boxedVertices.setdefault(tag,[]).append(v)
 
-        for [tag,verts] in boxedVertices.items():
+        for [tag,verts] in list(boxedVertices.items()):
             min = delta
             bestVert = None
             tagVert = Vertex(tag[0],tag[1])
@@ -1394,7 +1400,7 @@ class Mesh:
         """
         dic = self.Mesh2triangList()
         dic_mesh = self.Mesh2MeshList()
-        for element in dic_mesh.keys():
+        for element in list(dic_mesh.keys()):
             dic[element] = dic_mesh[element]
         return dic
     
@@ -1461,7 +1467,7 @@ class Mesh:
             self.userVertices.append(v)
 
         #index = 0
-        for seg,tag in map(None,genDict['segmentlist'],
+        for seg,tag in zip(genDict['segmentlist'],
                            genDict['segmenttaglist']):
             segObject = Segment( self.userVertices[int(seg[0])],
                            self.userVertices[int(seg[1])], tag = tag )
@@ -1487,7 +1493,7 @@ class Mesh:
             self.holes.append(h)
 
         #index = 0
-        for reg,att,maxArea in map(None,
+        for reg,att,maxArea in zip(
                                    genDict['regionlist'],
                                    genDict['regionattributelist'],
                                    genDict['regionmaxarealist']):
@@ -1600,7 +1606,7 @@ class Mesh:
                                 user_seg.vertices[0]]
                 
         optimum_alpha = self.shape.get_alpha()
-        alpha_segs_no_user_segs  = new_segs.values()
+        alpha_segs_no_user_segs  = list(new_segs.values())
         self.alphaUserSegments = alpha_segs_no_user_segs
         return alpha_segs_no_user_segs, segs2delete, optimum_alpha
     
@@ -1670,31 +1676,31 @@ class Mesh:
             min,max = ymin, ymax
             
         for obj in self.getUserVertices():
-            obj.x = (obj.x - xmin)/(max- min)*scale + offset
-            obj.y = (obj.y - ymin)/(max- min)*scale + offset
+            obj.x = old_div((obj.x - xmin),(max- min))*scale + offset
+            obj.y = old_div((obj.y - ymin),(max- min))*scale + offset
             if len(obj.attributes)  > 0 and attmin0 != attmax0:
-                obj.attributes[0] = (obj.attributes[0]-attmin0)/ \
-                                    (attmax0-attmin0)*height_scale
+                obj.attributes[0] = old_div((obj.attributes[0]-attmin0), \
+                                    (attmax0-attmin0))*height_scale
             if len(obj.attributes) > 1 and attmin1 != attmax1:
-                obj.attributes[1] = (obj.attributes[1]-attmin1)/ \
-                                    (attmax1-attmin1)*height_scale
+                obj.attributes[1] = old_div((obj.attributes[1]-attmin1), \
+                                    (attmax1-attmin1))*height_scale
             
         for obj in self.getMeshVertices():
-            obj.x = (obj.x - xmin)/(max- min)*scale + offset
-            obj.y = (obj.y - ymin)/(max- min)*scale + offset
+            obj.x = old_div((obj.x - xmin),(max- min))*scale + offset
+            obj.y = old_div((obj.y - ymin),(max- min))*scale + offset
             if len(obj.attributes)  > 0 and attmin0 != attmax0:
-                obj.attributes[0] = (obj.attributes[0]-attmin0)/ \
-                                    (attmax0-attmin0)*height_scale
+                obj.attributes[0] = old_div((obj.attributes[0]-attmin0), \
+                                    (attmax0-attmin0))*height_scale
             if len(obj.attributes) > 1 and attmin1 != attmax1:
-                obj.attributes[1] = (obj.attributes[1]-attmin1)/ \
-                                    (attmax1-attmin1)*height_scale
+                obj.attributes[1] = old_div((obj.attributes[1]-attmin1), \
+                                    (attmax1-attmin1))*height_scale
                 
         for obj in self.getHoles():
-            obj.x = (obj.x - xmin)/(max- min)*scale + offset
-            obj.y = (obj.y - ymin)/(max- min)*scale + offset
+            obj.x = old_div((obj.x - xmin),(max- min))*scale + offset
+            obj.y = old_div((obj.y - ymin),(max- min))*scale + offset
         for obj in self.getRegions():
-            obj.x = (obj.x - xmin)/(max- min)*scale + offset
-            obj.y = (obj.y - ymin)/(max- min)*scale + offset
+            obj.x = old_div((obj.x - xmin),(max- min))*scale + offset
+            obj.y = old_div((obj.y - ymin),(max- min))*scale + offset
         [xmin, ymin, xmax, ymax] = self.boxsize()
         #print [xmin, ymin, xmax, ymax]
      
@@ -1787,7 +1793,7 @@ class Mesh:
         """   
         OFFSET = 0.05*min([WIDTH, HEIGHT])
         [xmin, ymin, xmax, ymax] = self.boxsize()
-        SCALE = min([0.9*WIDTH, 0.9*HEIGHT])/max([xmax-xmin, ymax-ymin])
+        SCALE = old_div(min([0.9*WIDTH, 0.9*HEIGHT]),max([xmax-xmin, ymax-ymin]))
         
         if SCALE*xmin < OFFSET:
             xoffset = abs(SCALE*xmin) + OFFSET
@@ -1842,7 +1848,7 @@ class Mesh:
         for seg in self.getUserSegments():
             verts[seg.vertices[0]] = seg.vertices[0]
             verts[seg.vertices[1]] = seg.vertices[1]
-        meshDict = self.Mesh2IOOutlineDict(userVertices=verts.values())
+        meshDict = self.Mesh2IOOutlineDict(userVertices=list(verts.values()))
         export_mesh_file(ofile,meshDict)
         
         # exportASCIImeshfile   - this function is used
@@ -1909,8 +1915,8 @@ class Mesh:
         else:           
             if not isinstance(region_tag, list):
                 region_tag = [region_tag]*len(dict['polygons'])
-            for a_tag,polygon in map(None, region_tag, dict['polygons']): 
-                segment_tags = {tag:range(len(polygon))}
+            for a_tag,polygon in zip(region_tag, dict['polygons']): 
+                segment_tags = {tag:list(range(len(polygon)))}
                 self.add_region_from_polygon(polygon,segment_tags=segment_tags,
                                 region_tag=a_tag)
             
@@ -1955,7 +1961,7 @@ class Mesh:
         """
         dict = self.Mesh2IOTriangulationDict()
         dict_mesh = self.Mesh2IOOutlineDict()
-        for element in dict_mesh.keys():
+        for element in list(dict_mesh.keys()):
             dict[element] = dict_mesh[element]
 
         # add the geo reference
@@ -2112,7 +2118,7 @@ class Mesh:
             self.userVertices.append(v)
 
         #index = 0
-        for seg,tag in map(None,genDict['outline_segments'],
+        for seg,tag in zip(genDict['outline_segments'],
                            genDict['outline_segment_tags']):
 
             segObject = Segment( self.userVertices[int(seg[0])],
@@ -2139,7 +2145,7 @@ class Mesh:
             self.holes.append(h)
 
         #index = 0
-        for reg,att,maxArea in map(None,
+        for reg,att,maxArea in zip(
                                    genDict['regions'],
                                    genDict['region_tags'],
                                    genDict['region_max_areas']):
@@ -2214,15 +2220,15 @@ def square_outline(side_length = 1,up = "top", left = "left", right = "right",
         s5 = Segment(a,c, tag = down)
 
         if regions:
-            e =  Vertex (side_length/2,side_length/2)
+            e =  Vertex (old_div(side_length,2),old_div(side_length,2))
             s6 = Segment(a,e, tag = down + left)
             s7 = Segment(b,e, tag = up + left)
             s8 = Segment(c,e, tag = down + right)
             s9 = Segment(d,e, tag = up + right)
-            r1 = Region(side_length/2,3.*side_length/4, tag = up)
-            r2 = Region(1.*side_length/4,side_length/2, tag = left)
-            r3 = Region(3.*side_length/4,side_length/2, tag = right)
-            r4 = Region(side_length/2,1.*side_length/4, tag = down)
+            r1 = Region(old_div(side_length,2),old_div(3.*side_length,4), tag = up)
+            r2 = Region(old_div(1.*side_length,4),old_div(side_length,2), tag = left)
+            r3 = Region(old_div(3.*side_length,4),old_div(side_length,2), tag = right)
+            r4 = Region(old_div(side_length,2),old_div(1.*side_length,4), tag = down)
             mesh = Mesh(userVertices=[a,b,c,d,e],
                         userSegments=[s2,s3,s4,s5,s6,s7,s8,s9],
                         regions = [r1,r2,r3,r4])
@@ -2244,7 +2250,7 @@ def region_strings2ints(region_list):
     region_list.append((1.0,2.0,""))
     region_list.reverse()
     convertint2string = []
-    for i in xrange(len(region_list)):
+    for i in range(len(region_list)):
         convertint2string.append(region_list[i][2])
         if len(region_list[i]) == 4: # there's an area value
             region_list[i] = (region_list[i][0],
@@ -2271,7 +2277,7 @@ def region_ints2strings(region_list,convertint2string):
     # or region_list[0] == [0.0]
     if (not region_list[0] == []): # or region_list[0] == [0.0]:
         #print "in loop"
-        for i in xrange(len(region_list)):
+        for i in range(len(region_list)):
             temp = region_list[i]
             returned_region_list.append(convertint2string[int(temp[0])])
     return returned_region_list
@@ -2368,7 +2374,7 @@ def unique(s):
     except TypeError:
         del u  # move on to the next method
     else:
-        return u.keys()
+        return list(u.keys())
 
     # We can't hash all the elements.  Second fastest is to sort,
     # which brings the equal elements together; then duplicates are

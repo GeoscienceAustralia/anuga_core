@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+from builtins import str
+from builtins import range
 from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
 from anuga.geometry.polygon import  point_in_polygon ,populate_polygon
 from anuga.utilities.numerical_tools import ensure_numeric
@@ -158,7 +160,7 @@ def _create_mesh_from_regions(bounding_polygon,
     # check the segment indexes - throw an error if they are out of bounds
     if boundary_tags is not None:
         max_points = len(bounding_polygon)
-        for key in boundary_tags.keys():
+        for key in list(boundary_tags.keys()):
             if len([x for x in boundary_tags[key] if x > max_points-1]) >= 1:
                 msg = 'Boundary tag %s has segment out of bounds. '\
                       %(str(key))
