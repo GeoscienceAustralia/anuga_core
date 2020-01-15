@@ -1,10 +1,15 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 from future.utils import raise_
 import os
 from anuga import barrier, numprocs, myid
 import numpy
 
-class RiverWall:
+class RiverWall(object):
     """Define the elevation of 'riverwalls'. 
 
     These are located along each cell edge, and can have an elevation different
@@ -255,12 +260,12 @@ class RiverWall:
         self.input_riverwallPar=riverwallPar
 
         # Update self.default_riverwallPar (defined in __init__)
-        for i in self.default_riverwallPar.keys():
+        for i in list(self.default_riverwallPar.keys()):
             if(i in default_riverwallPar):
                 self.default_riverwallPar[i]=default_riverwallPar[i]
 
         # Check that all the keys in default_riverwallPar are allowed
-        for i in default_riverwallPar.keys():
+        for i in list(default_riverwallPar.keys()):
             if(i not in self.default_riverwallPar):
                 msg='Key ', i + ' in default_riverwallPar not recognized'
                 raise_(Exception, msg)
@@ -269,7 +274,7 @@ class RiverWall:
         
         # Check that all named inputs in riverwallPar correspond to names in
         # riverwall
-        for i in riverwallPar.keys():
+        for i in list(riverwallPar.keys()):
             if i not in riverwalls:
                 msg= 'Key ', i, ' in riverwallPar has no corresponding key in riverwall'
                 raise_(Exception, msg)
@@ -277,7 +282,7 @@ class RiverWall:
             # Check that all hydraulic parameter names in riverwallPar correspond
             # to names in default_riverwallPar
             #
-            for j in riverwallPar[i].keys():
+            for j in list(riverwallPar[i].keys()):
                 if j not in default_riverwallPar:
                     msg = 'Hydraulic parameter named ', j ,\
                           ' not recognised in default_riverwallPar'
@@ -299,8 +304,8 @@ class RiverWall:
         riverwall_rowIndex.astype(int)
 
         # Loop over all segments in each riverwall, and set its elevation
-        nw=range(len(riverwalls))
-        nw_names=riverwalls.keys() # Not guarenteed to be in deterministic order
+        nw=list(range(len(riverwalls)))
+        nw_names=list(riverwalls.keys()) # Not guarenteed to be in deterministic order
 
         if(verbose):
             # Use variable to record messages, allows cleaner parallel printing
@@ -340,8 +345,8 @@ class RiverWall:
                 # except for very complex riverwalls]
                 
                 # Unit vector along segment
-                se_0=-(start[0]-end[0])/segLen
-                se_1=-(start[1]-end[1])/segLen
+                se_0=old_div(-(start[0]-end[0]),segLen)
+                se_1=old_div(-(start[1]-end[1]),segLen)
 
                 # Vector from 'start' to every point on mesh
                 # NOTE: We account for georeferencing
@@ -371,7 +376,7 @@ class RiverWall:
                 domain.edge_flux_type[onLevee]=1
      
                 # Get edge elevations as weighted averages of start/end elevations 
-                w0=pv_dot_se[onLevee]/segLen
+                w0=old_div(pv_dot_se[onLevee],segLen)
                 w0=w0*(w0>=0.0) # Enforce min of 0
                 w0=w0*(w0<=1.0) + 1.0*(w0>1.0) # Max of 1
                 riverwall_elevation[onLevee]= start[2]*(1.0-w0)+w0*end[2]
@@ -544,7 +549,7 @@ class RiverWall:
         domain=self.domain
 
         # Get edge/vertex indices for boundaries
-        boundary_index_info=domain.boundary.keys()
+        boundary_index_info=list(domain.boundary.keys())
         boundary_edges=[ boundary_index_info[i][0]*3+boundary_index_info[i][1] for i in range(len(boundary_index_info))]
         boundary_edges=numpy.array(boundary_edges)
         tmp=self.get_vertices_corresponding_to_edgeInds(boundary_edges, checkCoords=False)

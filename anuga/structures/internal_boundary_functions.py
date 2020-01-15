@@ -1,10 +1,15 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import numpy
 import scipy
 from scipy.interpolate import interp1d
 
 
-class hecras_internal_boundary_function:
+class hecras_internal_boundary_function(object):
 
     """ Read internal boundary curves for a bridge / culvert from hecras and
         convert to a function which can be input as a structure in ANUGA
@@ -107,7 +112,7 @@ class hecras_internal_boundary_function:
 
         ncol_ibc = internal_boundary_curves.shape[1]
         self.nonfree_flow_tw = \
-            internal_boundary_curves[0, range(3, ncol_ibc + 1, 2)]
+            internal_boundary_curves[0, list(range(3, ncol_ibc + 1, 2))]
 
         # Ensure the nonfree_flow_tw is monotonic increasing
         assert numpy.all(self.nonfree_flow_tw[0:-1] < self.nonfree_flow_tw[1:])
@@ -307,7 +312,7 @@ class hecras_internal_boundary_function:
                 # Use free flow curve.
                 upper_curve_Q = self.free_flow_curve(hw)
 
-            Q = (w0 * upper_curve_Q + w1 * lower_curve_Q) / (w0 + w1)
+            Q = old_div((w0 * upper_curve_Q + w1 * lower_curve_Q), (w0 + w1))
 
         #print 'Q: ', Q , ' HW: ', hw, ' TW:', tw
 
@@ -389,7 +394,7 @@ def remove_repeated_curve_points(HW, Q):
 
 
 
-class pumping_station_function:
+class pumping_station_function(object):
     """ Transfer water from one site to another at a given rate,
         based on the pump capacities and observed headwater/tailwater.
 

@@ -2,6 +2,9 @@
 
 
 from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import unittest
 import os
 
@@ -66,7 +69,7 @@ class Test_riverwall_structure(unittest.TestCase):
                                    filename = 'testRiverwall.msh',
                                    interior_regions =[ ], #[ [higherResPolygon, 1.*1.*0.5],
                                                           #  [midResPolygon, 3.0*3.0*0.5]],
-                                   breaklines=riverWall.values(),
+                                   breaklines=list(riverWall.values()),
                                    use_cache=False,
                                    verbose=verbose,
                                    regionPtArea=regionPtAreas)
@@ -117,7 +120,7 @@ class Test_riverwall_structure(unittest.TestCase):
                                    filename = 'testRiverwall.msh',
                                    interior_regions =[ ], #[ [higherResPolygon, 1.*1.*0.5],
                                                           #  [midResPolygon, 3.0*3.0*0.5]],
-                                   breaklines=riverWall.values(),
+                                   breaklines=list(riverWall.values()),
                                    use_cache=False,
                                    verbose=verbose,
                                    regionPtArea=regionPtAreas)
@@ -310,7 +313,7 @@ class Test_riverwall_structure(unittest.TestCase):
         Q1=2./3.*H1*(2./3.*g*H1)**0.5
         Q2=2./3.*H2*(2./3.*g*H2)**0.5
 
-        theoretical_flux_vol=dt*L*Q1*(1.-Q2/Q1)**0.385
+        theoretical_flux_vol=dt*L*Q1*(1.-old_div(Q2,Q1))**0.385
 
         # Compute volume of water landward of riverwall
         FinalLandVol=domain.quantities['height'].centroid_values[landInds]*domain.areas[landInds]            
@@ -486,7 +489,7 @@ class Test_riverwall_structure(unittest.TestCase):
         Q1=2./3.*H1*(2./3.*g*H1)**0.5
         Q2=2./3.*H2*(2./3.*g*H2)**0.5
 
-        theoretical_flux_vol=dt*L*Q1*(1.-Q2/Q1)**0.385
+        theoretical_flux_vol=dt*L*Q1*(1.-old_div(Q2,Q1))**0.385
 
         # Compute volume of water landward of riverwall
         FinalLandVol=domain.quantities['height'].centroid_values[landInds]*domain.areas[landInds]            
@@ -534,7 +537,7 @@ class Test_riverwall_structure(unittest.TestCase):
        
         domain=self.create_domain_DE1(wallHeight,InitialOceanStage, InitialLandStage) 
 
-        allVertices=numpy.array(range(len(domain.vertex_coordinates)))
+        allVertices=numpy.array(list(range(len(domain.vertex_coordinates))))
         boundaryFlag=domain.riverwallData.is_vertex_on_boundary(allVertices)
         boundaryVerts=boundaryFlag.nonzero()[0].tolist()
 
