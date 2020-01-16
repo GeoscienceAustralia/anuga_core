@@ -41,8 +41,10 @@ conda update --yes conda
 # Configure the conda environment and put it in the path using the
 # provided versions
 
-conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 \
-    nose matplotlib gdal dill pymetis
+#conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 \
+#    nose matplotlib gdal dill
+
+conda create -n anuga_env --yes python=2.7.13 gdal=2.2.2 nose numpy scipy netcdf4 matplotlib dill
 
 source activate anuga_env
 
