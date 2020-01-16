@@ -7,6 +7,7 @@ FIXME: Need to extend coverage to reading shapefiles + some other operations
 
 """
 
+from builtins import range
 import unittest
 import anuga
 import numpy

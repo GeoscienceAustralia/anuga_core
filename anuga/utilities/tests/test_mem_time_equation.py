@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 
+from __future__ import division
+from past.utils import old_div
 import unittest
 import numpy as num
 import random
@@ -34,7 +36,7 @@ class Test_mem_time_equation(unittest.TestCase):
         actual = system_constants[TEST_CON]['tri_a_T'] * tri_num ** 2 + \
              system_constants[TEST_CON]['tri_b_T'] * tri_num + \
               system_constants[TEST_CON]['tim_a_T'] * finaltime + \
-              system_constants[TEST_CON]['fil_a_T'] * finaltime/yieldstep + \
+              old_div(system_constants[TEST_CON]['fil_a_T'] * finaltime,yieldstep) + \
                system_constants[TEST_CON]['cons_T']
         self.assertEqual(time, actual)
 

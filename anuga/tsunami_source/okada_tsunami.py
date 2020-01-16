@@ -22,6 +22,8 @@ f2py -c --fcompiler=gnu95 okada_tsunami_fortran.f -m okada_tsunami_fortran
 
 """
 from __future__ import print_function
+from builtins import range
+from builtins import object
 from future.utils import raise_
 import numpy
 
@@ -316,7 +318,7 @@ def okada_origin_2_slip_centroid(lower_left, eq_depth, eq_length, eq_width,eq_st
 
 """
 
-class Okada_func:
+class Okada_func(object):
 
    def __init__(self, source,verbose=False,alp=0.5,dmax=-1.):
       self.elon  = source[:,0]

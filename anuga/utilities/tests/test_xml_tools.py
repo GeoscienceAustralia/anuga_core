@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 
+from builtins import str
+from builtins import range
 import unittest
 from tempfile import mkstemp, mktemp
 
@@ -110,7 +112,7 @@ class Test_xml_tools(unittest.TestCase):
             assert refline.strip() == xmllines[i].strip(), msg
 
         # Check dictionary behaviour    
-        for tag in xmlobject['ga_license_file'].keys():
+        for tag in list(xmlobject['ga_license_file'].keys()):
             xmlobject['ga_license_file'][tag]
 
         assert xmlobject['ga_license_file']['datafile']['accountable'] == 'Jane Sexton'
@@ -196,7 +198,7 @@ class Test_xml_tools(unittest.TestCase):
             assert refline.strip() == xmllines[i].strip(), msg
 
         # Check dictionary behaviour    
-        for tag in xmlobject['ga_license_file'].keys():
+        for tag in list(xmlobject['ga_license_file'].keys()):
             xmlobject['ga_license_file'][tag]
 
         assert xmlobject['ga_license_file']['datafile']['accountable'] == 'Jane Sexton'

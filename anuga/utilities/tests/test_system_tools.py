@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
 
+from builtins import chr
+from builtins import str
+from builtins import range
+from past.builtins import basestring
 import unittest
 import numpy as num
 import random
@@ -196,7 +200,7 @@ class Test_system_tools(unittest.TestCase):
 
         # generate some random strings in a list, with guaranteed lengths
         str_list = ['x' * MAX_CHARS]        # make first maximum length
-        for entry in xrange(MAX_ENTRIES):
+        for entry in range(MAX_ENTRIES):
             length = random.randint(1, MAX_CHARS)
             s = ''
             for c in range(length):
@@ -269,7 +273,7 @@ class Test_system_tools(unittest.TestCase):
 
         # generate some random strings in a list, with guaranteed lengths
         str_list = ['x' * MAX_CHARS]        # make first maximum length
-        for entry in xrange(MAX_ENTRIES):
+        for entry in range(MAX_ENTRIES):
             length = random.randint(1, MAX_CHARS)
             s = ''
             for c in range(length):

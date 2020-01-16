@@ -34,7 +34,9 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import absolute_import
 
 
-from Tkinter import *
+from future import standard_library
+standard_library.install_aliases()
+from tkinter import *
 from . import Pmw
 import sys, string
 from . import ProgressBar

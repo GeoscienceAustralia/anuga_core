@@ -78,6 +78,7 @@ from anuga.utilities.model_tools import get_BUILDING_polygon_value_list
 """
 from __future__ import print_function
 
+from past.builtins import execfile
 from future.utils import raise_
 import os
 import glob

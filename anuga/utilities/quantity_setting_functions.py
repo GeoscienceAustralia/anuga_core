@@ -4,6 +4,10 @@ Function which can be useful when setting quantities
 
 """
 from __future__ import print_function
+from __future__ import division
+from past.builtins import str
+from builtins import range
+from past.utils import old_div
 from future.utils import raise_
 import copy
 import os
@@ -149,7 +153,7 @@ def make_nearestNeighbour_quantity_function(
                 numerator += values*inverse_distance
                 denominator += inverse_distance
 
-            quantity_output[dist_lt_thresh] = numerator/denominator
+            quantity_output[dist_lt_thresh] = old_div(numerator,denominator)
 
         return quantity_output
 
@@ -403,7 +407,7 @@ def composite_quantity_setting_function(poly_fun_pairs,
                 # fi is a function
                 quantityVal[fInds] = fi(x[fInds], y[fInds])
 
-            elif isinstance(fi, (int, long, float)):
+            elif isinstance(fi, (int, int, float)):
                 # fi is a numerical constant
                 quantityVal[fInds] = fi*1.0
 

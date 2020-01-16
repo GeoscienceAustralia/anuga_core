@@ -47,13 +47,19 @@
 
 """
 from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from past.builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 from future.utils import raise_
 from anuga.file.netcdf import NetCDFFile
 import numpy
 import copy
 import matplotlib.cm
 
-class combine_outputs:
+class combine_outputs(object):
     """
     Read in a list of filenames, and combine all their outputs into a single object.
     e.g.:
@@ -125,7 +131,7 @@ def sort_sww_filenames(sww_wildcard):
     filenames=glob.glob(sww_wildcard)
     
     # Extract time from filenames
-    file_time=range(len(filenames)) # Predefine
+    file_time=list(range(len(filenames))) # Predefine
      
     for i,filename in enumerate(filenames):
         filesplit=filename.rsplit('_time_')
@@ -134,15 +140,15 @@ def sort_sww_filenames(sww_wildcard):
         else:
             file_time[i]=0         
     
-    name_and_time=zip(file_time,filenames)
+    name_and_time=list(zip(file_time,filenames))
     name_and_time.sort() # Sort by file_time
     
-    output_times, output_names = zip(*name_and_time)
+    output_times, output_names = list(zip(*name_and_time))
     
     return list(output_names)
 
 #####################################################################
-class get_output:
+class get_output(object):
     """Read in data from an .sww file in a convenient form
        e.g. 
         p = plot_utils.get_output('channel3.sww', minimum_allowed_height=0.01)
@@ -233,7 +239,7 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
 
     # Treat specification of timeSlices
     if(timeSlices=='all'):
-        inds=range(len(time))
+        inds=list(range(len(time)))
     elif(timeSlices=='last'):
         inds=[len(time)-1]
     elif(timeSlices=='max'):
@@ -277,7 +283,7 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
     # Trick to treat the case where inds == 'max'
     inds2 = copy.copy(inds)
     if inds == 'max':
-        inds2 = range(len(fid.variables['time']))
+        inds2 = list(range(len(fid.variables['time'])))
     
     # Get height
     if('height' in fid.variables):
@@ -327,7 +333,7 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
 
 ######################################################################################
 
-class get_centroids:
+class get_centroids(object):
     """
     Extract centroid values from the output of get_output, OR from a
         filename  
@@ -477,13 +483,13 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
     if(timeSlices is None):
         if(pIsFile):
             # Assume all timeSlices
-            timeSlices=range(nts)
+            timeSlices=list(range(nts))
         else:
             timeSlices=copy.copy(p.timeSlices)
     else:
         # Treat word-based special cases
         if(timeSlices is 'all'):
-            timeSlices=range(nts)
+            timeSlices=list(range(nts))
         if(timeSlices is 'last'):
             timeSlices=[nts-1]
 
@@ -496,7 +502,7 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
 
     # Treat specification of timeSlices
     if(timeSlices=='all'):
-        inds=range(len(time))
+        inds=list(range(len(time)))
     elif(timeSlices=='last'):
         inds=[len(time)-1]
     elif(timeSlices=='max'):
@@ -540,7 +546,7 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
     # Trick to treat the case where inds == 'max'
     inds2 = copy.copy(inds)
     if inds == 'max':
-        inds2 = range(len(fid.variables['time']))
+        inds2 = list(range(len(fid.variables['time'])))
    
     # height
     height_cent= stage_cent + 0.
@@ -702,7 +708,7 @@ def near_transect(p, point1, point2, tol=1.):
     # Find line equation a*x + b*y + c = 0
     # based on y=gradient*x +intercept
     if x1!=x2:
-        gradient= (y2-y1)/(x2-x1)
+        gradient= old_div((y2-y1),(x2-x1))
         intercept = y1 - gradient*x1
         #
         a = -gradient
@@ -725,8 +731,8 @@ def near_transect(p, point1, point2, tol=1.):
     g1x = x2-x1 
     g1y = y2-y1
     g1_norm = (g1x**2 + g1y**2)**0.5
-    g1x=g1x/g1_norm
-    g1y=g1y/g1_norm
+    g1x=old_div(g1x,g1_norm)
+    g1y=old_div(g1y,g1_norm)
     
     g2x = p.x[near_points] - x1
     g2y = p.y[near_points] - y1
@@ -747,7 +753,7 @@ def triangle_areas(p, subset=None):
     # subset = vector of centroid indices to include in the computation. 
 
     if(subset is None):
-        subset=range(len(p.vols[:,0]))
+        subset=list(range(len(p.vols[:,0])))
     
     x0=p.x[p.vols[subset,0]]
     x1=p.x[p.vols[subset,1]]
@@ -773,7 +779,7 @@ def water_volume(p, p2, per_unit_area=False, subset=None):
     # Compute the water volume from p(vertex values) and p2(centroid values)
 
     if(subset is None):
-        subset=range(len(p2.x))
+        subset=list(range(len(p2.x)))
 
     l=len(p2.time)
     area=triangle_areas(p, subset=subset)
@@ -790,7 +796,7 @@ def water_volume(p, p2, per_unit_area=False, subset=None):
         volume[i]=volume[i]+((-p2.elev[subset])*(p2.stage[i,subset]>p2.elev[subset])*area).sum()
     
     if(per_unit_area):
-        volume=volume/total_area 
+        volume=old_div(volume,total_area) 
     
     return volume
 
@@ -1036,7 +1042,7 @@ def Make_Geotif(swwFile=None,
         myTimeStep_Orig = myTimeStep
         # Now, myTimeStep just holds indices we want to plot in p2
         if(myTimeStep != 'max'):
-            myTimeStep = range(len(p2.time))
+            myTimeStep = list(range(len(p2.time)))
 
         # Ensure myTimeStep is a list
         if type(myTimeStep) != list:
@@ -1106,7 +1112,7 @@ def Make_Geotif(swwFile=None,
             for i in range(k_nearest_neighbours):
                 denom += nn_wts[:,i]
                 num += quantity[nn_inds[:,i]]*nn_wts[:,i]
-            return (num/denom)
+            return (old_div(num,denom))
 
     if bounding_polygon is not None:
         # Find points to exclude (i.e. outside the bounding polygon)

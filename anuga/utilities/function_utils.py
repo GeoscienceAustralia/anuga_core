@@ -1,6 +1,7 @@
 """ Generic function utilities to test type of function
 """
 
+from builtins import str
 from future.utils import raise_
 import numpy as num
 from anuga.fit_interpolate.interpolate import Modeltime_too_early

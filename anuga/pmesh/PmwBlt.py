@@ -30,9 +30,16 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # Python interface to some of the commands of the 2.4 version of the
 # BLT extension to tcl.
 
+from past.builtins import cmp
+from future import standard_library
+standard_library.install_aliases()
+from builtins import map
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 from future.utils import raise_
 import string
-import Tkinter
+import tkinter
 
 # Supported commands:
 _busyCommand = '::blt::busy'
@@ -52,11 +59,11 @@ def _checkForBlt(window):
     # Blt may be a package which has not yet been loaded. Try to load it.
     try:
 	window.tk.call('package', 'require', 'BLT')
-    except Tkinter.TclError:
+    except tkinter.TclError:
 	# Another way to try to dynamically load blt:
 	try:
 	    window.tk.call('load', '', 'Blt')
-	except Tkinter.TclError:
+	except tkinter.TclError:
 	    pass
 
     _haveBlt= (window.tk.call('info', 'commands', _testCommand) != '')
@@ -75,9 +82,9 @@ def havebltbusy(window):
 def _loadBlt(window):
     if _haveBlt is None:
 	if window is None:
-	    window = Tkinter._default_root
+	    window = tkinter._default_root
 	    if window is None:
-	    	window = Tkinter.Tk()
+	    	window = tkinter.Tk()
 	_checkForBlt(window)
 
 def busy_hold(window, cursor = None):
@@ -104,15 +111,15 @@ def busy_forget(window):
 
 # Blt vector functions:
 def vector_expr(expression):
-    tk = Tkinter._default_root.tk
+    tk = tkinter._default_root.tk
     strList = tk.splitlist(tk.call(_vectorCommand, 'expr', expression))
     return tuple(map(string.atof, strList))
 
 def vector_names(pattern = None):
-    tk = Tkinter._default_root.tk
+    tk = tkinter._default_root.tk
     return tk.splitlist(tk.call(_vectorCommand, 'names', pattern))
 
-class Vector:
+class Vector(object):
     _varnum = 0
     def __init__(self, size=None, master=None):
         # <size> can be either an integer size, or a string "first:last".
@@ -120,7 +127,7 @@ class Vector:
 	if master:
 	    self._master = master
 	else:
-	    self._master = Tkinter._default_root
+	    self._master = tkinter._default_root
 	self.tk = self._master.tk
 	self._name = 'PY_VEC' + str(Vector._varnum)
 	Vector._varnum = Vector._varnum + 1
@@ -134,7 +141,7 @@ class Vector:
 	return self._name
 
     def __repr__(self):
-	return '[' + string.join(map(str, self), ', ') + ']'
+	return '[' + string.join(list(map(str, self)), ', ') + ']'
     def __cmp__(self, list):
 	return cmp(self[:], list)
 
@@ -146,7 +153,7 @@ class Vector:
 	    key = key + len(self)
 	try:
 	    return self.tk.getdouble(self.tk.globalgetvar(self._name, str(key)))
-        except Tkinter.TclError:
+        except tkinter.TclError:
 	    raise_(IndexError, oldkey)
     def __setitem__(self, key, value): 
 	if key < 0:
@@ -168,7 +175,7 @@ class Vector:
 	    return []
 	end = end - 1  # Blt vector slices include end point.
 	text = self.tk.globalgetvar(self._name, str(start) + ':' + str(end))
-	return map(self.tk.getdouble, self.tk.splitlist(text))
+	return list(map(self.tk.getdouble, self.tk.splitlist(text)))
 
     def __setslice__(self, start, end, list):
 	if start > end:
@@ -221,7 +228,7 @@ class Vector:
 	# Note that, unlike self[first:last], this includes the last
 	# item in the returned range.
 	text = self.tk.call(self._name, 'range', first, last)
-	return map(self.tk.getdouble, self.tk.splitlist(text))
+	return list(map(self.tk.getdouble, self.tk.splitlist(text)))
     def search(self, start, end=None):
 	return self._master._getints(self.tk.call(
 		self._name, 'search', start, end))
@@ -281,12 +288,12 @@ def _doConfigure(widget, subcommand, option, kw):
 
 #=============================================================================
 
-class Graph(Tkinter.Widget):
+class Graph(tkinter.Widget):
     # Wrapper for the blt graph widget, version 2.4.
 
     def __init__(self, master=None, cnf={}, **kw):
 	_loadBlt(master)
-	Tkinter.Widget.__init__(self, master, _graphCommand, cnf, kw)
+	tkinter.Widget.__init__(self, master, _graphCommand, cnf, kw)
 
     def bar_create(self, name, **kw):
 	self.tk.call((self._w, 'bar', 'create', name) + self._options(kw))
@@ -571,16 +578,16 @@ class Stripchart(Graph):
 
     def __init__(self, master=None, cnf={}, **kw):
 	_loadBlt(master)
-	Tkinter.Widget.__init__(self, master, _chartCommand, cnf, kw)
+	tkinter.Widget.__init__(self, master, _chartCommand, cnf, kw)
 
 #=============================================================================
-class Tabset(Tkinter.Widget): 
+class Tabset(tkinter.Widget): 
 
     # Wrapper for the blt TabSet widget, version 2.4.
 
     def __init__(self, master=None, cnf={}, **kw):
 	_loadBlt(master)
-	Tkinter.Widget.__init__(self, master, _tabsetCommand, cnf, kw)
+	tkinter.Widget.__init__(self, master, _tabsetCommand, cnf, kw)
 
     def activate(self, tabIndex):
         self.tk.call(self._w, 'activate', tabIndex)
