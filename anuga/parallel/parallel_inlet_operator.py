@@ -12,7 +12,7 @@ import parallel_inlet
 
 
 class Parallel_Inlet_operator(Inlet_operator):
-    """Parallel Inlet Operator - add water to an inlet potentially 
+    """Parallel Inlet Operator - add water to an inlet potentially
     shared between different parallel domains.
 
     Sets up the geometry of problem
@@ -20,14 +20,14 @@ class Parallel_Inlet_operator(Inlet_operator):
     Inherit from this class (and overwrite
     discharge_routine method for specific subclasses)
 
-    Input: domain, line, 
+    Input: domain, line,
     """
 
     """
-    master_proc - index of the processor which coordinates all processors 
+    master_proc - index of the processor which coordinates all processors
     associated with this inlet operator.
     procs - list of all processors associated with this inlet operator
-    
+
     """
 
     def __init__(self,
@@ -47,7 +47,7 @@ class Parallel_Inlet_operator(Inlet_operator):
         self.domain = domain
         self.domain.set_fractional_step_operator(self)
         self.poly = numpy.array(poly, dtype='d')
-        self.master_proc = master_proc 
+        self.master_proc = master_proc
 
         if procs is None:
             self.procs = [self.master_proc]
@@ -82,7 +82,7 @@ class Parallel_Inlet_operator(Inlet_operator):
 
         n = len(self.poly)
         self.enquiry_point = numpy.sum(self.poly,axis=1)/float(n)
-    
+
 
         #self.outward_vector = self.poly
         self.inlet = parallel_inlet.Parallel_Inlet(self.domain, self.poly, master_proc = master_proc,
@@ -133,7 +133,7 @@ class Parallel_Inlet_operator(Inlet_operator):
         #print self.myid, volume, current_volume, total_area, timestep
 
         self.applied_Q = volume/timestep
-        
+
         # Distribute positive volume so as to obtain flat surface otherwise
         # just pull water off to have a uniform depth.
         if volume >= 0.0 :
@@ -151,7 +151,7 @@ class Parallel_Inlet_operator(Inlet_operator):
             self.domain.fractional_step_volume_integral+=volume
         else: #extracting too much water!
             self.inlet.set_depths(0.0)
-            self.applied_Q = current_volume/timestep
+            self.applied_Q = -current_volume/timestep
             self.domain.fractional_step_volume_integral-=current_volume
 
 
@@ -163,7 +163,7 @@ class Parallel_Inlet_operator(Inlet_operator):
         # Only one processor should call this function unless Q is parallelizable
 
         from anuga.fit_interpolate.interpolate import Modeltime_too_early, Modeltime_too_late
-        
+
         if callable(self.Q):
             try:
                 Q = self.Q(t)
@@ -175,7 +175,7 @@ class Parallel_Inlet_operator(Inlet_operator):
             Q = self.Q
 
         return Q
-    
+
 
     def statistics(self):
         # WARNING: requires synchronization, must be called by all procs associated
@@ -184,13 +184,13 @@ class Parallel_Inlet_operator(Inlet_operator):
         message = ''
 
         inlet_stats = self.inlet.statistics()
-        
+
 
         if self.myid == self.master_proc:
             message  = '=======================================\n'
             message += 'Parallel Inlet Operator: %s\n' % self.label
             message += '=======================================\n'
-            
+
             message += 'Description\n'
             message += '%s' % self.description
             message += '\n'
@@ -205,7 +205,7 @@ class Parallel_Inlet_operator(Inlet_operator):
     def print_statistics(self):
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
-        
+
         print self.statistics()
 
 
@@ -217,7 +217,7 @@ class Parallel_Inlet_operator(Inlet_operator):
             message += 'Parallel Inlet report for %s:\n' % self.label
             message += '--------------------------------------------\n'
             message += 'Q [m^3/s]: %.2f\n' % self.applied_Q
-        
+
             print message
 
 
@@ -226,7 +226,7 @@ class Parallel_Inlet_operator(Inlet_operator):
 
         stats = self.statistics()
         self.logging = flag
-        
+
         if self.myid == self.master_proc:
             # If flag is true open file with mode = "w" to form a clean file for logging
             # PETE: Have to open separate file for each processor
