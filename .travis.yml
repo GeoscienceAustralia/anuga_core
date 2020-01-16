@@ -31,7 +31,7 @@ matrix:
          dist: trusty
          sudo: required
          python: "2.7_with_system_site_packages"
-         env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="openmpi"  PYPAR_AVAILABLE="mpi4py" DISTRIB="ubuntu" COVERAGE="--coverage"
+         env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="openmpi"  PYPAR_AVAILABLE="mpi4py" DISTRIB="ubuntu"
 
 
 install:
