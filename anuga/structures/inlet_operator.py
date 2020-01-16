@@ -11,12 +11,12 @@ import warnings
 class Inlet_operator(anuga.Operator):
     """Inlet Operator - add water to an inlet.
     Sets up the geometry of problem
-    
+
     Inherit from this class (and overwrite
     discharge_routine method for specific subclasses)
-    
+
     Input: domain, Two points
-    """ 
+    """
 
 
     def __init__(self,
@@ -72,14 +72,14 @@ class Inlet_operator(anuga.Operator):
         volume = Q*timestep
 
         #print volume
-        
+
         #print Q, volume
 
         # store last discharge
         self.applied_Q = Q
- 
 
-        
+
+
         # Distribute positive volume so as to obtain flat surface otherwise
         # just pull water off to have a uniform depth.
         if volume >= 0.0 :
@@ -96,7 +96,7 @@ class Inlet_operator(anuga.Operator):
         else: #extracting too much water!
             self.inlet.set_depths(0.0)
             self.domain.fractional_step_volume_integral-=current_volume
-            self.applied_Q = old_div(current_volume,timestep)
+            self.applied_Q = -old_div(current_volume,timestep)
 
             #msg =  'Requesting too much water to be removed from an inlet! \n'
             #msg += 'current_water_volume = %5.2e Increment volume = %5.2e' % (current_volume, volume)
@@ -107,7 +107,7 @@ class Inlet_operator(anuga.Operator):
         """Allowing local modifications of Q
         """
         from anuga.fit_interpolate.interpolate import Modeltime_too_early, Modeltime_too_late
-        
+
         if callable(self.Q):
             try:
                 Q = self.Q(t)
@@ -118,8 +118,8 @@ class Inlet_operator(anuga.Operator):
         else:
             Q = self.Q
 
-        return Q    
-  
+        return Q
+
     def statistics(self):
 
 
@@ -130,17 +130,17 @@ class Inlet_operator(anuga.Operator):
         message += 'Description\n'
         message += '%s' % self.description
         message += '\n'
-        
+
         inlet = self.inlet
 
         message += '-------------------------------------\n'
-        message +=  'Inlet\n' 
+        message +=  'Inlet\n'
         message += '-------------------------------------\n'
 
         message += 'inlet triangle indices and centres\n'
         message += '%s' % inlet.triangle_indices
         message += '\n'
-            
+
         message += '%s' % self.domain.get_centroid_coordinates()[inlet.triangle_indices]
         message += '\n'
 
@@ -164,7 +164,7 @@ class Inlet_operator(anuga.Operator):
 
 
     def set_default(self, default=None):
-        
+
         """ Either leave default as None or change it into a function"""
 
         if default is not None:
@@ -200,7 +200,7 @@ class Inlet_operator(anuga.Operator):
                    'Instead I will use the default rate: %s\n'
                    'Note: Further warnings will be suppressed'
                    % (str(err_msg), str(self.default(t))))
-            
+
             warnings.warn(msg)
 
             # FIXME (Ole): Replace this crude flag with
@@ -223,5 +223,3 @@ class Inlet_operator(anuga.Operator):
     def get_inlet(self):
 
         return self.inlet
-
-
