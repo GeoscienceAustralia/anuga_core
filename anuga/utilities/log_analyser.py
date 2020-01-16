@@ -1,4 +1,5 @@
 from __future__ import print_function
+from builtins import zip
 import sys
 import os
 import re
@@ -55,7 +56,7 @@ def write_meta_log(log_pairs, output_file):
     writer = csv.DictWriter(han, delimiter=',', fieldnames=sorted_all_keys,
                         extrasaction='ignore')
     # Title 
-    writer.writerow(dict(zip(sorted_all_keys, sorted_all_keys)))
+    writer.writerow(dict(list(zip(sorted_all_keys, sorted_all_keys))))
     
     for pair in log_pairs: # Write the main body
         writer.writerow(pair)

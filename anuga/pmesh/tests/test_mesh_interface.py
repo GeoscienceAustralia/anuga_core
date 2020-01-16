@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from builtins import str
 from future.utils import raise_
 import tempfile
 import unittest

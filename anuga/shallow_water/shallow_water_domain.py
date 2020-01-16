@@ -72,10 +72,14 @@ Constraints: See GPL license in the user guide
 """
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
 
 # Decorator added for profiling
 #------------------------------
 
+from past.builtins import str
+from builtins import range
+from past.utils import old_div
 from future.utils import raise_
 def profileit(name):
     def inner(func):
@@ -96,9 +100,9 @@ import os
 import time
 
 try:
-    import dill as cPickle
+    import dill as pickle
 except:
-    import cPickle
+    import pickle
 
 from anuga.abstract_2d_finite_volumes.generic_domain \
                     import Generic_Domain
@@ -304,8 +308,8 @@ class Domain(Generic_Domain):
         # Work arrays [avoid allocate statements in compute_fluxes or extrapolate_second_order]
         self.edge_flux_work=num.zeros(len(self.edge_coordinates[:,0])*3) # Advective fluxes
         self.pressuregrad_work=num.zeros(len(self.edge_coordinates[:,0])) # Gravity related terms
-        self.x_centroid_work=num.zeros(len(self.edge_coordinates[:,0])/3)
-        self.y_centroid_work=num.zeros(len(self.edge_coordinates[:,0])/3)
+        self.x_centroid_work=num.zeros(old_div(len(self.edge_coordinates[:,0]),3))
+        self.y_centroid_work=num.zeros(old_div(len(self.edge_coordinates[:,0]),3))
 
         ############################################################################
         ## Local-timestepping information
@@ -323,7 +327,7 @@ class Domain(Generic_Domain):
         # Flag: should we update the extrapolation on the next extrapolation call?
         # (Only do this if one or more of the fluxes on that triangle will be computed on
         # the next timestep, assuming only the flux computation uses edge/vertex values)
-        self.update_extrapolation=num.zeros(len(self.edge_coordinates[:,0])/3).astype(int)+1
+        self.update_extrapolation=num.zeros(old_div(len(self.edge_coordinates[:,0]),3)).astype(int)+1
 
         # edge_timestep [wavespeed/radius] -- not updated every timestep
         self.edge_timestep=num.zeros(len(self.edge_coordinates[:,0]))+1.0e+100
@@ -2359,14 +2363,14 @@ class Domain(Generic_Domain):
         #U.set_values(uh_C/(h_C + H0/h_C), location='centroids')
         #V.set_values(vh_C/(h_C + H0/h_C), location='centroids')
 
-        factor = h_C/(h_C*h_C + H0)
+        factor = old_div(h_C,(h_C*h_C + H0))
         u_C[:]  = uh_C*factor
         v_C[:]  = vh_C*factor
 
         #U.set_boundary_values(uh_B/(h_B + H0/h_B))
         #V.set_boundary_values(vh_B/(h_B + H0/h_B))
 
-        factor = h_B/(h_B*h_B + H0)
+        factor = old_div(h_B,(h_B*h_B + H0))
         u_B[:]  = uh_B*factor
         v_B[:]  = vh_B*factor
 
@@ -2472,7 +2476,7 @@ class Domain(Generic_Domain):
 
                 if save_checkpoint:
                     pickle_name = os.path.join(self.checkpoint_dir,self.get_name())+'_'+str(self.get_time())+'.pickle'
-                    cPickle.dump(self, open(pickle_name, 'wb'))
+                    pickle.dump(self, open(pickle_name, 'wb'))
 
                     barrier()
                     self.walltime_prev = time.time()
@@ -2574,9 +2578,9 @@ class Domain(Generic_Domain):
             Cvh = vh.get_values(location='centroids', indices=[k])
 
             # Speeds in each direction
-            Vu = Vuh/(Vh + epsilon)
-            Eu = Euh/(Eh + epsilon)
-            Cu = Cuh/(Ch + epsilon)
+            Vu = old_div(Vuh,(Vh + epsilon))
+            Eu = old_div(Euh,(Eh + epsilon))
+            Cu = old_div(Cuh,(Ch + epsilon))
             name = 'U'
             message  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n' \
                  % (name.ljust(qwidth), Vu[0], Vu[1], Vu[2])
@@ -2589,9 +2593,9 @@ class Domain(Generic_Domain):
 
             msg += message
 
-            Vv = Vvh/(Vh + epsilon)
-            Ev = Evh/(Eh + epsilon)
-            Cv = Cvh/(Ch + epsilon)
+            Vv = old_div(Vvh,(Vh + epsilon))
+            Ev = old_div(Evh,(Eh + epsilon))
+            Cv = old_div(Cvh,(Ch + epsilon))
             name = 'V'
             message  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n' \
                  % (name.ljust(qwidth), Vv[0], Vv[1], Vv[2])
@@ -2606,9 +2610,9 @@ class Domain(Generic_Domain):
 
             # Froude number in each direction
             name = 'Froude (x)'
-            Vfx = Vu/(num.sqrt(g*Vh) + epsilon)
-            Efx = Eu/(num.sqrt(g*Eh) + epsilon)
-            Cfx = Cu/(num.sqrt(g*Ch) + epsilon)
+            Vfx = old_div(Vu,(num.sqrt(g*Vh) + epsilon))
+            Efx = old_div(Eu,(num.sqrt(g*Eh) + epsilon))
+            Cfx = old_div(Cu,(num.sqrt(g*Ch) + epsilon))
 
             message  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
                  % (name.ljust(qwidth), Vfx[0], Vfx[1], Vfx[2])
@@ -2622,9 +2626,9 @@ class Domain(Generic_Domain):
             msg += message
 
             name = 'Froude (y)'
-            Vfy = Vv/(num.sqrt(g*Vh) + epsilon)
-            Efy = Ev/(num.sqrt(g*Eh) + epsilon)
-            Cfy = Cv/(num.sqrt(g*Ch) + epsilon)
+            Vfy = old_div(Vv,(num.sqrt(g*Vh) + epsilon))
+            Efy = old_div(Ev,(num.sqrt(g*Eh) + epsilon))
+            Cfy = old_div(Cv,(num.sqrt(g*Ch) + epsilon))
 
             message  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
                  % (name.ljust(qwidth), Vfy[0], Vfy[1], Vfy[2])
@@ -2830,7 +2834,7 @@ class Domain(Generic_Domain):
         vh = self.quantities['ymomentum'].centroid_values
         d =  self.quantities['stage'].centroid_values - self.quantities['elevation'].centroid_values
         d = num.maximum(d, threshold_depth)
-        v = ( (uh)**2 + (vh)**2)**0.5/d
+        v = old_div(( (uh)**2 + (vh)**2)**0.5,d)
         v = v*(d>threshold_depth)
 
         for i in range(numprocs):
@@ -2838,7 +2842,7 @@ class Domain(Generic_Domain):
                 print('    Processor ', myid)
                 gravSpeed=(g*d)**0.5
                 waveSpeed = abs(v)+gravSpeed
-                localTS=self.radii/num.maximum(waveSpeed, epsilon)
+                localTS=old_div(self.radii,num.maximum(waveSpeed, epsilon))
                 controlling_pt_ind=localTS.argmin()
                 print('    * Smallest LocalTS is: ', localTS[controlling_pt_ind])
                 print('     -- Location: ', round(self.centroid_coordinates[controlling_pt_ind,0]+self.geo_reference.xllcorner,2),\
@@ -3212,7 +3216,7 @@ def linear_friction(domain):
     for k in range(num_tris):
         if tau[k] >= eps:
             if h[k] >= eps:
-                S = -tau[k]/h[k]
+                S = old_div(-tau[k],h[k])
 
                 #Update momentum
                 xmom_update[k] += S*uh[k]
@@ -3273,7 +3277,7 @@ def depth_dependent_friction(domain, default_friction,
         elif d_vals[i] >= d2:
             ddf = n2
         else:
-            ddf = n1 + ((n2-n1)/(d2-d1))*(d_vals[i]-d1)
+            ddf = n1 + (old_div((n2-n1),(d2-d1)))*(d_vals[i]-d1)
 
         # check sanity of result
         if (ddf  < 0.010 or \

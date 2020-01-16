@@ -4,6 +4,8 @@ Proof of concept sparse matrix code
 from __future__ import print_function
 from __future__ import absolute_import
 
+from builtins import range
+from builtins import object
 import numpy as num
 
 
@@ -86,7 +88,7 @@ class Sparse:
         #FIXME: Use the copy module instead
         new = Sparse(self.M,self.N)
 
-        for key in self.Data.keys():
+        for key in list(self.Data.keys()):
             i, j = key
 
             new[i,j] = self.Data[i,j]
@@ -132,7 +134,7 @@ class Sparse:
             R = num.zeros(self.M, num.float) #Result
 
             # Multiply nonzero elements
-            for key in self.Data.keys():
+            for key in list(self.Data.keys()):
                 i, j = key
 
                 R[i] += self.Data[key]*B[j]
@@ -145,7 +147,7 @@ class Sparse:
 	    for col in range(R.shape[1]):
 	        # For each column
 
-                for key in self.Data.keys():
+                for key in list(self.Data.keys()):
                     i, j = key
 
                     R[i, col] += self.Data[key]*B[j, col]
@@ -162,7 +164,7 @@ class Sparse:
         """
 
         new = other.copy()
-        for key in self.Data.keys():
+        for key in list(self.Data.keys()):
             i, j = key
 
             new[i,j] += self.Data[key]
@@ -182,7 +184,7 @@ class Sparse:
         else:
             new = self.copy()
             #Multiply nonzero elements
-            for key in new.Data.keys():
+            for key in list(new.Data.keys()):
                 i, j = key
 
                 new.Data[key] = other*new.Data[key]
@@ -210,7 +212,7 @@ class Sparse:
             R = num.zeros((self.N,), num.float) #Result
 
             #Multiply nonzero elements
-            for key in self.Data.keys():
+            for key in list(self.Data.keys()):
                 i, j = key
 
                 R[j] += self.Data[key]*B[i]
@@ -220,7 +222,7 @@ class Sparse:
 
         return R
 
-class Sparse_CSR:
+class Sparse_CSR(object):
 
     def __init__(self, A=None, data=None, Colind=None, rowptr=None, m=None, n=None):
         """Create sparse matrix in csr format.
@@ -252,7 +254,7 @@ class Sparse_CSR:
 		
         if isinstance(A,Sparse):
 
-            keys = A.Data.keys()
+            keys = list(A.Data.keys())
             keys.sort()
             nnz = len(keys)
             data    = num.zeros ( (nnz,), num.float)

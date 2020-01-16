@@ -5,6 +5,8 @@ Some CSV file utility routines.
 '''
 
 
+from builtins import next
+from builtins import range
 from future.utils import raise_
 import csv
 
@@ -113,7 +115,7 @@ def merge_csv_key_values(file_title_list, output_file,
     
     # write data rows to output file
     file_kv_list = [x[2] for x in file_data]
-    for i in xrange(num_rows):
+    for i in range(num_rows):
         data_row = [file_kv_list[0][i][0]]
         for file_data in file_kv_list:
             data_row.append(file_data[i][1])

@@ -51,6 +51,7 @@ Here's a DTD format, we might implement one day
 from __future__ import print_function
 from __future__ import absolute_import
 
+from builtins import str
 from future.utils import raise_
 from os import remove, walk, sep
 from os.path import join, splitext
@@ -270,7 +271,7 @@ def license_file_is_valid(license_filename, data_filename,
         msg += ' at the root level. They are\n'
         msg += '  <?xml version="1.0" encoding="iso-8859-1"?>\n'
         msg += '  <ga_license_file>\n'
-        msg += 'The second element was found to be %s' %doc.keys()
+        msg += 'The second element was found to be %s' %list(doc.keys())
         raise_(WrongTags, msg)
     
 
@@ -281,17 +282,17 @@ def license_file_is_valid(license_filename, data_filename,
     elements = doc['ga_license_file']
     if not elements.has_key('metadata'):
         msg = 'Tag %s must have the element "metadata"'\
-              %doc.keys()[0]
+              %list(doc.keys())[0]
         msg += 'The element found was %s' %elements[0].nodeName
         raise_(WrongTags, msg)
 
     if not elements.has_key('datafile'):
         msg = 'Tag %s must have the element "datafile"'\
-              %doc.keys()[0]
+              %list(doc.keys())[0]
         msg += 'The element found was %s' %elements[0].nodeName
         raise_(WrongTags, msg)    
 
-    for key in elements.keys():
+    for key in list(elements.keys()):
         msg = 'Invalid tag: %s' %key
         if not key in ['metadata', 'datafile']:
             raise_(WrongTags, msg)                    

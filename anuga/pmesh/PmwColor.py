@@ -24,35 +24,41 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
+from __future__ import division
 
 
 # Functions for converting colors and modifying the color scheme of
 # an application.
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import math
 import string
 import sys
-import Tkinter
+import tkinter
 
 _PI = math.pi
 _TWO_PI = _PI * 2
-_THIRD_PI = _PI / 3
-_SIXTH_PI = _PI / 6
+_THIRD_PI = old_div(_PI, 3)
+_SIXTH_PI = old_div(_PI, 6)
 _MAX_RGB = float(256 * 256 - 1) # max size of rgb values returned from Tk
 
 def setscheme(root, background=None, **kw):
     root = root._root()
     palette = _calcPalette(*(root, background,), **kw)
-    for option, value in palette.items():
+    for option, value in list(palette.items()):
 	root.option_add('*' + option, value, 'widgetDefault')
 
 def getdefaultpalette(root):
     # Return the default values of all options, using the defaults
     # from a few widgets.
 
-    ckbtn = Tkinter.Checkbutton(root)
-    entry = Tkinter.Entry(root)
-    scbar = Tkinter.Scrollbar(root)
+    ckbtn = tkinter.Checkbutton(root)
+    entry = tkinter.Entry(root)
+    scbar = tkinter.Scrollbar(root)
 
     orig = {}
     orig['activeBackground'] = str(ckbtn.configure('activebackground')[4])
@@ -114,7 +120,7 @@ def bhi2saturation(brightness, hue, intensity):
         hue = hue + _TWO_PI
     while hue >= _TWO_PI:
         hue = hue - _TWO_PI
-    hue = hue / _THIRD_PI
+    hue = old_div(hue, _THIRD_PI)
     f = hue - math.floor(hue)
 
     pp = intensity
@@ -130,7 +136,7 @@ def bhi2saturation(brightness, hue, intensity):
     elif hue == 4: rgb = (pt, pp, pv)
     elif hue == 5: rgb = (pv, pp, pq)
 
-    return (intensity - brightness) / rgb2brightness(rgb)
+    return old_div((intensity - brightness), rgb2brightness(rgb))
 
 def hsi2rgb(hue, saturation, intensity):
     i = intensity
@@ -141,7 +147,7 @@ def hsi2rgb(hue, saturation, intensity):
 	    hue = hue + _TWO_PI
 	while hue >= _TWO_PI:
 	    hue = hue - _TWO_PI
-	hue = hue / _THIRD_PI
+	hue = old_div(hue, _THIRD_PI)
 	f = hue - math.floor(hue)
 	p = i * (1.0 - saturation)
 	q = i * (1.0 - saturation * f)
@@ -191,7 +197,7 @@ def rgb2hsi(rgb):
 
     intensity = maxc
     if maxc != 0:
-      saturation  = (maxc - minc) / maxc
+      saturation  = old_div((maxc - minc), maxc)
     else:
       saturation = 0.0
 
@@ -199,7 +205,7 @@ def rgb2hsi(rgb):
     if saturation != 0.0:
 	c = []
 	for index in range(3):
-	    c.append((maxc - rgb[index]) / (maxc - minc))
+	    c.append(old_div((maxc - rgb[index]), (maxc - minc)))
 
 	if rgb[0] == maxc:
 	    hue = c[2] - c[1]
@@ -222,7 +228,7 @@ def name2rgb(root, colorName, asInt = 0):
 	# the colormap is full - it will return the rbg values of the
 	# closest color available.
         colorName = colorName[1:]
-        digits = len(colorName) / 3
+        digits = old_div(len(colorName), 3)
         factor = 16 ** (4 - digits)
         rgb = (
             string.atoi(colorName[0:digits], 16) * factor,
@@ -234,14 +240,14 @@ def name2rgb(root, colorName, asInt = 0):
 	rgb = root.winfo_rgb(colorName)
 
     if not asInt:
-        rgb = (rgb[0] / _MAX_RGB, rgb[1] / _MAX_RGB, rgb[2] / _MAX_RGB)
+        rgb = (old_div(rgb[0], _MAX_RGB), old_div(rgb[1], _MAX_RGB), old_div(rgb[2], _MAX_RGB))
     return rgb
 
 def _calcPalette(root, background=None, **kw):
     # Create a map that has the complete new palette.  If some colors
     # aren't specified, compute them from other colors that are specified.
     new = {}
-    for key, value in kw.items():
+    for key, value in list(kw.items()):
 	new[key] = value
     if background is not None:
 	new['background'] = background
@@ -273,7 +279,7 @@ def _calcPalette(root, background=None, **kw):
     for i in range(3):
 	lighterBg.append(bg[i])
 	inc1 = lighterBg[i] * 0.09
-	inc2 = (1.0 - lighterBg[i]) / 3
+	inc2 = old_div((1.0 - lighterBg[i]), 3)
 	if inc1 > inc2:
 	    lighterBg[i] = lighterBg[i] + inc1
 	else:
@@ -313,12 +319,12 @@ def spectrum(numColors, correction = 1.0, saturation = 1.0, intensity = 1.0,
     for index in range(numColors):
 	if extraOrange:
 	    if index < 2 * division:
-		hue = index / division
+		hue = old_div(index, division)
 	    else:
-		hue = 2 + 2 * (index - 2 * division) / division
+		hue = 2 + old_div(2 * (index - 2 * division), division)
 	    hue = hue * _SIXTH_PI
 	else:
-	    hue = index * _TWO_PI / numColors
+	    hue = old_div(index * _TWO_PI, numColors)
 	if returnHues:
 	    colorList.append(hue)
 	else:
@@ -333,7 +339,7 @@ def correct(rgb, correction):
     correction = float(correction)
     rtn = []
     for index in range(3):
-	rtn.append((1 - (1 - rgb[index]) ** correction) ** (1 / correction))
+	rtn.append((1 - (1 - rgb[index]) ** correction) ** (old_div(1, correction)))
     return rtn
 
 #==============================================================================
@@ -348,7 +354,7 @@ def _recolorTree(widget, oldpalette, newcolors):
     # are named after widget configuration options and the values are
     # the new value for that option.
 
-    for dbOption in newcolors.keys():
+    for dbOption in list(newcolors.keys()):
         option = string.lower(dbOption)
         try:
             value = str(widget.cget(option))
@@ -374,13 +380,13 @@ def bordercolors(root, colorName):
     lightRGB = []
     darkRGB = []
     for value in name2rgb(root, colorName, 1):
-        value40pc = (14 * value) / 10
+        value40pc = old_div((14 * value), 10)
         if value40pc > _MAX_RGB:
             value40pc = _MAX_RGB
-        valueHalfWhite = (_MAX_RGB + value) / 2;
+        valueHalfWhite = old_div((_MAX_RGB + value), 2);
         lightRGB.append(max(value40pc, valueHalfWhite))
 
-        darkValue = (60 * value) / 100
+        darkValue = old_div((60 * value), 100)
         darkRGB.append(darkValue)
 
     return (
