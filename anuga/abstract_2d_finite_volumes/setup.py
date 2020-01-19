@@ -12,43 +12,43 @@ def local_fun():
     pass
 
 def configuration(parent_package='',top_path=None):
-	from numpy.distutils.misc_util import Configuration
+    from numpy.distutils.misc_util import Configuration
 
- 	config = Configuration('abstract_2d_finite_volumes', parent_package, top_path)
+    config = Configuration('abstract_2d_finite_volumes', parent_package, top_path)
 
- 	config.add_data_dir('tests')
+    config.add_data_dir('tests')
 
- 	#util_dir = os.path.abspath(join(os.path.dirname(__file__),'..','utilities'))
- 	#runtime_dir = os.path.abspath(join(os.path.dirname(__file__),'..','runtime_libs')) 
-   
- 	util_dir = join('..','utilities') 
- 
- 	config.add_extension('neighbour_mesh_ext',
-                    	sources=['neighbour_mesh_ext.pyx'],
-                      	include_dirs=[util_dir])
-    
- 	config.add_extension('mesh_factory_ext',
-                     	sources=['mesh_factory_ext.pyx'],
-                     	include_dirs=[util_dir])
+    #util_dir = os.path.abspath(join(os.path.dirname(__file__),'..','utilities'))
+    #runtime_dir = os.path.abspath(join(os.path.dirname(__file__),'..','runtime_libs'))
 
- 	config.add_extension('neighbour_table_ext',
-                       	sources=['neighbour_table_ext.pyx'],
-                       	extra_compile_args=["-std=c++11"],
-                       	language='c++',
-                       	include_dirs=[util_dir])
+    util_dir = join('..','utilities')
 
- 	config.add_extension('pmesh2domain_ext',
-                       	sources=['pmesh2domain_ext.pyx'],
-                       	include_dirs=[util_dir])
+    config.add_extension('neighbour_mesh_ext',
+                        sources=['neighbour_mesh_ext.pyx'],
+                        include_dirs=[util_dir])
 
- 	config.add_extension('quantity_ext',
-                       	sources=['quantity_ext.pyx'],
-                       	include_dirs=[util_dir])
+    config.add_extension('mesh_factory_ext',
+                         sources=['mesh_factory_ext.pyx'],
+                         include_dirs=[util_dir])
 
- 	config.ext_modules = cythonize(config.ext_modules,annotate=True)
-    
- 	return config
-    
+    config.add_extension('neighbour_table_ext',
+                           sources=['neighbour_table_ext.pyx'],
+                           extra_compile_args=["-std=c++11"],
+                           language='c++',
+                           include_dirs=[util_dir])
+
+    config.add_extension('pmesh2domain_ext',
+                           sources=['pmesh2domain_ext.pyx'],
+                           include_dirs=[util_dir])
+
+    config.add_extension('quantity_ext',
+                           sources=['quantity_ext.pyx'],
+                           include_dirs=[util_dir])
+
+    config.ext_modules = cythonize(config.ext_modules,annotate=True)
+
+    return config
+
 if __name__ == '__main__':
-  	from numpy.distutils.core import setup
- 	setup(configuration=configuration)
+     from numpy.distutils.core import setup
+     setup(configuration=configuration)

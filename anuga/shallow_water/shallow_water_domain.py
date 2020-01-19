@@ -1148,10 +1148,10 @@ class Domain(Generic_Domain):
 
         self.max_flux_update_frequency=2**nlevels
 
-        if(self.max_flux_update_frequency is not 1):
-            if self.timestepping_method is not 'euler':
+        if(self.max_flux_update_frequency != 1):
+            if self.timestepping_method != 'euler':
                 raise Exception('Local extrapolation and flux updating only supported with euler timestepping')
-            if self.compute_fluxes_method is not 'DE':
+            if self.compute_fluxes_method != 'DE':
                 raise Exception('Local extrapolation and flux updating only supported for discontinuous flow algorithms')
 
 
@@ -2790,7 +2790,7 @@ class Domain(Generic_Domain):
         """
         from anuga import myid
 
-        if(self.compute_fluxes_method is not 'DE'):
+        if(self.compute_fluxes_method != 'DE'):
             if(myid==0):
                 print('Water_volume_statistics only supported for DE algorithm ')
             return
