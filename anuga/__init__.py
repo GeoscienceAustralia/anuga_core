@@ -334,6 +334,9 @@ else:
     # NetCDF changes stdout to the terminal
     # This resets it
     # --------------------------------------
-    from importlib import reload
+    try:
+        from importlib import reload
+    except:
+        pass
     reload(sys)
     sys.stdout = _stdout
