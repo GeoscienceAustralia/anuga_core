@@ -87,7 +87,7 @@ def genMesh(np.ndarray pointlist not None,\
 
     in_t.numberoftriangles = 0
     in_t.trianglelist = <int* >NULL
-    in_t.numberoftriangleattributes = 0;
+    in_t.numberoftriangleattributes = 0
     in_t.triangleattributelist = <REAL* >NULL
     in_t.trianglearealist = <REAL* >NULL
     in_t.neighborlist = <int* >NULL
@@ -129,7 +129,11 @@ def genMesh(np.ndarray pointlist not None,\
     out_t.holelist = <REAL* >NULL
     out_t.regionlist = <REAL* >NULL
 
+    print ('Before triangulate')
+
     triangulate(mod, &in_t, &out_t, <triangulateio* >NULL)
+
+    print('After triangulate')
 
     dimensions = <np.npy_intp* > malloc(2 * sizeof(np.npy_intp))
 

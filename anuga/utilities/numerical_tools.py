@@ -243,7 +243,7 @@ def ensure_numeric(A, typecode=None):
         A:None.      Return None
 
         typecode:    numeric type. If specified, use this in the conversion.
-                     If not, let numeric package decide.
+                     If not, let numpy package decide.
                      typecode will always be one of num.float, num.int, etc.
 
     Note that num.array(A, dtype) will sometimes copy.  Use 'copy=False' to

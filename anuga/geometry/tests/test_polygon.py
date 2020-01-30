@@ -9,17 +9,17 @@ import unittest
 import os
 import numpy as num
 from anuga.utilities.numerical_tools import ensure_numeric
-from anuga.utilities.system_tools import get_pathname_from_package
+from anuga.utilities.system_tools import get_anuga_pathname
 
 from anuga.geometry.polygon import _poly_xy, separate_points_by_polygon, \
-                    populate_polygon, polygon_area, is_inside_polygon, \
-                    read_polygon, point_on_line, point_in_polygon, \
-                    plot_polygons, outside_polygon, is_outside_polygon, \
-                    intersection, is_complex, polygon_overlap, not_polygon_overlap,\
-                    line_intersect, not_line_intersect,\
-                    is_inside_triangle, interpolate_polyline, inside_polygon, \
-                    in_and_outside_polygon
-                    
+    populate_polygon, polygon_area, is_inside_polygon, \
+    read_polygon, point_on_line, point_in_polygon, \
+    plot_polygons, outside_polygon, is_outside_polygon, \
+    intersection, is_complex, polygon_overlap, not_polygon_overlap,\
+    line_intersect, not_line_intersect,\
+    is_inside_triangle, interpolate_polyline, inside_polygon, \
+    in_and_outside_polygon
+
 from anuga.geometry.polygon_function import Polygon_function
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data
@@ -46,14 +46,14 @@ class Test_Polygon(unittest.TestCase):
             try:
                 compile(FN)
             except:
-                raise_(Exception, 'Could not compile %s' %FN)
+                raise_(Exception, 'Could not compile %s' % FN)
             else:
                 import anuga.geometry.polygon_ext as polygon_ext
 
     # Polygon stuff
     def test_polygon_function_constants(self):
-        p1 = [[0,0], [10,0], [10,10], [0,10]]
-        p2 = [[0,0], [10,10], [15,5], [20, 10], [25,0], [30,10], [40,-10]]
+        p1 = [[0, 0], [10, 0], [10, 10], [0, 10]]
+        p2 = [[0, 0], [10, 10], [15, 5], [20, 10], [25, 0], [30, 10], [40, -10]]
 
         f = Polygon_function([(p1, 1.0)])
         z = f([5, 5, 27, 35], [5, 9, 8, -5])    # Two first inside p1
@@ -72,25 +72,27 @@ class Test_Polygon(unittest.TestCase):
         from os import sep, getenv
 
         # Get path where this test is run
-        path = get_pathname_from_package('anuga.utilities')
+        path = get_anuga_pathname()
 
         # Form absolute filename and read
-        filename = os.path.join( path, 'tests', 'data', 'mainland_only.csv')
+        filename = os.path.join(
+            path, 'utilities', 'tests', 'data', 'mainland_only.csv')
         p1 = read_polygon(filename)
 
         f = Polygon_function([(p1, 10.0)])
-        z = f([430000, 480000], [490000, 7720000]) # 1st outside, 2nd inside
+        z = f([430000, 480000], [490000, 7720000])  # 1st outside, 2nd inside
 
         assert num.allclose(z, [0, 10])
 
     def test_read_polygon_complex(self):
         from os import sep, getenv
 
-        # Get path where this test is run
-        path = get_pathname_from_package('anuga.utilities')
+        # Get path where anuga installed
+        path = get_anuga_pathname()
 
         # Form absolute filename and read
-        filename = os.path.join( path, 'tests', 'data', 'complex_polygon.csv')
+        filename = os.path.join(
+            path, 'utilities', 'tests', 'data', 'complex_polygon.csv')
         # Should cause an Exception
         try:
             p1 = read_polygon(filename)
@@ -104,26 +106,28 @@ class Test_Polygon(unittest.TestCase):
         # This polygon is not self intersecting, but was interpreted as self
         # intersecting by a previous version of the code
 
-        # Get path where this test is run
-        path = get_pathname_from_package('anuga.utilities')
+        # Get path where anuga installed
+        path = get_anuga_pathname()
 
         # Form absolute filename and read
-        filename = os.path.join( path, 'tests', 'data',  'non_complex_polygon.csv')
+        filename = os.path.join(
+            path, 'utilities', 'tests', 'data',  'non_complex_polygon.csv')
         # Should cause an Exception
         try:
             p1 = read_polygon(filename)
         except Exception:
-            raise Exception('Non-complex polygon should not have raised exception')
-
+            raise Exception(
+                'Non-complex polygon should not have raised exception')
 
     def test_read_polygon_open_complex(self):
         from os import sep, getenv
 
         # Get path where this test is run
-        path = get_pathname_from_package('anuga.utilities')
+        path = get_anuga_pathname()
 
         # Form absolute filename and read
-        filename = os.path.join( path, 'tests', 'data',  'complex_polygon.csv')
+        filename = os.path.join(
+            path, 'utilities', 'tests', 'data',  'complex_polygon.csv')
         # Should not cause an Exception
         p1 = read_polygon(filename, closed=False)
 
@@ -135,17 +139,17 @@ class Test_Polygon(unittest.TestCase):
         geo = Geo_reference(56, 200, 1000)
 
         # Make points 'absolute'
-        p1 = [[200,1000], [210,1000], [210,1010], [200,1010]]
-        p2 = [[200,1000], [210,1010], [215,1005], [220, 1010], [225,1000],
-              [230,1010], [240,990]]
+        p1 = [[200, 1000], [210, 1000], [210, 1010], [200, 1010]]
+        p2 = [[200, 1000], [210, 1010], [215, 1005], [220, 1010], [225, 1000],
+              [230, 1010], [240, 990]]
 
         f = Polygon_function([(p1, 1.0)], geo_reference=geo)
-        z = f([5, 5, 27, 35], [5, 9, 8, -5]) # Two first inside p1
+        z = f([5, 5, 27, 35], [5, 9, 8, -5])  # Two first inside p1
 
         assert num.allclose(z, [1, 1, 0, 0])
 
         f = Polygon_function([(p2, 2.0)], geo_reference=geo)
-        z = f([5, 5, 27, 35], [5, 9, 8, -5]) # First and last inside p2
+        z = f([5, 5, 27, 35], [5, 9, 8, -5])  # First and last inside p2
         assert num.allclose(z, [2, 0, 0, 2])
 
         # Combined
@@ -161,11 +165,11 @@ class Test_Polygon(unittest.TestCase):
     def test_polygon_function_callable(self):
         """Check that values passed into Polygon_function can be callable."""
 
-        p1 = [[0,0], [10,0], [10,10], [0,10]]
-        p2 = [[0,0], [10,10], [15,5], [20, 10], [25,0], [30,10], [40,-10]]
+        p1 = [[0, 0], [10, 0], [10, 10], [0, 10]]
+        p2 = [[0, 0], [10, 10], [15, 5], [20, 10], [25, 0], [30, 10], [40, -10]]
 
         f = Polygon_function([(p1, simple_function)])
-        z = f([5, 5, 27, 35], [5, 9, 8, -5]) # Two first inside p1
+        z = f([5, 5, 27, 35], [5, 9, 8, -5])  # Two first inside p1
         assert num.allclose(z, [10, 14, 0, 0])
 
         # Combined
@@ -174,7 +178,7 @@ class Test_Polygon(unittest.TestCase):
         assert num.allclose(z, [2, 14, 0, 2])
 
         # Combined w default
-        f = Polygon_function([(p1, simple_function), (p2, 2.0)], default = 3.14)
+        f = Polygon_function([(p1, simple_function), (p2, 2.0)], default=3.14)
         z = f([5, 5, 27, 35], [5, 9, 8, -5])
         assert num.allclose(z, [2, 14, 3.14, 2])
 
@@ -186,36 +190,36 @@ class Test_Polygon(unittest.TestCase):
 
     def test_point_on_line(self):
         # Endpoints first
-        assert point_on_line([0,0], [[0,0], [1,0]])
-        assert point_on_line([1,0], [[0,0], [1,0]])
+        assert point_on_line([0, 0], [[0, 0], [1, 0]])
+        assert point_on_line([1, 0], [[0, 0], [1, 0]])
 
         # Endpoints first - non-simple
-        assert point_on_line([-0.1,0.0], [[-0.1,0.0], [1.5,0.6]])
-        assert point_on_line([1.5,0.6], [[-0.1,0.0], [1.5,0.6]])
+        assert point_on_line([-0.1, 0.0], [[-0.1, 0.0], [1.5, 0.6]])
+        assert point_on_line([1.5, 0.6], [[-0.1, 0.0], [1.5, 0.6]])
 
         # Then points on line
-        assert point_on_line([0.5,0], [[0,0], [1,0]])
-        assert point_on_line([0,0.5], [[0,1], [0,0]])
-        assert point_on_line([1,0.5], [[1,1], [1,0]])
-        assert point_on_line([0.5,0.5], [[0,0], [1,1]])
+        assert point_on_line([0.5, 0], [[0, 0], [1, 0]])
+        assert point_on_line([0, 0.5], [[0, 1], [0, 0]])
+        assert point_on_line([1, 0.5], [[1, 1], [1, 0]])
+        assert point_on_line([0.5, 0.5], [[0, 0], [1, 1]])
 
         # Then points not on line
-        assert not point_on_line([0.5,0], [[0,1], [1,1]])
-        assert not point_on_line([0,0.5], [[0,0], [1,1]])
+        assert not point_on_line([0.5, 0], [[0, 1], [1, 1]])
+        assert not point_on_line([0, 0.5], [[0, 0], [1, 1]])
 
         # From real example that failed
-        assert not point_on_line([40,50], [[40,20], [40,40]])
+        assert not point_on_line([40, 50], [[40, 20], [40, 40]])
 
         # From real example that failed
-        assert not point_on_line([40,19], [[40,20], [40,40]])
+        assert not point_on_line([40, 19], [[40, 20], [40, 40]])
 
         # Degenerate line
-        assert point_on_line([40,19], [[40,19], [40,19]])
-        assert not point_on_line([40,19], [[40,40], [40,40]])
+        assert point_on_line([40, 19], [[40, 19], [40, 19]])
+        assert not point_on_line([40, 19], [[40, 40], [40, 40]])
 
     def test_is_inside_polygon_main(self):
         # Simplest case: Polygon is the unit square
-        polygon = [[0,0], [1,0], [1,1], [0,1]]
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
 
         assert is_inside_polygon((0.5, 0.5), polygon)
         assert not is_inside_polygon((0.5, 1.5), polygon)
@@ -236,66 +240,65 @@ class Test_Polygon(unittest.TestCase):
 
     def test_inside_polygon_main_1(self):
         """test_is_inside_polygon
-        
+
         Test fast version of of is_inside_polygon
         """
 
         # Simplest case: Polygon is the unit square
-        polygon = [[0,0], [1,0], [1,1], [0,1]]
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
 
-        assert is_inside_polygon( (0.5, 0.5), polygon )
-        assert not is_inside_polygon( (0.5, 1.5), polygon )
-        assert not is_inside_polygon( (0.5, -0.5), polygon )
-        assert not is_inside_polygon( (-0.5, 0.5), polygon )
-        assert not is_inside_polygon( (1.5, 0.5), polygon )
+        assert is_inside_polygon((0.5, 0.5), polygon)
+        assert not is_inside_polygon((0.5, 1.5), polygon)
+        assert not is_inside_polygon((0.5, -0.5), polygon)
+        assert not is_inside_polygon((-0.5, 0.5), polygon)
+        assert not is_inside_polygon((1.5, 0.5), polygon)
 
         # Try point on borders
-        assert is_inside_polygon( (1., 0.5), polygon, closed=True)
-        assert is_inside_polygon( (0.5, 1), polygon, closed=True)
-        assert is_inside_polygon( (0., 0.5), polygon, closed=True)
-        assert is_inside_polygon( (0.5, 0.), polygon, closed=True)
+        assert is_inside_polygon((1., 0.5), polygon, closed=True)
+        assert is_inside_polygon((0.5, 1), polygon, closed=True)
+        assert is_inside_polygon((0., 0.5), polygon, closed=True)
+        assert is_inside_polygon((0.5, 0.), polygon, closed=True)
 
-        assert not is_inside_polygon( (0.5, 1), polygon, closed=False)
-        assert not is_inside_polygon( (0., 0.5), polygon, closed=False)
-        assert not is_inside_polygon( (0.5, 0.), polygon, closed=False)
-        assert not is_inside_polygon( (1., 0.5), polygon, closed=False)
-
-
+        assert not is_inside_polygon((0.5, 1), polygon, closed=False)
+        assert not is_inside_polygon((0., 0.5), polygon, closed=False)
+        assert not is_inside_polygon((0.5, 0.), polygon, closed=False)
+        assert not is_inside_polygon((1., 0.5), polygon, closed=False)
 
     def test_inside_polygon_main_2(self):
         # Simplest case: Polygon is the unit square
-        polygon = [[0,0], [1,0], [1,1], [0,1]]
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
 
         # From real example (that failed)
-        polygon = [[20,20], [40,20], [40,40], [20,40]]
+        polygon = [[20, 20], [40, 20], [40, 40], [20, 40]]
         points = [[40, 50]]
         res = inside_polygon(points, polygon)
         assert len(res) == 0
 
-        polygon = [[20.,20.], [40.,20.], [40.,40.], [20.,40.]]
+        polygon = [[20., 20.], [40., 20.], [40., 40.], [20., 40.]]
         points = [[25, 25], [30, 20], [40, 50], [90, 20], [40, 90]]
         res = inside_polygon(points, polygon)
         assert len(res) == 2
-        assert num.allclose(res, [0,1])
+        assert num.allclose(res, [0, 1])
 
         # More convoluted and non convex polygon
-        polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
-        assert is_inside_polygon( (0.5, 0.5), polygon )
-        assert is_inside_polygon( (1, -0.5), polygon )
-        assert is_inside_polygon( (1.5, 0), polygon )
+        polygon = [[0, 0], [1, 0], [0.5, -1], [2, -1], [2, 1], [0, 1]]
+        assert is_inside_polygon((0.5, 0.5), polygon)
+        assert is_inside_polygon((1, -0.5), polygon)
+        assert is_inside_polygon((1.5, 0), polygon)
 
-        assert not is_inside_polygon( (0.5, 1.5), polygon )
-        assert not is_inside_polygon( (0.5, -0.5), polygon )
+        assert not is_inside_polygon((0.5, 1.5), polygon)
+        assert not is_inside_polygon((0.5, -0.5), polygon)
 
-        assert is_inside_polygon( (0.5, 0.5), polygon )
-        assert is_inside_polygon( (1, -0.5), polygon )
-        assert is_inside_polygon( (1.5, 0), polygon )
+        assert is_inside_polygon((0.5, 0.5), polygon)
+        assert is_inside_polygon((1, -0.5), polygon)
+        assert is_inside_polygon((1.5, 0), polygon)
 
-        assert not is_inside_polygon( (0.5, 1.5), polygon )
-        assert not is_inside_polygon( (0.5, -0.5), polygon )
+        assert not is_inside_polygon((0.5, 1.5), polygon)
+        assert not is_inside_polygon((0.5, -0.5), polygon)
 
         # Very convoluted polygon
-        polygon = [[0,0], [10,10], [15,5], [20, 10], [25,0], [30,10], [40,-10]]
+        polygon = [[0, 0], [10, 10], [15, 5], [
+            20, 10], [25, 0], [30, 10], [40, -10]]
         assert is_inside_polygon((5, 5), polygon)
         assert is_inside_polygon((17, 7), polygon)
         assert is_inside_polygon((27, 2), polygon)
@@ -305,7 +308,7 @@ class Test_Polygon(unittest.TestCase):
         assert not is_inside_polygon((25, -10), polygon)
 
         # Another combination (that failed)
-        polygon = [[0,0], [10,0], [10,10], [0,10]]
+        polygon = [[0, 0], [10, 0], [10, 10], [0, 10]]
         assert is_inside_polygon((5, 5), polygon)
         assert is_inside_polygon((7, 7), polygon)
         assert not is_inside_polygon((-17, 7), polygon)
@@ -315,8 +318,8 @@ class Test_Polygon(unittest.TestCase):
         assert not is_inside_polygon((35, -5), polygon)
 
         # Multiple polygons
-        polygon = [[0,0], [1,0], [1,1], [0,1], [0,0], [10,10],
-                   [11,10], [11,11], [10,11], [10,10]]
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0], [10, 10],
+                   [11, 10], [11, 11], [10, 11], [10, 10]]
         assert is_inside_polygon((0.5, 0.5), polygon)
         assert is_inside_polygon((10.5, 10.5), polygon)
 
@@ -324,15 +327,15 @@ class Test_Polygon(unittest.TestCase):
         assert not is_inside_polygon((0, 5.5), polygon)
 
         # Polygon with a hole
-        polygon = [[-1,-1], [2,-1], [2,2], [-1,2], [-1,-1],
-                   [0,0], [1,0], [1,1], [0,1], [0,0]]
+        polygon = [[-1, -1], [2, -1], [2, 2], [-1, 2], [-1, -1],
+                   [0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]
 
         assert is_inside_polygon((0, -0.5), polygon)
         assert not is_inside_polygon((0.5, 0.5), polygon)
 
     def test_duplicate_points_being_ok(self):
         # Simplest case: Polygon is the unit square
-        polygon = [[0,0], [1,0], [1,0], [1,0], [1,1], [0,1], [0,0]]
+        polygon = [[0, 0], [1, 0], [1, 0], [1, 0], [1, 1], [0, 1], [0, 0]]
 
         assert is_inside_polygon((0.5, 0.5), polygon)
         assert not is_inside_polygon((0.5, 1.5), polygon)
@@ -352,21 +355,21 @@ class Test_Polygon(unittest.TestCase):
         assert not is_inside_polygon((1., 0.5), polygon, closed=False)
 
         # From real example
-        polygon = [[20,20], [40,20], [40,40], [20,40]]
+        polygon = [[20, 20], [40, 20], [40, 40], [20, 40]]
         points = [[40, 50]]
         res = inside_polygon(points, polygon)
         assert len(res) == 0
 
     def test_inside_polygon_vector_version(self):
         # Now try the vector formulation returning indices
-        polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
+        polygon = [[0, 0], [1, 0], [0.5, -1], [2, -1], [2, 1], [0, 1]]
         points = [[0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
-        res = inside_polygon( points, polygon, verbose=False )
-        assert num.allclose(res, [0,1,2])
+        res = inside_polygon(points, polygon, verbose=False)
+        assert num.allclose(res, [0, 1, 2])
 
     def test_outside_polygon(self):
         # unit square
-        U = [[0,0], [1,0], [1,1], [0,1]]
+        U = [[0, 0], [1, 0], [1, 1], [0, 1]]
 
         # evaluate to False as the point 0.5, 0.5 is inside the unit square
         assert not is_outside_polygon([0.5, 0.5], U)
@@ -378,12 +381,12 @@ class Test_Polygon(unittest.TestCase):
         assert num.allclose(indices, [1])
 
         # One more test of vector formulation returning indices
-        polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
+        polygon = [[0, 0], [1, 0], [0.5, -1], [2, -1], [2, 1], [0, 1]]
         points = [[0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
         res = outside_polygon(points, polygon)
         assert num.allclose(res, [3, 4])
 
-        polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
+        polygon = [[0, 0], [1, 0], [0.5, -1], [2, -1], [2, 1], [0, 1]]
         points = [[0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0],
                   [0.5, 1.5], [0.5, -0.5]]
         res = outside_polygon(points, polygon)
@@ -392,39 +395,41 @@ class Test_Polygon(unittest.TestCase):
 
     def test_outside_polygon2(self):
         # unit square
-        U = [[0,0], [1,0], [1,1], [0,1]]
+        U = [[0, 0], [1, 0], [1, 1], [0, 1]]
 
         # evaluate to False as the point 0.5, 1.0 is inside the unit square
-        assert not outside_polygon([0.5, 1.0], U, closed = True)
+
+        assert outside_polygon([0.5, 1.0], U, closed=True).size == 0
 
         # evaluate to True as the point 0.5, 1.0 is outside the unit square
-        assert is_outside_polygon([0.5, 1.0], U, closed = False)
+        assert is_outside_polygon([0.5, 1.0], U, closed=False)
 
     def test_all_outside_polygon(self):
         """Test case where all points are outside poly"""
 
         # unit square
-        U = [[0,0], [1,0], [1,1], [0,1]]
+        U = [[0, 0], [1, 0], [1, 1], [0, 1]]
 
-        points = [[2,2], [1,3], [-1,1], [0,2]]      # All outside
+        points = [[2, 2], [1, 3], [-1, 1], [0, 2]]      # All outside
 
         indices, count = separate_points_by_polygon(points, U)
         assert count == 0                           # None inside
         assert num.allclose(indices, [3, 2, 1, 0])
 
-        indices = outside_polygon(points, U, closed = True)
+        indices = outside_polygon(points, U, closed=True)
         assert num.allclose(indices, [0, 1, 2, 3])
 
-        indices = inside_polygon(points, U, closed = True)
+        indices = inside_polygon(points, U, closed=True)
         assert num.allclose(indices, [])
 
     def test_all_inside_polygon(self):
         """Test case where all points are inside poly"""
 
         # unit square
-        U = [[0,0], [1,0], [1,1], [0,1]]
+        U = [[0, 0], [1, 0], [1, 1], [0, 1]]
 
-        points = [[0.5,0.5], [0.2,0.3], [0,0.5]]    # All inside (or on edge)
+        # All inside (or on edge)
+        points = [[0.5, 0.5], [0.2, 0.3], [0, 0.5]]
 
         indices, count = separate_points_by_polygon(points, U)
         assert count == 3       # All inside
@@ -436,168 +441,166 @@ class Test_Polygon(unittest.TestCase):
         indices = inside_polygon(points, U, closed=True)
         assert num.allclose(indices, [0, 1, 2])
 
-
     def test_separate_points_by_polygon(self):
         # unit square
-        U = [[0,0], [1,0], [1,1], [0,1]]
+        U = [[0, 0], [1, 0], [1, 1], [0, 1]]
 
         indices, count = separate_points_by_polygon([[0.5, 0.5],
                                                      [1, -0.5],
                                                      [0.3, 0.2]],
                                                     U)
-        assert num.allclose( indices, [0, 2, 1] )
+        assert num.allclose(indices, [0, 2, 1])
         assert count == 2
 
         # One more test of vector formulation returning indices
-        polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
+        polygon = [[0, 0], [1, 0], [0.5, -1], [2, -1], [2, 1], [0, 1]]
         points = [[0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
         res, count = separate_points_by_polygon(points, polygon)
 
         assert num.allclose(res, [0, 1, 2, 4, 3])
         assert count == 3
 
-        polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
-        points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], \
-                        [0.5, -0.5]]
-        res, count = separate_points_by_polygon( points, polygon )
+        polygon = [[0, 0], [1, 0], [0.5, -1], [2, -1], [2, 1], [0, 1]]
+        points = [[0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5],
+                  [0.5, -0.5]]
+        res, count = separate_points_by_polygon(points, polygon)
 
-        assert num.allclose( res, [1,2,3,5,4,0] )
+        assert num.allclose(res, [1, 2, 3, 5, 4, 0])
         assert count == 3
 
-
     def test_polygon_overlap(self):
-        #rectangular polygon, 2 triangles overlap
-        polygon = [[3.,3.],[3.,4.],[5.,4.],[5.,3.]]
-        triangles = [[7.,10.],#does not overlap
-                     [8.,12.],
-                     [9.,10.],
-                     [3., 2.],#intersect
+        # rectangular polygon, 2 triangles overlap
+        polygon = [[3., 3.], [3., 4.], [5., 4.], [5., 3.]]
+        triangles = [[7., 10.],  # does not overlap
+                     [8., 12.],
+                     [9., 10.],
+                     [3., 2.],  # intersect
                      [4., 5.],
                      [5., 3.],
-                     [3., 2.],#intersect
+                     [3., 2.],  # intersect
                      [4., 5.],
                      [5., 2.],
-                     [0., 1.],#polygon inside triangle
+                     [0., 1.],  # polygon inside triangle
                      [5., 50.],
                      [10., 1.],
-                     [3.5, 3.25],#triangle inside polygon
+                     [3.5, 3.25],  # triangle inside polygon
                      [4., 3.75],
                      [4.5, 3.25]]
-                     
-        indices = polygon_overlap(triangles, polygon)        
-        assert num.allclose([1, 2, 3, 4], indices)
-                     
-        #5 sided polygon, 2 triangles overlap
-        polygon = [[3.,3.],[3.,4.],[5.,4.],[5.5, 3.5],[5.,3.]]
-        triangles = [[7.,10.],#does not overlap
-                     [8.,12.],
-                     [9.,10.],
-                     [3., 2.],#intersect
-                     [4., 5.],
-                     [5., 3.],
-                     [3., 2.],#intersect
-                     [4., 5.],
-                     [5., 2.],
-                     [0., 1.],#polygon inside triangle
-                     [5., 50.],
-                     [10., 1.],
-                     [3.5, 3.25],#triangle inside polygon
-                     [4., 3.75],
-                     [4.5, 3.25]]
-    
+
         indices = polygon_overlap(triangles, polygon)
         assert num.allclose([1, 2, 3, 4], indices)
-              
+
+        # 5 sided polygon, 2 triangles overlap
+        polygon = [[3., 3.], [3., 4.], [5., 4.], [5.5, 3.5], [5., 3.]]
+        triangles = [[7., 10.],  # does not overlap
+                     [8., 12.],
+                     [9., 10.],
+                     [3., 2.],  # intersect
+                     [4., 5.],
+                     [5., 3.],
+                     [3., 2.],  # intersect
+                     [4., 5.],
+                     [5., 2.],
+                     [0., 1.],  # polygon inside triangle
+                     [5., 50.],
+                     [10., 1.],
+                     [3.5, 3.25],  # triangle inside polygon
+                     [4., 3.75],
+                     [4.5, 3.25]]
+
+        indices = polygon_overlap(triangles, polygon)
+        assert num.allclose([1, 2, 3, 4], indices)
+
     def test_not_polygon_overlap(self):
-        #rectangular polygon, 2 triangles overlap
-        polygon = [[3.,3.],[3.,4.],[5.,4.],[5.,3.]]
-        triangles = [[7.,10.],#does not overlap
-                     [8.,12.],
-                     [9.,10.],
-                     [3., 2.],#intersect
+        # rectangular polygon, 2 triangles overlap
+        polygon = [[3., 3.], [3., 4.], [5., 4.], [5., 3.]]
+        triangles = [[7., 10.],  # does not overlap
+                     [8., 12.],
+                     [9., 10.],
+                     [3., 2.],  # intersect
                      [4., 5.],
                      [5., 3.],
-                     [3., 2.],#intersect
+                     [3., 2.],  # intersect
                      [4., 5.],
                      [5., 2.],
-                     [0., 1.],#polygon inside triangle
+                     [0., 1.],  # polygon inside triangle
                      [5., 50.],
                      [10., 1.],
-                     [3.5, 3.25],#triangle inside polygon
+                     [3.5, 3.25],  # triangle inside polygon
                      [4., 3.75],
                      [4.5, 3.25]]
-                     
-        indices = not_polygon_overlap(triangles, polygon)        
-        assert num.allclose([0], indices)
-                     
-        #5 sided polygon, 2 triangles overlap
-        polygon = [[3.,3.],[3.,4.],[5.,4.],[5.5, 3.5],[5.,3.]]
-        triangles = [[7.,10.],#does not overlap
-                     [8.,12.],
-                     [9.,10.],
-                     [3., 2.],#intersect
-                     [4., 5.],
-                     [5., 3.],
-                     [3., 2.],#intersect
-                     [4., 5.],
-                     [5., 2.],
-                     [0., 1.],#polygon inside triangle
-                     [5., 50.],
-                     [10., 1.],
-                     [3.5, 3.25],#triangle inside polygon
-                     [4., 3.75],
-                     [4.5, 3.25]]
-    
+
         indices = not_polygon_overlap(triangles, polygon)
-        assert num.allclose([0], indices)             
-                     
-    def test_line_intersect(self):
-        #rectangular polygon, 2 triangles overlap
-        line = [[3.,3.],[4.,3.]]
-        triangles = [[7.,10.],#does not overlap
-                     [8.,12.],
-                     [9.,10.],
-                     [3., 2.],#intersect
+        assert num.allclose([0], indices)
+
+        # 5 sided polygon, 2 triangles overlap
+        polygon = [[3., 3.], [3., 4.], [5., 4.], [5.5, 3.5], [5., 3.]]
+        triangles = [[7., 10.],  # does not overlap
+                     [8., 12.],
+                     [9., 10.],
+                     [3., 2.],  # intersect
                      [4., 5.],
                      [5., 3.],
-                     [3., 2.],#intersect
+                     [3., 2.],  # intersect
                      [4., 5.],
                      [5., 2.],
-                     [0., 1.],#polygon inside triangle
+                     [0., 1.],  # polygon inside triangle
                      [5., 50.],
                      [10., 1.],
-                     [3.5, 3.25],#no overlap
+                     [3.5, 3.25],  # triangle inside polygon
+                     [4., 3.75],
+                     [4.5, 3.25]]
+
+        indices = not_polygon_overlap(triangles, polygon)
+        assert num.allclose([0], indices)
+
+    def test_line_intersect(self):
+        # rectangular polygon, 2 triangles overlap
+        line = [[3., 3.], [4., 3.]]
+        triangles = [[7., 10.],  # does not overlap
+                     [8., 12.],
+                     [9., 10.],
+                     [3., 2.],  # intersect
+                     [4., 5.],
+                     [5., 3.],
+                     [3., 2.],  # intersect
+                     [4., 5.],
+                     [5., 2.],
+                     [0., 1.],  # polygon inside triangle
+                     [5., 50.],
+                     [10., 1.],
+                     [3.5, 3.25],  # no overlap
                      [4., 3.75],
                      [4.5, 3.25],
-                     [2., 3.],#overlap
+                     [2., 3.],  # overlap
                      [5., 3.],
                      [3., 1.]]
-                     
-        indices = line_intersect(triangles, line)        
+
+        indices = line_intersect(triangles, line)
         assert num.allclose([1, 2, 3, 5], indices)
 
     def test_not_line_intersect(self):
-        #rectangular polygon, 2 triangles overlap
-        line = [[3.,3.],[4.,3.]]
-        triangles = [[7.,10.],#does not overlap
-                     [8.,12.],
-                     [9.,10.],
-                     [3., 2.],#intersect
+        # rectangular polygon, 2 triangles overlap
+        line = [[3., 3.], [4., 3.]]
+        triangles = [[7., 10.],  # does not overlap
+                     [8., 12.],
+                     [9., 10.],
+                     [3., 2.],  # intersect
                      [4., 5.],
                      [5., 3.],
-                     [3., 2.],#intersect
+                     [3., 2.],  # intersect
                      [4., 5.],
                      [5., 2.],
-                     [0., 1.],#polygon inside triangle
+                     [0., 1.],  # polygon inside triangle
                      [5., 50.],
                      [10., 1.],
-                     [3.5, 3.25],#no overlap
+                     [3.5, 3.25],  # no overlap
                      [4., 3.75],
                      [4.5, 3.25],
-                     [2., 3.],#overlap
+                     [2., 3.],  # overlap
                      [5., 3.],
                      [3., 1.]]
- 
+
         indices = not_line_intersect(triangles, line)
         assert num.allclose([4, 0], indices)
 
@@ -635,9 +638,8 @@ class Test_Polygon(unittest.TestCase):
             assert is_inside_triangle(P, triangle, closed=True)
             assert not is_inside_triangle(P, triangle, closed=False)
 
-
     def test_populate_polygon(self):
-        polygon = [[0,0], [1,0], [1,1], [0,1]]
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
         points = populate_polygon(polygon, 5)
 
         assert len(points) == 5
@@ -645,20 +647,19 @@ class Test_Polygon(unittest.TestCase):
             assert is_inside_polygon(point, polygon)
 
             assert is_inside_polygon(point, polygon)
-
 
         # Very convoluted polygon
-        polygon = [[0,0], [10,10], [15,5], [20, 10], [25,0], [30,10], [40,-10]]
+        polygon = [[0, 0], [10, 10], [15, 5], [
+            20, 10], [25, 0], [30, 10], [40, -10]]
         points = populate_polygon(polygon, 5)
         assert len(points) == 5
         for point in points:
             assert is_inside_polygon(point, polygon)
             assert is_inside_polygon(point, polygon)
 
-
     def test_populate_polygon_with_exclude(self):
-        polygon = [[0,0], [1,0], [1,1], [0,1]]
-        ex_poly = [[0,0], [0.5,0], [0.5, 0.5], [0,0.5]]     # SW quarter
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
+        ex_poly = [[0, 0], [0.5, 0], [0.5, 0.5], [0, 0.5]]     # SW quarter
         points = populate_polygon(polygon, 5, exclude=[ex_poly])
 
         assert len(points) == 5
@@ -667,8 +668,8 @@ class Test_Polygon(unittest.TestCase):
             assert not is_inside_polygon(point, ex_poly)
 
         # overlap
-        polygon = [[0,0], [1,0], [1,1], [0,1]]
-        ex_poly = [[-1,-1], [0.5,0], [0.5, 0.5], [-1,0.5]]
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
+        ex_poly = [[-1, -1], [0.5, 0], [0.5, 0.5], [-1, 0.5]]
         points = populate_polygon(polygon, 5, exclude=[ex_poly])
 
         assert len(points) == 5
@@ -677,9 +678,9 @@ class Test_Polygon(unittest.TestCase):
             assert not is_inside_polygon(point, ex_poly)
 
         # Multiple
-        polygon = [[0,0], [1,0], [1,1], [0,1]]
-        ex_poly1 = [[0,0], [0.5,0], [0.5, 0.5], [0,0.5]]    # SW quarter
-        ex_poly2 = [[0.5,0.5], [0.5,1], [1, 1], [1,0.5]]    # NE quarter
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
+        ex_poly1 = [[0, 0], [0.5, 0], [0.5, 0.5], [0, 0.5]]    # SW quarter
+        ex_poly2 = [[0.5, 0.5], [0.5, 1], [1, 1], [1, 0.5]]    # NE quarter
 
         points = populate_polygon(polygon, 20, exclude=[ex_poly1, ex_poly2])
 
@@ -690,8 +691,9 @@ class Test_Polygon(unittest.TestCase):
             assert not is_inside_polygon(point, ex_poly2)
 
         # Very convoluted polygon
-        polygon = [[0,0], [10,10], [15,5], [20, 10], [25,0], [30,10], [40,-10]]
-        ex_poly = [[-1,-1], [5,0], [5, 5], [-1,5]]
+        polygon = [[0, 0], [10, 10], [15, 5], [
+            20, 10], [25, 0], [30, 10], [40, -10]]
+        ex_poly = [[-1, -1], [5, 0], [5, 5], [-1, 5]]
         points = populate_polygon(polygon, 20, exclude=[ex_poly])
 
         assert len(points) == 20
@@ -702,20 +704,20 @@ class Test_Polygon(unittest.TestCase):
     def test_populate_polygon_with_exclude2(self):
         min_outer = 0
         max_outer = 1000
-        polygon_outer = [[min_outer,min_outer], [max_outer,min_outer],
-                         [max_outer,max_outer], [min_outer,max_outer]]
+        polygon_outer = [[min_outer, min_outer], [max_outer, min_outer],
+                         [max_outer, max_outer], [min_outer, max_outer]]
 
         delta = 10
         min_inner1 = min_outer + delta
         max_inner1 = max_outer - delta
-        inner1_polygon = [[min_inner1,min_inner1], [max_inner1,min_inner1],
-                          [max_inner1,max_inner1], [min_inner1,max_inner1]]
+        inner1_polygon = [[min_inner1, min_inner1], [max_inner1, min_inner1],
+                          [max_inner1, max_inner1], [min_inner1, max_inner1]]
 
         density_inner2 = 1000
         min_inner2 = min_outer + 2*delta
         max_inner2 = max_outer - 2*delta
-        inner2_polygon = [[min_inner2,min_inner2], [max_inner2,min_inner2],
-                          [max_inner2,max_inner2], [min_inner2,max_inner2]]
+        inner2_polygon = [[min_inner2, min_inner2], [max_inner2, min_inner2],
+                          [max_inner2, max_inner2], [min_inner2, max_inner2]]
 
         points = populate_polygon(polygon_outer, 20,
                                   exclude=[inner1_polygon, inner2_polygon])
@@ -727,8 +729,9 @@ class Test_Polygon(unittest.TestCase):
             assert not is_inside_polygon(point, inner2_polygon)
 
         # Very convoluted polygon
-        polygon = [[0,0], [10,10], [15,5], [20, 10], [25,0], [30,10], [40,-10]]
-        ex_poly = [[-1,-1], [5,0], [5, 5], [-1,5]]
+        polygon = [[0, 0], [10, 10], [15, 5], [
+            20, 10], [25, 0], [30, 10], [40, -10]]
+        ex_poly = [[-1, -1], [5, 0], [5, 5], [-1, 5]]
         points = populate_polygon(polygon, 20, exclude=[ex_poly])
 
         assert len(points) == 20
@@ -737,32 +740,32 @@ class Test_Polygon(unittest.TestCase):
             assert not is_inside_polygon(point, ex_poly), '%s' % str(point)
 
     def test_point_in_polygon(self):
-        polygon = [[0,0], [1,0], [1,1], [0,1]]
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
         point = point_in_polygon(polygon)
         assert is_inside_polygon(point, polygon)
 
         # this may get into a vicious loop
         # polygon = [[1e32,1e54], [1,0], [1,1], [0,1]]
 
-        polygon = [[1e15,1e7], [1,0], [1,1], [0,1]]
+        polygon = [[1e15, 1e7], [1, 0], [1, 1], [0, 1]]
         point = point_in_polygon(polygon)
         assert is_inside_polygon(point, polygon)
 
-        polygon = [[0,0], [1,0], [1,1], [1e8,1e8]]
+        polygon = [[0, 0], [1, 0], [1, 1], [1e8, 1e8]]
         point = point_in_polygon(polygon)
         assert is_inside_polygon(point, polygon)
 
-        polygon = [[1e32,1e54], [-1e32,1e54], [1e32,-1e54]]
+        polygon = [[1e32, 1e54], [-1e32, 1e54], [1e32, -1e54]]
         point = point_in_polygon(polygon)
         assert is_inside_polygon(point, polygon)
 
-        polygon = [[1e18,1e15], [1,0], [0,1]]
+        polygon = [[1e18, 1e15], [1, 0], [0, 1]]
         point = point_in_polygon(polygon)
         assert is_inside_polygon(point, polygon)
 
     def test_in_and_outside_polygon_main(self):
         # Simplest case: Polygon is the unit square
-        polygon = [[0,0], [1,0], [1,1], [0,1]]
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
 
         inside, outside = in_and_outside_polygon((0.5, 0.5), polygon)
         assert inside[0] == 0
@@ -778,43 +781,44 @@ class Test_Polygon(unittest.TestCase):
         assert len(inside) == 0
         assert outside[0] == 0
 
-        points = [(1., 0.25),(1., 0.75)]
+        points = [(1., 0.25), (1., 0.75)]
         inside, outside = in_and_outside_polygon(points, polygon, closed=True)
-        assert num.alltrue(inside == [0,1])
+        assert num.alltrue(inside == [0, 1])
         assert len(outside) == 0
 
         inside, outside = in_and_outside_polygon(points, polygon, closed=False)
         assert len(inside) == 0
-        assert num.alltrue(outside == [0,1])
+        assert num.alltrue(outside == [0, 1])
 
-        points = [(100., 0.25), (0.5, 0.5) ]
+        points = [(100., 0.25), (0.5, 0.5)]
         inside, outside = in_and_outside_polygon(points, polygon)
         assert num.alltrue(inside == [1])
         assert outside[0] == 0
 
-        points = [(100., 0.25),(0.5, 0.5), (39,20), (0.6,0.7),(56,43),(67,90)]
+        points = [(100., 0.25), (0.5, 0.5), (39, 20),
+                  (0.6, 0.7), (56, 43), (67, 90)]
         inside, outside = in_and_outside_polygon(points, polygon)
         assert num.alltrue(inside == [1, 3])
         assert num.alltrue(outside == [0, 2, 4, 5])
 
     def test_intersection1(self):
-        line0 = [[-1,0], [1,0]]
-        line1 = [[0,-1], [0,1]]
+        line0 = [[-1, 0], [1, 0]]
+        line1 = [[0, -1], [0, 1]]
 
         status, value = intersection(line0, line1)
         assert status == 1
         assert num.allclose(value, [0.0, 0.0])
 
     def test_intersection2(self):
-        line0 = [[0,0], [24,12]]
-        line1 = [[0,12], [24,0]]
+        line0 = [[0, 0], [24, 12]]
+        line1 = [[0, 12], [24, 0]]
 
         status, value = intersection(line0, line1)
         assert status == 1
         assert num.allclose(value, [12.0, 6.0])
 
         # Swap direction of one line
-        line1 = [[24,0], [0,12]]
+        line1 = [[24, 0], [0, 12]]
 
         status, value = intersection(line0, line1)
         assert status == 1
@@ -826,15 +830,15 @@ class Test_Polygon(unittest.TestCase):
         assert num.allclose(value, [12.0, 6.0])
 
     def test_intersection3(self):
-        line0 = [[0,0], [24,12]]
-        line1 = [[0,17], [24,0]]
+        line0 = [[0, 0], [24, 12]]
+        line1 = [[0, 17], [24, 0]]
 
         status, value = intersection(line0, line1)
         assert status == 1
         assert num.allclose(value, [14.068965517, 7.0344827586])
 
         # Swap direction of one line
-        line1 = [[24,0], [0,17]]
+        line1 = [[24, 0], [0, 17]]
 
         status, value = intersection(line0, line1)
         assert status == 1
@@ -851,15 +855,15 @@ class Test_Polygon(unittest.TestCase):
         Test that coinciding endpoints are picked up
         """
 
-        line0 = [[0,0], [1,1]]
-        line1 = [[1,1], [2,1]]
+        line0 = [[0, 0], [1, 1]]
+        line1 = [[1, 1], [2, 1]]
 
         status, value = intersection(line0, line1)
         assert status == 1
         assert num.allclose(value, [1.0, 1.0])
 
-        line0 = [[1,1], [2,0]]
-        line1 = [[1,1], [2,1]]
+        line0 = [[1, 1], [2, 0]]
+        line1 = [[1, 1], [2, 1]]
 
         status, value = intersection(line0, line1)
         assert status == 1
@@ -876,8 +880,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P2]
         line1 = [P3, P4]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=3, 'Expected status 3, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 3, 'Expected status 3, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(value is None, 'Expected value of None, got %s' %
                                        str(value))
 
@@ -887,8 +891,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P2, P1]
         line1 = [P4, P3]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=3, 'Expected status 3, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 3, 'Expected status 3, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(value is None, 'Expected value of None, got %s' %
                                        str(value))
 
@@ -898,8 +902,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P2, P1]
         line1 = [P3, P4]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=3, 'Expected status 3, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 3, 'Expected status 3, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(value is None, 'Expected value of None, got %s' %
                                        str(value))
 
@@ -909,8 +913,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P2]
         line1 = [P4, P3]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=3, 'Expected status 3, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 3, 'Expected status 3, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(value is None, 'Expected value of None, got %s' %
                                        str(value))
 
@@ -924,8 +928,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P2, P3]
         line1 = [P1, P4]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
         # line0 fully within line1, same direction
@@ -936,8 +940,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P3, P2]
         line1 = [P4, P1]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
         # line0 fully within line1, opposite direction
@@ -948,8 +952,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P3, P2]
         line1 = [P1, P4]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
         # line0 fully within line1, opposite direction
@@ -960,8 +964,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P2, P3]
         line1 = [P4, P1]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
         # ----------------------------------------------------------------------
@@ -974,8 +978,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P4]
         line1 = [P2, P3]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
         # line1 fully within line0, same direction
@@ -986,8 +990,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P1]
         line1 = [P3, P2]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
         # line1 fully within line0, opposite direction
@@ -998,8 +1002,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P1]
         line1 = [P2, P3]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
         # line1 fully within line0, opposite direction
@@ -1010,8 +1014,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P4]
         line1 = [P3, P2]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
         # ----------------------------------------------------------------------
@@ -1024,9 +1028,9 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P3]
         line1 = [P2, P4]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
-        self.assertTrue(num.allclose(value, [line1[0],line0[1]]))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
+        self.assertTrue(num.allclose(value, [line1[0], line0[1]]))
 
         # line in same direction, partial overlap
         # 0:    -----<-----
@@ -1036,9 +1040,9 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P3, P1]
         line1 = [P4, P2]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
-        self.assertTrue(num.allclose(value, [line0[0],line1[1]]))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
+        self.assertTrue(num.allclose(value, [line0[0], line1[1]]))
 
         # line in opposite direction, partial overlap
         # 0:    -----<-----
@@ -1048,9 +1052,9 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P3, P1]
         line1 = [P2, P4]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
-        self.assertTrue(num.allclose(value, [line0[0],line1[0]]))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
+        self.assertTrue(num.allclose(value, [line0[0], line1[0]]))
 
         # line in opposite direction, partial overlap
         # 0:    ----->-----
@@ -1060,9 +1064,9 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P3]
         line1 = [P4, P2]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
-        self.assertTrue(num.allclose(value, [line1[1],line0[1]]))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
+        self.assertTrue(num.allclose(value, [line1[1], line0[1]]))
 
         # ----------------------------------------------------------------------
 
@@ -1074,9 +1078,9 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P2, P4]
         line1 = [P1, P3]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
-        self.assertTrue(num.allclose(value, [line0[0],line1[1]]))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
+        self.assertTrue(num.allclose(value, [line0[0], line1[1]]))
 
         # line in same direction, partial overlap
         # 0:       ------<------
@@ -1086,9 +1090,9 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P2]
         line1 = [P3, P1]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
-        self.assertTrue(num.allclose(value, [line1[0],line0[1]]))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
+        self.assertTrue(num.allclose(value, [line1[0], line0[1]]))
 
         # line in opposite direction, partial overlap
         # 0:       ------<------
@@ -1098,9 +1102,9 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P2]
         line1 = [P1, P3]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
-        self.assertTrue(num.allclose(value, [line1[1],line0[1]]))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
+        self.assertTrue(num.allclose(value, [line1[1], line0[1]]))
 
         # line in opposite direction, partial overlap
         # 0:       ------>------
@@ -1110,9 +1114,9 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P2, P4]
         line1 = [P3, P1]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
-        self.assertTrue(num.allclose(value, [line0[0],line1[0]]))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
+        self.assertTrue(num.allclose(value, [line0[0], line1[0]]))
 
         # ----------------------------------------------------------------------
 
@@ -1124,8 +1128,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P3]
         line1 = [P1, P4]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
         # line in same direction, same left point, line1 longer
@@ -1136,8 +1140,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P3, P1]
         line1 = [P4, P1]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
         # line in opposite direction, same left point, line1 longer
@@ -1148,8 +1152,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P3]
         line1 = [P4, P1]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
         # line in opposite direction, same start point, line1 longer
@@ -1160,8 +1164,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P3, P1]
         line1 = [P1, P4]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
         # ----------------------------------------------------------------------
@@ -1174,8 +1178,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P3]
         line1 = [P1, P3]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         line0 = num.array(line0)
         self.assertTrue(num.allclose(value, line0))
 
@@ -1187,8 +1191,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P3, P1]
         line1 = [P3, P1]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
         # line in opposite direction, same left point, same right point
@@ -1199,8 +1203,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P3]
         line1 = [P3, P1]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
         # line in opposite direction, same left point, same right point
@@ -1211,8 +1215,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P3, P1]
         line1 = [P1, P3]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
         # ----------------------------------------------------------------------
@@ -1225,8 +1229,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P2, P4]
         line1 = [P1, P4]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
         # line in same direction, same right point, line1 longer
@@ -1237,8 +1241,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P2]
         line1 = [P4, P1]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
         # line in opposite direction, same right point, line1 longer
@@ -1249,8 +1253,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P2, P4]
         line1 = [P4, P1]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
         # line in opposite direction, same right point, line1 longer
@@ -1261,8 +1265,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P2]
         line1 = [P1, P4]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line0))
 
         # ----------------------------------------------------------------------
@@ -1275,8 +1279,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P4]
         line1 = [P1, P3]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
         # line in same direction, same left point, line0 longer
@@ -1287,8 +1291,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P1]
         line1 = [P3, P1]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
         # line in opposite direction, same left point, line0 longer
@@ -1299,8 +1303,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P4]
         line1 = [P3, P1]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
         # line in opposite direction, same left point, line0 longer
@@ -1311,8 +1315,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P1]
         line1 = [P1, P3]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
         # ----------------------------------------------------------------------
@@ -1325,8 +1329,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P4]
         line1 = [P2, P4]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
         # line in same direction, same right point, line0 longer
@@ -1337,8 +1341,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P1]
         line1 = [P4, P2]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
         # line in opposite direction, same right point, line0 longer
@@ -1349,8 +1353,8 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P1, P4]
         line1 = [P4, P2]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
 
         # line in opposite direction, same right point, line0 longer
@@ -1361,10 +1365,9 @@ class Test_Polygon(unittest.TestCase):
         line0 = [P4, P1]
         line1 = [P2, P4]
         status, value = intersection(line0, line1)
-        self.assertFalse(status!=2, 'Expected status 2, got status=%s, value=%s' %
-                               (str(status), str(value)))
+        self.assertFalse(status != 2, 'Expected status 2, got status=%s, value=%s' %
+                         (str(status), str(value)))
         self.assertTrue(num.allclose(value, line1))
-
 
     def test_intersection_bug_20081110_TR(self):
         """test_intersection_bug_20081110(self)
@@ -1479,17 +1482,17 @@ class Test_Polygon(unittest.TestCase):
         # define 4 collinear points, 1 in TL, 3 in TR
         #    P1-+-P2---P3---P4
         P1 = [-3.0, 1.0]
-        P2 = [ 1.0, 5.0]
-        P3 = [ 2.0, 6.0]
-        P4 = [ 3.0, 7.0]
+        P2 = [1.0, 5.0]
+        P3 = [2.0, 6.0]
+        P4 = [3.0, 7.0]
         self.helper_parallel_intersection_code(P1, P2, P3, P4)
 
         # define 4 collinear points, 2 in TL, 2 in TR
         #    P1---P2-+-P3---P4
         P1 = [-3.0, 1.0]
         P2 = [-2.0, 2.0]
-        P3 = [ 2.0, 6.0]
-        P4 = [ 3.0, 7.0]
+        P3 = [2.0, 6.0]
+        P4 = [3.0, 7.0]
         self.helper_parallel_intersection_code(P1, P2, P3, P4)
 
         # define 4 collinear points, 3 in TL, 1 in TR
@@ -1497,7 +1500,7 @@ class Test_Polygon(unittest.TestCase):
         P1 = [-3.0, 1.0]
         P2 = [-2.0, 2.0]
         P3 = [-1.0, 3.0]
-        P4 = [ 3.0, 7.0]
+        P4 = [3.0, 7.0]
         self.helper_parallel_intersection_code(P1, P2, P3, P4)
 
     def test_intersection_bug_20081110_TR_BL(self):
@@ -1509,17 +1512,17 @@ class Test_Polygon(unittest.TestCase):
         # define 4 collinear points, 1 in BL, 3 in TR
         #    P1-+-P2---P3---P4
         P1 = [-4.0, -3.0]
-        P2 = [ 1.0,  2.0]
-        P3 = [ 2.0,  3.0]
-        P4 = [ 3.0,  4.0]
+        P2 = [1.0,  2.0]
+        P3 = [2.0,  3.0]
+        P4 = [3.0,  4.0]
         self.helper_parallel_intersection_code(P1, P2, P3, P4)
 
         # define 4 collinear points, 2 in TL, 2 in TR
         #    P1---P2-+-P3---P4
         P1 = [-4.0, -3.0]
         P2 = [-3.0, -2.0]
-        P3 = [ 2.0,  3.0]
-        P4 = [ 3.0,  4.0]
+        P3 = [2.0,  3.0]
+        P4 = [3.0,  4.0]
         self.helper_parallel_intersection_code(P1, P2, P3, P4)
 
         # define 4 collinear points, 3 in TL, 1 in TR
@@ -1527,7 +1530,7 @@ class Test_Polygon(unittest.TestCase):
         P1 = [-4.0, -3.0]
         P2 = [-3.0, -2.0]
         P3 = [-2.0, -1.0]
-        P4 = [ 3.0,  4.0]
+        P4 = [3.0,  4.0]
         self.helper_parallel_intersection_code(P1, P2, P3, P4)
 
     def test_intersection_bug_20081110_TR_BR(self):
@@ -1538,47 +1541,46 @@ class Test_Polygon(unittest.TestCase):
 
         # define 4 collinear points, 1 in BR, 3 in TR
         #    P1-+-P2---P3---P4
-        P1 = [ 1.0, -3.0]
-        P2 = [ 5.0,  1.0]
-        P3 = [ 6.0,  2.0]
-        P4 = [ 7.0,  3.0]
+        P1 = [1.0, -3.0]
+        P2 = [5.0,  1.0]
+        P3 = [6.0,  2.0]
+        P4 = [7.0,  3.0]
         self.helper_parallel_intersection_code(P1, P2, P3, P4)
 
         # define 4 collinear points, 2 in BR, 2 in TR
         #    P1---P2-+-P3---P4
-        P1 = [ 1.0, -3.0]
-        P2 = [ 2.0, -2.0]
-        P3 = [ 6.0,  2.0]
-        P4 = [ 7.0,  3.0]
+        P1 = [1.0, -3.0]
+        P2 = [2.0, -2.0]
+        P3 = [6.0,  2.0]
+        P4 = [7.0,  3.0]
         self.helper_parallel_intersection_code(P1, P2, P3, P4)
 
         # define 4 collinear points, 3 in BR, 1 in TR
         #    P1---P2---P3-+-P4
-        P1 = [ 1.0, -3.0]
-        P2 = [ 2.0, -2.0]
-        P3 = [ 3.0, -1.0]
-        P4 = [ 7.0,  3.0]
+        P1 = [1.0, -3.0]
+        P2 = [2.0, -2.0]
+        P3 = [3.0, -1.0]
+        P4 = [7.0,  3.0]
         self.helper_parallel_intersection_code(P1, P2, P3, P4)
-
 
     def test_intersection_direction_invariance(self):
         """This runs through a number of examples and checks that
         direction of lines don't matter.
         """
 
-        line0 = [[0,0], [100,100]]
+        line0 = [[0, 0], [100, 100]]
 
         common_end_point = [20, 150]
 
         for i in range(100):
             x = 20 + i * 1.0/100
 
-            line1 = [[x,0], common_end_point]
+            line1 = [[x, 0], common_end_point]
             status, p1 = intersection(line0, line1)
             assert status == 1
 
             # Swap direction of line1
-            line1 = [common_end_point, [x,0]]
+            line1 = [common_end_point, [x, 0]]
             status, p2 = intersection(line0, line1)
             assert status == 1
 
@@ -1596,23 +1598,23 @@ class Test_Polygon(unittest.TestCase):
 
     def test_no_intersection(self):
         """ Test 2 non-touching lines don't intersect. """
-        line0 = [[-1,1], [1,1]]
-        line1 = [[0,-1], [0,0]]
+        line0 = [[-1, 1], [1, 1]]
+        line1 = [[0, -1], [0, 0]]
 
         status, value = intersection(line0, line1)
         assert status == 0
         assert value is None
 
     def test_intersection_parallel(self):
-        line0 = [[-1,1], [1,1]]
-        line1 = [[-1,0], [5,0]]
+        line0 = [[-1, 1], [1, 1]]
+        line1 = [[-1, 0], [5, 0]]
 
         status, value = intersection(line0, line1)
         assert status == 4
         assert value is None
 
-        line0 = [[0,0], [10,100]]
-        line1 = [[-10,5], [0,105]]
+        line0 = [[0, 0], [10, 100]]
+        line1 = [[-10, 5], [0, 105]]
 
         status, value = intersection(line0, line1)
         assert status == 4
@@ -1622,40 +1624,40 @@ class Test_Polygon(unittest.TestCase):
         """Test what happens when two lines partly coincide"""
 
         # Overlap 1
-        line0 = [[0,0], [5,0]]
-        line1 = [[-3,0], [3,0]]
+        line0 = [[0, 0], [5, 0]]
+        line1 = [[-3, 0], [3, 0]]
 
         status, value = intersection(line0, line1)
         assert status == 2
-        assert num.allclose(value, [[0,0], [3,0]])
+        assert num.allclose(value, [[0, 0], [3, 0]])
 
         # Overlap 2
-        line0 = [[-10,0], [5,0]]
-        line1 = [[-3,0], [10,0]]
+        line0 = [[-10, 0], [5, 0]]
+        line1 = [[-3, 0], [10, 0]]
 
         status, value = intersection(line0, line1)
         assert status == 2
-        assert num.allclose(value, [[-3, 0], [5,0]])
+        assert num.allclose(value, [[-3, 0], [5, 0]])
 
         # Inclusion 1
-        line0 = [[0,0], [5,0]]
-        line1 = [[2,0], [3,0]]
+        line0 = [[0, 0], [5, 0]]
+        line1 = [[2, 0], [3, 0]]
 
         status, value = intersection(line0, line1)
         assert status == 2
         assert num.allclose(value, line1)
 
         # Inclusion 2
-        line0 = [[1,0], [5,0]]
-        line1 = [[-10,0], [15,0]]
+        line0 = [[1, 0], [5, 0]]
+        line1 = [[-10, 0], [15, 0]]
 
         status, value = intersection(line0, line1)
         assert status == 2
         assert num.allclose(value, line0)
 
         # Exclusion (no intersection)
-        line0 = [[-10,0], [1,0]]
-        line1 = [[3,0], [15,0]]
+        line0 = [[-10, 0], [1, 0]]
+        line1 = [[3, 0], [15, 0]]
 
         status, value = intersection(line0, line1)
         assert status == 3
@@ -1675,67 +1677,66 @@ class Test_Polygon(unittest.TestCase):
         assert num.allclose(value, [[1, 7], [7, 19]])
 
         # Swap direction
-        line0 = [[7,19], [0,5]]
-        line1 = [[1,7], [10,25]]
+        line0 = [[7, 19], [0, 5]]
+        line1 = [[1, 7], [10, 25]]
         status, value = intersection(line0, line1)
         assert status == 2
         assert num.allclose(value, [[7, 19], [1, 7]])
 
-        line0 = [[0,5], [7,19]]
-        line1 = [[10,25], [1,7]]
+        line0 = [[0, 5], [7, 19]]
+        line1 = [[10, 25], [1, 7]]
         status, value = intersection(line0, line1)
         assert status == 2
         assert num.allclose(value, [[1, 7], [7, 19]])
 
         # Inclusion
-        line0 = [[1,7], [7,19]]
-        line1 = [[0,5], [10,25]]
+        line0 = [[1, 7], [7, 19]]
+        line1 = [[0, 5], [10, 25]]
         status, value = intersection(line0, line1)
         assert status == 2
-        assert num.allclose(value, [[1,7], [7, 19]])
+        assert num.allclose(value, [[1, 7], [7, 19]])
 
-        line0 = [[0,5], [10,25]]
-        line1 = [[1,7], [7,19]]
+        line0 = [[0, 5], [10, 25]]
+        line1 = [[1, 7], [7, 19]]
         status, value = intersection(line0, line1)
         assert status == 2
-        assert num.allclose(value, [[1,7], [7, 19]])
+        assert num.allclose(value, [[1, 7], [7, 19]])
 
-        line0 = [[0,5], [10,25]]
-        line1 = [[7,19], [1,7]]
+        line0 = [[0, 5], [10, 25]]
+        line1 = [[7, 19], [1, 7]]
         status, value = intersection(line0, line1)
         assert status == 2
         assert num.allclose(value, [[7, 19], [1, 7]])
 
-
     def test_inside_polygon_main(self):
         # From real example (that failed)
-        polygon = [[20,20], [40,20], [40,40], [20,40]]
+        polygon = [[20, 20], [40, 20], [40, 40], [20, 40]]
         points = [[40, 50]]
         res = inside_polygon(points, polygon)
         assert len(res) == 0
 
-        polygon = [[20,20], [40,20], [40,40], [20,40]]
+        polygon = [[20, 20], [40, 20], [40, 40], [20, 40]]
         points = [[25, 25], [30, 20], [40, 50], [90, 20], [40, 90]]
         res = inside_polygon(points, polygon)
         assert len(res) == 2
-        assert num.allclose(res, [0,1])
+        assert num.allclose(res, [0, 1])
 
     def test_polygon_area(self):
         """ Test getting the area of a polygon. """
         # Simplest case: Polygon is the unit square
-        polygon = [[0,0], [1,0], [1,1], [0,1]]
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
         assert polygon_area(polygon) == 1
 
         # Simple case: Polygon is a rectangle
-        polygon = [[0,0], [1,0], [1,4], [0,4]]
+        polygon = [[0, 0], [1, 0], [1, 4], [0, 4]]
         assert polygon_area(polygon) == 4
 
         # Simple case: Polygon is a unit triangle
-        polygon = [[0,0], [1,0], [0,1]]
+        polygon = [[0, 0], [1, 0], [0, 1]]
         assert polygon_area(polygon) == 0.5
 
         # Simple case: Polygon is a diamond
-        polygon = [[0,0], [1,1], [2,0], [1, -1]]
+        polygon = [[0, 0], [1, 1], [2, 0], [1, -1]]
         assert polygon_area(polygon) == 2.0
 
         # Complex case where numerical errors might occur
@@ -1747,7 +1748,7 @@ class Test_Polygon(unittest.TestCase):
 
     def test_poly_xy(self):
         # Simplest case: Polygon is the unit square
-        polygon = [[0,0], [1,0], [1,1], [0,1]]
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
         x, y = _poly_xy(polygon)
         assert len(x) == len(polygon)+1
         assert len(y) == len(polygon)+1
@@ -1761,7 +1762,7 @@ class Test_Polygon(unittest.TestCase):
         assert y[3] == 1
 
     # Arbitrary polygon
-        polygon = [[1,5], [1,1], [100,10], [1,10], [3,6]]
+        polygon = [[1, 5], [1, 1], [100, 10], [1, 10], [3, 6]]
         x, y = _poly_xy(polygon)
         assert len(x) == len(polygon)+1
         assert len(y) == len(polygon)+1
@@ -1776,31 +1777,27 @@ class Test_Polygon(unittest.TestCase):
         assert y[3] == 10
         assert y[4] == 6
 
-
     def test_plot_polygons(self):
         import os
 
         # Simplest case: Polygon is the unit square
-        polygon1 = [[0,0], [1,0], [1,1], [0,1]]
-        polygon2 = [[1,1], [2,1], [3,2], [2,2]]
+        polygon1 = [[0, 0], [1, 0], [1, 1], [0, 1]]
+        polygon2 = [[1, 1], [2, 1], [3, 2], [2, 2]]
         plot_polygons([polygon1, polygon2], figname='test1')
 
-
-
         # Another case
-        polygon3 = [[1,5], [10,1], [100,10], [50,9], [3,6]]
+        polygon3 = [[1, 5], [10, 1], [100, 10], [50, 9], [3, 6]]
         plot_polygons([polygon2, polygon3], figname='test2')
 
-        #plt.close('all')
+        # plt.close('all')
 
         for plotfile in ['test1.png', 'test2.png']:
-            assert os.access(plotfile, os.R_OK)
+            assert os.path.exists(plotfile)
             os.remove(plotfile)
-
 
     def test_inside_polygon_geospatial(self):
         """ Test geospatial coords inside poly. """
-        #Simplest case: Polygon is the unit square
+        # Simplest case: Polygon is the unit square
         polygon_absolute = [[0, 0], [1, 0], [1, 1], [0, 1]]
         poly_geo_ref = Geo_reference(57, 100, 100)
         polygon = poly_geo_ref.change_points_geo_ref(polygon_absolute)
@@ -1822,13 +1819,12 @@ class Test_Polygon(unittest.TestCase):
 
     def test_decimate_polygon(self):
         from anuga.geometry.polygon import decimate_polygon
-        polygon = [[0,0], [10,10], [15,5], [20, 10],
-                   [25,0], [30,10], [40,-10], [35, -5]]
+        polygon = [[0, 0], [10, 10], [15, 5], [20, 10],
+                   [25, 0], [30, 10], [40, -10], [35, -5]]
 
         dpoly = decimate_polygon(polygon, factor=2)
 
-        assert len(dpoly)*2==len(polygon)
-
+        assert len(dpoly)*2 == len(polygon)
 
     def test_interpolate_polyline(self):
         """test_interpolate_polyline(self):
@@ -1919,32 +1915,28 @@ class Test_Polygon(unittest.TestCase):
         z_ref = [1.1, 4.5, 5., 7.4, 11., 12.85, 12., 10.8, 8.52, 9.22, 24.4]
         assert num.allclose(z, z_ref)
 
-
     def test_is_inside_triangle_more(self):
         """ Test if points inside triangles are detected correctly. """
-        res = is_inside_triangle([0.5, 0.5], [[ 0.5,  0. ],
-                                              [ 0.5,  0.5],
-                                              [ 0.,   0. ]])
+        res = is_inside_triangle([0.5, 0.5], [[0.5,  0.],
+                                              [0.5,  0.5],
+                                              [0.,   0.]])
         assert res is True
 
         res = is_inside_triangle([0.59999999999999998, 0.29999999999999999],
-                                 [[ 0.5,  0. ], [ 0.5, 0.5], [0., 0.]])
+                                 [[0.5,  0.], [0.5, 0.5], [0., 0.]])
         assert res is False
 
         res = is_inside_triangle([0.59999999999999998, 0.29999999999999999],
                                  [[1., 0.], [1., 0.5], [0.5, 0.]])
         assert res is False
 
-
         res = is_inside_triangle([0.59999999999999998, 0.29999999999999999],
                                  [[0.5, 0.5], [0.5, 0.], [1., 0.5]])
         assert res is True
 
-
         res = is_inside_triangle([0.10000000000000001, 0.20000000000000001],
                                  [[0.5, 0.], [0.5, 0.5], [0., 0.]])
         assert res is False
-
 
         res = is_inside_triangle([0.10000000000000001, 0.20000000000000001],
                                  [[0., 0.5], [0., 0.], [0.5, 0.5]])
@@ -1958,21 +1950,19 @@ class Test_Polygon(unittest.TestCase):
                                  [[0.25, 0.5], [0.25, 0.25], [0.5, 0.5]])
         assert res is False
 
-
         res = is_inside_triangle([10, 3],
                                  [[0.1, 0.],
                                   [0.1, 0.08333333],
                                   [0., 0.]])
         assert res is False
 
-        
     def test_is_polygon_complex(self):
         """ Test a concave and a complex poly with is_complex, to make
             sure it can detect self-intersection.
         """
         concave_poly = [[0, 0], [10, 0], [5, 5], [10, 10], [0, 10]]
-        complex_poly = [[0, 0], [10, 0], [5, 5], [4, 15], [5, 7], [10, 10], \
-                            [0, 10]]
+        complex_poly = [[0, 0], [10, 0], [5, 5], [4, 15], [5, 7], [10, 10],
+                        [0, 10]]
 
         assert not is_complex(concave_poly)
         assert is_complex(complex_poly)
@@ -1981,18 +1971,20 @@ class Test_Polygon(unittest.TestCase):
         """ Test a concave and a complex poly with is_complex, to make sure it
             can detect self-intersection. This test uses more complicated
             polygons.
-        """    
-        concave_poly = [[0, 0], [10, 0], [11,0], [5, 5], [7, 6], [10, 10], \
+        """
+        concave_poly = [[0, 0], [10, 0], [11, 0], [5, 5], [7, 6], [10, 10],
                         [1, 5], [0, 10]]
-        complex_poly = [[0, 0], [12, 12], [10, 0], [5, 5], [3,18], [4, 15], \
-                        [5, 7], [10, 10], [0, 10], [16, 12]]       
+        complex_poly = [[0, 0], [12, 12], [10, 0], [5, 5], [3, 18], [4, 15],
+                        [5, 7], [10, 10], [0, 10], [16, 12]]
 
         assert not is_complex(concave_poly)
         assert is_complex(complex_poly)
-        
+
 ################################################################################
 
+
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Polygon,'test') #_intersection_bug_20081110_TR_BL')
+    # _intersection_bug_20081110_TR_BL')
+    suite = unittest.makeSuite(Test_Polygon, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)

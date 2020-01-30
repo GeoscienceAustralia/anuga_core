@@ -56,7 +56,7 @@ else:
     from numpy.testing import Tester
     test = Tester().test
 
-    from anuga.__config__ import show as show_config
+    #from anuga.__config__ import show as show_config
 
     # --------------------------------
     # Important basic classes

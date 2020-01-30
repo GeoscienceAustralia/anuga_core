@@ -383,7 +383,7 @@ class triangTestCase(unittest.TestCase):
         print('mode', mode)
         data = generate_mesh(points, seglist, holelist, regionlist,
                              pointattlist, segattlist, mode, points)
-        print ("data", data)
+        print("data", data)
 
         correct = num.array([(1, 0, 2), (2, 3, 1)])
         self.assertTrue(num.alltrue(data['generatedtrianglelist'].flat ==
@@ -462,6 +462,6 @@ class triangTestCase(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(triangTestCase, 'test_numeric_arrays')
+    suite = unittest.makeSuite(triangTestCase, 'test')
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)

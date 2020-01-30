@@ -366,6 +366,21 @@ def compute_checksum(filename, max_length=2**20):
 
     return crcval
 
+
+def get_anuga_pathname():
+    """Get pathname of anuga install location 
+
+    Typically, this is required in unit tests depending
+    on external files.
+
+    """
+    
+    import anuga
+
+    path = anuga.__path__[0]
+    
+    return path
+    
 def get_pathname_from_package(package):
     """Get pathname of given package (provided as string)
 
@@ -380,6 +395,8 @@ def get_pathname_from_package(package):
     path = get_pathname_from_package('anuga.utilities')
 
     """
+
+    print(package)
 
     exec('import %s as x' %package)
 
