@@ -70,10 +70,10 @@ def get_text(nodelist):
 def remove_whitespace(s):
     """Remove excess whitespace including newlines from string
     """
-    import string
+
     words = s.split() # Split on whitespace
 
-    return string.join(words)
+    return ' '.join(words)
 
     #return s.replace('\n', '')
     #s.translate(string.maketrans)

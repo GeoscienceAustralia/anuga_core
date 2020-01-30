@@ -380,10 +380,10 @@ class triangTestCase(unittest.TestCase):
         mode = "QzpnA"
         #mode = "jQpznAa2000.1a"
 
-        print('mode', mode)
+        #print('mode', mode)
         data = generate_mesh(points, seglist, holelist, regionlist,
                              pointattlist, segattlist, mode, points)
-        print("data", data)
+        #print("data", data)
 
         correct = num.array([(1, 0, 2), (2, 3, 1)])
         self.assertTrue(num.alltrue(data['generatedtrianglelist'].flat ==

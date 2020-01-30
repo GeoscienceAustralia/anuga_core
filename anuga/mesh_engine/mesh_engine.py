@@ -150,10 +150,10 @@ def generate_mesh(points=None,
             pts_complex=points[:,0]+1j*points[:,1]
             i=i-1 # Repeat for the last value of i = next point
 
-    print(points,segments,holes,regions, pointatts,segatts)
+    #print(points,segments,holes,regions, pointatts,segatts)
 
     trianglelist, pointlist, pointmarkerlist, pointattributelist, triangleattributelist, segmentlist, segmentmarkerlist, neighborlist = triang.genMesh(points,segments,holes,regions,
-                          pointatts,segatts, bytes(mode, encoding='utf8'))
+                          pointatts,segatts, mode.encode('utf-8'))
     mesh_dict = {}
     # the values as arrays
     mesh_dict['generatedtrianglelist'] = trianglelist

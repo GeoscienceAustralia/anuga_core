@@ -476,7 +476,11 @@ def string_to_char(l):
 def char_to_string(ll):
     '''Convert 2-D list of chars to 1-D list of strings.'''
 
-    return list(map(string.rstrip, [''.join(x) for x in ll]))
+    #return list(map(string.rstrip, [''.join(x) for x in ll]))
+    print(ll[:10])
+    ll_list = [''.join(x) for x in ll]
+    print(ll_list[0:10])
+    return ll_list
 
 ################################################################################
 
