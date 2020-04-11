@@ -27,13 +27,6 @@ matrix:
          python: "2.7_with_system_site_packages"
          env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="openmpi"  DISTRIB="ubuntu"
 
-      - os: linux
-         dist: bionic
-         sudo: required
-         language: python
-         python: "2.7"
-         env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="openmpi"  DISTRIB="ubuntu"
-
 install:
     - if [[ "$DISTRIB" == "conda_macos" ]]; then source tools/install_conda_macos.sh; fi
     - if [[ "$DISTRIB" == "conda" ]]; then source tools/install_conda.sh; fi
