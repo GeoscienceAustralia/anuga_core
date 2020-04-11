@@ -18,7 +18,7 @@ matrix:
        - os: linux
          dist: trusty
          sudo: required
-         python: "2.7_with_system_site_packages"
+         python: "2.7"
          env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="mpich"  DISTRIB="ubuntu"
 
        - os: linux
