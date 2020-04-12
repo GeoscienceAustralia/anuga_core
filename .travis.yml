@@ -16,23 +16,16 @@ matrix:
          env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="openmpi"  DISTRIB="conda"
 
        - os: linux
-         dist: trusty
-         sudo: required
-         python: "2.7_with_system_site_packages"
-         env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="mpich"  DISTRIB="ubuntu"
-
-       - os: linux
-         dist: trusty
+         dist: xenial
          sudo: required
          python: "2.7_with_system_site_packages"
          env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="false"  DISTRIB="ubuntu"
 
        - os: linux
-         dist: trusty
+         dist: xenial
          sudo: required
          python: "2.7_with_system_site_packages"
          env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="openmpi"  DISTRIB="ubuntu"
-
 
 install:
     - if [[ "$DISTRIB" == "conda_macos" ]]; then source tools/install_conda_macos.sh; fi
