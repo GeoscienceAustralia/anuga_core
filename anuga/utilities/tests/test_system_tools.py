@@ -202,7 +202,7 @@ class Test_system_tools(unittest.TestCase):
         x = string_to_char(str_list)
         new_str_list = char_to_string(x)
 
-        self.assertEqual(new_str_list, str_list)
+        self.assertItemsEqual(new_str_list, str_list)
 
     # special test - input list is ['']
     def test_string_to_char2(self):
@@ -212,7 +212,7 @@ class Test_system_tools(unittest.TestCase):
         x = string_to_char(str_list)
         new_str_list = char_to_string(x)
 
-        self.assertEqual(new_str_list, str_list)
+        self.assertItemsEqual(new_str_list, str_list)
 
 
 ################################################################################
@@ -264,7 +264,7 @@ class Test_system_tools(unittest.TestCase):
         FILENAME = 'test.msh'
 
         # generate some random strings in a list, with guaranteed lengths
-        str_list = ['x' * MAX_CHARS]        # make first maximum length
+        str_list = [u'x' * MAX_CHARS]        # make first maximum length
         for entry in range(MAX_ENTRIES):
             length = random.randint(1, MAX_CHARS)
             s = ''
@@ -274,8 +274,9 @@ class Test_system_tools(unittest.TestCase):
 
         self.helper_write_msh_file(FILENAME, str_list)
         new_str_list = self.helper_read_msh_file(FILENAME)
-
-        self.assertEqual(new_str_list, str_list)
+        #print(str_list[:10])
+        #print(new_str_list[:10])
+        self.assertItemsEqual(new_str_list, str_list)
         os.remove(FILENAME)
 
     # special test - list [''] to a NetCDF file
@@ -288,7 +289,7 @@ class Test_system_tools(unittest.TestCase):
         self.helper_write_msh_file(FILENAME, str_list)
         new_str_list = self.helper_read_msh_file(FILENAME)
 
-        self.assertEqual(new_str_list, str_list)
+        self.assertItemsEqual(new_str_list, str_list)
         os.remove(FILENAME)
 
     def test_get_vars_in_expression(self):

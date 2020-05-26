@@ -396,11 +396,13 @@ def get_pathname_from_package(package):
 
     """
 
-    print(package)
+    #print(package)
 
     exec('import %s as x' %package)
 
     path = x.__path__[0]
+
+    #print(path)
     
     return path
 
@@ -477,9 +479,9 @@ def char_to_string(ll):
     '''Convert 2-D list of chars to 1-D list of strings.'''
 
     #return list(map(string.rstrip, [''.join(x) for x in ll]))
-    print(ll[:10])
+    #print(ll[:10])
     ll_list = [''.join(x) for x in ll]
-    print(ll_list[0:10])
+    #print(ll_list[0:10])
     return ll_list
 
 ################################################################################
