@@ -150,7 +150,7 @@ class Test_Interpolate(unittest.TestCase):
         assert interp.outside_poly_indices[1] == 2, \
                'third outside point should be inside the hole!'
 
-    def test_simple_interpolation_example(self):
+    def test_simple_interpolation_example1(self):
         
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
@@ -1957,7 +1957,7 @@ class Test_Interpolate(unittest.TestCase):
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Interpolate,'test')
+    suite = unittest.makeSuite(Test_Interpolate,'test_simple_interpolation')
     runner = unittest.TextTestRunner() #verbosity=1)
     runner.run(suite)
 

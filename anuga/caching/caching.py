@@ -49,6 +49,7 @@ from builtins import range
 from past.builtins import basestring
 from past.utils import old_div
 from os import getenv
+import collections
 import types
 import time
 
@@ -293,13 +294,13 @@ def cache(my_F,
 
   # Handle the case cache('clear')
   if isinstance(my_F, basestring):
-    if string.lower(my_F) == 'clear':
+    if my_F.lower() == 'clear':
       clear_cache(CD,verbose=verbose)
       return
 
   # Handle the case cache(my_F, 'clear')
   if isinstance(args, basestring):
-    if string.lower(args) == 'clear':
+    if args.lower() == 'clear':
       clear_cache(CD,my_F,verbose=verbose)
       return
 
@@ -1406,21 +1407,19 @@ def myhash(T, ids=None):
     T -- Anything
   """
 
-  from types import TupleType, ListType, DictType, InstanceType  
-    
-  if type(T) in [TupleType, ListType, DictType, InstanceType]:  
+  #Replacing Python2: if type(T) in [TupleType, ListType, DictType, InstanceType]:
+  if isinstance(T, (tuple, list, dict)) or type(T) is type:
       # Keep track of unique id's to protect against infinite recursion
       if ids is None: ids = []
 
       # Check if T has already been encountered
       i = id(T) 
-  
+
       if i in ids:
           return 0 # T has been hashed already      
       else:
           ids.append(i)
     
-
     
   # Start hashing  
   
@@ -1433,25 +1432,28 @@ def myhash(T, ids=None):
       return(1)
 
   # Get hash values for hashable entries
-  if type(T) in [TupleType, ListType]:
+  if isinstance(T, (tuple, list)):
       hvals = []
       for t in T:
           h = myhash(t, ids)
           hvals.append(h)
       val = hash(tuple(hvals))
-  elif type(T) == DictType:
-      # Make dictionary ordering unique  
-      
-      # FIXME(Ole): Need new way of doing this in Python 3.0
-      I = list(T.items())
-      I.sort()    
+  elif isinstance(T, dict):
+      # Make dictionary ordering unique
+
+      # AS of Python 3.7 they now are ordered: https://mail.python.org/pipermail/python-dev/2017-December/151283.html
+
+    # FIXME(Ole): Need new way of doing this in Python 3.0 (B4 2010 ;-)
+      #I = list(T.items())
+      #I.sort()
+      I = T
       val = myhash(I, ids)
   elif isinstance(T, num.ndarray):
       T = num.array(T) # Ensure array is contiguous
 
       # Use mean value for efficiency
       val = hash(num.average(T.flat))
-  elif type(T) == InstanceType:
+  elif type(T) is type:  # This is instead of the old InstanceType:
       # Use the attribute values 
       val = myhash(T.__dict__, ids)
   else:
@@ -1507,20 +1509,22 @@ def compare(A, B, ids=None):
     elif isinstance(A, dict):
         if len(A) != len(B):
             identical = False
-        else:                        
+        else:
+            # Dictionaries are now ordered as of Python 3.7
             # Make dictionary ordering unique 
-            a = list(A.items()); a.sort()    
-            b = list(B.items()); b.sort()
+            #a = list(A.items()); a.sort()    
+            #b = list(B.items()); b.sort()
             
-            identical = compare(a, b, ids)
+            identical = compare(A, B, ids)
             
     elif isinstance(A, num.ndarray):
         # Use element by element comparison
         identical = num.alltrue(A==B)
 
-    elif type(A) == types.InstanceType:
+    #elif type(A) == types.InstanceType:
+    elif type(A) is type:
         # Take care of special case where elements are instances            
-        # Base comparison on attributes     
+        # Base comparison on attributes
         identical = compare(A.__dict__, 
                             B.__dict__, 
                             ids)
@@ -1584,11 +1588,11 @@ def get_funcname(my_F):
   elif type(my_F) == types.BuiltinFunctionType:
     funcname = my_F.__name__
   else:
-    tab = string.maketrans("<>'","   ")
-    tmp = string.translate(repr(my_F), tab)
-    tmp = string.split(tmp)
-    funcname = string.join(tmp)
-
+    tab = str.maketrans("<>'","   ")
+    tmp = str.translate(repr(my_F), tab)
+    tmp = str.split(tmp)
+    funcname = ' '.join(tmp)
+    
     # Truncate memory address as in
     # class __main__.Dummy at 0x00A915D0
     index = funcname.find('at 0x')
@@ -1611,13 +1615,21 @@ def get_bytecode(my_F):
     return get_func_code_details(my_F)
   elif type(my_F) == types.MethodType:
     return get_func_code_details(my_F.__func__)
-  elif type(my_F) == types.InstanceType:    
-    if hasattr(my_F, '__call__'):
+  elif type(my_F) is type:
+    # It is an instance of a class
+    if callable(my_F):
       # Get bytecode from __call__ method
-      bytecode = get_func_code_details(my_F.__call__.__func__)
-      
+
+      # FIXME (Ole): Haven't found the equivalent in Python3 yet.
+      # It may be in here: https://docs.python.org/3/library/inspect.html
+      # For now we just ignore this - it may actually not be that important.
+
+      #func = my_F.__call__.__func__  # Python 2.x
+      #bytecode = get_func_code_details(func)
       # Add hash value of object to detect attribute changes
-      return bytecode + (myhash(my_F),) 
+      #return bytecode + (myhash(my_F),)
+
+      return (myhash(my_F),)
     else:
       msg = 'Instance %s was passed into caching in the role of a function ' % str(my_F)
       msg = ' but it was not callable.'
