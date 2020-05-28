@@ -1213,10 +1213,18 @@ class Domain(Generic_Domain):
            DE1_7
         """
 
-        if isinstance(flag, str) :
-            flag = flag.replace(".","_")
-        else:
-            flag = str(float(str(flag))).replace(".","_")
+        # FIXME(Ole): flag should be called algorithm ;-)
+
+        # This should be as simple as saying flag = str(flag),
+        # but I had to encode and then decode to get the right
+        # byte-like object necessary for the .replace() method (go figure?)
+
+        # Convert into raw-bytes form and then back into character-string form
+        flag = flag.encode('utf-8').decode()
+
+        # Replace any dots with dashes
+        flag = flag.replace(".","_")        
+        
 
         flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', \
                            'tsunami', 'yusuke', 'DE0', 'DE1', 'DE2', \
@@ -1228,9 +1236,6 @@ class Domain(Generic_Domain):
             msg = 'Unknown flow_algorithm. \nPossible choices are:\n'+ \
             ', '.join(flow_algorithms)+'.'
             raise Exception(msg)
-
-
-
 
         if self.flow_algorithm == '1_0':
             self._set_1_0_defaults()
