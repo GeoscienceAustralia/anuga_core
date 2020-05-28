@@ -467,6 +467,7 @@ def string_to_char(l):
     if l == ['']:
         l = [' ']
 
+
     maxlen = reduce(max, list(map(len, l)))
     ll = [x.ljust(maxlen) for x in l]
     result = []
@@ -479,7 +480,7 @@ def char_to_string(ll):
     '''Convert 2-D list of chars to 1-D list of strings.'''
 
     #return list(map(string.rstrip, [''.join(x) for x in ll]))
-    #print(ll[:10])
+    #print(ll[0:10])
     ll_list = [''.join(x) for x in ll]
     #print(ll_list[0:10])
     return ll_list
