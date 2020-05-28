@@ -40,7 +40,7 @@ def merge_csv_key_values(file_title_list, output_file,
 
         # start reading the CSV file
         data = []
-        fd = open(filename, 'rb')
+        fd = open(filename, 'r')
         csv_reader = csv.reader(fd)
 
         # open file, get header row, calculate required column indices
