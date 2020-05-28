@@ -55,6 +55,8 @@ class Domain_plotter(object):
         name = self.domain.get_name()
         time = self.domain.get_time()
         
+        self.depth = self.stage - self.elev
+
         md = self.min_depth
 
         fig = plt.figure(figsize=figsize, dpi=dpi)
@@ -66,7 +68,8 @@ class Domain_plotter(object):
                       facecolors=self.elev,
                       cmap='Greys_r')
 
-        self.triang.set_mask(self.depth < md)
+
+        self.triang.set_mask(self.depth <= md)
         plt.tripcolor(self.triang,
                       facecolors=self.depth,
                       cmap='viridis',
@@ -150,6 +153,8 @@ class Domain_plotter(object):
         name = self.domain.get_name()
         time = self.domain.get_time()
         
+        self.depth = self.stage - self.elev
+
         md = self.min_depth
 
         fig = plt.figure(figsize=figsize, dpi=dpi)
@@ -161,7 +166,7 @@ class Domain_plotter(object):
                       facecolors=self.elev,
                       cmap='Greys_r')
 
-        self.triang.set_mask(self.depth < md)
+        self.triang.set_mask(self.depth <= md)
         plt.tripcolor(self.triang,
                       facecolors=self.stage,
                       cmap='viridis',
@@ -246,6 +251,8 @@ class Domain_plotter(object):
         name = self.domain.get_name()
         time = self.domain.get_time()
         
+        self.depth = self.stage - self.elev
+
         md = self.min_depth
 
         fig = plt.figure(figsize=figsize, dpi=dpi)
@@ -257,7 +264,7 @@ class Domain_plotter(object):
                       facecolors=self.elev,
                       cmap='Greys_r')
 
-        self.triang.set_mask(self.depth < md)
+        self.triang.set_mask(self.depth <= md)
         plt.tripcolor(self.triang,
                       facecolors=self.speed,
                       cmap='viridis',

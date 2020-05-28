@@ -84,7 +84,7 @@ At present we recommend using the Miniconda.
 
 Follow the instructions  
 `install ANUGA on Windows using Miniconda
-<https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-using-Miniconda>`_
+<https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-(using-Miniconda)>`_
 
 Alternatively follow the instructions 
 `install ANUGA on Windows using the Gohlke Binaries
