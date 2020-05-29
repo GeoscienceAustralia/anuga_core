@@ -35,5 +35,8 @@ Date PR Result
 20200529     Ran 1146 tests in 76.251s FAILED (errors=233, failures=40) char_to_string (netcdf)
 20200529  40 Ran 1146 tests in 73.962s FAILED (errors=243, failures=28) mesh boundaries text vs binary
 20200529     Ran 1147 tests in 80.033s FAILED (errors=206, failures=12) sorting and removal of duplicates. All 55 mest tests ok.
+20200529     Ran 1147 tests in 79.454s FAILED (errors=206, failures=10) All 19 loadASCII tests ok
+20200529     Ran 1147 tests in 80.269s FAILED (errors=191, failures=10) Syntax_tree fixed in system tools. All 25 tests ok.
+
 
 

@@ -484,13 +484,17 @@ def char_to_string(ll):
     # i.e return [''.join(x).strip() for x in ll]
 
     # But this works for now.
-    
+
     result = []
     for i in range(len(ll)):
         x = ll[i]
         string = ''
         for j in range(len(x)):
-            string += x[j].decode()
+            c = x[j]
+            if type(c) == str:
+                string += c
+            else:
+                string += c.decode()            
 
         result.append(string.strip())
         
@@ -502,24 +506,20 @@ def char_to_string(ll):
 def get_vars_in_expression(source):
     '''Get list of variable names in a python expression.'''
 
-    import compiler
-    from compiler.ast import Node
-
-    def get_vars_body(node, var_list=[]):
-        if isinstance(node, Node):
-            if node.__class__.__name__ == 'Name':
-                for child in node.getChildren():
-                    if child not in var_list:
-                        var_list.append(child)
-            for child in node.getChildren():
-                if isinstance(child, Node):
-                    for child in node.getChildren():
-                        var_list = get_vars_body(child, var_list)
-                    break
-
-        return var_list
-
-    return get_vars_body(compiler.parse(source))
+    # https://stackoverflow.com/questions/37993137/how-do-i-detect-variables-in-a-python-eval-expression
+    
+    import ast
+        
+    variables = {}
+    syntax_tree = ast.parse(source)
+    for node in ast.walk(syntax_tree):
+        if type(node) is ast.Name:
+            variables[node.id] = 0  # Keep first one, but not duplicates
+                
+    # Only return keys
+    result = list(variables.keys()) # Only return keys i.e. the variable names
+    result.sort() # Sort for uniqueness
+    return result
 
 
 def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
