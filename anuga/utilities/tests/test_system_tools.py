@@ -487,6 +487,6 @@ class Test_system_tools(unittest.TestCase):
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_system_tools, 'test_string_to_netcdf')
+    suite = unittest.makeSuite(Test_system_tools, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
