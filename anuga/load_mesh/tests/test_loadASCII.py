@@ -384,6 +384,11 @@ showme1.0 0.0 10.0 \n\
         loaded_dict = loadASCII._read_msh_file(fileName)
         os.remove(fileName)
         dict = self.dict
+
+        #print()
+        #print(dict)
+        #print()
+        #print(loaded_dict)
         self.check_mesh_dicts(loaded_dict, dict, 'test_read_write_msh_file1')
 
     def test_read_write_msh_fileII(self):

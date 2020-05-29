@@ -808,7 +808,7 @@ def _read_msh_file(file_name):
     mesh['vertex_attribute_titles'] = []
     try:
         titles = fid.variables['vertex_attribute_titles'][:]
-        mesh['vertex_attribute_titles'] = [x.tostring().strip()
+        mesh['vertex_attribute_titles'] = [x.tostring().decode().strip()
                                            for x in titles]
     except KeyError:
         pass
