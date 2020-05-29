@@ -99,8 +99,20 @@ class Geo_reference(object):
             
         # Set flag for absolute points (used by get_absolute)    
         self.absolute = num.allclose([self.xllcorner, self.yllcorner], 0)
-            
+        
+    def __eq__(self, other):
 
+        # FIXME (Ole): Can this be automatically done for all attributes?
+        return(self.false_easting == other.false_easting and
+               self.false_northing == other.false_northing and
+               self.datum == other.datum and
+               self.projection == other.projection and
+               self.zone == other.zone and
+               self.units == other.units and
+               self.xllcorner == other.xllcorner and
+               self.yllcorner == other.yllcorner and
+               self.absolute == other.absolute)
+        
     def get_xllcorner(self):
         return self.xllcorner
 

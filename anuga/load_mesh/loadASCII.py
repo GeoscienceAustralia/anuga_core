@@ -821,11 +821,11 @@ def _read_msh_file(file_name):
     mesh['segment_tags'] = []
     try:
         tags = fid.variables['segment_tags'][:]
-        mesh['segment_tags'] = [x.tostring().strip() for x in tags]
+        mesh['segment_tags'] = [x.tostring().decode().strip() for x in tags]
     except KeyError:
         for ob in mesh['segments']:
             mesh['segment_tags'].append('')
-
+            
     try:
         mesh['triangles'] = fid.variables['triangles'][:]
         mesh['triangle_neighbors'] = fid.variables['triangle_neighbors'][:]
@@ -833,10 +833,11 @@ def _read_msh_file(file_name):
         mesh['triangles'] = num.array([], num.int)  # array default#
         mesh['triangle_neighbors'] = num.array([], num.int)  # array default#
 
+
     mesh['triangle_tags'] = []
     try:
         tags = fid.variables['triangle_tags'][:]
-        mesh['triangle_tags'] = [x.tostring().strip() for x in tags]
+        mesh['triangle_tags'] = [x.tostring().decode().strip() for x in tags]
     except KeyError:
         for ob in mesh['triangles']:
             mesh['triangle_tags'].append('')
@@ -846,6 +847,7 @@ def _read_msh_file(file_name):
         mesh['points'] = fid.variables['points'][:]
     except KeyError:
         mesh['points'] = []
+
 
     try:
         mesh['point_attributes'] = fid.variables['point_attributes'][:]
@@ -863,7 +865,7 @@ def _read_msh_file(file_name):
     try:
         tags = fid.variables['outline_segment_tags'][:]
         for i, tag in enumerate(tags):
-            mesh['outline_segment_tags'].append(tags[i].tostring().strip())
+            mesh['outline_segment_tags'].append(tags[i].tostring().decode().strip())
     except KeyError:
         for ob in mesh['outline_segments']:
             mesh['outline_segment_tags'].append('')
@@ -882,7 +884,7 @@ def _read_msh_file(file_name):
     try:
         tags = fid.variables['region_tags'][:]
         for i, tag in enumerate(tags):
-            mesh['region_tags'].append(tags[i].tostring().strip())
+            mesh['region_tags'].append(tags[i].tostring().decode().strip())
     except KeyError:
         for ob in mesh['regions']:
             mesh['region_tags'].append('')
@@ -891,7 +893,7 @@ def _read_msh_file(file_name):
         mesh['region_max_areas'] = fid.variables['region_max_areas'][:]
     except KeyError:
         mesh['region_max_areas'] = num.array([], num.int)  # array default#
-
+        
     try:
         geo_reference = Geo_reference(NetCDFObject=fid)
         mesh['geo_reference'] = geo_reference
