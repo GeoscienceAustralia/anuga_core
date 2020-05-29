@@ -527,6 +527,12 @@ class Mesh(object):
 
     def __cmp__(self, other):
 
+
+        # FIXME(Ole): This should be refactored to use Mesh2MeshDic(self):
+        # Like this:
+        # self_dict = self.Mesh2MeshDic()
+        # other_dict = other.Mesh2MeshDic()        
+        
         # A dic for the initial m
         dic = self.Mesh2triangList()
         dic_mesh = self.Mesh2MeshList()
@@ -550,8 +556,21 @@ class Mesh(object):
         # print "dic.__cmp__(dic_o)",dic.__cmp__(dic_other)
         # print "dsg************************8"
 
-        return (dic.__cmp__(dic_other))
+        # FIXME (Ole): For backwards compatibility - should just return True or False
+        if (dic == dic_other):
+           return 0
+        else:
+           return -1
 
+    def __eq__(self, other):
+
+        self_dict = self.Mesh2MeshDic()
+        other_dict = other.Mesh2MeshDic()        
+        
+        return (self_dict == other_dict and
+                self.geo_reference == other.geo_reference)
+    
+        
     def addUserPoint(self, pointType, x, y):
         if pointType == Vertex:
             point = self.addUserVertex(x, y)
@@ -1165,7 +1184,10 @@ class Mesh(object):
             v.dupindex = index
             index += 1
         t = list(Vertices)
-        t.sort(Point.cmp_xy)
+
+        # Using https://docs.python.org/3/howto/sorting.html
+        t.sort(key=cmp_to_key(Point.cmp_xy)) # For Python 3.x
+        #t.sort(Point.cmp_xy)  # For Python2.7
 
         length = len(t)
         behind = 0
@@ -2161,6 +2183,7 @@ def importMeshFromFile(ofile):
         # print "********"
         # print "zq mesh.dict",dict
         # print "********"
+
         newmesh = Mesh()
         newmesh.IOOutline2Mesh(dict)
         newmesh.IOTriangulation2Mesh(dict)
@@ -2169,6 +2192,7 @@ def importMeshFromFile(ofile):
 
     if 'geo_reference' in dict and not dict['geo_reference'] is None:
         newmesh.geo_reference = dict['geo_reference']
+
     return newmesh
 
 
@@ -2262,6 +2286,7 @@ def region_ints2strings(region_list, convertint2string):
 
 def segment_ints2strings(intlist, convertint2string):
     """Reverses the transformation of segment_strings2ints """
+
     stringlist = []
     for x in intlist:
         stringlist.append(convertint2string[int(x)])
@@ -2275,7 +2300,7 @@ def segment_strings2ints(stringlist, preset):
     Note, the converting list starts off with
     ["internal boundary", "external boundary", "internal boundary"]
     example input and output 
-    input ["a","b","a","c"],["c"]
+    input ["a","b","a","c"], ["c"]
     output [[2, 1, 2, 0], ['c', 'b', 'a']]
 
     the first element in the converting list will be
@@ -2383,6 +2408,28 @@ def unique(s):
         if x not in u:
             u.append(x)
     return u
+
+# From https://docs.python.org/3/howto/sorting.html
+# Used with cmp_xy
+def cmp_to_key(mycmp):
+    'Convert a cmp= function into a key= function'
+    class K:
+        def __init__(self, obj, *args):
+            self.obj = obj
+        def __lt__(self, other):
+            return mycmp(self.obj, other.obj) < 0
+        def __gt__(self, other):
+            return mycmp(self.obj, other.obj) > 0
+        def __eq__(self, other):
+            return mycmp(self.obj, other.obj) == 0
+        def __le__(self, other):
+            return mycmp(self.obj, other.obj) <= 0
+        def __ge__(self, other):
+            return mycmp(self.obj, other.obj) >= 0
+        def __ne__(self, other):
+            return mycmp(self.obj, other.obj) != 0
+    return K
+
 
 
 # FIXME (DSG-DSG)
