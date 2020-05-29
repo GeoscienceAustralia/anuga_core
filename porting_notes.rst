@@ -1,5 +1,6 @@
+=============================
 Help with porting to Python3:
-
+=============================
 
 --------------
 Web resources
@@ -14,7 +15,6 @@ https://learning-python.com/strings30.html
  Git commands
 -------------
 
-
 # Main repository is: git@github.com:stoiver/anuga_core.git
 
 # Synchronise porting branch from upstream
@@ -26,8 +26,9 @@ git pull upstream python3_anuga_py3
 ---------
 
 Date PR Result
--------------------
+-------------
 
+::
   20200527     Ran 1035 tests in 39.265s FAILED (errors=463, failures=42)
   20200528  37 Ran 1035 tests in 39.265s FAILED (errors=272, failures=42)
   20200528  38 Ran 1034 tests in 37.107s FAILED (errors=254, failures=43)
