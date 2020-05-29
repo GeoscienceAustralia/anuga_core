@@ -1218,7 +1218,6 @@ class meshTestCase(unittest.TestCase):
         counter = m.removeDuplicatedUserVertices()
         UserVerts = m.getUserVertices()
         
-         
         self.assertTrue(UserVerts == inputVerts_noDups,
                             'duplicate verts not removed')
         #for userVert, inputVert in map(None, UserVerts, inputVerts_noDups): 
@@ -1366,8 +1365,6 @@ class meshTestCase(unittest.TestCase):
         #print "m",m 
         #print '**@@@@@******'
 
-        print(m)
-        print(new_m)
         self.assertTrue(new_m == m,
                         'loadASCIITestCase failed. test new 1')
             
@@ -2118,7 +2115,6 @@ class meshTestCase(unittest.TestCase):
         for n in numbers:
             mode = 'a' + str(n)
             #print " mode += 'a' + str(n)", mode
-            print("=====================")
             
             try:
                 mode = 'a' + '%20.20f' %n

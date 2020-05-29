@@ -557,11 +557,6 @@ class Mesh(object):
         # print "dsg************************8"
 
         # FIXME (Ole): For backwards compatibility - should just return True or False
-        print('============================================')
-        print(dic)
-        print(dic_other)
-        print('============================================')
-        
         if (dic == dic_other):
            return 0
         else:
@@ -1189,7 +1184,10 @@ class Mesh(object):
             v.dupindex = index
             index += 1
         t = list(Vertices)
-        t.sort(Point.cmp_xy)
+
+        # Using https://docs.python.org/3/howto/sorting.html
+        t.sort(key=cmp_to_key(Point.cmp_xy)) # For Python 3.x
+        #t.sort(Point.cmp_xy)  # For Python2.7
 
         length = len(t)
         behind = 0
@@ -2186,7 +2184,6 @@ def importMeshFromFile(ofile):
         # print "zq mesh.dict",dict
         # print "********"
 
-        #print('dict', dict)
         newmesh = Mesh()
         newmesh.IOOutline2Mesh(dict)
         newmesh.IOTriangulation2Mesh(dict)
@@ -2411,6 +2408,28 @@ def unique(s):
         if x not in u:
             u.append(x)
     return u
+
+# From https://docs.python.org/3/howto/sorting.html
+# Used with cmp_xy
+def cmp_to_key(mycmp):
+    'Convert a cmp= function into a key= function'
+    class K:
+        def __init__(self, obj, *args):
+            self.obj = obj
+        def __lt__(self, other):
+            return mycmp(self.obj, other.obj) < 0
+        def __gt__(self, other):
+            return mycmp(self.obj, other.obj) > 0
+        def __eq__(self, other):
+            return mycmp(self.obj, other.obj) == 0
+        def __le__(self, other):
+            return mycmp(self.obj, other.obj) <= 0
+        def __ge__(self, other):
+            return mycmp(self.obj, other.obj) >= 0
+        def __ne__(self, other):
+            return mycmp(self.obj, other.obj) != 0
+    return K
+
 
 
 # FIXME (DSG-DSG)
