@@ -51,12 +51,13 @@ class Test_system_tools(unittest.TestCase):
         tmp_fd, tmp_name = mkstemp(suffix='.tmp', dir='.')
         fid = os.fdopen(tmp_fd, 'w+b')
         string = 'My temp file with textual content. AAAABBBBCCCC1234'
-        fid.write(string)
+        binary_object = string.encode()  # Make it binary
+        fid.write(binary_object)
         fid.close()
 
         # Have to apply the 64 bit fix here since we aren't comparing two
         # files, but rather a string and a file.
-        ref_crc = safe_crc(string)
+        ref_crc = safe_crc(binary_object)
 
         checksum = compute_checksum(tmp_name)
         assert checksum == ref_crc
@@ -67,11 +68,11 @@ class Test_system_tools(unittest.TestCase):
         tmp_fd, tmp_name = mkstemp(suffix='.tmp', dir='.')
         fid = os.fdopen(tmp_fd, 'w+b')
 
-        string = 'My temp file with binary content. AAAABBBBCCCC1234'
-        fid.write(string)
+        binary_object = 'My temp file with binary content. AAAABBBBCCCC1234'.encode()
+        fid.write(binary_object)
         fid.close()
 
-        ref_crc = safe_crc(string)
+        ref_crc = safe_crc(binary_object)
         checksum = compute_checksum(tmp_name)
 
         assert checksum == ref_crc
@@ -113,6 +114,17 @@ class Test_system_tools(unittest.TestCase):
             os.remove(filename1)
             os.remove(filename2)
 
+
+    def test_get_pathname_from_package(self):
+        """test_get_pathname_from_package(self):
+
+        Check that correct pathname can be derived from package
+        """
+        
+        path = get_pathname_from_package('anuga')
+        assert path.endswith('anuga')
+
+            
     def test_compute_checksum_real(self):
         """test_compute_checksum(self):
 
@@ -252,7 +264,7 @@ class Test_system_tools(unittest.TestCase):
 
     # test random strings to a NetCDF file
 
-    def test_string_to_netcdf(self):
+    def test_string_to_netcdf1(self):
         import random
 
         MAX_CHARS = 10
@@ -475,6 +487,6 @@ class Test_system_tools(unittest.TestCase):
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_system_tools, 'test')
+    suite = unittest.makeSuite(Test_system_tools, 'test_string_to_netcdf')
     runner = unittest.TextTestRunner()
     runner.run(suite)

@@ -6827,12 +6827,12 @@ friction  \n \
          assert num.allclose(tagged_elements['ole nielsen'][0], 1)
 
          msg = "test_tags_to_boundaries failed. Single boundary wasn't added."
-         self.assertTrue( domain.boundary[(1, 0)]  == '1', msg)
-         self.assertTrue( domain.boundary[(1, 2)]  == '2', msg)
-         self.assertTrue( domain.boundary[(0, 1)]  == '3', msg)
-         self.assertTrue( domain.boundary[(0, 0)]  == 'exterior', msg)
+         self.assertTrue(domain.boundary[(1, 0)]  == '1', msg)
+         self.assertTrue(domain.boundary[(1, 2)]  == '2', msg)
+         self.assertTrue(domain.boundary[(0, 1)]  == '3', msg)
+         self.assertTrue(domain.boundary[(0, 0)]  == 'exterior', msg)
          msg = "test_pmesh2Domain Too many boundaries"
-         self.assertTrue( len(domain.boundary)  == 4, msg)
+         self.assertTrue(len(domain.boundary)  == 4, msg)
 
          # FIXME change to use get_xllcorner
          msg = 'Bad geo-reference'
@@ -8746,9 +8746,9 @@ friction  \n \
         assert num.allclose(VHc, (5*Xc+7*Yc)*(Xc+Yc))
 
     def test_set_quantity_from_file(self):
-	'''test the new set_values for the set_quantity procedures. The results of setting quantity values by using set_quantities and set_values for pts, asc and dem files are tested here. They should be equal.'''
+        '''test the new set_values for the set_quantity procedures. The results of setting quantity values by using set_quantities and set_values for pts, asc and dem files are tested here. They should be equal.'''
 
-	# settup
+        # settup
         x0 = 0.0
         y0 = 0.0
 
@@ -8803,20 +8803,20 @@ friction  \n \
             file.write(row + "\n")
         file.close()
 
-	# exact answer (vertex locations)
+        # exact answer (vertex locations)
         answer_vertex_values = linear_function(quantity.domain.get_vertex_coordinates())
 
         # Check that values can be set from pts file
-	# using set_values directly
+        # using set_values directly
         quantity.set_values(filename=ptsfile, alpha=0)
         assert num.allclose(quantity.vertex_values.flat, answer_vertex_values)
 
-	# using set_quantity with quantity name stage
-	mesh4.set_quantity(name='stage', filename=ptsfile, alpha=0)
-	mesh4_stage = mesh4.get_quantity('stage')
+        # using set_quantity with quantity name stage
+        mesh4.set_quantity(name='stage', filename=ptsfile, alpha=0)
+        mesh4_stage = mesh4.get_quantity('stage')
         assert num.allclose(mesh4_stage.vertex_values.flat, answer_vertex_values)
 
-	# check set quantity from asc file
+        # check set quantity from asc file
 
         """ Format of asc file
         ncols         11
@@ -8833,7 +8833,7 @@ friction  \n \
         cellsize = 1.0
         NODATA_value = -9999
 
-	# Create .asc file
+        # Create .asc file
         txt_file = 'test_asc.asc'
         datafile = open(txt_file, "w")
         datafile.write('ncols ' + str(ncols) + "\n")
@@ -8854,58 +8854,58 @@ friction  \n \
             datafile.write(" ".join(str(elem) for elem in row) + "\n")
         datafile.close()
 
-	# check set_values from asc file
-	quantity.set_values(0.0)
-	quantity.set_values(filename=txt_file,
+        # check set_values from asc file
+        quantity.set_values(0.0)
+        quantity.set_values(filename=txt_file,
                             location='vertices',
                             indices=None,
                             verbose=False)
         assert num.allclose(quantity.vertex_values.flat, answer_vertex_values)
 
-	quantity.set_values(0.0)
-	quantity.set_values(filename=txt_file,
+        quantity.set_values(0.0)
+        quantity.set_values(filename=txt_file,
                             location='centroids',
                             indices=None,
                             verbose=False)
 
-	# exact answer for centroid locations
-	answer_centroid_values = [ 1.33333333, 2.66666667, 3.33333333, 3.33333333]
+        # exact answer for centroid locations
+        answer_centroid_values = [ 1.33333333, 2.66666667, 3.33333333, 3.33333333]
         assert num.allclose(quantity.centroid_values, answer_centroid_values)
 
-	# check set_quantity from asc file
-	mesh4.set_quantity(name='stage', filename=txt_file,
+        # check set_quantity from asc file
+        mesh4.set_quantity(name='stage', filename=txt_file,
                             location='vertices', indices=None, verbose=False)
-	mesh4_stage = mesh4.get_quantity('stage')
+        mesh4_stage = mesh4.get_quantity('stage')
         assert num.allclose(mesh4_stage.vertex_values.flat, answer_vertex_values)
-	# reset mesh4 stage values
-	mesh4.set_quantity(name='stage', numeric=0.0)
- 	mesh4.set_quantity(name='stage', filename=txt_file,
+        # reset mesh4 stage values
+        mesh4.set_quantity(name='stage', numeric=0.0)
+        mesh4.set_quantity(name='stage', filename=txt_file,
                             location='centroids', indices=None, verbose=False)
         assert num.allclose(mesh4_stage.centroid_values, answer_centroid_values)
 
-	# check set quantity values from dem file
-	from anuga.file_conversion.asc2dem import asc2dem
-	# use the same reference solution used above for testing
-	# convert test_asc.asc file to .dem file
-	txt_file_prj = 'test_asc.prj'
-	fid = open(txt_file_prj, 'w')
-	fid.write("""Projection UTM
-	Zone 56
-	Datum WGS84
-	Zunits NO
-	Units METERS
-	Spheroid WGS84
-	Xshift 0.0000000000
-	Yshift 10000000.0000000000
-	Parameters
-	""")
-	fid.close()
+        # check set quantity values from dem file
+        from anuga.file_conversion.asc2dem import asc2dem
+        # use the same reference solution used above for testing
+        # convert test_asc.asc file to .dem file
+        txt_file_prj = 'test_asc.prj'
+        fid = open(txt_file_prj, 'w')
+        fid.write("""Projection UTM
+        Zone 56
+        Datum WGS84
+        Zunits NO
+        Units METERS
+        Spheroid WGS84
+        Xshift 0.0000000000
+        Yshift 10000000.0000000000
+        Parameters
+        """)
+        fid.close()
 
-	txt_file_dem = 'test_asc.dem'
-	asc2dem(name_in=txt_file, name_out='test_asc',
-	        use_cache=False, verbose=False)
+        txt_file_dem = 'test_asc.dem'
+        asc2dem(name_in=txt_file, name_out='test_asc',
+                use_cache=False, verbose=False)
 
-	# check set_values from dem file
+        # check set_values from dem file
         quantity.set_values(0.0)
         quantity.set_values(filename=txt_file_dem,
                             location='vertices',
@@ -8913,26 +8913,26 @@ friction  \n \
                             verbose=False)
         assert num.allclose(quantity.vertex_values.flat, answer_vertex_values)
 
-	quantity.set_values(0.0)
+        quantity.set_values(0.0)
         quantity.set_values(filename=txt_file_dem,
                             location='centroids',
                             indices=None,
                             verbose=False)
         assert num.allclose(quantity.centroid_values, answer_centroid_values)
 
-	# check set_quantity from dem file
-	mesh4.set_quantity(name='stage', filename=txt_file_dem,
+        # check set_quantity from dem file
+        mesh4.set_quantity(name='stage', filename=txt_file_dem,
                             location='vertices', indices=None, verbose=False)
-	mesh4_stage = mesh4.get_quantity('stage')
+        mesh4_stage = mesh4.get_quantity('stage')
         assert num.allclose(mesh4_stage.vertex_values.flat, answer_vertex_values)
-	# reset mesh4 stage values
-	mesh4.set_quantity(name='stage', numeric=0.0)
-	mesh4.set_quantity(name='stage', filename=txt_file_dem,
+        # reset mesh4 stage values
+        mesh4.set_quantity(name='stage', numeric=0.0)
+        mesh4.set_quantity(name='stage', filename=txt_file_dem,
                             location='centroids')
-	mesh4_stage = mesh4.get_quantity('stage')
+        mesh4_stage = mesh4.get_quantity('stage')
         assert num.allclose(mesh4_stage.centroid_values, answer_centroid_values)
 
-	# Cleanup
+        # Cleanup
         import os
         try:
             os.remove(ptsfile)
@@ -8988,6 +8988,6 @@ friction  \n \
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_extrapolate_second_order_sw')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test_')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test_pmesh')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

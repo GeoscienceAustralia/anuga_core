@@ -396,15 +396,12 @@ def get_pathname_from_package(package):
 
     """
 
-    #print(package)
+    # Execute import command
+    # See https://stackoverflow.com/questions/1463306/how-does-exec-work-with-locals
+    exec('import %s as x' % package, globals())
 
-    exec('import %s as x' %package)
-
-    path = x.__path__[0]
-
-    #print(path)
-    
-    return path
+    # Get and return path
+    return x.__path__[0]
 
     # Alternative approach that has been used at times
     #try:
@@ -480,7 +477,24 @@ def string_to_char(l):
 def char_to_string(ll):
     '''Convert 2-D list of chars to 1-D list of strings.'''
 
-    return [''.join(x).strip() for x in ll]
+    #https://stackoverflow.com/questions/23618218/numpy-bytes-to-plain-string
+    #bytes_string.decode('UTF-8')
+
+    # We might be able to do this a bit more shorthand as we did in Python2.x
+    # i.e return [''.join(x).strip() for x in ll]
+
+    # But this works for now.
+    
+    result = []
+    for i in range(len(ll)):
+        x = ll[i]
+        string = ''
+        for j in range(len(x)):
+            string += x[j].decode()
+
+        result.append(string.strip())
+        
+    return result
 
 
 ################################################################################
@@ -639,7 +653,7 @@ def get_file_hexdigest(filename, blocksize=1024*1024*10):
         data = fd.read(blocksize)
         if len(data) == 0:
             break
-        m.update(data)
+        m.update(data.encode())
                                                                 
     fd.close()
     return m.hexdigest()
