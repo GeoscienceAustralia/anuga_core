@@ -264,7 +264,7 @@ class Test_system_tools(unittest.TestCase):
 
     # test random strings to a NetCDF file
 
-    def test_string_to_netcdf(self):
+    def test_string_to_netcdf1(self):
         import random
 
         MAX_CHARS = 10
@@ -487,6 +487,6 @@ class Test_system_tools(unittest.TestCase):
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_system_tools, 'test_file')
+    suite = unittest.makeSuite(Test_system_tools, 'test_string_to_netcdf')
     runner = unittest.TextTestRunner()
     runner.run(suite)

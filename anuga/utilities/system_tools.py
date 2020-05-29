@@ -477,7 +477,24 @@ def string_to_char(l):
 def char_to_string(ll):
     '''Convert 2-D list of chars to 1-D list of strings.'''
 
-    return [''.join(x).strip() for x in ll]
+    #https://stackoverflow.com/questions/23618218/numpy-bytes-to-plain-string
+    #bytes_string.decode('UTF-8')
+
+    # We might be able to do this a bit more shorthand as we did in Python2.x
+    # i.e return [''.join(x).strip() for x in ll]
+
+    # But this works for now.
+    
+    result = []
+    for i in range(len(ll)):
+        x = ll[i]
+        string = ''
+        for j in range(len(x)):
+            string += x[j].decode()
+
+        result.append(string.strip())
+        
+    return result
 
 
 ################################################################################
