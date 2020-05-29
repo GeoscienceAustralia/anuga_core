@@ -34,3 +34,6 @@ Date PR Result
 20200529  39 Ran 1146 tests in 79.962s FAILED (errors=234, failures=40) Hashing, checksums and exec(s, globals())
 20200529     Ran 1146 tests in 76.251s FAILED (errors=233, failures=40) char_to_string (netcdf)
 20200529     Ran 1146 tests in 73.962s FAILED (errors=243, failures=28) mesh boundaries text vs binary
+20200529     Ran 1147 tests in 80.033s FAILED (errors=206, failures=12) sorting and removal of duplicates. All 55 mest tests ok.
+
+
