@@ -636,7 +636,7 @@ def get_file_hexdigest(filename, blocksize=1024*1024*10):
         data = fd.read(blocksize)
         if len(data) == 0:
             break
-        m.update(data)
+        m.update(data.encode())
                                                                 
     fd.close()
     return m.hexdigest()
