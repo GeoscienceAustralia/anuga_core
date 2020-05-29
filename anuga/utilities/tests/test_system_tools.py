@@ -51,12 +51,13 @@ class Test_system_tools(unittest.TestCase):
         tmp_fd, tmp_name = mkstemp(suffix='.tmp', dir='.')
         fid = os.fdopen(tmp_fd, 'w+b')
         string = 'My temp file with textual content. AAAABBBBCCCC1234'
-        fid.write(string)
+        binary_object = string.encode()  # Make it binary
+        fid.write(binary_object)
         fid.close()
 
         # Have to apply the 64 bit fix here since we aren't comparing two
         # files, but rather a string and a file.
-        ref_crc = safe_crc(string)
+        ref_crc = safe_crc(binary_object)
 
         checksum = compute_checksum(tmp_name)
         assert checksum == ref_crc
@@ -67,11 +68,11 @@ class Test_system_tools(unittest.TestCase):
         tmp_fd, tmp_name = mkstemp(suffix='.tmp', dir='.')
         fid = os.fdopen(tmp_fd, 'w+b')
 
-        string = 'My temp file with binary content. AAAABBBBCCCC1234'
-        fid.write(string)
+        binary_object = 'My temp file with binary content. AAAABBBBCCCC1234'.encode()
+        fid.write(binary_object)
         fid.close()
 
-        ref_crc = safe_crc(string)
+        ref_crc = safe_crc(binary_object)
         checksum = compute_checksum(tmp_name)
 
         assert checksum == ref_crc
