@@ -25,10 +25,8 @@ git pull upstream python3_anuga_py3
  Burndown
 ---------
 
-Date PR Result
--------------
+Date PR Result::
 
-::
   20200527     Ran 1035 tests in 39.265s FAILED (errors=463, failures=42)
   20200528  37 Ran 1035 tests in 39.265s FAILED (errors=272, failures=42)
   20200528  38 Ran 1034 tests in 37.107s FAILED (errors=254, failures=43)
