@@ -1,19 +1,19 @@
+=============================
 Help with porting to Python3:
+=============================
 
-
-#--------------
-# Web resources
-#--------------
+--------------
+Web resources
+--------------
 https://docs.python.org/3/howto/pyporting.html
 http://python3porting.com/
 
 # On Unicode strings, str, bytes, bytearray
 https://learning-python.com/strings30.html
 
-#-------------
-# Git commands
-#-------------
-
+-------------
+ Git commands
+-------------
 
 # Main repository is: git@github.com:stoiver/anuga_core.git
 
@@ -21,12 +21,11 @@ https://learning-python.com/strings30.html
 git remote add upstream git@github.com:stoiver/anuga_core.git
 git pull upstream python3_anuga_py3 
 
-#---------
-# Burndown
-#---------
+---------
+ Burndown
+---------
 
-Date PR Result
--------------------
+Date PR Result::
 
 20200527     Ran 1035 tests in 39.265s FAILED (errors=463, failures=42)
 20200528  37 Ran 1035 tests in 39.265s FAILED (errors=272, failures=42)
