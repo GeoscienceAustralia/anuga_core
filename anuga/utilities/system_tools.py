@@ -396,15 +396,12 @@ def get_pathname_from_package(package):
 
     """
 
-    #print(package)
+    # Execute import command
+    # See https://stackoverflow.com/questions/1463306/how-does-exec-work-with-locals
+    exec('import %s as x' % package, globals())
 
-    exec('import %s as x' %package)
-
-    path = x.__path__[0]
-
-    #print(path)
-    
-    return path
+    # Get and return path
+    return x.__path__[0]
 
     # Alternative approach that has been used at times
     #try:
