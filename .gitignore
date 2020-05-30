@@ -15,6 +15,7 @@
 .settings/
 .*.sw[nop]
 .sw[nop]
+*.c
 *.tmp
 *.vim
 *.sww
