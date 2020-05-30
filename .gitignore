@@ -16,6 +16,7 @@
 .*.sw[nop]
 .sw[nop]
 *.c
+*.cpp
 *.tmp
 *.vim
 *.sww
