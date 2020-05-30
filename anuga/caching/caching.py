@@ -52,6 +52,7 @@ from os import getenv
 import collections
 import types
 import time
+import sys
 
 import os
 if os.name in ['nt', 'dos', 'win32', 'what else?']:
@@ -60,6 +61,7 @@ else:
   unix = True
 
 import anuga.utilities.log as log
+from anuga.utilities import system_tools
 
 import numpy as num
 
@@ -1310,7 +1312,6 @@ def myload(file, compressed):
         return None, reason
       
   except MemoryError:
-    import sys
     if options['verbose']:
       log.critical('ERROR: Out of memory while loading %s, aborting'
                    % file.name)
@@ -1407,7 +1408,7 @@ def myhash(T, ids=None):
     T -- Anything
   """
 
-  #Replacing Python2: if type(T) in [TupleType, ListType, DictType, InstanceType]:
+  # Replacing Python2: if type(T) in [TupleType, ListType, DictType, InstanceType]:
   if isinstance(T, (tuple, list, dict)) or type(T) is type:
       # Keep track of unique id's to protect against infinite recursion
       if ids is None: ids = []
@@ -1441,11 +1442,13 @@ def myhash(T, ids=None):
   elif isinstance(T, dict):
       # Make dictionary ordering unique
 
-      # AS of Python 3.7 they now are ordered: https://mail.python.org/pipermail/python-dev/2017-December/151283.html
-
-    # FIXME(Ole): Need new way of doing this in Python 3.0 (B4 2010 ;-)
-      #I = list(T.items())
-      #I.sort()
+      # FIXME(Ole): Need new way of doing this in Python 3.0 (B4 2010 ;-)
+      if system_tools.major_version == 2:
+          I = list(T.items())
+          I.sort()
+      else:
+          pass # As of Python 3.7 they now are ordered: https://mail.python.org/pipermail/python-dev/2017-December/151283.html         
+         
       I = T
       val = myhash(I, ids)
   elif isinstance(T, num.ndarray):
@@ -1588,9 +1591,17 @@ def get_funcname(my_F):
   elif type(my_F) == types.BuiltinFunctionType:
     funcname = my_F.__name__
   else:
-    tab = str.maketrans("<>'","   ")
-    tmp = str.translate(repr(my_F), tab)
-    tmp = str.split(tmp)
+    if system_tools.major_version == 3:
+      tab = str.maketrans("<>'","   ")
+      tmp = str.translate(repr(my_F), tab)
+      tmp = str.split(tmp)
+    elif system_tools.major_version == 2:
+      tab = string.maketrans("<>'","   ")
+      tmp = string.translate(repr(my_F), tab)
+      tmp = string.split(tmp)
+    else:
+      raise Exception('Unsupported version: %' % system_tools.version)
+      
     funcname = ' '.join(tmp)
     
     # Truncate memory address as in
@@ -1604,9 +1615,70 @@ def get_funcname(my_F):
 
 # -----------------------------------------------------------------------------
 
+#def get_bytecode(my_F):
+#  """ Get bytecode from function object.#
+#
+#  USAGE:
+#    get_bytecode(my_F)
+#  """
+#  print('HERE', type(my_F)) #
+#
+#  
+#    #
+#
+#  if type(my_F) == types.FunctionType:
+#    return get_func_code_details(my_F)
+#  elif type(my_F) == types.MethodType:
+#    return get_func_code_details(my_F.__func__)
+#  elif system_tools.major_version == 3 and type(my_F) is type:
+#    # It is an instance of a class (in Python 3)
+#
+#    if callable(my_F):
+#      # Get bytecode from __call__ method
+#      
+#      # FIXME (Ole): Haven't found the equivalent in Python3 yet.
+#      # It may be in here: https://docs.python.org/3/library/inspect.html
+#      # For now we just ignore this - it may actually not be that important.
+#       
+#      return (myhash(my_F),)
+#    else:
+#      msg = 'Instance %s was passed into caching in the role of a function ' % str(my_F)
+#      msg = ' but it was not callable.'
+#      raise Exception(msg)
+#  elif system_tools.major_version == 2 and type(my_F) == types.InstanceType:
+#    if hasattr(my_F, '__call__'):  # Should be     if callable(my_F):
+#      # Get bytecode from __call__ method
+#      bytecode = get_func_code_details(my_F.__call__.im_func)
+#      
+#      # Add hash value of object to detect attribute changes
+#      return bytecode + (myhash(my_F),) 
+#    else:
+#      msg = 'Instance %s was passed into caching in the role of a function ' % str(my_F)
+#      msg = ' but it was not callable.'
+#      raise Exception(msg)
+#
+#      
+#        func = my_F.__call__.__func__  
+#        bytecode = get_func_code_details(func)
+#        # Add hash value of object to detect attribute changes
+#        return bytecode + (myhash(my_F),)
+#    else:
+#      msg = 'Instance %s was passed into caching in the role of a function ' % str(my_F)
+#      msg = ' but it was not callable.'
+#      raise Exception(msg)      
+#  elif type(my_F) in [types.BuiltinFunctionType, types.BuiltinMethodType]:      
+#    # Built-in functions are assumed not to change  
+#    return None, 0, 0, 0
+#  elif isinstance(my_F, object):
+#      # Get bytecode from __init__ method
+#      bytecode = get_func_code_details(my_F.__init__.__func__)    
+#      return bytecode      
+#  else:
+#    msg = 'Unknown function type: %s' % type(my_F)
+#    raise Exception(msg)
+
 def get_bytecode(my_F):
   """ Get bytecode from function object.
-
   USAGE:
     get_bytecode(my_F)
   """
@@ -1614,37 +1686,33 @@ def get_bytecode(my_F):
   if type(my_F) == types.FunctionType:
     return get_func_code_details(my_F)
   elif type(my_F) == types.MethodType:
-    return get_func_code_details(my_F.__func__)
-  elif type(my_F) is type:
-    # It is an instance of a class
-    if callable(my_F):
+    return get_func_code_details(my_F.im_func)
+  elif system_tools.major_version == 2 and type(my_F) == types.InstanceType:
+    if hasattr(my_F, '__call__'):   # FIXME: callable(my_F) is OK both in Python2 and Python3 
       # Get bytecode from __call__ method
-
-      # FIXME (Ole): Haven't found the equivalent in Python3 yet.
-      # It may be in here: https://docs.python.org/3/library/inspect.html
-      # For now we just ignore this - it may actually not be that important.
-
-      #func = my_F.__call__.__func__  # Python 2.x
-      #bytecode = get_func_code_details(func)
+      bytecode = get_func_code_details(my_F.__call__.im_func)
+      
       # Add hash value of object to detect attribute changes
-      #return bytecode + (myhash(my_F),)
-
-      return (myhash(my_F),)
+      return bytecode + (myhash(my_F),) 
     else:
       msg = 'Instance %s was passed into caching in the role of a function ' % str(my_F)
       msg = ' but it was not callable.'
       raise Exception(msg)
+  elif system_tools.major_version == 3 and type(my_F) is type:
+    # FIXME (Ole): Haven't found the equivalent in Python3 yet.
+    # It may be in here: https://docs.python.org/3/library/inspect.html
+    # For now we just ignore this - it may actually not be that important.
+    return (myhash(my_F),)    
   elif type(my_F) in [types.BuiltinFunctionType, types.BuiltinMethodType]:      
     # Built-in functions are assumed not to change  
     return None, 0, 0, 0
-  elif isinstance(my_F, object):
+  elif type(my_F) == types.ClassType:
       # Get bytecode from __init__ method
-      bytecode = get_func_code_details(my_F.__init__.__func__)    
+      bytecode = get_func_code_details(my_F.__init__.im_func)    
       return bytecode      
   else:
     msg = 'Unknown function type: %s' % type(my_F)
     raise Exception(msg)
-
 
   
   
