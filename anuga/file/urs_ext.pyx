@@ -37,6 +37,7 @@ def read_mux2(int numSrc,\
 
   for i in xrange(numSrc):
     assert isinstance(filenames[i], basestring), "filename not a string"
+    print(filenames[i])
     muxFileNameArray[i] = filenames[i]
   
   weights = <float* > malloc(numSrc * sizeof(float))

@@ -53,6 +53,8 @@ Date      PR Result                                                     Notes ::
 20200529     Ran 1147 tests in 79.454s FAILED (errors=206, failures=10) All 19 loadASCII tests ok
 20200529     Ran 1147 tests in 80.269s FAILED (errors=191, failures=10) Syntax_tree fixed in system tools. All 25 tests ok.
 20200531     Ran 1147 tests in 66.287s FAILED (errors=197, failures=10) Replaced assertCountEqual with assertEqual which works in both environments
+20200531     Ran 1147 tests in 66.241s FAILED (errors=180, failures=10) Afer read array fix in urs.py
+
 
 Env: anuga27
 ------------
@@ -60,3 +62,5 @@ Date      PR Result                                                     Notes ::
 20200530     Ran 1290 tests in 96.139s FAILED (errors=13, failures=9)   After work on python3.8.2
 20200530     Ran 1290 tests in 103.100s FAILED (errors=5, failures=9)   Fixed some porting bugs in caching
 20200531     Ran 1290 tests in 104.523s FAILED (errors=1, failures=9)   Replaced assertCountEqual with assertEqual which works in both environments
+20200531     Ran 1290 tests in 104.431s FAILED (errors=1, failures=9)   Afer read array fix in urs.py
+
