@@ -207,7 +207,7 @@ class Exposure(object):
         if file_name is None:
             file_name = self._file_name
 
-        fd = open(file_name, 'wb')
+        fd = open(file_name, 'w')
         writer = csv.writer(fd)
 
         #Write the title to a cvs file
