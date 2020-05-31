@@ -446,12 +446,12 @@ class EventDamageModel(object):
         and collapse some houses
         """
         
-        self.struct_collapsed = ['']* self.structure_count
+        self.struct_collapsed = [''] * self.structure_count
         if verbose_csv:
-            self.collapse_csv_info = ['']* self.structure_count
+            self.collapse_csv_info = [''] * self.structure_count
         #for a given 'bin', work out how many houses will collapse
         for probability, house_indexes in collapse_probability.items():
-            collapse_count = round(len(house_indexes) *probability)
+            collapse_count = round(len(house_indexes) * probability)
             
             if verbose_csv:
                 for i in house_indexes:

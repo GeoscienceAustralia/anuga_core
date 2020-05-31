@@ -575,17 +575,17 @@ def interpolate_sww2csv(sww_file,
                                  time_thinning=time_thinning,
                                  use_cache=use_cache)
 
-    depth_writer = writer(file(depth_file, "wb"))
-    velocity_x_writer = writer(file(velocity_x_file, "wb"))
-    velocity_y_writer = writer(file(velocity_y_file, "wb"))
+    depth_writer = writer(open(depth_file, "w"))
+    velocity_x_writer = writer(open(velocity_x_file, "w"))
+    velocity_y_writer = writer(open(velocity_y_file, "w"))
     if stage_file is not None:
-        stage_writer = writer(file(stage_file, "wb"))
+        stage_writer = writer(open(stage_file, "w"))
     if froude_file is not None:
-        froude_writer = writer(file(froude_file, "wb"))
+        froude_writer = writer(open(froude_file, "w"))
 
     # Write heading
     heading = [str(x[0])+ ':' + str(x[1]) for x in points]
-    heading.insert(0, "time")
+    heading.insert(0, 'time')
     depth_writer.writerow(heading)
     velocity_x_writer.writerow(heading)
     velocity_y_writer.writerow(heading)

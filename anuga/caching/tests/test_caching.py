@@ -403,10 +403,14 @@ class Test_Caching(unittest.TestCase):
         else:
           # 32 bit hash values
           f1hash = -758136387
-          f2hash = -11221564     
+          f2hash = -11221564
 
-        #print(myhash(f1))
-        #print(f1hash)        
+        # Python 2  
+        f1hash = 7079146893884768701
+        f2hash = -6995306676314913340
+
+        #print('myhash1', myhash(f1))
+        #print('myhash2', myhash(f2))        
         
         assert myhash(f1) == f1hash
         assert myhash(f2) == f2hash
