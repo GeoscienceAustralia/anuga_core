@@ -38,7 +38,7 @@ class General_mesh:
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
-        c = [2.0,0.0]
+        c = [2.0, 0.0]
         e = [2.0, 2.0]
 
         nodes = [a, b, c, e]
@@ -676,7 +676,9 @@ class General_mesh:
         return num.reshape(num.arange(K, dtype=num.int), (M,3))
 
     def get_unique_vertices(self, indices=None):
-        """FIXME(Ole): This function needs a docstring"""
+        """Return indices to vertices as a sorted list.
+           FIXME (Ole): It may not be needed anymore
+        """
 
         triangles = self.get_triangles(indices=indices)
         unique_verts = {}
@@ -684,7 +686,9 @@ class General_mesh:
             unique_verts[triangle[0]] = 0
             unique_verts[triangle[1]] = 0
             unique_verts[triangle[2]] = 0
-        return list(unique_verts.keys())
+        res = list(unique_verts.keys())
+        res.sort() # Ensure uniqueness
+        return res
 
         # Note Padarn 27/11/12:
         # This function was modified, but then it was deicded it was not
@@ -692,6 +696,9 @@ class General_mesh:
         # (it was being used in quantity.py in the _set_vertex_values function).
         # Note however, the function in the head of the code is very slow and
         # could be easily sped up many fold.
+        #
+        # Have we profiled it? (Ole 31/5/2020)
+        
     def get_triangles_and_vertices_per_node(self, node=None):
         """Get triangles associated with given node.
 
