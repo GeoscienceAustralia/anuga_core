@@ -50,12 +50,12 @@ def read_mux2(int numSrc,\
   number_of_selected_stations = permutation.shape[0]
 
   cdata = _read_mux2(numSrc,\
-                    muxFileNameArray,\
-                    weights,\
-                    &file_params[0],\
-                    &number_of_selected_stations,\
-                    &permutation[0],\
-                    verbose)
+		     muxFileNameArray,\
+                     weights,\
+                     &file_params[0],\
+                     &number_of_selected_stations,\
+                     &permutation[0],\
+                     verbose)
   
   assert cdata != NULL, "No STS_DATA returned"
 
