@@ -15,6 +15,7 @@ def read_mux2(int numSrc,\
               np.ndarray[double, ndim=1, mode="c"] file_params not None,\
               np.ndarray[long, ndim=1, mode="c"] permutation not None,\
               int verbose):
+  # Make sure filenames are cast as str().encode(). This will work in both Python2 and Python3 (Ole)	     
 
   cdef char** muxFileNameArray
   cdef float** cdata
@@ -36,7 +37,8 @@ def read_mux2(int numSrc,\
   assert muxFileNameArray != NULL, "ERROR: Memory for muxFileNameArray could not be allocated."
 
   for i in xrange(numSrc):
-    assert isinstance(filenames[i], basestring), "filename not a string"
+    #assert isinstance(filenames[i], basestring), "filename not a string"  # Nor should it be ;-)
+    #print(filenames[i], type(filenames[i]))
     muxFileNameArray[i] = filenames[i]
   
   weights = <float* > malloc(numSrc * sizeof(float))
@@ -48,12 +50,12 @@ def read_mux2(int numSrc,\
   number_of_selected_stations = permutation.shape[0]
 
   cdata = _read_mux2(numSrc,\
-                    muxFileNameArray,\
-                    weights,\
-                    &file_params[0],\
-                    &number_of_selected_stations,\
-                    &permutation[0],\
-                    verbose)
+		     muxFileNameArray,\
+                     weights,\
+                     &file_params[0],\
+                     &number_of_selected_stations,\
+                     &permutation[0],\
+                     verbose)
   
   assert cdata != NULL, "No STS_DATA returned"
 

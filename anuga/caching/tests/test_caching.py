@@ -720,7 +720,14 @@ class Test_Caching(unittest.TestCase):
         DIRLIST = os.listdir(CD)
         SF = []
         for FN in DIRLIST:
-            if str.find(FN, statsfile) >= 0:
+            if system_tools.major_version == 2:
+                res = string.find(FN, statsfile) >= 0
+            elif system_tools.major_version == 3:
+                res = str.find(FN, statsfile) >= 0
+            else:
+                raise Exception('Unknown version of Python: %s' % system_tools.version)
+            
+            if res >= 0:
                 try:
                     fid = open(CD + FN, 'r')
                     fid.close()

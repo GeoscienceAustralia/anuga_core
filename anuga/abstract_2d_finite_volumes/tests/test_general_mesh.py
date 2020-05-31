@@ -75,7 +75,7 @@ class Test_General_Mesh(unittest.TestCase):
         verts = domain.get_vertex_coordinates(triangle_id=0)       
         msg = ("num.array([b,a,c])=\n%s\nshould be close to 'verts'=\n%s"
                % (str(num.array([b,a,c])), str(verts)))
-        self.assert_(num.allclose(num.array([b,a,c]), verts), msg)
+        self.assertTrue(num.allclose(num.array([b,a,c]), verts), msg)
 
         verts = domain.get_vertex_coordinates(triangle_id=0, absolute=True)
         msg = ("num.array([...])=\n%s\nshould be close to 'verts'=\n%s"
@@ -83,10 +83,10 @@ class Test_General_Mesh(unittest.TestCase):
                                  nodes_absolute[0],
                                  nodes_absolute[2]])),
                   str(verts)))
-        self.assert_(num.allclose(num.array([nodes_absolute[1],
-                                             nodes_absolute[0],
-                                             nodes_absolute[2]]),
-                                  verts), msg)
+        self.assertTrue(num.allclose(num.array([nodes_absolute[1],
+                                                nodes_absolute[0],
+                                                nodes_absolute[2]]),
+                                     verts), msg)
 
         verts = domain.get_vertex_coordinates(triangle_id=0,
                                               absolute=True)       
@@ -95,10 +95,10 @@ class Test_General_Mesh(unittest.TestCase):
                                  nodes_absolute[0],
                                  nodes_absolute[2]])),
                   str(verts)))
-        self.assert_(num.allclose(num.array([nodes_absolute[1],
-                                             nodes_absolute[0],
-                                             nodes_absolute[2]]),
-                                  verts), msg)
+        self.assertTrue(num.allclose(num.array([nodes_absolute[1],
+                                                nodes_absolute[0],
+                                                nodes_absolute[2]]),
+                                     verts), msg)
 
     def test_get_vertex_coordinates_triangle_id(self):
         """test_get_vertex_coordinates_triangle_id
@@ -182,7 +182,7 @@ class Test_General_Mesh(unittest.TestCase):
                                      nodes_absolute[1]+nodes_absolute[2],
                                      nodes_absolute[1]+nodes_absolute[0]])),
                   str(verts)))
-        self.assert_(num.allclose(0.5*num.array([nodes_absolute[0]+nodes_absolute[2],
+        self.assertTrue(num.allclose(0.5*num.array([nodes_absolute[0]+nodes_absolute[2],
                                                  nodes_absolute[1]+nodes_absolute[2],
                                                  nodes_absolute[1]+nodes_absolute[0]]),
                                   verts), msg)
@@ -407,15 +407,13 @@ class Test_General_Mesh(unittest.TestCase):
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
-        domain = General_mesh(points, vertices)                
+        domain = General_mesh(points, vertices)
 
-        assert  domain.get_unique_vertices() == [0,1,2,3,4,5,6,7]
+        assert domain.get_unique_vertices() == [0,1,2,3,4,5,6,7]
         unique_vertices = domain.get_unique_vertices([0,1,4])
-        unique_vertices.sort()
         assert unique_vertices == [0,1,2,4,5,6,7]
 
         unique_vertices = domain.get_unique_vertices([0,4])
-        unique_vertices.sort()
         assert unique_vertices == [0,2,4,5,6,7]
 
     def test_get_node(self):

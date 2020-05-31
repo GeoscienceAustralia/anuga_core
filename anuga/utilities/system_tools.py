@@ -21,15 +21,20 @@ import urllib.request, urllib.error, urllib.parse
 import getpass
 import tarfile
 import warnings
+import platform
 import pdb
 from functools import reduce
+
+# Record Python version
+major_version = int(platform.python_version_tuple()[0])
+version = platform.python_version()
 
 try:
     import hashlib
 except ImportError:
     import md5 as hashlib
 
-
+   
 def log_to_file(filename, s, verbose=False, mode='a'):
     """Log string to file name
     """

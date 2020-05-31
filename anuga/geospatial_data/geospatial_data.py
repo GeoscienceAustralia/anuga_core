@@ -138,9 +138,13 @@ class Geospatial_data(object):
             file_name = data_points
 
         self.set_verbose(verbose)
-        self.geo_reference = None
         self.file_name = file_name
 
+        if geo_reference is None:
+            self.geo_reference = Geo_reference()  # Use default geo_reference
+        else:
+            self.geo_reference = geo_reference
+            
         if max_read_lines is None:
             self.max_read_lines = int(MAX_READ_LINES)
         else:
@@ -414,7 +418,8 @@ class Geospatial_data(object):
         NOTE: doesn't add if objects contain different
         attributes
 
-        Always return absolute points!
+        FIXME(Ole): I am not sure this is a good idea, but leave it for now until all tests pass
+        Always return absolute points (i.e. xllcorner = yllcorner = 0)
         This also means, that if you add None to the object,
         it will be turned into absolute coordinates
 
@@ -454,14 +459,18 @@ class Geospatial_data(object):
                                'attributes to allow addition.')
                         raise Exception(msg)
         else:
-            # other is None:
             new_points = self.get_data_points(absolute=True)
             new_attributes = self.attributes
 
         # Instantiate new data object and return absolute coordinates
-        new_geo_ref = Geo_reference(geo_ref1.get_zone(), 0.0, 0.0)
-        return Geospatial_data(new_points, new_attributes, new_geo_ref)
+        # FIXME (Ole): This does not make sense - need to revisit.
+        new_geo_ref = Geo_reference(geo_ref1.zone, 0, 0)
+        
+        return Geospatial_data(data_points=new_points,
+                               attributes=new_attributes,
+                               geo_reference=new_geo_ref)
 
+    
     def __radd__(self, other):
         """Handle cases like None + Geospatial_data(...)"""
 

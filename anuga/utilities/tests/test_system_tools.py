@@ -213,8 +213,8 @@ class Test_system_tools(unittest.TestCase):
 
         x = string_to_char(str_list)
         new_str_list = char_to_string(x)
+        self.assertEqual(new_str_list, str_list)        
 
-        self.assertCountEqual(new_str_list, str_list)
 
     # special test - input list is ['']
     def test_string_to_char2(self):
@@ -224,7 +224,7 @@ class Test_system_tools(unittest.TestCase):
         x = string_to_char(str_list)
         new_str_list = char_to_string(x)
 
-        self.assertCountEqual(new_str_list, str_list)
+        self.assertEqual(new_str_list, str_list)
 
 
 ################################################################################
@@ -288,7 +288,7 @@ class Test_system_tools(unittest.TestCase):
         new_str_list = self.helper_read_msh_file(FILENAME)
         #print(str_list[:10])
         #print(new_str_list[:10])
-        self.assertCountEqual(new_str_list, str_list)
+        self.assertEqual(new_str_list, str_list)
         os.remove(FILENAME)
 
     # special test - list [''] to a NetCDF file
@@ -301,7 +301,7 @@ class Test_system_tools(unittest.TestCase):
         self.helper_write_msh_file(FILENAME, str_list)
         new_str_list = self.helper_read_msh_file(FILENAME)
 
-        self.assertCountEqual(new_str_list, str_list)
+        self.assertEqual(new_str_list, str_list)
         os.remove(FILENAME)
 
     def test_get_vars_in_expression(self):

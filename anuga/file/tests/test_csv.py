@@ -43,7 +43,7 @@ class Test_csv(unittest.TestCase):
         assert num.allclose(x['stage'], [3.0, 4.0, 3.0, 6.0])        
 
 
-    def test_get_data_from_file(self):
+    def test_get_data_from_file2(self):
         filename = self._create_csv_file()
         
         header,x = load_csv_as_matrix(filename)
@@ -377,10 +377,7 @@ class Test_csv(unittest.TestCase):
             assert len(polygons[id]) == len(known_polys[id])
             assert num.allclose(polygons[id], known_polys[id])
 
-
-
-
-    
+            
     def test_csv2building_polygons(self):
         """test_csv2building_polygons
         """
