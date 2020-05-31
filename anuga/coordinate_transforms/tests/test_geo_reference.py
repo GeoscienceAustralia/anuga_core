@@ -20,8 +20,6 @@ class geo_referenceTestCase(unittest.TestCase):
     def tearDown(self):
         pass
 
-    
-    
     def test_get_origin(self):
         g = Geo_reference(56,1.9,1.9)
         (z,x,y) = g.get_origin()
@@ -49,13 +47,11 @@ class geo_referenceTestCase(unittest.TestCase):
     def test_read_NetCDFI(self):
         # test if read_NetCDF
         from anuga.file.netcdf import NetCDFFile
+        
         g = Geo_reference(56,1.9,1.9)
         file_name = tempfile.mktemp(".geo_referenceTest")
-        
         outfile = NetCDFFile(file_name, netcdf_mode_w)
-        outfile.xllcorner = g.get_xllcorner() 
-        outfile.yllcorner =  g.get_yllcorner() 
-        outfile.zone = g.get_zone()
+        g.write_NetCDF(outfile)
         outfile.close()
         
         in_file = NetCDFFile(file_name, netcdf_mode_r)

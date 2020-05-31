@@ -157,6 +157,7 @@ class Geo_reference(object):
 
         infile Handle to open NetCDF file
         """
+
         self.xllcorner = float(infile.xllcorner)
         self.yllcorner = float(infile.yllcorner)
         self.zone = int(infile.zone)
