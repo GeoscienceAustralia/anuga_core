@@ -1504,6 +1504,12 @@ ValueError: matrices are not aligned for copy
         base_name, files = self.write_mux(lat_long_points,
                                           time_step_count, time_step)
         for file in files:
+
+            # Check contents first
+            mux_file = open(file, 'rb')
+            data = mux_file.read()
+            #print(data)
+
             urs = Read_urs(file)
             assert time_step_count == urs.time_step_count
             assert time_step == urs.time_step
@@ -1536,7 +1542,7 @@ ValueError: matrices are not aligned for copy
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Mux,'test')
+    suite = unittest.makeSuite(Test_Mux,'test_Urs')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
         
