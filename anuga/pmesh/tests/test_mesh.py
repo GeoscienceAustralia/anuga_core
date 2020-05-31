@@ -1142,26 +1142,28 @@ class meshTestCase(unittest.TestCase):
 
         
     def test_strings2ints(self):
-        # FIXME (Ole): This test failed, but the new result is just as
-        # good (or bad) as the one given here.
-        # I have accepted it for now.
         
+        # Expected result 
+        outlist = ['sea', 'river inlet', 'moat',
+                   'sea', 'moat', 'moat']
+        
+        # Input
         list = ["sea", "river inlet", "", "sea", "", "moat"]
         preset = ["moat", "internal boundary"]
         [intlist, converter] = segment_strings2ints(list, preset)
-        
-        #self.assertTrue(intlist == [2, 3, 0, 2, 0, 0],
-        #                'test_strings2ints produces bad intlist')
-        #self.assertTrue(converter == ['moat', 'internal boundary',
-        #                              'sea', 'river inlet'],
-        #                'test_strings2ints produces bad converter')
 
-        # Python3 values
-        self.assertTrue(intlist == [3, 2, 0, 3, 0, 0],
-                        'test_strings2ints produces bad intlist')
-        self.assertTrue(converter == ['moat', 'internal boundary',
-                                      'river inlet', 'sea'],
-                        'test_strings2ints produces bad converter')
+        # Instead of testing the converter and the intlist separately, test that they
+        # evaluate to the correct result
+        for i, k in enumerate(intlist):
+            assert converter[k] == outlist[i]
+
+        # And double check the inverse funciont
+        newlist = segment_ints2strings(intlist, converter)
+        for i, name in enumerate(newlist):
+            assert name == outlist[i]            
+            
+        
+            
         
     def test_ints2strings1(self):
         list = ["internal boundary","sea","river inlet",
