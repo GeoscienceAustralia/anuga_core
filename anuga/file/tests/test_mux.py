@@ -286,11 +286,11 @@ class Test_Mux(unittest.TestCase):
 
         weights=num.ones(1, num.float)
         #ensure that files are indeed mux2 files
-        times, latitudes, longitudes, elevation, stage, starttime = read_mux2_py([str(files[0]).encode()],weights)
-        ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity,starttime_ua=read_mux2_py([files[1]],weights)
+        times, latitudes, longitudes, elevation, stage, starttime = read_mux2_py([files[0]], weights)
+        ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity,starttime_ua=read_mux2_py([files[1]], weights)
         msg='ha and ua have different gauge meta data'
         assert num.allclose(times,ua_times) and num.allclose(latitudes,ua_latitudes) and num.allclose(longitudes,ua_longitudes) and num.allclose(elevation,ua_elevation) and num.allclose(starttime,starttime_ua), msg
-        va_times, va_latitudes, va_longitudes, va_elevation, yvelocity, starttime_va=read_mux2_py([files[2]],weights)
+        va_times, va_latitudes, va_longitudes, va_elevation, yvelocity, starttime_va=read_mux2_py([files[2]], weights)
         msg='ha and va have different gauge meta data'
         assert num.allclose(times,va_times) and num.allclose(latitudes,va_latitudes) and num.allclose(longitudes,va_longitudes) and num.allclose(elevation,va_elevation) and num.allclose(starttime,starttime_va), msg
 
@@ -346,11 +346,11 @@ class Test_Mux(unittest.TestCase):
 
         weights=num.ones(1, num.float)
         #ensure that files are indeed mux2 files
-        times, latitudes, longitudes, elevation, stage,starttime=read_mux2_py([str(files[0]).encode()],weights)
-        ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity,starttime_ua=read_mux2_py([files[1]],weights)
+        times, latitudes, longitudes, elevation, stage,starttime=read_mux2_py([files[0]], weights)
+        ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity,starttime_ua=read_mux2_py([files[1]], weights)
         msg='ha and ua have different gauge meta data'
         assert num.allclose(times,ua_times) and num.allclose(latitudes,ua_latitudes) and num.allclose(longitudes,ua_longitudes) and num.allclose(elevation,ua_elevation) and num.allclose(starttime,starttime_ua), msg
-        va_times, va_latitudes, va_longitudes, va_elevation, yvelocity,starttime_va=read_mux2_py([files[2]],weights)
+        va_times, va_latitudes, va_longitudes, va_elevation, yvelocity,starttime_va=read_mux2_py([files[2]], weights)
         msg='ha and va have different gauge meta data'
         assert num.allclose(times,va_times) and num.allclose(latitudes,va_latitudes) and num.allclose(longitudes,va_longitudes) and num.allclose(elevation,va_elevation) and num.allclose(starttime,starttime_va), msg
 
@@ -407,11 +407,11 @@ class Test_Mux(unittest.TestCase):
 
         weights=num.ones(1, num.float)
         #ensure that files are indeed mux2 files
-        times, latitudes, longitudes, elevation, stage, starttime=read_mux2_py([str(files[0]).encode()], weights)
-        ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity, starttime_ua=read_mux2_py([str(files[1]).encode()], weights)
+        times, latitudes, longitudes, elevation, stage, starttime=read_mux2_py([files[0]], weights)
+        ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity, starttime_ua=read_mux2_py([files[1]], weights)
         msg='ha and ua have different gauge meta data'
         assert num.allclose(times,ua_times) and num.allclose(latitudes,ua_latitudes) and num.allclose(longitudes,ua_longitudes) and num.allclose(elevation,ua_elevation) and num.allclose(starttime,starttime_ua), msg
-        va_times, va_latitudes, va_longitudes, va_elevation, yvelocity,starttime_va=read_mux2_py([str(files[2]).encode()], weights)
+        va_times, va_latitudes, va_longitudes, va_elevation, yvelocity,starttime_va=read_mux2_py([files[2]], weights)
         msg='ha and va have different gauge meta data'
         assert num.allclose(times,va_times) and num.allclose(latitudes,va_latitudes) and num.allclose(longitudes,va_longitudes) and num.allclose(elevation,va_elevation) and num.allclose(starttime,starttime_va), msg
 
@@ -1540,7 +1540,7 @@ ValueError: matrices are not aligned for copy
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Mux,'test_urs2sts_read_mux2_pyIII')
+    suite = unittest.makeSuite(Test_Mux,'test')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
         
