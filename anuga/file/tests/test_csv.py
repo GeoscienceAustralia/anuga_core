@@ -377,10 +377,7 @@ class Test_csv(unittest.TestCase):
             assert len(polygons[id]) == len(known_polys[id])
             assert num.allclose(polygons[id], known_polys[id])
 
-
-
-
-    
+            
     def test_csv2building_polygons(self):
         """test_csv2building_polygons
         """
