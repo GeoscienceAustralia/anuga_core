@@ -92,6 +92,14 @@ else:
   
 cachedir = os.path.join(homedir, cache_dir)
 
+# FIXME(Ole): It turns out hashes are no longer stable under Python3 (grr).
+# https://stackoverflow.com/questions/27522626/hash-function-in-python-3-3-returns-different-results-between-sessions
+#if system_tools.major_version == 3:
+#    import hashlib
+#    m = hashlib.sha256()
+#    hash = m.update
+
+
 # -----------------------------------------------------------------------------
 # Options directory with default values - to be set by user
 #
@@ -1422,8 +1430,8 @@ def myhash(T, ids=None):
           ids.append(i)
     
     
-  # Start hashing  
-  
+  # Start hashing
+
   # On some architectures None, False and True gets different hash values
   if T is None:
       return(-1)
@@ -1438,24 +1446,42 @@ def myhash(T, ids=None):
       for t in T:
           h = myhash(t, ids)
           hvals.append(h)
+          
       val = hash(tuple(hvals))
   elif isinstance(T, dict):
       # Make dictionary ordering unique
 
+      I = list(T.items())    
       # FIXME(Ole): Need new way of doing this in Python 3.0 (B4 2010 ;-)
       if system_tools.major_version == 2:
-          I = list(T.items())
           I.sort()
       else:
-          pass # As of Python 3.7 they now are ordered: https://mail.python.org/pipermail/python-dev/2017-December/151283.html         
-         
-      I = T
+          # As of Python 3.7 they now are ordered: https://mail.python.org/pipermail/python-dev/2017-December/151283.html
+          pass
+
       val = myhash(I, ids)
   elif isinstance(T, num.ndarray):
       T = num.array(T) # Ensure array is contiguous
 
       # Use mean value for efficiency
       val = hash(num.average(T.flat))
+  elif callable(T):
+      if system_tools.major_version == 2:
+          # Got this from https://stackoverflow.com/questions/45946051/signature-method-in-inspect-module-for-python-2
+          # FIXME (Ole): But it doesn't work 
+          # from funcsigs import signature.
+          # Make something up
+          #print(dir(T.__call__))
+          I = myhash(T.__dict__, ids)                
+      else: 
+          #from inspect import signature
+          #sig = signature(T)
+          #print(sig, type(sig), str(sig), dir(sig), hash(T))
+          #I = tuple((signature(T), T.__dict__))
+          #I = hash(T) # FIXME(Ole): Perhaps we don't need myhash anymore!
+          I = myhash(T.__dict__, ids)                
+          
+      val = myhash(I, ids)      
   elif type(T) is type:  # This is instead of the old InstanceType:
       # Use the attribute values 
       val = myhash(T.__dict__, ids)

@@ -29,7 +29,7 @@ git pull upstream python3_anuga_py3
 
 ----------------------------------
 # Create ANUGA Python environments
-conda create -n anuga27 -c conda-forge python=2.7   git pip nose numpy scipy netcdf4 matplotlib gdal dill cython future openmp mpi4py
+conda create -n anuga27 -c conda-forge python=2.7   git pip nose numpy scipy netcdf4 matplotlib gdal dill cython future openmp mpi4py funcsigs
 conda create -n anuga38 -c conda-forge python=3.8.2 git pip nose numpy scipy netcdf4 matplotlib gdal dill cython future openmp mpi4py
 ----------------------------------
 
