@@ -407,7 +407,7 @@ class Test_Mux(unittest.TestCase):
 
         weights=num.ones(1, num.float)
         #ensure that files are indeed mux2 files
-        times, latitudes, longitudes, elevation, stage, starttime=read_mux2_py([files[0]],weights)
+        times, latitudes, longitudes, elevation, stage, starttime=read_mux2_py([str(files[0]).encode()],weights)
         ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity, starttime_ua=read_mux2_py([files[1]],weights)
         msg='ha and ua have different gauge meta data'
         assert num.allclose(times,ua_times) and num.allclose(latitudes,ua_latitudes) and num.allclose(longitudes,ua_longitudes) and num.allclose(elevation,ua_elevation) and num.allclose(starttime,starttime_ua), msg
@@ -536,7 +536,7 @@ class Test_Mux(unittest.TestCase):
         OFFSET = 5
 
         for j, file in enumerate(filesI):
-            data = read_mux2(1, [file], weights, file_params, permutation, verbose)
+            data = read_mux2(1, [str(file).encode()], weights, file_params, permutation, verbose)
 
             number_of_selected_stations = data.shape[0]
 
@@ -549,8 +549,6 @@ class Test_Mux(unittest.TestCase):
                 if j == 2: assert num.allclose(data[i][:parameters_index], -va0[permutation[i], :])
         
         self.delete_mux(filesI)
-
-
         
         
     def test_read_mux_platform_problem2(self):
@@ -783,7 +781,7 @@ class Test_Mux(unittest.TestCase):
         for j, file in enumerate(filesII):
             # Read stage, u, v enumerated as j
             #print 'Reading', j, file
-            data = read_mux2(1, [file], weights, file_params, permutation, verbose)
+            data = read_mux2(1, [str(file).encode()], weights, file_params, permutation, verbose)
 
             #print 'Data received by Python'
             #print data[1][8]
@@ -1082,7 +1080,7 @@ ValueError: matrices are not aligned for copy
             # Read stage, u, v enumerated as j
             #print 'Reading', j, file
             #print "file", file
-            data = read_mux2(1, [file], weights, file_params,
+            data = read_mux2(1, [str(file).encode()], weights, file_params,
                              permutation, verbose)
             #print str(j) + "data", data
 
@@ -1542,7 +1540,7 @@ ValueError: matrices are not aligned for copy
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Mux,'test_read_mux_platform_problem1')
+    suite = unittest.makeSuite(Test_Mux,'test')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
         
