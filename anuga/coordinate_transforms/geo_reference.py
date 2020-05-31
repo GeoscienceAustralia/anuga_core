@@ -20,8 +20,9 @@ import anuga.utilities.log as log
 import numpy as num
 
 
-DEFAULT_ZONE = -1
-TITLE = '#geo reference' + "\n" # this title is referred to in the test format
+DEFAULT_ZONE = -1  # This signifies that simulation isn't located within a UTM framework.
+                   # This is the case for hypothetical simulations or something relative
+                   # to an arbitrary origin (e.g. the corner of a wavetank).
 
 DEFAULT_PROJECTION = 'UTM'
 DEFAULT_DATUM = 'wgs84'
@@ -29,6 +30,7 @@ DEFAULT_UNITS = 'm'
 DEFAULT_FALSE_EASTING = 500000
 DEFAULT_FALSE_NORTHING = 10000000    # Default for southern hemisphere
 
+TITLE = '#geo reference' + "\n" # this title is referred to in the test format
 
 class Geo_reference(object):
     """
@@ -46,7 +48,7 @@ class Geo_reference(object):
     """
 
     def __init__(self,
-                 zone=DEFAULT_ZONE,
+                 zone=None,
                  xllcorner=0.0,
                  yllcorner=0.0,
                  datum=DEFAULT_DATUM,
@@ -97,22 +99,29 @@ class Geo_reference(object):
         if ASCIIFile is not None:
             self.read_ASCII(ASCIIFile, read_title=read_title)
             
-        # Set flag for absolute points (used by get_absolute)    
+        # Set flag for absolute points (used by get_absolute)
+        # FIXME (Ole): It would be more robust to always use get_absolute()
         self.absolute = num.allclose([self.xllcorner, self.yllcorner], 0)
         
     def __eq__(self, other):
 
         # FIXME (Ole): Can this be automatically done for all attributes?
-        return(self.false_easting == other.false_easting and
-               self.false_northing == other.false_northing and
-               self.datum == other.datum and
-               self.projection == other.projection and
-               self.zone == other.zone and
-               self.units == other.units and
-               self.xllcorner == other.xllcorner and
-               self.yllcorner == other.yllcorner and
-               self.absolute == other.absolute)
+        # Anyway, it is arranged like this so one can step through and find out
+        # why two objects might not be equal
         
+        equal = True
+        if self.false_easting != other.false_easting: equal = False
+        if self.false_northing != other.false_northing: equal = False
+        if self.datum != other.datum: equal = False
+        if self.projection != other.projection: equal = False
+        if self.zone != other.zone: equal = False
+        if self.units != other.units: equal = False
+        if self.xllcorner != other.xllcorner: equal = False
+        if self.yllcorner != other.yllcorner: equal = False
+        if self.absolute != other.absolute: equal = False
+
+        return(equal)
+
     def get_xllcorner(self):
         return self.xllcorner
 
@@ -148,29 +157,21 @@ class Geo_reference(object):
 
         infile Handle to open NetCDF file
         """
-
-        #self.xllcorner = float(infile.xllcorner[0])
-        #self.yllcorner = float(infile.yllcorner[0])
-        #self.zone = int(infile.zone[0])
-
-
         self.xllcorner = float(infile.xllcorner)
         self.yllcorner = float(infile.yllcorner)
         self.zone = int(infile.zone)
 
-        try:
-            #self.false_easting = int(infile.false_easting[0])
-            #self.false_northing = int(infile.false_northing[0])
+        self.false_easting = int(infile.false_easting)
+        self.false_northing = int(infile.false_northing)
 
-            self.false_easting = int(infile.false_easting)
-            self.false_northing = int(infile.false_northing)
+        self.datum = infile.datum
+        self.projection = infile.projection
+        self.units = infile.units
 
-            self.datum = infile.datum
-            self.projection = infile.projection
-            self.units = infile.units
-        except:
-            pass
-
+        # Set flag for absolute points (used by get_absolute)
+        # FIXME (Ole): It would be more robust to always use get_absolute()        
+        self.absolute = num.allclose([self.xllcorner, self.yllcorner], 0)
+        
         if self.false_easting != DEFAULT_FALSE_EASTING:
             log.critical("WARNING: False easting of %f specified."
                          % self.false_easting)
@@ -202,6 +203,8 @@ class Geo_reference(object):
             log.critical("WARNING: Units of %s specified." % self.units)
             log.critical("Default units is %s." % DEFAULT_UNITS)
             log.critical("ANUGA does not correct for differences in units.")
+
+
 
 ################################################################################
 # ASCII files with geo-refs are currently not used
@@ -429,28 +432,28 @@ class Geo_reference(object):
         return ('(zone=%i easting=%f, northing=%f)'
                 % (self.zone, self.xllcorner, self.yllcorner))
 
-    def __cmp__(self, other):
-        """Compare two geo_reference instances.
+    #def __cmp__(self, other):
+    #    """Compare two geo_reference instances.#
+    #
+    #    self   this geo_reference instance
+    #    other  another geo_reference instance to compare against#
+    #
+    #    Returns 0 if instances have the same attributes, else returns 1. 
+    #
+    #    Note: attributes are: zone, xllcorner, yllcorner.
+    #    """
 
-        self   this geo_reference instance
-        other  another geo_reference instance to compare against
-
-        Returns 0 if instances have the same attributes, else returns 1.
-
-        Note: attributes are: zone, xllcorner, yllcorner.
-        """
-
-        # FIXME (DSG) add a tolerence
-        if other is None:
-            return 1
-        cmp = 0
-        if not (self.xllcorner == self.xllcorner):
-            cmp = 1
-        if not (self.yllcorner == self.yllcorner):
-            cmp = 1
-        if not (self.zone == self.zone):
-            cmp = 1
-        return cmp
+    #    # FIXME (DSG) add a tolerence
+    #   if other is None:
+    #        return 1
+    #    cmp = 0
+    #    if not (self.xllcorner == self.xllcorner):
+    #        cmp = 1
+    #    if not (self.yllcorner == self.yllcorner):
+    #        cmp = 1
+    #    if not (self.zone == self.zone):
+    #        cmp = 1
+    #    return cmp
 
 
 def write_NetCDF_georeference(origin, outfile):
