@@ -98,7 +98,8 @@ cachedir = os.path.join(homedir, cache_dir)
 #    import hashlib
 #    m = hashlib.sha256()
 #    hash = m.update
-
+#
+# FIXME(Ole): Actually, I think hashing is stable. Just need to carefully break down objects into immutable parts and recursively hash away
 
 # -----------------------------------------------------------------------------
 # Options directory with default values - to be set by user
