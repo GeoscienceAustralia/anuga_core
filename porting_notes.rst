@@ -58,6 +58,7 @@ Date      PR Result                                                     Notes ::
 20200531     Ran 1147 tests in 70.278s FAILED (errors=66, failures=18)  After fixing test_csv.py
 20200531     Ran 1147 tests in 68.320s FAILED (errors=55, failures=18)  Fixed inundation_damage. Seed rand and handle instability of randum numbers across python2 and python3
 20200531     Ran 1147 tests in 69.084s FAILED (errors=55, failures=9)   Fixed test_mux.py totally
+20200531     Ran 1147 tests in 68.155s FAILED (errors=55, failures=8)   Fixed test_mesh.py totally
 
 
 Env: anuga27
@@ -71,5 +72,6 @@ Date      PR Result                                                     Notes ::
 20200531     Ran 1290 tests in 106.536s FAILED (errors=1, failures=9)   After fixing test_csv.py
 20200531     Ran 1290 tests in 104.237s FAILED (errors=1, failures=9)   Fixed inundation_damage. Seed rand and handle instability of randum numbers across python2 and python3
 20200531     Ran 1290 tests in 104.049s FAILED (errors=1, failures=9)   Fixed test_mux.py totally
+20200531     Ran 1290 tests in 104.406s FAILED (errors=1, failures=9)   Fixed test_mesh.py totally
 
 
