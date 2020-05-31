@@ -43,7 +43,7 @@ class Test_csv(unittest.TestCase):
         assert num.allclose(x['stage'], [3.0, 4.0, 3.0, 6.0])        
 
 
-    def test_get_data_from_file(self):
+    def test_get_data_from_file2(self):
         filename = self._create_csv_file()
         
         header,x = load_csv_as_matrix(filename)
