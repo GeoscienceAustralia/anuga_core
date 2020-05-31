@@ -54,6 +54,7 @@ Date      PR Result                                                     Notes ::
 20200529     Ran 1147 tests in 80.269s FAILED (errors=191, failures=10) Syntax_tree fixed in system tools. All 25 tests ok.
 20200531     Ran 1147 tests in 66.287s FAILED (errors=197, failures=10) Replaced assertCountEqual with assertEqual which works in both environments
 20200531     Ran 1147 tests in 66.241s FAILED (errors=180, failures=10) After read array fix in urs.py
+20200531     Ran 1147 tests in 73.120s FAILED (errors=81, failures=19)  After fixing issue with read_mux2() to do with string type
 
 
 Env: anuga27
@@ -63,4 +64,5 @@ Date      PR Result                                                     Notes ::
 20200530     Ran 1290 tests in 103.100s FAILED (errors=5, failures=9)   Fixed some porting bugs in caching
 20200531     Ran 1290 tests in 104.523s FAILED (errors=1, failures=9)   Replaced assertCountEqual with assertEqual which works in both environments
 20200531     Ran 1290 tests in 104.431s FAILED (errors=1, failures=9)   After read array fix in urs.py
+20200531     Ran 1290 tests in 109.462s FAILED (errors=1, failures=9)   After fixing issue with read_mux2() to do with string type
 
