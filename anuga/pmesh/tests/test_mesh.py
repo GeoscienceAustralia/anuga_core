@@ -1142,7 +1142,6 @@ class meshTestCase(unittest.TestCase):
 
         
     def test_strings2ints(self):
-        
         # Expected result 
         outlist = ['sea', 'river inlet', 'moat',
                    'sea', 'moat', 'moat']
@@ -1161,8 +1160,6 @@ class meshTestCase(unittest.TestCase):
         newlist = segment_ints2strings(intlist, converter)
         for i, name in enumerate(newlist):
             assert name == outlist[i]            
-            
-        
             
         
     def test_ints2strings1(self):

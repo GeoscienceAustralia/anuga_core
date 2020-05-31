@@ -418,6 +418,7 @@ class Geo_reference(object):
                    % (self.zone, other.zone))
             raise ANUGAError(msg)
 
+    # FIXME (Ole): Do we need this back?    
     #def easting_northing2geo_reffed_point(self, x, y):
     #    return [x-self.xllcorner, y - self.xllcorner]
 
