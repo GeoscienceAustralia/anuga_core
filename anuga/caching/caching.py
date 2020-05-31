@@ -1710,10 +1710,17 @@ def get_bytecode(my_F):
     get_bytecode(my_F)
   """
 
+  #print(my_F, type(my_F))
   if type(my_F) == types.FunctionType:
     return get_func_code_details(my_F)
-  elif type(my_F) == types.MethodType:
+  elif system_tools.major_version == 2 and type(my_F) == types.MethodType:
     return get_func_code_details(my_F.im_func)
+  elif system_tools.major_version == 3 and type(my_F) == types.MethodType:
+    from inspect import signature
+    asig = signature(my_F)
+    #print(asig)
+    #return (asig,)        
+    #return get_func_code_details(my_F.__init__)  
   elif system_tools.major_version == 2 and type(my_F) == types.InstanceType:
     if hasattr(my_F, '__call__'):   # FIXME: callable(my_F) is OK both in Python2 and Python3 
       # Get bytecode from __call__ method
@@ -1729,13 +1736,21 @@ def get_bytecode(my_F):
     # FIXME (Ole): Haven't found the equivalent in Python3 yet.
     # It may be in here: https://docs.python.org/3/library/inspect.html
     # For now we just ignore this - it may actually not be that important.
-    return (myhash(my_F),)    
+    from inspect import signature
+    asig = signature(my_F)
+    #print(asig)
+    #return (asig,)    
   elif type(my_F) in [types.BuiltinFunctionType, types.BuiltinMethodType]:      
     # Built-in functions are assumed not to change  
     return None, 0, 0, 0
-  elif type(my_F) == types.ClassType:
+  elif system_tools.major_version == 2 and type(my_F) == types.ClassType:
       # Get bytecode from __init__ method
       bytecode = get_func_code_details(my_F.__init__.im_func)    
+      return bytecode
+  elif type(my_F) is type:
+      #print(my_F.__init__, dir(my_F.__init__.__hash__))
+      #bytecode = get_func_code_details(my_F.__init__.im_func)
+      bytecode = get_func_code_details(my_F.__init__)    
       return bytecode      
   else:
     msg = 'Unknown function type: %s' % type(my_F)
