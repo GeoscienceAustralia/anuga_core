@@ -1310,6 +1310,9 @@ class Test_Util(unittest.TestCase):
 
         Test that revision number can be retrieved.
         """
+
+        # FIXME (Ole): I made this work, but it really should be removed.
+        
         if 'USER' in os.environ and os.environ['USER'] == 'dgray':
             # I have a known snv incompatability issue,
             # so I'm skipping this test.
@@ -1317,7 +1320,7 @@ class Test_Util(unittest.TestCase):
             pass
         else:    
             n = get_revision_number()
-            assert n>=0
+            assert int(n) >= 0
 
 
         

@@ -22,6 +22,9 @@
 
 
 from builtins import filter
+
+# FIXME (Ole): We should remove all references to svn. Are we using this anywhere?
+
 __version__ = '2.0.3'
 
 __svn_revision__ = ''.join(filter(str.isdigit, "$Revision: 9737 $"))

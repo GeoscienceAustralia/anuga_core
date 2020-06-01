@@ -65,6 +65,7 @@ Date      PR Result                                                     Notes ::
 20200601     Ran 1148 tests in 86.545s FAILED (errors=48, failures=3)   Worked on caching and hashing
 20200601     Ran 1148 tests in 80.492s FAILED (errors=41, failures=3)   test_plot_utils.py, test_file_utils.py, test_sww2dem.py 
 20200601     Ran 1148 tests in 80.689s FAILED (errors=34, failures=3)   test_gauge.py
+20200602     Ran 1291 tests in 85.946s FAILED (errors=27, failures=3)   After Steve's work on spaces and tabs 
 
 
 Env: anuga27
