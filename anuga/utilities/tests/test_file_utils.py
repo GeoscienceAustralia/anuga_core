@@ -12,7 +12,8 @@ from anuga.utilities.sww_merge import sww_merge, _sww_merge
 class Test_FileUtils(unittest.TestCase):
 
     def test_copy_code_files(self):
-        '''test that the copy_code_files() function is sane.'''
+        """test that the copy_code_files() function is sane.
+        """
 
         def create_file(f):
             fd = open(f, 'w')
