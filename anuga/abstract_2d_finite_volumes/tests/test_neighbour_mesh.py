@@ -818,9 +818,10 @@ class Test_Mesh(unittest.TestCase):
 
 	    
     def test_boundary_polygon_IIIa(self):
-        """test_boundary_polygon_IIIa - Check pathological situation where
-	one triangle has no neighbours. This may be the case if a mesh
-	is partitioned using pymetis.
+        """
+        test_boundary_polygon_IIIa - Check pathological situation where
+        one triangle has no neighbours. This may be the case if a mesh
+        is partitioned using pymetis.
         """
 
 
@@ -834,15 +835,15 @@ class Test_Mesh(unittest.TestCase):
         g = [1.0, 0.5] #6
         h = [1.0, 1.0] #7
        
-	# Add pathological triangle with no neighbours to an otherwise
-	# trivial mesh
-	
-	points = [a, b, c, d, e, f, g, h]
+        # Add pathological triangle with no neighbours to an otherwise
+        # trivial mesh
+
+        points = [a, b, c, d, e, f, g, h]
 
         #cbe, aeb, dea, fed, ghe (pathological triangle)
         vertices = [[2,1,4], [0,4,1], [3,4,0], [5,4,3],
      	            [6,7,4]]	
-		    
+
         mesh = Mesh(points, vertices)
         mesh.check_integrity()
 
@@ -850,19 +851,15 @@ class Test_Mesh(unittest.TestCase):
 
         
         assert len(P) == 9
-	
-	# Note that point e appears twice!
+
+        # Note that point e appears twice!
         assert num.allclose(P, [a, d, f, e, g, h, e, c, b])
 
         for p in points:
-	    msg = 'Point %s is not inside polygon %s'\
-	    %(p, P)	
-            assert is_inside_polygon(p, P), msg		    
+            msg = 'Point %s is not inside polygon %s'\
+             %(p, P)	
+            assert is_inside_polygon(p, P), msg
 
-
-				 	
-	    
-	    
 
     def test_boundary_polygon_IV(self):
         """Reproduce test test_spatio_temporal_file_function_time

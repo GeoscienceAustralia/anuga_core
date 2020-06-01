@@ -7,7 +7,11 @@ from anuga.utilities.cg_solve import *
 import numpy as num
 import os
 from future.utils import raise_
-import exceptions
+
+try:
+    import exceptions
+except ImportError:
+    import builtins as exceptions
 
 
 class TestError(exceptions.Exception):
