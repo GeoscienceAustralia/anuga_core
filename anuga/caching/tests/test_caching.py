@@ -405,9 +405,13 @@ class Test_Caching(unittest.TestCase):
           f1hash = -758136387
           f2hash = -11221564
 
-        # Python 2  
-        f1hash = 7079146893884768701
-        f2hash = -6995306676314913340
+        # Python 2
+        if system_tools.major_version == 2:
+            f1hash = -6435709805317464919
+            f2hash = -194473832144476870
+        elif system_tools.major_version == 3:            
+            f1hash = 'e2400e489959ab88afacedb2ddee422f5bd50a3d803a4cd344c4a88892426e52'
+            f2hash = 'c7ec417f281e1f59aac9ee55fc2b1562044efc4414ae763b13a0e94f8e023bab'
 
         #print('myhash1', myhash(f1))
         #print('myhash2', myhash(f2))        
@@ -417,6 +421,9 @@ class Test_Caching(unittest.TestCase):
         
         bc1 = get_bytecode(f1)
         bc2 = get_bytecode(f2)
+        
+        #print(bc1)
+        #print(bc2)
         
         msg = 'Byte code should be different'
         assert bc1 != bc2, msg
@@ -455,8 +462,77 @@ class Test_Caching(unittest.TestCase):
         assert num.allclose(res2, ref2), msg
         
 
-        
-        
+    def test_bytecodes_correctly_evaluated(self):
+        """test bytecodes of functions, methods and callable objects.
+        """
+
+        def function(x):
+            x2 = x*x
+            return(x2)
+
+        class Callable_object:
+            
+            def __init__(self, a, b):
+                self.a = a
+                self.b = b
+
+            def __call__(self, x):
+                return(self.a * x + self.b)
+
+            def method(self, y):
+                y2 = y * y
+                return(self.a * y2 + self.b * y + 1)
+                
+        C = Callable_object(7, 5)
+
+        assert callable(function)
+        assert callable(C)
+        assert callable(C.method)
+        assert callable(Callable_object)
+
+        # Get bytecode and other detais from the function
+        #print('Function bytecode: ', function.__code__.co_code)
+        #print('Class bytecode: ', Callable_object.__init__.__code__.co_code)  
+        #print('Method bytecode: ', C.method.__func__.__code__.co_code)
+        #print('Callable bytecode: ', C.__call__.__func__.__code__.co_code)
+
+
+        for i, X in enumerate([function, C, C.method, Callable_object]):
+
+            if i == 0:
+                func_object = X
+            elif i == 1:
+                func_object = X.__call__.__func__
+            elif i == 2:
+                func_object = X.__func__
+            elif i == 3:
+                func_object = X.__init__
+            else:
+                raise Exception('Unknown object %s' % X)
+            
+            bytecode = func_object.__code__.co_code
+            consts = func_object.__code__.co_consts
+            argcount = func_object.__code__.co_argcount    
+            defaults = func_object.__defaults__       
+
+            #print('---------------------')
+            #print(X, func_object)
+            #print (bytecode, consts, argcount, defaults)
+            #print (get_bytecode(X))
+            #print (get_bytecode(X) == (bytecode, consts, argcount, defaults))
+            #print('---------------------')
+
+            if i == 1:
+                bc = get_bytecode(X)[:-1]  # Strip off extra hash value
+                assert bc == (bytecode, consts, argcount, defaults)                
+            else:    
+                assert get_bytecode(X) == (bytecode, consts, argcount, defaults)
+
+            #if i == 1:
+            #    break
+
+
+    # FIXME (Ole): I am not even sure this test makes sense        
     def test_uniqueness_of_hash_values(self):
         """test_uniqueness_of_hash_values(self):
         
