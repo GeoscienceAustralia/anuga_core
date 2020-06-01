@@ -295,15 +295,18 @@ def copy_code_files(dir_name, filename1, filename2=None, verbose=False):
     """
 
     def copy_file_or_sequence(dest, file):
-        if hasattr(file, '__iter__'):
-            for f in file:
-                shutil.copy(f, dir_name)
-                if verbose:
-                    log.critical('File %s copied' % f)
-        else:
+
+        if isinstance(file, str):
             shutil.copy(file, dir_name)
             if verbose:
                 log.critical('File %s copied' % file)
+        elif isinstance(file, (tuple, list)):
+            for f in file:
+                copy_file_or_sequence(dest, f)
+        else:
+            raise Exception('Unknow argument for file: %s', file)
+        
+
 
     # check we have a destination directory, create if necessary
     if not os.path.isdir(dir_name):

@@ -49,7 +49,7 @@
 from __future__ import print_function
 from __future__ import division
 from builtins import zip
-from past.builtins import str
+#from past.builtins import str  # FIXME: This breaks things like isinstance. Get rid of it
 from builtins import range
 from past.utils import old_div
 from builtins import object
@@ -184,7 +184,7 @@ def getInds(varIn, timeSlices, absMax=False):
 
     if (len(varIn.shape)==2):
         # There are multiple time-slices
-        if timeSlices is 'max':
+        if timeSlices == 'max':
             # Extract the maxima over time, assuming there are multiple
             # time-slices, and ensure the var is still a 2D array
             if( not absMax):
@@ -250,7 +250,7 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
         except:
             inds=[timeSlices]
     
-    if(inds is not 'max'):
+    if(inds != 'max'):
         time=time[inds]
     else:
         # We can't really assign a time to 'max', but I guess max(time) is
@@ -349,21 +349,21 @@ class get_centroids(object):
 
     NOTE: elevation is only stored once in the output, even if it was
           stored every timestep.
-           Lots of existing plotting code assumes elevation is a 1D
-           array. 
-           But as a hack for the time being the elevation from the file 
-           is available via elev_orig
+          Lots of existing plotting code assumes elevation is a 1D
+          array. 
+          But as a hack for the time being the elevation from the file 
+          is available via elev_orig
     """
-    def __init__(self,p, velocity_extrapolation=False, verbose=False,
+    def __init__(self, p, velocity_extrapolation=False, verbose=False,
                  timeSlices=None, minimum_allowed_height=1.0e-03):
         
         self.time, self.x, self.y, self.stage, self.xmom,\
-             self.ymom, self.height, self.elev, self.elev_orig, self.friction, self.xvel,\
-             self.yvel, self.vel, self.xllcorner, self.yllcorner, self.timeSlices= \
-             _get_centroid_values(p, velocity_extrapolation,\
-                         timeSlices=copy.copy(timeSlices),\
-                         minimum_allowed_height=minimum_allowed_height,\
-                         verbose=verbose)
+            self.ymom, self.height, self.elev, self.elev_orig, self.friction, self.xvel,\
+            self.yvel, self.vel, self.xllcorner, self.yllcorner, self.timeSlices= \
+                _get_centroid_values(p, velocity_extrapolation,\
+                                     timeSlices=copy.copy(timeSlices),\
+                                     minimum_allowed_height=minimum_allowed_height,\
+                                     verbose=verbose)
 
 def _getCentVar(fid, varkey_c, time_indices, absMax=False,  vols = None, space_indices=None):
     """
@@ -383,7 +383,7 @@ def _getCentVar(fid, varkey_c, time_indices, absMax=False,  vols = None, space_i
         assert (vols is not None), "Must specify vols since centroid quantity is not stored"
 
         newkey=varkey_c.replace('_c','')
-        if time_indices is not 'max':
+        if time_indices != 'max':
             # Relatively efficient treatment is possible
             var_cent = fid.variables[newkey]
             if (len(var_cent.shape)>1):
@@ -404,7 +404,7 @@ def _getCentVar(fid, varkey_c, time_indices, absMax=False,  vols = None, space_i
                 tmp=(tmp[vols0]+tmp[vols1]+tmp[vols2])/3.0
             var_cent=getInds(tmp, timeSlices=time_indices, absMax=absMax)
     else:
-        if time_indices is not 'max':
+        if time_indices != 'max':
             if(len(fid.variables[varkey_c].shape)>1):
                 var_cent = numpy.zeros((len(time_indices), fid.variables[varkey_c].shape[1]), dtype='float32')
                 for i in range(len(time_indices)):
@@ -427,7 +427,7 @@ def _getCentVar(fid, varkey_c, time_indices, absMax=False,  vols = None, space_i
 
                                  
 def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices, 
-                        minimum_allowed_height):
+                         minimum_allowed_height):
     """
     Function to get centroid information -- main interface is through 
         get_centroids. 
@@ -453,9 +453,8 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
      Output: Values of x, y, Stage, xmom, ymom, elev, xvel, yvel, vel etc at centroids
     """
 
-    #@ Figure out if p is a string (filename) or the output of get_output
-    pIsFile=(type(p) is str)
- 
+    # Figure out if p is a string (filename) or the output of get_output
+    pIsFile = isinstance(p, str)
     if(pIsFile): 
         fid=NetCDFFile(p) 
     else:
@@ -488,9 +487,9 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
             timeSlices=copy.copy(p.timeSlices)
     else:
         # Treat word-based special cases
-        if(timeSlices is 'all'):
+        if(timeSlices == 'all'):
             timeSlices=list(range(nts))
-        if(timeSlices is 'last'):
+        if(timeSlices == 'last'):
             timeSlices=[nts-1]
 
     #@ Get minimum_allowed_height
@@ -513,7 +512,7 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
         except:
             inds=[timeSlices]
     
-    if(inds is not 'max'):
+    if(inds != 'max'):
         time=time[inds]
     else:
         # We can't really assign a time to 'max', but I guess max(time) is
@@ -1134,7 +1133,7 @@ def Make_Geotif(swwFile=None,
         for output_quantity in output_quantities:
             if (verbose): print(output_quantity)
 
-            if(myTSi is not 'max'):
+            if(myTSi != 'max'):
                 myTS = myTSi
             else:
                 # We have already extracted the max, and e.g.
@@ -1157,7 +1156,7 @@ def Make_Geotif(swwFile=None,
                 if(output_quantity == 'elevation'):
                     gridq = myInterpFun(p2.elev)
     
-                if(myTSi is 'max'):
+                if(myTSi == 'max'):
                     timestepString = 'max'
                 else:
                     timestepString = str(myTimeStep[myTSindex])+'_Time_'+str(round(p2.time[myTS]))

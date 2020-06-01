@@ -402,12 +402,14 @@ class Geo_reference(object):
         return points
 
     def reconcile_zones(self, other):
+
         if other is None:
+            # FIXME(Ole): Why would we do this?
             other = Geo_reference()
-        if (self.zone == other.zone or
-            self.zone == DEFAULT_ZONE and
-            other.zone == DEFAULT_ZONE):
-            pass
+            #raise Exception('Expected georeference object, got None')
+        
+        if (self.zone == other.zone):
+            pass        
         elif self.zone == DEFAULT_ZONE:
             self.zone = other.zone
         elif other.zone == DEFAULT_ZONE:
