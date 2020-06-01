@@ -195,7 +195,7 @@ point2, 0.5, 2.0\n")
 
         point1_answers_array = [[0.0, 1.0, -3.0], [2.0, 10.0, -3.0]]
         point1_filename = 'gauge_point1.csv'
-        point1_handle = file(point1_filename)
+        point1_handle = open(point1_filename)
         point1_reader = reader(point1_handle)
         next(point1_reader)
 
@@ -209,7 +209,7 @@ point2, 0.5, 2.0\n")
 
         point2_answers_array = [ [0.0, 1.0, -2.416666666666667], [2.0, 10.000000000000002, -2.416666666666667] ]
         point2_filename = 'gauge_point2.csv' 
-        point2_handle = file(point2_filename)
+        point2_handle = open(point2_filename)
         point2_reader = reader(point2_handle)
         next(point2_reader)
                         
@@ -265,7 +265,7 @@ point2, 0.5, 2.0, 9.0\n")
 #        point1_answers_array = [[0.0,1.0,-5.0,3.0,4.0], [2.0,10.0,-5.0,3.0,4.0]]
         point1_answers_array = [[1.0, 0.0002777777777777778, 1.0, 4.0, -3.0, 3.0, 4.0], [3.0, 0.0008333333333333334, 10.0, 13.0, -3.0, 3.0, 4.0] ]
         point1_filename = 'gauge_point1.csv'
-        point1_handle = file(point1_filename)
+        point1_handle = open(point1_filename)
         point1_reader = reader(point1_handle)
         next(point1_reader)
 
@@ -279,7 +279,7 @@ point2, 0.5, 2.0, 9.0\n")
 
         point2_answers_array = [[1.0, 0.0002777777777777778, 1.0, 3.416666666666667, -2.416666666666667, 3.0, 4.0], [3.0, 0.0008333333333333334, 10.000000000000002, 12.416666666666668, -2.416666666666667, 3.0, 4.0]]
         point2_filename = 'gauge_point2.csv' 
-        point2_handle = file(point2_filename)
+        point2_handle = open(point2_filename)
         point2_reader = reader(point2_handle)
         next(point2_reader)
                         
@@ -445,7 +445,7 @@ point1, 2.5, 4.25, 3.0\n")
 
         point1_answers_array = [[0.0,0.0,1.0,4.0,4.0], [2.0,2.0/3600.,10.0,4.0,4.0]]
         point1_filename = 'gauge_point1.csv'
-        point1_handle = file(point1_filename)
+        point1_handle = open(point1_filename)
         point1_reader = reader(point1_handle)
         next(point1_reader)
 
@@ -506,7 +506,7 @@ point2, 0.5, 2.0\n")
                                [4.0, 10.0, -3.0], [6.0, 20.0, -3.0]]
 
         point1_filename = 'gauge_point1.csv'
-        point1_handle = file(point1_filename)
+        point1_handle = open(point1_filename)
         point1_reader = reader(point1_handle)
         next(point1_reader)
 
@@ -530,7 +530,7 @@ point2, 0.5, 2.0\n")
 
             
         point2_filename = 'gauge_point2.csv' 
-        point2_handle = file(point2_filename)
+        point2_handle = open(point2_filename)
         point2_reader = reader(point2_handle)
         next(point2_reader)
                         

@@ -147,14 +147,14 @@ def sww2csv_gauges(sww_file,
     assert isinstance(out_name,string_types) or isinstance(out_name, str), 'Output filename prefix must be a string'
     
     try:
-        point_reader = reader(file(gauge_file))
+        point_reader = reader(open(gauge_file))
     except Exception as e:
         msg = 'File "%s" could not be opened: Error="%s"' % (gauge_file, e)
         raise Exception(msg)
 
     if verbose: log.critical('Gauges obtained from: %s' % gauge_file)
     
-    point_reader = reader(file(gauge_file))
+    point_reader = reader(open(gauge_file))
     points = []
     point_name = []
     
@@ -242,13 +242,13 @@ def sww2csv_gauges(sww_file,
 
                 if point_quantities[0] != NAN:
                     if is_opened[point_i] == False:
-                        points_writer = writer(file(dir_name + sep + gauge_file
-                                                    + point_name[point_i] + '.csv', "wb"))
+                        points_writer = writer(open(dir_name + sep + gauge_file
+                                                    + point_name[point_i] + '.csv', 'w'))
                         points_writer.writerow(heading)
                         is_opened[point_i] = True
                     else:
-                        points_writer = writer(file(dir_name + sep + gauge_file
-                                                    + point_name[point_i] + '.csv', "ab"))
+                        points_writer = writer(open(dir_name + sep + gauge_file
+                                                    + point_name[point_i] + '.csv', 'a'))
 
 
                     points_list = [quake_time, quake_time/3600.] +  _quantities2csv(quantities, point_quantities, callable_sww.centroids, point_i)
@@ -686,8 +686,8 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
     model_time_plot3d = num.zeros((n0, m), num.float)
     stages_plot3d = num.zeros((n0, m), num.float)
     eastings_plot3d = num.zeros((n0, m),num.float)
-    if time_unit is 'mins': scale = 60.0
-    if time_unit is 'hours': scale = 3600.0
+    if time_unit == 'mins': scale = 60.0
+    if time_unit == 'hours': scale = 3600.0
 
     ##### loop over each swwfile #####
     for j, f in enumerate(f_list):
