@@ -63,6 +63,9 @@ Date      PR Result                                                     Notes ::
 20200531     Ran 1147 tests in 69.587s FAILED (errors=55, failures=4)   Fixed test_mesh.py totally
 20200531     Ran 1147 tests in 82.131s FAILED (errors=48, failures=4)   More tests in interpolate todo with files and caching
 20200601     Ran 1148 tests in 86.545s FAILED (errors=48, failures=3)   Worked on caching and hashing
+20200601     Ran 1148 tests in 80.492s FAILED (errors=41, failures=3)   test_plot_utils.py, test_file_utils.py, test_sww2dem.py 
+
+
 
 Env: anuga27
 ------------
@@ -80,5 +83,6 @@ Date      PR Result                                                     Notes ::
 20200531     Ran 1290 tests in 105.613s FAILED (errors=1, failures=4)   Fixed test_mesh.py totally
 20200531     Ran 1290 tests in 108.195s FAILED (failures=3)             More tests in interpolate todo with files and caching
 20200601     Ran 1291 tests in 113.518s FAILED (failures=4)             Worked on caching and hashing (one test is silly)
+20200601     Ran 1291 tests in 105.463s FAILED (failures=4)             test_plot_utils.py, test_file_utils.py, test_sww2dem.py 
 
 
