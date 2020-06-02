@@ -71,7 +71,7 @@ class Test_order_boundary(unittest.TestCase):
                     (20.0, 20.0, 'whisky')]
 
         # put test data into a file
-        fd = open(Test_input_file_path, 'wb')
+        fd = open(Test_input_file_path, 'w')
         w = csv.writer(fd)
         for d in Data:
             w.writerow(d)
@@ -350,7 +350,7 @@ class Test_order_boundary(unittest.TestCase):
                     (152.55,-32.55,'3202')]
 
         # put test data into a file
-        fd = open(infile, 'wb')
+        fd = open(infile, 'w')
         w = csv.writer(fd)
         for d in data:
             w.writerow(d)
