@@ -75,6 +75,7 @@ Date      PR Result                                                     Notes ::
 20200602     Ran 1291 tests in 85.946s FAILED (errors=27, failures=3)   After Steve's work on spaces and tabs 
 20200602     Ran 1291 tests in 82.037s FAILED (errors=26, failures=3)   test_util.py
 20200602     Ran 1291 tests in 89.094s FAILED (errors=25, failures=3)   quantity_setting_functions 
+20200602     Ran 1291 tests in 94.629s FAILED (errors=19, failures=3)   test_new_culvert_class.py
 
 
 Env: anuga27
