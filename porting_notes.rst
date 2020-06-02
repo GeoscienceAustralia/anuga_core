@@ -31,6 +31,13 @@ git pull upstream python3_anuga_py3
 # Create ANUGA Python environments
 conda create -n anuga27 -c conda-forge python=2.7   git pip nose numpy scipy netcdf4 matplotlib gdal dill cython future openmp mpi4py
 conda create -n anuga38 -c conda-forge python=3.8.2 git pip nose numpy scipy netcdf4 matplotlib gdal dill cython future openmp mpi4py
+
+Run tests
+conda activate anuga38; python setup.py develop; python runtests.py
+conda activate anuga27; python setup.py develop; python runtests.py
+
+Remember to set PYTHONPATH to your root dir, e.g. PYTHONPATH = ~/Work/sandpit/anuga_core
+
 ----------------------------------
 
 
@@ -66,6 +73,8 @@ Date      PR Result                                                     Notes ::
 20200601     Ran 1148 tests in 80.492s FAILED (errors=41, failures=3)   test_plot_utils.py, test_file_utils.py, test_sww2dem.py 
 20200601     Ran 1148 tests in 80.689s FAILED (errors=34, failures=3)   test_gauge.py
 20200602     Ran 1291 tests in 85.946s FAILED (errors=27, failures=3)   After Steve's work on spaces and tabs 
+20200602     Ran 1291 tests in 82.037s FAILED (errors=26, failures=3)   test_util.py
+20200602     Ran 1291 tests in 89.094s FAILED (errors=25, failures=3)   quantity_setting_functions 
 
 
 Env: anuga27
