@@ -81,6 +81,10 @@ Date      PR Result                                                     Notes ::
 20200602     Ran 1291 tests in 101.188s FAILED (errors=12, failures=3)  Fixed test_tsunami_okada.py
 20200602     Ran 1291 tests in 100.657s FAILED (errors=10, failures=3)  tsunami_okado, test_log_analyser and using dill in caching
 20200602     Ran 1291 tests in 103.305s FAILED (errors=6, failures=3)   Did test_mesh_interface and set_set_elevation_operator 
+20200602     Ran 1291 tests in 99.925s FAILED (errors=4, failures=3)    test_order_boundary.py
+
+
+
 
 Env: anuga27
 ------------
