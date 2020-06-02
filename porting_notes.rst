@@ -82,6 +82,8 @@ Date      PR Result                                                     Notes ::
 20200602     Ran 1291 tests in 100.657s FAILED (errors=10, failures=3)  tsunami_okado, test_log_analyser and using dill in caching
 20200602     Ran 1291 tests in 103.305s FAILED (errors=6, failures=3)   Did test_mesh_interface and set_set_elevation_operator 
 20200602     Ran 1291 tests in 99.925s FAILED (errors=4, failures=3)    test_order_boundary.py
+20200602     Ran 1291 tests in 102.120s FAILED (errors=3, failures=3)   Did the operators and removed lots of old_div
+20200602     Ran 1291 tests in 101.464s FAILED (failures=3)             Did the exposure codes
 
 
 
