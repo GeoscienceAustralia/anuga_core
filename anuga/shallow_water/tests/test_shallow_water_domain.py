@@ -4220,13 +4220,15 @@ class Test_Shallow_Water(unittest.TestCase):
         assert num.allclose(ymomentum.centroid_values[1], 0.089)
 
         # Derived quantities
-        depth = stage-elevation
-        u = old_div(xmomentum,depth)
-        v = old_div(ymomentum,depth)
+        depth = stage - elevation
+        u = xmomentum / depth
+        v = ymomentum / depth
+        assert num.allclose(u.centroid_values, [-0.0029, -0.02086081, -0.00152632, -0.00174])
+        assert num.allclose(v.centroid_values, [0.0445, 0.3201055, 0.02342105, 0.0267])
 
         denom = (depth*g)**0.5
-        Fx = old_div(u,denom)
-        Fy = old_div(v,denom)
+        Fx = u / denom
+        Fy = v / denom
 
         # Verify against Onslow example (14 Nov 2007)
         assert num.allclose(depth.centroid_values[1], 0.278033)
@@ -4275,8 +4277,8 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Redo derived quantities
         depth = stage - elevation
-        u = old_div(xmomentum,depth)
-        v = old_div(ymomentum,depth)
+        u = xmomentum / depth
+        v = ymomentum / depth
 
         # Assert that all vertex velocities stay within one
         # order of magnitude of centroid velocities.
@@ -4286,8 +4288,8 @@ class Test_Shallow_Water(unittest.TestCase):
                            num.absolute(v.centroid_values[1])*10)
 
         denom = (depth*g)**0.5
-        Fx = old_div(u,denom)
-        Fy = old_div(v,denom)
+        Fx = u / denom
+        Fy = v / denom
 
         # Assert that Froude numbers are less than max value (TBA)
         # at vertices, edges and centroids.
@@ -8987,7 +8989,7 @@ friction  \n \
 #################################################################################
 
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_extrapolate_second_order_sw')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test_pmesh')
+    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_balance_deep_and_shallow_Froude')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
