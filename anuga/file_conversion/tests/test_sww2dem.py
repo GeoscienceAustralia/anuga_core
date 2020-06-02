@@ -2252,13 +2252,9 @@ Statistics of SWW file:
         output_verbose_True = output_verbose_True.split('\n')
         
         # check the output line by line
-        print(len(output), len(output_verbose_True))
         for output_verbose_True_line, line in zip(output_verbose_True,
                                                   output[:len(output_verbose_True)-1]):
             
-            print(str(line))
-            print(output_verbose_True_line)
-            print()
             assert str(line).lstrip() == output_verbose_True_line.lstrip()
             # cleanup
             try:

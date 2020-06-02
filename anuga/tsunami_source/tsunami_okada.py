@@ -141,7 +141,7 @@ class Okada_func(object):
         the initial 3D distribution of water heights at the points (x,y,z)
         produced by a submarine mass failure.
         """
-        from string import replace, strip
+
         from math import sin, cos, radians, exp, cosh
         # ensure vectors x and y have the same length
         N = len(x)
