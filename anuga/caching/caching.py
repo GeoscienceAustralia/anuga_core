@@ -778,7 +778,8 @@ def test(cachedir=None, verbose=False, compression=None):
 # cPickle is used by functions mysave, myload, and compare
 #
 #import cPickle  # 10 to 100 times faster than pickle
-import pickle as pickler
+#import pickle as pickler
+import dill as pickler
 #pickler = cPickle 
 
 # Local immutable constants
