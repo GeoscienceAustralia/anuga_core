@@ -41,7 +41,7 @@ if myid == 0 and verbose:
     print(finalTime)
     print(yieldStep)
 
-if verbose: print 'create mesh'
+if verbose: print('create mesh')
 elevation_in_mesh = False
 if myid == 0:
     create_okushiri.create_mesh(elevation_in_mesh=elevation_in_mesh, verbose=verbose)
@@ -65,7 +65,7 @@ if myid == 0:
         domain = anuga.Domain(mesh_filename, use_cache=False, verbose=verbose)
     except:
         msg = 'ERROR reading in mesh file. Have you run create_okushiri.py?'
-        raise Exception, msg
+        raise Exception(msg)
      
     if verbose: print(domain.statistics())
 
@@ -130,7 +130,7 @@ for t in domain.evolve(yieldstep = yieldStep, finaltime = finalTime):
 
 domain.sww_merge(delete_old=True)
 
-if myid == 0 and verbose : print('That took %.2f seconds' %(time.time()-t0))
+if myid == 0 and verbose: print('That took %.2f seconds' %(time.time()-t0))
 
 finalize()
 

@@ -109,7 +109,7 @@ def prepare_timeboundary(filename, verbose = False):
 
     from anuga.file.netcdf import NetCDFFile
 
-    if verbose: print 'Creating', filename
+    if verbose: print('Creating', filename)
 
     # Read the ascii (.txt) version of this file
     fid = open(filename[:-4] + '.txt')
@@ -179,12 +179,12 @@ def create_mesh(elevation_in_mesh=False, verbose=False):
         from anuga.fit_interpolate.fit import fit_to_mesh_file
 
 
-        if verbose: print 'Reading xya from zip'
+        if verbose: print('Reading xya from zip')
         import zipfile as zf
         zf.ZipFile(project.bathymetry_filename_stem+'.zip').\
           extract(project.bathymetry_filename_stem+'.xya')
 
-        if verbose: print 'Reading pts from xya'
+        if verbose: print('Reading pts from xya')
         anuga.xya2pts(project.bathymetry_filename_stem+'.xya',\
                       verbose = verbose)
         
@@ -195,7 +195,7 @@ def create_mesh(elevation_in_mesh=False, verbose=False):
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
-    print 'create mesh'
+    print('Create mesh')
     create_mesh(elevation_in_mesh=True, verbose=True)
 
 

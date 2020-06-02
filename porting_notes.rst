@@ -84,7 +84,7 @@ Date      PR Result                                                     Notes ::
 20200602     Ran 1291 tests in 99.925s FAILED (errors=4, failures=3)    test_order_boundary.py
 20200602     Ran 1291 tests in 102.120s FAILED (errors=3, failures=3)   Did the operators and removed lots of old_div
 20200602     Ran 1291 tests in 101.464s FAILED (failures=3)             Did the exposure codes
-
+20200603     Got some of the validations tests to run
 
 
 
