@@ -79,7 +79,8 @@ Date      PR Result                                                     Notes ::
 20200602     Ran 1291 tests in 92.725s FAILED (errors=15, failures=3)   Fixed test_shallow_water_domain.py
 20200602     Ran 1291 tests in 92.656s FAILED (errors=14, failures=3)   Fixed pickling in test_load_save.py
 20200602     Ran 1291 tests in 101.188s FAILED (errors=12, failures=3)  Fixed test_tsunami_okada.py
-
+20200602     Ran 1291 tests in 100.657s FAILED (errors=10, failures=3)  tsunami_okado, test_log_analyser and using dill in caching
+20200602     Ran 1291 tests in 103.305s FAILED (errors=6, failures=3)   Did test_mesh_interface and set_set_elevation_operator 
 
 Env: anuga27
 ------------
