@@ -30,8 +30,8 @@ class Test_results(unittest.TestCase):
     
 
         if verbose:
-            print
-            print indent+'Running simulation script'
+            print()
+            print(indent+'Running simulation script')
 
         s = 'numerical_dam_break_wet.py'
         res = anuga.run_anuga_script(s,args=args)
@@ -41,7 +41,7 @@ class Test_results(unittest.TestCase):
 
 
         if verbose:
-            print indent+'Testing accuracy'
+            print(indent+'Testing accuracy')
             
         import anuga.utilities.plot_utils as util
         import analytical_dam_break_wet as analytic
@@ -68,8 +68,8 @@ class Test_results(unittest.TestCase):
         eh50 = numpy.sum(numpy.abs(p2_st.stage[50,v2]-h50))/numpy.sum(numpy.abs(h50))
         eh100 = numpy.sum(numpy.abs(p2_st.stage[100,v2]-h100))/numpy.sum(numpy.abs(h100))
 
-        print 
-        print indent+'Errors in stage: ',eh10, eh50, eh100
+        print() 
+        print(indent+'Errors in stage: ', eh10, eh50, eh100)
 
         #Test xmomenta
         # Calculate L^1 error at times corrsponding to slices 10, 50 and 100
@@ -77,7 +77,7 @@ class Test_results(unittest.TestCase):
         euh50 = numpy.sum(numpy.abs(p2_st.xmom[50,v2]-u50*h50))/numpy.sum(numpy.abs(u50*h50))
         euh100 = numpy.sum(numpy.abs(p2_st.xmom[100,v2]-u100*h100))/numpy.sum(numpy.abs(u100*h100))
 
-        print indent+'Errors in xmomentum: ',euh10, euh50, euh100
+        print(indent+'Errors in xmomentum: ', euh10, euh50, euh100)
 
         #Test xvelocity
         # Calculate L^1 error at times corrsponding to slices 10, 50 and 100
@@ -85,7 +85,7 @@ class Test_results(unittest.TestCase):
         eu50 = numpy.sum(numpy.abs(p2_st.xvel[50,v2]-u50))/numpy.sum(numpy.abs(u50))
         eu100 = numpy.sum(numpy.abs(p2_st.xvel[100,v2]-u100))/numpy.sum(numpy.abs(u100))
 
-        print indent+'Errors in xvelocity: ', eu10, eu50, eu100
+        print(indent+'Errors in xvelocity: ',eu10, eu50, eu100)
 
         assert eh10 < 0.01,  'L^1 error %g greater than 1\%'% eh10
         assert eh50 < 0.01,  'L^1 error %g greater than 1\%'% eh50

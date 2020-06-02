@@ -124,7 +124,7 @@ save_parameters_tex(domain)
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep = 0.05, finaltime = 3.0):
     if myid == 0 and verbose:
-        print domain.timestepping_statistics()
+        print(domain.timestepping_statistics())
 
 
 domain.sww_merge(delete_old=True)

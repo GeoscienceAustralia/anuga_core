@@ -47,17 +47,17 @@ for dirpath, dirnames, filenames in os.walk('.'):
     validation_dirs_and_files.sort()
 
 
-print 
-print 80*'='
-print 'Running all validation tests - some may take many minutes'
-print 'and some may require memory in the order of 8-16GB       '
-print 80*'='
+print() 
+print(80*'=')
+print('Running all validation tests - some may take many minutes')
+print('and some may require memory in the order of 8-16GB       ')
+print(80*'=')
 
-print 'Validation test suites:'
+print('Validation test suites:')
 for path, filename in validation_dirs_and_files:
-     print '    ', os.path.join(path, filename)
-print
-print
+     print ('    ', os.path.join(path, filename))
+print()
+print()
 
 t0 = time.time()
 parentdir = os.getcwd()
@@ -74,10 +74,10 @@ for path, filename in validation_dirs_and_files:
     else:
         cmd = 'python {0} -alg {1} -np {2} '.format(filename, args.alg, args.np)
 
-    print 
-    print 80*'='
-    print cmd
-    print 80*'='
+    print() 
+    print(80*'=')
+    print(cmd)
+    print(80*'=')
     os.system(cmd)
     
     # Back to parent directory
@@ -85,7 +85,7 @@ for path, filename in validation_dirs_and_files:
 
     # print 'current dir', os.getcwd() 
     
-print 'That took %.2f seconds in total' %(time.time()-t0)
+print('That took %.2f seconds in total' %(time.time()-t0))
     
 
         
