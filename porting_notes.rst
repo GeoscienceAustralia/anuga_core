@@ -76,6 +76,7 @@ Date      PR Result                                                     Notes ::
 20200602     Ran 1291 tests in 82.037s FAILED (errors=26, failures=3)   test_util.py
 20200602     Ran 1291 tests in 89.094s FAILED (errors=25, failures=3)   quantity_setting_functions 
 20200602     Ran 1291 tests in 94.629s FAILED (errors=19, failures=3)   test_new_culvert_class.py
+20200602     Ran 1291 tests in 92.725s FAILED (errors=15, failures=3)   Fixed test_shallow_water_domain.py
 
 
 Env: anuga27
