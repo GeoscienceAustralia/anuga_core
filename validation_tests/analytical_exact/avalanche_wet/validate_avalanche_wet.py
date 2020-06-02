@@ -29,8 +29,8 @@ class Test_results(unittest.TestCase):
     
 
         if verbose:
-            print
-            print indent+'Running simulation script'
+            print()
+            print(indent+'Running simulation script')
 
         
         s = 'numerical_avalanche_wet.py'
@@ -42,7 +42,7 @@ class Test_results(unittest.TestCase):
 
 
         if verbose:
-            print indent+'Testing accuracy'
+            print(indent+'Testing accuracy')
             
 
         import anuga.utilities.plot_utils as util
@@ -83,8 +83,8 @@ class Test_results(unittest.TestCase):
         eh40 = numpy.sum(numpy.abs(w40_n-w40))/numpy.sum(numpy.abs(w40))
 
 
-        print 
-        print indent+'Errors in stage: ',eh20, eh40
+        print() 
+        print(indent+'Errors in stage: ', eh20, eh40)
 
 
 
@@ -95,14 +95,14 @@ class Test_results(unittest.TestCase):
         euh40 = numpy.sum(numpy.abs(uh40_n-u40*h40))/numpy.sum(numpy.abs(u40*h40))
 
 
-        print indent+'Errors in xmomentum: ',euh20, euh40
+        print(indent+'Errors in xmomentum: ', euh20, euh40)
 
         #Test xvelocity
         # Calculate L^1 error at times corrsponding to slices 20, 40
         eu20 = numpy.sum(numpy.abs(u20_n-u20))/numpy.sum(numpy.abs(u20))
         eu40 = numpy.sum(numpy.abs(u40_n-u40))/numpy.sum(numpy.abs(u40))
 
-        print indent+'Errors in xvelocity: ', eu20, eu40
+        print(indent+'Errors in xvelocity: ', eu20, eu40)
 
         assert eh20 < 0.01,  'L^1 error %g greater than 1 percent'% eh20
         assert eh40 < 0.01,  'L^1 error %g greater than 1 percent'% eh40

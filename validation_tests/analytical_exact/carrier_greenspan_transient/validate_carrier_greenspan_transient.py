@@ -34,8 +34,8 @@ class Test_results(unittest.TestCase):
     
 
         if verbose:
-            print
-            print indent+'Running simulation script'
+            print()
+            print(indent+'Running simulation script')
 
         s = 'numerical_cg_transient.py'
         res = anuga.run_anuga_script(s,args=args)
@@ -45,7 +45,7 @@ class Test_results(unittest.TestCase):
 
 
         if verbose:
-            print indent+'Testing accuracy'
+            print(indent+'Testing accuracy')
 
 
         import anuga.utilities.plot_utils as util
@@ -103,8 +103,8 @@ class Test_results(unittest.TestCase):
         for i, id in enumerate(ids):
             ew[i] = numpy.sum(numpy.abs(W_n[i]-W[i]))/numpy.sum(numpy.abs(W[i]))
  
-        print 
-        print indent+'L^1 Errors in stage: ', ew
+        print() 
+        print(indent+'L^1 Errors in stage: ', ew)
 
 
 
@@ -115,7 +115,7 @@ class Test_results(unittest.TestCase):
             euh[i] = numpy.sum(numpy.abs(UH_n[i]-U[i]*H[i]))/numpy.sum(numpy.abs(UH_n[i]))
 
         
-        print indent+'L^1 Errors in xmomentum: ',euh    
+        print(indent+'L^1 Errors in xmomentum: ', euh)    
 
         #Test xvelocity
         # Calculate L^1 error at times
@@ -127,7 +127,7 @@ class Test_results(unittest.TestCase):
             else:
                 eu[i] = numpy.sum(numpy.abs(U_n[i]-U[i]))/numpy.sum(numpy.abs(U[i]))
 
-        print indent+'L^1 Errors in xvelocity: ', eu
+        print(indent+'L^1 Errors in xvelocity: ', eu)
 
         for i, id in enumerate(ids):
             assert ew[i] < 0.01,  'L^1 error %g greater than 1 percent'% ew[i]

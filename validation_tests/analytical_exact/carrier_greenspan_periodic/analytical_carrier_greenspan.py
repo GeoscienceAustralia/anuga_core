@@ -59,7 +59,7 @@ def analytic_cg(points, t=0.0, h0=5e2, L=5e4, a=1.0, Tp=900.0):
             dq = gaussPivot(jac,-f0)
             q = q + dq
             if sqrt(dot(dq,dq)) < tol*max(max(abs(q)),1.0): return q
-        print 'Too many iterations'    
+        print('Too many iterations')    
     ##################################################################################
     N = len(points)
     

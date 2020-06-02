@@ -77,7 +77,7 @@ expected_argmin = {'Boundary': 2.064999999999999858e+01,
 # Read validation data
 #-------------------------
 
-if verbose: print 'Reading', project.boundary_filename
+if verbose: print('Reading', project.boundary_filename)
 
 fid = NetCDFFile(project.boundary_filename, 'r')
 input_time = fid.variables['time'][:]
@@ -129,12 +129,12 @@ def report_difference(name, computed_value, reference_value, rtol, atol):
         msg = '%s (expected, computed):\n  (%.18e, %.18e):\n  Relative error=%.18e'\
               %(name, reference_value, computed_value,
                 abs(reference_value-computed_value)/reference_value)
-        print msg
+        print(msg)
         
 
     msg = '  Absolute error=%.18e'\
           %(abs(reference_value-computed_value))        
-    print msg
+    print(msg)
 
     
     #print 'Allclose:', allclose(reference_value, computed_value,
@@ -160,7 +160,7 @@ atol = 2.0e-2
 #rtol = 1.0e-2
 #atol = 1.0e-2
 
-if verbose: print 'Precisions used: rtol=%e, atol=%e' %(rtol, atol)
+if verbose: print('Precisions used: rtol=%e, atol=%e' %(rtol, atol))
 
 
 #print reference_time
@@ -170,8 +170,8 @@ for k, name in enumerate(gauge_names):
     denom = 0
     model = []
     if verbose: 
-        print 
-        print 'Validating ' + name
+        print() 
+        print('Validating ' + name)
     observed_timeseries = validation_data[name]
     for i, t in enumerate(reference_time):
         model.append(f(t, point_id=k)[0])
@@ -219,8 +219,8 @@ q = get_maximum_inundation_elevation(sww_filename)
 loc = get_maximum_inundation_location(sww_filename)
 
 if verbose:
-    print 'Max runup elevation: ', q
-    print 'Max runup elevation (scaled by 400): ', q*400
-    print 'Max runup location:  ', loc
+    print('Max runup elevation: ', q)
+    print('Max runup elevation (scaled by 400): ', q*400)
+    print('Max runup location:  ', loc)
 
 
