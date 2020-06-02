@@ -38,7 +38,7 @@ class logTestCase(unittest.TestCase):
 
         # Create a fake log file
         log_path_file1 = os.path.join(dir1, log_file_name)
-        handle = file(log_path_file1, 'w')
+        handle = open(log_path_file1, 'w')
         handle.write('yeah\n yeah\n ')
         handle.write('2012-01-23 13:20:10,147 INFO   general_mesh:202 |\n')
         #made_up = {'three':'3', 'five':'5', 'seven':'7'}
@@ -50,7 +50,7 @@ class logTestCase(unittest.TestCase):
 
         # Create another fake log file
         log_path_file2 = os.path.join(dir2, log_file_name)
-        handle = file(log_path_file2, 'w')
+        handle = open(log_path_file2, 'w')
         handle.write('yeah\n yeah\n ')
         handle.write('2012-01-23 13:20:10,147 INFO   general_mesh:202 |\n')
         #made_up = {'three':'3', 'five':'5', 'seven':'7'}

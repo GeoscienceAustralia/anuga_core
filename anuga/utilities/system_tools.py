@@ -211,7 +211,7 @@ def get_version():
     return anuga.__version__
 
     
-    
+# FIXME(Ole): We should remove this altogether. If we need it, we must rethink
 def get_revision_number():
     """Get the (svn) revision number of this repository copy.
     If svn not available just return 0

@@ -2245,7 +2245,7 @@ class Domain(Generic_Domain):
 
             negative_ids = num.where( num.logical_and((Stage.centroid_values - Elev.centroid_values) < 0.0 , tff > 0) )[0]
 
-            if len(negative_ids)>0:
+            if len(negative_ids) > 0:
                 # FIXME: This only warns the first time -- maybe we should warn whenever loss occurs?
                 import warnings
                 msg = 'Negative cells being set to zero depth, possible loss of conservation. \n' +\

@@ -778,7 +778,8 @@ def test(cachedir=None, verbose=False, compression=None):
 # cPickle is used by functions mysave, myload, and compare
 #
 #import cPickle  # 10 to 100 times faster than pickle
-import pickle as pickler
+#import pickle as pickler
+import dill as pickler
 #pickler = cPickle 
 
 # Local immutable constants
@@ -1581,7 +1582,8 @@ def compare(A, B, ids=None):
             # Use pickle to compare data
             # The native pickler must be used
             # since the faster cPickle does not 
-            # guarantee a unique translation            
+            # guarantee a unique translation
+            # FIXME (Ole): Try to fall back on the dill pickler
             try:
                 identical = (pickle.dumps(A,0) == pickle.dumps(B,0))
             except:

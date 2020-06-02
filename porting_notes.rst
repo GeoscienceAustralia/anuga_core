@@ -31,6 +31,13 @@ git pull upstream python3_anuga_py3
 # Create ANUGA Python environments
 conda create -n anuga27 -c conda-forge python=2.7   git pip nose numpy scipy netcdf4 matplotlib gdal dill cython future openmp mpi4py
 conda create -n anuga38 -c conda-forge python=3.8.2 git pip nose numpy scipy netcdf4 matplotlib gdal dill cython future openmp mpi4py
+
+Run tests
+conda activate anuga38; python setup.py develop; python runtests.py
+conda activate anuga27; python setup.py develop; python runtests.py
+
+Remember to set PYTHONPATH to your root dir, e.g. PYTHONPATH = ~/Work/sandpit/anuga_core
+
 ----------------------------------
 
 
@@ -65,6 +72,20 @@ Date      PR Result                                                     Notes ::
 20200601     Ran 1148 tests in 86.545s FAILED (errors=48, failures=3)   Worked on caching and hashing
 20200601     Ran 1148 tests in 80.492s FAILED (errors=41, failures=3)   test_plot_utils.py, test_file_utils.py, test_sww2dem.py 
 20200601     Ran 1148 tests in 80.689s FAILED (errors=34, failures=3)   test_gauge.py
+20200602     Ran 1291 tests in 85.946s FAILED (errors=27, failures=3)   After Steve's work on spaces and tabs 
+20200602     Ran 1291 tests in 82.037s FAILED (errors=26, failures=3)   test_util.py
+20200602     Ran 1291 tests in 89.094s FAILED (errors=25, failures=3)   quantity_setting_functions 
+20200602     Ran 1291 tests in 94.629s FAILED (errors=19, failures=3)   test_new_culvert_class.py
+20200602     Ran 1291 tests in 92.725s FAILED (errors=15, failures=3)   Fixed test_shallow_water_domain.py
+20200602     Ran 1291 tests in 92.656s FAILED (errors=14, failures=3)   Fixed pickling in test_load_save.py
+20200602     Ran 1291 tests in 101.188s FAILED (errors=12, failures=3)  Fixed test_tsunami_okada.py
+20200602     Ran 1291 tests in 100.657s FAILED (errors=10, failures=3)  tsunami_okado, test_log_analyser and using dill in caching
+20200602     Ran 1291 tests in 103.305s FAILED (errors=6, failures=3)   Did test_mesh_interface and set_set_elevation_operator 
+20200602     Ran 1291 tests in 99.925s FAILED (errors=4, failures=3)    test_order_boundary.py
+20200602     Ran 1291 tests in 102.120s FAILED (errors=3, failures=3)   Did the operators and removed lots of old_div
+20200602     Ran 1291 tests in 101.464s FAILED (failures=3)             Did the exposure codes
+
+
 
 
 Env: anuga27

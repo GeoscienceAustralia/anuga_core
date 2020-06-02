@@ -142,6 +142,14 @@ class Test_Culvert(unittest.TestCase):
         are dealt with       
         """
 
+        # FIXME (Ole): This test leads to this warning for both Python2.7 and Python3.8
+        #
+        # /home/ro/Work/sandpit/anuga_core/anuga/shallow_water/shallow_water_domain.py:2253:
+        # UserWarning: Negative cells being set to zero depth, possible loss of conservation. 
+        # Consider using domain.report_water_volume_statistics() to check the extent of the problem
+        #
+        # This not a porting problem, but should be looked into
+
         path = get_pathname_from_package('anuga.culvert_flows') 
         path = os.path.join(path, 'tests', 'data')   
         
@@ -486,7 +494,7 @@ class Test_Culvert(unittest.TestCase):
             assert num.allclose(new_volume, ref_volume, rtol=1.0e-10), msg        
         
         
-        return
+        return # why?
         # Now try this again for a depth of 10 cm and for a range of other depths
         for depth in [0.1, 0.2, 0.5, 1.0]:
             print('depth', depth)

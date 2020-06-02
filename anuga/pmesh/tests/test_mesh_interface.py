@@ -984,7 +984,7 @@ END\n')
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(TestCase,'test')
+    suite = unittest.makeSuite(TestCase, 'test')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
 
