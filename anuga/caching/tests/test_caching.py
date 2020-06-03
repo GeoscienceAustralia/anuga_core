@@ -263,13 +263,10 @@ class Test_Caching(unittest.TestCase):
                 assert T2[key] == T3[key]                
                 
             
-           
-            
-
-    def xtest_caching_of_objects(self):
+    def test_caching_of_objects(self):
         """test_caching_of_objects
         
-        Test that Objecs can be recognised as input variables 
+        Test that objecs can be recognised as input variables 
         by caching even if their id's are different
         """
 
@@ -349,15 +346,18 @@ class Test_Caching(unittest.TestCase):
             T2 = cache(f_generic, AA,
                        compression=comp,
                        test=1, verbose=verbose) 
+                       #test=1, verbose=True) 
+            
+            # FIXME (Ole): The works in Python 3 but not in Python 2.
+            # I am in a mind to live with that as we are moving 
+            # away from Python 2 anyway 
                        
-            # FIXME (Ole): Revisit this later (like the uniqueness test)
             # Check for presence of cached result 
-            #msg = 'Cached object was not found'            
-            #assert T2 is not None, msg
+            msg = 'Cached object was not found'            
+            assert T2 is not None, msg
 
             # Reference result
             T3 = f_generic(A)  # Compute without caching
-
             
             #msg = 'Cached result does not match computed result' 
             #assert str(T1) == str(T2), msg
@@ -547,16 +547,17 @@ class Test_Caching(unittest.TestCase):
         A = Dummy(5, 7)
         B = {'x': 10, 'A': A}
         C = [B, num.array([1.2, 3, 5, 0.1])]
-        A.value = C  # Make it circular
+        #A.value = C  # Make it circular
 
         # Create identical but separate object    
         AA = Dummy(5, 7)
         BB = {'A': AA, 'x': 10}
         CC = [BB, num.array([1.200, 3.000, 5.00, 1.0 / 10])]
-        AA.value = CC  # Make it circular
+        #AA.value = CC  # Make it circular
 
-        assert myhash(A) != myhash(AA)     
+        assert myhash(A) == myhash(AA)     
 
+        
         # DISABLED (Ole): Not necessary in ANUGA
         # Also test caching now that we are at it
         #comprange = 2
@@ -641,7 +642,7 @@ class Test_Caching(unittest.TestCase):
                   return_filename=1)
 
 
-        assert FN[:2] == 'f['
+        assert FN[:2] == 'f_'
 
         CD = checkdir(cachedir)
         compression = 1

@@ -246,7 +246,7 @@ def sequential_distribute_dump(domain, numprocs=1, verbose=False, partition_dir=
 
         pickle_name = partition.domain_name + '_P%g_%g.pickle'% (numprocs,p)
         pickle_name = join(partition_dir,pickle_name)
-        f = file(pickle_name, 'wb')
+        f = open(pickle_name, 'wb')
 
     lst = list(tostore)
 
@@ -283,7 +283,7 @@ def sequential_distribute_load_pickle_file(pickle_name, np=1, verbose = False):
     Open pickle files
     """
 
-    f = file(pickle_name, 'rb')
+    f = open(pickle_name, 'rb')
     import pickle
 
     kwargs, points, vertices, boundary, quantities, boundary_map, \
