@@ -266,7 +266,7 @@ class Test_Caching(unittest.TestCase):
     def test_caching_of_objects(self):
         """test_caching_of_objects
         
-        Test that objecs can be recognised as input variables 
+        Test that objects can be recognised as input variables 
         by caching even if their id's are different
         """
 
@@ -411,7 +411,9 @@ class Test_Caching(unittest.TestCase):
             f2hash = -194473832144476870
         elif system_tools.major_version == 3:            
             f1hash = 'e2400e489959ab88afacedb2ddee422f5bd50a3d803a4cd344c4a88892426e52'
-            f2hash = 'c7ec417f281e1f59aac9ee55fc2b1562044efc4414ae763b13a0e94f8e023bab'
+            f2hash = 'c7ec417f281e1f59aac9ee55fc2b1562044efc4414ae763b13a0e94f8e023bab' 
+        else:
+            raise Exception('Unknown Python version: %s' % system_tools.version)
 
         #print('myhash1', myhash(f1))
         #print('myhash2', myhash(f2))        
