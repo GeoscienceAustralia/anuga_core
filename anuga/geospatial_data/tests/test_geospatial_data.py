@@ -1290,7 +1290,7 @@ class Test_Geospatial_data(unittest.TestCase):
 
     def test_add_txt2pts(self):
         """test_add_(self):
-        adds an txt and pts files, reads the files and adds them
+        adds txt and pts files, reads the files and adds them
         checking results are correct
 
         # FIXME(Ole): I think this test is wrong as is the whole approach to adding geospatia object. 
@@ -1310,13 +1310,16 @@ class Test_Geospatial_data(unittest.TestCase):
         att_dict2['brightness'] = num.array([14.0, 1.0, -12.4])
         geo_reference2 = Geo_reference(56, 1.0, 2.0)
 
+        geo_reference0 = Geo_reference(56, 0.0, 0.0)
+
         G1 = Geospatial_data(pointlist1, att_dict1, geo_reference1)
         G2 = Geospatial_data(pointlist2, att_dict2, geo_reference2)
 
         fileName1 = tempfile.mktemp('.txt')
         fileName2 = tempfile.mktemp('.pts')
 
-        # makes files
+
+        # makes files (saved with absolute=True as default)
         G1.export_points_file(fileName1)
         G2.export_points_file(fileName2)
 
@@ -1336,12 +1339,11 @@ class Test_Geospatial_data(unittest.TestCase):
         assert num.allclose(G.get_attributes(attribute_name='brightness'),
                             answer)
 
-        #print(G.get_geo_reference(), geo_reference1)
-        self.assertTrue(G.get_geo_reference() == geo_reference1,
+        self.assertTrue(G.get_geo_reference() == geo_reference0,
                         'test_writepts failed. Test geo_reference')
 
-        os.remove(fileName1)
-        os.remove(fileName2)
+        #os.remove(fileName1)
+        #os.remove(fileName2)
 
     def test_ensure_absolute(self):
         points = [[2.0, 0.0], [1.0, 1.0],

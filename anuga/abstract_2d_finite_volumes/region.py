@@ -130,12 +130,15 @@ class Region(object):
         else:
             assert self.indices is None or self.indices is []
         
+        #import pdb
+        #pdb.set_trace()
+        
         if self.indices is None:
             self.full_indices = num.where(self.domain.tri_full_flag ==1)[0]
         elif len(self.indices) == 0:
             self.full_indices = []
         else:
-            self.full_indices = self.indices[self.domain.tri_full_flag[self.indices]==1]
+            self.full_indices = num.array(self.indices)[self.domain.tri_full_flag[self.indices]==1]
 
         
     def __repr__(self):

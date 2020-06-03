@@ -248,20 +248,20 @@ def sequential_distribute_dump(domain, numprocs=1, verbose=False, partition_dir=
         pickle_name = join(partition_dir,pickle_name)
         f = open(pickle_name, 'wb')
 
-    lst = list(tostore)
+        lst = list(tostore)
 
-    # Write points and triangles to their own files
-    num.save(pickle_name+".np1",tostore[1]) # this append .npy to filename
-    lst[1] = pickle_name+".np1.npy"
-    num.save(pickle_name+".np2",tostore[2])
-    lst[2] = pickle_name+".np2.npy"
+        # Write points and triangles to their own files
+        num.save(pickle_name+".np1",tostore[1]) # this append .npy to filename
+        lst[1] = pickle_name+".np1.npy"
+        num.save(pickle_name+".np2",tostore[2])
+        lst[2] = pickle_name+".np2.npy"
 
-    # Write each quantity to it's own file
-    for k in tostore[4]:
-        num.save(pickle_name+".np4."+k,num.array(tostore[4][k]))
-        lst[4][k] = pickle_name+".np4."+k+".npy"
+        # Write each quantity to it's own file
+        for k in tostore[4]:
+            num.save(pickle_name+".np4."+k,num.array(tostore[4][k]))
+            lst[4][k] = pickle_name+".np4."+k+".npy"
 
-    pickle.dump( tuple(lst), f, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump( tuple(lst), f, protocol=pickle.HIGHEST_PROTOCOL)
     return
 
 
