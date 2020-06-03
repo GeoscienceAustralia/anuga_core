@@ -339,8 +339,13 @@ def cache(my_F,
   funcname = get_funcname(my_F)
 
   # Create cache filename
-  FN = funcname+'['+repr(arghash)+']'  # The symbol '(' does not work under unix
-
+  FN = funcname+'_'+str(arghash)  
+  #print()
+  #print('FN', FN)
+  #print('repr(arghash)', repr(arghash))
+  #print('arghash', arghash)  
+  #print()
+  
   if return_filename:
     return(FN)
 
@@ -886,7 +891,7 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
   #
   R, reason = myload(argsfile, compressed)  # The original arguments
   argsfile.close()
-    
+  
   if reason > 0:
       # Recompute using same filename   
       return(None, FN, None, reason, None, None, None)
@@ -897,7 +902,7 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
   admfile.close()  
 
   if reason > 0:
-    return(None,FN,None,reason,None,None,None) #Recompute using same filename 
+    return(None,FN,None,reason,None,None,None) # Recompute using same filename 
 
   
   depsref  = R[0]  # Dependency statistics
@@ -957,7 +962,7 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
       else:   
         reason = 3 # Arguments have changed 
         
-   # PADARN NOTE 17/12/12: Adding a special case to handle the existence of a 
+  # PADARN NOTE 17/12/12: Adding a special case to handle the existence of a 
   # FitInterpolate object. C Structures are serialised so they can be pickled.
   #---------------------------------------------------------------------------
   from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
@@ -1283,7 +1288,7 @@ def myopen(FN, mode, compression=True):
     else:
       pass  # FIXME: Take care of access rights under Windows
 
-  return(file,compressed)
+  return(file, compressed)
 
 # -----------------------------------------------------------------------------
 
@@ -1421,7 +1426,6 @@ def myhash(T, ids=None):
     T -- Anything
   """
 
-  #print(T, type(T), isinstance(T, object))
   
   # Replacing Python2: if type(T) in [TupleType, ListType, DictType, InstanceType]:
   if isinstance(T, (tuple, list, dict)) or type(T) is type:
@@ -2286,7 +2290,7 @@ def msg2(funcname, args, kwargs, comptime, reason):
   msg6(funcname,args,kwargs)
   msg8(reason)
 
-  log.critical(string.ljust('| CPU time:', textwidth1) +
+  log.critical(str.ljust('| CPU time:', textwidth1) +
                str(round(comptime,2)) + ' seconds')
 
 # -----------------------------------------------------------------------------
@@ -2299,7 +2303,7 @@ def msg3(savetime, CD, FN, deps, compression):
   """
 
   import string
-  log.critical(string.ljust('| Loading time:', textwidth1) + 
+  log.critical(str.ljust('| Loading time:', textwidth1) + 
                str(round(savetime,2)) + ' seconds (estimated)')
   msg5(CD,FN,deps,compression)
 
@@ -2317,11 +2321,11 @@ def msg4(funcname, args, kwargs, deps, comptime, loadtime, CD, FN, compression):
   print_header_box('Caching statistics (retrieving)')
   
   msg6(funcname,args,kwargs)
-  log.critical(string.ljust('| CPU time:', textwidth1) +
+  log.critical(str.ljust('| CPU time:', textwidth1) +
                str(round(comptime,2)) + ' seconds')
-  log.critical(string.ljust('| Loading time:', textwidth1) +
+  log.critical(str.ljust('| Loading time:', textwidth1) +
                str(round(loadtime,2)) + ' seconds')
-  log.critical(string.ljust('| Time saved:', textwidth1) +
+  log.critical(str.ljust('| Time saved:', textwidth1) +
                str(round(comptime-loadtime,2)) + ' seconds')
   msg5(CD,FN,deps,compression)
 
@@ -2340,7 +2344,7 @@ def msg5(CD, FN, deps, compression):
   import os, time, string
 
   log.critical('|')
-  log.critical(string.ljust('| Caching dir: ', textwidth1) + CD)
+  log.critical(str.ljust('| Caching dir: ', textwidth1) + CD)
 
   if compression:
     suffix = '.z'
@@ -2352,7 +2356,7 @@ def msg5(CD, FN, deps, compression):
   for file_type in file_types:
     file_name = FN + '_' + file_type + suffix
     stats = os.stat(CD+file_name)
-    log.critical(string.ljust('| ' + file_type + ' file: ', textwidth1) +
+    log.critical(str.ljust('| ' + file_type + ' file: ', textwidth1) +
                  file_name + '('+ str(stats[6]) + ' ' + bytetext + ')')
 
   log.critical('|')
@@ -2378,9 +2382,9 @@ def msg5(CD, FN, deps, compression):
       slist.append(s)
 
     for n in range(len(dlist)):
-      d = string.ljust(dlist[n]+':', maxd+1)
-      t = string.ljust(tlist[n], maxt)
-      s = string.rjust(slist[n], maxs)
+      d = str.ljust(dlist[n]+':', maxd+1)
+      t = str.ljust(tlist[n], maxt)
+      s = str.rjust(slist[n], maxs)
 
       log.critical('| %s %s %s bytes' % (d, t, s))
   else:
@@ -2397,7 +2401,7 @@ def msg6(funcname, args, kwargs):
   """
 
   import string
-  log.critical(string.ljust('| Function:', textwidth1) + funcname)
+  log.critical(str.ljust('| Function:', textwidth1) + funcname)
 
   msg7(args, kwargs)
   
@@ -2415,19 +2419,19 @@ def msg7(args, kwargs):
   args_present = 0  
   if args:
     if len(args) == 1:
-      log.critical(string.ljust('| Argument:', textwidth1) +
+      log.critical(str.ljust('| Argument:', textwidth1) +
                    mkargstr(args[0], textwidth2))
     else:
-      log.critical(string.ljust('| Arguments:', textwidth1) +
+      log.critical(str.ljust('| Arguments:', textwidth1) +
                    mkargstr(args, textwidth2))
     args_present = 1
             
   if kwargs:
     if len(kwargs) == 1:
-      log.critical(string.ljust('| Keyword Arg:', textwidth1) +
+      log.critical(str.ljust('| Keyword Arg:', textwidth1) +
                    mkargstr(kwargs, textwidth2))
     else:
-      log.critical(string.ljust('| Keyword Args:', textwidth1) +
+      log.critical(str.ljust('| Keyword Args:', textwidth1) +
                    mkargstr(kwargs, textwidth2))
     args_present = 1
 
@@ -2450,7 +2454,7 @@ def msg8(reason):
   except:
     R = 'Unknown'  
   
-  log.critical(string.ljust('| Reason:', textwidth1) + R)
+  log.critical(str.ljust('| Reason:', textwidth1) + R)
     
 # -----------------------------------------------------------------------------
 
@@ -2571,7 +2575,7 @@ def logtestOK(msg):
 
   import string
     
-  log.critical(string.ljust(msg, textwidth4) + ' - OK' )
+  log.critical(str.ljust(msg, textwidth4) + ' - OK' )
   
   #raise StandardError
   

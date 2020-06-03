@@ -263,13 +263,10 @@ class Test_Caching(unittest.TestCase):
                 assert T2[key] == T3[key]                
                 
             
-           
-            
-
-    def xtest_caching_of_objects(self):
+    def test_caching_of_objects(self):
         """test_caching_of_objects
         
-        Test that Objecs can be recognised as input variables 
+        Test that objecs can be recognised as input variables 
         by caching even if their id's are different
         """
 
@@ -349,6 +346,11 @@ class Test_Caching(unittest.TestCase):
             T2 = cache(f_generic, AA,
                        compression=comp,
                        test=1, verbose=verbose) 
+                       #test=1, verbose=True) 
+            
+            # FIXME (Ole): The works in Python 3 but not in Python 2.
+            # I am in a mind to live with that as we are moving 
+            # away from Python 2 anyway 
                        
             # Check for presence of cached result 
             msg = 'Cached object was not found'            
@@ -640,7 +642,7 @@ class Test_Caching(unittest.TestCase):
                   return_filename=1)
 
 
-        assert FN[:2] == 'f['
+        assert FN[:2] == 'f_'
 
         CD = checkdir(cachedir)
         compression = 1
