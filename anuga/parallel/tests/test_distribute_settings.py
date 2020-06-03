@@ -28,11 +28,8 @@ from anuga import Reflective_boundary
 from anuga import Dirichlet_boundary
 from anuga import Time_boundary
 from anuga import Transmissive_boundary
-
 from anuga import Geo_reference
-
 from anuga import rectangular_cross_domain
-
 
 from anuga import distribute, myid, numprocs, send, receive, barrier, finalize
 
@@ -41,9 +38,7 @@ from anuga.parallel.sequential_distribute import sequential_distribute_load
 
 import anuga.utilities.plot_utils as util
 
-
 from anuga.utilities.parallel_abstraction import global_except_hook
-
 
 #--------------------------------------------------------------------------
 # Setup parameters
@@ -63,7 +58,7 @@ new_parameters['ghost_layer_width'] = 2
 # Setup Functions
 #---------------------------------
 def topography(x,y): 
-    return old_div(-x,2)    
+    return -x/2.0
 
 ###########################################################################
 # Setup Test
@@ -157,11 +152,8 @@ if __name__=="__main__":
         suite = unittest.makeSuite(Test_parallel_sw_flow, 'test')
         runner.run(suite)
     else:
-
-
-        
         #------------------------------------------
-        # Run the codel and compare sequential
+        # Run the code and compare sequential
         # results at 4 gauge stations
         #------------------------------------------
         if myid ==0 and verbose: print('PARALLEL START')
