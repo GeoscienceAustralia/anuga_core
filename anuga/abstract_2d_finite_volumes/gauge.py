@@ -910,8 +910,8 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         #ax = axis([time_min, time_max, 0.0, 360.0])
                         legend(('Bearing','West','East'))
 
-                    if time_unit is 'mins': xlabel('time (mins)')
-                    if time_unit is 'hours': xlabel('time (hours)')
+                    if time_unit == 'mins': xlabel('time (mins)')
+                    if time_unit == 'hours': xlabel('time (hours)')
                     #if which_quantity == 'stage' \
                     #   and elevations[0:n[j]-1,k,j] > 0:
                     #    ylabel('%s (%s)' %('depth', units))
