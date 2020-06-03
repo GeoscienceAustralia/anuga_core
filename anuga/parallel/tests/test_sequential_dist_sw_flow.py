@@ -250,10 +250,10 @@ def run_simulation(parallel=False, verbose=False):
         os.remove('odomain.sww')
         os.remove('pdomain.sww')
         os.remove('sdomain.sww')
-        os.remove('odomain_P4_0.pickle')
-        os.remove('odomain_P4_1.pickle')
-        os.remove('odomain_P4_2.pickle')
-        os.remove('odomain_P4_3.pickle')
+        os.remove('odomain_P3_0.pickle')
+        os.remove('odomain_P3_1.pickle')
+        os.remove('odomain_P3_2.pickle')
+        #os.remove('odomain_P4_3.pickle')
         import glob
         [ os.remove(fl) for fl in glob.glob('*.npy') ]
         

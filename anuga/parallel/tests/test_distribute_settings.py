@@ -122,7 +122,17 @@ def run_simulation(parallel=False, verbose=False):
         assert domain.get_minimum_allowed_height() == sdomain.get_minimum_allowed_height()
         assert domain.geo_reference == sdomain.geo_reference
         
-
+        if myid == 0:
+            import os
+            #os.remove('odomain.sww')
+            #os.remove('pdomain.sww')
+            #os.remove('sdomain.sww')
+            os.remove('odomain_P4_0.pickle')
+            os.remove('odomain_P4_1.pickle')
+            os.remove('odomain_P4_2.pickle')
+            os.remove('odomain_P4_3.pickle')
+            import glob
+            [ os.remove(fl) for fl in glob.glob('*.npy') ]   
 
     
 
