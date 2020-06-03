@@ -93,9 +93,11 @@ else:
   
 cachedir = os.path.join(homedir, cache_dir)
 
-# FIXME(Ole): It turns out hashes are no longer stable under Python3 (grr).
+# It turns out hashes are no longer stable under Python3 (grr).
 # https://stackoverflow.com/questions/27522626/hash-function-in-python-3-3-returns-different-results-between-sessions
 # https://stackoverflow.com/questions/30585108/disable-hash-randomization-from-within-python-program
+#
+# The fix is to use another hashing library.
 if system_tools.major_version == 3:
     import hashlib
     def hash(x):
@@ -1461,12 +1463,11 @@ def myhash(T, ids=None):
           
       val = hash(hvals)
   elif isinstance(T, dict):
-      # Make dictionary ordering unique
       #print('DICT')
+      
       I = list(T.items())    
-      # FIXME(Ole): Need new way of doing this in Python 3.0 (B4 2010 ;-)
-
       if system_tools.major_version == 2:
+          # Make dictionary ordering unique
           I.sort()
       else:
           # As of Python 3.7 they now are ordered: https://mail.python.org/pipermail/python-dev/2017-December/151283.html
@@ -1481,21 +1482,8 @@ def myhash(T, ids=None):
       val = hash(num.average(T.flat))
   elif callable(T):
       #print('CALLABLE')
-      if system_tools.major_version == 2:
-          # Got this from https://stackoverflow.com/questions/45946051/signature-method-in-inspect-module-for-python-2
-          # FIXME (Ole): But it doesn't work 
-          # from funcsigs import signature.
-          # Make something up
-          #print(dir(T.__call__))
-          I = myhash(T.__dict__, ids)                
-      else: 
-          #from inspect import signature
-          #sig = signature(T)
-          #print(sig, type(sig), str(sig), dir(sig), hash(T))
-          #I = tuple((signature(T), T.__dict__))
-          #I = hash(T) # FIXME(Ole): Perhaps we don't need myhash anymore!
-          I = myhash(T.__dict__, ids)                
-          
+
+      I = myhash(T.__dict__, ids)                
       val = myhash(I, ids)      
   elif type(T) is type: #isinstance(T, object):  # This is instead of the old InstanceType:
   #elif isinstance(T, object):  # This is instead of the old InstanceType:
@@ -1503,12 +1491,10 @@ def myhash(T, ids=None):
       # Use the attribute values 
       val = myhash(T.__dict__, ids)
   else:
+      # This must be a simple Python type that should hash without problems
       #print('ALL', T, type(T))
-      # FIXME(Ole): Remove this try except and deal with any exceptions
-      try:
-          val = hash(str(T))
-      except:
-          val = 1
+      val = hash(str(T))
+
 
   #print(ids, val)
   return(val)
