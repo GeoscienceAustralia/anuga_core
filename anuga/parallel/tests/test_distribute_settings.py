@@ -146,10 +146,11 @@ def run_simulation(parallel=False, verbose=False):
 
 class Test_parallel_sw_flow(unittest.TestCase):
     def test_parallel_sw_flow(self):
-        if verbose : print("Expect this test to fail if not run from the parallel directory.")
+        if verbose : print("START test_parallel_sw_flow UNITTEST")
 
         abs_script_name = os.path.abspath(__file__)
         cmd = "mpiexec -np %d  --oversubscribe python %s" % (nprocs, abs_script_name)
+        if verbose : print(cmd)
         result = os.system(cmd)
         
         assert_(result == 0)
@@ -163,6 +164,7 @@ def assert_(condition, msg="Assertion Failed"):
 
 if __name__=="__main__":
     if numprocs == 1: 
+        if verbose: print('SEQUENTIAL START')
         runner = unittest.TextTestRunner()
         suite = unittest.makeSuite(Test_parallel_sw_flow, 'test')
         runner.run(suite)
