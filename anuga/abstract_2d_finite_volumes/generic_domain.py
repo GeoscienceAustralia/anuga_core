@@ -1791,7 +1791,7 @@ class Generic_Domain(object):
         # Update timestep to fit yieldstep and finaltime
         self.update_timestep(yieldstep, finaltime)
 
-        if self.max_flux_update_frequency is not 1:
+        if self.max_flux_update_frequency != 1:
             # Update flux_update_frequency using the new timestep
             self.compute_flux_update_frequency()
 
