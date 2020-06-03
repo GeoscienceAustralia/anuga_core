@@ -48,7 +48,7 @@ finaltime = 3.0
 nprocs = 4
 N = 29
 M = 29 
-verbose = False
+verbose = True
 
 
 new_parameters = {}
@@ -101,7 +101,7 @@ def run_simulation(parallel=False, verbose=False):
         sdomain = sequential_distribute_load(filename='odomain', verbose = verbose)
         sdomain.set_name('sdomain')
         
-
+        if myid == 0 and verbose : print('TESTING AGAINST SEQUENTIAL DOMAIN')
         assert domain.get_datadir() == pdomain.get_datadir()
         assert domain.get_store() == pdomain.get_store()
         assert domain.get_store_centroids() == pdomain.get_store_centroids()
@@ -121,19 +121,24 @@ def run_simulation(parallel=False, verbose=False):
         assert domain.get_flow_algorithm() == sdomain.get_flow_algorithm()
         assert domain.get_minimum_allowed_height() == sdomain.get_minimum_allowed_height()
         assert domain.geo_reference == sdomain.geo_reference
-        
+
+        if myid == 0 and verbose : print('REMOVING DATA FILES')
         if myid == 0:
             import os
             #os.remove('odomain.sww')
             #os.remove('pdomain.sww')
             #os.remove('sdomain.sww')
-            os.remove('odomain_P4_0.pickle')
-            os.remove('odomain_P4_1.pickle')
-            os.remove('odomain_P4_2.pickle')
-            os.remove('odomain_P4_3.pickle')
-            import glob
-            [ os.remove(fl) for fl in glob.glob('*.npy') ]   
+            try:
+                os.remove('odomain_P4_0.pickle')
+                os.remove('odomain_P4_1.pickle')
+                os.remove('odomain_P4_2.pickle')
+                os.remove('odomain_P4_3.pickle')
+                import glob
+                [ os.remove(fl) for fl in glob.glob('*.npy') ]
+            except: 
+                if verbose: print('remove files failed')
 
+        if myid == 0 and verbose : print('FINISHED')
     
 
 # Test an nprocs-way run of the shallow water equations

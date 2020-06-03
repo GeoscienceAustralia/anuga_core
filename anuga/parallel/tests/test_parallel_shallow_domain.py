@@ -56,7 +56,7 @@ mesh_filename = os.path.join(mod_path,'data','merimbula_10785_1.tsh')
 yieldstep = 1
 finaltime = 1
 quantity = 'stage'
-nprocs = 2
+nprocs = 3
 verbose = False
 
 #--------------------------------------------------------------------------
@@ -121,7 +121,7 @@ class Test_parallel_shallow_domain(unittest.TestCase):
         #print "Expect this test to fail if not run from the parallel directory."
         
         abs_script_name = os.path.abspath(__file__)
-        cmd = "mpiexec -np %d  --oversubscribe python %s" % (3, abs_script_name)
+        cmd = "mpiexec -np %d  --oversubscribe python %s" % (nprocs, abs_script_name)
         result = os.system(cmd)
         
         assert_(result == 0)
