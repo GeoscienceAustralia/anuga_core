@@ -58,11 +58,11 @@ class Set_quantity(Region):
 
         if test_elevation:
             msg ='Use Set_elevation to maintain continuity'
-            assert quantity is not 'elevation', msg
+            assert quantity != 'elevation', msg
             
         if test_stage:
             msg ='Use Set_stage to maintain non-negative water depth'
-            assert quantity is not 'stage', msg
+            assert quantity != 'stage', msg
         
         #-------------------------------------------
         # Useful quantity alias
