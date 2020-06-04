@@ -40,7 +40,7 @@ finaltime = 1.0
 nprocs = 4
 N = 29
 M = 29
-verbose = False
+verbose = True
 
 #---------------------------------
 # Setup Functions
@@ -184,13 +184,23 @@ class Test_parallel_sw_flow(unittest.TestCase):
         if verbose : print("Expect this test to fail if not run from the parallel directory.")
 
         abs_script_name = os.path.abspath(__file__)
-        cmd = "mpiexec -np %d  --oversubscribe python %s" % (3, abs_script_name)
-        cmd = "mpirun -np 3 pwd"
-        if verbose: print(cmd)
+        cmd0 = "mpiexec -np %d python %s" % (3, abs_script_name)
+        #cmd0 = "mpiexec -np 3 pwd"
+        cmd1 = "pwd"
+        if verbose: print(cmd1)
+        result = os.system(cmd1)
 
-        result = os.system(cmd)
+        if verbose: print(cmd0)
 
-        assert_(result == 0)
+        import subprocess
+        returned_value = subprocess.run(cmd0, shell=True, capture_output=True)
+
+        if verbose: 
+            print("STDOUT:", returned_value.stdout.decode("utf-8"))
+            print("STDERR:", returned_value.stderr.decode("utf-8"))
+            print("RETURNCODE: ", returned_value.returncode)
+        
+        assert_(returned_value.returncode == 0)
 
 # Because we are doing assertions outside of the TestCase class
 # the PyUnit defined assert_ function can't be used.

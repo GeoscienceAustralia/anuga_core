@@ -149,10 +149,10 @@ class Test_parallel_sw_flow(unittest.TestCase):
         if verbose : print("START test_parallel_sw_flow UNITTEST")
 
         abs_script_name = os.path.abspath(__file__)
-        #cmd = "mpiexec  --oversubscribe -np %d  python %s" % (3, abs_script_name)
+        cmd = "mpiexec -np %d  python %s" % (3, abs_script_name)
 
         #cmd = "mpiexec --oversubscribe -np 3 python %s " % abs_script_name
-        cmd = "mpiexec --oversubscribe -np 3 pwd" 
+        #cmd = "mpiexec --oversubscribe -np 3 pwd" 
         if verbose : print(cmd)
         import subprocess
         returned_value = subprocess.run(cmd, shell=True, capture_output=True)
