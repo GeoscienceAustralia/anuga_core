@@ -1,0 +1,3 @@
+#!/usr/bin/sh
+
+conda activate anuga27; python setup.py; python runtests.py
