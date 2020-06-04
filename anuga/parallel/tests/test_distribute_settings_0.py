@@ -146,7 +146,8 @@ class Test_parallel_sw_flow(unittest.TestCase):
         if verbose : print("Expect this test to fail if not run from the parallel directory.")
 
         abs_script_name = os.path.abspath(__file__)
-        cmd = "mpiexec -np %d  --oversubscribe python %s" % (3, abs_script_name)
+        #cmd = "mpiexec -np %d  --oversubscribe python %s" % (3, abs_script_name)
+        cmd = "mpiexec -np 3 pwd"
         result = os.system(cmd)
 
         assert_(result == 0)
