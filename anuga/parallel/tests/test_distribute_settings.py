@@ -152,6 +152,7 @@ class Test_parallel_sw_flow(unittest.TestCase):
         #cmd = "mpiexec  --oversubscribe -np %d  python %s" % (3, abs_script_name)
 
         cmd = "mpiexec --oversubscribe -np 3 python %s " % abs_script_name
+        #cmd = "mpiexec --oversubscribe -np 3 python blah.py" 
         if verbose : print(cmd)
         import subprocess
         returned_value = subprocess.run(cmd, shell=True, capture_output=True)
@@ -181,6 +182,8 @@ if __name__=="__main__":
         # Run the code and compare sequential
         # results at 4 gauge stations
         #------------------------------------------
+        barrier()
+
         if myid ==0 and verbose: print('PARALLEL START')
 
         from anuga.utilities.parallel_abstraction import global_except_hook
