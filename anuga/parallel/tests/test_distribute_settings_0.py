@@ -185,6 +185,9 @@ class Test_parallel_sw_flow(unittest.TestCase):
 
         abs_script_name = os.path.abspath(__file__)
         cmd = "mpiexec -np %d  --oversubscribe python %s" % (3, abs_script_name)
+        cmd = "mpiexec -np 3 pwd"
+        if verbose: print(cmd)
+        
         result = os.system(cmd)
 
         assert_(result == 0)
