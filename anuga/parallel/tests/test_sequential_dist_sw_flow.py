@@ -250,10 +250,10 @@ def run_simulation(parallel=False, verbose=False):
         os.remove('odomain.sww')
         os.remove('pdomain.sww')
         os.remove('sdomain.sww')
-        os.remove('odomain_P4_0.pickle')
-        os.remove('odomain_P4_1.pickle')
-        os.remove('odomain_P4_2.pickle')
-        os.remove('odomain_P4_3.pickle')
+        os.remove('odomain_P3_0.pickle')
+        os.remove('odomain_P3_1.pickle')
+        os.remove('odomain_P3_2.pickle')
+        #os.remove('odomain_P4_3.pickle')
         import glob
         [ os.remove(fl) for fl in glob.glob('*.npy') ]
         
@@ -296,7 +296,7 @@ class Test_parallel_sw_flow(unittest.TestCase):
         if verbose : print("Expect this test to fail if not run from the parallel directory.")
 
         abs_script_name = os.path.abspath(__file__)
-        cmd = "mpiexec -np %d python %s" % (3, abs_script_name)
+        cmd = "mpiexec -np %d  --oversubscribe python %s" % (3, abs_script_name)
         result = os.system(cmd)
         
         assert_(result == 0)

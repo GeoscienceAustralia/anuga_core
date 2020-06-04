@@ -48,7 +48,7 @@ finaltime = 3.0
 nprocs = 4
 N = 29
 M = 29 
-verbose = False
+verbose = True
 
 
 new_parameters = {}
@@ -101,7 +101,7 @@ def run_simulation(parallel=False, verbose=False):
         sdomain = sequential_distribute_load(filename='odomain', verbose = verbose)
         sdomain.set_name('sdomain')
         
-
+        if myid == 0 and verbose : print('TESTING AGAINST SEQUENTIAL DOMAIN')
         assert domain.get_datadir() == pdomain.get_datadir()
         assert domain.get_store() == pdomain.get_store()
         assert domain.get_store_centroids() == pdomain.get_store_centroids()
@@ -121,9 +121,24 @@ def run_simulation(parallel=False, verbose=False):
         assert domain.get_flow_algorithm() == sdomain.get_flow_algorithm()
         assert domain.get_minimum_allowed_height() == sdomain.get_minimum_allowed_height()
         assert domain.geo_reference == sdomain.geo_reference
-        
 
+        if myid == 0 and verbose : print('REMOVING DATA FILES')
+        if myid == 0:
+            import os
+            #os.remove('odomain.sww')
+            #os.remove('pdomain.sww')
+            #os.remove('sdomain.sww')
+            try:
+                os.remove('odomain_P4_0.pickle')
+                os.remove('odomain_P4_1.pickle')
+                os.remove('odomain_P4_2.pickle')
+                os.remove('odomain_P4_3.pickle')
+                import glob
+                [ os.remove(fl) for fl in glob.glob('*.npy') ]
+            except: 
+                if verbose: print('remove files failed')
 
+        if myid == 0 and verbose : print('FINISHED')
     
 
 # Test an nprocs-way run of the shallow water equations
@@ -131,13 +146,23 @@ def run_simulation(parallel=False, verbose=False):
 
 class Test_parallel_sw_flow(unittest.TestCase):
     def test_parallel_sw_flow(self):
-        if verbose : print("Expect this test to fail if not run from the parallel directory.")
+        if verbose : print("START test_parallel_sw_flow UNITTEST")
 
         abs_script_name = os.path.abspath(__file__)
-        cmd = "mpiexec -np %d python %s" % (nprocs, abs_script_name)
-        result = os.system(cmd)
+        #cmd = "mpiexec  --oversubscribe -np %d  python %s" % (3, abs_script_name)
+
+        #cmd = "mpiexec --oversubscribe -np 3 python %s " % abs_script_name
+        cmd = "mpiexec --oversubscribe -np 3 pwd" 
+        if verbose : print(cmd)
+        import subprocess
+        returned_value = subprocess.run(cmd, shell=True, capture_output=True)
+        #returned_value = os.system(cmd)
+        if verbose: 
+            print("STDOUT:", returned_value.stdout.decode("utf-8"))
+            print("STDERR:", returned_value.stderr.decode("utf-8"))
+            print("RETURNCODE: ", returned_value.returncode)
         
-        assert_(result == 0)
+        assert_(returned_value.returncode == 0)
 
 # Because we are doing assertions outside of the TestCase class
 # the PyUnit defined assert_ function can't be used.
@@ -148,6 +173,7 @@ def assert_(condition, msg="Assertion Failed"):
 
 if __name__=="__main__":
     if numprocs == 1: 
+        if verbose: print('SEQUENTIAL START')
         runner = unittest.TextTestRunner()
         suite = unittest.makeSuite(Test_parallel_sw_flow, 'test')
         runner.run(suite)
@@ -156,6 +182,8 @@ if __name__=="__main__":
         # Run the code and compare sequential
         # results at 4 gauge stations
         #------------------------------------------
+        barrier()
+
         if myid ==0 and verbose: print('PARALLEL START')
 
         from anuga.utilities.parallel_abstraction import global_except_hook
