@@ -152,7 +152,7 @@ class Test_parallel_sw_flow(unittest.TestCase):
         cmd = "mpiexec  --oversubscribe -np %d  python %s" % (3, abs_script_name)
         if verbose : print(cmd)
         import subprocess
-        returned_value = subprocess.run(cmd, shell=True, check=True, capture_output=True)
+        returned_value = subprocess.run(cmd, shell=True, capture_output=True)
         #returned_value = os.system(cmd)
         if verbose: 
             print(returned_value.stdout.decode("utf-8"))
