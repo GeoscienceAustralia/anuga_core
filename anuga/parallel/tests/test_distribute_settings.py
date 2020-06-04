@@ -152,11 +152,14 @@ class Test_parallel_sw_flow(unittest.TestCase):
         cmd = "mpiexec  --oversubscribe -np %d  python %s" % (3, abs_script_name)
         if verbose : print(cmd)
         import subprocess
-        returned_value = subprocess.call(cmd, shell=True)
+        returned_value = subprocess.run(cmd, shell=True, check=True, capture_output=True)
         #returned_value = os.system(cmd)
-        if verbose: print(returned_value)
+        if verbose: 
+            print(returned_value.stdout.decode("utf-8"))
+            print(returned_value.stderr.decode("utf-8"))
+            print(returned_value.returncode)
         
-        assert_(returned_value == 0)
+        assert_(returned_value.returncode == 0)
 
 # Because we are doing assertions outside of the TestCase class
 # the PyUnit defined assert_ function can't be used.
