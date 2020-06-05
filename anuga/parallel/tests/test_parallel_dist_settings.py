@@ -21,7 +21,7 @@ import sys
 #import pypar
 import numpy as num
 
-
+import anuga
 
 from anuga import Domain
 from anuga import Reflective_boundary
@@ -148,8 +148,7 @@ class Test_parallel_sw_flow(unittest.TestCase):
     def test_parallel_sw_flow(self):
         if verbose : print("START test_parallel_sw_flow UNITTEST")
 
-        abs_script_name = os.path.abspath(__file__)
-        cmd = "mpiexec --oversubscribe -np %d  python %s" % (3, abs_script_name)
+        cmd = anuga.mpicmd(os.path.abspath(__file__))
 
         if verbose : print(cmd)
         returned_value = os.system(cmd)

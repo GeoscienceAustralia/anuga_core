@@ -277,8 +277,7 @@ class Test_parallel_boyd_box_operator(unittest.TestCase):
     def test_parallel_operator(self):
         #print "Expect this test to fail if not run from the parallel/test directory."
 
-        abs_script_name = os.path.abspath(__file__)
-        cmd = "mpiexec -np %d  --oversubscribe python %s" % (3, abs_script_name)
+        cmd = anuga.mpicmd(os.path.abspath(__file__))
         exitstatus = os.system(cmd)
         #exitstatus = mpi_cmd(nprocs, abs_script_name)
 
