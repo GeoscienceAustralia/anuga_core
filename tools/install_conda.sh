@@ -17,17 +17,7 @@ ANUGA_BITS=${ANUGA_BITS:-"64"}
 
 sudo apt-get update -q
 sudo apt-get install gfortran git
-
-##########################################################
-# Setup various versions of MPI
-# if [[ "$ANUGA_PARALLEL" == "mpich2" ]]; then
-#     sudo apt-get -y install mpich2;
-# fi
-
-# if [[ "$ANUGA_PARALLEL" == "openmpi" ]]; then
-#     sudo apt-get install -y libopenmpi-dev openmpi-bin;
-# fi
-
+sudo apt-get install -y libopenmpi-dev openmpi-bin;
 
 ##########################################################
 
