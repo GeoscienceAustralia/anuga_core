@@ -1,3 +1,4 @@
 #!/usr/bin/sh
 
-conda activate anuga27; python setup.py; python runtests.py
+conda activate anuga27; python setup.py develop; python runtests.py
+
