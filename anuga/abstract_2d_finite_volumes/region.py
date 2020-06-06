@@ -130,8 +130,6 @@ class Region(object):
         else:
             assert self.indices is None or self.indices is []
         
-        #import pdb
-        #pdb.set_trace()
         
         if self.indices is None:
             self.full_indices = num.where(self.domain.tri_full_flag ==1)[0]

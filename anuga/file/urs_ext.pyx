@@ -1,4 +1,4 @@
-#cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
+#cythonoff: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
 from libc.stdlib cimport malloc, free
 # import both numpy and the Cython declarations for numpy
@@ -28,6 +28,9 @@ def read_mux2(int numSrc,\
   cdef int i, j, start_tstep, finish_tstep, it, time, num_ts
   cdef int POFFSET = 5
   cdef np.ndarray[double, ndim=2, mode="c"] pydata
+  cdef np.ndarray[long, ndim=1, mode="c"] tmp_perm
+
+  tmp_perm = np.array([0],np.int)
 
   assert len(filenames) > 0, "empty lists not allowed"
 
@@ -48,6 +51,9 @@ def read_mux2(int numSrc,\
     weights[i] = pyweights[i]
   
   number_of_selected_stations = permutation.shape[0]
+
+  if number_of_selected_stations == 0:
+    permutation = tmp_perm
 
   cdata = _read_mux2(numSrc,\
 		     muxFileNameArray,\
