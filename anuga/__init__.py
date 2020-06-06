@@ -140,10 +140,12 @@ else:
     from anuga.parallel.parallel_api import send, receive
     from anuga.parallel.parallel_api import pypar_available, barrier, finalize
     from anuga.parallel.parallel_api import collect_value
+    from anuga.parallel.parallel_api import mpicmd
 
     if pypar_available:
         from anuga.parallel.parallel_api import sequential_distribute_dump
         from anuga.parallel.parallel_api import sequential_distribute_load
+         
 
     # -----------------------------
     # Checkpointing

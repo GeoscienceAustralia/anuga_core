@@ -16,6 +16,7 @@ ANUGA_PARALLEL=${ANUGA_PARALLEL:-"openmpi"}
 
 
 brew update
+brew install openmpi
 
 # if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
 #     brew install openmpi
@@ -29,8 +30,8 @@ chmod +x miniconda.sh && ./miniconda.sh -b
 
 export PATH=/Users/travis/miniconda2/bin:$PATH
 
-
-conda update --yes conda
+# This leads to an error at the moment (20200605)
+#conda update --yes conda
 
 # Configure the conda environment and put it in the path using the
 # provided versions
@@ -38,9 +39,10 @@ conda update --yes conda
 #conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy cython netcdf4 \
 #    nose matplotlib gdal dill
     
-conda create -n anuga_env --yes python=2.7.13 gdal=2.2.2 pip nose numpy scipy netcdf4 matplotlib dill cython mpi4py future
+conda create -n anuga_env --yes python=2.7.13 gdal=2.2.2 pip nose numpy scipy netcdf4 matplotlib dill cython future
 
 source activate anuga_env
+pip install mpi4py
 
 # Install pypar if parallel set
 #if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then

@@ -21,7 +21,7 @@ import sys
 #import pypar
 import numpy as num
 
-
+import anuga
 
 from anuga import Domain
 from anuga import Reflective_boundary
@@ -48,7 +48,7 @@ finaltime = 3.0
 nprocs = 4
 N = 29
 M = 29 
-verbose = True
+verbose = False
 
 
 new_parameters = {}
@@ -148,21 +148,12 @@ class Test_parallel_sw_flow(unittest.TestCase):
     def test_parallel_sw_flow(self):
         if verbose : print("START test_parallel_sw_flow UNITTEST")
 
-        abs_script_name = os.path.abspath(__file__)
-        #cmd = "mpiexec  --oversubscribe -np %d  python %s" % (3, abs_script_name)
+        cmd = anuga.mpicmd(os.path.abspath(__file__))
 
-        #cmd = "mpiexec --oversubscribe -np 3 python %s " % abs_script_name
-        cmd = "mpiexec --oversubscribe -np 3 pwd" 
         if verbose : print(cmd)
-        import subprocess
-        returned_value = subprocess.run(cmd, shell=True, capture_output=True)
-        #returned_value = os.system(cmd)
-        if verbose: 
-            print("STDOUT:", returned_value.stdout.decode("utf-8"))
-            print("STDERR:", returned_value.stderr.decode("utf-8"))
-            print("RETURNCODE: ", returned_value.returncode)
-        
-        assert_(returned_value.returncode == 0)
+        returned_value = os.system(cmd)
+
+        assert_(returned_value == 0)
 
 # Because we are doing assertions outside of the TestCase class
 # the PyUnit defined assert_ function can't be used.
