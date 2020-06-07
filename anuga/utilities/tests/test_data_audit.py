@@ -2,7 +2,7 @@
 
 from future.utils import raise_
 import unittest
-from tempfile import mkstemp
+from tempfile import mktemp, mkstemp
 import os
 
 from anuga.utilities.data_audit import *
@@ -22,8 +22,8 @@ class Test_data_audit(unittest.TestCase):
 
         # Generate invalid checksum example
 
-        tmp_fd, tmp_name = mkstemp(suffix='.asc', dir='.')
-        fid = os.fdopen(tmp_fd, 'w')
+        tmp_name = mktemp(suffix='.asc')
+        fid = open(tmp_name, 'w')
 
         string = 'Example data file with textual content. AAAABBBBCCCC1234'
         fid.write(string)
@@ -98,6 +98,9 @@ class Test_data_audit(unittest.TestCase):
             fid.close()
             os.remove(tmp_name)
 
+        print('asc file closed?', fid.closed)
+        print(fid)
+
     def test_license_file_is_not_valid2(self):
         """Basic test using an invalid XML file. This one
         should fail on Not Publishable
@@ -105,8 +108,8 @@ class Test_data_audit(unittest.TestCase):
 
         # Generate invalid checksum example
 
-        tmp_fd, tmp_name = mkstemp(suffix='.asc', dir='.')
-        fid = os.fdopen(tmp_fd, 'w')
+        tmp_name = mktemp(suffix='.asc')
+        fid = open(tmp_name, 'w')
 
         string = 'Example data file with textual content. AAAABBBBCCCC1234'
         fid.write(string)
@@ -242,15 +245,15 @@ class Test_data_audit(unittest.TestCase):
         """
 
         # Generate valid example
-        tmp_fd, tmp_name = mkstemp(suffix='.asc', dir='.')
-        fid = os.fdopen(tmp_fd, 'w')
+        tmp_name = mktemp(suffix='.asc')
+        fid = open(tmp_name, 'w')
 
         string = 'Example data file with textual content. AAAABBBBCCCC1234'
         fid.write(string)
         fid.close()
 
         # Strip leading dir (./)
-        data_filename = os.path.split(tmp_name)[1]
+        #data_filename = os.path.split(tmp_name)[1]
 
         # print 'Name', data_filename
 
@@ -283,14 +286,12 @@ class Test_data_audit(unittest.TestCase):
     </datafile>
 
   </ga_license_file>
-""" % (data_filename, '2810517858')
+""" % (tmp_name, '2810517858')
 
         licfid.write(xml_string)
         licfid.close()
 
-        licfid = open(license_filename)
-        license_file_is_valid(licfid, data_filename)
-        licfid.close()
+        license_file_is_valid(license_filename, tmp_name)
 
         # Clean up
         os.remove(license_filename)
@@ -301,8 +302,8 @@ class Test_data_audit(unittest.TestCase):
         """
 
         # Generate example files
-        tmp_fd, tmp_name = mkstemp(suffix='.asc', dir='.')
-        fid = os.fdopen(tmp_fd, 'w')
+        tmp_name = mktemp(suffix='.asc')
+        fid = open(tmp_name, 'w')
         string = 'Example data file with textual content. AAAABBBBCCCC1234'
         fid.write(string)
         fid.close()

@@ -90,7 +90,7 @@ def make_nearestNeighbour_quantity_function(
         # we adjust them here
         xll = domain.geo_reference.xllcorner
         yll = domain.geo_reference.yllcorner
-        z = scipy.zeros(shape=(len(x), 2))
+        z = np.zeros(shape=(len(x), 2))
         z[:,0] = x+xll
         z[:,1] = y+yll
 
@@ -626,11 +626,12 @@ def quantityRasterFun(domain, rasterFile, interpolation='pixel'):
             corresponding raster values
     """
     import scipy
+    import numpy as np
     from anuga.utilities.spatialInputUtil import rasterValuesAtPoints
     def QFun(x,y):
         xll=domain.geo_reference.xllcorner
         yll=domain.geo_reference.yllcorner
-        inDat=scipy.vstack([x+xll,y+yll]).transpose()
+        inDat=np.vstack([x+xll,y+yll]).transpose()
         return rasterValuesAtPoints(xy=inDat,rasterFile=rasterFile,
                                     interpolation=interpolation)
 
