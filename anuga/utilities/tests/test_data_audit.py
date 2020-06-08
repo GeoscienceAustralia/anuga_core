@@ -98,9 +98,6 @@ class Test_data_audit(unittest.TestCase):
             fid.close()
             os.remove(tmp_name)
 
-        print('asc file closed?', fid.closed)
-        print(fid)
-
     def test_license_file_is_not_valid2(self):
         """Basic test using an invalid XML file. This one
         should fail on Not Publishable

@@ -30,13 +30,18 @@ from anuga.file_conversion.sww2dem import sww2dem, sww2dem_batch
 
 from pprint import pprint
 
-from io import StringIO
+from io import StringIO, BytesIO
 import sys
 
 class Capturing(list):
     def __enter__(self):
         self._stdout = sys.stdout
-        sys.stdout = self._stringio = StringIO()
+        if sys.version_info[0] > 2:
+            sys.stdout = self._stringio = StringIO()
+            
+        else: 
+            sys.stdout = self._stringio = BytesIO()
+            
         return self
     def __exit__(self, *args):
         self.extend(self._stringio.getvalue().splitlines())

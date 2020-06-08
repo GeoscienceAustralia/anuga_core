@@ -5,6 +5,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 # external modules
+import sys
 from builtins import range
 from past.utils import old_div
 from future.utils import raise_
@@ -300,9 +301,7 @@ def sww2dem(name_in, name_out,
     msg += 'I got ymin = %f, ymax = %f' %(ymin, ymax)
     assert ymax >= ymin, msg
 
-    #import pdb
-    #pdb.set_trace()
-    if verbose: print('Creating grid')
+    if verbose: log.critical(u'Creating grid')
     ncols = int(old_div((xmax-xmin),cellsize)) + 1
     nrows = int(old_div((ymax-ymin),cellsize)) + 1
 
@@ -354,7 +353,7 @@ def sww2dem(name_in, name_out,
         interp = Interpolate(vertex_points, volumes, verbose = verbose)
 
         # Interpolate using quantity values
-        if verbose: print('Interpolating')
+        if verbose: log.critical('Interpolating')
         grid_values[:] = interp.interpolate(result, grid_points,
                                          NODATA_value= NODATA_value,
                                          verbose=verbose).flatten()
@@ -376,7 +375,7 @@ def sww2dem(name_in, name_out,
     #print outside_indices
 
     if verbose:
-        print('Interpolated values are in [%f, %f]'
+        log.critical('Interpolated values are in [%f, %f]'
                      % (num.min(grid_values), num.max(grid_values)))
 
     # Assign NODATA_value to all points outside bounding polygon (from interpolation mesh)
