@@ -2162,7 +2162,9 @@ class Domain(Generic_Domain):
             #       self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas, xc, yc)
 #
             if mass_error > 0.0 and self.verbose :
-                print('Cumulative mass protection: '+str(mass_error)+' m^3 ')
+                #print('Cumulative mass protection: ' + str(mass_error) + ' m^3 ')
+                # From https://stackoverflow.com/questions/22397261/cant-convert-float-object-to-str-implicitly
+                print('Cumulative mass protection: {0} m^3'.format(mass_error))
 
         else:
             from .shallow_water_ext import protect
