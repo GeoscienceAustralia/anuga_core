@@ -4,7 +4,7 @@
 from builtins import str
 from builtins import range
 import unittest
-from tempfile import mkstemp, mktemp
+from tempfile import mkstemp, mktemp 
 
 import os
 
@@ -52,8 +52,8 @@ class Test_xml_tools(unittest.TestCase):
         """Test that XML_document can be generated from file
         """
 
-        tmp_fd, tmp_name = mkstemp(suffix='.xml', dir='.')
-        fid = os.fdopen(tmp_fd, 'w')
+        tmp_name = mktemp(suffix='.xml')
+        fid = open(tmp_name, 'w')
 
         xml_string = """<?xml version="1.0" encoding="iso-8859-1"?>
   <ga_license_file>
@@ -129,8 +129,8 @@ class Test_xml_tools(unittest.TestCase):
         This on tests that empty fields are treated as ''
         """
 
-        tmp_fd, tmp_name = mkstemp(suffix='.xml', dir='.')
-        fid = os.fdopen(tmp_fd, 'w')
+        tmp_name = mktemp(suffix='.xml')
+        fid = open(tmp_name, 'w')
 
         xml_string = """<?xml version="1.0" encoding="iso-8859-1"?>
   <ga_license_file>
@@ -230,8 +230,8 @@ class Test_xml_tools(unittest.TestCase):
         xmldoc = XML_element(value=main)
         # print xmldoc
 
-        tmp_fd, tmp_name = mkstemp(suffix='.xml', dir='.')
-        fid = os.fdopen(tmp_fd, 'w')
+        tmp_name = mktemp(suffix='.xml')
+        fid = open(tmp_name, 'w')
 
         fid.write(str(xmldoc))
         fid.close()
@@ -263,8 +263,8 @@ class Test_xml_tools(unittest.TestCase):
         xmldoc = XML_element(value=main)
         # print xmldoc
 
-        tmp_fd, tmp_name = mkstemp(suffix='.xml', dir='.')
-        fid = os.fdopen(tmp_fd, 'w')
+        tmp_name = mktemp(suffix='.xml')
+        fid = open(tmp_name, 'w')
 
         fid.write(str(xmldoc))
         fid.close()

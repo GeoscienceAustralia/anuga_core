@@ -41,6 +41,7 @@ install:
 
 
 script:
+    - export OMPI_MCA_mpi_show_handle_leaks=0
     - python runtests.py $COVERAGE
     - if [[ "$COVERAGE" == "--coverage" ]]; then cp build/test/.coverage .; fi
 

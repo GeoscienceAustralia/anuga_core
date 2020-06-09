@@ -238,8 +238,10 @@ def xml2object(xml, verbose=False):
 
     # Input tests
     if isinstance(xml, basestring):
+        opened_file = True
         fid = open(xml)
     else:
+        opened_file = False
         fid = xml
 
     try:
@@ -256,6 +258,12 @@ def xml2object(xml, verbose=False):
         msg = 'Could not convert %s into XML object.\n' %fid.name
         msg += str(e)
         raise_(Exception, msg)
+
+    if opened_file:
+        fid.close()
+
+
+    #print(xml,' is closed: ',fid.closed)
     
     return xml_object
 

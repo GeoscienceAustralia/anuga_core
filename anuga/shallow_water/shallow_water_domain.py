@@ -77,7 +77,7 @@ from __future__ import division
 # Decorator added for profiling
 #------------------------------
 
-from past.builtins import str
+#rom past.builtins import str
 from builtins import range
 from past.utils import old_div
 from future.utils import raise_
@@ -1094,7 +1094,7 @@ class Domain(Generic_Domain):
             else:
                 self.checkpoint_step = checkpoint_step
             self.checkpoint = True
-            #print self.checkpoint_dir, self.checkpoint_step
+            #print(self.checkpoint_dir, self.checkpoint_step)
         else:
             self.checkpoint = False
 
@@ -1214,13 +1214,7 @@ class Domain(Generic_Domain):
         """
 
         # FIXME(Ole): flag should be called algorithm ;-)
-
-        # This should be as simple as saying flag = str(flag),
-        # but I had to encode and then decode to get the right
-        # byte-like object necessary for the .replace() method (go figure?)
-
-        # Convert into raw-bytes form and then back into character-string form
-        flag = flag.encode('utf-8').decode()
+        flag = str(flag)
 
         # Replace any dots with dashes
         flag = flag.replace(".","_")        

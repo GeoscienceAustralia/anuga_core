@@ -147,14 +147,18 @@ def sww2csv_gauges(sww_file,
     assert isinstance(out_name,string_types) or isinstance(out_name, str), 'Output filename prefix must be a string'
     
     try:
-        point_reader = reader(open(gauge_file))
+        gid = open(gauge_file)
+        point_reader = reader(gid)
+        gid.close()
     except Exception as e:
         msg = 'File "%s" could not be opened: Error="%s"' % (gauge_file, e)
         raise Exception(msg)
 
     if verbose: log.critical('Gauges obtained from: %s' % gauge_file)
     
-    point_reader = reader(open(gauge_file))
+    gid = open(gauge_file)
+    point_reader = reader(gid)
+
     points = []
     point_name = []
     
@@ -172,6 +176,8 @@ def sww2csv_gauges(sww_file,
             points.append([float(row[easting]),float(row[northing])])
             point_name.append(row[name])
         
+    gid.close()
+
     #convert to array for file_function
     points_array = num.array(points,num.float)
         
@@ -242,17 +248,20 @@ def sww2csv_gauges(sww_file,
 
                 if point_quantities[0] != NAN:
                     if is_opened[point_i] == False:
-                        points_writer = writer(open(dir_name + sep + gauge_file
-                                                    + point_name[point_i] + '.csv', 'w'))
+                        points_handle = open(dir_name + sep + gauge_file
+                                             + point_name[point_i] + '.csv', 'w')
+                        points_writer = writer(points_handle)
                         points_writer.writerow(heading)
                         is_opened[point_i] = True
                     else:
-                        points_writer = writer(open(dir_name + sep + gauge_file
-                                                    + point_name[point_i] + '.csv', 'a'))
+                        points_handle = open(dir_name + sep + gauge_file
+                                             + point_name[point_i] + '.csv', 'a')
+                        points_writer = writer(points_handle)
 
 
                     points_list = [quake_time, quake_time/3600.] +  _quantities2csv(quantities, point_quantities, callable_sww.centroids, point_i)
                     points_writer.writerow(points_list)
+                    points_handle.close()
                 else:
                     if verbose:
                         msg = 'gauge' + point_name[point_i] + 'falls off the mesh in file ' + sww_file + '.'

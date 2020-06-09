@@ -434,7 +434,7 @@ class Test_system_tools(unittest.TestCase):
 
         # create files of known length
         fd = open(test_file1, 'w')      # 0 lines
-        fd.close
+        fd.close()
         fd = open(test_file2, 'w')      # 5 lines, all '\n'
         for i in range(5):
             fd.write('\n')

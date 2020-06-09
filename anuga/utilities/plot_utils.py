@@ -1012,7 +1012,7 @@ def Make_Geotif(swwFile=None,
 
     # Check whether swwFile is an array, and if so, redefine various inputs to
     # make the code work
-    if(type(swwFile) == scipy.ndarray):
+    if(type(swwFile) == numpy.ndarray):
         import copy
         xyzPoints = copy.copy(swwFile)
         swwFile = None
@@ -1072,28 +1072,28 @@ def Make_Geotif(swwFile=None,
         upper_right = [swwX.max(), swwY.max()]
     nx = int(round((upper_right[0]-lower_left[0])*1.0/(1.0*CellSize)) + 1)
     xres = (upper_right[0]-lower_left[0])*1.0/(1.0*(nx-1))
-    desiredX = scipy.linspace(lower_left[0], upper_right[0],nx )
+    desiredX = numpy.linspace(lower_left[0], upper_right[0],nx )
     ny = int(round((upper_right[1]-lower_left[1])*1.0/(1.0*CellSize)) + 1)
     yres = (upper_right[1]-lower_left[1])*1.0/(1.0*(ny-1))
-    desiredY = scipy.linspace(lower_left[1], upper_right[1], ny)
+    desiredY = numpy.linspace(lower_left[1], upper_right[1], ny)
 
-    gridX, gridY = scipy.meshgrid(desiredX, desiredY)
+    gridX, gridY = numpy.meshgrid(desiredX, desiredY)
 
     if(verbose):
         print('Making interpolation functions...')
-    swwXY = scipy.array([swwX[:],swwY[:]]).transpose()
+    swwXY = numpy.array([swwX[:],swwY[:]]).transpose()
 
     # Get function to interpolate quantity onto gridXY_array
-    gridXY_array = scipy.array([scipy.concatenate(gridX),
-        scipy.concatenate(gridY)]).transpose()
-    gridXY_array = scipy.ascontiguousarray(gridXY_array)
+    gridXY_array = numpy.array([numpy.concatenate(gridX),
+        numpy.concatenate(gridY)]).transpose()
+    gridXY_array = numpy.ascontiguousarray(gridXY_array)
 
     # Create Interpolation function
     #basic_nearest_neighbour=False
     if(k_nearest_neighbours == 1):
         index_qFun = scipy.interpolate.NearestNDInterpolator(
             swwXY,
-            scipy.arange(len(swwX),dtype='int64').transpose())
+            numpy.arange(len(swwX),dtype='int64').transpose())
         gridqInd = index_qFun(gridXY_array)
         # Function to do the interpolation
         def myInterpFun(quantity):
@@ -1184,7 +1184,7 @@ def Make_Geotif(swwFile=None,
             if(verbose):
                 print('Making raster ...')
             gridq.shape = (len(desiredY),len(desiredX))
-            make_grid(scipy.flipud(gridq), desiredY, desiredX, output_name, EPSG_CODE=EPSG_CODE, 
+            make_grid(numpy.flipud(gridq), desiredY, desiredX, output_name, EPSG_CODE=EPSG_CODE, 
                       proj4string=proj4string, creation_options=creation_options)
 
     return

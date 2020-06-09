@@ -28,6 +28,8 @@ from anuga.utilities import parallel_abstraction as pypar
 from math import pi, pow, sqrt
 
 import numpy as num
+
+import anuga
 from anuga.parallel.parallel_inlet_operator import Parallel_Inlet_operator
 from anuga.parallel import distribute, myid, numprocs, finalize
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect

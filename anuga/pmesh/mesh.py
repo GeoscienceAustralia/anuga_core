@@ -2276,7 +2276,7 @@ def region_ints2strings(region_list, convertint2string):
     returned_region_list = []
     # may not need (not region_list[0] == [])
     # or region_list[0] == [0.0]
-    if (not region_list[0] == []):  # or region_list[0] == [0.0]:
+    if (region_list[0].size > 0):  # or region_list[0] == [0.0]:
         # print "in loop"
         for i in range(len(region_list)):
             temp = region_list[i]
