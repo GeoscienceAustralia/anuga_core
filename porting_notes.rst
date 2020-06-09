@@ -106,5 +106,6 @@ Date      PR Result                                                     Notes ::
 20200531     Ran 1290 tests in 108.195s FAILED (failures=3)             More tests in interpolate todo with files and caching
 20200601     Ran 1291 tests in 113.518s FAILED (failures=4)             Worked on caching and hashing (one test is silly)
 20200601     Ran 1291 tests in 105.463s FAILED (failures=4)             test_plot_utils.py, test_file_utils.py, test_sww2dem.py 
+20200610     Ran 1291 tests in 95.531s  FAILED (failures=13)            Not sure what happened there....
 
 

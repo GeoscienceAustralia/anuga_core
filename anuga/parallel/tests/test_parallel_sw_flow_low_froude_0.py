@@ -187,10 +187,13 @@ class Test_parallel_sw_flow(unittest.TestCase):
         cmd = anuga.mpicmd(os.path.abspath(__file__))
         result = os.system(cmd)
 
-        assert_(result == 0)
+        # Just use the normal Python assert
+        msg = 'Result == %i, expected 0' % result
+        assert result == 0, msg
 
 # Because we are doing assertions outside of the TestCase class
 # the PyUnit defined assert_ function can't be used.
+# FIXME (Ole): Why not use the normal Python assert?
 def assert_(condition, msg="Assertion Failed"):
     if condition == False:
         #pypar.finalize()
