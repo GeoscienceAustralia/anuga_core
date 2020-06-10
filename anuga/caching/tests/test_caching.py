@@ -408,16 +408,23 @@ class Test_Caching(unittest.TestCase):
 
         # Python 2
         if system_tools.major_version == 2:
-            f1hash = -6435709805317464919
-            f2hash = -194473832144476870
+            import platform
+            if platform.system() == 'Windows':
+                f1hash = 1314058523
+                f2hash = 190360965
+            else:
+                f1hash = -6435709805317464919
+                f2hash = -194473832144476870
         elif system_tools.major_version == 3:            
             f1hash = 'e2400e489959ab88afacedb2ddee422f5bd50a3d803a4cd344c4a88892426e52'
             f2hash = 'c7ec417f281e1f59aac9ee55fc2b1562044efc4414ae763b13a0e94f8e023bab' 
         else:
             raise Exception('Unknown Python version: %s' % system_tools.version)
 
-        #print('myhash1', myhash(f1))
-        #print('myhash2', myhash(f2))        
+        print('myhash1', myhash(f1))
+        print('myhash2', myhash(f2)) 
+        import platform
+        print(platform.system())       
         
         assert myhash(f1) == f1hash
         assert myhash(f2) == f2hash
