@@ -14,7 +14,6 @@
 
 from builtins import range
 from builtins import object
-from past.utils import old_div
 from time import time as walltime
 
 from anuga.config import max_smallsteps, beta_w, epsilon
@@ -258,7 +257,7 @@ class Generic_Domain(object):
         self.number_of_full_triangles = int(num.sum(self.tri_full_flag))
 
         # Identify full nodes as those that intersect a full triangle.
-        Vol_ids = old_div(self.vertex_value_indices, 3)
+        Vol_ids = self.vertex_value_indices // 3
 
         # Want this
         # W = num.repeat(self.tri_full_flag, 3)
@@ -877,6 +876,7 @@ class Generic_Domain(object):
                 self.boundary_map[key] = boundary_map[key]
 
         # FIXME (Ole): Try to remove the sorting and fix test_mesh.py
+        # This should be OK with Python 3 as items already sorted.
         x = list(self.boundary.keys())
         x.sort()
 
@@ -1127,7 +1127,7 @@ class Generic_Domain(object):
                 k = 0
                 lower = num.min(speed)
                 for i, a in enumerate(speed):
-                    if i % (old_div(N, 10)) == 0 and i != 0:
+                    if i % (N // 10) == 0 and i != 0:
                         # For every 10% of the sorted speeds
                         msg += '    %d speeds in [%f, %f]\n' % (i - k, lower, a)
                         lower = a
@@ -1158,7 +1158,7 @@ class Generic_Domain(object):
                 msg += 'had computed speed: %.6f m/s ' % (max_speed)
 
             if max_speed > 0.0:
-                msg += '(timestep=%.6f)\n' % (old_div(radius, max_speed))
+                msg += '(timestep=%.6f)\n' % (radius // max_speed)
             else:
                 msg += '(timestep=%.6f)\n' % (0)
 
@@ -1377,8 +1377,8 @@ class Generic_Domain(object):
             return
 
         if timestepping_method in [1, 2, 3]:
-            self.timestepping_method = methods[timestepping_method-1]
-            self.timestep_fluxcalls = substeps[timestepping_method-1]
+            self.timestepping_method = methods[timestepping_method - 1]
+            self.timestep_fluxcalls = substeps[timestepping_method - 1]
             return
 
         msg = '%s is an incorrect timestepping type' % timestepping_method
@@ -1400,7 +1400,7 @@ class Generic_Domain(object):
         if name is None:
             frame = inspect.currentframe()
             script_name = inspect.getouterframes(frame)[1][1]
-            name = 'output_'+os.path.splitext(script_name)[0]
+            name = 'output_' + os.path.splitext(script_name)[0]
 
         # remove any '.sww' end
         if name.endswith('.sww'):
@@ -1410,7 +1410,7 @@ class Generic_Domain(object):
         time = strftime('%Y%m%d_%H%M%S', localtime())
 
         if timestamp:
-            name = name+'_'+time
+            name = name + '_' + time
 
         self.simulation_name = name
 
@@ -1470,16 +1470,16 @@ class Generic_Domain(object):
         gy = vertices[ghost_mask, 1]
 
         # Plot full triangles
-        n = int(old_div(len(fx), 3))
+        n = int(len(fx) // 3)  # FIXME (Ole): No need to cast as int()
 
-        triang = num.array(list(range(0, 3*n)))
+        triang = num.array(list(range(0, 3 * n)))
         triang.shape = (n, 3)
         plt.triplot(fx, fy, triang, 'g-')
 
         # Plot ghost triangles
-        n = int(old_div(len(gx), 3))
+        n = int(len(gx) // 3)  # FIXME (Ole): No need to cast as int()
         if n > 0:
-            triang = num.array(list(range(0, 3*n)))
+            triang = num.array(list(range(0, 3 * n)))
             triang.shape = (n, 3)
             plt.triplot(gx, gy, triang, 'b--')
 
@@ -1677,7 +1677,7 @@ class Generic_Domain(object):
 
             # Yield results
             if self.finaltime is not None and\
-               self.get_time() >= self.finaltime-epsilon:
+               self.get_time() >= self.finaltime - epsilon:
 
                 if self.get_time() > self.finaltime:
                     # FIXME (Ole, 30 April 2006): Do we need this check?
@@ -1905,7 +1905,7 @@ class Generic_Domain(object):
         # self.update_special_conditions()
 
         # Set substep time
-        self.set_time(initial_time + self.timestep*0.5)
+        self.set_time(initial_time + self.timestep * 0.5)
 
         # Update ghosts
         self.update_ghosts()
@@ -1943,7 +1943,7 @@ class Generic_Domain(object):
         self.saxpy_conserved_quantities(2.0, 1.0)
         for name in self.conserved_quantities:
             Q = self.quantities[name]
-            Q.centroid_values[:] = Q.centroid_values/3.0
+            Q.centroid_values[:] = Q.centroid_values / 3.0
 
         # Update special conditions
         # self.update_special_conditions()
@@ -2113,7 +2113,7 @@ class Generic_Domain(object):
 
         # self.timestep is calculated from speed of characteristics
         # Apply CFL condition here
-        timestep = min(self.CFL*self.flux_timestep, self.evolve_max_timestep)
+        timestep = min(self.CFL * self.flux_timestep, self.evolve_max_timestep)
 
         # Record maximal and minimal values of timestep for reporting
         self.recorded_max_timestep = max(timestep, self.recorded_max_timestep)
@@ -2129,7 +2129,7 @@ class Generic_Domain(object):
 
                 if self._order_ == 1:
                     msg = 'WARNING: Too small timestep %.16f reached ' \
-                              % timestep
+                        % timestep
                     msg += 'even after %d steps of 1 order scheme' \
                         % self.max_smallsteps
                     log.critical(msg)
