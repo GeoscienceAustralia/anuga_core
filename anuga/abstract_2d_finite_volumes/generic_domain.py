@@ -1216,9 +1216,6 @@ class Generic_Domain(object):
         If tags are specified only report on those, otherwise take all tags.
         """
 
-        # FIXME (Ole): Get rid of string and basestring - and move imports up
-        import types, string
-
         # Input checks
         if quantities is None:
             quantities = self.evolved_quantities
@@ -1266,7 +1263,7 @@ class Generic_Domain(object):
                             ' tag %s and quantity %s\n') % (tag, name)
                 else:
                     msg += '        %s in [%12.8f, %12.8f]\n' \
-                        % (string.ljust(name, maxwidth), minval, maxval)
+                        % (str.ljust(name, maxwidth), minval, maxval)
 
         return msg
 
