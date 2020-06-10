@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
-'''
-Some CSV file utility routines.
-'''
+"""CSV file utility routines.
+"""
 
 
 from builtins import next
@@ -13,7 +12,7 @@ import csv
 
 def merge_csv_key_values(file_title_list, output_file,
                          key_col='hours', data_col='stage'):
-    '''Select key and value columns from 'N' CSV files, write one CSV file.
+    """Select key and value columns from 'N' CSV files, write one CSV file.
 
     file_title_list: a list of (filename, new_data_column_title) values, one
                      for each input file
@@ -30,13 +29,13 @@ def merge_csv_key_values(file_title_list, output_file,
 
     There is an assumption that the <key_value> values are the same across
     all files for the same row.  This is tested in the code below.
-    '''
+    """
 
     def read_csv_file(filename, key_col, data_col):
-        '''Read data from a CSV file, get 'key_col' and 'data_col' columns.
+        """Read data from a CSV file, get 'key_col' and 'data_col' columns.
 
         Returns ((key[0], data[0]), ...).
-        '''
+        """
 
         # start reading the CSV file
         data = []
@@ -69,20 +68,20 @@ def merge_csv_key_values(file_title_list, output_file,
 
         return result
 
-    # get number of input files, check we have 1 or more
+    # Get number of input files, check we have 1 or more
     num_files = len(file_title_list)
     if num_files == 0:
         msg = "List 'file_title_list' is empty!?"
         raise_(Exception, msg)
 
-    # read data from all files
+    # Read data from all files
     file_data = []
     for (filename, title) in file_title_list:
         data = read_csv_file(filename, key_col, data_col)
         file_data.append((filename, title, data))
 
-    # now, file_data -> [(filename, title, [(k,v), (k,v), ...], ...]
-    # sanity check, check num rows same in all files
+    # Now, file_data -> [(filename, title, [(k,v), (k,v), ...], ...]
+    # Sanity check, check num rows same in all files
     num_rows = None
     for (fn, t, d) in file_data:
         if num_rows is None:
@@ -94,7 +93,7 @@ def merge_csv_key_values(file_title_list, output_file,
                        % (fn, file_data[0][0], num_rows, len(d)))
                 raise_(Exception, msg)
 
-    # sanity check, check key values same in same rows
+    # Sanity check, check key values same in same rows
     first_key_values = [v[0] for v in file_data[0][2]]
     for (fn, t, d) in file_data:
         key_values = [v[0] for v in d]
@@ -103,17 +102,17 @@ def merge_csv_key_values(file_title_list, output_file,
                    % (fn, file_data[0][0]))
             raise_(Exception, msg)
 
-    # open output file
+    # Open output file
     out_fd = open(output_file, 'w')
     out_csv = csv.writer(out_fd)
 
-    # write column rows to output file
+    # Write column rows to output file
     header = [key_col]
     for (fn, col, d) in file_data:
         header.append(col)
     out_csv.writerow(header)
-    
-    # write data rows to output file
+
+    # Write data rows to output file
     file_kv_list = [x[2] for x in file_data]
     for i in range(num_rows):
         data_row = [file_kv_list[0][i][0]]
