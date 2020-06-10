@@ -393,7 +393,7 @@ float** _read_mux2(int numSrc,
         &delta_t,
         verbose);
     if (error_code != 0) {
-        printf("urs_ext.c: Internal function _read_mux2_headers failed: Error code = %d\n", 
+        printf("urs.c: Internal function _read_mux2_headers failed: Error code = %d\n", 
             error_code);
 
         return NULL;

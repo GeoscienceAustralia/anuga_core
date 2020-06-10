@@ -85,7 +85,8 @@ Date      PR Result                                                     Notes ::
 20200602     Ran 1291 tests in 102.120s FAILED (errors=3, failures=3)   Did the operators and removed lots of old_div
 20200602     Ran 1291 tests in 101.464s FAILED (failures=3)             Did the exposure codes
 20200603     Got some of the validations tests to run
-
+20200608     All validation tests running, towradgi model completed.
+20200610     Ran 1291 tests in 103.624s OK                              Two new failures had crept in - fixed.
 
 
 Env: anuga27
@@ -105,5 +106,6 @@ Date      PR Result                                                     Notes ::
 20200531     Ran 1290 tests in 108.195s FAILED (failures=3)             More tests in interpolate todo with files and caching
 20200601     Ran 1291 tests in 113.518s FAILED (failures=4)             Worked on caching and hashing (one test is silly)
 20200601     Ran 1291 tests in 105.463s FAILED (failures=4)             test_plot_utils.py, test_file_utils.py, test_sww2dem.py 
+20200610     Ran 1291 tests in 95.531s  FAILED (failures=13)            Not sure what happened there....
 
 
