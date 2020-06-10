@@ -3,8 +3,7 @@
 from __future__ import print_function
 
 from builtins import str
-from past.builtins import basestring
-from future.utils import raise_
+from future.utils import raise_  #FIXME (Ole): Just use the built-in raise function.
 import sys
 from xml.dom import minidom, Node
 #from xml.sax import make_parser, parse as validate, handler
@@ -143,7 +142,7 @@ class XML_element(dict):
         s = tab = ' '*indent
         
         s += '<%s>' %self.tag
-        if isinstance(self.value, basestring):
+        if isinstance(self.value, str):
             s += remove_whitespace(self.value)
         else:
             s += '\n'
@@ -173,7 +172,7 @@ class XML_element(dict):
             if node.tag == key:
                 #print 'node tag = %s, node value = %s' %(node.tag, node.value)
                 
-                if isinstance(node.value, basestring):
+                if isinstance(node.value, str):
                     result.append(str(node.value))
                     #return node.value
                 else:
@@ -209,7 +208,7 @@ class XML_element(dict):
 
         s = tab = ' '*indent
         s += '%s: ' %self.tag        
-        if isinstance(self.value, basestring):
+        if isinstance(self.value, str):
             s += self.value
         else:
             s += '\n'
@@ -237,7 +236,7 @@ def xml2object(xml, verbose=False):
     # This would depend on minidom's parse function
 
     # Input tests
-    if isinstance(xml, basestring):
+    if isinstance(xml, str):
         opened_file = True
         fid = open(xml)
     else:
@@ -261,10 +260,9 @@ def xml2object(xml, verbose=False):
 
     if opened_file:
         fid.close()
+        
+    #print('File %s:' % xml, fid.closed)
 
-
-    #print(xml,' is closed: ',fid.closed)
-    
     return xml_object
 
 

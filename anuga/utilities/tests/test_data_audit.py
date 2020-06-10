@@ -84,7 +84,6 @@ class Test_data_audit(unittest.TestCase):
             raise_(Exception, msg)
 
         # Clean up
-        # licfid.close()
         os.remove(license_filename)
         try:
             os.remove(tmp_name)

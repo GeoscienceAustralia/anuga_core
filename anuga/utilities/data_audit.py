@@ -402,7 +402,7 @@ def license_file_is_valid(license_filename, data_filename,
               %fid.name
         raise_(NotPublishable, msg)
 
-
+    fid.close()
 
     # If we get this far, the license file is OK
     return True

@@ -33,11 +33,14 @@ class Test_CSV_utils(unittest.TestCase):
         # create 4 test CSV files
         self.num_files = self.NUM_FILES
         self.filenames = []
+        
         for i in range(self.NUM_FILES):
             self.filenames.append(tempfile.mktemp('.csv'))
+            
         for (i, fn) in enumerate(self.filenames):
             fd = open(fn, 'w')
             csv_fd = csv.writer(fd)
+            
             # write colums row
             columns = []
             for j in range(self.NUM_COLS):
@@ -278,8 +281,7 @@ class Test_CSV_utils(unittest.TestCase):
                           file_title_list,
                           self.OUTPUT_FILE,
                           key_col='col_1',
-                          data_col='col_A'
-                          )
+                          data_col='col_A')
 
     def test_different_num_rows(self):
         """Test merging two CSV files with different number of rows."""
