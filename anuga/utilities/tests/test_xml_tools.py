@@ -232,7 +232,6 @@ class Test_xml_tools(unittest.TestCase):
 
         tmp_name = mktemp(suffix='.xml')
         fid = open(tmp_name, 'w')
-
         fid.write(str(xmldoc))
         fid.close()
 
@@ -265,7 +264,6 @@ class Test_xml_tools(unittest.TestCase):
 
         tmp_name = mktemp(suffix='.xml')
         fid = open(tmp_name, 'w')
-
         fid.write(str(xmldoc))
         fid.close()
 
