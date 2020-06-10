@@ -13,7 +13,6 @@
 """
 
 from builtins import range
-from past.builtins import basestring
 from builtins import object
 from past.utils import old_div
 from time import time as walltime
@@ -91,7 +90,7 @@ class Generic_Domain(object):
         number_of_full_triangles = None
 
         # Determine whether source is a mesh filename or coordinates
-        if isinstance(source, basestring):
+        if isinstance(source, str):
             mesh_filename = source
         else:
             coordinates = source
@@ -985,7 +984,7 @@ class Generic_Domain(object):
             return
 
         # coerce 'q' to a list if it's a string
-        if isinstance(q, basestring):
+        if isinstance(q, str):
             q = [q]
 
         # Check correctness and initialise
@@ -1010,7 +1009,7 @@ class Generic_Domain(object):
 
         if polygon is not None:
             # Check input
-            if isinstance(polygon, basestring):
+            if isinstance(polygon, str):
                 # Check if multiple quantities were accidentally
                 # given as separate argument rather than a list.
                 msg = ('Multiple quantities must be specified in a list. '
@@ -1223,7 +1222,7 @@ class Generic_Domain(object):
         # Input checks
         if quantities is None:
             quantities = self.evolved_quantities
-        elif isinstance(quantities, basestring):
+        elif isinstance(quantities, str):
             quantities = [quantities]  # Turn it into a list
 
         msg = ('Keyword argument quantities must be either None, '
@@ -1232,7 +1231,7 @@ class Generic_Domain(object):
 
         if tags is None:
             tags = self.get_boundary_tags()
-        elif isinstance(tags, basestring):
+        elif isinstance(tags, str):
             tags = [tags]  # Turn it into a list
 
         msg = ('Keyword argument tags must be either None, '
