@@ -62,6 +62,9 @@ Upper_dirs = os.listdir('.')
 dir = '.'
 Upper_dirs = [name for name in os.listdir(dir) if os.path.isdir(os.path.join(dir, name))]
 
+print(Upper_dirs)
+import sys; sys.exit() 
+
 try:
     Upper_dirs.remove('.svn')
 except ValueError:
