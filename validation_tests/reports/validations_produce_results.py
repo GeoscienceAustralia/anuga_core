@@ -81,7 +81,7 @@ except ValueError:
 #os.chdir('./Tests')
 
 #print 'Tests'
-print Upper_dirs
+print(Upper_dirs)
 
 time_total = 0.0
 test_number = 1
@@ -89,9 +89,9 @@ for dir in Upper_dirs:
 
     os.chdir(dir)
 
-    print 72*'='
-    print 'Directory: ' + dir
-    print 72*'='
+    print(72 * '=')
+    print('Directory: ' + dir)
+    print(72 * '=')
     
     #print 'Changing to', os.getcwd()
     dir = '.'
@@ -108,23 +108,23 @@ for dir in Upper_dirs:
     for l_dir in Lower_dirs:
         os.chdir(l_dir)
         #print os.getcwd()
-        print 60*'='
-        print 'Subdirectory %g: '% (test_number)  + l_dir
+        print(60 * '=')
+        print('Subdirectory %g: '% (test_number)  + l_dir)
         test_number += 1
-        print 60*'='
+        print(60 * '=')
         try:
             t0 = time.time()
             if verbose:
                 cmd = 'python produce_results.py -alg %s -np %s -v '% (str(alg),str(np))
             else:
                 cmd = 'python produce_results.py -alg %s -np %s '% (str(alg),str(np))
-            print 2 * indent + 'Running: ' + cmd
+            print(2 * indent + 'Running: ' + cmd)
             os.system(cmd)
             t1 = time.time() - t0
             time_total += t1
-            print 2 * indent + 'That took ' + str(t1) + ' secs'
+            print(2 * indent + 'That took ' + str(t1) + ' secs')
         except:
-            print 2 * indent + 'Failed running produce_results in ' + os.getcwd()
+            print(2 * indent + 'Failed running produce_results in ' + os.getcwd())
             pass
 
         os.chdir('..')
@@ -135,9 +135,9 @@ for dir in Upper_dirs:
     
 os.chdir(buildroot)
 
-print 72*'='
-print 'That took ' + str(time_total) + ' secs'
-print 72*'='
+print(72 * '=')
+print('That took ' + str(time_total) + ' secs')
+print(72 * '=')
 
 
 # go back to reports directory to typeset report
@@ -148,7 +148,7 @@ os.system('python validations_typeset_report.py')
 
 import subprocess
 cmd = 'mv validations_report.pdf validations_report_alg_%s.pdf' % (str(alg))
-print cmd
+print(cmd)
 subprocess.call([cmd], shell=True)
 
 
