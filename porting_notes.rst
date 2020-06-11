@@ -38,6 +38,12 @@ conda activate anuga27; python setup.py develop; python runtests.py
 
 Remember to set PYTHONPATH to your root dir, e.g. PYTHONPATH = ~/Work/sandpit/anuga_core
 
+# On Windows
+Need to install mpi on windows. Checkout the commands on appveyor.yml
+conda create -n anuga27 python=2.7 git pip nose numpy scipy netcdf4 matplotlib dill cython future
+pip install mpi4py
+conda install -c msys2 libpython m2w64-toolchain
+
 ----------------------------------
 
 
