@@ -410,6 +410,7 @@ class Test_Caching(unittest.TestCase):
         if system_tools.major_version == 2:
             import platform
             if platform.system() == 'Windows':
+                # FIXME(Ole): These have most likely changed
                 f1hash = 1314058523
                 f2hash = 190360965
             else:
@@ -421,10 +422,10 @@ class Test_Caching(unittest.TestCase):
         else:
             raise Exception('Unknown Python version: %s' % system_tools.version)
 
-        print('myhash1', myhash(f1))
-        print('myhash2', myhash(f2)) 
-        import platform
-        print(platform.system())       
+        #print('myhash1', myhash(f1))
+        #print('myhash2', myhash(f2)) 
+        #import platform
+        #print(platform.system())       
         
         assert myhash(f1) == f1hash
         assert myhash(f2) == f2hash
@@ -437,7 +438,6 @@ class Test_Caching(unittest.TestCase):
         
         msg = 'Byte code should be different'
         assert bc1 != bc2, msg
-
         
         x = num.arange(10).astype(num.float)
         
