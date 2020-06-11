@@ -626,7 +626,9 @@ def quantityRasterFun(domain, rasterFile, interpolation='pixel'):
             corresponding raster values
     """
     import scipy
-    import numpy as NearestNDInterpolator
+    #import numpy as NearestNDInterpolator  # FIXME (Ole): What?
+    import numpy as np
+    
     from anuga.utilities.spatialInputUtil import rasterValuesAtPoints
     def QFun(x,y):
         xll=domain.geo_reference.xllcorner
