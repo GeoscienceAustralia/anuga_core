@@ -25,9 +25,8 @@ rasTime = numpy.linspace(0., 60. * (rasGauges.shape[0] - 1), rasGauges.shape[0])
 # Get station information for hecras
 rasFileO = open(rasFile)
 rasStations = rasFileO.readline().split(',')
-print(rasStations)
 rasStations[-1] = rasStations[-1].replace('\r\n', '')
-print(rasStations)
+rasStations[-1] = rasStations[-1].replace('\n', '')
 rasFileO.close()
 
 
@@ -53,9 +52,6 @@ def get_corresponding_series(reach, station):
 
     ras_string = 'RIVER1 ' + reach + ' ' + station_str
 
-    print()
-    print(ras_string)
-    print(rasStations)
     ras_inds = rasStations.index(ras_string)
 
     ras_data = numpy.vstack([rasTime, rasGauges[:, ras_inds]]).transpose()
