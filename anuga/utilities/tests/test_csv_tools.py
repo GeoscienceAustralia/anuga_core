@@ -315,12 +315,12 @@ class Test_CSV_utils(unittest.TestCase):
     def test_different_key_values(self):
         """Test merging two CSV files with different key values."""
 
-        # get data from file [1]
+        # Get data from file [1]
         fd = open(self.filenames[1], 'r')
         data = fd.readlines()
         fd.close()
 
-        # chnage a row key value in data and write to test file
+        # Change a row key value in data and write to test file
         test_filename = 'my_test.csv'
         fd = open(test_filename, 'w')
         data[3] = '1' + data[3]
@@ -329,14 +329,28 @@ class Test_CSV_utils(unittest.TestCase):
 
         file_title_list = [(self.filenames[0], 'test0'),
                            (test_filename, 'test2')]
-        self.assertRaises(Exception,
-                          csv_tools.merge_csv_key_values,
-                          file_title_list,
-                          self.OUTPUT_FILE,
-                          key_col='col_1',
-                          data_col='col_A'
-                          )
+        
+        
+        try:
+            csv_tools.merge_csv_key_values(file_title_list,
+                                           self.OUTPUT_FILE,
+                                           key_col='col_1',
+                                           data_col='col_A')
+        except Exception:
+            #  This what we want
+            pass
+        else:
+            msg = 'Should have raised exception'
+            raise Exception(msg)
 
+        #self.assertRaises(Exception,
+        #                  csv_tools.merge_csv_key_values,
+        #                  file_title_list,
+        #                  self.OUTPUT_FILE,
+        #                  key_col='col_1',
+        #                  data_col='col_A'
+        #                  )
+                          
         try:
             os.remove(test_filename)
         except:
