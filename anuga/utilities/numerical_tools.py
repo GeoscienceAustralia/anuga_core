@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 """Auxiliary numerical tools
 """
-from __future__ import division, print_function
 
-from future.utils import raise_
 from math import acos, pi, sqrt
 from warnings import warn
 
@@ -34,13 +32,13 @@ def safe_acos(x):
     eps = get_machine_precision() # Machine precision
     if x < -1.0:
         if x < -1.0 - eps:
-            raise_(ValueError, error_msg)
+            raise ValueError(error_msg)
         else:
             x = -1.0
 
     if x > 1.0:
         if x > 1.0 + eps:
-            raise_(ValueError, error_msg)
+            raise ValueError(error_msg)
         else:
             x = 1.0
 
