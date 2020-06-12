@@ -30,7 +30,7 @@ chan_initial_depth = 0.25 # Initial depth of water in the channel
 chan_bankfull_depth = 1.0 # Bankfull depth of the channel
 chan_width = 10.0 # Bankfull width of the channel
 bankwidth = 0.01 # Width of the bank regions -- note that these protrude into the channel
-man_n=0.045 # Manning's n
+man_n = 0.045 # Manning's n
 l0 = 5.000 # Length scale associated with triangle side length in channel (min_triangle area = 0.5*l0^2)
 
 bridge_us = 520.
@@ -240,18 +240,21 @@ save_parameters_tex(domain)
 
 barrier()
 
-for t in domain.evolve(yieldstep=10.0, finaltime=dtQdata*(len(Qdata)-2)):
-    if(myid==0 and verbose):
-        print domain.timestepping_statistics()
+for t in domain.evolve(yieldstep=10.0, finaltime=dtQdata * (len(Qdata) - 2)):
+    if(myid == 0 and verbose):
+        print(domain.timestepping_statistics())
 
     vol = domain.report_water_volume_statistics()
 
 barrier()
 
 # Run sww merge
-if( (myid==0) & (numprocs>1)):
-    print 'Merging sww files: ', numprocs, myid
-    anuga.utilities.sww_merge.sww_merge_parallel('channel_floodplain1',np=numprocs,verbose=True,delete_old=True)
+if((myid == 0) & (numprocs > 1)):
+    print('Merging sww files: ', numprocs, myid)
+    anuga.utilities.sww_merge.sww_merge_parallel('channel_floodplain1',
+                                                 np=numprocs,
+                                                 verbose=True,
+                                                 delete_old=True)
 
 barrier()
 finalize()

@@ -7,23 +7,24 @@ from matplotlib import pyplot as pyplot
 ######################################################
 # Get ANUGA
 p = util.get_output('channel_floodplain1.sww', 0.001)
-pc=util.get_centroids(p, velocity_extrapolation=True)
+pc = util.get_centroids(p, velocity_extrapolation=True)
 
 # Indices in the central channel areas
-v = (pc.x>10.0)*(pc.x<20.0)
+v = (pc.x > 10.0) * (pc.x < 20.0)
 
 ######################################################
 # Get hecras info
-rasFile='hecras_bridge_test/gauges.csv'
-rasGauges=numpy.genfromtxt(rasFile,skip_header=3,delimiter=",")
+rasFile = 'hecras_bridge_test/gauges.csv'
+rasGauges = numpy.genfromtxt(rasFile,skip_header=3,delimiter=",")
 
 # Output at 1 minute intervals
-rasTime=numpy.linspace(0., 60.*(rasGauges.shape[0]-1), rasGauges.shape[0])
+rasTime = numpy.linspace(0., 60.*(rasGauges.shape[0]-1), rasGauges.shape[0])
 
 # Get station information for hecras
-rasFileO=open(rasFile)
-rasStations=rasFileO.readline().split(',')
-rasStations[-1]=rasStations[-1].replace('\r\n','')
+rasFileO = open(rasFile)
+rasStations = rasFileO.readline().split(',')
+rasStations[-1] = rasStations[-1].replace('\r\n', '')
+rasStations[-1] = rasStations[-1].replace('\n', '')
 rasFileO.close()
 
 ######################################################
@@ -42,14 +43,14 @@ def get_corresponding_series(reach, station):
     #elif(reach=='RIGHT'):
     #    anuga_x=5.
     else:
-        raise Exception, 'reach not recognized'
+        raise Exception('reach not recognized')
 
 
     # Get station string in hecras gauges
-    if(station>0. and station<1000.):
-        station_str=str(int(station))+'.*'
+    if(station > 0. and station < 1000.):
+        station_str = str(int(station)) + '.*'
     else:
-        station_str=str(int(station))
+        station_str = str(int(station))
 
     ras_string='RIVER1 '+reach+' '+station_str
 
@@ -81,7 +82,7 @@ def compare_reach(reach):
             pyplot.plot(x[1][:,0],x[1][:,1],'--', color=colz[i])
         except:
             msg = 'Missing reach/station '+ reach + '/'+str(station)
-            print msg
+            print(msg)
         pyplot.title('Stage in ANUGA (dashed) and HECRAS (solid) '+reach)
         pyplot.legend(loc=2)
    

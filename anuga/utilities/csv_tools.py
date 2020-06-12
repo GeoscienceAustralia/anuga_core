@@ -3,11 +3,51 @@
 """CSV file utility routines.
 """
 
-
 from builtins import next
 from builtins import range
-from future.utils import raise_
 import csv
+
+
+def read_csv_file(filename, key_col, data_col):
+    """Read data from a CSV file, get 'key_col' and 'data_col' columns.
+
+    Returns ((key[0], data[0]), ...).
+    """
+
+    # Start reading the CSV file
+    data = []
+    fd = open(filename, 'r')
+    csv_reader = csv.reader(fd)
+
+    # Get header row, calculate required column indices
+    h = next(csv_reader)
+    header = [x.strip() for x in h]
+    if key_col not in header:
+        msg = ("Column '%s' not in file %s"
+               % (key_col, filename))
+               
+        fd.close()        
+        raise Exception(msg)
+    if data_col not in header:
+        msg = ("Column '%s' not in file %s"
+               % (data_col, filename))
+               
+        fd.close()                           
+        raise Exception(msg)
+
+    key_index = header.index(key_col)
+    data_index = header.index(data_col)
+
+    # read data, extract columns, save
+    result = []
+    for line in csv_reader:
+        key_data = line[key_index].strip()
+        data_data = line[data_index].strip()
+        result.append((key_data, data_data))
+
+    fd.close()
+
+    return result
 
 
 def merge_csv_key_values(file_title_list, output_file,
@@ -31,48 +71,13 @@ def merge_csv_key_values(file_title_list, output_file,
     all files for the same row.  This is tested in the code below.
     """
 
-    def read_csv_file(filename, key_col, data_col):
-        """Read data from a CSV file, get 'key_col' and 'data_col' columns.
-
-        Returns ((key[0], data[0]), ...).
-        """
-
-        # start reading the CSV file
-        data = []
-        fd = open(filename, 'r')
-        csv_reader = csv.reader(fd)
-
-        # open file, get header row, calculate required column indices
-        h = next(csv_reader)
-        header = [x.strip() for x in h]
-        if key_col not in header:
-            msg = ("Column '%s' not in file %s"
-                   % (key_col, filename))
-            raise_(Exception, msg)
-        if data_col not in header:
-            msg = ("Column '%s' not in file %s"
-                   % (data_col, filename))
-            raise_(Exception, msg)
-
-        key_index = header.index(key_col)
-        data_index = header.index(data_col)
-
-        # read data, extract columns, save
-        result = []
-        for line in csv_reader:
-            key_data = line[key_index].strip()
-            data_data = line[data_index].strip()
-            result.append((key_data, data_data))
-
-        fd.close()
-
-        return result
 
     # Get number of input files, check we have 1 or more
+    
     num_files = len(file_title_list)
     if num_files == 0:
         msg = "List 'file_title_list' is empty!?"
-        raise_(Exception, msg)
+        raise Exception(msg)
 
     # Read data from all files
     file_data = []
@@ -91,7 +96,7 @@ def merge_csv_key_values(file_title_list, output_file,
                 msg = ('File %s has different number of rows from %s, '
                        'expected %d columns, got %d'
                        % (fn, file_data[0][0], num_rows, len(d)))
-                raise_(Exception, msg)
+                raise Exception(msg)
 
     # Sanity check, check key values same in same rows
     first_key_values = [v[0] for v in file_data[0][2]]
@@ -100,7 +105,7 @@ def merge_csv_key_values(file_title_list, output_file,
         if key_values != first_key_values:
             msg = ('Key values differ between files %s and %s!?'
                    % (fn, file_data[0][0]))
-            raise_(Exception, msg)
+            raise Exception(msg)
 
     # Open output file
     out_fd = open(output_file, 'w')
