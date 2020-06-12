@@ -144,18 +144,18 @@ if myid == 0:
 #------------------------------
 
 for t in domain.evolve(yieldstep=10.0,finaltime=4000.0):
-    if myid == 0 and verbose: print domain.timestepping_statistics()
+    if myid == 0 and verbose: print(domain.timestepping_statistics())
     # Print velocity as we go
 #     uh=domain.quantities['xmomentum'].centroid_values
 #     vh=domain.quantities['ymomentum'].centroid_values
 #     depth=domain.quantities['height'].centroid_values
 #     depth=depth*(depth>1.0e-06) + 1.0e-06
 #     vel=((uh/depth)**2 + (vh/depth)**2)**0.5
-#     print 'peak speed is', vel.max()
+#     print('peak speed is', vel.max())
 
 
 domain.sww_merge(delete_old=True)
 
 finalize()
-#print 'Finished'
+
 

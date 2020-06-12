@@ -109,3 +109,24 @@ Date      PR Result                                                     Notes ::
 20200610     Ran 1291 tests in 95.531s  FAILED (failures=13)            Not sure what happened there....
 
 
+ANUGA Viewer
+
+https://github.com/GeoscienceAustralia/anuga-viewer/blob/master/INSTALL.rst
+
+
+OpenSceneGraph
+
+cmake .
+
+Couldn't find pthreads
+sudo apt-get install libpthread-stubs0-dev
+
+Couldn't find -lsocket
+sudo apt install socket  (doesn't work)
+sudo apt install libsocket++-dev (Nah)
+sudo apt install libsocketcan-dev (Nah)
+
+
+
+
+

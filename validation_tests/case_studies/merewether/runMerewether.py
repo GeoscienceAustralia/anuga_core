@@ -53,7 +53,7 @@ verbose = args.verbose
 if myid == 0:
     # Unzip asc from zip file
     import zipfile as zf
-    if verbose: print 'Reading ASC from ' + zip_name
+    if verbose: print('Reading ASC from ' + zip_name)
     zf.ZipFile(zip_name).extract(asc_name)
     
     # Create DEM from asc data
@@ -113,7 +113,7 @@ if myid == 0:
     domain = anuga.create_domain_from_file(meshname)
     
     domain.set_flow_algorithm(alg)
-    if verbose: print domain.get_extent(absolute=True)
+    if verbose: print(domain.get_extent(absolute=True))
 
     #------------------------------------------------------------------------------
     # Setup initial conditions
@@ -174,7 +174,7 @@ domain.set_datadir('.') # Store sww output here
 # Setup boundary conditions
 #------------------------------------------------------------------------------
 
-if myid == 0: print 'Available boundary tags', domain.get_boundary_tags()
+if myid == 0: print('Available boundary tags', domain.get_boundary_tags())
 
 Br = anuga.Reflective_boundary(domain)
 Bt = anuga.Transmissive_boundary(domain)
@@ -210,7 +210,7 @@ fixed_inflow = Inlet_operator(domain, region0 , 19.7, verbose = True)
 #------------------------------------------------------------------------------
 
 for t in domain.evolve(yieldstep=10,finaltime=1000):#1000
-    if myid == 0: print domain.timestepping_statistics()
+    if myid == 0: print(domain.timestepping_statistics())
 
 
 domain.sww_merge(delete_old=True)

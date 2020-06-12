@@ -37,10 +37,10 @@ def topography(x,y):
 # Create Sequential Domain
 #--------------------------------------------------------------------------------
 if myid == 0:
-	print ' Building mesh (alternative non-uniform mesh could be much more efficient)'
+	print(' Building mesh (alternative non-uniform mesh could be much more efficient)')
 	points, vertices, boundary = anuga.rectangular_cross(nx,ny, len1=l1,len2=l2, origin=(-200., 0.))
 	
-	print 'Creating Domain'
+	print('Creating Domain')
 	domain=anuga.Domain(points,vertices,boundary)    # Create Domain
 	domain.set_name('runup_v2')                         # Output to file runup.sww
 	domain.set_datadir('.')                          # Use current folder
@@ -100,7 +100,7 @@ if myid == 0:
 #------------------------------
 
 for t in domain.evolve(yieldstep=5.0,finaltime=350.0):
-	if myid == 0: print domain.timestepping_statistics()
+	if myid == 0: print(domain.timestepping_statistics())
     #uh=domain.quantities['xmomentum'].centroid_values
     #vh=domain.quantities['ymomentum'].centroid_values
     #depth=domain.quantities['stage'].centroid_values - domain.quantities['elevation'].centroid_values

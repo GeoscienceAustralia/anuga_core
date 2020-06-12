@@ -42,7 +42,7 @@ def get_corresponding_series(reach, station):
     elif(reach=='RIGHT'):
         anuga_x=5.
     else:
-        raise Exception, 'reach not recognized'
+        raise Exception('reach not recognized')
 
 
     if(not station%100.==0.):
@@ -57,10 +57,6 @@ def get_corresponding_series(reach, station):
     ras_string='THREERIVERS '+reach+' '+station_str
 
     ras_inds=rasStations.index(ras_string)
-
-    #if(len(ras_inds) is not 1):
-    #    print ras_inds
-    #    raise Exception, 'ras_inds has wrong length'
 
     ras_data=numpy.vstack([rasTime, rasGauges[:,ras_inds]]).transpose()
 
@@ -84,7 +80,7 @@ def compare_reach(reach):
             pyplot.plot(x[1][:,0],x[1][:,1],'--', color=colz[i])
         except:
             msg = 'Missing reach/station '+ reach + '/'+str(station)
-            print msg
+            print(msg)
         pyplot.title('Stage in ANUGA (dashed) and HECRAS (solid) '+reach+' reach')
         pyplot.legend()
    
