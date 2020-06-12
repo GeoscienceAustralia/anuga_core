@@ -13,7 +13,7 @@ tindex = len(p2.time)-1
 
 
 
-if verbose: print 'calculating experimental transect'
+if verbose: print('calculating experimental transect')
 
 x_data =    [ 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0, 27.0, 30.0, 33.0]
 #vel =   [ 0.0, 0.0, 1.1, 3.2,  3.4, 2.4,  3.2,  3.2,  3.7,  3.1,  0.4,  0.0]
@@ -30,7 +30,7 @@ fdepth = interpolate.interp1d(x_data, depth_data)
 
 
 
-if verbose: print 'calculating model heights at observation points'
+if verbose: print('calculating model heights at observation points')
 # Get nearest wet points to 'point observations'
 point_observations = numpy.genfromtxt(
     'Observations/ObservationPoints.csv',
@@ -60,7 +60,7 @@ f.flush()
 f.close()
 
 
-if verbose: print 'Plot transect'
+if verbose: print('Plot transect')
 ## Plot transect 1 [need to guess appropriate end points as these are not so
 ## clear from the report]
 xx=util.near_transect(p2,[103, 100.], [130.,80.],tol=0.5)
@@ -96,7 +96,7 @@ pyplot.title('Final depth along the transect')
 pyplot.savefig('Transect1.png', bbox_inches='tight')
 
 
-if verbose: print 'Plot velocity field'
+if verbose: print('Plot velocity field')
 pyplot.clf()
 
 # Velocity vector plot
@@ -119,7 +119,7 @@ pyplot.savefig('velocity_stationary.png',dpi=100, bbox_inches='tight')
 
 
 ## Froude number plot
-if verbose: print 'Plot Froude number plot'
+if verbose: print('Plot Froude number plot')
 pyplot.clf()
 pyplot.figure(figsize=(6,8))
 froude_number = p2.vel[tindex]/(numpy.maximum(p2.height[tindex], 1.0e-03)*9.8)**0.5
