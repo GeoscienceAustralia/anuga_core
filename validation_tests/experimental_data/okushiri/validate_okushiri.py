@@ -32,11 +32,10 @@ class Test_results(unittest.TestCase):
             print(indent+'Running simulation script')
 
         s = 'run_okushiri.py'
-        res = anuga.run_anuga_script(s,args=args)
+        res = anuga.run_anuga_script(s, args=args)
 
         # Test that script runs ok
         assert res == 0
-
 
 
         if verbose:
