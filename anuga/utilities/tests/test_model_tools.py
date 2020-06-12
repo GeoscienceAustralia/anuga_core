@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 
-from __future__ import print_function
 import unittest
 import numpy as num
 from numpy.random import uniform, seed
@@ -9,7 +8,6 @@ from numpy.random import uniform, seed
 from math import sqrt, pi
 from anuga.config import epsilon
 from anuga.utilities.model_tools import *
-
 verbose = False
 
 
@@ -72,7 +70,9 @@ class Test_Model_Tools(unittest.TestCase):
                             for h in Hm:
                                 Structure = [h, w]
                                 if verbose:
-                                    print(Structure, end=' ')
+                                    #print(Structure, end=' ')   # This is the correct Python 3 statement
+                                    print(Structure)  # FIXME(Ole): for Python 2 compatibility.
+
                                 Scenario, Ev_mag, BF_clss, diag, BF = \
                                     get_WCC_2016_Blockage_factor(
                                         Structure, E, S, long_result=True, verbose=verbose)
