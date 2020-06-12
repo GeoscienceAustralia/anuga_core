@@ -47,7 +47,6 @@
 
 """
 
-from builtins import object
 from anuga.file.netcdf import NetCDFFile
 import numpy
 import copy
