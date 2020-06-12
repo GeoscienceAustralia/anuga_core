@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 
 
-from __future__ import division
-from builtins import str
-from builtins import range
-from past.utils import old_div
 import unittest
 import numpy as num
 from numpy.random import uniform, seed
@@ -24,53 +20,53 @@ class Test_Numerical_Tools(unittest.TestCase):
     def test_angle1(self):
         """Test angles between one vector and the x-axis
         """
-        assert num.allclose(old_div(angle([1.0, 0.0]), pi)*180, 0.0)
-        assert num.allclose(old_div(angle([1.0, 1.0]), pi)*180, 45.0)
-        assert num.allclose(old_div(angle([0.0, 1.0]), pi)*180, 90.0)
-        assert num.allclose(old_div(angle([-1.0, 1.0]), pi)*180, 135.0)
-        assert num.allclose(old_div(angle([-1.0, 0.0]), pi)*180, 180.0)
-        assert num.allclose(old_div(angle([-1.0, -1.0]), pi)*180, 225.0)
-        assert num.allclose(old_div(angle([0.0, -1.0]), pi)*180, 270.0)
-        assert num.allclose(old_div(angle([1.0, -1.0]), pi)*180, 315.0)
+        assert num.allclose((angle([1.0, 0.0]) / pi)*180, 0.0)
+        assert num.allclose((angle([1.0, 1.0]) / pi)*180, 45.0)
+        assert num.allclose((angle([0.0, 1.0]) / pi)*180, 90.0)
+        assert num.allclose((angle([-1.0, 1.0]) / pi)*180, 135.0)
+        assert num.allclose((angle([-1.0, 0.0]) / pi)*180, 180.0)
+        assert num.allclose((angle([-1.0, -1.0]) / pi)*180, 225.0)
+        assert num.allclose((angle([0.0, -1.0]) / pi)*180, 270.0)
+        assert num.allclose((angle([1.0, -1.0]) / pi)*180, 315.0)
 
     def test_angle2(self):
         """Test angles between two arbitrary vectors
         """
 
         assert num.allclose(
-            old_div(angle([1.0, 0.0], [1.0, 1.0]), pi)*180, 315.0)
+            (angle([1.0, 0.0], [1.0, 1.0]) / pi)*180, 315.0)
         assert num.allclose(
-            old_div(angle([1.0, 1.0], [1.0, 0.0]), pi)*180, 45.0)
+            (angle([1.0, 1.0], [1.0, 0.0]) / pi)*180, 45.0)
 
         assert num.allclose(
-            old_div(angle([-1.0, -1.0], [1.0, 1.0]), pi)*180, 180)
+            (angle([-1.0, -1.0], [1.0, 1.0]) / pi)*180, 180)
         assert num.allclose(
-            old_div(angle([-1.0, -1.0], [-1.0, 1.0]), pi)*180, 90.0)
+            (angle([-1.0, -1.0], [-1.0, 1.0]) / pi)*180, 90.0)
 
         assert num.allclose(
-            old_div(angle([-1.0, 0.0], [1.0, 1.0]), pi)*180, 135.0)
+            (angle([-1.0, 0.0], [1.0, 1.0]) / pi)*180, 135.0)
         assert num.allclose(
-            old_div(angle([0.0, -1.0], [1.0, 1.0]), pi)*180, 225.0)
+            (angle([0.0, -1.0], [1.0, 1.0]) / pi)*180, 225.0)
 
         assert num.allclose(
-            old_div(angle([1.0, -1.0], [1.0, 1.0]), pi)*180, 270.0)
+            (angle([1.0, -1.0], [1.0, 1.0]) / pi)*180, 270.0)
         assert num.allclose(
-            old_div(angle([1.0, 0.0], [0.0, 1.0]), pi)*180, 270.0)
+            (angle([1.0, 0.0], [0.0, 1.0]) / pi)*180, 270.0)
 
         # From test_get_boundary_polygon_V
         v_prev = [-0.5, -0.5]
         vc = [0.0,  -0.5]
-        assert num.allclose(old_div(angle(vc, v_prev), pi)*180, 45.0)
+        assert num.allclose((angle(vc, v_prev) / pi)*180, 45.0)
 
         vc = [0.5,  0.0]
-        assert num.allclose(old_div(angle(vc, v_prev), pi)*180, 135.0)
+        assert num.allclose((angle(vc, v_prev) / pi)*180, 135.0)
 
         vc = [-0.5,  0.5]
-        assert num.allclose(old_div(angle(vc, v_prev), pi)*180, 270.0)
+        assert num.allclose((angle(vc, v_prev) / pi)*180, 270.0)
 
     def test_anglediff(self):
         assert num.allclose(
-            old_div(anglediff([0.0, 1.], [1.0, 1.0]), pi)*180, 45.0)
+            (anglediff([0.0, 1.], [1.0, 1.0]) / pi)*180, 45.0)
 
     def test_ensure_numeric(self):
         A = [1, 2, 3, 4]
@@ -234,7 +230,7 @@ class Test_Numerical_Tools(unittest.TestCase):
 
         assert eps < 1.0e-12, 'Machine precision should be better than 1.0e-12'
         assert eps > 0.0
-        assert 1.0+old_div(eps, 2) == 1.0
+        assert 1.0 + (eps / 2) == 1.0
 
     def test_histogram(self):
         """Test histogram with different bin boundaries
