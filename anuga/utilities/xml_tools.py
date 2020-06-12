@@ -197,7 +197,7 @@ def xml2object(xml, verbose=False):
 
     Input xml can be either an
     * xml file
-    * open xml file object
+    * open xml file object  #FIXME (Ole): Why have this option. It adds unnecesasry complexity
 
     Return XML_document instance.
     """

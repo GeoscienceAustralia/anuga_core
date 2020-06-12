@@ -131,7 +131,7 @@ def topography(x, y):
         elev2 = elev1
 
     # Add bridge
-    elev2=elev2*( (y<490.) + (y>510.)) -1.0*( (y>=490.)*(y<=510.))
+    elev2 = elev2 * ((y < 490.) + (y > 510.)) - 1.0 * ((y >= 490.) * (y <= 510.))
     
     return elev2
 
@@ -146,31 +146,30 @@ domain.set_quantity('stage', stagetopo) # Use function for stage
 # Define inlet operator 
 flow_in_yval=10.0
 if True:
-    line1 = [ [floodplain_width/2. - chan_width/2., flow_in_yval],\
-              [floodplain_width/2. + chan_width/2., flow_in_yval] \
-              ]
+    line1 = [[floodplain_width/2. - chan_width/2., flow_in_yval],\
+             [floodplain_width/2. + chan_width/2., flow_in_yval]]
     Qdata = [3., 3., 3., 3., 3., 3., 4., 5., 6., 6., 6., 6., 6., 7., 8., 9., 10., 10., 10., 10., 10.,\
            11., 12., 13., 14., 15., 15., 15., 15., 16., 17., 18., 19., 20., 21., 23., 25.,\
-           30., 35.,40., 45., 50., 55., 60., 65., 70., 70., 70., 70.]+10*[70.]
+           30., 35.,40., 45., 50., 55., 60., 65., 70., 70., 70., 70.] + 10 * [70.]
 
-    dtQdata=300.
+    dtQdata = 300.
     def Qin(t):
-        t_hour=t/dtQdata # Used for time index for Qdata
-        indL=numpy.floor(t_hour).astype(int)
-        indU=numpy.ceil(t_hour).astype(int)
-        w1=(t_hour-1.0*indL)
-        w2=(1.0*indU-t_hour)
-        Qout=Qdata[indL]*w2+Qdata[indU]*w1
+        t_hour = t/dtQdata # Used for time index for Qdata
+        indL = numpy.floor(t_hour).astype(int)
+        indU = numpy.ceil(t_hour).astype(int)
+        w1 = (t_hour - 1.0 * indL)
+        w2 = (1.0 * indU - t_hour)
+        Qout = Qdata[indL] * w2 + Qdata[indU] * w1
         return Qout
     
     Inlet_operator(domain, line1, Qin)
     
 # Set up culvert under bridge
-bridge_in = [ [floodplain_width/2. - chan_width/2.+0.01, 490.-0.01],\
-              [floodplain_width/2. + chan_width/2.-0.01, 490.-0.01] \
+bridge_in = [ [floodplain_width/2. - chan_width/2. + 0.01, 490.-0.01],\
+              [floodplain_width/2. + chan_width/2. - 0.01, 490.-0.01] \
           ]
-bridge_out = [ [floodplain_width/2. - chan_width/2.+0.01, 510.+0.01],\
-             [floodplain_width/2. + chan_width/2.-0.01, 510.+0.01] \
+bridge_out = [ [floodplain_width/2. - chan_width/2. + 0.01, 510.+0.01],\
+             [floodplain_width/2. + chan_width/2. - 0.01, 510.+0.01] \
           ]
 
 losses = {'inlet':0.0, 'outlet':0.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 1.5}
@@ -229,9 +228,10 @@ save_parameters_tex(domain)
 # Evolve system through time
 #
 #------------------------------------------------------------------------------
-for t in domain.evolve(yieldstep=10.0, finaltime=dtQdata*(len(Qdata)-2)):
+for t in domain.evolve(yieldstep=10.0, 
+                       finaltime=dtQdata * (len(Qdata) - 2)):
     if(myid==0 & verbose):
-        print domain.timestepping_statistics()
+        print(domain.timestepping_statistics())
 
 domain.sww_merge(delete_old=True)
 
