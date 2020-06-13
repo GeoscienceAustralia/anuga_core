@@ -7,6 +7,7 @@ Web resources
 --------------
 https://docs.python.org/3/howto/pyporting.html
 http://python3porting.com/
+https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu-(using-Miniconda)
 
 # On Unicode strings, str, bytes, bytearray
 https://learning-python.com/strings30.html
