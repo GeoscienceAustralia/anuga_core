@@ -128,6 +128,49 @@ sudo apt install libsocket++-dev (Nah)
 sudo apt install libsocketcan-dev (Nah)
 
 
+Then tried installing from https://github.com/GeoscienceAustralia/anuga-viewer/blob/master/INSTALL_ubuntu.rst
+Got error
+
+anuga38) ro@DAW:~/anuga-viewer$ make
+cd swwreader; make
+make[1]: Entering directory '/home/ro/anuga-viewer/swwreader'
+make[1]: '../bin/libswwreader.so' is up to date.
+make[1]: Leaving directory '/home/ro/anuga-viewer/swwreader'
+cd viewer; make
+make[1]: Entering directory '/home/ro/anuga-viewer/viewer'
+g++ -c -I . -I ../include -I /usr/local/include -I/usr/X11R6/include -Wall -g keyboardeventhandler.cpp -o keyboardeventhandler.o
+In file included from keyboardeventhandler.cpp:2:
+./keyboardeventhandler.h:25:32: error: ‘osgGA::GUIEventHandlerVisitor’ has not been declared
+   25 |     virtual void accept(osgGA::GUIEventHandlerVisitor&) {}
+      |                                ^~~~~~~~~~~~~~~~~~~~~~
+
+Commented offending line out following advice from https://github.com/georgmartius/lpzrobots/issues/22
+
+New error
+(anuga38) ro@DAW:~/anuga-viewer$ make
+cd swwreader; make
+make[1]: Entering directory '/home/ro/anuga-viewer/swwreader'
+make[1]: '../bin/libswwreader.so' is up to date.
+make[1]: Leaving directory '/home/ro/anuga-viewer/swwreader'
+cd viewer; make
+make[1]: Entering directory '/home/ro/anuga-viewer/viewer'
+g++ -c -I . -I ../include -I /usr/local/include -I/usr/X11R6/include -Wall -g keyboardeventhandler.cpp -o keyboardeventhandler.o
+g++ -c -I . -I ../include -I /usr/local/include -I/usr/X11R6/include -Wall -g watersurface.cpp -o watersurface.o
+g++ -c -I . -I ../include -I /usr/local/include -I/usr/X11R6/include -Wall -g main.cpp -o main.o
+In file included from main.cpp:31:
+./bedslope.h: In member function ‘osg::BoundingBox BedSlope::getBound()’:
+./bedslope.h:33:56: error: could not convert ‘((BedSlope*)this)->BedSlope::<anonymous>.MeshObject::_geom->osg::Geometry::<anonymous>.osg::Drawable::getBound()’ from ‘const BoundingSphere’ {aka ‘const osg::BoundingSphereImpl<osg::Vec3f>’} to ‘osg::BoundingBox’ {aka ‘osg::BoundingBoxImpl<osg::Vec3f>’}
+   33 |     osg::BoundingBox getBound(){ return _geom->getBound(); }
+      |                                         ~~~~~~~~~~~~~~~^~
+      |                                                        |
+      |                                                        const BoundingSphere {aka const osg::BoundingSphereImpl<osg::Vec3f>}
+
+https://github.com/GeoscienceAustralia/anuga-viewer/issues/4
 
 
+
+
+Packaging for pip
+==================
+https://packaging.python.org/tutorials/packaging-projects/
 
