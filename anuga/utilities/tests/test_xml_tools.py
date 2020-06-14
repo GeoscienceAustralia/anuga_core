@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 
-from builtins import str
+#from builtins import str
 from builtins import range
 import unittest
 from tempfile import mkstemp, mktemp 
@@ -237,7 +237,6 @@ class Test_xml_tools(unittest.TestCase):
 
         # Now read it back
         xmlobject = xml2object(tmp_name, verbose=True)
-        # print xmlobject
 
         assert str(xmldoc) == str(xmlobject)
 

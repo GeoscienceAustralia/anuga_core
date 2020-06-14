@@ -206,6 +206,7 @@ def xml2object(xml, verbose=False):
     # This would depend on minidom's parse function
 
     # Input tests
+
     if isinstance(xml, str):
         opened_file = True
         fid = open(xml)
@@ -258,6 +259,7 @@ def dom2object(node):
                 continue
 
             textnode_encountered = value = x
+
         else:
             # XML element
 
@@ -287,7 +289,7 @@ def dom2object(node):
 
     return X
 
-    # =================== Useful print statement
+    # # =================== Useful print statement
     # if n.nodeType == 3 and str(n.nodeValue).strip() == '':
     #     pass
     # else:
