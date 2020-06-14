@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 
 
-from builtins import chr
-from builtins import str
-from builtins import range
-from past.builtins import basestring
 import unittest
 import numpy as num
 import random
@@ -31,13 +27,13 @@ class Test_system_tools(unittest.TestCase):
         user = get_user_name()
 
         # print user
-        assert isinstance(user, basestring), 'User name should be a string'
+        assert isinstance(user, str), 'User name should be a string'
 
     def test_host_name(self):
         host = get_host_name()
 
         # print host
-        assert isinstance(host, basestring), 'User name should be a string'
+        assert isinstance(host, str), 'User name should be a string'
 
     def test_compute_checksum(self):
         """test_compute_checksum(self):

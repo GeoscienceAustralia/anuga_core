@@ -3,12 +3,7 @@
 Function which can be useful when setting quantities
 
 """
-from __future__ import print_function
-from __future__ import division
-#from past.builtins import str
-from builtins import range
-from past.utils import old_div
-from future.utils import raise_
+
 import copy
 import os
 import anuga.utilities.spatialInputUtil as su
@@ -153,7 +148,7 @@ def make_nearestNeighbour_quantity_function(
                 numerator += values*inverse_distance
                 denominator += inverse_distance
 
-            quantity_output[dist_lt_thresh] = old_div(numerator,denominator)
+            quantity_output[dist_lt_thresh] = numerator / denominator
 
         return quantity_output
 
@@ -444,7 +439,7 @@ def composite_quantity_setting_function(poly_fun_pairs,
             else:
                 print('ERROR: with function from ' + fi)
                 msg='Cannot make function from type ' + str(type(fi))
-                raise_(Exception, msg)
+                raise Exception(msg)
 
             ###################################################################
             # Check for nan values

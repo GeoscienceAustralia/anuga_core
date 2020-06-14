@@ -46,14 +46,7 @@
           filenames, and ensure that in each case, the output will be as desired.
 
 """
-from __future__ import print_function
-from __future__ import division
-from builtins import zip
-#from past.builtins import str  # FIXME: This breaks things like isinstance. Get rid of it
-from builtins import range
-from past.utils import old_div
-from builtins import object
-from future.utils import raise_
+
 from anuga.file.netcdf import NetCDFFile
 import numpy
 import copy
@@ -707,7 +700,7 @@ def near_transect(p, point1, point2, tol=1.):
     # Find line equation a*x + b*y + c = 0
     # based on y=gradient*x +intercept
     if x1!=x2:
-        gradient= old_div((y2-y1),(x2-x1))
+        gradient= ((y2-y1) / (x2-x1))
         intercept = y1 - gradient*x1
         #
         a = -gradient
@@ -730,8 +723,8 @@ def near_transect(p, point1, point2, tol=1.):
     g1x = x2-x1 
     g1y = y2-y1
     g1_norm = (g1x**2 + g1y**2)**0.5
-    g1x=old_div(g1x,g1_norm)
-    g1y=old_div(g1y,g1_norm)
+    g1x = g1x / g1_norm
+    g1y = g1y / g1_norm
     
     g2x = p.x[near_points] - x1
     g2y = p.y[near_points] - y1
@@ -795,7 +788,7 @@ def water_volume(p, p2, per_unit_area=False, subset=None):
         volume[i]=volume[i]+((-p2.elev[subset])*(p2.stage[i,subset]>p2.elev[subset])*area).sum()
     
     if(per_unit_area):
-        volume=old_div(volume,total_area) 
+        volume = volume / total_area
     
     return volume
 
@@ -907,7 +900,7 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None,
     except ImportError as e:
         msg='Failed to import gdal/ogr modules --'\
         + 'perhaps gdal python interface is not installed.'
-        raise_(ImportError, msg)
+        raise ImportError(msg)
     
 
 
@@ -1008,7 +1001,7 @@ def Make_Geotif(swwFile=None,
     except ImportError as e:
         msg = 'Failed to import gdal/ogr modules --'\
         + 'perhaps gdal python interface is not installed.'
-        raise_(ImportError, msg)
+        raise ImportError(msg)
 
     # Check whether swwFile is an array, and if so, redefine various inputs to
     # make the code work
@@ -1111,7 +1104,7 @@ def Make_Geotif(swwFile=None,
             for i in range(k_nearest_neighbours):
                 denom += nn_wts[:,i]
                 num += quantity[nn_inds[:,i]]*nn_wts[:,i]
-            return (old_div(num,denom))
+            return num / denom
 
     if bounding_polygon is not None:
         # Find points to exclude (i.e. outside the bounding polygon)

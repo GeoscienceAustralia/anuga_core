@@ -87,7 +87,7 @@ res = domain.get_quantity('elevation').get_values()
 assert num.allclose(res, ref)
 
 # Now check this using the high level call
-print 'Try to read in via cache'
+print('Try to read in via cache')
 t0 = time.time()
 domain.set_quantity('elevation',
                     filename=filename,
@@ -99,8 +99,8 @@ cache_time = time.time()-t0
 res = domain.get_quantity('elevation').get_values() 
 assert num.allclose(res, ref)
 
-print 'cache_time', cache_time
-print 'compute_time', compute_time
+print('cache_time', cache_time)
+print('compute_time', compute_time)
 
 msg = 'Caching did not speed things up as expected'
 msg += 'Compute time = %.f, Cache time = %.f' % (compute_time,

@@ -1,23 +1,9 @@
-from __future__ import absolute_import
-from __future__ import division
 import numpy as num
 from .cg_ext import jacobi_precon_c
 from .cg_ext import cg_solve_c_precon
 from .cg_ext import cg_solve_c
 from anuga.utilities.sparse import Sparse, Sparse_CSR
 import anuga.utilities.log as log
-from builtins import str
-from builtins import range
-from past.utils import old_div
-from builtins import object
-from future.utils import raise_
-
-# Python 2.7 Hack
-try:
-    from exceptions import Exception
-except:
-    pass
-
 
 class VectorShapeError(Exception):
     pass
@@ -145,7 +131,7 @@ def conjugate_gradient(A, b, x0=None, imax=10000, tol=1.0e-8, atol=1.0e-14,
 
         log.warning('max number of iterations attained from c cg')
         msg = 'Conjugate gradient solver did not converge'
-        raise_(ConvergenceError, msg)
+        raise ConvergenceError(msg)
 
     if output_stats:
         return x0, stats
@@ -203,7 +189,7 @@ def _conjugate_gradient(A, b, x0,
     # FIXME Let the iterations stop if starting with a small residual
     while (i < imax and rTr > tol ** 2 * rTr0 and rTr > atol ** 2):
         q = A * d
-        alpha = old_div(rTr, num.dot(d, q))
+        alpha = rTr / num.dot(d, q)
         xold = x
         x = x + alpha * d
 
@@ -224,7 +210,7 @@ def _conjugate_gradient(A, b, x0,
             r = r - alpha * q
         rTrOld = rTr
         rTr = num.dot(r, r)
-        bt = old_div(rTr, rTrOld)
+        bt =  rTr / rTrOld
 
         d = r + bt * d
         i = i + 1
@@ -235,7 +221,7 @@ def _conjugate_gradient(A, b, x0,
         if i == imax:
             log.warning('max number of iterations attained')
             msg = 'Conjugate gradient solver did not converge: rTr==%20.15e' % rTr
-            raise_(ConvergenceError, msg)
+            raise ConvergenceError(msg)
 
     stats.x = num.linalg.norm(x)
     stats.iter = i
@@ -271,11 +257,11 @@ def _conjugate_gradient_preconditioned(A, b, x0, M,
         log.warning(
             'Only the Jacobi Preconditioner is impletment cg_solve python')
         msg = 'Only the Jacobi Preconditioner is impletment in cg_solve python'
-        raise_(PreconditionerError, msg)
+        raise PreconditionerError(msg)
     else:
         D = Sparse(A.M, A.M)
         for i in range(A.M):
-            D[i, i] = old_div(1, M[i])
+            D[i, i] = 1 / M[i]
         D = Sparse_CSR(D)
 
     stats = Stats()
@@ -310,7 +296,7 @@ def _conjugate_gradient_preconditioned(A, b, x0, M,
     # FIXME Let the iterations stop if starting with a small residual
     while (i < imax and rTr > tol ** 2 * rTr0 and rTr > atol ** 2):
         q = A * d
-        alpha = old_div(rTr, num.dot(d, q))
+        alpha = rTr / num.dot(d, q)
         xold = x
         x = x + alpha * d
 
@@ -319,7 +305,7 @@ def _conjugate_gradient_preconditioned(A, b, x0, M,
         # if dx < atol :
         #    break
 
-        # Padarn Note 26/11/12: This modification to the algorithm seems
+        # FIXME: Padarn Note 26/11/12: This modification to the algorithm seems
         # unnecessary, but also seem to have been implemented incorrectly -
         # it was set to perform the more expensive r = b - A * x routine in
         # 49/50 iterations. Suggest this being either removed completely or
@@ -332,7 +318,7 @@ def _conjugate_gradient_preconditioned(A, b, x0, M,
         rTrOld = rTr
         z = D * r
         rTr = num.dot(r, z)
-        bt = old_div(rTr, rTrOld)
+        bt = rTr / rTrOld
 
         d = z + bt * d
         i = i + 1
@@ -342,7 +328,7 @@ def _conjugate_gradient_preconditioned(A, b, x0, M,
         if i == imax:
             log.warning('max number of iterations attained')
             msg = 'Conjugate gradient solver did not converge: rTr==%20.15e' % rTr
-            raise_(ConvergenceError, msg)
+            raise ConvergenceError(msg)
 
     stats.x = num.linalg.norm(x)
     stats.iter = i
