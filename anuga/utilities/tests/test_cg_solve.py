@@ -6,7 +6,6 @@ from anuga.utilities.cg_solve import _conjugate_gradient
 from anuga.utilities.cg_solve import *
 import numpy as num
 import os
-from future.utils import raise_
 
 try:
     import exceptions
@@ -64,7 +63,7 @@ class Test_CG_Solve(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise_(TestError, msg)
+            raise TestError(msg)
 
     def test_solve_large(self):
         """Standard 1d laplacian """
@@ -193,7 +192,7 @@ class Test_CG_Solve(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise_(TestError, msg)
+            raise TestError(msg)
 
     def test_sparse_solve_matrix(self):
         """Solve Small Sparse Matrix"""
@@ -250,7 +249,7 @@ class Test_CG_Solve(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise_(TestError, msg)
+            raise TestError(msg)
 
     def test_solve_large_using_c_ext(self):
         """Standard 1d laplacian """
@@ -419,7 +418,7 @@ class Test_CG_Solve(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise_(TestError, msg)
+            raise TestError(msg)
 
     def test_solve_large_using_c_ext_with_jacobi(self):
         """Standard 1d laplacian """

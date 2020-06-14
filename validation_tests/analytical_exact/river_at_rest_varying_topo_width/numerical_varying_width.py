@@ -130,11 +130,11 @@ if myid == 0:
 import time
 t0 = time.time()
 for t in domain.evolve(yieldstep = 0.1, finaltime = 5.0):
-    #print domain.timestepping_statistics(track_speeds=True)
-    if myid == 0 and verbose: print domain.timestepping_statistics()
+    #print(domain.timestepping_statistics(track_speeds=True))
+    if myid == 0 and verbose: print(domain.timestepping_statistics())
     #vis.update()
 
-if myid == 0 and verbose : print 'That took %s sec' % str(time.time()-t0)
+if myid == 0 and verbose: print('That took %s sec' % str(time.time()-t0))
 domain.sww_merge(delete_old=True)
 
 finalize()

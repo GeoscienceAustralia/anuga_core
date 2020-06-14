@@ -11,8 +11,6 @@ calls a routine which itself calls several other routines
 in quantity_setting_functions, so we can catch bugs there too
 
 """
-from __future__ import print_function
-
 import unittest
 import anuga
 import numpy

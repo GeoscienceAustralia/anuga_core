@@ -2,20 +2,9 @@
 
 
 """
-from __future__ import print_function
-from __future__ import division
 
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
-from builtins import input
-from builtins import map
-from past.builtins import basestring
-from past.utils import old_div
-from future.utils import raise_
 import sys
 import os
-import string
 import urllib.request, urllib.parse, urllib.error
 import urllib.request, urllib.error, urllib.parse
 import getpass
@@ -118,7 +107,7 @@ Good luck!
         revision_number = int(line)
     except:
         msg = ".svn/entries, line 4 was '%s'?" % line.strip()
-        raise_(Exception, msg)
+        raise Exception(msg)
 
     return revision_number
 
@@ -165,7 +154,7 @@ def __get_revision_from_svn_client__():
         except:
             msg = ('Revision number must be an integer. I got "%s" from '
                    '"SubWCRev.exe".' % line)
-            raise_(Exception, msg)
+            raise Exception(msg)
     else:                   # assume Linux
         try:
             fid = os.popen('svn info . 2>/dev/null')
@@ -198,7 +187,7 @@ def __get_revision_from_svn_client__():
         except:
             msg = ("Revision number must be an integer. I got '%s' from "
                    "'svn'." % fields[1])
-            raise_(Exception, msg)
+            raise Exception(msg)
 
     return revision_number
 
@@ -258,7 +247,7 @@ def process_revision_info(revision_info):
         msg = ("Revision number must be an integer. I got '%s'.\n"
                'Check that the command svn is on the system path.'
                % fields[1])
-        raise_(Exception, msg)
+        raise Exception(msg)
 
     return revision_number
 
@@ -626,7 +615,7 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
 def tar_file(files, tarname):
     '''Compress a file or directory into a tar file.'''
 
-    if isinstance(files, basestring):
+    if isinstance(files, str):
         files = [files]
 
     o = tarfile.open(tarname, 'w:gz')
@@ -705,7 +694,7 @@ def _VmB(VmKey):
     if len(v) < 3:
         return 0.0  # invalid format?
      # convert Vm value to MB
-    return old_div((float(v[1]) * _scale[v[2]]), (1024.0*1024.0))
+    return (float(v[1]) * _scale[v[2]]) // (1024.0 * 1024.0)
 
 
 def MemoryUpdate(print_msg=None,str_return=False):

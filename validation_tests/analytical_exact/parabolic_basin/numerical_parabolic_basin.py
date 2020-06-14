@@ -126,7 +126,7 @@ if myid == 0:
 #Evolve the system through time
 #------------------------------
 for t in domain.evolve(yieldstep=0.05,finaltime=10.0):
-    if myid == 0: print domain.timestepping_statistics()
+    if myid == 0: print(domain.timestepping_statistics())
 
 domain.sww_merge(delete_old=True)
 

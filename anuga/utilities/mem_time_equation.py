@@ -1,8 +1,3 @@
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
-from builtins import str
-from past.utils import old_div
 import sys
 from . import system_tools
 
@@ -93,7 +88,7 @@ def time_equation(**kwargs):
            kwargs['constants']['tri_b_T'] * kwargs['num_tri'] + \
            kwargs['constants']['tim_a_T'] * kwargs['finaltime'] + \
            kwargs['constants']['fil_a_T'] * \
-           (old_div(kwargs['finaltime'],kwargs['yieldstep'])) + \
+           ((kwargs['finaltime'] / kwargs['yieldstep'])) + \
            kwargs['constants']['cons_T']
  
     return time

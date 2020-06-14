@@ -177,13 +177,13 @@ barrier()
 
 for t in domain.evolve(yieldstep=10.0, finaltime=9.*60.*60.):
     if(myid==0):
-        print domain.timestepping_statistics()
+        print(domain.timestepping_statistics())
 
 barrier()
 
 # Run sww merge
 if( (myid==0) & (numprocs>1)):
-    print 'Merging sww files: ', numprocs, myid
+    print('Merging sww files: ', numprocs, myid)
     anuga.utilities.sww_merge.sww_merge_parallel(outname,np=numprocs,verbose=True,delete_old=True)
 
 barrier()

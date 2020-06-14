@@ -69,17 +69,14 @@ such that all polygons under a directory named 45, under directory:- 04_BLDGS  w
 
 Need to add the following lines to Scripts:
 
-
 from anuga.utilities.model_tools import get_polygon_list_from_files
 from anuga.utilities.model_tools import get_polygon_dictionary
 from anuga.utilities.model_tools import get_REFINE_polygon_value_list
 from anuga.utilities.model_tools import get_ROUGHNESS_polygon_value_list
 from anuga.utilities.model_tools import get_BUILDING_polygon_value_list
 """
-from __future__ import print_function
 
 from past.builtins import execfile
-from future.utils import raise_
 import os
 import glob
 import numpy
@@ -310,7 +307,7 @@ def read_polygon_dir(weight_dict, directory, filepattern='*.csv'):
         msg = ''
         for f in errors:
             msg = msg + ', ' + f
-        raise_(KeyError, 'Files not defined in dictionary: %s' % msg[2:])
+        raise KeyError('Files not defined in dictionary: %s' % msg[2:])
 
     # now get the result list
     result = []

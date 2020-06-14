@@ -3,10 +3,7 @@
 """CSV file utility routines.
 """
 
-from builtins import next
-from builtins import range
 import csv
-
 
 def read_csv_file(filename, key_col, data_col):
     """Read data from a CSV file, get 'key_col' and 'data_col' columns.

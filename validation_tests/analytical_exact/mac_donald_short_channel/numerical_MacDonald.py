@@ -70,7 +70,7 @@ def bed(x,y):
             Z[i] += quad(func2, x_s, L)    #on right of the shock
         else:
             Z[i] = quad(func2, x[i], L)    #on right of the shock
-    #print 'Integral = ', -Z[:,0], ' with error = ', Z[:,1]
+    #print('Integral = ', -Z[:,0], ' with error = ', Z[:,1])
     elevation = -1.*Z[:,0]
     return elevation
 
@@ -129,8 +129,8 @@ if myid == 0:
 # Evolve system through time
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep = 1.0, finaltime = 200.):
-    #print domain.timestepping_statistics(track_speeds=True)
-    if myid == 0: print domain.timestepping_statistics()
+    #print(domain.timestepping_statistics(track_speeds=True))
+    if myid == 0: print(domain.timestepping_statistics())
     #vis.update()
 
 

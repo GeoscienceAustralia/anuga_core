@@ -169,8 +169,8 @@ if True:
     Inlet_operator(domain, line1, Qin)
    
     if(verbose): 
-        print 'Discharge in = ', Qin #,'Velocity at inlet should be ', Qin/(chan_width*chan_initial_depth), \
-                #'for rectangular channels, and approximately that for trapezoidal ones'
+        print('Discharge in = ', Qin) #,'Velocity at inlet should be ', Qin/(chan_width*chan_initial_depth), \
+            #'for rectangular channels, and approximately that for trapezoidal ones'
 
     # Add 'pilot discharge' for left/right areas.
     # This is needed for comparison with hecras [since hecras channels cannot dry]
@@ -216,9 +216,9 @@ save_parameters_tex(domain)
 
 barrier()
 
-for t in domain.evolve(yieldstep=60.0, finaltime=dtQdata*(len(Qdata)-2)):
+for t in domain.evolve(yieldstep=60.0, finaltime=dtQdata * (len(Qdata) - 2)):
     if(myid==0 and verbose):
-        print domain.timestepping_statistics()
+        print(domain.timestepping_statistics())
         #xx=domain.quantities['ymomentum'].centroid_values
         #dd=(domain.quantities['stage'].centroid_values - domain.quantities['elevation'].centroid_values)
         #dd=dd*(dd>0.)

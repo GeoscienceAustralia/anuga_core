@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-from __future__ import division
-from builtins import range
-from past.utils import old_div
 import os
 import unittest
 import anuga
@@ -330,8 +326,8 @@ class Test_plot_utils(unittest.TestCase):
         # Coords must be within 10*sqrt(2) of each other
         assert(all(abs(pc.x[nt[0]]-pc.y[nt[0]]) < 10.*2**0.5))
         # The dot product of the points along the line is equal to nt[1]
-        dt_Prd = (old_div((pc.x[nt[0]]-20.), 2.**0.5) +
-                  old_div((pc.y[nt[0]]-20.), 2.**0.5))
+        dt_Prd = (((pc.x[nt[0]]-20.) / 2.**0.5) +
+                  ((pc.y[nt[0]]-20.) / 2.**0.5))
         assert(np.allclose(dt_Prd, nt[1]))
 
         # Next check -- get points along x==2*y + 5
@@ -342,7 +338,7 @@ class Test_plot_utils(unittest.TestCase):
         # The dot product of the points along the line is equal to nt[1]
         # Unit vector along line is (1,0.5)/ll
         ll = (1.**2+0.5**2)**0.5
-        dt_Prd = (old_div((pc.x[nt[0]]-25.), ll) + (pc.y[nt[0]]-10.)*0.5/ll)
+        dt_Prd = (((pc.x[nt[0]]-25.) / ll) + (pc.y[nt[0]]-10.)*0.5/ll)
         assert(np.allclose(dt_Prd, nt[1]))
 
         os.remove('test_plot_utils.sww')
@@ -372,7 +368,7 @@ class Test_plot_utils(unittest.TestCase):
         # Use 0.5 a * b
         len_a = ((x1-x0)**2 + (y1-y0)**2)**0.5
         vec_01 = np.array([x1-x0, y1-y0])
-        vec_01 = old_div(vec_01, ((vec_01**2).sum())**0.5)
+        vec_01 = (vec_01 / ((vec_01**2).sum())**0.5)
         vec_01_perp = np.array([vec_01[1], -vec_01[0]])
         len_b = (x2-x0)*vec_01_perp[0] + (y2-y0)*vec_01_perp[1]
         assert(np.allclose(abs(0.5*len_a*len_b), ta[0]))

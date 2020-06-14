@@ -82,16 +82,16 @@ if myid == 0:
 #------------------------------
 #Evolve the system through time
 #------------------------------
-for t in domain.evolve(yieldstep=1.0,finaltime=200.0):
+for t in domain.evolve(yieldstep=1.0, finaltime=200.0):
 	
-	if myid == 0 and verbose: print domain.timestepping_statistics()
+	if myid == 0 and verbose: print(domain.timestepping_statistics())
 # 	xx = domain.quantities['xmomentum'].centroid_values
 # 	yy = domain.quantities['ymomentum'].centroid_values
 # 	dd = domain.quantities['stage'].centroid_values - domain.quantities['elevation'].centroid_values 
 # 	dd = (dd)*(dd>1.0e-03)+1.0e-06
 # 	vv = ( (xx/dd)**2 + (yy/dd)**2 )**0.5
 # 	vv = vv*(dd>1.0e-03)
-# 	print 'Peak velocity is: ', vv.max(), vv.argmax()
+# 	print('Peak velocity is: ', vv.max(), vv.argmax())
 
 domain.sww_merge(delete_old=True)
 
