@@ -1,4 +1,3 @@
-=============================
 Help with porting to Python3:
 =============================
 
@@ -179,4 +178,5 @@ https://github.com/GeoscienceAustralia/anuga-viewer/issues/4
 Packaging for pip
 ==================
 https://packaging.python.org/tutorials/packaging-projects/
+
 
