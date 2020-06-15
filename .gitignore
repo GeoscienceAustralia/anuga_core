@@ -140,6 +140,10 @@ examples/checkpointing/CHECKPOINTS
 *.tgz
 *.zip
 
+
+# Visual Studio Code 
+.vscode
+
 # Python files #
 ################
 revision.py
