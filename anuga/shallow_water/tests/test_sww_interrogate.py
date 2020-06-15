@@ -928,9 +928,13 @@ class Test_sww_Interrogate(unittest.TestCase):
             if verbose:
                 domain.write_time()
                 print(q)
-                
-            if q > q_max:
+
+            if q is None and q_max is None:
+                pass
+            elif q_max is None or q > q_max:
                 q_max = q
+            else:
+                pass
 
         #--------------------------------------------------------------
         # Test inundation height again

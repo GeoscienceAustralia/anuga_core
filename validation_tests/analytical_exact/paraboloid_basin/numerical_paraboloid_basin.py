@@ -132,7 +132,7 @@ t0 = time.time()
 for t in domain.evolve(yieldstep = 1.0, finaltime = 200.0):
     if myid == 0 and verbose : domain.write_time()
 
-if myid==0 and verbose: print 'That took %s secs' % str(time.time()- t0)
+if myid==0 and verbose: print('That took %s secs' % str(time.time()- t0))
 
 domain.sww_merge(delete_old=True)
 

@@ -46,14 +46,7 @@
           filenames, and ensure that in each case, the output will be as desired.
 
 """
-from __future__ import print_function
-from __future__ import division
-from builtins import zip
-from past.builtins import str
-from builtins import range
-from past.utils import old_div
-from builtins import object
-from future.utils import raise_
+
 from anuga.file.netcdf import NetCDFFile
 import numpy
 import copy
@@ -184,7 +177,7 @@ def getInds(varIn, timeSlices, absMax=False):
 
     if (len(varIn.shape)==2):
         # There are multiple time-slices
-        if timeSlices is 'max':
+        if timeSlices == 'max':
             # Extract the maxima over time, assuming there are multiple
             # time-slices, and ensure the var is still a 2D array
             if( not absMax):
@@ -250,7 +243,7 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
         except:
             inds=[timeSlices]
     
-    if(inds is not 'max'):
+    if(inds != 'max'):
         time=time[inds]
     else:
         # We can't really assign a time to 'max', but I guess max(time) is
@@ -349,21 +342,21 @@ class get_centroids(object):
 
     NOTE: elevation is only stored once in the output, even if it was
           stored every timestep.
-           Lots of existing plotting code assumes elevation is a 1D
-           array. 
-           But as a hack for the time being the elevation from the file 
-           is available via elev_orig
+          Lots of existing plotting code assumes elevation is a 1D
+          array. 
+          But as a hack for the time being the elevation from the file 
+          is available via elev_orig
     """
-    def __init__(self,p, velocity_extrapolation=False, verbose=False,
+    def __init__(self, p, velocity_extrapolation=False, verbose=False,
                  timeSlices=None, minimum_allowed_height=1.0e-03):
         
         self.time, self.x, self.y, self.stage, self.xmom,\
-             self.ymom, self.height, self.elev, self.elev_orig, self.friction, self.xvel,\
-             self.yvel, self.vel, self.xllcorner, self.yllcorner, self.timeSlices= \
-             _get_centroid_values(p, velocity_extrapolation,\
-                         timeSlices=copy.copy(timeSlices),\
-                         minimum_allowed_height=minimum_allowed_height,\
-                         verbose=verbose)
+            self.ymom, self.height, self.elev, self.elev_orig, self.friction, self.xvel,\
+            self.yvel, self.vel, self.xllcorner, self.yllcorner, self.timeSlices= \
+                _get_centroid_values(p, velocity_extrapolation,\
+                                     timeSlices=copy.copy(timeSlices),\
+                                     minimum_allowed_height=minimum_allowed_height,\
+                                     verbose=verbose)
 
 def _getCentVar(fid, varkey_c, time_indices, absMax=False,  vols = None, space_indices=None):
     """
@@ -383,7 +376,7 @@ def _getCentVar(fid, varkey_c, time_indices, absMax=False,  vols = None, space_i
         assert (vols is not None), "Must specify vols since centroid quantity is not stored"
 
         newkey=varkey_c.replace('_c','')
-        if time_indices is not 'max':
+        if time_indices != 'max':
             # Relatively efficient treatment is possible
             var_cent = fid.variables[newkey]
             if (len(var_cent.shape)>1):
@@ -404,7 +397,7 @@ def _getCentVar(fid, varkey_c, time_indices, absMax=False,  vols = None, space_i
                 tmp=(tmp[vols0]+tmp[vols1]+tmp[vols2])/3.0
             var_cent=getInds(tmp, timeSlices=time_indices, absMax=absMax)
     else:
-        if time_indices is not 'max':
+        if time_indices != 'max':
             if(len(fid.variables[varkey_c].shape)>1):
                 var_cent = numpy.zeros((len(time_indices), fid.variables[varkey_c].shape[1]), dtype='float32')
                 for i in range(len(time_indices)):
@@ -427,7 +420,7 @@ def _getCentVar(fid, varkey_c, time_indices, absMax=False,  vols = None, space_i
 
                                  
 def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices, 
-                        minimum_allowed_height):
+                         minimum_allowed_height):
     """
     Function to get centroid information -- main interface is through 
         get_centroids. 
@@ -453,9 +446,8 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
      Output: Values of x, y, Stage, xmom, ymom, elev, xvel, yvel, vel etc at centroids
     """
 
-    #@ Figure out if p is a string (filename) or the output of get_output
-    pIsFile=(type(p) is str)
- 
+    # Figure out if p is a string (filename) or the output of get_output
+    pIsFile = isinstance(p, str)
     if(pIsFile): 
         fid=NetCDFFile(p) 
     else:
@@ -488,9 +480,9 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
             timeSlices=copy.copy(p.timeSlices)
     else:
         # Treat word-based special cases
-        if(timeSlices is 'all'):
+        if(timeSlices == 'all'):
             timeSlices=list(range(nts))
-        if(timeSlices is 'last'):
+        if(timeSlices == 'last'):
             timeSlices=[nts-1]
 
     #@ Get minimum_allowed_height
@@ -513,7 +505,7 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
         except:
             inds=[timeSlices]
     
-    if(inds is not 'max'):
+    if(inds != 'max'):
         time=time[inds]
     else:
         # We can't really assign a time to 'max', but I guess max(time) is
@@ -708,7 +700,7 @@ def near_transect(p, point1, point2, tol=1.):
     # Find line equation a*x + b*y + c = 0
     # based on y=gradient*x +intercept
     if x1!=x2:
-        gradient= old_div((y2-y1),(x2-x1))
+        gradient= ((y2-y1) / (x2-x1))
         intercept = y1 - gradient*x1
         #
         a = -gradient
@@ -731,8 +723,8 @@ def near_transect(p, point1, point2, tol=1.):
     g1x = x2-x1 
     g1y = y2-y1
     g1_norm = (g1x**2 + g1y**2)**0.5
-    g1x=old_div(g1x,g1_norm)
-    g1y=old_div(g1y,g1_norm)
+    g1x = g1x / g1_norm
+    g1y = g1y / g1_norm
     
     g2x = p.x[near_points] - x1
     g2y = p.y[near_points] - y1
@@ -796,7 +788,7 @@ def water_volume(p, p2, per_unit_area=False, subset=None):
         volume[i]=volume[i]+((-p2.elev[subset])*(p2.stage[i,subset]>p2.elev[subset])*area).sum()
     
     if(per_unit_area):
-        volume=old_div(volume,total_area) 
+        volume = volume / total_area
     
     return volume
 
@@ -908,7 +900,7 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None,
     except ImportError as e:
         msg='Failed to import gdal/ogr modules --'\
         + 'perhaps gdal python interface is not installed.'
-        raise_(ImportError, msg)
+        raise ImportError(msg)
     
 
 
@@ -1009,11 +1001,11 @@ def Make_Geotif(swwFile=None,
     except ImportError as e:
         msg = 'Failed to import gdal/ogr modules --'\
         + 'perhaps gdal python interface is not installed.'
-        raise_(ImportError, msg)
+        raise ImportError(msg)
 
     # Check whether swwFile is an array, and if so, redefine various inputs to
     # make the code work
-    if(type(swwFile) == scipy.ndarray):
+    if(type(swwFile) == numpy.ndarray):
         import copy
         xyzPoints = copy.copy(swwFile)
         swwFile = None
@@ -1073,28 +1065,28 @@ def Make_Geotif(swwFile=None,
         upper_right = [swwX.max(), swwY.max()]
     nx = int(round((upper_right[0]-lower_left[0])*1.0/(1.0*CellSize)) + 1)
     xres = (upper_right[0]-lower_left[0])*1.0/(1.0*(nx-1))
-    desiredX = scipy.linspace(lower_left[0], upper_right[0],nx )
+    desiredX = numpy.linspace(lower_left[0], upper_right[0],nx )
     ny = int(round((upper_right[1]-lower_left[1])*1.0/(1.0*CellSize)) + 1)
     yres = (upper_right[1]-lower_left[1])*1.0/(1.0*(ny-1))
-    desiredY = scipy.linspace(lower_left[1], upper_right[1], ny)
+    desiredY = numpy.linspace(lower_left[1], upper_right[1], ny)
 
-    gridX, gridY = scipy.meshgrid(desiredX, desiredY)
+    gridX, gridY = numpy.meshgrid(desiredX, desiredY)
 
     if(verbose):
         print('Making interpolation functions...')
-    swwXY = scipy.array([swwX[:],swwY[:]]).transpose()
+    swwXY = numpy.array([swwX[:],swwY[:]]).transpose()
 
     # Get function to interpolate quantity onto gridXY_array
-    gridXY_array = scipy.array([scipy.concatenate(gridX),
-        scipy.concatenate(gridY)]).transpose()
-    gridXY_array = scipy.ascontiguousarray(gridXY_array)
+    gridXY_array = numpy.array([numpy.concatenate(gridX),
+        numpy.concatenate(gridY)]).transpose()
+    gridXY_array = numpy.ascontiguousarray(gridXY_array)
 
     # Create Interpolation function
     #basic_nearest_neighbour=False
     if(k_nearest_neighbours == 1):
         index_qFun = scipy.interpolate.NearestNDInterpolator(
             swwXY,
-            scipy.arange(len(swwX),dtype='int64').transpose())
+            numpy.arange(len(swwX),dtype='int64').transpose())
         gridqInd = index_qFun(gridXY_array)
         # Function to do the interpolation
         def myInterpFun(quantity):
@@ -1112,7 +1104,7 @@ def Make_Geotif(swwFile=None,
             for i in range(k_nearest_neighbours):
                 denom += nn_wts[:,i]
                 num += quantity[nn_inds[:,i]]*nn_wts[:,i]
-            return (old_div(num,denom))
+            return num / denom
 
     if bounding_polygon is not None:
         # Find points to exclude (i.e. outside the bounding polygon)
@@ -1134,7 +1126,7 @@ def Make_Geotif(swwFile=None,
         for output_quantity in output_quantities:
             if (verbose): print(output_quantity)
 
-            if(myTSi is not 'max'):
+            if(myTSi != 'max'):
                 myTS = myTSi
             else:
                 # We have already extracted the max, and e.g.
@@ -1157,7 +1149,7 @@ def Make_Geotif(swwFile=None,
                 if(output_quantity == 'elevation'):
                     gridq = myInterpFun(p2.elev)
     
-                if(myTSi is 'max'):
+                if(myTSi == 'max'):
                     timestepString = 'max'
                 else:
                     timestepString = str(myTimeStep[myTSindex])+'_Time_'+str(round(p2.time[myTS]))
@@ -1185,7 +1177,7 @@ def Make_Geotif(swwFile=None,
             if(verbose):
                 print('Making raster ...')
             gridq.shape = (len(desiredY),len(desiredX))
-            make_grid(scipy.flipud(gridq), desiredY, desiredX, output_name, EPSG_CODE=EPSG_CODE, 
+            make_grid(numpy.flipud(gridq), desiredY, desiredX, output_name, EPSG_CODE=EPSG_CODE, 
                       proj4string=proj4string, creation_options=creation_options)
 
     return

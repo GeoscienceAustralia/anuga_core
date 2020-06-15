@@ -730,8 +730,6 @@ class Test_sww(unittest.TestCase):
         # 
         #  
 
-        DEFAULT_ZONE = 0 # Not documented anywhere what this should be.
-        
         filename = tempfile.mktemp("_data_manager.sww")
         outfile = NetCDFFile(filename, netcdf_mode_w)
         points_utm = num.array([[0.,0.],[1.,1.], [0.,1.]])
@@ -758,7 +756,8 @@ class Test_sww(unittest.TestCase):
         y = fid.variables['y'][:]
         results_georef = Geo_reference()
         results_georef.read_NetCDF(fid)
-        assert results_georef == Geo_reference(DEFAULT_ZONE, 0, 0)
+        
+        assert results_georef == Geo_reference(zone=None, xllcorner=0, yllcorner=0)
         fid.close()
 
         assert num.allclose(num.array(list(zip(x,y))), points_utm)
@@ -769,9 +768,9 @@ class Test_sww(unittest.TestCase):
         # 
         #  
         
-        filename = tempfile.mktemp("_data_manager.sww")
+        filename = tempfile.mktemp('_data_manager.sww')
         outfile = NetCDFFile(filename, netcdf_mode_w)
-        points_utm = num.array([[0.,0.],[1.,1.], [0.,1.]])
+        points_utm = num.array([[0.,0.], [1.,1.], [0.,1.]])
         volumes = [[0,1,2]]
         elevation = [0,1,2]
         new_origin = None
@@ -797,7 +796,7 @@ class Test_sww(unittest.TestCase):
         assert results_georef == new_origin
         fid.close()
 
-        absolute = Geo_reference(56, 0,0)
+        absolute = Geo_reference(56, 0, 0)
         assert num.allclose(num.array(
             absolute.change_points_geo_ref(list(zip(x,y)),
                                            new_origin)),points_utm)
@@ -874,7 +873,7 @@ class Test_sww(unittest.TestCase):
         fid.close()
 
 
-        absolute = Geo_reference(56, 0,0)
+        absolute = Geo_reference(56, 0, 0)
         assert num.allclose(num.array(
             absolute.change_points_geo_ref(list(zip(x,y)),
                                            new_origin)),points_utm)

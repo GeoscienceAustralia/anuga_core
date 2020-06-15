@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 
 
-from builtins import chr
-from builtins import str
-from builtins import range
-from past.builtins import basestring
 import unittest
 import numpy as num
 import random
@@ -31,13 +27,13 @@ class Test_system_tools(unittest.TestCase):
         user = get_user_name()
 
         # print user
-        assert isinstance(user, basestring), 'User name should be a string'
+        assert isinstance(user, str), 'User name should be a string'
 
     def test_host_name(self):
         host = get_host_name()
 
         # print host
-        assert isinstance(host, basestring), 'User name should be a string'        
+        assert isinstance(host, str), 'User name should be a string'
 
     def test_compute_checksum(self):
         """test_compute_checksum(self):
@@ -48,37 +44,36 @@ class Test_system_tools(unittest.TestCase):
         from tempfile import mkstemp, mktemp
 
         # Generate a text file
-        tmp_fd , tmp_name = mkstemp(suffix='.tmp', dir='.')
+        tmp_fd, tmp_name = mkstemp(suffix='.tmp', dir='.')
         fid = os.fdopen(tmp_fd, 'w+b')
         string = 'My temp file with textual content. AAAABBBBCCCC1234'
-        fid.write(string)
+        binary_object = string.encode()  # Make it binary
+        fid.write(binary_object)
         fid.close()
 
         # Have to apply the 64 bit fix here since we aren't comparing two
         # files, but rather a string and a file.
-        ref_crc = safe_crc(string)
+        ref_crc = safe_crc(binary_object)
 
         checksum = compute_checksum(tmp_name)
         assert checksum == ref_crc
 
         os.remove(tmp_name)
 
-
-
         # Binary file
-        tmp_fd , tmp_name = mkstemp(suffix='.tmp', dir='.')
+        tmp_fd, tmp_name = mkstemp(suffix='.tmp', dir='.')
         fid = os.fdopen(tmp_fd, 'w+b')
 
-        string = 'My temp file with binary content. AAAABBBBCCCC1234'
-        fid.write(string)
+        binary_object = 'My temp file with binary content. AAAABBBBCCCC1234'.encode()
+        fid.write(binary_object)
         fid.close()
 
-        ref_crc = safe_crc(string)
+        ref_crc = safe_crc(binary_object)
         checksum = compute_checksum(tmp_name)
 
         assert checksum == ref_crc
 
-        os.remove(tmp_name)        
+        os.remove(tmp_name)
 
         # Binary NetCDF File X 2 (use mktemp's name)
 
@@ -108,37 +103,41 @@ class Test_system_tools(unittest.TestCase):
             fid.variables['test_array'][:] = test_array
             fid.close()
 
-
             checksum1 = compute_checksum(filename1)
-            checksum2 = compute_checksum(filename2)        
+            checksum2 = compute_checksum(filename2)
             assert checksum1 == checksum2
-
 
             os.remove(filename1)
             os.remove(filename2)
 
 
+    def test_get_pathname_from_package(self):
+        """test_get_pathname_from_package(self):
+
+        Check that correct pathname can be derived from package
+        """
+        
+        path = get_pathname_from_package('anuga')
+        assert path.endswith('anuga')
+
+            
     def test_compute_checksum_real(self):
         """test_compute_checksum(self):
 
         Check that checksums on a png file is OK
         """
 
+        path = get_pathname_from_package('anuga.utilities')
 
-            
-        path = get_pathname_from_package('anuga.utilities')        
-                
-        filename = os.path.join(path, 'tests', 'data', 'crc_test_file.png') 
+        filename = os.path.join(path, 'tests', 'data', 'crc_test_file.png')
 
-
-
-        ref_crc = 1203293305 # Computed on Windows box
+        ref_crc = 1203293305  # Computed on Windows box
         checksum = compute_checksum(filename)
 
         msg = 'Computed checksum = %s, should have been %s'\
-              %(checksum, ref_crc)
+              % (checksum, ref_crc)
         assert checksum == ref_crc, msg
-        #print checksum
+        # print checksum
 
 ################################################################################
 # Test the clean_line() utility function.
@@ -152,33 +151,34 @@ class Test_system_tools(unittest.TestCase):
                         % (str(instr), str(delim), str(expected), str(result)))
 
     def test_clean_line_01(self):
-        self.clean_line_helper('abc, ,,xyz,123', ',', ['abc', '', 'xyz', '123'])
+        self.clean_line_helper('abc, ,,xyz,123', ',', [
+                               'abc', '', 'xyz', '123'])
 
     def test_clean_line_02(self):
         self.clean_line_helper(' abc , ,, xyz  , 123  ', ',',
-                             ['abc', '', 'xyz', '123'])
+                               ['abc', '', 'xyz', '123'])
 
     def test_clean_line_03(self):
         self.clean_line_helper('1||||2', '|', ['1', '2'])
 
     def test_clean_line_04(self):
         self.clean_line_helper('abc, ,,xyz,123, ', ',',
-                             ['abc', '', 'xyz', '123']) 
+                               ['abc', '', 'xyz', '123'])
 
     def test_clean_line_05(self):
         self.clean_line_helper('abc, ,,xyz,123, ,    ', ',',
-                             ['abc', '', 'xyz', '123', ''])
+                               ['abc', '', 'xyz', '123', ''])
 
     def test_clean_line_06(self):
         self.clean_line_helper(',,abc, ,,xyz,123, ,    ', ',',
-                             ['abc', '', 'xyz', '123', ''])
+                               ['abc', '', 'xyz', '123', ''])
 
     def test_clean_line_07(self):
         self.clean_line_helper('|1||||2', '|', ['1', '2'])
 
     def test_clean_line_08(self):
         self.clean_line_helper(' ,a,, , ,b,c , ,, , ', ',',
-                             ['a', '', '', 'b', 'c', '', ''])
+                               ['a', '', '', 'b', 'c', '', ''])
 
     def test_clean_line_09(self):
         self.clean_line_helper('a:b:c', ':', ['a', 'b', 'c'])
@@ -209,8 +209,8 @@ class Test_system_tools(unittest.TestCase):
 
         x = string_to_char(str_list)
         new_str_list = char_to_string(x)
+        self.assertEqual(new_str_list, str_list)        
 
-        self.assertEqual(new_str_list, str_list)
 
     # special test - input list is ['']
     def test_string_to_char2(self):
@@ -224,9 +224,10 @@ class Test_system_tools(unittest.TestCase):
 
 
 ################################################################################
-# Test the raw I/O to NetCDF files of string data encoded/decoded with 
+# Test the raw I/O to NetCDF files of string data encoded/decoded with
 # string_to_char() and char_to_string().
 ################################################################################
+
 
     def helper_write_msh_file(self, filename, l):
         # open the NetCDF file
@@ -246,7 +247,6 @@ class Test_system_tools(unittest.TestCase):
 
         fd.close()
 
-
     def helper_read_msh_file(self, filename):
         fid = NetCDFFile(filename, netcdf_mode_r)
         mesh = {}
@@ -258,9 +258,9 @@ class Test_system_tools(unittest.TestCase):
 
         return char_to_string(strings)
 
-
     # test random strings to a NetCDF file
-    def test_string_to_netcdf(self):
+
+    def test_string_to_netcdf1(self):
         import random
 
         MAX_CHARS = 10
@@ -272,7 +272,7 @@ class Test_system_tools(unittest.TestCase):
         FILENAME = 'test.msh'
 
         # generate some random strings in a list, with guaranteed lengths
-        str_list = ['x' * MAX_CHARS]        # make first maximum length
+        str_list = [u'x' * MAX_CHARS]        # make first maximum length
         for entry in range(MAX_ENTRIES):
             length = random.randint(1, MAX_CHARS)
             s = ''
@@ -282,7 +282,8 @@ class Test_system_tools(unittest.TestCase):
 
         self.helper_write_msh_file(FILENAME, str_list)
         new_str_list = self.helper_read_msh_file(FILENAME)
-
+        #print(str_list[:10])
+        #print(new_str_list[:10])
         self.assertEqual(new_str_list, str_list)
         os.remove(FILENAME)
 
@@ -299,7 +300,6 @@ class Test_system_tools(unittest.TestCase):
         self.assertEqual(new_str_list, str_list)
         os.remove(FILENAME)
 
-
     def test_get_vars_in_expression(self):
         '''Test the 'get vars from expression' code.'''
 
@@ -313,7 +313,7 @@ class Test_system_tools(unittest.TestCase):
             msg = ("Source: '%s'\nResult: %s\nExpected: %s"
                    % (source, str(result), str(expected)))
             self.assertEqual(result, expected, msg)
-                
+
         source = 'fred'
         expected = ['fred']
         test_it(source, expected)
@@ -377,10 +377,9 @@ class Test_system_tools(unittest.TestCase):
             os.remove(file)
         os.remove(tar_filename)
 
-
     def test_file_digest(self):
         '''Test that file digest functions give 'correct' answer.
-        
+
         Not a good test as we get 'expected_digest' from a digest file,
         but *does* alert us if the digest algorithm ever changes.
         '''
@@ -419,7 +418,6 @@ class Test_system_tools(unittest.TestCase):
         fd.close()
         self.assertTrue(expected_digest == digest, msg)
 
-
     def test_file_length_function(self):
         '''Test that file_length() give 'correct' answer.'''
 
@@ -432,7 +430,7 @@ class Test_system_tools(unittest.TestCase):
 
         # create files of known length
         fd = open(test_file1, 'w')      # 0 lines
-        fd.close
+        fd.close()
         fd = open(test_file2, 'w')      # 5 lines, all '\n'
         for i in range(5):
             fd.write('\n')
@@ -458,31 +456,29 @@ class Test_system_tools(unittest.TestCase):
         size4 = file_length(test_file4)
         msg = 'Expected file_length() to return 1000, but got %d' % size4
         self.assertTrue(size4 == 1000, msg)
-        
-        
-        
+
     def test_get_revision_number(self):
         """test_get_revision_number
-        
+
         Test that a revision number is returned.
         This should work both from a sandpit with access to Subversion
         and also in distributions where revision number is returned as 0
         """
 
         x = get_revision_number()
-        
+
         assert int(x) >= 0
-        
+
     def test_get_revision_date(self):
         """test_get_revision_date
-        
+
         Test that a revision number is returned.
         This should work both from a sandpit with access to Subversion
         and also in distributions where revision date is returned as 0
         """
 
         x = get_revision_date()
-        
+
 
 ################################################################################
 
@@ -490,4 +486,3 @@ if __name__ == "__main__":
     suite = unittest.makeSuite(Test_system_tools, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
-

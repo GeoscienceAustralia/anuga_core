@@ -56,7 +56,10 @@ def read_mux2_py(filenames,
         permutation = ensure_numeric([], num.int)
 
     # Call underlying C implementation urs2sts_ext.c
-    data = read_mux2(numSrc, filenames, weights, file_params,
+    cast_filenames = []
+    for filename in filenames:
+        cast_filenames.append(str(filename).encode())
+    data = read_mux2(numSrc, cast_filenames, weights, file_params,
                      permutation, verbose)
 
     msg = 'File parameter values were not read in correctly from c file'

@@ -29,8 +29,8 @@ class Test_results(unittest.TestCase):
     
 
         if verbose:
-            print
-            print indent+'Running simulation script'
+            print()
+            print(indent+'Running simulation script')
 
         # Run basic script (can be parallel if -np used in call
         # to this script
@@ -43,7 +43,7 @@ class Test_results(unittest.TestCase):
 
 
         if verbose:
-            print indent+'Testing accuracy'
+            print(indent+'Testing accuracy')
 
 
 
@@ -86,18 +86,18 @@ class Test_results(unittest.TestCase):
         eh30 = numpy.sum(numpy.abs(w30_n-w30))/numpy.sum(numpy.abs(w30))
 
 
-        print 
-        print indent+'Errors in stage: ',eh10, eh30
+        print() 
+        print(indent+'Errors in stage: ', eh10, eh30)
 
 
 
-        #Test xmomenta
+        # Test xmomenta
         # Calculate L^1 error at times corrsponding to slices 10, 50 and 100
         euh10 = numpy.sum(numpy.abs(uh10_n-u10*h10))/numpy.sum(numpy.abs(u10*h10))
         euh30 = numpy.sum(numpy.abs(uh30_n-u30*h30))/numpy.sum(numpy.abs(u30*h30))
     
 
-        print indent+'Errors in xmomentum: ',euh10, euh30
+        print(indent+'Errors in xmomentum: ', euh10, euh30)
 
         #Test xvelocity
         # Calculate L^1 error at times corrsponding to slices 10, 50 and 100
@@ -105,7 +105,7 @@ class Test_results(unittest.TestCase):
         eu30 = numpy.sum(numpy.abs(u30_n-u30))/numpy.sum(numpy.abs(u30))
 
 
-        print indent+'Errors in xvelocity: ', eu10, eu30
+        print(indent+'Errors in xvelocity: ', eu10, eu30)
 
 
         assert eh10 < 0.01,  'L^1 error %g greater than 1 percent'% eh10

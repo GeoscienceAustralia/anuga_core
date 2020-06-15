@@ -7,7 +7,11 @@ from builtins import range
 from anuga.lib.maxasc import *
 import anuga.utilities.system_tools as aust
 
-import exceptions
+try:
+    import exceptions
+except ImportError:
+    import builtins as exceptions
+
 from functools import reduce
 class TestError(exceptions.Exception): pass
 import unittest

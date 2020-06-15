@@ -22,6 +22,7 @@ import sys
 #import pypar
 import numpy as num
 
+import anuga
 
 from anuga import Domain
 from anuga import Reflective_boundary
@@ -183,14 +184,16 @@ class Test_parallel_sw_flow(unittest.TestCase):
     def test_parallel_sw_flow(self):
         if verbose : print("Expect this test to fail if not run from the parallel directory.")
 
-        abs_script_name = os.path.abspath(__file__)
-        cmd = "mpiexec -np %d python %s" % (3, abs_script_name)
+        cmd = anuga.mpicmd(os.path.abspath(__file__))
         result = os.system(cmd)
 
-        assert_(result == 0)
+        # Just use the normal Python assert
+        msg = 'Result == %i, expected 0' % result
+        assert result == 0, msg
 
 # Because we are doing assertions outside of the TestCase class
 # the PyUnit defined assert_ function can't be used.
+# FIXME (Ole): Why not use the normal Python assert?
 def assert_(condition, msg="Assertion Failed"):
     if condition == False:
         #pypar.finalize()

@@ -147,14 +147,18 @@ def sww2csv_gauges(sww_file,
     assert isinstance(out_name,string_types) or isinstance(out_name, str), 'Output filename prefix must be a string'
     
     try:
-        point_reader = reader(file(gauge_file))
+        gid = open(gauge_file)
+        point_reader = reader(gid)
+        gid.close()
     except Exception as e:
         msg = 'File "%s" could not be opened: Error="%s"' % (gauge_file, e)
         raise Exception(msg)
 
     if verbose: log.critical('Gauges obtained from: %s' % gauge_file)
     
-    point_reader = reader(file(gauge_file))
+    gid = open(gauge_file)
+    point_reader = reader(gid)
+
     points = []
     point_name = []
     
@@ -172,6 +176,8 @@ def sww2csv_gauges(sww_file,
             points.append([float(row[easting]),float(row[northing])])
             point_name.append(row[name])
         
+    gid.close()
+
     #convert to array for file_function
     points_array = num.array(points,num.float)
         
@@ -242,17 +248,20 @@ def sww2csv_gauges(sww_file,
 
                 if point_quantities[0] != NAN:
                     if is_opened[point_i] == False:
-                        points_writer = writer(file(dir_name + sep + gauge_file
-                                                    + point_name[point_i] + '.csv', "wb"))
+                        points_handle = open(dir_name + sep + gauge_file
+                                             + point_name[point_i] + '.csv', 'w')
+                        points_writer = writer(points_handle)
                         points_writer.writerow(heading)
                         is_opened[point_i] = True
                     else:
-                        points_writer = writer(file(dir_name + sep + gauge_file
-                                                    + point_name[point_i] + '.csv', "ab"))
+                        points_handle = open(dir_name + sep + gauge_file
+                                             + point_name[point_i] + '.csv', 'a')
+                        points_writer = writer(points_handle)
 
 
                     points_list = [quake_time, quake_time/3600.] +  _quantities2csv(quantities, point_quantities, callable_sww.centroids, point_i)
                     points_writer.writerow(points_list)
+                    points_handle.close()
                 else:
                     if verbose:
                         msg = 'gauge' + point_name[point_i] + 'falls off the mesh in file ' + sww_file + '.'
@@ -686,8 +695,8 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
     model_time_plot3d = num.zeros((n0, m), num.float)
     stages_plot3d = num.zeros((n0, m), num.float)
     eastings_plot3d = num.zeros((n0, m),num.float)
-    if time_unit is 'mins': scale = 60.0
-    if time_unit is 'hours': scale = 3600.0
+    if time_unit == 'mins': scale = 60.0
+    if time_unit == 'hours': scale = 3600.0
 
     ##### loop over each swwfile #####
     for j, f in enumerate(f_list):
@@ -910,8 +919,8 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         #ax = axis([time_min, time_max, 0.0, 360.0])
                         legend(('Bearing','West','East'))
 
-                    if time_unit is 'mins': xlabel('time (mins)')
-                    if time_unit is 'hours': xlabel('time (hours)')
+                    if time_unit == 'mins': xlabel('time (mins)')
+                    if time_unit == 'hours': xlabel('time (hours)')
                     #if which_quantity == 'stage' \
                     #   and elevations[0:n[j]-1,k,j] > 0:
                     #    ylabel('%s (%s)' %('depth', units))

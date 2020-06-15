@@ -174,9 +174,12 @@ class Test_LoadSave(unittest.TestCase):
 
                 assert num.allclose(Q, uh*width)
 
-        import pickle        
-        pickle.dump(domain, open('domain_pickle.pickle', 'w'))
-        domain_restored = pickle.load(open('domain_pickle.pickle'))
+        import pickle
+        fid = open('domain_pickle.pickle', 'wb')
+        pickle.dump(domain, fid)
+        
+        fid = open('domain_pickle.pickle', 'rb')
+        domain_restored = pickle.load(fid)
 
         
         for t in domain_restored.evolve(yieldstep=0.1, finaltime=1.0):

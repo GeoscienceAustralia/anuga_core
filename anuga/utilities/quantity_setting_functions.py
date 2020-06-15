@@ -3,12 +3,7 @@
 Function which can be useful when setting quantities
 
 """
-from __future__ import print_function
-from __future__ import division
-from past.builtins import str
-from builtins import range
-from past.utils import old_div
-from future.utils import raise_
+
 import copy
 import os
 import anuga.utilities.spatialInputUtil as su
@@ -90,7 +85,7 @@ def make_nearestNeighbour_quantity_function(
         # we adjust them here
         xll = domain.geo_reference.xllcorner
         yll = domain.geo_reference.yllcorner
-        z = scipy.zeros(shape=(len(x), 2))
+        z = np.zeros(shape=(len(x), 2))
         z[:,0] = x+xll
         z[:,1] = y+yll
 
@@ -153,7 +148,7 @@ def make_nearestNeighbour_quantity_function(
                 numerator += values*inverse_distance
                 denominator += inverse_distance
 
-            quantity_output[dist_lt_thresh] = old_div(numerator,denominator)
+            quantity_output[dist_lt_thresh] = numerator / denominator
 
         return quantity_output
 
@@ -356,19 +351,18 @@ def composite_quantity_setting_function(poly_fun_pairs,
             ###################################################################
             if(pi == 'All'):
                 # Get all unset points
-                fInside = (1-isSet)
-                fInds = (fInside==1).nonzero()[0]
+                fInside = (1 - isSet)
+                fInds = (fInside == 1).nonzero()[0]
 
             else:
-
-                if(pi == 'Extent'):
+                if pi == 'Extent':
                     # Here fi MUST be a gdal-compatible raster
-                    if(not (type(fi) == str)):
+                    if not isinstance(fi, str):
                         msg = ' pi = "Extent" can only be used when fi is a' +\
                               ' raster file name'
                         raise Exception(msg)
 
-                    if(not os.path.exists(fi)):
+                    if not os.path.exists(fi):
                         msg = 'fi ' + str(fi) + ' is supposed to be a ' +\
                               ' raster filename, but it could not be found'
                         raise Exception(msg)
@@ -380,7 +374,7 @@ def composite_quantity_setting_function(poly_fun_pairs,
                         print('Extracting extent from raster: ', fi)
                         print('Extent: ', pi_path)
 
-                elif( (type(pi) == str) and os.path.isfile(pi) ):
+                elif (type(pi) == str) and os.path.isfile(pi):
                     # pi is a file
                     pi_path = su.read_polygon(pi)
 
@@ -403,21 +397,21 @@ def composite_quantity_setting_function(poly_fun_pairs,
 
             # We use various tricks to infer whether fi is a function,
             # a constant, a file (raster or csv), or an array
-            if(hasattr(fi,'__call__')):
-                # fi is a function
+            if hasattr(fi, '__call__'):
+                # fi is a function or a callable object
                 quantityVal[fInds] = fi(x[fInds], y[fInds])
 
             elif isinstance(fi, (int, int, float)):
                 # fi is a numerical constant
                 quantityVal[fInds] = fi*1.0
 
-            elif ( type(fi) is str and os.path.exists(fi)):
+            elif type(fi) is str and os.path.exists(fi):
                 # fi is a file which is assumed to be
                 # a gdal-compatible raster OR an x,y,z elevation file
                 if os.path.splitext(fi)[1] in ['.txt', '.csv']:
                     fi_array = su.read_csv_optional_header(fi)
                     # Check the results
-                    if fi_array.shape[1] is not 3:
+                    if fi_array.shape[1] != 3:
                         print('Treated input file ' + fi +\
                               ' as xyz array with an optional header')
                         msg = 'Array should have 3 columns -- x,y,value'
@@ -434,8 +428,8 @@ def composite_quantity_setting_function(poly_fun_pairs,
                         interpolation = default_raster_interpolation)
                     quantityVal[fInds] = newfi(x[fInds], y[fInds])
 
-            elif(type(fi) is numpy.ndarray):
-                if fi.shape[1] is not 3:
+            elif type(fi) is numpy.ndarray:
+                if fi.shape[1] != 3:
                     msg = 'Array should have 3 columns -- x,y,value'
                     raise Exception(msg)
                 newfi = make_nearestNeighbour_quantity_function(fi, domain,
@@ -445,7 +439,7 @@ def composite_quantity_setting_function(poly_fun_pairs,
             else:
                 print('ERROR: with function from ' + fi)
                 msg='Cannot make function from type ' + str(type(fi))
-                raise_(Exception, msg)
+                raise Exception(msg)
 
             ###################################################################
             # Check for nan values
@@ -627,11 +621,14 @@ def quantityRasterFun(domain, rasterFile, interpolation='pixel'):
             corresponding raster values
     """
     import scipy
+    #import numpy as NearestNDInterpolator  # FIXME (Ole): What?
+    import numpy as np
+    
     from anuga.utilities.spatialInputUtil import rasterValuesAtPoints
     def QFun(x,y):
         xll=domain.geo_reference.xllcorner
         yll=domain.geo_reference.yllcorner
-        inDat=scipy.vstack([x+xll,y+yll]).transpose()
+        inDat=np.vstack([x+xll,y+yll]).transpose()
         return rasterValuesAtPoints(xy=inDat,rasterFile=rasterFile,
                                     interpolation=interpolation)
 

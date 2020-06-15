@@ -144,7 +144,7 @@ def write_ermapper_header(ofile, header = {}):
     fid.write('\tRasterInfo End\n')
     fid.write('DatasetHeader End\n')
 
-    fid.close
+    fid.close()
 
 def read_ermapper_header(ifile):
     # function for reading an ERMapper header from file

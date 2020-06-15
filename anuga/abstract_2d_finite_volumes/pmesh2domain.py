@@ -217,8 +217,13 @@ def pmesh_dict_to_tag_dict(mesh_dict):
 
     from anuga.abstract_2d_finite_volumes.pmesh2domain_ext import build_boundary_dictionary
 
+    segment_tags = [seg.encode() for seg in segment_tags]  # Convert to binary form
     tag_dict = build_boundary_dictionary(triangles, segments, segment_tags, tag_dict)
-    
+
+    for key in tag_dict.keys():
+        x = tag_dict[key]
+        tag_dict[key] = x.decode() # Convert back to string form
+
     return tag_dict
 
 

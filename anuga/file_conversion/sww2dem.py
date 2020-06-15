@@ -5,7 +5,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 # external modules
-from past.builtins import str
+import sys
 from builtins import range
 from past.utils import old_div
 from future.utils import raise_
@@ -301,7 +301,7 @@ def sww2dem(name_in, name_out,
     msg += 'I got ymin = %f, ymax = %f' %(ymin, ymax)
     assert ymax >= ymin, msg
 
-    if verbose: log.critical('Creating grid')
+    if verbose: log.critical(u'Creating grid')
     ncols = int(old_div((xmax-xmin),cellsize)) + 1
     nrows = int(old_div((ymax-ymin),cellsize)) + 1
 
@@ -408,7 +408,7 @@ def sww2dem(name_in, name_out,
 
         #Write
         if verbose:
-            log.critical('Writing %s' % name_out)
+            print('Writing %s' % name_out)
 
         import anuga.abstract_2d_finite_volumes.ermapper_grids as ermapper_grids
 
@@ -423,7 +423,7 @@ def sww2dem(name_in, name_out,
         #Write prj file
         prjfile = basename_out + '.prj'
 
-        if verbose: log.critical('Writing %s' % prjfile)
+        if verbose: print('Writing %s' % prjfile)
         prjid = open(prjfile, 'w')
         prjid.write('Projection    %s\n' %'UTM')
         prjid.write('Zone          %d\n' %zone)
@@ -436,7 +436,7 @@ def sww2dem(name_in, name_out,
         prjid.write('Parameters\n')
         prjid.close()
 
-        if verbose: log.critical('Writing %s' % name_out)
+        if verbose: print('Writing %s' % name_out)
 
         ascid = open(name_out, 'w')
 
@@ -459,7 +459,7 @@ def sww2dem(name_in, name_out,
         format = '%.'+'%g' % number_of_decimal_places +'e'
         for i in range(nrows):
             if verbose and i % (old_div((nrows+10),10)) == 0:
-                log.critical('Doing row %d of %d' % (i, nrows))
+                print('Doing row %d of %d' % (i, nrows))
 
             base_index = (nrows-i-1)*ncols
 
@@ -534,7 +534,7 @@ def sww2dem_batch(basename_in, extra_name_out=None,
             demout = dir+os.sep+basename_out+'.'+format
 
             if verbose:
-                log.critical('sww2dem: %s => %s' % (swwin, demout))
+                print('sww2dem: %s => %s' % (swwin, demout))
 
             file_out = sww2dem(swwin,
                                demout,

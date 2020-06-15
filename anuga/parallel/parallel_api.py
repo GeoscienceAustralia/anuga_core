@@ -499,3 +499,13 @@ def distribute_mesh(domain, verbose=False, debug=False, parameters=None):
 ##     l2g[l_ids] = g_ids
 
 ##     return l2g
+
+def mpicmd(script_name):
+
+    extra_options = '--oversubscribe'
+
+    import platform
+    if platform.system() == 'Windows':
+        extra_options = ' '
+
+    return "mpiexec -np %d  %s  python %s" % (3, extra_options, script_name)  

@@ -79,7 +79,7 @@ if myid == 0:
     parameter_file.close()
 
 for t in domain.evolve(yieldstep=0.2,finaltime=30.0):
-    if myid == 0 and verbose: print domain.timestepping_statistics()
+    if myid == 0 and verbose: print(domain.timestepping_statistics())
 
 domain.sww_merge(delete_old=True)
 

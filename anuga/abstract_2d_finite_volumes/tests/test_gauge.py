@@ -30,7 +30,8 @@ class Test_Gauge(unittest.TestCase):
         
         """ Setup for all tests. """
         
-        mesh_file = tempfile.mktemp(".tsh")    
+        mesh_file = tempfile.mktemp(".tsh")
+
         points = [[0.0,0.0],[6.0,0.0],[6.0,6.0],[0.0,6.0]]
         m = Mesh()
         m.add_vertices(points)
@@ -40,7 +41,7 @@ class Test_Gauge(unittest.TestCase):
         
         # Create shallow water domain
         domain = anuga.Domain(mesh_file)
-        os.remove(mesh_file)
+
  
         domain.default_order = 2
 
@@ -152,9 +153,13 @@ point2, 0.5, 2.0, 9.0\n")
         # clean up
         point1_handle.close()
         point2_handle.close()
-        #os.remove(points_file)
-        #os.remove(point1_filename)
-        #os.remove(point2_filename)
+
+        try:
+            os.remove(points_file)
+            os.remove(point1_filename)
+            os.remove(point2_filename)
+        except:
+            pass
 
 
     def test_sww2csv_gauges1(self):
@@ -195,7 +200,7 @@ point2, 0.5, 2.0\n")
 
         point1_answers_array = [[0.0, 1.0, -3.0], [2.0, 10.0, -3.0]]
         point1_filename = 'gauge_point1.csv'
-        point1_handle = file(point1_filename)
+        point1_handle = open(point1_filename)
         point1_reader = reader(point1_handle)
         next(point1_reader)
 
@@ -209,7 +214,7 @@ point2, 0.5, 2.0\n")
 
         point2_answers_array = [ [0.0, 1.0, -2.416666666666667], [2.0, 10.000000000000002, -2.416666666666667] ]
         point2_filename = 'gauge_point2.csv' 
-        point2_handle = file(point2_filename)
+        point2_handle = open(point2_filename)
         point2_reader = reader(point2_handle)
         next(point2_reader)
                         
@@ -265,7 +270,7 @@ point2, 0.5, 2.0, 9.0\n")
 #        point1_answers_array = [[0.0,1.0,-5.0,3.0,4.0], [2.0,10.0,-5.0,3.0,4.0]]
         point1_answers_array = [[1.0, 0.0002777777777777778, 1.0, 4.0, -3.0, 3.0, 4.0], [3.0, 0.0008333333333333334, 10.0, 13.0, -3.0, 3.0, 4.0] ]
         point1_filename = 'gauge_point1.csv'
-        point1_handle = file(point1_filename)
+        point1_handle = open(point1_filename)
         point1_reader = reader(point1_handle)
         next(point1_reader)
 
@@ -279,7 +284,7 @@ point2, 0.5, 2.0, 9.0\n")
 
         point2_answers_array = [[1.0, 0.0002777777777777778, 1.0, 3.416666666666667, -2.416666666666667, 3.0, 4.0], [3.0, 0.0008333333333333334, 10.000000000000002, 12.416666666666668, -2.416666666666667, 3.0, 4.0]]
         point2_filename = 'gauge_point2.csv' 
-        point2_handle = file(point2_filename)
+        point2_handle = open(point2_filename)
         point2_reader = reader(point2_handle)
         next(point2_reader)
                         
@@ -444,8 +449,9 @@ point1, 2.5, 4.25, 3.0\n")
                        output_centroids=True)
 
         point1_answers_array = [[0.0,0.0,1.0,4.0,4.0], [2.0,2.0/3600.,10.0,4.0,4.0]]
+
         point1_filename = 'gauge_point1.csv'
-        point1_handle = file(point1_filename)
+        point1_handle = open(point1_filename)
         point1_reader = reader(point1_handle)
         next(point1_reader)
 
@@ -456,7 +462,8 @@ point1, 2.5, 4.25, 3.0\n")
             assert num.allclose(line[i], point1_answers_array[i])
 
         # clean up
-        point1_handle.close()        
+        point1_handle.close()
+
         os.remove(points_file)
         os.remove(point1_filename)
 
@@ -478,19 +485,19 @@ point1, 2.5, 4.25, 3.0\n")
         domain.set_time(domain.get_time()+timestep)
         self._create_sww(stage=20.,timestep=timestep)
 
-        points_file = tempfile.mktemp(".csv")
-        file_id = open(points_file,"w")
+        #points_file = tempfile.mktemp(".csv")
+        #file_id = open(points_file,"w")
 
         # test the function at these points
         points = [[5.0,1.],[0.5,2.]]
 
         # create a csv file containing our gauge points
         points_file = tempfile.mktemp(".csv")
-        file_id = open(points_file,"w")
-        file_id.write("name,easting,northing \n\
+        points_handle = open(points_file,"w")
+        points_handle.write("name,easting,northing \n\
 point1, 5.0, 1.0\n\
 point2, 0.5, 2.0\n")
-        file_id.close()
+        points_handle.close()
 
 
         sww2csv_gauges(basename+".sww", 
@@ -506,7 +513,7 @@ point2, 0.5, 2.0\n")
                                [4.0, 10.0, -3.0], [6.0, 20.0, -3.0]]
 
         point1_filename = 'gauge_point1.csv'
-        point1_handle = file(point1_filename)
+        point1_handle = open(point1_filename)
         point1_reader = reader(point1_handle)
         next(point1_reader)
 
@@ -530,7 +537,7 @@ point2, 0.5, 2.0\n")
 
             
         point2_filename = 'gauge_point2.csv' 
-        point2_handle = file(point2_filename)
+        point2_handle = open(point2_filename)
         point2_reader = reader(point2_handle)
         next(point2_reader)
                         

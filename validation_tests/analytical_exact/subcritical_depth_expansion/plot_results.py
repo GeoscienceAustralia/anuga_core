@@ -19,7 +19,7 @@ tid = args.tid
 verbose = args.verbose
 
 
-if verbose: print 'Read in swwfile'
+if verbose: print('Read in swwfile')
 p_st = util.get_output('numerical_depth_expansion.sww')
 p2_st=util.get_centroids(p_st)
 
@@ -28,7 +28,7 @@ p2_st=util.get_centroids(p_st)
 #v2=(p2_st.y>-1.0)
 v2 = arange(len(p2_st.y))
 
-if verbose: print 'Calculate analytical solution'
+if verbose: print('Calculate analytical solution')
 h,z = analytic_sol(p2_st.x[v2])
 qexact = 1.0
 
@@ -36,7 +36,7 @@ qexact = 1.0
 
 
 #Plot the stages##############################################################
-if verbose: print 'Create Stage plot'
+if verbose: print('Create Stage plot')
 pyplot.clf()
 pyplot.plot(p2_st.x[v2], p2_st.stage[tid,v2], 'b.-', label='numerical stage') # 0*T/6
 pyplot.plot(p2_st.x[v2], h+z,'r-', label='analytical stage')
@@ -51,7 +51,7 @@ pyplot.savefig('stage_plot.png')
 
 
 #Plot the momentums##########################################################
-if verbose: print 'Create Momentum plot'
+if verbose: print('Create Momentum plot')
 pyplot.clf()
 pyplot.plot(p2_st.x[v2], p2_st.xmom[tid,v2], 'b.-', label='numerical') # 0*T/6
 pyplot.plot(p2_st.x[v2], qexact*ones(len(p2_st.x[v2])),'r-', label='analytical')
@@ -66,7 +66,7 @@ pyplot.savefig('xmom_plot.png')
 
 
 #Plot the velocities#########################################################
-if verbose: print 'Create Velocity plot'
+if verbose: print('Create Velocity plot')
 pyplot.clf()
 pyplot.plot(p2_st.x[v2], p2_st.xvel[tid,v2], 'b.-', label='numerical') # 0*T/6
 pyplot.plot(p2_st.x[v2], qexact/h,'r-', label='analytical')

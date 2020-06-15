@@ -77,7 +77,7 @@ from __future__ import division
 # Decorator added for profiling
 #------------------------------
 
-from past.builtins import str
+#rom past.builtins import str
 from builtins import range
 from past.utils import old_div
 from future.utils import raise_
@@ -1094,7 +1094,7 @@ class Domain(Generic_Domain):
             else:
                 self.checkpoint_step = checkpoint_step
             self.checkpoint = True
-            #print self.checkpoint_dir, self.checkpoint_step
+            #print(self.checkpoint_dir, self.checkpoint_step)
         else:
             self.checkpoint = False
 
@@ -1148,10 +1148,10 @@ class Domain(Generic_Domain):
 
         self.max_flux_update_frequency=2**nlevels
 
-        if(self.max_flux_update_frequency is not 1):
-            if self.timestepping_method is not 'euler':
+        if(self.max_flux_update_frequency != 1):
+            if self.timestepping_method != 'euler':
                 raise Exception('Local extrapolation and flux updating only supported with euler timestepping')
-            if self.compute_fluxes_method is not 'DE':
+            if self.compute_fluxes_method != 'DE':
                 raise Exception('Local extrapolation and flux updating only supported for discontinuous flow algorithms')
 
 
@@ -1213,10 +1213,12 @@ class Domain(Generic_Domain):
            DE1_7
         """
 
-        if isinstance(flag, str) :
-            flag = flag.replace(".","_")
-        else:
-            flag = str(float(str(flag))).replace(".","_")
+        # FIXME(Ole): flag should be called algorithm ;-)
+        flag = str(flag)
+
+        # Replace any dots with dashes
+        flag = flag.replace(".","_")        
+        
 
         flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', \
                            'tsunami', 'yusuke', 'DE0', 'DE1', 'DE2', \
@@ -1228,9 +1230,6 @@ class Domain(Generic_Domain):
             msg = 'Unknown flow_algorithm. \nPossible choices are:\n'+ \
             ', '.join(flow_algorithms)+'.'
             raise Exception(msg)
-
-
-
 
         if self.flow_algorithm == '1_0':
             self._set_1_0_defaults()
@@ -2157,7 +2156,9 @@ class Domain(Generic_Domain):
             #       self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas, xc, yc)
 #
             if mass_error > 0.0 and self.verbose :
-                print('Cumulative mass protection: '+str(mass_error)+' m^3 ')
+                #print('Cumulative mass protection: ' + str(mass_error) + ' m^3 ')
+                # From https://stackoverflow.com/questions/22397261/cant-convert-float-object-to-str-implicitly
+                print('Cumulative mass protection: {0} m^3'.format(mass_error))
 
         else:
             from .shallow_water_ext import protect
@@ -2240,7 +2241,7 @@ class Domain(Generic_Domain):
 
             negative_ids = num.where( num.logical_and((Stage.centroid_values - Elev.centroid_values) < 0.0 , tff > 0) )[0]
 
-            if len(negative_ids)>0:
+            if len(negative_ids) > 0:
                 # FIXME: This only warns the first time -- maybe we should warn whenever loss occurs?
                 import warnings
                 msg = 'Negative cells being set to zero depth, possible loss of conservation. \n' +\
@@ -2790,7 +2791,7 @@ class Domain(Generic_Domain):
         """
         from anuga import myid
 
-        if(self.compute_fluxes_method is not 'DE'):
+        if(self.compute_fluxes_method != 'DE'):
             if(myid==0):
                 print('Water_volume_statistics only supported for DE algorithm ')
             return

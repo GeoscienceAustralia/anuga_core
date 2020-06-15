@@ -130,12 +130,13 @@ class Region(object):
         else:
             assert self.indices is None or self.indices is []
         
+        
         if self.indices is None:
             self.full_indices = num.where(self.domain.tri_full_flag ==1)[0]
         elif len(self.indices) == 0:
             self.full_indices = []
         else:
-            self.full_indices = self.indices[self.domain.tri_full_flag[self.indices]==1]
+            self.full_indices = num.array(self.indices)[self.domain.tri_full_flag[self.indices]==1]
 
         
     def __repr__(self):
@@ -213,7 +214,7 @@ class Region(object):
                 intersect = True
                 indices.append(k)
 
-        if len(indices) is 0:
+        if len(indices) != 0:
             self.indices = indices
         else:
             self.indices = num.asarray(indices)
@@ -238,7 +239,7 @@ class Region(object):
                                         [self.polygon[j],self.polygon[(j+1)%n]])
                 indices = num.union1d(tris_0, indices)            
 
-        if len(indices) is 0:
+        if len(indices) == 0:
             self.indices = indices
         else:
             self.indices = num.asarray(indices)
@@ -246,7 +247,7 @@ class Region(object):
         
         if not self.domain.parallel:
             # only warn if not parallel as we should get lots of subdomains without indices
-            if len(indices) is 0:
+            if len(indices) == 0:
                 msg = 'No centroids found for polygon %s '% str(self.polygon)
                 import warnings
                 warnings.warn(msg)
@@ -261,14 +262,14 @@ class Region(object):
         
         indices = line_intersect(vertex_coordinates, self.line) 
         
-        if len(indices) is 0:
+        if len(indices) == 0:
             self.indices = indices
         else:
             self.indices = num.asarray(indices)
 
         if not self.domain.parallel:
             msg = 'No centroids intersecting line %s '% str(self.line)
-            if len(indices) is 0: raise Exception(msg)
+            if len(indices) == 0: raise Exception(msg)
 
 
     def get_indices(self, full_only=True):

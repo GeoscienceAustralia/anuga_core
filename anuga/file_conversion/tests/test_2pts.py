@@ -43,9 +43,9 @@ class Test_2Pts(unittest.TestCase):
 BEGIN HEADER:
   UNITS: METRIC
   DTM TYPE: TIN
-  DTM: v:\1\cit\perth_topo\river_tin
-  STREAM LAYER: c:\\x_local\hecras\21_02_03\up_canning_cent3d.shp
-  CROSS-SECTION LAYER: c:\\x_local\hecras\21_02_03\up_can_xs3d.shp
+  DTM: v:\\1\\cit\\perth_topo\\river_tin
+  STREAM LAYER: c:\\x_local\\hecras\\21_02_03\\up_canning_cent3d.shp
+  CROSS-SECTION LAYER: c:\\x_local\\hecras\\21_02_03\\up_can_xs3d.shp
   MAP PROJECTION: UTM
   PROJECTION ZONE: 50
   DATUM: AGD66

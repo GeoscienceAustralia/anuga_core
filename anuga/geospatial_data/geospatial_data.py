@@ -11,14 +11,17 @@ from past.builtins import basestring
 from builtins import object
 from past.utils import old_div
 from sys import maxsize
-from os import access, F_OK, R_OK,remove
-from types import DictType
+from os import access, F_OK, R_OK, remove
+#from types import DictType
 from warnings import warn
-from string import lower
+#from string import lower
 from copy import deepcopy
 import copy
 
-from exceptions import Exception
+try:
+    from exceptions import Exception
+except:
+    pass
 
 from anuga.file.netcdf import NetCDFFile
 import numpy as num
@@ -27,7 +30,7 @@ from numpy.random import randint, seed
 from anuga.coordinate_transforms.lat_long_UTM_conversion import UTMtoLL
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
-     TitleError, DEFAULT_ZONE, ensure_geo_reference, write_NetCDF_georeference
+    TitleError, DEFAULT_ZONE, ensure_geo_reference, write_NetCDF_georeference
 from anuga.coordinate_transforms.redfearn import convert_from_latlon_to_utm
 from anuga.utilities.system_tools import clean_line
 from anuga.anuga_exceptions import ANUGAError
@@ -43,7 +46,7 @@ DEFAULT_ATTRIBUTE = 'elevation'
 class Geospatial_data(object):
 
     def __init__(self,
-                 data_points=None, # this can also be a points file name
+                 data_points=None,  # this can also be a points file name
                  attributes=None,
                  geo_reference=None,
                  default_attribute_name=None,
@@ -135,9 +138,13 @@ class Geospatial_data(object):
             file_name = data_points
 
         self.set_verbose(verbose)
-        self.geo_reference = None
         self.file_name = file_name
 
+        if geo_reference is None:
+            self.geo_reference = Geo_reference()  # Use default geo_reference
+        else:
+            self.geo_reference = geo_reference
+            
         if max_read_lines is None:
             self.max_read_lines = int(MAX_READ_LINES)
         else:
@@ -151,8 +158,7 @@ class Geospatial_data(object):
                                         longitudes=longitudes,
                                         geo_reference=geo_reference,
                                         data_points=data_points,
-                                        points_are_lats_longs=
-                                            points_are_lats_longs)
+                                        points_are_lats_longs=points_are_lats_longs)
             self.check_data_points(data_points)
             self.set_attributes(attributes)
             self.set_geo_reference(geo_reference)
@@ -215,7 +221,7 @@ class Geospatial_data(object):
             self.attributes = None
             return
 
-        if not isinstance(attributes, DictType):
+        if not isinstance(attributes, dict):
             # Convert single attribute into dictionary
             attributes = {DEFAULT_ATTRIBUTE: attributes}
 
@@ -253,8 +259,9 @@ class Geospatial_data(object):
 
         # If a geo_reference already exists, change the point data according to
         # the new geo reference
-        if  self.geo_reference is not None:
-            self.data_points = self.get_data_points(geo_reference=geo_reference)
+        if self.geo_reference is not None:
+            self.data_points = self.get_data_points(
+                geo_reference=geo_reference)
 
         self.geo_reference = geo_reference
 
@@ -321,7 +328,7 @@ class Geospatial_data(object):
             polygon = polygon.get_data_points()
 
         points = self.get_data_points()
-        outside_indices = outside_polygon(points, polygon, closed,verbose)
+        outside_indices = outside_polygon(points, polygon, closed, verbose)
 
         clipped_G = self.get_sample(outside_indices)
 
@@ -361,7 +368,7 @@ class Geospatial_data(object):
                 # UTMtoLL(northing, easting, zone,
                 lat_calced, long_calced = UTMtoLL(point[1], point[0],
                                                   zone, isSouthHemisphere)
-                lats_longs.append((lat_calced, long_calced)) # to hash
+                lats_longs.append((lat_calced, long_calced))  # to hash
             return lats_longs
 
         if absolute is True and geo_reference is None:
@@ -387,8 +394,10 @@ class Geospatial_data(object):
                 # above line takes the first one from keys
 
         if self.verbose is True:
-            log.critical('Geospatial_data: Using attribute %s' % attribute_name)
-            log.critical('Geospatial_data: Available attributes: %s' % (list(self.attributes.keys())))
+            log.critical('Geospatial_data: Using attribute %s' %
+                         attribute_name)
+            log.critical('Geospatial_data: Available attributes: %s' %
+                         (list(self.attributes.keys())))
 
         msg = 'Attribute name %s does not exist in data set' % attribute_name
         assert attribute_name in self.attributes, msg
@@ -409,7 +418,8 @@ class Geospatial_data(object):
         NOTE: doesn't add if objects contain different
         attributes
 
-        Always return absolute points!
+        FIXME(Ole): I am not sure this is a good idea, but leave it for now until all tests pass
+        Always return absolute points (i.e. xllcorner = yllcorner = 0)
         This also means, that if you add None to the object,
         it will be turned into absolute coordinates
 
@@ -426,7 +436,7 @@ class Geospatial_data(object):
             geo_ref1.reconcile_zones(geo_ref2)
             new_points = num.concatenate((self.get_data_points(absolute=True),
                                           other.get_data_points(absolute=True)),
-                                         axis = 0)
+                                         axis=0)
 
             # Concatenate attributes if any
             if self.attributes is None:
@@ -443,20 +453,24 @@ class Geospatial_data(object):
                         attrib1 = self.attributes[x]
                         attrib2 = other.attributes[x]
                         new_attributes[x] = num.concatenate((attrib1, attrib2),
-                                                            axis=0) #??default#
+                                                            axis=0)  # ??default#
                     else:
                         msg = ('Geospatial data must have the same '
                                'attributes to allow addition.')
                         raise Exception(msg)
         else:
-            # other is None:
             new_points = self.get_data_points(absolute=True)
             new_attributes = self.attributes
 
         # Instantiate new data object and return absolute coordinates
-        new_geo_ref = Geo_reference(geo_ref1.get_zone(), 0.0, 0.0)
-        return Geospatial_data(new_points, new_attributes, new_geo_ref)
+        # FIXME (Ole): This does not make sense - need to revisit.
+        new_geo_ref = Geo_reference(geo_ref1.zone, 0, 0)
+        
+        return Geospatial_data(data_points=new_points,
+                               attributes=new_attributes,
+                               geo_reference=new_geo_ref)
 
+    
     def __radd__(self, other):
         """Handle cases like None + Geospatial_data(...)"""
 
@@ -475,7 +489,7 @@ class Geospatial_data(object):
         Post condition: self.attributes dictionary has been set
         """
 
-        if access(file_name, F_OK) == 0 :
+        if access(file_name, F_OK) == 0:
             msg = 'File %s does not exist or is not accessible' % file_name
             raise IOError(msg)
 
@@ -483,14 +497,14 @@ class Geospatial_data(object):
         if file_name[-4:] == ".pts":
             try:
                 data_points, attributes, geo_reference = \
-                             _read_pts_file(file_name, verbose)
+                    _read_pts_file(file_name, verbose)
             except IOError as e:
                 msg = 'Could not open file %s ' % file_name
                 raise IOError(msg)
-        elif file_name[-4:] == ".txt" or file_name[-4:]== ".csv":
+        elif file_name[-4:] == ".txt" or file_name[-4:] == ".csv":
             try:
                 data_points, attributes, geo_reference = \
-                             _read_csv_file(file_name, verbose)
+                    _read_csv_file(file_name, verbose)
             except IOError as e:
                 # This should only be if a file is not found
                 msg = ('Could not open file %s. Check the file location.'
@@ -547,17 +561,17 @@ class Geospatial_data(object):
             _write_csv_file(file_name,
                             self.get_data_points(absolute=True,
                                                  as_lat_long=as_lat_long,
-                                           isSouthHemisphere=isSouthHemisphere),
+                                                 isSouthHemisphere=isSouthHemisphere),
                             self.get_all_attributes(),
                             as_lat_long=as_lat_long)
-        elif file_name[-4:] == ".urs" :
+        elif file_name[-4:] == ".urs":
             msg = "ERROR: Can not write a .urs file as a relative file."
             assert absolute, msg
             _write_urs_file(file_name,
                             self.get_data_points(as_lat_long=True,
-                                           isSouthHemisphere=isSouthHemisphere))
+                                                 isSouthHemisphere=isSouthHemisphere))
         else:
-            msg = 'Unknown file type %s ' %file_name
+            msg = 'Unknown file type %s ' % file_name
             raise IOError(msg)
 
     def get_sample(self, indices):
@@ -611,21 +625,24 @@ class Geospatial_data(object):
         new_size = round(factor * self_size)
 
         # Find unique random numbers
-        if verbose: log.critical("make unique random number list "
-                                 "and get indices")
+        if verbose:
+            log.critical("make unique random number list "
+                         "and get indices")
 
-        total = num.array(list(range(self_size)), num.int)    #array default#
+        total = num.array(list(range(self_size)), num.int)  # array default#
         total_list = total.tolist()
 
-        if verbose: log.critical("total list len=%d" % len(total_list))
+        if verbose:
+            log.critical("total list len=%d" % len(total_list))
 
         # There will be repeated random numbers however will not be a
         # problem as they are being 'pop'ed out of array so if there
         # are two numbers the same they will pop different indicies,
         # still basically random
-        ## create list of non-unquie random numbers
-        if verbose: log.critical("create random numbers list %s long"
-                                 % str(new_size))
+        # create list of non-unquie random numbers
+        if verbose:
+            log.critical("create random numbers list %s long"
+                         % str(new_size))
 
         # Set seed if provided, mainly important for unit test!
         # plus recalcule seed when no seed provided.
@@ -641,7 +658,8 @@ class Geospatial_data(object):
         random_num.sort()
         random_num.reverse()
 
-        if verbose: log.critical("make random number list and get indices")
+        if verbose:
+            log.critical("make random number list and get indices")
 
         j = 0
         k = 1
@@ -654,7 +672,7 @@ class Geospatial_data(object):
             random_list.append(remainder_list.pop(i))
             j += 1
             # prints progress
-            if verbose and round(old_div(random_num_len,10)*k) == j:
+            if verbose and round(old_div(random_num_len, 10)*k) == j:
                 log.critical('(%s/%s)' % (j, random_num_len))
                 k += 1
 
@@ -670,10 +688,12 @@ class Geospatial_data(object):
         assert total_list == test_total, msg
 
         # Get new samples
-        if verbose: log.critical("get values of indices for random list")
+        if verbose:
+            log.critical("get values of indices for random list")
         G1 = self.get_sample(random_list)
-        if verbose: log.critical("get values of indices for "
-                                 "opposite of random list")
+        if verbose:
+            log.critical("get values of indices for "
+                         "opposite of random list")
         G2 = self.get_sample(remainder_list)
 
         return G1, G2
@@ -694,7 +714,7 @@ class Geospatial_data(object):
 
         if self.file_name[-4:] == ".pts":
             # See if the file is there.  Throw a QUIET IO error if it isn't
-            fd = open(self.file_name,'r')
+            fd = open(self.file_name, 'r')
             fd.close()
 
             # Throws prints to screen if file not present
@@ -707,9 +727,10 @@ class Geospatial_data(object):
             self.start_row = 0
             self.last_row = self.number_of_points
             self.show_verbose = 0
-            self.verbose_block_size = old_div((self.last_row + 10),10)
+            self.verbose_block_size = old_div((self.last_row + 10), 10)
             self.block_number = 0
-            self.number_of_blocks = int(old_div(self.number_of_points,self.max_read_lines))
+            self.number_of_blocks = int(
+                old_div(self.number_of_points, self.max_read_lines))
             # This computes the number of full blocks. The last block may be
             # smaller and won't be included in this estimate.
 
@@ -722,8 +743,9 @@ class Geospatial_data(object):
         else:
             # Assume the file is a csv file
             file_pointer = open(self.file_name)
-            self.header, self.file_pointer = _read_csv_file_header(file_pointer)
-            self.blocking_georef = None # Used for reconciling zones
+            self.header, self.file_pointer = _read_csv_file_header(
+                file_pointer)
+            self.blocking_georef = None  # Used for reconciling zones
 
         return self
 
@@ -749,7 +771,7 @@ class Geospatial_data(object):
 
             if self.verbose is True:
                 if (self.show_verbose >= self.start_row
-                    and self.show_verbose < fin_row):
+                        and self.show_verbose < fin_row):
 
                     log.critical('\nGeospatial_data: Reading block %d (points %d to %d) out of %d'
                                  % (self.block_number, self.start_row,
@@ -776,10 +798,8 @@ class Geospatial_data(object):
                  geo_ref,
                  self.file_pointer) = _read_csv_file_blocking(self.file_pointer,
                                                               self.header[:],
-                                                              max_read_lines=
-                                                           self.max_read_lines,
-                                                              verbose=
-                                                                  self.verbose)
+                                                              max_read_lines=self.max_read_lines,
+                                                              verbose=self.verbose)
 
                 # Check that the zones haven't changed.
                 if geo_ref is not None:
@@ -810,6 +830,7 @@ class Geospatial_data(object):
                 raise SyntaxError(msg)
         return geo
 
+
 ##################### Error messages ###########
 Error_message = {}
 Em = Error_message
@@ -825,6 +846,7 @@ Em['IOError'] = ('NOTE: The format for a comma separated .txt/.csv file is:\n'
                  '\n'
                  'The first two columns are assumed to be x, y coordinates.\n'
                  'The attribute values must be numeric.\n')
+
 
 def _set_using_lat_long(latitudes,
                         longitudes,
@@ -848,8 +870,8 @@ def _set_using_lat_long(latitudes,
             msg = "Data points are not specified."
             raise ValueError(msg)
         lats_longs = ensure_numeric(data_points)
-        latitudes = num.ravel(lats_longs[:,0:1])
-        longitudes = num.ravel(lats_longs[:,1:])
+        latitudes = num.ravel(lats_longs[:, 0:1])
+        longitudes = num.ravel(lats_longs[:, 1:])
 
     if latitudes is None and longitudes is None:
         msg = "Latitudes and Longitudes are not specified."
@@ -863,8 +885,8 @@ def _set_using_lat_long(latitudes,
         msg = "Latitudes are specified yet longitudes aren't."
         raise ValueError(msg)
 
-    data_points, zone  = convert_from_latlon_to_utm(latitudes=latitudes,
-                                                    longitudes=longitudes)
+    data_points, zone = convert_from_latlon_to_utm(latitudes=latitudes,
+                                                   longitudes=longitudes)
     return data_points, Geo_reference(zone=zone)
 
 
@@ -877,10 +899,11 @@ def _read_pts_file(file_name, verbose=False):
     dict['attributelist']['elevation'] = [[7.0,5.0]]
     """
 
-    if verbose: log.critical('Geospatial_data: Reading %s' % file_name)
+    if verbose:
+        log.critical('Geospatial_data: Reading %s' % file_name)
 
     # See if the file is there.  Throw a QUIET IO error if it isn't
-    fd = open(file_name,'r')
+    fd = open(file_name, 'r')
     fd.close()
 
     # Throws prints to screen if file not present
@@ -889,7 +912,9 @@ def _read_pts_file(file_name, verbose=False):
     pointlist = fid.variables['points'][:]
     keys = list(fid.variables.keys())
 
-    if verbose: log.critical('Geospatial_data: Got %d variables: %s' % (len(keys), keys))
+    if verbose:
+        log.critical('Geospatial_data: Got %d variables: %s' %
+                     (len(keys), keys))
 
     try:
         keys.remove('points')
@@ -900,7 +925,8 @@ def _read_pts_file(file_name, verbose=False):
 
     attributes = {}
     for key in keys:
-        if verbose: log.critical("Geospatial_data: Reading attribute '%s'" % key)
+        if verbose:
+            log.critical("Geospatial_data: Reading attribute '%s'" % key)
 
         if not (key == 'points'):
             attributes[key] = fid.variables[key][:]
@@ -912,7 +938,8 @@ def _read_pts_file(file_name, verbose=False):
 
     fid.close()
 
-    if verbose: log.critical("Geospatial_data: %g data points" % len(pointlist))
+    if verbose:
+        log.critical("Geospatial_data: %g data points" % len(pointlist))
 
     return pointlist, attributes, geo_reference
 
@@ -935,8 +962,8 @@ def _read_csv_file(file_name, verbose=False):
          file_pointer) = _read_csv_file_blocking(file_pointer,
                                                  header,
                                                  max_read_lines=1e30)
-                                    # If the file is bigger that this, block..
-                                    # FIXME (Ole) What's up here?
+        # If the file is bigger that this, block..
+        # FIXME (Ole) What's up here?
     except ANUGAError:
         file_pointer.close()
         raise
@@ -947,6 +974,7 @@ def _read_csv_file(file_name, verbose=False):
 
 
 CSV_DELIMITER = ','
+
 
 def _read_csv_file_header(file_pointer,
                           delimiter=CSV_DELIMITER,
@@ -959,6 +987,7 @@ def _read_csv_file_header(file_pointer,
     header = clean_line(line, delimiter)
 
     return header, file_pointer
+
 
 def _read_csv_file_blocking(file_pointer,
                             header,
@@ -997,7 +1026,7 @@ def _read_csv_file_blocking(file_pointer,
         try:
             x = float(numbers[0])
             y = float(numbers[1])
-            points.append([x,y])
+            points.append([x, y])
             numbers.pop(0)
             numbers.pop(0)
             if len(header) != len(numbers):
@@ -1005,10 +1034,10 @@ def _read_csv_file_blocking(file_pointer,
                 msg = ('File load error. '
                        'There might be a problem with the file header.')
                 raise SyntaxError(msg)
-            for i,n in enumerate(numbers):
+            for i, n in enumerate(numbers):
                 n.strip()
                 if n != '\n' and n != '':
-                    att_dict.setdefault(header[i],[]).append(float(n))
+                    att_dict.setdefault(header[i], []).append(float(n))
         except ValueError:
             raise SyntaxError
 
@@ -1021,16 +1050,16 @@ def _read_csv_file_blocking(file_pointer,
 
     # Do stuff here so the info is in lat's and longs
     geo_ref = None
-    x_header = lower(x_header[:3])
-    y_header = lower(y_header[:3])
-    if (x_header == 'lon' or  x_header == 'lat') \
-       and (y_header == 'lon' or  y_header == 'lat'):
+    x_header = x_header[:3].lower()
+    y_header = y_header[:3].lower()
+    if (x_header == 'lon' or x_header == 'lat') \
+       and (y_header == 'lon' or y_header == 'lat'):
         if x_header == 'lon':
-            longitudes = num.ravel(pointlist[:,0:1])
-            latitudes = num.ravel(pointlist[:,1:])
+            longitudes = num.ravel(pointlist[:, 0:1])
+            latitudes = num.ravel(pointlist[:, 1:])
         else:
-            latitudes = num.ravel(pointlist[:,0:1])
-            longitudes = num.ravel(pointlist[:,1:])
+            latitudes = num.ravel(pointlist[:, 0:1])
+            longitudes = num.ravel(pointlist[:, 1:])
 
         pointlist, geo_ref = _set_using_lat_long(latitudes,
                                                  longitudes,
@@ -1052,18 +1081,19 @@ def _read_pts_file_header(fid, verbose=False):
         msg = "Expected keyword 'points' but could not find it."
         raise IOError(msg)
 
-    if verbose: log.critical('Got %d variables: %s' % (len(keys), keys))
+    if verbose:
+        log.critical('Got %d variables: %s' % (len(keys), keys))
 
     try:
         geo_reference = Geo_reference(NetCDFObject=fid)
     except AttributeError as e:
         geo_reference = None
 
-    try: # netcdf4
+    try:  # netcdf4
         number_of_points = len(fid.dimensions['number_of_points'])
-    except: #scientific python
+    except:  # scientific python
         number_of_points = fid.dimensions['number_of_points']
-        
+
     return geo_reference, keys, number_of_points
 
 
@@ -1111,7 +1141,7 @@ def _write_pts_file(file_name,
     # Dimension definitions
     shape = write_data_points.shape[0]
     outfile.createDimension('number_of_points', shape)
-    outfile.createDimension('number_of_dimensions', 2) # This is 2d data
+    outfile.createDimension('number_of_dimensions', 2)  # This is 2d data
 
     # Variable definition
     outfile.createVariable('points', netcdf_float,
@@ -1144,24 +1174,24 @@ def _write_csv_file(file_name,
     fd = open(file_name, 'w')
 
     if as_lat_long:
-        titlelist = "latitude" + delimiter + "longitude"  + delimiter
+        titlelist = "latitude" + delimiter + "longitude" + delimiter
     else:
-        titlelist = "x" + delimiter + "y"  + delimiter
+        titlelist = "x" + delimiter + "y" + delimiter
 
     if pointattributes is not None:
         for title in list(pointattributes.keys()):
             titlelist = titlelist + title + delimiter
-        titlelist = titlelist[0:-len(delimiter)] # remove the last delimiter
+        titlelist = titlelist[0:-len(delimiter)]  # remove the last delimiter
 
     fd.write(titlelist + "\n")
 
     # <x/lat> <y/long> [attributes]
-    for i, vert in enumerate( points):
+    for i, vert in enumerate(points):
         if pointattributes is not None:
             attlist = ","
             for att in list(pointattributes.keys()):
                 attlist = attlist + str(pointattributes[att][i]) + delimiter
-            attlist = attlist[0:-len(delimiter)] # remove the last delimiter
+            attlist = attlist[0:-len(delimiter)]  # remove the last delimiter
             attlist.strip()
         else:
             attlist = ''
@@ -1183,9 +1213,9 @@ def _write_urs_file(file_name, points, delimiter=' '):
     fd.write(str(len(points)) + "\n")
 
     # <lat> <long> <id#>
-    for i, vert in enumerate( points):
-        fd.write(str(round(vert[0],7)) + delimiter +
-                 str(round(vert[1],7)) + delimiter + str(i) + "\n")
+    for i, vert in enumerate(points):
+        fd.write(str(round(vert[0], 7)) + delimiter +
+                 str(round(vert[1], 7)) + delimiter + str(i) + "\n")
 
     fd.close()
 
@@ -1195,7 +1225,7 @@ def _point_atts2array(point_atts):
 
     for key in list(point_atts['attributelist'].keys()):
         point_atts['attributelist'][key] = \
-                num.array(point_atts['attributelist'][key], num.float)
+            num.array(point_atts['attributelist'][key], num.float)
 
     return point_atts
 
@@ -1384,11 +1414,12 @@ def find_optimal_smoothing_parameter(data_file,
     attribute_smoothed = 'elevation'
 
     if mesh_file is None:
-        if verbose: log.critical("building mesh")
+        if verbose:
+            log.critical("building mesh")
         mesh_file = 'temp.msh'
 
         if (north_boundary is None or south_boundary is None
-            or east_boundary is None or west_boundary is None):
+                or east_boundary is None or west_boundary is None):
             no_boundary = True
         else:
             no_boundary = False
@@ -1404,34 +1435,39 @@ def find_optimal_smoothing_parameter(data_file,
 
         create_mesh_from_regions(poly_topo,
                                  boundary_tags={'back': [2],
-                                                'side': [1,3],
+                                                'side': [1, 3],
                                                 'ocean': [0]},
                                  maximum_triangle_area=mesh_resolution,
                                  filename=mesh_file,
                                  use_cache=cache,
                                  verbose=verbose)
 
-    else: # if mesh file provided
+    else:  # if mesh file provided
         # test mesh file exists?
-        if verbose: "reading from file: %s" % mesh_file
-        if access(mesh_file,F_OK) == 0:
+        if verbose:
+            "reading from file: %s" % mesh_file
+        if access(mesh_file, F_OK) == 0:
             msg = "file %s doesn't exist!" % mesh_file
             raise IOError(msg)
 
     # split topo data
-    if verbose: log.critical('Reading elevation file: %s' % data_file)
-    G = Geospatial_data(file_name = data_file)
-    if verbose: log.critical('Start split')
+    if verbose:
+        log.critical('Reading elevation file: %s' % data_file)
+    G = Geospatial_data(file_name=data_file)
+    if verbose:
+        log.critical('Start split')
     G_small, G_other = G.split(split_factor, seed_num, verbose=verbose)
-    if verbose: log.critical('Finish split')
+    if verbose:
+        log.critical('Finish split')
     points = G_small.get_data_points()
 
-    if verbose: log.critical("Number of points in sample to compare: %d"
-                             % len(points))
+    if verbose:
+        log.critical("Number of points in sample to compare: %d"
+                     % len(points))
 
     if alpha_list is None:
-        alphas = [0.001,0.01,100]
-        #alphas = [0.000001, 0.00001, 0.0001, 0.001, 0.01,
+        alphas = [0.001, 0.01, 100]
+        # alphas = [0.000001, 0.00001, 0.0001, 0.001, 0.01,
         #          0.1, 1.0, 10.0, 100.0,1000.0,10000.0]
     else:
         alphas = alpha_list
@@ -1444,15 +1480,17 @@ def find_optimal_smoothing_parameter(data_file,
     data = num.resize(data, (len(points), 3+len(alphas)))
 
     # gets relative point from sample
-    data[:,0] = points[:,0]
-    data[:,1] = points[:,1]
-    elevation_sample = G_small.get_attributes(attribute_name=attribute_smoothed)
-    data[:,2] = elevation_sample
+    data[:, 0] = points[:, 0]
+    data[:, 1] = points[:, 1]
+    elevation_sample = G_small.get_attributes(
+        attribute_name=attribute_smoothed)
+    data[:, 2] = elevation_sample
 
     normal_cov = num.array(num.zeros([len(alphas), 2]), dtype=num.float)
 
-    if verbose: log.critical('Setup computational domains with '
-                             'different alphas')
+    if verbose:
+        log.critical('Setup computational domains with '
+                     'different alphas')
 
     for i, alpha in enumerate(alphas):
         # add G_other data to domains with different alphas
@@ -1460,7 +1498,8 @@ def find_optimal_smoothing_parameter(data_file,
             log.critical('Calculating domain and mesh for Alpha=%s'
                          % str(alpha))
         domain = Domain(mesh_file, use_cache=cache, verbose=verbose)
-        if verbose: log.critical(domain.statistics())
+        if verbose:
+            log.critical(domain.statistics())
         domain.set_quantity(attribute_smoothed,
                             geospatial_data=G_other,
                             use_cache=cache,
@@ -1472,32 +1511,33 @@ def find_optimal_smoothing_parameter(data_file,
 
         # returns the predicted elevation of the points that were "split" out
         # of the original data set for one particular alpha
-        if verbose: log.critical('Get predicted elevation for location '
-                                 'to be compared')
+        if verbose:
+            log.critical('Get predicted elevation for location '
+                         'to be compared')
         elevation_predicted = \
-                domain.quantities[attribute_smoothed].\
-                    get_values(interpolation_points=points_geo)
+            domain.quantities[attribute_smoothed].\
+            get_values(interpolation_points=points_geo)
 
         # add predicted elevation to array that starts with x, y, z...
-        data[:,i+3] = elevation_predicted
+        data[:, i+3] = elevation_predicted
 
         sample_cov = cov(elevation_sample)
         ele_cov = cov(elevation_sample - elevation_predicted)
-        normal_cov[i,:] = [alpha, old_div(ele_cov, sample_cov)]
+        normal_cov[i, :] = [alpha, old_div(ele_cov, sample_cov)]
 
         if verbose:
             log.critical('Covariance for alpha %s=%s'
                          % (normal_cov[i][0], normal_cov[i][1]))
             log.critical('--------------------------------------------')
 
-    normal_cov0 = normal_cov[:,0]
+    normal_cov0 = normal_cov[:, 0]
     normal_cov_new = num.take(normal_cov, num.argsort(normal_cov0), axis=0)
 
     if plot_name is not None:
         from pylab import savefig, semilogx, loglog
 
-        semilogx(normal_cov_new[:,0], normal_cov_new[:,1])
-        loglog(normal_cov_new[:,0], normal_cov_new[:,1])
+        semilogx(normal_cov_new[:, 0], normal_cov_new[:, 1])
+        loglog(normal_cov_new[:, 0], normal_cov_new[:, 1])
         savefig(plot_name, dpi=300)
 
     if mesh_file == 'temp.msh':
@@ -1512,8 +1552,8 @@ def find_optimal_smoothing_parameter(data_file,
                      % normal_cov_new[(num.argmin(normal_cov_new, axis=0))[1], 0])
 
     # covariance and optimal alpha
-    return (min(normal_cov_new[:,1]),
-            normal_cov_new[(num.argmin(normal_cov_new,axis=0))[1],0])
+    return (min(normal_cov_new[:, 1]),
+            normal_cov_new[(num.argmin(normal_cov_new, axis=0))[1], 0])
 
 
 def old_find_optimal_smoothing_parameter(data_file,
@@ -1581,7 +1621,7 @@ def old_find_optimal_smoothing_parameter(data_file,
         mesh_file = 'temp.msh'
 
         if (north_boundary is None or south_boundary is None
-            or east_boundary is None or west_boundary is None):
+                or east_boundary is None or west_boundary is None):
             no_boundary = True
         else:
             no_boundary = False
@@ -1597,40 +1637,44 @@ def old_find_optimal_smoothing_parameter(data_file,
 
         create_mesh_from_regions(poly_topo,
                                  boundary_tags={'back': [2],
-                                                'side': [1,3],
+                                                'side': [1, 3],
                                                 'ocean': [0]},
                                  maximum_triangle_area=mesh_resolution,
                                  filename=mesh_file,
                                  use_cache=cache,
                                  verbose=verbose)
 
-    else: # if mesh file provided
+    else:  # if mesh file provided
         # test mesh file exists?
-        if access(mesh_file,F_OK) == 0:
+        if access(mesh_file, F_OK) == 0:
             msg = "file %s doesn't exist!" % mesh_file
             raise IOError(msg)
 
     # split topo data
     G = Geospatial_data(file_name=data_file)
-    if verbose: log.critical('start split')
+    if verbose:
+        log.critical('start split')
     G_small, G_other = G.split(split_factor, seed_num, verbose=verbose)
-    if verbose: log.critical('finish split')
+    if verbose:
+        log.critical('finish split')
     points = G_small.get_data_points()
 
-    if verbose: log.critical("Number of points in sample to compare: %d"
-                             % len(points))
+    if verbose:
+        log.critical("Number of points in sample to compare: %d"
+                     % len(points))
 
     if alpha_list is None:
-        alphas = [0.001,0.01,100]
-        #alphas = [0.000001, 0.00001, 0.0001, 0.001, 0.01,
+        alphas = [0.001, 0.01, 100]
+        # alphas = [0.000001, 0.00001, 0.0001, 0.001, 0.01,
         #          0.1, 1.0, 10.0, 100.0,1000.0,10000.0]
     else:
         alphas = alpha_list
 
     domains = {}
 
-    if verbose: log.critical('Setup computational domains with '
-                             'different alphas')
+    if verbose:
+        log.critical('Setup computational domains with '
+                     'different alphas')
 
     for alpha in alphas:
         # add G_other data to domains with different alphas
@@ -1638,7 +1682,8 @@ def old_find_optimal_smoothing_parameter(data_file,
             log.critical('Calculating domain and mesh for Alpha = %s' %
                          str(alpha))
         domain = Domain(mesh_file, use_cache=cache, verbose=verbose)
-        if verbose: log.critical(domain.statistics())
+        if verbose:
+            log.critical(domain.statistics())
         domain.set_quantity(attribute_smoothed,
                             geospatial_data=G_other,
                             use_cache=cache,
@@ -1654,10 +1699,11 @@ def old_find_optimal_smoothing_parameter(data_file,
     data = num.resize(data, (len(points), 3+len(alphas)))
 
     # gets relative point from sample
-    data[:,0] = points[:,0]
-    data[:,1] = points[:,1]
-    elevation_sample = G_small.get_attributes(attribute_name=attribute_smoothed)
-    data[:,2] = elevation_sample
+    data[:, 0] = points[:, 0]
+    data[:, 1] = points[:, 1]
+    elevation_sample = G_small.get_attributes(
+        attribute_name=attribute_smoothed)
+    data[:, 2] = elevation_sample
 
     normal_cov = num.array(num.zeros([len(alphas), 2]), dtype=num.float)
 
@@ -1666,41 +1712,42 @@ def old_find_optimal_smoothing_parameter(data_file,
                      'and actual data')
 
     for i, alpha in enumerate(domains):
-        if verbose: print('Alpha =', alpha)
+        if verbose:
+            print('Alpha =', alpha)
 
         points_geo = domains[alpha].geo_reference.change_points_geo_ref(points)
         # returns the predicted elevation of the points that were "split" out
         # of the original data set for one particular alpha
         elevation_predicted = \
-                domains[alpha].quantities[attribute_smoothed].\
-                        get_values(interpolation_points=points_geo)
+            domains[alpha].quantities[attribute_smoothed].\
+            get_values(interpolation_points=points_geo)
 
         # add predicted elevation to array that starts with x, y, z...
-        data[:,i+3] = elevation_predicted
+        data[:, i+3] = elevation_predicted
 
         sample_cov = cov(elevation_sample)
         ele_cov = cov(elevation_sample - elevation_predicted)
-        normal_cov[i,:] = [alpha,old_div(ele_cov, sample_cov)]
+        normal_cov[i, :] = [alpha, old_div(ele_cov, sample_cov)]
         log.critical('memory usage during compare: %s' % str(mem_usage()))
-        if verbose: log.critical('cov %s = %s'
-                                 % (normal_cov[i][0], normal_cov[i][1]))
+        if verbose:
+            log.critical('cov %s = %s'
+                         % (normal_cov[i][0], normal_cov[i][1]))
 
-    normal_cov0 = normal_cov[:,0]
+    normal_cov0 = normal_cov[:, 0]
     normal_cov_new = num.take(normal_cov, num.argsort(normal_cov0), axis=0)
 
     if plot_name is not None:
-        from pylab import savefig,semilogx,loglog
+        from pylab import savefig, semilogx, loglog
 
-        semilogx(normal_cov_new[:,0], normal_cov_new[:,1])
-        loglog(normal_cov_new[:,0], normal_cov_new[:,1])
+        semilogx(normal_cov_new[:, 0], normal_cov_new[:, 1])
+        loglog(normal_cov_new[:, 0], normal_cov_new[:, 1])
         savefig(plot_name, dpi=300)
     if mesh_file == 'temp.msh':
         remove(mesh_file)
 
-    return (min(normal_cov_new[:,1]),
-            normal_cov_new[(num.argmin(normal_cov_new, axis=0))[1],0])
+    return (min(normal_cov_new[:, 1]),
+            normal_cov_new[(num.argmin(normal_cov_new, axis=0))[1], 0])
 
 
 if __name__ == "__main__":
     pass
-

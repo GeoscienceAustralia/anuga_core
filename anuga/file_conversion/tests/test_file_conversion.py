@@ -1006,10 +1006,10 @@ class Test_File_Conversion(unittest.TestCase):
 
     def test_grd2array_dem2array(self):
         '''test the conversion result of grd to array and dem to array. The pts files should be the same'''
-	#ANUGA models
-	from anuga.file_conversion.grd2array import grd2array
-	from anuga.file_conversion.dem2array import dem2array
-	from anuga.file_conversion.asc2dem import asc2dem
+        #ANUGA models
+        from anuga.file_conversion.grd2array import grd2array
+        from anuga.file_conversion.dem2array import dem2array
+        from anuga.file_conversion.asc2dem import asc2dem
 
         #Create .asc file. Uses the example from test_grd2array.py
         """ Format of asc file
@@ -1068,38 +1068,38 @@ class Test_File_Conversion(unittest.TestCase):
 
 
         #create dem file from asc file
-	txt_file_prj = root+'.prj'
-	fid = open(txt_file_prj, 'w')
-	fid.write("""Projection UTM
-	Zone 56
-	Datum WGS84
-	Zunits NO
-	Units METERS
-	Spheroid WGS84
-	Xshift 0.0000000000
-	Yshift 10000000.0000000000
-	Parameters
-	""")
-	fid.close()
+        txt_file_prj = root+'.prj'
+        fid = open(txt_file_prj, 'w')
+        fid.write("""Projection UTM
+Zone 56
+Datum WGS84
+Zunits NO
+Units METERS
+Spheroid WGS84
+Xshift 0.0000000000
+Yshift 10000000.0000000000
+Parameters
+""")
+        fid.close()
 
-	txt_file_dem = root+'.dem'
-	asc2dem(name_in=txt_file, name_out=root,
-	        use_cache=False, verbose=False)
+        txt_file_dem = root+'.dem'
+        asc2dem(name_in=txt_file, name_out=root,
+                use_cache=False, verbose=False)
 
-	#convert grd to array
+        #convert grd to array
         x_grd, y_grd, Z_grd = grd2array(txt_file)
-	#convert dem to array
+        #convert dem to array
         x_dem, y_dem, Z_dem = dem2array(txt_file_dem)
 
-	#check grd2array and dem2array results are equal
-	assert num.allclose(x_grd, x_dem)
-	assert num.allclose(y_grd, y_dem)
-	assert num.allclose(Z_grd, Z_dem)
+        #check grd2array and dem2array results are equal
+        assert num.allclose(x_grd, x_dem)
+        assert num.allclose(y_grd, y_dem)
+        assert num.allclose(Z_grd, Z_dem)
 
-	#check grd2array (dem2array) results are correct
-	assert num.allclose(x_grd, x_ex)
-	assert num.allclose(y_grd, y_ex)
-	assert num.allclose(Z_grd, Z_ex)
+        #check grd2array (dem2array) results are correct
+        assert num.allclose(x_grd, x_ex)
+        assert num.allclose(y_grd, y_ex)
+        assert num.allclose(Z_grd, Z_ex)
 
         try:
             os.remove(root + '.dem')

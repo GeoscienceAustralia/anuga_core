@@ -25,36 +25,38 @@ from __future__ import print_function
 from __future__ import division
 
 # fabricate version number
+import textwrap
+import threading  # NB uses old camelCase names for backward compatibility
+import time
+import tempfile
+import sys
+import subprocess
+import stat
+import shlex
+import re
+import platform
+import os
+import optparse
+import atexit
+from builtins import object
+from past.utils import old_div
+from past.builtins import basestring
+from builtins import str
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
-from past.builtins import basestring
-from past.utils import old_div
-from builtins import object
 __version__ = '1.24'
 
 # if version of .deps file has changed, we know to not use it
 deps_version = 2
 
-import atexit
-import optparse
-import os
-import platform
-import re
-import shlex
-import stat
-import subprocess
-import sys
-import tempfile
-import time
-import threading # NB uses old camelCase names for backward compatibility
 # multiprocessing module only exists on Python >= 2.6
 try:
     import multiprocessing
 except ImportError:
     class MultiprocessingModule(object):
         def __getattr__(self, name):
-            raise NotImplementedError("multiprocessing module not available, can't do parallel builds")
+            raise NotImplementedError(
+                "multiprocessing module not available, can't do parallel builds")
     multiprocessing = MultiprocessingModule()
 
 # so you can do "from fabricate import *" to simplify your build script
@@ -64,10 +66,9 @@ __all__ = ['setup', 'run', 'autoclean', 'main', 'shell', 'fabricate_version',
            'Runner', 'AtimesRunner', 'StraceRunner', 'AlwaysRunner',
            'SmartRunner', 'Builder']
 
-import textwrap
 
-__doc__ += "Exported functions are:\n" + '  ' + '\n  '.join(textwrap.wrap(', '.join(__all__), 80))
-
+__doc__ += "Exported functions are:\n" + '  ' + \
+    '\n  '.join(textwrap.wrap(', '.join(__all__), 80))
 
 
 FAT_atime_resolution = 24*60*60     # resolution on FAT filesystems (seconds)
@@ -77,13 +78,13 @@ FAT_mtime_resolution = 2
 # We assume this is considerably more than time to run a new process
 
 NTFS_atime_resolution = 0.0002048   # resolution on NTFS filesystems (seconds)
-NTFS_mtime_resolution = 0.0002048   #  is actually 0.1us but python's can be
-                                    #  as low as 204.8us due to poor
-                                    #  float precision when storing numbers
-                                    #  as big as NTFS file times can be
-                                    #  (float has 52-bit precision and NTFS
-                                    #  FILETIME has 63-bit precision, so
-                                    #  we've lost 11 bits = 2048)
+NTFS_mtime_resolution = 0.0002048  # is actually 0.1us but python's can be
+#  as low as 204.8us due to poor
+#  float precision when storing numbers
+#  as big as NTFS file times can be
+#  (float has 52-bit precision and NTFS
+#  FILETIME has 63-bit precision, so
+#  we've lost 11 bits = 2048)
 
 # So we can use md5func in old and new versions of Python without warnings
 try:
@@ -102,23 +103,29 @@ except ImportError:
     except ImportError:
         import pickle
         # needed to ignore the indent= argument for pickle's dump()
+
         class PickleJson(object):
             def load(self, f):
                 return pickle.load(f)
+
             def dump(self, obj, f, indent=None, sort_keys=None):
                 return pickle.dump(obj, f)
         json = PickleJson()
+
 
 def printerr(message):
     """ Print given message to stderr with a line feed. """
     print(message, file=sys.stderr)
 
+
 class PathError(Exception):
     pass
+
 
 class ExecutionError(Exception):
     """ Raised by shell() and run() if command returns non-zero exit code. """
     pass
+
 
 def args_to_list(args):
     """ Return a flat list of the given arguments for shell(). """
@@ -133,6 +140,7 @@ def args_to_list(args):
                 arg = str(arg)
             arglist.append(arg)
     return arglist
+
 
 def shell(*args, **kwargs):
     r""" Run a command: program name is given in first arg and command line
@@ -162,6 +170,7 @@ def shell(*args, **kwargs):
         Raises ExecutionError(message, output, status) if the command returns
         a non-zero status code. """
     return _shell(args, **kwargs)
+
 
 def _shell(args, input=None, silent=True, shell=False, ignore_status=False, **kwargs):
     if input:
@@ -198,6 +207,7 @@ def _shell(args, input=None, silent=True, shell=False, ignore_status=False, **kw
     if silent:
         return output
 
+
 def md5_hasher(filename):
     """ Return MD5 hash of given filename, or None if file doesn't exist. """
     try:
@@ -209,6 +219,7 @@ def md5_hasher(filename):
     except IOError:
         return None
 
+
 def mtime_hasher(filename):
     """ Return modification time of file, or None if file doesn't exist. """
     try:
@@ -217,10 +228,12 @@ def mtime_hasher(filename):
     except (IOError, OSError):
         return None
 
+
 class RunnerUnsupportedException(Exception):
     """ Exception raise by Runner constructor if it is not supported
         on the current platform."""
     pass
+
 
 class Runner(object):
     def __call__(self, *args, **kwargs):
@@ -229,14 +242,16 @@ class Runner(object):
             command depended on, and output is a list of the filenames
             of files that the command modified. The input is passed
             to shell()"""
-        raise NotImplementedError("Runner subclass called but subclass didn't define __call__")
+        raise NotImplementedError(
+            "Runner subclass called but subclass didn't define __call__")
 
     def actual_runner(self):
         """ Return the actual runner object (overriden in SmartRunner). """
         return self
-        
+
     def ignore(self, name):
         return self._builder.ignore.search(name)
+
 
 class AtimesRunner(Runner):
     def __init__(self, builder):
@@ -277,9 +292,9 @@ class AtimesRunner(Runner):
         #  Comment on resolution/2 in atimes_runner()
         if initial.st_atime-adjusted.st_atime > FAT_atime_resolution+NTFS_atime_resolution or \
            initial.st_mtime-adjusted.st_mtime > FAT_mtime_resolution+NTFS_atime_resolution or \
-           initial.st_atime==adjusted.st_atime or \
-           initial.st_mtime==adjusted.st_mtime or \
-           not after.st_atime-old_div(FAT_atime_resolution,2) > adjusted.st_atime:
+           initial.st_atime == adjusted.st_atime or \
+           initial.st_mtime == adjusted.st_mtime or \
+           not after.st_atime-old_div(FAT_atime_resolution, 2) > adjusted.st_atime:
             return 0
 
         os.utime(filename, (
@@ -292,8 +307,8 @@ class AtimesRunner(Runner):
         #  double NTFS_atime_resolution to account for float resolution factors
         if initial.st_atime-adjusted.st_atime > NTFS_atime_resolution*2 or \
            initial.st_mtime-adjusted.st_mtime > NTFS_mtime_resolution*2 or \
-           initial.st_atime==adjusted.st_atime or \
-           initial.st_mtime==adjusted.st_mtime:
+           initial.st_atime == adjusted.st_atime or \
+           initial.st_mtime == adjusted.st_mtime:
             return 1
 
         return 2
@@ -302,7 +317,8 @@ class AtimesRunner(Runner):
     def exists(path):
         if not os.path.exists(path):
             # Note: in linux, error may not occur: strace runner doesn't check
-            raise PathError("build dirs specified a non-existant path '%s'" % path)
+            raise PathError(
+                "build dirs specified a non-existant path '%s'" % path)
 
     @staticmethod
     def has_atimes(paths):
@@ -388,7 +404,8 @@ class AtimesRunner(Runner):
         now = time.time()
         for filename, entry in filetimes.items():
             if now-entry[0] < FAT_atime_resolution or now-entry[1] < FAT_mtime_resolution:
-                entry = entry[0] - FAT_atime_resolution, entry[1] - FAT_mtime_resolution
+                entry = entry[0] - FAT_atime_resolution, entry[1] - \
+                    FAT_mtime_resolution
                 self._utime(filename, entry[0], entry[1])
             adjusted[filename] = entry
         return adjusted
@@ -425,10 +442,10 @@ class AtimesRunner(Runner):
                 #       So we make sure they're > by at least 1/2 the
                 #       resolution.  This will work for anything with a
                 #       resolution better than FAT.
-                if afters[name][1]-old_div(mtime_resolution,2) > befores[name][1]:
+                if afters[name][1]-old_div(mtime_resolution, 2) > befores[name][1]:
                     if not self.ignore(name):
                         outputs.append(name)
-                elif afters[name][0]-old_div(atime_resolution,2) > befores[name][0]:
+                elif afters[name][0]-old_div(atime_resolution, 2) > befores[name][0]:
                     # otherwise add to deps if atime changed
                     if not self.ignore(name):
                         deps.append(name)
@@ -450,6 +467,7 @@ class AtimesRunner(Runner):
         os.stat_float_times(old_stat_float)  # restore stat_float_times value
         return deps, outputs
 
+
 class StraceProcess(object):
     def __init__(self, cwd='.'):
         self.cwd = cwd
@@ -466,9 +484,11 @@ class StraceProcess(object):
         return '<StraceProcess cwd=%s deps=%s outputs=%s>' % \
                (self.cwd, self.deps, self.outputs)
 
+
 def _call_strace(self, *args, **kwargs):
     """ Top level function call for Strace that can be run in parallel """
     return self(*args, **kwargs)
+
 
 class StraceRunner(Runner):
     keep_temps = False
@@ -495,7 +515,8 @@ class StraceRunner(Runner):
             # even if windows has strace, it's probably a dodgy cygwin one
             return 0
         try:
-            proc = subprocess.Popen(['strace', '-e', 'trace=stat64'], stderr=subprocess.PIPE)
+            proc = subprocess.Popen(
+                ['strace', '-e', 'trace=stat64'], stderr=subprocess.PIPE)
             stdout, stderr = proc.communicate()
             proc.wait()
             if 'invalid system call' in stderr:
@@ -506,22 +527,27 @@ class StraceRunner(Runner):
             return 0
 
     # Regular expressions for parsing of strace log
-    _open_re       = re.compile(r'(?P<pid>\d+)\s+open\("(?P<name>[^"]*)", (?P<mode>[^,)]*)')
-    _stat32_re     = re.compile(r'(?P<pid>\d+)\s+stat\("(?P<name>[^"]*)", .*')
-    _stat64_re     = re.compile(r'(?P<pid>\d+)\s+stat64\("(?P<name>[^"]*)", .*')
-    _execve_re     = re.compile(r'(?P<pid>\d+)\s+execve\("(?P<name>[^"]*)", .*')
-    _mkdir_re      = re.compile(r'(?P<pid>\d+)\s+mkdir\("(?P<name>[^"]*)", .*')
-    _rename_re     = re.compile(r'(?P<pid>\d+)\s+rename\("[^"]*", "(?P<name>[^"]*)"\)')
-    _kill_re       = re.compile(r'(?P<pid>\d+)\s+killed by.*')
-    _chdir_re      = re.compile(r'(?P<pid>\d+)\s+chdir\("(?P<cwd>[^"]*)"\)')
-    _exit_group_re = re.compile(r'(?P<pid>\d+)\s+exit_group\((?P<status>.*)\).*')
-    _clone_re      = re.compile(r'(?P<pid_clone>\d+)\s+(clone|fork|vfork)\(.*\)\s*=\s*(?P<pid>\d*)')
+    _open_re = re.compile(
+        r'(?P<pid>\d+)\s+open\("(?P<name>[^"]*)", (?P<mode>[^,)]*)')
+    _stat32_re = re.compile(r'(?P<pid>\d+)\s+stat\("(?P<name>[^"]*)", .*')
+    _stat64_re = re.compile(r'(?P<pid>\d+)\s+stat64\("(?P<name>[^"]*)", .*')
+    _execve_re = re.compile(r'(?P<pid>\d+)\s+execve\("(?P<name>[^"]*)", .*')
+    _mkdir_re = re.compile(r'(?P<pid>\d+)\s+mkdir\("(?P<name>[^"]*)", .*')
+    _rename_re = re.compile(
+        r'(?P<pid>\d+)\s+rename\("[^"]*", "(?P<name>[^"]*)"\)')
+    _kill_re = re.compile(r'(?P<pid>\d+)\s+killed by.*')
+    _chdir_re = re.compile(r'(?P<pid>\d+)\s+chdir\("(?P<cwd>[^"]*)"\)')
+    _exit_group_re = re.compile(
+        r'(?P<pid>\d+)\s+exit_group\((?P<status>.*)\).*')
+    _clone_re = re.compile(
+        r'(?P<pid_clone>\d+)\s+(clone|fork|vfork)\(.*\)\s*=\s*(?P<pid>\d*)')
 
     # Regular expressions for detecting interrupted lines in strace log
     # 3618  clone( <unfinished ...>
     # 3618  <... clone resumed> child_stack=0, flags=CLONE, child_tidptr=0x7f83deffa780) = 3622
-    _unfinished_start_re = re.compile(r'(?P<pid>\d+)(?P<body>.*)<unfinished ...>$')
-    _unfinished_end_re   = re.compile(r'(?P<pid>\d+)\s+\<\.\.\..*\>(?P<body>.*)')
+    _unfinished_start_re = re.compile(
+        r'(?P<pid>\d+)(?P<body>.*)<unfinished ...>$')
+    _unfinished_end_re = re.compile(r'(?P<pid>\d+)\s+\<\.\.\..*\>(?P<body>.*)')
 
     def _do_strace(self, args, kwargs, outfile, outname):
         """ Run strace on given command args/kwargs, sending output to file.
@@ -531,9 +557,9 @@ class StraceRunner(Runner):
         shell('strace', '-fo', outname, '-e',
               'trace=open,%s,execve,exit_group,chdir,mkdir,rename,clone,vfork,fork' % self._stat_func,
               args, **shell_keywords)
-        cwd = '.' 
+        cwd = '.'
         status = 0
-        processes  = {}  # dictionary of processes (key = pid)
+        processes = {}  # dictionary of processes (key = pid)
         unfinished = {}  # list of interrupted entries in strace log
         for line in outfile:
             # look for split lines
@@ -556,7 +582,7 @@ class StraceRunner(Runner):
             execve_match = self._execve_re.match(line)
             mkdir_match = self._mkdir_re.match(line)
             rename_match = self._rename_re.match(line)
-            clone_match = self._clone_re.match(line)  
+            clone_match = self._clone_re.match(line)
 
             kill_match = self._kill_re.match(line)
             if kill_match:
@@ -581,15 +607,15 @@ class StraceRunner(Runner):
             elif stat_match:
                 match = stat_match
             elif mkdir_match:
-                match = mkdir_match                
+                match = mkdir_match
             elif rename_match:
                 match = rename_match
                 # the destination of a rename is an output file
                 is_output = True
-                
+
             if match:
                 name = match.group('name')
-                pid  = match.group('pid')
+                pid = match.group('pid')
                 cwd = processes[pid].cwd
                 if cwd != '.':
                     name = os.path.join(cwd, name)
@@ -615,7 +641,8 @@ class StraceRunner(Runner):
 
             match = self._chdir_re.match(line)
             if match:
-                processes[pid].cwd = os.path.join(processes[pid].cwd, match.group('cwd'))
+                processes[pid].cwd = os.path.join(
+                    processes[pid].cwd, match.group('cwd'))
 
             match = self._exit_group_re.match(line)
             if match:
@@ -649,7 +676,8 @@ class StraceRunner(Runner):
                 os.close(handle)
                 raise
             try:
-                status, deps, outputs = self._do_strace(args, kwargs, outfile, outname)
+                status, deps, outputs = self._do_strace(
+                    args, kwargs, outfile, outname)
                 if status is None:
                     raise ExecutionError(
                         '%r was killed unexpectedly' % args[0], '', -1)
@@ -665,6 +693,7 @@ class StraceRunner(Runner):
                                  '', status)
         return list(deps), list(outputs)
 
+
 class AlwaysRunner(Runner):
     def __init__(self, builder):
         pass
@@ -677,9 +706,11 @@ class AlwaysRunner(Runner):
         shell(*args, **shell_keywords)
         return None, None
 
+
 class SmartRunner(Runner):
     """ Smart command runner that uses StraceRunner if it can,
         otherwise AtimesRunner if available, otherwise AlwaysRunner. """
+
     def __init__(self, builder):
         self._builder = builder
         try:
@@ -696,55 +727,61 @@ class SmartRunner(Runner):
     def __call__(self, *args, **kwargs):
         return self._runner(*args, **kwargs)
 
+
 class _running(object):
     """ Represents a task put on the parallel pool 
         and its results when complete """
-    def __init__(self, async, command):
-        """ "async" is the AsyncResult object returned from pool.apply_async
+
+    def __init__(self, async_obj, command):
+        """ "async_obj" is the AsyncResult object returned from pool.apply_async
             "command" is the command that was run """
-        self.async = async
+        self.async_obj = async_obj
         self.command = command
         self.results = None
-        
+
+
 class _after(object):
     """ Represents something waiting on completion of some previous commands """
+
     def __init__(self, afters, do):
         """ "afters" is a group id or a iterable of group ids to wait on
             "do" is either a tuple representing a command (group, command, 
                 arglist, kwargs) or a threading.Condition to be released """
         self.afters = afters
         self.do = do
-        
+
+
 class _Groups(object):
     """ Thread safe mapping object whose values are lists of _running
         or _after objects and a count of how many have *not* completed """
     class value(object):
         """ the value type in the map """
+
         def __init__(self, val=None):
             self.count = 0  # count of items not yet completed
-            self.items = [] # items in this group
+            self.items = []  # items in this group
             if val is not None:
                 self.items.append(val)
             self.ok = True  # True if no error from any command in group so far
-            
+
     def __init__(self):
         self.groups = {False: self.value()}
         self.lock = threading.Lock()
-        
+
     def item_list(self, id):
         """ Return copy of the value list """
         with self.lock:
             return self.groups[id].items[:]
-    
+
     def remove(self, id):
         """ Remove the group """
         with self.lock:
             del self.groups[id]
-    
+
     def remove_item(self, id, val):
         with self.lock:
             self.groups[id].items.remove(val)
-            
+
     def add(self, id, val):
         with self.lock:
             if id in self.groups:
@@ -752,7 +789,7 @@ class _Groups(object):
             else:
                 self.groups[id] = self.value(val)
             self.groups[id].count += 1
-    
+
     def get_count(self, id):
         with self.lock:
             if id not in self.groups:
@@ -766,18 +803,19 @@ class _Groups(object):
                 raise ValueError
             self.groups[id].count = c
             return c
-    
+
     def get_ok(self, id):
         with self.lock:
             return self.groups[id].ok
-    
+
     def set_ok(self, id, to):
         with self.lock:
             self.groups[id].ok = to
-            
+
     def ids(self):
         with self.lock:
             return list(self.groups.keys())
+
 
 # pool of processes to run parallel jobs, must not be part of any object that
 # is pickled for transfer to these processes, ie it must be global
@@ -788,15 +826,18 @@ _groups = _Groups()
 _results = None
 _stop_results = threading.Event()
 
+
 class _todo(object):
     """ holds the parameters for commands waiting on others """
+
     def __init__(self, group, command, arglist, kwargs):
         self.group = group      # which group it should run as
         self.command = command  # string command
         self.arglist = arglist  # command arguments
         self.kwargs = kwargs    # keywork args for the runner
-        
-def _results_handler( builder, delay=0.01):
+
+
+def _results_handler(builder, delay=0.01):
     """ Body of thread that stores results in .deps and handles 'after'
         conditions
        "builder" the builder used """
@@ -804,16 +845,17 @@ def _results_handler( builder, delay=0.01):
         while not _stop_results.isSet():
             # go through the lists and check any results available
             for id in _groups.ids():
-                if id is False: continue # key of False is _afters not _runnings
+                if id is False:
+                    continue  # key of False is _afters not _runnings
                 for r in _groups.item_list(id):
-                    if r.results is None and r.async.ready():
+                    if r.results is None and r.async_obj.ready():
                         try:
-                            d, o = r.async.get()
+                            d, o = r.async_obj.get()
                         except Exception as e:
                             r.results = e
                             _groups.set_ok(False)
                         else:
-                            builder.done(r.command, d, o) # save deps
+                            builder.done(r.command, d, o)  # save deps
                             r.results = (r.command, d, o)
                         _groups.dec_count(id)
             # check if can now schedule things waiting on the after queue
@@ -821,13 +863,13 @@ def _results_handler( builder, delay=0.01):
                 still_to_do = sum(_groups.get_count(g) for g in a.afters)
                 no_error = all(_groups.get_ok(g) for g in a.afters)
                 if False in a.afters:
-                    still_to_do -= 1 # don't count yourself of course
+                    still_to_do -= 1  # don't count yourself of course
                 if still_to_do == 0:
                     if isinstance(a.do, tuple):
                         if no_error:
-                            async = _pool.apply_async(_call_strace, a.do.arglist,
-                                        a.do.kwargs)
-                            _groups.add(a.do.group, _running(async, a.do.command))
+                            async_obj = _pool.apply_async(_call_strace, a.do.arglist,
+                                                      a.do.kwargs)
+                            _groups.add(a.do.group, _running(async_obj, a.do.command))
                     else:
                         a.do.acquire()
                         a.do.notify()
@@ -837,15 +879,17 @@ def _results_handler( builder, delay=0.01):
             _stop_results.wait(delay)
     except Exception:
         etype, eval, etb = sys.exc_info()
-        printerr("Error: exception " + repr(etype) + " at line " + str(etb.tb_lineno))
+        printerr("Error: exception " + repr(etype) +
+                 " at line " + str(etb.tb_lineno))
     finally:
         if not _stop_results.isSet():
             # oh dear, I am about to die for unexplained reasons, stop the whole
-            # app otherwise the main thread hangs waiting on non-existant me, 
+            # app otherwise the main thread hangs waiting on non-existant me,
             # Note: sys.exit() only kills me
             printerr("Error: unexpected results handler exit")
             os._exit(1)
-        
+
+
 class Builder(object):
     """ The Builder.
 
@@ -932,8 +976,8 @@ class Builder(object):
                                         args=[self])
             _results.setDaemon(True)
             _results.start()
-            StraceRunner.keep_temps = False # unsafe for parallel execution
-            
+            StraceRunner.keep_temps = False  # unsafe for parallel execution
+
     def echo(self, message):
         """ Print message, but only if builder is not in quiet mode. """
         if not self.quiet:
@@ -999,13 +1043,13 @@ class Builder(object):
                             _after(after, _todo(group, command, arglist,
                                                 kwargs)))
             else:
-                async = _pool.apply_async(_call_strace, arglist, kwargs)
-                _groups.add(group, _running(async, command))
+                async_obj = _pool.apply_async(_call_strace, arglist, kwargs)
+                _groups.add(group, _running(async_obj, command))
             return None
         else:
             deps, outputs = self.runner(*arglist, **kwargs)
             return self.done(command, deps, outputs)
-        
+
     def done(self, command, deps, outputs):
         """ Store the results in the .deps file when they are available """
         if deps is not None or outputs is not None:
@@ -1032,7 +1076,7 @@ class Builder(object):
                     self.hash_cache[output] = hashed
 
             self.deps[command] = deps_dict
-        
+
         return command, deps, outputs
 
     def memoize(self, command, **kwargs):
@@ -1069,7 +1113,7 @@ class Builder(object):
             # command has been run before, see if deps have changed
             for dep, oldhash in list(self.deps[command].items()):
                 assert oldhash.startswith('input-') or \
-                       oldhash.startswith('output-'), \
+                    oldhash.startswith('output-'), \
                     "%s file corrupt, do a clean!" % self.depsname
                 io_type, oldhash = oldhash.split('-', 1)
 
@@ -1082,8 +1126,8 @@ class Builder(object):
                     # output hasn't changed
                     newhash = self.hasher(dep)
                     if newhash is not None:
-                       # Add newhash to the hash cache
-                       self.hash_cache[dep] = newhash
+                        # Add newhash to the hash cache
+                        self.hash_cache[dep] = newhash
 
                 if newhash is None:
                     self.echo_debug("rebuilding %r, %s %s doesn't exist" %
@@ -1125,7 +1169,8 @@ class Builder(object):
         """ Lazy load .deps file so that instantiating a Builder is "safe". """
         if not hasattr(self, '_deps') or self._deps is None:
             self.read_deps()
-            atexit.register(self.write_deps, depsname=os.path.abspath(self.depsname))
+            atexit.register(self.write_deps,
+                            depsname=os.path.abspath(self.depsname))
         return self._deps
 
     def read_deps(self):
@@ -1160,11 +1205,11 @@ class Builder(object):
             self._deps.pop('.deps_version', None)
 
     _runner_map = {
-        'atimes_runner' : AtimesRunner,
-        'strace_runner' : StraceRunner,
-        'always_runner' : AlwaysRunner,
-        'smart_runner' : SmartRunner,
-        }
+        'atimes_runner': AtimesRunner,
+        'strace_runner': StraceRunner,
+        'always_runner': AlwaysRunner,
+        'smart_runner': SmartRunner,
+    }
 
     def set_runner(self, runner):
         """Set the runner for this builder.  "runner" is either a Runner
@@ -1200,6 +1245,7 @@ class Builder(object):
                 return True
         return False
 
+
 # default Builder instance, used by helper run() and main() helper functions
 default_builder = None
 default_command = 'build'
@@ -1208,6 +1254,7 @@ default_command = 'build'
 _setup_builder = None
 _setup_default = None
 _setup_kwargs = {}
+
 
 def setup(builder=None, default=None, **kwargs):
     """ NOTE: setup functionality is now in main(), setup() is kept for
@@ -1221,13 +1268,17 @@ def setup(builder=None, default=None, **kwargs):
     _setup_builder = builder
     _setup_default = default
     _setup_kwargs = kwargs
+
+
 setup.__doc__ += '\n\n' + Builder.__init__.__doc__
+
 
 def _set_default_builder():
     """ Set default builder to Builder() instance if it's not yet set. """
     global default_builder
     if default_builder is None:
         default_builder = Builder()
+
 
 def run(*args, **kwargs):
     """ Run the given command, but only if its dependencies have changed. Uses
@@ -1239,6 +1290,7 @@ def run(*args, **kwargs):
     if len(args) == 1 and hasattr(args[0], '__iter__'):
         return [default_builder.run(*a, **kwargs) for a in args[0]]
     return default_builder.run(*args, **kwargs)
+
 
 def after(*args):
     """ wait until after the specified command groups complete and return 
@@ -1258,32 +1310,38 @@ def after(*args):
                 r = []
                 for i in _groups.item_list(a):
                     r.append(i.results)
-                results.append((a,r))
+                results.append((a, r))
         return results
     else:
         return None
-    
+
+
 def autoclean():
     """ Automatically delete all outputs of the default build. """
     _set_default_builder()
     default_builder.autoclean()
 
+
 def memoize(command, **kwargs):
     _set_default_builder()
     return default_builder.memoize(command, **kwargs)
 
+
 memoize.__doc__ = Builder.memoize.__doc__
+
 
 def outofdate(command):
     """ Return True if given command is out of date and needs to be run. """
     _set_default_builder()
     return default_builder.outofdate(command)
 
+
 # save options for use by main() if parse_options called earlier by user script
 _parsed_options = None
 
 # default usage message
 _usage = '[options] build script functions to run'
+
 
 def parse_options(usage=_usage, extra_options=None):
     """ Parse command line options and return (parser, options, args). """
@@ -1312,6 +1370,7 @@ def parse_options(usage=_usage, extra_options=None):
     _parsed_options = (parser, options, args)
     return _parsed_options
 
+
 def fabricate_version(min=None, max=None):
     """ If min is given, assert that the running fabricate is at least that
         version or exit with an error message. If max is given, assert that
@@ -1322,13 +1381,14 @@ def fabricate_version(min=None, max=None):
 
     if min is not None and float(__version__) < min:
         sys.stderr.write(("fabricate is version %s.  This build script "
-            "requires at least version %.2f") % (__version__, min))
+                          "requires at least version %.2f") % (__version__, min))
         sys.exit()
     if max is not None and float(__version__) > max:
         sys.stderr.write(("fabricate is version %s.  This build script "
-            "requires at most version %.2f") % (__version__, max))
+                          "requires at most version %.2f") % (__version__, max))
         sys.exit()
     return __version__
+
 
 def main(globals_dict=None, build_dir=None, extra_options=None, builder=None,
          default=None, jobs=1, **kwargs):
@@ -1413,16 +1473,18 @@ def main(globals_dict=None, build_dir=None, extra_options=None, builder=None,
             else:
                 printerr('%r command not defined!' % action)
                 sys.exit(1)
-        after() # wait till the build commands are finished
+        after()  # wait till the build commands are finished
     except ExecutionError as exc:
         message, data, status = exc
         printerr('fabricate: ' + message)
     finally:
-        _stop_results.set() # stop the results gatherer so I don't hang
+        _stop_results.set()  # stop the results gatherer so I don't hang
         if not options.quiet and os.path.abspath(build_dir) != original_path:
-            print("Leaving directory '%s' back to '%s'" % (build_dir, original_path))
+            print("Leaving directory '%s' back to '%s'" %
+                  (build_dir, original_path))
         os.chdir(original_path)
     sys.exit(status)
+
 
 if __name__ == '__main__':
     # if called as a script, emulate memoize.py -- run() command line

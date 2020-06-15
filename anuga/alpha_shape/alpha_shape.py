@@ -22,7 +22,6 @@ from __future__ import print_function
 from builtins import filter
 from builtins import range
 from builtins import object
-import exceptions
 import random
 
 from anuga.load_mesh.loadASCII import export_boundary_file
@@ -31,8 +30,12 @@ from anuga.utilities import log
 
 import numpy as num
 
-
-class AlphaError(exceptions.Exception):pass
+# Python 2.7 Hack
+try:
+    from exceptions import Exception
+except:
+    pass
+class AlphaError(Exception):pass
 class PointError(AlphaError): pass
 class FlagError(AlphaError): pass
 

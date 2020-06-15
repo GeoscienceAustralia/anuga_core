@@ -1305,22 +1305,6 @@ class Test_Util(unittest.TestCase):
         assert new == '3*xi+eta + lam'
                           
    
-    def test_get_revision_number(self):
-        """test_get_revision_number(self):
-
-        Test that revision number can be retrieved.
-        """
-        if 'USER' in os.environ and os.environ['USER'] == 'dgray':
-            # I have a known snv incompatability issue,
-            # so I'm skipping this test.
-            # FIXME when SVN is upgraded on our clusters
-            pass
-        else:    
-            n = get_revision_number()
-            assert n>=0
-
-
-        
     def test_add_directories(self):
         
         import tempfile

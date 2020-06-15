@@ -655,15 +655,25 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
                     print('max(wet_elevation) ',max(wet_elevation))
                 assert wet_elevation[runup_index] == runup       # Must be True
 
-            if runup > maximal_runup:
+
+            # Python3.8 no longer supports things like 3.333 > None or None > None
+            # so this elegant conditional: if runup > maximal_runup
+            # had to be unpacked thusly
+            if maximal_runup is None and runup is None:
+                # First time around
+                pass
+            elif maximal_runup is None or runup > maximal_runup:
                 maximal_runup = runup      # works even if maximal_runup is None
                 maximal_time = time[i]
 
                 # Record location
                 wet_x = num.take(x, wet_nodes, axis=0)
                 wet_y = num.take(y, wet_nodes, axis=0)
-                maximal_runup_location =    [wet_x[runup_index], \
-                                            wet_y[runup_index]]
+                maximal_runup_location = [wet_x[runup_index],
+                                          wet_y[runup_index]]
+            else:
+                pass
+            
             if verbose:
                 print(i, runup)
 

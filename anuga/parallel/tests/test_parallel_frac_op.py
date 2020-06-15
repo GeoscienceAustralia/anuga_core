@@ -277,8 +277,7 @@ class Test_parallel_frac_op(unittest.TestCase):
     def test_parallel_frac_op(self):
         #print "Expect this test to fail if not run from the parallel directory."
 
-        abs_script_name = os.path.abspath(__file__)
-        cmd = "mpiexec -np %d python %s" % (3, abs_script_name)
+        cmd = anuga.mpicmd(os.path.abspath(__file__))
         result = os.system(cmd)
 
         assert_(result == 0)

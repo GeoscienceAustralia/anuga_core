@@ -3,7 +3,7 @@
    These functions and classes calculate a value at a particular point on
    the given mesh. It interpolates the values stored at the vertices of the
    mesh.
-   
+
    For example, if you want to get the height of a terrain mesh at particular
    point, you pass the point to an Interpolate class. The point will intersect
    one of the triangles on the mesh, and the interpolated height will be an
@@ -135,9 +135,9 @@ def interpolate(vertex_coordinates,
               'verbose': verbose}
 
     if use_cache is True:
-		I = cache(Interpolate, args, kwargs, verbose=verbose)
+        I = cache(Interpolate, args, kwargs, verbose=verbose)
     else:
-        I = Interpolate(*args, **kwargs)    
+        I = Interpolate(*args, **kwargs)
 
     # Call interpolate method with interpolation points
     result = I.interpolate_block(vertex_values, interpolation_points,
@@ -299,8 +299,8 @@ class Interpolate (FitInterpolate):
         Return the point data, z.
 
         See interpolate for doc info.
-        """ 
-    
+        """
+
         # FIXME (Ole): I reckon we should change the interface so that
         # the user can specify the interpolation matrix instead of the
         # interpolation points to save time.
@@ -448,7 +448,7 @@ class Interpolate (FitInterpolate):
 
         centroids = []
         inside_poly_indices = []
-        
+
         # Compute matrix elements for points inside the mesh
         if verbose: log.critical('Building interpolation matrix from %d points'
                                  % n)
@@ -459,21 +459,21 @@ class Interpolate (FitInterpolate):
                                                           %(d, n))
 
             x = point_coordinates[i]
-            element_found, sigma0, sigma1, sigma2, k = self.root.search_fast(x)         
+            element_found, sigma0, sigma1, sigma2, k = self.root.search_fast(x)
             # Update interpolation matrix A if necessary
             if element_found is True:
 
                 #if verbose:
                 #    print 'Point is within mesh:', d, i
-            
+
                 inside_poly_indices.append(i)
-                
+
                 # Assign values to matrix A
                 j0 = self.mesh.triangles[k,0] # Global vertex id for sigma0
                 j1 = self.mesh.triangles[k,1] # Global vertex id for sigma1
                 j2 = self.mesh.triangles[k,2] # Global vertex id for sigma2
                 js = [j0, j1, j2]
-                
+
                 if output_centroids is False:
                     # Weight each vertex according to its distance from x
                     sigmas = {j0:sigma0, j1:sigma1, j2:sigma2}
@@ -483,7 +483,7 @@ class Interpolate (FitInterpolate):
                     # If centroids are needed, weight all 3 vertices equally
                     for j in js:
                         A[i, j] = 1.0/3.0
-                    centroids.append(self.mesh.centroid_coordinates[k])                        
+                    centroids.append(self.mesh.centroid_coordinates[k])
             else:
                 if verbose:
                     log.critical('Mesh has a hole - moving this point to outside list')
@@ -575,17 +575,17 @@ def interpolate_sww2csv(sww_file,
                                  time_thinning=time_thinning,
                                  use_cache=use_cache)
 
-    depth_writer = writer(file(depth_file, "wb"))
-    velocity_x_writer = writer(file(velocity_x_file, "wb"))
-    velocity_y_writer = writer(file(velocity_y_file, "wb"))
+    depth_writer = writer(open(depth_file, "w"))
+    velocity_x_writer = writer(open(velocity_x_file, "w"))
+    velocity_y_writer = writer(open(velocity_y_file, "w"))
     if stage_file is not None:
-        stage_writer = writer(file(stage_file, "wb"))
+        stage_writer = writer(open(stage_file, "w"))
     if froude_file is not None:
-        froude_writer = writer(file(froude_file, "wb"))
+        froude_writer = writer(open(froude_file, "w"))
 
     # Write heading
     heading = [str(x[0])+ ':' + str(x[1]) for x in points]
-    heading.insert(0, "time")
+    heading.insert(0, 'time')
     depth_writer.writerow(heading)
     velocity_x_writer.writerow(heading)
     velocity_y_writer.writerow(heading)
@@ -798,7 +798,7 @@ class Interpolation_function(object):
 
             # Ensure 'mesh_boundary_polygon' is defined
             mesh_boundary_polygon = None
-            
+
             if triangles is not None and vertex_coordinates is not None:
                 # Check that all interpolation points fall within
                 # mesh boundary as defined by triangles and vertex_coordinates.
@@ -932,7 +932,7 @@ class Interpolation_function(object):
                                                       self.interpolation_points,
                                                       verbose=False,
                                                       output_centroids=output_centroids)
-                        self.centroids = interpol.centroids                                                          
+                        self.centroids = interpol.centroids
                     elif triangles is None and vertex_coordinates is not None:
                         result = interpolate_polyline(Q,
                                                       vertex_coordinates,
@@ -941,11 +941,11 @@ class Interpolation_function(object):
                                                           self.interpolation_points)
 
                     #assert len(result), len(interpolation_points)
-                    self.precomputed_values[name][i, :] = result                                    
-                    
+                    self.precomputed_values[name][i, :] = result
+
             # Report
             if verbose:
-                log.critical(self.statistics())            
+                log.critical(self.statistics())
         else:
             # Store quantitites as is
             for name in quantity_names:
@@ -1087,9 +1087,9 @@ class Interpolation_function(object):
             msg += '    x in [%f, %f], len(x) == %d\n'\
                    %(min(x), max(x), len(x))
             msg += '    y in [%f, %f], len(y) == %d\n'\
-                   %(min(y), max(y), len(y))            
+                   %(min(y), max(y), len(y))
 
-        
+
 
         msg += '    t in [%f, %f], len(t) == %d\n'\
                %(min(self.time), max(self.time), len(self.time))
@@ -1145,5 +1145,3 @@ def interpolate_sww(sww_file, time, interpolation_points,
                                      triangles=volumes,
                                      interpolation_points=interpolation_points,
                                      verbose=verbose)
-
-

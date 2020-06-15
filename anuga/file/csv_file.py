@@ -47,7 +47,8 @@ def load_csv_as_dict(file_name, title_check_list=None, delimiter=',',
     title_index_dic = {}
     titles_stripped = [] # List of titles
 
-    reader = csv.reader(file(file_name), delimiter=delimiter)
+    fid = open(file_name)
+    reader = csv.reader(fid, delimiter=delimiter)
 
     # Read in and manipulate the title info
     titles = next(reader)

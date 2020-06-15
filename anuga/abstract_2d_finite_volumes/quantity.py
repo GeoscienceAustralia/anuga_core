@@ -184,7 +184,7 @@ class Quantity(object):
 
         return self * other
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         """Divide self with anything that could populate a quantity
 
         E.g other can be a constant, an array, a function, another quantity
@@ -207,9 +207,9 @@ class Quantity(object):
         # are calculated and assigned directly without using
         # set_values (which calls interpolate). Otherwise
         # edge and centroid values wouldn't be quotient of q1 and q2
-        result.vertex_values = old_div(self.vertex_values,(Q.vertex_values + epsilon))
-        result.edge_values = old_div(self.edge_values,(Q.edge_values + epsilon))
-        result.centroid_values = old_div(self.centroid_values,(Q.centroid_values + epsilon))
+        result.vertex_values = old_div(self.vertex_values, (Q.vertex_values + epsilon))
+        result.edge_values = old_div(self.edge_values, (Q.edge_values + epsilon))
+        result.centroid_values = old_div(self.centroid_values, (Q.centroid_values + epsilon))
 
         return result
 

@@ -1,24 +1,23 @@
-from __future__ import absolute_import
-from __future__ import division
-from builtins import str
-from builtins import range
-from past.utils import old_div
-from builtins import object
-from future.utils import raise_
-import exceptions
-class VectorShapeError(exceptions.Exception): pass
-class ConvergenceError(exceptions.Exception): pass
-class PreconditionerError(exceptions.Exception): pass
-
 import numpy as num
-
-import anuga.utilities.log as log
+from .cg_ext import jacobi_precon_c
+from .cg_ext import cg_solve_c_precon
+from .cg_ext import cg_solve_c
 from anuga.utilities.sparse import Sparse, Sparse_CSR
+import anuga.utilities.log as log
+
+class VectorShapeError(Exception):
+    pass
+
+
+class ConvergenceError(Exception):
+    pass
+
+
+class PreconditionerError(Exception):
+    pass
+
 
 # Setup for C conjugate gradient solver
-from .cg_ext import cg_solve_c
-from .cg_ext import cg_solve_c_precon
-from .cg_ext import jacobi_precon_c
 
 
 class Stats(object):
@@ -47,9 +46,10 @@ class Stats(object):
 # A must currently be in the sparse_csr format implemented in anuga.util.sparse
 
 # Test that matrix is in correct format if c routine is being called
-def conjugate_gradient(A, b, x0=None, imax=10000, tol=1.0e-8, atol=1.0e-14,
-                        iprint=None, output_stats=False, use_c_cg=False, precon='None'):
 
+
+def conjugate_gradient(A, b, x0=None, imax=10000, tol=1.0e-8, atol=1.0e-14,
+                       iprint=None, output_stats=False, use_c_cg=False, precon='None'):
     """
     Try to solve linear equation Ax = b using
     conjugate gradient method
@@ -57,7 +57,7 @@ def conjugate_gradient(A, b, x0=None, imax=10000, tol=1.0e-8, atol=1.0e-14,
     If b is an array, solve it as if it was a set of vectors, solving each
     vector.
     """
-    
+
     if use_c_cg:
         from anuga.utilities.sparse import Sparse_CSR
         msg = ('c implementation of conjugate gradient requires that matrix A\
@@ -73,31 +73,33 @@ def conjugate_gradient(A, b, x0=None, imax=10000, tol=1.0e-8, atol=1.0e-14,
 
     err = 0
 
-    # preconditioner 
+    # preconditioner
     # Padarn Note: currently a fairly lazy implementation, needs fixing
     M = None
     if precon == 'Jacobi':
 
         M = num.zeros(b.shape[0])
         jacobi_precon_c(A, M)
-        x0 = b.copy()     
+        x0 = b.copy()
 
-        if len(b.shape) != 1:   
+        if len(b.shape) != 1:
 
-            for i in range(b.shape[1]): 
+            for i in range(b.shape[1]):
 
                 if not use_c_cg:
                     x0[:, i], stats = _conjugate_gradient_preconditioned(A, b[:, i], x0[:, i], M,
-                                               imax, tol, atol, iprint, Type="Jacobi")
+                                                                         imax, tol, atol, iprint, Type="Jacobi")
                 else:
                     # need to copy into new array to ensure contiguous access
                     xnew = x0[:, i].copy()
-                    err = cg_solve_c_precon(A, xnew, b[:, i].copy(), imax, tol, atol, b.shape[1], M)
+                    err = cg_solve_c_precon(
+                        A, xnew, b[:, i].copy(), imax, tol, atol, b.shape[1], M)
                     x0[:, i] = xnew
         else:
 
             if not use_c_cg:
-                x0, stats = _conjugate_gradient_preconditioned(A, b, x0, M, imax, tol, atol, iprint, Type="Jacobi")
+                x0, stats = _conjugate_gradient_preconditioned(
+                    A, b, x0, M, imax, tol, atol, iprint, Type="Jacobi")
             else:
                 err = cg_solve_c_precon(A, x0, b, imax, tol, atol, 1, M)
 
@@ -109,33 +111,35 @@ def conjugate_gradient(A, b, x0=None, imax=10000, tol=1.0e-8, atol=1.0e-14,
 
                 if not use_c_cg:
                     x0[:, i], stats = _conjugate_gradient(A, b[:, i], x0[:, i],
-                                               imax, tol, atol, iprint)
+                                                          imax, tol, atol, iprint)
                 else:
                     # need to copy into new array to ensure contiguous access
                     xnew = x0[:, i].copy()
-                    err = cg_solve_c(A, xnew, b[:, i].copy(), imax, tol, atol, b.shape[1])
+                    err = cg_solve_c(
+                        A, xnew, b[:, i].copy(), imax, tol, atol, b.shape[1])
                     x0[:, i] = xnew
-        else:   
+        else:
 
             if not use_c_cg:
-                x0, stats = _conjugate_gradient(A, b, x0, imax, tol, atol, iprint)
+                x0, stats = _conjugate_gradient(
+                    A, b, x0, imax, tol, atol, iprint)
             else:
                 x0 = b.copy()
                 err = cg_solve_c(A, x0, b, imax, tol, atol, 1)
 
     if err == -1:
-        
+
         log.warning('max number of iterations attained from c cg')
         msg = 'Conjugate gradient solver did not converge'
-        raise_(ConvergenceError, msg)
+        raise ConvergenceError(msg)
 
     if output_stats:
         return x0, stats
     else:
         return x0
 
-    
-def _conjugate_gradient(A, b, x0, 
+
+def _conjugate_gradient(A, b, x0,
                         imax=10000, tol=1.0e-8, atol=1.0e-10, iprint=None):
     """
    Try to solve linear equation Ax = b using
@@ -156,9 +160,10 @@ def _conjugate_gradient(A, b, x0,
 
     stats = Stats()
 
-    b  = num.array(b, dtype=num.float)
+    b = num.array(b, dtype=num.float)
     if len(b.shape) != 1:
-        raise VectorShapeError('input vector should consist of only one column')
+        raise VectorShapeError(
+            'input vector should consist of only one column')
 
     if x0 is None:
         x0 = num.zeros(b.shape, dtype=num.float)
@@ -171,7 +176,7 @@ def _conjugate_gradient(A, b, x0,
         iprint = imax
 
     dx = 0.0
-    
+
     i = 1
     x = x0
     r = b - A * x
@@ -181,31 +186,31 @@ def _conjugate_gradient(A, b, x0,
 
     stats.rTr0 = rTr0
 
-    #FIXME Let the iterations stop if starting with a small residual
+    # FIXME Let the iterations stop if starting with a small residual
     while (i < imax and rTr > tol ** 2 * rTr0 and rTr > atol ** 2):
         q = A * d
-        alpha = old_div(rTr, num.dot(d, q))
+        alpha = rTr / num.dot(d, q)
         xold = x
         x = x + alpha * d
 
         dx = num.linalg.norm(x-xold)
-        
-        #if dx < atol :
+
+        # if dx < atol :
         #    break
 
         # Padarn Note 26/11/12: This modification to the algorithm seems
         # unnecessary, but also seem to have been implemented incorrectly -
         # it was set to perform the more expensive r = b - A * x routine in
         # 49/50 iterations. Suggest this being either removed completely or
-        # changed to 'if i%50==0' (or equvialent).  
-        #if i % 50:
+        # changed to 'if i%50==0' (or equvialent).
+        # if i % 50:
         if False:
             r = b - A * x
         else:
             r = r - alpha * q
         rTrOld = rTr
         rTr = num.dot(r, r)
-        bt = old_div(rTr, rTrOld)
+        bt =  rTr / rTrOld
 
         d = r + bt * d
         i = i + 1
@@ -216,7 +221,7 @@ def _conjugate_gradient(A, b, x0,
         if i == imax:
             log.warning('max number of iterations attained')
             msg = 'Conjugate gradient solver did not converge: rTr==%20.15e' % rTr
-            raise_(ConvergenceError, msg)
+            raise ConvergenceError(msg)
 
     stats.x = num.linalg.norm(x)
     stats.iter = i
@@ -226,11 +231,8 @@ def _conjugate_gradient(A, b, x0,
     return x, stats
 
 
-
-
-    
-def _conjugate_gradient_preconditioned(A, b, x0, M, 
-                        imax=10000, tol=1.0e-8, atol=1.0e-10, iprint=None, Type='None'):
+def _conjugate_gradient_preconditioned(A, b, x0, M,
+                                       imax=10000, tol=1.0e-8, atol=1.0e-10, iprint=None, Type='None'):
     """
    Try to solve linear equation Ax = b using
    preconditioned conjugate gradient method
@@ -250,22 +252,24 @@ def _conjugate_gradient_preconditioned(A, b, x0, M,
 
     # Padarn note: This is temporary while the Jacboi preconditioner is the only
     # one avaliable.
-    D=[]
-    if not Type=='Jacobi':
-        log.warning('Only the Jacobi Preconditioner is impletment cg_solve python')
+    D = []
+    if not Type == 'Jacobi':
+        log.warning(
+            'Only the Jacobi Preconditioner is impletment cg_solve python')
         msg = 'Only the Jacobi Preconditioner is impletment in cg_solve python'
-        raise_(PreconditionerError, msg)
+        raise PreconditionerError(msg)
     else:
-        D=Sparse(A.M, A.M)
+        D = Sparse(A.M, A.M)
         for i in range(A.M):
-            D[i,i]=old_div(1,M[i])
-        D=Sparse_CSR(D)
+            D[i, i] = 1 / M[i]
+        D = Sparse_CSR(D)
 
     stats = Stats()
 
-    b  = num.array(b, dtype=num.float)
+    b = num.array(b, dtype=num.float)
     if len(b.shape) != 1:
-        raise VectorShapeError('input vector should consist of only one column')
+        raise VectorShapeError(
+            'input vector should consist of only one column')
 
     if x0 is None:
         x0 = num.zeros(b.shape, dtype=num.float)
@@ -278,7 +282,7 @@ def _conjugate_gradient_preconditioned(A, b, x0, M,
         iprint = imax
 
     dx = 0.0
-    
+
     i = 1
     x = x0
     r = b - A * x
@@ -288,25 +292,25 @@ def _conjugate_gradient_preconditioned(A, b, x0, M,
     rTr0 = rTr
 
     stats.rTr0 = rTr0
-    
-    #FIXME Let the iterations stop if starting with a small residual
+
+    # FIXME Let the iterations stop if starting with a small residual
     while (i < imax and rTr > tol ** 2 * rTr0 and rTr > atol ** 2):
         q = A * d
-        alpha = old_div(rTr, num.dot(d, q))
+        alpha = rTr / num.dot(d, q)
         xold = x
         x = x + alpha * d
 
         dx = num.linalg.norm(x-xold)
-        
-        #if dx < atol :
+
+        # if dx < atol :
         #    break
 
-        # Padarn Note 26/11/12: This modification to the algorithm seems
+        # FIXME: Padarn Note 26/11/12: This modification to the algorithm seems
         # unnecessary, but also seem to have been implemented incorrectly -
         # it was set to perform the more expensive r = b - A * x routine in
         # 49/50 iterations. Suggest this being either removed completely or
-        # changed to 'if i%50==0' (or equvialent).  
-        #if i % 50:
+        # changed to 'if i%50==0' (or equvialent).
+        # if i % 50:
         if False:
             r = b - A * x
         else:
@@ -314,7 +318,7 @@ def _conjugate_gradient_preconditioned(A, b, x0, M,
         rTrOld = rTr
         z = D * r
         rTr = num.dot(r, z)
-        bt = old_div(rTr, rTrOld)
+        bt = rTr / rTrOld
 
         d = z + bt * d
         i = i + 1
@@ -324,7 +328,7 @@ def _conjugate_gradient_preconditioned(A, b, x0, M,
         if i == imax:
             log.warning('max number of iterations attained')
             msg = 'Conjugate gradient solver did not converge: rTr==%20.15e' % rTr
-            raise_(ConvergenceError, msg)
+            raise ConvergenceError(msg)
 
     stats.x = num.linalg.norm(x)
     stats.iter = i

@@ -21,10 +21,10 @@ Y_TITLE = 'y'
 
 
 class Exposure(object):
-    '''
-    Class for National Exposure Database storage (NEXIS).
+    """Class for National Exposure Database storage (NEXIS).
     Returns a csv file handle
-    '''
+    """
+    
     def __init__(self,file_name, latitude_title=LAT_TITLE,
                  longitude_title=LONG_TITLE, is_x_y_locations=None,
                  x_title=X_TITLE, y_title=Y_TITLE,
@@ -107,6 +107,8 @@ class Exposure(object):
         Returns True if objects are the 'same'.
         """
 
+        # FIXME: Deprecate this method
+        
         #check that 'other' is an instance of this class
         if isinstance(self, type(other)):
             result = cmp(self._attribute_dic, other._attribute_dic)
@@ -127,6 +129,54 @@ class Exposure(object):
         else:
             return 1
 
+    def __eq__(self, other):
+        """Compare this and another object.
+
+        self   this object
+        other  the other object
+
+        Returns True if objects are the 'same'.
+        """
+
+        if isinstance(self, type(other)):
+            #print(self._attribute_dic)
+            #print(other._attribute_dic)
+
+            # Note (Ole) Dictionaries are now sorted in Python3
+            #result = self._attribute_dic == other._attribute_dic
+            #if result:
+            #    return(result)
+
+            # However, to work also with Python use this
+            if self._title_index_dic != other._title_index_dic:
+                return False
+
+            for title in self._title_index_dic:
+                if self._attribute_dic[title] != other._attribute_dic[title]:
+                    return False
+
+            # All matched up
+            return True
+        
+            #if result != 0:
+            #    return result
+
+            # The order of the columns is important. Therefore..
+            #result = cmp(self._title_index_dic, other._title_index_dic)
+            #if result != 0:
+            #    return result
+            #for self_ls, other_ls in zip(self._attribute_dic,
+            #                             other._attribute_dic):
+            #    result = cmp(self._attribute_dic[self_ls],
+            #                 other._attribute_dic[other_ls])
+            #    if result != 0:
+            #        return result
+            #return False
+        else:
+            return False
+
+
+        
     def get_column(self, column_name, use_refind_polygon=False):
         """Get a list of column values given a column name.
 
@@ -207,7 +257,7 @@ class Exposure(object):
         if file_name is None:
             file_name = self._file_name
 
-        fd = open(file_name, 'wb')
+        fd = open(file_name, 'w')
         writer = csv.writer(fd)
 
         #Write the title to a cvs file

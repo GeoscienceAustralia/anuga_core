@@ -28,6 +28,8 @@ from anuga.utilities import parallel_abstraction as pypar
 from math import pi, pow, sqrt
 
 import numpy as num
+
+import anuga
 from anuga.parallel.parallel_inlet_operator import Parallel_Inlet_operator
 from anuga.parallel import distribute, myid, numprocs, finalize
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
@@ -277,8 +279,7 @@ class Test_parallel_boyd_box_operator(unittest.TestCase):
     def test_parallel_operator(self):
         #print "Expect this test to fail if not run from the parallel/test directory."
 
-        abs_script_name = os.path.abspath(__file__)
-        cmd = "mpiexec -np %d python %s" % (3, abs_script_name)
+        cmd = anuga.mpicmd(os.path.abspath(__file__))
         exitstatus = os.system(cmd)
         #exitstatus = mpi_cmd(nprocs, abs_script_name)
 

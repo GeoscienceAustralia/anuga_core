@@ -2,12 +2,6 @@
 A module to allow interactive plotting in a Jupyter notebook of quantities and mesh
 associated with an ANUGA domain and SWW file.
 """
-from __future__ import print_function
-from __future__ import division
-
-from builtins import range
-from past.utils import old_div
-from builtins import object
 import numpy as np
 import os
 
@@ -419,9 +413,9 @@ class SWW_plotter(object):
                 self.depth[i, :] = self.stage[i, :]-self.elev
 
         self.xvel = np.where(self.depth > minimum_allowed_depth,
-                             old_div(self.xmom, self.depth), 0.0)
+                             (self.xmom, self.depth) / 0.0)
         self.yvel = np.where(self.depth > minimum_allowed_depth,
-                             old_div(self.ymom, self.depth), 0.0)
+                             (self.ymom, self.depth) / 0.0)
 
         self.speed = np.sqrt(self.xvel**2 + self.yvel**2)
 

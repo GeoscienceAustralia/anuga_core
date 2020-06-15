@@ -271,9 +271,9 @@ class Test_Geospatial_data(unittest.TestCase):
         assert num.allclose(V, [79.4, -7])
 
     def test_add(self):
-        '''test the addition of two geospatical objects
+        """test the addition of two geospatical objects
         no geo_reference see next test
-        '''
+        """
 
         points = [[1.0, 2.1], [3.0, 5.3]]
         attributes = {'depth': [2, 4], 'elevation': [6.1, 5]}
@@ -291,9 +291,9 @@ class Test_Geospatial_data(unittest.TestCase):
                                                   [1.0, 2.1], [3.0, 5.3]])
 
     def test_addII(self):
-        '''test the addition of two geospatical objects
+        """test the addition of two geospatical objects
         no geo_reference see next test
-        '''
+        """
 
         points = [[1.0, 2.1], [3.0, 5.3]]
         attributes = {'depth': [2, 4]}
@@ -312,7 +312,7 @@ class Test_Geospatial_data(unittest.TestCase):
                                                   [5.0, 2.1], [3.0, 50.3]])
 
     def test_add_with_geo (self):
-        '''Difference in Geo_reference resolved'''
+        """Difference in Geo_reference resolved"""
 
         points1 = [[1.0, 2.1], [3.0, 5.3]]
         points2 = [[5.0, 6.1], [6.0, 3.3]]
@@ -353,7 +353,7 @@ class Test_Geospatial_data(unittest.TestCase):
                                 [5.1, 9.1], [6.1, 6.3]]), msg
 
     def test_add_with_geo_absolute (self):
-        '''Difference in Geo_reference resolved'''
+        """Difference in Geo_reference resolved"""
 
         points1 = num.array([[2.0, 4.1], [4.0, 7.3]])
         points2 = num.array([[5.1, 9.1], [6.1, 6.3]])
@@ -395,7 +395,7 @@ class Test_Geospatial_data(unittest.TestCase):
         assert num.allclose(P, num.concatenate((points1, points2), axis=0)) #??default#
 
     def test_add_with_None(self):
-        '''test that None can be added to a geospatical objects'''
+        """test that None can be added to a geospatical objects"""
 
         points1 = num.array([[2.0, 4.1], [4.0, 7.3]])
         points2 = num.array([[5.1, 9.1], [6.1, 6.3]])
@@ -486,10 +486,10 @@ class Test_Geospatial_data(unittest.TestCase):
         assert num.allclose(P, [[5.2, 12.1], [6.2, 9.3]])
 
     def test_clip0(self):
-        '''test_clip0(self):
+        """test_clip0(self):
 
         Test that point sets can be clipped by a polygon
-        '''
+        """
 
         from anuga.coordinate_transforms.geo_reference import Geo_reference
 
@@ -512,11 +512,11 @@ class Test_Geospatial_data(unittest.TestCase):
                             [[0.5, 0.5], [1, -0.5], [1.5, 0]])
 
     def test_clip0_with_attributes(self):
-        '''test_clip0_with_attributes(self):
+        """test_clip0_with_attributes(self):
 
         Test that point sets with attributes can be clipped by a polygon
-        '''
-
+        """
+        
         from anuga.coordinate_transforms.geo_reference import Geo_reference
 
         points = [[-1, 4], [0.2, 0.5], [1.0, 2.1], [0.4, 0.3], [3.0, 5.3],
@@ -1288,11 +1288,14 @@ class Test_Geospatial_data(unittest.TestCase):
 
         os.remove(FN)
 
-    def test_add_(self):
-        '''test_add_(self):
-        adds an txt and pts files, reads the files and adds them
+    def test_add_txt2pts(self):
+        """test_add_(self):
+        adds txt and pts files, reads the files and adds them
         checking results are correct
-        '''
+
+        # FIXME(Ole): I think this test is wrong as is the whole approach to adding geospatia object. 
+        Particularly around the handly of georeferences.
+        """
 
         # create files
         att_dict1 = {}
@@ -1307,13 +1310,16 @@ class Test_Geospatial_data(unittest.TestCase):
         att_dict2['brightness'] = num.array([14.0, 1.0, -12.4])
         geo_reference2 = Geo_reference(56, 1.0, 2.0)
 
+        geo_reference0 = Geo_reference(56, 0.0, 0.0)
+
         G1 = Geospatial_data(pointlist1, att_dict1, geo_reference1)
         G2 = Geospatial_data(pointlist2, att_dict2, geo_reference2)
 
         fileName1 = tempfile.mktemp('.txt')
         fileName2 = tempfile.mktemp('.pts')
 
-        # makes files
+
+        # makes files (saved with absolute=True as default)
         G1.export_points_file(fileName1)
         G2.export_points_file(fileName2)
 
@@ -1332,11 +1338,12 @@ class Test_Geospatial_data(unittest.TestCase):
         answer = [10.0, 0.0, 10.4, 14.0, 1.0, -12.4]
         assert num.allclose(G.get_attributes(attribute_name='brightness'),
                             answer)
-        self.assertTrue(G.get_geo_reference() == geo_reference1,
+
+        self.assertTrue(G.get_geo_reference() == geo_reference0,
                         'test_writepts failed. Test geo_reference')
 
-        os.remove(fileName1)
-        os.remove(fileName2)
+        #os.remove(fileName1)
+        #os.remove(fileName2)
 
     def test_ensure_absolute(self):
         points = [[2.0, 0.0], [1.0, 1.0],

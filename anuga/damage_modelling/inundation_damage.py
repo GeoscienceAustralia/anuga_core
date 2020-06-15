@@ -311,7 +311,7 @@ class EventDamageModel(object):
                             [0.95, 0.7, 0.5, 0.3],
                             [0.99, 0.9, 0.65, 0.45]]
     
-    def __init__(self,max_depths, shore_distances, walls,
+    def __init__(self, max_depths, shore_distances, walls,
                  struct_costs, content_costs):
         """
         max depth is Inundation height above ground floor (m), so
@@ -330,7 +330,7 @@ class EventDamageModel(object):
         assert  self.structure_count == len(self.struct_costs)
         assert  self.structure_count == len(self.content_costs)
         #assert  self.structure_count == len(self.)
-        
+
     def calc_damage_and_costs(self, verbose_csv=False, verbose=False):
         """
         This is an overall method to calculate the % damage and collapsed
@@ -446,12 +446,12 @@ class EventDamageModel(object):
         and collapse some houses
         """
         
-        self.struct_collapsed = ['']* self.structure_count
+        self.struct_collapsed = [''] * self.structure_count
         if verbose_csv:
-            self.collapse_csv_info = ['']* self.structure_count
+            self.collapse_csv_info = [''] * self.structure_count
         #for a given 'bin', work out how many houses will collapse
         for probability, house_indexes in collapse_probability.items():
-            collapse_count = round(len(house_indexes) *probability)
+            collapse_count = round(len(house_indexes) * probability)
             
             if verbose_csv:
                 for i in house_indexes:
@@ -465,7 +465,7 @@ class EventDamageModel(object):
                 self.contents_damage[house_index] = 1.0
                 house_indexes.remove(house_index)
                 self.struct_collapsed[house_index] = 1
-                
+            
             # Warning, the collapse_probability list now lists 
             # houses that did not collapse, (though not all of them)
             

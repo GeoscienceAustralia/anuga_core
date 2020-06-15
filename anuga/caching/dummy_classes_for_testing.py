@@ -11,6 +11,10 @@ class Dummy:
     
     def __repr__(self):
         return str(self.value) + ', ' + str(self.another)
+        
+    def __eq__(self, other):
+        return (self.value == other.value and
+                self.another == other.another)
     
 
 # Define class Dummy_memorytest before any tests are run

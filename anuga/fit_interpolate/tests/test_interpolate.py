@@ -150,7 +150,7 @@ class Test_Interpolate(unittest.TestCase):
         assert interp.outside_poly_indices[1] == 2, \
                'third outside point should be inside the hole!'
 
-    def test_simple_interpolation_example(self):
+    def test_simple_interpolation_example1(self):
         
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
@@ -1856,10 +1856,10 @@ class Test_Interpolate(unittest.TestCase):
                                     [2.0, 3./15., 3/10.5]]
         velocity_y_answers_array = [[0.0, 4./6.0, 4./1.5],
                                     [2.0, 4./15., 4./10.5]]
-        depth_file_handle = file(depth_file)
+        depth_file_handle = open(depth_file)
         depth_reader = csv.reader(depth_file_handle)
         next(depth_reader)
-        velocity_x_file_handle = file(velocity_x_file)
+        velocity_x_file_handle = open(velocity_x_file)
         velocity_x_reader = csv.reader(velocity_x_file_handle)
         next(velocity_x_reader)
         for depths, velocitys, depth_answers, velocity_answers in zip(
@@ -1876,7 +1876,7 @@ class Test_Interpolate(unittest.TestCase):
                 assert num.allclose(float(depths[i]), depth_answers[i]), msg
                 assert num.allclose(float(velocitys[i]), velocity_answers[i]), msg
 
-        velocity_y_file_handle = file(velocity_y_file)
+        velocity_y_file_handle = open(velocity_y_file)
         velocity_y_reader = csv.reader(velocity_y_file_handle)
         next(velocity_y_reader)
         for velocitys, velocity_answers in zip(
