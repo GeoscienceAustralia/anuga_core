@@ -5,9 +5,9 @@ os: Visual Studio 2015
 
 environment:
   matrix:
-    - PY_MAJOR_VER: 2
+    - PY_MAJOR_VER: 3
       PYTHON_ARCH: "x86"
-    - PY_MAJOR_VER: 2
+    - PY_MAJOR_VER: 3
       PYTHON_ARCH: "x86_64"
 
 build_script:
@@ -27,7 +27,8 @@ build_script:
   - set PATH=%PATH%;"C:\Program Files\Microsoft MPI\bin"
   - conda config --set always_yes yes
   - conda update conda
-  - conda install python=2.7.13 gdal=2.2.2 nose numpy cython scipy netcdf4 matplotlib dill libpython msys2::m2w64-toolchain future
+  - conda install python=3.8 gdal nose numpy cython scipy netcdf4 matplotlib dill future
+  - conda install -c m2w64 libpython m2w64-toolchain
   - pip install mpi4py
   - python setup.py install
 
