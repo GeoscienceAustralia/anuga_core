@@ -1328,7 +1328,7 @@ class Test_Util(unittest.TestCase):
         
         import tempfile
         root_dir = tempfile.mkdtemp('_test_util', 'test_util_')
-        directories = ['/\/!@#@#$%^%&*((*:*:','ne','ke']
+        directories = [r'/\/!@#@#$%^%&*((*:*:','ne','ke']
         
         try:
             kens_dir = add_directories(root_dir, directories)
@@ -1369,7 +1369,7 @@ class Test_Util(unittest.TestCase):
         
         import tempfile
         root_dir = tempfile.mkdtemp('_test_util', 'test_util_')
-        directories = ['/\/!@#@#$%^%&*((*:*:','ne','ke']
+        directories = [r'/\/!@#@#$%^%&*((*:*:','ne','ke']
         
         try:
             kens_dir = add_directories(root_dir, directories)
