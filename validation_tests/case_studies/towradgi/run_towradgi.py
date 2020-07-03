@@ -1008,8 +1008,7 @@ if myid == 0 and verbose: print('EVOLVE')
     
 t0 = time.time()
     
-#for t in domain.evolve(yieldstep = 300., finaltime = 83700.):
-for t in domain.evolve(yieldstep = 300., finaltime = 600.):
+for t in domain.evolve(yieldstep = 300., finaltime = 83700.):
     #if t == 37800.0: #time when bridge deck starts to get submerged, increase n to act as bridge deck, handrail and blockage effects
     ## Try to block all culverts / bridges, as described in the flood study
     #if t == 44100.0: #time when water level drops below bridge deck, bring n back down to existing conditions
