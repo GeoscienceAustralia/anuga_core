@@ -10,7 +10,7 @@ import numpy as num
 
 # The abstract Python-MPI interface
 from anuga.utilities.parallel_abstraction import size, rank, get_processor_name
-from anuga.utilities.parallel_abstraction import finalize, send, receive
+from anuga.utilities.parallel_abstraction import finalize, send, receive, reduce
 from anuga.utilities.parallel_abstraction import pypar_available, barrier
 
 
