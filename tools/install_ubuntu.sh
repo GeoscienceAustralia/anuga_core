@@ -91,7 +91,7 @@ python -m pip  install -q matplotlib
 echo "+===============================================+"
 echo "|  Using pip to install gdal                    |"
 echo "+===============================================+"
-python -m pip  install -q GDAL=2.2.2
+python -m pip  install -q GDAL==2.2.2
 
 
 echo "+===============================================+"
