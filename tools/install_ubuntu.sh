@@ -12,6 +12,10 @@ set -e
 PYTHON_VERSION=${PYTHON_VERSION:-"2.7"}
 ANUGA_PARALLEL=${ANUGA_PARALLEL:-"false"}
 
+if [[ "$PYTHON_VERSION" == "3.8"]]; then 
+    source ~/virtualenv/python3.8/bin/activate;
+fi
+
 if [[ "$ANUGA_PARALLEL" == "false" ]];
 then 
     PYPAR_AVAILABLE="false"
@@ -51,11 +55,26 @@ echo "+===============================================+"
 echo "|  Using apt-get to install standard packages   |"
 echo "+===============================================+"
 
-sudo apt-get install -q -y git gfortran python-dev python-numpy \
-                             python-scipy \
-                             python-matplotlib netcdf-bin \
+sudo apt-get install -q -y git gfortran netcdf-bin \
                              libnetcdf-dev libhdf5-serial-dev \
-                             python-gdal gdal-bin python-pip
+                             gdal-bin
+
+echo "+===============================================+"
+echo "|  Using pip to install scipy                   |"
+echo "+===============================================+"
+sudo pip install -q scipy
+
+
+echo "+===============================================+"
+echo "|  Using pip to install matplotlib              |"
+echo "+===============================================+"
+sudo pip install -q matplotlib
+
+
+echo "+===============================================+"
+echo "|  Using pip to install gdal                    |"
+echo "+===============================================+"
+sudo pip install -q gdal
 
 
 echo "+===============================================+"
