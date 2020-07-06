@@ -68,53 +68,65 @@ sudo apt-get install -q -y git gfortran netcdf-bin \
                              libnetcdf-dev libhdf5-serial-dev \
                              gdal-bin
 
+
+if [[ "$PYTHON_VERSION" == "3.8" ]]; 
+then
+    echo "+===============================================+"
+    echo "|  Activate python 3.8 environment              |"
+    echo "+===============================================+"
+    source ~/virtualenv/python3.8/bin/activate
+    python --version
+fi
+
+python --version
+
 echo "+===============================================+"
 echo "|  Using pip to install scipy                   |"
 echo "+===============================================+"
-sudo pip install -q scipy
+sudo python -m pip  install -q scipy
 
 
 echo "+===============================================+"
 echo "|  Using pip to install matplotlib              |"
 echo "+===============================================+"
-sudo pip install -q matplotlib
+sudo python -m pip  install -q matplotlib
 
 
 echo "+===============================================+"
 echo "|  Using pip to install gdal                    |"
 echo "+===============================================+"
-sudo pip install -q gdal
+sudo python -m pip  install -q gdal
 
 
 echo "+===============================================+"
 echo "|  Using pip to install nose                    |"
 echo "+===============================================+"
-sudo pip install -q nose
+sudo python -m pip  install -q nose
 
 echo "+===============================================+"
 echo "|  Using pip to install dill                    |"
 echo "+===============================================+"
-sudo pip install -q dill
+sudo python -m pip  install -q dill
 
 echo "+===============================================+"
 echo "|  Using pip to install netCDF4                 |"
 echo "+===============================================+"
-sudo pip install -q netCDF4
+sudo python -m pip  install -q netCDF4
 
 echo "+===============================================+"
 echo "|  Using pip to install Cython                  |"
 echo "+===============================================+"
-sudo pip install -q Cython
+sudo python -m pip  install -q Cython
 
 echo "+===============================================+"
 echo "|  Using pip to install future                  |"
 echo "+===============================================+"
-sudo pip install -q future
+sudo python -m pip  install -q future
 
 echo "+===============================================+"
 echo "|  Using pip to install pyproj                  |"
 echo "+===============================================+"
-sudo pip install -q pyproj
+sudo python -m pip  install -q pyproj
 
 
 ##########################################################
@@ -160,7 +172,7 @@ if [[ "$PYPAR_AVAILABLE" == "mpi4py" ]]; then
     echo "+===============================================+"
     echo "|  Using pip to install mpi4py                  |"
     echo "+===============================================+"
-    sudo pip install -q mpi4py
+    sudo python -m pip  install -q mpi4py
 fi  
 
 #########################################################
