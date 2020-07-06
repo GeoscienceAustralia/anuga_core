@@ -12,10 +12,18 @@ set -e
 PYTHON_VERSION=${PYTHON_VERSION:-"2.7"}
 ANUGA_PARALLEL=${ANUGA_PARALLEL:-"false"}
 
+echo $PYTHON_VERSION
+
 if [[ "$PYTHON_VERSION" == "3.8" ]]; 
-then 
+then
+    echo "+===============================================+"
+    echo "|  Activate python 3.8 environment              |"
+    echo "+===============================================+"
     source ~/virtualenv/python3.8/bin/activate
+    python --version
 fi
+
+python --version
 
 if [[ "$ANUGA_PARALLEL" == "false" ]];
 then 
