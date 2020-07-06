@@ -83,50 +83,50 @@ python --version
 echo "+===============================================+"
 echo "|  Using pip to install scipy                   |"
 echo "+===============================================+"
-sudo python -m pip  install -q scipy
+python -m pip  install -q scipy
 
 
 echo "+===============================================+"
 echo "|  Using pip to install matplotlib              |"
 echo "+===============================================+"
-sudo python -m pip  install -q matplotlib
+python -m pip  install -q matplotlib
 
 
 echo "+===============================================+"
 echo "|  Using pip to install gdal                    |"
 echo "+===============================================+"
-sudo python -m pip  install -q gdal
+python -m pip  install -q gdal
 
 
 echo "+===============================================+"
 echo "|  Using pip to install nose                    |"
 echo "+===============================================+"
-sudo python -m pip  install -q nose
+python -m pip  install -q nose
 
 echo "+===============================================+"
 echo "|  Using pip to install dill                    |"
 echo "+===============================================+"
-sudo python -m pip  install -q dill
+python -m pip  install -q dill
 
 echo "+===============================================+"
 echo "|  Using pip to install netCDF4                 |"
 echo "+===============================================+"
-sudo python -m pip  install -q netCDF4
+python -m pip  install -q netCDF4
 
 echo "+===============================================+"
 echo "|  Using pip to install Cython                  |"
 echo "+===============================================+"
-sudo python -m pip  install -q Cython
+python -m pip  install -q Cython
 
 echo "+===============================================+"
 echo "|  Using pip to install future                  |"
 echo "+===============================================+"
-sudo python -m pip  install -q future
+python -m pip  install -q future
 
 echo "+===============================================+"
 echo "|  Using pip to install pyproj                  |"
 echo "+===============================================+"
-sudo python -m pip  install -q pyproj
+python -m pip  install -q pyproj
 
 
 ##########################################################
@@ -172,7 +172,7 @@ if [[ "$PYPAR_AVAILABLE" == "mpi4py" ]]; then
     echo "+===============================================+"
     echo "|  Using pip to install mpi4py                  |"
     echo "+===============================================+"
-    sudo python -m pip  install -q mpi4py
+    python -m pip  install -q mpi4py
 fi  
 
 #########################################################
@@ -186,4 +186,4 @@ python build_all.py
 echo "+===============================================+"
 echo "|  Install anuga using setup.py                 |"
 echo "+===============================================+"
-sudo python setup.py -q install
+python setup.py -q install
