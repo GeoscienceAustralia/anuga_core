@@ -65,20 +65,16 @@ echo "|  Using apt-get to install standard packages   |"
 echo "+===============================================+"
 
 sudo apt-get install -q -y git gfortran netcdf-bin \
-                             libnetcdf-dev libhdf5-serial-dev \
-                             gdal-bin libgdal-dev
+                             libnetcdf-dev libhdf5-serial-dev
 
 
-if [[ "$PYTHON_VERSION" == "3.8" ]]; 
-then
-    echo "+===============================================+"
-    echo "|  Activate python 3.8 environment              |"
-    echo "+===============================================+"
-    source ~/virtualenv/python3.8/bin/activate
-    python --version
-fi
+sudo add-apt-repository ppa:ubuntugis/ppa
+sudo apt-get update
+sudo apt-get install -y gdal-bin libgdal-dev
+ogrinfo --version
+export CPLUS_INCLUDE_PATH=/usr/include/gdal
+export C_INCLUDE_PATH=/usr/include/gdal
 
-python --version
 
 echo "+===============================================+"
 echo "|  Using pip to install scipy                   |"
@@ -95,7 +91,7 @@ python -m pip  install -q matplotlib
 echo "+===============================================+"
 echo "|  Using pip to install gdal                    |"
 echo "+===============================================+"
-python -m pip  install -q gdal
+python -m pip  install -q GDAL
 
 
 echo "+===============================================+"
