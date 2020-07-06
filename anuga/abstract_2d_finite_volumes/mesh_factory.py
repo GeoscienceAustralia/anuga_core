@@ -164,8 +164,8 @@ def rectangular_cross(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     params.append(len1)
     params.append(len2)
 
-    arrParams = num.array(params)
-    arrOrigin = num.array(origin)
+    arrParams = num.array(params, dtype=num.float)
+    arrOrigin = num.array(origin, dtype=num.float)
     
     points = num.empty([(m+1)*(n+1)+m*n,2], dtype=num.float)
     elements = num.empty([4*m*n,3], dtype=num.int)
