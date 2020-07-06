@@ -66,7 +66,7 @@ echo "+===============================================+"
 
 sudo apt-get install -q -y git gfortran netcdf-bin \
                              libnetcdf-dev libhdf5-serial-dev \
-                             gdal-bin libgdal gdal-devel
+                             gdal-bin libgdal-dev
 
 
 if [[ "$PYTHON_VERSION" == "3.8" ]]; 
