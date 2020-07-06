@@ -12,8 +12,9 @@ set -e
 PYTHON_VERSION=${PYTHON_VERSION:-"2.7"}
 ANUGA_PARALLEL=${ANUGA_PARALLEL:-"false"}
 
-if [[ "$PYTHON_VERSION" == "3.8"]]; then 
-    source ~/virtualenv/python3.8/bin/activate;
+if [[ "$PYTHON_VERSION" == "3.8" ]]; 
+then 
+    source ~/virtualenv/python3.8/bin/activate
 fi
 
 if [[ "$ANUGA_PARALLEL" == "false" ]];
