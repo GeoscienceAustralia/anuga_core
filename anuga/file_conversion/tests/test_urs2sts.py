@@ -1,4 +1,10 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from builtins import map
+from builtins import str
+from builtins import range
+from past.utils import old_div
 from future.utils import raise_
 import numpy as num
 import unittest
@@ -95,7 +101,7 @@ class Test_Urs2Sts(Test_Mux):
         y = fid.variables['y'][:]
 
         geo_reference = Geo_reference(NetCDFObject=fid)
-        points = geo_reference.get_absolute(map(None, x, y))
+        points = geo_reference.get_absolute(list(zip(x, y)))
         points = ensure_numeric(points)
 
         x = points[:,0]
@@ -211,7 +217,7 @@ class Test_Urs2Sts(Test_Mux):
         y = fid.variables['y'][:]
 
         geo_reference = Geo_reference(NetCDFObject=fid)
-        points = geo_reference.get_absolute(map(None, x, y))
+        points = geo_reference.get_absolute(list(zip(x, y)))
         points = ensure_numeric(points)
 
         x = points[:,0]
@@ -334,15 +340,15 @@ class Test_Urs2Sts(Test_Mux):
                 # Check that actual start time matches header information for stage
                 msg = 'stage start time from urs file is not the same as the '
                 msg += 'header file for source %i and station %i' %(source_number,j)
-                assert num.allclose(index_start_urs_z,start_times_z[j]/delta_t), msg
+                assert num.allclose(index_start_urs_z,old_div(start_times_z[j],delta_t)), msg
 
                 msg = 'e velocity start time from urs file is not the same as the '
                 msg += 'header file for source %i and station %i' %(source_number,j)
-                assert num.allclose(index_start_urs_e,start_times_e[j]/delta_t), msg
+                assert num.allclose(index_start_urs_e,old_div(start_times_e[j],delta_t)), msg
 
                 msg = 'n velocity start time from urs file is not the same as the '
                 msg += 'header file for source %i and station %i' %(source_number,j)
-                assert num.allclose(index_start_urs_n,start_times_n[j]/delta_t), msg
+                assert num.allclose(index_start_urs_n,old_div(start_times_n[j],delta_t)), msg
                 
                 # get index for start and end time for sts quantities
                 index_start_stage = 0
@@ -431,7 +437,7 @@ class Test_Urs2Sts(Test_Mux):
         
         
         # Check that stored permutation is as per default
-        permutation = range(len(x))
+        permutation = list(range(len(x)))
         stored_permutation = fid.variables['permutation'][:]
         msg = 'Permutation was not stored correctly. I got '
         msg += str(stored_permutation)
@@ -497,15 +503,15 @@ class Test_Urs2Sts(Test_Mux):
             # Check that actual start time matches header information for stage
             msg = 'stage start time from urs file is not the same as the '
             msg += 'header file at station %i' %(j)
-            assert num.allclose(index_start_urs_z,start_times_z/delta_t), msg
+            assert num.allclose(index_start_urs_z,old_div(start_times_z,delta_t)), msg
 
             msg = 'e velocity start time from urs file is not the same as the '
             msg += 'header file at station %i' %(j)
-            assert num.allclose(index_start_urs_e,start_times_e/delta_t), msg
+            assert num.allclose(index_start_urs_e,old_div(start_times_e,delta_t)), msg
 
             msg = 'n velocity start time from urs file is not the same as the '
             msg += 'header file at station %i' %(j)
-            assert num.allclose(index_start_urs_n,start_times_n/delta_t), msg
+            assert num.allclose(index_start_urs_n,old_div(start_times_n,delta_t)), msg
                 
             # get index for start and end time for sts quantities
             index_start_stage = 0
@@ -647,7 +653,7 @@ class Test_Urs2Sts(Test_Mux):
         y = fid.variables['y'][:]
 
         geo_reference = Geo_reference(NetCDFObject=fid)
-        points = geo_reference.get_absolute(map(None, x, y))
+        points = geo_reference.get_absolute(list(zip(x, y)))
         points = ensure_numeric(points)
 
         x = points[:,0]
@@ -896,7 +902,7 @@ class Test_Urs2Sts(Test_Mux):
         for i in range(n):
              # For each point
              
-             for j in range(0, first_tstep[i]-1) + range(last_tstep[i], time_step_count):
+             for j in list(range(0, first_tstep[i]-1)) + list(range(last_tstep[i], time_step_count)):
                  # For timesteps before and after recording range
                  ha0[i][j] = ua0[i][j] = va0[i][j] = 0.0                                  
 
@@ -944,7 +950,7 @@ class Test_Urs2Sts(Test_Mux):
         for i in range(n):
              # For each point
              
-             for j in range(0, first_tstep[i]-1) + range(last_tstep[i], time_step_count):
+             for j in list(range(0, first_tstep[i]-1)) + list(range(last_tstep[i], time_step_count)):
                  # For timesteps before and after recording range
                  ha1[i][j] = ua1[i][j] = va1[i][j] = 0.0                                  
 
@@ -1009,7 +1015,7 @@ class Test_Urs2Sts(Test_Mux):
         y = fid.variables['y'][:]
 
         geo_reference = Geo_reference(NetCDFObject=fid)
-        points = geo_reference.get_absolute(map(None, x, y))
+        points = geo_reference.get_absolute(list(zip(x, y)))
         points = ensure_numeric(points)
 
         x = points[:,0]
@@ -1117,7 +1123,7 @@ class Test_Urs2Sts(Test_Mux):
         y = fid.variables['y'][:]
 
         geo_reference = Geo_reference(NetCDFObject=fid)
-        points = geo_reference.get_absolute(map(None, x, y))
+        points = geo_reference.get_absolute(list(zip(x, y)))
         points = ensure_numeric(points)
 
         x = points[:,0]
@@ -1225,7 +1231,7 @@ class Test_Urs2Sts(Test_Mux):
         y = fid.variables['y'][:]
 
         geo_reference = Geo_reference(NetCDFObject=fid)
-        points = geo_reference.get_absolute(map(None, x, y))
+        points = geo_reference.get_absolute(list(zip(x, y)))
         points = ensure_numeric(points)
 
         x = points[:,0]
@@ -1398,7 +1404,7 @@ class Test_Urs2Sts(Test_Mux):
         # Evolve
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
-        temp_fbound=num.zeros(int(finaltime/yieldstep)+1,num.float)
+        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
 
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -1425,7 +1431,7 @@ class Test_Urs2Sts(Test_Mux):
         Br = Reflective_boundary(domain_drchlt)
 
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,num.float)
+        temp_drchlt=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
 
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -1543,7 +1549,7 @@ class Test_Urs2Sts(Test_Mux):
         data_finaltime = time_step*(time_step_count-1)
         finaltime = data_finaltime + 10 # Let model time exceed available data
         yieldstep = time_step
-        temp_fbound=num.zeros(int(finaltime/yieldstep)+1, num.float)
+        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1, num.float)
 
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -1569,7 +1575,7 @@ class Test_Urs2Sts(Test_Mux):
         Br = Reflective_boundary(domain_drchlt)
 
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,num.float)
+        temp_drchlt=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
 
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -1688,7 +1694,7 @@ class Test_Urs2Sts(Test_Mux):
         data_finaltime = time_step*(time_step_count-1)
         finaltime = data_finaltime + 10 # Let model time exceed available data
         yieldstep = time_step
-        temp_fbound=num.zeros(int(finaltime/yieldstep)+1, num.float)
+        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1, num.float)
 
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -1773,7 +1779,7 @@ class Test_Urs2Sts(Test_Mux):
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
-        temp_fbound=num.zeros(int(finaltime/yieldstep)+1,num.float)
+        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
         
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -1785,7 +1791,7 @@ class Test_Urs2Sts(Test_Mux):
         Br = Reflective_boundary(domain_drchlt)
         Bd = Dirichlet_boundary([2.0+tide,220+10*tide,-220-10*tide])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,num.float)
+        temp_drchlt=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
 
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -1921,7 +1927,7 @@ class Test_Urs2Sts(Test_Mux):
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
-        temp_fbound=num.zeros(int(finaltime/yieldstep)+1,num.float)
+        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
     
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -1935,7 +1941,7 @@ class Test_Urs2Sts(Test_Mux):
         Br = Reflective_boundary(domain_drchlt)
         Bd = Dirichlet_boundary([2.0+tide,220+10*tide,-220-10*tide])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,num.float)
+        temp_drchlt=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
         
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 

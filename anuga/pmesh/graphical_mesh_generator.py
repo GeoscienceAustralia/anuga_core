@@ -1,16 +1,22 @@
 from __future__ import absolute_import
+from __future__ import division
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import  Pmw, AppShell, math, time, string, marshal
 from .toolbarbutton import ToolBarButton
-import tkFileDialog
-from   tkSimpleDialog import Dialog
+import tkinter.filedialog
+from   tkinter.simpledialog import Dialog
 from . import mesh
 from .mesh import SEG_COLOUR
-from Tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, \
+from tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, \
      Label,W, Entry, E, StringVar, END, Checkbutton, Radiobutton, IntVar, \
      DISABLED, NORMAL
 #from cursornames import TLC,TRC, BLC, BRC, TS, RS, LS, BS
-from tkMessageBox import showerror, _show, QUESTION,YESNOCANCEL
+from tkinter.messagebox import showerror, _show, QUESTION,YESNOCANCEL
 import types
 from . import visualmesh
 import os, sys
@@ -19,7 +25,7 @@ import anuga.load_mesh.loadASCII
 from anuga.alpha_shape.alpha_shape import AlphaError
 import anuga.utilities.log as log
 
-# CONSTANTS 
+# CONSTANTS
 VERT_SELECT_ADDING_SEG_COLOR = 'orange'
 SELECT_COLOR = 'red'
 TRIANGLE_COLOUR = 'green'
@@ -40,8 +46,8 @@ class Draw(AppShell.AppShell):
     frameHeight    = 600
 
 
-    
-    
+
+
     def createButtons(self):
         """
         Add buttons to the bottom of the GUI
@@ -54,7 +60,7 @@ class Draw(AppShell.AppShell):
               statusMessage='', command=self.clearMesh)
         self.buttonAdd('Close', helpMessage='Close Screen',
               statusMessage='', command=self.close)
-        
+
     def createBase(self):
         """
         Create the GUI framework.  Set up the GUI
@@ -73,7 +79,7 @@ class Draw(AppShell.AppShell):
         self.scrolledcanvas.pack(side=LEFT, expand=YES, fill=BOTH)
         self.canvas = self.scrolledcanvas.component('canvas')
         self.canvas.configure( background="white" )
-        
+
         self.canvas.pack(side=LEFT, expand=YES, fill=BOTH)
 
         Widget.bind(self.canvas, "<Button-1>", self.mouseDown)
@@ -84,8 +90,8 @@ class Draw(AppShell.AppShell):
 
         #self.root.bind("<KeyPress>", self.setRegular)
         #self.root.bind("<KeyRelease>", self.setRegular)
-        
-	self.scrolledcanvas.resizescrollregion()
+
+        self.scrolledcanvas.resizescrollregion()
 
 #     def setRegular(self, event):
 #         if event.type == '2' and event.keysym == 'Shift_L':
@@ -106,28 +112,28 @@ class Draw(AppShell.AppShell):
                                  label='Save', command=self.saveDrawing)
         self.menuBar.addmenuitem('File', 'command', 'Save mesh',
                                  label='SaveAs...', command=self.saveAsDrawing)
-        
+
         self.menuBar.addmenuitem('File', 'separator')
         self.menuBar.addmenuitem('File', 'command',
                                  'Add ungenerated file from arcGIS',
                                  label='Add ungenerated file...',
                                  command=self.ImportUngenerate)
-        
+
         #self.menuBar.addmenuitem('File', 'command',
         #                         'Export ASCII obj',
         #                         label='Export ASCII obj',
         #                         command=self.exportObj)
-        
+
         self.menuBar.addmenuitem('File', 'command',
                                  'Export ASCII segment outline',
                                  label='Export ASCII segment outline...',
                                  command=self.exportASCIIsegmentoutlinefile)
-        
+
         self.menuBar.addmenuitem('File', 'command',
                                  'Export ASCII csv file',
                                  label='Export ASCII csv file...',
                                  command=self.exportPointsFile)
-        
+
         self.menuBar.addmenuitem('File', 'command',
                                  'add Segments to connect all vertices'  ,
                                  label='join vertices',
@@ -177,7 +183,7 @@ class Draw(AppShell.AppShell):
             self.modeClass[key] = Mode
             # for actions that occur when the mouse goes down
             self.mouseDownFunc[key] = mouseDownFunc
-         
+
     def createZooms(self):
         """
         Add zoom buttons to the top of the GUI
@@ -189,7 +195,7 @@ class Draw(AppShell.AppShell):
                       zoom, command=self.selectZoom,
                       balloonhelp='*%s zoom' % zoom,
                       statushelp='', home_dir=HOME_DIR)
-            
+
         ToolBarButton(self, self.toolbar,'1.0', 'zoomToMesh.gif',
                       command=self.ResizeToFitWrapper,
                       balloonhelp='Zooms to mesh size',
@@ -210,8 +216,8 @@ class Draw(AppShell.AppShell):
                 ('addVertex', self.windowAddVertex, 'add Vertex'),
                 ('edit', self.windowEdit, 'edit selected object'),
                 ('default', self.windowDefault, 'set default value for selected mode'),
-                ('joinVer', self.joinVerticesButton, 'add Segments to connect all vertices'),      
-             #   ('autoSeg', self.auto_segmentButton, 'add Segments to form alpha shape'), 
+                ('joinVer', self.joinVerticesButton, 'add Segments to connect all vertices'),
+             #   ('autoSeg', self.auto_segmentButton, 'add Segments to form alpha shape'),
                 ('autoSegGiveAlpha', self.auto_segmentGiveAlphaButton, 'add Segments to form alpha shape, specify alpha'),
                 ('meshGen', self.windowMeshGen, 'Generate Mesh')]:
             ToolBarButton(self, self.toolbar, key, '%s.gif' % key,
@@ -256,7 +262,7 @@ class Draw(AppShell.AppShell):
         Build the data structures for storing the mesh objects
         """
         self.mesh = mesh.Mesh()
-        
+
         self.Vertices = visualmesh.vPoints(mesh.Vertex)
         self.Segments = visualmesh.vSegments(mesh.Segment)
         self.Holes = visualmesh.vPoints(mesh.Hole)
@@ -277,7 +283,7 @@ class Draw(AppShell.AppShell):
         Automatically add some verts and segs to the mesh.Used in Debugging
 
         center and radius
-        
+
         """
         from anuga.coordinate_transforms.geo_reference import Geo_reference, \
              DEFAULT_ZONE
@@ -290,10 +296,10 @@ class Draw(AppShell.AppShell):
         pi = math.pi
         num_of_cuts = 100
         cuts = []
-        factor = 2* math.pi/num_of_cuts
+        factor = old_div(2* math.pi,num_of_cuts)
         for cut in range(num_of_cuts):
              cuts.append(cut*factor)
-        
+
         for radius in cuts:
             x = x_origin + r * math.cos(radius)
             y = y_origin + r * math.sin(radius)
@@ -306,18 +312,18 @@ class Draw(AppShell.AppShell):
         self.drawSegment(v,v_first)
         region = self.drawRegion(x_origin, y_origin, 0)
         region.setTag("setheight5")
-        
-        
+
+
         x_origin = 30-offset_x
         y_origin = 30-offset_y
         r = 5
         pi = math.pi
         num_of_cuts = 100
         cuts = []
-        factor = 2* math.pi/num_of_cuts
+        factor = old_div(2* math.pi,num_of_cuts)
         for cut in range(num_of_cuts):
              cuts.append(cut*factor)
-        
+
         for radius in cuts:
             x = x_origin + r * math.cos(radius)
             y = y_origin + r * math.sin(radius)
@@ -333,10 +339,10 @@ class Draw(AppShell.AppShell):
         self.mesh.geo_reference = Geo_reference(zone=DEFAULT_ZONE,
                                                 xllcorner=offset_x,
                                                 yllcorner=offset_y)
-            
+
         #Since the new vertex may be off screen
         self.scrolledcanvas.resizescrollregion()
-            
+
     def selectFunc(self, tag):
         """
         Change the current mode class
@@ -355,14 +361,14 @@ class Draw(AppShell.AppShell):
 
     def clearSelections(self):
         """
-        deselect objects that have been selected 
+        deselect objects that have been selected
         """
         if self.selMeshObject:
-            self.deselectMeshObject(self.selMeshObject, self.selMeshTag)       
+            self.deselectMeshObject(self.selMeshObject, self.selMeshTag)
         if self.selVertex:
             self.deselectVertex(self.selVertex, self.selVertexTag)
-          
-        
+
+
     def selectZoom(self, tag):
         """
         Zoom in or out of the current mesh view
@@ -380,7 +386,7 @@ class Draw(AppShell.AppShell):
         MeshObjects  = vertices + holes + regions
 
         # make a list of tags to delete
-        guiIDs = [getattr(MeshObjects[i],'guiID') for i in xrange(len(MeshObjects))]
+        guiIDs = [getattr(MeshObjects[i],'guiID') for i in range(len(MeshObjects))]
         self.canvas.delete(*guiIDs)
         for obj in MeshObjects:
             if self.selVertex == obj:
@@ -388,25 +394,25 @@ class Draw(AppShell.AppShell):
             elif self.selMeshObject == obj:
                 obj.draw(self.canvas,obj.guiID,  scale =self.SCALE ,colour= SELECT_COLOR)
             else:
-                obj.draw(self.canvas,obj.guiID,  scale =self.SCALE ) 
+                obj.draw(self.canvas,obj.guiID,  scale =self.SCALE )
         top, bottom = self.scrolledcanvas.xview()
-        xcenter  = (top + bottom)/2
-        xdiff =  xcenter - top  
-        xcnew = xcenter - xdiff/fraction
-        
+        xcenter  = old_div((top + bottom),2)
+        xdiff =  xcenter - top
+        xcnew = xcenter - old_div(xdiff,fraction)
+
         top, bottom = self.scrolledcanvas.yview()
-        ycenter = (top + bottom)/2
+        ycenter = old_div((top + bottom),2)
         ydiff = ycenter - top
-        ycnew = ycenter - ydiff/fraction
-        
+        ycnew = ycenter - old_div(ydiff,fraction)
+
         self.scrolledcanvas.resizescrollregion()
         # update so the moveto calls will work...
         self.scrolledcanvas.update()
         # but calling update now does make things jerky
         self.canvas.xview_moveto(xcnew)
         self.canvas.yview_moveto(ycnew)
-        
-    
+
+
     def windowAddVertex (self, parent):
         """
         add a vertex using a window and entering x y values.
@@ -415,7 +421,7 @@ class Draw(AppShell.AppShell):
         need to userstand toolbarbutton.py to know how to
         get rid of it.
         """
-        
+
         dialog = AddVertexDialog(self.canvas)
         if dialog.xyValuesOk:
             log.critical(str(dialog.x))
@@ -425,17 +431,17 @@ class Draw(AppShell.AppShell):
             self.ResizeToFit()
         else:
             log.critical("bad values")
-    
+
     def windowDefault (self, parent):
         """
-        
+
         the parent attribute isn't used by this function.
         need to userstand toolbarbutton.py to know how to
         get rid of it.
         """
         # self.UserMesh is a vMesh instance
         self.UserMesh.defaultWindow(self.canvas, self.curModeClass)
-    
+
     def windowEdit (self, parent):
         """
 
@@ -443,15 +449,15 @@ class Draw(AppShell.AppShell):
         need to userstand toolbarbutton.py to know how to
         get rid of it.
         """
-        if self.selMeshObject:   
+        if self.selMeshObject:
             self.UserMeshChanged = self.UserMesh.editWindow(self.canvas,
                                      self.selMeshObject,
                                      self.UserMeshChanged)
-    
+
     def auto_segmentButton (self, parent):
         self.auto_segment()
 
-        
+
     def auto_segmentGiveAlphaButton (self, parent):
         dialog = auto_segmentDialog(self.canvas, self.meshLastAlpha)
         if dialog.use_optimum.get() == SET_ALPHA:
@@ -469,8 +475,8 @@ class Draw(AppShell.AppShell):
                              remove_holes=dialog.remove_holes.get(),
                              smooth_indents=dialog.smooth_indents.get(),
                              expand_pinch=dialog.expand_pinch.get())
-           
-        
+
+
     def auto_segment (self, alpha = None,
                                  raw_boundary=True,
                                  remove_holes=False,
@@ -478,7 +484,7 @@ class Draw(AppShell.AppShell):
                                  expand_pinch=False ):
         """
         add Segments to bound all vertices
-        
+
         """
         if len(self.mesh.getUserVertices()) >= 3:
             try:
@@ -494,7 +500,7 @@ class Draw(AppShell.AppShell):
 
                 for drawOb in ObjectsToVisuallyDelete:
                     self.UserMesh.unvisualise(drawOb, self.canvas)
-                
+
                 for segment in newsegs:
                     self.serial +=1
                     self.uniqueID = 'M*%d' % self.serial
@@ -502,7 +508,7 @@ class Draw(AppShell.AppShell):
                                             self.uniqueID,
                                             self.canvas,
                                             self.SCALE)
-            
+
         else:
             showerror('pMesh',
                       'Three or more vetices are needed to be able to auto_segment.')
@@ -515,10 +521,10 @@ class Draw(AppShell.AppShell):
                              remove_holes=dialog.remove_holes.get(),
                              smooth_indents=dialog.smooth_indents.get(),
                              expand_pinch=dialog.expand_pinch.get())
-            
+
         for drawOb in ObjectsToVisuallyDelete:
             self.UserMesh.unvisualise(drawOb, self.canvas)
-                
+
         for segment in newsegs:
             self.serial +=1
             self.uniqueID = 'M*%d' % self.serial
@@ -526,14 +532,14 @@ class Draw(AppShell.AppShell):
                                     self.uniqueID,
                                     self.canvas,
                                     self.SCALE)
-        
+
     def joinVerticesButton (self, parent):
         self.joinVertices()
-        
+
     def joinVertices (self):
         """
         add Segments to connect all vertices
-        
+
         the parent attribute isn't used by this function.
         need to userstand toolbarbutton.py to know how to
         get rid of it.
@@ -550,7 +556,7 @@ class Draw(AppShell.AppShell):
         else:
             showerror('pMesh',
                       'Three or more vetices are needed to be able to join vertices.')
-        
+
     def windowMeshGen (self, parent):
         """
         The parent attribute isn't used by this function.
@@ -564,18 +570,18 @@ class Draw(AppShell.AppShell):
                                self.MeshMaxArea,
                                self.MeshnumTriangles,
                                self.MeshMaxAreaLast)
-        
+
         if dialog.ValuesOk:
             log.critical(str(dialog.minAngle))
             log.critical(str(dialog.maxArea))
-            
+
             self.clearSelections()
             self.canvas.delete(ALL)
             if dialog.goodMaxArea == True:
                 self.MeshMinAngle = dialog.minAngle
                 self.MeshMaxArea = dialog.maxArea
                 self.MeshMaxAreaLast = True
-                
+
                 self.mesh = self.MeshGenAreaAngle (dialog.minAngle,
                                           dialog.maxArea,
                                           self.mesh)
@@ -583,7 +589,7 @@ class Draw(AppShell.AppShell):
                 self.MeshMinAngle = dialog.minAngle
                 self.MeshnumTriangles  = dialog.numTriangles
                 self.MeshMaxAreaLast = False
-                
+
                 self.mesh = self.MeshGenAreaNumTriangles (dialog.minAngle,
                                           dialog.numTriangles,
                                           self.mesh)
@@ -593,7 +599,7 @@ class Draw(AppShell.AppShell):
             self.UserMeshChanged = False
             self.visualiseMesh(self.mesh)
             log.critical("Mesh Generation finished")
-            
+
     def MeshGenAreaAngle (self, minAngle, maxArea, mesh):
         """
         Generate a mesh, given a minAngle and max area
@@ -607,7 +613,7 @@ class Draw(AppShell.AppShell):
             # This doesn't catch tempMesh.generateMesh failing
             tempMesh = mesh
         return tempMesh
-        
+
 
     def MeshGenAreaNumTriangles (self, minAngle, numTriangles, mesh):
         """
@@ -615,7 +621,7 @@ class Draw(AppShell.AppShell):
         """
         #get big triangles
         #calc area
-        #calc max triangle area 
+        #calc max triangle area
         #
         tempMesh = mesh
         try:
@@ -625,13 +631,13 @@ class Draw(AppShell.AppShell):
             pass
         meshArea = 0
         meshArea = tempMesh.tri_mesh.calc_mesh_area()
-        maxArea = meshArea/numTriangles
+        maxArea = old_div(meshArea,numTriangles)
 
-        
+
         return self.MeshGenAreaAngle (minAngle,
                                       maxArea,
                                       self.mesh)
-        
+
     def mouseDown(self, event):
         """
         On a mouse down event, depending on the current state,
@@ -645,7 +651,7 @@ class Draw(AppShell.AppShell):
         self.mouseDownCurFunc( self.lastx,
                                self.lasty,event) #!!! remove the event?
                                                  # do last
-   
+
     def rightMouseUp(self, event):
         """
         On a right mouse button up event select the nearest object.
@@ -659,7 +665,7 @@ class Draw(AppShell.AppShell):
                 #key, value = string.split(tag, '*')
                 objectID = tag
                 log.critical("Found!! objectID: %s" % str(objectID))
-                
+
                 meshObjects = self.getAllUserMeshObjects()
                 # It may be a triangle, which is ignored
                 if meshObjects.hasKey(objectID):
@@ -674,7 +680,7 @@ class Draw(AppShell.AppShell):
 
     def getAllUserMeshObjects(self):
         return self.UserMesh
-        
+
     def DeleteSelectedMeshObject(self, event):
         """
         if an object is selected, delete it.
@@ -687,10 +693,10 @@ class Draw(AppShell.AppShell):
             ObjectsToVisuallyDelete = self.mesh.deleteMeshObject (self.selMeshObject)
             for drawOb in ObjectsToVisuallyDelete:
                 self.UserMesh.unvisualise(drawOb, self.canvas)
-                
+
             self.selMeshObject = None
             self.selMeshTag = None
-            
+
     def selectMeshObject(self, meshObject, objectID):
         """
         selected a mesh object.
@@ -699,7 +705,7 @@ class Draw(AppShell.AppShell):
         self.selMeshObject = meshObject
         self.selMeshTag = objectID
         meshObject.draw(self.canvas,objectID, scale =self.SCALE ,colour = SELECT_COLOR)
-    
+
     def deselectMeshObject(self, meshObject, objectID):
         """
         deselected a mesh object.
@@ -713,14 +719,14 @@ class Draw(AppShell.AppShell):
         else:
             meshObject.draw(self.canvas,objectID,
                         scale =self.SCALE )
-            
+
     def drag(self,x,y,event):
         """
         Hack function.  called when in select and left mouse goes down
         """
         pass
-    
-    
+
+
     def drawEastingNorthingVertex(self,x,y,event):
         """
         draw a vertex object, plus add it to the mesh data structure
@@ -740,7 +746,7 @@ class Draw(AppShell.AppShell):
                                   event) #FIXME why is event passed on.
         self.UserMeshChanged = True
         return vert
-    
+
     def drawVertex(self,x,y,event):
         """
         draw a vertex object, plus add it to the mesh data structure
@@ -754,7 +760,7 @@ class Draw(AppShell.AppShell):
         vert = self.Vertices.draw(x,y,self.mesh,self.uniqueID,self.SCALE,self.canvas,event)
         self.UserMeshChanged = True
         return vert
-     
+
     def drawHole(self,x,y,event):
         """
         draw a hole object, plus add it to the mesh data structure
@@ -765,8 +771,8 @@ class Draw(AppShell.AppShell):
         self.uniqueID = 'M*%d' % self.serial
         self.userMeshChanged = True
         hole = self.Holes.draw(x,y,self.mesh,self.uniqueID,self.SCALE,self.canvas,event)
-        return hole    
-    
+        return hole
+
     def drawRegion(self,x,y,event):
         """
         draw a region object, plus add it to the mesh data structure
@@ -777,7 +783,7 @@ class Draw(AppShell.AppShell):
         self.uniqueID = 'M*%d' % self.serial
         region = self.Regions.draw(x,y,self.mesh,self.uniqueID,self.SCALE,self.canvas,event)
         return region
-    
+
     def selectSegmentPoint(self,x,y, event):
         """
         logic when selecting a vertex object to add a segment
@@ -791,15 +797,15 @@ class Draw(AppShell.AppShell):
                 vertex = self.Vertices.getMeshObject(objectID)
                 found = True
                 log.critical("Found! vertex: %s" % str(vertex))
-            
+
         if found and self.selVertex == vertex:
             log.critical("The selected vertex has already been selected")
             #The selected vertex has already been selected
             # therefore deselect it
             self.deselectVertex(self.selVertex, self.selVertexTag)
             found = False
-                 
-        if found: 
+
+        if found:
             #A vertex has been selected!
             if self.selVertex:
                 if self.mesh.isUserSegmentNew(self.selVertex,vertex):
@@ -813,7 +819,7 @@ class Draw(AppShell.AppShell):
                 self.selectVertex(vertex,objectID)
         else:
             log.critical(" There are no widgets.  This happen's too much")
-                    
+
 
     def selectVertex(self, vertex,objectID):
         """
@@ -823,7 +829,7 @@ class Draw(AppShell.AppShell):
         self.selVertex = vertex
         self.selVertexTag = objectID
         vertex.draw(self.canvas,objectID, scale =self.SCALE ,colour = VERT_SELECT_ADDING_SEG_COLOR)
-    
+
     def deselectVertex(self, vertex,objectID):
         """
         deselect a vertex object when adding a segment
@@ -832,7 +838,7 @@ class Draw(AppShell.AppShell):
         self.selVertex = None
         self.selVertexTag = None
         vertex.draw(self.canvas,objectID,  scale =self.SCALE )
-         
+
     def drawSegment(self,v1,v2):
         """
         Create a seg object, draw it and add it to the mesh data structure
@@ -847,7 +853,7 @@ class Draw(AppShell.AppShell):
             log.critical("geo reference %s" % str(self.mesh.geo_reference))
         except:
             log.critical("no geo reference")
-        
+
     def visualiseMesh(self,mesh):
         """
         visualise vertices, segments, triangulation, holes
@@ -870,14 +876,14 @@ class Draw(AppShell.AppShell):
                                     self.uniqueID,
                                     self.canvas,
                                     self.SCALE)
-            
+
         for hole in mesh.getHoles():
             self.serial +=1
             self.uniqueID = 'M*%d' % self.serial
             self.Holes.visualise(hole,
                                     self.uniqueID,
                                     self.canvas,
-                                    self.SCALE)   
+                                    self.SCALE)
         for region in mesh.getRegions():
             self.serial +=1
             self.uniqueID = 'M*%d' % self.serial
@@ -893,7 +899,7 @@ class Draw(AppShell.AppShell):
             self.visualiseMesh(self.mesh)
             self.ResizeToFit()
             self.ResizeToFit()
-            
+
     def obsolete_nnormaliseMesh(self):
         if self.mesh:
             self.clearSelections()
@@ -902,11 +908,11 @@ class Draw(AppShell.AppShell):
             self.visualiseMesh(self.mesh)
             self.ResizeToFit()
             self.ResizeToFit()
-            
-        
+
+
     def clearMesh(self):
         """Clear the current mesh object, and the canvas """
-       
+
         self.clearSelections()
         self.canvas.delete(ALL)
         self.deleteMesh()
@@ -916,14 +922,14 @@ class Draw(AppShell.AppShell):
     def exportObj(self):
         fileType = "obj"
         fileTypeDesc = "obj mesh"
-        
-        ofile = tkFileDialog.asksaveasfilename(filetypes=[(fileTypeDesc,
+
+        ofile = tkinter.filedialog.asksaveasfilename(filetypes=[(fileTypeDesc,
                                                            fileType),
                                                           ("All Files", "*")])
         if ofile:
             addOn = "." + fileType
             jumpback = - len(addOn)
-            if ofile[jumpback:] != addOn:  
+            if ofile[jumpback:] != addOn:
                 ofile = ofile + addOn
             try:
                 self.mesh.exportASCIIobj(ofile)
@@ -934,51 +940,51 @@ class Draw(AppShell.AppShell):
                 showerror('Export ASCII file',
                                    'No triangulation to export.')
 
-    
+
 
     def ImportUngenerate(self):
-        ofile = tkFileDialog.askopenfilename(initialdir=self.currentPath,
+        ofile = tkinter.filedialog.askopenfilename(initialdir=self.currentPath,
                    filetypes=[ ("ungenerated polygon information", "txt"),
                                            ("All Files", "*")])
         if ofile == "":
             # The user cancelled the loading action
             return
-        
+
         try:
             self.clearSelections()
             self.canvas.delete(ALL)
             dict = mesh.importUngenerateFile(ofile)
             self.mesh.addVertsSegs(dict)
-            
-        except SyntaxError: 
+
+        except SyntaxError:
             # This is assuming that the SyntaxError is thrown in
             # importUngenerateFile
             showerror('File error',
                       ofile + ' is not in the correct format.')
-        except IOError: 
+        except IOError:
             #!!! this error type can not be thrown?
             showerror('File error',
                       'file ' + ofile + ' could not be found.')
-        except RuntimeError: 
+        except RuntimeError:
             showerror('File error',
                   'file ' + ofile + ' has an unknown file type.')
-    
+
         self.visualiseMesh(self.mesh)
         self.ResizeToFit()
-        
+
     def exportASCIIsegmentoutlinefile(self):
-        
-        ofile = tkFileDialog.asksaveasfilename(initialdir=self.currentPath,
+
+        ofile = tkinter.filedialog.asksaveasfilename(initialdir=self.currentPath,
                                                filetypes=[("mesh", "*.tsh *.msh"),
                                              ("All Files", "*")])
-           
+
         if ofile:
             # .tsh is the default file format
-            if (ofile[-4:] == ".tsh" or ofile[-4:] == ".msh"):  
+            if (ofile[-4:] == ".tsh" or ofile[-4:] == ".msh"):
                 self.currentFilePathName = ofile
             else:
                 self.currentFilePathName = ofile + ".tsh"
-                
+
             try:
                 self.mesh.exportASCIIsegmentoutlinefile(ofile)
             except IOError: #FIXME should this function be throwing any errors?
@@ -986,29 +992,29 @@ class Draw(AppShell.AppShell):
                                    'Can not write to file.')
 
     def exportPointsFile(self):
-        ofile = tkFileDialog.asksaveasfilename(initialdir=self.currentPath,
+        ofile = tkinter.filedialog.asksaveasfilename(initialdir=self.currentPath,
                                          filetypes=[("point files",
                                                      "*.csv *.txt *.pts"),
                                                 ("All Files", "*")])
         if ofile:
             # .csv is the default file format
-            if (ofile[-4:] == ".csv" or ofile[-4:] == ".pts"):  
+            if (ofile[-4:] == ".csv" or ofile[-4:] == ".pts"):
                 self.currentFilePathName = ofile
             else:
                 self.currentFilePathName = ofile + ".csv"
-                
+
             try:
                 self.mesh.exportPointsFile(ofile)
             except IOError:
                 showerror('Export ASCII file',
                                    'Can not write to file.')
-                    
+
     def importFile(self):
         """
         import mesh data from a variety of formats (currently 2!)
         """
         log.critical("self.currentPath %s" % str(self.currentPath))
-        ofile = tkFileDialog.askopenfilename(initialdir=self.currentPath,
+        ofile = tkinter.filedialog.askopenfilename(initialdir=self.currentPath,
                                              filetypes=[ ("text Mesh",
                                                           "*.tsh *.msh"),
                                                          ("points",
@@ -1017,7 +1023,7 @@ class Draw(AppShell.AppShell):
         if ofile == "":
             # The user cancelled the loading action
             return
-        
+
         try:
             newmesh = mesh.importMeshFromFile(ofile)
             self.currentPath, dummy = os.path.split(ofile)
@@ -1029,23 +1035,23 @@ class Draw(AppShell.AppShell):
             # use ResizeToFitWrapper
             self.visualiseMesh(self.mesh)
             self.ResizeToFit()
-       
-        except IOError: 
+
+        except IOError:
             #!!! this error type can not be thrown?
             showerror('File error',
                       'file ' + ofile + ' could not be loaded.')
 
-        except RuntimeError: 
+        except RuntimeError:
             showerror('File error',
                   'file ' + ofile + ' has an unknown file type.')
         # Could not get the file name to showup in the title
         #appname =  ofile + " - " + APPLICATION_NAME
-        
-        except load_mesh.loadASCII.TitleAmountError: 
+
+        except load_mesh.loadASCII.TitleAmountError:
             showerror('File error',
                   'file ' + ofile + ' has a bad title line (first line).')
 
-    
+
     def ResizeToFitWrapper(self, Parent):
         """
         The parent attribute isn't used by this function.
@@ -1053,7 +1059,7 @@ class Draw(AppShell.AppShell):
         get rid of it.
         """
         self.ResizeToFit()
-        
+
     def ResizeToFit(self):
         """Visualise the mesh so it fits in the window"""
         if self.mesh.getUserVertices() == []:
@@ -1062,7 +1068,7 @@ class Draw(AppShell.AppShell):
         self.scrolledcanvas.resizescrollregion()
         # I need this so the xview values are correct
         self.scrolledcanvas.update()
-        
+
         xtop, xbottom = self.scrolledcanvas.xview()
         ytop, ybottom = self.scrolledcanvas.yview()
         xdiff = xbottom-xtop
@@ -1077,9 +1083,9 @@ class Draw(AppShell.AppShell):
             self.ResizeToFit()
         else:
             # without 0.99 some of the mesh may be off screen
-            fraction = 0.99*min(xdiff,ydiff) 
+            fraction = 0.99*min(xdiff,ydiff)
             self.selectZoom(fraction)
-            
+
     def saveDrawing(self):
         """
         Save the current drawing
@@ -1095,13 +1101,13 @@ class Draw(AppShell.AppShell):
         """
         Save the current drawing, prompting for a file name
         """
-        ofile = tkFileDialog.asksaveasfilename(initialdir=self.currentPath,
+        ofile = tkinter.filedialog.asksaveasfilename(initialdir=self.currentPath,
                                                filetypes=[("mesh", "*.tsh *.msh"),
                                              ("All Files", "*")])
-           
+
         if ofile:
             # .tsh is the default file format
-            if (ofile[-4:] == ".tsh" or ofile[-4:] == ".msh"):  
+            if (ofile[-4:] == ".tsh" or ofile[-4:] == ".msh"):
                 self.currentFilePathName = ofile
             else:
                 self.currentFilePathName = ofile + ".tsh"
@@ -1115,13 +1121,13 @@ class Draw(AppShell.AppShell):
         - cancel, don't gen, don't save.  Yes - generate mesh, go to save
         screen.  No - goto save screen.  To implement this need to know when
         the user has done a change, and the mesh hasn't been generated.  If
-        there is no generated mesh do not prompt. 
+        there is no generated mesh do not prompt.
         """
         if (self.UserMeshChanged) and self.mesh.isTriangulation():
-            
+
             m = _show("Warning",
                                    "A triangulation has not been generated, after mesh changes.  Generate triangulation before saving?",
-                                   icon=QUESTION, 
+                                   icon=QUESTION,
                                    type=YESNOCANCEL)
             if m == "no":
                 self.mesh.export_mesh_file(currentFilePathName)
@@ -1134,7 +1140,7 @@ class Draw(AppShell.AppShell):
         else:
             self.mesh.export_mesh_file(currentFilePathName)
             self.UserMeshChanged = False
-            
+
     def initData(self):
         """
         Initialise various lists and flags
@@ -1156,27 +1162,27 @@ class Draw(AppShell.AppShell):
         mesh.Segment.set_default_tag("")
         self.UserMeshChanged = False
         self.meshLastAlpha = None
-        
+
         self.Visualise = True #Is the mesh shown or not?
-    
+
     def ipostscript(self):
         """
         Print the canvas as a postscript file
         """
-        ofile = tkFileDialog.asksaveasfilename(initialdir=self.currentPath,
+        ofile = tkinter.filedialog.asksaveasfilename(initialdir=self.currentPath,
                                                filetypes=[("postscript", "ps"),
-                                                          ("All Files", "*")]) 
+                                                          ("All Files", "*")])
         if ofile:
-            if ofile[-3:] != ".ps":  
+            if ofile[-3:] != ".ps":
                 ofile = ofile + ".ps"
             postscript = self.canvas.postscript()
             fd = open(ofile, 'w')
             fd.write(postscript)
             fd.close()
-        
+
     def close(self):
         self.quit()
-        
+
     def createInterface(self):
         """
         Call all functions that create the GUI interface
@@ -1190,11 +1196,11 @@ class Draw(AppShell.AppShell):
         self.createTools()
         self.createZooms()
         self.createEdits()
-	self.createVisualiseIcons()
+        self.createVisualiseIcons()
         #print "FIX THIS BEFORE "
         #self.addCylinders() # !!!DSG start pmesh with a triangle
         self.selectFunc('pointer')
-        self.currentPath = os.getcwd() 
+        self.currentPath = os.getcwd()
 
     def loadtestmesh(self,ofile):
         """
@@ -1205,19 +1211,19 @@ class Draw(AppShell.AppShell):
         d = mesh.Vertex (0.0, 4.0)
         f = mesh.Vertex (4.0,0.0)
         g = mesh.Vertex (-5.0,5.0)
-        
+
         s1 = mesh.Segment(a,d)
         s2 = mesh.Segment(d,f)
         s3 = mesh.Segment(a,f)
 
         r1 = mesh.Region(0.3, 0.3)
-        
+
         m = mesh.Mesh(userVertices=[a,d,f,g], userSegments=[s1,s2,s3], regions=[r1] )
-        
+
         fd.close()
         log.critical('returning m')
         return oadtestmesh(ofile)
-         
+
 class  AddVertexDialog(Dialog):
     """
     Dialog box for adding a vertex by entering co-ordindates
@@ -1227,20 +1233,20 @@ class  AddVertexDialog(Dialog):
         GUI description
         """
         self.title("Add New Vertex")
-        
+
         Label(master, text='X position:').grid(row=0, sticky=W)
         Label(master, text='Y position:').grid(row=1, sticky=W)
 
         self.xstr   = Entry(master, width = 16, name ="entry")
         self.ystr  = Entry(master, width = 16)
-       
+
         self.xstr.grid(row=0, column=1, sticky=W)
         self.ystr.grid(row=1, column=1, sticky=W)
         self.xstr.focus_force()
         self.x  = 0
         self.y  = 0
         self.xyValuesOk = False
-  
+
 
     def apply(self):
         """
@@ -1250,11 +1256,11 @@ class  AddVertexDialog(Dialog):
             self.x = float(self.xstr.get())
             self.y = float(self.ystr.get())
             self.xyValuesOk = True
-            
+
         except ValueError:
             showerror('Bad Vertex values',
                                    'X Y values are not numbers.')
-        
+
 
 class  auto_segmentDialog(Dialog):
     """
@@ -1263,7 +1269,7 @@ class  auto_segmentDialog(Dialog):
     def __init__(self, parent, alpha):
         self.alpha = alpha
         Dialog.__init__(self, parent)
-        
+
     def body(self, master):
         """
         GUI description
@@ -1273,26 +1279,26 @@ class  auto_segmentDialog(Dialog):
         self.use_optimum = IntVar()
         self.use_optimum.set(AUTO) # should initialise the radio buttons.
                                    #  It doesn't
-                                   
-        #self.use_optimum.set(NO_SELECTION) 
-        self.ck = Radiobutton(master, value = AUTO, variable=self.use_optimum) 
+
+        #self.use_optimum.set(NO_SELECTION)
+        self.ck = Radiobutton(master, value = AUTO, variable=self.use_optimum)
         self.ck.grid(row=1, column=0)
         Label(master, text='Use optimum alpha').grid(row=1, column=1, sticky=W)
 
         self.ck2 = Radiobutton(master, value = SET_ALPHA,
-                               variable=self.use_optimum) 
+                               variable=self.use_optimum)
         self.ck2.grid(row=2, column=0)
-        
+
         Label(master, text='alpha:').grid(row=2, column=1, sticky=W)
         if (self.alpha):
             alphaVar = StringVar()
             alphaVar.set(self.alpha)
             self.alpha_str  = Entry(master,
                                      textvariable = alphaVar,
-                                     width = 16, name ="entry") 
-        else: 
+                                     width = 16, name ="entry")
+        else:
             self.alpha_str = Entry(master, width = 16, name ="entry")
-        
+
         self.alpha_str.grid(row=2, column=3, sticky=W)
 
         #boundary type buttons
@@ -1301,31 +1307,31 @@ class  auto_segmentDialog(Dialog):
         self.smooth_indents = IntVar()
         self.expand_pinch = IntVar()
         self.ck3 = Checkbutton(master, state=NORMAL,
-                               variable=self.raw_boundary) 
+                               variable=self.raw_boundary)
         self.ck3.grid(row=3, column=0)
         Label(master, text='Raw boundary').grid(row=3, column=1, sticky=W)
         #
         self.ck4 = Checkbutton(master, state=NORMAL,
-                               variable=self.remove_holes) 
+                               variable=self.remove_holes)
         self.ck4.grid(row=4, column=0)
         Label(master, text='Remove small holes').grid(row=4,column=1, sticky=W)
         #
         self.ck5 = Checkbutton(master,state=NORMAL,
-                               variable=self.smooth_indents) 
+                               variable=self.smooth_indents)
         self.ck5.grid(row=5, column=0)
         Label(master,
               text='Remove sharp indents').grid(row=5, column=1, sticky=W)
         #
         self.ck6 = Checkbutton(master,state=NORMAL,
-                               variable=self.expand_pinch) 
+                               variable=self.expand_pinch)
         self.ck6.grid(row=6, column=0)
         Label(master,
               text='Remove pinch off').grid(row=6, column=1,  sticky=W)
 
-        
+
         self.alpha  = 0
         self.alphaValueOk = False
-        
+
 
     def apply(self):
         """
@@ -1334,7 +1340,7 @@ class  auto_segmentDialog(Dialog):
         try:
             self.alpha = float(self.alpha_str.get())
             self.alphaValueOk = True
-            
+
         except ValueError:
             pass
             #showerror('Bad Alpha value',
@@ -1347,7 +1353,7 @@ class  auto_segmentFilterDialog(Dialog):
     """
     def __init__(self, parent):
         Dialog.__init__(self, parent)
-        
+
     def body(self, master):
         """
         GUI description
@@ -1358,36 +1364,36 @@ class  auto_segmentFilterDialog(Dialog):
         self.use_optimum.set(AUTO) # should initialise the radio buttons.
                                    #  It doesn't
         self.boundary_type = IntVar()
-                      
+
         #boundary type buttons
         self.raw_boundary = IntVar()
         self.remove_holes = IntVar()
         self.smooth_indents = IntVar()
         self.expand_pinch = IntVar()
-        
+
         self.ck3 = Checkbutton(master, state=NORMAL,
-                               variable=self.raw_boundary) 
+                               variable=self.raw_boundary)
         self.ck3.grid(row=3, column=0)
         Label(master, text='Raw boundary').grid(row=3, column=1, sticky=W)
         #
         self.ck4 = Checkbutton(master, state=NORMAL,
-                               variable=self.remove_holes) 
+                               variable=self.remove_holes)
         self.ck4.grid(row=4, column=0)
         Label(master, text='Remove small holes').grid(row=4,column=1, sticky=W)
         #
         self.ck5 = Checkbutton(master,state=NORMAL,
-                               variable=self.smooth_indents) 
+                               variable=self.smooth_indents)
         self.ck5.grid(row=5, column=0)
         Label(master,
               text='Remove sharp indents').grid(row=5, column=1, sticky=W)
         #
         self.ck6 = Checkbutton(master,state=NORMAL,
-                               variable=self.expand_pinch) 
+                               variable=self.expand_pinch)
         self.ck6.grid(row=6, column=0)
         Label(master,
               text='Remove pinch off').grid(row=6, column=1,  sticky=W)
-        
-        
+
+
 
 
 class  MeshGenDialog(Dialog):
@@ -1413,13 +1419,13 @@ class  MeshGenDialog(Dialog):
 
         Dialog.__init__(self, parent)
 
-        
+
     def body(self, master):
         """
         GUI description
         """
         self.title("Generate Mesh")
-        
+
         Label(master,
               text='Minimum Angle(0 - 40):').grid(row=0, sticky=W)
         Label(master,
@@ -1439,18 +1445,18 @@ class  MeshGenDialog(Dialog):
             maxAreaVar.set(self.maxArea)
             self.maxAreastr  = Entry(master,
                                      textvariable = maxAreaVar,
-                                     width = 16)    
+                                     width = 16)
             self.numTrianglesstr  = Entry(master,
-                                          width = 16) 
-        else: 
+                                          width = 16)
+        else:
             self.maxAreastr  = Entry(master,
                                      width = 16)
             self.maxAreastr.focus_force()
             numTrianglesVar = StringVar()
-            numTrianglesVar.set(self.numTriangles)    
+            numTrianglesVar.set(self.numTriangles)
             self.numTrianglesstr  = Entry(master,
                                           textvariable = numTrianglesVar,
-                                          width = 16) 
+                                          width = 16)
 
 
         self.minAnglestr.grid(row=0, column=1, sticky=W)
@@ -1476,14 +1482,14 @@ class  MeshGenDialog(Dialog):
             self.ValuesOk = False
             showerror('Bad mesh generation values',
                                    ' Values are not numbers.')
-        
-        try:    
+
+        try:
             self.maxArea = float(self.maxAreastr.get())
             MeshGenDialog.lastMaxArea =self.maxArea
         except ValueError:
             self.goodMaxArea = False
-         
-        try:    
+
+        try:
             self.numTriangles = int(self.numTrianglesstr.get())
             MeshGenDialog.lastNumTriangles =self.numTriangles
         except ValueError:
@@ -1499,7 +1505,7 @@ class  MeshGenDialog(Dialog):
             showerror('Bad mesh generation values',
                       'Give a maximum area OR number of triangles, not both.')
 
-        try: 
+        try:
             # value checking
             if self.minAngle <0.0 or self.minAngle >40.0:
                 raise IOError
@@ -1507,14 +1513,13 @@ class  MeshGenDialog(Dialog):
                 raise IOError
             if self.goodNumTriangles == True and self.numTriangles <=0:
                 raise IOError
-            
+
         except IOError:
             self.ValuesOk = False
             showerror('Bad mesh generation values',
                                    'Values are out of range.')
-        
+
 if __name__ == '__main__':
     draw = Draw()
     draw.run()
-    #profile.run('draw.run()', 'pmeshprof')    
-
+    #profile.run('draw.run()', 'pmeshprof')

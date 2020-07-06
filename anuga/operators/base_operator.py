@@ -1,9 +1,10 @@
 from __future__ import print_function
 
+from builtins import object
 from anuga.utilities.system_tools import log_to_file
 
 
-class Operator:
+class Operator(object):
     """Operator - generic structure for a fractional operator
     
     This is the base class for all fractional step operators

@@ -40,7 +40,7 @@ def analytical_sol(X,t):
         else:
             Smax=S
     if( abs(S) > 99.0):
-        print 'no convergence'
+        print('no convergence')
     #h2= h_1/(1.0-u2/S)
     h2 = c2**2/9.81
     #print "S=",S

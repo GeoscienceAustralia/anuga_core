@@ -1,3 +1,4 @@
+from builtins import range
 import sys
 import unittest
 import numpy as num
@@ -51,8 +52,8 @@ NODATA_value  -9999
         ref_elevation = []
         x0 = 2000
         y = 3010
-        yvec = range(10)
-        xvec = range(10)
+        yvec = list(range(10))
+        xvec = list(range(10))
         z = -1
         for i in range(10):
             y = y - 1
@@ -115,8 +116,8 @@ Parameters
         ref_points = []
         x0 = 2002
         y = 3007
-        yvec = range(4)
-        xvec = range(6)
+        yvec = list(range(4))
+        xvec = list(range(6))
         for i in range(4):
             y = y - 1
             ynew = y - 3003.0
@@ -162,8 +163,8 @@ NODATA_value  -9999
         ref_elevation = []
         x0 = 2000
         y = 3010
-        yvec = range(10)
-        xvec = range(10)
+        yvec = list(range(10))
+        xvec = list(range(10))
         #z = range(100)
         z = num.zeros(100, num.int)     #array default#
         NODATA_value = -9999
@@ -239,8 +240,8 @@ Parameters
         new_ref_points = []
         x0 = 2002
         y = 3007
-        yvec = range(4)
-        xvec = range(6)
+        yvec = list(range(4))
+        xvec = list(range(6))
         for i in range(4):
             y = y - 1
             ynew = y - 3003.0
@@ -297,8 +298,8 @@ NODATA_value  -9999
         ref_elevation = []
         x0 = 2000
         y = 3010
-        yvec = range(10)
-        xvec = range(10)
+        yvec = list(range(10))
+        xvec = list(range(10))
         #z = range(100)
         z = num.zeros(100, num.int)     #array default#
         NODATA_value = -9999
@@ -373,8 +374,8 @@ Parameters
         new_ref_points = []
         x0 = 2002
         y = 3007
-        yvec = range(4)
-        xvec = range(6)
+        yvec = list(range(4))
+        xvec = list(range(6))
         for i in range(4):
             y = y - 1
             ynew = y - 3003.0

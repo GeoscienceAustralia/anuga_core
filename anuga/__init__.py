@@ -22,6 +22,9 @@
 
 
 from builtins import filter
+
+# FIXME (Ole): We should remove all references to svn. Are we using this anywhere?
+
 __version__ = '2.0.3'
 
 __svn_revision__ = ''.join(filter(str.isdigit, "$Revision: 9737 $"))
@@ -56,7 +59,7 @@ else:
     from numpy.testing import Tester
     test = Tester().test
 
-    from anuga.__config__ import show as show_config
+    #from anuga.__config__ import show as show_config
 
     # --------------------------------
     # Important basic classes
@@ -123,24 +126,17 @@ else:
     # ----------------------------
     # Parallel api
     # ----------------------------
-    ## from anuga_parallel.parallel_api import distribute
-    ## from anuga_parallel.parallel_api import myid, numprocs, get_processor_name
-    ## from anuga_parallel.parallel_api import send, receive
-    ## from anuga_parallel.parallel_api import pypar_available, barrier, finalize
-
-    ## if pypar_available:
-    ##     from anuga_parallel.parallel_api import sequential_distribute_dump
-    ##     from anuga_parallel.parallel_api import sequential_distribute_load
-
     from anuga.parallel.parallel_api import distribute
     from anuga.parallel.parallel_api import myid, numprocs, get_processor_name
-    from anuga.parallel.parallel_api import send, receive
+    from anuga.parallel.parallel_api import send, receive, reduce
     from anuga.parallel.parallel_api import pypar_available, barrier, finalize
     from anuga.parallel.parallel_api import collect_value
+    from anuga.parallel.parallel_api import mpicmd
 
     if pypar_available:
         from anuga.parallel.parallel_api import sequential_distribute_dump
         from anuga.parallel.parallel_api import sequential_distribute_load
+         
 
     # -----------------------------
     # Checkpointing
@@ -334,5 +330,9 @@ else:
     # NetCDF changes stdout to the terminal
     # This resets it
     # --------------------------------------
+    try:
+        from importlib import reload
+    except:
+        pass
     reload(sys)
     sys.stdout = _stdout

@@ -6,7 +6,7 @@ By Petar Milevski, some revisions by Gareth Davies
 #------------------------------------------------------------------------------
 # IMPORT NECESSARY MODULES
 #------------------------------------------------------------------------------
-print ' ABOUT to Start Simulation:- Importing Modules'
+print(' ABOUT to Start Simulation:- Importing Modules')
 
 import anuga
 import time
@@ -242,7 +242,7 @@ if myid == 0:
     domain.set_flow_algorithm(alg)
 
     if(not domain.get_using_discontinuous_elevation()):
-        raise Exception, 'This model run relies on a discontinuous elevation solver (because of how topography is set up)'
+        raise Exception('This model run relies on a discontinuous elevation solver (because of how topography is set up)')
 
     domain.set_datadir(model_output_dir)
     try:
@@ -251,13 +251,13 @@ if myid == 0:
         pass
     domain.set_name(outname)
     
-    print domain.statistics()
+    print(domain.statistics())
     
     #------------------------------------------------------------------------------
     # APPLY MANNING'S ROUGHNESSES
     #------------------------------------------------------------------------------
 
-    print 'FITTING polygon_function for friction'    
+    print('FITTING polygon_function for friction')   
     friction_list = read_polygon_list(ManningList)
 
     domain.set_quantity('friction', Polygon_function(friction_list, default=base_friction, geo_reference=domain.geo_reference))
@@ -267,14 +267,14 @@ if myid == 0:
    
 
     from anuga.utilities.quantity_setting_functions import make_nearestNeighbour_quantity_function
-    print 'READING %s' % basename+'.csv'
+    print('READING %s' % basename+'.csv')
     elev_xyz=numpy.genfromtxt(fname=basename+'.csv',delimiter=',')
 
     # Use nearest-neighbour interpolation of elevation
-    print 'CREATING nearest neighbour interpolator' 
+    print('CREATING nearest neighbour interpolator')
     elev_fun_wrapper=make_nearestNeighbour_quantity_function(elev_xyz,domain)
 
-    print 'FITTING to domain'     
+    print('FITTING to domain')     
     domain.set_quantity('elevation', elev_fun_wrapper, location='centroids')
 
     #os.remove('DEM_bridges/towradgi.csv') # Clean up csv file
@@ -283,7 +283,7 @@ else:
 
 barrier()
 if myid == 0 and verbose: 
-    print 'DISTRIBUTING DOMAIN'
+    print('DISTRIBUTING DOMAIN')
 
 domain = distribute(domain)
 barrier()
@@ -295,7 +295,7 @@ domain.quantities_to_be_stored = {'elevation': 2,
                                   'ymomentum': 2}
  
 if myid == 0 and verbose: 
-    print 'CREATING INLETS'
+    print('CREATING INLETS')
 """
 #FIXME: Include these again
 
@@ -991,7 +991,7 @@ barrier()
 # BOUNDARY CONDITIONS
 #------------------------------------------------------------------------------
     
-print 'Available boundary tags', domain.get_boundary_tags()
+print('Available boundary tags', domain.get_boundary_tags())
 
 func = file_function(join('Forcing','Tide','Pioneer.tms'), quantities='rainfall')
 Bd = anuga.Dirichlet_boundary([0,0,0])
@@ -1004,16 +1004,15 @@ domain.set_boundary({'west': Bd, 'south': Bd, 'north': Bd, 'east': Bw})
 #------------------------------------------------------------------------------
 barrier()
 
-if myid == 0 and verbose: print 'EVOLVE'
+if myid == 0 and verbose: print('EVOLVE')
     
 t0 = time.time()
     
 for t in domain.evolve(yieldstep = 300., finaltime = 83700.):
-#for t in domain.evolve(yieldstep = 300., finaltime = 600.):
     #if t == 37800.0: #time when bridge deck starts to get submerged, increase n to act as bridge deck, handrail and blockage effects
     ## Try to block all culverts / bridges, as described in the flood study
     #if t == 44100.0: #time when water level drops below bridge deck, bring n back down to existing conditions
-    #    print 'Reset friction...'
+    #    print ('Reset friction...')
     if myid == 0:
         domain.write_time()
 
@@ -1021,11 +1020,11 @@ domain.sww_merge(delete_old=True)
 
 barrier()
 if myid == 0:
-    print 'Number of processors %g ' %numprocs
-    print 'That took %.2f seconds' %(time.time()-t0)
-    print 'Communication time %.2f seconds'%domain.communication_time
-    print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
-    print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
+    print('Number of processors %g ' %numprocs)
+    print('That took %.2f seconds' %(time.time()-t0))
+    print('Communication time %.2f seconds'%domain.communication_time)
+    print('Reduction Communication time %.2f seconds'%domain.communication_reduce_time)
+    print('Broadcast time %.2f seconds'%domain.communication_broadcast_time)
 
 
 

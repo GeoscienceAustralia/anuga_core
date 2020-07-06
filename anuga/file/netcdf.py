@@ -1,6 +1,8 @@
 """ This module is responsible for loading and saving NetCDF NC files
 """
 
+from builtins import range
+from builtins import object
 import numpy as num
 
 from anuga.coordinate_transforms.redfearn import \
@@ -77,7 +79,7 @@ def NetCDFFile(file_name, netcdf_mode=netcdf_mode_r):
 
 
 
-class Write_nc:
+class Write_nc(object):
     """Write an nc file.
 
     Note, this should be checked to meet cdc netcdf conventions for gridded
@@ -253,7 +255,7 @@ def filter_netcdf(filename1, filename2, first=0, last=None, step=1):
     if last is None:
         last = len(time)
 
-    selection = range(first, last, step)
+    selection = list(range(first, last, step))
     for i, j in enumerate(selection):
         log.critical('Copying timestep %d of %d (%f)'
                      % (j, last-first, time[j]))

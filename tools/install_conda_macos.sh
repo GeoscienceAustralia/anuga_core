@@ -9,56 +9,29 @@
 
 set -e
 
-
-PYTHON_VERSION=${PYTHON_VERSION:-"2.7"}
-ANUGA_BITS=${ANUGA_BITS:-"64"}
-ANUGA_PARALLEL=${ANUGA_PARALLEL:-"openmpi"}
-
-
 brew update
-
-# if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
-#     brew install openmpi
-# fi
+brew install openmpi
 
 
 # Install miniconda
-wget https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh -O miniconda.sh ;
+wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh ;
 
 chmod +x miniconda.sh && ./miniconda.sh -b
 
-export PATH=/Users/travis/miniconda2/bin:$PATH
-
+export PATH=/Users/travis/miniconda3/bin:$PATH
 
 conda update --yes conda
 
 # Configure the conda environment and put it in the path using the
 # provided versions
-
-#conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy cython netcdf4 \
-#    nose matplotlib gdal dill
     
-conda create -n anuga_env --yes python=2.7.13 gdal=2.2.2 pip nose numpy scipy netcdf4 matplotlib dill cython mpi4py future
+conda create -n anuga_env --yes python=3.7 gdal pip nose numpy scipy netcdf4 matplotlib dill cython future
 
 source activate anuga_env
-
-# Install pypar if parallel set
-#if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
-#    git clone https://github.com/daleroberts/pypar.git;
-#    pushd pypar;
-#    python setup.py install;
-#    popd;
-#fi
-
-
-# python 2.6 doesn't have argparse by default
-if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install --yes argparse; fi
-
-export GDAL_DATA=`gdal-config --datadir`;
+pip install mpi4py
 
 # Useful for debugging any issues with conda
 conda info -a
-
 
 #########################################################
 # Build and install anuga

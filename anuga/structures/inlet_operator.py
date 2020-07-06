@@ -1,4 +1,7 @@
 from __future__ import absolute_import
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 import anuga
 import numpy
 from . import inlet
@@ -8,12 +11,12 @@ import warnings
 class Inlet_operator(anuga.Operator):
     """Inlet Operator - add water to an inlet.
     Sets up the geometry of problem
-    
+
     Inherit from this class (and overwrite
     discharge_routine method for specific subclasses)
-    
+
     Input: domain, Two points
-    """ 
+    """
 
 
     def __init__(self,
@@ -69,14 +72,14 @@ class Inlet_operator(anuga.Operator):
         volume = Q*timestep
 
         #print volume
-        
+
         #print Q, volume
 
         # store last discharge
         self.applied_Q = Q
- 
 
-        
+
+
         # Distribute positive volume so as to obtain flat surface otherwise
         # just pull water off to have a uniform depth.
         if volume >= 0.0 :
@@ -87,13 +90,13 @@ class Inlet_operator(anuga.Operator):
                 self.inlet.set_xmoms(self.inlet.get_xmoms()+depths*self.velocity[0])
                 self.inlet.set_ymoms(self.inlet.get_ymoms()+depths*self.velocity[1])
         elif current_volume + volume >= 0.0 :
-            depth = (current_volume + volume)/total_area
+            depth = old_div((current_volume + volume),total_area)
             self.inlet.set_depths(depth)
             self.domain.fractional_step_volume_integral+=volume
         else: #extracting too much water!
             self.inlet.set_depths(0.0)
             self.domain.fractional_step_volume_integral-=current_volume
-            self.applied_Q = current_volume/timestep
+            self.applied_Q = -old_div(current_volume,timestep)
 
             #msg =  'Requesting too much water to be removed from an inlet! \n'
             #msg += 'current_water_volume = %5.2e Increment volume = %5.2e' % (current_volume, volume)
@@ -104,7 +107,7 @@ class Inlet_operator(anuga.Operator):
         """Allowing local modifications of Q
         """
         from anuga.fit_interpolate.interpolate import Modeltime_too_early, Modeltime_too_late
-        
+
         if callable(self.Q):
             try:
                 Q = self.Q(t)
@@ -115,8 +118,8 @@ class Inlet_operator(anuga.Operator):
         else:
             Q = self.Q
 
-        return Q    
-  
+        return Q
+
     def statistics(self):
 
 
@@ -127,17 +130,17 @@ class Inlet_operator(anuga.Operator):
         message += 'Description\n'
         message += '%s' % self.description
         message += '\n'
-        
+
         inlet = self.inlet
 
         message += '-------------------------------------\n'
-        message +=  'Inlet\n' 
+        message +=  'Inlet\n'
         message += '-------------------------------------\n'
 
         message += 'inlet triangle indices and centres\n'
         message += '%s' % inlet.triangle_indices
         message += '\n'
-            
+
         message += '%s' % self.domain.get_centroid_coordinates()[inlet.triangle_indices]
         message += '\n'
 
@@ -161,7 +164,7 @@ class Inlet_operator(anuga.Operator):
 
 
     def set_default(self, default=None):
-        
+
         """ Either leave default as None or change it into a function"""
 
         if default is not None:
@@ -197,7 +200,7 @@ class Inlet_operator(anuga.Operator):
                    'Instead I will use the default rate: %s\n'
                    'Note: Further warnings will be suppressed'
                    % (str(err_msg), str(self.default(t))))
-            
+
             warnings.warn(msg)
 
             # FIXME (Ole): Replace this crude flag with
@@ -220,5 +223,3 @@ class Inlet_operator(anuga.Operator):
     def get_inlet(self):
 
         return self.inlet
-
-

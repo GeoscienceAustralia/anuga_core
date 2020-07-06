@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
 import unittest, os, time
 import os.path
 from math import pi, sqrt
@@ -171,9 +174,12 @@ class Test_LoadSave(unittest.TestCase):
 
                 assert num.allclose(Q, uh*width)
 
-        import cPickle        
-        cPickle.dump(domain, open('domain_pickle.pickle', 'w'))
-        domain_restored = cPickle.load(open('domain_pickle.pickle'))
+        import pickle
+        fid = open('domain_pickle.pickle', 'wb')
+        pickle.dump(domain, fid)
+        
+        fid = open('domain_pickle.pickle', 'rb')
+        domain_restored = pickle.load(fid)
 
         
         for t in domain_restored.evolve(yieldstep=0.1, finaltime=1.0):

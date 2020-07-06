@@ -1,3 +1,5 @@
+from builtins import map
+from builtins import range
 import os
 import numpy as num
 from anuga.file.netcdf import NetCDFFile
@@ -99,7 +101,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
 
     # instantiate urs_points of the three mux files.
     mux = {}
-    for quantity, file in map(None, quantities, files_in):
+    for quantity, file in zip(quantities, files_in):
         mux[quantity] = Read_urs(file)
 
     # Could check that the depth is the same. (hashing)
@@ -153,7 +155,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
 
     if mux_times_start_i == mux_times_fin_i:
         # Close the mux files
-        for quantity, file in map(None, quantities, files_in):
+        for quantity, file in zip(quantities, files_in):
             mux[quantity].close()
         msg = "Due to mint and maxt there's no time info in the boundary SWW."
         raise Exception(msg)
@@ -194,7 +196,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
 
     # Read in a time slice from each mux file and write it to the SWW file
     j = 0
-    for ha, ua, va in map(None, mux['HA'], mux['UA'], mux['VA']):
+    for ha, ua, va in zip(mux['HA'], mux['UA'], mux['VA']):
         if j >= mux_times_start_i and j < mux_times_fin_i:
             stage = zscale*ha + mean_stage
             h = stage - elevation

@@ -7,11 +7,14 @@ similar to a beach environment
 This is a very simple test of the parallel algorithm using the simplified parallel API
 """
 from __future__ import print_function
+from __future__ import division
 
 
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
+from builtins import range
+from past.utils import old_div
 from future.utils import raise_
 import unittest
 import os
@@ -19,7 +22,7 @@ import sys
 #import pypar
 import numpy as num
 
-
+import anuga
 
 from anuga import Domain
 from anuga import Reflective_boundary
@@ -44,7 +47,7 @@ verbose = False
 # Setup Functions
 #---------------------------------
 def topography(x,y): 
-    return -x/2    
+    return old_div(-x,2)    
 
 ###########################################################################
 # Setup Test
@@ -175,8 +178,8 @@ def run_simulation(parallel=False, G = None, seq_interpolation_points=None, verb
 class Test_parallel_sw_flow(unittest.TestCase):
     def test_parallel_sw_flow(self):
         if verbose : print("Expect this test to fail if not run from the parallel directory.")
-        abs_script_name = os.path.abspath(__file__)
-        cmd = "mpiexec -np %d python %s" % (3, abs_script_name)
+
+        cmd = anuga.mpicmd(os.path.abspath(__file__))
         result = os.system(cmd)
 
         assert_(result == 0)

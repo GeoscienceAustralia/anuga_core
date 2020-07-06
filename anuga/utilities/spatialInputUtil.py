@@ -44,6 +44,10 @@ Key routines:
     
 """
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 from future.utils import raise_
 import sys
 import os
@@ -236,7 +240,7 @@ if gdal_available:
         attribute=[]
         for i, feature in enumerate(layer):
             if(i==0):
-                attributeNames=feature.keys()
+                attributeNames=list(feature.keys())
             pt=feature.GetGeometryRef().GetPoints()
             pt=[list(p) for p in pt]
             pts.extend(pt)
@@ -401,8 +405,8 @@ if gdal_available:
         if(segLen == 0.):
             raise_(Exception, 'Line has repeated points: Line %s Pt %s' % (str(line),str(pt)))
 
-        seg_unitVec_x = seg_unitVec_x/segLen
-        seg_unitVec_y = seg_unitVec_y/segLen
+        seg_unitVec_x = old_div(seg_unitVec_x,segLen)
+        seg_unitVec_y = old_div(seg_unitVec_y,segLen)
 
         # Get vector from pt to p0 
         pt_p0_vec_x = float(pt[0]-p0[0])
@@ -537,7 +541,7 @@ if gdal_available:
                    (L1_pts[tmp[1]][1]-L1_pts[tmp[1]+1][1])**2.)**0.5
                 d1=((L1_pts[tmp[1]+2][0]-L1_pts[tmp[1]+1][0])**2.+\
                    (L1_pts[tmp[1]+2][1]-L1_pts[tmp[1]+1][1])**2.)**0.5
-                L1_pts[tmp[1]+1][2] = (d0*L1_pts[tmp[1]+2][2] + d1*L1_pts[tmp[1]][2])/(d0+d1)
+                L1_pts[tmp[1]+1][2] = old_div((d0*L1_pts[tmp[1]+2][2] + d1*L1_pts[tmp[1]][2]),(d0+d1))
     
         else:
             if verbose:
@@ -737,8 +741,8 @@ if gdal_available:
         pixelHeight = transform[5] # Negative
         
         # Get coordinates in pixel values
-        px = (xy[:,0] - xOrigin) / pixelWidth
-        py = (xy[:,1] - yOrigin) / pixelHeight
+        px = old_div((xy[:,0] - xOrigin), pixelWidth)
+        py = old_div((xy[:,1] - yOrigin), pixelHeight)
       
         # Hold elevation 
         elev = px*0. 
@@ -906,10 +910,10 @@ if gdal_available:
         poly_ymax = polygonArr[:,1].max()
     
         # Make a 'grid' of points which covers the polygon
-        xGridCount = max( numpy.ceil( (poly_xmax-poly_xmin)/approx_grid_spacing[0]+1. ).astype(int), 4)
+        xGridCount = max( numpy.ceil( old_div((poly_xmax-poly_xmin),approx_grid_spacing[0])+1. ).astype(int), 4)
         R = (poly_xmax-poly_xmin)*eps
         Xvals = numpy.linspace(poly_xmin+R,poly_xmax-R, xGridCount)
-        yGridCount = max( numpy.ceil( (poly_ymax-poly_ymin)/approx_grid_spacing[1]+1. ).astype(int), 4)
+        yGridCount = max( numpy.ceil( old_div((poly_ymax-poly_ymin),approx_grid_spacing[1])+1. ).astype(int), 4)
         R = (poly_ymax-poly_ymin)*eps
         Yvals = numpy.linspace(poly_ymin+R,poly_ymax-R, yGridCount)
     
@@ -982,7 +986,7 @@ if gdal_available:
         if(verbose): 
             print('Cleaning breakline intersections')
         if(len(breakLines)>0):
-            kbl = breakLines.keys()
+            kbl = list(breakLines.keys())
             for i in range(len(kbl)):
                 n1 = kbl[i]
                 for j in range(len(kbl)):
@@ -1005,7 +1009,7 @@ if gdal_available:
         if(verbose): 
             print('Cleaning riverWall intersections')
         if(len(riverWalls)>0):
-            krw=riverWalls.keys()
+            krw=list(riverWalls.keys())
             for i in range(len(krw)):
                 n1=krw[i]
                 for j in range(len(krw)):
@@ -1026,8 +1030,8 @@ if gdal_available:
         if(verbose): 
             print('Cleaning breakLine-riverWall intersections')
         if( (len(riverWalls)>0) and (len(breakLines)>0)):
-            krw = riverWalls.keys()
-            kbl = breakLines.keys()
+            krw = list(riverWalls.keys())
+            kbl = list(breakLines.keys())
             for i in range(len(krw)):
                 n1 = krw[i]
                 for j in range(len(kbl)):
@@ -1047,7 +1051,7 @@ if gdal_available:
         if(verbose): 
             print('Cleaning bounding_poly-riverWall intersections')
         if( (len(riverWalls)>0)):
-            krw = riverWalls.keys()
+            krw = list(riverWalls.keys())
             for i in range(len(krw)):
                 n1 = krw[i]
                 # Convert breaklines to wkb format
@@ -1071,7 +1075,7 @@ if gdal_available:
         if(verbose):
             print('Cleaning bounding_poly-breaklines intersections')
         if( (len(breakLines)>0)):
-            kbl = breakLines.keys()
+            kbl = list(breakLines.keys())
             for i in range(len(kbl)):
                 n1 = kbl[i]
                 # Convert breaklines to wkb format
@@ -1094,13 +1098,13 @@ if gdal_available:
         # Remove the extra 0.0 from bounding polygon [this cannot have 3 coordinates] 
         bounding_polygon = [ bounding_polygon[i][0:2] for i in range(len(bounding_polygon))]
         # Same for breaklines [although might not matter]
-        for n1 in breakLines.keys():
+        for n1 in list(breakLines.keys()):
             breakLines[n1] = [breakLines[n1][i][0:2] for i in range(len(breakLines[n1]))]
 
         # Check that all mesh-boundary points are inside the bounding polygon
         from anuga.geometry.polygon import outside_polygon
         for blCat in [riverWalls, breakLines]:
-            for n1 in blCat.keys():
+            for n1 in list(blCat.keys()):
                 l = len(blCat[n1])
                 # Test every point -- means we can strip 3rd coordinate if needed
                 for j in range(l):
@@ -1256,7 +1260,7 @@ if gdal_available:
         Combine breaklines and riverwalls for input in mesh generation,
             ensuring both have 2 coordinates only
         """
-        mesh_breakLines=riverWalls.values()+breakLines.values()
+        mesh_breakLines=list(riverWalls.values())+list(breakLines.values())
         for i in range(len(mesh_breakLines)):
             mesh_breakLines[i] =\
              [mesh_breakLines[i][j][0:2] for j in range(len(mesh_breakLines[i]))]
@@ -1286,7 +1290,7 @@ if gdal_available:
         """
 
         breakLines=copy.copy(breakLinesIn)
-        bk=breakLines.keys()
+        bk=list(breakLines.keys())
 
         # They can be pathnames from glob, and sometimes / and \\ get mixed up
         # Fix that here

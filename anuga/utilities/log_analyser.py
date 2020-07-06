@@ -1,4 +1,5 @@
 from __future__ import print_function
+from builtins import zip
 import sys
 import os
 import re
@@ -28,7 +29,8 @@ def build_log_info(path, log_file):
         for file in files:
             if log_file in file: 
                 dictResults = {}
-                for line in open(os.path.join(path,file)):
+                file_handle = open(os.path.join(path,file))
+                for line in file_handle:
                     if line.find(timingDelimiter)>-1:
                         key_value = line.split(timingDelimiter)[1]
                         # FIXME remove the magic comma
@@ -41,6 +43,7 @@ def build_log_info(path, log_file):
                         #print "key", key 
                         #print "value", value
                 log_pairs.append(dictResults)
+                file_handle.close()
     return log_pairs
   
 def write_meta_log(log_pairs, output_file):
@@ -55,7 +58,7 @@ def write_meta_log(log_pairs, output_file):
     writer = csv.DictWriter(han, delimiter=',', fieldnames=sorted_all_keys,
                         extrasaction='ignore')
     # Title 
-    writer.writerow(dict(zip(sorted_all_keys, sorted_all_keys)))
+    writer.writerow(dict(list(zip(sorted_all_keys, sorted_all_keys))))
     
     for pair in log_pairs: # Write the main body
         writer.writerow(pair)

@@ -2,7 +2,10 @@
     Operations to extract information from an SWW file.
 '''
 from __future__ import print_function
+from __future__ import division
 
+from builtins import range
+from past.utils import old_div
 import os
 import anuga.utilities.log as log
 import numpy as num
@@ -348,13 +351,13 @@ def get_energy_through_cross_section(filename,
             # Average velocity across this segment
             if h > epsilon:
                 # Use protection against degenerate velocities
-                u = uh / (h + h0/h)
-                v = vh / (h + h0/h)
+                u = old_div(uh, (h + old_div(h0,h)))
+                v = old_div(vh, (h + old_div(h0,h)))
             else:
                 u = v = 0.0
 
             speed_squared = u*u + v*v
-            kinetic_energy = 0.5 * speed_squared / g
+            kinetic_energy = old_div(0.5 * speed_squared, g)
 
             if kind == 'specific':
                 segment_energy = depth + kinetic_energy
@@ -365,7 +368,7 @@ def get_energy_through_cross_section(filename,
                 msg += 'I got %s' % kind
 
             # Add to weighted average
-            weigth = segments[i].length / total_line_length
+            weigth = old_div(segments[i].length, total_line_length)
             average_energy += segment_energy * weigth
 
         # Store energy at this timestep
@@ -652,15 +655,25 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
                     print('max(wet_elevation) ',max(wet_elevation))
                 assert wet_elevation[runup_index] == runup       # Must be True
 
-            if runup > maximal_runup:
+
+            # Python3.8 no longer supports things like 3.333 > None or None > None
+            # so this elegant conditional: if runup > maximal_runup
+            # had to be unpacked thusly
+            if maximal_runup is None and runup is None:
+                # First time around
+                pass
+            elif maximal_runup is None or runup > maximal_runup:
                 maximal_runup = runup      # works even if maximal_runup is None
                 maximal_time = time[i]
 
                 # Record location
                 wet_x = num.take(x, wet_nodes, axis=0)
                 wet_y = num.take(y, wet_nodes, axis=0)
-                maximal_runup_location =    [wet_x[runup_index], \
-                                            wet_y[runup_index]]
+                maximal_runup_location = [wet_x[runup_index],
+                                          wet_y[runup_index]]
+            else:
+                pass
+            
             if verbose:
                 print(i, runup)
 

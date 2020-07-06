@@ -5,7 +5,12 @@
    Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
    Geoscience Australia
 """
+from __future__ import division
 
+from builtins import map
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import sys
 import numpy as num
 import anuga.utilities.log as log
@@ -131,7 +136,7 @@ def _pmesh_to_domain(file_name=None, mesh_instance=None, use_cache=False,
     geo_reference = mesh_dict['geo_reference']
     if point_atts is not None:
         point_atts = num.transpose(point_atts)
-        for quantity, value_vector in map(None, point_titles, point_atts):
+        for quantity, value_vector in zip(point_titles, point_atts):
             vertex_quantity_dict[quantity] = value_vector
     tag_dict = pmesh_dict_to_tag_dict(mesh_dict)
     tagged_elements_dict = build_tagged_elements_dictionary(mesh_dict)
@@ -150,7 +155,7 @@ def build_tagged_elements_dictionary(mesh_dict):
     tri_atts = mesh_dict['triangle_tags']
     tagged_elements = {}
     if tri_atts is None:
-       tagged_elements[''] = range(len(mesh_dict['triangles']))
+       tagged_elements[''] = list(range(len(mesh_dict['triangles'])))
     else:
         for tri_att_index in range(len(tri_atts)):
             tagged_elements.setdefault(tri_atts[tri_att_index],
@@ -179,7 +184,7 @@ def pmesh_dict_to_tag_dict_old(mesh_dict):
         sides[c,a] = 3*id+1 #(id, face)
 
     tag_dict = {}
-    for seg, tag in map(None, mesh_dict['segments'], mesh_dict['segment_tags']):
+    for seg, tag in zip(mesh_dict['segments'], mesh_dict['segment_tags']):
         v1 = int(seg[0])
         v2 = int(seg[1])
         for key in [(v1,v2),(v2,v1)]:
@@ -187,7 +192,7 @@ def pmesh_dict_to_tag_dict_old(mesh_dict):
                 #"" represents null.  Don't put these into the dictionary
                 #this creates a dict of lists of faces, indexed by tag
                 #tagged_edges.setdefault(tag,[]).append(sides[key])
-                vol_id = sides[key]/3
+                vol_id = old_div(sides[key],3)
                 edge_id = sides[key]%3
                 tag_dict[vol_id,edge_id] = tag
 
@@ -212,8 +217,13 @@ def pmesh_dict_to_tag_dict(mesh_dict):
 
     from anuga.abstract_2d_finite_volumes.pmesh2domain_ext import build_boundary_dictionary
 
+    segment_tags = [seg.encode() for seg in segment_tags]  # Convert to binary form
     tag_dict = build_boundary_dictionary(triangles, segments, segment_tags, tag_dict)
-    
+
+    for key in tag_dict.keys():
+        x = tag_dict[key]
+        tag_dict[key] = x.decode() # Convert back to string form
+
     return tag_dict
 
 
@@ -254,9 +264,9 @@ def calc_sides_zip(triangles):
 
     id = 3*num.arange(len(triangles))
 
-    sides.update(dict(zip(zip(a,b),id+2)))
-    sides.update(dict(zip(zip(b,c),id+0)))
-    sides.update(dict(zip(zip(c,a),id+1)))
+    sides.update(dict(list(zip(list(zip(a,b)),id+2))))
+    sides.update(dict(list(zip(list(zip(b,c)),id+0))))
+    sides.update(dict(list(zip(list(zip(c,a)),id+1))))
 
     return sides
 

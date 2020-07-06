@@ -2,6 +2,9 @@
 
 
 from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import unittest
 import os.path
 import sys
@@ -32,8 +35,8 @@ def run_culvert_flow_problem(depth):
 
     dx = dy = 1           # Resolution: Length of subdivisions on both axes
 
-    points, vertices, boundary = rectangular_cross(int(length/dx),
-                                                   int(width/dy),
+    points, vertices, boundary = rectangular_cross(int(old_div(length,dx)),
+                                                   int(old_div(width,dy)),
                                                    len1=length, 
                                                    len2=width)
     domain = anuga.Domain(points, vertices, boundary)   
@@ -51,7 +54,7 @@ def run_culvert_flow_problem(depth):
         A culvert will connect either side
         """
         # General Slope of Topography
-        z=-x/1000
+        z=old_div(-x,1000)
         
         N = len(x)
         for i in range(N):
@@ -139,6 +142,14 @@ class Test_Culvert(unittest.TestCase):
         are dealt with       
         """
 
+        # FIXME (Ole): This test leads to this warning for both Python2.7 and Python3.8
+        #
+        # /home/ro/Work/sandpit/anuga_core/anuga/shallow_water/shallow_water_domain.py:2253:
+        # UserWarning: Negative cells being set to zero depth, possible loss of conservation. 
+        # Consider using domain.report_water_volume_statistics() to check the extent of the problem
+        #
+        # This not a porting problem, but should be looked into
+
         path = get_pathname_from_package('anuga.culvert_flows') 
         path = os.path.join(path, 'tests', 'data')   
         
@@ -147,8 +158,8 @@ class Test_Culvert(unittest.TestCase):
 
         dx = dy = 1           # Resolution: Length of subdivisions on both axes
 
-        points, vertices, boundary = rectangular_cross(int(length/dx),
-                                                       int(width/dy),
+        points, vertices, boundary = rectangular_cross(int(old_div(length,dx)),
+                                                       int(old_div(width,dy)),
                                                        len1=length, 
                                                        len2=width)
         domain = anuga.Domain(points, vertices, boundary)   
@@ -166,7 +177,7 @@ class Test_Culvert(unittest.TestCase):
             A culvert will connect either side
             """
             # General Slope of Topography
-            z=-x/1000
+            z=old_div(-x,1000)
             
             N = len(x)
             for i in range(N):
@@ -220,8 +231,8 @@ class Test_Culvert(unittest.TestCase):
         # Upstream and downstream conditions that will exceed the rating curve
         # I.e produce delta_h outside the range [0, 10] specified in the the 
         # file example_rating_curve.csv
-        Btus = anuga.Time_boundary(domain, lambda t: [100*num.sin(2*pi*(t-4)/10), 0.0, 0.0])
-        Btds = anuga.Time_boundary(domain, lambda t: [-5*(num.cos(2*pi*(t-4)/20)), 0.0, 0.0])
+        Btus = anuga.Time_boundary(domain, lambda t: [100*num.sin(old_div(2*pi*(t-4),10)), 0.0, 0.0])
+        Btds = anuga.Time_boundary(domain, lambda t: [-5*(num.cos(old_div(2*pi*(t-4),20))), 0.0, 0.0])
         domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
 
 
@@ -265,8 +276,8 @@ class Test_Culvert(unittest.TestCase):
 
         dx = dy = 1           # Resolution: Length of subdivisions on both axes
 
-        points, vertices, boundary = rectangular_cross(int(length/dx),
-                                                       int(width/dy),
+        points, vertices, boundary = rectangular_cross(int(old_div(length,dx)),
+                                                       int(old_div(width,dy)),
                                                        len1=length, 
                                                        len2=width)
         domain = anuga.Domain(points, vertices, boundary)   
@@ -284,7 +295,7 @@ class Test_Culvert(unittest.TestCase):
             A culvert will connect either side
             """
             # General Slope of Topography
-            z=-x/1000
+            z=old_div(-x,1000)
             
             N = len(x)
             for i in range(N):
@@ -385,8 +396,8 @@ class Test_Culvert(unittest.TestCase):
 
         dx = dy = 1           # Resolution: Length of subdivisions on both axes
 
-        points, vertices, boundary = rectangular_cross(int(length/dx),
-                                                       int(width/dy),
+        points, vertices, boundary = rectangular_cross(int(old_div(length,dx)),
+                                                       int(old_div(width,dy)),
                                                        len1=length, 
                                                        len2=width)
         domain = anuga.Domain(points, vertices, boundary)   
@@ -404,7 +415,7 @@ class Test_Culvert(unittest.TestCase):
             A culvert will connect either side
             """
             # General Slope of Topography
-            z=-x/1000
+            z=old_div(-x,1000)
             
             N = len(x)
             for i in range(N):
@@ -483,7 +494,7 @@ class Test_Culvert(unittest.TestCase):
             assert num.allclose(new_volume, ref_volume, rtol=1.0e-10), msg        
         
         
-        return
+        return # why?
         # Now try this again for a depth of 10 cm and for a range of other depths
         for depth in [0.1, 0.2, 0.5, 1.0]:
             print('depth', depth)
@@ -522,8 +533,8 @@ class Test_Culvert(unittest.TestCase):
 
         dx = dy = 1           # Resolution: Length of subdivisions on both axes
 
-        points, vertices, boundary = rectangular_cross(int(length/dx),
-                                                       int(width/dy),
+        points, vertices, boundary = rectangular_cross(int(old_div(length,dx)),
+                                                       int(old_div(width,dy)),
                                                        len1=length, 
                                                        len2=width)
         domain = anuga.Domain(points, vertices, boundary)   
@@ -541,7 +552,7 @@ class Test_Culvert(unittest.TestCase):
             A culvert will connect either side
             """
             # General Slope of Topography
-            z=-x/1000
+            z=old_div(-x,1000)
             
             N = len(x)
             for i in range(N):
@@ -632,8 +643,8 @@ class Test_Culvert(unittest.TestCase):
 
         dx = dy = 0.5           # Resolution: Length of subdivisions on both axes
 
-        points, vertices, boundary = rectangular_cross(int(length/dx),
-                                                       int(width/dy),
+        points, vertices, boundary = rectangular_cross(int(old_div(length,dx)),
+                                                       int(old_div(width,dy)),
                                                        len1=length, 
                                                        len2=width)
         domain = anuga.Domain(points, vertices, boundary)   
@@ -648,7 +659,7 @@ class Test_Culvert(unittest.TestCase):
 
         def topography(x, y):
             # General Slope of Topography
-            z=-x/10
+            z=old_div(-x,10)
             
             return z
 
@@ -708,8 +719,8 @@ class Test_Culvert(unittest.TestCase):
 
         dx = dy = 1           # Resolution: Length of subdivisions on both axes
 
-        points, vertices, boundary = rectangular_cross(int(length/dx),
-                                                       int(width/dy),
+        points, vertices, boundary = rectangular_cross(int(old_div(length,dx)),
+                                                       int(old_div(width,dy)),
                                                        len1=length, 
                                                        len2=width)
         domain = anuga.Domain(points, vertices, boundary)   
@@ -727,7 +738,7 @@ class Test_Culvert(unittest.TestCase):
             A culvert will connect either side
             """
             # General Slope of Topography
-            z=-x/1000
+            z=old_div(-x,1000)
             
             N = len(x)
             for i in range(N):

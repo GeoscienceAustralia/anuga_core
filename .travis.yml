@@ -7,32 +7,19 @@ matrix:
          language: generic
          sudo: false
          python: "2.7"
-         env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="conda"  PYPAR_AVAILABLE="mpi4py" DISTRIB="conda_macos"
+         env: PYTHON_VERSION="3.8"  ANUGA_PARALLEL="conda"  PYPAR_AVAILABLE="mpi4py" DISTRIB="conda_macos"
+        
+       - os: linux
+         dist: xenial
+         sudo: required
+         python: "3.8"
+         env: PYTHON_VERSION="3.8"  ANUGA_PARALLEL="conda"  PYPAR_AVAILABLE="mpi4py" DISTRIB="conda"
 
        - os: linux
-         language: generic
+         dist: xenial
          sudo: required
-         python: "2.7"
-         env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="conda"  PYPAR_AVAILABLE="mpi4py" DISTRIB="conda"
-
-       - os: linux
-         dist: trusty
-         sudo: required
-         python: "2.7_with_system_site_packages"
-         env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="mpich"  PYPAR_AVAILABLE="mpi4py" DISTRIB="ubuntu"
-
-       - os: linux
-         dist: trusty
-         sudo: required
-         python: "2.7_with_system_site_packages"
-         env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="false"  DISTRIB="ubuntu"
-
-       - os: linux
-         dist: trusty
-         sudo: required
-         python: "2.7_with_system_site_packages"
-         env: PYTHON_VERSION="2.7"  ANUGA_PARALLEL="openmpi"  PYPAR_AVAILABLE="mpi4py" DISTRIB="ubuntu" COVERAGE="--coverage"
-
+         python: "3.8"
+         env: PYTHON_VERSION="3.8"  ANUGA_PARALLEL="openmpi"  PYPAR_AVAILABLE="mpi4py" DISTRIB="ubuntu"
 
 install:
     - if [[ "$DISTRIB" == "conda_macos" ]]; then source tools/install_conda_macos.sh; fi
@@ -42,6 +29,7 @@ install:
 
 
 script:
+    - export OMPI_MCA_btl_vader_single_copy_mechanism=none
     - python runtests.py $COVERAGE
     - if [[ "$COVERAGE" == "--coverage" ]]; then cp build/test/.coverage .; fi
 

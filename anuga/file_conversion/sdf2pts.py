@@ -10,6 +10,9 @@ def _read_hecras_cross_sections(lines):
 
     points = []
 
+    """
+    Test comment
+    """
     reading_surface = False
     for i, line in enumerate(lines):
         if len(line.strip()) == 0:    #Ignore blanks
@@ -32,11 +35,9 @@ def _read_hecras_cross_sections(lines):
             points.append([easting, northing, elevation])
 
 
-
-def sdf2pts(name_in,
-                              name_out=None,
-                              verbose=False):
-    """Read HEC-RAS Elevation datal from the following ASCII format (.sdf)
+def sdf2pts(name_in, name_out=None, verbose=False):
+    """
+    Read HEC-RAS Elevation datal from the following ASCII format (.sdf)
 
     basename_in Sterm of input filename.
     basename_out Sterm of output filename.
@@ -50,9 +51,9 @@ def sdf2pts(name_in,
 BEGIN HEADER:
   UNITS: METRIC
   DTM TYPE: TIN
-  DTM: v:\1\cit\perth_topo\river_tin
-  STREAM LAYER: c:\local\hecras\21_02_03\up_canning_cent3d.shp
-  CROSS-SECTION LAYER: c:\local\hecras\21_02_03\up_can_xs3d.shp
+  DTM: v:\\1\\cit\\perth_topo\\river_tin
+  STREAM LAYER: c:\\local\\hecras\\21_02_03\\up_canning_cent3d.shp
+  CROSS-SECTION LAYER: c:\\local\\hecras\\21_02_03\\up_can_xs3d.shp
   MAP PROJECTION: UTM
   PROJECTION ZONE: 50
   DATUM: AGD66

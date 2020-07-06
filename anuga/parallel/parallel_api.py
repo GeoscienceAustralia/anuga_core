@@ -5,11 +5,12 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+from builtins import range
 import numpy as num
 
 # The abstract Python-MPI interface
 from anuga.utilities.parallel_abstraction import size, rank, get_processor_name
-from anuga.utilities.parallel_abstraction import finalize, send, receive
+from anuga.utilities.parallel_abstraction import finalize, send, receive, reduce
 from anuga.utilities.parallel_abstraction import pypar_available, barrier
 
 
@@ -198,7 +199,7 @@ def old_distribute(domain, verbose=False, debug=False, parameters = None):
 
         # FIXME - what other attributes need to be transferred?
 
-        for p in xrange(1, numprocs):
+        for p in range(1, numprocs):
             # FIXME SR: Creates cPickle dump
             send((domain_name, domain_dir, domain_store, \
                   domain_store_centroids, domain_smooth, domain_reduction, \
@@ -222,7 +223,7 @@ def old_distribute(domain, verbose=False, debug=False, parameters = None):
     # difficulties pickling functions
     if myid == 0:
         boundary_map = domain.boundary_map
-        for p in xrange(1, numprocs):
+        for p in range(1, numprocs):
             # FIXME SR: Creates cPickle dump
             send(boundary_map, p)
     else:
@@ -272,13 +273,13 @@ def old_distribute(domain, verbose=False, debug=False, parameters = None):
 
         if send_s2p :
             n = len(s2p_map)
-            s2p_map_keys_flat = num.reshape(num.array(s2p_map.keys(),num.int), (n,1) )
-            s2p_map_values_flat = num.array(s2p_map.values(),num.int)
+            s2p_map_keys_flat = num.reshape(num.array(list(s2p_map.keys()),num.int), (n,1) )
+            s2p_map_values_flat = num.array(list(s2p_map.values()),num.int)
             s2p_map_flat = num.concatenate( (s2p_map_keys_flat, s2p_map_values_flat), axis=1 )
 
             n = len(p2s_map)
-            p2s_map_keys_flat = num.reshape(num.array(p2s_map.keys(),num.int), (n,2) )
-            p2s_map_values_flat = num.reshape(num.array(p2s_map.values(),num.int) , (n,1))
+            p2s_map_keys_flat = num.reshape(num.array(list(p2s_map.keys()),num.int), (n,2) )
+            p2s_map_values_flat = num.reshape(num.array(list(p2s_map.values()),num.int) , (n,1))
             p2s_map_flat = num.concatenate( (p2s_map_keys_flat, p2s_map_values_flat), axis=1 )
 
             for p in range(1, numprocs):
@@ -498,3 +499,13 @@ def distribute_mesh(domain, verbose=False, debug=False, parameters=None):
 ##     l2g[l_ids] = g_ids
 
 ##     return l2g
+
+def mpicmd(script_name):
+
+    extra_options = '--oversubscribe'
+
+    import platform
+    if platform.system() == 'Windows':
+        extra_options = ' '
+
+    return "mpiexec -np %d  %s  python %s" % (3, extra_options, script_name)  

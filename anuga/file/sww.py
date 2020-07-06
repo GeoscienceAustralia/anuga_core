@@ -1,46 +1,67 @@
 """ Classes to read an SWW file.
 """
 from __future__ import absolute_import
-
-from future.utils import raise_
-import exceptions
-class DataFileNotOpenError(exceptions.Exception): pass
-class DataMissingValuesError(exceptions.Exception): pass
-class NewQuantity(exceptions.Exception): pass
-class DataDomainError(exceptions.Exception): pass
-class DataTimeError(exceptions.Exception): pass
+from __future__ import division
 
 import numpy
-from anuga.coordinate_transforms.geo_reference import Geo_reference
-from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
-from anuga.config import netcdf_float, netcdf_float32, netcdf_int, netcdf_float64
-from anuga.config import max_float
-from anuga.utilities.numerical_tools import ensure_numeric
-import anuga.utilities.log as log
-from anuga.file.netcdf import NetCDFFile
-
-from anuga.config import minimum_storable_height as default_minimum_storable_height
-
-from .sts import Write_sts
-
-from anuga.coordinate_transforms.geo_reference import \
-        ensure_geo_reference
-
-from anuga.utilities.file_utils import create_filename
 import numpy as num
+from anuga.utilities.file_utils import create_filename
+from anuga.coordinate_transforms.geo_reference import \
+    ensure_geo_reference
+from .sts import Write_sts
+from anuga.config import minimum_storable_height as default_minimum_storable_height
+from anuga.file.netcdf import NetCDFFile
+import anuga.utilities.log as log
+from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.config import max_float
+from anuga.config import netcdf_float, netcdf_float32, netcdf_int, netcdf_float64
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
+from anuga.coordinate_transforms.geo_reference import Geo_reference
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
+from future.utils import raise_
 
-class Data_format:
+# Python 2.7 Hack
+try:
+    from exceptions import Exception
+except:
+    pass
+
+
+class DataFileNotOpenError(Exception):
+    pass
+
+
+class DataMissingValuesError(Exception):
+    pass
+
+
+class NewQuantity(Exception):
+    pass
+
+
+class DataDomainError(Exception):
+    pass
+
+
+class DataTimeError(Exception):
+    pass
+
+
+class Data_format(object):
     """Generic interface to data formats
     """
 
     def __init__(self, domain, extension, mode=netcdf_mode_w):
         assert mode[0] in ['r', 'w', 'a'], \
-               "Mode %s must be either:\n" % mode + \
-               "   'w' (write)\n" + \
-               "   'r' (read)\n" + \
-               "   'a' (append)"
+            "Mode %s must be either:\n" % mode + \
+            "   'w' (write)\n" + \
+            "   'r' (read)\n" + \
+            "   'a' (append)"
 
-        #Create filename
+        # Create filename
         self.filename = create_filename(domain.get_datadir(),
                                         domain.get_name(), extension)
 
@@ -49,11 +70,11 @@ class Data_format:
 
         # Probably should exclude ghosts in case this is a parallel domain
 
-        self.number_of_nodes   = domain.number_of_nodes
+        self.number_of_nodes = domain.number_of_nodes
         self.number_of_volumes = domain.number_of_triangles
         #self.number_of_volumes = len(domain)
 
-        #FIXME: Should we have a general set_precision function?
+        # FIXME: Should we have a general set_precision function?
 
 
 class SWW_file(Data_format):
@@ -70,12 +91,12 @@ class SWW_file(Data_format):
     def __init__(self, domain,
                  mode=netcdf_mode_w, max_size=200000000000, recursion=False):
 
-        self.precision = netcdf_float32 # Use single precision for quantities
+        self.precision = netcdf_float32  # Use single precision for quantities
         self.recursion = recursion
         self.mode = mode
 
         if hasattr(domain, 'max_size'):
-            self.max_size = domain.max_size # File size max is 2Gig
+            self.max_size = domain.max_size  # File size max is 2Gig
         else:
             self.max_size = max_size
 
@@ -105,15 +126,16 @@ class SWW_file(Data_format):
             msg += 'but it does not exist in domain.quantities'
             assert q in domain.quantities, msg
 
-            assert flag in [1,2]
+            assert flag in [1, 2]
             if flag == 1:
                 static_quantities.append(q)
-                if self.store_centroids: static_c_quantities.append(q+'_c')
+                if self.store_centroids:
+                    static_c_quantities.append(q+'_c')
 
             if flag == 2:
                 dynamic_quantities.append(q)
-                if self.store_centroids: dynamic_c_quantities.append(q+'_c')
-
+                if self.store_centroids:
+                    dynamic_c_quantities.append(q+'_c')
 
         # NetCDF file definition
         fid = NetCDFFile(self.filename, mode)
@@ -184,33 +206,30 @@ class SWW_file(Data_format):
         # FIXME: Change name to reflect the fact thta this function
         # stores both connectivity (triangulation) and static quantities
 
-
         domain = self.domain
 
         # append to the NetCDF file
         fid = NetCDFFile(self.filename, netcdf_mode_a)
 
         # Get X, Y from one (any) of the quantities
-        Q = domain.quantities.values()[0]
-        X,Y,_,V = Q.get_vertex_values(xy=True, precision=self.precision)
+        Q = list(domain.quantities.values())[0]
+        X, Y, _, V = Q.get_vertex_values(xy=True, precision=self.precision)
 
         # store the connectivity data
-        points = num.concatenate((X[:,num.newaxis],Y[:,num.newaxis]), axis=1)
+        points = num.concatenate(
+            (X[:, num.newaxis], Y[:, num.newaxis]), axis=1)
         self.writer.store_triangulation(fid,
                                         points,
                                         V.astype(num.float32),
-                                        points_georeference=\
-                                        domain.geo_reference)
-
+                                        points_georeference=domain.geo_reference)
 
         if domain.parallel:
             self.writer.store_parallel_data(fid,
-                                        domain.number_of_global_triangles,
-                                        domain.number_of_global_nodes,
-                                        domain.tri_full_flag,
-                                        domain.tri_l2g,
-                                        domain.node_l2g)
-
+                                            domain.number_of_global_triangles,
+                                            domain.number_of_global_nodes,
+                                            domain.tri_full_flag,
+                                            domain.tri_l2g,
+                                            domain.node_l2g)
 
         # Get names of static quantities
         static_quantities = {}
@@ -222,8 +241,8 @@ class SWW_file(Data_format):
                                        precision=self.precision)
             static_quantities[name] = A
 
-        #print domain.quantities
-        #print self.writer.static_c_quantities
+        # print domain.quantities
+        # print self.writer.static_c_quantities
 
         for name in self.writer.static_c_quantities:
             Q = domain.quantities[name[:-2]]  # rip off _c from name
@@ -231,10 +250,10 @@ class SWW_file(Data_format):
 
         # Store static quantities
         self.writer.store_static_quantities(fid, **static_quantities)
-        self.writer.store_static_quantities_centroid(fid, **static_quantities_centroid)
+        self.writer.store_static_quantities_centroid(
+            fid, **static_quantities_centroid)
 
         fid.close()
-
 
     def store_timestep(self):
         """Store time and time dependent quantities
@@ -243,7 +262,6 @@ class SWW_file(Data_format):
         #import types
         from time import sleep
         from os import stat
-
 
         # Get NetCDF
         retries = 0
@@ -273,7 +291,7 @@ class SWW_file(Data_format):
 
         i = len(time) + 1
         file_size = stat(self.filename)[6]
-        file_size_increase = file_size / i
+        file_size_increase = old_div(file_size, i)
         if file_size + file_size_increase > self.max_size * 2**self.recursion:
             # In order to get the file name and start time correct,
             # I change the domain.filename and domain.starttime.
@@ -324,7 +342,6 @@ class SWW_file(Data_format):
             time = fid.variables['time'][:]
             i = len(time)
 
-
             if 'stage' in self.writer.dynamic_quantities:
                 # Select only those values for stage,
                 # xmomentum and ymomentum (if stored) where
@@ -332,7 +349,6 @@ class SWW_file(Data_format):
                 #
                 # In this branch it is assumed that elevation
                 # is also available as a quantity
-
 
                 # Smoothing for the get_vertex_values will be obtained
                 # from the smooth setting in domain
@@ -343,12 +359,13 @@ class SWW_file(Data_format):
                 Q = domain.quantities['elevation']
                 z, _ = Q.get_vertex_values(xy=False)
 
-                storable_indices = num.array(w-z >= self.minimum_storable_height)
+                storable_indices = num.array(
+                    w-z >= self.minimum_storable_height)
 
-                #print numpy.sum(storable_indices), len(z), self.minimum_storable_height, numpy.min(w-z)
+                # print numpy.sum(storable_indices), len(z), self.minimum_storable_height, numpy.min(w-z)
             else:
                 # Very unlikely branch
-                storable_indices = None # This means take all
+                storable_indices = None  # This means take all
 
             # Now store dynamic quantities
             dynamic_quantities = {}
@@ -380,43 +397,41 @@ class SWW_file(Data_format):
                 Q = domain.quantities[name[:-2]]
                 dynamic_quantities_centroid[name] = Q.centroid_values
 
-
             # Store dynamic quantities
             slice_index = self.writer.store_quantities(fid,
-                                         time=self.domain.time,
-                                         sww_precision=self.precision,
-                                         **dynamic_quantities)
+                                                       time=self.domain.time,
+                                                       sww_precision=self.precision,
+                                                       **dynamic_quantities)
 
             # Store dynamic quantities
             if self.store_centroids:
                 self.writer.store_quantities_centroid(fid,
-                                                      slice_index= slice_index,
+                                                      slice_index=slice_index,
                                                       sww_precision=self.precision,
                                                       **dynamic_quantities_centroid)
-
 
             # Update extrema if requested
             domain = self.domain
             if domain.quantities_to_be_monitored is not None:
-                for q, info in domain.quantities_to_be_monitored.items():
+                for q, info in list(domain.quantities_to_be_monitored.items()):
                     if info['min'] is not None:
                         fid.variables[q + '.extrema'][0] = info['min']
                         fid.variables[q + '.min_location'][:] = \
-                                        info['min_location']
+                            info['min_location']
                         fid.variables[q + '.min_time'][0] = info['min_time']
 
                     if info['max'] is not None:
                         fid.variables[q + '.extrema'][1] = info['max']
                         fid.variables[q + '.max_location'][:] = \
-                                        info['max_location']
+                            info['max_location']
                         fid.variables[q + '.max_time'][0] = info['max_time']
 
             # Flush and close
-            #fid.sync()
+            # fid.sync()
             fid.close()
 
 
-class Read_sww:
+class Read_sww(object):
 
     def __init__(self, source):
         """The source parameter is assumed to be a NetCDF sww file.
@@ -441,7 +456,6 @@ class Read_sww:
 
         self.read_quantities()
 
-
     def read_mesh(self):
         """ Read and store the mesh data contained within this sww file.
         """
@@ -459,7 +473,6 @@ class Read_sww:
         self.ymin = num.min(y)
         self.ymax = num.max(y)
 
-
         fin.close()
 
     def read_quantities(self, frame_number=0):
@@ -471,18 +484,19 @@ class Read_sww:
 
         self.frame_number = frame_number
 
-        M = len(self.x)/3
+        M = old_div(len(self.x), 3)
 
         fin = NetCDFFile(self.source, 'r')
 
-        for q in filter(lambda n:n != 'x' and n != 'y' and n != 'time' and n != 'volumes' and \
-                        '_range' not in n and '_c' not in n , \
-                        fin.variables.keys()):
-            #print q
-            if len(fin.variables[q].shape) == 1: # Not a time-varying quantity
-                self.quantities[q] = num.ravel(num.array(fin.variables[q][:], num.float)).reshape(M,3)
-            else: # Time-varying, get the current timestep data
-                self.quantities[q] = num.array(fin.variables[q][self.frame_number], num.float).reshape(M,3)
+        for q in [n for n in list(fin.variables.keys()) if n != 'x' and n != 'y' and n != 'time' and n != 'volumes' and
+                  '_range' not in n and '_c' not in n]:
+            # print q
+            if len(fin.variables[q].shape) == 1:  # Not a time-varying quantity
+                self.quantities[q] = num.ravel(
+                    num.array(fin.variables[q][:], num.float)).reshape(M, 3)
+            else:  # Time-varying, get the current timestep data
+                self.quantities[q] = num.array(
+                    fin.variables[q][self.frame_number], num.float).reshape(M, 3)
         fin.close()
         return self.quantities
 
@@ -516,9 +530,8 @@ class Write_sww(Write_sts):
     def __init__(self,
                  static_quantities,
                  dynamic_quantities,
-                 static_c_quantities = [],
-                 dynamic_c_quantities = []):
-
+                 static_c_quantities=[],
+                 dynamic_c_quantities=[]):
         """Initialise Write_sww with two (or 4) list af quantity names:
 
         static_quantities (e.g. elevation or friction):
@@ -544,7 +557,6 @@ class Write_sww(Write_sts):
         self.store_centroids = False
         if static_c_quantities or dynamic_c_quantities:
             self.store_centroids = True
-
 
     def store_header(self,
                      outfile,
@@ -611,17 +623,17 @@ class Write_sww(Write_sts):
                 starttime = 0
             else:
                 starttime = times[0]
-                times = times - starttime  #Store relative times
+                times = times - starttime  # Store relative times
         else:
             number_of_times = 0
             starttime = times
-
 
         outfile.starttime = starttime
 
         # dimension definitions
         outfile.createDimension('number_of_volumes', number_of_volumes)
-        outfile.createDimension('number_of_triangle_vertices', number_of_points)
+        outfile.createDimension(
+            'number_of_triangle_vertices', number_of_points)
         outfile.createDimension('number_of_vertices', 3)
         outfile.createDimension('numbers_in_range', 2)
 
@@ -640,9 +652,8 @@ class Write_sww(Write_sts):
         outfile.createVariable('x', sww_precision, ('number_of_points',))
         outfile.createVariable('y', sww_precision, ('number_of_points',))
 
-        outfile.createVariable('volumes', netcdf_int , ('number_of_volumes',
+        outfile.createVariable('volumes', netcdf_int, ('number_of_volumes',
                                                        'number_of_vertices'))
-
 
         for q in self.static_quantities:
 
@@ -655,20 +666,15 @@ class Write_sww(Write_sts):
             # Initialise ranges with small and large sentinels.
             # If this was in pure Python we could have used None sensibly
             outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min
-            outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
-
+            outfile.variables[q+Write_sww.RANGE][1] = -max_float  # Max
 
         for q in self.static_c_quantities:
             outfile.createVariable(q, sww_precision,
                                    ('number_of_volumes',))
 
-
-        self.write_dynamic_quantities(outfile, times, precis = sww_precision)
-
+        self.write_dynamic_quantities(outfile, times, precis=sww_precision)
 
         outfile.sync()
-
-
 
     def store_triangulation(self,
                             outfile,
@@ -720,8 +726,7 @@ class Write_sww(Write_sts):
         """
 
         number_of_points = len(points_utm)
-        volumes = num.array(volumes,num.int32).reshape(-1,3)
-
+        volumes = num.array(volumes, num.int32).reshape(-1, 3)
 
         points_utm = num.array(points_utm)
 
@@ -735,8 +740,8 @@ class Write_sww(Write_sts):
             geo_ref = points_georeference
         else:
             if new_origin is None:
-                new_origin = Geo_reference(zone, min(points_utm[:,0]),
-                                                 min(points_utm[:,1]))
+                new_origin = Geo_reference(zone, min(points_utm[:, 0]),
+                                           min(points_utm[:, 1]))
             points = new_origin.change_points_geo_ref(points_utm,
                                                       points_georeference)
             geo_ref = new_origin
@@ -748,12 +753,11 @@ class Write_sww(Write_sts):
         # This will put the geo ref in the middle
         #geo_ref = Geo_reference(refzone,(max(x)+min(x))/2.0,(max(x)+min(y))/2.)
 
-        x =  points[:,0]
-        y =  points[:,1]
+        x = points[:, 0]
+        y = points[:, 1]
 
         #x = x.astype(netcdf_float32)
         #y = y.astype(netcdf_float32)
-
 
         if verbose:
             log.critical('------------------------------------------------')
@@ -763,29 +767,24 @@ class Write_sww(Write_sts):
                          % (min(x), max(x), len(x)))
             log.critical('    y in [%f, %f], len(lon) == %d'
                          % (min(y), max(y), len(y)))
-            #log.critical('    z in [%f, %f], len(z) == %d'
+            # log.critical('    z in [%f, %f], len(z) == %d'
             #             % (min(elevation), max(elevation), len(elevation)))
             log.critical('geo_ref: %s' % str(geo_ref))
             log.critical('------------------------------------------------')
 
-
-        outfile.variables['x'][:] = x #- geo_ref.get_xllcorner()
-        outfile.variables['y'][:] = y #- geo_ref.get_yllcorner()
-
+        outfile.variables['x'][:] = x  # - geo_ref.get_xllcorner()
+        outfile.variables['y'][:] = y  # - geo_ref.get_yllcorner()
 
         msg = 'Mismatch between shape of volumes array and (number_of_volumes , 3)'
         assert volumes.shape == outfile.variables['volumes'].shape, msg
 
         outfile.variables['volumes'][:] = volumes
 
-
-
     def write_dynamic_quantities(self, outfile,
-                                 times, precis = netcdf_float32, verbose = False):
+                                 times, precis=netcdf_float32, verbose=False):
         """
             Write out given quantities to file.
         """
-
 
         for q in self.dynamic_quantities:
             outfile.createVariable(q, precis, ('number_of_timesteps',
@@ -796,11 +795,11 @@ class Write_sww(Write_sts):
             # Initialise ranges with small and large sentinels.
             # If this was in pure Python we could have used None sensibly
             outfile.variables[q+Write_sts.RANGE][0] = max_float  # Min
-            outfile.variables[q+Write_sts.RANGE][1] = -max_float # Max
+            outfile.variables[q+Write_sts.RANGE][1] = -max_float  # Max
 
         for q in self.dynamic_c_quantities:
             outfile.createVariable(q, precis, ('number_of_timesteps',
-                                                    'number_of_volumes'))
+                                               'number_of_volumes'))
 
         # Doing sts_precision instead of Float gives cast errors.
         outfile.createVariable('time', netcdf_float, ('number_of_timesteps',))
@@ -818,46 +817,45 @@ class Write_sww(Write_sts):
                             outfile,
                             number_of_global_triangles,
                             number_of_global_nodes,
-                            tri_full_flag = None,
-                            tri_l2g = None,
-                            node_l2g = None,
+                            tri_full_flag=None,
+                            tri_l2g=None,
+                            node_l2g=None,
                             sww_precision=netcdf_float32,
                             verbose=False):
-
 
         # dimension definitions
         #outfile.createDimension('number_of_volumes', number_of_volumes)
         #outfile.createDimension('number_of_vertices', 3)
         #outfile.createDimension('numbers_in_range', 2)
 
-        #print 'store parallel data'
+        # print 'store parallel data'
         outfile.number_of_global_triangles = number_of_global_triangles
         outfile.number_of_global_nodes = number_of_global_nodes
 
         # variable definitions
         outfile.createVariable('tri_l2g',  netcdf_int, ('number_of_volumes',))
-        outfile.createVariable('node_l2g', netcdf_int, ('number_of_triangle_vertices',))
-        outfile.createVariable('tri_full_flag', netcdf_int, ('number_of_volumes',))
+        outfile.createVariable('node_l2g', netcdf_int,
+                               ('number_of_triangle_vertices',))
+        outfile.createVariable(
+            'tri_full_flag', netcdf_int, ('number_of_volumes',))
 
-        #print tri_l2g.shape
-        #print tri_l2g
-        #print outfile.variables['tri_l2g'].shape
+        # print tri_l2g.shape
+        # print tri_l2g
+        # print outfile.variables['tri_l2g'].shape
 
         outfile.variables['tri_l2g'][:] = tri_l2g.astype(num.int32)
 
-        #print node_l2g.shape
-        #print node_l2g
-        #print outfile.variables['node_l2g'].shape
+        # print node_l2g.shape
+        # print node_l2g
+        # print outfile.variables['node_l2g'].shape
 
         outfile.variables['node_l2g'][:] = node_l2g.astype(num.int32)
 
-        #print tri_full_flag.shape
-        #print tri_full_flag
-        #print outfile.variables['tri_full_flag'].shape
+        # print tri_full_flag.shape
+        # print tri_full_flag
+        # print outfile.variables['tri_full_flag'].shape
 
         outfile.variables['tri_full_flag'][:] = tri_full_flag.astype(num.int32)
-
-
 
     def store_static_quantities(self,
                                 outfile,
@@ -902,16 +900,14 @@ class Write_sww(Write_sts):
                 outfile.variables[q + Write_sww.RANGE][1] = num.max(x)
 
         # FIXME: Hack for backwards compatibility with old viewer
-        #if 'elevation' in self.static_quantities:
+        # if 'elevation' in self.static_quantities:
         #    outfile.variables['z'][:] = outfile.variables['elevation'][:]
 
-
-
     def store_static_quantities_centroid(self,
-                                            outfile,
-                                            sww_precision=num.float32,
-                                            verbose=False,
-                                            **quant):
+                                         outfile,
+                                         sww_precision=num.float32,
+                                         verbose=False,
+                                         **quant):
         """
         Write the static centroid quantity info.
 
@@ -935,8 +931,8 @@ class Write_sww(Write_sts):
         # This method will also write the ranges for each quantity,
         # e.g. stage_range, xmomentum_range and ymomentum_range
 
-        #print outfile.variables.keys()
-        #print self.static_c_quantities
+        # print outfile.variables.keys()
+        # print self.static_c_quantities
 
         for q in self.static_c_quantities:
             if q not in quant:
@@ -948,10 +944,6 @@ class Write_sww(Write_sts):
 
                 x = q_values.astype(sww_precision)
                 outfile.variables[q][:] = x
-
-
-
-
 
     def store_quantities(self,
                          outfile,
@@ -989,11 +981,12 @@ class Write_sww(Write_sts):
             # check if time already saved as in check pointing
             if slice_index > 0:
                 if time <= file_time[slice_index-1]:
-                    check = numpy.where(numpy.abs(file_time[:]-time)< 1.0e-14)
+                    check = numpy.where(numpy.abs(file_time[:]-time) < 1.0e-14)
                     slice_index = int(check[0][0])
             file_time[slice_index] = time
         else:
-            slice_index = int(slice_index) # Has to be cast in case it was numpy.int
+            # Has to be cast in case it was numpy.int
+            slice_index = int(slice_index)
 
         # Write the named dynamic quantities
         # The dictionary quant must contain numpy arrays for each name.
@@ -1026,8 +1019,6 @@ class Write_sww(Write_sts):
 
         return slice_index
 
-
-
     def store_quantities_centroid(self,
                                   outfile,
                                   sww_precision=num.float32,
@@ -1059,7 +1050,6 @@ class Write_sww(Write_sts):
 
         assert slice_index is not None, 'slice_index should be set in store_quantities'
 
-
         # Write the named dynamic quantities
         # The dictionary quant must contain numpy arrays for each name.
         # These will typically be the conserved quantities from Domain
@@ -1070,9 +1060,9 @@ class Write_sww(Write_sts):
         # This method will also write the ranges for each quantity,
         # e.g. stage_range, xmomentum_range and ymomentum_range
 
-        #print 50*"="
-        #print quant
-        #print self.dynamic_c_quantities
+        # print 50*"="
+        # print quant
+        # print self.dynamic_c_quantities
 
         for q in self.dynamic_c_quantities:
             if q not in quant:
@@ -1085,9 +1075,6 @@ class Write_sww(Write_sts):
                 q_retyped = q_values.astype(sww_precision)
                 outfile.variables[q][slice_index] = q_retyped
 
-
-
-
     def verbose_quantities(self, outfile):
         log.critical('------------------------------------------------')
         log.critical('More Statistics:')
@@ -1096,8 +1083,6 @@ class Write_sww(Write_sts):
                          % (q, outfile.variables[q+Write_sww.RANGE][0],
                             outfile.variables[q+Write_sww.RANGE][1]))
         log.critical('------------------------------------------------')
-
-
 
 
 def extent_sww(file_name):
@@ -1110,8 +1095,7 @@ def extent_sww(file_name):
     A list: [min(x),max(x),min(y),max(y),min(stage.flat),max(stage.flat)]
     """
 
-
-    #Get NetCDF
+    # Get NetCDF
     fid = NetCDFFile(file_name, netcdf_mode_r)
 
     # Get the variables
@@ -1125,8 +1109,8 @@ def extent_sww(file_name):
 
 
 def load_sww_as_domain(filename, boundary=None, t=None,
-               fail_if_NaN=True, NaN_filler=0,
-               verbose=False, very_verbose=False):
+                       fail_if_NaN=True, NaN_filler=0,
+                       verbose=False, very_verbose=False):
     """
     Load an sww file into a domain.
 
@@ -1144,21 +1128,22 @@ def load_sww_as_domain(filename, boundary=None, t=None,
     # initialise NaN.
     NaN = 9.969209968386869e+036
 
-    if verbose: log.critical('Reading from %s' % filename)
+    if verbose:
+        log.critical('Reading from %s' % filename)
 
     fid = NetCDFFile(filename, netcdf_mode_r)    # Open existing file for read
     time = fid.variables['time'][:]       # Timesteps
     if t is None:
         t = time[-1]
-    time_interp = get_time_interp(time,t)
+    time_interp = get_time_interp(time, t)
 
     # Get the variables as numeric arrays
     x = fid.variables['x'][:]                   # x-coordinates of vertices
     y = fid.variables['y'][:]                   # y-coordinates of vertices
-    #elevation = fid.variables['elevation']      # Elevation
-    #stage = fid.variables['stage']              # Water level
-    #xmomentum = fid.variables['xmomentum']      # Momentum in the x-direction
-    #ymomentum = fid.variables['ymomentum']      # Momentum in the y-direction
+    # elevation = fid.variables['elevation']      # Elevation
+    # stage = fid.variables['stage']              # Water level
+    # xmomentum = fid.variables['xmomentum']      # Momentum in the x-direction
+    # ymomentum = fid.variables['ymomentum']      # Momentum in the y-direction
 
     starttime = float(fid.starttime)
     #starttime = fid.starttime[0]
@@ -1175,22 +1160,23 @@ def load_sww_as_domain(filename, boundary=None, t=None,
     # get geo_reference
     try:                             # sww files don't have to have a geo_ref
         geo_reference = Geo_reference(NetCDFObject=fid)
-    except: # AttributeError, e:
+    except:  # AttributeError, e:
         geo_reference = None
 
-    if verbose: log.critical('    getting quantities')
+    if verbose:
+        log.critical('    getting quantities')
 
-    for quantity in fid.variables.keys():
+    for quantity in list(fid.variables.keys()):
         dimensions = fid.variables[quantity].dimensions
         if 'number_of_timesteps' in dimensions:
             dynamic_quantities.append(quantity)
             interpolated_quantities[quantity] = \
-                  interpolated_quantity(fid.variables[quantity][:], time_interp)
+                interpolated_quantity(fid.variables[quantity][:], time_interp)
         else:
             static_quantities.append(quantity)
 
-    #print static_quantities
-    #print dynamic_quantities
+    # print static_quantities
+    # print dynamic_quantities
 
     try:
         dynamic_quantities.remove('stage_c')
@@ -1207,10 +1193,9 @@ def load_sww_as_domain(filename, boundary=None, t=None,
     except:
         pass
 
-
     static_quantities.remove('x')
     static_quantities.remove('y')
-    #other_quantities.remove('z')
+    # other_quantities.remove('z')
     static_quantities.remove('volumes')
     try:
         static_quantities.remove('stage_range')
@@ -1223,7 +1208,8 @@ def load_sww_as_domain(filename, boundary=None, t=None,
 
     dynamic_quantities.remove('time')
 
-    if verbose: log.critical('    building domain')
+    if verbose:
+        log.critical('    building domain')
 
     #    From domain.Domain:
     #    domain = Domain(coordinates, volumes,\
@@ -1242,10 +1228,9 @@ def load_sww_as_domain(filename, boundary=None, t=None,
     if unique:
         coordinates, volumes, boundary = weed(coordinates, volumes, boundary)
 
-
-
     try:
-        domain = Domain(coordinates, volumes, boundary, starttime=(float(starttime) + float(t)))
+        domain = Domain(coordinates, volumes, boundary,
+                        starttime=(float(starttime) + float(t)))
     except AssertionError as e:
         fid.close()
         msg = 'Domain could not be created: %s. ' \
@@ -1269,7 +1254,7 @@ def load_sww_as_domain(filename, boundary=None, t=None,
             log.critical('        max(X)')
             log.critical('       %s' % str(max(X)))
             log.critical('        max(X)==NaN')
-            log.critical('       %s' % str(max(X)==NaN))
+            log.critical('       %s' % str(max(X) == NaN))
             log.critical('')
         if max(X) == NaN or min(X) == NaN:
             if fail_if_NaN:
@@ -1277,9 +1262,9 @@ def load_sww_as_domain(filename, boundary=None, t=None,
                 raise_(DataMissingValuesError, msg)
             else:
                 data = (X != NaN)
-                X = (X*data) + (data==0)*NaN_filler
+                X = (X*data) + (data == 0)*NaN_filler
         if unique:
-            X = num.resize(X, (len(X)/3, 3))
+            X = num.resize(X, (old_div(len(X), 3), 3))
         domain.set_quantity(quantity, X)
     #
     for quantity in dynamic_quantities:
@@ -1294,7 +1279,7 @@ def load_sww_as_domain(filename, boundary=None, t=None,
             log.critical('        max(X)')
             log.critical('       %s' % str(max(X)))
             log.critical('        max(X)==NaN')
-            log.critical('       %s' % str(max(X)==NaN))
+            log.critical('       %s' % str(max(X) == NaN))
             log.critical('')
         if max(X) == NaN or min(X) == NaN:
             if fail_if_NaN:
@@ -1302,9 +1287,9 @@ def load_sww_as_domain(filename, boundary=None, t=None,
                 raise_(DataMissingValuesError, msg)
             else:
                 data = (X != NaN)
-                X = (X*data) + (data==0)*NaN_filler
+                X = (X*data) + (data == 0)*NaN_filler
         if unique:
-            X = num.resize(X, (X.shape[0]/3, 3))
+            X = num.resize(X, (old_div(X.shape[0], 3), 3))
         domain.set_quantity(quantity, X)
 
     fid.close()
@@ -1337,7 +1322,8 @@ def get_mesh_and_quantities_from_file(filename,
     import types
     from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 
-    if verbose: log.critical('Reading from %s' % filename)
+    if verbose:
+        log.critical('Reading from %s' % filename)
 
     fid = NetCDFFile(filename, netcdf_mode_r)    # Open existing file for read
     time = fid.variables['time'][:]    # Time vector
@@ -1348,36 +1334,32 @@ def get_mesh_and_quantities_from_file(filename,
     x = fid.variables['x'][:]                   # x-coordinates of nodes
     y = fid.variables['y'][:]                   # y-coordinates of nodes
 
-
     elevation = fid.variables['elevation'][:]   # Elevation
     stage = fid.variables['stage'][:]           # Water level
     xmomentum = fid.variables['xmomentum'][:]   # Momentum in the x-direction
     ymomentum = fid.variables['ymomentum'][:]   # Momentum in the y-direction
 
-
-
     # Mesh (nodes (Mx2), triangles (Nx3))
-    nodes = num.concatenate((x[:,num.newaxis], y[:,num.newaxis]), axis=1)
+    nodes = num.concatenate((x[:, num.newaxis], y[:, num.newaxis]), axis=1)
     triangles = fid.variables['volumes'][:]
 
     # Get geo_reference
     try:
         geo_reference = Geo_reference(NetCDFObject=fid)
-    except: #AttributeError, e:
+    except:  # AttributeError, e:
         # Sww files don't have to have a geo_ref
         geo_reference = None
 
-    if verbose: log.critical('    building mesh from sww file %s' % filename)
+    if verbose:
+        log.critical('    building mesh from sww file %s' % filename)
 
     boundary = None
 
-    #FIXME (Peter Row): Should this be in mesh?
+    # FIXME (Peter Row): Should this be in mesh?
     if fid.smoothing != 'Yes':
         nodes = nodes.tolist()
         triangles = triangles.tolist()
         nodes, triangles, boundary = weed(nodes, triangles, boundary)
-
-
 
     try:
         mesh = Mesh(nodes, triangles, boundary, geo_reference=geo_reference)
@@ -1386,13 +1368,11 @@ def get_mesh_and_quantities_from_file(filename,
         msg = 'Domain could not be created: %s. "' % e
         raise_(DataDomainError, msg)
 
-
-
     def gather(quantity):
 
         shape = quantity.shape
 
-        def my_num_add_at(a,indices,b):
+        def my_num_add_at(a, indices, b):
             """
             Use the numpy add.at opperation if it is available, (numpy version >1.8)
             otherwise just use a quick and dirty implementation via a python loop
@@ -1402,13 +1382,11 @@ def get_mesh_and_quantities_from_file(filename,
                 num.add.at(a, indices, b)
             except:
                 n_ids = len(indices)
-                b_array = num.zeros_like(indices,dtype=num.float)
+                b_array = num.zeros_like(indices, dtype=num.float)
                 b_array[:] = b
 
-                for n in xrange(n_ids):
+                for n in range(n_ids):
                     a[indices[n]] = a[indices[n]] + b_array[n]
-
-
 
         if len(shape) == 2:
             # time array
@@ -1419,14 +1397,14 @@ def get_mesh_and_quantities_from_file(filename,
             n_nodes = len(mesh.nodes)
 
             mesh_ids = mesh.triangles.ravel()
-            temp_uv = num.zeros((n_time,n_nodes))
+            temp_uv = num.zeros((n_time, n_nodes))
 
             count_uv = num.zeros(len(mesh.nodes))
             my_num_add_at(count_uv, mesh_ids, 1)
 
             for i in range(n_time):
-                my_num_add_at(temp_uv[i,:], mesh_ids, quantity[i,:] )
-                temp_uv[i,:] = temp_uv[i,:]/count_uv
+                my_num_add_at(temp_uv[i, :], mesh_ids, quantity[i, :])
+                temp_uv[i, :] = old_div(temp_uv[i, :], count_uv)
 
         elif len(shape) == 1:
             # non time array
@@ -1438,7 +1416,7 @@ def get_mesh_and_quantities_from_file(filename,
 
             count_uv = num.zeros(len(mesh.nodes))
             my_num_add_at(count_uv, mesh_ids, 1)
-            my_num_add_at(temp_uv, mesh_ids, quantity )
+            my_num_add_at(temp_uv, mesh_ids, quantity)
 
         else:
             raise Exception
@@ -1470,30 +1448,33 @@ def get_time_interp(time, t=None):
         returns a tuple containing index into time, and ratio
     """
     if t is None:
-        t=time[-1]
+        t = time[-1]
         index = -1
         ratio = 0.
     else:
         T = time
         tau = t
-        index=0
+        index = 0
         msg = 'Time interval derived from file %s [%s:%s]' \
               % ('FIXMEfilename', T[0], T[-1])
         msg += ' does not match model time: %s' % tau
-        if tau < time[0]:raise_(DataTimeError, msg)
-        if tau > time[-1]:raise_(DataTimeError, msg)
-        while tau > time[index]: index += 1
-        while tau < time[index]: index -= 1
+        if tau < time[0]:
+            raise_(DataTimeError, msg)
+        if tau > time[-1]:
+            raise_(DataTimeError, msg)
+        while tau > time[index]:
+            index += 1
+        while tau < time[index]:
+            index -= 1
         if tau == time[index]:
-            #Protect against case where tau == time[-1] (last time)
+            # Protect against case where tau == time[-1] (last time)
             # - also works in general when tau == time[i]
             ratio = 0
         else:
-            #t is now between index and index+1
-            ratio = (tau - time[index])/(time[index+1] - time[index])
+            # t is now between index and index+1
+            ratio = old_div((tau - time[index]), (time[index+1] - time[index]))
 
     return (index, ratio)
-
 
 
 def interpolated_quantity(saved_quantity, time_interp):
@@ -1514,7 +1495,7 @@ def interpolated_quantity(saved_quantity, time_interp):
     else:
         q = Q[index]
 
-    #Return vector of interpolated values
+    # Return vector of interpolated values
     return q
 
 
@@ -1534,14 +1515,14 @@ def weed(coordinates, volumes, boundary=None):
         if point in point_dict:
             unique = True
             same_point[i] = point
-            #to change all point i references to point j
+            # to change all point i references to point j
         else:
             point_dict[point] = i
             same_point[i] = point
 
     coordinates = []
     i = 0
-    for point in point_dict.keys():
+    for point in list(point_dict.keys()):
         point = tuple(point)
         coordinates.append(list(point))
         point_dict[point] = i
@@ -1555,19 +1536,20 @@ def weed(coordinates, volumes, boundary=None):
 
     new_boundary = {}
     if not boundary is None:
-        for segment in boundary.keys():
+        for segment in list(boundary.keys()):
             point0 = point_dict[same_point[segment[0]]]
             point1 = point_dict[same_point[segment[1]]]
             label = boundary[segment]
-            #FIXME should the bounday attributes be concaterated
-            #('exterior, pond') or replaced ('pond')(peter row)
+            # FIXME should the bounday attributes be concaterated
+            # ('exterior, pond') or replaced ('pond')(peter row)
 
             if (point0, point1) in new_boundary:
-                new_boundary[(point0,point1)] = new_boundary[(point0, point1)]
+                new_boundary[(point0, point1)] = new_boundary[(point0, point1)]
 
             elif (point1, point0) in new_boundary:
-                new_boundary[(point1,point0)] = new_boundary[(point1, point0)]
-            else: new_boundary[(point0, point1)] = label
+                new_boundary[(point1, point0)] = new_boundary[(point1, point0)]
+            else:
+                new_boundary[(point0, point1)] = label
 
         boundary = new_boundary
 

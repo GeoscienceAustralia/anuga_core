@@ -35,15 +35,25 @@ test() --       Conducts a basic test of the caching functionality.
 
 See doc strings of individual functions for detailed documentation.
 """
+from __future__ import division
 
 # -----------------------------------------------------------------------------
 # Initialisation code
 
 # Determine platform
 #
+from builtins import zip
+from builtins import input
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from past.utils import old_div
 from os import getenv
+import collections
+import inspect
 import types
 import time
+import sys
 
 import os
 if os.name in ['nt', 'dos', 'win32', 'what else?']:
@@ -52,6 +62,7 @@ else:
   unix = True
 
 import anuga.utilities.log as log
+from anuga.utilities import system_tools
 
 import numpy as num
 
@@ -81,6 +92,19 @@ else:
     CR = '\r\n'  #FIXME: Not tested under windows
   
 cachedir = os.path.join(homedir, cache_dir)
+
+# It turns out hashes are no longer stable under Python3 (grr).
+# https://stackoverflow.com/questions/27522626/hash-function-in-python-3-3-returns-different-results-between-sessions
+# https://stackoverflow.com/questions/30585108/disable-hash-randomization-from-within-python-program
+#
+# The fix is to use another hashing library.
+if system_tools.major_version == 3:
+    import hashlib
+    def hash(x):
+        res = hashlib.sha256(str(x).encode()).hexdigest()
+        #print('MY:', x, res)
+        
+        return res
 
 # -----------------------------------------------------------------------------
 # Options directory with default values - to be set by user
@@ -286,13 +310,13 @@ def cache(my_F,
 
   # Handle the case cache('clear')
   if isinstance(my_F, basestring):
-    if string.lower(my_F) == 'clear':
+    if my_F.lower() == 'clear':
       clear_cache(CD,verbose=verbose)
       return
 
   # Handle the case cache(my_F, 'clear')
   if isinstance(args, basestring):
-    if string.lower(args) == 'clear':
+    if args.lower() == 'clear':
       clear_cache(CD,my_F,verbose=verbose)
       return
 
@@ -317,8 +341,13 @@ def cache(my_F,
   funcname = get_funcname(my_F)
 
   # Create cache filename
-  FN = funcname+'['+repr(arghash)+']'  # The symbol '(' does not work under unix
-
+  FN = funcname+'_'+str(arghash)  
+  #print()
+  #print('FN', FN)
+  #print('repr(arghash)', repr(arghash))
+  #print('arghash', arghash)  
+  #print()
+  
   if return_filename:
     return(FN)
 
@@ -706,7 +735,7 @@ def test(cachedir=None, verbose=False, compression=None):
   if T1 == T2:
     if t1 > t2:
       logtestOK('Performance test: relative time saved = %s pct' \
-              %str(round((t1-t2)*100/t1,2)))
+              %str(round(old_div((t1-t2)*100,t1),2)))
   else:       
     logtesterror('Basic caching failed for new problem')
             
@@ -755,8 +784,10 @@ def test(cachedir=None, verbose=False, compression=None):
 # Import pickler
 # cPickle is used by functions mysave, myload, and compare
 #
-import cPickle  # 10 to 100 times faster than pickle
-pickler = cPickle 
+#import cPickle  # 10 to 100 times faster than pickle
+#import pickle as pickler
+import dill as pickler
+#pickler = cPickle 
 
 # Local immutable constants
 #
@@ -843,7 +874,7 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
   (admfile,compressed2) =  myopen(CD+FN+'_'+file_types[2],"rb",compression)
 
   if verbose is True and deps is not None:
-    log.critical('Caching: Dependencies are %s' % deps.keys())
+    log.critical('Caching: Dependencies are %s' % list(deps.keys()))
 
   if not (argsfile and datafile and admfile) or \
      not (compressed0 == compressed1 and compressed0 == compressed2):
@@ -862,7 +893,7 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
   #
   R, reason = myload(argsfile, compressed)  # The original arguments
   argsfile.close()
-    
+  
   if reason > 0:
       # Recompute using same filename   
       return(None, FN, None, reason, None, None, None)
@@ -873,7 +904,7 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
   admfile.close()  
 
   if reason > 0:
-    return(None,FN,None,reason,None,None,None) #Recompute using same filename 
+    return(None,FN,None,reason,None,None,None) # Recompute using same filename 
 
   
   depsref  = R[0]  # Dependency statistics
@@ -933,7 +964,7 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
       else:   
         reason = 3 # Arguments have changed 
         
-   # PADARN NOTE 17/12/12: Adding a special case to handle the existence of a 
+  # PADARN NOTE 17/12/12: Adding a special case to handle the existence of a 
   # FitInterpolate object. C Structures are serialised so they can be pickled.
   #---------------------------------------------------------------------------
   from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
@@ -1021,7 +1052,7 @@ def clear_cache(CD, my_F=None, verbose=None):
         for file_name in file_names:
             log.critical('     ' + file_name)
 
-        A = raw_input('Delete (Y/N)[N] ?')
+        A = input('Delete (Y/N)[N] ?')
       else:
         A = 'Y' 
         
@@ -1259,7 +1290,7 @@ def myopen(FN, mode, compression=True):
     else:
       pass  # FIXME: Take care of access rights under Windows
 
-  return(file,compressed)
+  return(file, compressed)
 
 # -----------------------------------------------------------------------------
 
@@ -1301,7 +1332,6 @@ def myload(file, compressed):
         return None, reason
       
   except MemoryError:
-    import sys
     if options['verbose']:
       log.critical('ERROR: Out of memory while loading %s, aborting'
                    % file.name)
@@ -1398,24 +1428,23 @@ def myhash(T, ids=None):
     T -- Anything
   """
 
-  from types import TupleType, ListType, DictType, InstanceType  
-    
-  if type(T) in [TupleType, ListType, DictType, InstanceType]:  
+  
+  # Replacing Python2: if type(T) in [TupleType, ListType, DictType, InstanceType]:
+  if isinstance(T, (tuple, list, dict)) or type(T) is type:
       # Keep track of unique id's to protect against infinite recursion
       if ids is None: ids = []
 
       # Check if T has already been encountered
       i = id(T) 
-  
+
       if i in ids:
           return 0 # T has been hashed already      
       else:
           ids.append(i)
     
-
     
-  # Start hashing  
-  
+  # Start hashing
+
   # On some architectures None, False and True gets different hash values
   if T is None:
       return(-1)
@@ -1425,33 +1454,49 @@ def myhash(T, ids=None):
       return(1)
 
   # Get hash values for hashable entries
-  if type(T) in [TupleType, ListType]:
-      hvals = []
+  if isinstance(T, (tuple, list)):
+      #print('LIST or TUPLE', T)
+      hvals = ''
       for t in T:
           h = myhash(t, ids)
-          hvals.append(h)
-      val = hash(tuple(hvals))
-  elif type(T) == DictType:
-      # Make dictionary ordering unique  
+          hvals += str(h)
+          
+      val = hash(hvals)
+  elif isinstance(T, dict):
+      #print('DICT')
       
-      # FIXME(Ole): Need new way of doing this in Python 3.0
-      I = T.items()
-      I.sort()    
+      I = list(T.items())    
+      if system_tools.major_version == 2:
+          # Make dictionary ordering unique
+          I.sort()
+      else:
+          # As of Python 3.7 they now are ordered: https://mail.python.org/pipermail/python-dev/2017-December/151283.html
+
+          pass
       val = myhash(I, ids)
   elif isinstance(T, num.ndarray):
+      #print('NUM')
       T = num.array(T) # Ensure array is contiguous
 
       # Use mean value for efficiency
       val = hash(num.average(T.flat))
-  elif type(T) == InstanceType:
+  elif callable(T):
+      #print('CALLABLE')
+
+      I = myhash(T.__dict__, ids)                
+      val = myhash(I, ids)      
+  elif type(T) is type: #isinstance(T, object):  # This is instead of the old InstanceType:
+  #elif isinstance(T, object):  # This is instead of the old InstanceType:
+      #print('OBJECT', T, dir(T), type(T)) 
       # Use the attribute values 
       val = myhash(T.__dict__, ids)
   else:
-      try:
-          val = hash(T)
-      except:
-          val = 1
+      # This must be a simple Python type that should hash without problems
+      #print('ALL', T, type(T))
+      val = hash(str(T))
 
+
+  #print(ids, val)
   return(val)
 
 
@@ -1499,20 +1544,22 @@ def compare(A, B, ids=None):
     elif isinstance(A, dict):
         if len(A) != len(B):
             identical = False
-        else:                        
+        else:
+            # Dictionaries are now ordered as of Python 3.7
             # Make dictionary ordering unique 
-            a = A.items(); a.sort()    
-            b = B.items(); b.sort()
+            #a = list(A.items()); a.sort()    
+            #b = list(B.items()); b.sort()
             
-            identical = compare(a, b, ids)
+            identical = compare(A, B, ids)
             
     elif isinstance(A, num.ndarray):
         # Use element by element comparison
         identical = num.alltrue(A==B)
 
-    elif type(A) == types.InstanceType:
+    #elif type(A) == types.InstanceType:
+    elif type(A) is type:
         # Take care of special case where elements are instances            
-        # Base comparison on attributes     
+        # Base comparison on attributes
         identical = compare(A.__dict__, 
                             B.__dict__, 
                             ids)
@@ -1525,7 +1572,8 @@ def compare(A, B, ids=None):
             # Use pickle to compare data
             # The native pickler must be used
             # since the faster cPickle does not 
-            # guarantee a unique translation            
+            # guarantee a unique translation
+            # FIXME (Ole): Try to fall back on the dill pickler
             try:
                 identical = (pickle.dumps(A,0) == pickle.dumps(B,0))
             except:
@@ -1576,11 +1624,19 @@ def get_funcname(my_F):
   elif type(my_F) == types.BuiltinFunctionType:
     funcname = my_F.__name__
   else:
-    tab = string.maketrans("<>'","   ")
-    tmp = string.translate(repr(my_F), tab)
-    tmp = string.split(tmp)
-    funcname = string.join(tmp)
-
+    if system_tools.major_version == 3:
+      tab = str.maketrans("<>'","   ")
+      tmp = str.translate(repr(my_F), tab)
+      tmp = str.split(tmp)
+    elif system_tools.major_version == 2:
+      tab = string.maketrans("<>'","   ")
+      tmp = string.translate(repr(my_F), tab)
+      tmp = string.split(tmp)
+    else:
+      raise Exception('Unsupported version: %' % system_tools.version)
+      
+    funcname = ' '.join(tmp)
+    
     # Truncate memory address as in
     # class __main__.Dummy at 0x00A915D0
     index = funcname.find('at 0x')
@@ -1593,40 +1649,40 @@ def get_funcname(my_F):
 # -----------------------------------------------------------------------------
 
 def get_bytecode(my_F):
-  """ Get bytecode from function object.
+    """ Get bytecode and associated values from function object.
 
-  USAGE:
-    get_bytecode(my_F)
-  """
+    It is assumed that my_F is callable and there either 
+    a function
+    a class
+    a method
+    a callable object
+    or a builtin function
 
-  if type(my_F) == types.FunctionType:
-    return get_func_code_details(my_F)
-  elif type(my_F) == types.MethodType:
-    return get_func_code_details(my_F.__func__)
-  elif type(my_F) == types.InstanceType:    
-    if hasattr(my_F, '__call__'):
-      # Get bytecode from __call__ method
-      bytecode = get_func_code_details(my_F.__call__.__func__)
-      
-      # Add hash value of object to detect attribute changes
-      return bytecode + (myhash(my_F),) 
+    USAGE:
+      get_bytecode(my_F)
+    """
+
+    if type(my_F) == types.FunctionType:
+        # Function
+        return get_func_code_details(my_F)
+    elif type(my_F) == types.MethodType:
+        # Method
+        return get_func_code_details(my_F.__func__)
+    elif type(my_F) in [types.BuiltinFunctionType, types.BuiltinMethodType]:      
+        # Built-in functions are assumed not to change  
+        return None, 0, 0, 0
+    elif inspect.isclass(my_F):
+        return get_func_code_details(my_F.__init__)
+    elif hasattr(my_F, '__call__'):
+        bytecode = get_func_code_details(my_F.__call__.__func__)
+       
+        # Add hash value of object to detect attribute changes
+        return bytecode + (myhash(my_F),) 
     else:
-      msg = 'Instance %s was passed into caching in the role of a function ' % str(my_F)
-      msg = ' but it was not callable.'
-      raise Exception(msg)
-  elif type(my_F) in [types.BuiltinFunctionType, types.BuiltinMethodType]:      
-    # Built-in functions are assumed not to change  
-    return None, 0, 0, 0
-  elif isinstance(my_F, object):
-      # Get bytecode from __init__ method
-      bytecode = get_func_code_details(my_F.__init__.__func__)    
-      return bytecode      
-  else:
-    msg = 'Unknown function type: %s' % type(my_F)
-    raise Exception(msg)
+        msg = 'Unknown function type: %s' % type(my_F)
+        raise Exception(msg)          
 
-
-  
+    
   
 def get_func_code_details(my_F):
   """Extract co_code, co_consts, co_argcount, func_defaults
@@ -1636,7 +1692,7 @@ def get_func_code_details(my_F):
   consts = my_F.__code__.co_consts
   argcount = my_F.__code__.co_argcount    
   defaults = my_F.__defaults__       
-  
+
   return bytecode, consts, argcount, defaults  
 
 # -----------------------------------------------------------------------------
@@ -1738,7 +1794,7 @@ def filestat(FN):
       pass
       raise Exception  # FIXME: Windows case
 
-  return(long(size),atime,mtime,ctime)
+  return(int(size),atime,mtime,ctime)
 
 # -----------------------------------------------------------------------------
 
@@ -2017,7 +2073,7 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
             saving = cputime-loadtime
 
             if cputime != 0:
-              rel_saving = round(100.0*saving/cputime,2)
+              rel_saving = round(old_div(100.0*saving,cputime),2)
             else:
               #rel_saving = round(1.0*saving,2)
               rel_saving = 100.0 - round(1.0*saving,2)  # A bit of a hack
@@ -2063,11 +2119,11 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
 
   i = 0
   for Dict in Dictionaries:
-    for key in Dict.keys():
+    for key in list(Dict.keys()):
       rec = Dict[key]
       for n in range(len(rec)):
         if n > 0:
-          rec[n] = round(1.0*rec[n]/rec[0],2)
+          rec[n] = round(old_div(1.0*rec[n],rec[0]),2)
       Dict[key] = rec
 
     # Sort and output
@@ -2142,7 +2198,7 @@ def SortDict(Dict, sortidx=0):
   """
 
   sortlist  = []
-  keylist = Dict.keys()
+  keylist = list(Dict.keys())
   for key in keylist:
     rec = Dict[key]
     if not isinstance(rec, (list, tuple)):
@@ -2155,9 +2211,9 @@ def SortDict(Dict, sortidx=0):
     val = rec[sortidx]
     sortlist.append(val)
 
-  A = map(None,sortlist,keylist)
+  A = list(zip(sortlist,keylist))
   A.sort()
-  keylist = map(lambda x: x[1], A)  # keylist sorted by sortidx
+  keylist = [x[1] for x in A]  # keylist sorted by sortidx
 
   return(keylist)
 
@@ -2220,7 +2276,7 @@ def msg2(funcname, args, kwargs, comptime, reason):
   msg6(funcname,args,kwargs)
   msg8(reason)
 
-  log.critical(string.ljust('| CPU time:', textwidth1) +
+  log.critical(str.ljust('| CPU time:', textwidth1) +
                str(round(comptime,2)) + ' seconds')
 
 # -----------------------------------------------------------------------------
@@ -2233,7 +2289,7 @@ def msg3(savetime, CD, FN, deps, compression):
   """
 
   import string
-  log.critical(string.ljust('| Loading time:', textwidth1) + 
+  log.critical(str.ljust('| Loading time:', textwidth1) + 
                str(round(savetime,2)) + ' seconds (estimated)')
   msg5(CD,FN,deps,compression)
 
@@ -2251,11 +2307,11 @@ def msg4(funcname, args, kwargs, deps, comptime, loadtime, CD, FN, compression):
   print_header_box('Caching statistics (retrieving)')
   
   msg6(funcname,args,kwargs)
-  log.critical(string.ljust('| CPU time:', textwidth1) +
+  log.critical(str.ljust('| CPU time:', textwidth1) +
                str(round(comptime,2)) + ' seconds')
-  log.critical(string.ljust('| Loading time:', textwidth1) +
+  log.critical(str.ljust('| Loading time:', textwidth1) +
                str(round(loadtime,2)) + ' seconds')
-  log.critical(string.ljust('| Time saved:', textwidth1) +
+  log.critical(str.ljust('| Time saved:', textwidth1) +
                str(round(comptime-loadtime,2)) + ' seconds')
   msg5(CD,FN,deps,compression)
 
@@ -2274,7 +2330,7 @@ def msg5(CD, FN, deps, compression):
   import os, time, string
 
   log.critical('|')
-  log.critical(string.ljust('| Caching dir: ', textwidth1) + CD)
+  log.critical(str.ljust('| Caching dir: ', textwidth1) + CD)
 
   if compression:
     suffix = '.z'
@@ -2286,13 +2342,13 @@ def msg5(CD, FN, deps, compression):
   for file_type in file_types:
     file_name = FN + '_' + file_type + suffix
     stats = os.stat(CD+file_name)
-    log.critical(string.ljust('| ' + file_type + ' file: ', textwidth1) +
+    log.critical(str.ljust('| ' + file_type + ' file: ', textwidth1) +
                  file_name + '('+ str(stats[6]) + ' ' + bytetext + ')')
 
   log.critical('|')
   if len(deps) > 0:
     log.critical('| Dependencies:  ')
-    dependencies  = deps.keys()
+    dependencies  = list(deps.keys())
     dlist = []; maxd = 0
     tlist = []; maxt = 0
     slist = []; maxs = 0
@@ -2312,9 +2368,9 @@ def msg5(CD, FN, deps, compression):
       slist.append(s)
 
     for n in range(len(dlist)):
-      d = string.ljust(dlist[n]+':', maxd+1)
-      t = string.ljust(tlist[n], maxt)
-      s = string.rjust(slist[n], maxs)
+      d = str.ljust(dlist[n]+':', maxd+1)
+      t = str.ljust(tlist[n], maxt)
+      s = str.rjust(slist[n], maxs)
 
       log.critical('| %s %s %s bytes' % (d, t, s))
   else:
@@ -2331,7 +2387,7 @@ def msg6(funcname, args, kwargs):
   """
 
   import string
-  log.critical(string.ljust('| Function:', textwidth1) + funcname)
+  log.critical(str.ljust('| Function:', textwidth1) + funcname)
 
   msg7(args, kwargs)
   
@@ -2349,19 +2405,19 @@ def msg7(args, kwargs):
   args_present = 0  
   if args:
     if len(args) == 1:
-      log.critical(string.ljust('| Argument:', textwidth1) +
+      log.critical(str.ljust('| Argument:', textwidth1) +
                    mkargstr(args[0], textwidth2))
     else:
-      log.critical(string.ljust('| Arguments:', textwidth1) +
+      log.critical(str.ljust('| Arguments:', textwidth1) +
                    mkargstr(args, textwidth2))
     args_present = 1
             
   if kwargs:
     if len(kwargs) == 1:
-      log.critical(string.ljust('| Keyword Arg:', textwidth1) +
+      log.critical(str.ljust('| Keyword Arg:', textwidth1) +
                    mkargstr(kwargs, textwidth2))
     else:
-      log.critical(string.ljust('| Keyword Args:', textwidth1) +
+      log.critical(str.ljust('| Keyword Args:', textwidth1) +
                    mkargstr(kwargs, textwidth2))
     args_present = 1
 
@@ -2384,7 +2440,7 @@ def msg8(reason):
   except:
     R = 'Unknown'  
   
-  log.critical(string.ljust('| Reason:', textwidth1) + R)
+  log.critical(str.ljust('| Reason:', textwidth1) + R)
     
 # -----------------------------------------------------------------------------
 
@@ -2456,7 +2512,7 @@ def mkargstr(args, textwidth, argstr = '', level=0):
   else:
     if isinstance(args, dict):
       argstr = argstr + "{"
-      for key in args.keys():
+      for key in list(args.keys()):
         argstr = argstr + mkargstr(key, textwidth, level=level+1) + ": " + \
                  mkargstr(args[key], textwidth, level=level+1) + ", "
         if len(argstr) > textwidth:
@@ -2505,7 +2561,7 @@ def logtestOK(msg):
 
   import string
     
-  log.critical(string.ljust(msg, textwidth4) + ' - OK' )
+  log.critical(str.ljust(msg, textwidth4) + ' - OK' )
   
   #raise StandardError
   

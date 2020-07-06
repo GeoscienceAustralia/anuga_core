@@ -11,6 +11,7 @@ from __future__ import print_function
 # Import necessary modules
 #------------------------------------------------------------------------------
 
+from builtins import object
 from future.utils import raise_
 import unittest
 import os
@@ -25,6 +26,7 @@ from anuga.utilities import parallel_abstraction as pypar
 #------------------------------------------
 # anuga imports
 #------------------------------------------
+import anuga 
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.util_ext        import double_precision
@@ -55,13 +57,13 @@ mesh_filename = os.path.join(mod_path,'data','merimbula_10785_1.tsh')
 yieldstep = 1
 finaltime = 1
 quantity = 'stage'
-nprocs = 2
+nprocs = 3
 verbose = False
 
 #--------------------------------------------------------------------------
 # Setup procedures
 #--------------------------------------------------------------------------
-class Set_Stage:
+class Set_Stage(object):
     """Set an initial condition with constant water height, for x<x0
     """
 
@@ -119,8 +121,7 @@ class Test_parallel_shallow_domain(unittest.TestCase):
     def test_parallel_shallow_domain(self):
         #print "Expect this test to fail if not run from the parallel directory."
         
-        abs_script_name = os.path.abspath(__file__)
-        cmd = "mpiexec -np %d python %s" % (3, abs_script_name)
+        cmd = anuga.mpicmd(os.path.abspath(__file__))
         result = os.system(cmd)
         
         assert_(result == 0)

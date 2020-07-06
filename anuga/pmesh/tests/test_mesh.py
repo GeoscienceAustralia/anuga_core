@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 #
 from __future__ import print_function
+from builtins import zip
+from builtins import map
+from builtins import str
+from builtins import range
 import tempfile
 import unittest
 
@@ -793,6 +797,7 @@ class meshTestCase(unittest.TestCase):
         #print "m_returned.geo_reference,",m_returned.geo_reference
         self.assertTrue(0 == m.__cmp__(m_returned),
                         'loading and saving of a mesh failed')
+
         self.assertTrue(m.geo_reference == m_returned.geo_reference,
                         'loading and saving of a mesh geo refs failed')
 
@@ -832,7 +837,7 @@ class meshTestCase(unittest.TestCase):
         self.assertTrue(xmin == -100.0 and ymin == -100.0 and xmax == 0.0 and ymax == 100.0,
                         'normalise failed')
         
-    def test_exportASCIIsegmentoutlinefile(self):
+    def test_exportASCIIsegmentoutlinefile1(self):
         a = Vertex (0,0)
         b = Vertex (0,3)
         c = Vertex (3,3)
@@ -867,8 +872,9 @@ class meshTestCase(unittest.TestCase):
         #Trim mesh, so it should like like m_returned
         m.tri_mesh = None
         m.userVertices=[a,b,c]
-        #print "mesh ***************dsg*", m
-        #print "(m.__cmp__(m_returned)", m.__cmp__(m_returned) 
+        #print("mesh ***************dsg*", m)
+        #print "(m.__cmp__(m_returned)", m.__cmp__(m_returned)
+        #print('result', m.__cmp__(m))
         self.assertTrue(0 == m.__cmp__(m),
                         'test_exportASCIIsegmentoutlinefile:loading and saving of a mesh failed')
         # Having problems with this on linux.
@@ -1120,34 +1126,63 @@ class meshTestCase(unittest.TestCase):
         self.assertTrue(lFile[0] == "" 
                         ,
                         'exported Ascii csv file is wrong')
+
+    def test_segment_strings2ints(self):
+        """ Test directly using its own example from its docstring
+            input ['a','b','a','c'], ['c']
+            output [[2, 1, 2, 0], ['c', 'b', 'a']]
+        """
+
+        stringlist = ['a','b','a','c']
+        preset = ['c']
+        [intlist, converter] = segment_strings2ints(stringlist, preset)
+
+        assert intlist == [2, 1, 2, 0]
+        converter == ['c', 'b', 'a']
+
         
     def test_strings2ints(self):
-        list = ["sea","river inlet","","sea","","moat"]
-        preset = ["moat", "internal boundary"]
-        [intlist, converter] = segment_strings2ints(list,preset )
-        self.assertTrue(intlist == [2,3 ,0 ,2 ,0 ,0 ]
-                        ,
-                        'test_strings2ints produces bad intlist')
-        self.assertTrue(converter == ['moat', 'internal boundary',
-                                      'sea', 'river inlet']
-                        ,
-                        'test_strings2ints produces bad converter')
+        # Expected result 
+        outlist = ['sea', 'river inlet', 'moat',
+                   'sea', 'moat', 'moat']
         
-    def test_ints2strings(self):
+        # Input
+        list = ["sea", "river inlet", "", "sea", "", "moat"]
+        preset = ["moat", "internal boundary"]
+        [intlist, converter] = segment_strings2ints(list, preset)
+
+        # Instead of testing the converter and the intlist separately, test that they
+        # evaluate to the correct result
+        for i, k in enumerate(intlist):
+            assert converter[k] == outlist[i]
+
+        # And double check the inverse funciont
+        newlist = segment_ints2strings(intlist, converter)
+        for i, name in enumerate(newlist):
+            assert name == outlist[i]            
+            
+        
+    def test_ints2strings1(self):
         list = ["internal boundary","sea","river inlet",
             "","sea","","moat","internal boundary"]
         outlist = ['internal boundary', 'sea', 'river inlet', 'moat',
                    'sea', 'moat', 'moat', 'internal boundary']
         preset = ["moat", "internal boundary"]
-        [intlist, converter] = segment_strings2ints(list,preset )
+        [intlist, converter] = segment_strings2ints(list, preset)
+        
         newlist = segment_ints2strings(intlist, converter)
-        self.assertTrue(outlist == newlist
-                        ,
-                        'test_strings2ints produces bad intlist')
-        self.assertTrue(converter == ['moat', 'internal boundary',
-                                      'sea', 'river inlet']
-                        ,
-                        'test_strings2ints produces bad converter')
+        
+        self.assertTrue(outlist == newlist,
+                        'test_strings2ints produces wrong result')
+        #self.assertTrue(converter == ['moat', 'internal boundary',
+        #                              'sea', 'river inlet'],
+        #                'test_strings2ints produces bad converter')
+
+        # Instead of testing the converter and the intlist separately, test that they
+        # evaluate to the correct result
+        for i, k in enumerate(intlist):
+            #print(i, k, converter[k], outlist[i])
+            assert converter[k] == outlist[i]
         
     def test_ints2strings2(self):
         list = ["","",""]
@@ -1155,11 +1190,9 @@ class meshTestCase(unittest.TestCase):
         [intlist, converter] = segment_strings2ints(list,preset )
         newlist = segment_ints2strings(intlist, converter)
         outlist = ['moat', 'moat', 'moat']
-        self.assertTrue(outlist == newlist
-                        ,
+        self.assertTrue(outlist == newlist,
                         'test_strings2ints produces bad intlist')
-        self.assertTrue(converter == ['moat', 'internal boundary']
-                        ,
+        self.assertTrue(converter == ['moat', 'internal boundary'],
                         'test_strings2ints produces bad converter')
 
         
@@ -1184,7 +1217,6 @@ class meshTestCase(unittest.TestCase):
         counter = m.removeDuplicatedUserVertices()
         UserVerts = m.getUserVertices()
         
-         
         self.assertTrue(UserVerts == inputVerts_noDups,
                             'duplicate verts not removed')
         #for userVert, inputVert in map(None, UserVerts, inputVerts_noDups): 
@@ -1331,9 +1363,9 @@ class meshTestCase(unittest.TestCase):
         #print '**@@@@@******'
         #print "m",m 
         #print '**@@@@@******'
-        
-        self.assertTrue( new_m == m,
-                         'loadASCIITestCase failed. test new 1')
+
+        self.assertTrue(new_m == m,
+                        'loadASCIITestCase failed. test new 1')
             
     def test_Mesh2MeshList(self):
 
@@ -1493,21 +1525,21 @@ class meshTestCase(unittest.TestCase):
         holes = m.getHoles()
         regions = m.getRegions()
         
-        for pimport,pactual,pimpatt in map(None,dict['points'],points,dict['point_attributes']):
+        for pimport,pactual,pimpatt in zip(dict['points'],points,dict['point_attributes']):
             self.assertTrue( pimport == [pactual.x,pactual.y],
                         'test_Mesh2IODict failed. test 1')
             self.assertTrue( pimpatt == pactual.attributes,
                         'test_Mesh2IODict failed. test 1.1')
         self.assertTrue( dict['outline_segments'][0] == [0,1],
                         'test_Mesh2IODict failed. test 3')
-        for segimp,segactual in map(None,dict['outline_segment_tags'],seg):
+        for segimp,segactual in zip(dict['outline_segment_tags'],seg):
             self.assertTrue( segimp == segactual.tag,
                         'test_Mesh2IODict failed. test 4')
-        for holeimp,holeactual in map(None,dict['holes'],holes):
+        for holeimp,holeactual in zip(dict['holes'],holes):
             self.assertTrue( holeimp == [holeactual.x,holeactual.y],
                         'test_Mesh2IODict failed. test 5')
         
-        for regimp,regactual,regattimp, regmaxarea in map(None,dict['regions'],regions, dict['region_tags'], dict['region_max_areas']):
+        for regimp,regactual,regattimp, regmaxarea in zip(dict['regions'],regions, dict['region_tags'], dict['region_max_areas']):
             self.assertTrue( regimp == [regactual.x,regactual.y],
                         'loadASCIITestCase failed. test 6')
             self.assertTrue( regattimp == regactual.getTag(),
@@ -1551,17 +1583,17 @@ class meshTestCase(unittest.TestCase):
         holes = m.getHoles()
         regions = m.getRegions()
         
-        for pimport,pactual,pimpatt in map(None,dict['points'],points,dict['point_attributes']):
+        for pimport,pactual,pimpatt in zip(dict['points'],points,dict['point_attributes']):
             self.assertTrue( pimport == [pactual.x,pactual.y],
                         'loadASCIITestCase failed. test 1')
             self.assertTrue( pimpatt == pactual.attributes,
                         'loadASCIITestCase failed. test 1.1')
         self.assertTrue( dict['outline_segments'][0] == [0,1],
                         'loadASCIITestCase failed. test 3')
-        for segimp,segactual in map(None,dict['outline_segment_tags'],seg):
+        for segimp,segactual in zip(dict['outline_segment_tags'],seg):
             self.assertTrue( segimp == segactual.tag,
                         'loadASCIITestCase failed. test 4')
-        for holeimp,holeactual in map(None,dict['holes'],holes):
+        for holeimp,holeactual in zip(dict['holes'],holes):
             self.assertTrue( holeimp == [holeactual.x,holeactual.y],
                         'loadASCIITestCase failed. test 5')
         #for regimp,regactual in map(None,dict['regions'],regions):
@@ -1573,7 +1605,7 @@ class meshTestCase(unittest.TestCase):
              #           'loadASCIITestCase failed. test 7')
 
             
-        for regimp,regactual,regattimp, regmaxarea in map(None,dict['regions'],regions, dict['region_tags'], dict['region_max_areas']):
+        for regimp,regactual,regattimp, regmaxarea in zip(dict['regions'],regions, dict['region_tags'], dict['region_max_areas']):
             self.assertTrue( regimp == [regactual.x,regactual.y],
                         'loadASCIITestCase failed. test 6')
             self.assertTrue( regattimp == regactual.getTag(),
@@ -1663,7 +1695,7 @@ class meshTestCase(unittest.TestCase):
         #print "User verts",verts
         #print 'polygon',polygon
         #vert values are relative
-        for point,new_point in map(None,polygon,verts):
+        for point,new_point in zip(polygon,verts):
             point_x = point[0] + geo_ref_poly.get_xllcorner()
             new_point_x = new_point.x + m.geo_reference.get_xllcorner()
             point_y = point[1] + geo_ref_poly.get_yllcorner()
@@ -1706,7 +1738,7 @@ class meshTestCase(unittest.TestCase):
         #print "User verts",verts
         #print 'polygon',polygon
         #vert values are relative
-        for point,new_point in map(None,polygon,verts):
+        for point,new_point in zip(polygon,verts):
             point_x = point[0] 
             new_point_x = new_point.x + m.geo_reference.get_xllcorner()
             #print "point_x",point_x
@@ -1763,7 +1795,7 @@ class meshTestCase(unittest.TestCase):
         #print "User verts",verts
         #print 'polygon',polygon
         #vert values are relative
-        for point,new_point in map(None,polygon,verts):
+        for point,new_point in zip(polygon,verts):
             point_x = point[0] + geo_ref_poly.get_xllcorner()
             new_point_x = new_point.x + m.geo_reference.get_xllcorner()
             point_y = point[1] + geo_ref_poly.get_yllcorner()
@@ -1825,7 +1857,7 @@ class meshTestCase(unittest.TestCase):
         #print "User verts",verts
         #print 'polygon',polygon
         #vert values are relative
-        for point,new_point in map(None,polygon,verts):
+        for point,new_point in zip(polygon,verts):
             point_x = point[0] + geo_ref_poly.get_xllcorner()
             new_point_x = new_point.x + m.geo_reference.get_xllcorner()
             point_y = point[1] + geo_ref_poly.get_yllcorner()
@@ -2082,7 +2114,6 @@ class meshTestCase(unittest.TestCase):
         for n in numbers:
             mode = 'a' + str(n)
             #print " mode += 'a' + str(n)", mode
-            print("=====================")
             
             try:
                 mode = 'a' + '%20.20f' %n
@@ -2124,7 +2155,7 @@ def list_comp(A,B):
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(meshTestCase,'test')
+    suite = unittest.makeSuite(meshTestCase, 'test')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
     

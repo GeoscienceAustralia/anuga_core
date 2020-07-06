@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 def parse_time(time = None, verbose=False, debug=False):
     """
     Time: seconds since epoch  or 
@@ -9,7 +7,7 @@ def parse_time(time = None, verbose=False, debug=False):
     
     if time is None: return None
     
-    if not isinstance(time, basestring):
+    if not isinstance(time, str):
         
         try:
             time = float(time)

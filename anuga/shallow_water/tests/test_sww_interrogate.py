@@ -1,4 +1,7 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 from future.utils import raise_
 import unittest
 import copy
@@ -886,7 +889,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         # Setup initial conditions
         #--------------------------------------------------------------
         def topography(x, y):
-            return -x/2                             # linear bed slope
+            return old_div(-x,2)                             # linear bed slope
 
         # Use function for elevation
         domain.set_quantity('elevation', topography)
@@ -925,9 +928,13 @@ class Test_sww_Interrogate(unittest.TestCase):
             if verbose:
                 domain.write_time()
                 print(q)
-                
-            if q > q_max:
+
+            if q is None and q_max is None:
+                pass
+            elif q_max is None or q > q_max:
                 q_max = q
+            else:
+                pass
 
         #--------------------------------------------------------------
         # Test inundation height again
@@ -955,7 +962,7 @@ class Test_sww_Interrogate(unittest.TestCase):
                                              time_interval=[0.0, 3.0])
         msg = 'We got %f, should have been %f' % (q, initial_runup_height)
         assert num.allclose(q, initial_runup_height, rtol = 1.0/N), msg
-        assert num.allclose(-loc[0]/2, q)    # From topography formula
+        assert num.allclose(old_div(-loc[0],2), q)    # From topography formula
 
         #--------------------------------------------------------------
         # Update boundary to allow inflow
@@ -996,7 +1003,7 @@ class Test_sww_Interrogate(unittest.TestCase):
                                              time_interval=[3.0, 3.0])
         msg = 'We got %f, should have been %f' % (q, final_runup_height)
         assert num.allclose(q, final_runup_height, rtol=1.0/N), msg
-        assert num.allclose(-loc[0]/2, q)    # From topography formula
+        assert num.allclose(old_div(-loc[0],2), q)    # From topography formula
 
         q = get_maximum_inundation_elevation(filename+'.sww',verbose = verbose)
         loc = get_maximum_inundation_location(filename+'.sww')
@@ -1004,7 +1011,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         
         msg = 'We got %f, should have been %f' % (q, q_max)
         assert num.allclose(q, q_max, rtol=1.0/N), msg
-        assert num.allclose(-loc[0]/2, q)    # From topography formula
+        assert num.allclose(old_div(-loc[0],2), q)    # From topography formula
 
         q = get_maximum_inundation_elevation(filename+'.sww',
                                              time_interval=[0, 3])
@@ -1028,7 +1035,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         msg = 'We got %f, should have been %f' % (q, -0.475)
         assert num.allclose(q, -0.475, rtol=1.0/N), msg
         assert is_inside_polygon(loc, polygon)
-        assert num.allclose(-loc[0]/2, q)    # From topography formula
+        assert num.allclose(old_div(-loc[0],2), q)    # From topography formula
 
         # Dry region
         polygon = [[0.0, 0.0], [0.4, 0.0], [0.4, 1.0], [0.0, 1.0]]

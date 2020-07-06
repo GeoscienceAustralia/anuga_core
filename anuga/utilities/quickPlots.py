@@ -1,4 +1,7 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 """""
 
 Quick code to plot ANUGA outputs
@@ -41,7 +44,7 @@ def quickPlots(swwFile=None, ocean_land_threshold=None, fig_dir=None, figScale=N
     xRange=p2.x.max()-p2.x.min()
     yRange=p2.y.max()-p2.y.min()
 
-    figSize=(figScale, figScale*yRange/xRange)
+    figSize=(figScale, old_div(figScale*yRange,xRange))
 
     # Use spatial coordinates
     x=p2.x+p.xllcorner

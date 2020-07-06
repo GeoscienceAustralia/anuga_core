@@ -1,9 +1,12 @@
 from __future__ import print_function
 from __future__ import absolute_import
 #from Numeric import array, Float, ravel, zeros
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
 import numpy as num
 from anuga.file.netcdf import NetCDFFile
-from Tkinter import Button, E, Tk, W, Label, StringVar, Scale, HORIZONTAL
+from tkinter import Button, E, Tk, W, Label, StringVar, Scale, HORIZONTAL
 from .visualiser import Visualiser
 from vtk import vtkCellArray, vtkPoints, vtkPolyData
 
@@ -123,7 +126,7 @@ class OfflineVisualiser(Visualiser):
     def build_quantity_dict(self):
         quantities = {}
         fin = NetCDFFile(self.source, 'r')
-        for q in filter(lambda n:n != 'x' and n != 'y' and n != 'z' and n != 'time' and n != 'volumes', fin.variables.keys()):
+        for q in [n for n in list(fin.variables.keys()) if n != 'x' and n != 'y' and n != 'z' and n != 'time' and n != 'volumes']:
             if len(fin.variables[q].shape) == 1: # Not a time-varying quantity
                 quantities[q] = num.ravel(num.array(fin.variables[q], num.float))
             else: # Time-varying, get the current timestep data

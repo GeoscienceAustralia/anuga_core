@@ -6,11 +6,15 @@ WARNING: This assumes that the command to run jobs is mpiexec.
 Tested with MPICH and LAM (Ole)
 """
 from __future__ import print_function
+from __future__ import division
 
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
 
+from builtins import range
+from past.utils import old_div
+from builtins import object
 from future.utils import raise_
 import unittest
 import os
@@ -25,6 +29,7 @@ from anuga.utilities import parallel_abstraction as pypar
 #------------------------------------------
 # anuga imports
 #------------------------------------------
+import anuga
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.util_ext        import double_precision
@@ -60,7 +65,7 @@ verbose = False
 #--------------------------------------------------------------------------
 # Setup procedures
 #--------------------------------------------------------------------------
-class Set_Stage:
+class Set_Stage(object):
     """Set an initial condition with constant water height, for x<x0
     """
 
@@ -173,8 +178,7 @@ class Test_parallel_distribute_domain(unittest.TestCase):
     def test_parallel_distribute_domain(self):
         #print "Expect this test to fail if not run from the parallel directory."
 
-        abs_script_name = os.path.abspath(__file__)
-        cmd = "mpiexec -np %d python %s" % (3, abs_script_name)
+        cmd = anuga.mpicmd(os.path.abspath(__file__))
         result = os.system(cmd)
 
         assert_(result == 0)
@@ -222,9 +226,9 @@ if __name__=="__main__":
             for x in range(len(l1norm_seq)):
                 for y in range(3):
                     # Calculate relative difference in the norms
-                    assert_(abs(l1norm_seq[x][y] - l1norm_par[x][y])/l1norm_seq[x][y] < tol)
-                    assert_(abs(l2norm_seq[x][y] - l2norm_par[x][y])/l2norm_seq[x][y] < tol)
-                    assert_(abs(linfnorm_seq[x][y] - linfnorm_par[x][y])/linfnorm_seq[x][y] < tol)
+                    assert_(old_div(abs(l1norm_seq[x][y] - l1norm_par[x][y]),l1norm_seq[x][y]) < tol)
+                    assert_(old_div(abs(l2norm_seq[x][y] - l2norm_par[x][y]),l2norm_seq[x][y]) < tol)
+                    assert_(old_div(abs(linfnorm_seq[x][y] - linfnorm_par[x][y]),linfnorm_seq[x][y]) < tol)
                     if x > 0:
                         # Verify that the quantity is being conserved across iterations.
                         assert_(abs(l1norm_seq[x][y] - l1norm_seq[x-1][y]) < tol)

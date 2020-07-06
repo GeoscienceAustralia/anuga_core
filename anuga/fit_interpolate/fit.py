@@ -28,10 +28,16 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+import numpy as num
+from . import fitsmooth
+import sys
+from builtins import str
+from builtins import range
+from past.builtins import basestring
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.caching import cache
 from anuga.geospatial_data.geospatial_data import Geospatial_data, \
-     ensure_absolute
+    ensure_absolute
 from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
 
 from anuga.utilities.sparse import Sparse_CSR
@@ -40,17 +46,24 @@ from anuga.utilities.cg_solve import conjugate_gradient
 from anuga.config import default_smoothing_parameter as DEFAULT_ALPHA
 import anuga.utilities.log as log
 
-import exceptions
-class TooFewPointsError(exceptions.Exception): pass
-class VertsWithNoTrianglesError(exceptions.Exception): pass
+# Python 2.7 Hack
+try:
+    from exceptions import Exception
+except:
+    pass
 
-import numpy as num
-import sys
 
-#----------------------------------------------
+class TooFewPointsError(Exception):
+    pass
+
+
+class VertsWithNoTrianglesError(Exception):
+    pass
+
+
+# ----------------------------------------------
 # C code to build interpolation matrices
-#----------------------------------------------
-from . import fitsmooth
+# ----------------------------------------------
 
 
 class Fit(FitInterpolate):
@@ -64,7 +77,6 @@ class Fit(FitInterpolate):
                  verbose=False,
                  cg_precon='Jacobi',
                  use_c_cg=True):
-
         """
         Padarn Note 05/12/12: This documentation should probably
         be updated to account for the fact that the fitting is now
@@ -103,11 +115,11 @@ class Fit(FitInterpolate):
             self.alpha = alpha
 
         FitInterpolate.__init__(self,
-                 vertex_coordinates,
-                 triangles,
-                 mesh,
-                 mesh_origin=mesh_origin,
-                 verbose=verbose)
+                                vertex_coordinates,
+                                triangles,
+                                mesh,
+                                mesh_origin=mesh_origin,
+                                verbose=verbose)
 
         self.AtA = None
         self.Atz = None
@@ -125,26 +137,25 @@ class Fit(FitInterpolate):
         bd_poly = self.mesh.get_boundary_polygon()
         self.mesh_boundary_polygon = ensure_numeric(bd_poly)
 
-        self.cg_precon=cg_precon
-        self.use_c_cg=use_c_cg
+        self.cg_precon = cg_precon
+        self.use_c_cg = use_c_cg
 
     def _build_coefficient_matrix_B(self,
-                                  verbose=False):
+                                    verbose=False):
         """
         Build final coefficient matrix from AtA and D
         """
 
         msize = self.mesh.number_of_nodes
 
-        self.B = fitsmooth.build_matrix_B(self.D, \
+        self.B = fitsmooth.build_matrix_B(self.D,
                                           self.AtA, self.alpha)
 
-		
         # Convert self.B matrix to CSR format
-        self.B = Sparse_CSR(data=num.array(self.B[0]),\
-                                  Colind=num.array(self.B[1]),\
-                                  rowptr=num.array(self.B[2]), \
-                                  m=msize, n=msize)
+        self.B = Sparse_CSR(data=num.array(self.B[0]),
+                            Colind=num.array(self.B[1]),
+                            rowptr=num.array(self.B[2]),
+                            m=msize, n=msize)
         # NOTE PADARN: The above step could potentially be removed
         # and the sparse matrix worked with directly in C. Not sure
         # if this would be worthwhile.
@@ -183,21 +194,22 @@ class Fit(FitInterpolate):
         # sure that they are floats? Not sure if this is done elsewhere.
         # NOTE PADARN: Should global coordinates be used for the smoothing
         # matrix, or is thids not important?
-        return fitsmooth.build_smoothing_matrix(self.mesh.triangles, \
-          self.mesh.areas, self.mesh.vertex_coordinates)
-
+        return fitsmooth.build_smoothing_matrix(self.mesh.triangles,
+                                                self.mesh.areas, self.mesh.vertex_coordinates)
 
     # NOTE PADARN: This function was added to emulate behavior of the original
     # class not using external C functions. This method is dangerous as D could
     # be very large - it was added as it is used in a unit test.
+
     def get_D(self):
         return fitsmooth.return_full_D(self.D, self.mesh.number_of_nodes)
 
     # NOTE PADARN: This function was added to emulate behavior of the original
     # class so as to pass a unit test. It is completely unneeded.
     def build_fit_subset(self, point_coordinates, z=None, attribute_name=None,
-                              verbose=False, output='dot'):
-        self._build_matrix_AtA_Atz(point_coordinates, z, attribute_name, verbose, output)
+                         verbose=False, output='dot'):
+        self._build_matrix_AtA_Atz(
+            point_coordinates, z, attribute_name, verbose, output)
 
     def _build_matrix_AtA_Atz(self, point_coordinates, z=None, attribute_name=None,
                               verbose=False, output='dot'):
@@ -223,7 +235,7 @@ class Fit(FitInterpolate):
         """
 
         if isinstance(point_coordinates, Geospatial_data):
-            point_coordinates = point_coordinates.get_data_points( \
+            point_coordinates = point_coordinates.get_data_points(
                 absolute=True)
 
         # Convert input to numeric arrays
@@ -248,10 +260,10 @@ class Fit(FitInterpolate):
         if len(z.shape) != 1:
             zdim = z.shape[1]
 
-        [AtA, Atz] = fitsmooth.build_matrix_AtA_Atz_points(self.root.root, \
-               self.mesh.number_of_nodes, \
-               self.mesh.triangles, \
-               num.array(point_coordinates), z, zdim, npts)
+        [AtA, Atz] = fitsmooth.build_matrix_AtA_Atz_points(self.root.root,
+                                                           self.mesh.number_of_nodes,
+                                                           self.mesh.triangles,
+                                                           num.array(point_coordinates), z, zdim, npts)
 
         if verbose and output == 'dot':
             print('\b.', end=' ')
@@ -265,8 +277,8 @@ class Fit(FitInterpolate):
             self.AtA = AtA
             self.Atz = Atz
         else:
-            fitsmooth.combine_partial_AtA_Atz(self.AtA, AtA, \
-                    self.Atz, Atz, zdim, self.mesh.number_of_nodes)
+            fitsmooth.combine_partial_AtA_Atz(self.AtA, AtA,
+                                              self.Atz, Atz, zdim, self.mesh.number_of_nodes)
 
     def fit(self, point_coordinates_or_filename=None, z=None,
             verbose=False,
@@ -291,7 +303,7 @@ class Fit(FitInterpolate):
             if point_coordinates_or_filename[-4:] != ".pts":
                 use_blocking_option2 = False
 
-        # NOTE PADARN 29/03/13: File reading from C has been removed. Now 
+        # NOTE PADARN 29/03/13: File reading from C has been removed. Now
         # the input is either a set of points, or a filename which is then
         # handled by the Geospatial_data object
 
@@ -324,7 +336,6 @@ class Fit(FitInterpolate):
         else:
             point_coordinates = point_coordinates_or_filename
 
-
         # This condition either means a filename was read or the function
         # recieved a None as input
         if point_coordinates is None:
@@ -334,14 +345,14 @@ class Fit(FitInterpolate):
             assert self.AtA is not None, msg
             assert self.Atz is not None
 
-
         else:
             point_coordinates = ensure_absolute(point_coordinates,
                                                 geo_reference=point_origin)
             # if isinstance(point_coordinates,Geospatial_data) and z is None:
             # z will come from the geo-ref
 
-            self._build_matrix_AtA_Atz(point_coordinates, z, verbose=verbose, output='counter')
+            self._build_matrix_AtA_Atz(
+                point_coordinates, z, verbose=verbose, output='counter')
 
         # Check sanity
         m = self.mesh.number_of_nodes  # Nbr of basis functions (1/vertex)
@@ -373,7 +384,7 @@ class Fit(FitInterpolate):
                                   precon=self.cg_precon)
 
 
-#poin_coordiantes can also be a points file name
+# poin_coordiantes can also be a points file name
 
 def fit_to_mesh(point_coordinates,
                 vertex_coordinates=None,
@@ -477,17 +488,17 @@ def _fit_to_mesh(point_coordinates,
         # FIXME(DSG): Throw errors if triangles or vertex_coordinates
         # are None
 
-        #Convert input to numeric arrays
+        # Convert input to numeric arrays
         triangles = ensure_numeric(triangles, num.int)
         vertex_coordinates = ensure_absolute(vertex_coordinates,
-                                             geo_reference = mesh_origin)
+                                             geo_reference=mesh_origin)
 
         if verbose:
             log.critical('_fit_to_mesh: Building mesh')
         mesh = Mesh(vertex_coordinates, triangles)
 
         # Don't need this as we have just created the mesh
-        #mesh.check_integrity()
+        # mesh.check_integrity()
 
     interp = Fit(mesh=mesh,
                  verbose=verbose,
@@ -512,10 +523,10 @@ def _fit_to_mesh(point_coordinates,
 
 
 def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
-                     alpha=DEFAULT_ALPHA, verbose= False,
-                     expand_search = False,
-                     precrop = False,
-                     display_errors = True):
+                     alpha=DEFAULT_ALPHA, verbose=False,
+                     expand_search=False,
+                     precrop=False,
+                     display_errors=True):
     """
     Given a mesh file (tsh) and a point attribute file, fit
     point attributes to the mesh and write a mesh file with the
@@ -525,18 +536,18 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
     make sure the title is elevation.
 
     NOTE: Throws IOErrors, for a variety of file problems.
-    
+
     """
 
     from anuga.load_mesh.loadASCII import import_mesh_file, \
-         export_mesh_file, concatinate_attributelist
+        export_mesh_file, concatinate_attributelist
 
     try:
         mesh_dict = import_mesh_file(mesh_file)
     except IOError as e:
         if display_errors:
             log.critical("Could not load bad file: %s" % str(e))
-        raise IOError  #Could not load bad mesh file.
+        raise IOError  # Could not load bad mesh file.
 
     vertex_coordinates = mesh_dict['vertices']
     triangles = mesh_dict['triangles']
@@ -559,14 +570,14 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
     except IOError as e:
         if display_errors:
             log.critical("Could not load bad file: %s" % str(e))
-        raise IOError  #Re-raise exception  
+        raise IOError  # Re-raise exception
 
     point_coordinates = geo.get_data_points(absolute=True)
-    title_list, point_attributes = concatinate_attributelist( \
+    title_list, point_attributes = concatinate_attributelist(
         geo.get_all_attributes())
 
     if 'geo_reference' in mesh_dict and \
-           not mesh_dict['geo_reference'] is None:
+            not mesh_dict['geo_reference'] is None:
         mesh_origin = mesh_dict['geo_reference'].get_origin()
     else:
         mesh_origin = None
@@ -580,20 +591,20 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
                     triangles,
                     None,
                     point_attributes,
-                    alpha = alpha,
-                    verbose = verbose,
-                    data_origin = None,
-                    mesh_origin = mesh_origin)
+                    alpha=alpha,
+                    verbose=verbose,
+                    data_origin=None,
+                    mesh_origin=mesh_origin)
     if verbose:
         log.critical("finished fitting to mesh")
 
     # convert array to list of lists
     new_point_attributes = f.tolist()
-    #FIXME have this overwrite attributes with the same title - DSG
-    #Put the newer attributes last
+    # FIXME have this overwrite attributes with the same title - DSG
+    # Put the newer attributes last
     if old_title_list != []:
         old_title_list.extend(title_list)
-        #FIXME can this be done a faster way? - DSG
+        # FIXME can this be done a faster way? - DSG
         for i in range(len(old_point_attributes)):
             old_point_attributes[i].extend(new_point_attributes[i])
         mesh_dict['vertex_attributes'] = old_point_attributes

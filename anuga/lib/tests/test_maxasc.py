@@ -1,10 +1,17 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+from builtins import map
+from builtins import str
+from builtins import range
 from anuga.lib.maxasc import *
 import anuga.utilities.system_tools as aust
 
-import exceptions
+try:
+    import exceptions
+except ImportError:
+    import builtins as exceptions
+
 from functools import reduce
 class TestError(exceptions.Exception): pass
 import unittest
@@ -73,7 +80,7 @@ def FilesEqual(file1, file2):
         fd1 = [float(value) for value in d1]
         fd2 = [float(value) for value in d2]
 
-        vec = map(lambda a,b: a==b, fd1, fd2)
+        vec = list(map(lambda a,b: a==b, fd1, fd2))
         
         if not reduce(lambda a,b: a and b, vec):
             print('line number = %d (out of %d)' % (line_num, len(data1)))

@@ -6,15 +6,11 @@
     :target: https://ci.appveyor.com/project/stoiver/anuga-core-67ygx
     :alt: appveyor status
 
-.. image:: https://coveralls.io/repos/GeoscienceAustralia/anuga_core/badge.svg?branch=master
-  :target: https://coveralls.io/r/GeoscienceAustralia/anuga_core?branch=master
-  :alt: coverage
-
 .. image:: https://img.shields.io/pypi/v/anuga.svg
     :target: https://pypi.python.org/pypi/anuga/
     :alt: Latest Version
-    
-    
+
+
 =====
 ANUGA
 =====
@@ -28,34 +24,34 @@ ANUGA (pronounced "AHnooGAH") is open-source software for the simulation of
 the shallow water equation, in particular it can be used to model tsunamis
 and floods.
 
-ANUGA is a python package with some C extensions (and an optional 
-fortran extension). At present ANUGA has not been ported to python 3. 
-We recommend using python 2.7  
+ANUGA is a python package with some C extensions (and an optional
+fortran extension). At present ANUGA has not been ported to python 3.
+We recommend using python 2.7
 
 Developed at Geoscience Australia and Mathematical Sciences Institute at the
 Australian National University.
 
-Copyright Commonwealth of Australia (Geoscience Australia) and Australian National University 2017 
+Copyright Commonwealth of Australia (Geoscience Australia) and Australian National University 2017
 
 
 Installation
 ------------
 
-For installation instructions, see 
+For installation instructions, see
 `INSTALL.rst <https://github.com/GeoscienceAustralia/anuga_core/blob/master/INSTALL.rst>`_
 
 
 Documentation and Help
 ----------------------
 
-ANUGA documentation is available in the doc folder. In particular the 
+ANUGA documentation is available in the doc folder. In particular the
 `user_manual <https://github.com/GeoscienceAustralia/anuga_core/raw/master/doc/anuga_user_manual.pdf>`_
 
 Also helpful information is available noline at
 
     http://anuga.anu.edu.au
 
-A collection of online jupyter notebooks which can run under google's colab environment can be found at: 
+A collection of online jupyter notebooks which can run under google's colab environment can be found at:
 
     https://github.com/stoiver/anuga-clinic-2018
 
@@ -69,7 +65,7 @@ You can subscribe to our mailing via:
 and send questions using the address
 
     anuga-user@lists.sourceforge.net
-    
+
 
 Web sites
 ---------
@@ -115,20 +111,20 @@ at `CONTRIBUTING.rst <https://github.com/GeoscienceAustralia/anuga_core/blob/mas
 License information
 -------------------
 
-See the file `LICENSE.txt <https://github.com/GeoscienceAustralia/anuga_core/blob/master/LICENCE.txt>`_ 
-for information on the history of this software, terms & conditions for usage, 
+See the file `LICENSE.txt <https://github.com/GeoscienceAustralia/anuga_core/blob/master/LICENCE.txt>`_
+for information on the history of this software, terms & conditions for usage,
 and a DISCLAIMER OF ALL WARRANTIES.
 
 Contacts
 --------
 At the Australian National University:
 
-**Stephen Roberts**  
-*Lead Developer*  
+**Stephen Roberts**
+*Lead Developer*
 <stephen.roberts@anu.edu.au>
 
 At Geoscience Australia:
 
-**Gareth Davies**  
-*Developer*  
+**Gareth Davies**
+*Developer*
 <gareth.davies@ga.gov.au>

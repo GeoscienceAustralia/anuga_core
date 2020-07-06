@@ -6,6 +6,10 @@ test_quantity.test_set_values_from_UTM_pts.
 """
 
 #TEST
+from builtins import zip
+from builtins import map
+from builtins import str
+from builtins import range
 import sys
 import unittest
 from math import sqrt
@@ -262,7 +266,7 @@ class Test_Fit(unittest.TestCase):
         txt_file = tempfile.mktemp(".txt")
         file = open(txt_file,"w")
         file.write(" x,y," + att + " \n")
-        for data_point, attribute in map(None, points_UTM, attributes):
+        for data_point, attribute in zip(points_UTM, attributes):
             row = str(data_point[0]) + ',' + str(data_point[1]) \
                   + ',' + str(attribute)
             #print "row", row 

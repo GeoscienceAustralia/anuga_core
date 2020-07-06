@@ -1,7 +1,10 @@
 """
     Convert a ferret file to an SWW file.
 """
+from __future__ import division
 # external modules
+from builtins import range
+from past.utils import old_div
 from future.utils import raise_
 import numpy as num
 
@@ -88,7 +91,7 @@ def ferret2sww(basename_in, name_out=None,
         swwname = name_out
 
     # Get dimensions of file_h
-    for dimension in file_h.dimensions.keys():
+    for dimension in list(file_h.dimensions.keys()):
         if dimension[:3] == 'LON':
             dim_h_longitude = dimension
         if dimension[:3] == 'LAT':
@@ -105,21 +108,21 @@ def ferret2sww(basename_in, name_out=None,
                                                   minlat, maxlat,
                                                   minlon, maxlon)
     # get dimensions for file_e
-    for dimension in file_e.dimensions.keys():
+    for dimension in list(file_e.dimensions.keys()):
         if dimension[:3] == 'LON':
             dim_e_longitude = dimension
         if dimension[:3] == 'LAT':
             dim_e_latitude = dimension
 
     # get dimensions for file_u
-    for dimension in file_u.dimensions.keys():
+    for dimension in list(file_u.dimensions.keys()):
         if dimension[:3] == 'LON':
             dim_u_longitude = dimension
         if dimension[:3] == 'LAT':
             dim_u_latitude = dimension
 
     # get dimensions for file_v
-    for dimension in file_v.dimensions.keys():
+    for dimension in list(file_v.dimensions.keys()):
         if dimension[:3] == 'LON':
             dim_v_longitude = dimension
         if dimension[:3] == 'LAT':
@@ -330,17 +333,17 @@ def ferret2sww(basename_in, name_out=None,
 
     n = len(times)
     for j in range(n):
-        if verbose and j % ((n+10)/10) == 0:
+        if verbose and j % (old_div((n+10),10)) == 0:
             log.critical('  Doing %d of %d' % (j, n))
 
         i = 0
         for k in range(number_of_latitudes):      # Y direction
             for l in range(number_of_longitudes): # X direction
-                w = zscale * amplitudes[j, k, l] / 100 + mean_stage
+                w = old_div(zscale * amplitudes[j, k, l], 100) + mean_stage
                 stage[j, i] = w
                 h = w - z[i]
-                xmomentum[j, i] = uspeed[j, k, l]/100*h
-                ymomentum[j, i] = vspeed[j, k, l]/100*h
+                xmomentum[j, i] = old_div(uspeed[j, k, l],100)*h
+                ymomentum[j, i] = old_div(vspeed[j, k, l],100)*h
                 i += 1
 
     #outfile.close()

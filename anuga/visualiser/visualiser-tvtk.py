@@ -1,6 +1,9 @@
+from future import standard_library
+standard_library.install_aliases()
+from builtins import map
 from threading import Thread
-from Queue import Queue
-from Tkinter import Tk, Button, Frame, N, E, S, W
+from queue import Queue
+from tkinter import Tk, Button, Frame, N, E, S, W
 from types import FunctionType, TupleType
 from enthought.tvtk.api import tvtk
 from enthought.tvtk.tools import ivtk
@@ -166,7 +169,7 @@ class Visualiser(Thread):
                     # colour[2] as the upper bound on the scalar
                     # range.
                     scalars = tvtk.FloatArray()
-                    map(scalars.InsertNextValue, colour[0](self.build_quantity_dict()))
+                    list(map(scalars.InsertNextValue, colour[0](self.build_quantity_dict())))
                     self.vtk_polyData[quantityName].GetPointData().SetScalars(scalars)
                     mapper.SetScalarRange(colour[1:])
                     mapper.Update()

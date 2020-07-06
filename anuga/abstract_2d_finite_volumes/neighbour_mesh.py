@@ -7,7 +7,12 @@
    Geoscience Australia, 2004
 """
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 from .general_mesh import General_mesh
 from anuga.caching import cache
 import anuga.utilities.log as log
@@ -215,11 +220,11 @@ class Mesh(General_mesh):
         a = num.sqrt((x0-x1)**2+(y0-y1)**2)
         b = num.sqrt((x1-x2)**2+(y1-y2)**2)
         c = num.sqrt((x2-x0)**2+(y2-y0)**2)
-        ratio = old_rad/self.radii[i]
+        ratio = old_div(old_rad,self.radii[i])
         max_ratio = ratio
         min_ratio = ratio
 
-        for i in xrange(N):
+        for i in range(N):
             old_rad = self.radii[i]
             x0 = V[i, 0]; y0 = V[i, 1]
             x1 = V[i, 2]; y1 = V[i, 3]
@@ -227,8 +232,8 @@ class Mesh(General_mesh):
             a = num.sqrt((x0-x1)**2+(y0-y1)**2)
             b = num.sqrt((x1-x2)**2+(y1-y2)**2)
             c = num.sqrt((x2-x0)**2+(y2-y0)**2)
-            self.radii[i]=self.areas[i]/(2*(a+b+c))*safety_factor
-            ratio = old_rad/self.radii[i]
+            self.radii[i]=old_div(self.areas[i],(2*(a+b+c)))*safety_factor
+            ratio = old_div(old_rad,self.radii[i])
             if ratio >= max_ratio: max_ratio = ratio
             if ratio <= min_ratio: min_ratio = ratio
         return max_ratio,min_ratio
@@ -344,7 +349,7 @@ class Mesh(General_mesh):
 #                    self.surrogate_neighbours[i, k] = self.neighbours[i, k]
 
         tmp_range = num.arange(N)
-        for k in xrange(3):
+        for k in range(3):
             self.surrogate_neighbours[:,k] = \
               num.where(self.neighbours[:,k]<0, tmp_range, self.neighbours[:, k])
 
@@ -390,13 +395,13 @@ class Mesh(General_mesh):
 
         if boundary is None:
             boundary = {}
-            for vol_id in xrange(len(self)):
-                for edge_id in xrange(0, 3):
+            for vol_id in range(len(self)):
+                for edge_id in range(0, 3):
                     if self.neighbours[vol_id, edge_id] < 0:
                         boundary[(vol_id, edge_id)] = default_boundary_tag
         else:
             #Check that all keys in given boundary exist
-            for vol_id, edge_id in boundary.keys():
+            for vol_id, edge_id in list(boundary.keys()):
                 msg = 'Segment (%d, %d) does not exist' %(vol_id, edge_id)
                 a, b = self.neighbours.shape
                 assert vol_id < a and edge_id < b, msg
@@ -406,8 +411,8 @@ class Mesh(General_mesh):
                 #assert self.neighbours[vol_id, edge_id] < 0, msg
 
             #Check that all boundary segments are assigned a tag
-            for vol_id in xrange(len(self)):
-                for edge_id in xrange(0, 3):
+            for vol_id in range(len(self)):
+                for edge_id in range(0, 3):
                     if self.neighbours[vol_id, edge_id] < 0:
                         if (vol_id, edge_id) not in boundary:
                             msg = 'WARNING: Given boundary does not contain '
@@ -445,7 +450,7 @@ class Mesh(General_mesh):
             tagged_elements = {}
         else:
             #Check that all keys in given boundary exist
-            for tag in tagged_elements.keys():
+            for tag in list(tagged_elements.keys()):
                 tagged_elements[tag] = num.array(tagged_elements[tag], num.int)
 
                 msg = 'Not all elements exist. '
@@ -522,7 +527,7 @@ class Mesh(General_mesh):
 
 
 
-        X = self.boundary.keys()
+        X = list(self.boundary.keys())
         X.sort()
 
         #print 'X', X
@@ -555,7 +560,7 @@ class Mesh(General_mesh):
             self.tag_boundary_cells[tag] = []
 
 
-        for j in xrange(self.boundary_length):
+        for j in range(self.boundary_length):
             id  = self.boundary_cells[j]
             edge = self.boundary_edges[j]
             tag = self.boundary[id, edge]
@@ -570,10 +575,10 @@ class Mesh(General_mesh):
         """
 
         tags = {}
-        for v in self.boundary.values():
+        for v in list(self.boundary.values()):
             tags[v] = 1
 
-        return tags.keys()
+        return list(tags.keys())
 
 
     def get_boundary_polygon(self, verbose=False):
@@ -600,7 +605,7 @@ class Mesh(General_mesh):
 
         # Start value across entire mesh
         mindist = num.sqrt(num.sum((pmax-pmin)**2))
-        for i, edge_id in self.boundary.keys():
+        for i, edge_id in list(self.boundary.keys()):
             # Find vertex ids for boundary segment
             if edge_id == 0: a = 1; b = 2
             if edge_id == 1: a = 2; b = 0
@@ -697,7 +702,7 @@ class Mesh(General_mesh):
 
                 if verbose is True:
                     log.critical('  Best candidate %s, angle %f'
-                                 % (p1, minimum_angle*180/pi))
+                                 % (p1, old_div(minimum_angle*180,pi)))
             else:
                 p1 = candidate_list[0]
 
@@ -810,10 +815,10 @@ class Mesh(General_mesh):
         #print 'check areas'
         area = self.areas
 
-        ref = -((x1*y0-x0*y1)+(x2*y1-x1*y2)+(x0*y2-x2*y0))/2
+        ref = old_div(-((x1*y0-x0*y1)+(x2*y1-x1*y2)+(x0*y2-x2*y0)),2)
 
 
-        assert num.sum(num.abs((area - ref)/area)) < epsilon, 'Error in areas'
+        assert num.sum(num.abs(old_div((area - ref),area))) < epsilon, 'Error in areas'
 
         assert num.all(area > 0.0), 'A negative area'
 
@@ -823,21 +828,21 @@ class Mesh(General_mesh):
         a0  = num.sqrt(tx0**2 + ty0**2)
 
 
-        tx0 = tx0/a0
-        ty0 = ty0/a0
+        tx0 = old_div(tx0,a0)
+        ty0 = old_div(ty0,a0)
 
 
         tx1 = x0 - x2
         ty1 = y0 - y2
         a1  = num.sqrt(tx1**2 + ty1**2)
-        tx1 = tx1/a1
-        ty1 = ty1/a1
+        tx1 = old_div(tx1,a1)
+        ty1 = old_div(ty1,a1)
 
         tx2 = x1 - x0
         ty2 = y1 - y0
         a2  = num.sqrt(tx2**2 + ty2**2)
-        tx2 = tx2/a2
-        ty2 = ty2/a2
+        tx2 = old_div(tx2,a2)
+        ty2 = old_div(ty2,a2)
 
         nx0 = self.normals[:,0]
         ny0 = self.normals[:,1]
@@ -942,7 +947,7 @@ class Mesh(General_mesh):
 
         V = self.vertex_value_indices[:] #Take a copy
         V = num.sort(V)
-        assert num.allclose(V, range(3*N))
+        assert num.allclose(V, list(range(3*N)))
 
         assert num.sum(self.number_of_triangles_per_node) ==\
                        len(self.vertex_value_indices)
@@ -1091,14 +1096,14 @@ class Mesh(General_mesh):
 
         N = len(areas)
         if N > 10:
-            str += '    Percentiles (%g percent):\n' % (100/nbins)
+            str += '    Percentiles (%g percent):\n' % (old_div(100,nbins))
             areas = areas.tolist()
             areas.sort()
 
             k = 0
             lower = num.min(areas)
             for i, a in enumerate(areas):
-                if i % (N/10) == 0 and i != 0: #For every 10% of the sorted areas
+                if i % (old_div(N,10)) == 0 and i != 0: #For every 10% of the sorted areas
                     str += '      %d triangles in [%8.5e, %8.5e]\n' %(i-k, lower, a)
                     lower = a
                     k = i
@@ -1244,7 +1249,7 @@ class Mesh(General_mesh):
         return I
 
 
-class Triangle_intersection:
+class Triangle_intersection(object):
     """Store information about line segments intersecting a triangle
 
     Attributes are
@@ -1379,7 +1384,7 @@ def _get_intersecting_segments(V, N, line,
 
 
             # End points of intersecting segment
-            points = intersections.keys()
+            points = list(intersections.keys())
             x0, y0 = points[0]
             x1, y1 = points[1]
 
@@ -1407,7 +1412,7 @@ def _get_intersecting_segments(V, N, line,
             # Right hand side relative to line direction
             vector = num.array([x1 - x0, y1 - y0], num.float) # Segment vector
             length = num.sqrt(num.sum(vector**2))      # Segment length
-            normal = num.array([vector[1], -vector[0]], num.float)/length
+            normal = old_div(num.array([vector[1], -vector[0]], num.float),length)
 
 
             segment = ((x0,y0), (x1, y1))
@@ -1423,7 +1428,7 @@ def _get_intersecting_segments(V, N, line,
 
 
     # Return segments as a list
-    return triangle_intersections.values()
+    return list(triangle_intersections.values())
 
 
 def get_intersecting_segments(V, N, polyline,
@@ -1487,7 +1492,7 @@ def segment_midpoints(segments):
     for segment in segments:
         assert isinstance(segment, Triangle_intersection), msg
 
-        midpoint = num.sum(num.array(segment.segment, num.float), axis=0)/2
+        midpoint = old_div(num.sum(num.array(segment.segment, num.float), axis=0),2)
         midpoints.append(midpoint)
 
     return midpoints

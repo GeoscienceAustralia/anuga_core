@@ -1,7 +1,12 @@
 """
 Define region
 """
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 __author__="steve"
 __date__ ="$09/03/2012 4:46:39 PM$"
 
@@ -125,12 +130,13 @@ class Region(object):
         else:
             assert self.indices is None or self.indices is []
         
+        
         if self.indices is None:
             self.full_indices = num.where(self.domain.tri_full_flag ==1)[0]
         elif len(self.indices) == 0:
             self.full_indices = []
         else:
-            self.full_indices = self.indices[self.domain.tri_full_flag[self.indices]==1]
+            self.full_indices = num.array(self.indices)[self.domain.tri_full_flag[self.indices]==1]
 
         
     def __repr__(self):
@@ -169,15 +175,15 @@ class Region(object):
 
 
         # Plot mesh
-        n = int(len(fx)/3)
-        triang = num.array(range(0,3*n))
+        n = int(old_div(len(fx),3))
+        triang = num.array(list(range(0,3*n)))
         triang.shape = (n, 3)
         plt.triplot(fx, fy, triang, 'b-')
 
         # Plot region
-        n = int(len(gx)/3)
+        n = int(old_div(len(gx),3))
         if n > 0:
-            triang = num.array(range(0,3*n))
+            triang = num.array(list(range(0,3*n)))
             triang.shape = (n, 3)
             plt.triplot(gx, gy, triang, 'r-')
 
@@ -208,7 +214,7 @@ class Region(object):
                 intersect = True
                 indices.append(k)
 
-        if len(indices) is 0:
+        if len(indices) != 0:
             self.indices = indices
         else:
             self.indices = num.asarray(indices)
@@ -233,7 +239,7 @@ class Region(object):
                                         [self.polygon[j],self.polygon[(j+1)%n]])
                 indices = num.union1d(tris_0, indices)            
 
-        if len(indices) is 0:
+        if len(indices) == 0:
             self.indices = indices
         else:
             self.indices = num.asarray(indices)
@@ -241,7 +247,7 @@ class Region(object):
         
         if not self.domain.parallel:
             # only warn if not parallel as we should get lots of subdomains without indices
-            if len(indices) is 0:
+            if len(indices) == 0:
                 msg = 'No centroids found for polygon %s '% str(self.polygon)
                 import warnings
                 warnings.warn(msg)
@@ -256,14 +262,14 @@ class Region(object):
         
         indices = line_intersect(vertex_coordinates, self.line) 
         
-        if len(indices) is 0:
+        if len(indices) == 0:
             self.indices = indices
         else:
             self.indices = num.asarray(indices)
 
         if not self.domain.parallel:
             msg = 'No centroids intersecting line %s '% str(self.line)
-            if len(indices) is 0: raise Exception(msg)
+            if len(indices) == 0: raise Exception(msg)
 
 
     def get_indices(self, full_only=True):

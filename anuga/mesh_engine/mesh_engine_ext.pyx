@@ -1,4 +1,4 @@
-#cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
+#cythonoff: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
 from libc.stdlib cimport malloc, free
 # import both numpy and the Cython declarations for numpy
@@ -45,8 +45,7 @@ def genMesh(np.ndarray pointlist not None,\
             np.ndarray segmarkerlist not None,\
             char* mod):
 
-    cdef triangulateio in_t, out_t
-    cdef triangulateio in_test
+    cdef triangulateio in_t, out_t, vorout_t
 
     cdef np.npy_intp* dimensions
 
@@ -87,7 +86,7 @@ def genMesh(np.ndarray pointlist not None,\
 
     in_t.numberoftriangles = 0
     in_t.trianglelist = <int* >NULL
-    in_t.numberoftriangleattributes = 0;
+    in_t.numberoftriangleattributes = 0
     in_t.triangleattributelist = <REAL* >NULL
     in_t.trianglearealist = <REAL* >NULL
     in_t.neighborlist = <int* >NULL
@@ -129,7 +128,29 @@ def genMesh(np.ndarray pointlist not None,\
     out_t.holelist = <REAL* >NULL
     out_t.regionlist = <REAL* >NULL
 
-    triangulate(mod, &in_t, &out_t, <triangulateio* >NULL)
+    vorout_t.pointlist = <REAL* >NULL
+    vorout_t.pointmarkerlist = <int* >NULL
+    vorout_t.pointattributelist = <REAL* >NULL
+
+    vorout_t.trianglelist = <int* >NULL
+    vorout_t.triangleattributelist = <REAL* >NULL
+    vorout_t.trianglearealist = <REAL* >NULL
+    vorout_t.neighborlist = <int* >NULL
+
+    vorout_t.segmentlist = <int* >NULL
+    vorout_t.segmentmarkerlist = <int* >NULL
+
+    vorout_t.edgelist = <int* >NULL
+    vorout_t.edgemarkerlist = <int* >NULL
+
+    vorout_t.holelist = <REAL* >NULL
+    vorout_t.regionlist = <REAL* >NULL   
+
+    #print ('Before triangulate')
+
+    triangulate(mod, &in_t, &out_t, &vorout_t)
+
+    #print('After triangulate')
 
     dimensions = <np.npy_intp* > malloc(2 * sizeof(np.npy_intp))
 
@@ -194,6 +215,27 @@ def genMesh(np.ndarray pointlist not None,\
     if not(out_t.regionlist):
         free(out_t.regionlist)
         out_t.regionlist = NULL
+
+
+    if not(vorout_t.trianglearealist):
+        free(vorout_t.trianglearealist)
+        vorout_t.trianglearealist = NULL
+
+    if not(vorout_t.edgelist):
+        free(vorout_t.edgelist)
+        vorout_t.edgelist = NULL
+
+    if not(vorout_t.edgemarkerlist):
+        free(vorout_t.edgemarkerlist)
+        vorout_t.edgemarkerlist = NULL
+
+    if not(vorout_t.holelist):
+        free(vorout_t.holelist)
+        vorout_t.holelist = NULL
+
+    if not(vorout_t.regionlist):
+        free(vorout_t.regionlist)
+        vorout_t.regionlist = NULL
 
     free(dimensions)
 

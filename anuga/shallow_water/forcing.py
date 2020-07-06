@@ -7,7 +7,12 @@ ModifiedBy:
     $Author: hudson $
     $Date: 2010-05-18 14:54:05 +1000 (Tue, 18 May 2010) $
 """
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 from future.utils import raise_
 from warnings import warn
 import numpy as num
@@ -77,7 +82,7 @@ def check_forcefield(f):
 
 
 
-class Wind_stress:
+class Wind_stress(object):
     """Apply wind stress to water momentum in terms of
     wind speed [m/s] and wind direction [degrees]
     """
@@ -155,7 +160,7 @@ class Wind_stress:
             self.speed = s
             self.phi = phi
 
-        self.const = eta_w*rho_a/rho_w
+        self.const = old_div(eta_w*rho_a,rho_w)
 
     def __call__(self, domain):
         """Evaluate windfield based on values found in domain"""
@@ -216,7 +221,7 @@ def assign_windfield_values(xmom_update, ymom_update,
         phi = phi_vec[k]
 
         # Convert to radians
-        phi = phi*pi/180
+        phi = old_div(phi*pi,180)
 
         # Compute velocity vector (u, v)
         u = s*cos(phi)
@@ -228,7 +233,7 @@ def assign_windfield_values(xmom_update, ymom_update,
         ymom_update[k] += S*v
 
 
-class General_forcing:
+class General_forcing(object):
     """General explicit forcing term for update of quantity
 
     This is used by Inflow and Rainfall for instance
@@ -318,7 +323,7 @@ class General_forcing:
             N = 100
             periphery_points = []
             for i in range(N):
-                theta = 2*pi*i/100
+                theta = old_div(2*pi*i,100)
 
                 x = center[0] + radius*cos(theta)
                 y = center[1] + radius*sin(theta)
@@ -678,14 +683,14 @@ class Inflow(General_forcing):
         """
 
         if callable(self.rate):
-            _rate = self.rate(t)/self.exchange_area
+            _rate = old_div(self.rate(t),self.exchange_area)
         else:
-            _rate = self.rate/self.exchange_area
+            _rate = old_div(self.rate,self.exchange_area)
 
         return _rate
 
 
-class Cross_section:
+class Cross_section(object):
     """Class Cross_section - a class to setup a cross section from
     which you can then calculate flow and energy through cross section
 
@@ -803,13 +808,13 @@ class Cross_section:
             # Average velocity across this segment
             if h[i] > epsilon:
                 # Use protection against degenerate velocities
-                u = uh[i]/(h[i] + h0/h[i])
-                v = vh[i]/(h[i] + h0/h[i])
+                u = old_div(uh[i],(h[i] + old_div(h0,h[i])))
+                v = old_div(vh[i],(h[i] + old_div(h0,h[i])))
             else:
                 u = v = 0.0
 
             speed_squared = u*u + v*v
-            kinetic_energy = 0.5*speed_squared/g
+            kinetic_energy = old_div(0.5*speed_squared,g)
 
             if kind == 'specific':
                 segment_energy = h[i] + kinetic_energy
@@ -820,12 +825,12 @@ class Cross_section:
                 msg += ' I got %s' %kind
 
             # Add to weighted average
-            weigth = self.segments[i].length/total_line_length
+            weigth = old_div(self.segments[i].length,total_line_length)
             average_energy += segment_energy*weigth
 
         return average_energy
 
-class Barometric_pressure:
+class Barometric_pressure(object):
     """ Apply barometric pressure stress to water momentum in terms of
         barometric pressure p [hPa]. If the pressure data is stored in a file
         file_function is used to create a callable function. The data file 
@@ -966,11 +971,11 @@ def assign_pressure_field_values(height, pressure, x, triangles,
 
         px,py=gradient(x0, y0, x1, y1, x2, y2, p0, p1, p2)
 
-        xmom_update[k] += height[k]*px/rho_w
-        ymom_update[k] += height[k]*py/rho_w
+        xmom_update[k] += old_div(height[k]*px,rho_w)
+        ymom_update[k] += old_div(height[k]*py,rho_w)
 
 
-class Barometric_pressure_fast:
+class Barometric_pressure_fast(object):
     """ Apply barometric pressure stress to water momentum in terms of
         barometric pressure p [hPa]. If the pressure data is stored in a file
         file_function is used to create a callable function. The data file 
@@ -1114,7 +1119,7 @@ class Barometric_pressure_fast:
                 self.update_stored_pressure_values(domain)
 
                 # Linear temporal interpolation of pressure values
-                ratio = (t - self.file_time[self.index]) / (self.file_time[self.index+1]-self.file_time[self.index])
+                ratio = old_div((t - self.file_time[self.index]), (self.file_time[self.index+1]-self.file_time[self.index]))
                 self.p_vec = self.prev_pressure_vertex_values + ratio*(self.next_pressure_vertex_values - self.prev_pressure_vertex_values)
 
         else:
@@ -1144,7 +1149,7 @@ class Barometric_pressure_fast:
                 self.next_pressure_vertex_values[i]=self.pressure(self.file_time[self.index+1],i) 
 
 
-class Wind_stress_fast:
+class Wind_stress_fast(object):
     """ Apply wind stress to water momentum in terms of
         wind speed [m/s] and wind direction [degrees]. 
         If the wind data is stored in a file
@@ -1279,7 +1284,7 @@ class Wind_stress_fast:
         self.s_vec=num.empty(N,num.float)
         self.phi_vec=num.empty(N,num.float)
 
-        self.const = eta_w*rho_a/rho_w
+        self.const = old_div(eta_w*rho_a,rho_w)
 
     def __call__(self, domain):
         """Evaluate windfield based on values found in domain"""
@@ -1301,7 +1306,7 @@ class Wind_stress_fast:
                 if t==self.file_time[self.index]:
                     ratio = 0.
                 else:
-                    ratio = ((t - self.file_time[self.index]) / (self.file_time[self.index+1]-self.file_time[self.index]))
+                    ratio = (old_div((t - self.file_time[self.index]), (self.file_time[self.index+1]-self.file_time[self.index])))
                 self.s_vec = self.prev_windspeed_centroid_values + ratio*(self.next_windspeed_centroid_values - self.prev_windspeed_centroid_values)
         else:
             # Assume s is a scalar
@@ -1322,7 +1327,7 @@ class Wind_stress_fast:
                 if t==self.file_time[self.index]:
                     ratio = 0.
                 else:
-                    ratio = ((t - self.file_time[self.index]) / (self.file_time[self.index+1]-self.file_time[self.index]))
+                    ratio = (old_div((t - self.file_time[self.index]), (self.file_time[self.index+1]-self.file_time[self.index])))
                 self.phi_vec = self.prev_windangle_centroid_values + ratio*(self.next_windangle_centroid_values - self.prev_windangle_centroid_values)
         else:
             # Assume phi is a scalar

@@ -1,4 +1,7 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import os
 import numpy as num
 from anuga.file.netcdf import NetCDFFile
@@ -57,7 +60,7 @@ def sts2sww_mesh(basename_in, basename_out=None,
 
     thinned_indices=[]
     for i in range(number_of_points):
-        if (i/ncols==0 or i/ncols==ncols-1 or (i/ncols)%(spatial_thinning)==0):
+        if (old_div(i,ncols)==0 or old_div(i,ncols)==ncols-1 or (old_div(i,ncols))%(spatial_thinning)==0):
             if ( i%(spatial_thinning)==0 or i%nrows==0 or i%nrows==nrows-1 ):  
                 thinned_indices.append(i)
 
@@ -71,7 +74,7 @@ def sts2sww_mesh(basename_in, basename_out=None,
     if verbose:
         print("Total number of points: ", nrows*ncols)
         print("Number of thinned points: ", number_of_points)
-    for i in xrange(number_of_timesteps):
+    for i in range(number_of_timesteps):
         wind_speed[i] = wind_speed_full[i,thinned_indices]
         wind_angle[i] = wind_angle_full[i,thinned_indices]
         barometric_pressure[i]   = pressure_full[i,thinned_indices]

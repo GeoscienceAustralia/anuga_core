@@ -6,6 +6,8 @@ from __future__ import print_function
 #------------------------------------------------------------------------------
 # IMPORT NECESSARY MODULES
 #------------------------------------------------------------------------------
+from builtins import range
+from builtins import object
 import anuga
 import time
 import numpy

@@ -1,3 +1,5 @@
+from builtins import map
+from builtins import range
 from future.utils import raise_
 import os
 from struct import pack, unpack
@@ -43,7 +45,7 @@ def urs2nc(basename_in='o', basename_out='urs'):
                log.critical("file_name %s" % file_name)
 
     hashed_elevation = None
-    for file_in, file_out, quantity in map(None, files_in,
+    for file_in, file_out, quantity in zip(files_in,
                                            files_out,
                                            quantities):
         lonlatdep, lon, lat, depth = _binary_c2nc(file_in,

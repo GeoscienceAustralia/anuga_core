@@ -134,7 +134,7 @@ Qin = 0.5*(floodplain_slope*(chan_width*chan_initial_depth)**2.*man_n**(-2.)\
             *chan_initial_depth**(4./3.) )**0.5
 anuga.Inlet_operator(domain, line1, Qin)
 
-if myid == 0 and verbose : print 'Discharge in = ', Qin 
+if myid == 0 and verbose : print('Discharge in = ', Qin)
 
 #---------------------------------------------------------------------
 # Setup boundary conditions
@@ -179,7 +179,7 @@ if myid == 0:
 # Evolve system through time
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep=10.0, finaltime=1000.0):
-    if myid == 0 and verbose: print domain.timestepping_statistics()
+    if myid == 0 and verbose: print(domain.timestepping_statistics())
     
 #     if numpy.allclose(t,0.0):
 #         exact_volume = domain.get_water_volume()
@@ -189,7 +189,7 @@ for t in domain.evolve(yieldstep=10.0, finaltime=1000.0):
 #     water_volume= domain.get_water_volume()
 #     
 #     
-#     if myid == 0 and verbose: print anuga.indent,'relative error water volume  exact_volume ', (water_volume - exact_volume)/exact_volume   
+#     if myid == 0 and verbose: print(anuga.indent,'relative error water volume  exact_volume ', (water_volume - exact_volume)/exact_volume) 
 
 domain.sww_merge(delete_old=True)
 

@@ -48,10 +48,7 @@ Here's a DTD format, we might implement one day
 
 
 """
-from __future__ import print_function
-from __future__ import absolute_import
 
-from future.utils import raise_
 from os import remove, walk, sep
 from os.path import join, splitext
 
@@ -75,7 +72,6 @@ audit_exceptions = (NotPublishable,
                     Invalid,
                     WrongTags,
                     Empty)
-
 
 def IP_verified(directory,
                 extensions_to_ignore=None,
@@ -270,8 +266,8 @@ def license_file_is_valid(license_filename, data_filename,
         msg += ' at the root level. They are\n'
         msg += '  <?xml version="1.0" encoding="iso-8859-1"?>\n'
         msg += '  <ga_license_file>\n'
-        msg += 'The second element was found to be %s' %doc.keys()
-        raise_(WrongTags, msg)
+        msg += 'The second element was found to be %s' %list(doc.keys())
+        raise WrongTags(msg)
     
 
     # Validate elements: metadata, datafile, datafile, ...
@@ -281,20 +277,20 @@ def license_file_is_valid(license_filename, data_filename,
     elements = doc['ga_license_file']
     if not elements.has_key('metadata'):
         msg = 'Tag %s must have the element "metadata"'\
-              %doc.keys()[0]
+              %list(doc.keys())[0]
         msg += 'The element found was %s' %elements[0].nodeName
-        raise_(WrongTags, msg)
+        raise WrongTags(msg)
 
     if not elements.has_key('datafile'):
         msg = 'Tag %s must have the element "datafile"'\
-              %doc.keys()[0]
+              %list(doc.keys())[0]
         msg += 'The element found was %s' %elements[0].nodeName
-        raise_(WrongTags, msg)    
+        raise WrongTags(msg)    
 
-    for key in elements.keys():
+    for key in list(elements.keys()):
         msg = 'Invalid tag: %s' %key
         if not key in ['metadata', 'datafile']:
-            raise_(WrongTags, msg)                    
+            raise WrongTags(msg)                    
 
     
     # Extract information for metadata section
@@ -305,7 +301,7 @@ def license_file_is_valid(license_filename, data_filename,
     if verbose: print('Author:   ', author)
     if author == '':
         msg = 'Missing author'
-        raise_(Exception, msg)                
+        raise Exception(msg)                
     
     #svn_keywords = metadata['svn_keywords']
     #if verbose: print 'SVN keywords:   ', svn_keywords
@@ -327,7 +323,7 @@ def license_file_is_valid(license_filename, data_filename,
     if not found:
         msg = 'Specified filename to verify %s ' %data_filename
         msg += 'did not appear in license file %s' %license_filename
-        raise_(FilenameMismatch, msg)                
+        raise FilenameMismatch(msg)                
             
         
     # Check contents for selected data_filename
@@ -337,7 +333,7 @@ def license_file_is_valid(license_filename, data_filename,
     # Filename
     if data['filename'] == '':
         msg = 'Missing filename'
-        raise_(FilenameMismatch, msg)            
+        raise FilenameMismatch(msg)            
     else:
         filename = join(dirpath, data['filename'])
         if verbose: print('Filename: "%s"' %filename)
@@ -346,7 +342,10 @@ def license_file_is_valid(license_filename, data_filename,
         except:
             msg = 'Specified filename %s could not be opened'\
                   %filename
-            raise_(FilenameMismatch, msg)
+            raise FilenameMismatch(msg)
+        else:
+            fid.close()
+            
 
     # CRC
     reported_crc = data['checksum']
@@ -359,48 +358,47 @@ def license_file_is_valid(license_filename, data_filename,
                %(license_filename, reported_crc)
         msg += '  The CRC computed from file "%s" is "%s"'\
                %(filename, file_crc)
-        raise_(CRCMismatch, msg)
+        raise CRCMismatch(msg)
             
     # Accountable
     accountable = data['accountable']
     if verbose: print('Accountable: "%s"' %accountable)
     if accountable == '':
         msg = 'No accountable person specified'
-        raise_(Empty, msg)
+        raise Empty(msg)
 
     # Source
     source = data['source']
     if verbose: print('Source: "%s"' %source)
     if source == '':
         msg = 'No source specified'
-        raise_(Empty, msg)                
+        raise Empty(msg)                
 
     # IP owner
     ip_owner = data['IP_owner']
     if verbose: print('IP owner: "%s"' %ip_owner)
     if ip_owner == '':
         msg = 'No IP owner specified'
-        raise_(Empty, msg)                                
+        raise Empty(msg)                                
             
     # IP info
     ip_info = data['IP_info']
     if verbose: print('IP info: "%s"' %ip_info)
     #if ip_info == '':
     #    msg = 'No IP info specified'
-    #    raise Empty, msg                                               
+    #    raise Empty(msg)                                               
 
     # Publishable
     publishable = data['publishable']
     if verbose: print('Publishable: "%s"' %publishable)
     if publishable == '':
         msg = 'No publishable value specified'
-        raise_(NotPublishable, msg)
+        raise NotPublishable(msg)
     
     if publishable.upper() != 'YES':
         msg = 'Data file %s is not flagged as publishable'\
               %fid.name
-        raise_(NotPublishable, msg)
-
+        raise NotPublishable(msg)
 
 
     # If we get this far, the license file is OK

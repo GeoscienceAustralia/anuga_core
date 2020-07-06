@@ -6,6 +6,7 @@ Takes 1 or more ASC files and generates an output ASC file with
 an element-wise maximum.
 """
 
+from builtins import range
 from future.utils import raise_
 import sys
 import re

@@ -4,7 +4,13 @@ It is also a clearing house for functions that may later earn a module
 of their own.
 """
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import map
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from past.utils import old_div
 import anuga.geometry.polygon
 import sys
 import os
@@ -18,11 +24,6 @@ from anuga.utilities.numerical_tools import ensure_numeric, angle, NAN
 from anuga.file.csv_file import load_csv_as_dict
 
 from math import sqrt, atan, degrees
-
-# FIXME (Ole): Temporary short cuts -
-# FIXME (Ole): remove and update scripts where they are used
-from anuga.utilities.system_tools import get_revision_number
-from anuga.utilities.system_tools import store_revision_info
 
 import anuga.utilities.log as log
 
@@ -61,7 +62,7 @@ def multiple_replace(text, dictionary):
     #Create a regular expression from all of the dictionary keys
     #matching only entire words
     regex = re.compile(r'\b'+ \
-                       r'\b|\b'.join(map(re.escape, dictionary.keys()))+ \
+                       r'\b|\b'.join(map(re.escape, list(dictionary.keys())))+ \
                        r'\b' )
 
     #For each match, lookup the corresponding value in the dictionary
@@ -279,7 +280,7 @@ def get_centroid_values(x, triangles):
         i1 = triangles[k][1]
         i2 = triangles[k][2]        
         
-        xc[k] = (x[i0] + x[i1] + x[i2])/3
+        xc[k] = old_div((x[i0] + x[i1] + x[i2]),3)
 
     return xc
 
@@ -633,7 +634,7 @@ def csv2timeseries_graphs(directories_dic={},
 
     if verbose: log.critical('Now start to plot')
     
-    i_max = len(directories_dic.keys())
+    i_max = len(list(directories_dic.keys()))
     legend_list_dic = {}
     legend_list = []
     for i, directory in enumerate(directories_dic.keys()):
@@ -656,8 +657,8 @@ def csv2timeseries_graphs(directories_dic={},
                                                       + filename + '.csv')
             #get data from dict in to list
             #do maths to list by changing to array
-            t = (num.array(directory_quantity_value[directory][filename]['time'])
-                     + directory_start_time) / seconds_in_minutes
+            t = old_div((num.array(directory_quantity_value[directory][filename]['time'])
+                     + directory_start_time), seconds_in_minutes)
 
             #finds the maximum elevation, used only as a test
             # and as info in the graphs
@@ -916,7 +917,7 @@ def greens_law(d1, d2, h1, verbose=False):
         msg = 'the wave amplitude, h1 (%f), must be strictly positive' % (h1)
         raise Exception(msg)
     
-    h2 = h1*(d1/d2)**0.25
+    h2 = h1*(old_div(d1,d2))**0.25
 
     assert h2 > 0
     

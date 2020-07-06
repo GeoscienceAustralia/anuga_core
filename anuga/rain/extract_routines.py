@@ -5,7 +5,12 @@ Basic helper routines
 
 """
 from __future__ import print_function
+from __future__ import division
 
+from builtins import range
+from past.builtins import basestring
+from builtins import object
+from past.utils import old_div
 import anuga
 #from anuga.fit_interpolate.interpolate2d import interpolate2d
 from anuga.fit_interpolate.interpolate2d import interpolate_raster
@@ -362,8 +367,8 @@ class Calibrated_radar_rain(object):
         y = self.y
         nx = len(x)
         ny = len(y)
-        ldx = dx/nx
-        ldy = dy/ny
+        ldx = old_div(dx,nx)
+        ldy = old_div(dy,ny)
         
         if not polygon is None:
             X,Y = np.meshgrid(x,y)
@@ -392,8 +397,8 @@ class Calibrated_radar_rain(object):
         y = self.y
         nx = len(x)
         ny = len(y)
-        ldx = dx/nx
-        ldy = dy/ny
+        ldx = old_div(dx,nx)
+        ldy = old_div(dy,ny)
         
         time_step = self.time_step
         
@@ -420,7 +425,7 @@ class Calibrated_radar_rain(object):
             Catchment_Area = len(pmask)*ldx*ldy
 
         print(indices)
-        Peak_Intensity = Rain_Max_in_period/time_step # mm/sec     
+        Peak_Intensity = old_div(Rain_Max_in_period,time_step) # mm/sec     
 
         
         if self.verbose:
@@ -499,9 +504,9 @@ class Calibrated_radar_rain(object):
             
         dx = self.extent[1]-self.extent[0]
         dy = self.extent[3]-self.extent[2]
-        Total_Rain_Vol = np.mean(precip_total)/1000.0*dx*dy/1e6 # Volume in Million m3 over 128km x 128km area
+        Total_Rain_Vol = old_div(np.mean(precip_total)/1000.0*dx*dy,1e6) # Volume in Million m3 over 128km x 128km area
         Rain_Max_in_period = self.rain_max_in_period
-        Peak_Intensity = Rain_Max_in_period/time_step
+        Peak_Intensity = old_div(Rain_Max_in_period,time_step)
         extent = self.extent
         
         if self.verbose:
@@ -559,8 +564,8 @@ class Calibrated_radar_rain(object):
 
             bar_values = [values[lid] for values in all_values]
             total_rain = sum(bar_values)
-            Ave_rain = total_rain/(self.times[-1]-self.times[0])*3600
-            max_Intensity = max(bar_values)/time_step*3600
+            Ave_rain = old_div(total_rain,(self.times[-1]-self.times[0]))*3600
+            max_Intensity = old_div(max(bar_values),time_step)*3600
             
             
             b_title = 'Tot rain = %.1f mm, Ave. rain = %.3f mm/hr, Max Int.= %.3f mm/hr' % (total_rain,Ave_rain,max_Intensity)
@@ -568,7 +573,7 @@ class Calibrated_radar_rain(object):
             #print len(t)
             #print len(bar_values)
             # Think about using...  zip(*lst)
-            plt.bar(t,bar_values,width=time_step/60,)
+            plt.bar(t,bar_values,width=old_div(time_step,60),)
             plt.suptitle(' Data for Location %s:' % lid, fontsize=14, fontweight='bold')    
             plt.title(b_title)
     
@@ -694,7 +699,7 @@ if __name__ == "__main__":
     import time
     pl.ion()
     pdb.set_trace() 
-    for tid in xrange(len(rain.times)):
+    for tid in range(len(rain.times)):
         rain.plot_grid(tid, save=False, show=True, polygons=[p2])
         time.sleep(0.05)
         #ipdb.set_trace() 

@@ -63,6 +63,7 @@ from __future__ import absolute_import
 
 #------------------------ Non-Private Function -------------------------
 
+from builtins import range
 def interp(y, x, xinterp, missing=1e+20):
     """Simple linear interpolation for ordinate with missing values.
 
@@ -183,7 +184,7 @@ def interp(y, x, xinterp, missing=1e+20):
 
     if MA.maximum(y_miss_mask) == 1:
 
-        for i in xrange(num_xint):
+        for i in range(num_xint):
             if yint_outrange_mask[i] == 0:
                 x_eq_xint = where_close(x, xint[i])
                 if MA.maximum(x_eq_xint) == 1:

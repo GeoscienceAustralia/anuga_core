@@ -1,4 +1,7 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 from future.utils import raise_
 import os.path
 import sys
@@ -25,6 +28,8 @@ from anuga.utilities import parallel_abstraction as pypar
 from math import pi, pow, sqrt
 
 import numpy as num
+
+import anuga
 from anuga.parallel.parallel_inlet_operator import Parallel_Inlet_operator
 from anuga.parallel import distribute, myid, numprocs, finalize
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
@@ -58,7 +63,7 @@ def topography(x, y):
     A culvert will connect either side
     """
     # General Slope of Topography
-    z=-x/1000
+    z=old_div(-x,1000)
     
     N = len(x)
     for i in range(N):
@@ -101,8 +106,8 @@ def run_simulation(parallel = False, control_data = None, test_points = None, ve
 ## Setup domain
 ##-----------------------------------------------------------------------
 
-    points, vertices, boundary = rectangular_cross(int(length/dx),
-                                                   int(width/dy),
+    points, vertices, boundary = rectangular_cross(int(old_div(length,dx)),
+                                                   int(old_div(width,dy)),
                                                    len1=length, 
                                                    len2=width)
 
@@ -274,8 +279,7 @@ class Test_parallel_boyd_box_operator(unittest.TestCase):
     def test_parallel_operator(self):
         #print "Expect this test to fail if not run from the parallel/test directory."
 
-        abs_script_name = os.path.abspath(__file__)
-        cmd = "mpiexec -np %d python %s" % (3, abs_script_name)
+        cmd = anuga.mpicmd(os.path.abspath(__file__))
         exitstatus = os.system(cmd)
         #exitstatus = mpi_cmd(nprocs, abs_script_name)
 

@@ -48,6 +48,7 @@ VERSION = anuga.__version__
 
 
 
+# FIXME(Ole): If we need this, it should be using git now
 # Return the svn revision as a string
 def svn_revision():
 
@@ -72,12 +73,18 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
     extra_setuptools_args = dict(
         zip_safe=False,  # the package can run out of an .egg file
         include_package_data=True,
-		install_requires=['numpy',
-                          'scipy',
-                          'netcdf4',
-                          'matplotlib',
-                          'gdal',
-                          'nose']
+		install_requires=['nose',
+                                  'numpy',
+                                  'scipy',
+                                  'netcdf4',
+                                  'matplotlib',
+                                  'gdal',
+                                  'dill',
+                                  'cython',
+                                  'future',   # FIXME(Ole): Deprecate
+                                  #'openmp',   # FIXME - can't find this. Is it required at this level?
+                                  'mpi4py']                                  
+                                  
     )
 else:
     extra_setuptools_args = dict()

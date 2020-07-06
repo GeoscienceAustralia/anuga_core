@@ -1,6 +1,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+from builtins import range
 from anuga.shallow_water.shallow_water_domain import *
 from anuga.shallow_water.shallow_water_domain import Domain as Sww_domain
 

@@ -1,15 +1,17 @@
-#cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
+#cythonoff: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
 
 # import both numpy and the Cython declarations for numpy
 import numpy as np
 cimport numpy as np
 
-def boundary_dictionary_construct(int numTriangle, char* defaultTag,\
+def boundary_dictionary_construct(int numTriangle, defaultTag,\
                                 np.ndarray[long, ndim=2, mode="c"] neighbours not None,\
                                 dict boundary):
 
 	cdef int a, b, vol_id, edge_id
+
+	#defaultTag = defaultTag.encode('utm-f')
 
 	a = neighbours.shape[0]
 	b = neighbours.shape[1]

@@ -20,7 +20,13 @@ To create:
 """
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
+from past.utils import old_div
 import types
 import os.path
 
@@ -39,7 +45,7 @@ import anuga.utilities.log as log
 import numpy as num
 
 
-class Quantity:
+class Quantity(object):
 
 
     counter = 0
@@ -178,7 +184,7 @@ class Quantity:
 
         return self * other
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         """Divide self with anything that could populate a quantity
 
         E.g other can be a constant, an array, a function, another quantity
@@ -201,9 +207,9 @@ class Quantity:
         # are calculated and assigned directly without using
         # set_values (which calls interpolate). Otherwise
         # edge and centroid values wouldn't be quotient of q1 and q2
-        result.vertex_values = self.vertex_values/(Q.vertex_values + epsilon)
-        result.edge_values = self.edge_values/(Q.edge_values + epsilon)
-        result.centroid_values = self.centroid_values/(Q.centroid_values + epsilon)
+        result.vertex_values = old_div(self.vertex_values, (Q.vertex_values + epsilon))
+        result.edge_values = old_div(self.edge_values, (Q.edge_values + epsilon))
+        result.centroid_values = old_div(self.centroid_values, (Q.centroid_values + epsilon))
 
         return result
 
@@ -211,7 +217,7 @@ class Quantity:
         """Handle cases like 3/Q, where Q is an instance of class Quantity
         """
 
-        return self / other
+        return old_div(self, other)
 
     def __pow__(self, other):
         """Raise quantity to (numerical) power
@@ -506,8 +512,8 @@ class Quantity:
             cellsize = max(xrange,yrange)/10.0
 
 
-        ncols = int(xrange/cellsize) + 1
-        nrows = int(yrange/cellsize) + 1
+        ncols = int(old_div(xrange,cellsize)) + 1
+        nrows = int(old_div(yrange,cellsize)) + 1
 
         # New absolute reference and coordinates
         newxllcorner = xmin + xllcorner
@@ -670,7 +676,7 @@ class Quantity:
         v1 = self.vertex_values[:, 1]
         v2 = self.vertex_values[:, 2]
 
-        self.centroid_values[:] = (v0 + v1 + v2)/3
+        self.centroid_values[:] = old_div((v0 + v1 + v2),3)
 
         self.interpolate_from_vertices_to_edges()
 
@@ -832,7 +838,7 @@ class Quantity:
                 raise Exception(msg)
             else:
                 # Check that numeric is as constant
-                assert isinstance(numeric, (float, int, long)), msg
+                assert isinstance(numeric, (float, int, int)), msg
 
             location = 'centroids'
 
@@ -1120,7 +1126,7 @@ class Quantity:
         # Compute the function values and call set_values again
         if location == 'centroids':
             if indices is None:
-                indices = range(len(self))
+                indices = list(range(len(self)))
 
             V = num.take(self.domain.get_centroid_coordinates(), indices, axis=0)
             x = V[:,0]; y = V[:,1]
@@ -1897,7 +1903,7 @@ class Quantity:
                 return num.take(self.edge_values, indices, axis=0)
         elif location == 'unique vertices':
             if indices is None:
-                indices=range(self.domain.get_number_of_nodes())
+                indices=list(range(self.domain.get_number_of_nodes()))
             vert_values = []
 
             # Go through list of unique vertices
@@ -1919,7 +1925,7 @@ class Quantity:
                 else:
                     for triangle_id, vertex_id in triangles:
                         sum += self.vertex_values[triangle_id, vertex_id]
-                vert_values.append(sum / len(triangles))
+                vert_values.append(old_div(sum, len(triangles)))
 
             return num.array(vert_values, num.float)
         else:
@@ -1948,7 +1954,7 @@ class Quantity:
 
         if indices is None:
             assert A.shape[0] == self.domain.get_nodes().shape[0]
-            vertex_list = range(A.shape[0])
+            vertex_list = list(range(A.shape[0]))
         else:
             assert A.shape[0] == len(indices)
             vertex_list = indices
@@ -2079,14 +2085,14 @@ class Quantity:
 
                         k += 1
 
-                        volume_id = index / 3
+                        volume_id = old_div(index, 3)
                         vertex_id = index % 3
 
                         v = self.vertex_values[volume_id, vertex_id]
                         total += v
 
                         if self.domain.number_of_triangles_per_node[current_node] == k:
-                            A[current_node] = total/k
+                            A[current_node] = old_div(total,k)
 
                             # Move on to next node
                             total = 0.0

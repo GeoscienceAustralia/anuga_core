@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import unittest
 import sys
 from math import sqrt
@@ -18,7 +21,7 @@ import numpy as num
 
 
 def topography(x,y): 
-    return -x/2
+    return old_div(-x,2)
 
 
 def xcoord(x,y):
@@ -532,7 +535,7 @@ class Test_Distribute_Mesh(unittest.TestCase):
 
 
 
-        for key, value in true_submesh['ghost_quan'].iteritems():
+        for key, value in true_submesh['ghost_quan'].items():
             for i in range(3):
                 assert num.allclose(true_submesh['ghost_quan'][key][i],submesh['ghost_quan'][key][i])
                 assert num.allclose(true_submesh['full_quan'][key][i],submesh['full_quan'][key][i])
@@ -1129,7 +1132,7 @@ class Test_Distribute_Mesh(unittest.TestCase):
        [ 2.,  2.,  2.]])]}
 
 
-        for key, value in true_submesh['ghost_quan'].iteritems():
+        for key, value in true_submesh['ghost_quan'].items():
             for i in range(3):
                 assert num.allclose(true_submesh['ghost_quan'][key][i],submesh['ghost_quan'][key][i])
                 assert num.allclose(true_submesh['full_quan'][key][i],submesh['full_quan'][key][i])
@@ -1500,7 +1503,7 @@ class Test_Distribute_Mesh(unittest.TestCase):
         assert true_submesh['full_boundary'] == submesh['full_boundary']
         assert true_submesh['full_commun'] == submesh['full_commun']
 
-        for key, value in true_submesh['ghost_quan'].iteritems():
+        for key, value in true_submesh['ghost_quan'].items():
             for i in range(3):
                 assert num.allclose(true_submesh['ghost_quan'][key][i],submesh['ghost_quan'][key][i])
                 assert num.allclose(true_submesh['full_quan'][key][i],submesh['full_quan'][key][i])

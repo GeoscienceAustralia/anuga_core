@@ -9,6 +9,7 @@ module.
 """
 from __future__ import print_function
 from __future__ import absolute_import
+from builtins import str
 from .benchmark_least_squares import BenchmarkLeastSquares
 
 ben = BenchmarkLeastSquares()

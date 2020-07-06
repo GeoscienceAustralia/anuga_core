@@ -12,6 +12,10 @@ have an undefined value.
 
 """
 
+from builtins import str
+from six import string_types
+from builtins import range
+from past.builtins import basestring
 import numpy as num
 
 from anuga.geospatial_data.geospatial_data import ensure_absolute
@@ -174,7 +178,7 @@ def _file_function(filename,
     See file_function for documentatiton
     """
 
-    assert isinstance(filename,str) or isinstance(filename, unicode),\
+    assert isinstance(filename,string_types) or isinstance(filename, str),\
                'First argument to File_function must be a string'
 
     #try:
@@ -249,7 +253,7 @@ def get_netcdf_file_function(filename,
 
     fid = NetCDFFile(filename, netcdf_mode_r)
 
-    if isinstance(quantity_names, basestring):
+    if isinstance(quantity_names, string_types):
         quantity_names = [quantity_names]        
 
     if quantity_names is None or len(quantity_names) < 1:

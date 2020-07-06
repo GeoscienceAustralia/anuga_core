@@ -1,5 +1,7 @@
 """ Script to compile all C extensions in ANUGA. """
 
+from past.builtins import execfile
+from builtins import input
 import os
 
 BUILDROOT = os.getcwd()
@@ -13,4 +15,4 @@ os.chdir(BUILDROOT)
 
     
 if sys.platform == 'win32':
-    raw_input('Press the RETURN key')
+    input('Press the RETURN key')

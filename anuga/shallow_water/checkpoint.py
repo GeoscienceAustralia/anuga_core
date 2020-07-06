@@ -16,6 +16,10 @@ domain = load_last_checkpoint_file(domain_name, checkpoint_dir)
 
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
 from anuga import send, receive, myid, numprocs, barrier
 from time import time as walltime
 
@@ -47,10 +51,10 @@ def load_checkpoint_file(domain_name = 'domain', checkpoint_dir = '.', time = No
 
         try:
             try:
-                import dill as cPickle
+                import dill as pickle
             except:
-                import cPickle
-            domain = cPickle.load(open(pickle_name, 'rb'))
+                import pickle
+            domain = pickle.load(open(pickle_name, 'rb'))
             success = True
         except:
             success = False

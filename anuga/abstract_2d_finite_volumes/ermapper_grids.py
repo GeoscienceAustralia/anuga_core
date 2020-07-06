@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from builtins import str
 import numpy as num
 
 celltype_map = {'IEEE4ByteReal': num.float32, 'IEEE8ByteReal': num.float64}
@@ -143,7 +144,7 @@ def write_ermapper_header(ofile, header = {}):
     fid.write('\tRasterInfo End\n')
     fid.write('DatasetHeader End\n')
 
-    fid.close
+    fid.close()
 
 def read_ermapper_header(ifile):
     # function for reading an ERMapper header from file

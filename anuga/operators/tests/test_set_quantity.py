@@ -1,7 +1,9 @@
 """  Test set_quantity
 """
 from __future__ import print_function
+from __future__ import division
 
+from past.utils import old_div
 import unittest, os
 import anuga
 from anuga import Domain
@@ -248,7 +250,7 @@ class Test_set_quantity(unittest.TestCase):
         width = 2.0
         dx = dy = 0.5
         #dx = dy = 0.1
-        domain = rectangular_cross_domain(int(length/dx), int(width/dy),
+        domain = rectangular_cross_domain(int(old_div(length,dx)), int(old_div(width,dy)),
                                               len1=length, len2=width)
 
 
@@ -350,7 +352,7 @@ class Test_set_quantity(unittest.TestCase):
         width = 2.0
         dx = dy = 0.5
         #dx = dy = 0.1
-        domain = rectangular_cross_domain(int(length/dx), int(width/dy),
+        domain = rectangular_cross_domain(int(old_div(length,dx)), int(old_div(width,dy)),
                                               len1=length, len2=width)
 
 

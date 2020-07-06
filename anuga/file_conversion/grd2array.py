@@ -1,6 +1,7 @@
 """ Load a DEM file, decimate it, and resave it.
 """
 
+from past.builtins import basestring
 from future.utils import raise_
 import numpy as num
 import os

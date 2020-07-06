@@ -1,3 +1,6 @@
+
+from builtins import zip
+from builtins import str
 import csv
 import unittest, os
 import tempfile
@@ -87,11 +90,14 @@ class Test_Exposure(unittest.TestCase):
         e2 = Exposure(file_name)
         os.remove(file_name)
 
-        self.assertTrue(cmp(e1,e2)==0,
-                        'FAILED!')
-        
-        self.assertTrue(cmp(e1,"hey")==1,
-                        'FAILED!')
+
+        assert e1 == e2 
+        #self.assertTrue(cmp(e1,e2)==0,
+        #                'FAILED!')
+
+        assert e1 != "hey"
+        #self.assertTrue(cmp(e1,"hey")==1,
+        #                'FAILED!')
         
         file_name = tempfile.mktemp(".csv")
         file = open(file_name,"w")
@@ -105,8 +111,9 @@ class Test_Exposure(unittest.TestCase):
         e3 = Exposure(file_name)
         os.remove(file_name)
 
-        self.assertTrue(cmp(e3,e2)==0,
-                        'FAILED!')
+        assert e2 == e3
+        #self.assertTrue(cmp(e3,e2)==0,
+        #                'FAILED!')
         
         file_name = tempfile.mktemp(".csv")
         file = open(file_name,"w")
@@ -118,10 +125,12 @@ class Test_Exposure(unittest.TestCase):
         file.close()
         e4 = Exposure(file_name)
         os.remove(file_name)
-        #print "e4",e4._attribute_dic 
-        #print "e2",e2._attribute_dic 
-        self.assertTrue(cmp(e4,e2)!=0,
-                        'FAILED!')
+        #print("e4", e4._attribute_dic)
+        #print("e2", e2._attribute_dic)
+
+        assert e2 != e4
+        #self.assertTrue(cmp(e4,e2)!=0,
+        #                'FAILED!')
         
         file_name = tempfile.mktemp(".csv")
         file = open(file_name,"w")
@@ -134,8 +143,12 @@ class Test_Exposure(unittest.TestCase):
         e5 = Exposure(file_name)
         os.remove(file_name)
 
-        self.assertTrue(cmp(e3,e5)!=0,
-                        'FAILED!')
+        #print("e3", e3._attribute_dic, e3._title_index_dic)
+        #print("e5", e5._attribute_dic, e5._title_index_dic)
+        
+        assert e3 != e5
+        #self.assertTrue(cmp(e3,e5)!=0,
+        #                'FAILED!')
         
     def test_exposure_csv_saving(self):
         
@@ -152,9 +165,10 @@ class Test_Exposure(unittest.TestCase):
         file_name2 = tempfile.mktemp(".csv")
         e1.save(file_name = file_name2)
         e2 = Exposure(file_name2)
-       
-        self.assertTrue(cmp(e1,e2)==0,
-                        'FAILED!')
+
+        assert e1 == e2
+        #self.assertTrue(cmp(e1,e2)==0,
+        #                'FAILED!')
         os.remove(file_name)
         os.remove(file_name2)
 
@@ -250,7 +264,7 @@ class Test_Exposure(unittest.TestCase):
         e1.save(file_name = file_name2)
         e2 = Exposure(file_name2)
         returned_values = e2.get_column(new_title)
-        for returned, new in map(None, returned_values, new_values):
+        for returned, new in zip(returned_values, new_values):
             self.assertTrue(returned == str(new), ' Error!')
         #self.assertTrue(returned_values == new_values, ' Error!')       
         os.remove(file_name2)
@@ -291,10 +305,10 @@ class Test_Exposure(unittest.TestCase):
            
     def test_exposure_csv_loading_x_y2(self):
         
-        csv_file = tempfile.mktemp(".csv")
-        fd = open(csv_file,'wb')
+        csv_file = tempfile.mktemp('.csv')
+        fd = open(csv_file,'w')
         writer = csv.writer(fd)
-        writer.writerow(['x','y','STR_VALUE','C_VALUE','ROOF_TYPE','WALLS', 'SHORE_DIST'])
+        writer.writerow(['x','y','STR_VALUE','C_VALUE','ROOF_TYPE','WALLS','SHORE_DIST'])
         writer.writerow([5.5,0.5,'199770','130000','Metal','Timber',20])
         writer.writerow([4.5,1.0,'150000','76000','Metal','Double Brick',20])
         writer.writerow([4.5,1.5,'150000','76000','Metal','Brick Veneer',20])

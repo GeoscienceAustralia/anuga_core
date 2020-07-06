@@ -1,6 +1,6 @@
 """Class Domain - 2D triangular domains for finite-volume computations of
    conservation laws.
-   
+
    This is the base class for various domain models, such as: the Advection
    implementation is a simple algorithm, mainly for testing purposes, and
    the standard Shallow Water Wave domain (simply known as Domain) is the
@@ -11,10 +11,18 @@
    Ole Nielsen, Stephen Roberts, Duncan Gray
    Geoscience Australia
 """
-from __future__ import print_function
-from __future__ import absolute_import
 
+from builtins import range
+from builtins import object
 from time import time as walltime
+
+from anuga.config import max_smallsteps, beta_w, epsilon
+from anuga.config import CFL
+from anuga.config import timestepping_method
+from anuga.config import protect_against_isolated_degenerate_timesteps
+from anuga.config import default_order
+from anuga.config import max_timestep, min_timestep
+from anuga.config import g
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from .pmesh2domain import pmesh_to_domain
@@ -23,39 +31,36 @@ from anuga.geometry.polygon import inside_polygon
 from anuga.abstract_2d_finite_volumes.util import get_textual_float
 from .quantity import Quantity
 import anuga.utilities.log as log
+import anuga
 
 import numpy as num
 
 
+class Generic_Domain(object):
+    """Generic computational Domain constructor.
+    """
 
-
-
-class Generic_Domain:
-    '''
-    Generic computational Domain constructor.
-    '''
-
-
-    def __init__(self, source=None,
-                       triangles=None,
-                       boundary=None,
-                       conserved_quantities=None,
-                       evolved_quantities=None,
-                       other_quantities=None,
-                       tagged_elements=None,
-                       geo_reference=None,
-                       use_inscribed_circle=False,
-                       mesh_filename=None,
-                       use_cache=False,
-                       verbose=False,
-                       full_send_dict=None,
-                       ghost_recv_dict=None,
-                       starttime=0.0,
-                       processor=0,
-                       numproc=1,
-                       number_of_full_nodes=None,
-                       number_of_full_triangles=None,
-                       ghost_layer_width=2):
+    def __init__(self,
+                 source=None,
+                 triangles=None,
+                 boundary=None,
+                 conserved_quantities=None,
+                 evolved_quantities=None,
+                 other_quantities=None,
+                 tagged_elements=None,
+                 geo_reference=None,
+                 use_inscribed_circle=False,
+                 mesh_filename=None,
+                 use_cache=False,
+                 verbose=False,
+                 full_send_dict=None,
+                 ghost_recv_dict=None,
+                 starttime=0.0,
+                 processor=0,
+                 numproc=1,
+                 number_of_full_nodes=None,
+                 number_of_full_triangles=None,
+                 ghost_layer_width=2):
 
         """Instantiate generic computational Domain.
 
@@ -74,29 +79,29 @@ class Generic_Domain:
           tagged_elements:
           ...
         """
-        
-        if verbose: log.critical('Domain: Initialising')
+
+        if verbose:
+            log.critical('Domain: Initialising')
 
         # FIXME SR: This is a bug
-        number_of_full_nodes=None
-        number_of_full_triangles=None
-        
+        # FIXME(Ole): Do you mean a hack?
+        number_of_full_nodes = None
+        number_of_full_triangles = None
+
         # Determine whether source is a mesh filename or coordinates
-        if isinstance(source, basestring):
+        if isinstance(source, str):
             mesh_filename = source
         else:
             coordinates = source
-
-
 
         # In case a filename has been specified, extract content
         if mesh_filename is not None:
 
             coordinates, triangles, boundary, vertex_quantity_dict, \
-                         tagged_elements, geo_reference = \
-                         pmesh_to_domain(file_name=mesh_filename,
-                                         use_cache=use_cache,
-                                         verbose=verbose)
+                tagged_elements, geo_reference = \
+                    pmesh_to_domain(file_name=mesh_filename,
+                                    use_cache=use_cache,
+                                    verbose=verbose)
 
         # Initialise underlying mesh structure
         self.mesh = Mesh(coordinates, triangles,
@@ -104,11 +109,12 @@ class Generic_Domain:
                          tagged_elements=tagged_elements,
                          geo_reference=geo_reference,
                          use_inscribed_circle=use_inscribed_circle,
-                         #number_of_full_nodes=number_of_full_nodes,
-                         #number_of_full_triangles=number_of_full_triangles,
+                         # number_of_full_nodes=number_of_full_nodes,
+                         # number_of_full_triangles=number_of_full_triangles,
                          verbose=verbose)
-       
-        if verbose: log.critical('Domain: Expose mesh attributes')
+
+        if verbose:
+            log.critical('Domain: Expose mesh attributes')
 
         # Expose Mesh attributes (FIXME: Maybe turn into methods)
         self.triangles = self.mesh.triangles
@@ -119,7 +125,7 @@ class Generic_Domain:
         self.boundary = self.mesh.boundary
         self.boundary_enumeration = self.mesh.boundary_enumeration
         self.boundary_cells = self.mesh.boundary_cells
-        self.boundary_edges = self.mesh.boundary_edges 
+        self.boundary_edges = self.mesh.boundary_edges
         self.neighbours = self.mesh.neighbours
         self.surrogate_neighbours = self.mesh.surrogate_neighbours
         self.neighbour_edges = self.mesh.neighbour_edges
@@ -131,10 +137,10 @@ class Generic_Domain:
         self.number_of_boundaries = self.mesh.number_of_boundaries
         self.boundary_length = self.mesh.boundary_length
         self.tag_boundary_cells = self.mesh.tag_boundary_cells
-        #self.number_of_full_nodes = self.mesh.number_of_full_nodes
-        #self.number_of_full_triangles = self.mesh.number_of_full_triangles
+        # self.number_of_full_nodes = self.mesh.number_of_full_nodes
+        # self.number_of_full_triangles = self.mesh.number_of_full_triangles
         self.number_of_triangles_per_node = \
-                                    self.mesh.number_of_triangles_per_node
+            self.mesh.number_of_triangles_per_node
         self.node_index = self.mesh.node_index
         self.vertex_value_indices = self.mesh.vertex_value_indices
         self.number_of_triangles = self.mesh.number_of_triangles
@@ -144,7 +150,9 @@ class Generic_Domain:
 
         self.verbose = verbose
 
-        if verbose: log.critical('Domain: Expose quantity names and types')
+        if verbose:
+            log.critical('Domain: Expose quantity names and types')
+
         # List of quantity names entering the conservation equations
         if conserved_quantities is None:
             self.conserved_quantities = []
@@ -155,7 +163,7 @@ class Generic_Domain:
             self.evolved_quantities = self.conserved_quantities
         else:
             self.evolved_quantities = evolved_quantities
-            
+
         # List of other quantity names
         if other_quantities is None:
             self.other_quantities = []
@@ -168,26 +176,26 @@ class Generic_Domain:
             msg = 'The conserved quantities must be the first entries of '
             msg += 'evolved_quantities'
             assert quantity == self.evolved_quantities[i], msg
-            
 
-        if verbose: log.critical('Domain: Build Quantities')
+        if verbose:
+            log.critical('Domain: Build Quantities')
+
         # Build dictionary of Quantity instances keyed by quantity names
         self.quantities = {}
 
         for name in self.evolved_quantities:
-            #self.quantities[name] = Quantity(self, name=name)
+            # self.quantities[name] = Quantity(self, name=name)
             Quantity(self, name=name, register=True)
         for name in self.other_quantities:
-            #self.quantities[name] = Quantity(self, name=name)
-            Quantity(self, name=name , register=True)
+            # self.quantities[name] = Quantity(self, name=name)
+            Quantity(self, name=name, register=True)
 
         # Create an empty list for forcing terms
         self.forcing_terms = []
 
         # Create an empty list for fractional step operators
         self.fractional_step_operators = []
-        self.fractional_step_volume_integral=0.
-
+        self.fractional_step_volume_integral = 0.
 
         # by default domain is not parallel
         self.parallel = False
@@ -215,42 +223,43 @@ class Generic_Domain:
         self.communication_broadcast_time = 0.0
 
         # Setup Communication Buffers
-        if verbose: log.critical('Domain: Set up communication buffers ')
+        if verbose:
+            log.critical('Domain: Set up communication buffers ')
+
         self.nsys = len(self.conserved_quantities)
         for key in self.full_send_dict:
             buffer_shape = self.full_send_dict[key][0].shape[0]
-            self.full_send_dict[key].append(num.zeros((buffer_shape, self.nsys),
+            self.full_send_dict[key].append(num.zeros((buffer_shape,
+                                                       self.nsys),
                                                       num.float))
 
         for key in self.ghost_recv_dict:
             buffer_shape = self.ghost_recv_dict[key][0].shape[0]
-            self.ghost_recv_dict[key].append( \
-                                            num.zeros((buffer_shape, self.nsys),
-                                             num.float))
-
+            self.ghost_recv_dict[key].append(num.zeros((buffer_shape,
+                                                        self.nsys),
+                                                       num.float))
 
         # Setup triangle full flag
-        if verbose: log.critical('Domain: Set up triangle/node full flags ')
-        N = len(self) #number_of_elements
+        if verbose:
+            log.critical('Domain: Set up triangle/node full flags ')
+
+        N = len(self)  # Number_of_elements
         self.number_of_elements = N
 
-        
         # =1 for full
         # =0 for ghost
         self.tri_full_flag = num.ones(N, num.int)
-        
-        for i in self.ghost_recv_dict.keys():
+
+        for i in list(self.ghost_recv_dict.keys()):
             id = self.ghost_recv_dict[i][0]
             self.tri_full_flag[id] = 0
 
         self.number_of_full_triangles = int(num.sum(self.tri_full_flag))
 
-
         # Identify full nodes as those that intersect a full triangle.
+        Vol_ids = self.vertex_value_indices // 3
 
-        Vol_ids  = self.vertex_value_indices/3
-
-        # want this
+        # Want this
         # W = num.repeat(self.tri_full_flag, 3)
         # but without creating extra memeory
         # Got this
@@ -258,7 +267,7 @@ class Generic_Domain:
         # from
         # http://stackoverflow.com/questions/5564098/repeat-numpy-array-without-replicating-data
         a = self.tri_full_flag
-        b = num.lib.stride_tricks.as_strided(a, (a.size, 3), (a.itemsize,0))
+        b = num.lib.stride_tricks.as_strided(a, (a.size, 3), (a.itemsize, 0))
         W = b.flat
 
 #        print a
@@ -266,39 +275,27 @@ class Generic_Domain:
 #        print list(b)
 #        print num.repeat(self.tri_full_flag, 3)
 
+        self.node_full_flag = num.minimum(num.bincount(self.triangles.flat, weights=W).astype(num.int), 1)
 
-        self.node_full_flag = num.minimum(num.bincount(self.triangles.flat, weights = W).astype(num.int), 1)
-
-
-        #FIXME SR: The following line leads to a nasty segmentation fault!
-        #self.number_of_full_nodes = int(num.sum(self.node_full_flag))
-
+        # FIXME SR: The following line leads to a nasty segmentation fault!
+        # self.number_of_full_nodes = int(num.sum(self.node_full_flag))
         self.number_of_full_nodes = self.number_of_nodes
-
 
         # Test the assumption that all full triangles are stored before
         # the ghost triangles.
-        #if not num.allclose(self.tri_full_flag[:self.number_of_full_nodes], 1):
-        #    log.critical('WARNING: Not all full triangles are stored before '
-        #                     'ghost triangles')
+        # if not num.allclose(self.tri_full_flag[:self.number_of_full_nodes], 1):
+        #     log.critical('WARNING: Not all full triangles are stored before '
+        #                      'ghost triangles')
 
         # Defaults
-        if verbose: log.critical('Domain: Set defaults')
-
-        from anuga.config import max_smallsteps, beta_w, epsilon
-        from anuga.config import CFL
-        from anuga.config import timestepping_method
-        from anuga.config import protect_against_isolated_degenerate_timesteps
-        from anuga.config import default_order
-        from anuga.config import max_timestep, min_timestep
-        from anuga.config import g
+        if verbose:
+            log.critical('Domain: Set defaults')
 
         self.g = g
         self.beta_w = beta_w
         self.epsilon = epsilon
         self.protect_against_isolated_degenerate_timesteps = \
-                        protect_against_isolated_degenerate_timesteps
-
+            protect_against_isolated_degenerate_timesteps
 
         self.centroid_transmissive_bc = False
         self.set_default_order(default_order)
@@ -317,7 +314,7 @@ class Generic_Domain:
         # Model time
         self.finaltime = None
         self.recorded_min_timestep = self.recorded_max_timestep = 0.0
-        self.starttime = starttime # Physical starttime if any
+        self.starttime = starttime  # Physical starttime if any
         self.evolve_starttime = 0.0
         self.time = self.evolve_starttime
         self.timestep = 0.0
@@ -338,18 +335,18 @@ class Generic_Domain:
         self.datadir = default_datadir
         self.simulation_name = 'domain'
         self.checkpoint = False
-        
+
         # Early algorithms need elevation to remain continuous
         self.set_using_discontinuous_elevation(False)
 
-        if verbose: log.critical('Domain: Set work arrays')
-
+        if verbose:
+            log.critical('Domain: Set work arrays')
 
         # To avoid calculating the flux across each edge twice, keep an integer
         # (boolean) array, to be used during the flux calculation.
-        N = len(self) # Number_of_triangles
+        N = len(self)  # Number_of_triangles
         self.already_computed_flux = num.zeros((N, 3), num.int)
-        
+
         self.work_centroid_values = num.zeros(N, num.float)
 
         # Storage for maximal speeds computed for each triangle by
@@ -360,10 +357,13 @@ class Generic_Domain:
         if mesh_filename is not None:
             # If the mesh file passed any quantity values,
             # initialise with these values.
-            if verbose: log.critical('Domain: Initialising quantity values')
+            if verbose:
+                log.critical('Domain: Initialising quantity values')
+
             self.set_quantity_vertices_dict(vertex_quantity_dict)
 
-        if verbose: log.critical('Domain: Done')
+        if verbose:
+            log.critical('Domain: Done')
 
     ######
     # Expose underlying Mesh functionality
@@ -386,15 +386,15 @@ class Generic_Domain:
 
     def get_vertex_coordinates(self, *args, **kwargs):
         return self.mesh.get_vertex_coordinates(*args, **kwargs)
-        
+
     def get_vertex_coordinate(self, *args, **kwargs):
-        return self.mesh.get_vertex_coordinate(*args, **kwargs)        
-        
+        return self.mesh.get_vertex_coordinate(*args, **kwargs)
+
     def get_edge_midpoint_coordinates(self, *args, **kwargs):
-        return self.mesh.get_edge_midpoint_coordinates(*args, **kwargs)   
-        
+        return self.mesh.get_edge_midpoint_coordinates(*args, **kwargs)
+
     def get_edge_midpoint_coordinate(self, *args, **kwargs):
-        return self.mesh.get_edge_midpoint_coordinate(*args, **kwargs)        
+        return self.mesh.get_edge_midpoint_coordinate(*args, **kwargs)
 
     def get_triangles(self, *args, **kwargs):
         return self.mesh.get_triangles(*args, **kwargs)
@@ -406,7 +406,7 @@ class Generic_Domain:
         return self.mesh.get_number_of_nodes(*args, **kwargs)
 
     def get_number_of_triangles(self, *args, **kwargs):
-        return self.mesh.get_number_of_triangles(*args, **kwargs)    
+        return self.mesh.get_number_of_triangles(*args, **kwargs)
 
     def get_normal(self, *args, **kwargs):
         return self.mesh.get_normal(*args, **kwargs)
@@ -460,13 +460,13 @@ class Generic_Domain:
 
     def print_statistics(self, *args, **kwargs):
         print(self.statistics(*args, **kwargs))
-        
+
     def get_extent(self, *args, **kwargs):
-        return self.mesh.get_extent(*args, **kwargs)    
+        return self.mesh.get_extent(*args, **kwargs)
 
     def get_conserved_quantities(self, vol_id,
-                                       vertex=None,
-                                       edge=None):
+                                 vertex=None,
+                                 edge=None):
         """Get conserved quantities at volume vol_id.
 
         If vertex is specified use it as index for vertex values
@@ -531,13 +531,12 @@ class Generic_Domain:
         """
 
         return self.CFL
-    
+
     def get_cfl(self):
         """get CFL
         """
 
         return self.CFL
-    
 
     def set_CFL(self, cfl=1.0):
         """Set CFL parameter, warn if greater than 2.0
@@ -547,23 +546,20 @@ class Generic_Domain:
             msg = 'Setting CFL > 2.0'
             import warnings
             warnings.warn(msg)
-            #log.warning(msg)
+            # log.warning(msg)
 
         assert cfl > 0.0
         self.CFL = cfl
-        
+
     set_cfl = set_CFL
-        
 
-    def set_time(self, time=0.0 , relative=True):
+    def set_time(self, time=0.0, relative=True):
         """Set the model time (seconds)."""
-
 
         if relative:
             self.time = time
         else:
             self.time = time - self.starttime
-            
 
     def get_time(self, relative_time=True):
         """Get the absolute or relative model time (seconds)."""
@@ -572,22 +568,20 @@ class Generic_Domain:
             return self.time
         else:
             return self.starttime + self.time
- 
-    def set_zone(self,zone):  
+
+    def set_zone(self, zone):
         """Set zone for domain."""
-        
+
         self.geo_reference.zone = zone
-        
-        
+
     def get_datetime(self):
         """Return date time of current modeltime."""
-        
+
         import datetime
-        
+
         absolute_time = self.get_time(relative_time=False)
-        
+
         return datetime.datetime.utcfromtimestamp(absolute_time).strftime('%c')
-    
 
     def get_timestep(self):
         """get current timestep (seconds)."""
@@ -606,7 +600,6 @@ class Generic_Domain:
         """Get default beta for limiting."""
 
         return self.beta
-
 
     def set_centroid_transmissive_bc(self, flag):
         """Set behaviour of the transmissive boundary condition, namely
@@ -628,12 +621,10 @@ class Generic_Domain:
 
         return self.centroid_transmissive_bc
 
-
     def set_evolve_max_timestep(self, max_timestep):
         """Set default max_timestep for evolving."""
 
         self.evolve_max_timestep = max_timestep
-
 
     def get_evolve_max_timestep(self):
         """Set default max_timestep for evolving."""
@@ -645,29 +636,24 @@ class Generic_Domain:
 
         self.evolve_min_timestep = min_timestep
 
-
     def get_evolve_min_timestep(self):
         """Set default max_timestep for evolving."""
 
-        return self.evolve_min_timestep     
+        return self.evolve_min_timestep
 
-
-  
     def set_default_order(self, n):
         """Set default (spatial) order to either 1 or 2."""
 
         msg = 'Default order must be either 1 or 2. I got %s' % n
-        assert n in [1,2], msg
+        assert n in [1, 2], msg
 
         self.default_order = n
         self._order_ = self.default_order
-        
-        
-        
+
     def set_using_discontinuous_elevation(self, flag=False):
         """Set flag to show whether compute flux algorithm
         is allowing discontinuous elevation.
-        
+
         default is False
         """
 
@@ -677,7 +663,6 @@ class Generic_Domain:
         """
         Return boolean indicating whether algorithm is using dicontinuous elevation
         """
-
         return self.using_discontinuous_elevation
 
     def set_quantity_vertices_dict(self, quantity_dict):
@@ -692,11 +677,11 @@ class Generic_Domain:
 
         # FIXME: Could we name this a bit more intuitively
         # E.g. set_quantities_from_dictionary
-        for key in quantity_dict.keys():
+        for key in list(quantity_dict.keys()):
             self.set_quantity(key, quantity_dict[key], location='vertices')
 
     def set_quantity(self, name,
-                           *args, **kwargs):
+                     *args, **kwargs):
         """Set values for named quantity
 
         One keyword argument is documented here:
@@ -720,7 +705,7 @@ class Generic_Domain:
         self.quantities[name].set_values(*args, **kwargs)
 
     def add_quantity(self, name,
-                           *args, **kwargs):
+                     *args, **kwargs):
         """Add values to a named quantity
 
         E.g add_quantity('elevation', X)
@@ -744,7 +729,7 @@ class Generic_Domain:
         self.set_quantity(name, Q1 + Q2)
 
     def minimum_quantity(self, name,
-                           *args, **kwargs):
+                         *args, **kwargs):
         """min of values to a named quantity
 
         E.g minimum_quantity('elevation', X)
@@ -768,7 +753,7 @@ class Generic_Domain:
         self.set_quantity(name, Q1.minimum(Q2))
 
     def maximum_quantity(self, name,
-                           *args, **kwargs):
+                         *args, **kwargs):
         """max of values to a named quantity
 
         E.g maximum_quantity('elevation', X)
@@ -796,11 +781,11 @@ class Generic_Domain:
         Any value in the result should be a valid input to get_quantity.
         """
 
-        return self.quantities.keys()
+        return list(self.quantities.keys())
 
     def get_quantity(self, name,
-                           location='vertices',
-                           indices = None):
+                     location='vertices',
+                     indices=None):
         """Get pointer to quantity object.
 
         name: Name of quantity
@@ -810,7 +795,7 @@ class Generic_Domain:
         FIXME: clean input args
         """
 
-        return self.quantities[name] #.get_values( location, indices = indices)
+        return self.quantities[name]  # .get_values( location, indices = indices)
 
     def create_quantity_from_expression(self, expression):
         """Create new quantity from other quantities using arbitrary expression.
@@ -829,7 +814,7 @@ class Generic_Domain:
         """
 
         from anuga.abstract_2d_finite_volumes.util import\
-             apply_expression_to_dictionary
+            apply_expression_to_dictionary
 
         return apply_expression_to_dictionary(expression, self.quantities)
 
@@ -887,11 +872,12 @@ class Generic_Domain:
         else:
             # This is a modification of an already existing map
             # Update map an proceed normally
-            for key in boundary_map.keys():
+            for key in list(boundary_map.keys()):
                 self.boundary_map[key] = boundary_map[key]
 
         # FIXME (Ole): Try to remove the sorting and fix test_mesh.py
-        x = self.boundary.keys()
+        # This should be OK with Python 3 as items already sorted.
+        x = list(self.boundary.keys())
         x.sort()
 
         # Loop through edges that lie on the boundary and associate them with
@@ -905,40 +891,33 @@ class Generic_Domain:
 
                 if B is not None:
                     self.boundary_objects.append(((vol_id, edge_id), B))
-                    #self.neighbours[vol_id, edge_id] = \
-                                        #-len(self.boundary_objects)
+                    # self.neighbours[vol_id, edge_id] = \
+                    # -len(self.boundary_objects)
                 else:
                     pass
-                    #FIXME: Check and perhaps fix neighbour structure
+                    # FIXME: Check and perhaps fix neighbour structure
             else:
-                msg = 'ERROR (domain.py): Tag "%s" has not been ' %tag
+                msg = 'ERROR (domain.py): Tag "%s" has not been ' % tag
                 msg += 'bound to a boundary object.\n'
                 msg += 'All boundary tags defined in domain must appear '
                 msg += 'in set_boundary.\n'
-                msg += 'The tags are: %s' %self.get_boundary_tags()
+                msg += 'The tags are: %s' % self.get_boundary_tags()
                 raise Exception(msg)
-
-
 
         # Add a flag which can be used to distinguish flux boundaries within
         # compute_fluxes_central
+
         # Initialise to zero (which means 'not a flux_boundary')
-        self.boundary_flux_type = self.boundary_edges*0
+        self.boundary_flux_type = self.boundary_edges * 0
 
         # HACK to set the values of domain.boundary_flux
         for k, ((vol_id, edge_id), B) in enumerate(self.boundary_objects):
             # If Boundary set to Compute_fluxes_boundary identify as flux boundary
-            #print vol_id, edge_id, B
+            # print vol_id, edge_id, B
 
-            import anuga
-            if ( isinstance(B,anuga.Compute_fluxes_boundary) ):
-                self.boundary_flux_type[k]=1
+            if isinstance(B, anuga.Compute_fluxes_boundary):
+                self.boundary_flux_type[k] = 1
 
-
-    ##
-    # @brief Set quantities based on a regional tag.
-    # @param args
-    # @param kwargs
     def set_tag_region(self, *args, **kwargs):
         """Set quantities based on a regional tag.
 
@@ -969,12 +948,12 @@ class Generic_Domain:
         # The order of functions in the list is used.
         tagged_elements = self.get_tagged_elements()
         for function in functions:
-            for tag in tagged_elements.keys():
+            for tag in list(tagged_elements.keys()):
                 function(tag, tagged_elements[tag], self)
 
     def set_quantities_to_be_monitored(self, q,
-                                             polygon=None,
-                                             time_interval=None):
+                                       polygon=None,
+                                       time_interval=None):
         """Specify which quantities will be monitored for extrema.
 
         q must be either:
@@ -995,7 +974,7 @@ class Generic_Domain:
         """
 
         from anuga.abstract_2d_finite_volumes.util import\
-             apply_expression_to_dictionary
+            apply_expression_to_dictionary
 
         if q is None:
             self.quantities_to_be_monitored = None
@@ -1005,32 +984,32 @@ class Generic_Domain:
             return
 
         # coerce 'q' to a list if it's a string
-        if isinstance(q, basestring):
+        if isinstance(q, str):
             q = [q]
 
         # Check correctness and initialise
         self.quantities_to_be_monitored = {}
         for quantity_name in q:
             msg = 'Quantity %s is not a valid conserved quantity' \
-                      % quantity_name
+                % quantity_name
 
-            if not quantity_name in self.quantities:
+            if quantity_name not in self.quantities:
                 # See if this expression is valid
                 apply_expression_to_dictionary(quantity_name, self.quantities)
 
             # Initialise extrema information
-            info_block = {'min': None,          # Min value
-                          'max': None,          # Max value
-                          'min_location': None, # Argmin (x, y)
-                          'max_location': None, # Argmax (x, y)
-                          'min_time': None,     # Argmin (t)
-                          'max_time': None}     # Argmax (t)
+            info_block = {'min': None,           # Min value
+                          'max': None,           # Max value
+                          'min_location': None,  # Argmin (x, y)
+                          'max_location': None,  # Argmax (x, y)
+                          'min_time': None,      # Argmin (t)
+                          'max_time': None}      # Argmax (t)
 
             self.quantities_to_be_monitored[quantity_name] = info_block
 
         if polygon is not None:
             # Check input
-            if isinstance(polygon, basestring):
+            if isinstance(polygon, str):
                 # Check if multiple quantities were accidentally
                 # given as separate argument rather than a list.
                 msg = ('Multiple quantities must be specified in a list. '
@@ -1042,7 +1021,7 @@ class Generic_Domain:
 
                 try:
                     apply_expression_to_dictionary(polygon, self.quantities)
-                except:
+                except:  # FIXME(Ole): Use proper exception
                     # At least polygon wasn't expression involving quantitites
                     pass
                 else:
@@ -1070,19 +1049,18 @@ class Generic_Domain:
             msg = 'Conserved quantities must be a subset of all quantities'
             assert quantity in self.quantities, msg
 
-
         for i, quantity in enumerate(self.conserved_quantities):
             msg = 'Conserved quantities must be the first entries '
             msg += 'of evolved_quantities'
             assert quantity == self.evolved_quantities[i], msg
- 
 
     def write_time(self, track_speeds=False):
         log.critical(self.timestepping_statistics(track_speeds))
 
-    def timestepping_statistics(self, track_speeds=False,
-                                      triangle_id=None,
-                                      relative_time=True):
+    def timestepping_statistics(self,
+                                track_speeds=False,
+                                triangle_id=None,
+                                relative_time=True):
         """Return string with time stepping statistics
 
         Optional boolean keyword track_speeds decides whether to report
@@ -1101,18 +1079,16 @@ class Generic_Domain:
         msg = ''
 
         model_time = self.get_time(relative_time=relative_time)
- 
+
         if self.recorded_min_timestep == self.recorded_max_timestep:
             msg += 'Time = %.4f, delta t = %.8f, steps=%d' \
-                       % (model_time, self.recorded_min_timestep, \
-                                    self.number_of_steps)
+                % (model_time, self.recorded_min_timestep, self.number_of_steps)
         elif self.recorded_min_timestep > self.recorded_max_timestep:
-            msg += 'Time = %.4f, steps=%d' \
-                       % (model_time, self.number_of_steps)
+            msg += 'Time = %.4f, steps=%d' % (model_time, self.number_of_steps)
         else:
             msg += 'Time = %.4f, delta t in [%.8f, %.8f], steps=%d' \
-                       % (model_time, self.recorded_min_timestep,
-                          self.recorded_max_timestep, self.number_of_steps)
+                % (model_time, self.recorded_min_timestep,
+                   self.recorded_max_timestep, self.number_of_steps)
 
         msg += ' (%ds)' % (walltime() - self.last_walltime)
         self.last_walltime = walltime()
@@ -1132,9 +1108,9 @@ class Generic_Domain:
             hi = bins[0]
             for i, count in enumerate(hist):
                 lo = hi
-                if i+1 < len(bins):
+                if i + 1 < len(bins):
                     # Open upper interval
-                    hi = bins[i+1]
+                    hi = bins[i + 1]
                     msg += '    [%f, %f[: %d\n' % (lo, hi, count)
                 else:
                     # Closed upper interval
@@ -1144,28 +1120,28 @@ class Generic_Domain:
             N = len(self.max_speed.flat)
             if N > 10:
                 msg += '  Percentiles (10%):\n'
-                #speed = self.max_speed.tolist()
-                #speed.sort()
+                # speed = self.max_speed.tolist()
+                # speed.sort()
                 speed = num.sort(self.max_speed)
 
                 k = 0
                 lower = num.min(speed)
                 for i, a in enumerate(speed):
-                    if i % (N/10) == 0 and i != 0:
+                    if i % (N // 10) == 0 and i != 0:
                         # For every 10% of the sorted speeds
-                        msg += '    %d speeds in [%f, %f]\n' % (i-k, lower, a)
+                        msg += '    %d speeds in [%f, %f]\n' % (i - k, lower, a)
                         lower = a
                         k = i
 
                 msg += '    %d speeds in [%f, %f]\n'\
-                           % (N-k, lower, max(speed))
+                    % (N - k, lower, max(speed))
 
             # Find index of largest computed flux speed
             if triangle_id is None:
                 k = self.k = num.argmax(self.max_speed)
             else:
                 errmsg = 'Triangle_id %d does not exist in mesh: %s' \
-                             % (triangle_id, str(self))
+                    % (triangle_id, str(self))
                 assert 0 <= triangle_id < len(self), errmsg
                 k = self.k = triangle_id
 
@@ -1182,7 +1158,7 @@ class Generic_Domain:
                 msg += 'had computed speed: %.6f m/s ' % (max_speed)
 
             if max_speed > 0.0:
-                msg += '(timestep=%.6f)\n' % (radius/max_speed)
+                msg += '(timestep=%.6f)\n' % (radius // max_speed)
             else:
                 msg += '(timestep=%.6f)\n' % (0)
 
@@ -1196,14 +1172,14 @@ class Generic_Domain:
                 E = q.get_values(location='edges', indices=[k])[0]
                 C = q.get_values(location='centroids', indices=[k])
 
-                s  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n' \
-                         % (name.ljust(qwidth), V[0], V[1], V[2])
+                s = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n' \
+                    % (name.ljust(qwidth), V[0], V[1], V[2])
 
                 s += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n' \
-                         % (name.ljust(qwidth), E[0], E[1], E[2])
+                    % (name.ljust(qwidth), E[0], E[1], E[2])
 
                 s += '    %s: centroid_value = %.4f\n' \
-                         % (name.ljust(qwidth), C[0])
+                    % (name.ljust(qwidth), C[0])
 
                 msg += s
 
@@ -1212,8 +1188,6 @@ class Generic_Domain:
     def print_timestepping_statistics(self, *args, **kwargs):
         print(self.timestepping_statistics(self, *args, **kwargs))
 
-
-        
     def print_boundary_statistics(self, quantities=None, tags=None):
         print(self.boundary_statistics(quantities, tags))
 
@@ -1242,13 +1216,11 @@ class Generic_Domain:
         If tags are specified only report on those, otherwise take all tags.
         """
 
-        import types, string
-
         # Input checks
         if quantities is None:
             quantities = self.evolved_quantities
-        elif isinstance(quantities, basestring):
-            quantities = [quantities] #Turn it into a list
+        elif isinstance(quantities, str):
+            quantities = [quantities]  # Turn it into a list
 
         msg = ('Keyword argument quantities must be either None, '
                'string or list. I got %s') % str(quantities)
@@ -1256,8 +1228,8 @@ class Generic_Domain:
 
         if tags is None:
             tags = self.get_boundary_tags()
-        elif isinstance(tags, basestring):
-            tags = [tags] #Turn it into a list
+        elif isinstance(tags, str):
+            tags = [tags]  # Turn it into a list
 
         msg = ('Keyword argument tags must be either None, '
                'string or list. I got %s') % str(tags)
@@ -1280,7 +1252,7 @@ class Generic_Domain:
 
                 # Find range of boundary values for tag and q
                 maxval = minval = None
-                for i, ((vol_id,edge_id),B) in enumerate(self.boundary_objects):
+                for i, ((vol_id, edge_id), B) in enumerate(self.boundary_objects):
                     if self.boundary[(vol_id, edge_id)] == tag:
                         v = q.boundary_values[i]
                         if minval is None or v < minval: minval = v
@@ -1291,7 +1263,7 @@ class Generic_Domain:
                             ' tag %s and quantity %s\n') % (tag, name)
                 else:
                     msg += '        %s in [%12.8f, %12.8f]\n' \
-                               % (string.ljust(name, maxwidth), minval, maxval)
+                        % (str.ljust(name, maxwidth), minval, maxval)
 
         return msg
 
@@ -1309,9 +1281,9 @@ class Generic_Domain:
             return
 
         # Observe time interval restriction if any
-        if self.monitor_time_interval is not None and\
-               (self.get_time() < self.monitor_time_interval[0] or\
-               self.get_time() > self.monitor_time_interval[1]):
+        if self.monitor_time_interval is not None and \
+           (self.get_time() < self.monitor_time_interval[0] or
+            self.get_time() > self.monitor_time_interval[1]):
             return
 
         # Update extrema for each specified quantity subject to
@@ -1330,7 +1302,7 @@ class Generic_Domain:
             # of the epsilon)
             maxval = Q.get_maximum_value(self.monitor_indices)
             if info_block['max'] is None or \
-                   maxval > info_block['max'] + epsilon:
+               maxval > info_block['max'] + epsilon:
                 info_block['max'] = maxval
                 maxloc = Q.get_maximum_location()
                 info_block['max_location'] = maxloc
@@ -1339,7 +1311,7 @@ class Generic_Domain:
             # Update minimum
             minval = Q.get_minimum_value(self.monitor_indices)
             if info_block['min'] is None or \
-                   minval < info_block['min'] - epsilon:
+               minval < info_block['min'] - epsilon:
                 info_block['min'] = minval
                 minloc = Q.get_minimum_location()
                 info_block['min_location'] = minloc
@@ -1354,7 +1326,7 @@ class Generic_Domain:
            set_quantities_to_be_monitored
         """
 
-        maxlen = 128 # Max length of polygon string representation
+        maxlen = 128  # Max length of polygon string representation
 
         # Output statistics
         msg = 'Monitored quantities at time %.4f:\n' % self.get_time()
@@ -1368,26 +1340,25 @@ class Generic_Domain:
 
         if self.monitor_time_interval is not None:
             msg += '- Restricted by time interval: %s\n' \
-                       % str(self.monitor_time_interval)
+                % str(self.monitor_time_interval)
             time_interval_start = self.monitor_time_interval[0]
         else:
             time_interval_start = 0.0
 
-        for quantity_name, info in self.quantities_to_be_monitored.items():
+        for quantity_name, info in list(self.quantities_to_be_monitored.items()):
             msg += '    %s:\n' % quantity_name
+            msg += '      values since time = %.2f in [%s, %s]\n'\
+                % (time_interval_start,
+                   get_textual_float(info['min'], precision),
+                   get_textual_float(info['max'], precision))
 
-            msg += '      values since time = %.2f in [%s, %s]\n' \
-                       % (time_interval_start,
-                          get_textual_float(info['min'], precision),
-                          get_textual_float(info['max'], precision))
+            msg += '      minimum attained at time = %s, location = %s\n'\
+                % (get_textual_float(info['min_time'], precision),
+                   get_textual_float(info['min_location'], precision))
 
-            msg += '      minimum attained at time = %s, location = %s\n' \
-                       % (get_textual_float(info['min_time'], precision),
-                          get_textual_float(info['min_location'], precision))
-
-            msg += '      maximum attained at time = %s, location = %s\n' \
-                       % (get_textual_float(info['max_time'], precision),
-                          get_textual_float(info['max_location'], precision))
+            msg += '      maximum attained at time = %s, location = %s\n'\
+                % (get_textual_float(info['max_time'], precision),
+                   get_textual_float(info['max_location'], precision))
 
         return msg
 
@@ -1395,15 +1366,19 @@ class Generic_Domain:
         return self.timestepping_method
 
     def set_timestepping_method(self, timestepping_method):
+        # Number of calls to compute_fluxes within the timestep
         methods = ['euler', 'rk2', 'rk3']
-        substeps= [   1   ,  2   , 3    ] # Number of calls to compute_fluxes within the timestep
+        substeps= [   1   ,  2   ,  3   ]
+
         if timestepping_method in methods:
             self.timestepping_method = timestepping_method
-            self.timestep_fluxcalls = substeps[methods.index(timestepping_method)]
+            self.timestep_fluxcalls =\
+                substeps[methods.index(timestepping_method)]
             return
-        if timestepping_method in [1,2,3]:
-            self.timestepping_method = methods[timestepping_method-1]
-            self.timestep_fluxcalls = substeps[timestepping_method-1]
+
+        if timestepping_method in [1, 2, 3]:
+            self.timestepping_method = methods[timestepping_method - 1]
+            self.timestep_fluxcalls = substeps[timestepping_method - 1]
             return
 
         msg = '%s is an incorrect timestepping type' % timestepping_method
@@ -1425,18 +1400,17 @@ class Generic_Domain:
         if name is None:
             frame = inspect.currentframe()
             script_name = inspect.getouterframes(frame)[1][1]
-            name = 'output_'+os.path.splitext(script_name)[0]
-       
+            name = 'output_' + os.path.splitext(script_name)[0]
+
         # remove any '.sww' end
         if name.endswith('.sww'):
             name = name[:-4]
 
-
         from time import localtime, strftime, gmtime
-        time = strftime('%Y%m%d_%H%M%S',localtime())
+        time = strftime('%Y%m%d_%H%M%S', localtime())
 
         if timestamp:
-            name = name+'_'+time
+            name = name + '_' + time
 
         self.simulation_name = name
 
@@ -1450,76 +1424,77 @@ class Generic_Domain:
         return self.starttime
 
     def set_starttime(self, time):
-        
-        if self.evolved_called: 
-            raise Exception("Can't change simulation start time once evolve has been called")
-        
+
+        if self.evolved_called:
+            msg = ('Can\'t change simulation start time once evolve has '
+                   'been called')
+            raise Exception(msg)
+
         self.starttime = float(time)
         self.set_time(0.0)
-        
+
     def set_evolve_starttime(self, time):
         self.evolve_starttime = float(time)
         self.set_time(self.evolve_starttime)
-        
+
     def get_evolve_starttime(self):
         return self.evolve_starttime
 
+    # Outputs domain triangulation, full triangles are shown in green while
+    # ghost triangles are shown in blue.
+    # The default filename is "domain.png"
 
-    '''
-    Outputs domain triangulation, full triangles are shown in green while ghost triangles are shown in blue.
-    The default filename is "domain.png"
-    '''
-    def dump_triangulation(self, filename="domain.png"):
-        # Get vertex coordinates, partition full and ghost triangles based on self.tri_full_flag
+    def dump_triangulation(self, filename='domain.png'):
+        """ Get vertex coordinates, partition full and ghost triangles
+            based on self.tri_full_flag
+        """
 
         try:
             import matplotlib
             matplotlib.use('Agg')
             import matplotlib.pyplot as plt
             import matplotlib.tri as tri
-        except:
-            print("Couldn't import module from matplotlib, probably you need to update matplotlib")
-            raise
+        except ModuleNotFoundError:
+            msg = ('Couldn\'t import module from matplotlib, '
+                   'probably you need to update matplotlib')
+            raise Exception(msg)
 
         vertices = self.get_vertex_coordinates()
         full_mask = num.repeat(self.tri_full_flag == 1, 3)
         ghost_mask = num.repeat(self.tri_full_flag == 0, 3)
 
-
         # Gather full and ghost nodes
-        fx = vertices[full_mask,0]
-        fy = vertices[full_mask,1]
-        gx = vertices[ghost_mask,0]
-        gy = vertices[ghost_mask,1]
-
+        fx = vertices[full_mask, 0]
+        fy = vertices[full_mask, 1]
+        gx = vertices[ghost_mask, 0]
+        gy = vertices[ghost_mask, 1]
 
         # Plot full triangles
-        n = int(len(fx)/3)
+        n = int(len(fx) // 3)  # FIXME (Ole): No need to cast as int()
 
-        triang = num.array(range(0,3*n))
+        triang = num.array(list(range(0, 3 * n)))
         triang.shape = (n, 3)
         plt.triplot(fx, fy, triang, 'g-')
 
         # Plot ghost triangles
-        n = int(len(gx)/3)
+        n = int(len(gx) // 3)  # FIXME (Ole): No need to cast as int()
         if n > 0:
-            triang = num.array(range(0,3*n))
+            triang = num.array(list(range(0, 3 * n)))
             triang.shape = (n, 3)
             plt.triplot(gx, gy, triang, 'b--')
 
         # Save triangulation to location pointed by filename
         plt.savefig(filename)
 
+    ####################################################################
+    # Main components of evolve
+    ####################################################################
 
-
-################################################################################
-# Main components of evolve
-################################################################################
-
-    def evolve(self, yieldstep=None,
-                     finaltime=None,
-                     duration=None,
-                     skip_initial_step=False):
+    def evolve(self,
+               yieldstep=None,
+               finaltime=None,
+               duration=None,
+               skip_initial_step=False):
         """Evolve model through time starting from self.starttime.
 
         yieldstep: Interval between yields where results are stored,
@@ -1546,14 +1521,13 @@ class Generic_Domain:
 
         All times are given in seconds
         """
-        
+
         for t in self._evolve_base(yieldstep=yieldstep,
                                    finaltime=finaltime, duration=duration,
                                    skip_initial_step=skip_initial_step):
-            
+
             # Pass control on to outer loop for more specific actions
             yield(t)
-        
 
     def _evolve_base(self, yieldstep=None,
                      finaltime=None,
@@ -1593,9 +1567,8 @@ class Generic_Domain:
                'evolving system, '
                'e.g. using the method set_boundary.\n'
                'This system has the boundary tags %s '
-                   % self.get_boundary_tags())
+               % self.get_boundary_tags())
         assert hasattr(self, 'boundary_objects'), msg
-
 
         if self.evolved_called:
             skip_initial_step = True
@@ -1604,17 +1577,14 @@ class Generic_Domain:
 
         # We assume evolve has already been called so we should now
         # set evolve_starttime to match actual time
-        
+
         if skip_initial_step:
             self.set_evolve_starttime(self.get_time())
 
-        #import pdb
-        #pdb.set_trace()
-        
         # This can happen on the first call to evolve
         if self.get_time() != self.get_evolve_starttime():
             self.set_time(self.get_evolve_starttime())
-        
+
         if yieldstep is None:
             yieldstep = self.evolve_max_timestep
         else:
@@ -1625,8 +1595,6 @@ class Generic_Domain:
 
         self._order_ = self.default_order
 
-
-        
         if finaltime is not None and duration is not None:
             msg = 'Only one of finaltime and duration may be specified'
             raise Exception(msg)
@@ -1638,14 +1606,14 @@ class Generic_Domain:
 
         if self.finaltime < self.get_time():
             import warnings
-            msg =  '\n finaltime %g is less than current time %g! ' % (self.finaltime,self.get_time())
+            msg = ('\n finaltime %g is less than current time'
+                   ' %g! ' % (self.finaltime, self.get_time()))
             msg += 'finaltime set to current time'
             self.finaltime = self.get_time()
             warnings.warn(msg)
-            
+
             # let's get out of here
             return
-            
 
         N = len(self)                             # Number of triangles
         self.yieldtime = self.get_time() + yieldstep    # set next yield time
@@ -1658,39 +1626,28 @@ class Generic_Domain:
         self.number_of_steps = 0
         self.number_of_first_order_steps = 0
 
-
         # Update ghosts to ensure all centroid values are available
         self.update_ghosts()
 
-
         # Update extrema if necessary (for reporting)
         self.update_extrema()
-        
-
 
         # Or maybe restore from latest checkpoint
-        #if self.checkpoint is True:
-        #    self.goto_latest_checkpoint()
+        # if self.checkpoint is True:
+        #     self.goto_latest_checkpoint()
 
         if skip_initial_step is False:
-            
-            #==========================================
+
             # Assuming centroid values ok, calculate edge and vertes values
-            #==========================================  
             self.distribute_to_vertices_and_edges()
             self.update_boundary()
-            
+
             yield(self.get_time())      # Yield initial values
-            
-            
 
         while True:
-
             initial_time = self.get_time()
-            
-            #==========================================
+
             # Apply fluid flow fractional step
-            #==========================================
             if self.get_timestepping_method() == 'euler':
                 self.evolve_one_euler_step(yieldstep, self.finaltime)
 
@@ -1700,14 +1657,10 @@ class Generic_Domain:
             elif self.get_timestepping_method() == 'rk3':
                 self.evolve_one_rk3_step(yieldstep, self.finaltime)
 
-            #==========================================
             # Apply other fractional steps
-            #==========================================
             self.apply_fractional_steps()
 
-            #==========================================
-            # Centroid Values of variables should be ok,
-            #==========================================
+            # Centroid Values of variables should be ok
 
             # Update time
             self.set_time(initial_time + self.timestep)
@@ -1715,17 +1668,17 @@ class Generic_Domain:
             self.update_ghosts()
 
             # Update extrema (only uses centroid values)
-            self.update_extrema()            
+            self.update_extrema()
 
             self.number_of_steps += 1
 
             if self._order_ == 1:
                 self.number_of_first_order_steps += 1
 
-
             # Yield results
-            if self.finaltime is not None and self.get_time() >= self.finaltime-epsilon:
-                
+            if self.finaltime is not None and\
+               self.get_time() >= self.finaltime - epsilon:
+
                 if self.get_time() > self.finaltime:
                     # FIXME (Ole, 30 April 2006): Do we need this check?
                     # Probably not (Ole, 18 September 2008).
@@ -1733,7 +1686,8 @@ class Generic_Domain:
                     msg = ('WARNING (domain.py): time overshot finaltime. ')
                     raise Exception(msg)
 
-                # Distribute to vertices, Log and then Yield final time and stop
+                # Distribute to vertices, log and then yield final time
+                # and stop
                 self.set_time(self.finaltime)
                 self.distribute_to_vertices_and_edges()
                 self.update_boundary()
@@ -1741,41 +1695,42 @@ class Generic_Domain:
                 yield(self.get_time())
                 break
 
-            # if we are at the next yield point
+            # If we are at the next yield point
             if self.get_time() >= self.yieldtime:
                 # Yield (intermediate) time and allow inspection of domain
-                #if self.checkpoint is True:
+                # if self.checkpoint is True:
                 #    self.store_checkpoint()
                 #    self.delete_old_checkpoints()
 
-                # Log and then Pass control on to outer loop for more specific actions
+                # Log and then Pass control on to outer loop for more
+                # specific actions
                 self.distribute_to_vertices_and_edges()
                 self.update_boundary()
                 self.log_operator_timestepping_statistics()
                 yield(self.get_time())
 
                 # Reinitialise
-                self.yieldtime += yieldstep                 # move to next yield
+                self.yieldtime += yieldstep  # Move to next yield
                 self.recorded_min_timestep = self.evolve_max_timestep
                 self.recorded_max_timestep = self.evolve_min_timestep
                 self.number_of_steps = 0
                 self.number_of_first_order_steps = 0
                 self.max_speed = num.zeros(N, num.float)
 
-
     def evolve_one_euler_step(self, yieldstep, finaltime):
         """One Euler Time Step
         Q^{n+1} = E(h) Q^n
 
-        Does not assume that centroid values have been extrapolated to vertices and edges
+        Does not assume that centroid values have been extrapolated to
+        vertices and edges
         """
 
         # From centroid values calculate edge and vertex values
         self.distribute_to_vertices_and_edges()
-            
+
         # Apply boundary conditions
         self.update_boundary()
-        
+
         # Compute fluxes across each element edge
         self.compute_fluxes()
 
@@ -1785,24 +1740,20 @@ class Generic_Domain:
         # Update timestep to fit yieldstep and finaltime
         self.update_timestep(yieldstep, finaltime)
 
-        if self.max_flux_update_frequency is not 1:
+        if self.max_flux_update_frequency != 1:
             # Update flux_update_frequency using the new timestep
             self.compute_flux_update_frequency()
 
         # Update conserved quantities
         self.update_conserved_quantities()
 
-
-
-
-
     def evolve_one_rk2_step(self, yieldstep, finaltime):
         """One 2nd order RK timestep
         Q^{n+1} = 0.5 Q^n + 0.5 E(h)^2 Q^n
-        
-        Does not assume that centroid values have been extrapolated to vertices and edges
+
+        Does not assume that centroid values have been extrapolated to
+        vertices and edges
         """
-        
 
         # Save initial initial conserved quantities values
         self.backup_conserved_quantities()
@@ -1810,12 +1761,12 @@ class Generic_Domain:
         ######
         # First euler step
         ######
-        
+
         # From centroid values calculate edge and vertex values
         self.distribute_to_vertices_and_edges()
-            
+
         # Apply boundary conditions
-        self.update_boundary()        
+        self.update_boundary()
 
         # Compute fluxes across each element edge
         self.compute_fluxes()
@@ -1825,13 +1776,12 @@ class Generic_Domain:
 
         # Update timestep to fit yieldstep and finaltime
         self.update_timestep(yieldstep, finaltime)
-        
 
         # Update centroid values of conserved quantities
         self.update_conserved_quantities()
 
         # Update special conditions
-        #self.update_special_conditions()
+        # self.update_special_conditions()
 
         # Update time
         self.set_time(self.get_time() + self.timestep)
@@ -1871,18 +1821,18 @@ class Generic_Domain:
         self.saxpy_conserved_quantities(0.5, 0.5)
 
         # Update special conditions
-        #self.update_special_conditions()
+        # self.update_special_conditions()
 
         # Update ghosts
-        #self.update_ghosts()
-
+        # self.update_ghosts()
 
     def evolve_one_rk3_step(self, yieldstep, finaltime):
         """One 3rd order RK timestep
         Q^(1) = 3/4 Q^n + 1/4 E(h)^2 Q^n  (at time t^n + h/2)
         Q^{n+1} = 1/3 Q^n + 2/3 E(h) Q^(1) (at time t^{n+1})
-        
-        Does not assume that centroid values have been extrapolated to vertices and edges
+
+        Does not assume that centroid values have been extrapolated to
+        vertices and edges
         """
 
         # Save initial initial conserved quantities values
@@ -1896,9 +1846,9 @@ class Generic_Domain:
 
         # From centroid values calculate edge and vertex values
         self.distribute_to_vertices_and_edges()
-            
+
         # Apply boundary conditions
-        self.update_boundary() 
+        self.update_boundary()
 
         # Compute fluxes across each element edge
         self.compute_fluxes()
@@ -1913,7 +1863,7 @@ class Generic_Domain:
         self.update_conserved_quantities()
 
         # Update special conditions
-        #self.update_special_conditions()
+        # self.update_special_conditions()
 
         # Update time
         self.set_time(self.time + self.timestep)
@@ -1952,10 +1902,10 @@ class Generic_Domain:
         self.saxpy_conserved_quantities(0.25, 0.75)
 
         # Update special conditions
-        #self.update_special_conditions()
+        # self.update_special_conditions()
 
         # Set substep time
-        self.set_time(initial_time + self.timestep*0.5)
+        self.set_time(initial_time + self.timestep * 0.5)
 
         # Update ghosts
         self.update_ghosts()
@@ -1985,27 +1935,24 @@ class Generic_Domain:
         ######
 
         # Combine steps
-        
+
         # This causes a roundoff error that created negative water heights
-        #self.saxpy_conserved_quantities(2.0/3.0, 1.0/3.0)
-        
+        # self.saxpy_conserved_quantities(2.0/3.0, 1.0/3.0)
+
         # So do this instead!
         self.saxpy_conserved_quantities(2.0, 1.0)
         for name in self.conserved_quantities:
             Q = self.quantities[name]
-            Q.centroid_values[:] = Q.centroid_values/3.0
-            
+            Q.centroid_values[:] = Q.centroid_values / 3.0
 
         # Update special conditions
-        #self.update_special_conditions()
-        
+        # self.update_special_conditions()
 
         # Set new time
         self.set_time(initial_time + self.timestep)
 
         # Update ghosts
-        #self.update_ghosts()
-
+        # self.update_ghosts()
 
     def evolve_to_end(self, finaltime=1.0):
         """Iterate evolve all the way to the end."""
@@ -2027,22 +1974,19 @@ class Generic_Domain:
             Q = self.quantities[name]
             Q.saxpy_centroid_values(a, b)
 
-            
-
-
-    def  conserved_values_to_evolved_values(self, q_cons, q_evol):
+    def conserved_values_to_evolved_values(self, q_cons, q_evol):
         """Needs to be overridden by Domain subclass
         """
 
         if len(q_cons) == len(q_evol):
             q_evol[:] = q_cons
         else:
-            msg = 'Method conserved_values_to_evolved_values must be overridden'
-            msg += ' by Domain subclass'
+            msg = ('Method conserved_values_to_evolved_values must be'
+                   ' overridden by Domain subclass')
             raise Exception(msg)
 
         return q_evol
-    
+
     def update_boundary_old(self):
         """Go through list of boundary objects and update boundary values
         for all conserved quantities on boundary.
@@ -2064,23 +2008,20 @@ class Generic_Domain:
                     # conserved and evolved quantities are the same
                     q_evol = q_bdry
                 elif len(q_bdry) == len(self.conserved_quantities):
-                    # boundary just returns conserved quantities
+                    # Boundary just returns conserved quantities
                     # Need to calculate all the evolved quantities
-                    # Use default conversion 
+                    # Use default conversion
 
-                    q_evol = self.get_evolved_quantities(vol_id, edge = edge_id)
-
-                    q_evol = self.conserved_values_to_evolved_values \
-                                                            (q_bdry, q_evol)
+                    x = self.get_evolved_quantities(vol_id, edge=edge_id)
+                    q_evol = self.conserved_values_to_evolved_values(q_bdry, x)
                 else:
                     msg = 'Boundary must return array of either conserved'
                     msg += ' or evolved quantities'
                     raise Exception(msg)
-                
+
                 for j, name in enumerate(self.evolved_quantities):
                     Q = self.quantities[name]
                     Q.boundary_values[i] = q_evol[j]
-
 
     def update_boundary_old_2(self):
         """Go through list of boundary objects and update boundary values
@@ -2091,9 +2032,8 @@ class Generic_Domain:
         quantity in domain.
         """
 
-
         for i in range(self.boundary_length):
-            vol_id  = self.boundary_cells[i]
+            vol_id = self.boundary_cells[i]
             edge_id = self.boundary_edges[i]
             blah, B = self.boundary_objects[i]
 
@@ -2106,14 +2046,12 @@ class Generic_Domain:
                     # conserved and evolved quantities are the same
                     q_evol = q_bdry
                 elif len(q_bdry) == len(self.conserved_quantities):
-                    # boundary just returns conserved quantities
+                    # Boundary just returns conserved quantities
                     # Need to calculate all the evolved quantities
                     # Use default conversion
 
-                    q_evol = self.get_evolved_quantities(vol_id, edge = edge_id)
-
-                    q_evol = self.conserved_values_to_evolved_values \
-                                                            (q_bdry, q_evol)
+                    x = self.get_evolved_quantities(vol_id, edge=edge_id)
+                    q_evol = self.conserved_values_to_evolved_values(q_bdry, x)
                 else:
                     msg = 'Boundary must return array of either conserved'
                     msg += ' or evolved quantities'
@@ -2122,8 +2060,6 @@ class Generic_Domain:
                 for j, name in enumerate(self.evolved_quantities):
                     Q = self.quantities[name]
                     Q.boundary_values[i] = q_evol[j]
-
-
 
     def update_boundary(self):
         """Go through list of boundary objects and update boundary values
@@ -2135,9 +2071,6 @@ class Generic_Domain:
         """
 
         for tag in self.tag_boundary_cells:
-
-            #print tag
-            
             B = self.boundary_map[tag]
 
             if B is None:
@@ -2146,18 +2079,14 @@ class Generic_Domain:
             boundary_segment_edges = self.tag_boundary_cells[tag]
 
             B.evaluate_segment(self, boundary_segment_edges)
-        
 
     def compute_fluxes(self):
         msg = 'Method compute_fluxes must be overridden by Domain subclass'
         raise Exception(msg)
 
-
     def apply_fractional_steps(self):
-
         for operator in self.fractional_step_operators:
             operator()
-
 
     def log_operator_timestepping_statistics(self):
         for operator in self.fractional_step_operators:
@@ -2171,20 +2100,20 @@ class Generic_Domain:
         for operator in self.fractional_step_operators:
             operator.print_statistics()
 
-
-    def set_fractional_step_operator(self,operator):
-
+    def set_fractional_step_operator(self, operator):
         self.fractional_step_operators.append(operator)
 
     def update_timestep(self, yieldstep, finaltime):
+        """Calculate the next timestep to take
+        """
 
         # Protect against degenerate timesteps arising from isolated
         # triangles
         self.apply_protection_against_isolated_degenerate_timesteps()
-                
+
         # self.timestep is calculated from speed of characteristics
         # Apply CFL condition here
-        timestep = min(self.CFL*self.flux_timestep, self.evolve_max_timestep)
+        timestep = min(self.CFL * self.flux_timestep, self.evolve_max_timestep)
 
         # Record maximal and minimal values of timestep for reporting
         self.recorded_max_timestep = max(timestep, self.recorded_max_timestep)
@@ -2196,13 +2125,13 @@ class Generic_Domain:
             self.smallsteps += 1
 
             if self.smallsteps > self.max_smallsteps:
-                self.smallsteps = 0 # Reset
+                self.smallsteps = 0  # Reset
 
                 if self._order_ == 1:
                     msg = 'WARNING: Too small timestep %.16f reached ' \
-                              % timestep
+                        % timestep
                     msg += 'even after %d steps of 1 order scheme' \
-                               % self.max_smallsteps
+                        % self.max_smallsteps
                     log.critical(msg)
                     timestep = self.evolve_min_timestep  # Try enforce min_step
 
@@ -2217,10 +2146,10 @@ class Generic_Domain:
             self.smallsteps = 0
             if self._order_ == 1 and self.default_order == 2:
                 self._order_ = 2
-        
+
         # NOTE: Here the timestep is redefined. This can lead to a timestep
         #       being smaller than the self.recorded_min_timestep, which
-        #       confused me (GD). 
+        #       confused me (GD).
         #       The behaviour is good though, since then the
         #       recorded_min_timestep reflects the mathematical constraints on
         #       the timestep, EXCEPT the constraint that we yield at the
@@ -2229,14 +2158,12 @@ class Generic_Domain:
         #       given time
 
         # Ensure that final time is not exceeded
-        if finaltime is not None and self.get_time() + timestep > finaltime :
+        if finaltime is not None and self.get_time() + timestep > finaltime:
             timestep = finaltime - self.get_time()
 
         # Ensure that model time is aligned with yieldsteps
         if self.get_time() + timestep > self.yieldtime:
             timestep = self.yieldtime - self.get_time()
-
-
 
         self.timestep = timestep
 
@@ -2252,50 +2179,46 @@ class Generic_Domain:
         for f in self.forcing_terms:
             f(self)
 
-
     def update_conserved_quantities(self):
         """Update vectors of conserved quantities using previously
         computed fluxes and specified forcing functions.
         """
 
-        N = len(self) # Number_of_triangles
+        N = len(self)  # Number_of_triangles
         d = len(self.conserved_quantities)
 
         timestep = self.timestep
 
-        #print 'Generic Update conserved quantities'
         # Update conserved_quantities
         for name in self.conserved_quantities:
             Q = self.quantities[name]
             Q.update(timestep)
-            
-            
-            
 
             # Note that Q.explicit_update is reset by compute_fluxes
             # Where is Q.semi_implicit_update reset?
             # It is reset in quantity_ext.c
 
     def update_ghosts(self, quantities=None):
-        # We must send the information from the full cells and
-        # receive the information for the ghost cells
-        # We have a list with ghosts expecting updates
-        
+        """We must send the information from the full cells and
+           receive the information for the ghost cells
+           We have a list with ghosts expecting updates
+        """
+
         if quantities is None:
             quantities = self.conserved_quantities
-            
-        #Update of ghost cells
+
+        # Update of ghost cells
         iproc = self.processor
         if iproc in self.full_send_dict:
 
-            # now store full as local id, global id, value
-            Idf  = self.full_send_dict[iproc][0]
+            # Now store full as local id, global id, value
+            Idf = self.full_send_dict[iproc][0]
 
-            # now store ghost as local id, global id, value
+            # Now store ghost as local id, global id, value
             Idg = self.ghost_recv_dict[iproc][0]
 
             for i, q in enumerate(quantities):
-                Q_cv =  self.quantities[q].centroid_values
+                Q_cv = self.quantities[q].centroid_values
                 num.put(Q_cv, Idg, num.take(Q_cv, Idf, axis=0))
 
 #    def update_special_conditions(self):
@@ -2303,26 +2226,20 @@ class Generic_Domain:
 #        quantities to satisfy special conditions at the very lowest level
 #        the fluid flow calculation
 #        """
-#
 #        pass
-
 
     def update_other_quantities(self):
         """ There may be a need to calculates some of the other quantities
         based on the new values of conserved quantities
         """
-
         pass
-    
-    
+
     def compute_flux_update_frequency(self):
-        """ Some flux calculations can be sped up by not recalculating
-        fluxes and interpolation for regions with low velocities and large 
+        """Some flux calculations can be sped up by not recalculating
+        fluxes and interpolation for regions with low velocities and large
         triangles
         """
-        
         pass
-    
 
     def distribute_to_vertices_and_edges(self):
         """Extrapolate conserved quantities from centroid to
@@ -2342,7 +2259,6 @@ class Generic_Domain:
             else:
                 raise Exception('Unknown order: %s' % str(self._order_))
 
-
     def centroid_norm(self, quantity, normfunc):
         """Calculate the norm of the centroid values of a specific quantity,
         using normfunc.
@@ -2354,17 +2270,15 @@ class Generic_Domain:
 
         return normfunc(self.quantities[quantity].centroid_values)
 
-
-
     def apply_protection_against_isolated_degenerate_timesteps(self):
 
         # FIXME (Steve): This should be in shallow_water as it assumes x and y
         # momentum
         if self.protect_against_isolated_degenerate_timesteps is False:
             return
-        
+
         # FIXME (Ole): Make this configurable
-        if num.max(self.max_speed) < 10.0: 
+        if num.max(self.max_speed) < 10.0:
             return
 
         # Setup 10 bins for speed histogram
@@ -2375,7 +2289,7 @@ class Generic_Domain:
 
         # Look for characteristic signature
         if len(hist) > 1 and hist[-1] > 0 and \
-            hist[4] == hist[5] == hist[6] == hist[7] == hist[8] == 0:
+           hist[4] == hist[5] == hist[6] == hist[7] == hist[8] == 0:
             # Danger of isolated degenerate triangles
 
             # Find triangles in last bin
@@ -2385,40 +2299,13 @@ class Generic_Domain:
                 if self.max_speed[i] > bins[-1]:
                     msg = 'Time=%f: Ignoring isolated high ' % self.get_time()
                     msg += 'speed triangle '
-                    msg += '#%d of %d with max speed=%f' \
+                    msg += '#%d of %d with max speed = %f' \
                         % (i, self.number_of_triangles, self.max_speed[i])
 
-                    self.get_quantity('xmomentum').\
-                        set_values(0.0, indices=[i])
-                    self.get_quantity('ymomentum').\
-                        set_values(0.0, indices=[i])
-                    self.max_speed[i]=0.0
+                    self.get_quantity('xmomentum').set_values(0.0, indices=[i])
+                    self.get_quantity('ymomentum').set_values(0.0, indices=[i])
+                    self.max_speed[i] = 0.0
                     d += 1
-
-
-######
-# Initialise module
-######
-
-# Optimisation with psyco
-#from anuga.config import use_psyco
-
-#if use_psyco:
-    #try:
-        #import psyco
-    #except:
-        #import os
-        #if os.name == 'posix' and os.uname()[4] in ['x86_64', 'ia64']:
-            #pass
-            ## Psyco isn't supported on 64 bit systems, but it doesn't matter
-        #else:
-            #log.critical('WARNING: psyco (speedup) could not be imported, '
-                         #'you may want to consider installing it')
-    #else:
-        #psyco.bind(Generic_Domain.update_boundary)
-        ##psyco.bind(Domain.update_timestep) # Not worth it
-        #psyco.bind(Generic_Domain.update_conserved_quantities)
-        #psyco.bind(Generic_Domain.distribute_to_vertices_and_edges)
 
 
 if __name__ == "__main__":

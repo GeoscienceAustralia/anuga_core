@@ -1,4 +1,8 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
+from builtins import object
 from future.utils import raise_
 import os.path
 import sys
@@ -15,7 +19,7 @@ import anuga
 #------------------------------------------
 # Import pypar without the initial output
 #------------------------------------------
-class NullStream:
+class NullStream(object):
     def write(self,text):
         pass
 sys.stdout = NullStream()
@@ -62,7 +66,7 @@ def topography(x, y):
     A culvert will connect either side
     """
     # General Slope of Topography
-    z=-x/1000
+    z=old_div(-x,1000)
     
     N = len(x)
     for i in range(N):
@@ -105,8 +109,8 @@ def run_simulation(parallel = False, control_data = None, test_points = None, ve
 ## Setup domain
 ##-----------------------------------------------------------------------
 
-    points, vertices, boundary = rectangular_cross(int(length/dx),
-                                                   int(width/dy),
+    points, vertices, boundary = rectangular_cross(int(old_div(length,dx)),
+                                                   int(old_div(width,dy)),
                                                    len1=length, 
                                                    len2=width)
 

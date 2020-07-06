@@ -1,3 +1,8 @@
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from past.utils import old_div
 from future.utils import raise_
 import numpy as num
 
@@ -83,7 +88,7 @@ def urs2sts(basename_in, basename_out=None,
     NODATA = 99
 
     # Check that basename is a list of strings
-    if not reduce(__and__, map(lambda z:isinstance(z,basestring), basename_in)):
+    if not reduce(__and__, [isinstance(z,basestring) for z in basename_in]):
         msg= 'basename_in must be a string or list of strings'
         raise_(Exception, msg)
 
@@ -93,7 +98,7 @@ def urs2sts(basename_in, basename_out=None,
     # A weight must be specified for each source
     if weights is None:
         # Default is equal weighting
-        weights = num.ones(numSrc, num.float) / numSrc
+        weights = old_div(num.ones(numSrc, num.float), numSrc)
     else:
         weights = ensure_numeric(weights)
         msg = 'When combining multiple sources must specify a weight for ' \
