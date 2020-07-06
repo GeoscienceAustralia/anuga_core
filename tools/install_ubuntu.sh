@@ -68,7 +68,7 @@ sudo apt-get install -q -y git gfortran netcdf-bin \
                              libnetcdf-dev libhdf5-serial-dev
 
 
-sudo add-apt-repository ppa:ubuntugis/ppa
+sudo add-apt-repository -y ppa:ubuntugis/ppa
 sudo apt-get update
 sudo apt-get install -y gdal-bin libgdal-dev
 ogrinfo --version
