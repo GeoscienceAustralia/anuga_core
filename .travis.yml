@@ -28,6 +28,7 @@ install:
 
 script:
     - export OMPI_MCA_btl_vader_single_copy_mechanism=none
+    - python --version
     - python runtests.py $COVERAGE
     - if [[ "$COVERAGE" == "--coverage" ]]; then cp build/test/.coverage .; fi
 
