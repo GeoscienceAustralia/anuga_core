@@ -3,7 +3,7 @@
     :alt: travis ci status
 
 .. image:: https://ci.appveyor.com/api/projects/status/ws836mwk6j5brrye/branch/anuga_py3?svg=true
-    :target: hhttps://ci.appveyor.com/project/stoiver/anuga-core/branch/anuga_py3
+    :target: https://ci.appveyor.com/project/stoiver/anuga-core/branch/anuga_py3
     :alt: appveyor status
 
 .. image:: https://img.shields.io/pypi/v/anuga.svg
