@@ -28,7 +28,7 @@ export PATH=/Users/travis/miniconda3/bin:$PATH
 conda create -n anuga_env --yes python=3.7 gdal pip nose numpy scipy netcdf4 matplotlib dill cython future
 
 source activate anuga_env
-pip install mpi4py
+#pip install mpi4py
 
 # Useful for debugging any issues with conda
 conda info -a
