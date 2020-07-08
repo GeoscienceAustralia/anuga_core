@@ -9,7 +9,7 @@
 
 set -e
 
-brew update
+#brew update
 brew install openmpi
 
 
