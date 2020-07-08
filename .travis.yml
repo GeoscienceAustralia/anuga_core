@@ -6,6 +6,8 @@ matrix:
        - os: osx
          language: generic
          sudo: false
+         env: DISTRIB="conda_macos"
+
         
        - os: linux
          dist: xenial
