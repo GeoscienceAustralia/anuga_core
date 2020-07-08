@@ -10,7 +10,7 @@
 set -e
 
 #brew update
-brew install openmpi
+#brew install openmpi
 
 
 # Install miniconda
