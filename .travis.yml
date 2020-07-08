@@ -6,7 +6,6 @@ matrix:
        - os: osx
          language: generic
          sudo: false
-         env: ANUGA_PARALLEL="conda"  PYPAR_AVAILABLE="mpi4py" DISTRIB="conda_macos"
         
        - os: linux
          dist: xenial
