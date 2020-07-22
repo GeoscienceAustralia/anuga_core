@@ -580,6 +580,7 @@ class Write_sww(Write_sts):
         """
 
         from anuga import get_revision_number
+        from anuga import get_revision_date        
         from anuga import get_version
 
         outfile.institution = 'Geoscience Australia'
@@ -599,11 +600,20 @@ class Write_sww(Write_sts):
         try:
             revision_number = get_revision_number()
         except:
-            # This will be triggered if the system cannot get the SVN
+            # This will be triggered if the system cannot get the 
             # revision number.
             revision_number = None
         # Allow None to be stored as a string
         outfile.revision_number = str(revision_number)
+        
+        try:
+            revision_date = get_revision_date()
+        except:
+            # This will be triggered if the system cannot get the 
+            # revision date.
+            revision_date = None
+        # Allow None to be stored as a string
+        outfile.revision_date = str(revision_date)        
 
         try:
             anuga_version = get_version()

@@ -38,13 +38,6 @@ class Test_data_audit(unittest.TestCase):
   <ga_license_file>
     <metadata>
       <author>Ole Nielsen</author>
-      <svn_keywords>
-        <author>$Author: ole $</author>  
-        <date>$Date: 2008-01-21 18:58:15 +1100 (Mon, 21 Jan 2008) $</date>
-        <revision>$Revision$</revision>
-        <url>$URL: https://datamining.anu.edu.au/svn/ga/anuga_core/source/anuga/utilities/mainland_only.lic $</url>
-        <id>$Id: mainland_only.lic 4963 2008-01-21 07:58:15Z ole $</id>
-      </svn_keywords>
     </metadata>
     <datafile>
       <filename>%s</filename>
@@ -120,13 +113,6 @@ class Test_data_audit(unittest.TestCase):
   <ga_license_file>
     <metadata>
       <author>Ole Nielsen</author>
-      <svn_keywords>
-        <author>$Author: ole $</author>  
-        <date>$Date: 2008-01-21 18:58:15 +1100 (Mon, 21 Jan 2008) $</date>
-        <revision>$Revision$</revision>
-        <url>$URL: https://datamining.anu.edu.au/svn/ga/anuga_core/source/anuga/utilities/mainland_only.lic $</url>
-        <id>$Id: mainland_only.lic 4963 2008-01-21 07:58:15Z ole $</id>
-      </svn_keywords>
     </metadata>
     <datafile>
       <filename>%s</filename>
@@ -194,13 +180,6 @@ class Test_data_audit(unittest.TestCase):
   <ga_license_file>
     <metadata>
       <author>Ole Nielsen</author>
-      <svn_keywords>
-        <author>$Author: ole $</author>  
-        <date>$Date: 2008-01-21 18:58:15 +1100 (Mon, 21 Jan 2008) $</date>
-        <revision>$Revision$</revision>
-        <url>$URL:$</url>
-        <id>$Id:$</id>
-      </svn_keywords>
     </metadata>
     <datafile>
       <filename>%s</filename>
@@ -262,13 +241,6 @@ class Test_data_audit(unittest.TestCase):
   <ga_license_file>
     <metadata>
       <author>Ole Nielsen</author>
-      <svn_keywords>
-        <author>$Author$</author>  
-        <date>$Date$</date>
-        <revision>$Revision$</revision>
-        <url>$URL:$</url>
-        <id>$Id$</id>
-      </svn_keywords>
     </metadata>
     <datafile>
       <filename>%s</filename>
@@ -323,13 +295,6 @@ class Test_data_audit(unittest.TestCase):
   <ga_license_file>
     <metadata>
       <author>Ole Nielsen</author>
-      <svn_keywords>
-        <author>$Author$</author>  
-        <date>$Date$</date>
-        <revision>$Revision$</revision>
-        <url>$URL:$</url>
-        <id>$Id$</id>
-      </svn_keywords>
     </metadata>
     <datafile>
       <filename>%s</filename>

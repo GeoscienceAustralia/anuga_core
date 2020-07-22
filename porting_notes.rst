@@ -30,7 +30,7 @@ git pull upstream python3_anuga_py3
 ----------------------------------
 # Create ANUGA Python environments
 conda create -n anuga27 -c conda-forge python=2.7   git pip nose numpy scipy netcdf4 matplotlib gdal dill cython future openmp mpi4py
-conda create -n anuga38 -c conda-forge python=3.8.2 git pip nose numpy scipy netcdf4 matplotlib gdal dill cython future openmp mpi4py
+conda create -n anuga38 -c conda-forge python=3.8.2 git pip nose numpy scipy netcdf4 matplotlib gdal dill cython future openmp mpi4py gitpython
 
 Run tests
 conda activate anuga38; python setup.py develop; python runtests.py
@@ -115,7 +115,17 @@ Date      PR Result                                                     Notes ::
 20200610     Ran 1291 tests in 95.531s  FAILED (failures=13)            Not sure what happened there....
 
 
+FIXMEs (fgrep -r FIXME anuga/* | wc -l)
+-------------------------------------------------------
+20200721     580 
+20200721     578                                                        Replaced revision info from SVN by GIT  
+
+
+
+
+------------
 ANUGA Viewer
+
 
 https://github.com/GeoscienceAustralia/anuga-viewer/blob/master/INSTALL.rst
 
