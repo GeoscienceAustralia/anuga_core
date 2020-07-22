@@ -84,6 +84,11 @@ echo "+===============================================+"
 sudo pip install -q future
 
 echo "+===============================================+"
+echo "|  Using pip to install gitpython               |"
+echo "+===============================================+"
+sudo pip install -q gitpython
+
+echo "+===============================================+"
 echo "|  Using pip to install pyproj                  |"
 echo "+===============================================+"
 sudo pip install -q pyproj

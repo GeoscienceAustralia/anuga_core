@@ -25,7 +25,7 @@ conda update --yes conda
 # Configure the conda environment and put it in the path using the
 # provided versions
     
-conda create -n anuga_env --yes python=3.7 gdal pip nose numpy scipy netcdf4 matplotlib dill cython future
+conda create -n anuga_env --yes python=3.7 gdal pip nose numpy scipy netcdf4 matplotlib dill cython future gitpython
 
 source activate anuga_env
 pip install mpi4py
