@@ -61,12 +61,8 @@ Reference:
     New Zealand, December 2005, pp. 518-523. ISBN: 0-9758400-2-9.
     http://www.mssanz.org.au/modsim05/papers/nielsen.pdf
 
+    See also: https://anuga.anu.edu.au and https://en.wikipedia.org/wiki/ANUGA_Hydro
 
-SeeAlso:
-    TRAC administration of ANUGA (User Manuals etc) at
-    https://anuga.anu.edu.au and Subversion repository at
-    $HeadURL: https://anuga.anu.edu.au/svn/anuga/trunk/anuga_core/source/
-                anuga/shallow_water/shallow_water_domain.py $
 
 Constraints: See GPL license in the user guide
 """

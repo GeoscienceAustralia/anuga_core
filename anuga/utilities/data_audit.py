@@ -27,26 +27,6 @@ An example of the XML format expected by this module is
 
 There can be more than one <datafile> element to cover files
 with different extensions.
-
-
-Here's a DTD format, we might implement one day
-
-   <!DOCTYPE ga_license_file [
-      <!ELEMENT ga_license_file (source, datafile+)>
-      <!ELEMENT metadata (author, svn_keywords)>
-      <!ELEMENT svn_keywords (author, date, revision, url, id)>    
-      <!ELEMENT datafile (filename, publishable, accountable, 
-      			owner, location, IP_info)>    
-      <!ELEMENT filename (#PCDATA)>
-      <!ELEMENT publishable (#PCDATA)>    
-      <!ELEMENT accountable (#PCDATA)>        
-      <!ELEMENT source (#PCDATA)>        			
-      <!ELEMENT IP_owner (#PCDATA)>            
-      <!ELEMENT IP_info (#PCDATA)>                
-  ]>
-
-
-
 """
 
 from os import remove, walk, sep
@@ -100,7 +80,7 @@ def IP_verified(directory,
     Examples are:
     extensions_to_ignore = ['.py','.c','.h', '.f'] # Ignore source code
     files_to_ignore = ['README.txt']
-    directories_to_ignore = ['.svn', 'misc']
+    directories_to_ignore = ['.git', 'misc']
 
     None is also OK for these parameters.
     
@@ -302,9 +282,6 @@ def license_file_is_valid(license_filename, data_filename,
     if author == '':
         msg = 'Missing author'
         raise Exception(msg)                
-    
-    #svn_keywords = metadata['svn_keywords']
-    #if verbose: print 'SVN keywords:   ', svn_keywords
     
         
     # Extract information for datafile sections

@@ -59,13 +59,6 @@ class Test_xml_tools(unittest.TestCase):
   <ga_license_file>
     <metadata>
       <author>Ole Nielsen</author>
-      <svn_keywords>
-        <author>$Author$</author>  
-        <date>$Date$</date>
-        <revision>$Revision$</revision>
-        <url>$URL:$</url>
-        <id>$Id$</id>
-      </svn_keywords>
     </metadata>
     <datafile>
       <filename>bathymetry.asc</filename>
@@ -136,13 +129,6 @@ class Test_xml_tools(unittest.TestCase):
   <ga_license_file>
     <metadata>
       <author>Ole Nielsen</author>
-      <svn_keywords>
-        <author>$Author$</author>  
-        <date>$Date$</date>
-        <revision>$Revision$</revision>
-        <url>$URL:$</url>
-        <id>$Id$</id>
-      </svn_keywords>
     </metadata>
     <datafile>
       <filename>bathymetry.asc</filename>
