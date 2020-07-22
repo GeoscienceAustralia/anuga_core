@@ -11,9 +11,8 @@ Introduction
 ============
 
 ANUGA_ is a python package with some C extensions (and an optional fortran 
-extension). At present ANUGA has only been run and tested using python 2.x.
-We recommend python 2.7.
-We are currently porting ANUGA to Python 3.x
+extension). At present ANUGA has only been run and tested using python 2.x and Python 3.8.x
+We recommend python 2.8.2
 
 
 Dependencies

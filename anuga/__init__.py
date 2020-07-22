@@ -20,16 +20,31 @@
 # Make selected classes available directly
 # -----------------------------------------------------
 
-
 from builtins import filter
 
-# FIXME (Ole): We should remove all references to svn. Are we using this anywhere?
 
+# ANUGA version
 __version__ = '2.0.3'
 
-__svn_revision__ = ''.join(filter(str.isdigit, "$Revision: 9737 $"))
+# Git revision information (relies on the gitpython package)
+# https://stackoverflow.com/questions/14989858/get-the-current-git-hash-in-a-python-script
+try:
+    import git
+except:
 
-__svn_revision_date__ = "$Date: 2016-10-04 16:13:00 +1100 (Tue, 04 Oct 2016) $"[7:-1]
+    # Create dummy values for git revision info
+    __git_sha__ = 'No git sha available'
+    __git_committed_datetime__ = 'No git date available'
+
+    msg = ('Could not import git module. ANUGA will still work, but will not store '
+           'revision information in output file. You may need to install python git '
+           'e.g. as pip install gitpython')
+    #raise Warning(msg)  # I can't remember why does this cause ANUGA to stop instead of just issuing the warning (Ole)?
+    print('WARNING', msg)
+else:
+    repo = git.Repo(search_parent_directories=True)
+    __git_sha__ = repo.head.object.hexsha
+    __git_committed_datetime__ = repo.head.object.committed_datetime
 
 
 # We first need to detect if we're being called as part of the anuga setup
@@ -308,6 +323,7 @@ else:
     from anuga.utilities.system_tools import get_user_name
     from anuga.utilities.system_tools import get_host_name
     from anuga.utilities.system_tools import get_version
+    
     from anuga.utilities.system_tools import get_revision_number
     from anuga.utilities.system_tools import get_revision_date
     from anuga.utilities.mem_time_equation import estimate_time_mem
@@ -319,8 +335,6 @@ else:
     from anuga.extras import create_domain_from_file
     from anuga.extras import rectangular_cross_domain
 
-
-    #import logging as log
     from anuga.utilities import log as log
 
     from anuga.config import g

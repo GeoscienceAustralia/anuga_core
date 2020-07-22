@@ -37,7 +37,7 @@ files_to_ignore = ['README.txt', 'LICENSE.txt', 'Makefile',
                    '.temp', 'SConstruct', 'SConscript', 'log.ini']
 
 # Ignore directories
-directories_to_ignore = ['.svn', 'misc', '.metadata', 'pymetis']
+directories_to_ignore = ['.git', 'misc', '.metadata', 'pymetis']
 directories_to_ignore += ['old_pyvolution_documentation']
 
 
