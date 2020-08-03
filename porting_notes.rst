@@ -125,6 +125,10 @@ FIXMEs (fgrep -r FIXME anuga/* | wc -l)
 20200721     580 
 20200721     578                                                        Replaced revision info from SVN by GIT  
 
+OLD_DIV (fgrep -R  old_div * | wc -l)
+-------------------------------------
+20200803    4842
+
 
 
 
