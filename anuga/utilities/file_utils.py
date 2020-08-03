@@ -12,12 +12,6 @@ import numpy as num
 import shutil
 from . import log
 
-# Python 2.7 Hack
-try:
-    from exceptions import IOError
-except:
-    pass
-
 
 def make_filename(s):
     """Transform argument string into a standard filename

@@ -25,20 +25,7 @@ singletons!
 Until the first call to log() the user is free to play with the module data
 to configure the logging.
 
-Note that this module uses some features of the logging package that were
-introduced in python2.5.  If running on earlier versions, the following
-features are disabled:
-    . Calling module name + line number
 """
-
-# FIXME(Ole): These two lines seem to be necessary for Python2.7 in a very subtle way. The tests test_system_tools.py and 
-# test_quantity_setting_functions.py fail with this error
-# File "/home/ro/Work/sandpit/anuga_core/anuga/utilities/system_tools.py", line 8, in <module>
-#    import urllib.request, urllib.parse, urllib.error
-# ImportError: No module named request
-from future import standard_library
-standard_library.install_aliases()
-
 
 import os
 import sys
