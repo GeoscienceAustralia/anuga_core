@@ -1,6 +1,11 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
 # To change this template, choose Tools | Templates
 # and open the template in the editor.
 
+from builtins import str
+from past.utils import old_div
 import anuga
 import numpy
 import math
@@ -8,7 +13,7 @@ import anuga.structures.inlet
 
 from anuga.utilities.system_tools import log_to_file
 from anuga.structures.inlet_operator import Inlet_operator
-import parallel_inlet
+from . import parallel_inlet
 
 
 class Parallel_Inlet_operator(Inlet_operator):
@@ -43,7 +48,7 @@ class Parallel_Inlet_operator(Inlet_operator):
                  procs = None,
                  verbose = False):
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
         self.domain = domain
         self.domain.set_fractional_step_operator(self)
         self.poly = numpy.array(poly, dtype='d')
@@ -101,7 +106,7 @@ class Parallel_Inlet_operator(Inlet_operator):
 
     def __call__(self):
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
         volume = 0
 
         # Need to run global command on all processors
@@ -132,7 +137,7 @@ class Parallel_Inlet_operator(Inlet_operator):
 
         #print self.myid, volume, current_volume, total_area, timestep
 
-        self.applied_Q = volume/timestep
+        self.applied_Q = old_div(volume,timestep)
 
         # Distribute positive volume so as to obtain flat surface otherwise
         # just pull water off to have a uniform depth.
@@ -146,12 +151,12 @@ class Parallel_Inlet_operator(Inlet_operator):
                 self.inlet.set_ymoms(self.inlet.get_ymoms()+depths*self.velocity[1])
 
         elif current_volume + volume >= 0.0 :
-            depth = (current_volume + volume)/total_area
+            depth = old_div((current_volume + volume),total_area)
             self.inlet.set_depths(depth)
             self.domain.fractional_step_volume_integral+=volume
         else: #extracting too much water!
             self.inlet.set_depths(0.0)
-            self.applied_Q = -current_volume/timestep
+            self.applied_Q = -old_div(current_volume,timestep)
             self.domain.fractional_step_volume_integral-=current_volume
 
 
@@ -167,9 +172,9 @@ class Parallel_Inlet_operator(Inlet_operator):
         if callable(self.Q):
             try:
                 Q = self.Q(t)
-            except Modeltime_too_early, e:
+            except Modeltime_too_early as e:
                 Q = self.get_default(t)
-            except Modeltime_too_late, e:
+            except Modeltime_too_late as e:
                 Q = self.get_default(t)
         else:
             Q = self.Q
@@ -206,7 +211,7 @@ class Parallel_Inlet_operator(Inlet_operator):
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
 
-        print self.statistics()
+        print(self.statistics())
 
 
     def print_timestepping_statistics(self):
@@ -218,7 +223,7 @@ class Parallel_Inlet_operator(Inlet_operator):
             message += '--------------------------------------------\n'
             message += 'Q [m^3/s]: %.2f\n' % self.applied_Q
 
-            print message
+            print(message)
 
 
     def set_logging(self, flag=True):

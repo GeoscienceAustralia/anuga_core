@@ -1,7 +1,11 @@
 '''
     Operations to extract information from an SWW file.
 '''
+from __future__ import print_function
+from __future__ import division
 
+from builtins import range
+from past.utils import old_div
 import os
 import anuga.utilities.log as log
 import numpy as num
@@ -178,9 +182,9 @@ def get_flow_through_multiple_cross_sections(filename, polylines, verbose=False)
     # Compute hydrograph
     mult_Q = []
     base_id = 0
-    if verbose: print '',
+    if verbose: print('', end=' ')
     for segments in mult_segments:
-        if verbose: print '\b.',
+        if verbose: print('\b.', end=' ')
         Q = []
         for t in time:
             total_flow = 0.0
@@ -206,7 +210,7 @@ def get_flow_through_multiple_cross_sections(filename, polylines, verbose=False)
         base_id = base_id + len(segments)
         mult_Q.append(Q)
 
-    if verbose: print
+    if verbose: print()
     
     return time, mult_Q
 
@@ -237,7 +241,7 @@ def get_interpolated_quantities_at_multiple_polyline_midpoints(filename,
     from anuga.fit_interpolate.interpolate import Interpolation_function
 
     # Get mesh and quantities from sww file
-    if verbose: print 'Reading mesh and quantities from sww file'
+    if verbose: print('Reading mesh and quantities from sww file')
     X = get_mesh_and_quantities_from_file(filename,
                                           quantities=quantity_names,
                                           verbose=verbose)
@@ -245,7 +249,7 @@ def get_interpolated_quantities_at_multiple_polyline_midpoints(filename,
 
     # Find all intersections and associated triangles.
     mult_segments = []
-    if verbose: print 'Intersecting segments with triangles'
+    if verbose: print('Intersecting segments with triangles')
     for polyline in polylines:
         mult_segments.append(mesh.get_intersecting_segments(polyline, verbose=verbose))
 
@@ -258,7 +262,7 @@ def get_interpolated_quantities_at_multiple_polyline_midpoints(filename,
      
 
     if verbose: 
-        print 'len interpolating points ', len(interpolation_points)
+        print('len interpolating points ', len(interpolation_points))
 
     # Interpolate
     if verbose:
@@ -347,13 +351,13 @@ def get_energy_through_cross_section(filename,
             # Average velocity across this segment
             if h > epsilon:
                 # Use protection against degenerate velocities
-                u = uh / (h + h0/h)
-                v = vh / (h + h0/h)
+                u = old_div(uh, (h + old_div(h0,h)))
+                v = old_div(vh, (h + old_div(h0,h)))
             else:
                 u = v = 0.0
 
             speed_squared = u*u + v*v
-            kinetic_energy = 0.5 * speed_squared / g
+            kinetic_energy = old_div(0.5 * speed_squared, g)
 
             if kind == 'specific':
                 segment_energy = depth + kinetic_energy
@@ -364,7 +368,7 @@ def get_energy_through_cross_section(filename,
                 msg += 'I got %s' % kind
 
             # Add to weighted average
-            weigth = segments[i].length / total_line_length
+            weigth = old_div(segments[i].length, total_line_length)
             average_energy += segment_energy * weigth
 
         # Store energy at this timestep
@@ -477,7 +481,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
     #iterate_over = get_all_swwfiles(dir, base)
     iterate_over = [ filename[:-4] ]
     if verbose:
-        print iterate_over
+        print(iterate_over)
         
     # Read sww file
     if verbose: log.critical('Reading from %s' % filename)
@@ -523,9 +527,9 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
             found_c_values = False
 
         if verbose:
-            print 'found c values ', found_c_values
-            print 'stage.shape ',stage.shape
-            print 'elevation.shape ',elevation.shape
+            print('found c values ', found_c_values)
+            print('stage.shape ',stage.shape)
+            print('elevation.shape ',elevation.shape)
             
         # Here's where one could convert nodal information to centroid
         # information but is probably something we need to write in C.
@@ -571,7 +575,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         # Temporal restriction
         time = fid.variables['time'][:]
         if verbose:
-            print time
+            print(time)
         all_timeindices = num.arange(len(time))
         
         if time_interval is not None:
@@ -622,15 +626,15 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
             depth = stage_i - elevation
 
             if verbose:
-                print '++++++++'
+                print('++++++++')
             # Get wet nodes i.e. nodes with depth>0 within given region
             # and timesteps
             wet_nodes = num.where(depth > 0.0)[0]
 
 
             if verbose:
-                print stage_i.shape
-                print num.max(stage_i)
+                print(stage_i.shape)
+                print(num.max(stage_i))
                 #print max(wet_elevation)
 
 
@@ -648,20 +652,30 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
                 runup_index = num.argmax(wet_elevation)
                 runup = max(wet_elevation)
                 if verbose:
-                    print 'max(wet_elevation) ',max(wet_elevation)
+                    print('max(wet_elevation) ',max(wet_elevation))
                 assert wet_elevation[runup_index] == runup       # Must be True
 
-            if runup > maximal_runup:
+
+            # Python3.8 no longer supports things like 3.333 > None or None > None
+            # so this elegant conditional: if runup > maximal_runup
+            # had to be unpacked thusly
+            if maximal_runup is None and runup is None:
+                # First time around
+                pass
+            elif maximal_runup is None or runup > maximal_runup:
                 maximal_runup = runup      # works even if maximal_runup is None
                 maximal_time = time[i]
 
                 # Record location
                 wet_x = num.take(x, wet_nodes, axis=0)
                 wet_y = num.take(y, wet_nodes, axis=0)
-                maximal_runup_location =    [wet_x[runup_index], \
-                                            wet_y[runup_index]]
+                maximal_runup_location = [wet_x[runup_index],
+                                          wet_y[runup_index]]
+            else:
+                pass
+            
             if verbose:
-                print i, runup
+                print(i, runup)
 
     if return_time:
         return maximal_runup, maximal_runup_location, maximal_time

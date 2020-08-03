@@ -3,10 +3,14 @@
 Water driven up a linear slope and time varying boundary,
 similar to a beach environment
 """
+from __future__ import print_function
+from __future__ import division
 
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
+from builtins import range
+from past.utils import old_div
 import sys
 import anuga
 from anuga import Domain as Domain
@@ -39,7 +43,7 @@ L = 20.
 W = 5.
 
 # structured mesh
-points, vertices, boundary = anuga.rectangular_cross(int(L/dx), int(W/dy), L, W, (-L/2.0, -W/2.0))
+points, vertices, boundary = anuga.rectangular_cross(int(old_div(L,dx)), int(old_div(W,dy)), L, W, (-L/2.0, -W/2.0))
 
 #domain = anuga.Domain(points, vertices, boundary) 
 domain = Domain(points, vertices, boundary) 
@@ -105,7 +109,7 @@ if vtk_visualiser:
 i = 0
 for t in domain.evolve(yieldstep = 0.01, finaltime = 0.25):
     #print domain.timestepping_statistics(track_speeds=True)
-    print domain.timestepping_statistics()
+    print(domain.timestepping_statistics())
     if vtk_visualiser: 
         vis.update()
         fileName = 'stage_%03d' % i + '.vtk'

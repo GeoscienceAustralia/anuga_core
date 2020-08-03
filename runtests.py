@@ -24,6 +24,7 @@ Generate C code coverage listing under build/lcov/:
     $ python runtests.py --lcov-html
 
 """
+from __future__ import print_function
 
 #
 # This is a generic test runner script for projects using Numpy's test
@@ -56,7 +57,11 @@ sys.path.pop(0)
 import shutil
 import subprocess
 import time
-import imp
+try:
+    from types import ModuleType as new_module
+except ImportError:  # old Python
+    from imp import new_module
+
 from argparse import ArgumentParser, REMAINDER
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__)))
@@ -134,7 +139,7 @@ def main(argv):
             sys.argv = extra_argv
             with open(extra_argv[0], 'r') as f:
                 script = f.read()
-            sys.modules['__main__'] = imp.new_module('__main__')
+            sys.modules['__main__'] = new_module('__main__')
             ns = dict(__name__='__main__',
                       __file__=extra_argv[0])
             exec_(script, ns)

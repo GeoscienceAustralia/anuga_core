@@ -9,8 +9,9 @@ the data_audit process.
 
 These will generally be specific to each software project.
 """
+from __future__ import absolute_import
 
-from data_audit import IP_verified as IP_engine
+from .data_audit import IP_verified as IP_engine
 
 # Ignore source code files
 extensions_to_ignore = ['.py','.c', '.h', '.cpp', '.f', '.bat', '.m','.sh','.awk', '.a']
@@ -36,7 +37,7 @@ files_to_ignore = ['README.txt', 'LICENSE.txt', 'Makefile',
                    '.temp', 'SConstruct', 'SConscript', 'log.ini']
 
 # Ignore directories
-directories_to_ignore = ['.svn', 'misc', '.metadata', 'pymetis']
+directories_to_ignore = ['.git', 'misc', '.metadata', 'pymetis']
 directories_to_ignore += ['old_pyvolution_documentation']
 
 

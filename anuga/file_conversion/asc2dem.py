@@ -1,4 +1,5 @@
 # external modules
+from future.utils import raise_
 import numpy as num
 import anuga.utilities.log as log
 
@@ -49,7 +50,7 @@ def asc2dem(name_in, name_out=None,
                        verbose=verbose)
 
     else:
-        result = apply(_convert_dem_from_ascii2netcdf, [name_in], kwargs)
+        result = _convert_dem_from_ascii2netcdf(*[name_in], **kwargs)
 
     return result
 
@@ -135,7 +136,7 @@ def _convert_dem_from_ascii2netcdf(name_in, name_out = None,
         xllcorner = float(xref[1].strip())
     else:
         msg = 'Unknown keyword: %s' % xref[0].strip()
-        raise Exception, msg
+        raise_(Exception, msg)
 
     yref = lines[3].split()
     if yref[0].strip() == 'yllcorner':
@@ -144,9 +145,9 @@ def _convert_dem_from_ascii2netcdf(name_in, name_out = None,
         yllcorner = float(yref[1].strip())
     else:
         msg = 'Unknown keyword: %s' % yref[0].strip()
-        raise Exception, msg
+        raise_(Exception, msg)
 
-    NODATA_value = int(float(lines[5].split()[1].strip()))
+    NODATA_value = float(lines[5].split()[1].strip())
 
     assert len(lines) == nrows + 6
 

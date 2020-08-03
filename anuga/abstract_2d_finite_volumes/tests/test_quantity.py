@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from builtins import map
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import unittest
 from math import sqrt, pi
 import tempfile
@@ -285,16 +292,16 @@ class Test_Quantity(unittest.TestCase):
 
             #z = z[::-1,:]
 
-            print z
-            print z.shape
-            print x
-            print y
+            print(z)
+            print(z.shape)
+            print(x)
+            print(y)
 
             nrows = z.shape[0]
             ncols = z.shape[1]
 
             ratio = float(nrows)/float(ncols)
-            print ratio
+            print(ratio)
 
             #y = numpy.arange(nrows)*cellsize
             #x = numpy.arange(ncols)*cellsize
@@ -340,7 +347,7 @@ class Test_Quantity(unittest.TestCase):
             ncols = z.shape[1]
 
             ratio = float(nrows)/float(ncols)
-            print ratio
+            print(ratio)
 
             #Setup fig size to correpond to array size
             fig = pylab.figure(figsize=(10, 10*ratio))
@@ -871,7 +878,7 @@ class Test_Quantity(unittest.TestCase):
         ptsfile = tempfile.mktemp(".txt")
         file = open(ptsfile, "w")
         file.write(" x,y," + att + " \n")
-        for data_point, attribute in map(None, data_points_absolute, attributes):
+        for data_point, attribute in zip(data_points_absolute, attributes):
             row = str(data_point[0]) + ',' + str(data_point[1]) \
                   + ',' + str(attribute)
             file.write(row + "\n")
@@ -928,7 +935,7 @@ class Test_Quantity(unittest.TestCase):
         ptsfile = tempfile.mktemp(".txt")
         file = open(ptsfile, "w")
         file.write(" x,y," + att + " \n")
-        for data_point, attribute in map(None, data_points_absolute, attributes):
+        for data_point, attribute in zip(data_points_absolute, attributes):
             row = str(data_point[0]) + ',' + str(data_point[1]) \
                   + ',' + str(attribute)
             file.write(row + "\n")
@@ -1008,7 +1015,7 @@ class Test_Quantity(unittest.TestCase):
         ptsfile = tempfile.mktemp(".txt")
         file = open(ptsfile, "w")
         file.write(" x,y," + att + " \n")
-        for data_point, attribute in map(None, data_points_absolute, attributes):
+        for data_point, attribute in zip(data_points_absolute, attributes):
             row = str(data_point[0]) + ',' + str(data_point[1]) \
                   + ',' + str(attribute)
             file.write(row + "\n")
@@ -1056,7 +1063,7 @@ class Test_Quantity(unittest.TestCase):
         txt_file = tempfile.mktemp(".txt")
         file = open(txt_file, "w")
         file.write(" lat,long," + att + " \n")
-        for data_point, attribute in map(None, data_points, attributes):
+        for data_point, attribute in zip(data_points, attributes):
             row = str(data_point[0]) + ',' + str(data_point[1]) \
                   + ',' + str(attribute)
             #print "row", row
@@ -1099,7 +1106,7 @@ class Test_Quantity(unittest.TestCase):
         txt_file = tempfile.mktemp(".txt")
         file = open(txt_file, "w")
         file.write(" lat,long," + att + " \n")
-        for data_point, attribute in map(None, data_points, attributes):
+        for data_point, attribute in zip(data_points, attributes):
             row = str(data_point[0]) + ',' + str(data_point[1]) \
                   + ',' + str(attribute)
             #print "row", row
@@ -1141,7 +1148,7 @@ class Test_Quantity(unittest.TestCase):
         txt_file = tempfile.mktemp(".txt")
         file = open(txt_file, "w")
         file.write(" x,y," + att + " \n")
-        for data_point, attribute in map(None, points_UTM, attributes):
+        for data_point, attribute in zip(points_UTM, attributes):
             row = str(data_point[0]) + ',' + str(data_point[1]) \
                   + ',' + str(attribute)
             #print "row", row
@@ -1220,7 +1227,7 @@ class Test_Quantity(unittest.TestCase):
         txt_file = tempfile.mktemp(".txt")
         file = open(txt_file, "w")
         file.write(" x,y," + att + " \n")
-        for data_point, attribute in map(None, points_UTM, attributes):
+        for data_point, attribute in zip(points_UTM, attributes):
             row = str(data_point[0]) + ',' + str(data_point[1]) \
                   + ',' + str(attribute)
             #print "row", row
@@ -1307,7 +1314,7 @@ class Test_Quantity(unittest.TestCase):
         ptsfile = tempfile.mktemp(".txt")
         file = open(ptsfile, "w")
         file.write(" x,y," + att + " \n")
-        for data_point, attribute in map(None, data_points_absolute, attributes):
+        for data_point, attribute in zip(data_points_absolute, attributes):
             row = str(data_point[0]) + ',' + str(data_point[1]) \
                   + ',' + str(attribute)
             file.write(row + "\n")
@@ -1383,7 +1390,7 @@ class Test_Quantity(unittest.TestCase):
         ptsfile = tempfile.mktemp(".txt")
         file = open(ptsfile, "w")
         file.write(" x,y," + att + " \n")
-        for data_point, attribute in map(None, data_points_absolute, attributes):
+        for data_point, attribute in zip(data_points_absolute, attributes):
             row = str(data_point[0]) + ',' + str(data_point[1]) \
                   + ',' + str(attribute)
             file.write(row + "\n")
@@ -1512,26 +1519,26 @@ class Test_Quantity(unittest.TestCase):
 
         assert num.allclose(quantity.centroid_values, answer)
 
-	# check dem file
-	# use the same reference solution used above for testing
-	# convert test_asc.asc file to .dem file
-	txt_file_prj = 'test_asc.prj'
-	fid = open(txt_file_prj, 'w')
-	fid.write("""Projection UTM
-	Zone 56
-	Datum WGS84
-	Zunits NO
-	Units METERS
-	Spheroid WGS84
-	Xshift 0.0000000000
-	Yshift 10000000.0000000000
-	Parameters
-	""")
-	fid.close()
+        # check dem file
+        # use the same reference solution used above for testing
+        # convert test_asc.asc file to .dem file
+        txt_file_prj = 'test_asc.prj'
+        fid = open(txt_file_prj, 'w')
+        fid.write("""Projection UTM
+Zone 56
+Datum WGS84
+Zunits NO
+Units METERS
+Spheroid WGS84
+Xshift 0.0000000000
+Yshift 10000000.0000000000
+Parameters
+        """)
+        fid.close()
 
-	txt_file_dem = 'test_asc.dem'
-	asc2dem(name_in=txt_file, name_out='test_asc',
-	        use_cache=False, verbose=False)
+        txt_file_dem = 'test_asc.dem'
+        asc2dem(name_in=txt_file, name_out='test_asc',
+                use_cache=False, verbose=False)
 
         quantity.set_values(0.0)
         quantity.set_values(filename=txt_file_dem,
@@ -1546,7 +1553,7 @@ class Test_Quantity(unittest.TestCase):
                   [8.,  2.,   4.],
                   [12.,   6.,   8.]]
         #print quantity.vertex_values
-	#print quantity.vertex_values, 'vertex values'
+        #print quantity.vertex_values, 'vertex values'
         assert num.allclose(quantity.vertex_values, answer)
 
         #print quantity.vertex_values
@@ -1567,8 +1574,8 @@ class Test_Quantity(unittest.TestCase):
 
         assert num.allclose(quantity.centroid_values, answer)
 
-	#Cleanup
-	#import os
+        #Cleanup
+        #import os
 
         try:
             os.remove(txt_file)
@@ -1934,7 +1941,7 @@ class Test_Quantity(unittest.TestCase):
         #Assert that quantities are conserved
         for k in range(quantity.centroid_values.shape[0]):
             assert num.allclose(quantity.centroid_values[k],
-                                num.sum(quantity.vertex_values[k, :])/3)
+                                old_div(num.sum(quantity.vertex_values[k, :]),3))
 
     def test_limit_vertices_by_all_neighbours(self):
         quantity = Quantity(self.mesh4)
@@ -1958,7 +1965,7 @@ class Test_Quantity(unittest.TestCase):
         #Assert that quantities are conserved
         for k in range(quantity.centroid_values.shape[0]):
             assert num.allclose(quantity.centroid_values[k],
-                                num.sum(quantity.vertex_values[k, :])/3)
+                                old_div(num.sum(quantity.vertex_values[k, :]),3))
 
     def test_limit_edges_by_all_neighbours(self):
         quantity = Quantity(self.mesh4)
@@ -1982,7 +1989,7 @@ class Test_Quantity(unittest.TestCase):
         #Assert that quantities are conserved
         for k in range(quantity.centroid_values.shape[0]):
             assert num.allclose(quantity.centroid_values[k],
-                                num.sum(quantity.vertex_values[k, :])/3)
+                                old_div(num.sum(quantity.vertex_values[k, :]),3))
 
     def test_limit_edges_by_neighbour(self):
         quantity = Quantity(self.mesh4)
@@ -2006,7 +2013,7 @@ class Test_Quantity(unittest.TestCase):
         #Assert that quantities are conserved
         for k in range(quantity.centroid_values.shape[0]):
             assert num.allclose(quantity.centroid_values[k],
-                                num.sum(quantity.vertex_values[k, :])/3)
+                                old_div(num.sum(quantity.vertex_values[k, :]),3))
 
     def test_limiter2(self):
         """Taken from test_shallow_water
@@ -2035,7 +2042,7 @@ class Test_Quantity(unittest.TestCase):
         #Assert that quantities are conserved
         for k in range(quantity.centroid_values.shape[0]):
             assert num.allclose(quantity.centroid_values[k],
-                                num.sum(quantity.vertex_values[k, :])/3)
+                                old_div(num.sum(quantity.vertex_values[k, :]),3))
 
     def test_distribute_first_order(self):
         quantity = Quantity(self.mesh4)
@@ -2123,10 +2130,10 @@ class Test_Quantity(unittest.TestCase):
         timestep = 0.1
         quantity.update(timestep)
 
-        sem = num.array([1., 1., 1., 1.])/num.array([1, 2, 3, 4])
+        sem = old_div(num.array([1., 1., 1., 1.]),num.array([1, 2, 3, 4]))
         denom = num.ones(4, num.float)-timestep*sem
 
-        x = num.array([1, 2, 3, 4])/denom
+        x = old_div(num.array([1, 2, 3, 4]),denom)
         assert num.allclose(quantity.centroid_values, x)
 
     def test_both_updates(self):
@@ -2146,7 +2153,7 @@ class Test_Quantity(unittest.TestCase):
         timestep = 0.1
         quantity.update(0.1)
 
-        sem = num.array([1., 1., 1., 1.])/num.array([1, 2, 3, 4])
+        sem = old_div(num.array([1., 1., 1., 1.]),num.array([1, 2, 3, 4]))
         denom = num.ones(4, num.float)-timestep*sem
 
         x = num.array([1., 2., 3., 4.])

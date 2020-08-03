@@ -1,8 +1,12 @@
+from __future__ import print_function
+from __future__ import absolute_import
 # To change this template, choose Tools | Templates
 # and open the template in the editor.
 
 
 
+from builtins import str
+from builtins import range
 import os.path
 import sys
 
@@ -12,12 +16,12 @@ from anuga.geometry.polygon_function import Polygon_function
 import anuga
 from math import pi, pow, sqrt
 import numpy as num
-from parallel_inlet_operator import Parallel_Inlet_operator
-from parallel_structure_operator import Parallel_Structure_operator
-from parallel_boyd_box_operator import Parallel_Boyd_box_operator
-from parallel_boyd_pipe_operator import Parallel_Boyd_pipe_operator
-from parallel_weir_orifice_trapezoid_operator import Parallel_Weir_orifice_trapezoid_operator
-from parallel_internal_boundary_operator import Parallel_Internal_boundary_operator
+from .parallel_inlet_operator import Parallel_Inlet_operator
+from .parallel_structure_operator import Parallel_Structure_operator
+from .parallel_boyd_box_operator import Parallel_Boyd_box_operator
+from .parallel_boyd_pipe_operator import Parallel_Boyd_pipe_operator
+from .parallel_weir_orifice_trapezoid_operator import Parallel_Weir_orifice_trapezoid_operator
+from .parallel_internal_boundary_operator import Parallel_Internal_boundary_operator
 
 from . import distribute, myid, numprocs, finalize
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
@@ -57,7 +61,7 @@ def Inlet_operator(domain,
 
     # If not parallel domain then allocate serial Inlet operator
     if isinstance(domain, Parallel_domain) is False:
-        if verbose: print "Allocating non parallel inlet operator ....."
+        if verbose: print("Allocating non parallel inlet operator .....")
         return anuga.structures.inlet_operator.Inlet_operator(domain,
                                                               poly,
                                                               Q,
@@ -68,9 +72,9 @@ def Inlet_operator(domain,
                                                               logging = logging,
                                                               verbose = verbose)
 
-    import pypar
+    from anuga.utilities import parallel_abstraction as pypar
     if procs is None:
-        procs = range(0,pypar.size())
+        procs = list(range(0,pypar.size()))
 
     myid = pypar.rank()
 
@@ -86,11 +90,11 @@ def Inlet_operator(domain,
 
     if alloc:
         if verbose and myid == inlet_master_proc:
-            print "Parallel Inlet Operator ================="
-            print "Poly = " + str(poly)
-            print "Master Processor is P%d" %(inlet_master_proc)
-            print "Processors are P%s" %(inlet_procs)
-            print "========================================="
+            print("Parallel Inlet Operator =================")
+            print("Poly = " + str(poly))
+            print("Master Processor is P%d" %(inlet_master_proc))
+            print("Processors are P%s" %(inlet_procs))
+            print("=========================================")
 
         return Parallel_Inlet_operator(domain,
                                        poly,
@@ -143,7 +147,7 @@ def Boyd_box_operator(domain,
 
     # If not parallel domain then allocate serial Boyd box operator
     if isinstance(domain, Parallel_domain) is False:
-        if verbose: print "Allocating non parallel boyd box operator ....."
+        if verbose: print("Allocating non parallel boyd box operator .....")
         return anuga.structures.boyd_box_operator.Boyd_box_operator(domain=domain,
                                                                     losses=losses,
                                                                     width=width,
@@ -168,9 +172,9 @@ def Boyd_box_operator(domain,
                                                                     logging=logging,
                                                                     verbose=verbose)
 
-    import pypar
+    from anuga.utilities import parallel_abstraction as pypar
     if procs is None:
-        procs = range(0,pypar.size())
+        procs = list(range(0,pypar.size()))
 
     myid = pypar.rank()
 
@@ -209,7 +213,7 @@ def Boyd_box_operator(domain,
                 pypar.send(exchange_lines_tmp, i)
                 pypar.send(enquiry_points_tmp, i)
         else:
-            raise Exception, 'Define either exchange_lines or end_points'
+            raise Exception('Define either exchange_lines or end_points')
 
     else:
         if exchange_lines is not None:
@@ -241,15 +245,15 @@ def Boyd_box_operator(domain,
     enquiry_proc = [enquiry0_proc, enquiry1_proc]
 
     if myid == master_proc and verbose:
-        print "Parallel Boyd Box Operator ============================="
-        print "Structure Master Proc is P" + str(inlet0_master_proc)
-        print "Structure Procs are P" + str(structure_procs)
-        print "Inlet Master Procs are P" + str(inlet_master_proc)
-        print "Inlet Procs are P" + str(inlet_procs[0]) + " and " + str(inlet_procs[1])
-        print "Inlet Enquiry Procs are P" + str(enquiry_proc)
-        print "Enquiry Points are " + str(enquiry_point0) + " and " + str(enquiry_point1)
-        print "Inlet Exchange Lines are " + str(line0) + " and " + str(line1)
-        print "========================================================"
+        print("Parallel Boyd Box Operator =============================")
+        print("Structure Master Proc is P" + str(inlet0_master_proc))
+        print("Structure Procs are P" + str(structure_procs))
+        print("Inlet Master Procs are P" + str(inlet_master_proc))
+        print("Inlet Procs are P" + str(inlet_procs[0]) + " and " + str(inlet_procs[1]))
+        print("Inlet Enquiry Procs are P" + str(enquiry_proc))
+        print("Enquiry Points are " + str(enquiry_point0) + " and " + str(enquiry_point1))
+        print("Inlet Exchange Lines are " + str(line0) + " and " + str(line1))
+        print("========================================================")
 
     if alloc0 or alloc1:
         return Parallel_Boyd_box_operator(domain=domain,
@@ -317,7 +321,7 @@ def Boyd_pipe_operator(domain,
 
     # If not parallel domain then allocate serial Boyd box operator
     if isinstance(domain, Parallel_domain) is False:
-        if verbose: print "Allocating non parallel boyd pipe operator ....."
+        if verbose: print("Allocating non parallel boyd pipe operator .....")
         return anuga.structures.boyd_pipe_operator.Boyd_pipe_operator(domain=domain,
                                                                     losses=losses,
                                                                     diameter=diameter,
@@ -339,9 +343,9 @@ def Boyd_pipe_operator(domain,
                                                                     logging=logging,
                                                                     verbose=verbose)
 
-    import pypar
+    from anuga.utilities import parallel_abstraction as pypar
     if procs is None:
-        procs = range(0,pypar.size())
+        procs = list(range(0,pypar.size()))
 
     myid = pypar.rank()
 
@@ -374,7 +378,7 @@ def Boyd_pipe_operator(domain,
                 pypar.send(exchange_lines_tmp, i)
                 pypar.send(enquiry_points_tmp, i)
         else:
-            raise Exception, 'Define either exchange_lines or end_points'
+            raise Exception('Define either exchange_lines or end_points')
 
     else:
         if exchange_lines is not None:
@@ -406,15 +410,15 @@ def Boyd_pipe_operator(domain,
     enquiry_proc = [enquiry0_proc, enquiry1_proc]
 
     if myid == master_proc and verbose:
-        print "Parallel Boyd Pipe Operator ============================="
-        print "Structure Master Proc is P" + str(inlet0_master_proc)
-        print "Structure Procs are P" + str(structure_procs)
-        print "Inlet Master Procs are P" + str(inlet_master_proc)
-        print "Inlet Procs are P" + str(inlet_procs[0]) + " and " + str(inlet_procs[1])
-        print "Inlet Enquiry Procs are P" + str(enquiry_proc)
-        print "Enquiry Points are " + str(enquiry_point0) + " and " + str(enquiry_point1)
-        print "Inlet Exchange Lines are " + str(line0) + " and " + str(line1)
-        print "========================================================"
+        print("Parallel Boyd Pipe Operator =============================")
+        print("Structure Master Proc is P" + str(inlet0_master_proc))
+        print("Structure Procs are P" + str(structure_procs))
+        print("Inlet Master Procs are P" + str(inlet_master_proc))
+        print("Inlet Procs are P" + str(inlet_procs[0]) + " and " + str(inlet_procs[1]))
+        print("Inlet Enquiry Procs are P" + str(enquiry_proc))
+        print("Enquiry Points are " + str(enquiry_point0) + " and " + str(enquiry_point1))
+        print("Inlet Exchange Lines are " + str(line0) + " and " + str(line1))
+        print("========================================================")
 
     if alloc0 or alloc1:
        return Parallel_Boyd_pipe_operator(domain=domain,
@@ -488,7 +492,7 @@ def Weir_orifice_trapezoid_operator(domain,
 
     # If not parallel domain then allocate serial Weir orifice trapezoid operator
     if isinstance(domain, Parallel_domain) is False:
-        if verbose: print "Allocating non parallel weir orifice trapzezoid operator ....."
+        if verbose: print("Allocating non parallel weir orifice trapzezoid operator .....")
         return anuga.structures.weir_orifice_trapezoid_operator.Weir_orifice_trapezoid_operator(domain=domain,
                                                                     losses=losses,
                                                                     width=width,
@@ -514,9 +518,9 @@ def Weir_orifice_trapezoid_operator(domain,
                                                                     logging=logging,
                                                                     verbose=verbose)
 
-    import pypar
+    from anuga.utilities import parallel_abstraction as pypar
     if procs is None:
-        procs = range(0,pypar.size())
+        procs = list(range(0,pypar.size()))
 
     myid = pypar.rank()
 
@@ -555,7 +559,7 @@ def Weir_orifice_trapezoid_operator(domain,
                 pypar.send(exchange_lines_tmp, i)
                 pypar.send(enquiry_points_tmp, i)
         else:
-            raise Exception, 'Define either exchange_lines or end_points'
+            raise Exception('Define either exchange_lines or end_points')
 
     else:
         if exchange_lines is not None:
@@ -587,15 +591,15 @@ def Weir_orifice_trapezoid_operator(domain,
     enquiry_proc = [enquiry0_proc, enquiry1_proc]
 
     if myid == master_proc and verbose:
-        print "Parallel Weir Orifice Trapezoid Operator ============================="
-        print "Structure Master Proc is P" + str(inlet0_master_proc)
-        print "Structure Procs are P" + str(structure_procs)
-        print "Inlet Master Procs are P" + str(inlet_master_proc)
-        print "Inlet Procs are P" + str(inlet_procs[0]) + " and " + str(inlet_procs[1])
-        print "Inlet Enquiry Procs are P" + str(enquiry_proc)
-        print "Enquiry Points are " + str(enquiry_point0) + " and " + str(enquiry_point1)
-        print "Inlet Exchange Lines are " + str(line0) + " and " + str(line1)
-        print "========================================================"
+        print("Parallel Weir Orifice Trapezoid Operator =============================")
+        print("Structure Master Proc is P" + str(inlet0_master_proc))
+        print("Structure Procs are P" + str(structure_procs))
+        print("Inlet Master Procs are P" + str(inlet_master_proc))
+        print("Inlet Procs are P" + str(inlet_procs[0]) + " and " + str(inlet_procs[1]))
+        print("Inlet Enquiry Procs are P" + str(enquiry_proc))
+        print("Enquiry Points are " + str(enquiry_point0) + " and " + str(enquiry_point1))
+        print("Inlet Exchange Lines are " + str(line0) + " and " + str(line1))
+        print("========================================================")
 
     if alloc0 or alloc1:
         return Parallel_Weir_orifice_trapezoid_operator(domain=domain,
@@ -668,7 +672,7 @@ def Internal_boundary_operator(domain,
 
     # If not parallel domain then allocate serial Internal boundary operator
     if isinstance(domain, Parallel_domain) is False:
-        if verbose: print "Allocating non parallel internal_boundary operator ....."
+        if verbose: print("Allocating non parallel internal_boundary operator .....")
         return anuga.structures.internal_boundary_operator.Internal_boundary_operator(domain=domain,
                                                                     internal_boundary_function=internal_boundary_function,
                                                                     width=width,
@@ -690,9 +694,9 @@ def Internal_boundary_operator(domain,
                                                                     logging=logging,
                                                                     verbose=verbose)
 
-    import pypar
+    from anuga.utilities import parallel_abstraction as pypar
     if procs is None:
-        procs = range(0,pypar.size())
+        procs = list(range(0,pypar.size()))
 
     myid = pypar.rank()
 
@@ -727,7 +731,7 @@ def Internal_boundary_operator(domain,
                 pypar.send(exchange_lines_tmp, i)
                 pypar.send(enquiry_points_tmp, i)
         else:
-            raise Exception, 'Define either exchange_lines or end_points'
+            raise Exception('Define either exchange_lines or end_points')
 
     else:
         if exchange_lines is not None:
@@ -759,15 +763,15 @@ def Internal_boundary_operator(domain,
     enquiry_proc = [enquiry0_proc, enquiry1_proc]
 
     if myid == master_proc and verbose:
-        print "Parallel Internal boundary Operator ============================="
-        print "Structure Master Proc is P" + str(inlet0_master_proc)
-        print "Structure Procs are P" + str(structure_procs)
-        print "Inlet Master Procs are P" + str(inlet_master_proc)
-        print "Inlet Procs are P" + str(inlet_procs[0]) + " and " + str(inlet_procs[1])
-        print "Inlet Enquiry Procs are P" + str(enquiry_proc)
-        print "Enquiry Points are " + str(enquiry_point0) + " and " + str(enquiry_point1)
-        print "Inlet Exchange Lines are " + str(line0) + " and " + str(line1)
-        print "========================================================"
+        print("Parallel Internal boundary Operator =============================")
+        print("Structure Master Proc is P" + str(inlet0_master_proc))
+        print("Structure Procs are P" + str(structure_procs))
+        print("Inlet Master Procs are P" + str(inlet_master_proc))
+        print("Inlet Procs are P" + str(inlet_procs[0]) + " and " + str(inlet_procs[1]))
+        print("Inlet Enquiry Procs are P" + str(enquiry_proc))
+        print("Enquiry Points are " + str(enquiry_point0) + " and " + str(enquiry_point1))
+        print("Inlet Exchange Lines are " + str(line0) + " and " + str(line1))
+        print("========================================================")
 
     if alloc0 or alloc1:
         return Parallel_Internal_boundary_operator(domain=domain,
@@ -873,9 +877,9 @@ def __process_skew_culvert(exchange_lines, end_points, enquiry_points, apron, en
 def allocate_inlet_procs(domain, poly, enquiry_point = None, master_proc = 0, procs = None, verbose = False):
 
 
-    import pypar
+    from anuga.utilities import parallel_abstraction as pypar
     if procs is None:
-        procs = range(0, pypar.size())
+        procs = list(range(0, pypar.size()))
 
     myid = pypar.rank()
     vertex_coordinates = domain.get_full_vertex_coordinates(absolute=True)
@@ -894,17 +898,17 @@ def allocate_inlet_procs(domain, poly, enquiry_point = None, master_proc = 0, pr
     #tri_id = line_intersect(vertex_coordinates, poly)
 
     if len(poly) == 2: # poly is a line
-        if verbose : print "======================"
+        if verbose : print("======================")
         tri_id = line_intersect(vertex_coordinates, poly)
     else: # poly is a polygon
-        if verbose : print "+++++++++++++++++++++++"
+        if verbose : print("+++++++++++++++++++++++")
         tris_0 = line_intersect(vertex_coordinates, [poly[0],poly[1]])
         tris_1 = inside_polygon(domain_centroids, poly)
         tri_id = num.union1d(tris_0, tris_1)
 
 
     if verbose:
-        print "P%d has %d triangles in poly %s" %(myid, len(tri_id), poly)
+        print("P%d has %d triangles in poly %s" %(myid, len(tri_id), poly))
 
     size = len(tri_id)
 
@@ -915,12 +919,12 @@ def allocate_inlet_procs(domain, poly, enquiry_point = None, master_proc = 0, pr
             if domain.tri_full_flag[k] == 1:
                 size = size + 1
                 has_enq_point = True
-                if verbose: print "P%d has enq point %s" %(myid, enquiry_point)
+                if verbose: print("P%d has enq point %s" %(myid, enquiry_point))
             else:
-                if verbose: print "P%d contains ghost copy of enq point %s" %(myid, enquiry_point)
+                if verbose: print("P%d contains ghost copy of enq point %s" %(myid, enquiry_point))
                 has_enq_point = False
         except:
-            if verbose: print "P%d does not contain enq point %s" %(myid, enquiry_point)
+            if verbose: print("P%d does not contain enq point %s" %(myid, enquiry_point))
             has_enq_point = False
 
     if myid == master_proc:
@@ -986,4 +990,4 @@ __author__="pete"
 __date__ ="$06/09/2011 1:17:57 PM$"
 
 if __name__ == "__main__":
-    print "Parallel operator factory"
+    print("Parallel operator factory")

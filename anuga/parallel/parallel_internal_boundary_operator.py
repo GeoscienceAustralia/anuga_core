@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+from past.utils import old_div
 import anuga
 import math
 import numpy
@@ -7,8 +11,8 @@ import scipy.optimize as sco
 
 #from anuga.structures.boyd_box_operator import boyd_box_function 
 
-from parallel_inlet_operator import Parallel_Inlet_operator
-from parallel_structure_operator import Parallel_Structure_operator
+from .parallel_inlet_operator import Parallel_Inlet_operator
+from .parallel_structure_operator import Parallel_Structure_operator
 
 class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
     """
@@ -43,11 +47,11 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
                  enquiry_proc = [0,0]):
 
         if verbose:
-            print '########################################'
-            print 'PARALLEL INTERNAL BOUNDARY OPERATOR'
-            print 'THIS IS EXPERIMENTAL'
-            print 'SUBJECT TO CHANGE WITHOUT NOTICE'
-            print '########################################'
+            print('########################################')
+            print('PARALLEL INTERNAL BOUNDARY OPERATOR')
+            print('THIS IS EXPERIMENTAL')
+            print('SUBJECT TO CHANGE WITHOUT NOTICE')
+            print('########################################')
 
         # Since no barrel_velocity is computed we cannot use_momentum_jet
         use_momentum_jet = False
@@ -154,7 +158,7 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
 
     def discharge_routine_explicit(self):
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
 
         local_debug = False
         
@@ -209,7 +213,7 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
             case = ''
 
             # 'Timescale' for smoothed discharge and energy
-            ts = self.domain.timestep/max(self.domain.timestep, self.smoothing_timescale, 1.0e-30)
+            ts = old_div(self.domain.timestep,max(self.domain.timestep, self.smoothing_timescale, 1.0e-30))
 
             # Energy or stage as head
             if self.use_velocity_head:
@@ -307,7 +311,7 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
 
         """
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
 
         local_debug = False
         
@@ -415,7 +419,7 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
 
             # Smooth discharge
             if dt > 0.:
-                ts = dt/max(dt, self.smoothing_timescale, 1.0e-30)
+                ts = old_div(dt,max(dt, self.smoothing_timescale, 1.0e-30))
             else:
                 # No smoothing
                 ts = 1.0

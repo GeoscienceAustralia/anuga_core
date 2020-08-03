@@ -1,4 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
 
+from builtins import range
 from anuga.shallow_water.shallow_water_domain import *
 from anuga.shallow_water.shallow_water_domain import Domain as Sww_domain
 
@@ -111,42 +114,42 @@ class Domain(Sww_domain):
         #self.forcing_terms.append(manning_friction_explicit)
         #self.forcing_terms.remove(manning_friction_implicit)
 
-        print '##########################################################################'
-        print '#'
-        print '# Using anuga_tsunami solver in anuga_work/development/gareth/experimental/anuga_tsunami/'
-        print "#"
-        print "# This solver is experimental. Here are some tips on using it"
-        print "#"
-        print "# 1) When plotting outputs, I strongly suggest you examine centroid values, not vertex values"
-        print "# , as the latter can be completely misleading near strong gradients in the flow. "
-        print "# There is a plot_util.py script in anuga_core/utilities/ which might help you extract"
-        print "# quantities at centroid values from sww files."
-        print "# Note that to accuractely compute centroid values from sww files, the files need to store "
-        print "# vertices uniquely. This makes for large sww files (3x), but is the price to pay for the right answer"
-        print "# (unless we alter IO to allow centroids to be written to sww files, which would then affect"
-        print "# ANUGA viewer as well -- I expect this would be lots of work)"
-        print "#"
-        print "# 2) In field scale applications (where the depth is typically > 1m), I suggest you set"
-        print "# domain.minimum_allowed_height=0.01 (the default is 1.0e-3). "
-        print "#"
-        print "# 3) This solver is not expected to perform well in problems with very"
-        print "# shallow water flowing down steep slopes (such that the stage_centroid_value "
-        print "# is less than the maximum bed_edge_value on a given triangle). However, analytical tests"
-        print "# suggest it can do typical wetting/drying situations very well (parabolic oscillations test case) "
-        print "#"
-        print "# 4) This solver allows the stage_centroid_value to drop to slightly below the minimum bed_vertex_value"
-        print "# on it's triangle. In other ANUGA versions (e.g. 1.2.1), the limit would be the"
-        print "# bed_centroid_value. This means that triangles store slightly more water than they are"
-        print "# typically interpreted to store, which might have significance in some applications."
-        print "#"
-        print "# You will probably be able to tell this is causing you problems by convergence testing"
-        print "#"
-        print '# 5) Note that many options in config.py have been overridden by the solver -- I have '
-        print '# deliberately attempted to get the solver to perform well with consistent values of '
-        print '# these parameters -- so I would advise against changing them unless you at least check that '
-        print '# it really does improve things'
-        print '#'
-        print '##########################################################################'
+        print('##########################################################################')
+        print('#')
+        print('# Using anuga_tsunami solver in anuga_work/development/gareth/experimental/anuga_tsunami/')
+        print("#")
+        print("# This solver is experimental. Here are some tips on using it")
+        print("#")
+        print("# 1) When plotting outputs, I strongly suggest you examine centroid values, not vertex values")
+        print("# , as the latter can be completely misleading near strong gradients in the flow. ")
+        print("# There is a plot_util.py script in anuga_core/utilities/ which might help you extract")
+        print("# quantities at centroid values from sww files.")
+        print("# Note that to accuractely compute centroid values from sww files, the files need to store ")
+        print("# vertices uniquely. This makes for large sww files (3x), but is the price to pay for the right answer")
+        print("# (unless we alter IO to allow centroids to be written to sww files, which would then affect")
+        print("# ANUGA viewer as well -- I expect this would be lots of work)")
+        print("#")
+        print("# 2) In field scale applications (where the depth is typically > 1m), I suggest you set")
+        print("# domain.minimum_allowed_height=0.01 (the default is 1.0e-3). ")
+        print("#")
+        print("# 3) This solver is not expected to perform well in problems with very")
+        print("# shallow water flowing down steep slopes (such that the stage_centroid_value ")
+        print("# is less than the maximum bed_edge_value on a given triangle). However, analytical tests")
+        print("# suggest it can do typical wetting/drying situations very well (parabolic oscillations test case) ")
+        print("#")
+        print("# 4) This solver allows the stage_centroid_value to drop to slightly below the minimum bed_vertex_value")
+        print("# on it's triangle. In other ANUGA versions (e.g. 1.2.1), the limit would be the")
+        print("# bed_centroid_value. This means that triangles store slightly more water than they are")
+        print("# typically interpreted to store, which might have significance in some applications.")
+        print("#")
+        print("# You will probably be able to tell this is causing you problems by convergence testing")
+        print("#")
+        print('# 5) Note that many options in config.py have been overridden by the solver -- I have ')
+        print('# deliberately attempted to get the solver to perform well with consistent values of ')
+        print('# these parameters -- so I would advise against changing them unless you at least check that ')
+        print('# it really does improve things')
+        print('#')
+        print('##########################################################################')
 
 
     #-------------------------------
@@ -240,7 +243,7 @@ class Domain(Sww_domain):
         """
 
         import sys
-        from swb2_domain_ext import compute_fluxes_ext_central \
+        from .swb2_domain_ext import compute_fluxes_ext_central \
                                       as compute_fluxes_ext
 
         #print "."
@@ -251,7 +254,7 @@ class Domain(Sww_domain):
         Ymom = domain.quantities['ymomentum']
         Bed = domain.quantities['elevation']
 
-        timestep = float(sys.maxint)
+        timestep = float(sys.maxsize)
 
         flux_timestep = compute_fluxes_ext(timestep,
                                            domain.epsilon,
@@ -291,7 +294,7 @@ class Domain(Sww_domain):
     def protect_against_infinitesimal_and_negative_heights(domain):
         """protect against infinitesimal heights and associated high velocities"""
 
-        from swb2_domain_ext import protect
+        from .swb2_domain_ext import protect
         #print'using swb2_protect_against ..'
 
         # shortcuts
@@ -525,7 +528,7 @@ class Domain(Sww_domain):
 
         """
 
-        from swb2_domain_ext import extrapolate_second_order_edge_sw as extrapol2
+        from .swb2_domain_ext import extrapolate_second_order_edge_sw as extrapol2
 
         # Shortcuts
         Stage = self.quantities['stage']

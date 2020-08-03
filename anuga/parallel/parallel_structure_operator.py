@@ -1,8 +1,13 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 import anuga
 import numpy as num
 import math
-import parallel_inlet_enquiry 
-import pypar
+from . import parallel_inlet_enquiry 
+from anuga.utilities import parallel_abstraction as pypar
 
 from anuga.utilities.system_tools import log_to_file
 from anuga.utilities.numerical_tools import ensure_numeric
@@ -166,7 +171,7 @@ class Parallel_Structure_operator(anuga.Operator):
         elif end_points is not None:
             self.__process_non_skew_culvert()
         else:
-            raise Exception, 'Define either exchange_lines or end_points'
+            raise Exception('Define either exchange_lines or end_points')
         
         self.inlets = []
 
@@ -287,7 +292,7 @@ class Parallel_Structure_operator(anuga.Operator):
         # Master proc of structure only
         if self.myid == self.master_proc:
             if old_inflow_depth > 0.0 :
-                dt_Q_on_d = timestep*Q/old_inflow_depth
+                dt_Q_on_d = old_div(timestep*Q,old_inflow_depth)
             else:
                 dt_Q_on_d = 0.0
 
@@ -298,16 +303,16 @@ class Parallel_Structure_operator(anuga.Operator):
             use_Q_wetdry_adjustment = ((always_use_Q_wetdry_adjustment) |\
                 (old_inflow_depth*inflow_area <= Q*timestep))
 
-            factor = 1.0/(1.0 + dt_Q_on_d/inflow_area)
+            factor = 1.0/(1.0 + old_div(dt_Q_on_d,inflow_area))
         
             if use_Q_wetdry_adjustment:
                 new_inflow_depth = old_inflow_depth*factor
                 if old_inflow_depth > 0.:
-                    timestep_star = timestep*new_inflow_depth/old_inflow_depth
+                    timestep_star = old_div(timestep*new_inflow_depth,old_inflow_depth)
                 else:
                     timestep_star = 0.
             else:
-                new_inflow_depth = old_inflow_depth - timestep*Q/inflow_area
+                new_inflow_depth = old_inflow_depth - old_div(timestep*Q,inflow_area)
                 timestep_star = timestep
 
             #new_inflow_xmom = old_inflow_xmom*factor
@@ -337,9 +342,9 @@ class Parallel_Structure_operator(anuga.Operator):
                 #
                 if old_inflow_depth > 0.:
                     if use_Q_wetdry_adjustment:
-                        factor2 = 1.0/(1.0 + dt_Q_on_d*new_inflow_depth/(old_inflow_depth*inflow_area))
+                        factor2 = 1.0/(1.0 + old_div(dt_Q_on_d*new_inflow_depth,(old_inflow_depth*inflow_area)))
                     else:
-                        factor2 = 1.0/(1.0 + timestep*Q/(old_inflow_depth*inflow_area))
+                        factor2 = 1.0/(1.0 + old_div(timestep*Q,(old_inflow_depth*inflow_area)))
                 else:
                     factor2 = 0.
 
@@ -395,15 +400,15 @@ class Parallel_Structure_operator(anuga.Operator):
             ymom_loss = (old_inflow_ymom - new_inflow_ymom)*inflow_area
 
             # set outflow
-            outflow_extra_depth = Q*timestep_star/outflow_area
+            outflow_extra_depth = old_div(Q*timestep_star,outflow_area)
             outflow_direction = - outflow_outward_culvert_vector
             #outflow_extra_momentum = outflow_extra_depth*barrel_speed*outflow_direction
             
             gain = outflow_extra_depth*outflow_area
 
             # Update Stats
-            self.discharge  = Q*timestep_star/timestep #outflow_extra_depth*self.outflow.get_area()/timestep
-            self.discharge_abs_timemean += Q*timestep_star/self.domain.yieldstep
+            self.discharge  = old_div(Q*timestep_star,timestep) #outflow_extra_depth*self.outflow.get_area()/timestep
+            self.discharge_abs_timemean += old_div(Q*timestep_star,self.domain.yieldstep)
             self.velocity = barrel_speed #self.discharge/outlet_depth/self.width
 
             new_outflow_depth = outflow_average_depth + outflow_extra_depth
@@ -443,8 +448,8 @@ class Parallel_Structure_operator(anuga.Operator):
                 # Add the momentum lost from the inflow to the outflow. For
                 # structures where barrel_speed is unknown + direction doesn't
                 # change from inflow to outflow
-                new_outflow_xmom = outflow_average_xmom + xmom_loss/outflow_area
-                new_outflow_ymom = outflow_average_ymom + ymom_loss/outflow_area
+                new_outflow_xmom = outflow_average_xmom + old_div(xmom_loss,outflow_area)
+                new_outflow_ymom = outflow_average_ymom + old_div(ymom_loss,outflow_area)
 
             # master proc of structure sends outflow attributes to all outflow procs
             for i in self.inlet_procs[self.outflow_index]:
@@ -536,7 +541,7 @@ class Parallel_Structure_operator(anuga.Operator):
             self.culvert_vector = centre_point1 - centre_point0
 
         else:
-            raise Exception, 'n_exchange_0 != 2 or 4'
+            raise Exception('n_exchange_0 != 2 or 4')
 
         self.culvert_length = math.sqrt(num.sum(self.culvert_vector**2))
         assert self.culvert_length > 0.0, 'The length of culvert is less than 0'
@@ -636,7 +641,7 @@ class Parallel_Structure_operator(anuga.Operator):
         # Warning: requires synchronization, must be called by all procs associated
         # with this structure
 
-        print self.statistics()
+        print(self.statistics())
 
 
     def print_timestepping_statistics(self):
@@ -657,7 +662,7 @@ class Parallel_Structure_operator(anuga.Operator):
             message += 'Delta Total Energy %.2f\n' % self.delta_total_energy
             message += 'Control at this instant: %s\n' % self.case
 
-        print message
+        print(message)
 
 
     def set_parallel_logging(self, flag=True):

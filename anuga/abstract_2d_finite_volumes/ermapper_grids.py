@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from builtins import str
 import numpy as num
 
 celltype_map = {'IEEE4ByteReal': num.float32, 'IEEE8ByteReal': num.float64}
@@ -143,7 +144,7 @@ def write_ermapper_header(ofile, header = {}):
     fid.write('\tRasterInfo End\n')
     fid.write('DatasetHeader End\n')
 
-    fid.close
+    fid.close()
 
 def read_ermapper_header(ifile):
     # function for reading an ERMapper header from file
@@ -207,39 +208,39 @@ def create_default_header(header = {}):
     #           to be filled with default values
 
 
-    if not header.has_key('datum'):
+    if 'datum' not in header:
         header['datum'] = '"GDA94"'
-    if not header.has_key('projection'):
+    if 'projection' not in header:
         header['projection'] = '"GEOGRAPHIC"'
-    if not header.has_key('coordinatetype'):
+    if 'coordinatetype' not in header:
         header['coordinatetype'] = 'LL'
-    if not header.has_key('rotation'):
+    if 'rotation' not in header:
         header['rotation'] = '0:0:0.0'
-    if not header.has_key('units'):
+    if 'units' not in header:
         header['units'] = '"METERS"'
-    if not header.has_key('celltype'):
+    if 'celltype' not in header:
         header['celltype'] = 'IEEE4ByteReal'
-    if not header.has_key('nullcellvalue'):
+    if 'nullcellvalue' not in header:
         header['nullcellvalue'] = '-99999'
-    if not header.has_key('xdimension'):
+    if 'xdimension' not in header:
         header['xdimension'] = '100'
-    if not header.has_key('latitude'):
+    if 'latitude' not in header:
         header['latitude'] = '0:0:0'
-    if not header.has_key('longitude'):
+    if 'longitude' not in header:
         header['longitude'] = '0:0:0'
-    if not header.has_key('ydimension'):
+    if 'ydimension' not in header:
         header['ydimension'] = '100'
-    if not header.has_key('nroflines'):
+    if 'nroflines' not in header:
         header['nroflines'] = '3'
-    if not header.has_key('nrofcellsperline'):
+    if 'nrofcellsperline' not in header:
         header['nrofcellsperline'] = '4'
-    if not header.has_key('registrationcellx'):
+    if 'registrationcellx' not in header:
         header['registrationcellx'] = '0'
-    if not header.has_key('registrationcelly'):
+    if 'registrationcelly' not in header:
         header['registrationcelly'] = str(int(header['nroflines'])-1)
-    if not header.has_key('nrofbands'):
+    if 'nrofbands' not in header:
         header['nrofbands'] = '1'
-    if not header.has_key('value'):
+    if 'value' not in header:
         header['value'] = '"Default_Band"'
 
 

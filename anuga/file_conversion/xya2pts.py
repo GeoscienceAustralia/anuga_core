@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 
 def xya2pts(name_in, name_out=None, verbose=False):
@@ -10,7 +11,7 @@ def xya2pts(name_in, name_out=None, verbose=False):
 
     if name_out is None: name_out = root + '.pts'
     
-    if verbose: print 'Creating', name_out
+    if verbose: print('Creating', name_out)
     
     # Read the ascii (.xya) version of this file,
     # make it comma separated and invert the bathymetry

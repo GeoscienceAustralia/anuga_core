@@ -21,8 +21,13 @@ ModifiedBy:
     $Author: hudson $
     $Date: 2010-05-18 14:54:05 +1000 (Tue, 18 May 2010) $
 """
+from __future__ import absolute_import
+from __future__ import division
 
 
+from builtins import str
+from past.utils import old_div
+from future.utils import raise_
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Boundary, File_boundary
 import numpy as num
@@ -32,7 +37,7 @@ from anuga.fit_interpolate.interpolate import Modeltime_too_late
 from anuga.fit_interpolate.interpolate import Modeltime_too_early
 from anuga.config import g as gravity
      
-from shallow_water_ext import rotate
+from .shallow_water_ext import rotate
 
 #from anuga.utilities import compile
 #if compile.can_use_C_extension('shallow_water_ext.c'):
@@ -59,7 +64,7 @@ class Reflective_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for reflective boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         # Handy shorthands
         self.stage = domain.quantities['stage'].edge_values
@@ -179,11 +184,11 @@ class Transmissive_momentum_set_stage_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for this type boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         if function is None:
             msg = 'Function must be specified for this type boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         self.domain = domain
 
@@ -266,11 +271,11 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for this type boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         if function is None:
             msg = 'Function must be specified for this type boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         self.domain = domain
         self.function = function
@@ -380,7 +385,7 @@ class Transmissive_stage_zero_momentum_boundary(Boundary):
         if domain is None:
             msg = ('Domain must be specified for '
                    'Transmissive_stage_zero_momentum boundary')
-            raise Exception, msg
+            raise_(Exception, msg)
 
         self.domain = domain
 
@@ -436,7 +441,7 @@ class Time_stage_zero_momentum_boundary(Boundary):
         
         try:
             q = function(0.0)
-        except Exception, e:
+        except Exception as e:
             msg = 'Function for time stage boundary could not be executed:\n%s' %e
             raise Exception(msg)
 
@@ -508,17 +513,17 @@ class Characteristic_stage_boundary(Boundary):
             default_stage is the assumed stage pre the application of wave
         """
 
-        raise Exception, 'This boundary type is not implemented yet'
+        raise Exception('This boundary type is not implemented yet')
     
         Boundary.__init__(self)
 
         if domain is None:
             msg = 'Domain must be specified for this type boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         if function is None:
             msg = 'Function must be specified for this type boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         self.domain = domain
         self.function = function
@@ -661,10 +666,10 @@ class Dirichlet_discharge_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for this type of boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         if stage0 is None:
-            raise Exception, 'Stage must be specified for this type of boundary'
+            raise Exception('Stage must be specified for this type of boundary')
 
         if wh0 is None:
             wh0 = 0.0
@@ -710,7 +715,7 @@ class Inflow_boundary(Boundary):
         if domain is None:
             msg = 'Domain must be specified for '
             msg += 'Inflow boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         self.domain = domain
         
@@ -738,7 +743,7 @@ class Inflow_boundary(Boundary):
                     length += self.domain.mesh.get_edgelength(v_id, e_id)            
 
             self.length = length
-            self.average_momentum = self.rate/length
+            self.average_momentum = old_div(self.rate,length)
             
             
         # Average momentum has now been established across this boundary
@@ -765,7 +770,7 @@ class Inflow_boundary(Boundary):
         mannings_n = friction[edge_id]
 
         if slope > epsilon and mannings_n > epsilon:
-            depth = pow(self.average_momentum * mannings_n/math.sqrt(slope), \
+            depth = pow(old_div(self.average_momentum * mannings_n,math.sqrt(slope)), \
                         3.0/5) 
         else:
             depth = 1.0
@@ -941,11 +946,11 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for this type boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         if function is None:
             msg = 'Function must be specified for this type boundary'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         self.domain = domain
         self.function = function
@@ -989,7 +994,7 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
             # appropriate, depending on whether we have inflow or outflow
 
             # These calculations are based on the paper cited above
-            sqrt_g_on_depth_inside = (gravity/depth_inside)**0.5
+            sqrt_g_on_depth_inside = (old_div(gravity,depth_inside))**0.5
             ndotq_inside = (normal[0]*q[1] + normal[1]*q[2]) # momentum perpendicular to the boundary
             if(ndotq_inside>0.):
                 # Outflow (assumed subcritical)
@@ -1003,10 +1008,10 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
                 w1 = 0. - sqrt_g_on_depth_inside*stage_outside
 
                 # w2 = v [velocity parallel to boundary] -- uses 'inside' info
-                w2 = (+normal[1]*q[1] -normal[0]*q[2])/depth_inside
+                w2 = old_div((+normal[1]*q[1] -normal[0]*q[2]),depth_inside)
 
                 # w3 = u + sqrt(g/depth)*(Stage_inside) -- uses 'inside info'
-                w3 = ndotq_inside/depth_inside + sqrt_g_on_depth_inside*q[0]
+                w3 = old_div(ndotq_inside,depth_inside) + sqrt_g_on_depth_inside*q[0]
                 
             else:
                 # Inflow (assumed subcritical)
@@ -1019,10 +1024,10 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
                 w2 = 0.
 
                 # w3 = u + sqrt(g/depth)*(Stage_inside) -- uses 'inside info'
-                w3 = ndotq_inside/depth_inside + sqrt_g_on_depth_inside*q[0]
+                w3 = old_div(ndotq_inside,depth_inside) + sqrt_g_on_depth_inside*q[0]
 
 
-            q[0] = (w3-w1)/(2*sqrt_g_on_depth_inside)
+            q[0] = old_div((w3-w1),(2*sqrt_g_on_depth_inside))
             qperp= (w3+w1)/2.*depth_inside
             qpar=  w2*depth_inside
 
@@ -1083,7 +1088,7 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
         #
         # (note: When cells are dry, this calculation will throw invalid
         # values, but such values will never be selected to be returned)
-        sqrt_g_on_depth_inside = (gravity/depth_inside)**0.5
+        sqrt_g_on_depth_inside = (old_div(gravity,depth_inside))**0.5
         ndotq_inside = (n1 * Xmom.boundary_values[ids] + 
             n2 * Ymom.boundary_values[ids])
         # w1 =  u - sqrt(g/depth)*(Stage_outside)  -- uses 'outside' info
@@ -1091,12 +1096,12 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
         # w2 = v [velocity parallel to boundary] -- uses 'inside' or 'outside'
         # info as required
         w2 = num.where(ndotq_inside > 0.0,
-            (n2 * Xmom.boundary_values[ids] - n1 * Ymom.boundary_values[ids])/depth_inside, 
+            old_div((n2 * Xmom.boundary_values[ids] - n1 * Ymom.boundary_values[ids]),depth_inside), 
             0.0 * ndotq_inside)
         # w3 = u + sqrt(g/depth)*(Stage_inside) -- uses 'inside info'
-        w3 = ndotq_inside/depth_inside + sqrt_g_on_depth_inside*Stage.boundary_values[ids]
+        w3 = old_div(ndotq_inside,depth_inside) + sqrt_g_on_depth_inside*Stage.boundary_values[ids]
             
-        q0_wet = (w3 - w1)/(2.0 * sqrt_g_on_depth_inside)
+        q0_wet = old_div((w3 - w1),(2.0 * sqrt_g_on_depth_inside))
         qperp = (w3 + w1)/2.0 * depth_inside
         qpar = w2 * depth_inside
 

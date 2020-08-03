@@ -3,6 +3,8 @@
 '''Routine to add a header to a CSV file.
 '''
 
+from builtins import str
+from future.utils import raise_
 import os
 import tempfile
 
@@ -23,12 +25,12 @@ def add_csv_header(file, header_list, be_green=False):
     # open the file to insert header into
     try:
         fd = open(file, 'r')
-    except IOError, e:
+    except IOError as e:
         msg = "Can't open file '%s': %s" % (file, str(e))
-        raise Exception, msg
+        raise_(Exception, msg)
     except:
         msg = "Can't open file '%s'" % file
-        raise Exception, msg
+        raise_(Exception, msg)
 
     # get a temporary file.
     # must create in same directory as input file, as we rename it.
@@ -39,7 +41,7 @@ def add_csv_header(file, header_list, be_green=False):
     # check the header, create header _string.
     if header_list is None or header_list is []:
         msg = "add_csv_header: header_list can't be None or []"
-        raise Exception, msg
+        raise_(Exception, msg)
 
     header_string = ','.join(header_list) + '\n'
 
@@ -55,7 +57,7 @@ def add_csv_header(file, header_list, be_green=False):
                 if len(columns) != len(header_list):
                     msg = ("add_csv_header: File %s has %d columns but header "
                            "has %d columns" % (file, len(columns), len(header_list)))
-                    raise Exception, msg
+                    raise_(Exception, msg)
             tmp_fd.write(line)
     else:
         data = fd.readlines()
@@ -64,7 +66,7 @@ def add_csv_header(file, header_list, be_green=False):
         if len(columns) != len(header_list):
             msg = ("add_csv_header: File %s has %d columns but header "
                    "has %d columns" % (file, len(columns), len(header_list)))
-            raise Exception, msg
+            raise_(Exception, msg)
 
         data = ''.join(data)
         tmp_fd.write(data)

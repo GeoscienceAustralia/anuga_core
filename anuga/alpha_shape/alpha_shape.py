@@ -17,8 +17,11 @@ we have an intuitive description of what is called the alpha-shape.
 
 Author: Vanessa Robins, ANU
 """
+from __future__ import print_function
 
-import exceptions
+from builtins import filter
+from builtins import range
+from builtins import object
 import random
 
 from anuga.load_mesh.loadASCII import export_boundary_file
@@ -27,8 +30,12 @@ from anuga.utilities import log
 
 import numpy as num
 
-
-class AlphaError(exceptions.Exception):pass
+# Python 2.7 Hack
+try:
+    from exceptions import Exception
+except:
+    pass
+class AlphaError(Exception):pass
 class PointError(AlphaError): pass
 class FlagError(AlphaError): pass
 
@@ -53,7 +60,7 @@ def alpha_shape_via_files(point_file, boundary_file, alpha= None):
     AS.write_boundary(boundary_file)
     
 
-class Alpha_Shape:
+class Alpha_Shape(object):
 
     def __init__(self, points, alpha = None):
         """
@@ -75,7 +82,7 @@ class Alpha_Shape:
           points: List of coordinate pairs [[x1, y1],[x2, y2]..] 
         """
         if len (points) <= 2:
-            raise PointError, "Too few points to find an alpha shape"
+            raise PointError("Too few points to find an alpha shape")
         if len(points)==3:
             #check not in a straight line
             # FIXME check points 1,2,3 if straingt, check if points 2,3,4, ect
@@ -85,7 +92,7 @@ class Alpha_Shape:
             y12 = points[1][1] - points[2][1]
             crossprod = x01*y12 - x12*y01
             if crossprod==0:
-                raise PointError, "Three points on a straight line"
+                raise PointError("Three points on a straight line")
         
         #Convert input to numeric arrays
         self.points = num.array(points, num.float)
@@ -366,7 +373,7 @@ class Alpha_Shape:
         def tri_rad_lta(k):
             return self.triradius[k]<=alpha
 
-        return filter(tri_rad_lta, range(len(self.triradius)))
+        return list(filter(tri_rad_lta, list(range(len(self.triradius)))))
 
     def get_regular_edges(self,alpha):
         """
@@ -377,7 +384,7 @@ class Alpha_Shape:
             return self.edgeinterval[k][1]<=alpha and \
                    self.edgeinterval[k][2]>alpha
 
-        return filter(reg_edge, range(len(self.edgeinterval)))
+        return list(filter(reg_edge, list(range(len(self.edgeinterval)))))
 
     def get_exposed_vertices(self,alpha):
         """
@@ -388,7 +395,7 @@ class Alpha_Shape:
             return self.vertexinterval[k][0]<=alpha and \
                    self.vertexinterval[k][1]>alpha
 
-        return filter(exp_vert, range(len(self.vertexinterval)))        
+        return list(filter(exp_vert, list(range(len(self.vertexinterval)))))        
 
     def _vertices_from_edges(self,elist):
         """
@@ -410,7 +417,7 @@ class Alpha_Shape:
         def tri_rad_gta(k):
             return self.triradius[k]>self.alpha
 
-        extrind = filter(tri_rad_gta, range(len(self.triradius)))
+        extrind = list(filter(tri_rad_gta, list(range(len(self.triradius)))))
 
         bv = self._vertices_from_edges(self.boundary)
         
@@ -486,7 +493,7 @@ class Alpha_Shape:
         # end edge loop
 
         if vptr.count(EMPTY):
-            raise FlagError, "We didn't hit all the vertices in the boundary"
+            raise FlagError("We didn't hit all the vertices in the boundary")
         
         # discard the edges in the little components
         # (i.e. those components with less than 'small' fraction of bdry points)
@@ -641,7 +648,7 @@ if __name__ == "__main__":
     import os, sys
     usage = "usage: %s point_file.csv boundary_file.bnd [alpha]"%os.path.basename(sys.argv[0])
     if len(sys.argv) < 3:
-        print usage
+        print(usage)
     else:
         point_file = sys.argv[1]
         boundary_file = sys.argv[2]

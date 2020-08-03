@@ -4,6 +4,9 @@ import os
 import sys
 
 from os.path import join
+from Cython.Build import cythonize
+import Cython.Compiler.Options
+Cython.Compiler.Options.annotate = True
 
 def configuration(parent_package='',top_path=None):
     
@@ -29,10 +32,12 @@ def configuration(parent_package='',top_path=None):
         extra_args = ['-fopenmp']
 
     config.add_extension('fitsmooth',
-                         sources=['fitsmooth.c']+util_srcs,
+                         sources=['fitsmooth_ext.pyx']+util_srcs,
                          include_dirs=[util_dir],
                          extra_compile_args=extra_args,
                          extra_link_args=extra_args)
+
+    config.ext_modules = cythonize(config.ext_modules, annotate=True)
 
 
     return config

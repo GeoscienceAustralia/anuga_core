@@ -1,8 +1,15 @@
 """
     Module to convert SWW to DEM files.
 """
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
 
 # external modules
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from future.utils import raise_
 import os
 import numpy as num
 
@@ -83,7 +90,7 @@ def sww2array(name_in,
     if reduction is None:
         reduction = max
 
-    if quantity_formula.has_key(quantity):
+    if quantity in quantity_formula:
         quantity = quantity_formula[quantity]
 
     if number_of_decimal_places is None:
@@ -92,7 +99,7 @@ def sww2array(name_in,
     if block_size is None:
         block_size = DEFAULT_BLOCK_SIZE
 
-    assert(isinstance(block_size, (int, long, float)))
+    assert(isinstance(block_size, (int, int, float)))
 
     # Read sww file
     if verbose:
@@ -119,7 +126,7 @@ def sww2array(name_in,
         # sww files don't have to have a geo_ref
         try:
             geo_reference = Geo_reference(NetCDFObject=fid)
-        except AttributeError, e:
+        except AttributeError as e:
             geo_reference = Geo_reference() # Default georef object
 
         xllcorner = geo_reference.get_xllcorner()
@@ -181,7 +188,7 @@ def sww2array(name_in,
     if missing_vars:
         msg = ("In expression '%s', variables %s are not in the SWW file '%s'"
                % (quantity, str(missing_vars), name_in))
-        raise Exception, msg
+        raise_(Exception, msg)
 
     # Create result array and start filling, block by block.
     result = num.zeros(number_of_points, num.float)
@@ -191,7 +198,7 @@ def sww2array(name_in,
         msg += ', block size: ' + str(block_size)
         log.critical(msg)
 
-    for start_slice in xrange(0, number_of_points, block_size):
+    for start_slice in range(0, number_of_points, block_size):
         # Limit slice size to array end if at last block
         end_slice = min(start_slice + block_size, number_of_points)
         
@@ -201,7 +208,7 @@ def sww2array(name_in,
             for name in var_list:
                 # check if variable has time axis
                 if len(fid.variables[name].shape) == 2:
-                    print 'avoiding large array'
+                    print('avoiding large array')
                     q_dict[name] = fid.variables[name][reduction,start_slice:end_slice]
                 else:       # no time axis
                     q_dict[name] = fid.variables[name][start_slice:end_slice]
@@ -231,7 +238,7 @@ def sww2array(name_in,
 
             if len(res.shape) == 2:
                 new_res = num.zeros(res.shape[1], num.float)
-                for k in xrange(res.shape[1]):
+                for k in range(res.shape[1]):
                     if type(reduction) is not types.BuiltinFunctionType:
                         new_res[k] = res[reduction,k]
                     else:
@@ -279,8 +286,8 @@ def sww2array(name_in,
     assert ymax >= ymin, msg
 
     if verbose: log.critical('Creating grid')
-    ncols = int((xmax-xmin)/cellsize) + 1
-    nrows = int((ymax-ymin)/cellsize) + 1
+    ncols = int(old_div((xmax-xmin),cellsize)) + 1
+    nrows = int(old_div((ymax-ymin),cellsize)) + 1
 
     # New absolute reference and coordinates
     newxllcorner = xmin + xllcorner
@@ -297,7 +304,7 @@ def sww2array(name_in,
     norms = num.zeros(6*num_tri, num.float)
 
     #Use fasr method to calc grid values
-    from calc_grid_values_ext import calc_grid_values
+    from .calc_grid_values_ext import calc_grid_values
 
     calc_grid_values(nrows, ncols, cellsize, NODATA_value,
                      x,y, norms, volumes, result, grid_values)

@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import unittest
 import os
 import numpy as num
@@ -111,7 +114,7 @@ class Test_eq(unittest.TestCase):
 
         #print int(l/dx)
         #print int(w/dy)
-        points, vertices, boundary = rectangular_cross(int(l/dx), int(w/dy),
+        points, vertices, boundary = rectangular_cross(int(old_div(l,dx)), int(old_div(w,dy)),
                                                len1=l, len2=w)
         domain = Domain(points, vertices, boundary)   
         domain.set_name('test')
@@ -246,7 +249,7 @@ class Test_eq(unittest.TestCase):
             el=-1000
             return el
         
-        points, vertices, boundary = rectangular_cross(int(l/dx), int(w/dy),
+        points, vertices, boundary = rectangular_cross(int(old_div(l,dx)), int(old_div(w,dy)),
                                                len1=l, len2=w)
         domain = Domain(points, vertices, boundary)   
         domain.set_name('test')

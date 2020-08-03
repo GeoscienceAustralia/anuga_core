@@ -1,4 +1,5 @@
 #external modules
+from builtins import str
 import os
 import sys
 import unittest
@@ -61,7 +62,7 @@ class Test_csv2sts(unittest.TestCase):
         
         try:
             csv2sts('somename_not_here.csv', sts_out, 10, 20)
-        except IOError, e:
+        except IOError as e:
             got_except = True
         except:
             assert False, 'Missing file raised wrong exception.'
@@ -104,7 +105,7 @@ class Test_csv2sts(unittest.TestCase):
         assert len(sts.variables) == len(data), 'num variables does not match'
         
         # make sure data is returned in exactly the expected format
-        for key, values in data.items():
+        for key, values in list(data.items()):
             assert list(sts.variables[key][:]) == values, \
                                         'stored data does not match'
 

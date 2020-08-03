@@ -131,7 +131,7 @@ if myid == 0:
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep = 0.1, finaltime = 5.):
     #print domain.timestepping_statistics(track_speeds=True)
-    if myid == 0: print domain.timestepping_statistics()
+    if myid == 0: print(domain.timestepping_statistics())
 
 
 domain.sww_merge(delete_old=True)

@@ -38,7 +38,7 @@ class Test_Domain(unittest.TestCase):
         domain.check_integrity()
 
         for name in conserved_quantities + other_quantities:
-            assert domain.quantities.has_key(name)
+            assert name in domain.quantities
 
 
         assert num.alltrue(domain.get_conserved_quantities(0, edge=1) == 0.)

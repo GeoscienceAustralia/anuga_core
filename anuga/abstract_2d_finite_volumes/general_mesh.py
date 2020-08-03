@@ -1,3 +1,9 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import copy
 import numpy as num
 
@@ -32,7 +38,7 @@ class General_mesh:
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
-        c = [2.0,0.0]
+        c = [2.0, 0.0]
         e = [2.0, 2.0]
 
         nodes = [a, b, c, e]
@@ -232,8 +238,8 @@ class General_mesh:
         self.edgelengths[:,1] = l1
         self.edgelengths[:,2] = l2
 
-        self.centroid_coordinates[:,0] = (x0 + x1 + x2)/3
-        self.centroid_coordinates[:,1] = (y0 + y1 + y2)/3
+        self.centroid_coordinates[:,0] = old_div((x0 + x1 + x2),3)
+        self.centroid_coordinates[:,1] = old_div((y0 + y1 + y2),3)
 
 
 
@@ -242,14 +248,14 @@ class General_mesh:
             #inscribed circle
 
             #Midpoints
-            xm0 = (x1 + x2)/2
-            ym0 = (y1 + y2)/2
+            xm0 = old_div((x1 + x2),2)
+            ym0 = old_div((y1 + y2),2)
 
-            xm1 = (x2 + x0)/2
-            ym1 = (y2 + y0)/2
+            xm1 = old_div((x2 + x0),2)
+            ym1 = old_div((y2 + y0),2)
 
-            xm2 = (x0 + x1)/2
-            ym2 = (y0 + y1)/2
+            xm2 = old_div((x0 + x1),2)
+            ym2 = old_div((y0 + y1),2)
 
 
             #The radius is the distance from the centroid of
@@ -271,7 +277,7 @@ class General_mesh:
             b = num.sqrt((x1-x2)**2+(y1-y2)**2)
             c = num.sqrt((x2-x0)**2+(y2-y0)**2)
 
-            self.radii[:]=2.0*self.areas/(a+b+c)
+            self.radii[:]=old_div(2.0*self.areas,(a+b+c))
 
 
 
@@ -670,7 +676,9 @@ class General_mesh:
         return num.reshape(num.arange(K, dtype=num.int), (M,3))
 
     def get_unique_vertices(self, indices=None):
-        """FIXME(Ole): This function needs a docstring"""
+        """Return indices to vertices as a sorted list.
+           FIXME (Ole): It may not be needed anymore
+        """
 
         triangles = self.get_triangles(indices=indices)
         unique_verts = {}
@@ -678,7 +686,9 @@ class General_mesh:
             unique_verts[triangle[0]] = 0
             unique_verts[triangle[1]] = 0
             unique_verts[triangle[2]] = 0
-        return unique_verts.keys()
+        res = list(unique_verts.keys())
+        res.sort() # Ensure uniqueness
+        return res
 
         # Note Padarn 27/11/12:
         # This function was modified, but then it was deicded it was not
@@ -686,6 +696,9 @@ class General_mesh:
         # (it was being used in quantity.py in the _set_vertex_values function).
         # Note however, the function in the head of the code is very slow and
         # could be easily sped up many fold.
+        #
+        # Have we profiled it? (Ole 31/5/2020)
+        
     def get_triangles_and_vertices_per_node(self, node=None):
         """Get triangles associated with given node.
 
@@ -707,7 +720,7 @@ class General_mesh:
             for i in range(count):
                 index = self.vertex_value_indices[first+i]
 
-                volume_id = index / 3
+                volume_id = old_div(index, 3)
                 vertex_id = index % 3
 
                 triangle_list.append( (volume_id, vertex_id) )
@@ -799,7 +812,7 @@ class General_mesh:
 
         if number_of_orphan_nodes > 0 and self.verbose:
             msg = 'Node(s) %d not associated to a triangle.' % orphan_nodes[0]
-            print msg
+            print(msg)
 
         if number_of_lone_nodes > 0:
             number_of_triangles_per_node =  \

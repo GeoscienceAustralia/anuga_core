@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
+from builtins import range
 import sys
 
-from types import ListType, TupleType
+# Python 2.7 Hack
+try:
+    from exceptions import Exception
+except:
+    pass
 
-import exceptions
-
-class NoTrianglesError(exceptions.Exception): pass
+class NoTrianglesError(Exception): pass
 import anuga.mesh_engine.mesh_engine_c_layer as triang
 #import anuga.mesh_engine.list_dic as triang
 
@@ -49,7 +52,7 @@ def generate_mesh(points=None,
     except ValueError:
         msg = 'ERROR: Inconsistent points array.'
         raise ANUGAError(msg)
-    if points.shape[1] <>2:
+    if points.shape[1] !=2:
         msg = 'ERROR: Bad shape points array.'
         raise ANUGAError(msg)
 
@@ -72,7 +75,7 @@ def generate_mesh(points=None,
     try:
         holes = ensure_numeric(holes, num.float)
     except ValueError:
-        msg = 'ERROR: Inconsistent holess array.'
+        msg = 'ERROR: Inconsistent holes array.'
         raise ANUGAError(msg)
 
    
@@ -93,7 +96,7 @@ def generate_mesh(points=None,
         msg = 'ERROR: Inconsistent point attributes array.'
         raise ANUGAError(msg)
 
-    if pointatts.shape[0] <> points.shape[0]:
+    if pointatts.shape[0] != points.shape[0]:
         msg = """ERROR: Point attributes array not the same shape as
         point array."""
         raise ANUGAError(msg)
@@ -105,7 +108,7 @@ def generate_mesh(points=None,
     except ValueError:
         msg = 'ERROR: Inconsistent point attributes array.'
         raise ANUGAError(msg)
-    if segatts.shape[0] <> segments.shape[0]:
+    if segatts.shape[0] != segments.shape[0]:
         msg = """ERROR: Segment attributes array not the same shape as
         segment array."""
         raise ANUGAError(msg)
@@ -147,8 +150,10 @@ def generate_mesh(points=None,
             pts_complex=points[:,0]+1j*points[:,1]
             i=i-1 # Repeat for the last value of i = next point
 
+    #print(points,segments,holes,regions, pointatts,segatts)
+
     trianglelist, pointlist, pointmarkerlist, pointattributelist, triangleattributelist, segmentlist, segmentmarkerlist, neighborlist = triang.genMesh(points,segments,holes,regions,
-                          pointatts,segatts, mode)
+                          pointatts,segatts, mode.encode('utf-8'))
     mesh_dict = {}
     # the values as arrays
     mesh_dict['generatedtrianglelist'] = trianglelist
@@ -196,15 +201,15 @@ def add_area_tag(regions):
     [x,y,region_tag,area] OR [x,y,region_tag]
     if it's [x,y,region_tag], add a 4th element, value of 0.0.
     """
-    if isinstance(regions, ListType):
+    if isinstance(regions, list):
         for i, region in enumerate(regions):
             if len(region) == 3:
-                if isinstance(region, TupleType):
+                if isinstance(region, tuple):
                     #FIXME: How do you convert a tuple to a list?
                     # I can do it a stupid way..
-                    tuple = region[:]
+                    tuple0 = region[:]
                     regions[i] = []
-                    for j in tuple:
+                    for j in tuple0:
                         regions[i].append(j)
                     regions[i].append(0.0)
                 else:

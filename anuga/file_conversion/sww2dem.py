@@ -1,8 +1,14 @@
 """
     Module to convert SWW to DEM files.
 """
+from __future__ import absolute_import
+from __future__ import division
 
 # external modules
+import sys
+from builtins import range
+from past.utils import old_div
+from future.utils import raise_
 import os
 import numpy as num
 
@@ -114,7 +120,7 @@ def sww2dem(name_in, name_out,
     if reduction is None:
         reduction = max
 
-    if quantity_formula.has_key(quantity):
+    if quantity in quantity_formula:
         quantity = quantity_formula[quantity]
 
     if number_of_decimal_places is None:
@@ -123,7 +129,7 @@ def sww2dem(name_in, name_out,
     if block_size is None:
         block_size = DEFAULT_BLOCK_SIZE
 
-    assert(isinstance(block_size, (int, long, float)))
+    assert(isinstance(block_size, (int, int, float)))
 
     # Read sww file
     if verbose:
@@ -156,7 +162,7 @@ def sww2dem(name_in, name_out,
         # sww files don't have to have a geo_ref
         try:
             geo_reference = Geo_reference(NetCDFObject=fid)
-        except AttributeError, e:
+        except AttributeError as e:
             geo_reference = Geo_reference() # Default georef object
 
         xllcorner = geo_reference.get_xllcorner()
@@ -218,7 +224,7 @@ def sww2dem(name_in, name_out,
     if missing_vars:
         msg = ("In expression '%s', variables %s are not in the SWW file '%s'"
                % (quantity, str(missing_vars), name_in))
-        raise Exception, msg
+        raise_(Exception, msg)
 
     # Create result array and start filling, block by block.
 
@@ -230,7 +236,7 @@ def sww2dem(name_in, name_out,
         msg += ', block size: ' + str(block_size)
         log.critical(msg)
 
-    for start_slice in xrange(0, number_of_points, block_size):
+    for start_slice in range(0, number_of_points, block_size):
         # Limit slice size to array end if at last block
         end_slice = min(start_slice + block_size, number_of_points)
         
@@ -248,7 +254,7 @@ def sww2dem(name_in, name_out,
 
         if len(res.shape) == 2:
             new_res = num.zeros(res.shape[1], num.float)
-            for k in xrange(res.shape[1]):
+            for k in range(res.shape[1]):
                 if type(reduction) is not types.BuiltinFunctionType:
                     new_res[k] = res[reduction,k]
                 else:
@@ -295,9 +301,9 @@ def sww2dem(name_in, name_out,
     msg += 'I got ymin = %f, ymax = %f' %(ymin, ymax)
     assert ymax >= ymin, msg
 
-    if verbose: log.critical('Creating grid')
-    ncols = int((xmax-xmin)/cellsize) + 1
-    nrows = int((ymax-ymin)/cellsize) + 1
+    if verbose: log.critical(u'Creating grid')
+    ncols = int(old_div((xmax-xmin),cellsize)) + 1
+    nrows = int(old_div((ymax-ymin),cellsize)) + 1
 
     # New absolute reference and coordinates
     newxllcorner = xmin + xllcorner
@@ -321,7 +327,7 @@ def sww2dem(name_in, name_out,
         vertex_points = num.concatenate ((x[:,num.newaxis], y[:,num.newaxis]), axis=1)
         assert len(vertex_points.shape) == 2
 
-        for i in xrange(nrows):
+        for i in range(nrows):
             yg = i * cellsize
 #            if out_ext == '.asc':
 #                yg = i * cellsize
@@ -329,7 +335,7 @@ def sww2dem(name_in, name_out,
 #                # this will flip the order of the y values for ers
 #                yg = (nrows-i) * cellsize
 
-            for j in xrange(ncols):
+            for j in range(ncols):
                 xg = j * cellsize
                 k = i*ncols + j
 
@@ -359,7 +365,7 @@ def sww2dem(name_in, name_out,
     norms = num.zeros(6*num_tri, num.float)
 
     #print norms
-    from calc_grid_values_ext import calc_grid_values
+    from .calc_grid_values_ext import calc_grid_values
 
     calc_grid_values(nrows, ncols, cellsize, NODATA_value,
                      x,y, norms, volumes, result, grid_values)
@@ -402,7 +408,7 @@ def sww2dem(name_in, name_out,
 
         #Write
         if verbose:
-            log.critical('Writing %s' % name_out)
+            print('Writing %s' % name_out)
 
         import anuga.abstract_2d_finite_volumes.ermapper_grids as ermapper_grids
 
@@ -417,7 +423,7 @@ def sww2dem(name_in, name_out,
         #Write prj file
         prjfile = basename_out + '.prj'
 
-        if verbose: log.critical('Writing %s' % prjfile)
+        if verbose: print('Writing %s' % prjfile)
         prjid = open(prjfile, 'w')
         prjid.write('Projection    %s\n' %'UTM')
         prjid.write('Zone          %d\n' %zone)
@@ -430,7 +436,7 @@ def sww2dem(name_in, name_out,
         prjid.write('Parameters\n')
         prjid.close()
 
-        if verbose: log.critical('Writing %s' % name_out)
+        if verbose: print('Writing %s' % name_out)
 
         ascid = open(name_out, 'w')
 
@@ -452,8 +458,8 @@ def sww2dem(name_in, name_out,
 
         format = '%.'+'%g' % number_of_decimal_places +'e'
         for i in range(nrows):
-            if verbose and i % ((nrows+10)/10) == 0:
-                log.critical('Doing row %d of %d' % (i, nrows))
+            if verbose and i % (old_div((nrows+10),10)) == 0:
+                print('Doing row %d of %d' % (i, nrows))
 
             base_index = (nrows-i-1)*ncols
 
@@ -528,7 +534,7 @@ def sww2dem_batch(basename_in, extra_name_out=None,
             demout = dir+os.sep+basename_out+'.'+format
 
             if verbose:
-                log.critical('sww2dem: %s => %s' % (swwin, demout))
+                print('sww2dem: %s => %s' % (swwin, demout))
 
             file_out = sww2dem(swwin,
                                demout,

@@ -1,5 +1,10 @@
 """  Test environmental forcing - rain, wind, etc.
 """
+from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
+from future.utils import raise_
 import operator
 
 import unittest, os
@@ -282,7 +287,7 @@ class Test_rate_operators(unittest.TestCase):
         t = 0.0
         while t <= finaltime:
             t_string = time.strftime(time_format, time.gmtime(t+start))
-            fid.write('%s, %f %f %f\n' %(t_string, 2*t, t**2, sin(t*pi/600)))
+            fid.write('%s, %f %f %f\n' %(t_string, 2*t, t**2, sin(old_div(t*pi,600))))
             t += dt
 
         fid.close()
@@ -307,20 +312,20 @@ class Test_rate_operators(unittest.TestCase):
             assert num.allclose(q[0], 2*t)
             if i%6 == 0:
                 assert num.allclose(q[1], t**2)
-                assert num.allclose(q[2], sin(t*pi/600))
+                assert num.allclose(q[2], sin(old_div(t*pi,600)))
 
         #Check non-exact
 
         t = 90 #Halfway between 60 and 120
         q = F(t)
-        assert num.allclose( (120**2 + 60**2)/2, q[1] )
-        assert num.allclose( (sin(120*pi/600) + sin(60*pi/600))/2, q[2] )
+        assert num.allclose( old_div((120**2 + 60**2),2), q[1] )
+        assert num.allclose( old_div((sin(old_div(120*pi,600)) + sin(old_div(60*pi,600))),2), q[2] )
 
 
         t = 100 #Two thirds of the way between between 60 and 120
         q = F(t)
-        assert num.allclose( 2*120**2/3 + 60**2/3, q[1] )
-        assert num.allclose( 2*sin(120*pi/600)/3 + sin(60*pi/600)/3, q[2] )
+        assert num.allclose( old_div(2*120**2,3) + old_div(60**2,3), q[1] )
+        assert num.allclose( old_div(2*sin(old_div(120*pi,600)),3) + old_div(sin(old_div(60*pi,600)),3), q[2] )
 
         #os.remove(filename + '.txt')
         #os.remove(filename + '.tms')
@@ -455,10 +460,10 @@ class Test_rate_operators(unittest.TestCase):
         verbose = False
 
         if verbose:
-            print domain.quantities['elevation'].centroid_values
-            print domain.quantities['stage'].centroid_values
-            print domain.quantities['xmomentum'].centroid_values
-            print domain.quantities['ymomentum'].centroid_values
+            print(domain.quantities['elevation'].centroid_values)
+            print(domain.quantities['stage'].centroid_values)
+            print(domain.quantities['xmomentum'].centroid_values)
+            print(domain.quantities['ymomentum'].centroid_values)
 
         # Apply operator to these triangles
         indices = [0,1,3]
@@ -468,7 +473,7 @@ class Test_rate_operators(unittest.TestCase):
         def main_rate(t):
             if t > 20:
                 msg = 'Model time exceeded.'
-                raise Modeltime_too_late, msg
+                raise_(Modeltime_too_late, msg)
             else:
                 return 3.0 * t + 7.0
 
@@ -488,10 +493,10 @@ class Test_rate_operators(unittest.TestCase):
         stage_ex = [ d,  d,   1.,  d]
 
         if verbose:
-            print domain.quantities['elevation'].centroid_values
-            print domain.quantities['stage'].centroid_values
-            print domain.quantities['xmomentum'].centroid_values
-            print domain.quantities['ymomentum'].centroid_values
+            print(domain.quantities['elevation'].centroid_values)
+            print(domain.quantities['stage'].centroid_values)
+            print(domain.quantities['xmomentum'].centroid_values)
+            print(domain.quantities['ymomentum'].centroid_values)
 
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
@@ -507,10 +512,10 @@ class Test_rate_operators(unittest.TestCase):
         stage_ex = [ d,  d,   1.,  d]
 
         if verbose:
-            print domain.quantities['elevation'].centroid_values
-            print domain.quantities['stage'].centroid_values
-            print domain.quantities['xmomentum'].centroid_values
-            print domain.quantities['ymomentum'].centroid_values
+            print(domain.quantities['elevation'].centroid_values)
+            print(domain.quantities['stage'].centroid_values)
+            print(domain.quantities['xmomentum'].centroid_values)
+            print(domain.quantities['ymomentum'].centroid_values)
 
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
@@ -556,10 +561,10 @@ class Test_rate_operators(unittest.TestCase):
         verbose = False
 
         if verbose:
-            print domain.quantities['elevation'].centroid_values
-            print domain.quantities['stage'].centroid_values
-            print domain.quantities['xmomentum'].centroid_values
-            print domain.quantities['ymomentum'].centroid_values
+            print(domain.quantities['elevation'].centroid_values)
+            print(domain.quantities['stage'].centroid_values)
+            print(domain.quantities['xmomentum'].centroid_values)
+            print(domain.quantities['ymomentum'].centroid_values)
 
         # Apply operator to these triangles
         factor = 10.0
@@ -596,10 +601,10 @@ class Test_rate_operators(unittest.TestCase):
         stage_ex[:] = d
 
         if verbose:
-            print domain.quantities['elevation'].centroid_values
-            print domain.quantities['stage'].centroid_values
-            print domain.quantities['xmomentum'].centroid_values
-            print domain.quantities['ymomentum'].centroid_values
+            print(domain.quantities['elevation'].centroid_values)
+            print(domain.quantities['stage'].centroid_values)
+            print(domain.quantities['xmomentum'].centroid_values)
+            print(domain.quantities['ymomentum'].centroid_values)
 
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
@@ -649,10 +654,10 @@ class Test_rate_operators(unittest.TestCase):
         verbose = False
 
         if verbose:
-            print domain.quantities['elevation'].centroid_values
-            print domain.quantities['stage'].centroid_values
-            print domain.quantities['xmomentum'].centroid_values
-            print domain.quantities['ymomentum'].centroid_values
+            print(domain.quantities['elevation'].centroid_values)
+            print(domain.quantities['stage'].centroid_values)
+            print(domain.quantities['xmomentum'].centroid_values)
+            print(domain.quantities['ymomentum'].centroid_values)
 
         # Apply operator to these triangles
         factor = 10.0
@@ -693,10 +698,10 @@ class Test_rate_operators(unittest.TestCase):
         stage_ex[:] = d
 
         if verbose:
-            print domain.quantities['elevation'].centroid_values
-            print domain.quantities['stage'].centroid_values
-            print domain.quantities['xmomentum'].centroid_values
-            print domain.quantities['ymomentum'].centroid_values
+            print(domain.quantities['elevation'].centroid_values)
+            print(domain.quantities['stage'].centroid_values)
+            print(domain.quantities['xmomentum'].centroid_values)
+            print(domain.quantities['ymomentum'].centroid_values)
 
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
@@ -742,10 +747,10 @@ class Test_rate_operators(unittest.TestCase):
         verbose = False
 
         if verbose:
-            print domain.quantities['elevation'].centroid_values
-            print domain.quantities['stage'].centroid_values
-            print domain.quantities['xmomentum'].centroid_values
-            print domain.quantities['ymomentum'].centroid_values
+            print(domain.quantities['elevation'].centroid_values)
+            print(domain.quantities['stage'].centroid_values)
+            print(domain.quantities['xmomentum'].centroid_values)
+            print(domain.quantities['ymomentum'].centroid_values)
 
         # Apply operator to these triangles
         indices = [0,1,3]
@@ -782,10 +787,10 @@ class Test_rate_operators(unittest.TestCase):
         stage_ex[indices] = d
 
         if verbose:
-            print domain.quantities['elevation'].centroid_values
-            print domain.quantities['stage'].centroid_values
-            print domain.quantities['xmomentum'].centroid_values
-            print domain.quantities['ymomentum'].centroid_values
+            print(domain.quantities['elevation'].centroid_values)
+            print(domain.quantities['stage'].centroid_values)
+            print(domain.quantities['xmomentum'].centroid_values)
+            print(domain.quantities['ymomentum'].centroid_values)
 
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
@@ -832,10 +837,10 @@ class Test_rate_operators(unittest.TestCase):
         verbose = False
 
         if verbose:
-            print domain.quantities['elevation'].centroid_values
-            print domain.quantities['stage'].centroid_values
-            print domain.quantities['xmomentum'].centroid_values
-            print domain.quantities['ymomentum'].centroid_values
+            print(domain.quantities['elevation'].centroid_values)
+            print(domain.quantities['stage'].centroid_values)
+            print(domain.quantities['xmomentum'].centroid_values)
+            print(domain.quantities['ymomentum'].centroid_values)
 
         # Apply operator to these triangles
         indices = [0,1,3]
@@ -872,10 +877,10 @@ class Test_rate_operators(unittest.TestCase):
         verbose = False
 
         if verbose:
-            print domain.quantities['elevation'].centroid_values
-            print domain.quantities['stage'].centroid_values
-            print domain.quantities['xmomentum'].centroid_values
-            print domain.quantities['ymomentum'].centroid_values
+            print(domain.quantities['elevation'].centroid_values)
+            print(domain.quantities['stage'].centroid_values)
+            print(domain.quantities['xmomentum'].centroid_values)
+            print(domain.quantities['ymomentum'].centroid_values)
 
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
@@ -920,10 +925,10 @@ class Test_rate_operators(unittest.TestCase):
         verbose = False
 
         if verbose:
-            print domain.quantities['elevation'].centroid_values
-            print domain.quantities['stage'].centroid_values
-            print domain.quantities['xmomentum'].centroid_values
-            print domain.quantities['ymomentum'].centroid_values
+            print(domain.quantities['elevation'].centroid_values)
+            print(domain.quantities['stage'].centroid_values)
+            print(domain.quantities['xmomentum'].centroid_values)
+            print(domain.quantities['ymomentum'].centroid_values)
 
         # Apply operator to these triangles
         indices = []
@@ -961,10 +966,10 @@ class Test_rate_operators(unittest.TestCase):
         stage_ex[indices] = d
 
         if verbose:
-            print domain.quantities['elevation'].centroid_values
-            print domain.quantities['stage'].centroid_values
-            print domain.quantities['xmomentum'].centroid_values
-            print domain.quantities['ymomentum'].centroid_values
+            print(domain.quantities['elevation'].centroid_values)
+            print(domain.quantities['stage'].centroid_values)
+            print(domain.quantities['xmomentum'].centroid_values)
+            print(domain.quantities['ymomentum'].centroid_values)
 
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)

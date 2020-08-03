@@ -80,7 +80,7 @@ domain = distribute(domain)
 ##BdIN = anuga.Dirichlet_boundary([dana, fluxin, 0.0])
 #BdOUT = anuga.Dirichlet_boundary([dana-40., dana*uana, 0.0])
 
-print dana-40.
+print(dana-40.)
 
 Br = anuga.Reflective_boundary(domain) # Solid reflective wall
 domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
@@ -97,7 +97,7 @@ inlet = Inlet_operator(domain, line1, Q = Qin)
 stage = domain.quantities['stage']
 elev  = domain.quantities['elevation']
 
-print (stage-elev).get_integral()
+print((stage-elev).get_integral())
 
 
 
@@ -119,7 +119,7 @@ if myid == 0:
 # Evolve system through time
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep=10.0, finaltime=3000.0):
-	if myid == 0 and verbose: print domain.timestepping_statistics()
+	if myid == 0 and verbose: print(domain.timestepping_statistics())
 	#print (stage-elev).get_integral()
     #print (domain.areas*(domain.quantities['stage'].centroid_values - domain.quantities['elevation'].centroid_values)).sum()
     #s3 = domain.get_flow_through_cross_section([[30., 0.0], [30., 100.]])

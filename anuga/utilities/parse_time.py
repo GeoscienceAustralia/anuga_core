@@ -1,4 +1,3 @@
-
 def parse_time(time = None, verbose=False, debug=False):
     """
     Time: seconds since epoch  or 
@@ -8,7 +7,7 @@ def parse_time(time = None, verbose=False, debug=False):
     
     if time is None: return None
     
-    if not isinstance(time, basestring):
+    if not isinstance(time, str):
         
         try:
             time = float(time)
@@ -68,14 +67,14 @@ def parse_time(time = None, verbose=False, debug=False):
         second = 0         
        
     if debug:
-        print year, month, day, hour, minute, second
-        print 'Convert to epoch'
+        print(year, month, day, hour, minute, second)
+        print('Convert to epoch')
 
             
                 
     import datetime
     time = int((datetime.datetime(year,month,day,hour,minute,second) - datetime.datetime(1970,1,1)).total_seconds())
 
-    if debug: print time
+    if debug: print(time)
     
     return float(time)

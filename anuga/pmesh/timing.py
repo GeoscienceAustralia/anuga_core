@@ -1,7 +1,10 @@
 """
 Script to measure how long pmesh spends doing various methods
 """
-from mesh import *
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import range
+from .mesh import *
 from anuga.pmesh import *
 import time
  
@@ -34,7 +37,7 @@ maxArea = 0.00005
 times = []
 tinitial = time.time()
 mem_initial = mem_usage()
-print "mem_initial", mem_initial
+print("mem_initial", mem_initial)
 #------------------------------------------
 mesh = Mesh()
 id = 0
@@ -86,11 +89,11 @@ else:
 times.append(("export_mesh_file",time.time()- tinitial - times[1][1], mem))
 
 #---------------------
-print "Number of user verts. ", n
-print "maxArea",maxArea
-print "funtion     time   memory usage, cumulative, for nix machines"
+print("Number of user verts. ", n)
+print("maxArea",maxArea)
+print("funtion     time   memory usage, cumulative, for nix machines")
 for time in times:
-    print "%s   %0.2f   %0.2f" %(time[0],  time[1], time[2])
+    print("%s   %0.2f   %0.2f" %(time[0],  time[1], time[2]))
 
 """
 #Results - mesh.py ver   1.84 	       	1.85	

@@ -1,7 +1,12 @@
 """Library of standard meshes and facilities for reading various
 mesh file formats
 """
+from __future__ import absolute_import
+from __future__ import division
 
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import anuga.utilities.log as log
 import numpy as num
 
@@ -82,7 +87,7 @@ def rectangular(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     #Calculate number of points
     Np = (m+1)*(n+1)
 
-    class Index:
+    class Index(object):
 
         def __init__(self, n,m):
             self.n = n
@@ -159,13 +164,13 @@ def rectangular_cross(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     params.append(len1)
     params.append(len2)
 
-    arrParams = num.array(params)
-    arrOrigin = num.array(origin)
+    arrParams = num.array(params, dtype=num.float)
+    arrOrigin = num.array(origin, dtype=num.float)
     
     points = num.empty([(m+1)*(n+1)+m*n,2], dtype=num.float)
     elements = num.empty([4*m*n,3], dtype=num.int)
 
-    from mesh_factory_ext import rectangular_cross_construct
+    from .mesh_factory_ext import rectangular_cross_construct
     boundary = rectangular_cross_construct(arrParams, arrOrigin, points, elements)
 
     #points = list(arrPoints)
@@ -347,7 +352,7 @@ def rectangular_periodic(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)
     #Calculate number of points
     Np = (m+1)*(n+1)
 
-    class VIndex:
+    class VIndex(object):
 
         def __init__(self, n,m):
             self.n = n
@@ -356,7 +361,7 @@ def rectangular_periodic(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)
         def __call__(self, i,j):
             return j+i*(self.n+1)
 
-    class EIndex:
+    class EIndex(object):
 
         def __init__(self, n,m):
             self.n = n
@@ -481,10 +486,10 @@ def oblique(m, n, lenx = 1.0, leny = 1.0, theta = 8.95, origin = (0.0, 0.0)):
     y3 = leny
     x4 = x3
     y4 = 0
-    a2 = a/(x1-x4)
+    a2 = old_div(a,(x1-x4))
     a1 = -a2*x4
-    a4 = ((a1 + a2*x3)/y3-(a1 + a2*x2)/y2)/(x2-x3)
-    a3 = 1. - (a1 + a2*x3)/y3 - a4*x3
+    a4 = old_div((old_div((a1 + a2*x3),y3)-old_div((a1 + a2*x2),y2)),(x2-x3))
+    a3 = 1. - old_div((a1 + a2*x3),y3) - a4*x3
 
     # Dictionary of vertex objects
     vertices = {}
@@ -549,11 +554,11 @@ def circular(m, n, radius=1.0, center = (0.0, 0.0)):
     vertices[0, 0] = 0
 
     for i in range(n):
-        theta = 2*i*pi/n
+        theta = old_div(2*i*pi,n)
         x = cos(theta)
         y = sin(theta)
         for j in range(1,m+1):
-            delta = j*radius/m
+            delta = old_div(j*radius,m)
             vertices[i,j] = len(points)
             points.append([delta*x, delta*y])
 
@@ -666,7 +671,7 @@ def from_polyfile(name):
         x2 = points[i2][0]
         y2 = points[i2][1]
 
-        area = abs((x1*y0-x0*y1)+(x2*y1-x1*y2)+(x0*y2-x2*y0))/2
+        area = old_div(abs((x1*y0-x0*y1)+(x2*y1-x1*y2)+(x0*y2-x2*y0)),2)
         if area > 0:
 
             #Ensure that points are arranged in counter clock-wise order
@@ -782,7 +787,7 @@ def contracting_channel(m, n, W_upstream = 1., W_downstream = 0.75,
     x2 = L_1
     y2 = 0
     x3 = L_1 + L_2
-    y3 = (W_upstream - W_downstream)/2
+    y3 = old_div((W_upstream - W_downstream),2)
     x4 = L_1 + L_2 + L_3
     y4 = y3
     x5 = x4
@@ -794,9 +799,9 @@ def contracting_channel(m, n, W_upstream = 1., W_downstream = 0.75,
     x8 = 0
     y8 = W_upstream
     a1 = 0
-    a2 = (W_upstream - W_downstream)/(2*L_2)
+    a2 = old_div((W_upstream - W_downstream),(2*L_2))
     a3 = 1
-    a4 = (W_downstream - W_upstream)/(L_2*W_upstream)
+    a4 = old_div((W_downstream - W_upstream),(L_2*W_upstream))
 
     # Dictionary of vertex objects
     vertices = {}
@@ -809,7 +814,7 @@ def contracting_channel(m, n, W_upstream = 1., W_downstream = 0.75,
             if x > L_1 and x <= (L_1 + L_2):
                 y = a1 + a2*(x - L_1) + a3*y + a4*(x - L_1)*y
             elif x > L_1 + L_2:
-                y = (W_upstream - W_downstream)/2 + deltay*j*W_downstream/W_upstream
+                y = old_div((W_upstream - W_downstream),2) + old_div(deltay*j*W_downstream,W_upstream)
 
             vertices[i,j] = len(points)
             points.append([x + origin[0], y + origin[1]])
@@ -863,7 +868,7 @@ def contracting_channel_cross(m, n, W_upstream = 1., W_downstream = 0.75,
     x2 = L_1
     y2 = 0
     x3 = L_1 + L_2
-    y3 = (W_upstream - W_downstream)/2
+    y3 = old_div((W_upstream - W_downstream),2)
     x4 = L_1 + L_2 + L_3
     y4 = y3
     x5 = x4
@@ -875,9 +880,9 @@ def contracting_channel_cross(m, n, W_upstream = 1., W_downstream = 0.75,
     x8 = 0
     y8 = W_upstream
     a1 = 0
-    a2 = (W_upstream - W_downstream)/(2*L_2)
+    a2 = old_div((W_upstream - W_downstream),(2*L_2))
     a3 = 1
-    a4 = (W_downstream - W_upstream)/(L_2*W_upstream)
+    a4 = old_div((W_downstream - W_upstream),(L_2*W_upstream))
 
     # Dictionary of vertex objects
     vertices = {}
@@ -890,7 +895,7 @@ def contracting_channel_cross(m, n, W_upstream = 1., W_downstream = 0.75,
             if x > L_1 and x <= (L_1 + L_2):
                 y = a1 + a2*(x - L_1) + a3*y + a4*(x - L_1)*y
             elif x > L_1 + L_2:
-                y = (W_upstream - W_downstream)/2 + deltay*j*W_downstream/W_upstream
+                y = old_div((W_upstream - W_downstream),2) + old_div(deltay*j*W_downstream,W_upstream)
 
             vertices[i,j] = len(points)
             points.append([x + origin[0], y + origin[1]])
@@ -957,10 +962,10 @@ def oblique_cross(m, n, lenx = 1.0, leny = 1.0, theta = 8.95, origin = (0.0, 0.0
     y3 = leny
     x4 = x3
     y4 = 0
-    a2 = a/(x1-x4)
+    a2 = old_div(a,(x1-x4))
     a1 = -a2*x4
-    a4 = ((a1 + a2*x3)/y3-(a1 + a2*x2)/y2)/(x2-x3)
-    a3 = 1. - (a1 + a2*x3)/y3 - a4*x3
+    a4 = old_div((old_div((a1 + a2*x3),y3)-old_div((a1 + a2*x2),y2)),(x2-x3))
+    a3 = 1. - old_div((a1 + a2*x3),y3) - a4*x3
 
     # Dictionary of vertex objects
     vertices = {}

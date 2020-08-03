@@ -9,10 +9,7 @@
 //
 // Ole Nielsen, GA 2004
 	
-#include "Python.h"	
-#include "numpy/arrayobject.h"
 #include "math.h"
-
 #include <stdio.h>
 
 
@@ -24,32 +21,6 @@
 #define TOSTRING(x) STRINGIFY(x)
 #define AT __FILE__ ":" TOSTRING(__LINE__)
 #define P_ERROR_BUFFER_SIZE 100
-
-
-// check that numpy array objects are C contiguous memory
-#define CHECK_C_CONTIG(varname)	if (!PyArray_ISCONTIGUOUS(varname)) { \
-				    char msg[1024]; \
-				    sprintf(msg, \
-					    "%s(): file %s, line %d: " \
-				            "'%s' object is not C contiguous memory", \
-				             __func__, __FILE__, __LINE__, #varname); \
-				    PyErr_SetString(PyExc_RuntimeError, msg); \
-				    return NULL; \
-				}
-
-
-
-void report_python_error(const char *location, const char *msg)
-{
-
-    char buf[P_ERROR_BUFFER_SIZE];
-    
-    snprintf(buf, P_ERROR_BUFFER_SIZE, "Error at %s: %s\n", location, msg);
-
-    PyErr_SetString(PyExc_RuntimeError, buf);
-}
-
-
 
 
 double max(double x, double y) {  
@@ -268,160 +239,5 @@ void  print_long_array(char* name, long* array, int n, int m){
     }
     printf("]\n");
 }
-
-void print_numeric_array(PyArrayObject *x) {  
-  int i, j;
-  for (i=0; i<x->dimensions[0]; i++) {  
-    for (j=0; j<x->dimensions[1]; j++) {
-      printf("%f ", *(double*) (x->data + i*x->strides[0] + j*x->strides[1]));
-    }
-    printf("\n");  
-  }
-  printf("\n");    
-}
-
-void print_numeric_vector(PyArrayObject *x) {  
-  int i;
-  for (i=0; i<x->dimensions[0]; i++) {
-    printf("%f ", *(double*) (x->data + i*x->strides[0]));  
-  }
-  printf("\n");  
-}
-
-PyArrayObject *get_consecutive_array(PyObject *O, char *name) {
-  PyArrayObject *A, *B;
-  
-
-  //Get array object from attribute
-  
-  /*
-  //FIXME: THE TEST DOESN't WORK
-  printf("Err = %d\n", PyObject_HasAttrString(O, name));
-  if (PyObject_HasAttrString(O, name) == 1) {
-    B = (PyArrayObject*) PyObject_GetAttrString(O, name);
-    if (!B) return NULL;
-  } else {
-    return NULL;
-    } 
-  */
-    
-  B = (PyArrayObject*) PyObject_GetAttrString(O, name);  // New Reference
-
-  //printf("B = %p\n",(void*)B);
-  if (!B) {
-    printf("util_ext.h: get_consecutive_array could not obtain python object");
-    printf(" %s\n",name);
-    fflush(stdout);
-    PyErr_SetString(PyExc_RuntimeError, "util_ext.h: get_consecutive_array could not obtain python object");
-    return NULL;
-  }     
-
-
-  CHECK_C_CONTIG(B);
-  A = B;
-  //Convert to consecutive array
-  //A = (PyArrayObject*) PyArray_ContiguousFromObject((PyObject*) B,
-  //						    B -> descr -> type, 0, 0);   // New Reference
-  
-  //Py_DECREF(B); //FIXME: Is this really needed??
-  
-  if (!A) {
-    printf("util_ext.h: get_consecutive_array could not obtain array object");
-    printf(" %s \n",name);
-    fflush(stdout);
-    PyErr_SetString(PyExc_RuntimeError, "util_ext.h: get_consecutive_array could not obtain array");
-    return NULL;
-  }
-
-
-  return A;
-}
-
-double get_python_double(PyObject *O, char *name) {
-  PyObject *TObject;
-  #define BUFFER_SIZE 80
-  char buf[BUFFER_SIZE];
-  double tmp;
-  
-
-  //Get double from attribute
-  TObject = PyObject_GetAttrString(O, name); //New Reference
-  if (!TObject) {
-	snprintf(buf, BUFFER_SIZE, "util_ext.h: get_python_double could not obtain double %s.\n", name);
-	//printf("name = %s",name);
-    PyErr_SetString(PyExc_RuntimeError, buf);
-
-    return 0.0;
-  }  
-  
-  tmp = PyFloat_AsDouble(TObject);
-  
-  Py_DECREF(TObject);
-  
-  return tmp;
-}
-
-
-
-
-int get_python_integer(PyObject *O, char *name) {
-  PyObject *TObject;
-  #define BUFFER_SIZE 80
-  char buf[BUFFER_SIZE];
-  long tmp;
-  
-  
-
-  //Get double from attribute
-  TObject = PyObject_GetAttrString(O, name);
-  if (!TObject) {
-  	snprintf(buf, BUFFER_SIZE, "util_ext.h: get_python_integer could not obtain double %s.\n", name);
-	//printf("name = %s",name);
-    PyErr_SetString(PyExc_RuntimeError, buf);
-    return 0;
-  }  
-  
-  tmp = PyInt_AsLong(TObject);
-  
-  Py_DECREF(TObject);
-  
-  return tmp;
-}
-
-
-PyObject *get_python_object(PyObject *O, char *name) {
-  PyObject *Oout;
-
-  Oout = PyObject_GetAttrString(O, name); // New Reference
-  if (!Oout) {
-    PyErr_SetString(PyExc_RuntimeError, "util_ext.h: get_python_object could not obtain object");
-    return NULL;
-  }
-
-  return Oout;
-
-}
-
-
-double* get_python_array_data_from_dict(PyObject *O, char *name, char *array) {
-  PyObject *A;
-  PyArrayObject *B;
-  double *data;
-
-  A = PyDict_GetItemString(O, name); // Borrowed Reference
-  if (!A) {
-    PyErr_SetString(PyExc_RuntimeError, "util_ext.h: get_python_array_from_object could not obtain object");
-    return NULL;
-  }
-  B = get_consecutive_array(A, array); // New Reference
-
-
-  data = (double *) B->data;
-
-  Py_DECREF(B);
-
-  return data;
-}
-
 
 #endif /* ANUGA_UTIL_EXT_H */

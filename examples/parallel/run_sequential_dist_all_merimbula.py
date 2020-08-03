@@ -2,7 +2,7 @@
 
    run using command like:
 
-   mpirun -np m python run_sequential_dist_all.py
+   mpiexec -np m python run_sequential_dist_all.py
 
    where m is the number of processors to be used.
    

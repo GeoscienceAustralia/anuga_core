@@ -61,26 +61,29 @@ Reference:
     New Zealand, December 2005, pp. 518-523. ISBN: 0-9758400-2-9.
     http://www.mssanz.org.au/modsim05/papers/nielsen.pdf
 
+    See also: https://anuga.anu.edu.au and https://en.wikipedia.org/wiki/ANUGA_Hydro
 
-SeeAlso:
-    TRAC administration of ANUGA (User Manuals etc) at
-    https://anuga.anu.edu.au and Subversion repository at
-    $HeadURL: https://anuga.anu.edu.au/svn/anuga/trunk/anuga_core/source/
-                anuga/shallow_water/shallow_water_domain.py $
 
 Constraints: See GPL license in the user guide
 """
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
 
 # Decorator added for profiling
 #------------------------------
 
+#rom past.builtins import str
+from builtins import range
+from past.utils import old_div
+from future.utils import raise_
 def profileit(name):
     def inner(func):
         def wrapper(*args, **kwargs):
             prof = cProfile.Profile()
             retval = prof.runcall(func, *args, **kwargs)
             # Note use of name from outer scope
-            print str(args[1])+"_"+name
+            print(str(args[1])+"_"+name)
             prof.dump_stats(str(args[1])+"_"+name)
             return retval
         return wrapper
@@ -93,9 +96,9 @@ import os
 import time
 
 try:
-    import dill as cPickle
+    import dill as pickle
 except:
-    import cPickle
+    import pickle
 
 from anuga.abstract_2d_finite_volumes.generic_domain \
                     import Generic_Domain
@@ -301,8 +304,8 @@ class Domain(Generic_Domain):
         # Work arrays [avoid allocate statements in compute_fluxes or extrapolate_second_order]
         self.edge_flux_work=num.zeros(len(self.edge_coordinates[:,0])*3) # Advective fluxes
         self.pressuregrad_work=num.zeros(len(self.edge_coordinates[:,0])) # Gravity related terms
-        self.x_centroid_work=num.zeros(len(self.edge_coordinates[:,0])/3)
-        self.y_centroid_work=num.zeros(len(self.edge_coordinates[:,0])/3)
+        self.x_centroid_work=num.zeros(old_div(len(self.edge_coordinates[:,0]),3))
+        self.y_centroid_work=num.zeros(old_div(len(self.edge_coordinates[:,0]),3))
 
         ############################################################################
         ## Local-timestepping information
@@ -320,7 +323,7 @@ class Domain(Generic_Domain):
         # Flag: should we update the extrapolation on the next extrapolation call?
         # (Only do this if one or more of the fluxes on that triangle will be computed on
         # the next timestep, assuming only the flux computation uses edge/vertex values)
-        self.update_extrapolation=num.zeros(len(self.edge_coordinates[:,0])/3).astype(int)+1
+        self.update_extrapolation=num.zeros(old_div(len(self.edge_coordinates[:,0]),3)).astype(int)+1
 
         # edge_timestep [wavespeed/radius] -- not updated every timestep
         self.edge_timestep=num.zeros(len(self.edge_coordinates[:,0]))+1.0e+100
@@ -417,13 +420,13 @@ class Domain(Generic_Domain):
         Print the standard parameters that are curently set (as a dictionary)
         """
 
-        print '#============================'
-        print '# Domain Algorithm Parameters '
-        print '#============================'
+        print('#============================')
+        print('# Domain Algorithm Parameters ')
+        print('#============================')
         from pprint import pprint
         pprint(self.get_algorithm_parameters(),indent=4)
 
-        print '#----------------------------'
+        print('#----------------------------')
 
 
     def _set_tsunami_defaults(self):
@@ -482,41 +485,41 @@ class Domain(Generic_Domain):
         #self.forcing_terms.append(manning_friction_explicit)
         #self.forcing_terms.remove(manning_friction_implicit)
         if self.processor == 0 and self.verbose:
-            print '##########################################################################'
-            print '#'
-            print "#"
-            print "# Here are some tips on using the 'tsunami' solver"
-            print "#"
-            print "# 1) When plotting outputs, I strongly suggest you examine centroid values, not vertex values"
-            print "# , as the latter can be completely misleading near strong gradients in the flow. "
-            print "# There is a plot_util.py script in anuga_core/utilities/ which might help you extract"
-            print "# quantities at centroid values from sww files."
-            print "# Note that to accuractely compute centroid values from sww files, the files need to store "
-            print "# vertices uniquely. This makes for large sww files (3x), but is the price to pay for the right answer"
-            print "# (unless we alter IO to allow centroids to be written to sww files, which would then affect"
-            print "# ANUGA viewer as well -- I expect this would be lots of work)"
-            print "#"
-            print "# 2) In field scale applications (where the depth is typically > 1m), I suggest you set"
-            print "# domain.minimum_allowed_height=0.01 (the default is 1.0e-3). "
-            print "#"
-            print "# 3) This solver is not expected to perform well in problems with very"
-            print "# shallow water flowing down steep slopes (such that the stage_centroid_value "
-            print "# is less than the maximum bed_edge_value on a given triangle). However, analytical tests"
-            print "# suggest it can do typical wetting/drying situations very well (parabolic oscillations test case) "
-            print "#"
-            print "# 4) This solver allows the stage_centroid_value to drop to slightly below the minimum bed_vertex_value"
-            print "# on it's triangle. In other ANUGA versions (e.g. 1.2.1), the limit would be the"
-            print "# bed_centroid_value. This means that triangles store slightly more water than they are"
-            print "# typically interpreted to store, which might have significance in some applications."
-            print "#"
-            print "# You will probably be able to tell this is causing you problems by convergence testing"
-            print "#"
-            print '# 5) Note that many options in config.py have been overridden by the solver -- we have '
-            print '# deliberately attempted to get the solver to perform well with consistent values of '
-            print '# these parameters -- so I advise against changing them unless you at least check that '
-            print '# it really does improve things'
-            print '#'
-            print '##########################################################################'
+            print('##########################################################################')
+            print('#')
+            print("#")
+            print("# Here are some tips on using the 'tsunami' solver")
+            print("#")
+            print("# 1) When plotting outputs, I strongly suggest you examine centroid values, not vertex values")
+            print("# , as the latter can be completely misleading near strong gradients in the flow. ")
+            print("# There is a plot_util.py script in anuga_core/utilities/ which might help you extract")
+            print("# quantities at centroid values from sww files.")
+            print("# Note that to accuractely compute centroid values from sww files, the files need to store ")
+            print("# vertices uniquely. This makes for large sww files (3x), but is the price to pay for the right answer")
+            print("# (unless we alter IO to allow centroids to be written to sww files, which would then affect")
+            print("# ANUGA viewer as well -- I expect this would be lots of work)")
+            print("#")
+            print("# 2) In field scale applications (where the depth is typically > 1m), I suggest you set")
+            print("# domain.minimum_allowed_height=0.01 (the default is 1.0e-3). ")
+            print("#")
+            print("# 3) This solver is not expected to perform well in problems with very")
+            print("# shallow water flowing down steep slopes (such that the stage_centroid_value ")
+            print("# is less than the maximum bed_edge_value on a given triangle). However, analytical tests")
+            print("# suggest it can do typical wetting/drying situations very well (parabolic oscillations test case) ")
+            print("#")
+            print("# 4) This solver allows the stage_centroid_value to drop to slightly below the minimum bed_vertex_value")
+            print("# on it's triangle. In other ANUGA versions (e.g. 1.2.1), the limit would be the")
+            print("# bed_centroid_value. This means that triangles store slightly more water than they are")
+            print("# typically interpreted to store, which might have significance in some applications.")
+            print("#")
+            print("# You will probably be able to tell this is causing you problems by convergence testing")
+            print("#")
+            print('# 5) Note that many options in config.py have been overridden by the solver -- we have ')
+            print('# deliberately attempted to get the solver to perform well with consistent values of ')
+            print('# these parameters -- so I advise against changing them unless you at least check that ')
+            print('# it really does improve things')
+            print('#')
+            print('##########################################################################')
 
 
 
@@ -534,13 +537,13 @@ class Domain(Generic_Domain):
 
 
         if self.processor == 0 and self.verbose:
-            print '##########################################################################'
-            print '#'
-            print '# Using continuous elevation solver 1_0'
-            print '#'
-            print '# Uses diffusive first order spatial, first order timestepping'
-            print '#'
-            print '##########################################################################'
+            print('##########################################################################')
+            print('#')
+            print('# Using continuous elevation solver 1_0')
+            print('#')
+            print('# Uses diffusive first order spatial, first order timestepping')
+            print('#')
+            print('##########################################################################')
 
 
 
@@ -566,13 +569,13 @@ class Domain(Generic_Domain):
 
 
         if self.processor == 0 and self.verbose:
-            print '##########################################################################'
-            print '#'
-            print '# Using continuous elevation solver 1_5'
-            print '#'
-            print '# Uses diffusive second order spatial, first order timestepping'
-            print '#'
-            print '##########################################################################'
+            print('##########################################################################')
+            print('#')
+            print('# Using continuous elevation solver 1_5')
+            print('#')
+            print('# Uses diffusive second order spatial, first order timestepping')
+            print('#')
+            print('##########################################################################')
 
 
     def _set_1_75_defaults(self):
@@ -598,13 +601,13 @@ class Domain(Generic_Domain):
 
 
         if self.processor == 0 and self.verbose:
-            print '##########################################################################'
-            print '#'
-            print '# Using continuous elevation solver 1_75'
-            print '#'
-            print '# Uses less diffusive second order spatial, first order timestepping'
-            print '#'
-            print '##########################################################################'
+            print('##########################################################################')
+            print('#')
+            print('# Using continuous elevation solver 1_75')
+            print('#')
+            print('# Uses less diffusive second order spatial, first order timestepping')
+            print('#')
+            print('##########################################################################')
 
     def _set_2_0_limited_defaults(self):
         """Set up the defaults for running the flow_algorithm "2_limited"
@@ -628,13 +631,13 @@ class Domain(Generic_Domain):
 
 
         if self.processor == 0 and self.verbose:
-            print '##########################################################################'
-            print '#'
-            print '# Using continuous elevation solver 2_0_limited'
-            print '#'
-            print '# Uses diffusive second order spatial, second order timestepping'
-            print '#'
-            print '##########################################################################'
+            print('##########################################################################')
+            print('#')
+            print('# Using continuous elevation solver 2_0_limited')
+            print('#')
+            print('# Uses diffusive second order spatial, second order timestepping')
+            print('#')
+            print('##########################################################################')
 
 
     def _set_2_0_defaults(self):
@@ -658,13 +661,13 @@ class Domain(Generic_Domain):
         self.set_extrapolate_velocity()
 
         if self.processor == 0 and self.verbose:
-            print '##########################################################################'
-            print '#'
-            print '# Using continuous elevation solver 2_0'
-            print '#'
-            print '# Uses second order spatial, second order timestepping'
-            print '#'
-            print '##########################################################################'
+            print('##########################################################################')
+            print('#')
+            print('# Using continuous elevation solver 2_0')
+            print('#')
+            print('# Uses second order spatial, second order timestepping')
+            print('#')
+            print('##########################################################################')
 
     def _set_2_5_defaults(self):
         """Set up the defaults for running the flow_algorithm "2_0"
@@ -688,13 +691,13 @@ class Domain(Generic_Domain):
 
 
         if self.processor == 0 and self.verbose:
-            print '##########################################################################'
-            print '#'
-            print '# Using continuous elevation solver 2_5'
-            print '#'
-            print '# Uses second order spatial, third order timestepping'
-            print '#'
-            print '##########################################################################'
+            print('##########################################################################')
+            print('#')
+            print('# Using continuous elevation solver 2_5')
+            print('#')
+            print('# Uses second order spatial, third order timestepping')
+            print('#')
+            print('##########################################################################')
 
     def _set_DE0_defaults(self):
         """Set up the defaults for running the flow_algorithm "DE0"
@@ -747,15 +750,15 @@ class Domain(Generic_Domain):
         self.maximum_allowed_speed=0.0
 
         if self.processor == 0 and self.verbose:
-            print '##########################################################################'
-            print '#'
-            print '# Using discontinuous elevation solver DE0'
-            print '#'
-            print '# First order timestepping'
-            print '#'
-            print '# Make sure you use centroid values when reporting on important output quantities'
-            print '#'
-            print '##########################################################################'
+            print('##########################################################################')
+            print('#')
+            print('# Using discontinuous elevation solver DE0')
+            print('#')
+            print('# First order timestepping')
+            print('#')
+            print('# Make sure you use centroid values when reporting on important output quantities')
+            print('#')
+            print('##########################################################################')
 
 
     def _set_DE1_defaults(self):
@@ -810,15 +813,15 @@ class Domain(Generic_Domain):
 
 
         if self.processor == 0 and self.verbose:
-            print '##########################################################################'
-            print '#'
-            print '# Using discontinuous elevation solver DE1 '
-            print '#'
-            print '# Uses rk2 timestepping'
-            print '#'
-            print '# Make sure you use centroid values when reporting on important output quantities'
-            print '#'
-            print '##########################################################################'
+            print('##########################################################################')
+            print('#')
+            print('# Using discontinuous elevation solver DE1 ')
+            print('#')
+            print('# Uses rk2 timestepping')
+            print('#')
+            print('# Make sure you use centroid values when reporting on important output quantities')
+            print('#')
+            print('##########################################################################')
 
     def _set_DE2_defaults(self):
         """Set up the defaults for running the flow_algorithm "DE2"
@@ -872,15 +875,15 @@ class Domain(Generic_Domain):
 
 
         if self.processor == 0 and self.verbose:
-            print '##########################################################################'
-            print '#'
-            print '# Using discontinuous elevation solver DE2'
-            print '#'
-            print '# Using rk3 timestepping'
-            print '#'
-            print '# Make sure you use centroid values when reporting on important output quantities'
-            print '#'
-            print '##########################################################################'
+            print('##########################################################################')
+            print('#')
+            print('# Using discontinuous elevation solver DE2')
+            print('#')
+            print('# Using rk3 timestepping')
+            print('#')
+            print('# Make sure you use centroid values when reporting on important output quantities')
+            print('#')
+            print('##########################################################################')
 
     def _set_DE1_7_defaults(self):
         """Set up the defaults for running the flow_algorithm "DE0_7"
@@ -933,15 +936,15 @@ class Domain(Generic_Domain):
         self.maximum_allowed_speed=0.0
 
         if self.processor == 0 and self.verbose:
-            print '##########################################################################'
-            print '#'
-            print '# Using discontinuous elevation solver DE1_7 '
-            print '#'
-            print '# A slightly more diffusive version of DE1, does use rk2 timestepping'
-            print '#'
-            print '# Make sure you use centroid values when reporting on important output quantities'
-            print '#'
-            print '##########################################################################'
+            print('##########################################################################')
+            print('#')
+            print('# Using discontinuous elevation solver DE1_7 ')
+            print('#')
+            print('# A slightly more diffusive version of DE1, does use rk2 timestepping')
+            print('#')
+            print('# Make sure you use centroid values when reporting on important output quantities')
+            print('#')
+            print('##########################################################################')
 
 
     def _set_DE0_7_defaults(self):
@@ -995,15 +998,15 @@ class Domain(Generic_Domain):
         self.maximum_allowed_speed=0.0
 
         if self.processor == 0 and self.verbose:
-            print '##########################################################################'
-            print '#'
-            print '# Using discontinuous elevation solver DE0_7'
-            print '#'
-            print '# A slightly less diffusive version than DE0, uses euler timestepping'
-            print '#'
-            print '# Make sure you use centroid values when reporting on important output quantities'
-            print '#'
-            print '##########################################################################'
+            print('##########################################################################')
+            print('#')
+            print('# Using discontinuous elevation solver DE0_7')
+            print('#')
+            print('# A slightly less diffusive version than DE0, uses euler timestepping')
+            print('#')
+            print('# Make sure you use centroid values when reporting on important output quantities')
+            print('#')
+            print('##########################################################################')
 
 
 
@@ -1087,7 +1090,7 @@ class Domain(Generic_Domain):
             else:
                 self.checkpoint_step = checkpoint_step
             self.checkpoint = True
-            #print self.checkpoint_dir, self.checkpoint_step
+            #print(self.checkpoint_dir, self.checkpoint_step)
         else:
             self.checkpoint = False
 
@@ -1141,11 +1144,11 @@ class Domain(Generic_Domain):
 
         self.max_flux_update_frequency=2**nlevels
 
-        if(self.max_flux_update_frequency is not 1):
-            if self.timestepping_method is not 'euler':
-                raise Exception, 'Local extrapolation and flux updating only supported with euler timestepping'
-            if self.compute_fluxes_method is not 'DE':
-                raise Exception, 'Local extrapolation and flux updating only supported for discontinuous flow algorithms'
+        if(self.max_flux_update_frequency != 1):
+            if self.timestepping_method != 'euler':
+                raise Exception('Local extrapolation and flux updating only supported with euler timestepping')
+            if self.compute_fluxes_method != 'DE':
+                raise Exception('Local extrapolation and flux updating only supported for discontinuous flow algorithms')
 
 
     def get_compute_fluxes_method(self):
@@ -1206,10 +1209,12 @@ class Domain(Generic_Domain):
            DE1_7
         """
 
-        if isinstance(flag, str) :
-            flag = flag.replace(".","_")
-        else:
-            flag = str(float(str(flag))).replace(".","_")
+        # FIXME(Ole): flag should be called algorithm ;-)
+        flag = str(flag)
+
+        # Replace any dots with dashes
+        flag = flag.replace(".","_")        
+        
 
         flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', \
                            'tsunami', 'yusuke', 'DE0', 'DE1', 'DE2', \
@@ -1221,9 +1226,6 @@ class Domain(Generic_Domain):
             msg = 'Unknown flow_algorithm. \nPossible choices are:\n'+ \
             ', '.join(flow_algorithms)+'.'
             raise Exception(msg)
-
-
-
 
         if self.flow_algorithm == '1_0':
             self._set_1_0_defaults()
@@ -1664,7 +1666,7 @@ class Domain(Generic_Domain):
         if not self.compute_fluxes_method=='DE':
             msg='Boundary flux integral only supported for DE fluxes '+\
                 '(because computation of boundary_flux_sum is only implemented there)'
-            raise Exception, msg
+            raise_(Exception, msg)
 
         flux_integral = self.boundary_flux_integral.boundary_flux_integral
 
@@ -1799,7 +1801,7 @@ class Domain(Generic_Domain):
     def extrapolate_second_order_sw(self):
         """Fast version of extrapolation from centroids to edges"""
 
-        from shallow_water_ext import extrapolate_second_order_sw as extrapol2
+        from .shallow_water_ext import extrapolate_second_order_sw as extrapol2
         extrapol2(self)
 
     #@profile
@@ -1825,8 +1827,8 @@ class Domain(Generic_Domain):
         """
 
         if self.compute_fluxes_method == 'original':
-            from shallow_water_ext import compute_fluxes_ext_central_structure
-            from shallow_water_ext import gravity as gravity_c
+            from .shallow_water_ext import compute_fluxes_ext_central_structure
+            from .shallow_water_ext import gravity as gravity_c
 
             self.flux_timestep = compute_fluxes_ext_central_structure(self)
             gravity_c(self)
@@ -1835,8 +1837,8 @@ class Domain(Generic_Domain):
             # Calc pressure terms using Simpson rule in flux
             # computations. Then they match up exactly with
             # standard gravity term - g h grad(z)
-            from shallow_water_ext import compute_fluxes_ext_wb
-            from shallow_water_ext import gravity as gravity_c
+            from .shallow_water_ext import compute_fluxes_ext_wb
+            from .shallow_water_ext import gravity as gravity_c
 
             self.flux_timestep = compute_fluxes_ext_wb(self)
             gravity_c(self)
@@ -1845,8 +1847,8 @@ class Domain(Generic_Domain):
             # Use standard flux calculation, but calc gravity
             # as -g h grad(w) - sum midpoint edge pressure terms
 
-            from shallow_water_ext import compute_fluxes_ext_central_structure
-            from shallow_water_ext import gravity_wb as gravity_wb_c
+            from .shallow_water_ext import compute_fluxes_ext_central_structure
+            from .shallow_water_ext import gravity_wb as gravity_wb_c
 
             self.flux_timestep = compute_fluxes_ext_central_structure(self)
             gravity_wb_c(self)
@@ -1856,8 +1858,8 @@ class Domain(Generic_Domain):
             # Calculate pure flux terms with simpsons rule, and
             # gravity flux and gravity forcing via
             # as -g h grad(w) - sum midpoint edge pressure terms
-            from shallow_water_ext import compute_fluxes_ext_wb_3
-            from shallow_water_ext import gravity_wb as gravity_wb_c
+            from .shallow_water_ext import compute_fluxes_ext_wb_3
+            from .shallow_water_ext import gravity_wb as gravity_wb_c
 
             self.flux_timestep = compute_fluxes_ext_wb_3(self)
             gravity_wb_c(self)
@@ -1870,7 +1872,7 @@ class Domain(Generic_Domain):
             # FIXME SR: This needs cleaning up, should just be passing through
             # the domain as in other compute flux calls
 
-            from swb2_domain_ext import compute_fluxes_ext_central \
+            from .swb2_domain_ext import compute_fluxes_ext_central \
                                       as compute_fluxes_ext
 
             # Shortcuts
@@ -1915,7 +1917,7 @@ class Domain(Generic_Domain):
             # Flux calculation and gravity incorporated in same
             # procedure
 
-            from swDE1_domain_ext import compute_fluxes_ext_central \
+            from .swDE1_domain_ext import compute_fluxes_ext_central \
                                       as compute_fluxes_ext
 
             timestep = self.evolve_max_timestep
@@ -1946,7 +1948,7 @@ class Domain(Generic_Domain):
 
             # FIXME SR: Clean up code to just take self (domain) as
             # input argument
-            from swb2_domain_ext import protect
+            from .swb2_domain_ext import protect
 
             # shortcuts
             wc = self.quantities['stage'].centroid_values
@@ -1961,10 +1963,10 @@ class Domain(Generic_Domain):
                 self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas)
 
             if mass_error > 0.0 and self.verbose :
-                print 'Cumulative mass protection: %g m^3 '% mass_error
+                print('Cumulative mass protection: %g m^3 '% mass_error)
 
 
-            from swb2_domain_ext import extrapolate_second_order_edge_sw as extrapol2_ext
+            from .swb2_domain_ext import extrapolate_second_order_edge_sw as extrapol2_ext
 
             # Shortcuts
             Stage = self.quantities['stage']
@@ -1997,7 +1999,7 @@ class Domain(Generic_Domain):
             # Do protection step
             self.protect_against_infinitesimal_and_negative_heights()
             # Do extrapolation step
-            from swDE1_domain_ext import extrapolate_second_order_edge_sw as extrapol2
+            from .swDE1_domain_ext import extrapolate_second_order_edge_sw as extrapol2
             extrapol2(self)
 
         else:
@@ -2111,7 +2113,7 @@ class Domain(Generic_Domain):
 
         if self.flow_algorithm == 'tsunami':
 
-            from swb2_domain_ext import protect
+            from .swb2_domain_ext import protect
 
             # shortcuts
             wc = self.quantities['stage'].centroid_values
@@ -2126,11 +2128,11 @@ class Domain(Generic_Domain):
                 self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas)
 
             if mass_error > 0.0 and self.verbose :
-                print 'Cumulative mass protection: '+str(mass_error)+' m^3 '
+                print('Cumulative mass protection: '+str(mass_error)+' m^3 ')
 
         elif self.compute_fluxes_method == 'DE':
 
-            from swDE1_domain_ext import protect_new
+            from .swDE1_domain_ext import protect_new
 
 
             mass_error = protect_new(self)
@@ -2150,10 +2152,12 @@ class Domain(Generic_Domain):
             #       self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas, xc, yc)
 #
             if mass_error > 0.0 and self.verbose :
-                print 'Cumulative mass protection: '+str(mass_error)+' m^3 '
+                #print('Cumulative mass protection: ' + str(mass_error) + ' m^3 ')
+                # From https://stackoverflow.com/questions/22397261/cant-convert-float-object-to-str-implicitly
+                print('Cumulative mass protection: {0} m^3'.format(mass_error))
 
         else:
-            from shallow_water_ext import protect
+            from .shallow_water_ext import protect
 
             # Shortcuts
             wc = self.quantities['stage'].centroid_values
@@ -2180,7 +2184,7 @@ class Domain(Generic_Domain):
         Wrapper for C implementation
         """
 
-        from shallow_water_ext import balance_deep_and_shallow \
+        from .shallow_water_ext import balance_deep_and_shallow \
                                       as balance_deep_and_shallow_ext
 
         # Shortcuts
@@ -2233,7 +2237,7 @@ class Domain(Generic_Domain):
 
             negative_ids = num.where( num.logical_and((Stage.centroid_values - Elev.centroid_values) < 0.0 , tff > 0) )[0]
 
-            if len(negative_ids)>0:
+            if len(negative_ids) > 0:
                 # FIXME: This only warns the first time -- maybe we should warn whenever loss occurs?
                 import warnings
                 msg = 'Negative cells being set to zero depth, possible loss of conservation. \n' +\
@@ -2356,14 +2360,14 @@ class Domain(Generic_Domain):
         #U.set_values(uh_C/(h_C + H0/h_C), location='centroids')
         #V.set_values(vh_C/(h_C + H0/h_C), location='centroids')
 
-        factor = h_C/(h_C*h_C + H0)
+        factor = old_div(h_C,(h_C*h_C + H0))
         u_C[:]  = uh_C*factor
         v_C[:]  = vh_C*factor
 
         #U.set_boundary_values(uh_B/(h_B + H0/h_B))
         #V.set_boundary_values(vh_B/(h_B + H0/h_B))
 
-        factor = h_B/(h_B*h_B + H0)
+        factor = old_div(h_B,(h_B*h_B + H0))
         u_B[:]  = uh_B*factor
         v_B[:]  = vh_B*factor
 
@@ -2469,7 +2473,7 @@ class Domain(Generic_Domain):
 
                 if save_checkpoint:
                     pickle_name = os.path.join(self.checkpoint_dir,self.get_name())+'_'+str(self.get_time())+'.pickle'
-                    cPickle.dump(self, open(pickle_name, 'wb'))
+                    pickle.dump(self, open(pickle_name, 'wb'))
 
                     barrier()
                     self.walltime_prev = time.time()
@@ -2571,9 +2575,9 @@ class Domain(Generic_Domain):
             Cvh = vh.get_values(location='centroids', indices=[k])
 
             # Speeds in each direction
-            Vu = Vuh/(Vh + epsilon)
-            Eu = Euh/(Eh + epsilon)
-            Cu = Cuh/(Ch + epsilon)
+            Vu = old_div(Vuh,(Vh + epsilon))
+            Eu = old_div(Euh,(Eh + epsilon))
+            Cu = old_div(Cuh,(Ch + epsilon))
             name = 'U'
             message  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n' \
                  % (name.ljust(qwidth), Vu[0], Vu[1], Vu[2])
@@ -2586,9 +2590,9 @@ class Domain(Generic_Domain):
 
             msg += message
 
-            Vv = Vvh/(Vh + epsilon)
-            Ev = Evh/(Eh + epsilon)
-            Cv = Cvh/(Ch + epsilon)
+            Vv = old_div(Vvh,(Vh + epsilon))
+            Ev = old_div(Evh,(Eh + epsilon))
+            Cv = old_div(Cvh,(Ch + epsilon))
             name = 'V'
             message  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n' \
                  % (name.ljust(qwidth), Vv[0], Vv[1], Vv[2])
@@ -2603,9 +2607,9 @@ class Domain(Generic_Domain):
 
             # Froude number in each direction
             name = 'Froude (x)'
-            Vfx = Vu/(num.sqrt(g*Vh) + epsilon)
-            Efx = Eu/(num.sqrt(g*Eh) + epsilon)
-            Cfx = Cu/(num.sqrt(g*Ch) + epsilon)
+            Vfx = old_div(Vu,(num.sqrt(g*Vh) + epsilon))
+            Efx = old_div(Eu,(num.sqrt(g*Eh) + epsilon))
+            Cfx = old_div(Cu,(num.sqrt(g*Ch) + epsilon))
 
             message  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
                  % (name.ljust(qwidth), Vfx[0], Vfx[1], Vfx[2])
@@ -2619,9 +2623,9 @@ class Domain(Generic_Domain):
             msg += message
 
             name = 'Froude (y)'
-            Vfy = Vv/(num.sqrt(g*Vh) + epsilon)
-            Efy = Ev/(num.sqrt(g*Eh) + epsilon)
-            Cfy = Cv/(num.sqrt(g*Ch) + epsilon)
+            Vfy = old_div(Vv,(num.sqrt(g*Vh) + epsilon))
+            Efy = old_div(Ev,(num.sqrt(g*Eh) + epsilon))
+            Cfy = old_div(Cv,(num.sqrt(g*Ch) + epsilon))
 
             message  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
                  % (name.ljust(qwidth), Vfy[0], Vfy[1], Vfy[2])
@@ -2640,7 +2644,7 @@ class Domain(Generic_Domain):
 
         msg = self.timestepping_statistics(*args, **kwargs)
 
-        print msg
+        print(msg)
 
 
     def compute_boundary_flows(self):
@@ -2769,7 +2773,7 @@ class Domain(Generic_Domain):
             Update the 'flux_update_frequency' and 'update_extrapolate' variables
             Used to control updating of fluxes / extrapolation for 'local-time-stepping'
         """
-        from swDE1_domain_ext import compute_flux_update_frequency \
+        from .swDE1_domain_ext import compute_flux_update_frequency \
                                   as compute_flux_update_frequency_ext
 
         compute_flux_update_frequency_ext(self, self.timestep)
@@ -2783,9 +2787,9 @@ class Domain(Generic_Domain):
         """
         from anuga import myid
 
-        if(self.compute_fluxes_method is not 'DE'):
+        if(self.compute_fluxes_method != 'DE'):
             if(myid==0):
-                print 'Water_volume_statistics only supported for DE algorithm '
+                print('Water_volume_statistics only supported for DE algorithm ')
             return
 
         # Compute the volume
@@ -2795,12 +2799,12 @@ class Domain(Generic_Domain):
         fracIntegral=self.get_fractional_step_volume_integral()
 
         if(verbose and myid==0):
-            print ' '
-            print '    Volume V is:', Vol
-            print '    Boundary Flux integral BF: ', fluxIntegral
-            print '    (rate + inlet) Fractional Step volume integral FS: ', fracIntegral
-            print '    V - BF - FS - InitialVolume :',  Vol- fluxIntegral -fracIntegral - self.volume_history[0]
-            print ' '
+            print(' ')
+            print('    Volume V is:', Vol)
+            print('    Boundary Flux integral BF: ', fluxIntegral)
+            print('    (rate + inlet) Fractional Step volume integral FS: ', fracIntegral)
+            print('    V - BF - FS - InitialVolume :',  Vol- fluxIntegral -fracIntegral - self.volume_history[0])
+            print(' ')
 
         if(returnStats):
             return [Vol, fluxIntegral, fracIntegral]
@@ -2827,22 +2831,22 @@ class Domain(Generic_Domain):
         vh = self.quantities['ymomentum'].centroid_values
         d =  self.quantities['stage'].centroid_values - self.quantities['elevation'].centroid_values
         d = num.maximum(d, threshold_depth)
-        v = ( (uh)**2 + (vh)**2)**0.5/d
+        v = old_div(( (uh)**2 + (vh)**2)**0.5,d)
         v = v*(d>threshold_depth)
 
         for i in range(numprocs):
             if(myid==i):
-                print '    Processor ', myid
+                print('    Processor ', myid)
                 gravSpeed=(g*d)**0.5
                 waveSpeed = abs(v)+gravSpeed
-                localTS=self.radii/num.maximum(waveSpeed, epsilon)
+                localTS=old_div(self.radii,num.maximum(waveSpeed, epsilon))
                 controlling_pt_ind=localTS.argmin()
-                print '    * Smallest LocalTS is: ', localTS[controlling_pt_ind]
-                print '     -- Location: ', round(self.centroid_coordinates[controlling_pt_ind,0]+self.geo_reference.xllcorner,2),\
-                                        round(self.centroid_coordinates[controlling_pt_ind,1]+self.geo_reference.yllcorner,2)
-                print '     -+ Speed: ', v[controlling_pt_ind]
-                print '     -* Gravity_wave_speed', gravSpeed[controlling_pt_ind]
-                print ' '
+                print('    * Smallest LocalTS is: ', localTS[controlling_pt_ind])
+                print('     -- Location: ', round(self.centroid_coordinates[controlling_pt_ind,0]+self.geo_reference.xllcorner,2),\
+                                        round(self.centroid_coordinates[controlling_pt_ind,1]+self.geo_reference.yllcorner,2))
+                print('     -+ Speed: ', v[controlling_pt_ind])
+                print('     -* Gravity_wave_speed', gravSpeed[controlling_pt_ind])
+                print(' ')
 
             barrier()
         return
@@ -2961,7 +2965,7 @@ def extrapolate_second_order_sw_old(domain):
     class, see comments in the corresponding method in shallow_water_ext.c
     """
 
-    from shallow_water_ext import extrapolate_second_order_sw_old as extrapol2
+    from .shallow_water_ext import extrapolate_second_order_sw_old as extrapol2
 
     # Shortcuts
     Stage = domain.quantities['stage']
@@ -3122,8 +3126,8 @@ def manning_friction_implicit(domain):
     Wrapper for c version
     """
 
-    from shallow_water_ext import manning_friction_flat
-    from shallow_water_ext import manning_friction_sloped
+    from .shallow_water_ext import manning_friction_flat
+    from .shallow_water_ext import manning_friction_sloped
 
     xmom = domain.quantities['xmomentum']
     ymom = domain.quantities['ymomentum']
@@ -3156,8 +3160,8 @@ def manning_friction_explicit(domain):
     Wrapper for c version
     """
 
-    from shallow_water_ext import manning_friction_flat
-    from shallow_water_ext import manning_friction_sloped
+    from .shallow_water_ext import manning_friction_flat
+    from .shallow_water_ext import manning_friction_sloped
 
     xmom = domain.quantities['xmomentum']
     ymom = domain.quantities['ymomentum']
@@ -3209,7 +3213,7 @@ def linear_friction(domain):
     for k in range(num_tris):
         if tau[k] >= eps:
             if h[k] >= eps:
-                S = -tau[k]/h[k]
+                S = old_div(-tau[k],h[k])
 
                 #Update momentum
                 xmom_update[k] += S*uh[k]
@@ -3270,7 +3274,7 @@ def depth_dependent_friction(domain, default_friction,
         elif d_vals[i] >= d2:
             ddf = n2
         else:
-            ddf = n1 + ((n2-n1)/(d2-d1))*(d_vals[i]-d1)
+            ddf = n1 + (old_div((n2-n1),(d2-d1)))*(d_vals[i]-d1)
 
         # check sanity of result
         if (ddf  < 0.010 or \

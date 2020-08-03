@@ -3,6 +3,7 @@
 Function which can be useful when setting quantities
 
 """
+
 import copy
 import os
 import anuga.utilities.spatialInputUtil as su
@@ -84,7 +85,7 @@ def make_nearestNeighbour_quantity_function(
         # we adjust them here
         xll = domain.geo_reference.xllcorner
         yll = domain.geo_reference.yllcorner
-        z = scipy.zeros(shape=(len(x), 2))
+        z = np.zeros(shape=(len(x), 2))
         z[:,0] = x+xll
         z[:,1] = y+yll
 
@@ -147,7 +148,7 @@ def make_nearestNeighbour_quantity_function(
                 numerator += values*inverse_distance
                 denominator += inverse_distance
 
-            quantity_output[dist_lt_thresh] = numerator/denominator
+            quantity_output[dist_lt_thresh] = numerator / denominator
 
         return quantity_output
 
@@ -350,19 +351,18 @@ def composite_quantity_setting_function(poly_fun_pairs,
             ###################################################################
             if(pi == 'All'):
                 # Get all unset points
-                fInside = (1-isSet)
-                fInds = (fInside==1).nonzero()[0]
+                fInside = (1 - isSet)
+                fInds = (fInside == 1).nonzero()[0]
 
             else:
-
-                if(pi == 'Extent'):
+                if pi == 'Extent':
                     # Here fi MUST be a gdal-compatible raster
-                    if(not (type(fi) == str)):
+                    if not isinstance(fi, str):
                         msg = ' pi = "Extent" can only be used when fi is a' +\
                               ' raster file name'
                         raise Exception(msg)
 
-                    if(not os.path.exists(fi)):
+                    if not os.path.exists(fi):
                         msg = 'fi ' + str(fi) + ' is supposed to be a ' +\
                               ' raster filename, but it could not be found'
                         raise Exception(msg)
@@ -371,10 +371,10 @@ def composite_quantity_setting_function(poly_fun_pairs,
                     pi_path = su.getRasterExtent(fi,asPolygon=True)
 
                     if verbose:
-                        print 'Extracting extent from raster: ', fi
-                        print 'Extent: ', pi_path
+                        print('Extracting extent from raster: ', fi)
+                        print('Extent: ', pi_path)
 
-                elif( (type(pi) == str) and os.path.isfile(pi) ):
+                elif (type(pi) == str) and os.path.isfile(pi):
                     # pi is a file
                     pi_path = su.read_polygon(pi)
 
@@ -397,23 +397,23 @@ def composite_quantity_setting_function(poly_fun_pairs,
 
             # We use various tricks to infer whether fi is a function,
             # a constant, a file (raster or csv), or an array
-            if(hasattr(fi,'__call__')):
-                # fi is a function
+            if hasattr(fi, '__call__'):
+                # fi is a function or a callable object
                 quantityVal[fInds] = fi(x[fInds], y[fInds])
 
-            elif isinstance(fi, (int, long, float)):
+            elif isinstance(fi, (int, int, float)):
                 # fi is a numerical constant
                 quantityVal[fInds] = fi*1.0
 
-            elif ( type(fi) is str and os.path.exists(fi)):
+            elif type(fi) is str and os.path.exists(fi):
                 # fi is a file which is assumed to be
                 # a gdal-compatible raster OR an x,y,z elevation file
                 if os.path.splitext(fi)[1] in ['.txt', '.csv']:
                     fi_array = su.read_csv_optional_header(fi)
                     # Check the results
-                    if fi_array.shape[1] is not 3:
-                        print 'Treated input file ' + fi +\
-                              ' as xyz array with an optional header'
+                    if fi_array.shape[1] != 3:
+                        print('Treated input file ' + fi +\
+                              ' as xyz array with an optional header')
                         msg = 'Array should have 3 columns -- x,y,value'
                         raise Exception(msg)
 
@@ -428,8 +428,8 @@ def composite_quantity_setting_function(poly_fun_pairs,
                         interpolation = default_raster_interpolation)
                     quantityVal[fInds] = newfi(x[fInds], y[fInds])
 
-            elif(type(fi) is numpy.ndarray):
-                if fi.shape[1] is not 3:
+            elif type(fi) is numpy.ndarray:
+                if fi.shape[1] != 3:
                     msg = 'Array should have 3 columns -- x,y,value'
                     raise Exception(msg)
                 newfi = make_nearestNeighbour_quantity_function(fi, domain,
@@ -437,9 +437,9 @@ def composite_quantity_setting_function(poly_fun_pairs,
                 quantityVal[fInds] = newfi(x[fInds], y[fInds])
 
             else:
-                print 'ERROR: with function from ' + fi
+                print('ERROR: with function from ' + fi)
                 msg='Cannot make function from type ' + str(type(fi))
-                raise Exception, msg
+                raise Exception(msg)
 
             ###################################################################
             # Check for nan values
@@ -465,7 +465,7 @@ def composite_quantity_setting_function(poly_fun_pairs,
                           'poly_fun_pair at index ' + str(i) + ' '\
                           'in composite_quantity_setting_function. ' + \
                           'They will be passed to later poly_fun_pairs'
-                    if verbose: print msg
+                    if verbose: print(msg)
                     not_nan_inds = (1-nan_flag).nonzero()[0]
 
                     if len(not_nan_inds)>0:
@@ -474,7 +474,7 @@ def composite_quantity_setting_function(poly_fun_pairs,
                         # All values are nan
                         msg = '( Actually all the values were nan - ' + \
                               'Are you sure they should be? Possible error?)'
-                        if verbose: print msg
+                        if verbose: print(msg)
                         continue
 
                 else:
@@ -530,10 +530,10 @@ def composite_quantity_setting_function(poly_fun_pairs,
 
 
             if verbose:
-                print 'Re-interpolating ', len(points_to_reinterpolate),\
+                print('Re-interpolating ', len(points_to_reinterpolate),\
                       ' points which were nan under their',\
                       ' first-preference and are inside the',\
-                      ' nan_interpolation_region_polygon'
+                      ' nan_interpolation_region_polygon')
 
             if len(points_to_reinterpolate) > 0:
                 msg = 'WARNING: nan interpolation is being applied. This ',\
@@ -542,7 +542,7 @@ def composite_quantity_setting_function(poly_fun_pairs,
                       'implemented yet [so parallel results might depend on ',\
                       'the number of processes]'
                 if verbose:
-                    print msg
+                    print(msg)
 
 
             # Find the interpolation points = points not needing reinterpolation
@@ -555,11 +555,11 @@ def composite_quantity_setting_function(poly_fun_pairs,
             nan_ip = (quantityVal[ip] != quantityVal[ip]).nonzero()[0]
 
             if len(nan_ip) > 0:
-                print 'There are ', len(nan_ip), ' points outside the ',\
-                      'nan_interpolation_region_polygon have nan values.'
-                print 'The user should ensure this does not happen.'
-                print 'The points have the following coordinates:'
-                print xy_array_trans[ip[nan_ip],:]
+                print('There are ', len(nan_ip), ' points outside the ',\
+                      'nan_interpolation_region_polygon have nan values.')
+                print('The user should ensure this does not happen.')
+                print('The points have the following coordinates:')
+                print(xy_array_trans[ip[nan_ip],:])
                 msg = "There are nan points outside of " +\
                       "nan_interpolation_region_polygon, even after all " +\
                       "fall-through's"
@@ -585,13 +585,13 @@ def composite_quantity_setting_function(poly_fun_pairs,
 
         # Check there are no remaining nan values
         if( min(isSet) != 1):
-            print 'Some points remain as nan, which is not allowed'
+            print('Some points remain as nan, which is not allowed')
             unset_inds = (isSet != 1).nonzero()[0]
             lui = min(5, len(unset_inds))
-            print 'There are ', len(unset_inds), ' such points'
-            print 'Here are a few:'
+            print('There are ', len(unset_inds), ' such points')
+            print('Here are a few:')
             for i in range(lui):
-                print x[unset_inds[i]] + xll, y[unset_inds[i]] + yll
+                print(x[unset_inds[i]] + xll, y[unset_inds[i]] + yll)
             raise Exception('It seems the input data needs to be fixed')
 
         return quantityVal
@@ -621,11 +621,14 @@ def quantityRasterFun(domain, rasterFile, interpolation='pixel'):
             corresponding raster values
     """
     import scipy
+    #import numpy as NearestNDInterpolator  # FIXME (Ole): What?
+    import numpy as np
+    
     from anuga.utilities.spatialInputUtil import rasterValuesAtPoints
     def QFun(x,y):
         xll=domain.geo_reference.xllcorner
         yll=domain.geo_reference.yllcorner
-        inDat=scipy.vstack([x+xll,y+yll]).transpose()
+        inDat=np.vstack([x+xll,y+yll]).transpose()
         return rasterValuesAtPoints(xy=inDat,rasterFile=rasterFile,
                                     interpolation=interpolation)
 

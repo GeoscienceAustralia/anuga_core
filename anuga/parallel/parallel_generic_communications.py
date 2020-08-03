@@ -7,6 +7,7 @@ Geoscience Australia, 2004-2010
 
 """
 
+from builtins import range
 import numpy as num
 
 import anuga.utilities.parallel_abstraction as pypar
@@ -39,9 +40,9 @@ def communicate_flux_timestep(domain, yieldstep, finaltime):
     t0 = time.time()
 
 
-    import anuga.parallel.pypar_ext as par_exts
 
-    par_exts.allreduce(domain.local_timestep, pypar.MIN,
+
+    pypar.allreduce(domain.local_timestep, pypar.MIN,
                       buffer=domain.global_timestep,
                       bypass=True)
 
@@ -100,7 +101,7 @@ def communicate_ghosts_blocking(domain):
 
         else:
             #Receive data from the iproc processor
-            if  domain.ghost_recv_dict.has_key(iproc):
+            if  iproc in domain.ghost_recv_dict:
 
                 Idg = domain.ghost_recv_dict[iproc][0]
                 X   = domain.ghost_recv_dict[iproc][2]
@@ -114,7 +115,7 @@ def communicate_ghosts_blocking(domain):
 
     #local update of ghost cells
     iproc = domain.processor
-    if domain.full_send_dict.has_key(iproc):
+    if iproc in domain.full_send_dict:
 
         # LINDA:
         # now store full as local id, global id, value
@@ -170,9 +171,8 @@ def communicate_ghosts_asynchronous(domain, quantities=None):
 
     # Do all the comuunication using isend/irecv via the buffers in the
     # full_send_dict and ghost_recv_dict
-    from anuga.parallel import mpiextras
 
-    mpiextras.send_recv_via_dicts(domain.full_send_dict,domain.ghost_recv_dict)
+    pypar.send_recv_via_dicts(domain.full_send_dict,domain.ghost_recv_dict)
 
 #
 #    if pypar.rank() == 0:

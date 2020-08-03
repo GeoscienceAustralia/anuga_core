@@ -3,7 +3,10 @@ Erosion operators
 
 
 """
+from __future__ import print_function
 
+from builtins import str
+from builtins import range
 __author__="steve"
 __date__ ="$09/03/2012 4:46:39 PM$"
 
@@ -112,7 +115,7 @@ class Erosion_operator(Operator):
         self.stage_c[:] = self.elev_c +  height_c
 #        self.domain.distribute_to_vertices_and_edges()
 
-        print 'time in erosion ',self.get_time(), dt
+        print('time in erosion ',self.get_time(), dt)
 
 
 

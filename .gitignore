@@ -1,5 +1,6 @@
 # Editor temporary/working/backup files #
 #########################################
+
 .#*
 [#]*#
 *~
@@ -14,6 +15,8 @@
 .settings/
 .*.sw[nop]
 .sw[nop]
+*.c
+*.cpp
 *.tmp
 *.vim
 *.sww
@@ -29,7 +32,9 @@
 *.blg
 *.out
 *.toc
+*.npy
 *.html
+*.pickle
 tags
 
 # validation temp files #
@@ -135,6 +140,10 @@ examples/checkpointing/CHECKPOINTS
 *.tgz
 *.zip
 
+
+# Visual Studio Code 
+.vscode
+
 # Python files #
 ################
 revision.py
@@ -194,4 +203,5 @@ doc/source/generated
 
 # Things specific to this project #
 ###################################
+anuga/__config__.py
 anuga/version.py

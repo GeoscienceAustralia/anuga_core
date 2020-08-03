@@ -6,6 +6,10 @@
 
 #FIXME (Ole): Maxe this test independent of anything that inherits from General_mesh (namely shallow_water)
 
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import unittest
 from math import sqrt
 
@@ -118,21 +122,21 @@ class Test_Mesh(unittest.TestCase):
         #x2 = V[0,4]
         #y2 = V[0,5]
 
-        m0 = [(x1 + x2)/2, (y1 + y2)/2]
-        m1 = [(x0 + x2)/2, (y0 + y2)/2]
-        m2 = [(x1 + x0)/2, (y1 + y0)/2]
+        m0 = [old_div((x1 + x2),2), old_div((y1 + y2),2)]
+        m1 = [old_div((x0 + x2),2), old_div((y0 + y2),2)]
+        m2 = [old_div((x1 + x0),2), old_div((y1 + y0),2)]
 
         d0 = distance(centroid, [x0, y0])
         d1 = distance(m0, [x0, y0])
-        assert d0 == 2*d1/3
+        assert d0 == old_div(2*d1,3)
         #
         d0 = distance(centroid, [x1, y1])
         d1 = distance(m1, [x1, y1])
-        assert abs(d0 - 2*d1/3) < epsilon, '%e, %e' %(d0, 2*d1/3)
+        assert abs(d0 - old_div(2*d1,3)) < epsilon, '%e, %e' %(d0, old_div(2*d1,3))
 
         d0 = distance(centroid, [x2, y2])
         d1 = distance(m2, [x2, y2])
-        assert abs(d0 - 2*d1/3) < epsilon, '%e, %e' %(d0, 2*d1/3)
+        assert abs(d0 - old_div(2*d1,3)) < epsilon, '%e, %e' %(d0, old_div(2*d1,3))
 
         #Radius
         d0 = distance(centroid, m0)
@@ -158,7 +162,7 @@ class Test_Mesh(unittest.TestCase):
         assert new_mesh.areas[1] == new_mesh.areas[2]
         assert new_mesh.areas[1] == new_mesh.areas[2]
 
-        assert new_mesh.areas[1] == mesh.areas[0]/3
+        assert new_mesh.areas[1] == old_div(mesh.areas[0],3)
 
 
 
@@ -189,21 +193,21 @@ class Test_Mesh(unittest.TestCase):
         #x2 = V[0,4]
         #y2 = V[0,5]
 
-        m0 = [(x1 + x2)/2, (y1 + y2)/2]
-        m1 = [(x0 + x2)/2, (y0 + y2)/2]
-        m2 = [(x1 + x0)/2, (y1 + y0)/2]
+        m0 = [old_div((x1 + x2),2), old_div((y1 + y2),2)]
+        m1 = [old_div((x0 + x2),2), old_div((y0 + y2),2)]
+        m2 = [old_div((x1 + x0),2), old_div((y1 + y0),2)]
 
         d0 = distance(centroid, [x0, y0])
         d1 = distance(m0, [x0, y0])
-        assert abs(d0 - 2*d1/3) < epsilon, '%e, %e' %(d0, 2*d1/3)
+        assert abs(d0 - old_div(2*d1,3)) < epsilon, '%e, %e' %(d0, old_div(2*d1,3))
         #
         d0 = distance(centroid, [x1, y1])
         d1 = distance(m1, [x1, y1])
-        assert abs(d0 - 2*d1/3) < epsilon, '%e, %e' %(d0, 2*d1/3)
+        assert abs(d0 - old_div(2*d1,3)) < epsilon, '%e, %e' %(d0, old_div(2*d1,3))
 
         d0 = distance(centroid, [x2, y2])
         d1 = distance(m2, [x2, y2])
-        assert abs(d0 - 2*d1/3) < epsilon, '%e, %e' %(d0, 2*d1/3)
+        assert abs(d0 - old_div(2*d1,3)) < epsilon, '%e, %e' %(d0, old_div(2*d1,3))
 
         #Radius
         d0 = distance(centroid, m0)
@@ -224,7 +228,7 @@ class Test_Mesh(unittest.TestCase):
         assert new_mesh.areas[1] == new_mesh.areas[2]
         assert new_mesh.areas[1] == new_mesh.areas[2]
 
-        assert new_mesh.areas[1] == mesh.areas[0]/3
+        assert new_mesh.areas[1] == old_div(mesh.areas[0],3)
 
 
         #Test that points are arranged in a counter clock wise order
@@ -240,10 +244,10 @@ class Test_Mesh(unittest.TestCase):
         vertices = [[0,1,2]]
 
         mesh = Mesh(points, vertices,use_inscribed_circle=False)
-        assert num.allclose(mesh.radii[0],sqrt(3.0)/3),'Steve''s doesn''t work'
+        assert num.allclose(mesh.radii[0],old_div(sqrt(3.0),3)),'Steve''s doesn''t work'
 
         mesh = Mesh(points, vertices,use_inscribed_circle=True)
-        assert num.allclose(mesh.radii[0],sqrt(3.0)/3),'inscribed circle doesn''t work'
+        assert num.allclose(mesh.radii[0],old_div(sqrt(3.0),3)),'inscribed circle doesn''t work'
 
     def test_inscribed_circle_rightangle_triangle(self):
         """test that the radius is calculated correctly by mesh in the case of a right-angled triangle"""
@@ -464,12 +468,12 @@ class Test_Mesh(unittest.TestCase):
         assert len(mesh) == 2*M*N
 
         for i in range(len(mesh)):
-            assert mesh.areas[i] == len1*len2/(2*M*N)
+            assert mesh.areas[i] == old_div(len1*len2,(2*M*N))
 
-            hypo = sqrt((len1/M)**2 + (len2/N)**2) #hypothenuse
+            hypo = sqrt((old_div(len1,M))**2 + (old_div(len2,N))**2) #hypothenuse
             assert mesh.edgelengths[i, 0] == hypo
-            assert mesh.edgelengths[i, 1] == len1/M #x direction
-            assert mesh.edgelengths[i, 2] == len2/N #y direction
+            assert mesh.edgelengths[i, 1] == old_div(len1,M) #x direction
+            assert mesh.edgelengths[i, 2] == old_div(len2,N) #y direction
 
         #Test that points are arranged in a counter clock wise order
         mesh.check_integrity()
@@ -814,9 +818,10 @@ class Test_Mesh(unittest.TestCase):
 
 	    
     def test_boundary_polygon_IIIa(self):
-        """test_boundary_polygon_IIIa - Check pathological situation where
-	one triangle has no neighbours. This may be the case if a mesh
-	is partitioned using pymetis.
+        """
+        test_boundary_polygon_IIIa - Check pathological situation where
+        one triangle has no neighbours. This may be the case if a mesh
+        is partitioned using pymetis.
         """
 
 
@@ -830,15 +835,15 @@ class Test_Mesh(unittest.TestCase):
         g = [1.0, 0.5] #6
         h = [1.0, 1.0] #7
        
-	# Add pathological triangle with no neighbours to an otherwise
-	# trivial mesh
-	
-	points = [a, b, c, d, e, f, g, h]
+        # Add pathological triangle with no neighbours to an otherwise
+        # trivial mesh
+
+        points = [a, b, c, d, e, f, g, h]
 
         #cbe, aeb, dea, fed, ghe (pathological triangle)
         vertices = [[2,1,4], [0,4,1], [3,4,0], [5,4,3],
      	            [6,7,4]]	
-		    
+
         mesh = Mesh(points, vertices)
         mesh.check_integrity()
 
@@ -846,19 +851,15 @@ class Test_Mesh(unittest.TestCase):
 
         
         assert len(P) == 9
-	
-	# Note that point e appears twice!
+
+        # Note that point e appears twice!
         assert num.allclose(P, [a, d, f, e, g, h, e, c, b])
 
         for p in points:
-	    msg = 'Point %s is not inside polygon %s'\
-	    %(p, P)	
-            assert is_inside_polygon(p, P), msg		    
+            msg = 'Point %s is not inside polygon %s'\
+             %(p, P)	
+            assert is_inside_polygon(p, P), msg
 
-
-				 	
-	    
-	    
 
     def test_boundary_polygon_IV(self):
         """Reproduce test test_spatio_temporal_file_function_time
@@ -1098,7 +1099,7 @@ class Test_Mesh(unittest.TestCase):
                   [  31998.23828125,  88799.84375   ],
                   [  35406.3359375 ,  79332.9140625 ]]
 
-        scaled_points = ensure_numeric(points, num.int)/1000  # Simplify for ease of interpretation
+        scaled_points = old_div(ensure_numeric(points, num.int),1000)  # Simplify for ease of interpretation
 
         triangles = [[ 0, 1, 2],
                      [ 3, 4, 5],
@@ -1419,7 +1420,7 @@ class Test_Mesh(unittest.TestCase):
         Lines with a slope
         """
 
-        s2 = sqrt(2.0)/2
+        s2 = old_div(sqrt(2.0),2)
         
 
         # Build test mesh
@@ -1580,7 +1581,7 @@ class Test_Mesh(unittest.TestCase):
 
 
 
-        s2 = sqrt(2.0)/2
+        s2 = old_div(sqrt(2.0),2)
         
 
         # Build test mesh
@@ -1639,7 +1640,7 @@ class Test_Mesh(unittest.TestCase):
 
 
 
-        s2 = sqrt(2.0)/2
+        s2 = old_div(sqrt(2.0),2)
         
 
         # Build test mesh
@@ -1677,7 +1678,7 @@ class Test_Mesh(unittest.TestCase):
 
 
 
-        s2 = sqrt(2.0)/2
+        s2 = old_div(sqrt(2.0),2)
         
 
         # Build test mesh
@@ -1725,7 +1726,7 @@ class Test_Mesh(unittest.TestCase):
 
 
 
-        s2 = sqrt(2.0)/2
+        s2 = old_div(sqrt(2.0),2)
         
 
         # Build test mesh

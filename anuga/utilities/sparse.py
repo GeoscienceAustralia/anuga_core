@@ -1,7 +1,12 @@
 """
 Proof of concept sparse matrix code
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
+from .sparse_ext import csr_mv
+from builtins import range
+from builtins import object
 import numpy as num
 
 
@@ -32,7 +37,6 @@ class Sparse:
                     if A[i, j] != 0.0:
                         self.Data[i, j] = A[i, j]
 
-
         elif len(args) == 2:
             self.M = args[0]
             self.N = args[1]
@@ -41,9 +45,8 @@ class Sparse:
 
         self.shape = (self.M, self.N)
 
-
     def __repr__(self):
-        return '%d X %d sparse matrix:\n' %(self.M, self.N) + `self.Data`
+        return '%d X %d sparse matrix:\n' % (self.M, self.N) + repr(self.Data)
 
     def __len__(self):
         """Return number of nonzeros of A
@@ -57,7 +60,7 @@ class Sparse:
 
     def __setitem__(self, key, x):
 
-        i,j = key
+        i, j = key
         # removing these asserts will not speed things up
         assert 0 <= i < self.M
         assert 0 <= j < self.N
@@ -65,43 +68,40 @@ class Sparse:
         if x != 0:
             self.Data[key] = float(x)
         else:
-            if self.Data.has_key( key ):
+            if key in self.Data:
                 del self.Data[key]
 
     def __getitem__(self, key):
 
-        i,j = key
+        i, j = key
         # removing these asserts will not speed things up
         assert 0 <= i < self.M
         assert 0 <= j < self.N
 
-        if self.Data.has_key( key ):
-            return self.Data[ key ]
+        if key in self.Data:
+            return self.Data[key]
         else:
             return 0.0
 
     def copy(self):
-        #FIXME: Use the copy module instead
-        new = Sparse(self.M,self.N)
+        # FIXME: Use the copy module instead
+        new = Sparse(self.M, self.N)
 
-        for key in self.Data.keys():
+        for key in list(self.Data.keys()):
             i, j = key
 
-            new[i,j] = self.Data[i,j]
+            new[i, j] = self.Data[i, j]
 
         return new
 
-
     def todense(self):
-        D = num.zeros( (self.M, self.N), num.float)
+        D = num.zeros((self.M, self.N), num.float)
 
         for i in range(self.M):
             for j in range(self.N):
-                if self.Data.has_key( (i,j) ):
-                    D[i, j] = self.Data[ (i,j) ]
+                if (i, j) in self.Data:
+                    D[i, j] = self.Data[(i, j)]
         return D
-
-
 
     def __mul__(self, other):
         """Multiply this matrix onto 'other' which can either be
@@ -114,7 +114,6 @@ class Sparse:
             msg = 'FIXME: Only numeric types implemented so far'
             raise Exception(msg)
 
-
         # Assume numeric types from now on
 
         if len(B.shape) == 0:
@@ -124,49 +123,45 @@ class Sparse:
         elif len(B.shape) == 1:
             # Vector
             msg = 'Mismatching dimensions: You cannot multiply (%d x %d) matrix onto %d-vector'\
-                  %(self.M, self.N, B.shape[0])
+                  % (self.M, self.N, B.shape[0])
             assert B.shape[0] == self.N, msg
 
-            R = num.zeros(self.M, num.float) #Result
+            R = num.zeros(self.M, num.float)  # Result
 
             # Multiply nonzero elements
-            for key in self.Data.keys():
+            for key in list(self.Data.keys()):
                 i, j = key
 
                 R[i] += self.Data[key]*B[j]
         elif len(B.shape) == 2:
 
-
-            R = num.zeros((self.M, B.shape[1]), num.float) #Result matrix
+            R = num.zeros((self.M, B.shape[1]), num.float)  # Result matrix
 
             # Multiply nonzero elements
-	    for col in range(R.shape[1]):
-	        # For each column
+            for col in range(R.shape[1]):
+                # For each column
 
-                for key in self.Data.keys():
+                for key in list(self.Data.keys()):
                     i, j = key
 
                     R[i, col] += self.Data[key]*B[j, col]
 
-
         else:
-            raise ValueError('Dimension too high: d=%d' %len(B.shape))
+            raise ValueError('Dimension too high: d=%d' % len(B.shape))
 
         return R
-
 
     def __add__(self, other):
         """Add this matrix onto 'other'
         """
 
         new = other.copy()
-        for key in self.Data.keys():
+        for key in list(self.Data.keys()):
             i, j = key
 
-            new[i,j] += self.Data[key]
+            new[i, j] += self.Data[key]
 
         return new
-
 
     def __rmul__(self, other):
         """Right multiply this matrix with scalar
@@ -179,14 +174,13 @@ class Sparse:
             raise TypeError(msg)
         else:
             new = self.copy()
-            #Multiply nonzero elements
-            for key in new.Data.keys():
+            # Multiply nonzero elements
+            for key in list(new.Data.keys()):
                 i, j = key
 
                 new.Data[key] = other*new.Data[key]
 
         return new
-
 
     def trans_mult(self, other):
         """Multiply the transpose of matrix with 'other' which can be
@@ -196,19 +190,18 @@ class Sparse:
         try:
             B = num.array(other)
         except:
-            print 'FIXME: Only numeric types implemented so far'
+            print('FIXME: Only numeric types implemented so far')
 
-
-        #Assume numeric types from now on
+        # Assume numeric types from now on
         if len(B.shape) == 1:
-            #Vector
+            # Vector
 
             assert B.shape[0] == self.M, 'Mismatching dimensions'
 
-            R = num.zeros((self.N,), num.float) #Result
+            R = num.zeros((self.N,), num.float)  # Result
 
-            #Multiply nonzero elements
-            for key in self.Data.keys():
+            # Multiply nonzero elements
+            for key in list(self.Data.keys()):
                 i, j = key
 
                 R[j] += self.Data[key]*B[i]
@@ -218,7 +211,8 @@ class Sparse:
 
         return R
 
-class Sparse_CSR:
+
+class Sparse_CSR(object):
 
     def __init__(self, A=None, data=None, Colind=None, rowptr=None, m=None, n=None):
         """Create sparse matrix in csr format.
@@ -242,20 +236,18 @@ class Sparse_CSR:
 
         """
 
-
         if A is None:
             m = int(m)
             n = int(n)
 
-		
-        if isinstance(A,Sparse):
+        if isinstance(A, Sparse):
 
-            keys = A.Data.keys()
+            keys = list(A.Data.keys())
             keys.sort()
             nnz = len(keys)
-            data    = num.zeros ( (nnz,), num.float)
-            colind  = num.zeros ( (nnz,), num.int)
-            row_ptr = num.zeros ( (A.M+1,), num.int)
+            data = num.zeros((nnz,), num.float)
+            colind = num.zeros((nnz,), num.int)
+            row_ptr = num.zeros((A.M+1,), num.int)
             current_row = -1
             k = 0
             for key in keys:
@@ -271,12 +263,12 @@ class Sparse_CSR:
                 row_ptr[row] = nnz
             #row_ptr[-1] = nnz
 
-            self.data    = data
-            self.colind  = colind
+            self.data = data
+            self.colind = colind
             self.row_ptr = row_ptr
-            self.M       = A.M
-            self.N       = A.N
-        elif isinstance(data,num.ndarray) and isinstance(Colind,num.ndarray) and isinstance(rowptr,num.ndarray) and isinstance(m,int) and isinstance(n,int):
+            self.M = A.M
+            self.N = A.N
+        elif isinstance(data, num.ndarray) and isinstance(Colind, num.ndarray) and isinstance(rowptr, num.ndarray) and isinstance(m, int) and isinstance(n, int):
             msg = "Sparse_CSR: data is array of wrong dimensions"
             #assert len(data.shape) == 1, msg
             nnz = data.size
@@ -293,11 +285,12 @@ class Sparse_CSR:
             self.M = m
             self.N = n
         else:
-            raise ValueError('Sparse_CSR(A) expects A == Sparse Matrix *or* data==array,colind==array,rowptr==array,m==int,n==int')
+            raise ValueError(
+                'Sparse_CSR(A) expects A == Sparse Matrix *or* data==array,colind==array,rowptr==array,m==int,n==int')
 
     def __repr__(self):
-        return '%d X %d sparse matrix:\n' %(self.M, self.N) + 'data '+ `self.data` + '\ncolind ' + \
-            `self.colind` + '\nrow_ptr ' + `self.row_ptr`
+        return '%d X %d sparse matrix:\n' % (self.M, self.N) + 'data ' + repr(self.data) + '\ncolind ' + \
+            repr(self.colind) + '\nrow_ptr ' + repr(self.row_ptr)
 
     def __len__(self):
         """Return number of nonzeros of A
@@ -310,10 +303,10 @@ class Sparse_CSR:
         return len(self)
 
     def todense(self):
-        D = num.zeros( (self.M, self.N), num.float)
+        D = num.zeros((self.M, self.N), num.float)
 
         for i in range(self.M):
-            for ckey in range(self.row_ptr[i],self.row_ptr[i+1]):
+            for ckey in range(self.row_ptr[i], self.row_ptr[i+1]):
                 j = self.colind[ckey]
                 D[i, j] = self.data[ckey]
         return D
@@ -326,79 +319,75 @@ class Sparse_CSR:
         try:
             B = num.array(other)
         except:
-            print 'FIXME: Only numeric types implemented so far'
+            print('FIXME: Only numeric types implemented so far')
 
-        return csr_mv(self,B)
+        return csr_mv(self, B)
 
 
 # Setup for C extensions
-from sparse_ext import csr_mv
 
 
 if __name__ == '__main__':
     # A little selftest
 
-    A = Sparse(3,3)
+    A = Sparse(3, 3)
 
-    A[1,1] = 4
+    A[1, 1] = 4
 
+    print(A)
+    print(A.todense())
 
-    print A
-    print A.todense()
+    A[1, 1] = 0
 
-    A[1,1] = 0
+    print(A)
+    print(A.todense())
 
-    print A
-    print A.todense()
+    A[1, 2] = 0
 
-    A[1,2] = 0
+    A[0, 0] = 3
+    A[1, 1] = 2
+    A[1, 2] = 2
+    A[2, 2] = 1
 
+    print(A)
+    print(A.todense())
 
-    A[0,0] = 3
-    A[1,1] = 2
-    A[1,2] = 2
-    A[2,2] = 1
-
-    print A
-    print A.todense()
-
-
-    #Right hand side vector
-    v = [2,3,4]
+    # Right hand side vector
+    v = [2, 3, 4]
 
     u = A*v
-    print u
-    assert num.allclose(u, [6,14,4])
+    print(u)
+    assert num.allclose(u, [6, 14, 4])
 
     u = A.trans_mult(v)
-    print u
-    assert num.allclose(u, [6,6,10])
+    print(u)
+    assert num.allclose(u, [6, 6, 10])
 
-    #Right hand side column
-    v = num.array([[2,4],[3,4],[4,4]])
+    # Right hand side column
+    v = num.array([[2, 4], [3, 4], [4, 4]])
 
-    u = A*v[:,0]
-    assert num.allclose(u, [6,14,4])
+    u = A*v[:, 0]
+    assert num.allclose(u, [6, 14, 4])
 
     #u = A*v[:,1]
-    #print u
-    print A.shape
+    # print u
+    print(A.shape)
 
     B = 3*A
-    print B.todense()
+    print(B.todense())
 
-    B[1,0] = 2
+    B[1, 0] = 2
 
     C = A+B
 
-    print C.todense()
+    print(C.todense())
 
     C = Sparse_CSR(C)
 
-    y = C*[6,14,4]
+    y = C*[6, 14, 4]
 
-    print y
+    print(y)
 
-    y2 = C*[[6,4],[4,28],[4,8]]
+    y2 = C*[[6, 4], [4, 28], [4, 8]]
 
-    print y2
+    print(y2)

@@ -1,11 +1,13 @@
 """
 Test parallel and sequential results of riverwall procedure
 """
+from __future__ import print_function
 
 
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
+from future.utils import raise_
 import unittest
 import os
 import sys
@@ -77,7 +79,7 @@ def run_simulation(parallel=False, verbose=False):
                                    filename = 'runup.msh',
                                    interior_regions = [ [higherResPolygon, 1.*1.*0.5],
                                                         [midResPolygon, 3.0*3.0*0.5]],
-                                   breaklines=riverWall.values(),
+                                   breaklines=list(riverWall.values()),
                                    use_cache=False,
                                    verbose=verbose,
                                    regionPtArea=regionPtAreas)
@@ -114,16 +116,16 @@ def run_simulation(parallel=False, verbose=False):
     #--------------------------------------------------------------------------
     if parallel:
         
-        if myid == 0 and verbose : print 'DISTRIBUTING TO PARALLEL DOMAIN'
+        if myid == 0 and verbose : print('DISTRIBUTING TO PARALLEL DOMAIN')
         pdomain = distribute(sdomain, verbose=verbose)
         pdomain.set_name('p_riverwall')
         pdomain.set_store_vertices_uniquely()
         
         
     if myid == 0 and verbose: 
-        print 60*'='
-        print 'EVOLVING pdomain'
-        print 60*'='
+        print(60*'=')
+        print('EVOLVING pdomain')
+        print(60*'=')
             
     setup_and_evolve(pdomain, verbose=verbose)
  
@@ -131,9 +133,9 @@ def run_simulation(parallel=False, verbose=False):
    
     if myid == 0:
         if verbose: 
-            print 60*'='
-            print 'EVOLVING sdomain'
-            print 60*'='  
+            print(60*'=')
+            print('EVOLVING sdomain')
+            print(60*'=')  
         setup_and_evolve(sdomain, verbose=verbose)
       
     barrier()
@@ -142,7 +144,7 @@ def run_simulation(parallel=False, verbose=False):
     # Now compare the merged sww files
     #---------------------------------
     if myid == 0:
-        if verbose: print 'COMPARING SWW FILES'
+        if verbose: print('COMPARING SWW FILES')
         
         sdomain_v = util.get_output('s_riverwall.sww')
         sdomain_c = util.get_centroids(sdomain_v)
@@ -156,14 +158,14 @@ def run_simulation(parallel=False, verbose=False):
         if verbose:
             
             order = 0
-            print 'PDOMAIN CENTROID VALUES'
-            print num.linalg.norm(sdomain_c.x-pdomain_c.x,ord=order)
-            print num.linalg.norm(sdomain_c.y-pdomain_c.y,ord=order)
-            print num.linalg.norm(sdomain_c.stage[-1]-pdomain_c.stage[-1],ord=order)
-            print num.linalg.norm(sdomain_c.xmom[-1]-pdomain_c.xmom[-1],ord=order)
-            print num.linalg.norm(sdomain_c.ymom[-1]-pdomain_c.ymom[-1],ord=order)
-            print num.linalg.norm(sdomain_c.xvel[-1]-pdomain_c.xvel[-1],ord=order)
-            print num.linalg.norm(sdomain_c.yvel[-1]-pdomain_c.yvel[-1],ord=order)        
+            print('PDOMAIN CENTROID VALUES')
+            print(num.linalg.norm(sdomain_c.x-pdomain_c.x,ord=order))
+            print(num.linalg.norm(sdomain_c.y-pdomain_c.y,ord=order))
+            print(num.linalg.norm(sdomain_c.stage[-1]-pdomain_c.stage[-1],ord=order))
+            print(num.linalg.norm(sdomain_c.xmom[-1]-pdomain_c.xmom[-1],ord=order))
+            print(num.linalg.norm(sdomain_c.ymom[-1]-pdomain_c.ymom[-1],ord=order))
+            print(num.linalg.norm(sdomain_c.xvel[-1]-pdomain_c.xvel[-1],ord=order))
+            print(num.linalg.norm(sdomain_c.yvel[-1]-pdomain_c.yvel[-1],ord=order))        
             
         assert num.allclose(sdomain_c.stage,pdomain_c.stage)
         assert num.allclose(sdomain_c.xmom,pdomain_c.xmom)
@@ -211,9 +213,9 @@ def setup_and_evolve(domain, verbose=False):
     #------------------------------
     #Evolve the system through time
     #------------------------------
-    if verbose: print 'Evolve'
+    if verbose: print('Evolve')
     for t in domain.evolve(yieldstep=10.0,finaltime=150.0):
-        if myid == 0 and verbose: print domain.timestepping_statistics()
+        if myid == 0 and verbose: print(domain.timestepping_statistics())
     
     domain.sww_merge(delete_old=True)
 
@@ -224,10 +226,9 @@ def setup_and_evolve(domain, verbose=False):
 
 class Test_parallel_riverwall(unittest.TestCase):
     def test_parallel_riverwall(self):
-        if verbose : print "Expect this test to fail if not run from the parallel directory."
+        if verbose : print("Expect this test to fail if not run from the parallel directory.")
 
-        abs_script_name = os.path.abspath(__file__)
-        cmd = "mpirun -np %d python %s" % (nprocs, abs_script_name)
+        cmd = anuga.mpicmd(os.path.abspath(__file__))
         result = os.system(cmd)
         assert_(result == 0)
 
@@ -236,7 +237,7 @@ class Test_parallel_riverwall(unittest.TestCase):
 def assert_(condition, msg="Assertion Failed"):
     if condition == False:
         #pypar.finalize()
-        raise AssertionError, msg
+        raise_(AssertionError, msg)
 
 if __name__=="__main__":
     if numprocs == 1: 
@@ -249,7 +250,12 @@ if __name__=="__main__":
         # Run the code code and compare sequential
         # and parallel values
         #------------------------------------------
-        if myid ==0 and verbose: print 'PARALLEL START'
+        if myid ==0 and verbose: print('PARALLEL START')
+
+        from anuga.utilities.parallel_abstraction import global_except_hook
+        import sys
+        sys.excepthook = global_except_hook
+
         run_simulation(parallel=True, verbose=verbose)
         finalize()
 

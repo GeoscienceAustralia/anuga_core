@@ -3,7 +3,11 @@ Erosion operators
 
 
 """
+from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from builtins import range
 __author__="steve"
 __date__ ="$09/03/2012 4:46:39 PM$"
 
@@ -206,7 +210,13 @@ class Erosion_operator(Operator, Region):
                 vid = num.arange(self.node_index[nid], self.node_index[nid+1],dtype=num.int)
                 vidd = self.domain.vertex_value_indices[vid]
 
-                self.elev_v[vidd/3,vidd%3] = num.sum(self.elev_v[vidd/3,vidd%3])/non
+                # Replaced this (Ole)
+                #self.elev_v[old_div(vidd,3),vidd%3] = old_div(num.sum(self.elev_v[old_div(vidd,3),vidd%3]),non)
+
+                # with this to get it working in both Python2 and Python3
+                res = num.sum(self.elev_v[vidd // 3, vidd % 3]) / non
+                self.elev_v[vidd // 3, vidd % 3] = res
+                
 
 
             #--------------------------------------
@@ -257,7 +267,7 @@ class Erosion_operator(Operator, Region):
             import matplotlib.pyplot as plt
             import matplotlib.tri as tri
         except:
-            print "Couldn't import module from matplotlib, probably you need to update matplotlib"
+            print("Couldn't import module from matplotlib, probably you need to update matplotlib")
             raise
 
         domain = self.domain
@@ -276,14 +286,14 @@ class Erosion_operator(Operator, Region):
 
 
         ## Plot full triangles
-        n = int(len(fx)/3)
+        n = int(len(fx) / 3)
         #triang = num.array(range(0,3*n))
         triang = domain.get_triangles()
         #triang.shape = (n, 3)
 
-        print triang.shape
-        print fx.shape
-        print Z.shape
+        print(triang.shape)
+        print(fx.shape)
+        print(Z.shape)
 
         #plt.tricontourf(fx, fy, triang, Z)
         plt.triplot(fx, fy, triang)
@@ -315,18 +325,18 @@ class Erosion_operator(Operator, Region):
         fx1 = fx[self.vols].flatten()
         fy1 = fy[self.vols].flatten()
 
-        print 'fx1', fx1.shape
+        print('fx1', fx1.shape)
 
-        print self.vols
+        print(self.vols)
         #gx = vertices[ghost_mask,0]
         #gy = vertices[ghost_mask,1]
 
 
         ## Plot full triangles
-        n = int(len(fx1)/3)
-        triang = num.array(range(0,3*n))
+        n = int(len(fx1) / 3)
+        triang = num.array(list(range(0, 3*n)))
         triang.shape = (n, 3)
-        print triang
+        print(triang)
         plt.triplot(fx1, fy1, triang, 'go-')
 
 
@@ -340,18 +350,18 @@ class Erosion_operator(Operator, Region):
         fx0 = fx[self.indices].flatten()
         fy0 = fy[self.indices].flatten()
 
-        print 'fx0', fx0.shape
+        print('fx0', fx0.shape)
 
-        print self.indices
+        print(self.indices)
         #gx = vertices[ghost_mask,0]
         #gy = vertices[ghost_mask,1]
 
 
         ## Plot full triangles
-        n = int(len(fx0)/3)
-        triang = num.array(range(0,3*n))
+        n = int(len(fx0) / 3)
+        triang = num.array(list(range(0,3*n)))
         triang.shape = (n, 3)
-        print triang
+        print(triang)
         plt.triplot(fx0, fy0, triang, 'bo-')
 
 
@@ -361,18 +371,18 @@ class Erosion_operator(Operator, Region):
         fx0 = fx[self.indices].flatten()
         fy0 = fy[self.indices].flatten()
 
-        print 'fx0', fx0.shape
+        print('fx0', fx0.shape)
 
-        print self.indices
+        print(self.indices)
         #gx = vertices[ghost_mask,0]
         #gy = vertices[ghost_mask,1]
 
 
         ## Plot full triangles
-        n = int(len(fx0)/3)
-        triang = num.array(range(0,3*n))
+        n = int(len(fx0) / 3)
+        triang = num.array(list(range(0,3*n)))
         triang.shape = (n, 3)
-        print triang
+        print(triang)
         plt.triplot(fx0, fy0, triang, 'bo-')
 
 
@@ -381,7 +391,7 @@ class Erosion_operator(Operator, Region):
         fx2 = fx[self.vol_ids,self.vert_ids]
         fy2 = fy[self.vol_ids,self.vert_ids]
 
-        print 'fx2', fx2.shape
+        print('fx2', fx2.shape)
 
         plt.plot(fx2,fy2,'yo')
 
@@ -429,7 +439,7 @@ class Erosion_operator(Operator, Region):
                 vertex_ids.append(vidd)
                 #print '   ',nid, vid, vidd, vidd/3, vidd%3
 
-        self.vol_ids  = num.array(vertex_ids,dtype=num.int)/3
+        self.vol_ids  = num.array(vertex_ids, dtype=num.int) // 3
         self.vols = num.array(list(set(self.vol_ids)), dtype=num.int)
         self.vert_ids = num.array(vertex_ids,dtype=num.int)%3
 
@@ -580,9 +590,9 @@ class Bed_shear_erosion_operator(Erosion_operator):
             
             # These arrays, m,d and v will be shape (len(ids),1)
             m = num.sqrt(self.xmom_c[ind]**2 + self.ymom_c[ind]**2)  # abs Momentum
-            d=(self.stage_c[ind]-self.elev_c[ind]) # Depth
+            d= (self.stage_c[ind]-self.elev_c[ind]) # Depth
 
-            v = m/(d+1.0e-10)  # Velocity = Momentum/Depth
+            v = m / (d + 1.0e-10)  # Velocity = Momentum/Depth
 
             #  ---- NOTE SCOUR or EROSION usually is determined by
             #  Shear Stress = density*gravity*depth*bed_slope
@@ -598,12 +608,12 @@ class Bed_shear_erosion_operator(Erosion_operator):
             # Implement Bed Shear term based on ENERGY SLOPE
             bedshearEs=1000*9.81*d*EN_slope  # ro*g*h*EN_slope , { Energy Slope ??}
             bses = bedshearEs
-            froude = v/num.sqrt(9.81*(d+1.0e-10))
-            froude = m/9.81**0.5/(d+1.0e-10)**1.5  # Check that these are the same ??
+            froude = v / num.sqrt(9.81*(d+1.0e-10))
+            froude = m / 9.81**0.5 / (d+1.0e-10)**1.5  # Check that these are the same ??
             factor = 9.8*bedslope
 
             # elevation change increment
-            de = bses/shear_factor*dt  # Works OK...  Energy SLope
+            de = (bses / shear_factor)*dt  # Works OK...  Energy SLope
             #de = bsbs/100000.0*dt  # Works OK...  Bed Slope
 
 
@@ -809,7 +819,7 @@ class Flat_fill_slice_erosion_operator(Erosion_operator):
             else:
                 try:
                     value = self.elevation(t)
-                    print value
+                    print(value)
                     if value > num.max(self.elev_v[ind]):
                         self.elev_v[ind] = num.where(self.elev_v[ind] <  value, value, self.elev_v[ind])    
                     else:
@@ -836,13 +846,13 @@ def lineno():
 
 
 def stage_elev_info(self):
-    print 80*"="
+    print(80*"=")
 
-    print 'In Evolve: line number ', lineno()
+    print('In Evolve: line number ', lineno())
     import inspect
-    print inspect.getfile(lineno)
+    print(inspect.getfile(lineno))
 
-    print 80*"="
+    print(80*"=")
     ind = num.array([ 976,  977,  978,  979,  980,  981,  982,  983, 1016, 1017, 1018,
              1019, 1020, 1021, 1022, 1023])
     elev_v = self.get_quantity('elevation').vertex_values
@@ -851,11 +861,11 @@ def stage_elev_info(self):
     stage_c = self.get_quantity('stage').centroid_values
 
     from pprint import pprint
-    print 'elev_v, elev_c, elev_avg \n'
+    print('elev_v, elev_c, elev_avg \n')
     pprint( num.concatenate( (elev_v[ind], (elev_c[ind]).reshape(16,1),
                                num.mean(elev_v[ind],axis=1).reshape(16,1)), axis = 1))
-    print 'stage_v, stage_c, stage_avg \n'
+    print('stage_v, stage_c, stage_avg \n')
     pprint( num.concatenate( (stage_v[ind], (stage_c[ind]).reshape(16,1),
                                num.mean(stage_v[ind],axis=1).reshape(16,1)), axis = 1))
 
-    print 80*"="
+    print(80*"=")

@@ -1,6 +1,10 @@
+from __future__ import absolute_import
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 import anuga
 import numpy
-import inlet
+from . import inlet
 
 import warnings
 
@@ -86,13 +90,13 @@ class Inlet_operator(anuga.Operator):
                 self.inlet.set_xmoms(self.inlet.get_xmoms()+depths*self.velocity[0])
                 self.inlet.set_ymoms(self.inlet.get_ymoms()+depths*self.velocity[1])
         elif current_volume + volume >= 0.0 :
-            depth = (current_volume + volume)/total_area
+            depth = old_div((current_volume + volume),total_area)
             self.inlet.set_depths(depth)
             self.domain.fractional_step_volume_integral+=volume
         else: #extracting too much water!
             self.inlet.set_depths(0.0)
             self.domain.fractional_step_volume_integral-=current_volume
-            self.applied_Q = -current_volume/timestep
+            self.applied_Q = -old_div(current_volume,timestep)
 
             #msg =  'Requesting too much water to be removed from an inlet! \n'
             #msg += 'current_water_volume = %5.2e Increment volume = %5.2e' % (current_volume, volume)
@@ -107,9 +111,9 @@ class Inlet_operator(anuga.Operator):
         if callable(self.Q):
             try:
                 Q = self.Q(t)
-            except Modeltime_too_early, e:
+            except Modeltime_too_early as e:
                 Q = self.get_default(t,err_msg=e)
-            except Modeltime_too_late, e:
+            except Modeltime_too_late as e:
                 Q = self.get_default(t,err_msg=e)
         else:
             Q = self.Q

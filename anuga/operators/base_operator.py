@@ -1,8 +1,10 @@
+from __future__ import print_function
 
+from builtins import object
 from anuga.utilities.system_tools import log_to_file
 
 
-class Operator:
+class Operator(object):
     """Operator - generic structure for a fractional operator
     
     This is the base class for all fractional step operators
@@ -83,11 +85,11 @@ class Operator:
 
     def print_statistics(self):
 
-        print self.statistics()
+        print(self.statistics())
 
     def print_timestepping_statistics(self):
 
-        print self.timestepping_statistics()
+        print(self.timestepping_statistics())
 
 
     def log_timestepping_statistics(self):

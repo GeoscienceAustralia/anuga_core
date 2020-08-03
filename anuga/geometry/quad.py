@@ -11,11 +11,13 @@ geometry intersections.
 As of June 2010 this module has a pylint quality rating of 10/10.
 
 """
+from __future__ import print_function
 
+from builtins import object
 import anuga.utilities.log as log
 
             
-class Cell():
+class Cell:
     """ One cell in the plane.
         A cell is defined by an AABB, and can have smaller AABB children.
         The children can be rapidly searched for intersections in log(n) time.
@@ -136,8 +138,8 @@ class Cell():
         """
         if depth == 0:
             log.critical() 
-        print '%s%s'  % ('  '*depth, self.name), self.extents, ' [', \
-            self.leaves, ']'
+        print('%s%s'  % ('  '*depth, self.name), self.extents, ' [', \
+            self.leaves, ']')
         if self.children:
             log.critical()
             for child in self.children:

@@ -1,3 +1,8 @@
+from past.builtins import cmp
+from builtins import zip
+from builtins import range
+from builtins import object
+from future.utils import raise_
 import csv
 
 from anuga.anuga_exceptions import TitleValueError, \
@@ -15,11 +20,11 @@ Y_TITLE = 'y'
 
 
 
-class Exposure:
-    '''
-    Class for National Exposure Database storage (NEXIS).
+class Exposure(object):
+    """Class for National Exposure Database storage (NEXIS).
     Returns a csv file handle
-    '''
+    """
+    
     def __init__(self,file_name, latitude_title=LAT_TITLE,
                  longitude_title=LONG_TITLE, is_x_y_locations=None,
                  x_title=X_TITLE, y_title=Y_TITLE,
@@ -82,11 +87,11 @@ class Exposure:
             try:
                 xs = self._attribute_dic[x_title]
                 ys = self._attribute_dic[y_title]
-                points = [[float(i),float(j)] for i,j in map(None,xs,ys)]
+                points = [[float(i),float(j)] for i,j in zip(xs,ys)]
             except KeyError:
                 # maybe a warning..
                 msg = "Could not find location information."
-                raise TitleValueError, msg
+                raise_(TitleValueError, msg)
             else:
                 self._geospatial = Geospatial_data(data_points=points)
 
@@ -102,26 +107,76 @@ class Exposure:
         Returns True if objects are the 'same'.
         """
 
+        # FIXME: Deprecate this method
+        
         #check that 'other' is an instance of this class
         if isinstance(self, type(other)):
             result = cmp(self._attribute_dic, other._attribute_dic)
-            if result <> 0:
+            if result != 0:
                 return result
 
             # The order of the columns is important. Therefore..
             result = cmp(self._title_index_dic, other._title_index_dic)
-            if result <> 0:
+            if result != 0:
                 return result
-            for self_ls, other_ls in map(None, self._attribute_dic,
+            for self_ls, other_ls in zip(self._attribute_dic,
                                          other._attribute_dic):
                 result = cmp(self._attribute_dic[self_ls],
                              other._attribute_dic[other_ls])
-                if result <> 0:
+                if result != 0:
                     return result
             return 0
         else:
             return 1
 
+    def __eq__(self, other):
+        """Compare this and another object.
+
+        self   this object
+        other  the other object
+
+        Returns True if objects are the 'same'.
+        """
+
+        if isinstance(self, type(other)):
+            #print(self._attribute_dic)
+            #print(other._attribute_dic)
+
+            # Note (Ole) Dictionaries are now sorted in Python3
+            #result = self._attribute_dic == other._attribute_dic
+            #if result:
+            #    return(result)
+
+            # However, to work also with Python use this
+            if self._title_index_dic != other._title_index_dic:
+                return False
+
+            for title in self._title_index_dic:
+                if self._attribute_dic[title] != other._attribute_dic[title]:
+                    return False
+
+            # All matched up
+            return True
+        
+            #if result != 0:
+            #    return result
+
+            # The order of the columns is important. Therefore..
+            #result = cmp(self._title_index_dic, other._title_index_dic)
+            #if result != 0:
+            #    return result
+            #for self_ls, other_ls in zip(self._attribute_dic,
+            #                             other._attribute_dic):
+            #    result = cmp(self._attribute_dic[self_ls],
+            #                 other._attribute_dic[other_ls])
+            #    if result != 0:
+            #        return result
+            #return False
+        else:
+            return False
+
+
+        
     def get_column(self, column_name, use_refind_polygon=False):
         """Get a list of column values given a column name.
 
@@ -134,9 +189,9 @@ class Exposure:
         time = [float(x) for x in time]
         """
 
-        if not self._attribute_dic.has_key(column_name):
+        if column_name not in self._attribute_dic:
             msg = 'There is no column called %s!' % column_name
-            raise TitleValueError, msg
+            raise_(TitleValueError, msg)
 
         return self._attribute_dic[column_name]
 
@@ -177,16 +232,16 @@ class Exposure:
 
         # sanity checks
         value_row_count = \
-                len(self._attribute_dic[self._title_index_dic.keys()[0]])
-        if len(column_values) <> value_row_count:
+                len(self._attribute_dic[list(self._title_index_dic.keys())[0]])
+        if len(column_values) != value_row_count:
             msg = 'The number of column values must equal the number of rows.'
-            raise DataMissingValuesError, msg
+            raise_(DataMissingValuesError, msg)
 
         # check new column name isn't already used, and we aren't overwriting
-        if self._attribute_dic.has_key(column_name):
+        if column_name in self._attribute_dic:
             if not overwrite:
                 msg = 'Column name %s already in use!' % column_name
-                raise TitleValueError, msg
+                raise_(TitleValueError, msg)
         else:
             # New title.  Add it to the title index.
             self._title_index_dic[column_name] = len(self._title_index_dic)
@@ -202,21 +257,21 @@ class Exposure:
         if file_name is None:
             file_name = self._file_name
 
-        fd = open(file_name, 'wb')
+        fd = open(file_name, 'w')
         writer = csv.writer(fd)
 
         #Write the title to a cvs file
         line = [None] * len(self._title_index_dic)
-        for title in self._title_index_dic.iterkeys():
+        for title in self._title_index_dic.keys():
             line[self._title_index_dic[title]] = title
         writer.writerow(line)
 
         # Write the values to a cvs file
         value_row_count = \
-                len(self._attribute_dic[self._title_index_dic.keys()[0]])
+                len(self._attribute_dic[list(self._title_index_dic.keys())[0]])
         for row_i in range(value_row_count):
             line = [None] * len(self._title_index_dic)
-            for title in self._title_index_dic.iterkeys():
+            for title in self._title_index_dic.keys():
                 line[self._title_index_dic[title]] = \
                      self._attribute_dic[title][row_i]
             writer.writerow(line)

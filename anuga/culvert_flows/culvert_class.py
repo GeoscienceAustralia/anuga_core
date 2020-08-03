@@ -1,3 +1,8 @@
+from __future__ import division
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import sys
 
 from anuga.shallow_water.forcing import Inflow, General_forcing
@@ -53,7 +58,7 @@ def interpolate_linearly(x, xvec, yvec):
     
     x0 = xvec[i-1]
     x1 = xvec[i]            
-    alpha = (x - x0)/(x1 - x0) 
+    alpha = old_div((x - x0),(x1 - x0)) 
             
     y0 = yvec[i-1]
     y1 = yvec[i]                        
@@ -110,7 +115,7 @@ def read_culvert_description(culvert_description_filename):
 
     
 
-class Culvert_flow_general:
+class Culvert_flow_general(object):
     """Culvert flow - transfer water from one hole to another
     
     This version will work with either rating curve file or with culvert
@@ -380,7 +385,7 @@ class Culvert_flow_general:
 
             # Calculate indices in exchange area for this forcing term
             
-            triangle_id = min_dist = sys.maxint
+            triangle_id = min_dist = sys.maxsize
             for k in range(N):
                 x, y = points[k,:] # Centroid
 
@@ -391,7 +396,7 @@ class Culvert_flow_general:
                     triangle_id = k
 
                     
-            if triangle_id < sys.maxint:
+            if triangle_id < sys.maxsize:
                 msg = 'found triangle with centroid (%f, %f)'\
                     %tuple(points[triangle_id, :])
                 msg += ' for point (%f, %f)' %tuple(point)
@@ -409,7 +414,7 @@ class Culvert_flow_general:
         """
         bounding_polygon = self.domain.get_boundary_polygon()
         P = self.culvert_polygons
-        for key in P.keys():
+        for key in list(P.keys()):
             if key in ['exchange_polygon0', 
                        'exchange_polygon1']:
                 for point in list(P[key]) + self.enquiry_points:
@@ -470,7 +475,7 @@ class Culvert_flow_general:
         # max_Q Based on Volume Calcs
 
 
-        depth_term = min_depth*I.exchange_area/delta_t
+        depth_term = old_div(min_depth*I.exchange_area,delta_t)
         if min_depth < 0.2:
             # Only add velocity term in shallow waters (< 20 cm)
             # This is a little ad hoc, but maybe it is reasonable
@@ -527,7 +532,7 @@ class Culvert_flow_general:
 
         self.i=(self.i+1)%self.N
         self.Q_list[self.i]=Q_reduced
-        Q_reduced = sum(self.Q_list)/len(self.Q_list)
+        Q_reduced = old_div(sum(self.Q_list),len(self.Q_list))
 
         if self.verbose is True:
             msg = 'Final Q Reduced = %.2f m3/s.      ' % (Q_reduced)
@@ -592,15 +597,15 @@ class Culvert_flow_general:
                                                    indices=[idx])[0]
 
             if h > minimum_allowed_height:
-                u = xmomentum/(h + velocity_protection/h)
-                v = ymomentum/(h + velocity_protection/h)
+                u = old_div(xmomentum,(h + old_div(velocity_protection,h)))
+                v = old_div(ymomentum,(h + old_div(velocity_protection,h)))
             else:
                 u = v = 0.0
                 
             v_squared = u*u + v*v
             
             if self.use_velocity_head is True:
-                velocity_head = 0.5*v_squared/g    
+                velocity_head = old_div(0.5*v_squared,g)    
             else:
                 velocity_head = 0.0
             
@@ -639,7 +644,7 @@ class Culvert_flow_general:
         # Recompute slope and issue warning if flow is uphill
         # These values do not enter the computation
         delta_z = inlet.elevation - outlet.elevation
-        culvert_slope = (delta_z/self.length)
+        culvert_slope = (old_div(delta_z,self.length))
         if culvert_slope < 0.0:
             # Adverse gradient - flow is running uphill
             # Flow will be purely controlled by uphill outlet face
@@ -675,7 +680,7 @@ class Culvert_flow_general:
                     Q = interpolate_linearly(driving_head, 
                                              self.rating_curve[:,0], 
                                              self.rating_curve[:,1]) 
-                except Below_interval, e:
+                except Below_interval as e:
                     Q = self.rating_curve[0,1]             
                     msg = '%.2fs: ' % time 
                     msg += 'Delta head smaller than rating curve minimum: '
@@ -686,7 +691,7 @@ class Culvert_flow_general:
                     
                     if hasattr(self, 'log_filename'):                    
                         log_to_file(self.log_filename, msg)
-                except Above_interval, e:
+                except Above_interval as e:
                     Q = self.rating_curve[-1,1]          
                     msg = '%.2fs: ' % time                 
                     msg += 'Delta head greater than rating curve maximum: '
@@ -809,7 +814,7 @@ class Culvert_flow_general:
 
                             
 # OBSOLETE (Except for momentum jet in Culvert_flow_energy)    
-class Culvert_flow_rating:
+class Culvert_flow_rating(object):
     """Culvert flow - transfer water from one hole to another
     
 
@@ -902,7 +907,7 @@ class Culvert_flow_rating:
 
             # Calculate indices in exchange area for this forcing term
             
-            triangle_id = min_dist = sys.maxint
+            triangle_id = min_dist = sys.maxsize
             for k in range(N):
                 x, y = points[k,:] # Centroid
 
@@ -913,7 +918,7 @@ class Culvert_flow_rating:
                     triangle_id = k
 
                     
-            if triangle_id < sys.maxint:
+            if triangle_id < sys.maxsize:
                 msg = 'found triangle with centroid (%f, %f)'\
                     %tuple(points[triangle_id, :])
                 msg += ' for point (%f, %f)' %tuple(point)
@@ -927,7 +932,7 @@ class Culvert_flow_rating:
 
         # Check that all polygons lie within the mesh.
         bounding_polygon = domain.get_boundary_polygon()
-        for key in P.keys():
+        for key in list(P.keys()):
             if key in ['exchange_polygon0', 
                        'exchange_polygon1']:
                 for point in list(P[key]) + self.enquiry_points:
@@ -1058,7 +1063,7 @@ class Culvert_flow_rating:
                 
                 try:
                     Q = interpolate_linearly(delta_w, self.rating_curve[:,0], self.rating_curve[:,1]) 
-                except Below_interval, e:
+                except Below_interval as e:
                     Q = self.rating_curve[0,1]             
                     msg = '%.2fs: Delta head smaller than rating curve minimum: ' %time
                     msg += str(e)
@@ -1066,7 +1071,7 @@ class Culvert_flow_rating:
                         %(Q, self.label)
                     if hasattr(self, 'log_filename'):                    
                         log_to_file(self.log_filename, msg)
-                except Above_interval, e:
+                except Above_interval as e:
                     Q = self.rating_curve[-1,1]          
                     msg = '%.2fs: Delta head greater than rating curve maximum: ' %time
                     msg += str(e)
@@ -1095,7 +1100,7 @@ class Culvert_flow_rating:
             dt = delta_t            
             if Q*dt > V:
             
-                Q_reduced = 0.9*V/dt # Reduce with safety factor
+                Q_reduced = old_div(0.9*V,dt) # Reduce with safety factor
                 
                 msg = '%.2fs: Computed extraction for this time interval (Q*dt) is ' % time
                 msg += 'greater than current volume (V) at inlet.\n'
@@ -1137,7 +1142,7 @@ class Culvert_flow_rating:
         
         
 
-class Culvert_flow_energy:
+class Culvert_flow_energy(object):
     """Culvert flow - transfer water from one hole to another
     
     Using Momentum as Calculated by Culvert Flow !!
@@ -1301,7 +1306,7 @@ class Culvert_flow_energy:
 
             # Calculate indices in exchange area for this forcing term
             
-            triangle_id = min_dist = sys.maxint
+            triangle_id = min_dist = sys.maxsize
             for k in range(N):
                 x, y = points[k,:] # Centroid
 
@@ -1312,7 +1317,7 @@ class Culvert_flow_energy:
                     triangle_id = k
 
                     
-            if triangle_id < sys.maxint:
+            if triangle_id < sys.maxsize:
                 msg = 'found triangle with centroid (%f, %f)'\
                     %tuple(points[triangle_id, :])
                 msg += ' for point (%f, %f)' %tuple(point)
@@ -1329,7 +1334,7 @@ class Culvert_flow_energy:
 
         # Check that all polygons lie within the mesh.
         bounding_polygon = domain.get_boundary_polygon()
-        for key in P.keys():
+        for key in list(P.keys()):
             if key in ['exchange_polygon0', 
                        'exchange_polygon1']:
                 for point in P[key]:
@@ -1466,9 +1471,9 @@ class Culvert_flow_energy:
                 # Ratio of depth to culvert height.
                 # If ratio > 1 then culvert is running full
                 if self.culvert_type == 'circle':
-                    ratio = d/self.diameter
+                    ratio = old_div(d,self.diameter)
                 else:    
-                    ratio = d/self.height  
+                    ratio = old_div(d,self.height)  
                 opening.ratio = ratio
                     
                     
@@ -1485,13 +1490,13 @@ class Culvert_flow_energy:
                                                        indices=id)                                                                                              
                 depth = stage-elevation
                 if depth > 0.0:
-                    u = xmomentum/(depth + velocity_protection/depth)
-                    v = ymomentum/(depth + velocity_protection/depth)
+                    u = old_div(xmomentum,(depth + old_div(velocity_protection,depth)))
+                    v = old_div(ymomentum,(depth + old_div(velocity_protection,depth)))
                 else:
                     u = v = 0.0
 
                     
-                opening.total_energy = 0.5*(u*u + v*v)/g + stage
+                opening.total_energy = old_div(0.5*(u*u + v*v),g) + stage
 
                 # Store current average stage and depth with each opening object
                 opening.depth = d
@@ -1531,7 +1536,7 @@ class Culvert_flow_energy:
 
             delta_h = inlet.stage - outlet.stage
             delta_z = inlet.elevation - outlet.elevation
-            culvert_slope = (delta_z/self.length)
+            culvert_slope = (old_div(delta_z,self.length))
 
             if culvert_slope < 0.0:
                 # Adverse gradient - flow is running uphill

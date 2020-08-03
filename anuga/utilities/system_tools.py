@@ -1,30 +1,33 @@
 """Implementation of tools to do with system administration made as platform independent as possible.
-
-
 """
 
 import sys
 import os
-import string
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 import getpass
 import tarfile
 import warnings
+import platform
 import pdb
+from functools import reduce
+
+# Record Python version
+major_version = int(platform.python_version_tuple()[0])
+version = platform.python_version()
 
 try:
     import hashlib
 except ImportError:
     import md5 as hashlib
 
-
+   
 def log_to_file(filename, s, verbose=False, mode='a'):
     """Log string to file name
     """
 
     fid = open(filename, mode)
-    if verbose: print s
+    if verbose: print(s)
     fid.write(s + '\n')
     fid.close()
 
@@ -35,14 +38,7 @@ def get_user_name():
 
     import getpass
     user = getpass.getuser()
-
-    #if sys.platform == 'win32':
-    #    #user = os.getenv('USERPROFILE')
-    #    user = os.getenv('USERNAME')
-    #else:
-    #    user = os.getenv('LOGNAME')
-
-
+    
     return user    
 
 def get_host_name():
@@ -58,135 +54,6 @@ def get_host_name():
     return host    
 
     
-    
-    
-    
-def __get_revision_from_svn_entries__():
-    """Get a subversion revision number from the .svn/entries file."""
-
-    
-    msg = '''
-No version info stored and command 'svn' is not recognised on the system PATH.
-
-If ANUGA has been installed from a distribution e.g. as obtained from SourceForge,
-the version info should be available in the automatically generated file
-'stored_version_info.py' in the anuga root directory.
-
-If run from a Subversion sandpit, ANUGA will try to obtain the version info by
-using the command 'svn info'.  In this case, make sure the command line client
-'svn' is accessible on the system path.  Simply aliasing 'svn' to the binary will
-not work.
-
-If you are using Windows, you have to install the file svn.exe which can be
-obtained from http://www.collab.net/downloads/subversion.
-
-Good luck!
-'''
-
-    try:
-        fd = open(os.path.join('.svn', 'entries'))
-    except:
-        #raise Exception, msg
-
-
-        #FIXME SR: Need to fix this up
-        # svn 1.7 no longer has a .svn folder in all folders
-        # so will need a better way to get revision number
-        
-        from anuga.revision import revision_info
-        return process_revision_info(revision_info)
-
-    line = fd.readlines()[3]
-    fd.close()
-    try:
-        revision_number = int(line)
-    except:
-        msg = ".svn/entries, line 4 was '%s'?" % line.strip()
-        raise Exception, msg
-
-    return revision_number
-
-def __get_revision_from_svn_client__():
-    """Get a subversion revision number from an svn client."""
-
-    import subprocess
-
-    if sys.platform[0:3] == 'win':
-        #print 'On Win'
-        try:
-            #FIXME SR: This works for python 2.6
-            cmd = r'"C:\Program Files\TortoiseSVN\bin\SubWCRev.exe" .'
-            version_info = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0]
-
-            #print 'Version_Info', version_info
-            #fid = os.popen(r'C:\Program Files\TortoiseSVN\bin\SubWCRev.exe')
-        except:
-            return __get_revision_from_svn_entries__()
-        else:
-            #version_info = fid.read()
-            if version_info == '':
-                return __get_revision_from_svn_entries__()
-
-
-        # split revision number from data
-        for line in version_info.split('\n'):
-            if line.startswith('Updated to revision '):
-                break
-            if line.startswith('Last committed at revision'):
-                break
-
-        #print line
-        fields = line.split(' ')
-        msg = 'Keyword "Revision" was not found anywhere in text: %s' % version_info
-        assert fields[0].startswith('Updated')  or fields[0].startswith('Last'), msg
-
-
-        try:
-            if fields[0].startswith('Updated'):
-                revision_number = int(fields[3])
-            if fields[0].startswith('Last'):
-                revision_number = int(fields[4])
-        except:
-            msg = ('Revision number must be an integer. I got "%s" from '
-                   '"SubWCRev.exe".' % line)
-            raise Exception, msg
-    else:                   # assume Linux
-        try:
-            fid = os.popen('svn info . 2>/dev/null')
-        except:
-            return __get_revision_from_svn_entries__()
-        else:
-            version_info = fid.read()
-            if version_info == '':
-                return __get_revision_from_svn_entries__()
-
-        # Split revision number from data
-        for line in version_info.split('\n'):
-            if line.startswith('Revision:'):
-                break
-        fields = line.split(':')
-        msg = 'Keyword "Revision" was not found anywhere in text: %s' % version_info
-        assert fields[0].startswith('Revision'), msg
-        
-        
-        #if ':' in version_info:
-        #    revision_number, _ = version_info.split(':', 1)
-        #    msg = ('Some modules have not been checked in. '
-        #           'Using last version from repository: %s' % revision_number)
-        #    warnings.warn(msg)
-        #else:
-        #    revision_number = version_info
-
-        try:
-            revision_number = int(fields[1])
-        except:
-            msg = ("Revision number must be an integer. I got '%s' from "
-                   "'svn'." % fields[1])
-            raise Exception, msg
-
-    return revision_number
-
-    
 def get_version():
     """Get anuga version number as stored in anuga.__version__
     """
@@ -195,73 +62,24 @@ def get_version():
     return anuga.__version__
 
     
-    
 def get_revision_number():
-    """Get the (svn) revision number of this repository copy.
-    If svn not available just return 0
+    """Get the (git) sha of this repository copy.
     """
-    from anuga import __svn_revision__ as revision
+    from anuga import __git_sha__ as revision
     return revision
     
-#     try:
-#         from  anuga.revision import revision_info
-#         return process_revision_info(revision_info)
-#     except:
-        
-
 
 def get_revision_date():
-    """Get the (svn) revision date of this repository copy.
-    If svn not available just return 0
+    """Get the (git) revision date of this repository copy.
     """
 
-    from anuga import __svn_revision_date__ as revision_date
+    from anuga import __git_committed_datetime__ as revision_date
     return revision_date 
   
-#     try:
-#         from  anuga.revision import revision_info
-#         return process_revision_date(revision_info)
-#     except:
- 
-    
-    
-def process_revision_info(revision_info):
-
-    # split revision number from data
-    for line in revision_info.split('\n'):
-        if line.startswith('Revision:'):
-            break
-
-    fields = line.split(':')
-    msg = 'Keyword "Revision" was not found anywhere in text: %s' % revision_info
-    assert fields[0].startswith('Revision'), msg
-
-    try:
-        revision_number = int(fields[1])
-    except:
-        msg = ("Revision number must be an integer. I got '%s'.\n"
-               'Check that the command svn is on the system path.'
-               % fields[1])
-        raise Exception, msg
-
-    return revision_number
-
-def process_revision_date(revision_info):
-
-    # split revision number from data
-    for line in revision_info.split('\n'):
-        if line.startswith('Last Changed Date:'):
-            break
-
-    fields = line.split(':')
-    msg = 'Keyword "Last Changed Date" was not found anywhere in text: %s' % revision_info
-    assert fields[0].startswith('Last Changed Date'), msg
-
-    revision_date = ''.join(fields[1:])
-
-
-    return revision_date
-
+   
+# FIXME (Ole): We should rewrite this to use GIT revision information
+# And then update get_revision_number and date to use this if it can't 
+# be obtained directly from GIT.
 def store_revision_info(destination_path='.', verbose=False):
     """Obtain current revision from Subversion and store it.
     
@@ -292,17 +110,12 @@ def store_revision_info(destination_path='.', verbose=False):
 
     #txt = subprocess.Popen('svn info', shell=True, stdout=subprocess.PIPE).communicate()[0]
     try:
-        #fid = os.popen('svn info')
-        #FIXME SR: This works for python 2.6
+        # FIXME (Ole): Use git module here via get_revision_number/date
         txt = subprocess.Popen('svn info', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0]
     except:
         txt = 'Revision: 0'
     else:    
-        #txt = fid.read()
-        #fid.close()
-
-        if verbose: print 'response ',txt
-
+        if verbose: print('response ',txt)
 
         # Determine absolute filename
         if destination_path[-1] != os.sep:
@@ -324,7 +137,7 @@ def store_revision_info(destination_path='.', verbose=False):
 
 
         if verbose is True:
-            print 'Revision info stored to %s' % filename
+            print('Revision info stored to %s' % filename)
 
 
 def safe_crc(string):
@@ -355,6 +168,21 @@ def compute_checksum(filename, max_length=2**20):
 
     return crcval
 
+
+def get_anuga_pathname():
+    """Get pathname of anuga install location 
+
+    Typically, this is required in unit tests depending
+    on external files.
+
+    """
+    
+    import anuga
+
+    path = anuga.__path__[0]
+    
+    return path
+    
 def get_pathname_from_package(package):
     """Get pathname of given package (provided as string)
 
@@ -370,11 +198,12 @@ def get_pathname_from_package(package):
 
     """
 
-    exec('import %s as x' %package)
+    # Execute import command
+    # See https://stackoverflow.com/questions/1463306/how-does-exec-work-with-locals
+    exec('import %s as x' % package, globals())
 
-    path = x.__path__[0]
-    
-    return path
+    # Get and return path
+    return x.__path__[0]
 
     # Alternative approach that has been used at times
     #try:
@@ -429,7 +258,7 @@ def clean_line(str, delimiter):
 ################################################################################
 
 def string_to_char(l):
-    '''Convert 1-D list of strings to 2-D list of chars.'''
+    """Convert 1-D list of strings to 2-D list of chars."""
 
     if not l:
         return []
@@ -437,7 +266,8 @@ def string_to_char(l):
     if l == ['']:
         l = [' ']
 
-    maxlen = reduce(max, map(len, l))
+
+    maxlen = reduce(max, list(map(len, l)))
     ll = [x.ljust(maxlen) for x in l]
     result = []
     for s in ll:
@@ -445,38 +275,57 @@ def string_to_char(l):
     return result
 
 
-def char_to_string(ll):
-    '''Convert 2-D list of chars to 1-D list of strings.'''
 
-    return map(string.rstrip, [''.join(x) for x in ll])
+def char_to_string(ll):
+    """Convert 2-D list of chars to 1-D list of strings."""
+
+    #https://stackoverflow.com/questions/23618218/numpy-bytes-to-plain-string
+    #bytes_string.decode('UTF-8')
+
+    # We might be able to do this a bit more shorthand as we did in Python2.x
+    # i.e return [''.join(x).strip() for x in ll]
+
+    # But this works for now.
+
+    result = []
+    for i in range(len(ll)):
+        x = ll[i]
+        string = ''
+        for j in range(len(x)):
+            c = x[j]
+            if type(c) == str:
+                string += c
+            else:
+                string += c.decode()            
+
+        result.append(string.strip())
+        
+    return result
+
 
 ################################################################################
 
 def get_vars_in_expression(source):
-    '''Get list of variable names in a python expression.'''
+    """Get list of variable names in a python expression."""
 
-    import compiler
-    from compiler.ast import Node
-
-    def get_vars_body(node, var_list=[]):
-        if isinstance(node, Node):
-            if node.__class__.__name__ == 'Name':
-                for child in node.getChildren():
-                    if child not in var_list:
-                        var_list.append(child)
-            for child in node.getChildren():
-                if isinstance(child, Node):
-                    for child in node.getChildren():
-                        var_list = get_vars_body(child, var_list)
-                    break
-
-        return var_list
-
-    return get_vars_body(compiler.parse(source))
+    # https://stackoverflow.com/questions/37993137/how-do-i-detect-variables-in-a-python-eval-expression
+    
+    import ast
+        
+    variables = {}
+    syntax_tree = ast.parse(source)
+    for node in ast.walk(syntax_tree):
+        if type(node) is ast.Name:
+            variables[node.id] = 0  # Keep first one, but not duplicates
+                
+    # Only return keys
+    result = list(variables.keys()) # Only return keys i.e. the variable names
+    result.sort() # Sort for uniqueness
+    return result
 
 
 def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
-    '''Get a file from the web (HTTP).
+    """Get a file from the web (HTTP).
 
     file_url:  The URL of the file to get
     file_name: Local path to save loaded file in
@@ -489,20 +338,20 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
     Environment variable HTTP_PROXY can be used to supply proxy information.
     PROXY_USERNAME is used to supply the authentication username.
     PROXY_PASSWORD supplies the password, if you dare!
-    '''
+    """
 
     # Simple fetch, if fails, check for proxy error
     try:
-        urllib.urlretrieve(file_url, file_name)
+        urllib.request.urlretrieve(file_url, file_name)
         return (True, auth)     # no proxy, no auth required
-    except IOError, e:
+    except IOError as e:
         if e[1] == 407:     # proxy error
             pass
         elif e[1][0] == 113:  # no route to host
-            print 'No route to host for %s' % file_url
+            print('No route to host for %s' % file_url)
             return (False, auth)    # return False
         else:
-            print 'Unknown connection error to %s' % file_url
+            print('Unknown connection error to %s' % file_url)
             return (False, auth)
 
     # We get here if there was a proxy error, get file through the proxy
@@ -522,21 +371,21 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
 
     # Get auth info from user if still not supplied
     if httpproxy is None or proxyuser is None or proxypass is None:
-        print '-'*72
+        print('-'*72)
         print ('You need to supply proxy authentication information.')
         if httpproxy is None:
-            httpproxy = raw_input('                    proxy server: ')
+            httpproxy = input('                    proxy server: ')
         else:
-            print '         HTTP proxy was supplied: %s' % httpproxy
+            print('         HTTP proxy was supplied: %s' % httpproxy)
         if proxyuser is None:
-            proxyuser = raw_input('                  proxy username: ') 
+            proxyuser = input('                  proxy username: ') 
         else:
-            print 'HTTP proxy username was supplied: %s' % proxyuser
+            print('HTTP proxy username was supplied: %s' % proxyuser)
         if proxypass is None:
             proxypass = getpass.getpass('                  proxy password: ')
         else:
-            print 'HTTP proxy password was supplied: %s' % '*'*len(proxyuser)
-        print '-'*72
+            print('HTTP proxy password was supplied: %s' % '*'*len(proxyuser))
+        print('-'*72)
 
     # the proxy URL cannot start with 'http://', we add that later
     httpproxy = httpproxy.lower()
@@ -544,17 +393,17 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
         httpproxy = httpproxy.replace('http://', '', 1)
 
     # open remote file
-    proxy = urllib2.ProxyHandler({'http': 'http://' + proxyuser
+    proxy = urllib.request.ProxyHandler({'http': 'http://' + proxyuser
                                               + ':' + proxypass
                                               + '@' + httpproxy})
-    authinfo = urllib2.HTTPBasicAuthHandler()
-    opener = urllib2.build_opener(proxy, authinfo, urllib2.HTTPHandler)
-    urllib2.install_opener(opener)
+    authinfo = urllib.request.HTTPBasicAuthHandler()
+    opener = urllib.request.build_opener(proxy, authinfo, urllib.request.HTTPHandler)
+    urllib.request.install_opener(opener)
     try:
-        webget = urllib2.urlopen(file_url)
-    except urllib2.HTTPError, e:
-        print 'Error received from proxy:\n%s' % str(e)
-        print 'Possibly the user/password is wrong.'
+        webget = urllib.request.urlopen(file_url)
+    except urllib.error.HTTPError as e:
+        print('Error received from proxy:\n%s' % str(e))
+        print('Possibly the user/password is wrong.')
         return (False, (httpproxy, proxyuser, proxypass))
 
     # transfer file to local filesystem
@@ -572,9 +421,9 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
 
 
 def tar_file(files, tarname):
-    '''Compress a file or directory into a tar file.'''
+    """Compress a file or directory into a tar file."""
 
-    if isinstance(files, basestring):
+    if isinstance(files, str):
         files = [files]
 
     o = tarfile.open(tarname, 'w:gz')
@@ -584,7 +433,8 @@ def tar_file(files, tarname):
 
 
 def untar_file(tarname, target_dir='.'):
-    '''Uncompress a tar file.'''
+    """Uncompress a tar file."""
+    
 
     o = tarfile.open(tarname, 'r:gz')
     members = o.getmembers()
@@ -594,7 +444,7 @@ def untar_file(tarname, target_dir='.'):
 
 
 def get_file_hexdigest(filename, blocksize=1024*1024*10):
-    '''Get a hex digest of a file.'''
+    """Get a hex digest of a file."""
 
     if hashlib.__name__ == 'hashlib':
         m = hashlib.md5()       # new - 'hashlib' module
@@ -606,14 +456,14 @@ def get_file_hexdigest(filename, blocksize=1024*1024*10):
         data = fd.read(blocksize)
         if len(data) == 0:
             break
-        m.update(data)
+        m.update(data.encode())
                                                                 
     fd.close()
     return m.hexdigest()
 
 
 def make_digest_file(data_file, digest_file):
-    '''Create a file containing the hex digest string of a data file.'''
+    """Create a file containing the hex digest string of a data file."""
     
     hexdigest = get_file_hexdigest(data_file)
     fd = open(digest_file, 'w')
@@ -622,7 +472,7 @@ def make_digest_file(data_file, digest_file):
 
 
 def file_length(in_file):
-    '''Function to return the length of a file.'''
+    """Function to return the length of a file."""
 
     fid = open(in_file)
     data = fid.readlines()
@@ -638,7 +488,7 @@ _total_memory = 0.0
 _last_memory = 0.0
 
 def _VmB(VmKey):
-    '''private method'''
+    """private method"""
     global _proc_status, _scale
      # get pseudo file  /proc/<pid>/status
     try:
@@ -653,12 +503,12 @@ def _VmB(VmKey):
     if len(v) < 3:
         return 0.0  # invalid format?
      # convert Vm value to MB
-    return (float(v[1]) * _scale[v[2]]) / (1024.0*1024.0)
+    return (float(v[1]) * _scale[v[2]]) // (1024.0 * 1024.0)
 
 
 def MemoryUpdate(print_msg=None,str_return=False):
-    '''print memory usage stats in MB.
-    '''
+    """print memory usage stats in MB.
+    """
     global _total_memory, _last_memory
 
     _last_memory = _total_memory

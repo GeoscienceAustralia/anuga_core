@@ -1,6 +1,9 @@
+from __future__ import absolute_import
 
-from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
-from anuga.geometry.polygon import  point_in_polygon ,populate_polygon
+from builtins import str
+from builtins import range
+from anuga.coordinate_transforms.geo_reference import Geo_reference, DEFAULT_ZONE
+from anuga.geometry.polygon import point_in_polygon, populate_polygon
 from anuga.utilities.numerical_tools import ensure_numeric
 import numpy as num
 from anuga.geometry.polygon import inside_polygon
@@ -13,11 +16,21 @@ import datetime
 try:
     from anuga.pmesh.mesh import Mesh
 except ImportError:
-    from mesh import Mesh
+    from .mesh import Mesh
 
-import exceptions
-class PolygonError(exceptions.Exception): pass
-class SegmentError(exceptions.Exception): pass
+# Python 2.7 Hack
+try:
+    from exceptions import Exception
+except:
+    pass
+
+class PolygonError(Exception):
+    pass
+
+
+class SegmentError(Exception):
+    pass
+
 
 def create_mesh_from_regions(bounding_polygon,
                              boundary_tags,
@@ -89,11 +102,15 @@ def create_mesh_from_regions(bounding_polygon,
 
     """
 
-
-    if verbose: log.resource_usage_timing(log.logging.INFO, "start_")
-    if verbose: log.timingInfo("maximum_triangle_area, " + str(maximum_triangle_area))
-    if verbose: log.timingInfo("minimum_triangle_angle, " + str(minimum_triangle_angle))
-    if verbose: log.timingInfo("startMesh, '%s'" % log.CurrentDateTime())
+    if verbose:
+        log.resource_usage_timing(log.logging.INFO, "start_")
+    if verbose:
+        log.timingInfo("maximum_triangle_area, " + str(maximum_triangle_area))
+    if verbose:
+        log.timingInfo("minimum_triangle_angle, " +
+                       str(minimum_triangle_angle))
+    if verbose:
+        log.timingInfo("startMesh, '%s'" % log.CurrentDateTime())
 
     # Build arguments and keyword arguments for use with caching or apply.
     args = (bounding_polygon,
@@ -117,23 +134,18 @@ def create_mesh_from_regions(bounding_polygon,
         try:
             from anuga.caching import cache
         except:
-            msg = 'Caching was requested, but caching module'+\
+            msg = 'Caching was requested, but caching module' +\
                   'could not be imported'
             raise Exception(msg)
-
 
         m = cache(_create_mesh_from_regions,
                   args, kwargs,
                   verbose=verbose,
                   compression=False)
     else:
-        m = apply(_create_mesh_from_regions,
-                  args, kwargs)
-
-
+        m = _create_mesh_from_regions(*args, **kwargs)
 
     return m
-
 
 
 def _create_mesh_from_regions(bounding_polygon,
@@ -158,10 +170,10 @@ def _create_mesh_from_regions(bounding_polygon,
     # check the segment indexes - throw an error if they are out of bounds
     if boundary_tags is not None:
         max_points = len(bounding_polygon)
-        for key in boundary_tags.keys():
+        for key in list(boundary_tags.keys()):
             if len([x for x in boundary_tags[key] if x > max_points-1]) >= 1:
                 msg = 'Boundary tag %s has segment out of bounds. '\
-                      %(str(key))
+                      % (str(key))
                 msg += 'Number of points in bounding polygon = %d' % max_points
                 raise SegmentError(msg)
 
@@ -172,15 +184,14 @@ def _create_mesh_from_regions(bounding_polygon,
                     found = True
             if found is False:
                 msg = 'Segment %d was not assigned a boundary_tag.' % i
-                msg +=  'Default tag "exterior" will be assigned to missing segment'
+                msg += 'Default tag "exterior" will be assigned to missing segment'
                 #raise Exception(msg)
                 # Fixme: Use proper Python warning
-                if verbose: log.critical('WARNING: %s' % msg)
+                if verbose:
+                    log.critical('WARNING: %s' % msg)
 
-
-
-    #In addition I reckon the polygons could be of class Geospatial_data
-    #(DSG) If polygons were classes caching would break in places.
+    # In addition I reckon the polygons could be of class Geospatial_data
+    # (DSG) If polygons were classes caching would break in places.
 
     # Simple check
     bounding_polygon = ensure_numeric(bounding_polygon, num.float)
@@ -196,16 +207,15 @@ def _create_mesh_from_regions(bounding_polygon,
         # included.  #Note, Both poly's have the same geo_ref,
         # therefore don't take into account # geo_ref
 
-
         polygons_inside_boundary = []
         for interior_polygon, res in interior_regions:
             indices = inside_polygon(interior_polygon, bounding_polygon,
-                                     closed = True, verbose = False)
+                                     closed=True, verbose=False)
 
-            if len(indices) <> len(interior_polygon):
+            if len(indices) != len(interior_polygon):
                 msg = 'Interior polygon %s is not fully inside'\
-                      %(str(interior_polygon))
-                msg += ' bounding polygon: %s.' %(str(bounding_polygon))
+                      % (str(interior_polygon))
+                msg += ' bounding polygon: %s.' % (str(bounding_polygon))
 
                 if fail_if_polygons_outside is True:
                     raise PolygonError(msg)
@@ -220,13 +230,12 @@ def _create_mesh_from_regions(bounding_polygon,
         interior_regions = polygons_inside_boundary
 
 
-
 # the following segment of code could be used to Test that all the
 # interior polygons are inside the bounding_poly... however it might need
 # to be change a bit
 #
 #count = 0
-#for i in range(len(interior_regions)):
+# for i in range(len(interior_regions)):
 #    region = interior_regions[i]
 #    interior_polygon = region[0]
 #    if len(inside_polygon(interior_polygon, bounding_polygon,
@@ -234,9 +243,9 @@ def _create_mesh_from_regions(bounding_polygon,
 #        print 'WARNING: interior polygon %d is outside bounding polygon' %(i)
 #        count += 1
 
-#if count == 0:
+# if count == 0:
 #    print 'interior regions OK'
-#else:
+# else:
 #    print 'check out your interior polygons'
 #    print 'check %s in production directory' %figname
 #    import sys; sys.exit()
@@ -248,34 +257,34 @@ def _create_mesh_from_regions(bounding_polygon,
             # Test that we have a polygon
             if len(num.array(interior_polygon).flat) < 6:
                 msg = 'Interior hole polygon %s has too few (<3) points.\n' \
-                    %(str(interior_polygon))
-                msg = msg + '(Insure that you have specified a LIST of interior hole polygons)'
+                    % (str(interior_polygon))
+                msg = msg + \
+                    '(Insure that you have specified a LIST of interior hole polygons)'
                 raise PolygonError(msg)
 
             indices = inside_polygon(interior_polygon, bounding_polygon,
-                                     closed = True, verbose = False)
+                                     closed=True, verbose=False)
 
-
-            if len(indices) <> len(interior_polygon):
+            if len(indices) != len(interior_polygon):
                 msg = 'Interior polygon %s is outside bounding polygon: %s'\
-                      %(str(interior_polygon), str(bounding_polygon))
+                      % (str(interior_polygon), str(bounding_polygon))
                 raise PolygonError(msg)
 
     # Resolve geo referencing
     if mesh_geo_reference is None:
-        xllcorner = min(bounding_polygon[:,0])
-        yllcorner = min(bounding_polygon[:,1])
+        xllcorner = min(bounding_polygon[:, 0])
+        yllcorner = min(bounding_polygon[:, 1])
         #
         if poly_geo_reference is None:
             zone = DEFAULT_ZONE
         else:
             zone = poly_geo_reference.get_zone()
-            [(xllcorner,yllcorner)] = poly_geo_reference.get_absolute( \
-            [(xllcorner,yllcorner)])
+            [(xllcorner, yllcorner)] = poly_geo_reference.get_absolute(
+                [(xllcorner, yllcorner)])
         # create a geo_ref, based on the llc of the bounding_polygon
-        mesh_geo_reference = Geo_reference(xllcorner = xllcorner,
-                                           yllcorner = yllcorner,
-                                           zone = zone)
+        mesh_geo_reference = Geo_reference(xllcorner=xllcorner,
+                                           yllcorner=yllcorner,
+                                           zone=zone)
 
     m = Mesh(geo_reference=mesh_geo_reference)
 
@@ -293,7 +302,7 @@ def _create_mesh_from_regions(bounding_polygon,
     if interior_regions is not None:
         excluded_polygons = []
         for polygon, res in interior_regions:
-            excluded_polygons.append( polygon )
+            excluded_polygons.append(polygon)
     else:
         excluded_polygons = None
 
@@ -324,13 +333,11 @@ def _create_mesh_from_regions(bounding_polygon,
 #            region = m.add_region(inner_point[0], inner_point[1])
 #            region.setMaxArea(res)
 
-
     if interior_regions is not None:
         for polygon, res in interior_regions:
             m.add_region_from_polygon(polygon,
                                       max_triangle_area=res,
                                       geo_reference=poly_geo_reference)
-
 
     # Do interior holes
     if interior_holes is not None:
@@ -343,16 +350,12 @@ def _create_mesh_from_regions(bounding_polygon,
                                     segment_tags=tags,
                                     geo_reference=poly_geo_reference)
 
-
     # 22/04/2014
     # Add user-specified point-based regions with max area
     if(regionPtArea is not None):
         for i in range(len(regionPtArea)):
             inner = m.add_region(regionPtArea[i][0], regionPtArea[i][1])
             inner.setMaxArea(regionPtArea[i][2])
-
-
-
 
     # NOTE (Ole): This was moved here as it is annoying if mesh is always
     # stored irrespective of whether the computation
@@ -361,11 +364,11 @@ def _create_mesh_from_regions(bounding_polygon,
 
     # Decide whether to store this mesh or return it
 
-
     if filename is None:
         return m
     else:
-        if verbose: log.critical("Generating mesh to file '%s'" % filename)
+        if verbose:
+            log.critical("Generating mesh to file '%s'" % filename)
 
         m.generate_mesh(minimum_triangle_angle=minimum_triangle_angle,
                         verbose=verbose)

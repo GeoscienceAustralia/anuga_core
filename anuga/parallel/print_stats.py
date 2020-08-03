@@ -16,9 +16,11 @@
 #
 #########################################################
 
+from __future__ import print_function
+from builtins import range
 import sys
 
-import pypar
+from anuga.utilities import parallel_abstraction as pypar
 
 from numpy import array, zeros, ones, take, nonzero, float
 from anuga.utilities.norms import l1_norm, l2_norm, linf_norm
@@ -46,7 +48,7 @@ from anuga.utilities.norms import l1_norm, l2_norm, linf_norm
 def build_full_flag(domain, ghost_recv_dict):
 
     tri_full_flag = ones(len(domain.get_triangles()), Int8)
-    for i in ghost_recv_dict.keys():
+    for i in list(ghost_recv_dict.keys()):
         for id in ghost_recv_dict[i][0]:
             tri_full_flag[id] = 0
         
@@ -85,7 +87,7 @@ def print_l1_stats(full_edge):
             tri_norm[0] = tri_norm[0]+recv_norm[0]
             tri_norm[1] = tri_norm[1]+recv_norm[1]
             tri_norm[2] = tri_norm[2]+recv_norm[2]
-        print 'l1_norm along each axis : [', tri_norm[0],', ', tri_norm[1], ', ', tri_norm[2], ']'
+        print('l1_norm along each axis : [', tri_norm[0],', ', tri_norm[1], ', ', tri_norm[2], ']')
 
     else:
         pypar.send(tri_norm, 0)
@@ -122,8 +124,8 @@ def print_l2_stats(full_edge):
             tri_norm[0] = tri_norm[0]+recv_norm[0]
             tri_norm[1] = tri_norm[1]+recv_norm[1]
             tri_norm[2] = tri_norm[2]+recv_norm[2]
-        print 'l2_norm along each axis : [', pow(tri_norm[0], 0.5),', ', pow(tri_norm[1], 0.5), \
-              ', ', pow(tri_norm[2], 0.5), ']'
+        print('l2_norm along each axis : [', pow(tri_norm[0], 0.5),', ', pow(tri_norm[1], 0.5), \
+              ', ', pow(tri_norm[2], 0.5), ']')
     else:
         pypar.send(tri_norm, 0)
 
@@ -161,7 +163,7 @@ def print_linf_stats(full_edge):
             tri_norm[0] = max(tri_norm[0], recv_norm[0])
             tri_norm[1] = max(tri_norm[1], recv_norm[1])
             tri_norm[2] = max(tri_norm[2], recv_norm[2])
-        print 'linf_norm along each axis : [', tri_norm[0],', ', tri_norm[1], ', ', tri_norm[2], ']'
+        print('linf_norm along each axis : [', tri_norm[0],', ', tri_norm[1], ', ', tri_norm[2], ']')
     else:
         pypar.send(tri_norm, 0)
 
@@ -194,10 +196,10 @@ def print_test_stats(domain, tri_full_flag):
 
     myid = pypar.rank()
 
-    for k in domain.quantities.keys():
+    for k in list(domain.quantities.keys()):
         TestStage = domain.quantities[k]
         if myid == 0:
-            print " ===== ", k, " ===== "
+            print(" ===== ", k, " ===== ")
         full_edge = take(TestStage.edge_values, nonzero(tri_full_flag))
         print_l1_stats(full_edge)
         print_l2_stats(full_edge)

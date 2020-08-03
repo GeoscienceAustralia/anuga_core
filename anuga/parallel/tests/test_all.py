@@ -4,10 +4,16 @@ test_*.py.  Each such script should be a test suite that tests a
 module through PyUnit. This script will aggregate all
 found test suites into one big test suite and run them all at once.
 """
+from __future__ import print_function
+from __future__ import division
 
 # Author: Mark Pilgrim
 # Modified by Ole Nielsen
 
+from builtins import input
+from builtins import map
+from past.utils import old_div
+from future.utils import raise_
 import unittest
 import os
 import sys
@@ -52,22 +58,22 @@ def list_names(names, func=None, col_width=None, page_width=None):
     c_width += 2                        # 2 column padding
 
     # calculate number of columns allowed
-    max_columns = int(p_width / c_width)
+    max_columns = int(old_div(p_width, c_width))
 
     # print columns
     column = 0
     for name in names:
         if func:
             name = func(name)
-        print '%-*s' % (c_width-1, name),
+        print('%-*s' % (c_width-1, name), end=' ')
         column += 1
         if column >= max_columns:
             column = 0
-            print
+            print()
 
     # if last line not finished, end it here
     if column > 0:
-        print
+        print()
 
 
 ##
@@ -102,15 +108,15 @@ def get_unittestfiles(path):
 def regressionTest(test_verbose=False):
     # start off with where we are
     path = os.getcwd()
-    print
-    print 'Testing path: %s' % path
+    print()
+    print('Testing path: %s' % path)
 
     # get the terminal width
     term_width = terminal_width()
 
     # explain what we are doing
-    print
-    print "The following directories will be skipped over:"
+    print()
+    print("The following directories will be skipped over:")
     exclude_dirs.sort()
     list_names(exclude_dirs, page_width=term_width)
 
@@ -121,14 +127,14 @@ def regressionTest(test_verbose=False):
     files = [x for x in test_files if not x == 'test_all.py']
     files.sort()        # Ensure same order on all platforms
 
-    print
-    print 'Paths searched:'
+    print()
+    print('Paths searched:')
     list_names(path_files, os.path.basename, page_width=term_width)
 
-    print    
-    print 'Files tested:'
+    print()    
+    print('Files tested:')
     list_names(files, page_width=term_width)
-    print
+    print()
 
     # update system path with found paths
     for path in path_files:
@@ -136,20 +142,20 @@ def regressionTest(test_verbose=False):
    
     # exclude files that we can't handle 
     for file in exclude_files:
-        print 'WARNING: File '+ file + ' to be excluded from testing'
+        print('WARNING: File '+ file + ' to be excluded from testing')
         try:
             files.remove(file)
-        except ValueError, e:
+        except ValueError as e:
             msg = 'File "%s" was not found in test suite.\n' % file
             msg += 'Original error is "%s"\n' % e
             msg += 'Perhaps it should be removed from exclude list?'
-            raise Exception, msg
+            raise_(Exception, msg)
 
     # import all test_*.py files
     # NOTE: This implies that test_*.py files MUST HAVE UNIQUE NAMES!
     filenameToModuleName = lambda f: os.path.splitext(f)[0]
-    moduleNames = map(filenameToModuleName, files)
-    modules = map(__import__, moduleNames)
+    moduleNames = list(map(filenameToModuleName, files))
+    modules = list(map(__import__, moduleNames))
 
     # Fix up the system path
     for file in path_files:
@@ -157,7 +163,7 @@ def regressionTest(test_verbose=False):
 
     # bundle up all the tests
     load = unittest.defaultTestLoader.loadTestsFromModule
-    testCaseClasses = map(load, modules)
+    testCaseClasses = list(map(load, modules))
 
     if test_verbose is True:
         # Test the code by setting verbose to True.
@@ -185,8 +191,8 @@ def check_anuga_import():
         # importing something that loads quickly
         import anuga.anuga_exceptions
     except ImportError:
-        print "Python cannot import ANUGA module."
-        print "Check you have followed all steps of its installation."
+        print("Python cannot import ANUGA module.")
+        print("Check you have followed all steps of its installation.")
         import sys
         sys.exit()
 
@@ -209,8 +215,8 @@ if __name__ == '__main__':
     # timestamp at the end
     timestamp = time.asctime()
     version = aust.get_revision_number()
-    print
-    print 'Finished at %s, version %s' % (timestamp, version)
+    print()
+    print('Finished at %s, version %s' % (timestamp, version))
 
     # Cleaning up
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
@@ -220,4 +226,4 @@ if __name__ == '__main__':
 
     
     if sys.platform == 'win32':
-        raw_input('Press the RETURN key')
+        input('Press the RETURN key')

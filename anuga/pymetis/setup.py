@@ -4,6 +4,9 @@ import os
 import sys
 
 from os.path import join
+from Cython.Build import cythonize
+import Cython.Compiler.Options
+Cython.Compiler.Options.annotate = True
 
 def configuration(parent_package='',top_path=None):
     
@@ -29,7 +32,7 @@ def configuration(parent_package='',top_path=None):
     config.add_library('metis', sources=metis_src)
     
     
-    src_files = ['metis_ext.c', 'metis_bridge.c']
+    src_files = ['metis_ext.pyx']
     if sys.platform == 'win32':
         src_files = src_files + ['random.c']
         
@@ -41,6 +44,8 @@ def configuration(parent_package='',top_path=None):
                          depends=(metis_src + metis_headers),
                          extra_compile_args=['-I'+include_dir],
                          libraries = ['metis', 'm'])
+
+    config.ext_modules = cythonize(config.ext_modules,annotate=True)
 
     return config
     

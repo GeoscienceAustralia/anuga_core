@@ -13,10 +13,15 @@ where <options> is zero or more of:
       --verbose  same as above
 You may do things like "test_all.py -q -v -v".
 """
+from __future__ import print_function
+from __future__ import division
 
 # Author: Mark Pilgrim
 # Modified by Ole Nielsen
 
+from builtins import map
+from past.utils import old_div
+from future.utils import raise_
 import unittest
 import os
 import sys
@@ -61,22 +66,22 @@ def list_names(names, func=None, col_width=None, page_width=None):
     c_width += 2                        # 2 column padding
 
     # calculate number of columns allowed
-    max_columns = int(p_width / c_width)
+    max_columns = int(old_div(p_width, c_width))
 
     # print columns
     column = 0
     for name in names:
         if func:
             name = func(name)
-        print '%-*s' % (c_width-1, name),
+        print('%-*s' % (c_width-1, name), end=' ')
         column += 1
         if column >= max_columns:
             column = 0
-            print
+            print()
 
     # if last line not finished, end it here
     if column > 0:
-        print
+        print()
 
 
 def get_unittestfiles(path):
@@ -112,8 +117,8 @@ def get_unittestfiles(path):
 def regressionTest(test_verbose=False):
     # start off with where we are
     path = os.getcwd()
-    print
-    print 'Testing path: %s' % path
+    print()
+    print('Testing path: %s' % path)
     
     common_dir = os.path.dirname(path)
     common_dir_length = len(common_dir)
@@ -123,8 +128,8 @@ def regressionTest(test_verbose=False):
     term_width = terminal_width()
 
     # explain what we are doing
-    print
-    print "The following directories will be skipped over:"
+    print()
+    print("The following directories will be skipped over:")
     exclude_dirs.sort()
     list_names(exclude_dirs, page_width=term_width)
 
@@ -140,14 +145,14 @@ def regressionTest(test_verbose=False):
         
         return pathname[common_dir_length+1:]
     
-    print
-    print 'Paths searched:'
+    print()
+    print('Paths searched:')
     list_names(path_files, my_filter, page_width=term_width)
 
-    print    
-    print 'Files tested:'
+    print()    
+    print('Files tested:')
     list_names(files, page_width=term_width)
-    print
+    print()
 
     # update system path with found paths
     for path in path_files:
@@ -155,20 +160,20 @@ def regressionTest(test_verbose=False):
    
     # exclude files that we can't handle 
     for file in exclude_files:
-        print 'WARNING: File '+ file + ' to be excluded from testing'
+        print('WARNING: File '+ file + ' to be excluded from testing')
         try:
             files.remove(file)
-        except ValueError, e:
+        except ValueError as e:
             msg = 'File "%s" was not found in test suite.\n' % file
             msg += 'Original error is "%s"\n' % e
             msg += 'Perhaps it should be removed from exclude list?'
-            raise Exception, msg
+            raise_(Exception, msg)
 
     # import all test_*.py files
     # NOTE: This implies that test_*.py files MUST HAVE UNIQUE NAMES!
     filenameToModuleName = lambda f: os.path.splitext(f)[0]
-    moduleNames = map(filenameToModuleName, files)
-    modules = map(__import__, moduleNames)
+    moduleNames = list(map(filenameToModuleName, files))
+    modules = list(map(__import__, moduleNames))
 
     # Fix up the system path
     for file in path_files:
@@ -176,7 +181,7 @@ def regressionTest(test_verbose=False):
 
     # bundle up all the tests
     load = unittest.defaultTestLoader.loadTestsFromModule
-    testCaseClasses = map(load, modules)
+    testCaseClasses = list(map(load, modules))
 
     if test_verbose is True:
         # Test the code by setting verbose to True.
@@ -201,8 +206,8 @@ def check_anuga_import():
         # importing something that loads quickly
         import anuga.anuga_exceptions
     except ImportError:
-        print "Python cannot import ANUGA module."
-        print "Check you have followed all steps of its installation."
+        print("Python cannot import ANUGA module.")
+        print("Check you have followed all steps of its installation.")
         import sys
         sys.exit()
 
@@ -259,7 +264,7 @@ if __name__ == '__main__':
     timestamp = time.asctime()
     major_revision = __version__
     minor_revision = aust.get_revision_number()
-    print '\nFinished at %s, version %s %s' % (timestamp, major_revision, minor_revision)
+    print('\nFinished at %s, version %s %s' % (timestamp, major_revision, minor_revision))
 
     # Cleaning up
     if options.verbosity < 1:

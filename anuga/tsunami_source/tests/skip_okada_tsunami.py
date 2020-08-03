@@ -4,6 +4,11 @@ Test the 'okada_tsunami' routine
 We first check
 
 """
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from future.utils import raise_
 import unittest, os
 import warnings
 from os import sep
@@ -96,7 +101,7 @@ class Test_okada_tsunami(unittest.TestCase):
                 uz = tsu_funct(numpy.array([x_wanted]), numpy.array([y_wanted]))
               
                 # Compute both relative and absolute versions of the error
-                reltol = abs((uz - okada_values[i])/uz)
+                reltol = abs(old_div((uz - okada_values[i]),uz))
                 abstol = abs(uz-okada_values[i])
                 assert ((reltol<1.0e-03)|(abstol<1.0e-06))
 
@@ -166,7 +171,7 @@ class Test_okada_tsunami(unittest.TestCase):
                     uz = tsu_funct(numpy.array([x_wanted]), numpy.array([y_wanted]))
                   
                     # Compute both relative and absolute versions of the error
-                    reltol = abs((uz - okada_values[i])/uz)
+                    reltol = abs(old_div((uz - okada_values[i]),uz))
                     abstol = abs(uz-okada_values[i])
                     assert ((reltol<1.0e-03)|(abstol<1.0e-06))
 
@@ -251,7 +256,7 @@ class Test_okada_tsunami(unittest.TestCase):
                         uz = tsu_funct(numpy.array([x_wanted]), numpy.array([y_wanted]))
                       
                         # Compute both relative and absolute versions of the error
-                        reltol = abs((uz - okada_values[i])/uz)
+                        reltol = abs(old_div((uz - okada_values[i]),uz))
                         abstol = abs(uz-okada_values[i])
                         assert ((reltol<1.0e-03)|(abstol<1.0e-06)), 'Okada_tsunami error for eq source: ' + str(my_source)
                         #print 'PASS'
@@ -327,14 +332,14 @@ class Test_okada_tsunami(unittest.TestCase):
 
                 mysource=numpy.concatenate((my_source, my_source2))
             else:
-                raise Exception, 'j is ' + str(j) + ', it should not take this value'
+                raise_(Exception, 'j is ' + str(j) + ', it should not take this value')
             
         # Tsunami function with     
         tsu_funct = okada_tsunami.earthquake_source(my_source, verbose=False)
         uz = tsu_funct(numpy.array([x_wanted]), numpy.array([y_wanted]))
       
         # Compute both relative and absolute versions of the error
-        reltol = abs((uz - okada_values[0])/uz)
+        reltol = abs(old_div((uz - okada_values[0]),uz))
         abstol = abs(uz-okada_values[0])
         assert ((reltol<1.0e-03)|(abstol<1.0e-06))
         #print 'PASS'

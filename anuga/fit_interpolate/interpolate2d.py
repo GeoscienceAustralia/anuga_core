@@ -14,6 +14,9 @@ To test, run the accompanying script test_interpolate2d.py
 Author: Ole Nielsen 2011
 
 """
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 __author__ = 'Ole Nielsen <ole.moller.nielsen@gmail.com>'
 __revision__ = '$Format:%H$'
 __date__ = '01/11/2011'
@@ -170,8 +173,8 @@ def interpolate2d(x, y, Z, points, mode='linear', bounds_error=False):
 
     # Coefficients for weighting between lower and upper bounds
     oldset = numpy.seterr(invalid='ignore')  # Suppress zero division warning
-    alpha = (xi - x0) / (x1 - x0)
-    beta = (eta - y0) / (y1 - y0)
+    alpha = old_div((xi - x0), (x1 - x0))
+    beta = old_div((eta - y0), (y1 - y0))
     numpy.seterr(**oldset)  # Restore warnings
 
     if mode == 'linear':
@@ -269,7 +272,7 @@ def check_inputs(x, y, Z, points, mode, bounds_error):
 
     try:
         y = numpy.array(y)
-    except Exception, e:
+    except Exception as e:
         msg = ('Input vector y could not be converted to numpy array: '
                '%s' % str(e))
         raise Exception(msg)
@@ -297,7 +300,7 @@ def check_inputs(x, y, Z, points, mode, bounds_error):
     try:
         Z = numpy.array(Z)
         m, n = Z.shape
-    except Exception, e:
+    except Exception as e:
         msg = 'Z must be a 2D numpy array: %s' % str(e)
         raise Exception(msg)
 

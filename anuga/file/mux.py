@@ -1,7 +1,9 @@
 """
     Read a mux2 file.
 """
+from __future__ import absolute_import
 
+from builtins import range
 from anuga.utilities.numerical_tools import ensure_numeric
 import numpy as num     
         
@@ -35,7 +37,7 @@ def read_mux2_py(filenames,
                         extracted
     """
 
-    from urs_ext import read_mux2
+    from .urs_ext import read_mux2
 
     numSrc = len(filenames)
 
@@ -51,10 +53,13 @@ def read_mux2_py(filenames,
         weights = num.ones(numSrc)
 
     if permutation is None:
-        permutation = ensure_numeric([], num.float)
+        permutation = ensure_numeric([], num.int)
 
     # Call underlying C implementation urs2sts_ext.c
-    data = read_mux2(numSrc, filenames, weights, file_params,
+    cast_filenames = []
+    for filename in filenames:
+        cast_filenames.append(str(filename).encode())
+    data = read_mux2(numSrc, cast_filenames, weights, file_params,
                      permutation, verbose)
 
     msg = 'File parameter values were not read in correctly from c file'

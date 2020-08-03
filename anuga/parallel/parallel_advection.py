@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import range
 import sys
 
 
@@ -18,7 +20,7 @@ from anuga import Domain
 
 import numpy as num
 
-import pypar
+from anuga.utilities import parallel_abstraction as pypar
 
 
 class Parallel_domain(Domain):
@@ -49,8 +51,8 @@ class Parallel_domain(Domain):
         self.communication_reduce_time = 0.0
 
 
-        print 'processor',self.processor
-        print 'numproc',self.numproc
+        print('processor',self.processor)
+        print('numproc',self.numproc)
 
     def check_integrity(self):
         Domain.check_integrity(self)
@@ -133,7 +135,7 @@ class Parallel_domain(Domain):
 
             else:
                 #Receive data from the iproc processor
-                if  self.ghost_recv_dict.has_key(iproc):
+                if  iproc in self.ghost_recv_dict:
 
                     # LINDA:
                     # now store ghost as local id, global id, value
@@ -150,7 +152,7 @@ class Parallel_domain(Domain):
 
         #local update of ghost cells
         iproc = self.processor
-        if self.full_send_dict.has_key(iproc):
+        if iproc in self.full_send_dict:
 
             # LINDA:
             # now store full as local id, global id, value

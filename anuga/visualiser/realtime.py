@@ -1,8 +1,12 @@
+from __future__ import absolute_import
 #from  import Float, zeros, shape
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
 import numpy as num
-from Tkinter import Button, E, Tk, W
+from tkinter import Button, E, Tk, W
 from threading import Event
-from visualiser import Visualiser
+from .visualiser import Visualiser
 from vtk import vtkCellArray, vtkPoints, vtkPolyData
 
 class RealtimeVisualiser(Visualiser):

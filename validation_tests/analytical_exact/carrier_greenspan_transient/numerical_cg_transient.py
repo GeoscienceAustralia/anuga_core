@@ -140,7 +140,7 @@ if myid == 0:
 for t in domain.evolve(yieldstep = 1000., finaltime = 30000.):
     #print domain.timestepping_statistics(track_speeds=True)
     if myid == 0 and verbose:
-        print domain.timestepping_statistics()
+        print(domain.timestepping_statistics())
     #vis.update()
 
 

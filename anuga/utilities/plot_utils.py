@@ -46,12 +46,13 @@
           filenames, and ensure that in each case, the output will be as desired.
 
 """
+
 from anuga.file.netcdf import NetCDFFile
 import numpy
 import copy
 import matplotlib.cm
 
-class combine_outputs:
+class combine_outputs(object):
     """
     Read in a list of filenames, and combine all their outputs into a single object.
     e.g.:
@@ -77,7 +78,7 @@ class combine_outputs:
         #
 
         for i, filename in enumerate(filename_list):
-            if verbose: print i, filename
+            if verbose: print(i, filename)
             # Store output from filename
             p_tmp = get_output(filename, minimum_allowed_height,verbose=verbose)
             if(i==0):
@@ -123,7 +124,7 @@ def sort_sww_filenames(sww_wildcard):
     filenames=glob.glob(sww_wildcard)
     
     # Extract time from filenames
-    file_time=range(len(filenames)) # Predefine
+    file_time=list(range(len(filenames))) # Predefine
      
     for i,filename in enumerate(filenames):
         filesplit=filename.rsplit('_time_')
@@ -132,15 +133,15 @@ def sort_sww_filenames(sww_wildcard):
         else:
             file_time[i]=0         
     
-    name_and_time=zip(file_time,filenames)
+    name_and_time=list(zip(file_time,filenames))
     name_and_time.sort() # Sort by file_time
     
-    output_times, output_names = zip(*name_and_time)
+    output_times, output_names = list(zip(*name_and_time))
     
     return list(output_names)
 
 #####################################################################
-class get_output:
+class get_output(object):
     """Read in data from an .sww file in a convenient form
        e.g. 
         p = plot_utils.get_output('channel3.sww', minimum_allowed_height=0.01)
@@ -176,7 +177,7 @@ def getInds(varIn, timeSlices, absMax=False):
 
     if (len(varIn.shape)==2):
         # There are multiple time-slices
-        if timeSlices is 'max':
+        if timeSlices == 'max':
             # Extract the maxima over time, assuming there are multiple
             # time-slices, and ensure the var is still a 2D array
             if( not absMax):
@@ -231,7 +232,7 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
 
     # Treat specification of timeSlices
     if(timeSlices=='all'):
-        inds=range(len(time))
+        inds=list(range(len(time)))
     elif(timeSlices=='last'):
         inds=[len(time)-1]
     elif(timeSlices=='max'):
@@ -242,7 +243,7 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
         except:
             inds=[timeSlices]
     
-    if(inds is not 'max'):
+    if(inds != 'max'):
         time=time[inds]
     else:
         # We can't really assign a time to 'max', but I guess max(time) is
@@ -266,7 +267,7 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
     vols=fid.variables['volumes'][:]
 
     # Friction if it exists
-    if(fid.variables.has_key('friction')):
+    if('friction' in fid.variables):
         friction=getInds(fid.variables['friction'],timeSlices=inds) 
     else:
         # Set friction to nan if it is not stored
@@ -275,10 +276,10 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
     # Trick to treat the case where inds == 'max'
     inds2 = copy.copy(inds)
     if inds == 'max':
-        inds2 = range(len(fid.variables['time']))
+        inds2 = list(range(len(fid.variables['time'])))
     
     # Get height
-    if(fid.variables.has_key('height')):
+    if('height' in fid.variables):
         height = fid.variables['height'][inds2]
     else:
         # Back calculate height if it is not stored
@@ -325,7 +326,7 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
 
 ######################################################################################
 
-class get_centroids:
+class get_centroids(object):
     """
     Extract centroid values from the output of get_output, OR from a
         filename  
@@ -341,21 +342,21 @@ class get_centroids:
 
     NOTE: elevation is only stored once in the output, even if it was
           stored every timestep.
-           Lots of existing plotting code assumes elevation is a 1D
-           array. 
-           But as a hack for the time being the elevation from the file 
-           is available via elev_orig
+          Lots of existing plotting code assumes elevation is a 1D
+          array. 
+          But as a hack for the time being the elevation from the file 
+          is available via elev_orig
     """
-    def __init__(self,p, velocity_extrapolation=False, verbose=False,
+    def __init__(self, p, velocity_extrapolation=False, verbose=False,
                  timeSlices=None, minimum_allowed_height=1.0e-03):
         
         self.time, self.x, self.y, self.stage, self.xmom,\
-             self.ymom, self.height, self.elev, self.elev_orig, self.friction, self.xvel,\
-             self.yvel, self.vel, self.xllcorner, self.yllcorner, self.timeSlices= \
-             _get_centroid_values(p, velocity_extrapolation,\
-                         timeSlices=copy.copy(timeSlices),\
-                         minimum_allowed_height=minimum_allowed_height,\
-                         verbose=verbose)
+            self.ymom, self.height, self.elev, self.elev_orig, self.friction, self.xvel,\
+            self.yvel, self.vel, self.xllcorner, self.yllcorner, self.timeSlices= \
+                _get_centroid_values(p, velocity_extrapolation,\
+                                     timeSlices=copy.copy(timeSlices),\
+                                     minimum_allowed_height=minimum_allowed_height,\
+                                     verbose=verbose)
 
 def _getCentVar(fid, varkey_c, time_indices, absMax=False,  vols = None, space_indices=None):
     """
@@ -369,13 +370,13 @@ def _getCentVar(fid, varkey_c, time_indices, absMax=False,  vols = None, space_i
         vols1 = vols[:,1]
         vols2 = vols[:,2]
 
-    if(fid.variables.has_key(varkey_c)==False):
+    if((varkey_c in fid.variables)==False):
         # It looks like centroid values are not stored
         # In this case, compute centroid values from vertex values
         assert (vols is not None), "Must specify vols since centroid quantity is not stored"
 
         newkey=varkey_c.replace('_c','')
-        if time_indices is not 'max':
+        if time_indices != 'max':
             # Relatively efficient treatment is possible
             var_cent = fid.variables[newkey]
             if (len(var_cent.shape)>1):
@@ -396,7 +397,7 @@ def _getCentVar(fid, varkey_c, time_indices, absMax=False,  vols = None, space_i
                 tmp=(tmp[vols0]+tmp[vols1]+tmp[vols2])/3.0
             var_cent=getInds(tmp, timeSlices=time_indices, absMax=absMax)
     else:
-        if time_indices is not 'max':
+        if time_indices != 'max':
             if(len(fid.variables[varkey_c].shape)>1):
                 var_cent = numpy.zeros((len(time_indices), fid.variables[varkey_c].shape[1]), dtype='float32')
                 for i in range(len(time_indices)):
@@ -419,7 +420,7 @@ def _getCentVar(fid, varkey_c, time_indices, absMax=False,  vols = None, space_i
 
                                  
 def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices, 
-                        minimum_allowed_height):
+                         minimum_allowed_height):
     """
     Function to get centroid information -- main interface is through 
         get_centroids. 
@@ -445,9 +446,8 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
      Output: Values of x, y, Stage, xmom, ymom, elev, xvel, yvel, vel etc at centroids
     """
 
-    #@ Figure out if p is a string (filename) or the output of get_output
-    pIsFile=(type(p) is str)
- 
+    # Figure out if p is a string (filename) or the output of get_output
+    pIsFile = isinstance(p, str)
     if(pIsFile): 
         fid=NetCDFFile(p) 
     else:
@@ -475,14 +475,14 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
     if(timeSlices is None):
         if(pIsFile):
             # Assume all timeSlices
-            timeSlices=range(nts)
+            timeSlices=list(range(nts))
         else:
             timeSlices=copy.copy(p.timeSlices)
     else:
         # Treat word-based special cases
-        if(timeSlices is 'all'):
-            timeSlices=range(nts)
-        if(timeSlices is 'last'):
+        if(timeSlices == 'all'):
+            timeSlices=list(range(nts))
+        if(timeSlices == 'last'):
             timeSlices=[nts-1]
 
     #@ Get minimum_allowed_height
@@ -494,7 +494,7 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
 
     # Treat specification of timeSlices
     if(timeSlices=='all'):
-        inds=range(len(time))
+        inds=list(range(len(time)))
     elif(timeSlices=='last'):
         inds=[len(time)-1]
     elif(timeSlices=='max'):
@@ -505,7 +505,7 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
         except:
             inds=[timeSlices]
     
-    if(inds is not 'max'):
+    if(inds != 'max'):
         time=time[inds]
     else:
         # We can't really assign a time to 'max', but I guess max(time) is
@@ -538,14 +538,14 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
     # Trick to treat the case where inds == 'max'
     inds2 = copy.copy(inds)
     if inds == 'max':
-        inds2 = range(len(fid.variables['time']))
+        inds2 = list(range(len(fid.variables['time'])))
    
     # height
     height_cent= stage_cent + 0.
     for i in range(stage_cent.shape[0]):
         height_cent[i,:] = stage_cent[i,:] - elev_cent
 
-    if fid.variables.has_key('xmomentum_c'):
+    if 'xmomentum_c' in fid.variables:
         # The following commented out lines seem to only work on
         # some numpy/netcdf versions. So we loop
         #xmom_cent = fid.variables['xmomentum_c'][inds2]
@@ -556,7 +556,7 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
         for i in range(len(inds2)):
             xmom_cent[i,:] = fid.variables['xmomentum_c'][inds2[i]]
             ymom_cent[i,:] = fid.variables['ymomentum_c'][inds2[i]]
-            if fid.variables.has_key('height_c'):
+            if 'height_c' in fid.variables:
                 height_c_tmp[i,:] = fid.variables['height_c'][inds2[i]]
             else:
                 height_c_tmp[i,:] = fid.variables['stage_c'][inds2[i]] - elev_cent
@@ -700,7 +700,7 @@ def near_transect(p, point1, point2, tol=1.):
     # Find line equation a*x + b*y + c = 0
     # based on y=gradient*x +intercept
     if x1!=x2:
-        gradient= (y2-y1)/(x2-x1)
+        gradient= ((y2-y1) / (x2-x1))
         intercept = y1 - gradient*x1
         #
         a = -gradient
@@ -723,8 +723,8 @@ def near_transect(p, point1, point2, tol=1.):
     g1x = x2-x1 
     g1y = y2-y1
     g1_norm = (g1x**2 + g1y**2)**0.5
-    g1x=g1x/g1_norm
-    g1y=g1y/g1_norm
+    g1x = g1x / g1_norm
+    g1y = g1y / g1_norm
     
     g2x = p.x[near_points] - x1
     g2y = p.y[near_points] - y1
@@ -745,7 +745,7 @@ def triangle_areas(p, subset=None):
     # subset = vector of centroid indices to include in the computation. 
 
     if(subset is None):
-        subset=range(len(p.vols[:,0]))
+        subset=list(range(len(p.vols[:,0])))
     
     x0=p.x[p.vols[subset,0]]
     x1=p.x[p.vols[subset,1]]
@@ -771,7 +771,7 @@ def water_volume(p, p2, per_unit_area=False, subset=None):
     # Compute the water volume from p(vertex values) and p2(centroid values)
 
     if(subset is None):
-        subset=range(len(p2.x))
+        subset=list(range(len(p2.x)))
 
     l=len(p2.time)
     area=triangle_areas(p, subset=subset)
@@ -788,7 +788,7 @@ def water_volume(p, p2, per_unit_area=False, subset=None):
         volume[i]=volume[i]+((-p2.elev[subset])*(p2.stage[i,subset]>p2.elev[subset])*area).sum()
     
     if(per_unit_area):
-        volume=volume/total_area 
+        volume = volume / total_area
     
     return volume
 
@@ -897,10 +897,10 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None,
     try:
         import osgeo.gdal as gdal
         import osgeo.osr as osr
-    except ImportError, e:
+    except ImportError as e:
         msg='Failed to import gdal/ogr modules --'\
         + 'perhaps gdal python interface is not installed.'
-        raise ImportError, msg
+        raise ImportError(msg)
     
 
 
@@ -925,7 +925,7 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None,
     elif(EPSG_CODE is not None):
         srs.ImportFromEPSG(EPSG_CODE)
     else:
-        raise Exception, 'No spatial reference information given'
+        raise Exception('No spatial reference information given')
 
 
     ds.SetProjection(srs.ExportToWkt())
@@ -998,21 +998,21 @@ def Make_Geotif(swwFile=None,
     try:
         import osgeo.gdal as gdal
         import osgeo.osr as osr
-    except ImportError, e:
+    except ImportError as e:
         msg = 'Failed to import gdal/ogr modules --'\
         + 'perhaps gdal python interface is not installed.'
-        raise ImportError, msg
+        raise ImportError(msg)
 
     # Check whether swwFile is an array, and if so, redefine various inputs to
     # make the code work
-    if(type(swwFile) == scipy.ndarray):
+    if(type(swwFile) == numpy.ndarray):
         import copy
         xyzPoints = copy.copy(swwFile)
         swwFile = None
 
     if(((EPSG_CODE is None) & (proj4string is None) )|
        ((EPSG_CODE is not None) & (proj4string is not None))):
-        raise Exception, 'Must specify EITHER an integer EPSG_CODE describing the file projection, OR a proj4string'
+        raise Exception('Must specify EITHER an integer EPSG_CODE describing the file projection, OR a proj4string')
 
 
     # Make output_dir
@@ -1025,7 +1025,7 @@ def Make_Geotif(swwFile=None,
         # Read in ANUGA outputs
             
         if(verbose):
-            print 'Reading sww File ...'
+            print('Reading sww File ...')
         p2 = get_centroids(swwFile, velocity_extrapolation, timeSlices=myTimeStep,
             minimum_allowed_height=min_allowed_height)
         xllcorner = p2.xllcorner
@@ -1034,30 +1034,30 @@ def Make_Geotif(swwFile=None,
         myTimeStep_Orig = myTimeStep
         # Now, myTimeStep just holds indices we want to plot in p2
         if(myTimeStep != 'max'):
-            myTimeStep = range(len(p2.time))
+            myTimeStep = list(range(len(p2.time)))
 
         # Ensure myTimeStep is a list
         if type(myTimeStep) != list:
             myTimeStep = [myTimeStep]
 
         if(verbose):
-            print 'Extracting required data ...'
+            print('Extracting required data ...')
         # Get ANUGA points
         swwX = p2.x + xllcorner
         swwY = p2.y + yllcorner
     else:
         # Get the point data from the 3-column array
         if(xyzPoints.shape[1] != 3):
-            raise Exception, 'If an array is passed, it must have exactly 3 columns'
+            raise Exception('If an array is passed, it must have exactly 3 columns')
         if(len(output_quantities) != 1):
-            raise Exception, 'Can only have 1 output quantity when passing an array'
+            raise Exception('Can only have 1 output quantity when passing an array')
         swwX = xyzPoints[:,0]
         swwY = xyzPoints[:,1]
         myTimeStep = ['pointData']
 
     # Grid for meshing
     if(verbose):
-        print 'Computing grid of output locations...'
+        print('Computing grid of output locations...')
     # Get points where we want raster cells
     if(lower_left is None):
         lower_left = [swwX.min(), swwY.min()]
@@ -1065,28 +1065,28 @@ def Make_Geotif(swwFile=None,
         upper_right = [swwX.max(), swwY.max()]
     nx = int(round((upper_right[0]-lower_left[0])*1.0/(1.0*CellSize)) + 1)
     xres = (upper_right[0]-lower_left[0])*1.0/(1.0*(nx-1))
-    desiredX = scipy.linspace(lower_left[0], upper_right[0],nx )
+    desiredX = numpy.linspace(lower_left[0], upper_right[0],nx )
     ny = int(round((upper_right[1]-lower_left[1])*1.0/(1.0*CellSize)) + 1)
     yres = (upper_right[1]-lower_left[1])*1.0/(1.0*(ny-1))
-    desiredY = scipy.linspace(lower_left[1], upper_right[1], ny)
+    desiredY = numpy.linspace(lower_left[1], upper_right[1], ny)
 
-    gridX, gridY = scipy.meshgrid(desiredX, desiredY)
+    gridX, gridY = numpy.meshgrid(desiredX, desiredY)
 
     if(verbose):
-        print 'Making interpolation functions...'
-    swwXY = scipy.array([swwX[:],swwY[:]]).transpose()
+        print('Making interpolation functions...')
+    swwXY = numpy.array([swwX[:],swwY[:]]).transpose()
 
     # Get function to interpolate quantity onto gridXY_array
-    gridXY_array = scipy.array([scipy.concatenate(gridX),
-        scipy.concatenate(gridY)]).transpose()
-    gridXY_array = scipy.ascontiguousarray(gridXY_array)
+    gridXY_array = numpy.array([numpy.concatenate(gridX),
+        numpy.concatenate(gridY)]).transpose()
+    gridXY_array = numpy.ascontiguousarray(gridXY_array)
 
     # Create Interpolation function
     #basic_nearest_neighbour=False
     if(k_nearest_neighbours == 1):
         index_qFun = scipy.interpolate.NearestNDInterpolator(
             swwXY,
-            scipy.arange(len(swwX),dtype='int64').transpose())
+            numpy.arange(len(swwX),dtype='int64').transpose())
         gridqInd = index_qFun(gridXY_array)
         # Function to do the interpolation
         def myInterpFun(quantity):
@@ -1104,7 +1104,7 @@ def Make_Geotif(swwFile=None,
             for i in range(k_nearest_neighbours):
                 denom += nn_wts[:,i]
                 num += quantity[nn_inds[:,i]]*nn_wts[:,i]
-            return (num/denom)
+            return num / denom
 
     if bounding_polygon is not None:
         # Find points to exclude (i.e. outside the bounding polygon)
@@ -1122,11 +1122,11 @@ def Make_Geotif(swwFile=None,
     # Loop over all output quantities and produce the output
     for myTSindex, myTSi in enumerate(myTimeStep):
         if(verbose):
-            print 'Reduction = ', myTSi
+            print('Reduction = ', myTSi)
         for output_quantity in output_quantities:
-            if (verbose): print output_quantity
+            if (verbose): print(output_quantity)
 
-            if(myTSi is not 'max'):
+            if(myTSi != 'max'):
                 myTS = myTSi
             else:
                 # We have already extracted the max, and e.g.
@@ -1149,7 +1149,7 @@ def Make_Geotif(swwFile=None,
                 if(output_quantity == 'elevation'):
                     gridq = myInterpFun(p2.elev)
     
-                if(myTSi is 'max'):
+                if(myTSi == 'max'):
                     timestepString = 'max'
                 else:
                     timestepString = str(myTimeStep[myTSindex])+'_Time_'+str(round(p2.time[myTS]))
@@ -1175,9 +1175,9 @@ def Make_Geotif(swwFile=None,
                 output_name = output_dir+'/'+'PointData_'+output_quantity+'.tif'
 
             if(verbose):
-                print 'Making raster ...'
+                print('Making raster ...')
             gridq.shape = (len(desiredY),len(desiredX))
-            make_grid(scipy.flipud(gridq), desiredY, desiredX, output_name, EPSG_CODE=EPSG_CODE, 
+            make_grid(numpy.flipud(gridq), desiredY, desiredX, output_name, EPSG_CODE=EPSG_CODE, 
                       proj4string=proj4string, creation_options=creation_options)
 
     return

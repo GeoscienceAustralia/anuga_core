@@ -1,46 +1,51 @@
 """Exceptions used by ANUGA
 """
 
-import exceptions
+# Handle PendingDeprecationWarning causing an ImportError if using Python 3
+try:
+    from exceptions import IOError
+    from exceptions import Exception
+except ImportError:
+    pass
 
-class TitleError(exceptions.IOError):
+class TitleError(IOError):
     """ Incorrect header in a file. """
     pass
 
-class ParsingError(exceptions.IOError):
+class ParsingError(IOError):
     """ Could not parse a file. """
     pass
-    
-class ShapeError(exceptions.IOError):
+
+class ShapeError(IOError):
     """ Pathological shape in data. """
     pass
 
-class ANUGAError(exceptions.Exception):
+class ANUGAError(Exception):
     """ Generic ANUGA error. """
     #def __init__(self, args=None):
     #self.args = args
     pass
 
-class DataMissingValuesError(exceptions.Exception):
+class DataMissingValuesError(Exception):
     """ Missing values in file. """
     pass
-    
-class DataFileNotOpenError(exceptions.Exception):
+
+class DataFileNotOpenError(Exception):
     """ File is not open. """
     pass
-    
-class DataTimeError(exceptions.Exception):
+
+class DataTimeError(Exception):
     """ Pathological time data. """
     pass
-    
-class DataDomainError(exceptions.Exception):
+
+class DataDomainError(Exception):
     """ Pathological domain. """
     pass
-    
-class NewQuantity(exceptions.Exception):
+
+class NewQuantity(Exception):
     """ Quantity used but not defined. """
     pass
-    
-class TitleValueError(exceptions.Exception):
+
+class TitleValueError(Exception):
     """ Title of data column in file has wrong value. """
     pass

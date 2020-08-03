@@ -1,6 +1,7 @@
 #! /usr/bin/python
 
 
+from __future__ import print_function
 __author__="steve"
 __date__ ="$13/03/2013 4:24:51 PM$"
 
@@ -13,9 +14,9 @@ def typeset_report(report_name='report', verbose=True):
     import subprocess
 
     if verbose: 
-        print 50*'='
-        print 'Running typeset_report'
-        print 50*'='
+        print(50*'=')
+        print('Running typeset_report')
+        print(50*'=')
 
     cmd = 'pdflatex -shell-escape  -interaction=batchmode %s.tex' % report_name
 

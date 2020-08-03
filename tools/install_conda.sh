@@ -17,17 +17,7 @@ ANUGA_BITS=${ANUGA_BITS:-"64"}
 
 sudo apt-get update -q
 sudo apt-get install gfortran git
-
-##########################################################
-# Setup various versions of MPI
-if [[ "$ANUGA_PARALLEL" == "mpich2" ]]; then
-    sudo apt-get -y install mpich2;
-fi
-
-if [[ "$ANUGA_PARALLEL" == "openmpi" ]]; then
-    sudo apt-get install -y libopenmpi-dev openmpi-bin;
-fi
-
+sudo apt-get install -y libopenmpi-dev openmpi-bin;
 
 ##########################################################
 
@@ -47,7 +37,7 @@ chmod +x miniconda.sh && ./miniconda.sh -b
 
 export PATH=/home/travis/miniconda2/bin:$PATH
 
-ls
+ls 
 
 ls ..
 
@@ -57,10 +47,10 @@ conda update --yes conda
 
 # Configure the conda environment and put it in the path using the
 # provided versions
-conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 nose matplotlib gdal dill
-
+conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy cython netcdf4 nose matplotlib gdal dill future gitpython
 
 source activate anuga_env
+pip install mpi4py 
 
 # python 2.6 doesn't have argparse by default
 if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install --yes argparse; fi
@@ -71,12 +61,12 @@ export GDAL_DATA=`gdal-config --datadir`;
 #pip install pyproj
 
 # Install pypar if parallel set
-if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
-    git clone https://github.com/daleroberts/pypar.git;
-    pushd pypar;
-    python setup.py install;
-    popd;
-fi
+# if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
+#     git clone https://github.com/daleroberts/pypar.git;
+#     pushd pypar;
+#     python setup.py install;
+#     popd;
+# fi
 
 # Useful for debugging any issues with conda
 conda info -a

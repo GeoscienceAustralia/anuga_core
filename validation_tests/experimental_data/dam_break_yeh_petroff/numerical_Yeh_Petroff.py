@@ -44,10 +44,10 @@ def stage(x,y):
     for i in range(len(x)):
         if x[i] <= 0.4:
             h[i] = 0.3
-        elif x[i] <= 0.4+0.5:
+        elif x[i] <= 0.4 + 0.5:
             h[i] = 0.01
-        elif x[i] <= 0.4+0.5+0.12:
-            if 0.25 <= y[i] <= 0.25+0.12:
+        elif x[i] <= 0.4 + 0.5 + 0.12:
+            if 0.25 <= y[i] <= 0.25 + 0.12:
                 h[i] = 0.75
             else:
                 h[i] = 0.01
@@ -58,8 +58,8 @@ def stage(x,y):
 def elevation(x,y):
     z = zeros(len(x), float)
     for i in range(len(x)):
-        if 0.4+0.5 <= x[i] <= 0.4+0.5+0.12:
-            if 0.25 <= y[i] <= 0.25+0.12:
+        if 0.4 + 0.5 <= x[i] <= 0.4 + 0.5 + 0.12:
+            if 0.25 <= y[i] <= 0.25 + 0.12:
                 z[i] = 0.75
     return z
 
@@ -86,7 +86,7 @@ if myid == 0:
 
 
     domain.set_quantity('stage', stage)
-    domain.set_quantity('elevation',elevation)
+    domain.set_quantity('elevation', elevation)
     domain.set_quantity('friction', 0.03)
 
 else:
@@ -106,7 +106,7 @@ domain = distribute(domain)
 from math import sin, pi, exp
 Br = anuga.Reflective_boundary(domain)      # Solid reflective wall
 Bt = anuga.Transmissive_boundary(domain)    # Continue all values on boundary 
-Bd = anuga.Dirichlet_boundary([1,0.,0.]) # Constant boundary values
+Bd = anuga.Dirichlet_boundary([1,0.,0.])    # Constant boundary values
 
 # Associate boundary tags with boundary objects
 domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
@@ -122,9 +122,9 @@ save_parameters_tex(domain)
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
-for t in domain.evolve(yieldstep = 0.05, finaltime = 3.0):
+for t in domain.evolve(yieldstep=0.05, finaltime=3.0):
     if myid == 0 and verbose:
-        print domain.timestepping_statistics()
+        print(domain.timestepping_statistics())
 
 
 domain.sww_merge(delete_old=True)

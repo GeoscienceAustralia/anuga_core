@@ -1,9 +1,18 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+from builtins import map
+from builtins import str
+from builtins import range
 from anuga.lib.maxasc import *
 import anuga.utilities.system_tools as aust
 
-import exceptions
+try:
+    import exceptions
+except ImportError:
+    import builtins as exceptions
+
+from functools import reduce
 class TestError(exceptions.Exception): pass
 import unittest
 
@@ -30,13 +39,13 @@ def FilesEqual(file1, file2):
         return a and b
 
     def do_list(prefix, l):
-        print prefix, '#'*100
+        print(prefix, '#'*100)
         for (i, x) in enumerate(l):
-            print '%05d: %s\t' % (i, str(x)),
+            print('%05d: %s\t' % (i, str(x)), end=' ')
             if (i+1) % 5 == 0:
-                print
-        print
-        print
+                print()
+        print()
+        print()
     
     # get both files into memory
     fd = open(file1, 'r')
@@ -48,15 +57,15 @@ def FilesEqual(file1, file2):
 
     # check we have same number of lines in each file
     if len(data1) != len(data2):
-        print '# lines differs: len(data1)=%d, len(data2)=%d' % (len(data1), len(data2))
+        print('# lines differs: len(data1)=%d, len(data2)=%d' % (len(data1), len(data2)))
         return False
     
     # read header lines, check identical
     for i in range(HEADER_SIZE):
         if data1[i] != data2[i]:
-            print 'headers differ:'
-            print data1[i]
-            print data2[i]
+            print('headers differ:')
+            print(data1[i])
+            print(data2[i])
             return False
 
     # read data lines, check same *values*
@@ -65,16 +74,16 @@ def FilesEqual(file1, file2):
         d2 = SpacesPattern.split(data2[line_num].strip())
 
         if len(d1) != len(d2):
-            print '# columns differs, len(d1)=%d, len(d2)=%d on line %d' % (len(d1), len(d2), line_num)
+            print('# columns differs, len(d1)=%d, len(d2)=%d on line %d' % (len(d1), len(d2), line_num))
             return False
 
         fd1 = [float(value) for value in d1]
         fd2 = [float(value) for value in d2]
 
-        vec = map(lambda a,b: a==b, fd1, fd2)
+        vec = list(map(lambda a,b: a==b, fd1, fd2))
         
         if not reduce(lambda a,b: a and b, vec):
-            print 'line number = %d (out of %d)' % (line_num, len(data1))
+            print('line number = %d (out of %d)' % (line_num, len(data1)))
             do_list('fd1', fd1)
             do_list('fd2', fd2)
             do_list('vec', vec)

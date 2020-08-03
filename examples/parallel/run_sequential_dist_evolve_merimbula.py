@@ -3,7 +3,7 @@
 
    run using command like:
 
-   mpirun -np 4  python run_sequential_dist_evolve_merimbula.py
+   mpiexec -np 4  python run_sequential_dist_evolve_merimbula.py
 
    Need to have run run_sequential_dist_distribute_merimbula.py
 

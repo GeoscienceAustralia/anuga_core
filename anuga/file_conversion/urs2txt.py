@@ -1,3 +1,5 @@
+from builtins import map
+from builtins import str
 from anuga.file.urs import Read_urs
 
 def urs2txt(basename_in, location_index=None):
@@ -14,7 +16,7 @@ def urs2txt(basename_in, location_index=None):
 
     # instantiate urs_points of the three mux files.
     mux = {}
-    for quantity, file in map(None, quantities, files_in):
+    for quantity, file in zip(quantities, files_in):
         mux[quantity] = Read_urs(file)
 
     # Could check that the depth is the same. (hashing)
@@ -41,18 +43,18 @@ def urs2txt(basename_in, location_index=None):
                   'Easting' + d + 'Northing' + '\n')
         fid.write(str(li) + d + str(latitudes[li]) + d +
                   str(longitudes[li]) + d + str(points_utm[li][0]) + d +
-                  str(points_utm[li][01]) + '\n')
+                  str(points_utm[li][0o1]) + '\n')
 
     # the non-time dependent stuff
     #Title
     fid.write('location_index' + d + 'lat' + d + 'long' + d +
               'Easting' + d + 'Northing' + d + 'depth m' + '\n')
     i = 0
-    for depth, point_utm, lat, long in map(None, depths, points_utm,
+    for depth, point_utm, lat, long in zip(depths, points_utm,
                                            latitudes, longitudes):
 
         fid.write(str(i) + d + str(lat) + d + str(long) + d +
-                  str(point_utm[0]) + d + str(point_utm[01]) + d +
+                  str(point_utm[0]) + d + str(point_utm[0o1]) + d +
                   str(depth) + '\n')
         i += 1
 
@@ -63,7 +65,7 @@ def urs2txt(basename_in, location_index=None):
         #Title
         fid.write('time' + d + 'HA depth m' + d + 'UA momentum East x m/sec' +
                   d + 'VA momentum North y m/sec' + '\n')
-        for HA, UA, VA in map(None, mux['HA'], mux['UA'], mux['VA']):
+        for HA, UA, VA in zip(mux['HA'], mux['UA'], mux['VA']):
             fid.write(str(i*time_step) + d + str(HA[location_index]) + d +
                       str(UA[location_index]) + d +
                       str(VA[location_index]) + '\n')

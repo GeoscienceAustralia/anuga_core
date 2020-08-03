@@ -1,3 +1,7 @@
+from __future__ import division
+from builtins import range
+from past.utils import old_div
+from builtins import object
 from struct import pack, unpack
 import array as p_array
 import numpy as num
@@ -9,8 +13,9 @@ from anuga.geospatial_data.geospatial_data import ensure_absolute, \
                                                     Geospatial_data
 
 from anuga.coordinate_transforms.redfearn import redfearn
+from anuga.utilities import system_tools 
 
-class Read_urs:
+class Read_urs(object):
     """
     Read the info in URS mux files.
 
@@ -47,7 +52,23 @@ class Read_urs:
         # The depth is in meters, and it is the distance from the ocean
         # to the sea bottom.
         lonlatdep = p_array.array('f')
-        lonlatdep.read(mux_file, columns * self.points_num)
+
+        if system_tools.major_version == 2:
+            # This one works in Python2.7 but not in Python3.8.
+            lonlatdep.read(mux_file, columns * self.points_num)
+        elif system_tools.major_version == 3:
+            # In Python3 we open the file, read it and assign it to the array
+            #print(mux_file, columns, self.points_num, columns * self.points_num)
+            
+            # FIXME (Ole): The number for in probably the item size of a float.
+            # This needs to be looked into, but the tests pass now.
+            data = mux_file.read(4 * columns * self.points_num)
+            #print('data', data, len(data))
+            lonlatdep.frombytes(data)
+        else:
+            raise Exception('Unknown python version: %' % system_tools.version)
+
+        #print('lonlatdep', lonlatdep)
         lonlatdep = num.array(lonlatdep, dtype=num.float)
         lonlatdep = num.reshape(lonlatdep, (self.points_num, columns))
         self.lonlatdep = lonlatdep
@@ -72,14 +93,30 @@ class Read_urs:
 
         return self
 
-    def next(self):
+    def __next__(self):
         if self.time_step_count == self.iter_time_step:
             self.close()
             raise StopIteration
 
         #Read in a time slice from mux file
         hz_p_array = p_array.array('f')
-        hz_p_array.read(self.mux_file, self.points_num)
+
+        if system_tools.major_version == 2:
+            # This one works in Python2.7 but not in Python3.8.
+            hz_p_array.read(self.mux_file, self.points_num)            
+        elif system_tools.major_version == 3:
+            # In Python3 we open the file, read it and assign it to the array
+            #print(mux_file, columns, self.points_num, columns * self.points_num)
+            
+            # FIXME (Ole): The number for in probably the item size of a float.
+            # This needs to be looked into, but the tests pass now.
+            data = self.mux_file.read(4 * self.points_num)
+            #print('data', data, len(data))
+            hz_p_array.frombytes(data) 
+        else:
+            raise Exception('Unknown python version: %' % system_tools.version)
+
+        
         hz_p = num.array(hz_p_array, dtype=num.float)
         self.iter_time_step += 1
 
@@ -178,7 +215,7 @@ def calculate_boundary_points(boundary_polygon, zone, ll_lat,
                     verbose=verbose,
                     compression=False)
     else:
-        geo = apply(_calculate_boundary_points, args, kwargs)
+        geo = _calculate_boundary_points(*args, **kwargs)
 
     return geo
 
@@ -258,19 +295,19 @@ def points_needed(seg, ll_lat, ll_long, grid_spacing,
     min_lat = min(seg_lat_long[0][0], seg_lat_long[1][0]) - buffer
     min_long = min(seg_lat_long[0][1], seg_lat_long[1][1]) - buffer
 
-    first_row = (min_long - ll_long) / grid_spacing
+    first_row = old_div((min_long - ll_long), grid_spacing)
 
     # To round up
     first_row_long = int(round(first_row + 0.5))
 
-    last_row = (max_long - ll_long) / grid_spacing # round down
+    last_row = old_div((max_long - ll_long), grid_spacing) # round down
     last_row_long = int(round(last_row))
 
-    first_row = (min_lat - ll_lat) / grid_spacing
+    first_row = old_div((min_lat - ll_lat), grid_spacing)
     # To round up
     first_row_lat = int(round(first_row + 0.5))
 
-    last_row = (max_lat - ll_lat) / grid_spacing # round down
+    last_row = old_div((max_lat - ll_lat), grid_spacing) # round down
     last_row_lat = int(round(last_row))
 
     max_distance = 157147.4112 * grid_spacing
@@ -315,7 +352,7 @@ def keep_point(lat, long, seg, max_distance):
     if sqrt(num) == 0 and abs(num) == 0:
         return True
     else:
-        d = abs((x2_1)*(y1-y0)-(x1-x0)*(y2_1))/num
+        d = old_div(abs((x2_1)*(y1-y0)-(x1-x0)*(y2_1)),num)
         return d <= max_distance
 
 

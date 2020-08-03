@@ -1,10 +1,13 @@
 """
 Setting up a simulation class
 """
+from __future__ import print_function
 
 #------------------------------------------------------------------------------
 # IMPORT NECESSARY MODULES
 #------------------------------------------------------------------------------
+from builtins import range
+from builtins import object
 import anuga
 import time
 import numpy
@@ -50,10 +53,10 @@ class Simulation(object):
             from anuga import load_checkpoint_file
             try:
                 if myid == 0 and self.verbose:
-                    print 'TRYING TO OPEN CHECKPOINT FILES'
+                    print('TRYING TO OPEN CHECKPOINT FILES')
                 self.domain = load_checkpoint_file(domain_name = self.outname, checkpoint_dir = self.checkpoint_dir)
                 if myid == 0 and self.verbose:
-                    print 'OPENNED CHECKPOINT FILE at time = {}'.format(self.domain.get_time())
+                    print('OPENNED CHECKPOINT FILE at time = {}'.format(self.domain.get_time()))
             except:
                 self.initialize_simulation()
 
@@ -65,7 +68,7 @@ class Simulation(object):
     def initialize_simulation(self):
 
         if myid == 0 and self.verbose:
-            print 'INITIALIZE SIMULATION'
+            print('INITIALIZE SIMULATION')
 
         self._setup_original_domain()
         self._setup_structures()
@@ -82,7 +85,7 @@ class Simulation(object):
             finaltime = self.args.finaltime
 
         if myid == 0 and self.verbose:
-            print 'EVOLVE(yieldstep = {}, finaltime = {})'.format(yieldstep,finaltime)
+            print('EVOLVE(yieldstep = {}, finaltime = {})'.format(yieldstep,finaltime))
 
 
         domain = self.domain
@@ -97,11 +100,11 @@ class Simulation(object):
         barrier()
         for p in range(numprocs):
             if myid == p:
-                print 'Processor %g ' %myid
-                print 'That took %.2f seconds' %(time.time()-t0)
-                print 'Communication time %.2f seconds'%domain.communication_time
-                print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
-                print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
+                print('Processor %g ' %myid)
+                print('That took %.2f seconds' %(time.time()-t0))
+                print('Communication time %.2f seconds'%domain.communication_time)
+                print('Reduction Communication time %.2f seconds'%domain.communication_reduce_time)
+                print('Broadcast time %.2f seconds'%domain.communication_broadcast_time)
             else:
                 pass
 
@@ -132,33 +135,33 @@ class Simulation(object):
         # Only create the sequential domain on processor 0
         if myid == 0:
 
-            if verbose: print 'CREATING PARTITIONED DOMAIN'
+            if verbose: print('CREATING PARTITIONED DOMAIN')
 
             # Let's see if we have already pickled this domain
             pickle_name = outname+'_P%g_%g.pickle'% (1,0)
             pickle_name = join(partition_dir,pickle_name)
 
             if os.path.exists(pickle_name):
-                if verbose: print 'Saved domain seems to already exist'
+                if verbose: print('Saved domain seems to already exist')
             else:
                 domain = self.setup_domain(self)
 
-                if verbose: print 'Saving Domain'
+                if verbose: print('Saving Domain')
                 sequential_distribute_dump(domain, 1, partition_dir=partition_dir, verbose=verbose)
 
 
             # Now partition the domain
 
 
-            if verbose: print 'Load in saved sequential pickled domain'
+            if verbose: print('Load in saved sequential pickled domain')
             domain = sequential_distribute_load_pickle_file(pickle_name, np=1, verbose = verbose)
 
             par_pickle_name = outname+'_P%g_%g.pickle'% (np,0)
             par_pickle_name = join(partition_dir,par_pickle_name)
             if os.path.exists(par_pickle_name):
-                if verbose: print 'Saved partitioned domain seems to already exist'
+                if verbose: print('Saved partitioned domain seems to already exist')
             else:
-                if verbose: print 'Dump partitioned domains'
+                if verbose: print('Dump partitioned domains')
                 sequential_distribute_dump(domain, np, partition_dir=partition_dir, verbose=verbose)
 
         barrier()
@@ -166,7 +169,7 @@ class Simulation(object):
         #===============================================================================
         # Setup parallel domain
         #===============================================================================
-        if myid == 0 and verbose: print 'LOADING PARTITIONED DOMAIN'
+        if myid == 0 and verbose: print('LOADING PARTITIONED DOMAIN')
 
         self.domain = sequential_distribute_load(filename=join(partition_dir,outname), verbose = self.verbose)
         #print self.domain.get_name()
@@ -177,7 +180,7 @@ class Simulation(object):
         Create rainfall functions associated with polygons
         """
 
-        if myid == 0 and self.verbose: print 'CREATING RAINFALL FUNCTIONS'
+        if myid == 0 and self.verbose: print('CREATING RAINFALL FUNCTIONS')
 
         if self.setup_rainfall is None:
             pass
@@ -189,7 +192,7 @@ class Simulation(object):
         Create structures such as culverts and bridges
         """
 
-        if myid == 0 and self.verbose: print 'CREATING STRUCTURES'
+        if myid == 0 and self.verbose: print('CREATING STRUCTURES')
 
         if self.setup_structures is None:
             pass
@@ -201,7 +204,7 @@ class Simulation(object):
         Setup Boundary Conditions
         """
 
-        if myid == 0 and self.verbose: print 'SETUP BOUNDARY CONDITIONS'
+        if myid == 0 and self.verbose: print('SETUP BOUNDARY CONDITIONS')
 
         if self.setup_boundaries is None:
             pass

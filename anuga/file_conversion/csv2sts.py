@@ -52,6 +52,7 @@
     
     As of June 2010 this module has a pylint quality rating of 9.30/10.
 """
+from __future__ import print_function
 
 import sys
 import getopt
@@ -80,7 +81,7 @@ def csv2sts(infile, outfile, latitude = None, longitude = None,
             log.critical('column ' + col + ':')
             log.critical(timeseries_data[col])        
 
-    data_len = len(timeseries_data.values()[0])
+    data_len = len(list(timeseries_data.values())[0])
     if verbose:
         log.critical('   data length = %d.' % data_len)
     
@@ -109,13 +110,13 @@ def csv2sts(infile, outfile, latitude = None, longitude = None,
 
 def usage():
     """ Display usage of this module from the comand line. """
-    print 'csv2sts - convert a csv file to an sts file.'
-    print 'Usage: csv2sts [-hv] [--help] [--verbose]',
-    print '[-x --lat --latitude <degrees>]',
-    print '[-y --lon --longitude <degrees>] <in.csv> <out.sts>'
-    print 'eg:'
-    print 'python csv2sts.py -v --lat 10 --lon 20 infile.csv sts_out.sts'
-    print
+    print('csv2sts - convert a csv file to an sts file.')
+    print('Usage: csv2sts [-hv] [--help] [--verbose]', end=' ')
+    print('[-x --lat --latitude <degrees>]', end=' ')
+    print('[-y --lon --longitude <degrees>] <in.csv> <out.sts>')
+    print('eg:')
+    print('python csv2sts.py -v --lat 10 --lon 20 infile.csv sts_out.sts')
+    print()
 
 def main(argv):                         
     """ Script is being run from the command line. """
@@ -152,11 +153,11 @@ def main(argv):
         msg = 'csv2sts: converting %s to %s' % (infile, outfile)
         if lat and lon:
             msg += ' with lat = %d, lon = %d...' % (lat, lon)
-        print msg
+        print(msg)
     csv2sts(infile, outfile, lat, lon)
     
     if verbose:
-        print 'done!'
+        print('done!')
 
 
 

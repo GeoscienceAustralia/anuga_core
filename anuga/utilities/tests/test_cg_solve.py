@@ -1,19 +1,24 @@
 #!/usr/bin/env python
 
-import exceptions
-class TestError(exceptions.Exception): pass
 import unittest
-
+from anuga.utilities.sparse import Sparse, Sparse_CSR
+from anuga.utilities.cg_solve import _conjugate_gradient
+from anuga.utilities.cg_solve import *
+import numpy as num
 import os
 
-import numpy as num
-from anuga.utilities.cg_solve import *
-from anuga.utilities.cg_solve import _conjugate_gradient
-from anuga.utilities.sparse import Sparse, Sparse_CSR
+try:
+    import exceptions
+except ImportError:
+    import builtins as exceptions
+
+
+class TestError(exceptions.Exception):
+    pass
 
 
 class Test_CG_Solve(unittest.TestCase):
-    
+
     def tearDown(self):
         try:
             os.remove('anuga.log')
@@ -23,63 +28,62 @@ class Test_CG_Solve(unittest.TestCase):
     def test_sparse_solve(self):
         """Solve Small Sparse Matrix"""
 
-        A = [[2.0, -1.0, 0.0, 0.0 ],
+        A = [[2.0, -1.0, 0.0, 0.0],
              [-1.0, 2.0, -1.0, 0.0],
              [0.0, -1.0, 2.0, -1.0],
-             [0.0,0.0, -1.0, 2.0]]
+             [0.0, 0.0, -1.0, 2.0]]
 
         A = Sparse(A)
 
         xe = [0.0, 1.0, 2.0, 3.0]
-        b  = A*xe
-        x =  [0.0, 0.0, 0.0, 0.0]
+        b = A*xe
+        x = [0.0, 0.0, 0.0, 0.0]
 
-        x = conjugate_gradient(A,b,x)
+        x = conjugate_gradient(A, b, x)
 
-        assert num.allclose(x,xe)
+        assert num.allclose(x, xe)
 
     def test_max_iter(self):
         """Test max iteration Small Sparse Matrix"""
 
-        A = [[2.0, -1.0, 0.0, 0.0 ],
+        A = [[2.0, -1.0, 0.0, 0.0],
              [-1.0, 2.0, -1.0, 0.0],
              [0.0, -1.0, 2.0, -1.0],
-             [0.0,0.0, -1.0, 2.0]]
+             [0.0, 0.0, -1.0, 2.0]]
 
         A = Sparse(A)
 
         xe = [0.0, 1.0, 2.0, 3.0]
-        b  = A*xe
-        x =  [0.0, 0.0, 0.0, 0.0]
+        b = A*xe
+        x = [0.0, 0.0, 0.0, 0.0]
 
         try:
-            x = conjugate_gradient(A,b,x,imax=2)
+            x = conjugate_gradient(A, b, x, imax=2)
         except ConvergenceError:
             pass
         else:
             msg = 'Should have raised exception'
-            raise TestError, msg
-
+            raise TestError(msg)
 
     def test_solve_large(self):
         """Standard 1d laplacian """
 
         n = 50
-        A = Sparse(n,n)
+        A = Sparse(n, n)
 
-        for i in num.arange(0,n):
-            A[i,i] = 1.0
-            if i > 0 :
-                A[i,i-1] = -0.5
-            if i < n-1 :
-                A[i,i+1] = -0.5
+        for i in num.arange(0, n):
+            A[i, i] = 1.0
+            if i > 0:
+                A[i, i-1] = -0.5
+            if i < n-1:
+                A[i, i+1] = -0.5
 
-        xe = num.ones( (n,), num.float)
+        xe = num.ones((n,), num.float)
 
-        b  = A*xe
-        x = conjugate_gradient(A,b,b,tol=1.0e-5)
+        b = A*xe
+        x = conjugate_gradient(A, b, b, tol=1.0e-5)
 
-        assert num.allclose(x,xe)
+        assert num.allclose(x, xe)
 
     def test_solve_large_2d(self):
         """Standard 2d laplacian"""
@@ -89,25 +93,25 @@ class Test_CG_Solve(unittest.TestCase):
 
         A = Sparse(m*n, m*n)
 
-        for i in num.arange(0,n):
-            for j in num.arange(0,m):
+        for i in num.arange(0, n):
+            for j in num.arange(0, m):
                 I = j+m*i
-                A[I,I] = 4.0
-                if i > 0  :
-                    A[I,I-m] = -1.0
-                if i < n-1 :
-                    A[I,I+m] = -1.0
-                if j > 0  :
-                    A[I,I-1] = -1.0
-                if j < m-1 :
-                    A[I,I+1] = -1.0
+                A[I, I] = 4.0
+                if i > 0:
+                    A[I, I-m] = -1.0
+                if i < n-1:
+                    A[I, I+m] = -1.0
+                if j > 0:
+                    A[I, I-1] = -1.0
+                if j < m-1:
+                    A[I, I+1] = -1.0
 
-        xe = num.ones( (n*m,), num.float)
+        xe = num.ones((n*m,), num.float)
 
-        b  = A*xe
-        x = conjugate_gradient(A,b,b,iprint=1)
+        b = A*xe
+        x = conjugate_gradient(A, b, b, iprint=1)
 
-        assert num.allclose(x,xe)
+        assert num.allclose(x, xe)
 
     def test_solve_large_2d_csr_matrix(self):
         """Standard 2d laplacian with csr format
@@ -118,30 +122,29 @@ class Test_CG_Solve(unittest.TestCase):
 
         A = Sparse(m*n, m*n)
 
-        for i in num.arange(0,n):
-            for j in num.arange(0,m):
+        for i in num.arange(0, n):
+            for j in num.arange(0, m):
                 I = j+m*i
-                A[I,I] = 4.0
-                if i > 0  :
-                    A[I,I-m] = -1.0
-                if i < n-1 :
-                    A[I,I+m] = -1.0
-                if j > 0  :
-                    A[I,I-1] = -1.0
-                if j < m-1 :
-                    A[I,I+1] = -1.0
+                A[I, I] = 4.0
+                if i > 0:
+                    A[I, I-m] = -1.0
+                if i < n-1:
+                    A[I, I+m] = -1.0
+                if j > 0:
+                    A[I, I-1] = -1.0
+                if j < m-1:
+                    A[I, I+1] = -1.0
 
-        xe = num.ones( (n*m,), num.float)
+        xe = num.ones((n*m,), num.float)
 
         # Convert to csr format
-        #print 'start covert'
+        # print 'start covert'
         A = Sparse_CSR(A)
-        #print 'finish covert'
+        # print 'finish covert'
         b = A*xe
-        x = conjugate_gradient(A,b,b,iprint=20)
+        x = conjugate_gradient(A, b, b, iprint=20)
 
-        assert num.allclose(x,xe)
-
+        assert num.allclose(x, xe)
 
     def test_solve_large_2d_with_default_guess(self):
         """Standard 2d laplacian using default first guess"""
@@ -151,130 +154,125 @@ class Test_CG_Solve(unittest.TestCase):
 
         A = Sparse(m*n, m*n)
 
-        for i in num.arange(0,n):
-            for j in num.arange(0,m):
+        for i in num.arange(0, n):
+            for j in num.arange(0, m):
                 I = j+m*i
-                A[I,I] = 4.0
-                if i > 0  :
-                    A[I,I-m] = -1.0
-                if i < n-1 :
-                    A[I,I+m] = -1.0
-                if j > 0  :
-                    A[I,I-1] = -1.0
-                if j < m-1 :
-                    A[I,I+1] = -1.0
+                A[I, I] = 4.0
+                if i > 0:
+                    A[I, I-m] = -1.0
+                if i < n-1:
+                    A[I, I+m] = -1.0
+                if j > 0:
+                    A[I, I-1] = -1.0
+                if j < m-1:
+                    A[I, I+1] = -1.0
 
-        xe = num.ones( (n*m,), num.float)
+        xe = num.ones((n*m,), num.float)
 
-        b  = A*xe
-        x = conjugate_gradient(A,b)
+        b = A*xe
+        x = conjugate_gradient(A, b)
 
-        assert num.allclose(x,xe)
-
+        assert num.allclose(x, xe)
 
     def test_vector_shape_error(self):
         """Raise VectorShapeError"""
 
-        A = [[2.0, -1.0, 0.0, 0.0 ],
+        A = [[2.0, -1.0, 0.0, 0.0],
              [-1.0, 2.0, -1.0, 0.0],
              [0.0, -1.0, 2.0, -1.0],
-             [0.0,0.0, -1.0, 2.0]]
+             [0.0, 0.0, -1.0, 2.0]]
 
         A = Sparse(A)
 
-        xe = [[0.0,2.0], [1.0,3.0], [2.0,4.0], [3.0,2.0]]
+        xe = [[0.0, 2.0], [1.0, 3.0], [2.0, 4.0], [3.0, 2.0]]
 
         try:
-            x = _conjugate_gradient(A,xe,xe,iprint=0)
+            x = _conjugate_gradient(A, xe, xe, iprint=0)
         except VectorShapeError:
             pass
         else:
             msg = 'Should have raised exception'
-            raise TestError, msg
-
+            raise TestError(msg)
 
     def test_sparse_solve_matrix(self):
         """Solve Small Sparse Matrix"""
 
-        A = [[2.0, -1.0, 0.0, 0.0 ],
+        A = [[2.0, -1.0, 0.0, 0.0],
              [-1.0, 2.0, -1.0, 0.0],
              [0.0, -1.0, 2.0, -1.0],
-             [0.0,0.0, -1.0, 2.0]]
+             [0.0, 0.0, -1.0, 2.0]]
 
         A = Sparse(A)
 
-        xe = [[0.0, 0.0],[1.0, 1.0],[2.0 ,2.0],[3.0, 3.0]]
+        xe = [[0.0, 0.0], [1.0, 1.0], [2.0, 2.0], [3.0, 3.0]]
         b = A*xe
-        x = [[0.0, 0.0],[0.0, 0.0],[0.0 ,0.0],[0.0, 0.0]]
-        x = conjugate_gradient(A,b,x,iprint=0)
+        x = [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
+        x = conjugate_gradient(A, b, x, iprint=0)
 
-        assert num.allclose(x,xe)
-
-
+        assert num.allclose(x, xe)
 
     def test_sparse_solve_using_c_ext(self):
         """Solve Small Sparse Matrix"""
 
-        A = [[2.0, -1.0, 0.0, 0.0 ],
+        A = [[2.0, -1.0, 0.0, 0.0],
              [-1.0, 2.0, -1.0, 0.0],
              [0.0, -1.0, 2.0, -1.0],
-             [0.0,0.0, -1.0, 2.0]]
+             [0.0, 0.0, -1.0, 2.0]]
 
         A = Sparse_CSR(Sparse(A))
 
         xe = [0.0, 1.0, 2.0, 3.0]
-        b  = A*xe
-        x =  [0.0, 0.0, 0.0, 0.0]
+        b = A*xe
+        x = [0.0, 0.0, 0.0, 0.0]
 
-        x = conjugate_gradient(A,b,x,use_c_cg=True)
+        x = conjugate_gradient(A, b, x, use_c_cg=True)
 
-        assert num.allclose(x,xe)
+        assert num.allclose(x, xe)
 
     def test_max_iter_using_c_ext(self):
         """Test max iteration Small Sparse Matrix"""
 
-        A = [[2.0, -1.0, 0.0, 0.0 ],
+        A = [[2.0, -1.0, 0.0, 0.0],
              [-1.0, 2.0, -1.0, 0.0],
              [0.0, -1.0, 2.0, -1.0],
-             [0.0,0.0, -1.0, 2.0]]
+             [0.0, 0.0, -1.0, 2.0]]
 
         A = Sparse_CSR(Sparse(A))
 
         xe = [0.0, 1.0, 2.0, 3.0]
-        b  = A*xe
-        x =  [0.0, 0.0, 0.0, 0.0]
+        b = A*xe
+        x = [0.0, 0.0, 0.0, 0.0]
 
         try:
-            x = conjugate_gradient(A,b,x,imax=2,use_c_cg=True)
+            x = conjugate_gradient(A, b, x, imax=2, use_c_cg=True)
         except ConvergenceError:
             pass
         else:
             msg = 'Should have raised exception'
-            raise TestError, msg
-
+            raise TestError(msg)
 
     def test_solve_large_using_c_ext(self):
         """Standard 1d laplacian """
 
         n = 50
-        A = Sparse(n,n)
+        A = Sparse(n, n)
 
-        for i in num.arange(0,n):
-            A[i,i] = 1.0
-            if i > 0 :
-                A[i,i-1] = -0.5
-            if i < n-1 :
-                A[i,i+1] = -0.5
+        for i in num.arange(0, n):
+            A[i, i] = 1.0
+            if i > 0:
+                A[i, i-1] = -0.5
+            if i < n-1:
+                A[i, i+1] = -0.5
 
-        xe = num.ones( (n,), num.float)
+        xe = num.ones((n,), num.float)
 
-        b  = A*xe
+        b = A*xe
 
         A = Sparse_CSR(A)
 
-        x = conjugate_gradient(A,b,b,tol=1.0e-5,use_c_cg=True)
+        x = conjugate_gradient(A, b, b, tol=1.0e-5, use_c_cg=True)
 
-        assert num.allclose(x,xe)
+        assert num.allclose(x, xe)
 
     def test_solve_large_2d_using_c_ext(self):
         """Standard 2d laplacian"""
@@ -284,25 +282,25 @@ class Test_CG_Solve(unittest.TestCase):
 
         A = Sparse(m*n, m*n)
 
-        for i in num.arange(0,n):
-            for j in num.arange(0,m):
+        for i in num.arange(0, n):
+            for j in num.arange(0, m):
                 I = j+m*i
-                A[I,I] = 4.0
-                if i > 0  :
-                    A[I,I-m] = -1.0
-                if i < n-1 :
-                    A[I,I+m] = -1.0
-                if j > 0  :
-                    A[I,I-1] = -1.0
-                if j < m-1 :
-                    A[I,I+1] = -1.0
+                A[I, I] = 4.0
+                if i > 0:
+                    A[I, I-m] = -1.0
+                if i < n-1:
+                    A[I, I+m] = -1.0
+                if j > 0:
+                    A[I, I-1] = -1.0
+                if j < m-1:
+                    A[I, I+1] = -1.0
 
-        xe = num.ones( (n*m,), num.float)
+        xe = num.ones((n*m,), num.float)
         A = Sparse_CSR(A)
-        b  = A*xe
-        x = conjugate_gradient(A,b,b,iprint=1,use_c_cg=True)
+        b = A*xe
+        x = conjugate_gradient(A, b, b, iprint=1, use_c_cg=True)
 
-        assert num.allclose(x,xe)
+        assert num.allclose(x, xe)
 
     def test_solve_large_2d_csr_matrix_using_c_ext(self):
         """Standard 2d laplacian with csr format
@@ -313,30 +311,29 @@ class Test_CG_Solve(unittest.TestCase):
 
         A = Sparse(m*n, m*n)
 
-        for i in num.arange(0,n):
-            for j in num.arange(0,m):
+        for i in num.arange(0, n):
+            for j in num.arange(0, m):
                 I = j+m*i
-                A[I,I] = 4.0
-                if i > 0  :
-                    A[I,I-m] = -1.0
-                if i < n-1 :
-                    A[I,I+m] = -1.0
-                if j > 0  :
-                    A[I,I-1] = -1.0
-                if j < m-1 :
-                    A[I,I+1] = -1.0
+                A[I, I] = 4.0
+                if i > 0:
+                    A[I, I-m] = -1.0
+                if i < n-1:
+                    A[I, I+m] = -1.0
+                if j > 0:
+                    A[I, I-1] = -1.0
+                if j < m-1:
+                    A[I, I+1] = -1.0
 
-        xe = num.ones( (n*m,), num.float)
+        xe = num.ones((n*m,), num.float)
 
         # Convert to csr format
-        #print 'start covert'
+        # print 'start covert'
         A = Sparse_CSR(A)
-        #print 'finish covert'
+        # print 'finish covert'
         b = A*xe
-        x = conjugate_gradient(A,b,b,iprint=20,use_c_cg=True)
+        x = conjugate_gradient(A, b, b, iprint=20, use_c_cg=True)
 
-        assert num.allclose(x,xe)
-
+        assert num.allclose(x, xe)
 
     def test_solve_large_2d_with_default_guess_using_c_ext(self):
         """Standard 2d laplacian using default first guess"""
@@ -346,109 +343,106 @@ class Test_CG_Solve(unittest.TestCase):
 
         A = Sparse(m*n, m*n)
 
-        for i in num.arange(0,n):
-            for j in num.arange(0,m):
+        for i in num.arange(0, n):
+            for j in num.arange(0, m):
                 I = j+m*i
-                A[I,I] = 4.0
-                if i > 0  :
-                    A[I,I-m] = -1.0
-                if i < n-1 :
-                    A[I,I+m] = -1.0
-                if j > 0  :
-                    A[I,I-1] = -1.0
-                if j < m-1 :
-                    A[I,I+1] = -1.0
+                A[I, I] = 4.0
+                if i > 0:
+                    A[I, I-m] = -1.0
+                if i < n-1:
+                    A[I, I+m] = -1.0
+                if j > 0:
+                    A[I, I-1] = -1.0
+                if j < m-1:
+                    A[I, I+1] = -1.0
 
-        xe = num.ones( (n*m,), num.float)
+        xe = num.ones((n*m,), num.float)
         A = Sparse_CSR(A)
-        b  = A*xe
-        x = conjugate_gradient(A,b,use_c_cg=True)
+        b = A*xe
+        x = conjugate_gradient(A, b, use_c_cg=True)
 
-        assert num.allclose(x,xe)
-
+        assert num.allclose(x, xe)
 
     def test_sparse_solve_matrix_using_c_ext(self):
         """Solve Small Sparse Matrix"""
 
-        A = [[2.0, -1.0, 0.0, 0.0 ],
+        A = [[2.0, -1.0, 0.0, 0.0],
              [-1.0, 2.0, -1.0, 0.0],
              [0.0, -1.0, 2.0, -1.0],
-             [0.0,0.0, -1.0, 2.0]]
+             [0.0, 0.0, -1.0, 2.0]]
 
         A = Sparse_CSR(Sparse(A))
 
-        xe = [[0.0, 0.0],[1.0, 1.0],[2.0 ,2.0],[3.0, 3.0]]
+        xe = [[0.0, 0.0], [1.0, 1.0], [2.0, 2.0], [3.0, 3.0]]
         b = A*xe
-        x = [[0.0, 0.0],[0.0, 0.0],[0.0 ,0.0],[0.0, 0.0]]
-        x = conjugate_gradient(A,b,x,iprint=0,use_c_cg=True)
-        
+        x = [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
+        x = conjugate_gradient(A, b, x, iprint=0, use_c_cg=True)
 
-        assert num.allclose(x,xe)
-
-
+        assert num.allclose(x, xe)
 
     def test_sparse_solve_using_c_ext_with_jacobi(self):
         """Solve Small Sparse Matrix"""
 
-        A = [[2.0, -1.0, 0.0, 0.0 ],
+        A = [[2.0, -1.0, 0.0, 0.0],
              [-1.0, 2.0, -1.0, 0.0],
              [0.0, -1.0, 2.0, -1.0],
-             [0.0,0.0, -1.0, 2.0]]
+             [0.0, 0.0, -1.0, 2.0]]
 
         A = Sparse_CSR(Sparse(A))
 
         xe = [0.0, 1.0, 2.0, 3.0]
-        b  = A*xe
-        x =  [0.0, 0.0, 0.0, 0.0]
-        x = conjugate_gradient(A,b,x,use_c_cg=True,precon='Jacobi')
+        b = A*xe
+        x = [0.0, 0.0, 0.0, 0.0]
+        x = conjugate_gradient(A, b, x, use_c_cg=True, precon='Jacobi')
 
-        assert num.allclose(x,xe)
+        assert num.allclose(x, xe)
 
     def test_max_iter_using_c_ext_with_jacobi(self):
         """Test max iteration Small Sparse Matrix"""
 
-        A = [[2.0, -1.0, 0.0, 0.0 ],
+        A = [[2.0, -1.0, 0.0, 0.0],
              [-1.0, 2.0, -1.0, 0.0],
              [0.0, -1.0, 2.0, -1.0],
-             [0.0,0.0, -1.0, 2.0]]
+             [0.0, 0.0, -1.0, 2.0]]
 
         A = Sparse_CSR(Sparse(A))
 
         xe = [0.0, 1.0, 2.0, 3.0]
-        b  = A*xe
-        x =  [0.0, 0.0, 0.0, 0.0]
+        b = A*xe
+        x = [0.0, 0.0, 0.0, 0.0]
 
         try:
-            x = conjugate_gradient(A,b,x,imax=2,use_c_cg=True, precon='Jacobi')
+            x = conjugate_gradient(
+                A, b, x, imax=2, use_c_cg=True, precon='Jacobi')
         except ConvergenceError:
             pass
         else:
             msg = 'Should have raised exception'
-            raise TestError, msg
-
+            raise TestError(msg)
 
     def test_solve_large_using_c_ext_with_jacobi(self):
         """Standard 1d laplacian """
 
         n = 50
-        A = Sparse(n,n)
+        A = Sparse(n, n)
 
-        for i in num.arange(0,n):
-            A[i,i] = 1.0
-            if i > 0 :
-                A[i,i-1] = -0.5
-            if i < n-1 :
-                A[i,i+1] = -0.5
+        for i in num.arange(0, n):
+            A[i, i] = 1.0
+            if i > 0:
+                A[i, i-1] = -0.5
+            if i < n-1:
+                A[i, i+1] = -0.5
 
-        xe = num.ones( (n,), num.float)
+        xe = num.ones((n,), num.float)
 
-        b  = A*xe
+        b = A*xe
 
         A = Sparse_CSR(A)
 
-        x = conjugate_gradient(A,b,b,tol=1.0e-5,use_c_cg=True, precon='Jacobi')
+        x = conjugate_gradient(A, b, b, tol=1.0e-5,
+                               use_c_cg=True, precon='Jacobi')
 
-        assert num.allclose(x,xe)
+        assert num.allclose(x, xe)
 
     def test_solve_large_2d_using_c_ext_with_jacobi(self):
         """Standard 2d laplacian"""
@@ -458,25 +452,26 @@ class Test_CG_Solve(unittest.TestCase):
 
         A = Sparse(m*n, m*n)
 
-        for i in num.arange(0,n):
-            for j in num.arange(0,m):
+        for i in num.arange(0, n):
+            for j in num.arange(0, m):
                 I = j+m*i
-                A[I,I] = 4.0
-                if i > 0  :
-                    A[I,I-m] = -1.0
-                if i < n-1 :
-                    A[I,I+m] = -1.0
-                if j > 0  :
-                    A[I,I-1] = -1.0
-                if j < m-1 :
-                    A[I,I+1] = -1.0
+                A[I, I] = 4.0
+                if i > 0:
+                    A[I, I-m] = -1.0
+                if i < n-1:
+                    A[I, I+m] = -1.0
+                if j > 0:
+                    A[I, I-1] = -1.0
+                if j < m-1:
+                    A[I, I+1] = -1.0
 
-        xe = num.ones( (n*m,), num.float)
+        xe = num.ones((n*m,), num.float)
         A = Sparse_CSR(A)
-        b  = A*xe
-        x = conjugate_gradient(A,b,b,iprint=1,use_c_cg=True, precon='Jacobi')
+        b = A*xe
+        x = conjugate_gradient(
+            A, b, b, iprint=1, use_c_cg=True, precon='Jacobi')
 
-        assert num.allclose(x,xe)
+        assert num.allclose(x, xe)
 
     def test_solve_large_2d_csr_matrix_using_c_ext_with_jacobi(self):
         """Standard 2d laplacian with csr format
@@ -487,30 +482,30 @@ class Test_CG_Solve(unittest.TestCase):
 
         A = Sparse(m*n, m*n)
 
-        for i in num.arange(0,n):
-            for j in num.arange(0,m):
+        for i in num.arange(0, n):
+            for j in num.arange(0, m):
                 I = j+m*i
-                A[I,I] = 4.0
-                if i > 0  :
-                    A[I,I-m] = -1.0
-                if i < n-1 :
-                    A[I,I+m] = -1.0
-                if j > 0  :
-                    A[I,I-1] = -1.0
-                if j < m-1 :
-                    A[I,I+1] = -1.0
+                A[I, I] = 4.0
+                if i > 0:
+                    A[I, I-m] = -1.0
+                if i < n-1:
+                    A[I, I+m] = -1.0
+                if j > 0:
+                    A[I, I-1] = -1.0
+                if j < m-1:
+                    A[I, I+1] = -1.0
 
-        xe = num.ones( (n*m,), num.float)
+        xe = num.ones((n*m,), num.float)
 
         # Convert to csr format
-        #print 'start covert'
+        # print 'start covert'
         A = Sparse_CSR(A)
-        #print 'finish covert'
+        # print 'finish covert'
         b = A*xe
-        x = conjugate_gradient(A,b,b,iprint=20,use_c_cg=True, precon='Jacobi')
+        x = conjugate_gradient(
+            A, b, b, iprint=20, use_c_cg=True, precon='Jacobi')
 
-        assert num.allclose(x,xe)
-
+        assert num.allclose(x, xe)
 
     def test_solve_large_2d_with_default_guess_using_c_ext_with_jacobi(self):
         """Standard 2d laplacian using default first guess"""
@@ -520,50 +515,49 @@ class Test_CG_Solve(unittest.TestCase):
 
         A = Sparse(m*n, m*n)
 
-        for i in num.arange(0,n):
-            for j in num.arange(0,m):
+        for i in num.arange(0, n):
+            for j in num.arange(0, m):
                 I = j+m*i
-                A[I,I] = 4.0
-                if i > 0  :
-                    A[I,I-m] = -1.0
-                if i < n-1 :
-                    A[I,I+m] = -1.0
-                if j > 0  :
-                    A[I,I-1] = -1.0
-                if j < m-1 :
-                    A[I,I+1] = -1.0
+                A[I, I] = 4.0
+                if i > 0:
+                    A[I, I-m] = -1.0
+                if i < n-1:
+                    A[I, I+m] = -1.0
+                if j > 0:
+                    A[I, I-1] = -1.0
+                if j < m-1:
+                    A[I, I+1] = -1.0
 
-        xe = num.ones( (n*m,), num.float)
+        xe = num.ones((n*m,), num.float)
         A = Sparse_CSR(A)
-        b  = A*xe
-        x = conjugate_gradient(A,b,use_c_cg=True, precon='Jacobi')
+        b = A*xe
+        x = conjugate_gradient(A, b, use_c_cg=True, precon='Jacobi')
 
-        assert num.allclose(x,xe)
-
+        assert num.allclose(x, xe)
 
     def test_sparse_solve_matrix_using_c_ext_with_jacobi(self):
         """Solve Small Sparse Matrix"""
 
-        A = [[2.0, -1.0, 0.0, 0.0 ],
+        A = [[2.0, -1.0, 0.0, 0.0],
              [-1.0, 2.0, -1.0, 0.0],
              [0.0, -1.0, 2.0, -1.0],
-             [0.0,0.0, -1.0, 2.0]]
+             [0.0, 0.0, -1.0, 2.0]]
 
         A = Sparse_CSR(Sparse(A))
 
-        xe = [[0.0, 0.0],[1.0, 1.0],[2.0 ,2.0],[3.0, 3.0]]
+        xe = [[0.0, 0.0], [1.0, 1.0], [2.0, 2.0], [3.0, 3.0]]
         b = A*xe
-        x = [[0.0, 0.0],[0.0, 0.0],[0.0 ,0.0],[0.0, 0.0]]
-        x = conjugate_gradient(A,b,x,iprint=0,use_c_cg=True, precon='Jacobi')
-        
+        x = [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
+        x = conjugate_gradient(
+            A, b, x, iprint=0, use_c_cg=True, precon='Jacobi')
 
-        assert num.allclose(x,xe)
+        assert num.allclose(x, xe)
 
 ################################################################################
 
-if __name__ == "__main__":
-     suite = unittest.makeSuite(Test_CG_Solve, 'test')
-     #runner = unittest.TextTestRunner(verbosity=2)
-     runner = unittest.TextTestRunner(verbosity=1)
-     runner.run(suite)
 
+if __name__ == "__main__":
+    suite = unittest.makeSuite(Test_CG_Solve, 'test')
+    #runner = unittest.TextTestRunner(verbosity=2)
+    runner = unittest.TextTestRunner(verbosity=1)
+    runner.run(suite)

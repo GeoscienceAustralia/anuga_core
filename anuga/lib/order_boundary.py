@@ -99,7 +99,7 @@ def order_boundary(infile, outfile):
     ordered_data = sort_points(data, [], 0)
 
     # write ordered data to output file
-    fd = open(outfile, 'wb')
+    fd = open(outfile, 'w')
     w = csv.writer(fd)
     w.writerow(header)
     

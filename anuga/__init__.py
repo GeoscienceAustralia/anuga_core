@@ -20,16 +20,36 @@
 # Make selected classes available directly
 # -----------------------------------------------------
 
+from builtins import filter
 
+
+# ANUGA version
 __version__ = '2.0.3'
 
-__svn_revision__ = filter(str.isdigit, "$Revision: 9737 $")
+# Git revision information (relies on the gitpython package)
+# https://stackoverflow.com/questions/14989858/get-the-current-git-hash-in-a-python-script
+try:
+    import git
+except:
 
-__svn_revision_date__ = "$Date: 2016-10-04 16:13:00 +1100 (Tue, 04 Oct 2016) $"[7:-1]
+    # Create dummy values for git revision info
+    __git_sha__ = 'No git sha available'
+    __git_committed_datetime__ = 'No git date available'
+
+    msg = ('Could not import git module. ANUGA will still work, but will not store '
+           'revision information in output file. You may need to install python git '
+           'e.g. as pip install gitpython')
+    #raise Warning(msg)  # I can't remember why does this cause ANUGA to stop instead of just issuing the warning (Ole)?
+    print('WARNING', msg)
+else:
+    repo = git.Repo(search_parent_directories=True)
+    __git_sha__ = repo.head.object.hexsha
+    __git_committed_datetime__ = repo.head.object.committed_datetime
 
 
 # We first need to detect if we're being called as part of the anuga setup
 # procedure itself in a reliable manner.
+
 try:
     __ANUGA_SETUP__
 except NameError:
@@ -41,17 +61,8 @@ if __ANUGA_SETUP__:
     _sys.stderr.write('Running from anuga source directory.\n')
     del _sys
 else:
-
-    try:
-        from anuga.__config__ import show as show_config
-    except ImportError:
-        msg = """Error importing anuga: you should not try to import anuga from
-        its source directory; please exit the anuga source tree, and relaunch
-        your python interpreter from there."""
-        raise ImportError(msg)
-
-    # ---------------------------------
-    # NetCDF changes stdout to terminal\
+    # ----------------------------------
+    # NetCDF changes stdout to terminal
     # Causes trouble when using jupyter
     # ---------------------------------
     import sys
@@ -62,6 +73,8 @@ else:
     # ---------------------------------
     from numpy.testing import Tester
     test = Tester().test
+
+    #from anuga.__config__ import show as show_config
 
     # --------------------------------
     # Important basic classes
@@ -128,24 +141,17 @@ else:
     # ----------------------------
     # Parallel api
     # ----------------------------
-    ## from anuga_parallel.parallel_api import distribute
-    ## from anuga_parallel.parallel_api import myid, numprocs, get_processor_name
-    ## from anuga_parallel.parallel_api import send, receive
-    ## from anuga_parallel.parallel_api import pypar_available, barrier, finalize
-
-    ## if pypar_available:
-    ##     from anuga_parallel.parallel_api import sequential_distribute_dump
-    ##     from anuga_parallel.parallel_api import sequential_distribute_load
-
     from anuga.parallel.parallel_api import distribute
     from anuga.parallel.parallel_api import myid, numprocs, get_processor_name
-    from anuga.parallel.parallel_api import send, receive
+    from anuga.parallel.parallel_api import send, receive, reduce
     from anuga.parallel.parallel_api import pypar_available, barrier, finalize
     from anuga.parallel.parallel_api import collect_value
+    from anuga.parallel.parallel_api import mpicmd
 
     if pypar_available:
         from anuga.parallel.parallel_api import sequential_distribute_dump
         from anuga.parallel.parallel_api import sequential_distribute_load
+         
 
     # -----------------------------
     # Checkpointing
@@ -317,6 +323,7 @@ else:
     from anuga.utilities.system_tools import get_user_name
     from anuga.utilities.system_tools import get_host_name
     from anuga.utilities.system_tools import get_version
+    
     from anuga.utilities.system_tools import get_revision_number
     from anuga.utilities.system_tools import get_revision_date
     from anuga.utilities.mem_time_equation import estimate_time_mem
@@ -328,8 +335,6 @@ else:
     from anuga.extras import create_domain_from_file
     from anuga.extras import rectangular_cross_domain
 
-
-    #import logging as log
     from anuga.utilities import log as log
 
     from anuga.config import g
@@ -339,5 +344,9 @@ else:
     # NetCDF changes stdout to the terminal
     # This resets it
     # --------------------------------------
+    try:
+        from importlib import reload
+    except:
+        pass
     reload(sys)
     sys.stdout = _stdout

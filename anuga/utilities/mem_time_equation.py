@@ -1,5 +1,5 @@
 import sys
-import system_tools
+from . import system_tools
 
 TEST_CON = 'test_constants'
 
@@ -43,8 +43,8 @@ def estimate_time_mem(domain, yieldstep, finaltime, halt=False,
                                   use_test_constants=use_test_constants)
     
     if log_results: #FIXME, not loging results yet
-        print "This program will run for: " + str(time) + " (s)"
-        print "This program will use: " + str(memory)   + " (MB)"  
+        print("This program will run for: " + str(time) + " (s)")
+        print("This program will use: " + str(memory)   + " (MB)")  
      
     if halt:
         sys.exit()
@@ -88,7 +88,7 @@ def time_equation(**kwargs):
            kwargs['constants']['tri_b_T'] * kwargs['num_tri'] + \
            kwargs['constants']['tim_a_T'] * kwargs['finaltime'] + \
            kwargs['constants']['fil_a_T'] * \
-           (kwargs['finaltime']/kwargs['yieldstep']) + \
+           ((kwargs['finaltime'] / kwargs['yieldstep'])) + \
            kwargs['constants']['cons_T']
  
     return time

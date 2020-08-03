@@ -44,6 +44,7 @@ DATA NEEDS:
 
 
 """
+from __future__ import print_function
 import gzip
 import os
 import sys
@@ -60,11 +61,11 @@ from extract_routines import *
 
 
 
-print 'START...'
+print('START...')
 cur_dir= os.getcwd()
 top_dir = os.path.dirname(cur_dir)
-print cur_dir
-print top_dir
+print(cur_dir)
+print(top_dir)
 keep_running = True
 
 MainMenulistChoices = ["1_Get_RADAR_Files_Base_DIR",
@@ -114,7 +115,7 @@ class Settings(EgStore):
 
 # =============================== MAIN LINE CODE =============================================    
 
-print 'Start INTERACTIVE ROUTINES....'
+print('Start INTERACTIVE ROUTINES....')
 Keep_Processing = True
 #-----------------------------------------------------------------------
 #  DEFINE SETTINGS FILE and RESTORE DEFINED VARIABLES FOR USE
@@ -143,7 +144,7 @@ while Keep_Processing: # ===== OPTION TO PROCESS MORE RADAR DATA ===============
 
     ###  ---   PROCESS THE OPTIONS ---- #############################################################
     if "1_Get_RADAR_Files_Base_DIR" in reply:
-        print 'Present Directory Open...'
+        print('Present Directory Open...')
         title = "Select Directory to Read Multiple rainfall .nc files"
         msg = "This is a test of the diropenbox.\n\nPick the directory that you wish to open."
  
@@ -191,7 +192,7 @@ while Keep_Processing: # ===== OPTION TO PROCESS MORE RADAR DATA ===============
         Plot_Radar_Accumulated()
                    
                 
-    print rootPath
+    print(rootPath)
     First = True
     File_Counter = 0
     Rain_Max_in_period = 0.0
@@ -203,12 +204,12 @@ while Keep_Processing: # ===== OPTION TO PROCESS MORE RADAR DATA ===============
         
         for filename in fnmatch.filter(files, pattern): 
             
-            print 'Number of Files = ',len(fnmatch.filter(files, pattern))
+            print('Number of Files = ',len(fnmatch.filter(files, pattern)))
             #print( os.path.join(root, filename))
             #print root,dirs
-            print filename
-            print 'PART Filename...'
-            print filename[-20:-3]
+            print(filename)
+            print('PART Filename...')
+            print(filename[-20:-3])
             #raw_input('Hold here... line 179')
             if Convert2UTM :
                 convert_LLPrecip2UTM(filename, offset_x, offset_y, x, y, precip)
@@ -219,7 +220,7 @@ while Keep_Processing: # ===== OPTION TO PROCESS MORE RADAR DATA ===============
                 extoutfid = open(ext_outfilename, 'w')
             """
             File_Counter +=1
-            if File_Counter == 1 and processing <> 4:
+            if File_Counter == 1 and processing != 4:
                 msg = "This will be the title for the PLOTS...."
                 title = "Enter Title Text"
                 default = "RADAR_Data_"+filename[-20:-3]
@@ -237,14 +238,14 @@ while Keep_Processing: # ===== OPTION TO PROCESS MORE RADAR DATA ===============
             if pattern == '*.gz':
                 #gzip.open(filename)
                 filename = gzip.open(filename, 'rb')
-                print filename
+                print(filename)
                 data = netcdf.NetCDFFile(os.path.join(root,filename), 'r') # RADAR NetCDF files have Dimensions, Attributes, Variables
             else:
                 data = netcdf.NetCDFFile(os.path.join(root, filename), 'r') # RADAR NetCDF files have Dimensions, Attributes, Variables
-            print 'VARIABLES:'
+            print('VARIABLES:')
             #print data.variables  
             #print data.__dict__
-            print 'Reference LAT, LONG = ',data.reference_longitude, data.reference_latitude
+            print('Reference LAT, LONG = ',data.reference_longitude, data.reference_latitude)
             #print 'ATTRIBUTES:'
             #print data.attributes              
             #raw_input('Hold here... line 217')
@@ -253,8 +254,8 @@ while Keep_Processing: # ===== OPTION TO PROCESS MORE RADAR DATA ===============
             for name in possible_precip_names:  # Check if name is a key in the variables dictionary
                 if name in data.variables:
                     precip_name = name
-                    print 'BOM Reference name tag in this file:'
-                    print precip_name
+                    print('BOM Reference name tag in this file:')
+                    print(precip_name)
 
 # --- END for name -----------------------------------
             
@@ -264,7 +265,7 @@ while Keep_Processing: # ===== OPTION TO PROCESS MORE RADAR DATA ===============
                 precip = data.variables[precip_name].data # The BOM files use precipitation, precip, and rain_amount ???
                 #print data.variables['precipitation'].data
                 precip_total = precip.copy() # Put into new Accumulating ARRRAY
-                print ' Accumulate rainfall here....'
+                print(' Accumulate rainfall here....')
                 x = data.variables['x_loc'].data
                 y = data.variables['y_loc'].data
                 Rain_Max_in_period  = max (np.max(precip),Rain_Max_in_period)  
@@ -274,7 +275,7 @@ while Keep_Processing: # ===== OPTION TO PROCESS MORE RADAR DATA ===============
                 precip = data.variables[precip_name].data
                 #print data.variables['precipitation'].data
                 precip_total += precip
-                print ' Keep accumulating rainfall....'
+                print(' Keep accumulating rainfall....')
                 x = data.variables['x_loc'].data
                 y = data.variables['y_loc'].data
                 Rain_Max_in_period  = max (np.max(precip),Rain_Max_in_period)
@@ -283,7 +284,7 @@ while Keep_Processing: # ===== OPTION TO PROCESS MORE RADAR DATA ===============
                 
                 # ------------- OPTION TO EXTRACT RAINFALL FROM RADAR GRID AT GAUGE POINTS FIRST  ====================================                    
                 if extract_raingauge : 
-                    print 'Extract Rain At Gauges from RADAR......'
+                    print('Extract Rain At Gauges from RADAR......')
                     #print x
                     #print y
                     #print precip[0]
@@ -296,15 +297,15 @@ while Keep_Processing: # ===== OPTION TO PROCESS MORE RADAR DATA ===============
                     #print x
                     #print y
                     #print Z[0]
-                    print Gauge_LOC_points[0]
+                    print(Gauge_LOC_points[0])
                     # and then do the interpolation
                     values = interpolate2d(x,y,Z,Gauge_LOC_points) # This is a numpy Array.... change to List ??
                     values.tolist()
                     #np.array([[1,2,3],[4,5,6]]).tolist()
-                    print 'Values....'
+                    print('Values....')
                     #print values
                     ALL_values.append(values.tolist())
-                    print 'ALL Values....'
+                    print('ALL Values....')
                     #print ALL_values
                     #raw_input('Hold at Gauge Extract....line 373')
                         
@@ -314,7 +315,7 @@ while Keep_Processing: # ===== OPTION TO PROCESS MORE RADAR DATA ===============
                 pass
         #---==== END  For Filename ======================--------------------------
         if extract_raingauge :
-            print ALL_values
+            print(ALL_values)
         #raw_input('Hold at Gauge Extract....line 454')
         
     # ---====={{{{  END for dir }}}}}}=======-------------------
@@ -350,14 +351,14 @@ def get_poly_2_plot_over_radar():
         title = "ADD Another PolyLine to Plot"
         msg = "Select PolyLine File such as ACT Bdy"
         plotmore = ynbox(msg, title)
-        print plotmore
-        print'Polylist...'           
-        print polylist
+        print(plotmore)
+        print('Polylist...')           
+        print(polylist)
         #'data' is a matrix containing the columns and rows from the file
         xl = polylist[:,0]  # Python indices are (row,col) as in linalg
         yl = polylist[:,1]  # Creates arrays for first two columns
-        print 'xl,yl...'
-        print xl,yl
+        print('xl,yl...')
+        print(xl,yl)
     return(plot_line,xl,yl)  # Poly Line X,Y list(s)
 
 def get_raingauge_location_and_label():
@@ -377,12 +378,12 @@ def get_raingauge_location_and_label():
         lines = fid.readlines()  # Read Entire Input File
         fid.close()         
         for line in lines:
-            print line
+            print(line)
             line=line.strip('\n')
             fields = line.split(',')
             Gauge_LOC_Labels.append(fields[0])
             Gauge_LOC_points.append([float(fields[1]),float(fields[2])]) # ---=== THIS IS THE RAIN GAUGE LOCATIONS
-        print Gauge_LOC_points
+        print(Gauge_LOC_points)
     return (RainGauge_LOC_file,extract_raingauge,Gauge_LOC_points,Gauge_LOC_Labels)
 
 

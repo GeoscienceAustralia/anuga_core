@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 """""
 
 Quick code to plot ANUGA outputs
@@ -22,8 +26,8 @@ def quickPlots(swwFile=None, ocean_land_threshold=None, fig_dir=None, figScale=N
 
     if(swwFile is None):
         parser.print_help()
-        print ' '
-        raise Exception, 'Must give an sww file'
+        print(' ')
+        raise Exception('Must give an sww file')
 
     # Make directory for figures
     try:
@@ -40,7 +44,7 @@ def quickPlots(swwFile=None, ocean_land_threshold=None, fig_dir=None, figScale=N
     xRange=p2.x.max()-p2.x.min()
     yRange=p2.y.max()-p2.y.min()
 
-    figSize=(figScale, figScale*yRange/xRange)
+    figSize=(figScale, old_div(figScale*yRange,xRange))
 
     # Use spatial coordinates
     x=p2.x+p.xllcorner
@@ -56,7 +60,7 @@ def quickPlots(swwFile=None, ocean_land_threshold=None, fig_dir=None, figScale=N
         pyplot.savefig(fig_dir+'/Friction.png')
         pyplot.close()
     except:
-        print 'Cannot plot friction'
+        print('Cannot plot friction')
 
     # Plot elevation
     try:
@@ -68,7 +72,7 @@ def quickPlots(swwFile=None, ocean_land_threshold=None, fig_dir=None, figScale=N
         pyplot.savefig(fig_dir+'/Elevation.png')
         pyplot.close()
     except:
-        print 'Cannot plot elevation'
+        print('Cannot plot elevation')
 
     # Plot Initial Stage (where elevation<ocean_land_threshold)
     pyplot.figure(figsize=figSize)
@@ -161,4 +165,4 @@ if __name__=='__main__':
     try:
         quickPlots(swwFile, ocean_land_threshold, fig_dir, figScale)
     except:
-        print 'Error in quick_plots'
+        print('Error in quick_plots')

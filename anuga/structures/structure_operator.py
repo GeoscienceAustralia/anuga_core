@@ -1,7 +1,11 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+from past.utils import old_div
 import anuga
 import numpy as num
 import math
-import inlet_enquiry
+from . import inlet_enquiry
 
 from anuga.utilities.system_tools import log_to_file
 from anuga.utilities.numerical_tools import ensure_numeric
@@ -136,7 +140,7 @@ class Structure_operator(anuga.Operator):
         elif end_points is not None:
             self.__process_non_skew_culvert()
         else:
-            raise Exception, 'Define either exchange_lines or end_points'
+            raise Exception('Define either exchange_lines or end_points')
         
 
         self.inlets = []
@@ -226,7 +230,7 @@ class Structure_operator(anuga.Operator):
         # using a semi-implict update. This ensures that
         # the update does not create a negative depth
         if old_inflow_depth > 0.0 :
-            dt_Q_on_d = timestep*Q/old_inflow_depth
+            dt_Q_on_d = old_div(timestep*Q,old_inflow_depth)
         else:
             dt_Q_on_d = 0.0
 
@@ -245,7 +249,7 @@ class Structure_operator(anuga.Operator):
         # is only done if required to avoid drying
         #
         #
-        factor = 1.0/(1.0 + dt_Q_on_d/self.inflow.get_area())
+        factor = 1.0/(1.0 + old_div(dt_Q_on_d,self.inflow.get_area()))
 
 
         if use_Q_wetdry_adjustment:
@@ -253,12 +257,12 @@ class Structure_operator(anuga.Operator):
             new_inflow_depth = old_inflow_depth*factor
 
             if(old_inflow_depth>0.):
-                timestep_star = timestep*new_inflow_depth/old_inflow_depth
+                timestep_star = old_div(timestep*new_inflow_depth,old_inflow_depth)
             else:
                 timestep_star = 0.
 
         else:
-            new_inflow_depth = old_inflow_depth - timestep*Q/self.inflow.get_area()
+            new_inflow_depth = old_inflow_depth - old_div(timestep*Q,self.inflow.get_area())
             timestep_star = timestep
 
         if(self.use_old_momentum_method):
@@ -286,9 +290,9 @@ class Structure_operator(anuga.Operator):
             if old_inflow_depth > 0.:
                 if use_Q_wetdry_adjustment:
                     # Replace dt*Q with dt*Q*new_inflow_depth/old_inflow_depth = dt_Q_on_d*new_inflow_depth
-                    factor2 = 1.0/(1.0 + dt_Q_on_d*new_inflow_depth/(old_inflow_depth*self.inflow.get_area()))
+                    factor2 = 1.0/(1.0 + old_div(dt_Q_on_d*new_inflow_depth,(old_inflow_depth*self.inflow.get_area())))
                 else:
-                    factor2 = 1.0/(1.0 + timestep*Q/(old_inflow_depth*self.inflow.get_area()))
+                    factor2 = 1.0/(1.0 + old_div(timestep*Q,(old_inflow_depth*self.inflow.get_area())))
             else:
                 factor2 = 0.
 
@@ -308,7 +312,7 @@ class Structure_operator(anuga.Operator):
         ymom_loss = (old_inflow_ymom - new_inflow_ymom)*self.inflow.get_area()
 
         # set outflow
-        outflow_extra_depth = Q*timestep_star/self.outflow.get_area()
+        outflow_extra_depth = old_div(Q*timestep_star,self.outflow.get_area())
         outflow_direction = - self.outflow.outward_culvert_vector
         #outflow_extra_momentum = outflow_extra_depth*barrel_speed*outflow_direction
             
@@ -319,8 +323,8 @@ class Structure_operator(anuga.Operator):
             
         # Stats
         self.accumulated_flow += gain
-        self.discharge  = Q*timestep_star/timestep 
-        self.discharge_abs_timemean += gain/self.domain.yieldstep
+        self.discharge  = old_div(Q*timestep_star,timestep) 
+        self.discharge_abs_timemean += old_div(gain,self.domain.yieldstep)
         self.velocity =   barrel_speed
         self.outlet_depth = outlet_depth
 
@@ -348,8 +352,8 @@ class Structure_operator(anuga.Operator):
             # Add the momentum lost from the inflow to the outflow. For
             # structures where barrel_speed is unknown + direction doesn't
             # change from inflow to outflow
-            new_outflow_xmom = self.outflow.get_average_xmom() + xmom_loss/self.outflow.get_area()
-            new_outflow_ymom = self.outflow.get_average_ymom() + ymom_loss/self.outflow.get_area()
+            new_outflow_xmom = self.outflow.get_average_xmom() + old_div(xmom_loss,self.outflow.get_area())
+            new_outflow_ymom = self.outflow.get_average_ymom() + old_div(ymom_loss,self.outflow.get_area())
 
         self.outflow.set_xmoms(new_outflow_xmom)
         self.outflow.set_ymoms(new_outflow_ymom)
@@ -456,7 +460,7 @@ class Structure_operator(anuga.Operator):
             self.culvert_vector = centre_point1 - centre_point0
 
         else:
-            raise Exception, 'n_exchange_0 != 2 or 4'
+            raise Exception('n_exchange_0 != 2 or 4')
 
 
         self.culvert_length = math.sqrt(num.sum(self.culvert_vector**2))
@@ -551,7 +555,7 @@ class Structure_operator(anuga.Operator):
 
     def print_statistics(self):
 
-        print self.statistics()
+        print(self.statistics())
 
 
     def print_timestepping_statistics(self):
@@ -595,7 +599,7 @@ class Structure_operator(anuga.Operator):
 
 
 
-        print message
+        print(message)
 
 
     def set_logging(self, flag=True):
@@ -648,7 +652,7 @@ class Structure_operator(anuga.Operator):
         elev0 = inlet0.get_enquiry_invert_elevation()
         elev1 = inlet1.get_enquiry_invert_elevation()
         
-        return (elev1-elev0)/self.get_culvert_length()
+        return old_div((elev1-elev0),self.get_culvert_length())
                           
                           
         

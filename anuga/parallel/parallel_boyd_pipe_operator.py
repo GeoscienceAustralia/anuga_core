@@ -1,11 +1,16 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 import anuga
 import math
 import numpy
 
 from anuga.structures.boyd_pipe_operator import boyd_pipe_function
 
-from parallel_inlet_operator import Parallel_Inlet_operator
-from parallel_structure_operator import Parallel_Structure_operator
+from .parallel_inlet_operator import Parallel_Inlet_operator
+from .parallel_structure_operator import Parallel_Structure_operator
 
 class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
     """Culvert flow - transfer water from one rectangular box to another.
@@ -112,8 +117,8 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
         self.case = 'N/A'
 
 
-        print 80*'='
-        print "DON'T USE BOYD PIPES AS ALGORITHM NOT VERIFIED YET"
+        print(80*'=')
+        print("DON'T USE BOYD PIPES AS ALGORITHM NOT VERIFIED YET")
 
 
         # May/June 2014 -- allow 'smoothing ' of driving_energy, delta total energy, and outflow_enq_depth
@@ -150,7 +155,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
         Get info from inlets and then call sequential function
         """
 
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
 
         local_debug = False
 
@@ -199,7 +204,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
             if(forward_Euler_smooth):
                 # To avoid 'overshoot' we ensure ts<1.
                 if(self.domain.timestep>0.):
-                    ts=self.domain.timestep/max(self.domain.timestep, self.smoothing_timescale,1.0e-06)
+                    ts=old_div(self.domain.timestep,max(self.domain.timestep, self.smoothing_timescale,1.0e-06))
                 else:
                     # This case is included in the serial version, which ensures the unit tests pass
                     # even when domain.timestep=0.0. 
@@ -210,8 +215,8 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
             else:
                 # Use backward euler -- the 'sensible' ts limitation is different in this case
                 # ts --> Inf is reasonable and corresponds to the 'nosmoothing' case
-                ts=self.domain.timestep/max(self.smoothing_timescale, 1.0e-06)
-                self.smooth_delta_total_energy = (self.smooth_delta_total_energy+ts*(self.delta_total_energy))/(1.+ts)
+                ts=old_div(self.domain.timestep,max(self.smoothing_timescale, 1.0e-06))
+                self.smooth_delta_total_energy = old_div((self.smooth_delta_total_energy+ts*(self.delta_total_energy)),(1.+ts))
 
             # Reverse the inflow and outflow direction?
             if self.smooth_delta_total_energy < 0:
@@ -318,7 +323,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                     self.smooth_Q = self.smooth_Q +ts*(Q*Qsign-self.smooth_Q)
                 else: 
                     # Try implicit euler method
-                    self.smooth_Q = (self.smooth_Q+ts*(Q*Qsign))/(1.+ts)
+                    self.smooth_Q = old_div((self.smooth_Q+ts*(Q*Qsign)),(1.+ts))
                 
                 if numpy.sign(self.smooth_Q)!=Qsign:
                     # The flow direction of the 'instantaneous Q' based on the
@@ -328,7 +333,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                     Q=0.
                 else:
                     Q = min(abs(self.smooth_Q), Q) #abs(self.smooth_Q)
-                barrel_velocity=Q/flow_area
+                barrel_velocity=old_div(Q,flow_area)
             # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow
 
             else: # self.inflow.get_enquiry_depth() < 0.01:

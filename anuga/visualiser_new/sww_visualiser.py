@@ -1,3 +1,4 @@
+from builtins import range
 from Numeric import array, Float
 from anuga.file.netcdf import NetCDFFile
 from visualiser import Visualiser
@@ -45,7 +46,7 @@ class SWWVisualiser(Visualiser):
         except KeyError:
             fin = NetCDFFile(self.vis_source, 'r')
             if dynamic:
-                if not self.quantityCache.has_key(quantityName):
+                if quantityName not in self.quantityCache:
                     self.quantityCache[quantityName] = {}
                 q = array(fin.variables[quantityName][self.vis_frame], Float)
                 self.quantityCache[quantityName][self.vis_frame] = q
@@ -58,7 +59,7 @@ class SWWVisualiser(Visualiser):
     def getQuantityDict(self):
         quantities = {}
         fin = NetCDFFile(self.vis_source, 'r')
-        names = [ k for k in fin.variables.keys()
+        names = [ k for k in list(fin.variables.keys())
                   if k != 'x'
                   and k != 'y'
                   and k != 'z'

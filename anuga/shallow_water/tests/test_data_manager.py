@@ -6,7 +6,11 @@ Set of tests for the now-defunct data manager module.
 
 These could be split up into their correct modules.
 """
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import unittest
 import copy
 import numpy as num
@@ -284,7 +288,7 @@ class Test_Data_Manager(Test_Mux):
         dqs = self.domain.get_quantity('stage')
         dqx = self.domain.get_quantity('xmomentum')
         dqy = self.domain.get_quantity('ymomentum')        
-        xmom_min = ymom_min = stage_min = sys.maxint 
+        xmom_min = ymom_min = stage_min = sys.maxsize 
         xmom_max = ymom_max = stage_max = -stage_min        
         for t in self.domain.evolve(yieldstep = 1, finaltime = 1):
             wmax = max(dqs.get_values().flatten())
@@ -355,9 +359,9 @@ class Test_Data_Manager(Test_Mux):
         
         
         assert len(domain.quantities_to_be_monitored) == 3
-        assert domain.quantities_to_be_monitored.has_key('stage-elevation')
-        assert domain.quantities_to_be_monitored.has_key('xmomentum')                
-        assert domain.quantities_to_be_monitored.has_key('ymomentum')        
+        assert 'stage-elevation' in domain.quantities_to_be_monitored
+        assert 'xmomentum' in domain.quantities_to_be_monitored                
+        assert 'ymomentum' in domain.quantities_to_be_monitored        
 
         
         #domain.protect_against_isolated_degenerate_timesteps = True
@@ -495,15 +499,15 @@ class Test_Data_Manager(Test_Mux):
 #         print A[1], (Q0[1] + Q1[3] + Q2[2])/3
 #         print A[2], Q0[3]
 #         print A[3], (Q0[0] + Q1[5] + Q2[4])/3
-        assert num.allclose(A[0], (Q2[0] + Q1[1])/2, rtol=1.0e-5, atol=1.0e-5)
+        assert num.allclose(A[0], old_div((Q2[0] + Q1[1]),2), rtol=1.0e-5, atol=1.0e-5)
         
-        assert num.allclose(A[1], (Q0[1] + Q1[3] + Q2[2])/3, rtol=1.0e-5, atol=1.0e-5)
+        assert num.allclose(A[1], old_div((Q0[1] + Q1[3] + Q2[2]),3), rtol=1.0e-5, atol=1.0e-5)
         assert num.allclose(A[2], Q0[3])
-        assert num.allclose(A[3], (Q0[0] + Q1[5] + Q2[4])/3, rtol=1.0e-5, atol=1.0e-5)
+        assert num.allclose(A[3], old_div((Q0[0] + Q1[5] + Q2[4]),3), rtol=1.0e-5, atol=1.0e-5)
 
         #Center point
-        assert num.allclose(A[4], (Q1[0] + Q2[1] + Q0[2] +\
-                                   Q0[5] + Q2[6] + Q1[7])/6, rtol=1.0e-5, atol=1.0e-5)
+        assert num.allclose(A[4], old_div((Q1[0] + Q2[1] + Q0[2] +\
+                                   Q0[5] + Q2[6] + Q1[7]),6), rtol=1.0e-5, atol=1.0e-5)
         
         fid.close()
         os.remove(sww.filename)
@@ -547,14 +551,14 @@ class Test_Data_Manager(Test_Mux):
         Q2 = Q.vertex_values[:,2]
 
         A = stage[1,:]
-        assert num.allclose(A[0], (Q2[0] + Q1[1])/2, rtol=1.0e-5, atol=1.0e-5)
-        assert num.allclose(A[1], (Q0[1] + Q1[3] + Q2[2])/3, rtol=1.0e-5, atol=1.0e-5)
+        assert num.allclose(A[0], old_div((Q2[0] + Q1[1]),2), rtol=1.0e-5, atol=1.0e-5)
+        assert num.allclose(A[1], old_div((Q0[1] + Q1[3] + Q2[2]),3), rtol=1.0e-5, atol=1.0e-5)
         assert num.allclose(A[2], Q0[3], rtol=1.0e-5, atol=1.0e-5)
-        assert num.allclose(A[3], (Q0[0] + Q1[5] + Q2[4])/3, rtol=1.0e-5, atol=1.0e-5)
+        assert num.allclose(A[3], old_div((Q0[0] + Q1[5] + Q2[4]),3), rtol=1.0e-5, atol=1.0e-5)
 
         #Center point
-        assert num.allclose(A[4], (Q1[0] + Q2[1] + Q0[2] +\
-                                   Q0[5] + Q2[6] + Q1[7])/6, rtol=1.0e-5, atol=1.0e-5)
+        assert num.allclose(A[4], old_div((Q1[0] + Q2[1] + Q0[2] +\
+                                   Q0[5] + Q2[6] + Q1[7]),6), rtol=1.0e-5, atol=1.0e-5)
 
 
         fid.close()
@@ -791,7 +795,7 @@ class Test_Data_Manager(Test_Mux):
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
-        temp_fbound=num.zeros(int(finaltime/yieldstep)+1,num.float)
+        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
     
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -806,7 +810,7 @@ class Test_Data_Manager(Test_Mux):
                          function=lambda t: [num.sin(t)+tide,3.*(20.+num.sin(t)+tide),2.*(20.+num.sin(t)+tide)])
         domain_time.set_boundary({'ocean': Bw,'otherocean': Br})
         
-        temp_time=num.zeros(int(finaltime/yieldstep)+1,num.float)
+        temp_time=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
         
         domain_time.set_starttime(domain_fbound.get_starttime())
         

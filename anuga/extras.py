@@ -163,8 +163,7 @@ def create_domain_from_regions(bounding_polygon,
                        verbose=verbose,
                        compression=False)
     else:
-        domain = apply(_create_domain_from_regions,
-                       args, kwargs)
+        domain = _create_domain_from_regions(*args, **kwargs)
 
     return domain
 

@@ -10,8 +10,12 @@ Similarly the Outflow has MOMENTUM Not just Up welling as in the Horizontal Styl
 abstraction
 
 """
+from __future__ import print_function
+from __future__ import division
 
-print 'Starting.... Importing Modules...'
+from builtins import range
+from past.utils import old_div
+print('Starting.... Importing Modules...')
 
 #------------------------------------------------------------------------------
 # Import necessary modules
@@ -33,7 +37,7 @@ import numpy as num
 #------------------------------------------------------------------------------
 # Setup computational domain
 #------------------------------------------------------------------------------
-print 'Setting up domain'
+print('Setting up domain')
 
 length = 40.
 width = 5.
@@ -43,7 +47,7 @@ dx = dy = 1           # Resolution: Length of subdivisions on both axes
 #dx = dy = .5           # Resolution: Length of subdivisions on both axes
 #dx = dy = .1           # Resolution: Length of subdivisions on both axes
 
-points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
+points, vertices, boundary = rectangular_cross(int(old_div(length,dx)), int(old_div(width,dy)),
                                                len1=length, len2=width)
 domain = Domain(points, vertices, boundary)   
 domain.set_name('Test_Culv_Flat_WL')                 # Output name
@@ -51,7 +55,7 @@ domain.set_default_order(2)
 domain.H0 = 0.01
 domain.tight_slope_limiters = 1
 
-print 'Size', len(domain)
+print('Size', len(domain))
 
 #------------------------------------------------------------------------------
 # Setup initial conditions
@@ -63,7 +67,7 @@ def topography(x, y):
     A culvert will connect either side
     """
     # General Slope of Topography
-    z=-x/1000
+    z=old_div(-x,1000)
     
     #       NOW Add bits and Pieces to topography
     N = len(x)
@@ -87,7 +91,7 @@ def topography(x, y):
 		
     return z
 
-print 'Setting Quantities....'
+print('Setting Quantities....')
 domain.set_quantity('elevation', topography)  # Use function for elevation
 domain.set_quantity('friction', 0.01)         # Constant friction 
 domain.set_quantity('stage',
@@ -103,7 +107,7 @@ domain.set_quantity('stage',
 #------------------------------------------------------------------------------
 # Setup CULVERT INLETS and OUTLETS in Current Topography
 #------------------------------------------------------------------------------
-print 'DEFINING any Structures if Required'
+print('DEFINING any Structures if Required')
 
 #  DEFINE CULVERT INLET AND OUTLETS
 
@@ -133,12 +137,12 @@ domain.forcing_terms.append(culvert_energy)
 #------------------------------------------------------------------------------
 # Setup boundary conditions
 #------------------------------------------------------------------------------
-print 'Setting Boundary Conditions'
+print('Setting Boundary Conditions')
 Bi = Dirichlet_boundary([0.0, 0.0, 0.0])          # Inflow based on Flow Depth and Approaching Momentum !!!
 Br = Reflective_boundary(domain)              # Solid reflective wall
 Bo = Dirichlet_boundary([-5, 0, 0])           # Outflow
-Btus = Time_boundary(domain, lambda t: [0.0+ 1.25*(1+num.sin(2*pi*(t-4)/10)), 0.0, 0.0])
-Btds = Time_boundary(domain, lambda t: [0.0+ 0.75*(1+num.sin(2*pi*(t-4)/20)), 0.0, 0.0])
+Btus = Time_boundary(domain, lambda t: [0.0+ 1.25*(1+num.sin(old_div(2*pi*(t-4),10))), 0.0, 0.0])
+Btds = Time_boundary(domain, lambda t: [0.0+ 0.75*(1+num.sin(old_div(2*pi*(t-4),20))), 0.0, 0.0])
 domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
 
 
@@ -164,10 +168,10 @@ FN = 'profile.dat'
 
 profile.run(s, FN)
     
-print 'That took %.2f seconds' %(time.time()-t0)
+print('That took %.2f seconds' %(time.time()-t0))
 
 S = pstats.Stats(FN)
 #S.sort_stats('time').print_stats(20)
 s = S.sort_stats('cumulative').print_stats(30)
 
-print s
+print(s)

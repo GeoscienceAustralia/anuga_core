@@ -1,3 +1,7 @@
+from __future__ import division
+from builtins import object
+from past.utils import old_div
+from future.utils import raise_
 import anuga.geometry.polygon
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 from anuga.config import velocity_protection, g
@@ -8,7 +12,7 @@ import math
 
 import numpy as num
 
-class Inlet:
+class Inlet(object):
     """Contains information associated with each inlet
     """
 
@@ -84,7 +88,7 @@ class Inlet:
         if len(self.triangle_indices) == 0:
             region = 'Inlet line=%s' % (self.inlet_line)
             msg = 'No triangles have been identified in region '
-            raise Exception, msg
+            raise_(Exception, msg)
         
 #        self.area = 0.0
 #        for j in self.triangle_indices:
@@ -132,7 +136,7 @@ class Inlet:
         
     def get_average_stage(self):
 
-        return num.sum(self.get_stages()*self.get_areas())/self.area
+        return old_div(num.sum(self.get_stages()*self.get_areas()),self.area)
         
     def get_elevations(self):    
         
@@ -140,7 +144,7 @@ class Inlet:
         
     def get_average_elevation(self):
 
-        return num.sum(self.get_elevations()*self.get_areas())/self.area
+        return old_div(num.sum(self.get_elevations()*self.get_areas()),self.area)
     
     
     def get_xmoms(self):
@@ -150,7 +154,7 @@ class Inlet:
         
     def get_average_xmom(self):
 
-        return num.sum(self.get_xmoms()*self.get_areas())/self.area
+        return old_div(num.sum(self.get_xmoms()*self.get_areas()),self.area)
         
     
     def get_ymoms(self):
@@ -160,7 +164,7 @@ class Inlet:
  
     def get_average_ymom(self):
         
-        return num.sum(self.get_ymoms()*self.get_areas())/self.area
+        return old_div(num.sum(self.get_ymoms()*self.get_areas()),self.area)
     
 
     def get_depths(self):
@@ -175,14 +179,14 @@ class Inlet:
 
     def get_average_depth(self):
     
-        return self.get_total_water_volume()/self.area
+        return old_div(self.get_total_water_volume(),self.area)
         
         
     def get_velocities(self):
         
             depths = self.get_depths()
-            u = self.get_xmoms()/(depths + velocity_protection/depths)
-            v = self.get_ymoms()/(depths + velocity_protection/depths)
+            u = old_div(self.get_xmoms(),(depths + old_div(velocity_protection,depths)))
+            v = old_div(self.get_ymoms(),(depths + old_div(velocity_protection,depths)))
             
             return u, v
 
@@ -190,27 +194,27 @@ class Inlet:
     def get_xvelocities(self):
 
             depths = self.get_depths()
-            return self.get_xmoms()/(depths + velocity_protection/depths)
+            return old_div(self.get_xmoms(),(depths + old_div(velocity_protection,depths)))
 
     def get_yvelocities(self):
 
             depths = self.get_depths()
-            return self.get_ymoms()/(depths + velocity_protection/depths)
+            return old_div(self.get_ymoms(),(depths + old_div(velocity_protection,depths)))
             
             
     def get_average_speed(self):
  
             u, v = self.get_velocities()
             
-            average_u = num.sum(u*self.get_areas())/self.area
-            average_v = num.sum(v*self.get_areas())/self.area
+            average_u = old_div(num.sum(u*self.get_areas()),self.area)
+            average_v = old_div(num.sum(v*self.get_areas()),self.area)
             
             return math.sqrt(average_u**2 + average_v**2)
 
 
     def get_average_velocity_head(self):
 
-        return 0.5*self.get_average_speed()**2/g
+        return old_div(0.5*self.get_average_speed()**2,g)
 
 
     def get_average_total_energy(self):
@@ -271,7 +275,7 @@ class Inlet:
         index = num.nonzero(summed_volume<=volume)[0][-1]
 
         # calculate stage needed to fill chosen cells with given volume of water
-        depth = (volume - summed_volume[index])/summed_areas[index]
+        depth = old_div((volume - summed_volume[index]),summed_areas[index])
         stages[stages_order[0:index+1]] = stages[stages_order[index]]+depth
 
         self.set_stages(stages)
@@ -284,6 +288,6 @@ class Inlet:
         cells with equal depth of water
         """
 	    
-        new_depth = self.get_average_depth() + (volume/self.get_area())
+        new_depth = self.get_average_depth() + (old_div(volume,self.get_area()))
         self.set_depths(new_depth)
 

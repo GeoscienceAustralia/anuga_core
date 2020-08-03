@@ -1,9 +1,17 @@
-import mesh
-from   tkSimpleDialog import Dialog,askfloat, askinteger, askstring
-from Tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, Label,W, Entry, E, ACTIVE, NORMAL, StringVar
-from tkMessageBox import showerror
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from past.utils import old_div
+from builtins import object
+from . import mesh
+from   tkinter.simpledialog import Dialog,askfloat, askinteger, askstring
+from tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, Label,W, Entry, E, ACTIVE, NORMAL, StringVar
+from tkinter.messagebox import showerror
 
-class vAbstract:
+class vAbstract(object):
     """
     Define the visualisation of a mesh object
     """
@@ -37,7 +45,7 @@ class vAbstract:
         """
         returns true if the key is in the canvas list
         """
-        if self.oncanvas.has_key(key):
+        if key in self.oncanvas:
             return True
         else:
             return False
@@ -52,11 +60,11 @@ class vAbstract:
         return self.oncanvas[key]
 
     def editWindow(self, canvas, selMeshObject,userMeshChanged):
-        print "Not implimented"
+        print("Not implimented")
         return userMeshChanged
 
     def defaultWindow(self, canvas):
-        print "Not implimented"
+        print("Not implimented")
 
     def draw (self):
         """
@@ -81,7 +89,7 @@ class vPoints(vAbstract):
 
         event isn't used
         """
-        point = mesh.addUserPoint(self.association,x/scale,y/scale)
+        point = mesh.addUserPoint(self.association,old_div(x,scale),old_div(y,scale))
         self.visualise(point, uniqueID, canvas, scale)
         return point
  
@@ -270,7 +278,7 @@ class vMesh(vAbstract):
         returns true if the key is in the canvas list
         """
         for MeshObjects in self.MeshObjectsList:
-            if MeshObjects.oncanvas.has_key(key):
+            if key in MeshObjects.oncanvas:
                 return True
         return False
 

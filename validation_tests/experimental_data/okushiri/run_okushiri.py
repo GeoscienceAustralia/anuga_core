@@ -37,10 +37,11 @@ if hasattr(args, 'finaltime'):
 if hasattr(args, 'yieldstep'):
     yieldStep = args.yieldstep
 
-print finalTime
-print yieldStep
+if myid == 0 and verbose:
+    print(finalTime)
+    print(yieldStep)
 
-if verbose: print 'create mesh'
+if verbose: print('create mesh')
 elevation_in_mesh = False
 if myid == 0:
     create_okushiri.create_mesh(elevation_in_mesh=elevation_in_mesh, verbose=verbose)
@@ -64,9 +65,9 @@ if myid == 0:
         domain = anuga.Domain(mesh_filename, use_cache=False, verbose=verbose)
     except:
         msg = 'ERROR reading in mesh file. Have you run create_okushiri.py?'
-        raise Exception, msg
+        raise Exception(msg)
      
-    if verbose: print domain.statistics()
+    if verbose: print(domain.statistics())
 
 
     #-------------------------
@@ -74,7 +75,7 @@ if myid == 0:
     #-------------------------
     domain.set_quantity('friction', 0.0025)
     domain.set_quantity('stage', 0.0)
-    if verbose: print 'set stage'
+    if verbose: print('set stage')
     if elevation_in_mesh is False:
 #         domain.set_quantity('elevation',
 #                         filename=bathymetry_filename_stem+'.pts', 
@@ -129,7 +130,7 @@ for t in domain.evolve(yieldstep = yieldStep, finaltime = finalTime):
 
 domain.sww_merge(delete_old=True)
 
-if myid == 0 and verbose: print 'That took %.2f seconds' %(time.time()-t0)
+if myid == 0 and verbose: print('That took %.2f seconds' %(time.time()-t0))
 
 finalize()
 

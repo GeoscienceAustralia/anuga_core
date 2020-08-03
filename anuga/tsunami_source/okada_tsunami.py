@@ -21,16 +21,19 @@ NOTE: Once I found that the above failed, but the following worked:
 f2py -c --fcompiler=gnu95 okada_tsunami_fortran.f -m okada_tsunami_fortran
 
 """
+from __future__ import print_function
+from builtins import range
+from builtins import object
+from future.utils import raise_
 import numpy
 
 try:
     import okada_tsunami_fortran
 except:
-    raise Exception,\
-    'okada_tsunami_fortran does not appear to be compiled.\n \
+    raise Exception('okada_tsunami_fortran does not appear to be compiled.\n \
     You can compile it by running the command:\n \
     "f2py -c okada_tsunami_fortran.f -m okada_tsunami_fortran"\n \
-    in the shallow_water directory'
+    in the shallow_water directory')
  
 from pyproj import Proj
 import copy
@@ -149,19 +152,19 @@ def earthquake_source(
     """
 
     if filename is None and source is None:
-        raise Exception, 'Must have either Okada filename of numeric input for earthquake source'
+        raise Exception('Must have either Okada filename of numeric input for earthquake source')
 
     # Read from file
     if filename is not None:
         # Check that we haven't also specified a source
         if source is not None:
-            raise Exception, 'Cannot use both filename and numeric input for earthquake source'
+            raise Exception('Cannot use both filename and numeric input for earthquake source')
 
         # Open file
         try:
            lns = open(filename).readlines()
         except:
-           raise Exception, 'Cannot read okada file %s' % filename
+           raise_(Exception, 'Cannot read okada file %s' % filename)
         # Pack into 'source'
         source = []
         for line in lns[1:]:
@@ -186,22 +189,22 @@ def earthquake_source(
         if (utm_zone is not None) or (proj4string is not None):
 
             if (utm_zone is not None) and (proj4string is not None):
-                raise Exception, 'Only one of utm_zone or proj4string can not be None'
+                raise Exception('Only one of utm_zone or proj4string can not be None')
 
             # Add a few sanity checks
             lat_abs_max = max(abs(source[:,1]))
             long_abs_max = max(abs(source[:,0]))
             if(long_abs_max > 360):
-                raise Exception, 'Longitude absolute values > 360: Check your inputs'
+                raise Exception('Longitude absolute values > 360: Check your inputs')
             if(lat_abs_max > 90):
-                raise Exception, 'Latitude absolute values > 90: Check your inputs'
+                raise Exception('Latitude absolute values > 90: Check your inputs')
 
             if(utm_zone is not None): 
                 # Set up function to reproject coordinates
-                if verbose: print 'project utm_zone = ', utm_zone
+                if verbose: print('project utm_zone = ', utm_zone)
                 p = Proj(proj='utm',south=utm_zone<0,zone=abs(utm_zone),ellps='WGS84')
             else:
-                if verbose: print 'proj4string = ',proj4string 
+                if verbose: print('proj4string = ',proj4string) 
                 p = Proj(proj4string)
 
             # Store lon/lat for later printing
@@ -211,42 +214,42 @@ def earthquake_source(
             for i in range(len(source[:,0])):
                 source[i,0], source[i,1] = p(source[i,0], source[i,1])      
         else:
-            raise Exception, 'Need utm_zone for lon_lat coordinates'
+            raise Exception('Need utm_zone for lon_lat coordinates')
 
     # Sanity checks
     dip=source[:,4]
     mindip=min(dip)
     maxdip=max(dip)
     if((mindip<0.)|(maxdip>90.)):
-        raise Exception, 'ERROR: Dip should be between 0 and 90 degrees'
+        raise Exception('ERROR: Dip should be between 0 and 90 degrees')
 
     depth=source[:,2]
     width=source[:,6]
     topdepth=depth-width/2.0*numpy.sin(dip/180.*numpy.pi)
     if(topdepth.min() < 0.0):
-        print '  easting   northing   depth strike    dip length  width  disl1   disl2  disl3 topdepth'
+        print('  easting   northing   depth strike    dip length  width  disl1   disl2  disl3 topdepth')
         for i in range(len(source[:,0])):
             if(topdepth[i]<0.0):
-                print source[i,:], topdepth[i]
+                print(source[i,:], topdepth[i])
 
-        raise Exception, 'ERROR: The tops of some sub-faults are above the ground (printed above)'
+        raise Exception('ERROR: The tops of some sub-faults are above the ground (printed above)')
 
     #A few print statements
     if verbose is True:
-        print 'Earthquake parameters:'
+        print('Earthquake parameters:')
         if lon_lat_degrees==False:
-            print '  easting   northing   depth strike    dip length  width  disl1   disl2  disl3'
+            print('  easting   northing   depth strike    dip length  width  disl1   disl2  disl3')
             for i in range(0,len(source)):
-               print '%9.3f  %10.3f  %4.1f  %5.1f   %4.1f  %5.1f  %5.1f  %5.2f  %5.2f %5.2f' % \
+               print('%9.3f  %10.3f  %4.1f  %5.1f   %4.1f  %5.1f  %5.1f  %5.2f  %5.2f %5.2f' % \
                       (source[i,0],source[i,1],source[i,2],source[i,3],source[i,4],source[i,5],\
-                       source[i,6],source[i,7],source[i,8], source[i,9])
+                       source[i,6],source[i,7],source[i,8], source[i,9]))
         else:
-            print 'longitude  latitude transformed_easting transformed_northing depth  strike  dip  length  width  disl1 disl2 disl3'
+            print('longitude  latitude transformed_easting transformed_northing depth  strike  dip  length  width  disl1 disl2 disl3')
             for i in range(0,len(source)):
-                print ' %7.2f  %7.2f  %9.1f  %10.1f  %4.1f  %5.1f   %4.1f  %5.1f  %5.1f  %5.2f  %5.2f %5.2f' % \
+                print(' %7.2f  %7.2f  %9.1f  %10.1f  %4.1f  %5.1f   %4.1f  %5.1f  %5.1f  %5.2f  %5.2f %5.2f' % \
                        (lon_store[i], lat_store[i], source[i,0],source[i,1],\
                         source[i,2],source[i,3],source[i,4],source[i,5],\
-                        source[i,6],source[i,7],source[i,8], source[i,9])
+                        source[i,6],source[i,7],source[i,8], source[i,9]))
 
     # Offset the coordinates, to translate into the ANUGA coordinate system
     if domain is not None:
@@ -315,7 +318,7 @@ def okada_origin_2_slip_centroid(lower_left, eq_depth, eq_length, eq_width,eq_st
 
 """
 
-class Okada_func:
+class Okada_func(object):
 
    def __init__(self, source,verbose=False,alp=0.5,dmax=-1.):
       self.elon  = source[:,0]

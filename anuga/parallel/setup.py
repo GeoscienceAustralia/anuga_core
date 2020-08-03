@@ -1,8 +1,10 @@
 from __future__ import division, print_function
 
+from future import standard_library
+standard_library.install_aliases()
 import os
 import sys
-import commands
+import subprocess
 import shlex
 import string
 
@@ -16,14 +18,14 @@ def getoutput_mpicc():
     """Returns the output of the command used to compile using
     mpicc."""
     # LAM/OPENMPI/MPICH2
-    output = commands.getoutput('mpicc -show') + ' -fPIC'
+    output = subprocess.getoutput('mpicc -show') + ' -fPIC'
 
     if output:
         return output
 
     # MPICH
     # works with MPICH version 1.2.1 (on Debian)
-    output = commands.getoutput('mpicc -compile_info -link_info')
+    output = subprocess.getoutput('mpicc -compile_info -link_info')
     if output:
         return output
 
@@ -70,21 +72,15 @@ def configuration(parent_package='',top_path=None):
 
     try:
         # Use this import to check if we are in a parallel environment
-        import pypar
+        from anuga.utilities import parallel_abstraction as pypar
 
-        #We are parallel!
-        mpi_flags = parse_command(getoutput_mpicc())
+        if pypar.pypar_available:
+            #We are parallel!
+            mpi_flags = parse_command(getoutput_mpicc())
 
-        config.add_data_dir('tests')
-        config.add_data_dir('data')
-         
-        config.add_extension('mpiextras',
-                         sources=['mpiextras.c'],
-                         include_dirs=mpi_flags['inc_dirs'],
-                         library_dirs=mpi_flags['lib_dirs'],
-                         libraries=mpi_flags['libs'],
-                         define_macros=mpi_flags['def_macros'],
-                         undef_macros=mpi_flags['undef_macros'])
+            config.add_data_dir('tests')
+            config.add_data_dir('data')
+
     except:
         #No parallel support, so just copy over the py files
         pass

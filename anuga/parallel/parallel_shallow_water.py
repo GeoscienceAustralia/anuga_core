@@ -10,10 +10,15 @@ Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
 Geoscience Australia, 2004-2005
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
 
+from builtins import range
+from past.utils import old_div
 from anuga import Domain
 
-import parallel_generic_communications as generic_comms
+from . import parallel_generic_communications as generic_comms
 
 import anuga.utilities.parallel_abstraction as pypar
 
@@ -223,7 +228,7 @@ class Parallel_domain(Domain):
             import matplotlib.pyplot as plt
             import matplotlib.tri as tri
         except:
-            print "Couldn't import module from matplotlib, probably you need to update matplotlib"
+            print("Couldn't import module from matplotlib, probably you need to update matplotlib")
             raise
 
         vertices = self.get_vertex_coordinates()
@@ -255,17 +260,17 @@ class Parallel_domain(Domain):
 
             # Plot full triangles
             for i in range(0, numprocs):
-                n = int(len(fx[i])/3)
+                n = int(old_div(len(fx[i]),3))
                             
-                triang = num.array(range(0,3*n))
+                triang = num.array(list(range(0,3*n)))
                 triang.shape = (n, 3)
                 plt.triplot(fx[i], fy[i], triang, 'g-', linewidth = 0.5)
 
             # Plot ghost triangles
             for i in range(0, numprocs):
-                n = int(len(gx[i])/3)
+                n = int(old_div(len(gx[i]),3))
                 if n > 0:
-                    triang = num.array(range(0,3*n))
+                    triang = num.array(list(range(0,3*n)))
                     triang.shape = (n, 3)
                     plt.triplot(gx[i], gy[i], triang, 'b--', linewidth = 0.5)
 

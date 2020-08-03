@@ -69,7 +69,6 @@ such that all polygons under a directory named 45, under directory:- 04_BLDGS  w
 
 Need to add the following lines to Scripts:
 
-
 from anuga.utilities.model_tools import get_polygon_list_from_files
 from anuga.utilities.model_tools import get_polygon_dictionary
 from anuga.utilities.model_tools import get_REFINE_polygon_value_list
@@ -77,6 +76,7 @@ from anuga.utilities.model_tools import get_ROUGHNESS_polygon_value_list
 from anuga.utilities.model_tools import get_BUILDING_polygon_value_list
 """
 
+from past.builtins import execfile
 import os
 import glob
 import numpy
@@ -86,9 +86,6 @@ from anuga import Boyd_pipe_operator
 from anuga import Weir_orifice_trapezoid_operator
 from anuga import Inlet_operator
 
-
-
-# ---------------------------------------------------------------------------------------------------------
 
 def get_polygon_from_single_file(Rfile):
     fid = open(Rfile)
@@ -111,8 +108,6 @@ def get_polygon_from_single_file(Rfile):
             polygon.append([float(fields[0]), float(fields[1])])
     polylist.append(polygon)
     return polylist
-# ---------------------------------------------------------------------------------------------------------
-
 
 
 def get_polygons_from_Mid_Mif(Rfile):
@@ -138,7 +133,6 @@ def get_polygons_from_Mid_Mif(Rfile):
     total_lines_in_file= len(lines)
     #print "total number of lines in the Polygons FILE is: ",total_lines_in_file
 
-# ==================================================== FOR LOOP ===========================        
     for i, line in enumerate(lines): 
         if line.strip().startswith('Region'):
             Poly_line_count=0
@@ -163,17 +157,17 @@ def get_polygons_from_Mid_Mif(Rfile):
             pass
         else:
             Poly_line_count+=1
-            if Poly_line_count > 1 and Poly_line_count <= (Points_in_Poly+1) and Poly_count<>0:
+            if Poly_line_count > 1 and Poly_line_count <= (Points_in_Poly+1) and Poly_count!=0:
                 #print line, #Points_in_Poly,#Poly_line_count
                 fields = line.split(' ')
-                if line in check_pts_list and Poly_line_count <> Points_in_Poly+1:   # Get rid of any doubled up points NOTE this gets rid of last line !!!
+                if line in check_pts_list and Poly_line_count != Points_in_Poly+1:   # Get rid of any doubled up points NOTE this gets rid of last line !!!
                     #print Poly_line_count, Points_in_Poly+1
                     pass
                 else:
                     #outfid.write("%.3f,%.3f\n" % (float(fields[0]),float(fields[1])))
                     polygon.append([float(fields[0]),float(fields[1])])
                     check_pts_list.append(line)
-            elif Poly_line_count==1 and Poly_count<>0:
+            elif Poly_line_count==1 and Poly_count!=0:
                 # read number of points in poly
                 #print 'line=',line
                 Points_in_Poly=int(line)
@@ -186,14 +180,17 @@ def get_polygons_from_Mid_Mif(Rfile):
     #outfid.close()          
     return polylist          
 
-# ---------------------------------------------------------------------------------------------------------
+
 def get_polygon_list_from_files(dir, verbose = False):
     """Read all polygons found in specified dir and return them in a list
+    
        Called by:
        get_polygon_dictionary
+    
        Purpose:
        To fill a list with all of the polygons read under a specified directory
-       CALLS:
+    
+       Calls:
        anuga.utilities.polygon.read_polygon
     """
     
@@ -202,40 +199,32 @@ def get_polygon_list_from_files(dir, verbose = False):
     polylist = []
     for filename in os.listdir(dir):
         Rfile = dir +'/'+filename
+        if verbose: print(Rfile)
         
-        
-        if Rfile[-4:] == '.svn':  # wHAT DOES THIS DO ??
-            continue
         if Rfile[-4:] == '.csv':
-            #print 'CSV File'
-            if verbose: print Rfile
-            polylistcsv = get_polygon_from_single_file(Rfile)
-            polylist = polylist+polylistcsv
+            polygon = get_polygon_from_single_file(Rfile)
         if Rfile[-4:] == '.mif':
-            if verbose: print Rfile
-            #print 'MIF File ...'
-            #polys = get_polygons_from_Mid_Mif(Rfile)
-            polylistmif=get_polygons_from_Mid_Mif(Rfile)
-            polylist = polylist+polylistmif
-        #print filename
-        #print Rfile
-        #raw_input('Hold check file...- line 211')
-    #print polylist
-    #raw_input('hold at polylist.. -line 213')
+            polygon = get_polygons_from_Mid_Mif(Rfile)
+        
+        polylist = polylist + polygon
+
     return polylist
 
-# ---------------------------------------------------------------------------------------------------------
+
 def get_polygon_dictionary(dir):
     """Create dictionary of polygons with directory names 
        indicating associated attribute values 
+       
        Called by:
        get_polygon_value_list
+       
        Purpose:
        To Fill a Dictionary with sets of poygons and attribute, from a list of polygons 
        and using the directory name as the attribute
        For Example used to read Mesh Size Directory 1500, using all polygons in the directory
        to create mesh refinement to 1500m2
-       CALLS:
+       
+       Calls:
        get_polygon_list_from_files
     """
     
@@ -249,9 +238,8 @@ def get_polygon_dictionary(dir):
         # How to read a file with multiple polygons ??
         D[a] = get_polygon_list_from_files(os.path.join(dir, a)) # Fill Item [a] in the Dictionary with FIle name and attribute
     return D
-# ---------------------------------------------------------------------------------------------------------
 
-# ---- GENERIC POLYGON VALUE LIST Generator
+
 def get_polygon_value_list(dir):
     """Create list of multiple Polygons attributed with a value
        Where the values are obtained from sub directory names based on number and decimal at underscore
@@ -275,7 +263,7 @@ def get_polygon_value_list(dir):
             attribute = float(numb_bits[0]+'.'+numb_bits[1])
             #print 'Polygon Attribute = ' + str(attribute)
         except:
-            print 'Non numerical attributes not yet implemented. I got %s' % key
+            print('Non numerical attributes not yet implemented. I got %s' % key)
             return []
         for polygon in D[key]:
             # Create polygon-value pair and append to list for this dir
@@ -283,7 +271,6 @@ def get_polygon_value_list(dir):
             polygon_value_list.append(pair)
     #print polygon_value_list
     return polygon_value_list
-# ---------------------------------------------------------------------------------------------------------
 
 
 def read_polygon_dir(weight_dict, directory, filepattern='*.csv'):
@@ -307,7 +294,7 @@ def read_polygon_dir(weight_dict, directory, filepattern='*.csv'):
         msg = ''
         for f in errors:
             msg = msg + ', ' + f
-        raise KeyError, 'Files not defined in dictionary: %s' % msg[2:]
+        raise KeyError('Files not defined in dictionary: %s' % msg[2:])
 
     # now get the result list
     result = []
@@ -457,7 +444,7 @@ def Create_culvert_bridge_Operator(domain,culvert_bridge_file):
     elif 'height' in locals:
         culvert = Boyd_box_operator(domain, **locals)
     else:
-        raise Exception, 'Cant create culvert'
+        raise Exception('Cant create culvert')
 
 
 
@@ -583,12 +570,12 @@ def get_WCC_2016_Blockage_factor(Structure,Event,Scenario, long_result=False, ve
         BF = BF_RMN[Ev_Row][cclass]
 
     if verbose:
-        print '       Importing Culverts'
-        print '   Culvert Size ([H,W] or [d]): ', Structure
-        print '                    Event Size: ', Ev_mag
-        print '             Blockage Scenario: ', Scenario
-        print '               Blockage Factor: ', BF
-        print ''
+        print('       Importing Culverts')
+        print('   Culvert Size ([H,W] or [d]): ', Structure)
+        print('                    Event Size: ', Ev_mag)
+        print('             Blockage Scenario: ', Scenario)
+        print('               Blockage Factor: ', BF)
+        print('')
 
     if long_result:
         return(Scenario, Ev_mag,BF_clss,diag,BF)
@@ -631,10 +618,10 @@ def get_WCC_2002_Blockage_factor(Structure, verbose=True):
         BF = 1.0
 
     if verbose:
-        print '       Importing Culverts'
-        print '   Culvert Size ([H,W] or [d]): ', Structure
-        print '                      Diagonal: ', diag
-        print '               Blockage Factor: ', BF
-        print ''
+        print('       Importing Culverts')
+        print('   Culvert Size ([H,W] or [d]): ', Structure)
+        print('                      Diagonal: ', diag)
+        print('               Blockage Factor: ', BF)
+        print('')
 
     return(BF)

@@ -2,7 +2,12 @@
 
 
 """
+from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
+from builtins import object
 import numpy as num
 
 from anuga import Domain
@@ -67,7 +72,7 @@ class Sequential_distribute(object):
 
 
         # Subdivide the mesh
-        if verbose: print 'sequential_distribute: Subdivide mesh'
+        if verbose: print('sequential_distribute: Subdivide mesh')
 
         new_nodes, new_triangles, new_boundary, triangles_per_proc, quantities, \
                s2p_map, p2s_map = \
@@ -76,8 +81,8 @@ class Sequential_distribute(object):
 
         # Build the mesh that should be assigned to each processor,
         # this includes ghost nodes and the communication pattern
-        if verbose: print 'sequential_distribute: Build submeshes'
-        if verbose: print 'sequential_distribute: parameters = ',parameters
+        if verbose: print('sequential_distribute: Build submeshes')
+        if verbose: print('sequential_distribute: parameters = ',parameters)
 
         submesh = build_submesh(new_nodes, new_triangles, new_boundary, \
                                 quantities, triangles_per_proc, parameters=parameters)
@@ -86,8 +91,8 @@ class Sequential_distribute(object):
             for p in range(numprocs):
                 N = len(submesh['ghost_nodes'][p])
                 M = len(submesh['ghost_triangles'][p])
-                print 'There are %d ghost nodes and %d ghost triangles on proc %d'\
-                      %(N, M, p)
+                print('There are %d ghost nodes and %d ghost triangles on proc %d'\
+                      %(N, M, p))
 
 
         self.submesh = submesh
@@ -121,13 +126,13 @@ class Sequential_distribute(object):
 
         if debug:
             import pprint
-            print  50*"="
-            print 'NODE_L2G'
+            print(50*"=")
+            print('NODE_L2G')
             pprint.pprint(node_l2g)
 
             pprint.pprint(node_l2g[vertices[:,0]])
 
-            print 'VERTICES'
+            print('VERTICES')
             pprint.pprint(vertices[:,0])
             pprint.pprint(new_triangles[tri_l2g,0])
 
@@ -136,14 +141,14 @@ class Sequential_distribute(object):
             assert num.allclose(node_l2g[vertices[:,2]], new_triangles[tri_l2g,2])
 
 
-            print 'POINTS'
+            print('POINTS')
             pprint.pprint(points)
 
             assert num.allclose(points[:,0], new_nodes[node_l2g,0])
             assert num.allclose(points[:,1], new_nodes[node_l2g,1])
 
 
-            print 'TRI'
+            print('TRI')
             pprint.pprint(tri_l2g)
             pprint.pprint(p2s_map[tri_l2g])
 
@@ -152,7 +157,7 @@ class Sequential_distribute(object):
             assert num.allclose(original_triangles[tri_l2orig,1],node_l2g[vertices[:,1]])
             assert num.allclose(original_triangles[tri_l2orig,2],node_l2g[vertices[:,2]])
 
-            print 'NODES'
+            print('NODES')
             pprint.pprint(node_map)
             pprint.pprint(node_l2g)
 
@@ -166,7 +171,7 @@ class Sequential_distribute(object):
         #------------------------------------------------------------------------
 
         if verbose:
-            print 'sequential_distribute: P%g, no_full_nodes = %g, no_full_triangles = %g' % (p, number_of_full_nodes, number_of_full_triangles)
+            print('sequential_distribute: P%g, no_full_nodes = %g, no_full_triangles = %g' % (p, number_of_full_nodes, number_of_full_triangles))
 
 
         kwargs = {'full_send_dict': full_send_dict,
@@ -234,29 +239,29 @@ def sequential_distribute_dump(domain, numprocs=1, verbose=False, partition_dir=
             if exception.errno != errno.EEXIST:
                 raise
 
-    import cPickle
+    import pickle
     for p in range(0, numprocs):
 
         tostore = partition.extract_submesh(p)
 
         pickle_name = partition.domain_name + '_P%g_%g.pickle'% (numprocs,p)
         pickle_name = join(partition_dir,pickle_name)
-        f = file(pickle_name, 'wb')
+        f = open(pickle_name, 'wb')
 
-	lst = list(tostore)
+        lst = list(tostore)
 
-	# Write points and triangles to their own files
-	num.save(pickle_name+".np1",tostore[1]) # this append .npy to filename
-	lst[1] = pickle_name+".np1.npy"
-	num.save(pickle_name+".np2",tostore[2])
-	lst[2] = pickle_name+".np2.npy"
+        # Write points and triangles to their own files
+        num.save(pickle_name+".np1",tostore[1]) # this append .npy to filename
+        lst[1] = pickle_name+".np1.npy"
+        num.save(pickle_name+".np2",tostore[2])
+        lst[2] = pickle_name+".np2.npy"
 
-	# Write each quantity to it's own file
-	for k in tostore[4]:
-		num.save(pickle_name+".np4."+k,num.array(tostore[4][k]))
-		lst[4][k] = pickle_name+".np4."+k+".npy"
+        # Write each quantity to it's own file
+        for k in tostore[4]:
+            num.save(pickle_name+".np4."+k,num.array(tostore[4][k]))
+            lst[4][k] = pickle_name+".np4."+k+".npy"
 
-	cPickle.dump( tuple(lst), f, protocol=cPickle.HIGHEST_PROTOCOL)
+        pickle.dump( tuple(lst), f, protocol=pickle.HIGHEST_PROTOCOL)
     return
 
 
@@ -278,19 +283,19 @@ def sequential_distribute_load_pickle_file(pickle_name, np=1, verbose = False):
     Open pickle files
     """
 
-    f = file(pickle_name, 'rb')
-    import cPickle
+    f = open(pickle_name, 'rb')
+    import pickle
 
     kwargs, points, vertices, boundary, quantities, boundary_map, \
                    domain_name, domain_dir, domain_store, domain_store_centroids, \
                    domain_minimum_storable_height, domain_minimum_allowed_height, \
                    domain_flow_algorithm, domain_georef, \
                    domain_quantities_to_be_stored, domain_smooth, \
-                   domain_low_froude = cPickle.load(f)
+                   domain_low_froude = pickle.load(f)
     f.close()
 
     for k in quantities:
-	    quantities[k] = num.load(quantities[k])
+        quantities[k] = num.load(quantities[k])
     points = num.load(points)
     vertices = num.load(vertices)
 

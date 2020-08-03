@@ -16,6 +16,10 @@ domain = load_last_checkpoint_file(domain_name, checkpoint_dir)
 
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
 from anuga import send, receive, myid, numprocs, barrier
 from time import time as walltime
 
@@ -38,7 +42,7 @@ def load_checkpoint_file(domain_name = 'domain', checkpoint_dir = '.', time = No
     else:
         times = [float(time)]
 
-    if len(times) == 0: raise Exception, "Unable to open checkpoint file"
+    if len(times) == 0: raise Exception("Unable to open checkpoint file")
 
     for time in reversed(times):
 
@@ -47,10 +51,10 @@ def load_checkpoint_file(domain_name = 'domain', checkpoint_dir = '.', time = No
 
         try:
             try:
-                import dill as cPickle
+                import dill as pickle
             except:
-                import cPickle
-            domain = cPickle.load(open(pickle_name, 'rb'))
+                import pickle
+            domain = pickle.load(open(pickle_name, 'rb'))
             success = True
         except:
             success = False
@@ -71,7 +75,7 @@ def load_checkpoint_file(domain_name = 'domain', checkpoint_dir = '.', time = No
 
         if overall: break
 
-    if not overall: raise Exception, "Unable to open checkpoint file"
+    if not overall: raise Exception("Unable to open checkpoint file")
 
     domain.last_walltime = walltime()
     domain.communication_time = 0.0

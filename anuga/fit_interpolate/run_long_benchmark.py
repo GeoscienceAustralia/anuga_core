@@ -7,7 +7,10 @@ Check pyvolution.run_profile for an example of how to use the python profile
 module.
 
 """
-from benchmark_least_squares import BenchmarkLeastSquares
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import str
+from .benchmark_least_squares import BenchmarkLeastSquares
 
 ben = BenchmarkLeastSquares()
 
@@ -112,9 +115,9 @@ for is_fit in is_fit_list:
                                 ,gridded=gridded
                                 ,geo_ref=geo_ref
                                 )
-                            print "time",time
-                            print "mem", mem
-                            print "num_tri", num_tri
+                            print("time",time)
+                            print("mem", mem)
+                            print("num_tri", num_tri)
                             fd.write(str(use_file_type) + delimiter +
                                      str(num_of_points) + delimiter +
                                      str(maxArea) + delimiter +

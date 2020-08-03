@@ -1,3 +1,6 @@
+from builtins import zip
+from builtins import map
+from builtins import range
 import unittest
 import tempfile
 import numpy as num
@@ -283,11 +286,11 @@ class Test_Mux(unittest.TestCase):
 
         weights=num.ones(1, num.float)
         #ensure that files are indeed mux2 files
-        times, latitudes, longitudes, elevation, stage, starttime = read_mux2_py([files[0]],weights)
-        ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity,starttime_ua=read_mux2_py([files[1]],weights)
+        times, latitudes, longitudes, elevation, stage, starttime = read_mux2_py([files[0]], weights)
+        ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity,starttime_ua=read_mux2_py([files[1]], weights)
         msg='ha and ua have different gauge meta data'
         assert num.allclose(times,ua_times) and num.allclose(latitudes,ua_latitudes) and num.allclose(longitudes,ua_longitudes) and num.allclose(elevation,ua_elevation) and num.allclose(starttime,starttime_ua), msg
-        va_times, va_latitudes, va_longitudes, va_elevation, yvelocity, starttime_va=read_mux2_py([files[2]],weights)
+        va_times, va_latitudes, va_longitudes, va_elevation, yvelocity, starttime_va=read_mux2_py([files[2]], weights)
         msg='ha and va have different gauge meta data'
         assert num.allclose(times,va_times) and num.allclose(latitudes,va_latitudes) and num.allclose(longitudes,va_longitudes) and num.allclose(elevation,va_elevation) and num.allclose(starttime,starttime_va), msg
 
@@ -343,11 +346,11 @@ class Test_Mux(unittest.TestCase):
 
         weights=num.ones(1, num.float)
         #ensure that files are indeed mux2 files
-        times, latitudes, longitudes, elevation, stage,starttime=read_mux2_py([files[0]],weights)
-        ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity,starttime_ua=read_mux2_py([files[1]],weights)
+        times, latitudes, longitudes, elevation, stage,starttime=read_mux2_py([files[0]], weights)
+        ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity,starttime_ua=read_mux2_py([files[1]], weights)
         msg='ha and ua have different gauge meta data'
         assert num.allclose(times,ua_times) and num.allclose(latitudes,ua_latitudes) and num.allclose(longitudes,ua_longitudes) and num.allclose(elevation,ua_elevation) and num.allclose(starttime,starttime_ua), msg
-        va_times, va_latitudes, va_longitudes, va_elevation, yvelocity,starttime_va=read_mux2_py([files[2]],weights)
+        va_times, va_latitudes, va_longitudes, va_elevation, yvelocity,starttime_va=read_mux2_py([files[2]], weights)
         msg='ha and va have different gauge meta data'
         assert num.allclose(times,va_times) and num.allclose(latitudes,va_latitudes) and num.allclose(longitudes,va_longitudes) and num.allclose(elevation,va_elevation) and num.allclose(starttime,starttime_va), msg
 
@@ -404,11 +407,11 @@ class Test_Mux(unittest.TestCase):
 
         weights=num.ones(1, num.float)
         #ensure that files are indeed mux2 files
-        times, latitudes, longitudes, elevation, stage, starttime=read_mux2_py([files[0]],weights)
-        ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity, starttime_ua=read_mux2_py([files[1]],weights)
+        times, latitudes, longitudes, elevation, stage, starttime=read_mux2_py([files[0]], weights)
+        ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity, starttime_ua=read_mux2_py([files[1]], weights)
         msg='ha and ua have different gauge meta data'
         assert num.allclose(times,ua_times) and num.allclose(latitudes,ua_latitudes) and num.allclose(longitudes,ua_longitudes) and num.allclose(elevation,ua_elevation) and num.allclose(starttime,starttime_ua), msg
-        va_times, va_latitudes, va_longitudes, va_elevation, yvelocity,starttime_va=read_mux2_py([files[2]],weights)
+        va_times, va_latitudes, va_longitudes, va_elevation, yvelocity,starttime_va=read_mux2_py([files[2]], weights)
         msg='ha and va have different gauge meta data'
         assert num.allclose(times,va_times) and num.allclose(latitudes,va_latitudes) and num.allclose(longitudes,va_longitudes) and num.allclose(elevation,va_elevation) and num.allclose(starttime,starttime_va), msg
 
@@ -496,7 +499,7 @@ class Test_Mux(unittest.TestCase):
         # not recording
         for i in range(n):
              # For each point
-             for j in range(0, first_tstep[i]-1) + range(last_tstep[i], time_step_count):
+             for j in list(range(0, first_tstep[i]-1)) + list(range(last_tstep[i], time_step_count)):
                  # For timesteps before and after recording range
                  ha0[i][j] = ua0[i][j] = va0[i][j] = 0.0                                  
         
@@ -533,7 +536,7 @@ class Test_Mux(unittest.TestCase):
         OFFSET = 5
 
         for j, file in enumerate(filesI):
-            data = read_mux2(1, [file], weights, file_params, permutation, verbose)
+            data = read_mux2(1, [str(file).encode()], weights, file_params, permutation, verbose)
 
             number_of_selected_stations = data.shape[0]
 
@@ -546,8 +549,6 @@ class Test_Mux(unittest.TestCase):
                 if j == 2: assert num.allclose(data[i][:parameters_index], -va0[permutation[i], :])
         
         self.delete_mux(filesI)
-
-
         
         
     def test_read_mux_platform_problem2(self):
@@ -615,7 +616,7 @@ class Test_Mux(unittest.TestCase):
         # not recording
         for i in range(n):
              # For each point
-             for j in range(0, first_tstep[i]-1) + range(last_tstep[i], time_step_count):
+             for j in list(range(0, first_tstep[i]-1)) + list(range(last_tstep[i], time_step_count)):
                  # For timesteps before and after recording range
                  ha1[i][j] = ua1[i][j] = va1[i][j] = 0.0 
 
@@ -780,7 +781,7 @@ class Test_Mux(unittest.TestCase):
         for j, file in enumerate(filesII):
             # Read stage, u, v enumerated as j
             #print 'Reading', j, file
-            data = read_mux2(1, [file], weights, file_params, permutation, verbose)
+            data = read_mux2(1, [str(file).encode()], weights, file_params, permutation, verbose)
 
             #print 'Data received by Python'
             #print data[1][8]
@@ -906,8 +907,8 @@ ValueError: matrices are not aligned for copy
         # not recording
         for i in range(stations):
              # For each point
-             for j in range(0, first_tstep[i]-1) + range(last_tstep[i],
-                                                         time_step_count):
+             for j in list(range(0, first_tstep[i]-1)) + list(range(last_tstep[i],
+                                                         time_step_count)):
                  # For timesteps before and after recording range
                  ha1[i][j] = ua1[i][j] = va1[i][j] = 0.0 
 
@@ -1079,7 +1080,7 @@ ValueError: matrices are not aligned for copy
             # Read stage, u, v enumerated as j
             #print 'Reading', j, file
             #print "file", file
-            data = read_mux2(1, [file], weights, file_params,
+            data = read_mux2(1, [str(file).encode()], weights, file_params,
                              permutation, verbose)
             #print str(j) + "data", data
 
@@ -1156,7 +1157,7 @@ ValueError: matrices are not aligned for copy
         y = fid.variables['y'][:]
 
         geo_reference = Geo_reference(NetCDFObject=fid)
-        points = geo_reference.get_absolute(map(None, x, y))
+        points = geo_reference.get_absolute(list(zip(x, y)))
         points = ensure_numeric(points)
 
         x = points[:,0]
@@ -1233,7 +1234,7 @@ ValueError: matrices are not aligned for copy
         y = fid.variables['y'][:]
 
         geo_reference = Geo_reference(NetCDFObject=fid)
-        points = geo_reference.get_absolute(map(None, x, y))
+        points = geo_reference.get_absolute(list(zip(x, y)))
         points = ensure_numeric(points)
 
         x = points[:,0]
@@ -1360,7 +1361,7 @@ ValueError: matrices are not aligned for copy
         y = fid.variables['y'][:]
 
         geo_reference = Geo_reference(NetCDFObject=fid)
-        points = geo_reference.get_absolute(map(None, x, y))
+        points = geo_reference.get_absolute(list(zip(x, y)))
         points = ensure_numeric(points)
 
         x = points[:,0]
@@ -1477,7 +1478,7 @@ ValueError: matrices are not aligned for copy
         y = fid.variables['y'][:]
 
         geo_reference = Geo_reference(NetCDFObject=fid)
-        points = geo_reference.get_absolute(map(None, x, y))
+        points = geo_reference.get_absolute(list(zip(x, y)))
         points = ensure_numeric(points)
 
         x = points[:,0]
@@ -1501,11 +1502,17 @@ ValueError: matrices are not aligned for copy
         base_name, files = self.write_mux(lat_long_points,
                                           time_step_count, time_step)
         for file in files:
+
+            # Check contents first
+            mux_file = open(file, 'rb')
+            data = mux_file.read()
+            #print(data)
+
             urs = Read_urs(file)
             assert time_step_count == urs.time_step_count
             assert time_step == urs.time_step
 
-            for lat_lon, dep in map(None, lat_long_points, urs.lonlatdep):
+            for lat_lon, dep in zip(lat_long_points, urs.lonlatdep):
                     _ , e, n = redfearn(lat_lon[0], lat_lon[1])
                     assert num.allclose(n, dep[2])
                         
@@ -1513,7 +1520,7 @@ ValueError: matrices are not aligned for copy
             for slice in urs:
                 count += 1
                 #print slice
-                for lat_lon, quantity in map(None, lat_long_points, slice):
+                for lat_lon, quantity in zip(lat_long_points, slice):
                     _ , e, n = redfearn(lat_lon[0], lat_lon[1])
                     #print "quantity", quantity
                     #print "e", e

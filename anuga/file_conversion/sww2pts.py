@@ -1,4 +1,5 @@
 
+from builtins import range
 import numpy as num
 import os
 
@@ -77,7 +78,7 @@ def sww2pts(name_in, name_out=None,
         # sww files don't have to have a geo_ref
         try:
             geo_reference = Geo_reference(NetCDFObject=fid)
-        except AttributeError, e:
+        except AttributeError as e:
             geo_reference = Geo_reference() # Default georef object
 
         xllcorner = geo_reference.get_xllcorner()
@@ -117,7 +118,7 @@ def sww2pts(name_in, name_out=None,
 
     # Turn NetCDF objects into numeric arrays
     quantity_dict = {}
-    for name in fid.variables.keys():
+    for name in list(fid.variables.keys()):
         quantity_dict[name] = fid.variables[name][:]
 
     # Convert quantity expression to quantities found in sww file

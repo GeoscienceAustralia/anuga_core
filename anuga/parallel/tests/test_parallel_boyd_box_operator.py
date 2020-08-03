@@ -1,3 +1,8 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
+from future.utils import raise_
 import os.path
 import sys
 
@@ -18,21 +23,13 @@ warnings.simplefilter("ignore")
                             
 #from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
 
-
-#------------------------------------------
-# Import pypar without the initial output
-#------------------------------------------
-class NullStream:
-    def write(self,text):
-        pass
-sys.stdout = NullStream()
-import pypar
-sys.stdout = sys.__stdout__
-
+from anuga.utilities import parallel_abstraction as pypar
 
 from math import pi, pow, sqrt
 
 import numpy as num
+
+import anuga
 from anuga.parallel.parallel_inlet_operator import Parallel_Inlet_operator
 from anuga.parallel import distribute, myid, numprocs, finalize
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
@@ -66,7 +63,7 @@ def topography(x, y):
     A culvert will connect either side
     """
     # General Slope of Topography
-    z=-x/1000
+    z=old_div(-x,1000)
     
     N = len(x)
     for i in range(N):
@@ -109,8 +106,8 @@ def run_simulation(parallel = False, control_data = None, test_points = None, ve
 ## Setup domain
 ##-----------------------------------------------------------------------
 
-    points, vertices, boundary = rectangular_cross(int(length/dx),
-                                                   int(width/dy),
+    points, vertices, boundary = rectangular_cross(int(old_div(length,dx)),
+                                                   int(old_div(width,dy)),
                                                    len1=length, 
                                                    len2=width)
 
@@ -162,7 +159,7 @@ def run_simulation(parallel = False, control_data = None, test_points = None, ve
         except:
             tri_ids.append(-2)
 
-    if verbose: print 'P%d has points = %s' %(myid, tri_ids)
+    if verbose: print('P%d has points = %s' %(myid, tri_ids))
 
     if not parallel: control_data = []
 
@@ -192,7 +189,7 @@ def run_simulation(parallel = False, control_data = None, test_points = None, ve
     #if inlet1 is not None and verbose: inlet1.print_statistics()
     
     if boyd_box0 is not None and verbose:
-        print "++++", myid
+        print("++++", myid)
         boyd_box0.print_statistics()
 
 
@@ -211,7 +208,7 @@ def run_simulation(parallel = False, control_data = None, test_points = None, ve
 
         if boyd_box0 is not None and verbose :
             if myid == boyd_box0.master_proc:
-                print 'master_proc ',myid
+                print('master_proc ',myid)
                 boyd_box0.print_timestepping_statistics()
  
                     
@@ -241,7 +238,7 @@ def run_simulation(parallel = False, control_data = None, test_points = None, ve
             control_data.append(inlet0.inlet.get_total_water_volume())
             control_data.append(inlet0.inlet.get_average_depth())
 
-        if verbose: print 'P%d control_data = %s' %(myid, control_data)
+        if verbose: print('P%d control_data = %s' %(myid, control_data))
     else:  # parallel
         stage = domain.get_quantity('stage')
         
@@ -250,7 +247,7 @@ def run_simulation(parallel = False, control_data = None, test_points = None, ve
                 local_success = num.allclose(control_data[i], stage.centroid_values[tri_ids[i]])
                 success = success and local_success
                 if verbose: 
-                    print 'P%d tri %d, control = %s, actual = %s, Success = %s' %(myid, i, control_data[i], stage.centroid_values[tri_ids[i]], local_success) 
+                    print('P%d tri %d, control = %s, actual = %s, Success = %s' %(myid, i, control_data[i], stage.centroid_values[tri_ids[i]], local_success)) 
                 
                 
         if inlet0 is not None:
@@ -263,11 +260,11 @@ def run_simulation(parallel = False, control_data = None, test_points = None, ve
 
             if myid == inlet_master_proc:
                 if verbose: 
-                    print 'P%d average stage, control = %s, actual = %s' %(myid, control_data[samples], average_stage)
-                    print 'P%d average xmom, control = %s, actual = %s' %(myid, control_data[samples+1], average_xmom)
-                    print 'P%d average ymom, control = %s, actual = %s' %(myid, control_data[samples+2], average_ymom)
-                    print 'P%d average volume, control = %s, actual = %s' %(myid, control_data[samples+3], average_volume)
-                    print 'P%d average depth, control = %s, actual = %s' %(myid, control_data[samples+4], average_depth)
+                    print('P%d average stage, control = %s, actual = %s' %(myid, control_data[samples], average_stage))
+                    print('P%d average xmom, control = %s, actual = %s' %(myid, control_data[samples+1], average_xmom))
+                    print('P%d average ymom, control = %s, actual = %s' %(myid, control_data[samples+2], average_ymom))
+                    print('P%d average volume, control = %s, actual = %s' %(myid, control_data[samples+3], average_volume))
+                    print('P%d average depth, control = %s, actual = %s' %(myid, control_data[samples+4], average_depth))
 
         #assert(success)
 
@@ -282,8 +279,7 @@ class Test_parallel_boyd_box_operator(unittest.TestCase):
     def test_parallel_operator(self):
         #print "Expect this test to fail if not run from the parallel/test directory."
 
-        abs_script_name = os.path.abspath(__file__)
-        cmd = "mpirun -np %d python %s" % (nprocs, abs_script_name)
+        cmd = anuga.mpicmd(os.path.abspath(__file__))
         exitstatus = os.system(cmd)
         #exitstatus = mpi_cmd(nprocs, abs_script_name)
 
@@ -294,7 +290,7 @@ class Test_parallel_boyd_box_operator(unittest.TestCase):
 # 
 #     import subprocess
 # 
-#     cmd = "mpirun -v -np %d python %s" % (nprocs, script_name)
+#     cmd = "mpiexec -v -np %d python %s" % (nprocs, script_name)
 # 
 #     exitstatus = 0
 #     try:
@@ -316,7 +312,7 @@ class Test_parallel_boyd_box_operator(unittest.TestCase):
 def assert_(condition, msg="Assertion Failed"):
     if condition == False:
         #pypar.finalize()
-        raise AssertionError, msg
+        raise_(AssertionError, msg)
 
 if __name__=="__main__":
     if numprocs == 1:
@@ -326,11 +322,16 @@ if __name__=="__main__":
         runner.run(suite)
     else:
         #print "Running for numproc > 1"
+
+        from anuga.utilities.parallel_abstraction import global_except_hook
+        import sys
+        sys.excepthook = global_except_hook
+
         pypar.barrier()
         test_points = []
 
         if myid == 0:
-            if verbose: print 'PARALLEL START'
+            if verbose: print('PARALLEL START')
             random.seed(1001)
             for i in range(samples):
                 x = random.randrange(0,1000)/1000.0 * length
@@ -371,7 +372,7 @@ if __name__=="__main__":
         else:
             all_success= pypar.receive(0)
             
-        if verbose: print 'myid ',myid, 'all_success ',all_success
+        if verbose: print('myid ',myid, 'all_success ',all_success)
                       
         
         finalize()

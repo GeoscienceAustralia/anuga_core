@@ -1,11 +1,10 @@
-.. image:: https://travis-ci.org/GeoscienceAustralia/anuga_core.svg?branch=master
+.. image:: https://travis-ci.org/GeoscienceAustralia/anuga_core.svg?branch=anuga_py3
     :target: https://travis-ci.org/GeoscienceAustralia/anuga_core
     :alt: travis ci status
 
-.. image:: https://ci.appveyor.com/api/projects/status/ws836mwk6j5brrye/branch/master?svg=true
-    :target: https://ci.appveyor.com/project/stoiver/anuga-core/branch/master
+.. image:: https://ci.appveyor.com/api/projects/status/ws836mwk6j5brrye/branch/anuga_py3?svg=true
+    :target: https://ci.appveyor.com/project/stoiver/anuga-core/branch/anuga_py3
     :alt: appveyor status
-
 
 .. image:: https://img.shields.io/pypi/v/anuga.svg
     :target: https://pypi.python.org/pypi/anuga/
@@ -125,7 +124,11 @@ At the Australian National University:
 <stephen.roberts@anu.edu.au>
 
 At Geoscience Australia:
-
 **Gareth Davies**
 *Developer*
 <gareth.davies@ga.gov.au>
+
+ANUGA Community:
+**Ole Nielsen
+*Architect and Developer*
+<ole.moller.nielsen@gmail.com>

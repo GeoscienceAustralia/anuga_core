@@ -6,14 +6,15 @@
 #
 # Setup.py taken from scikit learn
 
-
+from future import standard_library
+standard_library.install_aliases()
+from builtins import filter
 descr = """A set of python modules for modelling the effect of tsunamis and flooding"""
 
 import sys
 import os
 import shutil
 from distutils.command.clean import clean as Clean
-
 
 if sys.version_info[0] < 3:
     import __builtin__ as builtins
@@ -47,10 +48,11 @@ VERSION = anuga.__version__
 
 
 
+# FIXME(Ole): If we need this, it should be using git now
 # Return the svn revision as a string
 def svn_revision():
 
-    return filter(str.isdigit, "$Revision$")
+    return ''.join(filter(str.isdigit, "$Revision$"))
 
 ###############################################################################
 # Optional setuptools features
@@ -71,12 +73,18 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
     extra_setuptools_args = dict(
         zip_safe=False,  # the package can run out of an .egg file
         include_package_data=True,
-		install_requires=['numpy', 
-                          'scipy', 
-                          'netcdf4',
-                          'matplotlib',
-                          'gdal',
-                          'nose']
+		install_requires=['nose',
+                                  'numpy',
+                                  'scipy',
+                                  'netcdf4',
+                                  'matplotlib',
+                                  'gdal',
+                                  'dill',
+                                  'cython',
+                                  'future',   # FIXME(Ole): Deprecate
+                                  #'openmp',   # FIXME - can't find this. Is it required at this level?
+                                  'mpi4py']                                  
+                                  
     )
 else:
     extra_setuptools_args = dict()
@@ -122,11 +130,11 @@ def configuration(parent_package='', top_path=None):
 
 
 def setup_package():
-    
+
     from anuga.utilities.system_tools import store_revision_info
-    
+
     store_revision_info(destination_path='anuga')
-    
+
     metadata = dict(name=DISTNAME,
                     maintainer=MAINTAINER,
                     maintainer_email=MAINTAINER_EMAIL,
@@ -159,7 +167,7 @@ def setup_package():
     metadata['configuration'] = configuration
 
     from numpy.distutils.core import setup
-    
+
     setup(**metadata)
 
 
@@ -167,4 +175,3 @@ if __name__ == "__main__":
 
 
     setup_package()
-    

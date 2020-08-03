@@ -8,9 +8,10 @@
 
 # Allow children to be slightly bigger than their parents to prevent
 # straddling of a boundary
+from builtins import object
 SPLIT_BORDER_RATIO    = 0.55
 
-class AABB:
+class AABB(object):
     """ Axially-aligned bounding box class.
         An axially aligned bounding box (or AABB) defines a box-shaped region
         of the plane which contains any other arbitrary geometry.

@@ -1,3 +1,4 @@
+from builtins import range
 import sys
 import unittest
 import numpy as num
@@ -65,9 +66,9 @@ NODATA_value  -9999
         #print 'sending elev', ref_elevation
         
         Z_ex = num.array(ref_elevation,num.float).reshape(12,11)
-	Z_ex = num.fliplr(Z_ex.T)
+        Z_ex = num.fliplr(Z_ex.T)
         
-	#Write prj file with metadata
+        #Write prj file with metadata
         metafilename = root+'.prj'
         fid = open(metafilename, 'w')
 

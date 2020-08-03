@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
 
+from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import unittest
 import os
 
@@ -65,7 +69,7 @@ class Test_riverwall_structure(unittest.TestCase):
                                    filename = 'testRiverwall.msh',
                                    interior_regions =[ ], #[ [higherResPolygon, 1.*1.*0.5],
                                                           #  [midResPolygon, 3.0*3.0*0.5]],
-                                   breaklines=riverWall.values(),
+                                   breaklines=list(riverWall.values()),
                                    use_cache=False,
                                    verbose=verbose,
                                    regionPtArea=regionPtAreas)
@@ -116,7 +120,7 @@ class Test_riverwall_structure(unittest.TestCase):
                                    filename = 'testRiverwall.msh',
                                    interior_regions =[ ], #[ [higherResPolygon, 1.*1.*0.5],
                                                           #  [midResPolygon, 3.0*3.0*0.5]],
-                                   breaklines=riverWall.values(),
+                                   breaklines=list(riverWall.values()),
                                    use_cache=False,
                                    verbose=verbose,
                                    regionPtArea=regionPtAreas)
@@ -164,7 +168,7 @@ class Test_riverwall_structure(unittest.TestCase):
         # Run the model for a few seconds, and check that no water has flowed past the riverwall 
         for t in domain.evolve(yieldstep=10.0,finaltime=10.0):
             if(verbose): 
-                print domain.timestepping_statistics()
+                print(domain.timestepping_statistics())
 
         # Indices landward of the riverwall
         landInds=(domain.centroid_coordinates[:,0]<50.).nonzero()[0]
@@ -173,7 +177,7 @@ class Test_riverwall_structure(unittest.TestCase):
         landVol=landVol.sum()
         
         if(verbose):
-            print 'Land Vol: ', landVol, 'theoretical vol: ', 0.
+            print('Land Vol: ', landVol, 'theoretical vol: ', 0.)
 
         assert numpy.allclose(landVol,0., atol=1.0e-12)
         
@@ -197,7 +201,7 @@ class Test_riverwall_structure(unittest.TestCase):
         ft=1.0e-03
         for t in domain.evolve(yieldstep=yst,finaltime=ft):
             if(verbose):
-                print domain.timestepping_statistics()
+                print(domain.timestepping_statistics())
 
         # Compare with theoretical result
         L= 100. # Length of riverwall
@@ -212,7 +216,7 @@ class Test_riverwall_structure(unittest.TestCase):
         landVol=landVol.sum()
 
         if(verbose):
-            print 'Land Vol: ', landVol, 'theoretical vol: ', theoretical_flux_vol
+            print('Land Vol: ', landVol, 'theoretical vol: ', theoretical_flux_vol)
 
         assert numpy.allclose(landVol,theoretical_flux_vol, rtol=1.0e-03)
     
@@ -247,7 +251,7 @@ class Test_riverwall_structure(unittest.TestCase):
         ft=1.0e-03
         for t in domain.evolve(yieldstep=yst,finaltime=ft):
             if(verbose):
-                print domain.timestepping_statistics()
+                print(domain.timestepping_statistics())
 
         # Compare with theoretical result
         L= 100. # Length of riverwall
@@ -265,7 +269,7 @@ class Test_riverwall_structure(unittest.TestCase):
         #pdb.set_trace()
         
         if(verbose):
-            print 'Land Vol: ', landVol, 'theoretical vol: ', theoretical_flux_vol
+            print('Land Vol: ', landVol, 'theoretical vol: ', theoretical_flux_vol)
 
         assert numpy.allclose(landVol,theoretical_flux_vol, rtol=1.0e-03)
 
@@ -298,7 +302,7 @@ class Test_riverwall_structure(unittest.TestCase):
         ft=1.0e-03
         for t in domain.evolve(yieldstep=yst,finaltime=ft):
             if(verbose):
-                print domain.timestepping_statistics()
+                print(domain.timestepping_statistics())
 
         # Compare with theoretical result
         L= 100. # Length of riverwall
@@ -309,7 +313,7 @@ class Test_riverwall_structure(unittest.TestCase):
         Q1=2./3.*H1*(2./3.*g*H1)**0.5
         Q2=2./3.*H2*(2./3.*g*H2)**0.5
 
-        theoretical_flux_vol=dt*L*Q1*(1.-Q2/Q1)**0.385
+        theoretical_flux_vol=dt*L*Q1*(1.-old_div(Q2,Q1))**0.385
 
         # Compute volume of water landward of riverwall
         FinalLandVol=domain.quantities['height'].centroid_values[landInds]*domain.areas[landInds]            
@@ -321,7 +325,7 @@ class Test_riverwall_structure(unittest.TestCase):
         #pdb.set_trace()
         
         if(verbose):
-            print 'Land Vol: ', landVol, 'theoretical vol: ', theoretical_flux_vol
+            print('Land Vol: ', landVol, 'theoretical vol: ', theoretical_flux_vol)
 
         assert numpy.allclose(landVol,theoretical_flux_vol, rtol=1.0e-03)
  
@@ -340,7 +344,7 @@ class Test_riverwall_structure(unittest.TestCase):
         # Run the model for a few seconds, and check that no water has flowed past the riverwall 
         for t in domain.evolve(yieldstep=10.0,finaltime=10.0):
             if(verbose): 
-                print domain.timestepping_statistics()
+                print(domain.timestepping_statistics())
 
         # Indices landward of the riverwall
         landInds=(domain.centroid_coordinates[:,0]<50.).nonzero()[0]
@@ -349,7 +353,7 @@ class Test_riverwall_structure(unittest.TestCase):
         landVol=landVol.sum()
         
         if(verbose):
-            print 'Land Vol: ', landVol, 'theoretical vol: ', 0.
+            print('Land Vol: ', landVol, 'theoretical vol: ', 0.)
 
         assert numpy.allclose(landVol,0., atol=1.0e-12)
         
@@ -373,7 +377,7 @@ class Test_riverwall_structure(unittest.TestCase):
         ft=1.0e-03
         for t in domain.evolve(yieldstep=yst,finaltime=ft):
             if(verbose):
-                print domain.timestepping_statistics()
+                print(domain.timestepping_statistics())
 
         # Compare with theoretical result
         L= 100. # Length of riverwall
@@ -388,7 +392,7 @@ class Test_riverwall_structure(unittest.TestCase):
         landVol=landVol.sum()
 
         if(verbose):
-            print 'Land Vol: ', landVol, 'theoretical vol: ', theoretical_flux_vol
+            print('Land Vol: ', landVol, 'theoretical vol: ', theoretical_flux_vol)
 
         assert numpy.allclose(landVol,theoretical_flux_vol, rtol=1.0e-03)
     
@@ -423,7 +427,7 @@ class Test_riverwall_structure(unittest.TestCase):
         ft=1.0e-03
         for t in domain.evolve(yieldstep=yst,finaltime=ft):
             if(verbose):
-                print domain.timestepping_statistics()
+                print(domain.timestepping_statistics())
 
         # Compare with theoretical result
         L= 100. # Length of riverwall
@@ -441,7 +445,7 @@ class Test_riverwall_structure(unittest.TestCase):
         #pdb.set_trace()
         
         if(verbose):
-            print 'Land Vol: ', landVol, 'theoretical vol: ', theoretical_flux_vol
+            print('Land Vol: ', landVol, 'theoretical vol: ', theoretical_flux_vol)
 
         assert numpy.allclose(landVol,theoretical_flux_vol, rtol=1.0e-03)
 
@@ -474,7 +478,7 @@ class Test_riverwall_structure(unittest.TestCase):
         ft=1.0e-03
         for t in domain.evolve(yieldstep=yst,finaltime=ft):
             if(verbose):
-                print domain.timestepping_statistics()
+                print(domain.timestepping_statistics())
 
         # Compare with theoretical result
         L= 100. # Length of riverwall
@@ -485,7 +489,7 @@ class Test_riverwall_structure(unittest.TestCase):
         Q1=2./3.*H1*(2./3.*g*H1)**0.5
         Q2=2./3.*H2*(2./3.*g*H2)**0.5
 
-        theoretical_flux_vol=dt*L*Q1*(1.-Q2/Q1)**0.385
+        theoretical_flux_vol=dt*L*Q1*(1.-old_div(Q2,Q1))**0.385
 
         # Compute volume of water landward of riverwall
         FinalLandVol=domain.quantities['height'].centroid_values[landInds]*domain.areas[landInds]            
@@ -497,7 +501,7 @@ class Test_riverwall_structure(unittest.TestCase):
         #pdb.set_trace()
         
         if(verbose):
-            print 'Land Vol: ', landVol, 'theoretical vol: ', theoretical_flux_vol
+            print('Land Vol: ', landVol, 'theoretical vol: ', theoretical_flux_vol)
 
         assert numpy.allclose(landVol,theoretical_flux_vol, rtol=1.0e-03)
     
@@ -533,7 +537,7 @@ class Test_riverwall_structure(unittest.TestCase):
        
         domain=self.create_domain_DE1(wallHeight,InitialOceanStage, InitialLandStage) 
 
-        allVertices=numpy.array(range(len(domain.vertex_coordinates)))
+        allVertices=numpy.array(list(range(len(domain.vertex_coordinates))))
         boundaryFlag=domain.riverwallData.is_vertex_on_boundary(allVertices)
         boundaryVerts=boundaryFlag.nonzero()[0].tolist()
 
@@ -593,7 +597,7 @@ class Test_riverwall_structure(unittest.TestCase):
         ft=1.0e-03
         for t in domain.evolve(yieldstep=yst,finaltime=ft):
             if(verbose):
-                print domain.timestepping_statistics()
+                print(domain.timestepping_statistics())
 
         # Compare with theoretical result
         L= 100. # Length of riverwall
@@ -608,7 +612,7 @@ class Test_riverwall_structure(unittest.TestCase):
         landVol=landVol.sum()
 
         if(verbose):
-            print 'Land Vol: ', landVol, 'theoretical vol: ', theoretical_flux_vol
+            print('Land Vol: ', landVol, 'theoretical vol: ', theoretical_flux_vol)
 
         assert numpy.allclose(landVol,theoretical_flux_vol, rtol=1.0e-03)
 

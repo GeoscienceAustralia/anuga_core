@@ -1,16 +1,30 @@
 #!/usr/bin/env python
 
 """Polygon manipulations"""
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
 
+from .polygon_ext import _is_inside_triangle
+from .polygon_ext import _interpolate_polyline
+from .polygon_ext import _line_intersect
+from .polygon_ext import _polygon_overlap
+from .polygon_ext import _separate_points_by_polygon
+from .polygon_ext import _point_on_line
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from future.utils import raise_
 import numpy as num
 import math
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.geospatial_data.geospatial_data import ensure_absolute, \
-                                                    Geospatial_data
+    Geospatial_data
 import anuga.utilities.log as log
 
-from aabb import AABB
+from .aabb import AABB
+
 
 def point_on_line(point, line, rtol=1.0e-5, atol=1.0e-8):
     """Determine whether a point is on a line segment
@@ -45,50 +59,60 @@ def point_on_line(point, line, rtol=1.0e-5, atol=1.0e-8):
 # result functions for possible states
 def lines_dont_coincide(p0, p1, p2, p3):
     return (3, None)
-    
+
+
 def lines_0_fully_included_in_1(p0, p1, p2, p3):
     return (2, num.array([p0, p1]))
-    
+
+
 def lines_1_fully_included_in_0(p0, p1, p2, p3):
     return (2, num.array([p2, p3]))
-    
+
+
 def lines_overlap_same_direction(p0, p1, p2, p3):
     return (2, num.array([p0, p3]))
-    
+
+
 def lines_overlap_same_direction2(p0, p1, p2, p3):
     return (2, num.array([p2, p1]))
-    
+
+
 def lines_overlap_opposite_direction(p0, p1, p2, p3):
     return (2, num.array([p0, p2]))
-    
+
+
 def lines_overlap_opposite_direction2(p0, p1, p2, p3):
     return (2, num.array([p3, p1]))
 
 # this function called when an impossible state is found
+
+
 def lines_error(p1, p2, p3, p4):
-    raise RuntimeError, ('INTERNAL ERROR: p1=%s, p2=%s, p3=%s, p4=%s'
-                         % (str(p1), str(p2), str(p3), str(p4)))
+    raise RuntimeError('INTERNAL ERROR: p1=%s, p2=%s, p3=%s, p4=%s'
+                       % (str(p1), str(p2), str(p3), str(p4)))
+
 
 collinear_result = {
-# line 0 starts on 1, 0 ends 1, 1 starts 0, 1 ends 0
-#       0s1    0e1    1s0    1e0   
-       (False, False, False, False): lines_dont_coincide,
-       (False, False, False, True ): lines_error,
-       (False, False, True,  False): lines_error,
-       (False, False, True,  True ): lines_1_fully_included_in_0,
-       (False, True,  False, False): lines_error,
-       (False, True,  False, True ): lines_overlap_opposite_direction2,
-       (False, True,  True,  False): lines_overlap_same_direction2,
-       (False, True,  True,  True ): lines_1_fully_included_in_0,
-       (True,  False, False, False): lines_error,
-       (True,  False, False, True ): lines_overlap_same_direction,
-       (True,  False, True,  False): lines_overlap_opposite_direction,
-       (True,  False, True,  True ): lines_1_fully_included_in_0,
-       (True,  True,  False, False): lines_0_fully_included_in_1,
-       (True,  True,  False, True ): lines_0_fully_included_in_1,
-       (True,  True,  True,  False): lines_0_fully_included_in_1,
-       (True,  True,  True,  True ): lines_0_fully_included_in_1
-   }
+    # line 0 starts on 1, 0 ends 1, 1 starts 0, 1 ends 0
+    #       0s1    0e1    1s0    1e0
+    (False, False, False, False): lines_dont_coincide,
+    (False, False, False, True): lines_error,
+    (False, False, True,  False): lines_error,
+    (False, False, True,  True): lines_1_fully_included_in_0,
+    (False, True,  False, False): lines_error,
+    (False, True,  False, True): lines_overlap_opposite_direction2,
+    (False, True,  True,  False): lines_overlap_same_direction2,
+    (False, True,  True,  True): lines_1_fully_included_in_0,
+    (True,  False, False, False): lines_error,
+    (True,  False, False, True): lines_overlap_same_direction,
+    (True,  False, True,  False): lines_overlap_opposite_direction,
+    (True,  False, True,  True): lines_1_fully_included_in_0,
+    (True,  True,  False, False): lines_0_fully_included_in_1,
+    (True,  True,  False, True): lines_0_fully_included_in_1,
+    (True,  True,  True,  False): lines_0_fully_included_in_1,
+    (True,  True,  True,  True): lines_0_fully_included_in_1
+}
+
 
 def intersection(line0, line1, rtol=1.0e-5, atol=1.0e-8):
     """Returns intersecting point between two line segments.
@@ -116,11 +140,15 @@ def intersection(line0, line1, rtol=1.0e-5, atol=1.0e-8):
     line0 = ensure_numeric(line0, num.float)
     line1 = ensure_numeric(line1, num.float)
 
-    x0 = line0[0, 0]; y0 = line0[0, 1]
-    x1 = line0[1, 0]; y1 = line0[1, 1]
+    x0 = line0[0, 0]
+    y0 = line0[0, 1]
+    x1 = line0[1, 0]
+    y1 = line0[1, 1]
 
-    x2 = line1[0, 0]; y2 = line1[0, 1]
-    x3 = line1[1, 0]; y3 = line1[1, 1]
+    x2 = line1[0, 0]
+    y2 = line1[0, 1]
+    x3 = line1[1, 0]
+    y3 = line1[1, 1]
 
     denom = (y3-y2)*(x1-x0) - (x3-x2)*(y1-y0)
     u0 = (x3-x2)*(y0-y2) - (y3-y2)*(x0-x2)
@@ -131,19 +159,21 @@ def intersection(line0, line1, rtol=1.0e-5, atol=1.0e-8):
         if num.allclose([u0, u1], 0.0, rtol=rtol, atol=atol):
             # We now know that the lines are collinear
             state_tuple = (point_on_line([x0, y0], line1, rtol=rtol, atol=atol),
-                           point_on_line([x1, y1], line1, rtol=rtol, atol=atol),
-                           point_on_line([x2, y2], line0, rtol=rtol, atol=atol),
+                           point_on_line([x1, y1], line1,
+                                         rtol=rtol, atol=atol),
+                           point_on_line([x2, y2], line0,
+                                         rtol=rtol, atol=atol),
                            point_on_line([x3, y3], line0, rtol=rtol, atol=atol))
-	    #print state_tuple
+            # print state_tuple
             return collinear_result[state_tuple]([x0, y0], [x1, y1],
                                                  [x2, y2], [x3, y3])
         else:
             # Lines are parallel but aren't collinear
-            return 4, None #FIXME (Ole): Add distance here instead of None
+            return 4, None  # FIXME (Ole): Add distance here instead of None
     else:
         # Lines are not parallel, check if they intersect
-        u0 = u0/denom
-        u1 = u1/denom
+        u0 = old_div(u0, denom)
+        u1 = old_div(u1, denom)
 
         x = x0 + u0*(x1-x0)
         y = y0 + u0*(y1-y0)
@@ -159,6 +189,7 @@ def intersection(line0, line1, rtol=1.0e-5, atol=1.0e-8):
         else:
             # No intersection
             return 0, None
+
 
 def NEW_C_intersection(line0, line1):
     """Returns intersecting point between two line segments.
@@ -191,41 +222,46 @@ def NEW_C_intersection(line0, line1):
 
     return status, value
 
+
 def polygon_overlap(triangles, polygon, verbose=False):
     """Determine if a polygon and triangle overlap
 
     """
     polygon = ensure_numeric(polygon)
     triangles = ensure_numeric(triangles)
-    
-    M = triangles.shape[0]/3  # Number of triangles
+
+    M = old_div(triangles.shape[0], 3)  # Number of triangles
 
     indices = num.zeros(M, num.int)
 
     count = _polygon_overlap(polygon, triangles, indices)
 
     if verbose:
-        log.critical('Found %d triangles (out of %d) that polygon' % (count, M))
+        log.critical('Found %d triangles (out of %d) that polygon' %
+                     (count, M))
 
     return indices[:count]
-    
+
+
 def not_polygon_overlap(triangles, polygon, verbose=False):
     """Determine if a polygon and triangle overlap
 
     """
     polygon = ensure_numeric(polygon)
     triangles = ensure_numeric(triangles)
-    
-    M = triangles.shape[0]/3  # Number of triangles
+
+    M = old_div(triangles.shape[0], 3)  # Number of triangles
 
     indices = num.zeros(M, num.int)
 
     count = _polygon_overlap(polygon, triangles, indices)
 
     if verbose:
-        log.critical('Found %d triangles (out of %d) that polygon' % (count, M))
+        log.critical('Found %d triangles (out of %d) that polygon' %
+                     (count, M))
 
-    return indices[count:]    
+    return indices[count:]
+
 
 def line_intersect(triangles, line, verbose=False):
     """Determine which of a list of trianglee intersect a line
@@ -233,15 +269,16 @@ def line_intersect(triangles, line, verbose=False):
     """
     line = ensure_numeric(line)
     triangles = ensure_numeric(triangles)
-    
-    M = triangles.shape[0]/3  # Number of triangles
+
+    M = old_div(triangles.shape[0], 3)  # Number of triangles
 
     indices = num.zeros(M, num.int)
 
     count = _line_intersect(line, triangles, indices)
 
     if verbose:
-        log.critical('Found %d triangles (out of %d) that intersect line' % (count, M))
+        log.critical(
+            'Found %d triangles (out of %d) that intersect line' % (count, M))
 
     return indices[:count]
 
@@ -249,86 +286,88 @@ def line_intersect(triangles, line, verbose=False):
 def line_length(line):
     """Determine the length of the line
     """
-    
+
     l12 = line[1]-line[0]
 
-    return math.sqrt(num.dot(l12,l12))
-    
+    return math.sqrt(num.dot(l12, l12))
+
+
 def not_line_intersect(triangles, line, verbose=False):
     """Determine if a polyline and triangle overlap
 
     """
     line = ensure_numeric(line)
     triangles = ensure_numeric(triangles)
-    
-    M = triangles.shape[0]/3  # Number of triangles
+
+    M = old_div(triangles.shape[0], 3)  # Number of triangles
 
     indices = num.zeros(M, num.int)
 
     count = _line_intersect(line, triangles, indices)
 
     if verbose:
-        log.critical('Found %d triangles (out of %d) that intersect the line' % (count, M))
+        log.critical(
+            'Found %d triangles (out of %d) that intersect the line' % (count, M))
 
-    return indices[count:]    
-    
+    return indices[count:]
 
-def is_inside_triangle(point, triangle, 
-                       closed=True, 
+
+def is_inside_triangle(point, triangle,
+                       closed=True,
                        rtol=1.0e-12,
-                       atol=1.0e-12,                      
+                       atol=1.0e-12,
                        check_inputs=True):
     """Determine if one point is inside a triangle
-    
+
     This uses the barycentric method:
-    
+
     Triangle is A, B, C
     Point P can then be written as
-    
+
     P = A + alpha * (C-A) + beta * (B-A)
     or if we let 
     v=P-A, v0=C-A, v1=B-A    
-    
+
     v = alpha*v0 + beta*v1 
 
     Dot this equation by v0 and v1 to get two:
-    
+
     dot(v0, v) = alpha*dot(v0, v0) + beta*dot(v0, v1)
     dot(v1, v) = alpha*dot(v1, v0) + beta*dot(v1, v1)    
-    
+
     or if a_ij = dot(v_i, v_j) and b_i = dot(v_i, v)
     the matrix equation:
-    
+
     a_00 a_01   alpha     b_0
                        = 
     a_10 a_11   beta      b_1
-    
+
     Solving for alpha and beta yields:
-    
+
     alpha = (b_0*a_11 - b_1*a_01)/denom
     beta =  (b_1*a_00 - b_0*a_10)/denom
-    
+
     with denom = a_11*a_00 - a_10*a_01
-    
+
     The point is in the triangle whenever
     alpha and beta and their sums are in the unit interval.
-    
+
     rtol and atol will determine how close the point has to be to the edge
     before it is deemed to be on the edge.
-    
+
     """
 
-    triangle = ensure_numeric(triangle)        
-    point = ensure_numeric(point, num.float)    
-    
+    triangle = ensure_numeric(triangle)
+    point = ensure_numeric(point, num.float)
+
     if check_inputs is True:
         msg = 'is_inside_triangle must be invoked with one point only'
         assert num.allclose(point.shape, [2]), msg
-    
-    
+
     # Use C-implementation
     return bool(_is_inside_triangle(point, triangle, int(closed), rtol, atol))
-    
+
+
 def is_complex(polygon, closed=True, verbose=False):
     """Check if a polygon is complex (self-intersecting).
        Uses a sweep algorithm that is O(n^2) in the worst case, but
@@ -336,21 +375,22 @@ def is_complex(polygon, closed=True, verbose=False):
 
        polygon is a list of points that define a closed polygon.
        verbose will print a list of the intersection points if true
-       
+
        Return True if polygon is complex.
-    """            
-            
+    """
+
     def key_xpos(item):
         """ Return the x coord out of the passed point for sorting key. """
         return (item[0][0])
-    
+
     def segments_joined(seg0, seg1):
         """ See if there are identical segments in the 2 lists. """
         for i in seg0:
-            for j in seg1:    
-                if i == j: return True
+            for j in seg1:
+                if i == j:
+                    return True
         return False
-        
+
     polygon = ensure_numeric(polygon, num.float)
 
     # build a list of discrete segments from the polygon
@@ -360,16 +400,16 @@ def is_complex(polygon, closed=True, verbose=False):
 
     if closed:
         unsorted_segs.append([list(polygon[0]), list(polygon[-1])])
-    
+
     # all segments must point in same direction
     for val in unsorted_segs:
         if val[0][0] > val[1][0]:
-            val[0], val[1] = val[1], val[0]    
-            
+            val[0], val[1] = val[1], val[0]
+
     l_x = sorted(unsorted_segs, key=key_xpos)
 
     comparisons = 0
-    
+
     # loop through, only comparing lines that partially overlap in x
     for index, leftmost in enumerate(l_x):
         cmp = index+1
@@ -377,17 +417,17 @@ def is_complex(polygon, closed=True, verbose=False):
             if not segments_joined(leftmost, l_x[cmp]):
                 (type, point) = intersection(leftmost, l_x[cmp])
                 comparisons += 1
-                if type != 0 and type != 4 and type != 3 or (type == 2 and list(point[0]) !=\
-                                                list(point[1])):
+                if type != 0 and type != 4 and type != 3 or (type == 2 and list(point[0]) !=
+                                                             list(point[1])):
                     if verbose:
-                        print 'Self-intersecting polygon found, type ', type
-                        print 'point', point,
-                        print 'vertices: ', leftmost, ' - ', l_x[cmp]  
-                    return True            
+                        print('Self-intersecting polygon found, type ', type)
+                        print('point', point, end=' ')
+                        print('vertices: ', leftmost, ' - ', l_x[cmp])
+                    return True
             cmp += 1
-        
+
     return False
-    
+
 
 def is_inside_polygon(point, polygon, closed=True, verbose=False):
     """Determine if one point is inside a polygon
@@ -405,6 +445,7 @@ def is_inside_polygon(point, polygon, closed=True, verbose=False):
         msg = 'is_inside_polygon must be invoked with one point only'
         raise Exception(msg)
 
+
 def inside_polygon(points, polygon, closed=True, verbose=False):
     """Determine points inside a polygon
 
@@ -420,29 +461,28 @@ def inside_polygon(points, polygon, closed=True, verbose=False):
 
     try:
         points = ensure_absolute(points)
-    except NameError, err:
-        raise NameError, err
+    except NameError as err:
+        raise_(NameError, err)
     except:
         # If this fails it is going to be because the points can't be
         # converted to a numeric array.
-        msg = 'Points could not be converted to numeric array' 
-        raise Exception, msg
-
+        msg = 'Points could not be converted to numeric array'
+        raise_(Exception, msg)
 
     try:
         polygon = ensure_absolute(polygon)
-    except NameError, e:
-        raise NameError, e
+    except NameError as e:
+        raise_(NameError, e)
     except:
         # If this fails it is going to be because the points can't be
         # converted to a numeric array.
         msg = ('Polygon %s could not be converted to numeric array'
                % (str(polygon)))
-        raise Exception, msg
+        raise_(Exception, msg)
 
     if len(points.shape) == 1:
         # Only one point was passed in. Convert to array of points
-        points = num.reshape(points, (1,2))
+        points = num.reshape(points, (1, 2))
 
     indices, count = separate_points_by_polygon(points, polygon,
                                                 closed=closed,
@@ -450,6 +490,7 @@ def inside_polygon(points, polygon, closed=True, verbose=False):
 
     # Return indices of points inside polygon
     return indices[:count]
+
 
 def is_outside_polygon(point, polygon, closed=True, verbose=False,
                        points_geo_ref=None, polygon_geo_ref=None):
@@ -466,9 +507,10 @@ def is_outside_polygon(point, polygon, closed=True, verbose=False,
         return False
     else:
         msg = 'is_outside_polygon must be invoked with one point only'
-        raise Exception, msg
+        raise_(Exception, msg)
 
-def outside_polygon(points, polygon, closed = True, verbose = False):
+
+def outside_polygon(points, polygon, closed=True, verbose=False):
     """Determine points outside a polygon
 
        Functions inside_polygon and outside_polygon have been defined in
@@ -480,19 +522,19 @@ def outside_polygon(points, polygon, closed = True, verbose = False):
 
     try:
         points = ensure_numeric(points, num.float)
-    except NameError, e:
-        raise NameError, e
+    except NameError as e:
+        raise_(NameError, e)
     except:
         msg = 'Points could not be converted to numeric array'
-        raise Exception, msg
+        raise_(Exception, msg)
 
     try:
         polygon = ensure_numeric(polygon, num.float)
-    except NameError, e:
-        raise NameError, e
+    except NameError as e:
+        raise_(NameError, e)
     except:
         msg = 'Polygon could not be converted to numeric array'
-        raise Exception, msg
+        raise_(Exception, msg)
 
     if len(points.shape) == 1:
         # Only one point was passed in. Convert to array of points
@@ -507,7 +549,8 @@ def outside_polygon(points, polygon, closed = True, verbose = False):
         # No points are outside
         return num.array([])
     else:
-        return indices[count:][::-1]  #return reversed
+        return indices[count:][::-1]  # return reversed
+
 
 def in_and_outside_polygon(points, polygon, closed=True, verbose=False):
     """Determine points inside and outside a polygon
@@ -519,19 +562,19 @@ def in_and_outside_polygon(points, polygon, closed=True, verbose=False):
 
     try:
         points = ensure_numeric(points, num.float)
-    except NameError, e:
-        raise NameError, e
+    except NameError as e:
+        raise_(NameError, e)
     except:
         msg = 'Points could not be converted to numeric array'
-        raise Exception, msg
+        raise_(Exception, msg)
 
     try:
         polygon = ensure_numeric(polygon, num.float)
-    except NameError, e:
-        raise NameError, e
+    except NameError as e:
+        raise_(NameError, e)
     except:
         msg = 'Polygon could not be converted to numeric array'
-        raise Exception, msg
+        raise_(Exception, msg)
 
     if len(points.shape) == 1:
         # Only one point was passed in. Convert to array of points
@@ -547,12 +590,11 @@ def in_and_outside_polygon(points, polygon, closed=True, verbose=False):
         # No points are outside
         return indices[:count], []
     else:
-        return  indices[:count], indices[count:][::-1]  #return reversed
-
+        return indices[:count], indices[count:][::-1]  # return reversed
 
 
 def separate_points_by_polygon(points, polygon,
-                               closed=True, 
+                               closed=True,
                                check_input=True,
                                verbose=False):
     """Determine whether points are inside or outside a polygon
@@ -596,23 +638,23 @@ def separate_points_by_polygon(points, polygon,
     """
 
     if check_input:
-        #Input checks
+        # Input checks
         assert isinstance(closed, bool), \
-                    'Keyword argument "closed" must be boolean'
+            'Keyword argument "closed" must be boolean'
         assert isinstance(verbose, bool), \
-                    'Keyword argument "verbose" must be boolean'
+            'Keyword argument "verbose" must be boolean'
 
         try:
             points = ensure_numeric(points, num.float)
-        except NameError, e:
-            raise NameError, e
+        except NameError as e:
+            raise_(NameError, e)
         except:
             msg = 'Points could not be converted to numeric array'
             raise Exception(msg)
 
         try:
             polygon = ensure_numeric(polygon, num.float)
-        except NameError, e:
+        except NameError as e:
             raise NameError(e)
         except:
             msg = 'Polygon could not be converted to numeric array'
@@ -621,9 +663,8 @@ def separate_points_by_polygon(points, polygon,
         msg = 'Polygon array must be a 2d array of vertices'
         assert len(polygon.shape) == 2, msg
 
-        msg = 'Polygon array must have two columns' 
+        msg = 'Polygon array must have two columns'
         assert polygon.shape[1] == 2, msg
-
 
         msg = ('Points array must be 1 or 2 dimensional. '
                'I got %d dimensions' % len(points.shape))
@@ -632,12 +673,11 @@ def separate_points_by_polygon(points, polygon,
         if len(points.shape) == 1:
             # Only one point was passed in.  Convert to array of points.
             points = num.reshape(points, (1, 2))
-    
+
             msg = ('Point array must have two columns (x,y), '
                    'I got points.shape[1]=%d' % points.shape[0])
-            assert points.shape[1]==2, msg
+            assert points.shape[1] == 2, msg
 
-       
             msg = ('Points array must be a 2d array. I got %s.'
                    % str(points[:30]))
             assert len(points.shape) == 2, msg
@@ -645,7 +685,7 @@ def separate_points_by_polygon(points, polygon,
             msg = 'Points array must have two columns'
             assert points.shape[1] == 2, msg
 
-    N = polygon.shape[0] # Number of vertices in polygon
+    N = polygon.shape[0]  # Number of vertices in polygon
     M = points.shape[0]  # Number of points
 
     indices = num.zeros(M, num.int)
@@ -663,7 +703,7 @@ def polygon_area(input_polygon):
     """ Determine area of arbitrary polygon.
 
         input_polygon The polygon to get area of.
-        
+
         return A scalar value for the polygon area.
 
         Reference:     http://mathworld.wolfram.com/PolygonArea.html
@@ -691,7 +731,7 @@ def polygon_area(input_polygon):
         yi = pti[1]
         poly_area += xi*yi1 - xi1*yi
 
-    return abs(poly_area/2)
+    return abs(old_div(poly_area, 2))
 
 
 def plot_polygons(polygons_points,
@@ -721,22 +761,17 @@ def plot_polygons(polygons_points,
 
     - plot of polygons
     """
-       
-
 
     try:
         import matplotlib
         matplotlib.use('Agg')
-        from matplotlib.pyplot import hold, plot, savefig, xlabel, \
-                    ylabel, title, close, title, fill
+        from matplotlib.pyplot import plot, savefig, xlabel, \
+            ylabel, title, close, title, fill
     except:
         return
 
     assert type(polygons_points) == list, \
-                'input must be a list of polygons and/or points'
-
-    #ion()
-    hold(True)
+        'input must be a list of polygons and/or points'
 
     if label is None:
         label = ''
@@ -783,9 +818,6 @@ def plot_polygons(polygons_points,
     else:
         savefig('test_image')
 
-    #ioff()
-    hold(False)
-    
     close('all')
 
 
@@ -802,15 +834,15 @@ def _poly_xy(polygon):
 
     try:
         polygon = ensure_numeric(polygon, num.float)
-    except NameError, err:
-        raise NameError, err
+    except NameError as err:
+        raise_(NameError, err)
     except:
         msg = ('Polygon %s could not be converted to numeric array'
                % (str(polygon)))
-        raise Exception, msg
+        raise_(Exception, msg)
 
-    pts_x = num.concatenate((polygon[:, 0], [polygon[0, 0]]), axis = 0)
-    pts_y = num.concatenate((polygon[:, 1], [polygon[0, 1]]), axis = 0)
+    pts_x = num.concatenate((polygon[:, 0], [polygon[0, 0]]), axis=0)
+    pts_y = num.concatenate((polygon[:, 1], [polygon[0, 1]]), axis=0)
 
     return pts_x, pts_y
 
@@ -842,15 +874,15 @@ def read_polygon(filename, delimiter=',', closed=True, verbose=False):
     for line in lines:
         fields = line.split(delimiter)
         polygon.append([float(fields[0]), float(fields[1])])
-    
+
     # check this is a valid polygon (polyline).
     if is_complex(polygon, closed, verbose=verbose):
         msg = 'ERROR: Self-intersecting polygon detected in file '
-        msg += filename +'. A complex polygon will not '
+        msg += filename + '. A complex polygon will not '
         msg += 'necessarily break the algorithms within ANUGA, but it'
         msg += 'usually signifies pathological data. Please fix this file.'
-        raise Exception, msg
-    
+        raise_(Exception, msg)
+
     return polygon
 
 
@@ -895,7 +927,7 @@ def populate_polygon(polygon, number_of_points, seed=None, exclude=None):
 
     # Find outer extent of polygon
     extents = AABB(polygon)
-    
+
     while len(points) < number_of_points:
         rand_x = uniform(extents.xmin, extents.xmax)
         rand_y = uniform(extents.ymin, extents.ymax)
@@ -904,7 +936,7 @@ def populate_polygon(polygon, number_of_points, seed=None, exclude=None):
         if is_inside_polygon([rand_x, rand_y], polygon):
             append = True
 
-            #Check exclusions
+            # Check exclusions
             if exclude is not None:
                 for ex_poly in exclude:
                     if is_inside_polygon([rand_x, rand_y], ex_poly):
@@ -931,7 +963,7 @@ def point_in_polygon(polygon, delta=1e-8):
     """
 
     polygon = ensure_numeric(polygon)
-    
+
     while True:
         for poly_point in polygon:
             for x_mult in range(-1, 2):
@@ -970,33 +1002,33 @@ def number_mesh_triangles(interior_regions, bounding_poly, remainder_res):
     log.info('Polygon  Max triangle area (m^2)  Total area (km^2)  '
              'Estimated #triangles')
     log.info('-' * 80)
-        
+
     no_triangles = 0.0
     area = polygon_area(bounding_poly)
 
     for poly, resolution in interior_regions:
         this_area = polygon_area(poly)
-        this_triangles = this_area/resolution
+        this_triangles = old_div(this_area, resolution)
         no_triangles += this_triangles
         area -= this_area
 
         log.info('Interior %s%s%d'
                  % (('%.0f' % resolution).ljust(25),
-                    ('%.2f' % (this_area/1000000)).ljust(19), 
+                    ('%.2f' % (old_div(this_area, 1000000))).ljust(19),
                     this_triangles))
 
-    bound_triangles = area/remainder_res
+    bound_triangles = old_div(area, remainder_res)
     no_triangles += bound_triangles
 
     log.info('Bounding %s%s%d'
              % (('%.0f' % remainder_res).ljust(25),
-                ('%.2f' % (area/1000000)).ljust(19),
+                ('%.2f' % (old_div(area, 1000000))).ljust(19),
                 bound_triangles))
 
     total_number_of_triangles = no_triangles/0.7
 
     log.info('Estimated total number of triangles: %d'
-                 % total_number_of_triangles)
+             % total_number_of_triangles)
     log.info('Note: This is generally about 20% less than the final amount')
 
     return int(total_number_of_triangles)
@@ -1066,7 +1098,7 @@ def interpolate_polyline(data,
 
     if isinstance(interpolation_points, Geospatial_data):
         interpolation_points = interpolation_points.\
-                                    get_data_points(absolute=True)
+            get_data_points(absolute=True)
 
     interpolated_values = num.zeros(len(interpolation_points), num.float)
 
@@ -1090,7 +1122,7 @@ def interpolate_polyline(data,
     if num_nodes == 1:
         assert_msg = 'Polyline contained only one point. I need more. '
         assert_msg += str(data)
-        raise Exception, assert_msg
+        raise_(Exception, assert_msg)
     elif num_nodes > 1:
         _interpolate_polyline(data,
                               polyline_nodes,
@@ -1100,14 +1132,13 @@ def interpolate_polyline(data,
                               rtol,
                               atol)
 
-
     return interpolated_values
 
-    
+
 def polylist2points_verts(polylist):
     """ Convert a list of polygons to discrete points and vertices.
     """
-    
+
     offset = 0
     points = []
     vertices = []
@@ -1115,7 +1146,7 @@ def polylist2points_verts(polylist):
         points.extend(poly)
         vertices.extend([[i, i+1] for i in range(offset, offset+len(poly)-1)])
         offset += len(poly)
-		
+
     return points, vertices
 
 
@@ -1123,15 +1154,7 @@ def polylist2points_verts(polylist):
 # Initialise module
 ################################################################################
 
-from polygon_ext import _point_on_line
-from polygon_ext import _separate_points_by_polygon
-from polygon_ext import _interpolate_polyline    
-from polygon_ext import _polygon_overlap
-from polygon_ext import _line_intersect
-from polygon_ext import _is_inside_triangle        
 #from polygon_ext import _intersection
-
-
 
 
 if __name__ == "__main__":

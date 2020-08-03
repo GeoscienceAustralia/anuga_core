@@ -85,7 +85,7 @@ save_parameters_tex(domain)
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep = 0.1, finaltime = 2.0):
      if anuga.myid == 0 and verbose:
-         print domain.timestepping_statistics()
+         print(domain.timestepping_statistics())
 
 domain.sww_merge(delete_old=True)
 

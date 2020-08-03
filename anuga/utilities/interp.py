@@ -6,6 +6,7 @@
 
    See function docstring for description.
 """
+from __future__ import absolute_import
 
 #-----------------------------------------------------------------------
 #                       Additional Documentation
@@ -62,6 +63,7 @@
 
 #------------------------ Non-Private Function -------------------------
 
+from builtins import range
 def interp(y, x, xinterp, missing=1e+20):
     """Simple linear interpolation for ordinate with missing values.
 
@@ -139,17 +141,17 @@ def interp(y, x, xinterp, missing=1e+20):
     import arrayfns
     import numpy.ma as MA
     import numpy as N
-    from where_close import where_close
+    from .where_close import where_close
 
 
     #- Check inputs for possible errors:
 
     if (N.rank(y) != 1) or (N.rank(x) != 1):
-        raise ValueError, "interp:  Input(s) not a vector"
+        raise ValueError("interp:  Input(s) not a vector")
     if N.rank(xinterp) > 1:
-        raise ValueError, "interp:  xinterp not a vector or scalar"
+        raise ValueError("interp:  xinterp not a vector or scalar")
     if x[-1] <= x[0]:
-        raise ValueError, "interp:  x not monotonically increasing"
+        raise ValueError("interp:  x not monotonically increasing")
 
 
     #- Establish constants and define xint, a rank 1 version of
@@ -182,7 +184,7 @@ def interp(y, x, xinterp, missing=1e+20):
 
     if MA.maximum(y_miss_mask) == 1:
 
-        for i in xrange(num_xint):
+        for i in range(num_xint):
             if yint_outrange_mask[i] == 0:
                 x_eq_xint = where_close(x, xint[i])
                 if MA.maximum(x_eq_xint) == 1:

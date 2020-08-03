@@ -11,6 +11,9 @@
 """
 
 
+from builtins import next
+from builtins import str
+from future.utils import raise_
 import csv
 import numpy as num
 import anuga.utilities.log as log
@@ -44,10 +47,11 @@ def load_csv_as_dict(file_name, title_check_list=None, delimiter=',',
     title_index_dic = {}
     titles_stripped = [] # List of titles
 
-    reader = csv.reader(file(file_name), delimiter=delimiter)
+    fid = open(file_name)
+    reader = csv.reader(fid, delimiter=delimiter)
 
     # Read in and manipulate the title info
-    titles = reader.next()
+    titles = next(reader)
     for i, title in enumerate(titles):
         header = title.strip()
         titles_stripped.append(header)
@@ -57,9 +61,9 @@ def load_csv_as_dict(file_name, title_check_list=None, delimiter=',',
     # Check required columns
     if title_check_list is not None:
         for title_check in title_check_list:
-            if not title_index_dic.has_key(title_check):
+            if title_check not in title_index_dic:
                 msg = 'Reading error. This row is not present %s' % title_check
-                raise IOError, msg
+                raise_(IOError, msg)
 
 
     # Create a dictionary of column values, indexed by column title
@@ -68,7 +72,7 @@ def load_csv_as_dict(file_name, title_check_list=None, delimiter=',',
         if n < title_count:
             msg = 'Entry in file %s had %d columns ' % (file_name, n)
             msg += 'although there were %d headers' % title_count
-            raise IOError, msg
+            raise_(IOError, msg)
         for i, val in enumerate(line[:title_count]):  # skip trailing data
             attribute_dic.setdefault(titles_stripped[i], []).append(d_type(val))
 
@@ -98,7 +102,7 @@ def load_csv_as_array(file_name, delimiter = ','):
 
     # Return result as a dict of arrays
     ret = {}
-    for key in X.keys():
+    for key in list(X.keys()):
         ret[key] = num.array([float(x) for x in X[key]])
             
     return ret
@@ -123,7 +127,7 @@ def load_csv_as_matrix(file_name, delimiter = ','):
 
     X, title_indices = load_csv_as_dict(file_name, delimiter=delimiter)
 
-    col_titles = title_indices.keys()
+    col_titles = list(title_indices.keys())
 
     # Return result as a 2D array
     ret = num.zeros((len(X[col_titles[0]]), len(title_indices)), float)
@@ -156,7 +160,7 @@ def store_parameters(verbose=False, **kwargs):
         raise TypeError
 
     # is 'completed' in kwargs?
-    completed = kwargs.has_key('completed')
+    completed = 'completed' in kwargs
 
     # get file name and removes from dict and assert that a file_name exists
     if completed:
@@ -175,7 +179,7 @@ def store_parameters(verbose=False, **kwargs):
     line = ''
     header = ''
     count = 0
-    keys = kwargs.keys()
+    keys = list(kwargs.keys())
     keys.sort()
 
     # used the sorted keys to create the header and line data
@@ -208,7 +212,7 @@ def store_parameters(verbose=False, **kwargs):
             file_header=header
         except:
             msg = 'cannot create new file: %s' % file
-            raise Exception, msg
+            raise_(Exception, msg)
 
     # if header is same or this is a new file
     if file_header == str(header):
@@ -271,7 +275,7 @@ def load_csv_as_building_polygons(file_name,
 
     
     heights = {}
-    for key in values.keys():
+    for key in list(values.keys()):
         v = float(values[key])
         heights[key] = v*floor_height
         
@@ -322,23 +326,23 @@ def load_csv_as_polygons(file_name,
     X, _ = load_csv_as_dict(file_name)
 
     msg = 'Polygon csv file must have 3 or 4 columns'
-    assert len(X.keys()) in [3, 4], msg
+    assert len(list(X.keys())) in [3, 4], msg
     
     msg = 'Did not find expected column header: easting'
-    assert 'easting' in X.keys(), msg
+    assert 'easting' in list(X.keys()), msg
     
     msg = 'Did not find expected column header: northing'    
-    assert 'northing' in X.keys(), msg
+    assert 'northing' in list(X.keys()), msg
     
     msg = 'Did not find expected column header: northing'        
-    assert 'id' in X.keys(), msg
+    assert 'id' in list(X.keys()), msg
     
     if value_name is not None:
         msg = 'Did not find expected column header: %s' % value_name        
-        assert value_name in X.keys(), msg    
+        assert value_name in list(X.keys()), msg    
     
     polygons = {}
-    if len(X.keys()) == 4:
+    if len(list(X.keys())) == 4:
         values = {}
     else:
         values = None
@@ -352,7 +356,7 @@ def load_csv_as_polygons(file_name,
         # Check for duplicate polygons
         if poly_id in past_ids:
             msg = 'Polygon %s was duplicated in line %d' % (id, i)
-            raise Exception, msg
+            raise_(Exception, msg)
         
         if poly_id not in polygons:
             # Start new polygon

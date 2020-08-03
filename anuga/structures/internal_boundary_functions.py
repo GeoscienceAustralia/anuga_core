@@ -1,9 +1,15 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import numpy
 import scipy
 from scipy.interpolate import interp1d
 
 
-class hecras_internal_boundary_function:
+class hecras_internal_boundary_function(object):
 
     """ Read internal boundary curves for a bridge / culvert from hecras and
         convert to a function which can be input as a structure in ANUGA
@@ -60,11 +66,11 @@ class hecras_internal_boundary_function:
         """
 
         if verbose:
-            print '########################################'
-            print 'HECRAS INTERNAL BOUNDARY FUNCTION'
-            print 'THIS IS EXPERIMENTAL'
-            print 'SUBJECT TO CHANGE WITHOUT NOTICE'
-            print '########################################'
+            print('########################################')
+            print('HECRAS INTERNAL BOUNDARY FUNCTION')
+            print('THIS IS EXPERIMENTAL')
+            print('SUBJECT TO CHANGE WITHOUT NOTICE')
+            print('########################################')
 
 
         internal_boundary_curves = numpy.genfromtxt(
@@ -106,7 +112,7 @@ class hecras_internal_boundary_function:
 
         ncol_ibc = internal_boundary_curves.shape[1]
         self.nonfree_flow_tw = \
-            internal_boundary_curves[0, range(3, ncol_ibc + 1, 2)]
+            internal_boundary_curves[0, list(range(3, ncol_ibc + 1, 2))]
 
         # Ensure the nonfree_flow_tw is monotonic increasing
         assert numpy.all(self.nonfree_flow_tw[0:-1] < self.nonfree_flow_tw[1:])
@@ -135,14 +141,14 @@ class hecras_internal_boundary_function:
                 # Can happen for the extreme curve
                 if i == internal_boundary_curves.shape[1] - 2:
                     if verbose:
-                        print 'Skipping final rating curve with no HW range'
+                        print('Skipping final rating curve with no HW range')
 
                     self.nonfree_flow_tw = self.nonfree_flow_tw[0:-1]
                     self.nonfree_flow_tw_range[1] = self.nonfree_flow_tw[-1]
                     self.hw_max_given_tw = self.hw_max_given_tw[0:-1]
                     continue
                 else:
-                    print i, internal_boundary_curves.shape[1], HW_max
+                    print(i, internal_boundary_curves.shape[1], HW_max)
                     raise Exception('Rating curve with no HW range')
 
             curve_data = remove_repeated_curve_points(HW, Q)
@@ -306,7 +312,7 @@ class hecras_internal_boundary_function:
                 # Use free flow curve.
                 upper_curve_Q = self.free_flow_curve(hw)
 
-            Q = (w0 * upper_curve_Q + w1 * lower_curve_Q) / (w0 + w1)
+            Q = old_div((w0 * upper_curve_Q + w1 * lower_curve_Q), (w0 + w1))
 
         #print 'Q: ', Q , ' HW: ', hw, ' TW:', tw
 
@@ -388,7 +394,7 @@ def remove_repeated_curve_points(HW, Q):
 
 
 
-class pumping_station_function:
+class pumping_station_function(object):
     """ Transfer water from one site to another at a given rate,
         based on the pump capacities and observed headwater/tailwater.
 
@@ -440,11 +446,11 @@ class pumping_station_function:
         self.pump_rate = initial_pump_rate
 
         if verbose:
-            print '########################################'
-            print 'PUMPING STATION FUNCTION'
-            print 'THIS IS EXPERIMENTAL'
-            print 'SUBJECT TO CHANGE WITHOUT NOTICE'
-            print '########################################'
+            print('########################################')
+            print('PUMPING STATION FUNCTION')
+            print('THIS IS EXPERIMENTAL')
+            print('SUBJECT TO CHANGE WITHOUT NOTICE')
+            print('########################################')
 
 
     def __call__(self, hw_in, tw_in):
@@ -461,9 +467,9 @@ class pumping_station_function:
         else:
             dt = 0.
             if self.time != self.last_time_called:
-                print self.time
-                print self.last_time_called
-                print self.time - self.last_time_called
+                print(self.time)
+                print(self.last_time_called)
+                print(self.time - self.last_time_called)
                 raise Exception('Impossible timestepping, ask Gareth')
           
         # Increase / decrease the pump rate if needed 

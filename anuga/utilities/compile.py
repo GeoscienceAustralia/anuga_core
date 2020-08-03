@@ -9,9 +9,11 @@
 
    Ole Nielsen, Duncan Gray Oct 2001      
 """     
+from __future__ import print_function
 
 
 
+from builtins import str
 import os, string, sys
 
 I_dirs = ''
@@ -150,8 +152,8 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = False, all_war
     libs, is_found = set_python_dll_path()
       
   else:
-    if verbose: print "Unrecognised platform %s - revert to default"\
-                %sys.platform
+    if verbose: print("Unrecognised platform %s - revert to default"\
+                %sys.platform)
     
     if CC:
       compiler = CC
@@ -169,11 +171,11 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = False, all_war
 
   # Verify that compiler can be executed
   if verbose:
-    print 'Compiler: %s, version ' %compiler,
+    print('Compiler: %s, version ' %compiler, end=' ')
     sys.stdout.flush()
     s = '%s -dumpversion' %(compiler)
     err = os.system(s)
-    print
+    print()
   else:
     if sys.platform == 'win32':
         s = '%s -dumpversion > nul' %(compiler)
@@ -300,7 +302,7 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = False, all_war
     s += ' -fopenmp '
 
     if verbose:
-      print s
+      print(s)
 
     # Doesn't work on Windows anyway  
     #else:
@@ -352,7 +354,7 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = False, all_war
   
 
   if verbose:
-    print s
+    print(s)
 
   # Doesn't work on Windows anyway      
   #else:
@@ -383,15 +385,15 @@ def can_use_C_extension(filename):
             open(filename)
         except:
             msg = 'C extension %s cannot be opened' %filename
-            print msg                
+            print(msg)                
         else:    
-            print '------- Trying to compile c-extension %s' %filename
+            print('------- Trying to compile c-extension %s' %filename)
         
             try:
                 compile(filename)
             except:
-                print 'WARNING: Could not compile C-extension %s'\
-                      %filename
+                print('WARNING: Could not compile C-extension %s'\
+                      %filename)
             else:
                 try:
                     exec('import %s' %root)
@@ -406,7 +408,7 @@ def can_use_C_extension(filename):
             
     if not C:
         pass
-        print 'NOTICE: C-extension %s not used' % filename
+        print('NOTICE: C-extension %s not used' % filename)
 
     return C
 
@@ -439,8 +441,8 @@ def set_python_dll_path():
 def check_python_dll():
   libs, is_found = set_python_dll_path()
   if not is_found:
-    print "%s not found.\nPlease install.\nIt is available on the web." \
-              %(libs)
+    print("%s not found.\nPlease install.\nIt is available on the web." \
+              %(libs))
     import sys; sys.exit()
     
       
@@ -454,8 +456,8 @@ if __name__ == '__main__':
       for filename in files:
           root, ext = splitext(filename)
 
-          if ext <> '.c':
-              print 'WARNING (compile.py): Skipping %s. I only compile C-files.' %filename
+          if ext != '.c':
+              print('WARNING (compile.py): Skipping %s. I only compile C-files.' %filename)
       
   else:  
       #path = os.path.split(sys.argv[0])[0] or os.getcwd()
@@ -474,9 +476,9 @@ if __name__ == '__main__':
           #    except:
           #        pass
 
-          print separation_line
-          print 'Trying to compile c-extension %s in %s'\
-                %(filename, os.getcwd())
+          print(separation_line)
+          print('Trying to compile c-extension %s in %s'\
+                %(filename, os.getcwd()))
           try:
             if filename == 'triang.c': 
               compile(['triang.c','triangle.c'])
@@ -486,12 +488,12 @@ if __name__ == '__main__':
               #print filename
 
               compile(filename)
-          except Exception, e:
+          except Exception as e:
               msg = 'Could not compile C extension %s\n' %filename
               msg += str(e)
               raise Exception(msg)
           else:
-              print 'C extension %s OK' %filename
-          print    
+              print('C extension %s OK' %filename)
+          print()    
         
 

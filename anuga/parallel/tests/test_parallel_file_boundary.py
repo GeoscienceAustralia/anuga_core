@@ -3,22 +3,28 @@
 
    run using command like:
 
-   mpirun -np m python run_parallel_sw_merimbula.py
+   mpiexec -np m python run_parallel_sw_merimbula.py
 
    where m is the number of processors to be used.
    
    Will produce sww files with names domain_Pn_m.sww where m is number of processors and
    n in [0, m-1] refers to specific processor that owned this part of the partitioned mesh.
 """
+from __future__ import print_function
+from __future__ import division
 
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from future.utils import raise_
 import os
 import sys
 import time
-import pypar
+from anuga.utilities import parallel_abstraction as pypar
 import numpy as num
 import unittest
 import tempfile
@@ -92,7 +98,7 @@ class Test_urs2sts_parallel(Test_Mux):
         times=num.arange(0., num.float(time_step_count*time_step), time_step)
         for i in range(n):
             #ha[i]+=num.sin(times)
-            ha[i]+=times/finaltime
+            ha[i]+=old_div(times,finaltime)
 
 
 
@@ -174,7 +180,7 @@ class Test_urs2sts_parallel(Test_Mux):
         domain_fbound = Domain(meshname)
         domain_fbound.set_quantities_to_be_stored(None)
         domain_fbound.set_quantity('stage', tide)
-        if verbose: print "Creating file boundary condition"
+        if verbose: print("Creating file boundary condition")
         Bf = File_boundary(sts_file+'.sts',
                            domain_fbound,
                            boundary_polygon=boundary_polygon)
@@ -182,8 +188,8 @@ class Test_urs2sts_parallel(Test_Mux):
 
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
 
-        temp_fbound=num.zeros(int(finaltime/yieldstep)+1,num.float)
-        if verbose: print "Evolving domain with file boundary condition"
+        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
+        if verbose: print("Evolving domain with file boundary condition")
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
                                                    skip_initial_step = False)):
@@ -197,10 +203,10 @@ class Test_urs2sts_parallel(Test_Mux):
         domain_drchlt.set_quantity('stage', tide)
         Br = Reflective_boundary(domain_drchlt)
         #Bd = Dirichlet_boundary([2.0+tide,220+10*tide,-220-10*tide])
-        Bd = Time_boundary(domain=domain_drchlt, f=lambda t: [2.0+t/finaltime+tide,220.+10.*tide+10.*t/finaltime,-220.-10.*tide-10.*t/finaltime])
+        Bd = Time_boundary(domain=domain_drchlt, f=lambda t: [2.0+old_div(t,finaltime)+tide,220.+10.*tide+old_div(10.*t,finaltime),-220.-10.*tide-old_div(10.*t,finaltime)])
         #Bd = Time_boundary(domain=domain_drchlt,f=lambda t: [2.0+num.sin(t)+tide,10.*(2+20.+num.sin(t)+tide),-10.*(2+20.+num.sin(t)+tide)])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,num.float)
+        temp_drchlt=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
         
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -257,7 +263,7 @@ class Test_urs2sts_parallel(Test_Mux):
         times=num.arange(0, time_step_count*time_step, time_step)
         for i in range(n):
             #ha[i]+=num.sin(times)
-            ha[i]+=times/finaltime
+            ha[i]+=old_div(times,finaltime)
 
         #------------------------------------------------------------
         # Write mux data to file then convert to sts format
@@ -352,7 +358,7 @@ class Test_urs2sts_parallel(Test_Mux):
 
         barrier()
         if ( verbose and myid == 0 ): 
-            print 'DISTRIBUTING PARALLEL DOMAIN'
+            print('DISTRIBUTING PARALLEL DOMAIN')
         domain_fbound = distribute(domain_fbound)
 
         #--------------------------------------------------------------------
@@ -390,7 +396,7 @@ class Test_urs2sts_parallel(Test_Mux):
                 fbound_proc_tri_ids.append(-2)
 
 
-        if verbose: print 'P%d has points = %s' %(myid, fbound_proc_tri_ids)
+        if verbose: print('P%d has points = %s' %(myid, fbound_proc_tri_ids))
 
         #------------------------------------------------------------
         # Set boundary conditions
@@ -423,7 +429,7 @@ class Test_urs2sts_parallel(Test_Mux):
         domain_drchlt.set_quantity('stage', tide)
         Br = Reflective_boundary(domain_drchlt)
         #Bd = Dirichlet_boundary([2.0+tide,220+10*tide,-220-10*tide])
-        Bd = Time_boundary(domain=domain_drchlt, function=lambda t: [2.0+t/finaltime+tide,220.+10.*tide+10.*t/finaltime,-220.-10.*tide-10.*t/finaltime])
+        Bd = Time_boundary(domain=domain_drchlt, function=lambda t: [2.0+old_div(t,finaltime)+tide,220.+10.*tide+old_div(10.*t,finaltime),-220.-10.*tide-old_div(10.*t,finaltime)])
         #Bd = Time_boundary(domain=domain_drchlt,function=lambda t: [2.0+num.sin(t)+tide,10.*(2+20.+num.sin(t)+tide),-10.*(2+20.+num.sin(t)+tide)])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
        
@@ -442,7 +448,7 @@ class Test_urs2sts_parallel(Test_Mux):
                 drchlt_proc_tri_ids.append(-2)
 
 
-        if verbose: print 'P%d has points = %s' %(myid, drchlt_proc_tri_ids)
+        if verbose: print('P%d has points = %s' %(myid, drchlt_proc_tri_ids))
 
         #------------------------------------------------------------
         # Evolve entire domain on each processor
@@ -481,7 +487,7 @@ class Test_urs2sts_parallel(Test_Mux):
 def assert_(condition, msg="Assertion Failed"):
     if condition == False:
         #pypar.finalize()
-        raise AssertionError, msg
+        raise_(AssertionError, msg)
 
 
 # Test an nprocs-way run of the shallow water equations
@@ -490,7 +496,7 @@ def assert_(condition, msg="Assertion Failed"):
 if __name__=="__main__":
     #verbose=False
     if myid ==0 and verbose: 
-        print 'PARALLEL START'
+        print('PARALLEL START')
     suite = unittest.makeSuite(Test_urs2sts_parallel,'parallel_test')
     #suite = unittest.makeSuite(Test_urs2sts_parallel,'sequential_test')
     runner = unittest.TextTestRunner()

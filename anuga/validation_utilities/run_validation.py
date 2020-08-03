@@ -1,6 +1,8 @@
 #! /usr/bin/python
 
 
+from __future__ import print_function
+from builtins import str
 __author__="stephen"
 __date__ ="$20/08/2012 11:20:00 PM$"
 
@@ -27,12 +29,12 @@ def run_validation_script_old(script,np=1, cfl=None, alg=None, verbose=False):
     
     if np>1:
         if verbose:
-            cmd = 'mpirun -np %s python %s -cfl %s -alg %s -v ' % (str(np), script, str(cfl), str(alg))
+            cmd = 'mpiexec -np %s python %s -cfl %s -alg %s -v ' % (str(np), script, str(cfl), str(alg))
         else:
-            cmd = 'mpirun -np %s python %s -cfl %s -alg %s' % (str(np), script, str(cfl), str(alg))
-        print 50*'='
-        print 'Run '+cmd
-        print 50*'='
+            cmd = 'mpiexec -np %s python %s -cfl %s -alg %s' % (str(np), script, str(cfl), str(alg))
+        print(50*'=')
+        print('Run '+cmd)
+        print(50*'=')
         subprocess.call([cmd], shell=True)
 
     else:
@@ -40,9 +42,9 @@ def run_validation_script_old(script,np=1, cfl=None, alg=None, verbose=False):
             cmd = 'python %s -cfl %s -alg %s -v ' % (script, str(cfl), str(alg))
         else:
             cmd = 'python %s -cfl %s -alg %s' % (script, str(cfl), str(alg))
-        print 50*'='
-        print 'Run '+cmd
-        print 50*'='
+        print(50*'=')
+        print('Run '+cmd)
+        print(50*'=')
         subprocess.call([cmd], shell=True)
 
 
