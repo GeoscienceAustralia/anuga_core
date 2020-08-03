@@ -23,12 +23,7 @@ interpolate
 interpolate_block
 
 """
-from __future__ import division
 
-from builtins import str
-from builtins import range
-from builtins import object
-from past.utils import old_div
 import time
 import os
 import sys
@@ -47,7 +42,7 @@ from anuga.geospatial_data.geospatial_data import ensure_absolute
 from anuga.pmesh.mesh_quadtree import MeshQuadtree
 from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
 from anuga.abstract_2d_finite_volumes.file_function import file_function
-from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, epsilon
 from anuga.geometry.polygon import interpolate_polyline, in_and_outside_polygon
 import anuga.utilities.log as log
 
@@ -455,8 +450,8 @@ class Interpolate (FitInterpolate):
 
         for d, i in enumerate(inside_boundary_indices):
             # For each data_coordinate point
-            if verbose and d%(old_div((n+10),10))==0: log.critical('Doing %d of %d'
-                                                          %(d, n))
+            if verbose and d % ((n+10) / 10) == 0: log.critical('Doing %d of %d'
+                                                                %(d, n))
 
             x = point_coordinates[i]
             element_found, sigma0, sigma1, sigma2, k = self.root.search_fast(x)
@@ -681,25 +676,23 @@ def interpolate_sww2csv(sww_file,
             if w == NAN or z == NAN or momentum_x == NAN:
                 velocity_x = NAN
             else:
-                if depth > 1.e-30: # use epsilon
-                    velocity_x = old_div(momentum_x, depth)  #Absolute velocity
+                if depth > epsilon:
+                    velocity_x = momentum_x / depth  # Absolute velocity
                 else:
                     velocity_x = 0
 
             if w == NAN or z == NAN or momentum_y == NAN:
                 velocity_y = NAN
             else:
-                if depth > 1.e-30: # use epsilon
-                    velocity_y = old_div(momentum_y, depth)  #Absolute velocity
+                if depth > epsilon:
+                    velocity_y = momentum_y / depth  # Absolute velocity
                 else:
                     velocity_y = 0
 
-            if depth < 1.e-30: # FIXME: use epsilon
+            if depth < epsilon:
                 froude = NAN
             else:
-
-                froude = old_div(sqrt(velocity_x*velocity_x + velocity_y*velocity_y), \
-                         sqrt(depth * g)) # gravity m/s/s
+                froude = sqrt(velocity_x*velocity_x + velocity_y*velocity_y) / sqrt(depth * g) # gravity m/s/s
 
             # Append values to lists
             depths.append(depth)
@@ -1066,8 +1059,7 @@ class Interpolation_function(object):
             ratio = 0
         else:
             # t is now between index and index+1
-            ratio = (old_div((t - self.time[self.index]),
-                         (self.time[self.index+1] - self.time[self.index])))
+            ratio = (t - self.time[self.index]) / (self.time[self.index+1] - self.time[self.index])
 
         # Compute interpolated values
         q = num.zeros(len(self.quantity_names), num.float)

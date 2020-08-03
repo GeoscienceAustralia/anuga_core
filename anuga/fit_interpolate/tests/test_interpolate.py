@@ -1895,6 +1895,7 @@ class Test_Interpolate(unittest.TestCase):
         depth_file_handle.close()
         velocity_y_file_handle.close()
         velocity_x_file_handle.close()
+        
         #print "sww.filename",sww.filename 
         os.remove(sww.filename)
         os.remove(depth_file)
