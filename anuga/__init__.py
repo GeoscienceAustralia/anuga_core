@@ -24,7 +24,7 @@ from builtins import filter
 
 
 # ANUGA version
-__version__ = '2.0.3'
+__version__ = '3.0'
 
 # Git revision information (relies on the gitpython package)
 # https://stackoverflow.com/questions/14989858/get-the-current-git-hash-in-a-python-script
