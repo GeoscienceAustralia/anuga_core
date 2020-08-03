@@ -423,7 +423,7 @@ class Test_Numerical_Tools(unittest.TestCase):
         t(num.array([1.0, 2.0], num.float), True)
 
         t(num.array('abc'), False)
-        t(num.array('abc', num.character), False)
+        t(num.array('abc', 'S1'), False)
         # can't create array as int from string
 #        t(num.array('abc', num.int), False)
         # can't create array as float from string
@@ -474,7 +474,7 @@ class Test_Numerical_Tools(unittest.TestCase):
         t(num.array([1.0, 2.0], num.float), False)
 
         t(num.array('abc'), False)
-        t(num.array('abc', num.character), False)
+        t(num.array('abc', 'S1'), False)
         # can't create array as int from string
 #        t(num.array('abc', num.int), True)
         # can't create array as float from string

@@ -183,7 +183,7 @@ def write_ermapper_data(grid, ofile, data_format=num.float32):
     grid_as_float = grid.astype(data_format)
 
     # Convert array to a string for writing to output file
-    output_string = grid_as_float.tostring()
+    output_string = grid_as_float.tobytes()
 
     # open output file in a binary format and write the output string
     fid = open(ofile,'wb')
