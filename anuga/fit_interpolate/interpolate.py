@@ -526,6 +526,82 @@ def benchmark_interpolate(vertices,
                               points,
                               start_blocking_len=start_blocking_len)
 
+                              
+                              
+                              
+class CSV_files:
+    """Wrapper class to handle the five separate CSV files used by function interpolate_sww2csv
+       Notable, it'll make sure they are opened and closed properly.
+    """
+    
+    def __init__(self, 
+                 depth_file,
+                 velocity_x_file,
+                 velocity_y_file,
+                 stage_file=None,
+                 froude_file=None):
+
+        # Open files and assign to file handles
+        self.depth_FH = open(depth_file, 'w')
+        self.velocity_x_FH = open(velocity_x_file, 'w')
+        self.velocity_y_FH = open(velocity_y_file, 'w')
+        
+        if stage_file is not None:
+            self.stage_FH = open(stage_file, 'w')
+        else:
+            self.stage_FH = None
+            
+        if froude_file is not None:
+            self.froude_FH = open(froude_file, 'w')
+        else:
+            self.froude_FH = None        
+        
+        # Create CSV writers
+        self.depth_writer = writer(self.depth_FH)
+        self.velocity_x_writer = writer(self.velocity_x_FH)
+        self.velocity_y_writer = writer(self.velocity_y_FH)
+        if stage_file is not None:
+            stage_writer = writer(self.stage_FH)
+        if froude_file is not None:
+            froude_writer = writer(self.froude_FH)
+    
+    def close_all(self):
+        """Close all CSV file handles
+        """
+
+        self.depth_FH.close()
+        self.velocity_x_FH.close()
+        self.velocity_y_FH.close()
+        
+        if self.stage_FH is not None:
+            self.stage_FH.close()
+        if self.froude_FH is not None:
+            self.froude_FH.close()
+        
+    def write_headings(self, heading):
+        """Write heading to all CSV files"""
+        
+        self.depth_writer.writerow(heading)
+        self.velocity_x_writer.writerow(heading)
+        self.velocity_y_writer.writerow(heading)
+        if self.stage_FH is not None:
+            self.stage_writer.writerow(heading)
+        if self.froude_FH is not None:
+            self.froude_writer.writerow(heading)
+
+    def write_row(self, depths, velocity_xs, velocity_ys, stages, froudes):
+        """Write one row for each CSV file"""
+        
+        self.depth_writer.writerow(depths)
+        self.velocity_x_writer.writerow(velocity_xs)
+        self.velocity_y_writer.writerow(velocity_ys)
+        if self.stage_FH is not None:
+            self.stage_writer.writerow(stages)
+        if self.froude_FH is not None:
+            self.froude_writer.writerow(froudes)
+
+    
+                                          
 
 def interpolate_sww2csv(sww_file,
                         points,
@@ -574,34 +650,25 @@ def interpolate_sww2csv(sww_file,
                                  verbose=verbose,
                                  time_thinning=time_thinning,
                                  use_cache=use_cache)
-
-    depth_writer = writer(open(depth_file, "w"))
-    velocity_x_writer = writer(open(velocity_x_file, "w"))
-    velocity_y_writer = writer(open(velocity_y_file, "w"))
-    if stage_file is not None:
-        stage_writer = writer(open(stage_file, "w"))
-    if froude_file is not None:
-        froude_writer = writer(open(froude_file, "w"))
+                                 
+                                 
+    csv_files = CSV_files(depth_file, velocity_x_file, velocity_y_file, 
+                          stage_file=stage_file, 
+                          froude_file=froude_file)                             
 
     # Write heading
     heading = [str(x[0])+ ':' + str(x[1]) for x in points]
     heading.insert(0, 'time')
-    depth_writer.writerow(heading)
-    velocity_x_writer.writerow(heading)
-    velocity_y_writer.writerow(heading)
-    if stage_file is not None:
-        stage_writer.writerow(heading)
-    if froude_file is not None:
-        froude_writer.writerow(heading)
-
+    
+    csv_files.write_headings(heading)
     for time in callable_sww.get_time():
         depths = [time]
         velocity_xs = [time]
         velocity_ys = [time]
-        if stage_file is not None:
-            stages = [time]
-        if froude_file is not None:
-            froudes = [time]
+        
+        stages = [time]   # May not be used if stage file is None, but makes code below simpler
+        froudes = [time]  # May not be used if stage file is None, but makes code below simpler
+            
         for point_i, point in enumerate(points):
             quantities = callable_sww(time,point_i)
 
@@ -627,32 +694,26 @@ def interpolate_sww2csv(sww_file,
                 else:
                     velocity_y = 0
 
-            if depth < 1.e-30: # use epsilon
+            if depth < 1.e-30: # FIXME: use epsilon
                 froude = NAN
             else:
 
                 froude = old_div(sqrt(velocity_x*velocity_x + velocity_y*velocity_y), \
                          sqrt(depth * g)) # gravity m/s/s
 
+            # Append values to lists
             depths.append(depth)
             velocity_xs.append(velocity_x)
             velocity_ys.append(velocity_y)
+            stages.append(w)
+            froudes.append(froude)
 
-            if stage_file is not None:
-                stages.append(w)
-            if froude_file is not None:
-                froudes.append(froude)
-
-        depth_writer.writerow(depths)
-        velocity_x_writer.writerow(velocity_xs)
-        velocity_y_writer.writerow(velocity_ys)
-
-        if stage_file is not None:
-            stage_writer.writerow(stages)
-        if froude_file is not None:
-            froude_writer.writerow(froudes)
-
-
+        csv_files.write_row(depths, velocity_xs, velocity_ys, stages, froudes)       
+    
+    # Clean up (force the file handles inside the writers to close
+    csv_files.close_all()
+    
+                
 class Interpolation_function(object):
     """Interpolation_interface - creates callable object f(t, id) or f(t,x,y)
     which is interpolated from time series defined at vertices of
