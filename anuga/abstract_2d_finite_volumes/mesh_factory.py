@@ -470,6 +470,8 @@ def oblique(m, n, lenx = 1.0, leny = 1.0, theta = 8.95, origin = (0.0, 0.0)):
 
     """
 
+    # FIXME (Ole): Someone wrote this but didn't add a test for it. Anything could happen here
+    
     import math
 
     from anuga.config import epsilon
