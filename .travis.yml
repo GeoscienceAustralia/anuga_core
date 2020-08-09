@@ -6,8 +6,8 @@ matrix:
        - os: osx
          language: generic
          sudo: false
-         python: "2.7"
-         env: PYTHON_VERSION="3.8"  ANUGA_PARALLEL="conda"  PYPAR_AVAILABLE="mpi4py" DISTRIB="conda_macos"
+         env: DISTRIB="conda_macos"
+
         
        - os: linux
          dist: xenial
@@ -30,6 +30,7 @@ install:
 
 script:
     - export OMPI_MCA_btl_vader_single_copy_mechanism=none
+    - python --version
     - python runtests.py $COVERAGE
     - if [[ "$COVERAGE" == "--coverage" ]]; then cp build/test/.coverage .; fi
 

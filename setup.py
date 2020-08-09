@@ -129,11 +129,12 @@ def configuration(parent_package='', top_path=None):
     return config
 
 
+
 def setup_package():
 
-    from anuga.utilities.system_tools import store_revision_info
+    from anuga.utilities.system_tools import store_git_revision_info
 
-    store_revision_info(destination_path='anuga')
+    store_git_revision_info(destination_path='anuga', verbose=True)
 
     metadata = dict(name=DISTNAME,
                     maintainer=MAINTAINER,

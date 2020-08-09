@@ -24,27 +24,8 @@ from builtins import filter
 
 
 # ANUGA version
-__version__ = '3.0.0'  # First official version running Python3.x
+__version__ = '3.0' # First official version running Python3.x
 
-# Git revision information (relies on the gitpython package)
-# https://stackoverflow.com/questions/14989858/get-the-current-git-hash-in-a-python-script
-try:
-    import git
-except:
-
-    # Create dummy values for git revision info
-    __git_sha__ = 'No git sha available'
-    __git_committed_datetime__ = 'No git date available'
-
-    msg = ('Could not import git module. ANUGA will still work, but will not store '
-           'revision information in output file. You may need to install python git '
-           'e.g. as pip install gitpython')
-    #raise Warning(msg)  # I can't remember why does this cause ANUGA to stop instead of just issuing the warning (Ole)?
-    print('WARNING', msg)
-else:
-    repo = git.Repo(search_parent_directories=True)
-    __git_sha__ = repo.head.object.hexsha
-    __git_committed_datetime__ = repo.head.object.committed_datetime
 
 
 # We first need to detect if we're being called as part of the anuga setup
@@ -61,6 +42,10 @@ if __ANUGA_SETUP__:
     _sys.stderr.write('Running from anuga source directory.\n')
     del _sys
 else:
+
+    from .revision import  __git_sha__
+    from .revision import __git_committed_datetime__
+    
     # ----------------------------------
     # NetCDF changes stdout to terminal
     # Causes trouble when using jupyter

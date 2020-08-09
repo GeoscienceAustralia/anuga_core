@@ -9,8 +9,8 @@
 
 set -e
 
-brew update
-brew install openmpi
+#brew update
+#brew install openmpi
 
 
 # Install miniconda
@@ -20,7 +20,7 @@ chmod +x miniconda.sh && ./miniconda.sh -b
 
 export PATH=/Users/travis/miniconda3/bin:$PATH
 
-conda update --yes conda
+#conda update --yes conda
 
 # Configure the conda environment and put it in the path using the
 # provided versions
@@ -28,7 +28,7 @@ conda update --yes conda
 conda create -n anuga_env --yes python=3.7 gdal pip nose numpy scipy netcdf4 matplotlib dill cython future gitpython
 
 source activate anuga_env
-pip install mpi4py
+#pip install mpi4py
 
 # Useful for debugging any issues with conda
 conda info -a
