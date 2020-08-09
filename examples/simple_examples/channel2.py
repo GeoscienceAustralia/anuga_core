@@ -45,10 +45,10 @@ domain.set_boundary({'left': Bi, 'right': Br, 'top': Br, 'bottom': Br})
 # Evolve system through time
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep=0.2, finaltime=40.0):
-    print domain.timestepping_statistics()
+    domain.print_timestepping_statistics()
 
     if domain.get_quantity('stage').\
            get_values(interpolation_points=[[10, 2.5]]) > 0:        
-        print 'Stage > 0: Changing to outflow boundary'
+        print('Stage > 0: Changing to outflow boundary')
         domain.set_boundary({'right': Bo})
         
