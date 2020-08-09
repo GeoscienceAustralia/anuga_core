@@ -134,7 +134,7 @@ def setup_package():
 
     from anuga.utilities.system_tools import store_git_revision_info
 
-    store_git_revision_info(destination_path='anuga', verbose=True)
+    store_git_revision_info(destination_path='anuga')
 
     metadata = dict(name=DISTNAME,
                     maintainer=MAINTAINER,
