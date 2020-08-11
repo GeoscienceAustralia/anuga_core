@@ -87,3 +87,6 @@ The first sprint will be a bit longer, so that the rest of the sprints will end 
 ## Technical Constraints
 
 The biggest technical constraint is having to work with ANUGA and SWMM. We are constrained to coupling these two pieces of software, there are no other open-source options for this type of software. And even if there were, the team was commissioned by the clients to improve the existing ANUGA Hydro software in a specific way. 
+
+## Build Status
+[![Build Status](https://travis-ci.com/20-S2-2-C-Flood-Modelling/anuga_core.svg?branch=master)](https://travis-ci.com/20-S2-2-C-Flood-Modelling/anuga_core)
