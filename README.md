@@ -1,5 +1,16 @@
 # ANUGA Community TechLauncher Project
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Team](#team)
+3. [Stakeholders](#stakeholders)
+4. [Documentation](#documentation)
+5. [Timeline](#timeline)
+6. [Risks](#risks)
+7. [Tools and Client Requirements](#tools-and-client-requirements)
+8. [Technical Constraints](#technical-constraints)
+
 ## Overview
 
 The existing ANUGA Hydro software has been used to model floods for more than a decade, with excellent results. But for smaller floods, it has a tendency to over estimate the flood area, due to being unable to model underground drainage systems.
@@ -8,15 +19,15 @@ This project will extend the ANUGA Hydro software, which is capable of hydrodyna
 
 ## Team
 
-|  Name          | UID    | Principal Role | Secondary Role | Other |
-|:--------------:|:------:|:--------------:|:--------------:|:-----:|
-| Zhixian (Rachel) Wu | u5807060 | TBA | TBA | Spokesperson, Team Leader |
-| Xingnan Pan | u6744662 | TBA | TBA | Deputy Spokesperson, Project Manager |
-| Chen Huang | u6735118 | TBA | TBA |  |
-| Lixin Hou | u6456457 | TBA | TBA |  |
-| Mingda Zheng | u6686733 | TBA | TBA |  |
-| Yijie Liu | u6890141 | TBA | TBA |  |
-| Zijun Zhang | u6904534 | TBA | TBA |  |
+|  Name          | UID    | Principal Role | Secondary Role |
+|:--------------:|:------:|:---------------|:---------------|
+| Zhixian (Rachel) Wu | u5807060 | SWMM developer<br>Team leader<br>Minutes taker<br>Landing page maintainer | Documentation (grammar) reviewer<br>Code reviewer (ANUGA)<br>Client manager |
+| Xingnan Pan | u6744662 | ANUGA developer<br>Project Manager | Test developer<br>Code reviewer (SWMM) |
+| Chen Huang | u6735118 | SWMM developer<br>Documention author<br>Minutes taker | Code reviewer (ANUGA)<br>Quality manager<br>Fallback project manager |
+| Lixin Hou | u6456457 | ANUGA developer<br>Documantation author | Client Manager |
+| Mingda Zheng | u6686733 | ANUGA developer<br>Quality manager | Code reviewer (SWMM)<br>Test developer|
+| Yijie Liu | u6890141 | ANUGA developer<br>Quality manager<br>Documentation author | Test developer<br> |
+| Zijun Zhang | u6904534 | SWMM developer<br>Documantation author | Code reviewer (ANUGA) |
 
 ## Stakeholders
 * **The sponsors:**
@@ -42,11 +53,14 @@ Sprint 1 (start of semester - 19/08/2020)
 
 > [2020-08-04 Team Meeting](https://docs.google.com/document/d/1SW3PUsRs-9bc1CYlVkW6fHQLiOQ0cm0w_jzSKu37Gpw/edit?usp=sharing)
 > [2020-08-06 Client Meeting](https://docs.google.com/document/d/1J_kqxAhOHSAh3xWV8enVu0XkZSba1jQchf01azwkgvg/edit?usp=sharing)
+> [2020-08-06 Team Meeting](https://docs.google.com/document/d/1J_kqxAhOHSAh3xWV8enVu0XkZSba1jQchf01azwkgvg/edit?usp=sharing)
+> [2020-08-11 Team Meeting](https://docs.google.com/document/d/1Y9Rpm179KeMyxmN4nzFfLMplG6DxY44MxcMesnc1g28/edit?usp=sharing)
 
 ### Decisions
 
 > [Log for Small Decisions](https://docs.google.com/spreadsheets/d/1uPZlRMNaRBlZnUdfNPVQ4e_S48npiRRkqP9GHJUyXS4/edit?usp=sharing)
-> [Documents for Large Decisions](https://docs.google.com/spreadsheets/d/1uPZlRMNaRBlZnUdfNPVQ4e_S48npiRRkqP9GHJUyXS4/edit?usp=sharing)
+> [Template for Large Decisions](https://docs.google.com/document/d/11qM3a2_Abr2oGtYLgIPA4QjgSELj9RFD4IboVFuBqEg/edit?usp=sharing)
+> [2020-08-05 Continuous Integration Tool Selection](https://docs.google.com/document/d/1xt46NBabq5xelkVywf4NLt9Su33GicAFldKurt747fs/edit?usp=sharing)
 
 ## Timeline
 
@@ -86,7 +100,8 @@ The first sprint will be a bit longer, so that the rest of the sprints will end 
 
 ## Technical Constraints
 
-The biggest technical constraint is having to work with ANUGA and SWMM. We are constrained to coupling these two pieces of software, there are no other open-source options for this type of software. And even if there were, the team was commissioned by the clients to improve the existing ANUGA Hydro software in a specific way. 
+The end modelling software must be a coupling between ANUGA and SWMM. There are no other open-source options for this type of software. And even if there were, the team was commissioned by the clients to improve the existing ANUGA Hydro software in a specific way. 
 
 ## Build Status
 [![Build Status](https://travis-ci.com/20-S2-2-C-Flood-Modelling/anuga_core.svg?branch=master)](https://travis-ci.com/20-S2-2-C-Flood-Modelling/anuga_core)
+
