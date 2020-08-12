@@ -52,14 +52,19 @@ This project will extend the ANUGA Hydro software, which is capable of hydrodyna
 Sprint 1 (start of semester - 19/08/2020)
 
 > [2020-08-04 Team Meeting](https://docs.google.com/document/d/1SW3PUsRs-9bc1CYlVkW6fHQLiOQ0cm0w_jzSKu37Gpw/edit?usp=sharing)
+
 > [2020-08-06 Client Meeting](https://docs.google.com/document/d/1J_kqxAhOHSAh3xWV8enVu0XkZSba1jQchf01azwkgvg/edit?usp=sharing)
+
 > [2020-08-06 Team Meeting](https://docs.google.com/document/d/1J_kqxAhOHSAh3xWV8enVu0XkZSba1jQchf01azwkgvg/edit?usp=sharing)
+
 > [2020-08-11 Team Meeting](https://docs.google.com/document/d/1Y9Rpm179KeMyxmN4nzFfLMplG6DxY44MxcMesnc1g28/edit?usp=sharing)
 
 ### Decisions
 
 > [Log for Small Decisions](https://docs.google.com/spreadsheets/d/1uPZlRMNaRBlZnUdfNPVQ4e_S48npiRRkqP9GHJUyXS4/edit?usp=sharing)
+
 > [Template for Large Decisions](https://docs.google.com/document/d/11qM3a2_Abr2oGtYLgIPA4QjgSELj9RFD4IboVFuBqEg/edit?usp=sharing)
+
 > [2020-08-05 Continuous Integration Tool Selection](https://docs.google.com/document/d/1xt46NBabq5xelkVywf4NLt9Su33GicAFldKurt747fs/edit?usp=sharing)
 
 ## Timeline
