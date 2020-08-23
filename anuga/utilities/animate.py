@@ -413,9 +413,9 @@ class SWW_plotter(object):
                 self.depth[i, :] = self.stage[i, :]-self.elev
 
         self.xvel = np.where(self.depth > minimum_allowed_depth,
-                             (self.xmom, self.depth) / 0.0)
+                             self.xmom / self.depth, 0.0)
         self.yvel = np.where(self.depth > minimum_allowed_depth,
-                             (self.ymom, self.depth) / 0.0)
+                             self.ymom / self.depth, 0.0)
 
         self.speed = np.sqrt(self.xvel**2 + self.yvel**2)
 
