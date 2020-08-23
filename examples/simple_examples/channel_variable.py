@@ -23,7 +23,8 @@ points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
 domain = Domain(points, vertices, boundary)
 domain.set_name('channel_variable_bed_0.2_newviewer') # Output name
-print domain.statistics()
+
+print(domain.statistics())
 domain.set_quantities_to_be_stored({'elevation': 2,
                                     'stage': 2})
 
@@ -89,7 +90,7 @@ growing = False
 shrinking = False
 done = False
 for t in domain.evolve(yieldstep=0.1, finaltime=40.0):
-    print domain.timestepping_statistics()
+    domain.print_timestepping_statistics()
 
     #w = domain.get_quantity('stage').\
     #    get_values(interpolation_points=[[18, 2.5]])
