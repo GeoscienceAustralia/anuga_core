@@ -59,6 +59,16 @@ Sprint 1 (start of semester - 19/08/2020)
 
 > [2020-08-11 Team Meeting](https://docs.google.com/document/d/1Y9Rpm179KeMyxmN4nzFfLMplG6DxY44MxcMesnc1g28/edit?usp=sharing)
 
+> [2020-08-19 Client Meeting](https://docs.google.com/document/d/1pkxORBpc-0SfU_oyCqxczmxs7KlaVyPZL7RJfRDCR48/edit?usp=sharing)
+
+> [2020-08-19 Team Meeting](https://docs.google.com/document/d/1ZnBXNOj-Jqx6SO_uYdZPlars6H0JniCilBfcoA9xI2M/edit?usp=sharing)
+
+Sprint 2 (20/08/2020 - 02/09/2020)
+
+> [2020-08-26 Client Meeting](https://docs.google.com/document/d/1A9OFPDastLef0VJmBKX0fM5QJeeLZsB5PRbd-QajyNI/edit?usp=sharing)
+
+> [2020-08-26 Team Meeting](https://docs.google.com/document/d/1DlJlfKMPyyqoO_YJeZl6Aey1x4eywT6jdjrGmDLA3MM/edit?usp=sharing)
+
 ### Decisions
 
 > [Log for Small Decisions](https://docs.google.com/spreadsheets/d/1uPZlRMNaRBlZnUdfNPVQ4e_S48npiRRkqP9GHJUyXS4/edit?usp=sharing)
