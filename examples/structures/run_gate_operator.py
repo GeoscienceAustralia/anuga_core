@@ -130,13 +130,13 @@ for t in domain.evolve(yieldstep = 1.0, finaltime = 50):
 
     Q, velocity, depth = gate.discharge_routine()
 
-    print gate.inlets[0].get_enquiry_stage()
-    print gate.inlets[1].get_enquiry_stage()
-    print gate.get_culvert_height()
+    print (gate.inlets[0].get_enquiry_stage())
+    print (gate.inlets[1].get_enquiry_stage())
+    print (gate.get_culvert_height())
 
-    print Q
-    print velocity
-    print depth
+    print (Q)
+    print (velocity)
+    print (depth)
         
     gate.print_timestepping_statistics()
     

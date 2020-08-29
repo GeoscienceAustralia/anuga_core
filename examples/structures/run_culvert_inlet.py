@@ -171,7 +171,7 @@ for t in domain.evolve(yieldstep = 1.0, finaltime = 200):
     #if delta_w > max_delta_w: max_delta_w = delta_w
     #if delta_w < min_delta_w: min_delta_w = delta_w
 
-    print domain.volumetric_balance_statistics()
+    print (domain.volumetric_balance_statistics())
     
     pass
 

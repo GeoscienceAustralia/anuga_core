@@ -10,7 +10,7 @@ Similarly the Outflow has MOMENTUM Not just Up welling as in the Horizontal Styl
 abstraction
 
 """
-print 'Starting.... Importing Modules...'
+print ('Starting.... Importing Modules...')
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ import numpy as num
 #------------------------------------------------------------------------------
 # Setup computational domain
 #------------------------------------------------------------------------------
-print 'Setting up domain'
+print ('Setting up domain')
 
 length = 200. #x-Dir
 width = 200.  #y-dir
@@ -52,7 +52,7 @@ domain.set_default_order(2)
 domain.H0 = 0.01
 domain.tight_slope_limiters = 1
 
-print 'Size', len(domain)
+print ('Size', len(domain))
 
 #------------------------------------------------------------------------------
 # Setup initial conditions
@@ -120,7 +120,7 @@ def topography(x, y):
 
     return z
 
-print 'Setting Quantities....'
+print ('Setting Quantities....')
 domain.set_quantity('elevation', topography)  # Use function for elevation
 domain.set_quantity('friction', 0.01)         # Constant friction 
 domain.set_quantity('stage',
@@ -136,7 +136,7 @@ domain.set_quantity('stage',
 #------------------------------------------------------------------------------
 # Setup CULVERT INLETS and OUTLETS in Current Topography
 #------------------------------------------------------------------------------
-print 'DEFINING any Structures if Required'
+print ('DEFINING any Structures if Required')
 
 #  DEFINE CULVERT INLET AND OUTLETS
 
@@ -168,7 +168,7 @@ domain.forcing_terms.append(culvert_energy)
 #------------------------------------------------------------------------------
 # Setup boundary conditions
 #------------------------------------------------------------------------------
-print 'Setting Boundary Conditions'
+print ('Setting Boundary Conditions')
 Br = anuga.Reflective_boundary(domain)              # Solid reflective wall
 Bi = anuga.Dirichlet_boundary([0.0, 0.0, 0.0])          # Inflow based on Flow Depth and Approaching Momentum !!!
 
@@ -188,4 +188,4 @@ domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
 #------------------------------------------------------------------------------
 
 for t in domain.evolve(yieldstep = 1, finaltime = 100):
-    print domain.timestepping_statistics()
+    print (domain.timestepping_statistics())
