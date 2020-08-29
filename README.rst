@@ -27,7 +27,9 @@ and floods.
 
 ANUGA is a python package with some C extensions (and an optional
 fortran extension). ANUGA is in the process of being ported to python 3. To test the 
-python 3 version of ANUGA clone the anuga_py3 branch of anuga_core. 
+python 3 version of ANUGA clone anuga_core from `anuga-community`
+
+     https://github.com/anuga-community/anuga_core
 
 Developed at Geoscience Australia and Mathematical Sciences Institute at the
 Australian National University.
