@@ -1843,9 +1843,9 @@ class Test_Interpolate(unittest.TestCase):
 
         # Test the function
         points = [[5.0,1.],[0.5,2.]]
-        depth_file = tempfile.mktemp(".csv") 
-        velocity_x_file = tempfile.mktemp(".csv") 
-        velocity_y_file = tempfile.mktemp(".csv") 
+        depth_file = tempfile.mktemp('.csv') 
+        velocity_x_file = tempfile.mktemp('.csv') 
+        velocity_y_file = tempfile.mktemp('.csv') 
         interpolate_sww2csv(sww.filename, points, depth_file,
                             velocity_x_file,
                             velocity_y_file,
@@ -1895,6 +1895,7 @@ class Test_Interpolate(unittest.TestCase):
         depth_file_handle.close()
         velocity_y_file_handle.close()
         velocity_x_file_handle.close()
+        
         #print "sww.filename",sww.filename 
         os.remove(sww.filename)
         os.remove(depth_file)

@@ -146,7 +146,7 @@ examples/checkpointing/CHECKPOINTS
 
 # Python files #
 ################
-revision.py
+#revision.py
 # setup.py working directory
 build
 # sphinx build directory

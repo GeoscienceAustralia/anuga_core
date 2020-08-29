@@ -602,7 +602,7 @@ def _write_msh_file(file_name, mesh):
     mesh['vertices'] = num.array(mesh['vertices'], num.float)
     mesh['vertex_attribute_titles'] = \
         num.array(string_to_char(
-            mesh['vertex_attribute_titles']), num.character)
+            mesh['vertex_attribute_titles']), 'S1')
 
     num_attributes = len(mesh['vertex_attribute_titles'])
     num_vertices = mesh['vertices'].shape[0]
@@ -617,10 +617,10 @@ def _write_msh_file(file_name, mesh):
 
     mesh['segments'] = num.array(mesh['segments'], IntType)
     mesh['segment_tags'] = num.array(string_to_char(mesh['segment_tags']),
-                                     num.character)
+                                     'S1')
     mesh['triangles'] = num.array(mesh['triangles'], IntType)
     mesh['triangle_tags'] = num.array(string_to_char(mesh['triangle_tags']),
-                                      num.character)
+                                      'S1')
     mesh['triangle_neighbors'] = \
         num.array(mesh['triangle_neighbors'], IntType)
 
@@ -629,11 +629,11 @@ def _write_msh_file(file_name, mesh):
     mesh['point_attributes'] = num.array(mesh['point_attributes'], num.float)
     mesh['outline_segments'] = num.array(mesh['outline_segments'], IntType)
     mesh['outline_segment_tags'] = \
-        num.array(string_to_char(mesh['outline_segment_tags']), num.character)
+        num.array(string_to_char(mesh['outline_segment_tags']), 'S1')
     mesh['holes'] = num.array(mesh['holes'], num.float)
     mesh['regions'] = num.array(mesh['regions'], num.float)
     mesh['region_tags'] = num.array(
-        string_to_char(mesh['region_tags']), num.character)
+        string_to_char(mesh['region_tags']), 'S1')
     mesh['region_max_areas'] = num.array(mesh['region_max_areas'], num.float)
 
     # NetCDF file definition
@@ -808,7 +808,7 @@ def _read_msh_file(file_name):
     mesh['vertex_attribute_titles'] = []
     try:
         titles = fid.variables['vertex_attribute_titles'][:]
-        mesh['vertex_attribute_titles'] = [x.tostring().decode().strip()
+        mesh['vertex_attribute_titles'] = [x.tobytes().decode().strip()
                                            for x in titles]
     except KeyError:
         pass
@@ -821,7 +821,7 @@ def _read_msh_file(file_name):
     mesh['segment_tags'] = []
     try:
         tags = fid.variables['segment_tags'][:]
-        mesh['segment_tags'] = [x.tostring().decode().strip() for x in tags]
+        mesh['segment_tags'] = [x.tobytes().decode().strip() for x in tags]
     except KeyError:
         for ob in mesh['segments']:
             mesh['segment_tags'].append('')
@@ -837,7 +837,7 @@ def _read_msh_file(file_name):
     mesh['triangle_tags'] = []
     try:
         tags = fid.variables['triangle_tags'][:]
-        mesh['triangle_tags'] = [x.tostring().decode().strip() for x in tags]
+        mesh['triangle_tags'] = [x.tobytes().decode().strip() for x in tags]
     except KeyError:
         for ob in mesh['triangles']:
             mesh['triangle_tags'].append('')
@@ -865,7 +865,7 @@ def _read_msh_file(file_name):
     try:
         tags = fid.variables['outline_segment_tags'][:]
         for i, tag in enumerate(tags):
-            mesh['outline_segment_tags'].append(tags[i].tostring().decode().strip())
+            mesh['outline_segment_tags'].append(tags[i].tobytes().decode().strip())
     except KeyError:
         for ob in mesh['outline_segments']:
             mesh['outline_segment_tags'].append('')
@@ -884,7 +884,7 @@ def _read_msh_file(file_name):
     try:
         tags = fid.variables['region_tags'][:]
         for i, tag in enumerate(tags):
-            mesh['region_tags'].append(tags[i].tostring().decode().strip())
+            mesh['region_tags'].append(tags[i].tobytes().decode().strip())
     except KeyError:
         for ob in mesh['regions']:
             mesh['region_tags'].append('')

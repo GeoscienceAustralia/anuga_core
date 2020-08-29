@@ -228,6 +228,13 @@ class Test_system_tools(unittest.TestCase):
 # string_to_char() and char_to_string().
 ################################################################################
 
+# Note that the command num.array(string_to_char(l), num.character) gives 
+# rise to the following warning:
+# DeprecationWarning: Converting `np.character` to a dtype is deprecated. 
+# The current result is `np.dtype(np.str_)` which is not strictly correct. 
+# Note that `np.character` is generally deprecated and 'S1' should be used.
+# I was not able to find out why why searching, but using 'S1' is working.
+
 
     def helper_write_msh_file(self, filename, l):
         # open the NetCDF file
@@ -235,7 +242,8 @@ class Test_system_tools(unittest.TestCase):
         fd.description = 'Test file - string arrays'
 
         # convert list of strings to num.array
-        al = num.array(string_to_char(l), num.character)
+        #al = num.array(string_to_char(l), num.character) # See note above
+        al = num.array(string_to_char(l), 'S')
 
         # write the list
         fd.createDimension('num_of_strings', al.shape[0])

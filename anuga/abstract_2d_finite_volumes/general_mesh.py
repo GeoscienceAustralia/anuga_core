@@ -1,9 +1,6 @@
-from __future__ import print_function
-from __future__ import division
-from builtins import str
-from builtins import range
-from builtins import object
-from past.utils import old_div
+#from builtins import str
+#from builtins import range
+#from builtins import object
 import copy
 import numpy as num
 
@@ -238,8 +235,8 @@ class General_mesh:
         self.edgelengths[:,1] = l1
         self.edgelengths[:,2] = l2
 
-        self.centroid_coordinates[:,0] = old_div((x0 + x1 + x2),3)
-        self.centroid_coordinates[:,1] = old_div((y0 + y1 + y2),3)
+        self.centroid_coordinates[:,0] = (x0 + x1 + x2) / 3
+        self.centroid_coordinates[:,1] = (y0 + y1 + y2) / 3
 
 
 
@@ -248,14 +245,14 @@ class General_mesh:
             #inscribed circle
 
             #Midpoints
-            xm0 = old_div((x1 + x2),2)
-            ym0 = old_div((y1 + y2),2)
+            xm0 = (x1 + x2) / 2
+            ym0 = (y1 + y2) / 2
 
-            xm1 = old_div((x2 + x0),2)
-            ym1 = old_div((y2 + y0),2)
+            xm1 = (x2 + x0) / 2
+            ym1 = (y2 + y0) / 2
 
-            xm2 = old_div((x0 + x1),2)
-            ym2 = old_div((y0 + y1),2)
+            xm2 = (x0 + x1) / 2
+            ym2 = (y0 + y1) / 2
 
 
             #The radius is the distance from the centroid of
@@ -277,7 +274,7 @@ class General_mesh:
             b = num.sqrt((x1-x2)**2+(y1-y2)**2)
             c = num.sqrt((x2-x0)**2+(y2-y0)**2)
 
-            self.radii[:]=old_div(2.0*self.areas,(a+b+c))
+            self.radii[:] = 2.0 * self.areas / (a+b+c)
 
 
 
@@ -720,7 +717,11 @@ class General_mesh:
             for i in range(count):
                 index = self.vertex_value_indices[first+i]
 
-                volume_id = old_div(index, 3)
+                # FIXME(Ole): This must be floor division ('//')
+                # However, tests pass either way. Need to update tests.
+                volume_id = index // 3  
+                #print('volume_id', volume_id, index)
+                
                 vertex_id = index % 3
 
                 triangle_list.append( (volume_id, vertex_id) )

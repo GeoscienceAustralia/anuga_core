@@ -125,7 +125,11 @@ At the Australian National University:
 <stephen.roberts@anu.edu.au>
 
 At Geoscience Australia:
-
 **Gareth Davies**
 *Developer*
 <gareth.davies@ga.gov.au>
+
+ANUGA Community:
+**Ole Nielsen
+*Architect and Developer*
+<ole.moller.nielsen@gmail.com>

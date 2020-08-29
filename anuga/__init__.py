@@ -24,10 +24,9 @@ from builtins import filter
 
 
 # ANUGA version
-__version__ = '3.0'
+__version__ = '3.0' # First official version running Python3.x
 
-from .revision import  __git_sha__
-from .revision import __git_committed_datetime__
+
 
 # We first need to detect if we're being called as part of the anuga setup
 # procedure itself in a reliable manner.
@@ -43,6 +42,10 @@ if __ANUGA_SETUP__:
     _sys.stderr.write('Running from anuga source directory.\n')
     del _sys
 else:
+
+    from .revision import  __git_sha__
+    from .revision import __git_committed_datetime__
+    
     # ----------------------------------
     # NetCDF changes stdout to terminal
     # Causes trouble when using jupyter

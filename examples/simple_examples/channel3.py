@@ -20,7 +20,7 @@ domain = anuga.rectangular_cross_domain(int(length/dx), int(width/dy),
 
 domain.set_name('channel3')                  # Output name
 
-print domain.statistics()
+domain.print_statistics()
 
 #------------------------------------------------------------------------------
 # Setup initial conditions
@@ -65,12 +65,12 @@ outflow = False
 # Evolve system through time
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep=0.1, finaltime=25.0):
-    print domain.timestepping_statistics()
+    domain.print_timestepping_statistics()
 
     stage_pt = domain.get_quantity('stage').get_values(interpolation_points=[[37.0, 2.5]])
 
     if stage_pt>-3.3 and not outflow:
         outflow = True
-        print 'Stage > 0: Changing to outflow boundary'
+        print('Stage > 0: Changing to outflow boundary')
         domain.set_boundary({'right': Bo})
         

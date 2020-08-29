@@ -8,6 +8,8 @@ https://docs.python.org/3/howto/pyporting.html
 http://python3porting.com/
 https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu-(using-Miniconda)
 
+
+
 # On Unicode strings, str, bytes, bytearray
 https://learning-python.com/strings30.html
 
@@ -26,6 +28,9 @@ git checkout anuga_py3     # Older Py3 branch - works under Python2.7?
 # Synchronise porting branch from upstream
 git remote add upstream git@github.com:stoiver/anuga_core.git
 git pull upstream python3_anuga_py3 
+
+
+https://stackoverflow.com/questions/62653114/how-to-deal-with-this-git-warning-pulling-without-specifying-how-to-reconcile
 
 ----------------------------------
 # Create ANUGA Python environments
@@ -120,8 +125,11 @@ FIXMEs (fgrep -r FIXME anuga/* | wc -l)
 20200721     580 
 20200721     578                                                        Replaced revision info from SVN by GIT  
 
-
-
+OLD_DIV (fgrep -R  old_div * | wc -l)
+-------------------------------------
+20200803    4842
+20200804    4746
+20200804    4700
 
 ------------
 ANUGA Viewer

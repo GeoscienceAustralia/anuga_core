@@ -18,19 +18,9 @@ To create:
    Quantities can be found in the dictionary domain.quantities (note, other Quantities can
    exist).
 """
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
 
-from builtins import str
-from builtins import range
-from past.builtins import basestring
-from builtins import object
-from past.utils import old_div
 import types
 import os.path
-
-from warnings import warn
 
 from anuga.utilities.numerical_tools import ensure_numeric, is_scalar
 from anuga.geometry.polygon import inside_polygon
@@ -207,9 +197,9 @@ class Quantity(object):
         # are calculated and assigned directly without using
         # set_values (which calls interpolate). Otherwise
         # edge and centroid values wouldn't be quotient of q1 and q2
-        result.vertex_values = old_div(self.vertex_values, (Q.vertex_values + epsilon))
-        result.edge_values = old_div(self.edge_values, (Q.edge_values + epsilon))
-        result.centroid_values = old_div(self.centroid_values, (Q.centroid_values + epsilon))
+        result.vertex_values = self.vertex_values / (Q.vertex_values + epsilon)
+        result.edge_values = self.edge_values / (Q.edge_values + epsilon)
+        result.centroid_values = self.centroid_values / (Q.centroid_values + epsilon)
 
         return result
 
@@ -217,7 +207,7 @@ class Quantity(object):
         """Handle cases like 3/Q, where Q is an instance of class Quantity
         """
 
-        return old_div(self, other)
+        return self / other
 
     def __pow__(self, other):
         """Raise quantity to (numerical) power
@@ -512,8 +502,8 @@ class Quantity(object):
             cellsize = max(xrange,yrange)/10.0
 
 
-        ncols = int(old_div(xrange,cellsize)) + 1
-        nrows = int(old_div(yrange,cellsize)) + 1
+        ncols = int(xrange / cellsize) + 1
+        nrows = int(yrange / cellsize) + 1
 
         # New absolute reference and coordinates
         newxllcorner = xmin + xllcorner
@@ -676,7 +666,7 @@ class Quantity(object):
         v1 = self.vertex_values[:, 1]
         v2 = self.vertex_values[:, 2]
 
-        self.centroid_values[:] = old_div((v0 + v1 + v2),3)
+        self.centroid_values[:] = (v0 + v1 + v2) / 3
 
         self.interpolate_from_vertices_to_edges()
 
@@ -1253,7 +1243,7 @@ class Quantity(object):
 
 
         msg = 'Filename must be a text string'
-        assert isinstance(filename, basestring), msg
+        assert isinstance(filename, str), msg
 
         msg = 'Extension should be .pts .dem, .csv, or txt'
         assert os.path.splitext(filename)[1] in ['.pts', '.dem', '.csv', '.txt'], msg
@@ -1506,7 +1496,7 @@ class Quantity(object):
         raise Exception(msg)
 
         msg = 'Filename must be a text string'
-        assert isinstance(filename, basestring), msg
+        assert isinstance(filename, str), msg
 
         msg = 'Extension should be .grd or asc'
         assert os.path.splitext(filename)[1] in ['.grd', '.asc'], msg
@@ -1925,7 +1915,7 @@ class Quantity(object):
                 else:
                     for triangle_id, vertex_id in triangles:
                         sum += self.vertex_values[triangle_id, vertex_id]
-                vert_values.append(old_div(sum, len(triangles)))
+                vert_values.append(sum / len(triangles))
 
             return num.array(vert_values, num.float)
         else:
@@ -2067,6 +2057,7 @@ class Quantity(object):
                                       A)
                 A = A.astype(precision)
             else:
+                # FIXME (Ole): This could be retired
                 # Slow Python version
                 current_node = 0
                 k = 0 # Track triangles touching on node
@@ -2085,14 +2076,14 @@ class Quantity(object):
 
                         k += 1
 
-                        volume_id = old_div(index, 3)
+                        volume_id = index // 3
                         vertex_id = index % 3
 
                         v = self.vertex_values[volume_id, vertex_id]
                         total += v
 
                         if self.domain.number_of_triangles_per_node[current_node] == k:
-                            A[current_node] = old_div(total,k)
+                            A[current_node] = total // k
 
                             # Move on to next node
                             total = 0.0

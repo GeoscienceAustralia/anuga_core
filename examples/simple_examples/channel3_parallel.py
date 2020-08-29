@@ -8,9 +8,6 @@ Water flowing down a channel with more complex topography
 #------------------------------------------------------------------------------
 import anuga
 
-#import anuga_parallel
-
-
 #------------------------------------------------------------------------------
 # Setup some initial info
 #------------------------------------------------------------------------------
@@ -51,7 +48,7 @@ if anuga.myid == 0:
     domain = anuga.Domain(points, vertices, boundary)
     domain.set_name('channel3')                  # Output name
     domain.set_flow_algorithm('DE0')
-    print domain.statistics()
+    domain.print_statistics()
 
 
     
@@ -82,7 +79,7 @@ domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep=0.1, finaltime=16.0):
     if anuga.myid == 0:
-        print domain.timestepping_statistics()
+        domain.print_timestepping_statistics()
 
 
     ## if domain.get_quantity('stage').\
@@ -94,4 +91,3 @@ for t in domain.evolve(yieldstep=0.1, finaltime=16.0):
 domain.sww_merge(verbose=True)
 
 anuga.finalize()
-        
