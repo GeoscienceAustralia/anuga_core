@@ -23,7 +23,7 @@ domain.set_name('channel1')                  # Output name
 def topography(x, y):
     return -x/10                             # linear bed slope
 
-domain.set_quantity('elevation', topography(10,35)) # Use function for elevation
+domain.set_quantity('elevation', topography) # Use function for elevation
 domain.set_quantity('friction', 0.01)        # Constant friction 
 domain.set_quantity('stage',                 # Dry bed
                     expression='elevation')  
