@@ -27,7 +27,7 @@ def run_script(script, args=None, np=1, alg=None, verbose=False, allow_parallel=
     #print zip(args_dict.keys(), args_dict.values())
     
         
-    #import subprocess
+    import subprocess
     import os
     try:
         if np>1 and allow_parallel:
@@ -42,8 +42,8 @@ def run_script(script, args=None, np=1, alg=None, verbose=False, allow_parallel=
                 print(50*'=')
 
 
-            os.system(cmd)
-            #subprocess.call([cmd], shell=True)
+            #os.system(cmd)
+            subprocess.call([cmd], shell=True)
     
         else:
             if verbose:
@@ -56,8 +56,8 @@ def run_script(script, args=None, np=1, alg=None, verbose=False, allow_parallel=
                 print('Run '+cmd)
                 print(50*'=')
             
-            os.system(cmd)
-            #subprocess.call([cmd], shell=True)
+            #os.system(cmd)
+            subprocess.call([cmd], shell=True)
         
         return 0 
     
