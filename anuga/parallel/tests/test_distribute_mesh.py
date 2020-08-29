@@ -20,8 +20,13 @@ from anuga.parallel.distribute_mesh import extract_submesh, rec_submesh, send_su
 import numpy as num
 
 
+<<<<<<< HEAD
 def topography(x,y): 
     return old_div(-x,2)
+=======
+def topography(x,y):
+    return -x/2
+>>>>>>> 2ec2b57fbab7d5c4d99a4e50a1be15d29cf194fe
 
 
 def xcoord(x,y):
@@ -46,7 +51,7 @@ class Test_Distribute_Mesh(unittest.TestCase):
         """
         test distributing with just one processor
         """
-        
+
         points, vertices, boundary = rectangular_cross(2,2)
 
 
@@ -66,14 +71,14 @@ class Test_Distribute_Mesh(unittest.TestCase):
 
 
         domain.set_quantity('elevation', topography) # Use function for elevation
-        domain.set_quantity('friction', 0.0)         # Constant friction 
+        domain.set_quantity('friction', 0.0)         # Constant friction
         domain.set_quantity('stage', expression='elevation') # Dry initial stage
-        domain.set_quantity('xmomentum', expression='friction + 2.0') # 
+        domain.set_quantity('xmomentum', expression='friction + 2.0') #
         domain.set_quantity('ymomentum', ycoord) #
 
 
         #print domain.quantities['ymomentum'].centroid_values
- 
+
         nodes, triangles, boundary, triangles_per_proc, quantities = pmesh_divide_metis(domain,1)
 
 
@@ -90,20 +95,20 @@ class Test_Distribute_Mesh(unittest.TestCase):
 
 
         assert num.allclose(triangles_per_proc,[16])
-        
-        
+
+
 
     def test_pmesh_2(self):
         """
         Test 2 way pmesh
         """
-        
+
         # FIXME: Need to update expected values on macos
         if sys.platform == 'darwin':
-            return 
-        
-        
-        
+            return
+
+
+
         points, vertices, boundary = rectangular_cross(2,2)
 
 
@@ -122,20 +127,21 @@ class Test_Distribute_Mesh(unittest.TestCase):
 
 
         domain.set_quantity('elevation', topography) # Use function for elevation
-        domain.set_quantity('friction', 0.0)         # Constant friction 
+        domain.set_quantity('friction', 0.0)         # Constant friction
         domain.set_quantity('stage', expression='elevation') # Dry initial stage
-        domain.set_quantity('xmomentum', expression='friction + 2.0') # 
+        domain.set_quantity('xmomentum', expression='friction + 2.0') #
         domain.set_quantity('ymomentum', ycoord) #
 
 
         #print domain.quantities['ymomentum'].centroid_values
- 
+
         nodes, triangles, boundary, triangles_per_proc, quantities = pmesh_divide_metis(domain,2)
 
 
         true_nodes = [[0.0, 0.0], [0.0, 0.5], [0.0, 1.0], [0.5, 0.0], [0.5, 0.5], [0.5, 1.0], \
         [1.0, 0.0], [1.0, 0.5], [1.0, 1.0], [0.25, 0.25], [0.25, 0.75], [0.75, 0.25], [0.75, 0.75]]
 
+<<<<<<< HEAD
         if sys.platform == 'win32':
             true_triangles = [[ 4,  9,  3], [ 1,  9,  4], [ 4, 10,  1], [ 5, 10,  4], \
             [ 4, 11,  7], [ 4, 12,  5], [ 7, 12,  4], [ 8, 12,  7], [ 0,  9,  1], [ 3,  9,  0], \
@@ -144,11 +150,33 @@ class Test_Distribute_Mesh(unittest.TestCase):
             true_triangles = [[0, 9, 1], [3, 9, 0], [4, 9, 3], [1, 9, 4], [4, 10, 1], [3, 11, 4], \
             [4, 11, 7], [4, 12, 5], [1, 10, 2], [5, 10, 4], [2, 10, 5], [6, 11, 3], [7, 11, 6], \
             [7, 12, 4], [8, 12, 7], [5, 12, 8]]
+=======
+        # Triangles ordered differently in metis4 and metis5
+        true_triangles_4 = [[0, 9, 1], [3, 9, 0], [4, 9, 3], [1, 9, 4], [4, 10, 1], [3, 11, 4], \
+        [4, 11, 7], [4, 12, 5], [1, 10, 2], [5, 10, 4], [2, 10, 5], [6, 11, 3], [7, 11, 6], \
+        [7, 12, 4], [8, 12, 7], [5, 12, 8]]
+
+>>>>>>> 2ec2b57fbab7d5c4d99a4e50a1be15d29cf194fe
+
+        true_triangles_5 = [[ 0,  9,  1], [ 3,  9,  0], [ 4,  9,  3], [ 1,  9,  4], [ 1, 10,  2], \
+        [ 4, 10,  1],[ 5, 10,  4], [ 2, 10,  5], [ 3, 11,  4], [ 6, 11,  3], [ 7, 11,  6], \
+        [ 4, 11,  7], [ 4, 12,  5], [ 7, 12,  4], [ 8, 12,  7], [ 5, 12,  8]]
+
 
         assert num.allclose(nodes,true_nodes)
+<<<<<<< HEAD
         assert num.allclose(triangles,true_triangles)
         assert num.allclose(triangles_per_proc,[8,8])
 
+=======
+        assert num.allclose(triangles,true_triangles_4) or num.allclose(triangles,true_triangles_5)
+
+
+        assert num.allclose(triangles_per_proc,[8,8])
+
+
+
+>>>>>>> 2ec2b57fbab7d5c4d99a4e50a1be15d29cf194fe
     def test_build_submesh_3(self):
         """
         Test 3 way build_submesh
@@ -247,7 +275,7 @@ class Test_Distribute_Mesh(unittest.TestCase):
        [ 2.,  2.,  2.]])}
 
 
-        
+
         true_submesh = {'full_boundary': [{(3, 1): 'right', (4, 1): 'top'},\
         {(5, 1): 'left', (10, 1): 'top', (7, 1): 'left'}, \
         {(13, 1): 'bottom', (14, 1): 'right', (11, 1): 'bottom'}],
@@ -494,10 +522,10 @@ class Test_Distribute_Mesh(unittest.TestCase):
        [ 2.,  2.,  2.],
        [ 2.,  2.,  2.],
        [ 2.,  2.,  2.]])]}}
-                                  
+
 
         from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
-        
+
         mesh = Mesh(nodes, triangles, boundary)
         boundary_polygon = mesh.get_boundary_polygon()
 
@@ -539,7 +567,7 @@ class Test_Distribute_Mesh(unittest.TestCase):
             for i in range(3):
                 assert num.allclose(true_submesh['ghost_quan'][key][i],submesh['ghost_quan'][key][i])
                 assert num.allclose(true_submesh['full_quan'][key][i],submesh['full_quan'][key][i])
-        
+
 
         submesh["boundary_polygon"] = boundary_polygon
 

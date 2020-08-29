@@ -132,7 +132,12 @@ echo "|  Using pip to install pyproj                  |"
 echo "+===============================================+"
 python -m pip  install -q pyproj
 
+echo "+===============================================+"
+echo "|  Using pip to install pymetis                 |"
+echo "+===============================================+"
+python -m pip install -q pymetis
 
+    
 ##########################################################
 # Setup for various versions of MPI
 if [[ "$ANUGA_PARALLEL" == "mpich" ]]; then

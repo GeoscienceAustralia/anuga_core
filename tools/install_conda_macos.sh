@@ -13,6 +13,12 @@ set -e
 #brew install openmpi
 
 
+# Install pymetis
+git clone https://github.com/inducer/pymetis.git;
+pushd pymetis;
+python setup.py install;
+popd;
+
 # Install miniconda
 wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh ;
 
@@ -25,7 +31,7 @@ export PATH=/Users/travis/miniconda3/bin:$PATH
 # Configure the conda environment and put it in the path using the
 # provided versions
     
-conda create -n anuga_env --yes python=3.7 gdal pip nose numpy scipy netcdf4 matplotlib dill cython future gitpython
+conda create -n anuga_env --yes python=3.7 gdal pip nose numpy scipy netcdf4 matplotlib dill cython future gitpython pymetis
 
 source activate anuga_env
 #pip install mpi4py
