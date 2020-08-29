@@ -39,14 +39,14 @@ Installation
 ------------
 
 For installation instructions, see
-`INSTALL.rst <https://github.com/anuga-community/anuga_core/blob/anuga_py3/INSTALL.rst>`_
+`INSTALL.rst <https://github.com/anuga-community/anuga_core/blob/master/INSTALL.rst>`_
 
 
 Documentation and Help
 ----------------------
 
 ANUGA documentation is available in the doc folder. In particular the
-`user_manual <https://github.com/anuga-community/anuga_core/raw/anuga_py3/doc/anuga_user_manual.pdf>`_
+`user_manual <https://github.com/anuga-community/anuga_core/raw/master/doc/anuga_user_manual.pdf>`_
 
 Also helpful information is available noline at
 
