@@ -20,13 +20,8 @@ from anuga.parallel.distribute_mesh import extract_submesh, rec_submesh, send_su
 import numpy as num
 
 
-<<<<<<< HEAD
-def topography(x,y): 
-    return old_div(-x,2)
-=======
 def topography(x,y):
     return -x/2
->>>>>>> 2ec2b57fbab7d5c4d99a4e50a1be15d29cf194fe
 
 
 def xcoord(x,y):
@@ -141,22 +136,11 @@ class Test_Distribute_Mesh(unittest.TestCase):
         true_nodes = [[0.0, 0.0], [0.0, 0.5], [0.0, 1.0], [0.5, 0.0], [0.5, 0.5], [0.5, 1.0], \
         [1.0, 0.0], [1.0, 0.5], [1.0, 1.0], [0.25, 0.25], [0.25, 0.75], [0.75, 0.25], [0.75, 0.75]]
 
-<<<<<<< HEAD
-        if sys.platform == 'win32':
-            true_triangles = [[ 4,  9,  3], [ 1,  9,  4], [ 4, 10,  1], [ 5, 10,  4], \
-            [ 4, 11,  7], [ 4, 12,  5], [ 7, 12,  4], [ 8, 12,  7], [ 0,  9,  1], [ 3,  9,  0], \
-            [ 1, 10,  2], [ 2, 10,  5], [ 3, 11,  4], [ 6, 11,  3], [ 7, 11,  6],[ 5, 12,  8]]
-        else:
-            true_triangles = [[0, 9, 1], [3, 9, 0], [4, 9, 3], [1, 9, 4], [4, 10, 1], [3, 11, 4], \
-            [4, 11, 7], [4, 12, 5], [1, 10, 2], [5, 10, 4], [2, 10, 5], [6, 11, 3], [7, 11, 6], \
-            [7, 12, 4], [8, 12, 7], [5, 12, 8]]
-=======
         # Triangles ordered differently in metis4 and metis5
         true_triangles_4 = [[0, 9, 1], [3, 9, 0], [4, 9, 3], [1, 9, 4], [4, 10, 1], [3, 11, 4], \
         [4, 11, 7], [4, 12, 5], [1, 10, 2], [5, 10, 4], [2, 10, 5], [6, 11, 3], [7, 11, 6], \
         [7, 12, 4], [8, 12, 7], [5, 12, 8]]
 
->>>>>>> 2ec2b57fbab7d5c4d99a4e50a1be15d29cf194fe
 
         true_triangles_5 = [[ 0,  9,  1], [ 3,  9,  0], [ 4,  9,  3], [ 1,  9,  4], [ 1, 10,  2], \
         [ 4, 10,  1],[ 5, 10,  4], [ 2, 10,  5], [ 3, 11,  4], [ 6, 11,  3], [ 7, 11,  6], \
@@ -164,11 +148,6 @@ class Test_Distribute_Mesh(unittest.TestCase):
 
 
         assert num.allclose(nodes,true_nodes)
-<<<<<<< HEAD
-        assert num.allclose(triangles,true_triangles)
-        assert num.allclose(triangles_per_proc,[8,8])
-
-=======
         assert num.allclose(triangles,true_triangles_4) or num.allclose(triangles,true_triangles_5)
 
 
@@ -176,7 +155,6 @@ class Test_Distribute_Mesh(unittest.TestCase):
 
 
 
->>>>>>> 2ec2b57fbab7d5c4d99a4e50a1be15d29cf194fe
     def test_build_submesh_3(self):
         """
         Test 3 way build_submesh
