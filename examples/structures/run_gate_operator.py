@@ -40,7 +40,7 @@ points, vertices, boundary = rectangular_cross(int(length/dx),
                                                len1=length, 
                                                len2=width)
 domain = anuga.Domain(points, vertices, boundary)   
-domain.set_name('run_gate_operator')                 # Output name
+domain.set_name('Test_gate_operator')                 # Output name
 domain.set_default_order(2)
 #domain.set_beta(1.5)
 
@@ -130,13 +130,13 @@ for t in domain.evolve(yieldstep = 1.0, finaltime = 50):
 
     Q, velocity, depth = gate.discharge_routine()
 
-    print gate.inlets[0].get_enquiry_stage()
-    print gate.inlets[1].get_enquiry_stage()
-    print gate.get_culvert_height()
+    print (gate.inlets[0].get_enquiry_stage())
+    print (gate.inlets[1].get_enquiry_stage())
+    print (gate.get_culvert_height())
 
-    print Q
-    print velocity
-    print depth
+    print (Q)
+    print (velocity)
+    print (depth)
         
     gate.print_timestepping_statistics()
     

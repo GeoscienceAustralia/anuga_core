@@ -91,7 +91,7 @@ domain.special_inlet = inlet
 
 def my_update_special_conditions(domain):
 
-    #print 'inside my domain update_special condition'
+    #print ('inside my domain update_special condition')
 
     domain.special_inlet.set_depths(5.0)
 
@@ -169,7 +169,7 @@ for t in domain.evolve(yieldstep = 1.0, finaltime = 30):
     #if delta_w > max_delta_w: max_delta_w = delta_w
     #if delta_w < min_delta_w: min_delta_w = delta_w
 
-    #print domain.volumetric_balance_statistics()
+    #print (domain.volumetric_balance_statistics())
 
 
 

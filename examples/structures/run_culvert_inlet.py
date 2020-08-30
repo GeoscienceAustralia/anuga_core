@@ -42,8 +42,7 @@ points, vertices, boundary = rectangular_cross(int(length/dx),
                                                len1=length, 
                                                len2=width)
 domain = anuga.Domain(points, vertices, boundary) 
-outname = 'trap'#'box'  
-domain.set_name(outname)                 # Output name
+domain.set_name('Test_culvert_inlet')                 # Output name
 domain.set_default_order(2)
 #domain.set_beta(1.5)
 
@@ -90,7 +89,6 @@ domain.set_quantity('stage',
 
 filename=os.path.join(path, 'example_rating_curve.csv')
 
-
 #Boyd_pipe_operator(domain, label = '1_5m_inletctl',
                             #end_points=[[9.0, 2.5],[13.0, 2.5]],
                             #losses=1.5,
@@ -113,7 +111,7 @@ filename=os.path.join(path, 'example_rating_curve.csv')
                             #logging=True,
                             #manning=0.013,
                             #verbose=False)
-Weir_orifice_trapezoid_operator(domain, label = outname,
+Weir_orifice_trapezoid_operator(domain, label = 'trap',
                             end_points=[[9.0, 2.5],[13.0, 2.5]],
                             losses=1.5,
                             width=1.5,
@@ -171,7 +169,7 @@ for t in domain.evolve(yieldstep = 1.0, finaltime = 200):
     #if delta_w > max_delta_w: max_delta_w = delta_w
     #if delta_w < min_delta_w: min_delta_w = delta_w
 
-    print domain.volumetric_balance_statistics()
+    domain.print_volumetric_balance_statistics()
     
     pass
 

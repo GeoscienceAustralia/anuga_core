@@ -17,7 +17,8 @@ inlet2_poly = [[[end_point1[0], 45.0],[end_point1[0],55],
               
 
 def tobreaklines(riverWall):
-    return [numpy.array(riverWall.values()[0])[:,0:2].tolist()]
+    rw_values = list(riverWall.values())
+    return [numpy.array(rw_values[0])[:,0:2].tolist()]
 
 
 boundaryPolygon = [ [0., 0.], [0., 100.], [100.0, 100.0], [100.0, 0.0]]
@@ -133,8 +134,8 @@ for t in domain.evolve(yieldstep=1.0, duration=60):
     elev  = domain.get_quantity('elevation')
     height = stage - elev
 
-    print anuga.indent + 'Integral1 = ', height.get_integral(region=region1)
-    print anuga.indent + 'Integral2 = ', height.get_integral(region=region2)
-    print anuga.indent + 'Total Integral = ', height.get_integral()
+    print (anuga.indent + 'Integral1 = ', height.get_integral(region=region1))
+    print (anuga.indent + 'Integral2 = ', height.get_integral(region=region2))
+    print (anuga.indent + 'Total Integral = ', height.get_integral())
     #pump.print_timestepping_statistics()
     

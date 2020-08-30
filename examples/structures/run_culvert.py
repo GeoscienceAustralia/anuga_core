@@ -41,7 +41,7 @@ points, vertices, boundary = rectangular_cross(int(length/dx),
                                                len2=width)
 domain = anuga.Domain(points, vertices, boundary)   
 domain.set_starttime(10)
-domain.set_name()                 # Output name
+domain.set_name('Test_culvert')                 # Output name
 domain.set_default_order(2)
 #domain.set_beta(1.5)
 

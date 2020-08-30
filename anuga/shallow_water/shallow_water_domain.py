@@ -2768,6 +2768,10 @@ class Domain(Generic_Domain):
 
         return message
 
+    def print_volumetric_balance_statistics(self):
+
+        print (self.volumetric_balance_statistics())
+        
     def compute_flux_update_frequency(self):
         """
             Update the 'flux_update_frequency' and 'update_extrapolate' variables
