@@ -40,6 +40,7 @@ class Parallel_Inlet_operator(Inlet_operator):
                  poly,
                  Q = 0.0,
                  velocity = None,
+                 zero_velocity = False,
                  default = 0.0,
                  description = None,
                  label = None,
@@ -98,6 +99,8 @@ class Parallel_Inlet_operator(Inlet_operator):
 
         self.velocity = velocity
 
+        self.zero_velocity = zero_velocity
+
         self.applied_Q = 0.0
 
         self.set_logging(logging)
@@ -137,7 +140,7 @@ class Parallel_Inlet_operator(Inlet_operator):
 
         #print self.myid, volume, current_volume, total_area, timestep
 
-        self.applied_Q = old_div(volume,timestep)
+        self.applied_Q = volume/timestep
 
         # Distribute positive volume so as to obtain flat surface otherwise
         # just pull water off to have a uniform depth.
@@ -149,15 +152,24 @@ class Parallel_Inlet_operator(Inlet_operator):
                 depths = self.inlet.get_depths()
                 self.inlet.set_xmoms(self.inlet.get_xmoms()+depths*self.velocity[0])
                 self.inlet.set_ymoms(self.inlet.get_ymoms()+depths*self.velocity[1])
+            if self.zero_velocity:
+                self.inlet.set_xmoms(0.0)
+                self.inlet.set_ymoms(0.0)    
 
         elif current_volume + volume >= 0.0 :
-            depth = old_div((current_volume + volume),total_area)
+            depth = (current_volume + volume)/total_area
             self.inlet.set_depths(depth)
             self.domain.fractional_step_volume_integral+=volume
+            if self.zero_velocity:
+                self.inlet.set_xmoms(0.0)
+                self.inlet.set_ymoms(0.0)
         else: #extracting too much water!
             self.inlet.set_depths(0.0)
-            self.applied_Q = -old_div(current_volume,timestep)
+            self.applied_Q = -current_volume/timestep
             self.domain.fractional_step_volume_integral-=current_volume
+            if self.zero_velocity:
+                self.inlet.set_xmoms(0.0)
+                self.inlet.set_ymoms(0.0)
 
 
 
