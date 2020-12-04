@@ -42,6 +42,7 @@ class Domain_plotter(object):
         self.ymom = domain.quantities['ymomentum'].centroid_values
         
         self.depth = self.stage - self.elev
+
         with np.errstate(invalid='ignore'):
             self.xvel = np.where(self.depth > self.min_depth,
                              self.xmom / self.depth, 0.0)
@@ -257,9 +258,11 @@ class Domain_plotter(object):
         md = self.min_depth
         
         self.depth = self.stage - self.elev
-        self.xvel = np.where(self.depth > self.min_depth,
+
+        with np.errstate(invalid='ignore'):
+            self.xvel = np.where(self.depth > self.min_depth,
                              self.xmom / self.depth, 0.0)
-        self.yvel = np.where(self.depth > self.min_depth,
+            self.yvel = np.where(self.depth > self.min_depth,
                              self.ymom / self.depth, 0.0)
 
         self.speed = np.sqrt(self.xvel**2 + self.yvel**2)  
