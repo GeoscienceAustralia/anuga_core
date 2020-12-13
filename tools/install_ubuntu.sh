@@ -133,7 +133,7 @@ echo "+===============================================+"
 python -m pip  install -q pyproj
 
 echo "+===============================================+"
-echo "|  Using pip to install pyproj                  |"
+echo "|  Using pip to install triangle                |"
 echo "+===============================================+"
 python -m pip  install -q triangle
 
