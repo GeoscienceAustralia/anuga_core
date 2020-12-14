@@ -10,14 +10,15 @@ except:
     pass
 
 class NoTrianglesError(Exception): pass
-import anuga.mesh_engine.mesh_engine_c_layer as triang
+#import anuga.mesh_engine.mesh_engine_c_layer as triang
 #import anuga.mesh_engine.list_dic as triang
+import triangle as triang
 
 import numpy as num
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.anuga_exceptions import ANUGAError
-    
+
 def generate_mesh(points=None,
                   segments=None,holes=None,regions=None,
                   pointatts=None,segatts=None,
@@ -40,13 +41,13 @@ def generate_mesh(points=None,
 
     if holes is None:
         holes = []
-        
+
     if regions is None:
         regions = []
 
     if dummy_test is None:
         dummy_test  = []
-        
+
     try:
         points =  ensure_numeric(points, num.float)
     except ValueError:
@@ -59,37 +60,37 @@ def generate_mesh(points=None,
     # This is after points is numeric
     if pointatts is None or pointatts == []:
         pointatts = [[] for x in range(points.shape[0])]
-        
+
     try:
         # If num.int is used, instead of num.int32, it fails in Linux
         segments = ensure_numeric(segments, num.int32)
-        
+
     except ValueError:
         msg = 'ERROR: Inconsistent segments array.'
         raise ANUGAError(msg)
-    
+
     # This is after segments is numeric
     if segatts is None or segatts == []:
         segatts = [0 for x in range(segments.shape[0])]
-        
+
     try:
         holes = ensure_numeric(holes, num.float)
     except ValueError:
         msg = 'ERROR: Inconsistent holes array.'
         raise ANUGAError(msg)
 
-   
+
     regions = add_area_tag(regions)
     try:
         regions = ensure_numeric(regions, num.float)
     except  (ValueError, TypeError):
         msg = 'ERROR: Inconsistent regions array.'
         raise ANUGAError(msg)
-        
+
     if not regions.shape[0] == 0 and regions.shape[1] <= 2:
         msg = 'ERROR: Bad shape points array.'
         raise ANUGAError(msg)
-    
+
     try:
         pointatts = ensure_numeric(pointatts, num.float)
     except (ValueError, TypeError):
@@ -102,7 +103,7 @@ def generate_mesh(points=None,
         raise ANUGAError(msg)
     if len(pointatts.shape) == 1:
         pointatts = num.reshape(pointatts,(pointatts.shape[0],1))
-    
+
     try:
         segatts = ensure_numeric(segatts, num.int32)
     except ValueError:
@@ -112,7 +113,7 @@ def generate_mesh(points=None,
         msg = """ERROR: Segment attributes array not the same shape as
         segment array."""
         raise ANUGAError(msg)
-    
+
     if mode.find('n'):
         #pass
         mode = 'j' + mode
@@ -124,7 +125,7 @@ def generate_mesh(points=None,
     #
     # GD (June 2014): We get segfaults in some cases with breakLines, unless
     # we remove repeated values in 'points', and adjust segments accordingly
-    # 
+    #
     pts_complex=points[:,0]+1j*points[:,1] # Use to match points
     i=0 # Use this as a counter, since the length of 'points' changes as we go
     while (i < len(pts_complex)-1):
@@ -152,8 +153,54 @@ def generate_mesh(points=None,
 
     #print(points,segments,holes,regions, pointatts,segatts)
 
-    trianglelist, pointlist, pointmarkerlist, pointattributelist, triangleattributelist, segmentlist, segmentmarkerlist, neighborlist = triang.genMesh(points,segments,holes,regions,
-                          pointatts,segatts, mode.encode('utf-8'))
+    in_tri = ({'vertices':points})
+    if segments.size != 0:
+        in_tri['segments'] = segments
+        refine = True
+    if holes.size != 0:
+        in_tri['holes'] = holes
+    if regions.size != 0:
+        in_tri['regions'] = regions
+    if pointatts.size != 0:
+        in_tri['vertex_attributes'] = pointatts
+    if segatts.size != 0:
+        in_tri['segment_markers'] = segatts
+
+    tri = triang.triangulate(in_tri,mode)
+
+    if 'vertices' in tri:
+        pointlist = num.ascontiguousarray(tri['vertices'])
+    else:
+        pointlist = num.empty((0,2),dtype=num.float)
+    if 'vertex_markers' in tri:
+        pointmarkerlist = num.ascontiguousarray(tri['vertex_markers'].reshape(-1))
+    else:
+        pointmarkerlist = num.empty(pointlist.shape[0],dtype=num.int32)
+    if 'triangles' in tri:
+        trianglelist = num.ascontiguousarray(tri['triangles'])
+    else:
+        trianglelist = num.empty((0,3),dtype=num.int32)
+    if 'vertex_attributes' in tri:
+        pointattributelist = num.ascontiguousarray(tri['vertex_attributes'])
+    else:
+        pointattributelist = num.empty((pointlist.shape[0],0),dtype=num.float)
+    if 'triangle_attributes' in tri:
+        triangleattributelist = num.ascontiguousarray(tri['triangle_attributes'])
+    else:
+        triangleattributelist = num.empty((trianglelist.shape[0],0),dtype=num.float)
+    if 'segments' in tri:
+        segmentlist = num.ascontiguousarray(tri['segments'])
+    else:
+        segmentlist = num.empty((0,2),dtype=num.int32)
+    if 'segment_markers' in tri:
+        segmentmarkerlist = num.ascontiguousarray(tri['segment_markers'].reshape(-1))
+    else:
+        segmentmarkerlist = num.empty(segmentlist.shape[0],dtype=num.int32)
+    if 'neighbors' in tri:
+        neighborlist = num.ascontiguousarray(tri['neighbors'])
+    else:
+        neighborlist = num.empty((trianglelist.shape[0],3),dtype=num.int32)
+
     mesh_dict = {}
     # the values as arrays
     mesh_dict['generatedtrianglelist'] = trianglelist
@@ -161,24 +208,24 @@ def generate_mesh(points=None,
     # WARNING - generatedpointmarkerlist IS UNTESTED
     mesh_dict['generatedpointmarkerlist'] = pointmarkerlist
     mesh_dict['generatedpointattributelist'] = pointattributelist
-    mesh_dict['generatedsegmentlist'] = segmentlist 
+    mesh_dict['generatedsegmentlist'] = segmentlist
     mesh_dict['generatedsegmentmarkerlist'] =  segmentmarkerlist
     mesh_dict['generatedtriangleneighborlist'] = neighborlist
     mesh_dict['qaz'] = 1 #debugging
 
     #mesh_dict['triangleattributelist'] = triangleattributelist
-    if True: 
+    if True:
         mesh_dict['generatedtriangleattributelist'] = triangleattributelist
 
         if mesh_dict['generatedtriangleattributelist'].shape[1] == 0:
             mesh_dict['generatedtriangleattributelist'] = None
-            
+
         if mesh_dict['generatedpointattributelist'].shape[1] == 0:
             mesh_dict['generatedpointattributelist'] = None
-            
+
         if mesh_dict['generatedtriangleneighborlist'].shape[1] == 0:
             mesh_dict['generatedtriangleneighborlist'] = None
-            
+
         if trianglelist.shape[0] == 0:
             # There are no triangles.
             # this is used by urs_ungridded2sww
@@ -191,7 +238,7 @@ def generate_mesh(points=None,
     # the subtle change!  How should I handle this?  For my code, when
     # the list of list of integers is transformed, transform it into a
     # list of strings, not a list of list of strings.
-    
+
     return mesh_dict
 
 def add_area_tag(regions):
@@ -214,8 +261,8 @@ def add_area_tag(regions):
                     regions[i].append(0.0)
                 else:
                     regions[i].append(0.0)
-                    
-                # let ensure numeric catch this..    
+
+                # let ensure numeric catch this..
                 #len(region) <= 2:
                 #msg = 'ERROR: Inconsistent regions array.'
                 #raise Exception(msg)
@@ -223,4 +270,4 @@ def add_area_tag(regions):
     return regions
 
 if __name__ == "__main__":
-    pass 
+    pass
