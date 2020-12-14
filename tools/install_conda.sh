@@ -37,7 +37,7 @@ chmod +x miniconda.sh && ./miniconda.sh -b
 
 export PATH=/home/travis/miniconda2/bin:$PATH
 
-ls 
+ls
 
 ls ..
 
@@ -50,7 +50,7 @@ conda update --yes conda
 conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy cython netcdf4 nose matplotlib gdal dill future gitpython
 
 source activate anuga_env
-pip install mpi4py 
+pip install mpi4py triangle
 
 # python 2.6 doesn't have argparse by default
 if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install --yes argparse; fi

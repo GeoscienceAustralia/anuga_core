@@ -14,7 +14,7 @@ ANUGA_PARALLEL=${ANUGA_PARALLEL:-"false"}
 
 echo $PYTHON_VERSION
 
-if [[ "$PYTHON_VERSION" == "3.8" ]]; 
+if [[ "$PYTHON_VERSION" == "3.8" ]];
 then
     echo "+===============================================+"
     echo "|  Activate python 3.8 environment              |"
@@ -26,7 +26,7 @@ fi
 python --version
 
 if [[ "$ANUGA_PARALLEL" == "false" ]];
-then 
+then
     PYPAR_AVAILABLE="false"
 else
     PYPAR_AVAILABLE=${PYPAR_AVAILABLE:-"pypar"}
@@ -132,6 +132,11 @@ echo "|  Using pip to install pyproj                  |"
 echo "+===============================================+"
 python -m pip  install -q pyproj
 
+echo "+===============================================+"
+echo "|  Using pip to install triangle                |"
+echo "+===============================================+"
+python -m pip  install -q triangle
+
 
 ##########################################################
 # Setup for various versions of MPI
@@ -172,12 +177,12 @@ if [[ "$PYPAR_AVAILABLE" == "pypar" ]]; then
     popd;
 fi
 
-if [[ "$PYPAR_AVAILABLE" == "mpi4py" ]]; then 
+if [[ "$PYPAR_AVAILABLE" == "mpi4py" ]]; then
     echo "+===============================================+"
     echo "|  Using pip to install mpi4py                  |"
     echo "+===============================================+"
     python -m pip  install -q mpi4py
-fi  
+fi
 
 #########################################################
 # Build and install anuga
