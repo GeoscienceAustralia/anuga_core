@@ -109,7 +109,7 @@ _busyStack = []
     # either directly or from activate()/deactivate()).  Each element
     # is a dictionary containing:
     #   'newBusyWindows' :  List of windows which had busy_hold called
-    #                       on them during a call to showbusycursor(). 
+    #                       on them during a call to showbusycursor().
     #                       The corresponding call to hidebusycursor()
     #                       will call busy_release on these windows.
     #   'busyFocus' :       The blt _Busy window which showbusycursor()
@@ -152,8 +152,8 @@ _grabStack = []
 
 # Functions used to forward methods from a class to a component.
 
-# Fill in a flattened method resolution dictionary for a class (attributes are 
-# filtered out). Flattening honours the MI method resolution rules 
+# Fill in a flattened method resolution dictionary for a class (attributes are
+# filtered out). Flattening honours the MI method resolution rules
 # (depth-first search of bases in order). The dictionary has method names
 # for keys and functions for values.
 def __methodDict(cls, dict):
@@ -162,7 +162,7 @@ def __methodDict(cls, dict):
     # order, and overwrite any duplicates.
     baseList = list(cls.__bases__)
     baseList.reverse()
-    
+
     # do bases in reverse order, so first base overrides last base
     for super in baseList:
 	__methodDict(super, dict)
@@ -182,9 +182,9 @@ def __methods(cls):
     dict = {}
     __methodDict(cls, dict)
     return dict.keys()
-	
-# Function body to resolve a forwarding given the target method name and the 
-# attribute name. The resulting lambda requires only self, but will forward 
+
+# Function body to resolve a forwarding given the target method name and the
+# attribute name. The resulting lambda requires only self, but will forward
 # any other parameters.
 __stringBody = (
     'def %(method)s(this, *args, **kw): return ' +
@@ -198,8 +198,8 @@ def __unique():
   return str(__counter)
 
 # Function body to resolve a forwarding given the target method name and the
-# index of the resolution function. The resulting lambda requires only self, 
-# but will forward any other parameters. The target instance is identified 
+# index of the resolution function. The resulting lambda requires only self,
+# but will forward any other parameters. The target instance is identified
 # by invoking the resolution function.
 __funcBody = (
     'def %(method)s(this, *args, **kw): return ' +
@@ -231,7 +231,7 @@ def forwardmethods(fromClass, toClass, toPart, exclude = ()):
     #             return self.__target
     #     forwardmethods(MyClass, TargetClass, '__target', ['dangerous1', 'dangerous2'])
     #     # ...or...
-    #     forwardmethods(MyClass, TargetClass, MyClass.findtarget, 
+    #     forwardmethods(MyClass, TargetClass, MyClass.findtarget,
     #             ['dangerous1', 'dangerous2'])
 
     # In both cases, all TargetClass methods will be forwarded from
@@ -248,7 +248,7 @@ def forwardmethods(fromClass, toClass, toPart, exclude = ()):
 	    # If a method is passed, use the function within it
 	    if hasattr(toPart, 'im_func'):
 		toPart = toPart.im_func
-		
+
 	    # After this is set up, forwarders in this class will use
 	    # the forwarding function. The forwarding function name is
 	    # guaranteed to be unique, so that it can't be hidden by subclasses
@@ -327,7 +327,7 @@ def setgeometryanddeiconify(window, geom):
         # takes about 2 seconds to appear.
 
         #window.tkraise()
-        # Call update_idletasks to ensure certain window managers (eg: 
+        # Call update_idletasks to ensure certain window managers (eg:
         # enlightenment and sawfish) do not cause Tk to delay for
         # about two seconds before displaying window.
         #window.update_idletasks()
@@ -729,7 +729,7 @@ class MegaArchetype:
 
 	for option, value in kw.items():
 	    if optionInfo_has_key(option):
-		# This is one of the options of this megawidget. 
+		# This is one of the options of this megawidget.
 		# Make sure it is not an initialisation option.
 		if optionInfo[option][FUNCTION] is INITOPT:
 		    raise KeyError('Cannot configure initialisation option "'
@@ -842,7 +842,7 @@ class MegaArchetype:
     def cget(self, option):
 	# Get current configuration setting.
 
-	# Return the value of an option, for example myWidget['font']. 
+	# Return the value of an option, for example myWidget['font'].
 
 	if self._optionInfo.has_key(option):
 	    return self._optionInfo[option][_OPT_VALUE]
@@ -914,7 +914,7 @@ class MegaArchetype:
 		rtn.append((alias, mainComponent))
 	    else:
 		rtn.append((alias, mainComponent + '_' + subComponent))
-	    
+
 	return rtn
 
     def componentgroup(self, name):
@@ -952,7 +952,7 @@ def popgrab(window):
     # If this window is not at the top of the grab stack, then it has
     # just been deleted by the window manager or deactivated by a
     # timer.  Call the deactivate method for the modal dialog above
-    # this one on the stack. 
+    # this one on the stack.
     if _grabStack[-1]['grabWindow'] != window:
         for index in range(len(_grabStack)):
             if _grabStack[index]['grabWindow'] == window:
@@ -1440,7 +1440,7 @@ def displayerror(text):
     if _errorReportFile is not None:
 	_errorReportFile.write(text + '\n')
     else:
-        # Print error on standard error as well as to error window. 
+        # Print error on standard error as well as to error window.
         # Useful if error window fails to be displayed, for example
         # when exception is triggered in a <Destroy> binding for root
         # window.
@@ -1520,7 +1520,7 @@ def initialise(
     Tkinter.CallWrapper = __TkinterCallWrapper
 
     # Make sure we get to know when the window manager deletes the
-    # root window.  Only do this if the protocol has not yet been set. 
+    # root window.  Only do this if the protocol has not yet been set.
     # This is required if there is a modal dialog displayed and the
     # window manager deletes the root window.  Otherwise the
     # application will not exit, even though there are no windows.
@@ -1529,7 +1529,7 @@ def initialise(
 
     # Set the base font size for the application and set the
     # Tk option database font resources.
-    
+
     _font_initialise(root, size, fontScheme)
 
     return root
@@ -1700,7 +1700,7 @@ class _BusyWrapper:
 def drawarrow(canvas, color, direction, tag, baseOffset = 0.25, edgeOffset = 0.15):
     canvas.delete(tag)
 
-    bw = (string.atoi(canvas['borderwidth']) + 
+    bw = (string.atoi(canvas['borderwidth']) +
             string.atoi(canvas['highlightthickness']))
     width = string.atoi(canvas['width'])
     height = string.atoi(canvas['height'])
@@ -1739,7 +1739,7 @@ def drawarrow(canvas, color, direction, tag, baseOffset = 0.25, edgeOffset = 0.1
 # Modify the Tkinter destroy methods so that it notifies us when a Tk
 # toplevel or frame is destroyed.
 
-# A map from the 'hull' component of a megawidget to the megawidget. 
+# A map from the 'hull' component of a megawidget to the megawidget.
 # This is used to clean up a megawidget when its hull is destroyed.
 _hullToMegaWidget = {}
 
@@ -1838,7 +1838,7 @@ def _reporterror(func, args):
     if type(exc_type) == types.ClassType:
 	# Handle python 1.5 class exceptions.
 	exc_type = exc_type.__name__
-    msg = exc_type + ' Exception in Tk callback\n'
+    msg = str(exc_type) + ' Exception in Tk callback\n'
     msg = msg + '  Function: %s (type: %s)\n' % (repr(func), type(func))
     msg = msg + '  Args: %s\n' % str(args)
 
@@ -1973,7 +1973,7 @@ class _ErrorWindow:
 	self._open = 0
 
     def _next(self):
-	# Display the next error in the queue. 
+	# Display the next error in the queue.
 
 	text = self._errorQueue[0]
 	del self._errorQueue[0]
@@ -2017,7 +2017,7 @@ class Dialog(MegaToplevel):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('buttonbox_hull_borderwidth',   1,         None),
 	    ('buttonbox_hull_relief',        'raised',  None),
@@ -2074,7 +2074,7 @@ class Dialog(MegaToplevel):
 		    Tkinter.Frame, (oldInterior,), relief = 'sunken',
 		    height = width, width = width, borderwidth = width / 2)
 	    self._separator.pack(side = side, fill = fill)
-	
+
 	# Create the child site.
 	self.__dialogChildSite = self.createcomponent('dialogchildsite',
 		(), None,
@@ -2087,7 +2087,7 @@ class Dialog(MegaToplevel):
 	self.bind('<Return>', self._invokeDefault)
         self.userdeletefunc(self._doCommand)
         self.usermodaldeletefunc(self._doCommand)
-	
+
 	# Check keywords and initialise options.
 	self.initialiseoptions()
 
@@ -2381,14 +2381,14 @@ class Balloon(MegaToplevel):
 	# Initialise instance variables.
 	self._timer = None
 
-        # The widget or item that is currently triggering the balloon. 
+        # The widget or item that is currently triggering the balloon.
         # It is None if the balloon is not being displayed.  It is a
         # one-tuple if the balloon is being displayed in response to a
         # widget binding (value is the widget).  It is a two-tuple if
         # the balloon is being displayed in response to a canvas or
         # text item binding (value is the widget and the item).
         self._currentTrigger = None
-	
+
 	# Check keywords and initialise options.
 	self.initialiseoptions()
 
@@ -2408,7 +2408,7 @@ class Balloon(MegaToplevel):
 
 	if statusHelp is None:
 	    statusHelp = balloonHelp
-	enterId = widget.bind('<Enter>', 
+	enterId = widget.bind('<Enter>',
 		lambda event, self = self, w = widget,
 			sHelp = statusHelp, bHelp = balloonHelp:
 				self._enter(event, w, sHelp, bHelp, 0))
@@ -2419,7 +2419,7 @@ class Balloon(MegaToplevel):
         # status line.
 	# Note:  The Motion binding only works for basic widgets, and
         # the hull of megawidgets but not for other megawidget components.
-	motionId = widget.bind('<Motion>', 
+	motionId = widget.bind('<Motion>',
 		lambda event = None, self = self, statusHelp = statusHelp:
 			self.showstatus(statusHelp))
 
@@ -2473,11 +2473,11 @@ class Balloon(MegaToplevel):
 
 	if statusHelp is None:
 	    statusHelp = balloonHelp
-	enterId = widget.tag_bind(tagOrItem, '<Enter>', 
+	enterId = widget.tag_bind(tagOrItem, '<Enter>',
 		lambda event, self = self, w = widget,
 			sHelp = statusHelp, bHelp = balloonHelp:
 				self._enter(event, w, sHelp, bHelp, 1))
-	motionId = widget.tag_bind(tagOrItem, '<Motion>', 
+	motionId = widget.tag_bind(tagOrItem, '<Motion>',
 		lambda event = None, self = self, statusHelp = statusHelp:
 			self.showstatus(statusHelp))
 	leaveId = widget.tag_bind(tagOrItem, '<Leave>', self._leave)
@@ -2567,7 +2567,7 @@ class Balloon(MegaToplevel):
 		self.after_cancel(self._timer)
 		self._timer = None
 
-	    self._timer = self.after(self['initwait'], 
+	    self._timer = self.after(self['initwait'],
 		    lambda self = self, widget = widget, help = balloonHelp,
 			    isItem = isItem:
 			    self._showBalloon(widget, help, isItem))
@@ -2600,7 +2600,7 @@ class Balloon(MegaToplevel):
     def _destroy(self, event):
 
         # Only withdraw the balloon and cancel the timer if the widget
-        # being destroyed is the widget that triggered the balloon. 
+        # being destroyed is the widget that triggered the balloon.
         # Note that in a Tkinter Destroy event, the widget field is a
         # string and not a widget as usual.
 
@@ -2711,7 +2711,7 @@ class ButtonBox(MegaWidget):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('labelmargin',       0,              INITOPT),
 	    ('labelpos',          None,           INITOPT),
@@ -2946,7 +2946,7 @@ class EntryField(MegaWidget):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('command',           None,        None),
 	    ('errorbackground',   'pink',      None),
@@ -2995,7 +2995,7 @@ class EntryField(MegaWidget):
         if EntryField._classBindingsDefinedFor != Tkinter._default_root:
 	    tagList = self._entryFieldEntry.bindtags()
             root  = Tkinter._default_root
-	    	    
+
 	    allSequences = {}
 	    for tag in tagList:
 
@@ -3067,7 +3067,7 @@ class EntryField(MegaWidget):
 	# Look up validator maps and replace 'stringtovalue' field
 	# with the corresponding function.
 	if dict.has_key('stringtovalue'):
-	    stringtovalue = dict['stringtovalue'] 
+	    stringtovalue = dict['stringtovalue']
 	    strFunction = self._getValidatorFunc(stringtovalue, 1)
 	    self._checkValidateFunction(
 		    strFunction, 'stringtovalue', stringtovalue)
@@ -3118,7 +3118,7 @@ class EntryField(MegaWidget):
                 return cmd()
             else:
                 cmd()
-	    
+
     def _preProcess(self):
 
         self._previousText = self._entryFieldEntry.get()
@@ -3146,7 +3146,7 @@ class EntryField(MegaWidget):
 	if callable(cmd) and previousText != self._entryFieldEntry.get():
 	    cmd()
 	return valid
-	    
+
     def checkentry(self):
 	# If there is a variable specified by the entry_textvariable
 	# option, checkentry() should be called after the set() method
@@ -3277,7 +3277,7 @@ def numericvalidator(text):
 	    return ERROR
 	else:
 	    return OK
-    
+
 def integervalidator(text):
     if text in ('', '-', '+'):
         return PARTIAL
@@ -3286,19 +3286,19 @@ def integervalidator(text):
 	return OK
     except ValueError:
 	return ERROR
-    
+
 def alphabeticvalidator(text):
     if _alphabeticregex.match(text) is None:
 	return ERROR
     else:
 	return OK
-    
+
 def alphanumericvalidator(text):
     if _alphanumericregex.match(text) is None:
 	return ERROR
     else:
 	return OK
-    
+
 def hexadecimalvalidator(text):
     if text in ('', '0x', '0X', '+', '+0x', '+0X', '-', '-0x', '-0X'):
         return PARTIAL
@@ -3307,7 +3307,7 @@ def hexadecimalvalidator(text):
 	return OK
     except ValueError:
 	return ERROR
-    
+
 def realvalidator(text, separator = '.'):
     if separator != '.':
 	if string.find(text, '.') >= 0:
@@ -3330,7 +3330,7 @@ def realvalidator(text, separator = '.'):
 	    return PARTIAL
 	except ValueError:
 	    return ERROR
-    
+
 def timevalidator(text, separator = ':'):
     try:
 	timestringtoseconds(text, separator)
@@ -3420,7 +3420,7 @@ class Group( MegaWidget ):
     def __init__(self, parent = None, **kw):
 
         # Define the megawidget options.
-	
+
         optiondefs = (
 	    ('collapsedsize',    6,         INITOPT),
 	    ('ring_borderwidth', 2,         None),
@@ -3436,9 +3436,9 @@ class Group( MegaWidget ):
         interior = MegaWidget.interior(self)
 
 	self._ring = self.createcomponent(
-	    'ring', 
+	    'ring',
 	    (), None,
-	    Tkinter.Frame, (interior,), 
+	    Tkinter.Frame, (interior,),
 	    )
 
 	self._groupChildSite = self.createcomponent(
@@ -3511,7 +3511,7 @@ class LabeledWidget(MegaWidget):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('labelmargin',            0,      INITOPT),
 	    ('labelpos',               None,   INITOPT),
@@ -3553,7 +3553,7 @@ class MainMenuBar(MegaArchetype):
     def __init__(self, parent = None, **kw):
 
         # Define the megawidget options.
-        
+
         optiondefs = (
             ('balloon',      None,       None),
             ('hotkeys',      1,          INITOPT),
@@ -3671,7 +3671,7 @@ class MainMenuBar(MegaArchetype):
         self._menuInfo[menuName] = (parentMenuName, [])
 
         menu.bind('<Leave>', self._resetHelpmessage)
-        menu.bind('<Motion>', 
+        menu.bind('<Motion>',
             lambda event=None, self=self, menuName=menuName:
                     self._menuHelp(event, menuName))
 
@@ -3781,7 +3781,7 @@ class MenuBar(MegaWidget):
     def __init__(self, parent = None, **kw):
 
         # Define the megawidget options.
-        
+
         optiondefs = (
             ('balloon',      None,       None),
             ('hotkeys',      1,          INITOPT),
@@ -4025,7 +4025,7 @@ class MessageBar(MegaWidget):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	defaultMessageTypes = {
 			   # (priority, showtime, bells, logmessage)
 	    'systemerror'  : (5, 10, 2, 1),
@@ -4170,7 +4170,7 @@ class MessageDialog(Dialog):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('borderx',       20,    INITOPT),
 	    ('bordery',       20,    INITOPT),
@@ -4246,7 +4246,7 @@ class NoteBook(MegaArchetype):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
         optiondefs = (
 	    ('hull_highlightthickness',  0,           None),
 	    ('hull_borderwidth',         0,           None),
@@ -4320,11 +4320,11 @@ class NoteBook(MegaArchetype):
 	self._topPageName = None
 
         # Canvas items used:
-        #   Per tab: 
+        #   Per tab:
         #       top and left shadow
         #       right shadow
         #       button
-        #   Per notebook: 
+        #   Per notebook:
         #       page
         #       top page
         #       left shadow
@@ -4437,7 +4437,7 @@ class NoteBook(MegaArchetype):
 
         self._layout()
         return page
-  		
+
     def add(self, pageName, **kw):
         return apply(self.insert, (pageName, len(self._pageNames)), kw)
 
@@ -4462,7 +4462,7 @@ class NoteBook(MegaArchetype):
             if self._topPageName == pageName:
                 self._hull.delete(self._topPageItem)
                 self._topPageName = None
-                                
+
             if self._withTabs:
                 self.destroycomponent(pageName + '-tab')
                 apply(self._hull.delete, pageInfo['tabitems'])
@@ -4720,12 +4720,12 @@ class NoteBook(MegaArchetype):
                 right2 = left + tabwidth + borderWidth
                 right3 = left + tabwidth + borderWidth * 0.5
 
-                self.coords(lightshadow, 
+                self.coords(lightshadow,
                     left, tabBottom2, left, tabTop2, left2, tabTop,
                     right2, tabTop, right3, tabTop2, left3, tabTop2,
                     left2, tabTop3, left2, tabBottom,
                     )
-                self.coords(darkshadow, 
+                self.coords(darkshadow,
                     right2, tabTop, right, tabTop2, right, tabBottom2,
                     right2, tabBottom, right2, tabTop3, right3, tabTop2,
                     )
@@ -4848,7 +4848,7 @@ class NoteBook(MegaArchetype):
 
         self._pending = {}
 
-# Need to do forwarding to get the pack, grid, etc methods. 
+# Need to do forwarding to get the pack, grid, etc methods.
 # Unfortunately this means that all the other canvas methods are also
 # forwarded.
 forwardmethods(NoteBook, Tkinter.Canvas, '_hull')
@@ -4864,7 +4864,7 @@ class OptionMenu(MegaWidget):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('command',        None,       None),
             ('items',          (),         INITOPT),
@@ -4919,7 +4919,7 @@ class OptionMenu(MegaWidget):
         # Clean up old items and callback commands.
         for oldIndex in range(len(self._itemList)):
             tclCommandName = str(self._menu.entrycget(oldIndex, 'command'))
-            if tclCommandName != '':   
+            if tclCommandName != '':
                 self._menu.deletecommand(tclCommandName)
         self._menu.delete(0, 'end')
 	self._itemList = list(items)
@@ -5017,7 +5017,7 @@ class PanedWidget(MegaWidget):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	optiondefs = (
             ('command',            None,         None),
             ('orient',             'vertical',   INITOPT),
@@ -5642,7 +5642,7 @@ class PanedWidget(MegaWidget):
 class PromptDialog(Dialog):
     def __init__(self, parent = None, **kw):
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('borderx',     20,    INITOPT),
 	    ('bordery',     20,    INITOPT),
@@ -5663,7 +5663,7 @@ class PromptDialog(Dialog):
 		EntryField, (interior,))
 	self._promptDialogEntry.pack(fill='x', expand=1,
 		padx = self['borderx'], pady = self['bordery'])
-	
+
         if not kw.has_key('activatecommand'):
             # Whenever this dialog is activated, set the focus to the
             # EntryField's entry widget.
@@ -5699,7 +5699,7 @@ class RadioSelect(MegaWidget):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('buttontype',    'button',      INITOPT),
 	    ('command',       None,          None),
@@ -5735,7 +5735,7 @@ class RadioSelect(MegaWidget):
 	    self._singleSelect = 1
 	elif self['selectmode'] == 'multiple':
 	    self._singleSelect = 0
-	else: 
+	else:
 	    raise ValueError('bad selectmode option "' + self['selectmode']
                              + '": should be single or multiple')
 
@@ -5873,7 +5873,7 @@ class RadioSelect(MegaWidget):
 	self._buttonList = []
 	if self._singleSelect:
 	    self.selection = None
-	else: 
+	else:
 	    self.selection = []
 
     def __setSingleValue(self, value):
@@ -5929,7 +5929,7 @@ class ScrolledCanvas(MegaWidget):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('borderframe',    0,            INITOPT),
 	    ('canvasmargin',   0,            INITOPT),
@@ -5952,7 +5952,7 @@ class ScrolledCanvas(MegaWidget):
 	    self.origInterior.grid_propagate(0)
 
 	if self['borderframe']:
-	    # Create a frame widget to act as the border of the canvas. 
+	    # Create a frame widget to act as the border of the canvas.
 	    self._borderframe = self.createcomponent('borderframe',
 		    (), None,
 		    Tkinter.Frame, (self.origInterior,),
@@ -5981,7 +5981,7 @@ class ScrolledCanvas(MegaWidget):
 
 	self.origInterior.grid_rowconfigure(2, weight = 1, minsize = 0)
 	self.origInterior.grid_columnconfigure(2, weight = 1, minsize = 0)
-	
+
 	# Create the horizontal scrollbar
 	self._horizScrollbar = self.createcomponent('horizscrollbar',
 		(), 'Scrollbar',
@@ -6087,10 +6087,10 @@ class ScrolledCanvas(MegaWidget):
 
         # Clean up previous scroll commands to prevent memory leak.
         tclCommandName = str(self._canvas.cget('xscrollcommand'))
-        if tclCommandName != '':   
+        if tclCommandName != '':
             self._canvas.deletecommand(tclCommandName)
         tclCommandName = str(self._canvas.cget('yscrollcommand'))
-        if tclCommandName != '':   
+        if tclCommandName != '':
             self._canvas.deletecommand(tclCommandName)
 
 	if self['hscrollmode'] == self['vscrollmode'] == 'dynamic':
@@ -6133,7 +6133,7 @@ class ScrolledCanvas(MegaWidget):
 	self.scrollTimer = None
 
         # Call update_idletasks to make sure that the containing frame
-        # has been resized before we attempt to set the scrollbars. 
+        # has been resized before we attempt to set the scrollbars.
         # Otherwise the scrollbars may be mapped/unmapped continuously.
         self._scrollRecurse = self._scrollRecurse + 1
         self.update_idletasks()
@@ -6152,7 +6152,7 @@ class ScrolledCanvas(MegaWidget):
 	# If both horizontal and vertical scrollmodes are dynamic and
 	# currently only one scrollbar is mapped and both should be
 	# toggled, then unmap the mapped scrollbar.  This prevents a
-	# continuous mapping and unmapping of the scrollbars. 
+	# continuous mapping and unmapping of the scrollbars.
 	if (self['hscrollmode'] == self['vscrollmode'] == 'dynamic' and
 		self._horizScrollbarNeeded != self._horizScrollbarOn and
 		self._vertScrollbarNeeded != self._vertScrollbarOn and
@@ -6221,7 +6221,7 @@ class ScrolledField(MegaWidget):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('labelmargin',   0,      INITOPT),
 	    ('labelpos',      None,   INITOPT),
@@ -6279,7 +6279,7 @@ class ScrolledFrame(MegaWidget):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('borderframe',    1,            INITOPT),
 	    ('horizflex',      'fixed',      self._horizflex),
@@ -6305,7 +6305,7 @@ class ScrolledFrame(MegaWidget):
 	    self.origInterior.grid_propagate(0)
 
 	if self['borderframe']:
-	    # Create a frame widget to act as the border of the clipper. 
+	    # Create a frame widget to act as the border of the clipper.
 	    self._borderframe = self.createcomponent('borderframe',
 		    (), None,
 		    Tkinter.Frame, (self.origInterior,),
@@ -6338,7 +6338,7 @@ class ScrolledFrame(MegaWidget):
 
 	self.origInterior.grid_rowconfigure(2, weight = 1, minsize = 0)
 	self.origInterior.grid_columnconfigure(2, weight = 1, minsize = 0)
-	
+
 	# Create the horizontal scrollbar
 	self._horizScrollbar = self.createcomponent('horizscrollbar',
 		(), 'Scrollbar',
@@ -6410,7 +6410,7 @@ class ScrolledFrame(MegaWidget):
 	if self.scrollTimer is None:
 	    self.scrollTimer = self.after_idle(self._scrollBothNow)
 
-    # Called when the user clicks in the horizontal scrollbar. 
+    # Called when the user clicks in the horizontal scrollbar.
     # Calculates new position of frame then calls reposition() to
     # update the frame and the scrollbar.
     def xview(self, mode = None, value = None, units = None):
@@ -6432,7 +6432,7 @@ class ScrolledFrame(MegaWidget):
 
 	self.reposition()
 
-    # Called when the user clicks in the vertical scrollbar. 
+    # Called when the user clicks in the vertical scrollbar.
     # Calculates new position of frame then calls reposition() to
     # update the frame and the scrollbar.
     def yview(self, mode = None, value = None, units = None):
@@ -6604,7 +6604,7 @@ class ScrolledFrame(MegaWidget):
 	self.scrollTimer = None
 
         # Call update_idletasks to make sure that the containing frame
-        # has been resized before we attempt to set the scrollbars. 
+        # has been resized before we attempt to set the scrollbars.
         # Otherwise the scrollbars may be mapped/unmapped continuously.
         self._scrollRecurse = self._scrollRecurse + 1
         self.update_idletasks()
@@ -6623,7 +6623,7 @@ class ScrolledFrame(MegaWidget):
 	# If both horizontal and vertical scrollmodes are dynamic and
 	# currently only one scrollbar is mapped and both should be
 	# toggled, then unmap the mapped scrollbar.  This prevents a
-	# continuous mapping and unmapping of the scrollbars. 
+	# continuous mapping and unmapping of the scrollbars.
 	if (self['hscrollmode'] == self['vscrollmode'] == 'dynamic' and
 		self._horizScrollbarNeeded != self._horizScrollbarOn and
 		self._vertScrollbarNeeded != self._vertScrollbarOn and
@@ -6680,7 +6680,7 @@ class ScrolledListBox(MegaWidget):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('dblclickcommand',    None,            None),
 	    ('hscrollmode',        'dynamic',       self._hscrollMode),
@@ -6747,7 +6747,7 @@ class ScrolledListBox(MegaWidget):
         theTag = 'ScrolledListBoxTag'
         if ScrolledListBox._classBindingsDefinedFor != Tkinter._default_root:
             root  = Tkinter._default_root
-	    	    
+
             def doubleEvent(event):
                 _handleEvent(event, 'double')
             def keyEvent(event):
@@ -6887,10 +6887,10 @@ class ScrolledListBox(MegaWidget):
 
         # Clean up previous scroll commands to prevent memory leak.
         tclCommandName = str(self._listbox.cget('xscrollcommand'))
-        if tclCommandName != '':   
+        if tclCommandName != '':
             self._listbox.deletecommand(tclCommandName)
         tclCommandName = str(self._listbox.cget('yscrollcommand'))
-        if tclCommandName != '':   
+        if tclCommandName != '':
             self._listbox.deletecommand(tclCommandName)
 
 	if self['hscrollmode'] == self['vscrollmode'] == 'dynamic':
@@ -6933,7 +6933,7 @@ class ScrolledListBox(MegaWidget):
 	self.scrollTimer = None
 
         # Call update_idletasks to make sure that the containing frame
-        # has been resized before we attempt to set the scrollbars. 
+        # has been resized before we attempt to set the scrollbars.
         # Otherwise the scrollbars may be mapped/unmapped continuously.
         self._scrollRecurse = self._scrollRecurse + 1
         self.update_idletasks()
@@ -6952,7 +6952,7 @@ class ScrolledListBox(MegaWidget):
 	# If both horizontal and vertical scrollmodes are dynamic and
 	# currently only one scrollbar is mapped and both should be
 	# toggled, then unmap the mapped scrollbar.  This prevents a
-	# continuous mapping and unmapping of the scrollbars. 
+	# continuous mapping and unmapping of the scrollbars.
 	if (self['hscrollmode'] == self['vscrollmode'] == 'dynamic' and
 		self._horizScrollbarNeeded != self._horizScrollbarOn and
 		self._vertScrollbarNeeded != self._vertScrollbarOn and
@@ -7047,7 +7047,7 @@ def _handleEvent(event, eventType):
 
 ######################################################################
 ### File: PmwScrolledText.py
-# Based on iwidgets2.2.0/scrolledtext.itk code.   
+# Based on iwidgets2.2.0/scrolledtext.itk code.
 
 import Tkinter
 
@@ -7056,7 +7056,7 @@ class ScrolledText(MegaWidget):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('borderframe',    0,            INITOPT),
 	    ('columnheader',   0,            INITOPT),
@@ -7081,7 +7081,7 @@ class ScrolledText(MegaWidget):
 	    interior.grid_propagate(0)
 
 	if self['borderframe']:
-	    # Create a frame widget to act as the border of the text 
+	    # Create a frame widget to act as the border of the text
 	    # widget.  Later, pack the text widget so that it fills
 	    # the frame.  This avoids a problem in Tk, where window
 	    # items in a text widget may overlap the border of the
@@ -7242,14 +7242,14 @@ class ScrolledText(MegaWidget):
 
     def appendtext(self, text):
         oldTop, oldBottom = self._textbox.yview()
-     
+
         disabled = (str(self._textbox.cget('state')) == 'disabled')
         if disabled:
             self._textbox.configure(state='normal')
         self._textbox.insert('end', text)
         if disabled:
             self._textbox.configure(state='disabled')
-     
+
         if oldBottom == 1.0:
             self._textbox.yview('moveto', 1.0)
 
@@ -7308,10 +7308,10 @@ class ScrolledText(MegaWidget):
 
         # Clean up previous scroll commands to prevent memory leak.
         tclCommandName = str(self._textbox.cget('xscrollcommand'))
-        if tclCommandName != '':   
+        if tclCommandName != '':
             self._textbox.deletecommand(tclCommandName)
         tclCommandName = str(self._textbox.cget('yscrollcommand'))
-        if tclCommandName != '':   
+        if tclCommandName != '':
             self._textbox.deletecommand(tclCommandName)
 
 	if self['hscrollmode'] == self['vscrollmode'] == 'dynamic':
@@ -7371,7 +7371,7 @@ class ScrolledText(MegaWidget):
 	self.scrollTimer = None
 
         # Call update_idletasks to make sure that the containing frame
-        # has been resized before we attempt to set the scrollbars. 
+        # has been resized before we attempt to set the scrollbars.
         # Otherwise the scrollbars may be mapped/unmapped continuously.
         self._scrollRecurse = self._scrollRecurse + 1
         self.update_idletasks()
@@ -7405,7 +7405,7 @@ class ScrolledText(MegaWidget):
 	# If both horizontal and vertical scrollmodes are dynamic and
 	# currently only one scrollbar is mapped and both should be
 	# toggled, then unmap the mapped scrollbar.  This prevents a
-	# continuous mapping and unmapping of the scrollbars. 
+	# continuous mapping and unmapping of the scrollbars.
 	if (self['hscrollmode'] == self['vscrollmode'] == 'dynamic' and
 		self._horizScrollbarNeeded != self._horizScrollbarOn and
 		self._vertScrollbarNeeded != self._vertScrollbarOn and
@@ -7419,7 +7419,7 @@ class ScrolledText(MegaWidget):
 	if self['hscrollmode'] == 'dynamic':
 
 	    # The following test is done to prevent continuous
-	    # mapping and unmapping of the horizontal scrollbar. 
+	    # mapping and unmapping of the horizontal scrollbar.
 	    # This may occur when some event (scrolling, resizing
 	    # or text changes) modifies the displayed text such
 	    # that the bottom line in the window is the longest
@@ -7647,13 +7647,13 @@ class HistoryText(ScrolledText):
 
 class SelectionDialog(Dialog):
     # Dialog window with selection list.
-    
+
     # Dialog window displaying a list and requesting the user to
     # select one.
 
     def __init__(self, parent = None, **kw):
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('borderx',     10,    INITOPT),
 	    ('bordery',     10,    INITOPT),
@@ -7706,7 +7706,7 @@ forwardmethods(SelectionDialog, ScrolledListBox, '_list')
 class TextDialog(Dialog):
     def __init__(self, parent = None, **kw):
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('borderx',     10,    INITOPT),
 	    ('bordery',     10,    INITOPT),
@@ -7752,13 +7752,13 @@ class TimeCounter(MegaWidget):
     """Up-down counter
 
     A TimeCounter is a single-line entry widget with Up and Down arrows
-    which increment and decrement the Time value in the entry.  
+    which increment and decrement the Time value in the entry.
     """
 
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('autorepeat',    1,    None),
 	    ('buttonaspect',  1.0,  INITOPT),
@@ -7905,80 +7905,80 @@ class TimeCounter(MegaWidget):
 	# Set bindings.
 
 	# Up hour
-	self._upHourArrowBtn.bind('<Configure>', 
-		lambda  event, s=self,button=self._upHourArrowBtn: 
+	self._upHourArrowBtn.bind('<Configure>',
+		lambda  event, s=self,button=self._upHourArrowBtn:
 		s._drawArrow(button, 'up'))
 
-	self._upHourArrowBtn.bind('<1>', 
-    	    	lambda event, s=self,button=self._upHourArrowBtn: 
+	self._upHourArrowBtn.bind('<1>',
+    	    	lambda event, s=self,button=self._upHourArrowBtn:
 		s._countUp(button, 3600))
 
-	self._upHourArrowBtn.bind('<Any-ButtonRelease-1>', 
+	self._upHourArrowBtn.bind('<Any-ButtonRelease-1>',
 		lambda event, s=self, button=self._upHourArrowBtn:
 		s._stopUpDown(button))
 
 	# Up minute
-	self._upMinuteArrowBtn.bind('<Configure>', 
-		lambda  event, s=self,button=self._upMinuteArrowBtn: 
+	self._upMinuteArrowBtn.bind('<Configure>',
+		lambda  event, s=self,button=self._upMinuteArrowBtn:
 		s._drawArrow(button, 'up'))
-	    
 
-	self._upMinuteArrowBtn.bind('<1>', 
-    	    	lambda event, s=self,button=self._upMinuteArrowBtn: 
+
+	self._upMinuteArrowBtn.bind('<1>',
+    	    	lambda event, s=self,button=self._upMinuteArrowBtn:
 		s._countUp(button, 60))
 
-	self._upMinuteArrowBtn.bind('<Any-ButtonRelease-1>', 
+	self._upMinuteArrowBtn.bind('<Any-ButtonRelease-1>',
 		lambda event, s=self, button=self._upMinuteArrowBtn:
 		s._stopUpDown(button))
 
 	# Up second
-	self._upSecondArrowBtn.bind('<Configure>', 
-		lambda  event, s=self,button=self._upSecondArrowBtn: 
+	self._upSecondArrowBtn.bind('<Configure>',
+		lambda  event, s=self,button=self._upSecondArrowBtn:
 		s._drawArrow(button, 'up'))
-	    
 
-	self._upSecondArrowBtn.bind('<1>', 
-    	    	lambda event, s=self,button=self._upSecondArrowBtn: 
+
+	self._upSecondArrowBtn.bind('<1>',
+    	    	lambda event, s=self,button=self._upSecondArrowBtn:
 		s._countUp(button, 1))
 
-	self._upSecondArrowBtn.bind('<Any-ButtonRelease-1>', 
+	self._upSecondArrowBtn.bind('<Any-ButtonRelease-1>',
 		lambda event, s=self, button=self._upSecondArrowBtn:
 		s._stopUpDown(button))
 
 	# Down hour
-	self._downHourArrowBtn.bind('<Configure>', 
-		lambda  event, s=self,button=self._downHourArrowBtn: 
+	self._downHourArrowBtn.bind('<Configure>',
+		lambda  event, s=self,button=self._downHourArrowBtn:
 		s._drawArrow(button, 'down'))
 
-	self._downHourArrowBtn.bind('<1>', 
-    	    	lambda event, s=self,button=self._downHourArrowBtn: 
+	self._downHourArrowBtn.bind('<1>',
+    	    	lambda event, s=self,button=self._downHourArrowBtn:
 		s._countDown(button, 3600))
-	self._downHourArrowBtn.bind('<Any-ButtonRelease-1>', 
+	self._downHourArrowBtn.bind('<Any-ButtonRelease-1>',
 		lambda event, s=self, button=self._downHourArrowBtn:
 		s._stopUpDown(button))
 
 
 	# Down minute
-	self._downMinuteArrowBtn.bind('<Configure>', 
-		lambda  event, s=self,button=self._downMinuteArrowBtn: 
+	self._downMinuteArrowBtn.bind('<Configure>',
+		lambda  event, s=self,button=self._downMinuteArrowBtn:
 		s._drawArrow(button, 'down'))
 
-	self._downMinuteArrowBtn.bind('<1>', 
+	self._downMinuteArrowBtn.bind('<1>',
     	    	lambda event, s=self,button=self._downMinuteArrowBtn:
                 s._countDown(button, 60))
-	self._downMinuteArrowBtn.bind('<Any-ButtonRelease-1>', 
+	self._downMinuteArrowBtn.bind('<Any-ButtonRelease-1>',
 		lambda event, s=self, button=self._downMinuteArrowBtn:
 		s._stopUpDown(button))
 
 	# Down second
-	self._downSecondArrowBtn.bind('<Configure>', 
-		lambda  event, s=self,button=self._downSecondArrowBtn: 
+	self._downSecondArrowBtn.bind('<Configure>',
+		lambda  event, s=self,button=self._downSecondArrowBtn:
 		s._drawArrow(button, 'down'))
 
-	self._downSecondArrowBtn.bind('<1>', 
-    	    	lambda event, s=self, button=self._downSecondArrowBtn: 
+	self._downSecondArrowBtn.bind('<1>',
+    	    	lambda event, s=self, button=self._downSecondArrowBtn:
 		s._countDown(button,1))
-	self._downSecondArrowBtn.bind('<Any-ButtonRelease-1>', 
+	self._downSecondArrowBtn.bind('<Any-ButtonRelease-1>',
 		lambda event, s=self, button=self._downSecondArrowBtn:
 		s._stopUpDown(button))
 
@@ -8032,7 +8032,7 @@ class TimeCounter(MegaWidget):
 
 	self._hour = string.atoi(list[0])
 	self._minute = string.atoi(list[1])
-	self._second = string.atoi(list[2]) 
+	self._second = string.atoi(list[2])
 
     	self._setHMS()
 
@@ -8091,7 +8091,7 @@ class TimeCounter(MegaWidget):
 	    else:
 	      delay = self['repeatrate']
 	    self._timerId = self.after(
-		delay, lambda self=self, factor=factor,increment=increment: 
+		delay, lambda self=self, factor=factor,increment=increment:
 		  self._count(factor,'running', increment))
 
     def _setHMS(self):
@@ -8137,7 +8137,7 @@ class AboutDialog(MessageDialog):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('applicationname',   '',          INITOPT),
 	    ('iconpos',           'w',         None),
@@ -8191,7 +8191,7 @@ class ComboBox(MegaWidget):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('autoclear',          0,          INITOPT),
 	    ('buttonaspect',       1.0,        INITOPT),
@@ -8293,7 +8293,7 @@ class ComboBox(MegaWidget):
 	    self._entryWidget.bind('<F34>', self._postList)
 	    self._entryWidget.bind('<F28>', self._postList)
 
-            # Need to unpost the popup if the entryfield is unmapped (eg: 
+            # Need to unpost the popup if the entryfield is unmapped (eg:
             # its toplevel window is withdrawn) while the popup list is
             # displayed.
             self._entryWidget.bind('<Unmap>', self._unpostList)
@@ -8528,7 +8528,7 @@ class ComboBox(MegaWidget):
 	self._ignoreRelease = 0
 
     def _resizeArrow(self, event):
-	bw = (string.atoi(self._arrowBtn['borderwidth']) + 
+	bw = (string.atoi(self._arrowBtn['borderwidth']) +
 		string.atoi(self._arrowBtn['highlightthickness']))
 	newHeight = self._entryfield.winfo_reqheight() - 2 * bw
 	newWidth = int(newHeight * self['buttonaspect'])
@@ -8570,13 +8570,13 @@ forwardmethods(ComboBox, EntryField, '_entryfield')
 
 class ComboBoxDialog(Dialog):
     # Dialog window with simple combobox.
-    
+
     # Dialog window displaying a list and entry field and requesting
     # the user to make a selection or enter a value
 
     def __init__(self, parent = None, **kw):
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('borderx',    10,              INITOPT),
 	    ('bordery',    10,              INITOPT),
@@ -8638,7 +8638,7 @@ class Counter(MegaWidget):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('autorepeat',     1,             None),
 	    ('buttonaspect',   1.0,           INITOPT),
@@ -8744,7 +8744,7 @@ class Counter(MegaWidget):
 	entry.bind('<Down>', lambda event, s = self: s._key_decrement(event))
 	entry.bind('<Up>', lambda event, s = self: s._key_increment(event))
 
-	# Need to cancel the timer if an arrow button is unmapped (eg: 
+	# Need to cancel the timer if an arrow button is unmapped (eg:
 	# its toplevel window is withdrawn) while the mouse button is
 	# held down.  The canvas will not get the ButtonRelease event
 	# if it is not mapped, since the implicit grab is cancelled.
@@ -9012,7 +9012,7 @@ class CounterDialog(Dialog):
     def __init__(self, parent = None, **kw):
 
 	# Define the megawidget options.
-	
+
 	optiondefs = (
 	    ('borderx',    20,  INITOPT),
 	    ('bordery',    20,  INITOPT),
@@ -9036,7 +9036,7 @@ class CounterDialog(Dialog):
 		Counter, (interior,))
 	self._cdCounter.pack(fill='x', expand=1,
 		padx = self['borderx'], pady = self['bordery'])
-	
+
         if not kw.has_key('activatecommand'):
             # Whenever this dialog is activated, set the focus to the
             # Counter's entry widget.
