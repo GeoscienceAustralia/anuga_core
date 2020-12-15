@@ -675,7 +675,7 @@ class Draw(AppShell.AppShell):
         """
         found=False
         if event.widget.find_withtag(CURRENT): # if there's a widget with a tag
-            [tag,string] = self.canvas.gettags(CURRENT) # get a list of them
+            tag = self.canvas.gettags(CURRENT)[0] # get a list of them
             log.critical("tag %s" % str(tag))  #tags ('M*1008', 'current')
             if tag[:2] == 'M*':   #!!! this can be removed when there are
                 #    only mesh objects on screen
