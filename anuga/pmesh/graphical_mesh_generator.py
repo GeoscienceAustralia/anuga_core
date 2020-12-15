@@ -7,18 +7,30 @@ from builtins import str
 from builtins import range
 from past.utils import old_div
 import  Pmw, AppShell, math, time, string, marshal
-from .toolbarbutton import ToolBarButton
+
+try:
+    from .toolbarbutton import ToolBarButton
+    from . import visualmesh
+    from . import mesh
+    from .mesh import SEG_COLOUR
+except:
+    from toolbarbutton import ToolBarButton
+    import visualmesh
+    import mesh
+    from mesh import SEG_COLOUR
+
+
 import tkinter.filedialog
 from   tkinter.simpledialog import Dialog
-from . import mesh
-from .mesh import SEG_COLOUR
+
+
 from tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, \
      Label,W, Entry, E, StringVar, END, Checkbutton, Radiobutton, IntVar, \
      DISABLED, NORMAL
 #from cursornames import TLC,TRC, BLC, BRC, TS, RS, LS, BS
 from tkinter.messagebox import showerror, _show, QUESTION,YESNOCANCEL
 import types
-from . import visualmesh
+
 import os, sys
 import profile
 import anuga.load_mesh.loadASCII
@@ -373,7 +385,12 @@ class Draw(AppShell.AppShell):
         """
         Zoom in or out of the current mesh view
         """
-        fraction = string.atof(tag)
+
+        from locale import atof
+        if type(tag) is str:
+            fraction = atof(tag)
+        else:
+            fraction = tag
         self.SCALE *= fraction
         self.scrolledcanvas.scale(ALL, 0, 0, fraction, fraction)
 
@@ -859,8 +876,11 @@ class Draw(AppShell.AppShell):
         visualise vertices, segments, triangulation, holes
         """
         if self.Visualise:
-            mesh.tri_mesh.draw_triangulation(self.canvas,
+            try:
+                mesh.tri_mesh.draw_triangulation(self.canvas,
                                              scale = self.SCALE)
+            except:
+                pass
 
         for segment in mesh.getUserSegments():
             self.serial +=1
@@ -891,6 +911,7 @@ class Draw(AppShell.AppShell):
                                     self.uniqueID,
                                     self.canvas,
                                     self.SCALE)
+
     def obsolete_normalise4ObjMesh(self):
         if self.mesh:
             self.clearSelections()
@@ -1047,7 +1068,7 @@ class Draw(AppShell.AppShell):
         # Could not get the file name to showup in the title
         #appname =  ofile + " - " + APPLICATION_NAME
 
-        except load_mesh.loadASCII.TitleAmountError:
+        except anuga.load_mesh.loadASCII.TitleAmountError:
             showerror('File error',
                   'file ' + ofile + ' has a bad title line (first line).')
 

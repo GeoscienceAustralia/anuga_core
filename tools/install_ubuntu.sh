@@ -137,6 +137,10 @@ echo "|  Using pip to install triangle                |"
 echo "+===============================================+"
 python -m pip  install -q triangle
 
+echo "+===============================================+"
+echo "|  Using pip to install Pmw                     |"
+echo "+===============================================+"
+python -m pip  install -q Pmw
 
 ##########################################################
 # Setup for various versions of MPI

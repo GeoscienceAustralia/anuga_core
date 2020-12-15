@@ -47,4 +47,4 @@ domain.set_boundary({'left': Br, 'right': Bw, 'top': Br, 'bottom': Br})
 # Evolve system through time
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep=0.1, finaltime=10.0):
-    print domain.timestepping_statistics()
+    print (domain.timestepping_statistics())
