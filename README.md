@@ -73,8 +73,6 @@ Sprint 2 (20/08/2020 - 02/09/2020)
 
 > [Log for Small Decisions](https://docs.google.com/spreadsheets/d/1uPZlRMNaRBlZnUdfNPVQ4e_S48npiRRkqP9GHJUyXS4/edit?usp=sharing)
 
-> [Documents for Large Decisions](https://docs.google.com/spreadsheets/d/1uPZlRMNaRBlZnUdfNPVQ4e_S48npiRRkqP9GHJUyXS4/edit?usp=sharing)
-
 > [Template for Large Decisions](https://docs.google.com/document/d/11qM3a2_Abr2oGtYLgIPA4QjgSELj9RFD4IboVFuBqEg/edit?usp=sharing)
 
 > [2020-08-05 Continuous Integration Tool Selection](https://docs.google.com/document/d/1xt46NBabq5xelkVywf4NLt9Su33GicAFldKurt747fs/edit?usp=sharing)
@@ -97,7 +95,6 @@ The first sprint will be a bit longer, so that the rest of the sprints will end 
 |1|The time difference might be a cooperation barrier as the team consists of overseas and native members|Most overseas members are living in China, which merely has 2 hours lag with the Australian Eastern Standard Time. The remaining member lives in Perth, which is in the same timezone as China. Therefore, the team or client meeting can be set at afternoon to mitigate the impact.|
 |2|It may take a long time for team members to learn the complex models in the project.|The team is able to split each stage task into some small tasks which will be allocated to a small group of members (i.e. 1~3 members). Each small tasks will be learnt and conducted simultaneously. The members can then write short sprint reports to document and report their progress and discoveries to the other members.|
 |3|Team members may have some emergencies during the project, such as sick, exam, which may interrupt the project progress.|We will never have any task that is only performed by one team member. Either the task will be performed by a small group, or if it is too small one team member will be assigned as the secondary person responsible for reviewing the code and taking over if the member principally responsible has an emergency situation.|
-|4|The system and equipment requirements may cause some difficulties to the team, as the project is required to design in Ubuntu 20.04, but some features can only run in Ubuntu 18.04. In addtion, the models require high capacity RAM to get a good performance.|Members can use virtual machine or install dual systems to match the development circumstance. And some complex issues can be tested in lab machines by members in Canberra.| 
 
 ## Tools and Client Requirements
 
@@ -109,9 +106,6 @@ The first sprint will be a bit longer, so that the rest of the sprints will end 
    * This means that team members will need to install a virtual machine or dual boot. All members have already done so.
 * Setup Continuous Integration (CI) tools to test on three platforms (Windows, MacOS and Ubuntu) automatically.
    * This was a Sprint 1 task for two members of the team. They have already set up Appveyor and TravisCI to handle this.
-* The project should follow the Agile process 
-   * Two week length sprint
-   * Create backlog ([Trello](https://trello.com/b/Z45C7crP/agile-sprint-board)) to track issues
 * Software standards
    * The Python code should follow the [PEP8](https://www.python.org/dev/peps/pep-0008/) standard apart from agreed exceptions.
    * All code, apart from the most trivial, should have corresponding unit tests.

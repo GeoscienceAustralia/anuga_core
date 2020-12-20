@@ -72,7 +72,7 @@ Bi = anuga.Dirichlet_boundary([1.0, 0, 0])   # Inflow
 Br = anuga.Reflective_boundary(domain)       # Solid reflective wall
 Bo = anuga.Dirichlet_boundary([-5, 0, 0])    # Outflow
 
-print domain.get_boundary_tags()
+print (domain.get_boundary_tags())
 
 domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br,
                      'interior': Br      ,# default interior boundary tag
@@ -85,12 +85,12 @@ domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br,
 # Evolve system through time
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep=0.2, finaltime=15.0):
-    print domain.timestepping_statistics()
+    print (domain.timestepping_statistics())
 
     
 # now turn off the tap
 domain.set_boundary({'left': Bo})
 
 for t in domain.evolve(yieldstep=0.1, finaltime=30.0):
-    print domain.timestepping_statistics()        
+    print (domain.timestepping_statistics() )       
 
