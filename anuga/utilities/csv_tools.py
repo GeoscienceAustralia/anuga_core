@@ -22,14 +22,14 @@ def read_csv_file(filename, key_col, data_col):
     if key_col not in header:
         msg = ("Column '%s' not in file %s"
                % (key_col, filename))
-               
-        fd.close()        
+
+        fd.close()
         raise Exception(msg)
     if data_col not in header:
         msg = ("Column '%s' not in file %s"
                % (data_col, filename))
-               
-        fd.close()                           
+
+        fd.close()
         raise Exception(msg)
 
     key_index = header.index(key_col)
@@ -38,9 +38,12 @@ def read_csv_file(filename, key_col, data_col):
     # read data, extract columns, save
     result = []
     for line in csv_reader:
-        key_data = line[key_index].strip()
-        data_data = line[data_index].strip()
-        result.append((key_data, data_data))
+        try:
+            key_data = line[key_index].strip()
+            data_data = line[data_index].strip()
+            result.append((key_data, data_data))
+        except:
+            pass
 
     fd.close()
 
@@ -70,7 +73,7 @@ def merge_csv_key_values(file_title_list, output_file,
 
 
     # Get number of input files, check we have 1 or more
-    
+
     num_files = len(file_title_list)
     if num_files == 0:
         msg = "List 'file_title_list' is empty!?"
@@ -105,7 +108,7 @@ def merge_csv_key_values(file_title_list, output_file,
             raise Exception(msg)
 
     # Open output file
-    out_fd = open(output_file, 'w')
+    out_fd = open(output_file, 'w',newline='')
     out_csv = csv.writer(out_fd)
 
     # Write column rows to output file
