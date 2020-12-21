@@ -226,6 +226,7 @@ class Draw(AppShell.AppShell):
                       state='disabled', home_dir=HOME_DIR)
         for key, func, balloon in [
                 ('addVertex', self.windowAddVertex, 'add Vertex'),
+                ('delete', self.windowDelete, 'delete selected object'),
                 ('edit', self.windowEdit, 'edit selected object'),
                 ('default', self.windowDefault, 'set default value for selected mode'),
                 ('joinVer', self.joinVerticesButton, 'add Segments to connect all vertices'),
@@ -448,6 +449,9 @@ class Draw(AppShell.AppShell):
             self.ResizeToFit()
         else:
             log.critical("bad values")
+
+    def windowDelete(self, parent):
+        self.DeleteSelectedMeshObject(None)
 
     def windowDefault (self, parent):
         """
