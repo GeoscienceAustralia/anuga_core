@@ -24,7 +24,7 @@ class Exposure(object):
     """Class for National Exposure Database storage (NEXIS).
     Returns a csv file handle
     """
-    
+
     def __init__(self,file_name, latitude_title=LAT_TITLE,
                  longitude_title=LONG_TITLE, is_x_y_locations=None,
                  x_title=X_TITLE, y_title=Y_TITLE,
@@ -108,7 +108,7 @@ class Exposure(object):
         """
 
         # FIXME: Deprecate this method
-        
+
         #check that 'other' is an instance of this class
         if isinstance(self, type(other)):
             result = cmp(self._attribute_dic, other._attribute_dic)
@@ -157,7 +157,7 @@ class Exposure(object):
 
             # All matched up
             return True
-        
+
             #if result != 0:
             #    return result
 
@@ -176,7 +176,7 @@ class Exposure(object):
             return False
 
 
-        
+
     def get_column(self, column_name, use_refind_polygon=False):
         """Get a list of column values given a column name.
 
@@ -257,7 +257,7 @@ class Exposure(object):
         if file_name is None:
             file_name = self._file_name
 
-        fd = open(file_name, 'w')
+        fd = open(file_name, 'w', newline="")
         writer = csv.writer(fd)
 
         #Write the title to a cvs file
@@ -275,4 +275,3 @@ class Exposure(object):
                 line[self._title_index_dic[title]] = \
                      self._attribute_dic[title][row_i]
             writer.writerow(line)
-
