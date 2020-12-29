@@ -6,7 +6,12 @@ standard_library.install_aliases()
 from builtins import str
 from past.utils import old_div
 from builtins import object
-from . import mesh
+
+try:
+    from . import mesh
+except:
+    import mesh
+    
 from   tkinter.simpledialog import Dialog,askfloat, askinteger, askstring
 from tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, Label,W, Entry, E, ACTIVE, NORMAL, StringVar
 from tkinter.messagebox import showerror

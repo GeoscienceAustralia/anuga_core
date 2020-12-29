@@ -144,7 +144,7 @@ class Geospatial_data(object):
             self.geo_reference = Geo_reference()  # Use default geo_reference
         else:
             self.geo_reference = geo_reference
-            
+
         if max_read_lines is None:
             self.max_read_lines = int(MAX_READ_LINES)
         else:
@@ -465,12 +465,12 @@ class Geospatial_data(object):
         # Instantiate new data object and return absolute coordinates
         # FIXME (Ole): This does not make sense - need to revisit.
         new_geo_ref = Geo_reference(geo_ref1.zone, 0, 0)
-        
+
         return Geospatial_data(data_points=new_points,
                                attributes=new_attributes,
                                geo_reference=new_geo_ref)
 
-    
+
     def __radd__(self, other):
         """Handle cases like None + Geospatial_data(...)"""
 
@@ -1016,6 +1016,8 @@ def _read_csv_file_blocking(file_pointer,
     while read_lines < max_read_lines:
         line = file_pointer.readline()
         numbers = clean_line(line, delimiter)
+        if line == '\n':
+            continue
         if len(numbers) <= 1:
             break
         if line[0] == '#':
