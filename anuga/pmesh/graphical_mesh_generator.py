@@ -179,10 +179,10 @@ class Draw(AppShell.AppShell):
                       width=10, state='disabled',home_dir=HOME_DIR)
         for key, balloon, mouseDownFunc, Mode in [
             ('pointer','Edit drawing eventually.  Right now this does nothing', self.drag, None)
-            ,('vertex',    'Vertex mode', self.drawVertex, mesh.Vertex)
-            ,('segment', 'Segment mode',self.selectSegmentPoint, mesh.Segment)
-            ,('hole', 'hole mode',self.drawHole, mesh.Hole)
-            ,('region', 'region mode',self.drawRegion, mesh.Region)
+            ,('vertex',    'Insert node', self.drawVertex, mesh.Vertex)
+            ,('segment', 'Insert segment',self.selectSegmentPoint, mesh.Segment)
+            ,('hole', 'Select hole',self.drawHole, mesh.Hole)
+            ,('region', 'Select region',self.drawRegion, mesh.Region)
             ]:
             t = ToolBarButton(self, self.toolbar, key, '%s.gif' % key,
                           command=self.selectFunc, balloonhelp=balloon,
