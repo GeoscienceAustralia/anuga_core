@@ -112,6 +112,8 @@ if myid == 0:
 
     domain = anuga.create_domain_from_file(meshname)
     
+    domain.set_zone(project.zone)
+
     domain.set_flow_algorithm(alg)
     if verbose: print(domain.get_extent(absolute=True))
 
