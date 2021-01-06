@@ -499,6 +499,38 @@ class TestCase(unittest.TestCase):
         else:
             self.fail('Error not thrown error!')
 
+    def test_convert_latlon_to_UTM4(self):            
+
+        # Test single point
+
+        lat_gong = -34.5
+        lon_gong = 150.916666667
+
+        points = [lat_gong, lon_gong]
+
+        points, zone = convert_from_latlon_to_utm(points=points)
+
+        points_ex = [[308728.0089035692, 6180432.600982175]]
+
+        assert zone == 56
+        assert num.allclose(points_ex, points)
+
+    def test_convert_latlon_to_UTM5(self):            
+
+        # Test scalar lat and long
+
+        lat_gong = -34.5
+        lon_gong = 150.916666667
+
+        points = [lat_gong, lon_gong]
+
+        points, zone = convert_from_latlon_to_utm(latitudes=lat_gong, longitudes=lon_gong)
+
+        points_ex = [[308728.0089035692, 6180432.600982175]]
+
+        assert zone == 56
+        assert num.allclose(points_ex, points)
+
             
 #-------------------------------------------------------------
 

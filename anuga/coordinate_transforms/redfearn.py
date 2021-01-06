@@ -190,7 +190,8 @@ def convert_from_latlon_to_utm(points=None,
                                latitudes=None,
                                longitudes=None,
                                false_easting=None,
-                               false_northing=None):
+                               false_northing=None,
+                               show_progress=False):
     """Convert latitude and longitude data to UTM as a list of coordinates.
 
 
@@ -214,20 +215,36 @@ def convert_from_latlon_to_utm(points=None,
     If points end up in different UTM zones, an ANUGAerror is thrown.    
     """
 
-    old_geo = Geo_reference()    
+    old_geo = Geo_reference()  
+
+    longitudes = num.asarray(longitudes, dtype=float)
+    latitudes = num.asarray(latitudes, dtype=float)
+
     utm_points = []
     if points is None:
+        longitudes = num.asarray(longitudes, dtype=float).reshape((-1,1))
+        latitudes = num.asarray(latitudes, dtype=float).reshape((-1,1))
         assert len(latitudes) == len(longitudes)
-        points =  map(None, latitudes, longitudes)
+        points =  num.hstack((latitudes, longitudes))
+    else:
+        points = num.asarray(points, dtype=float).reshape((-1,2))
         
+    iter = 0
     for point in points:
+
+        iter= iter+1
+        if iter%1000 == 0 and show_progress: print('.', end='', flush=True)
         
-        zone, easting, northing = redfearn(float(point[0]),
-                                           float(point[1]),
+        zone, easting, northing = redfearn(point[0],
+                                           point[1],
                                            false_easting=false_easting,
                                            false_northing=false_northing)
         new_geo = Geo_reference(zone)
         old_geo.reconcile_zones(new_geo)        
         utm_points.append([easting, northing])
+
+    if show_progress: print()
+
+    utm_points = num.asarray(utm_points, dtype=float).reshape((-1,2))
 
     return utm_points, old_geo.get_zone()
