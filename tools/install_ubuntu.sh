@@ -58,6 +58,11 @@ echo "+===============================================+"
 sudo pip install -q nose
 
 echo "+===============================================+"
+echo "|  Using pip to install future                  |"
+echo "+===============================================+"
+sudo pip install -q future
+
+echo "+===============================================+"
 echo "|  Using pip to install dill                    |"
 echo "+===============================================+"
 sudo pip install -q dill

@@ -38,7 +38,7 @@ export PATH=/Users/travis/miniconda2/bin:$PATH
 #conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy netcdf4 \
 #    nose matplotlib gdal dill
     
-conda create -n anuga_env --yes python=2.7.13 gdal=2.2.2 nose numpy scipy netcdf4 matplotlib dill
+conda create -n anuga_env --yes python=2.7.13 gdal=2.2.2 nose numpy scipy netcdf4 matplotlib dill future
 
 source activate anuga_env
 
