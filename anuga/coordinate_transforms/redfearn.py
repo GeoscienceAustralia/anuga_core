@@ -7,9 +7,9 @@ http://www.icsm.gov.au/icsm/
 
 """
 from __future__ import division, print_function
-import numpy as num
 from anuga.coordinate_transforms.geo_reference import Geo_reference, DEFAULT_ZONE
 
+import numpy as num
 
 def degminsec2decimal_degrees(dd,mm,ss):
     assert abs(mm) == mm
