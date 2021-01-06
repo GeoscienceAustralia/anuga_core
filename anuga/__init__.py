@@ -211,6 +211,7 @@ else:
     from anuga.file_conversion.ferret2sww import ferret2sww
     from anuga.file_conversion.dem2dem import dem2dem
     from anuga.file_conversion.sww2array import sww2array
+    from anuga.file_conversion.llasc2pts import llasc2pts
 
     # -----------------------------
     # Parsing arguments
