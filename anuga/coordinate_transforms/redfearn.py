@@ -6,9 +6,10 @@ downloaded from INTERGOVERNMENTAL COMMITTEE ON SURVEYING & MAPPING (ICSM)
 http://www.icsm.gov.au/icsm/
 
 """
+from __future__ import print_function
 from anuga.coordinate_transforms.geo_reference import Geo_reference, DEFAULT_ZONE
 
-from __future__ import print_function
+
 
 
 def degminsec2decimal_degrees(dd,mm,ss):
