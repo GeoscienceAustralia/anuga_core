@@ -22,7 +22,7 @@ build_script:
   - CMD: SET
   - conda config --set always_yes yes
   - conda update conda
-  - conda install python=2.7.13 gdal=2.2.2 nose numpy scipy netcdf4 matplotlib dill libpython msys2::m2w64-toolchain 
+  - conda install python=2.7.13 gdal=2.2.2 nose numpy scipy netcdf4 matplotlib dill future libpython msys2::m2w64-toolchain 
   - python setup.py install
 
 test_script:

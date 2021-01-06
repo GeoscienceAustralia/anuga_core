@@ -14,6 +14,8 @@ from anuga.utilities.system_tools import get_pathname_from_package
 from os.path import join
 import numpy as num
 
+from __future__ import print_function
+
 
 #-------------------------------------------------------------
 
