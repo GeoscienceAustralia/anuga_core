@@ -4,6 +4,7 @@
 #http://www.cellspark.com/UTM.html
 #http://www.ga.gov.au/nmd/geodesy/datums/redfearn_geo_to_grid.jsp
 
+from __future__ import print_function
 
 import unittest
 
@@ -14,7 +15,7 @@ from anuga.utilities.system_tools import get_pathname_from_package
 from os.path import join
 import numpy as num
 
-from __future__ import print_function
+
 
 
 #-------------------------------------------------------------
