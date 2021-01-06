@@ -8,6 +8,8 @@ http://www.icsm.gov.au/icsm/
 """
 from anuga.coordinate_transforms.geo_reference import Geo_reference, DEFAULT_ZONE
 
+from __future__ import print_function
+
 
 def degminsec2decimal_degrees(dd,mm,ss):
     assert abs(mm) == mm
