@@ -61,7 +61,7 @@ else:
     # Test for future library
     # ---------------------------------
     try:
-        import blah
+        import future
     except:
         msg = """
         ====================================================
