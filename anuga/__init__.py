@@ -58,6 +58,25 @@ else:
     _stdout = sys.stdout
 
     # ---------------------------------
+    # Test for future library
+    # ---------------------------------
+    try:
+        import blah
+    except:
+        msg = """
+        ====================================================
+        We have added the future library as a dependency
+        We suggest using pip to install it.
+        So run the command
+
+        pip install future
+
+        (Perhaps you will need to add sudo at the start)
+        ===================================================
+        """
+        raise Exception, msg
+
+    # ---------------------------------
     # Setup the nose tester from numpy
     # ---------------------------------
     from numpy.testing import Tester
