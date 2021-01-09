@@ -147,6 +147,7 @@ class Generic_Domain(object):
         self.number_of_nodes = self.mesh.number_of_nodes
 
         self.geo_reference = self.mesh.geo_reference
+        self.institution = 'Geosciences Australia'
 
         self.verbose = verbose
 
@@ -573,6 +574,10 @@ class Generic_Domain(object):
         """Set zone for domain."""
 
         self.geo_reference.zone = zone
+
+    def set_institution(self,institution):
+
+        self.institution = institution
 
     def get_datetime(self):
         """Return date time of current modeltime."""

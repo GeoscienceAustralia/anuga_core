@@ -44,7 +44,7 @@ if myid == 0:
     #------------------------------------------------------------------------------
     # Unzip asc from zip file
     import zipfile as zf
-    if project.verbose: print 'Reading ASC from cairns.zip'
+    if project.verbose: print ('Reading ASC from cairns.zip')
     zf.ZipFile(project.name_stem+'.zip').extract(project.name_stem+'.asc')
 
     # Create DEM from asc data
@@ -72,9 +72,9 @@ if myid == 0:
                                         verbose=project.verbose)
 
     # Print some stats about mesh and domain
-    print 'Number of triangles = ', len(domain)
-    print 'The extent is ', domain.get_extent()
-    print domain.statistics()
+    print ('Number of triangles = ', len(domain))
+    print ('The extent is ', domain.get_extent())
+    print (domain.statistics())
 
     #------------------------------------------------------------------------------
     # Setup parameters of computational domain
@@ -131,7 +131,7 @@ if project.scenario == 'slide':
 #------------------------------------------------------------------------------
 # Setup boundary conditions
 #------------------------------------------------------------------------------
-print 'Available boundary tags', domain.get_boundary_tags()
+print ('Available boundary tags', domain.get_boundary_tags())
 
 Bd = anuga.Dirichlet_boundary([project.tide, 0, 0]) # Mean water level
 Bs = anuga.Transmissive_stage_zero_momentum_boundary(domain) # Neutral boundary
@@ -166,7 +166,7 @@ if project.scenario == 'slide':
     # Initial run without any event
     for t in domain.evolve(yieldstep=10, finaltime=60):
         if myid == 0:
-            print domain.timestepping_statistics()
+            domain.print_timestepping_statistics()
             #print domain.boundary_statistics(tags='ocean_east')
         
     # Add slide to water surface
@@ -177,28 +177,28 @@ if project.scenario == 'slide':
     for t in domain.evolve(yieldstep=10, finaltime=5000, 
                            skip_initial_step=True):
         if myid == 0:
-            print domain.timestepping_statistics()
+            domain.print_timestepping_statistics()
             #print domain.boundary_statistics(tags='ocean_east')
 
 if project.scenario == 'fixed_wave':
     # Save every two mins leading up to wave approaching land
     for t in domain.evolve(yieldstep=2*60, finaltime=5000):
         if myid == 0:
-            print domain.timestepping_statistics()
+            domain.print_timestepping_statistics()
             #print domain.boundary_statistics(tags='ocean_east')
 
     # Save every 30 secs as wave starts inundating ashore
     for t in domain.evolve(yieldstep=60*0.5, finaltime=10000, 
                            skip_initial_step=True):
         if myid == 0:
-            print domain.timestepping_statistics()
+            domain.print_timestepping_statistics()
             #print domain.boundary_statistics(tags='ocean_east')
 
 
 domain.sww_merge(delete_old=True)
 
 if myid == 0:
-    print 'That took %.2f seconds' %(time.time()-t0)
+    print ('That took %.2f seconds' %(time.time()-t0))
 
     
 

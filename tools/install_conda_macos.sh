@@ -29,6 +29,7 @@ conda create -n anuga_env --yes python=3.7 gdal pip nose numpy scipy netcdf4 mat
 
 source activate anuga_env
 pip install triangle
+pip install Pmw
 
 # Useful for debugging any issues with conda
 conda info -a
