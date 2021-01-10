@@ -4,7 +4,7 @@
     :alt: travis ci status
    
 
-.. image:: https://ci.appveyor.com/api/projects/status/ws836mwk6j5brrye/branch/master?svg=true
+.. image:: https://ci.appveyor.com/api/projects/status/x5airjv7eq2u805w/branch/master?svg=true
     :target: https://ci.appveyor.com/project/anuga-community/anuga-core/branch/master
     :alt: appveyor status
 
