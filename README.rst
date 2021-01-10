@@ -5,7 +5,7 @@
    
 
 .. image:: https://ci.appveyor.com/api/projects/status/x5airjv7eq2u805w/branch/master?svg=true
-    :target: https://ci.appveyor.com/project/anuga-community/anuga-core/branch/master
+    :target: https://ci.appveyor.com/project/stoiver/anuga-core-nwgr0
     :alt: appveyor status
 
 .. image:: https://img.shields.io/pypi/v/anuga.svg
