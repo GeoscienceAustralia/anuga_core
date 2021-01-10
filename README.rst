@@ -1,10 +1,10 @@
 
-.. image:: https://travis-ci.org/GeoscienceAustralia/anuga_core.svg?branch=anuga_py3
-    :target: https://travis-ci.org/GeoscienceAustralia/anuga_core
+.. image:: https://travis-ci.org/anuga-community/anuga_core.svg?branch=master
+    :target: https://travis-ci.org/anuga-community/anuga_core
     :alt: travis ci status
 
-.. image:: https://ci.appveyor.com/api/projects/status/ws836mwk6j5brrye/branch/anuga_py3?svg=true
-    :target: https://ci.appveyor.com/project/stoiver/anuga-core/branch/anuga_py3
+.. image:: https://ci.appveyor.com/api/projects/status/ws836mwk6j5brrye/branch/master?svg=true
+    :target: https://ci.appveyor.com/project/anuga-community/anuga-core/branch/master
     :alt: appveyor status
 
 .. image:: https://img.shields.io/pypi/v/anuga.svg
