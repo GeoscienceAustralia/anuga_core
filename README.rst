@@ -1,6 +1,6 @@
 
-.. image:: https://travis-ci.org/anuga-community/anuga_core.svg?branch=master
-    :target: https://travis-ci.org/anuga-community/anuga_core
+.. image:: https://travis-ci.com/anuga-community/anuga_core.svg?branch=master
+    :target: https://travis-ci.com/anuga-community/anuga_core
     :alt: travis ci status
 
 .. image:: https://ci.appveyor.com/api/projects/status/ws836mwk6j5brrye/branch/master?svg=true
