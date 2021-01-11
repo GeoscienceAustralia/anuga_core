@@ -38,8 +38,8 @@ class loadASCIITestCase(unittest.TestCase):
         self.dict['segment_tags'] = ['50', '40', '30', '20', '40']
         self.dict['vertex_attribute_titles'] = ['bed elevation', 'height']
         self.dict['geo_reference'] = Geo_reference(56, 1.9, 1.9)
-        
-        
+
+
         self.dict_1 = {}
         self.dict_1['outline_segments'] = [(0, 1), (1, 2), (0, 2), (0, 3)]
         self.dict_1['outline_segment_tags'] = ['50', '40', '30', '20']
@@ -60,7 +60,7 @@ class loadASCIITestCase(unittest.TestCase):
                                            [-1, 1, 0], [1, -1, 0]]
         self.dict_1['segment_tags'] = ['50', '40', '30', '20', '40']
         self.dict_1['vertex_attribute_titles'] = ['height']
-        self.dict_1['geo_reference'] = Geo_reference(56, 1.9, 1.9)        
+        self.dict_1['geo_reference'] = Geo_reference(56, 1.9, 1.9)
 
         self.sparse_dict = {}
         self.sparse_dict['outline_segments'] = []
@@ -225,14 +225,14 @@ class loadASCIITestCase(unittest.TestCase):
                         'test_export_mesh_file failed. Test 9')
 
         os.remove(fileName)
-        
-        
+
+
     def test_export_mesh_1_file(self):
         meshDict = self.dict_1
         fileName = tempfile.mktemp('.tsh')
         export_mesh_file(fileName, meshDict)
         loadedDict = import_mesh_file(fileName)
-        
+
 
         self.assertTrue(num.alltrue(num.array(meshDict['vertices']) ==
                                     num.array(loadedDict['vertices'])),
@@ -264,7 +264,7 @@ class loadASCIITestCase(unittest.TestCase):
                         'test_export_mesh_file failed. Test 9')
 
 
-        #os.remove(fileName)        
+        #os.remove(fileName)
 
     def test_read_write_tsh_file(self):
         dict = self.dict.copy()
@@ -357,7 +357,10 @@ class loadASCIITestCase(unittest.TestCase):
             pass
         else:
             self.fail('bad tsh file did not raise error!')
-        os.remove(fileName)
+        try:
+            os.remove(fileName)
+        except PermissionError:
+            pass
 
     def test_import_tsh3(self):
         fileName = tempfile.mktemp('.tsh')
@@ -373,7 +376,10 @@ showme1.0 0.0 10.0 \n\
             pass
         else:
             self.fail('bad tsh file did not raise error!')
-        os.remove(fileName)
+        try:
+            os.remove(fileName)
+        except PermissionError:
+            pass
 
   ############### .MSH ##########
 
@@ -548,4 +554,3 @@ if __name__ == '__main__':
     suite = unittest.makeSuite(loadASCIITestCase,'test')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
-
