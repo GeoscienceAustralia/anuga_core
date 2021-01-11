@@ -97,6 +97,7 @@ class Draw(AppShell.AppShell):
         Widget.bind(self.canvas, "<Button-1>", self.mouseDown)
         Widget.bind(self.canvas, "<Button3-ButtonRelease>", self.rightMouseUp)
         Widget.bind(self.canvas, "<Button2-ButtonRelease>",self.DeleteSelectedMeshObject)
+        Widget.bind(self.canvas, "<Motion>", self.displayCoords)
         # "<Delete>" didn't work..
         #Widget.bind(self.canvas, "<Delete>", self.DeleteSelectedMeshObject)
 
@@ -179,10 +180,10 @@ class Draw(AppShell.AppShell):
                       width=10, state='disabled',home_dir=HOME_DIR)
         for key, balloon, mouseDownFunc, Mode in [
             ('pointer','Edit drawing eventually.  Right now this does nothing', self.drag, None)
-            ,('vertex',    'Vertex mode', self.drawVertex, mesh.Vertex)
-            ,('segment', 'Segment mode',self.selectSegmentPoint, mesh.Segment)
-            ,('hole', 'hole mode',self.drawHole, mesh.Hole)
-            ,('region', 'region mode',self.drawRegion, mesh.Region)
+            ,('vertex',    'Insert node', self.drawVertex, mesh.Vertex)
+            ,('segment', 'Insert segment',self.selectSegmentPoint, mesh.Segment)
+            ,('hole', 'Select hole',self.drawHole, mesh.Hole)
+            ,('region', 'Select region',self.drawRegion, mesh.Region)
             ]:
             t = ToolBarButton(self, self.toolbar, key, '%s.gif' % key,
                           command=self.selectFunc, balloonhelp=balloon,
@@ -444,9 +445,10 @@ class Draw(AppShell.AppShell):
         if dialog.xyValuesOk:
             log.critical(str(dialog.x))
             log.critical(str(dialog.y))
-            self.drawVertex(dialog.x*self.SCALE,dialog.y*self.SCALE,None)
+            #self.drawVertex(dialog.x*self.SCALE,dialog.y*self.SCALE,None)
+            self.drawVertex(dialog.x, dialog.y, None)
             #Since the new vertex may be off screen
-            self.ResizeToFit()
+            #self.ResizeToFit()
         else:
             log.critical("bad values")
 
@@ -672,6 +674,13 @@ class Draw(AppShell.AppShell):
         self.mouseDownCurFunc( self.lastx,
                                self.lasty,event) #!!! remove the event?
                                                  # do last
+
+    def displayCoords(self, event):
+        messageBar = self.messageBar()
+        disp_x = str(int(self.canvas.canvasx(event.x)))
+        disp_y = str(int(-1*self.canvas.canvasy(event.y)))
+        messageBar.helpmessage(disp_x + "," + disp_y)
+
 
     def rightMouseUp(self, event):
         """
