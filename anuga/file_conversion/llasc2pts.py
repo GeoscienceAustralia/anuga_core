@@ -28,7 +28,7 @@ def llasc2pts(name_in, name_out=None,
     kwargs = {'name_out': name_out, 'verbose': verbose, 'show_progress': show_progress}
 
     if use_cache is True:
-        from caching import cache
+        from anuga.caching import cache
         result = cache(_convert_dem_from_llasc2pts, name_in, kwargs,
                        dependencies=[name_in],
                        verbose=verbose)
@@ -184,8 +184,6 @@ def _convert_dem_from_llasc2pts(name_in, name_out = None,
 
     if verbose:
         log.critical('There are %d values in the elevation' % totalnopoints)
-        log.critical('There are %d values in the clipped elevation'
-                     % clippednopoints)
         log.critical('There are %d NODATA_values in the clipped elevation' % nn)
 
     outfile.createDimension('number_of_points', nopoints)
