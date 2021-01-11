@@ -232,6 +232,7 @@ def convert_from_latlon_to_utm(points=None,
         points = num.asarray(points, dtype=float).reshape((-1,2))
         
     iter = 0
+    if show_progress : print('Showing ll to utm conversion (each dot represents 1000 points processed out of %g)'% len(points))
     for point in points:
 
         iter= iter+1
