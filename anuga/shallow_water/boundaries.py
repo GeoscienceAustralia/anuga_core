@@ -1073,7 +1073,7 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
         # Do vectorized operations here
         #
         # In dry cells, the values will be ....
-        q0_dry = stage_outside
+        q0_dry = num.where(bed <= stage_outside, stage_outside, Elev.boundary_values[ids])
         q1_dry = 0.0 * Xmom.boundary_values[ids]
         q2_dry = 0.0 * Ymom.boundary_values[ids]
         #
@@ -1103,19 +1103,20 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
         q1_wet = qperp * n1 + qpar * n2
         q2_wet = qperp * n2 - qpar * n1
 
+        dry_test = num.logical_or(depth_inside == 0.0, stage_outside > bed)
 
         Stage.boundary_values[ids] = num.where(
-            depth_inside == 0.0,
+            dry_test,
             q0_dry, 
             q0_wet)
 
         Xmom.boundary_values[ids] = num.where(
-            depth_inside == 0.0, 
+            dry_test, 
             q1_dry, 
             q1_wet)
 
         Ymom.boundary_values[ids] = num.where(
-            depth_inside == 0.0,
+            dry_test,
             q2_dry,
             q2_wet)
 

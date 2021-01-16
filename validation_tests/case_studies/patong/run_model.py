@@ -251,13 +251,15 @@ log.critical('Set boundary P_%g - available tags: %s' % (myid, domain.get_bounda
 
 Br = anuga.Reflective_boundary(domain)
 Bs = anuga.Transmissive_stage_zero_momentum_boundary(domain)
+Bf = anuga.Flather_external_stage_zero_velocity_boundary(domain,function=lambda t: project.tide)
 
 if myid == 0 and verbose:
     verbose_bf = True
 else:
     verbose_bf = False
-    
-Bf = anuga.Field_boundary(project.event_sts+'.sts',
+
+# setup Spatial Temporal boundary  
+Bst = anuga.Field_boundary(project.event_sts+'.sts',
                     domain,
                     mean_stage=project.tide,
                     time_thinning=20,
@@ -267,8 +269,8 @@ Bf = anuga.Field_boundary(project.event_sts+'.sts',
                     verbose=verbose_bf)
 
 domain.set_boundary({'back': Br,
-                     'side': Bs,
-                     'ocean': Bf}) 
+                     'side': Bf,
+                     'ocean': Bst}) 
 
 #-------------------------------------------------------------------------------
 # Evolve system through time
