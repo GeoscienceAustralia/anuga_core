@@ -66,12 +66,12 @@ class Test_Fit(unittest.TestCase):
                                   ensure_numeric(z))
         #print "Atz - from fit", fit.Atz
         #print "AtA - from fit", fit.AtA.todense()
-        #print "z",z 
+        #print "z",z
 
         assert num.allclose(fit.Atz, [2.8, 3.6, 3.6], atol=1e-7)
 
         f = fit.fit()
-        
+
         answer = [0, 5., 5.]
 
         #print "f\n",f
@@ -92,7 +92,7 @@ class Test_Fit(unittest.TestCase):
         d3 = [3.0,1.0]
         data_coords = [d1, d2, d3]
         z = linear_function(data_coords)
-        #print "z",z 
+        #print "z",z
 
         interp = Fit(points, triangles, alpha=0.0)
         f = interp.fit(data_coords, z)
@@ -138,10 +138,10 @@ class Test_Fit(unittest.TestCase):
         #print "answer\n",answer
         assert num.allclose(f, answer)
 
-   
+
     def test_smooth_attributes_to_meshIV(self):
         # Testing 2 attributes smoothed to the mesh
-        
+
 
         a = [0.0, 0.0]
         b = [0.0, 5.0]
@@ -159,7 +159,7 @@ class Test_Fit(unittest.TestCase):
 
         z = [z1, z2, z3]
         fit = Fit(points, triangles, alpha=0)
-        
+
         f =  fit.fit(data_coords,z)
         answer = [[0,0], [5., 10.], [5., 10.]]
         assert num.allclose(f, answer)
@@ -188,7 +188,7 @@ class Test_Fit(unittest.TestCase):
         z = linear_function(point_coords)
 
         f = interp.build_fit_subset(point_coords,z)
-        
+
         point_coords = [
                         [2.0, 1.0],
                         [0.0,0.0],
@@ -198,11 +198,11 @@ class Test_Fit(unittest.TestCase):
                         [-0.9, -1.5],
                         [0.5, -1.9],
                         [3.0,1.0]]
-        
+
         z = linear_function(point_coords)
 
         f = interp.build_fit_subset(point_coords,z)
-        
+
         #print 'z',z
         f = interp.fit()
         answer = linear_function(vertices)
@@ -243,7 +243,7 @@ class Test_Fit(unittest.TestCase):
  0.5,  -1.9, -1.4\n\
  3.0,  1.0 , 4.\n")
         file.close()
-        
+
         f = interp.fit(fileName, max_read_lines=2)
         answer = linear_function(vertices)
         #print "f\n",f
@@ -261,7 +261,7 @@ class Test_Fit(unittest.TestCase):
         points_UTM = data_geo_spatial.get_data_points(absolute=True)
         attributes = linear_function(points_UTM)
         att = 'elevation'
-        
+
         #Create .txt file
         txt_file = tempfile.mktemp(".txt")
         file = open(txt_file,"w")
@@ -269,7 +269,7 @@ class Test_Fit(unittest.TestCase):
         for data_point, attribute in zip(points_UTM, attributes):
             row = str(data_point[0]) + ',' + str(data_point[1]) \
                   + ',' + str(attribute)
-            #print "row", row 
+            #print "row", row
             file.write(row + "\n")
         file.close()
 
@@ -279,17 +279,17 @@ class Test_Fit(unittest.TestCase):
         c = [300000, 7620000]
         points = [a, b, c]
         elements = [[0,2,1]]
-        f = fit_to_mesh(txt_file, points, elements, 
+        f = fit_to_mesh(txt_file, points, elements,
                         alpha=0.0, max_read_lines=2)
         answer = linear_function(points)
         #print "f",f
-        #print "answer",answer 
+        #print "answer",answer
         assert num.allclose(f, answer)
 
         # Delete file!
         os.remove(txt_file)
-        
-       
+
+
     def test_fit_to_mesh_pts(self):
         a = [-1.0, 0.0]
         b = [3.0, 4.0]
@@ -329,7 +329,7 @@ class Test_Fit(unittest.TestCase):
         assert num.allclose(f, answer)
         os.remove(fileName)
         os.remove(fileName_pts)
-        
+
     def test_fit_to_mesh_pts_passing_mesh_in(self):
         a = [-1.0, 0.0]
         b = [3.0, 4.0]
@@ -369,7 +369,7 @@ class Test_Fit(unittest.TestCase):
         assert num.allclose(f, answer)
         os.remove(fileName)
         os.remove(fileName_pts)
-        
+
     def test_fit_to_mesh(self):
 
         a = [-1.0, 0.0]
@@ -399,7 +399,7 @@ class Test_Fit(unittest.TestCase):
  0.5,  -1.9, -1.4\n\
  3.0,  1.0 , 4.\n")
         file.close()
-        
+
         f = fit_to_mesh(fileName, vertices, triangles,
                                 alpha=0.0, max_read_lines=2)
                         #use_cache=True, verbose=True)
@@ -407,7 +407,7 @@ class Test_Fit(unittest.TestCase):
         #print "f\n",f
         #print "answer\n",answer
         assert num.allclose(f, answer)
-    
+
         os.remove(fileName)
 
     def test_fit_to_mesh_using_jacobi_precon(self):
@@ -447,7 +447,7 @@ class Test_Fit(unittest.TestCase):
         #print "answer\n",answer
 
         assert num.allclose(f, answer)
-    
+
         os.remove(fileName)
 
     def test_fit_to_mesh_using_jacobi_precon_no_c_cg(self):
@@ -487,7 +487,7 @@ class Test_Fit(unittest.TestCase):
         #print "answer\n",answer
 
         assert num.allclose(f, answer)
-    
+
         os.remove(fileName)
 
     def test_fit_to_mesh_2_atts(self):
@@ -520,9 +520,9 @@ class Test_Fit(unittest.TestCase):
  0.5,  -1.9, -1.4, -14. \n\
  3.0,  1.0 , 4., 40. \n")
         file.close()
-        
+
         f = fit_to_mesh(fileName, vertices, triangles,
-                        alpha=0.0, 
+                        alpha=0.0,
                         attribute_name='elevation', max_read_lines=2)
         answer = linear_function(vertices)
         #print "f\n",f
@@ -533,7 +533,7 @@ class Test_Fit(unittest.TestCase):
 
 
 
-        
+
     def test_fit_and_interpolation(self):
 
         a = [0.0, 0.0]
@@ -614,7 +614,7 @@ class Test_Fit(unittest.TestCase):
         #print "answer",answer
         assert num.allclose(f, answer,atol=5)
 
-        
+
     def test_smoothing_and_interpolation(self):
 
         a = [0.0, 0.0]
@@ -773,7 +773,7 @@ class Test_Fit(unittest.TestCase):
 
 
         #Fit surface to mesh
-        interp = Fit(points, triangles, 
+        interp = Fit(points, triangles,
                                alpha=0.0,
                                mesh_origin = mesh_origin)
 
@@ -792,14 +792,14 @@ class Test_Fit(unittest.TestCase):
         #Fit surface to mesh
         interp = Fit(points, triangles, alpha=0.0)
         #Fitted values at vertices (using same z as before)
-        f1 = interp.fit(data_points1,z) 
+        f1 = interp.fit(data_points1,z)
 
         assert num.allclose(f,f1), 'Fit should have been unaltered'
 
 
     def test_smooth_attributes_to_mesh_function(self):
         #Testing 2 attributes smoothed to the mesh
-        
+
 
         a = [0.0, 0.0]
         b = [0.0, 5.0]
@@ -826,7 +826,7 @@ class Test_Fit(unittest.TestCase):
     def test_fit_to_mesh_w_georef(self):
         """Simple check that georef works at the fit_to_mesh level
         """
-        
+
         from anuga.coordinate_transforms.geo_reference import Geo_reference
 
         #Mesh
@@ -839,18 +839,18 @@ class Test_Fit(unittest.TestCase):
         #print "mesh_geo.get_absolute(vertex_coordinates)", \
          #     mesh_geo.get_absolute(vertex_coordinates)
 
-        #Data                       
+        #Data
         data_points = [[ 201.0, 401.0],
                        [ 201.0, 403.0],
                        [ 203.0, 401.0]]
 
         z = [2, 4, 4]
-        
+
         data_geo = Geo_reference(56,-200,-400)
 
         #print "data_geo.get_absolute(data_points)", \
         #      data_geo.get_absolute(data_points)
-        
+
         #Fit
         zz = fit_to_mesh(data_points, vertex_coordinates=vertex_coordinates,
                          triangles=triangles,
@@ -893,7 +893,7 @@ class Test_Fit(unittest.TestCase):
         3.0,1.0,4.,8 \n")
         fd.close()
 
-        mesh_output_file = tempfile.mktemp(".tsh") 
+        mesh_output_file = tempfile.mktemp(".tsh")
         fit_to_mesh_file(mesh_file,
                          point_file,
                          mesh_output_file,
@@ -910,7 +910,7 @@ class Test_Fit(unittest.TestCase):
                         ['elevation','stage'],
                         'test_fit_to_mesh_file failed')
         domain = Domain(mesh_output_file, use_cache=True, verbose=False)
-        
+
         answer = [0., 5., 5.]
         assert num.allclose(domain.quantities['elevation'].vertex_values,
                             answer)
@@ -951,7 +951,7 @@ class Test_Fit(unittest.TestCase):
         1.0, 3.0,4,8 \n\
         3.0,1.0,4.,8 \n")
         fd.close()
-        
+
         mesh_output_file = tempfile.mktemp(".tsh")
         fit_to_mesh_file(mesh_file,
                          point_file,
@@ -1064,7 +1064,7 @@ class Test_Fit(unittest.TestCase):
         else:
             #self.assertTrue(0 ==1,  'Bad file did not raise error!')
             raise Exception('Bad file did not raise error!')
-            
+
         #clean up
         os.remove(mesh_file)
         os.remove(point_file)
@@ -1097,10 +1097,13 @@ class Test_Fit(unittest.TestCase):
             pass
         else:
             raise Exception('Bad file did not raise error!')
-            
+
         #clean up
-        os.remove(mesh_file)
-        os.remove(point_file)
+        try:
+            os.remove(mesh_file)
+            os.remove(point_file)
+        except PermissionError:
+            pass
 
     def test_fit_to_mesh_file_errorsIII(self):
         from anuga.load_mesh.loadASCII import import_mesh_file, export_mesh_file
@@ -1131,7 +1134,7 @@ class Test_Fit(unittest.TestCase):
         fd.close()
 
         #This a deliberately illegal filename to invoke the error.
-        mesh_output_file = ".../\z\z:ya.tsh"        
+        mesh_output_file = ".../\z\z:ya.tsh"
 
         try:
             fit_to_mesh_file(mesh_file, point_file,
@@ -1140,15 +1143,14 @@ class Test_Fit(unittest.TestCase):
             pass
         else:
             raise Exception('Bad file did not raise error!')
-        
+
         #clean up
         os.remove(mesh_file)
         os.remove(point_file)
-  
+
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Fit,'test')
     runner = unittest.TextTestRunner() #verbosity=1)
     runner.run(suite)
-

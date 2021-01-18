@@ -8,20 +8,20 @@ import os
 URL =  'https://sourceforge.net/projects/anuga/files/validation_data/patong-1.0/data.tgz'
 
 CMD = 'wget %s'% URL
-print CMD
+print (CMD)
 
 try:
     import wget
-    wget.download(URL)
+    wget.download(URL, )
 except:
-    print 'wget failed. Perhaps need to install wget via "pip install wget"'
+    print ('wget failed. Perhaps need to install wget via "pip install wget"')
     import sys
     sys.exit()
 
 
 CMD = 'tar zxf data.tgz'
-print
-print CMD
+print ()
+print (CMD)
 
 import tarfile
 tar = tarfile.open('data.tgz')
@@ -30,7 +30,7 @@ tar.close()
 
 
 CMD = 'mv data/thailand/patong_tsunami_scenario/anuga/* .'
-print CMD
+print (CMD)
 
 import shutil
 shutil.move('data/thailand/patong_tsunami_scenario/anuga/boundaries','.')
@@ -42,7 +42,7 @@ shutil.move('data/thailand/patong_tsunami_scenario/anuga/topographies','.')
 
 
 CMD = 'rm -r data.tgz data'
-print CMD
+print (CMD)
 
 shutil.rmtree('data')
 os.remove('data.tgz')

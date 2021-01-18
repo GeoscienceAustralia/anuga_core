@@ -30,6 +30,7 @@ default_datadir = '.'
 time_format = '%d/%m/%y %H:%M:%S'    # Used with timefile2netcdf
 umask = 0o02  # Controls file and directory permission created by anuga (UNIX)
 default_boundary_tag = 'exterior'
+institution = 'Geosciences Australia'
 
 # Major revision number for use with create_distribution
 # and update_anuga_user_guide

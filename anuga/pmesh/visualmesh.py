@@ -11,8 +11,8 @@ try:
     from . import mesh
 except:
     import mesh
-    
-from   tkinter.simpledialog import Dialog,askfloat, askinteger, askstring
+
+from tkinter.simpledialog import Dialog,askfloat, askinteger, askstring
 from tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, Label,W, Entry, E, ACTIVE, NORMAL, StringVar
 from tkinter.messagebox import showerror
 
