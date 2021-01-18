@@ -28,7 +28,7 @@ from tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, \
      Label,W, Entry, E, StringVar, END, Checkbutton, Radiobutton, IntVar, \
      DISABLED, NORMAL
 #from cursornames import TLC,TRC, BLC, BRC, TS, RS, LS, BS
-from tkinter.messagebox import showerror, _show, QUESTION,YESNOCANCEL
+from tkinter.messagebox import showerror, _show, QUESTION,YESNOCANCEL, askyesno
 import types
 
 import os, sys
@@ -555,7 +555,9 @@ class Draw(AppShell.AppShell):
                                     self.SCALE)
 
     def joinVerticesButton (self, parent):
-        self.joinVertices()
+        ans = askyesno("", "This cannot be undone. Are you sure?")
+        if ans:
+            self.joinVertices()
 
     def joinVertices (self):
         """
