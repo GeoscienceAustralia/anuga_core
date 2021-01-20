@@ -28,7 +28,7 @@ from tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, \
      Label,W, Entry, E, StringVar, END, Checkbutton, Radiobutton, IntVar, \
      DISABLED, NORMAL
 #from cursornames import TLC,TRC, BLC, BRC, TS, RS, LS, BS
-from tkinter.messagebox import showerror, _show, QUESTION,YESNOCANCEL
+from tkinter.messagebox import showerror, _show, QUESTION,YESNOCANCEL, askyesno
 import types
 
 import os, sys
@@ -97,6 +97,7 @@ class Draw(AppShell.AppShell):
         Widget.bind(self.canvas, "<Button-1>", self.mouseDown)
         Widget.bind(self.canvas, "<Button3-ButtonRelease>", self.rightMouseUp)
         Widget.bind(self.canvas, "<Button2-ButtonRelease>",self.DeleteSelectedMeshObject)
+        Widget.bind(self.canvas, "<Motion>", self.displayCoords)
         # "<Delete>" didn't work..
         #Widget.bind(self.canvas, "<Delete>", self.DeleteSelectedMeshObject)
 
@@ -179,10 +180,10 @@ class Draw(AppShell.AppShell):
                       width=10, state='disabled',home_dir=HOME_DIR)
         for key, balloon, mouseDownFunc, Mode in [
             ('pointer','Edit drawing eventually.  Right now this does nothing', self.drag, None)
-            ,('vertex',    'Vertex mode', self.drawVertex, mesh.Vertex)
-            ,('segment', 'Segment mode',self.selectSegmentPoint, mesh.Segment)
-            ,('hole', 'hole mode',self.drawHole, mesh.Hole)
-            ,('region', 'region mode',self.drawRegion, mesh.Region)
+            ,('vertex',    'Insert node', self.drawVertex, mesh.Vertex)
+            ,('segment', 'Insert segment',self.selectSegmentPoint, mesh.Segment)
+            ,('hole', 'Select hole',self.drawHole, mesh.Hole)
+            ,('region', 'Select region',self.drawRegion, mesh.Region)
             ]:
             t = ToolBarButton(self, self.toolbar, key, '%s.gif' % key,
                           command=self.selectFunc, balloonhelp=balloon,
@@ -245,8 +246,7 @@ class Draw(AppShell.AppShell):
         ToolBarButton(self, self.toolbar, 'sep', 'sep.gif', width=10,
                       state='disabled', home_dir=HOME_DIR)
         for key, func, balloon in [
-                ('see', self.visualise, 'Visualise mesh triangles'),
-                ('no_see', self.unvisualise, 'Do not visualise mesh triangles (for large meshes)')]:
+                ('see', self.visualise, 'Switch on/off view mesh')]:
             ToolBarButton(self, self.toolbar, key, '%s.gif' %key,
                           command=func, balloonhelp=balloon,
                                statushelp='', home_dir=HOME_DIR)
@@ -262,13 +262,12 @@ class Draw(AppShell.AppShell):
 
     def visualise(self,parent):
         self.canvas.delete(ALL)
-        self.Visualise = True
-        self.visualiseMesh(self.mesh)
-
-    def unvisualise(self,parent):
-        self.canvas.delete(ALL)
-        self.Visualise = False
-        self.visualiseMesh(self.mesh)
+        if self.Visualise:
+            self.Visualise = False
+            self.visualiseMesh(self.mesh)
+        else:
+            self.Visualise = True
+            self.visualiseMesh(self.mesh)
 
     def createMesh(self):
         """
@@ -444,9 +443,10 @@ class Draw(AppShell.AppShell):
         if dialog.xyValuesOk:
             log.critical(str(dialog.x))
             log.critical(str(dialog.y))
-            self.drawVertex(dialog.x*self.SCALE,dialog.y*self.SCALE,None)
+            #self.drawVertex(dialog.x*self.SCALE,dialog.y*self.SCALE,None)
+            self.drawVertex(dialog.x, dialog.y, None)
             #Since the new vertex may be off screen
-            self.ResizeToFit()
+            #self.ResizeToFit()
         else:
             log.critical("bad values")
 
@@ -555,7 +555,9 @@ class Draw(AppShell.AppShell):
                                     self.SCALE)
 
     def joinVerticesButton (self, parent):
-        self.joinVertices()
+        ans = askyesno("", "This cannot be undone. Are you sure?")
+        if ans:
+            self.joinVertices()
 
     def joinVertices (self):
         """
@@ -672,6 +674,13 @@ class Draw(AppShell.AppShell):
         self.mouseDownCurFunc( self.lastx,
                                self.lasty,event) #!!! remove the event?
                                                  # do last
+
+    def displayCoords(self, event):
+        messageBar = self.messageBar()
+        disp_x = str(int(self.canvas.canvasx(event.x)))
+        disp_y = str(int(-1*self.canvas.canvasy(event.y)))
+        messageBar.helpmessage(disp_x + "," + disp_y)
+
 
     def rightMouseUp(self, event):
         """
