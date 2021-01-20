@@ -28,7 +28,7 @@ from tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, \
      Label,W, Entry, E, StringVar, END, Checkbutton, Radiobutton, IntVar, \
      DISABLED, NORMAL
 #from cursornames import TLC,TRC, BLC, BRC, TS, RS, LS, BS
-from tkinter.messagebox import showerror, _show, QUESTION,YESNOCANCEL
+from tkinter.messagebox import showerror, _show, QUESTION,YESNOCANCEL, askyesno
 import types
 
 import os, sys
@@ -246,8 +246,7 @@ class Draw(AppShell.AppShell):
         ToolBarButton(self, self.toolbar, 'sep', 'sep.gif', width=10,
                       state='disabled', home_dir=HOME_DIR)
         for key, func, balloon in [
-                ('see', self.visualise, 'Visualise mesh triangles'),
-                ('no_see', self.unvisualise, 'Do not visualise mesh triangles (for large meshes)')]:
+                ('see', self.visualise, 'Switch on/off view mesh')]:
             ToolBarButton(self, self.toolbar, key, '%s.gif' %key,
                           command=func, balloonhelp=balloon,
                                statushelp='', home_dir=HOME_DIR)
@@ -263,13 +262,12 @@ class Draw(AppShell.AppShell):
 
     def visualise(self,parent):
         self.canvas.delete(ALL)
-        self.Visualise = True
-        self.visualiseMesh(self.mesh)
-
-    def unvisualise(self,parent):
-        self.canvas.delete(ALL)
-        self.Visualise = False
-        self.visualiseMesh(self.mesh)
+        if self.Visualise:
+            self.Visualise = False
+            self.visualiseMesh(self.mesh)
+        else:
+            self.Visualise = True
+            self.visualiseMesh(self.mesh)
 
     def createMesh(self):
         """
@@ -557,7 +555,9 @@ class Draw(AppShell.AppShell):
                                     self.SCALE)
 
     def joinVerticesButton (self, parent):
-        self.joinVertices()
+        ans = askyesno("", "This cannot be undone. Are you sure?")
+        if ans:
+            self.joinVertices()
 
     def joinVertices (self):
         """
