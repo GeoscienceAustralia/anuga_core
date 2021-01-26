@@ -226,13 +226,13 @@ class Draw(AppShell.AppShell):
         ToolBarButton(self, self.toolbar, 'sep', 'Separator.gif', width=10,
                       state='disabled', home_dir=HOME_DIR)
         for key, func, balloon in [
-                ('Add-Vertex-Dialog', self.windowAddVertex, 'add vertex dialog'),
-                ('Delete', self.windowDelete, 'delete selected object'),
-                ('Edit', self.windowEdit, 'edit selected object'),
-                ('Tag-Segment', self.windowDefault, 'set default tag value for selected mode'),
-                ('Join-Vertices', self.joinVerticesButton, 'add Segments to connect all vertices'),
+                ('Add-Vertex-Dialog', self.windowAddVertex, 'Add vertex dialog'),
+                ('Delete', self.windowDelete, 'Delete selected object'),
+                ('Edit', self.windowEdit, 'Edit selected object'),
+                ('Tag-Segment', self.windowDefault, 'Set default tag value for new segments'),
+                ('Join-Vertices', self.joinVerticesButton, 'Add Segments to connect all vertices'),
              #   ('autoSeg', self.auto_segmentButton, 'add Segments to form alpha shape'),
-                ('Alpha', self.auto_segmentGiveAlphaButton, 'add Segments to form alpha shape, specify alpha'),
+                ('Alpha', self.auto_segmentGiveAlphaButton, 'Add Segments to form alpha shape, specify alpha'),
                 ('Mesh', self.windowMeshGen, 'Generate Mesh')]:
             ToolBarButton(self, self.toolbar, key, '%s.gif' % key,
                           command=func, balloonhelp=balloon,
