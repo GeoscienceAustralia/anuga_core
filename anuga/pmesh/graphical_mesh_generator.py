@@ -226,7 +226,7 @@ class Draw(AppShell.AppShell):
         ToolBarButton(self, self.toolbar, 'sep', 'Separator.gif', width=10,
                       state='disabled', home_dir=HOME_DIR)
         for key, func, balloon in [
-                ('Add-Vertex', self.windowAddVertex, 'add Vertex'),
+                ('Add-Vertex-Dialog', self.windowAddVertex, 'add vertex dialog'),
                 ('Delete', self.windowDelete, 'delete selected object'),
                 ('Edit', self.windowEdit, 'edit selected object'),
                 ('Tag-Segment', self.windowDefault, 'set default tag value for selected mode'),
