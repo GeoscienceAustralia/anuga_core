@@ -120,7 +120,7 @@ Bd = anuga.Dirichlet_boundary([tide, 0, 0]) # Mean water level
 Bs = anuga.Transmissive_stage_zero_momentum_boundary(domain) # Neutral boundary
 
 if project.scenario == 'fixed_wave':
-    # Huge 50m wave starting after 60 seconds and lasting 1 hour.
+    # 10m wave starting after 60 seconds and lasting 1 hour.
     Bw = anuga.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(
                         domain=domain, 
                         function=lambda t: [(60<t<3660)*10, 0, 0])

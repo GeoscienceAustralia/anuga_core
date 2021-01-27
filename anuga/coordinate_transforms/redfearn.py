@@ -100,10 +100,10 @@ def redfearn(lat, lon, false_easting=None, false_northing=None,
     n3 = n*n2
     n4 = n2*n2
 
-    G = a*(1-n)*(1-n2)*(1 +(9*n2/4)+(225*n4/64))*pi/180
+    G = a*(1-n)*(1-n2)*(1+9*n2/4+225*n4/64)*pi/180
 
 
-    phi = lat*pi/180    #Convert latitude to radians
+    phi = lat*pi/180     #Convert latitude to radians
 
     sinphi = sin(phi)   
     sin2phi = sin(2*phi)
@@ -133,10 +133,10 @@ def redfearn(lat, lon, false_easting=None, false_northing=None,
     psi4 = psi2*psi2
 
     # Meridian distance
-    A0 = 1 - (e2/4) - (3*e4/64) - (5*e6/256)
-    A2 = 3.0/8*(e2+(e4/4)+(15*e6/128))
-    A4 = 15.0/256*(e4+(3*e6/4))
-    A6 = (35*e6/3072)
+    A0 = 1 - e2/4 - 3*e4/64 - 5*e6/256
+    A2 = 3.0/8*(e2+e4/4+15*e6/128)
+    A4 = 15.0/256*(e4+3*e6/4)
+    A6 = 35*e6/3072
     
     term1 = a*A0*phi
     term2 = -a*A2*sin2phi
@@ -159,7 +159,7 @@ def redfearn(lat, lon, false_easting=None, false_northing=None,
     else:
         zone = -1
 
-    omega = ((lon-central_meridian)*pi/180) #Relative longitude (radians)
+    omega = (lon-central_meridian)*pi/180 #Relative longitude (radians)
     omega2 = omega*omega
     omega3 = omega*omega2
     omega4 = omega2*omega2
@@ -169,23 +169,22 @@ def redfearn(lat, lon, false_easting=None, false_northing=None,
     omega8 = omega4*omega4
      
     # Northing
-    term1 = (nu*sinphi*cosphi*omega2/2)  
-    term2 = (nu*sinphi*cosphi3*(4*psi2+psi-t2)*omega4/24)
-    term3 = (nu*sinphi*cosphi5*\
+    term1 = nu*sinphi*cosphi*omega2/2  
+    term2 = nu*sinphi*cosphi3*(4*psi2+psi-t2)*omega4/24
+    term3 = nu*sinphi*cosphi5*\
             (8*psi4*(11-24*t2)-28*psi3*(1-6*t2)+\
-             psi2*(1-32*t2)-psi*2*t2+t4-t2)*omega6)/720
-    term4 = (nu*sinphi*cosphi7*(1385-3111*t2+543*t4-t6)*omega8)/40320
+             psi2*(1-32*t2)-psi*2*t2+t4-t2)*omega6/720
+    term4 = nu*sinphi*cosphi7*(1385-3111*t2+543*t4-t6)*omega8/40320
     northing = false_northing + K0*(m + term1 + term2 + term3 + term4)
 
     # Easting
     term1 = nu*omega*cosphi
-    term2 = (nu*cosphi3*(psi-t2)*omega3/6)
-    term3 = (nu*cosphi5*(4*psi3*(1-6*t2)+psi2*(1+8*t2)-2*psi*t2+t4)*omega5)/120
-    term4 = (nu*cosphi7*(61-479*t2+179*t4-t6)*omega7)/5040
+    term2 = nu*cosphi3*(psi-t2)*omega3/6
+    term3 = nu*cosphi5*(4*psi3*(1-6*t2)+psi2*(1+8*t2)-2*psi*t2+t4)*omega5/120
+    term4 = nu*cosphi7*(61-479*t2+179*t4-t6)*omega7/5040
     easting = false_easting + K0*(term1 + term2 + term3 + term4)
     
     return zone, easting, northing
-
 
 
 def convert_from_latlon_to_utm(points=None,
@@ -233,6 +232,7 @@ def convert_from_latlon_to_utm(points=None,
         points = num.asarray(points, dtype=float).reshape((-1,2))
         
     iter = 0
+    if show_progress : print('Showing ll to utm conversion (each dot represents 1000 points processed out of %g)'% len(points))
     for point in points:
 
         iter= iter+1

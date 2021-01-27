@@ -28,7 +28,7 @@ from tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, \
      Label,W, Entry, E, StringVar, END, Checkbutton, Radiobutton, IntVar, \
      DISABLED, NORMAL
 #from cursornames import TLC,TRC, BLC, BRC, TS, RS, LS, BS
-from tkinter.messagebox import showerror, _show, QUESTION,YESNOCANCEL
+from tkinter.messagebox import showerror, _show, QUESTION,YESNOCANCEL, askyesno
 import types
 
 import os, sys
@@ -78,7 +78,7 @@ class Draw(AppShell.AppShell):
         Create the GUI framework.  Set up the GUI
         """
         self.toolbar = self.createcomponent('toolbar', (), None,
-                  Frame, (self.interior(),), background="gray90")
+                  Frame, (self.interior(),), background="gray95")
         self.toolbar.pack(fill=X)
 
         self.scrolledcanvas =  self.createcomponent('ScrolledCanvas', (), None,
@@ -97,6 +97,7 @@ class Draw(AppShell.AppShell):
         Widget.bind(self.canvas, "<Button-1>", self.mouseDown)
         Widget.bind(self.canvas, "<Button3-ButtonRelease>", self.rightMouseUp)
         Widget.bind(self.canvas, "<Button2-ButtonRelease>",self.DeleteSelectedMeshObject)
+        Widget.bind(self.canvas, "<Motion>", self.displayCoords)
         # "<Delete>" didn't work..
         #Widget.bind(self.canvas, "<Delete>", self.DeleteSelectedMeshObject)
 
@@ -175,20 +176,20 @@ class Draw(AppShell.AppShell):
         """
         self.mouseDownFunc = {}
         self.modeClass = {}
-        ToolBarButton(self, self.toolbar, 'sep', 'sep.gif',
+        ToolBarButton(self, self.toolbar, 'sep', 'Separator.gif',
                       width=10, state='disabled',home_dir=HOME_DIR)
         for key, balloon, mouseDownFunc, Mode in [
-            ('pointer','Edit drawing eventually.  Right now this does nothing', self.drag, None)
-            ,('vertex',    'Vertex mode', self.drawVertex, mesh.Vertex)
-            ,('segment', 'Segment mode',self.selectSegmentPoint, mesh.Segment)
-            ,('hole', 'hole mode',self.drawHole, mesh.Hole)
-            ,('region', 'region mode',self.drawRegion, mesh.Region)
+            ('Pointer','Edit drawing eventually.  Right now this does nothing', self.drag, None)
+            ,('Add-Vertex',    'Add vertex', self.drawVertex, mesh.Vertex)
+            ,('Segment', 'Join vertices to form a segment',self.selectSegmentPoint, mesh.Segment)
+            ,('Add-Hole', 'Add hole',self.drawHole, mesh.Hole)
+            ,('Add-Region', 'Add region',self.drawRegion, mesh.Region)
             ]:
             t = ToolBarButton(self, self.toolbar, key, '%s.gif' % key,
                           command=self.selectFunc, balloonhelp=balloon,
                                statushelp='', home_dir=HOME_DIR)
             t.cycle("DrawMode")
-            if key == 'pointer': #FIXME- this is specified in line 1062 as well
+            if key == 'Pointer': #FIXME- this is specified in line 1062 as well
                                  # self.selectFunc('pointer')
                 self.curFunc  = self.drawVertex
                 t.setInitialSunkenButton("DrawMode")
@@ -200,39 +201,39 @@ class Draw(AppShell.AppShell):
         """
         Add zoom buttons to the top of the GUI
         """
-        ToolBarButton(self, self.toolbar, 'sep', 'sep.gif', width=10,
+        ToolBarButton(self, self.toolbar, 'sep', 'Separator.gif', width=10,
                       state='disabled', home_dir=HOME_DIR)
         zoom = '0.5'
-        ToolBarButton(self, self.toolbar, zoom, 'zoom%s.gif' %
-                      zoom, command=self.selectZoom,
-                      balloonhelp='*%s zoom' % zoom,
+        ToolBarButton(self, self.toolbar, zoom, 'Zoom-Out.gif',
+                      command=self.selectZoom,
+                      balloonhelp='Zoom out',
                       statushelp='', home_dir=HOME_DIR)
 
-        ToolBarButton(self, self.toolbar,'1.0', 'zoomToMesh.gif',
+        ToolBarButton(self, self.toolbar,'1.0', 'Zoom-Extents.gif',
                       command=self.ResizeToFitWrapper,
                       balloonhelp='Zooms to mesh size',
                       statushelp='', home_dir=HOME_DIR)
         zoom = '2'
-        ToolBarButton(self, self.toolbar, zoom, 'zoom%s.gif' %
-                      zoom, command=self.selectZoom,
-                      balloonhelp='*%s zoom' % zoom,
+        ToolBarButton(self, self.toolbar, zoom, 'Zoom-In.gif', 
+                      command=self.selectZoom,
+                      balloonhelp='Zoom in',
                       statushelp='', home_dir=HOME_DIR)
 
     def createEdits(self):
         """
         Add Edit buttons to the top of the GUI
         """
-        ToolBarButton(self, self.toolbar, 'sep', 'sep.gif', width=10,
+        ToolBarButton(self, self.toolbar, 'sep', 'Separator.gif', width=10,
                       state='disabled', home_dir=HOME_DIR)
         for key, func, balloon in [
-                ('addVertex', self.windowAddVertex, 'add Vertex'),
-                ('delete', self.windowDelete, 'delete selected object'),
-                ('edit', self.windowEdit, 'edit selected object'),
-                ('default', self.windowDefault, 'set default value for selected mode'),
-                ('joinVer', self.joinVerticesButton, 'add Segments to connect all vertices'),
+                ('Add-Vertex-Dialog', self.windowAddVertex, 'Add vertex dialog'),
+                ('Delete', self.windowDelete, 'Delete selected object'),
+                ('Edit', self.windowEdit, 'Edit selected object'),
+                ('Tag-Segment', self.windowDefault, 'Set default tag value for new segments'),
+                ('Join-Vertices', self.joinVerticesButton, 'Add Segments to connect all vertices'),
              #   ('autoSeg', self.auto_segmentButton, 'add Segments to form alpha shape'),
-                ('autoSegGiveAlpha', self.auto_segmentGiveAlphaButton, 'add Segments to form alpha shape, specify alpha'),
-                ('meshGen', self.windowMeshGen, 'Generate Mesh')]:
+                ('Alpha', self.auto_segmentGiveAlphaButton, 'Add Segments to form alpha shape, specify alpha'),
+                ('Mesh', self.windowMeshGen, 'Generate Mesh')]:
             ToolBarButton(self, self.toolbar, key, '%s.gif' % key,
                           command=func, balloonhelp=balloon,
                                statushelp='', home_dir=HOME_DIR)
@@ -242,11 +243,10 @@ class Draw(AppShell.AppShell):
         """
         Add Edit buttons to the top of the GUI
         """
-        ToolBarButton(self, self.toolbar, 'sep', 'sep.gif', width=10,
+        ToolBarButton(self, self.toolbar, 'sep', 'Separator.gif', width=10,
                       state='disabled', home_dir=HOME_DIR)
         for key, func, balloon in [
-                ('see', self.visualise, 'Visualise mesh triangles'),
-                ('no_see', self.unvisualise, 'Do not visualise mesh triangles (for large meshes)')]:
+                ('Mesh-Visibility-Toggle', self.visualise, 'Toggle visibility of mesh')]:
             ToolBarButton(self, self.toolbar, key, '%s.gif' %key,
                           command=func, balloonhelp=balloon,
                                statushelp='', home_dir=HOME_DIR)
@@ -262,13 +262,12 @@ class Draw(AppShell.AppShell):
 
     def visualise(self,parent):
         self.canvas.delete(ALL)
-        self.Visualise = True
-        self.visualiseMesh(self.mesh)
-
-    def unvisualise(self,parent):
-        self.canvas.delete(ALL)
-        self.Visualise = False
-        self.visualiseMesh(self.mesh)
+        if self.Visualise:
+            self.Visualise = False
+            self.visualiseMesh(self.mesh)
+        else:
+            self.Visualise = True
+            self.visualiseMesh(self.mesh)
 
     def createMesh(self):
         """
@@ -444,9 +443,10 @@ class Draw(AppShell.AppShell):
         if dialog.xyValuesOk:
             log.critical(str(dialog.x))
             log.critical(str(dialog.y))
-            self.drawVertex(dialog.x*self.SCALE,dialog.y*self.SCALE,None)
+            #self.drawVertex(dialog.x*self.SCALE,dialog.y*self.SCALE,None)
+            self.drawVertex(dialog.x, dialog.y, None)
             #Since the new vertex may be off screen
-            self.ResizeToFit()
+            #self.ResizeToFit()
         else:
             log.critical("bad values")
 
@@ -555,7 +555,9 @@ class Draw(AppShell.AppShell):
                                     self.SCALE)
 
     def joinVerticesButton (self, parent):
-        self.joinVertices()
+        ans = askyesno("", "This cannot be undone. Are you sure?")
+        if ans:
+            self.joinVertices()
 
     def joinVertices (self):
         """
@@ -672,6 +674,13 @@ class Draw(AppShell.AppShell):
         self.mouseDownCurFunc( self.lastx,
                                self.lasty,event) #!!! remove the event?
                                                  # do last
+
+    def displayCoords(self, event):
+        messageBar = self.messageBar()
+        disp_x = str(int(self.canvas.canvasx(event.x)))
+        disp_y = str(int(-1*self.canvas.canvasy(event.y)))
+        messageBar.helpmessage(disp_x + "," + disp_y)
+
 
     def rightMouseUp(self, event):
         """
@@ -1224,7 +1233,7 @@ class Draw(AppShell.AppShell):
         self.createVisualiseIcons()
         #print "FIX THIS BEFORE "
         #self.addCylinders() # !!!DSG start pmesh with a triangle
-        self.selectFunc('pointer')
+        self.selectFunc('Pointer')
         self.currentPath = os.getcwd()
 
     def loadtestmesh(self,ofile):

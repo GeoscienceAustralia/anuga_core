@@ -74,7 +74,7 @@ def LLtoUTM( Lat, Long, ReferenceEllipsoid=23):
     eccSquared = _ellipsoid[ReferenceEllipsoid][_eccentricitySquared]
     k0 = 0.9996
 
-#Make sure the longitude is between -180.00 .. 179.9
+    #Make sure the longitude is between -180.00 .. 179.9
     LongTemp = (Long+180)-int(old_div((Long+180),360))*360-180 # -180.00 .. 179.9
 
     LatRad = Lat*_deg2rad
