@@ -147,18 +147,18 @@ class Draw(AppShell.AppShell):
                                  label='Export ASCII csv file...',
                                  command=self.exportPointsFile)
 
-        self.menuBar.addmenuitem('File', 'command',
-                                 'add Segments to connect all vertices'  ,
-                                 label='join vertices',
-                                 command=self.joinVertices)
-        self.menuBar.addmenuitem('File', 'command',
-                                 'add Segments to form alpha shape'  ,
-                                 label='Auto segment',
-                                 command=self.auto_segment)
-        self.menuBar.addmenuitem('File', 'command',
-                           'modify the alpha boundary by applying filters',
-                                 label='filter alpha boundary',
-                                 command=self.auto_segmentFilter)
+        # self.menuBar.addmenuitem('File', 'command',
+        #                          'add Segments to connect all vertices'  ,
+        #                          label='join vertices',
+        #                          command=self.joinVertices)
+        # self.menuBar.addmenuitem('File', 'command',
+        #                          'add Segments to form alpha shape'  ,
+        #                          label='Auto segment',
+        #                          command=self.auto_segment)
+        # self.menuBar.addmenuitem('File', 'command',
+        #                    'modify the alpha boundary by applying filters',
+        #                          label='filter alpha boundary',
+        #                          command=self.auto_segmentFilter)
         #self.menuBar.addmenuitem('File', 'command', 'Normalise mesh',
         #                         label='Normalise mesh', command=self.normaliseMesh)
         #self.menuBar.addmenuitem('File', 'command', 'Normalise mesh for glutobj',
@@ -214,7 +214,7 @@ class Draw(AppShell.AppShell):
                       balloonhelp='Zooms to mesh size',
                       statushelp='', home_dir=HOME_DIR)
         zoom = '2'
-        ToolBarButton(self, self.toolbar, zoom, 'Zoom-In.gif', 
+        ToolBarButton(self, self.toolbar, zoom, 'Zoom-In.gif',
                       command=self.selectZoom,
                       balloonhelp='Zoom in',
                       statushelp='', home_dir=HOME_DIR)
