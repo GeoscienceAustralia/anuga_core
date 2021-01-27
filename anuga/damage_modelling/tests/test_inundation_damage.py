@@ -37,24 +37,24 @@ class Test_inundation_damage(unittest.TestCase):
 
     def set_verbose(self):
         Test_Data_Manager.verbose = True
-        
+
     def setUp(self):
         #print "****set up****"
         # Create an sww file
-        
+
         # Set up an sww that has a geo ref.
         # have it cover an area in Australia.  'gong maybe
         #Don't have many triangles though!
-        
-        #Site Name:    GDA-MGA: (UTM with GRS80 ellipsoid) 
-        #Zone:   56    
-        #Easting:  222908.705  Northing: 6233785.284 
-        #Latitude:   -34  0 ' 0.00000 ''  Longitude: 150  0 ' 0.00000 '' 
+
+        #Site Name:    GDA-MGA: (UTM with GRS80 ellipsoid)
+        #Zone:   56
+        #Easting:  222908.705  Northing: 6233785.284
+        #Latitude:   -34  0 ' 0.00000 ''  Longitude: 150  0 ' 0.00000 ''
         #Grid Convergence:  -1  40 ' 43.13 ''  Point Scale: 1.00054660
 
         #geo-ref
-        #Zone:   56    
-        #Easting:  220000  Northing: 6230000 
+        #Zone:   56
+        #Easting:  220000  Northing: 6230000
 
 
         #have  a big area covered.
@@ -63,7 +63,7 @@ class Test_inundation_damage(unittest.TestCase):
         spat = Geospatial_data(data_points=points_lat_long,
                                points_are_lats_longs=True)
         points_ab = spat.get_data_points( absolute = True)
-        
+
         geo =  Geo_reference(56,400000,6000000)
         spat.set_geo_reference(geo)
         m = Mesh()
@@ -71,12 +71,12 @@ class Test_inundation_damage(unittest.TestCase):
         m.auto_segment()
         m.generate_mesh(verbose=False)
         m.export_mesh_file(mesh_file)
-        
+
         #Create shallow water domain
         domain = Domain(mesh_file)
 
         os.remove(mesh_file)
-        
+
         domain.default_order=2
         #Set some field values
         #domain.set_quantity('stage', 1.0)
@@ -113,7 +113,7 @@ class Test_inundation_damage(unittest.TestCase):
         self.Y = C[:,1:6:2].copy()
 
         self.F = bed
-      
+
         #sww_file = tempfile.mktemp("")
         self.domain.set_name('tid_P0')
         self.domain.format = 'sww'
@@ -126,14 +126,14 @@ class Test_inundation_damage(unittest.TestCase):
         self.domain.time = 2.
         sww.store_timestep()
         self.sww = sww # so it can be deleted
-        
+
         #Create another sww file
         mesh_file = tempfile.mktemp(".tsh")
         points_lat_long = [[-35,152],[-36,152],[-36,150],[-35,150]]
         spat = Geospatial_data(data_points=points_lat_long,
                                points_are_lats_longs=True)
         points_ab = spat.get_data_points( absolute = True)
-        
+
         geo =  Geo_reference(56,400000,6000000)
         spat.set_geo_reference(geo)
         m = Mesh()
@@ -141,12 +141,12 @@ class Test_inundation_damage(unittest.TestCase):
         m.auto_segment()
         m.generate_mesh(verbose=False)
         m.export_mesh_file(mesh_file)
-        
+
         #Create shallow water domain
         domain = Domain(mesh_file)
 
         os.remove(mesh_file)
-        
+
         domain.default_order=2
         #Set some field values
         #domain.set_quantity('stage', 1.0)
@@ -183,7 +183,7 @@ class Test_inundation_damage(unittest.TestCase):
         self.Y2 = C[:,1:6:2].copy()
 
         self.F2 = bed
-      
+
         #sww_file = tempfile.mktemp("")
         domain.set_name('tid_P1')
         domain.format = 'sww'
@@ -200,7 +200,7 @@ class Test_inundation_damage(unittest.TestCase):
         # print "sww.filename", sww.filename
         #Create a csv file
         self.csv_file = tempfile.mktemp(".csv")
-        fd = open(self.csv_file,'w')
+        fd = open(self.csv_file,'w',newline="")
         writer = csv.writer(fd)
         writer.writerow(['LONGITUDE','LATITUDE',STR_VALUE_LABEL,CONT_VALUE_LABEL,'ROOF_TYPE',WALL_TYPE_LABEL, SHORE_DIST_LABEL])
         writer.writerow(['151.5','-34','199770','130000','Metal','Timber',20.])
@@ -210,14 +210,14 @@ class Test_inundation_damage(unittest.TestCase):
 
         #Create a csv file
         self.csv_fileII = tempfile.mktemp(".csv")
-        fd = open(self.csv_fileII,'w')
+        fd = open(self.csv_fileII,'w',newline="")
         writer = csv.writer(fd)
         writer.writerow(['LONGITUDE','LATITUDE',STR_VALUE_LABEL,CONT_VALUE_LABEL,'ROOF_TYPE',WALL_TYPE_LABEL, SHORE_DIST_LABEL])
         writer.writerow(['151.5','-34','199770','130000','Metal','Timber',20.])
         writer.writerow(['151','-34.5','150000','76000','Metal','Double Brick',200.])
         writer.writerow(['151','-34.25','150000','76000','Metal','Brick Veneer',200.])
         fd.close()
-        
+
     def tearDown(self):
         #print "***** tearDown  ********"
 
@@ -233,16 +233,16 @@ class Test_inundation_damage(unittest.TestCase):
         os.remove(self.csv_file)
         os.remove(self.csv_fileII)
 
-    
+
     def test_inundation_damage1(self):
 
         # Note, this isn't testing the results,
         # just that is all runs
         sww_file = self.domain.get_name() + "." + self.domain.format
-        #print "sww_file",sww_file 
+        #print "sww_file",sww_file
         inundation_damage(sww_file, self.csv_file, verbose=False)
 
-    
+
     def test_inundation_damage_list_as_input(self):
 
         # Note, this isn't testing the results,
@@ -255,18 +255,18 @@ class Test_inundation_damage(unittest.TestCase):
     def test_inundation_damage2(self):
 
         # create mesh
-        mesh_file = tempfile.mktemp(".tsh")    
+        mesh_file = tempfile.mktemp(".tsh")
         points = [[0.0,0.0],[6.0,0.0],[6.0,6.0],[0.0,6.0]]
         m = Mesh()
         m.add_vertices(points)
         m.auto_segment()
         m.generate_mesh(verbose=False)
         m.export_mesh_file(mesh_file)
-        
+
         #Create shallow water domain
         domain = Domain(mesh_file)
         os.remove(mesh_file)
-        
+
         domain.default_order=2
 
         #Set some field values
@@ -296,10 +296,10 @@ class Test_inundation_damage(unittest.TestCase):
         domain.set_quantity('stage', -0.3)
         domain.time = 2.
         sww.store_timestep()
-        
+
         #Create a csv file
         csv_file = tempfile.mktemp(".csv")
-        fd = open(csv_file,'w')
+        fd = open(csv_file,'w',newline="")
         writer = csv.writer(fd)
         writer.writerow(['x', 'y', STR_VALUE_LABEL, CONT_VALUE_LABEL, \
         'ROOF_TYPE', WALL_TYPE_LABEL, SHORE_DIST_LABEL])
@@ -310,7 +310,7 @@ class Test_inundation_damage(unittest.TestCase):
         fd.close()
 
         sww_file = domain.get_name() + "." + domain.format
-        #print "sww_file",sww_file 
+        #print "sww_file",sww_file
         inundation_damage(sww_file, csv_file, verbose=False)
 
         csv_handle = Exposure(csv_file)
@@ -324,22 +324,22 @@ class Test_inundation_damage(unittest.TestCase):
         assert num.allclose(depth,[3.00000001192092, 2.9166666785875957, 2.2666666785875957, -0.3])
         os.remove(sww.filename)
         os.remove(csv_file)
-         
+
     def test_inundation_damage_list(self):
 
         # create mesh
-        mesh_file = tempfile.mktemp(".tsh")    
+        mesh_file = tempfile.mktemp(".tsh")
         points = [[0.0,0.0],[6.0,0.0],[6.0,6.0],[0.0,6.0]]
         m = Mesh()
         m.add_vertices(points)
         m.auto_segment()
         m.generate_mesh(verbose=False)
         m.export_mesh_file(mesh_file)
-        
+
         #Create shallow water domain
         domain = Domain(mesh_file)
         os.remove(mesh_file)
-        
+
         domain.default_order=2
 
         #Set some field values
@@ -369,10 +369,10 @@ class Test_inundation_damage(unittest.TestCase):
         domain.set_quantity('stage', -0.3)
         domain.time = 2.
         sww.store_timestep()
-        
+
         #Create a csv file
         csv_file = tempfile.mktemp(".csv")
-        fd = open(csv_file,'w')
+        fd = open(csv_file,'w',newline="")
         writer = csv.writer(fd)
         writer.writerow(['x','y',STR_VALUE_LABEL,CONT_VALUE_LABEL,'ROOF_TYPE',WALL_TYPE_LABEL, SHORE_DIST_LABEL])
         writer.writerow([5.5,0.5,'10','130000','Metal','Timber',20])
@@ -380,10 +380,10 @@ class Test_inundation_damage(unittest.TestCase):
         writer.writerow([0.1,1.5,'100','76000','Metal','Brick Veneer',300])
         writer.writerow([6.1,1.5,'100','76000','Metal','Brick Veneer',300])
         fd.close()
-        
+
         extension = ".csv"
         csv_fileII = tempfile.mktemp(extension)
-        fd = open(csv_fileII,'w')
+        fd = open(csv_fileII,'w',newline="")
         writer = csv.writer(fd)
         writer.writerow(['x','y',STR_VALUE_LABEL,CONT_VALUE_LABEL,'ROOF_TYPE',WALL_TYPE_LABEL, SHORE_DIST_LABEL])
         writer.writerow([5.5,0.5,'10','130000','Metal','Timber',20])
@@ -391,7 +391,7 @@ class Test_inundation_damage(unittest.TestCase):
         writer.writerow([0.1,1.5,'100','76000','Metal','Brick Veneer',300])
         writer.writerow([6.1,1.5,'100','76000','Metal','Brick Veneer',300])
         fd.close()
-        
+
         sww_file = domain.get_name() + "." + domain.format
         #print "sww_file",sww_file
         marker='_gosh'
@@ -405,12 +405,12 @@ class Test_inundation_damage(unittest.TestCase):
         #print "struct_loss",struct_loss
         struct_loss = [float(x) for x in struct_loss]
         #pprint(struct_loss)
-        assert num.allclose(struct_loss,[10.0, 150.0, 66.55333347876866, 0.0])       
+        assert num.allclose(struct_loss,[10.0, 150.0, 66.55333347876866, 0.0])
         depth = csv_handle.get_column(EventDamageModel.MAX_DEPTH_TITLE)
         #print "depth",depth
         depth = [float(x) for x in depth]
         assert num.allclose(depth, [3.000000011920929, 2.9166666785875957, 2.2666666785875957, -0.3])
-       
+
         # Test another file
         csv_handle = Exposure(csv_fileII[:-4]+marker+extension)
         struct_loss = csv_handle.get_column(EventDamageModel.STRUCT_LOSS_TITLE)
@@ -418,24 +418,24 @@ class Test_inundation_damage(unittest.TestCase):
         struct_loss = [float(x) for x in struct_loss]
 
         #pprint(struct_loss)
-        assert num.allclose(struct_loss, [10.0, 150.0, 66.553333478768664, 0.0])       
+        assert num.allclose(struct_loss, [10.0, 150.0, 66.553333478768664, 0.0])
         depth = csv_handle.get_column(EventDamageModel.MAX_DEPTH_TITLE)
         #print "depth",depth
         depth = [float(x) for x in depth]
-        assert num.allclose(depth,[3.000000011920929, 2.9166666785875957, 2.2666666785875957, -0.3]) 
+        assert num.allclose(depth,[3.000000011920929, 2.9166666785875957, 2.2666666785875957, -0.3])
         os.remove(sww.filename)
         os.remove(csv_file)
         os.remove(csv_fileII)
-        
+
     def ztest_add_depth_and_momentum2csv(self):
         sww_file = self.domain.get_name() + "." + self.domain.format
         #print "sww_file",sww_file
-        
+
         out_csv = tempfile.mktemp(".csv")
-        print("out_csv",out_csv) 
+        print("out_csv",out_csv)
         add_depth_and_momentum2csv(sww_file, self.csv_file,
                                    out_csv, verbose=False)
-        
+
     def test_calc_damage_percentages(self):
         max_depths = [-0.3, 0.0, 1.0,-0.3, 0.0, 1.0,-0.3, 0.0, 1.0]
         shore_distances = [100, 100, 100, 100, 100, 100, 100, 100, 100]
@@ -483,13 +483,13 @@ class Test_inundation_damage(unittest.TestCase):
         assert num.allclose(edm.contents_loss,[0.0,1.3,97,
                                                0.0,1.3,97,
                                                0.0,0.13,9.7])
-        
-        
+
+
     def test_calc_collapse_structures1(self):
         edm = EventDamageModel([0.0]*17, [0.0]*17, [0.0]*17,
                                [0.0]*17, [0.0]*17)
-        edm.struct_damage = num.zeros(17,num.float) 
-        edm.contents_damage = num.zeros(17,num.float) 
+        edm.struct_damage = num.zeros(17,num.float)
+        edm.contents_damage = num.zeros(17,num.float)
         collapse_probability = {0.4:[0], #0
                                 0.6:[1], #1
                                 0.5:[2], #1
@@ -501,13 +501,13 @@ class Test_inundation_damage(unittest.TestCase):
         assert num.allclose(edm.shore_distances, 0.0)
         assert num.allclose(edm.walls, 0.0)
         assert num.allclose(edm.struct_costs, 0.0)
-        assert num.allclose(edm.content_costs, 0.0)        
-        
+        assert num.allclose(edm.content_costs, 0.0)
+
         edm._calc_collapse_structures(collapse_probability, verbose_csv=True)
 
         # Random numbers are not stable between Python2 and Python3 - even with the same seed seed(17, version=1)
         # See https://stackoverflow.com/questions/11929701/why-is-seeding-the-random-generator-not-stable-between-versions-of-python
-        
+
         if system_tools.major_version == 2:
             assert num.allclose(edm.struct_damage, [0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]), 'Expected %s' % edm.struct_damage
             assert num.allclose(edm.contents_damage, [0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]), 'Expected %s' % edm.contents_damage
@@ -541,13 +541,13 @@ class Test_inundation_damage(unittest.TestCase):
         else:
             raise Exception('Unknown python version: %s' % system_tools.version)
 
-            
+
         sum_struct = 0.0
         sum_contents = 0.0
         for i in [5,6,7,8]:
             sum_struct += edm.struct_damage[i]
             sum_contents += edm.contents_damage[i]
-        #print("", end=' ') 
+        #print("", end=' ')
         self.assertTrue(sum_struct == 0.0 and sum_contents  == 0.0,
                         'Error!')
         sum_struct = 0.0
@@ -557,7 +557,7 @@ class Test_inundation_damage(unittest.TestCase):
             sum_contents += edm.contents_damage[i]
         self.assertTrue( sum_struct == 2.0 and sum_contents  == 2.0,
                         'Error!')
-        
+
     def test_calc_collapse_probability(self):
         depth =          [0.0, 0.5, 0.5  , 1.5, 2.5, 4.5, 10000, 2.0]
         shore_distance = [0.0, 125, 250.1, 0.0, 150, 225, 10000, 251]
@@ -569,15 +569,15 @@ class Test_inundation_damage(unittest.TestCase):
                   0.4:[4],
                   0.5:[5],
                   0.45:[6]}
-        #print "struct_coll_prob",struct_coll_prob 
-        #print "answer",answer 
+        #print "struct_coll_prob",struct_coll_prob
+        #print "answer",answer
 
         self.assertTrue( struct_coll_prob ==  answer,
                         'Error!')
-        
-        
+
+
     def test_calc_damage_and_costs(self):
-                             
+
         max_depths = [-0.3, 0.0, 1.0,-0.3, 0.0, 1.0,-0.3, 0.0, 10.0]
         shore_distances = [100, 100, 100, 100, 100, 100, 100, 100, 100]
         walls = ['Double Brick',
@@ -612,7 +612,7 @@ class Test_inundation_damage(unittest.TestCase):
                                struct_costs, content_costs)
         results_dic = edm.calc_damage_and_costs(verbose_csv=True)
         #print "results_dic",results_dic
-        
+
     def test_calc_max_depth_and_momentum(self):
         sww_file = "tid" # self.domain.get_name() + "." + self.domain.format
         points_lat_long = [[-34, 151.5],[-35.5, 151.5],[-50, 151]]
@@ -626,18 +626,18 @@ class Test_inundation_damage(unittest.TestCase):
                                               use_cache = False)
 
         # Test values based on returned results, so not an excellent test
-        
+
         assert num.allclose(deps[0],0.113204555211)
         assert num.allclose(deps[1],11.3215)
         assert num.allclose(deps[2],0.0) # this value is outside both sww files
-        
+
 #-------------------------------------------------------------
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
         Test_inundation_damage.verbose=True
-        saveout = sys.stdout   
+        saveout = sys.stdout
         filename = ".temp_verbose"
-        fid = open(filename, 'w')
+        fid = open(filename, 'w',newline="")
         sys.stdout = fid
     else:
         pass
@@ -647,6 +647,6 @@ if __name__ == "__main__":
 
     # Cleaning up
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
-        sys.stdout = saveout 
-        fid.close() 
+        sys.stdout = saveout
+        fid.close()
         os.remove(filename)

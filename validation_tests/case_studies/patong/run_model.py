@@ -21,13 +21,9 @@ import time
 from time import localtime, strftime, gmtime
 
 # Related major packages
-from anuga.file.netcdf import NetCDFFile
-
 import anuga
 
-
-
-
+from anuga.file.netcdf import NetCDFFile
 import anuga.utilities.log as log
 
 # Parallel routines
@@ -65,13 +61,13 @@ verbose = args.verbose
 
 
 if myid == 0 and verbose and numprocs == 1:
-    print 80*'#'
-    print '#'
-    print '# Long Validation Test, takes 30 minutes on my desktop'
-    print '#'
-    print '# Consider running in parallel'
-    print '#'
-    print 80*'#'
+    print (80*'#')
+    print ('#')
+    print ('# Long Validation Test, takes 30 minutes on my desktop')
+    print ('#')
+    print ('# Consider running in parallel')
+    print ('#')
+    print (80*'#')
 
 
 #-------------------------------------------------------------------------------
@@ -116,7 +112,7 @@ if(myid==0):
     log.critical('Create computational domain')
 
 else:
-    print 'Hello from processor ', myid
+    print ('Hello from processor ', myid)
 
 barrier()
     
@@ -176,7 +172,7 @@ if(myid==0):
 
     # Set the initial stage in the offcoast region only
     if project.land_initial_conditions:
-        print '**********  IC ***********************************'
+        print ('**********  IC ***********************************')
         IC = anuga.Polygon_function(project.land_initial_conditions,
                               default=project.tide,
                               geo_reference=domain.geo_reference)
@@ -236,7 +232,7 @@ if(myid==0):
 
 else:
     domain=None
-    #print 'Hello from Processor ', myid
+    #print ('Hello from Processor ', myid)
 
 barrier()
 
@@ -250,14 +246,16 @@ domain=distribute(domain)
 log.critical('Set boundary P_%g - available tags: %s' % (myid, domain.get_boundary_tags()))
 
 Br = anuga.Reflective_boundary(domain)
-Bs = anuga.Transmissive_stage_zero_momentum_boundary(domain)
+Bt = anuga.Transmissive_stage_zero_momentum_boundary(domain)
+Bf = anuga.Flather_external_stage_zero_velocity_boundary(domain,function=lambda t: project.tide)
 
 if myid == 0 and verbose:
     verbose_bf = True
 else:
     verbose_bf = False
-    
-Bf = anuga.Field_boundary(project.event_sts+'.sts',
+
+# setup Spatial Temporal boundary  
+Bst = anuga.Field_boundary(project.event_sts+'.sts',
                     domain,
                     mean_stage=project.tide,
                     time_thinning=20,
@@ -267,8 +265,8 @@ Bf = anuga.Field_boundary(project.event_sts+'.sts',
                     verbose=verbose_bf)
 
 domain.set_boundary({'back': Br,
-                     'side': Bs,
-                     'ocean': Bf}) 
+                     'side': Bf,
+                     'ocean': Bst}) 
 
 #-------------------------------------------------------------------------------
 # Evolve system through time

@@ -25,7 +25,7 @@ event_number = 'mux_' + model    # the event number or the mux file name
 alpha = 0.1             # smoothing parameter for mesh
 friction = 0.025         # manning's friction coefficient
 starttime = 0           # start time for simulation
-finaltime = 7200        # final time for simulation
+finaltime = 10000       # final time for simulation
 
 nameFlag='xxNameFlagxx'
 
@@ -168,7 +168,7 @@ combined_elevation_basename = scenario_name + '_combined_elevation_' + model
 time = strftime('%Y%m%d_%H%M%S', localtime()) 
 gtime = strftime('%Y%m%d_%H%M%S', gmtime()) 
 build_time = time + '_build_' + model
-run_time = time + '_run_'
+run_time = time + '_run_' + model
 
 # create paths for data files.
 output_dirname = os.path.dirname(__file__)
@@ -218,14 +218,17 @@ event_sts = join(event_folder, scenario_name)
 
 # The absolute pathname for the output folder names
 # Used for build_elevation.py
-#output_build = join(output_folder, build_time) + '_' + str(user)
-output_build = output_folder 
+
+output_build = join(output_folder, build_time) + '_' + user
+#output_build = output_folder 
+
 # Used for run_model.py
-#output_run = join(output_folder, run_time)
-output_run = output_folder
+output_run = join(output_folder, run_time)
+#output_run = output_folder
+
 # Used by post processing
-#output_run_time = join(output_run, scenario_name)
-output_run_time = output_run
+output_run_time = join(output_run, scenario_name)
+#output_run_time = output_run
 
 # The absolute pathname for the gauges file
 # Used for get_timeseries.py
@@ -274,7 +277,7 @@ else:
 
 if sanity_error:
     msg = 'You must fix the above errors before continuing.'
-    raise Exception, msg
+    raise( Exception, msg)
 
 #-------------------------------------------------------------------------------
 # Reading polygons and creating interior regions

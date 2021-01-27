@@ -113,7 +113,7 @@ class AppShell(Pmw.MegaWidget):
             self.__initializeTk_unix(root)
 
     def __initializeTk_colors_common(self, root):
-        root.option_add('*background', 'grey')
+        root.option_add('*background', 'grey85')
         root.option_add('*foreground', 'black')
         root.option_add('*EntryField.Entry.background', 'white')
         root.option_add('*Entry.background', 'white')

@@ -33,7 +33,7 @@ gauge_filename = 'gauges.csv'
 bounding_polygon = anuga.read_polygon('extent.csv')
 
 A = anuga.polygon_area(bounding_polygon) / 1000000.0
-print 'Area of bounding polygon = %.2f km^2' % A
+print ('Area of bounding polygon = %.2f km^2' % A)
 
 #------------------------------------------------------------------------------
 # Interior region definitions

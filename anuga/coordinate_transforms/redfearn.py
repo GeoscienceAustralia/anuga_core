@@ -6,11 +6,10 @@ downloaded from INTERGOVERNMENTAL COMMITTEE ON SURVEYING & MAPPING (ICSM)
 http://www.icsm.gov.au/icsm/
 
 """
-from __future__ import division
-from builtins import zip
-from past.utils import old_div
+from __future__ import division, print_function
 from anuga.coordinate_transforms.geo_reference import Geo_reference, DEFAULT_ZONE
 
+import numpy as num
 
 def degminsec2decimal_degrees(dd,mm,ss):
     assert abs(mm) == mm
@@ -90,21 +89,21 @@ def redfearn(lat, lon, false_easting=None, false_northing=None,
 
     e2 = 2*f - f*f#    = f*(2-f) = (a^2-b^2/a^2   #Eccentricity
     e = sqrt(e2)
-    e2_ = old_div(e2,(1-e2))   # = (a^2-b^2)/b^2 #Second eccentricity
+    e2_ = e2/(1-e2)   # = (a^2-b^2)/b^2 #Second eccentricity
     e_ = sqrt(e2_)
     e4 = e2*e2
     e6 = e2*e4
 
     # Foot point latitude
-    n = old_div((a-b),(a+b)) #Same as e2 - why ?
+    n = (a-b)/(a+b) #Same as e2 - why ?
     n2 = n*n
     n3 = n*n2
     n4 = n2*n2
 
-    G = old_div(a*(1-n)*(1-n2)*(1+old_div(9*n2,4)+old_div(225*n4,64))*pi,180)
+    G = a*(1-n)*(1-n2)*(1+9*n2/4+225*n4/64)*pi/180
 
 
-    phi = old_div(lat*pi,180)     #Convert latitude to radians
+    phi = lat*pi/180     #Convert latitude to radians
 
     sinphi = sin(phi)   
     sin2phi = sin(2*phi)
@@ -126,18 +125,18 @@ def redfearn(lat, lon, false_easting=None, false_northing=None,
     t6 = t2*t4
     
     # Radius of Curvature
-    rho = old_div(a*(1-e2),(1-e2*sinphi*sinphi)**1.5)
-    nu = old_div(a,(1-e2*sinphi*sinphi)**0.5)
-    psi = old_div(nu,rho)
+    rho = a*(1-e2)/(1-e2*sinphi*sinphi)**1.5
+    nu = a/(1-e2*sinphi*sinphi)**0.5
+    psi = nu/rho
     psi2 = psi*psi
     psi3 = psi*psi2
     psi4 = psi2*psi2
 
     # Meridian distance
-    A0 = 1 - old_div(e2,4) - old_div(3*e4,64) - old_div(5*e6,256)
-    A2 = 3.0/8*(e2+old_div(e4,4)+old_div(15*e6,128))
-    A4 = 15.0/256*(e4+old_div(3*e6,4))
-    A6 = old_div(35*e6,3072)
+    A0 = 1 - e2/4 - 3*e4/64 - 5*e6/256
+    A2 = 3.0/8*(e2+e4/4+15*e6/128)
+    A4 = 15.0/256*(e4+3*e6/4)
+    A6 = 35*e6/3072
     
     term1 = a*A0*phi
     term2 = -a*A2*sin2phi
@@ -152,7 +151,7 @@ def redfearn(lat, lon, false_easting=None, false_northing=None,
     
     # Zone
     if zone is None:
-        zone = int(old_div((lon - longitude_of_western_edge_zone0),zone_width))
+        zone = int((lon - longitude_of_western_edge_zone0)/zone_width)
 
     # Central meridian
     if central_meridian is None:
@@ -160,7 +159,7 @@ def redfearn(lat, lon, false_easting=None, false_northing=None,
     else:
         zone = -1
 
-    omega = old_div((lon-central_meridian)*pi,180) #Relative longitude (radians)
+    omega = (lon-central_meridian)*pi/180 #Relative longitude (radians)
     omega2 = omega*omega
     omega3 = omega*omega2
     omega4 = omega2*omega2
@@ -170,30 +169,30 @@ def redfearn(lat, lon, false_easting=None, false_northing=None,
     omega8 = omega4*omega4
      
     # Northing
-    term1 = old_div(nu*sinphi*cosphi*omega2,2)  
-    term2 = old_div(nu*sinphi*cosphi3*(4*psi2+psi-t2)*omega4,24)
-    term3 = old_div(nu*sinphi*cosphi5*\
+    term1 = nu*sinphi*cosphi*omega2/2  
+    term2 = nu*sinphi*cosphi3*(4*psi2+psi-t2)*omega4/24
+    term3 = nu*sinphi*cosphi5*\
             (8*psi4*(11-24*t2)-28*psi3*(1-6*t2)+\
-             psi2*(1-32*t2)-psi*2*t2+t4-t2)*omega6,720)
-    term4 = old_div(nu*sinphi*cosphi7*(1385-3111*t2+543*t4-t6)*omega8,40320)
+             psi2*(1-32*t2)-psi*2*t2+t4-t2)*omega6/720
+    term4 = nu*sinphi*cosphi7*(1385-3111*t2+543*t4-t6)*omega8/40320
     northing = false_northing + K0*(m + term1 + term2 + term3 + term4)
 
     # Easting
     term1 = nu*omega*cosphi
-    term2 = old_div(nu*cosphi3*(psi-t2)*omega3,6)
-    term3 = old_div(nu*cosphi5*(4*psi3*(1-6*t2)+psi2*(1+8*t2)-2*psi*t2+t4)*omega5,120)
-    term4 = old_div(nu*cosphi7*(61-479*t2+179*t4-t6)*omega7,5040)
+    term2 = nu*cosphi3*(psi-t2)*omega3/6
+    term3 = nu*cosphi5*(4*psi3*(1-6*t2)+psi2*(1+8*t2)-2*psi*t2+t4)*omega5/120
+    term4 = nu*cosphi7*(61-479*t2+179*t4-t6)*omega7/5040
     easting = false_easting + K0*(term1 + term2 + term3 + term4)
     
     return zone, easting, northing
-
 
 
 def convert_from_latlon_to_utm(points=None,
                                latitudes=None,
                                longitudes=None,
                                false_easting=None,
-                               false_northing=None):
+                               false_northing=None,
+                               show_progress=False):
     """Convert latitude and longitude data to UTM as a list of coordinates.
 
 
@@ -204,6 +203,7 @@ def convert_from_latlon_to_utm(points=None,
     longitudes: list of longitudes 
     false_easting (optional)
     false_northing (optional)
+    show_progress (optional) print . for each 1000 points processed
 
     Output
 
@@ -217,20 +217,38 @@ def convert_from_latlon_to_utm(points=None,
     If points end up in different UTM zones, an ANUGAerror is thrown.    
     """
 
-    old_geo = Geo_reference()    
+    old_geo = Geo_reference()  
+
+    longitudes = num.asarray(longitudes, dtype=float)
+    latitudes = num.asarray(latitudes, dtype=float)
+
     utm_points = []
     if points is None:
+        longitudes = num.asarray(longitudes, dtype=float).reshape((-1,1))
+        latitudes = num.asarray(latitudes, dtype=float).reshape((-1,1))
         assert len(latitudes) == len(longitudes)
-        points =  list(zip(latitudes, longitudes))
+        points =  num.hstack((latitudes, longitudes))
+    else:
+        points = num.asarray(points, dtype=float).reshape((-1,2))
         
+    iter = 0
+    if show_progress : print('Showing ll to utm conversion (each dot represents 1000 points processed out of %g)'% len(points))
     for point in points:
+
+        iter= iter+1
+        if iter%1000 == 0 and show_progress: print('.', end='', flush=True)
         
-        zone, easting, northing = redfearn(float(point[0]),
-                                           float(point[1]),
+        zone, easting, northing = redfearn(point[0],
+                                           point[1],
                                            false_easting=false_easting,
                                            false_northing=false_northing)
         new_geo = Geo_reference(zone)
         old_geo.reconcile_zones(new_geo)        
         utm_points.append([easting, northing])
 
+    if show_progress: print()
+
+    utm_points = num.asarray(utm_points, dtype=float).reshape((-1,2))
+
     return utm_points, old_geo.get_zone()
+
