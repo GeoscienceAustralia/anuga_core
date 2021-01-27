@@ -24,6 +24,7 @@ class Inlet_operator(anuga.Operator):
                  region,
                  Q = 0.0,
                  velocity = None,
+                 zero_velocity = False,
                  default = 0.0,
                  description = None,
                  label = None,
@@ -42,6 +43,8 @@ class Inlet_operator(anuga.Operator):
             assert len(velocity)==2
 
         self.velocity = velocity
+
+        self.zero_velocity = zero_velocity
 
         self.applied_Q = 0.0
 
@@ -89,14 +92,24 @@ class Inlet_operator(anuga.Operator):
                 depths = self.inlet.get_depths()
                 self.inlet.set_xmoms(self.inlet.get_xmoms()+depths*self.velocity[0])
                 self.inlet.set_ymoms(self.inlet.get_ymoms()+depths*self.velocity[1])
+            if self.zero_velocity:
+                self.inlet.set_xmoms(0.0)
+                self.inlet.set_ymoms(0.0)
         elif current_volume + volume >= 0.0 :
-            depth = old_div((current_volume + volume),total_area)
+            depth = (current_volume + volume)/total_area
             self.inlet.set_depths(depth)
             self.domain.fractional_step_volume_integral+=volume
+            if self.zero_velocity:
+                self.inlet.set_xmoms(0.0)
+                self.inlet.set_ymoms(0.0)
         else: #extracting too much water!
             self.inlet.set_depths(0.0)
+
             self.domain.fractional_step_volume_integral-=current_volume
-            self.applied_Q = -old_div(current_volume,timestep)
+            self.applied_Q = - current_volume/timestep
+            if self.zero_velocity:
+                self.inlet.set_xmoms(0.0)
+                self.inlet.set_ymoms(0.0)
 
             #msg =  'Requesting too much water to be removed from an inlet! \n'
             #msg += 'current_water_volume = %5.2e Increment volume = %5.2e' % (current_volume, volume)

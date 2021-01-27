@@ -8,7 +8,7 @@ class ToolBarButton(Label):
     def __init__(self, top, parent, tag=None, image=None, command=None,
                  statushelp='', balloonhelp='', height=21, width=21,
                  bd=1, activebackground='lightgrey', padx=0, pady=0,
-                 state='normal', bg='grey', home_dir=''):
+                 state='normal', bg='grey75', home_dir=''):
         Label.__init__(self, parent, height=height, width=width,
                        relief='flat', bd=bd, bg=bg)
 
@@ -16,7 +16,7 @@ class ToolBarButton(Label):
         self.bg = bg 
         self.activebackground = activebackground
         if image != None:
-            if string.splitfields(image, '.')[1] == 'bmp':
+            if image.split('.')[1] == 'bmp':
                 self.Icon = BitmapImage(file=join(home_dir,'icons/%s' % image))
             else:
                 self.Icon = PhotoImage(file=join(home_dir,'icons/%s' % image))

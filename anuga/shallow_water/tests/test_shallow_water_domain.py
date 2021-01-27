@@ -516,8 +516,51 @@ class Test_Shallow_Water(unittest.TestCase):
         assert parameters['optimised_gradient_limiter']        == domain.optimised_gradient_limiter
         assert parameters['extrapolate_velocity_second_order'] == domain.extrapolate_velocity_second_order
 
+    def test_institution(self):
 
+        from anuga.config import g
+        import copy
 
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        #Set up for a gradient of (3,0) at mid triangle (bce)
+        def slope(x, y):
+            return 3*x
+
+        h = 0.1
+        def stage(x, y):
+            return slope(x, y) + h
+
+        domain.set_quantity('elevation', slope)
+        domain.set_quantity('stage', stage)
+
+        domain.set_boundary({'exterior': Reflective_boundary(domain)})
+
+        institution = 'Test Institution'
+        domain.set_institution(institution)
+
+        #Evolution so as to create sww file
+        for t in domain.evolve(yieldstep=0.5, finaltime=0.5):
+            pass
+
+        fid = NetCDFFile(domain.get_name() + '.sww')
+        sww_institution = fid.institution
+        fid.close()
+
+        assert institution == sww_institution
+
+        os.remove(domain.get_name() + '.sww')
 
     def test_boundary_conditions(self):
         a = [0.0, 0.0]

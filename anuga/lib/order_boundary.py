@@ -73,7 +73,7 @@ def order_boundary(infile, outfile):
         # if there are more points in 'unordered', recurse
         if nearest is not None:
             sort_points(unordered, ordered, next)
-            
+
         return ordered
 
     # read file into list of tuples, convert first 2 fields to floats.
@@ -99,11 +99,10 @@ def order_boundary(infile, outfile):
     ordered_data = sort_points(data, [], 0)
 
     # write ordered data to output file
-    fd = open(outfile, 'w')
+    fd = open(outfile, 'w',newline="")
     w = csv.writer(fd)
     w.writerow(header)
-    
+
     for d in ordered_data:
         w.writerow(d)
     fd.close()
-

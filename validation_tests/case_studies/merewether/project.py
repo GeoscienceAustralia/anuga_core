@@ -162,3 +162,6 @@ eastingmax = 382570.7715
 northingmin = 6354265.4322858
 northingmax = 6354681.40599876
 
+# zone
+zone = '56S'
+

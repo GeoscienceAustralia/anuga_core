@@ -37,17 +37,22 @@ from __future__ import absolute_import
 from future import standard_library
 standard_library.install_aliases()
 from tkinter import *
-from . import Pmw
+try:
+    from . import Pmw
+    from . import ProgressBar
+except:
+    import Pmw
+    import ProgressBar
 import sys, string
-from . import ProgressBar
+
 
 class AppShell(Pmw.MegaWidget):
     appversion      = '1.0'
-    appname         = 'Generic Application Frame'
-    copyright       = 'Copyright YYYY Your Company. All Rights Reserved'
-    contactname     = 'Your Name'
-    contactphone    = '(999) 555-1212'
-    contactemail    = 'youremail@host.com'
+    appname         = 'ANUGA pmesh graphical editor'
+    copyright       = 'Copyright ANU and Geoscience Australia. All Rights Reserved'
+    contactname     = 'Stephen Roberts'
+    contactphone    = '+61 2 6125 4445'
+    contactemail    = 'stephen.roberts@anu.edu.au'
 
     frameWidth      = 450
     frameHeight     = 320
@@ -108,7 +113,7 @@ class AppShell(Pmw.MegaWidget):
             self.__initializeTk_unix(root)
 
     def __initializeTk_colors_common(self, root):
-        root.option_add('*background', 'grey')
+        root.option_add('*background', 'grey85')
         root.option_add('*foreground', 'black')
         root.option_add('*EntryField.Entry.background', 'white')
         root.option_add('*Entry.background', 'white')
