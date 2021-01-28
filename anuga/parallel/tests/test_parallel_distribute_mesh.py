@@ -102,7 +102,9 @@ def distibute_three_processors():
         if False: 
             print_seq_values(vertices, triangles, triangles_per_proc)
 
+        pprint(vertices)
         if metis_version == 5:
+            
             true_triangles = [[0,  9,  1], [3,  9,  0], [4,  9,  3], [1,  9,  4],
                       [3, 11,  4], [1, 10,  2], [4, 10,  1], [5, 10,  4],
                       [2, 10,  5], [4, 12,  5], [6, 11,  3], [7, 11,  6],
