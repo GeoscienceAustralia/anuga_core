@@ -27,8 +27,9 @@ build_script:
   - set PATH=%PATH%;"C:\Program Files\Microsoft MPI\bin"
   - conda config --set always_yes yes
   - conda update conda
-  - conda install python=3.7 gdal nose numpy cython scipy netcdf4 matplotlib dill future gitpython pymetis
+  - conda install python=3.7 gdal nose numpy cython scipy netcdf4 matplotlib dill future gitpython
   - pip install Pmw
+  - pip install pymetis
   - conda install -c msys2 libpython m2w64-toolchain
   - pip install mpi4py triangle
   - python setup.py install

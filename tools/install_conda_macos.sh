@@ -13,7 +13,8 @@ set -e
 #brew install openmpi
 
 
-# Install pymetis
+# Install pymetis 
+# FIXME: SR do we need to do this? pip install later.
 git clone https://github.com/inducer/pymetis.git;
 pushd pymetis;
 python setup.py install;
@@ -31,11 +32,12 @@ export PATH=/Users/travis/miniconda3/bin:$PATH
 # Configure the conda environment and put it in the path using the
 # provided versions
     
-conda create -n anuga_env --yes python=3.7 gdal pip nose numpy scipy netcdf4 matplotlib dill cython future gitpython pymetis
+conda create -n anuga_env --yes python=3.7 gdal pip nose numpy scipy netcdf4 matplotlib dill cython future gitpython
 
 source activate anuga_env
 pip install triangle
 pip install Pmw
+pip install pymetis
 
 # Useful for debugging any issues with conda
 conda info -a
