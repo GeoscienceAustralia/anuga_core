@@ -129,11 +129,14 @@ try:
     import pymetis
 
 except ImportError:
-    print("***************************************************")
-    print("         Metis is probably not compiled.")
-    print("         Read anuga.pymetis README")
-    print("***************************************************")
-    raise ImportError
+    import anuga.pymetis_4.metis_ext as pymetis
+
+
+    # print("***************************************************")
+    # print("         Metis is probably not compiled.")
+    # print("         Read anuga.pymetis_4 README")
+    # print("***************************************************")
+    # raise ImportError
 
 # Python 2.7 Hack
 try:
