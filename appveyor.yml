@@ -30,7 +30,7 @@ build_script:
   - conda install python=3.7 gdal nose numpy cython scipy netcdf4 matplotlib dill future gitpython
   - pip install Pmw
   - conda install -c msys2 libpython m2w64-toolchain
-  - pip install mpi4py triangle pybind11 pymetis
+  - pip install mpi4py triangle
   - python setup.py install
 
 test_script:
