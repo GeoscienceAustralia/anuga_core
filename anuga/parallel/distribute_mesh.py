@@ -127,9 +127,11 @@ def reorder_new(quantities, epart_order, proc_sum):
 try:
     #    from anuga.pymetis.metis_ext import partMeshNodal
     import pymetis
+    METIS = 5
 
 except ImportError:
-    import anuga.pymetis_4.metis_ext as pymetis
+    from anuga.pymetis.metis_ext import partMeshNodal
+    METIS = 4
 
 
     # print("***************************************************")
@@ -177,27 +179,37 @@ def pmesh_divide_metis_helper(domain, n_procs):
 
     n_tri = len(domain.triangles)
     if n_procs != 1:  # Because metis chokes on it...
-        #    n_vert = domain.get_number_of_nodes()
-        #    t_list2 = domain.triangles.copy()
-        #    t_list = num.reshape(t_list2, (-1,))
+        if METIS == 4:
+            n_vert = domain.get_number_of_nodes()
+            t_list2 = domain.triangles.copy()
+            t_list = num.reshape(t_list2, (-1,))
+            # The 1 here is for triangular mesh elements.
+            # FIXME: Should update to Metis 5
+            edgecut, epart, npart = partMeshNodal(n_tri, n_vert, t_list, 1, n_procs)
+            # print edgecut
+            # print npart
+            #print epart
+            del edgecut
+            del npart
 
-        # build adjacency list
-        # neighbours uses negative integer-indices to denote boudary edges.
-        # pymetis totally cant handle that, so we have to delete these.
-        neigh = domain.neighbours.tolist()
-        for i in range(len(neigh)):
-            if neigh[i][2] < 0:
-                del neigh[i][2]
-            if neigh[i][1] < 0:
-                del neigh[i][1]
-            if neigh[i][0] < 0:
-                del neigh[i][0]
+        if METIS == 5:
+            # build adjacency list
+            # neighbours uses negative integer-indices to denote boudary edges.
+            # pymetis totally cant handle that, so we have to delete these.
+            neigh = domain.neighbours.tolist()
+            for i in range(len(neigh)):
+                if neigh[i][2] < 0:
+                    del neigh[i][2]
+                if neigh[i][1] < 0:
+                    del neigh[i][1]
+                if neigh[i][0] < 0:
+                    del neigh[i][0]
 
-        cutcount, partvert = pymetis.part_graph(n_procs, neigh)
+            cutcount, partvert = pymetis.part_graph(n_procs, neigh)
 
-        # print "cutcount: ",cutcount
-        # print "partvert: ",len(partvert)
-        epart = partvert
+            # print "cutcount: ",cutcount
+            # print "partvert: ",len(partvert)
+            epart = partvert
 
         # Sometimes (usu. on x86_64), partMeshNodal returns an array of zero
         # dimensional arrays. Correct this.
