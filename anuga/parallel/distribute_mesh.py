@@ -133,15 +133,6 @@ except ImportError:
     from anuga.pymetis_4.metis_ext import partMeshNodal
     METIS = 4
 
-
-    # print("***************************************************")
-    # print("         Metis is probably not compiled.")
-    # print("         Read anuga.pymetis_4 README")
-    # print("***************************************************")
-    # raise ImportError
-
-
-print('METIS = ', METIS)
 # Python 2.7 Hack
 try:
     from sets import Set

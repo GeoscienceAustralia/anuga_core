@@ -1299,7 +1299,6 @@ class Test_parallel_distribute_mesh(unittest.TestCase):
 
         cmd = anuga.mpicmd(os.path.abspath(__file__))
 
-        print(cmd)
         status = os.system(cmd)
 
         assert_(status == 0)
