@@ -1,0 +1,29 @@
+PyMetis provides a python module interface to the Metis graph
+partitioning and sparse matrix ordering library.
+
+Currently only the METIS_PartMeshNodal function is implemented.
+
+Build instructions:
+Linux:
+run "make" in the top pymetis directory.
+
+Should the metis version change, the new metis package should be in a new
+subdirectory. Metis 4.0 is in metis-4.0
+
+The METIS_DIR= line in the makefile will need to be changed appropriately.
+
+64 bit users need to run `make COPTIONS="-fPIC"'
+
+Windows:
+Required: MinGW compiler, Cygwin utilities (Bash, cp, [).
+
+Run:
+
+make for_win32
+
+Other makefile targets:
+clean:
+removes all intermediate files.
+
+realclean:
+performs clean, then also removes the pymetis.so file.
