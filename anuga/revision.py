@@ -4,5 +4,5 @@ This file provides the git sha id and commit date for the installed revision of 
 The file is automatically generated and should not be modified manually.
 """
 
-__git_sha__ = "cf371e3d2c41249f9dbebf1d640256c4909e8bb4"
-__git_committed_datetime__ = "2021-02-01 15:05:23+11:00"
+__git_sha__ = "4b8bd8b94b8cdb17b8b9c7d3a29fa9c9e207c3b1"
+__git_committed_datetime__ = "2021-02-01 16:03:05+11:00"

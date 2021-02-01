@@ -130,7 +130,7 @@ try:
     METIS = 5
 
 except ImportError:
-    from anuga.pymetis.metis_ext import partMeshNodal
+    from anuga.pymetis_4.metis_ext import partMeshNodal
     METIS = 4
 
 
@@ -140,6 +140,8 @@ except ImportError:
     # print("***************************************************")
     # raise ImportError
 
+
+print('METIS = ', METIS)
 # Python 2.7 Hack
 try:
     from sets import Set
