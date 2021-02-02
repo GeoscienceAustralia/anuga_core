@@ -13,13 +13,6 @@ set -e
 #brew install openmpi
 
 
-# Install pymetis 
-# FIXME: SR do we need to do this? pip install later.
-git clone https://github.com/inducer/pymetis.git;
-pushd pymetis;
-python setup.py install;
-popd;
-
 # Install miniconda
 wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh ;
 
@@ -35,6 +28,7 @@ export PATH=/Users/travis/miniconda3/bin:$PATH
 conda create -n anuga_env --yes python=3.7 gdal pip nose numpy scipy netcdf4 matplotlib dill cython future gitpython
 
 source activate anuga_env
+
 pip install triangle
 pip install Pmw
 pip install pymetis
