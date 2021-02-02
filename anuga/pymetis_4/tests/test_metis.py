@@ -9,7 +9,7 @@ import unittest
 
 # path.append('..' + sep + 'pymetis')
 
-import anuga.pymetis.metis_ext as metis
+import anuga.pymetis_4.metis_ext as metis
 
 class TestMetis(unittest.TestCase):
     def setUp(self):
