@@ -125,11 +125,9 @@ def reorder_new(quantities, epart_order, proc_sum):
 #path.append('..' + sep + 'pymetis')
 
 try:
-    #    from anuga.pymetis.metis_ext import partMeshNodal
     import pymetis
     METIS = 5
-
-except ImportError:
+except (ImportError, ModuleNotFoundError) as e:
     from anuga.pymetis_4.metis_ext import partMeshNodal
     METIS = 4
 
