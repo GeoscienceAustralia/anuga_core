@@ -28,7 +28,7 @@ def configuration(parent_package='',top_path=None):
     config.add_subpackage('pmesh')
 
     try:
-        import pymetis
+        from pymetis import part_graph
     except:
         config.add_subpackage('pymetis_4')
         
