@@ -147,18 +147,18 @@ class Draw(AppShell.AppShell):
                                  label='Export ASCII csv file...',
                                  command=self.exportPointsFile)
 
-        self.menuBar.addmenuitem('File', 'command',
-                                 'add Segments to connect all vertices'  ,
-                                 label='join vertices',
-                                 command=self.joinVertices)
-        self.menuBar.addmenuitem('File', 'command',
-                                 'add Segments to form alpha shape'  ,
-                                 label='Auto segment',
-                                 command=self.auto_segment)
-        self.menuBar.addmenuitem('File', 'command',
-                           'modify the alpha boundary by applying filters',
-                                 label='filter alpha boundary',
-                                 command=self.auto_segmentFilter)
+        # self.menuBar.addmenuitem('File', 'command',
+        #                          'add Segments to connect all vertices'  ,
+        #                          label='join vertices',
+        #                          command=self.joinVertices)
+        # self.menuBar.addmenuitem('File', 'command',
+        #                          'add Segments to form alpha shape'  ,
+        #                          label='Auto segment',
+        #                          command=self.auto_segment)
+        # self.menuBar.addmenuitem('File', 'command',
+        #                    'modify the alpha boundary by applying filters',
+        #                          label='filter alpha boundary',
+        #                          command=self.auto_segmentFilter)
         #self.menuBar.addmenuitem('File', 'command', 'Normalise mesh',
         #                         label='Normalise mesh', command=self.normaliseMesh)
         #self.menuBar.addmenuitem('File', 'command', 'Normalise mesh for glutobj',
@@ -179,8 +179,8 @@ class Draw(AppShell.AppShell):
         ToolBarButton(self, self.toolbar, 'sep', 'Separator.gif',
                       width=10, state='disabled',home_dir=HOME_DIR)
         for key, balloon, mouseDownFunc, Mode in [
-            ('Pointer','Edit drawing eventually.  Right now this does nothing', self.drag, None)
-            ,('Add-Vertex',    'Add vertex', self.drawVertex, mesh.Vertex)
+            #('Pointer','Edit drawing eventually.  Right now this does nothing', self.drag, None)
+            ('Add-Vertex',    'Add vertex', self.drawVertex, mesh.Vertex)
             ,('Segment', 'Join vertices to form a segment',self.selectSegmentPoint, mesh.Segment)
             ,('Add-Hole', 'Add hole',self.drawHole, mesh.Hole)
             ,('Add-Region', 'Add region',self.drawRegion, mesh.Region)
@@ -189,7 +189,7 @@ class Draw(AppShell.AppShell):
                           command=self.selectFunc, balloonhelp=balloon,
                                statushelp='', home_dir=HOME_DIR)
             t.cycle("DrawMode")
-            if key == 'Pointer': #FIXME- this is specified in line 1062 as well
+            if key == 'Add-Vertex': #FIXME- this is specified in line 1062 as well
                                  # self.selectFunc('pointer')
                 self.curFunc  = self.drawVertex
                 t.setInitialSunkenButton("DrawMode")
@@ -214,7 +214,7 @@ class Draw(AppShell.AppShell):
                       balloonhelp='Zooms to mesh size',
                       statushelp='', home_dir=HOME_DIR)
         zoom = '2'
-        ToolBarButton(self, self.toolbar, zoom, 'Zoom-In.gif', 
+        ToolBarButton(self, self.toolbar, zoom, 'Zoom-In.gif',
                       command=self.selectZoom,
                       balloonhelp='Zoom in',
                       statushelp='', home_dir=HOME_DIR)
@@ -1049,9 +1049,9 @@ class Draw(AppShell.AppShell):
         """
         log.critical("self.currentPath %s" % str(self.currentPath))
         ofile = tkinter.filedialog.askopenfilename(initialdir=self.currentPath,
-                                             filetypes=[ ("text Mesh",
+                                             filetypes=[ ("Mesh",
                                                           "*.tsh *.msh"),
-                                                         ("points",
+                                                         ("Points",
                                                           "*.csv *.txt *.pts"),
                                                          ("All Files", "*")])
         if ofile == "":
@@ -1233,7 +1233,8 @@ class Draw(AppShell.AppShell):
         self.createVisualiseIcons()
         #print "FIX THIS BEFORE "
         #self.addCylinders() # !!!DSG start pmesh with a triangle
-        self.selectFunc('Pointer')
+        #self.selectFunc('Pointer')
+        self.selectFunc('Add-Vertex')
         self.currentPath = os.getcwd()
 
     def loadtestmesh(self,ofile):
@@ -1557,3 +1558,4 @@ if __name__ == '__main__':
     draw = Draw()
     draw.run()
     #profile.run('draw.run()', 'pmeshprof')
+    

@@ -3,8 +3,8 @@
 
 import sys
 import os
-import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
+from six.moves import urllib
+#import urllib.request, urllib.parse, urllib.error
 import getpass
 import tarfile
 import warnings
