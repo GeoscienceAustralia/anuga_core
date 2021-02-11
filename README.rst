@@ -26,16 +26,17 @@ ANUGA (pronounced "AHnooGAH") is open-source software for the simulation of
 the shallow water equation, in particular it can be used to model tsunamis
 and floods.
 
-ANUGA is a python package with some C extensions (and an optional
-fortran extension). ANUGA is in the process of being ported to python 3. To test the 
-python 3 version of ANUGA clone anuga_core from `anuga-community`
+ANUGA is a python 3 package with some C and Cython extensions (and an optional
+fortran extension). The python 3 version of ANUGA will continue to be developed 
+and be available from this `anuga-community` repository. 
 
-     https://github.com/anuga-community/anuga_core
+The old python 2.7 version of ANUGA is available from https://github.com/GeoscienceAustralia/anuga_core
 
-Developed at Geoscience Australia and Mathematical Sciences Institute at the
+
+ANUGA is developed at Geoscience Australia and Mathematical Sciences Institute at the
 Australian National University.
 
-Copyright Commonwealth of Australia (Geoscience Australia) and Australian National University 2017
+Copyright Commonwealth of Australia (Geoscience Australia) and Australian National University 2017-
 
 
 Installation
@@ -95,8 +96,9 @@ The latest development version of ANUGA's sources are is available at:
 
 They can be downloaded as a zip file or using the Git client as follows
 
-    git clone https://github.com/anuga-community/anuga_core (for read only)
-    git clone git@github.com:GeoscienceAustralia/anuga_core.git (to contribute)
+    `git clone https://github.com/anuga-community/anuga_core` (for read only)
+    
+    `git clone git@github.com:anuga-community/anuga_core.git` (to contribute)
 
 For the latter option see e.g. https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/ for instructions on how to authenticate using ssh keys.
 
