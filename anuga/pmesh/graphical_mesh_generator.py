@@ -64,10 +64,10 @@ class Draw(AppShell.AppShell):
         """
         Add buttons to the bottom of the GUI
         """
-        self.buttonAdd('Postscript',
-              helpMessage='Save current drawing (as PostScript)',
-              statusMessage='',
-              command=self.ipostscript)
+        # self.buttonAdd('Postscript',
+        #       helpMessage='Save current drawing (as PostScript)',
+        #       statusMessage='',
+        #       command=self.ipostscript)
         self.buttonAdd('Clear', helpMessage='Delete the mesh',
               statusMessage='', command=self.clearMesh)
         self.buttonAdd('Close', helpMessage='Close Screen',
@@ -146,6 +146,11 @@ class Draw(AppShell.AppShell):
                                  'Export ASCII csv file',
                                  label='Export ASCII csv file...',
                                  command=self.exportPointsFile)
+
+        self.menuBar.addmenuitem('File', 'command',
+                                 'Export Postcript file',
+                                 label='Export Postscript file...',
+                                 command=self.ipostscript)
 
         # self.menuBar.addmenuitem('File', 'command',
         #                          'add Segments to connect all vertices'  ,
