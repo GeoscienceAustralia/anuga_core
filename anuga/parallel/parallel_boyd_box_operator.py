@@ -7,6 +7,7 @@ import math
 import numpy
 
 from anuga.structures.boyd_box_operator import boyd_box_function
+from anuga.structures.boyd_box_operator import total_energy
 
 from .parallel_inlet_operator import Parallel_Inlet_operator
 from .parallel_structure_operator import Parallel_Structure_operator
@@ -153,7 +154,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
         from anuga.utilities import parallel_abstraction as pypar
 
         local_debug = False
-        
+
         # If the cuvert has been closed, then no water gets through
         if self.culvert_height <= 0.0:
             Q = 0.0
@@ -203,25 +204,13 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
         self.outflow_index = 1
         # master proc orders reversal if applicable
         if self.myid == self.master_proc:
-            # May/June 2014 -- change the driving forces gradually, with forward euler timestepping
-            #
-            forward_Euler_smooth=True
-            if(forward_Euler_smooth):
-                # To avoid 'overshoot' we ensure ts<1.
-                if(self.domain.timestep>0.):
-                    ts=old_div(self.domain.timestep,max(self.domain.timestep, self.smoothing_timescale,1.0e-06))
-                else:
-                    # This case is included in the serial version, which ensures the unit tests pass
-                    # even when domain.timestep=0.0.
-                    # Note though the discontinuous behaviour as domain.timestep-->0. from above
-                    ts=1.0
-                self.smooth_delta_total_energy=self.smooth_delta_total_energy+\
-                                        ts*(self.delta_total_energy-self.smooth_delta_total_energy)
-            else:
-                # Use backward euler -- the 'sensible' ts limitation is different in this case
-                # ts --> Inf is reasonable and corresponds to the 'nosmoothing' case
-                ts=old_div(self.domain.timestep,max(self.smoothing_timescale, 1.0e-06))
-                self.smooth_delta_total_energy = old_div((self.smooth_delta_total_energy+ts*(self.delta_total_energy)),(1.+ts))
+
+            forward_Euler_smooth = True
+            self.smooth_delta_total_energy, ts = total_energy(self.smooth_delta_total_energy,
+                                                            self.delta_total_energy,
+                                                            self.domain.timestep,
+                                                            self.smoothing_timescale,
+                                                            forward_Euler_smooth)
 
             # Reverse the inflow and outflow direction?
             if self.smooth_delta_total_energy < 0:
