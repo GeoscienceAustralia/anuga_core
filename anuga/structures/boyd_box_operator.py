@@ -216,24 +216,12 @@ class Boyd_box_operator(anuga.Structure_operator):
                                                 sum_loss            =self.sum_loss,
                                                 manning             =self.manning)
 
-            #
-            # Update 02/07/2014 -- using time-smoothed discharge
-            Qsign=numpy.sign(self.smooth_delta_total_energy) #(self.outflow_index-self.inflow_index) # To adjust sign of Q
-            if(forward_Euler_smooth):
-                self.smooth_Q = self.smooth_Q +ts*(Q*Qsign-self.smooth_Q)
-            else:
-                # Try implicit euler method
-                self.smooth_Q = old_div((self.smooth_Q+ts*(Q*Qsign)),(1.+ts))
-
-            if numpy.sign(self.smooth_Q)!=Qsign:
-                # The flow direction of the 'instantaneous Q' based on the
-                # 'smoothed delta_total_energy' is not the same as the
-                # direction of smooth_Q. To prevent 'jumping around', let's
-                # set Q to zero
-                Q=0.
-            else:
-                Q = min(abs(self.smooth_Q), Q) #abs(self.smooth_Q)
-            barrel_velocity=old_div(Q,flow_area)
+            self.smooth_Q, Q, barrel_velocity = smooth_discharge(self.smooth_delta_total_energy,
+                                                                self.smooth_Q,
+                                                                Q,
+                                                                flow_area,
+                                                                ts,
+                                                                forward_Euler_smooth)
 
         else:
             Q = barrel_velocity = outlet_culvert_depth = 0.0
@@ -412,3 +400,30 @@ def total_energy(smooth_delta_total_energy,
         ts=old_div(timestep,max(smoothing_timescale, 1.0e-06))
         smooth_delta_total_energy = old_div((smooth_delta_total_energy+ts*(delta_total_energy)),(1.+ts))
     return smooth_delta_total_energy, ts
+
+def smooth_discharge(smooth_delta_total_energy,
+                    smooth_Q,
+                    Q,
+                    flow_area,
+                    timestep,
+                    forward_Euler_smooth=True):
+    #
+    # Update 02/07/2014 -- using time-smoothed discharge
+    ts = timestep
+    Qsign=numpy.sign(smooth_delta_total_energy) #(self.outflow_index-self.inflow_index) # To adjust sign of Q
+    if(forward_Euler_smooth):
+        smooth_Q = smooth_Q +ts*(Q*Qsign-smooth_Q)
+    else:
+        # Try implicit euler method
+        smooth_Q = old_div((smooth_Q+ts*(Q*Qsign)),(1.+ts))
+
+    if numpy.sign(smooth_Q)!=Qsign:
+        # The flow direction of the 'instantaneous Q' based on the
+        # 'smoothed delta_total_energy' is not the same as the
+        # direction of smooth_Q. To prevent 'jumping around', let's
+        # set Q to zero
+        Q=0.
+    else:
+        Q = min(abs(smooth_Q), Q) #abs(self.smooth_Q)
+    barrel_velocity=old_div(Q,flow_area)
+    return smooth_Q, Q, barrel_velocity

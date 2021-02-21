@@ -6,8 +6,7 @@ import anuga
 import math
 import numpy
 
-from anuga.structures.boyd_box_operator import boyd_box_function
-from anuga.structures.boyd_box_operator import total_energy
+from anuga.structures.boyd_box_operator import boyd_box_function, total_energy, smooth_discharge
 
 from .parallel_inlet_operator import Parallel_Inlet_operator
 from .parallel_structure_operator import Parallel_Structure_operator
@@ -307,29 +306,12 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                                                 sum_loss            =self.sum_loss,
                                                 manning             =self.manning)
 
-                ################################################
-                # Smooth discharge. This can reduce oscillations
-                #
-                # NOTE: The sign of smooth_Q assumes that
-                #   self.inflow_index=0 and self.outflow_index=1
-                #   , whereas the sign of Q is always positive
-                Qsign=(self.outflow_index-self.inflow_index) # To adjust sign of Q
-                if(forward_Euler_smooth):
-                    self.smooth_Q = self.smooth_Q +ts*(Q*Qsign-self.smooth_Q)
-                else:
-                    # Try implicit euler method
-                    self.smooth_Q = old_div((self.smooth_Q+ts*(Q*Qsign)),(1.+ts))
-
-                if numpy.sign(self.smooth_Q)!=Qsign:
-                    # The flow direction of the 'instantaneous Q' based on the
-                    # 'smoothed delta_total_energy' is not the same as the
-                    # direction of smooth_Q. To prevent 'jumping around', let's
-                    # set Q to zero
-                    Q=0.
-                else:
-                    Q = min(abs(self.smooth_Q), Q) #abs(self.smooth_Q)
-                barrel_velocity=old_div(Q,flow_area)
-            # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow
+                self.smooth_Q, Q, barrel_velocity = smooth_discharge(self.smooth_delta_total_energy,
+                                                                    self.smooth_Q,
+                                                                    Q,
+                                                                    flow_area,
+                                                                    ts,
+                                                                    forward_Euler_smooth)
 
             else: # self.inflow.get_enquiry_depth() < 0.01:
                 Q = barrel_velocity = outlet_culvert_depth = 0.0
