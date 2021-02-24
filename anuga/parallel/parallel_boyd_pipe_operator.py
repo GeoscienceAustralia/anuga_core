@@ -15,10 +15,10 @@ from .parallel_structure_operator import Parallel_Structure_operator
 class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
     """Culvert flow - transfer water from one rectangular box to another.
     Sets up the geometry of problem
-    
+
     This is the base class for culverts. Inherit from this class (and overwrite
     compute_discharge method for specific subclasses)
-    
+
     Input: Two points, pipe_size (either diameter or width, height),
     mannings_rougness,
     """
@@ -52,7 +52,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                  inlet_master_proc = [0,0],
                  inlet_procs = None,
                  enquiry_proc = [0,0]):
-                     
+
         Parallel_Structure_operator.__init__(self,
                                           domain=domain,
                                           end_points=end_points,
@@ -84,36 +84,36 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                                           inlet_master_proc=inlet_master_proc,
                                           inlet_procs=inlet_procs,
                                           enquiry_proc=enquiry_proc)
-        
+
         if isinstance(losses, dict):
             self.sum_loss = sum(losses.values())
         elif isinstance(losses, list):
             self.sum_loss = sum(losses)
         else:
             self.sum_loss = losses
-        
+
         self.use_momentum_jet = use_momentum_jet
         self.zero_outflow_momentum = (not use_momentum_jet)
         self.use_old_momentum_method = True
         self.use_velocity_head = use_velocity_head
-        
+
         self.culvert_length = self.get_culvert_length()
         self.culvert_width = self.get_culvert_width()
         self.culvert_height = self.get_culvert_height()
         self.culvert_diameter = self.get_culvert_diameter()
         self.culvert_blockage = self.get_culvert_blockage()
         self.culvert_barrels = self.get_culvert_barrels()
-        
+
         self.max_velocity = 10.0
 
         self.inlets = self.get_inlets()
 
 
         # Stats
-        
+
         self.discharge = 0.0
         self.velocity = 0.0
-        
+
         self.case = 'N/A'
 
 
@@ -159,6 +159,16 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
 
         local_debug = False
 
+        # If the cuvert has been closed, then no water gets through
+        if self.culvert_diameter <= 0.0:
+            Q = 0.0
+            barrel_velocity = 0.0
+            outlet_culvert_depth = 0.0
+            self.case = "Culvert blocked"
+            self.inflow  = self.inlets[0]
+            self.outflow = self.inlets[1]
+            return Q, barrel_velocity, outlet_culvert_depth
+
         #Send attributes of both enquiry points to the master proc
         if self.myid == self.master_proc:
 
@@ -198,7 +208,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
         self.outflow_index = 1
         # master proc orders reversal if applicable
         if self.myid == self.master_proc:
-            # May/June 2014 -- change the driving forces gradually, with forward euler timestepping 
+            # May/June 2014 -- change the driving forces gradually, with forward euler timestepping
             #
             forward_Euler_smooth=True
             if(forward_Euler_smooth):
@@ -207,7 +217,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                     ts=old_div(self.domain.timestep,max(self.domain.timestep, self.smoothing_timescale,1.0e-06))
                 else:
                     # This case is included in the serial version, which ensures the unit tests pass
-                    # even when domain.timestep=0.0. 
+                    # even when domain.timestep=0.0.
                     # Note though the discontinuous behaviour as domain.timestep-->0. from above
                     ts=1.0
                 self.smooth_delta_total_energy=self.smooth_delta_total_energy+\
@@ -259,7 +269,7 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
 
         # Get attribute from outflow enquiry point
         if self.myid == self.master_proc:
-            
+
             if self.myid == self.enquiry_proc[self.outflow_index]:
                 outflow_enq_depth = self.inlets[self.outflow_index].get_enquiry_depth()
             else:
@@ -314,17 +324,17 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
 
                 ################################################
                 # Smooth discharge. This can reduce oscillations
-                # 
+                #
                 # NOTE: The sign of smooth_Q assumes that
                 #   self.inflow_index=0 and self.outflow_index=1
                 #   , whereas the sign of Q is always positive
                 Qsign=(self.outflow_index-self.inflow_index) # To adjust sign of Q
                 if(forward_Euler_smooth):
                     self.smooth_Q = self.smooth_Q +ts*(Q*Qsign-self.smooth_Q)
-                else: 
+                else:
                     # Try implicit euler method
                     self.smooth_Q = old_div((self.smooth_Q+ts*(Q*Qsign)),(1.+ts))
-                
+
                 if numpy.sign(self.smooth_Q)!=Qsign:
                     # The flow direction of the 'instantaneous Q' based on the
                     # 'smoothed delta_total_energy' is not the same as the
@@ -353,5 +363,3 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
             return Q, barrel_velocity, outlet_culvert_depth
         else:
             return None, None, None
-        
-        
