@@ -8,6 +8,7 @@ import math
 import numpy
 
 from anuga.structures.boyd_pipe_operator import boyd_pipe_function
+from anuga.structures.boyd_box_operator import total_energy, smooth_discharge
 
 from .parallel_inlet_operator import Parallel_Inlet_operator
 from .parallel_structure_operator import Parallel_Structure_operator
@@ -210,23 +211,12 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
         if self.myid == self.master_proc:
             # May/June 2014 -- change the driving forces gradually, with forward euler timestepping
             #
-            forward_Euler_smooth=True
-            if(forward_Euler_smooth):
-                # To avoid 'overshoot' we ensure ts<1.
-                if(self.domain.timestep>0.):
-                    ts=old_div(self.domain.timestep,max(self.domain.timestep, self.smoothing_timescale,1.0e-06))
-                else:
-                    # This case is included in the serial version, which ensures the unit tests pass
-                    # even when domain.timestep=0.0.
-                    # Note though the discontinuous behaviour as domain.timestep-->0. from above
-                    ts=1.0
-                self.smooth_delta_total_energy=self.smooth_delta_total_energy+\
-                                        ts*(self.delta_total_energy-self.smooth_delta_total_energy)
-            else:
-                # Use backward euler -- the 'sensible' ts limitation is different in this case
-                # ts --> Inf is reasonable and corresponds to the 'nosmoothing' case
-                ts=old_div(self.domain.timestep,max(self.smoothing_timescale, 1.0e-06))
-                self.smooth_delta_total_energy = old_div((self.smooth_delta_total_energy+ts*(self.delta_total_energy)),(1.+ts))
+            forward_Euler_smooth = True
+            self.smooth_delta_total_energy, ts = total_energy(self.smooth_delta_total_energy,
+                                                            self.delta_total_energy,
+                                                            self.domain.timestep,
+                                                            self.smoothing_timescale,
+                                                            forward_Euler_smooth)
 
             # Reverse the inflow and outflow direction?
             if self.smooth_delta_total_energy < 0:
@@ -322,29 +312,12 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
                                                 sum_loss            =self.sum_loss,
                                                 manning             =self.manning)
 
-                ################################################
-                # Smooth discharge. This can reduce oscillations
-                #
-                # NOTE: The sign of smooth_Q assumes that
-                #   self.inflow_index=0 and self.outflow_index=1
-                #   , whereas the sign of Q is always positive
-                Qsign=(self.outflow_index-self.inflow_index) # To adjust sign of Q
-                if(forward_Euler_smooth):
-                    self.smooth_Q = self.smooth_Q +ts*(Q*Qsign-self.smooth_Q)
-                else:
-                    # Try implicit euler method
-                    self.smooth_Q = old_div((self.smooth_Q+ts*(Q*Qsign)),(1.+ts))
-
-                if numpy.sign(self.smooth_Q)!=Qsign:
-                    # The flow direction of the 'instantaneous Q' based on the
-                    # 'smoothed delta_total_energy' is not the same as the
-                    # direction of smooth_Q. To prevent 'jumping around', let's
-                    # set Q to zero
-                    Q=0.
-                else:
-                    Q = min(abs(self.smooth_Q), Q) #abs(self.smooth_Q)
-                barrel_velocity=old_div(Q,flow_area)
-            # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow
+                self.smooth_Q, Q, barrel_velocity = smooth_discharge(self.smooth_delta_total_energy,
+                                                                    self.smooth_Q,
+                                                                    Q,
+                                                                    flow_area,
+                                                                    ts,
+                                                                    forward_Euler_smooth)
 
             else: # self.inflow.get_enquiry_depth() < 0.01:
                 Q = barrel_velocity = outlet_culvert_depth = 0.0

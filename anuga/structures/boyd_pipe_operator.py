@@ -4,6 +4,7 @@ from past.utils import old_div
 import anuga
 import math
 import numpy
+from anuga.structures.boyd_box_operator import total_energy, smooth_discharge
 
 
 #=====================================================================
@@ -13,13 +14,13 @@ import numpy
 class Boyd_pipe_operator(anuga.Structure_operator):
     """Culvert flow - transfer water from one location to another via a circular pipe culvert.
     Sets up the geometry of problem
-    
+
     This is the base class for culverts. Inherit from this class (and overwrite
     compute_discharge method for specific subclasses)
-    
-    Input: Two points, pipe_size (diameter), 
+
+    Input: Two points, pipe_size (diameter),
     mannings_rougness,
-    """ 
+    """
 
 
     def __init__(self,
@@ -45,7 +46,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                  structure_type='boyd_pipe',
                  logging=False,
                  verbose=False):
-                     
+
         anuga.Structure_operator.__init__(self,
                                           domain,
                                           end_points,
@@ -66,25 +67,25 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                                           logging=logging,
                                           verbose=verbose)
 
-        
+
         if isinstance(losses, dict):
             self.sum_loss = sum(losses.values())
         elif isinstance(losses, list):
             self.sum_loss = sum(losses)
         else:
             self.sum_loss = losses
-        
+
         self.use_momentum_jet = use_momentum_jet
         # Preserves the old default behaviour of zeroing momentum
         self.zero_outflow_momentum = not use_momentum_jet
 
         self.use_velocity_head = use_velocity_head
-        
+
         self.culvert_length = self.get_culvert_length()
         self.culvert_diameter = self.get_culvert_diameter()
         self.culvert_blockage = self.get_culvert_blockage()
         self.culvert_barrels = self.get_culvert_barrels()
-        
+
         #print self.culvert_diameter
         self.max_velocity = 10.0
 
@@ -92,12 +93,12 @@ class Boyd_pipe_operator(anuga.Structure_operator):
 
 
         # Stats
-        
+
         self.discharge = 0.0
         self.velocity = 0.0
-        
+
         self.case = 'N/A'
-        
+
         # May/June 2014 -- allow 'smoothing ' of driving_energy, delta total energy, and outflow_enq_depth
         self.smoothing_timescale=0.
         self.smooth_delta_total_energy=0.
@@ -110,7 +111,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
         # Finally, set the smoothing timescale we actually want
         self.smoothing_timescale=smoothing_timescale
 
-        
+
 
 
     def discharge_routine(self):
@@ -141,23 +142,12 @@ class Boyd_pipe_operator(anuga.Structure_operator):
             self.delta_total_energy = \
                  self.inlets[0].get_enquiry_stage() - self.inlets[1].get_enquiry_stage()
 
-        # Compute 'smoothed' total energy
-        forward_Euler_smooth=True
-        if(forward_Euler_smooth):
-            # To avoid 'overshoot' we ensure ts<1.
-            if(self.domain.timestep>0.):
-                ts=old_div(self.domain.timestep,max(self.domain.timestep, self.smoothing_timescale,1.0e-06))
-            else:
-                # Without this the unit tests with no smoothing fail [since they have domain.timestep=0.]
-                # Note though the discontinuous behaviour as domain.timestep-->0. from above
-                ts=1.0
-            self.smooth_delta_total_energy=self.smooth_delta_total_energy+\
-                                    ts*(self.delta_total_energy-self.smooth_delta_total_energy)
-        else:
-            # Use backward euler -- the 'sensible' ts limitation is different in this case
-            # ts --> Inf is reasonable and corresponds to the 'nosmoothing' case
-            ts=old_div(self.domain.timestep,max(self.smoothing_timescale, 1.0e-06))
-            self.smooth_delta_total_energy = old_div((self.smooth_delta_total_energy+ts*(self.delta_total_energy)),(1.+ts))
+        forward_Euler_smooth = True
+        self.smooth_delta_total_energy, ts = total_energy(self.smooth_delta_total_energy,
+                                                        self.delta_total_energy,
+                                                        self.domain.timestep,
+                                                        self.smoothing_timescale,
+                                                        forward_Euler_smooth)
 
         if self.smooth_delta_total_energy >= 0.:
             self.inflow  = self.inlets[0]
@@ -167,8 +157,8 @@ class Boyd_pipe_operator(anuga.Structure_operator):
             self.inflow  = self.inlets[1]
             self.outflow = self.inlets[0]
             self.delta_total_energy = -self.smooth_delta_total_energy
-            
-            
+
+
         # Only calculate flow if there is some water at the inflow inlet.
         if self.inflow.get_enquiry_depth() > 0.01: #this value was 0.01:
 
@@ -202,24 +192,12 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                                                 sum_loss            =self.sum_loss,
                                                 manning             =self.manning)
 
-            #
-            # Update 02/07/2014 -- using time-smoothed discharge
-            Qsign=numpy.sign(self.smooth_delta_total_energy) #(self.outflow_index-self.inflow_index) # To adjust sign of Q
-            if(forward_Euler_smooth):
-                self.smooth_Q = self.smooth_Q +ts*(Q*Qsign-self.smooth_Q)
-            else: 
-                # Try implicit euler method
-                self.smooth_Q = old_div((self.smooth_Q+ts*(Q*Qsign)),(1.+ts))
-            
-            if numpy.sign(self.smooth_Q)!=Qsign:
-                # The flow direction of the 'instantaneous Q' based on the
-                # 'smoothed delta_total_energy' is not the same as the
-                # direction of smooth_Q. To prevent 'jumping around', let's
-                # set Q to zero
-                Q=0.
-            else:
-                Q = min(abs(self.smooth_Q), Q) #abs(self.smooth_Q)
-            barrel_velocity=old_div(Q,flow_area)
+            self.smooth_Q, Q, barrel_velocity = smooth_discharge(self.smooth_delta_total_energy,
+                                                                self.smooth_Q,
+                                                                Q,
+                                                                flow_area,
+                                                                ts,
+                                                                forward_Euler_smooth)
 
         else:
             Q = barrel_velocity = outlet_culvert_depth = 0.0
@@ -237,20 +215,20 @@ class Boyd_pipe_operator(anuga.Structure_operator):
         return Q, barrel_velocity, outlet_culvert_depth
 
 
-        
+
 
 #=============================================================================
 # define separately so that can be imported in parallel code.
 #=============================================================================
-def boyd_pipe_function(depth, 
-                        diameter, 
+def boyd_pipe_function(depth,
+                        diameter,
                         blockage,
                         barrels,
                         length,
-                        driving_energy, 
-                        delta_total_energy, 
-                        outlet_enquiry_depth, 
-                        sum_loss, 
+                        driving_energy,
+                        delta_total_energy,
+                        outlet_enquiry_depth,
+                        sum_loss,
                         manning):
 
 
@@ -267,16 +245,16 @@ def boyd_pipe_function(depth,
     """
 
 
-    # Note this errors if blockage is set to 1.0 (ie 100% blockaage) and i have no idea how to fix it   
+    # Note this errors if blockage is set to 1.0 (ie 100% blockaage) and i have no idea how to fix it
     if blockage >= 1.0:
         Q = barrel_velocity = outlet_culvert_depth = 0.0
         flow_area = 0.00001
         case = '100 blocked culvert'
         return Q, barrel_velocity, outlet_culvert_depth, flow_area, case
     if blockage > 0.9:
-        bf = 3.333-3.333*blockage     
+        bf = 3.333-3.333*blockage
     else:
-        bf = 1.0-0.4012316798*blockage-0.3768350138*(blockage**2) 
+        bf = 1.0-0.4012316798*blockage-0.3768350138*(blockage**2)
 
     # Calculate flows for inlet control for circular pipe
     Q_inlet_unsubmerged = barrels * (0.421*anuga.g**0.5*((bf*diameter)**0.87)*driving_energy**1.63) # Inlet Ctrl Inlet Unsubmerged
@@ -404,4 +382,3 @@ def boyd_pipe_function(depth,
     # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow
 
     return Q, barrel_velocity, outlet_culvert_depth, flow_area, case
-
