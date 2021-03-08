@@ -22,12 +22,12 @@ from anuga.utilities.function_utils import determine_function_type
 
 class Region(object):
     """
-    Setup region (defined by indices, polygon or center/radius). 
+    Setup region (defined by indices, polygon or center/radius).
     Useful in defining where to apply certain operations
-    
+
     expand_polygon=True then calculation of intersection of polygon
     with triangles based on vertices, otherwise based just on centroids
-    
+
     """
 
     def __init__(self,
@@ -54,7 +54,7 @@ class Region(object):
 
         self.expand_polygon = expand_polygon
         self.verbose =  verbose
-    
+
         #------------------------------------------
         #  Useful aliases
         #------------------------------------------
@@ -68,12 +68,12 @@ class Region(object):
         #-------------------------------------------
         if self.indices is not None:
             # This overrides polygon, center and radius, line
-            
+
             assert self.radius is None
             assert self.center is None
             assert self.polygon is None
-            assert self.line is None           
-        
+            assert self.line is None
+
             self.indices = num.asarray(self.indices)
 
             if self.indices.size == 0:
@@ -95,37 +95,37 @@ class Region(object):
             assert self.line is None
 
             self.setup_indices_polygon()
-            
+
         elif (self.line is not None):
-            
+
             assert self.indices is None
             assert self.radius is None
             assert self.center is None
             assert self.polygon is None
 
-            self.setup_indices_line() 
-            
+            self.setup_indices_line()
+
         elif (self.poly is not None):
             # could be either a line or a polygon
             # This is essentially for backwards compatibility
-            
+
             assert self.indices is None
             assert self.radius is None
             assert self.center is None
             assert self.polygon is None
             assert self.line is None
-            
+
             self.poly = num.asarray(self.poly)
             if len(self.poly) > 2:
                 self.polygon = self.poly
-                self.setup_indices_polygon()                
+                self.setup_indices_polygon()
             else:
                 self.line = self.poly
-                self.setup_indices_line() 
+                self.setup_indices_line()
         else:
             assert self.indices is None or self.indices is []
-        
-        
+
+
         if self.indices is None:
             self.full_indices = num.where(self.domain.tri_full_flag ==1)[0]
         elif len(self.indices) == 0:
@@ -133,7 +133,7 @@ class Region(object):
         else:
             self.full_indices = num.array(self.indices)[self.domain.tri_full_flag[self.indices]==1]
 
-        
+
     def __repr__(self):
         return "%s(%r)" % (self.__class__, self.__dict__)
 
@@ -184,11 +184,11 @@ class Region(object):
 
         # Save triangulation to location pointed by filename
         if filename is not None: plt.savefig(filename)
-        
+
         plt.show()
 
 
-        
+
     def setup_indices_circle(self):
 
         # Determine indices in circular region
@@ -224,7 +224,7 @@ class Region(object):
         # Determine indices for polygonal region
         points = self.domain.get_centroid_coordinates(absolute=True)
         vertex_coordinates = self.domain.get_vertex_coordinates(absolute=True)
-        
+
         indices = inside_polygon(points, self.polygon)
 
         if self.expand_polygon :
@@ -232,14 +232,14 @@ class Region(object):
             for j in range(n):
                 tris_0 = line_intersect(vertex_coordinates,
                                         [self.polygon[j],self.polygon[(j+1)%n]])
-                indices = num.union1d(tris_0, indices)            
+                indices = num.union1d(tris_0, indices)
 
         if len(indices) == 0:
             self.indices = indices
         else:
             self.indices = num.asarray(indices)
 
-        
+
         if not self.domain.parallel:
             # only warn if not parallel as we should get lots of subdomains without indices
             if len(indices) == 0:
@@ -247,16 +247,16 @@ class Region(object):
                 import warnings
                 warnings.warn(msg)
 
-            
-            
+
+
     def setup_indices_line(self):
 
         # Determine indices for triangles intersecting a line  region
-        
+
         vertex_coordinates = self.domain.get_vertex_coordinates(absolute=True)
-        
-        indices = line_intersect(vertex_coordinates, self.line) 
-        
+
+        indices = line_intersect(vertex_coordinates, self.line)
+
         if len(indices) == 0:
             self.indices = indices
         else:
@@ -274,18 +274,40 @@ class Region(object):
         else:
             return self.indices
 
-        
-        
+    def compute_triangle_indices(self, line=False):
+
+
+        domain_centroids = self.domain.get_centroid_coordinates(absolute=True)
+        vertex_coordinates = self.domain.get_full_vertex_coordinates(absolute=True)
+
+
+        if line: # poly is a line
+            triangle_indices = line_intersect(vertex_coordinates, self.poly)
+
+        else: # poly is a polygon
+
+            tris_0 = line_intersect(vertex_coordinates, [self.poly[0],self.poly[1]])
+            tris_1 = inside_polygon(domain_centroids, self.poly)
+            triangle_indices = num.union1d(tris_0, tris_1)
+            #print self.triangle_indices
+
+        for i in triangle_indices:
+            assert self.domain.tri_full_flag[i] == 1
+
+        return triangle_indices
+
+
+
 
 class Centroid_field(object):
-    
+
     def __init__(self, region, value, verbose=None):
-        
+
         self.region = region
         self.value = value
         self.domain = self.region.domain
-        
-        
+
+
     def set_value(self,value):
         """Set value
         Can change value while running
@@ -301,7 +323,7 @@ class Centroid_field(object):
             self.value_type = determine_function_type(value)
 
         self.value = value
-        
+
         if self.value_type == 'scalar':
             self.value_callable = False
             self.value_spatial = False
@@ -314,9 +336,3 @@ class Centroid_field(object):
         else:
             self.value_callable = True
             self.value_spatial = True
-
-
-        
-        
-        
-

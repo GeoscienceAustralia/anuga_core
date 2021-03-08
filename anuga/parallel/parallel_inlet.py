@@ -13,17 +13,18 @@ import math
 import numpy as num
 from anuga.structures.inlet import Inlet
 import warnings
+from anuga import Region
 
 class Parallel_Inlet(Inlet):
     """Contains information associated with each inlet
     """
 
     """
-    Parallel inlet: 
-    
+    Parallel inlet:
+
     master_proc - coordinates all processors associated with this inlet
-    usually the processors with domains which contains parts of this inlet. 
-    
+    usually the processors with domains which contains parts of this inlet.
+
     procs - is the list of all processors associated with this inlet.
 
     (We assume that the above arguments are determined correctly by the parallel_operator_factory)
@@ -32,12 +33,17 @@ class Parallel_Inlet(Inlet):
     def __init__(self, domain, poly, master_proc = 0, procs = None, verbose=False):
 
         self.domain = domain
-        self.poly = num.asarray(poly, dtype=num.float64)
         self.verbose = verbose
 
         self.line = True
-        if len(self.poly) > 2:
+        if len(poly) > 2:
             self.line = False
+
+        # poly can be either a line, polygon or a regions
+        if isinstance(poly,Region):
+            self.region = num.asarray(poly, dtype=num.float64)
+        else:
+            self.region = Region(domain,poly=poly,expand_polygon=True)
 
         self.master_proc = master_proc
 
@@ -49,32 +55,9 @@ class Parallel_Inlet(Inlet):
         from anuga.utilities import parallel_abstraction as pypar
         self.myid = pypar.rank()
 
-        self.compute_triangle_indices()
+        self.triangle_indices = self.region.compute_triangle_indices(self.line)
         self.compute_area()
         #self.compute_inlet_length()
-
-
-
-    def compute_triangle_indices(self):
-
-
-        domain_centroids = self.domain.get_centroid_coordinates(absolute=True)
-        vertex_coordinates = self.domain.get_full_vertex_coordinates(absolute=True)
-
-
-        if self.line: # poly is a line
-            self.triangle_indices = line_intersect(vertex_coordinates, self.poly)
-
-        else: # poly is a polygon
-
-            tris_0 = line_intersect(vertex_coordinates, [self.poly[0],self.poly[1]])
-            tris_1 = inside_polygon(domain_centroids, self.poly)
-            self.triangle_indices = num.union1d(tris_0, tris_1)
-            #print self.triangle_indices
-
-        for i in self.triangle_indices:
-            assert self.domain.tri_full_flag[i] == 1
-            
 
     def compute_area(self):
 
@@ -142,7 +125,7 @@ class Parallel_Inlet(Inlet):
     def get_areas(self):
         # Must be called after compute_inlet_triangle_indices().
         # LOCAL
-        
+
         return self.domain.areas.take(self.triangle_indices)
 
 
@@ -342,7 +325,7 @@ class Parallel_Inlet(Inlet):
         # GLOBAL: master proc gathers all depth values and returns average
         # WARNING: requires synchronization, must be called by all procs associated
         # with this inlet
-        
+
         area = self.get_global_area()
         total_water_volume = self.get_global_total_water_volume()
 
@@ -450,7 +433,7 @@ class Parallel_Inlet(Inlet):
             s_areas[self.myid] = areas
             s_stages[self.myid] = stages
             s_stages_order[self.myid] = stages_order
-     
+
             # Recieve areas, stages, and stages order
             for i in self.procs:
                 if i != self.master_proc:
@@ -473,7 +456,7 @@ class Parallel_Inlet(Inlet):
             prev_stage = 0.
             num_stages = 0.
             first = True
-            
+
             for i in self.procs:
                 pos[i] = 0
 
@@ -486,13 +469,13 @@ class Parallel_Inlet(Inlet):
                 for i in self.procs:
                     if pos[i] >= len(s_stages[i]):
                         continue
-                        
+
                     if s_stages[i][s_stages_order[i][pos[i]]] < current_stage:
                         current_stage = s_stages[i][s_stages_order[i][pos[i]]]
                         index = i
 
                 # If first iteration, then only update summed_areas, position, and prev|current stage
-                
+
                 if first:
                     first = False
                     summed_areas = s_areas[index][s_stages_order[index][pos[index]]]
@@ -512,7 +495,7 @@ class Parallel_Inlet(Inlet):
                 summed_areas = summed_areas + s_areas[index][s_stages_order[index][pos[index]]]
                 pos[index] = pos[index] + 1
                 summed_volume = tmp_volume
-               
+
                 # Update position of index processor and current stage
                 prev_stage = current_stage
 
@@ -563,10 +546,10 @@ class Parallel_Inlet(Inlet):
 
         if self.myid == self.master_proc:
             tri_indices[self.myid] = self.triangle_indices
-            
+
             for proc in self.procs:
                 if proc == self.master_proc: continue
-                
+
                 tri_indices[proc] = pypar.receive(proc)
 
         else:
@@ -575,28 +558,28 @@ class Parallel_Inlet(Inlet):
 
         if self.myid == self.master_proc:
             message += '=====================================\n'
-            message +=  'Inlet\n' 
+            message +=  'Inlet\n'
             message += '=====================================\n'
 
             for proc in self.procs:
                 message += '======> inlet triangle indices and centres and elevation at P%d\n' %(proc)
                 message += '%s' % tri_indices[proc]
                 message += '\n'
-                
+
                 message += '%s' % self.domain.get_centroid_coordinates()[tri_indices[proc]]
                 message += '\n'
 
                 elev = self.domain.quantities['elevation'].centroid_values[tri_indices[proc]]
                 message += '%s' % elev
                 message += '\n'
-                
+
                 try:
                     elevation_difference = elev.max() - elev.min()
                 except ValueError:
                     elevation_difference = 0.0
-                    
+
                 if not num.allclose(elevation_difference, 0.):
-                    message += 'Elevation range of ' + str(elevation_difference) 
+                    message += 'Elevation range of ' + str(elevation_difference)
                     message += 'Warning: Non-constant inlet elevation can lead to well-balancing problems'
 
                 try:
@@ -612,7 +595,7 @@ class Parallel_Inlet(Inlet):
                 except:
                     pass
 
-                
+
             message += 'line\n'
             message += '%s' % self.line
             message += '\n'
