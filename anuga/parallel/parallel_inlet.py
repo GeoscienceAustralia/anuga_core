@@ -55,7 +55,7 @@ class Parallel_Inlet(Inlet):
         from anuga.utilities import parallel_abstraction as pypar
         self.myid = pypar.rank()
 
-        self.triangle_indices = self.region.compute_triangle_indices(self.line)
+        self.triangle_indices = self.region.get_indices(full_only=True)
         self.compute_area()
         #self.compute_inlet_length()
 

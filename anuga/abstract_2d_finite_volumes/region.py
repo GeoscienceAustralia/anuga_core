@@ -274,31 +274,6 @@ class Region(object):
         else:
             return self.indices
 
-    def compute_triangle_indices(self, line=False):
-
-
-        domain_centroids = self.domain.get_centroid_coordinates(absolute=True)
-        vertex_coordinates = self.domain.get_full_vertex_coordinates(absolute=True)
-
-
-        if line: # poly is a line
-            triangle_indices = line_intersect(vertex_coordinates, self.poly)
-
-        else: # poly is a polygon
-
-            tris_0 = line_intersect(vertex_coordinates, [self.poly[0],self.poly[1]])
-            tris_1 = inside_polygon(domain_centroids, self.poly)
-            triangle_indices = num.union1d(tris_0, tris_1)
-            #print self.triangle_indices
-
-        for i in triangle_indices:
-            assert self.domain.tri_full_flag[i] == 1
-
-        return triangle_indices
-
-
-
-
 class Centroid_field(object):
 
     def __init__(self, region, value, verbose=None):
