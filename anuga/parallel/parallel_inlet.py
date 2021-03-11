@@ -41,7 +41,7 @@ class Parallel_Inlet(Inlet):
 
         # poly can be either a line, polygon or a regions
         if isinstance(poly,Region):
-            self.region = num.asarray(poly, dtype=num.float64)
+            self.region = poly
         else:
             self.region = Region(domain,poly=poly,expand_polygon=True)
 
