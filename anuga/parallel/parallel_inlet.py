@@ -35,10 +35,6 @@ class Parallel_Inlet(Inlet):
         self.domain = domain
         self.verbose = verbose
 
-        # self.line = True
-        # if len(poly) > 2:
-        #     self.line = False
-
         # poly can be either a line, polygon or a regions
         if isinstance(poly,Region):
             self.region = poly
