@@ -51,7 +51,7 @@ class Region(object):
         self.polygon = polygon
         self.line = line
         self.poly = poly
-
+        self.type = ''
         self.expand_polygon = expand_polygon
         self.verbose =  verbose
 
@@ -86,6 +86,7 @@ class Region(object):
             assert self.line is None
 
             self.setup_indices_circle()
+            self.type = 'circle'
 
         elif (self.polygon is not None):
 
@@ -95,6 +96,7 @@ class Region(object):
             assert self.line is None
 
             self.setup_indices_polygon()
+            self.type = 'polygon'
 
         elif (self.line is not None):
 
@@ -104,6 +106,7 @@ class Region(object):
             assert self.polygon is None
 
             self.setup_indices_line()
+            self.type = 'line'
 
         elif (self.poly is not None):
             # could be either a line or a polygon
@@ -119,9 +122,11 @@ class Region(object):
             if len(self.poly) > 2:
                 self.polygon = self.poly
                 self.setup_indices_polygon()
+                self.type = 'polygon'
             else:
                 self.line = self.poly
                 self.setup_indices_line()
+                self.type = 'line'
         else:
             assert self.indices is None or self.indices is []
 
@@ -137,6 +142,8 @@ class Region(object):
     def __repr__(self):
         return "%s(%r)" % (self.__class__, self.__dict__)
 
+    def get_type(self):
+        return self.type
 
 
     def plot_region(self, filename=None):
