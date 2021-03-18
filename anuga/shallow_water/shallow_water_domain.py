@@ -1213,8 +1213,8 @@ class Domain(Generic_Domain):
         flag = str(flag)
 
         # Replace any dots with dashes
-        flag = flag.replace(".","_")        
-        
+        flag = flag.replace(".","_")
+
 
         flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', \
                            'tsunami', 'yusuke', 'DE0', 'DE1', 'DE2', \
@@ -2771,7 +2771,7 @@ class Domain(Generic_Domain):
     def print_volumetric_balance_statistics(self):
 
         print (self.volumetric_balance_statistics())
-        
+
     def compute_flux_update_frequency(self):
         """
             Update the 'flux_update_frequency' and 'update_extrapolate' variables
@@ -2854,6 +2854,31 @@ class Domain(Generic_Domain):
 
             barrier()
         return
+
+    def get_number_of_full_triangles(self, *args, **kwargs):
+        return self.number_of_full_triangles
+
+    def get_full_centroid_coordinates(self, *args, **kwargs):
+        C = self.mesh.get_centroid_coordinates(*args, **kwargs)
+        return C[:self.number_of_full_triangles, :]
+
+    def get_full_vertex_coordinates(self, *args, **kwargs):
+        V = self.mesh.get_vertex_coordinates(*args, **kwargs)
+        return V[:3*self.number_of_full_triangles,:]
+
+    def get_full_triangles(self, *args, **kwargs):
+        T = self.mesh.get_triangles(*args, **kwargs)
+        return T[:self.number_of_full_triangles,:]
+
+    def get_full_nodes(self, *args, **kwargs):
+        N = self.mesh.get_nodes(*args, **kwargs)
+        return N[:self.number_of_full_nodes,:]
+
+    def get_tri_map(self):
+        return self.tri_map
+
+    def get_inv_tri_map(self):
+        return self.inv_tri_map
 
 ################################################################################
 # End of class Shallow Water Domain

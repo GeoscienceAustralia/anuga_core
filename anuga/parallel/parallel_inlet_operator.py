@@ -37,7 +37,7 @@ class Parallel_Inlet_operator(Inlet_operator):
 
     def __init__(self,
                  domain,
-                 poly,
+                 region,
                  Q = 0.0,
                  velocity = None,
                  zero_velocity = False,
@@ -52,7 +52,6 @@ class Parallel_Inlet_operator(Inlet_operator):
         from anuga.utilities import parallel_abstraction as pypar
         self.domain = domain
         self.domain.set_fractional_step_operator(self)
-        self.poly = numpy.array(poly, dtype='d')
         self.master_proc = master_proc
 
         if procs is None:
@@ -85,13 +84,8 @@ class Parallel_Inlet_operator(Inlet_operator):
         if self.myid == master_proc:
             Inlet_operator.counter += 1
 
-
-        n = len(self.poly)
-        self.enquiry_point = numpy.sum(self.poly,axis=1)/float(n)
-
-
         #self.outward_vector = self.poly
-        self.inlet = parallel_inlet.Parallel_Inlet(self.domain, self.poly, master_proc = master_proc,
+        self.inlet = parallel_inlet.Parallel_Inlet(self.domain, region, master_proc = master_proc,
                                                     procs = procs, verbose= verbose)
 
         if velocity is not None:
@@ -154,7 +148,7 @@ class Parallel_Inlet_operator(Inlet_operator):
                 self.inlet.set_ymoms(self.inlet.get_ymoms()+depths*self.velocity[1])
             if self.zero_velocity:
                 self.inlet.set_xmoms(0.0)
-                self.inlet.set_ymoms(0.0)    
+                self.inlet.set_ymoms(0.0)
 
         elif current_volume + volume >= 0.0 :
             depth = (current_volume + volume)/total_area
