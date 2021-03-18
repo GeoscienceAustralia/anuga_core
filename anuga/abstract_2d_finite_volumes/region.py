@@ -51,7 +51,7 @@ class Region(object):
         self.polygon = polygon
         self.line = line
         self.poly = poly
-        self.type = ''
+        self.type = 'full_region'
         self.expand_polygon = expand_polygon
         self.verbose =  verbose
 
@@ -78,6 +78,9 @@ class Region(object):
 
             if self.indices.size == 0:
                 self.indices = []
+                self.type = 'empty'
+            else:
+                self.type = 'indices_specified'
 
         elif (self.center is not None) and (self.radius is not None):
 
