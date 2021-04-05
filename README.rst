@@ -29,7 +29,7 @@ ANUGA is a python package with some C extensions (and an optional
 fortran extension). This repository contains the python 2.7 version of ANUGA. 
 
 The python 3 version of ANUGA is being developed and is available from 
-https://github.com/anuga-community/anuga_core>
+https://github.com/anuga-community/anuga_core
 
 Developed at Geoscience Australia and Mathematical Sciences Institute at the
 Australian National University.
