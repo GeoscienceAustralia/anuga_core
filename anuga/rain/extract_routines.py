@@ -560,7 +560,7 @@ class Calibrated_radar_rain(object):
             plt.xlabel('time (mins)')
             plt.ylabel('rainfall (mm)')
             plt.pause(0.01)
-            pdb.set_trace()
+            #pdb.set_trace()
 
         return
 
@@ -572,9 +572,9 @@ if __name__ == "__main__":
     except:
         import pdb
 
-    scenario = 'act'
+    #scenario = 'act'
     #scenario = 'grantham'
-    #scenario = 'artificial'
+    scenario = 'artificial'
     
     HOME_DIR = "/home/anuga/RAINFALL"
     
@@ -691,12 +691,7 @@ if __name__ == "__main__":
 
     pdb.set_trace()
 
-    #pl.ioff()
-    #plt.pause(0.01)
-
     rain.plot_time_hist_locations(locations)
-
-    pdb.set_trace()
 
     p_indices = rain.grid_indices_inside_polygon(polygon=p2)
 

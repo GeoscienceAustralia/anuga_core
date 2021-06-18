@@ -175,8 +175,8 @@ class Raster_time_slice_data(object):
         y = self.y
         nx = len(x)
         ny = len(y)
-        ldx = old_div(dx,nx)
-        ldy = old_div(dy,ny)
+        ldx = dx/nx
+        ldy = dy/ny
         
         time_step = self.time_step
         
@@ -196,7 +196,7 @@ class Raster_time_slice_data(object):
         if indices is None:  
             data_max_in_period = np.max(data) 
             total_data_volume = np.sum(data)*ldx*ldy 
-            catchment_area = len(data.flat)*ldx*ldy
+            catchment_area = data.size*ldx*ldy
         else:
             pmask = data.flat[indices]
             data_max_in_period = np.max(pmask)
@@ -204,7 +204,7 @@ class Raster_time_slice_data(object):
             catchment_area = len(pmask)*ldx*ldy
 
         #print indices
-        peak_intensity = old_div(data_max_in_period,time_step)      
+        peak_intensity = data_max_in_period/time_step      
 
         
         if print_stats or self.verbose:
@@ -249,9 +249,9 @@ class Raster_time_slice_data(object):
                     plt.plot( polygon[:,0], polygon[:,1],'--w')
             
         plot_title = 'RASTER DATA '+date_time
-        plt.suptitle(plot_title, size=20)
+        plt.suptitle(plot_title)
         s_title = 'Max Data = %.2e / period' % (np.max(data_slices[tid]))
-        plt.title(s_title , size=12)
+        plt.title(s_title)
         
         plt.imshow(data_slices[tid], origin='upper', interpolation='bicubic',
                    extent=self.extent,vmin=0, vmax=plot_vmax)
@@ -259,7 +259,7 @@ class Raster_time_slice_data(object):
         
         plt.colorbar()            
         
-        if show: plt.draw()
+        if show: plt.pause(0.001)
         if save: plt.savefig(plot_title+'.jpg',format='jpg')
             
         return
@@ -300,12 +300,12 @@ class Raster_time_slice_data(object):
 
         plt.figure(1)
         plt.clf()
-        plt.suptitle('Accumulated Data', size=20)
+        plt.suptitle('Accumulated Data')
         
         
         s_title = 'Max Int. = %.2e, Average = %.2e, Tot Vol. = %.2e Mill. m3' \
                   % (peak_intensity,np.mean(data_accumulated),total_data_vol)
-        plt.title(s_title , size=12)
+        plt.title(s_title)
         
         
         if not polygons is None:
@@ -349,7 +349,8 @@ class Raster_time_slice_data(object):
             b_title = 'Total = %.2e, Average = %.2e, Max Int.= %.2e' % (total_values,average_values,max_intensity)
 
             plt.bar(t,bar_values,width=time_step,)
-            plt.suptitle(' Data for Location %s:' % lid, fontsize=14, fontweight='bold')    
+            #plt.suptitle(' Data for Location %s:' % lid, fontsize=12, fontweight='bold')
+            plt.suptitle(' Data for Location %s:' % lid)      
             plt.title(b_title)
     
             plt.xlabel('time (s)')
@@ -505,7 +506,7 @@ class Calibrated_radar_rain(Raster_time_slice_data):
                     self.x = self.x*1000 + self.offset_x
                     self.y = self.y*1000 + self.offset_y
                     
-                    data_slice = old_div(data.variables[precip_name][:],1000)  # convert from mm to m
+                    data_slice = data.variables[precip_name][:]/1000  # convert from mm to m
                     
                     data_accumulated = data_slice.copy() # Put into new Accumulating ARRRAY
                     
@@ -513,7 +514,7 @@ class Calibrated_radar_rain(Raster_time_slice_data):
                         
     
                 else:  # ---If NOT FIRST !!!
-                    data_slice = old_div(data.variables[precip_name][:],1000) # convert from mm to m
+                    data_slice = data.variables[precip_name][:]/1000 # convert from mm to m
 
                     data_accumulated += data_slice
                     
@@ -567,17 +568,18 @@ if __name__ == "__main__":
         import pdb
     
 
-    scenario = 'act'
+    #scenario = 'act'
     #scenario = 'grantham'
-    #scenario = 'artificial'
+    scenario = 'artificial'
     
-
+    HOME_DIR = "/home/anuga"
     
     if scenario == 'act':
         start_time = '20120301_0000'
         final_time = '20120302_1200'
-        BASE_DIR = "/home/steve/RAINFALL/RADAR/AUS_RADAR/Calibrated_Radar_Data/ACT_netcdf"
-        RADAR_DIR          = join(BASE_DIR, 'RADAR_Rainfall/140/2012' )    
+
+        BASE_DIR =  join(HOME_DIR, "RAINFALL/RADAR/AUS_RADAR/Calibrated_Radar_Data/ACT_netcdf" )
+        RADAR_DIR = join(BASE_DIR, 'RADAR_Rainfall/140/2012' )    
         Catchment_file     = join(BASE_DIR,'ACT_Bdy/ACT_Entire_Catchment_Poly_Simple_UTM_55.csv')
         State_boundary_file = join(BASE_DIR,'ACT_Bdy/ACT_State_Bdy_UTM_55.csv')
         Daily_plot_Vmax = 4
@@ -600,8 +602,8 @@ if __name__ == "__main__":
         #start_time = '20110105_2300'
         #final_time = '20110106_2300'
         
-        BASE_DIR = '/home/steve/RAINFALL/RADAR/AUS_RADAR/Gauge_Blend_Grantham/20081211-20110223.gz_y_loc_Inverted_30min/Merged/66/2011/'
-        RADAR_DIR          = join(BASE_DIR, '01' ) 
+        BASE_DIR  = join(HOME_DIR, 'RAINFALL/RADAR/AUS_RADAR/Gauge_Blend_Grantham/20081211-20110223.gz_y_loc_Inverted_30min/Merged/66/2011/')
+        RADAR_DIR = join(BASE_DIR, '01' ) 
         Daily_plot_Vmax = 50
         rain = Calibrated_radar_rain(RADAR_DIR, start_time=start_time, final_time=final_time, verbose=True, debug=True)
         l0 = [476160., 6889300.0]
@@ -665,7 +667,8 @@ if __name__ == "__main__":
         p3 = None
         pass
      
-    p2 = [[689801.0, 6091501.0], [700200.0, 6091501.0], [700200.0, 6104600.0], [689801.0, 6104600.0], [689801.0, 6091501.0]]
+    pl.figure(1)
+    #p2 = [[689801.0, 6091501.0], [700200.0, 6091501.0], [700200.0, 6104600.0], [689801.0, 6104600.0], [689801.0, 6091501.0]]
 
     print(rain.get_extent())
     rain.accumulate_data_stats()
@@ -673,21 +676,22 @@ if __name__ == "__main__":
     print('time_step ',rain.time_step)     
         
     import time
-    pl.ion()
-    #pdb.set_trace() 
+    #pl.ion()
+    
 
     plot_vmax = np.max(rain.data_slices)
     print('plot_vmax', plot_vmax)
+
     for tid in range(len(rain.times)):
         rain.plot_data(tid, plot_vmax=plot_vmax, save=False, show=True, polygons=[p2,p3])
-        time.sleep(0.05)
+        time.sleep(0.1)
         #ipdb.set_trace() 
         
-        
+    pdb.set_trace()     
     
-    rain.plot_accumulated_data(polygons=[p2])
+    rain.plot_accumulated_data(polygons=[p2,p3])
     
-    pl.ioff()
+    #pl.ioff()
     pl.show()
      
 
