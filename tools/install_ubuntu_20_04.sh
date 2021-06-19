@@ -34,6 +34,7 @@ echo "#==========================="
 echo "# Install anuga"
 echo "#==========================="
 
+cd "$(dirname "${BASH_SOURCE[0]}")"/..
 python setup.py develop --user
 
 echo "#==========================="
