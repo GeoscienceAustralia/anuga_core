@@ -23,7 +23,7 @@ echo "#==========================="
 echo "# Install python packages via pip"
 echo "#==========================="
 
-sudo pip3 install -q scipy matplotlib nose cython netcdf4 matplotlib dill future gitpython pyproj pymetis triangle Pmw mpi4py ipython
+sudo pip3 install scipy matplotlib nose cython netcdf4 matplotlib dill future gitpython pyproj pymetis triangle Pmw mpi4py ipython
 
 #=================================
 # Now install anuga. Should be run 
