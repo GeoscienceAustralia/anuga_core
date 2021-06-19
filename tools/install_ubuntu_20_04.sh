@@ -34,7 +34,6 @@ echo "#==========================="
 echo "# Install anuga"
 echo "#==========================="
 
-cd anuga_core
 python setup.py develop --user
 
 echo "#==========================="
