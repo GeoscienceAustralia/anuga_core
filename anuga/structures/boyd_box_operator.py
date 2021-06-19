@@ -262,6 +262,8 @@ def boyd_box_function(width,
 
     local_debug = False
 
+    print(outlet_enquiry_depth)
+
     bf = 1 - blockage
 
     if blockage >= 1.0:

@@ -131,7 +131,7 @@ t0 = time.time()
 for t in domain.evolve(yieldstep = 1.0, finaltime = 50):
 
     if myid == 0:
-        print 80*'='
+        print (80*'=')
         domain.write_time()
 
     #================================================
@@ -151,13 +151,13 @@ for t in domain.evolve(yieldstep = 1.0, finaltime = 50):
         output = gate.discharge_routine()
 
         if myid == gate.get_master_proc():
-            print 'myid ', myid, s0,s1
-            print 'myid ', myid, d0,d1
-            print 'myid ', myid, e0,e1
-            print 'myid ', myid, i0,i1
-            print 'myid ', myid, w0,w1
+            print ('myid ', myid, s0,s1)
+            print ('myid ', myid, d0,d1)
+            print ('myid ', myid, e0,e1)
+            print ('myid ', myid, i0,i1)
+            print ('myid ', myid, w0,w1)
 
-            print 'myid ',myid, output
+            print ('myid ',myid, output)
 
 
             if d0 > 0.2: gate.set_culvert_height(10.0)
@@ -177,11 +177,11 @@ barrier()
 
 for p in range(numprocs):
     if myid == p:
-        print 'Processor %g ' %myid
-        print 'That took %.2f seconds' %(time.time()-t0)
-        print 'Communication time %.2f seconds'%domain.communication_time
-        print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
-        print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
+        print ('Processor %g ' %myid)
+        print ('That took %.2f seconds' %(time.time()-t0))
+        print ('Communication time %.2f seconds'%domain.communication_time)
+        print ('Reduction Communication time %.2f seconds'%domain.communication_reduce_time)
+        print ('Broadcast time %.2f seconds'%domain.communication_broadcast_time)
     else:
         pass
 

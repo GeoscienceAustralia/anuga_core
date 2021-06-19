@@ -30,7 +30,7 @@ import time
 
 from sys import path
 
-print path
+print (path)
 
 # Numeric arrays
 from Numeric import array, zeros, Float
@@ -86,7 +86,7 @@ if myid == 0:
     nx = numprocs
     ny = 1
     if nx*ny != numprocs:
-        print "WARNING: number of subboxes is not equal to the number of proc"
+        print ("WARNING: number of subboxes is not equal to the number of proc")
 
     domain_full = pmesh_to_domain_instance(filename, Advection_Domain)
     domain_full.set_quantity('stage', Set_Stage(200.0,300.0,1.0))
@@ -153,7 +153,7 @@ try:
     #domain.visualiser.coloring['stage'] = True
     #domain.visualiser.scale_z['stage'] = 0.2
 except:
-    print 'No visualiser'
+    print ('No visualiser')
 
 
 from norms import linf_norm
@@ -170,4 +170,4 @@ for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
     print_test_stats(domain, tri_full_flag)
 
 if myid == 0:
-    print 'That took %.2f seconds' %(time.time()-t0)
+    print ('That took %.2f seconds' %(time.time()-t0))

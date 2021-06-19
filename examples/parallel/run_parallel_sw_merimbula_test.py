@@ -34,7 +34,7 @@
 #
 #########################################################
 import sys
-import pypar    # The Python-MPI interface
+#import pypar    # The Python-MPI interface
 import time
 
 # Numeric arrays
@@ -107,7 +107,7 @@ if myid == 0:
 #              dependencies = [filename])
 
     rect = num.array(domain_full.get_extent(), num.float)
-    print rect
+    print (rect)
 
     # Initialise the wave
 
@@ -123,7 +123,7 @@ if myid == 0:
     nodes, triangles, boundary, triangles_per_proc, quantities = \
          pmesh_divide_metis(domain_full, numprocs)
 
-    print triangles_per_proc
+    print (triangles_per_proc)
     
     rect = num.array(domain_full.get_extent(), num.float)
 
@@ -180,7 +180,7 @@ try:
     #domain.visualiser.scale_z['elevation'] = 0.05
     pass
 except:
-    print 'No visualiser'
+    print ('No visualiser')
 
 
 
@@ -203,7 +203,7 @@ domain.store = False
 # Evolution
 t0 = time.time()
 
-print 'Processor %d on %s: No of elements %d'%(domain.processor,processor_name,domain.number_of_elements)
+print ('Processor %d on %s: No of elements %d'%(domain.processor,processor_name,domain.number_of_elements))
 yieldstep = 50.0
 finaltime = 500.0
 
@@ -274,10 +274,10 @@ for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
 
 
 if myid == 0:
-    print 'That took %.2f seconds' %(time.time()-t0)
-    print 'Communication time %.2f seconds'%domain.communication_time
-    print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
-    print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
+    print ('That took %.2f seconds' %(time.time()-t0))
+    print ('Communication time %.2f seconds'%domain.communication_time)
+    print ('Reduction Communication time %.2f seconds'%domain.communication_reduce_time)
+    print ('Broadcast time %.2f seconds'%domain.communication_broadcast_time)
 
 
 pypar.finalize()
