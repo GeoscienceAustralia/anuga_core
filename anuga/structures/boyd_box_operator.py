@@ -262,7 +262,7 @@ def boyd_box_function(width,
 
     local_debug = False
 
-    print(outlet_enquiry_depth)
+    #print(outlet_enquiry_depth)
 
     bf = 1 - blockage
 
