@@ -11,45 +11,32 @@ Introduction
 ============
 
 ANUGA_ is a python package with some C extensions (and an optional fortran 
-extension). At present ANUGA has only been run and tested using python 2.x and Python 3.8.x
-We recommend python 2.8.2
+extension). This version of ANUGA is run and tested using python 3.8.x
 
 
 Dependencies
 ============
 
-AnuGA requires the following packages:
+AnuGA requires the following python packages:
 
-* `numpy <http://numpy.scipy.org/>`_
-* `scipy <http://scipy.org/>`_
-* `matplotlib <http://matplotlib.sourceforge.net/>`_
-* `gdal <http://gdal.org/>`_
-* `netcdf <http://www.unidata.ucar.edu/software/netcdf/>`_
-* `nose <http://nose.readthedocs.org/en/latest/>`_
-* `dill <https://dill.readthedocs.io/>`_
-* A C compiler (preferably GCC or TDM-GCC_ MinGW_ on Windows)  # Possibly deprecated by the use of Cython?
-* `Cython <https://cython.org/>`
-* `future <https://pypi.org/project/future` # Possible superfluous if we ditch backward compatibility with Python 2.7
+  numpy scipy matplotlib nose cython netcdf4 dill future gitpython gdal pyproj pymetis triangle Pmw mpi4py ipython
 
 
-Installing the latest DEVELOPMENT version on Ubuntu
+
+Installing the latest DEVELOPMENT version on Ubuntu 20_04
 ===================================================
 
 AnuGA is developed on Ubuntu. The preferred way to install the dependencies is 
-to use the standard ubuntu ``apt-get`` method. 
+to use a combination of the standard ubuntu ``apt`` method and python pip install.
 
-We suggest installing the latest version of ANUGA_ from Github_.
-We try to maintain the *master* branch stable and
-`passing all tests <https://travis-ci.org/GeoscienceAustralia/anuga_core/branches>`_,
-so it should be safe to use.
+From your home directory run the following commands which will download anuga to a directory `anuga_core`, install dependencies, install anuga and run the unit tests::
 
-Follow these instructions to
-`Install ANUGA on Ubuntu (using apt-get) <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu-(using-apt-get)>`_
+    git clone https://github.com/anuga-community/anuga_core.git
+    bash anuga_core/tools/install_ubuntu_20_04.sh
 
+Note: This will set ``python``  as `python3` and part of the bash shell will run as sudo so will ask for a password. If you like you can run the package installs manually, run the commands in the script `anuga_core/tools/install_ubuntu_20._04.sh`
 
-
-
-Alternative Ubuntu Install
+Alternative Ubuntu Install with conda
 ==========================
 
 An alternative is to install the dependencies using the Anaconda_ or the Miniconda_ Python 
@@ -63,75 +50,65 @@ Both Anaconda_ and Miniconda_ do not require administrative rights
 to your computer and do not interfere with the Python installed 
 in your system.
 
-Follow these instructions to 
-`Install ANUGA on Ubuntu (using Miniconda) <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Ubuntu-(using-Miniconda)>`_
+Folllow these steps::
 
+    
 
+    sudo apt-get update -q
+    sudo apt-get install gfortran git wget
+    sudo apt-get install -y libopenmpi-dev openmpi-bin
+    
+Download and install `Miniconda`::
+
+    wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+    bash miniconda.sh
+    
+Create `anuga_env` conda environment::
+
+    conda update --yes conda
+    conda create -n anuga_env -c conda-forge --yes python=3.8 pip numpy scipy cython netcdf4 nose matplotlib gdal dill future gitpython
+    conda activate anuga_env
+    pip install mpi4py triangle Pmw pymetis
+    
+Download, install and test `anuga`::
+
+    git clone https://github.com/anuga-community/anuga_core.git
+    cd anuga_core
+    python setup.py install
+    python runtests.py
+    
 
 Windows 10 Install using 'Ubuntu on Windows'
 ==========================
 
-Starting from Windows 10, it is possible to run an Ubuntu Bash console from Windows. This can greatly simplify the install for Windows users. You'll still need administrator access though. 
+Starting from Windows 10, it is possible to run an Ubuntu Bash console from Windows. This can greatly simplify the install for Windows users. You'll still need administrator access though. First install an ubuntu 20_04 subsystem. Then just use the whichever ubuntu install described above. 
 
-Follow the instructions 
-`Install ANUGA on Window 10 using Ubuntu for Windows <https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-10-using-Ubuntu-on-Windows'>`_
 
 
 
 Native Windows Installation
 ===============================
 
-We have successfully installed AnuGA 'natively' on windows using Gohlke Binaries and using Miniconda. 
-At present we recommend using the Miniconda. 
+We have installed `anuga` on `windows` using miniconda.  
 
-Follow the instructions  
-`install ANUGA on Windows using Miniconda
-<https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-(using-Miniconda)>`_
+Follow the following powershell instructions::
 
-Alternatively follow the instructions 
-`install ANUGA on Windows using the Gohlke Binaries
-<https://github.com/GeoscienceAustralia/anuga_core/wiki/Install-ANUGA-on-Windows-using-Gohlke-Binaries>`_
-
-
-
-
-
-
-GCC dependency for Windows users
---------------------------------
-
-Unfortunately, the ``gcc`` compiler MinGW_ included in Anaconda or 
-installable via Miniconda_ doesn't have OpenMP_ support. This is required to compile
-some extension modules in ANUGA (those that have multi-threaded parallel code).
-
-We suggest that you download and install the version of MinGW_ provided by TDM-GCC_
-**after** you've installed Anaconda and **before** you install ANUGA.
-Don't forget to mark the ``openmp`` and ``gfortran`` options in the "Choose Components" part of
-the installation. See this `excellent documentation for Windows users`_
-(they even have screenshots!). The same applies if you are using Miniconda_.
-
-
-
-
-
-.. note::
-
-    The Windows installer from older versions is no longer supported.
+    Start-FileDownload "https://repo.continuum.io/miniconda/Miniconda$env:PY_MAJOR_VER-latest-Windows-$env:PYTHON_ARCH.exe" C:\Miniconda.exe; echo "Finished downloading miniconda"
+    Start-FileDownload "https://download.microsoft.com/download/A/E/0/AE002626-9D9D-448D-8197-1EA510E297CE/msmpisetup.exe" C:\msmpisetup.exe; echo "Finished downloading msmpi"
+    Start-FileDownload "https://download.microsoft.com/download/A/E/0/AE002626-9D9D-448D-8197-1EA510E297CE/msmpisdk.msi" C:\msmpisdk.msi; echo "Finished downloading msmpisdk"
     
+And then the following cmd instructions::
 
-    
-.. _AnuGA: http://anuga.anu.edu.au/ 
-.. _install git: http://git-scm.com/
-.. _Github: https://github.com/GeoscienceAustralia/anuga_core/
-.. _Python: http://www.python.org/
-.. _pip: http://www.pip-installer.org
-.. _MinGW: http://www.mingw.org/
-.. _mailing list: anuga-user@lists.sourceforge.net
-.. _Continuum Analytics: http://continuum.io/
-.. _Anaconda: http://continuum.io/downloads
-.. _Miniconda: http://conda.pydata.org/miniconda.html
-.. _PythonXY: http://code.google.com/p/pythonxy/
-.. _ETS/Canopy: http://code.enthought.com/projects/index.php
-.. _OpenMP: http://openmp.org/
-.. _TDM-GCC: http://tdm-gcc.tdragon.net/
-.. _excellent documentation for Windows users: http://docs-windows.readthedocs.org/en/latest/devel.html#mingw-with-openmp-support
+    msiexec.exe /i "C:\msmpisdk.msi" /qn
+    C:\msmpisetup.exe -unattend
+    C:\Miniconda.exe /S /D=C:\Py
+    C:\Py\Scripts\activate.bat
+    set PATH=%PATH%;"C:\Program Files\Microsoft MPI\bin"
+    conda config --set always_yes yes
+    conda update conda
+    conda install python=3.7 gdal nose numpy cython scipy netcdf4 matplotlib dill future gitpython
+    pip install Pmw
+    conda install -c msys2 libpython m2w64-toolchain
+    pip install mpi4py triangle
+    python setup.py install
+
