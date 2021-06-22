@@ -61,6 +61,7 @@ validation_tests/reports/validations_report_alg_DE1.pdf
 
 examples/cairns_excel/cairns_initialcond
 
+anuga/revision.py
 parameters.tex
 ch5.png
 ch7.png
