@@ -91,9 +91,9 @@ Native Windows Installation
 
 We have installed `anuga` on `windows` using miniconda.  
 
-Follow the following powershell instructions::
+Run the following powershell instructions to download miniconda and the MPI files (for parallel runs)::
 
-    Start-FileDownload "https://repo.continuum.io/miniconda/Miniconda$env:PY_MAJOR_VER-latest-Windows-$env:PYTHON_ARCH.exe" C:\Miniconda.exe; echo "Finished downloading miniconda"
+    Start-FileDownload "https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe" C:\Miniconda.exe; echo "Finished downloading miniconda"
     Start-FileDownload "https://download.microsoft.com/download/A/E/0/AE002626-9D9D-448D-8197-1EA510E297CE/msmpisetup.exe" C:\msmpisetup.exe; echo "Finished downloading msmpi"
     Start-FileDownload "https://download.microsoft.com/download/A/E/0/AE002626-9D9D-448D-8197-1EA510E297CE/msmpisdk.msi" C:\msmpisdk.msi; echo "Finished downloading msmpisdk"
     
