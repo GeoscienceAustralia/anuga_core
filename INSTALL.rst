@@ -60,13 +60,13 @@ Folllow these steps::
     
 Download and install `Miniconda`::
 
-    wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+    wget http://repo.continuum.io/miniconda3/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
     bash miniconda.sh
     
 Create `anuga_env` conda environment::
 
     conda update --yes conda
-    conda create -n anuga_env -c conda-forge --yes python=3.8 pip numpy scipy cython netcdf4 nose matplotlib gdal dill future gitpython
+    conda create -n anuga_env -c conda-forge --yes python pip numpy scipy cython netcdf4 nose matplotlib gdal dill future gitpython
     conda activate anuga_env
     pip install mpi4py triangle Pmw pymetis
     
