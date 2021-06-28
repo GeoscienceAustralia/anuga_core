@@ -3,14 +3,14 @@ import sys
 
 #from anuga.utilities.system_tools import get_pathname_from_package
 #from anuga.geometry.polygon_function import Polygon_function
-        
+
 #from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 #from anuga.abstract_2d_finite_volumes.quantity import Quantity
 
 import anuga
 import time
 
-                            
+
 from math import pi, pow, sqrt
 
 import numpy as num
@@ -54,7 +54,7 @@ def topography(x, y):
 
     return z
 
-  
+
 
 length = 40.
 width = 15.
@@ -66,7 +66,7 @@ if myid == 0:
 
     points, vertices, boundary = anuga.rectangular_cross(int(length/dx),
                                                          int(width/dy),
-                                                         len1=length, 
+                                                         len1=length,
                                                          len2=width)
     domain = anuga.Domain(points, vertices, boundary)
     domain.set_name()                 # Output name
@@ -131,7 +131,7 @@ t0 = time.time()
 for t in domain.evolve(yieldstep = 1.0, finaltime = 50):
 
     if myid == 0:
-        print 80*'='
+        print(80*'=')
         domain.write_time()
 
     #================================================
@@ -151,19 +151,19 @@ for t in domain.evolve(yieldstep = 1.0, finaltime = 50):
         output = gate.discharge_routine()
 
         if myid == gate.get_master_proc():
-            print 'myid ', myid, s0,s1
-            print 'myid ', myid, d0,d1
-            print 'myid ', myid, e0,e1
-            print 'myid ', myid, i0,i1
-            print 'myid ', myid, w0,w1
+            print('myid ', myid, s0,s1)
+            print('myid ', myid, d0,d1)
+            print('myid ', myid, e0,e1)
+            print('myid ', myid, i0,i1)
+            print('myid ', myid, w0,w1)
 
-            print 'myid ',myid, output
+            print('myid ',myid, output)
 
 
             if d0 > 0.2: gate.set_culvert_height(10.0)
 
-            
-    
+
+
 
 barrier()
 
@@ -177,11 +177,11 @@ barrier()
 
 for p in range(numprocs):
     if myid == p:
-        print 'Processor %g ' %myid
-        print 'That took %.2f seconds' %(time.time()-t0)
-        print 'Communication time %.2f seconds'%domain.communication_time
-        print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
-        print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
+        print('Processor %g ' %myid)
+        print('That took %.2f seconds' %(time.time()-t0))
+        print('Communication time %.2f seconds'%domain.communication_time)
+        print('Reduction Communication time %.2f seconds'%domain.communication_reduce_time)
+        print('Broadcast time %.2f seconds'%domain.communication_broadcast_time)
     else:
         pass
 
@@ -189,4 +189,3 @@ for p in range(numprocs):
 
 
 finalize()
-
