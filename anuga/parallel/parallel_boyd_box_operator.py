@@ -154,16 +154,6 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
 
         local_debug = False
 
-        # If the cuvert has been closed, then no water gets through
-        if self.culvert_height <= 0.0:
-            Q = 0.0
-            barrel_velocity = 0.0
-            outlet_culvert_depth = 0.0
-            self.case = "Culvert blocked"
-            self.inflow  = self.inlets[0]
-            self.outflow = self.inlets[1]
-            return Q, barrel_velocity, outlet_culvert_depth
-
         #Send attributes of both enquiry points to the master proc
         if self.myid == self.master_proc:
 
