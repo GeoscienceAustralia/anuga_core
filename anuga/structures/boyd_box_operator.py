@@ -425,5 +425,8 @@ def smooth_discharge(smooth_delta_total_energy,
         Q=0.
     else:
         Q = min(abs(smooth_Q), Q) #abs(self.smooth_Q)
-    barrel_velocity=old_div(Q,flow_area)
+    if flow_area == 0:
+        barrel_velocity = 0.0
+    else:
+        barrel_velocity=old_div(Q,flow_area)
     return smooth_Q, Q, barrel_velocity
