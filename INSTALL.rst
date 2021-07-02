@@ -97,24 +97,35 @@ Native Windows Installation uding Miniconda
 
 We have installed `anuga` on `windows` using miniconda.  
 
-Run the following powershell instructions to download miniconda and the MPI files (for parallel runs)::
+Run the following powershell instructions to download miniconda and the MPI files (for parallel runs). You can also just download manually::
 
     Start-FileDownload "https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe" C:\Miniconda.exe; echo "Finished downloading miniconda"
     Start-FileDownload "https://download.microsoft.com/download/A/E/0/AE002626-9D9D-448D-8197-1EA510E297CE/msmpisetup.exe" C:\msmpisetup.exe; echo "Finished downloading msmpi"
     Start-FileDownload "https://download.microsoft.com/download/A/E/0/AE002626-9D9D-448D-8197-1EA510E297CE/msmpisdk.msi" C:\msmpisdk.msi; echo "Finished downloading msmpisdk"
     
-And then the following cmd instructions::
+From cmd shell install mpi (for parallel runs) via the instructions::
 
     msiexec.exe /i "C:\msmpisdk.msi" /qn
     C:\msmpisetup.exe -unattend
+    set PATH=%PATH%;"C:\Program Files\Microsoft MPI\bin"
+    
+Then install miniconda::
+
     C:\Miniconda.exe /S /D=C:\Py
     C:\Py\Scripts\activate.bat
-    set PATH=%PATH%;"C:\Program Files\Microsoft MPI\bin"
     conda config --set always_yes yes
     conda update conda
+    
+Install conda and pip packages::
+
     conda install python=3.7 gdal nose numpy cython scipy netcdf4 matplotlib dill future gitpython
-    pip install Pmw
+    pip install Pmw mpi4py triangle
     conda install -c msys2 libpython m2w64-toolchain
-    pip install mpi4py triangle
+    
+And finally doownload ANUGA and install::
+
+    git clone https://github.com/anuga-community/anuga_core.git
+    cd anuga_core
     python setup.py install
+    python runtests.py
 
