@@ -87,7 +87,7 @@ Download, install and test `anuga`::
 Windows 10 Install using 'Ubuntu on Windows'
 ==========================
 
-Starting from Windows 10, it is possible to run an Ubuntu Bash console from Windows. This can greatly simplify the install for Windows users. You'll still need administrator access though. First install an ubuntu 20_04 subsystem. Then just use the whichever ubuntu install described above. 
+Starting from Windows 10, it is possible to run an Ubuntu Bash console from Windows. This can greatly simplify the install for Windows users. You'll still need administrator access though. First install an ubuntu 20_04 subsystem. Then just use your preferred ubuntu install described above. 
 
 
 
