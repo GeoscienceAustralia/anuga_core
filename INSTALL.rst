@@ -92,7 +92,7 @@ Starting from Windows 10, it is possible to run an Ubuntu Bash console from Wind
 
 
 
-Native Windows Installation uding Miniconda
+Native Windows Installation using Miniconda
 ===============================
 
 We have installed `anuga` on `windows` using miniconda.  
@@ -113,8 +113,6 @@ Then install miniconda::
 
     C:\Miniconda.exe /S /D=C:\Py
     C:\Py\Scripts\activate.bat
-    conda config --set always_yes yes
-    conda update conda
     
 Install conda and pip packages::
 
@@ -122,10 +120,13 @@ Install conda and pip packages::
     pip install Pmw mpi4py triangle
     conda install -c msys2 libpython m2w64-toolchain
     
-And finally doownload ANUGA and install::
+Download ANUGA and install::
 
     git clone https://github.com/anuga-community/anuga_core.git
     cd anuga_core
     python setup.py install
+    
+And finally test the installation:: 
+
     python runtests.py
 
