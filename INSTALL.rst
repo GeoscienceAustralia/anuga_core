@@ -92,7 +92,7 @@ Starting from Windows 10, it is possible to run an Ubuntu Bash console from Wind
 
 
 
-Native Windows Installation
+Native Windows Installation uding Miniconda
 ===============================
 
 We have installed `anuga` on `windows` using miniconda.  
