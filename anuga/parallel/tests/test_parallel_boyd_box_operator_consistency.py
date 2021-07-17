@@ -104,7 +104,7 @@ def stage(x,y):
 
 #mod_path = get_pathname_from_package('anuga.parallel')
 
-def run_simulation(parallel):
+def run_simulation(parallel, verbose=False):
 
 ##-----------------------------------------------------------------------
 ## Setup domain
@@ -179,17 +179,30 @@ def run_simulation(parallel):
     ## Evolve system through time
     ##-----------------------------------------------------------------------
 
+    if verbose:
+        if parallel:
+            if myid == 0:
+                print("========== Parallel ==========")
+        else:
+            print("========== Serial ==========")
+
     if parallel:
         pypar.barrier()
 
     return_output = 0
     for t in domain.evolve(yieldstep = 0.01, finaltime = 0.02):
+        if myid == 0 and verbose:
+            domain.write_time()
 
         if gate is not None:
             output = gate.discharge_routine()
             if myid == gate.get_master_proc():
                 return_output = output
                 #print('myid ',myid,output)
+
+        if gate is not None and verbose:
+            if myid == gate.get_master_proc():
+                print('master_proc_id', myid, 'discharge', return_output)
 
     if parallel:
         pypar.barrier()
@@ -224,17 +237,14 @@ def assert_(condition, msg="Assertion Failed"):
 
 if __name__=="__main__":
     if numprocs == 1:
-        run_simulation(parallel=False)
+        run_simulation(parallel=False, verbose=verbose)
 
     else:
-        master_proc, parallel_output = run_simulation(parallel=True)
+        master_proc, parallel_output = run_simulation(parallel=True, verbose=verbose)
         success = True
         if myid == master_proc:
             serial_output = pickle.load(open(serial_output_path,"rb"))
             success = num.allclose(parallel_output, serial_output)
-            # print("master_proc ", get_master_proc)
-            # print("parallel ",parallel_output)
-            # print("serial ", serial_output)
 
         finalize()
         import sys
