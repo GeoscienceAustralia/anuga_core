@@ -54,25 +54,24 @@ useful if you want to keep multiple versions of AnuGA.
 
 Both Anaconda_ and Miniconda_ do not require administrative rights 
 to your computer and do not interfere with the Python installed 
-in your system.
+in your system. But it is necessary to install a few packages via `sudo apt-get` in particular 
+a compiler and openmpi for parallel code. 
 
-Folllow these steps::
-
-    
+Follow these steps::
 
     sudo apt-get update -q
     sudo apt-get install gfortran git wget
-    sudo apt-get install -y libopenmpi-dev openmpi-bin
+    sudo apt-get install libopenmpi-dev openmpi-bin
     
-Download and install `Miniconda`::
+Download and install `Miniconda` if you haven't already::
 
     wget http://repo.continuum.io/miniconda3/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
     bash miniconda.sh
     
 Create `anuga_env` conda environment::
 
-    conda update --yes conda
-    conda create -n anuga_env -c conda-forge --yes python pip numpy scipy cython netcdf4 nose matplotlib gdal dill future gitpython
+    conda update conda
+    conda create -n anuga_env -c conda-forge python pip numpy scipy cython netcdf4 nose matplotlib gdal dill future gitpython
     conda activate anuga_env
     pip install mpi4py triangle Pmw pymetis
     
@@ -117,7 +116,7 @@ Then install miniconda::
 Install conda and pip packages::
 
     conda install python=3.7 gdal nose numpy cython scipy netcdf4 matplotlib dill future gitpython
-    pip install Pmw mpi4py triangle
+    pip install mpi4py triangle Pmw pymetis
     conda install -c msys2 libpython m2w64-toolchain
     
 Download ANUGA and install::
