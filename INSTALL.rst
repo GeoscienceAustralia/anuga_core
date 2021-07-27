@@ -32,13 +32,14 @@ to use a combination of the standard ubuntu ``apt`` method and python pip instal
 From your home directory run the following commands which will download anuga to a directory `anuga_core`, install dependencies, install anuga and run the unit tests::
 
     git clone https://github.com/anuga-community/anuga_core.git
-    bash anuga_core/tools/install_ubuntu_20_04.sh
+    sudo bash anuga_core/tools/install_ubuntu_20_04.sh
 
 Note: This will set ``python``  as ``python3`` and part of the bash shell will run as sudo so will ask for a password. If you like you can run the package installs manually, run the commands in the script ``anuga_core/tools/install_ubuntu_20._04.sh``
 
-You should check the installation by running the unit tests via::
+You should now install and check the installation of anuga by running the unit tests via::
 
   cd anuga_core
+  python setup.py install --user
   python runtests.py
   
 
