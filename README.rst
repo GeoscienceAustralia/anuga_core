@@ -26,15 +26,17 @@ the shallow water equation, in particular it can be used to model tsunamis
 and floods.
 
 ANUGA is a python package with some C extensions (and an optional
-fortran extension). This repository contains the python 2.7 version of ANUGA. 
+fortran extension). 
+
+The default master branch of this repository contains the python 2.7 version of ANUGA. 
 
 The python 3 version of ANUGA is being developed and is available from 
-https://github.com/anuga-community/anuga_core
+https://github.com/anuga-community/anuga_core (and is also available as the anuga_py3 branch of this repository). 
 
-Developed at Geoscience Australia and Mathematical Sciences Institute at the
+Developed by Geoscience Australia and the Mathematical Sciences Institute at the
 Australian National University.
 
-Copyright Commonwealth of Australia (Geoscience Australia) and Australian National University 2017
+Copyright Commonwealth of Australia (Geoscience Australia) and Australian National University 2017-
 
 
 Installation
