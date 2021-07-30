@@ -22,7 +22,7 @@ from anuga.anuga_exceptions import ANUGAError
 def generate_mesh(points=None,
                   segments=None,holes=None,regions=None,
                   pointatts=None,segatts=None,
-                  mode=None, dummy_test=None):
+                  mode=None, dummy_test=None, verbose=False):
     """
     pointatts can be a list of lists.
 
@@ -166,6 +166,14 @@ def generate_mesh(points=None,
     if segatts.size != 0:
         in_tri['segment_markers'] = segatts
 
+    if verbose:
+        print('TRIANGLE:')
+        print('  Input sizes')
+        print('    vertices: %g'% points.size)
+        print('    segments: %g'% segments.size)
+        print('    holes:    %g'% holes.size)
+        print('    regions:  %g'% regions.size)
+
     tri = triang.triangulate(in_tri,mode)
 
     if 'vertices' in tri:
@@ -200,6 +208,12 @@ def generate_mesh(points=None,
         neighborlist = num.ascontiguousarray(tri['neighbors'])
     else:
         neighborlist = num.empty((trianglelist.shape[0],3),dtype=num.int32)
+
+    if verbose:
+        print('  Output sizes')
+        print('    vertices:  %g'% pointlist.size)
+        print('    triangles: %g' % trianglelist.size)
+        print('    segments:  %g'% segmentlist.size)
 
     mesh_dict = {}
     # the values as arrays
