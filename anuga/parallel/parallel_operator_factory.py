@@ -61,24 +61,29 @@ def Inlet_operator(domain,
                    verbose = False):
 
     # If not parallel domain then allocate serial Inlet operator
-    if isinstance(domain, Parallel_domain) is False:
-        if verbose: print("Allocating non parallel inlet operator .....")
-        return anuga.structures.inlet_operator.Inlet_operator(domain,
-                                                              poly,
-                                                              Q,
-                                                              velocity = velocity,
-                                                              zero_velocity = zero_velocity,
-                                                              default = default,
-                                                              description = description,
-                                                              label = label,
-                                                              logging = logging,
-                                                              verbose = verbose)
+    # if isinstance(domain, Parallel_domain) is False:
+    #     if verbose: print("Allocating non parallel inlet operator .....")
+    #     return anuga.structures.inlet_operator.Inlet_operator(domain,
+    #                                                           poly,
+    #                                                           Q,
+    #                                                           velocity = velocity,
+    #                                                           zero_velocity = zero_velocity,
+    #                                                           default = default,
+    #                                                           description = description,
+    #                                                           label = label,
+    #                                                           logging = logging,
+    #                                                           verbose = verbose)
 
     from anuga.utilities import parallel_abstraction as pypar
-    if procs is None:
-        procs = list(range(0,pypar.size()))
+    # if procs is None:
+    #     procs = list(range(0,pypar.size()))
 
     myid = pypar.rank()
+
+    if isinstance(domain, Parallel_domain) is False and procs == None:
+        procs = [myid]
+    elif isinstance(domain, Parallel_domain) and procs == None:
+        procs = list(range(0, pypar.size()))
 
     poly = num.array(poly, dtype='d')
 
@@ -149,37 +154,42 @@ def Boyd_box_operator(domain,
                        procs=None):
 
     # If not parallel domain then allocate serial Boyd box operator
-    if isinstance(domain, Parallel_domain) is False:
-        if verbose: print("Allocating non parallel boyd box operator .....")
-        return anuga.structures.boyd_box_operator.Boyd_box_operator(domain=domain,
-                                                                    losses=losses,
-                                                                    width=width,
-                                                                    height=height,
-                                                                    blockage=blockage,
-                                                                    barrels=barrels,
-                                                                    z1=0.0,
-                                                                    z2=0.0,
-                                                                    end_points=end_points,
-                                                                    exchange_lines=exchange_lines,
-                                                                    enquiry_points=enquiry_points,
-                                                                    invert_elevations=invert_elevations,
-                                                                    apron=apron,
-                                                                    manning=manning,
-                                                                    enquiry_gap=enquiry_gap,
-                                                                    smoothing_timescale=smoothing_timescale,
-                                                                    use_momentum_jet=use_momentum_jet,
-                                                                    use_velocity_head=use_velocity_head,
-                                                                    description=description,
-                                                                    label=label,
-                                                                    structure_type=structure_type,
-                                                                    logging=logging,
-                                                                    verbose=verbose)
+    # if isinstance(domain, Parallel_domain) is False:
+    #     if verbose: print("Allocating non parallel boyd box operator .....")
+    #     return anuga.structures.boyd_box_operator.Boyd_box_operator(domain=domain,
+    #                                                                 losses=losses,
+    #                                                                 width=width,
+    #                                                                 height=height,
+    #                                                                 blockage=blockage,
+    #                                                                 barrels=barrels,
+    #                                                                 z1=0.0,
+    #                                                                 z2=0.0,
+    #                                                                 end_points=end_points,
+    #                                                                 exchange_lines=exchange_lines,
+    #                                                                 enquiry_points=enquiry_points,
+    #                                                                 invert_elevations=invert_elevations,
+    #                                                                 apron=apron,
+    #                                                                 manning=manning,
+    #                                                                 enquiry_gap=enquiry_gap,
+    #                                                                 smoothing_timescale=smoothing_timescale,
+    #                                                                 use_momentum_jet=use_momentum_jet,
+    #                                                                 use_velocity_head=use_velocity_head,
+    #                                                                 description=description,
+    #                                                                 label=label,
+    #                                                                 structure_type=structure_type,
+    #                                                                 logging=logging,
+    #                                                                 verbose=verbose)
 
     from anuga.utilities import parallel_abstraction as pypar
-    if procs is None:
-        procs = list(range(0,pypar.size()))
+    # if procs is None:
+    #     procs = list(range(0,pypar.size()))
 
     myid = pypar.rank()
+
+    if isinstance(domain, Parallel_domain) is False and procs == None:
+        procs = [myid]
+    elif isinstance(domain, Parallel_domain) and procs == None:
+        procs = list(range(0, pypar.size()))
 
     end_points = ensure_numeric(end_points)
     exchange_lines = ensure_numeric(exchange_lines)
@@ -881,8 +891,8 @@ def allocate_inlet_procs(domain, poly, enquiry_point = None, master_proc = 0, pr
 
 
     from anuga.utilities import parallel_abstraction as pypar
-    if procs is None:
-        procs = list(range(0, pypar.size()))
+    # if procs is None:
+    #     procs = list(range(0, pypar.size()))
 
     myid = pypar.rank()
     vertex_coordinates = domain.get_full_vertex_coordinates(absolute=True)
