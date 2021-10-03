@@ -17,7 +17,7 @@ extension). This version of ANUGA is run and tested using python 3.8.x
 Dependencies
 ============
 
-AnuGA requires the following python packages:
+ANUGA requires the following python packages:
 
   numpy scipy matplotlib nose cython netcdf4 dill future gitpython gdal pyproj pymetis triangle Pmw mpi4py ipython
 
@@ -26,7 +26,7 @@ AnuGA requires the following python packages:
 Installing the latest DEVELOPMENT version on Ubuntu 20_04
 ===================================================
 
-AnuGA is developed on Ubuntu. The preferred way to install the dependencies is 
+ANUGA is developed on Ubuntu. The preferred way to install the dependencies is 
 to use a combination of the standard ubuntu ``apt`` method and python pip install.
 
 From your home directory run the following commands which will download anuga to a directory `anuga_core`, install dependencies, install anuga and run the unit tests::
@@ -51,7 +51,7 @@ distributions by `Continuum Analytics`_.
 
 Miniconda_ has the advantage of allowing you to create multiple 
 python environments and is particularly 
-useful if you want to keep multiple versions of AnuGA.
+useful if you want to keep multiple versions of ANUGA.
 
 Both Anaconda_ and Miniconda_ do not require administrative rights 
 to your computer and do not interfere with the Python installed 
