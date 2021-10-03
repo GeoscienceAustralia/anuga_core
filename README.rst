@@ -74,15 +74,11 @@ and send questions using the address
 Web sites
 ---------
 
-The user's site is: http://anuga.anu.edu.au/
-The WikiPedia for ANUGA is: https://en.wikipedia.org/wiki/ANUGA_Hydro
-The new GitHub repository for ANUGA is: https://github.com/anuga-community/anuga_core
-
-The old GitHub repository for ANUGA is: https://github.com/GeoscienceAustralia/anuga_core
-
-A viewer is available for displaying the ANUGA sww output files. 
-ANUGA viewer repository is: https://github.com/anuga-community/anuga-viewer
-
+* http://anuga.anu.edu.au: Collection of information, talks and papers about ANUGA.
+* https://en.wikipedia.org/wiki/ANUGA_Hydro: The Wikipedia site for ANUGA. 
+* https://github.com/anuga-community/anuga_core: The active GitHub repository for ANUGA.
+* https://github.com/GeoscienceAustralia/anuga_core: Mirror GitHub repository for ANUGA. 
+* https://github.com/anuga-community/anuga-viewer: Viewer for animating the ANUGA sww output files.  
 
 
 
