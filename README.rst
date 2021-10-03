@@ -1,10 +1,10 @@
 
-.. image:: https://travis-ci.com/anuga-community/anuga_core.svg?branch=master
+.. image:: https://travis-ci.com/anuga-community/anuga_core.svg?branch=main
     :target: https://travis-ci.com/anuga-community/anuga_core
     :alt: travis ci status
    
 
-.. image:: https://ci.appveyor.com/api/projects/status/x5airjv7eq2u805w/branch/master?svg=true
+.. image:: https://ci.appveyor.com/api/projects/status/x5airjv7eq2u805w/branch/main?svg=true
     :target: https://ci.appveyor.com/project/stoiver/anuga-core-nwgr0
     :alt: appveyor status
 
@@ -32,27 +32,26 @@ and be available from this `anuga-community` repository.
 
 The old python 2.7 version of ANUGA is available from https://github.com/GeoscienceAustralia/anuga_core
 
+Althought ANUGA was created in a collaboration by Geoscience Australia and Mathematical Sciences Institute at the
+Australian National University, it is now developed and maintained by a community of volunteers.
 
-ANUGA is developed at Geoscience Australia and Mathematical Sciences Institute at the
-Australian National University.
-
-Copyright Commonwealth of Australia (Geoscience Australia) and Australian National University 2017-
+Copyright Commonwealth of Australia (Geoscience Australia) and Australian National University 2004-
 
 
 Installation
 ------------
 
 For installation instructions, see
-`INSTALL.rst <https://github.com/anuga-community/anuga_core/blob/master/INSTALL.rst>`_
+`INSTALL.rst <https://github.com/anuga-community/anuga_core/blob/main/INSTALL.rst>`_
 
 
 Documentation and Help
 ----------------------
 
 ANUGA documentation is available in the doc folder. In particular the
-`user_manual <https://github.com/anuga-community/anuga_core/raw/master/doc/anuga_user_manual.pdf>`_
+`user_manual <https://github.com/anuga-community/anuga_core/raw/main/doc/anuga_user_manual.pdf>`_
 
-Also helpful information is available noline at
+Also helpful information is available online at
 
     http://anuga.anu.edu.au
 
@@ -114,13 +113,13 @@ Developer information
 ---------------------
 
 If you would like to take part in ANUGA development, take a look
-at `CONTRIBUTING.rst <https://github.com/anuga-community/anuga_core/blob/master/CONTRIBUTING.rst>`_.
+at `CONTRIBUTING.rst <https://github.com/anuga-community/anuga_core/blob/main/CONTRIBUTING.rst>`_.
 
 
 License information
 -------------------
 
-See the file `LICENSE.txt <https://github.com/anuga-community/anuga_core/blob/master/LICENCE.txt>`_
+See the file `LICENSE.txt <https://github.com/anuga-community/anuga_core/blob/main/LICENCE.txt>`_
 for information on the history of this software, terms & conditions for usage,
 and a DISCLAIMER OF ALL WARRANTIES.
 
