@@ -34,16 +34,16 @@ from anuga import rectangular_cross
 from anuga import create_domain_from_file
 
 
-from anuga_parallel import distribute, myid, numprocs, finalize, barrier
+from anuga import distribute, myid, numprocs, finalize, barrier
 
 
 #--------------------------------------------------------------------------
 # Setup parameters
 #--------------------------------------------------------------------------
 
-#mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0
-mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
-#mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
+mesh_filename = "data/merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0
+#mesh_filename = "data/merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
+#mesh_filename = "data/test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
 
 finaltime = 500
 yieldstep = 50
@@ -111,7 +111,7 @@ domain.set_boundary({'exterior' :Br, 'open' :Br})
 barrier()
 for p in range(numprocs):
     if myid == p:
-        print domain.boundary_statistics()
+        print (domain.boundary_statistics())
 
     barrier()
 
