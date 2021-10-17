@@ -23,7 +23,7 @@ ANUGA requires the following python packages:
 
 
 
-Installing the latest DEVELOPMENT version on Ubuntu 20_04
+Installing the latest version on Ubuntu
 ===================================================
 
 ANUGA is developed on Ubuntu. The preferred way to install the dependencies is 
@@ -41,6 +41,13 @@ You should now install and check the installation of anuga by running the unit t
   cd anuga_core
   python setup.py install --user
   python runtests.py
+  
+Installing the latest version on Ubuntu as a developer
+===================================================
+  
+If you wish to install ANUGA and make changes to the code, the installation procedure is as above, but with the setup step as follows::
+
+  python setup.py develop --user
   
 
 Alternative Ubuntu Install with conda
