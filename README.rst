@@ -44,7 +44,7 @@ The Python 3.x version is the default and available in the main branches of both
 
 If you rely on the deprecated Python 2.7 version, it is available in branches named anuga_py2.
 
-The python 3 version of ANUGA will continue to be developed and the most up-to-date versions will be available from the `anuga-community` repository. 
+The python 3 version of ANUGA will continue to be developed and the most up-to-date versions will be available from the `anuga-community <https://github.com/anuga-community/anuga_core>`_ repository. 
 
 
 
