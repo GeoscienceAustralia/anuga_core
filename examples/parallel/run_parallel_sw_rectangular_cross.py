@@ -23,6 +23,7 @@
 
 import time
 import sys
+import math
 
 
 #----------------------------
@@ -50,9 +51,11 @@ if myid == 0:
     width = 2.0
     #dx = dy = 0.005
     #dx = dy = 0.00125
-    dx = dy  = 0.5
-    domain = rectangular_cross_domain(int(length/dx), int(width/dy),
-                                              len1=length, len2=width, origin=(-length/2, -width/2), verbose=verbose)
+    sqrtN = int(math.sqrt(numprocs))*4
+    domain = rectangular_cross_domain(sqrtN, sqrtN,
+                                      len1=length, len2=width, 
+                                      origin=(-length/2, -width/2), 
+                                      verbose=verbose)
 
 
     domain.set_store(True)
@@ -137,7 +140,7 @@ for p in range(numprocs):
 
 
 
-if domain.number_of_global_triangles < 50000:
+if domain.number_of_global_triangles < 5000:
     if myid == 0 :
         print ('Create dump of triangulation for %g triangles' % domain.number_of_global_triangles)
     domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)

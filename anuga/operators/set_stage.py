@@ -59,7 +59,12 @@ class Set_stage(Set_quantity):
         # updated
         #------------------------------------------
         coord_v = self.domain.vertex_coordinates
+
+        if not self.indices:
+            return
+
         ids = self.indices
+        
         if ids is None:
             self.v_x = coord_v[:,0].reshape((-1,3))
             self.v_y = coord_v[:,1].reshape((-1,3))
@@ -85,10 +90,8 @@ class Set_stage(Set_quantity):
         otherwise apply for the specific indices
         """
 
-        if self.indices is []:
+        if not self.indices:
             return
-
-
 
         #value = self.get_value()
         
