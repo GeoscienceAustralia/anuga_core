@@ -17,12 +17,14 @@ import time
 import sys
 import numpy
 import anuga
+import math
 
 
 #----------------------------
 # Parallel interface
 #---------------------------
 from anuga import distribute, myid, numprocs, finalize, barrier
+from anuga import rectangular_cross_domain
 
 
 #--------------------------------------------------------------------------
@@ -56,11 +58,11 @@ verbose = True
 if myid == 0:
     length = 2.0
     width = 2.0
-    dx = dy = 0.005
-    #dx = dy = 0.00125
-    dx = dy  = 0.05
-    domain = anuga.rectangular_cross_domain(int(length/dx), int(width/dy),
-                                              len1=length, len2=width, verbose=verbose)
+    sqrtN = int(math.sqrt(numprocs))*4
+    domain = rectangular_cross_domain(sqrtN, sqrtN,
+                                      len1=length, len2=width, 
+                                      origin=(-length/2, -width/2), 
+                                      verbose=verbose)
 
     #---------------------------------------
     # Add these two commands to use Gareth's
