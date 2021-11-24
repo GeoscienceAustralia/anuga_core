@@ -2436,7 +2436,7 @@ class Domain(Generic_Domain):
         # evolve loop but we do it here to ensure the values are ok for storage.
         self.distribute_to_vertices_and_edges()
 
-        if self.store is True and self.get_time() == 0.0:
+        if self.store is True and self.get_relative_time() == 0.0:
             self.initialise_storage()
 
 
@@ -2513,7 +2513,7 @@ class Domain(Generic_Domain):
     def timestepping_statistics(self,
                                 track_speeds=False,
                                 triangle_id=None,
-                                relative_time=True):
+                                relative_time=False):
         """Return string with time stepping statistics for printing or logging
 
         Optional boolean keyword track_speeds decides whether to report

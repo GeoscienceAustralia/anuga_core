@@ -263,6 +263,11 @@ class Inlet(object):
         stages = self.get_stages()
         depths = self.get_depths()
 
+        elevations = self.get_elevations()
+
+        #print('elevation')
+        #print(elevations)
+
         stages_order = stages.argsort()
 
         # accumulate areas of cells ordered by stage
@@ -278,6 +283,8 @@ class Inlet(object):
         depth = old_div((volume - summed_volume[index]),summed_areas[index])
         stages[stages_order[0:index+1]] = stages[stages_order[index]]+depth
 
+        #print('stages')
+        #print(stages)
         self.set_stages(stages)
 
 

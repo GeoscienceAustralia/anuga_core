@@ -52,10 +52,13 @@ class Inlet_operator(anuga.Operator):
 
         self.activate_logging()
 
+        #print('Setting up inlet operator')
 
     def __call__(self):
 
         timestep = self.domain.get_timestep()
+
+        #print('Timestep', timestep)
 
         t = self.domain.get_time()
 
@@ -63,6 +66,10 @@ class Inlet_operator(anuga.Operator):
         # Need to run global command on all processors
         current_volume = self.inlet.get_total_water_volume()
         total_area = self.inlet.get_area()
+
+
+        #print(current_volume)
+        #print(total_area)
 
         assert current_volume >= 0.0
 
@@ -74,6 +81,7 @@ class Inlet_operator(anuga.Operator):
         Q = 0.5*(Q1+Q2)
         volume = Q*timestep
 
+        #print(volume)
         #print volume
 
         #print Q, volume
@@ -81,11 +89,12 @@ class Inlet_operator(anuga.Operator):
         # store last discharge
         self.applied_Q = Q
 
-
+        #print(self.domain.fractional_step_volume_integral)
 
         # Distribute positive volume so as to obtain flat surface otherwise
         # just pull water off to have a uniform depth.
         if volume >= 0.0 :
+            #print('volume>=0.0')
             self.inlet.set_stages_evenly(volume)
             self.domain.fractional_step_volume_integral+=volume
             if self.velocity is not None:

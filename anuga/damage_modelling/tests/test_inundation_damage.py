@@ -123,7 +123,7 @@ class Test_inundation_damage(unittest.TestCase):
         sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
-        self.domain.time = 2.
+        self.domain.set_time(2.)
         sww.store_timestep()
         self.sww = sww # so it can be deleted
 
@@ -193,7 +193,7 @@ class Test_inundation_damage(unittest.TestCase):
         sww = SWW_file(domain)
         sww.store_connectivity()
         sww.store_timestep()
-        domain.time = 2.
+        domain.set_time(2.0)
         sww.store_timestep()
         self.swwII = sww # so it can be deleted
 
@@ -294,7 +294,7 @@ class Test_inundation_damage(unittest.TestCase):
         sww.store_connectivity()
         sww.store_timestep()
         domain.set_quantity('stage', -0.3)
-        domain.time = 2.
+        domain.set_time(2.)
         sww.store_timestep()
 
         #Create a csv file
@@ -367,7 +367,7 @@ class Test_inundation_damage(unittest.TestCase):
         sww.store_connectivity()
         sww.store_timestep()
         domain.set_quantity('stage', -0.3)
-        domain.time = 2.
+        domain.set_time(2.)
         sww.store_timestep()
 
         #Create a csv file

@@ -282,7 +282,7 @@ class SWW_file(Data_format):
                 # In that case, wait a while and try again
                 msg = 'Warning (store_timestep): File %s could not be opened' \
                       % self.filename
-                msg += ' - trying step %s again' % self.domain.time
+                msg += ' - trying step %s again' % self.domain.relative_time
                 log.critical(msg)
                 retries += 1
                 sleep(1)
@@ -307,7 +307,7 @@ class SWW_file(Data_format):
 
             # Write a filename addon that won't break the anuga viewers
             # (10.sww is bad)
-            filename_ext = '_time_%s' % self.domain.time
+            filename_ext = '_time_%s' % self.domain.relative_time
             filename_ext = filename_ext.replace('.', '_')
 
             # Remember the old filename, then give domain a
@@ -406,7 +406,7 @@ class SWW_file(Data_format):
 
             # Store dynamic quantities
             slice_index = self.writer.store_quantities(fid,
-                                                       time=self.domain.time,
+                                                       time=self.domain.relative_time,
                                                        sww_precision=self.precision,
                                                        **dynamic_quantities)
 

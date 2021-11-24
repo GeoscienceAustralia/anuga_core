@@ -174,38 +174,38 @@ class Test_internal_boundary_functions(unittest.TestCase):
         assert(ps_function(1., 1.) == 0.)
     
         # As time increases, so will the pump rate 
-        domain.time = 0.5
+        domain.set_time(0.5)
         assert(numpy.allclose(ps_function(1., 1.), 0.5))
         assert(numpy.allclose(ps_function(1., 1.), 0.5))
-        domain.time = 0.75
+        domain.set_time(0.75)
         assert(numpy.allclose(ps_function(1., 1.), 0.75))
 
         # Pump rate maximum = 1.0
-        domain.time = 1.5
+        domain.set_time(1.5)
         assert(numpy.allclose(ps_function(1., 1.), 1.0))
 
         # Force the pump rate to zero, and it should start increasing as time
         # increases
         ps_function.pump_rate = 0.
         assert (ps_function(1., 1.) == 0.)
-        domain.time = 1.75
+        domain.set_time(1.75)
         assert (ps_function(1., 1.) == 0.25)
-        domain.time = 2.5
+        domain.set_time(2.5)
         assert (ps_function(1., 1.) == 1.0)
         # Can't increase any more
-        domain.time = 3.0 
+        domain.set_time(3.0)
         assert (ps_function(1., 1.) == 1.0)
        
         # Let's try to decrease the pump
         assert (ps_function(-1.5, 1.) == 1.0)
-        domain.time = 3.5
+        domain.set_time(3.5)
         assert (ps_function(-1.5, 1.) == 0.5)
-        domain.time = 3.9
+        domain.set_time(3.9)
 
         assert (numpy.allclose(ps_function(-1.5, 1.), 0.1))
-        domain.time = 4.0 
+        domain.set_time(4.0)
         assert (numpy.allclose(ps_function(-1.5, 1.), 0.0))
-        domain.time = 5.0 
+        domain.set_time(5.0)
         assert (numpy.allclose(ps_function(-1.5, 1.), 0.0))
 
         

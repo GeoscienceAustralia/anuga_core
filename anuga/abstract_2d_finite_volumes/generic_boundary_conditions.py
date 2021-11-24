@@ -648,12 +648,11 @@ class File_boundary(Boundary):
 
 
     def evaluate(self, vol_id=None, edge_id=None):
-        """Return linearly interpolated values based on domain.time
+        """Return linearly interpolated values based on domain time
         at midpoint of segment defined by vol_id and edge_id.
         """
 
-        # FIXME (Ole): I think this should be get_time(), see ticket:306
-        t = self.domain.time
+        t = self.domain.get_time()
         
         if vol_id is not None and edge_id is not None:
             i = self.boundary_indices[ vol_id, edge_id ]
@@ -834,12 +833,12 @@ class AWI_boundary(Boundary):
 
 
     def evaluate(self, vol_id=None, edge_id=None):
-        """Return linearly interpolated values based on domain.time
+        """Return linearly interpolated values based on domain time
 	       at midpoint of segment defined by vol_id and edge_id.
         """
 
         q = self.domain.get_conserved_quantities(vol_id, edge=edge_id)
-        t = self.domain.time
+        t = self.domain.get_time()
 
         if vol_id is not None and edge_id is not None:
             i = self.boundary_indices[vol_id, edge_id]

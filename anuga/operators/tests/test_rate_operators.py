@@ -457,7 +457,7 @@ class Test_rate_operators(unittest.TestCase):
         Br = Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
-        verbose = False
+        verbose = True
 
         if verbose:
             print(domain.quantities['elevation'].centroid_values)
@@ -503,7 +503,7 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
         assert num.allclose(domain.fractional_step_volume_integral, ((d-1.)*domain.areas[indices]).sum())
 
-        domain.set_starttime(30.0)
+        domain.set_time(30.0)
         domain.timestep = 1.0
         operator()
 
@@ -524,8 +524,12 @@ class Test_rate_operators(unittest.TestCase):
 
         # test timestepping_statistics
         stats = operator.timestepping_statistics()
+
+        print(stats)
         import re
         rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+
+        print(rr)
         assert num.allclose(float(rr[1]), 7.0)
         assert num.allclose(float(rr[2]), 420.0)
 
