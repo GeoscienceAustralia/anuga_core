@@ -246,16 +246,19 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
             if self.myid == self.enquiry_proc[self.outflow_index]:
                 outflow_enq_depth = self.inlets[self.outflow_index].get_enquiry_depth()
             else:
+
                 outflow_enq_depth = pypar.receive(self.enquiry_proc[self.outflow_index])
+                #print('receive',outflow_enq_depth)
 
             #print "ZZZZZ: outflow_enq_depth = %f" %(outflow_enq_depth)
 
         else:
             if self.myid == self.enquiry_proc[self.outflow_index]:
+                #print('send',self.inlets[self.outflow_index].get_enquiry_depth())
                 pypar.send(self.inlets[self.outflow_index].get_enquiry_depth(), self.master_proc)
 
 
-
+        
 
         # Master proc computes return values
         if self.myid == self.master_proc:
@@ -314,8 +317,6 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
             if barrel_velocity > self.max_velocity:
                 barrel_velocity = self.max_velocity
                 Q = flow_area * barrel_velocity
-
-
 
             return Q, barrel_velocity, outlet_culvert_depth
         else:

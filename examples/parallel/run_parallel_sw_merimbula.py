@@ -108,7 +108,7 @@ else:
 # Distribute sequential domain on processor 0 to other processors
 #--------------------------------------------------------------------------
 
-if myid == 0 and verbose: print 'DISTRIBUTING DOMAIN'
+if myid == 0 and verbose: print ('DISTRIBUTING DOMAIN')
 domain = distribute(domain, verbose=verbose)
 
 #--------------------------------------------------------------------------
@@ -164,7 +164,7 @@ domain.set_boundary({'outflow' :Br, 'inflow' :Br, 'inner' :Br, 'exterior' :Br, '
 #------------------------------------------------------------------------------
 # Evolution
 #------------------------------------------------------------------------------
-if myid == 0 and verbose: print 'EVOLVE'
+if myid == 0 and verbose: print ('EVOLVE')
 
 barrier()
 t0 = time.time()
@@ -178,11 +178,11 @@ barrier()
 
 for p in range(numprocs):
     if myid == p:
-        print 'Processor %g ' %myid
-        print 'That took %.2f seconds' %(time.time()-t0)
-        print 'Communication time %.2f seconds'%domain.communication_time
-        print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
-        print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
+        print ('Processor %g ' %myid)
+        print ('That took %.2f seconds' %(time.time()-t0))
+        print ('Communication time %.2f seconds'%domain.communication_time)
+        print ('Reduction Communication time %.2f seconds'%domain.communication_reduce_time)
+        print ('Broadcast time %.2f seconds'%domain.communication_broadcast_time)
     else:
         pass
 

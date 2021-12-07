@@ -1,0 +1,90 @@
+23 0 # <# of verts> <# of vert attributes>, next lines <vertex #> <x> <y> [attributes] ...Triangulation Vertices...
+0 363.0 -109.0 
+1 252.0 -205.0 
+2 359.0 -310.0 
+3 520.0 -221.0 
+4 516.0 -88.0 
+5 307.5 -157.0 
+6 338.920383411 -217.208385407 
+7 305.5 -257.5 
+8 377.158518134 -181.456724092 
+9 349.332147792 -149.282483384 
+10 386.041171497 -240.011182692 
+11 405.980226399 -138.213078049 
+12 439.5 -265.5 
+13 439.5 -98.5 
+14 399.25 -287.75 
+15 294.949211613 -214.742231975 
+16 349.542810793 -266.127802335 
+17 445.589807632 -195.839294107 
+18 407.559937694 -206.79583302 
+19 479.75 -243.25 
+20 518.0 -154.5 
+21 481.738694758 -122.310490383 
+22 476.095437884 -165.18642326 
+# attribute column titles ...Triangulation Vertex Titles...
+32 # <# of triangles>, next lines <triangle #> [<vertex #>] [<neigbouring triangle #>] [attribute of region] ...Triangulation Triangles...
+0 9 6 8 20 14 7  
+1 10 14 12 -1 24 18  
+2 11 0 9 5 14 4  
+3 7 2 16 21 15 -1  
+4 13 0 11 2 29 -1  
+5 9 0 5 -1 7 2  
+6 5 15 6 19 7 16  
+7 5 6 9 0 5 6  
+8 18 12 17 27 25 24  
+9 19 3 17 30 27 -1  
+10 15 1 7 -1 19 16  
+11 22 11 17 25 30 13  
+12 10 18 8 17 20 24  
+13 21 11 22 11 31 29  
+14 11 9 8 0 17 2  
+15 16 6 7 19 3 22  
+16 15 5 1 -1 10 6  
+17 18 11 8 14 12 25  
+18 16 14 10 1 22 21  
+19 7 6 15 6 10 15  
+20 10 8 6 0 22 12  
+21 14 16 2 3 -1 18  
+22 6 16 10 18 20 15  
+23 20 4 21 26 31 -1  
+24 12 18 10 12 1 8  
+25 11 18 17 8 11 17  
+26 4 13 21 29 23 -1  
+27 17 12 19 -1 9 8  
+28 3 20 22 31 30 -1  
+29 21 13 11 4 13 26  
+30 3 22 17 11 9 28  
+31 20 21 22 13 28 23  
+12 # <# of segments>, next lines <segment #> <vertex #>  <vertex #> [boundary tag] ...Triangulation Segments...
+0 1 5 exterior
+1 2 7 exterior
+2 3 19 exterior
+3 4 20 exterior
+4 0 13 exterior
+5 5 0 exterior
+6 12 14 exterior
+7 7 1 exterior
+8 14 2 exterior
+9 13 4 exterior
+10 19 12 exterior
+11 20 3 exterior
+5 0 # <# of verts> <# of vert attributes>, next lines <vertex #> <x> <y> [attributes] ...Mesh Vertices...
+0 363.0 -109.0 
+1 252.0 -205.0 
+2 359.0 -310.0 
+3 520.0 -221.0 
+4 516.0 -88.0 
+5 # <# of segments>, next lines <segment #> <vertex #>  <vertex #> [boundary tag] ...Mesh Segments...
+0 1 0 
+1 2 1 
+2 3 2 
+3 4 3 
+4 0 4 
+0 # <# of holes>, next lines <Hole #> <x> <y> ...Mesh Holes...
+0 # <# of regions>, next lines <Region #> <x> <y> <tag>...Mesh Regions...
+0 # <# of regions>, next lines <Region #> [Max Area] ...Mesh Regions...
+#geo reference
+-1
+0.0
+0.0

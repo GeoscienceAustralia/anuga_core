@@ -103,7 +103,7 @@ def create_mesh_from_regions(bounding_polygon,
     """
 
     if verbose:
-        log.resource_usage_timing(log.logging.INFO, "start_")
+        log.resource_usage_timing(log.logging.CRITICAL, "start_")
     if verbose:
         log.timingInfo("maximum_triangle_area, " + str(maximum_triangle_area))
     if verbose:

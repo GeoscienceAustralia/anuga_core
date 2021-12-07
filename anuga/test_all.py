@@ -45,6 +45,11 @@ exclude_dirs = ['shallow_water_balanced'     '.svn',          # subversion
 if not pypar_available:
     exclude_dirs.append('parallel')
 
+try:
+    from pymetis import part_graph
+    exclude_dirs.append('pymetis_4')
+except:
+    pass
 
 # name of file to capture stdout in
 CaptureFilename = '.temp'
