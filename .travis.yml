@@ -22,9 +22,9 @@ matrix:
          env: PYTHON_VERSION="3.8"  ANUGA_PARALLEL="openmpi"  PYPAR_AVAILABLE="mpi4py" DISTRIB="ubuntu"
 
 install:
-    - if [[ "$DISTRIB" == "conda_macos" ]]; then source tools/install_conda_macos.sh; fi
-    - if [[ "$DISTRIB" == "conda" ]]; then source tools/install_conda.sh; fi
-    - if [[ "$DISTRIB" == "ubuntu" ]]; then source tools/install_ubuntu.sh; fi
+    - if [[ "$DISTRIB" == "conda_macos" ]]; then source tools/install_conda_macos_travis.sh; fi
+    - if [[ "$DISTRIB" == "conda" ]]; then source tools/install_conda_travis.sh; fi
+    - if [[ "$DISTRIB" == "ubuntu" ]]; then source tools/install_ubuntu_travis.sh; fi
     - if [[ "$COVERAGE" == "--coverage" ]]; then pip install coverage coveralls; fi
 
 

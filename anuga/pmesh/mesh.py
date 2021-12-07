@@ -1046,11 +1046,11 @@ class Mesh(object):
             silent = 'Q'
         self.generateMesh(mode=silent + "pzq"+str(minimum_triangle_angle)
                           + "a"+str(maximum_triangle_area)
-                          + "a")
+                          + "a", verbose=verbose)
         # The last a is so areas for regions will be used
 
     def generateMesh(self, mode=None, maxArea=None, minAngle=None,
-                     isRegionalMaxAreas=True):
+                     isRegionalMaxAreas=True, verbose=False):
         """
         Based on the current user vaules, holes and regions
         generate a new mesh
@@ -1126,7 +1126,8 @@ class Mesh(object):
             meshDict['pointattributelist'],
             meshDict['segmenttaglist'],
             self.mode,
-            meshDict['pointlist'])
+            meshDict['pointlist'],
+            verbose)
         # print "%%%%%%%%%%%%%%%%%%%%%%%%%%%generated",generatedMesh
         generatedMesh['qaa'] = 1
         if generatedMesh['generatedsegmentmarkerlist'] is not None:

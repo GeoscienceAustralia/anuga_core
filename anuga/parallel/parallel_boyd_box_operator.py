@@ -6,7 +6,7 @@ import anuga
 import math
 import numpy
 
-from anuga.structures.boyd_box_operator import boyd_box_function 
+from anuga.structures.boyd_box_operator import boyd_box_function, total_energy, smooth_discharge
 
 from .parallel_inlet_operator import Parallel_Inlet_operator
 from .parallel_structure_operator import Parallel_Structure_operator
@@ -14,10 +14,10 @@ from .parallel_structure_operator import Parallel_Structure_operator
 class Parallel_Boyd_box_operator(Parallel_Structure_operator):
     """Culvert flow - transfer water from one rectangular box to another.
     Sets up the geometry of problem
-    
+
     This is the base class for culverts. Inherit from this class (and overwrite
     compute_discharge method for specific subclasses)
-    
+
     Input: Two points, pipe_size (either diameter or width, height),
     mannings_rougness,
     """
@@ -51,7 +51,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                  inlet_master_proc = [0,0],
                  inlet_procs = None,
                  enquiry_proc = [0,0]):
-                     
+
         Parallel_Structure_operator.__init__(self,
                                           domain=domain,
                                           end_points=end_points,
@@ -64,7 +64,7 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                                           barrels=barrels,
                                           z1=0.0,
                                           z2=0.0,
-                                          diameter= None,                                         
+                                          diameter= None,
                                           apron=apron,
                                           manning=manning,
                                           enquiry_gap=enquiry_gap,
@@ -83,39 +83,39 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                                           inlet_master_proc=inlet_master_proc,
                                           inlet_procs=inlet_procs,
                                           enquiry_proc=enquiry_proc)
-        
+
         if isinstance(losses, dict):
             self.sum_loss = sum(losses.values())
         elif isinstance(losses, list):
             self.sum_loss = sum(losses)
         else:
             self.sum_loss = losses
-        
+
         self.use_momentum_jet = use_momentum_jet
         self.zero_outflow_momentum = (not use_momentum_jet)
         self.use_old_momentum_method = True
         self.use_velocity_head = use_velocity_head
-        
+
         self.culvert_length = self.get_culvert_length()
         self.culvert_width = self.get_culvert_width()
         self.culvert_height = self.get_culvert_height()
         self.culvert_blockage = self.get_culvert_blockage()
         self.culvert_barrels = self.get_culvert_barrels()
-        
+
         self.max_velocity = 10.0
 
         self.inlets = self.get_inlets()
 
 
         # Stats
-        
+
         self.discharge = 0.0
         self.velocity = 0.0
-        
+
         self.case = 'N/A'
 
         self.domain=domain
-        
+
         # May/June 2014 -- allow 'smoothing ' of driving_energy, delta total energy, and outflow_enq_depth
         self.smoothing_timescale=0.
         self.smooth_delta_total_energy=0.
@@ -153,6 +153,16 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
         from anuga.utilities import parallel_abstraction as pypar
 
         local_debug = False
+
+        # If the cuvert has been closed, then no water gets through
+        if self.culvert_height <= 0.0:
+            Q = 0.0
+            barrel_velocity = 0.0
+            outlet_culvert_depth = 0.0
+            self.case = "Culvert blocked"
+            self.inflow  = self.inlets[0]
+            self.outflow = self.inlets[1]
+            return Q, barrel_velocity, outlet_culvert_depth
 
         #Send attributes of both enquiry points to the master proc
         if self.myid == self.master_proc:
@@ -193,25 +203,13 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
         self.outflow_index = 1
         # master proc orders reversal if applicable
         if self.myid == self.master_proc:
-            # May/June 2014 -- change the driving forces gradually, with forward euler timestepping 
-            #
-            forward_Euler_smooth=True
-            if(forward_Euler_smooth):
-                # To avoid 'overshoot' we ensure ts<1.
-                if(self.domain.timestep>0.):
-                    ts=old_div(self.domain.timestep,max(self.domain.timestep, self.smoothing_timescale,1.0e-06))
-                else:
-                    # This case is included in the serial version, which ensures the unit tests pass
-                    # even when domain.timestep=0.0. 
-                    # Note though the discontinuous behaviour as domain.timestep-->0. from above
-                    ts=1.0
-                self.smooth_delta_total_energy=self.smooth_delta_total_energy+\
-                                        ts*(self.delta_total_energy-self.smooth_delta_total_energy)
-            else:
-                # Use backward euler -- the 'sensible' ts limitation is different in this case
-                # ts --> Inf is reasonable and corresponds to the 'nosmoothing' case
-                ts=old_div(self.domain.timestep,max(self.smoothing_timescale, 1.0e-06))
-                self.smooth_delta_total_energy = old_div((self.smooth_delta_total_energy+ts*(self.delta_total_energy)),(1.+ts))
+
+            forward_Euler_smooth = True
+            self.smooth_delta_total_energy, ts = total_energy(self.smooth_delta_total_energy,
+                                                            self.delta_total_energy,
+                                                            self.domain.timestep,
+                                                            self.smoothing_timescale,
+                                                            forward_Euler_smooth)
 
             # Reverse the inflow and outflow direction?
             if self.smooth_delta_total_energy < 0:
@@ -254,20 +252,23 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
 
         # Get attribute from outflow enquiry point
         if self.myid == self.master_proc:
-            
+
             if self.myid == self.enquiry_proc[self.outflow_index]:
                 outflow_enq_depth = self.inlets[self.outflow_index].get_enquiry_depth()
             else:
+
                 outflow_enq_depth = pypar.receive(self.enquiry_proc[self.outflow_index])
+                #print('receive',outflow_enq_depth)
 
             #print "ZZZZZ: outflow_enq_depth = %f" %(outflow_enq_depth)
 
         else:
             if self.myid == self.enquiry_proc[self.outflow_index]:
+                #print('send',self.inlets[self.outflow_index].get_enquiry_depth())
                 pypar.send(self.inlets[self.outflow_index].get_enquiry_depth(), self.master_proc)
 
 
-
+        
 
         # Master proc computes return values
         if self.myid == self.master_proc:
@@ -308,29 +309,12 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                                                 sum_loss            =self.sum_loss,
                                                 manning             =self.manning)
 
-                ################################################
-                # Smooth discharge. This can reduce oscillations
-                # 
-                # NOTE: The sign of smooth_Q assumes that
-                #   self.inflow_index=0 and self.outflow_index=1
-                #   , whereas the sign of Q is always positive
-                Qsign=(self.outflow_index-self.inflow_index) # To adjust sign of Q
-                if(forward_Euler_smooth):
-                    self.smooth_Q = self.smooth_Q +ts*(Q*Qsign-self.smooth_Q)
-                else: 
-                    # Try implicit euler method
-                    self.smooth_Q = old_div((self.smooth_Q+ts*(Q*Qsign)),(1.+ts))
-                
-                if numpy.sign(self.smooth_Q)!=Qsign:
-                    # The flow direction of the 'instantaneous Q' based on the
-                    # 'smoothed delta_total_energy' is not the same as the
-                    # direction of smooth_Q. To prevent 'jumping around', let's
-                    # set Q to zero
-                    Q=0.
-                else:
-                    Q = min(abs(self.smooth_Q), Q) #abs(self.smooth_Q)
-                barrel_velocity=old_div(Q,flow_area)
-            # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow
+                self.smooth_Q, Q, barrel_velocity = smooth_discharge(self.smooth_delta_total_energy,
+                                                                    self.smooth_Q,
+                                                                    Q,
+                                                                    flow_area,
+                                                                    ts,
+                                                                    forward_Euler_smooth)
 
             else: # self.inflow.get_enquiry_depth() < 0.01:
                 Q = barrel_velocity = outlet_culvert_depth = 0.0
@@ -344,10 +328,6 @@ class Parallel_Boyd_box_operator(Parallel_Structure_operator):
                 barrel_velocity = self.max_velocity
                 Q = flow_area * barrel_velocity
 
-
-
             return Q, barrel_velocity, outlet_culvert_depth
         else:
             return None, None, None
-        
-        

@@ -14,10 +14,10 @@ import numpy
 class Boyd_box_operator(anuga.Structure_operator):
     """Culvert flow - transfer water from one rectangular box to another.
     Sets up the geometry of problem
-    
+
     This is the base class for culverts. Inherit from this class (and overwrite
     compute_discharge method for specific subclasses)
-    
+
     Input: minimum arguments
          domain,
          losses (scalar, list or dictionary of losses),
@@ -49,7 +49,7 @@ class Boyd_box_operator(anuga.Structure_operator):
                  structure_type='boyd_box',
                  logging=False,
                  verbose=False):
-                     
+
         anuga.Structure_operator.__init__(self,
                                           domain,
                                           end_points=end_points,
@@ -60,7 +60,7 @@ class Boyd_box_operator(anuga.Structure_operator):
                                           height=height,
                                           blockage=blockage,
                                           barrels=barrels,
-                                          diameter=None,                                         
+                                          diameter=None,
                                           apron=apron,
                                           manning=manning,
                                           enquiry_gap=enquiry_gap,
@@ -70,26 +70,26 @@ class Boyd_box_operator(anuga.Structure_operator):
                                           logging=logging,
                                           verbose=verbose)
 
-        
+
         if isinstance(losses, dict):
             self.sum_loss = sum(losses.values())
         elif isinstance(losses, list):
             self.sum_loss = sum(losses)
         else:
             self.sum_loss = losses
-        
+
         self.use_momentum_jet = use_momentum_jet
         # Preserves the old default behaviour of zeroing momentum
         self.zero_outflow_momentum = not self.use_momentum_jet
 
         self.use_velocity_head = use_velocity_head
-        
+
         self.culvert_length = self.get_culvert_length()
         self.culvert_width = self.get_culvert_width()
         self.culvert_height = self.get_culvert_height()
         self.culvert_blockage = self.get_culvert_blockage()
         self.culvert_barrels = self.get_culvert_barrels()
-        
+
         #FIXME SR: Why is this hard coded!
         self.max_velocity = 10.0
 
@@ -97,12 +97,12 @@ class Boyd_box_operator(anuga.Structure_operator):
 
 
         # Stats
-        
+
         self.discharge = 0.0
         self.velocity = 0.0
-        
+
         self.case = 'N/A'
-        
+
         # May/June 2014 -- allow 'smoothing ' of driving_energy, delta total energy, and outflow_enq_depth
         self.smoothing_timescale=0.
         self.smooth_delta_total_energy=0.
@@ -115,7 +115,7 @@ class Boyd_box_operator(anuga.Structure_operator):
         # Finally, set the smoothing timescale we actually want
         self.smoothing_timescale=smoothing_timescale
 
-        
+
         if verbose:
             print(self.get_culvert_slope())
 
@@ -149,23 +149,12 @@ class Boyd_box_operator(anuga.Structure_operator):
             self.delta_total_energy = \
                  self.inlets[0].get_enquiry_stage() - self.inlets[1].get_enquiry_stage()
 
-        # Compute 'smoothed' total energy
-        forward_Euler_smooth=True
-        if(forward_Euler_smooth):
-            # To avoid 'overshoot' we ensure ts<1.
-            if(self.domain.timestep>0.):
-                ts=old_div(self.domain.timestep,max(self.domain.timestep, self.smoothing_timescale,1.0e-06))
-            else:
-                # Without this the unit tests with no smoothing fail [since they have domain.timestep=0.]
-                # Note though the discontinuous behaviour as domain.timestep-->0. from above
-                ts=1.0
-            self.smooth_delta_total_energy=self.smooth_delta_total_energy+\
-                                    ts*(self.delta_total_energy-self.smooth_delta_total_energy)
-        else:
-            # Use backward euler -- the 'sensible' ts limitation is different in this case
-            # ts --> Inf is reasonable and corresponds to the 'nosmoothing' case
-            ts=old_div(self.domain.timestep,max(self.smoothing_timescale, 1.0e-06))
-            self.smooth_delta_total_energy = old_div((self.smooth_delta_total_energy+ts*(self.delta_total_energy)),(1.+ts))
+        forward_Euler_smooth = True
+        self.smooth_delta_total_energy, ts = total_energy(self.smooth_delta_total_energy,
+                                                        self.delta_total_energy,
+                                                        self.domain.timestep,
+                                                        self.smoothing_timescale,
+                                                        forward_Euler_smooth)
 
         if self.smooth_delta_total_energy >= 0.:
             self.inflow  = self.inlets[0]
@@ -175,8 +164,8 @@ class Boyd_box_operator(anuga.Structure_operator):
             self.inflow  = self.inlets[1]
             self.outflow = self.inlets[0]
             self.delta_total_energy = -self.smooth_delta_total_energy
-            
-            
+
+
         # Only calculate flow if there is some water at the inflow inlet.
         if self.inflow.get_enquiry_depth() > 0.01: #this value was 0.01:
 
@@ -227,24 +216,12 @@ class Boyd_box_operator(anuga.Structure_operator):
                                                 sum_loss            =self.sum_loss,
                                                 manning             =self.manning)
 
-            #
-            # Update 02/07/2014 -- using time-smoothed discharge
-            Qsign=numpy.sign(self.smooth_delta_total_energy) #(self.outflow_index-self.inflow_index) # To adjust sign of Q
-            if(forward_Euler_smooth):
-                self.smooth_Q = self.smooth_Q +ts*(Q*Qsign-self.smooth_Q)
-            else: 
-                # Try implicit euler method
-                self.smooth_Q = old_div((self.smooth_Q+ts*(Q*Qsign)),(1.+ts))
-            
-            if numpy.sign(self.smooth_Q)!=Qsign:
-                # The flow direction of the 'instantaneous Q' based on the
-                # 'smoothed delta_total_energy' is not the same as the
-                # direction of smooth_Q. To prevent 'jumping around', let's
-                # set Q to zero
-                Q=0.
-            else:
-                Q = min(abs(self.smooth_Q), Q) #abs(self.smooth_Q)
-            barrel_velocity=old_div(Q,flow_area)
+            self.smooth_Q, Q, barrel_velocity = smooth_discharge(self.smooth_delta_total_energy,
+                                                                self.smooth_Q,
+                                                                Q,
+                                                                flow_area,
+                                                                ts,
+                                                                forward_Euler_smooth)
 
         else:
             Q = barrel_velocity = outlet_culvert_depth = 0.0
@@ -262,21 +239,21 @@ class Boyd_box_operator(anuga.Structure_operator):
         return Q, barrel_velocity, outlet_culvert_depth
 
 
-        
+
 
 #=============================================================================
 # define separately so that can be imported in parallel code.
 #=============================================================================
-def boyd_box_function(width, 
-                        depth, 
+def boyd_box_function(width,
+                        depth,
                         blockage,
                         barrels,
-                        flow_width, 
+                        flow_width,
                         length,
-                        driving_energy, 
-                        delta_total_energy, 
-                        outlet_enquiry_depth, 
-                        sum_loss, 
+                        driving_energy,
+                        delta_total_energy,
+                        outlet_enquiry_depth,
+                        sum_loss,
                         manning):
 
     # intially assume the culvert flow is controlled by the inlet
@@ -284,15 +261,17 @@ def boyd_box_function(width,
     # but ensure the correct flow area and wetted perimeter are used
 
     local_debug = False
-    
+
+    #print(outlet_enquiry_depth)
+
     bf = 1 - blockage
-    
+
     if blockage >= 1.0:
         Q = barrel_velocity = outlet_culvert_depth = 0.0
         flow_area = 0.00001
         case = '100 blocked culvert'
         return Q, barrel_velocity, outlet_culvert_depth, flow_area, case
-    else:				       
+    else:
         Q_inlet_unsubmerged = 0.544*anuga.g**0.5*bf*width*barrels*driving_energy**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged
         Q_inlet_submerged = 0.702*anuga.g**0.5*bf*width*barrels*depth**0.89*driving_energy**0.61  # Flow based on Inlet Ctrl Inlet Submerged
 
@@ -324,10 +303,10 @@ def boyd_box_function(width,
         case = 'Inlet submerged Box Acts as Orifice'
 
     dcrit = (old_div(old_div(Q**2,anuga.g),(bf*width*barrels)**2))**0.333333
-    
+
     # May not need this .... check if same is done above
     outlet_culvert_depth = dcrit
-    
+
     if outlet_culvert_depth > depth:
         outlet_culvert_depth = depth  # Once again the pipe is flowing full not partfull
         flow_area = bf*width*barrels*depth  # Cross sectional area of flow in the culvert
@@ -339,9 +318,9 @@ def boyd_box_function(width,
         case = 'INLET CTRL Culvert is open channel flow we will for now assume critical depth'
     # Initial Estimate of Flow for Outlet Control using energy slope
     #( may need to include Culvert Bed Slope Comparison)
-    
+
     hyd_rad = old_div(flow_area,perimeter)
-    
+
     culvert_velocity = math.sqrt(old_div(delta_total_energy,((old_div(old_div(sum_loss,2),anuga.g)) \
                                                           +old_div((manning**2*length),hyd_rad**1.33333))))
     Q_outlet_tailwater = flow_area * culvert_velocity
@@ -368,7 +347,7 @@ def boyd_box_function(width,
                 flow_area = bf*width*barrels*outlet_culvert_depth
                 perimeter = bf*width*barrels + 2.0*outlet_culvert_depth
                 case = 'Outlet is open channel flow'
-        
+
         hyd_rad = old_div(flow_area,perimeter)
 
         # Final Outlet control velocity using tail water
@@ -381,19 +360,19 @@ def boyd_box_function(width,
 
         pass
         #FIXME(Ole): What about inlet control?
-        
+
     if  flow_area <= 0.0 :
         culv_froude = 0.0
     else:
         culv_froude=math.sqrt(old_div(Q**2*flow_width*barrels,(anuga.g*flow_area**3)))
-        
+
     if local_debug:
         anuga.log.critical('FLOW AREA = %s' % str(flow_area))
         anuga.log.critical('PERIMETER = %s' % str(perimeter))
         anuga.log.critical('Q final = %s' % str(Q))
         anuga.log.critical('FROUDE = %s' % str(culv_froude))
         anuga.log.critical('Case = %s' % case)
-        
+
     # Determine momentum at the outlet
     barrel_velocity = old_div(Q,(flow_area + old_div(anuga.velocity_protection,flow_area)))
 
@@ -401,3 +380,52 @@ def boyd_box_function(width,
 
     return Q, barrel_velocity, outlet_culvert_depth, flow_area, case
 
+def total_energy(smooth_delta_total_energy,
+                delta_total_energy,
+                timestep,
+                smoothing_timescale,
+                forward_Euler_smooth=True):
+
+    if(forward_Euler_smooth):
+        # To avoid 'overshoot' we ensure ts<1.
+        if(timestep>0.):
+            ts=old_div(timestep,max(timestep, smoothing_timescale,1.0e-06))
+        else:
+            # Without this the unit tests with no smoothing fail [since they have domain.timestep=0.]
+            # Note though the discontinuous behaviour as domain.timestep-->0. from above
+            ts=1.0
+        smooth_delta_total_energy=smooth_delta_total_energy+\
+                                ts*(delta_total_energy-smooth_delta_total_energy)
+    else:
+        # Use backward euler -- the 'sensible' ts limitation is different in this case
+        # ts --> Inf is reasonable and corresponds to the 'nosmoothing' case
+        ts=old_div(timestep,max(smoothing_timescale, 1.0e-06))
+        smooth_delta_total_energy = old_div((smooth_delta_total_energy+ts*(delta_total_energy)),(1.+ts))
+    return smooth_delta_total_energy, ts
+
+def smooth_discharge(smooth_delta_total_energy,
+                    smooth_Q,
+                    Q,
+                    flow_area,
+                    timestep,
+                    forward_Euler_smooth=True):
+    #
+    # Update 02/07/2014 -- using time-smoothed discharge
+    ts = timestep
+    Qsign=numpy.sign(smooth_delta_total_energy) #(self.outflow_index-self.inflow_index) # To adjust sign of Q
+    if(forward_Euler_smooth):
+        smooth_Q = smooth_Q +ts*(Q*Qsign-smooth_Q)
+    else:
+        # Try implicit euler method
+        smooth_Q = old_div((smooth_Q+ts*(Q*Qsign)),(1.+ts))
+
+    if numpy.sign(smooth_Q)!=Qsign:
+        # The flow direction of the 'instantaneous Q' based on the
+        # 'smoothed delta_total_energy' is not the same as the
+        # direction of smooth_Q. To prevent 'jumping around', let's
+        # set Q to zero
+        Q=0.
+    else:
+        Q = min(abs(smooth_Q), Q) #abs(self.smooth_Q)
+    barrel_velocity=old_div(Q,flow_area)
+    return smooth_Q, Q, barrel_velocity

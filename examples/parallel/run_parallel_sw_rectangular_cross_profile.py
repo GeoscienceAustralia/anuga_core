@@ -34,7 +34,7 @@ from anuga import rectangular_cross_domain
 from anuga import create_domain_from_file
 
 
-from anuga_parallel import distribute, myid, numprocs, finalize, barrier
+from anuga import distribute, myid, numprocs, finalize, barrier
 
 
 #--------------------------------------------------------------------------
@@ -82,15 +82,15 @@ else:
 # Distribute sequential domain on processor 0 to other processors
 #--------------------------------------------------------------------------
 
-if myid == 0 and verbose: print 'DISTRIBUTING DOMAIN'
+if myid == 0 and verbose: print ('DISTRIBUTING DOMAIN')
 domain = distribute(domain)
 
 #domain.smooth = False
 barrier()
 for p in range(numprocs):
     if myid == p:
-        print 'Process ID %g' %myid
-        print 'Number of triangles %g ' %domain.get_number_of_triangles()
+        print ('Process ID %g' %myid)
+        print ('Number of triangles %g ' %domain.get_number_of_triangles())
         sys.stdout.flush()
         
     barrier()
@@ -131,7 +131,7 @@ domain.dump_triangulation()
 #------------------------------------------------------------------------------
 # Evolution
 #------------------------------------------------------------------------------
-if myid == 0 and verbose: print 'EVOLVE'
+if myid == 0 and verbose: print ('EVOLVE')
 
 t0 = time.time()
 finaltime = 0.25
@@ -165,12 +165,12 @@ barrier()
 
 for p in range(numprocs):
     if myid == p:
-        print 'Process ID %g' %myid
-        print 'Number of processors %g ' %numprocs
-        print 'That took %.2f seconds' %(time.time()-t0)
-        print 'Communication time %.2f seconds'%domain.communication_time
-        print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
-        print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
+        print ('Process ID %g' %myid)
+        print ('Number of processors %g ' %numprocs)
+        print ('That took %.2f seconds' %(time.time()-t0))
+        print ('Communication time %.2f seconds'%domain.communication_time)
+        print ('Reduction Communication time %.2f seconds'%domain.communication_reduce_time)
+        print ('Broadcast time %.2f seconds'%domain.communication_broadcast_time)
 
     barrier()
 
