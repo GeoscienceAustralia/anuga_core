@@ -8,14 +8,15 @@ import copy
 import os
 import anuga.utilities.spatialInputUtil as su
 
+
 def make_nearestNeighbour_quantity_function(
-        quantity_xyValueIn,
-        domain,
-        threshold_distance = 9.0e+100,
-        background_value = 9.0e+100,
-        k_nearest_neighbours = 1,
-        method = 'average'
-    ):
+    quantity_xyValueIn,
+    domain,
+    threshold_distance=9.0e+100,
+    background_value=9.0e+100,
+    k_nearest_neighbours=1,
+    method='average'
+):
     """
     Function which makes another function, which can be used in set_quantity
     Idea: For every point x,y in the domain, we want to set a quantity based on
@@ -54,19 +55,19 @@ def make_nearestNeighbour_quantity_function(
         quantity_xyValue = quantity_xyValueIn
     else:
         # Treat the single-point case
-        quantity_xyValue = quantity_xyValueIn.reshape((1,3))
+        quantity_xyValue = quantity_xyValueIn.reshape((1, 3))
 
     # Make a function which gives us the ROW-INDEX of the nearest xy point in
     # quantity_xyValue
-    #quantity_xy_interpolator = scipy.interpolate.NearestNDInterpolator(
+    # quantity_xy_interpolator = scipy.interpolate.NearestNDInterpolator(
     #    quantity_xyValue[:,0:2],
     #    scipy.arange(len(quantity_xyValue[:,2])))
 
     # Make a function which returns k-nearest-neighbour indices + distances
-    quantity_xy_interpolator = scipy.spatial.cKDTree(quantity_xyValue[:,0:2])
+    quantity_xy_interpolator = scipy.spatial.cKDTree(quantity_xyValue[:, 0:2])
 
     # Make a function of x,y which we can pass to domain.set_quantity
-    def quant_NN_fun(x,y):
+    def quant_NN_fun(x, y):
         """
         Function to assign quantity from the nearest point in quantity_xyValue,
         UNLESS the point is more than 'threshold_distance' away from the
@@ -78,28 +79,28 @@ def make_nearestNeighbour_quantity_function(
         import scipy.spatial
         import numpy as np
 
-        x = np.asarray(x).reshape(1, -1)[0,:]
-        y = np.asarray(y).reshape(1, -1)[0,:]
+        x = np.asarray(x).reshape(1, -1)[0, :]
+        y = np.asarray(y).reshape(1, -1)[0, :]
 
         # Since ANUGA stores x,y internally in non-georeferenced coordinates,
         # we adjust them here
         xll = domain.geo_reference.xllcorner
         yll = domain.geo_reference.yllcorner
         z = np.zeros(shape=(len(x), 2))
-        z[:,0] = x+xll
-        z[:,1] = y+yll
+        z[:, 0] = x+xll
+        z[:, 1] = y+yll
 
         # This will hold the quantity values
         quantity_output = x*0. + background_value
         # Compute the index of the nearest-neighbour in quantity_xyValue
         neighbour_data = quantity_xy_interpolator.query(z,
-            k=k_nearest_neighbours)
+                                                        k=k_nearest_neighbours)
 
         # Next find indices with distance < threshold_distance
-        if(k_nearest_neighbours==1):
+        if(k_nearest_neighbours == 1):
             dist_lt_thresh = neighbour_data[0] < threshold_distance
         else:
-            dist_lt_thresh = neighbour_data[0][:,0] < threshold_distance
+            dist_lt_thresh = neighbour_data[0][:, 0] < threshold_distance
 
         dist_lt_thresh = dist_lt_thresh.nonzero()[0]
 
@@ -107,48 +108,52 @@ def make_nearestNeighbour_quantity_function(
         quantity_output = x*0 + background_value
 
         # Interpolate
-        if len(dist_lt_thresh)>0:
-          if method == 'min':
-            numerator = 9.0e+100
-            for i in range(k_nearest_neighbours):
-              if(k_nearest_neighbours==1):
-                distances = neighbour_data[0][dist_lt_thresh]
-                indices = neighbour_data[1][dist_lt_thresh]
-              else:
-                distances = neighbour_data[0][dist_lt_thresh,i]
-                indices = neighbour_data[1][dist_lt_thresh,i]
-                values = quantity_xyValue[indices,2]
-                numerator = np.minimum(numerator,values)
-            quantity_output[dist_lt_thresh] = numerator
-          elif method == 'max':
-            numerator = -9.0e+100
-            for i in range(k_nearest_neighbours):
-              if(k_nearest_neighbours==1):
-                distances = neighbour_data[0][dist_lt_thresh]
-                indices = neighbour_data[1][dist_lt_thresh]
-              else:
-                distances = neighbour_data[0][dist_lt_thresh,i]
-                indices = neighbour_data[1][dist_lt_thresh,i]
-                values = quantity_xyValue[indices,2]
-                numerator = np.maximum(numerator,values)
-            quantity_output[dist_lt_thresh] = numerator
-          else:
-            numerator = 0
-            denominator = 0
-            for i in range(k_nearest_neighbours):
-                if(k_nearest_neighbours==1):
-                    distances = neighbour_data[0][dist_lt_thresh]
-                    indices = neighbour_data[1][dist_lt_thresh]
-                else:
-                    distances = neighbour_data[0][dist_lt_thresh,i]
-                    indices = neighbour_data[1][dist_lt_thresh,i]
+        if len(dist_lt_thresh) > 0:
+            if method == 'min':
+                numerator = 9.0e+100
+                for i in range(k_nearest_neighbours):
+                    if(k_nearest_neighbours == 1):
+                        distances = neighbour_data[0][dist_lt_thresh]
+                        indices = neighbour_data[1][dist_lt_thresh]
+                        values = quantity_xyValue[indices, 2]
+                        numerator = np.minimum(numerator, values)
+                    else:
+                        distances = neighbour_data[0][dist_lt_thresh, i]
+                        indices = neighbour_data[1][dist_lt_thresh, i]
+                        values = quantity_xyValue[indices, 2]
+                        numerator = np.minimum(numerator, values)
+                quantity_output[dist_lt_thresh] = numerator
+            elif method == 'max':
+                numerator = -9.0e+100
+                for i in range(k_nearest_neighbours):
+                    if(k_nearest_neighbours == 1):
+                        distances = neighbour_data[0][dist_lt_thresh]
+                        indices = neighbour_data[1][dist_lt_thresh]
+                        values = quantity_xyValue[indices, 2]
+                        numerator = np.maximum(numerator, values)
+                    else:
+                        distances = neighbour_data[0][dist_lt_thresh, i]
+                        indices = neighbour_data[1][dist_lt_thresh, i]
+                        values = quantity_xyValue[indices, 2]
+                        numerator = np.maximum(numerator, values)
+                quantity_output[dist_lt_thresh] = numerator
+            else:
+                numerator = 0
+                denominator = 0
+                for i in range(k_nearest_neighbours):
+                    if(k_nearest_neighbours == 1):
+                        distances = neighbour_data[0][dist_lt_thresh]
+                        indices = neighbour_data[1][dist_lt_thresh]
+                    else:
+                        distances = neighbour_data[0][dist_lt_thresh, i]
+                        indices = neighbour_data[1][dist_lt_thresh, i]
 
-                inverse_distance = 1.0/(distances+1.0e-100)
-                values = quantity_xyValue[indices,2]
-                numerator += values*inverse_distance
-                denominator += inverse_distance
+                    inverse_distance = 1.0/(distances+1.0e-100)
+                    values = quantity_xyValue[indices, 2]
+                    numerator += values*inverse_distance
+                    denominator += inverse_distance
 
-            quantity_output[dist_lt_thresh] = numerator / denominator
+                quantity_output[dist_lt_thresh] = numerator / denominator
 
         return quantity_output
 
@@ -160,11 +165,11 @@ def make_nearestNeighbour_quantity_function(
 
 def composite_quantity_setting_function(poly_fun_pairs,
                                         domain,
-                                        clip_range = None,
-                                        nan_treatment = 'exception',
-                                        nan_interpolation_region_polygon = None,
-                                        default_k_nearest_neighbours = 1,
-                                        default_raster_interpolation = 'pixel',
+                                        clip_range=None,
+                                        nan_treatment='exception',
+                                        nan_interpolation_region_polygon=None,
+                                        default_k_nearest_neighbours=1,
+                                        default_raster_interpolation='pixel',
                                         verbose=True):
     """ Make a 'composite function' to set quantities -- applies different
         functions inside different polygon regions.
@@ -292,7 +297,6 @@ def composite_quantity_setting_function(poly_fun_pairs,
     import numpy
     from anuga.geometry.polygon import inside_polygon
 
-
     # Check that clip_range has the right form
     if clip_range is not None:
         if len(clip_range) != len(poly_fun_pairs):
@@ -304,13 +308,12 @@ def composite_quantity_setting_function(poly_fun_pairs,
             if clip_range[i][0] > clip_range[i][1]:
                 raise Exception('clip_range minima must be less than maxima')
 
-
-    def F(x,y):
+    def F(x, y):
         """This is the function returned by composite_quantity_setting_function
            It can be passed to set_quantity
         """
-        isSet = numpy.zeros(len(x)) # 0/1 - record if each point has been set
-        quantityVal = x*0 + numpy.nan # Function return value
+        isSet = numpy.zeros(len(x))  # 0/1 - record if each point has been set
+        quantityVal = x*0 + numpy.nan  # Function return value
 
         # Record points which evaluated to nan on their first preference
         # dataset.
@@ -324,22 +327,22 @@ def composite_quantity_setting_function(poly_fun_pairs,
         # polygon inclusion
         xll = domain.geo_reference.xllcorner
         yll = domain.geo_reference.yllcorner
-        xy_array_trans = numpy.vstack([x+xll,y+yll]).transpose()
+        xy_array_trans = numpy.vstack([x+xll, y+yll]).transpose()
 
         # Check that none of the pi polygons [except perhaps the last] is 'All'
         for i in range(lpf-1):
-            if(poly_fun_pairs[i][0]=='All'):
+            if(poly_fun_pairs[i][0] == 'All'):
                 # This is only ok if all the othe poly_fun_pairs are None
                 remaining_poly_fun_pairs_are_None = \
-                    [poly_fun_pairs[j][0] is None for j in range(i+1,lpf)]
+                    [poly_fun_pairs[j][0] is None for j in range(i+1, lpf)]
                 if(not all(remaining_poly_fun_pairs_are_None)):
                     raise Exception('Can only have the last polygon = All')
 
         # Main Loop
         # Apply the fi inside the pi
         for i in range(lpf):
-            fi = poly_fun_pairs[i][1] # The function
-            pi = poly_fun_pairs[i][0] # The polygon
+            fi = poly_fun_pairs[i][1]  # The function
+            pi = poly_fun_pairs[i][0]  # The polygon
 
             # Quick exit
             if(pi is None):
@@ -368,7 +371,7 @@ def composite_quantity_setting_function(poly_fun_pairs,
                         raise Exception(msg)
 
                     # Then we get the extent from the raster itself
-                    pi_path = su.getRasterExtent(fi,asPolygon=True)
+                    pi_path = su.getRasterExtent(fi, asPolygon=True)
 
                     if verbose:
                         print('Extracting extent from raster: ', fi)
@@ -383,8 +386,8 @@ def composite_quantity_setting_function(poly_fun_pairs,
                     pi_path = pi
 
                 # Get the insides of unset points inside pi_path
-                notSet = (isSet==0.).nonzero()[0]
-                fInds = inside_polygon(xy_array_trans[notSet,:], pi_path)
+                notSet = (isSet == 0.).nonzero()[0]
+                fInds = inside_polygon(xy_array_trans[notSet, :], pi_path)
                 fInds = notSet[fInds]
 
             if len(fInds) == 0:
@@ -412,20 +415,20 @@ def composite_quantity_setting_function(poly_fun_pairs,
                     fi_array = su.read_csv_optional_header(fi)
                     # Check the results
                     if fi_array.shape[1] != 3:
-                        print('Treated input file ' + fi +\
+                        print('Treated input file ' + fi +
                               ' as xyz array with an optional header')
                         msg = 'Array should have 3 columns -- x,y,value'
                         raise Exception(msg)
 
                     newfi = make_nearestNeighbour_quantity_function(
                         fi_array, domain,
-                        k_nearest_neighbours = default_k_nearest_neighbours)
+                        k_nearest_neighbours=default_k_nearest_neighbours)
                     quantityVal[fInds] = newfi(x[fInds], y[fInds])
 
                 else:
                     # Treating input file as a raster
                     newfi = quantityRasterFun(domain, fi,
-                        interpolation = default_raster_interpolation)
+                                              interpolation=default_raster_interpolation)
                     quantityVal[fInds] = newfi(x[fInds], y[fInds])
 
             elif type(fi) is numpy.ndarray:
@@ -433,12 +436,12 @@ def composite_quantity_setting_function(poly_fun_pairs,
                     msg = 'Array should have 3 columns -- x,y,value'
                     raise Exception(msg)
                 newfi = make_nearestNeighbour_quantity_function(fi, domain,
-                    k_nearest_neighbours = default_k_nearest_neighbours)
+                                                                k_nearest_neighbours=default_k_nearest_neighbours)
                 quantityVal[fInds] = newfi(x[fInds], y[fInds])
 
             else:
                 print('ERROR: with function from ' + fi)
-                msg='Cannot make function from type ' + str(type(fi))
+                msg = 'Cannot make function from type ' + str(type(fi))
                 raise Exception(msg)
 
             ###################################################################
@@ -449,7 +452,7 @@ def composite_quantity_setting_function(poly_fun_pairs,
             nan_inds = nan_flag.nonzero()[0]
             was_ever_nan[fInds[nan_inds]] = 1
 
-            if len(nan_inds)>0:
+            if len(nan_inds) > 0:
                 if nan_treatment == 'exception':
                     msg = 'nan values generated by the poly_fun_pair at '\
                           'index ' + str(i) + ' '\
@@ -465,16 +468,18 @@ def composite_quantity_setting_function(poly_fun_pairs,
                           'poly_fun_pair at index ' + str(i) + ' '\
                           'in composite_quantity_setting_function. ' + \
                           'They will be passed to later poly_fun_pairs'
-                    if verbose: print(msg)
+                    if verbose:
+                        print(msg)
                     not_nan_inds = (1-nan_flag).nonzero()[0]
 
-                    if len(not_nan_inds)>0:
+                    if len(not_nan_inds) > 0:
                         fInds = fInds[not_nan_inds]
                     else:
                         # All values are nan
                         msg = '( Actually all the values were nan - ' + \
                               'Are you sure they should be? Possible error?)'
-                        if verbose: print(msg)
+                        if verbose:
+                            print(msg)
                         continue
 
                 else:
@@ -520,19 +525,18 @@ def composite_quantity_setting_function(poly_fun_pairs,
                         nan_pi = su.read_polygon(nan_pi)
 
                     points_in_nan_pi = inside_polygon(
-                        xy_array_trans[possible_points_to_reint,:],
+                        xy_array_trans[possible_points_to_reint, :],
                         nan_pi)
 
-                    if len(points_in_nan_pi)>0:
+                    if len(points_in_nan_pi) > 0:
                         points_to_reinterpolate = numpy.hstack(
                             [points_to_reinterpolate,
                              possible_points_to_reint[points_in_nan_pi]])
 
-
             if verbose:
-                print('Re-interpolating ', len(points_to_reinterpolate),\
-                      ' points which were nan under their',\
-                      ' first-preference and are inside the',\
+                print('Re-interpolating ', len(points_to_reinterpolate),
+                      ' points which were nan under their',
+                      ' first-preference and are inside the',
                       ' nan_interpolation_region_polygon')
 
             if len(points_to_reinterpolate) > 0:
@@ -544,7 +548,6 @@ def composite_quantity_setting_function(poly_fun_pairs,
                 if verbose:
                     print(msg)
 
-
             # Find the interpolation points = points not needing reinterpolation
             ip = x*0 + 1
             ip[points_to_reinterpolate] = 0
@@ -555,11 +558,11 @@ def composite_quantity_setting_function(poly_fun_pairs,
             nan_ip = (quantityVal[ip] != quantityVal[ip]).nonzero()[0]
 
             if len(nan_ip) > 0:
-                print('There are ', len(nan_ip), ' points outside the ',\
+                print('There are ', len(nan_ip), ' points outside the ',
                       'nan_interpolation_region_polygon have nan values.')
                 print('The user should ensure this does not happen.')
                 print('The points have the following coordinates:')
-                print(xy_array_trans[ip[nan_ip],:])
+                print(xy_array_trans[ip[nan_ip], :])
                 msg = "There are nan points outside of " +\
                       "nan_interpolation_region_polygon, even after all " +\
                       "fall-through's"
@@ -572,10 +575,10 @@ def composite_quantity_setting_function(poly_fun_pairs,
             # x,y,z in georeferenced coordinates, whereas x,y are ANUGA
             # coordinates
             reinterp_F = make_nearestNeighbour_quantity_function(
-                numpy.vstack([xy_array_trans[ip,0], xy_array_trans[ip,1],
+                numpy.vstack([xy_array_trans[ip, 0], xy_array_trans[ip, 1],
                               quantityVal[ip]]).transpose(),
                 domain,
-                k_nearest_neighbours = default_k_nearest_neighbours)
+                k_nearest_neighbours=default_k_nearest_neighbours)
 
             # re-interpolate
             quantityVal[points_to_reinterpolate] = reinterp_F(
@@ -584,7 +587,7 @@ def composite_quantity_setting_function(poly_fun_pairs,
             isSet[points_to_reinterpolate] = 1
 
         # Check there are no remaining nan values
-        if( min(isSet) != 1):
+        if(min(isSet) != 1):
             print('Some points remain as nan, which is not allowed')
             unset_inds = (isSet != 1).nonzero()[0]
             lui = min(5, len(unset_inds))
@@ -600,6 +603,7 @@ def composite_quantity_setting_function(poly_fun_pairs,
     return F
 
 ##############################################################################
+
 
 def quantityRasterFun(domain, rasterFile, interpolation='pixel'):
     """
@@ -621,20 +625,22 @@ def quantityRasterFun(domain, rasterFile, interpolation='pixel'):
             corresponding raster values
     """
     import scipy
-    #import numpy as NearestNDInterpolator  # FIXME (Ole): What?
+    # import numpy as NearestNDInterpolator  # FIXME (Ole): What?
     import numpy as np
-    
+
     from anuga.utilities.spatialInputUtil import rasterValuesAtPoints
-    def QFun(x,y):
-        xll=domain.geo_reference.xllcorner
-        yll=domain.geo_reference.yllcorner
-        inDat=np.vstack([x+xll,y+yll]).transpose()
-        return rasterValuesAtPoints(xy=inDat,rasterFile=rasterFile,
+
+    def QFun(x, y):
+        xll = domain.geo_reference.xllcorner
+        yll = domain.geo_reference.yllcorner
+        inDat = np.vstack([x+xll, y+yll]).transpose()
+        return rasterValuesAtPoints(xy=inDat, rasterFile=rasterFile,
                                     interpolation=interpolation)
 
     return QFun
 
 #################################################################################
+
 
 def quantity_from_Pt_Pol_Data_and_Raster(Pt_Pol_Data, quantity_raster, domain):
     """
@@ -657,17 +663,18 @@ def quantity_from_Pt_Pol_Data_and_Raster(Pt_Pol_Data, quantity_raster, domain):
     """
 
     # Function to set quantity from raster
-    qFun1=quantityRasterFun(domain, rasterFile=quantity_raster)
+    qFun1 = quantityRasterFun(domain, rasterFile=quantity_raster)
 
     # List of function/polygon pairs defining the Pt_Pol_ quantity data
-    qFunChanList=[]
+    qFunChanList = []
     for i in range(len(Pt_Pol_Data)):
         qFunChanList.append([
-             Pt_Pol_Data[i][0],
-             make_nearestNeighbour_quantity_function(Pt_Pol_Data[i][1], domain)
-                              ])
+            Pt_Pol_Data[i][0],
+            make_nearestNeighbour_quantity_function(Pt_Pol_Data[i][1], domain)
+        ])
 
     #
-    qFun=composite_quantity_setting_function(qFunChanList+[['All', qFun1]], domain)
+    qFun = composite_quantity_setting_function(
+        qFunChanList+[['All', qFun1]], domain)
 
     return qFun

@@ -415,6 +415,9 @@ class Generic_Domain(object):
     def get_triangle_containing_point(self, *args, **kwargs):
         return self.mesh.get_triangle_containing_point(*args, **kwargs)
 
+    def get_triangles_inside_polygon(self, *args, **kwargs):
+        return self.mesh.get_triangles_inside_polygon(*args, **kwargs)
+
     def get_intersecting_segments(self, *args, **kwargs):
         return self.mesh.get_intersecting_segments(*args, **kwargs)
 
@@ -1074,7 +1077,8 @@ class Generic_Domain(object):
     def timestepping_statistics(self,
                                 track_speeds=False,
                                 triangle_id=None,
-                                relative_time=False):
+                                relative_time=False,
+                                time_unit='sec'):
         """Return string with time stepping statistics
 
         Optional boolean keyword track_speeds decides whether to report
@@ -1097,14 +1101,26 @@ class Generic_Domain(object):
         else:
             model_time = self.get_time()
 
-        if self.recorded_min_timestep == self.recorded_max_timestep:
-            msg += 'Time = %.4f, delta t = %.8f, steps=%d' \
-                % (model_time, self.recorded_min_timestep, self.number_of_steps)
-        elif self.recorded_min_timestep > self.recorded_max_timestep:
-            msg += 'Time = %.4f, steps=%d' % (model_time, self.number_of_steps)
+        if time_unit == 'sec':
+            pass
+        elif time_unit == 'min':
+            model_time = model_time/60
+        elif time_unit == 'hr':
+            model_time = model_time/3600
+        elif time_unit == 'day':
+            model_time = model_time/3600/24
         else:
-            msg += 'Time = %.4f, delta t in [%.8f, %.8f], steps=%d' \
-                % (model_time, self.recorded_min_timestep,
+            time_unit = 'sec'
+
+
+        if self.recorded_min_timestep == self.recorded_max_timestep:
+            msg += 'Time = %.4f (%s), delta t = %.8f (s), steps=%d' \
+                % (model_time, time_unit, self.recorded_min_timestep, self.number_of_steps)
+        elif self.recorded_min_timestep > self.recorded_max_timestep:
+            msg += 'Time = %.4f (%s), steps=%d' % (model_time, time_unit, self.number_of_steps)
+        else:
+            msg += 'Time = %.4f (%s), delta t in [%.8f, %.8f] (s), steps=%d' \
+                % (model_time, time_unit, self.recorded_min_timestep,
                    self.recorded_max_timestep, self.number_of_steps)
 
         msg += ' (%ds)' % (walltime() - self.last_walltime)

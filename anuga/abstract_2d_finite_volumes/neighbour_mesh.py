@@ -1155,6 +1155,21 @@ class Mesh(General_mesh):
         raise Exception(msg)
 
 
+    def get_triangles_inside_polygon(self, polygon):
+        """Return triangle ids for triangles whose centroid is inside given polygon
+        """
+
+        # FIXME(SR): This function is currently brute force.
+        # We should make it fast - probably based on the
+        # quad tree structure.
+        from anuga.geometry.polygon import inside_polygon
+
+        # Determine indices for polygonal region
+        points = self.get_centroid_coordinates(absolute=True)
+
+        indices = inside_polygon(points, polygon)
+
+        return indices
 
 
     def get_intersecting_segments(self, polyline,

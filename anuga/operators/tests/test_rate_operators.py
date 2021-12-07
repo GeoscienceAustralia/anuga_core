@@ -32,7 +32,7 @@ import os
 
 warnings.simplefilter("ignore")
 
-
+verbose = False
 class Test_rate_operators(unittest.TestCase):
     def setUp(self):
         pass
@@ -457,8 +457,6 @@ class Test_rate_operators(unittest.TestCase):
         Br = Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
-        verbose = True
-
         if verbose:
             print(domain.quantities['elevation'].centroid_values)
             print(domain.quantities['stage'].centroid_values)
@@ -493,6 +491,8 @@ class Test_rate_operators(unittest.TestCase):
         stage_ex = [ d,  d,   1.,  d]
 
         if verbose:
+            print("Time ", operator.get_time())
+            print("Rate ", main_rate(t))
             print(domain.quantities['elevation'].centroid_values)
             print(domain.quantities['stage'].centroid_values)
             print(domain.quantities['xmomentum'].centroid_values)
@@ -512,6 +512,8 @@ class Test_rate_operators(unittest.TestCase):
         stage_ex = [ d,  d,   1.,  d]
 
         if verbose:
+            print("Time ", operator.get_time())
+            print("Rate ", default_rate(t))
             print(domain.quantities['elevation'].centroid_values)
             print(domain.quantities['stage'].centroid_values)
             print(domain.quantities['xmomentum'].centroid_values)
@@ -525,13 +527,19 @@ class Test_rate_operators(unittest.TestCase):
         # test timestepping_statistics
         stats = operator.timestepping_statistics()
 
-        print(stats)
+
         import re
         rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
 
-        print(rr)
-        assert num.allclose(float(rr[1]), 7.0)
-        assert num.allclose(float(rr[2]), 420.0)
+        if verbose:
+            print('Operator Statistics: ',stats)
+            print('Extracted values: ',rr)
+            print('get_Q: ', operator.get_Q())
+            print('Get rate value: ', operator.get_non_spatial_rate())
+            print('Areas: ', operator.areas)
+
+        assert num.allclose(float(rr[1]), 97.0)
+        assert num.allclose(float(rr[2]), 5820.0)
 
 
     def test_rate_operator_functions_spatial(self):
@@ -993,6 +1001,6 @@ class Test_rate_operators(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_rate_operators, 'test')
+    suite = unittest.makeSuite(Test_rate_operators, 'test_rate_operator_functions_rate_default_rate')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

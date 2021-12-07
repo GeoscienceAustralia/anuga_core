@@ -2513,7 +2513,8 @@ class Domain(Generic_Domain):
     def timestepping_statistics(self,
                                 track_speeds=False,
                                 triangle_id=None,
-                                relative_time=False):
+                                relative_time=False,
+                                time_unit='sec'):
         """Return string with time stepping statistics for printing or logging
 
         Optional boolean keyword track_speeds decides whether to report
@@ -2524,8 +2525,11 @@ class Domain(Generic_Domain):
         from anuga.config import epsilon, g
 
         # Call basic machinery from parent class
-        msg = Generic_Domain.timestepping_statistics(self, track_speeds,
-                                                     triangle_id, relative_time)
+        msg = Generic_Domain.timestepping_statistics(self,
+                                                     track_speeds=track_speeds,
+                                                     triangle_id=triangle_id,
+                                                     relative_time=relative_time,
+                                                     time_unit=time_unit)
 
         if track_speeds is True:
             # qwidth determines the text field used for quantities
