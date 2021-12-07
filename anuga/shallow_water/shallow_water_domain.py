@@ -2859,6 +2859,12 @@ class Domain(Generic_Domain):
             barrier()
         return
 
+# =======================================================================
+# PETE: NEW METHODS FOR FOR PARALLEL STRUCTURES. Note that we assume the
+# first "number_of_full_[nodes|triangles]" are full [nodes|triangles]
+# For full triangles it is possible to enquire self.tri_full_flag == True
+# =======================================================================
+
     def get_number_of_full_triangles(self, *args, **kwargs):
         return self.number_of_full_triangles
 
