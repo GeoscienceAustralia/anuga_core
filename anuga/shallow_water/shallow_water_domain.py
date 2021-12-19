@@ -1668,7 +1668,7 @@ class Domain(Generic_Domain):
                 '(because computation of boundary_flux_sum is only implemented there)'
             raise_(Exception, msg)
 
-        flux_integral = self.boundary_flux_integral.boundary_flux_integral
+        flux_integral = self.boundary_flux_integral.boundary_flux_integral[0]
 
         if numprocs == 1:
             return flux_integral

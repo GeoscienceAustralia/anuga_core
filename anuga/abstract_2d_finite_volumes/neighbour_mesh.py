@@ -1137,9 +1137,9 @@ class Mesh(General_mesh):
 
         polygon = self.get_boundary_polygon()
 
-        if is_outside_polygon(point, polygon):
-            msg = 'Point %s is outside mesh' %str(point)
-            raise Exception(msg)
+        # if is_outside_polygon(point, polygon):
+        #     msg = 'Point %s is outside mesh' %str(point)
+        #     raise Exception(msg)
 
 
         V = self.get_vertex_coordinates(absolute=True)

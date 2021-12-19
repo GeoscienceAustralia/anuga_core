@@ -48,7 +48,7 @@ return an instance of Parallel_Inlet_Operator
 """
 
 def Inlet_operator(domain,
-                   poly,
+                   region,
                    Q,
                    velocity = None,
                    zero_velocity = False,
@@ -85,10 +85,14 @@ def Inlet_operator(domain,
     elif isinstance(domain, Parallel_domain) and procs == None:
         procs = list(range(0, pypar.size()))
 
-    poly = num.array(poly, dtype='d')
+    # poly can be either a line, polygon or a regions
+    if isinstance(region, anuga.Region):
+        pass
+    else:
+        region = anuga.Region(domain, poly=region, expand_polygon=True)
 
     alloc, inlet_master_proc, inlet_procs, enquiry_proc = allocate_inlet_procs(domain,
-                                                                               poly,
+                                                                               region,
                                                                                master_proc = master_proc,
                                                                                procs = procs,
                                                                                verbose = verbose)
@@ -98,13 +102,13 @@ def Inlet_operator(domain,
     if alloc:
         if verbose and myid == inlet_master_proc:
             print("Parallel Inlet Operator =================")
-            print("Poly = " + str(poly))
+            print("Poly = " + str(region.get_type()))
             print("Master Processor is P%d" %(inlet_master_proc))
             print("Processors are P%s" %(inlet_procs))
             print("=========================================")
 
         return Parallel_Inlet_operator(domain,
-                                       poly,
+                                       region,
                                        Q,
                                        velocity = velocity,
                                        zero_velocity = zero_velocity,
@@ -887,7 +891,7 @@ def __process_skew_culvert(exchange_lines, end_points, enquiry_points, apron, en
     return enquiry_points
 
 
-def allocate_inlet_procs(domain, poly, enquiry_point = None, master_proc = 0, procs = None, verbose = False):
+def allocate_inlet_procs(domain, region, enquiry_point = None, master_proc = 0, procs = None, verbose = False):
 
 
     from anuga.utilities import parallel_abstraction as pypar
@@ -909,19 +913,24 @@ def allocate_inlet_procs(domain, poly, enquiry_point = None, master_proc = 0, pr
     # Calculate the number of points of the line inside full polygon
 
     #tri_id = line_intersect(vertex_coordinates, poly)
-
-    if len(poly) == 2: # poly is a line
+    if isinstance(region, anuga.Region):
+        tri_id = region.get_indices()
+    elif len(region) == 2: # poly is a line
         if verbose : print("======================")
-        tri_id = line_intersect(vertex_coordinates, poly)
-    else: # poly is a polygon
+        tri_id = line_intersect(vertex_coordinates, region)
+    else: # region is a polygon
         if verbose : print("+++++++++++++++++++++++")
-        tris_0 = line_intersect(vertex_coordinates, [poly[0],poly[1]])
-        tris_1 = inside_polygon(domain_centroids, poly)
+        tris_0 = line_intersect(vertex_coordinates, [region[0],region[1]])
+        tris_1 = inside_polygon(domain_centroids, region)
         tri_id = num.union1d(tris_0, tris_1)
 
 
     if verbose:
-        print("P%d has %d triangles in poly %s" %(myid, len(tri_id), poly))
+        if isinstance(region, anuga.Region):
+            print("P%d has %d triangles in region %s" %(myid, len(tri_id), region.get_type()))
+        else:
+            print("P%d has %d triangles in region %s" %(myid, len(tri_id), region))
+            
 
     size = len(tri_id)
 
