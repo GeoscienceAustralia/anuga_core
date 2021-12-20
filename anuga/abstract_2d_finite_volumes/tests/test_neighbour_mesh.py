@@ -1233,6 +1233,33 @@ class Test_Mesh(unittest.TestCase):
             id = mesh.get_triangle_containing_point(point)
             assert id == i        
 
+
+    def test_get_triangles_inside_polygon(self):
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+        mesh = Mesh(points, vertices)
+        
+        mesh.check_integrity()
+            
+        polygon =[[1.0, -1.0], [1.0, 4.0], [5.0, 4.0], [5.0, -2.0]]
+        ids = mesh.get_triangles_inside_polygon(polygon)
+        assert num.allclose(ids, [1,2])
+
+        polygon =[[4.0, -1.0], [4.0, 4.0], [5.0, 4.0], [5.0, -2.0]]
+        ids = mesh.get_triangles_inside_polygon(polygon)
+        assert not ids       
+
+        
+
     def test_get_triangle_neighbours(self):
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -1850,6 +1877,6 @@ class Test_Mesh(unittest.TestCase):
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Mesh, 'test_mesh_and_neighbours')
+    suite = unittest.makeSuite(Test_Mesh, 'test_')
     runner = unittest.TextTestRunner()#verbosity=2)
     runner.run(suite)

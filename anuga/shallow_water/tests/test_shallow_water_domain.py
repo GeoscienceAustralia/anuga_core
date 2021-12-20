@@ -3489,7 +3489,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Now apply the inflow and check volumes for a range of stage values
         for stage in [2.0, 1.0, 0.5, 0.25, 0.1, 0.0]:
-            domain.time = 0.0
+            domain.set_time(0.0)
             domain.set_quantity('stage', stage)
             domain.forcing_terms = []
             domain.forcing_terms.append(Inflow(domain, rate=2.0,
@@ -3507,7 +3507,7 @@ class Test_Shallow_Water(unittest.TestCase):
         for stage in [2.0, 1.0, 0.5, 0.25, 0.1, 0.0]:
             #print stage
 
-            domain.time = 0.0
+            domain.set_time(0.0)
             domain.set_quantity('stage', stage)
             domain.forcing_terms = []
             domain.forcing_terms.append(Inflow(domain, rate=-2.0,
@@ -3526,7 +3526,7 @@ class Test_Shallow_Water(unittest.TestCase):
         for stage in [2.0, 1.0, 0.5, 0.25, 0.1, 0.0]:
             #print stage
 
-            domain.time = 0.0
+            domain.set_time(0.0)
             domain.set_quantity('stage', stage)
             domain.forcing_terms = []
             domain.forcing_terms.append(Inflow(domain, rate=2.0,
@@ -6286,7 +6286,7 @@ class Test_Shallow_Water(unittest.TestCase):
         assert num.allclose(boundary_midpoints, R)
 
         # Check spatially interpolated output at time == 1
-        domain2.time = 1
+        domain2.set_time(1)
 
         # First diagonal midpoint
         R0 = Bf.evaluate(0, 0)
@@ -6301,7 +6301,7 @@ class Test_Shallow_Water(unittest.TestCase):
         assert num.allclose(R0[0], (s1[10] + s1[15]) / 2)
 
         # Check spatially interpolated output at time == 2
-        domain2.time = 2
+        domain2.set_time(2)
 
         # First diagonal midpoint
         R0 = Bf.evaluate(0, 0)
@@ -6316,7 +6316,7 @@ class Test_Shallow_Water(unittest.TestCase):
         assert num.allclose(R0[0], (s2[10] + s2[15]) / 2)
 
         # Now check temporal interpolation
-        domain2.time = 1 + 2.0/3
+        domain2.set_time(1 + 2.0/3)
 
         # First diagonal midpoint
         R0 = Bf.evaluate(0,0)
@@ -6459,7 +6459,7 @@ class Test_Shallow_Water(unittest.TestCase):
         assert num.allclose(boundary_midpoints, R)
 
         # Check spatially interpolated output at time == 1
-        domain2.time = 1
+        domain2.set_time(1)
 
         # First diagonal midpoint
         R0 = Bf.evaluate(0, 0)
@@ -6474,7 +6474,7 @@ class Test_Shallow_Water(unittest.TestCase):
         assert num.allclose(R0[0], (s1[10] + s1[15]) / 2 + mean_stage)
 
         # Check spatially interpolated output at time == 2
-        domain2.time = 2
+        domain2.set_time(2)
 
         # First diagonal midpoint
         R0 = Bf.evaluate(0, 0)
@@ -6489,7 +6489,7 @@ class Test_Shallow_Water(unittest.TestCase):
         assert num.allclose(R0[0], (s2[10] + s2[15]) / 2 + mean_stage)
 
         #Now check temporal interpolation
-        domain2.time = 1 + 2.0/3
+        domain2.set_time(1 + 2.0/3)
 
         # First diagonal midpoint
         R0 = Bf.evaluate(0, 0)

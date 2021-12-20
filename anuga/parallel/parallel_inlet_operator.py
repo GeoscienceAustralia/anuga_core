@@ -97,6 +97,8 @@ class Parallel_Inlet_operator(Inlet_operator):
 
         self.applied_Q = 0.0
 
+        self.total_applied_volume = 0.0
+
         self.set_logging(logging)
 
         self.set_default(default)
@@ -159,13 +161,14 @@ class Parallel_Inlet_operator(Inlet_operator):
                 self.inlet.set_ymoms(0.0)
         else: #extracting too much water!
             self.inlet.set_depths(0.0)
+            volume = -current_volume
             self.applied_Q = -current_volume/timestep
             self.domain.fractional_step_volume_integral-=current_volume
             if self.zero_velocity:
                 self.inlet.set_xmoms(0.0)
                 self.inlet.set_ymoms(0.0)
 
-
+        self.total_applied_volume += volume
 
     def update_Q(self, t):
         """Virtual method allowing local modifications by writing an
@@ -224,11 +227,7 @@ class Parallel_Inlet_operator(Inlet_operator):
         # WARNING: Must be called by master proc to have any effect
 
         if self.myid == self.master_proc:
-            message = '---------------------------------------------\n'
-            message += 'Parallel Inlet report for %s:\n' % self.label
-            message += '--------------------------------------------\n'
-            message += 'Q [m^3/s]: %.2f\n' % self.applied_Q
-
+            message = self.timestepping_statistics()
             print(message)
 
 
@@ -251,8 +250,11 @@ class Parallel_Inlet_operator(Inlet_operator):
 
     def timestepping_statistics(self):
 
-        message  = '%.5f, ' % self.domain.get_time()
-        message += '%.5f, ' % self.applied_Q
+        message = '---------------------------\n'
+        message += 'Inlet report for %s:\n' % self.label
+        message += '--------------------------\n'
+        message += 'Q [m^3/s]: %.2f\n' % self.applied_Q
+        message += 'Total volume [m^3]: %.2f\n' % self.total_applied_volume
 
         return message
 

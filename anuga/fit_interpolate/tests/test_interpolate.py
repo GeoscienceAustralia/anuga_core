@@ -1838,7 +1838,7 @@ class Test_Interpolate(unittest.TestCase):
         sww.store_timestep()
         domain.set_quantity('stage', 10.0) # This is automatically limited
         # So it will not be less than the elevation
-        domain.time = 2.
+        domain.set_time(2.)
         sww.store_timestep()
 
         # Test the function

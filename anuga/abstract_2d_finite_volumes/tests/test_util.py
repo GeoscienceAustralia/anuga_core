@@ -612,7 +612,7 @@ class Test_Util(unittest.TestCase):
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
         from anuga.shallow_water.shallow_water_domain import Domain
 
-        finaltime = 1200
+        duration = 1200
         filename = 'test_file_function'
 
         #Create a domain to hold test grid
@@ -631,7 +631,7 @@ class Test_Util(unittest.TestCase):
 
         #print points
         start = time.mktime(time.strptime('2000', '%Y'))
-        domain.starttime = start
+        domain.set_starttime(start)
 
 
         #Store structure
@@ -640,7 +640,7 @@ class Test_Util(unittest.TestCase):
         #Compute artificial time steps and store
         dt = 60  #One minute intervals
         t = 0.0
-        while t <= finaltime:
+        while t <= duration:
             #Compute quantities
             f1 = lambda x,y: 3*x - y**2 + 2*t + 4
             domain.set_quantity('stage', f1)
@@ -652,15 +652,15 @@ class Test_Util(unittest.TestCase):
             domain.set_quantity('ymomentum', f3)
 
             #Store and advance time
-            domain.time = t
+            domain.set_time(t+start)
             domain.store_timestep()
             t += dt
 
 
         interpolation_points = [[0,-20], [1,0], [0,1], [1.1, 3.14], [10,-12.5]]
       
-        #Deliberately set domain.starttime to too early
-        domain.starttime = start - 1
+        #Deliberately set domain starttime to too early
+        domain.set_starttime(start - 1)
 
         #Create file function
         F = file_function(filename + '.sww', domain,
@@ -668,15 +668,15 @@ class Test_Util(unittest.TestCase):
                           interpolation_points = interpolation_points)
 
         #Check that FF updates fixes domain starttime
-        assert num.allclose(domain.starttime, start)
+        assert num.allclose(domain.get_starttime(), start)
 
         #Check that domain.starttime isn't updated if later
-        domain.starttime = start + 1
+        domain.set_starttime(start + 1)
         F = file_function(filename + '.sww', domain,
                           quantities = domain.conserved_quantities,
                           interpolation_points = interpolation_points)
         assert num.allclose(domain.starttime, start+1)
-        domain.starttime = start
+        domain.set_starttime(start)
 
 
         #Check linear interpolation in time
@@ -730,7 +730,7 @@ class Test_Util(unittest.TestCase):
         #Check that domain.starttime isn't updated if later than file starttime but earlier
         #than file end time
         delta = 23
-        domain.starttime = start + delta
+        domain.set_starttime(start + delta)
         F = file_function(filename + '.sww', domain,
                           quantities = domain.conserved_quantities,
                           interpolation_points = interpolation_points)
@@ -817,7 +817,7 @@ class Test_Util(unittest.TestCase):
             domain.set_quantity('ymomentum', f3)
 
             #Store and advance time
-            domain.time = t
+            domain.set_time(t)
             domain.store_timestep()
             t += dt
 

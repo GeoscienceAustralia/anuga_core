@@ -774,7 +774,7 @@ class Culvert_flow_general(object):
             outlet.momentum[0].value = outlet_mom_x
             outlet.momentum[1].value = outlet_mom_y                    
 
-            if int(domain.time*100) % 100 == 0:
+            if int(domain.get_time()*100) % 100 == 0:
 
                 if self.log_filename is not None:                
                     s = 'T=%.5f, Culvert Discharge = %.3f f'\
@@ -1601,7 +1601,7 @@ class Culvert_flow_energy(object):
             outlet.momentum[0].value = outlet_mom_x
             outlet.momentum[1].value = outlet_mom_y                    
 
-            if int(domain.time*100) % 100 == 0:
+            if int(domain.get_time()*100) % 100 == 0:
                 s = 'T=%.5f, Culvert Discharge = %.3f f'\
                     %(time, Q)
                 s += ' Depth= %0.3f  Momentum = (%0.3f, %0.3f)'\

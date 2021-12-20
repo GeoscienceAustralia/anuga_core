@@ -500,7 +500,7 @@ def distribute_mesh(domain, verbose=False, debug=False, parameters=None):
 
 ##     return l2g
 
-def mpicmd(script_name):
+def mpicmd(script_name, numprocs=3):
 
     extra_options = '--oversubscribe'
 
@@ -508,4 +508,4 @@ def mpicmd(script_name):
     if platform.system() == 'Windows':
         extra_options = ' '
 
-    return "mpiexec -np %d  %s  python %s" % (3, extra_options, script_name)  
+    return "mpiexec -np %d  %s  python %s" % (numprocs, extra_options, script_name)  

@@ -101,7 +101,6 @@ class Test_sww_Interrogate(unittest.TestCase):
         for t in domain.evolve(yieldstep=1, finaltime = 50):
             pass
 
-
         # Check maximal runup
         runup, location, max_time = get_maximum_inundation_data(swwfile, return_time=True)
         if verbose:
@@ -132,6 +131,9 @@ class Test_sww_Interrogate(unittest.TestCase):
         # Check runup restricted to a polygon
         p = [[50,1], [99,1], [99,40], [50,40]]
         runup, location = get_maximum_inundation_data(swwfile, polygon=p)
+
+        if verbose:
+            print('Runup, location:',runup, location, max_time)
         #runup = get_maximum_inundation_elevation(swwfile, polygon=p)
         #location = get_maximum_inundation_location(swwfile, polygon=p)
         #print runup, location, max_time
@@ -168,11 +170,9 @@ class Test_sww_Interrogate(unittest.TestCase):
         # Cleanup
         os.remove(swwfile)
         
-
-
         #------------- Now the same with georeferencing
 
-        domain.time=0.0
+        domain.set_time(0.0)
         E = 308500
         N = 6189000
         #E = N = 0
@@ -187,6 +187,8 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         # Check maximal runup        
         runup, location = get_maximum_inundation_data(swwfile)
+        if verbose:
+            print('Runup, location:',runup, location, max_time)
         #print 'Runup, location', runup, location, max_time
         
         assert num.allclose(runup, 3.33333325386)
@@ -195,6 +197,8 @@ class Test_sww_Interrogate(unittest.TestCase):
                
         # Check runup in restricted time interval
         runup, location = get_maximum_inundation_data(swwfile, time_interval=[0,9])
+        if verbose:
+            print('Runup, location:',runup, location, max_time)
         #print 'Runup, location:',runup, location, max_time
         
         assert num.allclose(runup, 2.66666674614)
@@ -203,6 +207,8 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         # Check final runup
         runup, location = get_maximum_inundation_data(swwfile, time_interval=[45,50])
+        if verbose:
+            print('Runup, location:',runup, location, max_time)        
         #print 'Runup, location:',runup, location, max_time
 
         assert num.allclose(runup, 3.33333325386)
@@ -212,14 +218,14 @@ class Test_sww_Interrogate(unittest.TestCase):
         # Check runup restricted to a polygon
         p = num.array([[50,1], [99,1], [99,40], [50,40]], num.int) + num.array([E, N], num.int)
         runup, location = get_maximum_inundation_data(swwfile, polygon=p)
+        if verbose:
+            print('Runup, location:',runup, location, max_time)
         #print runup, location, max_time
 
         assert num.allclose(runup, 3.33333325386) 
         assert num.allclose(location, [53.333332+E, 33.333332+N])  
         #assert num.allclose(max_time, 11.0)     
             
-
-
         # Cleanup
         os.remove(swwfile)
 
@@ -339,7 +345,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         #------------- Now the same with georeferencing
 
-        domain.time=0.0
+        domain.set_time(0.0)
         E = 308500
         N = 6189000
         #E = N = 0
@@ -1069,7 +1075,7 @@ class Test_sww_Interrogate(unittest.TestCase):
  
  
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_sww_Interrogate, 'test')
+    suite = unittest.makeSuite(Test_sww_Interrogate, 'test_')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
                

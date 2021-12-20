@@ -42,7 +42,6 @@ class Rate_operator(Operator,Region):
                  polygon=None,
                  center=None,
                  radius=None,
-                 relative_time=True,
                  default_rate=0.0,
                  description = None,
                  label = None,
@@ -67,7 +66,6 @@ class Rate_operator(Operator,Region):
         #------------------------------------------
         self.monitor = monitor
         self.factor = factor
-        self.relative_time = relative_time
 
         self.rate_callable = False
         self.rate_spatial = False
@@ -96,7 +94,7 @@ class Rate_operator(Operator,Region):
         if self.indices is []:
             return
 
-        t = self.domain.get_time(relative_time=self.relative_time)
+        t = self.domain.get_time()
         timestep = self.domain.get_timestep()
         factor = self.factor
         indices = self.indices
