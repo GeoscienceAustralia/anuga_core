@@ -813,7 +813,7 @@ def get_triangle_containing_point(p, point, search_order=None):
     x = p.x
     y = p.y
 
-    from anuga.geometry.polygon import is_outside_polygon,is_inside_polygon
+    from anuga.geometry.polygon import is_inside_polygon
 
     if search_order is None:
         # Estimate a good search order by finding the distance to the first
@@ -835,6 +835,39 @@ def get_triangle_containing_point(p, point, search_order=None):
 
     msg = 'Point %s not found within a triangle' %str(point)
     raise Exception(msg)
+
+def get_triangle_near_point(p, point, tolerance=1.0e20):
+    """
+    Function to get the index of a triangle nearest to a point (as measured by distance to 
+    centroid of the triangle).
+
+    @param p Object containing mesh vertex information (e.g. from plot_utils.get_output)
+    @param point A single point (absolute units)
+    @param tolerance Raise an exception if "nearest" point is further that tolerance from the domain
+    
+    @return The index of the triangle "nearest" to point.
+    """
+
+    import numpy
+
+    pc = get_centroids(p)
+    
+    xll_corner = p.xllcorner
+    yll_corner = p.yllcorner
+
+    X = pc.x[:] + xll_corner
+    Y = pc.y[:] + yll_corner
+    
+    distance2 = (X - point[0])**2 + (Y - point[1])**2
+    
+    tid = numpy.argmin(distance2)
+
+    if distance2[tid] > tolerance**2:
+        msg = 'Point %s further than %g (m) from domain' % (str(point), tolerance)
+        raise Exception(msg)
+    else:
+        return tid
+
 
 
 def get_triangle_lookup_function(pv):

@@ -1233,6 +1233,39 @@ class Test_Mesh(unittest.TestCase):
             id = mesh.get_triangle_containing_point(point)
             assert id == i        
 
+    def test_get_triangle_near_point(self):
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+        mesh = Mesh(points, vertices)
+        
+        mesh.check_integrity()
+
+        id = mesh.get_triangle_near_point([3.0, 5.0])
+        assert id == 3
+
+        try:
+            id = mesh.get_triangle_near_point([3.0, 5.0], tolerance=1.0)
+        except:
+            pass
+        else:
+            msg = 'Should have caught point further than tolerance from centroid'            
+            raise Exception(msg)
+
+        id = mesh.get_triangle_near_point([-1.0, -1.0])
+        assert id == 0       
+
+        for i, point in enumerate(mesh.get_centroid_coordinates()):
+            id = mesh.get_triangle_near_point(point)
+            assert id == i
 
     def test_get_triangles_inside_polygon(self):
 
