@@ -21,7 +21,7 @@ from anuga import Quantity
 from anuga.operators.base_operator import Operator
 from anuga import Region
 
-class Rate_operator(Operator,Region):
+class Rate_operator(Operator):
     """
     Add water at certain rate (ms^{-1} = vol/Area/sec) over a
     triangles specified by
@@ -38,6 +38,7 @@ class Rate_operator(Operator,Region):
                  domain,
                  rate=0.0,
                  factor=1.0,
+                 region=None,
                  indices=None,
                  polygon=None,
                  center=None,
@@ -52,8 +53,17 @@ class Rate_operator(Operator,Region):
 
         Operator.__init__(self, domain, description, label, logging, verbose)
 
+        #-----------------------------------------------------
+        # Make sure region is actually an instance of a region
+        # Otherwise create a new region based on the other 
+        # input arguments
+        #-----------------------------------------------------
+        if isinstance(region,Region):
+            region.set_verbose(verbose)
+            self.region = region
 
-        Region.__init__(self, domain,
+        else:
+            self.region = Region(domain,
                         indices=indices,
                         polygon=polygon,
                         center=center,
@@ -64,6 +74,8 @@ class Rate_operator(Operator,Region):
         #------------------------------------------
         # Local variables
         #------------------------------------------
+        self.indices = self.region.indices
+
         self.monitor = monitor
         self.factor = factor
 
