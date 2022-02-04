@@ -16,8 +16,8 @@ import numpy as np
 #------------------------------------------------------------------------------
 length = 10.
 width = 10.
-dx = dy = 0.04           # Resolution: Length of subdivisions on both axes
-center = (length/2, width/2)
+dx = dy = 0.02           # Resolution: Length of subdivisions on both axes
+center = (length/2 * 0.7, width/2)
 
 # Create a domain with named boundaries "left", "right", "top" and "bottom"
 domain = anuga.rectangular_cross_domain(int(length/dx), int(width/dy),
@@ -34,19 +34,19 @@ domain.set_name('spiral_wall')               # Output name
 
 def wall_polygon():
 
-    N = 20
+    N = 50
     c = center
     
     r_outer = 2
     r_inner = 1.8    
-    width = 0.4
+    width = 0.2
     
     outer_vertices = []
     inner_vertices = []    
     
     # Outer wall edge
-    for i in range(N):
-        theta = i * 2 * pi / N
+    for i in range(1, N):
+        theta = i * (2+0.3) * pi / N
         a = theta * 0.5  # Spiral expansion term
         
         x = r_outer * a * cos(theta) + c[0]
@@ -55,7 +55,7 @@ def wall_polygon():
         
         vector = (x - c[0], y - c[1])
         distance = sqrt(vector[0]**2 + vector[1]**2)
-        if distance > 0:
+        if distance > 0 and i > 6:
             x = (distance - width) * vector[0]/distance + c[0]
             y = (distance - width) * vector[1]/distance + c[1]
             
@@ -78,7 +78,7 @@ def topography(x, y):
     # Define wall for given polygon
     
     P = wall_polygon()
-    z = x * 0.1    # Slightly sloping surface
+    z = y * 0.0    # Flat surface # Sloping surface in the y direction
     c = center     # Center            
     N = len(x)
     
@@ -90,7 +90,7 @@ def topography(x, y):
 
     # Raise elevation for points in polygon        
     for i in indices:
-        z[i] = 2.0                
+        z[i] += 1.0                
             
     return z            
             
@@ -177,7 +177,7 @@ class Inflow:
 drain = Inflow(center=center, radius=0.2, flow=0.0)  # Zero initially             
 domain.forcing_terms.append(drain)
 
-source = Inflow(center=(9.3, 2.7), radius=0.2, flow=1.0)             
+source = Inflow(center=(9.4, 6.0), radius=0.2, flow=1.0)             
 domain.forcing_terms.append(source)
                     
 #------------------------------------------------------------------------------
@@ -191,9 +191,9 @@ domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
-for t in domain.evolve(yieldstep=0.2, finaltime=30):
+for t in domain.evolve(yieldstep=0.2, finaltime=40):
     domain.print_timestepping_statistics()
 
-    if domain.get_time() >= 2 and drain.flow == 0.0:
+    if domain.get_time() >= 14 and drain.flow == 0.0:
         print('Turning drain on')
         drain.flow = -2.5        
