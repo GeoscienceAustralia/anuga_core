@@ -8,7 +8,7 @@ Water flowing along a spiral wall and draining into a hole in the centre.
 #------------------------------------------------------------------------------
 from math import acos, cos, sin, sqrt, pi
 import anuga
-
+import matplotlib.pyplot as plt
 
 #------------------------------------------------------------------------------
 # Setup computational domain
@@ -33,10 +33,12 @@ domain.set_name('spiral_wall')               # Output name
 
 def wall_polygon():
 
-    N = 10
+    N = 20
     c = center
-    r_inner = 1.5
-    r_outer = 2     
+    
+    r_outer = 2
+    r_inner = 1.8    
+    width = 0.4
     
     outer_vertices = []
     inner_vertices = []    
@@ -44,22 +46,30 @@ def wall_polygon():
     # Outer wall edge
     for i in range(N):
         theta = i * 2 * pi / N
-        a = theta * 0.5
+        a = theta * 0.5  # Spiral expansion term
         
         x = r_outer * a * cos(theta) + c[0]
         y = r_outer * a * sin(theta) + c[1]       
         outer_vertices.append((x, y))
         
-    # Inner wall edge
-    for i in range(N):
-        theta = i * 2 * pi / N
-        a = theta * 0.5        
-        
-        x = r_inner * a * cos(theta) + c[0]
-        y = r_inner * a * sin(theta) + c[1]       
-        inner_vertices.append((x, y))        
-        
-    return outer_vertices + inner_vertices    
+        vector = (x - c[0], y - c[1])
+        distance = sqrt(vector[0]**2 + vector[1]**2)
+        if distance > 0:
+            x = (distance - width) * vector[0]/distance + c[0]
+            y = (distance - width) * vector[1]/distance + c[1]
+            
+            inner_vertices.append((x, y))        
+    
+    # Diagnostic plotting only
+    xos = [x[0] for x in outer_vertices]
+    yos = [x[1] for x in outer_vertices]    
+    
+    xis = [x[0] for x in inner_vertices]
+    yis = [x[1] for x in inner_vertices]        
+    plt.plot(xos, yos, 'bo', xis, yis, 'g*')        
+    #plt.show()
+
+    return outer_vertices + inner_vertices[::-1]  # Reverse inner points to make polygon sensible
     
 
 def topography(x, y):
@@ -67,19 +77,15 @@ def topography(x, y):
     # Define wall for given polygon
     
     P = wall_polygon()
-    z = x * 0.   # Flat surface
-    c = (5, 5)     # Center            
+    z = x * 0.1    # Slightly sloping surface
+    c = center     # Center            
     N = len(x)
     for i in range(N):
 
         # Raise elevation for points in polygon
-        if anuga.geometry.polygon.is_inside_polygon((x[i], y[i]), P, closed=True, verbose=False):
-            z[i] = 2                
+        if anuga.geometry.polygon.is_inside_polygon((x[i], y[i]), P, closed=False, verbose=False):
+            z[i] = 2.0                
             
-        # Mark the center
-        #if (x[i] - c[0])**2 + (y[i] - c[1])**2 < 0.02:
-        #    z[i] = 4                        
-        
     return z            
             
 
@@ -92,6 +98,8 @@ domain.set_quantity('stage',                 # Dry bed
 #------------------------------------------------------------------------------
 # Setup forcing functions
 #------------------------------------------------------------------------------                    
+
+# FIXME: Let's use the built in Inflow class from ANUGA
 class Inflow:
     """Class Inflow - general 'rain and drain' forcing term.
     
@@ -118,8 +126,6 @@ class Inflow:
                                                      # specified area 
     """
     
-    # FIXME (OLE): Add a polygon as an alternative.
-    # FIXME (OLE): Generalise to all quantities
 
     def __init__(self, 
                  center=None, radius=None,
@@ -163,19 +169,26 @@ class Inflow:
             self.quantity[k] += flow                    
                     
 
-drain = Inflow(center=center, radius=0.0707, flow=-3.0)             
+drain = Inflow(center=center, radius=0.2, flow=0.0)  # Zero initially             
 domain.forcing_terms.append(drain)
+
+source = Inflow(center=(9.3, 2.7), radius=0.2, flow=1.0)             
+domain.forcing_terms.append(source)
                     
 #------------------------------------------------------------------------------
 # Setup boundary conditions
 #------------------------------------------------------------------------------
-Bi = anuga.Dirichlet_boundary([0.4, 0, 0])         # Inflow
+#Bi = anuga.Dirichlet_boundary([0.4, 0, 0])         # Inflow
 Br = anuga.Reflective_boundary(domain)             # Solid reflective walls
 
-domain.set_boundary({'left': Br, 'right': Bi, 'top': Br, 'bottom': Br})
+domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
-for t in domain.evolve(yieldstep=0.2, finaltime=5):
+for t in domain.evolve(yieldstep=0.2, finaltime=30):
     domain.print_timestepping_statistics()
+
+    if domain.get_time() >= 2 and drain.flow == 0.0:
+        print('Turning drain on')
+        drain.flow = -2.5        
