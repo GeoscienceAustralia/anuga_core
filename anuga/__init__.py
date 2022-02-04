@@ -133,9 +133,9 @@ else:
     from anuga.parallel.parallel_api import collect_value
     from anuga.parallel.parallel_api import mpicmd
 
-    if pypar_available:
-        from anuga.parallel.parallel_api import sequential_distribute_dump
-        from anuga.parallel.parallel_api import sequential_distribute_load
+
+    from anuga.parallel.parallel_api import sequential_distribute_dump
+    from anuga.parallel.parallel_api import sequential_distribute_load
          
 
     # -----------------------------
