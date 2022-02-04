@@ -233,7 +233,7 @@ else:
 
   def send(x, destination, use_buffer=False, vanilla=False, tag=1,
     bypass=False):
-    """ This wrap uses Send for sendig if bypass is True, else send
+    """ This wrap uses Send for sending if bypass is True, else send
     """
     if bypass:
       comm.Send(np.ascontiguousarray(x), dest=destination, tag=tag)
@@ -249,16 +249,16 @@ else:
     """
     if len(recvDict) > MAX_COMBUF:
       raise ValueError(
-        "send_recv_via_dicts: Number of recv communication buffers > %d" %
-        MAX_COMBUF)
+        "send_recv_via_dicts: Requested number of recv communication buffers %d > %d" %
+        (len(recvDict), MAX_COMBUF) )
     if len(sendDict) > MAX_COMBUF:
       raise ValueError(
-        "send_recv_via_dicts: Number of send communication buffers > %d" %
-        MAX_COMBUF)
-    requests = []
+        "send_recv_via_dicts: Requested number of send communication buffers %d > %d" %
+        (len(sendDict), MAX_COMBUF) )
     if len(recvDict) != len(sendDict):
       raise NotImplementedError("len(recvDict) != len(sendDict): %d %d" %
       len(recvDict), len(sendDict))
+
 
     skeys = list(sendDict.keys())
     skeys.sort()
