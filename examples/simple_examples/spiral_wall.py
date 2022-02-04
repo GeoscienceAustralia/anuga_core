@@ -9,6 +9,7 @@ Water flowing along a spiral wall and draining into a hole in the centre.
 from math import acos, cos, sin, sqrt, pi
 import anuga
 import matplotlib.pyplot as plt
+import numpy as np
 
 #------------------------------------------------------------------------------
 # Setup computational domain
@@ -80,11 +81,16 @@ def topography(x, y):
     z = x * 0.1    # Slightly sloping surface
     c = center     # Center            
     N = len(x)
-    for i in range(N):
+    
+    # Identify points inside polygon
+    x = x.reshape(-1, 1)    
+    y = y.reshape(-1, 1)
+    points = np.concatenate((x, y), axis=1)    
+    indices = anuga.geometry.polygon.inside_polygon(points, P, closed=True, verbose=False)
 
-        # Raise elevation for points in polygon
-        if anuga.geometry.polygon.is_inside_polygon((x[i], y[i]), P, closed=False, verbose=False):
-            z[i] = 2.0                
+    # Raise elevation for points in polygon        
+    for i in indices:
+        z[i] = 2.0                
             
     return z            
             
@@ -98,7 +104,6 @@ domain.set_quantity('stage',                 # Dry bed
 #------------------------------------------------------------------------------
 # Setup forcing functions
 #------------------------------------------------------------------------------                    
-
 # FIXME: Let's use the built in Inflow class from ANUGA
 class Inflow:
     """Class Inflow - general 'rain and drain' forcing term.
