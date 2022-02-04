@@ -30,11 +30,11 @@ import numpy as num
 from numpy import array
 from numpy import int
 
-verbose = True
+verbose = False
 
 
 def topography(x, y):
-    return old_div(-x,2)
+    return -x/2.0
 
 
 def xcoord(x, y):
@@ -98,12 +98,12 @@ def distibute_three_processors():
         vertices, triangles, boundary, triangles_per_proc, quantities = pmesh_divide_metis(
             domain, numprocs)
 
-        if False:
+        if verbose:
             print_seq_values(vertices, triangles, triangles_per_proc)
 
         true_seq_values = get_true_seq_values(metis_version=metis_version)
         
-        if False:
+        if verbose:
             print("True Seq Values = \\")
             pprint(true_seq_values)
 
@@ -119,7 +119,7 @@ def distibute_three_processors():
                                 quantities, triangles_per_proc)
 
 
-        if False: 
+        if verbose: 
             print('submesh_values = \\')
             print_submesh_values(submesh)
 
@@ -183,7 +183,7 @@ def distibute_three_processors():
     #--------------------------------
     if myid == 0:
 
-        if False:
+        if verbose:
             print('extract_values = \\')
             print_extract_submesh(points, triangles, ghost_recv_dict, \
                                   full_send_dict, tri_map, node_map, ghost_layer_width)
@@ -205,7 +205,7 @@ def distibute_three_processors():
 
     if myid == 1:
 
-        if False:
+        if verbose:
             print("rec_submesh_1 = \\")
             print_rec_submesh_1(points, triangles, ghost_recv_dict, full_send_dict, \
                          tri_map, node_map, ghost_layer_width)
@@ -213,7 +213,7 @@ def distibute_three_processors():
 
         true_values = get_true_rec_submesh_1(metis_version)
 
-        if False:
+        if verbose:
             print('true_rec_values_1 = \\')
             pprint(true_values)
 
@@ -230,14 +230,14 @@ def distibute_three_processors():
 
     if myid == 2:
 
-        if False:
+        if verbose:
             print("rec_submesh_2 = \\")
             print_rec_submesh_2(points, triangles, ghost_recv_dict, full_send_dict, \
                          tri_map, node_map, ghost_layer_width)
 
         true_values = get_true_rec_submesh_2(metis_version)
 
-        if False:
+        if verbose:
             print('true_rec_values_2 = \\')
             pprint(true_values)
 

@@ -284,6 +284,10 @@ class Region(object):
         else:
             return self.indices
 
+    def set_verbose(self, verbose=True):
+
+        self.verbose = verbose
+
 class Centroid_field(object):
 
     def __init__(self, region, value, verbose=None):

@@ -28,7 +28,26 @@ from anuga.utilities.terminal_width import terminal_width
 
 #List files that should be excluded from the testing process.
 #E.g. if they are known to fail and under development
-exclude_files = []
+exclude_files = ['test_distribute_mesh.py',
+                # 'test_failure.py',
+                 'test_parallel_boyd_box_operator.py',
+                 'test_parallel_boyd_box_operator_consistency.py',
+                 'test_parallel_dist_settings.py',
+                 'test_parallel_distribute_domain.py',
+                 'test_parallel_distribute_mesh.py',
+                 'test_parallel_file_boundary.py',
+                 'test_parallel_frac_op.py',
+                 #'test_parallel_inlet_operator.py',
+                 #'test_parallel_inlet_operator_with_region.py',
+                 'test_parallel_riverwall.py',
+                 'test_parallel_shallow_domain.py',
+                 'test_parallel_sw_flow.py',
+                 'test_parallel_sw_flow_de0.py',
+                 'test_parallel_sw_flow_low_froude_0.py',
+                 'test_parallel_sw_flow_low_froude_1.py',
+                 'test_sequential_dist_sw_flow.py']
+
+#exclude_files = []
 
 # Directories that should not be searched for test files.
 exclude_dirs = ['documentation',               # Special requirements

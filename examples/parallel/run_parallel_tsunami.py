@@ -17,12 +17,14 @@ import time
 import sys
 import numpy
 import anuga
+import math
 
 
 #----------------------------
 # Parallel interface
 #---------------------------
-from anuga_parallel import distribute, myid, numprocs, finalize, barrier
+from anuga import distribute, myid, numprocs, finalize, barrier
+from anuga import rectangular_cross_domain
 
 
 #--------------------------------------------------------------------------
@@ -56,11 +58,11 @@ verbose = True
 if myid == 0:
     length = 2.0
     width = 2.0
-    dx = dy = 0.005
-    #dx = dy = 0.00125
-    dx = dy  = 0.05
-    domain = anuga.rectangular_cross_domain(int(length/dx), int(width/dy),
-                                              len1=length, len2=width, verbose=verbose)
+    sqrtN = int(math.sqrt(numprocs))*4
+    domain = rectangular_cross_domain(sqrtN, sqrtN,
+                                      len1=length, len2=width, 
+                                      origin=(-length/2, -width/2), 
+                                      verbose=verbose)
 
     #---------------------------------------
     # Add these two commands to use Gareth's
@@ -87,10 +89,10 @@ else:
 t1 = time.time()
 
 if myid == 0 :
-    print 'Create sequential domain ',t1-t0
+    print ('Create sequential domain ',t1-t0)
 
 if myid == 0 and verbose: 
-    print 'DISTRIBUTING DOMAIN'
+    print ('DISTRIBUTING DOMAIN')
     sys.stdout.flush()
     
 barrier()
@@ -104,10 +106,10 @@ domain = distribute(domain,verbose=verbose)
 t2 = time.time()
 
 if myid == 0 :
-    print 'Distribute domain ',t2-t1
+    print ('Distribute domain ',t2-t1)
     
-if myid == 0 : print 'after parallel domain'
-
+if myid == 0 : print ('after parallel domain'
+)
 
 #Boundaries
 T = anuga.Transmissive_boundary(domain)
@@ -118,7 +120,7 @@ D = anuga.Dirichlet_boundary([-0.1*scale_me,0.,0.])
 domain.set_boundary( {'left': R, 'right': D, 'bottom': R, 'top': R, 'ghost': None} )
 
 
-if myid == 0 : print 'after set_boundary'
+if myid == 0 : print ('after set_boundary')
 
 
 yieldstep = 0.2
@@ -142,18 +144,18 @@ for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
 for p in range(numprocs):
     barrier()
     if myid == p:
-        print 50*'='
-        print 'P%g' %(myid)
-        print 'That took %.2f seconds' %(time.time()-t0)
-        print 'Communication time %.2f seconds'%domain.communication_time
-        print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
-        print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
+        print (50*'=')
+        print ('P%g' %(myid))
+        print ('That took %.2f seconds' %(time.time()-t0))
+        print ('Communication time %.2f seconds'%domain.communication_time)
+        print ('Reduction Communication time %.2f seconds'%domain.communication_reduce_time)
+        print ('Broadcast time %.2f seconds'%domain.communication_broadcast_time)
         sys.stdout.flush()
 
 
 if domain.number_of_global_triangles < 50000:
     if myid == 0 :
-        print 'Create dump of triangulation for %g triangles' % domain.number_of_global_triangles
+        print ('Create dump of triangulation for %g triangles' % domain.number_of_global_triangles)
     domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)
 
 finalize()

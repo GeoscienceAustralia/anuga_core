@@ -185,10 +185,10 @@ class Test_set_w_uh_vh_operators(unittest.TestCase):
         
         # Apply Operator
         domain.timestep = 2.0
-        domain.time = 1.0
+        domain.set_time(1.0)
         operator()
 
-        t = domain.time
+        t = domain.get_time()
         stage_ex = [ t,  t,   1.,  t]
         xmom_ex = [ t+1,  t+1,   7.,  t+1]
         ymom_ex = [ t+2,  t+2,   8.,  t+2]

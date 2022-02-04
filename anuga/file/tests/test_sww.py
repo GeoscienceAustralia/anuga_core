@@ -85,7 +85,7 @@ class Test_sww(unittest.TestCase):
         #Evolution
         #domain.tight_slope_limiters = 1
         for t in domain.evolve(yieldstep = yiel, finaltime = 0.05):
-            #domain.write_time()
+            #domain.print_timestepping_statistics()
             pass
 
         #print boundary
@@ -94,6 +94,7 @@ class Test_sww(unittest.TestCase):
         filename = domain.datadir + os.sep + domain.get_name() + '.sww'
         domain2 = load_sww_as_domain(filename, None, fail_if_NaN=False,
                                         verbose=self.verbose)
+
 
         # Unfortunately we loss the boundaries top, bottom, left and right,
         # they are now all lumped into "exterior"
@@ -137,15 +138,9 @@ class Test_sww(unittest.TestCase):
 
 
         for t in domain.evolve(yieldstep = yiel, finaltime = final):
-            #domain.write_time()
+            #domain.print_timestepping_statistics()
             pass
 
-        #BUT since domain2 gets time hacked back to 0:
-        
-
-        # Load_sww_as_domain sets starttime for domain2 to the last time in the 
-        # sww file (which is the value of time+domain.starttime
-        final2 = final - domain2.get_starttime()
 
         domain2.smooth = False
         domain2.store = False
@@ -162,9 +157,8 @@ class Test_sww(unittest.TestCase):
 
         domain2.check_integrity()
         
-
-        for t in domain2.evolve(yieldstep = yiel, finaltime = final2):
-            #domain2.write_time()
+        for t in domain2.evolve(yieldstep = yiel, finaltime = final):
+            #domain2.print_timestepping_statistics()
             pass
 
         ###################
@@ -191,15 +185,16 @@ class Test_sww(unittest.TestCase):
 
     def test_sww2domain_starttime(self):
         """
-        Crete a domain and set a starttime, store and read back in 
+        Create a domain and set a starttime, store and read back in 
         using load_sww_as_domain
         """
 
         yiel=0.01
         points, vertices, boundary = rectangular(10,10)
 
-        #print "=============== boundary rect ======================="
-        #print boundary
+        verbose=False
+        if verbose:
+            print ("=============== boundary rect =======================")
 
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
@@ -210,6 +205,8 @@ class Test_sww(unittest.TestCase):
         domain.default_order=2
         
         domain.set_starttime(200.0)
+
+
         #Bed-slope and friction
         domain.set_quantity('elevation', lambda x,y: old_div(-x,3))
         domain.set_quantity('friction', 0.1)
@@ -234,17 +231,26 @@ class Test_sww(unittest.TestCase):
         #Evolution
         #domain.tight_slope_limiters = 1
 
+        if verbose:
+            print("evolve domain")
         
-        for t in domain.evolve(yieldstep = yiel, finaltime = 0.05):
-            #domain.write_time()
+        duration1 = 0.05
+
+        for t in domain.evolve(yieldstep = yiel, duration = duration1):
+            #domain.print_timestepping_statistics()
             pass
 
         #print boundary
 
 
+        if verbose:
+            print("read in domain")
         filename = domain.datadir + os.sep + domain.get_name() + '.sww'
         domain2 = load_sww_as_domain(filename, None, fail_if_NaN=False,
                                         verbose=self.verbose)
+
+        if verbose:
+            print("After load_sww_as_domain")
 
         # Unfortunately we loss the boundaries top, bottom, left and right,
         # they are now all lumped into "exterior"
@@ -281,14 +287,14 @@ class Test_sww(unittest.TestCase):
         ######################################x
         from time import sleep
 
-        final = .1
+        duration2 = .1
         domain.set_quantity('friction', 0.1)
         domain.store = False
         domain.set_boundary({'exterior': Bd, 'left' : Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
 
 
-        for t in domain.evolve(yieldstep = yiel, finaltime = final):
-            #domain.write_time()
+        for t in domain.evolve(yieldstep = yiel, duration = duration2):
+            #domain.print_timestepping_statistics()
             pass
 
         #BUT since domain2 gets time hacked back to 0:
@@ -297,7 +303,7 @@ class Test_sww(unittest.TestCase):
         # Load_sww_as_domain sets starttime for domain2 to the last time in the 
         # sww file (which is the value of time+domain.starttime
         # finaltime 
-        final2 = final - 0.05
+        final2 = 200 + duration1 + duration2
 
         domain2.smooth = False
         domain2.store = False
@@ -315,7 +321,7 @@ class Test_sww(unittest.TestCase):
         domain2.check_integrity()
 
         for t in domain2.evolve(yieldstep = yiel, finaltime = final2):
-            #domain2.write_time()
+            #domain2.print_timestepping_statistics()
             pass
 
         ###################
@@ -882,6 +888,6 @@ class Test_sww(unittest.TestCase):
 #################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_sww, 'test')
+    suite = unittest.makeSuite(Test_sww, 'test_')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

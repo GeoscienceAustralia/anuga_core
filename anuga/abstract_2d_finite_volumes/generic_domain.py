@@ -317,7 +317,7 @@ class Generic_Domain(object):
         self.recorded_min_timestep = self.recorded_max_timestep = 0.0
         self.starttime = starttime  # Physical starttime if any
         self.evolve_starttime = 0.0
-        self.time = self.evolve_starttime
+        self.relative_time= self.evolve_starttime
         self.timestep = 0.0
         self.flux_timestep = 0.0
         self.evolved_called = False
@@ -414,6 +414,9 @@ class Generic_Domain(object):
 
     def get_triangle_containing_point(self, *args, **kwargs):
         return self.mesh.get_triangle_containing_point(*args, **kwargs)
+
+    def get_triangles_inside_polygon(self, *args, **kwargs):
+        return self.mesh.get_triangles_inside_polygon(*args, **kwargs)
 
     def get_intersecting_segments(self, *args, **kwargs):
         return self.mesh.get_intersecting_segments(*args, **kwargs)
@@ -554,21 +557,30 @@ class Generic_Domain(object):
 
     set_cfl = set_CFL
 
-    def set_time(self, time=0.0, relative=True):
+
+    def set_relative_time(self, time = 0.0):
+        """Set internal relative time"""
+
+        self.relative_time = time
+
+
+    def get_relative_time(self):
+        """Set internal relative time"""
+
+        return self.relative_time
+
+
+    def set_time(self, time=0.0):
         """Set the model time (seconds)."""
 
-        if relative:
-            self.time = time
-        else:
-            self.time = time - self.starttime
+        self.relative_time = time - self.starttime
 
-    def get_time(self, relative_time=True):
-        """Get the absolute or relative model time (seconds)."""
 
-        if relative_time:
-            return self.time
-        else:
-            return self.starttime + self.time
+    def get_time(self):
+        """Get the absolute model time (seconds)."""
+
+        return self.starttime + self.relative_time
+
 
     def set_zone(self, zone):
         """Set zone for domain."""
@@ -584,7 +596,7 @@ class Generic_Domain(object):
 
         import datetime
 
-        absolute_time = self.get_time(relative_time=False)
+        absolute_time = self.get_time()
 
         return datetime.datetime.utcfromtimestamp(absolute_time).strftime('%c')
 
@@ -1065,7 +1077,8 @@ class Generic_Domain(object):
     def timestepping_statistics(self,
                                 track_speeds=False,
                                 triangle_id=None,
-                                relative_time=True):
+                                relative_time=False,
+                                time_unit='sec'):
         """Return string with time stepping statistics
 
         Optional boolean keyword track_speeds decides whether to report
@@ -1083,16 +1096,31 @@ class Generic_Domain(object):
 
         msg = ''
 
-        model_time = self.get_time(relative_time=relative_time)
+        if relative_time:
+            model_time = self.get_relative_time()
+        else:
+            model_time = self.get_time()
+
+        if time_unit == 'sec':
+            pass
+        elif time_unit == 'min':
+            model_time = model_time/60
+        elif time_unit == 'hr':
+            model_time = model_time/3600
+        elif time_unit == 'day':
+            model_time = model_time/3600/24
+        else:
+            time_unit = 'sec'
+
 
         if self.recorded_min_timestep == self.recorded_max_timestep:
-            msg += 'Time = %.4f, delta t = %.8f, steps=%d' \
-                % (model_time, self.recorded_min_timestep, self.number_of_steps)
+            msg += 'Time = %.4f (%s), delta t = %.8f (s), steps=%d' \
+                % (model_time, time_unit, self.recorded_min_timestep, self.number_of_steps)
         elif self.recorded_min_timestep > self.recorded_max_timestep:
-            msg += 'Time = %.4f, steps=%d' % (model_time, self.number_of_steps)
+            msg += 'Time = %.4f (%s), steps=%d' % (model_time, time_unit, self.number_of_steps)
         else:
-            msg += 'Time = %.4f, delta t in [%.8f, %.8f], steps=%d' \
-                % (model_time, self.recorded_min_timestep,
+            msg += 'Time = %.4f (%s), delta t in [%.8f, %.8f] (s), steps=%d' \
+                % (model_time, time_unit, self.recorded_min_timestep,
                    self.recorded_max_timestep, self.number_of_steps)
 
         msg += ' (%ds)' % (walltime() - self.last_walltime)
@@ -1435,12 +1463,14 @@ class Generic_Domain(object):
                    'been called')
             raise Exception(msg)
 
+
         self.starttime = float(time)
-        self.set_time(0.0)
+        # starttime is now the origin for relative_time
+        self.set_relative_time(0.0)
 
     def set_evolve_starttime(self, time):
         self.evolve_starttime = float(time)
-        self.set_time(self.evolve_starttime)
+        self.set_relative_time(self.evolve_starttime)
 
     def get_evolve_starttime(self):
         return self.evolve_starttime
@@ -1584,11 +1614,11 @@ class Generic_Domain(object):
         # set evolve_starttime to match actual time
 
         if skip_initial_step:
-            self.set_evolve_starttime(self.get_time())
+            self.set_evolve_starttime(self.get_relative_time())
 
         # This can happen on the first call to evolve
-        if self.get_time() != self.get_evolve_starttime():
-            self.set_time(self.get_evolve_starttime())
+        if self.get_relative_time() != self.get_evolve_starttime():
+            self.set_relative_time(self.get_evolve_starttime())
 
         if yieldstep is None:
             yieldstep = self.evolve_max_timestep
@@ -1789,7 +1819,7 @@ class Generic_Domain(object):
         # self.update_special_conditions()
 
         # Update time
-        self.set_time(self.get_time() + self.timestep)
+        self.set_relative_time(self.get_relative_time() + self.timestep)
 
         # Update ghosts
         if self.ghost_layer_width < 4:
@@ -1843,7 +1873,7 @@ class Generic_Domain(object):
         # Save initial initial conserved quantities values
         self.backup_conserved_quantities()
 
-        initial_time = self.get_time()
+        initial_time = self.get_relative_time()
 
         ######
         # First euler step
@@ -1871,7 +1901,7 @@ class Generic_Domain(object):
         # self.update_special_conditions()
 
         # Update time
-        self.set_time(self.time + self.timestep)
+        self.set_relative_time(self.relative_time+ self.timestep)
 
         # Update ghosts
         self.update_ghosts()
@@ -1910,7 +1940,7 @@ class Generic_Domain(object):
         # self.update_special_conditions()
 
         # Set substep time
-        self.set_time(initial_time + self.timestep * 0.5)
+        self.set_relative_time(initial_time + self.timestep * 0.5)
 
         # Update ghosts
         self.update_ghosts()
@@ -1954,7 +1984,7 @@ class Generic_Domain(object):
         # self.update_special_conditions()
 
         # Set new time
-        self.set_time(initial_time + self.timestep)
+        self.set_relative_time(initial_time + self.timestep)
 
         # Update ghosts
         # self.update_ghosts()

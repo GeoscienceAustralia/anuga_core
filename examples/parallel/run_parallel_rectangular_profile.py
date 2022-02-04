@@ -3,7 +3,7 @@
 
    run using command like:
 
-   mpiexec -np m python run_parallel_sw_merimbula.py
+   mpiexec -np m python run_parallel_sw_rectangular_cross.py
 
    where m is the number of processors to be used.
    
@@ -30,11 +30,11 @@ from anuga import Dirichlet_boundary
 from anuga import Time_boundary
 from anuga import Transmissive_boundary
 
-from anuga import rectangular_cross
+from anuga import rectangular_cross_domain
 from anuga import create_domain_from_file
 
 
-from anuga_parallel import distribute, myid, numprocs, finalize, barrier
+from anuga import distribute, myid, numprocs, finalize, barrier
 
 
 #--------------------------------------------------------------------------
@@ -42,11 +42,10 @@ from anuga_parallel import distribute, myid, numprocs, finalize, barrier
 #--------------------------------------------------------------------------
 
 #mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0
-mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
+#mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
 #mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
 
-finaltime = 500
-yieldstep = 50
+
 verbose = True
 
 #--------------------------------------------------------------------------
@@ -62,14 +61,20 @@ class Set_Stage:
         self.h  = h
 
     def __call__(self, x, y):
-        return self.h*((x>self.x0)&(x<self.x1)) + 1.0
+        return self.h*((x>self.x0)&(x<self.x1))
 
 #--------------------------------------------------------------------------
 # Setup Domain only on processor 0
 #--------------------------------------------------------------------------
 if myid == 0:
-    domain = create_domain_from_file(mesh_filename)
-    domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))
+    length = 2.0
+    width = 2.0
+    dx = dy = 0.01
+    domain = rectangular_cross_domain(int(length/dx), int(width/dy),
+                                              len1=length, len2=width)
+
+    domain.set_quantity('elevation', -1.0)
+    domain.set_quantity('stage', Set_Stage(h=2.0))
 else:
     domain = None
 
@@ -86,7 +91,8 @@ for p in range(numprocs):
     if myid == p:
         print ('Process ID %g' %myid)
         print ('Number of triangles %g ' %domain.get_number_of_triangles())
-
+        sys.stdout.flush()
+        
     barrier()
 
 
@@ -94,10 +100,12 @@ domain.set_flow_algorithm(2.0)
 
 if myid == 0:
     domain.print_algorithm_parameters()
-
+    sys.stdout.flush()
+    
 barrier()
 
-domain.set_name('meribula')
+domain.set_name('rectangular_cross')
+domain.set_store(False)
 
 #------------------------------------------------------------------------------
 # Setup boundary conditions
@@ -105,15 +113,20 @@ domain.set_name('meribula')
 #------------------------------------------------------------------------------
 Br = Reflective_boundary(domain)      # Solid reflective wall
 
-domain.set_boundary({'exterior' :Br, 'open' :Br})
+domain.set_boundary({'top' :Br, 'bottom' :Br, 'left' :Br, 'right' :Br, 'ghost' : None })
 
-
+"""
 barrier()
 for p in range(numprocs):
     if myid == p:
         print domain.boundary_statistics()
-
+        sys.stdout.flush()
+        
     barrier()
+"""
+
+
+domain.dump_triangulation()
 
 #------------------------------------------------------------------------------
 # Evolution
@@ -121,51 +134,34 @@ for p in range(numprocs):
 if myid == 0 and verbose: print ('EVOLVE')
 
 t0 = time.time()
+finaltime = 0.25
+yieldstep = 0.05
 
-
-s = """
 for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
     if myid == 0:
         domain.write_time()
-"""
 
 
-# Profiling
-import cProfile
-prof_file = 'evolve-prof'+ str(numprocs) + '_' + str(myid) + '.dat'
-cProfile.run(s,prof_file)
+
+## Profiling
+#import cProfile
+#prof_file = 'evolve-prof'+ str(numprocs) + '_' + str(myid) + '.dat'
+#cProfile.run(s,prof_file)
 
 
 barrier()
 
-if myid == 0:
-    import pstats
-    p = pstats.Stats(prof_file)
-    #p.sort_stats('cumulative').print_stats(25)
-
-
-    p.sort_stats('time').print_stats(25)
-
-barrier()
-
-
-if myid == 1:
-    import pstats
-    p = pstats.Stats(prof_file)
-    #p.sort_stats('cumulative').print_stats(25)
-
-
-    p.sort_stats('time').print_stats(25)
-
-    #p.print_stats()
-
-# Run evolve loop
-#result = profiler.runctx(s, globals(), locals())
-
-#result.dump_stats("profile." + str(numprocs) + "." + str(myid) + ".dat")
-#profiler.close()
-
-barrier()
+#for id in range(numprocs):
+#    if myid == id:
+#        import pstats
+#        p = pstats.Stats(prof_file)
+#        #p.sort_stats('cumulative').print_stats(25)
+#        p.sort_stats('time').print_stats(25)
+#        sys.stdout.flush
+#
+#    barrier()
+#
+#barrier()
 
 for p in range(numprocs):
     if myid == p:

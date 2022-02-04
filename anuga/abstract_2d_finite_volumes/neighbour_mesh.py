@@ -1132,15 +1132,7 @@ class Mesh(General_mesh):
         # because I needed it for diagnostics.
         # We should make it fast - probably based on the
         # quad tree structure.
-        from anuga.geometry.polygon import is_outside_polygon,\
-             is_inside_polygon
-
-        polygon = self.get_boundary_polygon()
-
-        if is_outside_polygon(point, polygon):
-            msg = 'Point %s is outside mesh' %str(point)
-            raise Exception(msg)
-
+        from anuga.geometry.polygon import is_inside_polygon
 
         V = self.get_vertex_coordinates(absolute=True)
 
@@ -1155,6 +1147,45 @@ class Mesh(General_mesh):
         raise Exception(msg)
 
 
+    def get_triangle_near_point(self, point, tolerance=1.0e20):
+        """
+        Function to get the index of the triangle nearest to a point (as measured by distance to 
+        centroid of the triangles).
+
+        @param point A single point (absolute units)
+        @param tolerance Raise an exception if "nearest" point is further that tolerance from the domain
+        
+        @return The index of the triangle "nearest" to point.
+        """
+
+        C = self.get_centroid_coordinates(absolute=True)
+        
+        distance2 = (C[:,0] - point[0])**2 + (C[:,1] - point[1])**2
+        
+        tid = num.argmin(distance2)
+
+        if distance2[tid] > tolerance**2:
+            msg = 'Point %s further than %g (m) from domain' % (str(point), tolerance)
+            raise Exception(msg)
+        else:
+            return tid
+
+
+    def get_triangles_inside_polygon(self, polygon):
+        """Return triangle ids for triangles whose centroid is inside given polygon
+        """
+
+        # FIXME(SR): This function is currently brute force.
+        # We should make it fast - probably based on the
+        # quad tree structure.
+        from anuga.geometry.polygon import inside_polygon
+
+        # Determine indices for polygonal region
+        points = self.get_centroid_coordinates(absolute=True)
+
+        indices = inside_polygon(points, polygon)
+
+        return indices
 
 
     def get_intersecting_segments(self, polyline,

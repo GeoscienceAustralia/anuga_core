@@ -13,13 +13,11 @@ from anuga.utilities.parallel_abstraction import size, rank, get_processor_name
 from anuga.utilities.parallel_abstraction import finalize, send, receive, reduce
 from anuga.utilities.parallel_abstraction import pypar_available, barrier
 
-
+from anuga.parallel.sequential_distribute import sequential_distribute_dump
+from anuga.parallel.sequential_distribute import sequential_distribute_load
 
 # ANUGA parallel engine (only load if pypar can)
 if pypar_available:
-    from anuga.parallel.sequential_distribute import sequential_distribute_dump
-    from anuga.parallel.sequential_distribute import sequential_distribute_load
-
     from anuga.parallel.distribute_mesh  import send_submesh
     from anuga.parallel.distribute_mesh  import rec_submesh
     from anuga.parallel.distribute_mesh  import extract_submesh
@@ -500,7 +498,7 @@ def distribute_mesh(domain, verbose=False, debug=False, parameters=None):
 
 ##     return l2g
 
-def mpicmd(script_name):
+def mpicmd(script_name, numprocs=3):
 
     extra_options = '--oversubscribe'
 
@@ -508,4 +506,4 @@ def mpicmd(script_name):
     if platform.system() == 'Windows':
         extra_options = ' '
 
-    return "mpiexec -np %d  %s  python %s" % (3, extra_options, script_name)  
+    return "mpiexec -np %d  %s  python %s" % (numprocs, extra_options, script_name)  

@@ -75,7 +75,7 @@ class Parallel_domain(Domain):
                         number_of_full_triangles=number_of_full_triangles,
                         geo_reference=geo_reference, #) #jj added this
                         ghost_layer_width = ghost_layer_width)
-        
+
 
         self.parallel = True
 
@@ -113,7 +113,7 @@ class Parallel_domain(Domain):
 
 
     def set_name(self, name):
-        """Assign name based on processor number 
+        """Assign name based on processor number
         """
 
         if name.endswith('.sww'):
@@ -144,7 +144,7 @@ class Parallel_domain(Domain):
         """We must send the information from the full cells and
         receive the information for the ghost cells
         """
-            
+
         generic_comms.communicate_ghosts_asynchronous(self, quantities)
         #generic_comms.communicate_ghosts_blocking(self)
 
@@ -170,50 +170,19 @@ class Parallel_domain(Domain):
             import anuga.utilities.sww_merge as merge
 
             global_name = join(self.get_datadir(),self.get_global_name())
-            
+
             merge.sww_merge_parallel(global_name,self.numproc,verbose,delete_old)
 
         # make sure all the merge completes on processor 0 before other
         # processors complete (like when finalize is forgotten in main script)
-        
+
         pypar.barrier()
-        
+
     def write_time(self):
 
         if self.processor == 0:
             Domain.write_time(self)
 
-
-# =======================================================================
-# PETE: NEW METHODS FOR FOR PARALLEL STRUCTURES. Note that we assume the 
-# first "number_of_full_[nodes|triangles]" are full [nodes|triangles]
-# For full triangles it is possible to enquire self.tri_full_flag == True
-# =======================================================================
-
-    def get_number_of_full_triangles(self, *args, **kwargs):
-        return self.number_of_full_triangles_tmp
-
-    def get_full_centroid_coordinates(self, *args, **kwargs):
-        C = self.mesh.get_centroid_coordinates(*args, **kwargs)
-        return C[:self.number_of_full_triangles_tmp, :]
-
-    def get_full_vertex_coordinates(self, *args, **kwargs):
-        V = self.mesh.get_vertex_coordinates(*args, **kwargs)
-        return V[:3*self.number_of_full_triangles_tmp,:]
-
-    def get_full_triangles(self, *args, **kwargs):
-        T = self.mesh.get_triangles(*args, **kwargs)
-        return T[:self.number_of_full_triangles_tmp,:]
-
-    def get_full_nodes(self, *args, **kwargs):
-        N = self.mesh.get_nodes(*args, **kwargs)
-        return N[:self.number_of_full_nodes_tmp,:]
-
-    def get_tri_map(self):
-        return self.tri_map
-
-    def get_inv_tri_map(self):
-        return self.inv_tri_map
 
     '''
     Outputs domain triangulation, full triangles are shown in green while ghost triangles are shown in blue.
@@ -234,7 +203,7 @@ class Parallel_domain(Domain):
         vertices = self.get_vertex_coordinates()
         full_mask = num.repeat(self.tri_full_flag == 1, 3)
         ghost_mask = num.repeat(self.tri_full_flag == 0, 3)
-        
+
         myid = pypar.rank()
         numprocs = pypar.size()
 
@@ -251,7 +220,7 @@ class Parallel_domain(Domain):
             fy[0] = vertices[full_mask,1]
             gx[0] = vertices[ghost_mask,0]
             gy[0] = vertices[ghost_mask,1]
-            
+
             for i in range(1,numprocs):
                 fx[i] = pypar.receive(i)
                 fy[i] = pypar.receive(i)
@@ -261,7 +230,7 @@ class Parallel_domain(Domain):
             # Plot full triangles
             for i in range(0, numprocs):
                 n = int(old_div(len(fx[i]),3))
-                            
+
                 triang = num.array(list(range(0,3*n)))
                 triang.shape = (n, 3)
                 plt.triplot(fx[i], fy[i], triang, 'g-', linewidth = 0.5)
@@ -283,5 +252,3 @@ class Parallel_domain(Domain):
             pypar.send(vertices[full_mask,1], 0)
             pypar.send(vertices[ghost_mask,0], 0)
             pypar.send(vertices[ghost_mask,1], 0)
-            
-

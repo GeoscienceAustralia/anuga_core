@@ -48,14 +48,19 @@ class Inlet_operator(anuga.Operator):
 
         self.applied_Q = 0.0
 
+        self.total_applied_volume = 0.0
+
         self.set_default(default)
 
         self.activate_logging()
 
+        #print('Setting up inlet operator')
 
     def __call__(self):
 
         timestep = self.domain.get_timestep()
+
+        #print('Timestep', timestep)
 
         t = self.domain.get_time()
 
@@ -63,6 +68,10 @@ class Inlet_operator(anuga.Operator):
         # Need to run global command on all processors
         current_volume = self.inlet.get_total_water_volume()
         total_area = self.inlet.get_area()
+
+
+        #print(current_volume)
+        #print(total_area)
 
         assert current_volume >= 0.0
 
@@ -74,6 +83,7 @@ class Inlet_operator(anuga.Operator):
         Q = 0.5*(Q1+Q2)
         volume = Q*timestep
 
+        #print(volume)
         #print volume
 
         #print Q, volume
@@ -81,11 +91,12 @@ class Inlet_operator(anuga.Operator):
         # store last discharge
         self.applied_Q = Q
 
-
+        #print(self.domain.fractional_step_volume_integral)
 
         # Distribute positive volume so as to obtain flat surface otherwise
         # just pull water off to have a uniform depth.
         if volume >= 0.0 :
+            #print('volume>=0.0')
             self.inlet.set_stages_evenly(volume)
             self.domain.fractional_step_volume_integral+=volume
             if self.velocity is not None:
@@ -95,6 +106,7 @@ class Inlet_operator(anuga.Operator):
             if self.zero_velocity:
                 self.inlet.set_xmoms(0.0)
                 self.inlet.set_ymoms(0.0)
+
         elif current_volume + volume >= 0.0 :
             depth = (current_volume + volume)/total_area
             self.inlet.set_depths(depth)
@@ -104,7 +116,8 @@ class Inlet_operator(anuga.Operator):
                 self.inlet.set_ymoms(0.0)
         else: #extracting too much water!
             self.inlet.set_depths(0.0)
-
+            volume = -current_volume
+            self.applied_Q = -current_volume/timestep
             self.domain.fractional_step_volume_integral-=current_volume
             self.applied_Q = - current_volume/timestep
             if self.zero_velocity:
@@ -113,7 +126,7 @@ class Inlet_operator(anuga.Operator):
 
             #msg =  'Requesting too much water to be removed from an inlet! \n'
             #msg += 'current_water_volume = %5.2e Increment volume = %5.2e' % (current_volume, volume)
-
+        self.total_applied_volume += volume
 
 
     def update_Q(self, t):
@@ -172,8 +185,14 @@ class Inlet_operator(anuga.Operator):
         message += 'Inlet report for %s:\n' % self.label
         message += '--------------------------\n'
         message += 'Q [m^3/s]: %.2f\n' % self.applied_Q
+        message += 'Total volume [m^3]: %.2f\n' % self.total_applied_volume
 
         return message
+
+    def print_timestepping_statisitics(self):
+
+        message = self.timestepping_statistics()
+        print(message)
 
 
     def set_default(self, default=None):
@@ -223,7 +242,6 @@ class Inlet_operator(anuga.Operator):
 
         return value
 
-
     def set_Q(self, Q):
 
         self.Q = Q
@@ -232,7 +250,14 @@ class Inlet_operator(anuga.Operator):
 
         return self.Q
 
-
     def get_inlet(self):
 
         return self.inlet
+
+    def get_applied_Q(self):
+
+        return self.applied_Q
+
+    def get_total_applied_volume(self):
+
+        return self.total_applied_volume

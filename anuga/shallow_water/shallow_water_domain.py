@@ -1668,7 +1668,7 @@ class Domain(Generic_Domain):
                 '(because computation of boundary_flux_sum is only implemented there)'
             raise_(Exception, msg)
 
-        flux_integral = self.boundary_flux_integral.boundary_flux_integral
+        flux_integral = self.boundary_flux_integral.boundary_flux_integral[0]
 
         if numprocs == 1:
             return flux_integral
@@ -2436,7 +2436,7 @@ class Domain(Generic_Domain):
         # evolve loop but we do it here to ensure the values are ok for storage.
         self.distribute_to_vertices_and_edges()
 
-        if self.store is True and self.get_time() == 0.0:
+        if self.store is True and self.get_relative_time() == 0.0:
             self.initialise_storage()
 
 
@@ -2513,7 +2513,8 @@ class Domain(Generic_Domain):
     def timestepping_statistics(self,
                                 track_speeds=False,
                                 triangle_id=None,
-                                relative_time=True):
+                                relative_time=False,
+                                time_unit='sec'):
         """Return string with time stepping statistics for printing or logging
 
         Optional boolean keyword track_speeds decides whether to report
@@ -2524,8 +2525,11 @@ class Domain(Generic_Domain):
         from anuga.config import epsilon, g
 
         # Call basic machinery from parent class
-        msg = Generic_Domain.timestepping_statistics(self, track_speeds,
-                                                     triangle_id, relative_time)
+        msg = Generic_Domain.timestepping_statistics(self,
+                                                     track_speeds=track_speeds,
+                                                     triangle_id=triangle_id,
+                                                     relative_time=relative_time,
+                                                     time_unit=time_unit)
 
         if track_speeds is True:
             # qwidth determines the text field used for quantities
@@ -2854,6 +2858,12 @@ class Domain(Generic_Domain):
 
             barrier()
         return
+
+# =======================================================================
+# PETE: NEW METHODS FOR FOR PARALLEL STRUCTURES. Note that we assume the
+# first "number_of_full_[nodes|triangles]" are full [nodes|triangles]
+# For full triangles it is possible to enquire self.tri_full_flag == True
+# =======================================================================
 
     def get_number_of_full_triangles(self, *args, **kwargs):
         return self.number_of_full_triangles

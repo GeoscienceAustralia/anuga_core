@@ -59,7 +59,19 @@ class Set_stage(Set_quantity):
         # updated
         #------------------------------------------
         coord_v = self.domain.vertex_coordinates
+
+        if isinstance(self.indices, list):
+            if not self.indices:
+                return
+
+        if isinstance(self.indices, num.ndarray):
+            if self.indices.size == 0:
+                return
+
+        #print('init ', type(self.indices), self.indices)
+
         ids = self.indices
+        
         if ids is None:
             self.v_x = coord_v[:,0].reshape((-1,3))
             self.v_y = coord_v[:,1].reshape((-1,3))
@@ -85,10 +97,15 @@ class Set_stage(Set_quantity):
         otherwise apply for the specific indices
         """
 
-        if self.indices is []:
-            return
+        if isinstance(self.indices, list):
+            if not self.indices:
+                return
 
+        if isinstance(self.indices, num.ndarray):
+            if self.indices.size == 0:
+                return
 
+        #print('call ', type(self.indices), self.indices)
 
         #value = self.get_value()
         
