@@ -506,4 +506,4 @@ def mpicmd(script_name, numprocs=3):
     if platform.system() == 'Windows':
         extra_options = ' '
 
-    return "mpiexec -np %d  %s  python %s" % (numprocs, extra_options, script_name)  
+    return "mpiexec -np %d  %s  python -m mpi4py %s" % (numprocs, extra_options, script_name)  
