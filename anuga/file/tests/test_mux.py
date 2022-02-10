@@ -1,6 +1,6 @@
-from builtins import zip
-from builtins import map
-from builtins import range
+#from builtins import zip
+#from builtins import map
+#from builtins import range
 import unittest
 import tempfile
 import numpy as num
@@ -88,7 +88,7 @@ class Test_Mux(unittest.TestCase):
         for i, q in enumerate(quantities): 
             quantities_init[i] = ensure_numeric(quantities_init[i])
             #print "HA_init", HA_init
-            q_time = num.zeros((time_step_count, points_num), float)
+            q_time = num.zeros((time_step_count, points_num), num.float64)
             for time in range(time_step_count):
                 q_time[time,:] = quantities_init[i] #* time * 4
             
