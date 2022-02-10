@@ -28,7 +28,6 @@ from pprint import pprint, pformat
 
 import numpy as num
 from numpy import array
-from numpy import int
 
 verbose = False
 
