@@ -137,8 +137,8 @@ def intersection(line0, line1, rtol=1.0e-5, atol=1.0e-8):
 
     # FIXME (Ole): Write this in C
 
-    line0 = ensure_numeric(line0, num.float)
-    line1 = ensure_numeric(line1, num.float)
+    line0 = ensure_numeric(line0, float)
+    line1 = ensure_numeric(line1, float)
 
     x0 = line0[0, 0]
     y0 = line0[0, 1]
@@ -212,8 +212,8 @@ def NEW_C_intersection(line0, line1):
         status == 4: Lines are parallel. Value set to None.
     """
 
-    line0 = ensure_numeric(line0, num.float)
-    line1 = ensure_numeric(line1, num.float)
+    line0 = ensure_numeric(line0, float)
+    line1 = ensure_numeric(line1, float)
 
     status, value = _intersection(line0[0, 0], line0[0, 1],
                                   line0[1, 0], line0[1, 1],
@@ -232,7 +232,7 @@ def polygon_overlap(triangles, polygon, verbose=False):
 
     M = old_div(triangles.shape[0], 3)  # Number of triangles
 
-    indices = num.zeros(M, num.int)
+    indices = num.zeros(M, int)
 
     count = _polygon_overlap(polygon, triangles, indices)
 
@@ -252,7 +252,7 @@ def not_polygon_overlap(triangles, polygon, verbose=False):
 
     M = old_div(triangles.shape[0], 3)  # Number of triangles
 
-    indices = num.zeros(M, num.int)
+    indices = num.zeros(M, int)
 
     count = _polygon_overlap(polygon, triangles, indices)
 
@@ -272,7 +272,7 @@ def line_intersect(triangles, line, verbose=False):
 
     M = old_div(triangles.shape[0], 3)  # Number of triangles
 
-    indices = num.zeros(M, num.int)
+    indices = num.zeros(M, int)
 
     count = _line_intersect(line, triangles, indices)
 
@@ -301,7 +301,7 @@ def not_line_intersect(triangles, line, verbose=False):
 
     M = old_div(triangles.shape[0], 3)  # Number of triangles
 
-    indices = num.zeros(M, num.int)
+    indices = num.zeros(M, int)
 
     count = _line_intersect(line, triangles, indices)
 
@@ -358,7 +358,7 @@ def is_inside_triangle(point, triangle,
     """
 
     triangle = ensure_numeric(triangle)
-    point = ensure_numeric(point, num.float)
+    point = ensure_numeric(point, float)
 
     if check_inputs is True:
         msg = 'is_inside_triangle must be invoked with one point only'
@@ -391,7 +391,7 @@ def is_complex(polygon, closed=True, verbose=False):
                     return True
         return False
 
-    polygon = ensure_numeric(polygon, num.float)
+    polygon = ensure_numeric(polygon, float)
 
     # build a list of discrete segments from the polygon
     unsorted_segs = []
@@ -521,7 +521,7 @@ def outside_polygon(points, polygon, closed=True, verbose=False):
     """
 
     try:
-        points = ensure_numeric(points, num.float)
+        points = ensure_numeric(points, float)
     except NameError as e:
         raise_(NameError, e)
     except:
@@ -529,7 +529,7 @@ def outside_polygon(points, polygon, closed=True, verbose=False):
         raise_(Exception, msg)
 
     try:
-        polygon = ensure_numeric(polygon, num.float)
+        polygon = ensure_numeric(polygon, float)
     except NameError as e:
         raise_(NameError, e)
     except:
@@ -561,7 +561,7 @@ def in_and_outside_polygon(points, polygon, closed=True, verbose=False):
     """
 
     try:
-        points = ensure_numeric(points, num.float)
+        points = ensure_numeric(points, float)
     except NameError as e:
         raise_(NameError, e)
     except:
@@ -569,7 +569,7 @@ def in_and_outside_polygon(points, polygon, closed=True, verbose=False):
         raise_(Exception, msg)
 
     try:
-        polygon = ensure_numeric(polygon, num.float)
+        polygon = ensure_numeric(polygon, float)
     except NameError as e:
         raise_(NameError, e)
     except:
@@ -645,7 +645,7 @@ def separate_points_by_polygon(points, polygon,
             'Keyword argument "verbose" must be boolean'
 
         try:
-            points = ensure_numeric(points, num.float)
+            points = ensure_numeric(points, float)
         except NameError as e:
             raise_(NameError, e)
         except:
@@ -653,7 +653,7 @@ def separate_points_by_polygon(points, polygon,
             raise Exception(msg)
 
         try:
-            polygon = ensure_numeric(polygon, num.float)
+            polygon = ensure_numeric(polygon, float)
         except NameError as e:
             raise NameError(e)
         except:
@@ -688,7 +688,7 @@ def separate_points_by_polygon(points, polygon,
     N = polygon.shape[0]  # Number of vertices in polygon
     M = points.shape[0]  # Number of points
 
-    indices = num.zeros(M, num.int)
+    indices = num.zeros(M, int)
 
     count = _separate_points_by_polygon(points, polygon, indices,
                                         int(closed), int(verbose))
@@ -833,7 +833,7 @@ def _poly_xy(polygon):
     """
 
     try:
-        polygon = ensure_numeric(polygon, num.float)
+        polygon = ensure_numeric(polygon, float)
     except NameError as err:
         raise_(NameError, err)
     except:
@@ -1100,12 +1100,12 @@ def interpolate_polyline(data,
         interpolation_points = interpolation_points.\
             get_data_points(absolute=True)
 
-    interpolated_values = num.zeros(len(interpolation_points), num.float)
+    interpolated_values = num.zeros(len(interpolation_points), float)
 
-    data = ensure_numeric(data, num.float)
-    polyline_nodes = ensure_numeric(polyline_nodes, num.float)
-    interpolation_points = ensure_numeric(interpolation_points, num.float)
-    gauge_neighbour_id = ensure_numeric(gauge_neighbour_id, num.int)
+    data = ensure_numeric(data, float)
+    polyline_nodes = ensure_numeric(polyline_nodes, float)
+    interpolation_points = ensure_numeric(interpolation_points, float)
+    gauge_neighbour_id = ensure_numeric(gauge_neighbour_id, int)
 
     num_nodes = polyline_nodes.shape[0]    # Number of nodes in polyline
 

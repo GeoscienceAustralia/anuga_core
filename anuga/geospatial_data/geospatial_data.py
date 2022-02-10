@@ -629,7 +629,7 @@ class Geospatial_data(object):
             log.critical("make unique random number list "
                          "and get indices")
 
-        total = num.array(list(range(self_size)), num.int)  # array default#
+        total = num.array(list(range(self_size)), int)  # array default#
         total_list = total.tolist()
 
         if verbose:
@@ -1046,9 +1046,9 @@ def _read_csv_file_blocking(file_pointer,
     if points == []:
         raise StopIteration
 
-    pointlist = num.array(points, num.float)
+    pointlist = num.array(points, float)
     for key in list(att_dict.keys()):
-        att_dict[key] = num.array(att_dict[key], num.float)
+        att_dict[key] = num.array(att_dict[key], float)
 
     # Do stuff here so the info is in lat's and longs
     geo_ref = None
@@ -1223,11 +1223,11 @@ def _write_urs_file(file_name, points, delimiter=' '):
 
 
 def _point_atts2array(point_atts):
-    point_atts['pointlist'] = num.array(point_atts['pointlist'], num.float)
+    point_atts['pointlist'] = num.array(point_atts['pointlist'], float)
 
     for key in list(point_atts['attributelist'].keys()):
         point_atts['attributelist'][key] = \
-            num.array(point_atts['attributelist'][key], num.float)
+            num.array(point_atts['attributelist'][key], float)
 
     return point_atts
 
@@ -1294,7 +1294,7 @@ def ensure_absolute(points, geo_reference=None):
         msg = 'Use a Geospatial_data object or a mesh origin, not both.'
         assert geo_reference is None, msg
     else:
-        points = ensure_numeric(copy.copy(points), num.float)
+        points = ensure_numeric(copy.copy(points), float)
 
     # Sort of geo_reference and convert points
     if geo_reference is None:
@@ -1331,7 +1331,7 @@ def ensure_geospatial(points, geo_reference=None):
         return points
     else:
         # List or numeric array of absolute points
-        points = ensure_numeric(points, num.float)
+        points = ensure_numeric(points, float)
 
     # Sort out geo reference
     if geo_reference is None:
@@ -1477,7 +1477,7 @@ def find_optimal_smoothing_parameter(data_file,
     # creates array with columns 1 and 2 are x, y. column 3 is elevation
     # 4 onwards is the elevation_predicted using the alpha, which will
     # be compared later against the real removed data
-    data = num.array([], dtype=num.float)
+    data = num.array([], dtype=float)
 
     data = num.resize(data, (len(points), 3+len(alphas)))
 
@@ -1488,7 +1488,7 @@ def find_optimal_smoothing_parameter(data_file,
         attribute_name=attribute_smoothed)
     data[:, 2] = elevation_sample
 
-    normal_cov = num.array(num.zeros([len(alphas), 2]), dtype=num.float)
+    normal_cov = num.array(num.zeros([len(alphas), 2]), dtype=float)
 
     if verbose:
         log.critical('Setup computational domains with '
@@ -1696,7 +1696,7 @@ def old_find_optimal_smoothing_parameter(data_file,
     # creates array with columns 1 and 2 are x, y. column 3 is elevation
     # 4 onwards is the elevation_predicted using the alpha, which will
     # be compared later against the real removed data
-    data = num.array([], dtype=num.float)
+    data = num.array([], dtype=float)
 
     data = num.resize(data, (len(points), 3+len(alphas)))
 
@@ -1707,7 +1707,7 @@ def old_find_optimal_smoothing_parameter(data_file,
         attribute_name=attribute_smoothed)
     data[:, 2] = elevation_sample
 
-    normal_cov = num.array(num.zeros([len(alphas), 2]), dtype=num.float)
+    normal_cov = num.array(num.zeros([len(alphas), 2]), dtype=float)
 
     if verbose:
         log.critical('Determine difference between predicted results '

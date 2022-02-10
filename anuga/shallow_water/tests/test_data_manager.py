@@ -102,7 +102,7 @@ class Test_Data_Manager(Test_Mux):
         ######################
         #Initial condition - with jumps
         bed = domain.quantities['elevation'].vertex_values
-        stage = num.zeros(bed.shape, num.float)
+        stage = num.zeros(bed.shape, float)
 
         h = 0.3
         for i in range(stage.shape[0]):
@@ -680,14 +680,14 @@ class Test_Data_Manager(Test_Mux):
         times_ref = num.arange(0, time_step_count*time_step, time_step)
         
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
-        last_tstep=(time_step_count)*num.ones(n,num.int)
+        first_tstep=num.ones(n,int)
+        last_tstep=(time_step_count)*num.ones(n,int)
         
-        gauge_depth=20*num.ones(n,num.float)
+        gauge_depth=20*num.ones(n,float)
         
-        ha1=num.ones((n,time_step_count),num.float)
-        ua1=3.*num.ones((n,time_step_count),num.float)
-        va1=2.*num.ones((n,time_step_count),num.float)
+        ha1=num.ones((n,time_step_count),float)
+        ua1=3.*num.ones((n,time_step_count),float)
+        va1=2.*num.ones((n,time_step_count),float)
         for i in range(n):
             ha1[i]=num.sin(times_ref)
         
@@ -795,7 +795,7 @@ class Test_Data_Manager(Test_Mux):
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
-        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
+        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1,float)
     
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -810,7 +810,7 @@ class Test_Data_Manager(Test_Mux):
                          function=lambda t: [num.sin(t)+tide,3.*(20.+num.sin(t)+tide),2.*(20.+num.sin(t)+tide)])
         domain_time.set_boundary({'ocean': Bw,'otherocean': Br})
         
-        temp_time=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
+        temp_time=num.zeros(int(old_div(finaltime,yieldstep))+1,float)
         
         domain_time.set_starttime(domain_fbound.get_starttime())
         

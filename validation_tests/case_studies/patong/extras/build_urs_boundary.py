@@ -145,7 +145,7 @@ def build_urs_boundary(event_file, output_dir):
         print 'using single-mux file', mux_file
 
         weight_factor = 1.0
-        mux_weights = weight_factor*num.ones(len(mux_filenames), num.float)
+        mux_weights = weight_factor*num.ones(len(mux_filenames), float)
             
         order_filename = project.urs_order
 

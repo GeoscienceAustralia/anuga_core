@@ -54,7 +54,7 @@ def sts2sww_mesh(basename_in, basename_out=None,
     infile.close()
 
     number_of_points = nrows*ncols
-    points_utm = num.zeros((number_of_points,2),num.float)
+    points_utm = num.zeros((number_of_points,2),float)
     points_utm[:,0]=x+x_origin
     points_utm[:,1]=y+y_origin
 
@@ -138,7 +138,7 @@ def sts2sww_mesh(basename_in, basename_out=None,
                              wind_speed=wind_speed[i,:],
                              wind_angle=wind_angle[i,:],
                              barometric_pressure=barometric_pressure[i,:],
-                             sww_precision=num.float)
+                             sww_precision=float)
 
     if verbose: 
         sww.verbose_quantities(outfile)

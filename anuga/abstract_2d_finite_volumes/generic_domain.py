@@ -232,13 +232,13 @@ class Generic_Domain(object):
             buffer_shape = self.full_send_dict[key][0].shape[0]
             self.full_send_dict[key].append(num.zeros((buffer_shape,
                                                        self.nsys),
-                                                      num.float))
+                                                      float))
 
         for key in self.ghost_recv_dict:
             buffer_shape = self.ghost_recv_dict[key][0].shape[0]
             self.ghost_recv_dict[key].append(num.zeros((buffer_shape,
                                                         self.nsys),
-                                                       num.float))
+                                                       float))
 
         # Setup triangle full flag
         if verbose:
@@ -249,7 +249,7 @@ class Generic_Domain(object):
 
         # =1 for full
         # =0 for ghost
-        self.tri_full_flag = num.ones(N, num.int)
+        self.tri_full_flag = num.ones(N, int)
 
         for i in list(self.ghost_recv_dict.keys()):
             id = self.ghost_recv_dict[i][0]
@@ -276,7 +276,7 @@ class Generic_Domain(object):
 #        print list(b)
 #        print num.repeat(self.tri_full_flag, 3)
 
-        self.node_full_flag = num.minimum(num.bincount(self.triangles.flat, weights=W).astype(num.int), 1)
+        self.node_full_flag = num.minimum(num.bincount(self.triangles.flat, weights=W).astype(int), 1)
 
         # FIXME SR: The following line leads to a nasty segmentation fault!
         # self.number_of_full_nodes = int(num.sum(self.node_full_flag))
@@ -346,14 +346,14 @@ class Generic_Domain(object):
         # To avoid calculating the flux across each edge twice, keep an integer
         # (boolean) array, to be used during the flux calculation.
         N = len(self)  # Number_of_triangles
-        self.already_computed_flux = num.zeros((N, 3), num.int)
+        self.already_computed_flux = num.zeros((N, 3), int)
 
-        self.work_centroid_values = num.zeros(N, num.float)
+        self.work_centroid_values = num.zeros(N, float)
 
         # Storage for maximal speeds computed for each triangle by
         # compute_fluxes.
         # This is used for diagnostics only (reset at every yieldstep)
-        self.max_speed = num.zeros(N, num.float)
+        self.max_speed = num.zeros(N, float)
 
         if mesh_filename is not None:
             # If the mesh file passed any quantity values,
@@ -486,7 +486,7 @@ class Generic_Domain(object):
             msg += 'Only one (or none) is allowed.'
             raise Exception(msg)
 
-        q = num.zeros(len(self.conserved_quantities), num.float)
+        q = num.zeros(len(self.conserved_quantities), float)
 
         for i, name in enumerate(self.conserved_quantities):
             Q = self.quantities[name]
@@ -517,7 +517,7 @@ class Generic_Domain(object):
             msg += 'Only one (or none) is allowed.'
             raise Exception(msg)
 
-        q = num.zeros(len(self.evolved_quantities), num.float)
+        q = num.zeros(len(self.evolved_quantities), float)
 
         for i, name in enumerate(self.evolved_quantities):
             Q = self.quantities[name]
@@ -1750,7 +1750,7 @@ class Generic_Domain(object):
                 self.recorded_max_timestep = self.evolve_min_timestep
                 self.number_of_steps = 0
                 self.number_of_first_order_steps = 0
-                self.max_speed = num.zeros(N, num.float)
+                self.max_speed = num.zeros(N, float)
 
     def evolve_one_euler_step(self, yieldstep, finaltime):
         """One Euler Time Step

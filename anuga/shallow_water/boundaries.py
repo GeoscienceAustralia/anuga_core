@@ -72,7 +72,7 @@ class Reflective_boundary(Boundary):
         self.ymom = domain.quantities['ymomentum'].edge_values
         self.normals = domain.normals
 
-        self.conserved_quantities = num.zeros(3, num.float)
+        self.conserved_quantities = num.zeros(3, float)
 
     def __repr__(self):
         return 'Reflective_boundary'
@@ -782,7 +782,7 @@ class Inflow_boundary(Boundary):
         elevation = z[edge_id]
             
         # Assign conserved quantities and return
-        q = num.array([elevation + depth, xmomentum, ymomentum], num.float)
+        q = num.array([elevation + depth, xmomentum, ymomentum], float)
         return q
 
 

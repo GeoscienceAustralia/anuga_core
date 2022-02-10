@@ -2066,7 +2066,7 @@ Parameters
         quantity = Quantity(self.mesh4)
 
         quantity.vertex_values = num.array(
-            [[1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4]], num.float)
+            [[1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4]], float)
 
         quantity.interpolate_from_vertices_to_edges()
 
@@ -2081,7 +2081,7 @@ Parameters
         quantity.edge_values = num.array([[1., 1.5, 0.5],
                                           [3., 2.5, 1.5],
                                           [3.5, 4.5, 3.],
-                                          [2.5, 3.5, 2]], num.float)
+                                          [2.5, 3.5, 2]], float)
 
         quantity.interpolate_from_edges_to_vertices()
 
@@ -2131,7 +2131,7 @@ Parameters
         quantity.update(timestep)
 
         sem = old_div(num.array([1., 1., 1., 1.]),num.array([1, 2, 3, 4]))
-        denom = num.ones(4, num.float)-timestep*sem
+        denom = num.ones(4, float)-timestep*sem
 
         x = old_div(num.array([1, 2, 3, 4]),denom)
         assert num.allclose(quantity.centroid_values, x)
@@ -2154,7 +2154,7 @@ Parameters
         quantity.update(0.1)
 
         sem = old_div(num.array([1., 1., 1., 1.]),num.array([1, 2, 3, 4]))
-        denom = num.ones(4, num.float)-timestep*sem
+        denom = num.ones(4, float)-timestep*sem
 
         x = num.array([1., 2., 3., 4.])
         x += timestep*num.array([4.0, 3.0, 2.0, 1.0])

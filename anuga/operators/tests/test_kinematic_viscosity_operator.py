@@ -213,7 +213,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
 
         assert num.allclose(q_1.centroid_values,q_2.centroid_values)
 
-        assert num.allclose( num.zeros((n,), num.float), q_1.centroid_values )
+        assert num.allclose( num.zeros((n,), float), q_1.centroid_values )
 
         #Now have different boundary values
 

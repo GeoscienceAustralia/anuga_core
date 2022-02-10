@@ -272,7 +272,7 @@ def get_centroid_values(x, triangles):
     indices into x
     """
         
-    xc = num.zeros(triangles.shape[0], num.float) # Space for centroid info
+    xc = num.zeros(triangles.shape[0], float) # Space for centroid info
     
     for k in range(triangles.shape[0]):
         # Indices of vertices
@@ -554,7 +554,7 @@ def csv2timeseries_graphs(directories_dic={},
                 #add tide to stage if provided
                 if quantity == 'stage':
                     quantity_value[quantity] = num.array(quantity_value[quantity],
-                                                          num.float) + directory_add_tide
+                                                          float) + directory_add_tide
 
                 #condition to find max and mins for all the plots
                 # populate the list with something when i=0 and j=0 and

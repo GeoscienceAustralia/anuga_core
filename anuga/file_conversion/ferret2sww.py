@@ -264,8 +264,8 @@ def ferret2sww(basename_in, name_out=None,
 
     # Store
     from anuga.coordinate_transforms.redfearn import redfearn
-    x = num.zeros(number_of_points, num.float)  #Easting
-    y = num.zeros(number_of_points, num.float)  #Northing
+    x = num.zeros(number_of_points, float)  #Easting
+    y = num.zeros(number_of_points, float)  #Northing
 
     if verbose:
         log.critical('Making triangular grid')
@@ -300,7 +300,7 @@ def ferret2sww(basename_in, name_out=None,
             volumes.append([v1, v2, v3]) #Upper element
             volumes.append([v4, v3, v2]) #Lower element
 
-    volumes = num.array(volumes, num.int)      #array default#
+    volumes = num.array(volumes, int)      #array default#
 
     if origin is None:
         origin = Geo_reference(refzone, min(x), min(y))

@@ -359,8 +359,8 @@ class EventDamageModel(object):
         """
 
         # the data being created
-        struct_damage = num.zeros(self.structure_count, num.float)
-        contents_damage = num.zeros(self.structure_count, num.float)
+        struct_damage = num.zeros(self.structure_count, float)
+        contents_damage = num.zeros(self.structure_count, float)
         self.struct_inundated = ['']* self.structure_count
 
         for i,max_depth,shore_distance,wall in zip(

@@ -410,7 +410,7 @@ if __name__ == '__main__':
 
     import numpy as num
 
-    a = num.zeros((1000,1000), num.float)
+    a = num.zeros((1000,1000), float)
 
     info('sys.version_info=%s, _new_python=%s'
          % (str(sys.version_info), str(_new_python)))

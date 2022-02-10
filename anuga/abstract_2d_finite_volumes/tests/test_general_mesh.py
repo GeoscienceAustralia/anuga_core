@@ -63,7 +63,7 @@ class Test_General_Mesh(unittest.TestCase):
         nodes_absolute = geo.get_absolute(nodes)
         
         #                        bac,     bce,     ecf,     dbe
-        triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], num.int)
+        triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], int)
 
         domain = General_mesh(nodes, triangles, geo_reference=geo)
 
@@ -166,7 +166,7 @@ class Test_General_Mesh(unittest.TestCase):
         nodes_absolute = geo.get_absolute(nodes)
         
         #                        bac,     bce,     ecf,     dbe
-        triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], num.int)
+        triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], int)
 
         domain = General_mesh(nodes, triangles, geo_reference=geo)
 
@@ -366,7 +366,7 @@ class Test_General_Mesh(unittest.TestCase):
 
         
         #                        bac,     bce,     ecf,     dbe
-        triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], num.int)
+        triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], int)
 
         try:
             domain = General_mesh(nodes, triangles)
@@ -388,7 +388,7 @@ class Test_General_Mesh(unittest.TestCase):
         nodes = num.array([a, b, c, d, e, f])
 
         #                        bac,     bce,     ecf,     dbe
-        triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], num.int)
+        triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], int)
 
         
         try:

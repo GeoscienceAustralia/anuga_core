@@ -41,8 +41,8 @@ def check_forcefield(f):
 
     if callable(f):
         N = 3
-        x = num.ones(3, num.float)
-        y = num.ones(3, num.float)
+        x = num.ones(3, float)
+        y = num.ones(3, float)
         try:
             q = f(1.0, x=x, y=y)
         except Exception as e:
@@ -51,7 +51,7 @@ def check_forcefield(f):
             raise Exception(msg)
 
         try:
-            q = num.array(q, num.float)
+            q = num.array(q, float)
         except:
             msg = ('Return value from vector function %s could not '
                    'be converted into a numeric array of floats.\nSpecified '
@@ -182,7 +182,7 @@ class Wind_stress(object):
         else:
             # Assume s is a scalar
             try:
-                s_vec = self.speed * num.ones(N, num.float)
+                s_vec = self.speed * num.ones(N, float)
             except:
                 msg = 'Speed must be either callable or a scalar: %s' %self.s
                 raise Exception(msg)
@@ -199,7 +199,7 @@ class Wind_stress(object):
             # Assume phi is a scalar
 
             try:
-                phi_vec = self.phi * num.ones(N, num.float)
+                phi_vec = self.phi * num.ones(N, float)
             except:
                 msg = 'Angle must be either callable or a scalar: %s' %self.phi
                 raise Exception(msg)
@@ -915,13 +915,13 @@ class Barometric_pressure(object):
             if ( self.use_coordinates ):
                 p_vec = self.pressure(t, xv[:,0], xv[:,1])
             else:
-                p_vec=num.empty(N,num.float)
+                p_vec=num.empty(N,float)
                 for i in range(N):
                     p_vec[i]=self.pressure(t,i)
         else:
             # Assume s is a scalar
             try:
-                p_vec = self.pressure * num.ones(N, num.float)
+                p_vec = self.pressure * num.ones(N, float)
             except:
                 msg = 'Pressure must be either callable or a scalar: %s' %self.s
                 raise Exception(msg)
@@ -1088,13 +1088,13 @@ class Barometric_pressure_fast(object):
                     break
 
             N = domain.get_number_of_nodes()
-            self.prev_pressure_vertex_values=num.empty(N,num.float)
-            self.next_pressure_vertex_values=num.empty(N,num.float)
+            self.prev_pressure_vertex_values=num.empty(N,float)
+            self.next_pressure_vertex_values=num.empty(N,float)
             for i in range(N):
                 self.prev_pressure_vertex_values[i]=self.pressure(self.file_time[self.index],i)
                 self.next_pressure_vertex_values[i]=self.pressure(self.file_time[self.index+1],i)
 
-        self.p_vec=num.empty(N,num.float)
+        self.p_vec=num.empty(N,float)
 
 
     def __call__(self, domain):
@@ -1265,18 +1265,18 @@ class Wind_stress_fast(object):
                 else:
                     break
 
-            self.prev_windspeed_centroid_values=num.empty(N,num.float)
-            self.next_windspeed_centroid_values=num.empty(N,num.float)
-            self.prev_windangle_centroid_values=num.empty(N,num.float)
-            self.next_windangle_centroid_values=num.empty(N,num.float)
+            self.prev_windspeed_centroid_values=num.empty(N,float)
+            self.next_windspeed_centroid_values=num.empty(N,float)
+            self.prev_windangle_centroid_values=num.empty(N,float)
+            self.next_windangle_centroid_values=num.empty(N,float)
             for i in range(N):
                 self.prev_windspeed_centroid_values[i]=self.speed(self.file_time[self.index],i)
                 self.next_windspeed_centroid_values[i]=self.speed(self.file_time[self.index+1],i)
                 self.prev_windangle_centroid_values[i]=self.phi(self.file_time[self.index],i)
                 self.next_windangle_centroid_values[i]=self.phi(self.file_time[self.index+1],i)
 
-        self.s_vec=num.empty(N,num.float)
-        self.phi_vec=num.empty(N,num.float)
+        self.s_vec=num.empty(N,float)
+        self.phi_vec=num.empty(N,float)
 
         self.const = old_div(eta_w*rho_a,rho_w)
 

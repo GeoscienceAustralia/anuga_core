@@ -518,12 +518,12 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
 
         # Get the relevant quantities (Convert from single precison)
         try:
-            elevation = num.array(fid.variables['elevation_c'][:], num.float)
-            stage     = num.array(fid.variables['stage_c'][:], num.float)
+            elevation = num.array(fid.variables['elevation_c'][:], float)
+            stage     = num.array(fid.variables['stage_c'][:], float)
             found_c_values = True
         except:
-            elevation = num.array(fid.variables['elevation'][:], num.float)
-            stage     = num.array(fid.variables['stage'][:], num.float)
+            elevation = num.array(fid.variables['elevation'][:], float)
+            stage     = num.array(fid.variables['stage'][:], float)
             found_c_values = False
 
         if verbose:

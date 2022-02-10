@@ -20,7 +20,7 @@ def rectangular_cross_construct(np.ndarray[double, ndim=1, mode="c"] params not 
 	len1 = params[2]
 	len2 = params[3]
 
-	cdef np.ndarray[long, ndim=2, mode="c"] vertices = np.ascontiguousarray(np.zeros((m+1,n+1),dtype=np.int))
+	cdef np.ndarray[long, ndim=2, mode="c"] vertices = np.ascontiguousarray(np.zeros((m+1,n+1),dtype=int))
 
 	delta1 = len1/m
 	delta2 = len2/n

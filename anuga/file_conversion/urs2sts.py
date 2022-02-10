@@ -98,7 +98,7 @@ def urs2sts(basename_in, basename_out=None,
     # A weight must be specified for each source
     if weights is None:
         # Default is equal weighting
-        weights = old_div(num.ones(numSrc, num.float), numSrc)
+        weights = old_div(num.ones(numSrc, float), numSrc)
     else:
         weights = ensure_numeric(weights)
         msg = 'When combining multiple sources must specify a weight for ' \
@@ -227,7 +227,7 @@ def urs2sts(basename_in, basename_out=None,
     # are assigned the trivial indices enumerating them from
     # 0 to number_of_points-1
     if permutation is None:
-        permutation = num.arange(number_of_points, dtype=num.int)
+        permutation = num.arange(number_of_points, dtype=int)
 
     # NetCDF file definition
     outfile = NetCDFFile(stsname, netcdf_mode_w)
@@ -246,8 +246,8 @@ def urs2sts(basename_in, basename_out=None,
     # Store
     from anuga.coordinate_transforms.redfearn import redfearn
 
-    x = num.zeros(number_of_points, num.float)  # Easting
-    y = num.zeros(number_of_points, num.float)  # Northing
+    x = num.zeros(number_of_points, float)  # Easting
+    y = num.zeros(number_of_points, float)  # Northing
 
     # Check zone boundaries
     if zone is None:

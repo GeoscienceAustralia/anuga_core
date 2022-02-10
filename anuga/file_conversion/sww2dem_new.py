@@ -140,9 +140,9 @@ def sww2dem(name_in, name_out,
     fid = NetCDFFile(name_in)
 
     #Get extent and reference
-    x = num.array(fid.variables['x'], num.float)
-    y = num.array(fid.variables['y'], num.float)
-    volumes = num.array(fid.variables['volumes'], num.int)
+    x = num.array(fid.variables['x'], float)
+    y = num.array(fid.variables['y'], float)
+    volumes = num.array(fid.variables['volumes'], int)
     if type(reduction) is not types.BuiltinFunctionType:
         times = fid.variables['time'][reduction]
     else:
@@ -221,7 +221,7 @@ def sww2dem(name_in, name_out,
         raise_(Exception, msg)
 
     # Create result array and start filling, block by block.
-    result = num.zeros(number_of_points, num.float)
+    result = num.zeros(number_of_points, float)
 
     if verbose:
         msg = 'Slicing sww file, num points: ' + str(number_of_points)
@@ -245,7 +245,7 @@ def sww2dem(name_in, name_out,
         res = apply_expression_to_dictionary(quantity, q_dict)
 
         if len(res.shape) == 2:
-            new_res = num.zeros(res.shape[1], num.float)
+            new_res = num.zeros(res.shape[1], float)
             for k in range(res.shape[1]):
                 if type(reduction) is not types.BuiltinFunctionType:
                     new_res[k] = res[reduction,k]
@@ -310,7 +310,7 @@ def sww2dem(name_in, name_out,
 
     def calc_grid_values_old(vertex_points, volumes, result):
 
-        grid_points = num.zeros ((ncols*nrows, 2), num.float)
+        grid_points = num.zeros ((ncols*nrows, 2), float)
 
         for i in range(nrows):
             if out_ext == '.asc':
@@ -351,7 +351,7 @@ def sww2dem(name_in, name_out,
 
     def calc_grid_values(vertex_points, volumes, result):
 
-        grid_points = num.zeros ((ncols*nrows, 2), num.float)
+        grid_points = num.zeros ((ncols*nrows, 2), float)
 
         for i in range(nrows):
             if out_ext == '.asc':
@@ -367,7 +367,7 @@ def sww2dem(name_in, name_out,
                 grid_points[k, 0] = xg
                 grid_points[k, 1] = yg
     
-        grid_values = num.zeros(ncols*nrows, num.float)
+        grid_values = num.zeros(ncols*nrows, float)
 
         eval_grid(nrows, ncols, NODATA_value, grid_points, vertex_points.flatten(), volumes, result, grid_values);
         return grid_values.flatten()

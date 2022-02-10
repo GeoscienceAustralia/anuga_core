@@ -177,7 +177,7 @@ class Write_sts(object):
         outfile.variables[q + Write_sts.RANGE][0] = min(elevation)
         outfile.variables[q + Write_sts.RANGE][1] = max(elevation)
 
-    def store_quantities(self, outfile, sts_precision=num.float,
+    def store_quantities(self, outfile, sts_precision=float,
                          slice_index=None, time=None,
                          verbose=False, **quant):
         """Write the quantity info.

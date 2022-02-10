@@ -271,13 +271,13 @@ def old_distribute(domain, verbose=False, debug=False, parameters = None):
 
         if send_s2p :
             n = len(s2p_map)
-            s2p_map_keys_flat = num.reshape(num.array(list(s2p_map.keys()),num.int), (n,1) )
-            s2p_map_values_flat = num.array(list(s2p_map.values()),num.int)
+            s2p_map_keys_flat = num.reshape(num.array(list(s2p_map.keys()),int), (n,1) )
+            s2p_map_values_flat = num.array(list(s2p_map.values()),int)
             s2p_map_flat = num.concatenate( (s2p_map_keys_flat, s2p_map_values_flat), axis=1 )
 
             n = len(p2s_map)
-            p2s_map_keys_flat = num.reshape(num.array(list(p2s_map.keys()),num.int), (n,2) )
-            p2s_map_values_flat = num.reshape(num.array(list(p2s_map.values()),num.int) , (n,1))
+            p2s_map_keys_flat = num.reshape(num.array(list(p2s_map.keys()),int), (n,2) )
+            p2s_map_values_flat = num.reshape(num.array(list(p2s_map.values()),int) , (n,1))
             p2s_map_flat = num.concatenate( (p2s_map_keys_flat, p2s_map_values_flat), axis=1 )
 
             for p in range(1, numprocs):

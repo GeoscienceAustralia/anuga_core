@@ -262,7 +262,7 @@ def get_netcdf_file_function(filename,
  
     if interpolation_points is not None:
 
-        #interpolation_points = num.array(interpolation_points, num.float)
+        #interpolation_points = num.array(interpolation_points, float)
         interpolation_points = ensure_absolute(interpolation_points)
         msg = 'Points must by N x 2. I got %d' % interpolation_points.shape[1]
         assert interpolation_points.shape[1] == 2, msg

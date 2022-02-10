@@ -439,7 +439,7 @@ class Test_Caching(unittest.TestCase):
         msg = 'Byte code should be different'
         assert bc1 != bc2, msg
         
-        x = num.arange(10).astype(num.float)
+        x = num.arange(10).astype(float)
         
         ref1 = f1(x)
         ref2 = f2(x)

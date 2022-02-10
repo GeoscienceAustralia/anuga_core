@@ -450,7 +450,7 @@ class Read_sww(object):
 
         fin = NetCDFFile(self.source, 'r')
 
-        self.time = num.array(fin.variables['time'][:], num.float)
+        self.time = num.array(fin.variables['time'][:], float)
         self.last_frame_number = self.time.shape[0] - 1
 
         self.frames = num.arange(self.last_frame_number+1)
@@ -468,10 +468,10 @@ class Read_sww(object):
         """
         fin = NetCDFFile(self.source, 'r')
 
-        self.vertices = num.array(fin.variables['volumes'][:], num.int)
+        self.vertices = num.array(fin.variables['volumes'][:], int)
 
-        self.x = x = num.array(fin.variables['x'][:], num.float)
-        self.y = y = num.array(fin.variables['y'][:], num.float)
+        self.x = x = num.array(fin.variables['x'][:], float)
+        self.y = y = num.array(fin.variables['y'][:], float)
 
         assert len(self.x) == len(self.y)
 
@@ -500,10 +500,10 @@ class Read_sww(object):
             # print q
             if len(fin.variables[q].shape) == 1:  # Not a time-varying quantity
                 self.quantities[q] = num.ravel(
-                    num.array(fin.variables[q][:], num.float)).reshape(M, 3)
+                    num.array(fin.variables[q][:], float)).reshape(M, 3)
             else:  # Time-varying, get the current timestep data
                 self.quantities[q] = num.array(
-                    fin.variables[q][self.frame_number], num.float).reshape(M, 3)
+                    fin.variables[q][self.frame_number], float).reshape(M, 3)
         fin.close()
         return self.quantities
 
@@ -888,7 +888,7 @@ class Write_sww(Write_sts):
 
         The argument sww_precision allows for storing as either
         * single precision (default): num.float32
-        * double precision: num.float64 or num.float
+        * double precision: num.float64 or float
 
         Precondition:
             store_triangulation and
@@ -934,7 +934,7 @@ class Write_sww(Write_sts):
 
         The argument sww_precision allows for storing as either
         * single precision (default): num.float32
-        * double precision: num.float64 or num.float
+        * double precision: num.float64 or float
 
         Precondition:
             store_triangulation and
@@ -986,7 +986,7 @@ class Write_sww(Write_sts):
 
         The argument sww_precision allows for storing as either
         * single precision (default): num.float32
-        * double precision: num.float64 or num.float
+        * double precision: num.float64 or float
 
         Precondition:
             store_triangulation and
@@ -1059,7 +1059,7 @@ class Write_sww(Write_sts):
 
         The argument sww_precision allows for storing as either
         * single precision (default): num.float32
-        * double precision: num.float64 or num.float
+        * double precision: num.float64 or float
 
         Precondition:
             store_triangulation and
@@ -1400,7 +1400,7 @@ def get_mesh_and_quantities_from_file(filename,
                 num.add.at(a, indices, b)
             except:
                 n_ids = len(indices)
-                b_array = num.zeros_like(indices, dtype=num.float)
+                b_array = num.zeros_like(indices, dtype=float)
                 b_array[:] = b
 
                 for n in range(n_ids):

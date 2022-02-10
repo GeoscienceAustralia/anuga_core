@@ -97,7 +97,7 @@ class Test_Dem2Dem(unittest.TestCase):
                          (228+229+230+246+247+248+264+265+266) / 9.0]
 
         # generate a stencil for computing the decimated values
-        stencil = num.ones((3,3), num.float) / 9.0
+        stencil = num.ones((3,3), float) / 9.0
 
         dem2dem(filename, stencil=stencil, cellsize_new=100)
 
@@ -192,7 +192,7 @@ class Test_Dem2Dem(unittest.TestCase):
                          (228+229+230+246+247+248+264+265+266) / 9.0]
 
         # Generate a stencil for computing the decimated values
-        stencil = num.ones((3,3), num.float) / 9.0
+        stencil = num.ones((3,3), float) / 9.0
 
         dem2dem(filename, stencil=stencil, cellsize_new=100)
 

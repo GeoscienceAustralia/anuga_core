@@ -99,8 +99,8 @@ class Polygon_function(object):
         x List of x coordinates of points ot interest.
         y List of y coordinates of points ot interest.
         """
-        pts_x = num.array(pts_x, num.float)
-        pts_y = num.array(pts_y, num.float)
+        pts_x = num.array(pts_x, float)
+        pts_y = num.array(pts_y, float)
 
         # x and y must be one-dimensional and same length
         assert len(pts_x.shape) == 1 and len(pts_y.shape) == 1
@@ -114,7 +114,7 @@ class Polygon_function(object):
         if callable(self.default):
             result = self.default(pts_x, pts_y)
         else:
-            result = num.ones(pts_len, num.float) * self.default
+            result = num.ones(pts_len, float) * self.default
 
         for polygon, value in self.regions:
             indices = inside_polygon(points, polygon)

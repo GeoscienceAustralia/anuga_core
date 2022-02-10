@@ -41,7 +41,7 @@ def read_mux2_py(filenames,
 
     numSrc = len(filenames)
 
-    file_params = -1 * num.ones(3, num.float)                    # [nsta,dt,nt]
+    file_params = -1 * num.ones(3, float)                    # [nsta,dt,nt]
 
     # Convert verbose to int C flag
     if verbose:
@@ -53,7 +53,7 @@ def read_mux2_py(filenames,
         weights = num.ones(numSrc)
 
     if permutation is None:
-        permutation = ensure_numeric([], num.int)
+        permutation = ensure_numeric([], int)
 
     # Call underlying C implementation urs2sts_ext.c
     cast_filenames = []
@@ -104,11 +104,11 @@ def read_mux2_py(filenames,
     parameters_index = data.shape[1] - OFFSET
 
     times = dt * num.arange(parameters_index)
-    latitudes = num.zeros(number_of_selected_stations, num.float)
-    longitudes = num.zeros(number_of_selected_stations, num.float)
-    elevation = num.zeros(number_of_selected_stations, num.float)
+    latitudes = num.zeros(number_of_selected_stations, float)
+    longitudes = num.zeros(number_of_selected_stations, float)
+    elevation = num.zeros(number_of_selected_stations, float)
     quantity = num.zeros((number_of_selected_stations, parameters_index), \
-                                                    num.float)
+                                                    float)
 
     starttime = 1e16
     for i in range(number_of_selected_stations):

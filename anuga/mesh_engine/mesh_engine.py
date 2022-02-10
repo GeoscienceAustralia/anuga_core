@@ -49,7 +49,7 @@ def generate_mesh(points=None,
         dummy_test  = []
 
     try:
-        points =  ensure_numeric(points, num.float)
+        points =  ensure_numeric(points, float)
     except ValueError:
         msg = 'ERROR: Inconsistent points array.'
         raise ANUGAError(msg)
@@ -62,7 +62,7 @@ def generate_mesh(points=None,
         pointatts = [[] for x in range(points.shape[0])]
 
     try:
-        # If num.int is used, instead of num.int32, it fails in Linux
+        # If int is used, instead of num.int32, it fails in Linux
         segments = ensure_numeric(segments, num.int32)
 
     except ValueError:
@@ -74,7 +74,7 @@ def generate_mesh(points=None,
         segatts = [0 for x in range(segments.shape[0])]
 
     try:
-        holes = ensure_numeric(holes, num.float)
+        holes = ensure_numeric(holes, float)
     except ValueError:
         msg = 'ERROR: Inconsistent holes array.'
         raise ANUGAError(msg)
@@ -82,7 +82,7 @@ def generate_mesh(points=None,
 
     regions = add_area_tag(regions)
     try:
-        regions = ensure_numeric(regions, num.float)
+        regions = ensure_numeric(regions, float)
     except  (ValueError, TypeError):
         msg = 'ERROR: Inconsistent regions array.'
         raise ANUGAError(msg)
@@ -92,7 +92,7 @@ def generate_mesh(points=None,
         raise ANUGAError(msg)
 
     try:
-        pointatts = ensure_numeric(pointatts, num.float)
+        pointatts = ensure_numeric(pointatts, float)
     except (ValueError, TypeError):
         msg = 'ERROR: Inconsistent point attributes array.'
         raise ANUGAError(msg)
@@ -179,7 +179,7 @@ def generate_mesh(points=None,
     if 'vertices' in tri:
         pointlist = num.ascontiguousarray(tri['vertices'])
     else:
-        pointlist = num.empty((0,2),dtype=num.float)
+        pointlist = num.empty((0,2),dtype=float)
     if 'vertex_markers' in tri:
         pointmarkerlist = num.ascontiguousarray(tri['vertex_markers'].reshape(-1))
     else:
@@ -191,11 +191,11 @@ def generate_mesh(points=None,
     if 'vertex_attributes' in tri:
         pointattributelist = num.ascontiguousarray(tri['vertex_attributes'])
     else:
-        pointattributelist = num.empty((pointlist.shape[0],0),dtype=num.float)
+        pointattributelist = num.empty((pointlist.shape[0],0),dtype=float)
     if 'triangle_attributes' in tri:
         triangleattributelist = num.ascontiguousarray(tri['triangle_attributes'])
     else:
-        triangleattributelist = num.empty((trianglelist.shape[0],0),dtype=num.float)
+        triangleattributelist = num.empty((trianglelist.shape[0],0),dtype=float)
     if 'segments' in tri:
         segmentlist = num.ascontiguousarray(tri['segments'])
     else:

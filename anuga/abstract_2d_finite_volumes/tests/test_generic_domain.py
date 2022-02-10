@@ -384,8 +384,8 @@ class Test_Domain(unittest.TestCase):
                         other_quantities = ['elevation', 'friction', 'depth'])
 
 
-        A = num.array([[1,2,3], [5,5,-5], [0,0,9], [-6,3,3]], num.float)
-        B = num.array([[2,4,4], [3,2,1], [6,-3,4], [4,5,-1]], num.float)
+        A = num.array([[1,2,3], [5,5,-5], [0,0,9], [-6,3,3]], float)
+        B = num.array([[2,4,4], [3,2,1], [6,-3,4], [4,5,-1]], float)
         
         # Shorthands
         stage = domain.quantities['stage']
@@ -760,7 +760,7 @@ class Test_Domain(unittest.TestCase):
         domain.update_conserved_quantities()
 
         sem = old_div(num.array([1.,1.,1.,1.]),num.array([1, 2, 3, 4]))
-        denom = num.ones(4, num.float) - domain.timestep*sem
+        denom = num.ones(4, float) - domain.timestep*sem
 
 #        x = array([1, 2, 3, 4]) + array( [.4,.3,.2,.1] )
 #        x /= denom

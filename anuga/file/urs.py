@@ -69,7 +69,7 @@ class Read_urs(object):
             raise Exception('Unknown python version: %' % system_tools.version)
 
         #print('lonlatdep', lonlatdep)
-        lonlatdep = num.array(lonlatdep, dtype=num.float)
+        lonlatdep = num.array(lonlatdep, dtype=float)
         lonlatdep = num.reshape(lonlatdep, (self.points_num, columns))
         self.lonlatdep = lonlatdep
 
@@ -117,7 +117,7 @@ class Read_urs(object):
             raise Exception('Unknown python version: %' % system_tools.version)
 
         
-        hz_p = num.array(hz_p_array, dtype=num.float)
+        hz_p = num.array(hz_p_array, dtype=float)
         self.iter_time_step += 1
 
         return hz_p

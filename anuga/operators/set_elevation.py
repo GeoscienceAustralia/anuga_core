@@ -152,7 +152,7 @@ class Set_elevation(Set_quantity):
                 for nid in self.node_ids:
                     non = self.domain.number_of_triangles_per_node[nid]
     
-                    vid = num.arange(self.node_index[nid], self.node_index[nid+1], dtype=num.int)
+                    vid = num.arange(self.node_index[nid], self.node_index[nid+1], dtype=int)
                     vidd = self.domain.vertex_value_indices[vid]
 
                     # Replaced this (Ole)
@@ -270,7 +270,7 @@ class Set_elevation(Set_quantity):
 
 
 
-        node_index = num.zeros((self.domain.number_of_nodes)+1, dtype = num.int)
+        node_index = num.zeros((self.domain.number_of_nodes)+1, dtype = int)
 
         # FIXME: SR Don't we calculate this for the domain already!
         k = 0
@@ -288,9 +288,9 @@ class Set_elevation(Set_quantity):
                 vertex_ids.append(vidd)
                 #print '   ',nid, vid, vidd, vidd/3, vidd%3
 
-        self.vol_ids = num.array(vertex_ids, dtype=num.int) // 3  # FIXME(Ole): Tests past both with / and //
-        self.vols = num.array(list(set(self.vol_ids)), dtype=num.int)
-        self.vert_ids = num.array(vertex_ids,dtype=num.int)%3
+        self.vol_ids = num.array(vertex_ids, dtype=int) // 3  # FIXME(Ole): Tests past both with / and //
+        self.vols = num.array(list(set(self.vol_ids)), dtype=int)
+        self.vert_ids = num.array(vertex_ids,dtype=int)%3
 
 
 

@@ -58,9 +58,9 @@ def sww2obj(filename, size):
     stage = fid.variables['stage']
 
     M = size  #Number of lines
-    xx = num.zeros((M,3), num.float)
-    yy = num.zeros((M,3), num.float)
-    zz = num.zeros((M,3), num.float)
+    xx = num.zeros((M,3), float)
+    yy = num.zeros((M,3), float)
+    zz = num.zeros((M,3), float)
 
     for i in range(M):
         for j in range(3):
@@ -166,8 +166,8 @@ def timefile2netcdf(file_text, file_out = None, quantity_names=None, \
     N = len(lines)
     d = len(q)
 
-    T = num.zeros(N, num.float)       # Time
-    Q = num.zeros((N, d), num.float)  # Values
+    T = num.zeros(N, float)       # Time
+    Q = num.zeros((N, d), float)  # Values
 
     for i, line in enumerate(lines):
         fields = line.split(',')

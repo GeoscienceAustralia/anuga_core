@@ -29,7 +29,7 @@ def partMeshNodal(int ne, int nn, object elements, int etype, int nparts):
 
 	assert isinstance(elements,list) or isinstance(elements,np.ndarray), "elements must be a list or an array"
 
-	elem_arr =  np.ascontiguousarray(np.array(elements, dtype=np.int))
+	elem_arr =  np.ascontiguousarray(np.array(elements, dtype=int))
 
 	if elem_arr.dtype == 'int64':
 		elem_c_arr = <idxtype* > malloc(elem_arr.shape[0] * sizeof(idxtype))

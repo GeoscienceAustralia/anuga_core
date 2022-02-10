@@ -216,7 +216,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         #assert num.allclose(max_time, 45.0)
         
         # Check runup restricted to a polygon
-        p = num.array([[50,1], [99,1], [99,40], [50,40]], num.int) + num.array([E, N], num.int)
+        p = num.array([[50,1], [99,1], [99,40], [50,40]], int) + num.array([E, N], int)
         runup, location = get_maximum_inundation_data(swwfile, polygon=p)
         if verbose:
             print('Runup, location:',runup, location, max_time)
@@ -381,7 +381,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         assert num.allclose(location[0], 61.66+E)
 
         # Check runup restricted to a polygon
-        p = num.array([[50,1], [99,1], [99,49], [50,49]], num.int) + num.array([E, N], num.int)      #array default#
+        p = num.array([[50,1], [99,1], [99,49], [50,49]], int) + num.array([E, N], int)      #array default#
 
         runup = get_maximum_inundation_elevation(swwfile, polygon=p)
         location = get_maximum_inundation_location(swwfile, polygon=p)
