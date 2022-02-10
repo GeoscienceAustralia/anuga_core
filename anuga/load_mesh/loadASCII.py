@@ -599,7 +599,7 @@ def _write_msh_file(file_name, mesh):
     # print 'mesh vertices',mesh['vertices'].shape
 
     # the triangulation
-    mesh['vertices'] = num.array(mesh['vertices'], num.float)
+    mesh['vertices'] = num.array(mesh['vertices'], float)
     mesh['vertex_attribute_titles'] = \
         num.array(string_to_char(
             mesh['vertex_attribute_titles']), 'S1')
@@ -609,7 +609,7 @@ def _write_msh_file(file_name, mesh):
     # print 'num_attrib ',num_attributes
     if mesh['vertex_attributes'] != None:
         mesh['vertex_attributes'] = \
-            num.array(mesh['vertex_attributes'], num.float)
+            num.array(mesh['vertex_attributes'], float)
 
     if num_attributes > 0:
         mesh['vertex_attributes'] = \
@@ -625,16 +625,16 @@ def _write_msh_file(file_name, mesh):
         num.array(mesh['triangle_neighbors'], IntType)
 
     # the outline
-    mesh['points'] = num.array(mesh['points'], num.float)
-    mesh['point_attributes'] = num.array(mesh['point_attributes'], num.float)
+    mesh['points'] = num.array(mesh['points'], float)
+    mesh['point_attributes'] = num.array(mesh['point_attributes'], float)
     mesh['outline_segments'] = num.array(mesh['outline_segments'], IntType)
     mesh['outline_segment_tags'] = \
         num.array(string_to_char(mesh['outline_segment_tags']), 'S1')
-    mesh['holes'] = num.array(mesh['holes'], num.float)
-    mesh['regions'] = num.array(mesh['regions'], num.float)
+    mesh['holes'] = num.array(mesh['holes'], float)
+    mesh['regions'] = num.array(mesh['regions'], float)
     mesh['region_tags'] = num.array(
         string_to_char(mesh['region_tags']), 'S1')
-    mesh['region_max_areas'] = num.array(mesh['region_max_areas'], num.float)
+    mesh['region_max_areas'] = num.array(mesh['region_max_areas'], float)
 
     # NetCDF file definition
     try:
@@ -798,7 +798,7 @@ def _read_msh_file(file_name):
     try:
         mesh['vertices'] = fid.variables['vertices'][:]
     except KeyError:
-        mesh['vertices'] = num.array([], num.int)  # array default#
+        mesh['vertices'] = num.array([], int)  # array default#
 
     try:
         mesh['vertex_attributes'] = fid.variables['vertex_attributes'][:]
@@ -816,7 +816,7 @@ def _read_msh_file(file_name):
     try:
         mesh['segments'] = fid.variables['segments'][:]
     except KeyError:
-        mesh['segments'] = num.array([], num.int)  # array default#
+        mesh['segments'] = num.array([], int)  # array default#
 
     mesh['segment_tags'] = []
     try:
@@ -830,8 +830,8 @@ def _read_msh_file(file_name):
         mesh['triangles'] = fid.variables['triangles'][:]
         mesh['triangle_neighbors'] = fid.variables['triangle_neighbors'][:]
     except KeyError:
-        mesh['triangles'] = num.array([], num.int)  # array default#
-        mesh['triangle_neighbors'] = num.array([], num.int)  # array default#
+        mesh['triangles'] = num.array([], int)  # array default#
+        mesh['triangle_neighbors'] = num.array([], int)  # array default#
 
 
     mesh['triangle_tags'] = []
@@ -859,7 +859,7 @@ def _read_msh_file(file_name):
     try:
         mesh['outline_segments'] = fid.variables['outline_segments'][:]
     except KeyError:
-        mesh['outline_segments'] = num.array([], num.int)  # array default#
+        mesh['outline_segments'] = num.array([], int)  # array default#
 
     mesh['outline_segment_tags'] = []
     try:
@@ -873,12 +873,12 @@ def _read_msh_file(file_name):
     try:
         mesh['holes'] = fid.variables['holes'][:]
     except KeyError:
-        mesh['holes'] = num.array([], num.int)  # array default#
+        mesh['holes'] = num.array([], int)  # array default#
 
     try:
         mesh['regions'] = fid.variables['regions'][:]
     except KeyError:
-        mesh['regions'] = num.array([], num.int)  # array default#
+        mesh['regions'] = num.array([], int)  # array default#
 
     mesh['region_tags'] = []
     try:
@@ -892,7 +892,7 @@ def _read_msh_file(file_name):
     try:
         mesh['region_max_areas'] = fid.variables['region_max_areas'][:]
     except KeyError:
-        mesh['region_max_areas'] = num.array([], num.int)  # array default#
+        mesh['region_max_areas'] = num.array([], int)  # array default#
         
     try:
         geo_reference = Geo_reference(NetCDFObject=fid)
@@ -945,7 +945,7 @@ def extent_point_atts(point_atts):
 
 
 def extent(points):
-    points = num.array(points, num.float)
+    points = num.array(points, float)
 
     max_x = min_x = points[0][0]
     max_y = min_y = points[0][1]
@@ -1015,11 +1015,11 @@ def produce_half_point_files(infile, max_points, delimiter, verbose=False):
 
 def point_atts2array(point_atts):
     # convert attribute list to array of floats
-    point_atts['pointlist'] = num.array(point_atts['pointlist'], num.float)
+    point_atts['pointlist'] = num.array(point_atts['pointlist'], float)
 
     for key in list(point_atts['attributelist'].keys()):
         point_atts['attributelist'][key] = \
-            num.array(point_atts['attributelist'][key], num.float)
+            num.array(point_atts['attributelist'][key], float)
 
     return point_atts
 
@@ -1040,7 +1040,7 @@ def concatinate_attributelist(dic):
     return list of attribute titles, array of attributes
     """
 
-    point_attributes = num.array([], num.float)
+    point_attributes = num.array([], float)
     keys = list(dic.keys())
     key = keys.pop(0)
     point_attributes = num.reshape(dic[key], (dic[key].shape[0], 1))

@@ -208,7 +208,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
                                  stage=stage,
                                  xmomentum=xmomentum,
                                  ymomentum=ymomentum,
-                                 sww_precision=num.float)
+                                 sww_precision=float)
         j += 1
 
     if verbose: sww.verbose_quantities(outfile)

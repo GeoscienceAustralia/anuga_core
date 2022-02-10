@@ -62,20 +62,20 @@ class Test_Urs2Sts(Test_Mux):
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
+        first_tstep=num.ones(n,int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,int)
         last_tstep[0]-=1
 
-        gauge_depth=20*num.ones(n,num.float)
-        ha=2*num.ones((n,time_step_count),num.float)
+        gauge_depth=20*num.ones(n,float)
+        ha=2*num.ones((n,time_step_count),float)
         ha[0]=num.arange(0,time_step_count)
         ha[1]=num.arange(time_step_count,2*time_step_count)
         ha[2]=num.arange(2*time_step_count,3*time_step_count)
         ha[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua=5*num.ones((n,time_step_count),num.float)
-        va=-10*num.ones((n,time_step_count),num.float)
+        ua=5*num.ones((n,time_step_count),float)
+        va=-10*num.ones((n,time_step_count),float)
 
         base_name, files = self.write_mux2(lat_long_points,
                                       time_step_count, time_step,
@@ -148,7 +148,7 @@ class Test_Urs2Sts(Test_Mux):
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth=num.zeros((len(lat_long_points),time_step_count),num.float)
+        depth=num.zeros((len(lat_long_points),time_step_count),float)
         for i in range(len(lat_long_points)):
             depth[i]=gauge_depth[i]+tide+ha[i]
         assert num.allclose(num.transpose(ua*depth),xmomentum) 
@@ -177,20 +177,20 @@ class Test_Urs2Sts(Test_Mux):
         time_step = 2
         lat_long_points =[(-21.,114.5),(-21.,113.5),(-21.,114.), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
+        first_tstep=num.ones(n,int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,int)
         last_tstep[0]-=1
 
-        gauge_depth=20*num.ones(n,num.float)
-        ha=2*num.ones((n,time_step_count),num.float)
+        gauge_depth=20*num.ones(n,float)
+        ha=2*num.ones((n,time_step_count),float)
         ha[0]=num.arange(0,time_step_count)
         ha[1]=num.arange(time_step_count,2*time_step_count)
         ha[2]=num.arange(2*time_step_count,3*time_step_count)
         ha[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua=5*num.ones((n,time_step_count),num.float)
-        va=-10*num.ones((n,time_step_count),num.float)
+        ua=5*num.ones((n,time_step_count),float)
+        va=-10*num.ones((n,time_step_count),float)
 
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count, time_step,
@@ -578,20 +578,20 @@ class Test_Urs2Sts(Test_Mux):
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
+        first_tstep=num.ones(n,int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,int)
         last_tstep[0]-=1
 
-        gauge_depth=20*num.ones(n,num.float)
-        ha=2*num.ones((n,time_step_count),num.float)
+        gauge_depth=20*num.ones(n,float)
+        ha=2*num.ones((n,time_step_count),float)
         ha[0]=num.arange(0,time_step_count)
         ha[1]=num.arange(time_step_count,2*time_step_count)
         ha[2]=num.arange(2*time_step_count,3*time_step_count)
         ha[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua=5*num.ones((n,time_step_count),num.float)
-        va=-10*num.ones((n,time_step_count),num.float)
+        ua=5*num.ones((n,time_step_count),float)
+        va=-10*num.ones((n,time_step_count),float)
 
         # Create two identical mux files to be combined by urs2sts
         base_nameI, filesI = self.write_mux2(lat_long_points,
@@ -722,7 +722,7 @@ class Test_Urs2Sts(Test_Mux):
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth=num.zeros((len(lat_long_points),time_step_count),num.float)
+        depth=num.zeros((len(lat_long_points),time_step_count),float)
         for i in range(len(lat_long_points)):
             depth[i]=gauge_depth[i]+tide+2.0*ha[i]
             #2.0*ha necessary because using two files with weights=1 are used
@@ -765,20 +765,20 @@ class Test_Urs2Sts(Test_Mux):
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
+        first_tstep=num.ones(n,int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,int)
         last_tstep[0]-=1
 
-        gauge_depth=20*num.ones(n,num.float)
-        ha=2*num.ones((n,time_step_count),num.float)
+        gauge_depth=20*num.ones(n,float)
+        ha=2*num.ones((n,time_step_count),float)
         ha[0]=num.arange(0,time_step_count)
         ha[1]=num.arange(time_step_count,2*time_step_count)
         ha[2]=num.arange(2*time_step_count,3*time_step_count)
         ha[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua=5*num.ones((n,time_step_count),num.float)
-        va=-10*num.ones((n,time_step_count),num.float)
+        ua=5*num.ones((n,time_step_count),float)
+        va=-10*num.ones((n,time_step_count),float)
 
         # Create two identical mux files to be combined by urs2sts
         base_nameI, filesI = self.write_mux2(lat_long_points,
@@ -864,12 +864,12 @@ class Test_Urs2Sts(Test_Mux):
         
         
         # Create different timeseries starting and ending at different times 
-        first_tstep=num.ones(n,num.int)
+        first_tstep=num.ones(n,int)
         first_tstep[0]+=2   # Point 0 starts at 2
         first_tstep[1]+=4   # Point 1 starts at 4        
         first_tstep[2]+=3   # Point 2 starts at 3
         
-        last_tstep=(time_step_count)*num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,int)
         last_tstep[0]-=1    # Point 0 ends 1 step early
         last_tstep[1]-=2    # Point 1 ends 2 steps early                
         last_tstep[4]-=3    # Point 4 ends 3 steps early        
@@ -882,20 +882,20 @@ class Test_Urs2Sts(Test_Mux):
         
         
         # Create varying elevation data (positive values for seafloor)
-        gauge_depth=20*num.ones(n,num.float)
+        gauge_depth=20*num.ones(n,float)
         for i in range(n):
             gauge_depth[i] += i**2
             
         #print 'gauge_depth', gauge_depth
         
         # Create data to be written to first mux file        
-        ha0=2*num.ones((n,time_step_count),num.float)
+        ha0=2*num.ones((n,time_step_count),float)
         ha0[0]=num.arange(0,time_step_count)
         ha0[1]=num.arange(time_step_count,2*time_step_count)
         ha0[2]=num.arange(2*time_step_count,3*time_step_count)
         ha0[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua0=5*num.ones((n,time_step_count),num.float)
-        va0=-10*num.ones((n,time_step_count),num.float)
+        ua0=5*num.ones((n,time_step_count),float)
+        va0=-10*num.ones((n,time_step_count),float)
 
         # Ensure data used to write mux file to be zero when gauges are
         # not recording
@@ -926,22 +926,22 @@ class Test_Urs2Sts(Test_Mux):
                                              
                                              
         # Create data to be written to second mux file        
-        ha1=num.ones((n,time_step_count),num.float)
+        ha1=num.ones((n,time_step_count),float)
         ha1[0]=num.sin(times_ref)
         ha1[1]=2*num.sin(times_ref - 3)
         ha1[2]=5*num.sin(4*times_ref)
         ha1[3]=num.sin(times_ref)
         ha1[4]=num.sin(2*times_ref-0.7)
                 
-        ua1=num.zeros((n,time_step_count),num.float)
+        ua1=num.zeros((n,time_step_count),float)
         ua1[0]=3*num.cos(times_ref)        
         ua1[1]=2*num.sin(times_ref-0.7)   
         ua1[2]=num.arange(3*time_step_count,4*time_step_count)
         ua1[4]=2*num.ones(time_step_count)
         
-        va1=num.zeros((n,time_step_count),num.float)
+        va1=num.zeros((n,time_step_count),float)
         va1[0]=2*num.cos(times_ref-0.87)        
-        va1[1]=3*num.ones(time_step_count, num.int)       #array default#
+        va1[1]=3*num.ones(time_step_count, int)       #array default#
         va1[3]=2*num.sin(times_ref-0.71)        
         
         
@@ -1068,7 +1068,7 @@ class Test_Urs2Sts(Test_Mux):
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth_ref = num.zeros((len(permutation), time_step_count), num.float)
+        depth_ref = num.zeros((len(permutation), time_step_count), float)
         for i in range(len(permutation)):
             depth_ref[i]=gauge_depth_ref[i]+tide+ha_ref[i]
 
@@ -1181,7 +1181,7 @@ class Test_Urs2Sts(Test_Mux):
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth_ref = num.zeros((len(permutation), time_step_count), num.float)
+        depth_ref = num.zeros((len(permutation), time_step_count), float)
         for i in range(len(permutation)):
             depth_ref[i]=gauge_depth_ref[i]+tide+ha_ref[i]
 
@@ -1288,7 +1288,7 @@ class Test_Urs2Sts(Test_Mux):
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth_ref = num.zeros((len(permutation), time_step_count), num.float)
+        depth_ref = num.zeros((len(permutation), time_step_count), float)
         for i in range(len(permutation)):
             depth_ref[i]=gauge_depth_ref[i]+tide+ha_ref[i]
 
@@ -1341,17 +1341,17 @@ class Test_Urs2Sts(Test_Mux):
         time_step = 2
         lat_long_points =bounding_polygon[0:3]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
-        last_tstep=(time_step_count)*num.ones(n,num.int)
+        first_tstep=num.ones(n,int)
+        last_tstep=(time_step_count)*num.ones(n,int)
 
         h = 20        
         w = 2
         u = 10
         v = -10
-        gauge_depth=h*num.ones(n,num.float)
-        ha=w*num.ones((n,time_step_count),num.float)
-        ua=u*num.ones((n,time_step_count),num.float)
-        va=v*num.ones((n,time_step_count),num.float)
+        gauge_depth=h*num.ones(n,float)
+        ha=w*num.ones((n,time_step_count),float)
+        ua=u*num.ones((n,time_step_count),float)
+        va=v*num.ones((n,time_step_count),float)
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count, time_step,
                                            first_tstep, last_tstep,
@@ -1404,7 +1404,7 @@ class Test_Urs2Sts(Test_Mux):
         # Evolve
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
-        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
+        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1,float)
 
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -1431,7 +1431,7 @@ class Test_Urs2Sts(Test_Mux):
         Br = Reflective_boundary(domain_drchlt)
 
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
+        temp_drchlt=num.zeros(int(old_div(finaltime,yieldstep))+1,float)
 
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -1477,17 +1477,17 @@ class Test_Urs2Sts(Test_Mux):
         time_step = 2
         lat_long_points = bounding_polygon[0:3]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
-        last_tstep=(time_step_count)*num.ones(n,num.int)
+        first_tstep=num.ones(n,int)
+        last_tstep=(time_step_count)*num.ones(n,int)
 
         h = 20        
         w = 2
         u = 10
         v = -10
-        gauge_depth=h*num.ones(n,num.float)
-        ha=w*num.ones((n,time_step_count),num.float)
-        ua=u*num.ones((n,time_step_count),num.float)
-        va=v*num.ones((n,time_step_count),num.float)
+        gauge_depth=h*num.ones(n,float)
+        ha=w*num.ones((n,time_step_count),float)
+        ua=u*num.ones((n,time_step_count),float)
+        va=v*num.ones((n,time_step_count),float)
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count, time_step,
                                            first_tstep, last_tstep,
@@ -1549,7 +1549,7 @@ class Test_Urs2Sts(Test_Mux):
         data_finaltime = time_step*(time_step_count-1)
         finaltime = data_finaltime + 10 # Let model time exceed available data
         yieldstep = time_step
-        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1, num.float)
+        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1, float)
 
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -1575,7 +1575,7 @@ class Test_Urs2Sts(Test_Mux):
         Br = Reflective_boundary(domain_drchlt)
 
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
+        temp_drchlt=num.zeros(int(old_div(finaltime,yieldstep))+1,float)
 
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -1619,17 +1619,17 @@ class Test_Urs2Sts(Test_Mux):
         time_step = 2
         lat_long_points = bounding_polygon[0:3]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
-        last_tstep=(time_step_count)*num.ones(n,num.int)
+        first_tstep=num.ones(n,int)
+        last_tstep=(time_step_count)*num.ones(n,int)
 
         h = 20        
         w = 2
         u = 10
         v = -10
-        gauge_depth=h*num.ones(n,num.float)
-        ha=w*num.ones((n,time_step_count),num.float)
-        ua=u*num.ones((n,time_step_count),num.float)
-        va=v*num.ones((n,time_step_count),num.float)
+        gauge_depth=h*num.ones(n,float)
+        ha=w*num.ones((n,time_step_count),float)
+        ua=u*num.ones((n,time_step_count),float)
+        va=v*num.ones((n,time_step_count),float)
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count, time_step,
                                            first_tstep, last_tstep,
@@ -1694,7 +1694,7 @@ class Test_Urs2Sts(Test_Mux):
         data_finaltime = time_step*(time_step_count-1)
         finaltime = data_finaltime + 10 # Let model time exceed available data
         yieldstep = time_step
-        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1, num.float)
+        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1, float)
 
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -1732,12 +1732,12 @@ class Test_Urs2Sts(Test_Mux):
         lat_long_points.insert(0,bounding_polygon[len(bounding_polygon)-1])
         lat_long_points.insert(0,[6.0,97.01])
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
-        last_tstep=(time_step_count)*num.ones(n,num.int)
-        gauge_depth=20*num.ones(n,num.float)
-        ha=2*num.ones((n,time_step_count),num.float)
-        ua=10*num.ones((n,time_step_count),num.float)
-        va=-10*num.ones((n,time_step_count),num.float)
+        first_tstep=num.ones(n,int)
+        last_tstep=(time_step_count)*num.ones(n,int)
+        gauge_depth=20*num.ones(n,float)
+        ha=2*num.ones((n,time_step_count),float)
+        ua=10*num.ones((n,time_step_count),float)
+        va=-10*num.ones((n,time_step_count),float)
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count,
                                            time_step,
@@ -1779,7 +1779,7 @@ class Test_Urs2Sts(Test_Mux):
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
-        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
+        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1,float)
         
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -1791,7 +1791,7 @@ class Test_Urs2Sts(Test_Mux):
         Br = Reflective_boundary(domain_drchlt)
         Bd = Dirichlet_boundary([2.0+tide,220+10*tide,-220-10*tide])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
+        temp_drchlt=num.zeros(int(old_div(finaltime,yieldstep))+1,float)
 
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -1833,12 +1833,12 @@ class Test_Urs2Sts(Test_Mux):
         time_step_count = 50
         time_step = 2
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
-        last_tstep=(time_step_count)*num.ones(n,num.int)
-        gauge_depth=20*num.ones(n,num.float)
-        ha=2*num.ones((n,time_step_count),num.float)
-        ua=10*num.ones((n,time_step_count),num.float)
-        va=-10*num.ones((n,time_step_count),num.float)
+        first_tstep=num.ones(n,int)
+        last_tstep=(time_step_count)*num.ones(n,int)
+        gauge_depth=20*num.ones(n,float)
+        ha=2*num.ones((n,time_step_count),float)
+        ua=10*num.ones((n,time_step_count),float)
+        va=-10*num.ones((n,time_step_count),float)
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count,
                                            time_step,
@@ -1927,7 +1927,7 @@ class Test_Urs2Sts(Test_Mux):
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
-        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
+        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1,float)
     
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -1941,7 +1941,7 @@ class Test_Urs2Sts(Test_Mux):
         Br = Reflective_boundary(domain_drchlt)
         Bd = Dirichlet_boundary([2.0+tide,220+10*tide,-220-10*tide])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
+        temp_drchlt=num.zeros(int(old_div(finaltime,yieldstep))+1,float)
         
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -1994,14 +1994,14 @@ class Test_Urs2Sts(Test_Mux):
         times_ref = num.arange(0, time_step_count*time_step, time_step)
         
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
-        last_tstep=(time_step_count)*num.ones(n,num.int)
+        first_tstep=num.ones(n,int)
+        last_tstep=(time_step_count)*num.ones(n,int)
         
-        gauge_depth=20*num.ones(n,num.float)
+        gauge_depth=20*num.ones(n,float)
         
-        ha1=num.ones((n,time_step_count),num.float)
-        ua1=3.*num.ones((n,time_step_count),num.float)
-        va1=2.*num.ones((n,time_step_count),num.float)
+        ha1=num.ones((n,time_step_count),float)
+        ua1=3.*num.ones((n,time_step_count),float)
+        va1=2.*num.ones((n,time_step_count),float)
         for i in range(n):
             ha1[i]=num.sin(times_ref)
         

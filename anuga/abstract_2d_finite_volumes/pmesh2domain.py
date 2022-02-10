@@ -171,7 +171,7 @@ def pmesh_dict_to_tag_dict_old(mesh_dict):
 
     triangles = mesh_dict['triangles']
 
-    triangles = num.array(triangles,num.int)
+    triangles = num.array(triangles,int)
 
     sides = {}
     for id, triangle in enumerate(triangles):
@@ -207,8 +207,8 @@ def pmesh_dict_to_tag_dict(mesh_dict):
     segments = mesh_dict['segments']
     segment_tags = mesh_dict['segment_tags']
 
-    triangles = num.array(triangles,num.int)
-    segments = num.array(segments,num.int)
+    triangles = num.array(triangles,int)
+    segments = num.array(segments,int)
     tag_dict = {}
 
     #print triangles
@@ -233,7 +233,7 @@ def calc_sides_old(triangles):
     '''
 
     sides = {}
-    triangles = num.array(triangles,num.int)
+    triangles = num.array(triangles,int)
     for id, triangle in enumerate(triangles):
         a = triangle[0]
         b = triangle[1]
@@ -255,7 +255,7 @@ def calc_sides_zip(triangles):
     sides = {}
 
 
-    triangles = num.array(triangles,num.int)
+    triangles = num.array(triangles,int)
 
 
     a = triangles[:,0]
@@ -278,7 +278,7 @@ def calc_sides_c(triangles):
     sides = {}
 
 
-    triangles = num.array(triangles,num.int)
+    triangles = num.array(triangles,int)
     ntriangles = len(triangles)
 
 #    print 'calc_sides'

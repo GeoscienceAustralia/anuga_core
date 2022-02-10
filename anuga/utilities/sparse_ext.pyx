@@ -19,13 +19,13 @@ def csr_mv(object csr_sparse, np.ndarray x not None):
 	data = csr_sparse.data
 	colind = csr_sparse.colind
 	row_ptr = csr_sparse.row_ptr
-	x = np.ascontiguousarray(x.astype(np.float))
+	x = np.ascontiguousarray(x.astype(float))
 
 	M = row_ptr.shape[0] - 1
 
 	if x.ndim == 1: # Multiplicant is a vector
 
-		y = np.ascontiguousarray(np.zeros(M, dtype=np.float))
+		y = np.ascontiguousarray(np.zeros(M, dtype=float))
 
 		err = _csr_mv(M, &data[0], &colind[0], &row_ptr[0], <double* > x.data, <double* > y.data)
 
@@ -34,7 +34,7 @@ def csr_mv(object csr_sparse, np.ndarray x not None):
 		rows = x.shape[0]
 		columns = x.shape[1]
 
-		y = np.ascontiguousarray(np.zeros((M,columns),dtype=np.float))
+		y = np.ascontiguousarray(np.zeros((M,columns),dtype=float))
 
 		err = _csr_mm(M, columns, &data[0], &colind[0], &row_ptr[0], <double* > x.data, <double* > y.data)
 

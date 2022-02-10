@@ -94,10 +94,10 @@ def _convert_dem_from_llasc2pts(name_in, name_out = None,
 
     totalnopoints = nrows*ncols
 
-    y = num.arange(nrows,dtype=num.float)
+    y = num.arange(nrows,dtype=float)
     y = yllcorner + (nrows-1)*cellsize - y*cellsize
 
-    x = num.arange(ncols,dtype=num.float)
+    x = num.arange(ncols,dtype=float)
     x = xllcorner + x*cellsize
 
     #print(xllcorner)

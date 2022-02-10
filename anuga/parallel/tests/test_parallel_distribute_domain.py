@@ -109,10 +109,10 @@ def run_simulation(parallel=False):
     l1list = []
     l2list = []
     linflist = []
-    l1norm = num.zeros(3, num.float)
-    l2norm = num.zeros(3, num.float)
-    linfnorm = num.zeros(3, num.float)
-    recv_norm = num.zeros(3, num.float)
+    l1norm = num.zeros(3, float)
+    l2norm = num.zeros(3, float)
+    linfnorm = num.zeros(3, float)
+    recv_norm = num.zeros(3, float)
 
     #------------------------------------------------------------------------------
     # Evolution

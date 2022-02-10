@@ -70,8 +70,8 @@ def angle(v1, v2=None):
     if v2 is None:
         v2 = [1.0, 0.0] # Unit vector along the x-axis
 
-    v1 = ensure_numeric(v1, num.float)
-    v2 = ensure_numeric(v2, num.float)
+    v1 = ensure_numeric(v1, float)
+    v2 = ensure_numeric(v2, float)
 
     # Normalise
     v1 = v1/num.sqrt(num.sum(v1**2))
@@ -121,7 +121,7 @@ def normal_vector(v):
     Returns vector 90 degrees counter clockwise to and of same length as v
     """
 
-    return num.array([-v[1], v[0]], num.float)
+    return num.array([-v[1], v[0]], float)
 
 
 #def crossproduct_length(v1, v2):
@@ -242,7 +242,7 @@ def ensure_numeric(A, typecode=None):
 
         typecode:    numeric type. If specified, use this in the conversion.
                      If not, let numpy package decide.
-                     typecode will always be one of num.float, num.int, etc.
+                     typecode will always be one of float, int, etc.
 
     Note that num.array(A, dtype) will sometimes copy.  Use 'copy=False' to
     copy only when required.

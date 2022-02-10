@@ -387,8 +387,8 @@ class Test_Util(unittest.TestCase):
         y = fid.variables['y'][:]
         # we 'cast' to 64 bit floats to pass this test
         # SWW file quantities are stored as 32 bits
-        x = num.array(x, num.float)
-        y = num.array(y, num.float)
+        x = num.array(x, float)
+        y = num.array(y, float)
 
         stage = fid.variables['stage'][:]
         xmomentum = fid.variables['xmomentum'][:]
@@ -1249,9 +1249,9 @@ class Test_Util(unittest.TestCase):
 
         #FIXME: Division is not expected to work for integers.
         #This must be caught.
-        foo = num.array([[1,2,3], [4,5,6]], num.float)
+        foo = num.array([[1,2,3], [4,5,6]], float)
 
-        bar = num.array([[-1,0,5], [6,1,1]], num.float)                  
+        bar = num.array([[-1,0,5], [6,1,1]], float)                  
 
         D = {'X': foo, 'Y': bar}
 

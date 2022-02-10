@@ -19,10 +19,10 @@ def setup_buffers(domain):
     """Buffers for synchronisation of timesteps
     """
 
-    domain.local_timestep = num.zeros(1, num.float)
-    domain.global_timestep = num.zeros(1, num.float)
+    domain.local_timestep = num.zeros(1, float)
+    domain.global_timestep = num.zeros(1, float)
 
-    domain.local_timesteps = num.zeros(domain.numproc, num.float)
+    domain.local_timesteps = num.zeros(domain.numproc, float)
 
     domain.communication_time = 0.0
     domain.communication_reduce_time = 0.0

@@ -263,7 +263,7 @@ def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=Fals
             datum      = fid.datum;
             projection = fid.projection;
 
-            g_volumes = num.zeros((number_of_global_triangles,3),num.int)
+            g_volumes = num.zeros((number_of_global_triangles,3),int)
             g_x = num.zeros((number_of_global_nodes,),num.float32)
             g_y = num.zeros((number_of_global_nodes,),num.float32)
 
@@ -332,7 +332,7 @@ def _sww_merge_parallel_smooth(swwfiles, output,  verbose=False, delete_old=Fals
         tri_l2g  = fid.variables['tri_l2g'][:]
         node_l2g = fid.variables['node_l2g'][:]
         tri_full_flag = fid.variables['tri_full_flag'][:]
-        volumes = num.array(fid.variables['volumes'][:],dtype=num.int)
+        volumes = num.array(fid.variables['volumes'][:],dtype=int)
         l_volumes = num.zeros_like(volumes)
         l_old_volumes = num.zeros_like(volumes)
 

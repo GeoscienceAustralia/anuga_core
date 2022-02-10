@@ -609,7 +609,7 @@ class geo_referenceTestCase(unittest.TestCase):
         self.assertTrue(num.alltrue(new_points == points))
 
         # points in num.array()
-        points = num.array(((2,3), (3,1), (5,2)), num.float)
+        points = num.array(((2,3), (3,1), (5,2)), float)
         abs_points = geo.get_absolute(points)
         # check we haven't changed 'points' itself
         self.assertFalse(num.alltrue(abs_points == points))

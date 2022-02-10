@@ -95,7 +95,7 @@ class Alpha_Shape(object):
                 raise PointError("Three points on a straight line")
         
         #Convert input to numeric arrays
-        self.points = num.array(points, num.float)
+        self.points = num.array(points, float)
 
     
     def write_boundary(self,file_name):

@@ -67,7 +67,7 @@ def reorder(quantities, tri_index, proc_sum):
 
     # Temporary storage area
 
-    index = num.zeros(N, num.int)
+    index = num.zeros(N, int)
     q_reord = {}
 
     # Find the new ordering of the triangles
@@ -80,7 +80,7 @@ def reorder(quantities, tri_index, proc_sum):
     # Reorder each quantity according to the new ordering
 
     for k in quantities:
-        q_reord[k] = num.zeros((N, 3), num.float)
+        q_reord[k] = num.zeros((N, 3), float)
         for i in range(N):
             q_reord[k][index[i]] = quantities[k].vertex_values[i]
     del index
@@ -101,7 +101,7 @@ def reorder_new(quantities, epart_order, proc_sum):
     # Reorder each quantity according to the new ordering
 
     for k in quantities:
-        q_reord[k] = num.zeros((N, 3), num.float)
+        q_reord[k] = num.zeros((N, 3), float)
         q_reord[k][:] = quantities[k].vertex_values[epart_order]
 
     return q_reord
@@ -206,7 +206,7 @@ def pmesh_divide_metis_helper(domain, n_procs):
         # dimensional arrays. Correct this.
         # TODO: Not sure if this can still happen with metis 5
         if type(epart[0]) == num.ndarray:
-            epart_new = num.zeros(len(epart), num.int)
+            epart_new = num.zeros(len(epart), int)
             epart_new[:] = epart[:][0]
             epart = epart_new
             del epart_new
@@ -217,14 +217,14 @@ def pmesh_divide_metis_helper(domain, n_procs):
         msg += "Try using a smaller number of mpi processes."
         assert num.all(triangles_per_proc > 0), msg
 
-        proc_sum = num.zeros(n_procs+1, num.int)
+        proc_sum = num.zeros(n_procs+1, int)
         proc_sum[1:] = num.cumsum(triangles_per_proc)
 
         epart_order = num.argsort(epart, kind='mergesort')
         new_triangles = domain.triangles[epart_order]
 
-        #new_r_tri_index_flat = num.zeros((n_tri,3), num.int)
-        new_tri_index = num.zeros((n_tri, 2), num.int)
+        #new_r_tri_index_flat = num.zeros((n_tri,3), int)
+        new_tri_index = num.zeros((n_tri, 2), int)
         for i in range(n_procs):
             ids = num.arange(proc_sum[i], proc_sum[i+1])
             eids = epart_order[ids]
@@ -264,7 +264,7 @@ def pmesh_divide_metis_helper(domain, n_procs):
 
         new_quantities = {}
         for k in domain.quantities:
-            new_quantities[k] = num.zeros((n_tri, 3), num.float)
+            new_quantities[k] = num.zeros((n_tri, 3), float)
             for i in range(n_tri):
                 new_quantities[k][i] = domain.quantities[k].vertex_values[i]
 
@@ -428,7 +428,7 @@ def ghost_layer_old(submesh, mesh, p, tupper, tlower, parameters=None):
     else:
         layer_width = parameters['ghost_layer_width']
 
-    trianglemap = num.zeros(ntriangles, num.int)
+    trianglemap = num.zeros(ntriangles, int)
 
     # Find the first layer of boundary triangles
     for t in range(tlower, tupper):
@@ -471,7 +471,7 @@ def ghost_layer_old(submesh, mesh, p, tupper, tlower, parameters=None):
 
     # Build the triangle list and make note of the vertices
 
-    nodemap = num.zeros(ncoord, num.int)
+    nodemap = num.zeros(ncoord, int)
     fullnodes = submesh["full_nodes"][p]
 
     subtriangles = []
@@ -551,7 +551,7 @@ def ghost_layer(submesh, mesh, p, tupper, tlower, parameters=None):
         (num.reshape(new_trianglemap, (-1, 1)), mesh.triangles[new_trianglemap]), 1)
 
     fullnodes = submesh["full_nodes"][p]
-    full_nodes_ids = num.array(fullnodes[:, 0], num.int)
+    full_nodes_ids = num.array(fullnodes[:, 0], int)
 
     new_nodes = num.unique(mesh.triangles[new_trianglemap].flat)
     new_nodes = numset.setdiff1d(new_nodes, full_nodes_ids)
@@ -726,7 +726,7 @@ def ghost_commun_pattern_old(subtri, p, tri_per_proc):
 
     # Loop over the ghost triangles
 
-    ghost_commun = num.zeros((len(subtri), 2), num.int)
+    ghost_commun = num.zeros((len(subtri), 2), int)
 
     for i in range(len(subtri)):
         global_no = subtri[i][0]
@@ -753,7 +753,7 @@ def ghost_commun_pattern_old_2(subtri, p, tri_per_proc_range):
 
     # Loop over the ghost triangles
 
-    ghost_commun = num.zeros((len(subtri), 2), num.int)
+    ghost_commun = num.zeros((len(subtri), 2), int)
 
     # print tri_per_proc_range
     # print tri_per_proc
@@ -972,7 +972,7 @@ def submesh_quantities(submesh, quantities, triangles_per_proc):
 
         for k in quantities:
             submesh["full_quan"][k].append(quantities[k][lower:upper])
-            submesh["ghost_quan"][k].append(num.zeros((M, 3), num.float))
+            submesh["ghost_quan"][k].append(num.zeros((M, 3), float))
             for j in range(M):
                 submesh["ghost_quan"][k][p][j] = \
                     quantities[k][global_id[j]]
@@ -1077,14 +1077,14 @@ def build_local_GA(nodes, triangles, boundaries, tri_map):
         if nodes[i][0] > NGlobal:
             NGlobal = nodes[i][0]
 
-    node_map = -1*num.ones(int(NGlobal)+1, num.int)
+    node_map = -1*num.ones(int(NGlobal)+1, int)
 
-    num.put(node_map, num.take(nodes, (0,), 1).astype(num.int),
-            num.arange(Nnodes, dtype=num.int))
+    num.put(node_map, num.take(nodes, (0,), 1).astype(int),
+            num.arange(Nnodes, dtype=int))
 
     # Change the global IDs in the triangles to the local IDs
 
-    GAtriangles = num.zeros((Ntriangles, 3), num.int)
+    GAtriangles = num.zeros((Ntriangles, 3), int)
     GAtriangles[:, 0] = num.take(node_map, triangles[:, 0])
     GAtriangles[:, 1] = num.take(node_map, triangles[:, 1])
     GAtriangles[:, 2] = num.take(node_map, triangles[:, 2])
@@ -1213,8 +1213,8 @@ def build_local_mesh(submesh, lower_t, upper_t, nproc):
         id = submesh["ghost_triangles"][i][0]
         if id > NGlobal:
             NGlobal = id
-    #index = num.zeros(int(NGlobal)+1, num.int)
-    tri_map = -1*num.ones(int(NGlobal)+1, num.int)
+    #index = num.zeros(int(NGlobal)+1, int)
+    tri_map = -1*num.ones(int(NGlobal)+1, int)
     tri_map[lower_t:upper_t] = num.arange(upper_t-lower_t)
     for i in range(len(submesh["ghost_triangles"])):
         tri_map[submesh["ghost_triangles"][i][0]] = i+upper_t-lower_t
@@ -1231,7 +1231,7 @@ def build_local_mesh(submesh, lower_t, upper_t, nproc):
     for k in submesh["full_quan"]:
         Nf = len(submesh["full_quan"][k])
         Ng = len(submesh["ghost_quan"][k])
-        quantities[k] = num.zeros((Nf+Ng, 3), num.float)
+        quantities[k] = num.zeros((Nf+Ng, 3), float)
         quantities[k][0:Nf] = submesh["full_quan"][k]
         quantities[k][Nf:Nf+Ng] = submesh["ghost_quan"][k]
 
@@ -1323,7 +1323,7 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
 
     # send the array sizes so memory can be allocated
 
-    setup_array = num.zeros((9,), num.int)
+    setup_array = num.zeros((9,), int)
     setup_array[0] = len(submesh["full_nodes"][p])
     setup_array[1] = len(submesh["ghost_nodes"][p])
     setup_array[2] = len(submesh["full_triangles"][p])
@@ -1334,30 +1334,30 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
     setup_array[7] = len(flat_full_commun)
     setup_array[8] = len(submesh["full_quan"])
 
-    x = num.array(setup_array, num.int)
+    x = num.array(setup_array, int)
     pypar.send(x, p, bypass=True)
 
     # ghost layer width
-    x = num.array(submesh["ghost_layer_width"][p], num.int)
+    x = num.array(submesh["ghost_layer_width"][p], int)
     pypar.send(x, p, bypass=True)
 
     # send the number of triangles per processor
-    x = num.array(triangles_per_proc, num.int)
+    x = num.array(triangles_per_proc, int)
     pypar.send(x, p, bypass=True)
 
     # send the nodes
-    x = num.array(submesh["full_nodes"][p], num.float)
+    x = num.array(submesh["full_nodes"][p], float)
     pypar.send(x, p, bypass=True)
 
-    x = num.array(submesh["ghost_nodes"][p], num.float)
+    x = num.array(submesh["ghost_nodes"][p], float)
     pypar.send(x, p, bypass=True)
 
     # send the triangles
-    x = num.array(submesh["full_triangles"][p], num.int)
+    x = num.array(submesh["full_triangles"][p], int)
     pypar.send(x, p, bypass=True)
 
     # send ghost triangles
-    x = num.array(submesh["ghost_triangles"][p], num.int)
+    x = num.array(submesh["ghost_triangles"][p], int)
     pypar.send(x, p, bypass=True)
 
     # send the boundary
@@ -1365,30 +1365,30 @@ def send_submesh(submesh, triangles_per_proc, p, verbose=True):
     for b in submesh["full_boundary"][p]:
         bc.append([b[0], b[1], tagmap[submesh["full_boundary"][p][b]]])
 
-    x = num.array(bc, num.int)
+    x = num.array(bc, int)
     pypar.send(x, p, bypass=True)
 
     bc = []
     for b in submesh["ghost_boundary"][p]:
         bc.append([b[0], b[1], tagmap[submesh["ghost_boundary"][p][b]]])
 
-    x = num.array(bc, num.int)
+    x = num.array(bc, int)
     pypar.send(x, p, bypass=True)
 
     # send the communication pattern
-    x = num.array(submesh["ghost_commun"][p], num.int)
+    x = num.array(submesh["ghost_commun"][p], int)
     pypar.send(x, p, bypass=True)
 
-    x = num.array(flat_full_commun, num.int)
+    x = num.array(flat_full_commun, int)
     pypar.send(x, p, bypass=True)
 
     # send the quantities
     for k in submesh["full_quan"]:
-        x = num.array(submesh["full_quan"][k][p], num.float)
+        x = num.array(submesh["full_quan"][k][p], float)
         pypar.send(x, p, bypass=True)
 
     for k in submesh["ghost_quan"]:
-        x = num.array(submesh["ghost_quan"][k][p], num.float)
+        x = num.array(submesh["ghost_quan"][k][p], float)
         pypar.send(x, p, bypass=True)
 
 
@@ -1433,7 +1433,7 @@ def rec_submesh_flat(p, verbose=True):
     qkeys = pypar.receive(p)
 
     # recieve information about the array sizes
-    x = num.zeros((9,), num.int)
+    x = num.zeros((9,), int)
     pypar.receive(p, buffer=x,  bypass=True)
     setup_array = x
 
@@ -1448,37 +1448,37 @@ def rec_submesh_flat(p, verbose=True):
     no_quantities = setup_array[8]
 
     # ghost layer width
-    x = num.zeros((1,), num.int)
+    x = num.zeros((1,), int)
     pypar.receive(p, buffer=x,  bypass=True)
     submesh_cell["ghost_layer_width"] = x[0]
 
     # receive the number of triangles per processor
-    x = num.zeros((numprocs,), num.int)
+    x = num.zeros((numprocs,), int)
     pypar.receive(p, buffer=x,  bypass=True)
     triangles_per_proc = x
 
     # receive the full nodes
-    x = num.zeros((no_full_nodes, 3), num.float)
+    x = num.zeros((no_full_nodes, 3), float)
     pypar.receive(p, buffer=x,  bypass=True)
     submesh_cell["full_nodes"] = x
 
     # receive the ghost nodes
-    x = num.zeros((no_ghost_nodes, 3), num.float)
+    x = num.zeros((no_ghost_nodes, 3), float)
     pypar.receive(p, buffer=x,  bypass=True)
     submesh_cell["ghost_nodes"] = x
 
     # receive the full triangles
-    x = num.zeros((no_full_triangles, 3), num.int)
+    x = num.zeros((no_full_triangles, 3), int)
     pypar.receive(p, buffer=x,  bypass=True)
     submesh_cell["full_triangles"] = x
 
     # receive the ghost triangles
-    x = num.zeros((no_ghost_triangles, 4), num.int)
+    x = num.zeros((no_ghost_triangles, 4), int)
     pypar.receive(p, buffer=x,  bypass=True)
     submesh_cell["ghost_triangles"] = x
 
     # receive the full boundary
-    x = num.zeros((no_full_boundary, 3), num.int)
+    x = num.zeros((no_full_boundary, 3), int)
     pypar.receive(p, buffer=x,  bypass=True)
     bnd_c = x
 
@@ -1487,7 +1487,7 @@ def rec_submesh_flat(p, verbose=True):
         submesh_cell["full_boundary"][b[0], b[1]] = itagmap[b[2]]
 
     # receive the ghost boundary
-    x = num.zeros((no_ghost_boundary, 3), num.int)
+    x = num.zeros((no_ghost_boundary, 3), int)
     pypar.receive(p, buffer=x,  bypass=True)
     bnd_c = x
 
@@ -1496,13 +1496,13 @@ def rec_submesh_flat(p, verbose=True):
         submesh_cell["ghost_boundary"][b[0], b[1]] = itagmap[b[2]]
 
     # receive the ghost communication pattern
-    x = num.zeros((no_ghost_commun, 2), num.int)
+    x = num.zeros((no_ghost_commun, 2), int)
 
     pypar.receive(p, buffer=x,  bypass=True)
     submesh_cell["ghost_commun"] = x
 
     # receive the full communication pattern
-    x = num.zeros((no_full_commun, 2), num.int)
+    x = num.zeros((no_full_commun, 2), int)
     pypar.receive(p, buffer=x,  bypass=True)
     full_commun = x
 
@@ -1516,13 +1516,13 @@ def rec_submesh_flat(p, verbose=True):
 
     submesh_cell["full_quan"] = {}
     for i in range(no_quantities):
-        x = num.zeros((no_full_triangles, 3), num.float)
+        x = num.zeros((no_full_triangles, 3), float)
         pypar.receive(p, buffer=x, bypass=True)
         submesh_cell["full_quan"][qkeys[i]] = x
 
     submesh_cell["ghost_quan"] = {}
     for i in range(no_quantities):
-        x = num.zeros((no_ghost_triangles, 3), num.float)
+        x = num.zeros((no_ghost_triangles, 3), float)
         pypar.receive(p, buffer=x, bypass=True)
         submesh_cell["ghost_quan"][qkeys[i]] = x
 

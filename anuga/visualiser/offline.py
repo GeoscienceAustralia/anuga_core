@@ -85,12 +85,12 @@ class OfflineVisualiser(Visualiser):
             N_vert = fin.variables[quantityName].shape[1]
         else:
             N_vert = len(fin.variables[quantityName])
-        x = num.ravel(num.array(fin.variables['x'], num.float))
-        y = num.ravel(num.array(fin.variables['y'], num.float))
+        x = num.ravel(num.array(fin.variables['x'], float))
+        y = num.ravel(num.array(fin.variables['y'], float))
         if dynamic is True:
-            q = num.array(fin.variables[quantityName][frameNumber], num.float)
+            q = num.array(fin.variables[quantityName][frameNumber], float)
         else:
-            q = num.ravel(num.array(fin.variables[quantityName], num.float))
+            q = num.ravel(num.array(fin.variables[quantityName], float))
 
         q *= self.height_zScales[quantityName]
         q += self.height_offset[quantityName]
@@ -128,9 +128,9 @@ class OfflineVisualiser(Visualiser):
         fin = NetCDFFile(self.source, 'r')
         for q in [n for n in list(fin.variables.keys()) if n != 'x' and n != 'y' and n != 'z' and n != 'time' and n != 'volumes']:
             if len(fin.variables[q].shape) == 1: # Not a time-varying quantity
-                quantities[q] = num.ravel(num.array(fin.variables[q], num.float))
+                quantities[q] = num.ravel(num.array(fin.variables[q], float))
             else: # Time-varying, get the current timestep data
-                quantities[q] = num.array(fin.variables[q][self.frameNumber], num.float)
+                quantities[q] = num.array(fin.variables[q][self.frameNumber], float)
         fin.close()
         return quantities
 

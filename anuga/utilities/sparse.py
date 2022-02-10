@@ -95,7 +95,7 @@ class Sparse:
         return new
 
     def todense(self):
-        D = num.zeros((self.M, self.N), num.float)
+        D = num.zeros((self.M, self.N), float)
 
         for i in range(self.M):
             for j in range(self.N):
@@ -126,7 +126,7 @@ class Sparse:
                   % (self.M, self.N, B.shape[0])
             assert B.shape[0] == self.N, msg
 
-            R = num.zeros(self.M, num.float)  # Result
+            R = num.zeros(self.M, float)  # Result
 
             # Multiply nonzero elements
             for key in list(self.Data.keys()):
@@ -135,7 +135,7 @@ class Sparse:
                 R[i] += self.Data[key]*B[j]
         elif len(B.shape) == 2:
 
-            R = num.zeros((self.M, B.shape[1]), num.float)  # Result matrix
+            R = num.zeros((self.M, B.shape[1]), float)  # Result matrix
 
             # Multiply nonzero elements
             for col in range(R.shape[1]):
@@ -198,7 +198,7 @@ class Sparse:
 
             assert B.shape[0] == self.M, 'Mismatching dimensions'
 
-            R = num.zeros((self.N,), num.float)  # Result
+            R = num.zeros((self.N,), float)  # Result
 
             # Multiply nonzero elements
             for key in list(self.Data.keys()):
@@ -245,9 +245,9 @@ class Sparse_CSR(object):
             keys = list(A.Data.keys())
             keys.sort()
             nnz = len(keys)
-            data = num.zeros((nnz,), num.float)
-            colind = num.zeros((nnz,), num.int)
-            row_ptr = num.zeros((A.M+1,), num.int)
+            data = num.zeros((nnz,), float)
+            colind = num.zeros((nnz,), int)
+            row_ptr = num.zeros((A.M+1,), int)
             current_row = -1
             k = 0
             for key in keys:
@@ -303,7 +303,7 @@ class Sparse_CSR(object):
         return len(self)
 
     def todense(self):
-        D = num.zeros((self.M, self.N), num.float)
+        D = num.zeros((self.M, self.N), float)
 
         for i in range(self.M):
             for ckey in range(self.row_ptr[i], self.row_ptr[i+1]):

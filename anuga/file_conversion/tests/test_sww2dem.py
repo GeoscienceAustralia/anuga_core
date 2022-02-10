@@ -73,7 +73,7 @@ class Test_Sww2Dem(unittest.TestCase):
         ######################
         # Initial condition - with jumps
         bed = domain.quantities['elevation'].vertex_values
-        stage = num.zeros(bed.shape, num.float)
+        stage = num.zeros(bed.shape, float)
 
         h = 0.3
         for i in range(stage.shape[0]):
@@ -1379,7 +1379,7 @@ class Test_Sww2Dem(unittest.TestCase):
         # Initial condition - with jumps
 
         bed = domain.quantities['elevation'].vertex_values
-        stage = num.zeros(bed.shape, num.float)
+        stage = num.zeros(bed.shape, float)
 
         h = 0.3
         for i in range(stage.shape[0]):

@@ -166,7 +166,7 @@ NODATA_value  -9999
         yvec = list(range(10))
         xvec = list(range(10))
         #z = range(100)
-        z = num.zeros(100, num.int)     #array default#
+        z = num.zeros(100, int)     #array default#
         NODATA_value = -9999
         count = -1
         for i in range(10):
@@ -223,7 +223,7 @@ Parameters
         assert fid.yllcorner == 3003.0
 
         #create new reference points
-        newz = num.zeros(19, num.int)       #array default#
+        newz = num.zeros(19, int)       #array default#
         newz[0:2] = ref_elevation[32:34]
         newz[2:5] = ref_elevation[35:38]
         newz[5:7] = ref_elevation[42:44]
@@ -301,7 +301,7 @@ NODATA_value  -9999
         yvec = list(range(10))
         xvec = list(range(10))
         #z = range(100)
-        z = num.zeros(100, num.int)     #array default#
+        z = num.zeros(100, int)     #array default#
         NODATA_value = -9999
         count = -1
         for i in range(10):
@@ -358,7 +358,7 @@ Parameters
         assert fid.yllcorner == 3003.0
 
         #create new reference points
-        newz = num.zeros(14, num.int)       #array default#
+        newz = num.zeros(14, int)       #array default#
         newz[0:2] = ref_elevation[32:34]
         newz[2:5] = ref_elevation[35:38]
         newz[5:7] = ref_elevation[42:44]

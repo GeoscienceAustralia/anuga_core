@@ -80,7 +80,7 @@ class Test_Interpolate(unittest.TestCase):
         #Initial condition - with jumps
 
         bed = domain.quantities['elevation'].vertex_values
-        stage = num.zeros(bed.shape, num.float)
+        stage = num.zeros(bed.shape, float)
 
         h = 0.3
         for i in range(stage.shape[0]):
@@ -1131,7 +1131,7 @@ class Test_Interpolate(unittest.TestCase):
         
 
         #One quantity
-        Q = num.zeros( (3,6), num.float )
+        Q = num.zeros( (3,6), float )
 
         #Linear in time and space
         a = [0.0, 0.0]
@@ -1278,7 +1278,7 @@ class Test_Interpolate(unittest.TestCase):
                                 [ 2.8, 1.2]]
 
         #One quantity
-        Q = num.zeros( (3,6), num.float )
+        Q = num.zeros( (3,6), float )
 
         #Linear in time and space
         for i, t in enumerate(time):
@@ -1338,7 +1338,7 @@ class Test_Interpolate(unittest.TestCase):
                                 [ 2.8, 1.2]]
 
         # One quantity
-        Q = num.zeros((8,6), num.float)
+        Q = num.zeros((8,6), float)
 
         # Linear in time and space
         for i, t in enumerate(time):
@@ -1406,7 +1406,7 @@ class Test_Interpolate(unittest.TestCase):
         interpolation_points = [[ 1.,  0.], [0.,1.]]
 
         #One quantity
-        Q = num.zeros( (2,6), num.float )
+        Q = num.zeros( (2,6), float )
 
         #Linear in time and space
         for i, t in enumerate(time):
@@ -1472,7 +1472,7 @@ class Test_Interpolate(unittest.TestCase):
                                 [ 545354534, 4354354353]] # outside the mesh
 
         # One quantity
-        Q = num.zeros( (3,6), num.float )
+        Q = num.zeros( (3,6), float )
 
         # Linear in time and space
         for i, t in enumerate(time):
@@ -1661,7 +1661,7 @@ class Test_Interpolate(unittest.TestCase):
                                 [ 545354534, 4354354353]] # outside the mesh
 
         #One quantity
-        Q = num.zeros( (len(time),6), num.float )
+        Q = num.zeros( (len(time),6), float )
 
         #Linear in time and space
         for i, t in enumerate(time):

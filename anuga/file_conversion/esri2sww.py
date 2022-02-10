@@ -166,8 +166,8 @@ def esri2sww(bath_dir,
     #Store
     from anuga.coordinate_transforms.redfearn import redfearn
 
-    x = num.zeros(number_of_points, num.float)  #Easting
-    y = num.zeros(number_of_points, num.float)  #Northing
+    x = num.zeros(number_of_points, float)  #Easting
+    y = num.zeros(number_of_points, float)  #Northing
 
     if verbose: log.critical('Making triangular grid')
 
@@ -203,7 +203,7 @@ def esri2sww(bath_dir,
             volumes.append([v1,v3,v2]) #Upper element
             volumes.append([v4,v2,v3]) #Lower element
 
-    volumes = num.array(volumes, num.int)      #array default#
+    volumes = num.array(volumes, int)      #array default#
 
     geo_ref = Geo_reference(refzone, min(x), min(y))
     geo_ref.write_NetCDF(outfile)

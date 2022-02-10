@@ -240,13 +240,13 @@ class Fit(FitInterpolate):
 
         # Convert input to numeric arrays
         if z is not None:
-            z = ensure_numeric(z, num.float)
+            z = ensure_numeric(z, float)
         else:
             msg = 'z not specified'
             assert isinstance(point_coordinates, Geospatial_data), msg
             z = point_coordinates.get_attributes(attribute_name)
 
-        point_coordinates = ensure_numeric(point_coordinates, num.float)
+        point_coordinates = ensure_numeric(point_coordinates, float)
 
         npts = len(z)
         z = num.array(z)
@@ -489,7 +489,7 @@ def _fit_to_mesh(point_coordinates,
         # are None
 
         # Convert input to numeric arrays
-        triangles = ensure_numeric(triangles, num.int)
+        triangles = ensure_numeric(triangles, int)
         vertex_coordinates = ensure_absolute(vertex_coordinates,
                                              geo_reference=mesh_origin)
 

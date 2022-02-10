@@ -179,7 +179,7 @@ def sww2csv_gauges(sww_file,
     gid.close()
 
     #convert to array for file_function
-    points_array = num.array(points,num.float)
+    points_array = num.array(points,float)
 
     points_array = ensure_absolute(points_array)
 
@@ -669,18 +669,18 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
         if n[i] > n0: n0 = n[i]
     n0 = int(n0)
     m = len(locations)
-    model_time = num.zeros((n0, m, p), num.float)
-    stages = num.zeros((n0, m, p), num.float)
-    elevations = num.zeros((n0, m, p), num.float)
-    momenta = num.zeros((n0, m, p), num.float)
-    xmom = num.zeros((n0, m, p), num.float)
-    ymom = num.zeros((n0, m, p), num.float)
-    speed = num.zeros((n0, m, p), num.float)
-    bearings = num.zeros((n0, m, p), num.float)
-    due_east = 90.0*num.ones((n0, 1), num.float)
-    due_west = 270.0*num.ones((n0, 1), num.float)
-    depths = num.zeros((n0, m, p), num.float)
-    eastings = num.zeros((n0, m, p), num.float)
+    model_time = num.zeros((n0, m, p), float)
+    stages = num.zeros((n0, m, p), float)
+    elevations = num.zeros((n0, m, p), float)
+    momenta = num.zeros((n0, m, p), float)
+    xmom = num.zeros((n0, m, p), float)
+    ymom = num.zeros((n0, m, p), float)
+    speed = num.zeros((n0, m, p), float)
+    bearings = num.zeros((n0, m, p), float)
+    due_east = 90.0*num.ones((n0, 1), float)
+    due_west = 270.0*num.ones((n0, 1), float)
+    depths = num.zeros((n0, m, p), float)
+    eastings = num.zeros((n0, m, p), float)
     min_stages = []
     max_stages = []
     min_momentums = []
@@ -692,9 +692,9 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
     max_speeds = []
     min_speeds = []
     max_depths = []
-    model_time_plot3d = num.zeros((n0, m), num.float)
-    stages_plot3d = num.zeros((n0, m), num.float)
-    eastings_plot3d = num.zeros((n0, m),num.float)
+    model_time_plot3d = num.zeros((n0, m), float)
+    stages_plot3d = num.zeros((n0, m), float)
+    eastings_plot3d = num.zeros((n0, m),float)
     if time_unit == 'mins': scale = 60.0
     if time_unit == 'hours': scale = 3600.0
 

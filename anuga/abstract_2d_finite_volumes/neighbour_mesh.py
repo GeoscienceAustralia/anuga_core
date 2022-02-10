@@ -100,10 +100,10 @@ class Mesh(General_mesh):
 
         # Allocate arrays for neighbour data
 
-        self.neighbours = -1*num.ones((N, 3), num.int)
-        self.neighbour_edges = -1*num.ones((N, 3), num.int)
-        self.number_of_boundaries = num.zeros(N, num.int)
-        self.surrogate_neighbours = num.zeros((N, 3), num.int)
+        self.neighbours = -1*num.ones((N, 3), int)
+        self.neighbour_edges = -1*num.ones((N, 3), int)
+        self.number_of_boundaries = num.zeros(N, int)
+        self.surrogate_neighbours = num.zeros((N, 3), int)
 
         #Get x,y coordinates for all triangles and store
         V = self.vertex_coordinates # Relative coordinates
@@ -122,7 +122,7 @@ class Mesh(General_mesh):
 #            #x2 = V[i, 4]; y2 = V[i, 5]
 #
 #            #Compute centroid
-#            centroid = num.array([(x0 + x1 + x2)/3, (y0 + y1 + y2)/3], num.float)
+#            centroid = num.array([(x0 + x1 + x2)/3, (y0 + y1 + y2)/3], float)
 #            self.centroid_coordinates[i] = centroid
 #
 #
@@ -131,9 +131,9 @@ class Mesh(General_mesh):
 #                #inscribed circle
 #
 #                #Midpoints
-#                m0 = num.array([(x1 + x2)/2, (y1 + y2)/2], num.float)
-#                m1 = num.array([(x0 + x2)/2, (y0 + y2)/2], num.float)
-#                m2 = num.array([(x1 + x0)/2, (y1 + y0)/2], num.float)
+#                m0 = num.array([(x1 + x2)/2, (y1 + y2)/2], float)
+#                m1 = num.array([(x0 + x2)/2, (y0 + y2)/2], float)
+#                m2 = num.array([(x1 + x0)/2, (y1 + y0)/2], float)
 #
 #                #The radius is the distance from the centroid of
 #                #a triangle to the midpoint of the side of the triangle
@@ -451,7 +451,7 @@ class Mesh(General_mesh):
         else:
             #Check that all keys in given boundary exist
             for tag in list(tagged_elements.keys()):
-                tagged_elements[tag] = num.array(tagged_elements[tag], num.int)
+                tagged_elements[tag] = num.array(tagged_elements[tag], int)
 
                 msg = 'Not all elements exist. '
                 assert max(tagged_elements[tag]) < len(self), msg
@@ -541,8 +541,8 @@ class Mesh(General_mesh):
 
         # Now we know number of boundaries
         M = len(self.boundary_enumeration)
-        self.boundary_cells = num.zeros((M,),num.int)
-        self.boundary_edges = num.zeros((M,),num.int)
+        self.boundary_cells = num.zeros((M,),int)
+        self.boundary_edges = num.zeros((M,),int)
 
         for id, edge in X:
             j = self.boundary_enumeration[id,edge]
@@ -1425,8 +1425,8 @@ def _get_intersecting_segments(V, N, line,
             # the line and the normals
 
             # Distances from line origin to the two intersections
-            z0 = num.array([x0 - xi0, y0 - eta0], num.float)
-            z1 = num.array([x1 - xi0, y1 - eta0], num.float)
+            z0 = num.array([x0 - xi0, y0 - eta0], float)
+            z1 = num.array([x1 - xi0, y1 - eta0], float)
             d0 = num.sqrt(num.sum(z0**2))
             d1 = num.sqrt(num.sum(z1**2))
 
@@ -1441,9 +1441,9 @@ def _get_intersecting_segments(V, N, line,
 
             # Normal direction:
             # Right hand side relative to line direction
-            vector = num.array([x1 - x0, y1 - y0], num.float) # Segment vector
+            vector = num.array([x1 - x0, y1 - y0], float) # Segment vector
             length = num.sqrt(num.sum(vector**2))      # Segment length
-            normal = old_div(num.array([vector[1], -vector[0]], num.float),length)
+            normal = old_div(num.array([vector[1], -vector[0]], float),length)
 
 
             segment = ((x0,y0), (x1, y1))
@@ -1523,7 +1523,7 @@ def segment_midpoints(segments):
     for segment in segments:
         assert isinstance(segment, Triangle_intersection), msg
 
-        midpoint = old_div(num.sum(num.array(segment.segment, num.float), axis=0),2)
+        midpoint = old_div(num.sum(num.array(segment.segment, float), axis=0),2)
         midpoints.append(midpoint)
 
     return midpoints

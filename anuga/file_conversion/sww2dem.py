@@ -140,9 +140,9 @@ def sww2dem(name_in, name_out,
     fid = NetCDFFile(name_in)
 
     #Get extent and reference
-    x = num.array(fid.variables['x'][:], num.float)
-    y = num.array(fid.variables['y'][:], num.float)
-    volumes = num.array(fid.variables['volumes'][:], num.int)
+    x = num.array(fid.variables['x'][:], float)
+    y = num.array(fid.variables['y'][:], float)
+    volumes = num.array(fid.variables['volumes'][:], int)
     if type(reduction) is not types.BuiltinFunctionType:
         times = fid.variables['time'][reduction]
     else:
@@ -229,7 +229,7 @@ def sww2dem(name_in, name_out,
     # Create result array and start filling, block by block.
 
 
-    result = num.zeros(number_of_points, num.float)
+    result = num.zeros(number_of_points, float)
 
     if verbose:
         msg = 'Slicing sww file, num points: ' + str(number_of_points)
@@ -253,7 +253,7 @@ def sww2dem(name_in, name_out,
         res = apply_expression_to_dictionary(quantity, q_dict)
 
         if len(res.shape) == 2:
-            new_res = num.zeros(res.shape[1], num.float)
+            new_res = num.zeros(res.shape[1], float)
             for k in range(res.shape[1]):
                 if type(reduction) is not types.BuiltinFunctionType:
                     new_res[k] = res[reduction,k]
@@ -313,7 +313,7 @@ def sww2dem(name_in, name_out,
     y = y + yllcorner - newyllcorner
 
 
-    grid_values = num.zeros( (nrows*ncols, ), num.float)
+    grid_values = num.zeros( (nrows*ncols, ), float)
     #print '---',grid_values.shape
 
     #-------------------------------------------------------
@@ -323,7 +323,7 @@ def sww2dem(name_in, name_out,
     def calc_grid_values(nrows, ncols, cellsize, NODATA_value,
                          x,y, norms, volumes, result, grid_values):
 
-        grid_points = num.zeros ((ncols*nrows, 2), num.float)
+        grid_points = num.zeros ((ncols*nrows, 2), float)
         vertex_points = num.concatenate ((x[:,num.newaxis], y[:,num.newaxis]), axis=1)
         assert len(vertex_points.shape) == 2
 
@@ -362,7 +362,7 @@ def sww2dem(name_in, name_out,
         return
 
     num_tri =  len(volumes)
-    norms = num.zeros(6*num_tri, num.float)
+    norms = num.zeros(6*num_tri, float)
 
     #print norms
     from .calc_grid_values_ext import calc_grid_values

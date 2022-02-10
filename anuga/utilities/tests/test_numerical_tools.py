@@ -82,13 +82,13 @@ class Test_Numerical_Tools(unittest.TestCase):
         assert B[0] == 1 and B[1] == 2 and B[2] == 3.14 and B[3] == 4
 
         A = [1, 2, 3, 4]
-        B = ensure_numeric(A, num.float)
+        B = ensure_numeric(A, float)
         assert isinstance(B, num.ndarray)
         assert B.dtype.char == 'd'
         assert B[0] == 1.0 and B[1] == 2.0 and B[2] == 3.0 and B[3] == 4.0
 
         A = [1, 2, 3, 4]
-        B = ensure_numeric(A, num.float)
+        B = ensure_numeric(A, float)
         assert isinstance(B, num.ndarray)
         assert B.dtype.char == 'd'
         assert B[0] == 1.0 and B[1] == 2.0 and B[2] == 3.0 and B[3] == 4.0
@@ -107,7 +107,7 @@ class Test_Numerical_Tools(unittest.TestCase):
         assert A.dtype.char == 'l', msg
 
         A = num.array([1, 2, 3, 4])
-        B = ensure_numeric(A, num.float)
+        B = ensure_numeric(A, float)
         assert isinstance(B, num.ndarray)
         assert A.dtype.char == 'l'
         assert B.dtype.char == 'd'
@@ -116,10 +116,10 @@ class Test_Numerical_Tools(unittest.TestCase):
 
         # Check scalars
         A = 1
-        B = ensure_numeric(A, num.float)
+        B = ensure_numeric(A, float)
         assert num.alltrue(A == B)
 
-        B = ensure_numeric(A, num.int)
+        B = ensure_numeric(A, int)
         assert num.alltrue(A == B)
 
 #        # try to simulate getting (x,0) shape
@@ -138,7 +138,7 @@ class Test_Numerical_Tools(unittest.TestCase):
         '''numpy can't handle this'''
 
         # Error situation
-        B = ensure_numeric('hello', num.int)
+        B = ensure_numeric('hello', int)
         assert num.allclose(B, [104, 101, 108, 108, 111])
 
     def test_gradient(self):
@@ -381,9 +381,9 @@ class Test_Numerical_Tools(unittest.TestCase):
     def test_is_float(self):
         def t(val, expected):
             if expected == True:
-                msg = 'should be num.float?'
+                msg = 'should be float?'
             else:
-                msg = 'should not be num.float?'
+                msg = 'should not be float?'
             msg = '%s (%s) %s' % (str(val), type(val), msg)
             assert is_num_float(val) == expected, msg
 
@@ -392,49 +392,49 @@ class Test_Numerical_Tools(unittest.TestCase):
         t('abc', False)
         t(None, False)
         t(num.array(None), False)
-        # can't create array(None, num.int)
-#        t(num.array(None, num.int), False)
-        t(num.array(None, num.float), True)
+        # can't create array(None, int)
+#        t(num.array(None, int), False)
+        t(num.array(None, float), True)
         t(num.array(()), True)
-        t(num.array((), num.int), False)
-        t(num.array((), num.float), True)
-        t(num.array((1), num.int), False)
-        t(num.array((1), num.float), True)
+        t(num.array((), int), False)
+        t(num.array((), float), True)
+        t(num.array((1), int), False)
+        t(num.array((1), float), True)
 
         t(num.array((1, 2)), False)
-        t(num.array((1, 2), num.int), False)
-        t(num.array((1, 2), num.float), True)
+        t(num.array((1, 2), int), False)
+        t(num.array((1, 2), float), True)
         t(num.array([1, 2]), False)
-        t(num.array([1, 2], num.int), False)
-        t(num.array([1, 2], num.float), True)
+        t(num.array([1, 2], int), False)
+        t(num.array([1, 2], float), True)
 
         t(num.array((1.0, 2.0)), True)
-        t(num.array((1.0, 2.0), num.int), False)
-        t(num.array((1.0, 2.0), num.float), True)
+        t(num.array((1.0, 2.0), int), False)
+        t(num.array((1.0, 2.0), float), True)
         t(num.array([1.0, 2.0]), True)
-        t(num.array([1.0, 2.0], num.int), False)
-        t(num.array([1.0, 2.0], num.float), True)
+        t(num.array([1.0, 2.0], int), False)
+        t(num.array([1.0, 2.0], float), True)
 
         t(num.array(((1.0, 2.0), (3.0, 4.0))), True)
-        t(num.array(((1.0, 2.0), (3.0, 4.0)), num.int), False)
-        t(num.array(((1.0, 2.0), (3.0, 4.0)), num.float), True)
+        t(num.array(((1.0, 2.0), (3.0, 4.0)), int), False)
+        t(num.array(((1.0, 2.0), (3.0, 4.0)), float), True)
         t(num.array([[1.0, 2.0], [3.0, 4.0]]), True)
-        t(num.array([1.0, 2.0], num.int), False)
-        t(num.array([1.0, 2.0], num.float), True)
+        t(num.array([1.0, 2.0], int), False)
+        t(num.array([1.0, 2.0], float), True)
 
         t(num.array('abc'), False)
         t(num.array('abc', 'S1'), False)
         # can't create array as int from string
-#        t(num.array('abc', num.int), False)
+#        t(num.array('abc', int), False)
         # can't create array as float from string
-#        t(num.array('abc', num.float), True)
+#        t(num.array('abc', float), True)
 
     def test_is_int(self):
         def t(val, expected):
             if expected == True:
-                msg = 'should be num.int?'
+                msg = 'should be int?'
             else:
-                msg = 'should not be num.int?'
+                msg = 'should not be int?'
             msg = '%s (%s) %s' % (str(val), type(val), msg)
             assert is_num_int(val) == expected, msg
 
@@ -443,42 +443,42 @@ class Test_Numerical_Tools(unittest.TestCase):
         t('abc', False)
         t(None, False)
         t(num.array(None), False)
-        # can't create array(None, num.int)
-#        t(num.array(None, num.int), True)
-        t(num.array(None, num.float), False)
-        t(num.array((), num.int), True)
+        # can't create array(None, int)
+#        t(num.array(None, int), True)
+        t(num.array(None, float), False)
+        t(num.array((), int), True)
         t(num.array(()), False)
-        t(num.array((), num.float), False)
-        t(num.array((1), num.int), True)
-        t(num.array((1), num.float), False)
+        t(num.array((), float), False)
+        t(num.array((1), int), True)
+        t(num.array((1), float), False)
 
         t(num.array((1, 2)), True)
-        t(num.array((1, 2), num.int), True)
-        t(num.array((1, 2), num.float), False)
+        t(num.array((1, 2), int), True)
+        t(num.array((1, 2), float), False)
         t(num.array([1, 2]), True)
-        t(num.array([1, 2], num.int), True)
-        t(num.array([1, 2], num.float), False)
+        t(num.array([1, 2], int), True)
+        t(num.array([1, 2], float), False)
 
         t(num.array((1.0, 2.0)), False)
-        t(num.array((1.0, 2.0), num.int), True)
-        t(num.array((1.0, 2.0), num.float), False)
+        t(num.array((1.0, 2.0), int), True)
+        t(num.array((1.0, 2.0), float), False)
         t(num.array([1.0, 2.0]), False)
-        t(num.array([1.0, 2.0], num.int), True)
-        t(num.array([1.0, 2.0], num.float), False)
+        t(num.array([1.0, 2.0], int), True)
+        t(num.array([1.0, 2.0], float), False)
 
         t(num.array(((1.0, 2.0), (3.0, 4.0))), False)
-        t(num.array(((1.0, 2.0), (3.0, 4.0)), num.int), True)
-        t(num.array(((1.0, 2.0), (3.0, 4.0)), num.float), False)
+        t(num.array(((1.0, 2.0), (3.0, 4.0)), int), True)
+        t(num.array(((1.0, 2.0), (3.0, 4.0)), float), False)
         t(num.array([[1.0, 2.0], [3.0, 4.0]]), False)
-        t(num.array([1.0, 2.0], num.int), True)
-        t(num.array([1.0, 2.0], num.float), False)
+        t(num.array([1.0, 2.0], int), True)
+        t(num.array([1.0, 2.0], float), False)
 
         t(num.array('abc'), False)
         t(num.array('abc', 'S1'), False)
         # can't create array as int from string
-#        t(num.array('abc', num.int), True)
+#        t(num.array('abc', int), True)
         # can't create array as float from string
-#        t(num.array('abc', num.float), False)
+#        t(num.array('abc', float), False)
 
     def test_ensure_numeric_copy(self):
         """Test to see if ensure_numeric() behaves as we expect.
@@ -494,7 +494,7 @@ class Test_Numerical_Tools(unittest.TestCase):
         points = [[1., 2.], [3., 4.], [5., 6.]]
         points_id = id(points)
 
-        points_new = ensure_numeric(points, num.float)
+        points_new = ensure_numeric(points, float)
         points_new_id = id(points_new)
 
         msg = 'ensure_numeric() should return a copy of a list'
@@ -511,7 +511,7 @@ class Test_Numerical_Tools(unittest.TestCase):
         points = ((1., 2.), (3., 4.), (5., 6.))
         points_id = id(points)
 
-        points_new = ensure_numeric(points, num.int)
+        points_new = ensure_numeric(points, int)
         points_new_id = id(points_new)
 
         msg = 'ensure_numeric() should return a copy of a list'
@@ -525,10 +525,10 @@ class Test_Numerical_Tools(unittest.TestCase):
         # Make 'points' a numeric array of float coordinates.
         # Should NOT be changed by ensure_numeric().
         #####
-        points = num.array([[1., 2.], [3., 4.], [5., 6.]], num.float)
+        points = num.array([[1., 2.], [3., 4.], [5., 6.]], float)
         points_id = id(points)
 
-        points_new = ensure_numeric(points, num.float)
+        points_new = ensure_numeric(points, float)
         points_new_id = id(points_new)
 
         msg = 'ensure_numeric() should return the original input'
@@ -540,12 +540,12 @@ class Test_Numerical_Tools(unittest.TestCase):
 
         #####
         # Make 'points' a numeric array of int coordinates.
-        # Should be changed by ensure_numeric(, num.float).
+        # Should be changed by ensure_numeric(, float).
         #####
-        points = num.array([[1, 2], [3, 4], [5, 6]], num.int)
+        points = num.array([[1, 2], [3, 4], [5, 6]], int)
         points_id = id(points)
 
-        points_new = ensure_numeric(points, num.float)
+        points_new = ensure_numeric(points, float)
         points_new_id = id(points_new)
 
         msg = 'ensure_numeric() should return a copy of the input'
@@ -557,12 +557,12 @@ class Test_Numerical_Tools(unittest.TestCase):
 
         #####
         # Make 'points' a numeric array of int coordinates.
-        # Should NOT be changed by ensure_numeric(, num.int).
+        # Should NOT be changed by ensure_numeric(, int).
         #####
-        points = num.array([[1, 2], [3, 4], [5, 6]], num.int)
+        points = num.array([[1, 2], [3, 4], [5, 6]], int)
         points_id = id(points)
 
-        points_new = ensure_numeric(points, num.int)
+        points_new = ensure_numeric(points, int)
         points_new_id = id(points_new)
 
         msg = 'ensure_numeric() should return the original input'
@@ -610,7 +610,7 @@ class Test_Numerical_Tools(unittest.TestCase):
         # Make 'points' a numeric array of float coordinates.
         # Should NOT be changed by ensure_numeric(, num.float64).
         #####
-        points = num.array([[1., 2.], [3., 4.], [5., 6.]], num.float)
+        points = num.array([[1., 2.], [3., 4.], [5., 6.]], float)
         points_id = id(points)
 
         points_new = ensure_numeric(points, num.float64)
