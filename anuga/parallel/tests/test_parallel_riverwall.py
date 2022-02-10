@@ -19,7 +19,13 @@ class Test_parallel_riverwall(unittest.TestCase):
 
         run_filename = os.path.abspath(__file__).replace('test_parallel', 'run_parallel')
 
-        cmd = 'mpiexec -np 3 --oversubscribe python ' + run_filename
+        extra_options = '--oversubscribe'
+
+        import platform
+        if platform.system() == 'Windows':
+            extra_options = ' '
+
+        cmd = 'mpiexec -np 3 ' + extra_options + ' python ' + run_filename
         if verbose : print(cmd)
         
         import os
