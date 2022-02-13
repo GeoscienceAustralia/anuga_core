@@ -892,10 +892,16 @@ class Generic_Domain(object):
             for key in list(boundary_map.keys()):
                 self.boundary_map[key] = boundary_map[key]
 
+        # FIXME (Ole): Try to remove the sorting. Everyhing works except three tests 
+        # in test_urs2sts (representing functionality not likely to be used anymore).
+        # All other tests and validations work without this sorting step.
+        x = list(self.boundary.keys())
+        x.sort()
+
         # Loop through edges that lie on the boundary and associate them with
         # callable boundary objects depending on their tags
         self.boundary_objects = []
-        for k, (vol_id, edge_id) in enumerate(self.boundary.keys()):
+        for k, (vol_id, edge_id) in enumerate(x):
             tag = self.boundary[(vol_id, edge_id)]
 
             if tag in self.boundary_map:
