@@ -17,7 +17,7 @@ class Test_parallel_riverwall(unittest.TestCase):
     def setUp(self):
         # Run the sequential and parallel simulations to produce sww files for comparison.
         
-        path = os.path.dirname(__file__)  # Get folder where this script lives
+        path = os.path.dirname(os.path.abspath(__file__))  # Get folder where this script lives
         run_filename = os.path.join(path, 'run_parallel_riverwall.py')
 
         #-----------------------        
