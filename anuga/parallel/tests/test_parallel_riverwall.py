@@ -20,6 +20,7 @@ class Test_parallel_riverwall(unittest.TestCase):
         path = os.path.dirname(os.path.abspath(__file__))  # Get folder where this script lives
         run_filename = os.path.join(path, 'run_parallel_riverwall.py')
 
+        print(run_filename)
         #-----------------------        
         # First run sequentially
         #-----------------------
