@@ -892,6 +892,23 @@ class Generic_Domain(object):
             for key in list(boundary_map.keys()):
                 self.boundary_map[key] = boundary_map[key]
 
+        # Check that all tags in boundary map actually exists in the domain
+        # This check is disabled for parallel domains because a valid tag may belong to another instance.
+        # Alternative way of addressing this are
+        # - make the check a flag so that parallel domains can disable the check.
+        # - make the check only applicable when set_domain() is called from a top level user script.
+
+        #print('ID', self.processor, 'Parallel =', self.parallel) #, 'Strict_tag_check =', strict_tag_check)        
+
+        # FIXME (Ole): Perhaps make method .is_parallel() returing True if numprocs > 1 and False if numprocs == 0
+        if not self.parallel:
+            allowed_tags = list(set(self.boundary.values())) # List of unique tags 
+            for key in self.boundary_map:
+                if key not in allowed_tags:
+                    msg = f'Tag "{key}" provided does not exist in the domain. '
+                    msg += 'Allowed tags are: %s' % allowed_tags
+                    raise Exception(msg)                    
+                
         # FIXME (Ole): Try to remove the sorting. Everyhing works except three tests 
         # in test_urs2sts (representing functionality not likely to be used anymore).
         # All other tests and validations work without this sorting step.
