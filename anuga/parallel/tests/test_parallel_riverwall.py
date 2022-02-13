@@ -1,45 +1,99 @@
 """
-Test parallel and sequential results of riverwall procedure
+Test that parallel and sequential results of riverwall simulation are identical
 """
+
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
-from future.utils import raise_
+import platform
 import unittest
+import numpy as num
+import os
+import subprocess
 
 verbose = False
 
-# Test an nprocs-way run of the shallow water equations
-# against the sequential code.
-
 class Test_parallel_riverwall(unittest.TestCase):
-    def test_parallel_riverwall(self):
+    def setUp(self):
+        # Run the sequential and parallel simulations to produce sww files for comparison.
         
-        import os.path
+        run_filename = 'run_parallel_riverwall.py'
 
-        run_filename = os.path.abspath(__file__).replace('test_parallel', 'run_parallel')
+        #-----------------------        
+        # First run sequentially
+        #-----------------------
+        cmd = 'python ' + run_filename
+        if verbose : print(cmd)        
+        result = subprocess.run(cmd.split(), capture_output=True)
+        if result.returncode != 0:
+            print(result.stdout)
+            print(result.stderr)
+            raise Exception(result.stderr)        
 
-        extra_options = '--oversubscribe'
-
-        import platform
+        #---------------------
+        # Then run in parallel
+        #---------------------
         if platform.system() == 'Windows':
             extra_options = ' '
+        else:
+            # E.g. for Ubuntu Linux
+            extra_options = '--oversubscribe'            
 
         cmd = 'mpiexec -np 3 ' + extra_options + ' python ' + run_filename
-        if verbose : print(cmd)
+        if verbose: print(cmd)
+
+        result = subprocess.run(cmd.split(), capture_output=True)
+        if result.returncode != 0:
+            print(result.stdout)
+            print(result.stderr)
+            raise Exception(result.stderr)
+
+    def tearDown(self):
+        os.remove('s_riverwall.sww')
+        os.remove('p_riverwall.sww')
+        os.remove('runup.msh')
+
         
-        import os
-        result = os.system(cmd)
-        assert_(result == 0)
+    def test_parallel_riverwall(self):
+        import anuga.utilities.plot_utils as util # Note if this is imported at the top level
+                                                  # it'll interfere with running the subprocesses.       
+        
+        # Assuming both sequential and parallel simulations have been run, compare the 
+        # merged sww files from the parallel run to the sequential output.
+        if verbose: print('COMPARING SWW FILES')
+        
+        sdomain_v = util.get_output('s_riverwall.sww')
+        sdomain_c = util.get_centroids(sdomain_v)
 
-# Because we are doing assertions outside of the TestCase class
-# the PyUnit defined assert_ function can't be used.
-def assert_(condition, msg="Assertion Failed"):
-    if condition == False:
-        #pypar.finalize()
-        raise_(AssertionError, msg)
+        pdomain_v = util.get_output('p_riverwall.sww')
+        pdomain_c = util.get_centroids(pdomain_v)
+        
 
-if __name__=="__main__":
+        # Test some values against the original ordering
+        
+        if verbose:
+            
+            order = 0
+            print('PDOMAIN CENTROID VALUES')
+            print(num.linalg.norm(sdomain_c.x-pdomain_c.x, ord=order))
+            print(num.linalg.norm(sdomain_c.y-pdomain_c.y, ord=order))
+            print(num.linalg.norm(sdomain_c.stage[-1]-pdomain_c.stage[-1], ord=order))
+            print(num.linalg.norm(sdomain_c.xmom[-1]-pdomain_c.xmom[-1], ord=order))
+            print(num.linalg.norm(sdomain_c.ymom[-1]-pdomain_c.ymom[-1], ord=order))
+            print(num.linalg.norm(sdomain_c.xvel[-1]-pdomain_c.xvel[-1], ord=order))
+            print(num.linalg.norm(sdomain_c.yvel[-1]-pdomain_c.yvel[-1], ord=order))        
+            
+        assert num.allclose(sdomain_c.stage, pdomain_c.stage)
+        assert num.allclose(sdomain_c.xmom, pdomain_c.xmom)
+        assert num.allclose(sdomain_c.ymom, pdomain_c.ymom)
+        assert num.allclose(sdomain_c.xvel, pdomain_c.xvel)
+        assert num.allclose(sdomain_c.yvel, pdomain_c.yvel)
+        
+        assert num.allclose(sdomain_v.x, pdomain_v.x)
+        assert num.allclose(sdomain_v.y, pdomain_v.y)
+
+
+if __name__== "__main__":
     runner = unittest.TextTestRunner()
     suite = unittest.makeSuite(Test_parallel_riverwall, 'test')
     runner.run(suite)
