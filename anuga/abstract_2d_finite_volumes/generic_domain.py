@@ -892,15 +892,10 @@ class Generic_Domain(object):
             for key in list(boundary_map.keys()):
                 self.boundary_map[key] = boundary_map[key]
 
-        # FIXME (Ole): Try to remove the sorting and fix test_mesh.py
-        # This should be OK with Python 3 as items already sorted.
-        x = list(self.boundary.keys())
-        x.sort()
-
         # Loop through edges that lie on the boundary and associate them with
         # callable boundary objects depending on their tags
         self.boundary_objects = []
-        for k, (vol_id, edge_id) in enumerate(x):
+        for k, (vol_id, edge_id) in enumerate(self.boundary.keys()):
             tag = self.boundary[(vol_id, edge_id)]
 
             if tag in self.boundary_map:
