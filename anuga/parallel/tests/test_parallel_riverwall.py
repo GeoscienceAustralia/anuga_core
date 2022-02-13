@@ -17,13 +17,15 @@ class Test_parallel_riverwall(unittest.TestCase):
     def setUp(self):
         # Run the sequential and parallel simulations to produce sww files for comparison.
         
-        run_filename = 'run_parallel_riverwall.py'
+        path = os.path.dirname(__file__)  # Get folder where this script lives
+        run_filename = os.path.join(path, 'run_parallel_riverwall.py')
 
         #-----------------------        
         # First run sequentially
         #-----------------------
         cmd = 'python ' + run_filename
-        if verbose : print(cmd)        
+        if verbose: 
+            print(cmd)        
         result = subprocess.run(cmd.split(), capture_output=True)
         if result.returncode != 0:
             print(result.stdout)
@@ -40,7 +42,8 @@ class Test_parallel_riverwall(unittest.TestCase):
             extra_options = '--oversubscribe'            
 
         cmd = 'mpiexec -np 3 ' + extra_options + ' python ' + run_filename
-        if verbose: print(cmd)
+        if verbose: 
+            print(cmd)
 
         result = subprocess.run(cmd.split(), capture_output=True)
         if result.returncode != 0:
@@ -60,8 +63,9 @@ class Test_parallel_riverwall(unittest.TestCase):
         
         # Assuming both sequential and parallel simulations have been run, compare the 
         # merged sww files from the parallel run to the sequential output.
-        if verbose: print('COMPARING SWW FILES')
-        
+        if verbose: 
+            print('Comparing SWW files')
+
         sdomain_v = util.get_output('s_riverwall.sww')
         sdomain_c = util.get_centroids(sdomain_v)
 
@@ -70,30 +74,30 @@ class Test_parallel_riverwall(unittest.TestCase):
         
 
         # Test some values against the original ordering
-        
+
         if verbose:
-            
+
             order = 0
-            print('PDOMAIN CENTROID VALUES')
+            print('Centroid values')
             print(num.linalg.norm(sdomain_c.x-pdomain_c.x, ord=order))
             print(num.linalg.norm(sdomain_c.y-pdomain_c.y, ord=order))
-            print(num.linalg.norm(sdomain_c.stage[-1]-pdomain_c.stage[-1], ord=order))
-            print(num.linalg.norm(sdomain_c.xmom[-1]-pdomain_c.xmom[-1], ord=order))
-            print(num.linalg.norm(sdomain_c.ymom[-1]-pdomain_c.ymom[-1], ord=order))
-            print(num.linalg.norm(sdomain_c.xvel[-1]-pdomain_c.xvel[-1], ord=order))
-            print(num.linalg.norm(sdomain_c.yvel[-1]-pdomain_c.yvel[-1], ord=order))        
-            
+            print(num.linalg.norm(sdomain_c.stage[-1] - pdomain_c.stage[-1], ord=order))
+            print(num.linalg.norm(sdomain_c.xmom[-1] - pdomain_c.xmom[-1], ord=order))
+            print(num.linalg.norm(sdomain_c.ymom[-1] - pdomain_c.ymom[-1], ord=order))
+            print(num.linalg.norm(sdomain_c.xvel[-1] - pdomain_c.xvel[-1], ord=order))
+            print(num.linalg.norm(sdomain_c.yvel[-1] - pdomain_c.yvel[-1], ord=order))        
+
         assert num.allclose(sdomain_c.stage, pdomain_c.stage)
         assert num.allclose(sdomain_c.xmom, pdomain_c.xmom)
         assert num.allclose(sdomain_c.ymom, pdomain_c.ymom)
         assert num.allclose(sdomain_c.xvel, pdomain_c.xvel)
         assert num.allclose(sdomain_c.yvel, pdomain_c.yvel)
-        
+
         assert num.allclose(sdomain_v.x, pdomain_v.x)
         assert num.allclose(sdomain_v.y, pdomain_v.y)
 
 
-if __name__== "__main__":
+if __name__ == "__main__":
     runner = unittest.TextTestRunner()
     suite = unittest.makeSuite(Test_parallel_riverwall, 'test')
     runner.run(suite)
