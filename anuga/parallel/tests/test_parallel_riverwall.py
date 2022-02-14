@@ -58,6 +58,7 @@ class Test_parallel_riverwall(unittest.TestCase):
 
         
     def test_parallel_riverwall(self):
+
         import anuga.utilities.plot_utils as util # Note if this is imported at the top level
                                                   # it'll interfere with running the subprocesses.       
         
