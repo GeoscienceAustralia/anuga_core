@@ -6,8 +6,6 @@ os: Visual Studio 2015
 environment:
   matrix:
     - PY_MAJOR_VER: 3
-      PYTHON_ARCH: "x86"
-    - PY_MAJOR_VER: 3
       PYTHON_ARCH: "x86_64"
 
 build_script:
