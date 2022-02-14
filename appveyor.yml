@@ -17,20 +17,16 @@ build_script:
         Where-Object pullRequestId -eq $env:APPVEYOR_PULL_REQUEST_NUMBER)[0].buildNumber) { `
         throw "There are newer queued builds for this pull request, failing early." }
   - ps: Start-FileDownload "https://repo.continuum.io/miniconda/Miniconda$env:PY_MAJOR_VER-latest-Windows-$env:PYTHON_ARCH.exe" C:\Miniconda.exe; echo "Finished downloading miniconda"
-  - ps: Start-FileDownload "https://download.microsoft.com/download/A/E/0/AE002626-9D9D-448D-8197-1EA510E297CE/msmpisetup.exe" C:\msmpisetup.exe; echo "Finished downloading msmpi"
-  - ps: Start-FileDownload "https://download.microsoft.com/download/A/E/0/AE002626-9D9D-448D-8197-1EA510E297CE/msmpisdk.msi" C:\msmpisdk.msi; echo "Finished downloading msmpisdk"
-  - cmd: msiexec.exe /i "C:\msmpisdk.msi" /qn
-  - cmd: C:\msmpisetup.exe -unattend
   - cmd: C:\Miniconda.exe /S /D=C:\Py
   - cmd: C:\Py\Scripts\activate.bat
   - CMD: SET
-  - set PATH=%PATH%;"C:\Program Files\Microsoft MPI\bin"
   - conda config --set always_yes yes
   - conda update conda
   - conda install python=3.7 gdal nose numpy cython scipy netcdf4 matplotlib dill future gitpython
+  - conda install -c conda-forge mpi4py msmpi
   - pip install Pmw
   - conda install -c msys2 libpython m2w64-toolchain
-  - pip install mpi4py triangle
+  - pip install triangle
   - python setup.py install
 
 test_script:
