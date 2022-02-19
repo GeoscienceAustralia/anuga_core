@@ -10,6 +10,7 @@ from anuga.geometry.polygon import inside_polygon
 from anuga.geometry.polygon import polylist2points_verts
 import anuga.utilities.log as log
 import datetime
+import warnings
 
 # This is due to pmesh being a package and a module and
 # the current dir being unknown
@@ -19,6 +20,7 @@ except ImportError:
     from .mesh import Mesh
 
 # Python 2.7 Hack
+# FIXME (Ole): We can remove this now.
 try:
     from exceptions import Exception
 except:
@@ -185,10 +187,10 @@ def _create_mesh_from_regions(bounding_polygon,
             if found is False:
                 msg = 'Segment %d was not assigned a boundary_tag.' % i
                 msg += 'Default tag "exterior" will be assigned to missing segment'
-                #raise Exception(msg)
-                # Fixme: Use proper Python warning
+                warningns.warn(msg, warnings.UserWarning)
                 if verbose:
                     log.critical('WARNING: %s' % msg)
+                
 
     # In addition I reckon the polygons could be of class Geospatial_data
     # (DSG) If polygons were classes caching would break in places.
