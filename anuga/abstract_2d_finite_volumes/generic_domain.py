@@ -310,9 +310,7 @@ class Generic_Domain(object):
         self.set_beta(beta_w)
         self.set_evolve_max_timestep(max_timestep)
         self.set_evolve_min_timestep(min_timestep)
-        
         self.boundary_map = None  # Will be populated by set_boundary
-        #self.boundary_map = boundary  # Will be populated by set_boundary        
 
         # Model time
         self.finaltime = None
