@@ -112,7 +112,7 @@ class Generic_Domain(object):
                          # number_of_full_nodes=number_of_full_nodes,
                          # number_of_full_triangles=number_of_full_triangles,
                          verbose=verbose)
-
+        
         if verbose:
             log.critical('Domain: Expose mesh attributes')
 
@@ -310,7 +310,9 @@ class Generic_Domain(object):
         self.set_beta(beta_w)
         self.set_evolve_max_timestep(max_timestep)
         self.set_evolve_min_timestep(min_timestep)
+        
         self.boundary_map = None  # Will be populated by set_boundary
+        #self.boundary_map = boundary  # Will be populated by set_boundary        
 
         # Model time
         self.finaltime = None
@@ -882,16 +884,7 @@ class Generic_Domain(object):
         restored!!!
         """
 
-        if self.boundary_map is None:
-            # This the first call to set_boundary. Store
-            # map for later updates and for use with boundary_stats.
-            self.boundary_map = boundary_map
-        else:
-            # This is a modification of an already existing map
-            # Update map an proceed normally
-            for key in list(boundary_map.keys()):
-                self.boundary_map[key] = boundary_map[key]
-
+        
         # Check that all tags in boundary map actually exists in the domain
         # This check is disabled for parallel domains because a valid tag may belong to another instance.
         # Alternative way of addressing this are
@@ -903,12 +896,25 @@ class Generic_Domain(object):
         # FIXME (Ole): Perhaps make method .is_parallel() returing True if numprocs > 1 and False if numprocs == 0
         if not self.parallel:
             allowed_tags = list(set(self.boundary.values())) # List of unique tags 
-            for key in self.boundary_map:
+            for key in boundary_map:
                 if key not in allowed_tags:
                     msg = f'Tag "{key}" provided does not exist in the domain. '
                     msg += 'Allowed tags are: %s' % allowed_tags
                     raise Exception(msg)                    
-                
+        
+
+        # Update self.boundary_map with values provided to this method        
+        if self.boundary_map is None:
+            # This the first call to set_boundary. Store
+            # map for later updates and for use with boundary_stats.
+            self.boundary_map = boundary_map
+        else:
+            # This is a modification of an already existing map
+            # Update map an proceed normally
+            for key in list(boundary_map.keys()):
+                self.boundary_map[key] = boundary_map[key]
+
+             
         # FIXME (Ole): Try to remove the sorting. Everyhing works except three tests 
         # in test_urs2sts (representing functionality not likely to be used anymore).
         # All other tests and validations work without this sorting step.
