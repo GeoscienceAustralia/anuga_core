@@ -75,13 +75,12 @@ class Set_Stage(object):
         self.h  = h
 
     def __call__(self, x, y):
-        return self.h*((x>self.x0)&(x<self.x1))
+        return self.h * ((x > self.x0) & (x < self.x1))
 
 #--------------------------------------------------------------------------
 # Setup test
 #--------------------------------------------------------------------------
 def run_simulation(parallel=False):
-
 
     domain = create_domain_from_file(mesh_filename)
     domain.set_quantity('stage', Set_Stage(756000.0, 756500.0, 2.0))
