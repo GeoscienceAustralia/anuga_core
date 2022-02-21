@@ -1,11 +1,12 @@
-"""Run sw_flow simulation (sequentially or in parallel) to support test_parallel_sw_flow.py
+"""Run sw_flow simulation (sequentially or in parallel) to support 
+   test_parallel_sw_flow.py
 """
 
 # ------------------------
 # Import necessary modules
 # ------------------------
 from math import exp
-from anuga import create_mesh_from_regions, create_domain_from_file, rectangular_cross_domain
+from anuga import rectangular_cross_domain
 from anuga import Reflective_boundary, Dirichlet_boundary
 from anuga import myid, distribute, barrier, numprocs, finalize
 from past.utils import old_div  # FIXME
@@ -26,8 +27,7 @@ def topography(x, y):
 #------------------------------------------
 # Setup computational domain and quantities
 #------------------------------------------
-#domain = rectangular_cross_domain(29, 29)
-domain = rectangular_cross_domain(2, 2)  # Smaller version for debugging
+domain = rectangular_cross_domain(29, 29)
 domain.set_quantity('elevation', topography) # Use function for elevation
 domain.set_quantity('friction', 0.0)         # Constant friction 
 domain.set_quantity('stage', expression='elevation') # Dry initial stage
@@ -36,7 +36,6 @@ domain.set_quantity('stage', expression='elevation') # Dry initial stage
 # Setup domain parameters
 #------------------------
 domain.set_datadir('.')          # Set output dir
-domain.set_flow_algorithm('2_0')
 
 # ----------------------------------------------
 # Decide if this is a sequential or parallel run

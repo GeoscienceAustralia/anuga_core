@@ -89,11 +89,6 @@ class Test_parallel_sw_flow(unittest.TestCase):
             print(num.linalg.norm(sdomain_c.xvel[-1] - pdomain_c.xvel[-1], ord=order))
             print(num.linalg.norm(sdomain_c.yvel[-1] - pdomain_c.yvel[-1], ord=order))        
 
-        print('T, S stage,     P stage')    
-        for i in range(len(sdomain_c.stage)):
-            print(i, sdomain_c.stage[-1, i], pdomain_c.stage[-1, i])    
-
-        
         msg = 'Values not identical'
         assert num.allclose(sdomain_c.stage, pdomain_c.stage), msg
         assert num.allclose(sdomain_c.xmom, pdomain_c.xmom)
