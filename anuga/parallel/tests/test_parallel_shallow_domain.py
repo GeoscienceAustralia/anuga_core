@@ -5,155 +5,102 @@ a run of the parallel shallow water domain.
 WARNING: This assumes that the command to run jobs is mpiexec.
 Tested with MPICH and LAM (Ole)
 """
-from __future__ import print_function
 
-#------------------------------------------------------------------------------
+# ------------------------
 # Import necessary modules
-#------------------------------------------------------------------------------
-
-from builtins import object
-from future.utils import raise_
+# ------------------------
+import platform
 import unittest
-import os
-import sys
-
-
-
 import numpy as num
+import os
+import subprocess
 
-from anuga.utilities import parallel_abstraction as pypar
-
-#------------------------------------------
-# anuga imports
-#------------------------------------------
-import anuga 
-
-from anuga.utilities.numerical_tools import ensure_numeric
-from anuga.utilities.util_ext        import double_precision
-from anuga.utilities.norms           import l1_norm, l2_norm, linf_norm
-from anuga.utilities.system_tools    import get_pathname_from_package
-
-from anuga import Domain
-from anuga import Reflective_boundary
-from anuga import Dirichlet_boundary
-from anuga import Time_boundary
-from anuga import Transmissive_boundary
-
-from anuga import rectangular_cross
-from anuga import create_domain_from_file
-
-
-from anuga import distribute, myid, numprocs, finalize
-
-
-#--------------------------------------------------------------------------
-# Setup parameters
-#--------------------------------------------------------------------------
-
-mod_path = get_pathname_from_package('anuga.parallel')
-
-mesh_filename = os.path.join(mod_path,'data','merimbula_10785_1.tsh')
-#mesh_filename = os.path.join('..','data','test-100.tsh')
-yieldstep = 1
-finaltime = 1
-quantity = 'stage'
-nprocs = 3
 verbose = False
 
-#--------------------------------------------------------------------------
-# Setup procedures
-#--------------------------------------------------------------------------
-class Set_Stage(object):
-    """Set an initial condition with constant water height, for x<x0
-    """
-
-    def __init__(self, x0=0.25, x1=0.5, h=1.0):
-        self.x0 = x0
-        self.x1 = x1
-        self.h  = h
-
-    def __call__(self, x, y):
-        return self.h*((x>self.x0)&(x<self.x1))
-
-#--------------------------------------------------------------------------
-# Setup test
-#--------------------------------------------------------------------------
-def run_simulation(parallel=False):
-
-
-    domain = create_domain_from_file(mesh_filename)
-    domain.set_quantity('stage', Set_Stage(756000.0, 756500.0, 2.0))
-
-    #--------------------------------------------------------------------------
-    # Create parallel domain if requested
-    #--------------------------------------------------------------------------
-
-    if parallel:
-        if myid == 0 and verbose: print('DISTRIBUTING PARALLEL DOMAIN')
-        domain = distribute(domain)
-
-    #------------------------------------------------------------------------------
-    # Setup boundary conditions
-    # This must currently happen *after* domain has been distributed
-    #------------------------------------------------------------------------------
-    domain.store = False
-    Br = Reflective_boundary(domain)      # Solid reflective wall
-
-    domain.set_boundary({'outflow' :Br, 'inflow' :Br, 'inner' :Br, 'exterior' :Br, 'open' :Br})
-
-    #------------------------------------------------------------------------------
-    # Evolution
-    #------------------------------------------------------------------------------
-    if parallel:
-        if myid == 0 and verbose: print('PARALLEL EVOLVE')
-    else:
-        if verbose: print('SEQUENTIAL EVOLVE')
-
-    for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
-        pass
-
-    #domain.dump_triangulation()
-
-# Test an nprocs-way run of the shallow water equations
-# against the sequential code.
 
 class Test_parallel_shallow_domain(unittest.TestCase):
-    def test_parallel_shallow_domain(self):
-        #print "Expect this test to fail if not run from the parallel directory."
-        
-        cmd = anuga.mpicmd(os.path.abspath(__file__))
-        result = os.system(cmd)
-        
-        assert_(result == 0)
+    def setUp(self):
+        # Run the sequential and parallel simulations to produce sww files for comparison.
+
+        path = os.path.dirname(__file__)  # Get folder where this script lives
+        run_filename = os.path.join(path, 'run_parallel_shallow_domain.py')
+
+        # ----------------------
+        # First run sequentially
+        # ----------------------
+        cmd = 'python ' + run_filename
+        if verbose:
+            print(cmd)
+
+        result = subprocess.run(cmd.split(), capture_output=True)
+        if result.returncode != 0:
+            print(result.stdout)
+            print(result.stderr)
+            raise Exception(result.stderr)
+
+        # --------------------
+        # Then run in parallel
+        # --------------------
+        if platform.system() == 'Windows':
+            extra_options = ' '
+        else:
+            # E.g. for Ubuntu Linux
+            extra_options = '--oversubscribe'
+
+        cmd = 'mpiexec -np 3 ' + extra_options + ' python ' + run_filename
+        if verbose:
+            print(cmd)
+
+        result = subprocess.run(cmd.split(), capture_output=True)
+        if result.returncode != 0:
+            print(result.stdout)
+            print(result.stderr)
+            raise Exception(result.stderr)
+
+    def tearDown(self):
+        os.remove('shallow_water_sequential.sww')
+        os.remove('shallow_water_parallel.sww')
+
+    def test_parallel_sw_flow(self):
+        # Note if this is imported at the top level
+        # it'll interfere with running the subprocesses.
+        import anuga.utilities.plot_utils as util
+
+        # Assuming both sequential and parallel simulations have been run, compare the
+        # merged sww files from the parallel run to the sequential output.
+        if verbose:
+            print('Comparing SWW files')
+
+        sdomain_v = util.get_output('shallow_water_sequential.sww')
+        sdomain_c = util.get_centroids(sdomain_v)
+
+        pdomain_v = util.get_output('shallow_water_parallel.sww')
+        pdomain_c = util.get_centroids(pdomain_v)
+
+        # Compare values from the two sww files
+        if verbose:
+            order = 0
+            print('Centroid values')
+            print(num.linalg.norm(sdomain_c.x - pdomain_c.x, ord=order))
+            print(num.linalg.norm(sdomain_c.y - pdomain_c.y, ord=order))
+            print(num.linalg.norm(sdomain_c.stage[-1] - pdomain_c.stage[-1], ord=order))
+            print(num.linalg.norm(sdomain_c.xmom[-1] - pdomain_c.xmom[-1], ord=order))
+            print(num.linalg.norm(sdomain_c.ymom[-1] - pdomain_c.ymom[-1], ord=order))
+            print(num.linalg.norm(sdomain_c.xvel[-1] - pdomain_c.xvel[-1], ord=order))
+            print(num.linalg.norm(sdomain_c.yvel[-1] - pdomain_c.yvel[-1], ord=order))
+
+        msg = 'Values not identical'
+        assert num.allclose(sdomain_c.stage, pdomain_c.stage), msg
+        assert num.allclose(sdomain_c.xmom, pdomain_c.xmom)
+        assert num.allclose(sdomain_c.ymom, pdomain_c.ymom)
+        assert num.allclose(sdomain_c.xvel, pdomain_c.xvel)
+        assert num.allclose(sdomain_c.yvel, pdomain_c.yvel)
+
+        assert num.allclose(sdomain_v.x, pdomain_v.x)
+        assert num.allclose(sdomain_v.y, pdomain_v.y)
 
 
-# Because we are doing assertions outside of the TestCase class
-# the PyUnit defined assert_ function can't be used.
-def assert_(condition, msg="Assertion Failed"):
-    if condition == False:
-        #pypar.finalize()
-        raise_(AssertionError, msg)
-
-if __name__=="__main__":
-    if numprocs == 1: 
-        runner = unittest.TextTestRunner()
-        suite = unittest.makeSuite(Test_parallel_shallow_domain, 'test')
-        runner.run(suite)
-    else:
-
-        from anuga.utilities.parallel_abstraction import global_except_hook
-        import sys
-        sys.excepthook = global_except_hook
-
-        pypar.barrier()
-        if myid ==0:
-            if verbose: print('PARALLEL START')
-
-        run_simulation(parallel=True)
-        
-        if myid == 0:     
-            if verbose: print('Parallel test OK')
-
-
-
-    finalize()
+if __name__ == "__main__":
+    runner = unittest.TextTestRunner()
+    suite = unittest.makeSuite(Test_parallel_shallow_domain, 'test')
+    runner.run(suite)
