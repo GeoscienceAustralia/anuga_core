@@ -27,7 +27,7 @@ def topography(x, y):
 # Setup computational domain and quantities
 #------------------------------------------
 #domain = rectangular_cross_domain(29, 29)
-domain = rectangular_cross_domain(2, 2)
+domain = rectangular_cross_domain(2, 2)  # Smaller version for debugging
 domain.set_quantity('elevation', topography) # Use function for elevation
 domain.set_quantity('friction', 0.0)         # Constant friction 
 domain.set_quantity('stage', expression='elevation') # Dry initial stage
