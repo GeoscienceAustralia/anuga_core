@@ -55,7 +55,7 @@ class Test_parallel_riverwall(unittest.TestCase):
     def tearDown(self):
         os.remove('s_riverwall.sww')
         os.remove('p_riverwall.sww')
-        os.remove('runup.msh')
+        os.remove('riverwall.msh')
 
         
     def test_parallel_riverwall(self):
@@ -80,8 +80,8 @@ class Test_parallel_riverwall(unittest.TestCase):
         if verbose:
             order = 0
             print('Centroid values')
-            print(num.linalg.norm(sdomain_c.x-pdomain_c.x, ord=order))
-            print(num.linalg.norm(sdomain_c.y-pdomain_c.y, ord=order))
+            print(num.linalg.norm(sdomain_c.x - pdomain_c.x, ord=order))
+            print(num.linalg.norm(sdomain_c.y - pdomain_c.y, ord=order))
             print(num.linalg.norm(sdomain_c.stage[-1] - pdomain_c.stage[-1], ord=order))
             print(num.linalg.norm(sdomain_c.xmom[-1] - pdomain_c.xmom[-1], ord=order))
             print(num.linalg.norm(sdomain_c.ymom[-1] - pdomain_c.ymom[-1], ord=order))
