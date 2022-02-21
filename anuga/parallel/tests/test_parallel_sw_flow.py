@@ -2,9 +2,9 @@
 Test that parallel and sequential results of riverwall simulation are identical
 """
 
-#------------------------------------------------------------------------------
+# ------------------------
 # Import necessary modules
-#------------------------------------------------------------------------------
+# ------------------------
 import platform
 import unittest
 import numpy as num
@@ -13,37 +13,38 @@ import subprocess
 
 verbose = False
 
+
 class Test_parallel_sw_flow(unittest.TestCase):
     def setUp(self):
         # Run the sequential and parallel simulations to produce sww files for comparison.
-        
+
         path = os.path.dirname(__file__)  # Get folder where this script lives
         run_filename = os.path.join(path, 'run_parallel_sw_flow.py')
 
-        #-----------------------        
+        # ----------------------
         # First run sequentially
-        #-----------------------
+        # ----------------------
         cmd = 'python ' + run_filename
-        if verbose: 
-            print(cmd)        
-            
+        if verbose:
+            print(cmd)
+
         result = subprocess.run(cmd.split(), capture_output=True)
         if result.returncode != 0:
             print(result.stdout)
             print(result.stderr)
-            raise Exception(result.stderr)        
+            raise Exception(result.stderr)
 
-        #---------------------
+        # --------------------
         # Then run in parallel
-        #---------------------
+        # --------------------
         if platform.system() == 'Windows':
             extra_options = ' '
         else:
             # E.g. for Ubuntu Linux
-            extra_options = '--oversubscribe'            
+            extra_options = '--oversubscribe'
 
         cmd = 'mpiexec -np 3 ' + extra_options + ' python ' + run_filename
-        if verbose: 
+        if verbose:
             print(cmd)
 
         result = subprocess.run(cmd.split(), capture_output=True)
@@ -53,20 +54,17 @@ class Test_parallel_sw_flow(unittest.TestCase):
             raise Exception(result.stderr)
 
     def tearDown(self):
-        pass
-        #os.remove('sw_flow_sequential.sww')
-        #os.remove('sw_flow_parallel.sww')
+        os.remove('sw_flow_sequential.sww')
+        os.remove('sw_flow_parallel.sww')
 
-
-        
     def test_parallel_sw_flow(self):
+        # Note if this is imported at the top level
+        # it'll interfere with running the subprocesses.
+        import anuga.utilities.plot_utils as util
 
-        import anuga.utilities.plot_utils as util  # Note if this is imported at the top level
-                                                   # it'll interfere with running the subprocesses.       
-        
-        # Assuming both sequential and parallel simulations have been run, compare the 
+        # Assuming both sequential and parallel simulations have been run, compare the
         # merged sww files from the parallel run to the sequential output.
-        if verbose: 
+        if verbose:
             print('Comparing SWW files')
 
         sdomain_v = util.get_output('sw_flow_sequential.sww')
@@ -74,10 +72,8 @@ class Test_parallel_sw_flow(unittest.TestCase):
 
         pdomain_v = util.get_output('sw_flow_parallel.sww')
         pdomain_c = util.get_centroids(pdomain_v)
-        
 
-        # Test some values against the original ordering
-
+        # Compare values from the two sww files
         if verbose:
             order = 0
             print('Centroid values')
@@ -87,7 +83,7 @@ class Test_parallel_sw_flow(unittest.TestCase):
             print(num.linalg.norm(sdomain_c.xmom[-1] - pdomain_c.xmom[-1], ord=order))
             print(num.linalg.norm(sdomain_c.ymom[-1] - pdomain_c.ymom[-1], ord=order))
             print(num.linalg.norm(sdomain_c.xvel[-1] - pdomain_c.xvel[-1], ord=order))
-            print(num.linalg.norm(sdomain_c.yvel[-1] - pdomain_c.yvel[-1], ord=order))        
+            print(num.linalg.norm(sdomain_c.yvel[-1] - pdomain_c.yvel[-1], ord=order))
 
         msg = 'Values not identical'
         assert num.allclose(sdomain_c.stage, pdomain_c.stage), msg

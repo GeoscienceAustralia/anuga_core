@@ -9,7 +9,6 @@ from math import exp
 from anuga import rectangular_cross_domain
 from anuga import Reflective_boundary, Dirichlet_boundary
 from anuga import myid, distribute, barrier, numprocs, finalize
-from past.utils import old_div  # FIXME
 import numpy as num
 
 
@@ -22,7 +21,7 @@ verbose = True
 # Setup function for initial condition
 #-------------------------------------
 def topography(x, y): 
-    return old_div(-x, 2)    
+    return -x / 2    
 
 #------------------------------------------
 # Setup computational domain and quantities
@@ -69,4 +68,3 @@ for t in domain.evolve(yieldstep=0.25, finaltime=1.0):
 #-------------------------------------
 domain.sww_merge(delete_old=True)
 finalize()
-    
