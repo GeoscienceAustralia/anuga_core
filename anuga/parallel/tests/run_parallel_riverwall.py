@@ -1,5 +1,4 @@
-"""
-Test parallel and sequential results of riverwall procedure
+"""Run riverwall simulation (sequentially or in parallel) to support test_parallel_riverwall.py
 """
 
 # ------------------------
@@ -64,8 +63,6 @@ if myid == 0:
 
     base_domain = create_domain_from_file('runup.msh')
     base_domain.set_flow_algorithm(alg)
-
-    base_domain.set_name('s_riverwall')
     base_domain.set_datadir('.')
     base_domain.set_store_vertices_uniquely()
 
