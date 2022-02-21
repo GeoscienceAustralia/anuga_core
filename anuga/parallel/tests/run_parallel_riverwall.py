@@ -88,8 +88,7 @@ else:
 # ----------------------------------------------
 if numprocs == 1:
     # This is a sequential run
-    import copy
-    domain = copy.deepcopy(base_domain)
+    domain = base_domain
     domain.set_name('s_riverwall')
 else:
     # This is a parallel run
