@@ -98,8 +98,8 @@ def run_simulation(parallel=False, G = None, seq_interpolation_points=None, verb
     # reset the interpolation points to the centroids
     # found in the sequential run
     #------------------------------------------------------------------------------
-    interpolation_points = [[0.4,0.5], [0.6,0.5], [0.8,0.5], [0.9,0.5]]
-
+    interpolation_points = [[0.4, 0.5], [0.6, 0.5], [0.8, 0.5], [0.9, 0.5]]
+ 
 
     gauge_values = []
     tri_ids = []
@@ -125,7 +125,7 @@ def run_simulation(parallel=False, G = None, seq_interpolation_points=None, verb
     c_coord = domain.get_centroid_coordinates()
     interpolation_points = []
     for id in tri_ids:
-        if id<1:
+        if id < 1:
             if verbose: print('WARNING: Interpolation point not within the domain!')
         interpolation_points.append(c_coord[id,:])
             
@@ -210,7 +210,7 @@ if __name__=="__main__":
         barrier()
         if myid == 0 and verbose: print('SEQUENTIAL START')
 
-        G , interpolation_points = run_simulation(parallel=False,verbose=verbose)
+        G , interpolation_points = run_simulation(parallel=False, verbose=verbose)
         G = num.array(G,float)
 
         barrier()
