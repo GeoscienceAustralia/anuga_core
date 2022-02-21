@@ -26,6 +26,7 @@ class Test_parallel_riverwall(unittest.TestCase):
         cmd = 'python ' + run_filename
         if verbose: 
             print(cmd)        
+            
         result = subprocess.run(cmd.split(), capture_output=True)
         if result.returncode != 0:
             print(result.stdout)
@@ -77,7 +78,6 @@ class Test_parallel_riverwall(unittest.TestCase):
         # Test some values against the original ordering
 
         if verbose:
-
             order = 0
             print('Centroid values')
             print(num.linalg.norm(sdomain_c.x-pdomain_c.x, ord=order))
