@@ -1,4 +1,3 @@
-
 """Test a run of the sequential shallow water domain against
 a run of the parallel shallow water domain.
 
