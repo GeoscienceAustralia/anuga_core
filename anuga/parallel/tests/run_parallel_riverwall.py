@@ -1,5 +1,4 @@
-"""
-Test parallel and sequential results of riverwall procedure
+"""Run riverwall simulation (sequentially or in parallel) to support test_parallel_riverwall.py
 """
 
 # ------------------------
@@ -14,6 +13,7 @@ verbose = False
 
 alg = 'DE0'
 scale_me = 1.0
+mesh_filename = 'riverwall.msh'
 
 # -----------
 # Set up mesh
@@ -54,7 +54,7 @@ if myid == 0:
                                             'bottom': [3]},
                              maximum_triangle_area=1.0e+20,
                              minimum_triangle_angle=28.0,
-                             filename='runup.msh',
+                             filename=mesh_filename,
                              interior_regions=[[higherResPolygon, 1.*1.*0.5],
                                                [midResPolygon, 3.0*3.0*0.5]],
                              breaklines=list(riverWall.values()),
@@ -62,10 +62,8 @@ if myid == 0:
                              verbose=verbose,
                              regionPtArea=regionPtAreas)
 
-    base_domain = create_domain_from_file('runup.msh')
+    base_domain = create_domain_from_file(mesh_filename)
     base_domain.set_flow_algorithm(alg)
-
-    base_domain.set_name('s_riverwall')
     base_domain.set_datadir('.')
     base_domain.set_store_vertices_uniquely()
 
@@ -91,8 +89,7 @@ else:
 # ----------------------------------------------
 if numprocs == 1:
     # This is a sequential run
-    import copy
-    domain = copy.deepcopy(base_domain)
+    domain = base_domain
     domain.set_name('s_riverwall')
 else:
     # This is a parallel run

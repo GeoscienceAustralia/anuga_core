@@ -55,7 +55,7 @@ from anuga.parallel import distribute, myid, numprocs, finalize
 mod_path = get_pathname_from_package('anuga.parallel')
 
 mesh_filename = os.path.join(mod_path,'data','merimbula_10785_1.tsh')
-#mesh_filename = os.path.join(mod_path,'data','test-100.tsh')
+
 yieldstep = 1
 finaltime = 20
 quantity = 'stage'
@@ -211,6 +211,8 @@ if __name__=="__main__":
             if verbose: print('PARALLEL START')
         
         l1norm_par, l2norm_par, linfnorm_par = run_simulation(parallel=True)
+        
+        print(l1norm_seq, l2norm_seq, linfnorm_seq, l1norm_par, l2norm_par, linfnorm_par)
         
         if myid == 0:
             assert_(len(l1norm_seq) == len(l1norm_par))
