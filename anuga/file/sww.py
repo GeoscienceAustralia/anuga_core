@@ -24,12 +24,6 @@ from past.utils import old_div
 from builtins import object
 from future.utils import raise_
 
-# Python 2.7 Hack
-try:
-    from exceptions import Exception
-except:
-    pass
-
 
 class DataFileNotOpenError(Exception):
     pass
