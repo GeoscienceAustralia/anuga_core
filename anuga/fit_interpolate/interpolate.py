@@ -708,7 +708,7 @@ def interpolate_sww2csv(sww_file,
 
 
 class Interpolation_function(object):
-    """Interpolation_interface - creates callable object f(t, id) or f(t,x,y)
+    """Interpolation_interface - creates callable object f(t, id) or f(t, x, y)
     which is interpolated from time series defined at vertices of
     triangular mesh (such as those stored in sww files)
 

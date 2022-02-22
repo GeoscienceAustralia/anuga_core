@@ -141,6 +141,8 @@ def sort_sww_filenames(sww_wildcard):
     return list(output_names)
 
 #####################################################################
+
+# FIXME (Ole): We should move this to e.g. the module sww.py as it has nothing to do with plotting ;-)
 class get_output(object):
     """Read in data from an .sww file in a convenient form
        e.g. 

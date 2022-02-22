@@ -1384,7 +1384,7 @@ def get_mesh_and_quantities_from_file(filename,
 
         def my_num_add_at(a, indices, b):
             """
-            Use the numpy add.at opperation if it is available, (numpy version >1.8)
+            Use the numpy add.at operation if it is available, (numpy version >1.8)
             otherwise just use a quick and dirty implementation via a python loop
             """
 
