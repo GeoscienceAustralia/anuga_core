@@ -662,8 +662,8 @@ def animate_1D(time, var, x, ylab=' '):
     pylab.ion()
 
     # Initial plot
-    vmin=var.min()
-    vmax=var.max()
+    vmin = var.min()
+    vmax = var.max()
     line, = pylab.plot( (x.min(), x.max()), (vmin, vmax), 'o')
 
     # Lots of plots

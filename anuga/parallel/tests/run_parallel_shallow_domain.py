@@ -5,9 +5,7 @@ import os
 #------------------------------------------
 import anuga 
 
-from anuga.utilities.util_ext        import double_precision
-from anuga.utilities.norms           import l1_norm, l2_norm, linf_norm
-from anuga.utilities.system_tools    import get_pathname_from_package
+from anuga.utilities.system_tools import get_pathname_from_package
 
 from anuga import Domain
 from anuga import Reflective_boundary
