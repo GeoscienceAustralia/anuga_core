@@ -79,8 +79,8 @@ class Kinematic_viscosity_operator(Operator):
         #Geometric Information
         if verbose: log.critical('Kinematic Viscosity: Building geometric structure')
 
-        self.geo_structure_indices = num.zeros((self.n, 3), num.int)
-        self.geo_structure_values = num.zeros((self.n, 3), num.float)
+        self.geo_structure_indices = num.zeros((self.n, 3), int)
+        self.geo_structure_values = num.zeros((self.n, 3), float)
 
         # Only needs to built once, doesn't change
         kinematic_viscosity_operator_ext.build_geo_structure(self)
@@ -100,16 +100,16 @@ class Kinematic_viscosity_operator(Operator):
         self.qty_considered = 1 #1 or 2 (uh or vh respectively)
 
         #Sparse_CSR.data
-        self.operator_data = num.zeros((4 * self.n, ), num.float)
+        self.operator_data = num.zeros((4 * self.n, ), float)
         #Sparse_CSR.colind
-        self.operator_colind = num.zeros((4 * self.n, ), num.int)
+        self.operator_colind = num.zeros((4 * self.n, ), int)
         #Sparse_CSR.rowptr (4 entries in every row, we know this already) = [0,4,8,...,4*n]
         self.operator_rowptr = 4 * num.arange(self.n + 1)
 
         # Build matrix self.elliptic_matrix [A B]
         self.build_elliptic_matrix(self.diffusivity)
 
-        self.boundary_term = num.zeros((self.n, ), num.float)
+        self.boundary_term = num.zeros((self.n, ), float)
 
         self.parabolic = False #Are we doing a parabolic solve at the moment?
 
@@ -281,7 +281,7 @@ class Kinematic_viscosity_operator(Operator):
         n = self.n
         tot_len = self.tot_len
 
-        X = num.zeros((tot_len,), num.float)
+        X = num.zeros((tot_len,), float)
 
         X[n:] = b
         self.boundary_term[:] = self.elliptic_matrix * X
@@ -339,7 +339,7 @@ class Kinematic_viscosity_operator(Operator):
         n = self.n
         tot_len = self.tot_len
 
-        V = num.zeros((tot_len,), num.float)
+        V = num.zeros((tot_len,), float)
 
         assert len(array_in) == n
 
@@ -410,7 +410,7 @@ class Kinematic_viscosity_operator(Operator):
         n = self.n
         tot_len = self.tot_len
 
-        V = num.zeros((tot_len,), num.float)
+        V = num.zeros((tot_len,), float)
 
         assert len(array_in) == n
 

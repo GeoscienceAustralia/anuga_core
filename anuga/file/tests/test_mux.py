@@ -1,6 +1,6 @@
-from builtins import zip
-from builtins import map
-from builtins import range
+#from builtins import zip
+#from builtins import map
+#from builtins import range
 import unittest
 import tempfile
 import numpy as num
@@ -88,7 +88,7 @@ class Test_Mux(unittest.TestCase):
         for i, q in enumerate(quantities): 
             quantities_init[i] = ensure_numeric(quantities_init[i])
             #print "HA_init", HA_init
-            q_time = num.zeros((time_step_count, points_num), num.float)
+            q_time = num.zeros((time_step_count, points_num), num.float64)
             for time in range(time_step_count):
                 q_time[time,:] = quantities_init[i] #* time * 4
             
@@ -180,17 +180,17 @@ class Test_Mux(unittest.TestCase):
 
             if ha is None:
                 this_ha = e
-                quantities_init[0].append(num.ones(time_step_count,num.float)*this_ha) # HA
+                quantities_init[0].append(num.ones(time_step_count,float)*this_ha) # HA
             else:
                 quantities_init[0].append(ha[i])
             if ua is None:
                 this_ua = n
-                quantities_init[1].append(num.ones(time_step_count,num.float)*this_ua) # UA
+                quantities_init[1].append(num.ones(time_step_count,float)*this_ua) # UA
             else:
                 quantities_init[1].append(ua[i])
             if va is None:
                 this_va = e
-                quantities_init[2].append(num.ones(time_step_count,num.float)*this_va) #
+                quantities_init[2].append(num.ones(time_step_count,float)*this_va) #
             else:
                 quantities_init[2].append(-va[i]) # South is negative in MUX
 
@@ -200,7 +200,7 @@ class Test_Mux(unittest.TestCase):
 
         files = []        
         for i, q in enumerate(quantities):
-            q_time = num.zeros((time_step_count, points_num), num.float)
+            q_time = num.zeros((time_step_count, points_num), float)
             quantities_init[i] = ensure_numeric(quantities_init[i])
             for time in range(time_step_count):
                 #print i, q, time, quantities_init[i][:,time]
@@ -269,12 +269,12 @@ class Test_Mux(unittest.TestCase):
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
-        last_tstep=time_step_count*num.ones(n,num.int)
-        depth=20*num.ones(n,num.float)
-        ha=2*num.ones((n,time_step_count),num.float)
-        ua=5*num.ones((n,time_step_count),num.float)
-        va=-10*num.ones((n,time_step_count),num.float)
+        first_tstep=num.ones(n,int)
+        last_tstep=time_step_count*num.ones(n,int)
+        depth=20*num.ones(n,float)
+        ha=2*num.ones((n,time_step_count),float)
+        ua=5*num.ones((n,time_step_count),float)
+        va=-10*num.ones((n,time_step_count),float)
         #-ve added to take into account mux file format where south is positive.
         base_name, files = self.write_mux2(lat_long_points,
                                       time_step_count, time_step,
@@ -284,7 +284,7 @@ class Test_Mux(unittest.TestCase):
                                       ua=ua,
                                       va=va)
 
-        weights=num.ones(1, num.float)
+        weights=num.ones(1, float)
         #ensure that files are indeed mux2 files
         times, latitudes, longitudes, elevation, stage, starttime = read_mux2_py([files[0]], weights)
         ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity,starttime_ua=read_mux2_py([files[1]], weights)
@@ -324,17 +324,17 @@ class Test_Mux(unittest.TestCase):
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
-        last_tstep=(time_step_count)*num.ones(n,num.int)
-        depth=20*num.ones(n,num.float)
-        ha=2*num.ones((n,time_step_count),num.float)
+        first_tstep=num.ones(n,int)
+        last_tstep=(time_step_count)*num.ones(n,int)
+        depth=20*num.ones(n,float)
+        ha=2*num.ones((n,time_step_count),float)
         ha[0]=num.arange(0,time_step_count)+1
         ha[1]=time_step_count-num.arange(1,time_step_count+1)
         ha[1]=num.arange(time_step_count,2*time_step_count)
         ha[2]=num.arange(2*time_step_count,3*time_step_count)
         ha[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua=5*num.ones((n,time_step_count),num.float)
-        va=-10*num.ones((n,time_step_count),num.float)
+        ua=5*num.ones((n,time_step_count),float)
+        va=-10*num.ones((n,time_step_count),float)
         #-ve added to take into account mux file format where south is positive.
         base_name, files = self.write_mux2(lat_long_points,
                                       time_step_count, time_step,
@@ -344,7 +344,7 @@ class Test_Mux(unittest.TestCase):
                                       ua=ua,
                                       va=va)
 
-        weights=num.ones(1, num.float)
+        weights=num.ones(1, float)
         #ensure that files are indeed mux2 files
         times, latitudes, longitudes, elevation, stage,starttime=read_mux2_py([files[0]], weights)
         ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity,starttime_ua=read_mux2_py([files[1]], weights)
@@ -382,20 +382,20 @@ class Test_Mux(unittest.TestCase):
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
+        first_tstep=num.ones(n,int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,int)
         last_tstep[0]-=1
 
-        depth=20*num.ones(n,num.float)
-        ha=2*num.ones((n,time_step_count),num.float)
+        depth=20*num.ones(n,float)
+        ha=2*num.ones((n,time_step_count),float)
         ha[0]=num.arange(0,time_step_count)
         ha[1]=num.arange(time_step_count,2*time_step_count)
         ha[2]=num.arange(2*time_step_count,3*time_step_count)
         ha[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua=5*num.ones((n,time_step_count),num.float)
-        va=-10*num.ones((n,time_step_count),num.float)
+        ua=5*num.ones((n,time_step_count),float)
+        va=-10*num.ones((n,time_step_count),float)
         #-ve added to take into account mux file format where south is positive.
         base_name, files = self.write_mux2(lat_long_points,
                                       time_step_count, time_step,
@@ -405,7 +405,7 @@ class Test_Mux(unittest.TestCase):
                                       ua=ua,
                                       va=va)
 
-        weights=num.ones(1, num.float)
+        weights=num.ones(1, float)
         #ensure that files are indeed mux2 files
         times, latitudes, longitudes, elevation, stage, starttime=read_mux2_py([files[0]], weights)
         ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity, starttime_ua=read_mux2_py([files[1]], weights)
@@ -471,29 +471,29 @@ class Test_Mux(unittest.TestCase):
         n = len(lat_long_points)
         
         # Create different timeseries starting and ending at different times 
-        first_tstep=num.ones(n, num.int)
+        first_tstep=num.ones(n, int)
         first_tstep[0]+=2   # Point 0 starts at 2
         first_tstep[1]+=4   # Point 1 starts at 4        
         first_tstep[2]+=3   # Point 2 starts at 3
         
-        last_tstep=(time_step_count)*num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,int)
         last_tstep[0]-=1    # Point 0 ends 1 step early
         last_tstep[1]-=2    # Point 1 ends 2 steps early                
         last_tstep[4]-=3    # Point 4 ends 3 steps early        
         
         # Create varying elevation data (positive values for seafloor)
-        gauge_depth=20*num.ones(n,num.float)
+        gauge_depth=20*num.ones(n,float)
         for i in range(n):
             gauge_depth[i] += i**2
             
         # Create data to be written to first mux file        
-        ha0=2*num.ones((n,time_step_count),num.float)
+        ha0=2*num.ones((n,time_step_count),float)
         ha0[0]=num.arange(0,time_step_count)
         ha0[1]=num.arange(time_step_count,2*time_step_count)
         ha0[2]=num.arange(2*time_step_count,3*time_step_count)
         ha0[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua0=5*num.ones((n,time_step_count),num.float)
-        va0=-10*num.ones((n,time_step_count),num.float)
+        ua0=5*num.ones((n,time_step_count),float)
+        va0=-10*num.ones((n,time_step_count),float)
 
         # Ensure data used to write mux file to be zero when gauges are
         # not recording
@@ -532,7 +532,7 @@ class Test_Mux(unittest.TestCase):
 
         # For each quantity read the associated list of source mux2 file with 
         # extention associated with that quantity
-        file_params=-1*num.ones(3,num.float) #[nsta,dt,nt]
+        file_params=-1*num.ones(3,float) #[nsta,dt,nt]
         OFFSET = 5
 
         for j, file in enumerate(filesI):
@@ -578,36 +578,36 @@ class Test_Mux(unittest.TestCase):
         n = len(lat_long_points)
         
         # Create different timeseries starting and ending at different times 
-        first_tstep=num.ones(n,num.int)
+        first_tstep=num.ones(n,int)
         first_tstep[0]+=2   # Point 0 starts at 2
         first_tstep[1]+=4   # Point 1 starts at 4        
         first_tstep[2]+=3   # Point 2 starts at 3
         
-        last_tstep=(time_step_count)*num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,int)
         last_tstep[0]-=1    # Point 0 ends 1 step early
         last_tstep[1]-=2    # Point 1 ends 2 steps early                
         last_tstep[4]-=3    # Point 4 ends 3 steps early        
         
         # Create varying elevation data (positive values for seafloor)
-        gauge_depth=20*num.ones(n,num.float)
+        gauge_depth=20*num.ones(n,float)
         for i in range(n):
             gauge_depth[i] += i**2
             
         # Create data to be written to second mux file        
-        ha1=num.ones((n,time_step_count),num.float)
+        ha1=num.ones((n,time_step_count),float)
         ha1[0]=num.sin(times_ref)
         ha1[1]=2*num.sin(times_ref - 3)
         ha1[2]=5*num.sin(4*times_ref)
         ha1[3]=num.sin(times_ref)
         ha1[4]=num.sin(2*times_ref-0.7)
                 
-        ua1=num.zeros((n,time_step_count),num.float)
+        ua1=num.zeros((n,time_step_count),float)
         ua1[0]=3*num.cos(times_ref)        
         ua1[1]=2*num.sin(times_ref-0.7)   
         ua1[2]=num.arange(3*time_step_count,4*time_step_count)
         ua1[4]=2*num.ones(time_step_count)
         
-        va1=num.zeros((n,time_step_count),num.float)
+        va1=num.zeros((n,time_step_count),float)
         va1[0]=2*num.cos(times_ref-0.87)        
         va1[1]=3*num.ones(time_step_count)
         va1[3]=2*num.sin(times_ref-0.71)        
@@ -680,17 +680,17 @@ class Test_Mux(unittest.TestCase):
 
             if ha is None:
                 this_ha = e
-                quantities_init[0].append(num.ones(time_step_count,num.float)*this_ha) # HA
+                quantities_init[0].append(num.ones(time_step_count,float)*this_ha) # HA
             else:
                 quantities_init[0].append(ha[i])
             if ua is None:
                 this_ua = n
-                quantities_init[1].append(num.ones(time_step_count,num.float)*this_ua) # UA
+                quantities_init[1].append(num.ones(time_step_count,float)*this_ua) # UA
             else:
                 quantities_init[1].append(ua[i])
             if va is None:
                 this_va = e
-                quantities_init[2].append(num.ones(time_step_count,num.float)*this_va) #
+                quantities_init[2].append(num.ones(time_step_count,float)*this_va) #
             else:
                 quantities_init[2].append(va[i])
 
@@ -698,7 +698,7 @@ class Test_Mux(unittest.TestCase):
             #print
             #print i, q
             
-            q_time = num.zeros((time_step_count, points_num), num.float)
+            q_time = num.zeros((time_step_count, points_num), float)
             quantities_init[i] = ensure_numeric(quantities_init[i])
             for time in range(time_step_count):
                 #print i, q, time, quantities_init[i][:,time]
@@ -775,7 +775,7 @@ class Test_Mux(unittest.TestCase):
 
         # For each quantity read the associated list of source mux2 file with 
         # extention associated with that quantity
-        file_params=-1*num.ones(3,num.float) # [nsta,dt,nt]
+        file_params=-1*num.ones(3,float) # [nsta,dt,nt]
         OFFSET = 5
 
         for j, file in enumerate(filesII):
@@ -790,7 +790,7 @@ class Test_Mux(unittest.TestCase):
             # Index where data ends and parameters begin
             parameters_index = data.shape[1]-OFFSET          
                  
-            quantity=num.zeros((number_of_selected_stations, parameters_index), num.float)
+            quantity=num.zeros((number_of_selected_stations, parameters_index), float)
             
             
             for i in range(number_of_selected_stations):
@@ -869,36 +869,36 @@ ValueError: matrices are not aligned for copy
         stations = len(lat_long_points)
         
         # Create different timeseries starting and ending at different times 
-        first_tstep=num.ones(stations, num.int)
+        first_tstep=num.ones(stations, int)
         first_tstep[0]+=2   # Point 0 starts at 2
         first_tstep[1]+=4   # Point 1 starts at 4        
         first_tstep[2]+=3   # Point 2 starts at 3
         
-        last_tstep=(time_step_count)*num.ones(stations, num.int)
+        last_tstep=(time_step_count)*num.ones(stations, int)
         last_tstep[0]-=1    # Point 0 ends 1 step early
         last_tstep[1]-=2    # Point 1 ends 2 steps early                
         last_tstep[4]-=3    # Point 4 ends 3 steps early        
         
         # Create varying elevation data (positive values for seafloor)
-        gauge_depth=20*num.ones(stations, num.float)
+        gauge_depth=20*num.ones(stations, float)
         for i in range(stations):
             gauge_depth[i] += i**2
             
         # Create data to be written to second mux file        
-        ha1=num.ones((stations,time_step_count), num.float)
+        ha1=num.ones((stations,time_step_count), float)
         ha1[0]=num.sin(times_ref)
         ha1[1]=2*num.sin(times_ref - 3)
         ha1[2]=5*num.sin(4*times_ref)
         ha1[3]=num.sin(times_ref)
         ha1[4]=num.sin(2*times_ref-0.7)
                 
-        ua1=num.zeros((stations,time_step_count),num.float)
+        ua1=num.zeros((stations,time_step_count),float)
         ua1[0]=3*num.cos(times_ref)        
         ua1[1]=2*num.sin(times_ref-0.7)   
         ua1[2]=num.arange(3*time_step_count,4*time_step_count)
         ua1[4]=2*num.ones(time_step_count)
         
-        va1=num.zeros((stations,time_step_count),num.float)
+        va1=num.zeros((stations,time_step_count),float)
         va1[0]=2*num.cos(times_ref-0.87)        
         va1[1]=3*num.ones(time_step_count)
         va1[3]=2*num.sin(times_ref-0.71)        
@@ -974,19 +974,19 @@ ValueError: matrices are not aligned for copy
             if ha is None:
                 this_ha = e
                 quantities_init[0].append(num.ones(time_step_count,
-                                                   num.float)*this_ha) # HA
+                                                   float)*this_ha) # HA
             else:
                 quantities_init[0].append(ha[i])
             if ua is None:
                 this_ua = n
                 quantities_init[1].append(num.ones(time_step_count,
-                                                   num.float)*this_ua) # UA
+                                                   float)*this_ua) # UA
             else:
                 quantities_init[1].append(ua[i])
             if va is None:
                 this_va = e
                 quantities_init[2].append(num.ones(time_step_count,
-                                                   num.float)*this_va) #
+                                                   float)*this_va) #
             else:
                 quantities_init[2].append(va[i])
 
@@ -994,7 +994,7 @@ ValueError: matrices are not aligned for copy
             #print
             #print i, q
             
-            q_time = num.zeros((time_step_count, points_num), num.float)
+            q_time = num.zeros((time_step_count, points_num), float)
             quantities_init[i] = ensure_numeric(quantities_init[i])
             for time in range(time_step_count):
                 #print i, q, time, quantities_init[i][:,time]
@@ -1073,7 +1073,7 @@ ValueError: matrices are not aligned for copy
 
         # For each quantity read the associated list of source mux2 file with 
         # extention associated with that quantity
-        file_params=-1*num.ones(3,num.float) # [nsta,dt,nt]
+        file_params=-1*num.ones(3,float) # [nsta,dt,nt]
         OFFSET = 5
 
         for j, file in enumerate(filesII):
@@ -1117,20 +1117,20 @@ ValueError: matrices are not aligned for copy
         time_step = 2
         lat_long_points =[(-21.,113.5),(-21.,114.5),(-21.,114.), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
+        first_tstep=num.ones(n,int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,int)
         last_tstep[0]-=1
 
-        gauge_depth=20*num.ones(n,num.float)
-        ha=2*num.ones((n,time_step_count),num.float)
+        gauge_depth=20*num.ones(n,float)
+        ha=2*num.ones((n,time_step_count),float)
         ha[0]=num.arange(0,time_step_count)
         ha[1]=num.arange(time_step_count,2*time_step_count)
         ha[2]=num.arange(2*time_step_count,3*time_step_count)
         ha[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua=5*num.ones((n,time_step_count),num.float)
-        va=-10*num.ones((n,time_step_count),num.float)
+        ua=5*num.ones((n,time_step_count),float)
+        va=-10*num.ones((n,time_step_count),float)
 
         base_name, files = self.write_mux2(lat_long_points,
                                       time_step_count, time_step,
@@ -1183,20 +1183,20 @@ ValueError: matrices are not aligned for copy
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
+        first_tstep=num.ones(n,int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,int)
         last_tstep[0]-=1
 
-        gauge_depth=20*num.ones(n,num.float)
-        ha=2*num.ones((n,time_step_count),num.float)
+        gauge_depth=20*num.ones(n,float)
+        ha=2*num.ones((n,time_step_count),float)
         ha[0]=num.arange(0,time_step_count)
         ha[1]=num.arange(time_step_count,2*time_step_count)
         ha[2]=num.arange(2*time_step_count,3*time_step_count)
         ha[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua=5*num.ones((n,time_step_count),num.float)
-        va=-10*num.ones((n,time_step_count),num.float)
+        ua=5*num.ones((n,time_step_count),float)
+        va=-10*num.ones((n,time_step_count),float)
 
         # Create two identical mux files to be combined by urs2sts
         base_nameI, filesI = self.write_mux2(lat_long_points,
@@ -1285,7 +1285,7 @@ ValueError: matrices are not aligned for copy
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth=num.zeros((len(lat_long_points),time_step_count),num.float)
+        depth=num.zeros((len(lat_long_points),time_step_count),float)
         for i in range(len(lat_long_points)):
             depth[i]=gauge_depth[i]+tide+2.0*ha[i]
             #2.0*ha necessary because using two files with weights=1 are used
@@ -1322,20 +1322,20 @@ ValueError: matrices are not aligned for copy
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
+        first_tstep=num.ones(n,int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,int)
         last_tstep[0]-=1
 
-        gauge_depth=20*num.ones(n,num.float)
-        ha=2*num.ones((n,time_step_count),num.float)
+        gauge_depth=20*num.ones(n,float)
+        ha=2*num.ones((n,time_step_count),float)
         ha[0]=num.arange(0,time_step_count)
         ha[1]=num.arange(time_step_count,2*time_step_count)
         ha[2]=num.arange(2*time_step_count,3*time_step_count)
         ha[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua=5*num.ones((n,time_step_count),num.float)
-        va=-10*num.ones((n,time_step_count),num.float)
+        ua=5*num.ones((n,time_step_count),float)
+        va=-10*num.ones((n,time_step_count),float)
 
         base_name, files = self.write_mux2(lat_long_points,
                                       time_step_count, time_step,
@@ -1408,7 +1408,7 @@ ValueError: matrices are not aligned for copy
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth=num.zeros((len(lat_long_points),time_step_count),num.float)
+        depth=num.zeros((len(lat_long_points),time_step_count),float)
         for i in range(len(lat_long_points)):
             depth[i]=gauge_depth[i]+tide+ha[i]
         assert num.allclose(num.transpose(ua*depth),xmomentum) 
@@ -1437,20 +1437,20 @@ ValueError: matrices are not aligned for copy
         time_step = 2
         lat_long_points =[(-21.,114.5),(-21.,113.5),(-21.,114.), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
+        first_tstep=num.ones(n,int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,int)
         last_tstep[0]-=1
 
-        gauge_depth=20*num.ones(n,num.float)
-        ha=2*num.ones((n,time_step_count),num.float)
+        gauge_depth=20*num.ones(n,float)
+        ha=2*num.ones((n,time_step_count),float)
         ha[0]=num.arange(0,time_step_count)
         ha[1]=num.arange(time_step_count,2*time_step_count)
         ha[2]=num.arange(2*time_step_count,3*time_step_count)
         ha[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua=5*num.ones((n,time_step_count),num.float)
-        va=-10*num.ones((n,time_step_count),num.float)
+        ua=5*num.ones((n,time_step_count),float)
+        va=-10*num.ones((n,time_step_count),float)
 
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count, time_step,

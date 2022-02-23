@@ -208,7 +208,7 @@ class Dirichlet_boundary(Boundary):
             msg = 'Must specify one value for each quantity'
             raise Exception(msg)
 
-        self.dirichlet_values=num.array(dirichlet_values, num.float)
+        self.dirichlet_values=num.array(dirichlet_values, float)
 
 
 
@@ -338,7 +338,7 @@ class Time_boundary(Boundary):
 
 
         try:
-            q = num.array(q, num.float)
+            q = num.array(q, float)
         except:
             msg = 'Return value from time boundary function could '
             msg += 'not be converted into a numeric array of floats.\n'
@@ -457,7 +457,7 @@ class Time_space_boundary(Boundary):
 
 
         try:
-            q = num.array(q, num.float)
+            q = num.array(q, float)
         except:
             msg = 'Return value from time_space_boundary function could '
             msg += 'not be converted into a numeric array of floats.\n'
@@ -570,7 +570,7 @@ class File_boundary(Boundary):
         # any tagged boundary later on.
 
         if verbose: log.critical('Find midpoint coordinates of entire boundary')
-        self.midpoint_coordinates = num.zeros((len(domain.boundary), 2), num.float)
+        self.midpoint_coordinates = num.zeros((len(domain.boundary), 2), float)
         boundary_keys = list(domain.boundary.keys())
 
         xllcorner = domain.geo_reference.get_xllcorner()
@@ -758,7 +758,7 @@ class AWI_boundary(Boundary):
         # any tagged boundary later on.
 
         if verbose: log.critical('Find midpoint coordinates of entire boundary')
-        self.midpoint_coordinates = num.zeros((len(domain.boundary), 2), num.float)
+        self.midpoint_coordinates = num.zeros((len(domain.boundary), 2), float)
         boundary_keys = list(domain.boundary.keys())
 
         xllcorner = domain.geo_reference.get_xllcorner()

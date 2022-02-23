@@ -431,7 +431,7 @@ class Double_gaussian(object):
         xr = ((x-x0) * cosa - (y-y0) * sina) + x0
         yr = ((x-x0) * sina + (y-y0) * cosa) + y0
 
-        z = num.zeros(N, num.float)
+        z = num.zeros(N, float)
         maxz = 0.0
         minz = 0.0
         for i in range(N):

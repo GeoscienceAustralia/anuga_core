@@ -163,7 +163,7 @@ class Region(object):
         vertices = self.domain.get_vertex_coordinates()
         full_mask = num.repeat(self.domain.tri_full_flag == 1, 3)
 
-        region_mask = num.zeros(len(self.domain),num.int).astype(bool)
+        region_mask = num.zeros(len(self.domain),int).astype(bool)
         region_mask[self.indices] = True
         region_mask = num.repeat(region_mask,3)
 

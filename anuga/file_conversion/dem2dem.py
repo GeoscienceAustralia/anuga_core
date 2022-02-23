@@ -116,7 +116,7 @@ def dem2dem(name_in, stencil, cellsize_new, name_out=None,
         if verbose: log.critical('Processing row %d of %d' % (i, nrows_new))
 
         lower_index = global_index
-        telev = num.zeros(ncols_new, num.float)
+        telev = num.zeros(ncols_new, float)
         local_index = 0
         trow = i * cellsize_ratio
 

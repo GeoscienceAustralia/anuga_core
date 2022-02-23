@@ -91,12 +91,12 @@ class General_mesh:
 
         self.use_inscribed_circle = use_inscribed_circle
 
-        self.triangles = num.array(triangles, num.int)
+        self.triangles = num.array(triangles, int)
 
         if verbose:
             log.timingInfo("numTriangles, " + str(self.triangles.shape[0]))
 
-        self.nodes = num.array(nodes, num.float)
+        self.nodes = num.array(nodes, float)
 
         # Register number of elements and nodes
         self.number_of_triangles = N = int(self.triangles.shape[0])
@@ -128,18 +128,18 @@ class General_mesh:
         xy_extent = [min(self.nodes[:,0]), min(self.nodes[:,1]),
                      max(self.nodes[:,0]), max(self.nodes[:,1])]
 
-        self.xy_extent = num.array(xy_extent, num.float)
+        self.xy_extent = num.array(xy_extent, float)
 
         # Allocate space for geometric quantities
-        self.normals = num.zeros((N, 6), num.float)
-        self.areas = num.zeros(N, num.float)
-        self.edgelengths = num.zeros((N, 3), num.float)
+        self.normals = num.zeros((N, 6), float)
+        self.areas = num.zeros(N, float)
+        self.edgelengths = num.zeros((N, 3), float)
 
         # Get x,y coordinates for all triangle vertices and store
-        self.centroid_coordinates = num.zeros((N, 2), num.float)
+        self.centroid_coordinates = num.zeros((N, 2), float)
 
         #Allocate space for geometric quantities
-        self.radii = num.zeros(N, num.float)
+        self.radii = num.zeros(N, float)
 
         # Get x,y coordinates for all triangle vertices and store
         self.vertex_coordinates = V = self.compute_vertex_coordinates()
@@ -315,13 +315,13 @@ class General_mesh:
 #            #     (First normal is associated with the edge opposite
 #            #     the first vertex, etc)
 #            #   - Stored as six floats n0x,n0y,n1x,n1y,n2x,n2y per triangle
-#            n0 = num.array([x2-x1, y2-y1], num.float)
+#            n0 = num.array([x2-x1, y2-y1], float)
 #            l0 = num.sqrt(num.sum(n0**2))
 #
-#            n1 = num.array([x0-x2, y0-y2], num.float)
+#            n1 = num.array([x0-x2, y0-y2], float)
 #            l1 = num.sqrt(num.sum(n1**2))
 #
-#            n2 = num.array([x1-x0, y1-y0], num.float)
+#            n2 = num.array([x1-x0, y1-y0], float)
 #            l2 = num.sqrt(num.sum(n2**2))
 #
 #            # Normalise
@@ -340,7 +340,7 @@ class General_mesh:
 #
 #
 #            #Compute centroid
-##            centroid = num.array([(x0 + x1 + x2)/3, (y0 + y1 + y2)/3], num.float)
+##            centroid = num.array([(x0 + x1 + x2)/3, (y0 + y1 + y2)/3], float)
 ###            self.centroid_coordinates[i] = centroid
 ##
 ##
@@ -349,9 +349,9 @@ class General_mesh:
 ##                #inscribed circle
 ##
 ##                #Midpoints
-##                m0 = num.array([(x1 + x2)/2, (y1 + y2)/2], num.float)
-##                m1 = num.array([(x0 + x2)/2, (y0 + y2)/2], num.float)
-##                m2 = num.array([(x1 + x0)/2, (y1 + y0)/2], num.float)
+##                m0 = num.array([(x1 + x2)/2, (y1 + y2)/2], float)
+##                m1 = num.array([(x0 + x2)/2, (y0 + y2)/2], float)
+##                m2 = num.array([(x1 + x0)/2, (y1 + y0)/2], float)
 ##
 ##                #The radius is the distance from the centroid of
 ##                #a triangle to the midpoint of the side of the triangle
@@ -460,7 +460,7 @@ class General_mesh:
                 # get a copy so as not to modify the internal self.nodes array
                 V = copy.copy(V)
                 V += num.array([self.geo_reference.get_xllcorner(),
-                                self.geo_reference.get_yllcorner()], num.float)
+                                self.geo_reference.get_yllcorner()], float)
         return V
 
     def get_vertex_coordinates(self, triangle_id=None, absolute=False):
@@ -494,7 +494,7 @@ class General_mesh:
             i3 = 3*i
             if absolute is True and not self.geo_reference.is_absolute():
                 offset=num.array([self.geo_reference.get_xllcorner(),
-                                  self.geo_reference.get_yllcorner()], num.float)
+                                  self.geo_reference.get_yllcorner()], float)
 
                 return V[i3:i3+3,:] + offset
             else:
@@ -522,13 +522,13 @@ class General_mesh:
         """
 
         M = self.number_of_triangles
-        vertex_coordinates = num.zeros((3*M, 2), num.float)
+        vertex_coordinates = num.zeros((3*M, 2), float)
 
         k0 = self.triangles[:,0]
         k1 = self.triangles[:,1]
         k2 = self.triangles[:,2]
 
-#        I = num.arange(M,dtype=num.int)
+#        I = num.arange(M,dtype=int)
 #
 #        V0 = V[0:3*M:3, :]
 #        V1 = V[1:3*M:3, :]
@@ -577,7 +577,7 @@ class General_mesh:
             i3 = 3*i
             if absolute is True and not self.geo_reference.is_absolute():
                 offset=num.array([self.geo_reference.get_xllcorner(),
-                                  self.geo_reference.get_yllcorner()], num.float)
+                                  self.geo_reference.get_yllcorner()], float)
 
                 return E[i3:i3+3,:] + offset
             else:
@@ -607,7 +607,7 @@ class General_mesh:
         """
 
         M = self.number_of_triangles
-        E = num.zeros((3*M, 2), num.float)
+        E = num.zeros((3*M, 2), float)
 
         V = self.vertex_coordinates
 
@@ -670,7 +670,7 @@ class General_mesh:
 
         M = len(self) # Number of triangles
         K = 3*M       # Total number of unique vertices
-        return num.reshape(num.arange(K, dtype=num.int), (M,3))
+        return num.reshape(num.arange(K, dtype=int), (M,3))
 
     def get_unique_vertices(self, indices=None):
         """Return indices to vertices as a sorted list.
@@ -726,7 +726,7 @@ class General_mesh:
 
                 triangle_list.append( (volume_id, vertex_id) )
 
-            triangle_list = num.array(triangle_list, num.int)    #array default#
+            triangle_list = num.array(triangle_list, int)    #array default#
         else:
             # Get info for all nodes recursively.
             # If need be, we can speed this up by
@@ -795,16 +795,16 @@ class General_mesh:
 
         # Count number of triangles per node
 #        number_of_triangles_per_node = num.zeros(self.number_of_nodes,
-#                                                 num.int)       #array default#
+#                                                 int)       #array default#
 #        for volume_id, triangle in enumerate(self.get_triangles()):
 #            for vertex_id in triangle:
 #                number_of_triangles_per_node[vertex_id] += 1
 
         # Need to pad number_of_triangles_per_node in case lone nodes at end of list
-        #number_of_triangles_per_node = num.zeros(self.number_of_nodes, num.int)
+        #number_of_triangles_per_node = num.zeros(self.number_of_nodes, int)
 
 
-        number_of_triangles_per_node = num.bincount(self.triangles.flat).astype(num.int)
+        number_of_triangles_per_node = num.bincount(self.triangles.flat).astype(int)
         number_of_lone_nodes = self.number_of_nodes - len(number_of_triangles_per_node)
 
 
@@ -817,7 +817,7 @@ class General_mesh:
 
         if number_of_lone_nodes > 0:
             number_of_triangles_per_node =  \
-               num.append(number_of_triangles_per_node,num.zeros(number_of_lone_nodes,num.int))
+               num.append(number_of_triangles_per_node,num.zeros(number_of_lone_nodes,int))
 
         #assert num.allclose(number_of_triangles_per_node_new, number_of_triangles_per_node)
 
@@ -826,21 +826,21 @@ class General_mesh:
 
         assert number_of_entries == 3*self.number_of_triangles
 
-        #vertex_value_indices = num.zeros(number_of_entries, num.int) #array default#
+        #vertex_value_indices = num.zeros(number_of_entries, int) #array default#
 
         # Array of vertex_indices (3*vol_id+vertex_id) sorted into contiguous
         # order around each node. Use with number_of_triangles_per_node to
         # find vertices associated with a node.
         # ie There are  number_of_triangles_per_node[i] vertices
-        vertex_value_indices = num.argsort(self.triangles.flat).astype(num.int)
+        vertex_value_indices = num.argsort(self.triangles.flat).astype(int)
         #vertex_value_indices = num.argsort(self.triangles.flatten())
 
-#        node_index = num.zeros((self.number_of_nodes)+1, dtype = num.int)
+#        node_index = num.zeros((self.number_of_nodes)+1, dtype = int)
 #        node_index[0] = 0
 #        for i in xrange(self.number_of_nodes):
 #            node_index[i+1] = node_index[i] + number_of_triangles_per_node[i]
 
-        node_index = num.zeros((self.number_of_nodes)+1, dtype = num.int)
+        node_index = num.zeros((self.number_of_nodes)+1, dtype = int)
         node_index[1:] = num.cumsum(number_of_triangles_per_node)
 
         #assert num.allclose(node_index,node_index_new)

@@ -257,7 +257,7 @@ class Advection_Domain(Generic_Domain):
 
         stage_bdry = Stage.boundary_values
 
-        flux = num.zeros(1, num.float) #Work array for summing up fluxes
+        flux = num.zeros(1, float) #Work array for summing up fluxes
 
         #Loop
         for k in range(N):

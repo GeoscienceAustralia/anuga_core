@@ -65,7 +65,7 @@ NODATA_value  -9999
         #print 'sending pts', ref_points
         #print 'sending elev', ref_elevation
         
-        Z_ex = num.array(ref_elevation,num.float).reshape(12,11)
+        Z_ex = num.array(ref_elevation,float).reshape(12,11)
         Z_ex = num.fliplr(Z_ex.T)
         
         #Write prj file with metadata

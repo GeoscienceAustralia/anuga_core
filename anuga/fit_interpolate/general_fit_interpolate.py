@@ -94,7 +94,7 @@ class FitInterpolate(object):
                 # are None
 
                 # Convert input to numeric arrays
-                triangles = ensure_numeric(triangles, num.int)
+                triangles = ensure_numeric(triangles, int)
                 vertex_coordinates = ensure_absolute(vertex_coordinates,
                                                  geo_reference=mesh_origin)
 

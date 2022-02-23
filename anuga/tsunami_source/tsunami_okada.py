@@ -52,8 +52,8 @@ def earthquake_tsunami(ns, NSMAX, length, width, strike, depth,
     zrec0.set_values(z0)
     zrec = zrec0.get_vertex_values(xy=True)
 
-    x0 = num.zeros(ns, num.float)
-    y0 = num.zeros(ns, num.float)
+    x0 = num.zeros(ns, float)
+    y0 = num.zeros(ns, float)
     if ns == 1:
         x0[0] = xi
         y0[0] = yi
@@ -160,24 +160,24 @@ class Okada_func(object):
         ns = self.ns
         zrec = self.zrec
         # initialization
-        disp0 = num.zeros(3, num.float)
-        strain0 = num.zeros(6, num.float)
-        tilt0 = num.zeros(2, num.float)
-        dislocations = num.zeros(ns, num.float)
-        depths = num.zeros(ns, num.float)
-        strikes = num.zeros(ns, num.float)
-        lengths = num.zeros(ns, num.float)
-        slips = num.zeros(ns, num.float)
-        rakes = num.zeros(ns, num.float)
-        widths = num.zeros(ns, num.float)
-        dips = num.zeros(ns, num.float)
-        strikes = num.zeros(ns, num.float)
-        strikes = num.zeros(ns, num.float)
-        strain = num.zeros((N, 6), num.float)
-        disp = num.zeros((N, 3), num.float)
-        tilt = num.zeros((N, 2), num.float)
-        xs = num.zeros(ns, num.float)
-        ys = num.zeros(ns, num.float)
+        disp0 = num.zeros(3, float)
+        strain0 = num.zeros(6, float)
+        tilt0 = num.zeros(2, float)
+        dislocations = num.zeros(ns, float)
+        depths = num.zeros(ns, float)
+        strikes = num.zeros(ns, float)
+        lengths = num.zeros(ns, float)
+        slips = num.zeros(ns, float)
+        rakes = num.zeros(ns, float)
+        widths = num.zeros(ns, float)
+        dips = num.zeros(ns, float)
+        strikes = num.zeros(ns, float)
+        strikes = num.zeros(ns, float)
+        strain = num.zeros((N, 6), float)
+        disp = num.zeros((N, 3), float)
+        tilt = num.zeros((N, 2), float)
+        xs = num.zeros(ns, float)
+        ys = num.zeros(ns, float)
         z = []
         if ns == 1:
             dislocations[0] = dislocation
@@ -384,10 +384,10 @@ class Okada_func(object):
 #          DIMENSION  U(12),DUA(12),DUB(12),DUC(12)
 
         F0 = 0.0
-        U = num.zeros((12, 1), num.float)
-        DUA = num.zeros((12, 1), num.float)
-        DUB = num.zeros((12, 1), num.float)
-        DUC = num.zeros((12, 1), num.float)
+        U = num.zeros((12, 1), float)
+        DUA = num.zeros((12, 1), float)
+        DUB = num.zeros((12, 1), float)
+        DUC = num.zeros((12, 1), float)
 
         if Z > 0:
             print('(''0** POSITIVE Z WAS GIVEN IN SUB-DC3D0'')')
@@ -532,9 +532,9 @@ class Okada_func(object):
         VZ = self.VZ
         WZ = self.WZ
 
-        DUA = num.zeros((12, 1), num.float)
-        DU = num.zeros((12, 1), num.float)
-        U = num.zeros((12, 1), num.float)
+        DUA = num.zeros((12, 1), float)
+        DU = num.zeros((12, 1), float)
+        U = num.zeros((12, 1), float)
 # -----
         for I in range(0, 12):
             U[I] = F0
@@ -649,9 +649,9 @@ class Okada_func(object):
 #     *        /0.D0,1.D0,2.D0,3.D0,4.D0,5.D0,8.D0,9.D0/
 #      DATA PI2/6.283185307179586D0/
 
-        DUB = num.zeros((12, 1), num.float)
-        DU = num.zeros((12, 1), num.float)
-        U = num.zeros((12, 1), num.float)
+        DUB = num.zeros((12, 1), float)
+        DU = num.zeros((12, 1), float)
+        U = num.zeros((12, 1), float)
 
         F0 = 0.0
         F1 = 1.0
@@ -822,9 +822,9 @@ class Okada_func(object):
 #     *        /0.D0,1.D0,2.D0,3.D0,5.D0,7.D0,10.D0,15.D0/
 #      DATA PI2/6.283185307179586D0/
 
-        DUC = num.zeros((12, 1), num.float)
-        DU = num.zeros((12, 1), num.float)
-        U = num.zeros((12, 1), num.float)
+        DUC = num.zeros((12, 1), float)
+        DU = num.zeros((12, 1), float)
+        U = num.zeros((12, 1), float)
 
         F0 = 0.0
         F1 = 1.0
@@ -1028,15 +1028,15 @@ class Okada_func(object):
         F0 = 0.0
         EPS = 0.000001
 
-        XI = num.zeros(2, num.float)
-        ET = num.zeros(2, num.float)
-        KXI = num.zeros(2, num.float)
-        KET = num.zeros(2, num.float)
-        U = num.zeros(12, num.float)
-        DU = num.zeros(12, num.float)
-        DUA = num.zeros(12, num.float)
-        DUB = num.zeros(12, num.float)
-        DUC = num.zeros(12, num.float)
+        XI = num.zeros(2, float)
+        ET = num.zeros(2, float)
+        KXI = num.zeros(2, float)
+        KET = num.zeros(2, float)
+        U = num.zeros(12, float)
+        DU = num.zeros(12, float)
+        DUA = num.zeros(12, float)
+        DUB = num.zeros(12, float)
+        DUC = num.zeros(12, float)
 
 # -----
         if Z > 0:
@@ -1254,9 +1254,9 @@ class Okada_func(object):
         #     *           EY,EZ,FY,FZ,GY,GZ,HY,HZ
         #      DATA F0,F2,PI2/0.D0,2.D0,6.283185307179586D0/
 
-        U = num.zeros(12, num.float)
-        DU = num.zeros(12, num.float)
-        DUA = num.zeros(12, num.float)
+        U = num.zeros(12, float)
+        DU = num.zeros(12, float)
+        DUA = num.zeros(12, float)
         F0 = 0.0
         F2 = 2.0
         PI2 = 6.283185307179586
@@ -1384,9 +1384,9 @@ class Okada_func(object):
 #     *           EY,EZ,FY,FZ,GY,GZ,HY,HZ
 #      DATA  F0,F1,F2,PI2/0.D0,1.D0,2.D0,6.283185307179586D0/
 
-        DUB = num.zeros(12, num.float)
-        DU = num.zeros(12, num.float)
-        U = num.zeros(12, num.float)
+        DUB = num.zeros(12, float)
+        DU = num.zeros(12, float)
+        U = num.zeros(12, float)
 
         F0 = 0.0
         F1 = 1.0
@@ -1545,9 +1545,9 @@ class Okada_func(object):
  #    *           EY,EZ,FY,FZ,GY,GZ,HY,HZ
  #     DATA F0,F1,F2,F3,PI2/0.D0,1.D0,2.D0,3.D0,6.283185307179586D0/
 
-        DUC = num.zeros(12, num.float)
-        DU = num.zeros(12, num.float)
-        U = num.zeros(12, num.float)
+        DUC = num.zeros(12, float)
+        DU = num.zeros(12, float)
+        U = num.zeros(12, float)
 
         F0 = 0.0
         F1 = 1.0

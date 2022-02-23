@@ -154,7 +154,7 @@ class Okada_func(object):
         # f2py -c okada.f -m okada
         #z1 = okada(xr,yr,depth,length,width,dip,rake,slip)
 
-        z2 = num.zeros(N, num.float)
+        z2 = num.zeros(N, float)
         alp = 0.5
         disl3 = 0.0
         zero = 0.0
@@ -197,8 +197,8 @@ class Okada_func(object):
          SUBROUTINE USED...SRECTG                                         
         """                                                                    
         
-        U = num.zeros(9, num.float)
-        DU = num.zeros(9, num.float)
+        U = num.zeros(9, float)
+        DU = num.zeros(9, float)
         
         F0 = 0.0
         F1 = 1.0

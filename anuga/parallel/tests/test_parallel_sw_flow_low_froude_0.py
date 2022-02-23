@@ -215,7 +215,7 @@ if __name__=="__main__":
         if myid == 0 and verbose: print('SEQUENTIAL START')
 
         G , interpolation_points = run_simulation(parallel=False,verbose=verbose)
-        G = num.array(G,num.float)
+        G = num.array(G,float)
 
         barrier()
 

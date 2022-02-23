@@ -238,8 +238,8 @@ def _dem2pts(name_in, name_out=None, verbose=False,
 #        else:
 #            newcols = lenv              # ncols_in_bounding_box
 #
-#        telev = num.zeros(newcols, num.float)
-#        tpoints = num.zeros((newcols, 2), num.float)
+#        telev = num.zeros(newcols, float)
+#        tpoints = num.zeros((newcols, 2), float)
 #
 #        local_index = 0
 #
@@ -284,10 +284,10 @@ def _dem2pts(name_in, name_out=None, verbose=False,
     #========================================
     # Do the preceeding with numpy
     #========================================
-    y = num.arange(nrows,dtype=num.float)
+    y = num.arange(nrows,dtype=float)
     y = yllcorner + (nrows-1)*cellsize - y*cellsize
 
-    x = num.arange(ncols,dtype=num.float)
+    x = num.arange(ncols,dtype=float)
     x = xllcorner + x*cellsize
 
     xx,yy = num.meshgrid(x,y)

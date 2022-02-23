@@ -86,7 +86,7 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
     I = VIndex(n,m)
     E = EIndex(n,m)
 
-    points = num.zeros( (Np,2), num.float)
+    points = num.zeros( (Np,2), float)
 
     for i in range(m+1):
         for j in range(n+1):
@@ -98,7 +98,7 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
     Nt = 2*m*n
 
 
-    elements = num.zeros( (Nt,3), num.int)
+    elements = num.zeros( (Nt,3), int)
     boundary = {}
     Idgl = []
     Idfl = []
@@ -170,8 +170,8 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
         #print Idfl
         #print Idgr
         
-        Idfl = num.array(Idfl,num.int)
-        Idgr = num.array(Idgr,num.int)
+        Idfl = num.array(Idfl,int)
+        Idgr = num.array(Idgr,int)
 
         #print Idfl
         #print Idgr
@@ -183,16 +183,16 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
     elif numprocs == 2:
         Idfl.extend(Idfr)
         Idgr.extend(Idgl)
-        Idfl = num.array(Idfl,num.int)
-        Idgr = num.array(Idgr,num.int)
+        Idfl = num.array(Idfl,int)
+        Idgr = num.array(Idgr,int)
         full_send_dict[(myid-1)%numprocs]  = [Idfl, Idfl]
         ghost_recv_dict[(myid-1)%numprocs] = [Idgr, Idgr]
     else:
-        Idfl = num.array(Idfl,num.int)
-        Idgl = num.array(Idgl,num.int)
+        Idfl = num.array(Idfl,int)
+        Idgl = num.array(Idgl,int)
 
-        Idfr = num.array(Idfr,num.int)
-        Idgr = num.array(Idgr,num.int)
+        Idfr = num.array(Idfr,int)
+        Idgr = num.array(Idgr,int)
 
         full_send_dict[(myid-1)%numprocs]  = [Idfl, Idfl]
         ghost_recv_dict[(myid-1)%numprocs] = [Idgl, Idgl]
@@ -251,7 +251,7 @@ def rectangular_periodic(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     I = VIndex(n,m)
     E = EIndex(n,m)
 
-    points = num.zeros( (Np,2), num.float)
+    points = num.zeros( (Np,2), float)
 
     for i in range(m+1):
         for j in range(n+1):
@@ -263,7 +263,7 @@ def rectangular_periodic(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     Nt = 2*m*n
 
 
-    elements = num.zeros( (Nt,3), num.int)
+    elements = num.zeros( (Nt,3), int)
     boundary = {}
     ghosts = {}
     nt = -1
@@ -388,7 +388,7 @@ def rectangular_periodic_lr(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     I = VIndex(n,m)
     E = EIndex(n,m)
 
-    points = num.zeros( (Np,2), num.float)
+    points = num.zeros( (Np,2), float)
 
     for i in range(m+1):
         for j in range(n+1):
@@ -400,7 +400,7 @@ def rectangular_periodic_lr(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     Nt = 2*m*n
 
 
-    elements = num.zeros( (Nt,3), num.int)
+    elements = num.zeros( (Nt,3), int)
     boundary = {}
     ghosts = {}
     nt = -1

@@ -124,7 +124,7 @@ def interpolate(vertex_coordinates,
     from anuga.caching import cache
 
     # Create interpolation object with matrix
-    args = (ensure_numeric(vertex_coordinates, num.float),
+    args = (ensure_numeric(vertex_coordinates, float),
             ensure_numeric(triangles))
     kwargs = {'mesh_origin': mesh_origin,
               'verbose': verbose}
@@ -264,11 +264,11 @@ class Interpolate (FitInterpolate):
                 start = 0
                 # creating a dummy array to concatenate to.
 
-                f = ensure_numeric(f, num.float)
+                f = ensure_numeric(f, float)
                 if len(f.shape) > 1:
-                    z = num.zeros((0, f.shape[1]), num.int)     #array default#
+                    z = num.zeros((0, f.shape[1]), int)     #array default#
                 else:
-                    z = num.zeros((0,), num.int)        #array default#
+                    z = num.zeros((0,), int)        #array default#
 
                 for end in range(start_blocking_len,
                                  len(point_coordinates),
@@ -304,8 +304,8 @@ class Interpolate (FitInterpolate):
             point_coordinates = point_coordinates.get_data_points(absolute=True)
 
         # Convert lists to numeric arrays if necessary
-        point_coordinates = ensure_numeric(point_coordinates, num.float)
-        f = ensure_numeric(f, num.float)
+        point_coordinates = ensure_numeric(point_coordinates, float)
+        f = ensure_numeric(f, float)
 
         from anuga.caching import myhash
         import sys
@@ -412,7 +412,7 @@ class Interpolate (FitInterpolate):
         if verbose: log.critical('Building interpolation matrix')
 
         # Convert point_coordinates to numeric arrays, in case it was a list.
-        point_coordinates = ensure_numeric(point_coordinates, num.float)
+        point_coordinates = ensure_numeric(point_coordinates, float)
 
         if verbose: log.critical('Getting indices inside mesh boundary')
 
@@ -708,7 +708,7 @@ def interpolate_sww2csv(sww_file,
 
 
 class Interpolation_function(object):
-    """Interpolation_interface - creates callable object f(t, id) or f(t,x,y)
+    """Interpolation_interface - creates callable object f(t, id) or f(t, x, y)
     which is interpolated from time series defined at vertices of
     triangular mesh (such as those stored in sww files)
 
@@ -927,7 +927,7 @@ class Interpolation_function(object):
             p = len(self.time)
 
             for name in quantity_names:
-                self.precomputed_values[name] = num.zeros((p, m), num.float)
+                self.precomputed_values[name] = num.zeros((p, m), float)
 
             if verbose is True:
                 log.critical('Build interpolator')
@@ -1062,7 +1062,7 @@ class Interpolation_function(object):
             ratio = (t - self.time[self.index]) / (self.time[self.index+1] - self.time[self.index])
 
         # Compute interpolated values
-        q = num.zeros(len(self.quantity_names), num.float)
+        q = num.zeros(len(self.quantity_names), float)
         for i, name in enumerate(self.quantity_names):
             Q = self.precomputed_values[name]
 
@@ -1111,7 +1111,7 @@ class Interpolation_function(object):
                     assert len(y) == N, 'x and y must have same length'
                     res = []
                     for col in q:
-                        res.append(col*num.ones(N, num.float))
+                        res.append(col*num.ones(N, float))
 
                 return res
 

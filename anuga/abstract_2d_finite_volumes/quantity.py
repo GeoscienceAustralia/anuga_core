@@ -51,9 +51,9 @@ class Quantity(object):
 
         if vertex_values is None:
             N = len(domain)             # number_of_elements
-            self.vertex_values = num.zeros((N, 3), num.float)
+            self.vertex_values = num.zeros((N, 3), float)
         else:
-            self.vertex_values = num.array(vertex_values, num.float)
+            self.vertex_values = num.array(vertex_values, float)
 
             N, V = self.vertex_values.shape
             assert V == 3, 'Three vertex values per element must be specified'
@@ -65,15 +65,15 @@ class Quantity(object):
         self.domain = domain
 
         # Allocate space for other quantities
-        self.centroid_values = num.zeros(N, num.float)
-        self.edge_values = num.zeros((N, 3), num.float)
+        self.centroid_values = num.zeros(N, float)
+        self.edge_values = num.zeros((N, 3), float)
 
         # Allocate space for Gradient
-        self.x_gradient = num.zeros(N, num.float)
-        self.y_gradient = num.zeros(N, num.float)
+        self.x_gradient = num.zeros(N, float)
+        self.y_gradient = num.zeros(N, float)
 
         # Allocate space for Limiter Phi
-        self.phi = num.zeros(N, num.float)
+        self.phi = num.zeros(N, float)
 
         # Intialise centroid and edge_values
         self.interpolate()
@@ -81,15 +81,15 @@ class Quantity(object):
         # Allocate space for boundary values
         #self.boundary_length = domain.boundary_length
         self.boundary_length = L = self.domain.boundary_length
-        self.boundary_values = num.zeros(L, num.float)
+        self.boundary_values = num.zeros(L, float)
 
         # Allocate space for updates of conserved quantities by
         # flux calculations and forcing functions
 
         # Allocate space for update fields
-        self.explicit_update = num.zeros(N, num.float )
-        self.semi_implicit_update = num.zeros(N, num.float )
-        self.centroid_backup_values = num.zeros(N, num.float)
+        self.explicit_update = num.zeros(N, float )
+        self.semi_implicit_update = num.zeros(N, float )
+        self.centroid_backup_values = num.zeros(N, float)
 
         self.set_beta(1.0)
 
@@ -513,11 +513,11 @@ class Quantity(object):
         y = y + yllcorner - newyllcorner
 
 
-        grid_values = num.zeros( (nrows*ncols, ), num.float)
+        grid_values = num.zeros( (nrows*ncols, ), float)
 
 
         num_tri =  len(v)
-        norms = num.zeros(6*num_tri, num.float)
+        norms = num.zeros(6*num_tri, float)
 
 
         #Use fast method to calc grid values
@@ -1019,10 +1019,10 @@ class Quantity(object):
         will be assigned and the others will be left undefined.
         """
 
-        values = num.array(values, num.float)
+        values = num.array(values, float)
 
         if indices is not None:
-            indices = num.array(indices, num.int)
+            indices = num.array(indices, int)
             msg = ('Number of values must match number of indices: You '
                    'specified %d values and %d indices'
                    % (values.shape[0], indices.shape[0]))
@@ -1182,8 +1182,8 @@ class Quantity(object):
 
         from anuga.coordinate_transforms.geo_reference import Geo_reference
 
-        points = ensure_numeric(points, num.float)
-        values = ensure_numeric(values, num.float)
+        points = ensure_numeric(points, float)
+        values = ensure_numeric(values, float)
 
         if location != 'vertices':
             msg = ("set_values_from_points is only defined for "
@@ -1917,7 +1917,7 @@ class Quantity(object):
                         sum += self.vertex_values[triangle_id, vertex_id]
                 vert_values.append(sum / len(triangles))
 
-            return num.array(vert_values, num.float)
+            return num.array(vert_values, float)
         else:
             if indices is None:
                 return self.vertex_values.copy()
@@ -1939,7 +1939,7 @@ class Quantity(object):
         """
 
         # Check that A can be converted to array and is of appropriate dim
-        A = ensure_numeric(A, num.float)
+        A = ensure_numeric(A, float)
         assert len(A.shape) == 1
 
         if indices is None:
@@ -2034,13 +2034,13 @@ class Quantity(object):
                 smooth = False
 
         if precision is None:
-            precision = num.float
+            precision = float
 
         if smooth is True:
             # Ensure continuous vertex values by averaging values at each node
             V = self.domain.get_triangles()
             N = self.domain.number_of_full_nodes # Ignore ghost nodes if any
-            A = num.zeros(N, num.float)
+            A = num.zeros(N, float)
             points = self.domain.get_nodes()
 
             if True:

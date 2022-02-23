@@ -86,16 +86,16 @@ class Test_urs2sts_parallel(Test_Mux):
         time_step_count = 65
         time_step = 2.
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
-        last_tstep=(time_step_count)*num.ones(n,num.int)
-        finaltime=num.float(time_step*(time_step_count-1))
-        yieldstep=num.float(time_step)
-        gauge_depth=20*num.ones(n,num.float)
-        ha=2*num.ones((n,time_step_count),num.float)
-        ua=10*num.ones((n,time_step_count),num.float)
-        va=-10*num.ones((n,time_step_count),num.float)
+        first_tstep=num.ones(n,int)
+        last_tstep=(time_step_count)*num.ones(n,int)
+        finaltime=float(time_step*(time_step_count-1))
+        yieldstep=float(time_step)
+        gauge_depth=20*num.ones(n,float)
+        ha=2*num.ones((n,time_step_count),float)
+        ua=10*num.ones((n,time_step_count),float)
+        va=-10*num.ones((n,time_step_count),float)
 
-        times=num.arange(0., num.float(time_step_count*time_step), time_step)
+        times=num.arange(0., float(time_step_count*time_step), time_step)
         for i in range(n):
             #ha[i]+=num.sin(times)
             ha[i]+=old_div(times,finaltime)
@@ -188,7 +188,7 @@ class Test_urs2sts_parallel(Test_Mux):
 
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
 
-        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
+        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1,float)
         if verbose: print("Evolving domain with file boundary condition")
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -206,7 +206,7 @@ class Test_urs2sts_parallel(Test_Mux):
         Bd = Time_boundary(domain=domain_drchlt, f=lambda t: [2.0+old_div(t,finaltime)+tide,220.+10.*tide+old_div(10.*t,finaltime),-220.-10.*tide-old_div(10.*t,finaltime)])
         #Bd = Time_boundary(domain=domain_drchlt,f=lambda t: [2.0+num.sin(t)+tide,10.*(2+20.+num.sin(t)+tide),-10.*(2+20.+num.sin(t)+tide)])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=num.zeros(int(old_div(finaltime,yieldstep))+1,num.float)
+        temp_drchlt=num.zeros(int(old_div(finaltime,yieldstep))+1,float)
         
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -251,14 +251,14 @@ class Test_urs2sts_parallel(Test_Mux):
         time_step_count = 65
         time_step = 2
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.int)
-        last_tstep=(time_step_count)*num.ones(n,num.int)
-        finaltime=num.float(time_step*(time_step_count-1))
-        yieldstep=num.float(time_step)
-        gauge_depth=20*num.ones(n,num.float)
-        ha=2*num.ones((n,time_step_count),num.float)
-        ua=10*num.ones((n,time_step_count),num.float)
-        va=-10*num.ones((n,time_step_count),num.float)
+        first_tstep=num.ones(n,int)
+        last_tstep=(time_step_count)*num.ones(n,int)
+        finaltime=float(time_step*(time_step_count-1))
+        yieldstep=float(time_step)
+        gauge_depth=20*num.ones(n,float)
+        ha=2*num.ones((n,time_step_count),float)
+        ua=10*num.ones((n,time_step_count),float)
+        va=-10*num.ones((n,time_step_count),float)
 
         times=num.arange(0, time_step_count*time_step, time_step)
         for i in range(n):

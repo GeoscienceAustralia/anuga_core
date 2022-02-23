@@ -60,7 +60,7 @@ class MeshQuadtree(Cell):
         extents = AABB(*self.mesh.get_extent(absolute=True))
         extents.grow(1.001)  # To avoid round off error
         numextents = [extents.xmin, extents.xmax, extents.ymin, extents.ymax]
-        self.extents = num.array(numextents, num.float)
+        self.extents = num.array(numextents, float)
         #print self.extents
 
     def add_quad_tree(self):
@@ -114,7 +114,7 @@ class MeshQuadtree(Cell):
         if not hasattr(self, 'root'):
             self.add_quad_tree()
 
-        point = ensure_numeric(point, num.float)
+        point = ensure_numeric(point, float)
 
         [found, sigma, index] = fitsmooth.individual_tree_search(self.root, point)
 

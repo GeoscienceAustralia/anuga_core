@@ -99,7 +99,7 @@ def rectangular(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
 
     index = Index(n,m)
 
-    points = num.zeros((Np, 2), num.float)
+    points = num.zeros((Np, 2), float)
 
     for i in range(m+1):
         for j in range(n+1):
@@ -111,7 +111,7 @@ def rectangular(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     Nt = 2*m*n
 
 
-    elements = num.zeros((Nt, 3), num.int)
+    elements = num.zeros((Nt, 3), int)
     boundary = {}
     nt = -1
     for i in range(m):
@@ -164,11 +164,11 @@ def rectangular_cross(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     params.append(len1)
     params.append(len2)
 
-    arrParams = num.array(params, dtype=num.float)
-    arrOrigin = num.array(origin, dtype=num.float)
+    arrParams = num.array(params, dtype=float)
+    arrOrigin = num.array(origin, dtype=float)
     
-    points = num.empty([(m+1)*(n+1)+m*n,2], dtype=num.float)
-    elements = num.empty([4*m*n,3], dtype=num.int)
+    points = num.empty([(m+1)*(n+1)+m*n,2], dtype=float)
+    elements = num.empty([4*m*n,3], dtype=int)
 
     from .mesh_factory_ext import rectangular_cross_construct
     boundary = rectangular_cross_construct(arrParams, arrOrigin, points, elements)
@@ -374,7 +374,7 @@ def rectangular_periodic(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)
     I = VIndex(n,m)
     E = EIndex(n,m)
 
-    points = num.zeros( (Np,2), num.float)
+    points = num.zeros( (Np,2), float)
 
     for i in range(m+1):
         for j in range(n+1):
@@ -386,7 +386,7 @@ def rectangular_periodic(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)
     Nt = 2*m*n
 
 
-    elements = num.zeros( (Nt,3), num.int)
+    elements = num.zeros( (Nt,3), int)
     boundary = {}
     Idgl = []
     Idfl = []
@@ -454,8 +454,8 @@ def rectangular_periodic(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)
     Idfl.extend(Idfr)
     Idgr.extend(Idgl)
 
-    Idfl = num.array(Idfl, num.int)
-    Idgr = num.array(Idgr, num.int)
+    Idfl = num.array(Idfl, int)
+    Idgr = num.array(Idgr, int)
 
     full_send_dict[processor]  = [Idfl, Idfl]
     ghost_recv_dict[processor] = [Idgr, Idgr]

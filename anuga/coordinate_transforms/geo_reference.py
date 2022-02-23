@@ -273,7 +273,7 @@ class Geo_reference(object):
         # remember if we got a list
         is_list = isinstance(points, list)
 
-        points = ensure_numeric(points, num.float)
+        points = ensure_numeric(points, float)
 
         # sanity checks	
         if len(points.shape) == 1:
@@ -339,7 +339,7 @@ class Geo_reference(object):
         # remember if we got a list
         is_list = isinstance(points, list)
 
-        points = ensure_numeric(points, num.float)
+        points = ensure_numeric(points, float)
         if len(points.shape) == 1:
             # One point has been passed
             msg = 'Single point must have two elements'
@@ -378,7 +378,7 @@ class Geo_reference(object):
         # remember if we got a list
         is_list = isinstance(points, list)
 
-        points = ensure_numeric(points, num.float)
+        points = ensure_numeric(points, float)
         if len(points.shape) == 1:
             #One point has been passed
             msg = 'Single point must have two elements'

@@ -129,7 +129,7 @@ def sww2pts(name_in, name_out=None,
         # the temporal dimension
         if verbose: log.critical('Reducing quantity %s' % quantity)
 
-        q_reduced = num.zeros(number_of_points, num.float)
+        q_reduced = num.zeros(number_of_points, float)
         for k in range(number_of_points):
             q_reduced[k] = reduction(q[:,k])
         q = q_reduced

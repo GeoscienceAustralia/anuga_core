@@ -74,9 +74,9 @@ class Parallel_domain(Domain):
 
         # For some reason it looks like pypar only reduces numeric arrays
         # hence we need to create some dummy arrays for communication
-        ltimestep = num.ones( 1, num.float )
+        ltimestep = num.ones( 1, float )
         ltimestep[0] = self.flux_timestep
-        gtimestep = num.zeros( 1, num.float ) # Buffer for results
+        gtimestep = num.zeros( 1, float ) # Buffer for results
 
         #ltimestep = self.flux_timeste
 

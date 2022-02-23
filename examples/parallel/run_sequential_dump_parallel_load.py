@@ -2,22 +2,26 @@
 #
 #  Example of running a simple parallel model where the 
 #  sequential domain is partitioned and dumped as files
-#  and read in via sequential_load
+#  via sequential_dump and read in via parallel sequential_load
 #
-#  Need mpi setup for your machine 
+#  Note: You can separate the sequential domain creation and dump 
+#  in one script and the sequential_load and parallel domain creation
+#  script to run the parallel evolution. THe intial sequential domain creation
+#  can be run on a computer with a large memory. The partition files are 
+#  stored in the directory Partitions
 #
 #  Run in parallel as follows (on 4 processors)
 #
-#  mpiexec -np 4 python run_sequential_dump_parallel_load_sw_rectangular_cross.py
+#  mpiexec -np 4 python run_sequential_dump_parallel_load.py
 #
 #  Note the use of "if myid == 0" to restrict some calculations 
-#  to just one processor, in particular the creation of a 
-#  full domain on processor 0 which is then distributed to the
-#  processors. 
+#  to just one processor, in particular the creation and partition of a 
+#  full domain on processor 0 which is then the partitions are
+#  loaded on all the processors. 
 #
 #  Authors: 
 #  Linda Stals, Steve Roberts and Matthew Hardy - June 2005
-#  Steve Roberts - 2018
+#  Steve Roberts - 2022. Adapted to use sequential dump and load
 #
 #
 #

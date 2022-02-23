@@ -65,11 +65,11 @@ def conjugate_gradient(A, b, x0=None, imax=10000, tol=1.0e-8, atol=1.0e-14,
         assert isinstance(A, Sparse_CSR), msg
 
     if x0 is None:
-        x0 = num.zeros(b.shape, dtype=num.float)
+        x0 = num.zeros(b.shape, dtype=float)
     else:
-        x0 = num.array(x0, dtype=num.float)
+        x0 = num.array(x0, dtype=float)
 
-    b = num.array(b, dtype=num.float)
+    b = num.array(b, dtype=float)
 
     err = 0
 
@@ -160,15 +160,15 @@ def _conjugate_gradient(A, b, x0,
 
     stats = Stats()
 
-    b = num.array(b, dtype=num.float)
+    b = num.array(b, dtype=float)
     if len(b.shape) != 1:
         raise VectorShapeError(
             'input vector should consist of only one column')
 
     if x0 is None:
-        x0 = num.zeros(b.shape, dtype=num.float)
+        x0 = num.zeros(b.shape, dtype=float)
     else:
-        x0 = num.array(x0, dtype=num.float)
+        x0 = num.array(x0, dtype=float)
 
     stats.x0 = num.linalg.norm(x0)
 
@@ -266,15 +266,15 @@ def _conjugate_gradient_preconditioned(A, b, x0, M,
 
     stats = Stats()
 
-    b = num.array(b, dtype=num.float)
+    b = num.array(b, dtype=float)
     if len(b.shape) != 1:
         raise VectorShapeError(
             'input vector should consist of only one column')
 
     if x0 is None:
-        x0 = num.zeros(b.shape, dtype=num.float)
+        x0 = num.zeros(b.shape, dtype=float)
     else:
-        x0 = num.array(x0, dtype=num.float)
+        x0 = num.array(x0, dtype=float)
 
     stats.x0 = num.linalg.norm(x0)
 

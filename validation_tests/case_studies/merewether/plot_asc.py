@@ -84,7 +84,7 @@ if __name__ == "__main__":
     print 'xllcorner ',xllcorner
     print 'yllcorner ',yllcorner
 
-    Z = np.zeros((nrows,ncols),dtype=np.float)
+    Z = np.zeros((nrows,ncols),dtype=float)
 
     n = len(lines[6:])
     for i, line in enumerate(lines[6:]):
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     plt.figure()
 
 
-    levels = z_min + np.arange(11,dtype=np.float)/10.0*(z_max-z_min)
+    levels = z_min + np.arange(11,dtype=float)/10.0*(z_max-z_min)
 
 
     print levels

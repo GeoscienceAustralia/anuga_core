@@ -3286,7 +3286,7 @@ def depth_dependent_friction(domain, default_friction,
     # EHR this is outwardly inneficient but not obvious how to avoid
     # recreating each call??????
 
-    wet_friction    = num.zeros(len(domain), num.float)
+    wet_friction    = num.zeros(len(domain), float)
     wet_friction[:] = default_n0  # Initially assign default_n0 to all array so
                                   # sure have no zeros values
 

@@ -98,7 +98,7 @@ def _binary_c2nc(file_in, file_out, quantity):
 
     lonlatdep = p_array.array('f')
     lonlatdep.read(mux_file, columns * points_num)
-    lonlatdep = num.array(lonlatdep, dtype=num.float)
+    lonlatdep = num.array(lonlatdep, dtype=float)
     lonlatdep = num.reshape(lonlatdep, (points_num, columns))
 
     lon, lat, depth = lon_lat2grid(lonlatdep)
@@ -123,7 +123,7 @@ def _binary_c2nc(file_in, file_out, quantity):
         #Read in a time slice from mux file
         hz_p_array = p_array.array('f')
         hz_p_array.read(mux_file, points_num)
-        hz_p = num.array(hz_p_array, dtype=num.float)
+        hz_p = num.array(hz_p_array, dtype=float)
         hz_p = num.reshape(hz_p, (len(lon), len(lat)))
         hz_p = num.transpose(hz_p)  # mux has lat varying fastest, nc has long v.f.
 
@@ -152,7 +152,7 @@ def lon_lat2grid(long_lat_dep):
     LAT = 1
     QUANTITY = 2
 
-    long_lat_dep = ensure_numeric(long_lat_dep, num.float)
+    long_lat_dep = ensure_numeric(long_lat_dep, float)
 
     num_points = long_lat_dep.shape[0]
     this_rows_long = long_lat_dep[0,LONG]
@@ -190,7 +190,7 @@ def lon_lat2grid(long_lat_dep):
     # long being the fastest varying dimension
     # FIXME - make this faster/do this a better way
     # use numeric transpose, after reshaping the quantity vector
-    quantity = num.zeros(num_points, num.float)
+    quantity = num.zeros(num_points, float)
 
     for lat_i, _ in enumerate(lat):
         for long_i, _ in enumerate(long):

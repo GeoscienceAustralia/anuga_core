@@ -123,8 +123,8 @@ def prepare_timeboundary(filename, verbose = False):
 
 
     N = len(lines)
-    T = num.zeros(N, num.float)  #Time
-    Q = num.zeros(N, num.float)  #Values
+    T = num.zeros(N, float)  #Time
+    Q = num.zeros(N, float)  #Values
 
     for i, line in enumerate(lines):
         fields = line.split()

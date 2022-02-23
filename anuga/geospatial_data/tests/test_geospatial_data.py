@@ -1365,7 +1365,7 @@ class Test_Geospatial_data(unittest.TestCase):
                                [1.0, 3.0], [2.0, 2.0]])
 
         mesh_origin = (56, 290000, 618000) # zone, easting, northing
-        data_points = num.zeros((ab_points.shape), num.float)
+        data_points = num.zeros((ab_points.shape), float)
 
         #Shift datapoints according to new origins
         for k in range(len(ab_points)):
@@ -1407,7 +1407,7 @@ class Test_Geospatial_data(unittest.TestCase):
                                [2.0, 0.0],[2.0, 2.0],
                                [1.0, 3.0],[2.0, 2.0]])
         mesh_origin = (56, 290000, 618000)      # zone, easting, northing
-        data_points = num.zeros((ab_points.shape), num.float)
+        data_points = num.zeros((ab_points.shape), float)
 
         #Shift datapoints according to new origins
         for k in range(len(ab_points)):

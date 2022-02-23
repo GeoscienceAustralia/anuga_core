@@ -30,7 +30,7 @@ def read_mux2(int numSrc,\
   cdef np.ndarray[double, ndim=2, mode="c"] pydata
   cdef np.ndarray[long, ndim=1, mode="c"] tmp_perm
 
-  tmp_perm = np.array([0],np.int)
+  tmp_perm = np.array([0],int)
 
   assert len(filenames) > 0, "empty lists not allowed"
 
@@ -107,7 +107,7 @@ def read_mux2(int numSrc,\
   # Each gauge begins and ends recording at different times. When a gauge is
   # not recording but at least one other gauge is.
   # Pad the non recording gauge array with zeros.
-  pydata = np.zeros((dimensions[0],dimensions[1]),dtype=np.float)
+  pydata = np.zeros((dimensions[0],dimensions[1]),dtype=float)
   for i in xrange(number_of_selected_stations):
     time = 0
     for it in xrange(finish_tstep):

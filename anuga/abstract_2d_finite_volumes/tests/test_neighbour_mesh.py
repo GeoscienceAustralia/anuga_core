@@ -1017,8 +1017,8 @@ class Test_Mesh(unittest.TestCase):
                      [16, 6, 5]]
 
 
-        triangles = num.array(triangles,num.int)
-        points = num.array(points,num.float)
+        triangles = num.array(triangles,int)
+        points = num.array(points,float)
 
         mesh = Mesh(points, triangles)
         mesh.check_integrity()
@@ -1099,7 +1099,7 @@ class Test_Mesh(unittest.TestCase):
                   [  31998.23828125,  88799.84375   ],
                   [  35406.3359375 ,  79332.9140625 ]]
 
-        scaled_points = old_div(ensure_numeric(points, num.int),1000)  # Simplify for ease of interpretation
+        scaled_points = old_div(ensure_numeric(points, int),1000)  # Simplify for ease of interpretation
 
         triangles = [[ 0, 1, 2],
                      [ 3, 4, 5],
