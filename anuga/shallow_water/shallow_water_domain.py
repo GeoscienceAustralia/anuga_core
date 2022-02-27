@@ -263,7 +263,7 @@ class Domain(Generic_Domain):
         # yieldsteps
         #-------------------------------
         self.checkpoint = False
-        self.yieldstep_id = 0
+        self.yieldstep_counter = 0
         self.checkpoint_step = 10
 
         #-------------------------------
