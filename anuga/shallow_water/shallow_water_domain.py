@@ -263,7 +263,7 @@ class Domain(Generic_Domain):
         # yieldsteps
         #-------------------------------
         self.checkpoint = False
-        self.yieldstep_id = 1
+        self.yieldstep_counter = 0
         self.checkpoint_step = 10
 
         #-------------------------------
@@ -2416,16 +2416,35 @@ class Domain(Generic_Domain):
 
     def evolve(self,
                yieldstep=None,
+               outputstep=None,
                finaltime=None,
                duration=None,
                skip_initial_step=False):
         """Specialisation of basic evolve method from parent class.
 
-            Evolve the model by 1 step.
+            Evolve the model up to time finaltime or for a duraton of time duration. 
+
+            yield every yieldstep period
+            output to sww file every outputstep period
+
+            outputstep should be an integer multiple of yieldstep. 
+
+            If outputstep is None, the output to sww sile every yieldstep. 
+            If yieldstep is None then simply evolve to finaltime or for a duration.
         """
 
         # Call check integrity here rather than from user scripts
         # self.check_integrity()
+
+        if outputstep is None:
+            outputstep = yieldstep
+
+        if yieldstep is None:
+            output_frequency = 1
+        else:
+            msg = f'outputstep ({outputstep}) should be an integer multiple of yieldstep ({yieldstep})'
+            output_frequency = outputstep/yieldstep
+            assert float(output_frequency).is_integer(), msg
 
         msg = 'Attribute self.beta_w must be in the interval [0, 2]'
         assert 0 <= self.beta_w <= 2.0, msg
@@ -2445,17 +2464,16 @@ class Domain(Generic_Domain):
                                    finaltime=finaltime, duration=duration,
                                    skip_initial_step=skip_initial_step):
 
-            self.yieldstep_id += 1
+
             walltime = time.time()
 
             #print t , self.get_time()
             # Store model data, e.g. for subsequent visualisation
-            if self.store is True:
-                self.store_timestep()
+            if self.store:
+                if self.yieldstep_counter%output_frequency == 0:
+                    self.store_timestep()
 
             if self.checkpoint:
-
-
                 save_checkpoint=False
                 if self.checkpoint_step == 0:
                     if rank() == 0:
@@ -2468,7 +2486,7 @@ class Domain(Generic_Domain):
                     else:
                         save_checkpoint = receive(0)
 
-                elif self.yieldstep_id%self.checkpoint_step == 0:
+                elif self.yieldstep_counter%self.checkpoint_step == 0:
                         save_checkpoint = True
 
                 if save_checkpoint:
@@ -2483,6 +2501,7 @@ class Domain(Generic_Domain):
             # Pass control on to outer loop for more specific actions
             yield(t)
 
+            self.yieldstep_counter += 1
 
     def initialise_storage(self):
         """Create and initialise self.writer object for storing data.
