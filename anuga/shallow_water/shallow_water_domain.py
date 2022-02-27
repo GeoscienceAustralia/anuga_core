@@ -2422,7 +2422,15 @@ class Domain(Generic_Domain):
                skip_initial_step=False):
         """Specialisation of basic evolve method from parent class.
 
-            Evolve the model by 1 step.
+            Evolve the model up to time finaltime or for a duraton of time duration. 
+
+            yield every yieldstep period
+            output to sww file every outputstep period
+
+            outputstep should be an integer multiple of yieldstep. 
+
+            If outputstep is None, the output to sww sile every yieldstep. 
+            If yieldstep is None then simply evolve to finaltime or for a duration.
         """
 
         # Call check integrity here rather than from user scripts
