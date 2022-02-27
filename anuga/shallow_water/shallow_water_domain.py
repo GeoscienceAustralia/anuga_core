@@ -263,7 +263,7 @@ class Domain(Generic_Domain):
         # yieldsteps
         #-------------------------------
         self.checkpoint = False
-        self.yieldstep_id = 1
+        self.yieldstep_id = 0
         self.checkpoint_step = 10
 
         #-------------------------------
@@ -2416,6 +2416,7 @@ class Domain(Generic_Domain):
 
     def evolve(self,
                yieldstep=None,
+               outputstep=None,
                finaltime=None,
                duration=None,
                skip_initial_step=False):
@@ -2426,6 +2427,16 @@ class Domain(Generic_Domain):
 
         # Call check integrity here rather than from user scripts
         # self.check_integrity()
+
+        if outputstep is None:
+            outputstep = yieldstep
+
+        if yieldstep is None:
+            output_frequency = 1
+        else:
+            msg = f'outputstep ({outputstep}) should be an integer multiple of yieldstep ({yieldstep})'
+            output_frequency = outputstep/yieldstep
+            assert float(output_frequency).is_integer(), msg
 
         msg = 'Attribute self.beta_w must be in the interval [0, 2]'
         assert 0 <= self.beta_w <= 2.0, msg
@@ -2445,17 +2456,16 @@ class Domain(Generic_Domain):
                                    finaltime=finaltime, duration=duration,
                                    skip_initial_step=skip_initial_step):
 
-            self.yieldstep_id += 1
+
             walltime = time.time()
 
             #print t , self.get_time()
             # Store model data, e.g. for subsequent visualisation
-            if self.store is True:
-                self.store_timestep()
+            if self.store:
+                if self.yieldstep_id%output_frequency == 0:
+                    self.store_timestep()
 
             if self.checkpoint:
-
-
                 save_checkpoint=False
                 if self.checkpoint_step == 0:
                     if rank() == 0:
@@ -2483,6 +2493,7 @@ class Domain(Generic_Domain):
             # Pass control on to outer loop for more specific actions
             yield(t)
 
+            self.yieldstep_id += 1
 
     def initialise_storage(self):
         """Create and initialise self.writer object for storing data.

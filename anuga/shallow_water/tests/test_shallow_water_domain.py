@@ -4412,7 +4412,7 @@ class Test_Shallow_Water(unittest.TestCase):
         os.remove(domain.get_name() + '.sww')
 
     def test_evolve_duration(self):
-        """Test evolve with finaltime set
+        """Test evolve with duration set
         """
 
         from anuga import rectangular_cross_domain
@@ -4444,6 +4444,143 @@ class Test_Shallow_Water(unittest.TestCase):
         assert num.allclose(tt,252.5)
 
         os.remove(domain.get_name() + '.sww')
+
+    def test_evolve_outputstep(self):
+        """Test evolve with outputstep set
+        """
+
+        from anuga import rectangular_cross_domain
+
+        # Create basic mesh
+        domain = rectangular_cross_domain(6, 6)
+        domain.set_name('evolve_outputstep')
+
+        # IC
+        def x_slope(x, y):
+            return x / 3
+
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('friction', 0)
+        domain.set_quantity('stage', x_slope)
+
+        # Boundary conditions (reflective everywhere)
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+
+        domain.check_integrity()
+
+        # Evolution
+        # Test that t is a float
+        tt = 0.0
+        for t in domain.evolve(yieldstep=0.05, outputstep=1.0, duration=5.0):
+            tt += t
+
+        assert num.allclose(tt,252.5)
+
+        # Open sww file to check that only store every second
+
+        # Read results for specific timesteps t=1 and t=2
+        fid = NetCDFFile(domain.get_name() + '.sww')
+        time = fid.variables['time'][:]
+        stage = fid.variables['stage'][:,:]
+        fid.close()
+
+        os.remove(domain.get_name() + '.sww')
+
+        timeslices = 6
+        msg = f' time.shape[0] = {time.shape[0]}, expected {timeslices}'
+        assert time.shape[0] == timeslices, msg
+
+        msg = f' time.shape[0] = {stage.shape[0]}, expected {timeslices}'
+        assert stage.shape[0] == timeslices
+
+    def test_evolve_outputstep_integer(self):
+        """Test evolve outputstep when it is an integer multipe of yieldstep
+        """
+
+        from anuga import rectangular_cross_domain
+
+        # Create basic mesh
+        domain = rectangular_cross_domain(6, 6)
+        domain.set_name('evolve_outputstep_integer')
+
+        # IC
+        def x_slope(x, y):
+            return x / 3
+
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('friction', 0)
+        domain.set_quantity('stage', x_slope)
+
+        # Boundary conditions (reflective everywhere)
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+
+        domain.check_integrity()
+
+        # Evolution
+        # Test that t is a float
+        tt = 0.0
+        for t in domain.evolve(yieldstep=0.05, outputstep=0.05, duration=5.0):
+            tt += t
+
+        assert num.allclose(tt,252.5)
+
+        # Open sww file to check that only store every second
+
+        # Read results for specific timesteps t=1 and t=2
+        fid = NetCDFFile(domain.get_name() + '.sww')
+        time = fid.variables['time'][:]
+        stage = fid.variables['stage'][:,:]
+        fid.close()
+
+        os.remove(domain.get_name() + '.sww')
+
+        timeslices = 101
+        msg = f' time.shape[0] = {time.shape[0]}, expected {timeslices}'
+        assert time.shape[0] == timeslices, msg
+
+        msg = f' time.shape[0] = {stage.shape[0]}, expected {timeslices}'
+        assert stage.shape[0] == timeslices
+
+    def test_evolve_outputstep_non_integer(self):
+        """Test exception if evolve outputstep is not integer multiple of yieldstep
+        """
+
+        from anuga import rectangular_cross_domain
+
+        # Create basic mesh
+        domain = rectangular_cross_domain(6, 6)
+        domain.set_name('evolve_outputstep_non_integer')
+
+        # IC
+        def x_slope(x, y):
+            return x / 3
+
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('friction', 0)
+        domain.set_quantity('stage', x_slope)
+
+        # Boundary conditions (reflective everywhere)
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+
+        domain.check_integrity()
+
+        # Evolution
+        # Test that t is a float
+        tt = 0.0
+
+        try:
+            for t in domain.evolve(yieldstep=0.05, outputstep=0.12, duration=5.0):
+                tt += t
+        except AssertionError:
+            # Getting here is good as outputstep is not an integer multiple of yieldstep
+            return
+
+        # Shouldn't get here
+        raise Exception('An AssertionError should have occurred earlier')
+
 
     def test_conservation_1(self):
         """Test that stage is conserved globally

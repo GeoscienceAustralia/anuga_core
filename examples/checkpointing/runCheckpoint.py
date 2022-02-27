@@ -109,7 +109,7 @@ except:
     # Distribute sequential domain on processor 0 to other processors
     #--------------------------------------------------------------------------
     
-    if myid == 0 and verbose: print 'DISTRIBUTING DOMAIN'
+    if myid == 0 and verbose: print ('DISTRIBUTING DOMAIN')
     domain = distribute(domain, verbose=verbose)
     
     #--------------------------------------------------------------------------
@@ -140,7 +140,7 @@ except:
     
     #-----------------------------------------------------------------------------
     # Turn on checkpointing every 5 sec (just for testing, more reasonable to 
-    # set to 15 minutes = 15*60 sec
+    # set to say 15 minutes = 15*60 sec)
     #-----------------------------------------------------------------------------
     if useCheckpointing:
         domain.set_checkpointing(checkpoint_time = 5, checkpoint_dir = checkpoint_dir)
@@ -150,7 +150,7 @@ except:
 #------------------------------------------------------------------------------
 # Evolution
 #------------------------------------------------------------------------------
-if myid == 0 and verbose: print 'EVOLVE'
+if myid == 0 and verbose: print ('EVOLVE')
 
 barrier()
 import time
@@ -158,19 +158,20 @@ t0 = time.time()
 
 
 for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
-    if myid == 0: domain.write_time()
+    if myid == 0: 
+        domain.write_time()
     
 
 barrier()
 
 for p in range(numprocs):
     if myid == p:
-        print 'Processor %g ' %myid
-        print 'That took %.2f seconds' %(time.time()-t0)
-        print 'Communication time %.2f seconds'%domain.communication_time
-        print 'Reduction Communication time %.2f seconds' \
-               %domain.communication_reduce_time
-        print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
+        print ('Processor %g ' %myid)
+        print ('That took %.2f seconds' %(time.time()-t0))
+        print ('Communication time %.2f seconds'%domain.communication_time)
+        print ('Reduction Communication time %.2f seconds' \
+               %domain.communication_reduce_time)
+        print ('Broadcast time %.2f seconds'%domain.communication_broadcast_time)
     else:
         pass
 
