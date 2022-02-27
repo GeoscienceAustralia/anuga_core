@@ -2470,7 +2470,7 @@ class Domain(Generic_Domain):
             #print t , self.get_time()
             # Store model data, e.g. for subsequent visualisation
             if self.store:
-                if self.yieldstep_id%output_frequency == 0:
+                if self.yieldstep_counter%output_frequency == 0:
                     self.store_timestep()
 
             if self.checkpoint:
@@ -2486,7 +2486,7 @@ class Domain(Generic_Domain):
                     else:
                         save_checkpoint = receive(0)
 
-                elif self.yieldstep_id%self.checkpoint_step == 0:
+                elif self.yieldstep_counter%self.checkpoint_step == 0:
                         save_checkpoint = True
 
                 if save_checkpoint:
@@ -2501,7 +2501,7 @@ class Domain(Generic_Domain):
             # Pass control on to outer loop for more specific actions
             yield(t)
 
-            self.yieldstep_id += 1
+            self.yieldstep_counter += 1
 
     def initialise_storage(self):
         """Create and initialise self.writer object for storing data.
