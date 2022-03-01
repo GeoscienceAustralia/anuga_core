@@ -73,18 +73,18 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
     extra_setuptools_args = dict(
         zip_safe=False,  # the package can run out of an .egg file
         include_package_data=True,
-		install_requires=['nose',
-                                  'numpy',
-                                  'scipy',
-                                  'netcdf4',
-                                  'matplotlib',
-                                  'gdal',
-                                  'dill',
-                                  'cython',
-                                  'future',   # FIXME(Ole): Deprecate
-                                  #'openmp',   # FIXME - can't find this. Is it required at this level?
-                                  'mpi4py']                                  
-                                  
+      		install_requires=['nose',
+                          'numpy',
+                          'scipy',
+                          'netcdf4',
+                          'matplotlib',
+                          'gdal',
+                          'dill',
+                          'cython',
+                          'future',   # FIXME(Ole): Deprecate
+                          'mpi4py',
+                          'Pmw',
+                          'triangle']
     )
 else:
     extra_setuptools_args = dict()
