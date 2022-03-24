@@ -4445,6 +4445,42 @@ class Test_Shallow_Water(unittest.TestCase):
 
         os.remove(domain.get_name() + '.sww')
 
+    def test_evolve_and_set_time(self):
+        """Test evolve with set_time before evolve
+        """
+
+        from anuga import rectangular_cross_domain
+
+        # Create basic mesh
+        domain = rectangular_cross_domain(6, 6)
+        domain.set_name('evolve_and_set_time')
+
+        # IC
+        def x_slope(x, y):
+            return x / 3
+
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('friction', 0)
+        domain.set_quantity('stage', x_slope)
+
+        # Boundary conditions (reflective everywhere)
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+
+        domain.check_integrity()
+
+        
+        domain.set_time(0.5)
+
+        # Evolution
+        # Test that t is a float
+        tt = 0.0
+        for t in domain.evolve(yieldstep=0.05, outputstep=1.0, duration=5.0):
+            tt += t
+
+        assert num.allclose(tt,252.5)        
+
+
     def test_evolve_outputstep(self):
         """Test evolve with outputstep set
         """

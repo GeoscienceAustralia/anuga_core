@@ -2455,9 +2455,8 @@ class Domain(Generic_Domain):
         # evolve loop but we do it here to ensure the values are ok for storage.
         self.distribute_to_vertices_and_edges()
 
-        if self.store is True and self.get_relative_time() == 0.0:
+        if self.store is True and (self.get_relative_time() == 0.0 or self.evolved_called is False):
             self.initialise_storage()
-
 
         # Call basic machinery from parent class
         for t in self._evolve_base(yieldstep=yieldstep,
