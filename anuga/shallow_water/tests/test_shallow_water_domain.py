@@ -4472,6 +4472,7 @@ class Test_Shallow_Water(unittest.TestCase):
         
         domain.set_time(0.5)
 
+
         # Evolution
         # Test that t is a float
         tt = 0.0
