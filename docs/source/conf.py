@@ -19,7 +19,7 @@
 
 project = 'ANUGA'
 copyright = 'Commonwealth of Australia (Geoscience Australia) and the Australian National University 2004-Now'
-author = 'Stephen Roberts, Ole Nielsen, Duncan Gray, Jane Sexton, Gareth Davies'
+author =  'Stephen Roberts, Ole Nielsen, Gareth Davies'
 
 # The full version, including alpha/beta/rc tags
 release = '3.0'
