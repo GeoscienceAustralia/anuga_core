@@ -18,8 +18,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'ANUGA'
-copyright = '2022, Stephen Roberts, Ole Nielson, Gareth Davies'
-author = 'Stephen Roberts, Ole Nielson, Gareth Davies'
+copyright = 'Commonwealth of Australia (Geoscience Australia) and the Australian National University 2004-Now'
+author = 'Stephen Roberts, Ole Nielsen, Duncan Gray, Jane Sexton, Gareth Davies'
 
 # The full version, including alpha/beta/rc tags
 release = '3.0'
@@ -35,6 +35,9 @@ import sphinx_rtd_theme
 
 extensions = [
     'sphinx_rtd_theme',
+    'sphinx.ext.duration',
+    'sphinx.ext.doctest',
+    'sphinx.ext.autodoc',
 ]
 
 

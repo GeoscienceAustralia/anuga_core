@@ -18,12 +18,20 @@ Althought ANUGA was created in a collaboration by Geoscience Australia
 and Mathematical Sciences Institute at the Australian National University, 
 it is now developed and maintained by a community of volunteers.
 
-Copyright Commonwealth of Australia (Geoscience Australia) and Australian National University 2004-Now
+.. note::
+
+   This project is under active development.
+
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   background
+   installation
+   simple_example
+   real_example
+   operators
 
 
 Indices and tables
