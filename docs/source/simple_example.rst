@@ -2,8 +2,8 @@ Simple Example
 ==============
 
 Here we discuss the structure and operation of a
-script called `runup.py` (which is available in the `examples`
-directory of `anuga_core`.
+script called :code:`runup.py` (which is available in the :code:`examples`
+directory of :code:`anuga_core`.
 
 This example carries out the solution of the shallow-water wave
 equation in the simple case of a configuration comprising a flat
@@ -31,12 +31,14 @@ involved in the computation are the friction and elevation.
 
 Water depth can be obtained through the equation:
 
-depth = stage - elevation
+.. code-block:: python
+
+    depth = stage - elevation
 
 Outline of the Program
 ----------------------
 
-In outline, `runup.py` performs the following steps:
+In outline, :code:`runup.py` performs the following steps:
 
    * Sets up a triangular mesh.
    * Sets certain parameters governing the mode of operation of the model, 
@@ -52,7 +54,7 @@ The Code
 --------
 
 For reference we include below the complete code listing for
-`runup.py`. Subsequent paragraphs provide a
+:code:`runup.py`. Subsequent paragraphs provide a
 'commentary' that describes each step of the program and explains it
 significance.
 
@@ -63,16 +65,16 @@ Establishing the Domain
 -----------------------
 
 The very first thing to do is import the various modules, of which the
-`anuga` module is the most important:
+:code:`anuga` module is the most important:
 
-.. code-block::
+.. code-block:: python
 
     import anuga
 
 Then we need to set up the triangular mesh to be used for the
 scenario. This is carried out through the statement:
 
-.. code-block::
+.. code-block:: python
 
     domain = anuga.rectangular_cross_domain(10, 5, len1=10.0, len2=5.0)
 
@@ -90,9 +92,9 @@ using :code:`points`, :code:`vertices` and :code:`boundary` via the assignment:
     domain = anuga.Domain(points, vertices, boundary)
 
 where:
-    * a list :code:`points` giving the coordinates of each mesh point,
-    * a list :code:`vertices` specifying the three vertices of each triangle, and
-    * a dictionary :code:`boundary` that stores the edges on the boundary and associates 
+    * :code:`points` is a list giving the coordinates of each mesh point,
+    * :code:`vertices` is a list specifying the three vertices of each triangle, and
+    * :code:`boundary` is a dictionary that stores the edges on the boundary and associates 
       with each a symbolic tag. The edges are represented as pairs (i, j) 
       where i refers to the triangle id and j to the edge id of that triangle. 
       Edge ids are enumerated from 0 to 2 based on the id of the vertex opposite.
@@ -106,7 +108,7 @@ represents the domain of the simulation. Specific options are set at
 this point, including the basename for the output file and the
 directory to be used for data:
 
-.. code-block::
+.. code-block:: python
 
     domain.set_name('runup')
     domain.set_datadir('.')
@@ -117,7 +119,7 @@ quantities :code:`stage`, :code:`xmomentum` and :code:`ymomentum`` are
 to be stored at every timestep and :code:`elevation` only once at
 the beginning of the simulation:
 
-.. code-block::
+.. code-block:: python
 
     domain.set_quantities_to_be_stored({'stage': 2, 'xmomentum': 2, 'ymomentum': 2, 'elevation': 1})
 
@@ -128,7 +130,7 @@ Initial Conditions
 
 The next task is to specify a number of quantities that we wish to
 set for each mesh point. The class :code:`{Domain` has a method
-:code:`set\_quantity`, used to specify these quantities. It is a
+:code:`set_quantity`, used to specify these quantities. It is a
 flexible method that allows the user to set quantities in a variety
 of ways -- using constants, functions, numeric arrays, expressions
 involving other quantities, or arbitrary data points with associated
@@ -138,7 +140,7 @@ quantity (such as :code:`stage, xmomentum, ymomentum`) this is called
 an *initial condition*. However, other quantities that aren't
 updated by the evolution procedure are also assigned values using the same
 interface. The code in the present example demonstrates a number of
-forms in which we can invoke :code:`set\_quantity`.
+forms in which we can invoke :code:`set_quantity`.
 
 Elevation
 ~~~~~~~~~~
@@ -148,7 +150,7 @@ defined through the statements below, which is specific to this
 example and specifies a particularly simple initial configuration
 for demonstration purposes:
 
-.. code-block::
+.. code-block:: python
 
     def topography(x, y):
         return -x/2
@@ -161,7 +163,7 @@ the :code:`y` direction.
 Once the function :code:`topography`` is specified, the quantity
 :code:`elevation` is assigned through the statement:
 
-.. code-block::
+.. code-block:: python
 
     domain.set_quantity('elevation', topography)
 
@@ -173,10 +175,10 @@ Friction
 ~~~~~~~~
 
 The assignment of the friction quantity (a forcing term)
-demonstrates another way we can use :code:`set\_quantity` to set
+demonstrates another way we can use :code:`set_quantity` to set
 quantities -- namely, assign them to a constant numerical value:
 
-.. code-block::
+.. code-block:: python
 
     domain.set_quantity('friction', 0.1)
 
@@ -190,14 +192,14 @@ Stage
 The stage (the height of the water surface) is related to the
 elevation and the depth at any time by the equation:
 
-.. code-block::
+.. code-block:: python
 
     stage = elevation + depth
 
 For this example, we simply assign a constant value to :code:`stage`,
 using the statement:
 
-.. code-block::
+.. code-block:: python
 
     domain.set_quantity('stage', -0.4)
 
@@ -207,7 +209,7 @@ i.e.\ 0.4 units (metres) below the zero level.
 
 Although it is not necessary for this example, it may be useful to
 digress here and mention a variant to this requirement, which allows
-us to illustrate another way to use :code:`set\_quantity` -- namely,
+us to illustrate another way to use :code:`set_quantity` -- namely,
 incorporating an expression involving other quantities. Suppose,
 instead of setting a constant value for the stage, we wished to
 specify a constant value for the *depth*. For such a case we
@@ -215,7 +217,7 @@ need to specify that :code:`stage` is everywhere obtained by adding
 that value to the value already specified for :code:`elevation`. We
 would do this by means of the statements:
 
-.. code-block::
+.. code-block:: python
 
     h = 0.05    # Constant depth
     domain.set_quantity('stage', expression='elevation + %f' % h)
@@ -225,7 +227,7 @@ That is, the value of :code:`stage` is set to :code:`h = 0.05` plus
 the value of :code:`elevation` already defined.
 
 The reader will probably appreciate that this capability to
-incorporate expressions into statements using :code:`set\_quantity`
+incorporate expressions into statements using :code:`set_quantity`
 greatly expands its power. 
 
 Boundary Conditions
@@ -233,7 +235,7 @@ Boundary Conditions
 
 The boundary conditions are specified as follows:
 
-.. code-block::
+.. code-block:: python
 
     Br = anuga.Reflective_boundary(domain)
     Bw = anuga.Time_boundary(domain=domain, f=lambda t: [(0.1*sin(t*2*pi)-0.3)*exp(-t), 0.0, 0.0])
@@ -252,7 +254,8 @@ follows:
     A reflective boundary condition models a solid wall.
   * Time boundary: Set a boundary varying with time.
   
-Before describing how these boundary conditions are assigned, we recall that a mesh is specified using
+Before describing how these boundary conditions are assigned,
+we recall that a mesh is specified using
 three variables :code:`points`, :code:`vertices` and :code:`boundary`.
 In the code we are discussing, these three variables are returned by
 the function :code:`rectangular_cross`. The example given in
@@ -265,9 +268,9 @@ may find that the example given in Section \ref{sec:meshexample}
 helps to clarify the following discussion, even though that example
 is a *non-rectangular* mesh.):
 
-    * The variable :code:`points`` stores a list of 2-tuples giving the
+    * :code:`points`` stores a list of 2-tuples giving the
       coordinates of the mesh points.
-    * The variable :code:`vertices` stores a list of 3-tuples of
+    * :code:`vertices` stores a list of 3-tuples of
       numbers, representing vertices of triangles in the mesh. In this
       list, the triangle whose vertices are :code:`points[i]},
       :code:`points[j]`, :code:`points[k]` is represented by the 3-tuple :code:`(i, j, k)`.
@@ -294,19 +297,19 @@ uses different boundary tags -- in general, the possible tags are entirely
 selectable by the user when generating the mesh and not
 limited to 'left', 'right', 'top' and 'bottom' as in this example.)
 All segments in bounding polygon must be tagged. If a tag is not supplied, 
-the default tag name :code:`exterior` will be assigned by \anuga.
+the default tag name :code:`exterior` will be assigned by ANUGA.
 
 Using the boundary objects described above, we assign a boundary
 condition to each part of the boundary by means of a statement like:
 
-.. code-block::
+.. code-block:: python
 
     domain.set_boundary({'left': Br, 'right': Bw, 'top': Br, 'bottom': Br})
 
 It is critical that all tags are associated with a boundary condition in this statement.
 If not the program will halt with a statement like:
 
-.. code-block::
+.. code-block:: bash
 
     Traceback (most recent call last):
     File "mesh_test.py", line 114, in ?
@@ -329,7 +332,7 @@ Evolution
 
 The final statement:
 
-.. code-block::
+.. code-block:: python
 
     for t in domain.evolve(yieldstep=0.1, duration=10.0):
         print domain.timestepping_statistics()
