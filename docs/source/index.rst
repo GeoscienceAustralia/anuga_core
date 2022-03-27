@@ -33,6 +33,8 @@ it is now developed and maintained by a community of volunteers.
    real_example
    operators
 
+   api
+
 
 Indices and tables
 ==================
