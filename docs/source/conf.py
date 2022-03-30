@@ -41,6 +41,7 @@ extensions = [
     'sphinx.ext.mathjax',
 ]
 
+autodoc_mock_imports = ["anuga"]
 
 #extensions.append('sphinxcontrib.bibtex')
 #bibtex_bibfiles = ['refs.bib']
