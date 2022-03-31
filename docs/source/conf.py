@@ -23,7 +23,6 @@ author =  'Stephen Roberts, Ole Nielsen, Gareth Davies'
 # The full version, including alpha/beta/rc tags
 release = '3.0.1'
 
-import anuga
 
 import os
 import sys
