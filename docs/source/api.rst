@@ -1,7 +1,10 @@
 API
 ===
 
-.. autosummary::
-    :toctree: _autosummary
-    
-    anuga.Domain
+
+.. automodule:: anuga
+    :members:
+
+
+.. autoclass:: anuga.Domain
+    :members:

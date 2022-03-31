@@ -9,11 +9,10 @@
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here.
-import pathlib
-import os
-import sys
+#import os
+#import sys
 #sys.path.insert(0, pathlib.Path(__file__).parents[2].resolve().as_posix())
-sys.path.insert(0, os.path.abspath('../..'))
+#sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
@@ -22,8 +21,13 @@ copyright = 'Commonwealth of Australia (Geoscience Australia) and the Australian
 author =  'Stephen Roberts, Ole Nielsen, Gareth Davies'
 
 # The full version, including alpha/beta/rc tags
-release = '3.0'
+release = '3.0.1'
 
+import anuga
+
+import os
+import sys
+sys.path.insert(0, os.path.abspath("../../anuga"))
 
 # -- General configuration ---------------------------------------------------
 
@@ -44,9 +48,9 @@ extensions = [
     'sphinx.ext.napoleon',
 ]
 
-autodoc_mock_imports = ["anuga"]
+#autodoc_mock_imports = ["anuga"]
 
-autosummary_generate = True
+#autosummary_generate = True
 
 #extensions.append('sphinxcontrib.bibtex')
 #bibtex_bibfiles = ['refs.bib']
