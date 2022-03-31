@@ -24,7 +24,7 @@ from builtins import filter
 
 
 # ANUGA version
-__version__ = '3.0' # First official version running Python3.x
+__version__ = '3.0.1' # Versions running Python3.x
 
 
 

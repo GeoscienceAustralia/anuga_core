@@ -4,5 +4,18 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "anuga"
-authors = [{name = "stoiver", email = "stoiver@gmail.com"}]
+authors = [{name = "Stephen Roberts", email = "stephen.roberts@anu.edu.au"}]
 dynamic = ["version", "description"]
+dependencies = ["python >= 3.5",
+                "nose",
+                "numpy",
+                "scipy",
+                "netcdf4",
+                "matplotlib",
+                "gdal",
+                "dill",
+                "cython",
+                "future",
+                "mpi4py",
+                "Pmw",
+                "triangle"]
