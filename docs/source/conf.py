@@ -40,9 +40,13 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.mathjax',
+    'sphinx.ext.coverage', 
+    'sphinx.ext.napoleon',
 ]
 
 autodoc_mock_imports = ["anuga"]
+
+autosummary_generate = True
 
 #extensions.append('sphinxcontrib.bibtex')
 #bibtex_bibfiles = ['refs.bib']

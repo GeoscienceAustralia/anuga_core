@@ -8,7 +8,7 @@ communities.  Geoscience Australia and the Australian National
 University are developing a hydrodynamic inundation modelling tool
 called ANUGA to help simulate the impact of these hazards.
 
-The core of ANUGA is the fluid dynamics object, called `anuga.Domain`,
+The core of ANUGA is the fluid dynamics object, called :code:`anuga.Domain`,
 which is based on a finite-volume method for solving the Shallow Water
 Wave Equation.  The study area is represented by a mesh of triangular
 cells.  By solving the governing equation within each cell, water
@@ -28,7 +28,7 @@ boundary conditions such as tide, and any operators  that may
 drive the system such as rainfall, abstraction of water,  erosion, culverts
 See section :doc:`operators` for details of operators available in ANUGA.
 
-The built-in mesh generator, called `graphical_mesh_generator`,
+The built-in mesh generator, called :code:`graphical_mesh_generator`,
 allows the user to set up the geometry
 of the problem interactively and to identify boundary segments and
 regions using symbolic tags.  These tags may then be used to set the
@@ -39,7 +39,7 @@ Most ANUGA components are written in the object-oriented programming
 language Python.  Software written in Python can be produced quickly
 and can be readily adapted to changing requirements throughout its
 lifetime.  Computationally intensive components are written for
-efficiency in `C` routines working directly with Python ``numpy``
+efficiency in :code:`C` routines working directly with Python :code:`numpy`
 structures.
 
 The visualisation tool developed for ANUGA is based on

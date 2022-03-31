@@ -31,7 +31,7 @@ to use a combination of the standard ubuntu ``apt`` method and python pip instal
 From your home directory run the following commands which will download anuga 
 to a directory `anuga_core`, install dependencies, install anuga and run the unit tests:
 
-.. code-block::
+.. code-block:: bash
 
     git clone https://github.com/anuga-community/anuga_core.git
     sudo bash anuga_core/tools/install_ubuntu_20_04.sh
@@ -40,7 +40,7 @@ Note: This will set ``python``  as ``python3`` and part of the bash shell will r
 
 You should now install and check the installation of anuga by running the unit tests via:
 
-.. code-block::
+.. code-block:: bash
 
   cd anuga_core
   python setup.py install --user
@@ -71,7 +71,7 @@ a compiler and openmpi for parallel code.
 
 Follow these steps:
 
-.. code-block::
+.. code-block:: bash
 
     sudo apt-get update -q
     sudo apt-get install gfortran git wget
@@ -79,14 +79,14 @@ Follow these steps:
     
 Download and install Miniconda if you haven't already:
 
-.. code-block::
+.. code-block:: bash
 
     wget http://repo.continuum.io/miniconda3/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
     bash miniconda.sh
     
 Create `anuga_env` conda environment:
 
-.. code-block::
+.. code-block:: bash
 
     conda update conda
     conda create -n anuga_env -c conda-forge python pip numpy scipy cython netcdf4 nose matplotlib gdal dill future gitpython
@@ -95,7 +95,7 @@ Create `anuga_env` conda environment:
     
 Download, install and test `anuga``:
 
-.. code-block::
+.. code-block:: bash
 
     git clone https://github.com/anuga-community/anuga_core.git
     cd anuga_core
@@ -120,21 +120,21 @@ We have installed `anuga` on `windows` using miniconda.
 
 Run the following powershell instruction to download miniconda. You can also just download manually:
 
-.. code-block::
+.. code-block:: bash
 
     Start-FileDownload "https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe" C:\Miniconda.exe; echo "Finished downloading miniconda"
   
   
 From a standard `cmd` prompt then install miniconda via:
 
-.. code-block::
+.. code-block::  bash
 
     C:\Miniconda.exe /S /D=C:\Py
     C:\Py\Scripts\activate.bat
     
 Install conda and pip packages:
 
-.. code-block::
+.. code-block:: bash
 
     conda install -c conda-forge python=3.7 gdal nose numpy cython scipy netcdf4 matplotlib dill future gitpython mpi4py
     pip install triangle Pmw pymetis
@@ -142,7 +142,7 @@ Install conda and pip packages:
     
 Download ANUGA and install:
 
-.. code-block::
+.. code-block:: bash
 
     git clone https://github.com/anuga-community/anuga_core.git
     cd anuga_core
@@ -150,6 +150,6 @@ Download ANUGA and install:
     
 And finally test the installation:
 
-.. code-block::
+.. code-block:: bash
 
     python runtests.py

@@ -2,6 +2,6 @@ API
 ===
 
 .. autosummary::
-   :toctree: generated
-
-   anuga.Domain
+    :toctree: _autosummary
+    
+    anuga.Domain
