@@ -1,22 +1,31 @@
 [build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
-dependencies = ["python >= 3.5",
-                "nose",
-                "numpy",
-                "scipy",
-                "netcdf4",
-                "matplotlib",
-                "gdal",
-                "dill",
-                "cython",
-                "future",
-                "mpi4py",
-                "Pmw",
-                "triangle"]
+#requires = ["flit_core >=3.2,<4"]
+#build-backend = "flit_core.buildapi"
+
+requires = [
+  "setuptools >= 40.9.0",
+  "wheel",
+]
+build-backend = "setuptools.build_meta"
+
 
 [project]
 name = "anuga"
 authors = [{name = "Stephen Roberts", email = "stephen.roberts@anu.edu.au"}]
 dynamic = ["version", "description"]
+dependencies = ["nose",
+                "numpy",
+                "scipy",
+                "netcdf4",
+                "matplotlib",
+                "dill",
+                "cython",
+                "pymetis",
+                "future",
+                "mpi4py",
+                "Pmw",
+                "triangle"]
+
+# gdal also needs to be installed but library needs to be installed separately
+
 

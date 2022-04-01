@@ -1,0 +1,17 @@
+numpy 
+scipy 
+matplotlib 
+nose 
+cython 
+netcdf4 
+dill 
+future 
+gitpython 
+gdal 
+pyproj 
+pymetis 
+triangle 
+Pmw 
+mpi4py 
+ipython
+
