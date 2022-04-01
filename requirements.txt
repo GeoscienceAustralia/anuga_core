@@ -10,7 +10,5 @@ gitpython
 pyproj 
 pymetis 
 triangle 
-Pmw 
-mpi4py 
-ipython
+Pmw
 
