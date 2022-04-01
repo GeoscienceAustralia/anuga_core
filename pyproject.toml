@@ -20,9 +20,7 @@ dependencies = ["nose",
                 "matplotlib",
                 "dill",
                 "cython",
-                "pymetis",
                 "future",
-                "mpi4py",
                 "Pmw",
                 "triangle"]
 
