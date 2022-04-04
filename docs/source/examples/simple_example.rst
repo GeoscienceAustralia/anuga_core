@@ -1,5 +1,9 @@
+
 Simple Example
 ==============
+
+.. currentmodule:: anuga
+
 
 Here we discuss the structure and operation of a
 script called :code:`runup.py` (which is available in the :code:`examples`
@@ -59,7 +63,7 @@ For reference we include below the complete code listing for
 significance.
 
 
-.. literalinclude:: ../../examples/simple_examples/runup.py
+.. literalinclude:: ../../../examples/simple_examples/runup.py
 
 Establishing the Domain
 -----------------------
@@ -379,17 +383,17 @@ on the previously dry bed.
 
 
 
-.. figure:: img/bedslopestart.jpg
+.. figure:: ../img/bedslopestart.jpg
 
    Runup example viewed at time 0.0 with the ANUGA viewer
 
 
-.. figure:: img/bedslopeduring.jpg
+.. figure:: ../img/bedslopeduring.jpg
 
    Runup example viewed at time 2.3 with the ANUGA viewer
 
 
-.. figure:: img/bedslopeend.jpg
+.. figure:: ../img/bedslopeend.jpg
 
    Runup example viewed time 4.0 with the ANUGA viewer  
 

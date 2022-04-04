@@ -1063,14 +1063,13 @@ class Domain(Generic_Domain):
         return self.store_centroids
 
     def set_checkpointing(self, checkpoint= True, checkpoint_dir = 'CHECKPOINTS', checkpoint_step=10, checkpoint_time = None):
-        """
-        Set up checkpointing.
+        """Set up checkpointing.
 
-        @param checkpoint: Default = True. Set to False will tur off checkpointing
+        @param checkpoint: Default = True. Set to False will turn off checkpointing
         @param checkpoint_dir: Where to store checkpointing files
         @param checkpoint_step: Save checkpoint files after this many yieldsteps
-        @param checkpoint_time: If set, over-rides checkpoint_step. save checkpoint files
-                        after this amount of walltime
+        @param checkpoint_time: If set, over-rides checkpoint_step. save checkpoint files 
+        after this amount of walltime
         """
 
 
@@ -1656,9 +1655,9 @@ class Domain(Generic_Domain):
         return water_volume
 
     def get_boundary_flux_integral(self):
-        """
-            Compute the boundary flux integral.
-            Should work in parallel
+        """Compute the boundary flux integral.
+
+        Should work in parallel
         """
 
         from anuga import numprocs
@@ -1694,11 +1693,11 @@ class Domain(Generic_Domain):
         return flux_integral
 
     def get_fractional_step_volume_integral(self):
-        """
-            Compute the integrated flows from fractional steps
-            This requires that the fractional step operators
-              update the fractional_step_volume_integral
-            Should work in parallel
+        """Compute the integrated flows from fractional steps.
+
+        This requires that the fractional step operators update the fractional_step_volume_integral.
+        
+        Should work in parallel
         """
 
         from anuga import numprocs
