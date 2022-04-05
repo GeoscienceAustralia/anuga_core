@@ -43,9 +43,19 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.mathjax',
-    'sphinx.ext.coverage', 
+    'sphinx.ext.coverage',
+    'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
 ]
+
+def linkcode_resolve(domain, info):
+    if domain != 'py':
+        return None
+    if not info['module']:
+        return None
+    filename = info['module'].replace('.', '/')
+    return "https://somesite/sourcerepo/%s.py" % filename
+
 
 #autodoc_mock_imports = ["anuga"]
 
