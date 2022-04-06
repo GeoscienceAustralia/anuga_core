@@ -124,57 +124,53 @@ class Domain(Generic_Domain):
     module generic_domain.py consisting of methods specific to the
     Shallow Water Wave Equation
 
-    .. math::
+    Shallow Water Wave Equation
 
+    .. math::
+    
         U_t + E_x + G_y = S
 
     where
 
     .. math::
+    
+        U = [w, uh, vh]^T
 
-        \\begin{eqnarray}
-        U &=& [w, uh, vh]^T \\\\
-        E &=& [uh, u^2h + gh^2/2, uvh]^T \\\\
-        G &=& [vh, uvh, v^2h + gh^2/2]^T
-        \\end{eqnarray}
+    .. math::
+    
+        E = [uh, u^2h + gh^2/2, uvh]
 
-    :math:`S` represents source terms forcing the system
+    .. math:: 
+
+        G = [vh, uvh, v^2h + gh^2/2]
+
+
+
+    S represents source terms forcing the system
     (e.g. gravity, friction, wind stress, ...)
 
-    and the subscripts :math:`t, x, y` denote the derivative with respect to :math:`t`,  :math:`x` and  :math:`y`
+    and _t, _x, _y denote the derivative with respect to t, x and y
     respectively.
+
 
     The quantities are
 
-        +-------------+------------------+-----------------------------------------------------+
-        | symbol      | variable name    | explanation                                         |
-        +=============+==================+=====================================================+
-        | x           | x                | horizontal distance from origin [m]                 |
-        +-------------+------------------+-----------------------------------------------------+
-        | y           | y                | vertical distance from origin [m]                   |
-        +-------------+------------------+-----------------------------------------------------+
-        | z           | elevation        | elevation of bed on which flow is modelled [m]      |
-        +-------------+------------------+-----------------------------------------------------+
-        | h           | height           | water height above z [m]                            |
-        +-------------+------------------+-----------------------------------------------------+
-        | w           | stage            | absolute water level, w = z+h [m]                   |
-        +-------------+------------------+-----------------------------------------------------+
-        | u           |                  | speed in the x direction [m/s]                      |
-        +-------------+------------------+-----------------------------------------------------+
-        | v           |                  | speed in the y direction [m/s]                      |
-        +-------------+------------------+-----------------------------------------------------+
-        | uh          | xmomentum        | momentum in the x direction [m^2/s]                 |
-        +-------------+------------------+-----------------------------------------------------+
-        | vh          | ymomentum        | momentum in the y direction [m^2/s]                 |
-        +-------------+------------------+-----------------------------------------------------+
-        | eta         |  eta             | mannings friction coefficient [to appear]           |
-        +-------------+------------------+-----------------------------------------------------+
-        | nu          |  nu              | wind stress coefficient [to appear]                 |
-        +-------------+------------------+-----------------------------------------------------+
+    symbol    variable name    explanation
+    x         x                horizontal distance from origin [m]
+    y         y                vertical distance from origin [m]
+    z         elevation        elevation of bed on which flow is modelled [m]
+    h         height           water height above z [m]
+    w         stage            absolute water level, w = z+h [m]
+    u                          speed in the x direction [m/s]
+    v                          speed in the y direction [m/s]
+    uh        xmomentum        momentum in the x direction [m^2/s]
+    vh        ymomentum        momentum in the y direction [m^2/s]
 
-
+    eta                        mannings friction coefficient [to appear]
+    nu                         wind stress coefficient [to appear]
 
     The conserved quantities are w, uh, vh
+
     """
 
     def __init__(self,
