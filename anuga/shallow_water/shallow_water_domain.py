@@ -117,40 +117,62 @@ from anuga.utilities.parallel_abstraction import pypar_available, barrier
 #from pypar import size, rank, send, receive, barrier
 
 class Domain(Generic_Domain):
-    """
+    """Object which encapulates the shallow water model
+
+
     This class is a specialization of class Generic_Domain from
     module generic_domain.py consisting of methods specific to the
     Shallow Water Wave Equation
 
-    U_t + E_x + G_y = S
+    .. math::
+
+        U_t + E_x + G_y = S
 
     where
 
-    U = [w, uh, vh]
-    E = [uh, u^2h + gh^2/2, uvh]
-    G = [vh, uvh, v^2h + gh^2/2]
+    .. math::
 
-    S represents source terms forcing the system
+        \\begin{eqnarray}
+        U &=& [w, uh, vh]^T \\\\
+        E &=& [uh, u^2h + gh^2/2, uvh]^T \\\\
+        G &=& [vh, uvh, v^2h + gh^2/2]^T
+        \\end{eqnarray}
+
+    :math:`S` represents source terms forcing the system
     (e.g. gravity, friction, wind stress, ...)
 
-    and _t, _x, _y denote the derivative with respect to t, x and y
+    and the subscripts :math:`t, x, y` denote the derivative with respect to :math:`t`,  :math:`x` and  :math:`y`
     respectively.
 
     The quantities are
 
-    symbol    variable name    explanation
-        x         x                horizontal distance from origin [m]
-        y         y                vertical distance from origin [m]
-        z         elevation        elevation of bed on which flow is modelled [m]
-        h         height           water height above z [m]
-        w         stage            absolute water level, w = z+h [m]
-        u                          speed in the x direction [m/s]
-        v                          speed in the y direction [m/s]
-        uh        xmomentum        momentum in the x direction [m^2/s]
-        vh        ymomentum        momentum in the y direction [m^2/s]
+        +-------------+------------------+-----------------------------------------------------+
+        | symbol      | variable name    | explanation                                         |
+        +=============+==================+=====================================================+
+        | x           | x                | horizontal distance from origin [m]                 |
+        +-------------+------------------+-----------------------------------------------------+
+        | y           | y                | vertical distance from origin [m]                   |
+        +-------------+------------------+-----------------------------------------------------+
+        | z           | elevation        | elevation of bed on which flow is modelled [m]      |
+        +-------------+------------------+-----------------------------------------------------+
+        | h           | height           | water height above z [m]                            |
+        +-------------+------------------+-----------------------------------------------------+
+        | w           | stage            | absolute water level, w = z+h [m]                   |
+        +-------------+------------------+-----------------------------------------------------+
+        | u           |                  | speed in the x direction [m/s]                      |
+        +-------------+------------------+-----------------------------------------------------+
+        | v           |                  | speed in the y direction [m/s]                      |
+        +-------------+------------------+-----------------------------------------------------+
+        | uh          | xmomentum        | momentum in the x direction [m^2/s]                 |
+        +-------------+------------------+-----------------------------------------------------+
+        | vh          | ymomentum        | momentum in the y direction [m^2/s]                 |
+        +-------------+------------------+-----------------------------------------------------+
+        | eta         |  eta             | mannings friction coefficient [to appear]           |
+        +-------------+------------------+-----------------------------------------------------+
+        | nu          |  nu              | wind stress coefficient [to appear]                 |
+        +-------------+------------------+-----------------------------------------------------+
 
-        eta                        mannings friction coefficient [to appear]
-        nu                         wind stress coefficient [to appear]
+
 
     The conserved quantities are w, uh, vh
     """
@@ -178,12 +200,11 @@ class Domain(Generic_Domain):
                  ghost_layer_width=2,
                  **kwargs):
 
-        """
-        Instantiate a shallow water domain.
+        """Instantiate a shallow water domain.
 
-        @param coordinates: vertex locations for the mesh
-        @param vertices: vertex indices for the mesh
-        @param boundary: boundaries of the mesh
+        :param coordinates: vertex locations for the mesh
+        :param vertices: vertex indices defining the triangles of the mesh
+        :param boundary: boundaries of the mesh
         """
 
         # Define quantities for the shallow_water domain

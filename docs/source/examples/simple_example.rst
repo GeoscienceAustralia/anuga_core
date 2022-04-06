@@ -372,27 +372,29 @@ Exploring the Model Output
 The following figures are screenshots from the anuga viewer visualisation
 tool :code:`anuga_viewer`. 
 
-Figure \ref{fig:runupstart} shows the domain
-with water surface as specified by the initial condition, $t=0$.
+The first figure shows the domain
+with water surface as specified by the initial condition, :math:`t=0`.
 
-Figure \ref{fig:runup2} shows later snapshots for $t=2.3$ and
-$t=4$ where the system has been evolved and the wave is encroaching
-on the previously dry bed.
+The second figure shows the flow at time :math:`t=2.3` and the last figure 
+show the flow at time  :math:`t=4` where the system has been evolved
+and the wave is encroaching on the previously dry bed.
 
-:code:`anuga_viewer` is described in more detail in Section \ref{sec:anuga_viewer}.
+`Online documentation <https://anuga-viewer.readthedocs.io>`_ is available 
+for the :code:`anuga_viewer`
 
 
 
+.. _bedslopestart:
 .. figure:: ../img/bedslopestart.jpg
 
    Runup example viewed at time 0.0 with the ANUGA viewer
 
-
+.. _bedslopeduring:
 .. figure:: ../img/bedslopeduring.jpg
 
    Runup example viewed at time 2.3 with the ANUGA viewer
 
-
+.. _bedslopeend:
 .. figure:: ../img/bedslopeend.jpg
 
    Runup example viewed time 4.0 with the ANUGA viewer  

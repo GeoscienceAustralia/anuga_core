@@ -51,7 +51,9 @@ from .shallow_water_ext import rotate
 
 
 class Reflective_boundary(Boundary):
-    """Reflective boundary returns same conserved quantities as
+    """No flow boundary
+    
+    Reflective boundary returns same conserved quantities as
     those present in its neighbour volume but reflected.
 
     This class is specific to the shallow water equation as it
@@ -791,7 +793,9 @@ class Inflow_boundary(Boundary):
             
         
 class Field_boundary(Boundary):
-    """Set boundary from given field represented in an sww file containing
+    """Set boundary from given field.
+    
+    Given field is represented in an sww file containing
     values for stage, xmomentum and ymomentum.
 
     Optionally, the user can specify mean_stage to offset the stage provided
@@ -819,31 +823,32 @@ class Field_boundary(Boundary):
                  verbose=False):
         """Constructor
 
-        filename: Name of sww file containing stage and x/ymomentum
-        domain: pointer to shallow water domain for which the boundary applies
-        mean_stage: The mean water level which will be added to stage derived
-                    from the boundary condition
-        time_thinning: Will set how many time steps from the sww file read in
-                       will be interpolated to the boundary. For example if
-                       the sww file has 1 second time steps and is 24 hours
-                       in length it has 86400 time steps. If you set
-                       time_thinning to 1 it will read all these steps.
-                       If you set it to 100 it will read every 100th step eg
-                       only 864 step. This parameter is very useful to increase
-                       the speed of a model run that you are setting up
-                       and testing.
+        :param filename: Name of sww file containing stage and x/ymomentum
 
-        default_boundary: Must be either None or an instance of a
-                          class descending from class Boundary.
-                          This will be used in case model time exceeds
-                          that available in the underlying data.
+        :param domain: pointer to shallow water domain for which the boundary applies
 
-                          Note that mean_stage will also be added to this.
+        :param mean_stage: The mean water level which will be added to stage derived from the boundary condition
 
-        time_limit: 
-        boundary_polygon: 
-        use_cache:        True if caching is to be used.
-        verbose:          True if this method is to be verbose.
+        :param time_thinning: Will set how many time steps from the sww file read in will be interpolated to the boundary. 
+
+        :param default_boundary: This will be used in case model time exceeds that available in the underlying data.
+
+        :param time_limit: 
+
+        :param boundary_polygon: 
+
+        :param use_cache:        True if caching is to be used.
+
+        :param verbose:          True if this method is to be verbose.
+
+        For example if
+        the sww file has 1 second time steps and is 24 hours
+        in length it has 86400 time steps. If you set
+        time_thinning to 1 it will read all these steps.
+        If you set it to 100 it will read every 100th step eg
+        only 864 step. This parameter is very useful to increase
+        the speed of a model run that you are setting up
+        and testing.
 
         """
 
@@ -891,10 +896,9 @@ class Field_boundary(Boundary):
 
 
 class Flather_external_stage_zero_velocity_boundary(Boundary):
-    """
+    """Boundary condition based on a Flather type approach
 
-    Boundary condition based on a Flather type approach 
-    (setting the external stage with a function, and a zero external velocity),
+    Setting the external stage with a function, and a zero external velocity,
     
 
     The idea is similar (but not identical) to that described on page 239 of
@@ -936,10 +940,10 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
     """
 
     def __init__(self, domain=None, function=None):
-        """ Instantiate a
-            Flather_external_stage_zero_velocity_boundary.
-            domain is the domain containing the boundary
-            function is the function to apply
+        """Flather_external_stage_zero_velocity_boundary.
+
+        :param domain: The domain on which to apply boundary condition
+        :param function: Function to apply on the boundary
         """
 
         Boundary.__init__(self)

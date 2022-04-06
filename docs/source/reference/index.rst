@@ -8,6 +8,8 @@ Reference
 
    introduction
    domain
+   boundaries
+   structures
 
 
 .. only:: html

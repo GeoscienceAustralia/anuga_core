@@ -7,7 +7,7 @@
     modules, which can be used directly by including the following line in
     the user's code:
 
-    import anuga
+    >>> import anuga
 
     This usage pattern abstracts away the internal heirarchy of the ANUGA
     system, allowing the user to concentrate on writing simulations without

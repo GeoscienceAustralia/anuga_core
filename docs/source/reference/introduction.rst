@@ -1,16 +1,7 @@
-..  -*- coding: utf-8 -*-
+
 
 Introduction
 ~~~~~~~~~~~~
-.. currentmodule:: anuga
-
-.. only:: html
-
-
-
-
-ANUGA Basics
--------------
 
 After starting Python, import the :code:`anuga` module with
 
@@ -33,3 +24,6 @@ Initialize a ANUGA Model with
 
 Once a :code:`domain` is initialized, there are several options available to 
 setup the domain (initial conditions, boundary conditions, operators) and run the model (evolve). 
+
+.. automodule:: anuga
+ 

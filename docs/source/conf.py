@@ -59,7 +59,8 @@ def linkcode_resolve(domain, info):
 
 #autodoc_mock_imports = ["anuga"]
 
-#autosummary_generate = True
+autodoc_default_flags = ['members']
+autosummary_generate = True
 
 #extensions.append('sphinxcontrib.bibtex')
 #bibtex_bibfiles = ['refs.bib']
