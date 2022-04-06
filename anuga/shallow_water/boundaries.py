@@ -51,17 +51,29 @@ from .shallow_water_ext import rotate
 
 
 class Reflective_boundary(Boundary):
-    """No flow boundary
+    """Reflective boundary condition object
     
     Reflective boundary returns same conserved quantities as
-    those present in its neighbour volume but reflected.
-
-    This class is specific to the shallow water equation as it
-    works with the momentum quantities assumed to be the second
-    and third conserved quantities.
+    those present in its neighbour volume but with normal momentum reflected.
     """
 
     def __init__(self, domain=None):
+        """Create boundary condition object
+        
+        :param domain: domain on which to apply BC
+        
+        Example: 
+        
+        Set all the tagged boundaries to use the Reflective boundaries
+        
+        >>> domain = anuga.rectangular_cross_domain(10, 10) 
+        >>> BC = anuga.Reflective_boundary(domain)
+        >>> domain.set_boundary({'left': BC, 'right': BC, 'top': BC, 'bottom': BC})
+        
+        """
+
+
+
         Boundary.__init__(self)
 
         if domain is None:
@@ -80,10 +92,11 @@ class Reflective_boundary(Boundary):
         return 'Reflective_boundary'
 
     def evaluate(self, vol_id, edge_id):
-        """Calculate reflections (reverse outward momentum).
+        """Calculate BC associated to specified edge
 
-        vol_id   
-        edge_id  
+        :param int vol_id: Triangle ID
+        :param int edge_id: Edge opposite to Vertex ID  
+  
         """
 
         q = self.conserved_quantities
@@ -102,8 +115,11 @@ class Reflective_boundary(Boundary):
 
 
     def evaluate_segment(self, domain, segment_edges):
-        """Apply reflective BC on the boundary edges defined by
-        segment_edges
+        """Apply BC on the boundary edges defined by segment_edges
+
+        :param domain: Apply BC on this domain
+        :param segment_edges: List of boundary cells on which to apply BC
+
         """
 
         if segment_edges is None:
@@ -164,25 +180,31 @@ class Reflective_boundary(Boundary):
 
 
 class Transmissive_momentum_set_stage_boundary(Boundary):
-    """Returns same momentum conserved quantities as
+    """ Bounday condition object that returns transmissive momentum and sets stage
+    
+    Returns same momentum conserved quantities as
     those present in its neighbour volume.
     Sets stage by specifying a function f of time which may either be a
     vector function or a scalar function
-
-    Example:
-
-    def waveform(t):
-        return sea_level + normalized_amplitude/cosh(t-25)**2
-
-    Bts = Transmissive_momentum_set_stage_boundary(domain, waveform)
-
-    Underlying domain must be specified when boundary is instantiated
     """
 
     def __init__(self, domain=None, function=None):
-        Boundary.__init__(self)
-        """ Instantiate a Transmissive_momentum_set_stage_boundary. """
+        """Create boundary condition object.
+        
+        :param domain: domain on which to apply BC
+        :param function: function to set stage
+        
+        Example: Set all the tagged boundaries to use the 
+        
+        >>> domain = anuga.rectangular_cross_domain(10, 10) 
+        >>> def waveform(t):
+        >>>    return sea_level + normalized_amplitude/cosh(t-25)**2
+        >>> BC = anuga.Transmissive_momentum_set_stage_boundary(domain, waveform)
+        >>> domain.set_boundary({'left': BC, 'right': BC, 'top': BC, 'bottom': BC})
+        
+        """
 
+        Boundary.__init__(self)
 
         if domain is None:
             msg = 'Domain must be specified for this type boundary'
@@ -202,7 +224,8 @@ class Transmissive_momentum_set_stage_boundary(Boundary):
 
 
     def __repr__(self):
-        """ Return a representation of this instance. """
+        """ Return a representation of this object. """
+
         return 'Transmissive_momentum_set_stage_boundary(%s)' % self.domain
 
     def evaluate(self, vol_id, edge_id):
@@ -246,28 +269,32 @@ class Transmissive_momentum_set_stage_boundary(Boundary):
 
 
 class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
-    """Returns the same normal momentum as that 
+    """Bounday condition object that returns transmissive normal momentum and sets stage
+    
+    Returns the same normal momentum as that 
     present in neighbour volume edge. Zero out the tangential momentum. 
     Sets stage by specifying a function f of time which may either be a
     vector function or a scalar function
 
-    Example:
-
-    def waveform(t):
-        return sea_level + normalized_amplitude/cosh(t-25)**2
-
-    Bts = Transmissive_n_momentum_zero_t_momentum_set_stage_boundary\
-                            (domain, waveform)
-
-    Underlying domain must be specified when boundary is instantiated
     """
 
     def __init__(self, domain=None, function=None, default_boundary=0.0):
-        """ Instantiate a
-            Transmissive_n_momentum_zero_t_momentum_set_stage_boundary.
-            domain is the domain containing the boundary
-            function is the function to apply
+        """Create boundary condition object.
+        
+        :param domain: domain on which to apply BC
+        :param function: function to set stage
+        :param float default_boundary: 
+        
+        Example: Set all the tagged boundaries to use the BC
+        
+        >>> domain = anuga.rectangular_cross_domain(10, 10) 
+        >>> def waveform(t):
+        >>>    return sea_level + normalized_amplitude/cosh(t-25)**2
+        >>> BC = anuga.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, waveform)
+        >>> domain.set_boundary({'left': BC, 'right': BC, 'top': BC, 'bottom': BC})
+        
         """
+
 
         Boundary.__init__(self)
 
@@ -335,8 +362,13 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
 
 
     def evaluate_segment(self, domain, segment_edges): 
-        """Transmissive_n_momentum_zero_t_momentum_set_stage_boundary
-        applied in vectorized form for speed. Gareth Davies 14/07/2016
+        """Apply BC on the boundary edges defined by segment_edges
+
+        :param domain: Apply BC on this domain
+        :param segment_edges: List of boundary cells on which to apply BC
+
+        Vectorized form for speed. Gareth Davies 14/07/2016
+        
         """
         
         Stage = domain.quantities['stage']
@@ -373,8 +405,7 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
 
 
 class Transmissive_stage_zero_momentum_boundary(Boundary):
-    """Return same stage as those present in its neighbour volume.
-    Set momentum to zero.
+    """BC where stage is same as neighbour volume and momentum to zero.
 
     Underlying domain must be specified when boundary is instantiated
     """
@@ -900,50 +931,48 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
 
     Setting the external stage with a function, and a zero external velocity,
     
-
     The idea is similar (but not identical) to that described on page 239 of
-    the following article:
+    the following article::
 
-    Article{blayo05,
-      Title                    = {Revisiting open boundary conditions from the point of view of characteristic variables},
-      Author                   = {Blayo, E. and Debreu, L.},
-      Journal                  = {Ocean Modelling},
-      Year                     = {2005},
-      Pages                    = {231-252},
-      Volume                   = {9},
-    }
+        Article{blayo05,
+        Title       = {Revisiting open boundary conditions from the point of view of characteristic variables},
+        Author      = {Blayo, E. and Debreu, L.},
+        Journal     = {Ocean Modelling},
+        Year        = {2005},
+        Pages       = {231-252},
+        Volume      = {9},
+        }
 
     Approach
-    1) The external (outside boundary) stage is set with a function, the
-       external velocity is zero, the internal stage and velocity are taken from the
-       domain values.
-    2) Some 'characteristic like' variables are computed, depending on whether
-       the flow is incoming or outgoing. See Blayo and Debreu (2005)
-    3) The boundary conserved quantities are computed from these characteristic
-       like variables
+
+     #. The external (outside boundary) stage is set with a function, the
+        external velocity is zero, the internal stage and velocity are taken from the
+        domain values.
+     #. Some 'characteristic like' variables are computed, depending on whether
+        the flow is incoming or outgoing. See Blayo and Debreu (2005)
+     #. The boundary conserved quantities are computed from these characteristic
+        like variables
 
     This has been useful as a 'weakly reflecting' boundary when the stage should
     be approximately specified but allowed to adapt to outgoing waves.
-
-
-    Example:
-
-    def waveform(t):
-        return sea_level + normalized_amplitude/cosh(t-25)**2
-
-    Bf = Flather_external_stage_zero_velocity_boundary(domain, waveform)
-
-    Underlying domain must be specified when boundary is instantiated
-
-
     
     """
 
     def __init__(self, domain=None, function=None):
-        """Flather_external_stage_zero_velocity_boundary.
+        """Create boundary condition object.
 
         :param domain: The domain on which to apply boundary condition
         :param function: Function to apply on the boundary
+
+        Example:
+
+        .. code:: python
+
+            def waveform(t):
+                return sea_level + normalized_amplitude/cosh(t-25)**2
+
+            Bf = Flather_external_stage_zero_velocity_boundary(domain, waveform)
+
         """
 
         Boundary.__init__(self)

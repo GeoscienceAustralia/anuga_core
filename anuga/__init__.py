@@ -263,7 +263,9 @@ else:
 
     # ---------------------------
     # Structure Operators
-    # ---------------------------
+# ---------------------------
+
+
 
     if pypar_available:
         from anuga.parallel.parallel_operator_factory import Inlet_operator
@@ -279,6 +281,8 @@ else:
         from anuga.structures.internal_boundary_operator import Internal_boundary_operator
 
     from anuga.structures.internal_boundary_functions import pumping_station_function
+
+
 
     # ----------------------------
     # Parallel distribute

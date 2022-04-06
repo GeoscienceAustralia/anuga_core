@@ -25,5 +25,8 @@ Initialize a ANUGA Model with
 Once a :code:`domain` is initialized, there are several options available to 
 setup the domain (initial conditions, boundary conditions, operators) and run the model (evolve). 
 
-.. automodule:: anuga
+.. autosummary::
+   :toctree: generated 
+   
+   anuga
  

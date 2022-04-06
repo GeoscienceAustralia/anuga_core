@@ -30,7 +30,9 @@ it is now developed and maintained by a community of volunteers.
    background
    installation
    examples/index
+   boundaries
    operators
+   structures
    reference/index
 
 

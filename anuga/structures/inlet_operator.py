@@ -30,7 +30,26 @@ class Inlet_operator(anuga.Operator):
                  label = None,
                  logging = False,
                  verbose = False):
+        """Inlet Operator - add water to a domain via an inlet.
+        
+        :param domain: Specify domain
+        :param region: Apply Inlet flow over a region (which can be a Region, Polygon or line)
+        :param Q: function(t) or scalar discharge (m^3/s)
+        :param velocity: Optional [u,v] to set velocity of applied discharge
+        :param zero_velocity: If set to True, velocity of inlet region set to 0
+        :param default: If outside time domain of the Q function, use this default discharge
+        :param description: Describe the Inlet_operator
+        :param label: Give Inlet_operator a label (name)
+        :param verbose: Provide verbose output
+        
+        
 
+        Example:
+
+        >>> inflow_region  = anuga.Region(domain, center=[0.0,0.0], radius=1.0)
+        >>> inflow = anuga.Inlet_operator(domain, inflow_region, Q = lambda t : 1 + 0.5*math.sin(t/60))
+
+        """
 
         anuga.Operator.__init__(self, domain, description, label, logging, verbose)
 

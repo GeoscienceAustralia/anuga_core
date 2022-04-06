@@ -1,23 +1,5 @@
 
-"""Class Quantity - Implements values at each triangular element
 
-To create:
-
-   Quantity(domain, vertex_values)
-
-   domain: Associated domain structure. Required.
-
-   vertex_values: N x 3 array of values at each vertex for each element.
-                  Default None
-
-   If vertex_values are None Create array of zeros compatible with domain.
-   Otherwise check that it is compatible with dimensions of domain.
-   Otherwise raise an exception
-
-   For Quantities that need to be saved during checkpointing, set register=True. Registered
-   Quantities can be found in the dictionary domain.quantities (note, other Quantities can
-   exist).
-"""
 
 import types
 import os.path
@@ -36,11 +18,39 @@ import numpy as num
 
 
 class Quantity(object):
+    """Class Quantity - Implements values at each triangular element
+    """
 
 
     counter = 0
 
     def __init__(self, domain, vertex_values=None, name=None, register=False):
+        """Create Quantity object
+        
+        :param domain: Associated domain structure. Required.
+        :param vertex_values: N x 3 array of values at each vertex for each element. Default None
+        :param str name: Provides a way to refer to a created quantity
+        :param register: Register a quantity
+
+
+        Usage:
+
+        >>> Quantity(domain, name="newQ", register=True)
+
+
+        If vertex_values are None Create array of zeros compatible with domain.
+        Otherwise check that it is compatible with dimensions of domain.
+        Otherwise raise an exception
+
+        For Quantities that need to be saved during checkpointing, set register=True. Registered
+        Quantities can be found in the dictionary domain.quantities (note, other Quantities can
+        exist).
+        
+        
+        """
+
+
+
         from anuga.abstract_2d_finite_volumes.generic_domain \
                             import Generic_Domain
 

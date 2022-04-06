@@ -50,6 +50,35 @@ class Boyd_box_operator(anuga.Structure_operator):
                  logging=False,
                  verbose=False):
 
+        """Create a box culvert using Boyd flow algorithm
+
+
+        :param domain: Culvert applied to this domain
+        :param losses: Losses 
+        :param width: Width of culvert
+        :param height: height of culvert
+        :param barrels: Number of barrels
+        :param blockage: Set between 0.0 - 1.0 Set to 1.0 to close off culvert
+        :param z1: Elevation of end of Culvert
+        :param z2: Elevation of other end of Culvert
+        :param end_points: [[x1,y1], [x2,y2]] of centre of ends of culvert
+        :param exchange_lines: [ [[x1,y1], [x2,y2]], [[x1,y1], [x2,y2]] ] list of two lines defining ends of culvert
+        :param enquiry_points: [[x1,y1], [x2,y2]] location of enquiry points
+        :param invert_elevations: [ e1, e2 ] invert elevations of culvert inlets
+        :param apron: 
+        :param manning:
+        :param enquiry_gap:
+        :param smoothing_timescale:
+        :param use_momentum_jet:
+        :param use_velocity_head:
+        :param description:
+        :param label:
+        :param structure_type:
+        :param logging:
+        :param verbose:
+        
+        """
+
         anuga.Structure_operator.__init__(self,
                                           domain,
                                           end_points=end_points,
