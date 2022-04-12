@@ -137,7 +137,7 @@ class Domain(Generic_Domain):
         U = [w, uh, vh]^T
 
     .. math::
-    
+
         E = [uh, u^2h + gh^2/2, uvh]
 
     .. math:: 
@@ -2436,17 +2436,18 @@ class Domain(Generic_Domain):
                finaltime=None,
                duration=None,
                skip_initial_step=False):
-        """Specialisation of basic evolve method from parent class.
+        """Evolve method from Domain class.
 
-            Evolve the model up to time finaltime or for a duraton of time duration. 
 
-            yield every yieldstep period
-            output to sww file every outputstep period
+        :param float yieldstep: yield every yieldstep time period
+        :param float outputstep: Output to sww file every outputstep time period. outputstep should be an integer multiple of yieldstep. 
+        :param float finaltime: evolve until finaltime
+        :param float duration: evolve for a time of length duration
+        :param  boolean skip_inital_step: Can be used to restart a simulation (not often used). 
 
-            outputstep should be an integer multiple of yieldstep. 
 
-            If outputstep is None, the output to sww sile every yieldstep. 
-            If yieldstep is None then simply evolve to finaltime or for a duration.
+        If outputstep is None, the output to sww file happens every yieldstep. 
+        If yieldstep is None then simply evolve to finaltime or for a duration.
         """
 
         # Call check integrity here rather than from user scripts
@@ -2551,9 +2552,13 @@ class Domain(Generic_Domain):
                                 time_unit='sec'):
         """Return string with time stepping statistics for printing or logging
 
-        Optional boolean keyword track_speeds decides whether to report
-        location of smallest timestep as well as a histogram and percentile
-        report.
+        :param time_units: 'sec', 'min', 'hr', 'day'
+        :param track_speed: Optional boolean keyword track_speeds decides whether 
+                            to report location of smallest timestep as well as a 
+                            histogram and percentile report.
+        :param bool relative_time: Flag to report relative time instead of absolute time
+        :param int triangle_id: Can be used to specify a particular
+                            triangle rather than the one with the largest speed.
         """
 
         from anuga.config import epsilon, g
@@ -2679,6 +2684,16 @@ class Domain(Generic_Domain):
         return msg
 
     def print_timestepping_statistics(self, *args, **kwargs):
+        """Print time stepping statistics
+
+        :param time_units: 'sec', 'min', 'hr', 'day'
+        :param track_speed: Optional boolean keyword track_speeds decides whether 
+                            to report location of smallest timestep as well as a 
+                            histogram and percentile report.
+        :param bool relative_time: Flag to report relative time instead of absolute time
+        :param int triangle_id: Can be used to specify a particular
+                            triangle rather than the one with the largest speed.
+        """
 
         msg = self.timestepping_statistics(*args, **kwargs)
 

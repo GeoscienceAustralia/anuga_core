@@ -1,25 +1,20 @@
-"""
-Boundary conditions - specific to the shallow water wave equation
+""" Boundary conditions specific to the shallow water wave equation
 
 Title: ANUGA boundaries with dependencies on shallow_water_domain
-
-
-Author: Ole Nielsen, Ole.Nielsen@ga.gov.au
-        Stephen Roberts, Stephen.Roberts@anu.edu.au
-        Duncan Gray, Duncan.Gray@ga.gov.au
-        Gareth Davies, gareth.davies.ga.code@gmail.com
-
+Author:
+    Ole Nielsen, Ole.Nielsen@ga.gov.au
+    Stephen Roberts, Stephen.Roberts@anu.edu.au
+    Duncan Gray, Duncan.Gray@ga.gov.au
+    Gareth Davies, gareth.davies.ga.code@gmail.com
 CreationDate: 2010
-
-Description:
-    This module contains boundary functions for ANUGA that are specific
-    to the shallow water Domain class.
-    
+Description::
+    This module contains boundary functions for ANUGA that are specific to the shallow water Domain class.  
 Constraints: See GPL license in the user guide
 Version: 1.0 ($Revision: 7731 $)
-ModifiedBy:
-    $Author: hudson $
-    $Date: 2010-05-18 14:54:05 +1000 (Tue, 18 May 2010) $
+ModifiedBy::
+    Author: hudson
+    Date: 2010-05-18 14:54:05 +1000 (Tue, 18 May 2010)
+
 """
 from __future__ import absolute_import
 from __future__ import division

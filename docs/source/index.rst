@@ -30,7 +30,10 @@ it is now developed and maintained by a community of volunteers.
    background
    installation
    examples/index
+   domain
+   initial_conditions
    boundaries
+   evolve
    operators
    structures
    reference/index
