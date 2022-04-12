@@ -2,7 +2,7 @@
 .. currentmodule:: anuga
 
 Evolve
--------
+=======
 
 Running a ANUGA model involves four basic steps:
 
@@ -27,11 +27,6 @@ For example here is such a setup for a domain object called :code:`domain`:
 >>> Br = anuga.Reflective_boundary(domain)
 >>> domain.set_boundary({'left' : Br, 'right' : Br, 'top' : Br, 'bottom' : Br})
 
-domain = anuga.rectangular_cross_domain(10,5)
-domain.set_quantity('elevation', function = lambda x,y : x/10)
-domain.set_quantity('stage', expression = "elevation + 0.2" )
-Br = anuga.Reflective_boundary(domain)
-domain.set_boundary({'left' : Br, 'right' : Br, 'top' : Br, 'bottom' : Br})
 
 To evolve the model we would use the domain's evolve method, using the following 
 code:
@@ -118,65 +113,57 @@ the model to "burn in" before starting the evolution proper.
 More Subtle Start times
 -----------------------
 
-To work with dates, times and timezones we can use the python modules :code:`datetime`and :code:`pytz` 
-to setup a date and time (and timezone) associated with ANUGA's zero time. 
+To work with dates, times and timezones we can use the python modules :code:`datetime`.
+to setup a date and time (and timezone) associated with ANUGA's starttime time. 
+Note the use of the :code:`datetime` argument for the 
+:code:`print_timestepping_statisitics` procedure.
+
+>>> import anuga
+>>> from datetime import datetime
+>>> domain = anuga.rectangular_cross_domain(10,5)
+>>> domain.set_quantity('elevation', function = lambda x,y : x/10)
+>>> domain.set_quantity('stage', expression = "elevation + 0.2" )
+>>> Br = anuga.Reflective_boundary(domain)
+>>> domain.set_boundary({'left' : Br, 'right' : Br, 'top' : Br, 'bottom' : Br})
+>>>
+>>> domain.set_timezone('Australia/Sydney')
+>>> starttime = datetime(2021, 7, 21, 18, 45)
+>>> domain.set_starttime(starttime)
+>>> finaltime = datetime(2021, 7, 21, 19, 0)
+>>>
+>>> for t in domain.evolve(yieldstep=300, finaltime=finaltime):
+>>>   domain.print_timestepping_statistics(datetime=True)
+DateTime: 2021-07-21 18:45:00+1000, steps=0 (0s)
+DateTime: 2021-07-21 18:50:00+1000, delta t in [0.00832571, 0.01071429] (s), steps=31233 (10s)
+DateTime: 2021-07-21 18:55:00+1000, delta t in [0.00959070, 0.00964172] (s), steps=31205 (10s)
+DateTime: 2021-07-21 19:00:00+1000, delta t in [0.00959070, 0.00964172] (s), steps=31205 (10s)
 
 
->>> from datetime import datetime, fromtimestamp
->>> import pytz
->>> anuga_model_tz  = pytz.timezone('Australia/Sydney')
+Essentially we use unix time as our absolute time. So time = 0 corresponds to Jan 1st 1970 UTC. 
 
->>> starttime_datetime = anuga_model_tz.localize(datetime(2021, 3, 21, 18, 30))
->>> starttime_timestamp = start_datetime.timestamp()
+For instance going back to an earlier example, and use the argument :code:`datetime` for the 
+:code:`print_timestepping_statisitics` procedure
 
->>> finaltime_datetime = anuga_model_tz.localize(datetime(2021, 3, 21, 23, 30))
->>> finaltime_timestamp = finaltime_datetime.timestamp()
-
->>> domain.set_starttime(start_datetime_timestamp)
-
->>> for t in domain.evolve(yieldstep=300, finaltime=finaltime_timestamp):
->>>     domain.print_timestepping_statistics()
->>>     current_time = domain.get_time()
->>>     current_datetime = anuga_model_tz.localize(fromtimestamp(current_time))
->>>     print('Time ', current_datetime)
-
-
-
-domain = anuga.rectangular_cross_domain(10,5)
-domain.set_quantity('elevation', function = lambda x,y : x/10)
-domain.set_quantity('stage', expression = "elevation + 0.2" )
-Br = anuga.Reflective_boundary(domain)
-domain.set_boundary({'left' : Br, 'right' : Br, 'top' : Br, 'bottom' : Br})
-
-from datetime import datetime
-import pytz
-anuga_model_tz  = pytz.timezone('Australia/Sydney')
-
-starttime_datetime = anuga_model_tz.localize(datetime(2021, 3, 21, 18, 30))
-starttime_timestamp = starttime_datetime.timestamp()
-
-finaltime_datetime = anuga_model_tz.localize(datetime(2021, 3, 21, 20, 0))
-finaltime_timestamp = finaltime_datetime.timestamp()
-
-domain.set_starttime(starttime_timestamp)
-
-def get_datetime(domain, timezone):
-    utc_datetime = pytz.utc.localize(datetime.utcfromtimestamp(domain.get_time()))
-    current_dt = utc_datetime.astimezone(anuga_model_tz)
-    return current_dt
-    
-
-for t in domain.evolve(yieldstep=300, finaltime=finaltime_timestamp):
-    domain.print_timestepping_statistics()
-    print('    DateTime ', get_datetime(domain,anuga_model_tz))
+>>> import anuga
+>>> from datetime import datetime
+>>> domain = anuga.rectangular_cross_domain(10,5)
+>>> domain.set_quantity('elevation', function = lambda x,y : x/10)
+>>> domain.set_quantity('stage', expression = "elevation + 0.2" )
+>>> Br = anuga.Reflective_boundary(domain)
+>>> domain.set_boundary({'left' : Br, 'right' : Br, 'top' : Br, 'bottom' : Br})
+>>>
+>>> for t in domain.evolve(yieldstep=1, finaltime=5):
+>>>   domain.print_timestepping_statistics(datetime=True)
+DateTime: 1970-01-01 00:00:00+0000, steps=0 (10s)
+DateTime: 1970-01-01 00:00:01+0000, delta t in [0.00858871, 0.01071429] (s), steps=111 (0s)
+DateTime: 1970-01-01 00:00:02+0000, delta t in [0.00832529, 0.00994060] (s), steps=110 (0s)
+DateTime: 1970-01-01 00:00:03+0000, delta t in [0.00901413, 0.00993095] (s), steps=106 (0s)
+DateTime: 1970-01-01 00:00:04+0000, delta t in [0.00863985, 0.00963487] (s), steps=109 (0s)
+DateTime: 1970-01-01 00:00:05+0000, delta t in [0.00887345, 0.00990731] (s), steps=106 (0s)
 
 
-Sometimes it is convenient to starting
-the evolution at some other time. I find it convenient to use the :code:`datetime` and :code:`pytz`
-libraries and consider ANUGA zero time as unix timestamp 0. 
-
->>> 
-
+Domain.evolve
+-------------
 
 .. autosummary::
    :toctree:  

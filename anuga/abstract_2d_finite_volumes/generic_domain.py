@@ -1078,7 +1078,8 @@ class Generic_Domain(object):
                                 track_speeds=False,
                                 triangle_id=None,
                                 relative_time=False,
-                                time_unit='sec'):
+                                time_unit='sec',
+                                datetime=False):
         """Return string with time stepping statistics
 
         Optional boolean keyword track_speeds decides whether to report
@@ -1112,16 +1113,30 @@ class Generic_Domain(object):
         else:
             time_unit = 'sec'
 
+        if datetime:
+            model_dt = self.get_datetime().strftime("%Y-%m-%d %H:%M:%S%z")
 
-        if self.recorded_min_timestep == self.recorded_max_timestep:
-            msg += 'Time = %.4f (%s), delta t = %.8f (s), steps=%d' \
-                % (model_time, time_unit, self.recorded_min_timestep, self.number_of_steps)
-        elif self.recorded_min_timestep > self.recorded_max_timestep:
-            msg += 'Time = %.4f (%s), steps=%d' % (model_time, time_unit, self.number_of_steps)
+            if self.recorded_min_timestep == self.recorded_max_timestep:
+                msg += 'DateTime: %s, delta t = %.8f (s), steps=%d' \
+                    % (model_dt, self.recorded_min_timestep, self.number_of_steps)
+            elif self.recorded_min_timestep > self.recorded_max_timestep:
+                msg += 'DateTime: %s, steps=%d' % (model_dt, self.number_of_steps)
+            else:
+                msg += 'DateTime: %s, delta t in [%.8f, %.8f] (s), steps=%d' \
+                    % (model_dt, self.recorded_min_timestep,
+                    self.recorded_max_timestep, self.number_of_steps)
         else:
-            msg += 'Time = %.4f (%s), delta t in [%.8f, %.8f] (s), steps=%d' \
-                % (model_time, time_unit, self.recorded_min_timestep,
-                   self.recorded_max_timestep, self.number_of_steps)
+            if self.recorded_min_timestep == self.recorded_max_timestep:
+                msg += 'Time = %.4f (%s), delta t = %.8f (s), steps=%d' \
+                    % (model_time, time_unit, self.recorded_min_timestep, self.number_of_steps)
+            elif self.recorded_min_timestep > self.recorded_max_timestep:
+                msg += 'Time = %.4f (%s), steps=%d' % (model_time, time_unit, self.number_of_steps)
+            else:
+                msg += 'Time = %.4f (%s), delta t in [%.8f, %.8f] (s), steps=%d' \
+                    % (model_time, time_unit, self.recorded_min_timestep,
+                    self.recorded_max_timestep, self.number_of_steps)
+
+
 
         msg += ' (%ds)' % (walltime() - self.last_walltime)
         self.last_walltime = walltime()

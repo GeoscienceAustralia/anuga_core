@@ -253,6 +253,10 @@ class Domain(Generic_Domain):
         #-------------------------------
         self.set_flow_algorithm()
 
+        #-------------------------------
+        # datetime and timezone
+        #-------------------------------
+        self.set_timezone()
 
         #-------------------------------
         # Forcing Terms
@@ -1052,6 +1056,95 @@ class Domain(Generic_Domain):
 #            Generic_Domain.set_quantity(self, name, *args, **kwargs)
 
         Generic_Domain.set_quantity(self, name, *args, **kwargs)
+
+
+    def set_timezone(self, tz = None):
+        """Set timezone for domain
+        
+        :param tz: either a timezone object or string
+        
+        We recommend using the timezone provided by the pytz modules. 
+        Default is pytz.utc
+
+        Example: Set default timezone UTC
+
+        >>> domain.set_timezone()
+
+        Example: Set timezone using pytz string
+
+        >>> domain.set_timezone('Australia/Syndey')
+
+        Example: Set timezone using pytz timezone
+
+        >>> new_tz = pytz.timezone('Australia/Sydney'
+        >>> domain.set_timezone(new_tz)
+        """
+
+        import pytz
+
+        if tz is None:
+            new_tz = pytz.utc
+        elif isinstance(tz,str):
+            new_tz = pytz.timezone(tz)
+        elif isinstance(tz, pytz.timezone):
+            new_tz = tz
+        else:
+            msg = "Unknown timezone %s" % tz
+            raise Exception(msg)
+
+        
+        self.timezone = new_tz
+
+    def get_timezone(self):
+        """Retrieve current domain timezone"""
+
+        return self.timezone
+
+    def get_datetime(self):
+        """Retrieve datetime corresponding to current timestamp wrt to domain timezone"""
+
+        import pytz
+        from datetime import datetime
+        utc_datetime = pytz.utc.localize(datetime.utcfromtimestamp(self.get_time()))
+        current_dt = utc_datetime.astimezone(self.timezone)
+        return current_dt
+
+    def set_starttime(self, timestamp=0.0):
+        """Set the starttime for the evolution
+        
+        :param time: Either a float or a datetime object
+        
+        Essentially we use unix time as our absolute time. So 
+        time = 0 corresponds to Jan 1st 1970 UTC
+        
+        Example: 
+        
+        >>> from datetime import datetime
+        >>> dt = datetime(2021,3,21,18,30)
+        >>> domain.set_starttime(dt)
+        >>> print(domain.get_datetime(), domain.get_time())
+        
+        
+        """
+
+
+        from datetime import datetime
+
+        if self.evolved_called:
+            msg = ('Can\'t change simulation start time once evolve has '
+                   'been called')
+            raise Exception(msg)
+
+        if isinstance(timestamp, datetime):
+            dt = self.timezone.localize(timestamp)
+            time = dt.timestamp()
+        else:
+            time = float(timestamp)
+
+
+        self.starttime = time
+        # starttime is now the origin for relative_time
+        self.set_relative_time(0.0)
 
 
     def set_store(self, flag=True):
@@ -2441,7 +2534,7 @@ class Domain(Generic_Domain):
 
         :param float yieldstep: yield every yieldstep time period
         :param float outputstep: Output to sww file every outputstep time period. outputstep should be an integer multiple of yieldstep. 
-        :param float finaltime: evolve until finaltime
+        :param float finaltime: evolve until finaltime (can be a float or a datetime object)
         :param float duration: evolve for a time of length duration
         :param  boolean skip_inital_step: Can be used to restart a simulation (not often used). 
 
@@ -2452,6 +2545,15 @@ class Domain(Generic_Domain):
 
         # Call check integrity here rather than from user scripts
         # self.check_integrity()
+
+        from datetime import datetime
+        if finaltime is not None:
+            if isinstance(finaltime, datetime):
+                dt = self.timezone.localize(finaltime)
+                finaltime = dt.timestamp()
+            else:
+                finaltime = float(finaltime)
+
 
         if outputstep is None:
             outputstep = yieldstep
@@ -2549,10 +2651,12 @@ class Domain(Generic_Domain):
                                 track_speeds=False,
                                 triangle_id=None,
                                 relative_time=False,
-                                time_unit='sec'):
+                                time_unit='sec',
+                                datetime=False):
         """Return string with time stepping statistics for printing or logging
 
         :param time_units: 'sec', 'min', 'hr', 'day'
+        :param bool datetime: flag to use timestamp or datetime
         :param track_speed: Optional boolean keyword track_speeds decides whether 
                             to report location of smallest timestep as well as a 
                             histogram and percentile report.
@@ -2568,7 +2672,8 @@ class Domain(Generic_Domain):
                                                      track_speeds=track_speeds,
                                                      triangle_id=triangle_id,
                                                      relative_time=relative_time,
-                                                     time_unit=time_unit)
+                                                     time_unit=time_unit,
+                                                     datetime=datetime)
 
         if track_speeds is True:
             # qwidth determines the text field used for quantities
@@ -2687,6 +2792,7 @@ class Domain(Generic_Domain):
         """Print time stepping statistics
 
         :param time_units: 'sec', 'min', 'hr', 'day'
+        :param bool datetime: flag to use timestamp or datetime
         :param track_speed: Optional boolean keyword track_speeds decides whether 
                             to report location of smallest timestep as well as a 
                             histogram and percentile report.
@@ -3394,20 +3500,6 @@ def my_update_special_conditions(domain):
     pass
 
 
-################################################################################
-# Initialise module
-################################################################################
-
-#def _raise_compile_exception():
-#    """ Raise exception if compiler not available. """
-#    msg = 'C implementations could not be accessed by %s.\n ' % __file__
-#    msg += 'Make sure compile_all.py has been run as described in '
-#    msg += 'the ANUGA installation guide.'
-#    raise Exception(msg)
-#
-#from anuga.utilities import compile
-#if not compile.can_use_C_extension('shallow_water_ext.c'):
-#    _raise_compile_exception()
 
 if __name__ == "__main__":
     pass
