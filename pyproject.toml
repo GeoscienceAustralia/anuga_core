@@ -6,22 +6,4 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 
-[project]
-name = "anuga"
-authors = [{name = "Stephen Roberts", email = "stephen.roberts@anu.edu.au"}]
-dynamic = ["version", "description"]
-dependencies = ["nose",
-                "numpy",
-                "scipy",
-                "netcdf4",
-                "matplotlib",
-                "dill",
-                "cython",
-                "future",
-                "Pmw",
-                "triangle",
-                "pytz"]
-
-# gdal also needs to be installed but library needs to be installed separately
-
 
