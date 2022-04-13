@@ -20,7 +20,7 @@ build_script:
   - CMD: SET
   - conda config --set always_yes yes
   - conda update conda
-  - conda install python=3.7 gdal nose numpy cython scipy netcdf4 matplotlib dill future gitpython
+  - conda install python=3.7 gdal nose numpy cython scipy netcdf4 matplotlib dill future gitpython pytz
   - conda install -c conda-forge mpi4py msmpi
   - pip install Pmw
   - conda install -c msys2 libpython m2w64-toolchain

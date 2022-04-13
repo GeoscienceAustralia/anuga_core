@@ -4,21 +4,24 @@
 Evolve
 =======
 
-Running a ANUGA model involves four basic steps:
+Running a ANUGA model involves five basic steps:
 
 * :doc:`Creating a domain <domain>`
 * :doc:`Setting up the initial conditions <initial_conditions>`
 * :doc:`Settting up the boundary condition <boundaries>`
+* :doc:`Setting up any stuctures or operators <operators>`
 * :doc:`Evolving the model <evolve>`
 
 Here we describe the last step, how to run (evolve) the model for a specified amount of time. 
 
-It would 
-also be good to be able to interact with the evolving model. This 
-is provided by the :doc:`evolve <anuga.Domain.evolve>` method 
+Evolving the Model
+------------------
+
+In addition to evolving the model, it would good to be able to interact with the evolving model. This 
+is all provided by the :doc:`evolve <anuga.Domain.evolve>` method 
 of the :doc:`Domain </reference/anuga.Domain>` object. 
 
-Suppose a Domain we have created, and the initial conditions and boundary conditions set. 
+Suppose we have created and set up a Domain by completing the first 4 basic steps.
 For example here is such a setup for a domain object called :code:`domain`:
 
 >>> domain = anuga.rectangular_cross_domain(10,5)
@@ -34,9 +37,10 @@ code:
 >>> for t in domain.evolve(yieldstep=1.0, finaltime=10.0):
 >>>    pass
 
-This will run the model from `time=0`` to the `finaltime 10.0`. By default the state 
-of the simulation will be saved to a file (with `sww` format, by default named `domain.sww`) 
-every yieldstep, in this case every 1 second of simulation time. 
+This will run the model from `time=0` to the `finaltime = 10.0`. The method will "yield" 
+to the loop every `yieldstep = 1$`. By default the state 
+of the simulation will be saved to a file (by default named `domain.sww`) 
+every `yieldstep`, in this case every 1 second of simulation time. 
 
 As the `evolve` construct provides a `for` loop (via the python `yield`` construct) it is possible
 to include extra code within the loop. A typical `evolve` loop can provide some printed feedback, i.e.
@@ -55,8 +59,8 @@ Time = 8.0000 (sec), delta t in [0.00917360, 0.00985509] (s), steps=106 (0s)
 Time = 9.0000 (sec), delta t in [0.00925747, 0.00984041] (s), steps=104 (0s)
 Time = 10.0000 (sec), delta t in [0.00927581, 0.00973202] (s), steps=106 (0s)
 
-While the yieldsteps are fixed, to maintain stability of the simulation, it is required 
-to evolve with inner evolve timesteps which are generally much smaller than the yieldstep. 
+During the evolution the yieldsteps are fixed but to maintain stability of the simulation, the 
+underlying computation uses inner evolve timesteps which are generally much smaller than the yieldstep. 
 The number of these inner evolve timesteps are reported as steps and the
 range of the sizes of these evolve timesteps are reported as the delta t. 
 
@@ -74,8 +78,8 @@ Time = 17.0000 (sec), delta t in [0.00945517, 0.00978655] (s), steps=105 (0s)
 
 
 Sometimes it is necessary to interact with the evolution using a small 
-`yieldstep`  but in this case the `sww` file stored at each yieldstep can 
-become prohibitively large. 
+`yieldstep` (such as controlling a hydraulic structure). In this case the `sww` file stored 
+at each yieldstep can become prohibitively large. 
 
 Instead you can save the state every `outputstep` time interval, while still 
 interacting every `yieldstep` interval. 
@@ -95,14 +99,14 @@ Time = 20.5000 (sec), delta t in [0.00951811, 0.00975266] (s), steps=52 (0s)
 Time = 21.0000 (sec), delta t in [0.00948645, 0.00957223] (s), steps=53 (0s)
 
 
-Actually typical situations could be `yieldstep = 1.0` and `outputstep=300`. 
+Typical situations could be `yieldstep = 1.0` and `outputstep=300`. 
 In this case the `sww` file will be 300 times smaller than just using `yieldstep` for 
 output. 
 
 Start Time
 ----------
 
-By default the evolution starts at time 0.0. TO set another start time, simply set the starttime
+By default the evolution starts at time 0.0. To set another start time, simply set the starttime
 before the evolve loop, i.e.
 
 >>> domain.set_starttime(-3600*24)
@@ -113,11 +117,12 @@ the model to "burn in" before starting the evolution proper.
 More Subtle Start times
 -----------------------
 
-To work with dates, times and timezones we can use the python modules :code:`datetime`.
+To work with dates, times and timezones we can use the python module :code:`datetime`.
 to setup a date and time (and timezone) associated with ANUGA's starttime time. 
 Note the use of the :code:`datetime` argument for the 
 :code:`print_timestepping_statisitics` procedure.
 
+Once again let's suppose we have setup a domain
 >>> import anuga
 >>> from datetime import datetime
 >>> domain = anuga.rectangular_cross_domain(10,5)
@@ -125,12 +130,26 @@ Note the use of the :code:`datetime` argument for the
 >>> domain.set_quantity('stage', expression = "elevation + 0.2" )
 >>> Br = anuga.Reflective_boundary(domain)
 >>> domain.set_boundary({'left' : Br, 'right' : Br, 'top' : Br, 'bottom' : Br})
->>>
+
+By default ANUGA uses a UTC as the default timezone for the domain. 
+We can change it via :code:`set_timezone`
+
 >>> domain.set_timezone('Australia/Sydney')
+
+Suppose we want to start the model at 18:45 on the 21st July 2021. Use the :code:`datetime` module 
+to setup this date, and the set the start time, as follows:
+
+>>> from datetime import datetime
 >>> starttime = datetime(2021, 7, 21, 18, 45)
 >>> domain.set_starttime(starttime)
+
+Suppose we want to evolve until 19:00 in the 21st July 2021. Use :code:`datetime` to setup
+this `finaltime`:
+
 >>> finaltime = datetime(2021, 7, 21, 19, 0)
->>>
+
+And now evolve the model:
+
 >>> for t in domain.evolve(yieldstep=300, finaltime=finaltime):
 >>>   domain.print_timestepping_statistics(datetime=True)
 DateTime: 2021-07-21 18:45:00+1000, steps=0 (0s)
@@ -139,13 +158,16 @@ DateTime: 2021-07-21 18:55:00+1000, delta t in [0.00959070, 0.00964172] (s), ste
 DateTime: 2021-07-21 19:00:00+1000, delta t in [0.00959070, 0.00964172] (s), steps=31205 (10s)
 
 
-Essentially we use unix time as our absolute time. So time = 0 corresponds to Jan 1st 1970 UTC. 
+Default zero time
+-----------------
 
-For instance going back to an earlier example, and use the argument :code:`datetime` for the 
-:code:`print_timestepping_statisitics` procedure
+We use unix timestamp as our underlying absolute time. So time = 0 corresponds to Jan 1st 1970 UTC. 
+
+For instance going back to an earlier example which uses the default timezone and 0 start time.
+Note the use of the argument :code:`datetime` for the 
+:code:`print_timestepping_statistics` procedure.
 
 >>> import anuga
->>> from datetime import datetime
 >>> domain = anuga.rectangular_cross_domain(10,5)
 >>> domain.set_quantity('elevation', function = lambda x,y : x/10)
 >>> domain.set_quantity('stage', expression = "elevation + 0.2" )
@@ -160,6 +182,10 @@ DateTime: 1970-01-01 00:00:02+0000, delta t in [0.00832529, 0.00994060] (s), ste
 DateTime: 1970-01-01 00:00:03+0000, delta t in [0.00901413, 0.00993095] (s), steps=106 (0s)
 DateTime: 1970-01-01 00:00:04+0000, delta t in [0.00863985, 0.00963487] (s), steps=109 (0s)
 DateTime: 1970-01-01 00:00:05+0000, delta t in [0.00887345, 0.00990731] (s), steps=106 (0s)
+
+
+Note that the date is 1st Jan 1970, starting at time 0:00, incrementing by 1 sec and 
+the UTC offset is +0000 (ie the timezone is UTC). 
 
 
 Domain.evolve

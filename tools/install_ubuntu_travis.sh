@@ -143,6 +143,11 @@ echo "|  Using pip to install Pmw                     |"
 echo "+===============================================+"
 python -m pip  install -q Pmw
 
+echo "+===============================================+"
+echo "|  Using pip to install pytz                    |"
+echo "+===============================================+"
+python -m pip  install -q pytz
+
     
 ##########################################################
 # Setup for various versions of MPI

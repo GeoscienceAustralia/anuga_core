@@ -73,7 +73,7 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
     extra_setuptools_args = dict(
         zip_safe=False,  # the package can run out of an .egg file
         include_package_data=True,
-      		install_requires=['nose',
+      	install_requires=['nose',
                           'numpy',
                           'scipy',
                           'netcdf4',
@@ -84,7 +84,8 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
                           'future',   # FIXME(Ole): Deprecate
                           'mpi4py',
                           'Pmw',
-                          'triangle']
+                          'triangle',
+                          'pytz']
     )
 else:
     extra_setuptools_args = dict()
