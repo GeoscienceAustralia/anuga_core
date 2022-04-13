@@ -25,7 +25,8 @@ build_script:
   - pip install Pmw
   - conda install -c msys2 libpython m2w64-toolchain
   - pip install triangle
-  - python setup.py install
+  - python setup.py build_ext --compiler=mingw32 --inplace
+  - python setup.py develop
 
 test_script:
   - python runtests.py
