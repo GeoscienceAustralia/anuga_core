@@ -1,8 +1,7 @@
 language: python
 matrix:
 
-   include:
-   s        
+   include:       
        - os: linux
          dist: focal
          sudo: required
