@@ -72,7 +72,7 @@ echo "|  Using apt-get to install gdal                |"
 echo "+===============================================+"
 #sudo add-apt-repository -y ppa:ubuntugis/ppa
 #sudo apt-get update
-sudo apt-get install -y gdal-bin libgdal-dev python3-gdal
+sudo apt-get install -y gdal-bin libgdal-dev
 
 echo "+===============================================+"
 echo "|  GDAL version                                 |"
@@ -95,7 +95,7 @@ python -m pip  install -q matplotlib
 #echo "+===============================================+"
 #echo "|  Using pip to install gdal                    |"
 #echo "+===============================================+"
-#python -m pip  install -q GDAL
+python -m pip  install -q GDAL=3.0.4
 
 echo "+===============================================+"
 echo "|  Using pip to install nose                    |"
