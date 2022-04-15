@@ -1,18 +1,21 @@
 language: python
 matrix:
 
-   include:       
-       - os: linux
-         dist: focal
-         sudo: required
-         python: "3.8"
-         env: PYTHON_VERSION="3.8"  ANUGA_PARALLEL="conda"  PYPAR_AVAILABLE="mpi4py" DISTRIB="conda"
+   include:
 
        - os: linux
          dist: focal
          sudo: required
          python: "3.8"
          env: PYTHON_VERSION="3.8"  ANUGA_PARALLEL="openmpi"  PYPAR_AVAILABLE="mpi4py" DISTRIB="ubuntu"
+
+       - os: linux
+         dist: focal
+         sudo: required
+         python: "3.8"
+         env: PYTHON_VERSION="3.8"  ANUGA_PARALLEL="conda"  PYPAR_AVAILABLE="mpi4py" DISTRIB="conda"
+
+
 
 install:
     - if [[ "$DISTRIB" == "conda_macos" ]]; then source tools/install_conda_macos_travis.sh; fi
