@@ -103,9 +103,78 @@ def configuration(parent_package='', top_path=None):
 
     return config
 
+def store_revision_info(destination_path='anuga', version=VERSION, verbose=False):
+    """Obtain current revision from git and store it.
+
+    Author: Stephen Roberts (stephen.roberts@anu.edu.au)
+
+    CreationDate: August 2020
+
+    Description:
+        This function obtains current version from Git and stores it
+        is a Python file named 'revision.py' for use with
+        get_version_info()
+
+        If git is not available on the system PATH, an Exception is thrown
+    """
+   
+
+    # Git revision information (relies on the gitpython package)
+    # https://stackoverflow.com/questions/14989858/get-the-current-git-hash-in-a-python-script
+    try:
+        import git
+        repo = git.Repo(search_parent_directories=True)
+    except:
+        # Create dummy values for git revision info
+        __git_sha__ = 'No git sha available'
+        __git_committed_datetime__ = 'No git date available'
+        __version__ = version
+
+        msg = ('Could not import git module. ANUGA will still work, but will not store '
+            'revision information in output file. You may need to install python git '
+            'e.g. as pip install gitpython')
+        #raise Warning(msg)  # I can't remember why does this cause ANUGA to stop instead of just issuing the warning (Ole)?
+        print('WARNING', msg)
+    else:
+        __git_sha__ = repo.head.object.hexsha
+        __git_committed_datetime__ = repo.head.object.committed_datetime
+        __version__ = version
+
+ 
+    if verbose: print('git_sha: ',__git_sha__)
+    if verbose: print('git_committed_datetime: ',__git_committed_datetime__)
+    if verbose: print('version: ',__version__ )
+
+    # Determine absolute filename
+    if destination_path[-1] != os.sep:
+        destination_path += os.sep
+        
+    filename = destination_path + 'revision.py'
+
+    fid = open(filename, 'w')
+
+    docstring = 'Stored git revision info.\n\n'
+    docstring += 'This file provides the git sha id and commit date for the installed '
+    docstring += 'revision of ANUGA.\n'
+    docstring += 'The file is automatically generated and should not '
+    docstring += 'be modified manually.\n'
+    fid.write('"""%s"""\n\n' %docstring)
+    
+    fid.write('__git_sha__ = "%s"\n'%__git_sha__)
+    fid.write('__git_committed_datetime__ = "%s"\n'%__git_committed_datetime__)
+    fid.write('__version__ = "%s"\n'%__version__)
+    fid.close()
+
+
+    if verbose is True:
+        print('Revision info stored to %s' % filename)
+
 
 
 def setup_package():
+
+    # Update anuga/revision.py file
+    store_revision_info()
 
     metadata = dict(name=DISTNAME,
                     maintainer=MAINTAINER,

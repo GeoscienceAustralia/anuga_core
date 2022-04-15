@@ -24,6 +24,7 @@
 
 from .revision import  __git_sha__
 from .revision import __git_committed_datetime__
+from .revision import __version__
 
 # ----------------------------------
 # NetCDF changes stdout to terminal
