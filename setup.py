@@ -68,6 +68,23 @@ else:
 ###############################################################################
 
 
+
+from setuptools.command.build_ext import build_ext
+from setuptools import Extension, setup
+
+
+class custom_build_ext(build_ext):
+    def build_extensions(self):
+        # Override the compiler executables. Importantly, this
+        # removes the "default" compiler flags that would
+        # otherwise get passed on to to the compiler, i.e.,
+        # distutils.sysconfig.get_var("CFLAGS").
+        self.compiler.set_executable("compiler_so", "gcc")
+        self.compiler.set_executable("compiler_cxx", "g++")
+        self.compiler.set_executable("linker_so", "gcc")
+        build_ext.build_extensions(self)
+
+
 class CleanCommand(Clean):
     description = "Remove build artifacts from the source tree"
 
@@ -132,7 +149,7 @@ def setup_package():
                                  'Programming Language :: Python :: 3.7',
                                  'Programming Language :: Python :: 3.8',
                                  ],
-                    cmdclass={'clean': CleanCommand},
+                    cmdclass={'clean': CleanCommand, "build_ext": custom_build_ext},
                     **extra_setuptools_args)
 
 
