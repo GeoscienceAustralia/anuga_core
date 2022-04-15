@@ -6,9 +6,6 @@
 #
 # Setup.py taken from scikit learn
 
-from future import standard_library
-standard_library.install_aliases()
-from builtins import filter
 descr = """A set of python modules for modelling the effect of tsunamis and flooding"""
 
 import sys
@@ -16,16 +13,6 @@ import os
 import shutil
 from distutils.command.clean import clean as Clean
 
-if sys.version_info[0] < 3:
-    import __builtin__ as builtins
-else:
-    import builtins
-
-
-# This is the numpy/scipy hack: Set a global variable so that the main
-# anuga __init__ can detect if it is being loaded by the setup routine, to
-# avoid attempting to load components that aren't built yet.
-builtins.__ANUGA_SETUP__ = True
 
 #==============================================================================
 DISTNAME = 'anuga'
@@ -37,22 +24,10 @@ MAINTAINER_EMAIL = 'stephen.roberts@anu.edu.au'
 URL = "http://anuga.anu.edu.au"
 LICENSE = 'GPL'
 DOWNLOAD_URL = "http://sourceforge.net/projects/anuga/"
+VERSION = '3.0.1'
 #===============================================================================
 
 
-# We can actually import a restricted version of anuga that
-# does not need the compiled code
-import anuga
-
-VERSION = anuga.__version__
-
-
-
-# FIXME(Ole): If we need this, it should be using git now
-# Return the svn revision as a string
-def svn_revision():
-
-    return ''.join(filter(str.isdigit, "$Revision$"))
 
 ###############################################################################
 # Optional setuptools features
@@ -133,10 +108,6 @@ def configuration(parent_package='', top_path=None):
 
 def setup_package():
 
-    from anuga.utilities.system_tools import store_git_revision_info
-
-    store_git_revision_info(destination_path='anuga')
-
     metadata = dict(name=DISTNAME,
                     maintainer=MAINTAINER,
                     maintainer_email=MAINTAINER_EMAIL,
@@ -150,6 +121,7 @@ def setup_package():
                                  'Intended Audience :: Developers',
                                  'License :: OSI Approved',
                                  'Programming Language :: C',
+                                 'Programming Language :: C++',
                                  'Programming Language :: Python',
                                  'Topic :: Software Development',
                                  'Topic :: Scientific/Engineering',
@@ -157,8 +129,8 @@ def setup_package():
                                  'Operating System :: POSIX',
                                  'Operating System :: Unix',
                                  'Operating System :: MacOS',
-                                 'Programming Language :: Python :: 2.6',
-                                 'Programming Language :: Python :: 2.7',
+                                 'Programming Language :: Python :: 3.7',
+                                 'Programming Language :: Python :: 3.8',
                                  ],
                     cmdclass={'clean': CleanCommand},
                     **extra_setuptools_args)
