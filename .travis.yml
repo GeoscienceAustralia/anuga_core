@@ -2,7 +2,7 @@ language: python
 matrix:
 
    include:
-           
+   s        
        - os: linux
          dist: focal
          sudo: required
@@ -10,7 +10,7 @@ matrix:
          env: PYTHON_VERSION="3.8"  ANUGA_PARALLEL="conda"  PYPAR_AVAILABLE="mpi4py" DISTRIB="conda"
 
        - os: linux
-         dist: xenial
+         dist: focal
          sudo: required
          python: "3.8"
          env: PYTHON_VERSION="3.8"  ANUGA_PARALLEL="openmpi"  PYPAR_AVAILABLE="mpi4py" DISTRIB="ubuntu"

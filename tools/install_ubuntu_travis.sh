@@ -70,9 +70,13 @@ sudo apt-get install -q -y git gfortran netcdf-bin \
 echo "+===============================================+"
 echo "|  Using apt-get to install gdal                |"
 echo "+===============================================+"
-sudo add-apt-repository -y ppa:ubuntugis/ppa
-sudo apt-get update
-sudo apt-get install -y gdal-bin libgdal-dev
+#sudo add-apt-repository -y ppa:ubuntugis/ppa
+#sudo apt-get update
+sudo apt-get install -y gdal-devel libgdal-dev
+
+echo "+===============================================+"
+echo "|  GDAL version                                 |"
+echo "+===============================================+"
 ogrinfo --version
 export CPLUS_INCLUDE_PATH=/usr/include/gdal
 export C_INCLUDE_PATH=/usr/include/gdal
@@ -91,7 +95,7 @@ python -m pip  install -q matplotlib
 echo "+===============================================+"
 echo "|  Using pip to install gdal                    |"
 echo "+===============================================+"
-python -m pip  install -q gdal
+python -m pip  install -q GDAL
 
 echo "+===============================================+"
 echo "|  Using pip to install nose                    |"
