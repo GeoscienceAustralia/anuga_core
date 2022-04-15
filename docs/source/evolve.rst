@@ -38,7 +38,7 @@ code:
 >>>    pass
 
 This will run the model from `time=0` to the `finaltime = 10.0`. The method will "yield" 
-to the loop every `yieldstep = 1$`. By default the state 
+to the for loop every `yieldstep = 1`. By default the state 
 of the simulation will be saved to a file (by default named `domain.sww`) 
 every `yieldstep`, in this case every 1 second of simulation time. 
 
@@ -64,6 +64,8 @@ underlying computation uses inner evolve timesteps which are generally much smal
 The number of these inner evolve timesteps are reported as steps and the
 range of the sizes of these evolve timesteps are reported as the delta t. 
 
+Duration versus finaltime
+--------------------------
 
 It can also be convenient to evolve for a specific `duration`. In this case we replace the `finaltime`
 argument with `duration`. I.e. let us continue the evolution for 7 seconds with yieldstep now
@@ -75,6 +77,11 @@ Time = 12.0000 (sec), delta t in [0.00932516, 0.00982159] (s), steps=209 (63s)
 Time = 14.0000 (sec), delta t in [0.00941363, 0.00981322] (s), steps=210 (0s)
 Time = 16.0000 (sec), delta t in [0.00944121, 0.00979934] (s), steps=208 (0s)
 Time = 17.0000 (sec), delta t in [0.00945517, 0.00978655] (s), steps=105 (0s)
+
+
+
+Outputstep
+----------
 
 
 Sometimes it is necessary to interact with the evolution using a small 
@@ -114,8 +121,8 @@ before the evolve loop, i.e.
 to set the start time one day in the past (from ANUGA's zero time). This can be used to allow 
 the model to "burn in" before starting the evolution proper. 
 
-More Subtle Start times
------------------------
+Start times with DateTime and Timezones
+---------------------------------------
 
 To work with dates, times and timezones we can use the python module :code:`datetime`.
 to setup a date and time (and timezone) associated with ANUGA's starttime time. 
@@ -163,7 +170,7 @@ Default zero time
 
 We use unix timestamp as our underlying absolute time. So time = 0 corresponds to Jan 1st 1970 UTC. 
 
-For instance going back to an earlier example which uses the default timezone and 0 start time.
+For instance going back to an earlier example which uses the default timezone (UTC) and 0 start time.
 Note the use of the argument :code:`datetime` for the 
 :code:`print_timestepping_statistics` procedure.
 
