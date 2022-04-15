@@ -26,6 +26,7 @@ build_script:
   - conda install -c msys2 libpython m2w64-toolchain
   - pip install triangle
   - python --version
+  - cp windows_setup.cfg setup.cfg
   - python setup.py install
 
 test_script:
