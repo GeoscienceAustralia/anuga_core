@@ -43,7 +43,8 @@ of the simulation will be saved to a file (by default named `domain.sww`)
 every `yieldstep`, in this case every 1 second of simulation time. 
 
 As the `evolve` construct provides a `for` loop (via the python `yield` construct) it is possible
-to include extra code within the loop. A typical `evolve` loop can provide some printed feedback, i.e.
+to include extra code within the loop. A typical `evolve` loop can provide some printed feedback
+the :meth:`print_timestepping_statistics <anuga.Domain.print_timestepping_statistics>` method, i.e.,
 
 >>> for t in domain.evolve(yieldstep=1.0, finaltime=10.0):
 >>>    domain.print_timestepping_statistics()
@@ -64,8 +65,8 @@ underlying computation uses inner evolve timesteps which are generally much smal
 The number of these inner evolve timesteps are reported as steps and the
 range of the sizes of these evolve timesteps are reported as the delta t. 
 
-Duration versus finaltime
---------------------------
+Duration instead of finaltime
+-----------------------------
 
 It can also be convenient to evolve for a specific `duration`. In this case we replace the `finaltime`
 argument with `duration`. I.e. let us continue the evolution for 7 seconds with yieldstep now
@@ -125,10 +126,10 @@ the model to "burn in" before starting the evolution proper.
 Start times with DateTime and Timezones
 ---------------------------------------
 
-To work with dates, times and timezones we can use the python module :code:`datetime`.
+To work with dates, times and timezones we can use the python module `datetime`.
 to setup a date and time (and timezone) associated with ANUGA's starttime time. 
-Note the use of the :code:`datetime` argument for the 
-:meth:`print_timestepping_statisitics <~Domain.print_timestepping_statistics>` procedure.
+Note the use of the `datetime` argument for the 
+:meth:`print_timestepping_statisitics <Domain.print_timestepping_statistics>` procedure.
 
 Once again let's suppose we have setup a domain via:
 
@@ -141,7 +142,7 @@ Once again let's suppose we have setup a domain via:
 >>> domain.set_boundary({'left' : Br, 'right' : Br, 'top' : Br, 'bottom' : Br})
 
 By default ANUGA uses a UTC as the default timezone for the domain. 
-We can change it via :meth:`set_timezone <~Domain.set_timezone>` 
+We can change it via :meth:`set_timezone <anuga.Domain.set_timezone>` 
 
 >>> domain.set_timezone('Australia/Sydney')
 
@@ -173,8 +174,9 @@ Default zero time
 We use unix timestamp as our underlying absolute time. So `time = 0` corresponds to Jan 1st 1970 UTC. 
 
 For instance going back to an earlier example which uses the default timezone (UTC) and 0 start time.
-Note the use of the argument :code:`datetime` for the 
-:meth:`print_timestepping_statistics <anuga.Domain.print_timestepping_statistics>` procedure.
+
+(Remember in this case to set `datetime = True` in the 
+:meth:`print_timestepping_statistics <anuga.Domain.print_timestepping_statistics>` procedure.)
 
 >>> import anuga
 >>> domain = anuga.rectangular_cross_domain(10,5)
@@ -201,9 +203,14 @@ Domain.evolve
 -------------
 
 .. autosummary::
-   :toctree:  
+   :toctree: generated
    
    anuga.Domain.evolve
    anuga.Domain.print_timestepping_statistics
    anuga.Domain.set_starttime
    anuga.Domain.set_timezone
+
+ * :doc:`anuga.Domain.evolve`
+ * :doc:`anuga.Domain.print_timestepping_statistics`
+ * :doc:`anuga.Domain.set_starttime`
+ * :doc:`anuga.Domain.set_timezone`

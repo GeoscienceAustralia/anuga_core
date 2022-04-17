@@ -3,26 +3,24 @@ Boundary Conditions
 ===================
 
 
-.. currentmodule:: anuga
-
 
 
 .. autosummary::
    :toctree: generated
 
-   Reflective_boundary
-   Dirichlet_boundary
-   Time_space_boundary
-   Flather_external_stage_zero_velocity_boundary
-   Transmissive_n_momentum_zero_t_momentum_set_stage_boundary
+   anuga.Reflective_boundary
+   anuga.Dirichlet_boundary
+   anuga.Time_space_boundary
+   anuga.Flather_external_stage_zero_velocity_boundary
+   anuga.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary
 
-   Transmissive_boundary
-   File_boundary
-   Field_boundary
+   anuga.Transmissive_boundary
+   anuga.File_boundary
+   anuga.Field_boundary
 
-   Time_stage_zero_momentum_boundary
-   Transmissive_stage_zero_momentum_boundary
-   Transmissive_momentum_set_stage_boundary
-   
-   Time_boundary
+   anuga.Time_stage_zero_momentum_boundary
+   anuga.Transmissive_stage_zero_momentum_boundary
+   anuga.Transmissive_momentum_set_stage_boundary
+
+   anuga.Time_boundary
    

@@ -1,16 +1,10 @@
 
 .. currentmodule:: anuga
 
-
-
-
 Creating a Domain
 =================
 
 
-
-
-.. only:: html
 
 Classes Associated with the Domain
 ===================================
@@ -18,9 +12,11 @@ Classes Associated with the Domain
 
 
 .. autosummary::
-   :toctree:  
+   :toctree:  generated
    
-   Domain
-   Quantity
-   Region
+   anuga.Domain
+   anuga.Quantity
+   anuga.Region
+
+ 
 
