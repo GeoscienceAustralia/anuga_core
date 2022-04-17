@@ -7,4 +7,4 @@ Creating a Domain
 .. autosummary::
    :toctree:  
    
-   create_domain_from_regions
+   anuga.create_domain_from_regions
