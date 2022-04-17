@@ -500,7 +500,8 @@ def distribute_mesh(domain, verbose=False, debug=False, parameters=None):
 
 def mpicmd(script_name, numprocs=3):
 
-    extra_options = '--oversubscribe'
+    #extra_options = '--oversubscribe'
+    extra_options = ' '
 
     import platform
     if platform.system() == 'Windows':

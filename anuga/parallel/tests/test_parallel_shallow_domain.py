@@ -49,6 +49,7 @@ class Test_parallel_shallow_domain(unittest.TestCase):
         else:
             # E.g. for Ubuntu Linux
             extra_options = '--oversubscribe'
+            extra_options = ' '
 
         cmd = 'mpiexec -np 3 ' + extra_options + ' python ' + run_filename
         if verbose:
