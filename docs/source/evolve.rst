@@ -18,11 +18,11 @@ Evolving the Model
 ------------------
 
 In addition to evolving the model, it would good to be able to interact with the evolving model. This 
-is all provided by the :meth:`evolve <Domain.evolve>` method 
+is all provided by the :doc:`evolve <anuga.Domain.evolve>` method 
 of the :doc:`Domain </reference/anuga.Domain>` object. 
 
 Suppose we have created and set up a Domain by completing the first 4 basic steps.
-For example here is such a setup for a domain object called `domain`:
+For example here is such a setup for a domain object called :code:`domain`:
 
 >>> domain = anuga.rectangular_cross_domain(10,5)
 >>> domain.set_quantity('elevation', function = lambda x,y : x/10)
@@ -42,7 +42,7 @@ to the for loop every `yieldstep = 1`. By default the state
 of the simulation will be saved to a file (by default named `domain.sww`) 
 every `yieldstep`, in this case every 1 second of simulation time. 
 
-As the `evolve` construct provides a `for` loop (via the python `yield` construct) it is possible
+As the `evolve` construct provides a `for` loop (via the python `yield`` construct) it is possible
 to include extra code within the loop. A typical `evolve` loop can provide some printed feedback, i.e.
 
 >>> for t in domain.evolve(yieldstep=1.0, finaltime=10.0):
@@ -92,7 +92,7 @@ Instead you can save the state every `outputstep` time interval, while still
 interacting every `yieldstep` interval. 
 
 For instance. let us continue the evolution, but now with a smaller yieldstep 
-of 0.5 seconds, but with output to  `domain.sww` every 2 seconds.
+of 0.5 seconds, but with output to  :code:`domain.sww` every 2 seconds.
 
 >>> for t in domain.evolve(yieldstep=0.5, outputstep=2.0, duration=4.0):
 >>>     domain.print_timestepping_statistics()
@@ -113,8 +113,7 @@ output.
 Start Time
 ----------
 
-By default the evolution starts at time 0.0. To set another start time, simply use 
-:meth:`set_starttime <anuga.Domain.set_starttime>` 
+By default the evolution starts at time 0.0. To set another start time, simply set the starttime
 before the evolve loop, i.e.
 
 >>> domain.set_starttime(-3600*24)
@@ -128,10 +127,9 @@ Start times with DateTime and Timezones
 To work with dates, times and timezones we can use the python module :code:`datetime`.
 to setup a date and time (and timezone) associated with ANUGA's starttime time. 
 Note the use of the :code:`datetime` argument for the 
-:meth:`print_timestepping_statisitics <~Domain.print_timestepping_statistics>` procedure.
+:code:`print_timestepping_statisitics` procedure.
 
-Once again let's suppose we have setup a domain via:
-
+Once again let's suppose we have setup a domain
 >>> import anuga
 >>> from datetime import datetime
 >>> domain = anuga.rectangular_cross_domain(10,5)
@@ -141,18 +139,18 @@ Once again let's suppose we have setup a domain via:
 >>> domain.set_boundary({'left' : Br, 'right' : Br, 'top' : Br, 'bottom' : Br})
 
 By default ANUGA uses a UTC as the default timezone for the domain. 
-We can change it via :meth:`set_timezone <~Domain.set_timezone>` 
+We can change it via :code:`set_timezone`
 
 >>> domain.set_timezone('Australia/Sydney')
 
-Suppose we want to start the model at 18:45 on the 21st July 2021. Use the `datetime` module 
+Suppose we want to start the model at 18:45 on the 21st July 2021. Use the :code:`datetime` module 
 to setup this date, and the set the start time, as follows:
 
 >>> from datetime import datetime
 >>> starttime = datetime(2021, 7, 21, 18, 45)
 >>> domain.set_starttime(starttime)
 
-Suppose we want to evolve until 19:00 on the 21st July 2021. Use `datetime` to setup
+Suppose we want to evolve until 19:00 in the 21st July 2021. Use :code:`datetime` to setup
 this `finaltime`:
 
 >>> finaltime = datetime(2021, 7, 21, 19, 0)
@@ -170,11 +168,11 @@ DateTime: 2021-07-21 19:00:00+1000, delta t in [0.00959070, 0.00964172] (s), ste
 Default zero time
 -----------------
 
-We use unix timestamp as our underlying absolute time. So `time = 0` corresponds to Jan 1st 1970 UTC. 
+We use unix timestamp as our underlying absolute time. So time = 0 corresponds to Jan 1st 1970 UTC. 
 
 For instance going back to an earlier example which uses the default timezone (UTC) and 0 start time.
 Note the use of the argument :code:`datetime` for the 
-:meth:`print_timestepping_statistics <anuga.Domain.print_timestepping_statistics>` procedure.
+:code:`print_timestepping_statistics` procedure.
 
 >>> import anuga
 >>> domain = anuga.rectangular_cross_domain(10,5)
@@ -203,7 +201,4 @@ Domain.evolve
 .. autosummary::
    :toctree:  
    
-   anuga.Domain.evolve
-   anuga.Domain.print_timestepping_statistics
-   anuga.Domain.set_starttime
-   anuga.Domain.set_timezone
+   Domain.evolve

@@ -1076,7 +1076,7 @@ class Domain(Generic_Domain):
 
         Example: Set timezone using pytz timezone
 
-        >>> new_tz = pytz.timezone('Australia/Sydney')
+        >>> new_tz = pytz.timezone('Australia/Sydney'
         >>> domain.set_timezone(new_tz)
         """
 
