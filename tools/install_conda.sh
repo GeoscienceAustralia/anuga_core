@@ -16,7 +16,7 @@ ANUGA_BITS=${ANUGA_BITS:-"64"}
 
 
 sudo apt-get update -q
-sudo apt-get install gfortran git
+sudo apt-get install gfortran git wget
 sudo apt-get install -y libopenmpi-dev openmpi-bin;
 
 ##########################################################

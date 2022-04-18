@@ -44,7 +44,7 @@ every `yieldstep`, in this case every 1 second of simulation time.
 
 As the `evolve` construct provides a `for` loop (via the python `yield` construct) it is possible
 to include extra code within the loop. A typical `evolve` loop can provide some printed feedback
-the :meth:`print_timestepping_statistics <anuga.Domain.print_timestepping_statistics>` method, i.e.,
+using the :meth:`print_timestepping_statistics <anuga.Domain.print_timestepping_statistics>` method, i.e.,
 
 >>> for t in domain.evolve(yieldstep=1.0, finaltime=10.0):
 >>>    domain.print_timestepping_statistics()
@@ -128,8 +128,7 @@ Start times with DateTime and Timezones
 
 To work with dates, times and timezones we can use the python module `datetime`.
 to setup a date and time (and timezone) associated with ANUGA's starttime time. 
-Note the use of the `datetime` argument for the 
-:meth:`print_timestepping_statisitics <Domain.print_timestepping_statistics>` procedure.
+
 
 Once again let's suppose we have setup a domain via:
 
@@ -158,7 +157,8 @@ this `finaltime`:
 
 >>> finaltime = datetime(2021, 7, 21, 19, 0)
 
-And now evolve the model:
+And now evolve the model. Note the use of the `datetime = True` argument for the 
+:meth:`print_timestepping_statisitics <Domain.print_timestepping_statistics>` procedure.
 
 >>> for t in domain.evolve(yieldstep=300, finaltime=finaltime):
 >>>   domain.print_timestepping_statistics(datetime=True)
@@ -175,7 +175,7 @@ We use unix timestamp as our underlying absolute time. So `time = 0` corresponds
 
 For instance going back to an earlier example which uses the default timezone (UTC) and 0 start time.
 
-(Remember in this case to set `datetime = True` in the 
+(Compare the output with `datetime = True` and `datetime = False` in the 
 :meth:`print_timestepping_statistics <anuga.Domain.print_timestepping_statistics>` procedure.)
 
 >>> import anuga
