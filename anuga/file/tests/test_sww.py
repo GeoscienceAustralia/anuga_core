@@ -88,14 +88,14 @@ class Test_sww(unittest.TestCase):
         Bw = Time_boundary(domain=domain,function=lambda t: [(0.1*sin(t*2*pi)), 0.0, 0.0])
 
         # Check that using the removed tag 'right' triggers an exception
-        #try:
-        #    domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
-        #except Exception as ex:
-        #    # Check error message is correct
-        #    assert 'Tag "right" provided does not exist' in str(ex) 
-        #else:
-        #    msg = 'Invalid boundary tag should have failed.'        
-        #    raise Exception(msg)
+        try:
+            domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
+        except Exception as ex:
+            # Check error message is correct
+            assert 'Tag "right" provided does not exist' in str(ex) 
+        else:
+            msg = 'Invalid boundary tag should have failed.'        
+            raise Exception(msg)
             
         # Now set boundary conditions appropriately
         domain.set_boundary({'left': Bd, default_boundary_tag: Bd, 'top': Bd, 'bottom': Bd})        
