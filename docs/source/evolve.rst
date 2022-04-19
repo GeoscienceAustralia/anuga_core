@@ -199,8 +199,8 @@ Note that the date is 1st Jan 1970, starting at time 0:00, incrementing by 1 sec
 the UTC offset is +0000 (ie the timezone is UTC). 
 
 
-Domain.evolve
--------------
+Useful Domain methods
+---------------------
 
 .. autosummary::
    :toctree: generated
@@ -210,7 +210,3 @@ Domain.evolve
    anuga.Domain.set_starttime
    anuga.Domain.set_timezone
 
- * :doc:`anuga.Domain.evolve`
- * :doc:`anuga.Domain.print_timestepping_statistics`
- * :doc:`anuga.Domain.set_starttime`
- * :doc:`anuga.Domain.set_timezone`

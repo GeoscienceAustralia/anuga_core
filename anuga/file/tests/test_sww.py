@@ -73,7 +73,7 @@ class Test_sww(unittest.TestCase):
         domain.geo_reference = Geo_reference(56,11,11)
         domain.smooth = False
         domain.store = True
-        domain.set_name('bedslope')
+        domain.set_name('default_bc')
         domain.default_order=2
         
 
@@ -139,7 +139,7 @@ class Test_sww(unittest.TestCase):
         domain.geo_reference = Geo_reference(56,11,11)
         domain.smooth = False
         domain.store = True
-        domain.set_name('bedslope')
+        domain.set_name('sww2domain')
         domain.default_order=2
         #Bed-slope and friction
         domain.set_quantity('elevation', lambda x,y: old_div(-x,3))
@@ -288,7 +288,7 @@ class Test_sww(unittest.TestCase):
         domain.geo_reference = Geo_reference(56,11,11)
         domain.smooth = False
         domain.store = True
-        domain.set_name('bedslope')
+        domain.set_name('sww2domain_starttime')
         domain.default_order=2
         domain.set_starttime(starttime)
 
