@@ -898,7 +898,7 @@ class Generic_Domain(object):
                 if key not in allowed_tags:
                     msg = f'Tag "{key}" provided does not exist in the domain. '
                     msg += 'Allowed tags are: %s' % allowed_tags
-                    raise Exception(msg)                    
+                    #raise Exception(msg)                    
         
 
         # Update self.boundary_map with values provided to this method        
