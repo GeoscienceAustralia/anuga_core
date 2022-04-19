@@ -66,7 +66,7 @@ if numprocs > 1:
 # --------------------------------------------------------------
 Br = Reflective_boundary(domain)      # Solid reflective wall - no movement
 
-domain.set_boundary({'outflow': Br, 'inflow': Br, 'inner': Br, 'exterior': Br, 'open': Br})
+domain.set_boundary({'exterior': Br, 'open': Br})
 
 # ---------
 # Evolution

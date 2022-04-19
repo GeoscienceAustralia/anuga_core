@@ -1118,11 +1118,16 @@ def extent_sww(file_name):
     return [min(x), max(x), min(y), max(y), num.min(stage), num.max(stage)]
 
 
-def load_sww_as_domain(filename, boundary=None, t=None,
+def Xload_sww_as_domain(filename, boundary=None, t=None,
                        fail_if_NaN=True, NaN_filler=0,
                        verbose=False, very_verbose=False):
     """
     Load an sww file into a domain.
+    
+    
+    DEPRECATE THIS. It is not robust and doesn't for instance provide a proper 
+    boundary map (as this information isn't currently stored in sww files)
+    
 
     Usage: domain = load_sww_as_domain('file.sww',
                         t=time (default = last time in file))
@@ -1235,6 +1240,7 @@ def load_sww_as_domain(filename, boundary=None, t=None,
         unique = False
     else:
         unique = True
+
     if unique:
         coordinates, volumes, boundary = weed(coordinates, volumes, boundary)
 
@@ -1247,7 +1253,7 @@ def load_sww_as_domain(filename, boundary=None, t=None,
               'Perhaps use "fail_if_NaN=False and NaN_filler = ..."' % e
         raise_(DataDomainError, msg)
 
-    if not boundary is None:
+    if boundary is not None:
         domain.boundary = boundary
 
     domain.geo_reference = geo_reference

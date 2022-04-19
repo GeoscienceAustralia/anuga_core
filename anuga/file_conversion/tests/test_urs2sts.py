@@ -1701,8 +1701,8 @@ class Test_Urs2Sts(Test_Mux):
                                                    skip_initial_step=False)):
                                                    
             D = domain_fbound
-            temp_fbound[i]=D.quantities['stage'].centroid_values[2]
-
+            #temp_fbound[i]=D.quantities['stage'].centroid_values[2]
+            
             # Check that file boundary object has populated 
             # boundary array correctly  
             # FIXME (Ole): Do this for the other tests too!

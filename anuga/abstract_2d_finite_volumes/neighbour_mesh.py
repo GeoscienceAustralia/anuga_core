@@ -86,9 +86,6 @@ class Mesh(General_mesh):
             triangles (sequence of 3-tuples or Nx3 numeric array of non-negative integers).
         """
 
-
-
-
         General_mesh.__init__(self, coordinates, triangles,
                               geo_reference=geo_reference,
                               use_inscribed_circle=use_inscribed_circle,
@@ -163,22 +160,22 @@ class Mesh(General_mesh):
 #            self.neighbour_edges[i, :] = [-1, -1, -1]
 
 
-        #Build neighbour structure
+        # Build neighbour structure
         if verbose: log.critical('Mesh: Building neigbour structure')
         self.build_neighbour_structure()
 
-        #Build surrogate neighbour structure
+        # Build surrogate neighbour structure
         if verbose: log.critical('Mesh: Building surrogate neigbour structure')
         self.build_surrogate_neighbour_structure()
 
-        #Build boundary dictionary mapping (id, edge) to symbolic tags
+        # Build boundary dictionary mapping (id, edge) to symbolic tags
         if verbose: log.critical('Mesh: Building boundary dictionary')
         self.build_boundary_dictionary(boundary)
 
-        #Update boundary_enumeration
+        # Update boundary_enumeration
         self.build_boundary_neighbours()
 
-        #Build tagged element  dictionary mapping (tag) to array of elements
+        # Build tagged element dictionary mapping (tag) to array of elements
         if verbose: log.critical('Mesh: Building tagged elements dictionary')
         self.build_tagged_elements_dictionary(tagged_elements)
 
@@ -374,63 +371,6 @@ class Mesh(General_mesh):
 
         from .neighbour_mesh_ext import boundary_dictionary_construct
         boundary = boundary_dictionary_construct(len(self), default_boundary_tag, self.neighbours, boundary)
-        
-
-        self.boundary = boundary
-        self.boundary_length = len(self.boundary)
-
-
-
-    def build_boundary_dictionary_old(self, boundary = None):
-        """Build or check the dictionary of boundary tags.
-         self.boundary is a dictionary of tags,
-         keyed by volume id and edge:
-         { (id, edge): tag, ... }
-
-         Postconditions:
-            self.boundary is defined.
-        """
-
-        from anuga.config import default_boundary_tag
-
-        if boundary is None:
-            boundary = {}
-            for vol_id in range(len(self)):
-                for edge_id in range(0, 3):
-                    if self.neighbours[vol_id, edge_id] < 0:
-                        boundary[(vol_id, edge_id)] = default_boundary_tag
-        else:
-            #Check that all keys in given boundary exist
-            for vol_id, edge_id in list(boundary.keys()):
-                msg = 'Segment (%d, %d) does not exist' %(vol_id, edge_id)
-                a, b = self.neighbours.shape
-                assert vol_id < a and edge_id < b, msg
-
-                #FIXME: This assert violates internal boundaries (delete it)
-                #msg = 'Segment (%d, %d) is not a boundary' %(vol_id, edge_id)
-                #assert self.neighbours[vol_id, edge_id] < 0, msg
-
-            #Check that all boundary segments are assigned a tag
-            for vol_id in range(len(self)):
-                for edge_id in range(0, 3):
-                    if self.neighbours[vol_id, edge_id] < 0:
-                        if (vol_id, edge_id) not in boundary:
-                            msg = 'WARNING: Given boundary does not contain '
-                            msg += 'tags for edge (%d, %d). '\
-                                   %(vol_id, edge_id)
-                            msg += 'Assigning default tag (%s).'\
-                                   %default_boundary_tag
-
-                            #FIXME: Print only as per verbosity
-
-                            #FIXME: Make this situation an error in the future
-                            #and make another function which will
-                            #enable default boundary-tags where
-                            #tags a not specified
-                            boundary[ (vol_id, edge_id) ] =\
-                                      default_boundary_tag
-
-
 
         self.boundary = boundary
         self.boundary_length = len(self.boundary)
@@ -864,42 +804,41 @@ class Mesh(General_mesh):
 
 
 
-
-        # check that neighbour of neighbour is self
+        # Check that neighbour of neighbour is self
 
         # 0 neighbours
         neighs = self.neighbours
         ids = num.arange(len(neighs))
 
         # 0 neighbours
-        nid = neighs[:,0]
-        eid = self.neighbour_edges[:,0]
+        nid = neighs[:, 0]
+        eid = self.neighbour_edges[:, 0]
         nnid = num.argwhere(nid>-1).reshape(-1,)
         nid = nid[nnid]
         eid = eid[nnid]
         id  = ids[nnid]
 
-        assert num.all(neighs[nid,eid] == id)
+        assert num.all(neighs[nid, eid] == id)
 
         # 1 neighbours
-        nid = neighs[:,1]
-        eid = self.neighbour_edges[:,1]
+        nid = neighs[:, 1]
+        eid = self.neighbour_edges[:, 1]
         nnid = num.argwhere(nid>-1).reshape(-1,)
         nid = nid[nnid]
         eid = eid[nnid]
         id  = ids[nnid]
 
-        assert num.all(neighs[nid,eid] == id)
+        assert num.all(neighs[nid, eid] == id)
 
         # 2 neighbours
-        nid = neighs[:,2]
-        eid = self.neighbour_edges[:,2]
+        nid = neighs[:, 2]
+        eid = self.neighbour_edges[:, 2]
         nnid = num.argwhere(nid>-1).reshape(-1,)
         nid = nid[nnid]
         eid = eid[nnid]
         id  = ids[nnid]
 
-        assert num.all(neighs[nid,eid] == id)
+        assert num.all(neighs[nid, eid] == id)
 
 
 
