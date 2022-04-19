@@ -193,7 +193,10 @@ class Test_sww(unittest.TestCase):
         ##NOW TEST IT!!!
         ###################
 
-        os.remove(filename)
+        try:
+            os.remove(filename)  # Clean up
+        except:
+            pass        
 
         bits = ['vertex_coordinates']
         for quantity in ['stage']:
@@ -332,7 +335,10 @@ class Test_sww(unittest.TestCase):
         stored_starttime = float(fid.starttime)
         assert stored_starttime == starttime
 
-        os.remove(filename)  # Clean up
+        try:
+            os.remove(filename)  # Clean up
+        except:
+            pass
 
 
     def test_get_mesh_and_quantities_from_1_5_sww_file(self):
@@ -717,7 +723,12 @@ class Test_sww(unittest.TestCase):
         fid.close()
 
         assert num.allclose(num.array(list(zip(x,y))), points_utm)
-        os.remove(filename)
+
+        try:
+            os.remove(filename)  # Clean up
+        except:
+            pass        
+
 
         
     def test_triangulationII(self):
@@ -755,7 +766,12 @@ class Test_sww(unittest.TestCase):
         fid.close()
 
         assert num.allclose(num.array(list(zip(x,y))), points_utm)
-        os.remove(filename)
+
+
+        try:
+            os.remove(filename)  # Clean up
+        except:
+            pass        
 
         
     def test_triangulation_new_origin(self):
@@ -795,7 +811,10 @@ class Test_sww(unittest.TestCase):
             absolute.change_points_geo_ref(list(zip(x,y)),
                                            new_origin)),points_utm)
         
-        os.remove(filename)
+        try:
+            os.remove(filename)  # Clean up
+        except:
+            pass
         
     def test_triangulation_points_georeference(self):
         # 
@@ -831,7 +850,11 @@ class Test_sww(unittest.TestCase):
         fid.close()
 
         assert num.allclose(num.array(list(zip(x,y))), points_utm)
-        os.remove(filename)
+
+        try:
+            os.remove(filename)  # Clean up
+        except:
+            pass
         
     def test_triangulation_2_geo_refs(self):
         # 
@@ -871,7 +894,12 @@ class Test_sww(unittest.TestCase):
         assert num.allclose(num.array(
             absolute.change_points_geo_ref(list(zip(x,y)),
                                            new_origin)),points_utm)
-        os.remove(filename)
+
+        try:
+            os.remove(filename)  # Clean up
+        except:
+            pass
+
 
 #################################################################################
 
