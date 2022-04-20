@@ -368,12 +368,15 @@ class Domain_plotter(object):
             import os
             if os.path.isdir(plot_dir):
                 if clobber:
-                    os.system("rm %s/*" % plot_dir)
+                    try:
+                        os.remove("%s/*" % plot_dir)
+                    except:
+                        pass
                 else:
                     raise IOError(
                         '*** Cannot clobber existing directory %s' % plot_dir)
             else:
-                os.system("mkdir %s" % plot_dir)
+                os.mkdir("%s" % plot_dir)
             print("Figure files for each frame will be stored in " + plot_dir)
 
 
@@ -691,10 +694,13 @@ class SWW_plotter(object):
             import os
             if os.path.isdir(plot_dir):
                 if clobber:
-                    os.system("rm %s/*" % plot_dir)
+                    try:
+                        os.remove("%s/*" % plot_dir)
+                    except:
+                        pass
                 else:
                     raise IOError(
                       '*** Cannot clobber existing directory %s' % plot_dir)
             else:
-                os.system("mkdir %s" % plot_dir)
+                os.mkdir("%s" % plot_dir)
             print("Figure files for each frame will be stored in " + plot_dir)

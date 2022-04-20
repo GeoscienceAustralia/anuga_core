@@ -10,6 +10,7 @@ Examples
 
    introduction
    notebook_simple_example
+   notebook_create_domain_from_regions
    simple_example
    real_example
    
