@@ -1,6 +1,6 @@
 
-Simple Example
-==============
+Simple Script Example
+=====================
 
 .. currentmodule:: anuga
 
