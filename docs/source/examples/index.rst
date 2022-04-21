@@ -6,16 +6,13 @@ Examples
 .. only:: html
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   introduction
    script_simple_example
    notebook_simple_example
    notebook_create_domain_from_regions
    notebook_create_domain_with_riverwalls
+   notebook_flooding_example
    
-   real_example
-   
-
 
 .. only:: html
