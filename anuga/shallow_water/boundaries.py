@@ -557,9 +557,11 @@ class Characteristic_stage_boundary(Boundary):
         self.function = function
         self.default_stage = default_stage
 
-        self.Elev  = domain.quantities['elevation']
-        self.Stage = domain.quantities['stage']
-        self.Height = domain.quantities['height']
+        self.elev   = domain.quantities['elevation']
+        self.stage  = domain.quantities['stage']
+        self.height = domain.quantities['height']
+        self.xmom   = domain.quantities['xmomentum']
+        self.ymom   = domain.quantities['ymomentum']
 
     def __repr__(self):
         """ Return a representation of this instance. """
@@ -581,24 +583,55 @@ class Characteristic_stage_boundary(Boundary):
 
         value = self.function(t)
         try:
-            stage = float(value)
+            w_outside = float(value)
         except:
-            stage = float(value[0])
+            w_outside = float(value[0])
 
+        q = num.zeros(len(self.conserved_quantities), float)
 
-
-        q = self.conserved_quantities
-        #q[0] = self.stage[vol_id, edge_id]
-        q[0] = stage
-        q[1] = self.xmom[vol_id, edge_id]
-        q[2] = self.ymom[vol_id, edge_id]
+        q[0] = self.stage.edge_values[vol_id, edge_id]
+        q[1] = self.xmom.edge_values[vol_id, edge_id]
+        q[2] = self.ymom.edge_values[vol_id, edge_id]
+        elev = self.elev.edge_values[vol_id, edge_id]
 
         normal = self.normals[vol_id, 2*edge_id:2*edge_id+2]
 
-        r = rotate(q, normal, direction = 1)
-        r[1] = -r[1]
-        q = rotate(r, normal, direction = -1)
+        uh_inside  = normal[0]*q[1] + normal[1]*q[2]
+        vh_inside  = normal[1]*q[1] - normal[0]*q[2]
 
+
+        # use elev as elev both inside and outside
+
+        h_outside = max(w_outside - elev,0)
+
+        h_inside  = max(q[0] - elev, 0)
+        u_inside  = uh_inside/h_inside
+
+
+        sqrt_g = gravity**0.5
+        sqrt_h_inside = h_inside**0.5
+        sqrt_h_outside = h_outside**0.5
+
+        h_m = (1.0/2.0*(sqrt_h_inside+sqrt_h_outside) - u_inside/4.0/sqrt_g )**2
+        u_m = 1.0/2.0*u_inside + sqrt_g*(sqrt_h_outside - sqrt_h_inside)
+
+        uh_m = h_m*u_m
+        vh_m = vh_inside
+
+        # if uh_inside > 0.0 then outflow
+        if uh_inside > 0.0 :
+            vh_m = vh_inside
+        else:
+            vh_m = 0.0
+
+        if h_inside == 0.0:
+            q[0] = w_outside
+            q[1] = 0.0
+            q[2] = 0.0
+        else:
+            q[0] = h_m + elev       
+            q[1] = uh_m*normal[0] + vh_m*normal[1]
+            q[2] = uh_m*normal[1] - vh_m*normal[0]
 
         return q
 
@@ -608,72 +641,92 @@ class Characteristic_stage_boundary(Boundary):
         segment_edges
         """
 
-        if segment_edges is None:
-            return
-        if domain is None:
-            return
-
-        t = self.domain.get_time()
-
-
-        value = self.function(t)
-        try:
-            stage = float(value)
-        except:
-            stage = float(value[0])
-                       
+        Stage = domain.quantities['stage']
+        Elev  = domain.quantities['elevation']
+        Xmom  = domain.quantities['xmomentum']
+        Ymom  = domain.quantities['ymomentum']
 
         ids = segment_edges
         vol_ids  = domain.boundary_cells[ids]
         edge_ids = domain.boundary_edges[ids]
-
-        Stage = domain.quantities['stage']
-        Elev  = domain.quantities['elevation']
-        Height= domain.quantities['height']
-        Xmom  = domain.quantities['xmomentum']
-        Ymom  = domain.quantities['ymomentum']
-        Xvel  = domain.quantities['xvelocity']
-        Yvel  = domain.quantities['yvelocity']
-
         Normals = domain.normals
 
-        #print vol_ids
-        #print edge_ids
-        #Normals.reshape((4,3,2))
-        #print Normals.shape
-        #print Normals[vol_ids, 2*edge_ids]
-        #print Normals[vol_ids, 2*edge_ids+1]
-        
         n1  = Normals[vol_ids,2*edge_ids]
         n2  = Normals[vol_ids,2*edge_ids+1]
+   
+        # Get stage value 
+        t = self.domain.get_time()
+        value = self.function(t)
+        try:
+            w_outside = float(value)
+        except:
+            w_outside = float(value[0])
 
         # Transfer these quantities to the boundary array
-        Stage.boundary_values[ids]  = Stage.edge_values[vol_ids,edge_ids]
-        Elev.boundary_values[ids]   = Elev.edge_values[vol_ids,edge_ids]
-        Height.boundary_values[ids] = Height.edge_values[vol_ids,edge_ids]
+        Stage.boundary_values[ids] = Stage.edge_values[vol_ids,edge_ids]
+        Xmom.boundary_values[ids]  = Xmom.edge_values[vol_ids,edge_ids]
+        Ymom.boundary_values[ids]  = Ymom.edge_values[vol_ids,edge_ids]
+        Elev.boundary_values[ids]  = Elev.edge_values[vol_ids,edge_ids]
 
-        # Rotate and negate Momemtum
-        q1 = Xmom.edge_values[vol_ids,edge_ids]
-        q2 = Ymom.edge_values[vol_ids,edge_ids]
 
-        r1 = -q1*n1 - q2*n2
-        r2 = -q1*n2 + q2*n1
 
-        Xmom.boundary_values[ids] = n1*r1 - n2*r2
-        Ymom.boundary_values[ids] = n2*r1 + n1*r2
+        h_inside = num.maximum(Stage.boundary_values[ids]-Elev.boundary_values[ids], 0.0)
+        w_outside = 0.0*Stage.boundary_values[ids] + w_outside 
 
-        # Rotate and negate Velocity
-        q1 = Xvel.edge_values[vol_ids,edge_ids]
-        q2 = Yvel.edge_values[vol_ids,edge_ids]
+        # Do vectorized operations here
+        #
+        # In dry cells, the values will be ....
+        q0_dry = num.where(Elev.boundary_values[ids] <= w_outside, w_outside, Elev.boundary_values[ids])
+        q1_dry = 0.0 * Xmom.boundary_values[ids]
+        q2_dry = 0.0 * Ymom.boundary_values[ids]
+        #
+        # and in wet cells, the values will be ...
+        # (see 'evaluate' method above for more comments on theory,
+        # in particular we assume subcritical flow and a zero outside velocity)
+        #
+        # (note: When cells are dry, this calculation will throw invalid
+        # values, but such values will never be selected to be returned)
+        sqrt_g = gravity**0.5
+        h_inside  = num.maximum(Stage.boundary_values[ids] - Elev.boundary_values[ids], 0)
+        uh_inside = n1 * Xmom.boundary_values[ids] + n2 * Ymom.boundary_values[ids]
+        vh_inside = n2 * Xmom.boundary_values[ids] - n1 * Ymom.boundary_values[ids]
+        u_inside  = num.where(h_inside>0.0, uh_inside/h_inside, 0.0)
 
-        r1 = q1*n1 + q2*n2
-        r2 = q1*n2 - q2*n1
+        sqrt_h_inside = h_inside**0.5
 
-        Xvel.boundary_values[ids] = n1*r1 - n2*r2
-        Yvel.boundary_values[ids] = n2*r1 + n1*r2
+        h_outside = num.maximum(w_outside - Elev.boundary_values[ids],0)
+        sqrt_h_outside = h_outside**0.5
 
-        
+        h_m = (1.0/2.0*(sqrt_h_inside+sqrt_h_outside) - u_inside/4.0/sqrt_g )**2
+        u_m = 1.0/2.0*u_inside + sqrt_g*(sqrt_h_outside - sqrt_h_inside)
 
+        uh_m = h_m*u_m
+        # if uh_inside > 0.0 then outflow
+        vh_m = num.where(uh_inside > 0.0, vh_inside, 0.0)
+
+        w_m = h_m + Elev.boundary_values[ids]
+
+        dry_test = num.logical_or(h_inside == 0.0, h_outside == 0.0)
+
+        q1 = uh_m*n1+ vh_m*n2
+        q2 = uh_m*n2 - vh_m*n1
+
+        Stage.boundary_values[ids] = num.where(
+            dry_test,
+            w_outside,
+            w_m 
+            )
+
+        Xmom.boundary_values[ids] = num.where(
+            dry_test, 
+            0.0,
+            q1 
+            )
+
+        Ymom.boundary_values[ids] = num.where(
+            dry_test,
+            0.0,
+            q2)
 
 class Dirichlet_discharge_boundary(Boundary):
     """ Class for a Dirichlet discharge boundary.
@@ -1022,7 +1075,7 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
             # appropriate, depending on whether we have inflow or outflow
 
             # These calculations are based on the paper cited above
-            sqrt_g_on_depth_inside = (old_div(gravity,depth_inside))**0.5
+            sqrt_g_on_depth_inside = (gravity/depth_inside)**0.5
             ndotq_inside = (normal[0]*q[1] + normal[1]*q[2]) # momentum perpendicular to the boundary
             if(ndotq_inside>0.):
                 # Outflow (assumed subcritical)
@@ -1036,10 +1089,10 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
                 w1 = 0. - sqrt_g_on_depth_inside*stage_outside
 
                 # w2 = v [velocity parallel to boundary] -- uses 'inside' info
-                w2 = old_div((+normal[1]*q[1] -normal[0]*q[2]),depth_inside)
+                w2 = (+normal[1]*q[1] -normal[0]*q[2])/depth_inside
 
                 # w3 = u + sqrt(g/depth)*(Stage_inside) -- uses 'inside info'
-                w3 = old_div(ndotq_inside,depth_inside) + sqrt_g_on_depth_inside*q[0]
+                w3 = ndotq_inside/depth_inside + sqrt_g_on_depth_inside*q[0]
                 
             else:
                 # Inflow (assumed subcritical)
@@ -1052,10 +1105,10 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
                 w2 = 0.
 
                 # w3 = u + sqrt(g/depth)*(Stage_inside) -- uses 'inside info'
-                w3 = old_div(ndotq_inside,depth_inside) + sqrt_g_on_depth_inside*q[0]
+                w3 = ndotq_inside/depth_inside + sqrt_g_on_depth_inside*q[0]
 
 
-            q[0] = old_div((w3-w1),(2*sqrt_g_on_depth_inside))
+            q[0] = (w3-w1)/(2*sqrt_g_on_depth_inside)
             qperp= (w3+w1)/2.*depth_inside
             qpar=  w2*depth_inside
 
