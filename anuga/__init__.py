@@ -128,6 +128,7 @@ from anuga.shallow_water.checkpoint import load_checkpoint_file
 # -----------------------------
 from anuga.shallow_water.boundaries import File_boundary
 from anuga.shallow_water.boundaries import Reflective_boundary
+from anuga.shallow_water.boundaries import Characteristic_stage_boundary
 from anuga.shallow_water.boundaries import Field_boundary
 from anuga.shallow_water.boundaries import \
                     Time_stage_zero_momentum_boundary
