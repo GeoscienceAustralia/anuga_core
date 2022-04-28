@@ -3,6 +3,7 @@
 
 import types
 import os.path
+from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 from anuga.utilities.numerical_tools import ensure_numeric, is_scalar
 from anuga.geometry.polygon import inside_polygon
@@ -1469,41 +1470,32 @@ class Quantity(object):
 
     def set_values_from_lat_long_grid_file(self,
                              filename,
-                             location='vertices',
+                             location='centroids',
                              indices=None,
                              verbose=False):
 
-        """Read Digital Elevation model from the following ASCII format (.asc or .grd)
+        """Read Digital model from the following ASCII format (.asc or .grd)
 
         Example:
-        ncols         3121
-        nrows         1800
-        xllcorner     722000
-        yllcorner     5893000
-        cellsize      25
+        ncols         41
+        nrows         41
+        xllcorner     140
+        yllcorner     -30
+        cellsize      0.025
         NODATA_value  -9999
-        138.3698 137.4194 136.5062 135.5558 ..........
+        28.6 28.6 28.6 28.6 28.7 28.7 28.7 28.7 28.7 28.7 ....
 
+        This file would represent raster data from lower left corner 
+        at 140 long and -30 lat over to upper right corner 141 long -29 lat. 
 
-        An accompanying file with same basename but extension .prj must exist
-        and is used to fix the UTM zone, datum, false northings and eastings.
+        Here cellsize = 0.025 represents 1/40 of a degree
 
-        The prj format is assumed to be as
-
-        Projection    UTM
-        Zone          56
-        Datum         WGS84
-        Zunits        NO
-        Units         METERS
-        Spheroid      WGS84
-        Xshift        0.0000000000
-        Yshift        10000000.0000000000
-        Parameters
+        :param str filename: name of input file in asc format
+        :param str location: vertices or centroids, interpolation onto these locations
+        :param indices: None or a list of indices where interploation occurs 
+        :param bool verbose: level of printer feedback 
         """
 
-
-        msg = "Function not implemented yet"
-        raise Exception(msg)
 
         msg = 'Filename must be a text string'
         assert isinstance(filename, str), msg
@@ -1512,7 +1504,7 @@ class Quantity(object):
         assert os.path.splitext(filename)[1] in ['.grd', '.asc'], msg
 
 
-        msg = "set_values_from_grd_file is only defined for location='vertices' or 'centroids'"
+        msg = "set_values_from_lat_long_grd_file is only defined for location='vertices' or 'centroids'"
         assert location in ['vertices', 'centroids'], msg
 
 
@@ -1535,7 +1527,7 @@ class Quantity(object):
         nrows = int(lines[1].split()[1].strip())
 
 
-        # Do cellsize (line 4) before line 2 and 3
+        # Parse cellsize (line 4) before line 2 and 3
         cellsize = float(lines[4].split()[1].strip())
 
         # Checks suggested by Joaquim Luis
@@ -1590,27 +1582,46 @@ class Quantity(object):
         else:
             points = self.domain.vertex_coordinates
 
-        from anuga.geospatial_data.geospatial_data import Geospatial_data,  ensure_absolute
-        points = ensure_absolute(points, geo_reference=self.domain.geo_reference)
+        from anuga.geospatial_data.geospatial_data import ensure_absolute
+        points = ensure_absolute(points, geo_reference=self.domain.geo_reference)               
 
-#         print numpy.max(points[:,0])
-#         print numpy.min(points[:,0])
-#         print numpy.max(points[:,1])
-#         print numpy.min(points[:,1])
-#
-#         print numpy.max(x)
-#         print numpy.min(x)
-#         print numpy.max(y)
-#         print numpy.min(y)
+        if verbose:
+            print (numpy.max(points[:,0]))
+            print (numpy.min(points[:,0]))
+            print (numpy.max(points[:,1]))
+            print (numpy.min(points[:,1])
+)
+            print (numpy.max(x))
+            print (numpy.min(x))
+            print (numpy.max(y))
+            print (numpy.min(y))
+
+            print (x.shape, x)
+            print (y.shape, y)
 
 
-        #print x.shape, x
-        #print y.shape, y
+        # We need to convert the UTM coordinates of the points to lat long
+        # then interpolate from the gridded data
+
+        if verbose:
+            print(self.domain.geo_reference)
+
+        utm_zone_number = self.domain.geo_reference.get_zone()
+        utm_zone_letter = self.domain.geo_reference.get_zone_letter()
+
+        # need to pull out the the utm zone number and letter
+
+        # we could use anuga's utmtoLL but it has not been vectorised so lets
+        # use this library, but we will have to download
+        
+        #import utm
+        #points_ll = utm.to_latlon(easting = points[:,0], northing=points[:,1])
 
 
+        msg = 'Procedure not implemented'
+        raise Exception(msg)
 
         from  anuga.fit_interpolate.interpolate2d import interpolate2d
-
         #print points
         values = interpolate2d(x, y, Z, points, mode='linear', bounds_error=False)
 
