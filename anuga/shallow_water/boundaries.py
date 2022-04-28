@@ -541,7 +541,7 @@ class Characteristic_stage_boundary(Boundary):
             default_stage is the assumed stage pre the application of wave
         """
 
-        raise Exception('This boundary type is not implemented yet')
+        #raise Exception('This boundary type is not implemented yet')
     
         Boundary.__init__(self)
 
@@ -559,7 +559,7 @@ class Characteristic_stage_boundary(Boundary):
 
         self.elev   = domain.quantities['elevation']
         self.stage  = domain.quantities['stage']
-        self.height = domain.quantities['height']
+        #self.height = domain.quantities['height']
         self.xmom   = domain.quantities['xmomentum']
         self.ymom   = domain.quantities['ymomentum']
 
@@ -603,8 +603,8 @@ class Characteristic_stage_boundary(Boundary):
         # use elev as elev both inside and outside
 
         h_outside = max(w_outside - elev,0)
-
         h_inside  = max(q[0] - elev, 0)
+
         u_inside  = uh_inside/h_inside
 
 
@@ -612,8 +612,8 @@ class Characteristic_stage_boundary(Boundary):
         sqrt_h_inside = h_inside**0.5
         sqrt_h_outside = h_outside**0.5
 
-        h_m = (1.0/2.0*(sqrt_h_inside+sqrt_h_outside) - u_inside/4.0/sqrt_g )**2
-        u_m = 1.0/2.0*u_inside + sqrt_g*(sqrt_h_outside - sqrt_h_inside)
+        h_m = (0.5*(sqrt_h_inside+sqrt_h_outside) + u_inside/4.0/sqrt_g )**2
+        u_m = 0.5*u_inside + sqrt_g*(sqrt_h_inside - sqrt_h_outside)
 
         uh_m = h_m*u_m
         vh_m = vh_inside
@@ -649,7 +649,7 @@ class Characteristic_stage_boundary(Boundary):
         ids = segment_edges
         vol_ids  = domain.boundary_cells[ids]
         edge_ids = domain.boundary_edges[ids]
-        Normals = domain.normals
+        Normals  = domain.normals
 
         n1  = Normals[vol_ids,2*edge_ids]
         n2  = Normals[vol_ids,2*edge_ids+1]
@@ -692,15 +692,16 @@ class Characteristic_stage_boundary(Boundary):
         vh_inside = n2 * Xmom.boundary_values[ids] - n1 * Ymom.boundary_values[ids]
         u_inside  = num.where(h_inside>0.0, uh_inside/h_inside, 0.0)
 
-        sqrt_h_inside = h_inside**0.5
+        h_outside = num.maximum(w_outside - Elev.boundary_values[ids], 0)
 
-        h_outside = num.maximum(w_outside - Elev.boundary_values[ids],0)
+        sqrt_h_inside = h_inside**0.5
         sqrt_h_outside = h_outside**0.5
 
-        h_m = (1.0/2.0*(sqrt_h_inside+sqrt_h_outside) - u_inside/4.0/sqrt_g )**2
-        u_m = 1.0/2.0*u_inside + sqrt_g*(sqrt_h_outside - sqrt_h_inside)
+        h_m = (0.5*(sqrt_h_inside+sqrt_h_outside) + u_inside/4.0/sqrt_g )**2
+        u_m = 0.5*u_inside + sqrt_g*(sqrt_h_inside - sqrt_h_outside)
 
         uh_m = h_m*u_m
+
         # if uh_inside > 0.0 then outflow
         vh_m = num.where(uh_inside > 0.0, vh_inside, 0.0)
 
@@ -708,7 +709,7 @@ class Characteristic_stage_boundary(Boundary):
 
         dry_test = num.logical_or(h_inside == 0.0, h_outside == 0.0)
 
-        q1 = uh_m*n1+ vh_m*n2
+        q1 = uh_m*n1 + vh_m*n2
         q2 = uh_m*n2 - vh_m*n1
 
         Stage.boundary_values[ids] = num.where(
