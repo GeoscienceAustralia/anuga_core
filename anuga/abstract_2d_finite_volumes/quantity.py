@@ -1472,6 +1472,7 @@ class Quantity(object):
                              filename,
                              location='centroids',
                              indices=None,
+                             northern=False,
                              verbose=False):
 
         """Read Digital model from the following ASCII format (.asc or .grd)
@@ -1492,7 +1493,8 @@ class Quantity(object):
 
         :param str filename: name of input file in asc format
         :param str location: vertices or centroids, interpolation onto these locations
-        :param indices: None or a list of indices where interploation occurs 
+        :param indices: None or a list of indices where interploation occurs
+        :param bool northern: Flag to specify northern or southern hemisphere
         :param bool verbose: level of printer feedback 
         """
 
@@ -1606,26 +1608,42 @@ class Quantity(object):
         if verbose:
             print(self.domain.geo_reference)
 
-        utm_zone_number = self.domain.geo_reference.get_zone()
-        utm_zone_letter = self.domain.geo_reference.get_zone_letter()
+        utm_zone = self.domain.geo_reference.get_zone()
+
+        #import re
+        #utm_zone_number = re.findall(r'\d+', utm_zone)[0]
+        #utm_zone_letter = re.findall(r'[A-z]+', utm_zone)[0]
+
+        #print(utm_zone)
+        #print(points)
+
+        import utm
+        lat, long = utm.to_latlon(points[:,0], points[:,1], utm_zone, northern=northern)
+
+        #print(lat)
+        #print(long)
+
+        lat = num.reshape(lat, (-1,1))
+        long = num.reshape(long, (-1,1))
+        points_ll = num.hstack((long,lat))
+
 
         # need to pull out the the utm zone number and letter
 
         # we could use anuga's utmtoLL but it has not been vectorised so lets
-        # use this library, but we will have to download
-        
+        # use this library, but we will have to download via pip
+
         #import utm
         #points_ll = utm.to_latlon(easting = points[:,0], northing=points[:,1])
 
 
-        msg = 'Procedure not implemented'
-        raise Exception(msg)
+        #print('points_ll', points_ll)
 
         from  anuga.fit_interpolate.interpolate2d import interpolate2d
         #print points
-        values = interpolate2d(x, y, Z, points, mode='linear', bounds_error=False)
+        values = interpolate2d(x, y, Z, points_ll, mode='linear', bounds_error=False)
 
-        #print values
+        #print ('values',values)
 
         # Call underlying method using array values
         if verbose:
