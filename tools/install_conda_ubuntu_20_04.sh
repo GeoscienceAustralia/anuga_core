@@ -23,9 +23,10 @@ echo "#==========================="
 echo "# Create conda environment anuga_env"
 echo "#==========================="
 conda update --yes conda
-conda create -n anuga_env -c conda-forge --yes python=3.8 pip numpy scipy cython netcdf4 nose matplotlib gdal dill future gitpython mpi4py pytz
+conda create -n anuga_env -c conda-forge --yes python=3.8 pip numpy scipy cython netcdf4 \
+    nose matplotlib gdal dill future gitpython mpi4py pytz utm Pmw pymetis
 conda activate anuga_env
-pip install triangle Pmw pymetis
+pip install triangle 
 
 
 echo "#==========================="

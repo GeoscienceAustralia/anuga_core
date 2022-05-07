@@ -10,7 +10,7 @@
 set -e
 
 
-PYTHON_VERSION=${PYTHON_VERSION:-"2.7"}
+PYTHON_VERSION=${PYTHON_VERSION:-"3.9"}
 ANUGA_BITS=${ANUGA_BITS:-"64"}
 
 
@@ -47,10 +47,10 @@ conda update --yes conda
 
 # Configure the conda environment and put it in the path using the
 # provided versions
-conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy cython netcdf4 nose matplotlib gdal dill future gitpython pytz
+conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy cython netcdf4 nose matplotlib gdal dill future gitpython pytz Pmw pymetis utm mpi4py
 
 source activate anuga_env
-pip install mpi4py triangle Pmw pymetis
+pip install triangle 
 
 # python 2.6 doesn't have argparse by default
 if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install --yes argparse; fi

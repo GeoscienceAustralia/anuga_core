@@ -1352,10 +1352,16 @@ class Quantity(object):
             x,y,Z = dem2array(filename)
 
         if location == 'centroids':
-            points = self.domain.centroid_coordinates
-
+            if indices is None:
+                points = self.domain.centroid_coordinates
+            else:
+                points = self.domain.centroid_coordinates[indices]
         else:
-            points = self.domain.vertex_coordinates
+            if indices is None:
+                points = self.domain.vertex_coordinates
+            else:
+                indices = num.array(indices)
+                points = self.domain.vertex_coordinates[tuple(indices),:]
 
         from anuga.geospatial_data.geospatial_data import Geospatial_data,  ensure_absolute
 
@@ -1395,30 +1401,35 @@ class Quantity(object):
                 self.vertex_values[:] = values.reshape((-1,3))
             else:
                 msg = 'Number of values must match number of indices'
-                assert values.shape[0] == indices.shape[0], msg
+                assert values.shape[0] == len(indices), msg
 
                 # Brute force
-                self.vertex_values[indices] = values.reshape((-1,3))
+                self.vertex_values.reshape(-1,)[indices] = values
             # Cleanup centroid values
             self.interpolate()
 
 
     def set_values_from_utm_raster(self,
                              raster,
-                             location='vertices',
+                             location='centroids',
                              indices=None,
                              verbose=False):
 
 
-
         x,y,Z = raster
 
-
         if location == 'centroids':
-            points = self.domain.centroid_coordinates
-
+            if indices is None:
+                points = self.domain.centroid_coordinates
+            else:
+                points = self.domain.centroid_coordinates[indices]
         else:
-            points = self.domain.vertex_coordinates
+            if indices is None:
+                points = self.domain.vertex_coordinates
+            else:
+                indices = num.array(indices)
+                points = self.domain.vertex_coordinates[tuple(indices),:]
+
 
         from anuga.geospatial_data.geospatial_data import ensure_absolute
 
@@ -1458,11 +1469,10 @@ class Quantity(object):
                 self.vertex_values[:] = values.reshape((-1,3))
             else:
                 msg = 'Number of values must match number of indices'
-                assert values.shape[0] == indices.shape[0], msg
+                assert values.shape[0] == len(indices), msg
 
                 # Brute force
-                self.vertex_values[indices] = values.reshape((-1,3))
-
+                self.vertex_values.reshape(-1,)[indices] = values
             # Cleanup centroid values
             self.interpolate()
 
@@ -1495,7 +1505,7 @@ class Quantity(object):
         :param str location: vertices or centroids, interpolation onto these locations
         :param indices: None or a list of indices where interploation occurs
         :param bool northern: Flag to specify northern or southern hemisphere
-        :param bool verbose: level of printer feedback 
+        :param bool verbose: level of printed feedback 
         """
 
 
@@ -1580,9 +1590,17 @@ class Quantity(object):
 
 
         if location == 'centroids':
-            points = self.domain.centroid_coordinates
+            if indices is None:
+                points = self.domain.centroid_coordinates
+            else:
+                indices = num.array(indices)
+                points = self.domain.centroid_coordinates[indices]
         else:
-            points = self.domain.vertex_coordinates
+            if indices is None:
+                points = self.domain.vertex_coordinates
+            else:
+                indices = num.array(indices)
+                points = self.domain.vertex_coordinates[tuple(indices),:]
 
         from anuga.geospatial_data.geospatial_data import ensure_absolute
         points = ensure_absolute(points, geo_reference=self.domain.geo_reference)               
@@ -1591,8 +1609,7 @@ class Quantity(object):
             print (numpy.max(points[:,0]))
             print (numpy.min(points[:,0]))
             print (numpy.max(points[:,1]))
-            print (numpy.min(points[:,1])
-)
+            print (numpy.min(points[:,1]))
             print (numpy.max(x))
             print (numpy.min(x))
             print (numpy.max(y))
@@ -1617,6 +1634,8 @@ class Quantity(object):
         #print(utm_zone)
         #print(points)
 
+        # we could use anuga's utmtoLL but it has not been vectorised so lets
+        # use this library, but we will have to download via pip
         import utm
         lat, long = utm.to_latlon(points[:,0], points[:,1], utm_zone, northern=northern)
 
@@ -1630,8 +1649,7 @@ class Quantity(object):
 
         # need to pull out the the utm zone number and letter
 
-        # we could use anuga's utmtoLL but it has not been vectorised so lets
-        # use this library, but we will have to download via pip
+        
 
         #import utm
         #points_ll = utm.to_latlon(easting = points[:,0], northing=points[:,1])
@@ -1672,10 +1690,10 @@ class Quantity(object):
                 self.vertex_values[:] = values.reshape((-1,3))
             else:
                 msg = 'Number of values must match number of indices'
-                assert values.shape[0] == indices.shape[0], msg
+                assert values.shape[0] == len(indices), msg
 
                 # Brute force
-                self.vertex_values[indices] = values.reshape((-1,3))
+                self.vertex_values.reshape(-1,)[indices] = values
             # Cleanup centroid values
             self.interpolate()
 

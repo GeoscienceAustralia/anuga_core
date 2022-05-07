@@ -187,7 +187,7 @@ def _create_mesh_from_regions(bounding_polygon,
             if found is False:
                 msg = 'Segment %d was not assigned a boundary_tag.' % i
                 msg += 'Default tag "exterior" will be assigned to missing segment'
-                warningns.warn(msg, warnings.UserWarning)
+                warnings.warn(msg, UserWarning)
                 if verbose:
                     log.critical('WARNING: %s' % msg)
                 

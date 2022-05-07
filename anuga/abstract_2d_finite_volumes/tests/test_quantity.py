@@ -1724,12 +1724,8 @@ Parameters
         except:
             pass
 
-    def test_set_values_from_ll_grid_file_with_nan(self):
+    def test_set_values_from_ll_grid_file_indices(self):
 
-        # Not implemented. Need to check that the asc file doesn't
-        # cover the domain
-
-        
         x0 = 0.0
         y0 = 0.0
 
@@ -1824,6 +1820,153 @@ Parameters
 
         #print quantity.vertex_values
         #print quantity.centroid_values
+
+        indices = [0 ,2, 6, 1]
+        quantity.set_values_from_lat_long_grid_file(filename=txt_file,
+                                                    location='vertices',
+                                                    indices=indices,
+                                                    verbose=False)
+
+        # check order of vertices
+
+        #print(quantity.vertex_values)
+
+        answer = [[60.6, 60.0, 60.2],
+                  [0.0,  0.0,  0.0 ],
+                  [61.2, 0.0,  0.0 ]]
+
+
+        #print quantity.vertex_values
+        assert num.allclose(quantity.vertex_values, answer)
+
+        #print quantity.vertex_values
+        #print quantity.centroid_values
+        quantity.set_values(0.0)
+
+        #print (quantity.vertex_values)
+        #print (quantity.centroid_values)
+
+        indices = [0, 2]
+        quantity.set_values_from_lat_long_grid_file(filename=txt_file,
+                                                    location='centroids',
+                                                    indices=indices,
+                                                    verbose=False)
+
+        #print quantity.vertex_values
+        #print (quantity.centroid_values)
+
+        # note that centroid values correspond to utm centroids not long/lat centroids
+        answer = [60.26652907, 0.0, 60.86652987]
+
+        assert num.allclose(quantity.centroid_values, answer)
+
+        try:
+            os.remove(txt_file)
+        except:
+            pass
+
+    def test_set_values_from_ll_grid_file_with_nan(self):
+
+        # Not implemented. Need to check that the asc file doesn't
+        # cover the domain
+
+
+        x0 = 0.0
+        y0 = 0.0
+
+        # long lat coordinated
+        a = [150.0, -30.0]
+        b = [150.0, -29.8]
+        c = [150.2, -30.0]
+        d = [150.0, -29.6]
+        e = [150.2, -29.8]
+        #f = [150.4, -30.0]
+
+        eastings = num.array([210590.34672016, 210010.98333739, 229892.33388686, 209435.153075,
+                              229351.70758497]) #249192.66399564])
+        eastings = num.reshape(eastings, (-1, 1))
+
+        northings = num.array([6677424.09561761, 6699600.772466, 6677912.99938376,
+                               6721776.96194549, 6700087.69263074 ]) #6678368.09416381])
+        northings = num.reshape(northings, (-1, 1))
+ 
+        zone_number = 56
+        zone_letter = 'J'
+
+        points = num.hstack((eastings, northings))
+
+        xll_corner = points[:,0].min()
+        yll_corner = points[:,1].min()
+        geo_reference = Geo_reference(zone_number, xll_corner, yll_corner)
+
+        # create relative coordinates
+        points[:,0] = points[:,0] - xll_corner
+        points[:,1] = points[:,1] - yll_corner
+
+        #points = [a, b, c, d, e, f]
+
+        #bac, bce, dbe # ecf
+        elements = [[1, 0, 2], [1, 2, 4], [3, 1, 4]]  #[4, 2, 5]
+
+        mesh4 = Generic_Domain(points, elements, geo_reference=geo_reference)
+        
+        mesh4.check_integrity()
+        quantity = Quantity(mesh4)
+
+        """ Format of asc lat long file 
+        ncols         5
+        nrows         7
+        xllcorner     149.9
+        yllcorner     -30.9
+        cellsize      0.1
+        NODATA_value  -9999
+        """
+
+        # create data which doesn't cover the full domain
+        ncols = 3  # Nx
+        nrows = 5  # Ny
+        xllcorner = 150.1
+        yllcorner = -29.9
+        cellsize = 0.1
+        NODATA_value = -9999
+
+
+        #Create .asc file
+        #txt_file = tempfile.mktemp(".asc")
+        txt_file = 'test_asc_ll.asc'
+        datafile = open(txt_file, "w")
+        datafile.write('ncols '+str(ncols)+"\n")
+        datafile.write('nrows '+str(nrows)+"\n")
+        datafile.write('xllcorner '+str(xllcorner)+"\n")
+        datafile.write('yllcorner '+str(yllcorner)+"\n")
+        datafile.write('cellsize '+str(cellsize)+"\n")
+        datafile.write('NODATA_value '+str(NODATA_value)+"\n")
+
+        long = num.linspace(xllcorner, xllcorner+(ncols-1)*cellsize, ncols)
+        lat = num.linspace(yllcorner, yllcorner+(nrows-1)*cellsize, nrows)
+
+        #print(long)
+        #print(lat)
+        points = axes2points(long, lat)
+
+        #print (points)
+        #print (x.shape, x)
+        #print (y.shape, y)
+
+        datavalues = linear_function(points)
+        #print (datavalues)
+
+        datavalues = datavalues.reshape(nrows, ncols)
+
+        #print datavalues
+        #print datavalues.shape
+        for row in datavalues:
+            #print row
+            datafile.write(" ".join(str(elem) for elem in row) + "\n")
+        datafile.close()
+
+        #print quantity.vertex_values
+        #print quantity.centroid_values
         quantity.set_values_from_lat_long_grid_file(filename=txt_file,
                                                     location='vertices',
                                                     indices=None,
@@ -1838,8 +1981,12 @@ Parameters
                   [60.6, 60.2, 60.8],
                   [61.2, 60.6, 60.8] ]
 
-        #print quantity.vertex_values
-        assert num.allclose(quantity.vertex_values, answer)
+        answer = [[num.nan,         num.nan,     num.nan],
+                  [num.nan,         num.nan, 60.80000006],
+                  [num.nan,         num.nan, 60.80000006]]
+
+        #print (quantity.vertex_values)
+        assert num.allclose(quantity.vertex_values, answer, equal_nan=True)
 
         #print quantity.vertex_values
         #print quantity.centroid_values
@@ -1856,11 +2003,152 @@ Parameters
         #print (quantity.centroid_values)
 
         # note that centroid values correspond to utm centroids not long/lat centroids
-        answer = [60.26652907, 60.53319575, 60.86652987]
+        answer = [num.nan,  60.53319575, num.nan]
 
-        assert num.allclose(quantity.centroid_values, answer)
+        assert num.allclose(quantity.centroid_values, answer, equal_nan=True)
+
+        try:
+            os.remove(txt_file)
+        except:
+            pass
+
+    def test_set_values_from_ll_grid_file_with_indices_nan(self):
+
+        # Not implemented. Need to check that the asc file doesn't
+        # cover the domain
 
 
+        x0 = 0.0
+        y0 = 0.0
+
+        # long lat coordinated
+        a = [150.0, -30.0]
+        b = [150.0, -29.8]
+        c = [150.2, -30.0]
+        d = [150.0, -29.6]
+        e = [150.2, -29.8]
+        #f = [150.4, -30.0]
+
+        eastings = num.array([210590.34672016, 210010.98333739, 229892.33388686, 209435.153075,
+                              229351.70758497]) #249192.66399564])
+        eastings = num.reshape(eastings, (-1, 1))
+
+        northings = num.array([6677424.09561761, 6699600.772466, 6677912.99938376,
+                               6721776.96194549, 6700087.69263074 ]) #6678368.09416381])
+        northings = num.reshape(northings, (-1, 1))
+ 
+        zone_number = 56
+        zone_letter = 'J'
+
+        points = num.hstack((eastings, northings))
+
+        xll_corner = points[:,0].min()
+        yll_corner = points[:,1].min()
+        geo_reference = Geo_reference(zone_number, xll_corner, yll_corner)
+
+        # create relative coordinates
+        points[:,0] = points[:,0] - xll_corner
+        points[:,1] = points[:,1] - yll_corner
+
+        #points = [a, b, c, d, e, f]
+
+        #bac, bce, dbe # ecf
+        elements = [[1, 0, 2], [1, 2, 4], [3, 1, 4]]  #[4, 2, 5]
+
+        mesh4 = Generic_Domain(points, elements, geo_reference=geo_reference)
+        
+        mesh4.check_integrity()
+        quantity = Quantity(mesh4)
+
+        """ Format of asc lat long file 
+        ncols         5
+        nrows         7
+        xllcorner     149.9
+        yllcorner     -30.9
+        cellsize      0.1
+        NODATA_value  -9999
+        """
+
+        # create data which doesn't cover the full domain
+        ncols = 3  # Nx
+        nrows = 5  # Ny
+        xllcorner = 150.1
+        yllcorner = -29.9
+        cellsize = 0.1
+        NODATA_value = -9999
+
+
+        #Create .asc file
+        #txt_file = tempfile.mktemp(".asc")
+        txt_file = 'test_asc_ll.asc'
+        datafile = open(txt_file, "w")
+        datafile.write('ncols '+str(ncols)+"\n")
+        datafile.write('nrows '+str(nrows)+"\n")
+        datafile.write('xllcorner '+str(xllcorner)+"\n")
+        datafile.write('yllcorner '+str(yllcorner)+"\n")
+        datafile.write('cellsize '+str(cellsize)+"\n")
+        datafile.write('NODATA_value '+str(NODATA_value)+"\n")
+
+        long = num.linspace(xllcorner, xllcorner+(ncols-1)*cellsize, ncols)
+        lat = num.linspace(yllcorner, yllcorner+(nrows-1)*cellsize, nrows)
+
+        #print(long)
+        #print(lat)
+        points = axes2points(long, lat)
+
+        #print (points)
+        #print (x.shape, x)
+        #print (y.shape, y)
+
+        datavalues = linear_function(points)
+        #print (datavalues)
+
+        datavalues = datavalues.reshape(nrows, ncols)
+
+        #print datavalues
+        #print datavalues.shape
+        for row in datavalues:
+            #print row
+            datafile.write(" ".join(str(elem) for elem in row) + "\n")
+        datafile.close()
+
+        #print quantity.vertex_values
+        #print quantity.centroid_values
+        quantity.set_values_from_lat_long_grid_file(filename=txt_file,
+                                                    location='vertices',
+                                                    indices=None,
+                                                    verbose=False)
+
+        # check order of vertices
+
+        #print(quantity.vertex_values)
+
+
+        answer = [[num.nan,         num.nan,     num.nan],
+                  [num.nan,         num.nan, 60.80000006],
+                  [num.nan,         num.nan, 60.80000006]]
+
+        #print (quantity.vertex_values)
+        assert num.allclose(quantity.vertex_values, answer, equal_nan=True)
+
+        #print quantity.vertex_values
+        #print quantity.centroid_values
+        quantity.set_values(0.0)
+
+        #print (quantity.vertex_values)
+        #print (quantity.centroid_values)
+        quantity.set_values_from_lat_long_grid_file(filename=txt_file,
+                                                    location='centroids',
+                                                    indices=None,
+                                                    verbose=False)
+
+        #print quantity.vertex_values
+        #print (quantity.centroid_values)
+
+        # note that centroid values correspond to utm centroids not long/lat centroids
+        answer = [num.nan,  60.53319575, num.nan]
+
+        assert num.allclose(quantity.centroid_values, answer, equal_nan=True)
 
         try:
             os.remove(txt_file)

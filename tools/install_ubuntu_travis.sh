@@ -9,7 +9,7 @@
 
 set -e
 
-PYTHON_VERSION=${PYTHON_VERSION:-"2.7"}
+PYTHON_VERSION=${PYTHON_VERSION:-"3.8"}
 ANUGA_PARALLEL=${ANUGA_PARALLEL:-"false"}
 
 echo $PYTHON_VERSION
@@ -151,6 +151,11 @@ echo "+===============================================+"
 echo "|  Using pip to install pytz                    |"
 echo "+===============================================+"
 python -m pip  install -q pytz
+
+echo "+===============================================+"
+echo "|  Using pip to install utm                     |"
+echo "+===============================================+"
+python -m pip  install -q utm
 
     
 ##########################################################
