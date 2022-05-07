@@ -60,7 +60,8 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
                           'mpi4py',
                           'Pmw',
                           'triangle',
-                          'pytz']
+                          'pytz',
+                          'utm']
     )
 else:
     extra_setuptools_args = dict()
