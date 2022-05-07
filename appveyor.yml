@@ -20,10 +20,7 @@ build_script:
   - CMD: SET
   - conda config --set always_yes yes
   - conda update conda
-  - conda install python=3.7 numpy=1.19 gdal nose cython scipy netcdf4 matplotlib dill future gitpython
-  - conda install -c conda-forge mpi4py msmpi
-  - pip install Pmw pytz
-  - conda install -c msys2 libpython m2w64-toolchain
+  - conda install -c conda-forge python=3.8 numpy gdal nose cython scipy netcdf4 matplotlib dill future gitpython utm pytz brotlipy mpi4py msmpi Pmw pytz libpython m2w64-toolchain
   - pip install triangle
   - python --version
   - cp windows_setup.cfg setup.cfg
