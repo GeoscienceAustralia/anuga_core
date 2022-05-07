@@ -24,7 +24,7 @@ build_script:
   - pip install triangle
   - python --version
   #- cp windows_setup.cfg setup.cfg
-  - pip install -e .
+  - python setup.py develop
 
 test_script:
-  - python runtests.py
+  - python test_all.py
