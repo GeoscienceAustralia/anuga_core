@@ -11,8 +11,8 @@
     :target: https://pypi.python.org/pypi/anuga/
     :alt: Latest Version
 
-.. image:: https://readthedocs.org/projects/anuga-core/badge/?version=latest
-    :target: https://anuga-core.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/anuga/badge/?version=latest
+    :target: https://anuga.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
 
