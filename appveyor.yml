@@ -24,7 +24,7 @@ build_script:
   - pip install triangle
   - python --version
   #- cp windows_setup.cfg setup.cfg
-  - pip install .
+  - python setup.py develop
 
 test_script:
   - pytest anuga
