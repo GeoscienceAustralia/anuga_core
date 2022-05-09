@@ -263,7 +263,7 @@ def get_true_seq_values(metis_version=4):
     from numpy import array
     import sys
 
-    if sys.platform == 'win32':
+    if sys.platform == 'win32' and metis_version == 4:
         true_seq_values = dict(
             triangles = array([[ 0,  9,  1],
                 [ 1, 10,  2],
@@ -295,6 +295,42 @@ def get_true_seq_values(metis_version=4):
                 [0.25, 0.75],
                 [0.75, 0.25],
                 [0.75, 0.75]]))
+
+        return true_seq_values
+
+    
+    if sys.platform == 'win32' and metis_version == 5:
+        true_seq_values = dict(
+            triangles = array([[ 0,  9,  1],
+            [ 3,  9,  0],
+            [ 4,  9,  3],
+            [ 1,  9,  4],
+            [ 4, 10,  1],
+            [ 3, 11,  4],
+            [ 6, 11,  3],
+            [ 7, 11,  6],
+            [ 4, 11,  7],
+            [ 7, 12,  4],
+            [ 1, 10,  2],
+            [ 5, 10,  4],
+            [ 2, 10,  5],
+            [ 4, 12,  5],
+            [ 8, 12,  7],
+            [ 5, 12,  8]]),
+            triangles_per_proc = array([5, 5, 6], dtype=int64),
+            vertices = array([[0.  , 0.  ],
+            [0.  , 0.5 ],
+            [0.  , 1.  ],
+            [0.5 , 0.  ],
+            [0.5 , 0.5 ],
+            [0.5 , 1.  ],
+            [1.  , 0.  ],
+            [1.  , 0.5 ],
+            [1.  , 1.  ],
+            [0.25, 0.25],
+            [0.25, 0.75],
+            [0.75, 0.25],
+            [0.75, 0.75]]))
 
         return true_seq_values
 
