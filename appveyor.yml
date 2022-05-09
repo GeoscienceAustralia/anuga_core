@@ -23,8 +23,9 @@ build_script:
   - conda install -c conda-forge python=3.8 numpy gdal pytest cython scipy netcdf4 matplotlib dill future gitpython utm pytz pymetis brotlipy mpi4py msmpi Pmw pytz libpython m2w64-toolchain
   - pip install triangle
   - python --version
-  #- cp windows_setup.cfg setup.cfg
-  - python setup.py develop
+  - cp windows_setup.cfg setup.cfg
+  # install locally so that the pytest will work
+  - pip install -e .
 
 test_script:
   - pytest anuga
