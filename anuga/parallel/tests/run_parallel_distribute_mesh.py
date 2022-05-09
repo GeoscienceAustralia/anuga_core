@@ -317,7 +317,7 @@ def get_true_seq_values(metis_version=4):
             [ 4, 12,  5],
             [ 8, 12,  7],
             [ 5, 12,  8]]),
-            triangles_per_proc = array([5, 5, 6], dtype=int64),
+            triangles_per_proc = array([5, 5, 6]),
             vertices = array([[0.  , 0.  ],
             [0.  , 0.5 ],
             [0.  , 1.  ],
