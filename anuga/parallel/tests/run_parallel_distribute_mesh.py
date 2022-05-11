@@ -239,7 +239,7 @@ def distibute_three_processors():
 
     if myid == 2:
 
-        if verbose1:
+        if verbose:
             print("rec_submesh_2 = \\")
             print_rec_submesh_2(points, triangles, ghost_recv_dict, full_send_dict, \
                          tri_map, node_map, ghost_layer_width)
@@ -1406,7 +1406,7 @@ def print_rec_submesh_2(points, triangles, ghost_recv_dict, full_send_dict, \
 
 def get_true_rec_submesh_2(metis_version=4):
 
-    if sys.platform == 'win32':
+    if sys.platform == 'win32' and metis_version == 4:
         true_values = \
         {'full_send_dict_0': [array([0, 1, 2, 4]),
                             array([10, 11, 12, 14])],
@@ -1452,7 +1452,37 @@ def get_true_rec_submesh_2(metis_version=4):
 
         return true_values
 
-    if metis_version == 4: # get_true_rec_submesh_2
+    if sys.platform == 'win32' and metis_version == 4:
+        rec_submesh_2 = \
+            {'full_send_dict_0': [array([0, 1, 2, 3]), array([10, 11, 12, 13])],
+             'full_send_dict_1': [array([1, 3, 4, 5]), array([11, 13, 14, 15])],
+             'ghost_layer_width': 2,
+             'ghost_recv_dict_0': [array([6, 7]), array([3, 4])],
+             'ghost_recv_dict_1': [array([8, 9]), array([8, 9])],
+             'node_map': array([-1,  0,  1, -1,  2,  3, -1,  4,  5,  8,  6,  9,  7]),
+             'points': array([[0., 0.5],
+                              [0., 1.],
+                              [0.5, 0.5],
+                              [0.5, 1.],
+                              [1., 0.5],
+                              [1., 1.],
+                              [0.25, 0.75],
+                              [0.75, 0.75],
+                              [0.25, 0.25],
+                              [0.75, 0.25]]),
+                'tri_map': array([-1, -1, -1,  6,  7, -1, -1, -1,  8,  9,  0,  1,  2,  3,  4,  5, -1]),
+                'triangles': array([[0, 6, 1],
+                                    [3, 6, 2],
+                                    [1, 6, 3],
+                                    [2, 7, 3],
+                                    [5, 7, 4],
+                                    [3, 7, 5],
+                                    [0, 8, 2],
+                                    [2, 6, 0],
+                                    [2, 9, 4],
+                                    [4, 7, 2]])}
+
+    if metis_version == 4:  # get_true_rec_submesh_2
         true_values = dict(
         triangles=array([[ 1,  5,  0],
             [ 1,  6,  2],
