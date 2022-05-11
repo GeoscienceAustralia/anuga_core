@@ -193,7 +193,7 @@ def distibute_three_processors():
     #--------------------------------
     if myid == 0:
 
-        if verbose1:
+        if verbose:
             print('extract_values = \\')
             print_extract_submesh(points, triangles, ghost_recv_dict, \
                                   full_send_dict, tri_map, node_map, ghost_layer_width)
@@ -212,11 +212,10 @@ def distibute_three_processors():
         numpy.allclose(node_map, true_values['node_map'])
         numpy.allclose(ghost_layer_width,  true_values['ghost_layer_width'])
 
-    return
-    
+
     if myid == 1:
 
-        if verbose:
+        if verbose1:
             print("rec_submesh_1 = \\")
             print_rec_submesh_1(points, triangles, ghost_recv_dict, full_send_dict, \
                          tri_map, node_map, ghost_layer_width)
@@ -238,7 +237,8 @@ def distibute_three_processors():
         numpy.allclose(node_map, true_values['node_map'])
         numpy.allclose(ghost_layer_width,  true_values['ghost_layer_width'])
 
-
+    return
+    
     if myid == 2:
 
         if verbose:
@@ -1100,6 +1100,47 @@ def get_true_extract_submesh(metis_version=4):
                 [ 3, 11,  4],
                 [ 4, 12,  5],
                 [ 5, 12,  8]])}
+
+        return true_values
+
+    if sys.platform == 'win32' and metis_version == 5:
+        true_values = \
+            {'full_send_dict_1': [array([1, 2, 3]), array([1, 2, 3])],
+             'full_send_dict_2': [array([3, 4]), array([3, 4])],
+             'ghost_layer_width': 2,
+             'ghost_recv_dict_1': [array([5, 6, 7]), array([5, 6, 8])],
+             'ghost_recv_dict_2': [array([8,  9, 10, 11]),
+                                   array([10, 11, 12, 13])],
+             'node_map': array([0,  1,  6,  2,  3,  7,  8,  9, -1,  4,  5, 10, 11]),
+             'points': array([[0., 0.],
+                              [0., 0.5],
+                              [0.5, 0.],
+                              [0.5, 0.5],
+                              [0.25, 0.25],
+                              [0.25, 0.75],
+                              [0., 1.],
+                              [0.5, 1.],
+                              [1., 0.],
+                              [1., 0.5],
+                              [0.75, 0.25],
+                              [0.75, 0.75]]),
+                'tri_map': array([0,  1,  2,  3,  4,  5,  6, -1,  7, -1,  8,  9, 10, 11]),
+                'triangles': array([[0,  9,  1],
+                                    [3,  9,  0],
+                                    [4,  9,  3],
+                                    [1,  9,  4],
+                                    [4, 10,  1],
+                                    [3, 11,  4],
+                                    [6, 11,  3],
+                                    [7, 11,  6],
+                                    [4, 11,  7],
+                                    [7, 12,  4],
+                                    [1, 10,  2],
+                                    [5, 10,  4],
+                                    [2, 10,  5],
+                                    [4, 12,  5],
+                                    [8, 12,  7],
+                                    [5, 12,  8]])}
 
         return true_values
 
