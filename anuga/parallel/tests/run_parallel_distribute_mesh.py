@@ -215,7 +215,7 @@ def distibute_three_processors():
 
     if myid == 1:
 
-        if verbose1:
+        if verbose:
             print("rec_submesh_1 = \\")
             print_rec_submesh_1(points, triangles, ghost_recv_dict, full_send_dict, \
                          tri_map, node_map, ghost_layer_width)
@@ -237,11 +237,9 @@ def distibute_three_processors():
         numpy.allclose(node_map, true_values['node_map'])
         numpy.allclose(ghost_layer_width,  true_values['ghost_layer_width'])
 
-    return
-    
     if myid == 2:
 
-        if verbose:
+        if verbose1:
             print("rec_submesh_2 = \\")
             print_rec_submesh_2(points, triangles, ghost_recv_dict, full_send_dict, \
                          tri_map, node_map, ghost_layer_width)
@@ -1244,7 +1242,7 @@ def print_rec_submesh_1(points, triangles, ghost_recv_dict, full_send_dict, \
 
 def get_true_rec_submesh_1(metis_version=4):
 
-    if sys.platform == 'win32':
+    if sys.platform == 'win32' and metis_version == 4:
         true_values = \
         {'full_send_dict_0': [array([0]), array([4])],
         'full_send_dict_2': [array([0, 1, 2, 3, 4, 5]),
@@ -1284,6 +1282,39 @@ def get_true_rec_submesh_1(metis_version=4):
 
         return true_values
 
+    if sys.platform == 'win32' and metis_version == 5:
+        rec_submesh_1 = \
+            {'full_send_dict_0': [array([0, 1, 3]), array([5, 6, 8])],
+             'full_send_dict_2': [array([3, 4]), array([8, 9])],
+             'ghost_layer_width': 2,
+             'ghost_recv_dict_0': [array([5, 6, 7]), array([1, 2, 3])],
+             'ghost_recv_dict_2': [array([8,  9, 10, 11]), array([11, 13, 14, 15])],
+             'node_map': array([6,  7, -1,  0,  1,  8,  2,  3,  9, 10, 11,  4,  5]),
+             'points': array([[0.5, 0.],
+                              [0.5, 0.5],
+                              [1., 0.],
+                              [1., 0.5],
+                              [0.75, 0.25],
+                              [0.75, 0.75],
+                              [0., 0.],
+                              [0., 0.5],
+                              [0.5, 1.],
+                              [1., 1.],
+                              [0.25, 0.25],
+                              [0.25, 0.75]]),
+                'tri_map': array([-1,  5,  6,  7, -1,  0,  1,  2,  3,  4, -1,  8, -1,  9, 10, 11]),
+                'triangles': array([[0,  4,  1],
+                                    [2,  4,  0],
+                                    [3,  4,  2],
+                                    [1,  4,  3],
+                                    [3,  5,  1],
+                                    [0, 10,  6],
+                                    [1, 10,  0],
+                                    [7, 10,  1],
+                                    [8, 11,  1],
+                                    [1,  5,  8],
+                                    [9,  5,  3],
+                                    [8,  5,  9]])}
 
     if metis_version == 4:
         true_values = \
