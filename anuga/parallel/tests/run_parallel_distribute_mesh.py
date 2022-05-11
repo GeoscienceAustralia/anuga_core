@@ -38,7 +38,8 @@ import sys
 sys.excepthook = global_except_hook
 
 
-verbose = True
+verbose = False
+verbose1 = True
 
 
 def topography(x, y):
@@ -107,12 +108,12 @@ def distibute_three_processors():
         vertices, triangles, boundary, triangles_per_proc, quantities = pmesh_divide_metis(
             domain, numprocs)
 
-        if verbose:
+        if verbose1:
             print_seq_values(vertices, triangles, triangles_per_proc)
 
         true_seq_values = get_true_seq_values(metis_version=metis_version)
         
-        if verbose:
+        if verbose1:
             print("True Seq Values = \\")
             pprint(true_seq_values)
 
@@ -128,7 +129,7 @@ def distibute_three_processors():
                                 quantities, triangles_per_proc)
 
 
-        if verbose: 
+        if verbose1: 
             print('submesh_values = \\')
             print_submesh_values(submesh)
 
@@ -1061,7 +1062,7 @@ def print_extract_submesh_1(points, triangles, ghost_recv_dict, full_send_dict, 
 
 def get_true_extract_submesh(metis_version=4):
 
-    if sys.platform == 'win32':
+    if sys.platform == 'win32' and metis_version == 4:
         true_values = \
             {'full_send_dict_1': [array([0]), array([0])],
             'full_send_dict_2': [array([0, 1, 2, 3]),
