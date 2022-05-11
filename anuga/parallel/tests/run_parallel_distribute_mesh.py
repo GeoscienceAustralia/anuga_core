@@ -12,6 +12,7 @@ import os
 from math import sqrt
 
 
+
 import anuga
 
 from anuga import Domain
@@ -28,6 +29,11 @@ from pprint import pprint, pformat
 
 import numpy
 from numpy import array
+
+from anuga.utilities.parallel_abstraction import global_except_hook
+import sys
+sys.excepthook = global_except_hook
+
 
 verbose = True
 

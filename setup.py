@@ -60,7 +60,7 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
                           'mpi4py',
                           'Pmw',
                           'triangle',
-                          'pymetis'
+                          'pymetis',
                           'pytz',
                           'utm']
     )
