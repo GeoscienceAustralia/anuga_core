@@ -798,7 +798,7 @@ def get_true_submesh_values(metis_version = 4):
                 [11,  2],
                 [13,  2],
                 [14,  2],
-                [15,  2]], dtype=int64),
+                [15,  2]]),
             full_nodes_2=array([[ 1.  ,  0.  ,  0.5 ],
                 [ 2.  ,  0.  ,  1.  ],
                 [ 4.  ,  0.5 ,  0.5 ],
