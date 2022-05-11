@@ -30,6 +30,9 @@ from pprint import pprint, pformat
 import numpy
 from numpy import array
 
+#----------------------------------
+# set up MPI to abort on error
+#----------------------------------
 from anuga.utilities.parallel_abstraction import global_except_hook
 import sys
 sys.excepthook = global_except_hook
@@ -627,7 +630,7 @@ def print_submesh_values(submesh):
 
 def get_true_submesh_values(metis_version = 4):
     
-    if sys.platform == 'win32':
+    if sys.platform == 'win32'  and metis_version == 4:
 
         true_values = dict( \
             full_nodes_0=array([[ 0.  ,  0.  ,  0.  ],
@@ -730,7 +733,104 @@ def get_true_submesh_values(metis_version = 4):
 
         return true_values
 
+
+    if sys.platform == 'win32'  and metis_version == 5:
+
+        true_values = dict( \
+            full_nodes_0=array([[ 0.  ,  0.  ,  0.  ],
+                [ 1.  ,  0.  ,  0.5 ],
+                [ 3.  ,  0.5 ,  0.  ],
+                [ 4.  ,  0.5 ,  0.5 ],
+                [ 9.  ,  0.25,  0.25],
+                [10.  ,  0.25,  0.75]]),
+            ghost_nodes_0=array([[ 2.  ,  0.  ,  1.  ],
+                [ 5.  ,  0.5 ,  1.  ],
+                [ 6.  ,  1.  ,  0.  ],
+                [ 7.  ,  1.  ,  0.5 ],
+                [11.  ,  0.75,  0.25],
+                [12.  ,  0.75,  0.75]]),
+            full_triangles_0=array([[ 0,  9,  1],
+                [ 3,  9,  0],
+                [ 4,  9,  3],
+                [ 1,  9,  4],
+                [ 4, 10,  1]]),
+            ghost_triangles_0=array([[ 5,  3, 11,  4],
+                [ 6,  6, 11,  3],
+                [ 8,  4, 11,  7],
+                [10,  1, 10,  2],
+                [11,  5, 10,  4],
+                [12,  2, 10,  5],
+                [13,  4, 12,  5]]),
+            ghost_commun_0=array([[ 5,  1],
+                [ 6,  1],
+                [ 8,  1],
+                [10,  2],
+                [11,  2],
+                [12,  2],
+                [13,  2]], dtype=int64),
+            full_nodes_1=array([[ 3.  ,  0.5 ,  0.  ],
+                [ 4.  ,  0.5 ,  0.5 ],
+                [ 6.  ,  1.  ,  0.  ],
+                [ 7.  ,  1.  ,  0.5 ],
+                [11.  ,  0.75,  0.25],
+                [12.  ,  0.75,  0.75]]),
+            ghost_nodes_1=array([[ 0.  ,  0.  ,  0.  ],
+                [ 1.  ,  0.  ,  0.5 ],
+                [ 5.  ,  0.5 ,  1.  ],
+                [ 8.  ,  1.  ,  1.  ],
+                [ 9.  ,  0.25,  0.25],
+                [10.  ,  0.25,  0.75]]),
+            full_triangles_1=array([[ 3, 11,  4],
+                [ 6, 11,  3],
+                [ 7, 11,  6],
+                [ 4, 11,  7],
+                [ 7, 12,  4]]),
+            ghost_triangles_1=array([[ 1,  3,  9,  0],
+                [ 2,  4,  9,  3],
+                [ 3,  1,  9,  4],
+                [11,  5, 10,  4],
+                [13,  4, 12,  5],
+                [14,  8, 12,  7],
+                [15,  5, 12,  8]]),
+            ghost_commun_1=array([[ 1,  0],
+                [ 2,  0],
+                [ 3,  0],
+                [11,  2],
+                [13,  2],
+                [14,  2],
+                [15,  2]], dtype=int64),
+            full_nodes_2=array([[ 1.  ,  0.  ,  0.5 ],
+                [ 2.  ,  0.  ,  1.  ],
+                [ 4.  ,  0.5 ,  0.5 ],
+                [ 5.  ,  0.5 ,  1.  ],
+                [ 7.  ,  1.  ,  0.5 ],
+                [ 8.  ,  1.  ,  1.  ],
+                [10.  ,  0.25,  0.75],
+                [12.  ,  0.75,  0.75]]),
+            ghost_nodes_2=array([[ 9.  ,  0.25,  0.25],
+                [11.  ,  0.75,  0.25]]),
+            full_triangles_2=array([[ 1, 10,  2],
+                [ 5, 10,  4],
+                [ 2, 10,  5],
+                [ 4, 12,  5],
+                [ 8, 12,  7],
+                [ 5, 12,  8]]),
+            ghost_triangles_2=array([[ 3,  1,  9,  4],
+                [ 4,  4, 10,  1],
+                [ 8,  4, 11,  7],
+                [ 9,  7, 12,  4]]),
+            ghost_commun_2=array([[3, 0],
+                [4, 0],
+                [8, 1],
+                [9, 1]]),
+            full_commun=[{0: [], 1: [1], 2: [1], 3: [1, 2], 4: [2]},
+            {5: [0], 6: [0], 7: [], 8: [0, 2], 9: [2]},
+            {10: [0], 11: [0, 1], 12: [0], 13: [0, 1], 14: [1], 15: [1]}] )
+
+        return true_values
+
     if metis_version == 4:
+
         true_values = dict(
         full_nodes_0=array([[  3.  ,   0.5 ,   0.  ],
             [  4.  ,   0.5 ,   0.5 ],

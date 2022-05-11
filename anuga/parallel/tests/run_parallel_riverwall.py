@@ -9,6 +9,13 @@ from anuga import create_mesh_from_regions, create_domain_from_file
 from anuga import Reflective_boundary, Transmissive_momentum_set_stage_boundary
 from anuga import myid, distribute, barrier, numprocs, finalize
 
+#----------------------------------
+# set up MPI to abort on error
+#----------------------------------
+from anuga.utilities.parallel_abstraction import global_except_hook
+import sys
+sys.excepthook = global_except_hook
+
 verbose = False
 
 alg = 'DE0'
