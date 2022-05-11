@@ -108,12 +108,12 @@ def distibute_three_processors():
         vertices, triangles, boundary, triangles_per_proc, quantities = pmesh_divide_metis(
             domain, numprocs)
 
-        if verbose1:
+        if verbose:
             print_seq_values(vertices, triangles, triangles_per_proc)
 
         true_seq_values = get_true_seq_values(metis_version=metis_version)
         
-        if verbose1:
+        if verbose:
             print("True Seq Values = \\")
             pprint(true_seq_values)
 
@@ -129,7 +129,7 @@ def distibute_three_processors():
                                 quantities, triangles_per_proc)
 
 
-        if verbose1: 
+        if verbose: 
             print('submesh_values = \\')
             print_submesh_values(submesh)
 
@@ -193,7 +193,7 @@ def distibute_three_processors():
     #--------------------------------
     if myid == 0:
 
-        if verbose:
+        if verbose1:
             print('extract_values = \\')
             print_extract_submesh(points, triangles, ghost_recv_dict, \
                                   full_send_dict, tri_map, node_map, ghost_layer_width)
@@ -212,7 +212,8 @@ def distibute_three_processors():
         numpy.allclose(node_map, true_values['node_map'])
         numpy.allclose(ghost_layer_width,  true_values['ghost_layer_width'])
 
-
+    return
+    
     if myid == 1:
 
         if verbose:
