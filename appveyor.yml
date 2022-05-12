@@ -28,4 +28,4 @@ build_script:
   - pip install -e .
 
 test_script:
-  - pytest anuga
+  - pytest --disable-warnings anuga
