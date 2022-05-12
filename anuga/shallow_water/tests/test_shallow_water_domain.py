@@ -4479,7 +4479,9 @@ class Test_Shallow_Water(unittest.TestCase):
         for t in domain.evolve(yieldstep=0.05, outputstep=1.0, duration=5.0):
             tt += t
 
-        assert num.allclose(tt,252.5)        
+        assert num.allclose(tt,252.5) 
+
+        os.remove(domain.get_name() + '.sww')       
 
 
     def test_evolve_outputstep(self):

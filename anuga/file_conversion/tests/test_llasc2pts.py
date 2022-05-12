@@ -109,11 +109,15 @@ NODATA_value  %g
         #Cleanup
         fid.close()
 
+        os.remove(root + '.asc')
 
-        #os.remove(root + '.pts')
-        #os.remove(root + '.dem')
-        #os.remove(root + '.asc')
-        #os.remove(root + '.prj')
+        try:
+            os.remove(root + '.pts')
+            os.remove(root + '.dem')
+            os.remove(root + '.asc')
+            os.remove(root + '.prj')
+        except:
+            pass
 
 
 

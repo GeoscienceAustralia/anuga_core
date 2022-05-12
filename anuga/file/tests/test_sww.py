@@ -118,6 +118,8 @@ class Test_sww(unittest.TestCase):
             #domain.print_timestepping_statistics()
             pass
 
+        os.remove(domain.get_name() + '.sww') 
+
 
     def Xtest_sww2domain1(self):
     
