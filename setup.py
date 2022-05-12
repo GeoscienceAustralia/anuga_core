@@ -61,6 +61,7 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
                           'Pmw',
                           'triangle',
                           'pymetis',
+                          'gitpython'
                           'pytz',
                           'utm']
     )

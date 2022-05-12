@@ -37,6 +37,8 @@ try:
 except:
     from . import config as config
 
+import pymetis
+METIS=5
 
 verbose = False
 
@@ -121,21 +123,6 @@ def reorder_new(quantities, epart_order, proc_sum):
 # are ordered the same way as the triangles
 #
 #########################################################
-
-#path.append('..' + sep + 'pymetis')
-
-try:
-    import pymetis
-    METIS = 5
-except (ImportError, ModuleNotFoundError) as e:
-    from anuga.pymetis_4.metis_ext import partMeshNodal
-    METIS = 4
-
-# Python 2.7 Hack
-try:
-    from sets import Set
-except:
-    pass
 
 
 def pmesh_divide_metis(domain, n_procs):
