@@ -26,7 +26,6 @@ def configuration(parent_package='',top_path=None):
     config.add_subpackage('operators')
     config.add_subpackage('parallel')
     config.add_subpackage('pmesh')
-    config.add_subpackage('pymetis_4')
     config.add_subpackage('simulation')
     config.add_subpackage('shallow_water')
     config.add_subpackage('structures')
