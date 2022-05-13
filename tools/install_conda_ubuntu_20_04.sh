@@ -24,9 +24,8 @@ echo "# Create conda environment anuga_env"
 echo "#==========================="
 conda update --yes conda
 conda create -n anuga_env -c conda-forge --yes python=3.8 pip numpy scipy cython netcdf4 \
-    nose matplotlib gdal dill future gitpython mpi4py pytz utm Pmw pymetis
-conda activate anuga_env
-pip install triangle 
+    pytest matplotlib gdal dill future gitpython mpi4py pytz utm Pmw pymetis meshpy
+conda activate anuga_env 
 
 
 echo "#==========================="
@@ -36,5 +35,7 @@ echo "# via"
 echo "# conda activate anuga_env"
 echo "# cd anuga_core"
 echo "# pip install -e ."
+echo "# and then test via"
+echo "# pytest"
 echo "#==========================="
 
