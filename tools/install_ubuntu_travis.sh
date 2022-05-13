@@ -138,9 +138,9 @@ echo "+===============================================+"
 python -m pip install -q pymetis
 
 echo "+===============================================+"
-echo "|  Using pip to install meshpy                  |"
+echo "|  Using pip to install triangle                |"
 echo "+===============================================+"
-python -m pip  install -q meshpy
+python -m pip  install -q triangle
 
 echo "+===============================================+"
 echo "|  Using pip to install Pmw                     |"
