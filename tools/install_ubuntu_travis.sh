@@ -207,12 +207,8 @@ fi
 #########################################################
 # Build and install anuga
 
-echo "+===============================================+"
-echo "|  Build anuga                                  |"
-echo "+===============================================+"
-python build_all.py
 
 echo "+===============================================+"
-echo "|  Install anuga using setup.py                 |"
+echo "|  Install anuga using pip                      |"
 echo "+===============================================+"
-python setup.py -q install
+pip install -e .

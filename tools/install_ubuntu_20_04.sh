@@ -21,7 +21,7 @@ echo "#==========================="
 echo "# You should now install anuga from the anuga_core directory"
 echo "# via"
 echo "cd anuga_core"
-echo "python setup.py install --user"
+echo "pip install -e ."
 echo "#==========================="
 
 # cd "$(dirname "${BASH_SOURCE[0]}")"/..

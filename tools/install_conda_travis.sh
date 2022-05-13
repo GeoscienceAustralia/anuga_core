@@ -75,5 +75,4 @@ conda info -a
 #########################################################
 # Build and install anuga
 
-python setup.py build
-python setup.py install
+pip install -e .

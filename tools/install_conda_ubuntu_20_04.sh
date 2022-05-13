@@ -35,6 +35,6 @@ echo "# from the anuga_core directory"
 echo "# via"
 echo "# conda activate anuga_env"
 echo "# cd anuga_core"
-echo "# python setup.py install"
+echo "# pip install -e ."
 echo "#==========================="
 
