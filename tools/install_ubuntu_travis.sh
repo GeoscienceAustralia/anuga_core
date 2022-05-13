@@ -98,9 +98,9 @@ python -m pip  install -q matplotlib
 python -m pip  install -q GDAL==3.0.4
 
 echo "+===============================================+"
-echo "|  Using pip to install nose                    |"
+echo "|  Using pip to install nose and pytest         |"
 echo "+===============================================+"
-python -m pip  install -q nose
+python -m pip  install -q nose pytest
 
 echo "+===============================================+"
 echo "|  Using pip to install dill                    |"
@@ -211,4 +211,4 @@ fi
 echo "+===============================================+"
 echo "|  Install anuga using pip                      |"
 echo "+===============================================+"
-pip install -e .
+python setup.py develop
