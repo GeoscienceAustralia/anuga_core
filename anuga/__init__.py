@@ -112,6 +112,7 @@ from anuga.parallel.parallel_api import send, receive, reduce
 from anuga.parallel.parallel_api import pypar_available, barrier, finalize
 from anuga.parallel.parallel_api import collect_value
 from anuga.parallel.parallel_api import mpicmd
+from anuga.parallel.parallel_api import mpi_extra_options
 
 
 from anuga.parallel.parallel_api import sequential_distribute_dump

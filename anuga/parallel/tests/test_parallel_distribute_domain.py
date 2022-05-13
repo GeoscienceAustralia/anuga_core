@@ -41,15 +41,22 @@ class Test_parallel_distribute_domain(unittest.TestCase):
             raise Exception(result.stderr)
 
         # --------------------
-        # Then run in parallel
+        # Calculate extra_options
         # --------------------
-        if platform.system() == 'Windows':
-            extra_options = ' '
-        else:
-            # E.g. for Ubuntu Linux
-            extra_options = '--oversubscribe'
+        extra_options = '--oversubscribe'
+        cmd = 'mpiexec -np 3 ' + extra_options + ' echo '
+
+        result = subprocess.run(cmd.split(), capture_output=True)
+        if result.returncode != 0:
             extra_options = ' '
 
+        import platform
+        if platform.system() == 'Windows':
+            extra_options = ' '
+
+        # --------------------
+        # Then run in parallel
+        # --------------------
         cmd = 'mpiexec -np 3 ' + extra_options + ' python ' + run_filename
         if verbose:
             print(cmd)
