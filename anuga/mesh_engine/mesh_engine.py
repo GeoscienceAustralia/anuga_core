@@ -3,16 +3,18 @@
 from builtins import range
 import sys
 
-# Python 2.7 Hack
-try:
-    from exceptions import Exception
-except:
-    pass
-
 class NoTrianglesError(Exception): pass
 #import anuga.mesh_engine.mesh_engine_c_layer as triang
 #import anuga.mesh_engine.list_dic as triang
-import triangle as triang
+
+try:
+    import meshpy.triangle as triang
+    TRILIB = 'meshpy'
+except:
+    import triangle as triang
+    TRILIB = 'triangle'
+
+
 
 import numpy as num
 
@@ -153,61 +155,180 @@ def generate_mesh(points=None,
 
     #print(points,segments,holes,regions, pointatts,segatts)
 
-    in_tri = ({'vertices':points})
-    if segments.size != 0:
-        in_tri['segments'] = segments
-        refine = True
-    if holes.size != 0:
-        in_tri['holes'] = holes
-    if regions.size != 0:
-        in_tri['regions'] = regions
-    if pointatts.size != 0:
-        in_tri['vertex_attributes'] = pointatts
-    if segatts.size != 0:
-        in_tri['segment_markers'] = segatts
+    if TRILIB == 'triangle':
+        in_tri = ({'vertices':points})
+        if segments.size != 0:
+            in_tri['segments'] = segments
+        if holes.size != 0:
+            in_tri['holes'] = holes
+        if regions.size != 0:
+            in_tri['regions'] = regions
+        if pointatts.size != 0:
+            in_tri['vertex_attributes'] = pointatts
+        if segatts.size != 0:
+            in_tri['segment_markers'] = segatts
 
-    if verbose:
-        print('TRIANGLE:')
-        print('  Input sizes')
-        print('    vertices: %g'% points.size)
-        print('    segments: %g'% segments.size)
-        print('    holes:    %g'% holes.size)
-        print('    regions:  %g'% regions.size)
+        if verbose:
+            print('TRIANGLE (triangle):')
+            print('  Input sizes')
+            print('    vertices: %g'% points.size)
+            print('    segments: %g'% segments.size)
+            print('    holes:    %g'% holes.size)
+            print('    regions:  %g'% regions.size)
 
-    tri = triang.triangulate(in_tri,mode)
+        out_tri = triang.triangulate(in_tri,mode)
 
-    if 'vertices' in tri:
-        pointlist = num.ascontiguousarray(tri['vertices'])
-    else:
-        pointlist = num.empty((0,2),dtype=float)
-    if 'vertex_markers' in tri:
-        pointmarkerlist = num.ascontiguousarray(tri['vertex_markers'].reshape(-1))
-    else:
-        pointmarkerlist = num.empty(pointlist.shape[0],dtype=num.int32)
-    if 'triangles' in tri:
-        trianglelist = num.ascontiguousarray(tri['triangles'])
-    else:
-        trianglelist = num.empty((0,3),dtype=num.int32)
-    if 'vertex_attributes' in tri:
-        pointattributelist = num.ascontiguousarray(tri['vertex_attributes'])
-    else:
-        pointattributelist = num.empty((pointlist.shape[0],0),dtype=float)
-    if 'triangle_attributes' in tri:
-        triangleattributelist = num.ascontiguousarray(tri['triangle_attributes'])
-    else:
-        triangleattributelist = num.empty((trianglelist.shape[0],0),dtype=float)
-    if 'segments' in tri:
-        segmentlist = num.ascontiguousarray(tri['segments'])
-    else:
-        segmentlist = num.empty((0,2),dtype=num.int32)
-    if 'segment_markers' in tri:
-        segmentmarkerlist = num.ascontiguousarray(tri['segment_markers'].reshape(-1))
-    else:
-        segmentmarkerlist = num.empty(segmentlist.shape[0],dtype=num.int32)
-    if 'neighbors' in tri:
-        neighborlist = num.ascontiguousarray(tri['neighbors'])
-    else:
-        neighborlist = num.empty((trianglelist.shape[0],3),dtype=num.int32)
+        if 'vertices' in out_tri:
+            pointlist = num.ascontiguousarray(out_tri['vertices'])
+        else:
+            pointlist = num.empty((0,2),dtype=float)
+        if 'vertex_markers' in out_tri:
+            pointmarkerlist = num.ascontiguousarray(out_tri['vertex_markers'].reshape(-1))
+        else:
+            pointmarkerlist = num.empty(pointlist.shape[0],dtype=num.int32)
+        if 'triangles' in out_tri:
+            trianglelist = num.ascontiguousarray(out_tri['triangles'])
+        else:
+            trianglelist = num.empty((0,3),dtype=num.int32)
+        if 'vertex_attributes' in out_tri:
+            pointattributelist = num.ascontiguousarray(out_tri['vertex_attributes'])
+        else:
+            pointattributelist = num.empty((pointlist.shape[0],0),dtype=float)
+        if 'triangle_attributes' in out_tri:
+            triangleattributelist = num.ascontiguousarray(out_tri['triangle_attributes'])
+        else:
+            triangleattributelist = num.empty((trianglelist.shape[0],0),dtype=float)
+        if 'segments' in out_tri:
+            segmentlist = num.ascontiguousarray(out_tri['segments'])
+        else:
+            segmentlist = num.empty((0,2),dtype=num.int32)
+        if 'segment_markers' in out_tri:
+            segmentmarkerlist = num.ascontiguousarray(out_tri['segment_markers'].reshape(-1))
+        else:
+            segmentmarkerlist = num.empty(segmentlist.shape[0],dtype=num.int32)
+        if 'neighbors' in out_tri:
+            neighborlist = num.ascontiguousarray(out_tri['neighbors'])
+        else:
+            neighborlist = num.empty((trianglelist.shape[0],3),dtype=num.int32)
+
+
+    if TRILIB == 'meshpy':
+
+        in_tri = triang.MeshInfo()
+
+        in_tri.set_points(points)
+        in_tri.set_facets(segments, facet_markers=segatts)
+
+        if holes.size != 0:
+            in_tri.set_holes(holes)
+
+        if regions.size != 0:
+            in_tri.regions.resize(len(regions))
+            for i, region in enumerate(regions):
+                in_tri.regions[i] = region
+
+        #for i, att in enumerate(in_tri.point_attributes):
+        #    print(i,att)
+        
+
+        if pointatts.size != 0:
+            in_tri.number_of_point_attributes = pointatts.shape[1]
+            in_tri.point_attributes.setup()
+            for i, pointatt in enumerate(pointatts):
+                in_tri.point_attributes[i] = pointatt
+
+
+        if verbose:
+            print('TRIANGLE (meshpy):')
+            print('  Input sizes')
+            print('    vertices: %g'% points.size)
+            print('    segments: %g'% segments.size)
+            print('    holes:    %g'% holes.size)
+            print('    regions:  %g'% regions.size)
+
+
+        if verbose:
+            print(70*'=')
+            print('in_tri')
+            print(70*'=')
+            in_tri.dump()
+
+        try:
+            import locale
+        except ImportError:
+            have_locale = False
+        else:
+            have_locale = True
+            prev_num_locale = locale.getlocale(locale.LC_NUMERIC)
+            locale.setlocale(locale.LC_NUMERIC, "C")
+
+        try:
+            out_tri = triang.MeshInfo()
+            import meshpy._internals as internals
+            internals.triangulate(mode, in_tri, out_tri, triang.MeshInfo(), None)
+        finally:
+            # restore previous locale if we've changed it
+            if have_locale:
+                locale.setlocale(locale.LC_NUMERIC, prev_num_locale)
+
+        """
+            "points", "point_attributes", "point_markers",
+            "elements", "element_attributes", "element_volumes",
+            "neighbors",
+            "facets", "facet_markers",
+            "holes",
+            "regions",
+            "faces", "face_markers",
+            "normals",
+        """
+
+        if verbose:
+            print(70*'=')
+            print('out_tri')
+            print(70*'=')
+            out_tri.dump()
+
+        if len(out_tri.points) != 0:
+            pointlist = num.ascontiguousarray(out_tri.points).reshape(-1,2)
+        else:
+            pointlist = num.empty((0,2),dtype=float)
+
+        if len(out_tri.point_markers) != 0:
+            pointmarkerlist = num.ascontiguousarray(out_tri.point_markers).reshape(-1)
+        else:
+            pointmarkerlist = num.empty(pointlist.shape[0],dtype=num.int32)
+
+        try:
+            unit = out_tri.point_attributes.unit
+            pointattributelist = num.ascontiguousarray(out_tri.point_attributes).reshape(-1,unit)
+        except:
+            pointattributelist = num.empty((pointlist.shape[0],0),dtype=float)
+
+        if len(out_tri.elements) != 0:
+            trianglelist = num.ascontiguousarray(out_tri.elements).reshape(-1,3)
+        else:
+            trianglelist = num.empty((0,3),dtype=num.int32)            
+
+        try:
+            unit = out_tri.element_attributes.unit
+            triangleattributelist = num.ascontiguousarray(out_tri.element_attributes).reshape(-1,unit)
+        except:
+            triangleattributelist = num.empty((trianglelist.shape[0],0),dtype=float)
+
+        if len(out_tri.facets) != 0:
+            segmentlist = num.ascontiguousarray(out_tri.facets).reshape(-1,2)
+        else:
+            segmentlist = num.empty((0,2),dtype=num.int32)
+
+        if len(out_tri.facet_markers) != 0:
+            segmentmarkerlist = num.ascontiguousarray(out_tri.facet_markers).reshape(-1)
+        else:
+            segmentmarkerlist = num.empty(segmentlist.shape[0],dtype=num.int32)
+
+        try:
+            neighborlist = num.ascontiguousarray(out_tri.neighbors).reshape(-1,3)
+        except:
+            neighborlist = num.zeros((trianglelist.shape[0],3),dtype=num.int32)        
 
     if verbose:
         print('  Output sizes')
@@ -227,6 +348,10 @@ def generate_mesh(points=None,
     mesh_dict['generatedtriangleneighborlist'] = neighborlist
     mesh_dict['qaz'] = 1 #debugging
 
+    if verbose:
+        from pprint import pprint
+        pprint(mesh_dict)
+
     #mesh_dict['triangleattributelist'] = triangleattributelist
     if True:
         mesh_dict['generatedtriangleattributelist'] = triangleattributelist
@@ -244,6 +369,8 @@ def generate_mesh(points=None,
             # There are no triangles.
             # this is used by urs_ungridded2sww
             raise NoTrianglesError
+
+
     a = mesh_dict['generatedtriangleattributelist']
     # the structure of generatedtriangleattributelist is an list of
     # list of integers.  It is transformed into a list of list of

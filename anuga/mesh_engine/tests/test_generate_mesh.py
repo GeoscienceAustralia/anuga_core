@@ -462,6 +462,6 @@ class triangTestCase(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(triangTestCase, 'test')
+    suite = unittest.makeSuite(triangTestCase, 'test_')
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
