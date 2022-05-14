@@ -18,24 +18,29 @@ ANUGA requires python 3.X (X>6) and the following python packages:
 
 .. code-block::
 
-  numpy scipy matplotlib nose cython netcdf4 dill future gitpython gdal pyproj pymetis triangle Pmw mpi4py pytz ipython
+  numpy scipy matplotlib pytest cython netcdf4 dill future gitpython gdal pyproj pymetis triangle Pmw mpi4py pytz ipython  meshpy Pmw pymetis
 
 ANUGA is developed on Ubuntu and so we recommend Ubuntu as your production environment
-(though ANUGA can be installed on MacOS and Windows using `Miniconda`) 
+(though ANUGA can be installed on MacOS and Windows using `Miniconda` or `MiniForge`) 
 
-Ubuntu Install with Miniconda3
+Ubuntu Install with MiniForge3
 ------------------------------
 
-A clean way to install the dependencies for ANUGA is to use Anaconda, Miniconda or the Miniforge Python 
-distributions by Continuum Analytics.
+A clean way to install the dependencies for ANUGA is to use Anaconda, 
+or Miniconda Python distributions by Continuum Analytics, or the `conda-forge`
+distribution Miniforge3. 
 
-Miniconda has the advantage of allowing you to create multiple 
+This installation has the advantage of allowing you to create multiple 
 python environments and is particularly 
-useful if you want to keep multiple versions of ANUGA.
+useful if you want to keep multiple versions of ANUGA
 
-Both Anaconda and Miniconda do not require administrative rights 
-to your computer and do not interfere with the Python installed 
-in your system. But it is necessary to install a few packages via :code:`sudo apt-get`. 
+Indeed the most stable install is via the `conda-forge` channel
+which is easily available using the Miniforge
+
+These conda environments do not require administrative rights 
+to your computer and do not interfere with the Python installed in your system. 
+
+But it is necessary to install a few packages via :code:`sudo apt-get`. 
 
 Follow these steps:
 
@@ -44,39 +49,40 @@ Follow these steps:
     sudo apt-get update -q
     sudo apt-get install git wget
     
-Download and install Miniconda if you haven't already:
+Download and install Miniforge if you haven't already:
 
 .. code-block:: bash
 
-    wget http://repo.continuum.io/miniconda3/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
-    bash miniconda.sh
+    wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+    bash Miniforge3.sh
     
-Create `anuga_env` a conda environment:
+Create a conda environment `anuga_env` (or what ever name you like):
 
 .. code-block:: bash
 
     conda update conda
-    conda create -n anuga_env -c conda-forge python pip numpy scipy cython netcdf4 nose matplotlib gdal dill future gitpython pytz mpi4py
+    conda create -n anuga_env python=3.8 pip numpy scipy cython netcdf4 pytest matplotlib gdal dill future gitpython pytz mpi4py meshpy Pmw pymetis
     conda activate anuga_env
-    pip install triangle Pmw pymetis
-    
-Download, install and test `anuga`:
+
+This will setup an environment using python 3.8. `anuga` has be tested on 3.7, 3.8. 3.9.    
+
+Now Download, install and test `anuga`:
 
 .. code-block:: bash
 
     git clone https://github.com/anuga-community/anuga_core.git
     cd anuga_core
-    python setup.py install
-    python runtests.py
+    pip install -e .
+    pytest
 
 Remember, to use ANUGA you will have to activate the `anuga_env` via the command `conda activate anuga_env`.
-YOu might even like to set this up in your `.bashrc` file. 
+You might even like to set this up in your `.bashrc` file. 
 
 Installing on Ubuntu using apt and pip
 ---------------------------------------
 
-The preferred way to install the dependencies is 
-to use a combination of the standard ubuntu ``apt`` method and python pip install.
+You can install the `anuga` dependencies via a  combination of the 
+standard ubuntu ``apt`` method and python pip install.
 
 From your home directory run the following commands which will download anuga 
 to a directory `anuga_core`, install dependencies, install anuga and run the unit tests:
@@ -86,26 +92,21 @@ to a directory `anuga_core`, install dependencies, install anuga and run the uni
     git clone https://github.com/anuga-community/anuga_core.git
     sudo bash anuga_core/tools/install_ubuntu_20_04.sh
 
-Note: This will set ``python``  as ``python3`` and part of the bash shell will run as sudo so will ask for a password. If you like you can run the package installs manually, run the commands in the script ``anuga_core/tools/install_ubuntu_20._04.sh``
+Note: This will set ``python``  as ``python3`` and part of the bash shell will run as 
+sudo so will ask for a password. If you like you can run the package installs manually, 
+run the commands in the script ``anuga_core/tools/install_ubuntu_20._04.sh``
 
-You should now install and check the installation of anuga by running the unit tests via:
-
+You should now install anuga: 
 .. code-block:: bash
 
   cd anuga_core
-  python setup.py install --user
-  python runtests.py
-  
-Installing the latest version on Ubuntu as a developer
-------------------------------------------------------
-  
-If you wish to install ANUGA and make changes to the code, the installation procedure is as above, but with the setup step as follows::
+  pip install -e .
 
-  python setup.py develop --user
-  
-
-
+And finally check the installation by running the unit tests via:
+.. code-block:: bash
     
+  pytest
+      
 
 Windows 10 Install using 'Ubuntu on Windows'
 --------------------------------------------
@@ -117,17 +118,21 @@ Then just use your preferred ubuntu install described above.
 
 
 
-Windows Installation using Miniconda
+Windows Installation using MiniForge
 ------------------------------------
 
-We have installed `anuga` on `windows` using miniconda.  
+We have installed `anuga` on `windows` using miniforge.  
 
-Run the following powershell instruction to download miniconda. You can also just download manually:
+You can download MiniForge manually 
+from the MiniForge site https://github.com/conda-forge/miniforge:
+
+Alternatively you can download and install miniforge via CLI commands:
+
+Run the following powershell instruction to download miniforge. 
 
 .. code-block:: bash
 
-    Start-FileDownload "https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe" C:\Miniconda.exe; echo "Finished downloading miniconda"
-  
+    Start-FileDownload "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Windows-x86_64.exe" C:\Miniforge.exe; echo "Finished downloading miniforge"
   
 From a standard `cmd` prompt then install miniconda via:
 
@@ -136,13 +141,13 @@ From a standard `cmd` prompt then install miniconda via:
     C:\Miniconda.exe /S /D=C:\Py
     C:\Py\Scripts\activate.bat
     
-Install conda and pip packages:
+Install conda-forge packages:
 
 .. code-block:: bash
 
-    conda install -c conda-forge python=3.7 gdal nose numpy cython scipy netcdf4 matplotlib dill future gitpython mpi4py
-    pip install triangle Pmw pymetis
-    conda install -c msys2 libpython m2w64-toolchain
+    conda create -n anuga_env python=3.8 gdal pytest numpy cython scipy netcdf4 matplotlib dill future gitpython mpi4py meshpy Pmw pymetis
+    conda activate anuga_env
+    conda install libpython m2w64-toolchain
     
 Download ANUGA and install:
 
@@ -150,10 +155,11 @@ Download ANUGA and install:
 
     git clone https://github.com/anuga-community/anuga_core.git
     cd anuga_core
-    python setup.py install
+    cp windows_setup.cfg setup.cfg
+    pip install -e .
     
 And finally test the installation:
 
 .. code-block:: bash
 
-    python runtests.py
+    
