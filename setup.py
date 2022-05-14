@@ -24,7 +24,7 @@ MAINTAINER_EMAIL = 'stephen.roberts@anu.edu.au'
 URL = "http://anuga.anu.edu.au"
 LICENSE = 'GPL'
 DOWNLOAD_URL = "http://sourceforge.net/projects/anuga/"
-VERSION = '3.1'
+VERSION = '3.1.1'
 #===============================================================================
 
 
@@ -49,6 +49,7 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
         zip_safe=False,  # the package can run out of an .egg file
         include_package_data=True,
       	install_requires=['pytest',
+                          'nose',
                           'numpy',
                           'scipy',
                           'netcdf4',

@@ -35,7 +35,8 @@ python environments and is particularly
 useful if you want to keep multiple versions of ANUGA
 
 Indeed the most stable install is via the `conda-forge` channel
-which is easily available using the Miniforge
+which is easily available using the Miniforge. In particular the installation of 
+the `gdal` module is more stable. 
 
 These conda environments do not require administrative rights 
 to your computer and do not interfere with the Python installed in your system. 
@@ -61,7 +62,7 @@ Create a conda environment `anuga_env` (or what ever name you like):
 .. code-block:: bash
 
     conda update conda
-    conda create -n anuga_env python=3.8 pip numpy scipy cython netcdf4 pytest matplotlib gdal dill future gitpython pytz mpi4py meshpy Pmw pymetis
+    conda create -n anuga_env python=3.8 pip numpy scipy cython netcdf4 pytest nose matplotlib gdal dill future gitpython pytz mpi4py meshpy Pmw pymetis
     conda activate anuga_env
 
 This will setup an environment using python 3.8. `anuga` has be tested on 3.7, 3.8. 3.9.    
@@ -75,7 +76,13 @@ Now Download, install and test `anuga`:
     pip install -e .
     pytest
 
-Remember, to use ANUGA you will have to activate the `anuga_env` via the command `conda activate anuga_env`.
+Remember, to use ANUGA you will have to activate the `anuga_env` environment 
+via the command:
+
+.. code-block:: bash
+    
+    conda activate anuga_env`
+
 You might even like to set this up in your `.bashrc` file. 
 
 Installing on Ubuntu using apt and pip
@@ -104,7 +111,7 @@ You should now install anuga:
 
 And finally check the installation by running the unit tests via:
 .. code-block:: bash
-    
+
   pytest
       
 
@@ -145,7 +152,7 @@ Install conda-forge packages:
 
 .. code-block:: bash
 
-    conda create -n anuga_env python=3.8 gdal pytest numpy cython scipy netcdf4 matplotlib dill future gitpython mpi4py meshpy Pmw pymetis
+    conda create -n anuga_env python=3.8 gdal pytest nose numpy cython scipy netcdf4 matplotlib dill future gitpython mpi4py meshpy Pmw pymetis
     conda activate anuga_env
     conda install libpython m2w64-toolchain
     

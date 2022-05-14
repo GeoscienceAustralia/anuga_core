@@ -15,8 +15,8 @@ sudo apt-get install git wget
 echo "#==========================="
 echo "# Install miniconda"
 echo "#==========================="
-wget http://repo.continuum.io/miniconda3/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh ;
-bash ./miniconda.sh -b
+wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+bash Miniforge3.sh
 
 
 echo "#==========================="
@@ -24,7 +24,7 @@ echo "# Create conda environment anuga_env"
 echo "#==========================="
 conda update --yes conda
 conda create -n anuga_env -c conda-forge --yes python=3.8 pip numpy scipy cython netcdf4 \
-    pytest matplotlib gdal dill future gitpython mpi4py pytz utm Pmw pymetis meshpy
+    pytest nose matplotlib gdal dill future gitpython mpi4py pytz utm Pmw pymetis meshpy
 conda activate anuga_env 
 
 

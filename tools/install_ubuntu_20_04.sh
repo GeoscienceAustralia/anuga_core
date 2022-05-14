@@ -18,7 +18,7 @@ echo "#==========================="
 
 python3 -m venv anuga_env
 source anuga_env/bin/activate
-pip install scipy gdal matplotlib pytest cython netcdf4 matplotlib dill future gitpython pyproj pymetis pybind11 meshpy Pmw mpi4py ipython pytz utm
+pip install scipy gdal matplotlib pytest nose cython netcdf4 matplotlib dill future gitpython pyproj pymetis pybind11 meshpy Pmw mpi4py ipython pytz utm
 
 echo "#==========================="
 echo "# You should now install anuga from the anuga_core directory"
