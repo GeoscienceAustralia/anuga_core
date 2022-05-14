@@ -64,27 +64,15 @@ def configuration(parent_package='',top_path=None):
     from numpy.distutils.misc_util import Configuration
     from numpy.distutils.system_info import get_info
     
-  
-    
-    #print(mpi_flags)
     
     config = Configuration('parallel', parent_package, top_path)
 
     try:
-        # Use this import to check if we are in a parallel environment
-        from anuga.utilities import parallel_abstraction as pypar
-
-        if pypar.pypar_available:
-            #We are parallel!
-            mpi_flags = parse_command(getoutput_mpicc())
-
-            config.add_data_dir('tests')
-            config.add_data_dir('data')
-
+        import mpi4py
+        config.add_data_dir('tests')
+        config.add_data_dir('data')
     except:
-        #No parallel support, so just copy over the py files
         pass
-
     
     return config
     
