@@ -69,10 +69,11 @@ def configuration(parent_package='',top_path=None):
 
     try:
         import mpi4py
-        config.add_data_dir('tests')
-        config.add_data_dir('data')
     except:
         pass
+    else:
+        config.add_data_dir('tests')
+        config.add_data_dir('data')
     
     return config
     
