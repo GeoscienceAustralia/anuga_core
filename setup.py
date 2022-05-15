@@ -60,7 +60,7 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
                           'future',   # FIXME(Ole): Deprecate
                           'mpi4py',
                           'Pmw',
-                          'triangle',
+                          'meshpy',
                           'pymetis',
                           'gitpython',
                           'pytz',
