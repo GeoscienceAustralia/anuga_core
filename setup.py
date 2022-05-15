@@ -127,6 +127,7 @@ def store_revision_info(destination_path='anuga', version=VERSION, verbose=False
     # https://stackoverflow.com/questions/14989858/get-the-current-git-hash-in-a-python-script
     try:
         import git
+        repo = git.Repo(search_parent_directories=True)
     except:
         # Create dummy values for git revision info
         __git_sha__ = 'No git sha available'
@@ -139,7 +140,6 @@ def store_revision_info(destination_path='anuga', version=VERSION, verbose=False
         #raise Warning(msg)  # I can't remember why does this cause ANUGA to stop instead of just issuing the warning (Ole)?
         print('WARNING', msg)
     else:
-        repo = git.Repo(search_parent_directories=True)
         __git_sha__ = repo.head.object.hexsha
         __git_committed_datetime__ = repo.head.object.committed_datetime
         __version__ = version
