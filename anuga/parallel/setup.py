@@ -7,13 +7,8 @@ def configuration(parent_package='',top_path=None):
     
     config = Configuration('parallel', parent_package, top_path)
 
-    try:
-        import mpi4py
-    except:
-        pass
-    else:
-        config.add_data_dir('tests')
-        config.add_data_dir('data')
+    config.add_data_dir('tests')
+    config.add_data_dir('data')
     
     return config
     

@@ -2,6 +2,7 @@ numpy
 scipy 
 matplotlib 
 nose 
+pytest
 cython 
 netcdf4 
 dill 
@@ -9,7 +10,7 @@ future
 gitpython
 pyproj 
 pymetis 
-triangle 
+meshpy
 Pmw
 pytz
 nbsphinx

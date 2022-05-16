@@ -15,7 +15,7 @@ import numpy as num
 import os
 import subprocess
 
-verbose = True
+verbose = False
 
 path = os.path.dirname(__file__)  # Get folder where this script lives
 run_filename = os.path.join(path, 'run_parallel_distribute_mesh.py')
@@ -31,6 +31,7 @@ class Test_parallel_distribute_mesh(unittest.TestCase):
         extra_options = '--oversubscribe'
         cmd = 'mpiexec -np 3 ' + extra_options + ' echo '
 
+        # See if we get an error with --oversubscribe option
         result = subprocess.run(cmd.split(), capture_output=True)
         if result.returncode != 0:
             extra_options = ' '
