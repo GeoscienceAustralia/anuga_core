@@ -21,10 +21,10 @@ with open('README.rst') as f:
     LONG_DESCRIPTION = f.read()
 MAINTAINER = 'Stephen Roberts'
 MAINTAINER_EMAIL = 'stephen.roberts@anu.edu.au'
-URL = "http://anuga.anu.edu.au"
+URL = "https://github.com/anuga-community/anuga_core"
 LICENSE = 'GPL'
 DOWNLOAD_URL = "http://sourceforge.net/projects/anuga/"
-VERSION = '3.1.1'
+VERSION = '3.1.2'
 #===============================================================================
 
 
