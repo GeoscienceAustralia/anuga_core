@@ -24,7 +24,7 @@ MAINTAINER_EMAIL = 'stephen.roberts@anu.edu.au'
 URL = "https://github.com/anuga-community/anuga_core"
 LICENSE = 'GPL'
 DOWNLOAD_URL = "http://sourceforge.net/projects/anuga/"
-VERSION = '3.1.2'
+VERSION = '3.1.3'
 #===============================================================================
 
 
