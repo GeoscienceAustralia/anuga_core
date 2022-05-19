@@ -27,7 +27,7 @@ install:
 script:
     - export OMPI_MCA_btl_vader_single_copy_mechanism=none
     - python --version
-    - pytest
+    - python runtests.py -n
 
 after_success:
     - 

@@ -27,4 +27,4 @@ build_script:
   - pip install -e .
 
 test_script:
-  - pytest
+  - python runtests.py -n
