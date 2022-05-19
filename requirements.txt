@@ -18,5 +18,5 @@ scipy
 utm
 
 # gdal is a problem. 
-setuptools<58.0.1
-gdal==3.0.4
+#setuptools<58.0.1
+#gdal==3.0.4
