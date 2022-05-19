@@ -1,16 +1,22 @@
+
+# Other packages depend on numpy so install early
 numpy 
-scipy 
-matplotlib 
-nose 
-pytest
-cython 
-netcdf4 
-dill 
-future 
+
+cython
+dill
+future
 gitpython
-pyproj 
-pymetis 
+matplotlib
 meshpy
+mpi4py
+netcdf4
 Pmw
+pymetis
+pytest
 pytz
-nbsphinx
+scipy 
+utm
+
+# gdal is a problem. 
+setuptools<58.0.1
+gdal==3.0.4

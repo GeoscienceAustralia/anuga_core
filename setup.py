@@ -49,7 +49,6 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
         zip_safe=False,  # the package can run out of an .egg file
         include_package_data=True,
       	install_requires=['pytest',
-                          'nose',
                           'numpy',
                           'scipy',
                           'netcdf4',
