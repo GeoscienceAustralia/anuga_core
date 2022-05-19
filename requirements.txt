@@ -1,5 +1,5 @@
 
-# Other packages depend on numpy so install early
+# Mimimal requirements to install anuga in read teh docs
 
 setuptools
 future
@@ -7,3 +7,4 @@ Cython
 wheel
 numpy
 gitpython
+nbsphinx
