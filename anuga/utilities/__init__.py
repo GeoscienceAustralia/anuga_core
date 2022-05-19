@@ -5,7 +5,9 @@
     mathematical and programming idioms.
 """
 
-from numpy.testing import Tester
-test = Tester().test
+from numpy._pytesttester import PytestTester
+test = PytestTester(__name__)
+del PytestTester
+
 
 

@@ -4,6 +4,7 @@
 from anuga.geospatial_data.geospatial_data import *
 
 
-from numpy.testing import Tester
-test = Tester().test
+from numpy._pytesttester import PytestTester
+test = PytestTester(__name__)
+del PytestTester
 

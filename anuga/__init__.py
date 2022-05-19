@@ -34,10 +34,11 @@ import sys
 _stdout = sys.stdout
 
 # ---------------------------------
-# Setup the nose tester from numpy
+# Setup the tester from numpy
 # ---------------------------------
-from numpy.testing import Tester
-test = Tester().test
+from numpy._pytesttester import PytestTester
+test = PytestTester(__name__)
+del PytestTester
 
 #from anuga.__config__ import show as show_config
 
