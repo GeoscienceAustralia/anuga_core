@@ -1,7 +1,6 @@
 
 # Other packages depend on numpy so install early
 numpy 
-
 cython
 dill
 future
