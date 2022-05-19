@@ -74,7 +74,7 @@ Now Download, install and test `anuga`:
     git clone https://github.com/anuga-community/anuga_core.git
     cd anuga_core
     pip install -e .
-    pytest
+    python runtests.py 
 
 Remember, to use ANUGA you will have to activate the `anuga_env` environment 
 via the command:
@@ -156,7 +156,7 @@ You should now install anuga:
 And finally check the installation by running the unit tests via:
 .. code-block:: bash
 
-  pytest
+  python runtests.py
       
 
 Windows 10 Install using 'Ubuntu on Windows'
@@ -212,5 +212,7 @@ Download ANUGA and install:
 And finally test the installation:
 
 .. code-block:: bash
+
+    python runtests.py
 
     
