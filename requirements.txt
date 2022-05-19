@@ -1,0 +1,9 @@
+
+# Other packages depend on numpy so install early
+
+setuptools
+future
+Cython
+wheel
+numpy
+gitpython
